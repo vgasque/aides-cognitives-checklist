@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.39.9] — 2026-10-02
+Sept retours d'usage corrigés, et les deux essais d'affichage tranchés (A431-A437, doctrine `docs/decisions/lot-v5-39.md`).
+- **Colonne de gauche : les deux « Gérer » s'alignent.** La liste des catégories réservait la place de sa barre de
+  défilement, et tout ce qu'elle porte se tenait 15 px plus à gauche que les bibliothèques. Les trois étages de la
+  colonne réservent désormais la même place : un seul bord droit (A431).
+- **« Gérer les catégories » respire.** Les pastilles, l'anneau de la couleur choisie, « Autre teinte » et son
+  curseur ne touchent plus le bord de la carte, et l'anneau n'y est plus coupé. L'avertissement « △ Proche d'une
+  couleur d'alerte » retrouve son ambre et s'aligne sur le nom, « Prendre la teinte voisine » juste dessous (A432).
+- **En session, la barre « ↩ Bloc » ne cache plus le bas de la page.** Tant qu'elle est affichée, la page garde sa
+  place en bas : on défile jusqu'à la dernière ligne des références (A433).
+- **Essais tranchés : capsule en tuiles, instruments en colonne.** « Horizon » et « Bande » sont retirés, avec leurs
+  réglages dans Moi › Affichage ; le réglage enregistré sur l'appareil est effacé au démarrage (A434).
+- **Couleur d'accent : les pastilles montrent l'avatar qu'elles donneront.** Carré arrondi avec vos initiales ;
+  « Par défaut » est enfin le bleu pâle réel, et plus un bleu nuit. L'accent colore aussi « Moi » dans la colonne de
+  gauche et la carte d'identité de Moi (A435).
+- **« Rejoindre une session », caméra refusée.** Le message, une consigne et les deux boutons (« Autoriser la
+  caméra », « Saisir le code à la main ») forment une seule carte ambre avec son icône. « Ce qui est enregistré, et
+  par qui » montre la flèche ▾ des autres dépliants (A436).
+- **« Affichage » : le bandeau « Filtrer » ne saute plus** quand « n actifs · Tout effacer » apparaît (A437).
+- **Maquette à valider** : la partie « Administration » de Moi, sur un canevas Claude Design (rien n'est codé).
+- Témoins : section A380 d'`audit-doctrine` retirée avec les essais ; familles `essai-` purgées de `check-classes`.
+
 ## [5.39.8] — 2026-09-30
 Le geste retour se comporte comme dans une app (A430, doctrine `docs/decisions/lot-v5-39.md`).
 - **Balayer vers la droite ramène à l'écran d'avant, sans rechargement ni gel.** L'app gardait une seule entrée
@@ -337,23 +359,3 @@ Deux bugs du partage de session côté invité (A385) et leur pendant côté hô
 - **L'hôte peut consulter une autre aide pendant un partage** : les gestes de l'invité continuent
   d'arriver dans la session partagée (ils tombaient dans l'aide affichée et se perdaient), et une
   session ouverte sur l'autre aide n'envoie plus rien à l'invité (A387).
-
-## [5.33.1] — 2026-09-26
-Retours d'usage sur l'éditeur allégé de la v5.33 (A384, doctrine `docs/decisions/lot-v5-33.md`).
-- **La réponse attendue vide se laisse cliquer** : toucher le champ repliait l'étape et le clic
-  tombait sur l'étape suivante. La rangée reste désormais ouverte tant que le focus reste en elle.
-- **Des champs d'une seule taille** : titre d'étape, réponse attendue, question d'une décision,
-  réponses et blocs cibles prennent le gabarit des listes « Condition d'entrée » (15 px, environ
-  40 px de haut ; 16 px sur écran tactile, contre le zoom d'iOS). Au repos, la réponse reste serrée
-  sous le titre ; elle s'arrête avant le bouton « Réglages », qui ne touche plus le filet du dessus.
-- **Un seul dessin pour les boutons d'outil de l'éditeur**, blanc comme les autres boutons : croix de
-  suppression (rappels, listes, réponses, minuteurs, compteurs, jalons, complications, documents),
-  gras **B**, **△** du repère à vérifier (fond ambre quand il est posé), → vers le bloc d'un rappel.
-  Les anciennes cases blanches bordées et le pavé gris disparaissent.
-- **Complications** : la croix ne chevauche plus la cible ; le champ « Événement » et la cible
-  prennent le gabarit des autres champs.
-- **Toutes les pastilles se glissent au doigt**, « Importance » comprise : le glisser est posé une
-  fois pour toute l'app, un nouveau sélecteur n'a plus rien à câbler.
-- **Feuille de réglages** : « ×2 Confirmée par les deux » dit ce qu'elle fait (« en session, marquée
-  ×2 : les deux soignants la vérifient à voix haute ») ; le libellé de « Continuer » est dit
-  facultatif ; de l'air sous « Importance ».

@@ -383,3 +383,66 @@ montre l'écran vivant. **À vérifier sur l'appareil** (iPhone installé, Andro
 **Témoins.** `audit-retour` (section A430) : trois niveaux = trois entrées, retour ×3 aligné à chaque pas, fermeture
 par ✕ qui retire l'entrée, geste avant qui ne rouvre rien — rouge sur le code d'avant.
 
+
+## A431-A437 — sept retours d'usage (v5.39.9)
+
+**A431 — la colonne gauche n'a qu'un bord droit.** « Gérer » des Bibliothèques et « Gérer » des Catégories ne
+s'alignaient pas : le défileur des catégories réserve sa gouttière (`scrollbar-gutter:stable`, posé en v5.19 pour
+qu'une liste qui se met à défiler ne saute pas) — 15 px avec une barre classique, 0 avec une barre flottante — et
+tout ce qu'il porte (intertitre collant, comptes, « Gérer ») se tenait 15 px plus à gauche que l'étage fixe du
+haut. Mesuré à 1280 px sous Chromium : 225 contre 210. Les deux étages fixes (`.hs-top`, `.hs-foot`) réservent
+désormais la même gouttière (`overflow-y:hidden` + `scrollbar-gutter:stable` — une boîte cachée la reçoit aussi) :
+210 partout, et 0 de décalage là où la barre flotte. Refusé : retirer la gouttière stable (le saut revenait) ou la
+mesurer en JS (un réglage de plus pour un fait que CSS sait dire).
+
+**A432 — le gestionnaire de catégories respire.** La liste est une CARTE (`.ai-modal.page .cm-list`, A352) en
+`overflow:hidden` sans gouttière : pastilles, anneau de la pastille choisie, « Autre teinte », curseur et rangées
+touchaient le bord, l'anneau y était coupé. Gouttière de carte de 12 px (celle de `.acct-list`) ; la rangée ouverte
+déborde de 8 (et non 4) pour que l'anneau de 4 px et l'agrandissement de la pastille tiennent dedans. Et
+l'avertissement C3 « △ Proche d'une couleur d'alerte » était GRIS et à plat contre le bord : `.ai-card p` (0,1,1)
+battait `.cm-reg` (0,1,0) — marge, couleur et corps perdus depuis sa naissance. Sélecteur `.cm-row .cm-reg` ; le
+lien « Prendre la teinte voisine » suit la phrase (`margin-left:0`, `.linkbtn` porte `auto`) et passe dessous, au
+même retrait de 40 px que le nom.
+
+**A433 — la barre « ↩ Bloc » ne cache plus la fin de la page.** Elle flotte au-dessus du quai sans prendre de
+hauteur au flux (A37, P1) ; la page ne réservait en bas que le quai (`body.dock-on main`, 84 px), donc la dernière
+ligne des références dépliées restait dessous, inatteignable. Une porte unique `bkrShow` montre ou cache la barre
+ET pose `body.bkr-on`, qui réserve au bas de page `--dock-h + --sheet-h + 44 + 24`. Le blanc s'ajoute SOUS le
+contenu : rien ne bouge à l'écran au moment où elle paraît. Mesuré (390 et 1024 px, références + repères dépliés,
+défilé au bout) : dernière ligne à 541 px, barre à 679.
+
+**A434 — les essais A380 sont tranchés : capsule en TUILES, instruments en COLONNE.** Décision de l'auteur. Les
+deux essais sont RETIRÉS selon la procédure écrite en A380 : blocs CSS et JS « ESSAI X1/X2 » supprimés, `bande`
+disparaît d'`updateRtStrip` (`wideRail=mqRail.matches`, tranches `slice(0,1)`), `rail=mqRail.matches`, rail et volet
+d'origine ; puis `ESSAIS`, `essaiOn`, `essaiSet`, la boucle de démarrage, les rangées « Essai · » de Moi et leur
+liaison, la famille `essai-` de `check-classes`, la section d'audit A380. Les clés d'appareil `ac-essai-x1/x2` se
+purgent au démarrage.
+
+**A435 — l'accent ressemble à ce qu'il colore.** La pastille « Par défaut » peignait `--sys` (bleu nuit, v5.10.5)
+— la matière de l'avatar d'AVANT la v5 ; l'avatar réel est un carré arrondi bleu pâle (`--primary-soft`) aux
+initiales bleues. Les pastilles étaient des disques vides. Elles deviennent l'avatar qu'elles produiront : carré
+arrondi `--r-4` de 40 px, initiales du compte (`acctIniTxt`), encre blanche sur la teinte, matière réelle pour
+« Par défaut » ; sélection = l'anneau des pastilles de catégorie. Et le compte a TROIS avatars depuis la refonte v5
+(bouton d'en-tête, « Moi » de la colonne gauche ≥ 780, carte d'identité de Moi) : l'accent ne teintait que le
+premier, donc rien de visible autour du choix en voie large. Les trois le portent (`.hs-avatar` passe au carré
+arrondi `--r-1`, même forme que les deux autres). Une déclaration par teinte pour le corps ET sa pastille
+(`:is(body[data-accent=x],.acc-sw.a-x)`) : les deux listes recopiées pouvaient diverger. La portée ne change pas
+(A v5.0.0) : les avatars du compte, et rien d'autre.
+
+**A436 — « Caméra non autorisée » est une carte, et le dépliant a sa flèche.** Hors de `#shareBody` la notice de
+refus n'avait AUCUN style (collée en haut et à gauche sur « Rejoindre une session »), et ses deux boutons ne se
+lisaient pas comme la réponse à l'erreur. Une carte ambre (`.sl-cam`, filet `--warn-line`) porte l'icône
+`uiIcon('camera')`, le titre, une ligne qui dit quoi faire, et les deux gestes ; l'échappatoire dit ce qu'elle fait
+LÀ (« Saisir le code à la main » sur l'écran d'entrée, « Continuer sans partage » dans la feuille). « Ce qui est
+enregistré, et par qui » prend la flèche ▾/▴ de « En savoir plus » (`.acct-more`) ; le second moyen (« Sans
+internet… ») se détache du bouton « Rejoindre » (16 px).
+
+**A437 — « n actifs · Tout effacer » ne grandit plus le bandeau « Filtrer ».** Le lien (cible 32 px) entrait dans
+un bandeau dimensionné par l'icône de 28 : 39 → 43 px à la pose du premier filtre, la feuille sautait de 4 px. Le
+bandeau réserve la cible (`min-height` = 32 + pied + filet, boîte en border-box) : 43 px dans les deux états.
+
+**Maquette — « Administration » de Moi (À DÉCIDER).** Canevas Claude Design « Administration — Compte &
+synchronisation » (avant / proposé / aucune demande) : la seule action (examiner les demandes) devient une rangée
+de tête, trois chiffres clés en tuiles de LECTURE, contenus et sessions en rangées dans une carte comme les autres
+zones de Moi, stockage en barre à deux parts légendée, note du garde-fou alignée à gauche. Rien n'est codé tant que
+l'auteur n'a pas tranché.

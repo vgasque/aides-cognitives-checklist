@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-q9YjCluJBh4TqZU7pVEHpUvUyMJH1WSmPKUp7TNTltQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-e+9tb2wQ7q3tCBFObKz/koQ1AKPL+PdKiW203kYQSuk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -624,22 +624,29 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      reconnaissance périphérique est conservée — un disque coloré à position constante —, la
      concurrence avec les registres disparaît partout ailleurs, et la palette tombe à 10 hex.
      L'encre reste blanche : les cinq teintes sont choisies AA sur blanc, donc l'inverse tient. */
-  body[data-accent="teal"]{--accent:#0f766e}
-  body[data-accent="violet"]{--accent:#6d28d9}
-  body[data-accent="indigo"]{--accent:#4338ca}
-  body[data-accent="framboise"]{--accent:#be185d}
-  body[data-accent="ardoise"]{--accent:#475569}
-  html[data-theme="dark"] body[data-accent="teal"]{--accent:#0d9488}
-  html[data-theme="dark"] body[data-accent="violet"]{--accent:#8b5cf6}
-  html[data-theme="dark"] body[data-accent="indigo"]{--accent:#6366f1}
-  html[data-theme="dark"] body[data-accent="framboise"]{--accent:#db2777}
-  html[data-theme="dark"] body[data-accent="ardoise"]{--accent:#64748b}
+  /* v5.39.9 : UNE déclaration par teinte, pour le corps ET pour sa pastille de choix — les deux
+     listes recopiées pouvaient diverger. */
+  :is(body[data-accent="teal"],.acc-sw.a-teal){--accent:#0f766e}
+  :is(body[data-accent="violet"],.acc-sw.a-violet){--accent:#6d28d9}
+  :is(body[data-accent="indigo"],.acc-sw.a-indigo){--accent:#4338ca}
+  :is(body[data-accent="framboise"],.acc-sw.a-framboise){--accent:#be185d}
+  :is(body[data-accent="ardoise"],.acc-sw.a-ardoise){--accent:#475569}
+  html[data-theme="dark"] :is(body[data-accent="teal"],.acc-sw.a-teal){--accent:#0d9488}
+  html[data-theme="dark"] :is(body[data-accent="violet"],.acc-sw.a-violet){--accent:#8b5cf6}
+  html[data-theme="dark"] :is(body[data-accent="indigo"],.acc-sw.a-indigo){--accent:#6366f1}
+  html[data-theme="dark"] :is(body[data-accent="framboise"],.acc-sw.a-framboise){--accent:#db2777}
+  html[data-theme="dark"] :is(body[data-accent="ardoise"],.acc-sw.a-ardoise){--accent:#64748b}
   /* Le disque de l'avatar EST l'accent : une seule surface, une seule règle. */
   /* L'ACCENT RESTE LE SEUL CANAL DE « À QUEL COMPTE APPARTIENT CETTE FENÊTRE » (v5.0.0) : il
      colore le DISQUE, et lui seul. Sur un ordinateur partagé, c'est ce qui se reconnaît de loin. */
   body[data-accent] .bar-acct.on{background:var(--accent);border-color:var(--accent);color:var(--on-primary)}
   body[data-accent] .bar-acct.on:hover{background:var(--accent)}
   body[data-accent] .bar-acct.on .acct-ini{color:var(--on-primary)}
+  /* v5.39.9 : le compte a TROIS avatars depuis la refonte v5 — le bouton de l'en-tête, « Moi » dans
+     la colonne de gauche (≥ 780, où le bouton d'en-tête n'est plus le repère) et la carte
+     d'identité de Moi. L'accent ne teintait que le premier : choisi dans Moi, il ne se voyait nulle
+     part autour du choix. Les trois portent les initiales ; les trois portent l'accent. */
+  body[data-accent] :is(.hs-avatar,.auth-avatar){background:var(--accent);color:var(--on-primary)}
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
   /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
      sous ce seuil, Safari iOS zoome au focus et les taps se perdent (règle 9). */
@@ -673,15 +680,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .tg-row .tg-a{grid-column:1 / -1}}
 
   .accent-row{display:flex;gap:8px;flex-wrap:wrap}
-  .acc-sw{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex:none}
-  .acc-sw::after{content:"";position:absolute;inset:-4px}
-  .acc-sw.on{box-shadow:0 0 0 2px var(--work),0 0 0 4px var(--ink);transform:scale(1.08)}
+  /* v5.39.9 : la pastille EST l'avatar qu'elle produira — carré arrondi de l'en-tête, initiales du
+     compte, encre blanche sur la teinte ; « Par défaut » = la matière réelle du bouton (bleu pâle,
+     initiales bleues). Le disque rond et la pastille « défaut » sombre décrivaient un avatar qui
+     n'existe plus depuis la v5. Sélection = l'anneau des pastilles de catégorie (`.cm-sw .sw.on`). */
+  .acc-sw{position:relative;width:40px;height:40px;padding:0;border-radius:var(--r-4);border:0;cursor:pointer;flex:none;
+    display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-size:var(--t-cap);font-weight:800;letter-spacing:.5px;line-height:1;
+    background:var(--accent);color:var(--on-primary)}
+  .acc-sw::after{content:"";position:absolute;inset:-2px}
+  .acc-sw.on{box-shadow:0 0 0 2px var(--work),0 0 0 4px var(--ink)}
   .acc-sw:focus-visible{outline:2px solid var(--act);outline-offset:3px}
-  /* v5.10.5 (signalé à l'usage) : la PREMIÈRE pastille montre la couleur RÉELLE du disque par
-     défaut — `--sys`, celle que `.bar-acct.on` porte sans accent choisi — et plus un bleu
-     qu'aucun disque n'affiche. `var(--sys)` suit les deux thèmes tout seul. */
-  .acc-sw.a-clinique{background:var(--sys)}.acc-sw.a-teal{background:#0f766e}.acc-sw.a-violet{background:#6d28d9}.acc-sw.a-indigo{background:#4338ca}.acc-sw.a-framboise{background:#be185d}.acc-sw.a-ardoise{background:#475569}
-  html[data-theme="dark"] .acc-sw.a-teal{background:#0d9488}html[data-theme="dark"] .acc-sw.a-violet{background:#8b5cf6}html[data-theme="dark"] .acc-sw.a-indigo{background:#6366f1}html[data-theme="dark"] .acc-sw.a-framboise{background:#db2777}html[data-theme="dark"] .acc-sw.a-ardoise{background:#64748b}
+  /* La PREMIÈRE pastille montre l'avatar RÉEL sans accent : `.bar-acct.on` = `--primary-soft` +
+     encre `--act` (v5.10.5 la peignait en `--sys`, la matière d'avant la v5 — un avatar sombre
+     qu'aucun écran n'affiche plus). Filet interne de `.bar-acct` : sur la carte, le bleu pâle
+     garde sa limite. */
+  .acc-sw.a-clinique{background:var(--primary-soft);color:var(--act);box-shadow:inset 0 0 0 1px var(--ctl-line)}
+  .acc-sw.a-clinique.on{box-shadow:inset 0 0 0 1px var(--ctl-line),0 0 0 2px var(--work),0 0 0 4px var(--ink)}
   html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--work);color:var(--ink)}
   /* (Snackbar : tokens --rt-* fixes -> aucun override sombre nécessaire.) */
   /* Champs de saisie, pastilles neutres, panneaux : plus AUCUN override sombre — leurs fonds
@@ -1516,6 +1530,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      suit le dessin du dock, pas le rythme de la page. */
   body.dock-on main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   body.dock-on.kb-open main{padding-bottom:0}
+  /* v5.39.9 (signalé : la barre « ↩ Bloc » cachait la dernière ligne des références dépliées) : elle
+     flotte AU-DESSUS du quai (A37) sans prendre de hauteur au flux — la page ne réservait donc en bas
+     que le quai, et sa fin restait sous la barre, inatteignable. Tant qu'elle est montrée, le bas de
+     page réserve aussi ses 44 px et son écart : on défile jusqu'à la dernière ligne. Ajouté SOUS le
+     contenu, ce blanc ne déplace rien à l'écran au moment où elle paraît. */
+  body.dock-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 44px + 24px)}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
      qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
      dessus de lui, et sous la capsule : V2 — l'alarme reste toujours en vue. */
@@ -1839,25 +1859,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg.cnt{min-width:84px}
   #cbTimers .seg:not(.glb) .seg-l{color:var(--sys-ink)}   /* sur la tuile (--sys-2), l'encre secondaire tombe à 3,1:1 */
   #cbTimers .seg.due{min-width:96px}
-  /* ESSAI X1 ▼ horizon (A380) — 40 px à droite pour « 5 min », hors de portée des étiquettes. */
-  #cbTimers .hz{position:relative;flex:1 1 auto;min-width:120px;align-self:stretch;margin:0 8px 0 4px;overflow:hidden}   /* une étiquette ne déborde jamais sur le chrono */
-  #cbTimers .hz-l{position:absolute;left:0;right:40px;top:50%;height:2px;margin-top:-1px;background:var(--sys-line)}
-  #cbTimers .hz-0{position:absolute;left:0;top:50%;width:2px;height:12px;margin-top:-6px;background:var(--ok-sys)}
-  #cbTimers .hz-k{position:absolute;top:50%;left:calc(var(--x) * (100% - 40px));width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
-  #cbTimers .hz-5{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2)}
-  #cbTimers .hz-m{position:absolute;top:0;bottom:0;left:calc(var(--x,0) * (100% - 40px));width:0}
-  #cbTimers .hz-d{position:absolute;left:-4px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ok-sys)}
-  #cbTimers .hz-t{position:absolute;left:-4px;top:2px;display:flex;gap:4px;align-items:baseline;white-space:nowrap;font-size:var(--t-cap);font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--sys-ink)}
-  #cbTimers .hz-m.b .hz-t{top:auto;bottom:2px}
-  #cbTimers .hz~.seg.cnt{min-width:64px}
-  #cbTimers .hz-n{max-width:72px;overflow:hidden;text-overflow:ellipsis}
-  #cbTimers .hz-v{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
-  #cbTimers .hz-m:is(.soon,.due) .hz-d{background:var(--warn-sys)}
-  #cbTimers .hz-m.due .hz-t{color:var(--warn-sys)}
-  /* ESSAI X1 ▲ */
-  /* ESSAI X2 ▼ bande (A380) — le volet s'aligne sur la bande, largeur de la colonne d'action (A356). */
-  @media (min-width:780px){html.essai-x2 .rt-dock{left:18px;right:calc(var(--col-state) + var(--col-gap) + 18px)}}
-  /* ESSAI X2 ▲ */
   /* Le bloc courant OUVERT dit sa position par la pilule ; le compte vit dans « Parcours · x/y ». */
   .ov-block.cur:not(.closed) .ov-c{display:none}
   body.chrome-hdr #cbTimers{min-height:30px;padding:0;gap:14px}
@@ -2658,7 +2659,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
   .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
-  .vs-part{display:flex;align-items:center;gap:8px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .vs-part{display:flex;align-items:center;gap:8px;min-height:calc(32px + 10px + 1px);padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}   /* v5.39.9 : la cible de 32 px de « Tout effacer », plus le pied et le filet (boîte en border-box) — sa venue ne grandit plus le bandeau (39 → 43 px mesurés) */
   .vs-pic{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act)}
   .vs-pt{margin:0;font-size:var(--t-item);font-weight:800;color:var(--ink)}
   .vs-pn{font-size:var(--t-meta);font-weight:700;color:var(--act)}
@@ -6438,6 +6439,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--crit-soft);border-left:4px solid var(--crit-line);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}
   .join-go{width:100%;min-height:44px;font-size:15px}
+  .join-go+.join-lab{margin-top:16px}   /* v5.39.9 : le second moyen (« Sans internet… ») se détache du bouton du premier */
   /* ── Partage en direct / par l'écran (v5.14.2, remédiation d'après maquettes) ──
      La caméra est BORNÉE (signalé tablette : « la fenêtre photo dépasse du cadre ») : jamais de
      hauteur en vh (règle 10), un ratio et une largeur maximale suffisent. Notices = registre
@@ -6457,6 +6459,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border-radius:var(--r-2);font-size:var(--t-body);line-height:1.45;background:var(--warn-soft);
     color:var(--warn);border:1px solid var(--warn-line)}
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
+  /* Refus de la caméra (v5.39.9) : notice ET gestes dans la même carte ambre, où qu'elle se pose
+     (feuille de partage, écran « Rejoindre »). */
+  .sl-cam{margin:12px 0 0;padding:12px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft)}
+  .sl-cam-h{display:flex;gap:10px;align-items:flex-start;color:var(--warn);font-size:var(--t-body);line-height:1.45}
+  .sl-cam-h>svg{flex:none;margin-top:1px}
+  .sl-cam-h b{display:block;font-size:var(--t-item)}
+  .sl-cam-s{display:block;color:var(--ink)}
+  .sl-cam .sl-actions,#shareBody .sl-cam .sl-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .sl-cam .sl-actions .btn{width:100%;min-height:44px;justify-content:center}
+  .sl-cam .sl-actions .btn.ghost{background:var(--work)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--ink-3);
     text-align:center;margin:6px 0 0}
   /* Feuille « Mode » (A327) : quatre rangées radio de 52 px, la choisie sur teinte de SÉLECTION ;
@@ -6517,7 +6529,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #scanOv .sc-flash.on{animation:none}
     #scanOv .sc-ring .fgc{transition:none}}
   .join-info{margin:16px 0 0;font-size:13.5px;color:var(--ink-soft)}
-  .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--act)}
+  .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;gap:4px;font-weight:700;color:var(--act);list-style:none}
+  /* v5.39.9 : le dépliant dit qu'il se déplie — la flèche de « En savoir plus » (`.acct-more`). */
+  .join-info>summary::-webkit-details-marker{display:none}
+  .join-info>summary::after{content:"▾";font-size:11px}
+  .join-info[open]>summary::after{content:"▴"}
   .join-info p{margin:8px 0 0;line-height:1.5}
   .ai-modal.on{display:flex}
   /* Verrou de fond (v4.21.0 ; technique changée v4.29.9) : overflow:hidden sur html ET body — plus
@@ -6713,7 +6729,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ai-modal.page .ai-card .ai-x:hover{background:var(--amb-2)}
   .ai-card .ai-x{position:relative}.ai-card .ai-x::after{content:"";position:absolute;inset:-2px}   /* A375 : M 40 + halo = cible 44 (règle 9 en session) */
   .ai-modal.page .ai-card .ai-x::after{inset:-3px}   /* cible 44 : -3 car le filet de 1 px est hors du padding-box */
-  .ai-modal.page .cm-list{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
+  .ai-modal.page .cm-list{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden;padding:0 12px}   /* v5.39.9 : gouttière de carte (12, celle de `.acct-list`) — pastilles, anneaux et intitulés de la palette touchaient le bord, et l'anneau de la pastille choisie y était coupé */
   @media (min-width:780px){.ai-modal.page .ai-card{max-width:var(--dlg-atelier)}}   /* le gabarit DOCUMENT, pas un quatrième */
   .dlg-480 .ai-x{color:var(--ink-soft)}
   .crt-list{display:grid;gap:10px;grid-auto-rows:1fr;margin-bottom:4px}   /* rangées égales : toutes les cartes = la plus haute */
@@ -7033,6 +7049,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      défileur prend toute la place restante et le socle revient se coller en bas. */
   .hs-scroll{flex:0 1 auto;min-height:0;overflow-y:auto;padding:0 12px 4px;display:flex;flex-direction:column;gap:2px;scrollbar-gutter:stable}
   .hs-foot{flex:none;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px;background:var(--work);position:relative;z-index:2}
+  /* v5.39.9 (signalé : « Gérer » des Bibliothèques et des Catégories ne s'alignaient pas) : le
+     défileur réserve sa gouttière (`stable`) — 15 px avec une barre classique, 0 avec une barre
+     flottante — et tout ce qu'il porte se décalait d'autant vers la gauche par rapport aux deux
+     étages fixes. Les étages fixes réservent LA MÊME gouttière (une boîte `overflow:hidden` la
+     reçoit aussi) : un seul bord droit pour les trois, quelle que soit la barre du système. */
+  .hs-top,.hs-foot{overflow-y:hidden;scrollbar-gutter:stable}
   /* L'intertitre du seul défileur COLLE : une liste longue ne doit pas perdre son étiquette.
      Marges négatives = il reprend le rembourrage de la colonne pour peindre bord à bord. */
   .hs-h-stick{position:sticky;top:0;background:var(--work);margin:0 -12px 8px;padding:12px 24px 0;z-index:1}
@@ -7199,7 +7221,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .hs-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
     .hs-n{font-family:var(--f-mono)}
     .home-side .cat-dot{border-radius:3px}
-    .hs-avatar{width:22px;height:22px;border-radius:50%;background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+    .hs-avatar{width:22px;height:22px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
     body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
     /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
@@ -7718,11 +7740,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cm-ln{flex:none;margin-left:auto;font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
   .cm-l+.cm-add{margin-top:12px}
   .cm-row{border-top:1px solid var(--line)}
-  .cm-reg{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 8px 40px;font-size:var(--t-meta);font-weight:700;color:var(--warn)}   /* C3 */
-  .cm-reg .linkbtn{display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:var(--t-meta)}
+  /* C3. v5.39.9 : `.cm-row` en tête de sélecteur — `.ai-card p` (0,1,1) l'emportait sur `.cm-reg` seul et
+     rendait la ligne grise, à plat contre le bord (marge 0) ; le lien suit la phrase au lieu d'être
+     repoussé au bord droit (`.linkbtn` porte `margin-left:auto`), et passe dessous, au même retrait. */
+  .cm-row .cm-reg{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;margin:-2px 0 8px 40px;font-size:var(--t-meta);font-weight:700;line-height:1.4;color:var(--warn)}
+  .cm-reg .linkbtn{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin-left:0;font-size:var(--t-meta)}
   .cm-regsw{width:14px;height:14px;border-radius:3px;flex:none}
   .cm-list>.cm-row:last-child{border-bottom:1px solid var(--line)}
-  .cm-row.open,.cm-row.ask{background:var(--amb);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}   /* .ask : confirmation de suppression, même sol que la palette */
+  .cm-row.open,.cm-row.ask{background:var(--amb);margin:0 -8px;padding:0 8px;border-radius:8px;border-color:transparent}   /* .ask : confirmation de suppression, même sol que la palette */
   .cm-top{display:grid;grid-template-columns:32px minmax(0,1fr) 76px 34px;gap:8px;align-items:center;min-height:44px}   /* compte à largeur fixe : l'input ne varie plus d'une rangée à l'autre */
   .cm-dot{width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer}
   .cm-dot span{width:18px;height:18px;border-radius:8px;display:block}
@@ -8725,7 +8750,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.8';
+const APP_VERSION='5.39.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9211,14 +9236,9 @@ const READ_MODES=['overview','static'];   // ('guided' PURGÉ v5.20.9, A296 — 
 function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
-/* ESSAIS (A380) — réglage d'appareil, à trancher en conditions réelles. Code balisé « ESSAI Xn ▼/▲ »
-   ou derrière `essaiOn('xn')` ; garder/retirer : procédure dans lot-v5-31.md A380. */
-const ESSAIS={x1:['Capsule','Tuiles','Horizon'],x2:['Instruments','Colonne','Bande']};
-const essaiOn=k=>document.documentElement.classList.contains('essai-'+k);
-function essaiSet(k,on){try{on?localStorage.setItem('ac-essai-'+k,'1'):localStorage.removeItem('ac-essai-'+k);}catch(e){}
-  document.documentElement.classList.toggle('essai-'+k,!!on);}
-Object.keys(ESSAIS).forEach(k=>{let on=false;try{on=localStorage.getItem('ac-essai-'+k)==='1';}catch(e){}
-  document.documentElement.classList.toggle('essai-'+k,on);});
+/* ESSAIS (A380) TRANCHÉS en v5.39.9 : capsule en TUILES, instruments en COLONNE — les deux essais
+   sont retirés ; les clés d'appareil `ac-essai-*` se purgent au démarrage. */
+try{localStorage.removeItem('ac-essai-x1');localStorage.removeItem('ac-essai-x2');}catch(e){}
 /* Le PLAN n'a plus qu'UNE vue (l'Échelle) depuis v4.25.0 : PLAN_VIEWS / currentPlanView /
    setPlanViewPref et le champ state.ovPlanView ont été supprimés avec le sélecteur d'affichage.
    Rien à mémoriser, donc — et si un jour une seconde vue revenait, sa préférence resterait LOCALE
@@ -9649,7 +9669,7 @@ function placeCrisisChrome(){
   if(!dk||!slot)return;
   // v5.30 (A354) : la capsule ne monte dans l'en-tête qu'au BUREAU (≥ 1440, `mqHdrCap`) ; en deçà —
   // tablettes comprises, en paysage aussi — elle reste sous l'en-tête, à sa forme pleine.
-  if(!(mqHdrCap.matches&&state.view==='read'&&state.fiche)||essaiOn('x2'))return;   // ESSAI X2 : la bande reste sous l'en-tête
+  if(!(mqHdrCap.matches&&state.view==='read'&&state.fiche))return;
   if(dk.parentNode!==slot)slot.appendChild(dk);
   // A328 : le bandeau « par l'écran » ne monte PAS dans l'en-tête (il y couvrait le titre) — il reste
   // dans le flux, sous l'en-tête, en rangée compacte collante ; même patron nomade, jamais recréé.
@@ -12943,7 +12963,7 @@ function syncBlkReturn(){
   if(!card||!('IntersectionObserver' in window)){
     if(card===_bkrCard&&!_bkrKey)return;
     if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
-    _bkrCard=card;_bkrKey='';host.hidden=true;host.innerHTML='';return;}
+    _bkrCard=card;_bkrKey='';bkrShow(host,false);host.innerHTML='';return;}
   const num=(card.querySelector('.ov-n')||{}).textContent||'';
   /* Le titre SEUL : `.ov-t` porte aussi ses tags (« passage 1/2 », « ⚡ complication »,
      « par X ») — on ne lit que ses nœuds texte directs (v5.27.1). */
@@ -12959,7 +12979,7 @@ function syncBlkReturn(){
   _bkrCard=card;_bkrKey=key;
   if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
   if(memeBarre){majBkrCnt(host,cnt);_bkrIo=obsBkr(host,card);return;}
-  host.hidden=true;                               // jamais peinte avant le verdict
+  bkrShow(host,false);                            // jamais peinte avant le verdict
   host.innerHTML='<button type="button" class="bkr" id="bkrBtn">'+uiIcon('backto',16,{sw:2.2})
     +'<span class="bkr-t">'+esc(nom)+'</span>'+(cnt?'<span class="bkr-c">'+esc(cnt.trim())+'</span>':'')+'</button>';
   const b=document.getElementById('bkrBtn');
@@ -12972,6 +12992,8 @@ function syncBlkReturn(){
   _bkrIo=obsBkr(host,card);}
 /* Le compte se peint SUR PLACE (anti-churn) : hors de la clé, il ne peut pas provoquer de
    reconstruction, donc pas de clignotement au cochage. */
+/* Montrer/cacher la barre ET la place qu'elle réserve au bas de page (`body.bkr-on`) : une seule porte. */
+function bkrShow(host,on){host.hidden=!on;document.body.classList.toggle('bkr-on',!!on);}
 function majBkrCnt(host,cnt){
   const e=host.querySelector('.bkr-c'),v=(cnt||'').trim();
   if(e&&e.textContent!==v)e.textContent=v;}
@@ -12985,7 +13007,7 @@ function obsBkr(host,card){
   const bas=Math.round(dh+16);
   const io=new IntersectionObserver(es=>{es.forEach(e=>{
     if(!e.target.isConnected)return;              // remplacé par un rendu : pas un verdict
-    host.hidden=e.isIntersecting;});},
+    bkrShow(host,!e.isIntersecting);});},
     {threshold:0,rootMargin:'-'+top+'px 0px -'+bas+'px'});
   io.observe(card);return io;}
 function paintCnAgo(now){document.querySelectorAll('.cn-log[id^="cnlog-"]').forEach(el=>{
@@ -13044,7 +13066,7 @@ function updateRtStrip(now){
   // Segments : jusqu'à DEUX minuteurs étiquetés (échus d'abord, puis les plus urgents), « +n »,
   // puis GLOBAL (chrono de session — démarre à la 1ʳᵉ action, décision produit V5) et « remonter ».
   const withRem=run.map(rtWith).sort((a,b)=>a.rem-b.rem);
-  const bande=mqRail.matches&&essaiOn('x2'),wideRail=mqRail.matches&&!bande;   // ESSAI X2 : en bande, la composition du téléphone
+  const wideRail=mqRail.matches;
   // CE QUE PORTE LE QUAI (v4.23.0, décision utilisateur) : < 1000px chrono de session + UN minuteur
   // étiqueté + « +n » ; ≥ 1000px le rail droit porte DÉJÀ tous les minuteurs — le quai ne garde que
   // l'état de session et l'ALARME (redondance de l'alarme VOULUE ; celle du nominal, non).
@@ -13061,7 +13083,7 @@ function updateRtStrip(now){
      INERTE au-delà de 780 px. ⚠ « +n » NE CHANGE PAS (`pool=dueList`) : un imminent n'est pas
      une alarme ; s'il ne tient pas, le rappel du chevron l'annonce. Détail : doctrine-js.md J49. */
   const soonList=withRem.filter(x=>x.soon);
-  const want=wideRail?dueList.concat(soonList).slice(0,2):withRem.slice(0,bande?3:1);
+  const want=wideRail?dueList.concat(soonList).slice(0,2):withRem.slice(0,1);
   /* LA COULEUR ÉTAIT SEULE DANS LA ZONE LA PLUS CRITIQUE DE L'APP (correctif, règle 8) : l'échu
      du quai ne se distinguait d'un nominal que par la teinte. LE MOT NE PEUT PAS ÊTRE ÉCRIT EN
      CLAIR ICI (mesuré) : `.seg-l` en ellipse rognerait un suffixe d'abord, et allonger le segment
@@ -13140,7 +13162,7 @@ function updateRtStrip(now){
   /* v5.30 (maquette v5) : en voie étroite, le PREMIER compteur entre dans la capsule en tuile
      (libellé + valeur, `data-cntval` repeint par setCounterVal) ; le rappel ne compte que ce qui
      n'est pas montré. Sacrifié avant tout minuteur (kc = 0), jamais l'inverse. */
-  const cnts=(!wideRail&&started&&crisis)?((Runtime.fiche&&Runtime.fiche.counters)||[]).filter(c=>c&&c.id).slice(0,bande?2:1):[];
+  const cnts=(!wideRail&&started&&crisis)?((Runtime.fiche&&Runtime.fiche.counters)||[]).filter(c=>c&&c.id).slice(0,1):[];
   const cntOf=kc=>cnts.slice(0,kc).map(c=>'<span class="seg cnt"><span class="seg-l" title="'+esc(c.label||'')+'">'+esc(cnShort(c)||'Compteur')+'</span><span class="seg-t" data-cntval="'+esc(c.id)+'">'+esc(String((Runtime.counters||{})[c.id]||0))+'</span></span>').join('');
   const chevLblOf=(n,kc)=>{const ct=Math.max(0,decl.t-n),cc=Math.max(0,decl.c-(kc||0));
     return (!wideRail&&started&&(ct||cc))
@@ -13187,23 +13209,6 @@ function updateRtStrip(now){
   const fresh=()=>{if(!_cf)return;const nd=el.querySelector('[data-seg="'+CSS.escape(_cf)+'"]:not(.due)');
     if(nd){_capFresh=null;nd.classList.add('seg-in');nd.addEventListener('animationend',()=>nd.classList.remove('seg-in'),{once:true});}
     else if(!run.some(t=>t.id===_cf))_capFresh=null;};
-  // ESSAI X1 ▼ horizon (A380) : minuteurs lancés à leur temps restant sur 5 min ; rien d'extrapolé, l'échu sur « maintenant ».
-  if(essaiOn('x1')&&!wideRail&&started){
-    const hz=withRem.filter(x=>x.t.type==='interval').slice(0,3),kc=el.clientWidth>=360?cnts.length:0,val=x=>x.rem<0?'échu':x.d.val;
-    const h=glob+'<span class="hz" aria-hidden="true"><span class="hz-l"></span><span class="hz-0"></span>'
-      +[.2,.4,.6,.8].map(f=>'<span class="hz-k" style="--x:'+f+'"></span>').join('')
-      +hz.map((x,i)=>'<span class="hz-m'+(x.rem<0?' due':x.soon?' soon':'')+(i%2?' b':'')+'" data-seg="'+esc(x.t.id)+'"><span class="hz-d"></span><span class="hz-t"><span class="hz-n">'+(x.rem<0?'△ ':'')+esc(tmName(x.t).split(/ [—–-] /)[0])+'</span><span class="hz-v"></span></span></span>').join('')
-      +'<span class="hz-5">5 min</span></span><span class="sr-only hz-sr"></span>'+cntOf(kc)+chevOf(hz.length?'':chevLblOf(0,kc));
-    el.hidden=false;_rtsFitKey='';
-    if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
-    paintVals(0);
-    const W=el.querySelector('.hz').clientWidth;
-    el.querySelectorAll('.hz-m').forEach((m,i)=>{const x=hz[i],fx=x.rem<0?0:Math.min(1,x.rem/300000),xp=fx*(W-40),v=m.querySelector('.hz-v'),lb=m.querySelector('.hz-t');
-      m.style.setProperty('--x',fx.toFixed(4));if(v.textContent!==val(x))v.textContent=val(x);
-      lb.style.left=Math.round(Math.max(0,Math.min(xp-4,W-lb.offsetWidth))-xp)+'px';});   // étiquette calée dans l'axe
-    const sr=el.querySelector('.hz-sr'),st=hz.map(x=>tmName(x.t)+' '+val(x)).join(', ');if(sr.textContent!==st)sr.textContent=st;
-    fresh();syncDock();return;}
-  // ESSAI X1 ▲
   const htmlOf=(n,noChev,nu,kc)=>glob+segOf(want.slice(0,n))+moreOf(n)+cntOf(kc||0)+(noChev?'':chevOf(nu?'':chevLblOf(n,kc)));
   const write=(n,noChev,nu,kc)=>{const h=htmlOf(n,noChev,nu,kc);
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
@@ -13281,7 +13286,7 @@ function updateRtStrip(now){
       QUAI : ouvert par le quai il se rend SOUS lui, par la rangée du bas il s'ouvre en bas —
       `state.rtOpen` porte l'ENDROIT ('dock' | 'flow'), pas seulement l'état. v5.4.1 : VOLET FIXE
       (`.rt-dock`), niveau de la pile de retour comme toute surface qui recouvre (A430). Détail : doctrine-js.md J58. */
-   if(!mqRail.matches||essaiOn('x2')){const open=!state.rtOpen;state.rtOpen=open?'dock':false;   // ESSAI X2
+   if(!mqRail.matches){const open=!state.rtOpen;state.rtOpen=open?'dock':false;
      if(open)_rollOnce=true;                        // le déroulé appartient à CE tap, et à lui seul
      renderKeepAnchor('#cbTimers');return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
@@ -18427,14 +18432,18 @@ async function slScanOverlay(o){
   try{await slScanStart(video,(txt,bin)=>o.onText(txt,bin,ui));}
   catch(e){ov.hidden=true;throw e;}
   return ui;}
-/* REFUS D'AUTORISATION (maquette 05) — un bouton qui répare, une échappatoire, six mots. */
-function slCamRefusedHtml(){
-  return '<div class="sl-note"><span aria-hidden="true">⚠</span><span><b>Caméra non autorisée'
-    +'</b></span></div>'
+/* REFUS D'AUTORISATION (maquette 05) — un bouton qui répare, une échappatoire, peu de mots.
+   v5.39.9 (signalé sur « Rejoindre une session ») : la notice et ses deux boutons forment UNE carte
+   ambre — sans cadre commun, les boutons ne se lisaient pas comme la réponse à l'erreur, et hors de
+   #shareBody la notice n'avait même aucun style (collée en haut et à gauche). Icône `uiIcon`, comme
+   les autres notices ; l'échappatoire dit ce qu'elle fait LÀ où elle est (`skipLbl`). */
+function slCamRefusedHtml(skipLbl){
+  return '<div class="sl-cam" role="alert"><div class="sl-cam-h">'+uiIcon('camera',18)
+    +'<span><b>Caméra non autorisée</b><span class="sl-cam-s">Autorisez-la pour ce site dans le navigateur, puis réessayez.</span></span></div>'
     +'<div class="sl-actions"><button class="btn primary" id="slCamRetry">Autoriser la caméra'
-    +'</button><button class="btn ghost" id="slCamSkip">Continuer sans partage</button></div>';}
-function slCamRefused(container,retry,skip){
-  container.innerHTML=slCamRefusedHtml();
+    +'</button><button class="btn ghost" id="slCamSkip">'+esc(skipLbl||'Continuer sans partage')+'</button></div></div>';}
+function slCamRefused(container,retry,skip,skipLbl){
+  container.innerHTML=slCamRefusedHtml(skipLbl);
   document.getElementById('slCamRetry').addEventListener('click',retry);
   document.getElementById('slCamSkip').addEventListener('click',skip);}
 
@@ -18693,7 +18702,7 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
      vit). En LARGE, rien ne change : rail, et '' quand il n'y a rien à montrer (le journal y a
      sa propre section). Le panneau s'ouvre par le quai (#cbTimers) — jamais automatiquement,
      l'échéance s'annonce sur place (règle 11). */
-  const rail=mqRail.matches&&!essaiOn('x2');   // ESSAI X2 : en bande, le contenu du volet
+  const rail=mqRail.matches;
   if(!rail&&!state.rtOpen)return '';
   /* ⚠ LE RAIL NE SE TAIT PLUS QUAND LA FICHE N'A RIEN (v5.6, signalé à l'usage : « lorsque la
      session n'a pas de minuteur ou chronomètre pré-défini, l'option d'ajouter ne s'affiche
@@ -19366,7 +19375,7 @@ function renderRead(){
     +(avantSession?`<div class="rail-sec">${preStartHtml(f)}</div>`
         +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
         +preLastSessHtml(f)
-      :(essaiOn('x2')?'':`<div class="rail-sec">${rtH}</div>`)   // ESSAI X2 : les instruments passent en bande
+      :`<div class="rail-sec">${rtH}</div>`
     /* v5.4.2-r (R1) : le JOURNAL contre les compteurs, en dépliant — les trois familles de
        traçabilité voisines à toutes les largeurs (la décision v5.4.0 portée au rail). Puis la
        posologie ; puis, sous 1200 seulement, l'Échelle en dépliant (R2 — cf. doctrine près de
@@ -19485,7 +19494,7 @@ function renderRead(){
     if(i>0)stages.unshift(stages.splice(i,1)[0]);}
   /* LE DÉPLIANT DU QUAI : rendu EN TÊTE de la colonne d'action, donc juste sous le quai qui l'a
      ouvert. En large (≥ 780 px) le rail porte déjà les minuteurs — il n'y a rien à déplier. */
-  const dockPanel=((!wideRead||essaiOn('x2'))&&state.rtOpen==='dock')   // ESSAI X2
+  const dockPanel=(!wideRead&&state.rtOpen==='dock')
     ?`<div class="rt-dock${_rollOnce?' rt-roll':''}">${rtH}</div>`:'';
   _rollOnce=false;   // consommée : le prochain rendu ne re-déroule pas un volet déjà ouvert
   /* ⚠ ACTION 3 DE L'AUDIT — LE PRÉAMBULE AVANT LA PREMIÈRE ÉTAPE. Mesuré à 320 × 640, session
@@ -27420,14 +27429,9 @@ function accountPrefsHtml(slot){
         `<button type="button" class="seg-btn${currentReadMode()===k?' on':''}" data-disp="${k}" role="radio" aria-checked="${currentReadMode()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
     <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « ⤢ Tout voir » montre la fiche entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
-    ${Object.keys(ESSAIS).map(k=>{const [l,a,b]=ESSAIS[k],on=essaiOn(k);   // ESSAI (A380)
-      return `<div class="set-row" style="margin-top:12px"><span class="set-l" id="es${k}Lbl">Essai · ${esc(l)}</span>
-    <div class="seg${on?' i1':''}" data-essai="${k}" role="radiogroup" aria-labelledby="es${k}Lbl"><span class="seg-pill" aria-hidden="true"></span>${
-      [[0,a],[1,b]].map(([v,t])=>`<button type="button" class="seg-btn${+on===v?' on':''}" data-ev="${v}" role="radio" aria-checked="${+on===v?'true':'false'}">${esc(t)}</button>`).join('')}</div></div>`;}).join('')}
-    <div class="st-hint" style="margin-bottom:4px">Essais d'affichage de la session, sur cet appareil seulement : <b>Horizon</b> dessine les minuteurs en cours sur les 5 prochaines minutes ; <b>Bande</b> met les instruments sous le titre dès la tablette, la colonne de droite gardant le journal et les repères posologiques.</div>
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
-    <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div></div>
-    <div class="st-hint" style="margin-bottom:4px">Colore le <b>disque de votre compte</b>, en haut à droite — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
+    <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"><span aria-hidden="true">${acctIniTxt()}</span></button>`).join('')}</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Colore <b>vos initiales</b> — le bouton de votre compte, en haut ou dans la colonne de gauche — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
     ${Auth.signedIn()?sessSyncPrefHtml():''}
     ${tagsPrefHtml()}</div>`;}
 /* ═══ HISTORIQUE SYNCHRONISÉ — LA BASCULE, ET CE QU'ELLE DIT ══════════════════════════════════
@@ -27529,11 +27533,6 @@ function bindAccountPrefs(body){
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
     peindre();}}
-  body.querySelectorAll('[data-essai]').forEach(sg=>{const k=sg.dataset.essai,btns=[...sg.querySelectorAll('[data-ev]')];   // ESSAI (A380)
-    const peindre=()=>{const on=essaiOn(k);sg.classList.toggle('i1',on);
-      btns.forEach(b=>{const v=b.dataset.ev==='1'===on;b.classList.toggle('on',v);b.setAttribute('aria-checked',v?'true':'false');b.tabIndex=v?0:-1;});};
-    btns.forEach(b=>b.onclick=()=>{essaiSet(k,b.dataset.ev==='1');peindre();});
-    peindre();});
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
     const on=!sessSyncOn();
@@ -27701,11 +27700,13 @@ bindModalDismiss(syncErrModal,closeSyncErr);
 
 Auth._load();
 /* ===== Couleur d'accent par utilisateur (connecté seulement) =====
-   Identité de session : l'accent ne peint QUE le disque du bouton Compte (v5.0.0) — le CSS ne
-   cible que `.bar-acct.on`. Le drapeau `body[data-accent]` reste posé sur le corps parce que
+   Identité de session : l'accent ne peint QUE les avatars du compte (v5.0.0 ; les trois depuis
+   v5.39.9 — en-tête, colonne de gauche, carte de Moi). Le drapeau `body[data-accent]` reste posé sur le corps parce que
    c'est la portée d'un réglage d'utilisateur, pas parce que quelque chose d'autre s'y teinte. */
 const ACCENT_IDS=['','teal','violet','indigo','framboise','ardoise'];
 const ACCENT_LBL={'':'Par défaut',teal:'Sarcelle',violet:'Violet',indigo:'Indigo',framboise:'Framboise',ardoise:'Ardoise'};
+/* Initiales du compte (2 premières lettres du mail, en capitales) — celles des trois avatars. */
+function acctIniTxt(){const u=Auth.user()||{};return esc(((u.email||'?').trim().slice(0,2)||'?').toUpperCase());}
 function currentAccent(){try{const a=localStorage.getItem(spaceKey('ac-accent'))||'';return ACCENT_IDS.indexOf(a)>=0?a:'';}catch(e){return '';}}
 function applyAccent(a){a=ACCENT_IDS.indexOf(a)>=0?a:'';if(!Auth.signedIn())a='';
   if(a)document.body.dataset.accent=a;else delete document.body.dataset.accent;
@@ -30842,7 +30843,7 @@ if(joinScreen){
     }catch(e){jsBtn.disabled=false;
       const cam=document.getElementById('jsAnswer');cam.hidden=false;
       slCamRefused(cam,()=>{cam.hidden=true;cam.innerHTML='';joinScanGo();},
-        ()=>{cam.hidden=true;cam.innerHTML='';});}
+        ()=>{cam.hidden=true;cam.innerHTML='';},'Saisir le code à la main');}
   };
   if(jsBtn)jsBtn.addEventListener('click',joinScanGo);}
 // Reprise immédiate au retour au premier plan : la cadence de fond n'existe pas sur iOS, et
