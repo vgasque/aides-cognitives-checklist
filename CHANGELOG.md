@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.39.11] — 2026-10-02
+Ce que la charge révélait : deux sondes fragiles et deux défauts de l'app (A439, doctrine `docs/decisions/lot-v5-39.md`).
+- **Déplacer une étape ou une ligne ne décale plus l'écran.** Reposer ou abandonner une rangée pendant son petit
+  tremblement (une demi-seconde) faisait défiler la page de quelques pixels pour de bon — jusqu'à 6 px sur un appareil
+  lent, cumulés d'un geste à l'autre. L'ancrage mesure maintenant la rangée posée, pas son tremblement.
+- **Les fiches d'exemple ne s'ajoutent plus en double** si l'on touche « Ajouter les fiches d'exemple » pendant que
+  « Découvrir avec 2 exemples » est encore en train de les écrire.
+- Harnais : l'amorçage commun attend les fiches d'exemple au lieu de presser une seconde fois ; la sonde « à la prise,
+  l'objet ne bouge pas » mesure après l'animation. Vérifié en passe complète processeur ralenti (÷3, puis k5 à ÷6) :
+  plus aucun rouge dû à la charge.
+
 ## [5.39.10] — 2026-10-02
 La partie « Administration » de Moi, d'après la maquette validée (A438, doctrine `docs/decisions/lot-v5-39.md`).
 - **La seule action en tête** : « 3 demandes de compte · À approuver ou refuser · 2 refusées », toute la rangée
@@ -328,25 +339,3 @@ L'accueil en une colonne, l'éditeur plus navigable, un aperçu fidèle, et une 
 - **Page et Schéma : les conditions en toutes lettres**, comme dans le parcours : « Si Chocs délivrés ≥ 3 : »
   en tête des étapes concernées, puis « · toutes les 4 min », « · si pas déjà faite », « · +1 Chocs délivrés ».
   Le jalon se lit « Si … : … » ; les durées et les noms entre guillemets ne se coupent plus en fin de ligne.
-
-## [5.34.0] — 2026-09-26
-Le parcours se lit d'un coup d'œil : dans la colonne, dans la carte « Parcours » et dans la feuille « Se repérer » (A388, doctrine `docs/decisions/lot-v5-34.md`).
-- **Colonne repliée par défaut.** À gauche du bureau (dès 1200 px) et dans le rail de droite, le
-  parcours ne montre plus que les titres, avant comme pendant la session. Un bloc se déplie d'un
-  toucher sur son titre, « Tout déplier » ouvre tout. Une décision repliée garde ses réponses sur
-  une ligne (« Oui ↓ 3 · Non → 4 »), et en session la réponse choisie porte ✓. Le bloc en cours dit
-  « Ici ». Texte un cran plus petit (13,5 px) : la liste de l'arrêt cardiaque passe de 1 540 à 510 px.
-- **Même geste partout.** La carte « Parcours » et la feuille « Se repérer » ont les mêmes chevrons,
-  mais restent dépliées à l'ouverture. Replier ne fait pas sauter la page et ne ferme pas la feuille.
-- **Les conditions de cochage en toutes lettres.** Les étapes qui ne se font qu'à partir d'un seuil
-  sont regroupées sous « **Si** Chocs délivrés ≥ 3 : ». Le reste suit l'étape en gris : « si pas déjà
-  faite », « toutes les 4 min », « au besoin », « +1 Chocs délivrés », « relance « Réévaluation » (5 min) ».
-  Les étiquettes en capitales et les légendes à icône disparaissent du parcours.
-- **Boucles, jalons et complications.** « ↺ retour à 2 · toutes les 2 min » ; un jalon se lit
-  « Si Chocs délivrés ≥ 3 : … » avec un renvoi ⚡ vers sa complication ; les complications sont
-  listées en fin de parcours, sous « À tout moment ».
-- **Critique et Vigilance** : dans le parcours, le mot en couleur, sans fond, se place à droite de la
-  première ligne. Le texte de l'étape ne se décale plus. La carte de session ne change pas.
-- **Réponse attendue** : elle suit l'étape après un tiret, dans le texte (plus de police à chasse fixe
-  bleue). Le titre de la colonne devient « Parcours » (au lieu de « Parcours inerte »), et Tableau ·
-  Schéma tiennent sur une ligne.

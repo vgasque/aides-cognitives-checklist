@@ -201,12 +201,24 @@ export async function amorce(page) {
      VRAI serveur — une porte de commit ne dépend jamais du réseau du poste. Ici, joignable. */
   try { await page.evaluate(() => { window.__acNetOk = true; }); } catch (e) {}
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
-  await page.evaluate(() => {
+  const parExemples = await page.evaluate(() => {
     /* v5.30 : l'écran de bienvenue propose « Découvrir avec 2 exemples » (ajoute les fiches
        d'exemple et ferme) ; l'ancienne porte « Commencer » reste comprise. */
     const b = [...document.querySelectorAll('button')].find(x => /Découvrir avec 2 exemples|Commencer/.test(x.textContent));
     if (b) b.click();
+    return !!b && /Découvrir avec 2 exemples/.test(b.textContent);
   });
+  /* v5.39.11 (A439) — LA PORTE « EXEMPLES » A DÉJÀ AJOUTÉ LES FICHES : on attend qu'elles soient
+     là, on ne cherche PAS le bouton « Ajouter les fiches d'exemple ». L'ajout est asynchrone
+     (deux écritures IndexedDB) et, pendant ce temps, l'accueil derrière affiche encore ce bouton :
+     sous charge, l'amorçage le trouvait et ajoutait les exemples une SECONDE fois (mesuré à
+     CPU ÷6 : 4 lancements sur 6 finissaient à 4 fiches ; vu dans la passe complète sous charge,
+     section A129 « avant 2/0 · pendant 4/0 »). */
+  if (parExemples) {
+    await page.waitForFunction(() => typeof fiches !== 'undefined' && fiches.length >= 2
+      && !!document.querySelector('.card-open'));
+    return;
+  }
   await page.waitForFunction(() =>
     [...document.querySelectorAll('button')].some(x => x.textContent.includes("fiches d'exemple"))
     || document.querySelector('.card-open'));
