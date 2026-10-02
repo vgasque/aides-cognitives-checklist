@@ -5845,7 +5845,6 @@
   .auth-state.err{color:var(--crit)}.auth-state.err .auth-dot{background:var(--crit)}
   .auth-state.off{color:var(--ink-soft)}.auth-state.off .auth-dot{background:var(--line-strong)}
   /* État de l'instance (app-admin) : petites cartes de compteurs. */
-  .inst-stats-wrap{margin:14px 0 4px}
   .auth-stats-h{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:0 0 8px;padding:0 4px}
   /* P2-6 (audit design v4.56) : UNE ligne de conséquence par réglage, la garantie clé en gras —
      le reste du texte est CONSERVÉ sous un dépliant (rien n'est supprimé, la dose change de
@@ -5857,27 +5856,59 @@
   .acct-more[open]>summary::after{content:"▴"}
   .acct-more>summary:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:8px}
   .acct-more[open]{margin-bottom:4px}
-  /* ÉTAT DE L'INSTANCE (admin) — rangées libellé / valeur, quatre groupes nommés (M5, v4.71.1).
-     Têtes de groupe au filet-cheveu : elles séparent sans ajouter de cadre. La valeur est en
-     mono tabulaire — ce sont des nombres qu'on compare d'une ligne à l'autre. */
-  .ist{margin:0 0 4px}
-  .ist-h{margin:14px 0 2px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);border-bottom:1px solid var(--line);padding-bottom:4px}
-  .ist-h:first-child{margin-top:0}
-  .ist-row{display:flex;align-items:center;gap:10px;min-height:38px;padding:2px 2px}
-  .ist-k{flex:1;min-width:0;font-size:13.5px;color:var(--ink)}
-  .ist-v{flex:none;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13.5px;color:var(--ink)}
-  .ist-v b{font-weight:700}
-  .ist-d{margin:-2px 2px 4px;font-size:12px;color:var(--ink-soft)}
-  /* Part des DONNÉES dans le total (données + documents) — un dénominateur réel. Largeur posée
-     en style inline, jamais animée (règle v4.41.0 : aucune propriété de mise en page en
-     transition). */
-  .ist-bar{height:5px;border-radius:3px;background:var(--amb-2);overflow:hidden;margin:2px 2px 4px}
-  .ist-bar>span{display:block;height:100%;background:var(--act)}
-  /* v4.71.1 : les TUILES d'instance sont supprimées (.inst-stats/.inst-stat/.is-v/.is-k) —
-     remplacées par les rangées .ist ci-dessus. Le constat P3-1 de la v4.56 (« --primary-soft
-     donnait à de la lecture seule l'air d'être actionnable ») allait dans le bon sens mais
-     s'arrêtait à la teinte : c'est la FORME de tuile qui promettait un objet. */
+  /* ADMINISTRATION (v5.39.10, A438 — maquette validée par l'auteur, canevas « Administration —
+     Compte & synchronisation ») : la seule ACTION en tête (rangée « Demandes de compte »), quatre
+     chiffres clés en tuiles de LECTURE (ni survol, ni chevron : rien n'y répond — la crainte de
+     v4.71.1 tenait à la tuile qui promet un objet, d'où l'absence de toute affordance), puis deux
+     cartes — Contenus & sessions, Stockage — côte à côte DÈS QUE LA PLACE LE PERMET : `auto-fit`
+     sur un minimum de 300 px, donc la largeur RENDUE décide (zoom compris, règle 10), sans media
+     query ni `@container`. Valeurs en mono tabulaire, comme avant. */
+  .adm-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px;padding:0 4px}
+  .adm-top .auth-stats-h{margin:0;padding:0}
+  .adm-when{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-req{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;margin:0 0 8px;
+    font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .adm-req:hover{background:var(--amb-2)}
+  .adm-req:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .adm-ic{flex:none;width:36px;height:36px;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center}
+  .adm-tx{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
+  .adm-lb{font-size:var(--t-item);font-weight:700}
+  .adm-sub{font-size:var(--t-body);color:var(--ink-2)}
+  .adm-go{flex:none;display:inline-flex;align-items:center;gap:2px;font-size:var(--t-body);font-weight:700;color:var(--act)}
+  /* Dès 560 px effectifs, l'action se dit par un bouton plein (la rangée entière reste la cible). */
+  html:not(.zw560) .adm-req.on .adm-go{min-height:40px;padding:0 12px 0 16px;border-radius:var(--r-2);background:var(--act);color:var(--on-primary)}
+  .adm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 8px}
+  .adm-kpi{display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
+  .adm-kv{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+  .adm-live{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .adm-kl{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px;align-items:start}
+  .adm-cols>.acct-card{margin:0;padding:4px 14px 8px}
+  .adm-h{padding:10px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-h+.adm-row{border-top:1px solid var(--line)}
+  .adm-row{display:flex;align-items:baseline;gap:10px;min-height:44px;padding:10px 0;border-top:1px solid var(--line)}
+  .adm-h~.adm-h{padding-top:14px}
+  .adm-k{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:var(--t-item);color:var(--ink)}
+  .adm-k small{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-v{flex:none;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  .adm-sto{display:flex;flex-direction:column;gap:12px}
+  .adm-cols>.adm-sto{padding:12px 14px 14px}
+  .adm-sto .adm-h{display:flex;align-items:baseline;justify-content:space-between;padding:0}
+  .adm-sto .adm-h .adm-v{letter-spacing:0;text-transform:none}
+  /* Part des DONNÉES dans le total (données + documents) — un dénominateur réel (M5). Deux parts
+     NEUTRES : rien n'y est un état, donc aucun registre ; la légende dit laquelle est laquelle.
+     Largeur posée en ligne, jamais animée (règle v4.41.0). */
+  .adm-bar{display:flex;gap:2px;height:10px;border-radius:999px;overflow:hidden;background:var(--amb-2)}
+  .adm-bar>span{display:block;background:var(--ink)}
+  .adm-bar>span+span{flex:1;background:var(--ink-2)}   /* `--line-strong` disparaissait sur la piste la nuit (mesuré) */
+  .adm-leg{display:flex;flex-direction:column;gap:8px}
+  .adm-leg>div{display:flex;align-items:center;gap:8px;font-size:var(--t-body);color:var(--ink)}
+  .adm-leg>div>span:nth-child(2){flex:1}
+  .adm-sw{flex:none;width:10px;height:10px;border-radius:3px;background:var(--ink)}
+  .adm-sw.pdf{background:var(--ink-2)}
+  .adm-leg .adm-v{font-weight:500;font-size:var(--t-body)}
+  .adm-note{display:flex;gap:10px;align-items:flex-start;margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
+  .adm-note>svg{flex:none;margin-top:1px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
   .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
   .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
@@ -5929,7 +5960,6 @@
   .auth-check[hidden]{display:none}
   .auth-confirm-lbl{text-align:left;font-size:13.5px;color:var(--ink-soft);margin:14px 0 6px}.auth-confirm-lbl b{color:var(--crit)}
   .auth-confirm{text-align:center;letter-spacing:.07em;font-weight:600;text-transform:uppercase}
-  .auth-admin-note{font-size:12px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
   .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--crit-soft)}
   /* Explication « où sont mes fiches ? » */
   .storage-gauge[role=button]:hover{text-decoration:underline}

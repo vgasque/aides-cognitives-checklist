@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-e+9tb2wQ7q3tCBFObKz/koQ1AKPL+PdKiW203kYQSuk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-7K7GUr5Nrvd1C3GNUJQXskA72OcTBpy4qH/p1HOwTPA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6201,7 +6201,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .auth-state.err{color:var(--crit)}.auth-state.err .auth-dot{background:var(--crit)}
   .auth-state.off{color:var(--ink-soft)}.auth-state.off .auth-dot{background:var(--line-strong)}
   /* État de l'instance (app-admin) : petites cartes de compteurs. */
-  .inst-stats-wrap{margin:14px 0 4px}
   .auth-stats-h{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:0 0 8px;padding:0 4px}
   /* P2-6 (audit design v4.56) : UNE ligne de conséquence par réglage, la garantie clé en gras —
      le reste du texte est CONSERVÉ sous un dépliant (rien n'est supprimé, la dose change de
@@ -6213,27 +6212,59 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .acct-more[open]>summary::after{content:"▴"}
   .acct-more>summary:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:8px}
   .acct-more[open]{margin-bottom:4px}
-  /* ÉTAT DE L'INSTANCE (admin) — rangées libellé / valeur, quatre groupes nommés (M5, v4.71.1).
-     Têtes de groupe au filet-cheveu : elles séparent sans ajouter de cadre. La valeur est en
-     mono tabulaire — ce sont des nombres qu'on compare d'une ligne à l'autre. */
-  .ist{margin:0 0 4px}
-  .ist-h{margin:14px 0 2px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);border-bottom:1px solid var(--line);padding-bottom:4px}
-  .ist-h:first-child{margin-top:0}
-  .ist-row{display:flex;align-items:center;gap:10px;min-height:38px;padding:2px 2px}
-  .ist-k{flex:1;min-width:0;font-size:13.5px;color:var(--ink)}
-  .ist-v{flex:none;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13.5px;color:var(--ink)}
-  .ist-v b{font-weight:700}
-  .ist-d{margin:-2px 2px 4px;font-size:12px;color:var(--ink-soft)}
-  /* Part des DONNÉES dans le total (données + documents) — un dénominateur réel. Largeur posée
-     en style inline, jamais animée (règle v4.41.0 : aucune propriété de mise en page en
-     transition). */
-  .ist-bar{height:5px;border-radius:3px;background:var(--amb-2);overflow:hidden;margin:2px 2px 4px}
-  .ist-bar>span{display:block;height:100%;background:var(--act)}
-  /* v4.71.1 : les TUILES d'instance sont supprimées (.inst-stats/.inst-stat/.is-v/.is-k) —
-     remplacées par les rangées .ist ci-dessus. Le constat P3-1 de la v4.56 (« --primary-soft
-     donnait à de la lecture seule l'air d'être actionnable ») allait dans le bon sens mais
-     s'arrêtait à la teinte : c'est la FORME de tuile qui promettait un objet. */
+  /* ADMINISTRATION (v5.39.10, A438 — maquette validée par l'auteur, canevas « Administration —
+     Compte & synchronisation ») : la seule ACTION en tête (rangée « Demandes de compte »), quatre
+     chiffres clés en tuiles de LECTURE (ni survol, ni chevron : rien n'y répond — la crainte de
+     v4.71.1 tenait à la tuile qui promet un objet, d'où l'absence de toute affordance), puis deux
+     cartes — Contenus & sessions, Stockage — côte à côte DÈS QUE LA PLACE LE PERMET : `auto-fit`
+     sur un minimum de 300 px, donc la largeur RENDUE décide (zoom compris, règle 10), sans media
+     query ni `@container`. Valeurs en mono tabulaire, comme avant. */
+  .adm-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px;padding:0 4px}
+  .adm-top .auth-stats-h{margin:0;padding:0}
+  .adm-when{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-req{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;margin:0 0 8px;
+    font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .adm-req:hover{background:var(--amb-2)}
+  .adm-req:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .adm-ic{flex:none;width:36px;height:36px;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center}
+  .adm-tx{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
+  .adm-lb{font-size:var(--t-item);font-weight:700}
+  .adm-sub{font-size:var(--t-body);color:var(--ink-2)}
+  .adm-go{flex:none;display:inline-flex;align-items:center;gap:2px;font-size:var(--t-body);font-weight:700;color:var(--act)}
+  /* Dès 560 px effectifs, l'action se dit par un bouton plein (la rangée entière reste la cible). */
+  html:not(.zw560) .adm-req.on .adm-go{min-height:40px;padding:0 12px 0 16px;border-radius:var(--r-2);background:var(--act);color:var(--on-primary)}
+  .adm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 8px}
+  .adm-kpi{display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
+  .adm-kv{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
+  .adm-live{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .adm-kl{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px;align-items:start}
+  .adm-cols>.acct-card{margin:0;padding:4px 14px 8px}
+  .adm-h{padding:10px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-h+.adm-row{border-top:1px solid var(--line)}
+  .adm-row{display:flex;align-items:baseline;gap:10px;min-height:44px;padding:10px 0;border-top:1px solid var(--line)}
+  .adm-h~.adm-h{padding-top:14px}
+  .adm-k{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:var(--t-item);color:var(--ink)}
+  .adm-k small{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-v{flex:none;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  .adm-sto{display:flex;flex-direction:column;gap:12px}
+  .adm-cols>.adm-sto{padding:12px 14px 14px}
+  .adm-sto .adm-h{display:flex;align-items:baseline;justify-content:space-between;padding:0}
+  .adm-sto .adm-h .adm-v{letter-spacing:0;text-transform:none}
+  /* Part des DONNÉES dans le total (données + documents) — un dénominateur réel (M5). Deux parts
+     NEUTRES : rien n'y est un état, donc aucun registre ; la légende dit laquelle est laquelle.
+     Largeur posée en ligne, jamais animée (règle v4.41.0). */
+  .adm-bar{display:flex;gap:2px;height:10px;border-radius:999px;overflow:hidden;background:var(--amb-2)}
+  .adm-bar>span{display:block;background:var(--ink)}
+  .adm-bar>span+span{flex:1;background:var(--ink-2)}   /* `--line-strong` disparaissait sur la piste la nuit (mesuré) */
+  .adm-leg{display:flex;flex-direction:column;gap:8px}
+  .adm-leg>div{display:flex;align-items:center;gap:8px;font-size:var(--t-body);color:var(--ink)}
+  .adm-leg>div>span:nth-child(2){flex:1}
+  .adm-sw{flex:none;width:10px;height:10px;border-radius:3px;background:var(--ink)}
+  .adm-sw.pdf{background:var(--ink-2)}
+  .adm-leg .adm-v{font-weight:500;font-size:var(--t-body)}
+  .adm-note{display:flex;gap:10px;align-items:flex-start;margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
+  .adm-note>svg{flex:none;margin-top:1px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
   .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
   .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
@@ -6285,7 +6316,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .auth-check[hidden]{display:none}
   .auth-confirm-lbl{text-align:left;font-size:13.5px;color:var(--ink-soft);margin:14px 0 6px}.auth-confirm-lbl b{color:var(--crit)}
   .auth-confirm{text-align:center;letter-spacing:.07em;font-weight:600;text-transform:uppercase}
-  .auth-admin-note{font-size:12px;color:var(--ink-soft);text-align:center;margin:16px 0 0;line-height:1.5}
   .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--crit-soft)}
   /* Explication « où sont mes fiches ? » */
   .storage-gauge[role=button]:hover{text-decoration:underline}
@@ -8750,7 +8780,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.9';
+const APP_VERSION='5.39.10';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27136,44 +27166,46 @@ async function wipeCurrentSpace(){
 }
 // État de l'instance (app-admin) : petit tableau de bord affiché dans l'écran Compte. Chargé en
 // asynchrone (RPC get_instance_stats, réservée aux app-admins) pour ne pas retarder l'ouverture.
+/* La note du garde-fou : dans la carte Stockage quand l'état est chargé, seule sinon. */
+const admNoteHtml=()=>`<p class="adm-note">${uiIcon('lock',16)}<span>Compte administrateur : il ne se supprime pas d’ici. Passez par la console d’administration (garde-fou).</span></p>`;
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
   let s=null;try{s=await rpc('get_instance_stats');}catch(e){}
-  if(!s){box.innerHTML='';return;}
-  /* M5, section admin (v4.71.1) — QUATRE GROUPES NOMMÉS, UNE DONNÉE PAR LIGNE. Douze tuiles en
-     grille obligeaient à balayer un damier pour trouver un chiffre, et une tuile est la forme
-     d'un OBJET : de la lecture seule s'y donnait l'air actionnable (P3-1, déjà relevé pour
-     « Sur cet appareil »). Ici : libellé en toutes lettres à gauche, valeur en mono à droite, le
-     détail dessous en encre douce. LA SEULE ACTION EST UN BOUTON — « Examiner · n », qui rejoint
-     la ligne dont il est le geste au lieu de flotter au-dessus du bloc ; tout le reste se lit.
-     La BARRE de stockage n'a pas de quota à représenter (personne ne connaît la limite de
-     l'instance) : elle montre la PART des documents PDF dans le total, ce qui a un dénominateur
-     réel — une jauge sans dénominateur serait un ornement qui a l'air d'une mesure. */
-  const nb=n=>`<b>${esc(String(n))}</b>`;
-  const ligne=(k,v,d)=>`<div class="ist-row"><span class="ist-k">${esc(k)}</span><span class="ist-v">${v}</span></div>`
-    +(d?`<p class="ist-d">${d}</p>`:'');
-  const grp=t=>`<div class="ist-h">${esc(t)}</div>`;
-  const donnees=+s.storage_bytes||0,pdf=+s.attachments_bytes||0,tot=donnees+pdf;
-  const part=tot>0?Math.max(2,Math.min(100,Math.round(donnees/tot*100))):100;
-  box.innerHTML='<div class="auth-stats-h">État de l\'instance</div><div class="ist">'
-    +grp('Comptes')
-    +ligne('Comptes actifs',nb(s.users))
-    +`<div class="ist-row"><span class="ist-k">En attente de validation</span>`
-      +`<button class="btn sm" id="authPending">Examiner · ${esc(String(s.pending||0))}</button></div>`
-    +(s.rejected?`<p class="ist-d">${esc(String(s.rejected))} demande${s.rejected>1?'s':''} refusée${s.rejected>1?'s':''}</p>`:'')
-    +grp('Contenus')
-    +ligne('Bibliothèques',nb(s.libraries))
-    +ligne('Fiches',nb((+s.fiches_perso||0)+(+s.fiches_shared||0)),
-       `${esc(String(s.fiches_perso||0))} personnelle${s.fiches_perso>1?'s':''} · ${esc(String(s.fiches_shared||0))} partagée${s.fiches_shared>1?'s':''}`)
-    +ligne('Protocoles',nb(s.protocols||0))
-    +grp('Partage & sessions')
-    +ligne('Partages de session',nb(s.shares_rows||0),
-       `dont ${esc(String(s.shares_live||0))} en cours en ce moment`)
-    +ligne('Sessions synchronisées',nb(s.sessions||0))
-    +grp('Stockage')
-    +ligne('Données',`<b>${esc(fmtBytes(donnees))}</b>`)
-    +`<div class="ist-bar" role="img" aria-label="${esc(fmtBytes(donnees))} de données, ${esc(fmtBytes(pdf))} de documents"><span style="width:${part}%"></span></div>`
-    +`<p class="ist-d">+ ${esc(fmtBytes(pdf))} de documents PDF</p>`
-    +'</div>';
+  if(!document.body.contains(box))return;
+  if(!s){box.innerHTML='<div class="auth-stats-h">Administration</div>'+admNoteHtml();return;}
+  /* A438 (v5.39.10) — LA SEULE ACTION EN TÊTE, PUIS CE QUI SE LIT. « Examiner » (v4.71.1 : un
+     bouton dans la ligne « En attente ») devient la rangée de tête, la rangée ENTIÈRE est la
+     cible ; à zéro elle reste (les refusées s'y consultent) mais neutre, sans bouton plein. Les
+     chiffres que l'on compare d'un coup d'œil montent en tuiles de LECTURE ; le détail suit en
+     rangées libellé / valeur, deux cartes côte à côte quand la place le permet (CSS). La barre de
+     stockage garde son dénominateur réel (données + documents), et gagne sa légende. */
+  const n=v=>+v||0,pl=(v,a,b)=>n(v)>1?b:a;
+  const pend=n(s.pending),rej=n(s.rejected),live=n(s.shares_live);
+  const fiches=n(s.fiches_perso)+n(s.fiches_shared);
+  const donnees=n(s.storage_bytes),pdf=n(s.attachments_bytes),tot=donnees+pdf;
+  const part=tot>0?Math.max(2,Math.min(98,Math.round(donnees/tot*100))):50;
+  const hh=new Date(),heure=String(hh.getHours()).padStart(2,'0')+':'+String(hh.getMinutes()).padStart(2,'0');
+  const refus=rej?`${rej} ${pl(rej,'refusée','refusées')}`:'';
+  const nf=v=>esc(n(v).toLocaleString('fr-FR'));   // « 1 208 » : des nombres qu'on compare
+  const kpi=(v,l,dot)=>`<div class="adm-kpi"><span class="adm-kv">${nf(v)}${dot?'<span class="adm-live" aria-hidden="true"></span>':''}</span><span class="adm-kl">${esc(l)}</span></div>`;
+  const row=(k,v,d)=>`<div class="adm-row"><span class="adm-k">${esc(k)}${d?`<small>${esc(d)}</small>`:''}</span><span class="adm-v">${nf(v)}</span></div>`;
+  box.innerHTML=`<div class="adm-top"><div class="auth-stats-h">Administration</div><span class="adm-when">Instance · mis à jour à ${heure}</span></div>`
+    +`<button type="button" class="acct-card adm-req${pend?' on':''}" id="authPending"><span class="adm-ic" aria-hidden="true">${uiIcon('user',20)}</span>`
+      +`<span class="adm-tx"><span class="adm-lb">${pend?`${pend} ${pl(pend,'demande de compte','demandes de compte')}`:'Demandes de compte'}</span>`
+      +`<span class="adm-sub">${esc([pend?'À approuver ou refuser':'Aucune en attente',refus].filter(Boolean).join(' · '))}</span></span>`
+      +`<span class="adm-go">${pend?'Examiner':''}${uiIcon('chev',18)}</span></button>`
+    +'<div class="adm-kpis">'+kpi(n(s.users),pl(s.users,'compte actif','comptes actifs'))+kpi(fiches,pl(fiches,'aide','aides'))
+      +kpi(n(s.protocols),pl(s.protocols,'protocole','protocoles'))+kpi(live,live>1?'partages en cours':'partage en cours',live>0)+'</div>'
+    +'<div class="adm-cols"><div class="acct-card"><div class="adm-h">Contenus</div>'
+      +row('Bibliothèques',n(s.libraries))
+      +row('Aides',fiches,`${n(s.fiches_perso)} ${pl(s.fiches_perso,'personnelle','personnelles')} · ${n(s.fiches_shared)} ${pl(s.fiches_shared,'partagée','partagées')}`)
+      +'<div class="adm-h">Sessions</div>'
+      +row('Partages de session',n(s.shares_rows),`dont ${live} en cours en ce moment`)
+      +row('Sessions synchronisées',n(s.sessions))+'</div>'
+    +`<div class="acct-card adm-sto"><div class="adm-h"><span>Stockage</span><span class="adm-v">${esc(fmtBytes(tot))}</span></div>`
+      +`<div class="adm-bar" role="img" aria-label="${esc(fmtBytes(donnees))} de données, ${esc(fmtBytes(pdf))} de documents PDF"><span style="width:${part}%"></span><span></span></div>`
+      +`<div class="adm-leg"><div><span class="adm-sw"></span><span>Données (aides, sessions)</span><span class="adm-v">${esc(fmtBytes(donnees))}</span></div>`
+      +`<div><span class="adm-sw pdf"></span><span>Documents PDF</span><span class="adm-v">${esc(fmtBytes(pdf))}</span></div></div>`
+      +admNoteHtml()+'</div></div>';
   {const ap=box.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}}
 function renderAuth(){const body=document.getElementById('meView')||document.getElementById('authBody');if(!body)return;
   /* A372 : le champ ACTIF se relâche AVANT que le DOM ne soit remplacé — un champ retiré sous le
@@ -27358,7 +27390,7 @@ function renderAuthAccount(body,u,doOut){
       <p class="st-hint acct-promise">Votre bibliothèque personnelle suit ce compte sur <b>tous vos appareils connectés</b>.</p>
       ${acctLibsHtml()}
       ${accountPrefsHtml()}
-      ${myIsAppAdmin?`<div class="acct-zone"><div id="authStats" class="inst-stats-wrap" aria-label="État de l'instance"><div class="auth-stats-h">Administration</div><p class="ist-d">Chargement…</p></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis la console d’administration (garde-fou).</p></div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+      ${myIsAppAdmin?`<div class="acct-zone" id="authStats" aria-label="État de l'instance"><div class="auth-stats-h">Administration</div><p class="adm-when">Chargement…</p>${admNoteHtml()}</div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
         <p class="danger-caption">Supprime le compte, les fiches synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);

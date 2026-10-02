@@ -441,8 +441,39 @@ internet… ») se détache du bouton « Rejoindre » (16 px).
 un bandeau dimensionné par l'icône de 28 : 39 → 43 px à la pose du premier filtre, la feuille sautait de 4 px. Le
 bandeau réserve la cible (`min-height` = 32 + pied + filet, boîte en border-box) : 43 px dans les deux états.
 
-**Maquette — « Administration » de Moi (À DÉCIDER).** Canevas Claude Design « Administration — Compte &
+**Maquette — « Administration » de Moi (validée et codée en v5.39.10, A438).** Canevas Claude Design « Administration — Compte &
 synchronisation » (avant / proposé / aucune demande) : la seule action (examiner les demandes) devient une rangée
 de tête, trois chiffres clés en tuiles de LECTURE, contenus et sessions en rangées dans une carte comme les autres
 zones de Moi, stockage en barre à deux parts légendée, note du garde-fou alignée à gauche. Rien n'est codé tant que
 l'auteur n'a pas tranché.
+
+## A438 — « Administration » de Moi : l'action en tête, la lecture ensuite (v5.39.10)
+
+**Maquette validée par l'auteur** (canevas Claude Design « Administration — Compte & synchronisation » : avant,
+téléphone, aucune demande, ordinateur) : « Oui ça me convient. Garde les colonnes lorsque c'est possible en taille
+d'écran. »
+
+**Ce qui change.** La section était la seule zone de Moi SANS carte — des rangées nues sous quatre intertitres, la
+seule action (« Examiner · n ») perdue au milieu, la note du garde-fou centrée seule en dessous. Désormais :
+1. **La seule action en tête** : une rangée-carte « n demandes de compte » (sous-ligne « À approuver ou refuser ·
+   n refusées »), la rangée ENTIÈRE est la cible (`#authPending`, même câblage) ; dès 560 px effectifs (`zw560`)
+   « Examiner › » est un bouton plein, au téléphone un lien. À zéro la rangée reste (« Aucune en attente » — les
+   refusées s'y consultent), neutre : les badges d'attente sont achromatiques (A347), aucun ambre.
+2. **Quatre chiffres en tuiles de LECTURE** — comptes actifs, aides, protocoles, partages en cours (point vert
+   si > 0 : ce qui tourne). Pas de survol, pas de chevron : v4.71.1 avait supprimé les tuiles parce que la FORME
+   promettait un objet ; ici rien n'y répond et rien ne le suggère. La décision est celle de l'auteur, sur maquette.
+3. **Deux cartes** — Contenus & Sessions (rangées libellé / valeur, détail dessous), Stockage (total, barre à deux
+   parts, LÉGENDE, puis la note du garde-fou avec un cadenas) — côte à côte DÈS QUE LA PLACE LE PERMET :
+   `repeat(auto-fit,minmax(300px,1fr))`, donc décidé par la largeur RENDUE, zoom compris (règle 10), sans media
+   query ni `@container` (qui casserait les descendants `fixed`). Mesuré : 720 px (ordinateur) → deux colonnes ;
+   511 px (Moi à 820) et 358 px (téléphone) → une. Tuiles : `minmax(120px,1fr)` — quatre de front à 720, 2 × 2 au
+   téléphone.
+4. Nombres en mono tabulaire et séparés (« 1 208 », `toLocaleString('fr-FR')`) ; heure de chargement à droite de
+   l'intertitre (« Instance · mis à jour à 14:32 »).
+
+**La barre reste neutre** : données en `--ink`, documents en `--ink-2` (`--line-strong` disparaissait sur la piste
+la nuit) — rien n'y est un état, donc aucun registre. Son dénominateur reste réel (M5).
+
+**Purgé (règle 14)** : `.inst-stats-wrap`, `.ist`, `.ist-h/-row/-k/-v/-d/-bar`, `.auth-admin-note` — zéro émission
+au grep. Échec de `get_instance_stats` : l'intertitre et la note restent (avant : la section se vidait, intertitre
+compris).

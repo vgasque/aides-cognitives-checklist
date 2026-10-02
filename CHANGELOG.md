@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.39.10] — 2026-10-02
+La partie « Administration » de Moi, d'après la maquette validée (A438, doctrine `docs/decisions/lot-v5-39.md`).
+- **La seule action en tête** : « 3 demandes de compte · À approuver ou refuser · 2 refusées », toute la rangée
+  ouvre l'examen ; sur un écran assez large, « Examiner › » est un bouton plein. Sans demande, la rangée reste
+  (« Aucune en attente ») pour consulter les refusées.
+- **Quatre chiffres d'un coup d'œil** : comptes actifs, aides, protocoles, partages en cours.
+- **Contenus & sessions, et Stockage, en deux cartes** — côte à côte dès que la largeur le permet (ordinateur),
+  l'une sous l'autre sinon (téléphone, tablette en portrait). La barre de stockage a sa légende (données / documents
+  PDF), et la note « le compte administrateur ne se supprime pas d'ici » vit au pied de la carte Stockage.
+- Nombres séparés par milliers (« 1 208 ») ; heure de mise à jour à côté de l'intertitre.
+- Témoins : `npm test` 1280/1280 ; l'ancien rendu en rangées (`.ist-*`) est purgé.
+
 ## [5.39.9] — 2026-10-02
 Sept retours d'usage corrigés, et les deux essais d'affichage tranchés (A431-A437, doctrine `docs/decisions/lot-v5-39.md`).
 - **Colonne de gauche : les deux « Gérer » s'alignent.** La liste des catégories réservait la place de sa barre de
@@ -338,24 +350,3 @@ Le parcours se lit d'un coup d'œil : dans la colonne, dans la carte « Parcours
 - **Réponse attendue** : elle suit l'étape après un tiret, dans le texte (plus de police à chasse fixe
   bleue). Le titre de la colonne devient « Parcours » (au lieu de « Parcours inerte »), et Tableau ·
   Schéma tiennent sur une ligne.
-
-## [5.33.2] — 2026-09-26
-Deux bugs du partage de session côté invité (A385) et leur pendant côté hôte (A387), puis deux bugs d'affichage au téléphone (A386) — doctrine `docs/decisions/lot-v5-33.md`.
-- **Connexion coupée : l'invité peut continuer.** Quand le lien se figeait (plus de réponse depuis
-  quelques secondes), ses coches, compteurs et minuteurs étaient refusés et grisés. Ils sont
-  désormais gardés sur l'appareil et partent au retour du réseau, comme ceux de l'hôte — le quai
-  dit toujours « figé ». « Recevoir » par l'écran ne les efface pas.
-- **Sa propre session reste la sienne.** Un invité qui rouvrait la même aide sur son profil et y
-  lançait une session ou un exercice voyait les gestes de l'hôte s'y inscrire : elle devenait la
-  session partagée. Les gestes de l'hôte ne vont plus qu'à la session partagée, et « Revenir à la
-  session partagée » les montre tous. Une bascule automatique en direct ne l'arrache plus à sa session.
-- **« Démarrer » et « Exercice » s'affichent** au quai sur les aides de l'invité (appareil qui lui
-  appartient) ; ils n'étaient accessibles que par le menu ⋯.
-- **Corriger une heure du journal (téléphone)** : le volet ne se referme plus au premier toucher, le
-  champ et les raccourcis « −1/−2/−5 min » restent au-dessus du clavier, et après validation le dock
-  du bas revient — il restait masqué et faisait sauter le contenu (A386).
-- **Téléphone en paysage** : la colonne de droite (minuteurs, compteurs, journal) n'est plus coupée —
-  elle défile avec la page au lieu d'une petite zone de 110 px (A386).
-- **L'hôte peut consulter une autre aide pendant un partage** : les gestes de l'invité continuent
-  d'arriver dans la session partagée (ils tombaient dans l'aide affichée et se perdaient), et une
-  session ouverte sur l'autre aide n'envoie plus rien à l'invité (A387).
