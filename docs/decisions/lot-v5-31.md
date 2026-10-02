@@ -206,6 +206,9 @@ reste échue et arrêtée.
 
 ## A380 — deux essais d'affichage, à juger en conditions réelles (v5.31.0)
 
+> **TRANCHÉ en v5.39.9 (A434, lot-v5-39.md)** : capsule en TUILES, instruments en COLONNE — les deux essais
+> sont retirés par la procédure ci-dessous, et tout l'outillage des essais avec eux.
+
 **La demande.** « X1 : une option pour switcher en utilisation telle, je n'arrive pas à choisir. X2
 pareil. Il faut utiliser en conditions réelles. Et fais en sorte que je puisse ensuite te dire
 quelle proposition conserver, et que tu puisses garder ou supprimer l'une ou l'autre très

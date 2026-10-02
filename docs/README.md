@@ -94,6 +94,14 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A428 | `lot-v5-39.md` | Filtrer par bibliothèque dans la feuille « Affichage » (même cran que la colonne gauche, `homeVis()`) |
 | A429 | `lot-v5-39.md` | Feuille « Affichage » en deux parties (Filtrer / Présenter) ; filtres posés en puces effaçables sous la ligne de compte, même sans résultat (`filtersList`, `dropFilter`) ; « À relire » compté |
 | A430 | `lot-v5-39.md` | Retour système en PILE RÉELLE : une entrée d'historique par niveau ouvert (`_H_LAYERS`, `_histSync`), rien poussé dans le retour — le balayage d'iOS et le retour prédictif d'Android montrent le bon écran ; amende J238 (v4.30.0) |
+| A431 | `lot-v5-39.md` | La colonne gauche n'a qu'un bord droit : les étages fixes réservent la gouttière du défileur des catégories (« Gérer » ×2 alignés) |
+| A432 | `lot-v5-39.md` | Gestionnaire de catégories : gouttière de carte (anneaux et palette hors du bord) ; l'avertissement « proche d'une couleur d'alerte » retrouve son ambre (`.ai-card p` l'écrasait) |
+| A433 | `lot-v5-39.md` | La barre « ↩ Bloc » réserve sa hauteur au bas de page tant qu'elle est montrée (`bkrShow`, `body.bkr-on`) : la fin des références n'est plus dessous |
+| A434 | `lot-v5-39.md` | Essais A380 tranchés : capsule en tuiles, instruments en colonne — les deux essais et leur outillage retirés, clés `ac-essai-*` purgées |
+| A435 | `lot-v5-39.md` | Pastilles d'accent = l'avatar réel (carré arrondi, initiales, « Par défaut » bleu pâle) ; l'accent teinte les trois avatars du compte |
+| A436 | `lot-v5-39.md` | Refus de caméra en carte ambre `.sl-cam` (icône, consigne, gestes) ; flèche ▾/▴ sur « Ce qui est enregistré, et par qui » |
+| A437 | `lot-v5-39.md` | Le bandeau « Filtrer » réserve la cible de « Tout effacer » : 43 px avec ou sans filtre |
+| A438 | `lot-v5-39.md` | « Administration » de Moi : rangée d'action en tête, tuiles de lecture, deux cartes côte à côte dès que la place le permet (`auto-fit`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

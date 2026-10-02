@@ -95,7 +95,6 @@ const CONCAT = new Map([
   [/^zw/,   'palier de largeur sous zoom : classe posée par `\'zw\'+w` (syncZoomWidth)'],
   [/^c\d$/, 'nombre de branches en colonne : classe posée par `\'c\'+n` (plan et statique)'],
   [/^d\d$/, 'profondeur d\'imbrication : classe posée par `\'d\'+depth` (retraits du plan)'],
-  [/^essai-/, 'essai d\'affichage : classe posée par `\'essai-\'+k` (essaiSet, A380)'],
   [/^mo-(wait|gone)$/, 'moment d\'une étape : classe posée par `\'mo-\'+mo.st` (stepsListHtml, A382)'],
 ]);
 const usedSomewhere = new Set();
