@@ -5065,9 +5065,17 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   await page.emulateMedia({reducedMotion:'reduce'});
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const f=Runtime.fiche,c=f.counters[0],t=Runtime.timers[c.timerId];
-    const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>/Adrénaline IM/.test(x.textContent));
-    const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running)};
-    li.click();await w(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await w(270);
+    const LI=()=>[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>/Adrénaline IM/.test(x.textContent));
+    const wts=()=>[...LI().querySelectorAll('.wt')],lg=()=>wts().map(e=>e.textContent).join(' | ');
+    // A440 : DEUX lignes de 24 px (le compte, puis la relance), réservées dans tous les états.
+    const ligne=()=>{const es=wts();return es.length===2&&es.every(e=>Math.round(e.getBoundingClientRect().height)===24);};
+    const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running),lg0:lg(),l0:ligne()};
+    tmRestart(t);t.lastStart=Date.now()-139000;paintWitness();o.lg1=lg();o.l1=ligne();o.h1=LI().getBoundingClientRect().height;   // la dose d'avant : reste 02:41
+    const s0=t.lastStart;
+    LI().click();await w(300);o.relance=t.running&&t.lastStart>s0;o.lg2=lg();o.l2=ligne();o.h2=LI().getBoundingClientRect().height;
+    LI().click();await w(300);o.rendu=t.running&&t.lastStart===s0&&(Runtime.counters[c.id]||0)===0;
+    t.running=false;t.elapsedMs=0;t.lastStart=0;   // retour à l'état de départ pour la suite
+    LI().click();await w(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await w(270);
     o.cn=Runtime.counters[c.id]||0;o.run=!!(t&&t.running);
     t.lastStart=Date.now()-301000;tickAll();await w(300);   // la sonnerie : rien ne repart seul
     o.echu=timerDue(t)&&!t.running;
@@ -5076,6 +5084,10 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   t('A377 · … cocher l’adrénaline IM compte 1 et lance la réévaluation', r.avant===false&&r.cn===1&&r.run===true, JSON.stringify(r));
   t('A378 · mouvement réduit : la légende ne bouge pas, l’état change quand même', r.mv===0&&r.cn===1, String(r.mv));
   t('A379 · à la sonnerie la réévaluation reste « Échu » : elle repart à la prochaine injection cochée, jamais seule', r.echu===true);
+  t('A440 · au repos : deux lignes — le compte, puis le minuteur que la coche relance', /à la coche.*\|.*Rééval.*à la coche|à la coche.*\|.*à la coche.*Rééval/.test(r.lg0)&&r.l0, r.lg0);
+  t('A440 · minuteur en cours : la 2ᵉ ligne dit ce qui reste et que la coche le relance', /02:4\d.*la coche relance à 05:00/.test(r.lg1)&&r.l1, r.lg1);
+  t('A440 · cochée : relancée, « décocher annule » sur la ligne du minuteur, même hauteur (A9)', r.relance===true&&/décocher annule/.test(r.lg2)&&r.l2&&r.h1===r.h2, r.lg2+' '+r.h1+'/'+r.h2);
+  t('A440 · décochée dans les 10 s : la réévaluation est RENDUE à son état d’avant (comme un lien direct)', r.rendu===true);
   await page.close();
 }
 });

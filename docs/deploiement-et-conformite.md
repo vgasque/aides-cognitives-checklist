@@ -348,7 +348,9 @@ l'équipe tient.
 L'auteur d'une fiche peut désormais lier une étape à un minuteur ou à un compteur **de la même
 fiche** (« la coche de *Adrénaline 1 mg IV* lance *Adrénaline — prochaine dose* 4:00 », « la coche
 de *Choc* compte + 1 »), et poser un minuteur sur un bloc (« *Tentative* 1:00, à chaque entrée »).
-Sous l'étape, une légende d'une ligne montre l'état de l'objet lié. Passé à la grille :
+Sous l'étape, une légende d'une ligne montre l'état de l'objet lié — deux lignes quand le compteur
+relance lui-même un minuteur (v5.40.0) : le compte, puis ce minuteur, avec le même dessin que
+lorsque la coche le lance directement. Passé à la grille :
 
 - **Aucune sortie individualisée n'est créée.** Le lien est écrit par l'auteur ; le déclencheur est
   un **geste de l'équipe** (cocher, avancer dans le parcours). Le logiciel exécute ce que l'équipe
@@ -360,7 +362,8 @@ Sous l'étape, une légende d'une ligne montre l'état de l'objet lié. Passé �
   minuteur. L'unique automatisme — l'arrêt d'un minuteur de bloc quand le parcours quitte sa boucle —
   est **structurel** (le bloc n'est plus atteignable dans l'algorithme de l'auteur), jamais clinique.
 - **Tout se défait.** Décocher retire le + 1 et barre le repère au journal ; décocher dans les
-  10 s qui suivent une coche rend le minuteur à son état d'avant.
+  10 s qui suivent une coche rend le minuteur à son état d'avant — y compris celui que relance le
+  compteur (v5.40.0 : il restait relancé, et le délai de la dose précédente était perdu).
 - **Qualification MDCG 2019-11** : *afficher/archiver*, comme un minuteur ou un compteur manuel.
 
 **La ligne à ne pas franchir, nommée.** Le jour où un lien se déclencherait sur autre chose qu'un

@@ -103,6 +103,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A437 | `lot-v5-39.md` | Le bandeau « Filtrer » réserve la cible de « Tout effacer » : 43 px avec ou sans filtre |
 | A438 | `lot-v5-39.md` | « Administration » de Moi : rangée d'action en tête, tuiles de lecture, deux cartes côte à côte dès que la place le permet (`auto-fit`) |
 | A439 | `lot-v5-39.md` | Sous charge (processeur ralenti) : k5 attend la fin de `grabWake`, `amorce()` n'ajoute plus les exemples en double, garde `_seeding` dans l'app, `keepAnchor` ne lit plus une ancre transformée (décalage permanent jusqu'à 6 px) |
+| A440 | `lot-v5-40.md` | Une étape qui compte sur un compteur qui relance un minuteur : deux lignes de légende (compte, puis minuteur), grâce de 10 s étendue à la relance, « et relance … » dans les Réglages, « Compté par n étapes » sur la carte du compteur, avertissement « △ Minuteur cyclique » |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

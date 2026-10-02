@@ -4793,6 +4793,24 @@
   .sst-note.sst-sep{margin-top:20px}
   .sst-mk{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .sst-foot{display:flex;margin-top:20px}
+  /* A440 — la relance par le compteur, lue dans la feuille de l'étape ; l'avertissement « cyclique » (A379). */
+  .sst-chain{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border-radius:var(--r-3);box-shadow:inset 0 0 0 1px var(--line)}
+  .sst-chain>svg{flex:none;color:var(--ink-2)}
+  .sst-cl{flex:1;min-width:0;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+  .sst-cl small{display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--ink-2)}
+  .lk-warn{margin-top:8px;padding:10px 12px;border-radius:var(--r-3);background:var(--warn-soft);box-shadow:inset 0 0 0 1px var(--warn-line);font-size:13.5px;line-height:1.45;color:var(--ink)}
+  .lk-warn b{display:block;font-weight:800;color:var(--warn)}
+  .lk-warn small{display:block;margin-top:6px;font-size:12px;color:var(--ink-2)}
+  .cn-uses{margin:8px 0 6px;padding-top:8px;border-top:1px solid var(--line)}
+  .cn-uses>.tme-l{margin:0 0 4px}
+  .cn-uses .tme-h{margin-top:6px}
+  .cn-use{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:4px 0;border:0;border-bottom:1px solid var(--line);background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .cn-use:last-of-type{border-bottom:0}
+  .cn-use>span{flex:1;min-width:0}
+  .cn-use b{display:block;font-size:15px;font-weight:700}
+  .cn-use small{display:block;font-size:12px;font-weight:600;color:var(--ink-2)}
+  .cn-use>svg{flex:none;color:var(--ink-2)}
+  .cn-use:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-2)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
   /* K7 — la CARTE d'édition d'un minuteur : l'anatomie de celle du rail (fond de surface, filet,

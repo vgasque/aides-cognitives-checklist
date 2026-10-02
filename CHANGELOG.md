@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.40.0] — 2026-10-02
+Une étape qui compte, quand le compteur relance lui-même un minuteur, le dit et se défait (A440, doctrine `docs/decisions/lot-v5-40.md`).
+- **En session, deux lignes sous l'étape** : le compte (« 0 → 1 à la coche · Adrénaline IM »), puis le minuteur que
+  la coche relance, au même dessin qu'une étape qui lance un minuteur directement — « 05:00 à la coche · Rééval.
+  adrén. », et s'il tourne déjà « 02:40 · la coche relance à 05:00 » : on voit ce que la coche va remettre à zéro.
+  La place des deux lignes est réservée d'office ; rien ne saute à la coche. Une seule ligne ne tenait pas sur un
+  téléphone sans couper le texte.
+- **Décocher dans les 10 s rend aussi ce minuteur** à son état d'avant. Il restait relancé : une coche posée par
+  erreur effaçait le délai de la dose précédente.
+- **Les lignes de minuteur prennent le nom court de la tuile** (« Rééval. adrén. ») au lieu du nom complet coupé.
+- **Éditeur, Réglages de l'étape** : sous « ＋1 Adrénaline IM », la ligne « et relance « Réévaluation après
+  adrénaline » · 5 min — réglé sur le compteur » et un bouton « Compteur » qui y mène. La pastille de l'étape le dit
+  aussi.
+- **Éditeur, carte du compteur** : « Compté par 2 étapes », chaque étape rouvre ses réglages, et la phrase « Chaque
+  coche de ces étapes, comme le ＋ de la tuile, relance … ».
+- **Un minuteur cyclique relancé par un geste se signale** (carte ambre « △ Minuteur cyclique ») : voulu pour un cycle
+  de relais, à éviter pour un délai qui court depuis un geste. Un avertissement, jamais une interdiction.
+- Partage de session : rien de nouveau ne voyage — celui qui coche compte et relance, l'état part vers l'autre écran ;
+  l'annulation de 10 s vaut sur l'appareil qui a coché. Registre de conformité § 2 mis à jour.
+- Une étape garde un seul lien (lance OU compte) : le lien compteur → minuteur reste sur le compteur, dont le « + »
+  relance aussi.
+
 ## [5.39.11] — 2026-10-02
 Ce que la charge révélait : deux sondes fragiles et deux défauts de l'app (A439, doctrine `docs/decisions/lot-v5-39.md`).
 - **Déplacer une étape ou une ligne ne décale plus l'écran.** Reposer ou abandonner une rangée pendant son petit
@@ -317,25 +339,3 @@ Imprimer la Page sans surprise, exporter une sélection, les liens des PDF, et d
 - **PDF joints : liens cliquables et sommaire.** Les liens web (http, https, mailto, tel) s'ouvrent dans
   un nouvel onglet, les renvois internes mènent à leur page, et un bouton « Sommaire » apparaît quand
   le document a des signets.
-
-## [5.35.0] — 2026-09-26
-L'accueil en une colonne, l'éditeur plus navigable, un aperçu fidèle, et une Page et un Schéma lisibles (A389-A391, doctrine `docs/decisions/lot-v5-35.md`).
-- **Accueil (tablette, bureau) : une seule colonne.** La grille de 2 ou 3 colonnes coupait les
-  informations sous les titres ; la liste tient désormais en une colonne. « Détaillée » affiche une
-  carte par aide ; « Compacte » tient sur une ligne au bureau (titre à gauche, informations à droite).
-  Les deux réglages rendaient la même chose au-delà de 780 px : c'est corrigé.
-- **Bibliothèques** : dans la colonne de gauche, le crayon et « Nouvelle bibliothèque » laissent place à
-  un « Gérer » qui ouvre « Moi » à la section Bibliothèques.
-- **« Tout voir »** perd l'onglet « Parcours », qui redisait « Se repérer » : il reste Page et Schéma.
-- **Éditeur (tablette, téléphone) : la Structure revient.** Une carte « Structure · n blocs » reste collée
-  sous l'en-tête, fermée par défaut ; toucher un bloc la referme et amène le bloc à l'écran.
-- **« Essayer » montre la vraie page** : cartes, parcours, quai (Démarrer l'essai, Fin, Tout voir, ⚡,
-  Journal) et minuteurs, comme en session. « Fin » rejoue l'essai depuis le début. Rien n'est enregistré,
-  et ouvrir ou replier une carte dans l'aperçu ne change plus l'aide elle-même.
-- **Page (Tableau) : des traits qui se rejoignent.** Le tronc touche enfin la pilule « revenir à… » ; un
-  renvoi vers une branche de fourche rejoint la barre de la fourche (une seule pointe) ; un retour part
-  du bas de sa pilule et ne croise plus rien ; la pointe d'un retour arrive par un vrai trait ; les
-  tracés ne sont plus décalés quand la fenêtre s'ouvre.
-- **Page et Schéma : les conditions en toutes lettres**, comme dans le parcours : « Si Chocs délivrés ≥ 3 : »
-  en tête des étapes concernées, puis « · toutes les 4 min », « · si pas déjà faite », « · +1 Chocs délivrés ».
-  Le jalon se lit « Si … : … » ; les durées et les noms entre guillemets ne se coupent plus en fin de ligne.
