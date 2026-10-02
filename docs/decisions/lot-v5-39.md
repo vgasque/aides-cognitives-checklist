@@ -477,3 +477,41 @@ la nuit) — rien n'y est un état, donc aucun registre. Son dénominateur reste
 **Purgé (règle 14)** : `.inst-stats-wrap`, `.ist`, `.ist-h/-row/-k/-v/-d/-bar`, `.auth-admin-note` — zéro émission
 au grep. Échec de `get_instance_stats` : l'intertitre et la note restent (avant : la section se vidait, intertitre
 compris).
+
+## A439 — ce que la CHARGE révélait : deux sondes et deux défauts de l'app (v5.39.11)
+
+**Origine.** Un rouge `audit-k5` sous charge (« à la prise, l'objet ne bouge pas », −2 px), vert rejoué seul. Question
+de l'auteur : pourquoi la charge fait-elle échouer les harnais — et pourquoi les audits d'optimisation (A420) n'ont-ils
+jamais proposé d'attendre la fin des animations ? Réponse vérifiée : ils l'ont proposé UNE fois (A420,
+`audit-partage` « grammaire des fenêtres », helper `calme`), sans le généraliser — ils visaient le TEMPS (attendre une
+animation n'en fait gagner aucun), ont mesuré en divisant/triplant les attentes sur 8 cœurs peu chargés, jamais en
+ralentissant le processeur, et une attente générale casserait les sondes qui mesurent EXPRÈS pendant une animation
+(`audit-doctrine`, « on mesure pendant l'animation, pas après »).
+
+**Méthode.** Passe COMPLÈTE avec le processeur de chaque page ralenti (`Emulation.setCPUThrottlingRate` 3, patch
+temporaire du socle, non gardé) en plus du parallèle : sur ~2 600 contrôles, DEUX seulement rougissent en plus des
+rouges d'environnement. Le problème est rare, pas systémique — et chacun cachait autre chose qu'une lenteur.
+
+1. **k5 « à la prise »** — la sonde lisait la poignée 350 ms après le geste, pendant `grabWake` (0,5 s, rotation
+   −0,7°, échelle 1,015) : −0,7 à −1,9 px SANS charge (seuil 1 px : verdict au gré de l'arrondi), −2,7 px à ÷4,
+   +0,25 px une fois l'animation finie dans tous les cas. **La sonde attend désormais la fin des animations finies
+   de la rangée** (patron `calme`, EN PLUS de l'attente fixe, plafond 1 s). Gardé inline : le helper vit dans la
+   page, une fonction ne traverse pas `page.evaluate`, et deux sites ne justifient pas un script d'init.
+2. **`amorce()` ajoutait les exemples EN DOUBLE sous charge** — « Découvrir avec 2 exemples » ferme l'accueil puis
+   écrit deux fiches en IndexedDB ; pendant ces écritures l'accueil derrière affiche encore « Ajouter les fiches
+   d'exemple », que l'amorçage cherchait et pressait : 4 fiches dans 4 lancements sur 6 à CPU ÷6 (A129 rouge,
+   « avant 2/0 · pendant 4/0 »). Par la porte « exemples », l'amorçage attend maintenant les fiches et ne cherche
+   plus l'autre bouton : 12/12 à 2 fiches (÷1 et ÷6).
+3. **L'app elle-même** : `addSeedFiches` n'avait aucune garde — un toucher sur la notice pendant l'ajout dédoublait
+   les exemples. Un appel pendant qu'un autre court ne fait plus rien (`_seeding`) ; deux appels simultanés → 2 fiches.
+   Un appel POSTÉRIEUR ajoute toujours (comportement inchangé : la notice ne paraît plus quand des fiches existent).
+4. **Trouvé en vérifiant le point 1 — un vrai défaut d'ancrage.** « Abandonner ne décale rien (Échap) » rougissait à
+   ÷6 (−3 px) et le décalage était PERMANENT (identique 450 ms et 1 950 ms après, page réellement défilée) : ce
+   n'était pas la sonde. `keepAnchor` lit l'ancre AVANT de redessiner ; reposée ou abandonnée pendant `grabWake`, la
+   rangée était lue transformée et le `scrollBy` compensait la transformation — +1-2 px à vitesse normale, −3 à
+   −6 px à ÷6-8, cumulés d'un geste à l'autre. `keepAnchor` termine l'animation de l'objet tenu (`.grabbed`) avant
+   de lire (le nœud est redessiné de toute façon) : 0 px à ÷1, ÷6 et ÷8 ; k5 138/138 à ÷6.
+
+**Règle qui en sort.** Une mesure de MISE EN PAGE ne se lit pas sur un élément qui s'anime en `transform` — ni dans
+une sonde, ni dans l'app. Quand un contrôle rougit « sous charge », on le rejoue processeur RALENTI et on regarde si
+l'écart persiste après l'animation : s'il persiste, c'est l'app.

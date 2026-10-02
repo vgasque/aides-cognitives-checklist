@@ -290,6 +290,15 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   H('differentials:3').scrollIntoView({block:'center'});await w(150);
   const y0=Math.round(H('differentials:3').getBoundingClientRect().top);
   H('differentials:3').click();await w(350);
+  /* v5.39.11 (A439) — ON MESURE L'OBJET POSÉ, PAS SON TREMBLEMENT. Prendre une rangée lance
+     `grabWake` (0,5 s : rotation jusqu'à −0,7°, échelle 1,015) et `getBoundingClientRect` compte
+     les transformations : à 350 ms l'animation court encore — −0,7 à −1,9 px mesurés SANS charge
+     (seuil 1 px, verdict au gré de l'arrondi), −2,7 px à CPU ÷4, +0,25 px une fois finie dans
+     tous les cas. L'ancrage à 0 px est une propriété de MISE EN PAGE : on attend la fin des
+     animations finies de la rangée (patron `calme` d'audit-partage, A420), EN PLUS de l'attente
+     fixe, plafond 1 s. */
+  {const r=H('differentials:3').closest('.li');const an=r?r.getAnimations().filter(a=>a.effect&&a.effect.getTiming().iterations!==Infinity):[];
+   await Promise.race([Promise.all(an.map(a=>a.finished.catch(()=>{}))),w(1000)]);}
   const y1=Math.round(H('differentials:3').getBoundingClientRect().top);
   const drops=[...document.querySelectorAll('[data-ldrop]')].map(b=>b.dataset.ldrop);
   const marque=!!document.querySelector('.li.grabbed');

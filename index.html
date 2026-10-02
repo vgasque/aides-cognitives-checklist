@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-7K7GUr5Nrvd1C3GNUJQXskA72OcTBpy4qH/p1HOwTPA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DdeR/kVYIvaTZwFxH5O7UN4y3su58VlWPL12nBbZBv8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8780,7 +8780,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.10';
+const APP_VERSION='5.39.11';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11532,7 +11532,15 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b'),bx=u
   return f;}
 // Ajout À LA DEMANDE des fiches d'exemple (bandeau « Besoin d'exemples ? » de l'accueil).
 // persist() les marque `dirty` -> elles se synchronisent normalement si un compte est connecté.
+/* v5.39.11 (A439) : UN SEUL AJOUT À LA FOIS. « Découvrir avec 2 exemples » ferme l'accueil puis
+   écrit les deux fiches en IndexedDB ; pendant ces écritures, la notice « Ajouter les fiches
+   d'exemple » reste affichée derrière — un second toucher (ou l'amorçage des harnais, sous charge)
+   les ajoutait EN DOUBLE. Un appel pendant qu'un autre court ne fait rien. */
+let _seeding=false;
 async function addSeedFiches(){
+  if(_seeding)return;_seeding=true;
+  try{await addSeedFichesOnce();}finally{_seeding=false;}}
+async function addSeedFichesOnce(){
   const catUrg=(categories.find(c=>c.name==='Urgences')||categories[0]||{}).id||'';
   const catSmur=(categories.find(c=>c.name==='SMUR')||{}).id||catUrg;
   for(const f of [seed(catUrg),seed2(catSmur)]){if(await persist(f))fiches.push(f);}
@@ -19588,6 +19596,13 @@ function ancreOeil(){
   const ch=[];for(let n=e;n&&n!==main.parentNode;n=n.parentNode)ch.push({el:n,top:n.getBoundingClientRect().top});
   return ch;}
 function keepAnchor(sel,rerender,selAfter){
+  /* v5.39.11 (A439) — ON MESURE L'OBJET, PAS SON TREMBLEMENT. Une rangée tenue joue `grabWake`
+     (0,5 s, rotation et échelle) et `getBoundingClientRect` compte les transformations : reposée
+     ou abandonnée PENDANT l'animation, l'ancre était lue décalée et le `scrollBy` compensait ce
+     décalage pour de bon (mesuré : +1-2 px à vitesse normale, −3 à −6 px à CPU ÷6-8, cumulés d'un
+     geste à l'autre). On termine l'animation de l'objet tenu avant de lire : le nœud va être
+     redessiné de toute façon, rien de visible n'est perdu. */
+  main.querySelectorAll('.grabbed').forEach(g=>g.getAnimations().forEach(a=>{try{a.finish();}catch(e){}}));
   const apres=selAfter||sel;
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
   const oeil=ancreOeil();
