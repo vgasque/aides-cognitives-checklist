@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.41.0] — 2026-10-04
+Le bouton « + » de l'éditeur dit ce qu'il ajoute, et quatre corrections (A441-A445, doctrine `docs/decisions/lot-v5-41.md`).
+- **La porte « Ajouter » de l'éditeur devient une pilule nommée** : « ＋ Ajouter », et dessous « bloc · minuteur ·
+  dose… », cerclée de bleu pour se détacher du fond, de jour comme de nuit. Le petit carré bleu pâle sans mot était
+  peu visible et ne disait pas quoi on ajoute. Même dessin dans l'éditeur de protocole. Tout en bas de la page, elle
+  prend sa propre place et ne masque aucun contenu.
+- **Colonne gauche : taper le cadenas ou le nombre d'une bibliothèque la sélectionne** (seul le nom répondait).
+- **Feuille « Affichage » : la pastille d'« Afficher » suit dès le premier clic** (signalé sous Chrome : elle ne
+  suivait qu'au second ; elle se pose désormais avant que la liste se recalcule).
+- **Éditeur : « Options du bloc » reste repliée à l'ouverture**, même quand une option est réglée — le résumé à
+  droite du titre dit déjà ce qui l'est. Un dépliage reste mémorisé pendant l'édition.
+- **Éditeur : le nom d'un minuteur ou d'un compteur est plus grand** (il était plus petit que son « Nom court »), et
+  sous « Nom court » une ligne discrète dit qu'il est facultatif et qu'il s'affiche sur la capsule en session.
+
 ## [5.40.0] — 2026-10-02
 Une étape qui compte, quand le compteur relance lui-même un minuteur, le dit et se défait (A440, doctrine `docs/decisions/lot-v5-40.md`).
 - **En session, deux lignes sous l'étape** : le compte (« 0 → 1 à la coche · Adrénaline IM »), puis le minuteur que
@@ -313,29 +327,3 @@ La revue « à tout moment » et la bande des repères du bloc (A396-A397, doctr
 - **Génération par IA** : bloc `review` et renvoi `review` d'un item (règle 19) ; un repère peut
   s'écrire en objet avec un `id` et une `note`, et chaque étape qui dose un produit y renvoie par
   `poso` (règle 20).
-
-## [5.36.0] — 2026-09-27
-Imprimer la Page sans surprise, exporter une sélection, les liens des PDF, et des branches qui se lisent comme des branches (A392-A395, doctrine `docs/decisions/lot-v5-36.md`).
-- **Impression de la Page.** Sans l'option « imprimer les arrière-plans », les traits du tronc et des
-  fourches disparaissaient, et les numéros de bloc aussi : ils s'impriment désormais dans tous les cas
-  (traits en bordures, numéros encadrés). Les voies pointillées ne sont plus décalées d'une page ni
-  « rallongées », quels que soient les en-têtes, pieds de page et marges ; la page blanche en fin de
-  document et la page blanche au bureau (1280 px) ont disparu.
-- **Le PDF enregistré porte le nom de l'aide** (ou du protocole), et non plus « Aides cognitives ».
-- **Mode Page** : les cartes « À vérifier » et « Diagnostics » sous la feuille redisaient la Page ;
-  seule « Références » reste.
-- **Page : les jalons se lisent comme les réponses.** Dans une décision, le jalon vient après les
-  réponses, sur une ligne « SI Chocs délivrés ≥ 3 : … ……… [⚡ FV réfractaire] », en gris ; les en-têtes
-  de groupe d'étapes prennent le même « SI ». Le jalon ne coupe plus la question de ses réponses.
-- **Parcours : « Branche » au lieu de « Chemin 2 ».** Une suite qui ne découle pas du bloc précédent
-  s'annonce « Branche ◇ 2 « Non » » (la décision et sa réponse, un toucher y mène) ; ses blocs sont
-  décalés d'un cran le long d'un trait gris. « ■ Fin » remplace « Fin du parcours ». La bulle ne touche
-  plus le bord de la colonne.
-- **Parcours : le chiffre des losanges est centré.**
-- **« ✓ faite — plus à refaire »** : en mode guidé, une étape « une seule fois » déjà cochée le dit
-  dans le parcours, la Page et le Schéma (jamais sur papier).
-- **Exporter plusieurs aides ou protocoles d'un coup** : en mode Sélection, « Exporter… » produit un
-  seul fichier, réimportable tel quel (avec les documents joints au choix).
-- **PDF joints : liens cliquables et sommaire.** Les liens web (http, https, mailto, tel) s'ouvrent dans
-  un nouvel onglet, les renvois internes mènent à leur page, et un bouton « Sommaire » apparaît quand
-  le document a des signets.

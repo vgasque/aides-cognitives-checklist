@@ -714,7 +714,7 @@ const W=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const chr=[...document.querySelectorAll('.tmedit[data-ti]')].pop();
   const rc=chr.getBoundingClientRect();
   const chrono={due:!!chr.querySelector('[data-tdue]'),
-    dit:/ne sonne pas/.test((chr.querySelector('.tme-h')||{}).textContent||''),
+    dit:/ne sonne pas/.test((chr.querySelector('.tme-h:not(.tme-sh)')||{}).textContent||''),
     vu:rc.top<window.innerHeight&&rc.bottom>0,
     estUnChrono:chr.querySelector('.tm-kind').textContent==='Chrono'};
   /* (2) UN CYCLE, LUI, GARDE LE CHAMP. */

@@ -104,6 +104,11 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A438 | `lot-v5-39.md` | « Administration » de Moi : rangée d'action en tête, tuiles de lecture, deux cartes côte à côte dès que la place le permet (`auto-fit`) |
 | A439 | `lot-v5-39.md` | Sous charge (processeur ralenti) : k5 attend la fin de `grabWake`, `amorce()` n'ajoute plus les exemples en double, garde `_seeding` dans l'app, `keepAnchor` ne lit plus une ancre transformée (décalage permanent jusqu'à 6 px) |
 | A440 | `lot-v5-40.md` | Une étape qui compte sur un compteur qui relance un minuteur : deux lignes de légende (compte, puis minuteur), grâce de 10 s étendue à la relance, « et relance … » dans les Réglages, « Compté par n étapes » sur la carte du compteur, avertissement « △ Minuteur cyclique » |
+| A441 | `lot-v5-41.md` | La porte « Ajouter » de l'éditeur devient une pilule nommée à sous-titre (« Ajouter · bloc · minuteur · dose… »), filet `--act`, glose à toutes les largeurs ; ne recouvre rien en bas de page (mesuré) ; formes B, C, D, F, G écartées |
+| A442 | `lot-v5-41.md` | Feuille « Affichage » : la pastille d'« Afficher » se peint avant l'action (signalé sous Chrome, non reproduit) |
+| A443 | `lot-v5-41.md` | Colonne gauche : un acte inerte (cadenas) et le compte entrent dans le bouton de la rangée — les taper sélectionne la bibliothèque |
+| A444 | `lot-v5-41.md` | « Options du bloc » toujours repliée à l'ouverture de l'éditeur (amende A383) ; le résumé de l'en-tête suffit |
+| A445 | `lot-v5-41.md` | Nom d'un minuteur/compteur à 17,5/800 (n'est plus plus petit que « Nom court ») ; ligne « Facultatif — … » sous « Nom court » (`tmeShortRow`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

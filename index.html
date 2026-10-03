@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rn00jcHTjKwN9EtRACRgLkpETeMflKYdR2Bx88SI6Us='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-oRD2aGs0PiGNK2qZTD6npZtOo1f8L8viyoG5+0JE5As='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4895,18 +4895,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Ombres toujours tokenisées (v4.37.0) ; RIEN d'autre. Détail : doctrine-css.md C89. */
   
   .ed-door:hover{background:var(--act)}
-  /* v5.30 (maquette v5) : la porte devient un BOUTON FLOTTANT tonal (60 px, --r-4, glyphe 21 sur
-     --primary-soft), calé à droite ; son nom accessible garde le mot. Le MENU qu'elle ouvre — la
-     palette (bloc, décision, minuteur, dose, schéma…) — ne perd aucune option. */
-  .ed-door{width:56px;height:56px;min-height:56px;margin-left:auto;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--primary-soft);color:var(--act);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
-  .ed-door:hover{background:var(--primary-100)}
-  .edd-p{flex:none;width:auto;height:auto;display:grid;place-items:center;border-radius:0;background:none;color:var(--act);font-size:var(--t-step-l);font-weight:600;line-height:1}
-  .edd-l,.edd-c{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  /* Sous 430 px, la glose s'EFFACE plutôt que de se tronquer : c'est un exemple, pas
-     l'information, et « bloc · minuteur · dose · s… » n'apprend plus rien. Palier mesuré à 400 px,
-     où l'ellipse mangeait déjà le troisième mot. Même arbitrage que la répartition de la pénurie
-     dans la barre d'éditeur : ce qui est illustratif cède avant ce qui nomme. */
-  @media (max-width:429.98px){.edd-c{display:none}}
+  /* v5.41 (A441, maquette E) : la porte devient une PILULE NOMMÉE à sous-titre — le carré tonal
+     sans mot ne disait ni qu'il ajoutait, ni QUOI (signalé). Filet `--act` (contraste sur le fond
+     d'ambiance, jour et nuit), le mot « Ajouter », et l'exemple dessous, à toutes les largeurs.
+     Toujours tonale, jamais remplie (un seul bouton plein par écran). Collante dans le flux : en
+     bas de page elle occupe sa propre rangée et ne recouvre rien (mesuré). */
+  .ed-door{width:auto;height:56px;min-height:56px;margin-left:auto;padding:0 20px 0 16px;justify-content:flex-start;gap:10px;
+    border-radius:999px;background:var(--primary-soft);color:var(--act);border:1.5px solid var(--act);box-shadow:var(--shadow-work)}
+  .ed-door:hover{background:var(--primary-100);border-color:var(--act)}
+  .edd-p{flex:none;display:grid;place-items:center;color:var(--act);font-size:var(--t-step);font-weight:600;line-height:1}
+  .edd-t{display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap}
+  .edd-l{font-size:var(--t-item);font-weight:800}
+  .edd-c{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   /* Les groupes de la palette : titres de section, gabarit unique des kickers du projet. */
   .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
   .ed-palette>.ep-g:first-child{margin-top:0}
@@ -5173,7 +5173,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      rayon), avec ses réglages en rangées libellé-gauche / contrôle-droite. */
   .tmedit{background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);padding:10px 12px;margin-bottom:10px}
   .tme-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .tme-top input[type=text]{flex:1;min-width:0;font-size:13.5px;font-weight:700}
+  .tme-top input[type=text]{flex:1;min-width:0;font-size:var(--t-step);font-weight:800}   /* le NOM de la carte : jamais plus petit que « Nom court » dessous (signalé) */
   /* La poignée s'aligne sur la CROIX plutôt que sur sa propre taille (v4.78.0) : elles forment une
      paire en tête de carte, et deux boutons voisins de hauteurs différentes se lisent comme deux
      objets sans rapport. `align-self:stretch` la fait suivre la croix quelle qu'en soit la hauteur —
@@ -5197,6 +5197,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tme-u{flex:none;font-size:12px;color:var(--ink-soft)}
   .tme-loop{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)}
   .tme-h{margin:0;font-size:11px;line-height:1.4;color:var(--ink-soft)}
+  .tme-sh{margin-bottom:8px}
   .blk-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
     background:var(--act);color:var(--on-primary);font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums}
   .blk-n.dec{background:var(--warn-soft);color:var(--warn);border:1.5px solid var(--warn-line);font-size:12px}
@@ -8040,7 +8041,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
@@ -8798,7 +8799,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.40.0';
+const APP_VERSION='5.41.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14346,10 +14347,12 @@ function catChipsHtml(){
 /* Sans acte frère (crayon), la queue — chevron ou nombre — vit DANS le bouton : toute la rangée
    répond au tap (signalé : la flèche de « Gérer les catégories » était inerte). Avec un acte, le
    compte reste dans l'enveloppe, après lui (un bouton n'en contient pas un autre). */
-function hsRow(o){const tin=!o.act&&o.tail?o.tail:'';
+/* Un acte INERTE (cadenas, A389 : plus de ✎) entre lui aussi dans le bouton, avec le compte —
+   dehors, taper le cadenas ou le nombre ne sélectionnait pas la bibliothèque (signalé). */
+function hsRow(o){const actIn=!!o.act&&!/^<button/.test(o.act),tin=(!o.act||actIn)&&o.tail?o.tail:'';
   return `<div class="hs-wrap${o.on?' on':''}${o.cls?' '+o.cls:''}">`
     +`<button class="hs-row" ${o.attrs||''}><span class="hs-mk">${o.mark||''}</span>`
-    +`<span class="hs-name">${o.label}</span>${tin}</button>${o.act||''}${tin?'':(o.tail||'')}</div>`;}
+    +`<span class="hs-name">${o.label}</span>${actIn?o.act:''}${tin}</button>${actIn?'':(o.act||'')}${tin?'':(o.tail||'')}</div>`;}
 const HS_RING='<span class="hs-ring"></span>';
 /* Ce que l'accueil peut montrer (brouillons d'autrui exclus) — la colonne gauche et la feuille « Affichage » comptent ici. */
 const homeVis=()=>(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
@@ -16270,7 +16273,7 @@ function renderProtocolEdit(){
     du formulaire, collante, et l'unique bouton REMPLI de l'écran (l'action primaire d'un éditeur
     est d'écrire). Le volet de relecture et la suppression restent APRÈS elle : un bilan se lit en
     fermant, et un geste destructeur ne se met jamais avant une porte de création. */}
-    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette référence</span><span class="edd-c">document · voir aussi · référence</span></button>
+    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à cette référence</span></span> <span class="edd-c">document · référence…</span></span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`:''}`;
@@ -23861,11 +23864,12 @@ function edSumPaint(li,b,i){const f=state.draft||{},h=edStepSum(f,bItems(b)[i],S
   if(o)o.outerHTML=h;else if(h)li.querySelector('.li-exp').insertAdjacentHTML('afterend',h);}
 const BLK_DEL='<div class="blk-foot"><button type="button" class="btn sm danger" data-bdel>Supprimer le bloc</button></div>';
 const swHtml=(on,attrs)=>`<button type="button" class="tg-sw${on?' on':''}" role="switch" aria-checked="${!!on}" ${attrs}></button>`;
-// « Options du bloc » : la carte dépliable de l'app, ouverte d'office quand une option est posée (le départ seul ne compte pas).
+// « Options du bloc » : la carte dépliable de l'app, TOUJOURS repliée à l'ouverture (signalé : déplier chaque bloc réglé
+// allongeait l'éditeur) — le résumé à droite de l'en-tête dit déjà ce qui est posé. Le geste de l'auteur est mémorisé.
 function blkOptsHtml(b,blocks){const f=state.draft||{},loop=blkInLoop(f,b.id),dep=blocks._start===b.id,ph=String(b.phase||'').trim(),nj=(b.milestones||[]).length;
   const nl=b.kind!=='decision'&&b.next,nxt=nl&&(blocks.find(x=>x&&x.id===b.next)||{}).title;
   const sum=[dep&&'Départ',ph,nl&&String(b.nextLbl||'').trim()&&'« Continuer » renommé',b.timer&&'Minuteur',nj&&nj+' jalon'+(nj>1?'s':''),b.image&&'Image'].filter(Boolean);
-  const o=state.edBlkOpt||{},open=b.id in o?o[b.id]:sum.length>(dep?1:0),rep='le bloc se répète';
+  const o=state.edBlkOpt||{},open=!!o[b.id],rep='le bloc se répète';
   const row=(l,sub,ctl,id)=>`<div class="bo-row"><span class="bo-l"${id?` id="${id}"`:''}>${l}${sub?`<span class="bo-s">${sub}</span>`:''}</span>${ctl}</div>`;
   const tm=(loop||b.timer)&&edBlkTimerHtml(b),lid='bo-dep-'+b.id;
   return foldCardHtml(b.id,uiIcon('tune',16),'Options du bloc',sum.join(' · ')||'Aucune',open,
@@ -23990,10 +23994,13 @@ function cxEditorRow(c,i,f,n){
    et « À L'ÉCHÉANCE » — la ligne d'action que portera l'alarme. Une alarme qui nomme le minuteur
    dit QUOI a sonné, jamais QUOI FAIRE : poser l'action au pied de l'alerte est la règle ECAM, et
    c'est l'auteur qui la connaît, pas l'application. */
+// « Nom court » du minuteur et du compteur : une ligne discrète dit qu'il est facultatif et où il paraît.
+const tmeShortRow=(attr,v,ph)=>`<div class="tme-row"><span class="tme-l">Nom court</span><input type="text" ${attr} value="${esc(v||'')}" maxlength="24" placeholder="${esc(ph)}" aria-label="Nom court sur la capsule (facultatif — abrégé d’office sinon)"></div>
+    <p class="tme-h tme-sh">Facultatif — le nom sur la capsule en session ; vide, il est abrégé d’office.</p>`;
 function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
   return `<div class="tmedit${edGrabClsL('timers',i)}" data-ti="${i}">
     <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${edGrabHandleL('timers',i,n||0,'le minuteur')}<button type="button" class="ed-ic del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
-    <div class="tme-row"><span class="tme-l">Nom court</span><input type="text" data-tshort value="${esc(t.short||'')}" maxlength="24" placeholder="${esc(autoShort(t.label,SHORT_TM))}" aria-label="Nom court sur la capsule (facultatif — abrégé d’office sinon)"></div>
+    ${tmeShortRow('data-tshort',t.short,autoShort(t.label,SHORT_TM))}
     ${iv?`<div class="tme-row"><span class="tme-l">Durée</span><input type="number" min="0" data-tmin value="${mm}" aria-label="Durée du cycle — minutes"><span class="tme-u">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" aria-label="Durée du cycle — secondes"><span class="tme-u">s</span><label class="tme-loop"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">se relance</label></div>`:''}
     ${''/* UN CHRONOMÈTRE NE SONNE JAMAIS (v4.78.0, signalé à l'usage : « un chronomètre n'arrive pas
     à échéance, donc ne sonne pas »). Le champ « À l'échéance » lui était pourtant proposé : on
@@ -24016,7 +24023,7 @@ function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type=
      classes — pas une ligne de CSS nouvelle, et deux objets voisins qui se ressemblent enfin. */
   return `<div class="tmedit${edGrabClsL('counters',i)}" data-ci="${i}">
     <div class="tme-top"><span class="blk-type tm-kind">Compteur</span><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur">${edGrabHandleL('counters',i,n||0,'le compteur')}<button type="button" class="ed-ic del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>
-    <div class="tme-row"><span class="tme-l">Nom court</span><input type="text" data-cshort value="${esc(c.short||'')}" maxlength="24" placeholder="${esc(autoShort(c.label,SHORT_CN))}" aria-label="Nom court sur la capsule (facultatif — abrégé d’office sinon)"></div>
+    ${tmeShortRow('data-cshort',c.short,autoShort(c.label,SHORT_CN))}
     <div class="tme-row"><span class="tme-l">Pas</span><input type="number" data-cstep value="${c.step||1}" style="width:64px" aria-label="Pas du compteur"><span class="tme-l" style="min-width:56px">Départ</span><input type="number" data-cstart value="${c.start||0}" style="width:64px" aria-label="Valeur de départ du compteur"></div>
     ${ivs.length?`<div class="tme-row"><span class="tme-l">Le ＋ relance</span><select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>« ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select></div>`:''}
     ${cnUsesHtml(c,timers)}
@@ -24243,7 +24250,7 @@ function renderEditor(){_renderN++;
     n'appartient pas à « Prise en charge », elle appartient à la fiche (cf. ED_PALETTE). Le volet de
     relecture et le bouton de suppression restent APRÈS elle — un bilan se lit en fermant, et un
     geste destructeur ne se met jamais avant une porte de création. */}
-    <button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette aide</span><span class="edd-c">bloc · minuteur · dose · schéma…</span></button>
+    <button type="button" class="add-line ed-door${state.edGrab?' flat':''}" id="edAddOpen"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à cette aide</span></span> <span class="edd-c">bloc · minuteur · dose…</span></span></button>
     ${''/* LE VOLET DE RELECTURE MONTE DANS LA COLONNE DE DROITE À ≥ 1000 px (question puis
     demande utilisateur). Il vivait en PIED, ce qui est sa place quand il n'y a qu'une colonne :
     on lit un bilan en fermant. Mais dès qu'une colonne COLLANTE existe, la reléguer au pied
@@ -26149,13 +26156,15 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
     +((!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories'}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
   /* « Tout effacer » remet les familles de FILTRE à leur cran neutre d'un geste ; il ne paraît que s'il y a à effacer. */
   document.getElementById('viewSheetClear').onclick=()=>{dropFilter('all');render();paintViewSheet();};
+  /* La pastille se peint AVANT d'agir (signalé sous Chrome : le 1ᵉʳ clic filtrait, la pastille
+     ne suivait qu'au 2ᵉ) — `setSection` re-rend toute la liste ; peinte après, elle en dépendait. */
   body.querySelectorAll('[data-vs]').forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.vs.split(':');
+    const root=b.closest('.seg');paintSeg(root,'data-vs',[...root.querySelectorAll('[data-vs]')].indexOf(b));
+    root.querySelectorAll('[data-vs]').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
     if(k==='filt'){state.homeRev=v==='review';setSection(v==='review'?'all':v,true,{keepCat:true});}
     else if(k==='sort')setHomePref('homeSort',v);
     else if(k==='group')setHomeGroup(v);
     else if(k==='dens')setHomePref('homeCompact',v==='1');
-    const root=b.closest('.seg');paintSeg(root,'data-vs',[...root.querySelectorAll('[data-vs]')].indexOf(b));
-    root.querySelectorAll('[data-vs]').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
     viewSheetRedo();paintViewFoot();});
   /* A428 : filtrer par bibliothèque au téléphone et à la tablette — le cran de la colonne gauche (`state.homeLib`). */
   body.querySelectorAll('[data-vslib]').forEach(x=>x.onclick=()=>{const v=x.dataset.vslib;
