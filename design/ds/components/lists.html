@@ -2689,7 +2689,10 @@
   .pf-all:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* A388 : une décision repliée garde ses branches sur une ligne — le mot court, puis où il mène. */
   .pf-brief{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}
-  .pf-brief .pf-opt{min-height:32px;padding:0;gap:2px}
+  .pf-brief .pf-opt{min-height:32px;max-width:100%;padding:0;gap:2px;flex-wrap:nowrap}   /* A448 : réponse + destination + « · » insécables */
+  .pf-brief .pf-opt>b{min-width:0;overflow-wrap:anywhere}
+  .pf-brief .pf-opt>:not(b){flex:none}
+  .pf-brief .pf-sep{margin-left:4px}
   .pf-brief .pf-ref{padding:0 2px;gap:4px}
   .pf-opt.pris b{color:var(--ok)}
   .pf-sep{color:var(--ink-2)}
@@ -4540,17 +4543,19 @@
   
   .ed-door:hover{background:var(--act)}
   /* v5.41 (A441, maquette E) : la porte devient une PILULE NOMMÉE à sous-titre — le carré tonal
-     sans mot ne disait ni qu'il ajoutait, ni QUOI (signalé). Filet `--act` (contraste sur le fond
-     d'ambiance, jour et nuit), le mot « Ajouter », et l'exemple dessous, à toutes les largeurs.
-     Toujours tonale, jamais remplie (un seul bouton plein par écran). Collante dans le flux : en
-     bas de page elle occupe sa propre rangée et ne recouvre rien (mesuré). */
+     sans mot ne disait ni qu'il ajoutait, ni QUOI (signalé). Le mot « Ajouter », et l'exemple
+     dessous, à toutes les largeurs. Collante dans le flux : en bas de page elle occupe sa propre
+     rangée et ne recouvre rien (mesuré).
+     v5.41.1 (A446, amende A441) : REMPLIE `--act` — tonale, elle restait trop peu visible (signalé),
+     et l'éditeur n'a AUCUN autre bouton rempli : elle EST l'action primaire de l'écran. Même
+     matière que `.btn.primary` (encre `--on-primary`, survol `brightness`), jour et nuit. */
   .ed-door{width:auto;height:56px;min-height:56px;margin-left:auto;padding:0 20px 0 16px;justify-content:flex-start;gap:10px;
-    border-radius:999px;background:var(--primary-soft);color:var(--act);border:1.5px solid var(--act);box-shadow:var(--shadow-work)}
-  .ed-door:hover{background:var(--primary-100);border-color:var(--act)}
-  .edd-p{flex:none;display:grid;place-items:center;color:var(--act);font-size:var(--t-step);font-weight:600;line-height:1}
+    border-radius:999px;background:var(--act);color:var(--on-primary);border:1.5px solid var(--act);box-shadow:var(--shadow-work)}
+  .ed-door:hover{background:var(--act);border-color:var(--act);filter:brightness(1.06)}
+  .edd-p{flex:none;display:grid;place-items:center;color:inherit;font-size:var(--t-step);font-weight:600;line-height:1}
   .edd-t{display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap}
   .edd-l{font-size:var(--t-item);font-weight:800}
-  .edd-c{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .edd-c{font-size:var(--t-meta);font-weight:600;color:inherit}
   /* Les groupes de la palette : titres de section, gabarit unique des kickers du projet. */
   .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
   .ed-palette>.ep-g:first-child{margin-top:0}

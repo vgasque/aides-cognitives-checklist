@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-oRD2aGs0PiGNK2qZTD6npZtOo1f8L8viyoG5+0JE5As='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PFzZOmUUAWSdLD2ZjvXyVHhebyBQE9dE2IJo9aQ2N0g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3045,7 +3045,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-all:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* A388 : une décision repliée garde ses branches sur une ligne — le mot court, puis où il mène. */
   .pf-brief{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}
-  .pf-brief .pf-opt{min-height:32px;padding:0;gap:2px}
+  .pf-brief .pf-opt{min-height:32px;max-width:100%;padding:0;gap:2px;flex-wrap:nowrap}   /* A448 : réponse + destination + « · » insécables */
+  .pf-brief .pf-opt>b{min-width:0;overflow-wrap:anywhere}
+  .pf-brief .pf-opt>:not(b){flex:none}
+  .pf-brief .pf-sep{margin-left:4px}
   .pf-brief .pf-ref{padding:0 2px;gap:4px}
   .pf-opt.pris b{color:var(--ok)}
   .pf-sep{color:var(--ink-2)}
@@ -4896,17 +4899,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   
   .ed-door:hover{background:var(--act)}
   /* v5.41 (A441, maquette E) : la porte devient une PILULE NOMMÉE à sous-titre — le carré tonal
-     sans mot ne disait ni qu'il ajoutait, ni QUOI (signalé). Filet `--act` (contraste sur le fond
-     d'ambiance, jour et nuit), le mot « Ajouter », et l'exemple dessous, à toutes les largeurs.
-     Toujours tonale, jamais remplie (un seul bouton plein par écran). Collante dans le flux : en
-     bas de page elle occupe sa propre rangée et ne recouvre rien (mesuré). */
+     sans mot ne disait ni qu'il ajoutait, ni QUOI (signalé). Le mot « Ajouter », et l'exemple
+     dessous, à toutes les largeurs. Collante dans le flux : en bas de page elle occupe sa propre
+     rangée et ne recouvre rien (mesuré).
+     v5.41.1 (A446, amende A441) : REMPLIE `--act` — tonale, elle restait trop peu visible (signalé),
+     et l'éditeur n'a AUCUN autre bouton rempli : elle EST l'action primaire de l'écran. Même
+     matière que `.btn.primary` (encre `--on-primary`, survol `brightness`), jour et nuit. */
   .ed-door{width:auto;height:56px;min-height:56px;margin-left:auto;padding:0 20px 0 16px;justify-content:flex-start;gap:10px;
-    border-radius:999px;background:var(--primary-soft);color:var(--act);border:1.5px solid var(--act);box-shadow:var(--shadow-work)}
-  .ed-door:hover{background:var(--primary-100);border-color:var(--act)}
-  .edd-p{flex:none;display:grid;place-items:center;color:var(--act);font-size:var(--t-step);font-weight:600;line-height:1}
+    border-radius:999px;background:var(--act);color:var(--on-primary);border:1.5px solid var(--act);box-shadow:var(--shadow-work)}
+  .ed-door:hover{background:var(--act);border-color:var(--act);filter:brightness(1.06)}
+  .edd-p{flex:none;display:grid;place-items:center;color:inherit;font-size:var(--t-step);font-weight:600;line-height:1}
   .edd-t{display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap}
   .edd-l{font-size:var(--t-item);font-weight:800}
-  .edd-c{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .edd-c{font-size:var(--t-meta);font-weight:600;color:inherit}
   /* Les groupes de la palette : titres de section, gabarit unique des kickers du projet. */
   .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
   .ed-palette>.ep-g:first-child{margin-top:0}
@@ -8799,7 +8804,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.41.0';
+const APP_VERSION='5.41.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14263,10 +14268,15 @@ function filtersCount(){return filtersList().length;}
    savoir pourquoi elle n'y est pas, qui est le pire mode de défaillance de cet écran. */
 /* A429 — LES FILTRES POSÉS, UNE LISTE : les puces de la page, le compte du déclencheur et « Tout effacer » la lisent.
    « À relire » y entre (il restreint la liste ; l'ancien compte l'oubliait, `section` restant à « all »). */
+/* Le NOM du cran de bibliothèque posé (`state.homeLib` non nul) — une source pour la puce et le titre des résultats. */
+function homeLibLbl(){return state.homeLib===''?'Perso':(libName(state.homeLib)||'Bibliothèque partagée');}
+/* A447 — LE TITRE DES RÉSULTATS DIT LE PÉRIMÈTRE CHERCHÉ : il affirmait « toutes les bibliothèques » quand la colonne
+   gauche en avait choisi une (signalé : la liste était filtrée sans que la recherche le montre). HTML échappé. */
+function homeResTitle(){return 'Résultats — '+(state.homeLib!=null?esc(homeLibLbl()):'toutes les bibliothèques');}
 function filtersList(){const p=[];
   if(state.homeRev)p.push({k:'type',t:'Afficher',v:'À relire'});
   else if(state.section==='fiches'||state.section==='protocols')p.push({k:'type',t:'Afficher',v:state.section==='fiches'?'Aides':'Protocoles'});
-  if(state.homeLib!=null)p.push({k:'lib',t:'Bibliothèque',v:state.homeLib===''?'Perso':(libName(state.homeLib)||'Bibliothèque partagée')});
+  if(state.homeLib!=null)p.push({k:'lib',t:'Bibliothèque',v:homeLibLbl()});
   if(state.cat){const c=categories.find(x=>catKey(x)===state.cat);p.push({k:'cat',t:'Catégorie',v:c?c.name:state.cat,col:c?safeColor(c.color):''});}
   return p;}
 function dropFilter(k){const all=k==='all';
@@ -14567,7 +14577,8 @@ function docSnipHtml(e){
 function docHits(q){
   const T=qTerms(q).filter(t=>t.length>=2);
   if(!T.length||!attIx.size)return [];
-  const owner=docOwners(true);
+  /* A447 : les MÊMES crans que la liste (bibliothèque, catégorie) — un document d'une bibliothèque écartée n'est pas un résultat. */
+  const owner=docOwners(true,e=>homeLibOn(e)&&catFilterOn(e));
   const out=[];
   owner.forEach((o,id)=>{
     const h=attIx.get(id);
@@ -15275,6 +15286,9 @@ function renderHomeList(cfg){
     const dh=docHitsHtml(q);
     listHtml=(corrige?`<div class="fix-line">Aucun résultat pour «&nbsp;<b>${esc(corrige.saisi)}</b>&nbsp;» · affiché&nbsp;: «&nbsp;<b>${esc(corrige.montre)}</b>&nbsp;»</div>`:'')
       +`<div class="list-title">${cfg.listTitle()} <span>— ${list.length} ${cfg.countLbl(list.length)}</span></div>`
+      /* A447 : les filtres posés se lisent AUSSI sous les résultats — la recherche cherche DANS les crans (bibliothèque,
+         catégorie, type) ; sans les puces, un résultat écarté par la colonne gauche manquait sans raison visible. */
+      +(state.selOn?'':filtersBarHtml())
       +crossHitsHtml(q,cfg.crossKind)
       /* LE GROUPE « DOCUMENTS » VIENT APRÈS LA LISTE, jamais entre son titre et ses rangées :
          on cherche d'abord une aide, une annexe ensuite. Et quand RIEN d'autre ne correspond,
@@ -15420,7 +15434,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     pinnedLbl:n=>n>1?'Épinglées':'Épinglée',
     // (l'état tonal du bouton « Créer » est posé par applyViewChrome — un champ newTonal a vécu
     // ici sans consommateur, retiré v4.56.0)
-    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':'Toutes les bibliothèques',
+    listTitle:()=>txNorm(state.q)?homeResTitle():'Toutes les bibliothèques',
     countLbl:n=>'aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''),
     // Tri : épinglées d'abord (préférence locale), puis alphabétique (byTitle, v4.3.2).
     // Recherche : plein texte normalisé, sur TOUTES les bibliothèques accessibles ; brouillon
@@ -15524,7 +15538,7 @@ function renderAll(){
   renderHomeList({rerender:renderAll,crossKind:null,create:openCreateDlg,
     open:id=>{P.has(id)?openProtocolRead(id):openRead(id);},
     pinnedLbl:n=>n>1?'Épinglés':'Épinglé',
-    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':'Toutes les bibliothèques',
+    listTitle:()=>txNorm(state.q)?homeResTitle():'Toutes les bibliothèques',
     countLbl:n=>'élément'+(n>1?'s':''),
     remainLbl:n=>'élément'+(n>1?'s':''),
     /* UN SEUL TRI POUR LES DEUX TYPES — surtout pas « les aides d'abord » : ce serait rétablir la
@@ -15544,7 +15558,7 @@ function renderAll(){
    MÊME description — trois rendus qui divergeraient seraient trois endroits à corriger. */
 function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:openCreateDlg,open:openProtocolRead,
     pinnedLbl:n=>n>1?'Épinglés':'Épinglé',
-    listTitle:()=>txNorm(state.q)?'Résultats — toutes les bibliothèques':'Protocoles — toutes les bibliothèques',
+    listTitle:()=>txNorm(state.q)?homeResTitle():'Protocoles — toutes les bibliothèques',
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
@@ -15748,11 +15762,11 @@ async function ixRun(){
 /* Documents joints par une entité VIVANTE, et qui les porte — source unique de `ixPending` et de
    `docHits`, qui recopiaient la même boucle. `visible` ajoute la règle des brouillons : un
    brouillon caché ne doit pas révéler l'existence de son annexe dans les résultats. */
-function docOwners(visible){
+function docOwners(visible,keep){
   const vis=x=>canEditFiche(x)||x.status!=='draft';
   const m=new Map();   // Map, jamais un objet : un id sert de CLÉ (règle 6)
   (fiches||[]).concat(protocols||[]).forEach(e=>{
-    if(!e||e.deletedAt||(visible&&!vis(e)))return;
+    if(!e||e.deletedAt||(visible&&!vis(e))||(keep&&!keep(e)))return;
     (e.docs||[]).forEach(a=>{if(a&&a.id&&!m.has(a.id))m.set(a.id,{a,e});});});
   return m;}
 // Documents présents sur l'appareil et pas encore indexés (le rattrapage explicite s'appuie
@@ -21936,9 +21950,11 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
         return `<div class="pf-jl"><b class="pf-si">Si</b> ${esc(jalonCondLbl(f,j))} : ${fmt(j.text)}${go?` <button type="button" class="pf-ref pf-bolt" data-plref="${esc(j.go)}">${boltIcon(14)}<span class="pf-rt">${esc(titre(go))}</span></button>`:''}</div>`;}).join('');}   // A388 : le jalon se lit comme une étape conditionnelle, et renvoie à sa complication
     if(dec&&open)body+=`<div class="pf-opts">${(b.options||[]).map(o=>{const t=o&&o.target&&byId[o.target]?o.target:null;
         return `<div class="pf-opt"><b>${esc((o&&o.label)||'')}</b>${dest(o,t,false)}</div>`;}).join('')}</div>`;
-    else if(dec)body+=`<div class="pf-opts pf-brief">${(b.options||[]).map(o=>{const t=o&&o.target&&byId[o.target]?o.target:null;
+    /* A448 : une réponse et sa destination forment UNE unité insécable, le « · » la ferme — sinon, une réponse sans « — »
+       à couper passait à la ligne morceau par morceau (réponse, flèche, point : 32 px chacun) et le repli dépassait le dépli. */
+    else if(dec)body+=`<div class="pf-opts pf-brief">${(b.options||[]).map((o,k,all)=>{const t=o&&o.target&&byId[o.target]?o.target:null;
         const pris=!!(m&&t&&m.taken===t),lb=court(o&&o.label);
-        return `<span class="pf-opt${pris?' pris':''}"><b>${pris?'✓ ':''}${esc(lb)}</b>${dest(o,t,true)}</span>`;}).join('<span class="pf-sep" aria-hidden="true">·</span>')}</div>`;
+        return `<span class="pf-opt${pris?' pris':''}"><b>${pris?'✓ ':''}${esc(lb)}</b>${dest(o,t,true)}${k<all.length-1?'<span class="pf-sep" aria-hidden="true">·</span>':''}</span>`;}).join('')}</div>`;
     else if(open&&b.next&&byId[b.next]&&!(next&&next.id===b.next))body+=`<div class="pf-jump">${num[b.next]<=num[b.id]?ref(b.next,'↺ retour à',1)+(cycleTxt(f)?`<span class="pf-cy">${esc(cycleTxt(f))}</span>`:''):ref(b.next,'↳ puis')}</div>`;
     else if(open&&!b.next)body+=`<div class="pf-end">■ Fin</div>`;   // A394 : la fin de CE chemin — il peut y en avoir plusieurs
     const arr=open&&arrivals.length?`<div class="pf-arr"><span>← aussi depuis</span>${arrivals.map(src).join('')}</div>`:'';

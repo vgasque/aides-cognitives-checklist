@@ -60,3 +60,51 @@ Le champ du nom, en tête de carte, était à 13,5 px quand « Nom court » dess
 renversée. Il passe à 17,5/800 (`--t-step`) — d'où sa sortie de la liste « 16 px tactile » de fin de feuille, qui
 l'aurait rabaissé à 16 au toucher. Sous « Nom court », une ligne discrète (11 px, `.tme-sh`, fabrique `tmeShortRow`
 commune au minuteur et au compteur) : « Facultatif — le nom sur la capsule en session ; vide, il est abrégé d'office. »
+
+## A446 — la porte « Ajouter » est REMPLIE (v5.41.1, amende A441)
+
+**Le signalement.** « Mets-le en bleu foncé — il n'est pas assez visible et il n'y a aucun autre bouton bleu foncé sur
+cette page. » La pilule tonale d'A441 (fond `--primary-soft`, filet `--act`) restait discrète sur le fond d'ambiance.
+
+**Décision (de l'auteur).** La pilule prend la matière de `.btn.primary` : fond `--act`, encre `--on-primary` (mot,
+glyphe ＋ et glose), survol `brightness(1.06)`. A441 la gardait tonale au nom de « un seul bouton plein par écran » :
+la règle TIENT — l'éditeur (aide comme protocole) n'a aucun autre `.btn.primary` (vérifié au gabarit de
+`renderEditor`), la porte EST donc l'action primaire de l'écran. De nuit, `--act` vaut le bleu clair de toutes les
+actions primaires (encre sombre) : un bleu foncé y disparaîtrait sur le fond sombre. Forme, place, `sticky`, `flat`
+pendant un déplacement : inchangés. ⚠ Le jour où l'éditeur gagnerait un autre bouton plein, l'un des deux redevient
+tonal. Témoin `audit-k5` (« porte remplie ») retourné : fond = `--act`, et AUCUN autre `.btn.primary` visible dans
+l'éditeur.
+
+## A447 — la recherche dit le périmètre où elle cherche (v5.41.1)
+
+**Le signalement.** En voie large, texte dans la recherche puis une bibliothèque choisie dans la colonne gauche : la
+liste était filtrée, mais rien ne le montrait. Mesuré : le titre des résultats était une constante, « Résultats —
+toutes les bibliothèques » (les trois `listTitle` de `_homeCfgF`/`_homeCfgP`/vue unifiée), donc FAUX dès qu'un cran
+de bibliothèque était posé ; et la branche « recherche » de `renderHomeList` n'appelait pas `filtersBarHtml()` — les
+puces d'A429 ne vivaient que dans la branche sans recherche.
+
+**La règle.** Le titre vient d'une source (`homeResTitle()`) : « Résultats — <bibliothèque> » quand `state.homeLib`
+est posé (nom par `homeLibLbl()`, partagé avec la puce, échappé), « toutes les bibliothèques » sinon. Sous le titre,
+les mêmes puces retirables que sans recherche (hors sélection, comme ailleurs). Et le groupe « Dans les documents »
+suit les MÊMES crans que la liste (`docHits` → `docOwners(true, keep)` avec `homeLibOn` et `catFilterOn`) : il montrait
+un PDF d'une bibliothèque écartée à côté d'une liste qui l'écartait. Le cran de TYPE n'y est pas appliqué (un document
+n'est ni une aide ni un protocole ; inchangé). Vérifié dans l'app (1280 px) : titre « Résultats — Perso », puce
+« Bibliothèque : Perso », retrait par sa croix → titre « toutes les bibliothèques », puce partie.
+
+## A448 — une décision repliée n'est jamais plus haute que dépliée (v5.41.1)
+
+**Le signalement** (captures de l'auteur, colonne du parcours, en lecture et en session) : « Convulsions persistantes
+5 min après la 1re injection ? » repliée était PLUS HAUTE que dépliée. Mesuré : la ligne de branches d'A388
+(`.pf-brief`) est une rangée `flex-wrap` dont chaque morceau a 32 px de haut (cible) — réponse, destination
+(`↓ 5`, bouton) et séparateur « · » étaient trois éléments ENROULABLES l'un après l'autre. Une réponse sans « — »
+(`court()` n'a rien à couper) remplissait la ligne, et la flèche puis le point tombaient chacun sur LEUR ligne de
+32 px. Reproduit sur l'ACR avec les réponses de la capture : 108 px repliée contre 94 dépliée à 1280.
+
+**La règle.** Une réponse, sa destination et le « · » qui la suit forment UNE unité insécable (`.pf-brief .pf-opt` en
+`nowrap`, le séparateur DANS l'option) ; seul le texte de la réponse enroule (`overflow-wrap:anywhere`), la flèche
+reste au bout de sa dernière ligne. Les unités, elles, passent à la ligne entre elles. Résultat sur la même
+fixture : 68 contre 94 ; « Oui ↓ 3 · Non → 4 » tient toujours sur une ligne de 32 px.
+
+**Témoin** (`audit-doctrine`, « A448 ») : la ligne repliée doit enrouler (sinon le vert ne prouve rien) ; le centre de
+chaque flèche et de chaque « · » tombe dans la boîte de sa réponse — vérifié ROUGE sur l'état d'avant ; et repliée,
+la ligne de branches est plus basse que la liste dépliée.

@@ -7814,6 +7814,48 @@ await sec('Parcours inerte · une décision montre TOUTES ses branches', async (
 }
 });
 
+/* ══ A448 — UNE DÉCISION REPLIÉE N'EST JAMAIS PLUS HAUTE QUE DÉPLIÉE ════════════════════════════
+   (v5.41.1, signalé à l'usage, captures à l'appui.) Des réponses sans « — » à couper (« Convulsions persistantes »)
+   passaient à la ligne MORCEAU PAR MORCEAU dans la ligne de branches repliée : réponse, flèche « ↓ 5 », puis « · »,
+   chacun sur sa ligne de 32 px — le repli dépassait le dépli (108 contre 94 px mesurés). Invariant : la flèche et le
+   « · » restent sur une ligne de LEUR réponse, et la ligne repliée est plus basse que la liste dépliée.
+   TÉMOIN : la ligne repliée doit bien ENROULER (deux rangées au moins), sans quoi le vert ne prouverait rien. */
+await sec('Parcours · A448 une décision repliée n\'est jamais plus haute que dépliée', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(async () => {
+    const f=migrate({id:'aud-a448',title:'Convulsions',start:'b1',blocks:[
+      {id:'b1',title:'Première injection',next:'d1',items:[]},
+      {id:'d1',type:'decision',title:'Persistance',question:'Convulsions persistantes 5 min après la 1re injection ?',options:[
+        {label:'Convulsions persistantes',target:'b2'},{label:'Convulsions arrêtées',target:'b3'}]},
+      {id:'b2',title:'Seconde injection',next:null,items:[]},
+      {id:'b3',title:'Relais et surveillance',next:null,items:[]}]});
+    fiches.push(f);await Data.put(f);openRead(f.id);
+  });
+  await page.waitForFunction(()=>document.body.classList.contains('view-read'));
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));await w(300);
+    const dec=()=>document.querySelector('.read-plan .pf-flat .pf-row.dec');
+    const d0=dec();if(!d0)return null;
+    const brief=d0.querySelector('.pf-brief');if(!brief)return {brief:false};
+    const opts=[...brief.querySelectorAll('.pf-opt')];
+    const lignes=new Set(opts.map(o=>Math.round(o.getBoundingClientRect().top))).size;
+    /* une flèche ou un « · » se lit sur une ligne de sa réponse : son centre tombe dans la boîte du mot */
+    const colle=opts.every(o=>{const b=o.querySelector('b').getBoundingClientRect();
+      return [...o.querySelectorAll('.pf-ref,.pf-sep')].every(x=>{const c=x.getBoundingClientRect();const y=(c.top+c.bottom)/2;return y>=b.top-1&&y<=b.bottom+1;});});
+    const hR=brief.getBoundingClientRect().height;
+    d0.querySelector('[data-plfold]').click();await w(250);
+    const o=dec().querySelector('.pf-opts:not(.pf-brief)');
+    return {brief:true,lignes,colle,hR:Math.round(hR),hD:o?Math.round(o.getBoundingClientRect().height):0};});
+  t('témoin : la ligne de branches repliée enroule (deux rangées au moins)',!!r&&r.brief&&r.lignes>=2,JSON.stringify(r));
+  t('chaque flèche et chaque « · » restent sur une ligne de leur réponse',!!r&&r.colle===true,JSON.stringify(r));
+  t('repliée, la ligne de branches est plus basse que la liste dépliée',!!r&&r.hD>0&&r.hR<r.hD,JSON.stringify(r));
+  await page.close();
+}
+});
+
 /* ══ LE BOUTON QUI A LA MAIN SE VOIT, MÊME QUAND LA FENÊTRE A ÉTÉ OUVERTE À LA SOURIS ═════════
    (v5.17.5, signalé à l'usage : « je ne sais pas quel bouton est sélectionné, et surtout ça
    paraît inconstant ».) `:focus-visible` est une HEURISTIQUE : sur un focus PROGRAMMATIQUE — celui
