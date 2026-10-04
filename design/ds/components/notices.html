@@ -2711,12 +2711,11 @@
   .pf-flat.dense .pf-steps li.pf-grp{padding-left:0}
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
-  .pf-flat.dense .pf-br{margin-top:12px}
-  .pf-flat.dense .pf-br>.pf-row{margin-left:14px}
-  .pf-flat.dense .pf-br::before{left:7px;width:8px}
-  .pf-flat.dense .pf-br>.pf-seg{margin:0;padding:0 12px 0 20px}   /* A393 : 12 px de jeu à droite — la pastille ne frôle jamais le filet de la colonne */
-  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);min-width:0;flex:0 1 auto;text-align:left}   /* A393 : une réponse longue passe à la ligne DANS la pastille, jamais au-delà du bord */
-  .pf-flat.dense .pf-src.pf-dec>span:not(:last-child){flex:none}
+  .pf-flat.dense .pf-br>:is(.pf-row,.pf-br){margin-left:14px}
+  .pf-flat.dense .pf-br>.pf-br.plat{margin-left:0}
+  .pf-flat.dense .pf-br::before{left:7px;width:16px}
+  .pf-flat.dense .pf-bh{padding:0 12px 0 28px}   /* A393 : 12 px de jeu à droite — l'en-tête ne frôle jamais le bord de la colonne */
+  .pf-flat.dense .pf-bh b{font-size:var(--t-meta)}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -2732,19 +2731,23 @@
   .pf-src{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:var(--amb-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink);cursor:pointer}
   .pf-seg{display:flex;align-items:center;gap:10px;margin:24px 0 8px;padding:0 8px}
   .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
-  .pf-src.pf-dec{background:var(--warn-soft);min-height:44px;font-size:var(--t-body);gap:6px}
-  .pf-src.pf-dec>span:first-child{color:var(--warn)}
   .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
-  /* A394 : une BRANCHE — son en-tête « ↳ Branche », puis ses blocs indentés le long d'un filet vertical qui descend du ↳
-     jusqu'à son dernier bloc ; la branche suivante repart de la marge. Blanc AVANT (elle se détache), serré APRÈS l'en-tête. */
-  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:20px}
-  .pf-br>.pf-seg{margin:0;padding:0 8px 0 24px;min-height:44px}
-  .pf-br>.pf-row{margin-left:20px}
-  /* UN SEUL trait, une seule épaisseur : le filet part du milieu de l'en-tête, tourne vers « Branche » par un coin
-     arrondi et descend le long de la branche (le ↳ de police, plus fin, se superposait au filet — refusé). */
-  .pf-br::before{content:"";position:absolute;left:9px;top:22px;bottom:6px;width:10px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
-  :is(.pf-ref,.pf-src):focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .pf-ref,.pf-src,.pf-tg,.pf-all{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
+  /* A394, REDESSINÉE EN A450 : une BRANCHE = « SI réponse » puis ses blocs, décalés d'un cran le long d'UN filet (coin
+     arrondi vers l'en-tête, puis descente). L'arbre suit celui de `flowPlan` : une branche dans une branche se décale
+     encore, DEUX crans au plus (`.plat` au-delà : même cran que sa mère, l'en-tête dit « à ◇n »). L'en-tête n'a pas de
+     fond — seule la décision est une carte — et la réponse est à l'ambre des réponses de la décision. Le losange de la
+     décision n'est jamais redessiné dans la colonne des numéros (il s'y lisait comme un bloc de plus). */
+  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:4px}
+  .pf-br>:is(.pf-row,.pf-br){margin-left:20px}
+  .pf-br>.pf-br.plat{margin-left:0}
+  .pf-br::before{content:"";position:absolute;left:9px;top:16px;bottom:6px;width:20px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
+  .pf-bh{display:flex;flex-wrap:wrap;align-items:baseline;align-content:center;gap:2px 6px;min-height:32px;padding:0 8px 0 32px;border:0;border-radius:var(--r-1);background:none;font-family:inherit;font-size:var(--t-body);text-align:left;color:var(--ink);cursor:pointer}
+  div.pf-bh{cursor:default}
+  .pf-bh b{min-width:0;font-weight:800;line-height:1.3;color:var(--warn);overflow-wrap:anywhere}
+  .pf-bsi{flex:none;font-family:var(--f-mono);font-size:var(--t-cap);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .pf-bhr{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  :is(.pf-ref,.pf-src,.pf-bh):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pf-ref,.pf-src,.pf-tg,.pf-all,.pf-bh{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all,.pf-bh)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
      encre passe à --amb. En session, mêmes étages sans rail (écart 20 px) ; onglets = gabarit des

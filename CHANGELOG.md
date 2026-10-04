@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.43.0] — 2026-10-04
+Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
+- **Chaque réponse d'une décision ouvre sa branche juste sous elle** : « SI Oui », « SI Non, crise arrêtée »…, la
+  réponse écrite à l'ambre, comme dans la décision, et sans fond (seule la décision est une carte). Les deux réponses
+  ont le même dessin ; la décision les annonce par « ↓ 3 », « ↓ 7 ».
+- **Une décision dans une branche décale ses propres branches d'un cran de plus**, deux crans au plus pour garder de la
+  place aux titres dans la colonne. Au-delà, la branche reste au deuxième cran et dit de quelle décision elle part
+  (« SI Non à ◇11 »).
+- **Plus de pastille « BRANCHE ◇ 4 « … » »** : son texte débordait du fond ambré dans la colonne (tablette, ordinateur).
+- Les numéros des blocs ne changent pas (ce sont les mêmes que dans le journal, la Page et le Schéma). Une réponse qui
+  revient en arrière ou rejoint la suite n'ouvre pas de branche vide : la décision le dit (« ↺ 2 », « → 7 »).
+
 ## [5.42.0] — 2026-10-04
 La revue « à tout moment » (ex. causes réversibles 4H / 4T) montre, sans un mot, qu'elle ne retient pas la suite (A449, doctrine `docs/decisions/lot-v5-42.md`).
 - **Fermée par défaut.** Elle s'ouvrait d'elle-même tant qu'elle n'était pas faite : ses huit cases s'ajoutaient au
@@ -307,12 +319,3 @@ Un audit design de l'application, mesuré puis maquetté sur l'app réelle, et c
   étaient sous le seuil de lisibilité ; corrigé. Le contrôle automatique d'accessibilité mesure
   désormais ce volet, calcule juste les fonds semi-transparents empilés, et un nouveau contrôle
   vérifie les écrans pliables.
-
-## [5.37.2] — 2026-09-27
-Deux alignements, mesurés (A399, doctrine `docs/decisions/lot-v5-37.md`).
-- **Capsule CRITIQUE / VIGILANCE d'une hypothèse** : elle s'aligne exactement sur le début du
-  libellé en dessous, à toutes les largeurs et tailles de texte (sur téléphone étroit elle partait
-  10 px à gauche du texte).
-- **« Repères de ce bloc » replié** : le titre, le résumé (« 2 à préparer ») et les noms des repères
-  partent du même bord ; l'icône est dans la même colonne que celle des repères et le compte est sur
-  la ligne du titre.

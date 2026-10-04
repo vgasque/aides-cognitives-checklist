@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-efw2TD+8s8yXjB15UIveCN3hC2v60fHlSqreSyNkWuw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-dzQh6Ur0bwIgCpGzOXcXjiF4x30xZLCjKa/u4rxI24c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3067,12 +3067,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-flat.dense .pf-steps li.pf-grp{padding-left:0}
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
-  .pf-flat.dense .pf-br{margin-top:12px}
-  .pf-flat.dense .pf-br>.pf-row{margin-left:14px}
-  .pf-flat.dense .pf-br::before{left:7px;width:8px}
-  .pf-flat.dense .pf-br>.pf-seg{margin:0;padding:0 12px 0 20px}   /* A393 : 12 px de jeu à droite — la pastille ne frôle jamais le filet de la colonne */
-  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);min-width:0;flex:0 1 auto;text-align:left}   /* A393 : une réponse longue passe à la ligne DANS la pastille, jamais au-delà du bord */
-  .pf-flat.dense .pf-src.pf-dec>span:not(:last-child){flex:none}
+  .pf-flat.dense .pf-br>:is(.pf-row,.pf-br){margin-left:14px}
+  .pf-flat.dense .pf-br>.pf-br.plat{margin-left:0}
+  .pf-flat.dense .pf-br::before{left:7px;width:16px}
+  .pf-flat.dense .pf-bh{padding:0 12px 0 28px}   /* A393 : 12 px de jeu à droite — l'en-tête ne frôle jamais le bord de la colonne */
+  .pf-flat.dense .pf-bh b{font-size:var(--t-meta)}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -3088,19 +3087,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-src{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:var(--amb-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink);cursor:pointer}
   .pf-seg{display:flex;align-items:center;gap:10px;margin:24px 0 8px;padding:0 8px}
   .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
-  .pf-src.pf-dec{background:var(--warn-soft);min-height:44px;font-size:var(--t-body);gap:6px}
-  .pf-src.pf-dec>span:first-child{color:var(--warn)}
   .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
-  /* A394 : une BRANCHE — son en-tête « ↳ Branche », puis ses blocs indentés le long d'un filet vertical qui descend du ↳
-     jusqu'à son dernier bloc ; la branche suivante repart de la marge. Blanc AVANT (elle se détache), serré APRÈS l'en-tête. */
-  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:20px}
-  .pf-br>.pf-seg{margin:0;padding:0 8px 0 24px;min-height:44px}
-  .pf-br>.pf-row{margin-left:20px}
-  /* UN SEUL trait, une seule épaisseur : le filet part du milieu de l'en-tête, tourne vers « Branche » par un coin
-     arrondi et descend le long de la branche (le ↳ de police, plus fin, se superposait au filet — refusé). */
-  .pf-br::before{content:"";position:absolute;left:9px;top:22px;bottom:6px;width:10px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
-  :is(.pf-ref,.pf-src):focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .pf-ref,.pf-src,.pf-tg,.pf-all{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
+  /* A394, REDESSINÉE EN A450 : une BRANCHE = « SI réponse » puis ses blocs, décalés d'un cran le long d'UN filet (coin
+     arrondi vers l'en-tête, puis descente). L'arbre suit celui de `flowPlan` : une branche dans une branche se décale
+     encore, DEUX crans au plus (`.plat` au-delà : même cran que sa mère, l'en-tête dit « à ◇n »). L'en-tête n'a pas de
+     fond — seule la décision est une carte — et la réponse est à l'ambre des réponses de la décision. Le losange de la
+     décision n'est jamais redessiné dans la colonne des numéros (il s'y lisait comme un bloc de plus). */
+  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:4px}
+  .pf-br>:is(.pf-row,.pf-br){margin-left:20px}
+  .pf-br>.pf-br.plat{margin-left:0}
+  .pf-br::before{content:"";position:absolute;left:9px;top:16px;bottom:6px;width:20px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
+  .pf-bh{display:flex;flex-wrap:wrap;align-items:baseline;align-content:center;gap:2px 6px;min-height:32px;padding:0 8px 0 32px;border:0;border-radius:var(--r-1);background:none;font-family:inherit;font-size:var(--t-body);text-align:left;color:var(--ink);cursor:pointer}
+  div.pf-bh{cursor:default}
+  .pf-bh b{min-width:0;font-weight:800;line-height:1.3;color:var(--warn);overflow-wrap:anywhere}
+  .pf-bsi{flex:none;font-family:var(--f-mono);font-size:var(--t-cap);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .pf-bhr{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  :is(.pf-ref,.pf-src,.pf-bh):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pf-ref,.pf-src,.pf-tg,.pf-all,.pf-bh{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all,.pf-bh)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
      encre passe à --amb. En session, mêmes étages sans rail (écart 20 px) ; onglets = gabarit des
@@ -8829,7 +8832,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.42.0';
+const APP_VERSION='5.43.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21962,26 +21965,38 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
   const blkTm=b=>{const x=blkTimerTxt(f,b);return x?`<div class="pf-bt">${esc(x)}</div>`:'';};
   const head=(b,m,open,badge,cls,attrs)=>{const cur=!!(m&&m.cur);
     return `<div class="pf-row${cls}" data-plln="${esc(b.id)}"${cur?' aria-current="step"':''}${attrs||''}><div class="pf-col"><span class="pf-badge" aria-hidden="true">${badge}</span></div><div class="pf-main"><button type="button" class="pf-title pf-tg" data-plfold="${esc(b.id)}" aria-expanded="${open}"><span>${esc(titre(b))}</span>${cur?'<span class="pf-here">Ici</span>':''}${chevHtml(open,'pf-chev')}</button>`;};
-  let h='',prevRail=true,inBr=false,anyClosed=false;
-  order.forEach((b,i)=>{const next=order[i+1],prev=order[i-1],dec=b.kind==='decision';
-    const leads=nb=>!!nb&&(dec?(b.options||[]).some(o=>o&&o.target===nb.id):b.next===nb.id);
-    const ents=entries[b.id]||[];let seg='';
-    /* A394 : une suite qui ne découle pas du bloc précédent est une BRANCHE — « Branche ◇ n « réponse » », plus de
-       compteur (« Chemin 2 » disait un rang de liste et se confondait avec le numéro de la décision). Ses blocs sont
-       indentés le long d'un filet qui part de l'en-tête (un coin, pas de glyphe) jusqu'à la branche suivante : on voit où elle commence et où elle finit. */
-    if(i>0&&!prevRail){const e0=ents[0],n0=e0&&num[e0.from.id];let lab,pill='',aria;
-      if(e0&&e0.from.kind==='decision'){const lb=e0.label?(place==='col'?court(e0.label):stripBold(e0.label)):'';
-        lab='Branche';aria='Branche de la décision '+n0+(lb?', réponse '+guil(lb):'');
-        pill=`<button type="button" class="pf-src pf-dec" data-plref="${esc(e0.from.id)}"><span aria-hidden="true">◇</span><span class="pf-n">${n0}</span>${lb?`<span>${esc(guil(lb))}</span>`:''}</button>`;}
-      else if(e0){lab='Suite de';aria='Suite du bloc '+n0;pill=`<button type="button" class="pf-src" data-plref="${esc(e0.from.id)}"><span class="pf-n">${n0}</span></button>`;}
-      else{lab='Autre entrée';aria=lab;}
-      seg=(inBr?'</div>':'')+`<div class="pf-br" role="group" aria-label="${esc(aria)}"><div class="pf-seg"><span class="pf-segl">${lab}</span>${pill}</div>`;inBr=true;}
-    const arrivals=ents.filter((e,k)=>!(prevRail&&prev&&e.from.id===prev.id)&&!(i>0&&!prevRail&&k===0));
-    const rail=leads(next);prevRail=rail;
+  /* A450 (amende A394) — LE PARCOURS SUIT L'ARBRE DE `flowPlan`, BORNÉ À DEUX RETRAITS. Chaque réponse d'une décision
+     ouvre SA branche sous la décision (« SI réponse »), au même dessin pour toutes les réponses ; une branche dans une
+     branche se décale d'un cran de plus, deux crans au plus (colonne de 223 px) — au-delà elle reste au second cran
+     et dit sa décision (« à ◇n »). La numérotation est INCHANGÉE (« le tronc d'abord », A344) : l'arbre de `flowPlan`
+     est parcouru dans l'ordre même où il numérote. Une réponse sans bloc propre (retour, convergence) n'ouvre pas
+     d'en-tête vide : la ligne de la décision le dit. Une suite rangée ailleurs (sortie d'une boucle, bloc à plusieurs
+     entrées) garde un en-tête explicite. Le losange de la décision n'est JAMAIS redessiné dans la colonne des numéros. */
+  const root={kids:[]};{const stk=[root];
+    plan.items.forEach(it=>{const top=stk[stk.length-1];
+      if(it.k==='bropen'){const br={br:1,dec:it.dec,label:it.label,tgt:it.tgt,kids:[]};top.kids.push(br);stk.push(br);}
+      else if(it.k==='brclose'){if(stk.length>1)stk.pop();}
+      else if(it.k==='block')top.kids.push({id:it.id});});}
+  const subIds=n=>{const o=new Set();(n.kids||[]).forEach(k=>{if(k.id)o.add(k.id);else subIds(k).forEach(x=>o.add(x));});return o;};
+  const prune=n=>{n.kids=n.kids.filter(k=>{if(!k.br)return true;prune(k);return k.kids.length>0;});};prune(root);
+  const below=new Set();   // « décision>cible » dont la branche s'ouvre juste sous la décision : renvoi « ↓ »
+  const mark=n=>n.kids.forEach(k=>{if(k.br){if(k.kids[0]&&k.kids[0].id===k.tgt)below.add(k.dec+'>'+k.tgt);mark(k);}});mark(root);
+  // Une suite qui ne découle ni du bloc d'avant ni de la convergence des branches d'avant ouvre un en-tête explicite.
+  const follows=(kids,i)=>{const b=byId[kids[i].id],pk=kids[i-1];if(!pk)return true;
+    if(pk.id){const pb=byId[pk.id];return pb.kind==='decision'||pb.next===b.id;}
+    const sub=subIds(pk);return (entries[b.id]||[]).some(e=>sub.has(e.from.id));};
+  const group=(kids,inBr)=>{const out=[];let g=null;
+    kids.forEach((k,i)=>{if(k.br){k.kids=group(k.kids,true);(g?g.kids:out).push(k);return;}
+      if(!(i===0&&(inBr||kids===root.kids))&&!follows(kids,i)){g={syn:1,id:k.id,kids:[k]};out.push(g);return;}
+      (g?g.kids:out).push(k);});return out;};
+  root.kids=group(root.kids,false);
+  let anyClosed=false;
+  const rowHtml=(b,nextK,known)=>{const dec=b.kind==='decision';const next=nextK&&nextK.id?byId[nextK.id]:null;
+    const rail=!dec&&!!next&&b.next===next.id;
     const m=st&&st.md?st.md[b.id]:null;const stc=(m&&m.cur?' cur':'')+(m&&m.complete?' done':'')+(st&&st.off&&st.off.has(b.id)?' off':'');
     const open=pfFoldOpen(place,b.id);if(!open)anyClosed=true;
     const dest=(o,t,brief)=>{if(!t)return '<span>▪ fin</span>';
-      if(next&&next.id===t)return brief?ref(t,'↓',1):'<span>↓ ci-dessous</span>';
+      if(below.has(b.id+'>'+t))return brief?ref(t,'↓',1):'<span>↓ ci-dessous</span>';
       const back=num[t]<=num[b.id];return ref(t,brief?(back?'↺':'→'):(back?'↺ retour à':'→ aller à'),brief);};
     let body='';
     if(open){body+=blkTm(b);
@@ -21997,9 +22012,27 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
         return `<span class="pf-opt${pris?' pris':''}"><b>${pris?'✓ ':''}${esc(lb)}</b>${dest(o,t,true)}${k<all.length-1?'<span class="pf-sep" aria-hidden="true">·</span>':''}</span>`;}).join('')}</div>`;
     else if(open&&b.next&&byId[b.next]&&!(next&&next.id===b.next))body+=`<div class="pf-jump">${num[b.next]<=num[b.id]?ref(b.next,'↺ retour à',1)+(cycleTxt(f)?`<span class="pf-cy">${esc(cycleTxt(f))}</span>`:''):ref(b.next,'↳ puis')}</div>`;
     else if(open&&!b.next)body+=`<div class="pf-end">■ Fin</div>`;   // A394 : la fin de CE chemin — il peut y en avoir plusieurs
+    const arrivals=(entries[b.id]||[]).filter(e=>!known.has(e.from.id));
     const arr=open&&arrivals.length?`<div class="pf-arr"><span>← aussi depuis</span>${arrivals.map(src).join('')}</div>`:'';
-    h+=seg+head(b,m,open,`<span>${num[b.id]}</span>`,(dec?' dec':'')+(rail?' rail':'')+stc)+arr+body+'</div></div>';});
-  if(inBr)h+='</div>';
+    return head(b,m,open,`<span>${num[b.id]}</span>`,(dec?' dec':'')+(rail?' rail':'')+stc)+arr+body+'</div></div>';};
+  // L'en-tête d'une branche : « SI réponse » (« à ◇n » quand elle n'est pas rangée sous sa décision) — un bouton qui mène à la source.
+  const bhead=(cls,aria,inner,src)=>`<div class="pf-br${cls}" role="group" aria-label="${esc(aria)}">${src?`<button type="button" class="pf-bh" data-plref="${esc(src)}" aria-label="${esc(aria)}">${inner}</button>`:`<div class="pf-bh">${inner}</div>`}`;
+  const lbOf=l=>place==='col'?court(l):stripBold(l||'');
+  const kidsHtml=(kids,lvl,known0)=>kids.map((k,i)=>{const plat=lvl>=2?' plat':'';
+    if(k.br){const nd=num[k.dec],lb=lbOf(k.label),aria='Branche de la décision '+nd+', réponse '+guil(lb);
+      return bhead(plat,aria,`<span class="pf-bsi" aria-hidden="true">Si</span><b aria-hidden="true">${esc(lb)}</b>${plat?`<span class="pf-bhr" aria-hidden="true">à ◇${nd}</span>`:''}`,k.dec)
+        +kidsHtml(k.kids,lvl+1,new Set([k.dec]))+'</div>';}
+    if(k.syn){const b=byId[k.id],e0=(entries[b.id]||[])[0],n0=e0&&num[e0.from.id];let h0;
+      if(e0&&e0.from.kind==='decision'){const lb=lbOf(e0.label),aria='Branche de la décision '+n0+(lb?', réponse '+guil(lb):'');
+        h0=bhead(plat,aria,`<span class="pf-bsi" aria-hidden="true">Si</span><b aria-hidden="true">${esc(lb||'—')}</b><span class="pf-bhr" aria-hidden="true">à ◇${n0}</span>`,e0.from.id);}
+      else if(e0)h0=bhead(plat,'Suite du bloc '+n0,`<span class="pf-bsi" aria-hidden="true">Suite de</span><span class="pf-n" aria-hidden="true">${n0}</span>`,e0.from.id);
+      else h0=bhead(plat,'Autre entrée','<span class="pf-bsi">Autre entrée</span>',null);
+      return h0+kidsHtml(k.kids,lvl+1,new Set(e0?[e0.from.id]:[]))+'</div>';}
+    const b=byId[k.id],pk=kids[i-1],known=new Set(i===0?known0:[]);
+    if(pk&&pk.id&&byId[pk.id].next===b.id)known.add(pk.id);
+    if(pk&&!pk.id)subIds(pk).forEach(x=>{if((entries[b.id]||[]).some(e=>e.from.id===x))known.add(x);});   // la convergence : ses branches y mènent
+    return rowHtml(b,kids[i+1],known);}).join('');
+  let h=kidsHtml(root.kids,0,new Set());
   // A388 : les complications « à tout moment » (hors chaîne, donc hors numérotation) ferment la liste, un éclair pour numéro.
   const revs=revBlocks(f);
   if(exc.length||revs.length){h+=`<div class="pf-seg"><span class="pf-segl">À tout moment</span><span class="pf-segr"></span></div>`;
