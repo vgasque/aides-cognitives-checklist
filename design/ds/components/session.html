@@ -3402,22 +3402,45 @@
   /* A398 : `rv-step`, et non plus `rev-row` — ce nom était déjà celui des rangées « à relire » (colonne, spans
      12 px en encre douce, survol qui soulève) : l'étape-revue et toute sa grille en héritaient (case AU-DESSUS
      du libellé, hypothèses et étiquettes grisées et rapetissées). Leçon « Collision de noms de classe ». */
-  ol.steps li.rv-step{align-items:flex-start}
-  ol.steps li.rv-step>.box{border-style:dashed;background:none}
-  ol.steps li.rv-step.done>.box{border-style:solid}
-  ol.steps li.rv-step>.txt{padding-top:6px}
-  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--act)}
-  .kline .wt-g{color:var(--act)}
+  /* A449 — « à tout moment » se DESSINE, sans un mot : (1) la rangée quitte la matière des étapes — pas de fond,
+     contour pointillé, le vocabulaire d'A382 (« pas maintenant, ne retient pas Continuer ») ; (2) pas de CASE mais
+     une JAUGE de n segments, qui se remplit par morceaux (`revRingHtml`) ; (3) aucune couleur au repos (règle 8 :
+     ce qui ne demande rien n'a pas de registre — la ligne était en `--act`, le bleu de l'action) ; (4) le libellé
+     un cran plus bas que les étapes (`--t-item`, amende A345 pour ce seul cas) ; (5) fermée d'office. La tête
+     (`.rv-head`) est le bouton : la rangée ne l'est plus, elle contient des cases (rôle interactif imbriqué). */
+  :root ol.steps li.rv-step{display:block;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  ol.steps li.rv-step.done{background:none}
+  .rv-head{position:relative;display:flex;align-items:flex-start;gap:12px;border-radius:var(--r-1);cursor:pointer}
+  :root ol.steps li.rv-step .rv-head>.txt{padding-top:6px;font-size:var(--t-item)}
+  :root ol.steps li.rv-step .rv-head:has(>.txt>.stp-mks){padding-top:24px}
+  :root ol.steps li.rv-step .rv-head>.txt>.stp-mks{top:0;left:48px}
+  .rv-ring{flex:none;display:grid;place-items:center;width:36px;height:36px}
+  .rv-ring>*{grid-area:1/1}
+  /* Piste FINE (`--ctl-line`, 3:1) et segments faits ÉPAIS à l'encre : vide et plein se distinguent par l'épaisseur
+     autant que par la valeur — `--line-strong` disparaissait la nuit (#2c313a sur la carte). */
+  .rv-ring .rg-bg{stroke:var(--ctl-line);stroke-width:2}
+  .rv-ring .rg-fg{stroke:var(--ink);stroke-width:4}
+  .rv-step.done .rv-ring .rg-fg{stroke:var(--ok)}
+  .rv-ring .ic{color:var(--ok)}
+  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--ink-2)}
   .kline b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700}
-  .kline.ok,.kline.ok .wt-g{color:var(--ok)}
-  .rev-grid{margin:8px 0 2px;padding:2px 12px 10px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-2)}
-  ol.steps.rev{margin:0}
-  ol.steps.rev li{min-height:48px;padding:6px 0;border-radius:0;background:none;border-top:1px solid var(--work-line)}
-  ol.steps.rev li:first-child{border-top:0}
+  .kline.ok{color:var(--ok)}
+  /* Ouverte : des JETONS, pas une liste — ni case à gauche ni numéro, la coche se pose à DROITE (le libellé ne
+     bouge pas sous le doigt, A9). Le nombre de colonnes suit le PLUS LONG libellé (`--rv-ch`, en caractères,
+     posé par `revGridHtml`) : deux colonnes quand tout tient, une seule sinon — `auto-fit` décide à la largeur
+     RENDUE, donc juste sous zoom (règle 10) sans media query. */
+  .rev-grid{margin:12px 0 0;padding:0}
+  ol.steps.rev{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(var(--rv-ch,14) * .92ch + 42px)),1fr));gap:8px}
+  :root ol.steps.rev li{position:relative;align-items:flex-start;min-height:var(--hit);padding:10px 32px 10px 10px;border-radius:var(--r-1);background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
   ol.steps.rev li+li{margin-top:0}
-  ol.steps.rev li .box{width:28px;height:28px;border-radius:var(--r-1)}
-  ol.steps.rev li .txt{font-size:var(--t-item)}
-  ol.steps.rev li .stp-r{font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  :root ol.steps.rev li .box{position:absolute;top:10px;right:8px;width:20px;height:20px;border:0;border-radius:0;background:none;color:var(--ok)}
+  :root ol.steps.rev li.done .box{background:none}
+  :root ol.steps.rev li .txt{font-size:var(--t-item)}
+  /* La réponse SUIT le libellé dans la ligne (elle passait dessous : 56 px par jeton, huit jetons = un écran),
+     et cocher ne déplace rien : ni « ✓ » devant la réponse, ni changement de graisse — seule la coche à droite. */
+  :root ol.steps.rev li .stp-r{display:inline;margin-top:0;font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  :root ol.steps.rev li.done .stp-r::before{content:none}
+  :root ol.steps.rev li.done .txt{font-weight:700}
   /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, ANCRÉE SUR LUI (bord gauche
      du texte, 4 px au-dessus) et non sur la rangée : un décalage écrit en px supposait une case et une gouttière
      fixes, et sous 360 px effectifs la capsule partait 10 px à gauche du texte (13 à 130 %). La rangée garde la
@@ -3425,8 +3448,10 @@
   :root ol.steps.rev li:has(>.txt>.stp-mks){padding-top:28px}
   :root ol.steps.rev li>.txt:has(>.stp-mks){position:relative}
   :root ol.steps.rev li>.txt>.stp-mks{top:auto;left:0;bottom:100%;margin-bottom:4px}
-  ol.steps.rev li.done{background:none}
-  .rev-foot{display:flex;justify-content:flex-end;padding-top:8px}
+  :root ol.steps.rev li.done{background:var(--ok-soft);box-shadow:inset 0 0 0 1.5px var(--ok)}
+  /* « Nouvelle revue » efface TOUTES les coches de la revue pour la session : au PIED, loin du chevron de la tête
+     (un geste fréquent à côté d'un geste destructeur, c'est une erreur de doigt sous stress). */
+  .rev-foot{display:flex;justify-content:flex-end;padding-top:16px}
   .fold-card .sf-body .rev-grid{margin:0;padding:0 0 10px;border:0}
   /* A397 — la bande des repères du bloc : un repère par étape liée, dans l'ordre des étapes, un mot venu de la coche ;
      repliable d'un tap sur sa tête, un seul état pour la session, la tête repliée garde le compte et le résumé. */
@@ -7506,7 +7531,7 @@
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li,.rv-head):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture

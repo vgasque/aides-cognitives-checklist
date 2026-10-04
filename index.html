@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PFzZOmUUAWSdLD2ZjvXyVHhebyBQE9dE2IJo9aQ2N0g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-efw2TD+8s8yXjB15UIveCN3hC2v60fHlSqreSyNkWuw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3758,22 +3758,45 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A398 : `rv-step`, et non plus `rev-row` — ce nom était déjà celui des rangées « à relire » (colonne, spans
      12 px en encre douce, survol qui soulève) : l'étape-revue et toute sa grille en héritaient (case AU-DESSUS
      du libellé, hypothèses et étiquettes grisées et rapetissées). Leçon « Collision de noms de classe ». */
-  ol.steps li.rv-step{align-items:flex-start}
-  ol.steps li.rv-step>.box{border-style:dashed;background:none}
-  ol.steps li.rv-step.done>.box{border-style:solid}
-  ol.steps li.rv-step>.txt{padding-top:6px}
-  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--act)}
-  .kline .wt-g{color:var(--act)}
+  /* A449 — « à tout moment » se DESSINE, sans un mot : (1) la rangée quitte la matière des étapes — pas de fond,
+     contour pointillé, le vocabulaire d'A382 (« pas maintenant, ne retient pas Continuer ») ; (2) pas de CASE mais
+     une JAUGE de n segments, qui se remplit par morceaux (`revRingHtml`) ; (3) aucune couleur au repos (règle 8 :
+     ce qui ne demande rien n'a pas de registre — la ligne était en `--act`, le bleu de l'action) ; (4) le libellé
+     un cran plus bas que les étapes (`--t-item`, amende A345 pour ce seul cas) ; (5) fermée d'office. La tête
+     (`.rv-head`) est le bouton : la rangée ne l'est plus, elle contient des cases (rôle interactif imbriqué). */
+  :root ol.steps li.rv-step{display:block;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  ol.steps li.rv-step.done{background:none}
+  .rv-head{position:relative;display:flex;align-items:flex-start;gap:12px;border-radius:var(--r-1);cursor:pointer}
+  :root ol.steps li.rv-step .rv-head>.txt{padding-top:6px;font-size:var(--t-item)}
+  :root ol.steps li.rv-step .rv-head:has(>.txt>.stp-mks){padding-top:24px}
+  :root ol.steps li.rv-step .rv-head>.txt>.stp-mks{top:0;left:48px}
+  .rv-ring{flex:none;display:grid;place-items:center;width:36px;height:36px}
+  .rv-ring>*{grid-area:1/1}
+  /* Piste FINE (`--ctl-line`, 3:1) et segments faits ÉPAIS à l'encre : vide et plein se distinguent par l'épaisseur
+     autant que par la valeur — `--line-strong` disparaissait la nuit (#2c313a sur la carte). */
+  .rv-ring .rg-bg{stroke:var(--ctl-line);stroke-width:2}
+  .rv-ring .rg-fg{stroke:var(--ink);stroke-width:4}
+  .rv-step.done .rv-ring .rg-fg{stroke:var(--ok)}
+  .rv-ring .ic{color:var(--ok)}
+  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--ink-2)}
   .kline b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700}
-  .kline.ok,.kline.ok .wt-g{color:var(--ok)}
-  .rev-grid{margin:8px 0 2px;padding:2px 12px 10px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-2)}
-  ol.steps.rev{margin:0}
-  ol.steps.rev li{min-height:48px;padding:6px 0;border-radius:0;background:none;border-top:1px solid var(--work-line)}
-  ol.steps.rev li:first-child{border-top:0}
+  .kline.ok{color:var(--ok)}
+  /* Ouverte : des JETONS, pas une liste — ni case à gauche ni numéro, la coche se pose à DROITE (le libellé ne
+     bouge pas sous le doigt, A9). Le nombre de colonnes suit le PLUS LONG libellé (`--rv-ch`, en caractères,
+     posé par `revGridHtml`) : deux colonnes quand tout tient, une seule sinon — `auto-fit` décide à la largeur
+     RENDUE, donc juste sous zoom (règle 10) sans media query. */
+  .rev-grid{margin:12px 0 0;padding:0}
+  ol.steps.rev{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(var(--rv-ch,14) * .92ch + 42px)),1fr));gap:8px}
+  :root ol.steps.rev li{position:relative;align-items:flex-start;min-height:var(--hit);padding:10px 32px 10px 10px;border-radius:var(--r-1);background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
   ol.steps.rev li+li{margin-top:0}
-  ol.steps.rev li .box{width:28px;height:28px;border-radius:var(--r-1)}
-  ol.steps.rev li .txt{font-size:var(--t-item)}
-  ol.steps.rev li .stp-r{font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  :root ol.steps.rev li .box{position:absolute;top:10px;right:8px;width:20px;height:20px;border:0;border-radius:0;background:none;color:var(--ok)}
+  :root ol.steps.rev li.done .box{background:none}
+  :root ol.steps.rev li .txt{font-size:var(--t-item)}
+  /* La réponse SUIT le libellé dans la ligne (elle passait dessous : 56 px par jeton, huit jetons = un écran),
+     et cocher ne déplace rien : ni « ✓ » devant la réponse, ni changement de graisse — seule la coche à droite. */
+  :root ol.steps.rev li .stp-r{display:inline;margin-top:0;font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  :root ol.steps.rev li.done .stp-r::before{content:none}
+  :root ol.steps.rev li.done .txt{font-weight:700}
   /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, ANCRÉE SUR LUI (bord gauche
      du texte, 4 px au-dessus) et non sur la rangée : un décalage écrit en px supposait une case et une gouttière
      fixes, et sous 360 px effectifs la capsule partait 10 px à gauche du texte (13 à 130 %). La rangée garde la
@@ -3781,8 +3804,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :root ol.steps.rev li:has(>.txt>.stp-mks){padding-top:28px}
   :root ol.steps.rev li>.txt:has(>.stp-mks){position:relative}
   :root ol.steps.rev li>.txt>.stp-mks{top:auto;left:0;bottom:100%;margin-bottom:4px}
-  ol.steps.rev li.done{background:none}
-  .rev-foot{display:flex;justify-content:flex-end;padding-top:8px}
+  :root ol.steps.rev li.done{background:var(--ok-soft);box-shadow:inset 0 0 0 1.5px var(--ok)}
+  /* « Nouvelle revue » efface TOUTES les coches de la revue pour la session : au PIED, loin du chevron de la tête
+     (un geste fréquent à côté d'un geste destructeur, c'est une erreur de doigt sous stress). */
+  .rev-foot{display:flex;justify-content:flex-end;padding-top:16px}
   .fold-card .sf-body .rev-grid{margin:0;padding:0 0 10px;border:0}
   /* A397 — la bande des repères du bloc : un repère par étape liée, dans l'ordre des étapes, un mot venu de la coche ;
      repliable d'un tap sur sa tête, un seul état pour la session, la tête repliée garde le compte et le résumé. */
@@ -7862,7 +7887,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li,.rv-head):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -8804,7 +8829,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.41.1';
+const APP_VERSION='5.42.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21374,8 +21399,10 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     const tg=mt?`<span class="stp-mk ${mt[0]}">${esc(mt[1])}</span>`:'';
     /* A396 : l'étape-revue est la PORTE de sa revue — la grille se déplie dans sa boîte, la coche est celle des hypothèses. */
     if(it&&it.review){const rb=blocksById(_f.blocks||[])[it.review];
-      if(rb){const rs=revState(rb,REV_SEQ,state.checked),ro=state.revOpen||{},open=ro[rb.id]!=null?!!ro[rb.id]:!rs.done;
-        return `<li class="${cls}rv-step${rs.done?' done':''}${open?' open':''}" role="button" tabindex="0" data-revtg="${esc(rb.id)}" aria-expanded="${open?'true':'false'}"><span class="box" aria-hidden="true">${rs.done?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg,after:revLineHtml(rs,open)+(open?revGridHtml(_f,rb):'')})}</li>`;}}
+      /* A449 : fermée d'office (elle s'ouvrait tant qu'elle n'était pas faite — huit cases de plus dans le fil, qui
+         repoussaient « Continuer »). La TÊTE est le bouton, la grille vit à côté d'elle dans la rangée. */
+      if(rb){const rs=revState(rb,REV_SEQ,state.checked),ro=state.revOpen||{},open=!!ro[rb.id];
+        return `<li class="${cls}rv-step${rs.done?' done':''}${open?' open':''}"><div class="rv-head" role="button" tabindex="0" data-revtg="${esc(rb.id)}" aria-expanded="${open?'true':'false'}">${revRingHtml(rs)}${stepTxtHtml(st,{mark:true,tag:tg,after:revLineHtml(rs,open)})}</div>${open?revGridHtml(_f,rb):''}</li>`;}}
     let wt=(opts.wt&&linkOf(it))?wtSpanHtml('s|'+k)+(cnRelTid(_f,it)?wtSpanHtml('r|'+k):''):'';   // A377 : passage le plus récent seulement ; A440 : + la relance
     /* A382 : pas encore (sans case, ne retient pas « Continuer », « Faire maintenant ») ou déjà faite une fois. */
     if(!ck&&mo&&(mo.st==='wait'||mo.st==='gone')){
@@ -21391,18 +21418,31 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     if(mt&&!wt)wt='<span class="wt"></span>';   // A9 : la ligne du dessous reste réservée d'un état à l'autre
     return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual,after:wt})}${tag}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
-// A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé visite:revue:index).
+// A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé r:revue:index).
+// A449 : plus de « à faire » ni « en cours » (des mots d'obligation) ; neutre au repos, « faite » en vert à n/n.
 function revLineHtml(rs,open){
-  return `<span class="kline${rs.done?' ok':''}">${uiIcon('grid',14,{sw:2.2,cls:'wt-g'})}<b>${rs.k}/${rs.n}</b><span>${rs.done?'faite':(rs.k?'en cours':'à faire')}</span>${chevHtml(open,'k-chev')}</span>`;}
-function revGridHtml(f,rb){
-  return `<div class="rev-grid">${stepsListHtml(clean(stepsOf(rb)),REV_SEQ,rb.id,{items:bItems(rb),cls:'rev'})}<div class="rev-foot"><button type="button" class="btn sm" data-revnew="${esc(rb.id)}">Nouvelle revue</button></div></div>`;}
+  return `<span class="kline${rs.done?' ok':''}"><span class="sr-only">Revue à faire quand on veut, elle ne retient pas la suite : </span><b>${rs.k}/${rs.n}</b>${rs.done?'<span>faite</span>':''}${chevHtml(open,'k-chev')}</span>`;}
+/* A449 — la JAUGE de la revue, à la place de la case : un segment par hypothèse (un arc continu au-delà de douze,
+   les segments deviendraient des points), remplis dans l'ordre des coches faites — une quantité qui s'accumule,
+   pas une case qui attend. Pleine et verte à n/n, ✓ au centre (jamais la couleur seule, règle 8). */
+function revRingHtml(rs){const n=Math.max(1,rs.n),k=Math.min(rs.k,n),C=2*Math.PI*15,seg=n<=12,g=seg&&n>1?2.5:0,d=C/n-g,r2=x=>+x.toFixed(2);
+  const arc=(cls,da)=>`<circle class="${cls}" cx="18" cy="18" r="15" fill="none"${da?` stroke-dasharray="${da}"`:''} transform="rotate(${r2(-90+g/2/C*360)} 18 18)"/>`;
+  let fg='';
+  if(k>=n)fg=arc('rg-fg',g?r2(d)+' '+r2(g):'');
+  else if(k>0)fg=arc('rg-fg',seg?Array(k).fill(r2(d)+' '+r2(g)).join(' ').replace(/ [\d.]+$/,' '+r2(C-k*d-(k-1)*g)):r2(C*k/n)+' '+r2(C));
+  return `<span class="rv-ring" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36">${arc('rg-bg',g?r2(d)+' '+r2(g):'')}${fg}</svg>${rs.done?uiIcon('check',16,{sw:3,cls:'ic'}):''}</span>`;}
+/* A449 — ouverte, la revue est une grille de JETONS. `--rv-ch` = le plus long LIBELLÉ en caractères (la réponse le
+   suit dans la ligne et peut passer à la ligne, elle ne compte pas) : deux jetons par ligne seulement s'il y tient. */
+function revGridHtml(f,rb){const steps=clean(stepsOf(rb));
+  const ch=Math.min(60,Math.max(6,...steps.map(s=>stepCR(stepText(s)).c.length)));
+  return `<div class="rev-grid" style="--rv-ch:${ch}">${stepsListHtml(steps,REV_SEQ,rb.id,{items:bItems(rb),cls:'rev'})}<div class="rev-foot"><button type="button" class="btn sm" data-revnew="${esc(rb.id)}">Nouvelle revue</button></div></div>`;}
 // Après une coche d'hypothèse : toutes les copies de la rangée, les têtes k/n, et la porte se referme à n/n.
 function revAfterCheck(f,k){const p=String(k).split(':'),rb=blocksById(f.blocks||[])[p[1]];if(!rb||rb.kind!=='review')return;
   main.querySelectorAll('[data-ck="'+CSS.escape(k)+'"]').forEach(li=>paintCkLi(li,k,!!state.checked[k]));
   const rs=revState(rb,p[0],state.checked);
-  main.querySelectorAll('[data-revtg="'+CSS.escape(rb.id)+'"]').forEach(li=>{li.classList.toggle('done',rs.done);
-    const b=li.querySelector(':scope>.box');if(b)b.innerHTML=rs.done?uiIcon('check',19,{sw:3,cls:''}):'';
-    const kl=li.querySelector('.kline');if(kl)kl.outerHTML=revLineHtml(rs,li.classList.contains('open'));});
+  main.querySelectorAll('[data-revtg="'+CSS.escape(rb.id)+'"]').forEach(h=>{const li=h.closest('li');if(li)li.classList.toggle('done',rs.done);
+    const r=h.querySelector('.rv-ring');if(r)r.outerHTML=revRingHtml(rs);
+    const kl=h.querySelector('.kline');if(kl)kl.outerHTML=revLineHtml(rs,h.getAttribute('aria-expanded')==='true');});
   main.querySelectorAll('[data-revcount="'+CSS.escape(rb.id)+'"]').forEach(el=>{el.textContent=rs.k+'/'+rs.n;});
   if(rs.done){state.revOpen=state.revOpen||{};state.revOpen[rb.id]=false;renderOvOnlyKeepAnchor('.ov-block.cur');}}
 function revNew(f,rid){const pre=REV_SEQ+':'+rid+':';

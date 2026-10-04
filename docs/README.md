@@ -112,6 +112,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A446 | `lot-v5-41.md` | La porte « Ajouter » de l'éditeur devient REMPLIE `--act`, encre `--on-primary` (amende A441) — seule action primaire de l'éditeur |
 | A447 | `lot-v5-41.md` | Recherche : le titre dit la bibliothèque filtrée (`homeResTitle`), les puces des filtres posés s'affichent sous les résultats, « Dans les documents » suit les mêmes crans |
 | A448 | `lot-v5-41.md` | Parcours : une décision repliée n'est plus plus haute que dépliée — réponse, flèche et « · » forment une unité insécable (`.pf-brief .pf-opt` en `nowrap`) ; témoin rouge→vert |
+| A449 | `lot-v5-42.md` | La revue « à tout moment » se dessine : fermée d'office, contour pointillé, jauge de n segments au lieu d'une case (`revRingHtml`), ligne neutre ; ouverte, des jetons à coche à droite (libellé immobile), réponse dans la ligne, colonnes au plus long libellé (`--rv-ch`, `auto-fit`) ; tête = bouton (`.rv-head`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

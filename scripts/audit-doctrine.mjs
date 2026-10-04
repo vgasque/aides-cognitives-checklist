@@ -7856,6 +7856,75 @@ await sec('Parcours · A448 une décision repliée n\'est jamais plus haute que 
 }
 });
 
+/* ══ A449 — LA REVUE « À TOUT MOMENT » NE RESSEMBLE PAS À CE QUI RETIENT LA SUITE ═══════════════
+   (v5.42.0, demande de l'auteur : faire passer, sans un mot, qu'on peut la remplir quand on veut.) Avant : grille
+   ouverte d'office (huit cases de plus dans le fil), case pointillée dans la colonne des cases, ligne en bleu
+   d'action « 0/8 à faire ». Invariants : fermée d'office, aucune CASE mais une jauge, ligne neutre (pas `--act`),
+   « Continuer » ne l'attend pas ; ouverte, des jetons dont le libellé NE BOUGE PAS à la coche, deux colonnes
+   seulement pour des libellés courts, « Nouvelle revue » au pied, loin du chevron.
+   TÉMOIN : la colonne unique est mesurée sur la fiche d'exemple (libellés longs) ET les deux colonnes sur la même
+   revue aux libellés raccourcis — sans le second cas, « une colonne » serait vert même si la grille ne s'adaptait pas. */
+await sec('Revue · A449 à tout moment : jauge neutre, jetons immobiles, colonnes au libellé', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/arr[eê]t/);
+  await demarrerSession(page);
+  for(let i=0;i<8;i++){
+    const fini=await page.evaluate(()=>{const cur=document.querySelector('.ov-block.cur');
+      if(cur&&cur.querySelector('.rv-step'))return true;
+      const opt=[...document.querySelectorAll('[data-ovopt]')].find(x=>/Non/.test(x.textContent));if(opt){opt.click();return false;}
+      if(cur)cur.querySelectorAll('[data-ck]:not(.done)').forEach(li=>li.click());
+      const n=cur&&cur.querySelector('[data-ovnext]');if(n)n.click();return false;});
+    if(fini)break;await page.waitForTimeout(400);}
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const cur=()=>document.querySelector('.ov-block.cur'),head=()=>cur().querySelector('.rv-step [data-revtg],.rv-step[data-revtg]');
+    if(!cur()||!head())return null;
+    const o={ferme:head().getAttribute('aria-expanded')==='false'&&!cur().querySelector('.rev-grid'),
+      sansCase:!head().querySelector('.box')&&!!head().querySelector('.rv-ring svg .rg-bg')&&!head().querySelector('.rg-fg'),
+      neutre:getComputedStyle(head().querySelector('.kline')).color!==getComputedStyle(document.querySelector('.bn,#crisisDock')||document.body).getPropertyValue('--act')};
+    const p=document.createElement('i');p.style.color='var(--act)';document.body.appendChild(p);
+    o.neutre=getComputedStyle(head().querySelector('.kline')).color!==getComputedStyle(p).color;p.remove();
+    /* « Continuer » ne l'attend pas : les étapes ordinaires cochées, la revue à 0, le bouton est actif */
+    cur().querySelectorAll('ol.steps:not(.rev)>li[data-ck]:not(.done)').forEach(li=>li.click());await w(300);
+    const nx=cur().querySelector('[data-ovnext]');o.continuer=!!nx&&nx.getAttribute('aria-disabled')!=='true';
+    if(head().getAttribute('aria-expanded')!=='true'){head().click();await w(300);}
+    const toks=()=>[...cur().querySelectorAll('ol.steps.rev>li[data-ck]')];
+    if(toks().length<2)return o;
+    const cols=()=>new Set(toks().map(li=>Math.round(li.getBoundingClientRect().left))).size;
+    o.colsLongs=cols();
+    const t0=toks()[1].querySelector('.txt').getBoundingClientRect();
+    toks()[1].click();await w(300);
+    const t1=toks()[1].querySelector('.txt').getBoundingClientRect();
+    o.immobile=toks()[1].classList.contains('done')&&Math.abs(t0.left-t1.left)<.5&&Math.abs(t0.top-t1.top)<.5&&Math.abs(t0.width-t1.width)<.5;
+    o.jauge=!!head().querySelector('.rg-fg');
+    const ch=head().querySelector('.k-chev'),nb=cur().querySelector('[data-revnew]');
+    if(ch&&nb){const chev=ch.getBoundingClientRect(),nv=nb.getBoundingClientRect(),last=toks().at(-1).getBoundingClientRect();
+      o.pied=nv.top>=last.bottom&&nv.top-chev.bottom>=200;}
+    /* les mêmes hypothèses, libellés courts : deux jetons par ligne */
+    const f=Runtime.fiche,rb=f.blocks.find(x=>x.kind==='review'),pool=f.items||[];
+    (rb.items||[]).forEach((id,i)=>{const it=typeof id==='object'?id:pool.find(x=>x.id===id);if(it)it.do=['Hypoxie','Acidose','Kaliémie','Glycémie','Toxiques','Thrombose','Tamponnade','Hypoxémie'][i%8];});
+    render();await w(400);
+    o.colsCourts=cols();
+    return o;});
+  t('témoin : la revue de la fiche d\'exemple est atteinte en session',!!r,JSON.stringify(r));
+  if(r){
+    t('fermée d\'office (la grille ne s\'ouvre plus dans le fil)',r.ferme,JSON.stringify(r));
+    t('pas de case dans la tête : une jauge, vide à 0',r.sansCase,JSON.stringify(r));
+    t('la ligne k/n n\'est pas au bleu de l\'action (`--act`)',r.neutre,JSON.stringify(r));
+    t('« Continuer » est actif alors que la revue est à 0',r.continuer,JSON.stringify(r));
+    t('libellés longs (fiche d\'exemple) : une seule colonne à 390 px',r.colsLongs===1,JSON.stringify(r));
+    t('libellés courts : deux jetons par ligne à 390 px',r.colsCourts===2,JSON.stringify(r));
+    t('cocher un jeton ne déplace ni ne redimensionne son libellé',r.immobile,JSON.stringify(r));
+    t('la jauge se remplit à la première coche',r.jauge,JSON.stringify(r));
+    t('« Nouvelle revue » au pied des jetons, à plus de 200 px du chevron',r.pied,JSON.stringify(r));
+  }
+  await page.close();
+}
+});
+
 /* ══ LE BOUTON QUI A LA MAIN SE VOIT, MÊME QUAND LA FENÊTRE A ÉTÉ OUVERTE À LA SOURIS ═════════
    (v5.17.5, signalé à l'usage : « je ne sais pas quel bouton est sélectionné, et surtout ça
    paraît inconstant ».) `:focus-visible` est une HEURISTIQUE : sur un focus PROGRAMMATIQUE — celui
