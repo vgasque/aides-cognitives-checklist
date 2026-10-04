@@ -580,12 +580,14 @@ const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   renderEditor();await w(450);
   const guides=[...document.querySelectorAll('details.crit-guide')].map(x=>x.open);
   const porte=document.getElementById('edAddOpen');
-  /* v5.30 (maquette v5) : la porte est le bouton flottant TONAL — fond --primary-soft, glyphe --act. */
-  const prim=getComputedStyle(document.documentElement).getPropertyValue('--primary-soft').trim();
+  /* v5.41.1 (A446, amende la maquette v5) : la porte est REMPLIE — fond --act, la seule action primaire de l'éditeur. */
+  const prim=getComputedStyle(document.documentElement).getPropertyValue('--act').trim();
   const bidon=document.createElement('span');bidon.style.background=prim;document.body.appendChild(bidon);
   const attendu=getComputedStyle(bidon).backgroundColor;bidon.remove();
   const res={guides,porteFond:getComputedStyle(porte).backgroundColor,attendu,
-    essayerPrimaire:document.getElementById('hdrPreview').classList.contains('primary'),vus:{}};
+    essayerPrimaire:document.getElementById('hdrPreview').classList.contains('primary'),
+    /* « un seul bouton plein par écran » : aucun autre `.btn.primary` VISIBLE ne la concurrence */
+    autresPleins:[...document.querySelectorAll('.btn.primary')].filter(b=>b.getClientRects().length&&getComputedStyle(b).visibility!=='hidden').map(b=>b.id||b.textContent.trim().slice(0,30)),vus:{}};
   // chaque type créé par la porte doit arriver DANS l'écran
   for(const k of ['interval','counter','cx']){
     porte.click();await w(250);
@@ -597,7 +599,8 @@ const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return res;});
 t('le guide rouge/ambre est REPLIÉ par défaut sur tous les blocs',
   R4.guides.length>0&&R4.guides.every(x=>!x), JSON.stringify(R4.guides));
-t('la porte est le bouton flottant TONAL de la maquette v5', R4.porteFond===R4.attendu, `${R4.porteFond} vs ${R4.attendu}`);
+t('la porte est REMPLIE --act, l’action primaire de l’éditeur (A446)', R4.porteFond===R4.attendu, `${R4.porteFond} vs ${R4.attendu}`);
+t('… et aucun autre bouton plein ne la concurrence', R4.autresPleins.length===0, JSON.stringify(R4.autresPleins));
 t('… et « ▶ Essayer » n’est plus primaire', !R4.essayerPrimaire);
 t('minuteur, compteur, complication : chacun arrive DANS l’écran',
   Object.values(R4.vus).every(Boolean), JSON.stringify(R4.vus));

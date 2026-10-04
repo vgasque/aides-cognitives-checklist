@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.41.1] — 2026-10-04
+Le bouton « Ajouter » de l'éditeur se voit, la recherche dit dans quelle bibliothèque elle cherche, et une décision repliée du parcours redevient compacte (A446-A448, doctrine `docs/decisions/lot-v5-41.md`).
+- **Le bouton « ＋ Ajouter » de l'éditeur est désormais bleu foncé, plein** (texte blanc), dans l'éditeur d'aide comme
+  dans celui de protocole. Cerclé sur fond bleu pâle, il restait trop discret ; et c'est le seul bouton plein de
+  l'éditeur, donc l'action principale de la page. De nuit, il prend le bleu clair des boutons principaux (un bleu foncé
+  disparaîtrait sur le fond sombre).
+- **Recherche + bibliothèque choisie dans la colonne de gauche** (tablette, ordinateur) : la liste était bien filtrée,
+  mais le titre affirmait toujours « Résultats — toutes les bibliothèques ». Il dit maintenant « Résultats — Perso »
+  (ou le nom de la bibliothèque), et les filtres posés (bibliothèque, catégorie, type) s'affichent sous le titre en
+  puces retirables, comme sans recherche.
+- **Les résultats « Dans les documents » suivent les mêmes filtres** : un PDF joint à une aide d'une autre bibliothèque
+  ou d'une autre catégorie n'y apparaît plus.
+- **Parcours (colonne de gauche, en lecture comme en session) : une décision repliée n'est plus plus haute que
+  dépliée.** Quand les réponses étaient longues (« Convulsions persistantes »), la ligne repliée passait à la ligne
+  morceau par morceau — la réponse, puis la flèche « ↓ 5 » seule, puis le « · » seul. La flèche reste désormais au bout
+  de sa réponse ; seul le texte de la réponse passe à la ligne.
+
 ## [5.41.0] — 2026-10-04
 Le bouton « + » de l'éditeur dit ce qu'il ajoute, et quatre corrections (A441-A445, doctrine `docs/decisions/lot-v5-41.md`).
 - **La porte « Ajouter » de l'éditeur devient une pilule nommée** : « ＋ Ajouter », et dessous « bloc · minuteur ·
@@ -299,31 +316,3 @@ Revue et repères du bloc : cinq retours d'usage (A398, doctrine `docs/decisions
   repliée : le résumé (« 2 à préparer ») passe sous le titre au téléphone au lieu de s'écraser à côté.
 - **Icône des repères** : la gélule a une moitié pleine — elle se lisait comme un maillon de chaîne.
 
-## [5.37.0] — 2026-09-27
-La revue « à tout moment » et la bande des repères du bloc (A396-A397, doctrine `docs/decisions/lot-v5-37.md`).
-- **Revue « à tout moment ».** Une question que l'équipe se pose pendant tout le soin — les causes
-  réversibles (4H / 4T) de l'arrêt cardiaque — devient une liste d'hypothèses cochable. Elle se pose
-  dans le fil comme une étape, dans chaque bloc où l'on doit y penser, avec le nom de la revue ; un
-  toucher sur la rangée déplie les hypothèses dans sa boîte, chacune se coche sur place, la revue est
-  faite d'elle-même quand toutes sont cochées et ne retient jamais « Continuer ». À chaque passage
-  de la boucle, tout est à recocher ; « Nouvelle revue » remet la revue courante à zéro. Elle reste
-  ouvrable à tout moment sous le bloc, sous le même nom, et se lit dans la colonne « À tout moment »
-  du parcours et dans la Page. Les coches voyagent par le partage comme celles des étapes.
-- **Repères de ce bloc.** Un repère posologique peut être lié à une étape (Réglages de l'étape ›
-  « Repère posologique »). En session, les repères des étapes du bloc forment une bande au pied du
-  bloc, dans l'ordre des étapes, avec un mot venu de la coche : fait · à faire · à préparer — pendant
-  l'adrénaline, l'amiodarone est déjà lisible. La bande se replie d'un toucher (un seul état pour la
-  session, la tête repliée garde le compte et le résumé) ; un toucher sur une ligne ouvre le détail
-  du repère (préparation, dilution, administration), que l'éditeur écrit sous la ligne du repère.
-  Les rangées d'étapes ne changent pas : la boîte grise entière reste la coche.
-- **Éditeur.** Porte « Revue » de la palette ; carte propre pour chaque revue (titre, hypothèses avec
-  leur indice, réglages) ; sections « Revue » et « Repère posologique » dans la feuille Réglages d'une
-  étape ; détail sous chaque repère posologique.
-- **Icônes.** Le glyphe ℞ est remplacé par une pilule dessinée comme les autres icônes ; la revue
-  porte une grille.
-- **Fiches d'exemple** : dans l'ACR, la revue des causes réversibles est posée dans les deux blocs
-  de la boucle et l'adrénaline comme l'amiodarone sont liées à leur repère ; dans l'anaphylaxie,
-  l'adrénaline IM et le remplissage le sont aussi.
-- **Génération par IA** : bloc `review` et renvoi `review` d'un item (règle 19) ; un repère peut
-  s'écrire en objet avec un `id` et une `note`, et chaque étape qui dose un produit y renvoie par
-  `poso` (règle 20).
