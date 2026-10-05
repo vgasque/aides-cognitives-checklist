@@ -132,6 +132,7 @@
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
   --shadow-bar:none;--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
+  --gd-veil:rgba(244,245,247,.42);   /* A467 : le voile du guide ÉCLAIRCIT vers l'ambiance (estomper, pas assombrir) */
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
      script ; elle sert à fitMoreMenu et au dock (v4.73.2). */

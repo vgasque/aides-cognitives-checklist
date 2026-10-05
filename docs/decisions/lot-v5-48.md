@@ -39,9 +39,19 @@ guide » (l'exercice continue). Un geste fait d'avance compte : l'étape est val
 et la rangée du menu disparaissent dès qu'une session démarre) ; le partage, l'éditeur, la synchronisation. Les bulles
 parlent de l'outil, jamais de clinique (§ 2).
 
-**Estomper un peu (décision 6).** Ce qui n'est pas visé passe à `opacity:.7` et RESTE UTILISABLE : aucun voile ne
-bloque les touches. La cible porte un anneau `--act` (l'action, règle 8), `--sys-ink` dans le quai sombre — jamais
-l'ambre ni le rouge, qui sont des registres. La bulle est en matière système (tokens seulement), donc suit le thème.
+**Estomper un peu (décision 6).** TOUT ce qui n'est pas visé s'estompe d'un même voile (`#gdVeil`, token
+`--gd-veil` : l'ambiance à 42 %, qui éclaircit le jour et assombrit la nuit — estomper, pas voiler) percé autour de
+la cible (`clip-path: path(evenodd…)`, 8 px de marge, coins de 12) ; en-tête, bande « Exercice », capsule, quai,
+cartes et fenêtre de fin compris. Le voile est inerte au pointeur : tout RESTE UTILISABLE. La cible porte un anneau
+`--act` (l'action, règle 8), `--sys-ink` dans le quai sombre — jamais l'ambre ni le rouge, qui sont des registres.
+La bulle est en matière système (tokens seulement), donc suit le thème.
+**v5.48.1 (signalé par l'auteur sur les captures : « tout le contenu n'est pas estompé, seulement certains
+éléments »).** La v5.48.0 estompait une LISTE de sélecteurs (`opacity:.7` sur les blocs, les touches, la capsule) :
+l'en-tête, la bande d'exercice, la ligne « Parcours », les cartes sous le bloc et la fenêtre de fin y échappaient, et
+toute surface ajoutée plus tard y aurait échappé aussi — l'inverse de « suivre l'app ». Le voile unique n'énumère
+rien. `audit-guide` l'exige à chaque bulle (couvre la fenêtre, trou = rectangle de la cible à 2 px, inerte) ;
+vérifié capable d'échouer (voile désactivé : 47 rouges). Le cliquet `pointer-events:none` de `check-anim` passe à
+24, motivé sur place.
 
 **Placement.** Sous la cible par défaut (le contexte au-dessus reste lisible), au-dessus pour le quai, son volet et la
 revue ouverte (sa liste reste visible). Sans place d'aucun côté — 360 px à 130 % —, le guide fait défiler pour caler la

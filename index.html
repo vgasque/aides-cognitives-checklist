@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-1C1OVdOUtgX5MS13Cyj1IMV4Z41bPFjkJET+IQUnZDA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-BjucBS6H3CXHWBTTOHNv8TdCFUGZMD+DzR1jdZDPihE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -519,6 +519,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
   --shadow-bar:none;--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
+  --gd-veil:rgba(244,245,247,.42);   /* A467 : le voile du guide ÉCLAIRCIT vers l'ambiance (estomper, pas assombrir) */
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
      script ; elle sert à fitMoreMenu et au dock (v4.73.2). */
@@ -572,6 +573,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --primary-soft:#12263f;--primary-100:#1b3556;--primary-200:#2c4b6e;
   --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
   --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
+  --gd-veil:rgba(13,15,19,.42);
   --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;
   }
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
@@ -5228,15 +5230,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .gd-sum li.ok svg{color:var(--ok-sys)}
   .gd-sum i{font-style:normal;color:var(--sys-ink-2)}
   .gd-no{width:14px;text-align:center;color:var(--sys-ink-2)}
-  /* La cible : un anneau ; le reste s'estompe UN PEU (décision de l'auteur) et reste utilisable. */
+  /* La cible : un anneau ; TOUT le reste s'estompe UN PEU (décision de l'auteur) sous un voile unique percé
+     autour d'elle — en-tête, quai, cartes, fenêtre comprises — et reste utilisable (aucun pointeur capté). */
   .gd-tgt{outline:3px solid var(--act)!important;outline-offset:3px}
   #sessionDock .gd-tgt{outline-color:var(--sys-ink)!important}   /* dans le quai sombre : l'encre du système, jamais un registre */
-  html.gd-dim #main .ov-block:not(.gd-tgt):not(:has(.gd-tgt)),
-  html.gd-dim #main ol.steps:has(.gd-tgt)>li:not(.gd-tgt):not(:has(.gd-tgt)),
-  html.gd-dim #main .ov-block:has(ol.steps .gd-tgt) :is(.flow-ctrl,.stp-legend),
-  html.gd-dim #main :is(.read-head,.read-meta,.pre-cards,.care-flat):not(:has(.gd-tgt)),
-  html.gd-dim #sessionDock .sd-key:not(.gd-tgt),
-  html.gd-dim #cbTimers:not(.gd-tgt){opacity:.7;transition:opacity .2s}
+  #gdVeil{position:fixed;inset:0;z-index:57;pointer-events:none;background:var(--gd-veil);opacity:0;transition:opacity .2s}
+  #gdVeil.on{opacity:1}
   .sst-ex{margin:-4px 0 8px;font-size:var(--t-meta);line-height:1.4;color:var(--ink-2)}   /* A465 : un exemple sous chaque section des réglages */
   .sst-note.ko{color:var(--warn)}
   .sst-note.sst-sep{margin-top:20px}
@@ -9013,7 +9012,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.48.0';
+const APP_VERSION='5.48.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28617,7 +28616,7 @@ async function guideStart(f){
 function guideStop(){const g=_gd;_gd=null;
   if(g){clearInterval(g.iv);if(g.mo)g.mo.disconnect();}
   document.querySelectorAll('.gd-tgt').forEach(e=>e.classList.remove('gd-tgt'));
-  document.documentElement.classList.remove('gd-dim');
+  _gdVeil(null);
   const t=document.getElementById('gdTip');if(t)t.remove();}
 function guideSync(){const g=_gd;if(!g)return;
   const f=fiches.find(x=>x.id===g.fid);if(!f){guideStop();return;}
@@ -28645,8 +28644,8 @@ function _gdTip(){let t=document.getElementById('gdTip');
       else if(b.id==='gdRedo'){const f=fiches.find(x=>x.id===t.dataset.fid);t.remove();guideStart(f);}};
     document.body.appendChild(t);}
   return t;}
-function guidePaint(E,f){const g=_gd,t=_gdTip(),html=document.documentElement;
-  if(!E){t.hidden=true;html.classList.remove('gd-dim');return;}
+function guidePaint(E,f){const g=_gd,t=_gdTip();
+  if(!E){t.hidden=true;_gdVeil(null);return;}
   const P=E.ph(g,f),et=GUIDE_ETAPES.filter(x=>x.ok(f)),k=et.indexOf(E)+1;
   const key=E.id+'|'+P.t+'|'+P.x;
   if(g.key!==key){g.key=key;g.room=0;
@@ -28661,8 +28660,17 @@ function guidePaint(E,f){const g=_gd,t=_gdTip(),html=document.documentElement;
   const vis=el&&el.getClientRects().length&&!el.closest('[hidden]');
   document.querySelectorAll('.gd-tgt').forEach(e=>{if(e!==el)e.classList.remove('gd-tgt');});
   if(vis)el.classList.add('gd-tgt');
-  html.classList.toggle('gd-dim',!!vis);
   guidePlace(t,vis?el:null,P.side);}
+/* Le voile : un seul calque sur toute la fenêtre, percé (evenodd) autour de la cible à 8 px, coins de 12.
+   Coordonnées du chemin dans les pixels CSS du calque, donc ÷ zoomF() (règle 10). */
+function _gdVeil(r){let v=document.getElementById('gdVeil');
+  if(!r){if(v)v.classList.remove('on');return;}
+  if(!v){v=document.createElement('div');v.id='gdVeil';v.setAttribute('aria-hidden','true');document.body.appendChild(v);}
+  const z=zoomF(),w=innerWidth/z,h=innerHeight/z,p=8,k=12;
+  const x=r.left/z-p,y=r.top/z-p,X=r.right/z+p,Y=r.bottom/z+p,c=Math.min(k,(X-x)/2,(Y-y)/2);
+  v.style.clipPath=`path(evenodd,"M0 0H${w}V${h}H0Z M${x+c} ${y}H${X-c}A${c} ${c} 0 0 1 ${X} ${y+c}V${Y-c}A${c} ${c} 0 0 1 ${X-c} ${Y}H${x+c}A${c} ${c} 0 0 1 ${x} ${Y-c}V${y+c}A${c} ${c} 0 0 1 ${x+c} ${y}Z")`;
+  v.dataset.hole=[r.left,r.top,r.right,r.bottom].map(n=>Math.round(n)).join(',');
+  v.classList.add('on');}
 /* Position : au-dessus ou au-dessous de la cible, jamais dessus. Mesures en pixels de l'appareil,
    réinjectées ÷ zoomF() (règle 10). La cible hors du champ est amenée UNE fois par phase — un défilement
    commandé par le guide, en exercice seulement. */
@@ -28696,7 +28704,8 @@ function guidePlace(t,el,side){const z=zoomF(),W=innerWidth,H=innerHeight,g=_gd;
   else{top=(sdr&&sdr.top>H/2?sdr.top:H)-th-gap;t.style.left=(W-tw)/2/z+'px';}
   t.style.top=top/z+'px';
   t.classList.toggle('up',dir==='up');t.classList.toggle('down',dir==='down');
-  const a=t.querySelector('.gd-arr');if(a){a.hidden=ax==null;if(ax!=null)a.style.left=(ax/z-7)+'px';}}
+  const a=t.querySelector('.gd-arr');if(a){a.hidden=ax==null;if(ax!=null)a.style.left=(ax/z-7)+'px';}
+  _gdVeil(ax!=null?r:null);}
 function guideEnd(f){const g=_gd;if(!g)return;const done=g.done;guideStop();guidePrefSet('done');
   const et=GUIDE_ETAPES.filter(x=>x.ok(f)),tous=et.every(E=>done.has(E.id));
   const t=_gdTip();t.dataset.fid=f.id;t.className='gd-tip end';t.hidden=false;

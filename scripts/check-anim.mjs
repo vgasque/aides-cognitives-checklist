@@ -148,7 +148,10 @@ for (const m of html.matchAll(/addEventListener\s*\(\s*['"]animationend['"]\s*,/
    barre d'accessoires iOS) est un annonciateur au sens strict d'A68/4 — il ne reçoit rien.
    22 depuis v5.18.3 : même statut pour le SOL de la zone sûre du haut (body.view-home::before,
    la bande de l'encoche — l'en-tête statique ne la couvre plus une fois défilé). */
-const PE_MAX = 23   /* v5.26.0 (A331) : + l'anneau d'arrivée du quai (.sd-in::after), annonciateur pur */;
+/* 24 depuis v5.48.1 (A467) : `#gdVeil`, le voile de l'exercice guidé. C'est précisément le voile dont ce
+   cliquet se méfie — et il est inerte À DESSEIN : l'auteur a voulu « estomper un peu » sans rien bloquer, le
+   guide avance par le geste réel fait SOUS le voile. Il n'existe qu'en exercice guidé, jamais en session. */
+const PE_MAX = 24   /* v5.26.0 (A331) : + l'anneau d'arrivée du quai (.sd-in::after), annonciateur pur */;
 const nPe = styles.map(sansCommentaires).join('\n').split(/pointer-events\s*:\s*none/).length - 1;
 if (nPe > PE_MAX)
   fautes.push({ ou: `pointer-events:none × ${nPe}`, prop: `cliquet à ${PE_MAX} (A68/4)` });

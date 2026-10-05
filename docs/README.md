@@ -119,7 +119,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A460 | `lot-v5-45.md` | Gains rapides de l'audit d'apprentissage : recherche (discriminant, Entrée), libellés entiers (Exercice, Catégorie, Bibliothèque), fin de session qui dit « maintenir », exemples « À relire », « Revoir l'accueil » |
 | A461-A462 | `lot-v5-46.md` | Lexique fermé du texte affiché (aide · protocole · données, garde-fou `check-lexique`), un nom et une icône par vue, pastilles de l'accueil nommées sous 780 px ; tuile de compteur de la capsule : valeur puis nom entier (A462) |
 | A463-A466 | `lot-v5-47.md` | Aide neuve en brouillon, lien direct et raccourcis d'icône, texte agrandi (quai, titre de bloc), « Prendre en main » et glossaire |
-| A467 | `lot-v5-48.md` | L'exercice guidé (une bulle par geste sur la vraie commande, en exercice seulement) ; le guide et « Prendre en main » suivent l'app (`check-guide`, `audit-guide`) |
+| A467 | `lot-v5-48.md` | L'exercice guidé (une bulle par geste sur la vraie commande, en exercice seulement ; voile unique percé, v5.48.1) ; le guide et « Prendre en main » suivent l'app (`check-guide`, `audit-guide`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

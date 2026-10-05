@@ -25,7 +25,13 @@ const etat = p => p.evaluate(() => {
   const tr = tip && !tip.hidden ? tip.getBoundingClientRect() : null, gr = g ? g.getBoundingClientRect() : null;
   const couvre = !!(tr && gr && !(tr.right <= gr.left || tr.left >= gr.right || tr.bottom <= gr.top || tr.top >= gr.bottom));
   const dedans = !!tr && tr.left >= 0 && tr.top >= 0 && tr.right <= innerWidth + 1 && tr.bottom <= innerHeight + 1;
-  return { id: _gd ? (GUIDE_ETAPES[_gd.i] || {}).id : null, k: tip && !tip.hidden ? (tip.querySelector('.gd-k') || {}).textContent : '',
+  // Le voile (A467) : UN calque sur toute la fenêtre, percé exactement autour de la cible, inerte au toucher.
+  const v = document.getElementById('gdVeil'), vr = v && v.classList.contains('on') ? v.getBoundingClientRect() : null;
+  const trou = v && v.dataset.hole ? v.dataset.hole.split(',').map(Number) : null;
+  const voile = !!vr && vr.left <= 0 && vr.top <= 0 && vr.right >= innerWidth - 1 && vr.bottom >= innerHeight - 1
+    && getComputedStyle(v).pointerEvents === 'none' && !!trou && !!gr
+    && Math.abs(trou[0] - gr.left) <= 2 && Math.abs(trou[1] - gr.top) <= 2 && Math.abs(trou[2] - gr.right) <= 2 && Math.abs(trou[3] - gr.bottom) <= 2;
+  return { voile, id: _gd ? (GUIDE_ETAPES[_gd.i] || {}).id : null, k: tip && !tip.hidden ? (tip.querySelector('.gd-k') || {}).textContent : '',
     cible: !!g, couvre, dedans, dbg: [tr && [tr.top|0, tr.bottom|0], gr && [gr.top|0, gr.bottom|0], g && g.className, document.getElementById('crisisDock').getBoundingClientRect().bottom|0], fin: !!(tip && tip.classList.contains('end')) };
 });
 for (const c of CAS) {
@@ -52,6 +58,7 @@ for (const c of CAS) {
     t(`${e.id} : la cible est trouvée et entourée`, e.cible);
     t(`${e.id} : la bulle ne couvre pas la cible`, !e.couvre, JSON.stringify(e.dbg));
     t(`${e.id} : la bulle tient dans la fenêtre`, e.dedans);
+    t(`${e.id} : tout l’écran est estompé sauf la cible (voile unique, percé, inerte)`, e.voile);
     // Le geste RÉEL de l'étape, par la commande de l'app — jamais par l'état du guide.
     await p.evaluate(async id => {
       const q = s => document.querySelector(s), clic = s => { const x = q(s); if (x) x.click(); return !!x; };
@@ -81,6 +88,7 @@ for (const c of CAS) {
     return tip && tip.classList.contains('end') ? { faits: tip.querySelectorAll('.gd-sum li.ok').length, tous: tip.querySelectorAll('.gd-sum li').length, accueil: state.view } : null; });
   t('l’exercice terminé, la carte de fin résume les gestes', !!fin, JSON.stringify(fin));
   t(`tous les gestes sont faits (${c.n})`, fin && fin.faits === c.n && fin.tous === c.n, JSON.stringify(fin));
+  t('le voile est retiré à la fin', await p.evaluate(() => !document.querySelector('#gdVeil.on')));
   t('aucune session réelle n’a été créée', await p.evaluate(() => !sessions.some(s => !s.exercise)));
   await p.close();
 }

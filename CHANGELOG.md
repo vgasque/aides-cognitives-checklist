@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.48.1] — 2026-10-05
+- **Exercice guidé : tout l'écran s'estompe, sauf la commande visée.** En v5.48.0, seuls certains éléments
+  pâlissaient (les blocs, les touches du quai, la capsule) ; l'en-tête, la bande « Exercice », la ligne « Parcours »,
+  les cartes sous le bloc et la fenêtre de fin restaient nets. Un voile unique, léger, couvre désormais tout l'écran
+  et laisse la cible nette ; il ne bloque aucun toucher. Il suit le thème clair ou sombre (A467).
+- Le harnais `audit-guide` vérifie ce voile à chaque bulle : il couvre la fenêtre et son ouverture correspond à la
+  cible.
+
 ## [5.48.0] — 2026-10-05
 L'exercice guidé (A467, doctrine `docs/decisions/lot-v5-48.md`), dernier point de l'audit de prise en main.
 - **Apprendre avec une aide d'exemple, geste par geste.** Sur l'ACR et l'anaphylaxie d'exemple, une carte propose
@@ -322,14 +330,3 @@ Trois retours d'usage (A423 à A425, doctrine `docs/decisions/lot-v5-39.md`).
   axe. Rien ne change sous 1260 px environ.
 - Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
   deux rouges d'environnement déjà connus ; nouveau témoin « A424 » (8 contrôles), rouge avant, vert après.
-
-## [5.39.5] — 2026-09-29
-Signalé à l'usage (A422, doctrine `docs/decisions/lot-v5-39.md`).
-- **Cartes d'accueil : l'état ne rivalise plus avec le titre.** Les pastilles « Brouillon », « À compléter »,
-  « Sans date », « À relire » étaient en 13,5 px et en gras 800, sur fond gris, alors que le titre est en
-  15 px et en gras 700 : plus grasses que lui, elles pesaient presque autant. L'état passe au palier des
-  autres informations de la carte (12 px, comme « AIDE »), en gras 700 quand il attend quelque chose
-  (pastilles, « À revérifier », « En cours ») et au poids normal quand il est nominal (« Validée »).
-  Même règle en liste compacte et au bureau.
-- Vérifié : check complet, 1280 tests sous Chromium, audit complet (seuls restent les deux rouges
-  d'environnement déjà présents avant ce changement).

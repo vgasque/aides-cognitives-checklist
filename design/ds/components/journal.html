@@ -163,6 +163,7 @@
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
   --shadow-bar:none;--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
+  --gd-veil:rgba(244,245,247,.42);   /* A467 : le voile du guide ÉCLAIRCIT vers l'ambiance (estomper, pas assombrir) */
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
      script ; elle sert à fitMoreMenu et au dock (v4.73.2). */
@@ -216,6 +217,7 @@
   --primary-soft:#12263f;--primary-100:#1b3556;--primary-200:#2c4b6e;
   --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
   --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
+  --gd-veil:rgba(13,15,19,.42);
   --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;
   }
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
@@ -4872,15 +4874,12 @@
   .gd-sum li.ok svg{color:var(--ok-sys)}
   .gd-sum i{font-style:normal;color:var(--sys-ink-2)}
   .gd-no{width:14px;text-align:center;color:var(--sys-ink-2)}
-  /* La cible : un anneau ; le reste s'estompe UN PEU (décision de l'auteur) et reste utilisable. */
+  /* La cible : un anneau ; TOUT le reste s'estompe UN PEU (décision de l'auteur) sous un voile unique percé
+     autour d'elle — en-tête, quai, cartes, fenêtre comprises — et reste utilisable (aucun pointeur capté). */
   .gd-tgt{outline:3px solid var(--act)!important;outline-offset:3px}
   #sessionDock .gd-tgt{outline-color:var(--sys-ink)!important}   /* dans le quai sombre : l'encre du système, jamais un registre */
-  html.gd-dim #main .ov-block:not(.gd-tgt):not(:has(.gd-tgt)),
-  html.gd-dim #main ol.steps:has(.gd-tgt)>li:not(.gd-tgt):not(:has(.gd-tgt)),
-  html.gd-dim #main .ov-block:has(ol.steps .gd-tgt) :is(.flow-ctrl,.stp-legend),
-  html.gd-dim #main :is(.read-head,.read-meta,.pre-cards,.care-flat):not(:has(.gd-tgt)),
-  html.gd-dim #sessionDock .sd-key:not(.gd-tgt),
-  html.gd-dim #cbTimers:not(.gd-tgt){opacity:.7;transition:opacity .2s}
+  #gdVeil{position:fixed;inset:0;z-index:57;pointer-events:none;background:var(--gd-veil);opacity:0;transition:opacity .2s}
+  #gdVeil.on{opacity:1}
   .sst-ex{margin:-4px 0 8px;font-size:var(--t-meta);line-height:1.4;color:var(--ink-2)}   /* A465 : un exemple sous chaque section des réglages */
   .sst-note.ko{color:var(--warn)}
   .sst-note.sst-sep{margin-top:20px}
