@@ -1172,6 +1172,10 @@
      page réserve aussi ses 44 px et son écart : on défile jusqu'à la dernière ligne. Ajouté SOUS le
      contenu, ce blanc ne déplace rien à l'écran au moment où elle paraît. */
   body.dock-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 44px + 24px)}
+  /* A467 (v5.48.2) : la carte de l'exercice guidé réserve aussi sa hauteur (--gd-h) : rien ne reste dessous. */
+  body.dock-on.gd-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + var(--gd-h,0px) + 24px)}
+  body.gd-on .rt-dock{max-height:min(calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8),calc(var(--vvh,100dvh) / var(--zf,1) - var(--quai-b,var(--stick-top,110px)) - var(--dock-h,64px) - var(--gd-h,0px) - 16px))}   /* le volet s'arrête au-dessus de la carte, et défile */
+  body.dock-on.gd-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + var(--gd-h,0px) + 44px + 32px)}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
      qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
      dessus de lui, et sous la capsule : V2 — l'alarme reste toujours en vue. */
@@ -4856,10 +4860,20 @@
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
   .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
   .gd-tip[hidden]{display:none}
-  .gd-arr{position:absolute;width:14px;height:14px;background:var(--sys);transform:rotate(45deg)}
-  .gd-arr[hidden]{display:none}
-  .gd-tip.up .gd-arr{top:-7px}
-  .gd-tip.down .gd-arr{bottom:-7px}
+  /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
+     son anneau ; large : texte à gauche, actes à droite ; réduite : une pastille. */
+  .gd-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-4px -8px 0 0}
+  .gd-hd .gd-k{margin:0}
+  .gd-min{display:inline-flex;align-items:center;justify-content:center;width:44px;height:32px;padding:0;border:0;border-radius:var(--r-1);background:none;color:var(--sys-ink);cursor:pointer}
+  .gd-min svg{transform:rotate(90deg)}
+  .gd-min{position:relative}
+  .gd-min::after{content:"";position:absolute;inset:-6px 0}   /* 32 dessinés, 44 actifs (règle 9, mode crise) */
+  .gd-tip.row{display:flex;align-items:center;gap:16px}
+  .gd-tip.row>.gd-tx{flex:1;min-width:0}
+  .gd-tip.row .gd-act{margin-top:0;flex:none}
+  .gd-tip.min{padding:0;border-radius:999px;background:none;border:0;box-shadow:none}
+  .gd-pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--sys-edge);border-radius:999px;background:var(--sys);color:var(--sys-ink);font:inherit;font-size:var(--t-body);font-weight:800;box-shadow:var(--shadow-float);cursor:pointer}
+  .gd-pill svg{transform:rotate(-90deg)}
   .gd-k{margin:0 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.04em;color:var(--sys-ink-2)}
   .gd-t{margin:0 0 4px;font-size:var(--t-item);font-weight:800}
   .gd-x{margin:0;font-size:var(--t-body);line-height:1.5}

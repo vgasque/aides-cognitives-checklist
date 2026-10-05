@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.48.2] — 2026-10-05
+Retour d'essai sur iPhone de l'exercice guidé (A467) : la bulle cachait ce que le geste ouvrait, et le défilement
+saccadait.
+- **La bulle devient une carte fixe au-dessus du quai.** Elle ne suit plus la page, donc plus de saccade ; la commande
+  visée se montre par son anneau. La page réserve sa hauteur en bas : on peut toujours défiler jusqu'à la dernière ligne.
+- **Plus rien de caché.** Le volet des minuteurs s'arrête au-dessus de la carte (et défile). Pour « Cochez les étapes
+  restantes », aucune bulle ni anneau devant les cases : toutes les cases libres sont amenées en vue, puis l'anneau
+  se pose sur « Continuer » quand il est prêt. Dans une complication, la carte dit où l'on est et que le bloc quitté
+  attend, coches gardées.
+- **La capsule s'apprend par la main** au téléphone : l'ouvrir, puis la refermer.
+- **▾ réduit la carte** en une pastille « ▲ Guide 4/8 » pour voir tout l'écran ; un toucher la rouvre.
+- Le guide ne ramène jamais la page vers la cible quand on défile soi-même.
+- Au bureau, la carte se pose dans la colonne d'action, en ligne ; sur un pliable, d'un seul côté de la charnière.
+- `audit-guide` vérifie désormais tout cela, pliable émulé compris.
+
 ## [5.48.1] — 2026-10-05
 - **Exercice guidé : tout l'écran s'estompe, sauf la commande visée.** En v5.48.0, seuls certains éléments
   pâlissaient (les blocs, les touches du quai, la capsule) ; l'en-tête, la bande « Exercice », la ligne « Parcours »,
@@ -310,23 +325,3 @@ Retours d'usage sur l'accueil et le téléphone (A426 à A429, doctrine `docs/de
   plan. À vérifier sur l'appareil : le défaut ne se reproduit pas hors de Safari iOS.
 - Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
   deux rouges connus de ce poste (en-tête d'accueil à 320 px, barre de sélection).
-
-## [5.39.6] — 2026-09-29
-Trois retours d'usage (A423 à A425, doctrine `docs/decisions/lot-v5-39.md`).
-- **Au téléphone, la recherche flotte sur la liste.** La bande grise sous la recherche et le bouton filtre
-  disparaît : les deux commandes, opaques, flottent séparément au-dessus de la liste, qui s'efface doucement en
-  passant dessous (flou et voile du fond, sans arête). C'est la disposition des apps récentes (iOS 26, Material 3),
-  sans leur verre translucide, dont le contraste dépend de ce qui passe dessous. Ombre légère le jour, contour la
-  nuit ; recherche en forme de pilule, filtre et recherche à la même hauteur (44 px).
-- **Ranger dans une catégorie une sélection qui mêle plusieurs bibliothèques.** L'action n'était proposée que si
-  les cartes cochées étaient dans la même bibliothèque, ce qui arrivait rarement depuis que l'accueil les réunit
-  toutes. Elle est maintenant toujours là : on choisit un nom, et chaque carte va dans la catégorie de ce nom de sa
-  propre bibliothèque. Avant le geste, une notice dit que les bibliothèques diffèrent, et la liste est rangée sous
-  des intertitres (« Dans les deux bibliothèques », « Seulement dans Perso »…) qui disent combien de cartes vont où
-  et combien restent inchangées. Rien n'est créé ni vidé en silence ; le message final reprend le partage.
-  Au passage, « Sans catégorie » ne se coche plus à tort quand les cartes ont des catégories différentes.
-- **Sur un écran très large, l'accueil se centre.** La colonne des cartes (960 px) collait à gauche avec un vide à
-  droite ; elle se centre, et la recherche, « Créer », le bandeau et la carte « Session en cours » suivent le même
-  axe. Rien ne change sous 1260 px environ.
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
-  deux rouges d'environnement déjà connus ; nouveau témoin « A424 » (8 contrôles), rouge avant, vert après.

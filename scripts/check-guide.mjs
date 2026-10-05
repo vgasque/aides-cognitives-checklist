@@ -47,7 +47,7 @@ for (const [nom, [i, j]] of Object.entries(B)) {
 // 2. Sélecteurs visés
 let nSel = 0;
 const [ei, ej] = B.GUIDE_ETAPES, etapes = src.slice(ei, ej);
-for (const m of etapes.matchAll(/tgt:'([^']+)'/g)) {
+for (const m of etapes.matchAll(/(?:tgt|voir|avec):'([^']+)'/g)) {   // cible, ce qu'on amène en vue, ce que le voile découvre aussi
   const sel = m[1].replace(/\[aria-[^\]]+\]/g, '');
   for (const x of sel.matchAll(/#([\w-]+)/g)) { nSel++;
     if (!new RegExp(`id=["'\\\\]*${x[1]}["'\\\\]`).test(sansCss)) fautes.push(`GUIDE_ETAPES vise #${x[1]}, qui n'est émis nulle part`); }

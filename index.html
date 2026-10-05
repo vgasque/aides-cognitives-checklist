@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-BjucBS6H3CXHWBTTOHNv8TdCFUGZMD+DzR1jdZDPihE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-qgXN17FHF0ohph0CVjl9bOysdSDRhDpcRLjBRtt5fic='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1528,6 +1528,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      page réserve aussi ses 44 px et son écart : on défile jusqu'à la dernière ligne. Ajouté SOUS le
      contenu, ce blanc ne déplace rien à l'écran au moment où elle paraît. */
   body.dock-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 44px + 24px)}
+  /* A467 (v5.48.2) : la carte de l'exercice guidé réserve aussi sa hauteur (--gd-h) : rien ne reste dessous. */
+  body.dock-on.gd-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + var(--gd-h,0px) + 24px)}
+  body.gd-on .rt-dock{max-height:min(calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8),calc(var(--vvh,100dvh) / var(--zf,1) - var(--quai-b,var(--stick-top,110px)) - var(--dock-h,64px) - var(--gd-h,0px) - 16px))}   /* le volet s'arrête au-dessus de la carte, et défile */
+  body.dock-on.gd-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + var(--gd-h,0px) + 44px + 32px)}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
      qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
      dessus de lui, et sous la capsule : V2 — l'alarme reste toujours en vue. */
@@ -5212,10 +5216,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
   .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
   .gd-tip[hidden]{display:none}
-  .gd-arr{position:absolute;width:14px;height:14px;background:var(--sys);transform:rotate(45deg)}
-  .gd-arr[hidden]{display:none}
-  .gd-tip.up .gd-arr{top:-7px}
-  .gd-tip.down .gd-arr{bottom:-7px}
+  /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
+     son anneau ; large : texte à gauche, actes à droite ; réduite : une pastille. */
+  .gd-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-4px -8px 0 0}
+  .gd-hd .gd-k{margin:0}
+  .gd-min{display:inline-flex;align-items:center;justify-content:center;width:44px;height:32px;padding:0;border:0;border-radius:var(--r-1);background:none;color:var(--sys-ink);cursor:pointer}
+  .gd-min svg{transform:rotate(90deg)}
+  .gd-min{position:relative}
+  .gd-min::after{content:"";position:absolute;inset:-6px 0}   /* 32 dessinés, 44 actifs (règle 9, mode crise) */
+  .gd-tip.row{display:flex;align-items:center;gap:16px}
+  .gd-tip.row>.gd-tx{flex:1;min-width:0}
+  .gd-tip.row .gd-act{margin-top:0;flex:none}
+  .gd-tip.min{padding:0;border-radius:999px;background:none;border:0;box-shadow:none}
+  .gd-pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--sys-edge);border-radius:999px;background:var(--sys);color:var(--sys-ink);font:inherit;font-size:var(--t-body);font-weight:800;box-shadow:var(--shadow-float);cursor:pointer}
+  .gd-pill svg{transform:rotate(-90deg)}
   .gd-k{margin:0 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.04em;color:var(--sys-ink-2)}
   .gd-t{margin:0 0 4px;font-size:var(--t-item);font-weight:800}
   .gd-x{margin:0;font-size:var(--t-body);line-height:1.5}
@@ -9012,7 +9026,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.48.1';
+const APP_VERSION='5.48.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28569,24 +28583,35 @@ const GUIDE_ETAPES=[
     ph:()=>({tgt:'#sessStart',t:'Démarrer l’exercice',x:'Comme une vraie session : le chrono part, les minuteurs sont prêts. Rien n’est enregistré comme soin.',act:1})},
   {id:'check',nom:'Cocher',ok:()=>true,done:g=>(g.ck=g.ck||Object.keys(Runtime.checked||{}).some(k=>Runtime.checked[k]&&!/^r:/.test(k))),
     ph:()=>({tgt:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez une étape',x:'Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche.',act:1})},
-  {id:'capsule',nom:'Lire la capsule',ok:()=>true,done:g=>!!g.seen.capsule,
+  {id:'capsule',nom:'Lire la capsule',ok:()=>true,
+    done:g=>{if(state.rtOpen==='dock')g.capOpen=true;return !!g.seen.capsule||(!!g.capOpen&&state.rtOpen!=='dock');},
     ph:(g,f)=>{const c=document.querySelector('#cbTimers .cnt .seg-l');   // le nom tel que la capsule l'affiche
-      return {tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:'La capsule montre le chrono'+(c?' et '+_gdQ(c.textContent):'')+'. '
-        +(mqRail.matches?'Minuteurs, compteurs et jalons vivent dans la colonne de droite.':'Touchez-la pour ouvrir les minuteurs et les compteurs.'),act:0};}},
+      const cx='La capsule, en haut, montre le chrono'+(c?' et '+_gdQ(c.textContent):'')+'. ';
+      if(mqRail.matches)return {tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:cx+'Minuteurs, compteurs et jalons sont dans la colonne de droite.',act:0};
+      return state.rtOpen==='dock'
+        ?{tgt:'#cbTimers',avec:'.rt-dock',t:'Les minuteurs et les compteurs',x:'Ils sont ici, prêts à lancer. Touchez de nouveau la capsule pour refermer le volet.',act:1}
+        :{tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:cx+'Touchez-la : les minuteurs et les compteurs s’ouvrent.',act:1};}},
   {id:'decision',nom:'Répondre',ok:f=>(f.blocks||[]).some(b=>b.kind==='decision'),
     done:(g,f)=>(state.nav||[]).slice(0,-1).some(id=>{const b=_gdBlk(f,id);return b&&b.kind==='decision';}),
     ph:(g,f)=>{const b=_gdBlk(f,_gdCur());
       return b&&b.kind==='decision'
         ?{tgt:'#main .ov-block.cur :has(>[data-ovopt])',t:'Répondez à la question',x:_gdQ(b.question||b.title)+' : chaque réponse ouvre sa branche. Choisissez-en une.',act:1}
-        :{tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'Cochez les étapes restantes : « Continuer » s’allume et mène au bloc suivant.',act:1};}},
+        :(()=>{const nx=document.querySelector('#main .ov-block.cur [data-ovnext]');
+          if(nx&&nx.getAttribute('aria-disabled')!=='true')
+            return {tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'« Continuer » est prêt : il mène au bloc suivant.',act:1};
+          const n=document.querySelectorAll('#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)').length;
+          return {tgt:null,voir:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez les étapes restantes',x:'« Continuer » s’allumera quand '+(n>1?'les '+n+' cases seront cochées':'la dernière case sera cochée')+' : il mène au bloc suivant.',act:1};})();}},
   {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
     done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
     ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');
-      return {tgt:'#main .ov-block.cur li.rv-step .rv-head',side:'above',t:'Une revue, à tout moment',x:_gdQ(rv.title)+' se relit pendant tout le bloc : elle ne retient pas « Continuer » et se coche d’elle-même quand tout est vu. Ouvrez-la et cochez une ligne.',act:1};}},
+      const ouv=!!document.querySelector('#main .ov-block.cur li.rv-step.open');
+      return {tgt:'#main .ov-block.cur li.rv-step .rv-head',avec:'#main .ov-block.cur li.rv-step',align:'top',t:'Une revue, à tout moment',
+        x:_gdQ(rv.title)+' se relit pendant tout le bloc : elle ne retient pas « Continuer » et se coche d’elle-même quand tout est vu. '+(ouv?'Cochez une ligne.':'Ouvrez-la et cochez une ligne.'),act:1};}},
   {id:'cx',nom:'Ouvrir une complication',ok:f=>cxAll(f).length>0,
     done:g=>{if(document.querySelector('#main [data-cxback]'))g.cxIn=true;return !!g.cxIn&&!document.querySelector('#main [data-cxback]');},
     ph:(g,f)=>{if(document.querySelector('#main [data-cxback]'))
-        return {tgt:'#main [data-cxback]',t:'Revenir au parcours',x:'« Reprendre » vous ramène au bloc où vous étiez, coches gardées.',act:1};
+        return {tgt:'#main [data-cxback]',t:'Vous êtes dans une complication',x:(()=>{const b=_gdBlk(f,_gdCur());return b&&b.title?_gdQ(b.title)+' : ses':'Ses';})()
+          +' étapes sont ici, et le bloc que vous quittez vous attend, coches gardées. « Reprendre », en haut, vous y ramène.',act:1};
       const l=cxAll(f),j=_gdJalon(f),un=l.length===1?l[0]:null;
       const jt=j?(un&&j.go===un.target?' Elle se propose aussi d’elle-même':' Une consigne paraît aussi d’elle-même')+' quand '+_gdQ(j.c)+' atteint '+j.n+' : c’est un jalon.':'';
       return {tgt:'#cxKey',t:'La situation change ?',x:(un?_gdQ(un.label)+' s’ouvre':'Les complications s’ouvrent')+' à tout moment par cette touche.'+jt+' Essayez.',act:1};}},
@@ -28616,7 +28641,7 @@ async function guideStart(f){
 function guideStop(){const g=_gd;_gd=null;
   if(g){clearInterval(g.iv);if(g.mo)g.mo.disconnect();}
   document.querySelectorAll('.gd-tgt').forEach(e=>e.classList.remove('gd-tgt'));
-  _gdVeil(null);
+  _gdVeil(null);_gdReserve(0);
   const t=document.getElementById('gdTip');if(t)t.remove();}
 function guideSync(){const g=_gd;if(!g)return;
   const f=fiches.find(x=>x.id===g.fid);if(!f){guideStop();return;}
@@ -28636,31 +28661,35 @@ function guideSync(){const g=_gd;if(!g)return;
   guidePaint(cache?null:E,f);}
 function _gdTip(){let t=document.getElementById('gdTip');
   if(!t){t=document.createElement('section');t.id='gdTip';t.className='gd-tip';t.setAttribute('aria-label','Exercice guidé');
-    t.onclick=e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;
+    t.onclick=e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;const g=_gd;
       if(b.id==='gdQuit'){guideStop();announce('Guide quitté — l’exercice continue.');}
-      else if(b.id==='gdNext'){const g=_gd,E=g&&GUIDE_ETAPES[g.i];if(!E)return;
-        if(E.id==='capsule'){g.seen.capsule=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}
+      else if(b.id==='gdNext'){const E=g&&GUIDE_ETAPES[g.i];if(!E)return;
+        if(E.id==='capsule'&&!E.ph(g,fiches.find(x=>x.id===g.fid)).act){g.seen.capsule=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}
+      else if(b.id==='gdMin'||b.id==='gdOpen'){if(!g)return;g.min=b.id==='gdMin';g.key='';guideSync();
+        const n=document.getElementById(g.min?'gdOpen':'gdMin');if(n)n.focus({preventScroll:true});}
       else if(b.id==='gdClose'){t.remove();}
       else if(b.id==='gdRedo'){const f=fiches.find(x=>x.id===t.dataset.fid);t.remove();guideStart(f);}};
     document.body.appendChild(t);}
   return t;}
 function guidePaint(E,f){const g=_gd,t=_gdTip();
-  if(!E){t.hidden=true;_gdVeil(null);return;}
+  if(!E){t.hidden=true;_gdVeil(null);_gdReserve(0);return;}
   const P=E.ph(g,f),et=GUIDE_ETAPES.filter(x=>x.ok(f)),k=et.indexOf(E)+1;
-  const key=E.id+'|'+P.t+'|'+P.x;
-  if(g.key!==key){g.key=key;g.room=0;
-    t.className='gd-tip';
-    t.innerHTML=`<span class="gd-arr" aria-hidden="true"></span><p class="gd-k">▲ Exercice guidé · ${k}/${et.length}</p>`
-      +`<p class="gd-t">${esc(_gdNb(P.t))}</p><p class="gd-x" aria-live="polite">${esc(_gdNb(P.x))}</p>`
+  const key=E.id+'|'+P.t+'|'+P.x+'|'+(g.min?1:0);
+  if(g.key!==key){g.key=key;g.room=0;g.phaseT=Date.now();
+    t.className='gd-tip'+(g.min?' min':'');
+    t.innerHTML=g.min
+      ?`<button type="button" class="gd-pill" id="gdOpen" aria-label="Rouvrir le guide, étape ${k} sur ${et.length}">▲ Guide ${k}/${et.length}${uiIcon('chev',14,{sw:2.4,cls:''})}</button>`
+      :`<div class="gd-tx"><div class="gd-hd"><p class="gd-k">▲ Exercice guidé · ${k}/${et.length}</p><button type="button" class="gd-min" id="gdMin" aria-label="Réduire le guide">${uiIcon('chev',14,{sw:2.4,cls:''})}</button></div>`
+      +`<p class="gd-t">${esc(_gdNb(P.t))}</p><p class="gd-x" aria-live="polite">${esc(_gdNb(P.x))}</p></div>`
       +`<div class="gd-act"><button type="button" class="gd-l" id="gdQuit">Quitter le guide</button>`
       +(P.act?(E.req?'':'<button type="button" class="gd-g" id="gdNext">Passer</button>')
         :'<button type="button" class="gd-b" id="gdNext">Suivant</button>')+`</div>`;}
   t.hidden=false;
-  const el=document.querySelector(P.tgt);
-  const vis=el&&el.getClientRects().length&&!el.closest('[hidden]');
+  const el=P.tgt&&document.querySelector(P.tgt);
+  const vis=!!el&&!!el.getClientRects().length&&!el.closest('[hidden]');
   document.querySelectorAll('.gd-tgt').forEach(e=>{if(e!==el)e.classList.remove('gd-tgt');});
   if(vis)el.classList.add('gd-tgt');
-  guidePlace(t,vis?el:null,P.side);}
+  guidePlace(t,vis?el:null,P);}
 /* Le voile : un seul calque sur toute la fenêtre, percé (evenodd) autour de la cible à 8 px, coins de 12.
    Coordonnées du chemin dans les pixels CSS du calque, donc ÷ zoomF() (règle 10). */
 function _gdVeil(r){let v=document.getElementById('gdVeil');
@@ -28671,41 +28700,54 @@ function _gdVeil(r){let v=document.getElementById('gdVeil');
   v.style.clipPath=`path(evenodd,"M0 0H${w}V${h}H0Z M${x+c} ${y}H${X-c}A${c} ${c} 0 0 1 ${X} ${y+c}V${Y-c}A${c} ${c} 0 0 1 ${X-c} ${Y}H${x+c}A${c} ${c} 0 0 1 ${x} ${Y-c}V${y+c}A${c} ${c} 0 0 1 ${x+c} ${y}Z")`;
   v.dataset.hole=[r.left,r.top,r.right,r.bottom].map(n=>Math.round(n)).join(',');
   v.classList.add('on');}
-/* Position : au-dessus ou au-dessous de la cible, jamais dessus. Mesures en pixels de l'appareil,
-   réinjectées ÷ zoomF() (règle 10). La cible hors du champ est amenée UNE fois par phase — un défilement
-   commandé par le guide, en exercice seulement. */
-function guidePlace(t,el,side){const z=zoomF(),W=innerWidth,H=innerHeight,g=_gd;
-  const cd=document.getElementById('crisisDock'),sd=document.getElementById('sessionDock');
-  const inMain=!!el&&!!el.closest('#main'),quai=!!el&&!!el.closest('#sessionDock,#dockSheet');
-  const sdr=sd&&!sd.hidden&&sd.getClientRects().length?sd.getBoundingClientRect():null;
-  /* La bande où la bulle peut se poser : sous la capsule et au-dessus du quai pour une cible du parcours ;
-     toute la fenêtre pour le quai, son volet ou une fenêtre de dialogue (on peut couvrir l'en-tête). */
-  const haut=inMain&&cd&&cd.getClientRects().length?Math.max(0,cd.getBoundingClientRect().bottom):4*z;
-  const bas=inMain&&sdr&&sdr.top>H/2?sdr.top:H;
-  const tw=Math.min(380*z,W-32*z);t.style.width=tw/z+'px';
-  const th=t.getBoundingClientRect().height,gap=12*z;
+/* La hauteur que la carte réserve au bas de la page (--gd-h, en px CSS) : on défile toujours jusqu'au bout. */
+function _gdReserve(h){document.body.classList.toggle('gd-on',h>0);document.documentElement.style.setProperty('--gd-h',h>0?h+'px':'0px');}
+/* Le haut du premier objet fixé du bas de l'écran (quai, son volet, la barre « ↩ Bloc ») : la carte s'y pose. */
+function _gdBas(H){let b=H;
+  for(const s of ['#sessionDock .sd-in','#dockSheet .ds-card','#blkReturn .bkr']){const e=document.querySelector(s);
+    if(!e||e.closest('[hidden]')||!e.getClientRects().length)continue;
+    const r=e.getBoundingClientRect();if(r.height&&r.top>H/2&&r.top<b)b=r.top;}
+  return b;}
+/* v5.48.2 — UNE CARTE ANCRÉE, PLUS UNE BULLE QUI SUIT (signalé sur iPhone : la bulle cachait le volet, les
+   étapes et la complication que le geste ouvrait, et le défilement saccadait). Elle se pose au-dessus du quai,
+   dans sa largeur — donc dans la colonne d'action au bureau, sur le volet du quai d'un pliable —, et ne bouge
+   jamais au défilement : la cible se montre par son anneau, que le moteur fait défiler lui-même. Mesures en
+   pixels de l'appareil, réinjectées ÷ zoomF() (règle 10). */
+function guidePlace(t,el,P){const z=zoomF(),W=innerWidth,H=innerHeight,g=_gd;
+  const q=document.querySelector('#sessionDock .sd-in'),qr=q&&!q.closest('[hidden]')&&q.getClientRects().length?q.getBoundingClientRect():null;
+  const tw=g.min?null:(qr&&qr.width>200*z?qr.width:Math.min(660*z,W-24*z));
+  const left=qr&&qr.width>200*z?qr.left:(W-(tw||0))/2;
+  t.classList.toggle('row',!!tw&&tw>=560*z);
+  t.style.width=tw?tw/z+'px':'';
+  const th=t.getBoundingClientRect().height,tW=t.getBoundingClientRect().width,bas=_gdBas(H);
+  let top=bas-8*z-th;
   const r=el&&el.getBoundingClientRect();
-  const fitA=!!r&&r.top-haut>=th+gap,fitB=!!r&&bas-r.bottom>=th+gap;
-  /* Hors du champ, ou sans place d'aucun côté : on fait de la place en calant la cible au bord opposé au
-     côté voulu (défilement commandé par le guide, en exercice seulement). Trois essais au plus par phase,
-     espacés : l'app défile elle-même après « Continuer » et peut interrompre le premier. */
-  if(r&&g&&inMain&&(g.room||0)<3&&Date.now()-(g.roomT||0)>500&&(r.top<haut||r.bottom>bas||(!fitA&&!fitB))
-    &&(r.height+th+gap*2<=bas-haut||r.top<haut||r.bottom>bas)){g.room=(g.room||0)+1;g.roomT=Date.now();
-    // scrollBy se compte en pixels de l'appareil, comme les rectangles (mesuré sous zoom) ; scroll-margin, non.
-    window.scrollBy({top:side==='above'?r.bottom-(bas-8*z):r.top-(haut+8*z),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
-  let top,ax=null,dir='';
-  if(r&&r.bottom>0&&r.top<H){
-    const dessus=quai||(side==='above'?(fitA||!fitB):(!fitB&&fitA));   // dessous par défaut : le contexte au-dessus reste lisible
-    top=dessus?r.top-gap-th:r.bottom+gap;dir=dessus?'down':'up';
-    top=Math.max(haut,Math.min(top,bas-th-4*z));
-    const left=Math.max(16*z,Math.min(r.left+r.width/2-tw/2,W-16*z-tw));
-    ax=Math.max(20*z,Math.min(r.left+r.width/2-left,tw-20*z));
-    t.style.left=left/z+'px';}
-  else{top=(sdr&&sdr.top>H/2?sdr.top:H)-th-gap;t.style.left=(W-tw)/2/z+'px';}
+  // `voir` : ce qu'il faut amener en vue, sans anneau — TOUTES les cases restantes, pas la seule première.
+  const rv=!el&&P&&P.voir?[...document.querySelectorAll(P.voir)].map(e=>e.getBoundingClientRect()).filter(x=>x.height)
+    .reduce((u,x)=>u?{top:Math.min(u.top,x.top),bottom:Math.max(u.bottom,x.bottom),height:Math.max(u.bottom,x.bottom)-Math.min(u.top,x.top)}:x,null):null;
+  // Une cible fixée (fenêtre de fin…) qui tomberait sous la carte : la carte monte en haut de l'écran.
+  const enHaut=!!r&&!el.closest('#main')&&r.bottom>top&&r.top<top+th;
+  if(enHaut)top=8*z;
+  t.style.left=(g.min?(qr?qr.right:W-12*z)-tW:left)/z+'px';
   t.style.top=top/z+'px';
-  t.classList.toggle('up',dir==='up');t.classList.toggle('down',dir==='down');
-  const a=t.querySelector('.gd-arr');if(a){a.hidden=ax==null;if(ax!=null)a.style.left=(ax/z-7)+'px';}
-  _gdVeil(ax!=null?r:null);}
+  _gdReserve(enHaut?0:Math.round((bas-top)/z));
+  /* La cible du parcours hors de la bande visible (sous la capsule, au-dessus de la carte) : on l'y amène, six
+     essais au plus par phase, espacés — l'app défile elle-même après « Continuer » et peut défaire les premiers.
+     scrollBy se compte en pixels de l'appareil, comme les rectangles (mesuré sous zoom) ; scroll-margin, non. */
+  const cd=document.getElementById('crisisDock');
+  const haut=cd&&cd.getClientRects().length?Math.max(0,cd.getBoundingClientRect().bottom):0,bande=top-8*z-haut;
+  const m=r&&el.closest('#main')?r:rv;
+  // Jamais contre la main : dès que la personne a défilé elle-même pendant la phase, le guide ne ramène plus rien.
+  if(m&&!((g.userT||0)>(g.phaseT||0))&&(g.room||0)<6&&Date.now()-(g.roomT||0)>500&&(m.top<haut||m.bottom>top-8*z)){
+    g.room=(g.room||0)+1;g.roomT=Date.now();
+    const cible=(P&&P.align==='top')||m===rv||m.height>=bande?haut+8*z:haut+(bande-m.height)/2;
+    window.scrollBy({top:m.top-cible,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+  // Le voile ne suit pas un défilement : il s'efface pendant, et revient quand la page est posée.
+  const calme=Date.now()-(g.scrollT||0)>200;
+  let h=r;const av=r&&P&&P.avec?document.querySelector(P.avec):null;   // le trou couvre aussi ce que le geste a ouvert
+  if(av&&av.getClientRects().length){const a=av.getBoundingClientRect();
+    h={left:Math.min(r.left,a.left),top:Math.min(r.top,a.top),right:Math.max(r.right,a.right),bottom:Math.max(r.bottom,a.bottom)};}
+  _gdVeil(h&&!g.min&&calme&&h.bottom>0&&h.top<H?h:null);}
 function guideEnd(f){const g=_gd;if(!g)return;const done=g.done;guideStop();guidePrefSet('done');
   const et=GUIDE_ETAPES.filter(x=>x.ok(f)),tous=et.every(E=>done.has(E.id));
   const t=_gdTip();t.dataset.fid=f.id;t.className='gd-tip end';t.hidden=false;
@@ -28734,7 +28776,10 @@ document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;
   if(t.closest('[data-gdgo]')){guideStart(state.fiche);return;}
   if(t.closest('[data-gdoff]')){guidePrefSet('off');render();announce('Le guide ne sera plus proposé ; il reste dans Moi › Prendre en main.');}});
 addEventListener('resize',()=>{if(_gd)guideSync();});
-addEventListener('scroll',()=>{if(_gd&&!_gd.raf)_gd.raf=requestAnimationFrame(()=>{if(_gd){_gd.raf=0;guideSync();}});},{passive:true});
+addEventListener('scroll',()=>{const g=_gd;if(!g)return;g.scrollT=Date.now();_gdVeil(null);   // la carte ne bouge pas : seul le voile se retire
+  clearTimeout(g.sT);g.sT=setTimeout(guideSync,220);},{passive:true});
+// Un défilement À LA MAIN (molette, doigt, touches) : seuls ces gestes le disent, un scrollBy n'en émet aucun.
+for(const ev of ['wheel','touchmove','keydown'])addEventListener(ev,e=>{if(_gd&&(ev!=='keydown'||/^(Page|Arrow|Home|End| )/.test(e.key)))_gd.userT=Date.now();},{passive:true});
 {const fv=document.getElementById('footVer');if(fv)fv.textContent='v'+APP_VERSION;}   // A373 : version au pied du téléphone, posée une fois au démarrage
 function closeStorageInfo(){storageModal.classList.remove('on');}
 bindModalDismiss(storageModal,closeStorageInfo);
