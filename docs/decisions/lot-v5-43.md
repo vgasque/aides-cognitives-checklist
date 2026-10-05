@@ -53,3 +53,58 @@ plus émises : leurs règles partent. `.pf-seg`/`.pf-segl` restent pour « À to
 branche à plat à deux niveaux ; A392/A393 suivent l'en-tête neuf (« SI », jeu de 12 px) ; nouvelle section « A450
 au-delà de deux crans » (« à ◇11 », blocs au second cran, numéro de décision unique, aucun débordement). Rejoués sur
 l'`index.html` d'avant : huit rouges puis trois, exactement les invariants changés.
+
+---
+
+# Second chapitre — ce qui tenait sur Mac à 0 px près (v5.43.1, A451)
+
+> Question de l'auteur du 05/10/2026 (« pourquoi doctrine 3 et 4 sont en échec, en local et en CI ? ») ; formes
+> choisies sur canevas (« Rognages Linux — pistes » : X1-X4 pour la barre à 1200 px, trois libellés à 320 px, E1/E2
+> pour l'en-tête — retenues : X3, « 0 coché », E2).
+
+## A451 — case maîtresse, « 0 coché », marque à 17,5 sous 480 px (v5.43.1)
+
+**Le constat.** Deux sections de `audit-doctrine` échouaient en CI depuis la v5.30.0 (la troisième mesure depuis la
+v5.36.0), en silence puisque l'audit y est `continue-on-error` : « SÉLECTION · une ligne, 56 px » (compte tronqué à
+320 px à zéro coché, et à 1200 px à deux cochés) et « En-tête d'accueil » (réserve < 8 px à 320, 360 et 430 px). Le
+numéro de tranche variait d'une passe à l'autre (`AC_PLAN` répartit par durée) ; les sections, jamais.
+
+**La cause — mesurée, pas supposée.** Rejoué dans l'image Playwright officielle (`mcr.microsoft.com/playwright:v1.61.1-noble`,
+le Linux de la CI), à l'identique des chiffres du journal CI. Deux effets s'additionnent :
+1. **Le texte est plus large sous Linux, police embarquée identique** : Chromium headless Linux arrondit l'avance de
+   chaque glyphe au pixel entier (« Aides cognitives » en Manrope 700 16 px : 128,04 px sur Mac, 130 sous Linux ; le
+   mot-marque de l'accueil : 161,6 contre 171,8 px).
+2. **Une barre de défilement classique prend 15 px** : en voie large la barre de sélection vit dans le défileur
+   `.home-main` (889 px au lieu de 904). Sur Mac la barre se superpose.
+Sur Mac, ces trois mises en page tenaient à **0 px de jeu** (compte « 2 cochés » 58/58 px à 1200, « Rien de coché »
+97/97 à 320, réserve d'en-tête 8 px pile à 360 et 430). **Le cas 1200 px est un vrai défaut**, pas un artefact :
+Windows et Linux de bureau ont la barre de défilement classique, donc le compte y était tronqué entre ~1200 et ~1215 px.
+
+**Les corrections.**
+- **Case maîtresse à trois états** (`#selAll`, `.dir-ck.sel-ck`) à la place du segment « Tout cocher / Tout décocher »,
+  à TOUTES les largeurs : le dessin de la case d'une rangée, cible 40 px, `role="checkbox"`, `aria-checked`
+  false · mixed · true lu sur ce que la liste MONTRE (calcul dans `bindSelBar`, avant la peinture — le gabarit ne
+  connaît pas la liste). Aucun ou une partie → tout cocher ; tout → tout décocher ; le nom accessible dit le geste.
+  Le segment rendait 259 px ; la case 40. Corollaires : la règle `zw400` qui renvoyait le segment au tiroir et la
+  face « Tout décocher » rejouée par `openSelActs` sont purgées (la case est toujours là) ; le compte (`flex:1 1 auto`)
+  pousse seul les actes au bord.
+- **Les actes dépliés portent leur glyphe** (`book`, `tag`, `download`, `trash` — ceux du tiroir) : un dessin, deux lieux.
+- **« 0 coché »** au lieu de « Rien de coché » : la forme de « 1 coché », « 2 cochés », seul le chiffre change ; l'encre
+  secondaire à zéro est gardée. Mesuré sous Linux : 54 px pour 90 disponibles (« Aucun coché » : 89, 1 px de jeu ;
+  « 0 élément » : 68, mais deux vocabulaires pour un même compte).
+- **E2 — le mot-marque de l'accueil passe à 17,5 sous 480 px effectifs** (`html.zw480`, palier 480 ajouté à
+  `ZOOM_W_STEPS` ; il était déjà dans l'échelle fermée). Réserve mesurée, Linux / Mac : 320 px 33 / 44, 360 px 25 / 36,
+  430 px 23 / 36 ; ≥ 480 la marque reprend 21 px (46 / 58 de réserve). « Créer » garde son mot à 430.
+
+**Jeu du compte après correctif, Linux** : ≈ 75 px à 1200 (X3 calculé), 36 px à 320 à zéro coché, ≈ 18 px à 320 à
+deux cochés (la case coûte 46 px sur la ligne repliée — mesuré vert).
+
+**Témoins.** « SÉLECTION · A451 case maîtresse » (390 et 1200 px) : état annoncé et nom à chaque pas (vide → mixed →
+true → vide), cible 40 px, ce que le geste fait aux rangées, glyphes des actes dépliés. Les sections « SÉLECTION · une
+ligne » et « En-tête d'accueil » passent désormais sur les DEUX plateformes (vérifié dans le conteneur Linux).
+
+**Formes écartées.** X1 (une seule bascule, sans glyphes) : juste, mais « Tout cocher » disparaissait dès une coche ;
+X2 (glyphes + × seul) : ≈ 24 px de jeu seulement sous Linux ; X4 (actes en glyphes seuls, nom au survol) : pas de survol
+au toucher sur une tablette de 1200 px. Palier de dépliage relevé à 1280 (piste A) : non retenu au profit de X3. Forcer
+sous Linux un rendu de texte identique au Mac (options de lancement) : refusé comme remède — il cacherait le cas réel de
+la barre de défilement classique.

@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.43.1] — 2026-10-05
+La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Windows et Linux (A451, doctrine `docs/decisions/lot-v5-43.md`, second chapitre).
+- **Une case pour tout cocher** : à gauche du compte, une case du même dessin que celle des rangées remplace les deux
+  boutons « Tout cocher / Tout décocher ». Vide quand rien n'est coché, un tiret quand une partie l'est, une coche quand
+  tout l'est ; un tap coche tout, ou décoche tout si tout était coché. Elle est là à toutes les largeurs (sur un petit
+  téléphone, « Tout décocher » ne passe plus par le tiroir « Actions »).
+- **Sur grand écran, les actes portent leur glyphe** : Bibliothèque, Catégorie, Exporter, Supprimer, avec les mêmes
+  dessins que dans le tiroir « Actions ». Le compte « 2 cochés » se lit en entier : sous Windows et Linux, vers 1200 px,
+  il était réduit à « … » depuis l'arrivée d'« Exporter… ».
+- **« 0 coché »** remplace « Rien de coché », qui était coupé sur les écrans de 320 px.
+- **Sur téléphone, le nom « Aides cognitives » de l'accueil est un peu plus petit** (sous 480 px de large) : il touchait
+  presque les boutons de l'en-tête, et les débordait sous Linux.
+- Pourquoi seulement sous Windows et Linux : le texte y est un peu plus large (lettres arrondies au pixel) et la barre de
+  défilement prend de la place ; sur Mac ces lignes tenaient au pixel près. Les audits de la CI, qui tournent sous Linux,
+  échouaient sur ces deux points depuis la v5.30.
+
 ## [5.43.0] — 2026-10-04
 Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
 - **Chaque réponse d'une décision ouvre sa branche juste sous elle** : « SI Oui », « SI Non, crise arrêtée »…, la
@@ -285,37 +301,3 @@ Nettoyage interne des couleurs, sans aucun changement à l'écran (A416, doctrin
   tokens refuse qu'un tel doublon réapparaisse.
 - **Vérifié identique.** Les styles calculés de 4 714 éléments, sur huit écrans en thème clair, sombre
   et en large, sont les mêmes avant et après.
-
-## [5.38.0] — 2026-09-27
-Un audit design de l'application, mesuré puis maquetté sur l'app réelle, et ce qu'il a changé
-(A400-A415, doctrine `docs/decisions/lot-v5-38.md`).
-- **Lisible à distance.** Les noms de la barre des minuteurs et des touches du bas passent de 11 à
-  13,5 px, en casse de phrase sur la barre du bas. Un nom trop long s'abrège tout seul (« Réévaluation
-  après adrénaline » devient « Rééval. adrén. », « Bronchospasme réfractaire » devient
-  « Bronchospasme ») ; un champ facultatif « Nom court » dans l'éditeur permet de choisir le sien. Les
-  mots longs se coupent à la syllabe, avec un tiret, et plus au milieu du mot.
-- **Le rouge ne sert plus qu'à ce qui compte.** « Mode crise » n'est plus en rouge, « Fin » garde son
-  carré rouge mais son mot passe en gris, la touche de complication et son étiquette passent à
-  l'ambre. Dans « Terminer la session ? », l'étape vitale oubliée est maintenant en rouge, avec le mot
-  CRITIQUE. La barre d'un minuteur qui tourne est neutre ; il ne prend de couleur qu'à l'échéance.
-- **Catégories.** La teinte vermillon, presque identique au rouge d'alerte, quitte le nuancier ;
-  « Urgences » passe en prune et quatre teintes proches de l'ambre ou du vert d'alerte glissent un peu.
-  Vos catégories existantes gardent leur couleur : « Gérer les catégories » signale celles qui sont trop
-  proches d'une couleur d'alerte et propose la teinte voisine d'un tap.
-- **Écrans pliables (Surface Duo, Pixel Fold, Galaxy Z Fold).** Rien ne se pose plus sur la charnière :
-  la barre des minuteurs, la barre du bas et les fenêtres restent dans le volet gauche. La fenêtre
-  « Terminer la session ? » était coupée en deux par la charnière.
-- **Mots.** « Journal » devient « Horodater » (le geste reste le même : l'heure est notée d'un tap).
-  « ×2 » devient l'étiquette « Double contrôle ». « Vérifier :: » devient « Vérifier ». Les réponses
-  attendues s'écrivent en casse de phrase.
-- **« Ne pas oublier ».** Le rappel vital de l'arrêt cardiaque s'affichait avec sa syntaxe de saisie
-  (« ⚠ RCP immédiate :: 30:2 ») ; il se lit maintenant sur une ligne, CRITIQUE à droite.
-- **Avant la session.** La bulle qui masquait le contenu devient une ligne dans le bouton de
-  démarrage : « Lance le chrono · minuteurs prêts ».
-- **Accueil.** « Créer » n'est plus le bouton le plus visible ; l'étoile d'épinglage et les croix
-  répondent au doigt sur 44 px, sans changer de dessin. Sur tablette, la barre des minuteurs ne fait
-  plus que la largeur du chrono quand les minuteurs sont dans la colonne de droite.
-- **Contraste.** Dans le volet des minuteurs, « Maintenir » et une vingtaine de textes du thème sombre
-  étaient sous le seuil de lisibilité ; corrigé. Le contrôle automatique d'accessibilité mesure
-  désormais ce volet, calcule juste les fonds semi-transparents empilés, et un nouveau contrôle
-  vérifie les écrans pliables.
