@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-dzQh6Ur0bwIgCpGzOXcXjiF4x30xZLCjKa/u4rxI24c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-EIq0PlR30/nWtpAZlNB4qRwbFao9kVFn83c2IeGIECQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -813,7 +813,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'auteur après onze correctifs) : le chrome REDEVIENT DU FLUX — sauf les couches plein écran,
      qui gardent `--vvh`/`--vvt` (v5.10.9) ; `html.kbd` est une CLASSE, jamais une media query.
      Détail : doctrine-css.md C11. */
-  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock{position:static}
+  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock,html.kbd .md-toolbar{position:static}
   /* ⚠ L'EN-TÊTE S'EFFACE, IL NE PASSE PAS DESSOUS (correctif, capture à l'appui : « pas une bonne
      solution »). Le libérer ne suffisait pas : libéré, il défile — donc il revient en haut du
      document quand on y remonte, et se retrouvait alors DANS LA MÊME BANDE que la colonne du champ.
@@ -7649,12 +7649,102 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
   }
   .md-body a,.md-preview a{color:var(--act);text-decoration:underline}
-  .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-  /* Boutons d'ENCADRÉ TYPÉ : chacun porte la couleur de SON registre (le bouton dit ce qu'il pose). */
-  .md-toolbar .mdc-crit{color:var(--crit)}
-  .md-toolbar .mdc-vig{color:var(--warn);font-weight:800}
-  .md-toolbar .mdc-info{color:var(--act)}
-  .md-toolbar .mdc-ok{color:var(--ok)}
+  /* Barre regroupée (v5.44) : collante sous l'en-tête tant que le champ défile ; rendue au flux
+     clavier ouvert (html.kbd, comme tout le chrome de page). Les menus s'ancrent sur `.mdt-g`. */
+  .md-toolbar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;position:sticky;top:var(--hdr-h,64px);z-index:7;background:var(--work);margin:-4px 0 4px;padding:4px 0}   /* z 7 : ses menus passent devant la porte « Ajouter » (z 6) */
+  .mdt-g{position:relative;display:inline-flex}
+  .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
+  .mdt-end{margin-left:auto}
+  .mdt-end>.popmenu{left:auto;right:0}   /* le dernier menu s'ouvre vers la gauche, dans la carte */
+  .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
+  .mdt-cv svg{transform:rotate(90deg)}
+  .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
+  .mdt-n,.mdt-hx{font-weight:800}
+  .mdt-n{display:none}
+  html.zw560 .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* lu, pas montré */
+  html.zw560 .md-toolbar .mdt-n{display:inline}
+  html.zw430 .md-toolbar .mdt-cv{display:none}   /* aria-haspopup dit le menu ; la place va à « Insérer » */
+  html.zw430 .md-toolbar .mdt-dd:not(.mdt-ins){min-width:36px;padding:0 6px}
+  /* Sous 360 (écran externe d'un Z Fold : 344) : « Insérer » garde son ＋, le mot reste lu. */
+  html.zw360 .md-toolbar .mdt-w2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  html.zw360 .md-toolbar .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  /* En-tête de la carte (v5.44) : « Plan » (aller à un titre) et, au téléphone, « Écrire | Aperçu ». */
+  .md-head{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+  .md-plan-g{flex:1 1 auto;min-width:0}
+  .md-head .md-plan{width:auto;max-width:100%;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .md-plan-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .md-seg{flex:none;width:176px}
+  html.zw360 .md-seg{width:144px}
+  html.zw430 .md-head .md-grid>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* icône seule, mot lu */
+  html.zw430 .md-head .md-grid{width:40px;padding:0;justify-content:center}
+  .md-lv2{padding-left:4px}.md-lv3{padding-left:8px;font-weight:700}
+  /* Le bloc où l'on écrit, dans l'aperçu : registre « bloc courant » (bleu doux, sans aplat fort). */
+  .md-here{background:color-mix(in srgb,var(--act) 8%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--act) 8%,transparent);border-radius:3px}
+  .md-preview [data-ln],#editSide .ep-md [data-ln]{cursor:pointer}
+  @media (max-width:779.98px){
+    .md-ed.md-pv :is(.md-toolbar,.md-wpane,.md-imgs){display:none}
+    .md-ed:not(.md-pv) .md-ppane{display:none}
+    .md-ed.md-pv .md-prev-h{display:none}
+  }
+  @media (min-width:780px){
+    .md-seg{display:none}
+    #p-body{min-height:calc(50dvh / var(--zf,1))}
+  }
+  @media (min-width:780px) and (max-width:999.98px){
+    .md-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+    .md-ppane .md-prev-h{margin-top:0}
+    .md-ppane .md-preview{max-height:calc(50dvh / var(--zf,1) + 72px);overflow-y:auto}
+  }
+  .md-head .md-grid{width:auto;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:700;color:var(--act);border-color:var(--act);flex:none}
+  /* Fenêtre des outils (v5.44) : tableau en grille, collage mis en forme. */
+  .mdw-foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+  .mdg-dim{margin:0 0 8px;font-size:13.5px;color:var(--ink-2)}
+  .mdg-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 12px}
+  .mdg-grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .mdg-al-l{font-size:12px;font-weight:700;color:var(--ink-2)}
+  .mdg-al{width:216px}
+  .mdg-tpl{margin-left:auto}
+  .mdg-scroll{overflow-x:auto;border:1px solid var(--line-strong);border-radius:var(--r-2)}
+  .mdg{display:grid;grid-template-columns:repeat(var(--mdg-n),minmax(112px,1fr))}
+  .mdg-in{min-width:0;height:44px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:var(--work);color:var(--ink);padding:0 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
+  .mdg-in.mdg-h{background:var(--amb);font-weight:800}
+  .mdg-in.ta-c{text-align:center}.mdg-in.ta-r{text-align:right}
+  .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}
+  .mdg-src{margin-top:12px;background:var(--amb-2);border-radius:var(--r-2);padding:8px 12px}
+  .mdg-src summary{padding:8px 0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);cursor:pointer}
+  .mdg-pre,.mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
+  .mdw-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+  .mdw-chip{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:var(--r-1);background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:700}
+  .mdw-chip.warn{background:var(--warn-soft);color:var(--warn)}
+  .mdw-cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .mdw-cmp .mdw-pre{white-space:pre-wrap;border:1px solid var(--line);border-radius:var(--r-2);padding:10px 12px;max-height:calc(40dvh / var(--zf,1));overflow:auto;background:var(--work)}
+  .mdw-cmp .mdw-md{background:var(--amb-2)}
+  /* Relecture de l'écriture (v5.44) : registre ATTENTION, glyphe + mots ; jamais bloquant. */
+  .md-lint{margin:8px 0 0;border:1px solid var(--warn-line);border-radius:var(--r-2);background:var(--warn-soft);padding:0 12px}
+  .md-lint>summary{min-height:40px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--warn);cursor:pointer}
+  .md-lint-g{color:var(--warn);font-weight:800;flex:none}
+  .md-lint-r{display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--warn-line) 30%,transparent)}
+  .md-lint-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+  .md-lint-t b{font-size:13.5px}.md-lint-t>span{font-size:12px;color:var(--ink-2)}
+  .md-lint-c{font-family:var(--f-mono)}
+  .md-lint .btn.sm{flex:none}
+  .md-lint .hint{margin:4px 0 10px}
+  /* Coloration (v5.44) : le calque a les métriques EXACTES du champ ; le champ, transparent, passe dessus. */
+  .md-hlw{position:relative}
+  .md-hlw #p-body{display:block}
+  .md-hl{display:none}
+  .md-hlw.on .md-hl{display:block;position:absolute;inset:0;margin:0;overflow:hidden;padding:10px 12px;border:1px solid transparent;border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word}
+  .md-hlw.on #p-body{position:relative;background:transparent;color:transparent;caret-color:var(--ink)}
+  .md-hlw.on #p-body::selection{color:transparent;background:color-mix(in srgb,var(--act) 28%,transparent)}
+  #p-body::placeholder{color:var(--ink-2)}
+  .hl-m{color:var(--ink-2)}.hl-h{font-weight:700}
+  .hl-crit{color:var(--crit)}.hl-vig{color:var(--warn)}.hl-info{color:var(--act)}.hl-ok{color:var(--ok)}
+  .hl-lint{text-decoration:underline wavy var(--warn-line);text-underline-offset:3px;text-decoration-skip-ink:none}
+  /* Encadrés : chaque glyphe porte la couleur de SON registre, dans la barre comme dans son menu. */
+  .mdc-crit{color:var(--crit);display:inline-flex}
+  .mdc-vig{color:var(--warn);font-weight:800}
+  .mdc-info{color:var(--act);display:inline-flex}
+  .mdc-ok{color:var(--ok);display:inline-flex}
   /* ⚠ LE « S » PARAISSAIT DÉSACTIVÉ (signalé à l'usage : « pourquoi est-il grisé ? »). Il portait
      le fond du SURLIGNEUR sur tout le bouton, pour montrer ce qu'il produit — mais un bouton au
      fond neutre au milieu de boutons transparents se lit « inactif », pas « achromatique ». Le
@@ -7758,6 +7848,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .attpick-list .att-row{margin-bottom:8px}
   .att-from{display:block;font-size:11px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
+  /* Étroit (v5.44) : le nom garde toute la ligne, index · taille · outils passent dessous, à droite. */
+  html.zw430 .att-erow{flex-wrap:wrap;row-gap:4px}
+  html.zw430 .att-erow input[type="text"]{flex-basis:calc(100% - 32px)}
+  html.zw430 .att-erow .att-ix{margin-left:auto}
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
   .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--amb);position:relative}   /* repère de la pilule .pdf-fnav */
@@ -8072,7 +8166,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
@@ -8245,6 +8339,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        chaque fenêtre y garde sa largeur et s'y centre. `[class]` hisse la spécificité (0,3,2) au-dessus
        du plein écran étroit (0,3,0), qui remettait la marge à zéro. */
     html body .ai-modal.on[class]{padding-right:calc(50% + var(--hinge) / 2 + 12px)}
+    /* L'éditeur d'une référence (v5.44) : le texte sur le volet gauche, aperçu et relecture sur le
+       droit — jamais un champ à cheval sur la charnière. Barre d'outils au gabarit étroit (un volet). */
+    body.view-pedit .read-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 calc(var(--hinge) + 24px);align-items:start;max-width:none}
+    body.view-pedit .read-side{position:sticky;top:96px;max-height:calc(100dvh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
+    body.view-pedit :is(.md-prev-h,.md-preview,.md-seg){display:none}
+    .md-split{display:block}
+    .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .md-toolbar .mdt-n{display:inline}
+    .md-toolbar .mdt-cv{display:none}
   }
   /* ===== GARDE D'ENCADREMENT (v5.0.0, audit) =====
      Ce que le document peut faire là où `frame-ancestors` n'est pas servi (GitHub Pages est la
@@ -8558,6 +8661,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
   <div class="ed-palette ai-body" id="edAddBody"></div>
 </div></div>
+<!-- v5.44 : outils du contenu rédigé — tableau en grille, collage mis en forme. Une fenêtre, deux corps
+     peints à l'ouverture (`mdToolOpen`). -->
+<div class="ai-modal" id="mdToolModal" role="dialog" aria-modal="true" aria-labelledby="mdToolTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="mdToolTitle">Tableau</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-body" id="mdToolBody"></div>
+  <div class="mdw-foot" id="mdToolFoot"></div>
+</div></div>
 <!-- A383 : les réglages d'UNE étape (importance, ce que fait la coche, moment) — feuille basse, fenêtre centrée dès 780 ;
      corps peint à l'ouverture (`stepSetPaint`). -->
 <div class="ai-modal dlg-center sst-modal" id="stepSetModal" role="dialog" aria-modal="true" aria-labelledby="stepSetTitle"><div class="ai-card">
@@ -8832,7 +8942,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.43.0';
+const APP_VERSION='5.44.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9491,8 +9601,9 @@ function mdInline(s){const h=esc(sstr(s,4000));
       // Défense en profondeur : href nettoyé AU POINT D'INSERTION (guillemets/chevrons bruts
       // retirés) — la sûreté de l'attribut ne dépend plus du seul esc() d'entrée de mdInline.
       if(/^https?:\/\/\S+$/i.test(href))return '<a href="'+href.replace(/["'<>`]/g,'')+'" target="_blank" rel="noopener noreferrer">'+txt+'</a>';
-      const am=href.match(/^att:([A-Za-z0-9_-]{1,64})$/);
-      if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'">'+txt+'</a>';
+      // `#p12` (v5.44) : ouvre le document à cette page (un client antérieur laisse le lien en clair).
+      const am=href.match(/^att:([A-Za-z0-9_-]{1,64})(?:#p(\d{1,4}))?$/);
+      if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+txt+'</a>';
       return m;});
     x=x.replace(BOLD_RX,'<b>$1</b>');
     x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
@@ -9507,8 +9618,9 @@ function mdInline(s){const h=esc(sstr(s,4000));
 // {t:'code', lines[]} (bloc ```) | {t:'hr'} | {t:'img', caption, id} | {t:'p', lines[]}.
 function mdBlocks(src){
   const lines=sstr(src,MD_MAX_CHARS).split('\n').slice(0,MD_MAX_LINES);
-  const out=[];let list=null,para=[],quote=null,code=null;
-  const flushPara=()=>{if(para.length){out.push({t:'p',lines:para});para=[];}};
+  // `ln` (v5.44) : ligne source du bloc — l'aperçu de l'éditeur relie chaque bloc à son texte.
+  const out=[];let list=null,para=[],paraLn=0,quote=null,code=null;
+  const flushPara=()=>{if(para.length){out.push({t:'p',lines:para,ln:paraLn});para=[];}};
   const flushList=()=>{if(list){out.push(list);list=null;}};
   const flushQuote=()=>{if(quote){out.push(quote);quote=null;}};
   const flushAll=()=>{flushPara();flushList();flushQuote();};
@@ -9518,7 +9630,7 @@ function mdBlocks(src){
     // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
     // (Branche EN PREMIER : un « | » dans du code ne doit jamais devenir un tableau.)
     if(code){if(/^```/.test(l)){out.push(code);code=null;}else code.lines.push(l);continue;}
-    if(/^```/.test(l)){flushAll();code={t:'code',lines:[]};continue;}
+    if(/^```/.test(l)){flushAll();code={t:'code',lines:[],ln:i};continue;}
     if(/^\s*$/.test(l)){flushAll();continue;}
     // TABLEAU (v4.4.2) : ligne de cellules SUIVIE d'une ligne de séparation. Le nombre de colonnes
     // est normalisé sur l'en-tête (lignes trop courtes complétées, trop longues tronquées) : jamais
@@ -9529,15 +9641,15 @@ function mdBlocks(src){
       while(j<lines.length&&MD_TROW.test(lines[j])&&!MD_TSEP.test(lines[j])&&rows.length<MD_MAX_TROWS){rows.push(mdCells(lines[j]));j++;}
       const n=Math.max(1,Math.min(head.length,MD_MAX_TCOLS));
       const fit=r=>{const o=r.slice(0,n);while(o.length<n)o.push('');return o;};
-      out.push({t:'tbl',align:align.slice(0,n),head:fit(head),rows:rows.map(fit)});
+      out.push({t:'tbl',align:align.slice(0,n),head:fit(head),rows:rows.map(fit),ln:i});
       i=j-1;continue;}
-    if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2]});continue;}
-    if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr'});continue;}
-    if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushAll();out.push({t:'img',caption:m[1],id:m[2]});continue;}
+    if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2],ln:i});continue;}
+    if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr',ln:i});continue;}
+    if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushAll();out.push({t:'img',caption:m[1],id:m[2],ln:i});continue;}
     // Citation, éventuellement TYPÉE : le marqueur de registre n'est lu que sur la PREMIÈRE ligne
     // du bloc (les suivantes appartiennent au même encadré, comme les alerts de GitHub).
     if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();
-      if(!quote){const c=mdCallout(m[1]);quote={t:'q',kind:c.kind,lines:[]};
+      if(!quote){const c=mdCallout(m[1]);quote={t:'q',kind:c.kind,lines:[],ln:i};
         if(c.kind){if(c.text)quote.lines.push(c.text);}else quote.lines.push(m[1]);}
       else quote.lines.push(m[1]);
       continue;}
@@ -9547,9 +9659,9 @@ function mdBlocks(src){
       if(!last.sub||last.sub.t!==st)last.sub={t:st,items:[]};
       last.sub.items.push(m[2]);continue;}
     // Item de liste (ul/ol) : détection de tâche « [ ] »/« [x] » partagée entre les deux branches.
-    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[]};}list.items.push(listItem(m[1]));continue;}
-    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[]};}list.items.push(listItem(m[1]));continue;}
-    flushList();flushQuote();para.push(l);}
+    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[],ln:i};}list.items.push(listItem(m[1]));continue;}
+    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[],ln:i};}list.items.push(listItem(m[1]));continue;}
+    flushList();flushQuote();if(!para.length)paraLn=i;para.push(l);}
   if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
   flushAll();return out;}
 // Icône de l'encadré typé : réutilise les glyphes de l'app (aucun nouveau dessin).
@@ -9578,7 +9690,9 @@ function mdRender(src,ctx){ctx=ctx||{};
   // n'atteint jamais un attribut ; le CONTENU des cellules passe par mdInline (donc esc() d'abord),
   // ce qui leur donne gratuitement gras/italique/`code`/liens, sans nouvelle surface XSS.
   const TA={l:' class="ta-l"',c:' class="ta-c"',r:' class="ta-r"'},ta=a=>TA[a]||'';
-  return mdBlocks(src).map(b=>{
+  // ctx.ln (aperçus de l'éditeur) : chaque bloc dit sa ligne source (`data-ln`, entier).
+  const lnAt=(h,b)=>ctx.ln&&h?h.replace(/^<([a-z0-9]+)/,'<$1 data-ln="'+(b.ln|0)+'"'):h;
+  return mdBlocks(src).map(b=>lnAt((()=>{
     if(b.t==='tbl'){const al=Array.isArray(b.align)?b.align:[];
       const hd=(Array.isArray(b.head)?b.head:[]).map((c,i)=>'<th'+ta(al[i])+' scope="col">'+mdInline(c)+'</th>').join('');
       const bd=(Array.isArray(b.rows)?b.rows:[]).map(r=>'<tr>'+(Array.isArray(r)?r:[]).map((c,i)=>'<td'+ta(al[i])+'>'+mdInline(c)+'</td>').join('')+'</tr>').join('');
@@ -9606,7 +9720,7 @@ function mdRender(src,ctx){ctx=ctx||{};
       // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
       // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
       return '<figure class="md-fig'+(MD_SC[im.scale]||'')+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
-    return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
+    return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';})(),b)).join('');}
 /* ═══ A171 — LES TITRES D'UNE RÉFÉRENCE SE REPLIENT ═══════════════════════════════════════════
    ⚠ Construit APRÈS le rendu, jamais dans `mdRender` (le parseur reste PUR et NON interactif —
    les aperçus sont inertes) ; ⚠ le titre RESTE un titre (jamais de rôle bouton sur un h2 — le
@@ -14131,6 +14245,8 @@ const mqCock=window.matchMedia('(min-width:1200px)');
 /* v5.30 (A354) : la capsule ne monte dans l'en-tête qu'au BUREAU — une tablette en paysage (1180-1366)
    garde la bande sous l'en-tête, comme en portrait. */
 const mqHdrCap=window.matchMedia('(min-width:1440px)');
+// Pliable ouvert, deux segments (v5.44) : l'éditeur d'une référence prend la structure à colonne d'aperçu.
+const mqSeg=window.matchMedia('(horizontal-viewport-segments:2)');
 /* LES ÉDITEURS AUSSI FRANCHISSENT LES PALIERS (v4.77.0, signalé à l'usage) : l'éditeur change de
    STRUCTURE au même seuil (1000 px) que la lecture — redimensionner laissait la page telle que
    RENDUE. Règle : TOUTE VUE DONT LA STRUCTURE DÉPEND D'UN PALIER DOIT ÊTRE LISTÉE ICI (pendant
@@ -14140,7 +14256,7 @@ const mqHdrCap=window.matchMedia('(min-width:1440px)');
    Détail : doctrine-js.md J71. */
 const _onReadBp=()=>{if(state.view==='read'||state.view==='edit'||state.view==='protocolEdit'
   ||state.view==='protocolRead')render();};
-[mqReadWide,mqRail,mqCock,mqHdrCap].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
+[mqReadWide,mqRail,mqCock,mqHdrCap,mqSeg].forEach(mq=>{if(mq.addEventListener)mq.addEventListener('change',_onReadBp);else if(mq.addListener)mq.addListener(_onReadBp);});
 // La hauteur de l'en-tête est CONSTANTE : rien ne se replie au défilement. Un repli de la rangée
 // d'identité de l'accueil (classe `.condensed`) a été décrit ici et à deux autres endroits, au
 // présent et avec renvoi « cf. CSS », mais la règle correspondante n'a JAMAIS existé dans le
@@ -16174,7 +16290,7 @@ function renderProtocolRead(){
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRel(b.dataset.openrel);});
   bindAttList(p);
   // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
-  main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.docs||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p);else toast('⚠ Document lié introuvable dans ce protocole.');});
+  main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.docs||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p,+a.dataset.mdpage||1);else toast('⚠ Document lié introuvable dans ce protocole.');});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   bindProtoTasks(p);
 }
@@ -16202,10 +16318,13 @@ function bindProtoTasks(p){
 // Bornes de sélection ordonnées d'un champ ([a,b,valeur] ; curseur en fin si aucune) — trois
 // copies factorisées (audit v5.19.4).
 function selBounds(inp){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;return a>b?[b,a,v]:[a,b,v];}
-function mdWrapSel(inp,mark){const [a,b,v]=selBounds(inp);
-  inp.value=v.slice(0,a)+mark+v.slice(a,b)+mark+v.slice(b);
-  inp.focus();inp.setSelectionRange(a+mark.length,b+mark.length);
-  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+// Entoure la sélection de `mark`, ou l'en retire si elle l'est déjà (dehors ou dedans). Sert aussi
+// au gras des fiches (wrapBold). Un `*` collé à un autre `*` est du gras, pas de l'italique.
+function mdWrapSel(inp,mark){const [a,b,v]=selBounds(inp),L=mark.length,sel=v.slice(a,b);
+  const one=L===1&&mark==='*';
+  if(v.slice(a-L,a)===mark&&v.slice(b,b+L)===mark&&!(one&&(v[a-2]==='*'||v[b+1]==='*')))return mdSplice(inp,a-L,b+L,sel,a-L,b-L);
+  if(sel.length>2*L&&sel.startsWith(mark)&&sel.endsWith(mark))return mdSplice(inp,a,b,sel.slice(L,-L),a,b-2*L);
+  mdSplice(inp,a,b,mark+sel+mark,a+L,b+L);}
 // Un titre POSÉ SUR UN TITRE remplace son niveau (H2 puis H1 donnait « # ## texte », v4.4.2).
 function mdPrefixLines(inp,prefix,numbered){const [a,b,v]=selBounds(inp);
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
@@ -16217,14 +16336,15 @@ function mdPrefixLines(inp,prefix,numbered){const [a,b,v]=selBounds(inp);
   const clean=l=>head?l.replace(/^#{1,3}\s+/,''):(quo?l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,'')
     :(tsk?l.replace(/^\s*(?:[-*]|\d{1,3}[.)])\s+/,'').replace(MD_TASK_RX,''):l));
   const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+clean(l)).join('\n');
-  mdSplice(inp,v,ls,end,seg);}
-// Réécrit [from,to) du textarea par `seg` et repose le curseur EN FIN DE SEGMENT (réécrire
-// .value le remettait à la fin du document : la frappe suivante partait tout en bas), puis
-// rejoue `input` — l'idiome unique des trois poseurs Markdown.
-function mdSplice(inp,v,from,to,seg){
-  inp.value=v.slice(0,from)+seg+v.slice(to);
-  inp.focus();const c=from+seg.length;inp.setSelectionRange(c,c);
-  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+  mdSplice(inp,ls,end,seg);}
+/* Réécrit [from,to) du champ par `seg`, puis pose la sélection [sa,sb) (curseur en fin de segment
+   par défaut) — l'idiome unique de tous les poseurs Markdown. `insertText` garde le geste dans
+   l'historique NATIF du champ (⌘Z l'annule) et émet lui-même `input` ; repli `setRangeText`. */
+function mdSplice(inp,from,to,seg,sa,sb){
+  inp.focus();inp.setSelectionRange(from,to);
+  let ok=false;try{ok=seg?document.execCommand('insertText',false,seg):(from===to||document.execCommand('delete'));}catch(e){}
+  if(!ok||inp.value.slice(from,from+seg.length)!==seg){inp.setRangeText(seg,from,to,'end');inp.dispatchEvent(new Event('input',{bubbles:true}));}
+  const c=from+seg.length;inp.setSelectionRange(sa==null?c:sa,sb==null?(sa==null?c:sa):sb);}
 /* Pose un ENCADRÉ TYPÉ sur les lignes sélectionnées, à la forme canonique de GitHub :
      > [!CAUTION]
      > texte
@@ -16238,9 +16358,372 @@ function mdCalloutLines(inp,word){const [a,b,v]=selBounds(inp);
     .filter((l,i,arr)=>arr.length===1||l.trim()!=='')
     .map(l=>'> '+l).join('\n');
   const seg='> [!'+word+']\n'+(body||'> ');
-  mdSplice(inp,v,ls,end,seg);}
-function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart;
-  mdSplice(inp,v,a,a,text);}
+  mdSplice(inp,ls,end,seg);}
+// Insère `text` au curseur ; `block` : sur sa propre ligne (saut ajouté si la ligne n'est pas vide).
+function mdInsertAt(inp,text,block){const [a]=selBounds(inp);
+  mdSplice(inp,a,a,(block&&a&&inp.value[a-1]!=='\n'?'\n':'')+text);}
+/* SAISIE DES LISTES (v5.44). `mdListCont` (pure) dit ce qu'Entrée fait au bout d'une ligne :
+   {next} = marqueur de la ligne suivante (numéro +1, case remise à vide, « > » des citations et
+   encadrés), {end} = l'item est vide, Entrée retire son marqueur et termine la liste. */
+const MD_LIST_RX=/^(\s*)(?:([-*+])|(\d{1,3})([.)]))\s+(\[[ xX]\]\s+)?/;
+function mdListCont(line){
+  const q=line.match(/^>\s?/);
+  if(q){const rest=line.slice(q[0].length);return rest.trim()?{next:'> '}:{end:true};}
+  const m=line.match(MD_LIST_RX);if(!m)return null;
+  if(!line.slice(m[0].length).trim())return {end:true};
+  return {next:m[1]+(m[2]||(+m[3]+1)+m[4])+' '+(m[5]?'[ ] ':'')};}
+function mdListEnter(inp){const [a,b,v]=selBounds(inp);if(a!==b)return false;
+  const ls=v.lastIndexOf('\n',a-1)+1,c=mdListCont(v.slice(ls,a));if(!c)return false;
+  if(c.end){if(v.slice(a,(v.indexOf('\n',a)+1||v.length+1)-1).trim())return false;mdSplice(inp,ls,a,'');return true;}
+  mdSplice(inp,a,a,'\n'+c.next);return true;}
+// Tab / Maj+Tab sur des lignes de liste : un niveau de sous-liste (le seul que lit mdBlocks).
+// Rien à changer -> false, et Tab garde son rôle (sortir du champ).
+function mdListIndent(inp,out){const [a,b,v]=selBounds(inp);
+  const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
+  const ls2=v.slice(ls,end).split('\n');if(!ls2.every(l=>MD_LIST_RX.test(l)))return false;
+  const seg=ls2.map(l=>out?l.replace(/^ {1,2}/,''):(/^ {2}/.test(l)?l:'  '+l)).join('\n');
+  if(seg===v.slice(ls,end))return false;
+  // Curseur seul : il suit sa ligne ; sélection : elle couvre les lignes retouchées.
+  const d=seg.split('\n')[0].length-ls2[0].length,c=Math.max(ls,a+d);
+  mdSplice(inp,ls,end,seg,a===b?c:ls,a===b?c:ls+seg.length);return true;}
+/* BARRE D'OUTILS REGROUPÉE (v5.44) : B I S, puis quatre menus — Titre, Liste, Encadré, Insérer.
+   Les menus passent par `openPickMenu` (ancré ≥ 780, feuille basse en dessous) : même dessin que
+   le menu ⋯, rien de neuf à apprendre. Chaque rangée dit la syntaxe qu'elle pose (sous-ligne). */
+function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g}</span>`;
+  return {
+    h:{aria:'Titre',o:[['h1','Grand titre','# Titre','<b class="mdt-hx">H1</b>'],['h2','Titre','## Titre','<b class="mdt-hx">H2</b>'],['h3','Sous-titre','### Sous-titre','<b class="mdt-hx">H3</b>']]},
+    list:{aria:'Liste',o:[['ul','Liste à puces','- élément · Tab : sous-liste',uiIcon('ul',18)],['ol','Liste numérotée','1. élément',uiIcon('ol',18)],
+      ['task','Liste cochable','- [ ] tâche · remise à zéro à chaque ouverture',uiIcon('task',18)],['q','Citation','> texte',uiIcon('quote',18)]]},
+    box:{aria:'Encadré',o:[['c-caution','Alerte','ce qui tue si on l’oublie',C('mdc-crit',uiIcon('warn',18))],['c-warning','Attention','là où l’on risque de se tromper',C('mdc-vig','△')],
+      ['c-note','Information','à savoir',C('mdc-info',uiIcon('info',18))],['c-tip','Confirmation','critère atteint, bon signe',C('mdc-ok',uiIcon('check',18,{sw:3}))]]},
+    ins:{aria:'Insérer',o:[['tbl','Tableau','| a | b |',uiIcon('table',18)],
+      ['att','Lien vers un document joint',n?n+' PDF · « #p12 » après l’identifiant vise une page':'joindre un PDF, puis le lier',uiIcon('doc',18),n>0],
+      ['link','Lien web','[texte](https://…) · ⌘K',uiIcon('link',18)],['img','Image','réduite et stockée hors ligne',uiIcon('img',18)],
+      ['code','Code','`texte`',uiIcon('code',18)],['hr','Séparateur','---',uiIcon('hr',18)]]}};}
+function mdToolbarHtml(){
+  const dd=(k,inner)=>`<span class="mdt-g"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
+  return `<div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
+    <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte** · ⌘B">B</button>
+    <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte* · ⌘I"><i>I</i></button>
+    <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste aux registres)"><span class="mk-s">S</span></button>
+    <span class="mdt-sep" aria-hidden="true"></span>
+    ${dd('h','<span class="mdt-w">Titre</span><b class="mdt-n" aria-hidden="true">H</b>')}
+    ${dd('list',uiIcon('ul',16)+'<span class="mdt-w">Liste</span>')}
+    ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>')}
+    <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
+  </div>`;}
+function mdMenuOpen(btn,p,tool){const M=mdMenus(p)[btn.dataset.mdmenu];
+  openPickMenu(btn.parentNode,{aria:M.aria,trigger:btn,
+    options:M.o.map(([val,name,sub,ic,chev])=>({val,name,sub,ic,chev})),
+    onPick:v=>v==='att'?mdDocMenu(btn,p,document.getElementById('p-body'),false):tool(v)});}
+// Un geste de la barre ou du clavier (même table pour les deux).
+function mdTool(k,ta,p,takeImg){
+  if(k==='b')wrapBold(ta);
+  else if(k==='i')mdWrapSel(ta,'*');
+  else if(k==='mark')mdWrapSel(ta,'==');
+  else if(k==='code')mdWrapSel(ta,'`');
+  // Encadrés : forme canonique de GitHub, marqueur seul sur sa ligne (cf. mdCalloutLines).
+  else if(k.slice(0,2)==='c-')mdCalloutLines(ta,k.slice(2).toUpperCase());
+  else if(/^h[123]$/.test(k))mdPrefixLines(ta,'#'.repeat(+k[1])+' ');
+  else if(k==='ul')mdPrefixLines(ta,'- ');
+  else if(k==='ol')mdPrefixLines(ta,'',true);
+  else if(k==='task')mdPrefixLines(ta,'- [ ] ');
+  else if(k==='q')mdPrefixLines(ta,'> ');
+  else if(k==='hr')mdInsertAt(ta,'\n---\n',true);
+  else if(k==='tbl'||k==='grid')mdTblOpen(ta);
+  else if(k==='link'){const [a,b,v]=selBounds(ta),t=v.slice(a,b)||'texte';mdSplice(ta,a,b,'['+t+'](https://)',a+t.length+3,a+t.length+11);}
+  else if(k==='img')pickFile('image',takeImg,true);}
+// Lien vers un document joint : libellé = la sélection, sinon le nom du fichier sans « .pdf ».
+const mdDocLink=(d,label)=>'['+(String(label||d.name.replace(/\.pdf$/i,'')).replace(/[[\]\n]/g,' ').trim()||'document')+'](att:'+d.id+')';
+function mdLinkDoc(ta,d){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b));mdSplice(ta,a,b,seg,a+1,a+seg.indexOf(']('));}
+/* Choisir le document à lier. `typed` : « ](att: » vient d'être tapé, on complète l'identifiant.
+   Aucun document : la rangée joint un PDF (sélecteur de fichier, dans le même geste) puis le lie. */
+function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[];
+  const opts=docs.map(d=>({val:d.id,name:d.name.replace(/\.pdf$/i,''),sub:'PDF · '+fmtBytes(d.size),ic:uiIcon('doc',18)}));
+  if(!docs.length&&supportsAttachments())opts.push({val:'',name:'Joindre un PDF…',sub:'il sera lié à l’endroit du curseur',ic:uiIcon('plus',18)});
+  openPickMenu(btn.parentNode,{aria:'Lier un document joint',trigger:typed?ta:btn,options:opts,
+    head:typed?'':`<span class="hint">Le lien ouvre le document dans la visionneuse.</span>`,
+    onPick:id=>{const d=docs.find(x=>x.id===id);
+      if(d){if(!typed)return mdLinkDoc(ta,d);const [a]=selBounds(ta);mdSplice(ta,a,a,d.id+')');return;}
+      const [a,b]=selBounds(ta),n=docs.length;
+      pickFile('pdf',upPdfTaker(p,()=>{renderProtocolEdit();const t=document.getElementById('p-body'),x=(p.docs||[])[n];
+        if(t&&x){t.setSelectionRange(a,b);mdLinkDoc(t,x);}}),true);}});}
+/* DISPOSITION PAR LARGEUR (v5.44). Téléphone : « Écrire | Aperçu » dans la carte ; 780-999 : texte et
+   aperçu côte à côte ; ≥ 1000 : l'aperçu vit dans la colonne de droite (inchangé). Partout : un
+   « Plan » des titres (aller à une section), et l'aperçu SUIT le curseur — le bloc où l'on écrit est
+   marqué (`.md-here`) ; toucher un bloc de l'aperçu ramène le curseur à sa ligne. */
+const mdPvHtml=p=>mdRender(p.body||'',{images:p.images,ln:true});
+function mdHeadHtml(){const on=state.mdPv==='p';
+  return `<div class="md-head"><span class="mdt-g md-plan-g"><button type="button" class="mini md-plan" data-mdplan aria-haspopup="listbox" aria-expanded="false">${uiIcon('list',16)}<span class="md-plan-t">Plan</span><span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>
+    <button type="button" class="mini md-grid" data-mdtool="grid" title="Modifier ce tableau en grille" hidden>${uiIcon('table',16)}<span>Modifier en grille</span></button>
+    <div class="seg md-seg" role="radiogroup" aria-label="Contenu rédigé" style="--seg-n:2;--seg-i:${on?1:0}"><span class="seg-pill" aria-hidden="true"></span>${[['w','Écrire'],['p','Aperçu']].map(([k,l],i)=>`<button type="button" class="seg-btn${on===!!i?' on':''}" data-mdpv="${k}" role="radio" aria-checked="${on===!!i}">${l}</button>`).join('')}</div></div>`;}
+// Titres du corps : {ln, n (niveau), text (sans balisage)}.
+const mdHeads=body=>mdBlocks(body).filter(b=>/^h[123]$/.test(b.t)).map(b=>({ln:b.ln,n:+b.t[1],text:mdStrip(b.text).trim()||'Sans titre'}));
+const mdCaretLine=ta=>ta.value.slice(0,ta.selectionStart||0).split('\n').length-1;
+function mdCaretSync(ta,p){if(!ta||!document.contains(ta))return;const L=mdCaretLine(ta),H=mdHeads(p.body);
+  const cur=H.filter(h=>h.ln<=L).pop(),pb=main.querySelector('[data-mdplan]');
+  if(pb){pb.hidden=!H.length;pb.querySelector('.md-plan-t').textContent=cur?'Plan · '+cur.text:'Plan';}
+  {const gb=main.querySelector('.md-grid');if(gb)gb.hidden=!mdTableAt(ta.value,ta.selectionStart||0);}
+  // Bloc courant marqué dans chaque aperçu ouvert, ramené dans la vue de SON défileur (jamais la page).
+  [document.getElementById('mdPreview'),document.querySelector('#editSide .ep-md')].forEach(pv=>{if(!pv||!pv.offsetParent)return;
+    let el=null;pv.querySelectorAll('[data-ln]').forEach(x=>{if(+x.dataset.ln<=L)el=x;});
+    pv.querySelectorAll('.md-here').forEach(x=>{if(x!==el)x.classList.remove('md-here');});
+    if(!el)return;el.classList.add('md-here');
+    const sc=pv.closest('.read-side')||pv;if(sc.scrollHeight<=sc.clientHeight)return;
+    const r=el.getBoundingClientRect(),q=sc.getBoundingClientRect();
+    if(r.top<q.top||r.bottom>q.bottom)sc.scrollTop+=r.top-q.top-24;});}
+// Hauteur, dans le champ, du début de la ligne `ln` : un double invisible aux mêmes métriques.
+function mdLineTop(ta,ln){const c=document.createElement('textarea'),cs=getComputedStyle(ta);
+  ['boxSizing','width','paddingLeft','paddingRight','paddingTop','borderLeftWidth','borderRightWidth','borderTopWidth','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','whiteSpace','overflowWrap','wordBreak','tabSize'].forEach(k=>c.style[k]=cs[k]);
+  Object.assign(c.style,{position:'absolute',visibility:'hidden',height:'0',minHeight:'0',overflow:'hidden',paddingBottom:'0',borderBottomWidth:'0',left:'-9999px',top:'0'});
+  c.setAttribute('aria-hidden','true');c.tabIndex=-1;c.value=ta.value.split('\n').slice(0,ln).join('\n')+(ln?'\n':'');
+  document.body.appendChild(c);const h=ln?c.scrollHeight-(parseFloat(cs.lineHeight)||0):0;c.remove();return Math.max(0,h);}
+function mdGoLine(ta,ln){if(state.mdPv==='p')mdPvSet('w',ta,state.pdraft);
+  const v=ta.value.split('\n'),a=v.slice(0,ln).join('\n').length+(ln?1:0);
+  ta.focus({preventScroll:true});ta.setSelectionRange(a,a);
+  ta.scrollTop=Math.max(0,mdLineTop(ta,ln)-ta.clientHeight/3);
+  const r=ta.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)ta.scrollIntoView({block:'center'});
+  mdCaretSync(ta,state.pdraft);}
+function mdPlanOpen(btn,ta,p){const L=mdCaretLine(ta),H=mdHeads(p.body),cur=H.filter(h=>h.ln<=L).pop();
+  openPickMenu(btn.parentNode,{aria:'Plan du contenu',trigger:btn,value:cur?String(cur.ln):'',
+    options:H.map(h=>({val:String(h.ln),name:h.text,sub:'ligne '+(h.ln+1),ic:`<b class="mdt-hx ${['','','md-lv2','md-lv3'][h.n]}">H${h.n}</b>`})),
+    onPick:v=>mdGoLine(ta,+v)});}
+function mdPvSet(k,ta,p){state.mdPv=k;const card=main.querySelector('.md-ed');if(!card)return;
+  card.classList.toggle('md-pv',k==='p');
+  const sg=card.querySelector('.md-seg');paintSeg(sg,'data-mdpv',k==='p'?1:0);
+  sg.querySelectorAll('[data-mdpv]').forEach(b=>b.setAttribute('aria-checked',b.dataset.mdpv===k?'true':'false'));
+  if(k==='p'){const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}mdCaretSync(ta,p);}
+  else ta.focus({preventScroll:true});}
+// Un seul écouteur, sur #main (permanent) : toucher un bloc d'un aperçu de l'éditeur ramène au texte.
+main.addEventListener('click',e=>{if(state.view!=='protocolEdit')return;
+  const b=e.target.closest&&e.target.closest('#mdPreview [data-ln],#editSide .ep-md [data-ln]');
+  if(!b||e.target.closest('a,button,summary,input'))return;
+  const ta=document.getElementById('p-body');if(ta)mdGoLine(ta,+b.dataset.ln);});
+/* TABLEAU EN GRILLE (v5.44). `mdTableAt` (pure) lit le tableau qui contient `pos` — toutes ses cellules,
+   lignes trop longues comprises (la grille élargit l'en-tête plutôt que de tronquer) ; `mdTableMd`
+   (pure) l'écrit, colonnes alignées dans le texte, « | » protégé. */
+const mdAlignOf=c=>{const L=/^:/.test(c),R=/:$/.test(c);return L&&R?'c':R?'r':L?'l':'';};
+const mdFit=(r,n)=>{const o=r.slice(0,n);while(o.length<n)o.push('');return o;};
+function mdTableAt(v,pos){const L=String(v).split('\n');let o=0,i=0;
+  for(;i<L.length;i++){if(pos<=o+L[i].length)break;o+=L[i].length+1;}
+  if(i>=L.length||!MD_TROW.test(L[i]))return null;
+  let a=i,b=i;while(a>0&&MD_TROW.test(L[a-1]))a--;while(b+1<L.length&&MD_TROW.test(L[b+1]))b++;
+  if(b<a+1||!MD_TSEP.test(L[a+1])||b-a-1>MD_MAX_TROWS)return null;
+  const head=mdCells(L[a]),rows=L.slice(a+2,b+1).map(mdCells),n=Math.max(head.length,...rows.map(r=>r.length));
+  const from=L.slice(0,a).join('\n').length+(a?1:0);
+  return {from,to:from+L.slice(a,b+1).join('\n').length,head:mdFit(head,n),align:mdFit(mdCells(L[a+1]).map(mdAlignOf),n),rows:rows.map(r=>mdFit(r,n))};}
+function mdTableMd(t){const n=Math.max(1,t.head.length),cell=c=>String(c==null?'':c).replace(/\s+/g,' ').trim().replace(/\\?\|/g,'\\|');
+  const H=mdFit(t.head,n).map(cell),R=t.rows.map(r=>mdFit(r,n).map(cell)),al=mdFit(t.align||[],n);
+  const w=H.map((h,i)=>Math.max(3,h.length,...R.map(r=>r[i].length)));
+  const line=r=>'| '+r.map((x,i)=>x+' '.repeat(w[i]-x.length)).join(' | ')+' |';
+  const sep='|'+w.map((x,i)=>(/[lc]/.test(al[i])?':':'-')+'-'.repeat(x)+(/[rc]/.test(al[i])?':':'-')).join('|')+'|';
+  return [line(H),sep].concat(R.map(line)).join('\n');}
+/* La fenêtre des outils : un état (`_mdTw`), un écouteur par geste sur la fenêtre, posé une fois. */
+let _mdTw=null;
+const mdToolEl=()=>document.getElementById('mdToolModal');
+function mdToolOpen(title,body,foot){document.getElementById('mdToolTitle').textContent=title;
+  document.getElementById('mdToolBody').innerHTML=body;document.getElementById('mdToolFoot').innerHTML=foot;mdToolEl().classList.add('on');}
+// Fermer pour écrire dans le champ : le focus revient au texte, pas au bouton d'origine (modalHandoffClose).
+function mdToolDone(seg){const w=_mdTw;_mdTw=null;modalHandoffClose(mdToolEl());if(w&&seg!=null&&document.contains(w.ta))mdSplice(w.ta,w.from,w.to,seg);}
+function mdTblOpen(ta){const [a,b]=selBounds(ta),t=mdTableAt(ta.value,a);
+  const blank=!t&&a&&ta.value[a-1]!=='\n'?'\n\n':(!t&&a&&ta.value[a-2]!=='\n'?'\n':'');
+  _mdTw={kind:'tbl',ta,from:t?t.from:a,to:t?t.to:b,pre:t?'':blank,edit:!!t,fr:0,fc:0,
+    t:t?{head:t.head,align:t.align,rows:t.rows.length?t.rows:[t.head.map(()=>'')]}:{head:['Colonne','Colonne'],align:['',''],rows:[['','']]}};
+  mdToolOpen('Tableau',mdTblHtml(),`<button type="button" class="btn" data-mdtw="x">Annuler</button><button type="button" class="btn primary" data-mdtw="ok" data-dlgdef>${t?'Mettre à jour le tableau':'Insérer le tableau'}</button>`);}
+function mdTblHtml(){const {t,fr,fc}=_mdTw,n=t.head.length,al=t.align[fc]||'',AL=['','c','r'],ai=Math.max(0,AL.indexOf(al==='l'?'':al));
+  const cellIn=(v,r,c)=>`<input type="text" class="mdg-in${t.align[c]==='c'?' ta-c':t.align[c]==='r'?' ta-r':''}${r<0?' mdg-h':''}" data-r="${r}" data-c="${c}" value="${esc(v)}"${r===0&&c===0?' data-dlgfocus':''} aria-label="${r<0?'En-tête '+(c+1):'Ligne '+(r+1)+', '+esc(t.head[c]||'colonne '+(c+1))}">`;
+  return `<p class="mdg-dim">${n} colonne${n>1?'s':''} · ${t.rows.length} ligne${t.rows.length>1?'s':''}</p>
+    <div class="mdg-bar">
+      <span class="mdg-grp"><button type="button" class="btn sm" data-mdtw="r+">＋ Ligne</button><button type="button" class="btn sm" data-mdtw="c+">＋ Colonne</button>
+      ${t.rows.length>1?'<button type="button" class="btn sm" data-mdtw="r-">− Ligne</button>':''}${n>1?'<button type="button" class="btn sm" data-mdtw="c-">− Colonne</button>':''}</span>
+      <span class="mdg-grp"><span class="mdg-al-l">Colonne « ${esc(t.head[fc]||String(fc+1))} »</span>
+      <div class="seg mdg-al" role="radiogroup" aria-label="Alignement de la colonne" style="--seg-n:3;--seg-i:${ai}"><span class="seg-pill" aria-hidden="true"></span>${['Gauche','Centre','Droite'].map((l,i)=>`<button type="button" class="seg-btn${i===ai?' on':''}" role="radio" aria-checked="${i===ai}" data-mdal="${AL[i]}">${l}</button>`).join('')}</div>
+</span>
+      ${_mdTw.edit?'':'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>'}
+    </div>
+    <div class="mdg-scroll"><div class="mdg" style="--mdg-n:${n}">${t.head.map((h,c)=>cellIn(h,-1,c)).join('')}${t.rows.map((r,ri)=>r.map((v,c)=>cellIn(v,ri,c)).join('')).join('')}</div></div>
+    <p class="hint">Tab passe à la cellule suivante ; sur la dernière, il ajoute une ligne. Un « | » tapé dans une cellule est protégé tout seul.</p>
+    <details class="mdg-src"><summary>Texte produit</summary><pre class="mdg-pre">${esc(mdTableMd(t))}</pre></details>`;}
+function mdTblFocus(r,c){const e=document.querySelector(`#mdToolBody .mdg-in[data-r="${r}"][data-c="${c}"]`);if(e){e.focus();e.select();}}
+function mdTblRepaint(r,c){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();mdTblFocus(r,c);}
+// Un geste de structure : la grille se repeint, le focus suit la cellule visée.
+function mdTblAct(k){const w=_mdTw,t=w.t,n=t.head.length,r=w.fr,c=w.fc;
+  if(k==='r+'){t.rows.splice(r+1,0,Array(n).fill(''));mdTblRepaint(r+1,c);}
+  else if(k==='r-'&&t.rows.length>1){const i=r<0?t.rows.length-1:r;t.rows.splice(i,1);mdTblRepaint(Math.min(i,t.rows.length-1),c);}   // depuis l'en-tête : la dernière
+  else if(k==='c+'&&n<MD_MAX_TCOLS){[t.head,t.align].concat(t.rows).forEach(x=>x.splice(c+1,0,''));mdTblRepaint(r,c+1);}
+  else if(k==='c-'&&n>1){[t.head,t.align].concat(t.rows).forEach(x=>x.splice(c,1));mdTblRepaint(r,Math.min(c,n-2));}
+  else if(k==='tpl'){const H=['Médicament','Dose','Voie','Remarque'];while(t.head.length<4)[t.head,t.align].concat(t.rows).forEach(x=>x.push(''));H.forEach((h,i)=>{t.head[i]=h;});mdTblRepaint(-1,0);}}
+/* COLLER DEPUIS WORD OU UN PDF (v5.44). Deux convertisseurs PURS vers le Markdown de l'app :
+   `mdFromHtml` (presse-papiers riche — Word, page web : DOMParser, document inerte, rien ne se charge
+   ni ne s'exécute) et `mdFromPlain` (texte d'un PDF : puces littérales, tabulations, lignes coupées).
+   Ils comptent ce qu'ils ont reconnu (`N`) ; la couleur n'est jamais reprise (elle a un sens ici). */
+const MD_PASTE_BUL=/^[\s ]*[•·▪◦‣●○■□–—§][\s ]+/;
+function mdFromHtml(html){const doc=new DOMParser().parseFromString(String(html||''),'text/html'),N={h:0,li:0,tbl:0,b:0,col:0,join:0};
+  doc.querySelectorAll('script,style,template,head,img,svg,video,audio,iframe,object,embed').forEach(x=>x.remove());
+  const st=el=>el.getAttribute('style')||'';
+  const bold=el=>/^(B|STRONG)$/.test(el.tagName)||/font-weight\s*:\s*(bold|[6-9]00)/i.test(st(el));
+  const ital=el=>/^(I|EM)$/.test(el.tagName)||/font-style\s*:\s*italic/i.test(st(el));
+  const colored=el=>{const m=/(?:^|;)\s*color\s*:\s*([^;]+)/i.exec(st(el)),c=((m&&m[1])||el.getAttribute('color')||'').trim().toLowerCase();
+    return !!c&&!/^(black|#000(000)?|inherit|initial|windowtext|auto|currentcolor|rgb\(0,\s*0,\s*0\))$/.test(c);};
+  const inl=n=>{let o='';n.childNodes.forEach(c=>{
+    if(c.nodeType===3){o+=c.nodeValue.replace(/[\s ]+/g,' ');return;}
+    if(c.nodeType!==1||/^(UL|OL|TABLE)$/.test(c.tagName))return;
+    if(c.tagName==='BR'){o+='\n';return;}
+    let x=inl(c);if(colored(c)&&x.trim())N.col++;
+    const core=x.trim(),pre=x.match(/^\s*/)[0],post=x.match(/\s*$/)[0];
+    if(core&&c.tagName==='A'&&/^https:\/\//i.test(c.getAttribute('href')||''))x=pre+'['+core.replace(/[[\]]/g,'')+']('+c.getAttribute('href').replace(/[\s()]/g,'')+')'+post;
+    else if(core&&bold(c)&&!/^\*\*[\s\S]*\*\*$/.test(core)){x=pre+'**'+core+'**'+post;N.b++;}
+    else if(core&&ital(c)&&!/^\*[\s\S]*\*$/.test(core))x=pre+'*'+core+'*'+post;
+    o+=x;});return o;};
+  const out=[],BLK='p,div,ul,ol,table,h1,h2,h3,h4,h5,h6,blockquote,pre,hr,li',
+    isBlk=c=>c.nodeType===1&&/^(P|DIV|H[1-6]|UL|OL|TABLE|HR|PRE|BLOCKQUOTE|LI|SECTION|ARTICLE|HEADER|FOOTER|MAIN|ASIDE|NAV|FIGURE|DL|DT|DD)$/.test(c.tagName);
+  // Un paragraphe : puce de Word, numéro, intertitre en gras, ou texte.
+  const para=c=>{let t=inl(c).replace(/[ \t]*\n[ \t]*/g,'\n').trim();if(!t)return;
+    // Word écrit ses puces comme des paragraphes (« · » en police Symbol, « o » au 2ᵉ niveau, style mso-list).
+    const ms=/mso-list:[^;]*?level(\d)/i.exec(st(c)),lv=ms&&+ms[1]>1?'  ':'';
+    if(MD_PASTE_BUL.test(t)||(ms&&!/^\d{1,3}[.)]\s/.test(t))){out.push(lv+'- '+t.replace(MD_PASTE_BUL,'').replace(ms?/^o[\s\u00a0]+/:/$^/,''));N.li++;return;}
+    if(/^\d{1,3}[.)]\s/.test(t)){out.push(lv+t);return;}
+    // Paragraphe court tout en gras, sans ponctuation finale : un intertitre de Word.
+    if(/^\*\*[^*\n]{1,80}\*\*$/.test(t)&&!/[.;,]\*\*$/.test(t)){out.push('','## '+t.slice(2,-2),'');N.h++;N.b--;return;}
+    out.push(t,'');};
+  // Le texte et les éléments EN LIGNE consécutifs forment un paragraphe (fragment copié d'une page).
+  const blk=(n,depth)=>{let run=null;const flush=()=>{if(run){para(run);run=null;}};
+   n.childNodes.forEach(c=>{
+    if(!isBlk(c)){if(c.nodeType===3||c.nodeType===1){(run=run||doc.createElement('p')).appendChild(c.cloneNode(true));}return;}
+    flush();const T=c.tagName;
+    if(/^H[1-6]$/.test(T)){const t=inl(c).replace(/\*\*/g,'').trim();if(t){out.push('','#'.repeat(Math.min(3,+T[1]))+' '+t,'');N.h++;}return;}
+    if(T==='UL'||T==='OL'){let k=0;[...c.children].forEach(li=>{if(li.tagName!=='LI')return;
+        out.push('  '.repeat(Math.min(depth,1))+(T==='OL'?(++k)+'. ':'- ')+inl(li).replace(/\s*\n\s*/g,' ').trim());N.li++;
+        [...li.children].filter(x=>/^(UL|OL)$/.test(x.tagName)).forEach(x=>blk({childNodes:[x]},depth+1));});
+      if(!depth)out.push('');return;}
+    if(T==='TABLE'){const rows=[...c.querySelectorAll('tr')].map(tr=>[...tr.children].filter(x=>/^T[DH]$/.test(x.tagName)).map(x=>inl(x).replace(/\s+/g,' ').trim()));
+      if(rows.length&&rows[0].length){N.tbl++;const k=Math.min(MD_MAX_TCOLS,Math.max(...rows.map(r=>r.length)));
+        out.push('',mdTableMd({head:mdFit(rows[0],k),align:[],rows:rows.slice(1).map(r=>mdFit(r,k))}),'');}return;}
+    if(T==='HR'){out.push('','---','');return;}
+    if(T==='PRE'){out.push('```',...c.textContent.split('\n'),'```','');return;}
+    if(T==='BLOCKQUOTE'){inl(c).split('\n').forEach(l=>{if(l.trim())out.push('> '+l.trim());});out.push('');return;}
+    if(c.querySelector(BLK)){blk(c,depth);return;}
+    para(c);});
+   flush();};
+  blk(doc.body,0);
+  return {md:out.join('\n').replace(/\n{3,}/g,'\n\n').trim(),N};}
+function mdFromPlain(txt){const N={h:0,li:0,tbl:0,b:0,col:0,join:0},L=String(txt||'').replace(/\r\n?/g,'\n').split('\n').map(l=>MD_PASTE_BUL.test(l)?(N.li++,'- '+l.replace(MD_PASTE_BUL,'')):l);
+  const out=[];for(let i=0;i<L.length;){const n=L[i].split('\t').length;let j=i;
+    if(n>1)while(j<L.length&&L[j].split('\t').length===n)j++;
+    if(j-i>=2){const rows=L.slice(i,j).map(l=>l.split('\t'));N.tbl++;out.push('',mdTableMd({head:rows[0],align:[],rows:rows.slice(1)}),'');i=j;continue;}
+    out.push(L[i]);i++;}
+  // Un PDF coupe ses lignes au milieu des phrases : on recolle quand la suite commence en minuscule.
+  const STRUCT=/^(- |\d{1,3}[.)] |#|>|\|)/,res=[];
+  out.forEach(l=>{const p=res[res.length-1],x=l.trim();
+    if(p&&p.trim()&&x&&!/[.:;!?)\]]\s*$/.test(p)&&!/^\|/.test(p.trim())&&/^[a-zà-ÿ(]/.test(x)&&!STRUCT.test(x)){res[res.length-1]=p.replace(/\s+$/,'')+' '+x;N.join++;}
+    else res.push(l);});
+  return {md:res.join('\n').replace(/\n{3,}/g,'\n\n').trim(),N};}
+// Rien de reconnu (le texte converti ne diffère que par ses blancs) : null, le collage reste natif.
+function mdFromPaste(html,txt){let r=html&&/<(p|div|h[1-6]|li|table|b|strong|span|br)\b/i.test(html)?mdFromHtml(html):null;
+  if(!r||!r.md)r=mdFromPlain(txt);
+  const norm=x=>String(x||'').replace(/\s+/g,' ').trim();
+  return r.md&&norm(r.md)!==norm(txt)?r:null;}
+function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '+(n>1?p:s);
+  const ok=[N.h&&pl(N.h,'titre','titres'),N.li&&pl(N.li,'puce','puces')+' → liste',N.tbl&&pl(N.tbl,'tableau','tableaux'),N.b>0&&'gras gardé',N.join&&pl(N.join,'ligne recollée','lignes recollées')].filter(Boolean);
+  _mdTw={kind:'paste',ta,from:a,to:b,md:r.md,txt:String(txt||'')};
+  mdToolOpen('Texte collé',`<p class="hint">La mise en forme a été reconnue. Rien n'est inséré avant votre choix.</p>
+    <div class="mdw-chips">${ok.map(x=>`<span class="mdw-chip">✓ ${esc(x)}</span>`).join('')}${N.col?`<span class="mdw-chip warn">△ couleur retirée — à poser en encadré</span>`:''}</div>
+    <div class="mdw-cmp"><div><p class="sub2">Ce qui a été collé</p><pre class="mdw-pre">${esc(_mdTw.txt)}</pre></div>
+    <div><p class="sub2">Ce qui sera inséré</p><pre class="mdw-pre mdw-md">${esc(r.md)}</pre></div></div>`,
+    `<button type="button" class="btn" data-mdtw="raw">Coller le texte brut</button><button type="button" class="btn primary" data-mdtw="ok" data-dlgdef data-dlgfocus>Insérer la version mise en forme</button>`);}
+{const m=mdToolEl();
+ if(m){bindModalDismiss(m,()=>{_mdTw=null;m.classList.remove('on');});
+  m.addEventListener('click',e=>{const b=e.target.closest('button');const w=_mdTw;if(!b||!w)return;
+    if(b.dataset.mdal!=null&&w.kind==='tbl'){w.t.align[w.fc]=b.dataset.mdal;mdTblRepaint(w.fr,w.fc);return;}
+    const k=b.dataset.mdtw;if(!k)return;
+    if(k==='x')return mdToolDone(null);
+    if(k==='raw')return mdToolDone(w.txt);
+    if(k==='ok')return mdToolDone(w.kind==='tbl'?w.pre+mdTableMd(w.t)+(w.edit?'':'\n'):w.md);
+    if(w.kind==='tbl')mdTblAct(k);});
+  m.addEventListener('focusin',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
+    const r=+c.dataset.r,k=+c.dataset.c;if(r===w.fr&&k===w.fc)return;w.fr=r;w.fc=k;
+    // Seuls les rappels de la colonne visée bougent : la grille garde le focus et la saisie.
+    const AL=['','c','r'],ai=Math.max(0,AL.indexOf(w.t.align[k]==='l'?'':w.t.align[k]||'')),sg=m.querySelector('.mdg-al');
+    m.querySelector('.mdg-al-l').textContent='Colonne « '+(w.t.head[k]||k+1)+' »';
+    paintSeg(sg,'data-mdal',ai);sg.querySelectorAll('[data-mdal]').forEach((x,i)=>x.setAttribute('aria-checked',String(i===ai)));});
+  m.addEventListener('input',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
+    const r=+c.dataset.r;(r<0?w.t.head:w.t.rows[r])[+c.dataset.c]=c.value;
+    const pr=m.querySelector('.mdg-pre');if(pr)pr.textContent=mdTableMd(w.t);});
+  // Tab sur la dernière cellule : une ligne de plus (avant le piège Tab de la fenêtre).
+  m.addEventListener('keydown',e=>{const c=e.target.closest&&e.target.closest('.mdg-in'),w=_mdTw;
+    if(!c||!w||e.key!=='Tab'||e.shiftKey||+c.dataset.r!==w.t.rows.length-1||+c.dataset.c!==w.t.head.length-1)return;
+    e.preventDefault();e.stopPropagation();w.fr=w.t.rows.length-1;w.fc=0;mdTblAct('r+');});}}
+/* RELECTURE DE L'ÉCRITURE (v5.44). `mdLint` (pure) relit la FORME : liens vers un document absent,
+   lignes de tableau incomplètes, titres et encadrés mal posés, et l'ÉCRITURE des doses connue pour
+   tromper la lecture — zéro manquant (« .5 mg »), zéro superflu (« 5,0 mg »), « ug », « U », « cc ».
+   Jamais le contenu clinique : aucune valeur n'est jugée ni calculée (§ 2, statut non-DM). Un point
+   corrigeable porte son remplacement exact (`fix`) et le texte qu'il remplace (`was`). */
+const MD_UNIT='(?:mg|µg|mcg|ng|g|kg|mL|ml|L|UI|mmol|µmol|mEq)';
+const MD_LINT_DOSE=[
+  [new RegExp('(^|[^\\d.,])([.,]\\d+)(?=\\s?'+MD_UNIT+'(?![A-Za-zµ]))','g'),m=>'0,'+m[2].slice(1),'Zéro manquant devant la virgule','« .5 » se lit « 5 »'],
+  [new RegExp('(^|[^\\d.,])(\\d+[.,]\\d*?0+)(?=\\s?'+MD_UNIT+'(?![A-Za-zµ]))','g'),m=>m[2].replace(/[.,]?0+$/,''),'Zéro superflu après la virgule','« 5,0 » peut se lire « 50 »'],
+  [/(\d\s?)(ug)(?![A-Za-zµ])/g,()=>'µg','« ug » à écrire « µg »','se confond avec « mg »'],
+  [/(\d\s?)(U)(?![A-Za-zÀ-ÿ0-9µ])/g,()=>'unités','« U » à écrire en toutes lettres','« U » se lit « 0 » ou « 4 »'],
+  [/(\d\s?)(cc)(?![A-Za-z])/g,()=>'mL','« cc » à écrire « mL »','« cc » se lit « 00 »']];
+function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=String(body||'').split('\n');
+  let off=0,code=false,lastH=0,cols=0;
+  L.forEach((l,ln)=>{const o=off;off+=l.length+1;
+    if(/^```/.test(l)){code=!code;return;}if(code)return;
+    const t=l.replace(/`[^`\n]*`/g,m=>' '.repeat(m.length));   // le code reste littéral
+    const add=(k,cible,sub,i,was,fix)=>out.push({k,ln,cible,sub,from:o+i,to:o+i+was.length,was,fix});
+    for(const m of t.matchAll(/\[([^\]\n]{1,200})\]\(att:([A-Za-z0-9_-]{1,64})(?:#p\d{1,4})?\)/g))
+      if(!ids.has(m[2]))add('link','Document lié introuvable','« '+m[1]+' » ne vise aucun document joint',m.index,m[0]);
+    if(MD_TROW.test(t)&&!MD_TSEP.test(t)){
+      if(L[ln+1]!=null&&MD_TSEP.test(L[ln+1]))cols=mdCells(t).length;
+      else if(cols){const n=mdCells(t).length;if(n!==cols)add('tbl','Ligne de tableau '+(n<cols?'incomplète':'trop longue'),n+' cellule'+(n>1?'s':'')+' pour '+cols+' colonnes',0,l);}}
+    else if(!MD_TSEP.test(t))cols=0;
+    const h=t.match(/^(#{1,3})\s/);
+    if(h){const n=h[1].length;if(n===3&&lastH<2)add('struct','Sous-titre sans titre au-dessus','« ### » sous un « # » ou en tête : posez d’abord un « ## »',0,h[1]);lastH=n;}
+    if(/^>\s?\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*$/.test(t)&&!/^>\s?\S/.test(L[ln+1]||''))add('struct','Encadré vide','le marqueur est seul, sans texte dessous',0,l);
+    MD_LINT_DOSE.forEach(([re,fx,cible,sub])=>{for(const m of t.matchAll(re)){const i=m.index+m[1].length;add('dose',cible,sub,i,m[2],fx(m));}});});
+  return out.sort((a,b)=>a.from-b.from);}
+// La liste sous le champ (rien quand il n'y a rien à dire : un panneau vide est du bruit).
+function mdLintHtml(list){if(!list.length)return '';
+  return `<details class="md-lint" id="mdLint"${state.mdLintShut?'':' open'}><summary><span class="md-lint-g" aria-hidden="true">△</span>${list.length} point${list.length>1?'s':''} d’écriture à relire</summary>
+    ${list.map((x,i)=>`<div class="md-lint-r"><span class="md-lint-g" aria-hidden="true">△</span><span class="md-lint-t"><b>${x.k==='dose'?`<span class="md-lint-c">${esc(x.was)}</span> → <span class="md-lint-c">${esc(x.fix)}</span>`:esc(x.cible)}</b><span>ligne ${x.ln+1} · ${esc(x.k==='dose'?x.sub:x.sub)}</span></span>
+      <button type="button" class="btn sm" data-mdlint="${i}">${x.fix!=null?'Corriger':x.k==='tbl'?'En grille':'Aller'}</button></div>`).join('')}
+    <p class="hint">La relecture vérifie la façon d’écrire, jamais le contenu clinique. Chaque correction se fait une par une, sous vos yeux.</p></details>`;}
+function mdLintPaint(p){const box=main.querySelector('.md-lint-box');if(!box)return;
+  const L=mdLint(p.body,p.docs);box._lint=L;box.innerHTML=mdLintHtml(L);
+  const d=box.querySelector('details');if(d)d.addEventListener('toggle',()=>{state.mdLintShut=!d.open;});}
+function mdLintAct(ta,x){if(!x)return;
+  if(x.fix!=null){if(ta.value.slice(x.from,x.to)===x.was)mdSplice(ta,x.from,x.to,x.fix);return;}
+  mdGoLine(ta,x.ln);ta.setSelectionRange(x.from,x.to);if(x.k==='tbl')mdTblOpen(ta);}
+/* COLORATION (v5.44) : un calque SOUS le champ redessine son texte — marqueurs en gris, titres en
+   700 (même chasse en Plex Mono), encadrés à LEUR registre, points de relecture soulignés en ondulé.
+   Le champ garde frappe, curseur, sélection et annulation natives : son texte devient transparent.
+   Pointeur fin sans écran tactile seulement (le champ d'iOS décale son texte de quelques px). */
+const MD_HL=[[1,'hl-m'],[2,'hl-h'],[4,'hl-crit'],[8,'hl-vig'],[16,'hl-info'],[32,'hl-ok'],[64,'hl-lint']],MD_HL_K={crit:4,vig:8,info:16,ok:32};
+function mdHlHtml(body,lint){const v=String(body||''),C=new Uint8Array(v.length);
+  let o=0,code=false,qk=0;
+  v.split('\n').forEach(l=>{const set=(i,n,b)=>{for(let k=o+i,e=Math.min(o+i+n,C.length);k<e;k++)C[k]|=b;};let m;
+    if(/^```/.test(l)){code=!code;set(0,l.length,1);}
+    else if(!code){
+      if((m=l.match(/^>\s?/))){const c=mdCallout(l.slice(m[0].length));if(c.kind)qk=MD_HL_K[c.kind]||0;
+        set(0,m[0].length,qk||1);if(c.kind){const mk=l.slice(m[0].length).match(/^\s*\[![^\]]*\]/);if(mk)set(m[0].length,mk[0].length,qk);}}
+      else{qk=0;
+        if((m=l.match(/^(#{1,3})\s+/))){set(0,m[1].length,1);set(m[0].length,l.length,2);}
+        else if(MD_TSEP.test(l)||/^(---+|\*\*\*+)\s*$/.test(l))set(0,l.length,1);
+        else if((m=l.match(MD_LIST_RX)))set(0,m[0].length,1);
+        if(MD_TROW.test(l))for(let i=0;i<l.length;i++)if(l[i]==='|'&&l[i-1]!=='\\')set(i,1,1);}
+      for(const x of l.matchAll(/\*\*|==|`|!?\[(?=[^\]\n]*\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);}
+    else set(0,l.length,1);
+    o+=l.length+1;});
+  (lint||[]).forEach(x=>{for(let k=x.from;k<x.to&&k<C.length;k++)C[k]|=64;});
+  let h='',i=0;
+  while(i<v.length){let j=i;while(j<v.length&&C[j]===C[i])j++;const t=esc(v.slice(i,j));
+    h+=C[i]?'<span class="'+MD_HL.filter(([b])=>C[i]&b).map(x=>x[1]).join(' ')+'">'+t+'</span>':t;i=j;}
+  return h+(v.endsWith('\n')?' ':'');}   // une ligne finale VIDE a aussi sa hauteur dans le champ
+function mdHlSync(ta,docs){const w=ta.parentNode;if(!w||!w.classList.contains('on'))return;const hl=w.firstElementChild,cs=getComputedStyle(ta);
+  hl.innerHTML=mdHlHtml(ta.value,mdLint(ta.value,docs));
+  // La barre de défilement du champ rétrécit sa ligne : le calque réserve la même largeur.
+  hl.style.paddingRight=(parseFloat(cs.paddingRight)+ta.offsetWidth-ta.clientWidth-parseFloat(cs.borderLeftWidth)-parseFloat(cs.borderRightWidth))+'px';
+  hl.scrollTop=ta.scrollTop;}
 /* Images du contenu rédigé (v4.4.3) : chaque image insérée a SA taille d'affichage, réglée ici
    (jamais tapée dans le texte — le champ resterait effaçable à la main, et un ancien client
    perdrait l'image ; cf. la doctrine « marqueur d'étape hors du champ », v4.3.0).
@@ -16268,12 +16751,12 @@ function renderProtocolEdit(){
   edTouch(true);   // K5 : idem côté protocole (un seul point d'accroche par éditeur)
   const p=state.pdraft;if(!p){state.view='library';return render();}
   const isNew=!protocols.some(x=>x.id===p.id);
-  const wideEdit=mqReadWide.matches;
+  const wideEdit=mqReadWide.matches||mqSeg.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
     références) : documents et « Voir aussi » disparaissent vides et se recréent par la porte. */}
-    ${(p.docs||[]).length?attFieldsetHtml(p):''}
+    ${(p.docs||[]).length?attFieldsetHtml(p,true):''}
     ${(p.links||[]).length?relFieldsetHtml(p):''}
     ${''/* K1 ÉTENDU AUX RÉFÉRENCES (maquettes) : chaque section est une CARTE, comme dans
     l'éditeur d'aide — l'auteur d'une référence et l'auteur d'une aide travaillent sur le même
@@ -16282,31 +16765,16 @@ function renderProtocolEdit(){
     une case qu'on peut cocher en lecture, mais qui NE S'ENREGISTRE PAS — sortir de la page
     l'efface, et c'est ce qui rend le geste sans conséquence. Une référence n'est pas une session ;
     ce qui garde une trace, ce sont les fiches. */}
-    <fieldset class="field ed-card"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu en dessous</span></label>
-      <div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
-        <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte**">B</button>
-        <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte*"><i>I</i></button>
-        <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste réservée aux registres)"><span class="mk-s">S</span></button>
-        <button type="button" class="mini" data-mdtool="h1" aria-label="Grand titre" title="Grand titre — # Titre">H1</button>
-        <button type="button" class="mini" data-mdtool="h2" aria-label="Titre" title="Titre — ## Titre">H2</button>
-        <button type="button" class="mini" data-mdtool="h3" aria-label="Sous-titre" title="Sous-titre — ### Sous-titre">H3</button>
-        <button type="button" class="mini" data-mdtool="ul" aria-label="Liste à puces" title="Liste à puces — - élément (sous-liste : 2 espaces devant)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></button>
-        <button type="button" class="mini" data-mdtool="ol" aria-label="Liste numérotée" title="Liste numérotée — 1. élément"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10"/><text x="2" y="8.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">1</text><text x="2" y="14.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">2</text><text x="2" y="20.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">3</text></svg></button>
-        <button type="button" class="mini" data-mdtool="task" aria-label="Liste cochable" title="Liste cochable — - [ ] tâche (- [x] déjà cochée) · coches remises à zéro à chaque ouverture"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.3l2.6 2.6 4.9-5.4"/></svg></button>
-        <button type="button" class="mini" data-mdtool="q" aria-label="Citation" title="Citation — > texte"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M10.2 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6H7.7c.2-1.7 1.2-2.9 3-3.5zM19.5 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6h-2.9c.2-1.7 1.2-2.9 3-3.5z"/></svg></button>
-        <button type="button" class="mini" data-mdtool="code" aria-label="Code" title="Code — \`texte\` (bloc : \`\`\` sur une ligne)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/></svg></button>
-        <button type="button" class="mini" data-mdtool="link" aria-label="Lien" title="Lien — [texte](https://…)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/></svg></button>
-        <button type="button" class="mini mdc mdc-crit" data-mdtool="c-caution" aria-label="Encadré Alerte" title="Encadré ALERTE (rouge) — > [!CAUTION] texte · ce qui tue si on l'oublie">${uiIcon('warn',15)}</button>
-        <button type="button" class="mini mdc mdc-vig" data-mdtool="c-warning" aria-label="Encadré Attention" title="Encadré ATTENTION (ambre) — > [!WARNING] texte · là où l'on risque de se tromper">△</button>
-        <button type="button" class="mini mdc mdc-info" data-mdtool="c-note" aria-label="Encadré Information" title="Encadré INFORMATION (bleu) — > [!NOTE] texte">${uiIcon('info',15)}</button>
-        <button type="button" class="mini mdc mdc-ok" data-mdtool="c-tip" aria-label="Encadré Confirmation" title="Encadré CONFIRMATION (vert) — > [!TIP] texte">${uiIcon('check',15,{sw:3})}</button>
-        <button type="button" class="mini" data-mdtool="tbl" aria-label="Tableau" title="Tableau — | a | b | puis |---|---| (alignement : |:-:| centré, |---:| à droite)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/></svg></button>
-        <button type="button" class="mini" data-mdtool="img" aria-label="Importer une image" title="Importer une NOUVELLE image (réduite et stockée hors ligne) — une image déjà importée se réinsère depuis la liste « Images insérées » sous le texte">${uiIcon('img',16)}</button>
-      </div>
-      <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details>
+    <fieldset class="field ed-card md-ed${state.mdPv==='p'?' md-pv':''}"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu à côté</span></label>
+      ${mdHeadHtml()}
+      ${mdToolbarHtml()}
+      <div class="md-split"><div class="md-wpane">
+      <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
+      <div class="md-lint-box"></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <div class="md-ppane"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div></div>
       ${mdImagesHtml(p)}
-      <p class="md-prev-h">Aperçu</p><div class="md-preview" id="mdPreview">${mdRender(p.body,{images:p.images})}</div></fieldset>
+      </fieldset>
     ${(p.sources||[]).length?listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[],false,{shell:'ed-card'}):''}
     ${''/* Le volet vit en PIED sous 1000 px (une seule colonne), et dans la colonne de droite
     au-dessus de l'aperçu au-delà — même arbitrage que l'éditeur d'aide : ce qu'on CONSULTE (liste
@@ -16344,31 +16812,41 @@ function renderProtocolEdit(){
      l'auteur doit voir ce que son lecteur verra, replis compris, et sur le MÊME état mémorisé —
      c'est le même protocole. `mdFoldApply` est idempotent et se garde sur le DOM, donc le rejouer
      à chaque pause de frappe ne coûte que le test. */
-  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdRender(p.body,{images:p.images});mdFoldApply(pv,p.id);}paintMiUse();},300);};
+  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}paintMiUse();mdCaretSync(ta,p);mdLintPaint(p);revProtoRefresh(p);},300);};
   ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
   {const pv=document.getElementById('mdPreview');if(pv)mdFoldApply(pv,p.id);}   // rendu INITIAL de l'aperçu
   paintMiUse();
   const takeImg=pImgTaker(p,ta);
-  main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
-    if(k==='b')wrapBold(ta);
-    else if(k==='i')mdWrapSel(ta,'*');
-    else if(k==='mark')mdWrapSel(ta,'==');
-    // Encadrés typés : forme CANONIQUE de GitHub — marqueur SEUL sur sa ligne, contenu en dessous.
-    // (GitHub n'active l'encadré qu'à cette condition ; l'app, elle, accepte aussi « > [!X] texte »
-    //  sur une seule ligne — mais le bouton produit la forme la plus portable, mots-clés en
-    //  MAJUSCULES, seul dénominateur commun des implémentations tierces.)
-    else if(k.slice(0,2)==='c-')mdCalloutLines(ta,k.slice(2).toUpperCase());
-    else if(k==='h1')mdPrefixLines(ta,'# ');
-    else if(k==='h2')mdPrefixLines(ta,'## ');
-    else if(k==='h3')mdPrefixLines(ta,'### ');
-    else if(k==='ul')mdPrefixLines(ta,'- ');
-    else if(k==='ol')mdPrefixLines(ta,'',true);
-    else if(k==='task')mdPrefixLines(ta,'- [ ] ');
-    else if(k==='q')mdPrefixLines(ta,'> ');
-    else if(k==='tbl')mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'\n| Colonne | Colonne |\n|---|---|\n| … | … |\n');
-    else if(k==='code')mdWrapSel(ta,'`');
-    else if(k==='link'){const v=ta.value,a=ta.selectionStart||0,e2=ta.selectionEnd||0;const sel=v.slice(a,e2)||'texte';ta.value=v.slice(0,a)+'['+sel+'](https://)'+v.slice(e2);ta.focus();const c=a+sel.length+3;ta.setSelectionRange(c,c+8);ta.dispatchEvent(new Event('input',{bubbles:false}));}
-    else if(k==='img')pickFile('image',takeImg,true);});
+  const tool=k=>mdTool(k,ta,p,takeImg);
+  main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>tool(b.dataset.mdtool));
+  main.querySelectorAll('[data-mdmenu]').forEach(b=>b.onclick=()=>mdMenuOpen(b,p,tool));
+  ta.addEventListener('keydown',e=>{if(e.isComposing)return;
+    const mod=(e.metaKey||e.ctrlKey)&&!e.altKey&&!e.shiftKey,k=mod&&{b:'b',i:'i',k:'link'}[e.key.toLowerCase()];
+    if(k){e.preventDefault();tool(k);}
+    else if(e.key==='Enter'&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!e.shiftKey){if(mdListEnter(ta))e.preventDefault();}
+    else if(e.key==='Tab'&&!e.metaKey&&!e.ctrlKey&&!e.altKey){if(mdListIndent(ta,e.shiftKey))e.preventDefault();}});
+  // Coller depuis Word ou un PDF : la mise en forme reconnue est proposée avant d'insérer (v5.44).
+  ta.addEventListener('paste',e=>{const cd=e.clipboardData,r=cd&&mdFromPaste(cd.getData('text/html'),cd.getData('text/plain'));
+    if(r){e.preventDefault();mdPasteOpen(ta,r,cd.getData('text/plain'));}});
+  // Taper « ](att: » propose les documents joints (v5.44) : plus d'identifiant à recopier.
+  ta.addEventListener('input',e=>{if(/^insert/.test(e.inputType||'')&&(p.docs||[]).length&&/\]\(att:$/.test(ta.value.slice(0,ta.selectionStart)))
+    mdDocMenu(main.querySelector('[data-mdmenu="ins"]'),p,ta,true);});
+  main.querySelectorAll('[data-attlink]').forEach(b=>{const d=()=>(p.docs||[])[+b.dataset.attlink];
+    b.onclick=()=>{const x=d();if(x)mdLinkDoc(ta,x);};
+    b.ondragstart=e=>{const x=d();if(x)e.dataTransfer.setData('text/plain',mdDocLink(x,''));};});
+  // Plan, curseur suivi par l'aperçu, aperçu qui ramène au texte, bascule Écrire / Aperçu (v5.44).
+  const sync=()=>requestAnimationFrame(()=>mdCaretSync(ta,p));
+  ['keyup','click','focus','input'].forEach(ev=>ta.addEventListener(ev,sync));
+  {const pb=main.querySelector('[data-mdplan]');if(pb)pb.onclick=()=>mdPlanOpen(pb,ta,p);}
+  main.querySelectorAll('[data-mdpv]').forEach(b=>b.onclick=()=>mdPvSet(b.dataset.mdpv,ta,p));
+  mdCaretSync(ta,p);
+  bindRevPanel();   // les rangées du volet d'une référence répondent enfin au tap (v5.44)
+  {const lb=main.querySelector('.md-lint-box');mdLintPaint(p);
+   lb.addEventListener('click',e=>{const b=e.target.closest('[data-mdlint]');if(b)mdLintAct(ta,(lb._lint||[])[+b.dataset.mdlint]);});}
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
+    ta.parentNode.classList.add('on');const hs=()=>mdHlSync(ta,p.docs);
+    ta.addEventListener('input',hs);ta.addEventListener('scroll',()=>{ta.previousElementSibling.scrollTop=ta.scrollTop;});
+    new ResizeObserver(hs).observe(ta);hs();}
   // La zone de dépôt permanente de la section « Images », plus la cible d'un dépôt fait
   // n'importe où dans l'éditeur : le bouton ⧉ de la barre d'outils reste, il n'est plus seul.
   bindUpDrop(document.getElementById('pImgDrop'),'image',takeImg,true);
@@ -16378,7 +16856,7 @@ function renderProtocolEdit(){
   main.querySelectorAll('[data-miscale]').forEach(sel=>sel.onchange=()=>{
     const im=(p.images||[]).find(x=>x.id===sel.dataset.miscale);if(!im)return;
     im.scale=_scale(sel.value);
-    const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdRender(p.body,{images:p.images});mdFoldApply(pv,p.id);}
+    const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}
     ta.dispatchEvent(new Event('input',{bubbles:false}));});   // auto-enregistrement du brouillon
   // Vignette ET bouton « ＋ Insérer dans le texte » (même attribut data-miref) : insèrent une
   // NOUVELLE référence à la même image (une image peut illustrer 2 passages). Le bouton est
@@ -16840,6 +17318,14 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   /* `table` — la Page. MÊME TRACÉ que le bouton « Tableau » de la barre markdown : un second
      dessin pour la même idée serait deux choses à apprendre (règle du menu ⋯). */
   table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/>',
+  // Barre d'outils du contenu rédigé (v5.44) : tracés repris tels quels de l'ancienne barre.
+  ul:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/>',
+  ol:'<path d="M10 6h10M10 12h10M10 18h10"/><text x="2" y="8.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">1</text><text x="2" y="14.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">2</text><text x="2" y="20.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">3</text>',
+  task:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.3l2.6 2.6 4.9-5.4"/>',
+  quote:'<path d="M10.2 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6H7.7c.2-1.7 1.2-2.9 3-3.5zM19.5 6.5c-3 .9-4.7 3-4.7 6v5h5.1v-5.6h-2.9c.2-1.7 1.2-2.9 3-3.5z" fill="currentColor" stroke="none"/>',
+  code:'<path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/>',
+  link:'<path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/>',
+  hr:'<path d="M4 12h16"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   /* « VOUS » — le pendant de `book` sur la pastille de provenance (`searchLibTag` : « 🕮 Partagée »
@@ -23256,6 +23742,10 @@ function stepGuardTxt(steps,scope){const s=clean(steps);const parts=[];
    `reviewNotes` (PURE, testée) rassemble les garde-fous en une grammaire « △ Relecture » (cible +
    action). ⚠ JAMAIS bloquant, JAMAIS rouge (l'ambre = « on se trompe », le rouge = ce qui tue) ;
    le volet-bilan en pied DISPARAÎT quand il n'y a rien à dire. Détail : doctrine-js.md J182. */
+// Volet en pied (sous 1000 px) d'une référence : suit la frappe, comme la colonne le fait au-delà.
+function revProtoRefresh(p){if(document.getElementById('editSide'))return;const el=document.getElementById('revPanel');if(!el)return;
+  const d=el.querySelector('details'),open=d?d.open:null,h=reviewPanelHtml(p,reviewNotesProto(p));
+  if(el.innerHTML===h)return;el.innerHTML=h;const d2=el.querySelector('details');if(d2&&open!=null)d2.open=open;bindRevPanel();}
 function revPanelRefresh(f){
   const el=document.getElementById('revPanel');if(!el)return;
   const h=reviewPanelHtml(f);
@@ -23362,8 +23852,10 @@ function bindRevPanel(){
     (state.edOffNo=state.edOffNo||{})[b.dataset.revoffno]=1;renderEditor();});
   main.querySelectorAll('[data-revgo]').forEach(b=>b.onclick=()=>{
     const at=b.dataset.revgo;
+    // Une référence vise un champ par son id (p-body, mdLint…) : ses rangées étaient inertes.
     const el=at==='nf'?document.getElementById('nfGuard')
-      :main.querySelector('.blk[data-bid="'+CSS.escape(at.slice(2))+'"]');
+      :at==='mdLint'?document.getElementById('mdLint')
+      :(/^p-/.test(at)&&document.getElementById(at))||main.querySelector('.blk[data-bid="'+CSS.escape(at.slice(2))+'"]');
     if(!el)return;
     /* PAS de `behavior:'smooth'` : mesuré, il ne défilait pas du tout ici (6 400 px d'écart, le
        mouvement n'aboutissait jamais), et le reste du fichier ne défile jamais en animé — un
@@ -23384,6 +23876,7 @@ function reviewNotesProto(p){
   if(!corps&&!docs)out.push({at:'p-body',cible:'Contenu',
     txt:'△ Cette référence est vide — ni texte rédigé, ni document joint : elle ne servira à rien telle quelle'});
   if(TODO_RX.test(corps))out.push({at:'p-body',cible:'Contenu rédigé',txt:'△ Un « à compléter » reste dans le texte'});
+  {const n=mdLint(corps,p.docs).length;if(n)out.push({at:'mdLint',cible:'Écriture',txt:'△ '+n+' point'+(n>1?'s':'')+' d’écriture à relire — doses, liens, tableaux'});}
   clean(p.sources||[]).forEach(()=>{});
   if(TODO_RX.test(String((p.sources||[]).join(' '))))out.push({at:'p-sources',cible:'Références',txt:'△ Un « à compléter » reste dans les sources'});
   if(corps&&!clean(p.sources||[]).length)out.push({at:'p-sources',cible:'Références',
@@ -23452,9 +23945,10 @@ function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const s
   return out;}
 // Fieldset « Documents (PDF) » PARTAGÉ entre l'éditeur de fiche et l'éditeur de protocole
 // (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
-function attFieldsetHtml(entity){
+// `mdLink` (référence) : chaque document se lie dans le texte — toucher, ou glisser vers le champ.
+function attFieldsetHtml(entity,mdLink){
   return `<fieldset class="field ed-card"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
-      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-ix" data-ixstate="${esc(a.id)}"></span><span class="att-size">${fmtBytes(a.size)}</span><button type="button" class="ed-ic del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-ix" data-ixstate="${esc(a.id)}"></span><span class="att-size">${fmtBytes(a.size)}</span>${mdLink?`<button type="button" class="ed-ic" data-attlink="${i}" draggable="true" aria-label="Lier « ${esc(a.name)} » dans le texte" title="Lier dans le texte, au curseur — ou glisser vers le texte">${uiIcon('link',16)}</button>`:''}<button type="button" class="ed-ic del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
       ${upDropHtml('pdf','addPdf','Ajouter un PDF ('+fmtBytes(MAX_PDF_BYTES)+' max)')}
       ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
       :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
@@ -24209,7 +24703,7 @@ function editPreviewHtml(kind){
     return `<div class="ep-h">Algorithme — aperçu automatique</div>${flowBlock(f)}`;}
   const p=state.pdraft;if(!p)return '';
   return `<div class="ep-h">Aperçu en direct</div>
-    <div class="ep-card ep-md"><div class="ep-pttl">${esc(p.title)||'Sans titre'}</div>${mdRender(p.body||'',{images:p.images})}</div>
+    <div class="ep-card ep-md"><div class="ep-pttl">${esc(p.title)||'Sans titre'}</div>${mdPvHtml(p)}</div>
     <button type="button" class="btn sm ep-full" data-epfull>⛶ Ouvrir l'aperçu complet</button>`;}
 // Colonne d'aperçu : (re)câblage du bouton plein écran + mise à jour débouncée à la saisie.
 // UN SEUL écouteur 'input' vit sur #main (élément permanent) : l'ancien est retiré avant d'en
@@ -24235,7 +24729,7 @@ function bindEditSide(kind){if(!document.getElementById('editSide'))return;
     const dt=s.querySelector('#revPanel details.rev-panel');const open=dt?dt.open:null;
     s.innerHTML=`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`+editPreviewHtml(kind);
     const d2=s.querySelector('#revPanel details.rev-panel');if(d2&&open!=null)d2.open=open;
-    bindRevPanel();wire();},300);};
+    bindRevPanel();wire();const ta=document.getElementById('p-body');if(ta)mdCaretSync(ta,p);},300);};
   main.addEventListener('input',_editSideOn);}
 /* ═══ « SCHÉMAS & CAPTURES » EST UN AGRÉGATEUR (v4.78.0, signalé à l'usage) ═══════════════════
    Réconciliation `b.image` → `f.images[]` AU RENDU (rattrape les fiches existantes), idempotente,
@@ -24783,13 +25277,7 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
    présents — le même geste dé-graisse). Sans sélection : insère une paire ** vide, curseur au
    milieu. Après modification, on émet 'input' pour que les écouteurs existants reportent la
    valeur dans state.draft (aucun autre canal d'écriture). */
-function wrapBold(inp){const [a,b,v]=selBounds(inp);
-  const sel=v.slice(a,b);let nv,ca,cb;
-  if(sel&&v.slice(Math.max(0,a-2),a)==='**'&&v.slice(b,b+2)==='**'){nv=v.slice(0,a-2)+sel+v.slice(b+2);ca=a-2;cb=b-2;}                    // sélection déjà entourée -> retire
-  else if(sel.length>=5&&sel.slice(0,2)==='**'&&sel.slice(-2)==='**'){nv=v.slice(0,a)+sel.slice(2,-2)+v.slice(b);ca=a;cb=b-4;}            // ** inclus dans la sélection -> retire
-  else{nv=v.slice(0,a)+'**'+sel+'**'+v.slice(b);ca=a+2;cb=b+2;}                                                                            // sinon -> entoure
-  inp.value=nv;inp.focus();inp.setSelectionRange(ca,cb);
-  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+function wrapBold(inp){mdWrapSel(inp,'**');}   // même bascule que le contenu rédigé (v5.44)
 // Champs où le gras a du sens A L'AFFICHAGE (rendus via fmt()) : listes, options, question,
 // contexte local. Les titres/légendes restent en texte brut (esc()). Les ÉTAPES sont EXCLUES
 // depuis v4.2.2 (bouton retiré aussi) : leur texte est déjà en gras à l'affichage (16,5px/800),
@@ -31575,7 +32063,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

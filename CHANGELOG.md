@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.44.0] — 2026-10-05
+L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A451-A458, doctrine `docs/decisions/lot-v5-44.md`).
+- **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
+  et choisir le document dans la liste, ou toucher (ou glisser vers le texte) le nouveau bouton lien de chaque document.
+  `#p12` après l'identifiant ouvre le PDF à la page 12.
+- **Une barre d'outils regroupée** : B · I · S, puis quatre menus — Titre, Liste, Encadré, ＋ Insérer (tableau, lien
+  vers un document, lien web, image, code, séparateur). Chaque choix montre la syntaxe qu'il pose. La barre reste
+  visible en haut pendant qu'on fait défiler le texte et tient sur une ligne jusqu'à 344 px de large.
+- **Le clavier** : Entrée continue une liste (puces, numéros, cases, citations) et la termine sur une ligne vide ;
+  Tab et Maj+Tab changent le niveau d'une puce ; ⌘B, ⌘I et ⌘K font gras, italique et lien. **⌘Z annule aussi les
+  gestes de la barre.**
+- **Une disposition par écran** : au téléphone, « Écrire | Aperçu » ; sur tablette, le texte et l'aperçu côte à côte ;
+  sur ordinateur, l'aperçu dans la colonne de droite. Un bouton « Plan » mène à chaque titre, l'aperçu marque le
+  passage où l'on écrit, et toucher l'aperçu ramène le curseur au bon endroit du texte.
+- **Les tableaux se remplissent dans une grille** (« Insérer › Tableau », ou « Modifier en grille » quand le curseur
+  est dans un tableau) : ajouter ou retirer lignes et colonnes, aligner une colonne, modèle « posologie ».
+- **Coller depuis Word ou un PDF** : titres, puces, tableaux et gras sont reconnus, et l'app montre ce qui sera inséré
+  avant de le faire. La couleur n'est pas reprise (elle a un sens dans l'app) : la fenêtre le dit. « Coller le texte
+  brut » reste possible.
+- **Une relecture de l'écriture** sous le texte : lien vers un document absent, ligne de tableau incomplète, titre ou
+  encadré mal posé, et les écritures de dose qui trompent la lecture — « .5 mg » (→ 0,5 mg), « 5,0 mg » (→ 5 mg),
+  « ug », « U », « cc ». Chaque point se corrige un par un, d'un tap, et s'annule. Elle relit la façon d'écrire,
+  jamais le contenu clinique.
+- **Sur ordinateur, le texte se colore** : marqueurs en gris, encadrés à leur couleur, points de relecture soulignés.
+- **Écrans pliables** (Surface Duo, Pixel Fold ouverts) : le texte sur un écran, l'aperçu et la relecture sur l'autre,
+  plus rien à cheval sur la charnière. Vérifié aussi sur Galaxy Z Fold (fermé et ouvert) et Z Flip.
+- Corrigé : dans une référence, les lignes du volet « Relecture » ne réagissaient pas au toucher, et sous 1000 px le
+  volet ne suivait pas la frappe.
+
 ## [5.43.0] — 2026-10-04
 Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
 - **Chaque réponse d'une décision ouvre sa branche juste sous elle** : « SI Oui », « SI Non, crise arrêtée »…, la
@@ -285,37 +314,3 @@ Nettoyage interne des couleurs, sans aucun changement à l'écran (A416, doctrin
   tokens refuse qu'un tel doublon réapparaisse.
 - **Vérifié identique.** Les styles calculés de 4 714 éléments, sur huit écrans en thème clair, sombre
   et en large, sont les mêmes avant et après.
-
-## [5.38.0] — 2026-09-27
-Un audit design de l'application, mesuré puis maquetté sur l'app réelle, et ce qu'il a changé
-(A400-A415, doctrine `docs/decisions/lot-v5-38.md`).
-- **Lisible à distance.** Les noms de la barre des minuteurs et des touches du bas passent de 11 à
-  13,5 px, en casse de phrase sur la barre du bas. Un nom trop long s'abrège tout seul (« Réévaluation
-  après adrénaline » devient « Rééval. adrén. », « Bronchospasme réfractaire » devient
-  « Bronchospasme ») ; un champ facultatif « Nom court » dans l'éditeur permet de choisir le sien. Les
-  mots longs se coupent à la syllabe, avec un tiret, et plus au milieu du mot.
-- **Le rouge ne sert plus qu'à ce qui compte.** « Mode crise » n'est plus en rouge, « Fin » garde son
-  carré rouge mais son mot passe en gris, la touche de complication et son étiquette passent à
-  l'ambre. Dans « Terminer la session ? », l'étape vitale oubliée est maintenant en rouge, avec le mot
-  CRITIQUE. La barre d'un minuteur qui tourne est neutre ; il ne prend de couleur qu'à l'échéance.
-- **Catégories.** La teinte vermillon, presque identique au rouge d'alerte, quitte le nuancier ;
-  « Urgences » passe en prune et quatre teintes proches de l'ambre ou du vert d'alerte glissent un peu.
-  Vos catégories existantes gardent leur couleur : « Gérer les catégories » signale celles qui sont trop
-  proches d'une couleur d'alerte et propose la teinte voisine d'un tap.
-- **Écrans pliables (Surface Duo, Pixel Fold, Galaxy Z Fold).** Rien ne se pose plus sur la charnière :
-  la barre des minuteurs, la barre du bas et les fenêtres restent dans le volet gauche. La fenêtre
-  « Terminer la session ? » était coupée en deux par la charnière.
-- **Mots.** « Journal » devient « Horodater » (le geste reste le même : l'heure est notée d'un tap).
-  « ×2 » devient l'étiquette « Double contrôle ». « Vérifier :: » devient « Vérifier ». Les réponses
-  attendues s'écrivent en casse de phrase.
-- **« Ne pas oublier ».** Le rappel vital de l'arrêt cardiaque s'affichait avec sa syntaxe de saisie
-  (« ⚠ RCP immédiate :: 30:2 ») ; il se lit maintenant sur une ligne, CRITIQUE à droite.
-- **Avant la session.** La bulle qui masquait le contenu devient une ligne dans le bouton de
-  démarrage : « Lance le chrono · minuteurs prêts ».
-- **Accueil.** « Créer » n'est plus le bouton le plus visible ; l'étoile d'épinglage et les croix
-  répondent au doigt sur 44 px, sans changer de dessin. Sur tablette, la barre des minuteurs ne fait
-  plus que la largeur du chrono quand les minuteurs sont dans la colonne de droite.
-- **Contraste.** Dans le volet des minuteurs, « Maintenir » et une vingtaine de textes du thème sombre
-  étaient sous le seuil de lisibilité ; corrigé. Le contrôle automatique d'accessibilité mesure
-  désormais ce volet, calcule juste les fonds semi-transparents empilés, et un nouveau contrôle
-  vérifie les écrans pliables.

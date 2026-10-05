@@ -218,6 +218,15 @@ const SURFACES = [
   { nom:'fenêtre Compte',      w:390,  prep:'dlg:openAuth',       scope:'#authModal' },
   { nom:'où sont mes fiches',  w:390,  prep:'dlg:openStorageInfo',scope:'#storageModal' },
   { nom:'bienvenue',           w:390,  scope:'#welcomeModal', noSeed:true, fn: async()=>{} },
+  /* v5.44 : la fenêtre des outils du contenu rédigé (une fenêtre, deux corps), ouverte par ses vraies
+     fonctions depuis un éditeur de référence réel. */
+  { nom:'tableau en grille',   w:390,  scope:'#mdToolModal', fn: async()=>{
+      const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'| Médicament | Dose |\n|---|---|\n| Adrénaline | 0,5 mg |'});
+      protocols.push(p);await openProtocolEdit(p.id);const ta=document.getElementById('p-body');ta.focus();ta.setSelectionRange(2,2);mdTblOpen(ta); } },
+  { nom:'texte collé',         w:390,  scope:'#mdToolModal', fn: async()=>{
+      const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'a'});
+      protocols.push(p);await openProtocolEdit(p.id);const ta=document.getElementById('p-body');
+      mdPasteOpen(ta,mdFromPaste('<p><b>Conduite</b></p><ul><li>Allonger</li></ul>','Conduite\nAllonger'),'Conduite\nAllonger'); } },
   { nom:'confirmation',        w:390,  scope:'#confirmModal', fn: async()=>{
       confirmDlg({title:'Supprimer la fiche ?',
         msg:'Cette action est irréversible. Les sessions liées restent dans l\'historique.',
