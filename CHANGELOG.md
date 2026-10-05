@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.44.0] — 2026-10-05
-L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A451-A458, doctrine `docs/decisions/lot-v5-44.md`).
+L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A452-A459, doctrine `docs/decisions/lot-v5-44.md`).
 - **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
   et choisir le document dans la liste, ou toucher (ou glisser vers le texte) le nouveau bouton lien de chaque document.
   `#p12` après l'identifiant ouvre le PDF à la page 12.
@@ -28,6 +28,22 @@ L'éditeur des références (protocoles) devient un vrai éditeur de texte, au t
   plus rien à cheval sur la charnière. Vérifié aussi sur Galaxy Z Fold (fermé et ouvert) et Z Flip.
 - Corrigé : dans une référence, les lignes du volet « Relecture » ne réagissaient pas au toucher, et sous 1000 px le
   volet ne suivait pas la frappe.
+
+## [5.43.1] — 2026-10-05
+La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Windows et Linux (A451, doctrine `docs/decisions/lot-v5-43.md`, second chapitre).
+- **Une case pour tout cocher** : à gauche du compte, une case du même dessin que celle des rangées remplace les deux
+  boutons « Tout cocher / Tout décocher ». Vide quand rien n'est coché, un tiret quand une partie l'est, une coche quand
+  tout l'est ; un tap coche tout, ou décoche tout si tout était coché. Elle est là à toutes les largeurs (sur un petit
+  téléphone, « Tout décocher » ne passe plus par le tiroir « Actions »).
+- **Sur grand écran, les actes portent leur glyphe** : Bibliothèque, Catégorie, Exporter, Supprimer, avec les mêmes
+  dessins que dans le tiroir « Actions ». Le compte « 2 cochés » se lit en entier : sous Windows et Linux, vers 1200 px,
+  il était réduit à « … » depuis l'arrivée d'« Exporter… ».
+- **« 0 coché »** remplace « Rien de coché », qui était coupé sur les écrans de 320 px.
+- **Sur téléphone, le nom « Aides cognitives » de l'accueil est un peu plus petit** (sous 480 px de large) : il touchait
+  presque les boutons de l'en-tête, et les débordait sous Linux.
+- Pourquoi seulement sous Windows et Linux : le texte y est un peu plus large (lettres arrondies au pixel) et la barre de
+  défilement prend de la place ; sur Mac ces lignes tenaient au pixel près. Les audits de la CI, qui tournent sous Linux,
+  échouaient sur ces deux points depuis la v5.30.
 
 ## [5.43.0] — 2026-10-04
 Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
@@ -306,11 +322,3 @@ Le survol bleu pâle devient visible (A417, doctrine `docs/decisions/lot-v5-38.m
   La nuit, ce survol n'était pas visible du tout.
 - **Focus.** Le halo autour d'un champ de l'éditeur en cours de saisie est plus lisible ; le bouton
   « Filtrer » actif est un cran plus soutenu.
-
-## [5.38.1] — 2026-09-28
-Nettoyage interne des couleurs, sans aucun changement à l'écran (A416, doctrine `docs/decisions/lot-v5-38.md`).
-- **Un seul nom par couleur.** Trente-huit anciens noms de couleur (« alias ») gardés depuis la refonte
-  v5.6 sont retirés : le code lit désormais partout le nom de référence. Le contrôle automatique des
-  tokens refuse qu'un tel doublon réapparaisse.
-- **Vérifié identique.** Les styles calculés de 4 714 éléments, sur huit écrans en thème clair, sombre
-  et en large, sont les mêmes avant et après.

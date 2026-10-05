@@ -837,6 +837,7 @@
   @media (max-width:779.98px){
     body.view-home .brand .brand-name{font-size:21px}
   }
+  html.zw480 body.view-home .brand .brand-name{font-size:17.5px}   /* E2 : sous 480 px effectifs la marque à 21 ne laissait aucune réserve (−2/−4 px sous Linux) */
   @media (min-width:390px) and (max-width:779.98px){
     body.view-home .hdr-new{width:auto;padding:0 12px}
     body.view-home .hdr-new .hdr-new-lbl{display:inline}
@@ -2015,13 +2016,18 @@
      spécificité égale, l'ordre décide, et c'était lui. `.sel-bar .btn.sm` vaut (0,3,0) et tranche
      sans dépendre de l'ordre. (Même famille que `.cbt-n` v4.23.5 et `.ls-card .btn.sm` v5.x.) */
   .sel-bar .btn,.sel-bar .btn.sm{flex:none;min-height:40px;padding:0 12px;font-size:var(--t-item)}   /* A359 : le corps des boutons v5 */
-  /* LE SEGMENT « Tout cocher / Tout décocher ». Les deux libellés se disent EN ENTIER : « Tout »
-     et « Aucun » n'annonçaient pas ce qu'ils déclenchaient, et « Aucun » se lisait d'abord comme
-     un compte. En étroit la barre n'en montre qu'UN, celui qui a un sens dans l'état courant —
-     c'est ce qui laisse la place à la touche d'actes sans rien abréger. */
-  .sel-seg{display:inline-flex;flex:none;border:1px solid var(--work-line);border-radius:var(--r-3);box-shadow:var(--shadow-work);overflow:hidden}   /* A359 : la matière des boutons v5 */
-  .sel-seg .btn{border:0;border-radius:0;background:var(--work);box-shadow:none;white-space:nowrap}
-  .sel-seg .btn+.btn{border-left:1px solid var(--work-line)}
+  /* A451 — LA CASE MAÎTRESSE : le dessin de la case d'une rangée (`.dir-ck`), cible 40 px, trois
+     états lus sur `aria-checked` (vide · tiret « une partie » · coche « tout »). Elle remplace le
+     segment « Tout cocher / Tout décocher », 259 px qui rognaient le compte à 1200 px sous Linux. */
+  .dir-ck.sel-ck{width:40px;height:40px}   /* (0,2,0) : `.dir-ck{width:32px}` est déclarée plus bas */
+  .sel-ck:is([aria-checked="true"],[aria-checked="mixed"])::before{background:var(--act);border-color:var(--act)}
+  .sel-ck[aria-checked="true"]>svg{opacity:1;color:var(--work)}
+  .sel-mix{position:relative;width:10px;height:2px;background:var(--work);display:none}
+  .sel-ck[aria-checked="mixed"] .sel-mix{display:block}
+  .sel-ck[aria-checked="mixed"]>svg{display:none}
+  /* Les actes dépliés portent le glyphe de leur rangée dans le tiroir : un dessin, deux lieux. */
+  .sel-acts .btn>svg{flex:none;color:var(--ink-2)}
+  .sel-acts .btn.danger>svg{color:inherit}
   /* `chev` pointe à DROITE dans le jeu d'icônes ; ici il annonce une feuille qui monte du bas.
      Une rotation STATIQUE, donc hors du périmètre de check-anim (rien n'est animé). */
   .sel-do svg{transform:rotate(90deg)}
@@ -2044,10 +2050,8 @@
   /* ⚠ LE SEUIL DE DÉPLIAGE PASSE PAR `html.zw1200`, JAMAIS UNE MEDIA QUERY (règle 10), ET IL EST À
      1200 px, PAS À 560 : la barre dépliée réclame 757 px UTILES, et sa largeur n'est pas monotone
      en largeur de fenêtre (la colonne gauche lui prend 224 px à 780). `@container` reste écarté.
-     Replié : une seule face du segment, actes au tiroir, « Annuler » en croix. Détail : doctrine-css.md C41. */
+     Replié : actes au tiroir, « Annuler » en croix. Détail : doctrine-css.md C41. */
   html.zw1200 .sel-acts{display:none}
-  html.zw1200 .sel-bar[data-n="0"] .sel-seg .btn[data-sel="none"],
-  html.zw1200 .sel-bar:not([data-n="0"]) .sel-seg .btn[data-sel="all"]{display:none}
   html.zw1200 .sel-bar .sel-x{width:40px;height:40px;padding:0}
   html.zw1200 .sel-x .sel-lbl{display:none}
   /* ══ SOUS 430 px EFFECTIFS — COMPRESSION, PUIS DÉPART DU SEGMENT ═════════════════════════════
@@ -2058,13 +2062,6 @@
      par un renommage — les intitulés entiers sont tout l'objet de la planche. */
   html.zw430 .sel-bar{gap:6px;padding:0 8px}
   html.zw430 .sel-bar .btn:not(.sel-x){padding:0 10px}
-  /* … et sous 400 px effectifs la compression ne suffit plus (mesuré : 337 px nécessaires pour
-     314 disponibles à 360 px de fenêtre, 274 à 320). LE SEGMENT REJOINT ALORS LE TIROIR, qui le
-     rejoue comme il rejoue les actes — mais SEULEMENT s'il y a quelque chose à décocher : à zéro
-     coché il n'y a pas de tiroir (la touche d'actes n'existe qu'à partir d'une coche), et le
-     segment est la seule commande de la barre. L'y retirer laisserait un mode de sélection dans
-     lequel on ne peut RIEN cocher. */
-  html.zw400 .sel-bar:not([data-n="0"]) .sel-seg{display:none}
   /* DÉPLIÉ — le tiroir s'ouvre SUR LA MÊME LIGNE (`display:contents` : les trois boutons
      deviennent des enfants directs de la barre, aucun objet intermédiaire, aucune duplication de
      balisage). La barre y est celle d'hier, mais à ordre IMPOSÉ et sans repli possible. */
@@ -2072,15 +2069,9 @@
   html:not(.zw1200) .sel-acts{display:contents}
   html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 10px}   /* A392 : quatre actes (Exporter en plus) — à 14 px de marge, le compte « n cochés » était tronqué à 1200 px (29 px manquants) */
   html:not(.zw1200) .sel-x .sel-g{display:none}
-  /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (le compte et les deux
-     faces du segment) à gauche, ce qui AGIT sur elle à droite. La séparation se fait par une
-     marge automatique sur le segment, PAS par une entretoise — `.sel-sp` est purgée, et la
-     réintroduire ici rouvrirait le couple qui fabriquait l'ordre aléatoire au repli (consigne 1).
-     Le compte cesse alors de POUSSER (`flex:0 1 auto`) sans cesser de CÉDER : il reste le seul
-     élément qui rétrécit, donc le seul qui s'ellipse si le motif « · deux bibliothèques » est
-     long — aucun acte ne peut être rogné par lui. */
-  html:not(.zw1200) .sel-n{flex:0 1 auto}
-  html:not(.zw1200) .sel-seg{margin-right:auto}
+  /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (la case maîtresse et le
+     compte) à gauche, ce qui AGIT sur elle à droite. Le compte (`flex:1 1 auto`) pousse les actes au
+     bord sans entretoise — `.sel-sp` est purgée (consigne 1) — et reste le seul élément qui cède. */
   /* La case d'une rangée : cible ≥ 32 px hors crise (règle 9), et un VRAI rôle de case à cocher
      (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
      sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */

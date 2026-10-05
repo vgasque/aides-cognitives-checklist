@@ -1,20 +1,20 @@
-# Lot v5.44 — l'éditeur Markdown des références (A451-A458)
+# Lot v5.44 — l'éditeur Markdown des références (A452-A459)
 
-> Fichier normatif, suite de [`lot-v5-43.md`](lot-v5-43.md) (A450). Les numéros A sont des adresses : ne jamais
+> Fichier normatif, suite de [`lot-v5-43.md`](lot-v5-43.md) (A450-A451). Les numéros A sont des adresses : ne jamais
 > renuméroter. Demande de l'auteur du 05/10/2026 : « comment améliorerais-tu l'éditeur markdown des protocoles ? »,
 > puis canevas Design « Éditeur de protocoles » (bureau, tablette, téléphone, outils communs) validé et implémenté en
 > trois passes vérifiées (1 + 2 + 3, puis 4 + 5 + 6, puis 7 + 8), avec contrôle final sur pliables.
 
-## A451 — lier un document joint sans recopier d'identifiant
+## A452 — lier un document joint sans recopier d'identifiant
 
 `[texte](att:ID)` exigeait un identifiant que rien n'affichait. Trois chemins le posent désormais :
 « Insérer › Lien vers un document joint » (menu des PDF, libellé = sélection, sinon nom du fichier sans « .pdf »),
 la frappe de « ](att: » (le menu complète l'identifiant), et le bouton lien de chaque rangée « Documents (PDF) »
 (toucher : au curseur ; glisser vers le champ : là où on lâche — le dépôt de texte est natif). Sans document, la rangée
-joint un PDF puis le lie (sélecteur ouvert dans le même geste, A71). **`#pN`** après l'identifiant ouvre la visionneuse à
+joint un PDF puis le lie (sélecteur ouvert dans le même geste, leçon v4.71.0). **`#pN`** après l'identifiant ouvre la visionneuse à
 la page N (`data-mdpage`) ; un client antérieur laisse le lien en clair (dégradation lisible, jamais de perte).
 
-## A452 — une barre regroupée, des menus qui disent leur syntaxe
+## A453 — une barre regroupée, des menus qui disent leur syntaxe
 
 17 boutons à plat → B · I · S, puis quatre menus : **Titre**, **Liste** (puces, numérotée, cochable, citation),
 **Encadré** (les quatre registres, glyphe + mot), **＋ Insérer** (tableau, lien vers un document, lien web, image, code,
@@ -24,7 +24,7 @@ chaque rangée porte la syntaxe qu'elle pose en sous-ligne. Barre collante sous 
 son ＋ sous 360 (écran externe d'un Z Fold, 344 px). Les tracés de l'ancienne barre entrent dans `uiIcon`
 (`ul`, `ol`, `task`, `quote`, `code`, `link`, `hr`).
 
-## A453 — la saisie au clavier, et ⌘Z qui annule aussi la barre
+## A454 — la saisie au clavier, et ⌘Z qui annule aussi la barre
 
 `mdSplice` (porte unique de tous les poseurs) écrit par `execCommand('insertText')` : le geste entre dans l'historique
 NATIF du champ (repli `setRangeText`). `mdWrapSel` bascule (entoure ou retire) et sert aussi le gras des fiches
@@ -32,7 +32,7 @@ NATIF du champ (repli `setRangeText`). `mdWrapSel` bascule (entoure ou retire) e
 encadrés) et la termine sur un item vide ; Tab / Maj+Tab change le niveau d'une puce (un seul niveau, celui que lit
 `mdBlocks`) et garde son rôle hors liste (sortir du champ) ; ⌘B, ⌘I, ⌘K.
 
-## A454 — une disposition par largeur, un plan, un aperçu qui suit le curseur
+## A455 — une disposition par largeur, un plan, un aperçu qui suit le curseur
 
 Téléphone : « Écrire | Aperçu » dans la carte (`.seg`), toucher un bloc de l'aperçu ramène le curseur à sa ligne.
 780-999 : texte et aperçu côte à côte. ≥ 1000 : la colonne d'aperçu (inchangée). Partout, un bouton **« Plan · section
@@ -42,7 +42,7 @@ jamais la page. `mdBlocks` porte la ligne source de chaque bloc (`ln`, additif) 
 `data-ln` dans les seuls aperçus de l'éditeur. **Écart au canevas, nommé** : la colonne « Plan » du bureau et le
 glisser-déposer de sections sont restés hors de ce lot (le menu Plan couvre la navigation à toutes les largeurs).
 
-## A455 — le tableau en grille
+## A456 — le tableau en grille
 
 « Insérer › Tableau » et le bouton contextuel **« Modifier en grille »** (visible seulement curseur dans un tableau)
 ouvrent la fenêtre des outils (`#mdToolModal`, une fenêtre pour deux corps). `mdTableAt` (pure) lit le tableau au curseur
@@ -51,7 +51,7 @@ protégé. ＋/− ligne et colonne à la cellule visée, alignement par colonne
 Tab sur la dernière cellule ajoute une ligne, texte produit visible. Fermeture par `modalHandoffClose` : le focus revient
 au texte, l'écriture passe par `mdSplice` (⌘Z rend le tableau d'avant). Focus d'ouverture par `data-dlgfocus`.
 
-## A456 — coller depuis Word ou un PDF
+## A457 — coller depuis Word ou un PDF
 
 Au collage, `mdFromPaste` choisit : `mdFromHtml` (presse-papiers riche ; `DOMParser`, document INERTE, scripts et médias
 retirés ; puces « · » de Word et style `mso-list`, intertitres en gras, listes, tableaux, gras, italique, liens https) ou
@@ -60,7 +60,7 @@ Rien de reconnu → collage natif, sans fenêtre. Sinon la fenêtre montre ce qu
 qui a été reconnu ; **la couleur n'est jamais reprise** (elle a un sens ici) et le dit (« à poser en encadré »).
 « Coller le texte brut » reste toujours possible.
 
-## A457 — la relecture de l'écriture (jamais du contenu)
+## A458 — la relecture de l'écriture (jamais du contenu)
 
 `mdLint` (pure) relit la FORME : document lié absent, ligne de tableau incomplète ou trop longue, « ### » sans « ## »
 au-dessus, encadré vide, et l'**écriture des doses** connue pour tromper la lecture — zéro manquant (« .5 mg »), zéro
@@ -72,7 +72,7 @@ partagé. **Deux défauts existants corrigés en route** : sur une référence, 
 gestionnaire ne cherchait que des blocs d'aide, et sous 1000 px `bindRevPanel` n'était jamais appelé) ; le volet en pied
 ne suivait pas la frappe (`revProtoRefresh`).
 
-## A458 — la coloration, par un calque sous le champ
+## A459 — la coloration, par un calque sous le champ
 
 `mdHlHtml` (pure) redessine le texte dans un calque aux métriques exactes du champ, dont le texte devient transparent :
 marqueurs en gris, titres en 700 (Plex Mono : même chasse en 600 et 700), encadrés à LEUR registre, points de relecture

@@ -6956,6 +6956,46 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
 }
 });
 
+/* ══ A451 — LA CASE MAÎTRESSE : TROIS ÉTATS, UN GESTE ═════════════════════════════════════════
+   Elle remplace le segment « Tout cocher / Tout décocher ». On mesure l'état ANNONCÉ (aria-checked
+   et nom) à chaque pas, et ce que le geste fait réellement aux rangées. À 1200 px, les actes
+   dépliés portent le glyphe de leur rangée dans le tiroir. */
+await sec('SÉLECTION · A451 case maîtresse à trois états, actes à glyphes', async () => {
+for (const W of [390, 1200]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms));
+    const st=()=>{const b=document.getElementById('selAll');
+      return {aria:b&&b.getAttribute('aria-checked'), nom:b&&b.getAttribute('aria-label'),
+        role:b&&b.getAttribute('role'), h:b&&b.offsetHeight, wd:b&&b.offsetWidth,
+        cpt:document.getElementById('selN').textContent,
+        coches:document.querySelectorAll('[data-selid][aria-checked="true"]').length,
+        total:document.querySelectorAll('[data-selid]').length};};
+    const out={};
+    document.getElementById('selTog').click(); await w(250); out.zero=st();
+    document.querySelector('[data-selid]').click(); await w(200); out.partie=st();
+    out.glyphes=['selLib','selCat','selExp','selDel'].map(id=>{const b=document.getElementById(id);
+      return !!(b&&b.offsetParent&&b.querySelector('svg'));});
+    document.getElementById('selAll').click(); await w(200); out.tout=st();
+    document.getElementById('selAll').click(); await w(200); out.rien=st();
+    return out;});
+  const P=`${W}px`;
+  t(`${P} · rien de coché : case vide, « Tout cocher », compte « 0 coché »`,
+    r.zero.aria==='false'&&r.zero.nom==='Tout cocher'&&r.zero.cpt==='0 coché'&&r.zero.role==='checkbox', JSON.stringify(r.zero));
+  t(`${P} · … cible de 40 px`, r.zero.h>=40&&r.zero.wd>=40, `${r.zero.wd}×${r.zero.h}`);
+  t(`${P} · une partie cochée : état « mixed », le geste annoncé reste « Tout cocher »`,
+    r.partie.aria==='mixed'&&r.partie.nom==='Tout cocher'&&r.partie.coches===1&&r.partie.total>1, JSON.stringify(r.partie));
+  t(`${P} · la case coche TOUT ce que la liste montre, et annonce « Tout décocher »`,
+    r.tout.aria==='true'&&r.tout.nom==='Tout décocher'&&r.tout.coches===r.tout.total, JSON.stringify(r.tout));
+  t(`${P} · … puis décoche tout`, r.rien.aria==='false'&&r.rien.coches===0&&r.rien.cpt==='0 coché', JSON.stringify(r.rien));
+  if (W>=1200) t(`${P} · déplié : chaque acte porte son glyphe`, r.glyphes.every(Boolean), JSON.stringify(r.glyphes));
+  await page.close();
+}
+});
+
 /* ══ LE GESTIONNAIRE DE CATÉGORIES COMPTE COMME LA COLONNE ═══════════════════════════════════
    Signalé : « le gestionnaire n'affiche pas le bon nombre de fiches/aides par catégories ». Il ne
    comptait que les FICHES, alors que la colonne gauche compte l'union fiches + protocoles : les
