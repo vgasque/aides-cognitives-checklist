@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.46.0] — 2026-10-05
+Deuxième lot de l'audit de prise en main : un seul vocabulaire, un nom par vue, des boutons qui se nomment (A461, doctrine `docs/decisions/lot-v5-46.md`).
+- **Un seul vocabulaire.** L'app dit « aide » (le parcours à cocher) et « protocole » (le texte à lire), plus jamais
+  « fiche ». Quand un texte parle des deux à la fois (compte, synchronisation, stockage), il dit « vos données ».
+  L'accueil compte « 2 aides », et non plus « 2 parcours ». Un contrôle automatique (`check-lexique`) empêche
+  « fiche » de revenir dans le texte affiché.
+- **Un nom et une icône par vue.**
+  - « Tableau », sur l'écran d'entrée d'une aide, s'appelle « Page », comme son onglet.
+  - Le réglage d'ouverture propose « Un bloc » ou « Tout voir », comme le quai.
+  - L'aperçu de l'éditeur s'appelle « Schéma ».
+  - « Tout voir » prend une icône de page et « Moniteur » une icône d'écran. L'icône d'agrandissement ne sert plus
+    qu'à « Plein écran ».
+- **Accueil au téléphone** : les trois boutons de l'en-tête portent leur nom en dessous (Sessions · Créer · Moi),
+  comme la colonne de gauche sur grand écran.
+- Éditeur : « Doses & seuils » devient « Repères posologiques », le nom de la section en lecture.
+- Inchangé, par décision antérieure : le bouton ◑ (thème) reste dans l'en-tête des aides, pour éteindre l'écran au
+  chevet sans ouvrir de réglage.
+
 ## [5.45.0] — 2026-10-05
 Premier lot de l'audit de prise en main (`docs/audit-apprentissage-2026-10.md`) : ce qu'un nouvel utilisateur ne trouvait pas, ou lisait de travers (A460, doctrine `docs/decisions/lot-v5-45.md`).
 - **Recherche** :
@@ -324,17 +342,3 @@ Deux correctifs signalés à l'usage (A419, doctrine `docs/decisions/lot-v5-39.m
   arrivait quand une catégorie avait été renommée dans une bibliothèque alors qu'une autre bibliothèque
   gardait l'ancien nom. Le filtre retient désormais le nom de la catégorie choisie, et suit un
   renommage ou une suppression.
-
-## [5.39.0] — 2026-09-28
-Le sommaire d'un PDF joint se consulte comme celui d'un protocole, et reste une option (A418, doctrine
-`docs/decisions/lot-v5-39.md`).
-- **Sur ordinateur et tablette en paysage (1000 px et plus).** Quand le PDF a des signets, son sommaire
-  est une colonne à gauche des pages, avec le numéro de page de chaque titre et la section en cours en
-  bleu. Un petit bouton le replie en une icône ≡, qui le rouvre d'un tap ; l'appareil retient le choix.
-- **Au téléphone.** Le bouton « Sommaire », sur la ligne du titre, ouvre la liste sous la barre ; elle se
-  referme dès qu'on a choisi un titre.
-- **On arrive sur le titre, plus en haut de la page.** Un signet ou un renvoi interne du PDF mène
-  exactement là où il pointe. Les sauts de la visionneuse (sommaire, liens, occurrences d'une recherche)
-  arrivaient aussi environ 60 px trop bas : corrigé.
-- **Barre d'outils du téléphone.** Avec un sommaire, elle débordait (« Largeur » coupé, bouton de
-  téléchargement hors de l'écran) ; « Sommaire » remonte sur la ligne du titre et tout tient.

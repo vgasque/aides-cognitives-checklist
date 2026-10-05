@@ -568,11 +568,8 @@
   html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:40px;padding:0;justify-content:center}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
-  html.zw430 header.bar.home .hdr-acts{gap:6px}   /* A375 : trois boutons de 40 (36 avant) — la réserve de l'en-tête retombe ≥ 8 px */
-  html.zw560 header.bar.home .hdr-acts{gap:6px}   /* A375 : « + Créer » porte son mot à ce palier : 4 px rendus à la réserve */
   html.zw400:not(.zw360) body.view-home header.bar.home :is(.hdr-new,.bar-acct){width:36px;height:36px}   /* A375 : sous 400 px, trois boutons de 40 ne tiennent plus avec la marque — palier de compression, 36 + halo 4 = 44 */
   html.zw400:not(.zw360) body.view-home header.bar.home .hdr-hist{height:36px}
-  html.zw400 header.bar.home .hdr-acts{gap:4px}   /* A375 : réserve ≥ 8 px à 360-399 */
   /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
      se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
   html.zw430 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
@@ -590,7 +587,6 @@
     header.bar:not(.home) .id-row{gap:4px}
   }
   html.zw360 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
-  html.zw360 header.bar.home .hdr-acts{gap:4px}
   html.zw360 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
   html.zw360 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   .id-row .brand{flex:0 1 auto}
@@ -838,13 +834,6 @@
     body.view-home .brand .brand-name{font-size:21px}
   }
   html.zw480 body.view-home .brand .brand-name{font-size:17.5px}   /* E2 : sous 480 px effectifs la marque à 21 ne laissait aucune réserve (−2/−4 px sous Linux) */
-  @media (min-width:390px) and (max-width:779.98px){
-    body.view-home .hdr-new{width:auto;padding:0 12px}
-    body.view-home .hdr-new .hdr-new-lbl{display:inline}
-    /* v5.30 : avec « Sessions » à côté, le mot « Créer » ne tient plus sur la ligne sous 430 px effectifs. */
-    html.zw430 body.view-home .hdr-new .hdr-new-lbl{display:none}
-    html.zw430 body.view-home .hdr-new{width:40px;padding:0}
-  }
 
   /* La session en cours (maquette) : registre CONFIRMATION — le SEUL aplat teinté de l'accueil,
      c'est sa rareté qui la fait voir. En sombre, l'aplat ne borne plus rien (A222) : périmètre --ok. */
@@ -1671,9 +1660,7 @@
   }
   @media (max-width:399.98px){
     header.bar.home .id-row{column-gap:4px}
-    header.bar.home .hdr-acts{gap:4px}
-    /* L'écart tombe à 4 px : les halos horizontaux tombent à 2, sinon deux cibles voisines se
-       recouvrent (cf. la note du palier 360). Cible 36 × 44, au-dessus du plancher hors crise. */
+    /* Cible 36 × 44 par halo ; l'écart de 14 px (A461) tient les halos voisins séparés. */
     header.bar.home :is(.hdr-new,.bar-acct)::after{inset:-4px}   /* A375 : à ce palier les boutons redescendent à 36 (compression) — halo 4 → 44 */
     header.bar.home .hdr-hist{width:32px}   /* l'historique n'est pas une cible mesurée à 44 de large : il rend 4 px de réserve à la rangée */
     header.bar.home .hdr-hist::after{inset:-4px}
@@ -1686,7 +1673,6 @@
     header.bar.home .brand-logo{margin-right:0}
   }
   @media (max-width:359.98px){
-    header.bar.home .hdr-acts{gap:2px}
     header.bar.home :is(.hdr-new,.bar-acct){width:32px;height:32px}
     /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : halo 6 px, cible 44 au pixel près — règle propre,
        (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre (dix-septième piège de cascade). ⚠ Et
@@ -1696,6 +1682,17 @@
     /* Sous 360 px, l'avatar descend à 32 px de dessin comme « Créer » : 6 px de halo rendent la
        cible de 44 au pixel près. */
     header.bar.home .bar-acct::after{inset:-6px}
+  }
+  /* A461 : sous 780, chaque pastille de l'accueil porte son mot DESSOUS (Sessions · Créer · Moi) —
+     la colonne large les nomme déjà. Hors flux (`top:100%`), la cible ne change pas ; l'en-tête
+     gagne 16 px, l'écart 14 empêche deux mots de se toucher (« Sessions » déborde de 11 px). */
+  .hb-lbl{display:none}
+  @media (max-width:779.98px){
+    header.bar.home{padding-bottom:16px}
+    header.bar.home .hdr-acts{gap:14px}
+    @media (max-width:399.98px){header.bar.home .hdr-acts{gap:12px}}   /* réserve de la marque ≥ 8 px à 360 */
+    header.bar.home .hdr-new{width:40px;padding:0;justify-content:center}
+    header.bar.home :is(.hb-lbl,.hdr-new .hdr-new-lbl){display:block;position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);font-size:var(--t-cap);font-weight:600;line-height:1.2;color:var(--ink-2);white-space:nowrap}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */

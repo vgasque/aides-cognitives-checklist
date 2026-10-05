@@ -1952,7 +1952,7 @@ await sec('T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignen
     const paras=m.querySelectorAll('p').length;
     const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');
     if(b)b.click(); await w(300);
-    const cta=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));
+    const cta=[...document.querySelectorAll('button')].find(x=>x.id==='seedAdd');
     const av=cta?cta.getBoundingClientRect():null;
     if(cta)cta.click(); await w(900);
     const ban=document.getElementById('sysBanner');
@@ -3769,7 +3769,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
         noeuds:ff?ff.querySelectorAll('svg .fn, svg g').length:0};
       document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(350);
       /* TABLEAU : une feuille, donc la page reste dessous — et l'on en SORT. */
-      const bt=[...document.querySelectorAll('.pre-link')].find(x=>/Tableau/.test(x.textContent));
+      const bt=document.querySelector('.pre-link[data-prelink="page"]');   // A461 : « Tableau » s'appelle « Page »
       if(bt)bt.click();await w(600);
       const pm=document.getElementById('planModal');
       const tab={ouvert:!!(pm&&pm.classList.contains('on')),

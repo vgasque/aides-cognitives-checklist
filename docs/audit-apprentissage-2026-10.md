@@ -444,6 +444,9 @@ dépliée, qui est déjà un parcours lisible à 390 px. La Page A4 resterait ac
 
 ### Moyen terme (≤ 2 jours chacun)
 
+> **Suivi (v5.46.0, A461)** : les points 11, 12 et 13 sont faits ([`lot-v5-46.md`](decisions/lot-v5-46.md)) — sauf le retrait
+> du ◑ des aides, écarté : c'est une décision explicite de l'auteur (v5.6).
+
 11. **Lexique fermé** (aide / protocole) appliqué aux chaînes visibles, avec un garde-fou
     `check-lexique.mjs` qui refuse « fiche » dans une chaîne affichée.
 12. **Un nom et une icône par vue** (§ 2.2).
