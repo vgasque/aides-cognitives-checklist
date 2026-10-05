@@ -1685,10 +1685,10 @@
   }
   /* A461 : sous 780, chaque pastille de l'accueil porte son mot DESSOUS (Sessions · Créer · Moi) —
      la colonne large les nomme déjà. Hors flux (`top:100%`), la cible ne change pas ; l'en-tête
-     gagne 16 px, l'écart 14 empêche deux mots de se toucher (« Sessions » déborde de 11 px). */
+     gagne 24 px, l'écart 14 empêche deux mots de se toucher (« Sessions » déborde de 11 px). */
   .hb-lbl{display:none}
   @media (max-width:779.98px){
-    header.bar.home{padding-bottom:16px}
+    header.bar.home{padding-bottom:24px}   /* mot + 11 px d'air au moins avant le contenu (bandeau, carte, liste) */
     header.bar.home .hdr-acts{gap:14px}
     @media (max-width:399.98px){header.bar.home .hdr-acts{gap:12px}}   /* réserve de la marque ≥ 8 px à 360 */
     header.bar.home .hdr-new{width:40px;padding:0;justify-content:center}

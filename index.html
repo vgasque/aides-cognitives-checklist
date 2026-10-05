@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ENNsiK+W8O/257JRkLagb6sAjfO/AjXvW6VxqAMyIBE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sLEgLIYNdWjyGnPqkZPn7mPwYzTD7s3CnyuPI4LTaBk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2041,10 +2041,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   /* A461 : sous 780, chaque pastille de l'accueil porte son mot DESSOUS (Sessions · Créer · Moi) —
      la colonne large les nomme déjà. Hors flux (`top:100%`), la cible ne change pas ; l'en-tête
-     gagne 16 px, l'écart 14 empêche deux mots de se toucher (« Sessions » déborde de 11 px). */
+     gagne 24 px, l'écart 14 empêche deux mots de se toucher (« Sessions » déborde de 11 px). */
   .hb-lbl{display:none}
   @media (max-width:779.98px){
-    header.bar.home{padding-bottom:16px}
+    header.bar.home{padding-bottom:24px}   /* mot + 11 px d'air au moins avant le contenu (bandeau, carte, liste) */
     header.bar.home .hdr-acts{gap:14px}
     @media (max-width:399.98px){header.bar.home .hdr-acts{gap:12px}}   /* réserve de la marque ≥ 8 px à 360 */
     header.bar.home .hdr-new{width:40px;padding:0;justify-content:center}
@@ -8950,7 +8950,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.46.0';
+const APP_VERSION='5.46.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

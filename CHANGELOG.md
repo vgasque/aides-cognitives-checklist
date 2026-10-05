@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.46.1] — 2026-10-05
+- **Accueil au téléphone** : plus d'air sous « Sessions · Créer · Moi ». L'en-tête gagne 8 px en bas. Avant, ces mots
+  étaient à 3 px de la carte « Besoin d'exemples » et à 5 px du bandeau ; ils en sont maintenant à 11 et 13 px, et à
+  19 px de la liste (A461).
+
 ## [5.46.0] — 2026-10-05
 Deuxième lot de l'audit de prise en main : un seul vocabulaire, un nom par vue, des boutons qui se nomment (A461, doctrine `docs/decisions/lot-v5-46.md`).
 - **Un seul vocabulaire.** L'app dit « aide » (le parcours à cocher) et « protocole » (le texte à lire), plus jamais
@@ -332,13 +337,3 @@ Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/
   la grammaire des fenêtres se mesure après l'animation d'ouverture ; le rejeu de « continuer seul »
   porte enfin la même heure que l'original. Tous tiennent à attentes divisées par deux et triplées.
 - Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.39.1] — 2026-09-28
-Deux correctifs signalés à l'usage (A419, doctrine `docs/decisions/lot-v5-39.md`).
-- **Connexion.** Appuyer sur Entrée (ou « Envoyer » au clavier du téléphone) dans le champ e-mail envoie
-  maintenant le code ; il fallait jusqu'ici toucher le bouton « Recevoir le code ».
-- **Filtres de catégorie sur « Toutes ».** Choisir une catégorie (colonne de gauche ou feuille
-  « Affichage ») pouvait montrer les aides d'une AUTRE catégorie, et allumer la mauvaise rangée. Cela
-  arrivait quand une catégorie avait été renommée dans une bibliothèque alors qu'une autre bibliothèque
-  gardait l'ancien nom. Le filtre retient désormais le nom de la catégorie choisie, et suit un
-  renommage ou une suppression.

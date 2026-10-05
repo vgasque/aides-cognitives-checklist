@@ -59,7 +59,8 @@ d'insertion de tableau Markdown, qui est un autre objet.
 Sous 780 px, l'en-tête d'accueil n'avait que trois icônes (horloge, +, silhouette) alors que la colonne large écrit
 « Aides · Sessions · Moi ». Chaque pastille porte désormais son mot DESSOUS (`.hb-lbl`, ou `.hdr-new-lbl` pour
 « Créer »), au palier `--t-cap`.
-- **Disposition** : le mot est hors flux (`top:100%`), donc la cible ne change pas. L'en-tête gagne 16 px.
+- **Disposition** : le mot est hors flux (`top:100%`), donc la cible ne change pas. L'en-tête gagne 24 px
+  (16 en v5.46.0 : le mot restait à 3 px d'une carte suivante — 11 px au moins depuis v5.46.1).
 - **Écart** : 14 px entre les pastilles (12 sous 400 px). « Sessions » déborde de 8 à 11 px de sa pastille.
 - **Mesures** : libellés séparés d'au moins 9 px, et marque jamais coupée ni touchée, de 320 à 700 px et à 130 %.
 - **Purge** : le palier 390 (« + Créer » en ligne, v5.18) et cinq règles d'écart A375 de l'en-tête d'accueil sont
