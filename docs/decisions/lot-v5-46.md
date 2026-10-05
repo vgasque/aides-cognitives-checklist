@@ -70,3 +70,28 @@ Sous 780 px, l'en-tête d'accueil n'avait que trois icônes (horloge, +, silhoue
 **Non fait, par décision antérieure de l'auteur** : le bouton ◑ (thème) reste dans l'en-tête des aides et des
 protocoles. C'est la décision v5.6 (« il faut le laisser visible en mode lecture/crise… c'est très important »).
 L'audit le proposait au retrait ; il ne connaissait pas cette décision.
+
+## A462 (v5.46.2) — le compteur de la capsule dit son nom entier
+
+La tuile du premier compteur, dans la capsule de session au téléphone, montrait « CHOCS DE… ». Le nom subissait deux
+coupes : l'abrégé d'office (A403, budget de 10 caractères → « Chocs déliv. »), puis l'ellipse CSS d'un libellé en
+capitales dans 84 px.
+
+**Décision de l'auteur, sur captures réelles (dessin « B »).** La tuile se lit EN LIGNE : la valeur d'abord, puis le
+nom ENTIER sur deux lignes au plus, en casse de phrase, au palier `--t-meta`, dans 72 px au plus. Si l'auteur a posé un
+nom court (`short`), c'est lui qui s'affiche. Le nom entier reste dans `title`.
+
+**Mesures**, de 320 à 430 px, à 100 et 130 %, valeur à un puis deux chiffres :
+- jamais de débordement de la capsule ;
+- nom entier dès 360 px ;
+- « délivr… » seulement à 320 px et à 130 %, là où la place manque vraiment.
+
+**Purge (règle 14).** L'abrégé d'office des compteurs part avec sa cause : `cnShort`, `SHORT_CN` et le placeholder
+« Chocs déliv. » de l'éditeur. Le champ « Nom court » d'un compteur montre désormais le nom entier comme valeur par
+défaut (« facultatif — nom entier sinon »). Minuteurs et complications gardent leur abrégé (A403).
+
+**Formes écartées**, sur la même planche :
+- « A » — casse de phrase en 12 px : encore coupée à 360 px ;
+- « C » — premier mot seul : ambigu dès que deux compteurs partagent leur premier mot ;
+- le mélange B/C, refusé par l'auteur : une tuile dont le nom change de forme selon la place n'a pas de logique d'UI
+  stable.

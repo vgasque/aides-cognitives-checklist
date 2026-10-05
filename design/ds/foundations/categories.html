@@ -1490,6 +1490,10 @@
   #cbTimers .seg.glb{flex:none;background:none;border-radius:0;border-right:1px solid var(--sys-line);padding:0 12px 0 8px;min-width:92px}
   #cbTimers .seg-t{font-size:var(--t-step);letter-spacing:0;line-height:1}
   #cbTimers .seg.glb .seg-t{font-size:var(--t-val)}
+  /* A462 : tuile de compteur en ligne — la valeur d'abord, le nom entier à droite sur deux lignes au plus (casse de phrase, 12). */
+  #cbTimers .seg.cnt{flex-direction:row;align-items:center;gap:8px}
+  #cbTimers .seg.cnt .seg-t{order:-1}
+  #cbTimers .seg.cnt .seg-l{max-width:72px;font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   #cbTimers .seg-bar{display:block;width:100%;min-width:0;height:3px;border-radius:3px;background:var(--sys-line);overflow:hidden}
   #cbTimers .seg-fill{display:block;height:100%;width:100%;background:var(--sys-ink-2);transform-origin:left;transition:transform 1s linear}
   #cbTimers .seg.due{padding:0 10px}

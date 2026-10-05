@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sLEgLIYNdWjyGnPqkZPn7mPwYzTD7s3CnyuPI4LTaBk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-5iRVfqgxkcXPNKlpSCLgeS3fpdL3Ej4nuaF3dZy0mvg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1846,6 +1846,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg.glb{flex:none;background:none;border-radius:0;border-right:1px solid var(--sys-line);padding:0 12px 0 8px;min-width:92px}
   #cbTimers .seg-t{font-size:var(--t-step);letter-spacing:0;line-height:1}
   #cbTimers .seg.glb .seg-t{font-size:var(--t-val)}
+  /* A462 : tuile de compteur en ligne — la valeur d'abord, le nom entier à droite sur deux lignes au plus (casse de phrase, 12). */
+  #cbTimers .seg.cnt{flex-direction:row;align-items:center;gap:8px}
+  #cbTimers .seg.cnt .seg-t{order:-1}
+  #cbTimers .seg.cnt .seg-l{max-width:72px;font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   #cbTimers .seg-bar{display:block;width:100%;min-width:0;height:3px;border-radius:3px;background:var(--sys-line);overflow:hidden}
   #cbTimers .seg-fill{display:block;height:100%;width:100%;background:var(--sys-ink-2);transform-origin:left;transition:transform 1s linear}
   #cbTimers .seg.due{padding:0 10px}
@@ -8950,7 +8954,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.46.1';
+const APP_VERSION='5.46.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11940,7 +11944,7 @@ function flowPlan(f){
    reste le dernier filet des écrans les plus étroits. */
 const shortField=x=>{const v=sstr(x&&x.short,24).trim();return v?{short:v}:{};};
 const SHORT_STOP=new Set(['après','avant','de','du','des','la','le','les','en','pour','sur','avec','et','au','aux','à','par','d','l']);
-const SHORT_TM=14,SHORT_CN=10,SHORT_CX=20;
+const SHORT_TM=14,SHORT_CX=20;   // compteurs : nom entier sur deux lignes dans la tuile (A462)
 function shortCut(w){const V='aeiouyàâäéèêëîïôöùûü';let i=4;while(i<w.length-2&&V.includes(w[i].toLowerCase()))i++;return w.slice(0,i+1)+'.';}
 function autoShort(name,max){const full=String(name||'').replace(/\s+/g,' ').trim();
   let s=full.replace(/\s*\([^()]*\)\s*$/,'').trim()||full;if(s.length<=max)return s;
@@ -11953,7 +11957,6 @@ function autoShort(name,max){const full=String(name||'').replace(/\s+/g,' ').tri
 function autoShortHead(name,max){const ws=String(name||'').replace(/\s+/g,' ').trim().split(' ');
   while(ws.length>1&&ws.join(' ').length>max)ws.pop();return ws.join(' ');}
 const tmShort=t=>(t&&t.short)||autoShort((t&&t.label)||'',SHORT_TM);
-const cnShort=c=>(c&&c.short)||autoShort((c&&c.label)||'',SHORT_CN);
 const cxShort=c=>(c&&c.short)||autoShortHead(cxKeyLabel(stripBold((c&&c.label)||'')),SHORT_CX);
 function cxAll(f){if(!f||!Array.isArray(f.excursions))return [];
   const ids=new Set(((f.blocks)||[]).map(b=>b&&b.id).filter(Boolean));
@@ -13396,7 +13399,10 @@ function updateRtStrip(now){
      (libellé + valeur, `data-cntval` repeint par setCounterVal) ; le rappel ne compte que ce qui
      n'est pas montré. Sacrifié avant tout minuteur (kc = 0), jamais l'inverse. */
   const cnts=(!wideRail&&started&&crisis)?((Runtime.fiche&&Runtime.fiche.counters)||[]).filter(c=>c&&c.id).slice(0,1):[];
-  const cntOf=kc=>cnts.slice(0,kc).map(c=>'<span class="seg cnt"><span class="seg-l" title="'+esc(c.label||'')+'">'+esc(cnShort(c)||'Compteur')+'</span><span class="seg-t" data-cntval="'+esc(c.id)+'">'+esc(String((Runtime.counters||{})[c.id]||0))+'</span></span>').join('');
+  /* A462 : la tuile dit le nom ENTIER (ou le nom court posé par l'auteur) sur deux lignes, valeur devant —
+     l'abrégé d'office puis l'ellipse donnaient « CHOCS DE… ». */
+  const cnTile=c=>(c.short||c.label||'Compteur');
+  const cntOf=kc=>cnts.slice(0,kc).map(c=>'<span class="seg cnt"><span class="seg-l" title="'+esc(c.label||'')+'">'+esc(cnTile(c))+'</span><span class="seg-t" data-cntval="'+esc(c.id)+'">'+esc(String((Runtime.counters||{})[c.id]||0))+'</span></span>').join('');
   const chevLblOf=(n,kc)=>{const ct=Math.max(0,decl.t-n),cc=Math.max(0,decl.c-(kc||0));
     return (!wideRail&&started&&(ct||cc))
       ?[ct?ct+' minuteur'+(ct>1?'s':''):'',cc?cc+' compteur'+(cc>1?'s':''):'',
@@ -13423,7 +13429,7 @@ function updateRtStrip(now){
     +'|'+want.map(x=>tmShort(x.t).length).join(',')+'|'+globLbl.length
     +'|'+want.map(x=>x.due?1:0).join('')   // l'échéance AJOUTE le glyphe △ : c'est une largeur
     +'|'+chevLbl.length+'|'+decl.t+'/'+decl.c    // … le rappel, et les comptes dont il dérive
-    +'|'+cnts.map(c=>String((Runtime.counters||{})[c.id]||0).length+':'+cnShort(c).length).join(',')
+    +'|'+cnts.map(c=>String((Runtime.counters||{})[c.id]||0).length+':'+cnTile(c).length).join(',')
     /* ⚠ L'ÉTAT DE CHARGEMENT DES POLICES EST UN TERME DE LA CLÉ, et c'était la cause EXACTE de
        l'intermittence mesurée : une largeur mesurée avec la fonte de repli n'est pas celle qu'on
        aura. Sans ce terme, la première mesure — souvent faite avant que Manrope ne s'applique —
@@ -24615,7 +24621,7 @@ function cxEditorRow(c,i,f,n){
    dit QUOI a sonné, jamais QUOI FAIRE : poser l'action au pied de l'alerte est la règle ECAM, et
    c'est l'auteur qui la connaît, pas l'application. */
 // « Nom court » du minuteur et du compteur : une ligne discrète dit qu'il est facultatif et où il paraît.
-const tmeShortRow=(attr,v,ph)=>`<div class="tme-row"><span class="tme-l">Nom court</span><input type="text" ${attr} value="${esc(v||'')}" maxlength="24" placeholder="${esc(ph)}" aria-label="Nom court sur la capsule (facultatif — abrégé d’office sinon)"></div>
+const tmeShortRow=(attr,v,ph,sinon)=>`<div class="tme-row"><span class="tme-l">Nom court</span><input type="text" ${attr} value="${esc(v||'')}" maxlength="24" placeholder="${esc(ph)}" aria-label="Nom court sur la capsule (facultatif — ${sinon||'abrégé d’office sinon'})"></div>
     <p class="tme-h tme-sh">Facultatif — le nom sur la capsule en session ; vide, il est abrégé d’office.</p>`;
 function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
   return `<div class="tmedit${edGrabClsL('timers',i)}" data-ti="${i}">
@@ -24643,7 +24649,7 @@ function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type=
      classes — pas une ligne de CSS nouvelle, et deux objets voisins qui se ressemblent enfin. */
   return `<div class="tmedit${edGrabClsL('counters',i)}" data-ci="${i}">
     <div class="tme-top"><span class="blk-type tm-kind">Compteur</span><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur">${edGrabHandleL('counters',i,n||0,'le compteur')}<button type="button" class="ed-ic del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>
-    ${tmeShortRow('data-cshort',c.short,autoShort(c.label,SHORT_CN))}
+    ${tmeShortRow('data-cshort',c.short,c.label||'',"nom entier sinon")}
     <div class="tme-row"><span class="tme-l">Pas</span><input type="number" data-cstep value="${c.step||1}" style="width:64px" aria-label="Pas du compteur"><span class="tme-l" style="min-width:56px">Départ</span><input type="number" data-cstart value="${c.start||0}" style="width:64px" aria-label="Valeur de départ du compteur"></div>
     ${ivs.length?`<div class="tme-row"><span class="tme-l">Le ＋ relance</span><select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>« ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select></div>`:''}
     ${cnUsesHtml(c,timers)}
@@ -24972,7 +24978,7 @@ function bindEditorEvents(f){
     const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>{t.autoloop=e.target.checked;edRowRedo('.tmedit[data-ti="'+row.dataset.ti+'"]','[data-tloop]');});
     const du=row.querySelector('[data-tdue]');if(du)du.addEventListener('input',e=>t.onDue=e.target.value);   // K7
     const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();};});
-  main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]'),sh=row.querySelector('[data-cshort]');if(lab)lab.addEventListener('input',e=>{c.label=e.target.value;if(sh)sh.placeholder=autoShort(c.label,SHORT_CN);});
+  main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]'),sh=row.querySelector('[data-cshort]');if(lab)lab.addEventListener('input',e=>{c.label=e.target.value;if(sh)sh.placeholder=c.label;});
     if(sh)sh.addEventListener('input',e=>{const v=e.target.value.trim();if(v)c.short=v;else delete c.short;});
     const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
     const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();};

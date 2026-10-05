@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.46.2] — 2026-10-05
+- **Le compteur affiché dans la capsule de session dit son nom en entier.** Au téléphone, la tuile montrait
+  « CHOCS DE… ». Elle se lit maintenant en ligne : la valeur d'abord, puis le nom complet sur deux lignes
+  (« 0 Chocs délivrés »). Si vous avez donné un nom court au compteur, c'est lui qui s'affiche. Le nom n'est coupé
+  qu'à 320 px ou en très grand texte (A462).
+- Éditeur : le champ « Nom court » d'un compteur propose le nom entier comme valeur par défaut, et non plus un
+  abrégé.
+
 ## [5.46.1] — 2026-10-05
 - **Accueil au téléphone** : plus d'air sous « Sessions · Créer · Moi ». L'en-tête gagne 8 px en bas. Avant, ces mots
   étaient à 3 px de la carte « Besoin d'exemples » et à 5 px du bandeau ; ils en sont maintenant à 11 et 13 px, et à
@@ -316,24 +324,4 @@ Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/
   témoin qui prouve que l'invité a bien lu le fil pendant la fenêtre.
 - Vérifié capable d'échouer : la garde d'A387 neutralisée chez l'hôte, le contrôle rougit sur les deux
   moteurs et nomme ce qui fuit (coche, décoche, compteur, minuteur, navigation, démarrage).
-- Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.39.2] — 2026-09-28
-Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
-- **Audit du temps des audits, mesuré.** Toutes les attentes fixes des 22 harnais ont été rejouées
-  réduites à deux images, divisées par deux, puis triplées, et les 2 619 contrôles comparés un à un :
-  même divisées par deux, 31 contrôles changent. Ces attentes sont donc presque toutes utiles, et aucune
-  n'a été raccourcie en masse.
-- **pdfsearch : 66 s → 16 s.** Trois attentes testaient `window.attIx`, qui n'existe pas (`attIx` est une
-  constante du script), et payaient donc leur plafond entier (60 s) à chaque passe ; l'index est prêt en
-  1 à 85 ms. La fenêtre de 10 s dont profitait par accident le témoin « pdf.js pas chargé au démarrage »
-  est gardée, explicitement.
-- **Tranches équilibrées par durée.** Le lanceur enregistre la durée de chaque section et de chaque
-  tâche, et répartit les tranches par durée au lieu du modulo : doctrine 95-168 s → 119-120 s par
-  tranche, partage 41-100 s → 58-67 s ; poids d'ordonnancement re-mesurés. Passe complète ~295 → 279 s,
-  verdict identique sur les 2 619 contrôles. Sans mesure (CI), rien ne change.
-- **Fiabilité de quatre contrôles de partage**, qui dépendaient de la vitesse du harnais : le compteur
-  d'A387 est attendu avec la coche ; « le billet mort ne traîne pas » ne dépend plus du vrai serveur ;
-  la grammaire des fenêtres se mesure après l'animation d'ouverture ; le rejeu de « continuer seul »
-  porte enfin la même heure que l'original. Tous tiennent à attentes divisées par deux et triplées.
 - Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
