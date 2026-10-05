@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.48.0] — 2026-10-05
+L'exercice guidé (A467, doctrine `docs/decisions/lot-v5-48.md`), dernier point de l'audit de prise en main.
+- **Apprendre avec une aide d'exemple, geste par geste.** Sur l'ACR et l'anaphylaxie d'exemple, une carte propose
+  « Commencer le guide » ou « Ne plus proposer ». Le guide lance un exercice et pose une bulle sur la vraie commande
+  de l'écran : démarrer, cocher une étape, lire la capsule, passer au bloc suivant et répondre à la question, ouvrir la
+  revue des causes réversibles, ouvrir une complication puis « Reprendre », horodater, terminer en maintenant 1,2 s.
+  La bulle de la complication explique aussi le jalon (« … quand Chocs délivrés atteint 3 »).
+- On avance en faisant le geste ; « Suivant » quand il n'y a qu'à regarder ; « Passer » et « Quitter le guide » à tout
+  moment, l'exercice continuant seul. Le reste de l'écran s'estompe légèrement et reste utilisable. À la fin, une carte
+  récapitule les gestes et propose de refaire le guide.
+- Le guide n'existe qu'en exercice : jamais pendant une session réelle, rien n'est enregistré comme soin. On le
+  relance par le menu ⋯ de l'aide d'exemple ou par Moi › Prendre en main › « Lancer l'exercice guidé ».
+- **Le guide et « Prendre en main » suivent l'app** : leurs mots et leurs cibles viennent de l'écran et de l'aide.
+  Deux nouveaux garde-fous les vérifient à chaque changement : `check-guide` (libellés cités, commandes visées) et
+  le harnais `audit-guide` (déroulé complet à 390, 1280 et 360 px à 130 %).
+
 ## [5.47.0] — 2026-10-05
 Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/lot-v5-47.md`).
 - **« Prendre en main », dans Moi** : dix gestes expliqués (trouver, démarrer, cocher, chrono et minuteurs,
@@ -317,19 +333,3 @@ Signalé à l'usage (A422, doctrine `docs/decisions/lot-v5-39.md`).
   Même règle en liste compacte et au bureau.
 - Vérifié : check complet, 1280 tests sous Chromium, audit complet (seuls restent les deux rouges
   d'environnement déjà présents avant ce changement).
-
-## [5.39.4] — 2026-09-29
-Deux retours d'usage (A421, doctrine `docs/decisions/lot-v5-39.md`).
-- **« Afficher » Aides / Protocoles filtre enfin.** Ouverte par le bouton « Affichage » de la liste, la
-  feuille changeait bien de type, puis repeignait aussitôt la liste d'ouverture (« Tout ») par-dessus :
-  le choix semblait sans effet. Même chose pour un tri, un regroupement ou une catégorie choisis après
-  avoir changé de type. La feuille re-rend désormais la liste du type choisi, quel que soit le bouton qui
-  l'a ouverte. Le témoin d'A419 ouvrait la feuille par le bouton rond, le seul chemin sans défaut : un
-  second témoin passe par « Affichage », rouge avant le correctif, vert après.
-- **L'anneau autour de « Démarrer la session » est plus fluide.** Il animait une ombre, repeinte à chaque
-  image pendant l'affichage d'une fiche neuve, d'où les saccades, sur iPhone surtout. C'est maintenant un
-  trait de 2 px qui s'éloigne de la capsule par transformation et s'efface en fondu, deux propriétés que
-  le processeur graphique compose sans rien repeindre. Il apparaît en fondu au lieu de surgir à pleine
-  encre, et s'éloigne d'un seul mouvement, sans temps mort à chaque anneau. Mêmes trois anneaux, même
-  départ (800 ms), fini à 4,7 s ; toujours rien sous « réduire les animations ».
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet.

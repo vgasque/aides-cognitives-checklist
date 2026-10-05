@@ -4841,6 +4841,46 @@
   .gd-gl{margin:0;padding:0 4px 8px}
   .gd-gl dt{margin-top:12px;font-size:var(--t-body);font-weight:800;color:var(--ink)}
   .gd-gl dd{margin:2px 0 0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  /* A467 — exercice guidé : carte d'entrée (aide d'exemple, avant la session) et bulle sur la commande visée.
+     Matière système pour la bulle (celle du quai et des notices), tokens seulement : elle suit le thème. */
+  .gd-card{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 8px 12px 12px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work)}
+  .gd-cx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .gd-cx b{font-size:var(--t-item);font-weight:800;color:var(--ink)}
+  .gd-cx span{font-size:var(--t-meta);color:var(--ink-2)}
+  .gd-ci{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);font-weight:800}
+  .gd-card .btn{flex:none;min-height:44px}   /* L 44 : l’écran d’entrée est mesuré comme le mode crise */
+  .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
+  html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
+  html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
+  .gd-tip[hidden]{display:none}
+  .gd-arr{position:absolute;width:14px;height:14px;background:var(--sys);transform:rotate(45deg)}
+  .gd-arr[hidden]{display:none}
+  .gd-tip.up .gd-arr{top:-7px}
+  .gd-tip.down .gd-arr{bottom:-7px}
+  .gd-k{margin:0 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.04em;color:var(--sys-ink-2)}
+  .gd-t{margin:0 0 4px;font-size:var(--t-item);font-weight:800}
+  .gd-x{margin:0;font-size:var(--t-body);line-height:1.5}
+  .gd-act{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+  .gd-act button{min-height:44px;padding:0 16px;border-radius:var(--r-3);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
+  .gd-l{background:none;border:0;color:var(--sys-ink);padding:0 4px!important;text-decoration:underline;text-underline-offset:3px}
+  .gd-g{background:none;border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .gd-b{background:var(--sys-ink);border:0;color:var(--sys)}
+  .gd-tip button:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
+  .gd-sum{list-style:none;margin:8px 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;font-size:var(--t-body)}
+  .gd-sum li{display:flex;align-items:center;gap:8px}
+  .gd-sum li.ok svg{color:var(--ok-sys)}
+  .gd-sum i{font-style:normal;color:var(--sys-ink-2)}
+  .gd-no{width:14px;text-align:center;color:var(--sys-ink-2)}
+  /* La cible : un anneau ; le reste s'estompe UN PEU (décision de l'auteur) et reste utilisable. */
+  .gd-tgt{outline:3px solid var(--act)!important;outline-offset:3px}
+  #sessionDock .gd-tgt{outline-color:var(--sys-ink)!important}   /* dans le quai sombre : l'encre du système, jamais un registre */
+  html.gd-dim #main .ov-block:not(.gd-tgt):not(:has(.gd-tgt)),
+  html.gd-dim #main ol.steps:has(.gd-tgt)>li:not(.gd-tgt):not(:has(.gd-tgt)),
+  html.gd-dim #main .ov-block:has(ol.steps .gd-tgt) :is(.flow-ctrl,.stp-legend),
+  html.gd-dim #main :is(.read-head,.read-meta,.pre-cards,.care-flat):not(:has(.gd-tgt)),
+  html.gd-dim #sessionDock .sd-key:not(.gd-tgt),
+  html.gd-dim #cbTimers:not(.gd-tgt){opacity:.7;transition:opacity .2s}
   .sst-ex{margin:-4px 0 8px;font-size:var(--t-meta);line-height:1.4;color:var(--ink-2)}   /* A465 : un exemple sous chaque section des réglages */
   .sst-note.ko{color:var(--warn)}
   .sst-note.sst-sep{margin-top:20px}

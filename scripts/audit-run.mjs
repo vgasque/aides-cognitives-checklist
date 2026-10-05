@@ -107,6 +107,7 @@ const HARNAIS = [
   { nom: 'audit-k5',            poids: 67 },
   { nom: 'audit-pdfsearch',     poids: 16 },
   { nom: 'audit-exercice',      poids: 12 },
+  { nom: 'audit-guide',         poids: 25 },
   { nom: 'audit-complications', poids: 11 },
   { nom: 'audit-qr',            poids: 11, deps: ['scripts/qr-decode.swift'] },
   { nom: 'audit-budget',        poids: 11 },

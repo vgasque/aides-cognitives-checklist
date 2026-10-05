@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-X/NjvwqRyzf9dR+ubEo8HTT0OIs48zOBqw8t7j3GnDs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-1C1OVdOUtgX5MS13Cyj1IMV4Z41bPFjkJET+IQUnZDA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5197,6 +5197,46 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .gd-gl{margin:0;padding:0 4px 8px}
   .gd-gl dt{margin-top:12px;font-size:var(--t-body);font-weight:800;color:var(--ink)}
   .gd-gl dd{margin:2px 0 0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  /* A467 — exercice guidé : carte d'entrée (aide d'exemple, avant la session) et bulle sur la commande visée.
+     Matière système pour la bulle (celle du quai et des notices), tokens seulement : elle suit le thème. */
+  .gd-card{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 8px 12px 12px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work)}
+  .gd-cx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .gd-cx b{font-size:var(--t-item);font-weight:800;color:var(--ink)}
+  .gd-cx span{font-size:var(--t-meta);color:var(--ink-2)}
+  .gd-ci{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);font-weight:800}
+  .gd-card .btn{flex:none;min-height:44px}   /* L 44 : l’écran d’entrée est mesuré comme le mode crise */
+  .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
+  html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
+  html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
+  .gd-tip[hidden]{display:none}
+  .gd-arr{position:absolute;width:14px;height:14px;background:var(--sys);transform:rotate(45deg)}
+  .gd-arr[hidden]{display:none}
+  .gd-tip.up .gd-arr{top:-7px}
+  .gd-tip.down .gd-arr{bottom:-7px}
+  .gd-k{margin:0 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.04em;color:var(--sys-ink-2)}
+  .gd-t{margin:0 0 4px;font-size:var(--t-item);font-weight:800}
+  .gd-x{margin:0;font-size:var(--t-body);line-height:1.5}
+  .gd-act{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+  .gd-act button{min-height:44px;padding:0 16px;border-radius:var(--r-3);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
+  .gd-l{background:none;border:0;color:var(--sys-ink);padding:0 4px!important;text-decoration:underline;text-underline-offset:3px}
+  .gd-g{background:none;border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .gd-b{background:var(--sys-ink);border:0;color:var(--sys)}
+  .gd-tip button:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
+  .gd-sum{list-style:none;margin:8px 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;font-size:var(--t-body)}
+  .gd-sum li{display:flex;align-items:center;gap:8px}
+  .gd-sum li.ok svg{color:var(--ok-sys)}
+  .gd-sum i{font-style:normal;color:var(--sys-ink-2)}
+  .gd-no{width:14px;text-align:center;color:var(--sys-ink-2)}
+  /* La cible : un anneau ; le reste s'estompe UN PEU (décision de l'auteur) et reste utilisable. */
+  .gd-tgt{outline:3px solid var(--act)!important;outline-offset:3px}
+  #sessionDock .gd-tgt{outline-color:var(--sys-ink)!important}   /* dans le quai sombre : l'encre du système, jamais un registre */
+  html.gd-dim #main .ov-block:not(.gd-tgt):not(:has(.gd-tgt)),
+  html.gd-dim #main ol.steps:has(.gd-tgt)>li:not(.gd-tgt):not(:has(.gd-tgt)),
+  html.gd-dim #main .ov-block:has(ol.steps .gd-tgt) :is(.flow-ctrl,.stp-legend),
+  html.gd-dim #main :is(.read-head,.read-meta,.pre-cards,.care-flat):not(:has(.gd-tgt)),
+  html.gd-dim #sessionDock .sd-key:not(.gd-tgt),
+  html.gd-dim #cbTimers:not(.gd-tgt){opacity:.7;transition:opacity .2s}
   .sst-ex{margin:-4px 0 8px;font-size:var(--t-meta);line-height:1.4;color:var(--ink-2)}   /* A465 : un exemple sous chaque section des réglages */
   .sst-note.ko{color:var(--warn)}
   .sst-note.sst-sep{margin-top:20px}
@@ -8973,7 +9013,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.47.0';
+const APP_VERSION='5.48.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20208,6 +20248,7 @@ function renderRead(){
     ${''/* A460 : « À relire » est un signal de MAINTENANCE — il se lit avant la session, pas pendant : en
        session il n'appelle aucun geste et repoussait la 1ʳᵉ étape sous le pli (budget, 320 px à 130 %).
        « Brouillon », lui, touche à l'usage clinique et reste affiché partout. */}${f.status==='review'&&!started?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette aide est signalée à relire avant validation.</div></div>`:''}
+    ${guideCardHtml(f,started)}
     ${shareOverHtml()}
     ${dockPanel}
     ${(useSv||fsAvantBouton||agirDabord)?'':forgetStrip}
@@ -20395,6 +20436,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Répéter en exercice',ic:'▲',disabled:started&&!Runtime.exercise,
       sub:started&&!Runtime.exercise?'session en cours':(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
       return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
+    ...(!started&&guideFor(f)?[{label:'Exercice guidé',ic:'▲',sub:'pas à pas, sur cette aide d’exemple',act:()=>guideStart(f)}]:[]),
     // A337 : rien à recommencer avant le premier geste — la rangée n'existe qu'en session.
     ...(started&&hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     ...(()=>{const n=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).length;
@@ -28499,10 +28541,191 @@ function openGuide(){closeAuth();
     +GUIDE_GESTES.map(([ic,t,x],i)=>`<details class="gd-row"><summary${i?'':' data-dlgfocus'}>${uiIcon(ic,16)}<span>${esc(t)}</span><span class="hs-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.2,cls:''})}</span></summary><p>${esc(x)}</p></details>`).join('')
     +`</div><div class="auth-stats-h">Glossaire</div><div class="acct-card"><dl class="gd-gl">`
     +GLOSSAIRE.map(([t,x])=>`<dt>${esc(t)}</dt><dd>${esc(x)}</dd>`).join('')+`</dl></div>`
-    +`<div class="auth-actions"><button type="button" class="btn" id="guideWelcome">Revoir l’accueil</button></div>`;
+    +`<div class="auth-actions"><button type="button" class="btn primary" id="guideRun">Lancer l’exercice guidé</button><button type="button" class="btn" id="guideWelcome">Revoir l’accueil</button></div>`;
+  document.getElementById('guideRun').onclick=()=>{guideModal.classList.remove('on');guideStart(null);};
   document.getElementById('guideWelcome').onclick=()=>{guideModal.classList.remove('on');openWelcome();};
   guideModal.classList.add('on');}
 bindModalDismiss(guideModal,()=>guideModal.classList.remove('on'));
+/* A467 — EXERCICE GUIDÉ : une bulle par geste, posée sur la VRAIE commande, pendant un EXERCICE seulement
+   (jamais une session réelle, règle 11 ; l'outil, jamais la clinique, § 2). LE GUIDE SUIT L'APP : il ne
+   redessine rien, il pointe des sélecteurs vivants (`tgt`) et lit ses mots dans l'aide (question, revue,
+   complication, compteur, jalon). Changer un geste de session = mettre à jour GUIDE_ETAPES et GUIDE_GESTES :
+   `check-guide` (libellés et sélecteurs) et `audit-guide` (déroulé complet) rougissent sinon. */
+function guidePref(){try{return localStorage.getItem('ac-guide')||'';}catch(e){return '';}}
+function guidePrefSet(v){try{localStorage.setItem('ac-guide',v);}catch(e){}}
+function guideFor(f){return !!f&&SEED_TITLES.indexOf(f.title)>=0&&hasFlow(f);}
+const _gdCur=()=>{const n=state.nav||[];return n[state.navPos!=null?state.navPos:n.length-1];};
+const _gdBlk=(f,id)=>(f.blocks||[]).find(b=>b&&b.id===id);
+const _gdQ=s=>'« '+String(s||'').trim()+' »';
+const _gdNb=s=>String(s).replace(/« /g,'«\u00a0').replace(/ (»|:|\?)/g,'\u00a0$1');   // espaces insécables de la typographie française
+function _gdJalon(f){
+  for(const b of f.blocks||[])for(const m of b.milestones||[]){
+    const c=m&&m.at==='count'&&(f.counters||[]).find(x=>x.id===m.counter);
+    if(c)return {c:c.label,n:m.n,go:m.go};}
+  return null;}
+/* Une étape : `ok` (l'aide s'y prête), `done` (le geste est fait — se lit dans l'état, jamais déclaré),
+   `ph` (la phase en cours : cible, titre, texte, `act` = on attend le geste, sinon « Suivant »). */
+const GUIDE_ETAPES=[
+  {id:'start',nom:'Démarrer',req:1,ok:()=>true,done:()=>!!Runtime.started&&!!Runtime.exercise,
+    ph:()=>({tgt:'#sessStart',t:'Démarrer l’exercice',x:'Comme une vraie session : le chrono part, les minuteurs sont prêts. Rien n’est enregistré comme soin.',act:1})},
+  {id:'check',nom:'Cocher',ok:()=>true,done:g=>(g.ck=g.ck||Object.keys(Runtime.checked||{}).some(k=>Runtime.checked[k]&&!/^r:/.test(k))),
+    ph:()=>({tgt:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez une étape',x:'Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche.',act:1})},
+  {id:'capsule',nom:'Lire la capsule',ok:()=>true,done:g=>!!g.seen.capsule,
+    ph:(g,f)=>{const c=document.querySelector('#cbTimers .cnt .seg-l');   // le nom tel que la capsule l'affiche
+      return {tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:'La capsule montre le chrono'+(c?' et '+_gdQ(c.textContent):'')+'. '
+        +(mqRail.matches?'Minuteurs, compteurs et jalons vivent dans la colonne de droite.':'Touchez-la pour ouvrir les minuteurs et les compteurs.'),act:0};}},
+  {id:'decision',nom:'Répondre',ok:f=>(f.blocks||[]).some(b=>b.kind==='decision'),
+    done:(g,f)=>(state.nav||[]).slice(0,-1).some(id=>{const b=_gdBlk(f,id);return b&&b.kind==='decision';}),
+    ph:(g,f)=>{const b=_gdBlk(f,_gdCur());
+      return b&&b.kind==='decision'
+        ?{tgt:'#main .ov-block.cur :has(>[data-ovopt])',t:'Répondez à la question',x:_gdQ(b.question||b.title)+' : chaque réponse ouvre sa branche. Choisissez-en une.',act:1}
+        :{tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'Cochez les étapes restantes : « Continuer » s’allume et mène au bloc suivant.',act:1};}},
+  {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
+    done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
+    ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');
+      return {tgt:'#main .ov-block.cur li.rv-step .rv-head',side:'above',t:'Une revue, à tout moment',x:_gdQ(rv.title)+' se relit pendant tout le bloc : elle ne retient pas « Continuer » et se coche d’elle-même quand tout est vu. Ouvrez-la et cochez une ligne.',act:1};}},
+  {id:'cx',nom:'Ouvrir une complication',ok:f=>cxAll(f).length>0,
+    done:g=>{if(document.querySelector('#main [data-cxback]'))g.cxIn=true;return !!g.cxIn&&!document.querySelector('#main [data-cxback]');},
+    ph:(g,f)=>{if(document.querySelector('#main [data-cxback]'))
+        return {tgt:'#main [data-cxback]',t:'Revenir au parcours',x:'« Reprendre » vous ramène au bloc où vous étiez, coches gardées.',act:1};
+      const l=cxAll(f),j=_gdJalon(f),un=l.length===1?l[0]:null;
+      const jt=j?(un&&j.go===un.target?' Elle se propose aussi d’elle-même':' Une consigne paraît aussi d’elle-même')+' quand '+_gdQ(j.c)+' atteint '+j.n+' : c’est un jalon.':'';
+      return {tgt:'#cxKey',t:'La situation change ?',x:(un?_gdQ(un.label)+' s’ouvre':'Les complications s’ouvrent')+' à tout moment par cette touche.'+jt+' Essayez.',act:1};}},
+  {id:'tk',nom:'Horodater',ok:()=>true,
+    done:g=>{const n=(Runtime.events||[]).length;if(g.tkN==null)g.tkN=n;return n>g.tkN&&!state.tkSheet;},
+    ph:g=>((Runtime.events||[]).length>g.tkN&&state.tkSheet)
+      ?{tgt:'#dockSheet .ds-card',t:'Nommez le geste',x:'Choisissez ce qui a été fait, ou fermez : l’heure reste au journal.',act:1}
+      :{tgt:'#tkKey',t:'Un geste imprévu ?',x:'« Horodater » note l’heure tout de suite ; on le nomme ensuite. Essayez.',act:1}},
+  {id:'fin',nom:'Terminer',req:1,ok:()=>true,done:g=>!!g.ended,
+    ph:()=>document.getElementById('endSessModal').classList.contains('on')
+      ?{tgt:'#endSessYes',t:'Maintenez pour terminer',x:'Gardez le doigt 1,2 s sur « Terminer » : un appui bref ne termine rien.',act:1}
+      :{tgt:'#endKey',t:'Terminer',x:'« Fin » ouvre la fenêtre de fin. Essayez.',act:1}}];
+let _gd=null;
+async function guideStart(f){
+  if(!f){f=fiches.find(x=>x.title===SEED_TITLES[1])||fiches.find(guideFor);
+    if(!f){await addSeedFiches();f=fiches.find(x=>x.title===SEED_TITLES[1])||fiches.find(guideFor);}
+    if(!f){toast('Les aides d’exemple sont introuvables.');return;}}
+  guideStop();guideModal.classList.remove('on');
+  if(!(state.view==='read'&&state.fiche&&state.fiche.id===f.id))openRead(f.id);
+  await startExercise(f);
+  if(!Runtime.exercise||Runtime.ficheId!==f.id&&Runtime.fiche!==f)return;   // refusé au dialogue
+  _gd={fid:f.id,i:0,key:'',done:new Set(),skip:new Set(),seen:{},tkN:null,ck:false,cxIn:false,started:false,ended:false};
+  _gd.iv=setInterval(guideSync,250);
+  _gd.mo=new MutationObserver(()=>{if(_gd&&!_gd.raf)_gd.raf=requestAnimationFrame(()=>{if(_gd){_gd.raf=0;guideSync();}});});
+  _gd.mo.observe(document.body,{childList:true,subtree:true});
+  guideSync();}
+function guideStop(){const g=_gd;_gd=null;
+  if(g){clearInterval(g.iv);if(g.mo)g.mo.disconnect();}
+  document.querySelectorAll('.gd-tgt').forEach(e=>e.classList.remove('gd-tgt'));
+  document.documentElement.classList.remove('gd-dim');
+  const t=document.getElementById('gdTip');if(t)t.remove();}
+function guideSync(){const g=_gd;if(!g)return;
+  const f=fiches.find(x=>x.id===g.fid);if(!f){guideStop();return;}
+  const R=liveSessions[g.fid];
+  if(R&&R.started&&R.exercise)g.started=true;
+  const ici=state.view==='read'&&!!state.fiche&&state.fiche.id===g.fid;
+  if(g.started&&!(R&&R.started&&R.exercise)){g.ended=true;g.done.add('fin');guideEnd(f);return;}
+  if(!g.started&&ici&&!Runtime.exercise){guideStop();return;}   // exercice annulé avant le premier geste
+  let E;
+  while((E=GUIDE_ETAPES[g.i])){
+    if(!E.ok(f)||g.skip.has(E.id)){g.i++;continue;}
+    if(ici&&g.started===!!Runtime.started&&E.done(g,f)){g.done.add(E.id);g.i++;continue;}
+    break;}
+  if(!E){guideStop();return;}
+  const modal=document.querySelector('.ai-modal.on');
+  const cache=!ici||document.documentElement.classList.contains('kbd')||(modal&&modal.id!=='endSessModal');
+  guidePaint(cache?null:E,f);}
+function _gdTip(){let t=document.getElementById('gdTip');
+  if(!t){t=document.createElement('section');t.id='gdTip';t.className='gd-tip';t.setAttribute('aria-label','Exercice guidé');
+    t.onclick=e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;
+      if(b.id==='gdQuit'){guideStop();announce('Guide quitté — l’exercice continue.');}
+      else if(b.id==='gdNext'){const g=_gd,E=g&&GUIDE_ETAPES[g.i];if(!E)return;
+        if(E.id==='capsule'){g.seen.capsule=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}
+      else if(b.id==='gdClose'){t.remove();}
+      else if(b.id==='gdRedo'){const f=fiches.find(x=>x.id===t.dataset.fid);t.remove();guideStart(f);}};
+    document.body.appendChild(t);}
+  return t;}
+function guidePaint(E,f){const g=_gd,t=_gdTip(),html=document.documentElement;
+  if(!E){t.hidden=true;html.classList.remove('gd-dim');return;}
+  const P=E.ph(g,f),et=GUIDE_ETAPES.filter(x=>x.ok(f)),k=et.indexOf(E)+1;
+  const key=E.id+'|'+P.t+'|'+P.x;
+  if(g.key!==key){g.key=key;g.room=0;
+    t.className='gd-tip';
+    t.innerHTML=`<span class="gd-arr" aria-hidden="true"></span><p class="gd-k">▲ Exercice guidé · ${k}/${et.length}</p>`
+      +`<p class="gd-t">${esc(_gdNb(P.t))}</p><p class="gd-x" aria-live="polite">${esc(_gdNb(P.x))}</p>`
+      +`<div class="gd-act"><button type="button" class="gd-l" id="gdQuit">Quitter le guide</button>`
+      +(P.act?(E.req?'':'<button type="button" class="gd-g" id="gdNext">Passer</button>')
+        :'<button type="button" class="gd-b" id="gdNext">Suivant</button>')+`</div>`;}
+  t.hidden=false;
+  const el=document.querySelector(P.tgt);
+  const vis=el&&el.getClientRects().length&&!el.closest('[hidden]');
+  document.querySelectorAll('.gd-tgt').forEach(e=>{if(e!==el)e.classList.remove('gd-tgt');});
+  if(vis)el.classList.add('gd-tgt');
+  html.classList.toggle('gd-dim',!!vis);
+  guidePlace(t,vis?el:null,P.side);}
+/* Position : au-dessus ou au-dessous de la cible, jamais dessus. Mesures en pixels de l'appareil,
+   réinjectées ÷ zoomF() (règle 10). La cible hors du champ est amenée UNE fois par phase — un défilement
+   commandé par le guide, en exercice seulement. */
+function guidePlace(t,el,side){const z=zoomF(),W=innerWidth,H=innerHeight,g=_gd;
+  const cd=document.getElementById('crisisDock'),sd=document.getElementById('sessionDock');
+  const inMain=!!el&&!!el.closest('#main'),quai=!!el&&!!el.closest('#sessionDock,#dockSheet');
+  const sdr=sd&&!sd.hidden&&sd.getClientRects().length?sd.getBoundingClientRect():null;
+  /* La bande où la bulle peut se poser : sous la capsule et au-dessus du quai pour une cible du parcours ;
+     toute la fenêtre pour le quai, son volet ou une fenêtre de dialogue (on peut couvrir l'en-tête). */
+  const haut=inMain&&cd&&cd.getClientRects().length?Math.max(0,cd.getBoundingClientRect().bottom):4*z;
+  const bas=inMain&&sdr&&sdr.top>H/2?sdr.top:H;
+  const tw=Math.min(380*z,W-32*z);t.style.width=tw/z+'px';
+  const th=t.getBoundingClientRect().height,gap=12*z;
+  const r=el&&el.getBoundingClientRect();
+  const fitA=!!r&&r.top-haut>=th+gap,fitB=!!r&&bas-r.bottom>=th+gap;
+  /* Hors du champ, ou sans place d'aucun côté : on fait de la place en calant la cible au bord opposé au
+     côté voulu (défilement commandé par le guide, en exercice seulement). Trois essais au plus par phase,
+     espacés : l'app défile elle-même après « Continuer » et peut interrompre le premier. */
+  if(r&&g&&inMain&&(g.room||0)<3&&Date.now()-(g.roomT||0)>500&&(r.top<haut||r.bottom>bas||(!fitA&&!fitB))
+    &&(r.height+th+gap*2<=bas-haut||r.top<haut||r.bottom>bas)){g.room=(g.room||0)+1;g.roomT=Date.now();
+    // scrollBy se compte en pixels de l'appareil, comme les rectangles (mesuré sous zoom) ; scroll-margin, non.
+    window.scrollBy({top:side==='above'?r.bottom-(bas-8*z):r.top-(haut+8*z),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+  let top,ax=null,dir='';
+  if(r&&r.bottom>0&&r.top<H){
+    const dessus=quai||(side==='above'?(fitA||!fitB):(!fitB&&fitA));   // dessous par défaut : le contexte au-dessus reste lisible
+    top=dessus?r.top-gap-th:r.bottom+gap;dir=dessus?'down':'up';
+    top=Math.max(haut,Math.min(top,bas-th-4*z));
+    const left=Math.max(16*z,Math.min(r.left+r.width/2-tw/2,W-16*z-tw));
+    ax=Math.max(20*z,Math.min(r.left+r.width/2-left,tw-20*z));
+    t.style.left=left/z+'px';}
+  else{top=(sdr&&sdr.top>H/2?sdr.top:H)-th-gap;t.style.left=(W-tw)/2/z+'px';}
+  t.style.top=top/z+'px';
+  t.classList.toggle('up',dir==='up');t.classList.toggle('down',dir==='down');
+  const a=t.querySelector('.gd-arr');if(a){a.hidden=ax==null;if(ax!=null)a.style.left=(ax/z-7)+'px';}}
+function guideEnd(f){const g=_gd;if(!g)return;const done=g.done;guideStop();guidePrefSet('done');
+  const et=GUIDE_ETAPES.filter(x=>x.ok(f)),tous=et.every(E=>done.has(E.id));
+  const t=_gdTip();t.dataset.fid=f.id;t.className='gd-tip end';t.hidden=false;
+  t.innerHTML=`<p class="gd-k">▲ Exercice guidé · terminé</p><p class="gd-t">${tous?'Vous savez dérouler une aide':'Exercice terminé'}</p>`
+    +`<ul class="gd-sum">${et.map(E=>done.has(E.id)?`<li class="ok">${uiIcon('check',14,{sw:3})}<span>${esc(E.nom)}</span></li>`:`<li><span class="gd-no" aria-hidden="true">–</span><span>${esc(E.nom)} <i>· passé</i></span></li>`).join('')}</ul>`
+    +`<p class="gd-x">Le compte rendu est dans Sessions. Les gestes et le glossaire restent dans Moi › Prendre en main.</p>`
+    +`<div class="gd-act"><button type="button" class="gd-l" id="gdRedo">Refaire le guide</button><button type="button" class="gd-b" id="gdClose">Fermer</button></div>`;
+  const z=zoomF(),W=innerWidth,H=innerHeight,tw=Math.min(380*z,W-32*z);
+  const hd=document.getElementById('homeDock'),hr=hd&&hd.getClientRects().length?hd.getBoundingClientRect():null;
+  t.style.width=tw/z+'px';t.style.left=(W-tw)/2/z+'px';
+  const bas=hr&&hr.top>H/2?hr.top:H;t.style.top=(bas-t.getBoundingClientRect().height-16*z)/z+'px';
+  const c=document.getElementById('gdClose');if(c)c.focus({preventScroll:true});
+  announce(tous?'Exercice guidé terminé : tous les gestes faits.':'Exercice guidé terminé.');}
+/* La carte d'entrée : seulement sur une aide d'exemple, avant la session, tant que le guide n'a été ni fait
+   ni refusé. Le choix reste entier : « Exercice » au quai pour un exercice libre. */
+function guideCardHtml(f,started){
+  if(started||Runtime.exercise||_gd||state.previewFrom||!guideFor(f)||guidePref())return '';
+  const et=GUIDE_ETAPES.filter(E=>E.ok(f));
+  /* UNE rangée, jamais une carte haute : elle précède « Quand l'utiliser » sans repousser « Ne pas oublier » sous
+     le bouton de démarrage (séquence QRH, témoin CHAPEAU). */
+  return `<section class="gd-card" aria-label="Exercice guidé"><span class="gd-ci" aria-hidden="true">▲</span>`
+    +`<div class="gd-cx"><b>Apprendre avec cette aide</b><span>Exercice guidé · ${et.length} gestes · 4 min</span></div>`
+    +`<button type="button" class="btn" data-gdgo>Commencer le guide</button>`
+    +`<button type="button" class="notice-x" data-gdoff aria-label="Ne plus proposer l’exercice guidé">×</button></section>`;}
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;
+  if(t.closest('[data-gdgo]')){guideStart(state.fiche);return;}
+  if(t.closest('[data-gdoff]')){guidePrefSet('off');render();announce('Le guide ne sera plus proposé ; il reste dans Moi › Prendre en main.');}});
+addEventListener('resize',()=>{if(_gd)guideSync();});
+addEventListener('scroll',()=>{if(_gd&&!_gd.raf)_gd.raf=requestAnimationFrame(()=>{if(_gd){_gd.raf=0;guideSync();}});},{passive:true});
 {const fv=document.getElementById('footVer');if(fv)fv.textContent='v'+APP_VERSION;}   // A373 : version au pied du téléphone, posée une fois au démarrage
 function closeStorageInfo(){storageModal.classList.remove('on');}
 bindModalDismiss(storageModal,closeStorageInfo);

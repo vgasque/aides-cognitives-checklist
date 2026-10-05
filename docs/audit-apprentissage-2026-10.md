@@ -463,6 +463,10 @@ dépliée, qui est déjà un parcours lisible à 390 px. La Page A4 resterait ac
 
 > **Suivi (v5.47.0)** : 17 refusé par l'auteur ; 18 fait (lien direct `#a=`, raccourcis « Chercher » et « Sessions » —
 > les épinglées ne peuvent pas entrer dans un manifeste statique) ; 19 et 20 maquettés, à discuter.
+>
+> **Suivi (v5.48.0, A467)** : 20 fait — exercice guidé en huit gestes sur l'ACR d'exemple, revue et jalon compris, au
+> choix de l'utilisateur ([`lot-v5-48.md`](decisions/lot-v5-48.md)) ; le guide et « Prendre en main » sont gardés par
+> `check-guide` et `audit-guide`. 19 reste à discuter (prompt de reprise remis à l'auteur).
 
 17. Champ « **Autres noms** » (synonymes) cherché par l'accueil.
 18. **Lien direct vers une aide** + `shortcuts` du manifeste vers les épinglées.
