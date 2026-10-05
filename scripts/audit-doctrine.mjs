@@ -3398,6 +3398,34 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
 }
 });
 
+await sec('QUAI · texte agrandi : chaque touche garde son mot entier (A465)', async () => {
+/* Sous 360 px effectifs, les touches du quai perdaient leur mot (« Tout voir » réduit au glyphe) ou le
+   coupaient au milieu (« Horoda / ter »). On mesure la boîte du libellé ET le mot le plus long. */
+  for (const [W,z] of [[390,130],[360,130],[320,115]]) {
+    const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await page.evaluate(z=>applyZoom(z),z);
+    await ouvrirFiche(page,/Arrêt cardiaque/);
+    await demarrerSession(page);
+    const r = await page.evaluate(()=>{
+      const c=document.createElement('span');c.style.cssText='position:absolute;visibility:hidden;white-space:nowrap';document.body.appendChild(c);
+      const out=[...document.querySelectorAll('.sd-key')].filter(k=>!k.hidden&&k.getClientRects().length).map(k=>{
+        const l=[...k.querySelectorAll('.dp-lbl')].find(x=>getComputedStyle(x).display!=='none'&&x.getBoundingClientRect().width>2);
+        if(!l)return {k:k.id||k.className,ok:false,why:'sans mot'};
+        const cs=getComputedStyle(l);c.style.font=cs.font;
+        const mot=Math.max(...l.textContent.trim().split(/\s+/).map(w=>{c.textContent=w;return c.getBoundingClientRect().width;}));
+        const coupe=l.scrollHeight>l.clientHeight+6||l.scrollWidth>l.clientWidth+1||mot>l.getBoundingClientRect().width+1;   // +6 : l'interligne 1,1 déborde de 2 px sans rien cacher
+        return {k:l.textContent.trim(),ok:!coupe,why:coupe?'coupé':''};});
+      c.remove();return out;});
+    const fautes=r.filter(x=>!x.ok);
+    t(`${W} px · ${z} % · ${r.length} touches, toutes avec leur mot entier`, r.length>=3&&!fautes.length, JSON.stringify(fautes));
+    await page.close();
+  }
+});
+
 await sec('QUAI · la structure survit aux ticks', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
@@ -7229,7 +7257,7 @@ await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélec
     r.adm.selTog === true && r.adm.creer === true, JSON.stringify(r.adm));
   t('… la destination d’import suit', r.adm.imp === 'lib-a', String(r.adm.imp));
   t('… la publication est ANNONCÉE avant tout brouillon',
-    /visible par tous les membres/.test(r.adm.dit) && r.adm.rienAvantAccord === true, r.adm.dit);
+    /créée en brouillon dans .*les lecteurs une fois validée/.test(r.adm.dit) && r.adm.rienAvantAccord === true, r.adm.dit);   // A463 : l'annonce dit QUI voit le brouillon
   t('… puis la fiche naît DANS la bibliothèque', r.adm.draftLib === 'lib-a', String(r.adm.draftLib));
   t('… destination visible : le dépliant d’identité est ouvert', r.adm.identOuvert === true);
   t('refuser ne crée rien', r.refus.vu === true && r.refus.rien === true, JSON.stringify(r.refus));

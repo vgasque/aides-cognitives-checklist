@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.47.0] — 2026-10-05
+Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/lot-v5-47.md`).
+- **« Prendre en main », dans Moi** : dix gestes expliqués (trouver, démarrer, cocher, chrono et minuteurs,
+  complication, horodater, tout voir, partager, terminer, écrire une aide) et un glossaire de seize termes (session,
+  exercice, essai, complication, revue, jalon…). « Revoir l'accueil » y vit désormais.
+- **Une aide ou un protocole neuf naît en brouillon**, et non plus « Validée ». Vous la validez une fois relue. Dans une
+  bibliothèque partagée, la fenêtre de création dit qui la voit.
+- **Lien direct vers une aide** : menu ⋯ › « Copier le lien direct ». Le lien ouvre l'aide sur tout appareil qui la
+  possède (raccourci d'écran d'accueil, collègue de la même bibliothèque). Un appui long sur l'icône de l'app propose
+  « Chercher une aide » et « Sessions ».
+- **Texte agrandi (115 et 130 %)** : les touches du quai gardent leur mot entier (« Tout voir » n'est plus un glyphe
+  seul, plus de « Horoda / ter »). Le titre du bloc en cours ne se coupe plus au milieu d'un mot : « EN COURS » passe
+  au-dessus de lui.
+- La légende sous le titre d'un bloc dit en clair : « sous l'étape, en gris : la réponse attendue ».
+- **Éditeur** : l'identité d'une aide existante s'ouvre repliée, et l'éditeur s'ouvre sur le contenu. Chaque section
+  des réglages d'une étape porte un exemple.
+- **Accessibilité** : au clavier, la touche Tab atteint de nouveau les rubriques dépliables des fenêtres
+  (« Pourquoi créer un compte ? »…).
+
 ## [5.46.2] — 2026-10-05
 - **Le compteur affiché dans la capsule de session dit son nom en entier.** Au téléphone, la tuile montrait
   « CHOCS DE… ». Elle se lit maintenant en ligne : la valeur d'abord, puis le nom complet sur deux lignes
@@ -314,14 +333,3 @@ Deux retours d'usage (A421, doctrine `docs/decisions/lot-v5-39.md`).
   encre, et s'éloigne d'un seul mouvement, sans temps mort à chaque anneau. Mêmes trois anneaux, même
   départ (800 ms), fini à 4,7 s ; toujours rien sous « réduire les animations ».
 - Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet.
-
-## [5.39.3] — 2026-09-28
-Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
-- **Le rouge WebKit d'A387 n'était pas une fuite.** Sous WebKit, « une session locale sur l'autre aide
-  n'émet RIEN sur le fil de l'invité » échouait (2 ou 3 évènements reçus). Mesuré : ce sont des `sig`,
-  l'offre et la réponse de négociation du canal direct de secours, que WebKit achève plus tard. Aucune
-  coche ni navigation. Le contrôle ne compte plus que les évènements d'état (tout sauf `sig`), avec un
-  témoin qui prouve que l'invité a bien lu le fil pendant la fenêtre.
-- Vérifié capable d'échouer : la garde d'A387 neutralisée chez l'hôte, le contrôle rougit sur les deux
-  moteurs et nomme ce qui fuit (coche, décoche, compteur, minuteur, navigation, démarrage).
-- Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.

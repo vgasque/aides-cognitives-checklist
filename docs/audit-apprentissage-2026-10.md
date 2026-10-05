@@ -456,7 +456,13 @@ dépliée, qui est déjà un parcours lisible à 390 px. La Page A4 resterait ac
 15. **Page « Prendre en main » + glossaire** dans Moi.
 16. **Aide neuve en Brouillon** (⚖ amende A304).
 
+> **Suivi (v5.47.0, A463-A466)** : 14 (quai et titre de bloc ; le titre d'en-tête reste un rappel tronqué), 15 et 16 sont
+> faits ([`lot-v5-47.md`](decisions/lot-v5-47.md)).
+
 ### Structurant (à arbitrer)
+
+> **Suivi (v5.47.0)** : 17 refusé par l'auteur ; 18 fait (lien direct `#a=`, raccourcis « Chercher » et « Sessions » —
+> les épinglées ne peuvent pas entrer dans un manifeste statique) ; 19 et 20 maquettés, à discuter.
 
 17. Champ « **Autres noms** » (synonymes) cherché par l'accueil.
 18. **Lien direct vers une aide** + `shortcuts` du manifeste vers les épinglées.

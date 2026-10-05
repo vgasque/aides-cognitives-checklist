@@ -2235,6 +2235,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('code lu depuis le fragment',A.shareCodeFromHash('#j=K7M2P4Q9'),'K7M2P4Q9');
   eq('lu aussi quand il suit un autre paramètre',A.shareCodeFromHash('#x=1&j=K7M2-P4Q9'),'K7M2P4Q9');
   ok('un fragment sans code ne renvoie rien',A.shareCodeFromHash('#autre')===null);
+  /* A464 : lien direct */
+  eq('lien direct : #a=<id> ouvre l’aide',JSON.stringify(A.deepLinkFromHash('#a=k3x9_ab')),JSON.stringify({open:'k3x9_ab'}));
+  ok('lien direct : identifiant interdit refusé',A.deepLinkFromHash('#a=__proto__')===null&&A.deepLinkFromHash('#a=a/b')===null||JSON.stringify(A.deepLinkFromHash('#a=a/b'))===JSON.stringify({open:'a'}));
+  eq('lien direct : raccourci « chercher »',JSON.stringify(A.deepLinkFromHash('#chercher')),JSON.stringify({go:'search'}));
+  eq('lien direct : raccourci « sessions »',JSON.stringify(A.deepLinkFromHash('#sessions')),JSON.stringify({go:'sessions'}));
+  ok('lien direct : le code de partage n’est pas un lien direct',A.deepLinkFromHash('#j=K7M2P4Q9')===null);
   ok('un code invalide dans le fragment est rejeté, pas corrigé',
     A.shareCodeFromHash('#j=K7M2P4QO')===null);
   ok('aucun fragment : rien',A.shareCodeFromHash('')===null);

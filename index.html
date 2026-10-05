@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-5iRVfqgxkcXPNKlpSCLgeS3fpdL3Ej4nuaF3dZy0mvg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-X/NjvwqRyzf9dR+ubEo8HTT0OIs48zOBqw8t7j3GnDs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1732,7 +1732,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (elle enseigne les signes de la carte), NI à la hauteur des étapes (60 px, la cible) : le
      rembourrage est le seul poste qui n'informe de rien. */
   html.zw360 .ov-head{padding-top:12px}
-  html.zw360 .ov-t{margin-bottom:6px}
+  html.zw360 .ov-t{margin-bottom:6px;font-size:var(--t-step)}   /* A465 : 17,5 × zoom ≥ 21 vus ; le mot tient dans la colonne */
   /* Et les écarts de SECTION du préambule, au même titre — jamais leurs cibles : `.ov-runline`
      garde ses 44 px de hauteur minimale, seule sa marge cède. */
   html.zw360 .cf-stage{padding-bottom:12px}
@@ -1747,8 +1747,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw300 .sd-in{padding:2px}
   html.zw300 ol.steps li{padding:8px}
   html.zw300 .ov-head{padding-top:10px}
-  html.zw360 #allBtn .dp-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-  html.zw360 #allBtn{flex:0 0 46px}
+  /* A465 : sous 360 effectifs (texte agrandi au téléphone), chaque touche GARDE son mot — 12 px, deux lignes,
+     jamais coupé au milieu (« Horoda / ter ») ; « Tout voir » n'est plus réduit à son glyphe. */
+  html.zw360 .sd-key .dp-lbl{font-size:var(--t-meta);overflow-wrap:normal;-webkit-hyphens:manual;hyphens:manual}
+  html.zw360 #allBtn{flex:0 0 52px}
+  html.zw360 #endKey{flex:0 0 48px}   /* « Fin » rend sa largeur aux libellés longs */
+  html.zw360 .sd-key:not(.sd-exo):not(.sd-start){padding:0 2px}
   /* < 430 px EFFECTIFS (v5.15.0, planche 18/2a) : « Exercice » passe au GLYPHE SEUL — le patron
      des deux ouvertures ci-dessus — et la piste rendue (62 px mesurés) revient au geste d'entrée,
      qui occupe la barre. Le nom reste dit : render() pose aria-label sur #exoKey à chaque rendu,
@@ -5183,6 +5187,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sst-grid button[aria-disabled="true"]{color:var(--ink-soft)}
   .sst-grid button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .sst-note{margin:8px 0 0;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+  /* A466 : « Prendre en main » — rangées dépliables à filets, glossaire en liste de définitions. */
+  .gd-row+.gd-row{border-top:1px solid var(--line)}
+  .gd-row>summary{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 4px;cursor:pointer;list-style:none;font-size:var(--t-item);font-weight:700;color:var(--ink)}
+  .gd-row>summary::-webkit-details-marker{display:none}
+  .gd-row>summary>span:first-of-type{flex:1}
+  .gd-row[open] .hs-chev{transform:rotate(90deg)}
+  .gd-row>p{margin:0 4px 12px 32px;font-size:var(--t-body);line-height:1.5;color:var(--ink-2)}
+  .gd-gl{margin:0;padding:0 4px 8px}
+  .gd-gl dt{margin-top:12px;font-size:var(--t-body);font-weight:800;color:var(--ink)}
+  .gd-gl dd{margin:2px 0 0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  .sst-ex{margin:-4px 0 8px;font-size:var(--t-meta);line-height:1.4;color:var(--ink-2)}   /* A465 : un exemple sous chaque section des réglages */
   .sst-note.ko{color:var(--warn)}
   .sst-note.sst-sep{margin-top:20px}
   .sst-mk{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
@@ -5426,7 +5441,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-head{padding:12px 16px 4px}
   body.chrome-hdr .ov-wrap>.ov-prog{margin-top:16px}   /* A376 : au cockpit la capsule vit dans l'en-tête et la ligne « Parcours » lui collait à 4 px (mesuré) ; 20 px comme ailleurs */
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
-  .ov-cur{order:3;flex:none;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+  .ov-cur{display:table;margin-bottom:6px;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}   /* A465 : étiquette AU-DESSUS du titre — à côté, elle lui prenait la largeur d'un mot (« Reconnaissan / ce ») */
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
   .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
@@ -8715,6 +8730,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos données ?</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="storageBody" class="ai-body"></div>
 </div></div>
+<div class="ai-modal page" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="guideModalTitle">Prendre en main</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div id="guideBody" class="ai-body"></div>
+</div></div>
 <div class="ai-modal" id="syncErrModal" role="dialog" aria-modal="true" aria-labelledby="syncErrModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="syncErrBody" class="ai-body"></div>
@@ -8954,7 +8973,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.46.2';
+const APP_VERSION='5.47.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12350,6 +12369,7 @@ async function load(){
      const R=viv[0],t=R.lastActAt||R.startedAt||0;
      if(t&&Date.now()-t<=600000){try{openRead(R.fiche.id);}catch(e){}}}}
   render();
+  try{applyDeepLink();}catch(e){}   // A464
   updateStorageInfo();
   gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
   /* Index de recherche des documents : chargé APRÈS le premier rendu, jamais avant — l'accueil
@@ -16325,6 +16345,7 @@ function renderProtocolRead(){
     {label:'Modifier',ic:uiIcon('pen',16),sub:canEditFiche(p)?'hors urgence':'lecture seule',disabled:!canEditFiche(p),act:()=>openProtocolEdit(p.id)},
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',p)},
+    {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(p)},
     {label:'Exporter le protocole (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
     {label:'Exporter le protocole en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
   ]);
@@ -17033,7 +17054,7 @@ function editorMetaFieldsHtml(d,prefix,L){
      dépliant sous les yeux de l'auteur qui était encore en train d'y remplir la catégorie et la
      date. Un panneau ne se ferme que sur le geste de celui qui l'a ouvert. La clé est l'ID du
      brouillon : changer de fiche redécide, un re-rendu jamais. */
-  if(state.edIdentFor!==d.id){state.edIdentFor=d.id;state.edIdentOpen=true;}   // v5.30 : les champs d'identité sont visibles d'emblée
+  if(state.edIdentFor!==d.id){state.edIdentFor=d.id;state.edIdentOpen=!(d.title||'').trim();}   // A465 (amende v5.30) : ouverte pour une aide neuve, repliée dès qu'elle a un titre — l'éditeur s'ouvre sur le contenu
   const ouvert=state.edIdentOpen;
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
     <details class="ed-ident"${ouvert?' open':''}><summary>${resume}<span class="id-a">Identité</span></summary>
@@ -17254,9 +17275,9 @@ function draftReadStatusFields(d,prefix){
    d'être synchrone dans le cas nominal (trois harnais font `newFiche(); render();`). */
 function confirmNewInLib(lib,fem){
   if(!lib)return Promise.resolve(true);
-  const est=fem?'aide':'protocole',ce=fem?'Cette':'Ce',il=fem?'elle':'il',pub=fem?'créée':'créé';
-  return confirmDlg(ce+' '+est+' va être '+pub+' dans « '+(libName(lib)||'la bibliothèque partagée')
-    +' » : '+il+' sera visible par tous les membres.',
+  const est=fem?'aide':'protocole',ce=fem?'Cette':'Ce',pub=fem?'créée':'créé';
+  return confirmDlg(ce+' '+est+' va être '+pub+' en brouillon dans « '+(libName(lib)||'la bibliothèque partagée')
+    +' » : les membres qui peuvent éditer '+(fem?'la':'le')+' voient aussitôt, les lecteurs une fois '+(fem?'validée':'validé')+'.',
     {title:'Publier dans la bibliothèque partagée',yes:'Créer '+(fem?'l’aide':'le protocole')});}
 // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
 // explicite (sortie d'une bibliothèque partagée : les membres perdent l'accès ; entrée :
@@ -17298,7 +17319,7 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
 async function newProtocol(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
-  const d=blankProtocol();d.library=lib;state.pdraft=d;draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -18119,6 +18140,32 @@ function shareCodeFmt(s){const c=shareCodeNorm(s);
 function shareCodeFromHash(h){
   const m=/[#&]j=([0-9A-Za-z-]{1,24})/.exec(String(h||''));
   return m&&shareCodeValid(m[1])?shareCodeNorm(m[1]):null;}
+/* A464 — LIEN DIRECT : `#a=<id>` ouvre une aide ou un protocole (raccourci d'écran d'accueil, collègue
+   de la même bibliothèque) ; `#chercher` et `#sessions` servent les raccourcis du manifeste. Jamais
+   par-dessus une session réelle à l'écran (règle 11) ; le fragment est retiré une fois lu. */
+function deepLinkFromHash(h){
+  h=String(h||'');const m=/[#&]a=([A-Za-z0-9_-]{1,64})/.exec(h);
+  if(m&&BAD_KEYS.indexOf(m[1])<0)return {open:m[1]};
+  if(/^#chercher$/.test(h))return {go:'search'};
+  if(/^#sessions$/.test(h))return {go:'sessions'};
+  return null;}
+function applyDeepLink(){
+  const d=deepLinkFromHash(location.hash);if(!d)return false;
+  if(state.view==='read'&&Runtime.started&&!Runtime.exercise)return false;
+  try{history.replaceState((history.state&&history.state.ac)?history.state:{ac:_H_ID,d:0},'',location.pathname+location.search);}catch(e){}
+  if(d.open){
+    if(fiches.some(f=>f.id===d.open))openRead(d.open);
+    else if(protocols.some(p=>p.id===d.open))openProtocolRead(d.open);
+    else toast('Ce lien vise une aide absente de cet appareil (autre bibliothèque, ou pas encore synchronisée).',7000,true);
+    return true;}
+  if(state.view!=='library'){state.view='library';render();}
+  if(d.go==='sessions')openSessHist();
+  else{const q=document.getElementById('q');if(q)q.focus();}
+  return true;}
+async function copyDirectLink(x){const url=location.origin+location.pathname+'#a='+x.id;
+  try{if(navigator.share){await navigator.share({title:x.title||'',url});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(url);toast('Lien copié — il ouvre « '+(x.title||'cette aide')+' » sur tout appareil qui la possède.',5000);}
+  catch(e){toast('⚠ Copie impossible sur cet appareil.',5000,true);}}
 /* COMMENT UN ÉVÈNEMENT DISTANT ATTEINT L'ÉCRAN — quatre régimes ; le critère : déplace-t-il le
    sol sous le doigt, et est-ce LÉGITIME. 'live' = chirurgie DOM pure ; 'anchored' = journal
    reconstruit DONC ancré (keepAnchor) et annoncé (le scribe DOIT suivre — mais la condensation
@@ -20363,6 +20410,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
+    {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(f)},
     'sep',
     /* NOMMER L'OBJET. « Exporter (.json) » et « Exporter en PDF » ne disaient pas CE QUI est
        exporté — et dans une vue où une session tourne, avec « Compte-rendu » à portée, le doute
@@ -20790,7 +20838,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     /* A345 : les registres se lisent sur la rangée (étiquette CRITIQUE / VIGILANCE) — la légende
        n'annonce plus que la réponse attendue. */
     const _lg=[];
-    if(_its.some(it=>(it.expect||'').trim()))_lg.push('réponse attendue');
+    if(_its.some(it=>(it.expect||'').trim()))_lg.push('sous l’étape, en gris : la réponse attendue');   // A465 : dite en clair
     const legH=_lg.length?`<div class="stp-legend">${_lg.map(x=>`<span class="lg-it">${x}</span>`).join('')}</div>`:'';
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
@@ -20845,7 +20893,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
        Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
     :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">${uiIcon('undo',13)} Refaire</button>`:'');
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}${(b.timer&&pi.pass===pi.total)?wtSpanHtml('b|'+id,true):''}</span>${tip&&!closed?'<span class="ov-cur">En cours</span>':''}<span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${tip&&!closed?'<span class="ov-cur">En cours</span> ':''}${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}${(b.timer&&pi.pass===pi.total)?wtSpanHtml('b|'+id,true):''}</span><span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, UNE vue depuis v4.25.0) : rendu de flowPlan, INERTE
    côté cochage, sert à NAVIGUER. L'ÉCHELLE (ovPlanLadderHtml, compact ECAM) : une ligne par bloc,
    retraits avec étiquette de branche (« OUI › »), renvois mono abrégés (optAbbr), tap = détails
@@ -24520,12 +24568,12 @@ function stepSetHtml(f,b,i){const it=bItems(b)[i]||{},s=String(stepsOf(b)[i]||''
   const tog=(k,l,sub,on)=>`<div class="sst-tg"><span class="sst-tl" id="sst-${k}">${l}<small>${sub}</small></span>${swHtml(on,`data-sst="${k}" aria-labelledby="sst-${k}"`)}</div>`;
   const rp=[['','À chaque passage'],['due','À l’échéance',T?'de « '+esc(tmName(T))+' »':'aucun minuteur lié'],['once','Une seule fois'],['need','Au besoin']];
   return `<p class="sst-step">${esc(String(it.do||'').trim()||'Étape '+(i+1))}${String(it.expect||'').trim()?' — '+esc(it.expect):''}</p>`
-    +`<h4 class="sst-h" id="sstImp">Importance</h4>`+segHtml('ssreg','sstImp',[[0,'Normale'],[1,'△ Vigilance'],[2,uiIcon('warn',14)+' Critique']],reg)
+    +`<h4 class="sst-h" id="sstImp">Importance</h4><p class="sst-ex">ex. « Choc immédiat » est critique ; une dose à calculer, en vigilance.</p>`+segHtml('ssreg','sstImp',[[0,'Normale'],[1,'△ Vigilance'],[2,uiIcon('warn',14)+' Critique']],reg)
     +tog('mem','★ Rappel en mémoire','affichée aussi dans « Ne pas oublier »',!!it.memory)+tog('dual','Double contrôle','en session, marquée « Double contrôle » : les deux soignants la vérifient à voix haute',!!it.dual)
-    +`<h4 class="sst-h">Ce que fait la coche</h4>`
+    +`<h4 class="sst-h">Ce que fait la coche</h4><p class="sst-ex">ex. cocher « Adrénaline » relance le minuteur de 4 min, ou ajoute 1 à « Chocs délivrés ».</p>`
     +(hasTC?edLinkSel(b,i)+stepSetChainHtml(f,it):`<p class="sst-note">L’aide n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="btn sm" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="btn sm" data-sstmk="n">＋ Créer un compteur</button></div>`)
     +stepSetLinksHtml(f,b,it)
-    +(it.review?'':loop||fr||r?`<h4 class="sst-h" id="sstFr">Moment${loop?' <i>· le bloc se répète</i>':''}</h4>`
+    +(it.review?'':loop||fr||r?`<h4 class="sst-h" id="sstFr">Moment${loop?' <i>· le bloc se répète</i>':''}</h4><p class="sst-ex">ex. « Amiodarone » commence à partir de 3 chocs ; « Adrénaline » revient à chaque échéance.</p>`
       +segHtml('ssfrom','sstFr',[[0,'Dès le 1ᵉʳ passage'],[1,'À partir d’un compte',cs.length?'':' aria-disabled="true"']],fr?1:0)
       +(fr?`<div class="sst-in"><select class="sst-sel" data-momfr aria-label="Compteur">${cs.map(c=>`<option value="${esc(c.id)}"${c.id===fr.counter?' selected':''}>${esc(tmLabelParts(c.label).name||'Compteur')}</option>`).join('')}</select>`
         +numStpHtml('data-ssn','n',fr.n,'Seuil du compteur')+`</div>`
@@ -25730,7 +25778,8 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;state
 async function newFiche(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
-  const d=blankFiche();d.library=lib;state.draft=d;state.edTocOpen=false;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
+  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;state.edTocOpen=false;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -28137,7 +28186,7 @@ function accountPrefsHtml(slot){
   return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <div class="acct-card"><p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${slot?`<div class="auth-actions">${slot}</div>`:''}
-    <div class="auth-actions"><button type="button" class="btn" id="acctWelcome">Revoir l’accueil</button><button type="button" class="btn" id="acctTrouble">Un problème ?</button></div></div>   ${''/* A373 : réparer l'application (fenêtre de stockage) — demande de l'auteur : dans Moi, pas au pied */}
+    <div class="auth-actions"><button type="button" class="btn" id="acctGuide">Prendre en main</button><button type="button" class="btn" id="acctTrouble">Un problème ?</button></div></div>   ${''/* A373 : réparer l'application (fenêtre de stockage) — demande de l'auteur : dans Moi, pas au pied */}
     <div class="auth-stats-h">Affichage</div>
     ${''/* ⚠ LE THÈME REJOINT LES RÉGLAGES (7a, « Points ouverts ») : il vivait dans l'en-tête de
       l'accueil, où il occupait une des quatre rangées collantes les plus disputées du produit
@@ -28225,7 +28274,7 @@ function bindTagsPref(body){
       const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
   {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}
-  {const w=body.querySelector('#acctWelcome');if(w)w.onclick=openWelcome;}   // A460 : l'accueil se revoit   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
+  {const w=body.querySelector('#acctGuide');if(w)w.onclick=openGuide;}   // A466 : gestes, glossaire, et « Revoir l'accueil » (A460)   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
      la pastille SAUTERAIT à sa nouvelle place — c'est exactement le défaut qu'un rejeu de
      glissement avait dû contourner ailleurs, tant que la bascule de mode était re-rendue
@@ -28413,6 +28462,47 @@ function renderStorageInfo(){const body=document.getElementById('storageBody');i
     const ok=await repairApp();   // false = refus hors connexion (l'app recharge sinon)
     if(ok===false){rb.disabled=false;rb.textContent='Réparer l\'application';}};}
 function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
+/* A466 — PRENDRE EN MAIN : les gestes de l'outil et ses mots, jamais de clinique (§ 2). Ouvert depuis Moi,
+   donc jamais pendant une session (règle 11). */
+const GUIDE_GESTES=[
+  ['list','Trouver une aide','Tapez dans la recherche : titre, précision (« adulte »), étapes, doses, documents PDF joints. Entrée ouvre le premier résultat. L’étoile épingle une aide en tête de l’accueil.'],
+  ['play','Démarrer une session','Sur l’écran d’entrée, relisez « Quand l’utiliser », puis « Démarrer la session » : le chrono part, les minuteurs sont prêts. « Exercice » fait la même chose sans patient.'],
+  ['check','Cocher une étape','Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche. « Continuer » passe au bloc suivant quand les étapes sont faites.'],
+  ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet : minuteurs, compteurs, « ＋ Minuteur ».'],
+  ['bolt','Ouvrir une complication','La touche à l’éclair du quai ouvre la complication à tout moment. « Reprendre » vous ramène au bloc où vous étiez.'],
+  ['alarm','Horodater','Note l’heure d’un geste imprévu, que vous pouvez nommer ensuite. Tout part au journal et au compte rendu.'],
+  ['doc','Tout voir','Montre l’aide entière. « Un bloc » revient au bloc en cours. « Se repérer » (menu ⋯) liste les blocs ; « Schéma » dessine l’arbre.'],
+  ['share','Partager la session','Menu ⋯ › « Partager la session » : un collègue suit et coche en direct sur son téléphone. Aucun texte libre ne voyage.'],
+  ['stop','Terminer','« Fin », puis maintenez « Terminer » 1,2 s. Le compte rendu reste dans Sessions.'],
+  ['pen','Écrire une aide','« Créer » › Aide cognitive : blocs, étapes, décisions, minuteurs. Elle naît en brouillon ; passez-la en « Validée » une fois relue. « Rédiger avec l’IA » part d’un PDF.']];
+const GLOSSAIRE=[
+  ['Aide','Un parcours à cocher, bloc par bloc, en situation réelle ou en exercice.'],
+  ['Protocole','Un texte de référence à lire : posologies, procédures, consignes. Il ne se coche pas.'],
+  ['Bibliothèque','Un ensemble d’aides et de protocoles, personnel (« Perso ») ou partagé avec une équipe.'],
+  ['Catégorie','Le rangement d’une aide (SMUR, Urgences…), avec sa couleur.'],
+  ['Session','Le déroulé réel d’une aide : chrono, minuteurs, coches horodatées, compte rendu.'],
+  ['Exercice','Une session de répétition, sans patient, marquée « Exercice » partout.'],
+  ['Essayer','Dérouler une aide en cours d’écriture, depuis l’éditeur. Rien n’est enregistré.'],
+  ['Bloc','Une étape du parcours : une liste d’actions à cocher.'],
+  ['Décision','Un bloc qui pose une question ; chaque réponse ouvre sa branche.'],
+  ['Complication','Un bloc qu’on ouvre à tout moment, hors de la suite normale (touche à l’éclair).'],
+  ['Revue','Une liste à relire à tout moment, cochée une fois par session.'],
+  ['Jalon','Un seuil de compteur qui fait paraître une consigne (« Chocs ≥ 3 : … »).'],
+  ['Horodater','Noter l’heure d’un geste, puis le nommer : il part au journal.'],
+  ['Critique · Vigilance','Ce qui tue si on l’oublie · là où l’on risque de se tromper (dose, seuil).'],
+  ['Vérifier','Relire le bloc étape par étape, à deux : l’un lit, l’autre confirme.'],
+  ['Repères posologiques','Les doses et seuils à consulter pendant l’aide, sans les cocher.']];
+const guideModal=document.getElementById('guideModal');
+function openGuide(){closeAuth();
+  document.getElementById('guideBody').innerHTML=
+    `<div class="auth-stats-h">Les gestes</div><div class="acct-card">`
+    +GUIDE_GESTES.map(([ic,t,x],i)=>`<details class="gd-row"><summary${i?'':' data-dlgfocus'}>${uiIcon(ic,16)}<span>${esc(t)}</span><span class="hs-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.2,cls:''})}</span></summary><p>${esc(x)}</p></details>`).join('')
+    +`</div><div class="auth-stats-h">Glossaire</div><div class="acct-card"><dl class="gd-gl">`
+    +GLOSSAIRE.map(([t,x])=>`<dt>${esc(t)}</dt><dd>${esc(x)}</dd>`).join('')+`</dl></div>`
+    +`<div class="auth-actions"><button type="button" class="btn" id="guideWelcome">Revoir l’accueil</button></div>`;
+  document.getElementById('guideWelcome').onclick=()=>{guideModal.classList.remove('on');openWelcome();};
+  guideModal.classList.add('on');}
+bindModalDismiss(guideModal,()=>guideModal.classList.remove('on'));
 {const fv=document.getElementById('footVer');if(fv)fv.textContent='v'+APP_VERSION;}   // A373 : version au pied du téléphone, posée une fois au démarrage
 function closeStorageInfo(){storageModal.classList.remove('on');}
 bindModalDismiss(storageModal,closeStorageInfo);
@@ -31849,7 +31939,7 @@ bindModalDismiss(pendingModal,closePending);
 let _modalReturnFocus=null;
 function _openModals(){return [...document.querySelectorAll('.ai-modal.on')];}
 function _topModal(){const m=_openModals();return m[m.length-1]||null;}
-function _focusables(el){return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);}
+function _focusables(el){return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')]/* A466 : summary — le piège Tab sautait tout dépliant */.filter(x=>x.offsetParent!==null);}
 /* CALQUES OPAQUES plein écran (#flowFull, #lightbox) : fenêtres pour le FOCUS, le verrou de fond
    et le piège Tab sans être des `.ai-modal` ; `_layerTop()` sert au piège Tab et ne touche pas à
    `_topModal()` (Échap, retour système). Détail : doctrine-js.md J234. */
@@ -32073,6 +32163,7 @@ function _histSync(){if(_hQ)return;_hQ=true;queueMicrotask(()=>{_hQ=false;
   else if(L<d){_hSkip++;history.go(L-d);
     setTimeout(()=>{if(_hSkip){_hSkip=0;_histSync();}},1000);}});}   // popstate perdu : on se recale
 window.addEventListener('popstate',()=>{
+  if(deepLinkFromHash(location.hash))return;   // A464 : un lien direct n'est pas un retour — `hashchange` l'ouvre
   if(_hSkip){_hSkip--;_histSync();return;}
   const d=_hDepth(),L=_histLevels();
   if(d<0&&!L){try{history.back();}catch(_){}return;}   // accueil nu, sous la base : sortir
@@ -32132,7 +32223,7 @@ if(location.search.indexOf('__actest')>=0){
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
-    shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,
+    shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,deepLinkFromHash,
     SHARE_ALPHA,
     SHARE_KEEP,SHARE_DROP,SHARE_TRAVELS,SHARE_LOCAL,SHARE_KINDS_ANY,SHARE_KINDS_LEAD,
     SHARE_APPLY,SHARE_STALE_MS};
@@ -32228,14 +32319,15 @@ if(location.search.indexOf('__actest')>=0){
      `launchQueue`, que le manifeste rend possible depuis v4.43.0 (`launch_handler:
      focus-existing`) et que RIEN ne consommait — sur PWA installée, un lien entrant était donc
      silencieusement perdu. Les deux passent par le même chemin, et par la même garde de crise. */
-  window.addEventListener('hashchange',()=>{if(shareBootDecide())shareEntryArrived();});
+  window.addEventListener('hashchange',()=>{if(shareBootDecide())shareEntryArrived();else applyDeepLink();});
   try{if(window.launchQueue&&window.launchQueue.setConsumer){
     window.launchQueue.setConsumer(lp=>{try{
       const u=(lp&&lp.targetURL)||'';if(!u)return;
       const h=String(u).split('#')[1]||'';
       if(!h)return;
       const c=shareCodeFromHash('#'+h);
-      if(!c)return;
+      if(!c){try{history.replaceState(history.state,'','#'+h);}catch(e){}   // A464 : lien direct
+        if(!document.querySelector('.boot-load'))applyDeepLink();return;}
       SHARE_JOIN=c;shareEntryArrived();
     }catch(e){}});}}catch(e){}
   load().then(async()=>{
