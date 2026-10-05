@@ -1412,10 +1412,15 @@
      rien d'autre ne retient la largeur) — A8 exige 44 px, mesuré sur maquette. */
   .sd-key.sd-exo .dp-lbl-s{display:none}
   /* v5.26.0 (demande de l'auteur) : sous 430, le MOT se tronque en « Exo. » plutôt que de
-     disparaître — même mot, jamais un autre (règle du libellé unique ci-dessous). */
-  html.zw430 .sd-key.sd-exo .dp-lbl:not(.dp-lbl-s){display:none}
-  html.zw430 .sd-key.sd-exo .dp-lbl-s{display:-webkit-box}
-  html.zw430 .sd-key.sd-exo{min-width:var(--hit)}
+     disparaître — même mot, jamais un autre (règle du libellé unique ci-dessous).
+     v5.45.0 (A460, audit d'apprentissage) : « Exo. » cachait le mode le plus utile à l'apprenant
+     derrière une abréviation. Sous 430 la touche RESSERRE son rembourrage (14 → 8) et garde le mot
+     entier ; la troncature ne tombe plus que sous 360 effectifs, où la place manque vraiment
+     (mesuré : « Exercice » coûte 16 px au bouton de démarrage à 390, 0 débordement de son libellé). */
+  html.zw430 .sd-key.sd-exo{padding:0 8px}
+  html.zw360 .sd-key.sd-exo .dp-lbl:not(.dp-lbl-s){display:none}
+  html.zw360 .sd-key.sd-exo .dp-lbl-s{display:-webkit-box}
+  html.zw360 .sd-key.sd-exo{min-width:var(--hit)}
   /* Un SEUL libellé à toutes les largeurs (toute abréviation = TRONCATURE du même mot, jamais un
      autre mot) ; « Plan » garde son mot partout (deux pictogrammes voisins sans mot se confondent
      sous stress). Paliers de compression en classes zw, jamais en media queries (règle 10 ; zw360
@@ -2234,6 +2239,10 @@
   /* v5.30 : badge d'attente ACHROMATIQUE (glyphe + mot, fond --amb-2) — l'ambre ne reste qu'à
      « À revérifier ». */
   .dir-st.b{padding:1px 8px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);line-height:1.25}
+  /* A460 : « À compléter » se tape. Au-dessus du voile `.card-open::after` (sinon le tap ouvre l'aide),
+     halo de 32 px de haut (règle 9) ; en mode sélection il redevient inerte : la rangée se coche. */
+  .dir-row:not(.selm) .dir-st[data-todo]{position:relative;z-index:1;cursor:help}
+  .dir-row:not(.selm) .dir-st[data-todo]::after{content:"";position:absolute;inset:-8px -4px}
   .dir-live{font-variant-numeric:tabular-nums}
   html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
   html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
@@ -2301,6 +2310,10 @@
   .vs-part .linkbtn{min-height:32px}
   .vs-seg .seg-btn{min-height:44px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}   /* A375 : un seul segment, L 44 */
   html.zw360 .vs-seg .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* 320 px : « Protocoles » et « Catégorie » ne tiennent pas à 13,5 (mesuré) */
+  /* A460 : « Regrouper » écrit ses crans en entier (« Catégorie », « Bibliothèque ») et les laisse
+     passer sur DEUX lignes à la césure douce posée dans le libellé — la hauteur L 44 les contient
+     (2 × 1,15 × 13,5 = 31 px). Mesuré : aucun débordement à zoom 1 de 320 à 1280 px. */
+  .vs-seg.vs-wrap .seg-btn{white-space:normal;line-height:1.15;hyphens:manual;text-align:center}
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
   @media (max-width:779.98px){#rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock */
@@ -4346,7 +4359,7 @@
   .endsess-actions{display:flex;gap:8px}
   .btn-continue-sess{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-strong);border-radius:8px;background:transparent;color:var(--ink);font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
   .btn-continue-sess:hover{background:var(--amb-2)}
-  .btn-end-sess{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;background:var(--crit-line);color:var(--on-primary);border:0;border-radius:8px;font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .btn-end-sess{flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--crit-line);color:var(--on-primary);border:0;border-radius:8px;font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
   [data-theme="dark"] .btn-end-sess{color:var(--amb)}
   .btn-end-sess:hover{filter:brightness(1.06)}
   :is(.btn-continue-sess,.btn-end-sess):focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -4961,6 +4974,11 @@
   .tm-reset.holding,.btn-end-sess.holding{background-color:var(--amb-2);background-image:linear-gradient(color-mix(in srgb,var(--crit-line) 60%,transparent),color-mix(in srgb,var(--crit-line) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill var(--hold-ms,.8s) linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .endsess-hint{margin:14px 0 0;text-align:center;font-size:var(--t-body);color:var(--ink-2)}
+  /* A460 (audit d'apprentissage) : le GESTE s'écrit DANS le bouton, là où le doigt se pose — un
+     premier tap bref ne faisait rien en apparence, la consigne vivant 14 px plus bas. Le libellé
+     principal est un `.tmr-lab` : `holdToReset` n'écrit « Maintenir… » que dans lui, la sous-ligne
+     reste et la hauteur ne bouge pas pendant l'appui. */
+  .btn-end-sess .es-hold{font-size:var(--t-meta);font-weight:600;line-height:1.3}   /* pleine encre : à .9 elle tombait à 4,47:1 (mesuré, audit-a11y) */
   .btn.sm{padding:8px 12px;font-size:var(--t-body);font-weight:700;min-height:40px}.btn:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* Registre CONFIRMATION sur un bouton (V5) : « Continuer » quand le bloc est entièrement coché. */
   .btn.okay{background:var(--ok);border-color:var(--ok);color:var(--work)}
@@ -6633,6 +6651,8 @@
   .wl-links{display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap;color:var(--ink-2);font-size:var(--t-item)}
   .wl-lnk{min-height:44px;padding:0 10px;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
   .wl-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A460 : rouvert depuis Moi, l'accueil efface les portes devenues sans objet (et le point qui les sépare). */
+  #welcomeModal [hidden],.wl-lnk[hidden]+span{display:none}
   @media (max-width:779.98px){
     #welcomeModal .ai-card{display:flex;flex-direction:column;padding-top:24px}
     #welcomeModal .wl-act{margin-top:auto;padding-top:14px}

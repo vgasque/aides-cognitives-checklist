@@ -426,6 +426,10 @@ dépliée, qui est déjà un parcours lisible à 390 px. La Page A4 resterait ac
 
 ### Gains rapides (≤ ½ journée chacun, sans toucher la doctrine)
 
+> **Suivi (v5.45.0, A460)** : les points 1, 2, 4 à 10 sont faits ; le point 3 est fait pour « Exo. »,
+> et reporté pour le nom du compteur dans la capsule (la place manque à 64 px — décision de dessin).
+> Détail et mesures : [`docs/decisions/lot-v5-45.md`](decisions/lot-v5-45.md).
+
 1. `discriminant` dans `ficheHaystack`, avec un test.
 2. Entrée dans `#q` ouvre le premier résultat.
 3. « Exo. » devient « Exercice » ; « Chocs déliv. » passe sur deux lignes au lieu d'être abrégé.

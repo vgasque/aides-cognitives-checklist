@@ -3344,7 +3344,10 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
        3:1 contre le fond) — l'ombre montante y est none, assombrir du noir ne dit rien ; le
        jour, c'est l'ombre montante élargie qui le détache (témoin : elle est bien posée) ;
    (3) sous 430 px effectifs, « Exercice » passe au GLYPHE SEUL sans perdre ni sa cible (44 px,
-       A8) ni son nom accessible (aria-label posé par render()). */
+       A8) ni son nom accessible (aria-label posé par render()).
+       ⚠ A460 (v5.45.0) : le mot ENTIER reste dès 360 effectifs (rembourrage resserré sous 430) ;
+       la troncature « Exo. » ne tombe plus que sous 360. Le témoin mesure les DEUX côtés du seuil,
+       sur la même page redimensionnée (une manœuvre, une section). */
 {
   for (const theme of ['light','dark']) {
     const page = await br.newPage({viewport:{width:390,height:844},colorScheme:theme});
@@ -3366,10 +3369,15 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
       return {
         aplat:ratio(csb.backgroundColor,page),
         ombre:csb.boxShadow!=='none', exoOmbre:cse.boxShadow!=='none',
-        edgeR:edge?ratio(edge,page):0, exoTrait:cse.borderTopStyle==='dashed',
-        ekW:ek.getBoundingClientRect().width,
-        ekLblCache:getComputedStyle(ek.querySelector('.dp-lbl')).display==='none',
-        ekNom:(ek.getAttribute('aria-label')||'').length>3};});
+        edgeR:edge?ratio(edge,page):0, exoTrait:cse.borderTopStyle==='dashed'};});
+    const exoMesure=()=>page.evaluate(()=>{const ek=document.getElementById('exoKey'),sb=document.getElementById('sessStart');
+      const lbl=ek.querySelector('.dp-lbl:not(.dp-lbl-s)'),sl=ek.querySelector('.dp-lbl-s');
+      return {w:ek.getBoundingClientRect().width,long:getComputedStyle(lbl).display!=='none',court:getComputedStyle(sl).display!=='none',
+        deb:[...sb.querySelectorAll('.dp-lbl')].some(e=>getComputedStyle(e).display!=='none'&&e.scrollWidth>e.clientWidth+1)
+          ||lbl.scrollWidth>lbl.clientWidth+1,nom:(ek.getAttribute('aria-label')||'').length>3};});
+    const e390=await exoMesure();
+    await page.setViewportSize({width:340,height:844});await page.waitForTimeout(150);
+    const e340=await exoMesure();
     const T=theme==='dark'?'sombre':'clair';
     t(`${T} · l'aplat du geste d'entrée tient 3:1 sur la page (limite de composant, 1.4.11)`,
       r.aplat>=3, `${r.aplat}:1`);
@@ -3379,9 +3387,12 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
     if(theme==='dark'){
       t('sombre · le filet de « Démarrer » tient 3:1 contre l\'ambiance', r.edgeR>=3, `${r.edgeR}:1`);
     }
-    t(`${T} · « Exercice » au glyphe seul garde sa cible (≥ 44 px) et son nom accessible`,
-      r.ekLblCache===true&&r.ekW>=44&&r.ekNom===true,
-      `largeur ${r.ekW} px, libellé caché ${r.ekLblCache}, aria-label ${r.ekNom}`);
+    t(`${T} · 390 · « Exercice » écrit EN ENTIER, sans débordement, cible ≥ 44 px et nom accessible (A460)`,
+      e390.long&&!e390.court&&!e390.deb&&e390.w>=44&&e390.nom,
+      `largeur ${e390.w} px, long ${e390.long}, court ${e390.court}, débordement ${e390.deb}`);
+    t(`${T} · 340 · sous 360 effectifs, troncature « Exo. » qui garde sa cible (≥ 44 px) et son nom accessible`,
+      !e340.long&&e340.court&&e340.w>=44&&e340.nom,
+      `largeur ${e340.w} px, long ${e340.long}, court ${e340.court}`);
     await page.close();
   }
 }

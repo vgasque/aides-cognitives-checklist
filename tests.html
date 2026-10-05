@@ -153,6 +153,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('vigilance ≠ critique', !A.stepIsCrit('△ Réévaluer')&&!A.stepIsVigil('⚠ Adrénaline'));
   eq('stepText retire aussi « △ »', A.stepText('△ Réévaluer PA'), 'Réévaluer PA');
   ok('recherche : le code des fiches est indexé', A.ficheHaystack(A.migrate({title:'X',code:'URG-ANA-01'})).indexOf('urg-ana-01')>=0);
+  /* v5.45.0 (A460) : le DISCRIMINANT est cherché — « pédiatrique » ne trouvait pas l'aide
+     « Anaphylaxie — pédiatrique », alors que le mot est affiché sur sa rangée. Aides ET protocoles. */
+  ok('recherche : le discriminant des aides est indexé', A.ficheHaystack(A.migrate({title:'Anaphylaxie',discriminant:'Pédiatrique'})).indexOf('pediatrique')>=0);
+  ok('recherche : le discriminant des protocoles est indexé', A.protocolHaystack(A.migrateProtocol({title:'Sepsis',discriminant:'femme enceinte'})).indexOf('femme enceinte')>=0);
   /* v5.0.0, étape B : `posology` n'est plus un CHAMP mais un RÔLE du pool — le nettoyage se
      mesure donc sur ce que la fiche rend, pas sur un champ disparu. */
   ok('posologie assainie et lisible comme une liste',

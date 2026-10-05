@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.45.0] — 2026-10-05
+Premier lot de l'audit de prise en main (`docs/audit-apprentissage-2026-10.md`) : ce qu'un nouvel utilisateur ne trouvait pas, ou lisait de travers (A460, doctrine `docs/decisions/lot-v5-45.md`).
+- **Recherche** :
+  - la précision d'une aide (« adulte », « pédiatrique »…) est désormais cherchée, pour les aides comme pour les
+    protocoles ;
+  - **Entrée** ouvre le premier résultat.
+- **« Exercice » écrit en entier** sur le quai dès 360 px de large ; « Exo. » ne reste que sur les plus petits écrans.
+  Une fois armée, la touche affiche aussi « Annuler » à l'écran, et plus seulement pour les lecteurs d'écran.
+- **Affichage › Regrouper** : « Catégorie » et « Bibliothèque » en toutes lettres (sur deux lignes si besoin), au lieu
+  de « Catég. » et « Biblio. ».
+- **Fin de session** : le bouton rouge dit lui-même « Terminer · maintenir 1,2 s ». Un tap bref ne faisait rien en
+  apparence, et la consigne était écrite plus bas.
+- **Mode exercice** : le bouton dit « Démarrer l'exercice ». « Confirmé — » reste réservé à la session réelle, où il
+  acquitte les critères « Quand l'utiliser ».
+- **Accueil** : le badge « △ À compléter » se touche et dit ce qui reste à remplacer ; son explication n'existait
+  qu'au survol de la souris.
+- **Les deux aides d'exemple arrivent « À relire »**, et non plus « Validée », avec un bandeau qui le dit. Valider
+  reste votre geste. La notice « À relire » se lit avant la session et n'occupe plus l'écran pendant.
+- **Moi › « Revoir l'accueil »** rouvre l'écran de bienvenue. Il se fermait pour toujours au premier tap. Ses portes
+  déjà sans objet s'effacent (exemples déjà présents, compte déjà connecté).
+- L'info-bulle de « Vérifier » est en français (« Relire ce bloc étape par étape… »).
+- Non traité dans ce lot : le nom du compteur dans la capsule (« CHOCS DE… ») — la place manque à 64 px, décision de
+  dessin à prendre.
+
 ## [5.44.0] — 2026-10-05
 L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A452-A459, doctrine `docs/decisions/lot-v5-44.md`).
 - **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
@@ -314,11 +338,3 @@ Le sommaire d'un PDF joint se consulte comme celui d'un protocole, et reste une 
   arrivaient aussi environ 60 px trop bas : corrigé.
 - **Barre d'outils du téléphone.** Avec un sommaire, elle débordait (« Largeur » coupé, bouton de
   téléchargement hors de l'écran) ; « Sommaire » remonte sur la ligne du titre et tout tient.
-
-## [5.38.2] — 2026-09-28
-Le survol bleu pâle devient visible (A417, doctrine `docs/decisions/lot-v5-38.md`).
-- **Survol.** Les boutons posés sur le fond bleu pâle (« + » du compteur, « J'ai compris » du bandeau,
-  bouton Compte, rangée active de la colonne gauche) changent maintenant nettement de teinte au survol.
-  La nuit, ce survol n'était pas visible du tout.
-- **Focus.** Le halo autour d'un champ de l'éditeur en cours de saisie est plus lisible ; le bouton
-  « Filtrer » actif est un cran plus soutenu.
