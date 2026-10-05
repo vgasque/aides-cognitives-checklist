@@ -1,5 +1,37 @@
 # Journal des modifications
 
+## [5.43.0] — 2026-10-04
+Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
+- **Chaque réponse d'une décision ouvre sa branche juste sous elle** : « SI Oui », « SI Non, crise arrêtée »…, la
+  réponse écrite à l'ambre, comme dans la décision, et sans fond (seule la décision est une carte). Les deux réponses
+  ont le même dessin ; la décision les annonce par « ↓ 3 », « ↓ 7 ».
+- **Une décision dans une branche décale ses propres branches d'un cran de plus**, deux crans au plus pour garder de la
+  place aux titres dans la colonne. Au-delà, la branche reste au deuxième cran et dit de quelle décision elle part
+  (« SI Non à ◇11 »).
+- **Plus de pastille « BRANCHE ◇ 4 « … » »** : son texte débordait du fond ambré dans la colonne (tablette, ordinateur).
+- Les numéros des blocs ne changent pas (ce sont les mêmes que dans le journal, la Page et le Schéma). Une réponse qui
+  revient en arrière ou rejoint la suite n'ouvre pas de branche vide : la décision le dit (« ↺ 2 », « → 7 »).
+
+## [5.42.0] — 2026-10-04
+La revue « à tout moment » (ex. causes réversibles 4H / 4T) montre, sans un mot, qu'elle ne retient pas la suite (A449, doctrine `docs/decisions/lot-v5-42.md`).
+- **Fermée par défaut.** Elle s'ouvrait d'elle-même tant qu'elle n'était pas faite : ses huit cases s'ajoutaient au
+  bloc et repoussaient « Continuer » sous le quai. Elle s'ouvre maintenant d'un tap sur sa ligne.
+- **Plus de case, une jauge.** À la place de la case pointillée, un anneau d'un segment par hypothèse, qui se remplit au
+  fil des coches, dans n'importe quel ordre. La ligne n'a plus de fond d'étape mais un contour pointillé — le même que
+  celui d'une étape « pas encore son moment » — et le libellé est un cran plus petit que celui des étapes.
+- **Plus de bleu ni de « à faire ».** Le compte « 3/8 » est en gris ; il passe au vert avec « faite » et un ✓ quand
+  tout est coché.
+- **Ouverte, des jetons au lieu d'une liste** : ni case à gauche ni numéro, un jeton vert pâle à coche à droite une fois
+  passé en revue. Cocher ne déplace plus le texte (ni « ✓ » ajouté devant la réponse, ni changement de graisse). La
+  réponse suit le libellé sur la même ligne, ce qui rend les jetons plus bas (44 px au lieu de 56).
+- **Une ou deux colonnes selon la longueur des libellés** : deux jetons par ligne seulement si le plus long libellé y
+  tient (au téléphone, une dizaine de caractères) ; sinon une seule colonne. Le choix suit la largeur réelle, réglage
+  de taille du texte compris.
+- **« Nouvelle revue » reste au pied des jetons**, loin du chevron qui replie : elle efface toutes les coches de la
+  revue pour la session.
+- Accessibilité : la ligne de la revue est un vrai bouton (la rangée entière l'était et contenait des cases), et le
+  lecteur d'écran entend qu'elle se remplit quand on veut, sans retenir la suite.
+
 ## [5.41.1] — 2026-10-04
 Le bouton « Ajouter » de l'éditeur se voit, la recherche dit dans quelle bibliothèque elle cherche, et une décision repliée du parcours redevient compacte (A446-A448, doctrine `docs/decisions/lot-v5-41.md`).
 - **Le bouton « ＋ Ajouter » de l'éditeur est désormais bleu foncé, plein** (texte blanc), dans l'éditeur d'aide comme
@@ -287,32 +319,3 @@ Un audit design de l'application, mesuré puis maquetté sur l'app réelle, et c
   étaient sous le seuil de lisibilité ; corrigé. Le contrôle automatique d'accessibilité mesure
   désormais ce volet, calcule juste les fonds semi-transparents empilés, et un nouveau contrôle
   vérifie les écrans pliables.
-
-## [5.37.2] — 2026-09-27
-Deux alignements, mesurés (A399, doctrine `docs/decisions/lot-v5-37.md`).
-- **Capsule CRITIQUE / VIGILANCE d'une hypothèse** : elle s'aligne exactement sur le début du
-  libellé en dessous, à toutes les largeurs et tailles de texte (sur téléphone étroit elle partait
-  10 px à gauche du texte).
-- **« Repères de ce bloc » replié** : le titre, le résumé (« 2 à préparer ») et les noms des repères
-  partent du même bord ; l'icône est dans la même colonne que celle des repères et le compte est sur
-  la ligne du titre.
-
-## [5.37.1] — 2026-09-27
-Revue et repères du bloc : cinq retours d'usage (A398, doctrine `docs/decisions/lot-v5-37.md`).
-- **La revue des causes réversibles se partage entre les blocs.** Cochée dans « Choquable », elle
-  est retrouvée telle quelle dans « Non choquable » : c'est UNE revue pour toute la session, quel
-  que soit le bloc qui la pose, et elle ne repart plus de zéro à chaque tour de boucle. « Nouvelle
-  revue » la remet à zéro. Une session en cours reprise après la mise à jour garde ses coches.
-- **Hypothèses « critique » ou « vigilance » lisibles.** L'étiquette se posait sur le libellé de
-  l'hypothèse ; elle se place au-dessus. L'étape-revue elle-même avait sa case AU-DESSUS du texte,
-  des hypothèses grisées et rapetissées (un nom de classe déjà pris par la liste « à relire ») :
-  corrigé.
-- **Pas de CRITIQUE / VIGILANCE avant le moment d'une étape.** Une étape qui attend son moment
-  (en pointillé, sans case) n'affiche que sa règle ; le mot revient avec la case.
-- **Repères de ce bloc.** Un repère dont l'étape n'a pas encore atteint son moment est « à
-  préparer », plus « à faire » ; faite à un passage précédent (« une seule fois »), « fait ». Chaque
-  repère se lit en deux lignes — nom et état en tête, posologie dessous sur toute la largeur — et le
-  nom ne se coupe plus au milieu du mot sur téléphone ; sous 430 px, l'état passe sous le nom. Bande
-  repliée : le résumé (« 2 à préparer ») passe sous le titre au téléphone au lieu de s'écraser à côté.
-- **Icône des repères** : la gélule a une moitié pleine — elle se lisait comme un maillon de chaîne.
-

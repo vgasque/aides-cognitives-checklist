@@ -2566,31 +2566,90 @@ await sec('PARCOURS · la liste écrit les chemins (décisions imbriquées)', as
   await page.evaluate(async f=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
     openRead(nf.id);await w(700);},FICHE_IMB);
-  /* A376 : la liste numérotée ÉCRIT le chemin : chaque option dit où elle mène. A394 (amende A376) : une suite qui
-     n'est pas la rangée suivante ouvre une BRANCHE (« ↳ Branche », signée par sa décision), dont les blocs sont
-     INDENTÉS d'un cran — deux colonnes de numéros au plus : le tronc, et les branches un cran à droite. Trois
+  /* A376 : la liste numérotée ÉCRIT le chemin : chaque option dit où elle mène. A450 (amende A394) : la liste suit
+     l'ARBRE de `flowPlan` — chaque réponse ouvre SA branche sous sa décision (« SI réponse », un bouton qui mène à la
+     décision), une branche dans une branche se décale d'un cran de plus, DEUX crans au plus (trois colonnes de
+     numéros) ; un « ↓ n » d'une décision tombe sur le bloc n qui ouvre une de ses branches, juste dessous. Trois
      niveaux (d1 → d2 → b1/b2) — avant la session comme en session. */
   const lire=()=>page.evaluate(()=>{
     const zone=document.querySelector('.pre-lad')||document.querySelector('.read-plan .rail-lad');if(!zone)return null;
     const rows=[...zone.querySelectorAll('.pf-row')];const decs=rows.filter(r=>r.classList.contains('dec'));
+    const decIds=new Set(decs.map(d=>d.dataset.plln));
+    const prof=r=>{let n=0,e=r.parentElement;while(e&&e!==zone){if(e.classList.contains('pf-br'))n++;e=e.parentElement;}return n;};
+    const xs={};rows.forEach(r=>{const p=prof(r);(xs[p]=xs[p]||new Set()).add(Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left));});
+    const brs=[...zone.querySelectorAll('.pf-br')];
+    const fleches=decs.flatMap(d=>{const sib=[];let n=d.nextElementSibling;while(n&&n.classList.contains('pf-br')){sib.push(n);n=n.nextElementSibling;}
+      return [...d.querySelectorAll('.pf-opt .pf-ref')].filter(r=>/↓/.test(r.textContent)).map(r=>{const nn=r.querySelector('.pf-n').textContent.trim();
+        return sib.some(br=>{const fr=br.querySelector(':scope>.pf-row .pf-badge');return fr&&fr.textContent.trim()===nn;});});});
     return {rangs:rows.length,decisions:decs.length,
       branches:decs.map(d=>[...d.querySelectorAll('.pf-opt')].map(o=>({nom:((o.querySelector('b')||{}).textContent||'').trim(),dest:!!o.querySelector('.pf-ref')||/▪ fin|ci-dessous/.test(o.textContent)}))),
-      segments:zone.querySelectorAll('.pf-br>.pf-seg').length,segSrc:zone.querySelectorAll('.pf-br>.pf-seg .pf-src').length,
-      xTronc:[...new Set(rows.filter(r=>!r.closest('.pf-br')).map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left)))],
-      xBr:[...new Set(rows.filter(r=>r.closest('.pf-br')).map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left)))]};});
+      segments:brs.length,signees:brs.filter(br=>{const h=br.querySelector(':scope>.pf-bh[data-plref]');return h&&decIds.has(h.dataset.plref)&&/^Si/i.test(h.textContent.trim());}).length,
+      cols:Object.keys(xs).sort().map(k=>[...xs[k]]),fleches,
+      plats:brs.filter(br=>br.classList.contains('plat')).length,rappels:[...zone.querySelectorAll('.pf-bhr')].length};});
   const juge=(o,quand)=>{
     t(`${quand} · témoin : les six blocs sont rendus, dont deux décisions`,
       !!o&&o.rangs===6&&o.decisions===2, JSON.stringify(o&&{rangs:o.rangs,decisions:o.decisions}));
     t(`${quand} · chaque décision nomme ses deux branches, et chacune dit où elle mène`,
       !!o&&o.branches.length===2&&o.branches.every(b=>b.length===2&&b.every(x=>x.nom&&x.dest)), JSON.stringify(o&&o.branches));
-    t(`${quand} · une suite qui n'est pas la rangée suivante ouvre une BRANCHE, signée par sa décision`,
-      !!o&&o.segments>=1&&o.segSrc===o.segments, JSON.stringify(o&&{segments:o.segments,src:o.segSrc}));
-    t(`${quand} · deux colonnes de numéros au plus : le tronc, et les branches un cran à droite`,
-      !!o&&o.xTronc.length===1&&o.xBr.length===1&&o.xBr[0]-o.xTronc[0]>=12, JSON.stringify(o&&{tronc:o.xTronc,branches:o.xBr}));};
+    t(`${quand} · chaque branche est signée « SI réponse » par sa décision (un bouton qui y mène)`,
+      !!o&&o.segments>=3&&o.signees===o.segments, JSON.stringify(o&&{segments:o.segments,signees:o.signees}));
+    t(`${quand} · trois colonnes de numéros : le tronc, puis un cran par niveau de branche (≥ 12 px chacun)`,
+      !!o&&o.cols.length===3&&o.cols.every(c=>c.length===1)&&o.cols[1][0]-o.cols[0][0]>=12&&o.cols[2][0]-o.cols[1][0]>=12, JSON.stringify(o&&o.cols));
+    t(`${quand} · chaque « ↓ n » d'une décision tombe sur le bloc n, juste sous elle`,
+      !!o&&o.fleches.length>=2&&o.fleches.every(Boolean), JSON.stringify(o&&o.fleches));
+    t(`${quand} · deux crans suffisent ici : aucune branche « à plat », aucun rappel « à ◇n »`,
+      !!o&&o.plats===0&&o.rappels===0, JSON.stringify(o&&{plats:o.plats,rappels:o.rappels}));};
   juge(await lire(),'avant la session');
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     document.getElementById('sessStart').click();await w(700);});
   juge(await lire(),'en session');
+  await page.close();
+}
+});
+
+/* ══ A450 — AU-DELÀ DE DEUX CRANS, LA BRANCHE NE S'ENFONCE PLUS ET DIT SA DÉCISION ══════════════════════════
+   (v5.43.0, choix de l'auteur sur canevas : « C borné à deux retraits ».) Dans la colonne du cockpit (223 px), chaque
+   cran coûte 14 px de titre : au troisième niveau, la branche reste au second cran et son en-tête dit « à ◇n » (sinon
+   « SI Non » serait ambigu entre trois décisions). Le losange d'une décision n'apparaît qu'UNE fois dans la colonne des
+   numéros (l'essai rejeté le redessinait à l'en-tête : il se lisait comme un bloc de plus). Fiche à quatre décisions
+   imbriquées, libellés longs. TÉMOIN : il faut au moins une branche au troisième niveau, sinon le vert ne prouve rien. */
+await sec('PARCOURS · A450 au-delà de deux crans, « à ◇n » et pas de cran de plus', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(async()=>{const it=t=>[{do:t}];
+    const f=migrate({id:'a450',title:'État de mal — témoin A450',start:'b1',blocks:[
+      {id:'b1',title:'Première injection de benzodiazépine',next:'d2',items:[]},
+      {id:'d2',type:'decision',title:'P5',question:'Convulsions persistantes à 5 min ?',options:[{label:'Oui',target:'b3'},{label:'Non, crise arrêtée',target:'b7'}]},
+      {id:'b3',title:'Seconde injection',next:'d4',items:[]},
+      {id:'d4',type:'decision',title:'P10',question:'Toujours persistantes ?',options:[{label:'Oui',target:'b5'},{label:'Non',target:'b6'}]},
+      {id:'b5',title:'État de mal réfractaire',next:null,items:[]},{id:'b6',title:'Surveillance',next:null,items:[]},
+      {id:'b7',title:'Relais par antiépileptique de deuxième ligne',next:'d8',items:[]},
+      {id:'d8',type:'decision',title:'C',question:'Cause identifiée ?',options:[{label:'Oui',target:'b9'},{label:'Non, cause inconnue',target:'b10'}]},
+      {id:'b9',title:'Traitement étiologique',next:null,items:[]},
+      {id:'b10',title:'Imagerie cérébrale et bilan biologique complet',next:'d11',items:[]},
+      {id:'d11',type:'decision',title:'L',question:"Lésion à l'imagerie ?",options:[{label:'Oui',target:'b12'},{label:'Non',target:'b13'}]},
+      {id:'b12',title:'Avis neurochirurgical en urgence',next:null,items:[]},{id:'b13',title:'Ponction lombaire et EEG',next:null,items:[]}]});
+    fiches.push(f);await Data.put(f);openRead(f.id);});
+  await page.waitForFunction(()=>document.body.classList.contains('view-read'));
+  const r=await page.evaluate(async()=>{await new Promise(x=>setTimeout(x,400));
+    const col=document.querySelector('.read-plan .pf-flat.dense');if(!col)return null;
+    const prof=e=>{let n=0;for(let p=e.parentElement;p&&p!==col;p=p.parentElement)if(p.classList.contains('pf-br'))n++;return n;};
+    const xOf=id=>{const r=col.querySelector(`.pf-row[data-plln="${id}"] .pf-badge`);return r?Math.round(r.getBoundingClientRect().left):null;};
+    const plats=[...col.querySelectorAll('.pf-br.plat')];
+    return {plats:plats.length,rappels:plats.map(b=>(b.querySelector(':scope>.pf-bh .pf-bhr')||{}).textContent||''),
+      prof12:prof(col.querySelector('.pf-row[data-plln="b12"]')),x10:xOf('b10'),x12:xOf('b12'),x13:xOf('b13'),x7:xOf('b7'),
+      onze:[...col.querySelectorAll('.pf-badge')].filter(b=>b.textContent.trim()==='11').length,
+      deborde:[...col.querySelectorAll('.pf-bh')].filter(h=>[...h.children].some(c=>c.getBoundingClientRect().right>col.getBoundingClientRect().right+0.5)).length};});
+  t('témoin : la fiche a des branches au troisième niveau',!!r&&r.prof12>=3,JSON.stringify(r));
+  if(r){
+    t('au-delà de deux crans, la branche est « à plat » et dit sa décision (« à ◇11 »)',r.plats===2&&r.rappels.every(x=>/à ◇11/.test(x)),JSON.stringify(r.rappels));
+    t('… ses blocs restent au second cran (même colonne que leur mère), pas un troisième',r.x12===r.x10&&r.x13===r.x10&&r.x10-r.x7>=12,JSON.stringify({x7:r.x7,x10:r.x10,x12:r.x12,x13:r.x13}));
+    t('le numéro d\'une décision n\'apparaît qu\'une fois dans la colonne des numéros',r.onze===1,String(r.onze));
+    t('aucun en-tête de branche ne déborde de la colonne',r.deborde===0,String(r.deborde));
+  }
   await page.close();
 }
 });
@@ -7462,13 +7521,13 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
   t('impression : chaque numéro de bloc de la Page est encadré (bordure, pas seulement un fond)',nums.length>0&&nums.every(b=>parseFloat(b)>=2),JSON.stringify(nums));
   const segs=await page.evaluate(async()=>{openRead('zprint');await new Promise(x=>setTimeout(x,400));const all=document.querySelector('.pf-flat.dense [data-plall="1"]');if(all){all.click();await new Promise(x=>setTimeout(x,200));}
     const col=document.querySelector('.pf-flat.dense');
-    return {txt:col.textContent,br:[...col.querySelectorAll('.pf-br')].map(b=>{const g=b.querySelector('.pf-seg'),pl=g.querySelector('.pf-src'),rail=getComputedStyle(b,'::before');
+    return {txt:col.textContent,br:[...col.querySelectorAll('.pf-br')].map(b=>{const g=b.querySelector(':scope>.pf-bh'),pl=g&&g.lastElementChild,rail=getComputedStyle(b,'::before');
       const x=r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left);
-      return {tete:g.querySelector('.pf-segl').textContent.trim(),aria:b.getAttribute('aria-label'),jeu:pl?Math.round(col.getBoundingClientRect().right-pl.getBoundingClientRect().right):99,
+      return {tete:((g&&g.querySelector('.pf-bsi'))||{textContent:''}).textContent.trim(),aria:b.getAttribute('aria-label'),jeu:pl?Math.round(col.getBoundingClientRect().right-pl.getBoundingClientRect().right):99,
         rail:rail.borderLeftWidth===rail.borderTopWidth&&parseFloat(rail.borderLeftWidth)>=2&&b.getBoundingClientRect().height-parseFloat(rail.top)-parseFloat(rail.bottom)>40,rangs:[...b.querySelectorAll(':scope>.pf-row')].map(x)};}),
       tronc:[...col.querySelectorAll(':scope>.pf-row')].map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left))};});
-  t('A393 : colonne — la pastille d\'une branche tient dans la colonne, à 12 px au moins du bord',segs.br.some(b=>b.jeu<99)&&segs.br.every(b=>b.jeu>=12),JSON.stringify(segs.br.map(b=>b.jeu)));
-  t('A394 : « Branche » sans glyphe de police (plus de « Chemin n »), groupe nommé par sa décision, « ■ Fin » (plus « Fin du parcours »)',segs.br.length>=2&&segs.br.every(b=>/^(Branche|Suite de|Autre entrée)$/.test(b.tete)&&/^(Branche de la décision \d+|Suite du bloc|Autre entrée)/.test(b.aria||''))&&!/Chemin \d|Fin du parcours/.test(segs.txt)&&/■ Fin/.test(segs.txt),JSON.stringify(segs.br.map(b=>[b.tete,b.aria])));
+  t('A393/A450 : colonne — l\'en-tête d\'une branche tient dans la colonne, à 12 px au moins du bord',segs.br.some(b=>b.jeu<99)&&segs.br.every(b=>b.jeu>=12),JSON.stringify(segs.br.map(b=>b.jeu)));
+  t('A394/A450 : en-tête « SI réponse » (ou « Suite de » / « Autre entrée ») sans glyphe de police, groupe nommé par sa décision, « ■ Fin » (plus « Fin du parcours »)',segs.br.length>=2&&segs.br.every(b=>/^(Si|Suite de|Autre entrée)$/.test(b.tete)&&/^(Branche de la décision \d+|Suite du bloc|Autre entrée)/.test(b.aria||''))&&!/Chemin \d|Fin du parcours/.test(segs.txt)&&/■ Fin/.test(segs.txt),JSON.stringify(segs.br.map(b=>[b.tete,b.aria])));
   t('A394 : les blocs d\'une branche sont indentés d\'un cran le long d\'UN trait (coin + filet, même épaisseur)',segs.br.length>0&&segs.br.every(b=>b.rail&&b.rangs.length>0&&b.rangs.every(x=>x-segs.tronc[0]>=12))&&new Set(segs.tronc).size===1,JSON.stringify({tronc:segs.tronc,br:segs.br.map(b=>({r:b.rangs,rail:b.rail}))}));
   await page.close();
 }
@@ -7852,6 +7911,75 @@ await sec('Parcours · A448 une décision repliée n\'est jamais plus haute que 
   t('témoin : la ligne de branches repliée enroule (deux rangées au moins)',!!r&&r.brief&&r.lignes>=2,JSON.stringify(r));
   t('chaque flèche et chaque « · » restent sur une ligne de leur réponse',!!r&&r.colle===true,JSON.stringify(r));
   t('repliée, la ligne de branches est plus basse que la liste dépliée',!!r&&r.hD>0&&r.hR<r.hD,JSON.stringify(r));
+  await page.close();
+}
+});
+
+/* ══ A449 — LA REVUE « À TOUT MOMENT » NE RESSEMBLE PAS À CE QUI RETIENT LA SUITE ═══════════════
+   (v5.42.0, demande de l'auteur : faire passer, sans un mot, qu'on peut la remplir quand on veut.) Avant : grille
+   ouverte d'office (huit cases de plus dans le fil), case pointillée dans la colonne des cases, ligne en bleu
+   d'action « 0/8 à faire ». Invariants : fermée d'office, aucune CASE mais une jauge, ligne neutre (pas `--act`),
+   « Continuer » ne l'attend pas ; ouverte, des jetons dont le libellé NE BOUGE PAS à la coche, deux colonnes
+   seulement pour des libellés courts, « Nouvelle revue » au pied, loin du chevron.
+   TÉMOIN : la colonne unique est mesurée sur la fiche d'exemple (libellés longs) ET les deux colonnes sur la même
+   revue aux libellés raccourcis — sans le second cas, « une colonne » serait vert même si la grille ne s'adaptait pas. */
+await sec('Revue · A449 à tout moment : jauge neutre, jetons immobiles, colonnes au libellé', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/arr[eê]t/);
+  await demarrerSession(page);
+  for(let i=0;i<8;i++){
+    const fini=await page.evaluate(()=>{const cur=document.querySelector('.ov-block.cur');
+      if(cur&&cur.querySelector('.rv-step'))return true;
+      const opt=[...document.querySelectorAll('[data-ovopt]')].find(x=>/Non/.test(x.textContent));if(opt){opt.click();return false;}
+      if(cur)cur.querySelectorAll('[data-ck]:not(.done)').forEach(li=>li.click());
+      const n=cur&&cur.querySelector('[data-ovnext]');if(n)n.click();return false;});
+    if(fini)break;await page.waitForTimeout(400);}
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const cur=()=>document.querySelector('.ov-block.cur'),head=()=>cur().querySelector('.rv-step [data-revtg],.rv-step[data-revtg]');
+    if(!cur()||!head())return null;
+    const o={ferme:head().getAttribute('aria-expanded')==='false'&&!cur().querySelector('.rev-grid'),
+      sansCase:!head().querySelector('.box')&&!!head().querySelector('.rv-ring svg .rg-bg')&&!head().querySelector('.rg-fg'),
+      neutre:getComputedStyle(head().querySelector('.kline')).color!==getComputedStyle(document.querySelector('.bn,#crisisDock')||document.body).getPropertyValue('--act')};
+    const p=document.createElement('i');p.style.color='var(--act)';document.body.appendChild(p);
+    o.neutre=getComputedStyle(head().querySelector('.kline')).color!==getComputedStyle(p).color;p.remove();
+    /* « Continuer » ne l'attend pas : les étapes ordinaires cochées, la revue à 0, le bouton est actif */
+    cur().querySelectorAll('ol.steps:not(.rev)>li[data-ck]:not(.done)').forEach(li=>li.click());await w(300);
+    const nx=cur().querySelector('[data-ovnext]');o.continuer=!!nx&&nx.getAttribute('aria-disabled')!=='true';
+    if(head().getAttribute('aria-expanded')!=='true'){head().click();await w(300);}
+    const toks=()=>[...cur().querySelectorAll('ol.steps.rev>li[data-ck]')];
+    if(toks().length<2)return o;
+    const cols=()=>new Set(toks().map(li=>Math.round(li.getBoundingClientRect().left))).size;
+    o.colsLongs=cols();
+    const t0=toks()[1].querySelector('.txt').getBoundingClientRect();
+    toks()[1].click();await w(300);
+    const t1=toks()[1].querySelector('.txt').getBoundingClientRect();
+    o.immobile=toks()[1].classList.contains('done')&&Math.abs(t0.left-t1.left)<.5&&Math.abs(t0.top-t1.top)<.5&&Math.abs(t0.width-t1.width)<.5;
+    o.jauge=!!head().querySelector('.rg-fg');
+    const ch=head().querySelector('.k-chev'),nb=cur().querySelector('[data-revnew]');
+    if(ch&&nb){const chev=ch.getBoundingClientRect(),nv=nb.getBoundingClientRect(),last=toks().at(-1).getBoundingClientRect();
+      o.pied=nv.top>=last.bottom&&nv.top-chev.bottom>=200;}
+    /* les mêmes hypothèses, libellés courts : deux jetons par ligne */
+    const f=Runtime.fiche,rb=f.blocks.find(x=>x.kind==='review'),pool=f.items||[];
+    (rb.items||[]).forEach((id,i)=>{const it=typeof id==='object'?id:pool.find(x=>x.id===id);if(it)it.do=['Hypoxie','Acidose','Kaliémie','Glycémie','Toxiques','Thrombose','Tamponnade','Hypoxémie'][i%8];});
+    render();await w(400);
+    o.colsCourts=cols();
+    return o;});
+  t('témoin : la revue de la fiche d\'exemple est atteinte en session',!!r,JSON.stringify(r));
+  if(r){
+    t('fermée d\'office (la grille ne s\'ouvre plus dans le fil)',r.ferme,JSON.stringify(r));
+    t('pas de case dans la tête : une jauge, vide à 0',r.sansCase,JSON.stringify(r));
+    t('la ligne k/n n\'est pas au bleu de l\'action (`--act`)',r.neutre,JSON.stringify(r));
+    t('« Continuer » est actif alors que la revue est à 0',r.continuer,JSON.stringify(r));
+    t('libellés longs (fiche d\'exemple) : une seule colonne à 390 px',r.colsLongs===1,JSON.stringify(r));
+    t('libellés courts : deux jetons par ligne à 390 px',r.colsCourts===2,JSON.stringify(r));
+    t('cocher un jeton ne déplace ni ne redimensionne son libellé',r.immobile,JSON.stringify(r));
+    t('la jauge se remplit à la première coche',r.jauge,JSON.stringify(r));
+    t('« Nouvelle revue » au pied des jetons, à plus de 200 px du chevron',r.pied,JSON.stringify(r));
+  }
   await page.close();
 }
 });

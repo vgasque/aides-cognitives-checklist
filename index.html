@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PFzZOmUUAWSdLD2ZjvXyVHhebyBQE9dE2IJo9aQ2N0g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-dzQh6Ur0bwIgCpGzOXcXjiF4x30xZLCjKa/u4rxI24c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3067,12 +3067,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-flat.dense .pf-steps li.pf-grp{padding-left:0}
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
-  .pf-flat.dense .pf-br{margin-top:12px}
-  .pf-flat.dense .pf-br>.pf-row{margin-left:14px}
-  .pf-flat.dense .pf-br::before{left:7px;width:8px}
-  .pf-flat.dense .pf-br>.pf-seg{margin:0;padding:0 12px 0 20px}   /* A393 : 12 px de jeu à droite — la pastille ne frôle jamais le filet de la colonne */
-  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);min-width:0;flex:0 1 auto;text-align:left}   /* A393 : une réponse longue passe à la ligne DANS la pastille, jamais au-delà du bord */
-  .pf-flat.dense .pf-src.pf-dec>span:not(:last-child){flex:none}
+  .pf-flat.dense .pf-br>:is(.pf-row,.pf-br){margin-left:14px}
+  .pf-flat.dense .pf-br>.pf-br.plat{margin-left:0}
+  .pf-flat.dense .pf-br::before{left:7px;width:16px}
+  .pf-flat.dense .pf-bh{padding:0 12px 0 28px}   /* A393 : 12 px de jeu à droite — l'en-tête ne frôle jamais le bord de la colonne */
+  .pf-flat.dense .pf-bh b{font-size:var(--t-meta)}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -3088,19 +3087,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-src{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:var(--amb-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink);cursor:pointer}
   .pf-seg{display:flex;align-items:center;gap:10px;margin:24px 0 8px;padding:0 8px}
   .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
-  .pf-src.pf-dec{background:var(--warn-soft);min-height:44px;font-size:var(--t-body);gap:6px}
-  .pf-src.pf-dec>span:first-child{color:var(--warn)}
   .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
-  /* A394 : une BRANCHE — son en-tête « ↳ Branche », puis ses blocs indentés le long d'un filet vertical qui descend du ↳
-     jusqu'à son dernier bloc ; la branche suivante repart de la marge. Blanc AVANT (elle se détache), serré APRÈS l'en-tête. */
-  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:20px}
-  .pf-br>.pf-seg{margin:0;padding:0 8px 0 24px;min-height:44px}
-  .pf-br>.pf-row{margin-left:20px}
-  /* UN SEUL trait, une seule épaisseur : le filet part du milieu de l'en-tête, tourne vers « Branche » par un coin
-     arrondi et descend le long de la branche (le ↳ de police, plus fin, se superposait au filet — refusé). */
-  .pf-br::before{content:"";position:absolute;left:9px;top:22px;bottom:6px;width:10px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
-  :is(.pf-ref,.pf-src):focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .pf-ref,.pf-src,.pf-tg,.pf-all{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
+  /* A394, REDESSINÉE EN A450 : une BRANCHE = « SI réponse » puis ses blocs, décalés d'un cran le long d'UN filet (coin
+     arrondi vers l'en-tête, puis descente). L'arbre suit celui de `flowPlan` : une branche dans une branche se décale
+     encore, DEUX crans au plus (`.plat` au-delà : même cran que sa mère, l'en-tête dit « à ◇n »). L'en-tête n'a pas de
+     fond — seule la décision est une carte — et la réponse est à l'ambre des réponses de la décision. Le losange de la
+     décision n'est jamais redessiné dans la colonne des numéros (il s'y lisait comme un bloc de plus). */
+  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:4px}
+  .pf-br>:is(.pf-row,.pf-br){margin-left:20px}
+  .pf-br>.pf-br.plat{margin-left:0}
+  .pf-br::before{content:"";position:absolute;left:9px;top:16px;bottom:6px;width:20px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
+  .pf-bh{display:flex;flex-wrap:wrap;align-items:baseline;align-content:center;gap:2px 6px;min-height:32px;padding:0 8px 0 32px;border:0;border-radius:var(--r-1);background:none;font-family:inherit;font-size:var(--t-body);text-align:left;color:var(--ink);cursor:pointer}
+  div.pf-bh{cursor:default}
+  .pf-bh b{min-width:0;font-weight:800;line-height:1.3;color:var(--warn);overflow-wrap:anywhere}
+  .pf-bsi{flex:none;font-family:var(--f-mono);font-size:var(--t-cap);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .pf-bhr{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  :is(.pf-ref,.pf-src,.pf-bh):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pf-ref,.pf-src,.pf-tg,.pf-all,.pf-bh{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all,.pf-bh)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
      encre passe à --amb. En session, mêmes étages sans rail (écart 20 px) ; onglets = gabarit des
@@ -3758,22 +3761,45 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A398 : `rv-step`, et non plus `rev-row` — ce nom était déjà celui des rangées « à relire » (colonne, spans
      12 px en encre douce, survol qui soulève) : l'étape-revue et toute sa grille en héritaient (case AU-DESSUS
      du libellé, hypothèses et étiquettes grisées et rapetissées). Leçon « Collision de noms de classe ». */
-  ol.steps li.rv-step{align-items:flex-start}
-  ol.steps li.rv-step>.box{border-style:dashed;background:none}
-  ol.steps li.rv-step.done>.box{border-style:solid}
-  ol.steps li.rv-step>.txt{padding-top:6px}
-  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--act)}
-  .kline .wt-g{color:var(--act)}
+  /* A449 — « à tout moment » se DESSINE, sans un mot : (1) la rangée quitte la matière des étapes — pas de fond,
+     contour pointillé, le vocabulaire d'A382 (« pas maintenant, ne retient pas Continuer ») ; (2) pas de CASE mais
+     une JAUGE de n segments, qui se remplit par morceaux (`revRingHtml`) ; (3) aucune couleur au repos (règle 8 :
+     ce qui ne demande rien n'a pas de registre — la ligne était en `--act`, le bleu de l'action) ; (4) le libellé
+     un cran plus bas que les étapes (`--t-item`, amende A345 pour ce seul cas) ; (5) fermée d'office. La tête
+     (`.rv-head`) est le bouton : la rangée ne l'est plus, elle contient des cases (rôle interactif imbriqué). */
+  :root ol.steps li.rv-step{display:block;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  ol.steps li.rv-step.done{background:none}
+  .rv-head{position:relative;display:flex;align-items:flex-start;gap:12px;border-radius:var(--r-1);cursor:pointer}
+  :root ol.steps li.rv-step .rv-head>.txt{padding-top:6px;font-size:var(--t-item)}
+  :root ol.steps li.rv-step .rv-head:has(>.txt>.stp-mks){padding-top:24px}
+  :root ol.steps li.rv-step .rv-head>.txt>.stp-mks{top:0;left:48px}
+  .rv-ring{flex:none;display:grid;place-items:center;width:36px;height:36px}
+  .rv-ring>*{grid-area:1/1}
+  /* Piste FINE (`--ctl-line`, 3:1) et segments faits ÉPAIS à l'encre : vide et plein se distinguent par l'épaisseur
+     autant que par la valeur — `--line-strong` disparaissait la nuit (#2c313a sur la carte). */
+  .rv-ring .rg-bg{stroke:var(--ctl-line);stroke-width:2}
+  .rv-ring .rg-fg{stroke:var(--ink);stroke-width:4}
+  .rv-step.done .rv-ring .rg-fg{stroke:var(--ok)}
+  .rv-ring .ic{color:var(--ok)}
+  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--ink-2)}
   .kline b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700}
-  .kline.ok,.kline.ok .wt-g{color:var(--ok)}
-  .rev-grid{margin:8px 0 2px;padding:2px 12px 10px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-2)}
-  ol.steps.rev{margin:0}
-  ol.steps.rev li{min-height:48px;padding:6px 0;border-radius:0;background:none;border-top:1px solid var(--work-line)}
-  ol.steps.rev li:first-child{border-top:0}
+  .kline.ok{color:var(--ok)}
+  /* Ouverte : des JETONS, pas une liste — ni case à gauche ni numéro, la coche se pose à DROITE (le libellé ne
+     bouge pas sous le doigt, A9). Le nombre de colonnes suit le PLUS LONG libellé (`--rv-ch`, en caractères,
+     posé par `revGridHtml`) : deux colonnes quand tout tient, une seule sinon — `auto-fit` décide à la largeur
+     RENDUE, donc juste sous zoom (règle 10) sans media query. */
+  .rev-grid{margin:12px 0 0;padding:0}
+  ol.steps.rev{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(var(--rv-ch,14) * .92ch + 42px)),1fr));gap:8px}
+  :root ol.steps.rev li{position:relative;align-items:flex-start;min-height:var(--hit);padding:10px 32px 10px 10px;border-radius:var(--r-1);background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
   ol.steps.rev li+li{margin-top:0}
-  ol.steps.rev li .box{width:28px;height:28px;border-radius:var(--r-1)}
-  ol.steps.rev li .txt{font-size:var(--t-item)}
-  ol.steps.rev li .stp-r{font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  :root ol.steps.rev li .box{position:absolute;top:10px;right:8px;width:20px;height:20px;border:0;border-radius:0;background:none;color:var(--ok)}
+  :root ol.steps.rev li.done .box{background:none}
+  :root ol.steps.rev li .txt{font-size:var(--t-item)}
+  /* La réponse SUIT le libellé dans la ligne (elle passait dessous : 56 px par jeton, huit jetons = un écran),
+     et cocher ne déplace rien : ni « ✓ » devant la réponse, ni changement de graisse — seule la coche à droite. */
+  :root ol.steps.rev li .stp-r{display:inline;margin-top:0;font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  :root ol.steps.rev li.done .stp-r::before{content:none}
+  :root ol.steps.rev li.done .txt{font-weight:700}
   /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, ANCRÉE SUR LUI (bord gauche
      du texte, 4 px au-dessus) et non sur la rangée : un décalage écrit en px supposait une case et une gouttière
      fixes, et sous 360 px effectifs la capsule partait 10 px à gauche du texte (13 à 130 %). La rangée garde la
@@ -3781,8 +3807,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :root ol.steps.rev li:has(>.txt>.stp-mks){padding-top:28px}
   :root ol.steps.rev li>.txt:has(>.stp-mks){position:relative}
   :root ol.steps.rev li>.txt>.stp-mks{top:auto;left:0;bottom:100%;margin-bottom:4px}
-  ol.steps.rev li.done{background:none}
-  .rev-foot{display:flex;justify-content:flex-end;padding-top:8px}
+  :root ol.steps.rev li.done{background:var(--ok-soft);box-shadow:inset 0 0 0 1.5px var(--ok)}
+  /* « Nouvelle revue » efface TOUTES les coches de la revue pour la session : au PIED, loin du chevron de la tête
+     (un geste fréquent à côté d'un geste destructeur, c'est une erreur de doigt sous stress). */
+  .rev-foot{display:flex;justify-content:flex-end;padding-top:16px}
   .fold-card .sf-body .rev-grid{margin:0;padding:0 0 10px;border:0}
   /* A397 — la bande des repères du bloc : un repère par étape liée, dans l'ordre des étapes, un mot venu de la coche ;
      repliable d'un tap sur sa tête, un seul état pour la session, la tête repliée garde le compte et le résumé. */
@@ -7862,7 +7890,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li,.rv-head):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -8804,7 +8832,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.41.1';
+const APP_VERSION='5.43.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21374,8 +21402,10 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     const tg=mt?`<span class="stp-mk ${mt[0]}">${esc(mt[1])}</span>`:'';
     /* A396 : l'étape-revue est la PORTE de sa revue — la grille se déplie dans sa boîte, la coche est celle des hypothèses. */
     if(it&&it.review){const rb=blocksById(_f.blocks||[])[it.review];
-      if(rb){const rs=revState(rb,REV_SEQ,state.checked),ro=state.revOpen||{},open=ro[rb.id]!=null?!!ro[rb.id]:!rs.done;
-        return `<li class="${cls}rv-step${rs.done?' done':''}${open?' open':''}" role="button" tabindex="0" data-revtg="${esc(rb.id)}" aria-expanded="${open?'true':'false'}"><span class="box" aria-hidden="true">${rs.done?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg,after:revLineHtml(rs,open)+(open?revGridHtml(_f,rb):'')})}</li>`;}}
+      /* A449 : fermée d'office (elle s'ouvrait tant qu'elle n'était pas faite — huit cases de plus dans le fil, qui
+         repoussaient « Continuer »). La TÊTE est le bouton, la grille vit à côté d'elle dans la rangée. */
+      if(rb){const rs=revState(rb,REV_SEQ,state.checked),ro=state.revOpen||{},open=!!ro[rb.id];
+        return `<li class="${cls}rv-step${rs.done?' done':''}${open?' open':''}"><div class="rv-head" role="button" tabindex="0" data-revtg="${esc(rb.id)}" aria-expanded="${open?'true':'false'}">${revRingHtml(rs)}${stepTxtHtml(st,{mark:true,tag:tg,after:revLineHtml(rs,open)})}</div>${open?revGridHtml(_f,rb):''}</li>`;}}
     let wt=(opts.wt&&linkOf(it))?wtSpanHtml('s|'+k)+(cnRelTid(_f,it)?wtSpanHtml('r|'+k):''):'';   // A377 : passage le plus récent seulement ; A440 : + la relance
     /* A382 : pas encore (sans case, ne retient pas « Continuer », « Faire maintenant ») ou déjà faite une fois. */
     if(!ck&&mo&&(mo.st==='wait'||mo.st==='gone')){
@@ -21391,18 +21421,31 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     if(mt&&!wt)wt='<span class="wt"></span>';   // A9 : la ligne du dessous reste réservée d'un état à l'autre
     return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual,after:wt})}${tag}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
-// A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé visite:revue:index).
+// A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé r:revue:index).
+// A449 : plus de « à faire » ni « en cours » (des mots d'obligation) ; neutre au repos, « faite » en vert à n/n.
 function revLineHtml(rs,open){
-  return `<span class="kline${rs.done?' ok':''}">${uiIcon('grid',14,{sw:2.2,cls:'wt-g'})}<b>${rs.k}/${rs.n}</b><span>${rs.done?'faite':(rs.k?'en cours':'à faire')}</span>${chevHtml(open,'k-chev')}</span>`;}
-function revGridHtml(f,rb){
-  return `<div class="rev-grid">${stepsListHtml(clean(stepsOf(rb)),REV_SEQ,rb.id,{items:bItems(rb),cls:'rev'})}<div class="rev-foot"><button type="button" class="btn sm" data-revnew="${esc(rb.id)}">Nouvelle revue</button></div></div>`;}
+  return `<span class="kline${rs.done?' ok':''}"><span class="sr-only">Revue à faire quand on veut, elle ne retient pas la suite : </span><b>${rs.k}/${rs.n}</b>${rs.done?'<span>faite</span>':''}${chevHtml(open,'k-chev')}</span>`;}
+/* A449 — la JAUGE de la revue, à la place de la case : un segment par hypothèse (un arc continu au-delà de douze,
+   les segments deviendraient des points), remplis dans l'ordre des coches faites — une quantité qui s'accumule,
+   pas une case qui attend. Pleine et verte à n/n, ✓ au centre (jamais la couleur seule, règle 8). */
+function revRingHtml(rs){const n=Math.max(1,rs.n),k=Math.min(rs.k,n),C=2*Math.PI*15,seg=n<=12,g=seg&&n>1?2.5:0,d=C/n-g,r2=x=>+x.toFixed(2);
+  const arc=(cls,da)=>`<circle class="${cls}" cx="18" cy="18" r="15" fill="none"${da?` stroke-dasharray="${da}"`:''} transform="rotate(${r2(-90+g/2/C*360)} 18 18)"/>`;
+  let fg='';
+  if(k>=n)fg=arc('rg-fg',g?r2(d)+' '+r2(g):'');
+  else if(k>0)fg=arc('rg-fg',seg?Array(k).fill(r2(d)+' '+r2(g)).join(' ').replace(/ [\d.]+$/,' '+r2(C-k*d-(k-1)*g)):r2(C*k/n)+' '+r2(C));
+  return `<span class="rv-ring" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36">${arc('rg-bg',g?r2(d)+' '+r2(g):'')}${fg}</svg>${rs.done?uiIcon('check',16,{sw:3,cls:'ic'}):''}</span>`;}
+/* A449 — ouverte, la revue est une grille de JETONS. `--rv-ch` = le plus long LIBELLÉ en caractères (la réponse le
+   suit dans la ligne et peut passer à la ligne, elle ne compte pas) : deux jetons par ligne seulement s'il y tient. */
+function revGridHtml(f,rb){const steps=clean(stepsOf(rb));
+  const ch=Math.min(60,Math.max(6,...steps.map(s=>stepCR(stepText(s)).c.length)));
+  return `<div class="rev-grid" style="--rv-ch:${ch}">${stepsListHtml(steps,REV_SEQ,rb.id,{items:bItems(rb),cls:'rev'})}<div class="rev-foot"><button type="button" class="btn sm" data-revnew="${esc(rb.id)}">Nouvelle revue</button></div></div>`;}
 // Après une coche d'hypothèse : toutes les copies de la rangée, les têtes k/n, et la porte se referme à n/n.
 function revAfterCheck(f,k){const p=String(k).split(':'),rb=blocksById(f.blocks||[])[p[1]];if(!rb||rb.kind!=='review')return;
   main.querySelectorAll('[data-ck="'+CSS.escape(k)+'"]').forEach(li=>paintCkLi(li,k,!!state.checked[k]));
   const rs=revState(rb,p[0],state.checked);
-  main.querySelectorAll('[data-revtg="'+CSS.escape(rb.id)+'"]').forEach(li=>{li.classList.toggle('done',rs.done);
-    const b=li.querySelector(':scope>.box');if(b)b.innerHTML=rs.done?uiIcon('check',19,{sw:3,cls:''}):'';
-    const kl=li.querySelector('.kline');if(kl)kl.outerHTML=revLineHtml(rs,li.classList.contains('open'));});
+  main.querySelectorAll('[data-revtg="'+CSS.escape(rb.id)+'"]').forEach(h=>{const li=h.closest('li');if(li)li.classList.toggle('done',rs.done);
+    const r=h.querySelector('.rv-ring');if(r)r.outerHTML=revRingHtml(rs);
+    const kl=h.querySelector('.kline');if(kl)kl.outerHTML=revLineHtml(rs,h.getAttribute('aria-expanded')==='true');});
   main.querySelectorAll('[data-revcount="'+CSS.escape(rb.id)+'"]').forEach(el=>{el.textContent=rs.k+'/'+rs.n;});
   if(rs.done){state.revOpen=state.revOpen||{};state.revOpen[rb.id]=false;renderOvOnlyKeepAnchor('.ov-block.cur');}}
 function revNew(f,rid){const pre=REV_SEQ+':'+rid+':';
@@ -21922,26 +21965,38 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
   const blkTm=b=>{const x=blkTimerTxt(f,b);return x?`<div class="pf-bt">${esc(x)}</div>`:'';};
   const head=(b,m,open,badge,cls,attrs)=>{const cur=!!(m&&m.cur);
     return `<div class="pf-row${cls}" data-plln="${esc(b.id)}"${cur?' aria-current="step"':''}${attrs||''}><div class="pf-col"><span class="pf-badge" aria-hidden="true">${badge}</span></div><div class="pf-main"><button type="button" class="pf-title pf-tg" data-plfold="${esc(b.id)}" aria-expanded="${open}"><span>${esc(titre(b))}</span>${cur?'<span class="pf-here">Ici</span>':''}${chevHtml(open,'pf-chev')}</button>`;};
-  let h='',prevRail=true,inBr=false,anyClosed=false;
-  order.forEach((b,i)=>{const next=order[i+1],prev=order[i-1],dec=b.kind==='decision';
-    const leads=nb=>!!nb&&(dec?(b.options||[]).some(o=>o&&o.target===nb.id):b.next===nb.id);
-    const ents=entries[b.id]||[];let seg='';
-    /* A394 : une suite qui ne découle pas du bloc précédent est une BRANCHE — « Branche ◇ n « réponse » », plus de
-       compteur (« Chemin 2 » disait un rang de liste et se confondait avec le numéro de la décision). Ses blocs sont
-       indentés le long d'un filet qui part de l'en-tête (un coin, pas de glyphe) jusqu'à la branche suivante : on voit où elle commence et où elle finit. */
-    if(i>0&&!prevRail){const e0=ents[0],n0=e0&&num[e0.from.id];let lab,pill='',aria;
-      if(e0&&e0.from.kind==='decision'){const lb=e0.label?(place==='col'?court(e0.label):stripBold(e0.label)):'';
-        lab='Branche';aria='Branche de la décision '+n0+(lb?', réponse '+guil(lb):'');
-        pill=`<button type="button" class="pf-src pf-dec" data-plref="${esc(e0.from.id)}"><span aria-hidden="true">◇</span><span class="pf-n">${n0}</span>${lb?`<span>${esc(guil(lb))}</span>`:''}</button>`;}
-      else if(e0){lab='Suite de';aria='Suite du bloc '+n0;pill=`<button type="button" class="pf-src" data-plref="${esc(e0.from.id)}"><span class="pf-n">${n0}</span></button>`;}
-      else{lab='Autre entrée';aria=lab;}
-      seg=(inBr?'</div>':'')+`<div class="pf-br" role="group" aria-label="${esc(aria)}"><div class="pf-seg"><span class="pf-segl">${lab}</span>${pill}</div>`;inBr=true;}
-    const arrivals=ents.filter((e,k)=>!(prevRail&&prev&&e.from.id===prev.id)&&!(i>0&&!prevRail&&k===0));
-    const rail=leads(next);prevRail=rail;
+  /* A450 (amende A394) — LE PARCOURS SUIT L'ARBRE DE `flowPlan`, BORNÉ À DEUX RETRAITS. Chaque réponse d'une décision
+     ouvre SA branche sous la décision (« SI réponse »), au même dessin pour toutes les réponses ; une branche dans une
+     branche se décale d'un cran de plus, deux crans au plus (colonne de 223 px) — au-delà elle reste au second cran
+     et dit sa décision (« à ◇n »). La numérotation est INCHANGÉE (« le tronc d'abord », A344) : l'arbre de `flowPlan`
+     est parcouru dans l'ordre même où il numérote. Une réponse sans bloc propre (retour, convergence) n'ouvre pas
+     d'en-tête vide : la ligne de la décision le dit. Une suite rangée ailleurs (sortie d'une boucle, bloc à plusieurs
+     entrées) garde un en-tête explicite. Le losange de la décision n'est JAMAIS redessiné dans la colonne des numéros. */
+  const root={kids:[]};{const stk=[root];
+    plan.items.forEach(it=>{const top=stk[stk.length-1];
+      if(it.k==='bropen'){const br={br:1,dec:it.dec,label:it.label,tgt:it.tgt,kids:[]};top.kids.push(br);stk.push(br);}
+      else if(it.k==='brclose'){if(stk.length>1)stk.pop();}
+      else if(it.k==='block')top.kids.push({id:it.id});});}
+  const subIds=n=>{const o=new Set();(n.kids||[]).forEach(k=>{if(k.id)o.add(k.id);else subIds(k).forEach(x=>o.add(x));});return o;};
+  const prune=n=>{n.kids=n.kids.filter(k=>{if(!k.br)return true;prune(k);return k.kids.length>0;});};prune(root);
+  const below=new Set();   // « décision>cible » dont la branche s'ouvre juste sous la décision : renvoi « ↓ »
+  const mark=n=>n.kids.forEach(k=>{if(k.br){if(k.kids[0]&&k.kids[0].id===k.tgt)below.add(k.dec+'>'+k.tgt);mark(k);}});mark(root);
+  // Une suite qui ne découle ni du bloc d'avant ni de la convergence des branches d'avant ouvre un en-tête explicite.
+  const follows=(kids,i)=>{const b=byId[kids[i].id],pk=kids[i-1];if(!pk)return true;
+    if(pk.id){const pb=byId[pk.id];return pb.kind==='decision'||pb.next===b.id;}
+    const sub=subIds(pk);return (entries[b.id]||[]).some(e=>sub.has(e.from.id));};
+  const group=(kids,inBr)=>{const out=[];let g=null;
+    kids.forEach((k,i)=>{if(k.br){k.kids=group(k.kids,true);(g?g.kids:out).push(k);return;}
+      if(!(i===0&&(inBr||kids===root.kids))&&!follows(kids,i)){g={syn:1,id:k.id,kids:[k]};out.push(g);return;}
+      (g?g.kids:out).push(k);});return out;};
+  root.kids=group(root.kids,false);
+  let anyClosed=false;
+  const rowHtml=(b,nextK,known)=>{const dec=b.kind==='decision';const next=nextK&&nextK.id?byId[nextK.id]:null;
+    const rail=!dec&&!!next&&b.next===next.id;
     const m=st&&st.md?st.md[b.id]:null;const stc=(m&&m.cur?' cur':'')+(m&&m.complete?' done':'')+(st&&st.off&&st.off.has(b.id)?' off':'');
     const open=pfFoldOpen(place,b.id);if(!open)anyClosed=true;
     const dest=(o,t,brief)=>{if(!t)return '<span>▪ fin</span>';
-      if(next&&next.id===t)return brief?ref(t,'↓',1):'<span>↓ ci-dessous</span>';
+      if(below.has(b.id+'>'+t))return brief?ref(t,'↓',1):'<span>↓ ci-dessous</span>';
       const back=num[t]<=num[b.id];return ref(t,brief?(back?'↺':'→'):(back?'↺ retour à':'→ aller à'),brief);};
     let body='';
     if(open){body+=blkTm(b);
@@ -21957,9 +22012,27 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
         return `<span class="pf-opt${pris?' pris':''}"><b>${pris?'✓ ':''}${esc(lb)}</b>${dest(o,t,true)}${k<all.length-1?'<span class="pf-sep" aria-hidden="true">·</span>':''}</span>`;}).join('')}</div>`;
     else if(open&&b.next&&byId[b.next]&&!(next&&next.id===b.next))body+=`<div class="pf-jump">${num[b.next]<=num[b.id]?ref(b.next,'↺ retour à',1)+(cycleTxt(f)?`<span class="pf-cy">${esc(cycleTxt(f))}</span>`:''):ref(b.next,'↳ puis')}</div>`;
     else if(open&&!b.next)body+=`<div class="pf-end">■ Fin</div>`;   // A394 : la fin de CE chemin — il peut y en avoir plusieurs
+    const arrivals=(entries[b.id]||[]).filter(e=>!known.has(e.from.id));
     const arr=open&&arrivals.length?`<div class="pf-arr"><span>← aussi depuis</span>${arrivals.map(src).join('')}</div>`:'';
-    h+=seg+head(b,m,open,`<span>${num[b.id]}</span>`,(dec?' dec':'')+(rail?' rail':'')+stc)+arr+body+'</div></div>';});
-  if(inBr)h+='</div>';
+    return head(b,m,open,`<span>${num[b.id]}</span>`,(dec?' dec':'')+(rail?' rail':'')+stc)+arr+body+'</div></div>';};
+  // L'en-tête d'une branche : « SI réponse » (« à ◇n » quand elle n'est pas rangée sous sa décision) — un bouton qui mène à la source.
+  const bhead=(cls,aria,inner,src)=>`<div class="pf-br${cls}" role="group" aria-label="${esc(aria)}">${src?`<button type="button" class="pf-bh" data-plref="${esc(src)}" aria-label="${esc(aria)}">${inner}</button>`:`<div class="pf-bh">${inner}</div>`}`;
+  const lbOf=l=>place==='col'?court(l):stripBold(l||'');
+  const kidsHtml=(kids,lvl,known0)=>kids.map((k,i)=>{const plat=lvl>=2?' plat':'';
+    if(k.br){const nd=num[k.dec],lb=lbOf(k.label),aria='Branche de la décision '+nd+', réponse '+guil(lb);
+      return bhead(plat,aria,`<span class="pf-bsi" aria-hidden="true">Si</span><b aria-hidden="true">${esc(lb)}</b>${plat?`<span class="pf-bhr" aria-hidden="true">à ◇${nd}</span>`:''}`,k.dec)
+        +kidsHtml(k.kids,lvl+1,new Set([k.dec]))+'</div>';}
+    if(k.syn){const b=byId[k.id],e0=(entries[b.id]||[])[0],n0=e0&&num[e0.from.id];let h0;
+      if(e0&&e0.from.kind==='decision'){const lb=lbOf(e0.label),aria='Branche de la décision '+n0+(lb?', réponse '+guil(lb):'');
+        h0=bhead(plat,aria,`<span class="pf-bsi" aria-hidden="true">Si</span><b aria-hidden="true">${esc(lb||'—')}</b><span class="pf-bhr" aria-hidden="true">à ◇${n0}</span>`,e0.from.id);}
+      else if(e0)h0=bhead(plat,'Suite du bloc '+n0,`<span class="pf-bsi" aria-hidden="true">Suite de</span><span class="pf-n" aria-hidden="true">${n0}</span>`,e0.from.id);
+      else h0=bhead(plat,'Autre entrée','<span class="pf-bsi">Autre entrée</span>',null);
+      return h0+kidsHtml(k.kids,lvl+1,new Set(e0?[e0.from.id]:[]))+'</div>';}
+    const b=byId[k.id],pk=kids[i-1],known=new Set(i===0?known0:[]);
+    if(pk&&pk.id&&byId[pk.id].next===b.id)known.add(pk.id);
+    if(pk&&!pk.id)subIds(pk).forEach(x=>{if((entries[b.id]||[]).some(e=>e.from.id===x))known.add(x);});   // la convergence : ses branches y mènent
+    return rowHtml(b,kids[i+1],known);}).join('');
+  let h=kidsHtml(root.kids,0,new Set());
   // A388 : les complications « à tout moment » (hors chaîne, donc hors numérotation) ferment la liste, un éclair pour numéro.
   const revs=revBlocks(f);
   if(exc.length||revs.length){h+=`<div class="pf-seg"><span class="pf-segl">À tout moment</span><span class="pf-segr"></span></div>`;
