@@ -457,7 +457,7 @@
      l'auteur après onze correctifs) : le chrome REDEVIENT DU FLUX — sauf les couches plein écran,
      qui gardent `--vvh`/`--vvt` (v5.10.9) ; `html.kbd` est une CLASSE, jamais une media query.
      Détail : doctrine-css.md C11. */
-  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock{position:static}
+  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock,html.kbd .md-toolbar{position:static}
   /* ⚠ L'EN-TÊTE S'EFFACE, IL NE PASSE PAS DESSOUS (correctif, capture à l'appui : « pas une bonne
      solution »). Le libérer ne suffisait pas : libéré, il défile — donc il revient en haut du
      document quand on y remonte, et se retrouvait alors DANS LA MÊME BANDE que la colonne du champ.
@@ -7284,12 +7284,102 @@
     .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
   }
   .md-body a,.md-preview a{color:var(--act);text-decoration:underline}
-  .md-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-  /* Boutons d'ENCADRÉ TYPÉ : chacun porte la couleur de SON registre (le bouton dit ce qu'il pose). */
-  .md-toolbar .mdc-crit{color:var(--crit)}
-  .md-toolbar .mdc-vig{color:var(--warn);font-weight:800}
-  .md-toolbar .mdc-info{color:var(--act)}
-  .md-toolbar .mdc-ok{color:var(--ok)}
+  /* Barre regroupée (v5.44) : collante sous l'en-tête tant que le champ défile ; rendue au flux
+     clavier ouvert (html.kbd, comme tout le chrome de page). Les menus s'ancrent sur `.mdt-g`. */
+  .md-toolbar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;position:sticky;top:var(--hdr-h,64px);z-index:7;background:var(--work);margin:-4px 0 4px;padding:4px 0}   /* z 7 : ses menus passent devant la porte « Ajouter » (z 6) */
+  .mdt-g{position:relative;display:inline-flex}
+  .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
+  .mdt-end{margin-left:auto}
+  .mdt-end>.popmenu{left:auto;right:0}   /* le dernier menu s'ouvre vers la gauche, dans la carte */
+  .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
+  .mdt-cv svg{transform:rotate(90deg)}
+  .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
+  .mdt-n,.mdt-hx{font-weight:800}
+  .mdt-n{display:none}
+  html.zw560 .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* lu, pas montré */
+  html.zw560 .md-toolbar .mdt-n{display:inline}
+  html.zw430 .md-toolbar .mdt-cv{display:none}   /* aria-haspopup dit le menu ; la place va à « Insérer » */
+  html.zw430 .md-toolbar .mdt-dd:not(.mdt-ins){min-width:36px;padding:0 6px}
+  /* Sous 360 (écran externe d'un Z Fold : 344) : « Insérer » garde son ＋, le mot reste lu. */
+  html.zw360 .md-toolbar .mdt-w2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  html.zw360 .md-toolbar .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  /* En-tête de la carte (v5.44) : « Plan » (aller à un titre) et, au téléphone, « Écrire | Aperçu ». */
+  .md-head{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+  .md-plan-g{flex:1 1 auto;min-width:0}
+  .md-head .md-plan{width:auto;max-width:100%;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink)}
+  .md-plan-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .md-seg{flex:none;width:176px}
+  html.zw360 .md-seg{width:144px}
+  html.zw430 .md-head .md-grid>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* icône seule, mot lu */
+  html.zw430 .md-head .md-grid{width:40px;padding:0;justify-content:center}
+  .md-lv2{padding-left:4px}.md-lv3{padding-left:8px;font-weight:700}
+  /* Le bloc où l'on écrit, dans l'aperçu : registre « bloc courant » (bleu doux, sans aplat fort). */
+  .md-here{background:color-mix(in srgb,var(--act) 8%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--act) 8%,transparent);border-radius:3px}
+  .md-preview [data-ln],#editSide .ep-md [data-ln]{cursor:pointer}
+  @media (max-width:779.98px){
+    .md-ed.md-pv :is(.md-toolbar,.md-wpane,.md-imgs){display:none}
+    .md-ed:not(.md-pv) .md-ppane{display:none}
+    .md-ed.md-pv .md-prev-h{display:none}
+  }
+  @media (min-width:780px){
+    .md-seg{display:none}
+    #p-body{min-height:calc(50dvh / var(--zf,1))}
+  }
+  @media (min-width:780px) and (max-width:999.98px){
+    .md-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+    .md-ppane .md-prev-h{margin-top:0}
+    .md-ppane .md-preview{max-height:calc(50dvh / var(--zf,1) + 72px);overflow-y:auto}
+  }
+  .md-head .md-grid{width:auto;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:700;color:var(--act);border-color:var(--act);flex:none}
+  /* Fenêtre des outils (v5.44) : tableau en grille, collage mis en forme. */
+  .mdw-foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+  .mdg-dim{margin:0 0 8px;font-size:13.5px;color:var(--ink-2)}
+  .mdg-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 12px}
+  .mdg-grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .mdg-al-l{font-size:12px;font-weight:700;color:var(--ink-2)}
+  .mdg-al{width:216px}
+  .mdg-tpl{margin-left:auto}
+  .mdg-scroll{overflow-x:auto;border:1px solid var(--line-strong);border-radius:var(--r-2)}
+  .mdg{display:grid;grid-template-columns:repeat(var(--mdg-n),minmax(112px,1fr))}
+  .mdg-in{min-width:0;height:44px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:var(--work);color:var(--ink);padding:0 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
+  .mdg-in.mdg-h{background:var(--amb);font-weight:800}
+  .mdg-in.ta-c{text-align:center}.mdg-in.ta-r{text-align:right}
+  .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}
+  .mdg-src{margin-top:12px;background:var(--amb-2);border-radius:var(--r-2);padding:8px 12px}
+  .mdg-src summary{padding:8px 0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);cursor:pointer}
+  .mdg-pre,.mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
+  .mdw-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+  .mdw-chip{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:var(--r-1);background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:700}
+  .mdw-chip.warn{background:var(--warn-soft);color:var(--warn)}
+  .mdw-cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .mdw-cmp .mdw-pre{white-space:pre-wrap;border:1px solid var(--line);border-radius:var(--r-2);padding:10px 12px;max-height:calc(40dvh / var(--zf,1));overflow:auto;background:var(--work)}
+  .mdw-cmp .mdw-md{background:var(--amb-2)}
+  /* Relecture de l'écriture (v5.44) : registre ATTENTION, glyphe + mots ; jamais bloquant. */
+  .md-lint{margin:8px 0 0;border:1px solid var(--warn-line);border-radius:var(--r-2);background:var(--warn-soft);padding:0 12px}
+  .md-lint>summary{min-height:40px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--warn);cursor:pointer}
+  .md-lint-g{color:var(--warn);font-weight:800;flex:none}
+  .md-lint-r{display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--warn-line) 30%,transparent)}
+  .md-lint-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+  .md-lint-t b{font-size:13.5px}.md-lint-t>span{font-size:12px;color:var(--ink-2)}
+  .md-lint-c{font-family:var(--f-mono)}
+  .md-lint .btn.sm{flex:none}
+  .md-lint .hint{margin:4px 0 10px}
+  /* Coloration (v5.44) : le calque a les métriques EXACTES du champ ; le champ, transparent, passe dessus. */
+  .md-hlw{position:relative}
+  .md-hlw #p-body{display:block}
+  .md-hl{display:none}
+  .md-hlw.on .md-hl{display:block;position:absolute;inset:0;margin:0;overflow:hidden;padding:10px 12px;border:1px solid transparent;border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word}
+  .md-hlw.on #p-body{position:relative;background:transparent;color:transparent;caret-color:var(--ink)}
+  .md-hlw.on #p-body::selection{color:transparent;background:color-mix(in srgb,var(--act) 28%,transparent)}
+  #p-body::placeholder{color:var(--ink-2)}
+  .hl-m{color:var(--ink-2)}.hl-h{font-weight:700}
+  .hl-crit{color:var(--crit)}.hl-vig{color:var(--warn)}.hl-info{color:var(--act)}.hl-ok{color:var(--ok)}
+  .hl-lint{text-decoration:underline wavy var(--warn-line);text-underline-offset:3px;text-decoration-skip-ink:none}
+  /* Encadrés : chaque glyphe porte la couleur de SON registre, dans la barre comme dans son menu. */
+  .mdc-crit{color:var(--crit);display:inline-flex}
+  .mdc-vig{color:var(--warn);font-weight:800}
+  .mdc-info{color:var(--act);display:inline-flex}
+  .mdc-ok{color:var(--ok);display:inline-flex}
   /* ⚠ LE « S » PARAISSAIT DÉSACTIVÉ (signalé à l'usage : « pourquoi est-il grisé ? »). Il portait
      le fond du SURLIGNEUR sur tout le bouton, pour montrer ce qu'il produit — mais un bouton au
      fond neutre au milieu de boutons transparents se lit « inactif », pas « achromatique ». Le
@@ -7393,6 +7483,10 @@
   .attpick-list .att-row{margin-bottom:8px}
   .att-from{display:block;font-size:11px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
+  /* Étroit (v5.44) : le nom garde toute la ligne, index · taille · outils passent dessous, à droite. */
+  html.zw430 .att-erow{flex-wrap:wrap;row-gap:4px}
+  html.zw430 .att-erow input[type="text"]{flex-basis:calc(100% - 32px)}
+  html.zw430 .att-erow .att-ix{margin-left:auto}
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
   .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--amb);position:relative}   /* repère de la pilule .pdf-fnav */
@@ -7707,7 +7801,7 @@
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
@@ -7880,6 +7974,15 @@
        chaque fenêtre y garde sa largeur et s'y centre. `[class]` hisse la spécificité (0,3,2) au-dessus
        du plein écran étroit (0,3,0), qui remettait la marge à zéro. */
     html body .ai-modal.on[class]{padding-right:calc(50% + var(--hinge) / 2 + 12px)}
+    /* L'éditeur d'une référence (v5.44) : le texte sur le volet gauche, aperçu et relecture sur le
+       droit — jamais un champ à cheval sur la charnière. Barre d'outils au gabarit étroit (un volet). */
+    body.view-pedit .read-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 calc(var(--hinge) + 24px);align-items:start;max-width:none}
+    body.view-pedit .read-side{position:sticky;top:96px;max-height:calc(100dvh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
+    body.view-pedit :is(.md-prev-h,.md-preview,.md-seg){display:none}
+    .md-split{display:block}
+    .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .md-toolbar .mdt-n{display:inline}
+    .md-toolbar .mdt-cv{display:none}
   }
   /* ===== GARDE D'ENCADREMENT (v5.0.0, audit) =====
      Ce que le document peut faire là où `frame-ancestors` n'est pas servi (GitHub Pages est la

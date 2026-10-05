@@ -786,6 +786,47 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('citation/code/hr retirés', A.mdStrip('> a\n`b`\n---'), 'a b ');
   eq('tableau aplati (ni pipes ni tirets)', A.mdStrip('| a | b |\n|---|---|\n| 1 | 2 |'), 'a b  1 2');
 
+  group('mini-Markdown — éditeur : Entrée continue la liste, liens att: (v5.44)');
+  eq('puce → puce', A.mdListCont('- a'), {next:'- '});
+  eq('numéro +1, parenthèse gardée', [A.mdListCont('3. a'),A.mdListCont('9) a')], [{next:'4. '},{next:'10) '}]);
+  eq('tâche cochée → case vide, retrait gardé', A.mdListCont('  - [x] a'), {next:'  - [ ] '});
+  eq('citation / encadré → « > »', [A.mdListCont('> a'),A.mdListCont('> [!CAUTION]')], [{next:'> '},{next:'> '}]);
+  eq('item vide → fin de liste', [A.mdListCont('- '),A.mdListCont('1. '),A.mdListCont('- [ ] '),A.mdListCont('> ')], [{end:true},{end:true},{end:true},{end:true}]);
+  eq('texte ordinaire → rien', [A.mdListCont('texte'),A.mdListCont('-texte')], [null,null]);
+  eq('lien de document : nom sans .pdf, crochets neutralisés', [A.mdDocLink({id:'a1',name:'Reco.pdf'},''),A.mdDocLink({id:'a1',name:'x.pdf'},'voir [ici]')], ['[Reco](att:a1)','[voir  ici](att:a1)']);
+  ok('#p12 : page portée par data-mdpage', A.mdInline('[r](att:a1#p12)').includes('data-mdatt="a1" data-mdpage="12"'));
+  ok('#p sans nombre → lien laissé en clair', !A.mdInline('[r](att:a1#p)').includes('data-mdatt'));
+
+  group('mini-Markdown — éditeur : tableau en grille, collage mis en forme (v5.44)');
+  ok('mdTableAt : tableau trouvé au curseur, bornes exactes', (()=>{const v='avant\n| a | b |\n|---|--:|\n| 1 | 2 |\naprès';const t=A.mdTableAt(v,v.indexOf('1'));
+    return t&&v.slice(t.from,t.to)==='| a | b |\n|---|--:|\n| 1 | 2 |'&&t.head.join()==='a,b'&&t.align.join()===',r'&&t.rows[0].join()==='1,2';})());
+  eq('mdTableAt : hors tableau, ou sans ligne de séparation → null', [A.mdTableAt('texte',2),A.mdTableAt('| a |\n| b |',1)], [null,null]);
+  ok('mdTableAt : une ligne plus longue élargit l\'en-tête (rien n\'est tronqué)', (()=>{const t=A.mdTableAt('| a |\n|---|\n| 1 | 2 |',0);return t.head.length===2&&t.rows[0][1]==='2';})());
+  eq('mdTableMd : colonnes alignées, alignement écrit, « | » protégé', A.mdTableMd({head:['Dose','Voie'],align:['c',''],rows:[['0,5 mg','IM | IV']]}),
+    '| Dose   | Voie     |\n|:------:|----------|\n| 0,5 mg | IM \\| IV |');
+  ok('aller-retour grille → texte → grille', (()=>{const md=A.mdTableMd({head:['a','b'],align:['','r'],rows:[['x|y','2']]});const t=A.mdTableAt(md,0);return t.rows[0][0]==='x|y'&&t.align[1]==='r';})());
+  ok('collage Word : puces « · » et intertitre en gras', (()=>{const r=A.mdFromHtml('<p class="MsoNormal"><b>Conduite à tenir</b></p><p style="mso-list:l0 level1 lfo1">·&nbsp;&nbsp; Allonger</p><p style="mso-list:l0 level2 lfo1">o&nbsp;&nbsp; jambes</p>');
+    return r.md==='## Conduite à tenir\n\n- Allonger\n  - jambes'&&r.N.h===1&&r.N.li===2;})());
+  ok('collage HTML : fragment en ligne gardé en un paragraphe, gras repris', A.mdFromHtml('<b>Adrénaline</b> sans attendre').md==='**Adrénaline** sans attendre');
+  ok('collage HTML : listes, tableau, lien https', (()=>{const r=A.mdFromHtml('<ul><li>a</li><li>b</li></ul><table><tr><th>X</th><th>Y</th></tr><tr><td>1</td><td>2</td></tr></table><p><a href="https://x.org">site</a></p>');
+    return /^- a\n- b\n/.test(r.md)&&r.md.includes('| X   | Y   |')&&r.md.includes('[site](https://x.org)')&&r.N.tbl===1;})());
+  ok('collage HTML : script ignoré, couleur comptée et non reprise', (()=>{const r=A.mdFromHtml('<scr'+'ipt>alert(1)<\/scr'+'ipt><p><span style="color:red">rouge</span></p>');return r.md==='rouge'&&r.N.col===1;})());
+  ok('collage PDF : puces, tabulations en tableau, lignes recollées', (()=>{const r=A.mdFromPlain('• Allonger le patient,\njambes surélevées\nAdrénaline\t0,5 mg\nCristalloïde\t20 mL/kg');
+    return r.md.startsWith('- Allonger le patient, jambes surélevées')&&r.md.includes('| Adrénaline   | 0,5 mg   |')&&r.N.join===1&&r.N.tbl===1;})());
+  eq('collage sans rien à reconnaître → null (collage natif)', [A.mdFromPaste('','Texte simple.'),A.mdFromPaste('<p>Texte simple.</p>','Texte simple.')], [null,null]);
+
+  group('mini-Markdown — éditeur : relecture de l\'écriture, coloration (v5.44)');
+  { const L=A.mdLint('Adrénaline .5 mg IM\nInsuline 10 U\nDose 5,0 mg puis 1,50 mg\nFentanyl 50 ug\nNaCl 10 cc\nOK : 0,5 mg · 10 mg · 5 UI · 2,05 mL · `.5 mg`',[]);
+    const d=L.filter(x=>x.k==='dose').map(x=>x.was+'→'+x.fix);
+    eq('doses : zéro manquant, zéro superflu, ug, U, cc — et rien d\'autre', d, ['.5→0,5','U→unités','5,0→5','1,50→1,5','ug→µg','cc→mL']);
+    ok('le remplacement vise exactement le texte fautif', L.every(x=>x.k!=='dose'||'Adrénaline .5 mg IM\nInsuline 10 U\nDose 5,0 mg puis 1,50 mg\nFentanyl 50 ug\nNaCl 10 cc\nOK : 0,5 mg · 10 mg · 5 UI · 2,05 mL · `.5 mg`'.slice(x.from,x.to)===x.was)); }
+  ok('lien vers un document absent signalé, présent accepté', (()=>{const L=A.mdLint('[a](att:d1) [b](att:d2#p3)',[{id:'d1'}]);return L.length===1&&L[0].k==='link'&&L[0].was==='[b](att:d2#p3)';})());
+  eq('tableau : ligne incomplète et ligne trop longue', A.mdLint('| a | b |\n|---|---|\n| 1 |\n| 1 | 2 | 3 |',[]).map(x=>x.cible), ['Ligne de tableau incomplète','Ligne de tableau trop longue']);
+  eq('structure : ### orphelin, encadré vide', A.mdLint('# T\n### s\n\n> [!CAUTION]\n\ntexte',[]).map(x=>x.cible), ['Sous-titre sans titre au-dessus','Encadré vide']);
+  eq('bloc de code ignoré', A.mdLint('```\n.5 mg\n```',[]), []);
+  ok('coloration : texte rendu à l\'identique, échappé', (()=>{const src='## Titre <b>\n> [!CAUTION]\n> **x** .5 mg\n| a |\n|---|';const h=A.mdHlHtml(src,A.mdLint(src,[]));
+    const d=document.createElement('div');d.innerHTML=h;return d.textContent===src&&A.mdHlHtml('a\n',[]).endsWith('\n ')&&!d.querySelector('b')&&d.querySelector('.hl-crit')&&d.querySelector('.hl-lint').textContent==='.5'&&d.querySelector('.hl-h').textContent.startsWith('Titre');})());
+
   group('mini-Markdown — listes cochables - [ ] (v4.6.0)');
   eq('- [ ] a → tâche non cochée, texte nettoyé', A.mdTask('[ ] a'), {done:false,text:'a'});
   eq('[x] et [X] → cochée', [A.mdTask('[x] a').done,A.mdTask('[X] a').done], [true,true]);

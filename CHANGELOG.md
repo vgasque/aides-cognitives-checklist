@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.44.0] — 2026-10-05
+L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A452-A459, doctrine `docs/decisions/lot-v5-44.md`).
+- **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
+  et choisir le document dans la liste, ou toucher (ou glisser vers le texte) le nouveau bouton lien de chaque document.
+  `#p12` après l'identifiant ouvre le PDF à la page 12.
+- **Une barre d'outils regroupée** : B · I · S, puis quatre menus — Titre, Liste, Encadré, ＋ Insérer (tableau, lien
+  vers un document, lien web, image, code, séparateur). Chaque choix montre la syntaxe qu'il pose. La barre reste
+  visible en haut pendant qu'on fait défiler le texte et tient sur une ligne jusqu'à 344 px de large.
+- **Le clavier** : Entrée continue une liste (puces, numéros, cases, citations) et la termine sur une ligne vide ;
+  Tab et Maj+Tab changent le niveau d'une puce ; ⌘B, ⌘I et ⌘K font gras, italique et lien. **⌘Z annule aussi les
+  gestes de la barre.**
+- **Une disposition par écran** : au téléphone, « Écrire | Aperçu » ; sur tablette, le texte et l'aperçu côte à côte ;
+  sur ordinateur, l'aperçu dans la colonne de droite. Un bouton « Plan » mène à chaque titre, l'aperçu marque le
+  passage où l'on écrit, et toucher l'aperçu ramène le curseur au bon endroit du texte.
+- **Les tableaux se remplissent dans une grille** (« Insérer › Tableau », ou « Modifier en grille » quand le curseur
+  est dans un tableau) : ajouter ou retirer lignes et colonnes, aligner une colonne, modèle « posologie ».
+- **Coller depuis Word ou un PDF** : titres, puces, tableaux et gras sont reconnus, et l'app montre ce qui sera inséré
+  avant de le faire. La couleur n'est pas reprise (elle a un sens dans l'app) : la fenêtre le dit. « Coller le texte
+  brut » reste possible.
+- **Une relecture de l'écriture** sous le texte : lien vers un document absent, ligne de tableau incomplète, titre ou
+  encadré mal posé, et les écritures de dose qui trompent la lecture — « .5 mg » (→ 0,5 mg), « 5,0 mg » (→ 5 mg),
+  « ug », « U », « cc ». Chaque point se corrige un par un, d'un tap, et s'annule. Elle relit la façon d'écrire,
+  jamais le contenu clinique.
+- **Sur ordinateur, le texte se colore** : marqueurs en gris, encadrés à leur couleur, points de relecture soulignés.
+- **Écrans pliables** (Surface Duo, Pixel Fold ouverts) : le texte sur un écran, l'aperçu et la relecture sur l'autre,
+  plus rien à cheval sur la charnière. Vérifié aussi sur Galaxy Z Fold (fermé et ouvert) et Z Flip.
+- Corrigé : dans une référence, les lignes du volet « Relecture » ne réagissaient pas au toucher, et sous 1000 px le
+  volet ne suivait pas la frappe.
+
 ## [5.43.1] — 2026-10-05
 La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Windows et Linux (A451, doctrine `docs/decisions/lot-v5-43.md`, second chapitre).
 - **Une case pour tout cocher** : à gauche du compte, une case du même dessin que celle des rangées remplace les deux
@@ -293,11 +322,3 @@ Le survol bleu pâle devient visible (A417, doctrine `docs/decisions/lot-v5-38.m
   La nuit, ce survol n'était pas visible du tout.
 - **Focus.** Le halo autour d'un champ de l'éditeur en cours de saisie est plus lisible ; le bouton
   « Filtrer » actif est un cran plus soutenu.
-
-## [5.38.1] — 2026-09-28
-Nettoyage interne des couleurs, sans aucun changement à l'écran (A416, doctrine `docs/decisions/lot-v5-38.md`).
-- **Un seul nom par couleur.** Trente-huit anciens noms de couleur (« alias ») gardés depuis la refonte
-  v5.6 sont retirés : le code lit désormais partout le nom de référence. Le contrôle automatique des
-  tokens refuse qu'un tel doublon réapparaisse.
-- **Vérifié identique.** Les styles calculés de 4 714 éléments, sur huit écrans en thème clair, sombre
-  et en large, sont les mêmes avant et après.
