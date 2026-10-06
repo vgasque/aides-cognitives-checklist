@@ -136,3 +136,24 @@ d'outils promise au-dessus du clavier au téléphone n'y était pas (A453 l'avai
   barre rentrée dans la carte. **Reste à confirmer sur iPhone réel** : la barre d'accessoires d'iOS et la hauteur du
   clavier ne s'émulent pas.
 
+## A469 — les menus de la barre, clavier ouvert (v5.48.6, amende A468)
+
+**Signalé sur iPhone (06/10/2026)** : la barre au-dessus du clavier « bug beaucoup » dès qu'on touche Titre, Liste,
+Encadré ou Insérer. Cause : seuls B · I · S annulaient leur `mousedown` ; un bouton de menu prenait le focus, le champ
+le perdait, le clavier se fermait (`html.kbd` et `html.md-kbd` tombent), la barre redescendait dans la carte SOUS le
+doigt, et `openPickMenu`, sous 780 px, ouvrait une feuille basse — sous le clavier — puis focalisait sa première
+rangée.
+
+- **`openPickMenu` gagne deux options**, sans rien changer aux autres appelants : `up` (ancré, s'ouvre au-dessus de son
+  hôte, jamais en feuille) et `keep` (aucun focus posé à l'ouverture, `mousedown` des rangées annulé : le champ en cours
+  garde le focus, donc le clavier).
+- **Barre au-dessus du clavier** (`mdKbdUp`, `mdMenuHost`) : ses menus — et le sous-menu « Lien vers un document » —
+  prennent la BARRE pour hôte (fixée, donc bloc conteneur), au-dessus d'elle sur toute sa largeur, bornés à la hauteur
+  visible (`--vvh`). Hors clavier, rien ne change (ancré au bureau, feuille au téléphone).
+- Le `mousedown` annulé couvre aussi les boutons de menu ; un menu ouvert au-dessus du clavier se ferme avec lui (blur
+  du champ).
+- **Mesuré** (clavier émulé, toucher réel, Chromium et WebKit) : chaque menu au-dessus de la barre et dans l'écran,
+  focus et clavier gardés à l'ouverture et après le choix, choix posé, sous-menu des documents compris ; toucher le
+  texte referme le menu. **Hors de portée** : la barre d'adresse de Safari et celle du remplissage automatique (hors PWA)
+  — l'app ne peut ni les masquer ni les mesurer ; la barre se cale au-dessus d'elles.
+

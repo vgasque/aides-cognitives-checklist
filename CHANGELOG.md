@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.48.6] — 2026-10-06
+Au téléphone, les menus de la barre d'outils fonctionnent pendant qu'on écrit (A469, doctrine `docs/decisions/lot-v5-48.md`).
+- **Titre, Liste, Encadré et Insérer s'ouvrent juste au-dessus de la barre**, sur toute sa largeur, quand elle est posée
+  au-dessus du clavier. Avant, toucher l'un d'eux fermait le clavier : la barre redescendait sous le doigt et le menu
+  s'ouvrait en bas de l'écran, sous le clavier.
+- **Le clavier reste ouvert** pendant le choix, et après : on reprend la frappe là où l'on était. Toucher le texte
+  referme le menu.
+
 ## [5.48.5] — 2026-10-06
 Deux retouches de l'éditeur des références signalées à l'usage (A468, doctrine `docs/decisions/lot-v5-48.md`).
 - **Sur tablette (780 à 999 px), l'aperçu sort de la carte** : il passe dans une colonne à droite, comme sur
@@ -273,15 +281,3 @@ Ce que la charge révélait : deux sondes fragiles et deux défauts de l'app (A4
 - Harnais : l'amorçage commun attend les fiches d'exemple au lieu de presser une seconde fois ; la sonde « à la prise,
   l'objet ne bouge pas » mesure après l'animation. Vérifié en passe complète processeur ralenti (÷3, puis k5 à ÷6) :
   plus aucun rouge dû à la charge.
-
-## [5.39.10] — 2026-10-02
-La partie « Administration » de Moi, d'après la maquette validée (A438, doctrine `docs/decisions/lot-v5-39.md`).
-- **La seule action en tête** : « 3 demandes de compte · À approuver ou refuser · 2 refusées », toute la rangée
-  ouvre l'examen ; sur un écran assez large, « Examiner › » est un bouton plein. Sans demande, la rangée reste
-  (« Aucune en attente ») pour consulter les refusées.
-- **Quatre chiffres d'un coup d'œil** : comptes actifs, aides, protocoles, partages en cours.
-- **Contenus & sessions, et Stockage, en deux cartes** — côte à côte dès que la largeur le permet (ordinateur),
-  l'une sous l'autre sinon (téléphone, tablette en portrait). La barre de stockage a sa légende (données / documents
-  PDF), et la note « le compte administrateur ne se supprime pas d'ici » vit au pied de la carte Stockage.
-- Nombres séparés par milliers (« 1 208 ») ; heure de mise à jour à côté de l'intertitre.
-- Témoins : `npm test` 1280/1280 ; l'ancien rendu en rangées (`.ist-*`) est purgé.
