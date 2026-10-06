@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.48.5] — 2026-10-06
+Deux retouches de l'éditeur des références signalées à l'usage (A468, doctrine `docs/decisions/lot-v5-48.md`).
+- **Sur tablette (780 à 999 px), l'aperçu sort de la carte** : il passe dans une colonne à droite, comme sur
+  ordinateur, au lieu de s'afficher dans un cadre à l'intérieur du cadre « Contenu rédigé ». La barre d'outils prend
+  alors le format compact (icônes) et tient sur une ligne.
+- **Au téléphone, la barre d'outils se pose au-dessus du clavier** pendant qu'on écrit, comme la recherche de
+  l'accueil. Le texte ne bouge pas quand elle se détache. Toucher un outil (B, I, S) n'abaisse plus le clavier ;
+  les menus (Titre, Liste, Encadré, Insérer) l'abaissent le temps du choix, puis le texte reprend la main. À
+  vérifier sur iPhone réel : le rendu dépend du clavier d'iOS.
+
 ## [5.48.4] — 2026-10-06
 - **Exercice guidé, « Cochez les étapes restantes » :** le bloc en cours reste entièrement net, sans anneau, et le
   reste de l'écran (en-tête, capsule, quai) s'estompe — on voit d'un coup d'œil où cocher (A467).
@@ -275,25 +285,3 @@ La partie « Administration » de Moi, d'après la maquette validée (A438, doct
   PDF), et la note « le compte administrateur ne se supprime pas d'ici » vit au pied de la carte Stockage.
 - Nombres séparés par milliers (« 1 208 ») ; heure de mise à jour à côté de l'intertitre.
 - Témoins : `npm test` 1280/1280 ; l'ancien rendu en rangées (`.ist-*`) est purgé.
-
-## [5.39.9] — 2026-10-02
-Sept retours d'usage corrigés, et les deux essais d'affichage tranchés (A431-A437, doctrine `docs/decisions/lot-v5-39.md`).
-- **Colonne de gauche : les deux « Gérer » s'alignent.** La liste des catégories réservait la place de sa barre de
-  défilement, et tout ce qu'elle porte se tenait 15 px plus à gauche que les bibliothèques. Les trois étages de la
-  colonne réservent désormais la même place : un seul bord droit (A431).
-- **« Gérer les catégories » respire.** Les pastilles, l'anneau de la couleur choisie, « Autre teinte » et son
-  curseur ne touchent plus le bord de la carte, et l'anneau n'y est plus coupé. L'avertissement « △ Proche d'une
-  couleur d'alerte » retrouve son ambre et s'aligne sur le nom, « Prendre la teinte voisine » juste dessous (A432).
-- **En session, la barre « ↩ Bloc » ne cache plus le bas de la page.** Tant qu'elle est affichée, la page garde sa
-  place en bas : on défile jusqu'à la dernière ligne des références (A433).
-- **Essais tranchés : capsule en tuiles, instruments en colonne.** « Horizon » et « Bande » sont retirés, avec leurs
-  réglages dans Moi › Affichage ; le réglage enregistré sur l'appareil est effacé au démarrage (A434).
-- **Couleur d'accent : les pastilles montrent l'avatar qu'elles donneront.** Carré arrondi avec vos initiales ;
-  « Par défaut » est enfin le bleu pâle réel, et plus un bleu nuit. L'accent colore aussi « Moi » dans la colonne de
-  gauche et la carte d'identité de Moi (A435).
-- **« Rejoindre une session », caméra refusée.** Le message, une consigne et les deux boutons (« Autoriser la
-  caméra », « Saisir le code à la main ») forment une seule carte ambre avec son icône. « Ce qui est enregistré, et
-  par qui » montre la flèche ▾ des autres dépliants (A436).
-- **« Affichage » : le bandeau « Filtrer » ne saute plus** quand « n actifs · Tout effacer » apparaît (A437).
-- **Maquette à valider** : la partie « Administration » de Moi, sur un canevas Claude Design (rien n'est codé).
-- Témoins : section A380 d'`audit-doctrine` retirée avec les essais ; familles `essai-` purgées de `check-classes`.

@@ -111,3 +111,28 @@ dans le même commit.**
 **Formes écartées.** Une bulle flottante près de sa cible, à toutes les largeurs (v5.48.2, ci-dessus) ; une carte d'entrée haute qui liste les gestes (séquence QRH, ci-dessus) ; un voile sombre qui bloque l'écran (décision 6 : estomper un peu) ; une bulle par-dessus une
 session réelle (règle 11) ; avancer au clic sur la bulle pour les gestes (le guide apprend par la main) ; dessiner des
 copies des commandes dans la bulle (elles divergeraient).
+
+# Lot v5.48.5 — deux retouches de l'éditeur des références (A468)
+
+## A468 — l'aperçu en colonne dès 780, la barre au-dessus du clavier (v5.48.5, amende A453 et A455)
+
+**Signalé à l'usage (06/10/2026)** : « pas très joli de mettre l'aperçu dans le cadre en mode tablette », et la barre
+d'outils promise au-dessus du clavier au téléphone n'y était pas (A453 l'avait laissée collée sous l'en-tête).
+
+- **Tablette** (amende A455) : de 780 à 999 px, l'éditeur d'une référence prend la colonne d'aperçu de l'ordinateur
+  (`wideEdit = mqRail || mqSeg`, largeur `--col-state` — 280 à ce palier, la même que la colonne d'état). Le côte à côte
+  DANS la carte (`.md-split`) est purgé. La carte n'ayant plus que la colonne d'action, sa barre prend le gabarit
+  compact (libellés lus, non montrés) : une ligne mesurée à 820, 900 et 1024.
+- **Téléphone** (amende A453) : au pointeur grossier, le champ du contenu rédigé pose `html.md-kbd` sur son focus ; avec
+  `html.kbd`, la barre se fixe au BAS DU VIEWPORT VISUEL au patron du dock de l'accueil (C15 : `top = vvt + vvh`,
+  remontée de sa propre hauteur, sol opaque dessous pour la barre d'accessoires translucide d'iOS). C'est un ancrage
+  calé sur `--vvh`, donc admis par `check-stick` (couche, pas chrome qui poursuit). La place quittée reste réservée
+  (`padding-top` — une marge fusionnait avec celle de l'en-tête de carte, 8 px de saut mesurés).
+- **Le clavier reste ouvert** : `mousedown` des outils est annulé (le focus ne quitte pas le champ). ⚠ PAS
+  `pointerdown` : mesuré sous WebKit, l'annuler supprime le CLIC (aucun `mousedown`, aucun `click`). Les menus prennent
+  le focus (feuille basse) : le clavier s'abaisse le temps du choix, le geste rend le focus au champ.
+- **Mesuré** (sonde, clavier émulé en réduisant et en panoramiquant `visualViewport`, comme iOS) : barre collée au bord
+  du clavier, qui suit le panoramique ; aucun saut du champ ; outil touché → texte changé, focus gardé ; clavier fermé →
+  barre rentrée dans la carte. **Reste à confirmer sur iPhone réel** : la barre d'accessoires d'iOS et la hauteur du
+  clavier ne s'émulent pas.
+
