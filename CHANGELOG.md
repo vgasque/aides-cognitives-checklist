@@ -1,5 +1,128 @@
 # Journal des modifications
 
+## [5.48.4] — 2026-10-06
+- **Exercice guidé, « Cochez les étapes restantes » :** le bloc en cours reste entièrement net, sans anneau, et le
+  reste de l'écran (en-tête, capsule, quai) s'estompe — on voit d'un coup d'œil où cocher (A467).
+
+## [5.48.3] — 2026-10-06
+- **La proposition d'exercice guidé saute aux yeux.** Sur les aides d'exemple, la rangée « Apprendre avec cette
+  aide » prend le dessin du mode Exercice : fond hachuré bleu pâle, bord en pointillé, titre et bouton en bleu —
+  comme la bande d'exercice et la touche « ▲ Exercice ». Elle se distingue des cartes de l'aide en clair comme en
+  sombre ; « Démarrer la session » reste le seul bouton plein de l'écran (A467).
+
+## [5.48.2] — 2026-10-05
+Retour d'essai sur iPhone de l'exercice guidé (A467) : la bulle cachait ce que le geste ouvrait, et le défilement
+saccadait.
+- **La bulle devient une carte fixe au-dessus du quai.** Elle ne suit plus la page, donc plus de saccade ; la commande
+  visée se montre par son anneau. La page réserve sa hauteur en bas : on peut toujours défiler jusqu'à la dernière ligne.
+- **Plus rien de caché.** Le volet des minuteurs s'arrête au-dessus de la carte (et défile). Pour « Cochez les étapes
+  restantes », aucune bulle ni anneau devant les cases : toutes les cases libres sont amenées en vue, puis l'anneau
+  se pose sur « Continuer » quand il est prêt. Dans une complication, la carte dit où l'on est et que le bloc quitté
+  attend, coches gardées.
+- **La capsule s'apprend par la main** au téléphone : l'ouvrir, puis la refermer.
+- **▾ réduit la carte** en une pastille « ▲ Guide 4/8 » pour voir tout l'écran ; un toucher la rouvre.
+- Le guide ne ramène jamais la page vers la cible quand on défile soi-même.
+- Au bureau, la carte se pose dans la colonne d'action, en ligne ; sur un pliable, d'un seul côté de la charnière.
+- `audit-guide` vérifie désormais tout cela, pliable émulé compris.
+
+## [5.48.1] — 2026-10-05
+- **Exercice guidé : tout l'écran s'estompe, sauf la commande visée.** En v5.48.0, seuls certains éléments
+  pâlissaient (les blocs, les touches du quai, la capsule) ; l'en-tête, la bande « Exercice », la ligne « Parcours »,
+  les cartes sous le bloc et la fenêtre de fin restaient nets. Un voile unique, léger, couvre désormais tout l'écran
+  et laisse la cible nette ; il ne bloque aucun toucher. Il suit le thème clair ou sombre (A467).
+- Le harnais `audit-guide` vérifie ce voile à chaque bulle : il couvre la fenêtre et son ouverture correspond à la
+  cible.
+
+## [5.48.0] — 2026-10-05
+L'exercice guidé (A467, doctrine `docs/decisions/lot-v5-48.md`), dernier point de l'audit de prise en main.
+- **Apprendre avec une aide d'exemple, geste par geste.** Sur l'ACR et l'anaphylaxie d'exemple, une carte propose
+  « Commencer le guide » ou « Ne plus proposer ». Le guide lance un exercice et pose une bulle sur la vraie commande
+  de l'écran : démarrer, cocher une étape, lire la capsule, passer au bloc suivant et répondre à la question, ouvrir la
+  revue des causes réversibles, ouvrir une complication puis « Reprendre », horodater, terminer en maintenant 1,2 s.
+  La bulle de la complication explique aussi le jalon (« … quand Chocs délivrés atteint 3 »).
+- On avance en faisant le geste ; « Suivant » quand il n'y a qu'à regarder ; « Passer » et « Quitter le guide » à tout
+  moment, l'exercice continuant seul. Le reste de l'écran s'estompe légèrement et reste utilisable. À la fin, une carte
+  récapitule les gestes et propose de refaire le guide.
+- Le guide n'existe qu'en exercice : jamais pendant une session réelle, rien n'est enregistré comme soin. On le
+  relance par le menu ⋯ de l'aide d'exemple ou par Moi › Prendre en main › « Lancer l'exercice guidé ».
+- **Le guide et « Prendre en main » suivent l'app** : leurs mots et leurs cibles viennent de l'écran et de l'aide.
+  Deux nouveaux garde-fous les vérifient à chaque changement : `check-guide` (libellés cités, commandes visées) et
+  le harnais `audit-guide` (déroulé complet à 390, 1280 et 360 px à 130 %).
+
+## [5.47.0] — 2026-10-05
+Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/lot-v5-47.md`).
+- **« Prendre en main », dans Moi** : dix gestes expliqués (trouver, démarrer, cocher, chrono et minuteurs,
+  complication, horodater, tout voir, partager, terminer, écrire une aide) et un glossaire de seize termes (session,
+  exercice, essai, complication, revue, jalon…). « Revoir l'accueil » y vit désormais.
+- **Une aide ou un protocole neuf naît en brouillon**, et non plus « Validée ». Vous la validez une fois relue. Dans une
+  bibliothèque partagée, la fenêtre de création dit qui la voit.
+- **Lien direct vers une aide** : menu ⋯ › « Copier le lien direct ». Le lien ouvre l'aide sur tout appareil qui la
+  possède (raccourci d'écran d'accueil, collègue de la même bibliothèque). Un appui long sur l'icône de l'app propose
+  « Chercher une aide » et « Sessions ».
+- **Texte agrandi (115 et 130 %)** : les touches du quai gardent leur mot entier (« Tout voir » n'est plus un glyphe
+  seul, plus de « Horoda / ter »). Le titre du bloc en cours ne se coupe plus au milieu d'un mot : « EN COURS » passe
+  au-dessus de lui.
+- La légende sous le titre d'un bloc dit en clair : « sous l'étape, en gris : la réponse attendue ».
+- **Éditeur** : l'identité d'une aide existante s'ouvre repliée, et l'éditeur s'ouvre sur le contenu. Chaque section
+  des réglages d'une étape porte un exemple.
+- **Accessibilité** : au clavier, la touche Tab atteint de nouveau les rubriques dépliables des fenêtres
+  (« Pourquoi créer un compte ? »…).
+
+## [5.46.2] — 2026-10-05
+- **Le compteur affiché dans la capsule de session dit son nom en entier.** Au téléphone, la tuile montrait
+  « CHOCS DE… ». Elle se lit maintenant en ligne : la valeur d'abord, puis le nom complet sur deux lignes
+  (« 0 Chocs délivrés »). Si vous avez donné un nom court au compteur, c'est lui qui s'affiche. Le nom n'est coupé
+  qu'à 320 px ou en très grand texte (A462).
+- Éditeur : le champ « Nom court » d'un compteur propose le nom entier comme valeur par défaut, et non plus un
+  abrégé.
+
+## [5.46.1] — 2026-10-05
+- **Accueil au téléphone** : plus d'air sous « Sessions · Créer · Moi ». L'en-tête gagne 8 px en bas. Avant, ces mots
+  étaient à 3 px de la carte « Besoin d'exemples » et à 5 px du bandeau ; ils en sont maintenant à 11 et 13 px, et à
+  19 px de la liste (A461).
+
+## [5.46.0] — 2026-10-05
+Deuxième lot de l'audit de prise en main : un seul vocabulaire, un nom par vue, des boutons qui se nomment (A461, doctrine `docs/decisions/lot-v5-46.md`).
+- **Un seul vocabulaire.** L'app dit « aide » (le parcours à cocher) et « protocole » (le texte à lire), plus jamais
+  « fiche ». Quand un texte parle des deux à la fois (compte, synchronisation, stockage), il dit « vos données ».
+  L'accueil compte « 2 aides », et non plus « 2 parcours ». Un contrôle automatique (`check-lexique`) empêche
+  « fiche » de revenir dans le texte affiché.
+- **Un nom et une icône par vue.**
+  - « Tableau », sur l'écran d'entrée d'une aide, s'appelle « Page », comme son onglet.
+  - Le réglage d'ouverture propose « Un bloc » ou « Tout voir », comme le quai.
+  - L'aperçu de l'éditeur s'appelle « Schéma ».
+  - « Tout voir » prend une icône de page et « Moniteur » une icône d'écran. L'icône d'agrandissement ne sert plus
+    qu'à « Plein écran ».
+- **Accueil au téléphone** : les trois boutons de l'en-tête portent leur nom en dessous (Sessions · Créer · Moi),
+  comme la colonne de gauche sur grand écran.
+- Éditeur : « Doses & seuils » devient « Repères posologiques », le nom de la section en lecture.
+- Inchangé, par décision antérieure : le bouton ◑ (thème) reste dans l'en-tête des aides, pour éteindre l'écran au
+  chevet sans ouvrir de réglage.
+
+## [5.45.0] — 2026-10-05
+Premier lot de l'audit de prise en main (`docs/audit-apprentissage-2026-10.md`) : ce qu'un nouvel utilisateur ne trouvait pas, ou lisait de travers (A460, doctrine `docs/decisions/lot-v5-45.md`).
+- **Recherche** :
+  - la précision d'une aide (« adulte », « pédiatrique »…) est désormais cherchée, pour les aides comme pour les
+    protocoles ;
+  - **Entrée** ouvre le premier résultat.
+- **« Exercice » écrit en entier** sur le quai dès 360 px de large ; « Exo. » ne reste que sur les plus petits écrans.
+  Une fois armée, la touche affiche aussi « Annuler » à l'écran, et plus seulement pour les lecteurs d'écran.
+- **Affichage › Regrouper** : « Catégorie » et « Bibliothèque » en toutes lettres (sur deux lignes si besoin), au lieu
+  de « Catég. » et « Biblio. ».
+- **Fin de session** : le bouton rouge dit lui-même « Terminer · maintenir 1,2 s ». Un tap bref ne faisait rien en
+  apparence, et la consigne était écrite plus bas.
+- **Mode exercice** : le bouton dit « Démarrer l'exercice ». « Confirmé — » reste réservé à la session réelle, où il
+  acquitte les critères « Quand l'utiliser ».
+- **Accueil** : le badge « △ À compléter » se touche et dit ce qui reste à remplacer ; son explication n'existait
+  qu'au survol de la souris.
+- **Les deux aides d'exemple arrivent « À relire »**, et non plus « Validée », avec un bandeau qui le dit. Valider
+  reste votre geste. La notice « À relire » se lit avant la session et n'occupe plus l'écran pendant.
+- **Moi › « Revoir l'accueil »** rouvre l'écran de bienvenue. Il se fermait pour toujours au premier tap. Ses portes
+  déjà sans objet s'effacent (exemples déjà présents, compte déjà connecté).
+- L'info-bulle de « Vérifier » est en français (« Relire ce bloc étape par étape… »).
+- Non traité dans ce lot : le nom du compteur dans la capsule (« CHOCS DE… ») — la place manque à 64 px, décision de
+  dessin à prendre.
+
 ## [5.44.0] — 2026-10-05
 L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A452-A459, doctrine `docs/decisions/lot-v5-44.md`).
 - **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
@@ -174,151 +297,3 @@ Sept retours d'usage corrigés, et les deux essais d'affichage tranchés (A431-A
 - **« Affichage » : le bandeau « Filtrer » ne saute plus** quand « n actifs · Tout effacer » apparaît (A437).
 - **Maquette à valider** : la partie « Administration » de Moi, sur un canevas Claude Design (rien n'est codé).
 - Témoins : section A380 d'`audit-doctrine` retirée avec les essais ; familles `essai-` purgées de `check-classes`.
-
-## [5.39.8] — 2026-09-30
-Le geste retour se comporte comme dans une app (A430, doctrine `docs/decisions/lot-v5-39.md`).
-- **Balayer vers la droite ramène à l'écran d'avant, sans rechargement ni gel.** L'app gardait une seule entrée
-  d'historique, recréée à chaque retour. Or le balayage d'iPhone (et le retour prédictif des Android récents) fait
-  glisser une capture de l'écran précédent : elle montrait souvent un autre écran que celui où l'on arrivait, et
-  pouvait rester figée à l'écran quelques secondes. L'historique a maintenant une entrée par niveau ouvert (fiche,
-  fiche liée, éditeur, fenêtre, volet, visionneuse, schéma, Sessions/Moi), si bien que la capture est celle du bon
-  écran, et rien n'est ajouté pendant le retour lui-même.
-- Fermer par ✕ ou « ‹ » retire l'entrée correspondante : le balayage suivant tombe juste. Balayer vers l'avant ne
-  rouvre rien ; depuis l'accueil, le retour quitte l'app ; en session, il ne l'arrête jamais (inchangé).
-- À vérifier sur l'appareil : accueil → fiche → retour ; fiche → fiche liée → retour ×2 ; une fenêtre ouverte →
-  retour ; la même chose en session.
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), `audit-retour` 10/10 (nouvelle
-  section, rouge sur le code d'avant), audit complet — seuls restent les deux rouges connus de ce poste (en-tête
-  d'accueil à 320 px, barre de sélection).
-
-## [5.39.7] — 2026-09-29
-Retours d'usage sur l'accueil et le téléphone (A426 à A429, doctrine `docs/decisions/lot-v5-39.md`).
-- **Filtrer par bibliothèque.** La feuille « Affichage » propose une rangée « Bibliothèque » (Toutes, Perso, et
-  chaque bibliothèque partagée, cadenas si lecture seule), en plus du regroupement par bibliothèque. Elle
-  n'apparaît que s'il y a au moins deux bibliothèques ; le choix est le même que dans la colonne gauche du bureau.
-- **Une feuille « Affichage » en deux parties.** « Filtrer » (Afficher, Bibliothèque, Catégorie : ce qui
-  restreint) et « Présenter » (Trier, Regrouper, Densité : ce qui range) sont deux sections encadrées, chacune
-  avec son icône et son titre. Le compte des filtres actifs et « Tout effacer » passent dans l'en-tête de
-  « Filtrer » ; le pied ne dit plus que le résultat. À l'ouverture, le focus va sur le choix actif d'« Afficher ».
-- **Les filtres posés en puces sur la liste.** Sous la ligne de compte, une puce par filtre (« Bibliothèque :
-  CH Le Mans × ») : toucher la puce rouvre la feuille, sa croix retire ce seul filtre, « Tout effacer » à partir
-  de deux. Elles restent visibles quand aucun résultat ne correspond, là où l'on en a besoin. Elles remplacent la
-  phrase « filtres : … ».
-- **Cadenas alignés dans la colonne gauche** : les nombres ont une colonne de largeur fixe, les cadenas ne
-  bougent plus d'une rangée à l'autre.
-- **Couleur d'accent dans « Moi »** : la rangée de pastilles ne touche plus le bord de la carte.
-- **Retour dans l'app sur iPhone** : en revenant après l'avoir quittée (surtout avec la recherche active), le haut
-  de la page pouvait rester hors écran et le quai cessait de flotter. L'app recale la vue au retour au premier
-  plan. À vérifier sur l'appareil : le défaut ne se reproduit pas hors de Safari iOS.
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
-  deux rouges connus de ce poste (en-tête d'accueil à 320 px, barre de sélection).
-
-## [5.39.6] — 2026-09-29
-Trois retours d'usage (A423 à A425, doctrine `docs/decisions/lot-v5-39.md`).
-- **Au téléphone, la recherche flotte sur la liste.** La bande grise sous la recherche et le bouton filtre
-  disparaît : les deux commandes, opaques, flottent séparément au-dessus de la liste, qui s'efface doucement en
-  passant dessous (flou et voile du fond, sans arête). C'est la disposition des apps récentes (iOS 26, Material 3),
-  sans leur verre translucide, dont le contraste dépend de ce qui passe dessous. Ombre légère le jour, contour la
-  nuit ; recherche en forme de pilule, filtre et recherche à la même hauteur (44 px).
-- **Ranger dans une catégorie une sélection qui mêle plusieurs bibliothèques.** L'action n'était proposée que si
-  les cartes cochées étaient dans la même bibliothèque, ce qui arrivait rarement depuis que l'accueil les réunit
-  toutes. Elle est maintenant toujours là : on choisit un nom, et chaque carte va dans la catégorie de ce nom de sa
-  propre bibliothèque. Avant le geste, une notice dit que les bibliothèques diffèrent, et la liste est rangée sous
-  des intertitres (« Dans les deux bibliothèques », « Seulement dans Perso »…) qui disent combien de cartes vont où
-  et combien restent inchangées. Rien n'est créé ni vidé en silence ; le message final reprend le partage.
-  Au passage, « Sans catégorie » ne se coche plus à tort quand les cartes ont des catégories différentes.
-- **Sur un écran très large, l'accueil se centre.** La colonne des cartes (960 px) collait à gauche avec un vide à
-  droite ; elle se centre, et la recherche, « Créer », le bandeau et la carte « Session en cours » suivent le même
-  axe. Rien ne change sous 1260 px environ.
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
-  deux rouges d'environnement déjà connus ; nouveau témoin « A424 » (8 contrôles), rouge avant, vert après.
-
-## [5.39.5] — 2026-09-29
-Signalé à l'usage (A422, doctrine `docs/decisions/lot-v5-39.md`).
-- **Cartes d'accueil : l'état ne rivalise plus avec le titre.** Les pastilles « Brouillon », « À compléter »,
-  « Sans date », « À relire » étaient en 13,5 px et en gras 800, sur fond gris, alors que le titre est en
-  15 px et en gras 700 : plus grasses que lui, elles pesaient presque autant. L'état passe au palier des
-  autres informations de la carte (12 px, comme « AIDE »), en gras 700 quand il attend quelque chose
-  (pastilles, « À revérifier », « En cours ») et au poids normal quand il est nominal (« Validée »).
-  Même règle en liste compacte et au bureau.
-- Vérifié : check complet, 1280 tests sous Chromium, audit complet (seuls restent les deux rouges
-  d'environnement déjà présents avant ce changement).
-
-## [5.39.4] — 2026-09-29
-Deux retours d'usage (A421, doctrine `docs/decisions/lot-v5-39.md`).
-- **« Afficher » Aides / Protocoles filtre enfin.** Ouverte par le bouton « Affichage » de la liste, la
-  feuille changeait bien de type, puis repeignait aussitôt la liste d'ouverture (« Tout ») par-dessus :
-  le choix semblait sans effet. Même chose pour un tri, un regroupement ou une catégorie choisis après
-  avoir changé de type. La feuille re-rend désormais la liste du type choisi, quel que soit le bouton qui
-  l'a ouverte. Le témoin d'A419 ouvrait la feuille par le bouton rond, le seul chemin sans défaut : un
-  second témoin passe par « Affichage », rouge avant le correctif, vert après.
-- **L'anneau autour de « Démarrer la session » est plus fluide.** Il animait une ombre, repeinte à chaque
-  image pendant l'affichage d'une fiche neuve, d'où les saccades, sur iPhone surtout. C'est maintenant un
-  trait de 2 px qui s'éloigne de la capsule par transformation et s'efface en fondu, deux propriétés que
-  le processeur graphique compose sans rien repeindre. Il apparaît en fondu au lieu de surgir à pleine
-  encre, et s'éloigne d'un seul mouvement, sans temps mort à chaque anneau. Mêmes trois anneaux, même
-  départ (800 ms), fini à 4,7 s ; toujours rien sous « réduire les animations ».
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet.
-
-## [5.39.3] — 2026-09-28
-Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
-- **Le rouge WebKit d'A387 n'était pas une fuite.** Sous WebKit, « une session locale sur l'autre aide
-  n'émet RIEN sur le fil de l'invité » échouait (2 ou 3 évènements reçus). Mesuré : ce sont des `sig`,
-  l'offre et la réponse de négociation du canal direct de secours, que WebKit achève plus tard. Aucune
-  coche ni navigation. Le contrôle ne compte plus que les évènements d'état (tout sauf `sig`), avec un
-  témoin qui prouve que l'invité a bien lu le fil pendant la fenêtre.
-- Vérifié capable d'échouer : la garde d'A387 neutralisée chez l'hôte, le contrôle rougit sur les deux
-  moteurs et nomme ce qui fuit (coche, décoche, compteur, minuteur, navigation, démarrage).
-- Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.39.2] — 2026-09-28
-Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
-- **Audit du temps des audits, mesuré.** Toutes les attentes fixes des 22 harnais ont été rejouées
-  réduites à deux images, divisées par deux, puis triplées, et les 2 619 contrôles comparés un à un :
-  même divisées par deux, 31 contrôles changent. Ces attentes sont donc presque toutes utiles, et aucune
-  n'a été raccourcie en masse.
-- **pdfsearch : 66 s → 16 s.** Trois attentes testaient `window.attIx`, qui n'existe pas (`attIx` est une
-  constante du script), et payaient donc leur plafond entier (60 s) à chaque passe ; l'index est prêt en
-  1 à 85 ms. La fenêtre de 10 s dont profitait par accident le témoin « pdf.js pas chargé au démarrage »
-  est gardée, explicitement.
-- **Tranches équilibrées par durée.** Le lanceur enregistre la durée de chaque section et de chaque
-  tâche, et répartit les tranches par durée au lieu du modulo : doctrine 95-168 s → 119-120 s par
-  tranche, partage 41-100 s → 58-67 s ; poids d'ordonnancement re-mesurés. Passe complète ~295 → 279 s,
-  verdict identique sur les 2 619 contrôles. Sans mesure (CI), rien ne change.
-- **Fiabilité de quatre contrôles de partage**, qui dépendaient de la vitesse du harnais : le compteur
-  d'A387 est attendu avec la coche ; « le billet mort ne traîne pas » ne dépend plus du vrai serveur ;
-  la grammaire des fenêtres se mesure après l'animation d'ouverture ; le rejeu de « continuer seul »
-  porte enfin la même heure que l'original. Tous tiennent à attentes divisées par deux et triplées.
-- Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.39.1] — 2026-09-28
-Deux correctifs signalés à l'usage (A419, doctrine `docs/decisions/lot-v5-39.md`).
-- **Connexion.** Appuyer sur Entrée (ou « Envoyer » au clavier du téléphone) dans le champ e-mail envoie
-  maintenant le code ; il fallait jusqu'ici toucher le bouton « Recevoir le code ».
-- **Filtres de catégorie sur « Toutes ».** Choisir une catégorie (colonne de gauche ou feuille
-  « Affichage ») pouvait montrer les aides d'une AUTRE catégorie, et allumer la mauvaise rangée. Cela
-  arrivait quand une catégorie avait été renommée dans une bibliothèque alors qu'une autre bibliothèque
-  gardait l'ancien nom. Le filtre retient désormais le nom de la catégorie choisie, et suit un
-  renommage ou une suppression.
-
-## [5.39.0] — 2026-09-28
-Le sommaire d'un PDF joint se consulte comme celui d'un protocole, et reste une option (A418, doctrine
-`docs/decisions/lot-v5-39.md`).
-- **Sur ordinateur et tablette en paysage (1000 px et plus).** Quand le PDF a des signets, son sommaire
-  est une colonne à gauche des pages, avec le numéro de page de chaque titre et la section en cours en
-  bleu. Un petit bouton le replie en une icône ≡, qui le rouvre d'un tap ; l'appareil retient le choix.
-- **Au téléphone.** Le bouton « Sommaire », sur la ligne du titre, ouvre la liste sous la barre ; elle se
-  referme dès qu'on a choisi un titre.
-- **On arrive sur le titre, plus en haut de la page.** Un signet ou un renvoi interne du PDF mène
-  exactement là où il pointe. Les sauts de la visionneuse (sommaire, liens, occurrences d'une recherche)
-  arrivaient aussi environ 60 px trop bas : corrigé.
-- **Barre d'outils du téléphone.** Avec un sommaire, elle débordait (« Largeur » coupé, bouton de
-  téléchargement hors de l'écran) ; « Sommaire » remonte sur la ligne du titre et tout tient.
-
-## [5.38.2] — 2026-09-28
-Le survol bleu pâle devient visible (A417, doctrine `docs/decisions/lot-v5-38.md`).
-- **Survol.** Les boutons posés sur le fond bleu pâle (« + » du compteur, « J'ai compris » du bandeau,
-  bouton Compte, rangée active de la colonne gauche) changent maintenant nettement de teinte au survol.
-  La nuit, ce survol n'était pas visible du tout.
-- **Focus.** Le halo autour d'un champ de l'éditeur en cours de saisie est plus lisible ; le bouton
-  « Filtrer » actif est un cran plus soutenu.

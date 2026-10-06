@@ -12,7 +12,10 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "launch_handler": {
     "client_mode": "focus-existing"
@@ -49,6 +52,32 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "monochrome"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Chercher une aide",
+      "short_name": "Chercher",
+      "url": "./#chercher",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "short_name": "Sessions",
+      "url": "./#sessions",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

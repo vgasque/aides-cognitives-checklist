@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fz1hIN8gUR9Z0ttVNfoFCBxFpYn8gI+ALTcyjgcj4o0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-v4z0WmljNtpkwTAzr/ZojL7+WmHaGm1Fua561NQGtMs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -519,6 +519,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
   --shadow-bar:none;--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
+  --gd-veil:rgba(244,245,247,.42);   /* A467 : le voile du guide ÉCLAIRCIT vers l'ambiance (estomper, pas assombrir) */
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
      script ; elle sert à fitMoreMenu et au dock (v4.73.2). */
@@ -572,6 +573,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --primary-soft:#12263f;--primary-100:#1b3556;--primary-200:#2c4b6e;
   --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
   --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
+  --gd-veil:rgba(13,15,19,.42);
   --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;
   }
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
@@ -924,11 +926,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:40px;padding:0;justify-content:center}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
-  html.zw430 header.bar.home .hdr-acts{gap:6px}   /* A375 : trois boutons de 40 (36 avant) — la réserve de l'en-tête retombe ≥ 8 px */
-  html.zw560 header.bar.home .hdr-acts{gap:6px}   /* A375 : « + Créer » porte son mot à ce palier : 4 px rendus à la réserve */
   html.zw400:not(.zw360) body.view-home header.bar.home :is(.hdr-new,.bar-acct){width:36px;height:36px}   /* A375 : sous 400 px, trois boutons de 40 ne tiennent plus avec la marque — palier de compression, 36 + halo 4 = 44 */
   html.zw400:not(.zw360) body.view-home header.bar.home .hdr-hist{height:36px}
-  html.zw400 header.bar.home .hdr-acts{gap:4px}   /* A375 : réserve ≥ 8 px à 360-399 */
   /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
      se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
   html.zw430 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
@@ -946,7 +945,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     header.bar:not(.home) .id-row{gap:4px}
   }
   html.zw360 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
-  html.zw360 header.bar.home .hdr-acts{gap:4px}
   html.zw360 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
   html.zw360 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   .id-row .brand{flex:0 1 auto}
@@ -1194,13 +1192,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home .brand .brand-name{font-size:21px}
   }
   html.zw480 body.view-home .brand .brand-name{font-size:17.5px}   /* E2 : sous 480 px effectifs la marque à 21 ne laissait aucune réserve (−2/−4 px sous Linux) */
-  @media (min-width:390px) and (max-width:779.98px){
-    body.view-home .hdr-new{width:auto;padding:0 12px}
-    body.view-home .hdr-new .hdr-new-lbl{display:inline}
-    /* v5.30 : avec « Sessions » à côté, le mot « Créer » ne tient plus sur la ligne sous 430 px effectifs. */
-    html.zw430 body.view-home .hdr-new .hdr-new-lbl{display:none}
-    html.zw430 body.view-home .hdr-new{width:40px;padding:0}
-  }
 
   /* La session en cours (maquette) : registre CONFIRMATION — le SEUL aplat teinté de l'accueil,
      c'est sa rareté qui la fait voir. En sombre, l'aplat ne borne plus rien (A222) : périmètre --ok. */
@@ -1537,6 +1528,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      page réserve aussi ses 44 px et son écart : on défile jusqu'à la dernière ligne. Ajouté SOUS le
      contenu, ce blanc ne déplace rien à l'écran au moment où elle paraît. */
   body.dock-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 44px + 24px)}
+  /* A467 (v5.48.2) : la carte de l'exercice guidé réserve aussi sa hauteur (--gd-h) : rien ne reste dessous. */
+  body.dock-on.gd-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + var(--gd-h,0px) + 24px)}
+  body.gd-on .rt-dock{max-height:min(calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8),calc(var(--vvh,100dvh) / var(--zf,1) - var(--quai-b,var(--stick-top,110px)) - var(--dock-h,64px) - var(--gd-h,0px) - 16px))}   /* le volet s'arrête au-dessus de la carte, et défile */
+  body.dock-on.gd-on.bkr-on:not(.kb-open) main{padding-bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + var(--gd-h,0px) + 44px + 32px)}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
      qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
      dessus de lui, et sous la capsule : V2 — l'alarme reste toujours en vue. */
@@ -1743,7 +1738,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (elle enseigne les signes de la carte), NI à la hauteur des étapes (60 px, la cible) : le
      rembourrage est le seul poste qui n'informe de rien. */
   html.zw360 .ov-head{padding-top:12px}
-  html.zw360 .ov-t{margin-bottom:6px}
+  html.zw360 .ov-t{margin-bottom:6px;font-size:var(--t-step)}   /* A465 : 17,5 × zoom ≥ 21 vus ; le mot tient dans la colonne */
   /* Et les écarts de SECTION du préambule, au même titre — jamais leurs cibles : `.ov-runline`
      garde ses 44 px de hauteur minimale, seule sa marge cède. */
   html.zw360 .cf-stage{padding-bottom:12px}
@@ -1758,8 +1753,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw300 .sd-in{padding:2px}
   html.zw300 ol.steps li{padding:8px}
   html.zw300 .ov-head{padding-top:10px}
-  html.zw360 #allBtn .dp-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-  html.zw360 #allBtn{flex:0 0 46px}
+  /* A465 : sous 360 effectifs (texte agrandi au téléphone), chaque touche GARDE son mot — 12 px, deux lignes,
+     jamais coupé au milieu (« Horoda / ter ») ; « Tout voir » n'est plus réduit à son glyphe. */
+  html.zw360 .sd-key .dp-lbl{font-size:var(--t-meta);overflow-wrap:normal;-webkit-hyphens:manual;hyphens:manual}
+  html.zw360 #allBtn{flex:0 0 52px}
+  html.zw360 #endKey{flex:0 0 48px}   /* « Fin » rend sa largeur aux libellés longs */
+  html.zw360 .sd-key:not(.sd-exo):not(.sd-start){padding:0 2px}
   /* < 430 px EFFECTIFS (v5.15.0, planche 18/2a) : « Exercice » passe au GLYPHE SEUL — le patron
      des deux ouvertures ci-dessus — et la piste rendue (62 px mesurés) revient au geste d'entrée,
      qui occupe la barre. Le nom reste dit : render() pose aria-label sur #exoKey à chaque rendu,
@@ -1768,10 +1767,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      rien d'autre ne retient la largeur) — A8 exige 44 px, mesuré sur maquette. */
   .sd-key.sd-exo .dp-lbl-s{display:none}
   /* v5.26.0 (demande de l'auteur) : sous 430, le MOT se tronque en « Exo. » plutôt que de
-     disparaître — même mot, jamais un autre (règle du libellé unique ci-dessous). */
-  html.zw430 .sd-key.sd-exo .dp-lbl:not(.dp-lbl-s){display:none}
-  html.zw430 .sd-key.sd-exo .dp-lbl-s{display:-webkit-box}
-  html.zw430 .sd-key.sd-exo{min-width:var(--hit)}
+     disparaître — même mot, jamais un autre (règle du libellé unique ci-dessous).
+     v5.45.0 (A460, audit d'apprentissage) : « Exo. » cachait le mode le plus utile à l'apprenant
+     derrière une abréviation. Sous 430 la touche RESSERRE son rembourrage (14 → 8) et garde le mot
+     entier ; la troncature ne tombe plus que sous 360 effectifs, où la place manque vraiment
+     (mesuré : « Exercice » coûte 16 px au bouton de démarrage à 390, 0 débordement de son libellé). */
+  html.zw430 .sd-key.sd-exo{padding:0 8px}
+  html.zw360 .sd-key.sd-exo .dp-lbl:not(.dp-lbl-s){display:none}
+  html.zw360 .sd-key.sd-exo .dp-lbl-s{display:-webkit-box}
+  html.zw360 .sd-key.sd-exo{min-width:var(--hit)}
   /* Un SEUL libellé à toutes les largeurs (toute abréviation = TRONCATURE du même mot, jamais un
      autre mot) ; « Plan » garde son mot partout (deux pictogrammes voisins sans mot se confondent
      sous stress). Paliers de compression en classes zw, jamais en media queries (règle 10 ; zw360
@@ -1852,6 +1856,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg.glb{flex:none;background:none;border-radius:0;border-right:1px solid var(--sys-line);padding:0 12px 0 8px;min-width:92px}
   #cbTimers .seg-t{font-size:var(--t-step);letter-spacing:0;line-height:1}
   #cbTimers .seg.glb .seg-t{font-size:var(--t-val)}
+  /* A462 : tuile de compteur en ligne — la valeur d'abord, le nom entier à droite sur deux lignes au plus (casse de phrase, 12). */
+  #cbTimers .seg.cnt{flex-direction:row;align-items:center;gap:8px}
+  #cbTimers .seg.cnt .seg-t{order:-1}
+  #cbTimers .seg.cnt .seg-l{max-width:72px;font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   #cbTimers .seg-bar{display:block;width:100%;min-width:0;height:3px;border-radius:3px;background:var(--sys-line);overflow:hidden}
   #cbTimers .seg-fill{display:block;height:100%;width:100%;background:var(--sys-ink-2);transform-origin:left;transition:transform 1s linear}
   #cbTimers .seg.due{padding:0 10px}
@@ -2022,9 +2030,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   @media (max-width:399.98px){
     header.bar.home .id-row{column-gap:4px}
-    header.bar.home .hdr-acts{gap:4px}
-    /* L'écart tombe à 4 px : les halos horizontaux tombent à 2, sinon deux cibles voisines se
-       recouvrent (cf. la note du palier 360). Cible 36 × 44, au-dessus du plancher hors crise. */
+    /* Cible 36 × 44 par halo ; l'écart de 14 px (A461) tient les halos voisins séparés. */
     header.bar.home :is(.hdr-new,.bar-acct)::after{inset:-4px}   /* A375 : à ce palier les boutons redescendent à 36 (compression) — halo 4 → 44 */
     header.bar.home .hdr-hist{width:32px}   /* l'historique n'est pas une cible mesurée à 44 de large : il rend 4 px de réserve à la rangée */
     header.bar.home .hdr-hist::after{inset:-4px}
@@ -2037,7 +2043,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     header.bar.home .brand-logo{margin-right:0}
   }
   @media (max-width:359.98px){
-    header.bar.home .hdr-acts{gap:2px}
     header.bar.home :is(.hdr-new,.bar-acct){width:32px;height:32px}
     /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : halo 6 px, cible 44 au pixel près — règle propre,
        (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre (dix-septième piège de cascade). ⚠ Et
@@ -2047,6 +2052,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* Sous 360 px, l'avatar descend à 32 px de dessin comme « Créer » : 6 px de halo rendent la
        cible de 44 au pixel près. */
     header.bar.home .bar-acct::after{inset:-6px}
+  }
+  /* A461 : sous 780, chaque pastille de l'accueil porte son mot DESSOUS (Sessions · Créer · Moi) —
+     la colonne large les nomme déjà. Hors flux (`top:100%`), la cible ne change pas ; l'en-tête
+     gagne 24 px, l'écart 14 empêche deux mots de se toucher (« Sessions » déborde de 11 px). */
+  .hb-lbl{display:none}
+  @media (max-width:779.98px){
+    header.bar.home{padding-bottom:24px}   /* mot + 11 px d'air au moins avant le contenu (bandeau, carte, liste) */
+    header.bar.home .hdr-acts{gap:14px}
+    @media (max-width:399.98px){header.bar.home .hdr-acts{gap:12px}}   /* réserve de la marque ≥ 8 px à 360 */
+    header.bar.home .hdr-new{width:40px;padding:0;justify-content:center}
+    header.bar.home :is(.hb-lbl,.hdr-new .hdr-new-lbl){display:block;position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);font-size:var(--t-cap);font-weight:600;line-height:1.2;color:var(--ink-2);white-space:nowrap}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
@@ -2590,6 +2606,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.30 : badge d'attente ACHROMATIQUE (glyphe + mot, fond --amb-2) — l'ambre ne reste qu'à
      « À revérifier ». */
   .dir-st.b{padding:1px 8px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);line-height:1.25}
+  /* A460 : « À compléter » se tape. Au-dessus du voile `.card-open::after` (sinon le tap ouvre l'aide),
+     halo de 32 px de haut (règle 9) ; en mode sélection il redevient inerte : la rangée se coche. */
+  .dir-row:not(.selm) .dir-st[data-todo]{position:relative;z-index:1;cursor:help}
+  .dir-row:not(.selm) .dir-st[data-todo]::after{content:"";position:absolute;inset:-8px -4px}
   .dir-live{font-variant-numeric:tabular-nums}
   html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
   html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
@@ -2657,6 +2677,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .vs-part .linkbtn{min-height:32px}
   .vs-seg .seg-btn{min-height:44px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}   /* A375 : un seul segment, L 44 */
   html.zw360 .vs-seg .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* 320 px : « Protocoles » et « Catégorie » ne tiennent pas à 13,5 (mesuré) */
+  /* A460 : « Regrouper » écrit ses crans en entier (« Catégorie », « Bibliothèque ») et les laisse
+     passer sur DEUX lignes à la césure douce posée dans le libellé — la hauteur L 44 les contient
+     (2 × 1,15 × 13,5 = 31 px). Mesuré : aucun débordement à zoom 1 de 320 à 1280 px. */
+  .vs-seg.vs-wrap .seg-btn{white-space:normal;line-height:1.15;hyphens:manual;text-align:center}
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
   @media (max-width:779.98px){#rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock */
@@ -4702,7 +4726,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .endsess-actions{display:flex;gap:8px}
   .btn-continue-sess{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-strong);border-radius:8px;background:transparent;color:var(--ink);font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
   .btn-continue-sess:hover{background:var(--amb-2)}
-  .btn-end-sess{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;background:var(--crit-line);color:var(--on-primary);border:0;border-radius:8px;font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .btn-end-sess{flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--crit-line);color:var(--on-primary);border:0;border-radius:8px;font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
   html[data-theme="dark"] .btn-end-sess{color:var(--amb)}
   .btn-end-sess:hover{filter:brightness(1.06)}
   :is(.btn-continue-sess,.btn-end-sess):focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -5169,6 +5193,67 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sst-grid button[aria-disabled="true"]{color:var(--ink-soft)}
   .sst-grid button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .sst-note{margin:8px 0 0;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+  /* A466 : « Prendre en main » — rangées dépliables à filets, glossaire en liste de définitions. */
+  .gd-row+.gd-row{border-top:1px solid var(--line)}
+  .gd-row>summary{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 4px;cursor:pointer;list-style:none;font-size:var(--t-item);font-weight:700;color:var(--ink)}
+  .gd-row>summary::-webkit-details-marker{display:none}
+  .gd-row>summary>span:first-of-type{flex:1}
+  .gd-row[open] .hs-chev{transform:rotate(90deg)}
+  .gd-row>p{margin:0 4px 12px 32px;font-size:var(--t-body);line-height:1.5;color:var(--ink-2)}
+  .gd-gl{margin:0;padding:0 4px 8px}
+  .gd-gl dt{margin-top:12px;font-size:var(--t-body);font-weight:800;color:var(--ink)}
+  .gd-gl dd{margin:2px 0 0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  /* A467 — exercice guidé : carte d'entrée (aide d'exemple, avant la session) et bulle sur la commande visée.
+     Matière système pour la bulle (celle du quai et des notices), tokens seulement : elle suit le thème. */
+  /* v5.48.3 (choix de l'auteur, canevas « 20 ter » C) : la rangée porte le PLACARD D'EXERCICE — hachures de la
+     bande d'exercice, pointillé de la touche « ▲ Exercice » — pour se distinguer des cartes de l'aide sans
+     emprunter de registre. Mêmes tokens que la bande : elle suit le thème. */
+  .gd-card{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 8px 12px 12px;background-color:var(--primary-soft);background-image:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--act) 12%,transparent) 0 2.3%,transparent 2.3% 25%);background-size:31px 31px;border:1.5px dashed var(--act);border-radius:var(--r-4)}
+  .gd-cx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .gd-cx b{font-size:var(--t-item);font-weight:800;color:var(--act)}
+  .gd-cx span{font-size:var(--t-meta);color:var(--ink-2)}
+  .gd-ci{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-3);background:var(--work);color:var(--act);font-weight:800}
+  .gd-card .btn{flex:none;min-height:44px;background:var(--work);border:1.5px solid var(--act);color:var(--act)}   /* L 44 : l’écran d’entrée est mesuré comme le mode crise */
+  .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
+  html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
+  html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
+  .gd-tip[hidden]{display:none}
+  /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
+     son anneau ; large : texte à gauche, actes à droite ; réduite : une pastille. */
+  .gd-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-4px -8px 0 0}
+  .gd-hd .gd-k{margin:0}
+  .gd-min{display:inline-flex;align-items:center;justify-content:center;width:44px;height:32px;padding:0;border:0;border-radius:var(--r-1);background:none;color:var(--sys-ink);cursor:pointer}
+  .gd-min svg{transform:rotate(90deg)}
+  .gd-min{position:relative}
+  .gd-min::after{content:"";position:absolute;inset:-6px 0}   /* 32 dessinés, 44 actifs (règle 9, mode crise) */
+  .gd-tip.row{display:flex;align-items:center;gap:16px}
+  .gd-tip.row>.gd-tx{flex:1;min-width:0}
+  .gd-tip.row .gd-act{margin-top:0;flex:none}
+  .gd-tip.min{padding:0;border-radius:999px;background:none;border:0;box-shadow:none}
+  .gd-pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--sys-edge);border-radius:999px;background:var(--sys);color:var(--sys-ink);font:inherit;font-size:var(--t-body);font-weight:800;box-shadow:var(--shadow-float);cursor:pointer}
+  .gd-pill svg{transform:rotate(-90deg)}
+  .gd-k{margin:0 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.04em;color:var(--sys-ink-2)}
+  .gd-t{margin:0 0 4px;font-size:var(--t-item);font-weight:800}
+  .gd-x{margin:0;font-size:var(--t-body);line-height:1.5}
+  .gd-act{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+  .gd-act button{min-height:44px;padding:0 16px;border-radius:var(--r-3);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
+  .gd-l{background:none;border:0;color:var(--sys-ink);padding:0 4px!important;text-decoration:underline;text-underline-offset:3px}
+  .gd-g{background:none;border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .gd-b{background:var(--sys-ink);border:0;color:var(--sys)}
+  .gd-tip button:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
+  .gd-sum{list-style:none;margin:8px 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;font-size:var(--t-body)}
+  .gd-sum li{display:flex;align-items:center;gap:8px}
+  .gd-sum li.ok svg{color:var(--ok-sys)}
+  .gd-sum i{font-style:normal;color:var(--sys-ink-2)}
+  .gd-no{width:14px;text-align:center;color:var(--sys-ink-2)}
+  /* La cible : un anneau ; TOUT le reste s'estompe UN PEU (décision de l'auteur) sous un voile unique percé
+     autour d'elle — en-tête, quai, cartes, fenêtre comprises — et reste utilisable (aucun pointeur capté). */
+  .gd-tgt{outline:3px solid var(--act)!important;outline-offset:3px}
+  #sessionDock .gd-tgt{outline-color:var(--sys-ink)!important}   /* dans le quai sombre : l'encre du système, jamais un registre */
+  #gdVeil{position:fixed;inset:0;z-index:57;pointer-events:none;background:var(--gd-veil);opacity:0;transition:opacity .2s}
+  #gdVeil.on{opacity:1}
+  .sst-ex{margin:-4px 0 8px;font-size:var(--t-meta);line-height:1.4;color:var(--ink-2)}   /* A465 : un exemple sous chaque section des réglages */
   .sst-note.ko{color:var(--warn)}
   .sst-note.sst-sep{margin-top:20px}
   .sst-mk{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
@@ -5317,6 +5402,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tm-reset.holding,.btn-end-sess.holding{background-color:var(--amb-2);background-image:linear-gradient(color-mix(in srgb,var(--crit-line) 60%,transparent),color-mix(in srgb,var(--crit-line) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill var(--hold-ms,.8s) linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .endsess-hint{margin:14px 0 0;text-align:center;font-size:var(--t-body);color:var(--ink-2)}
+  /* A460 (audit d'apprentissage) : le GESTE s'écrit DANS le bouton, là où le doigt se pose — un
+     premier tap bref ne faisait rien en apparence, la consigne vivant 14 px plus bas. Le libellé
+     principal est un `.tmr-lab` : `holdToReset` n'écrit « Maintenir… » que dans lui, la sous-ligne
+     reste et la hauteur ne bouge pas pendant l'appui. */
+  .btn-end-sess .es-hold{font-size:var(--t-meta);font-weight:600;line-height:1.3}   /* pleine encre : à .9 elle tombait à 4,47:1 (mesuré, audit-a11y) */
   .btn.sm{padding:8px 12px;font-size:var(--t-body);font-weight:700;min-height:40px}.btn:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* Registre CONFIRMATION sur un bouton (V5) : « Continuer » quand le bloc est entièrement coché. */
   .btn.okay{background:var(--ok);border-color:var(--ok);color:var(--work)}
@@ -5407,7 +5497,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-head{padding:12px 16px 4px}
   body.chrome-hdr .ov-wrap>.ov-prog{margin-top:16px}   /* A376 : au cockpit la capsule vit dans l'en-tête et la ligne « Parcours » lui collait à 4 px (mesuré) ; 20 px comme ailleurs */
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
-  .ov-cur{order:3;flex:none;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+  .ov-cur{display:table;margin-bottom:6px;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}   /* A465 : étiquette AU-DESSUS du titre — à côté, elle lui prenait la largeur d'un mot (« Reconnaissan / ce ») */
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
   .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
@@ -6989,6 +7079,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .wl-links{display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap;color:var(--ink-2);font-size:var(--t-item)}
   .wl-lnk{min-height:44px;padding:0 10px;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
   .wl-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A460 : rouvert depuis Moi, l'accueil efface les portes devenues sans objet (et le point qui les sépare). */
+  #welcomeModal [hidden],.wl-lnk[hidden]+span{display:none}
   @media (max-width:779.98px){
     #welcomeModal .ai-card{display:flex;flex-direction:column;padding-top:24px}
     #welcomeModal .wl-act{margin-top:auto;padding-top:14px}
@@ -8440,7 +8532,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
          dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
          constante partagée — si l'un change, changer l'autre. -->
-    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span></button></div></div>
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span><span class="hb-lbl" aria-hidden="true">Moi</span></button></div></div>
     <datalist id="phaseList"></datalist>
     <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
          toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
@@ -8506,7 +8598,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          statique ne peut pas appeler `uiIcon`, on n'y recopie donc pas un tracé — un dessin
          recopié finit par diverger). C'est `syncDock` qui les peint, une fois. -->
     <button id="endKey" type="button" hidden class="sd-key sd-end" aria-label="Terminer la session — confirmation demandée"><span class="dp-ic" aria-hidden="true"></span><span class="dp-lbl">Fin</span></button>
-    <button id="allBtn" hidden class="sd-key" aria-label="Tout voir — la fiche entière, puis retour au bloc"><span class="dp-ic" aria-hidden="true"></span><span class="dp-lbl">Tout voir</span></button>
+    <button id="allBtn" hidden class="sd-key" aria-label="Tout voir — l’aide entière, puis retour au bloc"><span class="dp-ic" aria-hidden="true"></span><span class="dp-lbl">Tout voir</span></button>
     <button id="cxKey" type="button" hidden class="sd-key sd-cx" aria-expanded="false"><span class="dp-ic" aria-hidden="true"></span><span class="dp-lbl">Complications</span></button>
     <button id="tkKey" type="button" hidden class="sd-key sd-tk" aria-label="Horodater — noter l’heure d’un geste, puis le nommer"><span class="dp-ic" aria-hidden="true"></span><span class="dp-lbl">Horodater</span></button>
     <!-- HORS SESSION, le dock n'a que deux commandes (maquette 1b/1c) : Exercice au CONTOUR,
@@ -8598,7 +8690,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      n'importe où revient à la fiche (une surface sans commande ne peut pas être actionnée par
      erreur, et c'est précisément ce qu'on veut d'un appareil posé). -->
 <div id="monMode" role="dialog" aria-modal="true" aria-label="Mode moniteur — affichage seul"><div class="mon-top"><span class="mon-sess" id="monSess"></span><span class="mon-hint">tap = revenir</span></div><div class="mon-main" id="monMain"></div><div class="mon-band" id="monBand"></div></div>
-<div id="flowFull" role="dialog" aria-modal="true" aria-label="Schéma de l'algorithme — plein écran"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
+<div id="flowFull" role="dialog" aria-modal="true" aria-label="Schéma — plein écran"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
      en cartes verticales ; la méthode IA est un SOUS-ÉCRAN du même dialogue (retour « ‹ Autres
@@ -8649,7 +8741,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      se présente (glyphe, nom, et une ligne qui dit à quoi il sert). C'est là que les registres
      s'apprennent, avant la crise. -->
 <div class="ai-modal" id="edAddModal" role="dialog" aria-modal="true" aria-labelledby="edAddTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="edAddTitle">Ajouter à l’aide</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
   <div class="ed-palette ai-body" id="edAddBody"></div>
 </div></div>
 <!-- v5.44 : outils du contenu rédigé — tableau en grille, collage mis en forme. Une fenêtre, deux corps
@@ -8691,8 +8783,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div id="authBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal page" id="storageModal" role="dialog" aria-modal="true" aria-labelledby="storageModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos fiches ?</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos données ?</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="storageBody" class="ai-body"></div>
+</div></div>
+<div class="ai-modal page" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="guideModalTitle">Prendre en main</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div id="guideBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="syncErrModal" role="dialog" aria-modal="true" aria-labelledby="syncErrModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" aria-label="Fermer">×</button></div>
@@ -8836,7 +8932,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      menu déroulant ne passe pas à l'échelle à 50+ documents. Accessibilité .ai-modal standard. -->
 <div class="ai-modal" id="attPickModal" role="dialog" aria-modal="true" aria-labelledby="attPickTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="attPickTitle">Joindre un document existant</h3><button class="ai-x" aria-label="Fermer">×</button></div>
-  <p>Le document sera <b>partagé</b> : le remplacer le mettra à jour sur toutes les fiches et tous les protocoles qui l'utilisent.</p>
+  <p>Le document sera <b>partagé</b> : le remplacer le mettra à jour sur toutes les aides et tous les protocoles qui l'utilisent.</p>
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="attPickQ" placeholder="Filtrer par nom ou origine…"></div>
   <div id="attPickList" class="att-list attpick-list ai-body"></div>
 </div></div>
@@ -8909,7 +9005,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        Rien à dire -> le bloc n'existe pas : un panneau vide est du bruit. -->
   <div class="endsess-state" id="endSessState" hidden></div>
   <p class="dlg-consequences">Le chrono global et tous les minuteurs s'arrêtent. La session quitte l'accueil. Le déroulé horodaté reste consultable dans l'historique.</p>
-  <div class="endsess-actions"><button class="btn-continue-sess" id="endSessNo">Poursuivre</button><button class="btn-end-sess" id="endSessYes">Terminer</button></div><p class="endsess-hint">Maintenir 1,2 s. Relâcher annule.</p>
+  <div class="endsess-actions"><button class="btn-continue-sess" id="endSessNo">Poursuivre</button><button class="btn-end-sess" id="endSessYes"><span class="tmr-lab">Terminer</span><span class="es-hold">maintenir 1,2 s</span></button></div><p class="endsess-hint">Relâcher avant la fin annule.</p>
 </div></div>
 <!-- Confirmation NON bloquante (remplace confirm() natif) : mêmes garanties d'accessibilité que
      les autres fenêtres (role=dialog, focus piégé, Échap). DERNIÈRE dans le DOM -> _topModal() la
@@ -8933,7 +9029,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.44.0';
+const APP_VERSION='5.48.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9298,7 +9394,7 @@ function accountEverSynced(){const u=Auth.user()||null;
 async function returnLocalDataToAnon(reopenAuth){
   persistAllLive();
   try{await moveLocalDataTo('');}
-  catch(e){toast('⚠ Échec du retour hors compte : rien n\'a été déplacé. Réessayez, ou exportez vos fiches par sécurité (fenêtre Compte → « Exporter mes données »).');return;}
+  catch(e){toast('⚠ Échec du retour hors compte : rien n\'a été déplacé. Réessayez, ou exportez vos données par sécurité (fenêtre Compte → « Exporter mes données »).');return;}
   try{await Auth.signOut();}catch(e){}
   try{localStorage.setItem('ac-space','');}catch(e){}
   if(reopenAuth){try{localStorage.setItem('ac-reopen-auth','1');}catch(e){}}
@@ -10256,7 +10352,7 @@ function cxOpenFromMenu(f){
 async function startExercise(f){
   if(!f)return;
   if(Runtime.started&&!Runtime.exercise){
-    if(!await confirmDlg('Une session réelle est en cours sur cette fiche. La terminer pour passer en exercice ? Elle est archivée — son compte-rendu reste disponible.',{yes:'Terminer et exercer',danger:true}))return;
+    if(!await confirmDlg('Une session réelle est en cours sur cette aide. La terminer pour passer en exercice ? Elle est archivée — son compte-rendu reste disponible.',{yes:'Terminer et exercer',danger:true}))return;
     endSession(Runtime);}
   else if(Runtime.started&&Runtime.exercise){
     if(!await confirmDlg('Un exercice est déjà en cours. En recommencer un nouveau ?',{yes:'Nouvel exercice'}))return;
@@ -10425,7 +10521,7 @@ function ficheHaystack(f){let h=_hayCache.get(f);
   // pool depuis l'étape B — l'accès direct `f.differentials` rendait toujours `undefined`, et la
   // recherche ne trouvait JAMAIS une fiche par son diagnostic différentiel (aggravé par
   // `_hayCache`, qui figeait le résultat amputé). `sources` reste un champ, son accès est le bon.
-  if(h===undefined){const parts=[f.title,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...listOf(f,'differentials'),...(f.sources||[])];
+  if(h===undefined){const parts=[f.title,f.discriminant,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...listOf(f,'differentials'),...(f.sources||[])];
     (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);(b?stepsOf(b):[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
     h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
@@ -10758,7 +10854,7 @@ function homeLibOn(x){if(state.homeLib==null)return true;
 /* Rangement « type » : parcours puis protocoles ; « aucun » : une seule liste sans intertitre. */
 function kindGroups(list){const isP=x=>protocols.indexOf(x)>=0;
   const a=list.filter(x=>!isP(x)),b=list.filter(isP);
-  return [a.length?{L:'Parcours',items:a}:null,b.length?{L:'Protocoles',items:b}:null].filter(Boolean);}
+  return [a.length?{L:'Aides',items:a}:null,b.length?{L:'Protocoles',items:b}:null].filter(Boolean);}
 function bibGroups(list){const gm=Object.create(null);
   /* ⚠ PAS safeId ICI : safeId RÉGÉNÈRE sur entrée invalide (dont ''), ce qui envoyait chaque
      fiche Perso en « orpheline » (bug signalé à l'usage, v5.18). gm est un null-proto : la clé
@@ -11700,7 +11796,10 @@ async function addSeedFiches(){
 async function addSeedFichesOnce(){
   const catUrg=(categories.find(c=>c.name==='Urgences')||categories[0]||{}).id||'';
   const catSmur=(categories.find(c=>c.name==='SMUR')||{}).id||catUrg;
-  for(const f of [seed(catUrg),seed2(catSmur)]){if(await persist(f))fiches.push(f);}
+  /* A460 (audit d'apprentissage) : les exemples arrivent « À RELIRE », pas « Validée » — le bandeau
+     demande de les valider, le badge disait « À compléter » et l'éditeur « ✓ Validée » : trois
+     messages pour une seule fiche. Valider reste le geste de l'utilisateur, qui en a la charge (§ 2). */
+  for(const f of [seed(catUrg),seed2(catSmur)]){f.status='review';if(await persist(f))fiches.push(f);}
   /* J0-D6 (lot T13) — CE MESSAGE N'EST PAS UNE SNACKBAR, ET LA MESURE l'a montré : elle
      recouvrait **60,7 % du bouton d'action primaire** au moment précis où un nouveau venu vient
      de le presser. Une snackbar est un accusé FUGACE ; ceci est un AVERTISSEMENT qui doit tenir
@@ -11711,11 +11810,11 @@ async function addSeedFichesOnce(){
    /* Texte FUSIONNÉ avec la notice auteur (un seul créneau, cf. sysBannerOn) : les deux messages
       énonçaient la même responsabilité éditoriale en deux formulations. L'acquittement re-rend
       l'accueil pour que la notice, si elle n'est pas masquée, prenne le créneau libéré. */
-   if(b){b.querySelector('.sb-txt').textContent='2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.';
+   if(b){b.querySelector('.sb-txt').textContent='2 aides d’exemple ajoutées, « À relire ». Adaptez-les à votre service puis validez-les : vous êtes responsable du contenu clinique.';
      const a=document.getElementById('sbReload');
      a.textContent='J’ai compris';a.onclick=()=>{b.hidden=true;if(document.body.classList.contains('view-home'))render();};
      b.hidden=false;}
-   else toast('2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.',8000);}
+   else toast('2 aides d’exemple ajoutées, « À relire ». Adaptez-les à votre service puis validez-les : vous êtes responsable du contenu clinique.',8000);}
   render();}
 // Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
 // obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro (des ids aléatoires
@@ -11920,7 +12019,7 @@ function flowPlan(f){
    reste le dernier filet des écrans les plus étroits. */
 const shortField=x=>{const v=sstr(x&&x.short,24).trim();return v?{short:v}:{};};
 const SHORT_STOP=new Set(['après','avant','de','du','des','la','le','les','en','pour','sur','avec','et','au','aux','à','par','d','l']);
-const SHORT_TM=14,SHORT_CN=10,SHORT_CX=20;
+const SHORT_TM=14,SHORT_CX=20;   // compteurs : nom entier sur deux lignes dans la tuile (A462)
 function shortCut(w){const V='aeiouyàâäéèêëîïôöùûü';let i=4;while(i<w.length-2&&V.includes(w[i].toLowerCase()))i++;return w.slice(0,i+1)+'.';}
 function autoShort(name,max){const full=String(name||'').replace(/\s+/g,' ').trim();
   let s=full.replace(/\s*\([^()]*\)\s*$/,'').trim()||full;if(s.length<=max)return s;
@@ -11933,7 +12032,6 @@ function autoShort(name,max){const full=String(name||'').replace(/\s+/g,' ').tri
 function autoShortHead(name,max){const ws=String(name||'').replace(/\s+/g,' ').trim().split(' ');
   while(ws.length>1&&ws.join(' ').length>max)ws.pop();return ws.join(' ');}
 const tmShort=t=>(t&&t.short)||autoShort((t&&t.label)||'',SHORT_TM);
-const cnShort=c=>(c&&c.short)||autoShort((c&&c.label)||'',SHORT_CN);
 const cxShort=c=>(c&&c.short)||autoShortHead(cxKeyLabel(stripBold((c&&c.label)||'')),SHORT_CX);
 function cxAll(f){if(!f||!Array.isArray(f.excursions))return [];
   const ids=new Set(((f.blocks)||[]).map(b=>b&&b.id).filter(Boolean));
@@ -12050,7 +12148,7 @@ function storageState(o){
     mark=uiIcon('cloud',14);
     main='<b>Cloud</b> · '+used+' sur l\'appareil';
     short=uiIcon('cloud',12)+' Cloud · '+used+' sur l\'appareil';
-    tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
+    tip='Vos données sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
   }else if(o.pers===true){
     mark=uiIcon('phone',14);
     main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
@@ -12151,7 +12249,7 @@ async function _attOfflineBody(){
   if(!info.missing.length){
     _attSum.off=info.total;
     el.innerHTML=stgRow(uiIcon('check',14),info.total+' document'+(info.total>1?'s':'')+' sur l’appareil');   // P3-11 : nominal = neutre
-    el.title='Les '+info.total+' documents PDF référencés par vos fiches et protocoles sont téléchargés : consultables sans aucun réseau (mode avion, zone blanche).';
+    el.title='Les '+info.total+' documents PDF référencés par vos aides et protocoles sont téléchargés : consultables sans aucun réseau (mode avion, zone blanche).';
     return;}
   const n=info.missing.length;
   el.innerHTML=stgRow('<span class="pers-warn">'+uiIcon('warn',14)+'</span>',
@@ -12204,7 +12302,7 @@ async function _attIdxBody(){
   if(pend.length){
     el.innerHTML=stgRow(uiIcon('doc',14),pend.length+' document'+pluriel(pend.length)+' à indexer',
       stgAct('attIdxGo','Indexer'));
-    el.title='Tant qu’un document n’est pas indexé, la recherche ne trouve pas ce qu’il contient (elle trouve la fiche qui le porte).';
+    el.title='Tant qu’un document n’est pas indexé, la recherche ne trouve pas ce qu’il contient (elle trouve l’aide ou le protocole qui le porte).';
     relance();return;}
   // 4. SANS TEXTE — un scan n'est pas un échec, c'est un document sans rien à indexer.
   if(scans||bad){
@@ -12242,7 +12340,7 @@ function syncFootSum(){
     +'<span class="foot-t">Tout est prêt</span>'
     +'<span class="foot-v">v'+esc(APP_VERSION)+'</span>'
     +uiIcon('chev',14,{sw:2.4,cls:'foot-chev'})+'</button>';
-  s.title='Rien ne demande d’action : fiches enregistrées, documents sur l’appareil et trouvables par la recherche. Dépliez pour le détail.';
+  s.title='Rien ne demande d’action : données enregistrées, documents sur l’appareil et trouvables par la recherche. Dépliez pour le détail.';
   const b=document.getElementById('footMore');
   if(b)b.onclick=()=>{_footOpen=!_footOpen;syncFootSum();};}
 // Téléchargement MANUEL des documents manquants (même chemin cloud que _syncAttachments —
@@ -12327,6 +12425,7 @@ async function load(){
      const R=viv[0],t=R.lastActAt||R.startedAt||0;
      if(t&&Date.now()-t<=600000){try{openRead(R.fiche.id);}catch(e){}}}}
   render();
+  try{applyDeepLink();}catch(e){}   // A464
   updateStorageInfo();
   gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
   /* Index de recherche des documents : chargé APRÈS le premier rendu, jamais avant — l'accueil
@@ -12343,7 +12442,7 @@ async function load(){
   try{if(localStorage.getItem('ac-reopen-auth')){localStorage.removeItem('ac-reopen-auth');openAuth();}}catch(e){}
   // Transfert « Les emporter dans ce compte » échoué avant le reload (cf. connexion) : expliquer.
   try{if(localStorage.getItem('ac-move-failed')){localStorage.removeItem('ac-move-failed');
-    toast('⚠ Le transfert des fiches locales vers le compte a échoué : elles restent « hors compte », accessibles via le lien de l\'écran de connexion.',12000);}}catch(e){}
+    toast('⚠ Le transfert des données locales vers le compte a échoué : elles restent « hors compte », accessibles via le lien de l\'écran de connexion.',12000);}}catch(e){}
   // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
   // Les modifications faites pendant une déconnexion sont d'abord soumises à confirmation
   // (appareil partagé) — le push les retient de toute façon tant que ce n'est pas tranché.
@@ -12354,6 +12453,16 @@ async function load(){
    via le ✕ — voir la section Accessibilité des fenêtres modales). */
 function bindModalDismiss(modal,close){const x=modal.querySelector('.ai-x');if(x)x.onclick=close;
   modal.onclick=e=>{if(e.target===modal)close();};}
+/* REVOIR L'ACCUEIL (v5.45.0, A460 — audit d'apprentissage) : l'écran de bienvenue se fermait pour
+   TOUJOURS au premier tap, petite croix comprise, et aucune porte ne le rouvrait. Moi › « Revoir
+   l'accueil » le rouvre ; ses portes restent vraies : « Découvrir avec 2 exemples » s'efface si les
+   exemples sont déjà là (`addSeedFiches` n'a pas de garde contre le doublon — elle n'en avait pas
+   besoin tant que la porte ne servait qu'une fois), « Me connecter » s'efface une fois connecté. */
+const SEED_TITLES=['Anaphylaxie (choc anaphylactique)','Arrêt cardiaque (ACR) — algorithme'];
+function openWelcome(){closeAuth();
+  document.getElementById('welcomeSeed').hidden=fiches.some(f=>f&&SEED_TITLES.indexOf(f.title)>=0);
+  document.getElementById('welcomeLogin').hidden=Auth.signedIn();
+  welcomeModal.classList.add('on');}
 {const done=()=>{try{localStorage.setItem('ac-onboarded','1');}catch(e){}welcomeModal.classList.remove('on');};
  bindModalDismiss(welcomeModal,done);
  /* v5.30 (maquette v5) : trois portes — les exemples, créer, se connecter / rejoindre. */
@@ -12406,7 +12515,7 @@ async function confirmHeldEdits(){
   const labels=ids.slice(0,5).map(id=>'« '+(sstr(byId[id].title,48).trim()||'sans titre')+' »'+(byId[id].deletedAt?' (supprimée)':''));
   const more=ids.length-labels.length;
   _heldDlgOpen=true;let ans=null;
-  try{ans=await confirmDlg('Pendant que ce compte était déconnecté, '+ids.length+' fiche'+(ids.length>1?'s ont été modifiées':' a été modifiée')+' sur cet appareil : '+labels.join(', ')+(more>0?' et '+more+' autre'+(more>1?'s':''):'')+'. Si c\'est bien vous, synchronisez-les ; sinon, écartez-les (les versions de votre espace en ligne seront rétablies).',
+  try{ans=await confirmDlg('Pendant que ce compte était déconnecté, '+ids.length+' élément'+(ids.length>1?'s ont été modifiés':' a été modifié')+' sur cet appareil : '+labels.join(', ')+(more>0?' et '+more+' autre'+(more>1?'s':''):'')+'. Si c\'est bien vous, synchronisez-les ; sinon, écartez-les (les versions de votre espace en ligne seront rétablies).',
     {title:'Modifications hors connexion',yes:'Les synchroniser',no:'Les écarter'});}
   finally{_heldDlgOpen=false;}
   if(ans===true){setHeldEdits([]);Sync.schedule();}
@@ -12421,7 +12530,7 @@ async function confirmHeldEdits(){
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
-  await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos fiches puis allégez les images.',9000);return false;}}
+  await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos données puis allégez les images.',9000);return false;}}
 // Enregistre la note personnelle d'une fiche (débouncé par l'appelant). t vide = effacement :
 // l'entrée est conservée (t:'') pour propager l'effacement aux autres appareils (last-write-wins).
 async function saveNote(ficheId,text){
@@ -12614,7 +12723,7 @@ let _reportDoc='',_reportName='compte-rendu';   // document autonome + nom de fi
 function exportSessionReport(sessionId){
   const s=sessions.find(x=>x.id===sessionId);if(!s){toast('⚠ Session introuvable.');return;}
   const f=fiches.find(x=>x.id===s.ficheId)||null;
-  const title=esc((f&&f.title)||s.ficheTitle||'Fiche');
+  const title=esc((f&&f.title)||s.ficheTitle||'Aide');
   const start=s.startedAt||s.savedAt;const dur=fmtMs(Math.max(0,(s.savedAt||Date.now())-start));
   const evs=(s.events||[]).slice().sort((a,b)=>a.t-b.t);
   const evDl=evDeltas(evs);
@@ -13366,7 +13475,10 @@ function updateRtStrip(now){
      (libellé + valeur, `data-cntval` repeint par setCounterVal) ; le rappel ne compte que ce qui
      n'est pas montré. Sacrifié avant tout minuteur (kc = 0), jamais l'inverse. */
   const cnts=(!wideRail&&started&&crisis)?((Runtime.fiche&&Runtime.fiche.counters)||[]).filter(c=>c&&c.id).slice(0,1):[];
-  const cntOf=kc=>cnts.slice(0,kc).map(c=>'<span class="seg cnt"><span class="seg-l" title="'+esc(c.label||'')+'">'+esc(cnShort(c)||'Compteur')+'</span><span class="seg-t" data-cntval="'+esc(c.id)+'">'+esc(String((Runtime.counters||{})[c.id]||0))+'</span></span>').join('');
+  /* A462 : la tuile dit le nom ENTIER (ou le nom court posé par l'auteur) sur deux lignes, valeur devant —
+     l'abrégé d'office puis l'ellipse donnaient « CHOCS DE… ». */
+  const cnTile=c=>(c.short||c.label||'Compteur');
+  const cntOf=kc=>cnts.slice(0,kc).map(c=>'<span class="seg cnt"><span class="seg-l" title="'+esc(c.label||'')+'">'+esc(cnTile(c))+'</span><span class="seg-t" data-cntval="'+esc(c.id)+'">'+esc(String((Runtime.counters||{})[c.id]||0))+'</span></span>').join('');
   const chevLblOf=(n,kc)=>{const ct=Math.max(0,decl.t-n),cc=Math.max(0,decl.c-(kc||0));
     return (!wideRail&&started&&(ct||cc))
       ?[ct?ct+' minuteur'+(ct>1?'s':''):'',cc?cc+' compteur'+(cc>1?'s':''):'',
@@ -13393,7 +13505,7 @@ function updateRtStrip(now){
     +'|'+want.map(x=>tmShort(x.t).length).join(',')+'|'+globLbl.length
     +'|'+want.map(x=>x.due?1:0).join('')   // l'échéance AJOUTE le glyphe △ : c'est une largeur
     +'|'+chevLbl.length+'|'+decl.t+'/'+decl.c    // … le rappel, et les comptes dont il dérive
-    +'|'+cnts.map(c=>String((Runtime.counters||{})[c.id]||0).length+':'+cnShort(c).length).join(',')
+    +'|'+cnts.map(c=>String((Runtime.counters||{})[c.id]||0).length+':'+cnTile(c).length).join(',')
     /* ⚠ L'ÉTAT DE CHARGEMENT DES POLICES EST UN TERME DE LA CLÉ, et c'était la cause EXACTE de
        l'intermittence mesurée : une largeur mesurée avec la fonte de repli n'est pas celle qu'on
        aura. Sans ce terme, la première mesure — souvent faite avant que Manrope ne s'applique —
@@ -13839,12 +13951,12 @@ function applyViewChrome(){
       ab.classList.toggle('dp-back',!chezSoi);
       ab.querySelector('.dp-lbl').textContent=st?'Un bloc':'Tout voir';
       ab.setAttribute('aria-label',chezSoi
-        ?(st?'Voir un bloc à la fois':'Tout voir — la fiche entière, puis retour au bloc')
-        :(st?'Revenir au bloc en cours':'Revenir à la fiche entière'));
+        ?(st?'Voir un bloc à la fois':'Tout voir — l’aide entière, puis retour au bloc')
+        :(st?'Revenir au bloc en cours':'Revenir à l’aide entière'));
       const ic=ab.querySelector('.dp-ic');
       /* A106 : le glyphe vient de la table, jamais d'un tracé recopié — les deux SVG littéraux
          qui vivaient ici ET dans la coque statique sont partis avec l'entrée `backto`. */
-      ic.innerHTML=uiIcon(chezSoi?'expand':'backto',13,{sw:2.2});}}
+      ic.innerHTML=uiIcon(chezSoi?'doc':'backto',13,{sw:2.2});}}   // A461 : `expand` reste au seul « Plein écran »
    /* ⚡︎ — RÈGLE DU LIBELLÉ : une seule complication → son NOM en toutes lettres (« ⚡︎ Choc
       réfractaire ») ; plusieurs → « Complications · n ». Un nombre n'est jamais nu, et l'on sait
       ce qu'on ouvre avant de l'ouvrir. La touche N'EXISTE PAS quand la fiche n'en déclare
@@ -13890,7 +14002,9 @@ function applyViewChrome(){
            tient dans la même largeur que « la session » (deux caractères de plus), donc rien à
            arbitrer côté responsive : mesuré sans débordement de 320 à 430 px. */
         const quoi=state.previewFrom?'l’essai':(Runtime.exercise?'l’exercice':'la session');
-        const l=(n?'Confirmé — démarrer ':'Démarrer ')+quoi;
+        /* A460 : « Confirmé » acquitte les critères « Quand l'utiliser » DEVANT UN PATIENT (QRH) —
+           un exercice ou un essai n'a rien à confirmer, et le mot y était un contresens. */
+        const l=(n&&!Runtime.exercise&&!state.previewFrom?'Confirmé — démarrer ':'Démarrer ')+quoi;
         sb.querySelector('.dp-lbl').textContent=l;
         sb.setAttribute('aria-label',l+(Runtime.exercise
           ?' — répétition sans patient ; démarre aussi à la première action'
@@ -13902,6 +14016,9 @@ function applyViewChrome(){
         ek.classList.toggle('on',on);
         ek.setAttribute('aria-pressed',on?'true':'false');
         ek.querySelector('.dp-lbl').textContent=on?'Annuler':'Exercice';
+        /* A460 : le libellé COURT suit aussi l'état — il restait « Exo. » une fois armé, et
+           l'annulation ne se lisait qu'au lecteur d'écran. */
+        {const sl=ek.querySelector('.dp-lbl-s');if(sl)sl.textContent=on?'Annul.':'Exo.';}
         ek.setAttribute('aria-label',on?'Annuler l’exercice — la session n’a pas démarré'
                                        :'Répéter en exercice — rien n’est enregistré comme soin');}}}
    syncDock();}
@@ -14186,7 +14303,19 @@ function paintSeg(root,attr,idx){
  qi.addEventListener('input',e=>{syncQClear();if(state.view!=='library')return;
    if(homeTab()!=='aides')state.homeTab='aides';   // chercher, c'est chercher une aide (A365)
    state.q=e.target.value;state.libLimit=LIB_PAGE;
-   clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});}
+   clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});
+ /* ENTRÉE OUVRE LE PREMIER RÉSULTAT (v5.45.0, A460 — audit d'apprentissage : le geste attendu de
+    tout champ de recherche ne faisait RIEN). Le rendu débouncé est d'abord rattrapé (la liste
+    peinte doit être celle de la frappe), puis on ouvre la première RANGÉE de résultat par son
+    vrai bouton — jamais une tuile épinglée (masquées en recherche) ni une rangée en mode
+    sélection (`.selm` : un tap y coche, il n'ouvre pas). Rien à ouvrir = rien ne se passe. */
+ qi.addEventListener('keydown',e=>{
+   if(e.key!=='Enter'||e.isComposing||e.shiftKey||e.altKey||e.metaKey||e.ctrlKey)return;
+   if(state.view!=='library'||!qi.value.trim())return;
+   e.preventDefault();
+   if(_qDebounce){clearTimeout(_qDebounce);_qDebounce=null;render();}
+   const b=document.querySelector('#main .dir-row:not(.selm) .card-open');
+   if(b)b.click();});}
 /* CROIX D'EFFACEMENT (v5.0.3, demande utilisateur) : elle n'existe QUE s'il y a quelque chose à
    effacer — un bouton mort permanent au bord du champ le rétrécirait pour rien. Peinte à la
    FRAPPE (pas au rendu débouncé), sinon elle paraîtrait 150 ms après le premier caractère. */
@@ -14604,7 +14733,7 @@ const mgrDeux=()=>mgrLibs().length>0||myIsAppAdmin;
 function syncNewBtn(){const hn=document.getElementById('hdrNew');if(!hn)return;
   /* v5.30 (maquette v5) : « Sessions » (horloge) voisine de « Créer » à l'accueil. */
   {const hh=document.getElementById('hdrHist');if(hh){hh.hidden=state.view!=='library';
-    if(!hh.hidden&&!hh.querySelector('svg')){hh.innerHTML=uiIcon('history',16,{sw:2.2});hh.onclick=()=>openSessHist();}}}
+    if(!hh.hidden&&!hh.querySelector('svg')){hh.innerHTML=uiIcon('history',16,{sw:2.2})+'<span class="hb-lbl" aria-hidden="true">Sessions</span>';hh.onclick=()=>openSessHist();}}}
   if(state.view!=='library'||homeTab()!=='aides'||!canEditScope(homeScope())){hn.hidden=true;return;}
   hn.hidden=false;
   hn.title=state.section==='protocols'?'Créer un protocole':'Créer une aide cognitive';
@@ -14999,7 +15128,9 @@ function dirStateHtml(x,fem,isLive){
   if(k==='draft')return '<span class="dir-st b">○ Brouillon</span>';
   if(k==='review')return '<span class="dir-st b">△ À relire</span>';
   const sp=fem?completionSpots(x):[];
-  if(sp.length)return `<span class="dir-st b" title="Reste à compléter : ${esc(sp.join(' · '))}">△ À compléter</span>`;
+  /* A460 : le badge se TAPE (toast, même porte `[data-todo]` que l'écran d'entrée) — son explication
+     n'existait qu'au survol, donc jamais au doigt ; il passe au-dessus du voile de la rangée (CSS). */
+  if(sp.length)return `<span class="dir-st b" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`;
   if(!x.validatedAt)return '<span class="dir-st b">△ Sans date</span>';
   const d=esc(fmtDateShort(x.validatedAt)),full=esc(fmtDate(x.validatedAt));
   if(staleDate(x.validatedAt))return `<span class="dir-st w" title="${full} — plus de 2 ans : à revérifier">À revérifier <span class="d">${d}</span></span>`;
@@ -15426,7 +15557,7 @@ function renderHomeList(cfg){
          le dit alors au lieu d'affirmer le contraire de ce qui est affiché juste en dessous. */
       +`<div class="dir-wrap">${list.length?`<div class="dir-grid flat">${list.slice(0,state.libLimit).map(cfg.row).join('')}</div>`
         +(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:8px">Afficher plus (${list.length-state.libLimit} ${cfg.remainLbl(list.length-state.libLimit)})</button>`:'')
-        :(dh?emptyLine('Aucune aide ni référence ne correspond — mais un document joint, oui :'):emptyHtml)}</div>`
+        :(dh?emptyLine('Aucune aide ni protocole ne correspond — mais un document joint, oui :'):emptyHtml)}</div>`
       +dh;
   }else{
     const tiles=qaPick(list,pins);
@@ -15472,7 +15603,7 @@ function renderHomeList(cfg){
       /* v5.30 (maquette v5) : plus d'intertitre « Répertoire » — la ligne dit le compte et porte
          « Affichage » (rangement, catégories). */
       +`<div class="dir-h dir-sum"><span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
-          return [pp?`${pp} parcours`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${selTogHtml()}</div>`
+          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${selTogHtml()}</div>`
       +(state.selOn?'':filtersBarHtml())
       +`<div class="dir-book${state.homeCompact?' compact':''}">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
@@ -15603,8 +15734,8 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
           +`<button class="btn sm primary" data-openshared>Reprendre</button></div></div>`:'';
       return recapH+shH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${esc(R.ficheId)}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span>${(()=>{const w=liveWhereText(R);return w?`<span class="ls-w">${esc(w)}</span>`:'';})()}</div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${esc(R.ficheId)}">Reprendre</button><button class="ls-end" data-endlive="${esc(R.ficheId)}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`
-      ${(!homeScope()&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
-      ${(!homeScope()&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
+      ${(!homeScope()&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque aide et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
+      ${(!homeScope()&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux aides d’exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les aides d’exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
     /* RANGÉE du répertoire (v4.56.0 — remplace la carte ; décisions utilisateur : épingle,
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
        global de la sidebar prend le relais). Pastille + NOM de catégorie en toutes lettres dans
@@ -15630,7 +15761,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       </button>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
     kinds:['fiches'],
-    empty:{title:'Aucune fiche',libRead:'Cette bibliothèque partagée est vide.'},
+    empty:{title:'Aucune aide',libRead:'Cette bibliothèque partagée est vide.'},
     /* `cfg` : la configuration COURANTE — jamais `renderFiches` en dur, cf. le commentaire de
        `renderHomeList`. Ce binder sert AUSSI la vue « Tout », qui doit se re-rendre en « Tout ». */
     bind:(cfg)=>{const redo=(cfg&&cfg.rerender)||renderFiches;
@@ -15652,7 +15783,7 @@ function renderFiches(){renderHomeList(_homeCfgF());}
    les mêmes composants que sur les fiches. ----- */
 const _protoHay=new WeakMap();
 function protocolHaystack(p){let h=_protoHay.get(p);
-  if(h===undefined){h=txNorm([p.title,p.code,mdStrip(p.body),...(p.sources||[]),...(p.docs||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
+  if(h===undefined){h=txNorm([p.title,p.discriminant,p.code,mdStrip(p.body),...(p.sources||[]),...(p.docs||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
   return h+' '+txNorm(catName(p));}
 /* ===== R4 — LA BIBLIOTHÈQUE DEVIENT UNIQUE, LE TYPE DEVIENT UN FILTRE (lot T9, v5.0.0) =======
    Le type est une propriété de l'AUTEUR, pas du lecteur (qui cherche un SUJET) : filtre appliqué
@@ -15992,8 +16123,8 @@ function protoFindHtml(ph,aria,cls){
      conteneur a 8 px de rembourrage que le champ n'a pas). Le repère doit être le CHAMP, jamais
      ce qui l'entoure : `.rt-fin` n'enveloppe que lui, et la croix s'y centre une fois pour
      toutes. */
-  return `<div class="rt-find${cls?' '+cls:''}"><span class="rt-fin"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans la référence…')}" `
-    +`aria-label="${esc(aria||'Chercher dans cette référence')}" autocomplete="off">`
+  return `<div class="rt-find${cls?' '+cls:''}"><span class="rt-fin"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans le protocole…')}" `
+    +`aria-label="${esc(aria||'Chercher dans ce protocole')}" autocomplete="off">`
     +`<button type="button" id="pfX" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche">`
     +`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></span>`
     +`<div class="rt-fnav" id="pfNav" hidden><button type="button" class="mini" id="pfPrev" aria-label="Occurrence précédente">‹</button>`
@@ -16270,6 +16401,7 @@ function renderProtocolRead(){
     {label:'Modifier',ic:uiIcon('pen',16),sub:canEditFiche(p)?'hors urgence':'lecture seule',disabled:!canEditFiche(p),act:()=>openProtocolEdit(p.id)},
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',p)},
+    {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(p)},
     {label:'Exporter le protocole (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
     {label:'Exporter le protocole en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
   ]);
@@ -16969,7 +17101,7 @@ function editorMetaFieldsHtml(d,prefix,L){
      lit d'un coup d'œil sans se confondre avec le titre. « Identité ▾ » n'est plus une étiquette
      posée devant, mais le DÉCLENCHEUR à droite : le mot ne prend la place du titre que là où il
      agit. */
-  const resume=vide?'<b class="id-t muted">Nouvelle fiche</b>'
+  const resume=vide?'<b class="id-t muted">Nouvelle aide</b>'
     :('<b class="id-t">'+esc(d.title)+'</b>'+(d.code?'<span class="id-c">'+esc(d.code)+'</span>':''));
   /* LE DÉPLIANT NE SE REFERME PAS TOUT SEUL (signalé à l'usage : « une fois rempli, Nouvelle
      fiche se replie automatiquement ? »). L'ouverture d'office se DÉCIDE à l'entrée dans
@@ -16978,12 +17110,12 @@ function editorMetaFieldsHtml(d,prefix,L){
      dépliant sous les yeux de l'auteur qui était encore en train d'y remplir la catégorie et la
      date. Un panneau ne se ferme que sur le geste de celui qui l'a ouvert. La clé est l'ID du
      brouillon : changer de fiche redécide, un re-rendu jamais. */
-  if(state.edIdentFor!==d.id){state.edIdentFor=d.id;state.edIdentOpen=true;}   // v5.30 : les champs d'identité sont visibles d'emblée
+  if(state.edIdentFor!==d.id){state.edIdentFor=d.id;state.edIdentOpen=!(d.title||'').trim();}   // A465 (amende v5.30) : ouverte pour une aide neuve, repliée dès qu'elle a un titre — l'éditeur s'ouvre sur le contenu
   const ouvert=state.edIdentOpen;
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
     <details class="ed-ident"${ouvert?' open':''}><summary>${resume}<span class="id-a">Identité</span></summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" class="ed-title-in" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
-    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette fiche d’une voisine — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
+    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette aide d’une voisine — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.library?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.library===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.library&&!myLibraries.some(l=>l.id===d.library)?`<option value="${esc(d.library)}" selected>${esc(libName(d.library)||'Bibliothèque')}</option>`:''}</select></div>`:''}
@@ -17147,14 +17279,14 @@ function bindEditorMetaFields(d,prefix,o){
       // partagent ces textes, et les articles/participes étaient figés au féminin (« Publier la
       // protocole », signalé à l'usage). Les cinq mots qui s'accordent sont donc portés par des
       // variables, pas par la chaîne.
-      const fem=prefix==='f',est=fem?'fiche':'protocole',ce=fem?'Cette':'Ce',la=fem?'la':'le',il=fem?'elle':'il',pub=fem?'publiée':'publié';
+      const fem=prefix==='f',est=fem?'aide':'protocole',ce=fem?'Cette':'Ce',la=fem?'l’':'le ',il=fem?'elle':'il',pub=fem?'publiée':'publié';
       const cand=JSON.parse(JSON.stringify(d));cand.library=ns;
       const orig=(prefix==='f'?fiches:protocols).find(x=>x.id===d.id)||{library:av};
       const ok=await confirmDraftLibChange(cand,orig,{
         out:n=>ce+' '+est+' va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès'+(fem?', et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles':'')+'. Prévenez-les avant si besoin.',
-        outYes:'Déplacer '+la+' '+est,
+        outYes:'Déplacer '+la+est,
         into:(n,dr)=>ce+' '+est+' va être '+pub+' dans « '+n+' » : '+il+' sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',
-        intoYes:'Publier '+la+' '+est});
+        intoYes:'Publier '+la+est});
       if(!ok){scopeSel.value=av||'';return;}}
     d.library=ns;
     const cc=d.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.library||null)!==(ns||null))d.category='';}
@@ -17199,10 +17331,10 @@ function draftReadStatusFields(d,prefix){
    d'être synchrone dans le cas nominal (trois harnais font `newFiche(); render();`). */
 function confirmNewInLib(lib,fem){
   if(!lib)return Promise.resolve(true);
-  const est=fem?'fiche':'protocole',ce=fem?'Cette':'Ce',il=fem?'elle':'il',pub=fem?'créée':'créé';
-  return confirmDlg(ce+' '+est+' va être '+pub+' dans « '+(libName(lib)||'la bibliothèque partagée')
-    +' » : '+il+' sera visible par tous les membres.',
-    {title:'Publier dans la bibliothèque partagée',yes:'Créer '+(fem?'la fiche':'le protocole')});}
+  const est=fem?'aide':'protocole',ce=fem?'Cette':'Ce',pub=fem?'créée':'créé';
+  return confirmDlg(ce+' '+est+' va être '+pub+' en brouillon dans « '+(libName(lib)||'la bibliothèque partagée')
+    +' » : les membres qui peuvent éditer '+(fem?'la':'le')+' voient aussitôt, les lecteurs une fois '+(fem?'validée':'validé')+'.',
+    {title:'Publier dans la bibliothèque partagée',yes:'Créer '+(fem?'l’aide':'le protocole')});}
 // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
 // explicite (sortie d'une bibliothèque partagée : les membres perdent l'accès ; entrée :
 // publication à toute l'équipe). msgs = textes propres à l'entité. Renvoie false = abandon.
@@ -17243,7 +17375,7 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
 async function newProtocol(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
-  const d=blankProtocol();d.library=lib;state.pdraft=d;draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -17391,10 +17523,10 @@ function noteBlockHtml(id,locked){
   if(!nt&&!state.noteEdit)return `<button class="note-add" id="noteEditBtn">${uiIcon('pen',13)} Ajouter une note personnelle</button>`;
   if(locked)return `<section class="block notes-block"><div role="heading" aria-level="2" class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm" disabled title="Non modifiable pendant une session en cours">Modifier</button></div>
     <div class="note-txt">${esc(nt)}</div>
-    <div class="note-meta">Note de la fiche, non modifiable pendant la session — pour annoter la session, utilisez le journal des actions.</div></section>`;
+    <div class="note-meta">Note de l’aide, non modifiable pendant la session — pour annoter la session, utilisez le journal des actions.</div></section>`;
   return `<section class="block notes-block"><div role="heading" aria-level="2" class="block-h h-notes">${headerIcon('h-notes')}Notes personnelles<span class="spc"></span><button class="btn sm${state.noteEdit?' primary':''}" id="noteEditBtn">${state.noteEdit?'Terminer':'Modifier'}</button></div>
     ${state.noteEdit
-      ?`<textarea class="note-ta" id="noteTa" rows="3" placeholder="Vos notes sur cette fiche.">${esc(nt)}</textarea><div class="note-meta" id="noteMeta">Jamais partagée : visible par vous seulement.</div>`
+      ?`<textarea class="note-ta" id="noteTa" rows="3" placeholder="Vos notes sur cette aide.">${esc(nt)}</textarea><div class="note-meta" id="noteMeta">Jamais partagée : visible par vous seulement.</div>`
       :`<div class="note-txt">${esc(nt)}</div>`}</section>`;}
 function bindNoteBlock(id,rerender){
   const eb=document.getElementById('noteEditBtn');
@@ -18064,6 +18196,32 @@ function shareCodeFmt(s){const c=shareCodeNorm(s);
 function shareCodeFromHash(h){
   const m=/[#&]j=([0-9A-Za-z-]{1,24})/.exec(String(h||''));
   return m&&shareCodeValid(m[1])?shareCodeNorm(m[1]):null;}
+/* A464 — LIEN DIRECT : `#a=<id>` ouvre une aide ou un protocole (raccourci d'écran d'accueil, collègue
+   de la même bibliothèque) ; `#chercher` et `#sessions` servent les raccourcis du manifeste. Jamais
+   par-dessus une session réelle à l'écran (règle 11) ; le fragment est retiré une fois lu. */
+function deepLinkFromHash(h){
+  h=String(h||'');const m=/[#&]a=([A-Za-z0-9_-]{1,64})/.exec(h);
+  if(m&&BAD_KEYS.indexOf(m[1])<0)return {open:m[1]};
+  if(/^#chercher$/.test(h))return {go:'search'};
+  if(/^#sessions$/.test(h))return {go:'sessions'};
+  return null;}
+function applyDeepLink(){
+  const d=deepLinkFromHash(location.hash);if(!d)return false;
+  if(state.view==='read'&&Runtime.started&&!Runtime.exercise)return false;
+  try{history.replaceState((history.state&&history.state.ac)?history.state:{ac:_H_ID,d:0},'',location.pathname+location.search);}catch(e){}
+  if(d.open){
+    if(fiches.some(f=>f.id===d.open))openRead(d.open);
+    else if(protocols.some(p=>p.id===d.open))openProtocolRead(d.open);
+    else toast('Ce lien vise une aide absente de cet appareil (autre bibliothèque, ou pas encore synchronisée).',7000,true);
+    return true;}
+  if(state.view!=='library'){state.view='library';render();}
+  if(d.go==='sessions')openSessHist();
+  else{const q=document.getElementById('q');if(q)q.focus();}
+  return true;}
+async function copyDirectLink(x){const url=location.origin+location.pathname+'#a='+x.id;
+  try{if(navigator.share){await navigator.share({title:x.title||'',url});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(url);toast('Lien copié — il ouvre « '+(x.title||'cette aide')+' » sur tout appareil qui la possède.',5000);}
+  catch(e){toast('⚠ Copie impossible sur cet appareil.',5000,true);}}
 /* COMMENT UN ÉVÈNEMENT DISTANT ATTEINT L'ÉCRAN — quatre régimes ; le critère : déplace-t-il le
    sol sous le doigt, et est-ce LÉGITIME. 'live' = chirurgie DOM pure ; 'anchored' = journal
    reconstruit DONC ancré (keepAnchor) et annoncé (le scribe DOIT suivre — mais la condensation
@@ -20101,9 +20259,12 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2>${f.discriminant?`<div class="read-sub">${esc(f.discriminant)}</div>`:''}</div>
-    <div class="read-meta">${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}</div>
-    ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
-    ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
+    <div class="read-meta">${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}</div>
+    ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette aide n’a pas encore été validée pour l’usage clinique.</div></div>`:''}
+    ${''/* A460 : « À relire » est un signal de MAINTENANCE — il se lit avant la session, pas pendant : en
+       session il n'appelle aucun geste et repoussait la 1ʳᵉ étape sous le pli (budget, 320 px à 130 %).
+       « Brouillon », lui, touche à l'usage clinique et reste affiché partout. */}${f.status==='review'&&!started?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette aide est signalée à relire avant validation.</div></div>`:''}
+    ${guideCardHtml(f,started)}
     ${shareOverHtml()}
     ${dockPanel}
     ${(useSv||fsAvantBouton||agirDabord)?'':forgetStrip}
@@ -20219,9 +20380,9 @@ function bindReadEvents(f,blk,cur){
      (la double entrée datait de v4.26.1, avant le dock de v5.6). Les OUVERTURES tiennent en UNE
      rangée de tuiles. A367 : « Consulter » a vécu, la page porte ses cartes. Détail : lot-v5-28.md A337. */
   const conduiteTiles=()=>{const t=[
-    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Moniteur',ic:uiIcon('expand',18),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
+    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Moniteur',ic:uiIcon('monitor',18),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',18),sub:'échelle des blocs',act:openPlanSheet}]:[]),
-    ...(hasFlow(f)?[{label:'Schéma',ic:uiIcon('flow',18),sub:'schéma de l’algorithme, plein écran',act:()=>openFlowFull(f)}]:[])];
+    ...(hasFlow(f)?[{label:'Schéma',ic:uiIcon('flow',18),sub:'l’arbre des blocs, plein écran',act:()=>openFlowFull(f)}]:[])];
     return t.length?[{tiles:t}]:[];};
   _moreBuild=null;
   if(!state.previewFrom&&sharedShown())_moreBuild=()=>setMoreMenu([
@@ -20291,6 +20452,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Répéter en exercice',ic:'▲',disabled:started&&!Runtime.exercise,
       sub:started&&!Runtime.exercise?'session en cours':(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
       return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
+    ...(!started&&guideFor(f)?[{label:'Exercice guidé',ic:'▲',sub:'pas à pas, sur cette aide d’exemple',act:()=>guideStart(f)}]:[]),
     // A337 : rien à recommencer avant le premier geste — la rangée n'existe qu'en session.
     ...(started&&hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     ...(()=>{const n=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).length;
@@ -20306,6 +20468,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
+    {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(f)},
     'sep',
     /* NOMMER L'OBJET. « Exporter (.json) » et « Exporter en PDF » ne disaient pas CE QUI est
        exporté — et dans une vue où une session tourne, avec « Compte-rendu » à portée, le doute
@@ -20315,7 +20478,7 @@ function bindReadEvents(f,blk,cur){
     {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),
       sub:'le contenu, pas la session',act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
     {label:'Exporter l’aide en PDF',ic:uiIcon('print',16),
-      sub:started?'la session : par « Compte-rendu »':'le contenu de la fiche',act:exportPdfCurrent}];
+      sub:started?'la session : par « Compte-rendu »':'le contenu de l’aide',act:exportPdfCurrent}];
   if(_moreBuild)_moreBuild();
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
   /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un
@@ -20733,7 +20896,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     /* A345 : les registres se lisent sur la rangée (étiquette CRITIQUE / VIGILANCE) — la légende
        n'annonce plus que la réponse attendue. */
     const _lg=[];
-    if(_its.some(it=>(it.expect||'').trim()))_lg.push('réponse attendue');
+    if(_its.some(it=>(it.expect||'').trim()))_lg.push('sous l’étape, en gris : la réponse attendue');   // A465 : dite en clair
     const legH=_lg.length?`<div class="stp-legend">${_lg.map(x=>`<span class="lg-it">${x}</span>`).join('')}</div>`:'';
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
@@ -20765,7 +20928,7 @@ function ovInstHtml(f,id,idx,topo,pres){
           le libellé GARDE son « :: » (décision de l'auteur : il nomme la PASSE). Bloc de DÉCISION
           exclu (pas d'étapes à re-constater). Détail : doctrine-js.md J146. */
        const verH=(!dec&&clean(stepsOf(b)).length)
-         ?`<button type="button" class="blk-act blk-ver" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc étape par étape — « Constaté ✓ » coche, « △ Écart » avance sans cocher ; les réponses attendues, s'il y en a, s'affichent au passage">Vérifier</button>`:'';
+         ?`<button type="button" class="blk-act blk-ver" data-ovverify="${idx}" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button>`:'';
        if(verH&&ctl.indexOf('class="flow-ctrl"')>=0)
          ctl=ctl.replace('<div class="flow-ctrl">','<div class="flow-ctrl has-ver">'+verH);
        else if(verH)ctl+=`<div class="cx-row">${verH}</div>`;
@@ -20788,7 +20951,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
        Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
     :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">${uiIcon('undo',13)} Refaire</button>`:'');
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}${(b.timer&&pi.pass===pi.total)?wtSpanHtml('b|'+id,true):''}</span>${tip&&!closed?'<span class="ov-cur">En cours</span>':''}<span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${tip&&!closed?'<span class="ov-cur">En cours</span> ':''}${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}${(b.timer&&pi.pass===pi.total)?wtSpanHtml('b|'+id,true):''}</span><span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, UNE vue depuis v4.25.0) : rendu de flowPlan, INERTE
    côté cochage, sert à NAVIGUER. L'ÉCHELLE (ovPlanLadderHtml, compact ECAM) : une ligne par bloc,
    retraits avec étiquette de branche (« OUI › »), renvois mono abrégés (optAbbr), tap = détails
@@ -20839,7 +21002,7 @@ let _pmVue='plan';
 function renderPlanSheet(){
   const f=state.fiche;if(!f||!planSheetOpen())return;
   const page=_pmVue==='page';
-  document.getElementById('planModalTitle').firstChild.nodeValue=(page?'Tableau — ':'Se repérer — ');
+  document.getElementById('planModalTitle').firstChild.nodeValue=(page?'Page — ':'Se repérer — ');
   document.getElementById('pmName').textContent=f.title||'Sans titre';
   /* DEUX VUES, UNE COQUE (v5.6) : rien ici n'écrit `state.readMode` — on MONTRE la page, on ne
      bascule pas (lot A : regarder n'est pas régler). « TABLEAU » montre la feuille ENTIÈRE
@@ -21027,7 +21190,7 @@ function refSheetHtml(f,sansDiff){
     +sec('docs','Documents ('+((f.docs||[]).length)+')',docs)
     +sec('refs',sansDiff?'Sources':'Références',refsH)   /* dans la carte « Références », l'intertitre dit la famille, pas le titre */
     +sec('rel','Voir aussi ('+rel.length+')',relH);
-  return body||'<p class="ai-note" style="text-align:center">Cette fiche n’a pas encore de contenu à consulter.</p>';}
+  return body||'<p class="ai-note" style="text-align:center">Cette aide n’a pas encore de contenu à consulter.</p>';}
 /* Mêmes gestes qu'en flux, re-câblés dans la feuille OU la colonne (les câblages d'origine sont
    portés par `main`, qui ne les contient pas) — LE commun des deux régimes qu'A15 exige : deux
    rendus séparés auraient divergé, c'est la leçon du cœur de cochage (v4.42.0). */
@@ -22593,7 +22756,7 @@ async function refreshPreReady(f){
 function preLinksHtml(f){
   const nd=(f.docs||[]).length;
   return `<div class="pre-links">`
-    +`<button type="button" class="pre-link" data-prelink="page">${uiIcon('table',15)}Tableau</button>`
+    +`<button type="button" class="pre-link" data-prelink="page">${uiIcon('doc',15)}Page</button>`
     +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">${uiIcon('flow',15)}Schéma</button>`:'')
     +(nd?`<button type="button" class="pre-link" data-prelink="docs">${uiIcon('doc',15)}Documents · ${nd}</button>`:'')
     +`</div>`+(nd?`<div class="pre-ready" id="preReady" hidden></div>`:'');}
@@ -23661,7 +23824,7 @@ function forgetEditorHtml(f){
         :`<button type="button" class="ed-ic del" data-fgdel="${i}" aria-label="Supprimer la ligne">×</button>`)
       +`</div>`;});
   const n=U.length,reste=Math.max(0,4-n);
-  return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier <span class="hint">4 rappels maximum — ils s’affichent en permanence, en tête de fiche</span>`
+  return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier <span class="hint">4 rappels maximum — ils s’affichent en permanence, en tête d’aide</span>`
     +`<span class="lst-n${n>4?' over':''}">${n}/4</span></label>${rows}`
     +`<button class="add-line" data-fgadd>＋ Rappel${reste?' ('+reste+' restant'+(reste>1?'s':'')+')':''}</button>`
     +`<p class="nf-guard" id="nfGuard" role="status">${esc(nfGuardTxt(forgetAll(f))||'')}</p></fieldset>`;}
@@ -24048,7 +24211,7 @@ function renderRelPickList(){
     const bl=(f.blocks||[]).filter(b=>b.kind!=='review'&&(!q||txNorm(nom(b)).includes(q)));
     const oth=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle)
       .filter(x=>!q||txNorm((x.title||'')+' '+(x.code||'')).includes(q));
-    box.innerHTML=(bl.length?`<p class="pick-h">Blocs de cette fiche</p>`+bl.map(b=>`<button class="att-row" data-pick="${esc(b.id)}"><span class="att-ico">${boltIcon(14)}</span><span class="att-name">${esc(nom(b))}</span></button>`).join(''):'')
+    box.innerHTML=(bl.length?`<p class="pick-h">Blocs de cette aide</p>`+bl.map(b=>`<button class="att-row" data-pick="${esc(b.id)}"><span class="att-ico">${boltIcon(14)}</span><span class="att-name">${esc(nom(b))}</span></button>`).join(''):'')
       +(oth.length?`<p class="pick-h">Aides & protocoles</p>`+oth.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(protocols.some(x=>x.id===o.id)?'book':'doc',16)}</span><span class="att-name">${esc(o.title||'Sans titre')}</span></button>`).join(''):'')
       ||('<p class="ai-note">Rien ne correspond au filtre.</p>');
     box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
@@ -24057,7 +24220,7 @@ function renderRelPickList(){
     return;}
   const opts=relCandidates(_relPickCtx.entity).filter(o=>!q||txNorm(o.title+' '+o.code).includes(q));
   box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(o.kind==='p'?'book':'doc',16)}</span><span class="att-name">${esc(o.title)}<span class="att-from">${o.kind==='p'?'Protocole':'Aide cognitive'}</span></span>${o.code?`<span class="att-size" style="font-family:var(--f-mono)">${esc(o.code)}</span>`:''}</button>`).join('')
-    :emptyLine('Aucune fiche '+(q?'ne correspond au filtre.':'disponible.'));
+    :emptyLine('Aucune aide '+(q?'ne correspond au filtre.':'disponible.'));
   box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
     const ctx=_relPickCtx;closeRelPicker();
     if(ctx){ctx.entity.links=ctx.entity.links||[];if(ctx.entity.links.indexOf(b.dataset.pick)<0)ctx.entity.links.push(b.dataset.pick);ctx.rerender();}});}
@@ -24137,12 +24300,12 @@ const ED_PALETTE=[
   {g:'Pendant la session',k:'counter', ic:'№', n:'Compteur',        c:'chocs, doses…'},
   {g:'Pendant la session',k:'cx',      ic:boltIcon(17),n:'Complication',c:'à tout moment'},
   {g:'Pendant la session',k:'review',  ic:uiIcon('grid',17),n:'Revue',c:'liste cochable, à tout moment'},
-  {g:'Contenu clinique',k:'poso',   ic:'▤', n:'Doses & seuils',  c:'consulté, pas coché'},
+  {g:'Contenu clinique',k:'poso',   ic:'▤', n:'Repères posologiques',  c:'consulté, pas coché'},
   {g:'Contenu clinique',k:'verify', ic:'△', n:'À vérifier',      c:'surveillances, pièges'},
   {g:'Contenu clinique',k:'diff',   ic:'≠', n:'Diagnostic différentiel',c:'si le tableau ne colle pas'},
   {g:'Annexes',     k:'img',     ic:'▣', n:'Schéma ou capture',c:'associable à un bloc'},
   {g:'Annexes',     k:'att',     ic:uiIcon('doc',17),n:'Document PDF',c:'rangé dans « Consulter »'},
-  {g:'Annexes',     k:'ref',     ic:'❞', n:'Référence',        c:'source de la fiche'}
+  {g:'Annexes',     k:'ref',     ic:'❞', n:'Référence',        c:'source de l’aide'}
 ];
 /* Les clés de la porte qui ne font qu'AJOUTER UNE LIGNE à une liste du modèle. Une table plutôt
    qu'une cascade de `else if` : la ligne suivante ajoutée demain n'aura rien à câbler ailleurs, et
@@ -24210,7 +24373,7 @@ function edAdd(f,kind,pre){
 const ED_PALETTE_P=[
   {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'titres, listes, tableaux'},
   {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'lisible hors ligne'},
-  {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre fiche'},
+  {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre aide'},
   {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée'}];
 function edPaletteProtoHtml(p){
   const items=ED_PALETTE_P.filter(x=>(x.k!=='att'||supportsAttachments())
@@ -24463,16 +24626,16 @@ function stepSetHtml(f,b,i){const it=bItems(b)[i]||{},s=String(stepsOf(b)[i]||''
   const tog=(k,l,sub,on)=>`<div class="sst-tg"><span class="sst-tl" id="sst-${k}">${l}<small>${sub}</small></span>${swHtml(on,`data-sst="${k}" aria-labelledby="sst-${k}"`)}</div>`;
   const rp=[['','À chaque passage'],['due','À l’échéance',T?'de « '+esc(tmName(T))+' »':'aucun minuteur lié'],['once','Une seule fois'],['need','Au besoin']];
   return `<p class="sst-step">${esc(String(it.do||'').trim()||'Étape '+(i+1))}${String(it.expect||'').trim()?' — '+esc(it.expect):''}</p>`
-    +`<h4 class="sst-h" id="sstImp">Importance</h4>`+segHtml('ssreg','sstImp',[[0,'Normale'],[1,'△ Vigilance'],[2,uiIcon('warn',14)+' Critique']],reg)
+    +`<h4 class="sst-h" id="sstImp">Importance</h4><p class="sst-ex">ex. « Choc immédiat » est critique ; une dose à calculer, en vigilance.</p>`+segHtml('ssreg','sstImp',[[0,'Normale'],[1,'△ Vigilance'],[2,uiIcon('warn',14)+' Critique']],reg)
     +tog('mem','★ Rappel en mémoire','affichée aussi dans « Ne pas oublier »',!!it.memory)+tog('dual','Double contrôle','en session, marquée « Double contrôle » : les deux soignants la vérifient à voix haute',!!it.dual)
-    +`<h4 class="sst-h">Ce que fait la coche</h4>`
-    +(hasTC?edLinkSel(b,i)+stepSetChainHtml(f,it):`<p class="sst-note">La fiche n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="btn sm" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="btn sm" data-sstmk="n">＋ Créer un compteur</button></div>`)
+    +`<h4 class="sst-h">Ce que fait la coche</h4><p class="sst-ex">ex. cocher « Adrénaline » relance le minuteur de 4 min, ou ajoute 1 à « Chocs délivrés ».</p>`
+    +(hasTC?edLinkSel(b,i)+stepSetChainHtml(f,it):`<p class="sst-note">L’aide n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="btn sm" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="btn sm" data-sstmk="n">＋ Créer un compteur</button></div>`)
     +stepSetLinksHtml(f,b,it)
-    +(it.review?'':loop||fr||r?`<h4 class="sst-h" id="sstFr">Moment${loop?' <i>· le bloc se répète</i>':''}</h4>`
+    +(it.review?'':loop||fr||r?`<h4 class="sst-h" id="sstFr">Moment${loop?' <i>· le bloc se répète</i>':''}</h4><p class="sst-ex">ex. « Amiodarone » commence à partir de 3 chocs ; « Adrénaline » revient à chaque échéance.</p>`
       +segHtml('ssfrom','sstFr',[[0,'Dès le 1ᵉʳ passage'],[1,'À partir d’un compte',cs.length?'':' aria-disabled="true"']],fr?1:0)
       +(fr?`<div class="sst-in"><select class="sst-sel" data-momfr aria-label="Compteur">${cs.map(c=>`<option value="${esc(c.id)}"${c.id===fr.counter?' selected':''}>${esc(tmLabelParts(c.label).name||'Compteur')}</option>`).join('')}</select>`
         +numStpHtml('data-ssn','n',fr.n,'Seuil du compteur')+`</div>`
-        :(cs.length?'':`<p class="sst-note">La fiche n’a pas de compteur.</p>`))
+        :(cs.length?'':`<p class="sst-note">L’aide n’a pas de compteur.</p>`))
       +`<h4 class="sst-h" id="sstRp">Puis revient</h4><div class="sst-grid" role="radiogroup" aria-labelledby="sstRp">`
       +rp.map(([v,l,sub])=>`<button type="button" role="radio" aria-checked="${v===r}" data-ssrp="${v}"${v==='due'&&!tid&&r!=='due'?' aria-disabled="true"':''}>${l}${sub?`<small>${sub}</small>`:''}</button>`).join('')+`</div>`
       +(r==='due'&&!tid?'<p class="sst-note ko">△ La coche ne relance aucun minuteur : l’étape est lue « à chaque passage ».</p>':'')
@@ -24564,7 +24727,7 @@ function cxEditorRow(c,i,f,n){
    dit QUOI a sonné, jamais QUOI FAIRE : poser l'action au pied de l'alerte est la règle ECAM, et
    c'est l'auteur qui la connaît, pas l'application. */
 // « Nom court » du minuteur et du compteur : une ligne discrète dit qu'il est facultatif et où il paraît.
-const tmeShortRow=(attr,v,ph)=>`<div class="tme-row"><span class="tme-l">Nom court</span><input type="text" ${attr} value="${esc(v||'')}" maxlength="24" placeholder="${esc(ph)}" aria-label="Nom court sur la capsule (facultatif — abrégé d’office sinon)"></div>
+const tmeShortRow=(attr,v,ph,sinon)=>`<div class="tme-row"><span class="tme-l">Nom court</span><input type="text" ${attr} value="${esc(v||'')}" maxlength="24" placeholder="${esc(ph)}" aria-label="Nom court sur la capsule (facultatif — ${sinon||'abrégé d’office sinon'})"></div>
     <p class="tme-h tme-sh">Facultatif — le nom sur la capsule en session ; vide, il est abrégé d’office.</p>`;
 function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
   return `<div class="tmedit${edGrabClsL('timers',i)}" data-ti="${i}">
@@ -24592,7 +24755,7 @@ function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type=
      classes — pas une ligne de CSS nouvelle, et deux objets voisins qui se ressemblent enfin. */
   return `<div class="tmedit${edGrabClsL('counters',i)}" data-ci="${i}">
     <div class="tme-top"><span class="blk-type tm-kind">Compteur</span><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur">${edGrabHandleL('counters',i,n||0,'le compteur')}<button type="button" class="ed-ic del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>
-    ${tmeShortRow('data-cshort',c.short,autoShort(c.label,SHORT_CN))}
+    ${tmeShortRow('data-cshort',c.short,c.label||'',"nom entier sinon")}
     <div class="tme-row"><span class="tme-l">Pas</span><input type="number" data-cstep value="${c.step||1}" style="width:64px" aria-label="Pas du compteur"><span class="tme-l" style="min-width:56px">Départ</span><input type="number" data-cstart value="${c.start||0}" style="width:64px" aria-label="Valeur de départ du compteur"></div>
     ${ivs.length?`<div class="tme-row"><span class="tme-l">Le ＋ relance</span><select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>« ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select></div>`:''}
     ${cnUsesHtml(c,timers)}
@@ -24685,8 +24848,8 @@ function edTocHtml(f){const h=edStructHtml(f,{nohead:true});if(!h)return '';cons
    Détail : doctrine-js.md J189. */
 function editPreviewHtml(kind){
   if(kind==='fiche'){const f=state.draft;if(!f)return '';
-    if(!(f.blocks||[]).length)return `<div class="ep-h">Algorithme — aperçu automatique</div><div class="ep-empty">Le schéma se dessinera dès le premier bloc.</div>`;
-    return `<div class="ep-h">Algorithme — aperçu automatique</div>${flowBlock(f)}`;}
+    if(!(f.blocks||[]).length)return `<div class="ep-h">Schéma — aperçu automatique</div><div class="ep-empty">Le schéma se dessinera dès le premier bloc.</div>`;
+    return `<div class="ep-h">Schéma — aperçu automatique</div>${flowBlock(f)}`;}
   const p=state.pdraft;if(!p)return '';
   return `<div class="ep-h">Aperçu en direct</div>
     <div class="ep-card ep-md"><div class="ep-pttl">${esc(p.title)||'Sans titre'}</div>${mdPvHtml(p)}</div>
@@ -24741,7 +24904,7 @@ function renderEditor(){_renderN++;
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
     ${edTocHtml(f)}
     ${edGrabBanner(f)}
-    ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
+    ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette aide',codePh:'ex. URG-ANA-01',fem:true})}
     ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
     oublier », ① confirmation, ② prise en charge + minuteurs + contexte local + posologie,
     ③ à vérifier + différentiels, puis annexes) — on rédige dans l'ordre où l'équipe lira. */}
@@ -24768,7 +24931,7 @@ function renderEditor(){_renderN++;
     </fieldset>
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
-      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${critGuideHtml()}${f.blocks.map((b,bi)=>b.kind==='review'?'':((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
+      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Schéma — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${critGuideHtml()}${f.blocks.map((b,bi)=>b.kind==='review'?'':((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin d’aide'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -24779,7 +24942,7 @@ function renderEditor(){_renderN++;
     ${(f.timers||[]).length||(f.counters||[]).length?`<fieldset class="field ed-card"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${edGrabRows('timers',f.timers,(t,i)=>timerEditorRow(t,i,(f.timers||[]).length))}`:''}
       ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${edGrabRows('counters',f.counters,(c,i)=>counterEditorRow(c,i,f.timers,(f.counters||[]).length))}`:''}</fieldset>`:''}
-    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>${boltIcon(14)} Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
+    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>${boltIcon(14)} Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette aide, ou une autre aide</span></label>
       ${''/* B5 (v5.0.0, lot M3) — LES COMPLICATIONS SE RÉORDONNENT COMME TOUT LE RESTE. Le lot 2
       de la v4.75.0 avait étendu « prendre / poser » à HUIT listes en les adressant par la clé du
       modèle ; les excursions avaient été oubliées, et elles ont exactement la même forme (une
@@ -24812,7 +24975,7 @@ function renderEditor(){_renderN++;
     ${(f.images||[]).length?`<fieldset class="field ed-card"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>{const porteur=(f.blocks||[]).find(b=>b.image===im.data);
       return `<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…"><select class="gblk" data-imgblk="${i}" aria-label="Bloc qui affiche cette image"><option value="">— Aucun bloc —</option>${(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${porteur&&porteur.id===b.id?' selected':''}>${esc((stripBold(b.title||'')).trim()||(b.kind==='decision'?'Décision':'Sans titre'))}</option>`).join('')}</select><button class="btn sm danger" data-imgdel="${i}">Retirer</button></div>`;}).join('')}</div>${upDropHtml('image','addImg','Ajouter une image / capture',' mt')}</fieldset>`:''}
     ${(f.docs||[]).length?attFieldsetHtml(f):''}
-    ${(f.sources||[]).length?listEditor('Références','sources de la fiche','sources',f.sources,false,{shell:'ed-card'}):''}
+    ${(f.sources||[]).length?listEditor('Références','sources de l’aide','sources',f.sources,false,{shell:'ed-card'}):''}
     ${relFieldsetHtml(f)}
     ${noteBlockHtml(f.id)}
     ${''/* LA PORTE VIT ICI, à la fin du formulaire et COLLANTE sur toute sa hauteur : elle
@@ -24830,7 +24993,7 @@ function renderEditor(){_renderN++;
     une ligne tant qu'on ne l'ouvre pas. En dessous de 1000 px il reprend sa place au pied,
     inchangé : il n'y a alors pas de seconde colonne où le mettre. */}
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(f)}</div>`}
-    ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
+    ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette aide</button></div>':''}
     ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(f)}</div>${editPreviewHtml('fiche')}</aside></div>`:''}`;
   bindEditorEvents(f);
   bindRevPanel();   // K2 : ancrage des remarques de relecture
@@ -24921,7 +25084,7 @@ function bindEditorEvents(f){
     const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>{t.autoloop=e.target.checked;edRowRedo('.tmedit[data-ti="'+row.dataset.ti+'"]','[data-tloop]');});
     const du=row.querySelector('[data-tdue]');if(du)du.addEventListener('input',e=>t.onDue=e.target.value);   // K7
     const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();};});
-  main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]'),sh=row.querySelector('[data-cshort]');if(lab)lab.addEventListener('input',e=>{c.label=e.target.value;if(sh)sh.placeholder=autoShort(c.label,SHORT_CN);});
+  main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]'),sh=row.querySelector('[data-cshort]');if(lab)lab.addEventListener('input',e=>{c.label=e.target.value;if(sh)sh.placeholder=c.label;});
     if(sh)sh.addEventListener('input',e=>{const v=e.target.value.trim();if(v)c.short=v;else delete c.short;});
     const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
     const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();};
@@ -25296,8 +25459,8 @@ async function deleteDraft(){
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
   const msg=state.draft&&state.draft.library
-    ?'Supprimer cette fiche définitivement ?\nElle disparaîtra pour tous les membres de la bibliothèque, et les notes personnelles que certains y ont peut-être attachées seront effacées — prévenez-les avant si besoin.'
-    :'Supprimer cette fiche définitivement ?';
+    ?'Supprimer cette aide définitivement ?\nElle disparaîtra pour tous les membres de la bibliothèque, et les notes personnelles que certains y ont peut-être attachées seront effacées — prévenez-les avant si besoin.'
+    :'Supprimer cette aide définitivement ?';
   if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);await clearDraftParkIf('f',id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
 
 /* ===== Auto-enregistrement des brouillons (SPEC gestion §2.2) =====
@@ -25654,7 +25817,7 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;state
      « démarrer un exercice sur une session réelle » depuis la v4.29.0. */
   if(liveSessions[id]){
     if(!await confirmDlg('Une session est en cours sur cette aide. La modifier va d’abord la TERMINER '
-      +'(elle sera archivée avec son compte rendu) : la structure de la fiche ne peut pas changer '
+      +'(elle sera archivée avec son compte rendu) : la structure de l’aide ne peut pas changer '
       +'sous quelqu’un qui la déroule.',{title:'Terminer la session et modifier ?',yes:'Terminer et modifier',danger:true}))return;
     endSession(liveSessions[id]);resetRuntime();}
   /* FILET DE SÛRETÉ — un point de version À L'OUVERTURE, et un seul par séance d'édition.
@@ -25671,9 +25834,10 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;state
     state.draft=migrate(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='edit';render();}
 async function newFiche(){const lib=homeScope();
-  if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}
+  if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
-  const d=blankFiche();d.library=lib;state.draft=d;state.edTocOpen=false;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
+  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;state.edTocOpen=false;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -26655,7 +26819,7 @@ function renderCreateDlg(screen,park){
     <p class="crt-what">Choisissez le type. Vous pourrez tout modifier ensuite.</p>
     <div class="crt-list">
     ${resume?crtCard('crtResume',uiIcon('undo',26),'Reprendre le brouillon en cours',esc(resume.draft.title||'Sans titre')+' — auto-enregistré à '+fmtHMS(resume.ts)):''}
-    ${crtCard('crtManual','<span class="crt-badge act">✓</span>','Aide de crise','Un parcours à cocher en situation : blocs d\'étapes, décisions, minuteurs et compteurs.')}
+    ${crtCard('crtManual','<span class="crt-badge act">✓</span>','Aide cognitive','Un parcours à cocher en situation : blocs d\'étapes, décisions, minuteurs et compteurs.')}
     ${crtCard('crtProto','<span class="crt-badge">≡</span>','Protocole','Un texte de référence à lire, sans chrono : posologies, procédures, consignes de service.')}
     </div>
     <div class="crt-sep" role="separator"></div>
@@ -26702,14 +26866,16 @@ function viewSheetGroups(){
   return [
     {k:'filt',t:'Afficher',v:filt,o:[['all','Tout'],['fiches','Aides'],['protocols','Protocoles'],['review','À relire']]},
     {k:'sort',t:'Trier',v:state.homeSort||'alpha',o:[['alpha','A → Z'],['recent','Plus récentes']]},
-    {k:'group',t:'Regrouper',v:homeGroupKey(),o:[['none','Non'],['kind','Type'],['cat','Catég.'],['bib','Biblio.'],['az','A–Z']]},
+    /* A460 : les mots ENTIERS, coupables en deux lignes par une césure douce (\u00AD) — « Catég. » et
+       « Biblio. » n'étaient écrits en entier nulle part (cf. `.vs-wrap`). */
+    {k:'group',t:'Regrouper',v:homeGroupKey(),wrap:1,o:[['none','Non'],['kind','Type'],['cat','Caté\u00ADgorie'],['bib','Biblio\u00ADthèque'],['az','A–Z']]},
     {k:'dens',t:'Densité',v:state.homeCompact?'1':'0',o:[['0','Détaillée'],['1','Compacte']]}];}
 /* v5.30 (A353) : UNE feuille pour l'affichage ET les filtres. A429 (P1) : deux parties NOMMÉES — « Filtrer » (ce qui
    restreint : afficher, bibliothèque, catégorie ; compte et « Tout effacer » à son titre) puis « Présenter » (ce qui
    range : trier, regrouper, densité). Chaque geste agit en direct derrière la feuille, qui se repeint. */
 function paintViewSheet(){const body=document.getElementById('viewSheetBody');if(!body)return;
   const seg=g=>{const i=Math.max(0,g.o.findIndex(x=>x[0]===g.v));
-    return `<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}"${g.k==='filt'&&j===i?' data-dlgfocus':''}>${esc(l)}</button>`).join('')}</div></div>`;};   // focus d'ouverture sur le cran actif d'« Afficher », jamais sur « Tout effacer »
+    return `<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg${g.wrap?' vs-wrap':''}" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}"${g.k==='filt'&&j===i?' data-dlgfocus':''}>${esc(l)}</button>`).join('')}</div></div>`;};   // focus d'ouverture sur le cran actif d'« Afficher », jamais sur « Tout effacer »
   const G=viewSheetGroups();
   // Deux BLOCS encadrés, chacun son titre et son icône DEDANS : ce qui restreint, puis ce qui range.
   const part=(id,ic,t,tail,inner)=>`<section class="vs-sec" aria-labelledby="${id}"><div class="vs-part"><span class="vs-pic" aria-hidden="true">${uiIcon(ic,16)}</span><h4 class="vs-pt" id="${id}">${t}</h4>${tail}</div>${inner}</section>`;
@@ -27447,7 +27613,7 @@ async function _importRead(buf,lbl){
     imp.protocols=Array.isArray(imp.protocols)?imp.protocols:[];
     if(!imp.fiches.length&&!imp.protocols.length){
       pendingOpenImport=false;
-      toast((lbl||'Ce fichier')+' ne contient aucune aide ni référence — rien à importer.',7000,true);return;}
+      toast((lbl||'Ce fichier')+' ne contient aucune aide ni protocole — rien à importer.',7000,true);return;}
     /* Fichier venu du MÊME espace local ? (empreinte d'origine, cf. commentaire de section).
        REMONTÉ AVANT L'ATELIER (A130) : c'est lui qui décide si un identifiant sera CONSERVÉ, donc
        s'il peut y avoir doublon — sans lui, la rangée annoncerait « déjà présent » sur un import
@@ -27502,7 +27668,7 @@ async function _importRead(buf,lbl){
     // « par les n éléments COCHÉS », et non « par le contenu du fichier » : depuis l'atelier, les
     // deux ne sont plus la même chose — annoncer le fichier ferait croire qu'on récupère ce qu'on
     // vient d'écarter, sur la seule question destructive du parcours.
-    if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par les '+nSel+' éléments cochés. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
+    if(!merge){if(!await confirmDlg('Toutes les aides'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par les '+nSel+' éléments cochés. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
       for(const f of fiches.filter(x=>(x.library||null)===uneSeule))await softDelete(f);
       fiches=fiches.filter(x=>(x.library||null)!==uneSeule);
       if(hasProtos){for(const pr of protocols.filter(x=>(x.library||null)===uneSeule))await softDeleteProtocol(pr);
@@ -27596,7 +27762,7 @@ async function _importRead(buf,lbl){
     state.scope=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||null;
     state.cat='';
     if(openId)openRead(openId);else{state.view='library';render();}
-    if(added.length||addedP)toast([added.length?(added.length>1?added.length+' fiches importées':'1 fiche importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.');}
+    if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.');}
     // Le fichier était lisible (parse passé plus haut) : un échec ICI est un problème de stockage
     // ou d'exécution, pas de fichier — message honnête, et ce qui a déjà été importé est conservé.
     catch(err){pendingOpenImport=false;toast('⚠ Import interrompu ('+(sstr((err&&err.message)||'',120)||'erreur inattendue')+') — les éléments déjà importés sont conservés.',9000);}}
@@ -27745,10 +27911,10 @@ function updateSyncBanner(){
     el.innerHTML=`${err.icon}<div><b>Erreur de synchronisation</b> — ${esc(err.title)} · Nouvelle tentative automatique en cours</div>`;
   }else if(st==='pending'){
     el.className='notice sync-pending';el.onclick=openAuth;
-    el.innerHTML=`${SYNC_ERR_ICONS.lock}<div><b>Compte en attente de validation</b> — vos fiches restent sur cet appareil en attendant</div>`;
+    el.innerHTML=`${SYNC_ERR_ICONS.lock}<div><b>Compte en attente de validation</b> — vos données restent sur cet appareil en attendant</div>`;
   }else{
     el.className='notice sync-err';el.onclick=openAuth;
-    el.innerHTML=`${SYNC_ERR_ICONS.forbidden}<div><b>Demande de compte refusée</b> — vos fiches restent sur cet appareil</div>`;
+    el.innerHTML=`${SYNC_ERR_ICONS.forbidden}<div><b>Demande de compte refusée</b> — vos données restent sur cet appareil</div>`;
   }}
 // État local de la fenêtre Compte (étape e-mail -> code).
 // _authDelete : false | true (étape 1 : avertissement + garde-fou SUPPRIMER)
@@ -27879,8 +28045,8 @@ function renderAuth(){const body=document.getElementById('meView')||document.get
     // sans ce retour, les fiches emportées à la connexion seraient échouées là).
     const offerReturn=!offerWipe&&canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
     const confirmLeave=async(title,msg,yes)=>{
-      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les fiches de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'}
-        :offerReturn?{title:title,yes:yes,checkSafe:true,check:'Ramener d\'abord les fiches de ce compte « hors compte » sur cet appareil (recommandé : ce compte n\'étant pas validé, elles n\'existent nulle part ailleurs)'}
+      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les données de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'}
+        :offerReturn?{title:title,yes:yes,checkSafe:true,check:'Ramener d\'abord les données de ce compte « hors compte » sur cet appareil (recommandé : ce compte n\'étant pas validé, elles n\'existent nulle part ailleurs)'}
         :{title:title,yes:yes};
       const r=await confirmDlg(msg,opts);
       if(!r)return;
@@ -27953,10 +28119,10 @@ function renderAuthDelete(body,u){
       const delReturn=canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
       body.innerHTML=`<div class="auth-del"><div class="auth-hero-ic danger">${uiIcon('warn',26)}</div>
         <h4>Supprimer le compte ?</h4>
-        <p class="auth-sub">${delReturn?"Cette action est <b>irréversible</b>. Ce compte n'a jamais été synchronisé : vos fiches n'existent <b>que sur cet appareil</b>. Après la suppression, elles redeviendront des fiches locales « hors compte », consultables sans connexion.":"Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les fiches que vous avez ajoutées à des bibliothèques partagées y resteront."}</p>
+        <p class="auth-sub">${delReturn?"Cette action est <b>irréversible</b>. Ce compte n'a jamais été synchronisé : vos données n'existent <b>que sur cet appareil</b>. Après la suppression, elles redeviendront des données locales « hors compte », consultables sans connexion.":"Cette action est <b>irréversible</b>. Votre compte et votre bibliothèque personnelle synchronisée seront définitivement supprimés du cloud. Les aides et protocoles que vous avez ajoutés à des bibliothèques partagées y resteront."}</p>
         <p class="auth-sub">Par sécurité, votre identité doit être vérifiée : un <b>code de confirmation</b> vous sera envoyé à <b>${esc(delEmail)}</b>, à saisir avant la suppression.</p>
         <p class="auth-msg" id="delOrphanWarn" hidden style="color:var(--warn)"></p>
-        <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les fiches enregistrées sur <b>cet appareil</b>${delReturn?' <b>(attention : elles n\'existent nulle part ailleurs)</b>':''}</span></label>
+        <label class="auth-check"><input type="checkbox" id="delLocal"><span>Effacer aussi les données enregistrées sur <b>cet appareil</b>${delReturn?' <b>(attention : elles n\'existent nulle part ailleurs)</b>':''}</span></label>
         <p class="auth-confirm-lbl">Pour confirmer, tapez <b>SUPPRIMER</b> ci-dessous :</p>
         <input class="auth-field auth-confirm" id="delConfirm" autocomplete="off" autocapitalize="characters" placeholder="SUPPRIMER">
         <p class="auth-msg" id="delMsg"></p>
@@ -28000,14 +28166,14 @@ function renderAuthPending(body,u,doOut){
       // depuis tout autre compte). Cf. canReturnToAnon (garde anti-collision d'ids cloud).
       const canReturn=canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
       body.innerHTML=`<div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div><div class="auth-state ${rejected?'err':'pending'}"><span class="auth-dot"></span>${rejected?'Demande refusée':'En attente de validation'}</div></div></div>
-        <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}${canReturn?" Vos fiches ne sont enregistrées que sur cet appareil : vous pouvez les ramener « hors compte » pour les garder accessibles sans ce compte.":""}</p>
-        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button>${canReturn?'<button class="btn" id="authReturnLocal">Ramener mes fiches hors compte</button>':''}<button class="btn" id="authOut">Se déconnecter</button></div>
+        <p class="auth-sub">${rejected?"Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail.":"Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos données ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil."}${canReturn?" Vos données ne sont enregistrées que sur cet appareil : vous pouvez les ramener « hors compte » pour les garder accessibles sans ce compte.":""}</p>
+        <div class="auth-actions"><button class="btn primary" id="authRecheck">Vérifier maintenant</button>${canReturn?'<button class="btn" id="authReturnLocal">Ramener mes données hors compte</button>':''}<button class="btn" id="authOut">Se déconnecter</button></div>
         <div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer cette demande de compte…</button></div>`;
       {const rb=body.querySelector('#authReturnLocal');if(rb)rb.onclick=async()=>{
         const n=fiches.length;
-        const msg=(n>1?'Vos '+n+' fiches (avec notes et sessions) redeviendront des fiches locales « hors compte » sur cet appareil, consultables sans connexion.':'Votre fiche (avec notes et sessions) redeviendra une fiche locale « hors compte » sur cet appareil, consultable sans connexion.')+' Vous serez déconnecté de ce compte ; une connexion ultérieure proposera à nouveau de '+(n>1?'les ':'l\'')+'emporter.';
-        if(!await confirmDlg(msg,{title:'Ramener les fiches hors compte',yes:'Ramener hors compte'}))return;
+        const msg=(n>1?'Vos '+n+' aides et protocoles (avec notes et sessions) redeviendront des données locales « hors compte » sur cet appareil, consultables sans connexion.':'Votre aide (avec notes et sessions) redeviendra une donnée locale « hors compte » sur cet appareil, consultable sans connexion.')+' Vous serez déconnecté de ce compte ; une connexion ultérieure proposera à nouveau de '+(n>1?'les ':'l\'')+'emporter.';
+        if(!await confirmDlg(msg,{title:'Ramener les données hors compte',yes:'Ramener hors compte'}))return;
         returnLocalDataToAnon(false);};}
       body.querySelector('#authRecheck').onclick=async()=>{const b=body.querySelector('#authRecheck');b.disabled=true;b.textContent='Vérification…';
         await refreshAccountStatus();renderAuth();
@@ -28034,7 +28200,7 @@ function renderAuthAccount(body,u,doOut){
       ${accountPrefsHtml()}
       ${myIsAppAdmin?`<div class="acct-zone" id="authStats" aria-label="État de l'instance"><div class="auth-stats-h">Administration</div><p class="adm-when">Chargement…</p>${admNoteHtml()}</div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
-        <p class="danger-caption">Supprime le compte, les fiches synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
+        <p class="danger-caption">Supprime le compte, les données synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
     body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
     {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
@@ -28078,7 +28244,7 @@ function accountPrefsHtml(slot){
   return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <div class="acct-card"><p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${slot?`<div class="auth-actions">${slot}</div>`:''}
-    <div class="auth-actions"><button type="button" class="btn" id="acctTrouble">Un problème ?</button></div></div>   ${''/* A373 : réparer l'application (fenêtre de stockage) — demande de l'auteur : dans Moi, pas au pied */}
+    <div class="auth-actions"><button type="button" class="btn" id="acctGuide">Prendre en main</button><button type="button" class="btn" id="acctTrouble">Un problème ?</button></div></div>   ${''/* A373 : réparer l'application (fenêtre de stockage) — demande de l'auteur : dans Moi, pas au pied */}
     <div class="auth-stats-h">Affichage</div>
     ${''/* ⚠ LE THÈME REJOINT LES RÉGLAGES (7a, « Points ouverts ») : il vivait dans l'en-tête de
       l'accueil, où il occupait une des quatre rangées collantes les plus disputées du produit
@@ -28099,10 +28265,10 @@ function accountPrefsHtml(slot){
       de `--seg-n`. */}
     <div class="set-row" style="margin-top:12px"><span class="set-l" id="rmLbl">Ouvrir les aides en</span>
     <div class="seg${currentReadMode()==='static'?' i1':''}" id="dispSeg" role="radiogroup" aria-labelledby="rmLbl"><span class="seg-pill" aria-hidden="true"></span>${
-      [['overview','Un bloc'],['static','Toute la fiche']].map(([k,l])=>
+      [['overview','Un bloc'],['static','Tout voir']].map(([k,l])=>
         `<button type="button" class="seg-btn${currentReadMode()===k?' on':''}" data-disp="${k}" role="radio" aria-checked="${currentReadMode()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
-    <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « ⤢ Tout voir » montre la fiche entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
+    <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « Tout voir » montre l’aide entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"><span aria-hidden="true">${acctIniTxt()}</span></button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">Colore <b>vos initiales</b> — le bouton de votre compte, en haut ou dans la colonne de gauche — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
@@ -28165,7 +28331,8 @@ function bindTagsPref(body){
     setTimeout(()=>{const ins=document.querySelectorAll('#authModal [data-tgl]');
       const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
-  {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
+  {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}
+  {const w=body.querySelector('#acctGuide');if(w)w.onclick=openGuide;}   // A466 : gestes, glossaire, et « Revoir l'accueil » (A460)   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
      la pastille SAUTERAIT à sa nouvelle place — c'est exactement le défaut qu'un rejeu de
      glissement avait dû contourner ailleurs, tant que la bascule de mode était re-rendue
@@ -28224,7 +28391,7 @@ function renderAuthLogin(body){
       <label class="auth-label" for="authEmail">Adresse e-mail</label>
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
       <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
-      <p class="auth-privacy">Vos fiches restent votre contenu — n'y stockez jamais de données patient. Synchronisation hébergée sur Supabase (connexion chiffrée).</p>
+      <p class="auth-privacy">Vos aides et protocoles restent votre contenu — n’y stockez jamais de données patient. Synchronisation hébergée sur Supabase (connexion chiffrée).</p>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
       <div style="text-align:center;margin-top:2px"><button class="tlink" id="authAnon" hidden></button></div></div>
       <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>
@@ -28233,7 +28400,7 @@ function renderAuthLogin(body){
     // Fiches « hors compte » présentes sur l'appareil : lien de consultation SANS se connecter
     // (cf. switchToAnonSpace). Compté en asynchrone ; le lien reste masqué s'il n'y a rien.
     (async()=>{try{const n=await anonFicheCount();const b=body.querySelector('#authAnon');if(!n||!b)return;
-      b.textContent='Cet appareil contient '+n+' fiche'+(n>1?'s':'')+' hors compte — les consulter sans se connecter';
+      b.textContent='Cet appareil contient '+n+' élément'+(n>1?'s':'')+' hors compte — les consulter sans se connecter';
       b.hidden=false;b.onclick=switchToAnonSpace;}catch(e){}})();
     const send=body.querySelector('#authSend');
     // ANTI DOUBLE-CLIC : bouton désactivé + libellé d'attente PENDANT l'appel réseau (un 2e envoi
@@ -28281,7 +28448,7 @@ function renderAuthLogin(body){
           // Les TITRES sont listés : sur un appareil partagé, adopter ce contenu l'envoie dans le
           // cloud du compte — l'utilisateur doit pouvoir reconnaître ce qu'il emporte avant d'accepter.
           const names=fiches.slice(0,5).map(f=>'« '+(sstr(f.title,48).trim()||'sans titre')+' »').join(', ')+(fiches.length>5?' et '+(fiches.length-5)+' autre'+(fiches.length>6?'s':''):'');
-          const take=await confirmDlg(fiches.length+' fiche'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées (une fois le compte validé, si l\'instance exige une validation). Laissées hors compte, elles resteront consultables sans connexion, via le lien « fiches hors compte » de l\'écran de connexion.',{title:'Fiches locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
+          const take=await confirmDlg(fiches.length+' aide'+(fiches.length>1?'s':'')+' (avec notes et sessions) '+(fiches.length>1?'sont enregistrées':'est enregistrée')+' sur cet appareil hors compte : '+names+'. Les emporter dans ce compte ? Elles y seront synchronisées (une fois le compte validé, si l\'instance exige une validation). Laissées hors compte, elles resteront consultables sans connexion, via le lien « hors compte » de l\'écran de connexion.',{title:'Aides locales',yes:'Les emporter dans ce compte',no:'Les laisser hors compte'});
           // Échec du déménagement : la bascule d'espace aura lieu de toute façon (le garde-fou de
           // load() force l'espace du compte au prochain chargement) — mais qui a répondu « Les
           // emporter » ne doit PAS découvrir un espace vide sans explication. Un drapeau fait
@@ -28314,14 +28481,14 @@ bindModalDismiss(authModal,closeAuth);
 const storageModal=document.getElementById('storageModal');
 // Bloc explicatif RÉUTILISÉ (fenêtre « Où sont mes fiches ? » ET écran Compte déconnecté) : on le
 // définit UNE fois pour éviter toute divergence. Langage volontairement simple (soignant non informaticien).
-function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons :</p>
+function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">Vos données peuvent être enregistrées de deux façons :</p>
     <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">${uiIcon('phone',19)}</span><b>Sur cet appareil (hors-ligne)</b></div>
       <p>Gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes sur un seul carnet.</p>
-      <p class="stg-warn">${uiIcon('warn',14)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
+      <p class="stg-warn">${uiIcon('warn',14)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos données sont perdues</b> — aucune autre copie.</p>
       <p class="stg-tip">${uiIcon('bulb',13)} Sans compte, pensez à <b>exporter</b> régulièrement (bouton Compte → « Exporter mes données ») : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin (dialogue Créer → « Importer un fichier (.json ou .zip) »).</p></div>
     <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">${uiIcon('cloud',19)}</span><b>En ligne, avec un compte (synchronisation)</b></div>
       <p>En vous connectant, une <b>copie de sécurité</b> est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
-      <ul class="stg-ul"><li>Appareil en panne ou perdu : <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos fiches sur n'importe quel appareil</b>.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>`;}
+      <ul class="stg-ul"><li>Appareil en panne ou perdu : <b>rien n'est perdu</b>.</li><li>Vous <b>retrouvez vos données sur n'importe quel appareil</b>.</li><li>Vous pouvez <b>partager</b> des bibliothèques avec votre équipe.</li></ul></div>`;}
 // « Réparer l'application » : désinscrit le service worker et vide ses CACHES — c'est le CODE
 // de l'app qui est rechargé à neuf, PAS les données (fiches/notes/sessions, intactes dans
 // IndexedDB). Remède au cas réel « l'app semble bloquée sur une ancienne version ».
@@ -28343,7 +28510,7 @@ async function repairApp(){
   location.reload();}
 function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;
   body.innerHTML=storageExplainHtml()+(Auth.signedIn()
-    ?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos fiches sont sauvegardées en ligne.</p>`
+    ?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos données sont sauvegardées en ligne.</p>`
     :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`)
     +`<div class="stg-repair"><button class="btn sm" id="repairAppBtn">Réparer l'application</button>
       <p class="stg-repair-hint">Recharge une copie neuve de l'application — utile si elle semble bloquée sur une ancienne version. Vos fiches, notes et sessions ne sont pas touchées.</p></div>`;
@@ -28353,6 +28520,271 @@ function renderStorageInfo(){const body=document.getElementById('storageBody');i
     const ok=await repairApp();   // false = refus hors connexion (l'app recharge sinon)
     if(ok===false){rb.disabled=false;rb.textContent='Réparer l\'application';}};}
 function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
+/* A466 — PRENDRE EN MAIN : les gestes de l'outil et ses mots, jamais de clinique (§ 2). Ouvert depuis Moi,
+   donc jamais pendant une session (règle 11). */
+const GUIDE_GESTES=[
+  ['list','Trouver une aide','Tapez dans la recherche : titre, précision (« adulte »), étapes, doses, documents PDF joints. Entrée ouvre le premier résultat. L’étoile épingle une aide en tête de l’accueil.'],
+  ['play','Démarrer une session','Sur l’écran d’entrée, relisez « Quand l’utiliser », puis « Démarrer la session » : le chrono part, les minuteurs sont prêts. « Exercice » fait la même chose sans patient.'],
+  ['check','Cocher une étape','Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche. « Continuer » passe au bloc suivant quand les étapes sont faites.'],
+  ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet : minuteurs, compteurs, « ＋ Minuteur ».'],
+  ['bolt','Ouvrir une complication','La touche à l’éclair du quai ouvre la complication à tout moment. « Reprendre » vous ramène au bloc où vous étiez.'],
+  ['alarm','Horodater','Note l’heure d’un geste imprévu, que vous pouvez nommer ensuite. Tout part au journal et au compte rendu.'],
+  ['doc','Tout voir','Montre l’aide entière. « Un bloc » revient au bloc en cours. « Se repérer » (menu ⋯) liste les blocs ; « Schéma » dessine l’arbre.'],
+  ['share','Partager la session','Menu ⋯ › « Partager la session » : un collègue suit et coche en direct sur son téléphone. Aucun texte libre ne voyage.'],
+  ['stop','Terminer','« Fin », puis maintenez « Terminer » 1,2 s. Le compte rendu reste dans Sessions.'],
+  ['pen','Écrire une aide','« Créer » › Aide cognitive : blocs, étapes, décisions, minuteurs. Elle naît en brouillon ; passez-la en « Validée » une fois relue. « Rédiger avec l’IA » part d’un PDF.']];
+const GLOSSAIRE=[
+  ['Aide','Un parcours à cocher, bloc par bloc, en situation réelle ou en exercice.'],
+  ['Protocole','Un texte de référence à lire : posologies, procédures, consignes. Il ne se coche pas.'],
+  ['Bibliothèque','Un ensemble d’aides et de protocoles, personnel (« Perso ») ou partagé avec une équipe.'],
+  ['Catégorie','Le rangement d’une aide (SMUR, Urgences…), avec sa couleur.'],
+  ['Session','Le déroulé réel d’une aide : chrono, minuteurs, coches horodatées, compte rendu.'],
+  ['Exercice','Une session de répétition, sans patient, marquée « Exercice » partout.'],
+  ['Essayer','Dérouler une aide en cours d’écriture, depuis l’éditeur. Rien n’est enregistré.'],
+  ['Bloc','Une étape du parcours : une liste d’actions à cocher.'],
+  ['Décision','Un bloc qui pose une question ; chaque réponse ouvre sa branche.'],
+  ['Complication','Un bloc qu’on ouvre à tout moment, hors de la suite normale (touche à l’éclair).'],
+  ['Revue','Une liste à relire à tout moment, cochée une fois par session.'],
+  ['Jalon','Un seuil de compteur qui fait paraître une consigne (« Chocs ≥ 3 : … »).'],
+  ['Horodater','Noter l’heure d’un geste, puis le nommer : il part au journal.'],
+  ['Critique · Vigilance','Ce qui tue si on l’oublie · là où l’on risque de se tromper (dose, seuil).'],
+  ['Vérifier','Relire le bloc étape par étape, à deux : l’un lit, l’autre confirme.'],
+  ['Repères posologiques','Les doses et seuils à consulter pendant l’aide, sans les cocher.']];
+const guideModal=document.getElementById('guideModal');
+function openGuide(){closeAuth();
+  document.getElementById('guideBody').innerHTML=
+    `<div class="auth-stats-h">Les gestes</div><div class="acct-card">`
+    +GUIDE_GESTES.map(([ic,t,x],i)=>`<details class="gd-row"><summary${i?'':' data-dlgfocus'}>${uiIcon(ic,16)}<span>${esc(t)}</span><span class="hs-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.2,cls:''})}</span></summary><p>${esc(x)}</p></details>`).join('')
+    +`</div><div class="auth-stats-h">Glossaire</div><div class="acct-card"><dl class="gd-gl">`
+    +GLOSSAIRE.map(([t,x])=>`<dt>${esc(t)}</dt><dd>${esc(x)}</dd>`).join('')+`</dl></div>`
+    +`<div class="auth-actions"><button type="button" class="btn primary" id="guideRun">Lancer l’exercice guidé</button><button type="button" class="btn" id="guideWelcome">Revoir l’accueil</button></div>`;
+  document.getElementById('guideRun').onclick=()=>{guideModal.classList.remove('on');guideStart(null);};
+  document.getElementById('guideWelcome').onclick=()=>{guideModal.classList.remove('on');openWelcome();};
+  guideModal.classList.add('on');}
+bindModalDismiss(guideModal,()=>guideModal.classList.remove('on'));
+/* A467 — EXERCICE GUIDÉ : une bulle par geste, posée sur la VRAIE commande, pendant un EXERCICE seulement
+   (jamais une session réelle, règle 11 ; l'outil, jamais la clinique, § 2). LE GUIDE SUIT L'APP : il ne
+   redessine rien, il pointe des sélecteurs vivants (`tgt`) et lit ses mots dans l'aide (question, revue,
+   complication, compteur, jalon). Changer un geste de session = mettre à jour GUIDE_ETAPES et GUIDE_GESTES :
+   `check-guide` (libellés et sélecteurs) et `audit-guide` (déroulé complet) rougissent sinon. */
+function guidePref(){try{return localStorage.getItem('ac-guide')||'';}catch(e){return '';}}
+function guidePrefSet(v){try{localStorage.setItem('ac-guide',v);}catch(e){}}
+function guideFor(f){return !!f&&SEED_TITLES.indexOf(f.title)>=0&&hasFlow(f);}
+const _gdCur=()=>{const n=state.nav||[];return n[state.navPos!=null?state.navPos:n.length-1];};
+const _gdBlk=(f,id)=>(f.blocks||[]).find(b=>b&&b.id===id);
+const _gdQ=s=>'« '+String(s||'').trim()+' »';
+const _gdNb=s=>String(s).replace(/« /g,'«\u00a0').replace(/ (»|:|\?)/g,'\u00a0$1');   // espaces insécables de la typographie française
+function _gdJalon(f){
+  for(const b of f.blocks||[])for(const m of b.milestones||[]){
+    const c=m&&m.at==='count'&&(f.counters||[]).find(x=>x.id===m.counter);
+    if(c)return {c:c.label,n:m.n,go:m.go};}
+  return null;}
+/* Une étape : `ok` (l'aide s'y prête), `done` (le geste est fait — se lit dans l'état, jamais déclaré),
+   `ph` (la phase en cours : cible, titre, texte, `act` = on attend le geste, sinon « Suivant »). */
+const GUIDE_ETAPES=[
+  {id:'start',nom:'Démarrer',req:1,ok:()=>true,done:()=>!!Runtime.started&&!!Runtime.exercise,
+    ph:()=>({tgt:'#sessStart',t:'Démarrer l’exercice',x:'Comme une vraie session : le chrono part, les minuteurs sont prêts. Rien n’est enregistré comme soin.',act:1})},
+  {id:'check',nom:'Cocher',ok:()=>true,done:g=>(g.ck=g.ck||Object.keys(Runtime.checked||{}).some(k=>Runtime.checked[k]&&!/^r:/.test(k))),
+    ph:()=>({tgt:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez une étape',x:'Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche.',act:1})},
+  {id:'capsule',nom:'Lire la capsule',ok:()=>true,
+    done:g=>{if(state.rtOpen==='dock')g.capOpen=true;return !!g.seen.capsule||(!!g.capOpen&&state.rtOpen!=='dock');},
+    ph:(g,f)=>{const c=document.querySelector('#cbTimers .cnt .seg-l');   // le nom tel que la capsule l'affiche
+      const cx='La capsule, en haut, montre le chrono'+(c?' et '+_gdQ(c.textContent):'')+'. ';
+      if(mqRail.matches)return {tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:cx+'Minuteurs, compteurs et jalons sont dans la colonne de droite.',act:0};
+      return state.rtOpen==='dock'
+        ?{tgt:'#cbTimers',avec:'.rt-dock',t:'Les minuteurs et les compteurs',x:'Ils sont ici, prêts à lancer. Touchez de nouveau la capsule pour refermer le volet.',act:1}
+        :{tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:cx+'Touchez-la : les minuteurs et les compteurs s’ouvrent.',act:1};}},
+  {id:'decision',nom:'Répondre',ok:f=>(f.blocks||[]).some(b=>b.kind==='decision'),
+    done:(g,f)=>(state.nav||[]).slice(0,-1).some(id=>{const b=_gdBlk(f,id);return b&&b.kind==='decision';}),
+    ph:(g,f)=>{const b=_gdBlk(f,_gdCur());
+      return b&&b.kind==='decision'
+        ?{tgt:'#main .ov-block.cur :has(>[data-ovopt])',t:'Répondez à la question',x:_gdQ(b.question||b.title)+' : chaque réponse ouvre sa branche. Choisissez-en une.',act:1}
+        :(()=>{const nx=document.querySelector('#main .ov-block.cur [data-ovnext]');
+          if(nx&&nx.getAttribute('aria-disabled')!=='true')
+            return {tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'« Continuer » est prêt : il mène au bloc suivant.',act:1};
+          const n=document.querySelectorAll('#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)').length;
+          return {tgt:null,trou:'#main .ov-block.cur',voir:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez les étapes restantes',x:'« Continuer » s’allumera quand '+(n>1?'les '+n+' cases seront cochées':'la dernière case sera cochée')+' : il mène au bloc suivant.',act:1};})();}},
+  {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
+    done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
+    ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');
+      const ouv=!!document.querySelector('#main .ov-block.cur li.rv-step.open');
+      return {tgt:'#main .ov-block.cur li.rv-step .rv-head',avec:'#main .ov-block.cur li.rv-step',align:'top',t:'Une revue, à tout moment',
+        x:_gdQ(rv.title)+' se relit pendant tout le bloc : elle ne retient pas « Continuer » et se coche d’elle-même quand tout est vu. '+(ouv?'Cochez une ligne.':'Ouvrez-la et cochez une ligne.'),act:1};}},
+  {id:'cx',nom:'Ouvrir une complication',ok:f=>cxAll(f).length>0,
+    done:g=>{if(document.querySelector('#main [data-cxback]'))g.cxIn=true;return !!g.cxIn&&!document.querySelector('#main [data-cxback]');},
+    ph:(g,f)=>{if(document.querySelector('#main [data-cxback]'))
+        return {tgt:'#main [data-cxback]',t:'Vous êtes dans une complication',x:(()=>{const b=_gdBlk(f,_gdCur());return b&&b.title?_gdQ(b.title)+' : ses':'Ses';})()
+          +' étapes sont ici, et le bloc que vous quittez vous attend, coches gardées. « Reprendre », en haut, vous y ramène.',act:1};
+      const l=cxAll(f),j=_gdJalon(f),un=l.length===1?l[0]:null;
+      const jt=j?(un&&j.go===un.target?' Elle se propose aussi d’elle-même':' Une consigne paraît aussi d’elle-même')+' quand '+_gdQ(j.c)+' atteint '+j.n+' : c’est un jalon.':'';
+      return {tgt:'#cxKey',t:'La situation change ?',x:(un?_gdQ(un.label)+' s’ouvre':'Les complications s’ouvrent')+' à tout moment par cette touche.'+jt+' Essayez.',act:1};}},
+  {id:'tk',nom:'Horodater',ok:()=>true,
+    done:g=>{const n=(Runtime.events||[]).length;if(g.tkN==null)g.tkN=n;return n>g.tkN&&!state.tkSheet;},
+    ph:g=>((Runtime.events||[]).length>g.tkN&&state.tkSheet)
+      ?{tgt:'#dockSheet .ds-card',t:'Nommez le geste',x:'Choisissez ce qui a été fait, ou fermez : l’heure reste au journal.',act:1}
+      :{tgt:'#tkKey',t:'Un geste imprévu ?',x:'« Horodater » note l’heure tout de suite ; on le nomme ensuite. Essayez.',act:1}},
+  {id:'fin',nom:'Terminer',req:1,ok:()=>true,done:g=>!!g.ended,
+    ph:()=>document.getElementById('endSessModal').classList.contains('on')
+      ?{tgt:'#endSessYes',t:'Maintenez pour terminer',x:'Gardez le doigt 1,2 s sur « Terminer » : un appui bref ne termine rien.',act:1}
+      :{tgt:'#endKey',t:'Terminer',x:'« Fin » ouvre la fenêtre de fin. Essayez.',act:1}}];
+let _gd=null;
+async function guideStart(f){
+  if(!f){f=fiches.find(x=>x.title===SEED_TITLES[1])||fiches.find(guideFor);
+    if(!f){await addSeedFiches();f=fiches.find(x=>x.title===SEED_TITLES[1])||fiches.find(guideFor);}
+    if(!f){toast('Les aides d’exemple sont introuvables.');return;}}
+  guideStop();guideModal.classList.remove('on');
+  if(!(state.view==='read'&&state.fiche&&state.fiche.id===f.id))openRead(f.id);
+  await startExercise(f);
+  if(!Runtime.exercise||Runtime.ficheId!==f.id&&Runtime.fiche!==f)return;   // refusé au dialogue
+  _gd={fid:f.id,i:0,key:'',done:new Set(),skip:new Set(),seen:{},tkN:null,ck:false,cxIn:false,started:false,ended:false};
+  _gd.iv=setInterval(guideSync,250);
+  _gd.mo=new MutationObserver(()=>{if(_gd&&!_gd.raf)_gd.raf=requestAnimationFrame(()=>{if(_gd){_gd.raf=0;guideSync();}});});
+  _gd.mo.observe(document.body,{childList:true,subtree:true});
+  guideSync();}
+function guideStop(){const g=_gd;_gd=null;
+  if(g){clearInterval(g.iv);if(g.mo)g.mo.disconnect();}
+  document.querySelectorAll('.gd-tgt').forEach(e=>e.classList.remove('gd-tgt'));
+  _gdVeil(null);_gdReserve(0);
+  const t=document.getElementById('gdTip');if(t)t.remove();}
+function guideSync(){const g=_gd;if(!g)return;
+  const f=fiches.find(x=>x.id===g.fid);if(!f){guideStop();return;}
+  const R=liveSessions[g.fid];
+  if(R&&R.started&&R.exercise)g.started=true;
+  const ici=state.view==='read'&&!!state.fiche&&state.fiche.id===g.fid;
+  if(g.started&&!(R&&R.started&&R.exercise)){g.ended=true;g.done.add('fin');guideEnd(f);return;}
+  if(!g.started&&ici&&!Runtime.exercise){guideStop();return;}   // exercice annulé avant le premier geste
+  let E;
+  while((E=GUIDE_ETAPES[g.i])){
+    if(!E.ok(f)||g.skip.has(E.id)){g.i++;continue;}
+    if(ici&&g.started===!!Runtime.started&&E.done(g,f)){g.done.add(E.id);g.i++;continue;}
+    break;}
+  if(!E){guideStop();return;}
+  const modal=document.querySelector('.ai-modal.on');
+  const cache=!ici||document.documentElement.classList.contains('kbd')||(modal&&modal.id!=='endSessModal');
+  guidePaint(cache?null:E,f);}
+function _gdTip(){let t=document.getElementById('gdTip');
+  if(!t){t=document.createElement('section');t.id='gdTip';t.className='gd-tip';t.setAttribute('aria-label','Exercice guidé');
+    t.onclick=e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;const g=_gd;
+      if(b.id==='gdQuit'){guideStop();announce('Guide quitté — l’exercice continue.');}
+      else if(b.id==='gdNext'){const E=g&&GUIDE_ETAPES[g.i];if(!E)return;
+        if(E.id==='capsule'&&!E.ph(g,fiches.find(x=>x.id===g.fid)).act){g.seen.capsule=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}
+      else if(b.id==='gdMin'||b.id==='gdOpen'){if(!g)return;g.min=b.id==='gdMin';g.key='';guideSync();
+        const n=document.getElementById(g.min?'gdOpen':'gdMin');if(n)n.focus({preventScroll:true});}
+      else if(b.id==='gdClose'){t.remove();}
+      else if(b.id==='gdRedo'){const f=fiches.find(x=>x.id===t.dataset.fid);t.remove();guideStart(f);}};
+    document.body.appendChild(t);}
+  return t;}
+function guidePaint(E,f){const g=_gd,t=_gdTip();
+  if(!E){t.hidden=true;_gdVeil(null);_gdReserve(0);return;}
+  const P=E.ph(g,f),et=GUIDE_ETAPES.filter(x=>x.ok(f)),k=et.indexOf(E)+1;
+  const key=E.id+'|'+P.t+'|'+P.x+'|'+(g.min?1:0);
+  if(g.key!==key){g.key=key;g.room=0;g.phaseT=Date.now();
+    t.className='gd-tip'+(g.min?' min':'');
+    t.innerHTML=g.min
+      ?`<button type="button" class="gd-pill" id="gdOpen" aria-label="Rouvrir le guide, étape ${k} sur ${et.length}">▲ Guide ${k}/${et.length}${uiIcon('chev',14,{sw:2.4,cls:''})}</button>`
+      :`<div class="gd-tx"><div class="gd-hd"><p class="gd-k">▲ Exercice guidé · ${k}/${et.length}</p><button type="button" class="gd-min" id="gdMin" aria-label="Réduire le guide">${uiIcon('chev',14,{sw:2.4,cls:''})}</button></div>`
+      +`<p class="gd-t">${esc(_gdNb(P.t))}</p><p class="gd-x" aria-live="polite">${esc(_gdNb(P.x))}</p></div>`
+      +`<div class="gd-act"><button type="button" class="gd-l" id="gdQuit">Quitter le guide</button>`
+      +(P.act?(E.req?'':'<button type="button" class="gd-g" id="gdNext">Passer</button>')
+        :'<button type="button" class="gd-b" id="gdNext">Suivant</button>')+`</div>`;}
+  t.hidden=false;
+  const el=P.tgt&&document.querySelector(P.tgt);
+  const vis=!!el&&!!el.getClientRects().length&&!el.closest('[hidden]');
+  document.querySelectorAll('.gd-tgt').forEach(e=>{if(e!==el)e.classList.remove('gd-tgt');});
+  if(vis)el.classList.add('gd-tgt');
+  guidePlace(t,vis?el:null,P);}
+/* Le voile : un seul calque sur toute la fenêtre, percé (evenodd) autour de la cible à 8 px, coins de 12.
+   Coordonnées du chemin dans les pixels CSS du calque, donc ÷ zoomF() (règle 10). */
+function _gdVeil(r){let v=document.getElementById('gdVeil');
+  if(!r){if(v)v.classList.remove('on');return;}
+  if(!v){v=document.createElement('div');v.id='gdVeil';v.setAttribute('aria-hidden','true');document.body.appendChild(v);}
+  const z=zoomF(),w=innerWidth/z,h=innerHeight/z,p=8,k=12;
+  const x=r.left/z-p,y=r.top/z-p,X=r.right/z+p,Y=r.bottom/z+p,c=Math.min(k,(X-x)/2,(Y-y)/2);
+  v.style.clipPath=`path(evenodd,"M0 0H${w}V${h}H0Z M${x+c} ${y}H${X-c}A${c} ${c} 0 0 1 ${X} ${y+c}V${Y-c}A${c} ${c} 0 0 1 ${X-c} ${Y}H${x+c}A${c} ${c} 0 0 1 ${x} ${Y-c}V${y+c}A${c} ${c} 0 0 1 ${x+c} ${y}Z")`;
+  v.dataset.hole=[r.left,r.top,r.right,r.bottom].map(n=>Math.round(n)).join(',');
+  v.classList.add('on');}
+/* La hauteur que la carte réserve au bas de la page (--gd-h, en px CSS) : on défile toujours jusqu'au bout. */
+function _gdReserve(h){document.body.classList.toggle('gd-on',h>0);document.documentElement.style.setProperty('--gd-h',h>0?h+'px':'0px');}
+/* Le haut du premier objet fixé du bas de l'écran (quai, son volet, la barre « ↩ Bloc ») : la carte s'y pose. */
+function _gdBas(H){let b=H;
+  for(const s of ['#sessionDock .sd-in','#dockSheet .ds-card','#blkReturn .bkr']){const e=document.querySelector(s);
+    if(!e||e.closest('[hidden]')||!e.getClientRects().length)continue;
+    const r=e.getBoundingClientRect();if(r.height&&r.top>H/2&&r.top<b)b=r.top;}
+  return b;}
+/* v5.48.2 — UNE CARTE ANCRÉE, PLUS UNE BULLE QUI SUIT (signalé sur iPhone : la bulle cachait le volet, les
+   étapes et la complication que le geste ouvrait, et le défilement saccadait). Elle se pose au-dessus du quai,
+   dans sa largeur — donc dans la colonne d'action au bureau, sur le volet du quai d'un pliable —, et ne bouge
+   jamais au défilement : la cible se montre par son anneau, que le moteur fait défiler lui-même. Mesures en
+   pixels de l'appareil, réinjectées ÷ zoomF() (règle 10). */
+function guidePlace(t,el,P){const z=zoomF(),W=innerWidth,H=innerHeight,g=_gd;
+  const q=document.querySelector('#sessionDock .sd-in'),qr=q&&!q.closest('[hidden]')&&q.getClientRects().length?q.getBoundingClientRect():null;
+  const tw=g.min?null:(qr&&qr.width>200*z?qr.width:Math.min(660*z,W-24*z));
+  const left=qr&&qr.width>200*z?qr.left:(W-(tw||0))/2;
+  t.classList.toggle('row',!!tw&&tw>=560*z);
+  t.style.width=tw?tw/z+'px':'';
+  const th=t.getBoundingClientRect().height,tW=t.getBoundingClientRect().width,bas=_gdBas(H);
+  let top=bas-8*z-th;
+  const r=el&&el.getBoundingClientRect();
+  // `voir` : ce qu'il faut amener en vue, sans anneau — TOUTES les cases restantes, pas la seule première.
+  const rv=!el&&P&&P.voir?[...document.querySelectorAll(P.voir)].map(e=>e.getBoundingClientRect()).filter(x=>x.height)
+    .reduce((u,x)=>u?{top:Math.min(u.top,x.top),bottom:Math.max(u.bottom,x.bottom),height:Math.max(u.bottom,x.bottom)-Math.min(u.top,x.top)}:x,null):null;
+  // Une cible fixée (fenêtre de fin…) qui tomberait sous la carte : la carte monte en haut de l'écran.
+  const enHaut=!!r&&!el.closest('#main')&&r.bottom>top&&r.top<top+th;
+  if(enHaut)top=8*z;
+  t.style.left=(g.min?(qr?qr.right:W-12*z)-tW:left)/z+'px';
+  t.style.top=top/z+'px';
+  _gdReserve(enHaut?0:Math.round((bas-top)/z));
+  /* La cible du parcours hors de la bande visible (sous la capsule, au-dessus de la carte) : on l'y amène, six
+     essais au plus par phase, espacés — l'app défile elle-même après « Continuer » et peut défaire les premiers.
+     scrollBy se compte en pixels de l'appareil, comme les rectangles (mesuré sous zoom) ; scroll-margin, non. */
+  const cd=document.getElementById('crisisDock');
+  const haut=cd&&cd.getClientRects().length?Math.max(0,cd.getBoundingClientRect().bottom):0,bande=top-8*z-haut;
+  const m=r&&el.closest('#main')?r:rv;
+  // Jamais contre la main : dès que la personne a défilé elle-même pendant la phase, le guide ne ramène plus rien.
+  if(m&&!((g.userT||0)>(g.phaseT||0))&&(g.room||0)<6&&Date.now()-(g.roomT||0)>500&&(m.top<haut||m.bottom>top-8*z)){
+    g.room=(g.room||0)+1;g.roomT=Date.now();
+    const cible=(P&&P.align==='top')||m===rv||m.height>=bande?haut+8*z:haut+(bande-m.height)/2;
+    window.scrollBy({top:m.top-cible,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+  // Le voile ne suit pas un défilement : il s'efface pendant, et revient quand la page est posée.
+  const calme=Date.now()-(g.scrollT||0)>200;
+  // `trou` : sans cible, le voile découvre quand même une zone (le bloc entier à cocher), sans anneau.
+  const tr=!r&&P&&P.trou?document.querySelector(P.trou):null;
+  let h=r||(tr&&tr.getClientRects().length?tr.getBoundingClientRect():null);const av=r&&P&&P.avec?document.querySelector(P.avec):null;   // le trou couvre aussi ce que le geste a ouvert
+  if(av&&av.getClientRects().length){const a=av.getBoundingClientRect();
+    h={left:Math.min(r.left,a.left),top:Math.min(r.top,a.top),right:Math.max(r.right,a.right),bottom:Math.max(r.bottom,a.bottom)};}
+  _gdVeil(h&&!g.min&&calme&&h.bottom>0&&h.top<H?h:null);}
+function guideEnd(f){const g=_gd;if(!g)return;const done=g.done;guideStop();guidePrefSet('done');
+  const et=GUIDE_ETAPES.filter(x=>x.ok(f)),tous=et.every(E=>done.has(E.id));
+  const t=_gdTip();t.dataset.fid=f.id;t.className='gd-tip end';t.hidden=false;
+  t.innerHTML=`<p class="gd-k">▲ Exercice guidé · terminé</p><p class="gd-t">${tous?'Vous savez dérouler une aide':'Exercice terminé'}</p>`
+    +`<ul class="gd-sum">${et.map(E=>done.has(E.id)?`<li class="ok">${uiIcon('check',14,{sw:3})}<span>${esc(E.nom)}</span></li>`:`<li><span class="gd-no" aria-hidden="true">–</span><span>${esc(E.nom)} <i>· passé</i></span></li>`).join('')}</ul>`
+    +`<p class="gd-x">Le compte rendu est dans Sessions. Les gestes et le glossaire restent dans Moi › Prendre en main.</p>`
+    +`<div class="gd-act"><button type="button" class="gd-l" id="gdRedo">Refaire le guide</button><button type="button" class="gd-b" id="gdClose">Fermer</button></div>`;
+  const z=zoomF(),W=innerWidth,H=innerHeight,tw=Math.min(380*z,W-32*z);
+  const hd=document.getElementById('homeDock'),hr=hd&&hd.getClientRects().length?hd.getBoundingClientRect():null;
+  t.style.width=tw/z+'px';t.style.left=(W-tw)/2/z+'px';
+  const bas=hr&&hr.top>H/2?hr.top:H;t.style.top=(bas-t.getBoundingClientRect().height-16*z)/z+'px';
+  const c=document.getElementById('gdClose');if(c)c.focus({preventScroll:true});
+  announce(tous?'Exercice guidé terminé : tous les gestes faits.':'Exercice guidé terminé.');}
+/* La carte d'entrée : seulement sur une aide d'exemple, avant la session, tant que le guide n'a été ni fait
+   ni refusé. Le choix reste entier : « Exercice » au quai pour un exercice libre. */
+function guideCardHtml(f,started){
+  if(started||Runtime.exercise||_gd||state.previewFrom||!guideFor(f)||guidePref())return '';
+  const et=GUIDE_ETAPES.filter(E=>E.ok(f));
+  /* UNE rangée, jamais une carte haute : elle précède « Quand l'utiliser » sans repousser « Ne pas oublier » sous
+     le bouton de démarrage (séquence QRH, témoin CHAPEAU). */
+  return `<section class="gd-card" aria-label="Exercice guidé"><span class="gd-ci" aria-hidden="true">▲</span>`
+    +`<div class="gd-cx"><b>Apprendre avec cette aide</b><span>Exercice guidé · ${et.length} gestes · 4 min</span></div>`
+    +`<button type="button" class="btn" data-gdgo>Commencer le guide</button>`
+    +`<button type="button" class="notice-x" data-gdoff aria-label="Ne plus proposer l’exercice guidé">×</button></section>`;}
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;
+  if(t.closest('[data-gdgo]')){guideStart(state.fiche);return;}
+  if(t.closest('[data-gdoff]')){guidePrefSet('off');render();announce('Le guide ne sera plus proposé ; il reste dans Moi › Prendre en main.');}});
+addEventListener('resize',()=>{if(_gd)guideSync();});
+addEventListener('scroll',()=>{const g=_gd;if(!g)return;g.scrollT=Date.now();_gdVeil(null);   // la carte ne bouge pas : seul le voile se retire
+  clearTimeout(g.sT);g.sT=setTimeout(guideSync,220);},{passive:true});
+// Un défilement À LA MAIN (molette, doigt, touches) : seuls ces gestes le disent, un scrollBy n'en émet aucun.
+for(const ev of ['wheel','touchmove','keydown'])addEventListener(ev,e=>{if(_gd&&(ev!=='keydown'||/^(Page|Arrow|Home|End| )/.test(e.key)))_gd.userT=Date.now();},{passive:true});
 {const fv=document.getElementById('footVer');if(fv)fv.textContent='v'+APP_VERSION;}   // A373 : version au pied du téléphone, posée une fois au démarrage
 function closeStorageInfo(){storageModal.classList.remove('on');}
 bindModalDismiss(storageModal,closeStorageInfo);
@@ -28557,7 +28989,7 @@ document.addEventListener('keydown',e=>{
 // RESTE sur la vue courante (pas d'ouverture d'éditeur). kind 'f' = fiche, 'p' = protocole.
 async function dupToPerso(kind,src){
   const c=kind==='p'?migrateProtocol(JSON.parse(JSON.stringify(src))):migrate(JSON.parse(JSON.stringify(src)));
-  c.id=kind==='p'?uid('p'):uid();c.title=(src.title||(kind==='p'?'Protocole':'Fiche'))+' (copie)';
+  c.id=kind==='p'?uid('p'):uid();c.title=(src.title||(kind==='p'?'Protocole':'Aide'))+' (copie)';
   c.library=null;c.status='draft';c.order=Date.now();
   const ok=kind==='p'?await persistProtocol(c):await persist(c);
   if(ok){(kind==='p'?protocols:fiches).push(c);toast('✓ Copie créée dans « Perso » — état Brouillon',3500);}
@@ -29003,7 +29435,7 @@ function toast(msg,ms,direct){
   document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
 function notifyConflicts(list){if(!list.length)return;
-  toast('⚠ '+list.length+' fiche'+(list.length>1?'s':'')+' modifiée'+(list.length>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (bouton « Versions » dans la fiche).',9000);}
+  toast('⚠ '+list.length+' élément'+(list.length>1?'s':'')+' modifié'+(list.length>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (« Versions », dans le menu ⋯ de l’aide).',9000);}
 // Traduit l'erreur brute d'une synchro échouée en message compréhensible pour un soignant non
 // informaticien (fenêtre ouverte au clic sur la pastille « Erreur de synchro »). Un statut HTTP
 // absent (ex. TypeError "Failed to fetch") = la requête n'a même pas atteint le serveur -> réseau.
@@ -29026,9 +29458,9 @@ function restErrStatus(message){const m=String(message||'').match(/^REST (\d+)/)
 function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus(message)===403;}
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
   if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
-  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines fiches. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces fiches restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : une fiche venue d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
-  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Contenu trop volumineux',detail:"Une fiche contient des images trop lourdes, ou un document PDF dépasse la taille maximale autorisée (15 Mo). Réduisez ou supprimez des images, ou allégez le document, puis réessayez."};
-  if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos fiches par sécurité (fenêtre Compte → « Exporter mes données »)."};
+  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines données. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces données restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : un élément venu d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
+  if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Contenu trop volumineux',detail:"Une aide ou un protocole contient des images trop lourdes, ou un document PDF dépasse la taille maximale autorisée (15 Mo). Réduisez ou supprimez des images, ou allégez le document, puis réessayez."};
+  if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos données par sécurité (fenêtre Compte → « Exporter mes données »)."};
   if(status>=500)return{icon:SYNC_ERR_ICONS.server,title:'Service indisponible',detail:"Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."};
   // Pas de statut HTTP identifié : soit la requête n'a jamais atteint le serveur (vraie panne réseau,
   // typiquement une TypeError "Failed to fetch"/"NetworkError"/"Load failed"), soit une erreur
@@ -29041,7 +29473,7 @@ function explainSyncError(e){const msg=String((e&&e.message)||e||'');const statu
   // le serveur, et RIEN N'EST PERDU : la synchro reprend d'elle-même. Le dire vaut mieux que de
   // livrer le message brut du moteur, qui ne désigne pas sa cause (v5.0.10).
   if(!status&&/database connection is closing|database is closing|InvalidStateError|idb-closed/i.test(msg))
-    return{icon:SYNC_ERR_ICONS.warning,title:'Stockage momentanément indisponible',detail:"L'accès au stockage de cet appareil s'est interrompu pendant la synchronisation — le plus souvent parce que l'application est ouverte dans un autre onglet, ou parce que la page était en train d'être rechargée. Aucune donnée n'est perdue : vos fiches restent sur cet appareil et la synchronisation reprend automatiquement. Si le message revient, fermez les autres onglets de l'application puis rechargez cette page."};
+    return{icon:SYNC_ERR_ICONS.warning,title:'Stockage momentanément indisponible',detail:"L'accès au stockage de cet appareil s'est interrompu pendant la synchronisation — le plus souvent parce que l'application est ouverte dans un autre onglet, ou parce que la page était en train d'être rechargée. Aucune donnée n'est perdue : vos données restent sur cet appareil et la synchronisation reprend automatiquement. Si le message revient, fermez les autres onglets de l'application puis rechargez cette page."};
   return{icon:SYNC_ERR_ICONS.unknown,title:'Erreur inattendue',detail:'Détail technique : '+msg.slice(0,200)};}
 // Statut d'approbation du compte courant (voir RPC my_status() côté serveur, seule autorité réelle —
 // la RLS bloque de toute façon l'espace perso tant que non approuvé). En cas d'échec réseau on GARDE
@@ -31172,7 +31604,7 @@ async function slGoCloud(sr,quiet){
       await Share.host(f).catch(()=>null);
       SL.live=true;slSheet('live');
       toast(r&&r.err==='draft'
-        ?'⚠ Une fiche en brouillon ne se diffuse pas hors du compte.'
+        ?'⚠ Une aide en brouillon ne se diffuse pas hors du compte.'
         :'⚠ Internet indisponible — le partage reste en direct.',6000,true);
       return false;}
     slSb.cloud=null;
@@ -31268,7 +31700,7 @@ async function startShare(f){
   const r=await Share.host(f).catch(()=>null);
   if(!r||!r.ok){
     if(r&&r.err==='draft'){
-      toast('⚠ Une fiche en brouillon ne se diffuse pas hors du compte.',8000,true);return;}
+      toast('⚠ Une aide en brouillon ne se diffuse pas hors du compte.',8000,true);return;}
     toast('⚠ Serveur injoignable — partage en direct.',5000,true);
     return startShareLocal(f);}
   openShareSheet();render();}
@@ -31318,7 +31750,7 @@ function shareUnsent(){
 async function quitShare(){
   const perdu=SHARE_NOTRACE
     ? 'Pour revenir, il faudra un NOUVEAU code : un code ne sert qu’une fois.'
-    : 'Votre bibliothèque et vos fiches sont inchangées.';
+    : 'Votre bibliothèque et vos données sont inchangées.';
   const u=shareUnsent();
   const alerte=u
     ? '\u26a0 '+u.txt+' relev\u00e9'+(u.n>1?'s':'')+' ici n\u2019'
@@ -31568,14 +32000,14 @@ async function openVersions(ficheId){_versFiche=ficheId;
   const f=fiches.find(x=>x.id===ficheId);const shared=!!(f&&f.library);
   const t=document.getElementById('versModalTitle');if(t)t.textContent=shared?'Récupérer ma version écrasée':'Versions précédentes';
   const n=document.getElementById('versNote');if(n)n.textContent=shared
-    ? 'Vos versions écrasées par une modification d’un coéquipier (dernière écriture appliquée). Sauvegardes locales à cet appareil — ce n’est pas l’historique partagé de l’équipe. Restaurer remplace la fiche actuelle par la version choisie.'
-    : 'Sauvegardes locales créées avant qu’une version venue d’un autre appareil ne remplace la vôtre. Restaurer remplace la fiche actuelle par la version choisie.';
+    ? 'Vos versions écrasées par une modification d’un coéquipier (dernière écriture appliquée). Sauvegardes locales à cet appareil — ce n’est pas l’historique partagé de l’équipe. Restaurer remplace la version actuelle par la version choisie.'
+    : 'Sauvegardes locales créées avant qu’une version venue d’un autre appareil ne remplace la vôtre. Restaurer remplace la version actuelle par la version choisie.';
   versModal.classList.add('on');await renderVersions();}
 function closeVersions(){versModal.classList.remove('on');}
 async function renderVersions(){const body=document.getElementById('versBody');if(!body)return;
   let list=[];try{list=await Data.getBackups(_versFiche);}catch(e){}
   list=(list||[]).sort((a,b)=>(b.at||0)-(a.at||0));
-  if(!list.length){body.innerHTML=emptyLine('Aucune version précédente conservée pour cette fiche.');return;}
+  if(!list.length){body.innerHTML=emptyLine('Aucune version précédente conservée.');return;}
   body.innerHTML=list.map(b=>`<div class="vers-row"><span class="vt">${esc(new Date(b.at).toLocaleString('fr-FR'))}</span><span class="vers-acts"><button class="btn sm" data-diff="${esc(b.bid)}">Comparer</button><button class="btn sm" data-restore="${esc(b.bid)}">Restaurer</button></span></div><div class="vers-diff" id="diff-${esc(b.bid)}" hidden></div>`).join('');
   // Comparaison : ce que RESTAURER cette version changerait par rapport à la fiche actuelle.
   body.querySelectorAll('[data-diff]').forEach(btn=>btn.onclick=()=>{
@@ -31585,7 +32017,7 @@ async function renderVersions(){const body=document.getElementById('versBody');i
     box.innerHTML=diffFiches(cur,b&&b.data?migrate(Object.assign({},b.data,{id:_versFiche})):null);box.hidden=false;btn.textContent='Masquer';});
   body.querySelectorAll('[data-restore]').forEach(btn=>btn.onclick=async()=>{
     const b=list.find(x=>x.bid===btn.dataset.restore);if(!b||!b.data)return;
-    if(!await confirmDlg('Restaurer cette version ? La fiche actuelle sera remplacée (et sauvegardée à son tour).',{yes:'Restaurer'}))return;
+    if(!await confirmDlg('Restaurer cette version ? La version actuelle sera remplacée (et sauvegardée à son tour).',{yes:'Restaurer'}))return;
     const cur=fiches.find(x=>x.id===_versFiche);if(cur){try{await Data.putBackup({bid:uid('bk'),ficheId:_versFiche,at:Date.now(),data:JSON.parse(JSON.stringify(cur))});}catch(e){}}
     const restored=migrate(Object.assign({},b.data,{id:_versFiche}));
     if(await persist(restored)){const i=fiches.findIndex(x=>x.id===_versFiche);if(i>=0)fiches[i]=restored;else fiches.push(restored);}
@@ -31612,7 +32044,7 @@ function renderSessHist(){const body=document.getElementById('sessView')||docume
   const ss=sessions.filter(x=>(glob||x.ficheId===_sessFiche)&&(glob||x.id!==Runtime.sessionId)).sort((a,b)=>(b.live?1:0)-(a.live?1:0)||b.savedAt-a.savedAt);   // v5.30 : la session vive en tête (maquette v5)
   const joinRow=(glob&&!Object.keys(liveSessions).length)?`<button type="button" class="sess-join" id="sessJoin"><span class="hj-ic" aria-hidden="true">⇄</span><span>Rejoindre une session en cours</span><span class="hs-chev" aria-hidden="true">›</span></button>`:'';
   const bindJoin=()=>{const j=body.querySelector('#sessJoin');if(j)j.onclick=()=>{closeSessHist();openJoinScreen('');};};
-  if(!ss.length){body.innerHTML=joinRow+emptyLine((glob?'Aucune session archivée.':'Aucune session archivée pour cette fiche.'));bindJoin();return;}
+  if(!ss.length){body.innerHTML=joinRow+emptyLine((glob?'Aucune session archivée.':'Aucune session archivée pour cette aide.'));bindJoin();return;}
   /* EXERCICES À PART (v4.27.0) : les répétitions ne se mêlent JAMAIS aux sessions cliniques —
      deux groupes, badge « ▲ EXERCICE » sur chaque rangée d'exercice. */
   const det=x=>{const d=fmtMs(Math.max(0,(x.savedAt||Date.now())-(x.startedAt||x.savedAt)));const n=x.checked&&typeof x.checked==='object'?Object.values(x.checked).filter(Boolean).length:0;
@@ -31702,7 +32134,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
       await Sync.loadProfile();closeMembers(true);if(state.view==='library')renderLibrary();}
     catch(e){sv.disabled=false;setNameMsg('Renommage impossible : '+e.message,'err');}};}
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
-    if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUTES ses fiches partagées ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
+    if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUT son contenu partagé ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
       closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
@@ -31715,7 +32147,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
   // Même composant que « Modifier la bibliothèque » (SPEC-dialogue-bibliotheque) — seuls
   // changent le titre, le CTA, et l'absence de membres/zone sensible. Pas de segmenté
   // Privée/Partagée : « Perso » EST l'espace privé (décision utilisateur v4.5).
-  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Une <b>bibliothèque</b> est un espace partagé : les fiches qu'elle contient sont accessibles aux membres que vous y invitez (rôle lecteur, éditeur ou admin), pour travailler à plusieurs sur les mêmes aides cognitives — une équipe, un service...</p>
+  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Une <b>bibliothèque</b> est un espace partagé : les aides et protocoles qu’elle contient sont accessibles aux membres que vous y invitez (rôle lecteur, éditeur ou admin), pour travailler à plusieurs sur les mêmes aides cognitives — une équipe, un service...</p>
     <div class="field-label">Nom</div>
     <input class="auth-field" id="newLibName" maxlength="60" placeholder="Ex. Équipe déchocage">
     <div class="share-note" style="margin-top:10px">Les droits d'accès sont appliqués <strong>côté serveur</strong> ; la bibliothèque reste consultable hors ligne une fois synchronisée.</div>
@@ -31759,7 +32191,7 @@ async function renderPending(){const body=document.getElementById('pendingBody')
   catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement.</p>';return;}
   body.innerHTML=`<label class="auth-check pend-toggle"><input type="checkbox" id="pendToggle"${required?' checked':''}><span>Exiger une validation pour les nouveaux comptes</span></label>
     <p class="ai-note" style="margin:-4px 0 16px">${required?"Chaque nouveau compte reste « en attente » jusqu'à votre approbation ci-dessous.":"Désactivé : les nouveaux comptes sont approuvés automatiquement, sans validation de votre part."}</p>
-    ${list.length?`<p class="auth-sub" style="margin-top:0">Ces comptes ont vérifié leur e-mail (code reçu)${required?' mais attendent votre approbation pour synchroniser leurs fiches dans le cloud':''}.</p>
+    ${list.length?`<p class="auth-sub" style="margin-top:0">Ces comptes ont vérifié leur e-mail (code reçu)${required?' mais attendent votre approbation pour synchroniser leurs données dans le cloud':''}.</p>
     <div class="mem-list">${list.map(u=>`<div class="mem-row"><div class="mem-avatar">${esc(memIni(u.email))}</div><div class="mem-info"><span class="mem-email">${esc(u.email)}</span><span class="pend-badge ${u.status}">${u.status==='rejected'?'Refusé':'En attente'}</span></div><div class="mem-act">${u.status==='rejected'?`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="btn sm ghost-danger" data-delete="${esc(u.user_id)}" title="Supprimer la demande pour laisser une 2e chance">Supprimer</button>`:`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="mini del" data-reject="${esc(u.user_id)}" title="Refuser">×</button>`}</div></div>`).join('')}</div>`
     :'<p class="auth-msg" style="text-align:center">Aucun compte en attente.</p>'}`;
   document.getElementById('pendToggle').onchange=async e=>{const val=e.target.checked;
@@ -31789,7 +32221,7 @@ bindModalDismiss(pendingModal,closePending);
 let _modalReturnFocus=null;
 function _openModals(){return [...document.querySelectorAll('.ai-modal.on')];}
 function _topModal(){const m=_openModals();return m[m.length-1]||null;}
-function _focusables(el){return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);}
+function _focusables(el){return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')]/* A466 : summary — le piège Tab sautait tout dépliant */.filter(x=>x.offsetParent!==null);}
 /* CALQUES OPAQUES plein écran (#flowFull, #lightbox) : fenêtres pour le FOCUS, le verrou de fond
    et le piège Tab sans être des `.ai-modal` ; `_layerTop()` sert au piège Tab et ne touche pas à
    `_topModal()` (Échap, retour système). Détail : doctrine-js.md J234. */
@@ -32013,6 +32445,7 @@ function _histSync(){if(_hQ)return;_hQ=true;queueMicrotask(()=>{_hQ=false;
   else if(L<d){_hSkip++;history.go(L-d);
     setTimeout(()=>{if(_hSkip){_hSkip=0;_histSync();}},1000);}});}   // popstate perdu : on se recale
 window.addEventListener('popstate',()=>{
+  if(deepLinkFromHash(location.hash))return;   // A464 : un lien direct n'est pas un retour — `hashchange` l'ouvre
   if(_hSkip){_hSkip--;_histSync();return;}
   const d=_hDepth(),L=_histLevels();
   if(d<0&&!L){try{history.back();}catch(_){}return;}   // accueil nu, sous la base : sortir
@@ -32052,7 +32485,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
-    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
+    txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
@@ -32072,7 +32505,7 @@ if(location.search.indexOf('__actest')>=0){
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
-    shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,
+    shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,deepLinkFromHash,
     SHARE_ALPHA,
     SHARE_KEEP,SHARE_DROP,SHARE_TRAVELS,SHARE_LOCAL,SHARE_KINDS_ANY,SHARE_KINDS_LEAD,
     SHARE_APPLY,SHARE_STALE_MS};
@@ -32168,14 +32601,15 @@ if(location.search.indexOf('__actest')>=0){
      `launchQueue`, que le manifeste rend possible depuis v4.43.0 (`launch_handler:
      focus-existing`) et que RIEN ne consommait — sur PWA installée, un lien entrant était donc
      silencieusement perdu. Les deux passent par le même chemin, et par la même garde de crise. */
-  window.addEventListener('hashchange',()=>{if(shareBootDecide())shareEntryArrived();});
+  window.addEventListener('hashchange',()=>{if(shareBootDecide())shareEntryArrived();else applyDeepLink();});
   try{if(window.launchQueue&&window.launchQueue.setConsumer){
     window.launchQueue.setConsumer(lp=>{try{
       const u=(lp&&lp.targetURL)||'';if(!u)return;
       const h=String(u).split('#')[1]||'';
       if(!h)return;
       const c=shareCodeFromHash('#'+h);
-      if(!c)return;
+      if(!c){try{history.replaceState(history.state,'','#'+h);}catch(e){}   // A464 : lien direct
+        if(!document.querySelector('.boot-load'))applyDeepLink();return;}
       SHARE_JOIN=c;shareEntryArrived();
     }catch(e){}});}}catch(e){}
   load().then(async()=>{
@@ -32199,7 +32633,7 @@ if(location.search.indexOf('__actest')>=0){
     d.innerHTML='<div class="boot-card" role="alertdialog" aria-labelledby="bfTitle">'
       +'<h2 id="bfTitle">L\'application n\'a pas pu démarrer</h2>'
       +'<p>Le stockage local n\'a pas répondu ('+esc(sstr((err&&err.message)||'erreur inconnue',160))+').</p>'
-      +'<p>Vos fiches ne sont pas effacées : rechargez la page ; si le problème persiste, libérez de l\'espace de stockage puis réessayez.</p>'
+      +'<p>Vos données ne sont pas effacées : rechargez la page ; si le problème persiste, libérez de l\'espace de stockage puis réessayez.</p>'
       +'<button class="btn primary" id="bfReload">Recharger</button></div>';
     document.body.appendChild(d);
     d.querySelector('#bfReload').addEventListener('click',()=>location.reload());

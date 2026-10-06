@@ -220,10 +220,10 @@ export async function amorce(page) {
     return;
   }
   await page.waitForFunction(() =>
-    [...document.querySelectorAll('button')].some(x => x.textContent.includes("fiches d'exemple"))
+    [...document.querySelectorAll('button')].some(x => x.id==='seedAdd')
     || document.querySelector('.card-open'));
   await page.evaluate(() => {
-    const s = [...document.querySelectorAll('button')].find(x => x.textContent.includes("fiches d'exemple"));
+    const s = [...document.querySelectorAll('button')].find(x => x.id==='seedAdd');
     if (s) s.click();
   });
   await page.waitForFunction(() => typeof fiches !== 'undefined' && fiches.length > 0

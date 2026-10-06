@@ -217,6 +217,14 @@ const SURFACES = [
   { nom:'gérer catégories',    w:390,  prep:'dlg:openCatMgr',     scope:'#catModal' },
   { nom:'fenêtre Compte',      w:390,  prep:'dlg:openAuth',       scope:'#authModal' },
   { nom:'où sont mes fiches',  w:390,  prep:'dlg:openStorageInfo',scope:'#storageModal' },
+  { nom:'prendre en main',     w:390,  prep:'dlg:openGuide',      scope:'#guideModal' },   // A466
+  /* A467 : la carte d'entrée de l'exercice guidé (aide d'exemple, avant la session) et sa bulle, ouvertes
+     par leurs vrais points d'entrée. */
+  { nom:'carte exercice guidé', w:390, scope:'.gd-card', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));openRead(f.id);await new Promise(r=>setTimeout(r,400)); } },
+  { nom:'bulle exercice guidé', w:390, scope:'#gdTip', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));await guideStart(f);await new Promise(r=>setTimeout(r,500));
+      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,600)); } },
   { nom:'bienvenue',           w:390,  scope:'#welcomeModal', noSeed:true, fn: async()=>{} },
   /* v5.44 : la fenêtre des outils du contenu rédigé (une fenêtre, deux corps), ouverte par ses vraies
      fonctions depuis un éditeur de référence réel. */
