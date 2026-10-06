@@ -19,6 +19,12 @@ d'exemple, sept sur l'anaphylaxie (pas de revue : l'étape se retire d'elle-mêm
   touche « Exercice » du quai. UNE rangée, jamais une carte haute : la première forme (liste des gestes + deux
   boutons, 230 px) repoussait « Ne pas oublier » sous le bouton de démarrage — le témoin CHAPEAU (séquence QRH
   critères → memory items → geste) l'a rougie. Sous 430 px effectifs, le bouton passe sous le texte (`zw430`).
+  **v5.48.3 (demande de l'auteur : « qu'elle saute aux yeux » ; choix C sur canevas « 20 ter »)** : la rangée porte
+  le PLACARD D'EXERCICE — hachures de la bande d'exercice sur `--primary-soft`, bord pointillé `--act` comme la
+  touche « ▲ Exercice », titre et bouton à l'encre `--act`. Elle se distingue des cartes de l'aide sans emprunter
+  de registre, et dit ce qu'elle est (un exercice) avant d'être lue. Écartées : teinte bleue pleine (se confondait
+  avec la notice « À relire » juste au-dessus), matière sombre (plus lourde que « Quand l'utiliser », qui doit
+  rester la première lecture avant une vraie session). « Commencer le guide » reste secondaire.
 - La carte disparaît une fois le guide fait ou refusé (`ac-guide` = `done` | `off`, préférence de l'appareil).
 - Ensuite, à la demande : menu ⋯ de l'aide d'exemple › « Exercice guidé », ou Moi › Prendre en main › « Lancer
   l'exercice guidé » (qui rajoute les exemples s'ils ont été supprimés).

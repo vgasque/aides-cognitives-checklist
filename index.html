@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-qgXN17FHF0ohph0CVjl9bOysdSDRhDpcRLjBRtt5fic='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-EhbyaTlMWPzczSqEgkY2UT+s7h4zdP9fUxbBLVBx25w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5205,12 +5205,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .gd-gl dd{margin:2px 0 0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
   /* A467 — exercice guidé : carte d'entrée (aide d'exemple, avant la session) et bulle sur la commande visée.
      Matière système pour la bulle (celle du quai et des notices), tokens seulement : elle suit le thème. */
-  .gd-card{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 8px 12px 12px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work)}
+  /* v5.48.3 (choix de l'auteur, canevas « 20 ter » C) : la rangée porte le PLACARD D'EXERCICE — hachures de la
+     bande d'exercice, pointillé de la touche « ▲ Exercice » — pour se distinguer des cartes de l'aide sans
+     emprunter de registre. Mêmes tokens que la bande : elle suit le thème. */
+  .gd-card{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 8px 12px 12px;background-color:var(--primary-soft);background-image:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--act) 12%,transparent) 0 2.3%,transparent 2.3% 25%);background-size:31px 31px;border:1.5px dashed var(--act);border-radius:var(--r-4)}
   .gd-cx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-  .gd-cx b{font-size:var(--t-item);font-weight:800;color:var(--ink)}
+  .gd-cx b{font-size:var(--t-item);font-weight:800;color:var(--act)}
   .gd-cx span{font-size:var(--t-meta);color:var(--ink-2)}
-  .gd-ci{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);font-weight:800}
-  .gd-card .btn{flex:none;min-height:44px}   /* L 44 : l’écran d’entrée est mesuré comme le mode crise */
+  .gd-ci{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-3);background:var(--work);color:var(--act);font-weight:800}
+  .gd-card .btn{flex:none;min-height:44px;background:var(--work);border:1.5px solid var(--act);color:var(--act)}   /* L 44 : l’écran d’entrée est mesuré comme le mode crise */
   .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
   html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
@@ -9026,7 +9029,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.48.2';
+const APP_VERSION='5.48.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

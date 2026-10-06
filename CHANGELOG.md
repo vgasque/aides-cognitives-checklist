@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.48.3] — 2026-10-06
+- **La proposition d'exercice guidé saute aux yeux.** Sur les aides d'exemple, la rangée « Apprendre avec cette
+  aide » prend le dessin du mode Exercice : fond hachuré bleu pâle, bord en pointillé, titre et bouton en bleu —
+  comme la bande d'exercice et la touche « ▲ Exercice ». Elle se distingue des cartes de l'aide en clair comme en
+  sombre ; « Démarrer la session » reste le seul bouton plein de l'écran (A467).
+
 ## [5.48.2] — 2026-10-05
 Retour d'essai sur iPhone de l'exercice guidé (A467) : la bulle cachait ce que le geste ouvrait, et le défilement
 saccadait.
@@ -303,25 +309,3 @@ Le geste retour se comporte comme dans une app (A430, doctrine `docs/decisions/l
 - Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), `audit-retour` 10/10 (nouvelle
   section, rouge sur le code d'avant), audit complet — seuls restent les deux rouges connus de ce poste (en-tête
   d'accueil à 320 px, barre de sélection).
-
-## [5.39.7] — 2026-09-29
-Retours d'usage sur l'accueil et le téléphone (A426 à A429, doctrine `docs/decisions/lot-v5-39.md`).
-- **Filtrer par bibliothèque.** La feuille « Affichage » propose une rangée « Bibliothèque » (Toutes, Perso, et
-  chaque bibliothèque partagée, cadenas si lecture seule), en plus du regroupement par bibliothèque. Elle
-  n'apparaît que s'il y a au moins deux bibliothèques ; le choix est le même que dans la colonne gauche du bureau.
-- **Une feuille « Affichage » en deux parties.** « Filtrer » (Afficher, Bibliothèque, Catégorie : ce qui
-  restreint) et « Présenter » (Trier, Regrouper, Densité : ce qui range) sont deux sections encadrées, chacune
-  avec son icône et son titre. Le compte des filtres actifs et « Tout effacer » passent dans l'en-tête de
-  « Filtrer » ; le pied ne dit plus que le résultat. À l'ouverture, le focus va sur le choix actif d'« Afficher ».
-- **Les filtres posés en puces sur la liste.** Sous la ligne de compte, une puce par filtre (« Bibliothèque :
-  CH Le Mans × ») : toucher la puce rouvre la feuille, sa croix retire ce seul filtre, « Tout effacer » à partir
-  de deux. Elles restent visibles quand aucun résultat ne correspond, là où l'on en a besoin. Elles remplacent la
-  phrase « filtres : … ».
-- **Cadenas alignés dans la colonne gauche** : les nombres ont une colonne de largeur fixe, les cadenas ne
-  bougent plus d'une rangée à l'autre.
-- **Couleur d'accent dans « Moi »** : la rangée de pastilles ne touche plus le bord de la carte.
-- **Retour dans l'app sur iPhone** : en revenant après l'avoir quittée (surtout avec la recherche active), le haut
-  de la page pouvait rester hors écran et le quai cessait de flotter. L'app recale la vue au retour au premier
-  plan. À vérifier sur l'appareil : le défaut ne se reproduit pas hors de Safari iOS.
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
-  deux rouges connus de ce poste (en-tête d'accueil à 320 px, barre de sélection).
