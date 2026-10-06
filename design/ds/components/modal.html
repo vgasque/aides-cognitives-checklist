@@ -7392,6 +7392,11 @@
      compte, et c'est la surface entière, pas la hauteur des boutons, qui retient le champ. */
   html.kbd.md-kbd .md-toolbar::before{content:"";position:absolute;bottom:100%;left:0;right:0;height:8px}
   html.kbd.md-kbd .md-toolbar .mini{height:36px}
+  /* v5.48.9 (simulateur iOS 26.5) : dans Safari, sous la barre, ~43 pt appartiennent à SA barre d'adresse
+     flottante — un toucher y déplie Safari et ferme le clavier, la page ne le reçoit jamais. 12 px de
+     rattrapage sous les boutons (le doigt qui vise bas tombe chez nous, sur le bouton le plus proche).
+     App installée : cette zone n'existe pas, la barre garde ses 41 px. */
+  @media (display-mode:browser){html.kbd.md-kbd .md-toolbar{padding-bottom:12px}}
   html.kbd.md-kbd .md-toolbar+.md-wpane{padding-top:40px}   /* place réservée hors clavier : la barre y mesure 40 px */
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}

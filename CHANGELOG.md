@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.48.9] — 2026-10-06
+Au téléphone, dans Safari, toucher juste sous les boutons de la barre d'outils marche (A472, doctrine `docs/decisions/lot-v5-48.md`).
+- **Ce qui se passait** : sous la barre, la bande blanche jusqu'à la barre « ⌃ ⌄ ✓ » du clavier n'appartient pas à la
+  page mais à Safari (sa barre d'adresse flottante, environ 43 px). Un toucher y déplie Safari et ferme le clavier ;
+  l'app ne le reçoit jamais, donc ne peut ni l'empêcher ni le rendre au bouton visé.
+- **Une bande de 12 px sous les boutons fait désormais partie de la barre**, dans Safari seulement : un doigt qui vise un
+  peu bas tombe chez l'app et va au bouton le plus proche. Elle prend 12 px au texte.
+- **App installée sur l'écran d'accueil** : la bande de Safari n'existe pas, la barre reste à 41 px.
+
 ## [5.48.8] — 2026-10-06
 Au téléphone, toucher un peu à côté d'un bouton de la barre d'outils ne ferme plus le clavier (A471, doctrine `docs/decisions/lot-v5-48.md`).
 - **Mesuré avant correction** : un toucher sur sept à un sur quatre dans la barre (entre deux boutons, sur les bords,
@@ -252,17 +261,3 @@ Le bouton « Ajouter » de l'éditeur se voit, la recherche dit dans quelle bibl
   dépliée.** Quand les réponses étaient longues (« Convulsions persistantes »), la ligne repliée passait à la ligne
   morceau par morceau — la réponse, puis la flèche « ↓ 5 » seule, puis le « · » seul. La flèche reste désormais au bout
   de sa réponse ; seul le texte de la réponse passe à la ligne.
-
-## [5.41.0] — 2026-10-04
-Le bouton « + » de l'éditeur dit ce qu'il ajoute, et quatre corrections (A441-A445, doctrine `docs/decisions/lot-v5-41.md`).
-- **La porte « Ajouter » de l'éditeur devient une pilule nommée** : « ＋ Ajouter », et dessous « bloc · minuteur ·
-  dose… », cerclée de bleu pour se détacher du fond, de jour comme de nuit. Le petit carré bleu pâle sans mot était
-  peu visible et ne disait pas quoi on ajoute. Même dessin dans l'éditeur de protocole. Tout en bas de la page, elle
-  prend sa propre place et ne masque aucun contenu.
-- **Colonne gauche : taper le cadenas ou le nombre d'une bibliothèque la sélectionne** (seul le nom répondait).
-- **Feuille « Affichage » : la pastille d'« Afficher » suit dès le premier clic** (signalé sous Chrome : elle ne
-  suivait qu'au second ; elle se pose désormais avant que la liste se recalcule).
-- **Éditeur : « Options du bloc » reste repliée à l'ouverture**, même quand une option est réglée — le résumé à
-  droite du titre dit déjà ce qui l'est. Un dépliage reste mémorisé pendant l'édition.
-- **Éditeur : le nom d'un minuteur ou d'un compteur est plus grand** (il était plus petit que son « Nom court »), et
-  sous « Nom court » une ligne discrète dit qu'il est facultatif et qu'il s'affiche sur la capsule en session.

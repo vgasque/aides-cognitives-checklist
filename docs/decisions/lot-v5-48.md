@@ -194,3 +194,18 @@ n'annulait `touchstart` que SUR une cible.
   iPhone 15 dans Safari, clavier et barre de saisie (viewport visible 400 px) — barre 41 px = 10 %, ≈ 12 lignes de
   texte ; iPhone SE (300 px) — 14 %, ≈ 10 lignes.
 
+## A472 — sous la barre, la zone de Safari (v5.48.9)
+
+**Signalé sur iPhone (06/10/2026)** : « toucher en dessous des boutons (l'espace blanc entre les boutons et le clavier)
+fait disparaître le clavier sans enregistrer l'appui ». **Mesuré au simulateur iOS 26.5 (iPhone 17, Safari)** : la
+barre se pose au bas du viewport visuel ; sous elle, jusqu'à la barre de formulaire « ⌃ ⌄ ✓ », ~43 pt appartiennent à
+la barre d'adresse FLOTTANTE de Safari (pastille « localhost »). Un toucher dans cette bande — même à côté de la
+pastille — déplie Safari et ferme le clavier ; aucun évènement n'atteint la page. Ni `preventDefault`, ni un calque, ni
+`::after` n'y peuvent rien : ce n'est pas notre surface.
+
+- **Rattrapage de 12 px sous les boutons** (`padding-bottom`) en `display-mode:browser` seulement : le doigt qui vise
+  bas tombe dans la barre, `tapKeepsFocus` (A471) le rend au bouton le plus proche. Coût : 12 px pris au texte dans
+  Safari (barre 53 px).
+- **App installée** : la zone n'existe pas, la barre reste à 41 px — c'est la vraie réponse au défaut.
+- Écartés : déplacer la barre plus haut (la bande de Safari resterait dessous, et l'on perdrait le contact avec le
+  clavier) ; agrandir les boutons (A471 : la surface, pas la hauteur, retient le champ).
