@@ -174,3 +174,23 @@ clavier se ferme, la barre redescend sous le doigt, et le clic émulé tombe ail
   (B, menus, choix, sous-menu des documents), six ouvertures/fermetures d'affilée cohérentes. La fermeture du clavier
   elle-même ne s'émule pas : la preuve ici est que le champ ne perd jamais le focus, condition pour qu'iOS le garde.
 
+## A471 — toute la surface garde le champ, sans prendre de place (v5.48.8, amende A470)
+
+**Signalé sur iPhone (06/10/2026)** : « si j'appuie juste un tout petit peu à côté, ça referme le clavier ». **Mesuré**
+(quadrillage au doigt tous les 4 px, clavier émulé, 390 px) : barre de 41 px pour des boutons de 32, 4 px d'écart —
+**14 % (WebKit) à 27 % (Chromium) des touchers dans la barre** lâchaient le champ (interstices, bords, vide avant
+« Insérer »), 8 % dans la bande de 10 px au-dessus, **~40 % entre les rangées d'un menu ouvert**. `tapKeepsFocus`
+n'annulait `touchstart` que SUR une cible.
+
+- **`tapKeepsFocus(root, sel, slop)`** annule désormais `touchstart` sur TOUTE la surface de `root` et attribue le
+  toucher à la cible la plus proche à moins de `slop` px (12 par défaut) ; le clic n'est rejoué que si le doigt se lève
+  toujours au plus près de la même cible. Un toucher dans un vide ne fait rien — mais garde le clavier.
+- **Garde de 8 px** au-dessus de la barre (`::before`, donc sa surface).
+- **Ni la barre ni les boutons ne grandissent** (essai à 40 px écarté : +8 px pris au texte, demande de l'auteur
+  « mesure que ça ne fasse pas perdre trop d'espace d'écran ») : la barre reste à 41 px (boutons 36 sur 2 px de
+  marge) — c'est la surface, pas la hauteur des boutons, qui retient le champ.
+- **Mesuré après** : 0 % de perte dans la barre et dans le menu, sur les deux moteurs ; 0 % au-dessus sur Chromium,
+  7 % sur WebKit au seul bord gauche et droit de la carte, à la limite exacte des 8 px. Espace (`.probe-espace`) :
+  iPhone 15 dans Safari, clavier et barre de saisie (viewport visible 400 px) — barre 41 px = 10 %, ≈ 12 lignes de
+  texte ; iPhone SE (300 px) — 14 %, ≈ 10 lignes.
+

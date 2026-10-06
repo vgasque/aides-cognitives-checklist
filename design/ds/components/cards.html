@@ -7383,11 +7383,16 @@
      du dock de l'accueil (C15 : top = vvt + vvh, remontée de sa propre hauteur, sol opaque dessous
      pour la barre d'accessoires translucide d'iOS). La place qu'elle quitte reste réservée (aucun
      saut du champ). `html.md-kbd` = le champ du contenu rédigé a le focus, au pointeur grossier. */
-  html.kbd.md-kbd .md-toolbar{position:fixed;left:0;right:0;bottom:auto;margin:0;z-index:30;padding:4px 12px;
+  html.kbd.md-kbd .md-toolbar{position:fixed;left:0;right:0;bottom:auto;margin:0;z-index:30;padding:2px 12px;
     top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1));transform:translateY(-100%);
     flex-wrap:nowrap;background:var(--work);border-top:1px solid var(--line)}
   html.kbd.md-kbd .md-toolbar::after{content:"";position:absolute;top:100%;left:0;right:0;height:240px;background:var(--work)}
-  html.kbd.md-kbd .md-toolbar+.md-wpane{padding-top:40px}
+  /* v5.48.8 (mesuré) : 8 px de garde au-dessus de la barre (sa surface, donc qui garde le focus) ; boutons
+     36 sur 2 px de marge — la barre garde ses 41 px : avec le clavier et la barre de Safari, chaque pixel
+     compte, et c'est la surface entière, pas la hauteur des boutons, qui retient le champ. */
+  html.kbd.md-kbd .md-toolbar::before{content:"";position:absolute;bottom:100%;left:0;right:0;height:8px}
+  html.kbd.md-kbd .md-toolbar .mini{height:36px}
+  html.kbd.md-kbd .md-toolbar+.md-wpane{padding-top:40px}   /* place réservée hors clavier : la barre y mesure 40 px */
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
   .mdt-g{position:relative;display:inline-flex}

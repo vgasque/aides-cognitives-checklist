@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.48.8] — 2026-10-06
+Au téléphone, toucher un peu à côté d'un bouton de la barre d'outils ne ferme plus le clavier (A471, doctrine `docs/decisions/lot-v5-48.md`).
+- **Mesuré avant correction** : un toucher sur sept à un sur quatre dans la barre (entre deux boutons, sur les bords,
+  dans le vide avant « Insérer ») et environ 40 % des touchers entre les lignes d'un menu ouvert faisaient perdre la
+  main au texte, donc fermaient le clavier.
+- **Toute la barre et tout le menu gardent maintenant le clavier ouvert**, et un toucher à côté d'un bouton (jusqu'à
+  12 px) va au bouton le plus proche ; une bande de 8 px au-dessus de la barre fait de même.
+- **La barre garde sa hauteur de 41 px** : clavier et barre de Safari ouverts, elle laisse au texte la même place
+  qu'avant (sur iPhone 15, environ 12 lignes visibles).
+
 ## [5.48.7] — 2026-10-06
 Au téléphone, toucher la barre d'outils au-dessus du clavier marche à chaque fois (A470, doctrine `docs/decisions/lot-v5-48.md`).
 - **Le clavier ne se ferme plus quand on touche un bouton de la barre ou une ligne de ses menus.** Sur iPhone, il se
@@ -256,25 +266,3 @@ Le bouton « + » de l'éditeur dit ce qu'il ajoute, et quatre corrections (A441
   droite du titre dit déjà ce qui l'est. Un dépliage reste mémorisé pendant l'édition.
 - **Éditeur : le nom d'un minuteur ou d'un compteur est plus grand** (il était plus petit que son « Nom court »), et
   sous « Nom court » une ligne discrète dit qu'il est facultatif et qu'il s'affiche sur la capsule en session.
-
-## [5.40.0] — 2026-10-02
-Une étape qui compte, quand le compteur relance lui-même un minuteur, le dit et se défait (A440, doctrine `docs/decisions/lot-v5-40.md`).
-- **En session, deux lignes sous l'étape** : le compte (« 0 → 1 à la coche · Adrénaline IM »), puis le minuteur que
-  la coche relance, au même dessin qu'une étape qui lance un minuteur directement — « 05:00 à la coche · Rééval.
-  adrén. », et s'il tourne déjà « 02:40 · la coche relance à 05:00 » : on voit ce que la coche va remettre à zéro.
-  La place des deux lignes est réservée d'office ; rien ne saute à la coche. Une seule ligne ne tenait pas sur un
-  téléphone sans couper le texte.
-- **Décocher dans les 10 s rend aussi ce minuteur** à son état d'avant. Il restait relancé : une coche posée par
-  erreur effaçait le délai de la dose précédente.
-- **Les lignes de minuteur prennent le nom court de la tuile** (« Rééval. adrén. ») au lieu du nom complet coupé.
-- **Éditeur, Réglages de l'étape** : sous « ＋1 Adrénaline IM », la ligne « et relance « Réévaluation après
-  adrénaline » · 5 min — réglé sur le compteur » et un bouton « Compteur » qui y mène. La pastille de l'étape le dit
-  aussi.
-- **Éditeur, carte du compteur** : « Compté par 2 étapes », chaque étape rouvre ses réglages, et la phrase « Chaque
-  coche de ces étapes, comme le ＋ de la tuile, relance … ».
-- **Un minuteur cyclique relancé par un geste se signale** (carte ambre « △ Minuteur cyclique ») : voulu pour un cycle
-  de relais, à éviter pour un délai qui court depuis un geste. Un avertissement, jamais une interdiction.
-- Partage de session : rien de nouveau ne voyage — celui qui coche compte et relance, l'état part vers l'autre écran ;
-  l'annulation de 10 s vaut sur l'appareil qui a coché. Registre de conformité § 2 mis à jour.
-- Une étape garde un seul lien (lance OU compte) : le lien compteur → minuteur reste sur le compteur, dont le « + »
-  relance aussi.
