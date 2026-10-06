@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-v4z0WmljNtpkwTAzr/ZojL7+WmHaGm1Fua561NQGtMs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0RSVb2wfXtJhtU88sSE369JM1a90GSa96s8ens93nDo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7735,6 +7735,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Barre regroupée (v5.44) : collante sous l'en-tête tant que le champ défile ; rendue au flux
      clavier ouvert (html.kbd, comme tout le chrome de page). Les menus s'ancrent sur `.mdt-g`. */
   .md-toolbar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;position:sticky;top:var(--hdr-h,64px);z-index:7;background:var(--work);margin:-4px 0 4px;padding:4px 0}   /* z 7 : ses menus passent devant la porte « Ajouter » (z 6) */
+  /* Clavier ouvert sur écran tactile (v5.48.5) : la barre se pose AU-DESSUS du clavier, au patron
+     du dock de l'accueil (C15 : top = vvt + vvh, remontée de sa propre hauteur, sol opaque dessous
+     pour la barre d'accessoires translucide d'iOS). La place qu'elle quitte reste réservée (aucun
+     saut du champ). `html.md-kbd` = le champ du contenu rédigé a le focus, au pointeur grossier. */
+  html.kbd.md-kbd .md-toolbar{position:fixed;left:0;right:0;bottom:auto;margin:0;z-index:30;padding:2px 12px;
+    top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1));transform:translateY(-100%);
+    flex-wrap:nowrap;background:var(--work);border-top:1px solid var(--line)}
+  html.kbd.md-kbd .md-toolbar::after{content:"";position:absolute;top:100%;left:0;right:0;height:240px;background:var(--work)}
+  /* v5.48.8 (mesuré) : 8 px de garde au-dessus de la barre (sa surface, donc qui garde le focus) ; boutons
+     36 sur 2 px de marge — la barre garde ses 41 px : avec le clavier et la barre de Safari, chaque pixel
+     compte, et c'est la surface entière, pas la hauteur des boutons, qui retient le champ. */
+  html.kbd.md-kbd .md-toolbar::before{content:"";position:absolute;bottom:100%;left:0;right:0;height:8px}
+  html.kbd.md-kbd .md-toolbar .mini{height:36px}
+  /* v5.48.9 (simulateur iOS 26.5) : dans Safari, sous la barre, ~43 pt appartiennent à SA barre d'adresse
+     flottante — un toucher y déplie Safari et ferme le clavier, la page ne le reçoit jamais. 12 px de
+     rattrapage sous les boutons (le doigt qui vise bas tombe chez nous, sur le bouton le plus proche).
+     App installée : cette zone n'existe pas, la barre garde ses 41 px. */
+  @media (display-mode:browser){html.kbd.md-kbd .md-toolbar{padding-bottom:12px}}
+  html.kbd.md-kbd .md-toolbar+.md-wpane{padding-top:40px}   /* place réservée hors clavier : la barre y mesure 40 px */
+  /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
+  .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
   .mdt-g{position:relative;display:inline-flex}
   .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
   .mdt-end{margin-left:auto}
@@ -7773,10 +7794,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .md-seg{display:none}
     #p-body{min-height:calc(50dvh / var(--zf,1))}
   }
+  /* 780-999 (v5.48.5, signalé : l'aperçu DANS la carte faisait cadre dans le cadre) : la colonne
+     d'aperçu de l'ordinateur, à la largeur de la colonne d'état (`--col-state`, 280 à ce palier). */
   @media (min-width:780px) and (max-width:999.98px){
-    .md-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
-    .md-ppane .md-prev-h{margin-top:0}
-    .md-ppane .md-preview{max-height:calc(50dvh / var(--zf,1) + 72px);overflow-y:auto}
+    body.view-pedit .read-grid{display:grid;grid-template-columns:minmax(0,1fr) var(--col-state);gap:0 16px;align-items:start}
+    body.view-pedit .read-side{position:sticky;top:96px;max-height:calc(100dvh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
+    body.view-pedit .md-ppane{display:none}
+    /* La carte n'a plus que la colonne d'action : barre au gabarit compact, libellés lus. */
+    body.view-pedit .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    body.view-pedit .md-toolbar .mdt-n{display:inline}
   }
   .md-head .md-grid{width:auto;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:700;color:var(--act);border-color:var(--act);flex:none}
   /* Fenêtre des outils (v5.44) : tableau en grille, collage mis en forme. */
@@ -8427,7 +8453,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-pedit .read-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 calc(var(--hinge) + 24px);align-items:start;max-width:none}
     body.view-pedit .read-side{position:sticky;top:96px;max-height:calc(100dvh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     body.view-pedit :is(.md-prev-h,.md-preview,.md-seg){display:none}
-    .md-split{display:block}
     .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
     .md-toolbar .mdt-n{display:inline}
     .md-toolbar .mdt-cv{display:none}
@@ -9029,7 +9054,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.48.4';
+const APP_VERSION='5.48.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16519,7 +16544,7 @@ function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g
       ['link','Lien web','[texte](https://…) · ⌘K',uiIcon('link',18)],['img','Image','réduite et stockée hors ligne',uiIcon('img',18)],
       ['code','Code','`texte`',uiIcon('code',18)],['hr','Séparateur','---',uiIcon('hr',18)]]}};}
 function mdToolbarHtml(){
-  const dd=(k,inner)=>`<span class="mdt-g"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
+  const dd=(k,inner)=>`<span class="mdt-g"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" data-catmenu aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
     <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte** · ⌘B">B</button>
     <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte* · ⌘I"><i>I</i></button>
@@ -16528,10 +16553,15 @@ function mdToolbarHtml(){
     ${dd('h','<span class="mdt-w">Titre</span><b class="mdt-n" aria-hidden="true">H</b>')}
     ${dd('list',uiIcon('ul',16)+'<span class="mdt-w">Liste</span>')}
     ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>')}
-    <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
+    <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
   </div>`;}
-function mdMenuOpen(btn,p,tool){const M=mdMenus(p)[btn.dataset.mdmenu];
-  openPickMenu(btn.parentNode,{aria:M.aria,trigger:btn,
+// Barre posée au-dessus du clavier (`html.kbd.md-kbd`) : ses menus s'ouvrent AU-DESSUS d'elle, sur sa largeur.
+const mdKbdUp=()=>{const c=document.documentElement.classList;return c.contains('kbd')&&c.contains('md-kbd');};
+const mdMenuHost=btn=>mdKbdUp()?{host:btn.closest('.md-toolbar'),up:true,keep:true}:{host:btn.parentNode};
+// Un bouton de menu BASCULE : retoucher celui qui est ouvert le ferme (`data-catmenu` : le toucher ne le préferme pas).
+function mdMenuOpen(btn,p,tool){if(btn.getAttribute('aria-expanded')==='true'&&_pickClose){_pickClose(false);return;}
+  const M=mdMenus(p)[btn.dataset.mdmenu],H=mdMenuHost(btn);
+  openPickMenu(H.host,{aria:M.aria,trigger:btn,up:H.up,keep:H.keep,
     options:M.o.map(([val,name,sub,ic,chev])=>({val,name,sub,ic,chev})),
     onPick:v=>v==='att'?mdDocMenu(btn,p,document.getElementById('p-body'),false):tool(v)});}
 // Un geste de la barre ou du clavier (même table pour les deux).
@@ -16559,7 +16589,8 @@ function mdLinkDoc(ta,d){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b
 function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[];
   const opts=docs.map(d=>({val:d.id,name:d.name.replace(/\.pdf$/i,''),sub:'PDF · '+fmtBytes(d.size),ic:uiIcon('doc',18)}));
   if(!docs.length&&supportsAttachments())opts.push({val:'',name:'Joindre un PDF…',sub:'il sera lié à l’endroit du curseur',ic:uiIcon('plus',18)});
-  openPickMenu(btn.parentNode,{aria:'Lier un document joint',trigger:typed?ta:btn,options:opts,
+  const H=mdMenuHost(btn);
+  openPickMenu(H.host,{aria:'Lier un document joint',trigger:typed?ta:btn,options:opts,up:H.up,keep:H.keep,
     head:typed?'':`<span class="hint">Le lien ouvre le document dans la visionneuse.</span>`,
     onPick:id=>{const d=docs.find(x=>x.id===id);
       if(d){if(!typed)return mdLinkDoc(ta,d);const [a]=selBounds(ta);mdSplice(ta,a,a,d.id+')');return;}
@@ -16869,7 +16900,7 @@ function renderProtocolEdit(){
   edTouch(true);   // K5 : idem côté protocole (un seul point d'accroche par éditeur)
   const p=state.pdraft;if(!p){state.view='library';return render();}
   const isNew=!protocols.some(x=>x.id===p.id);
-  const wideEdit=mqReadWide.matches||mqSeg.matches;
+  const wideEdit=mqRail.matches||mqSeg.matches;   // v5.48.5 : la colonne d'aperçu dès 780
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
@@ -16886,11 +16917,11 @@ function renderProtocolEdit(){
     <fieldset class="field ed-card md-ed${state.mdPv==='p'?' md-pv':''}"><label>Contenu rédigé <span class="hint">facultatif — mise en forme simple, aperçu à côté</span></label>
       ${mdHeadHtml()}
       ${mdToolbarHtml()}
-      <div class="md-split"><div class="md-wpane">
+      <div class="md-wpane">
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <div class="md-lint-box"></div>
       <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
-      <div class="md-ppane"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div></div>
+      <div class="md-ppane"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mdImagesHtml(p)}
       </fieldset>
     ${(p.sources||[]).length?listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[],false,{shell:'ed-card'}):''}
@@ -16936,6 +16967,14 @@ function renderProtocolEdit(){
   paintMiUse();
   const takeImg=pImgTaker(p,ta);
   const tool=k=>mdTool(k,ta,p,takeImg);
+  // Au toucher, les outils ne prennent pas le focus : le clavier reste ouvert, la barre au-dessus.
+  if(matchMedia('(pointer:coarse)').matches){const R=document.documentElement;
+    ta.addEventListener('focus',()=>R.classList.add('md-kbd'));
+    ta.addEventListener('blur',()=>{R.classList.remove('md-kbd');const m=main.querySelector('.md-toolbar>.popmenu.up');if(m&&_pickClose)_pickClose(false);});
+    // `mousedown` seul : annuler `pointerdown` supprime le clic sous WebKit (mesuré).
+    const tb=main.querySelector('.md-toolbar');
+    tb.addEventListener('mousedown',e=>{if(e.target.closest('[data-mdtool],[data-mdmenu]'))e.preventDefault();});
+    tapKeepsFocus(tb,'[data-mdtool],[data-mdmenu]');}
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>tool(b.dataset.mdtool));
   main.querySelectorAll('[data-mdmenu]').forEach(b=>b.onclick=()=>mdMenuOpen(b,p,tool));
   ta.addEventListener('keydown',e=>{if(e.isComposing)return;
@@ -17156,6 +17195,20 @@ function menuRowHtml(o){const tag=o.inert?'div':'button';   // `inert` : une ran
   return `<${tag}${o.inert?'':' type="button"'} class="mm-row${o.danger?' danger':''}${o.inert?' inert':''}"${o.attrs?' '+o.attrs:''}${o.disabled?' disabled':''}>`
     +(o.ic!=null?`<span class="mm-ic" aria-hidden="true">${o.ic}</span>`:o.dot?`<span class="cat-dot" style="--catcol:${o.col||'var(--line-strong)'}"></span>`:'')
     +`<span class="mm-tx"><span class="mm-lb">${esc(o.label)}</span>${o.sub?`<span class="mm-sub">${esc(o.sub)}</span>`:''}</span>${o.tail||''}</${tag}>`;}
+/* TOUCHER SANS LÂCHER LE CHAMP (v5.48.7, mesuré sur iPhone) : annuler `mousedown` arrive trop tard —
+   iOS a parfois déjà retiré le focus au champ, donc fermé le clavier. On annule `touchstart` et l'on rejoue
+   le clic au `touchend`. v5.48.8 (mesuré : 14 à 27 % de la barre et ~40 % d'un menu lâchaient le champ) :
+   TOUTE la surface de `root` garde le focus, interstices compris, et un toucher à moins de `slop` px
+   d'une cible va à la plus proche. Un glissé n'est pas un toucher. */
+function tapKeepsFocus(root,sel,slop){slop=slop==null?12:slop;let cur=null,x=0,y=0;
+  const near=(px,py)=>{let best=null,d0=slop+1;root.querySelectorAll(sel).forEach(b=>{if(!b.offsetParent||b.disabled)return;const r=b.getBoundingClientRect();
+    const d=Math.hypot(Math.max(r.left-px,0,px-r.right),Math.max(r.top-py,0,py-r.bottom));if(d<d0){d0=d;best=b;}});return best;};
+  root.addEventListener('touchstart',e=>{if(e.touches.length>1)return;e.preventDefault();const t=e.touches[0];x=t.clientX;y=t.clientY;
+    const b=e.target.closest(sel);cur=b&&root.contains(b)?b:near(x,y);},{passive:false});
+  root.addEventListener('touchmove',e=>{const t=e.touches[0];if(cur&&t&&Math.hypot(t.clientX-x,t.clientY-y)>10)cur=null;},{passive:true});
+  root.addEventListener('touchend',e=>{const b=cur;cur=null;e.preventDefault();if(!b)return;const t=e.changedTouches[0];
+    if(t&&near(t.clientX,t.clientY)===b||(t&&document.elementFromPoint(t.clientX,t.clientY)?.closest(sel)===b))b.click();},{passive:false});
+  root.addEventListener('touchcancel',()=>{cur=null;});}
 function openPickMenu(host,opts){
   if(_pickClose)_pickClose(false);
   const O=opts.options||[],val=String(opts.value==null?'':opts.value),trigger=opts.trigger;
@@ -17166,8 +17219,9 @@ function openPickMenu(host,opts){
       tail:(sel?`<span class="mm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:'')+(o.chev?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:'')});};
   // Feuille imposée par l'appelant (atelier d'import : le corps de fenêtre couperait un menu
   // ancré) ou par la largeur — le seuil de la feuille de style d'hier, à l'identique.
-  const sheet=!!opts.sheet||window.innerWidth<780;
-  const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'');menu.setAttribute('role','listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
+  // `up` (v5.48.6) : ancré au-dessus de son hôte, jamais en feuille (la feuille basse vivrait sous le clavier).
+  const sheet=!opts.up&&(!!opts.sheet||window.innerWidth<780);
+  const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'');menu.setAttribute('role','listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
   menu.innerHTML=`<div class="popmenu-head">${opts.back?menuRowHtml({label:opts.back.label,sub:opts.back.sub,ic:uiIcon('backto',18),attrs:'data-pickback'}):''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'');
@@ -17217,8 +17271,10 @@ function openPickMenu(host,opts){
       menu.querySelectorAll(':scope>.mm-head').forEach(h=>{let n=h.nextElementSibling,vis=false;   // un intertitre suit son groupe
         while(n&&n.classList.contains('mm-row')){if(n.style.display!=='none'){vis=true;break;}n=n.nextElementSibling;}
         h.style.display=vis?'':'none';});});
-    fl.focus();}
-  else{const first=menu.querySelector('.mm-row');if(first)first.focus();}
+    if(!opts.keep)fl.focus();}
+  else if(!opts.keep){const first=menu.querySelector('.mm-row');if(first)first.focus();}
+  // `keep` (v5.48.6) : le champ en cours garde le focus — donc le clavier — pendant qu'on choisit.
+  if(opts.keep){menu.addEventListener('mousedown',e=>{if(e.target.closest('.mm-row'))e.preventDefault();});tapKeepsFocus(menu,'.mm-row');}
   veil.onclick=()=>close(false);}
 function openCatMenu(host,d,rerender,trigger){
   openPickMenu(host,{aria:'Catégorie',value:d.category||'',trigger,

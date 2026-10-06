@@ -111,3 +111,101 @@ dans le même commit.**
 **Formes écartées.** Une bulle flottante près de sa cible, à toutes les largeurs (v5.48.2, ci-dessus) ; une carte d'entrée haute qui liste les gestes (séquence QRH, ci-dessus) ; un voile sombre qui bloque l'écran (décision 6 : estomper un peu) ; une bulle par-dessus une
 session réelle (règle 11) ; avancer au clic sur la bulle pour les gestes (le guide apprend par la main) ; dessiner des
 copies des commandes dans la bulle (elles divergeraient).
+
+# Lot v5.48.5 — deux retouches de l'éditeur des références (A468)
+
+## A468 — l'aperçu en colonne dès 780, la barre au-dessus du clavier (v5.48.5, amende A453 et A455)
+
+**Signalé à l'usage (06/10/2026)** : « pas très joli de mettre l'aperçu dans le cadre en mode tablette », et la barre
+d'outils promise au-dessus du clavier au téléphone n'y était pas (A453 l'avait laissée collée sous l'en-tête).
+
+- **Tablette** (amende A455) : de 780 à 999 px, l'éditeur d'une référence prend la colonne d'aperçu de l'ordinateur
+  (`wideEdit = mqRail || mqSeg`, largeur `--col-state` — 280 à ce palier, la même que la colonne d'état). Le côte à côte
+  DANS la carte (`.md-split`) est purgé. La carte n'ayant plus que la colonne d'action, sa barre prend le gabarit
+  compact (libellés lus, non montrés) : une ligne mesurée à 820, 900 et 1024.
+- **Téléphone** (amende A453) : au pointeur grossier, le champ du contenu rédigé pose `html.md-kbd` sur son focus ; avec
+  `html.kbd`, la barre se fixe au BAS DU VIEWPORT VISUEL au patron du dock de l'accueil (C15 : `top = vvt + vvh`,
+  remontée de sa propre hauteur, sol opaque dessous pour la barre d'accessoires translucide d'iOS). C'est un ancrage
+  calé sur `--vvh`, donc admis par `check-stick` (couche, pas chrome qui poursuit). La place quittée reste réservée
+  (`padding-top` — une marge fusionnait avec celle de l'en-tête de carte, 8 px de saut mesurés).
+- **Le clavier reste ouvert** : `mousedown` des outils est annulé (le focus ne quitte pas le champ). ⚠ PAS
+  `pointerdown` : mesuré sous WebKit, l'annuler supprime le CLIC (aucun `mousedown`, aucun `click`). Les menus prennent
+  le focus (feuille basse) : le clavier s'abaisse le temps du choix, le geste rend le focus au champ.
+- **Mesuré** (sonde, clavier émulé en réduisant et en panoramiquant `visualViewport`, comme iOS) : barre collée au bord
+  du clavier, qui suit le panoramique ; aucun saut du champ ; outil touché → texte changé, focus gardé ; clavier fermé →
+  barre rentrée dans la carte. **Reste à confirmer sur iPhone réel** : la barre d'accessoires d'iOS et la hauteur du
+  clavier ne s'émulent pas.
+
+## A469 — les menus de la barre, clavier ouvert (v5.48.6, amende A468)
+
+**Signalé sur iPhone (06/10/2026)** : la barre au-dessus du clavier « bug beaucoup » dès qu'on touche Titre, Liste,
+Encadré ou Insérer. Cause : seuls B · I · S annulaient leur `mousedown` ; un bouton de menu prenait le focus, le champ
+le perdait, le clavier se fermait (`html.kbd` et `html.md-kbd` tombent), la barre redescendait dans la carte SOUS le
+doigt, et `openPickMenu`, sous 780 px, ouvrait une feuille basse — sous le clavier — puis focalisait sa première
+rangée.
+
+- **`openPickMenu` gagne deux options**, sans rien changer aux autres appelants : `up` (ancré, s'ouvre au-dessus de son
+  hôte, jamais en feuille) et `keep` (aucun focus posé à l'ouverture, `mousedown` des rangées annulé : le champ en cours
+  garde le focus, donc le clavier).
+- **Barre au-dessus du clavier** (`mdKbdUp`, `mdMenuHost`) : ses menus — et le sous-menu « Lien vers un document » —
+  prennent la BARRE pour hôte (fixée, donc bloc conteneur), au-dessus d'elle sur toute sa largeur, bornés à la hauteur
+  visible (`--vvh`). Hors clavier, rien ne change (ancré au bureau, feuille au téléphone).
+- Le `mousedown` annulé couvre aussi les boutons de menu ; un menu ouvert au-dessus du clavier se ferme avec lui (blur
+  du champ).
+- **Mesuré** (clavier émulé, toucher réel, Chromium et WebKit) : chaque menu au-dessus de la barre et dans l'écran,
+  focus et clavier gardés à l'ouverture et après le choix, choix posé, sous-menu des documents compris ; toucher le
+  texte referme le menu. **Hors de portée** : la barre d'adresse de Safari et celle du remplissage automatique (hors PWA)
+  — l'app ne peut ni les masquer ni les mesurer ; la barre se cale au-dessus d'elles.
+
+## A470 — toucher sans lâcher le champ (v5.48.7, amende A468 et A469)
+
+**Signalé sur iPhone (06/10/2026)** : « des fois quand je clique dessus ça apparaît, des fois non », et le clavier
+disparaît souvent au toucher. Cause : sur iOS, la suite d'un toucher est `touchstart` → `touchend` → `mousedown` →
+`click` émulés ; annuler `mousedown` (A468) arrive APRÈS que WebKit a parfois déjà retiré le focus au champ — le
+clavier se ferme, la barre redescend sous le doigt, et le clic émulé tombe ailleurs. Une course, d'où l'aléa.
+
+- **`tapKeepsFocus(root, sel)`** (fabrique unique, posée sur la barre et sur les rangées d'un menu `keep`) : au toucher,
+  `touchstart` est annulé — rien ne quitte le champ —, et le clic est REJOUÉ au `touchend` si le doigt est resté sur la
+  même cible (`elementFromPoint`) ; un glissé de plus de 10 px annule, un second doigt aussi. On ne dépend plus du clic
+  émulé d'iOS. Le `mousedown` annulé reste pour la souris.
+- **Un bouton de menu BASCULE** : retoucher celui qui est ouvert le ferme. Les boutons de la barre portent `data-catmenu`
+  (le geste extérieur d'`openPickMenu` ne les préferme plus — il fermait au `pointerdown`, le clic rouvrait).
+- **Mesuré** (toucher réel émulé, Chromium et WebKit) : AUCUNE perte de focus du champ sur toute la série de touchers
+  (B, menus, choix, sous-menu des documents), six ouvertures/fermetures d'affilée cohérentes. La fermeture du clavier
+  elle-même ne s'émule pas : la preuve ici est que le champ ne perd jamais le focus, condition pour qu'iOS le garde.
+
+## A471 — toute la surface garde le champ, sans prendre de place (v5.48.8, amende A470)
+
+**Signalé sur iPhone (06/10/2026)** : « si j'appuie juste un tout petit peu à côté, ça referme le clavier ». **Mesuré**
+(quadrillage au doigt tous les 4 px, clavier émulé, 390 px) : barre de 41 px pour des boutons de 32, 4 px d'écart —
+**14 % (WebKit) à 27 % (Chromium) des touchers dans la barre** lâchaient le champ (interstices, bords, vide avant
+« Insérer »), 8 % dans la bande de 10 px au-dessus, **~40 % entre les rangées d'un menu ouvert**. `tapKeepsFocus`
+n'annulait `touchstart` que SUR une cible.
+
+- **`tapKeepsFocus(root, sel, slop)`** annule désormais `touchstart` sur TOUTE la surface de `root` et attribue le
+  toucher à la cible la plus proche à moins de `slop` px (12 par défaut) ; le clic n'est rejoué que si le doigt se lève
+  toujours au plus près de la même cible. Un toucher dans un vide ne fait rien — mais garde le clavier.
+- **Garde de 8 px** au-dessus de la barre (`::before`, donc sa surface).
+- **Ni la barre ni les boutons ne grandissent** (essai à 40 px écarté : +8 px pris au texte, demande de l'auteur
+  « mesure que ça ne fasse pas perdre trop d'espace d'écran ») : la barre reste à 41 px (boutons 36 sur 2 px de
+  marge) — c'est la surface, pas la hauteur des boutons, qui retient le champ.
+- **Mesuré après** : 0 % de perte dans la barre et dans le menu, sur les deux moteurs ; 0 % au-dessus sur Chromium,
+  7 % sur WebKit au seul bord gauche et droit de la carte, à la limite exacte des 8 px. Espace (`.probe-espace`) :
+  iPhone 15 dans Safari, clavier et barre de saisie (viewport visible 400 px) — barre 41 px = 10 %, ≈ 12 lignes de
+  texte ; iPhone SE (300 px) — 14 %, ≈ 10 lignes.
+
+## A472 — sous la barre, la zone de Safari (v5.48.9)
+
+**Signalé sur iPhone (06/10/2026)** : « toucher en dessous des boutons (l'espace blanc entre les boutons et le clavier)
+fait disparaître le clavier sans enregistrer l'appui ». **Mesuré au simulateur iOS 26.5 (iPhone 17, Safari)** : la
+barre se pose au bas du viewport visuel ; sous elle, jusqu'à la barre de formulaire « ⌃ ⌄ ✓ », ~43 pt appartiennent à
+la barre d'adresse FLOTTANTE de Safari (pastille « localhost »). Un toucher dans cette bande — même à côté de la
+pastille — déplie Safari et ferme le clavier ; aucun évènement n'atteint la page. Ni `preventDefault`, ni un calque, ni
+`::after` n'y peuvent rien : ce n'est pas notre surface.
+
+- **Rattrapage de 12 px sous les boutons** (`padding-bottom`) en `display-mode:browser` seulement : le doigt qui vise
+  bas tombe dans la barre, `tapKeepsFocus` (A471) le rend au bouton le plus proche. Coût : 12 px pris au texte dans
+  Safari (barre 53 px).
+- **App installée** : la zone n'existe pas, la barre reste à 41 px — c'est la vraie réponse au défaut.
+- Écartés : déplacer la barre plus haut (la bande de Safari resterait dessous, et l'on perdrait le contact avec le
+  clavier) ; agrandir les boutons (A471 : la surface, pas la hauteur, retient le champ).

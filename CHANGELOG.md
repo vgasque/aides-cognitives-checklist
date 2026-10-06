@@ -1,5 +1,50 @@
 # Journal des modifications
 
+## [5.48.9] — 2026-10-06
+Au téléphone, dans Safari, toucher juste sous les boutons de la barre d'outils marche (A472, doctrine `docs/decisions/lot-v5-48.md`).
+- **Ce qui se passait** : sous la barre, la bande blanche jusqu'à la barre « ⌃ ⌄ ✓ » du clavier n'appartient pas à la
+  page mais à Safari (sa barre d'adresse flottante, environ 43 px). Un toucher y déplie Safari et ferme le clavier ;
+  l'app ne le reçoit jamais, donc ne peut ni l'empêcher ni le rendre au bouton visé.
+- **Une bande de 12 px sous les boutons fait désormais partie de la barre**, dans Safari seulement : un doigt qui vise un
+  peu bas tombe chez l'app et va au bouton le plus proche. Elle prend 12 px au texte.
+- **App installée sur l'écran d'accueil** : la bande de Safari n'existe pas, la barre reste à 41 px.
+
+## [5.48.8] — 2026-10-06
+Au téléphone, toucher un peu à côté d'un bouton de la barre d'outils ne ferme plus le clavier (A471, doctrine `docs/decisions/lot-v5-48.md`).
+- **Mesuré avant correction** : un toucher sur sept à un sur quatre dans la barre (entre deux boutons, sur les bords,
+  dans le vide avant « Insérer ») et environ 40 % des touchers entre les lignes d'un menu ouvert faisaient perdre la
+  main au texte, donc fermaient le clavier.
+- **Toute la barre et tout le menu gardent maintenant le clavier ouvert**, et un toucher à côté d'un bouton (jusqu'à
+  12 px) va au bouton le plus proche ; une bande de 8 px au-dessus de la barre fait de même.
+- **La barre garde sa hauteur de 41 px** : clavier et barre de Safari ouverts, elle laisse au texte la même place
+  qu'avant (sur iPhone 15, environ 12 lignes visibles).
+
+## [5.48.7] — 2026-10-06
+Au téléphone, toucher la barre d'outils au-dessus du clavier marche à chaque fois (A470, doctrine `docs/decisions/lot-v5-48.md`).
+- **Le clavier ne se ferme plus quand on touche un bouton de la barre ou une ligne de ses menus.** Sur iPhone, il se
+  fermait une fois sur deux : le toucher retirait parfois le focus au texte avant que l'app ait pu l'en empêcher, et le
+  bouton touché ne répondait alors pas toujours.
+- **Retoucher le bouton d'un menu ouvert le ferme** (avant, il se refermait et se rouvrait aussitôt).
+- Un glissé du doigt sur la barre ne déclenche rien.
+
+## [5.48.6] — 2026-10-06
+Au téléphone, les menus de la barre d'outils fonctionnent pendant qu'on écrit (A469, doctrine `docs/decisions/lot-v5-48.md`).
+- **Titre, Liste, Encadré et Insérer s'ouvrent juste au-dessus de la barre**, sur toute sa largeur, quand elle est posée
+  au-dessus du clavier. Avant, toucher l'un d'eux fermait le clavier : la barre redescendait sous le doigt et le menu
+  s'ouvrait en bas de l'écran, sous le clavier.
+- **Le clavier reste ouvert** pendant le choix, et après : on reprend la frappe là où l'on était. Toucher le texte
+  referme le menu.
+
+## [5.48.5] — 2026-10-06
+Deux retouches de l'éditeur des références signalées à l'usage (A468, doctrine `docs/decisions/lot-v5-48.md`).
+- **Sur tablette (780 à 999 px), l'aperçu sort de la carte** : il passe dans une colonne à droite, comme sur
+  ordinateur, au lieu de s'afficher dans un cadre à l'intérieur du cadre « Contenu rédigé ». La barre d'outils prend
+  alors le format compact (icônes) et tient sur une ligne.
+- **Au téléphone, la barre d'outils se pose au-dessus du clavier** pendant qu'on écrit, comme la recherche de
+  l'accueil. Le texte ne bouge pas quand elle se détache. Toucher un outil (B, I, S) n'abaisse plus le clavier ;
+  les menus (Titre, Liste, Encadré, Insérer) l'abaissent le temps du choix, puis le texte reprend la main. À
+  vérifier sur iPhone réel : le rendu dépend du clavier d'iOS.
+
 ## [5.48.4] — 2026-10-06
 - **Exercice guidé, « Cochez les étapes restantes » :** le bloc en cours reste entièrement net, sans anneau, et le
   reste de l'écran (en-tête, capsule, quai) s'estompe — on voit d'un coup d'œil où cocher (A467).
@@ -216,84 +261,3 @@ Le bouton « Ajouter » de l'éditeur se voit, la recherche dit dans quelle bibl
   dépliée.** Quand les réponses étaient longues (« Convulsions persistantes »), la ligne repliée passait à la ligne
   morceau par morceau — la réponse, puis la flèche « ↓ 5 » seule, puis le « · » seul. La flèche reste désormais au bout
   de sa réponse ; seul le texte de la réponse passe à la ligne.
-
-## [5.41.0] — 2026-10-04
-Le bouton « + » de l'éditeur dit ce qu'il ajoute, et quatre corrections (A441-A445, doctrine `docs/decisions/lot-v5-41.md`).
-- **La porte « Ajouter » de l'éditeur devient une pilule nommée** : « ＋ Ajouter », et dessous « bloc · minuteur ·
-  dose… », cerclée de bleu pour se détacher du fond, de jour comme de nuit. Le petit carré bleu pâle sans mot était
-  peu visible et ne disait pas quoi on ajoute. Même dessin dans l'éditeur de protocole. Tout en bas de la page, elle
-  prend sa propre place et ne masque aucun contenu.
-- **Colonne gauche : taper le cadenas ou le nombre d'une bibliothèque la sélectionne** (seul le nom répondait).
-- **Feuille « Affichage » : la pastille d'« Afficher » suit dès le premier clic** (signalé sous Chrome : elle ne
-  suivait qu'au second ; elle se pose désormais avant que la liste se recalcule).
-- **Éditeur : « Options du bloc » reste repliée à l'ouverture**, même quand une option est réglée — le résumé à
-  droite du titre dit déjà ce qui l'est. Un dépliage reste mémorisé pendant l'édition.
-- **Éditeur : le nom d'un minuteur ou d'un compteur est plus grand** (il était plus petit que son « Nom court »), et
-  sous « Nom court » une ligne discrète dit qu'il est facultatif et qu'il s'affiche sur la capsule en session.
-
-## [5.40.0] — 2026-10-02
-Une étape qui compte, quand le compteur relance lui-même un minuteur, le dit et se défait (A440, doctrine `docs/decisions/lot-v5-40.md`).
-- **En session, deux lignes sous l'étape** : le compte (« 0 → 1 à la coche · Adrénaline IM »), puis le minuteur que
-  la coche relance, au même dessin qu'une étape qui lance un minuteur directement — « 05:00 à la coche · Rééval.
-  adrén. », et s'il tourne déjà « 02:40 · la coche relance à 05:00 » : on voit ce que la coche va remettre à zéro.
-  La place des deux lignes est réservée d'office ; rien ne saute à la coche. Une seule ligne ne tenait pas sur un
-  téléphone sans couper le texte.
-- **Décocher dans les 10 s rend aussi ce minuteur** à son état d'avant. Il restait relancé : une coche posée par
-  erreur effaçait le délai de la dose précédente.
-- **Les lignes de minuteur prennent le nom court de la tuile** (« Rééval. adrén. ») au lieu du nom complet coupé.
-- **Éditeur, Réglages de l'étape** : sous « ＋1 Adrénaline IM », la ligne « et relance « Réévaluation après
-  adrénaline » · 5 min — réglé sur le compteur » et un bouton « Compteur » qui y mène. La pastille de l'étape le dit
-  aussi.
-- **Éditeur, carte du compteur** : « Compté par 2 étapes », chaque étape rouvre ses réglages, et la phrase « Chaque
-  coche de ces étapes, comme le ＋ de la tuile, relance … ».
-- **Un minuteur cyclique relancé par un geste se signale** (carte ambre « △ Minuteur cyclique ») : voulu pour un cycle
-  de relais, à éviter pour un délai qui court depuis un geste. Un avertissement, jamais une interdiction.
-- Partage de session : rien de nouveau ne voyage — celui qui coche compte et relance, l'état part vers l'autre écran ;
-  l'annulation de 10 s vaut sur l'appareil qui a coché. Registre de conformité § 2 mis à jour.
-- Une étape garde un seul lien (lance OU compte) : le lien compteur → minuteur reste sur le compteur, dont le « + »
-  relance aussi.
-
-## [5.39.11] — 2026-10-02
-Ce que la charge révélait : deux sondes fragiles et deux défauts de l'app (A439, doctrine `docs/decisions/lot-v5-39.md`).
-- **Déplacer une étape ou une ligne ne décale plus l'écran.** Reposer ou abandonner une rangée pendant son petit
-  tremblement (une demi-seconde) faisait défiler la page de quelques pixels pour de bon — jusqu'à 6 px sur un appareil
-  lent, cumulés d'un geste à l'autre. L'ancrage mesure maintenant la rangée posée, pas son tremblement.
-- **Les fiches d'exemple ne s'ajoutent plus en double** si l'on touche « Ajouter les fiches d'exemple » pendant que
-  « Découvrir avec 2 exemples » est encore en train de les écrire.
-- Harnais : l'amorçage commun attend les fiches d'exemple au lieu de presser une seconde fois ; la sonde « à la prise,
-  l'objet ne bouge pas » mesure après l'animation. Vérifié en passe complète processeur ralenti (÷3, puis k5 à ÷6) :
-  plus aucun rouge dû à la charge.
-
-## [5.39.10] — 2026-10-02
-La partie « Administration » de Moi, d'après la maquette validée (A438, doctrine `docs/decisions/lot-v5-39.md`).
-- **La seule action en tête** : « 3 demandes de compte · À approuver ou refuser · 2 refusées », toute la rangée
-  ouvre l'examen ; sur un écran assez large, « Examiner › » est un bouton plein. Sans demande, la rangée reste
-  (« Aucune en attente ») pour consulter les refusées.
-- **Quatre chiffres d'un coup d'œil** : comptes actifs, aides, protocoles, partages en cours.
-- **Contenus & sessions, et Stockage, en deux cartes** — côte à côte dès que la largeur le permet (ordinateur),
-  l'une sous l'autre sinon (téléphone, tablette en portrait). La barre de stockage a sa légende (données / documents
-  PDF), et la note « le compte administrateur ne se supprime pas d'ici » vit au pied de la carte Stockage.
-- Nombres séparés par milliers (« 1 208 ») ; heure de mise à jour à côté de l'intertitre.
-- Témoins : `npm test` 1280/1280 ; l'ancien rendu en rangées (`.ist-*`) est purgé.
-
-## [5.39.9] — 2026-10-02
-Sept retours d'usage corrigés, et les deux essais d'affichage tranchés (A431-A437, doctrine `docs/decisions/lot-v5-39.md`).
-- **Colonne de gauche : les deux « Gérer » s'alignent.** La liste des catégories réservait la place de sa barre de
-  défilement, et tout ce qu'elle porte se tenait 15 px plus à gauche que les bibliothèques. Les trois étages de la
-  colonne réservent désormais la même place : un seul bord droit (A431).
-- **« Gérer les catégories » respire.** Les pastilles, l'anneau de la couleur choisie, « Autre teinte » et son
-  curseur ne touchent plus le bord de la carte, et l'anneau n'y est plus coupé. L'avertissement « △ Proche d'une
-  couleur d'alerte » retrouve son ambre et s'aligne sur le nom, « Prendre la teinte voisine » juste dessous (A432).
-- **En session, la barre « ↩ Bloc » ne cache plus le bas de la page.** Tant qu'elle est affichée, la page garde sa
-  place en bas : on défile jusqu'à la dernière ligne des références (A433).
-- **Essais tranchés : capsule en tuiles, instruments en colonne.** « Horizon » et « Bande » sont retirés, avec leurs
-  réglages dans Moi › Affichage ; le réglage enregistré sur l'appareil est effacé au démarrage (A434).
-- **Couleur d'accent : les pastilles montrent l'avatar qu'elles donneront.** Carré arrondi avec vos initiales ;
-  « Par défaut » est enfin le bleu pâle réel, et plus un bleu nuit. L'accent colore aussi « Moi » dans la colonne de
-  gauche et la carte d'identité de Moi (A435).
-- **« Rejoindre une session », caméra refusée.** Le message, une consigne et les deux boutons (« Autoriser la
-  caméra », « Saisir le code à la main ») forment une seule carte ambre avec son icône. « Ce qui est enregistré, et
-  par qui » montre la flèche ▾ des autres dépliants (A436).
-- **« Affichage » : le bandeau « Filtrer » ne saute plus** quand « n actifs · Tout effacer » apparaît (A437).
-- **Maquette à valider** : la partie « Administration » de Moi, sur un canevas Claude Design (rien n'est codé).
-- Témoins : section A380 d'`audit-doctrine` retirée avec les essais ; familles `essai-` purgées de `check-classes`.
