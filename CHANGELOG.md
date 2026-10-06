@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.49.0] — 2026-10-06
+L'étape qui attend un seuil dit enfin ce qui est compté et quand sa case s'ouvre (A474), et quatre retours d'usage corrigés (A473, doctrine `docs/decisions/lot-v5-48.md`).
+- **La jauge d'un seuil vit dans son étiquette.** « CHOCS DÉLIVRÉS ≥ 3 ●○□ » : les points comptent le compteur
+  nommé juste avant, et le dernier repère a la forme d'une case — c'est là que l'étape devient cochable. Sous le
+  libellé, les points et « encore 3 » se lisaient comme le compte de l'étape (« cochable encore 3 fois »).
+- **Avant son seuil, la case de l'étape est là, estompée** (pleine et pâle) au lieu d'un pointillé qui se lisait
+  « inatteignable » — « Faire maintenant » la coche à tout moment, à droite de la rangée. Au seuil, l'étiquette
+  passe au vert, jauge pleine, et la case reprend son trait.
+- **« Se déconnecter » ne déconnecte plus que cet appareil.** Il révoquait toutes les sessions du compte : les autres
+  appareils se retrouvaient déconnectés au rafraîchissement suivant.
+- **La capsule de session montre deux compteurs quand ils tiennent, toujours avec leur nom entier.** Le rappel à côté
+  du chevron dit « +1 compteur » (ou « +1 minuteur ») quand une partie est déjà montrée : « 1 compteur » à côté d'une
+  tuile de compteur se lisait comme le total. Un nom de compteur n'est plus jamais coupé (« Chocs délivr… » quand un
+  minuteur tournait) : la tuile cède la place plutôt que de s'abréger. Les minuteurs restent prioritaires.
+- **« Relâcher avant la fin annule »** se pose 14 px sous les boutons de la fenêtre de fin (il les touchait).
+- **Moi : « Exporter mes données », « Prendre en main » et « Un problème ? »** sont espacés de la même façon (12 px).
+
 ## [5.48.9] — 2026-10-06
 Au téléphone, dans Safari, toucher juste sous les boutons de la barre d'outils marche (A472, doctrine `docs/decisions/lot-v5-48.md`).
 - **Ce qui se passait** : sous la barre, la bande blanche jusqu'à la barre « ⌃ ⌄ ✓ » du clavier n'appartient pas à la
@@ -244,20 +261,3 @@ La revue « à tout moment » (ex. causes réversibles 4H / 4T) montre, sans un 
   revue pour la session.
 - Accessibilité : la ligne de la revue est un vrai bouton (la rangée entière l'était et contenait des cases), et le
   lecteur d'écran entend qu'elle se remplit quand on veut, sans retenir la suite.
-
-## [5.41.1] — 2026-10-04
-Le bouton « Ajouter » de l'éditeur se voit, la recherche dit dans quelle bibliothèque elle cherche, et une décision repliée du parcours redevient compacte (A446-A448, doctrine `docs/decisions/lot-v5-41.md`).
-- **Le bouton « ＋ Ajouter » de l'éditeur est désormais bleu foncé, plein** (texte blanc), dans l'éditeur d'aide comme
-  dans celui de protocole. Cerclé sur fond bleu pâle, il restait trop discret ; et c'est le seul bouton plein de
-  l'éditeur, donc l'action principale de la page. De nuit, il prend le bleu clair des boutons principaux (un bleu foncé
-  disparaîtrait sur le fond sombre).
-- **Recherche + bibliothèque choisie dans la colonne de gauche** (tablette, ordinateur) : la liste était bien filtrée,
-  mais le titre affirmait toujours « Résultats — toutes les bibliothèques ». Il dit maintenant « Résultats — Perso »
-  (ou le nom de la bibliothèque), et les filtres posés (bibliothèque, catégorie, type) s'affichent sous le titre en
-  puces retirables, comme sans recherche.
-- **Les résultats « Dans les documents » suivent les mêmes filtres** : un PDF joint à une aide d'une autre bibliothèque
-  ou d'une autre catégorie n'y apparaît plus.
-- **Parcours (colonne de gauche, en lecture comme en session) : une décision repliée n'est plus plus haute que
-  dépliée.** Quand les réponses étaient longues (« Convulsions persistantes »), la ligne repliée passait à la ligne
-  morceau par morceau — la réponse, puis la flèche « ↓ 5 » seule, puis le « · » seul. La flèche reste désormais au bout
-  de sa réponse ; seul le texte de la réponse passe à la ligne.

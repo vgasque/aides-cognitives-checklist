@@ -1503,7 +1503,7 @@
   /* A462 : tuile de compteur en ligne — la valeur d'abord, le nom entier à droite sur deux lignes au plus (casse de phrase, 12). */
   #cbTimers .seg.cnt{flex-direction:row;align-items:center;gap:8px}
   #cbTimers .seg.cnt .seg-t{order:-1}
-  #cbTimers .seg.cnt .seg-l{max-width:72px;font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  #cbTimers .seg.cnt .seg-l{max-width:96px;font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   #cbTimers .seg-bar{display:block;width:100%;min-width:0;height:3px;border-radius:3px;background:var(--sys-line);overflow:hidden}
   #cbTimers .seg-fill{display:block;height:100%;width:100%;background:var(--sys-ink-2);transform-origin:left;transition:transform 1s linear}
   #cbTimers .seg.due{padding:0 10px}
@@ -3406,15 +3406,20 @@
   .stp-mk.mo-n{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
   ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default;box-shadow:inset 0 0 0 1.5px var(--line)}
   ol.steps li.mo-wait{box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
-  ol.steps li.mo-wait .box{border-style:dashed;background:none}
+  /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
+     se lisait « inatteignable », or « Faire maintenant » la coche à tout instant. Le contour de la rangée reste pointillé. */
+  ol.steps li.mo-wait .box{border-color:color-mix(in srgb,var(--ctl-line) 50%,transparent);background:var(--work)}
   ol.steps li.mo-gone .box{background:var(--ink-2);border-color:transparent}
   ol.steps li:is(.mo-wait,.mo-gone) .txt{color:var(--ink-2)}
   .mo-line{display:flex;align-items:center;gap:8px;margin-top:6px}
   .mo-line .wt{flex:0 1 auto;min-width:0;margin-top:0}
   .stp-now{position:relative;flex:none;margin-left:auto;height:28px;padding:0 10px;border:0;border-radius:var(--r-1);background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ctl-line);font-family:inherit;font-size:var(--t-meta);font-weight:700;white-space:nowrap;color:var(--ink);cursor:pointer}
   .stp-now::after{content:"";position:absolute;inset:-8px -4px}   /* cible 44 px (règle 9, halo admis) */
-  .mo-pips{display:inline-flex;gap:2px}
-  .mo-pips i{width:8px;height:8px;border-radius:3px;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
+  /* A474 : la jauge dans l'étiquette du seuil — points ronds, le dernier repère carré (la case), à l'encre de l'étiquette. */
+  .mo-pips{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:-1px}
+  .mo-pips i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
+  .mo-pips i.goal{border-radius:3px;background:var(--work);box-shadow:inset 0 0 0 1.5px currentColor}
+  .stp-mk .mo-nn{margin-left:6px;font-family:var(--f-mono);letter-spacing:0}
   /* A396 — l'étape-revue : la rangée est la PORTE de sa revue (case pointillée, pleine à n/n), la grille des
      hypothèses se déplie DANS sa boîte — rien entre les rangées. Détail : lot-v5-37.md. */
   /* A398 : `rv-step`, et non plus `rev-row` — ce nom était déjà celui des rangées « à relire » (colonne, spans
@@ -3500,7 +3505,7 @@
   .pb-stt.on{background:var(--primary-soft);color:var(--act)}
   .pb-stt.ok{background:var(--ok-soft);color:var(--ok)}
   .pb-det{margin:0 0 6px 40px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
-  .mo-pips i.on{background:var(--ink-2);box-shadow:none}
+  .mo-pips i.on{background:currentColor;box-shadow:none}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
@@ -5045,7 +5050,8 @@
   .tm-reset .tmr-hint{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
   .tm-reset.holding,.btn-end-sess.holding{background-color:var(--amb-2);background-image:linear-gradient(color-mix(in srgb,var(--crit-line) 60%,transparent),color-mix(in srgb,var(--crit-line) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill var(--hold-ms,.8s) linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
-  .endsess-hint{margin:14px 0 0;text-align:center;font-size:var(--t-body);color:var(--ink-2)}
+  /* `.ai-card p` (0,1,1) battait `.endsess-hint` seul : marge haute à 0, la consigne collait aux boutons. */
+  .ai-card p.endsess-hint{margin:14px 0 0;text-align:center;font-size:var(--t-body);color:var(--ink-2)}
   /* A460 (audit d'apprentissage) : le GESTE s'écrit DANS le bouton, là où le doigt se pose — un
      premier tap bref ne faisait rien en apparence, la consigne vivant 14 px plus bas. Le libellé
      principal est un `.tmr-lab` : `holdToReset` n'écrit « Maintenir… » que dans lui, la sous-ligne

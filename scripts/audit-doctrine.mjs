@@ -5193,7 +5193,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
 // v5.31 · A380 — essais X1 « horizon » et X2 « bande » : TRANCHÉS en v5.39.9 (tuiles, colonne), section retirée avec eux.
 
 /* ══ v5.32 · A382 — LE MOMENT D'UNE ÉTAPE ══════════════════════════════════════════════════════
-   ACR d'exemple, bloc choquable : avant le 3ᵉ choc l'adrénaline attend (pointillé, sans case, ne
+   ACR d'exemple, bloc choquable : avant le 3ᵉ choc l'adrénaline attend (pointillé, case estompée — A474 —, ne
    retient pas « Continuer ») ; au seuil la case revient sur place ; après la dose elle attend
    l'échéance, qui lui rend sa case ; l'amiodarone 300, faite une fois, n'en a plus. */
 /* ══ v5.33 · A383 — L'ÉDITEUR : ÉCRIRE D'ABORD, RÉGLER ENSUITE ══════════════════════════════════
@@ -5268,7 +5268,7 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
     const o={};
     await tout();cur().querySelector('[data-ovnext]').click();await w(300);await oui();
     let a=rang(/Adrénaline/);
-    o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
+    o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.stp-mks .mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
     rang(/300 mg/).querySelector('[data-cknow]').click();await w(300);
     o.now=!!Object.keys(state.checked).find(k=>state.checked[k]&&rang(/300 mg/)&&rang(/300 mg/).dataset.ck===k);
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;}await w(1300);   // le tick voit le compte changer
@@ -5282,8 +5282,8 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
     a=rang(/Adrénaline/);
     o.echu={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
     return o;});
-  t('A382 · avant le seuil : l’étape reste visible, en pointillé, sans case', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
-  t('A382 · … sa règle en étiquette et le compte qui manque', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
+  t('A382 · avant le seuil : l’étape reste visible, en pointillé, case estompée et inerte (A474)', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
+  t('A382 · … sa règle en étiquette, la jauge du compteur DANS l’étiquette (A474)', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
   t('A382 · … et « Continuer » ne l’attend pas', r.p1.cont===true);
   t('A382 · « Faire maintenant » coche l’étape (une coche comme une autre)', r.now===true);
   t('A382 · au seuil, la case revient sur place et « Continuer » l’attend', r.seuil.ck&&/✓/.test(r.seuil.tag)&&r.seuil.cont===false, JSON.stringify(r.seuil));
