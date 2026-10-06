@@ -5193,7 +5193,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
 // v5.31 · A380 — essais X1 « horizon » et X2 « bande » : TRANCHÉS en v5.39.9 (tuiles, colonne), section retirée avec eux.
 
 /* ══ v5.32 · A382 — LE MOMENT D'UNE ÉTAPE ══════════════════════════════════════════════════════
-   ACR d'exemple, bloc choquable : avant le 3ᵉ choc l'adrénaline attend (pointillé, sans case, ne
+   ACR d'exemple, bloc choquable : avant le 3ᵉ choc l'adrénaline attend (pointillé, case estompée — A474 —, ne
    retient pas « Continuer ») ; au seuil la case revient sur place ; après la dose elle attend
    l'échéance, qui lui rend sa case ; l'amiodarone 300, faite une fois, n'en a plus. */
 /* ══ v5.33 · A383 — L'ÉDITEUR : ÉCRIRE D'ABORD, RÉGLER ENSUITE ══════════════════════════════════
@@ -5268,7 +5268,7 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
     const o={};
     await tout();cur().querySelector('[data-ovnext]').click();await w(300);await oui();
     let a=rang(/Adrénaline/);
-    o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
+    o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.stp-mks .mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
     rang(/300 mg/).querySelector('[data-cknow]').click();await w(300);
     o.now=!!Object.keys(state.checked).find(k=>state.checked[k]&&rang(/300 mg/)&&rang(/300 mg/).dataset.ck===k);
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;}await w(1300);   // le tick voit le compte changer
@@ -5282,8 +5282,8 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
     a=rang(/Adrénaline/);
     o.echu={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
     return o;});
-  t('A382 · avant le seuil : l’étape reste visible, en pointillé, sans case', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
-  t('A382 · … sa règle en étiquette et le compte qui manque', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
+  t('A382 · avant le seuil : l’étape reste visible, en pointillé, case estompée et inerte (A474)', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
+  t('A382 · … sa règle en étiquette, la jauge du compteur DANS l’étiquette (A474)', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
   t('A382 · … et « Continuer » ne l’attend pas', r.p1.cont===true);
   t('A382 · « Faire maintenant » coche l’étape (une coche comme une autre)', r.now===true);
   t('A382 · au seuil, la case revient sur place et « Continuer » l’attend', r.seuil.ck&&/✓/.test(r.seuil.tag)&&r.seuil.cont===false, JSON.stringify(r.seuil));
@@ -5291,6 +5291,41 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
   t('A382 · « une seule fois », faite : plus de case', r.p2.gone===true);
   t('A382 · à l’échéance, la case revient (Échu) et « Continuer » l’attend — rien ne repart seul', r.echu.ck&&/Échu/.test(r.echu.tag)&&r.echu.cont===false, JSON.stringify(r.echu));
   t('A382 · A9 — attendre ou retenir ne change pas la hauteur de la rangée', Math.abs(r.p2.h-r.echu.h)<=4&&Math.abs(r.p1.h-r.echu.h)<=4, `${r.p1.h} / ${r.p2.h} / ${r.echu.h} px`);
+  await page.close();
+}
+});
+
+/* ══ v5.49 · A474 — L'INSTANT DU SEUIL ══════════════════════════════════════════════════════
+   Au 3ᵉ choc COCHÉ ICI, les étapes qui attendaient « Chocs délivrés ≥ 3 » s'ouvrent avec un mouvement (une fois) ;
+   un compte arrivé sans geste local — c'est le cas d'un état reçu par le partage — n'anime rien (A377) ; sous
+   mouvement réduit, aucune animation. */
+await sec('v5.49 · A474 — l’instant du seuil', async () => {
+for(const rm of ['no-preference','reduce']){
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,reducedMotion:rm});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps li')].find(x=>re.test(x.textContent));
+    await tout();cur().querySelector('[data-ovnext]').click();await w(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await w(300);
+    const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=2;await w(3000);   // posé sans geste, le tick resynchronise
+    rang(/Choc imm/).click();await w(120);                                    // le 3ᵉ choc, geste local
+    const li=cur().querySelector('li.mo-open');
+    const o={ouvertes:cur().querySelectorAll('li.mo-open').length,anim:li?getComputedStyle(li).animationName:'—'};
+    await w(3000);
+    Runtime.counters[c.id]=5;await w(1500);                                   // comme un état reçu
+    const a150=rang(/150 mg/);
+    o.recu=cur().querySelectorAll('li.mo-open').length;o.ouverte150=!!a150&&!a150.classList.contains('mo-wait');
+    return o;});
+  if(rm==='no-preference'){
+    t('A474 · au seuil franchi par un geste local, les étapes qui attendaient s’ouvrent en mouvement', r.ouvertes===2&&r.anim==='moOpen', JSON.stringify(r));
+    t('A474 · un compte arrivé sans geste local (état reçu) ouvre l’étape sans mouvement', r.ouverte150&&r.recu===0, JSON.stringify(r));
+  }else t('A474 · sous mouvement réduit, aucune animation', r.ouvertes===2&&r.anim==='none', JSON.stringify(r));
   await page.close();
 }
 });
