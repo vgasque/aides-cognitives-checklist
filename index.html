@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-EhbyaTlMWPzczSqEgkY2UT+s7h4zdP9fUxbBLVBx25w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-v4z0WmljNtpkwTAzr/ZojL7+WmHaGm1Fua561NQGtMs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9029,7 +9029,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.48.3';
+const APP_VERSION='5.48.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28603,7 +28603,7 @@ const GUIDE_ETAPES=[
           if(nx&&nx.getAttribute('aria-disabled')!=='true')
             return {tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'« Continuer » est prêt : il mène au bloc suivant.',act:1};
           const n=document.querySelectorAll('#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)').length;
-          return {tgt:null,voir:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez les étapes restantes',x:'« Continuer » s’allumera quand '+(n>1?'les '+n+' cases seront cochées':'la dernière case sera cochée')+' : il mène au bloc suivant.',act:1};})();}},
+          return {tgt:null,trou:'#main .ov-block.cur',voir:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez les étapes restantes',x:'« Continuer » s’allumera quand '+(n>1?'les '+n+' cases seront cochées':'la dernière case sera cochée')+' : il mène au bloc suivant.',act:1};})();}},
   {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
     done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
     ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');
@@ -28747,7 +28747,9 @@ function guidePlace(t,el,P){const z=zoomF(),W=innerWidth,H=innerHeight,g=_gd;
     window.scrollBy({top:m.top-cible,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
   // Le voile ne suit pas un défilement : il s'efface pendant, et revient quand la page est posée.
   const calme=Date.now()-(g.scrollT||0)>200;
-  let h=r;const av=r&&P&&P.avec?document.querySelector(P.avec):null;   // le trou couvre aussi ce que le geste a ouvert
+  // `trou` : sans cible, le voile découvre quand même une zone (le bloc entier à cocher), sans anneau.
+  const tr=!r&&P&&P.trou?document.querySelector(P.trou):null;
+  let h=r||(tr&&tr.getClientRects().length?tr.getBoundingClientRect():null);const av=r&&P&&P.avec?document.querySelector(P.avec):null;   // le trou couvre aussi ce que le geste a ouvert
   if(av&&av.getClientRects().length){const a=av.getBoundingClientRect();
     h={left:Math.min(r.left,a.left),top:Math.min(r.top,a.top),right:Math.max(r.right,a.right),bottom:Math.max(r.bottom,a.bottom)};}
   _gdVeil(h&&!g.min&&calme&&h.bottom>0&&h.top<H?h:null);}

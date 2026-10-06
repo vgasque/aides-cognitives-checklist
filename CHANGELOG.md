@@ -1,5 +1,9 @@
 # Journal des modifications
 
+## [5.48.4] — 2026-10-06
+- **Exercice guidé, « Cochez les étapes restantes » :** le bloc en cours reste entièrement net, sans anneau, et le
+  reste de l'écran (en-tête, capsule, quai) s'estompe — on voit d'un coup d'œil où cocher (A467).
+
 ## [5.48.3] — 2026-10-06
 - **La proposition d'exercice guidé saute aux yeux.** Sur les aides d'exemple, la rangée « Apprendre avec cette
   aide » prend le dessin du mode Exercice : fond hachuré bleu pâle, bord en pointillé, titre et bouton en bleu —
@@ -293,19 +297,3 @@ Sept retours d'usage corrigés, et les deux essais d'affichage tranchés (A431-A
 - **« Affichage » : le bandeau « Filtrer » ne saute plus** quand « n actifs · Tout effacer » apparaît (A437).
 - **Maquette à valider** : la partie « Administration » de Moi, sur un canevas Claude Design (rien n'est codé).
 - Témoins : section A380 d'`audit-doctrine` retirée avec les essais ; familles `essai-` purgées de `check-classes`.
-
-## [5.39.8] — 2026-09-30
-Le geste retour se comporte comme dans une app (A430, doctrine `docs/decisions/lot-v5-39.md`).
-- **Balayer vers la droite ramène à l'écran d'avant, sans rechargement ni gel.** L'app gardait une seule entrée
-  d'historique, recréée à chaque retour. Or le balayage d'iPhone (et le retour prédictif des Android récents) fait
-  glisser une capture de l'écran précédent : elle montrait souvent un autre écran que celui où l'on arrivait, et
-  pouvait rester figée à l'écran quelques secondes. L'historique a maintenant une entrée par niveau ouvert (fiche,
-  fiche liée, éditeur, fenêtre, volet, visionneuse, schéma, Sessions/Moi), si bien que la capture est celle du bon
-  écran, et rien n'est ajouté pendant le retour lui-même.
-- Fermer par ✕ ou « ‹ » retire l'entrée correspondante : le balayage suivant tombe juste. Balayer vers l'avant ne
-  rouvre rien ; depuis l'accueil, le retour quitte l'app ; en session, il ne l'arrête jamais (inchangé).
-- À vérifier sur l'appareil : accueil → fiche → retour ; fiche → fiche liée → retour ×2 ; une fenêtre ouverte →
-  retour ; la même chose en session.
-- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), `audit-retour` 10/10 (nouvelle
-  section, rouge sur le code d'avant), audit complet — seuls restent les deux rouges connus de ce poste (en-tête
-  d'accueil à 320 px, barre de sélection).

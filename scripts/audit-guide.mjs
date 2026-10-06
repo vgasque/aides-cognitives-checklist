@@ -43,7 +43,10 @@ const etat = p => p.evaluate(() => {
   const voile = !!vr && vr.left <= 0 && vr.top <= 0 && vr.right >= innerWidth - 1 && vr.bottom >= innerHeight - 1
     && getComputedStyle(v).pointerEvents === 'none' && !!trou && !!gr
     && trou[0] <= gr.left + 2 && trou[1] <= gr.top + 2 && trou[2] >= gr.right - 2 && trou[3] >= gr.bottom - 2;
-  return { voile, ancre, id: E ? E.id : null, aCible: !!(P && P.tgt), k: tip && !tip.hidden ? (tip.querySelector('.gd-k') || {}).textContent : '',
+  // Sans cible mais avec un `trou` (le bloc à cocher) : le voile estompe le reste et découvre ce bloc entier.
+  const zt = P && !P.tgt && P.trou ? document.querySelector(P.trou) : null, zr = zt ? zt.getBoundingClientRect() : null;
+  const voileTrou = !(P && !P.tgt && P.trou) || (!!zt && !!vr && !!trou && trou[0] <= zr.left + 2 && trou[1] <= zr.top + 2 && trou[2] >= zr.right - 2 && trou[3] >= zr.bottom - 2 && !document.querySelector('.gd-tgt'));
+  return { voile, voileTrou, ancre, id: E ? E.id : null, aCible: !!(P && P.tgt), k: tip && !tip.hidden ? (tip.querySelector('.gd-k') || {}).textContent : '',
     cible: !!g, couvre, dedans, tr: tr && [tr.left | 0, tr.top | 0, tr.right | 0, tr.bottom | 0], dbg: [tr && [tr.top | 0, tr.bottom | 0], gr && [gr.top | 0, gr.bottom | 0], g && g.className, bas | 0, _gd && [_gd.room, (_gd.userT || 0) > (_gd.phaseT || 0), scrollY | 0]],
     fin: !!(tip && tip.classList.contains('end')) };
 });
@@ -78,6 +81,7 @@ for (const c of CAS) {
       t(`${e.id} : la cible est trouvée et entourée`, e.cible);
       t(`${e.id} : tout l’écran est estompé sauf la cible (voile unique, percé, inerte)`, e.voile);
     }
+    t(`${e.id} : sans cible, le bloc à cocher reste net et le reste s’estompe (sans anneau)`, e.voileTrou);
     t(`${e.id} : la carte ne couvre pas la cible`, !e.couvre, JSON.stringify(e.dbg));
     t(`${e.id} : la carte tient dans la fenêtre`, e.dedans);
     t(`${e.id} : la carte est ancrée au-dessus du quai, dans sa largeur`, e.ancre, JSON.stringify(e.tr));

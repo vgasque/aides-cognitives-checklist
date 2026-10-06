@@ -79,7 +79,8 @@ La v5.48.0-1 plaçait sous ou sur la cible, avec flèche et voile recalculés au
 - **▾ réduit** la carte en une pastille « ▲ Guide k/n » (44 px, focus posé dessus), sans voile ; un toucher la rouvre.
 - Trois phases réécrites pour dire ce qu'on voit : **capsule** (au téléphone, l'ouvrir puis la refermer EST le geste ;
   le voile découvre capsule ET volet, `avec`) ; **« Cochez les étapes restantes »** sans anneau ni rien devant les
-  cases, la page amène TOUTES les cases restantes en vue (`voir`), puis l'anneau sur « Continuer » une fois prêt ;
+  cases, la page amène TOUTES les cases restantes en vue (`voir`), le voile découvre le BLOC ENTIER et estompe le
+  reste (`trou`, sans anneau — v5.48.4, demande de l'auteur), puis l'anneau sur « Continuer » une fois prêt ;
   **dans la complication**, la carte nomme le bloc et dit que celui qu'on quitte attend, coches gardées.
 Mesuré : `scrollBy` se compte en pixels de l'appareil comme les rectangles, `scroll-margin` non (sous zoom,
 `scrollIntoView` ne bougeait pas). Positions réinjectées ÷ `zoomF()` (règle 10). Pourquoi pas de bulle au bureau ni
