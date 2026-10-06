@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.48.7] — 2026-10-06
+Au téléphone, toucher la barre d'outils au-dessus du clavier marche à chaque fois (A470, doctrine `docs/decisions/lot-v5-48.md`).
+- **Le clavier ne se ferme plus quand on touche un bouton de la barre ou une ligne de ses menus.** Sur iPhone, il se
+  fermait une fois sur deux : le toucher retirait parfois le focus au texte avant que l'app ait pu l'en empêcher, et le
+  bouton touché ne répondait alors pas toujours.
+- **Retoucher le bouton d'un menu ouvert le ferme** (avant, il se refermait et se rouvrait aussitôt).
+- Un glissé du doigt sur la barre ne déclenche rien.
+
 ## [5.48.6] — 2026-10-06
 Au téléphone, les menus de la barre d'outils fonctionnent pendant qu'on écrit (A469, doctrine `docs/decisions/lot-v5-48.md`).
 - **Titre, Liste, Encadré et Insérer s'ouvrent juste au-dessus de la barre**, sur toute sa largeur, quand elle est posée
@@ -270,14 +278,3 @@ Une étape qui compte, quand le compteur relance lui-même un minuteur, le dit e
   l'annulation de 10 s vaut sur l'appareil qui a coché. Registre de conformité § 2 mis à jour.
 - Une étape garde un seul lien (lance OU compte) : le lien compteur → minuteur reste sur le compteur, dont le « + »
   relance aussi.
-
-## [5.39.11] — 2026-10-02
-Ce que la charge révélait : deux sondes fragiles et deux défauts de l'app (A439, doctrine `docs/decisions/lot-v5-39.md`).
-- **Déplacer une étape ou une ligne ne décale plus l'écran.** Reposer ou abandonner une rangée pendant son petit
-  tremblement (une demi-seconde) faisait défiler la page de quelques pixels pour de bon — jusqu'à 6 px sur un appareil
-  lent, cumulés d'un geste à l'autre. L'ancrage mesure maintenant la rangée posée, pas son tremblement.
-- **Les fiches d'exemple ne s'ajoutent plus en double** si l'on touche « Ajouter les fiches d'exemple » pendant que
-  « Découvrir avec 2 exemples » est encore en train de les écrire.
-- Harnais : l'amorçage commun attend les fiches d'exemple au lieu de presser une seconde fois ; la sonde « à la prise,
-  l'objet ne bouge pas » mesure après l'animation. Vérifié en passe complète processeur ralenti (÷3, puis k5 à ÷6) :
-  plus aucun rouge dû à la charge.

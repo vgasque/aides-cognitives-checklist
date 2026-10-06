@@ -157,3 +157,20 @@ rangée.
   texte referme le menu. **Hors de portée** : la barre d'adresse de Safari et celle du remplissage automatique (hors PWA)
   — l'app ne peut ni les masquer ni les mesurer ; la barre se cale au-dessus d'elles.
 
+## A470 — toucher sans lâcher le champ (v5.48.7, amende A468 et A469)
+
+**Signalé sur iPhone (06/10/2026)** : « des fois quand je clique dessus ça apparaît, des fois non », et le clavier
+disparaît souvent au toucher. Cause : sur iOS, la suite d'un toucher est `touchstart` → `touchend` → `mousedown` →
+`click` émulés ; annuler `mousedown` (A468) arrive APRÈS que WebKit a parfois déjà retiré le focus au champ — le
+clavier se ferme, la barre redescend sous le doigt, et le clic émulé tombe ailleurs. Une course, d'où l'aléa.
+
+- **`tapKeepsFocus(root, sel)`** (fabrique unique, posée sur la barre et sur les rangées d'un menu `keep`) : au toucher,
+  `touchstart` est annulé — rien ne quitte le champ —, et le clic est REJOUÉ au `touchend` si le doigt est resté sur la
+  même cible (`elementFromPoint`) ; un glissé de plus de 10 px annule, un second doigt aussi. On ne dépend plus du clic
+  émulé d'iOS. Le `mousedown` annulé reste pour la souris.
+- **Un bouton de menu BASCULE** : retoucher celui qui est ouvert le ferme. Les boutons de la barre portent `data-catmenu`
+  (le geste extérieur d'`openPickMenu` ne les préferme plus — il fermait au `pointerdown`, le clic rouvrait).
+- **Mesuré** (toucher réel émulé, Chromium et WebKit) : AUCUNE perte de focus du champ sur toute la série de touchers
+  (B, menus, choix, sous-menu des documents), six ouvertures/fermetures d'affilée cohérentes. La fermeture du clavier
+  elle-même ne s'émule pas : la preuve ici est que le champ ne perd jamais le focus, condition pour qu'iOS le garde.
+
