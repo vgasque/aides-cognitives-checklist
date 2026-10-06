@@ -5295,6 +5295,41 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
 }
 });
 
+/* ══ v5.49 · A474 — L'INSTANT DU SEUIL ══════════════════════════════════════════════════════
+   Au 3ᵉ choc COCHÉ ICI, les étapes qui attendaient « Chocs délivrés ≥ 3 » s'ouvrent avec un mouvement (une fois) ;
+   un compte arrivé sans geste local — c'est le cas d'un état reçu par le partage — n'anime rien (A377) ; sous
+   mouvement réduit, aucune animation. */
+await sec('v5.49 · A474 — l’instant du seuil', async () => {
+for(const rm of ['no-preference','reduce']){
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,reducedMotion:rm});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps li')].find(x=>re.test(x.textContent));
+    await tout();cur().querySelector('[data-ovnext]').click();await w(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await w(300);
+    const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=2;await w(3000);   // posé sans geste, le tick resynchronise
+    rang(/Choc imm/).click();await w(120);                                    // le 3ᵉ choc, geste local
+    const li=cur().querySelector('li.mo-open');
+    const o={ouvertes:cur().querySelectorAll('li.mo-open').length,anim:li?getComputedStyle(li).animationName:'—'};
+    await w(3000);
+    Runtime.counters[c.id]=5;await w(1500);                                   // comme un état reçu
+    const a150=rang(/150 mg/);
+    o.recu=cur().querySelectorAll('li.mo-open').length;o.ouverte150=!!a150&&!a150.classList.contains('mo-wait');
+    return o;});
+  if(rm==='no-preference'){
+    t('A474 · au seuil franchi par un geste local, les étapes qui attendaient s’ouvrent en mouvement', r.ouvertes===2&&r.anim==='moOpen', JSON.stringify(r));
+    t('A474 · un compte arrivé sans geste local (état reçu) ouvre l’étape sans mouvement', r.ouverte150&&r.recu===0, JSON.stringify(r));
+  }else t('A474 · sous mouvement réduit, aucune animation', r.ouvertes===2&&r.anim==='none', JSON.stringify(r));
+  await page.close();
+}
+});
+
 /* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════
    Signalé à l'usage : « si j'ai tapé du texte dans le champ et que j'appuie directement sur
    ＋ Rappel, la ligne n'est pas ajoutée — il referme le bloc mais n'ajoute rien ; pareil pour la

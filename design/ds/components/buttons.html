@@ -3409,6 +3409,14 @@
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
      se lisait « inatteignable », or « Faire maintenant » la coche à tout instant. Le contour de la rangée reste pointillé. */
   ol.steps li.mo-wait .box{border-color:color-mix(in srgb,var(--ctl-line) 50%,transparent);background:var(--work)}
+  /* A474 — l'instant du seuil (geste local seulement) : l'étiquette verte et la case rebondissent, la rangée s'éclaire
+     de vert pâle et revient. Peinture et transform, une fois, rien sous mouvement réduit. */
+  @keyframes moOpen{0%,25%{background-color:var(--ok-soft)}100%{background-color:var(--amb-2)}}
+  @media (prefers-reduced-motion:no-preference){
+    ol.steps li.mo-open{animation:moOpen 1.2s ease-out}
+    ol.steps li.mo-open :is(.box,.stp-mk.mo-ok){animation:pop .3s ease-out}
+    ol.steps li.mo-open .stp-mk.mo-ok{transform-origin:left center}
+  }
   ol.steps li.mo-gone .box{background:var(--ink-2);border-color:transparent}
   ol.steps li:is(.mo-wait,.mo-gone) .txt{color:var(--ink-2)}
   .mo-line{display:flex;align-items:center;gap:8px;margin-top:6px}

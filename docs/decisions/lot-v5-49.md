@@ -53,5 +53,18 @@ libellé, à l'endroit exact de ce qui appartient à l'étape. Exploré sur cane
 intertitre de seuil coiffant les étapes (C) ; la case comme jauge segmentée (A1 — trop proche de la JAUGE DE LA REVUE,
 A449, qui mesure l'étape elle-même : le contresens qu'on corrige) ; un cadenas dans la case (A2 — dit « interdit »,
 alors que « Faire maintenant » existe) ; l'étiquette accrochée à la case par un trait (A3) ; « ≥3 » écrit dans la case
-(A4 — se lit comme une valeur à saisir). Reste ouvert : un micro-mouvement à l'instant du seuil (planche A6), à la
-grammaire d'A378.
+(A4 — se lit comme une valeur à saisir).
+
+**L'instant du seuil (planche A6, ajouté dans la même version à la demande de l'auteur).** Avant, au 3ᵉ choc, la carte
+était simplement redessinée : l'étape qui attendait changeait d'un coup, sans transition, et rien ne guidait l'œil vers
+ce qui devenait faisable. Désormais, une fois, sur l'étape qui s'ouvre : l'étiquette verte et la case rebondissent
+(`pop`, celui du ✓ d'une coche) et la rangée s'éclaire de vert pâle avant de revenir (`moOpen`, 1,2 s) — peinture et
+transform seulement, rien sous mouvement réduit. Deux arbitrages :
+- **Exception assumée à « un mouvement, là où le geste a été fait »** (A378) : la coche du choc et l'étape qui s'ouvre
+  bougent ensemble, à deux endroits de la carte — c'est l'objet même du mouvement. Rien ne défile (règle 11) : une étape
+  hors de l'écran s'ouvre sans être vue.
+- **Seulement chez celui qui a fait le geste.** `cnInc` (coche liée, « + » du compteur, horodater sur un compteur) note
+  l'heure du geste (`_momGest`) ; `momWatch` n'anime que si le seuil est franchi moins de 2,5 s après. La réception d'un
+  état partagé ne passe jamais par `cnInc` : l'étape s'ouvre chez l'autre sans mouvement (A377 — aucun effet à la
+  réception). Témoin : section « v5.49 · A474 — l'instant du seuil » d'audit-doctrine (geste local, état reçu,
+  mouvement réduit).

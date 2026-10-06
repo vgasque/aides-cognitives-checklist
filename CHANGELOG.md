@@ -8,6 +8,8 @@ L'étape qui attend un seuil dit enfin ce qui est compté et quand sa case s'ouv
 - **Avant son seuil, la case de l'étape est là, estompée** (pleine et pâle) au lieu d'un pointillé qui se lisait
   « inatteignable » — « Faire maintenant » la coche à tout moment, à droite de la rangée. Au seuil, l'étiquette
   passe au vert, jauge pleine, et la case reprend son trait.
+- **L'instant du seuil se voit** : au choc qui atteint le seuil, l'étape qui s'ouvre rebondit et s'éclaire brièvement
+  de vert, une fois — seulement sur l'appareil qui a fait le geste, et jamais avec « réduire les animations ».
 - **« Se déconnecter » ne déconnecte plus que cet appareil.** Il révoquait toutes les sessions du compte : les autres
   appareils se retrouvaient déconnectés au rafraîchissement suivant.
 - **La capsule de session montre deux compteurs quand ils tiennent, toujours avec leur nom entier.** Le rappel à côté

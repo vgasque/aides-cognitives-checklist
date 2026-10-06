@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zUD4O5sSdu0gk+pWkKAHAXTxLoRNTvi1kfjqRarltvw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ZsqrVZb2zEi0aV31C7wrZnGBpdtewh5p++42u4zCxzo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3765,6 +3765,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
      se lisait « inatteignable », or « Faire maintenant » la coche à tout instant. Le contour de la rangée reste pointillé. */
   ol.steps li.mo-wait .box{border-color:color-mix(in srgb,var(--ctl-line) 50%,transparent);background:var(--work)}
+  /* A474 — l'instant du seuil (geste local seulement) : l'étiquette verte et la case rebondissent, la rangée s'éclaire
+     de vert pâle et revient. Peinture et transform, une fois, rien sous mouvement réduit. */
+  @keyframes moOpen{0%,25%{background-color:var(--ok-soft)}100%{background-color:var(--amb-2)}}
+  @media (prefers-reduced-motion:no-preference){
+    ol.steps li.mo-open{animation:moOpen 1.2s ease-out}
+    ol.steps li.mo-open :is(.box,.stp-mk.mo-ok){animation:pop .3s ease-out}
+    ol.steps li.mo-open .stp-mk.mo-ok{transform-origin:left center}
+  }
   ol.steps li.mo-gone .box{background:var(--ink-2);border-color:transparent}
   ol.steps li:is(.mo-wait,.mo-gone) .txt{color:var(--ink-2)}
   .mo-line{display:flex;align-items:center;gap:8px;margin-top:6px}
@@ -13107,7 +13115,9 @@ const linkOf=it=>!it?null:(it.starts?{k:'tm',id:it.starts}:(it.counts?{k:'cn',id
 // Relancer depuis zéro : lien de coche, minuteur de bloc, compteur lié, ⟲ d'un ad hoc.
 function tmRestart(t){t.elapsedMs=0;t.lastStart=Date.now();t.running=true;t.ack=false;t.stoppedAt=0;t.stopClosed=false;ensureAudio();}
 // Le « + » d'un compteur : valeur et relance de son minuteur lié. `cnBump` y ajoute le repère.
-function cnInc(id,step){const R=Runtime;R.counters[id]=(+R.counters[id]||0)+step;
+// A474 : l'heure du dernier « + » fait ICI — la réception d'un état partagé n'y passe jamais (A377).
+let _momGest=0;
+function cnInc(id,step){const R=Runtime;R.counters[id]=(+R.counters[id]||0)+step;_momGest=Date.now();
   const cc=((R.fiche&&R.fiche.counters)||[]).find(x=>x.id===id);
   if(cc&&cc.timerId&&R.timers[cc.timerId])tmRestart(R.timers[cc.timerId]);}
 function cnBump(id,step){cnInc(id,step);const R=Runtime;
@@ -13164,10 +13174,16 @@ function momTag(f,it,mo){if(!mo)return null;
 let _momSig=null;
 function momWatch(paint=true,skip=-1){const f=Runtime.fiche,ix=state.nav.length-1,b=f&&blocksById(f.blocks||[])[state.nav[ix]];
   const seq=state.navSeq[ix]||1,k=b&&b.kind!=='decision'?seq+':'+b.id:'';
-  const v=k?bItems(b).map((it,i)=>{const m=i!==skip&&stepMoment(it,seq,b.id,i);return m?m.st+(m.why==='from'?momCn(it.from.counter):''):'';}).join():'';
-  const was=_momSig;_momSig={k,v};
+  const a=k?bItems(b).map((it,i)=>{const m=i!==skip&&stepMoment(it,seq,b.id,i);return m?m.st+(m.why==='from'?momCn(it.from.counter):''):'';}):[],v=a.join();
+  const was=_momSig;_momSig={k,v,a};
   if(!paint||!was||was.k!==k||was.v===v)return false;
-  renderOvOnlyKeepAnchor('.ov-block.cur');return true;}
+  renderOvOnlyKeepAnchor('.ov-block.cur');
+  /* A474 — l'INSTANT DU SEUIL : l'étape qui attendait son compte s'ouvre avec un mouvement, une fois, et seulement si le
+     compte vient d'un geste fait sur cet appareil (`_momGest`) — jamais à la réception d'un état partagé (A377). */
+  if(Date.now()-_momGest<2500)a.forEach((x,i)=>{const p=was.a&&was.a[i];
+    if(!(p&&/^wait\d/.test(p)&&!/^wait/.test(x)))return;
+    const li=main.querySelector('.ov-block.cur [data-ck="'+CSS.escape(k+':'+i)+'"]');if(li)li.classList.add('mo-open');});
+  return true;}
 const blkInLoop=(f,id)=>blkSucc(blocksById((f&&f.blocks)||[])[id]).some(n=>blkReach(f,n).has(id));
 // Minuteurs de bloc à arrêter en arrivant sur `toId` : leur bloc boucle et n'est plus atteignable. PURE.
 function loopExitStops(f,arm,toId){const vus=blkReach(f,toId);
