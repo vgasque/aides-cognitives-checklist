@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UyDmnGiZX78WFrHQbLniLY23GF3LobgRN/f5YYGSlCw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-t+koo6TaFGhmnfxR2ESAxqovvZkNqcdiwxtNpqKLTTc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6790,6 +6790,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      autrement, et c'est ce qui rend la transition invisible quand le clavier reprend la main. */
   /* A313 : le halo est réservé aux boutons ; un champ signale son focus par sa bordure (dessin .field). */
   .ai-modal .dlg-ring:not(input):not(textarea):not(select):focus{outline:2px solid var(--act);outline-offset:2px}
+  .ai-modal .dlg-anchor:focus{outline:none}   /* A492 : le titre reçoit le focus d'une fenêtre ouverte au pointeur — sans anneau */
   .ai-modal :is(input:not([type=range]):not([type=checkbox]):not([type=radio]),textarea,select):focus{outline:2px solid var(--act);outline-offset:0;border-color:transparent}
   .ai-modal.dlg-confirm{align-items:center}
   /* ══ QUATRIÈME PLACEMENT, ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR (v5.6, décision
@@ -9097,7 +9098,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.53.0';
+const APP_VERSION='5.54.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10966,14 +10967,14 @@ function homeLibOn(x){if(state.homeLib==null)return true;
 function kindGroups(list){const isP=x=>protocols.indexOf(x)>=0;
   const a=list.filter(x=>!isP(x)),b=list.filter(isP);
   return [a.length?{L:'Aides',items:a}:null,b.length?{L:'Protocoles',items:b}:null].filter(Boolean);}
-function bibGroups(list){const gm=Object.create(null);
+function bibGroups(list,toutes){const gm=Object.create(null);   // `toutes` (A490, colonne) : aussi les bibliothèques VIDES
   /* ⚠ PAS safeId ICI : safeId RÉGÉNÈRE sur entrée invalide (dont ''), ce qui envoyait chaque
      fiche Perso en « orpheline » (bug signalé à l'usage, v5.18). gm est un null-proto : la clé
      brute suffit, et '' = Perso. */
   list.forEach(x=>{const k=(typeof x.library==='string')?x.library:'';(gm[k]=gm[k]||[]).push(x);});
   const out=[];
-  if(gm[''])out.push({L:'Perso',items:gm[''],lib:null,key:''});
-  sortedLibraries().forEach(l=>{if(gm[l.id])out.push({L:l.name||'Bibliothèque partagée',items:gm[l.id],lib:l,key:l.id});});
+  if(gm['']||toutes)out.push({L:'Perso',items:gm['']||[],lib:null,key:''});
+  sortedLibraries().forEach(l=>{if(gm[l.id]||toutes)out.push({L:l.name||'Bibliothèque partagée',items:gm[l.id]||[],lib:l,key:l.id});});
   /* Contenu ORPHELIN (bibliothèque perdue à la déconnexion) : UNE file d'attente, jamais une
      section par id inconnu. */
   const orph=[];Object.keys(gm).forEach(k=>{if(k&&!myLibraries.some(l=>l.id===k))orph.push(...gm[k]);});
@@ -13850,7 +13851,9 @@ bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false
 // (spec §3.6 — la session « quitte l'accueil », l'utilisateur aussi a fini son intervention).
 async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;
   if(Runtime.essai&&state.previewFrom==='edit'){endSession(Runtime);openDraftPreview();return;}   // A390 : finir un essai le rejoue depuis le début, sans quitter l'aperçu
-  endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
+  endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';
+  _libScrollY=0;_libInner=null;   // A491 : la carte-bilan de la session est en tête — on y arrive, pas à l'ancienne position
+  render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
@@ -14244,7 +14247,9 @@ function render(){_renderN++;
   if(state.view!=='library'&&state.selOn)selEnd(false);   // le mode sélection ne survit pas à l'accueil (A170)
   // Position de la BIBLIOTHÈQUE mémorisée quand on la quitte : ouvrir une fiche remet en haut
   // (le début de la fiche doit être visible), revenir restaure là où on en était dans la liste.
-  if(_lastView==='library'&&state.view!=='library')_libScrollY=window.scrollY;
+  if(_lastView==='library'&&state.view!=='library'){_libScrollY=window.scrollY;
+    // A491 : dès 780 px la liste défile DANS `.home-main` (et la colonne dans `.hs-scroll`) — window.scrollY y vaut 0.
+    const m=main.querySelector('.home-main'),h=main.querySelector('.hs-scroll');_libInner={m:m?m.scrollTop:0,s:h?h.scrollTop:0};}
   // Chrome d'en-tête + classes de vue (toggles crise/accueil/largeurs, bandeau titre, boutons
   // Créer/Enregistrer/Aperçu, recherche, pied nomade) : extrait pour que render() se lise comme
   // « capture du défilement -> chrome -> dispatch de vue -> défilement final » (audit v4.1.0).
@@ -14369,7 +14374,7 @@ function setBarTitle(t,disc,cat){t=(t||'').trim();disc=String(disc||'').trim();
   syncBrandSur();
   document.querySelector('header.bar').classList.toggle('titled',!!t);}
 // Transition de vue (défilement ci-dessus) : vue du rendu précédent, fiche affichée, position bibliothèque.
-let _lastView=null,_lastFicheId=null,_libScrollY=0;
+let _lastView=null,_lastFicheId=null,_libScrollY=0,_libInner=null;   // _libInner (A491) : défileurs internes de l'accueil large
 let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'input' ci-dessous)
 /* ----- Chrome COMMUN de la page d'accueil (partagé entre renderFiches et renderProtocols,
    jamais dupliqué) : sélecteur de section, barre de bibliothèques, rangée de catégories. ----- */
@@ -14841,6 +14846,8 @@ function collRailHtml(){if(!colls.length)return '';
     +`<button type="button" class="catchip coll-new" data-collnew aria-label="Nouvelle collection">${uiIcon('plus',14,{sw:2.4})}</button></div></div>`;}
 function collSideHtml(){const num=n=>`<span class="hs-n">${n}</span>`;
   return `<div class="hs-h">Collections<span class="hs-hs">pour vous</span><button type="button" class="hs-lnk" data-collmgr aria-label="Gérer les collections">Gérer</button></div>`
+    // A493 : « Tout » remet le filtre à zéro, comme « Toutes » des deux autres sections (aides ET protocoles : ni « Toutes les aides »).
+    +hsRow({on:!state.coll,mark:HS_RING,label:'Tout',tail:num(homeVis().length),attrs:`data-collsel="" aria-pressed="${state.coll?'false':'true'}"`})
     +[collById(COLL_PIN)].concat(colls).map(c=>hsRow({on:state.coll===c.id,label:esc(c.name),tail:num(collItems(c).length),
       mark:collIc(c),attrs:`data-collsel="${esc(c.id)}" aria-pressed="${state.coll===c.id?'true':'false'}"`})).join('')
     +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'})+`<div class="hs-sep"></div>`;}
@@ -14854,7 +14861,7 @@ function homeSideHtml(){
      exclus), pas les filtres courants — un compte qui bouge sous le geste se lit comme une
      erreur. Le clic ne touche JAMAIS au rangement (un verbe par commande). */
   const visAll=homeVis();
-  const bibs=bibGroups(visAll);
+  const bibs=bibGroups(visAll,true);   // A490 : une bibliothèque qu'on vient de créer s'y voit, vide
   const scope=visAll.filter(homeLibOn);
   /* Compte PAR OBJET de catégorie (Map), jamais par id : deux bibliothèques peuvent porter le
      même id (A298), et `catOf` résout déjà le couple id + bibliothèque. */
@@ -15860,8 +15867,11 @@ function renderHomeList(cfg){
      Même patron que `.read-side` (v4.23.5) : capture avant, restauration après, BORNÉE au nouveau
      contenu (une liste raccourcie par un filtre ne doit pas poser hors borne). `setSection` garde
      sa mémoire PAR SECTION : elle repose sa valeur après ce rendu, donc elle l'emporte. */
-  const _homeY=(()=>{const s=main.querySelector('.home-main');return s?s.scrollTop:0;})();
-  const _sideY=(()=>{const s=main.querySelector('.hs-scroll');return s?s.scrollTop:0;})();
+  // Retour d'une autre vue : les défileurs ont disparu, on repose ceux mémorisés au départ (A491).
+  const _back=!main.querySelector('.home-main')&&_libInner;
+  const _homeY=_back?_libInner.m:(()=>{const s=main.querySelector('.home-main');return s?s.scrollTop:0;})();
+  const _sideY=_back?_libInner.s:(()=>{const s=main.querySelector('.hs-scroll');return s?s.scrollTop:0;})();
+  if(_back)_libInner=null;
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
@@ -32701,7 +32711,19 @@ function _dlgFocus(el){const f=_focusables(el);
    cascade (écraserait les anneaux accordés à leur fond). Détail : doctrine-js.md J235. */
 // A313 : l'anneau se pose à CHAQUE focus voulu (ouverture, Tab) et part au blur suivant.
 function _ringFocus(f){f.classList.add('dlg-ring');f.addEventListener('blur',()=>f.classList.remove('dlg-ring'),{once:true});f.focus();}
-function _dlgEnter(el){const f=_dlgFocus(el);if(f!==el)_ringFocus(f);else f.focus();}
+/* A492 (amende A237, décision de l'auteur) : l'anneau d'ouverture suit la MODALITÉ. Au clavier, rien ne change
+   (point d'entrée + anneau). Au doigt ou à la souris : une DÉCISION reçoit le focus sur son action ou son champ, sans
+   anneau ; une fenêtre qu'on PARCOURT le reçoit sur son titre — rien de présélectionné, pas de clavier qui s'ouvre.
+   Le premier Tab rallume l'anneau (piège A313). `_ptrNav` : un pointeur a parlé depuis la dernière touche. */
+let _ptrNav=false;
+document.addEventListener('pointerdown',()=>{_ptrNav=true;},true);
+document.addEventListener('keydown',e=>{if(!['Shift','Control','Alt','Meta'].includes(e.key))_ptrNav=false;},true);
+const DLG_DECIDE='.dlg-confirm,#newLibModal,#mdToolModal,#shareModal';
+function _dlgEnter(el){
+  if(_ptrNav){const tt=!el.matches(DLG_DECIDE)&&document.getElementById(el.getAttribute('aria-labelledby')||'');
+    if(tt){tt.setAttribute('tabindex','-1');tt.classList.add('dlg-anchor');tt.focus({preventScroll:true});return;}
+    _dlgFocus(el).focus();return;}
+  const f=_dlgFocus(el);if(f!==el)_ringFocus(f);else f.focus();}
 const LAYERS='#flowFull,#lightbox';
 function _layerTop(){const l=[...document.querySelectorAll(LAYERS)].filter(e=>e.classList.contains('on'));return l[l.length-1]||null;}
 let _layerReturnFocus=null;

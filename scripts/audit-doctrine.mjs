@@ -7073,6 +7073,49 @@ for (const W of [390, 1200]) {
    Au téléphone une rangée sous l'Accès direct, au bureau une section de la colonne ; choisir = un filtre
    annoncé (puce + en-tête « à vous seul ») ; « Ajouter à une collection… » vit dans le menu ⋯ d'une aide
    EN LECTURE SEULE (« Modifier » grisé juste au-dessus) et coche sans déplacer. */
+/* ══ v5.54 (A490-A493) : colonne et retour à l'accueil ══════════════════════════════════════════
+   Une bibliothèque vide se voit dans la colonne ; le retour d'une aide repose la liste là où on l'a
+   laissée À TOUTE LARGEUR (dès 780 px elle défile dans `.home-main`, window.scrollY y vaut 0) ;
+   « Terminer la session » ramène en haut, où est la carte-bilan ; « Tout » remet les collections à zéro. */
+await sec('ACCUEIL · A490-A493 bibliothèque vide, position au retour, « Tout » des collections', async () => {
+for (const W of [390, 1280]) {
+  const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async (W) => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    for(let i=0;i<30;i++){const f=JSON.parse(JSON.stringify(fiches[0]));f.id='fs'+i;f.title='Aide '+String(i).padStart(2,'0');f.status='validated';fiches.push(migrate(f));}
+    myLibraries.length=0;myLibraries.push({id:'lib-vide',name:'Équipe neuve',role:'admin'});
+    const c=collNew('Garde SMUR',[fiches[0].id]);render();await w(300);
+    if(W>=780){out.vide=[...document.querySelectorAll('.home-side [data-libsel]')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).find(t=>/^Équipe neuve/.test(t))||'';
+      const tout=()=>{const b=document.querySelector('.home-side [data-collsel=""]');return b?b.closest('.hs-wrap').classList.contains('on'):null;};
+      out.tout=[tout()];document.querySelector('.home-side [data-collsel="'+c.id+'"]').click();await w(200);out.tout.push(tout(),state.coll===c.id);
+      document.querySelector('.home-side [data-collsel=""]').click();await w(200);out.tout.push(tout(),state.coll);}
+    const sc=()=>{const m=document.querySelector('.home-main');return (m&&m.scrollHeight>m.clientHeight+5&&getComputedStyle(m).overflowY!=='visible')?m:null;};
+    const pose=y=>{const m=sc();if(m)m.scrollTop=y;else window.scrollTo(0,y);};const lit=()=>{const m=sc();return Math.round(m?m.scrollTop:window.scrollY);};
+    pose(900);await w(250);const avant=lit();
+    const b=[...document.querySelectorAll('.home-main .card-open')].find(x=>{const q=x.getBoundingClientRect();return q.top>100&&q.bottom<innerHeight-100;});
+    b.click();await w(500);history.back();await w(700);out.retour=[avant,lit()];
+    // Terminer la session : en haut, sur la carte-bilan
+    pose(900);await w(250);
+    [...document.querySelectorAll('.home-main .card-open')].find(x=>{const q=x.getBoundingClientRect();return q.top>100&&q.bottom<innerHeight-100;}).click();await w(400);
+    document.getElementById('sessStart').click();await w(400);
+    confirmEndSession=async()=>true;   // la fenêtre maintenue 1,2 s a ses propres témoins ; ici, ce qui suit
+    await endCurrentSession();await w(500);
+    out.apresFin=lit();
+    return out;},W);
+  const P=W+' px';
+  if(W>=780){
+    t(`${P} · A490 : une bibliothèque vide se voit dans la colonne, avec son compte 0`, /^Équipe neuve\s*partagée\s*0$/.test(r.vide), r.vide);
+    t(`${P} · A493 : « Tout » allumé par défaut, éteint sous une collection, la retire`, JSON.stringify(r.tout)==='[true,false,true,true,null]', JSON.stringify(r.tout));
+  }
+  t(`${P} · A491 : le retour d'une aide repose la liste là où on l'avait laissée`, r.retour[0]>=800&&Math.abs(r.retour[1]-r.retour[0])<=2, JSON.stringify(r.retour));
+  t(`${P} · A491 : après « Terminer la session », l'accueil s'ouvre en haut (carte-bilan)`, r.apresFin===0, String(r.apresFin));
+  await page.close();
+}
+});
+
 /* ══ RETOURS v5.52 (A485-A489) : ce que l'usage a trouvé après les collections ══════════════════
    Pastille de catégorie lue sur SES éléments (homonymes), « Nouvelle catégorie » qui range, case
    « Accès direct » face à un brouillon, une seule étoile animée, feuille « Ajouter à « … » », colonne
@@ -8315,7 +8358,7 @@ await sec('Revue · A449 à tout moment : jauge neutre, jetons immobiles, colonn
    l'était pas — c'est l'erreur qu'a faite la première mesure de ce défaut.
    Le geste SOURIS avant chaque ouverture n'est pas décoratif : c'est lui qui met le navigateur
    dans l'état où le défaut existe. */
-await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris', async () => {
+await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus suit la nature', async () => {
 {
   const page=await br.newPage({viewport:{width:1280,height:900}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -8329,18 +8372,24 @@ await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris',
   const fermer=async sel=>{await page.evaluate(s=>{const x=document.querySelector(s);if(x)x.click();},sel);
     await page.waitForTimeout(180);};
 
+  /* A492 (amende A237, décision de l'auteur) : l'anneau suit la MODALITÉ. À la souris : la décision reçoit
+     le focus sur son action SANS anneau, une fenêtre qu'on parcourt sur son TITRE ; au clavier : l'anneau. */
   await souris();
   await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T'});});
   let r=await anneau();
-  t('confirmation ordinaire : le bouton focalisé porte un anneau',!!r&&r.anneau,JSON.stringify(r));
-  t('… et c\'est l\'ACTION (Entrée valide)',!!r&&r.el==='confirmYes',JSON.stringify(r));
+  t('A492 · confirmation ouverte à la souris : focus sur l\'ACTION (Entrée valide), sans anneau',!!r&&r.el==='confirmYes'&&!r.anneau,JSON.stringify(r));
   await fermer('#confirmModal .ai-x');
 
   await souris();
   await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T',danger:true,yes:'Supprimer'});});
   r=await anneau();
-  t('confirmation destructrice : anneau visible',!!r&&r.anneau,JSON.stringify(r));
-  t('… et c\'est « Annuler » (Entrée ne supprime pas)',!!r&&r.el==='confirmNo',JSON.stringify(r));
+  t('… destructrice : focus sur « Annuler » (Entrée ne supprime pas), sans anneau',!!r&&r.el==='confirmNo'&&!r.anneau,JSON.stringify(r));
+  await fermer('#confirmModal .ai-x');
+
+  await page.keyboard.press('ArrowDown');
+  await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T'});});
+  r=await anneau();
+  t('… ouverte au CLAVIER : l\'action porte l\'anneau (A237 inchangé au clavier)',!!r&&r.el==='confirmYes'&&r.anneau,JSON.stringify(r));
   await fermer('#confirmModal .ai-x');
 
   // A365 : sur l'accueil ≥ 780, Compte est une VUE — la fenêtre se mesure depuis une fiche (souris sur la barre).
@@ -8348,7 +8397,7 @@ await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris',
   await souris(30);
   await page.evaluate(()=>document.getElementById('acctTop').click());
   r=await anneau();
-  t('fenêtre Compte : le point d\'entrée porte un anneau',!!r&&r.anneau,JSON.stringify(r));
+  t('fenêtre Compte (parcours) ouverte à la souris : focus sur son TITRE, aucun champ ni anneau',!!r&&r.el==='authModalTitle'&&!r.anneau,JSON.stringify(r));
   await fermer('#authModal .ai-x');
 
   // L'ANNEAU NE COLLE PAS : il part au premier blur, `:focus-visible` reprend la main ensuite.
