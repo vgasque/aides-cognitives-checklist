@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Cartes de bibliothèque" subtitle="Carte sobre : liseré couleur, pilule neutre, code mono, session vive" viewport="760x1100" -->
+<!-- @dsCard group="Composants" name="Accueil : tuiles & cartes" subtitle="Capture réelle : Accès direct, Mes collections, cartes rangées par catégorie" viewport="760x1100" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cartes — Aides cognitives</title>
+<title>Accueil — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles). Registres :
      --act = identité/action, --ok = confirmation, --warn = décision/vigilance, --crit =
@@ -2015,12 +2015,18 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6073,8 +6079,14 @@
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
+  #admPeople{display:flex;flex-direction:column;gap:12px;margin:0 0 12px}
+  .adm-list .catmenu-filter{margin:0 0 6px}
+  .adm-user{margin:0 0 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb)}
+  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;font-size:var(--t-body)}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
   .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
   .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
@@ -8161,6 +8173,9 @@
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -8173,38 +8188,56 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:620px">
-  <div class="dir-h"><b>Épinglées ★</b></div>
-  <div class="qa-grid">
-    <button type="button" class="qa-tile" style="--stripe:#226a71"><span class="qa-t">Choc anaphylactique</span><span class="qa-sub"><span class="code">ANA-01</span><span>Urgence vitale</span><span class="tag live">● En cours</span></span></button>
-    <button type="button" class="qa-tile" style="--stripe:#45556b"><span class="qa-t">Intubation difficile</span><span class="qa-sub"><span class="code">VAD-03</span><span>Voies aériennes</span></span></button>
-  </div>
-  <div class="dir-h"><b>Répertoire</b><span class="dir-hs">2 aides cognitives · Bibliothèque perso, A → Z</span></div>
-  <div class="dir-g"><div class="dir-l">C</div><div class="dir-grid">
-    <div class="dir-row"><span class="cat-dot" style="--catcol:#226a71"></span><div class="dir-main"><button class="card-open">Choc anaphylactique</button><span class="dir-sub"><span class="tag live">● En cours</span><span>Urgence vitale</span><span class="card-date">03/2026</span></span></div><span class="dir-code">ANA-01</span><button class="pinbtn on" aria-label="Épinglé">★</button></div>
-  </div></div>
-  <div class="dir-g"><div class="dir-l">I</div><div class="dir-grid">
-    <div class="dir-row"><span class="cat-dot" style="--catcol:#45556b"></span><div class="dir-main"><button class="card-open">Intubation difficile</button><span class="dir-sub"><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span>Voies aériennes</span><span class="card-date stale">01/2024</span></span></div><span class="dir-code">VAD-03</span><button class="pinbtn" aria-label="Épingler">☆</button></div>
-  </div></div>
-  <div class="empty" style="margin-top:12px"><b>Aucune fiche</b>Créez votre première aide cognitive.<br><button class="btn primary" style="margin-top:14px">Créer</button></div>
-</div>
-<p class="ds-cap">Accueil « poste accès direct » (v4.56.0, maquette 2c) — tuiles .qa-tile « Épinglée(s) » (accordé au type, liseré --stripe, UN seul bouton par tuile, titre borné à 2 lignes) puis répertoire A→Z : lettre .dir-l, rangées .dir-row compactes (le TITRE .card-open est le vrai bouton, ::after étiré ; épingle et badge « À compléter » cliquables au-dessus). La couleur de catégorie = pastille + NOM en toutes lettres, jamais seule ; date périmée = registre ATTENTION.</p></div>
+<div class="ds-capt" style="max-width:420px"><div class="dir-wrap"><div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">1 épinglée</span></div>
+        <div class="qa-grid"><button type="button" class="qa-tile card-open" data-open="fmuy46xg01huup9c3" title="Arrêt cardiaque (ACR) — algorithme" style="--stripe:#905a39">
+        <span class="qa-tx"><span class="qa-t">Arrêt cardiaque (ACR) — algorithme</span>
+        <span class="qa-sub"><span class="tag disc">adulte</span><span class="code">ACR</span><span>· SMUR</span></span></span>
+        
+      </button></div></div><div class="coll-rail"><div class="dir-h"><b>Mes collections</b><span class="dir-hs">à vous seul</span></div><div class="chiprow" role="group" aria-label="Mes collections"><button type="button" class="catchip coll-chip" data-collsel="kmuy46xov1ia7zni1" aria-pressed="false"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg>Bloc pédia<span class="coll-n">1</span></button><button type="button" class="catchip coll-chip" data-collsel="kmuy46xov1wf6hook" aria-pressed="false"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg>Garde SMUR<span class="coll-n">2</span></button><button type="button" class="catchip coll-new" data-collnew="" aria-label="Nouvelle collection"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></div></div><div class="dir-h dir-sum"><span class="dir-hs">2 aides · 2 à relire</span><span class="rang-wrap"><button type="button" class="rang-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Affichage — rangé par catégorie"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg>Affichage</button></span><button type="button" class="sel-tog">Sélectionner</button></div><div class="dir-book"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="background:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
+      <div class="dir-row" style="--catcol:#905a39">
+        
+        <div class="dir-main">
+          <button class="card-open" data-open="fmuy46xg01huup9c3"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><b class="dir-disc">adulte</b><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span></span><span class="dir-st b">△ À relire</span></span>
+          
+        </div>
+        <button class="pinbtn on" data-pin="fmuy46xg01huup9c3" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+      </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="background:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
+      <div class="dir-row" style="--catcol:#7a2f6b">
+        
+        <div class="dir-main">
+          <button class="card-open" data-open="fmuy46xfyi878p1l4"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><b class="dir-disc">adulte</b><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span></span><span class="dir-st b">△ À relire</span></span>
+          
+        </div>
+        <button class="pinbtn" data-pin="fmuy46xfyi878p1l4" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+      </div></div></div></div></div></div>
+<p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:620px">
-  <div class="dir-h"><b>Épinglées ★</b></div>
-  <div class="qa-grid">
-    <button type="button" class="qa-tile" style="--stripe:#226a71"><span class="qa-t">Choc anaphylactique</span><span class="qa-sub"><span class="code">ANA-01</span><span>Urgence vitale</span><span class="tag live">● En cours</span></span></button>
-    <button type="button" class="qa-tile" style="--stripe:#45556b"><span class="qa-t">Intubation difficile</span><span class="qa-sub"><span class="code">VAD-03</span><span>Voies aériennes</span></span></button>
-  </div>
-  <div class="dir-h"><b>Répertoire</b><span class="dir-hs">2 aides cognitives · Bibliothèque perso, A → Z</span></div>
-  <div class="dir-g"><div class="dir-l">C</div><div class="dir-grid">
-    <div class="dir-row"><span class="cat-dot" style="--catcol:#226a71"></span><div class="dir-main"><button class="card-open">Choc anaphylactique</button><span class="dir-sub"><span class="tag live">● En cours</span><span>Urgence vitale</span><span class="card-date">03/2026</span></span></div><span class="dir-code">ANA-01</span><button class="pinbtn on" aria-label="Épinglé">★</button></div>
-  </div></div>
-  <div class="dir-g"><div class="dir-l">I</div><div class="dir-grid">
-    <div class="dir-row"><span class="cat-dot" style="--catcol:#45556b"></span><div class="dir-main"><button class="card-open">Intubation difficile</button><span class="dir-sub"><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span>Voies aériennes</span><span class="card-date stale">01/2024</span></span></div><span class="dir-code">VAD-03</span><button class="pinbtn" aria-label="Épingler">☆</button></div>
-  </div></div>
-  <div class="empty" style="margin-top:12px"><b>Aucune fiche</b>Créez votre première aide cognitive.<br><button class="btn primary" style="margin-top:14px">Créer</button></div>
-</div>
-<p class="ds-cap">Accueil « poste accès direct » (v4.56.0, maquette 2c) — tuiles .qa-tile « Épinglée(s) » (accordé au type, liseré --stripe, UN seul bouton par tuile, titre borné à 2 lignes) puis répertoire A→Z : lettre .dir-l, rangées .dir-row compactes (le TITRE .card-open est le vrai bouton, ::after étiré ; épingle et badge « À compléter » cliquables au-dessus). La couleur de catégorie = pastille + NOM en toutes lettres, jamais seule ; date périmée = registre ATTENTION.</p></div>
+<div class="ds-capt" style="max-width:420px"><div class="dir-wrap"><div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">1 épinglée</span></div>
+        <div class="qa-grid"><button type="button" class="qa-tile card-open" data-open="fmuy46xg01huup9c3" title="Arrêt cardiaque (ACR) — algorithme" style="--stripe:#905a39">
+        <span class="qa-tx"><span class="qa-t">Arrêt cardiaque (ACR) — algorithme</span>
+        <span class="qa-sub"><span class="tag disc">adulte</span><span class="code">ACR</span><span>· SMUR</span></span></span>
+        
+      </button></div></div><div class="coll-rail"><div class="dir-h"><b>Mes collections</b><span class="dir-hs">à vous seul</span></div><div class="chiprow" role="group" aria-label="Mes collections"><button type="button" class="catchip coll-chip" data-collsel="kmuy46xov1ia7zni1" aria-pressed="false"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg>Bloc pédia<span class="coll-n">1</span></button><button type="button" class="catchip coll-chip" data-collsel="kmuy46xov1wf6hook" aria-pressed="false"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg>Garde SMUR<span class="coll-n">2</span></button><button type="button" class="catchip coll-new" data-collnew="" aria-label="Nouvelle collection"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></div></div><div class="dir-h dir-sum"><span class="dir-hs">2 aides · 2 à relire</span><span class="rang-wrap"><button type="button" class="rang-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Affichage — rangé par catégorie"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg>Affichage</button></span><button type="button" class="sel-tog">Sélectionner</button></div><div class="dir-book"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="background:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
+      <div class="dir-row" style="--catcol:#905a39">
+        
+        <div class="dir-main">
+          <button class="card-open" data-open="fmuy46xg01huup9c3"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><b class="dir-disc">adulte</b><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span></span><span class="dir-st b">△ À relire</span></span>
+          
+        </div>
+        <button class="pinbtn on" data-pin="fmuy46xg01huup9c3" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+      </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="background:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
+      <div class="dir-row" style="--catcol:#7a2f6b">
+        
+        <div class="dir-main">
+          <button class="card-open" data-open="fmuy46xfyi878p1l4"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><b class="dir-disc">adulte</b><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span></span><span class="dir-st b">△ À relire</span></span>
+          
+        </div>
+        <button class="pinbtn" data-pin="fmuy46xfyi878p1l4" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+      </div></div></div></div></div></div>
+<p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 </body></html>

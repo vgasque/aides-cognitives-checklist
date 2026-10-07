@@ -1,7 +1,7 @@
-<!-- @dsCard group="Composants" name="Listes de fiche" subtitle="Ne pas oublier, étapes 64px, Continuer, fin d’algorithme" viewport="760x1900" -->
+<!-- @dsCard group="Mode crise" name="Étapes d’un bloc" subtitle="Capture réelle : CRITIQUE / VIGILANCE en mots, réponse attendue, Continuer, Vérifier" viewport="760x1900" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Listes — Aides cognitives</title>
+<title>Étapes — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles). Registres :
      --act = identité/action, --ok = confirmation, --warn = décision/vigilance, --crit =
@@ -2015,12 +2015,18 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6073,8 +6079,14 @@
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
+  #admPeople{display:flex;flex-direction:column;gap:12px;margin:0 0 12px}
+  .adm-list .catmenu-filter{margin:0 0 6px}
+  .adm-user{margin:0 0 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb)}
+  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;font-size:var(--t-body)}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
   .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
   .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
@@ -8161,6 +8173,9 @@
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -8173,46 +8188,18 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:560px">
-  <div class="forget-strip"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list"><div class="fs-i"><span class="ftxt">Retirer l’allergène (perfusion, latex…)</span></div><div class="fs-i"><span class="ftxt">Noter l’heure de la première adrénaline</span></div></div></div>
-  <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/3</span> coché</div>
-    <ol class="steps">
-      <li class="done" role="checkbox" aria-checked="true"><span class="box">✓</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
-      <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline IM 0,5&nbsp;mg face antéro-latérale de cuisse</span></li>
-      <li class="vigil" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Surveiller la pression artérielle en continu</span></li>
-    </ol>
-    <div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez les étapes restantes (2)</button></div>
-  </div>
-  <div class="flow-nav"><button id="navBack">‹ Bloc précédent</button><button class="btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
-  <div class="flow-end">Algorithme terminé — surveillance en cours</div>
-  <section class="block" style="margin-top:16px"><div class="block-h h-verify"><span class="sec-badge"><svg class="sec-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>Vérifier</div>
-    <ul class="flat verify"><li>Pression artérielle toutes les 5 min</li><li>Signes de bronchospasme</li></ul>
-  </section>
-  <section class="block"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur" data-ovb="bmuy46yw617a57631" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="stp-legend"><span class="lg-it">sous l’étape, en gris : la réponse attendue</span></div><ol class="steps"><li data-ck="1:bmuy46yw617a57631:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmuy46yw617a57631:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmuy46yw617a57631:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmuy46yw617a57631:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmuy46yw612brw83m" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
+  <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>
 </div>
-<p class="ds-cap">Étapes 64px, case 36px à DROITE ; cochée = vert doux --done-* (texte lisible, pas de biffure agressive) ; ⚠ critique = rouge --crit ; △ vigilance = ambre. Le titre du bloc porte le compte vivant « n/t coché ». .flow-nav TOUJOURS présente (Précédent désactivé au 1er bloc ; Recommencer = maintenir). .flow-end = fin d’algorithme, registre CONFIRMATION — elle n’arrête PAS la session. Un SEUL registre de titres (.block-h, petites capitales) ; couleur sémantique portée par pip + badge, jamais seule.</p></div>
+<p class="ds-cap">Capture réelle (A345) : toutes les étapes partagent le même corps et la même colonne, case à DROITE ; le danger est un MOT — étiquette CRITIQUE (--crit) ou VIGILANCE (--warn) + bordure de case au registre + texte .sr-only, jamais un glyphe ⚠/△. Sous l’étape, en gris : la réponse attendue (« challenge :: réponse »). « Continuer » ne s’active qu’étapes cochées, et dit pourquoi tant qu’il ne l’est pas ; « Vérifier » ouvre la passe de constat.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:560px">
-  <div class="forget-strip"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list"><div class="fs-i"><span class="ftxt">Retirer l’allergène (perfusion, latex…)</span></div><div class="fs-i"><span class="ftxt">Noter l’heure de la première adrénaline</span></div></div></div>
-  <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/3</span> coché</div>
-    <ol class="steps">
-      <li class="done" role="checkbox" aria-checked="true"><span class="box">✓</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
-      <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline IM 0,5&nbsp;mg face antéro-latérale de cuisse</span></li>
-      <li class="vigil" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Surveiller la pression artérielle en continu</span></li>
-    </ol>
-    <div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez les étapes restantes (2)</button></div>
-  </div>
-  <div class="flow-nav"><button id="navBack">‹ Bloc précédent</button><button class="btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
-  <div class="flow-end">Algorithme terminé — surveillance en cours</div>
-  <section class="block" style="margin-top:16px"><div class="block-h h-verify"><span class="sec-badge"><svg class="sec-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>Vérifier</div>
-    <ul class="flat verify"><li>Pression artérielle toutes les 5 min</li><li>Signes de bronchospasme</li></ul>
-  </section>
-  <section class="block"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur" data-ovb="bmuy46yw617a57631" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="stp-legend"><span class="lg-it">sous l’étape, en gris : la réponse attendue</span></div><ol class="steps"><li data-ck="1:bmuy46yw617a57631:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmuy46yw617a57631:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmuy46yw617a57631:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmuy46yw617a57631:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmuy46yw612brw83m" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
+  <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>
 </div>
-<p class="ds-cap">Étapes 64px, case 36px à DROITE ; cochée = vert doux --done-* (texte lisible, pas de biffure agressive) ; ⚠ critique = rouge --crit ; △ vigilance = ambre. Le titre du bloc porte le compte vivant « n/t coché ». .flow-nav TOUJOURS présente (Précédent désactivé au 1er bloc ; Recommencer = maintenir). .flow-end = fin d’algorithme, registre CONFIRMATION — elle n’arrête PAS la session. Un SEUL registre de titres (.block-h, petites capitales) ; couleur sémantique portée par pip + badge, jamais seule.</p></div>
+<p class="ds-cap">Capture réelle (A345) : toutes les étapes partagent le même corps et la même colonne, case à DROITE ; le danger est un MOT — étiquette CRITIQUE (--crit) ou VIGILANCE (--warn) + bordure de case au registre + texte .sr-only, jamais un glyphe ⚠/△. Sous l’étape, en gris : la réponse attendue (« challenge :: réponse »). « Continuer » ne s’active qu’étapes cochées, et dit pourquoi tant qu’il ne l’est pas ; « Vérifier » ouvre la passe de constat.</p></div>
 </body></html>

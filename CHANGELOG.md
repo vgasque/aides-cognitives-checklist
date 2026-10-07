@@ -1,5 +1,49 @@
 # Journal des modifications
 
+## [5.52.1] — 2026-10-07
+L'administrateur gère aussi les bibliothèques dont il n'est pas membre (A484, doctrine `docs/decisions/lot-v5-52.md`).
+Rien à rejouer côté serveur au-delà de la 5.52.0.
+- **Administration › Bibliothèques de l'instance** : toucher une bibliothèque ouvre sa fenêtre de gestion, même
+  si vous n'en êtes pas membre — inviter quelqu'un, changer un rôle, retirer un membre, la renommer ou la supprimer.
+  Un bandeau en tête le dit : vous la gérez comme administrateur de l'instance, et son contenu ne s'affiche pas
+  chez vous tant que vous ne vous y ajoutez pas.
+- La suppression annonce le vrai nombre d'aides et de protocoles qu'elle emporte (elle disait 0 pour une
+  bibliothèque dont vous n'étiez pas membre).
+- Fermer la fenêtre met à jour les listes d'Administration (membres, administrateurs, bibliothèques de chaque compte).
+- Dans la liste des bibliothèques de l'instance, les vôtres disent « vous : Admin » (ou votre rôle).
+- « Convertir en collection » n'est plus proposé sur une bibliothèque dont vous n'êtes pas membre.
+
+## [5.52.0] — 2026-10-07
+L'administrateur de l'instance voit tous les comptes et toutes les bibliothèques, et en règle les droits (A483,
+doctrine `docs/decisions/lot-v5-52.md`). **⚠ Rejouer `supabase/schema.sql`** (§ 9ter) puis `rls-tests.sql` (§ 15.7) ;
+sans cela, Administration le signale et rien d'autre ne change.
+- **Administration › Comptes** : tous les comptes, approuvés, en attente ou refusés, avec leur nombre de
+  bibliothèques. Toucher un compte le déplie sur place : son statut et le geste qui va avec (Approuver, Refuser,
+  Suspendre l'accès…, Réapprouver, Supprimer le compte…), « Peut créer des bibliothèques », et chacune de ses
+  bibliothèques avec son rôle à changer ou ✕ pour l'en retirer.
+- **Administration › Bibliothèques de l'instance** : toutes les bibliothèques partagées, même celles dont vous n'êtes
+  pas membre, avec membres, administrateurs, éléments et créateur ; toucher une bibliothèque ouvre ses Membres
+  (inviter, changer un rôle, retirer).
+- Un champ « Filtrer… » apparaît au-delà de huit comptes ou bibliothèques.
+- Correctif : un administrateur ne voit plus les bibliothèques des autres comptes parmi les siennes.
+
+## [5.51.1] — 2026-10-07
+Les feuilles de la sélection disent ce qu'on fait, la règle de création se confirme, et le design system rattrape
+l'app (A480-A482, doctrine `docs/decisions/lot-v5-51.md`).
+- **Feuilles ouvertes depuis « Actions »** (Ajouter à une collection, Déplacer, Ranger) : « ‹ Actions » devient un
+  petit lien de retour, le titre de la feuille est le geste, et une seule ligne dit sur quoi l'on agit (« 2 éléments ·
+  deux bibliothèques ») — la même partout, collections comprises.
+- **« Ajouter à une collection »** : chaque case porte son icône — l'étoile pour l'Accès direct, le signet pour les
+  collections — et la case vide se voit enfin en thème sombre.
+- **« Déplacer vers une bibliothèque »** ne coche plus « Ma bibliothèque perso » quand la sélection est répartie sur
+  deux bibliothèques.
+- **Administration › Création de bibliothèques** : changer de règle ouvre un bandeau qui dit ce que cela changera,
+  avec Annuler / Confirmer ; rien n'est appliqué avant « Confirmer ».
+- **Design system (claude.ai/design)** : la fiche Couleurs suit les couleurs actuelles (31 pastilles étaient vides),
+  neuf fiches sont désormais relevées sur l'app elle-même (démarrage, étapes, Vérifier, journal, parcours, Page,
+  accueil, en-tête et quai, menu ⋯) au lieu de montrer des composants retirés, une fiche « Rangement » s'ajoute, et
+  les lignes directrices sont à jour de la v5.51.
+
 ## [5.51.0] — 2026-10-07
 Qui peut créer une bibliothèque, et comment la demander (A478-A479, doctrine `docs/decisions/lot-v5-51.md`).
 **⚠ Rejouer `supabase/schema.sql`** (§ 9 et 9bis) pour en profiter ; sans cela, l'app garde l'ancienne règle
@@ -195,71 +239,3 @@ Deuxième lot de l'audit de prise en main : un seul vocabulaire, un nom par vue,
 - Inchangé, par décision antérieure : le bouton ◑ (thème) reste dans l'en-tête des aides, pour éteindre l'écran au
   chevet sans ouvrir de réglage.
 
-## [5.45.0] — 2026-10-05
-Premier lot de l'audit de prise en main (`docs/audit-apprentissage-2026-10.md`) : ce qu'un nouvel utilisateur ne trouvait pas, ou lisait de travers (A460, doctrine `docs/decisions/lot-v5-45.md`).
-- **Recherche** :
-  - la précision d'une aide (« adulte », « pédiatrique »…) est désormais cherchée, pour les aides comme pour les
-    protocoles ;
-  - **Entrée** ouvre le premier résultat.
-- **« Exercice » écrit en entier** sur le quai dès 360 px de large ; « Exo. » ne reste que sur les plus petits écrans.
-  Une fois armée, la touche affiche aussi « Annuler » à l'écran, et plus seulement pour les lecteurs d'écran.
-- **Affichage › Regrouper** : « Catégorie » et « Bibliothèque » en toutes lettres (sur deux lignes si besoin), au lieu
-  de « Catég. » et « Biblio. ».
-- **Fin de session** : le bouton rouge dit lui-même « Terminer · maintenir 1,2 s ». Un tap bref ne faisait rien en
-  apparence, et la consigne était écrite plus bas.
-- **Mode exercice** : le bouton dit « Démarrer l'exercice ». « Confirmé — » reste réservé à la session réelle, où il
-  acquitte les critères « Quand l'utiliser ».
-- **Accueil** : le badge « △ À compléter » se touche et dit ce qui reste à remplacer ; son explication n'existait
-  qu'au survol de la souris.
-- **Les deux aides d'exemple arrivent « À relire »**, et non plus « Validée », avec un bandeau qui le dit. Valider
-  reste votre geste. La notice « À relire » se lit avant la session et n'occupe plus l'écran pendant.
-- **Moi › « Revoir l'accueil »** rouvre l'écran de bienvenue. Il se fermait pour toujours au premier tap. Ses portes
-  déjà sans objet s'effacent (exemples déjà présents, compte déjà connecté).
-- L'info-bulle de « Vérifier » est en français (« Relire ce bloc étape par étape… »).
-- Non traité dans ce lot : le nom du compteur dans la capsule (« CHOCS DE… ») — la place manque à 64 px, décision de
-  dessin à prendre.
-
-## [5.44.0] — 2026-10-05
-L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A452-A459, doctrine `docs/decisions/lot-v5-44.md`).
-- **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
-  et choisir le document dans la liste, ou toucher (ou glisser vers le texte) le nouveau bouton lien de chaque document.
-  `#p12` après l'identifiant ouvre le PDF à la page 12.
-- **Une barre d'outils regroupée** : B · I · S, puis quatre menus — Titre, Liste, Encadré, ＋ Insérer (tableau, lien
-  vers un document, lien web, image, code, séparateur). Chaque choix montre la syntaxe qu'il pose. La barre reste
-  visible en haut pendant qu'on fait défiler le texte et tient sur une ligne jusqu'à 344 px de large.
-- **Le clavier** : Entrée continue une liste (puces, numéros, cases, citations) et la termine sur une ligne vide ;
-  Tab et Maj+Tab changent le niveau d'une puce ; ⌘B, ⌘I et ⌘K font gras, italique et lien. **⌘Z annule aussi les
-  gestes de la barre.**
-- **Une disposition par écran** : au téléphone, « Écrire | Aperçu » ; sur tablette, le texte et l'aperçu côte à côte ;
-  sur ordinateur, l'aperçu dans la colonne de droite. Un bouton « Plan » mène à chaque titre, l'aperçu marque le
-  passage où l'on écrit, et toucher l'aperçu ramène le curseur au bon endroit du texte.
-- **Les tableaux se remplissent dans une grille** (« Insérer › Tableau », ou « Modifier en grille » quand le curseur
-  est dans un tableau) : ajouter ou retirer lignes et colonnes, aligner une colonne, modèle « posologie ».
-- **Coller depuis Word ou un PDF** : titres, puces, tableaux et gras sont reconnus, et l'app montre ce qui sera inséré
-  avant de le faire. La couleur n'est pas reprise (elle a un sens dans l'app) : la fenêtre le dit. « Coller le texte
-  brut » reste possible.
-- **Une relecture de l'écriture** sous le texte : lien vers un document absent, ligne de tableau incomplète, titre ou
-  encadré mal posé, et les écritures de dose qui trompent la lecture — « .5 mg » (→ 0,5 mg), « 5,0 mg » (→ 5 mg),
-  « ug », « U », « cc ». Chaque point se corrige un par un, d'un tap, et s'annule. Elle relit la façon d'écrire,
-  jamais le contenu clinique.
-- **Sur ordinateur, le texte se colore** : marqueurs en gris, encadrés à leur couleur, points de relecture soulignés.
-- **Écrans pliables** (Surface Duo, Pixel Fold ouverts) : le texte sur un écran, l'aperçu et la relecture sur l'autre,
-  plus rien à cheval sur la charnière. Vérifié aussi sur Galaxy Z Fold (fermé et ouvert) et Z Flip.
-- Corrigé : dans une référence, les lignes du volet « Relecture » ne réagissaient pas au toucher, et sous 1000 px le
-  volet ne suivait pas la frappe.
-
-## [5.43.1] — 2026-10-05
-La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Windows et Linux (A451, doctrine `docs/decisions/lot-v5-43.md`, second chapitre).
-- **Une case pour tout cocher** : à gauche du compte, une case du même dessin que celle des rangées remplace les deux
-  boutons « Tout cocher / Tout décocher ». Vide quand rien n'est coché, un tiret quand une partie l'est, une coche quand
-  tout l'est ; un tap coche tout, ou décoche tout si tout était coché. Elle est là à toutes les largeurs (sur un petit
-  téléphone, « Tout décocher » ne passe plus par le tiroir « Actions »).
-- **Sur grand écran, les actes portent leur glyphe** : Bibliothèque, Catégorie, Exporter, Supprimer, avec les mêmes
-  dessins que dans le tiroir « Actions ». Le compte « 2 cochés » se lit en entier : sous Windows et Linux, vers 1200 px,
-  il était réduit à « … » depuis l'arrivée d'« Exporter… ».
-- **« 0 coché »** remplace « Rien de coché », qui était coupé sur les écrans de 320 px.
-- **Sur téléphone, le nom « Aides cognitives » de l'accueil est un peu plus petit** (sous 480 px de large) : il touchait
-  presque les boutons de l'en-tête, et les débordait sous Linux.
-- Pourquoi seulement sous Windows et Linux : le texte y est un peu plus large (lettres arrondies au pixel) et la barre de
-  défilement prend de la place ; sur Mac ces lignes tenaient au pixel près. Les audits de la CI, qui tournent sous Linux,
-  échouaient sur ces deux points depuis la v5.30.

@@ -1,4 +1,4 @@
-<!-- @dsCard group="Composants" name="Barre d’en-tête" subtitle="Accueil (accent), bandeau de crise ALERTE, menu ⋯" viewport="760x1600" -->
+<!-- @dsCard group="Mode crise" name="En-tête, capsule & quai" subtitle="Captures réelles : en-tête d’accueil, capsule d’état, quai à quatre touches, menu ⋯" viewport="760x1600" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>En-tête — Aides cognitives</title>
@@ -2015,12 +2015,18 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6073,8 +6079,14 @@
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
+  #admPeople{display:flex;flex-direction:column;gap:12px;margin:0 0 12px}
+  .adm-list .catmenu-filter{margin:0 0 6px}
+  .adm-user{margin:0 0 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb)}
+  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;font-size:var(--t-body)}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
   .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
   .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
@@ -8161,6 +8173,9 @@
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -8173,86 +8188,216 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden">
-  <header class="bar home" style="position:static">
-    <div class="id-row"><div class="brand"><span class="brand-name">Aides cognitives</span></div><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div>
-  </header>
-</div>
-<p class="ds-cap">Barre d’accueil CLAIRE (couleur du fond) : recherche FIXE, boutons 40px (halo 44px), menu ⋯, compte en initiales. Connecté, la couleur d’ACCENT du compte teinte l’accueil entier et l’en-tête de toutes les vues — le contenu clinique reste bleu.</p>
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><div class="brand"></div><span class="hdr-crisis">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
-  </header>
-  <div id="crisisBand"><span class="cb-ttl">Choc anaphylactique</span><span class="cb-tag">■ Mode crise</span></div>
-  <div id="crisisDock"><div class="dock-in">
-    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
-  </div></div>
-</div>
-<p class="ds-cap">ZONE HAUTE DE CRISE, hors en-tête (v4.23.0). Bandeau TITRE à fond BLANC : un bandeau d’état PERMANENT teinté en rouge désensibiliserait au rouge, que l’ECAM réserve aux alertes réelles — le statut s’annonce en TEXTE (« ■ Mode crise »). Puis le QUAI COLLANT, ordre FIXE <b>⤢ Plan · ● Session · minuteurs</b> : Plan et Session sont AVANT la partie variable, ils gardent donc une position immobile quel que soit le nombre de minuteurs, qui coulent à leur droite (le blanc part au bord droit — barre d’outils normale, aucun vide central). Échu en ambre = registre ATTENTION, « ● Session » en vert = actif nominal.</p>
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar titled ttl-on crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><div class="brand"><span id="brandTitle" style="display:block">Choc anaphylactique</span></div><span class="hdr-crisis" style="display:inline">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
-  </header>
-  <div id="crisisDock"><div class="dock-in">
-    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
-  </div></div>
-</div>
-<p class="ds-cap">AU DÉFILEMENT : le bandeau (titre, information CONSTANTE) s’en va et l’en-tête en prend le relais — titre + « ■ Crise » — à l’instant MESURÉ où il passe dessous. Le QUAI (Plan + état vivant) reste COLLÉ sous l’en-tête et ne quitte jamais l’écran : zone de statut permanente, aucun relais miniature à loger dans la barre.</p>
-<div class="more-menu" style="position:static;margin-top:16px">
-  <button class="mm-row">Modifier</button>
-  <button class="mm-row">Versions</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row">Dupliquer</button>
-  <button class="mm-row">Exporter (.json)</button>
-  <button class="mm-row">Exporter en PDF</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row">Historique des sessions (3)</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row danger">Terminer la session…</button>
-</div>
-<p class="ds-cap">.more-menu — menu ⋯ (262px, rangées 44px, séparateurs entre groupes) : TOUTES les actions secondaires de lecture ; remplace les barres « Autorat » de bas de page. L’action destructrice est DERNIÈRE et rouge — jamais première, jamais pleine.</p></div>
+<div class="ds-capt ds-fix" style="max-width:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden"><header class="bar home"><div class="id-row">
+    <button class="hdr-back" id="hdrBack" hidden=""><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
+    <span class="brand-logo" aria-hidden="true"></span>
+    <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><!-- A14 — EN-TÊTE À TROIS ZONES ANCRÉES. Le sur-titre « ■ MODE CRISE » vit AU-DESSUS du titre,
+         et non à sa suite : accolé au nom de la fiche, le statut se lisait comme un fragment de ce
+         nom. Au-dessus, il redevient ce qu'il est — l'énoncé du mode. Il ne coûte aucune hauteur :
+         la rangée d'identité est déjà à deux lignes (marque/sous-titre) hors crise. -->
+    <span class="brand-sur" id="brandSur" hidden=""><span class="bs-cat" hidden=""></span><span class="bs-m"></span></span><span class="bt-line"><span id="brandTitle" style="display: none;"></span><span id="brandDisc" hidden=""></span></span></div>
+    <!-- ACCUEIL v5.18 : l'accès vit dans #homeDock, DANS la rangée d'identité. En voie
+         étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
+         pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
+         Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <div id="homeDock">
+    <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
+         Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
+         au-dessus d'elle : crans de type + déclencheur de la feuille. Chips peintes par
+         syncFiltTog (état), rangée statique (écouteurs délégués). -->
+    <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
+    <button type="button" id="filtTog" class="filt-tog" data-filttog="" aria-haspopup="dialog" aria-expanded="false" aria-label="Affichage et filtres" title="Affichage et filtres"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg><span class="filt-n" id="filtN" hidden=""></span></button>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+
+    <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
+         #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
+         disparaît donc JAMAIS. (Les minuteurs, eux, n'ont pas de relais : leur rangée est
+         COLLANTE et ne quitte jamais l'écran.) -->
+    <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
+         DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
+         bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
+         (placeCrisisChrome/rescueCrisisChrome) : déplacées, jamais recréées. Vide = invisible. -->
+    <div class="hdr-crisis-slot" id="hdrCrisisSlot"></div>
+    <div class="hdr-acts">
+    <!-- H (audit design v4.58.0, concept B) : L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT.
+         Avant, il vivait à droite de la bande-titre quand elle était dépliée, puis sautait au
+         milieu de la ligne fusionnée au défilement : position ET libellé changeaient. Or c'est
+         l'objet qui doit se lire en moins d'une seconde — il devrait être LE plus stable de
+         l'écran, pas le moins. Il est donc accolé à ◐ ⋯, les deux seuls objets qui ne bougent
+         dans AUCUN des deux états, et il ne dépend plus du défilement. -->
+    <!-- ⚠ LA PILULE DE MODE `#hdrCrisis` EST PURGÉE (v5.6, A14 — règle 14). Elle vivait ICI,
+         au bout de la rangée d'actions, et disait le mode que le sur-titre `.brand-sur` dit
+         désormais au-dessus du titre. Deux énoncés du même mode sur le même écran, c'est
+         exactement la duplication que la v4.70.1 a proscrite — la question n'était plus QUE
+         supprimer, mais LEQUEL : le sur-titre gagne parce qu'il est du côté de l'IDENTITÉ, là où
+         l'œil arrive, et parce qu'il ne dispute plus sa place aux réglages. Ses modificateurs de
+         placard (.exo/.inv) sont partis avec elle, sur le sur-titre. -->
+    <span class="hdr-badge" id="hdrBadge" hidden=""></span>
+    <button class="hdr-new hdr-hist" id="hdrHist" aria-label="Sessions — historique" title="Sessions"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span class="hb-lbl" aria-hidden="true">Sessions</span></button>
+    <button class="hdr-new" id="hdrNew" title="Créer une aide cognitive"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="hdr-new-lbl">Créer</span></button>
+    <!-- COMPTE DE RELECTURE (v4.76.0) : le volet-bilan vit en PIED de formulaire — c'est sa
+         place, on le lit en fermant — mais rien ne disait, pendant qu'on écrit, qu'il y avait
+         quelque chose à relire. Le COMPTE monte donc dans la barre, immobile, et ancre vers le
+         volet ; le DÉTAIL reste en bas et sous la ligne qu'il vise. -->
+    <button class="hdr-rev" id="hdrRev" hidden="" aria-label="Remarques de relecture"></button>
+    <!-- ANNEAU D'ANNULATION (v4.74.2) : le geste qui remplace le « Annuler » disparu avec le
+         bouton « Enregistrer ». Il vit CONTRE l'état d'enregistrement, parce que c'est son
+         pendant : l'un dit ce qui est écrit, l'autre le défait. Masqué tant que la pile est vide
+         (aucun bouton mort) et hors des éditeurs. -->
+    <button class="hdr-undo" id="hdrUndo" hidden="" title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
+    <span class="hdr-saved" id="hdrSaved" role="status" hidden=""></span>
+    <!-- « ▶ Essayer » passe en TONAL (v4.77.0) : l'unique bouton REMPLI de l'éditeur est désormais la
+         porte « ＋ ». C'est un arbitrage, pas un détail — l'action primaire d'un ÉDITEUR est
+         d'écrire, et la porte est l'entrée de l'écriture ; dérouler son brouillon vient après. La
+         règle « un seul bouton rempli par écran » (v4.0.3) est donc tenue, dans l'autre sens. -->
+    <button class="hdr-act2" id="hdrPreview" hidden="" title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
+    <!-- ⚠ LE THÈME REVIENT DANS L'EN-TÊTE, ET SEULEMENT EN LECTURE (v5.6, décision utilisateur :
+         « OK pour conserver auto/clair/sombre dans la fenêtre Compte, mais il faut le laisser
+         visible en mode lecture/crise d'une aide et en lecture d'un protocole — c'est très
+         important »). Le réglage CANONIQUE reste à froid, dans Compte › Affichage ; ceci en est
+         le RACCOURCI, posé dans la seule situation où il est urgent — une chambre qu'on éteint
+         au chevet, pendant un soin, où ouvrir une fenêtre de réglages n'est pas envisageable.
+         Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
+         par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
+         là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
+    <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
+    <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
+         dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
+         constante partagée — si l'un change, changer l'autre. -->
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"></circle><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"></path></svg><span class="acct-ini" id="acctIni" hidden=""></span><span class="acct-dot ok" id="acctDot" hidden=""></span><span class="hb-lbl" aria-hidden="true">Moi</span></button></div></div>
+    <datalist id="phaseList"></datalist>
+    <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
+         toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
+    <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
+<p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
+<div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmuy46xg0kzq4foj9">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmuy46xg0egkesd1r">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+  </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
+<p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
+<div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
+  <div class="sd-in">
+    <!-- ⚠ LES DEUX PORTEUSES D'ICÔNE SONT VIDES, ET LE PEINTRE LES REMPLIT (A117e : la coque
+         statique ne peut pas appeler `uiIcon`, on n'y recopie donc pas un tracé — un dessin
+         recopié finit par diverger). C'est `syncDock` qui les peint, une fois. -->
+    <button id="endKey" type="button" class="sd-key sd-end" aria-label="Terminer la session — confirmation demandée"><span class="dp-ic" aria-hidden="true"><svg class="tic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="dp-lbl">Fin</span></button>
+    <button id="allBtn" class="sd-key" aria-label="Tout voir — l’aide entière, puis retour au bloc"><span class="dp-ic" aria-hidden="true"><svg class="tic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="dp-lbl">Tout voir</span></button>
+    <button id="cxKey" type="button" class="sd-key sd-cx" aria-label="Complication : FV réfractaire (CEE inefficaces) — interrompt le parcours, retour prévu"><span class="dp-ic" aria-hidden="true"><svg class="tic bolt" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"></path></svg></span><span class="dp-lbl sd-name">FV réfractaire</span></button>
+    <button id="tkKey" type="button" class="sd-key sd-tk" aria-label="Horodater — noter l’heure d’un geste, puis le nommer" aria-expanded="false"><span class="dp-ic" aria-hidden="true"><svg class="tic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6"></path></svg></span><span class="dp-lbl">Horodater</span></button>
+    <!-- HORS SESSION, le dock n'a que deux commandes (maquette 1b/1c) : Exercice au CONTOUR,
+         Démarrer REMPLI — la seule action qui compte avant le premier geste. Elles remplacent les
+         quatre touches de session ; les deux jeux ne coexistent jamais. -->
+    <button id="exoKey" type="button" class="sd-key sd-exo" aria-pressed="false" aria-label="Répéter en exercice — rien n’est enregistré comme soin" hidden=""><span class="dp-ic" aria-hidden="true">▲</span><span class="dp-lbl">Exercice</span><span class="dp-lbl dp-lbl-s" aria-hidden="true">Exo.</span></button>
+    <button id="sessStart" type="button" class="sd-key sd-start" aria-label="Confirmé — démarrer la session — chrono, minuteurs et journal ; démarre aussi à la première action" hidden=""><span class="dp-lbl">Confirmé — démarrer la session</span><span class="sd-sub" id="sessStartSub" hidden="">Lance le chrono · minuteurs prêts</span></button>
+  </div></div></div>
+<p class="ds-cap">Capture réelle, le QUAI au pouce : quatre touches de largeur égale, position CONSTANTE — Fin · Tout voir · Complications · Horodater (A346, A354, A412). « Horodater » est la seule REMPLIE ; « Fin » porte le ■ rouge système et ouvre une confirmation qui se MAINTIENT 1,2 s.</p>
+<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px"><div class="more-menu popmenu" id="moreMenu" role="menu" style="max-height: 828px;"><div class="mm-tiles" role="presentation"><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="0" aria-label="Moniteur — appareil posé, lisible à 2 m"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>Moniteur</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="1" aria-label="Se repérer — échelle des blocs"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg></span><span>Se repérer</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="2" aria-label="Schéma — l’arbre des blocs, plein écran"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="4.5" rx="1"></rect><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"></rect><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"></rect><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"></path></svg></span><span>Schéma</span></button></div><div class="mm-head" role="presentation">Session</div><button type="button" class="mm-row" role="menuitem" data-mmi="2"><span class="mm-ic" aria-hidden="true">⇄</span><span class="mm-tx"><span class="mm-lb">Partager la session…</span><span class="mm-sub">un collègue suit en direct</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="3" disabled=""><span class="mm-ic" aria-hidden="true">▲</span><span class="mm-tx"><span class="mm-lb">Répéter en exercice</span><span class="mm-sub">session en cours</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="4"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 102.6-6.4L3 8"></path><path d="M3 3v5h5"></path></svg></span><span class="mm-tx"><span class="mm-lb">Recommencer le parcours</span><span class="mm-sub">repart du début</span></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row" role="menuitem" data-mmi="6"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="mm-tx"><span class="mm-lb">L’aide</span><span class="mm-sub">modifier, versions, exporter</span></span><span class="mm-chev" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row danger" role="menuitem" data-mmi="8"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="mm-tx"><span class="mm-lb">Terminer la session…</span></span></button></div></div>
+<p class="ds-cap">Capture réelle, menu ⋯ en session (ancré au bureau, feuille basse sous 780 px — A361) : il ne répète pas le quai (A337), tuiles d’ouverture, intertitres, « L’aide › » replié en session (Modifier, Ajouter à une collection…, exports) — hors session ces rangées sont à plat, et « Ajouter à une collection… » reste actif quand « Modifier » est grisé (lecture seule).</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden">
-  <header class="bar home" style="position:static">
-    <div class="id-row"><div class="brand"><span class="brand-name">Aides cognitives</span></div><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div>
-  </header>
-</div>
-<p class="ds-cap">Barre d’accueil CLAIRE (couleur du fond) : recherche FIXE, boutons 40px (halo 44px), menu ⋯, compte en initiales. Connecté, la couleur d’ACCENT du compte teinte l’accueil entier et l’en-tête de toutes les vues — le contenu clinique reste bleu.</p>
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><div class="brand"></div><span class="hdr-crisis">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
-  </header>
-  <div id="crisisBand"><span class="cb-ttl">Choc anaphylactique</span><span class="cb-tag">■ Mode crise</span></div>
-  <div id="crisisDock"><div class="dock-in">
-    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
-  </div></div>
-</div>
-<p class="ds-cap">ZONE HAUTE DE CRISE, hors en-tête (v4.23.0). Bandeau TITRE à fond BLANC : un bandeau d’état PERMANENT teinté en rouge désensibiliserait au rouge, que l’ECAM réserve aux alertes réelles — le statut s’annonce en TEXTE (« ■ Mode crise »). Puis le QUAI COLLANT, ordre FIXE <b>⤢ Plan · ● Session · minuteurs</b> : Plan et Session sont AVANT la partie variable, ils gardent donc une position immobile quel que soit le nombre de minuteurs, qui coulent à leur droite (le blanc part au bord droit — barre d’outils normale, aucun vide central). Échu en ambre = registre ATTENTION, « ● Session » en vert = actif nominal.</p>
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar titled ttl-on crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><div class="brand"><span id="brandTitle" style="display:block">Choc anaphylactique</span></div><span class="hdr-crisis" style="display:inline">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
-  </header>
-  <div id="crisisDock"><div class="dock-in">
-    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
-  </div></div>
-</div>
-<p class="ds-cap">AU DÉFILEMENT : le bandeau (titre, information CONSTANTE) s’en va et l’en-tête en prend le relais — titre + « ■ Crise » — à l’instant MESURÉ où il passe dessous. Le QUAI (Plan + état vivant) reste COLLÉ sous l’en-tête et ne quitte jamais l’écran : zone de statut permanente, aucun relais miniature à loger dans la barre.</p>
-<div class="more-menu" style="position:static;margin-top:16px">
-  <button class="mm-row">Modifier</button>
-  <button class="mm-row">Versions</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row">Dupliquer</button>
-  <button class="mm-row">Exporter (.json)</button>
-  <button class="mm-row">Exporter en PDF</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row">Historique des sessions (3)</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row danger">Terminer la session…</button>
-</div>
-<p class="ds-cap">.more-menu — menu ⋯ (262px, rangées 44px, séparateurs entre groupes) : TOUTES les actions secondaires de lecture ; remplace les barres « Autorat » de bas de page. L’action destructrice est DERNIÈRE et rouge — jamais première, jamais pleine.</p></div>
+<div class="ds-capt ds-fix" style="max-width:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden"><header class="bar home"><div class="id-row">
+    <button class="hdr-back" id="hdrBack" hidden=""><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
+    <span class="brand-logo" aria-hidden="true"></span>
+    <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><!-- A14 — EN-TÊTE À TROIS ZONES ANCRÉES. Le sur-titre « ■ MODE CRISE » vit AU-DESSUS du titre,
+         et non à sa suite : accolé au nom de la fiche, le statut se lisait comme un fragment de ce
+         nom. Au-dessus, il redevient ce qu'il est — l'énoncé du mode. Il ne coûte aucune hauteur :
+         la rangée d'identité est déjà à deux lignes (marque/sous-titre) hors crise. -->
+    <span class="brand-sur" id="brandSur" hidden=""><span class="bs-cat" hidden=""></span><span class="bs-m"></span></span><span class="bt-line"><span id="brandTitle" style="display: none;"></span><span id="brandDisc" hidden=""></span></span></div>
+    <!-- ACCUEIL v5.18 : l'accès vit dans #homeDock, DANS la rangée d'identité. En voie
+         étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
+         pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
+         Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <div id="homeDock">
+    <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
+         Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
+         au-dessus d'elle : crans de type + déclencheur de la feuille. Chips peintes par
+         syncFiltTog (état), rangée statique (écouteurs délégués). -->
+    <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
+    <button type="button" id="filtTog" class="filt-tog" data-filttog="" aria-haspopup="dialog" aria-expanded="false" aria-label="Affichage et filtres" title="Affichage et filtres"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg><span class="filt-n" id="filtN" hidden=""></span></button>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+
+    <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
+         #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
+         disparaît donc JAMAIS. (Les minuteurs, eux, n'ont pas de relais : leur rangée est
+         COLLANTE et ne quitte jamais l'écran.) -->
+    <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
+         DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
+         bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
+         (placeCrisisChrome/rescueCrisisChrome) : déplacées, jamais recréées. Vide = invisible. -->
+    <div class="hdr-crisis-slot" id="hdrCrisisSlot"></div>
+    <div class="hdr-acts">
+    <!-- H (audit design v4.58.0, concept B) : L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT.
+         Avant, il vivait à droite de la bande-titre quand elle était dépliée, puis sautait au
+         milieu de la ligne fusionnée au défilement : position ET libellé changeaient. Or c'est
+         l'objet qui doit se lire en moins d'une seconde — il devrait être LE plus stable de
+         l'écran, pas le moins. Il est donc accolé à ◐ ⋯, les deux seuls objets qui ne bougent
+         dans AUCUN des deux états, et il ne dépend plus du défilement. -->
+    <!-- ⚠ LA PILULE DE MODE `#hdrCrisis` EST PURGÉE (v5.6, A14 — règle 14). Elle vivait ICI,
+         au bout de la rangée d'actions, et disait le mode que le sur-titre `.brand-sur` dit
+         désormais au-dessus du titre. Deux énoncés du même mode sur le même écran, c'est
+         exactement la duplication que la v4.70.1 a proscrite — la question n'était plus QUE
+         supprimer, mais LEQUEL : le sur-titre gagne parce qu'il est du côté de l'IDENTITÉ, là où
+         l'œil arrive, et parce qu'il ne dispute plus sa place aux réglages. Ses modificateurs de
+         placard (.exo/.inv) sont partis avec elle, sur le sur-titre. -->
+    <span class="hdr-badge" id="hdrBadge" hidden=""></span>
+    <button class="hdr-new hdr-hist" id="hdrHist" aria-label="Sessions — historique" title="Sessions"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span class="hb-lbl" aria-hidden="true">Sessions</span></button>
+    <button class="hdr-new" id="hdrNew" title="Créer une aide cognitive"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="hdr-new-lbl">Créer</span></button>
+    <!-- COMPTE DE RELECTURE (v4.76.0) : le volet-bilan vit en PIED de formulaire — c'est sa
+         place, on le lit en fermant — mais rien ne disait, pendant qu'on écrit, qu'il y avait
+         quelque chose à relire. Le COMPTE monte donc dans la barre, immobile, et ancre vers le
+         volet ; le DÉTAIL reste en bas et sous la ligne qu'il vise. -->
+    <button class="hdr-rev" id="hdrRev" hidden="" aria-label="Remarques de relecture"></button>
+    <!-- ANNEAU D'ANNULATION (v4.74.2) : le geste qui remplace le « Annuler » disparu avec le
+         bouton « Enregistrer ». Il vit CONTRE l'état d'enregistrement, parce que c'est son
+         pendant : l'un dit ce qui est écrit, l'autre le défait. Masqué tant que la pile est vide
+         (aucun bouton mort) et hors des éditeurs. -->
+    <button class="hdr-undo" id="hdrUndo" hidden="" title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
+    <span class="hdr-saved" id="hdrSaved" role="status" hidden=""></span>
+    <!-- « ▶ Essayer » passe en TONAL (v4.77.0) : l'unique bouton REMPLI de l'éditeur est désormais la
+         porte « ＋ ». C'est un arbitrage, pas un détail — l'action primaire d'un ÉDITEUR est
+         d'écrire, et la porte est l'entrée de l'écriture ; dérouler son brouillon vient après. La
+         règle « un seul bouton rempli par écran » (v4.0.3) est donc tenue, dans l'autre sens. -->
+    <button class="hdr-act2" id="hdrPreview" hidden="" title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
+    <!-- ⚠ LE THÈME REVIENT DANS L'EN-TÊTE, ET SEULEMENT EN LECTURE (v5.6, décision utilisateur :
+         « OK pour conserver auto/clair/sombre dans la fenêtre Compte, mais il faut le laisser
+         visible en mode lecture/crise d'une aide et en lecture d'un protocole — c'est très
+         important »). Le réglage CANONIQUE reste à froid, dans Compte › Affichage ; ceci en est
+         le RACCOURCI, posé dans la seule situation où il est urgent — une chambre qu'on éteint
+         au chevet, pendant un soin, où ouvrir une fenêtre de réglages n'est pas envisageable.
+         Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
+         par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
+         là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
+    <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
+    <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
+         dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
+         constante partagée — si l'un change, changer l'autre. -->
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"></circle><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"></path></svg><span class="acct-ini" id="acctIni" hidden=""></span><span class="acct-dot ok" id="acctDot" hidden=""></span><span class="hb-lbl" aria-hidden="true">Moi</span></button></div></div>
+    <datalist id="phaseList"></datalist>
+    <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
+         toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
+    <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
+<p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
+<div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmuy46xg0kzq4foj9">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmuy46xg0egkesd1r">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+  </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
+<p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
+<div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
+  <div class="sd-in">
+    <!-- ⚠ LES DEUX PORTEUSES D'ICÔNE SONT VIDES, ET LE PEINTRE LES REMPLIT (A117e : la coque
+         statique ne peut pas appeler `uiIcon`, on n'y recopie donc pas un tracé — un dessin
+         recopié finit par diverger). C'est `syncDock` qui les peint, une fois. -->
+    <button id="endKey" type="button" class="sd-key sd-end" aria-label="Terminer la session — confirmation demandée"><span class="dp-ic" aria-hidden="true"><svg class="tic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="dp-lbl">Fin</span></button>
+    <button id="allBtn" class="sd-key" aria-label="Tout voir — l’aide entière, puis retour au bloc"><span class="dp-ic" aria-hidden="true"><svg class="tic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="dp-lbl">Tout voir</span></button>
+    <button id="cxKey" type="button" class="sd-key sd-cx" aria-label="Complication : FV réfractaire (CEE inefficaces) — interrompt le parcours, retour prévu"><span class="dp-ic" aria-hidden="true"><svg class="tic bolt" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"></path></svg></span><span class="dp-lbl sd-name">FV réfractaire</span></button>
+    <button id="tkKey" type="button" class="sd-key sd-tk" aria-label="Horodater — noter l’heure d’un geste, puis le nommer" aria-expanded="false"><span class="dp-ic" aria-hidden="true"><svg class="tic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6"></path></svg></span><span class="dp-lbl">Horodater</span></button>
+    <!-- HORS SESSION, le dock n'a que deux commandes (maquette 1b/1c) : Exercice au CONTOUR,
+         Démarrer REMPLI — la seule action qui compte avant le premier geste. Elles remplacent les
+         quatre touches de session ; les deux jeux ne coexistent jamais. -->
+    <button id="exoKey" type="button" class="sd-key sd-exo" aria-pressed="false" aria-label="Répéter en exercice — rien n’est enregistré comme soin" hidden=""><span class="dp-ic" aria-hidden="true">▲</span><span class="dp-lbl">Exercice</span><span class="dp-lbl dp-lbl-s" aria-hidden="true">Exo.</span></button>
+    <button id="sessStart" type="button" class="sd-key sd-start" aria-label="Confirmé — démarrer la session — chrono, minuteurs et journal ; démarre aussi à la première action" hidden=""><span class="dp-lbl">Confirmé — démarrer la session</span><span class="sd-sub" id="sessStartSub" hidden="">Lance le chrono · minuteurs prêts</span></button>
+  </div></div></div>
+<p class="ds-cap">Capture réelle, le QUAI au pouce : quatre touches de largeur égale, position CONSTANTE — Fin · Tout voir · Complications · Horodater (A346, A354, A412). « Horodater » est la seule REMPLIE ; « Fin » porte le ■ rouge système et ouvre une confirmation qui se MAINTIENT 1,2 s.</p>
+<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px"><div class="more-menu popmenu" id="moreMenu" role="menu" style="max-height: 828px;"><div class="mm-tiles" role="presentation"><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="0" aria-label="Moniteur — appareil posé, lisible à 2 m"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>Moniteur</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="1" aria-label="Se repérer — échelle des blocs"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg></span><span>Se repérer</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="2" aria-label="Schéma — l’arbre des blocs, plein écran"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="4.5" rx="1"></rect><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"></rect><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"></rect><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"></path></svg></span><span>Schéma</span></button></div><div class="mm-head" role="presentation">Session</div><button type="button" class="mm-row" role="menuitem" data-mmi="2"><span class="mm-ic" aria-hidden="true">⇄</span><span class="mm-tx"><span class="mm-lb">Partager la session…</span><span class="mm-sub">un collègue suit en direct</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="3" disabled=""><span class="mm-ic" aria-hidden="true">▲</span><span class="mm-tx"><span class="mm-lb">Répéter en exercice</span><span class="mm-sub">session en cours</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="4"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 102.6-6.4L3 8"></path><path d="M3 3v5h5"></path></svg></span><span class="mm-tx"><span class="mm-lb">Recommencer le parcours</span><span class="mm-sub">repart du début</span></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row" role="menuitem" data-mmi="6"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="mm-tx"><span class="mm-lb">L’aide</span><span class="mm-sub">modifier, versions, exporter</span></span><span class="mm-chev" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row danger" role="menuitem" data-mmi="8"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="mm-tx"><span class="mm-lb">Terminer la session…</span></span></button></div></div>
+<p class="ds-cap">Capture réelle, menu ⋯ en session (ancré au bureau, feuille basse sous 780 px — A361) : il ne répète pas le quai (A337), tuiles d’ouverture, intertitres, « L’aide › » replié en session (Modifier, Ajouter à une collection…, exports) — hors session ces rangées sont à plat, et « Ajouter à une collection… » reste actif quand « Modifier » est grisé (lecture seule).</p></div>
 </body></html>
