@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-jMCLLDZhiGTi3KWIZAQujC/JHYITz0L8POWReTeCx2U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-D3GEMn0ftyEJ1cdA0NpuQCWOh+f3exay8MpUm+cmUfw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2371,12 +2371,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6429,6 +6435,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
@@ -9088,7 +9096,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.51.0';
+const APP_VERSION='5.51.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14768,10 +14776,10 @@ function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   const libs=[...new Set(ents.map(x=>x.library||null))].map(impLibName);
   const redo=o.redo||(()=>{if(state.view==='library')renderLibrary();});
   openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:true,multi:true,trigger:o.trigger,back:o.back,
-    options:[{val:COLL_PIN,name:'Accès direct',sub:'les tuiles en tête de l’accueil',on:st(COLL_PIN)}]
-      .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id)}))),
-    head:`<b>${esc(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))}</b><span>${esc(libs.join(' · '))}</span>`
-      +`<div class="notice">${uiIcon('bookmark',15)}<div>${esc('Vos collections sont à vous seul. '+(libs.length===1?(n===1?'L’élément reste':'Les éléments restent')+' dans '+libs[0]:'Chaque élément reste dans sa bibliothèque')+' : seul votre rangement change.')}</div></div>`,
+    options:[{val:COLL_PIN,name:'Accès direct',sub:'les tuiles en tête de l’accueil',on:st(COLL_PIN),ic:collIc(collById(COLL_PIN))}]
+      .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id),ic:collIc(c)}))),
+    title:'Ajouter à une collection',ctx:(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))+' · '+(libs.length===1?libs[0]:selLibsMot(libs.length)),
+    head:`<div class="notice">${uiIcon('bookmark',15)}<div>${esc('Vos collections sont à vous seul. '+(libs.length===1?(n===1?'L’élément reste':'Les éléments restent')+' dans '+libs[0]:'Chaque élément reste dans sa bibliothèque')+' : seul votre rangement change.')}</div></div>`,
     onToggle:(cid,cur)=>{collSet(cid,ids,cur!=='true');return st(cid);},
     done:'Terminé',onClose:redo,
     action:{label:'＋ Nouvelle collection…',fn:async()=>{const name=await collAsk('Nouvelle collection');if(!name)return;
@@ -14792,7 +14800,7 @@ function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
   const vis=homeVis().slice().sort(byTitle);
   openPickMenu(document.body,{aria:'Ajouter des aides à '+c.name,sheet:true,multi:true,trigger,
     options:vis.map(x=>({val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),sub:(protocols.indexOf(x)>=0?'Protocole':'Aide')+' · '+impLibName(x.library||null),on:collHas(c.id,x.id)?'true':'false'})),
-    head:`<b>${esc(c.name)}</b><span>${esc('Cochez ce qui doit y être · rien n’est déplacé')}</span>`,
+    title:'Ajouter des aides',ctx:'« '+c.name+' » · rien n’est déplacé',
     onToggle:(id,cur)=>{collSet(c.id,[id],cur!=='true');return collHas(c.id,id)?'true':'false';},
     done:'Terminé',onClose:()=>render()});}
 function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_PIN)return;
@@ -15485,7 +15493,6 @@ const selLibsMot=k=>(SEL_NUM[k]||k)+' bibliothèques';
 function openSelActs(trigger){
   const ent=selEnt(),n=ent.length;if(!n)return;
   const libs=[...new Set(ent.map(e=>e.o.library||null))];
-  const lib=libs.length===1?libs[0]:null;
   /* A475 : le rangement personnel d'abord — il ne déplace rien ; la bibliothèque, elle, change qui y a accès. */
   const opts=[{val:'selCol',name:SEL_ACTES.col,ic:uiIcon('bookmark',20),sub:'votre rangement, à vous seul · rien n’est déplacé',chev:true},
     {val:'selLib',name:SEL_ACTES.lib,ic:uiIcon('book',20),sub:'change qui y a accès',chev:true}];
@@ -15493,12 +15500,14 @@ function openSelActs(trigger){
     sub:libs.length>1?'par nom, dans la bibliothèque de chacun':'choisir la catégorie'});   // A424
   opts.push({val:'selExp',name:SEL_ACTES.exp,ic:uiIcon('download',20),sub:'un seul fichier, réimportable (.json ou .zip)'});   // A392
   opts.push({val:'selDel',name:selDelLabel(n),ic:uiIcon('trash',20),sub:'confirmation demandée',danger:true});
-  const port=libs.length===1?impLibName(lib):selLibsMot(libs.length);
   openPickMenu(trigger.parentNode,{aria:'Actions sur la sélection',sheet:true,trigger,options:opts,
-    head:`<b>${esc(n+' coché'+(n>1?'s':''))}</b><span>${esc(port)}</span>`,
+    title:'Actions',ctx:selCtx(),
     onPick:v=>{const b=document.getElementById(v);if(b){_selFromSheet=true;try{b.click();}finally{_selFromSheet=false;}}}});}
 let _selFromSheet=false;   // la sous-feuille ouverte DEPUIS la feuille Actions y propose le retour
-const selBack=()=>_selFromSheet?{label:'Actions',sub:'retour aux actions',fn:()=>openSelActs(document.getElementById('selDo'))}:null;
+const selBack=()=>_selFromSheet?{label:'Actions',fn:()=>openSelActs(document.getElementById('selDo'))}:null;
+/* La ligne de contexte d'une feuille de sélection : « 2 éléments · Bloc CHU » (ou « … · deux bibliothèques »). */
+function selCtx(){const ent=selEnt(),libs=[...new Set(ent.map(e=>e.o.library||null))];
+  return nb(ent.length,'élément')+' · '+(libs.length===1?impLibName(libs[0]):selLibsMot(libs.length));}
 // Écriture d'un lot : chaque entité repasse par SON point de persistance (fiches et protocoles
 // sont des clones, mais pas le même store ni le même assainisseur) — jamais un `Data.put` direct.
 async function selWrite(ent){for(const e of ent){e.o.updatedAt=Date.now();
@@ -15576,8 +15585,8 @@ function openSelCat(b,redo){
       options=options.concat(rows);});}
   const noms=libs.map(impLibName);
   openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),back:selBack(),options,
-    head:multi?`<b>${esc('Ranger '+nb(ent.length,'élément'))}</b><span>${esc(noms.join(' · '))}</span>`
-      +`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
+    title:'Ranger dans une catégorie',ctx:selCtx(),
+    head:multi?`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
     value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
     onPick:v=>selSetCat(v?vus.get(v).name:'',redo),
     action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(multi?CAT_ALL:libs[0])}});}
@@ -15651,8 +15660,8 @@ function bindSelBar(cfg){
      b.onclick=()=>{if(tout)selSet().clear();else ids.forEach(id=>selSet().add(id));redo();};}}
   {const b=document.getElementById('selDo');if(b)b.onclick=()=>openSelActs(b);}
   {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(b.parentNode,
-     {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),back:selBack(),
-      value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'';})(),
+     {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),back:selBack(),title:'Déplacer vers une bibliothèque',ctx:selCtx(),
+      value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'-';})(),   // mêlée : aucune rangée cochée
       onPick:v=>selMoveLib(v||null,redo)});}
   {const b=document.getElementById('selCat');if(b)b.onclick=()=>openSelCat(b,redo);}
   {const b=document.getElementById('selCol');if(b)b.onclick=()=>openCollPick(selEnt().map(e=>e.o.id),{trigger:selTrig(b),back:selBack(),redo});}
@@ -17376,6 +17385,7 @@ let _pickClose=null;
 function menuRowHtml(o){const tag=o.inert?'div':'button';   // `inert` : une rangée qui INFORME sans répondre au tap (jamais un bouton mort)
   return `<${tag}${o.inert?'':' type="button"'} class="mm-row${o.danger?' danger':''}${o.inert?' inert':''}"${o.attrs?' '+o.attrs:''}${o.disabled?' disabled':''}>`
     +(o.ic!=null?`<span class="mm-ic" aria-hidden="true">${o.ic}</span>`:o.dot?`<span class="cat-dot" style="--catcol:${o.col||'var(--line-strong)'}"></span>`:'')
+    +(o.ic2?`<span class="mm-ic mm-ic2" aria-hidden="true">${o.ic2}</span>`:'')
     +`<span class="mm-tx"><span class="mm-lb">${esc(o.label)}</span>${o.sub?`<span class="mm-sub">${esc(o.sub)}</span>`:''}</span>${o.tail||''}</${tag}>`;}
 /* TOUCHER SANS LÂCHER LE CHAMP (v5.48.7, mesuré sur iPhone) : annuler `mousedown` arrive trop tard —
    iOS a parfois déjà retiré le focus au champ, donc fermé le clavier. On annule `touchstart` et l'on rejoue
@@ -17397,7 +17407,7 @@ function openPickMenu(host,opts){
   const row=o=>{if(o.head)return `<div class="mm-head" role="presentation">${esc(o.head)}${o.n?`<span class="mm-head-n">${esc(o.n)}</span>`:''}</div>`;   // intertitre (A424)
     const v=String(o.val==null?'':o.val),sel=v===val;
     // `multi` (A475) : des CASES — plusieurs choix, la feuille reste ouverte ; `o.on` = 'true' · 'false' · 'mixed'.
-    if(opts.multi)return menuRowHtml({label:o.name,sub:o.sub,ic:`<span class="mm-box">${uiIcon('check',14,{sw:3})}</span>`,
+    if(opts.multi)return menuRowHtml({label:o.name,sub:o.sub,ic:`<span class="mm-box">${uiIcon('check',14,{sw:3})}</span>`,ic2:o.ic,
       attrs:`role="menuitemcheckbox" aria-checked="${esc(o.on||'false')}" data-pickopt="${esc(v)}"`});
     return menuRowHtml({label:o.name,sub:o.sub,ic:o.ic,dot:!o.ic&&o.dot!==false,col:o.col,danger:o.danger,
       attrs:`role="option" aria-selected="${sel?'true':'false'}" data-pickopt="${esc(v)}"${o.tt?` title="${esc(o.tt)}"`:''}`,
@@ -17407,7 +17417,8 @@ function openPickMenu(host,opts){
   // `up` (v5.48.6) : ancré au-dessus de son hôte, jamais en feuille (la feuille basse vivrait sous le clavier).
   const sheet=!opts.up&&(!!opts.sheet||window.innerWidth<780);
   const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'');menu.setAttribute('role',opts.multi?'menu':'listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
-  menu.innerHTML=`<div class="popmenu-head">${opts.back?menuRowHtml({label:opts.back.label,sub:opts.back.sub,ic:uiIcon('backto',18),attrs:'data-pickback'}):''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
+  /* Tête (A480) : « ‹ Actions » en LIEN de retour, puis le TITRE = le geste, puis UNE ligne de contexte ; `head` garde les notices. */
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
     +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
@@ -17439,7 +17450,7 @@ function openPickMenu(host,opts){
     if(opts.onClose)opts.onClose();};
   _pickClose=close;
   const out=e=>{if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
-  const rows=()=>[...menu.querySelectorAll('.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none');
+  const rows=()=>[...menu.querySelectorAll('.mm-back,.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none');
   const keys=e=>{
     if(e.key==='Escape'){e.stopPropagation();e.preventDefault();close(true);return;}
     if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
@@ -28258,12 +28269,19 @@ async function loadLibRights(box){const z=box.querySelector('#admLibs');if(!z)re
     +`<div class="acct-card"><div class="adm-h">Création de bibliothèques</div>`
     +`<div class="seg vs-seg vs-wrap" role="radiogroup" aria-label="Qui peut créer une bibliothèque" style="--seg-n:3;--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>`
     +LIB_MODES.map(([k,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-libmode="${k}">${esc(l)}</button>`).join('')+`</div>`
+    +`<div class="notice adm-ask" id="admLibAsk" role="alertdialog" aria-label="Confirmer la règle de création" hidden>${uiIcon('info',15)}<div><span class="adm-askt"></span><span class="adm-reqa"><button type="button" class="btn sm" data-libno>Annuler</button><button type="button" class="btn sm primary" data-libyes>Confirmer</button></span></div></div>`
     +`<p class="adm-note">${esc(mode==='admins'?'Seuls les administrateurs créent ; les autres demandent.':mode==='approved'?'Tout compte approuvé crée et devient administrateur de ce qu’il crée.':'Les personnes ci-dessous créent et deviennent administratrices de ce qu’elles créent ; les autres demandent.')} Pour ranger ses aides, personne n’a besoin de ce droit : les collections sont à tous.</p>`
     +(mode==='creators'?`<div class="acct-list">${pers.map(u=>menuRowHtml({label:u.email,ic:uiIcon('user',20),inert:true,
         tail:`<button type="button" class="btn sm" data-libcr="${esc(u.user_id)}">Retirer</button>`})).join('')}`
       +`<button type="button" class="catmenu-new" data-libcradd>＋ Autoriser une personne…</button></div>`:'')+`</div>`;
-  z.querySelectorAll('[data-libmode]').forEach((b,j)=>b.onclick=async()=>{paintSeg(b.closest('.seg'),'data-libmode',j);
-    try{await rpc('set_library_creation',{p_mode:b.dataset.libmode});}catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);});
+  /* Changer la règle se CONFIRME dans un bandeau sous le segmenté (A481) : elle vaut pour toute l'instance. */
+  const LIB_EFFET={admins:'seuls les administrateurs créeront ; les autres demanderont.',creators:'seules les personnes autorisées créeront ; les autres demanderont.',approved:'tout compte approuvé pourra créer des bibliothèques et en deviendra administrateur.'};
+  z.querySelectorAll('[data-libmode]').forEach(b=>b.onclick=()=>{const k=b.dataset.libmode,ask=z.querySelector('#admLibAsk');
+    if(k===mode){if(ask)ask.hidden=true;return;}
+    ask.hidden=false;ask.querySelector('.adm-askt').textContent='Passer à « '+LIB_MODES.find(m=>m[0]===k)[1]+' » : '+LIB_EFFET[k];
+    ask.querySelector('[data-libyes]').onclick=async()=>{try{await rpc('set_library_creation',{p_mode:k});toast('Création de bibliothèques : '+LIB_MODES.find(m=>m[0]===k)[1].toLowerCase()+'.',4000,true);}catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);};
+    ask.querySelector('[data-libno]').onclick=()=>{ask.hidden=true;};
+    ask.querySelector('[data-libyes]').focus();});
   z.querySelectorAll('[data-libcr]').forEach(b=>b.onclick=async()=>{try{await rpc('set_library_creator',{p_user:b.dataset.libcr,p_on:false});}catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);});
   {const a=z.querySelector('[data-libcradd]');if(a)a.onclick=()=>openPickMenu(a.parentNode,{aria:'Autoriser une personne',sheet:true,trigger:a,
     options:(users||[]).filter(u=>!u.can_create&&!u.is_admin).map(u=>({val:u.user_id,name:u.email,ic:uiIcon('user',18)})),

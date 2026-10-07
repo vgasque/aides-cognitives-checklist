@@ -2015,12 +2015,18 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6073,6 +6079,8 @@
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
@@ -8161,6 +8169,9 @@
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -8206,7 +8217,7 @@
     <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn">Annuler</button><button class="btn danger">Supprimer</button></div>
   </div>
 </div>
-<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une fiche, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p></div>
+<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une aide, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
 <div style="max-width:560px">
@@ -8242,5 +8253,5 @@
     <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn">Annuler</button><button class="btn danger">Supprimer</button></div>
   </div>
 </div>
-<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une fiche, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p></div>
+<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une aide, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p></div>
 </body></html>

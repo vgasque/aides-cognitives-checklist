@@ -7102,6 +7102,8 @@ for (const W of [390, 1280]) {
     col.click();await w(350);
     const box=v=>document.querySelector('.popmenu [data-pickopt="'+v+'"]');
     out.avant=box(c.id).getAttribute('aria-checked');
+    out.fe=[(document.querySelector('.popmenu .mm-title')||{}).textContent,(document.querySelector('.popmenu .mm-ctxl')||{}).textContent];
+    out.ic2=document.querySelectorAll('.popmenu [role="menuitemcheckbox"] .mm-ic2 svg').length===document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
     out.notice=(document.querySelector('.popmenu .notice')||{}).textContent||'';
     box(c.id).click();await w(150);
     out.apres=[box(c.id).getAttribute('aria-checked'),collHas(c.id,'ro1'),fiches.find(x=>x.id==='ro1').library];
@@ -7120,6 +7122,8 @@ for (const W of [390, 1280]) {
   t(`${P} · la feuille coche sans déplacer, et le dit`,
     r.avant==='true'&&r.apres[0]==='false'&&r.apres[1]===false&&r.apres[2]==='lib-ro'&&/à vous seul/.test(r.notice)&&/SAMU 31/.test(r.notice), JSON.stringify(r.apres)+' '+r.notice);
   t(`${P} · « Accès direct » est une case de la même feuille (épingle)`, r.pin===true, String(r.pin));
+  t(`${P} · A480 : la feuille a pour TITRE le geste, une ligne de contexte, et chaque case son icône (★ / signet)`,
+    r.fe[0]==='Ajouter à une collection'&&/Aide du SAMU · SAMU 31/.test(r.fe[1]||'')&&r.ic2, JSON.stringify(r.fe)+' ic2='+r.ic2);
   t(`${P} · « Terminé » referme`, r.ferme, '');
   await page.close();
 }
@@ -7137,7 +7141,8 @@ const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,
 for (const cas of ['admin','demandeur','ancien']) {
   const page = await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const m=route.request().url().match(/rpc\/([a-z_]+)/);
+  const appels=[];
+  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const m=route.request().url().match(/rpc\/([a-z_]+)/);if(m)appels.push(m[1]);
     if(cas==='ancien'&&m&&/library|list_users/.test(m[1]))return route.fulfill({status:404,contentType:'application/json',body:'{"message":"not found"}'});
     let b=m?RPC[m[1]]:[];if(cas==='demandeur'&&m&&/is_app_admin|can_create_library/.test(m[1]))b=false;
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(b===undefined?null:b)});});
@@ -7155,6 +7160,8 @@ for (const cas of ['admin','demandeur','ancien']) {
     out.regle=z?z.querySelectorAll('[data-libmode]').length:-1;
     out.file=z?z.querySelectorAll('[data-libreq]').length:-1;
     out.note=z?(z.querySelector('.adm-note')||{}).textContent||'':'';
+    const ap=z&&z.querySelector('[data-libmode="approved"]');
+    if(ap){ap.click();await w(150);const ask=document.getElementById('admLibAsk');out.ask=!!ask&&!ask.hidden&&/Tout compte approuvé/.test(ask.textContent);}
     if(libs&&libs.querySelector('[data-newlib]')){libs.querySelector('[data-newlib]').click();await w(300);
       out.titre=document.getElementById('newLibModalTitle').textContent;
       const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
@@ -7162,6 +7169,7 @@ for (const cas of ['admin','demandeur','ancien']) {
     return out;});
   if (cas==='admin') {
     t('administrateur : la règle à trois crans et la file des demandes (Refuser · Créer)', r.peut&&r.regle===3&&r.file===2, JSON.stringify(r));
+    t('A481 : changer la règle ouvre un bandeau de confirmation, et rien ne part avant « Confirmer »', r.ask===true&&!appels.includes('set_library_creation'), JSON.stringify([r.ask,appels.filter(x=>/set_/.test(x))]));
     t('… « Nouvelle bibliothèque » et la fenêtre de création', /Nouvelle bibliothèque/.test(r.porte)&&r.titre==='Nouvelle bibliothèque', r.porte+' | '+r.titre);
   } else if (cas==='demandeur') {
     t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de règle', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.regle===-1, JSON.stringify(r));

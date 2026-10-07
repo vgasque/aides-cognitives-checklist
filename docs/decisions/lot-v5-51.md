@@ -1,4 +1,4 @@
-# Lot v5.51 — A478-A479
+# Lot v5.51 — A478-A482
 
 Qui crée une bibliothèque (A478), et qui la demande (A479). Suite du canevas « Rangement de l'accueil » : les
 collections (A475) retirent le besoin de créer une bibliothèque pour ranger ; reste la vraie question — qui décide
@@ -41,3 +41,41 @@ fenêtre** (A477), même question « Avec qui ? », même garde-fou (sans invit�
 - **Données personnelles** : les e-mails des invités ne vivent que jusqu'à la décision — registre RGPD § 3 complété.
 - **Moi** : mes demandes en rangées (« en attente » · Annuler ; « refusée » · Effacer). **Administration** : la file
   en tête, « Refuser » / « Créer » par demande, sans fenêtre neuve.
+
+## A480 — la tête d'une feuille : retour en lien, titre = le geste, une ligne de contexte (v5.51.1)
+
+**Signalé (07/10/2026)** — dans une sous-feuille ouverte depuis « Actions », on lisait une rangée « ‹ Actions —
+retour aux actions », puis « 2 éléments », puis « Bloc CHU » dessous : trois lignes sans hiérarchie, et aucune ne
+disait CE QU'ON FAISAIT. **Décision de l'auteur, sur captures** : « ‹ Actions » devient un petit LIEN de retour
+(`.mm-back`, sans sous-ligne), le TITRE de la feuille est le geste (`.mm-title`, 17,5/800 : « Déplacer vers une
+bibliothèque », « Ranger dans une catégorie », « Ajouter à une collection », « Ajouter des aides »), puis UNE ligne
+grise de contexte (`.mm-ctxl`, `selCtx()` : « 2 éléments · deux bibliothèques ») — la même sur toutes les feuilles de
+la sélection et des collections. `openPickMenu` gagne `title` et `ctx` ; `head` ne porte plus que les notices.
+
+- La feuille à cases porte l'icône de chaque collection (★ pour l'Accès direct, signet sinon — `menuRowHtml` gagne
+  `ic2`), la case restant au bord (signalé : « pas d'étoile pour l'Accès direct »).
+- **Défaut antérieur corrigé en route** : « Déplacer vers une bibliothèque » cochait « Ma bibliothèque perso » sur une
+  sélection répartie entre deux bibliothèques (valeur `''` par défaut) — aucune rangée cochée quand c'est mêlé,
+  patron de « Ranger » (A424).
+- La case vide de la feuille à cases prend le contour `--ctl-line` (3:1 dans les deux thèmes, A67) : en sombre,
+  `--line-strong` la rendait presque invisible.
+
+## A481 — changer la règle de création se confirme (v5.51.1)
+
+Signalé : un tap sur un autre cran du segmenté « Création de bibliothèques » appliquait aussitôt une règle qui vaut
+pour TOUTE l'instance. Le tap ouvre désormais un bandeau sous le segmenté (patron de la notice système) qui dit
+l'effet — « Passer à « Tout compte approuvé » : tout compte approuvé pourra créer des bibliothèques et en deviendra
+administrateur » — avec Annuler / Confirmer ; rien ne part au serveur avant « Confirmer » (témoin réseau simulé).
+
+## A482 — le design system se relève sur l'app (v5.51.1)
+
+Audit avant synchro : la fiche Couleurs citait **31 tokens purgés en A416** (pastilles vides depuis la v5.38.1), et
+neuf fiches montraient des composants retirés — rail ①②③ (v5.0), Échelle (A376), glyphes ⚠/△ (A345), quai d'avant
+la v5.6, menu ⋯ d'avant A361. `design:check` restait vert : il ne contrôle que la régénération. **Décision de
+l'auteur** : refaire ces fiches depuis le DOM RÉEL. `design/capture.mjs` (Playwright, dev seulement) relève sur
+l'aide d'exemple l'écran de démarrage, les étapes, « Vérifier », le journal, le parcours, la Page (réduite à
+l'échelle, ses voies étant mesurées), l'accueil, l'en-tête, la capsule, le quai et le menu ⋯ ; `build.mjs` les
+intègre et échoue si une capture manque. La fiche Couleurs se construit sur les tokens actuels, rangés par registre,
+et échoue si l'un disparaît. Nouvelle fiche « Rangement » (collections, feuille à cases, barre de sélection en
+tiroir). `GUIDELINES.md` rattrapé de la v5.29.4 à la v5.51 (22 lots), vérifié : tout token, classe ou id qu'il cite
+comme vivant existe dans le code. **À rejouer quand une surface capturée change** : `node design/capture.mjs`.

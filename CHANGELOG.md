@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.51.1] — 2026-10-07
+Les feuilles de la sélection disent ce qu'on fait, la règle de création se confirme, et le design system rattrape
+l'app (A480-A482, doctrine `docs/decisions/lot-v5-51.md`).
+- **Feuilles ouvertes depuis « Actions »** (Ajouter à une collection, Déplacer, Ranger) : « ‹ Actions » devient un
+  petit lien de retour, le titre de la feuille est le geste, et une seule ligne dit sur quoi l'on agit (« 2 éléments ·
+  deux bibliothèques ») — la même partout, collections comprises.
+- **« Ajouter à une collection »** : chaque case porte son icône — l'étoile pour l'Accès direct, le signet pour les
+  collections — et la case vide se voit enfin en thème sombre.
+- **« Déplacer vers une bibliothèque »** ne coche plus « Ma bibliothèque perso » quand la sélection est répartie sur
+  deux bibliothèques.
+- **Administration › Création de bibliothèques** : changer de règle ouvre un bandeau qui dit ce que cela changera,
+  avec Annuler / Confirmer ; rien n'est appliqué avant « Confirmer ».
+- **Design system (claude.ai/design)** : la fiche Couleurs suit les couleurs actuelles (31 pastilles étaient vides),
+  neuf fiches sont désormais relevées sur l'app elle-même (démarrage, étapes, Vérifier, journal, parcours, Page,
+  accueil, en-tête et quai, menu ⋯) au lieu de montrer des composants retirés, une fiche « Rangement » s'ajoute, et
+  les lignes directrices sont à jour de la v5.51.
+
 ## [5.51.0] — 2026-10-07
 Qui peut créer une bibliothèque, et comment la demander (A478-A479, doctrine `docs/decisions/lot-v5-51.md`).
 **⚠ Rejouer `supabase/schema.sql`** (§ 9 et 9bis) pour en profiter ; sans cela, l'app garde l'ancienne règle
@@ -247,19 +264,3 @@ L'éditeur des références (protocoles) devient un vrai éditeur de texte, au t
   plus rien à cheval sur la charnière. Vérifié aussi sur Galaxy Z Fold (fermé et ouvert) et Z Flip.
 - Corrigé : dans une référence, les lignes du volet « Relecture » ne réagissaient pas au toucher, et sous 1000 px le
   volet ne suivait pas la frappe.
-
-## [5.43.1] — 2026-10-05
-La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Windows et Linux (A451, doctrine `docs/decisions/lot-v5-43.md`, second chapitre).
-- **Une case pour tout cocher** : à gauche du compte, une case du même dessin que celle des rangées remplace les deux
-  boutons « Tout cocher / Tout décocher ». Vide quand rien n'est coché, un tiret quand une partie l'est, une coche quand
-  tout l'est ; un tap coche tout, ou décoche tout si tout était coché. Elle est là à toutes les largeurs (sur un petit
-  téléphone, « Tout décocher » ne passe plus par le tiroir « Actions »).
-- **Sur grand écran, les actes portent leur glyphe** : Bibliothèque, Catégorie, Exporter, Supprimer, avec les mêmes
-  dessins que dans le tiroir « Actions ». Le compte « 2 cochés » se lit en entier : sous Windows et Linux, vers 1200 px,
-  il était réduit à « … » depuis l'arrivée d'« Exporter… ».
-- **« 0 coché »** remplace « Rien de coché », qui était coupé sur les écrans de 320 px.
-- **Sur téléphone, le nom « Aides cognitives » de l'accueil est un peu plus petit** (sous 480 px de large) : il touchait
-  presque les boutons de l'en-tête, et les débordait sous Linux.
-- Pourquoi seulement sous Windows et Linux : le texte y est un peu plus large (lettres arrondies au pixel) et la barre de
-  défilement prend de la place ; sur Mac ces lignes tenaient au pixel près. Les audits de la CI, qui tournent sous Linux,
-  échouaient sur ces deux points depuis la v5.30.

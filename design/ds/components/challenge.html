@@ -1,7 +1,7 @@
-<!-- @dsCard group="Mode crise" name="Challenge-response" subtitle="Pilule « :: », mode Vérification (Do-Verify), mode lecteur" viewport="760x1550" -->
+<!-- @dsCard group="Mode crise" name="Vérifier (challenge-response)" subtitle="Capture réelle : passe de constat, Constaté ✓ / △ Écart" viewport="760x1550" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Challenge-response — Aides cognitives</title>
+<title>Vérifier — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles). Registres :
      --act = identité/action, --ok = confirmation, --warn = décision/vigilance, --crit =
@@ -2015,12 +2015,18 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6073,6 +6079,8 @@
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
@@ -8161,6 +8169,9 @@
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -8173,34 +8184,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:560px">
-  <ol class="steps" style="margin-bottom:14px">
-    <li role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></li>
-    <li class="crit done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
-  </ol>
-  <div class="ov-body" style="margin-bottom:14px">
-    <div class="v-hint">Vérification — lisez le challenge, constatez l’état réel</div>
-    <div class="vstp ok2"><span class="vst">✓</span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></div>
-    <div class="vstp vgap"><span class="vst">△</span><span class="txt">Voie veineuse en place <span class="stp-r">16 G</span></span></div>
-    <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
-    <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
-  </div>
-</div>
-<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. (③ Le MODE LECTEUR plein écran a été RETIRÉ au lot T14, v5.0.0 : mesuré, il ne gagnait qu’à 320 px et perdait à 390, son propre chrome coûtant plus qu’il ne rendait — et sa justification s’était érodée dans sa propre doctrine, la v4.28.0 ayant abandonné le « un item à la fois » et la v4.62.0 unifié la structure. Ce que la surface portait vit dans la carte de bloc : même pilule de réponse, même passe Do-Verify, même liste.) Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmuy46yw617a57631" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:560px">
-  <ol class="steps" style="margin-bottom:14px">
-    <li role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></li>
-    <li class="crit done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
-  </ol>
-  <div class="ov-body" style="margin-bottom:14px">
-    <div class="v-hint">Vérification — lisez le challenge, constatez l’état réel</div>
-    <div class="vstp ok2"><span class="vst">✓</span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></div>
-    <div class="vstp vgap"><span class="vst">△</span><span class="txt">Voie veineuse en place <span class="stp-r">16 G</span></span></div>
-    <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
-    <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
-  </div>
-</div>
-<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. (③ Le MODE LECTEUR plein écran a été RETIRÉ au lot T14, v5.0.0 : mesuré, il ne gagnait qu’à 320 px et perdait à 390, son propre chrome coûtant plus qu’il ne rendait — et sa justification s’était érodée dans sa propre doctrine, la v4.28.0 ayant abandonné le « un item à la fois » et la v4.62.0 unifié la structure. Ce que la surface portait vit dans la carte de bloc : même pilule de réponse, même passe Do-Verify, même liste.) Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmuy46yw617a57631" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 </body></html>

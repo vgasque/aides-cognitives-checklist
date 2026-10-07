@@ -14,7 +14,13 @@ Dossier **hors app** : rien ici n'est servi par la PWA (absent d'`ASSETS` dans `
 
 - `build.mjs` — génère `ds/` en **extrayant** tokens, `PALETTE` et CSS réels d'`index.html`
   (source de vérité unique ; **ne jamais éditer les fichiers générés**).
-- `ds/` — sortie générée : **20 fiches HTML** (Fondations + Composants ; chaque fiche montre les
+- `capture.mjs` + `captures/` — **le DOM RÉEL des surfaces de crise et de l'accueil** (v5.51.1) :
+  les démos écrites à la main avaient divergé du code (rail ①②③, Échelle, glyphes ⚠/△, quai
+  d'avant la v5.6 — tous purgés, et publiés comme vivants). `node design/capture.mjs` (Playwright,
+  dev seulement) relève l'écran de démarrage, les étapes, « Vérifier », le journal, le parcours, la
+  Page, l'accueil, l'en-tête, la capsule, le quai et le menu ⋯ sur l'aide d'exemple ; `build.mjs`
+  les intègre (échec bruyant si une capture manque). **À rejouer quand une de ces surfaces change.**
+- `ds/` — sortie générée : **21 fiches HTML** (Fondations + Composants ; chaque fiche montre les
   deux thèmes et embarque le CSS complet, ce qui la rend **autonome** — c'est voulu, l'outil
   distant les lit isolément), `tokens/tokens.css`, et `GUIDELINES.md`.
 - `ds/GUIDELINES.md` — **rédigé à la main**, seul fichier de `ds/` à éditer. ⚠ **Aucun script
@@ -27,7 +33,7 @@ Dossier **hors app** : rien ici n'est servi par la PWA (absent d'`ASSETS` dans `
 
 ### Resynchroniser après une évolution du design
 
-1. `node design/build.mjs`
+1. `node design/capture.mjs` si une surface capturée a changé, puis `node design/build.mjs`
 2. Demander à Claude Code : « resynchronise le design system » (outil DesignSync, composant par
    composant — jamais de remplacement en bloc).
 

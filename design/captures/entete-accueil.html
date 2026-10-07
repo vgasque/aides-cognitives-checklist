@@ -1,0 +1,82 @@
+<header class="bar home"><div class="id-row">
+    <button class="hdr-back" id="hdrBack" hidden=""><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
+    <span class="brand-logo" aria-hidden="true"></span>
+    <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><!-- A14 — EN-TÊTE À TROIS ZONES ANCRÉES. Le sur-titre « ■ MODE CRISE » vit AU-DESSUS du titre,
+         et non à sa suite : accolé au nom de la fiche, le statut se lisait comme un fragment de ce
+         nom. Au-dessus, il redevient ce qu'il est — l'énoncé du mode. Il ne coûte aucune hauteur :
+         la rangée d'identité est déjà à deux lignes (marque/sous-titre) hors crise. -->
+    <span class="brand-sur" id="brandSur" hidden=""><span class="bs-cat" hidden=""></span><span class="bs-m"></span></span><span class="bt-line"><span id="brandTitle" style="display: none;"></span><span id="brandDisc" hidden=""></span></span></div>
+    <!-- ACCUEIL v5.18 : l'accès vit dans #homeDock, DANS la rangée d'identité. En voie
+         étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
+         pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
+         Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <div id="homeDock">
+    <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
+         Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
+         au-dessus d'elle : crans de type + déclencheur de la feuille. Chips peintes par
+         syncFiltTog (état), rangée statique (écouteurs délégués). -->
+    <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
+    <button type="button" id="filtTog" class="filt-tog" data-filttog="" aria-haspopup="dialog" aria-expanded="false" aria-label="Affichage et filtres" title="Affichage et filtres"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg><span class="filt-n" id="filtN" hidden=""></span></button>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+
+    <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
+         #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
+         disparaît donc JAMAIS. (Les minuteurs, eux, n'ont pas de relais : leur rangée est
+         COLLANTE et ne quitte jamais l'écran.) -->
+    <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
+         DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
+         bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
+         (placeCrisisChrome/rescueCrisisChrome) : déplacées, jamais recréées. Vide = invisible. -->
+    <div class="hdr-crisis-slot" id="hdrCrisisSlot"></div>
+    <div class="hdr-acts">
+    <!-- H (audit design v4.58.0, concept B) : L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT.
+         Avant, il vivait à droite de la bande-titre quand elle était dépliée, puis sautait au
+         milieu de la ligne fusionnée au défilement : position ET libellé changeaient. Or c'est
+         l'objet qui doit se lire en moins d'une seconde — il devrait être LE plus stable de
+         l'écran, pas le moins. Il est donc accolé à ◐ ⋯, les deux seuls objets qui ne bougent
+         dans AUCUN des deux états, et il ne dépend plus du défilement. -->
+    <!-- ⚠ LA PILULE DE MODE `#hdrCrisis` EST PURGÉE (v5.6, A14 — règle 14). Elle vivait ICI,
+         au bout de la rangée d'actions, et disait le mode que le sur-titre `.brand-sur` dit
+         désormais au-dessus du titre. Deux énoncés du même mode sur le même écran, c'est
+         exactement la duplication que la v4.70.1 a proscrite — la question n'était plus QUE
+         supprimer, mais LEQUEL : le sur-titre gagne parce qu'il est du côté de l'IDENTITÉ, là où
+         l'œil arrive, et parce qu'il ne dispute plus sa place aux réglages. Ses modificateurs de
+         placard (.exo/.inv) sont partis avec elle, sur le sur-titre. -->
+    <span class="hdr-badge" id="hdrBadge" hidden=""></span>
+    <button class="hdr-new hdr-hist" id="hdrHist" aria-label="Sessions — historique" title="Sessions"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span class="hb-lbl" aria-hidden="true">Sessions</span></button>
+    <button class="hdr-new" id="hdrNew" title="Créer une aide cognitive"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="hdr-new-lbl">Créer</span></button>
+    <!-- COMPTE DE RELECTURE (v4.76.0) : le volet-bilan vit en PIED de formulaire — c'est sa
+         place, on le lit en fermant — mais rien ne disait, pendant qu'on écrit, qu'il y avait
+         quelque chose à relire. Le COMPTE monte donc dans la barre, immobile, et ancre vers le
+         volet ; le DÉTAIL reste en bas et sous la ligne qu'il vise. -->
+    <button class="hdr-rev" id="hdrRev" hidden="" aria-label="Remarques de relecture"></button>
+    <!-- ANNEAU D'ANNULATION (v4.74.2) : le geste qui remplace le « Annuler » disparu avec le
+         bouton « Enregistrer ». Il vit CONTRE l'état d'enregistrement, parce que c'est son
+         pendant : l'un dit ce qui est écrit, l'autre le défait. Masqué tant que la pile est vide
+         (aucun bouton mort) et hors des éditeurs. -->
+    <button class="hdr-undo" id="hdrUndo" hidden="" title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
+    <span class="hdr-saved" id="hdrSaved" role="status" hidden=""></span>
+    <!-- « ▶ Essayer » passe en TONAL (v4.77.0) : l'unique bouton REMPLI de l'éditeur est désormais la
+         porte « ＋ ». C'est un arbitrage, pas un détail — l'action primaire d'un ÉDITEUR est
+         d'écrire, et la porte est l'entrée de l'écriture ; dérouler son brouillon vient après. La
+         règle « un seul bouton rempli par écran » (v4.0.3) est donc tenue, dans l'autre sens. -->
+    <button class="hdr-act2" id="hdrPreview" hidden="" title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
+    <!-- ⚠ LE THÈME REVIENT DANS L'EN-TÊTE, ET SEULEMENT EN LECTURE (v5.6, décision utilisateur :
+         « OK pour conserver auto/clair/sombre dans la fenêtre Compte, mais il faut le laisser
+         visible en mode lecture/crise d'une aide et en lecture d'un protocole — c'est très
+         important »). Le réglage CANONIQUE reste à froid, dans Compte › Affichage ; ceci en est
+         le RACCOURCI, posé dans la seule situation où il est urgent — une chambre qu'on éteint
+         au chevet, pendant un soin, où ouvrir une fenêtre de réglages n'est pas envisageable.
+         Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
+         par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
+         là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
+    <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
+    <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
+         dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
+         constante partagée — si l'un change, changer l'autre. -->
+    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"></circle><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"></path></svg><span class="acct-ini" id="acctIni" hidden=""></span><span class="acct-dot ok" id="acctDot" hidden=""></span><span class="hb-lbl" aria-hidden="true">Moi</span></button></div></div>
+    <datalist id="phaseList"></datalist>
+    <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
+         toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
+    <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header>

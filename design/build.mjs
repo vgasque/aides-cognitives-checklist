@@ -50,6 +50,9 @@ const dsCss = `
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -62,6 +65,10 @@ const dsCss = `
 `;
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+/* Captures du DOM RÉEL (design/capture.mjs) : les surfaces de crise ne s'écrivent plus à la main. */
+const cap = n => { try { return readFileSync(join(ROOT, 'design', 'captures', n + '.html'), 'utf8').trim(); }
+  catch (e) { console.error(`✗ design/captures/${n}.html manquant — lancer node design/capture.mjs`); process.exit(1); } };
+const crise = h => `<div class="ov-wrap"><div class="ov-journal">${h}</div></div>`;
 /* ✓ de l'app (uiIcon('check')) — pastilles d'étape faite, cases cochées, chips du fil. */
 const chk = (s = 13, sw = 3.2) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>`;
 
@@ -80,34 +87,21 @@ ${demo}</div>
 /* ---- Démos (classes réelles de l'app) ---- */
 
 const swatch = (v, note) => `<div class="ds-sw"><i style="background:var(--${v})"></i><b>--${v}</b>${note ? `<small>${note}</small>` : ''}</div>`;
+/* Tokens ACTUELS, rangés par registre (règle 8). ⚠ La liste citait encore 31 alias purgés en A416
+   (v5.38.1) : leurs pastilles étaient vides. `colorsCheck` (plus bas) refuse désormais un token absent. */
+const COLOR_ROWS = [
+  ['Matières', [['amb', 'ambiance — fond de page'], ['amb-2', 'pistes, champs, fonds neutres'], ['work', 'matière de travail — cartes, feuilles'], ['work-line', 'bord des cartes'], ['paper', 'la Page (papier)']]],
+  ['Encres et filets', [['ink', 'texte'], ['ink-2', 'texte secondaire'], ['ink-3', 'DÉCORATIF seul — jamais du texte'], ['line', 'filets doux'], ['line-strong', 'bordures ≥ 3:1 (champs, cases)'], ['ctl-line', 'contour de composant']]],
+  ['Action — bleu', [['act', 'l’action et le bloc courant'], ['primary-soft', 'fonds bleus, notices système'], ['primary-100', 'survol, sélection'], ['primary-200', 'bord des notices'], ['on-primary', 'texte sur bleu']]],
+  ['Fait — vert', [['ok', 'fait, système nominal'], ['ok-soft', 'fonds verts'], ['done-line', 'étape cochée — bord']]],
+  ['Se tromper — ambre', [['warn', 'dose, seuil, échéance — texte'], ['warn-line', 'bord ambre'], ['warn-soft', 'fonds ambres'], ['verify-line', 'bord doux ambre'], ['alarm-bd', 'alarme de minuteur'], ['bolt', 'éclair de complication'], ['bolt-edge', 'contour de l’éclair']]],
+  ['Tue si oublié — rouge', [['crit', 'CRITIQUE, alarme active — texte'], ['crit-line', 'bord rouge'], ['crit-soft', 'fonds rouges'], ['critical-line', 'bord doux rouge']]],
+  ['Système — quai et capsule sombres', [['sys', 'matière système'], ['sys-hi', 'survol système'], ['sys-ink', 'texte système'], ['sys-ink-2', 'texte système secondaire'], ['sys-line', 'filets système'], ['ok-sys', 'vert sur système'], ['warn-sys', 'ambre sur système'], ['crit-sys', 'rouge sur système']]],
+  ['Voiles', [['scrim-soft', 'voile léger'], ['scrim', 'voile des fenêtres'], ['scrim-full', 'voile plein écran']]],
+];
 const colorsDemo = `
-<div class="ds-row">${[
-  ['ink', 'texte'], ['ink-soft', 'texte secondaire'], ['soft', 'DÉCORATIF seul — jamais du texte'],
-  ['bg', 'fond de page'], ['surface', 'cartes'], ['surface-2', 'panneaux'], ['surface-3', 'badges neutres'],
-  ['line', 'bordures douces'], ['line-hover', 'bordures de cartes'], ['line-strong', 'bordures ≥ 3:1 (champs, cases)'], ['input-bg', 'fond des champs'],
-].map(([v, n]) => swatch(v, n)).join('')}</div>
-<div class="ds-row">${[
-  ['primary', 'bleu clinique — identité / action'], ['primary-dk', 'texte accent'], ['primary-hi', 'survol des boutons remplis'],
-  ['primary-soft', 'fonds bleus'], ['primary-100', 'fonds de tags'], ['primary-200', 'bordures douces'], ['primary-300', 'bordures marquées'],
-  ['on-primary', 'texte sur primary'], ['link', 'liens + minuteur en cours'],
-].map(([v, n]) => swatch(v, n)).join('')}</div>
-<div class="ds-row">${[
-  ['ok', 'confirmation / issue positive'], ['ok-soft', 'fonds verts'],
-  ['verify', 'décision / attente — texte'], ['verify-bd', 'bordures ambrées'], ['verify-hi', 'emphase ambrée (échu)'],
-  ['verify-soft', 'fonds ambrés'], ['verify-line', 'bordures douces ambrées'],
-].map(([v, n]) => swatch(v, n)).join('')}</div>
-<div class="ds-row">${[
-  ['critical', 'TEXTE / icônes vital-destructif'], ['critical-bd', 'BORDURES rouges'], ['critical-soft', 'fonds vermillon'], ['critical-line', 'bordures douces vermillon'],
-].map(([v, n]) => swatch(v, n)).join('')}</div>
-<p class="ds-cap">TROIS ROUGES distincts, jamais fusionnés : --crit (texte/icônes), --crit-line (bordures des cartes et bandeaux rouges), et le rouge « Urgences » de PALETTE (#b6382f) — couleur de CATÉGORIE (liseré/pastille), jamais un signal d’alerte.</p>
-<div class="ds-row">${[
-  ['done-bg', 'étape cochée — fond'], ['done-line', 'étape cochée — bordure'], ['done-ink', 'étape cochée — texte'],
-  ['tag-bg', 'pilules neutres — fond'], ['tag-ink', 'pilules neutres — texte'],
-].map(([v, n]) => swatch(v, n)).join('')}</div>
-<div class="ds-row">${[
-  ['alert', 'banderole d’alerte'], ['alert-hi', 'alerte vive'], ['alert-strong', 'bordure alerte'], ['alert-ink', 'texte sur alerte'],
-  ['alarm', 'jauge du geste « maintenir »'], ['rt-card', 'toast ardoise (fixe)'], ['rt-line', 'bordure du toast (fixe)'], ['rt-ink', 'texte du toast (fixe)'],
-].map(([v, n]) => swatch(v, n)).join('')}</div>
+${COLOR_ROWS.map(([t, row]) => `<p class="ds-cap" style="margin:0 0 6px;font-weight:700">${t}</p><div class="ds-row">${row.map(([v, n]) => swatch(v, n)).join('')}</div>`).join('')}
+<p class="ds-cap">TROIS ROUGES distincts, jamais fusionnés : --crit (texte, CRITIQUE, alarme active), --crit-line (bords rouges) et le rouge d’une CATÉGORIE de la palette — liseré/pastille, jamais un signal d’alerte. Rien de permanent n’est rouge (A406).</p>
 <div class="ds-row" style="align-items:flex-end">
   <div class="ds-item"><span class="acc-sw a-clinique on"></span><small>défaut — bleu clinique</small></div>
   <div class="ds-item"><span class="acc-sw a-teal"></span><small>sarcelle</small></div>
@@ -116,8 +110,10 @@ const colorsDemo = `
   <div class="ds-item"><span class="acc-sw a-framboise"></span><small>framboise</small></div>
   <div class="ds-item"><span class="acc-sw a-ardoise"></span><small>ardoise</small></div>
 </div>
-<p class="ds-cap">Sémantique FIXE : erreur / danger / arrêt d’un processus vivant = --crit ; décision / attente / avertissement = --warn ; confirmation = --ok — jamais l’inverse. --ink-3 est DÉCORATIF seulement (texte secondaire = --ink-soft). COULEUR D’ACCENT par utilisateur (v4.5) : 5 nuances AA + bleu par défaut, CONNECTÉ seulement ; portée = accueil entier + en-tête de toutes les vues ; le contenu clinique (crise, protocoles, éditeurs) reste bleu clinique ; jamais de vert/ambre/rouge en accent (registres réservés).</p>`;
+<p class="ds-cap">Registres FIXES (règle 8) : rouge = ce qui TUE si on l’oublie, et l’alarme active ; ambre = là où l’on risque de SE TROMPER (dose, seuil, échéance) ; vert = fait, ou système nominal ; bleu = l’action et le bloc courant. Ce qui tourne normalement n’a PAS de couleur. Une couleur n’est jamais seule : toujours un glyphe et un mot. --ink-3 est DÉCORATIF seulement (texte secondaire = --ink-2). COULEUR D’ACCENT par utilisateur (v4.5) : 5 nuances AA + bleu par défaut, CONNECTÉ seulement ; portée = accueil entier + en-tête de toutes les vues ; le contenu clinique (crise, protocoles, éditeurs) reste bleu clinique ; jamais de vert/ambre/rouge en accent (registres réservés).</p>`;
 
+{const manquants = COLOR_ROWS.flatMap(([, r]) => r.map(([v]) => v)).filter(v => !new RegExp('--' + v + ':').test(appCss));
+ if (manquants.length) { console.error('✗ Couleurs : tokens absents de index.html → ' + manquants.join(', ')); process.exit(1); }}
 const typeDemo = `
 <div class="ds-type"><small>Marque / titre d’en-tête — .brand-name · 18px / 800</small><span style="font-size:18px;font-weight:800;letter-spacing:-.2px">Aides cognitives</span></div>
 <div class="ds-type"><small>Titre du bandeau de crise — #crisisBand .cb-ttl · 18px / 800 (registre ALERTE)</small><span style="font-size:18px;font-weight:800;letter-spacing:-.2px">Choc anaphylactique</span></div>
@@ -160,15 +156,16 @@ const catDemo = `
 <div class="ds-row">${PALETTE.slice(5, 9).map((c, i) => `<button class="catchip"><span class="cat-dot" style="--catcol:${c}"></span>Filtre ${i + 1}</button>`).join('')}</div>
 <p class="ds-cap">.catchip — la couleur de catégorie ne vit qu’en PASTILLE à anneau (SPEC crise §1a, v4.3.0) ; la sélection est le bleu système, jamais la couleur.</p>`;
 
+const plus = (s = 14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
 const buttonsDemo = `
 <div class="ds-row"><button class="btn primary">Enregistrer</button><button class="btn">Annuler</button><button class="btn danger">Supprimer</button><button class="btn" disabled>Désactivé</button><button class="btn sm">Petit (.sm)</button></div>
 <p class="ds-cap">.btn — 44px min ; UN SEUL bouton rempli (--act) par écran ; .danger = liseré vermillon, fond au survol seulement.</p>
-<div class="ds-row"><button class="btn-new" style="min-height:44px"><svg class="tic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Créer</button><button class="btn-new tonal" style="min-height:44px">Créer (tonal)</button><button class="add-line" style="width:220px">+ Ajouter une ligne</button><button class="btn">Gérer les catégories</button></div>
-<p class="ds-cap">Grammaire des boutons de gestion : POINTILLÉ = créer (.btn-new, .add-line), CONTOUR = gérer / secondaire, PLEIN = action primaire. « Créer » passe en tonal (--primary-soft) quand un « Reprendre » plein est déjà affiché.</p>
+<div class="ds-row"><button class="rang-btn">${plus(16)}Ajouter des aides</button><button class="catmenu-new" style="width:240px">＋ Nouvelle collection…</button><button class="add-line" style="width:220px">+ Ajouter une ligne</button></div>
+<p class="ds-cap">Grammaire des boutons de gestion : POINTILLÉ = créer (.catmenu-new, .add-line), FOND NEUTRE --amb-2 = commande de liste (.rang-btn : Affichage, Sélectionner, Ajouter des aides — M 40, A375), CONTOUR = secondaire, PLEIN = action primaire, un seul par écran.</p>
 <div class="ds-row"><button class="btn cont idle" aria-disabled="true" style="max-width:300px">Cochez les étapes restantes (2)</button><button class="btn cont okay" style="max-width:300px">Continuer — réévaluation à 5 min →</button></div>
-<p class="ds-cap">.btn.cont — UN bouton, deux états : inactif il DIT pourquoi (et combien il reste — jamais muet), actif il ANNONCE la destination (champ nextLbl du bloc) et passe au registre CONFIRMATION (--ok) ; dernier bloc = « Terminer l’algorithme ✓ » (qui n’arrête PAS la session).</p>
-<div class="ds-row"><button class="btn btn-hold"><span class="tmr-lab">Recommencer</span><span class="tmr-hint">Maintenir</span></button><button class="back"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Retour</button><button class="linkbtn">Gérer</button><button class="tlink">Exporter</button></div>
-<p class="ds-cap">.btn-hold — geste « maintenir » anti-accidentel (jauge --crit-line) ; .back, .linkbtn, .tlink — actions secondaires ; un « retour » venant d’apparaître sous le doigt est inhibé 700 ms (.guarded).</p>
+<p class="ds-cap">.btn.cont — UN bouton, deux états : inactif il DIT pourquoi (et combien il reste — jamais muet), actif il ANNONCE la destination (champ nextLbl du bloc) au bleu de l’ACTION (--act, A406 : le vert reste « fait ») ; dernier bloc = « Terminer l’algorithme ✓ » (qui n’arrête PAS la session).</p>
+<div class="ds-row"><button class="btn-end-sess"><span class="tmr-lab">Terminer</span><span class="es-hold">maintenir 1,2 s</span></button><button class="back"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Retour</button><button class="linkbtn">Gérer</button><button class="tlink">Exporter</button></div>
+<p class="ds-cap">Geste « maintenir » anti-accidentel (holdToReset) : « Terminer » se maintient 1,2 s et le dit DANS le bouton (A346, A460) ; relâcher avant la fin annule. .back, .linkbtn, .tlink — actions secondaires ; un « retour » venant d’apparaître sous le doigt est inhibé 700 ms (.guarded).</p>
 <div class="ds-row"><button class="mini">↑</button><button class="mini">↓</button><button class="mini del">×</button></div>
 <p class="ds-cap">.mini — micro-contrôles d’éditeur.</p>`;
 
@@ -187,26 +184,12 @@ const chipsDemo = `
 <div class="ds-row"><span class="rel-chip">Fiche liée <button class="rel-x">×</button></span><span class="ro-badge">Lecture seule</span><span class="pend-badge pending">En attente</span><span class="pend-badge rejected">Refusé</span></div>`;
 
 const cardsDemo = `
-<div style="max-width:620px">
-  <div class="dir-h"><b>Épinglées ★</b></div>
-  <div class="qa-grid">
-    <button type="button" class="qa-tile" style="--stripe:${PALETTE[4]}"><span class="qa-t">Choc anaphylactique</span><span class="qa-sub"><span class="code">ANA-01</span><span>Urgence vitale</span><span class="tag live">● En cours</span></span></button>
-    <button type="button" class="qa-tile" style="--stripe:${PALETTE[6]}"><span class="qa-t">Intubation difficile</span><span class="qa-sub"><span class="code">VAD-03</span><span>Voies aériennes</span></span></button>
-  </div>
-  <div class="dir-h"><b>Répertoire</b><span class="dir-hs">2 aides cognitives · Bibliothèque perso, A → Z</span></div>
-  <div class="dir-g"><div class="dir-l">C</div><div class="dir-grid">
-    <div class="dir-row"><span class="cat-dot" style="--catcol:${PALETTE[4]}"></span><div class="dir-main"><button class="card-open">Choc anaphylactique</button><span class="dir-sub"><span class="tag live">● En cours</span><span>Urgence vitale</span><span class="card-date">03/2026</span></span></div><span class="dir-code">ANA-01</span><button class="pinbtn on" aria-label="Épinglé">★</button></div>
-  </div></div>
-  <div class="dir-g"><div class="dir-l">I</div><div class="dir-grid">
-    <div class="dir-row"><span class="cat-dot" style="--catcol:${PALETTE[6]}"></span><div class="dir-main"><button class="card-open">Intubation difficile</button><span class="dir-sub"><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span>Voies aériennes</span><span class="card-date stale">01/2024</span></span></div><span class="dir-code">VAD-03</span><button class="pinbtn" aria-label="Épingler">☆</button></div>
-  </div></div>
-  <div class="empty" style="margin-top:12px"><b>Aucune fiche</b>Créez votre première aide cognitive.<br><button class="btn primary" style="margin-top:14px">Créer</button></div>
-</div>
-<p class="ds-cap">Accueil « poste accès direct » (v4.56.0, maquette 2c) — tuiles .qa-tile « Épinglée(s) » (accordé au type, liseré --stripe, UN seul bouton par tuile, titre borné à 2 lignes) puis répertoire A→Z : lettre .dir-l, rangées .dir-row compactes (le TITRE .card-open est le vrai bouton, ::after étiré ; épingle et badge « À compléter » cliquables au-dessus). La couleur de catégorie = pastille + NOM en toutes lettres, jamais seule ; date périmée = registre ATTENTION.</p>`;
+<div class="ds-capt" style="max-width:420px">${cap('accueil')}</div>
+<p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p>`;
 
 const formsDemo = `
 <div style="max-width:520px">
-  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une fiche…"></div><button class="btn-new">Créer</button></div>
+  <div class="ds-row" style="flex-wrap:nowrap"><div class="search" style="flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Rechercher une aide, un protocole…"></div></div>
   <div class="field"><label>Titre de la fiche</label><input type="text" value="Choc anaphylactique"></div>
   <div class="row2">
     <div class="field"><label>Catégorie</label><select><option>Urgence vitale</option></select></div>
@@ -219,26 +202,12 @@ const formsDemo = `
 <p class="ds-cap">Fond des champs = --work (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --act ; police 16px (anti-zoom iOS).</p>`;
 
 const listsDemo = `
-<div style="max-width:560px">
-  <div class="forget-strip"><div class="fs-k">■ Ne pas oublier</div><div class="fs-list"><div class="fs-i"><span class="ftxt">Retirer l’allergène (perfusion, latex…)</span></div><div class="fs-i"><span class="ftxt">Noter l’heure de la première adrénaline</span></div></div></div>
-  <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/3</span> coché</div>
-    <ol class="steps">
-      <li class="done" role="checkbox" aria-checked="true"><span class="box">✓</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
-      <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline IM 0,5&nbsp;mg face antéro-latérale de cuisse</span></li>
-      <li class="vigil" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Surveiller la pression artérielle en continu</span></li>
-    </ol>
-    <div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez les étapes restantes (2)</button></div>
-  </div>
-  <div class="flow-nav"><button id="navBack">‹ Bloc précédent</button><button class="btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
-  <div class="flow-end">Algorithme terminé — surveillance en cours</div>
-  <section class="block" style="margin-top:16px"><div class="block-h h-verify"><span class="sec-badge"><svg class="sec-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>Vérifier</div>
-    <ul class="flat verify"><li>Pression artérielle toutes les 5 min</li><li>Signes de bronchospasme</li></ul>
-  </section>
-  <section class="block"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
+<div class="ds-capt" style="max-width:620px">${crise(cap('etapes'))}
+  <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>
 </div>
-<p class="ds-cap">Étapes 64px, case 36px à DROITE ; cochée = vert doux --done-* (texte lisible, pas de biffure agressive) ; ⚠ critique = rouge --crit ; △ vigilance = ambre. Le titre du bloc porte le compte vivant « n/t coché ». .flow-nav TOUJOURS présente (Précédent désactivé au 1er bloc ; Recommencer = maintenir). .flow-end = fin d’algorithme, registre CONFIRMATION — elle n’arrête PAS la session. Un SEUL registre de titres (.block-h, petites capitales) ; couleur sémantique portée par pip + badge, jamais seule.</p>`;
+<p class="ds-cap">Capture réelle (A345) : toutes les étapes partagent le même corps et la même colonne, case à DROITE ; le danger est un MOT — étiquette CRITIQUE (--crit) ou VIGILANCE (--warn) + bordure de case au registre + texte .sr-only, jamais un glyphe ⚠/△. Sous l’étape, en gris : la réponse attendue (« challenge :: réponse »). « Continuer » ne s’active qu’étapes cochées, et dit pourquoi tant qu’il ne l’est pas ; « Vérifier » ouvre la passe de constat.</p>`;
 
 const decisionDemo = `
 <div style="max-width:560px">
@@ -252,7 +221,6 @@ const decisionDemo = `
     </div>
   </div>
   <div class="options" style="margin-top:10px"><button class="opt taken" disabled><span class="ftxt">Choix déjà pris (relecture du parcours)</span><span class="arr">✓</span></button></div>
-  <div class="flow-nav"><button id="navBack">‹ Bloc précédent</button><button class="btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
 </div>
 <p class="ds-cap">Décision = carte AMBRE (liseré 4px, registre ATTENTION : une décision demande l’attention) ; options 64px — MÊME hauteur que les étapes, pas d’encadré bleu autour des blocs. Fil d’Ariane = CURSEUR non destructif (revisiter un bloc ne tronque pas le parcours). l’issue positive est portée par .flow-end (voir Listes).</p>`;
 
@@ -266,46 +234,14 @@ const noticesDemo = `
 <p class="ds-cap">.notice = information (ambre) / erreur (vermillon) ; .alert-toast = banderole AMBRE VIF pulsée (distincte du chrome) ; .toast = confirmation non bloquante avec barre de vie.</p>`;
 
 const headerDemo = `
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden">
-  <header class="bar home" style="position:static">
-    <div class="id-row"><div class="brand"><span class="brand-name">Aides cognitives</span></div><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div>
-  </header>
-</div>
-<p class="ds-cap">Barre d’accueil CLAIRE (couleur du fond) : recherche FIXE, boutons 40px (halo 44px), menu ⋯, compte en initiales. Connecté, la couleur d’ACCENT du compte teinte l’accueil entier et l’en-tête de toutes les vues — le contenu clinique reste bleu.</p>
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><div class="brand"></div><span class="hdr-crisis">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
-  </header>
-  <div id="crisisBand"><span class="cb-ttl">Choc anaphylactique</span><span class="cb-tag">■ Mode crise</span></div>
-  <div id="crisisDock"><div class="dock-in">
-    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
-  </div></div>
-</div>
-<p class="ds-cap">ZONE HAUTE DE CRISE, hors en-tête (v4.23.0). Bandeau TITRE à fond BLANC : un bandeau d’état PERMANENT teinté en rouge désensibiliserait au rouge, que l’ECAM réserve aux alertes réelles — le statut s’annonce en TEXTE (« ■ Mode crise »). Puis le QUAI COLLANT, ordre FIXE <b>⤢ Plan · ● Session · minuteurs</b> : Plan et Session sont AVANT la partie variable, ils gardent donc une position immobile quel que soit le nombre de minuteurs, qui coulent à leur droite (le blanc part au bord droit — barre d’outils normale, aucun vide central). Échu en ambre = registre ATTENTION, « ● Session » en vert = actif nominal.</p>
-<div style="max-width:560px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px">
-  <header class="bar titled ttl-on crisis" style="position:static">
-    <div class="id-row"><button class="back">‹</button><div class="brand"><span id="brandTitle" style="display:block">Choc anaphylactique</span></div><span class="hdr-crisis" style="display:inline">■ Crise</span><div class="hdr-acts"><button class="hdr-theme" style="position:static">☾</button><button class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></button></div></div>
-  </header>
-  <div id="crisisDock"><div class="dock-in">
-    <button class="dock-plan" style="position:static"><span class="dp-ic">⤢</span><span class="dp-lbl">Plan</span></button>
-    <button id="cbTimers" style="position:static"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">12:07</span></span><span class="seg due"><span class="seg-l">Adrénaline</span><span class="seg-t">00:00</span></span><span class="cbt-n">+1</span></button>
-  </div></div>
-</div>
-<p class="ds-cap">AU DÉFILEMENT : le bandeau (titre, information CONSTANTE) s’en va et l’en-tête en prend le relais — titre + « ■ Crise » — à l’instant MESURÉ où il passe dessous. Le QUAI (Plan + état vivant) reste COLLÉ sous l’en-tête et ne quitte jamais l’écran : zone de statut permanente, aucun relais miniature à loger dans la barre.</p>
-<div class="more-menu" style="position:static;margin-top:16px">
-  <button class="mm-row">Modifier</button>
-  <button class="mm-row">Versions</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row">Dupliquer</button>
-  <button class="mm-row">Exporter (.json)</button>
-  <button class="mm-row">Exporter en PDF</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row">Historique des sessions (3)</button>
-  <div class="mm-sep" role="separator"></div>
-  <button class="mm-row danger">Terminer la session…</button>
-</div>
-<p class="ds-cap">.more-menu — menu ⋯ (262px, rangées 44px, séparateurs entre groupes) : TOUTES les actions secondaires de lecture ; remplace les barres « Autorat » de bas de page. L’action destructrice est DERNIÈRE et rouge — jamais première, jamais pleine.</p>`;
+<div class="ds-capt ds-fix" style="max-width:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden">${cap('entete-accueil')}</div>
+<p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
+<div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px">${cap('capsule')}</div>
+<p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
+<div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative">${cap('quai')}</div>
+<p class="ds-cap">Capture réelle, le QUAI au pouce : quatre touches de largeur égale, position CONSTANTE — Fin · Tout voir · Complications · Horodater (A346, A354, A412). « Horodater » est la seule REMPLIE ; « Fin » porte le ■ rouge système et ouvre une confirmation qui se MAINTIENT 1,2 s.</p>
+<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px">${cap('menu')}</div>
+<p class="ds-cap">Capture réelle, menu ⋯ en session (ancré au bureau, feuille basse sous 780 px — A361) : il ne répète pas le quai (A337), tuiles d’ouverture, intertitres, « L’aide › » replié en session (Modifier, Ajouter à une collection…, exports) — hors session ces rangées sont à plat, et « Ajouter à une collection… » reste actif quand « Modifier » est grisé (lecture seule).</p>`;
 
 const runtimeDemo = `
 <div style="max-width:560px">
@@ -365,46 +301,17 @@ const modalDemo = `
     <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn">Annuler</button><button class="btn danger">Supprimer</button></div>
   </div>
 </div>
-<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une fiche, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p>`;
+<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une aide, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p>`;
 
 /* ---- Parcours de soin : rail ①②③ + bascule Dynamique/Statique (v4.4.0, v4.16.0) ---- */
 const carePathDemo = `
-<div style="max-width:560px">
-  <div class="seg read-seg" id="readTopSeg" role="tablist" aria-label="Mode de lecture"><span class="seg-pill" aria-hidden="true"></span><button type="button" class="seg-btn on" role="tab" aria-selected="true" data-readmode="dynamic">Dynamique</button><button type="button" class="seg-btn" role="tab" aria-selected="false" data-readmode="static">Statique</button></div>
-  <ol class="care-path">
-    <li class="cp-stage done"><span class="cp-n" aria-hidden="true">${chk()}</span><div class="cp-body"><div class="block-h cp-h">Diagnostic confirmé</div><ul class="flat"><li>Éruption + hypotension après injection</li></ul></div></li>
-    <li class="cp-stage on" aria-current="step"><span class="cp-n" aria-hidden="true">2</span><div class="cp-body"><div class="block-h cp-h">Prise en charge</div>
-      <div class="nav-wrap"><div class="node-title">Bloc · Mesures immédiates — <span>1/2</span> coché</div>
-        <ol class="steps"><li class="done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt">Arrêter l’exposition à l’allergène</span></li>
-        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline IM 0,5&nbsp;mg</span></li></ol>
-      </div></div></li>
-    <li class="cp-stage off"><span class="cp-n" aria-hidden="true">3</span><div class="cp-body"><div class="block-h cp-h">Surveillances &amp; pièges</div><ul class="flat verify"><li>Pression artérielle toutes les 5&nbsp;min</li></ul></div></li>
-  </ol>
-</div>
-<p class="ds-cap">Rail vertical numéroté de la vue lecture (v4.4.0) : ① Confirmer le diagnostic → ② Prise en charge → ③ Surveillances &amp; pièges, puis les annexes. Pastilles : bleu = active (aria-current="step"), vert ✓ = faite, neutre cerclé = à venir — JAMAIS d’ambre ni de rouge dans le rail (ce sont des registres d’alerte, ils y perdraient leur sens). La séquence est SUGGÉRÉE, jamais bloquante : la 1ʳᵉ action démarre la session où qu’elle soit. Étapes vides omises (numérotation recalculée) ; une seule étape → pas de rail. « Ne pas oublier » reste le CHAPEAU, hors numérotation. Au-dessus, #readTopSeg (v4.16.0) = bascule UNIQUE Dynamique ↔ Statique, masquée si la fiche n’a pas d’algorithme ; c’est la seule .seg re-rendue avec son contenu, d’où le glissement REJOUÉ (.seg-replay).</p>`;
+<div class="ds-capt" style="max-width:420px">${cap('demarrage')}</div>
+<p class="ds-cap">Capture réelle, téléphone, avant la session (A330, A358, A366) : l’écran de démarrage se lit en chapitres — « Quand l’utiliser », « Ne pas oublier », « Parcours » —, cartes dépliables d’une seule fabrique (foldCardHtml), les cartes de session fermées d’office et annonçant leur compte. Rien ne démarre tant qu’on consulte. ⚠ Le rail ①②③ d’avant la v5.0 n’existe plus.</p>`;
 
 /* ---- Journal de parcours + fil condensé (v4.9.0, v4.16.0 — modèle ECAM) ---- */
 const journalDemo = `
-<div style="max-width:560px">
-<div class="ov-wrap">
-  <div class="ov-sec-h">Parcours</div>
-  <div class="ov-journal">
-    <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>
-    <div class="ov-crumbs">
-      <button type="button" class="ovc"><span class="ovc-n">5</span><span class="ovc-t">Massage cardi…</span><span class="ovc-ok">✓</span></button>
-      <button type="button" class="ovc dec"><span class="ovc-n">6</span><span class="ovc-a">› Rythme choc…</span></button>
-    </div>
-    <section class="ov-block done closed dec"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true">${chk()}</span><span class="ov-t">Analyse du rythme<span class="pass-n">passage 2/3</span><span class="ov-ans">→ Rythme choquable</span></span><span class="ov-c">✓</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
-    <section class="ov-block done closed"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true">${chk()}</span><span class="ov-t">Choc électrique externe<span class="pass-n">passage 2/3</span></span><span class="ov-c">2/2</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
-    <section class="ov-block cur" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="true"><span class="ov-n" aria-hidden="true">7</span><span class="ov-t">Reprise du massage <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">1/2</span><span class="ov-chev" aria-hidden="true">▴</span></button></div>
-      <div class="ov-body"><ol class="steps">
-        <li class="done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt">Reprendre immédiatement 2&nbsp;min de RCP</span></li>
-        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
-      </ol><div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez l’étape restante (1)</button></div></div></section>
-  </div>
-</div>
-</div>
-<p class="ds-cap">Le journal EST la chronologie (leçon v4.6→v4.9 : ne JAMAIS poser un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l’utilisateur). Chaque passage est une CARTE POSTÉE à la suite, rien ne mute au-dessus, on lit vers le bas ; pas de curseur — la position est le BOUT. FIL CONDENSÉ (v4.16.0, ovPresList pure) : trois présentations — carte dépliée, LIGNE D’ÉTAT relisible, CHIP (n° + titre abrégé + ✓, ou n° + « › réponse » en toutes lettres pour une décision : le numéro seul ne parle pas à un humain). INVARIANTS : le BOUT est toujours une carte ; un passage INCOMPLET n’est JAMAIS une chip (c’est ce qui fait la conformité) ; complets non courants = les 2 plus récents en ligne, les plus anciens en chips ; une rangée de PLUS DE 4 chips se replie en ligne-bilan ECL « ✓ n passages · a→b ▸ ». Le repli manuel PERSISTE, le dépliage est une consultation TRANSITOIRE (effacée au geste de navigation suivant). L’avancement n’existe QUE sur l’instance du bout ; cocher ne re-rend JAMAIS (chirurgie ovAfterCheck).</p>`;
+<div class="ds-capt" style="max-width:620px">${cap('journal')}</div>
+<p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p>`;
 
 /* ---- Plan de l'aide : « Se repérer », l'ÉCHELLE ECAM (v4.10.0 → v4.25.0) ----
    Cette démo a longtemps montré la vue « Détails » (organigramme hybride en .pl-nd/.pl-cols),
@@ -413,106 +320,57 @@ const journalDemo = `
    n'ayant plus aucune règle. Elle est ici reconstruite sur le balisage RÉELLEMENT émis par
    ovPlanLadderHtml (relevé sur l'app en session), seule vue du Plan qui subsiste. */
 const planDemo = `
-<div style="max-width:680px">
-  <div class="ov-plan compact rail-lad">
-    <div class="pl-line d0 cur" role="button" tabindex="0" aria-expanded="false"><span class="n">1</span><span class="t">Reconnaissance &amp; alerte<span class="pl-here">ici</span></span><span class="g">0/3 <span class="pl-ref">→2</span></span></div>
-    <div class="pl-line d0 dec" role="button" tabindex="0" aria-expanded="false"><span class="n">2</span><span class="t">Analyse du rythme</span><span class="g"><b>OUI</b><span class="pl-ref">→3</span> <b>NON</b><span class="pl-ref">→4</span></span></div>
-    <div class="pl-line d1" role="button" tabindex="0" aria-expanded="true"><span class="pl-bl2">OUI ›</span><span class="n">3</span><span class="t">Choquable (FV / TVsp)</span><span class="g">0/3 <span class="pl-ref">↺2</span></span></div>
-    <div class="pl-lx"><p class="pl-lxt">Choquable (FV / TVsp)</p><ul class="pl-stp"><li class="crit">Choc immédiat <span class="pl-r">150–200 J</span></li><li class="vig">Reprise sans délai <span class="pl-r">2 min</span></li><li>Relayer l’opérateur</li></ul><button type="button" class="pl-lnk">→ aller à ce bloc</button></div>
-    <div class="pl-line d1" role="button" tabindex="0" aria-expanded="false"><span class="pl-bl2">NON ›</span><span class="n">4</span><span class="t">Non choquable (AESP / asystolie)</span><span class="g">0/3 <span class="pl-ref">↺2</span></span></div>
-  </div>
-</div>
-<p class="ds-cap">« Se repérer » : UNE seule vue depuis v4.25.0, l’ÉCHELLE — une ligne par bloc, retraits d0-3 avec chips d’étiquette (OUI ›), renvois mono abrégés (optAbbr pure : →3, ↺2, ▪fin), ligne dépliable in-place (étapes en lecture seule + « → aller à ce bloc »). Générée par flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; état LÉGER (✓, ● ici, ×n) et navigation seule. CHROME DÉSATURÉ dans le rail : l’état n’y est porté que par le marqueur, le rail oriente quand la colonne agit — s’il reprenait les aplats de l’action, deux surfaces se disputeraient le regard. Le « hors chemin » n’y est PAS en opacity (un texte à 50 % tombe sous AA) mais en encre douce + la mention en toutes lettres. La vue « Détails » (organigramme hybride) a été supprimée en v4.25.0 : seule des trois à recopier les étapes, elle rejouait la vue d’action au lieu de montrer AUTRE CHOSE — un SD ECAM ne redit pas l’E/WD.</p>`;
+<div class="ds-capt" style="max-width:300px">${cap('parcours')}</div>
+<p class="ds-cap">Capture réelle, colonne du cockpit en session (A376, A388, A450) : le parcours n’a plus qu’UN dessin (preFlowFlatHtml), en trois LIEUX — carte d’entrée, feuille « Se repérer », colonne et rail. La colonne naît REPLIÉE, bloc courant déplié ; les réglages de coche s’écrivent EN MOTS ; une décision garde sa ligne de branches, « SI réponse » à l’ambre, deux crans de branche au plus. ⚠ L’Échelle d’avant A376 est purgée.</p>`;
 
 /* ---- La PAGE : l'aide entière sur une feuille (v5.10.0, lot « Page » ; arbre en colonnes depuis A344) ---- */
 const staticDemo = `
-<div style="max-width:760px;overflow:auto">
-<div class="sv-wrap">
-  <div class="sv-zoom" role="group" aria-label="Échelle de la feuille">
-    <button type="button" class="sv-zb" data-svzoom="fit">⤢ Ajusté</button>
-    <button type="button" class="sv-zb" data-svzoom="out" aria-label="Réduire">−</button>
-    <span class="sv-zv">100%</span>
-    <button type="button" class="sv-zb" data-svzoom="in" aria-label="Agrandir">＋</button>
-    <button type="button" class="sv-zb" data-svzoom="reset">1:1</button>
-  </div>
-  <div class="sv-scroll"><div class="sv-calant"><div class="sv-sheet" style="width:1130px">
-    <div class="sv-cartouche">
-      <div class="sv-cid"><div class="sv-csur">Aide cognitive · Urgences · adulte</div>
-        <div class="sv-ctitle">Anaphylaxie (choc anaphylactique)</div></div>
-      <div class="sv-cmeta">révision <b>août 2026</b><span class="sv-cnt">5 blocs · 2 posologies · 1 minuteur</span></div>
-      <div class="sv-cwarn">⚠ Fiche générée par IA — à relire et valider avant usage.</div>
-    </div>
-    <div class="sv-band-top c3">
-      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Reconnaître — critères d’entrée</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
-      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer — tableau atypique ?</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
-      <div class="sv-cell sv-inert sv-nf"><p class="sv-h"><span class="sv-t">⚠ Ne pas oublier</span></p><ul class="sv-stp"><li class="crit">Adrénaline IM en 1ʳᵉ intention</li></ul></div>
-    </div>
-    <div class="sv-band-body">
-      <div class="sv-algo">
-        <div class="sv-cell done" style="grid-column:2 / span 4;grid-row:1" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
-        <div class="sv-band cur" style="grid-column:2 / span 4;grid-row:2" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
-        <div class="sv-fk" style="grid-column:1 / span 6;grid-row:3" aria-hidden="true"><span class="fk-st" style="left:calc(50% - 1px)"></span><span class="fk-bar" style="left:33.3%;right:16.7%"></span><span class="fk-arm" style="left:calc(33.3% - 1px)"></span><span class="fk-arm" style="left:calc(83.3% - 1px)"></span></div>
-        <div class="sv-opt tk" style="grid-column:1 / span 4;grid-row:4"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
-        <div class="sv-opt off" style="grid-column:5 / span 2;grid-row:4">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
-        <div class="sv-cell" style="grid-column:1 / span 4;grid-row:5" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div>
-        <div class="sv-cell off" style="grid-column:5 / span 2;grid-row:5" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
-        <div class="sv-jrow" style="grid-column:5 / span 2;grid-row:6"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div>
-        <div class="sv-end" style="grid-column:2 / span 4;grid-row:7">▪ fin de l’algorithme</div>
-      </div>
-      <aside class="sv-ref">
-        <div class="sv-cell sv-inert sv-vf"><p class="sv-h"><span class="sv-t">△ À vérifier — surveillances</span></p><ul class="sv-stp"><li>PAS ≥ 90 mmHg</li><li>SpO₂ ≥ 94 %</li></ul></div>
-        <div class="sv-cell sv-cx" data-svgo="x" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">Bronchospasme réfractaire</span></p><ul class="sv-stp"><li>Salbutamol nébulisé</li></ul></div>
-        <div class="sv-cell sv-inert sv-tm"><p class="sv-h"><span class="sv-t">Minuteurs · compteurs</span></p><ul class="sv-stp"><li class="plain">⏱ <b>Réévaluation</b> — 5:00</li><li class="plain">＃ <b>Injections d’adrénaline</b></li></ul></div>
-      </aside>
-    </div>
-    <div class="sv-band-doses">
-      <div class="sv-dh">Repères posologiques — 2</div>
-      <div class="sv-dz">
-        <div><b>△ ADRÉNALINE — IM</b> <span>0,5 mg (0,01 mg/kg, max 0,5)</span></div>
-        <div><b>SALBUTAMOL — nébulisation</b> <span>5 mg</span></div>
-      </div>
-      <div class="sv-foot">Recommandations en vigueur  ·  Anaphylaxie (choc anaphylactique)  ·  rév. août 2026</div>
-    </div>
-  </div></div></div>
-</div>
-</div>
-<p class="ds-cap">LA PAGE EST UN DOCUMENT (v5.10.0) : cartouche daté avec l’avertissement de validation en bord ALERTE (jamais un aplat — A11), trois cellules d’entrée, l’algorithme et sa colonne de référence, les doses en pied avec la source. Elle a une largeur d’AUTEUR fixe (--sheet-w, 1130 px) et NE SE REFLUE JAMAIS : aux trois formats c’est la même image, et c’est l’ÉCHELLE qui s’adapte (transform:scale par pas discrets, jamais un zoom CSS — celui-ci refait la mise en page au lieu de la transformer). Le TRACÉ est une GRILLE UNIQUE de 6 pistes, tronc sur 4 centré : chaque nœud est un FRÈRE placé par grid-column/grid-row, jamais un conteneur imbriqué — c’est ce qui permet à une branche PROFONDE d’être plus large que celle dont elle descend (répartition au prorata de la hauteur, minimum 1 piste, reste à la plus haute). AUCUNE grille imbriquée dans .sv-algo : c’est l’invariant le plus décisif du lot, et un harnais le mesure au rendu. La FOURCHE est dessinée EN DIVS (bras en pourcentage de l’étendue, calculés sur le centre de chaque branche) : la géométrie SUIT la grille sans qu’on la mesure — un calque SVG exigerait un recalage à chaque changement de contenu, ce qui a cassé deux fois. La convergence est redevenue une pilule de TEXTE (« → n » / « ↺ n ») : le dessin ne porte jamais seul une information. INERTE : aucun data-ck, taper une cellule entre au bout du journal sans rien démarrer.</p>`;
-/* ---- Challenge-response : pilule, Vérification, mode lecteur (v4.11.0, AC 120-71B) ---- */
+<div class="ds-capt" style="width:740px;zoom:.96">${cap('page')}</div>
+<p class="ds-cap">Capture réelle de la PAGE (A344, A391-A395) : l’aide entière sur une feuille de largeur A4 ; le NUMÉRO est l’ancre de tout trait, la colonne des numéros est la surface de dessin (tronc, fourche, rail) ; une sortie s’ÉCRIT « SI … ALLER À n » avant de se tracer en pointillé par la voie de droite ; la destination est une PASTILLE ; un trait ne croise jamais rien. Inerte côté cochage. ⚠ Les voies sont MESURÉES dans l’app : la capture fige leur tracé à la largeur d’auteur (740 px), d’où la réduction à l’échelle plutôt qu’une remise en page.</p>`;
+
 const challengeDemo = `
-<div style="max-width:560px">
-  <ol class="steps" style="margin-bottom:14px">
-    <li role="checkbox" aria-checked="false"><span class="box"></span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></li>
-    <li class="crit done" role="checkbox" aria-checked="true"><span class="box">${chk(19, 3)}</span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline prête <span class="stp-r">1 mg / 10 mL</span></span></li>
-  </ol>
-  <div class="ov-body" style="margin-bottom:14px">
-    <div class="v-hint">Vérification — lisez le challenge, constatez l’état réel</div>
-    <div class="vstp ok2"><span class="vst">✓</span><span class="txt">Ballon relié à l’oxygène <span class="stp-r">15 L/min</span></span></div>
-    <div class="vstp vgap"><span class="vst">△</span><span class="txt">Voie veineuse en place <span class="stp-r">16 G</span></span></div>
-    <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
-    <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
-  </div>
-</div>
-<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. (③ Le MODE LECTEUR plein écran a été RETIRÉ au lot T14, v5.0.0 : mesuré, il ne gagnait qu’à 320 px et perdait à 390, son propre chrome coûtant plus qu’il ne rendait — et sa justification s’était érodée dans sa propre doctrine, la v4.28.0 ayant abandonné le « un item à la fois » et la v4.62.0 unifié la structure. Ce que la surface portait vit dans la carte de bloc : même pilule de réponse, même passe Do-Verify, même liste.) Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p>`;
+<div class="ds-capt" style="max-width:620px">${crise(cap('verification'))}</div>
+<p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p>`;
 
 /* ---- Fiches ---- */
+/* RANGEMENT (v5.50-v5.51, A475-A479) : collections, feuille à cases, barre de sélection en tiroir. */
+const bmk = (s = 13) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg>`;
+const box = st => `<button type="button" class="mm-row" role="menuitemcheckbox" aria-checked="${st[0]}"><span class="mm-ic" aria-hidden="true"><span class="mm-box">${chk(14, 3)}</span></span><span class="mm-tx"><span class="mm-lb">${st[1]}</span><span class="mm-sub">${st[2]}</span></span></button>`;
+const rangementDemo = `
+<div class="coll-rail" style="max-width:420px"><div class="dir-h"><b>Mes collections</b><span class="dir-hs">à vous seul</span></div>
+<div class="chiprow" role="group" aria-label="Mes collections"><button class="catchip coll-chip on" aria-pressed="true">${bmk()}Garde SMUR<span class="coll-n">9</span></button><button class="catchip coll-chip" aria-pressed="false">${bmk()}Bloc pédia<span class="coll-n">6</span></button><button class="catchip coll-new" aria-label="Nouvelle collection">${plus()}</button></div></div>
+<p class="ds-cap">.coll-rail — au téléphone, sous l’Accès direct : les puces de catégorie (.catchip) avec le SIGNET (icône bookmark) ; absente tant qu’aucune collection n’existe. Au bureau, une section « Mes collections · à vous seul » de la colonne gauche (hsRow), Accès direct en tête.</p>
+<div class="coll-head" style="max-width:560px"><div class="coll-ht"><span class="coll-k">${bmk()}Collection · à vous seul</span><h2 class="coll-t">Garde SMUR</h2><span class="coll-s">9 éléments venus de 3 bibliothèques — rien n’a été déplacé · 1 indisponible</span></div>
+<div class="coll-acts"><button class="rang-btn">${plus(16)}Ajouter des aides</button><button class="rang-btn coll-more" aria-label="Gérer la collection">⋯</button></div></div>
+<p class="ds-cap">.coll-head — une collection ouverte dit d’abord qu’elle est PERSONNELLE, puis d’où vient son contenu ; le filtre est aussi annoncé par une puce « Collection : … » (.af-bar). Supprimer une collection ne touche jamais aux aides.</p>
+<div class="catmenu popmenu" role="menu" style="position:static;max-width:400px;max-height:none;overflow:visible">
+<div class="popmenu-head"><div class="mm-ctx"><b>Arrêt cardiaque adulte</b><span>SAMU 31</span><div class="notice">${bmk(15)}<div>Vos collections sont à vous seul. L’élément reste dans SAMU 31 : seul votre rangement change.</div></div></div></div>
+${box(['true', 'Accès direct', 'les tuiles en tête de l’accueil'])}${box(['mixed', 'Garde SMUR', '1 sur 3 · une partie de la sélection'])}${box(['false', 'Bloc pédia', '6 éléments'])}
+<div class="catmenu-sep"></div><button type="button" class="catmenu-new">＋ Nouvelle collection…</button>
+<div class="popmenu-foot" style="position:static"><button type="button" class="btn primary">Terminé</button></div></div>
+<p class="ds-cap">« Ajouter à une collection… » — openPickMenu en mode multi : des CASES (.mm-box : vide · tiret « une partie » · coche), la feuille reste ouverte, chaque case agit aussitôt. Au menu ⋯ d’une aide, la rangée reste active quand « Modifier » est grisé (lecture seule). Déplacer vers une bibliothèque, lui, est un choix unique (rond) : il change QUI Y A ACCÈS.</p>
+<div class="sel-bar" style="position:static;max-width:560px" data-n="3"><button type="button" class="dir-ck sel-ck" role="checkbox" aria-checked="mixed" aria-label="Tout cocher">${chk(15, 3)}<span class="sel-mix" aria-hidden="true"></span></button><span class="sel-n" role="status">3 cochés · deux bibliothèques</span><button type="button" class="btn sm primary sel-do">Actions</button><button type="button" class="btn sm sel-x" aria-label="Quitter la sélection"><span class="sel-g" aria-hidden="true">×</span></button></div>
+<p class="ds-cap">.sel-bar — UNE ligne de 56 px à toutes les largeurs : case maîtresse à trois états, compte (seul élément élastique), « Actions » qui ouvre la feuille (Ajouter à une collection · Déplacer vers une bibliothèque · Ranger dans une catégorie · Exporter · Supprimer — libellés entiers), sortie en croix. Plus de dépliage sur la ligne (A476).</p>`;
+
 const cards = [
   { path: 'foundations/colors.html', name: 'Couleurs & tokens', group: 'Fondations', subtitle: 'Neutres, bleu clinique, sémantiques, statuts, accents — 2 thèmes', h: 1750, demo: colorsDemo, title: 'Couleurs' },
   { path: 'foundations/typography.html', name: 'Typographie', group: 'Fondations', subtitle: 'Registres réels — plancher 11px, mono pour les chronos', h: 1350, demo: typeDemo, title: 'Typographie' },
   { path: 'foundations/shape.html', name: 'Formes, ombres & règles', group: 'Fondations', subtitle: 'Rayons, ombres, breakpoints fermés (430→1200), largeurs par vue', h: 1100, demo: shapeDemo, title: 'Formes & règles' },
   { path: 'foundations/categories.html', name: 'Palette des catégories', group: 'Fondations', subtitle: '13 teintes PALETTE + pilule neutre des cartes', h: 1050, demo: catDemo, title: 'Catégories' },
-  { path: 'components/buttons.html', name: 'Boutons', group: 'Composants', subtitle: 'primary / tonal / pointillé / Continuer 2 états / maintenir', h: 1250, demo: buttonsDemo, title: 'Boutons' },
+  { path: 'components/buttons.html', name: 'Boutons', group: 'Composants', subtitle: 'Plein / neutre / pointillé / Continuer 2 états / maintenir 1,2 s', h: 1250, demo: buttonsDemo, title: 'Boutons' },
   { path: 'components/chips.html', name: 'Pastilles, tags & états', group: 'Composants', subtitle: 'Filtres, statuts achromatiques, synchro, compte en initiales', h: 1200, demo: chipsDemo, title: 'Pastilles & tags' },
-  { path: 'components/cards.html', name: 'Cartes de bibliothèque', group: 'Composants', subtitle: 'Carte sobre : liseré couleur, pilule neutre, code mono, session vive', h: 1100, demo: cardsDemo, title: 'Cartes' },
+  { path: 'components/cards.html', name: 'Accueil : tuiles & cartes', group: 'Composants', subtitle: 'Capture réelle : Accès direct, Mes collections, cartes rangées par catégorie', h: 1100, demo: cardsDemo, title: 'Accueil' },
   { path: 'components/forms.html', name: 'Formulaires', group: 'Composants', subtitle: 'Recherche, champs, sélecteur de catégories, code OTP', h: 1350, demo: formsDemo, title: 'Formulaires' },
-  { path: 'components/lists.html', name: 'Listes de fiche', group: 'Composants', subtitle: 'Ne pas oublier, étapes 64px, Continuer, fin d’algorithme', h: 1900, demo: listsDemo, title: 'Listes' },
+  { path: 'components/lists.html', name: 'Étapes d’un bloc', group: 'Mode crise', subtitle: 'Capture réelle : CRITIQUE / VIGILANCE en mots, réponse attendue, Continuer, Vérifier', h: 1900, demo: listsDemo, title: 'Étapes' },
   { path: 'components/decision.html', name: 'Nœud de décision', group: 'Composants', subtitle: 'Carte ambre, options 64px, fil d’Ariane non destructif', h: 1250, demo: decisionDemo, title: 'Décision' },
-  { path: 'components/carepath.html', name: 'Parcours de soin', group: 'Mode crise', subtitle: 'Rail ①②③ (jamais d’ambre), bascule Dynamique / Statique', h: 1250, demo: carePathDemo, title: 'Parcours de soin' },
-  { path: 'components/journal.html', name: 'Journal & fil condensé', group: 'Mode crise', subtitle: 'Cartes postées, ligne d’état, chips titrées, ligne-bilan ECL', h: 1450, demo: journalDemo, title: 'Journal de parcours' },
-  { path: 'components/plan.html', name: 'Plan de l’aide', group: 'Mode crise', subtitle: 'Organigramme hybride : rails, branches, repli, ↺ reprendre à n', h: 1400, demo: planDemo, title: 'Plan de l’aide' },
-  { path: 'components/static.html', name: 'Mode statique', group: 'Mode crise', subtitle: 'La Page : cellules, boîte de décision, fourche, rail, renvois', h: 1450, demo: staticDemo, title: 'Mode statique' },
-  { path: 'components/challenge.html', name: 'Challenge-response', group: 'Mode crise', subtitle: 'Pilule « :: », mode Vérification (Do-Verify), mode lecteur', h: 1550, demo: challengeDemo, title: 'Challenge-response' },
+  { path: 'components/carepath.html', name: 'Écran de démarrage', group: 'Mode crise', subtitle: 'Capture réelle : chapitres, cartes dépliables, parcours à plat — avant la session', h: 1250, demo: carePathDemo, title: 'Écran de démarrage' },
+  { path: 'components/journal.html', name: 'Journal de session', group: 'Mode crise', subtitle: 'Capture réelle : progression, passage courant, carte de décision', h: 1450, demo: journalDemo, title: 'Journal' },
+  { path: 'components/plan.html', name: 'Parcours (Se repérer)', group: 'Mode crise', subtitle: 'Capture réelle : un dessin, trois lieux — colonne repliée, branches à deux crans', h: 1400, demo: planDemo, title: 'Parcours' },
+  { path: 'components/static.html', name: 'La Page', group: 'Mode crise', subtitle: 'Capture réelle : l’arbre est le fil, feuille A4, voies et pastilles', h: 1450, demo: staticDemo, title: 'La Page' },
+  { path: 'components/challenge.html', name: 'Vérifier (challenge-response)', group: 'Mode crise', subtitle: 'Capture réelle : passe de constat, Constaté ✓ / △ Écart', h: 1550, demo: challengeDemo, title: 'Vérifier' },
+  { path: 'components/rangement.html', name: 'Rangement : collections & sélection', group: 'Composants', subtitle: 'Collections personnelles, feuille à cases, en-tête « à vous seul », barre de sélection en tiroir', h: 1250, demo: rangementDemo, title: 'Rangement' },
   { path: 'components/notices.html', name: 'Notices, alertes & toasts', group: 'Composants', subtitle: 'Information, erreur de synchro, banderole ambre, toast', h: 1100, demo: noticesDemo, title: 'Notices & alertes' },
-  { path: 'components/header.html', name: 'Barre d’en-tête', group: 'Composants', subtitle: 'Accueil (accent), bandeau de crise ALERTE, menu ⋯', h: 1600, demo: headerDemo, title: 'En-tête' },
+  { path: 'components/header.html', name: 'En-tête, capsule & quai', group: 'Mode crise', subtitle: 'Captures réelles : en-tête d’accueil, capsule d’état, quai à quatre touches, menu ⋯', h: 1600, demo: headerDemo, title: 'En-tête' },
   { path: 'components/runtime.html', name: 'Panneau temps réel', group: 'Composants', subtitle: 'Cartes à état textuel, échu ambre, ad hoc — suivent le thème', h: 1500, demo: runtimeDemo, title: 'Temps réel' },
   { path: 'components/session.html', name: 'Sessions', group: 'Composants', subtitle: 'Carte de session vive ; Terminer via menu ⋯, historique en modale', h: 800, demo: sessionDemo, title: 'Sessions' },
   { path: 'components/modal.html', name: 'Modale', group: 'Composants', subtitle: 'dlg-480, dialogue Créer, Terminer la session ?, confirmations destructrices', h: 2150, demo: modalDemo, title: 'Modale' },

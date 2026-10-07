@@ -1,7 +1,7 @@
-<!-- @dsCard group="Mode crise" name="Journal & fil condensé" subtitle="Cartes postées, ligne d’état, chips titrées, ligne-bilan ECL" viewport="760x1450" -->
+<!-- @dsCard group="Mode crise" name="Journal de session" subtitle="Capture réelle : progression, passage courant, carte de décision" viewport="760x1450" -->
 <!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Journal de parcours — Aides cognitives</title>
+<title>Journal — Aides cognitives</title>
 <style>
   /* Tokens : TOUTE nouvelle couleur passe par ici (pas de hex ad hoc dans les règles). Registres :
      --act = identité/action, --ok = confirmation, --warn = décision/vigilance, --crit =
@@ -2015,12 +2015,18 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
   [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  /* Tête d'une feuille (A480) : retour en lien, titre = le geste, une ligne de contexte. */
+  .mm-back{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 4px -6px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mm-back:hover{background:var(--primary-100)}
+  .mm-title{margin:0;font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--ink)}
+  .mm-ctxl{margin:2px 0 10px;font-size:var(--t-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mm-ic2{width:20px}
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
@@ -6073,6 +6079,8 @@
   .adm-note>svg{flex:none;margin-top:1px}
   /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
   .adm-reqa{display:flex;gap:8px;flex:none}
+  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask .adm-reqa{margin-left:auto}
   #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
   #admLibs .seg{margin:4px 0 10px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
@@ -8161,6 +8169,9 @@
   .ds-sw>i{display:block;height:44px}
   .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
+  .ds-fix>*,.ds-fix>*>*{position:static!important;inset:auto!important;transform:none!important}
+  .ds-fix #sessionDock{padding:0;pointer-events:auto}
+  .ds-capt+.ds-cap{margin-top:10px}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
@@ -8173,46 +8184,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:560px">
-<div class="ov-wrap">
-  <div class="ov-sec-h">Parcours</div>
-  <div class="ov-journal">
-    <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>
-    <div class="ov-crumbs">
-      <button type="button" class="ovc"><span class="ovc-n">5</span><span class="ovc-t">Massage cardi…</span><span class="ovc-ok">✓</span></button>
-      <button type="button" class="ovc dec"><span class="ovc-n">6</span><span class="ovc-a">› Rythme choc…</span></button>
-    </div>
-    <section class="ov-block done closed dec"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Analyse du rythme<span class="pass-n">passage 2/3</span><span class="ov-ans">→ Rythme choquable</span></span><span class="ov-c">✓</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
-    <section class="ov-block done closed"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Choc électrique externe<span class="pass-n">passage 2/3</span></span><span class="ov-c">2/2</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
-    <section class="ov-block cur" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="true"><span class="ov-n" aria-hidden="true">7</span><span class="ov-t">Reprise du massage <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">1/2</span><span class="ov-chev" aria-hidden="true">▴</span></button></div>
-      <div class="ov-body"><ol class="steps">
-        <li class="done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Reprendre immédiatement 2&nbsp;min de RCP</span></li>
-        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
-      </ol><div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez l’étape restante (1)</button></div></div></section>
-  </div>
-</div>
-</div>
-<p class="ds-cap">Le journal EST la chronologie (leçon v4.6→v4.9 : ne JAMAIS poser un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l’utilisateur). Chaque passage est une CARTE POSTÉE à la suite, rien ne mute au-dessus, on lit vers le bas ; pas de curseur — la position est le BOUT. FIL CONDENSÉ (v4.16.0, ovPresList pure) : trois présentations — carte dépliée, LIGNE D’ÉTAT relisible, CHIP (n° + titre abrégé + ✓, ou n° + « › réponse » en toutes lettres pour une décision : le numéro seul ne parle pas à un humain). INVARIANTS : le BOUT est toujours une carte ; un passage INCOMPLET n’est JAMAIS une chip (c’est ce qui fait la conformité) ; complets non courants = les 2 plus récents en ligne, les plus anciens en chips ; une rangée de PLUS DE 4 chips se replie en ligne-bilan ECL « ✓ n passages · a→b ▸ ». Le repli manuel PERSISTE, le dépliage est une consultation TRANSITOIRE (effacée au geste de navigation suivant). L’avancement n’existe QUE sur l’instance du bout ; cocher ne re-rend JAMAIS (chirurgie ovAfterCheck).</p></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur dec" data-ovb="bmuy46yw612brw83m" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-cur">En cours</span> Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="jl-wrap"><div class="jl-row"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span> — 3 CEE sans RACS — envisager une <b>FV réfractaire</b></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span></div></div><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmuy46yw6tki66wmc"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmuy46yw6kly8ll11"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div></div></section></div></div></div>
+<p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:560px">
-<div class="ov-wrap">
-  <div class="ov-sec-h">Parcours</div>
-  <div class="ov-journal">
-    <button type="button" class="ov-runline" aria-expanded="false"><span class="ovr-ok" aria-hidden="true">✓</span>6 passages · 1→4<span class="ovr-chev" aria-hidden="true">▸</span></button>
-    <div class="ov-crumbs">
-      <button type="button" class="ovc"><span class="ovc-n">5</span><span class="ovc-t">Massage cardi…</span><span class="ovc-ok">✓</span></button>
-      <button type="button" class="ovc dec"><span class="ovc-n">6</span><span class="ovc-a">› Rythme choc…</span></button>
-    </div>
-    <section class="ov-block done closed dec"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Analyse du rythme<span class="pass-n">passage 2/3</span><span class="ov-ans">→ Rythme choquable</span></span><span class="ov-c">✓</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
-    <section class="ov-block done closed"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="false"><span class="ov-n" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="ov-t">Choc électrique externe<span class="pass-n">passage 2/3</span></span><span class="ov-c">2/2</span><span class="ov-chev" aria-hidden="true">▾</span></button></div></section>
-    <section class="ov-block cur" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" aria-expanded="true"><span class="ov-n" aria-hidden="true">7</span><span class="ov-t">Reprise du massage <span class="ov-here">Vous êtes ici</span></span><span class="ov-c">1/2</span><span class="ov-chev" aria-hidden="true">▴</span></button></div>
-      <div class="ov-body"><ol class="steps">
-        <li class="done" role="checkbox" aria-checked="true"><span class="box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span><span class="txt">Reprendre immédiatement 2&nbsp;min de RCP</span></li>
-        <li class="crit" role="checkbox" aria-checked="false"><span class="box"></span><span class="txt"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">⚠</span>Adrénaline 1&nbsp;mg IV <span class="stp-r">toutes les 4 min</span></span></li>
-      </ol><div class="flow-ctrl"><button class="btn cont idle" aria-disabled="true">Cochez l’étape restante (1)</button></div></div></section>
-  </div>
-</div>
-</div>
-<p class="ds-cap">Le journal EST la chronologie (leçon v4.6→v4.9 : ne JAMAIS poser un état temporel sur une carte spatiale — un bloc à plusieurs passages y perd l’utilisateur). Chaque passage est une CARTE POSTÉE à la suite, rien ne mute au-dessus, on lit vers le bas ; pas de curseur — la position est le BOUT. FIL CONDENSÉ (v4.16.0, ovPresList pure) : trois présentations — carte dépliée, LIGNE D’ÉTAT relisible, CHIP (n° + titre abrégé + ✓, ou n° + « › réponse » en toutes lettres pour une décision : le numéro seul ne parle pas à un humain). INVARIANTS : le BOUT est toujours une carte ; un passage INCOMPLET n’est JAMAIS une chip (c’est ce qui fait la conformité) ; complets non courants = les 2 plus récents en ligne, les plus anciens en chips ; une rangée de PLUS DE 4 chips se replie en ligne-bilan ECL « ✓ n passages · a→b ▸ ». Le repli manuel PERSISTE, le dépliage est une consultation TRANSITOIRE (effacée au geste de navigation suivant). L’avancement n’existe QUE sur l’instance du bout ; cocher ne re-rend JAMAIS (chirurgie ovAfterCheck).</p></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur dec" data-ovb="bmuy46yw612brw83m" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-cur">En cours</span> Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="jl-wrap"><div class="jl-row"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span> — 3 CEE sans RACS — envisager une <b>FV réfractaire</b></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span></div></div><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmuy46yw6tki66wmc"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmuy46yw6kly8ll11"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div></div></section></div></div></div>
+<p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 </body></html>
