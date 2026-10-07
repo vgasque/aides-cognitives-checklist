@@ -7073,6 +7073,76 @@ for (const W of [390, 1200]) {
    Au téléphone une rangée sous l'Accès direct, au bureau une section de la colonne ; choisir = un filtre
    annoncé (puce + en-tête « à vous seul ») ; « Ajouter à une collection… » vit dans le menu ⋯ d'une aide
    EN LECTURE SEULE (« Modifier » grisé juste au-dessus) et coche sans déplacer. */
+/* ══ RETOURS v5.52 (A485-A489) : ce que l'usage a trouvé après les collections ══════════════════
+   Pastille de catégorie lue sur SES éléments (homonymes), « Nouvelle catégorie » qui range, case
+   « Accès direct » face à un brouillon, une seule étoile animée, feuille « Ajouter à « … » », colonne
+   qui dit AVEC QUI (option 1 du canevas), menu ⋯ d'une collection sous son bouton. */
+await sec('ACCUEIL · A485-A489 retours v5.52 — homonymes, ranger, épingles, colonne « avec qui »', async () => {
+for (const W of [390, 1280]) {
+  const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async (W) => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    // une colonne à Perso seule d'abord (bureau)
+    render();await w(250);
+    if(W>=780){out.seule=[...document.querySelectorAll('.home-side .hs-row')].map(b=>b.textContent.trim()).filter(t=>/Perso|Toutes$|Partager/.test(t));}
+    myLibraries.length=0;myLibraries.push({id:'lib-x',name:'Bloc',role:'viewer'});
+    const urg=categories.find(c=>!c.library&&c.name==='Urgences');
+    categories.push({id:'c-urg-x',name:'Urgences',color:'#2f6b3a',library:'lib-x'});
+    const fx=JSON.parse(JSON.stringify(fiches[0]));fx.id='fx';fx.title='Aide du Bloc';fx.library='lib-x';fx.category='c-urg-x';fx.status='validated';fiches.push(migrate(fx));
+    const fd=JSON.parse(JSON.stringify(fiches[0]));fd.id='fd';fd.title='Brouillon perso';fd.status='draft';fiches.push(migrate(fd));
+    state.homeGroup='cat';state.homeLib='lib-x';render();await w(250);
+    const dot=()=>{const l=[...document.querySelectorAll('.home-main .dir-l')].find(x=>/Urgences/.test(x.textContent));const d=l&&l.querySelector('.dir-dot');return d?getComputedStyle(d).backgroundColor:'';};
+    out.dotBloc=dot();state.homeLib=null;render();await w(250);
+    out.dotToutes=(()=>{const l=[...document.querySelectorAll('.home-main .dir-l')].find(x=>/Urgences/.test(x.textContent));const d=l&&l.querySelector('.dir-dot');return d?getComputedStyle(d).backgroundImage:'';})();
+    out.urgPerso=urg&&urg.color;
+    if(W>=780)out.colonne=[...document.querySelectorAll('.home-side .hs-row')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).filter(t=>/^(Toutes|Perso|Bloc)/.test(t));
+    // case « Accès direct » sur une sélection avec brouillon
+    const ids=fiches.map(f=>f.id);state.selOn=true;state.sel=new Set(ids);render();await w(200);
+    openCollPick(ids,{});await w(300);
+    const pinRow=()=>[...document.querySelectorAll('.popmenu .mm-row')].find(x=>/Accès direct/.test(x.textContent));
+    out.pinSub=pinRow().textContent;const pins0=[];
+    pinRow().click();await w(150);pins0.push(pinRow().getAttribute('aria-checked'));pinRow().click();await w(150);pins0.push(pinRow().getAttribute('aria-checked'),pins.length);
+    out.pinCase=pins0;document.querySelector('.popmenu [data-pickdone]').click();await w(200);
+    // « Ranger » › « Nouvelle catégorie… » crée et range
+    state.sel=new Set([fiches[0].id]);render();await w(200);
+    selNewCat([null],()=>{});await w(300);
+    const inp=document.getElementById('confirmInput');inp.value='Transport';inp.dispatchEvent(new Event('input'));
+    out.creerRanger=document.getElementById('confirmYes').textContent;document.getElementById('confirmYes').click();await w(500);
+    out.range=catName(fiches[0]);state.selOn=false;state.sel=new Set();render();await w(200);
+    // une étoile touchée, une seule animée
+    pinTap(fiches[0].id,()=>render());await w(30);
+    out.anim=[...document.querySelectorAll('.home-main .pinbtn')].filter(b=>{const s=b.querySelector('svg');return s&&getComputedStyle(s).animationName==='pop';}).length;
+    // « Ajouter à « … » » : titre et catégorie par rangée ; menu ⋯ sous son bouton
+    const c=collNew('Garde SMUR',[]);state.coll=c.id;render();await w(250);
+    document.querySelector('[data-colladd]').click();await w(400);
+    out.ajTitre=(document.querySelector('.popmenu .mm-title')||{}).textContent;
+    out.ajSub=[...document.querySelectorAll('.popmenu .mm-row .mm-sub')].map(x=>x.textContent).find(t=>/Urgences/.test(t))||'';
+    document.querySelector('.popmenu [data-pickdone]').click();await w(250);
+    const b=document.querySelector('[data-collmenu]');b.click();await w(300);
+    const m=[...document.querySelectorAll('.popmenu')].find(x=>x.id!=='moreMenu'&&x.getClientRects().length);
+    if(m&&!m.classList.contains('sheet')){const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect();out.menuSous=Math.round(mr.top-br.bottom)>=0&&Math.round(mr.top-br.bottom)<=12&&Math.abs(Math.round(mr.right-br.right))<=1;}
+    else out.menuSous=!!m;
+    return out;},W);
+  const P=W+' px';
+  t(`${P} · A485 : la pastille d'une catégorie homonyme prend la couleur de SA bibliothèque, multicolore sur « Toutes »`,
+    r.dotBloc==='rgb(47, 107, 58)'&&/gradient/.test(r.dotToutes), r.dotBloc+' | '+r.dotToutes.slice(0,40));
+  t(`${P} · A486 : « Nouvelle catégorie… » depuis Ranger crée ET range`, r.creerRanger==='Créer et ranger'&&r.range==='Transport', r.creerRanger+' | '+r.range);
+  t(`${P} · A487 : un brouillon dans la sélection ne bloque plus la case « Accès direct »`, /brouillon ne s’épingle pas/.test(r.pinSub)&&r.pinCase[0]==='true'&&r.pinCase[1]==='false'&&r.pinCase[2]===0, JSON.stringify(r.pinCase));
+  t(`${P} · A487 : une seule étoile s'anime, celle qu'on touche`, r.anim===1, String(r.anim));
+  t(`${P} · A488 : « Ajouter à « Garde SMUR » », la catégorie dans chaque rangée`, r.ajTitre==='Ajouter à « Garde SMUR »'&&/^Aide · Urgences · (Perso|Bloc)$/.test(r.ajSub), r.ajTitre+' | '+r.ajSub);
+  t(`${P} · le menu ⋯ d'une collection s'ouvre sous son bouton (feuille au téléphone)`, r.menuSous===true, String(r.menuSous));
+  if (W>=780) {
+    t(`${P} · A489 : Perso seule = une rangée « vous seul » et la porte « Partager avec une équipe… », sans « Toutes »`,
+      r.seule.length===1&&/Perso\s*vous seul/.test(r.seule[0]), JSON.stringify(r.seule));
+    t(`${P} · A489 : chaque bibliothèque dit avec qui (vous seul · lecture)`, r.colonne.some(x=>/^Perso\s*vous seul/.test(x))&&r.colonne.some(x=>/^Bloc\s*lecture/.test(x))&&r.colonne.some(x=>/^Toutes/.test(x)), JSON.stringify(r.colonne));
+  }
+  await page.close();
+}
+});
+
 await sec('ACCUEIL · A475 collections — filtre, en-tête, cases, lecture seule', async () => {
 for (const W of [390, 1280]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:W<780});
@@ -7116,7 +7186,7 @@ for (const W of [390, 1280]) {
   t(`${P} · choisir pose le filtre, annoncé en puce et en en-tête « à vous seul »`,
     r.coll&&/Collection/.test(r.puce)&&/Garde SMUR/.test(r.puce)&&/à vous seul/i.test(r.tete)&&/1 indisponible/.test(r.tete), r.puce+' | '+r.tete);
   t(`${P} · la liste ne montre que les deux éléments rangés`, r.rangees===2, String(r.rangees));
-  t(`${P} · « Ajouter des aides » : des cases sur tout l'accueil`, r.cases>=3, String(r.cases));
+  t(`${P} · « Ajouter » : des cases sur tout l'accueil`, r.cases>=3, String(r.cases));
   t(`${P} · lecture seule : « Modifier » grisé, « Ajouter à une collection… » actif et dit où elle est`,
     r.modOff&&r.colOn&&/Garde SMUR/.test(r.colSub), r.colSub);
   t(`${P} · la feuille coche sans déplacer, et le dit`,

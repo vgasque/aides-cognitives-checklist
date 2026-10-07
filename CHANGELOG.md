@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.53.0] — 2026-10-07
+Retours d'usage après les collections, et une colonne gauche qui dit avec qui (A485-A489, doctrine
+`docs/decisions/lot-v5-53.md`).
+- **Colonne gauche (bureau)** : chaque bibliothèque dit avec qui — Perso « vous seul », une bibliothèque partagée
+  « partagée » ou « lecture », avec une icône de personnes ; les collections gardent leur signet sous « Collections ·
+  pour vous », avec « Gérer » vers Moi. Avec une seule bibliothèque, une seule rangée, et « ＋ Partager avec une
+  équipe… » pour en créer ou en demander une.
+- **Collections** : le bouton « Ajouter » ouvre « Ajouter à « ‹collection› » », et chaque aide ou protocole y montre
+  sa catégorie ; le menu ⋯ d'une collection s'ouvre sous son bouton en tablette et au bureau.
+- **Ranger › Nouvelle catégorie…** : on nomme la catégorie, « Créer et ranger », et la sélection y est rangée.
+- **Accès direct** : une sélection qui contient un brouillon ne bloque plus la case « Accès direct » (un brouillon ne
+  s'épingle pas, la rangée le dit) ; toucher une étoile n'anime plus toutes les autres.
+- **Catégories homonymes** : l'intertitre d'une section prend la couleur de sa propre bibliothèque (bicolore sur
+  « Toutes » quand les couleurs diffèrent).
+- Moi : le survol d'une première rangée ne touche plus le bord de la carte.
+
 ## [5.52.1] — 2026-10-07
 L'administrateur gère aussi les bibliothèques dont il n'est pas membre (A484, doctrine `docs/decisions/lot-v5-52.md`).
 Rien à rejouer côté serveur au-delà de la 5.52.0.
@@ -220,22 +236,3 @@ Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/
 - **Accueil au téléphone** : plus d'air sous « Sessions · Créer · Moi ». L'en-tête gagne 8 px en bas. Avant, ces mots
   étaient à 3 px de la carte « Besoin d'exemples » et à 5 px du bandeau ; ils en sont maintenant à 11 et 13 px, et à
   19 px de la liste (A461).
-
-## [5.46.0] — 2026-10-05
-Deuxième lot de l'audit de prise en main : un seul vocabulaire, un nom par vue, des boutons qui se nomment (A461, doctrine `docs/decisions/lot-v5-46.md`).
-- **Un seul vocabulaire.** L'app dit « aide » (le parcours à cocher) et « protocole » (le texte à lire), plus jamais
-  « fiche ». Quand un texte parle des deux à la fois (compte, synchronisation, stockage), il dit « vos données ».
-  L'accueil compte « 2 aides », et non plus « 2 parcours ». Un contrôle automatique (`check-lexique`) empêche
-  « fiche » de revenir dans le texte affiché.
-- **Un nom et une icône par vue.**
-  - « Tableau », sur l'écran d'entrée d'une aide, s'appelle « Page », comme son onglet.
-  - Le réglage d'ouverture propose « Un bloc » ou « Tout voir », comme le quai.
-  - L'aperçu de l'éditeur s'appelle « Schéma ».
-  - « Tout voir » prend une icône de page et « Moniteur » une icône d'écran. L'icône d'agrandissement ne sert plus
-    qu'à « Plein écran ».
-- **Accueil au téléphone** : les trois boutons de l'en-tête portent leur nom en dessous (Sessions · Créer · Moi),
-  comme la colonne de gauche sur grand écran.
-- Éditeur : « Doses & seuils » devient « Repères posologiques », le nom de la section en lecture.
-- Inchangé, par décision antérieure : le bouton ◑ (thème) reste dans l'en-tête des aides, pour éteindre l'écran au
-  chevet sans ouvrir de réglage.
-

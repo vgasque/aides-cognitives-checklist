@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hSCiPkp5lsDSDX/XhGzRCgtyVlTDjY28J3ccbkhqVhE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UyDmnGiZX78WFrHQbLniLY23GF3LobgRN/f5YYGSlCw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2346,6 +2346,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-la:hover{background:var(--amb-2)}
   .dir-la:focus-visible{outline:2px solid var(--act);outline-offset:1px}
   .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
+  .dir-dot:not(.cat-multi){background:var(--catcol)}
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
@@ -2365,7 +2366,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .coll-k svg{flex:none;width:13px;height:13px}
   .coll-t{margin:0;font-size:var(--t-val);font-weight:800;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
   .coll-s{font-size:var(--t-body);color:var(--ink-2)}
-  .coll-acts{display:flex;gap:8px;flex:none}
+  .coll-acts{display:flex;gap:8px;flex:none;position:relative}
+  .coll-acts>.popmenu{left:auto;right:0}   /* le ⋯ est au bord droit : le menu s'ouvre sous lui, vers la gauche */
   .coll-more{min-width:40px;justify-content:center;font-size:var(--t-item)}
   .dir-also{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-meta);color:var(--ink-2)}
   .dir-also svg{flex:none;color:var(--act)}
@@ -3952,7 +3954,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.done .txt{color:var(--ink-2);font-weight:600}
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
-  .pinbtn.on svg{animation:pop .25s ease}
+  .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:10px 14px;font-size:15px}
@@ -6454,7 +6456,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
   /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
-  .acct-list{padding:0 12px}   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
+  .acct-list{padding:4px 12px}   /* 4 px : le survol d'une première ou dernière rangée ne touche pas le bord de la carte */   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
   .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
   .auth-actions .btn{width:100%;justify-content:center}
   /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
@@ -7327,13 +7329,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Détail : doctrine-css.md C123. */
   .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
   html[data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
-  .hs-wrap.on .hs-act{color:var(--act)}
-  html[data-theme="dark"] .hs-wrap.on .hs-act{color:var(--act)}
-  .hs-wrap.on button.hs-act:hover{color:var(--act);background:var(--primary-100)}
-  .hs-act{flex:none;width:24px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
-  button.hs-act{cursor:pointer}
-  button.hs-act:hover{color:var(--act);background:color-mix(in srgb,var(--act) 8%,transparent)}
-  button.hs-act:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}   /* A489 : le partage d'une bibliothèque, en un mot */
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
   .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
@@ -7427,6 +7423,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .hs-wrap.on.hs-navrow .hs-row{color:var(--act)}
     .hs-live{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;animation:pulse 2s infinite}
     .hs-h{display:flex;align-items:center;gap:8px}
+    .hs-h{white-space:nowrap}.hs-h>.hs-hs{margin-left:0;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* A489 : une ligne ; l'indice cède le premier */
     .hs-lnk{margin-left:auto;padding:0;min-height:24px;border:0;background:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act);cursor:pointer}
     .hs-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
     .hs-n{font-family:var(--f-mono)}
@@ -7663,7 +7660,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      à accuser le geste, et il est, lui, la manipulation directe.
      Les keyframes `secInL/R` RESTENT : elles servent encore la pile de retour (`main.back-anim`)
      et la bascule de format en lecture (`.rm-anim-l/r`), qui sont deux vraies navigations. */
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on.pop svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
@@ -8289,7 +8286,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (v4.57.0, étendu v4.71.0 aux surfaces CALMES seules) : survol = 1 px de lévitation, appui =
      enfoncement — transform/opacity SEULEMENT (règle v4.41.0), 120 ms, survol au POINTEUR FIN seul
      (leçon v4.4.4). Jamais en crise (le mouvement est réservé à l'alarme, ECAM), jamais en gros sur
@@ -9100,7 +9097,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.52.1';
+const APP_VERSION='5.53.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10858,6 +10855,8 @@ function togglePin(id){const i=pins.indexOf(id);
   if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
   try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
   schedulePrefsPush();}   // marque le document perso « à pousser » et programme une synchro
+// L'étoile d'une carte : bascule, re-rendu, puis l'animation sur CETTE étoile seulement (A487).
+function pinTap(id,redo){togglePin(id);redo();const b=document.querySelector('[data-pin="'+CSS.escape(id)+'"].on');if(b)b.classList.add('pop');}
 /* COLLECTIONS (v5.50, A475) : le rangement PERSONNEL. Une liste nommée d'ids — jamais une copie : une
    aide reste dans sa bibliothèque et peut être dans plusieurs collections, même en lecture seule.
    Synchronisées dans le document perso, comme les épingles. L'Accès direct en est la première (`COLL_PIN`). */
@@ -10943,7 +10942,13 @@ function azGroups(list,titleOf){const gm=Object.create(null);
 function catGroups(list){const gm=Object.create(null);
   list.forEach(x=>{const n=catName(x)||'';(gm[n]=gm[n]||[]).push(x);});
   return Object.keys(gm).sort((a,b)=>a===''?1:(b===''?-1:a.localeCompare(b,'fr',{sensitivity:'base'})))
-    .map(n=>({L:n||'Sans catégorie',items:gm[n],cat:n?(categories.find(c=>c.name===n)||null):null}));}
+    .map(n=>({L:n||'Sans catégorie',items:gm[n],cols:n?catCols(gm[n]):[]}));}
+/* Couleurs des catégories de CES éléments (A485) — jamais celle d'une homonyme d'une autre bibliothèque. */
+const catCols=items=>[...new Set(items.map(x=>{const c=catOf(x);return c?safeColor(c.color):'';}).filter(Boolean))];
+// Pastille d'une catégorie ; plusieurs couleurs (homonymes de bibliothèques différentes) = pastille multicolore (A299).
+const catDotHtml=(cols,cls)=>cols.length>1
+  ?`<span class="${cls} cat-multi" style="--catcols:${cols.map((c,i)=>`${c} ${Math.round(i*100/cols.length)}% ${Math.round((i+1)*100/cols.length)}%`).join(',')}" aria-hidden="true"></span>`
+  :`<span class="${cls}" style="--catcol:${cols[0]||''}" aria-hidden="true"></span>`;
 /* La clé de RANGEMENT vit le temps de la page (ni persistée, ni synchronisée) : une façon de
    regarder, pas un réglage. v5.18 — trois clés, « bibliothèque » par défaut : la liste est
    l'UNION des bibliothèques accessibles, le rangement choisit ses intertitres. */
@@ -11051,6 +11056,8 @@ function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
+async function catNew(name,scp){const c={id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp};
+  categories.push(c);await saveCats(scp);return c;}
 function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
 /* ⚠ UN ID DE CATÉGORIE SE RÉSOUT DANS SA BIBLIOTHÈQUE (v5.10.9). La recherche était globale, alors
    que les ids ne sont uniques que PAR bibliothèque — déterministes au Perso (dérivés du nom), donc
@@ -14738,11 +14745,11 @@ function libChipsHtml(){const bibs=bibGroups(homeVis()).filter(g=>g.key!=null);i
   const chip=(key,label,ic,on)=>`<button class="catchip${on?' on':''}" data-vslib="${esc(key)}" aria-pressed="${on?'true':'false'}">${ic}${esc(label)}</button>`;
   return `<div class="vs-g vs-cats"><div class="vs-h" id="vsh-lib">Bibliothèque</div><div class="chiprow" role="group" aria-labelledby="vsh-lib">`
     +chip('*','Toutes','',state.homeLib==null)
-    +bibs.map(g=>chip(g.key,g.L,g.lib?uiIcon(canEditScope(g.lib.id)?'book':'lock',13):uiIcon('user',13),state.homeLib===g.key)).join('')
+    +bibs.map(g=>chip(g.key,g.L,g.lib?uiIcon(canEditScope(g.lib.id)?'users':'lock',13):uiIcon('user',13),state.homeLib===g.key)).join('')
     +`</div></div>`;}
 /* A475 : les collections en puces, AVANT la bibliothèque — le rangement personnel d'abord ; « ＋ » toujours là. */
 function collChipsHtml(){const L=(pins.length?[collById(COLL_PIN)]:[]).concat(colls);
-  return `<div class="vs-g vs-cats"><div class="vs-h" id="vsh-coll">Mes collections <span class="vs-hs">à vous seul</span></div><div class="chiprow" role="group" aria-labelledby="vsh-coll">`
+  return `<div class="vs-g vs-cats"><div class="vs-h" id="vsh-coll">Mes collections <span class="vs-hs">pour vous</span></div><div class="chiprow" role="group" aria-labelledby="vsh-coll">`
     +(L.length?`<button class="catchip${!state.coll?' on':''}" data-vscoll="" aria-pressed="${state.coll?'false':'true'}">Toutes</button>`+L.map(c=>collChip(c,'data-vscoll')).join(''):'')
     +`<button type="button" class="catchip coll-new" data-vscollnew>${uiIcon('plus',14,{sw:2.4})}Nouvelle collection</button></div></div>`;}
 function catChipsHtml(){
@@ -14758,10 +14765,10 @@ function catChipsHtml(){
    compte reste dans l'enveloppe, après lui (un bouton n'en contient pas un autre). */
 /* Un acte INERTE (cadenas, A389 : plus de ✎) entre lui aussi dans le bouton, avec le compte —
    dehors, taper le cadenas ou le nombre ne sélectionnait pas la bibliothèque (signalé). */
-function hsRow(o){const actIn=!!o.act&&!/^<button/.test(o.act),tin=(!o.act||actIn)&&o.tail?o.tail:'';
+function hsRow(o){
   return `<div class="hs-wrap${o.on?' on':''}${o.cls?' '+o.cls:''}">`
     +`<button class="hs-row" ${o.attrs||''}><span class="hs-mk">${o.mark||''}</span>`
-    +`<span class="hs-name">${o.label}</span>${actIn?o.act:''}${tin}</button>${actIn?'':(o.act||'')}${tin?'':(o.tail||'')}</div>`;}
+    +`<span class="hs-name">${o.label}</span>${o.tail||''}</button></div>`;}
 const HS_RING='<span class="hs-ring"></span>';
 /* ══ COLLECTIONS À L'ACCUEIL (A475) ══ « Ajouter à une collection… » : des CASES (une aide peut être dans
    plusieurs), effet immédiat, rien n'est déplacé — la notice le dit. Tiret = sélection rangée en partie. */
@@ -14777,35 +14784,40 @@ const collMenuRow=x=>({label:'Ajouter à une collection…',ic:uiIcon('bookmark'
 function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   const all=(fiches||[]).concat(protocols||[]);
   const ents=ids.map(id=>all.find(x=>x&&x.id===id)).filter(Boolean),n=ids.length;
-  const st=cid=>{const k=ids.filter(id=>collHas(cid,id)).length;return k===0?'false':(k===n?'true':'mixed');};
+  // A487 : un brouillon n'entre pas dans l'Accès direct (K5) — compté avec, la case restait « en partie » à jamais.
+  const pinOk=ids.filter(id=>isPinned(id)||!pinBlocked(id)),pool=cid=>cid===COLL_PIN?pinOk:ids;
+  const st=cid=>{const p=pool(cid),k=p.filter(id=>collHas(cid,id)).length;return k===0?'false':(k===p.length?'true':'mixed');};
   const libs=[...new Set(ents.map(x=>x.library||null))].map(impLibName);
   const redo=o.redo||(()=>{if(state.view==='library')renderLibrary();});
   openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:true,multi:true,trigger:o.trigger,back:o.back,
-    options:[{val:COLL_PIN,name:'Accès direct',sub:'les tuiles en tête de l’accueil',on:st(COLL_PIN),ic:collIc(collById(COLL_PIN))}]
+    options:[{val:COLL_PIN,name:'Accès direct',sub:ids.length>pinOk.length?nb(ids.length-pinOk.length,'brouillon')+' ne s’épingle'+(ids.length-pinOk.length>1?'nt':'')+' pas':'les tuiles en tête de l’accueil',on:st(COLL_PIN),ic:collIc(collById(COLL_PIN))}]
       .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id),ic:collIc(c)}))),
     title:'Ajouter à une collection',ctx:(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))+' · '+(libs.length===1?libs[0]:selLibsMot(libs.length)),
     head:`<div class="notice">${uiIcon('bookmark',15)}<div>${esc('Vos collections sont à vous seul. '+(libs.length===1?(n===1?'L’élément reste':'Les éléments restent')+' dans '+libs[0]:'Chaque élément reste dans sa bibliothèque')+' : seul votre rangement change.')}</div></div>`,
-    onToggle:(cid,cur)=>{collSet(cid,ids,cur!=='true');return st(cid);},
+    onToggle:(cid,cur)=>{collSet(cid,pool(cid),cur!=='true');return st(cid);},
     done:'Terminé',onClose:redo,
     action:{label:'＋ Nouvelle collection…',fn:async()=>{const name=await collAsk('Nouvelle collection');if(!name)return;
       const c=collNew(name,ids);toast('Collection « '+c.name+' » créée avec '+nb(ids.length,'élément')+'.');redo();}}});}
 /* Choisir une collection = poser le filtre (re-tap = le retirer) ; « + » la crée vide et la montre. */
 function collSel(id){state.coll=(id&&state.coll!==id)?id:null;state.libLimit=LIB_PAGE;if(homeTab()!=='aides')state.homeTab='aides';}
 async function collCreateShow(){const name=await collAsk('Nouvelle collection');if(!name)return;
-  const c=collNew(name,[]);collSel(c.id);render();toast('Collection « '+c.name+' » créée — ajoutez-y des aides par « Ajouter des aides ».');}
+  const c=collNew(name,[]);collSel(c.id);render();toast('Collection « '+c.name+' » créée — ajoutez-y aides et protocoles par « Ajouter ».');}
 /* L'en-tête d'une collection ouverte : ce qu'elle est (à vous seul), d'où vient son contenu, et ses gestes. */
 function collHeadHtml(){const c=collById(state.coll);if(!c)return '';
   const it=collItems(c),perdus=c.ids.length-it.length,nl=new Set(it.map(x=>x.library||'')).size;
   return `<div class="coll-head"><div class="coll-ht"><span class="coll-k">${collIc(c)}${c.id===COLL_PIN?'Accès direct · à vous seul':'Collection · à vous seul'}</span>`
     +`<h2 class="coll-t">${esc(c.name)}</h2><span class="coll-s">${esc(nb(it.length,'élément')+(nl>1?' venus de '+nl+' bibliothèques':'')+' — rien n’a été déplacé'+(perdus?' · '+nb(perdus,'indisponible'):''))}</span></div>`
-    +`<div class="coll-acts"><button type="button" class="rang-btn" data-colladd>${uiIcon('plus',16,{sw:2.4})}Ajouter des aides</button>`
+    +`<div class="coll-acts"><button type="button" class="rang-btn" data-colladd>${uiIcon('plus',16,{sw:2.4})}Ajouter</button>`
     +(c.id===COLL_PIN?'':`<button type="button" class="rang-btn coll-more" data-collmenu aria-haspopup="listbox" aria-label="Gérer la collection « ${esc(c.name)} »">⋯</button>`)+`</div></div>`;}
-/* « Ajouter des aides » : la même feuille à cases, sur TOUT ce que l'accueil montre (filtre « Filtrer… » dès 9). */
+/* « Ajouter » : la même feuille à cases, sur TOUT ce que l'accueil montre (filtre « Filtrer… » dès 9) ; chaque rangée dit
+   nature · catégorie (sa pastille) · bibliothèque — A488. */
 function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
   const vis=homeVis().slice().sort(byTitle);
-  openPickMenu(document.body,{aria:'Ajouter des aides à '+c.name,sheet:true,multi:true,trigger,
-    options:vis.map(x=>({val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),sub:(protocols.indexOf(x)>=0?'Protocole':'Aide')+' · '+impLibName(x.library||null),on:collHas(c.id,x.id)?'true':'false'})),
-    title:'Ajouter des aides',ctx:'« '+c.name+' » · rien n’est déplacé',
+  openPickMenu(document.body,{aria:'Ajouter à '+c.name,sheet:true,multi:true,trigger,
+    options:vis.map(x=>{const k=catOf(x);return {val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),
+      ic:k?catDotHtml([safeColor(k.color)],'cat-dot'):'',sub:[protocols.indexOf(x)>=0?'Protocole':'Aide',k?k.name:'',impLibName(x.library||null)].filter(Boolean).join(' · '),
+      on:collHas(c.id,x.id)?'true':'false'};}),
+    title:'Ajouter à « '+c.name+' »',ctx:'Aides et protocoles · rien n’est déplacé',
     onToggle:(id,cur)=>{collSet(c.id,[id],cur!=='true');return collHas(c.id,id)?'true':'false';},
     done:'Terminé',onClose:()=>render()});}
 function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_PIN)return;
@@ -14824,11 +14836,11 @@ function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_P
 function collChip(c,attr){const on=state.coll===c.id;
   return `<button type="button" class="catchip coll-chip${on?' on':''}" ${attr}="${esc(c.id)}" aria-pressed="${on?'true':'false'}">${collIc(c)}${esc(c.name)}<span class="coll-n">${collItems(c).length}</span></button>`;}
 function collRailHtml(){if(!colls.length)return '';
-  return `<div class="coll-rail"><div class="dir-h"><b>Mes collections</b><span class="dir-hs">à vous seul</span></div>`
+  return `<div class="coll-rail"><div class="dir-h"><b>Mes collections</b><span class="dir-hs">pour vous</span></div>`
     +`<div class="chiprow" role="group" aria-label="Mes collections">${colls.map(c=>collChip(c,'data-collsel')).join('')}`
     +`<button type="button" class="catchip coll-new" data-collnew aria-label="Nouvelle collection">${uiIcon('plus',14,{sw:2.4})}</button></div></div>`;}
 function collSideHtml(){const num=n=>`<span class="hs-n">${n}</span>`;
-  return `<div class="hs-h">Mes collections<span class="hs-hs">à vous seul</span></div>`
+  return `<div class="hs-h">Collections<span class="hs-hs">pour vous</span><button type="button" class="hs-lnk" data-collmgr aria-label="Gérer les collections">Gérer</button></div>`
     +[collById(COLL_PIN)].concat(colls).map(c=>hsRow({on:state.coll===c.id,label:esc(c.name),tail:num(collItems(c).length),
       mark:collIc(c),attrs:`data-collsel="${esc(c.id)}" aria-pressed="${state.coll===c.id?'true':'false'}"`})).join('')
     +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'})+`<div class="hs-sep"></div>`;}
@@ -14849,17 +14861,17 @@ function homeSideHtml(){
   const cnt=new Map();
   scope.forEach(x=>{const c=catOf(x);if(c)cnt.set(c,(cnt.get(c)||0)+1);});
   const num=n=>`<span class="hs-n">${n}</span>`;
-  const bibIdx=hsRow({on:state.homeLib==null,mark:HS_RING,label:'Toutes',tail:num(visAll.length),
-      attrs:`data-libsel="*" aria-pressed="${state.homeLib==null?'true':'false'}"`})
-    +bibs.filter(g=>g.key!=null).map(g=>{
-    const admin=g.lib&&(g.lib.role==='admin'||myIsAppAdmin);
-    const ro=g.lib&&!canEditScope(g.lib.id);
-    const on=state.homeLib===g.key;
-    return hsRow({on,label:esc(g.L),tail:num(g.items.length),
-      attrs:`data-libsel="${esc(g.key)}" aria-pressed="${on?'true':'false'}"`,
-      // A389 : plus de ✎ par rangée — la gestion passe par « Gérer » (Moi › Bibliothèques) ; la rangée ne dit que son accès.
-      act:ro?`<span class="hs-act" title="Lecture seule — bibliothèque institutionnelle">${uiIcon('lock',14)}</span>`
-        :(g.lib?`<span class="hs-act" title="${admin?'Administrée':'Lecture-écriture'}">${uiIcon('lockopen',14)}</span>`:'')});}).join('');
+  /* A489 (option 1 du canevas) — UNE BIBLIOTHÈQUE DIT TOUJOURS AVEC QUI : personnes (`user`/`users`) et un mot
+     (vous seul · partagée · lecture), là où une collection porte le signet. Une seule bibliothèque : une rangée,
+     active, sans « Toutes » ni « Gérer » — et la porte « Partager avec une équipe… » (créer ou demander, A477/A479). */
+  const libs1=bibs.filter(g=>g.key!=null),seule=libs1.length<2;
+  const bibIdx=(seule?'':hsRow({on:state.homeLib==null,mark:HS_RING,label:'Toutes',tail:num(visAll.length),
+      attrs:`data-libsel="*" aria-pressed="${state.homeLib==null?'true':'false'}"`}))
+    +libs1.map(g=>{
+    const on=seule||state.homeLib===g.key,who=!g.lib?'vous seul':(canEditScope(g.lib.id)?'partagée':'lecture');
+    return hsRow({on,label:esc(g.L),mark:uiIcon(g.lib?'users':'user',16),tail:`<span class="hs-who">${who}</span>`+num(g.items.length),
+      attrs:`data-libsel="${seule?'*':esc(g.key)}" aria-pressed="${on?'true':'false'}"`});}).join('')   // seule : elle EST « Toutes »
+    +(seule&&libNewOn()?hsRow({cls:'quiet',label:'Partager avec une équipe…',mark:uiIcon('plus',14),attrs:'data-newlib'}):'');
   /* ⚠ UNE RANGÉE PAR NOM (signalé à l'usage). Le filtre de catégorie compare par NOM à travers
      l'union (v5.18) : deux homonymes de bibliothèques différentes produisaient DEUX rangées qui
      filtraient exactement la même chose, ne différant que par la couleur de leur pastille. On
@@ -14882,10 +14894,7 @@ function homeSideHtml(){
       par.set(n,g);});
     return [...par.values()].filter(g=>g.nb>0||catNom===g.n).sort((a,b)=>byCatName(a.c,b.c)).map(g=>{
       const on=catNom===g.n;
-      const dot=g.cols.length>1
-        ? `<span class="cat-dot cat-multi" style="--catcols:${g.cols.map((c,i)=>`${c} ${Math.round(i*100/g.cols.length)}% ${Math.round((i+1)*100/g.cols.length)}%`).join(',')}"></span>`
-        : `<span class="cat-dot" style="--catcol:${g.cols[0]||''}"></span>`;
-      return hsRow({on,label:esc(g.c.name),tail:num(g.nb),mark:dot,
+      return hsRow({on,label:esc(g.c.name),tail:num(g.nb),mark:catDotHtml(g.cols,'cat-dot'),
         attrs:`data-cat="${esc(g.n)}" aria-pressed="${on?'true':'false'}"`});}).join('');})();
   /* LA REMISE À ZÉRO DES CATÉGORIES MANQUAIT (v5.19). « Toutes » existait pour les bibliothèques,
      rien pour les catégories : on ne pouvait revenir à l'union qu'en re-tapant la rangée active —
@@ -14909,7 +14918,7 @@ function homeSideHtml(){
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme'+cur('me')})}
       </nav>
-      <div class="hs-h">Bibliothèques${mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
+      <div class="hs-h">${seule?'Bibliothèque':'Bibliothèques'}<span class="hs-hs">avec qui</span>${!seule&&mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
       <div class="hs-sep"></div>
     </div>
     <div class="hs-scroll">
@@ -15107,6 +15116,7 @@ function bindHomeChrome(rerender){
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
   qsa('[data-navme]').forEach(b=>b.onclick=()=>openAuth());
   qsa('[data-libmgr]').forEach(b=>b.onclick=openLibMgr);
+  qsa('[data-collmgr]').forEach(b=>b.onclick=()=>openMoiZone('acctColls'));
   qsa('[data-collsel]').forEach(b=>b.onclick=()=>{collSel(b.dataset.collsel);rr();});
   qsa('[data-collnew]').forEach(b=>b.onclick=collCreateShow);
   qsa('[data-colladd]').forEach(b=>b.onclick=()=>openCollAdd(b));
@@ -15594,7 +15604,14 @@ function openSelCat(b,redo){
     head:multi?`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
     value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
     onPick:v=>selSetCat(v?vus.get(v).name:'',redo),
-    action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(multi?CAT_ALL:libs[0])}});}
+    action:{label:'＋ Nouvelle catégorie…',fn:()=>selNewCat(libs,redo)}});}
+/* A486 : créer une catégorie DEPUIS « Ranger » — un nom (la fenêtre des collections), créée là où il manque
+   dans les bibliothèques de la sélection, puis la sélection y est rangée. Le gestionnaire perdait le geste. */
+async function selNewCat(libs,redo){
+  const name=sstr(await confirmDlg('Nom de la catégorie',{title:'Nouvelle catégorie',yes:'Créer et ranger',input:{value:'',placeholder:'Ex. Transport'}})||'',40).trim();
+  if(!name)return;
+  for(const l of libs)if(!catNamed(l,name))await catNew(name,l);
+  await selSetCat(name,redo);}
 async function selSetCat(name,redo){
   const ent=selEnt();if(!ent.length)return;
   const p=selCatPlan(ent,name),multi=p.libs.length>1;
@@ -15759,7 +15776,7 @@ function renderHomeList(cfg){
     ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
       +(introK.length>1?emptyIntroBothHtml():introK.map(emptyIntroHtml).join(''))
     :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
-        dansFiltre?(state.q?'Rien ne correspond à cette recherche.':(state.coll&&!state.cat?'Cette collection est vide : « Ajouter des aides » la remplit, sans rien déplacer.':'Rien ne correspond à ce filtre.'))
+        dansFiltre?(state.q?'Rien ne correspond à cette recherche.':(state.coll&&!state.cat?'Cette collection est vide : « Ajouter » la remplit, sans rien déplacer.':'Rien ne correspond à ce filtre.'))
                   :cfg.empty.libRead}</div>`;
   let listHtml,railHtml='';
   if(q){
@@ -15793,7 +15810,7 @@ function renderHomeList(cfg){
        et pour une bibliothèque, le cadenas (lecture seule) ou le ✎ (administrée). */
     const secHead=g=>{if(!g.L)return '';const admin=g.lib&&(g.lib.role==='admin'||myIsAppAdmin);
       const ro=g.lib&&!canEditScope(g.lib.id);
-      return `<div class="dir-l">${g.cat?`<span class="dir-dot" style="background:${safeColor(g.cat.color)}" aria-hidden="true"></span>`:''}`
+      return `<div class="dir-l">${g.cols&&g.cols.length?catDotHtml(g.cols,'dir-dot'):''}`
         +`<span class="dir-ll">${esc(g.L)}</span>`
         +(ro?`<span class="dir-lk" title="Lecture seule">${uiIcon('lock',12)}<span class="sr-only">lecture seule</span></span>`:'')
         +`<span class="dir-lr"></span><span class="dir-ln">${g.items.length}</span>`
@@ -15992,7 +16009,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();backToShared();}};});
       main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
       main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmEndSession(R)){endSession(R);if(Runtime.ficheId===id)resetRuntime();redo();}});
-      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);redo();});
+      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();pinTap(b.dataset.pin,redo);});
       {const br=document.getElementById('lsrReport');if(br)br.onclick=()=>{if(lastEndedSession)exportSessionReport(lastEndedSession.id);};
        const bx=document.getElementById('lsrX');if(bx)bx.onclick=()=>{lastEndedSession=null;redo();};}
       }};}
@@ -16071,7 +16088,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     kinds:['protocols'],
     empty:{title:'Aucun protocole',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.'},
     bind:(cfg)=>{const redo=(cfg&&cfg.rerender)||renderProtocols;
-      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);redo();});}};}
+      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();pinTap(b.dataset.pin,redo);});}};}
 function renderProtocols(){renderHomeList(_homeCfgP());}
 // ----- Miniatures des documents PDF (v4.4.4) : la 1re page en vignette dans la liste
 // « Documents » des vues lecture (fiche ET protocole) — reconnaître un document d'un coup d'œil
@@ -17720,12 +17737,12 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
      `WARN_GLYPH`) est impossible ici : la coque est du HTML statique, elle ne lit aucune variable
      JS ; c'est donc une duplication ASSUMÉE et signalée des deux côtés, pas un oubli. */
   user:'<circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/>',
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20v-.5a5 5 0 015-5h2a5 5 0 015 5v.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.6 14.6a4.4 4.4 0 014.4 4.4v1"/>',
   bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 00-4 10.4c.8.8 1 1.6 1 2.6h6c0-1 .2-1.8 1-2.6A6 6 0 0012 3z"/>',
   check:'<path d="M4 12l5 5L20 6"/>',
   chev:'<path d="M9 6l6 6-6 6"/>',
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
   lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
-  lockopen:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.7-1.4"/>',
   play:'<path fill="currentColor" stroke="none" d="M8 5v14l11-7z"/>',
   stop:'<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>',
   undo:'<path d="M3 12a9 9 0 102.6-6.4L3 8"/><path d="M3 3v5h5"/>',
@@ -27296,8 +27313,7 @@ function renderCatMgr(){
     const scp=b.dataset.cadd||null;
     const inp=[...body.querySelectorAll('[data-cnew]')].find(x=>x.dataset.cnew===b.dataset.cadd);
     const name=((inp&&inp.value)||'').trim();if(!name)return;
-    categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp});
-    await saveCats(scp);renderCatMgr();});
+    await catNew(name,scp);renderCatMgr();});
 }
 bindModalDismiss(catModal,closeCatMgr);
 /* La porte « + » passe par le gestionnaire commun : Échap, clic de voile, piège de focus et
@@ -28858,7 +28874,8 @@ function openAuth(){_authDelete=false;
 }
 function closeAuth(){authModal.classList.remove('on');}
 // A389 : « Gérer » des bibliothèques (colonne de l'accueil) — Moi, posé sur sa section Bibliothèques.
-function openLibMgr(){openAuth();requestAnimationFrame(()=>{const z=document.getElementById('acctLibs');if(z)z.scrollIntoView({block:'start'});});}
+function openMoiZone(id){openAuth();requestAnimationFrame(()=>{const z=document.getElementById(id);if(z)z.scrollIntoView({block:'start'});});}
+const openLibMgr=()=>openMoiZone('acctLibs');
 document.getElementById('acctTop').onclick=openAuth;
 bindModalDismiss(authModal,closeAuth);
 
@@ -32589,7 +32606,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
   const setMsg=(t,c)=>{const e=$('newLibMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
   cb.onclick=()=>{const name=(inp.value||'').trim();if(!name){setMsg('Donnez un nom à la collection.','err');return;}
     const c=collNew(name,[]);closeNewLib(true);if(authModal.classList.contains('on'))closeAuth();
-    state.coll=c.id;state.homeTab='aides';if(state.view==='library')render();toast('Collection « '+c.name+' » créée — ajoutez-y des aides par « Ajouter des aides ».');};
+    state.coll=c.id;state.homeTab='aides';if(state.view==='library')render();toast('Collection « '+c.name+' » créée — ajoutez-y aides et protocoles par « Ajouter ».');};
   const submit=async()=>{
     const name=(inp.value||'').trim();if(!name){setMsg('Donnez un nom à la bibliothèque.','err');return;}
     ok.disabled=true;setMsg(dem?'Envoi…':'Création…','');
