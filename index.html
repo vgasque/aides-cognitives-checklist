@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-mrcK223nGEn6Er+GzeIyH6RkAV6+QWx4ErYVHhvvVhM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hSCiPkp5lsDSDX/XhGzRCgtyVlTDjY28J3ccbkhqVhE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9100,7 +9100,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.52.0';
+const APP_VERSION='5.52.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9605,8 +9605,8 @@ try{localStorage.removeItem('ac-essai-x1');localStorage.removeItem('ac-essai-x2'
 // Rôle/édition par bibliothèque. Perso (libraryId vide) = toujours éditable. Bibliothèque partagée : éditable
 // si role editor/admin. (La RLS reste l'arbitre côté serveur ; ceci n'est que l'ergonomie.)
 function roleOf(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.role:null;}
-function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.name:(_admLibNames[libId]||'');}
-let _admLibNames=Object.create(null);   // A483 : noms des bibliothèques dont l'administrateur n'est pas membre
+function libName(libId){const l=myLibraries.find(x=>x.id===libId);return l?l.name:((_admLibs[libId]||{}).name||'');}
+let _admLibs=Object.create(null);   // A483 : bibliothèques de l'instance (nom, comptes) — l'administrateur n'en est pas toujours membre
 function canEditScope(scope){if(!scope)return true;const r=roleOf(scope);return r==='editor'||r==='admin';}
 function canEditFiche(f){return (f&&f.library)?canEditScope(f.library):true;}
 // Tri des bibliothèques : les PLUS UTILISÉES d'abord (compteur local), puis ordre alphabétique.
@@ -28305,7 +28305,7 @@ async function loadAdmPeople(box){const z=box.querySelector('#admPeople');if(!z)
   let acc,libs;try{[acc,libs]=await Promise.all([rpc('list_accounts'),rpc('list_all_libraries')]);}
   catch(e){z.innerHTML=`<p class="adm-note">Rejouez <b>supabase/schema.sql</b> (v5.52) pour administrer les comptes et voir toutes les bibliothèques.</p>`;return;}
   if(!document.body.contains(z))return;acc=acc||[];libs=libs||[];
-  libs.forEach(l=>{_admLibNames[l.id]=l.name;});
+  libs.forEach(l=>{_admLibs[l.id]=l;});
   const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
   const filt=n=>n>8?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" data-admfilt aria-label="Filtrer">`:'';
   const uRow=u=>{const on=_admOpen===u.user_id;
@@ -28315,7 +28315,7 @@ async function loadAdmPeople(box){const z=box.querySelector('#admPeople');if(!z)
   z.innerHTML=`<div class="acct-card acct-list adm-list"><div class="adm-h">Comptes · ${acc.length}</div>${filt(acc.length)}${acc.map(uRow).join('')}</div>`
     +`<div class="acct-card acct-list adm-list"><div class="adm-h">Bibliothèques de l’instance · ${libs.length}</div>${filt(libs.length)}`
     +(libs.length?libs.map(l=>menuRowHtml({label:l.name,ic:uiIcon('book',20),attrs:`data-admlib="${esc(l.id)}"`,tail:chev,
-        sub:[nb(l.members,'membre'),nb(l.admins,'admin'),nb((l.aids||0)+(l.protocols||0),'élément'),l.creator?'créée par '+l.creator:''].filter(Boolean).join(' · ')})).join('')
+        sub:[roleOf(l.id)?'vous : '+ROLE_FR[roleOf(l.id)]:'',nb(l.members,'membre'),nb(l.admins,'admin'),nb((l.aids||0)+(l.protocols||0),'élément'),l.creator?'créée par '+l.creator:''].filter(Boolean).join(' · ')})).join('')
       :'<p class="adm-note">Aucune bibliothèque partagée.</p>')+`</div>`;
   const redo=()=>loadAdmPeople(box);
   z.querySelectorAll('[data-admfilt]').forEach(f=>f.addEventListener('input',()=>{const q=txNorm(f.value);
@@ -28343,7 +28343,7 @@ async function admUserPanel(pane,u,redo){if(!u)return;
   {const sw=pane.querySelector('[data-admcreate]');if(sw)sw.onclick=async()=>{try{await rpc('set_library_creator',{p_user:u.user_id,p_on:!u.can_create});}catch(e){err(e);}redo();};}
   pane.querySelectorAll('[data-admrole]').forEach(sel=>sel.onchange=async()=>{
     try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(sel.dataset.admrole)+'&user_id=eq.'+encodeURIComponent(u.user_id),{role:sel.value},{'Prefer':'return=minimal'});toast('Rôle modifié.',3000,true);}catch(e){err(e);}redo();});
-  pane.querySelectorAll('[data-admrm]').forEach(b=>b.onclick=async()=>{if(!await confirmDlg('Retirer '+u.email+' de « '+(_admLibNames[b.dataset.admrm]||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
+  pane.querySelectorAll('[data-admrm]').forEach(b=>b.onclick=async()=>{if(!await confirmDlg('Retirer '+u.email+' de « '+(libName(b.dataset.admrm)||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
     try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(b.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(e){err(e);}redo();});}
 const admNoteHtml=()=>`<p class="adm-note">${uiIcon('lock',16)}<span>Compte administrateur : il ne se supprime pas d’ici. Passez par la console d’administration (garde-fou).</span></p>`;
 async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
@@ -32473,7 +32473,8 @@ function closeMembers(force){
   const inp=document.getElementById('libNameField');
   if(force!==true&&inp&&(inp.value||'').trim()!==_libNameOrig){
     confirmDlg('Abandonner les modifications ?',{yes:'Abandonner',danger:true}).then(ok=>{if(ok)closeMembers(true);});return;}
-  membersModal.classList.remove('on');_memLib=null;}
+  membersModal.classList.remove('on');_memLib=null;
+  {const st=document.getElementById('authStats');if(st)loadAdmPeople(st);}}   // Moi : fenêtre en étroit, vue dès 780 (A365)
 const memIni=e=>((String(e||'?').trim()[0])||'?').toUpperCase();
 async function renderMembers(){const body=document.getElementById('membersBody');if(!body||!_memLib)return;
   body.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement des membres…</p>';
@@ -32485,12 +32486,15 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   // ils laissaient croire qu'un ajout/retrait de membre devait être « enregistré ») ->
   // PARTAGE (note serveur) -> MEMBRES (liste + rangée d'ajout, appliqués immédiatement) ->
   // ZONE SENSIBLE (suppression, sous séparateur, jamais côte à côte avec le CTA principal).
-  const nFi=fiches.filter(f=>f.library===_memLib&&!f.deletedAt).length,nPr=protocols.filter(x=>x.library===_memLib&&!x.deletedAt).length;
+  let nFi=fiches.filter(f=>f.library===_memLib&&!f.deletedAt).length,nPr=protocols.filter(x=>x.library===_memLib&&!x.deletedAt).length;
+  // A484 : hors adhésion, rien n'est synchronisé ici — le compte vient du serveur (Administration).
+  const horsAdh=!roleOf(_memLib)&&myIsAppAdmin,inf=_admLibs[_memLib];if(horsAdh&&inf){nFi=+inf.aids||0;nPr=+inf.protocols||0;}
   const emailIni=e=>String(e||'?').trim().slice(0,2).toUpperCase()||'?';
   _libNameOrig=(libName(_memLib)||'').trim();
   // Arbre exact SPEC-dialogue-bibliotheque §2 — SANS segment Privée/Partagée (décision
   // utilisateur : « Perso » EST l'espace privé ; toute bibliothèque de ce dialogue est partagée).
   body.innerHTML=`
+    ${horsAdh?`<div class="notice">${uiIcon('lock',15)}<div><b>Vous n’en êtes pas membre.</b> Vous la gérez comme administrateur de l’instance : membres, rôles, nom et suppression. Son contenu ne s’affiche pas chez vous ; pour le consulter, ajoutez-vous comme membre.</div></div>`:''}
     <div class="field-label">Nom</div>
     <input class="auth-field" id="libNameField" maxlength="60" value="${esc(libName(_memLib)||'')}" placeholder="Ex. Équipe déchocage"${canRename?'':' disabled'}>
     <p class="auth-msg" id="libMsg"></p>
@@ -32501,7 +32505,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
     <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app. Ajouts, rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>
-    ${isAdmin&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
+    ${isAdmin&&!horsAdh&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
     ${myIsAppAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
       <button class="btn outline-danger" id="libDelete">Supprimer la bibliothèque…</button>
       <p class="danger-caption">${(nFi||nPr)?`Supprime ${nFi} aide${nFi>1?'s':''} et ${nPr} protocole${nPr>1?'s':''} pour tous les membres. `:''}Action irréversible — confirmation demandée.</p></div>`:''}`;

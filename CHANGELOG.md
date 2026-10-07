@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.52.1] — 2026-10-07
+L'administrateur gère aussi les bibliothèques dont il n'est pas membre (A484, doctrine `docs/decisions/lot-v5-52.md`).
+Rien à rejouer côté serveur au-delà de la 5.52.0.
+- **Administration › Bibliothèques de l'instance** : toucher une bibliothèque ouvre sa fenêtre de gestion, même
+  si vous n'en êtes pas membre — inviter quelqu'un, changer un rôle, retirer un membre, la renommer ou la supprimer.
+  Un bandeau en tête le dit : vous la gérez comme administrateur de l'instance, et son contenu ne s'affiche pas
+  chez vous tant que vous ne vous y ajoutez pas.
+- La suppression annonce le vrai nombre d'aides et de protocoles qu'elle emporte (elle disait 0 pour une
+  bibliothèque dont vous n'étiez pas membre).
+- Fermer la fenêtre met à jour les listes d'Administration (membres, administrateurs, bibliothèques de chaque compte).
+- Dans la liste des bibliothèques de l'instance, les vôtres disent « vous : Admin » (ou votre rôle).
+- « Convertir en collection » n'est plus proposé sur une bibliothèque dont vous n'êtes pas membre.
+
 ## [5.52.0] — 2026-10-07
 L'administrateur de l'instance voit tous les comptes et toutes les bibliothèques, et en règle les droits (A483,
 doctrine `docs/decisions/lot-v5-52.md`). **⚠ Rejouer `supabase/schema.sql`** (§ 9ter) puis `rls-tests.sql` (§ 15.7) ;
@@ -226,26 +239,3 @@ Deuxième lot de l'audit de prise en main : un seul vocabulaire, un nom par vue,
 - Inchangé, par décision antérieure : le bouton ◑ (thème) reste dans l'en-tête des aides, pour éteindre l'écran au
   chevet sans ouvrir de réglage.
 
-## [5.45.0] — 2026-10-05
-Premier lot de l'audit de prise en main (`docs/audit-apprentissage-2026-10.md`) : ce qu'un nouvel utilisateur ne trouvait pas, ou lisait de travers (A460, doctrine `docs/decisions/lot-v5-45.md`).
-- **Recherche** :
-  - la précision d'une aide (« adulte », « pédiatrique »…) est désormais cherchée, pour les aides comme pour les
-    protocoles ;
-  - **Entrée** ouvre le premier résultat.
-- **« Exercice » écrit en entier** sur le quai dès 360 px de large ; « Exo. » ne reste que sur les plus petits écrans.
-  Une fois armée, la touche affiche aussi « Annuler » à l'écran, et plus seulement pour les lecteurs d'écran.
-- **Affichage › Regrouper** : « Catégorie » et « Bibliothèque » en toutes lettres (sur deux lignes si besoin), au lieu
-  de « Catég. » et « Biblio. ».
-- **Fin de session** : le bouton rouge dit lui-même « Terminer · maintenir 1,2 s ». Un tap bref ne faisait rien en
-  apparence, et la consigne était écrite plus bas.
-- **Mode exercice** : le bouton dit « Démarrer l'exercice ». « Confirmé — » reste réservé à la session réelle, où il
-  acquitte les critères « Quand l'utiliser ».
-- **Accueil** : le badge « △ À compléter » se touche et dit ce qui reste à remplacer ; son explication n'existait
-  qu'au survol de la souris.
-- **Les deux aides d'exemple arrivent « À relire »**, et non plus « Validée », avec un bandeau qui le dit. Valider
-  reste votre geste. La notice « À relire » se lit avant la session et n'occupe plus l'écran pendant.
-- **Moi › « Revoir l'accueil »** rouvre l'écran de bienvenue. Il se fermait pour toujours au premier tap. Ses portes
-  déjà sans objet s'effacent (exemples déjà présents, compte déjà connecté).
-- L'info-bulle de « Vérifier » est en français (« Relire ce bloc étape par étape… »).
-- Non traité dans ce lot : le nom du compteur dans la capsule (« CHOCS DE… ») — la place manque à 64 px, décision de
-  dessin à prendre.

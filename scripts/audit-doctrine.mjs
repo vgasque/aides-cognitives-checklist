@@ -7141,7 +7141,8 @@ const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,
   list_accounts:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',status:'approved',is_admin:false,can_create:true,libraries:1},
     {user_id:'00000000-0000-0000-0000-00000000000b',email:'b@x.fr',status:'pending',is_admin:false,can_create:false,libraries:0}],
   list_all_libraries:[{id:'lib-1',name:'Bloc CHU',creator:'a@x.fr',members:3,admins:1,aids:2,protocols:1}],
-  list_user_memberships:[{library_id:'lib-1',name:'Bloc CHU',role:'editor'}]};
+  list_user_memberships:[{library_id:'lib-1',name:'Bloc CHU',role:'editor'}],
+  list_members:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',role:'admin'}],invite_member:'ok'};
 for (const cas of ['admin','demandeur','ancien']) {
   const page = await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -7177,6 +7178,11 @@ for (const cas of ['admin','demandeur','ancien']) {
         suspendre:!!(pa&&pa.querySelector('[data-admact="suspend"]')),creer:!!(pa&&pa.querySelector('[data-admcreate]')),
         roles:pa?pa.querySelectorAll('[data-admrole]').length:0};
       const sel=pa&&pa.querySelector('[data-admrole]');if(sel){sel.value='admin';sel.dispatchEvent(new Event('change'));await w(300);}}
+    const lb=pe&&pe.querySelector('[data-admlib="lib-1"]');
+    if(lb){lb.click();await w(500);const mb=document.getElementById('membersBody');
+      out.gerer={nom:document.getElementById('libNameField').value,horsAdh:/pas membre/.test((mb.querySelector('.notice')||{}).textContent||''),
+        compte:(mb.querySelector('.danger-caption')||{}).textContent||'',invite:!!mb.querySelector('#memInvite'),convertir:!!mb.querySelector('#libToColl'),retirer:mb.querySelectorAll('[data-remove]').length};
+      document.getElementById('memEmail').value='c@x.fr';document.getElementById('memInvite').click();await w(300);closeMembers(true);await w(300);}
     if(libs&&libs.querySelector('[data-newlib]')){libs.querySelector('[data-newlib]').click();await w(300);
       out.titre=document.getElementById('newLibModalTitle').textContent;
       const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
@@ -7188,6 +7194,7 @@ for (const cas of ['admin','demandeur','ancien']) {
     t('A483 : tous les comptes et toutes les bibliothèques de l’instance, avec leur créateur', r.comptes===2&&r.libs.length===1&&/créée par a@x\.fr/.test(r.libs[0]), JSON.stringify([r.comptes,r.libs]));
     t('… un compte se déplie sur place : statut, droit de créer, rôle par bibliothèque', r.panneau&&r.panneau.ouvert==='true'&&r.panneau.suspendre&&r.panneau.creer&&r.panneau.roles===1, JSON.stringify(r.panneau));
     t('… changer un rôle ne touche QUE l’adhésion de ce compte', ecrits.some(x=>/^PATCH memberships\?library_id=eq\.lib-1&user_id=eq\.00000000-0000-0000-0000-00000000000a/.test(x)), JSON.stringify(ecrits));
+    t('A484 : la bibliothèque d’un autre se gère depuis Administration — nom, inviter, retirer, compte venu du serveur', r.gerer&&r.gerer.nom==='Bloc CHU'&&r.gerer.horsAdh&&r.gerer.invite&&r.gerer.retirer===1&&!r.gerer.convertir&&/2 aides et 1 protocole/.test(r.gerer.compte)&&appels.includes('invite_member'), JSON.stringify(r.gerer));
     t('… « Nouvelle bibliothèque » et la fenêtre de création', /Nouvelle bibliothèque/.test(r.porte)&&r.titre==='Nouvelle bibliothèque', r.porte+' | '+r.titre);
   } else if (cas==='demandeur') {
     t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de règle', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.regle===-1, JSON.stringify(r));
