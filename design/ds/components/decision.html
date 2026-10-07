@@ -1990,6 +1990,7 @@
   .dir-la:hover{background:var(--amb-2)}
   .dir-la:focus-visible{outline:2px solid var(--act);outline-offset:1px}
   .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
+  .dir-dot:not(.cat-multi){background:var(--catcol)}
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
@@ -2009,7 +2010,8 @@
   .coll-k svg{flex:none;width:13px;height:13px}
   .coll-t{margin:0;font-size:var(--t-val);font-weight:800;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
   .coll-s{font-size:var(--t-body);color:var(--ink-2)}
-  .coll-acts{display:flex;gap:8px;flex:none}
+  .coll-acts{display:flex;gap:8px;flex:none;position:relative}
+  .coll-acts>.popmenu{left:auto;right:0}   /* le ⋯ est au bord droit : le menu s'ouvre sous lui, vers la gauche */
   .coll-more{min-width:40px;justify-content:center;font-size:var(--t-item)}
   .dir-also{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-meta);color:var(--ink-2)}
   .dir-also svg{flex:none;color:var(--act)}
@@ -3596,7 +3598,7 @@
   ol.steps li.done .txt{color:var(--ink-2);font-weight:600}
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
-  .pinbtn.on svg{animation:pop .25s ease}
+  .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:10px 14px;font-size:15px}
@@ -6098,7 +6100,7 @@
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
   /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
-  .acct-list{padding:0 12px}   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
+  .acct-list{padding:4px 12px}   /* 4 px : le survol d'une première ou dernière rangée ne touche pas le bord de la carte */   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
   .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
   .auth-actions .btn{width:100%;justify-content:center}
   /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
@@ -6971,13 +6973,7 @@
      Détail : doctrine-css.md C123. */
   .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
   [data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
-  .hs-wrap.on .hs-act{color:var(--act)}
-  [data-theme="dark"] .hs-wrap.on .hs-act{color:var(--act)}
-  .hs-wrap.on button.hs-act:hover{color:var(--act);background:var(--primary-100)}
-  .hs-act{flex:none;width:24px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
-  button.hs-act{cursor:pointer}
-  button.hs-act:hover{color:var(--act);background:color-mix(in srgb,var(--act) 8%,transparent)}
-  button.hs-act:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}   /* A489 : le partage d'une bibliothèque, en un mot */
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
   .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
@@ -7071,6 +7067,7 @@
     .hs-wrap.on.hs-navrow .hs-row{color:var(--act)}
     .hs-live{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;animation:pulse 2s infinite}
     .hs-h{display:flex;align-items:center;gap:8px}
+    .hs-h{white-space:nowrap}.hs-h>.hs-hs{margin-left:0;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* A489 : une ligne ; l'indice cède le premier */
     .hs-lnk{margin-left:auto;padding:0;min-height:24px;border:0;background:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act);cursor:pointer}
     .hs-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
     .hs-n{font-family:var(--f-mono)}
@@ -7307,7 +7304,7 @@
      à accuser le geste, et il est, lui, la manipulation directe.
      Les keyframes `secInL/R` RESTENT : elles servent encore la pile de retour (`main.back-anim`)
      et la bascule de format en lecture (`.rm-anim-l/r`), qui sont deux vraies navigations. */
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on.pop svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
@@ -7933,7 +7930,7 @@
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (v4.57.0, étendu v4.71.0 aux surfaces CALMES seules) : survol = 1 px de lévitation, appui =
      enfoncement — transform/opacity SEULEMENT (règle v4.41.0), 120 ms, survol au POINTEUR FIN seul
      (leçon v4.4.4). Jamais en crise (le mouvement est réservé à l'alarme, ECAM), jamais en gros sur

@@ -811,7 +811,7 @@ d'une case, ligne k/n neutre ; ouverte, des JETONS à coche à droite dont le li
 La **bande des repères** du bloc (`item.poso`) dit « fait · à faire · à préparer », venus de la
 coche — jamais d'un état de minuteur.
 
-## Ranger : collections et bibliothèques (A475-A479, A483-A484)
+## Ranger : collections et bibliothèques (A475-A479, A483-A489)
 
 **Une bibliothèque, c'est AVEC QUI ; une collection, c'est POUR MOI.** Aucune phrase ne le dit
 telle quelle — chaque écran le dit à sa façon :
@@ -842,6 +842,10 @@ telle quelle — chaque écran le dit à sa façon :
   droit de créer, rôle par bibliothèque) et « Bibliothèques de l'instance · n » (la rangée ouvre
   la fenêtre Membres, qui gère aussi une bibliothèque dont l'administrateur n'est pas membre et le
   dit en tête, A484). Un champ « Filtrer… » au-delà de 8 rangées.
+- **La colonne dit AVEC QUI** (A489) : une bibliothèque porte des personnes (`user` Perso, `users` partagée) et un
+  mot — vous seul · partagée · lecture ; « Collections · pour vous » porte le signet. Une seule bibliothèque :
+  une rangée active et « ＋ Partager avec une équipe… » (jamais « Nouvelle bibliothèque » à côté de « Nouvelle
+  collection »).
 - **La barre de sélection** est UNE ligne de 56 px à toutes les largeurs : case maîtresse à trois
   états, compte, « Actions » qui ouvre la feuille (Ajouter à une collection · Déplacer · Ranger ·
   Exporter · Supprimer), sortie en croix. Cinq libellés entiers ne tiennent jamais dans 960 px :
