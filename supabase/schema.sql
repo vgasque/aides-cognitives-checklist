@@ -1798,6 +1798,49 @@ begin
 end;$$;
 grant execute on function public.decide_library_request(uuid, boolean) to authenticated;
 
+-- ---------- 9ter. ADMINISTRATION DE L'INSTANCE : comptes et bibliothèques (v5.52, A483) ----------
+-- L'administrateur de l'instance VOIT tout (lib_select, mem_select le permettaient déjà) et gère les
+-- membres de toute bibliothèque (mem_write) ; il lui manquait les VUES d'ensemble. Lecture seule ici :
+-- les gestes passent par les politiques et RPC existantes (invite_member, memberships, set_user_status,
+-- set_library_creator, delete_rejected_user). Toutes vides pour qui n'est pas administrateur.
+create or replace function public.list_accounts()
+returns table(user_id uuid, email text, status text, is_admin boolean, can_create boolean, libraries int, created_at timestamptz)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select s.user_id, s.email, s.status,
+         exists (select 1 from public.app_admins a where a.user_id = s.user_id),
+         exists (select 1 from public.library_creators c where c.user_id = s.user_id),
+         (select count(*)::int from public.memberships m where m.user_id = s.user_id),
+         s.created_at
+  from public.user_status s
+  where public.is_app_admin()
+  order by lower(s.email);
+$$;
+grant execute on function public.list_accounts() to authenticated;
+
+create or replace function public.list_user_memberships(p_user uuid)
+returns table(library_id text, name text, role text)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select m.library_id, l.name, m.role
+  from public.memberships m join public.libraries l on l.id = m.library_id
+  where m.user_id = p_user and public.is_app_admin()
+  order by lower(l.name);
+$$;
+grant execute on function public.list_user_memberships(uuid) to authenticated;
+
+create or replace function public.list_all_libraries()
+returns table(id text, name text, creator text, created_at timestamptz, members int, admins int, aids int, protocols int)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select l.id, l.name, u.email::text, l.created_at,
+         (select count(*)::int from public.memberships m where m.library_id = l.id),
+         (select count(*)::int from public.memberships m where m.library_id = l.id and m.role = 'admin'),
+         (select count(*)::int from public.cognitive_aids f where f.library_id = l.id and f.deleted_at is null),
+         (select count(*)::int from public.protocols p where p.library_id = l.id and p.deleted_at is null)
+  from public.libraries l left join auth.users u on u.id = l.created_by
+  where public.is_app_admin()
+  order by lower(l.name);
+$$;
+grant execute on function public.list_all_libraries() to authenticated;
+
 -- ---------- 5quater. LA PROHIBITION anon NE PORTAIT PAS SUR PUBLIC (correctif) --------------
 -- Le bloc « GRANTS » plus haut annonce une « INTERDICTION EXPLICITE POUR anon ». Elle ne faisait
 -- pas ce qu'elle disait, et l'écart est structurel, pas un oubli :

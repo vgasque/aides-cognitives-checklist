@@ -7133,17 +7133,22 @@ for (const W of [390, 1280]) {
    Réseau SIMULÉ (aucune dépendance au vrai serveur) : l'administrateur voit la règle et la file ; un compte
    sans le droit voit « Demander une bibliothèque… » et la même fenêtre en mode demande ; un serveur ANTÉRIEUR
    (RPC absentes) retombe sur l'ancienne règle sans rien casser. */
-await sec('MOI · A478-A479 droit de créer, demandes de bibliothèque', async () => {
+await sec('MOI · A478-A479, A483 droit de créer, demandes, comptes et bibliothèques de l’instance', async () => {
 const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,list_unapproved_users:[],get_instance_stats:{users:3},
   get_library_creation:'creators',list_users:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',is_admin:false,can_create:true}],
   list_library_requests:[{id:'11111111-1111-1111-1111-111111111111',email:'b@x.fr',name:'Pédia',invitees:['c@x.fr'],role:'editor'}],
-  my_library_requests:[{id:'22222222-2222-2222-2222-222222222222',name:'Bloc pédia',status:'pending',invitees:1,created_at:'2026-10-07T10:00:00Z'}]};
+  my_library_requests:[{id:'22222222-2222-2222-2222-222222222222',name:'Bloc pédia',status:'pending',invitees:1,created_at:'2026-10-07T10:00:00Z'}],
+  list_accounts:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',status:'approved',is_admin:false,can_create:true,libraries:1},
+    {user_id:'00000000-0000-0000-0000-00000000000b',email:'b@x.fr',status:'pending',is_admin:false,can_create:false,libraries:0}],
+  list_all_libraries:[{id:'lib-1',name:'Bloc CHU',creator:'a@x.fr',members:3,admins:1,aids:2,protocols:1}],
+  list_user_memberships:[{library_id:'lib-1',name:'Bloc CHU',role:'editor'}]};
 for (const cas of ['admin','demandeur','ancien']) {
   const page = await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-  const appels=[];
-  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const m=route.request().url().match(/rpc\/([a-z_]+)/);if(m)appels.push(m[1]);
-    if(cas==='ancien'&&m&&/library|list_users/.test(m[1]))return route.fulfill({status:404,contentType:'application/json',body:'{"message":"not found"}'});
+  const appels=[],ecrits=[];
+  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const q=route.request(),m=q.url().match(/rpc\/([a-z_]+)/);if(m)appels.push(m[1]);
+    if(/PATCH|DELETE/.test(q.method()))ecrits.push(q.method()+' '+decodeURIComponent(q.url().split('/rest/v1/')[1]||''));
+    if(cas==='ancien'&&m&&/librar|list_users|list_accounts/.test(m[1]))return route.fulfill({status:404,contentType:'application/json',body:'{"message":"not found"}'});
     let b=m?RPC[m[1]]:[];if(cas==='demandeur'&&m&&/is_app_admin|can_create_library/.test(m[1]))b=false;
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(b===undefined?null:b)});});
   await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
@@ -7162,6 +7167,16 @@ for (const cas of ['admin','demandeur','ancien']) {
     out.note=z?(z.querySelector('.adm-note')||{}).textContent||'':'';
     const ap=z&&z.querySelector('[data-libmode="approved"]');
     if(ap){ap.click();await w(150);const ask=document.getElementById('admLibAsk');out.ask=!!ask&&!ask.hidden&&/Tout compte approuvé/.test(ask.textContent);}
+    const pe=document.getElementById('admPeople');
+    out.comptes=pe?pe.querySelectorAll('[data-admuser]').length:-1;
+    out.libs=pe?[...pe.querySelectorAll('[data-admlib]')].map(b=>b.textContent):[];
+    out.peNote=pe?(pe.querySelector('.adm-note')||{}).textContent||'':'';
+    const ua=pe&&pe.querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]');
+    if(ua){ua.click();await w(400);const pa=pe.querySelector('[data-admpanel]');
+      out.panneau={ouvert:pe.querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]').getAttribute('aria-expanded'),
+        suspendre:!!(pa&&pa.querySelector('[data-admact="suspend"]')),creer:!!(pa&&pa.querySelector('[data-admcreate]')),
+        roles:pa?pa.querySelectorAll('[data-admrole]').length:0};
+      const sel=pa&&pa.querySelector('[data-admrole]');if(sel){sel.value='admin';sel.dispatchEvent(new Event('change'));await w(300);}}
     if(libs&&libs.querySelector('[data-newlib]')){libs.querySelector('[data-newlib]').click();await w(300);
       out.titre=document.getElementById('newLibModalTitle').textContent;
       const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
@@ -7170,12 +7185,15 @@ for (const cas of ['admin','demandeur','ancien']) {
   if (cas==='admin') {
     t('administrateur : la règle à trois crans et la file des demandes (Refuser · Créer)', r.peut&&r.regle===3&&r.file===2, JSON.stringify(r));
     t('A481 : changer la règle ouvre un bandeau de confirmation, et rien ne part avant « Confirmer »', r.ask===true&&!appels.includes('set_library_creation'), JSON.stringify([r.ask,appels.filter(x=>/set_/.test(x))]));
+    t('A483 : tous les comptes et toutes les bibliothèques de l’instance, avec leur créateur', r.comptes===2&&r.libs.length===1&&/créée par a@x\.fr/.test(r.libs[0]), JSON.stringify([r.comptes,r.libs]));
+    t('… un compte se déplie sur place : statut, droit de créer, rôle par bibliothèque', r.panneau&&r.panneau.ouvert==='true'&&r.panneau.suspendre&&r.panneau.creer&&r.panneau.roles===1, JSON.stringify(r.panneau));
+    t('… changer un rôle ne touche QUE l’adhésion de ce compte', ecrits.some(x=>/^PATCH memberships\?library_id=eq\.lib-1&user_id=eq\.00000000-0000-0000-0000-00000000000a/.test(x)), JSON.stringify(ecrits));
     t('… « Nouvelle bibliothèque » et la fenêtre de création', /Nouvelle bibliothèque/.test(r.porte)&&r.titre==='Nouvelle bibliothèque', r.porte+' | '+r.titre);
   } else if (cas==='demandeur') {
     t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de règle', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.regle===-1, JSON.stringify(r));
     t('… la MÊME fenêtre, en mode demande (garde-fou sans invité)', r.titre==='Demander une bibliothèque'&&/Demander quand même/.test(r.cta), r.titre+' | '+r.cta);
   } else {
-    t('serveur antérieur : repli sur « administrateur seul », Administration dit de rejouer le schéma', r.peut===true&&r.regle===0&&/schema\.sql/.test(r.note), JSON.stringify(r));
+    t('serveur antérieur : repli sur « administrateur seul », Administration dit de rejouer le schéma', r.peut===true&&r.regle===0&&/schema\.sql/.test(r.note)&&/schema\.sql/.test(r.peNote), JSON.stringify(r));
   }
   await page.close();
 }

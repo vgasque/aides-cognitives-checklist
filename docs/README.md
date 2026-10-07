@@ -124,6 +124,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A475-A477 | `lot-v5-50.md` | A475 : les collections, rangement personnel sans copie (Accès direct = première collection, filtre, cases, lecture seule) ; A476 : barre de sélection en tiroir à toute largeur ; A477 : « Avec qui ? » à la création d'une bibliothèque, collection proposée sans invité, conversion |
 | A478-A479 | `lot-v5-51.md` | A478 : le droit de créer une bibliothèque (règle d'instance, personnes autorisées, `can_create_library`) ; A479 : demander une bibliothèque, file de l'administrateur |
 | A480-A482 | `lot-v5-51.md` | A480 : tête de feuille (lien de retour, titre = le geste, ligne de contexte) ; A481 : confirmation de la règle de création ; A482 : design system relevé sur l'app (captures du DOM réel) |
+| A483 | `lot-v5-52.md` | Administration : tous les comptes (dépliables : statut, droit de créer, rôles) et toutes les bibliothèques de l'instance (ouvrent Membres) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

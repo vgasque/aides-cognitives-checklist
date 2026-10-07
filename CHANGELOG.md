@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.52.0] — 2026-10-07
+L'administrateur de l'instance voit tous les comptes et toutes les bibliothèques, et en règle les droits (A483,
+doctrine `docs/decisions/lot-v5-52.md`). **⚠ Rejouer `supabase/schema.sql`** (§ 9ter) puis `rls-tests.sql` (§ 15.7) ;
+sans cela, Administration le signale et rien d'autre ne change.
+- **Administration › Comptes** : tous les comptes, approuvés, en attente ou refusés, avec leur nombre de
+  bibliothèques. Toucher un compte le déplie sur place : son statut et le geste qui va avec (Approuver, Refuser,
+  Suspendre l'accès…, Réapprouver, Supprimer le compte…), « Peut créer des bibliothèques », et chacune de ses
+  bibliothèques avec son rôle à changer ou ✕ pour l'en retirer.
+- **Administration › Bibliothèques de l'instance** : toutes les bibliothèques partagées, même celles dont vous n'êtes
+  pas membre, avec membres, administrateurs, éléments et créateur ; toucher une bibliothèque ouvre ses Membres
+  (inviter, changer un rôle, retirer).
+- Un champ « Filtrer… » apparaît au-delà de huit comptes ou bibliothèques.
+- Correctif : un administrateur ne voit plus les bibliothèques des autres comptes parmi les siennes.
+
 ## [5.51.1] — 2026-10-07
 Les feuilles de la sélection disent ce qu'on fait, la règle de création se confirme, et le design system rattrape
 l'app (A480-A482, doctrine `docs/decisions/lot-v5-51.md`).
@@ -235,32 +249,3 @@ Premier lot de l'audit de prise en main (`docs/audit-apprentissage-2026-10.md`) 
 - L'info-bulle de « Vérifier » est en français (« Relire ce bloc étape par étape… »).
 - Non traité dans ce lot : le nom du compteur dans la capsule (« CHOCS DE… ») — la place manque à 64 px, décision de
   dessin à prendre.
-
-## [5.44.0] — 2026-10-05
-L'éditeur des références (protocoles) devient un vrai éditeur de texte, au téléphone comme sur ordinateur (A452-A459, doctrine `docs/decisions/lot-v5-44.md`).
-- **Lier un PDF joint sans recopier son identifiant** : « ＋ Insérer › Lien vers un document joint », ou taper `](att:`
-  et choisir le document dans la liste, ou toucher (ou glisser vers le texte) le nouveau bouton lien de chaque document.
-  `#p12` après l'identifiant ouvre le PDF à la page 12.
-- **Une barre d'outils regroupée** : B · I · S, puis quatre menus — Titre, Liste, Encadré, ＋ Insérer (tableau, lien
-  vers un document, lien web, image, code, séparateur). Chaque choix montre la syntaxe qu'il pose. La barre reste
-  visible en haut pendant qu'on fait défiler le texte et tient sur une ligne jusqu'à 344 px de large.
-- **Le clavier** : Entrée continue une liste (puces, numéros, cases, citations) et la termine sur une ligne vide ;
-  Tab et Maj+Tab changent le niveau d'une puce ; ⌘B, ⌘I et ⌘K font gras, italique et lien. **⌘Z annule aussi les
-  gestes de la barre.**
-- **Une disposition par écran** : au téléphone, « Écrire | Aperçu » ; sur tablette, le texte et l'aperçu côte à côte ;
-  sur ordinateur, l'aperçu dans la colonne de droite. Un bouton « Plan » mène à chaque titre, l'aperçu marque le
-  passage où l'on écrit, et toucher l'aperçu ramène le curseur au bon endroit du texte.
-- **Les tableaux se remplissent dans une grille** (« Insérer › Tableau », ou « Modifier en grille » quand le curseur
-  est dans un tableau) : ajouter ou retirer lignes et colonnes, aligner une colonne, modèle « posologie ».
-- **Coller depuis Word ou un PDF** : titres, puces, tableaux et gras sont reconnus, et l'app montre ce qui sera inséré
-  avant de le faire. La couleur n'est pas reprise (elle a un sens dans l'app) : la fenêtre le dit. « Coller le texte
-  brut » reste possible.
-- **Une relecture de l'écriture** sous le texte : lien vers un document absent, ligne de tableau incomplète, titre ou
-  encadré mal posé, et les écritures de dose qui trompent la lecture — « .5 mg » (→ 0,5 mg), « 5,0 mg » (→ 5 mg),
-  « ug », « U », « cc ». Chaque point se corrige un par un, d'un tap, et s'annule. Elle relit la façon d'écrire,
-  jamais le contenu clinique.
-- **Sur ordinateur, le texte se colore** : marqueurs en gris, encadrés à leur couleur, points de relecture soulignés.
-- **Écrans pliables** (Surface Duo, Pixel Fold ouverts) : le texte sur un écran, l'aperçu et la relecture sur l'autre,
-  plus rien à cheval sur la charnière. Vérifié aussi sur Galaxy Z Fold (fermé et ouvert) et Z Flip.
-- Corrigé : dans une référence, les lignes du volet « Relecture » ne réagissaient pas au toucher, et sous 1000 px le
-  volet ne suivait pas la frappe.

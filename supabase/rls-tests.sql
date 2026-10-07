@@ -1201,6 +1201,21 @@ begin
   select count(*) into v_cnt from public.library_requests where id = v_sec::uuid;
   if v_cnt <> 0 then raise exception 'ÉCHEC 15.6 : la demande acceptée (et ses e-mails) reste stockée'; end if;
   update public.app_settings set library_creation = 'creators' where id;   -- remise en état
+  -- 15.7 Les vues d'ensemble de l'administrateur sont VIDES pour tout autre compte.
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.list_accounts();
+  if v_cnt <> 0 then raise exception 'ÉCHEC 15.7 : un non-admin liste les comptes'; end if;
+  select count(*) into v_cnt from public.list_all_libraries();
+  if v_cnt <> 0 then raise exception 'ÉCHEC 15.7 : un non-admin liste toutes les bibliothèques'; end if;
+  select count(*) into v_cnt from public.list_user_memberships(alice);
+  if v_cnt <> 0 then raise exception 'ÉCHEC 15.7 : un non-admin lit les adhésions d''un autre'; end if;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'email','alice@test.local','role','authenticated')::text, true);
+  select count(*) into v_cnt from public.list_all_libraries();
+  if v_cnt = 0 then raise exception 'ÉCHEC 15.7 : l''administrateur ne voit aucune bibliothèque'; end if;
+  select count(*) into v_cnt from public.list_user_memberships(frank);
+  if v_cnt = 0 then raise exception 'ÉCHEC 15.7 : l''administrateur ne voit pas les adhésions de frank'; end if;
 
 
   ------------------------------------------------------------------ FIN
