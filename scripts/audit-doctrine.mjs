@@ -7125,6 +7125,54 @@ for (const W of [390, 1280]) {
 }
 });
 
+/* ══ A478-A479 — QUI CRÉE UNE BIBLIOTHÈQUE, QUI LA DEMANDE ══════════════════════════════════════
+   Réseau SIMULÉ (aucune dépendance au vrai serveur) : l'administrateur voit la règle et la file ; un compte
+   sans le droit voit « Demander une bibliothèque… » et la même fenêtre en mode demande ; un serveur ANTÉRIEUR
+   (RPC absentes) retombe sur l'ancienne règle sans rien casser. */
+await sec('MOI · A478-A479 droit de créer, demandes de bibliothèque', async () => {
+const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,list_unapproved_users:[],get_instance_stats:{users:3},
+  get_library_creation:'creators',list_users:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',is_admin:false,can_create:true}],
+  list_library_requests:[{id:'11111111-1111-1111-1111-111111111111',email:'b@x.fr',name:'Pédia',invitees:['c@x.fr'],role:'editor'}],
+  my_library_requests:[{id:'22222222-2222-2222-2222-222222222222',name:'Bloc pédia',status:'pending',invitees:1,created_at:'2026-10-07T10:00:00Z'}]};
+for (const cas of ['admin','demandeur','ancien']) {
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const m=route.request().url().match(/rpc\/([a-z_]+)/);
+    if(cas==='ancien'&&m&&/library|list_users/.test(m[1]))return route.fulfill({status:404,contentType:'application/json',body:'{"message":"not found"}'});
+    let b=m?RPC[m[1]]:[];if(cas==='demandeur'&&m&&/is_app_admin|can_create_library/.test(m[1]))b=false;
+    route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(b===undefined?null:b)});});
+  await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms));
+    myAccountStatus='approved';await Sync.loadProfile();openAuth();await w(900);
+    const out={peut:myCanCreateLib,reqs:myLibReqs.length};
+    const libs=document.getElementById('acctLibs');
+    out.porte=((libs&&libs.querySelector('[data-newlib]'))||{}).textContent||'';
+    out.attente=!!(libs&&libs.querySelector('[data-libreqx]'));
+    const z=document.getElementById('admLibs');
+    out.regle=z?z.querySelectorAll('[data-libmode]').length:-1;
+    out.file=z?z.querySelectorAll('[data-libreq]').length:-1;
+    out.note=z?(z.querySelector('.adm-note')||{}).textContent||'':'';
+    if(libs&&libs.querySelector('[data-newlib]')){libs.querySelector('[data-newlib]').click();await w(300);
+      out.titre=document.getElementById('newLibModalTitle').textContent;
+      const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
+      out.cta=document.getElementById('newLibOk').textContent;}
+    return out;});
+  if (cas==='admin') {
+    t('administrateur : la règle à trois crans et la file des demandes (Refuser · Créer)', r.peut&&r.regle===3&&r.file===2, JSON.stringify(r));
+    t('… « Nouvelle bibliothèque » et la fenêtre de création', /Nouvelle bibliothèque/.test(r.porte)&&r.titre==='Nouvelle bibliothèque', r.porte+' | '+r.titre);
+  } else if (cas==='demandeur') {
+    t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de règle', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.regle===-1, JSON.stringify(r));
+    t('… la MÊME fenêtre, en mode demande (garde-fou sans invité)', r.titre==='Demander une bibliothèque'&&/Demander quand même/.test(r.cta), r.titre+' | '+r.cta);
+  } else {
+    t('serveur antérieur : repli sur « administrateur seul », Administration dit de rejouer le schéma', r.peut===true&&r.regle===0&&/schema\.sql/.test(r.note), JSON.stringify(r));
+  }
+  await page.close();
+}
+});
+
 /* ══ LE GESTIONNAIRE DE CATÉGORIES COMPTE COMME LA COLONNE ═══════════════════════════════════
    Signalé : « le gestionnaire n'affiche pas le bon nombre de fiches/aides par catégories ». Il ne
    comptait que les FICHES, alors que la colonne gauche compte l'union fiches + protocoles : les

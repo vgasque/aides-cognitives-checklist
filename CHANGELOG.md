@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.51.0] — 2026-10-07
+Qui peut créer une bibliothèque, et comment la demander (A478-A479, doctrine `docs/decisions/lot-v5-51.md`).
+**⚠ Rejouer `supabase/schema.sql`** (§ 9 et 9bis) pour en profiter ; sans cela, l'app garde l'ancienne règle
+(administrateurs seulement) et Administration le signale.
+- **Administration › Création de bibliothèques** : trois réglages — *Administrateurs seulement*, *Personnes
+  autorisées*, *Tout compte approuvé*. Par défaut, « Personnes autorisées » avec une liste vide : rien ne change tant
+  que vous n'autorisez personne. « ＋ Autoriser une personne… » choisit parmi les comptes approuvés ; « Retirer » rend
+  la règle commune. Une personne autorisée devient administratrice de ce qu'elle crée, et ne peut créer qu'à son nom.
+- **Les autres demandent** : « ＋ Demander une bibliothèque… » ouvre la même fenêtre que la création (nom, avec qui,
+  rôle des invités ; sans invité, elle rappelle qu'une collection suffit pour ranger). La demande apparaît en tête
+  d'Administration : « Créer » ouvre la bibliothèque au nom du demandeur et y invite les personnes indiquées ;
+  « Refuser » la classe. Dans Moi, chacun voit ses demandes en attente (Annuler) ou refusées (Effacer).
+- **Données** : les adresses des personnes à inviter ne sont gardées que jusqu'à la décision (registre RGPD § 3).
+
 ## [5.50.0] — 2026-10-07
 Les collections : ranger ses aides sans rien déplacer (A475-A477, doctrine `docs/decisions/lot-v5-50.md`).
 - **Une collection est votre rangement, à vous seul** : une liste nommée d'aides et de protocoles venus de n'importe
@@ -249,15 +263,3 @@ La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Wind
 - Pourquoi seulement sous Windows et Linux : le texte y est un peu plus large (lettres arrondies au pixel) et la barre de
   défilement prend de la place ; sur Mac ces lignes tenaient au pixel près. Les audits de la CI, qui tournent sous Linux,
   échouaient sur ces deux points depuis la v5.30.
-
-## [5.43.0] — 2026-10-04
-Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
-- **Chaque réponse d'une décision ouvre sa branche juste sous elle** : « SI Oui », « SI Non, crise arrêtée »…, la
-  réponse écrite à l'ambre, comme dans la décision, et sans fond (seule la décision est une carte). Les deux réponses
-  ont le même dessin ; la décision les annonce par « ↓ 3 », « ↓ 7 ».
-- **Une décision dans une branche décale ses propres branches d'un cran de plus**, deux crans au plus pour garder de la
-  place aux titres dans la colonne. Au-delà, la branche reste au deuxième cran et dit de quelle décision elle part
-  (« SI Non à ◇11 »).
-- **Plus de pastille « BRANCHE ◇ 4 « … » »** : son texte débordait du fond ambré dans la colonne (tablette, ordinateur).
-- Les numéros des blocs ne changent pas (ce sont les mêmes que dans le journal, la Page et le Schéma). Une réponse qui
-  revient en arrière ou rejoint la suite n'ouvre pas de branche vide : la décision le dit (« ↺ 2 », « → 7 »).
