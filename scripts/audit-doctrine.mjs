@@ -7019,21 +7019,17 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
   }
   // À zéro coché, RIEN DE MORT : la touche d'actes n'existe pas, elle n'est pas grisée.
   t(`${P} · 0 coché : la touche d'actes n'est pas rendue`, !/selDo/.test(r.zero.ids), r.zero.ids);
-  // Le palier de dépliage (1200 px EFFECTIFS, cf. .sel-bar) se franchit réellement.
-  const deplie=/selLib/.test(r.plein.ids)&&/selCat/.test(r.plein.ids)&&/selDel/.test(r.plein.ids);
-  const tiroir=/selDo/.test(r.plein.ids);
-  if (W>=1200) t(`${P} · déplié : les trois actes sont SUR la ligne, pas de touche d'actes`,
-    deplie&&!tiroir, r.plein.ids);
-  else t(`${P} · replié : une touche d'actes, aucun acte sur la ligne`,
-    tiroir&&!deplie, r.plein.ids);
+  // A476 : le tiroir à TOUTE largeur — cinq actes en libellés entiers ne tiennent jamais sur la ligne.
+  const deplie=/selCol|selLib|selCat|selExp|selDel/.test(r.plein.ids);
+  t(`${P} · une touche d'actes, aucun acte sur la ligne (A476)`, /selDo/.test(r.plein.ids)&&!deplie, r.plein.ids);
   await page.close();
 }
 });
 
 /* ══ A451 — LA CASE MAÎTRESSE : TROIS ÉTATS, UN GESTE ═════════════════════════════════════════
    Elle remplace le segment « Tout cocher / Tout décocher ». On mesure l'état ANNONCÉ (aria-checked
-   et nom) à chaque pas, et ce que le geste fait réellement aux rangées. À 1200 px, les actes
-   dépliés portent le glyphe de leur rangée dans le tiroir. */
+   et nom) à chaque pas, et ce que le geste fait réellement aux rangées. La feuille « Actions » porte les
+   cinq actes, chacun avec son glyphe (A476 : plus de dépliage sur la ligne). */
 await sec('SÉLECTION · A451 case maîtresse à trois états, actes à glyphes', async () => {
 for (const W of [390, 1200]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
@@ -7051,8 +7047,10 @@ for (const W of [390, 1200]) {
     const out={};
     document.getElementById('selTog').click(); await w(250); out.zero=st();
     document.querySelector('[data-selid]').click(); await w(200); out.partie=st();
-    out.glyphes=['selLib','selCat','selExp','selDel'].map(id=>{const b=document.getElementById(id);
-      return !!(b&&b.offsetParent&&b.querySelector('svg'));});
+    // A476 : la feuille « Actions » porte les cinq actes, en libellés entiers, chacun avec son glyphe — Collection en tête.
+    document.getElementById('selDo').click(); await w(300);
+    out.feuille=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>(x.querySelector('.mm-ic svg')?'':'∅')+x.dataset.pickopt);
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); await w(200);
     document.getElementById('selAll').click(); await w(200); out.tout=st();
     document.getElementById('selAll').click(); await w(200); out.rien=st();
     return out;});
@@ -7065,7 +7063,64 @@ for (const W of [390, 1200]) {
   t(`${P} · la case coche TOUT ce que la liste montre, et annonce « Tout décocher »`,
     r.tout.aria==='true'&&r.tout.nom==='Tout décocher'&&r.tout.coches===r.tout.total, JSON.stringify(r.tout));
   t(`${P} · … puis décoche tout`, r.rien.aria==='false'&&r.rien.coches===0&&r.rien.cpt==='0 coché', JSON.stringify(r.rien));
-  if (W>=1200) t(`${P} · déplié : chaque acte porte son glyphe`, r.glyphes.every(Boolean), JSON.stringify(r.glyphes));
+  t(`${P} · la feuille Actions : Collection, Bibliothèque, Catégorie, Exporter, Supprimer — glyphe chacun`,
+    r.feuille.join()==='selCol,selLib,selCat,selExp,selDel', r.feuille.join());
+  await page.close();
+}
+});
+
+/* ══ A475 — COLLECTIONS : le rangement personnel, sans rien déplacer ══════════════════════════════
+   Au téléphone une rangée sous l'Accès direct, au bureau une section de la colonne ; choisir = un filtre
+   annoncé (puce + en-tête « à vous seul ») ; « Ajouter à une collection… » vit dans le menu ⋯ d'une aide
+   EN LECTURE SEULE (« Modifier » grisé juste au-dessus) et coche sans déplacer. */
+await sec('ACCUEIL · A475 collections — filtre, en-tête, cases, lecture seule', async () => {
+for (const W of [390, 1280]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:W<780});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    myLibraries.length=0;myLibraries.push({id:'lib-ro',name:'SAMU 31',role:'viewer'});
+    const f=JSON.parse(JSON.stringify(fiches[0]));f.id='ro1';f.title='Aide du SAMU';f.library='lib-ro';f.status='validated';fiches.push(migrate(f));
+    const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await w(300);
+    out.rail=!!document.querySelector('.home-main .coll-rail [data-collsel]');
+    out.col=!!document.querySelector('.home-side [data-collsel="'+c.id+'"]');
+    document.querySelector('[data-collsel="'+c.id+'"]').click();await w(300);
+    out.coll=state.coll===c.id;
+    out.puce=(document.querySelector('.af-bar')||{}).textContent||'';
+    out.tete=(document.querySelector('.coll-head')||{}).textContent||'';
+    out.rangees=document.querySelectorAll('.dir-row').length;
+    document.querySelector('[data-colladd]').click();await w(300);
+    out.cases=document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(250);
+    openRead('ro1');await w(400);
+    document.getElementById('hdrMore').click();await w(250);
+    const rows=[...document.querySelectorAll('#moreMenu .mm-row, .mm-row')];
+    const mod=rows.find(x=>/^Modifier/.test(x.textContent)),col=rows.find(x=>/Ajouter à une collection/.test(x.textContent));
+    out.modOff=!!mod&&mod.disabled;out.colOn=!!col&&!col.disabled;out.colSub=col?col.textContent:'';
+    col.click();await w(350);
+    const box=v=>document.querySelector('.popmenu [data-pickopt="'+v+'"]');
+    out.avant=box(c.id).getAttribute('aria-checked');
+    out.notice=(document.querySelector('.popmenu .notice')||{}).textContent||'';
+    box(c.id).click();await w(150);
+    out.apres=[box(c.id).getAttribute('aria-checked'),collHas(c.id,'ro1'),fiches.find(x=>x.id==='ro1').library];
+    box('*').click();await w(150);out.pin=isPinned('ro1');
+    document.querySelector('.popmenu [data-pickdone]').click();await w(200);
+    out.ferme=!document.querySelector('[data-pickdone]');
+    return out;});
+  const P=`${W}px`;
+  t(`${P} · une seule porte de collections selon la largeur (rangée < 780, colonne ≥ 780)`, W<780?(r.rail&&!r.col):(r.col&&!r.rail), JSON.stringify([r.rail,r.col]));
+  t(`${P} · choisir pose le filtre, annoncé en puce et en en-tête « à vous seul »`,
+    r.coll&&/Collection/.test(r.puce)&&/Garde SMUR/.test(r.puce)&&/à vous seul/i.test(r.tete)&&/1 indisponible/.test(r.tete), r.puce+' | '+r.tete);
+  t(`${P} · la liste ne montre que les deux éléments rangés`, r.rangees===2, String(r.rangees));
+  t(`${P} · « Ajouter des aides » : des cases sur tout l'accueil`, r.cases>=3, String(r.cases));
+  t(`${P} · lecture seule : « Modifier » grisé, « Ajouter à une collection… » actif et dit où elle est`,
+    r.modOff&&r.colOn&&/Garde SMUR/.test(r.colSub), r.colSub);
+  t(`${P} · la feuille coche sans déplacer, et le dit`,
+    r.avant==='true'&&r.apres[0]==='false'&&r.apres[1]===false&&r.apres[2]==='lib-ro'&&/à vous seul/.test(r.notice)&&/SAMU 31/.test(r.notice), JSON.stringify(r.apres)+' '+r.notice);
+  t(`${P} · « Accès direct » est une case de la même feuille (épingle)`, r.pin===true, String(r.pin));
+  t(`${P} · « Terminé » referme`, r.ferme, '');
   await page.close();
 }
 });

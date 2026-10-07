@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ZsqrVZb2zEi0aV31C7wrZnGBpdtewh5p++42u4zCxzo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-cRtfdw0P4c4IKdaFucSSBmAPrQHdL91b/2/EgdNQa/U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2270,6 +2270,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dlg-actions{display:flex;gap:8px;align-items:stretch;margin-top:6px}
   .dlg-actions .btn{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:var(--r-3);font-size:var(--t-item);font-weight:700;text-align:center}   /* A359 */
   @media (max-width:429.98px){.dlg-actions .btn{padding-left:10px;padding-right:10px}}
+  /* Trois actions (A477, « Nouvelle bibliothèque » sans invité) : la principale sur sa ligne, en tête ; les deux autres dessous. */
+  .dlg-actions:has(>.btn:nth-child(2):not([hidden])~.btn:nth-child(3):not([hidden])){flex-wrap:wrap}
+  .dlg-actions:has(>.btn:nth-child(2):not([hidden])~.btn:nth-child(3):not([hidden]))>.btn.primary{order:-1;flex-basis:100%}
   /* Fenêtre Compte : « Exporter mes données » ne tient pas sur une ligne en demi-largeur de
      téléphone (159px à 12.5px/700 — sous le plancher 11px il déborde encore) -> la paire
      s'empile en pleine largeur sous 430px, comme « Synchroniser maintenant » juste au-dessus. */
@@ -2347,6 +2350,36 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
   .qa-sec{margin:0 0 4px}
+  /* ══ COLLECTIONS (A475) ══ La rangée du téléphone reprend les puces de catégorie ; l'en-tête d'une
+     collection ouverte dit « à vous seul » avant son nom ; le signet (`bookmark`) les distingue du livre. */
+  .coll-rail .dir-h{margin-top:12px}
+  .coll-rail .chiprow{padding-bottom:4px}
+  .coll-chip svg,.coll-new svg{flex:none;color:var(--act)}
+  .coll-chip.on svg{color:inherit}
+  .coll-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .coll-chip.on .coll-n{color:inherit}
+  .coll-new{border-style:dashed;color:var(--act)}
+  .coll-head{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;margin:16px 0 4px;padding:14px 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
+  .coll-ht{flex:1 1 240px;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .coll-k{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--act)}
+  .coll-k svg{flex:none;width:13px;height:13px}
+  .coll-t{margin:0;font-size:var(--t-val);font-weight:800;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  .coll-s{font-size:var(--t-body);color:var(--ink-2)}
+  .coll-acts{display:flex;gap:8px;flex:none}
+  .coll-more{min-width:40px;justify-content:center;font-size:var(--t-item)}
+  .dir-also{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-meta);color:var(--ink-2)}
+  .dir-also svg{flex:none;color:var(--act)}
+  .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
+  /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box svg{opacity:0}
+  [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
+  [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
+  [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
+  [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
+  .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
+  .popmenu-foot .btn{min-width:120px}
   /* Étroit (A261) : deux tuiles par ligne dès 390 px ; le titre long gagne une 4e ligne et un
      corps de 13,5 (l'ellipse reste la borne — la tuile OUVRE la fiche, le titre entier est à
      un tap). La boîte reste bornée : c'est le témoin « titres longs » qui tient le plafond. */
@@ -2397,15 +2430,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sel-mix{position:relative;width:10px;height:2px;background:var(--work);display:none}
   .sel-ck[aria-checked="mixed"] .sel-mix{display:block}
   .sel-ck[aria-checked="mixed"]>svg{display:none}
-  /* Les actes dépliés portent le glyphe de leur rangée dans le tiroir : un dessin, deux lieux. */
-  .sel-acts .btn>svg{flex:none;color:var(--ink-2)}
-  .sel-acts .btn.danger>svg{color:inherit}
   /* `chev` pointe à DROITE dans le jeu d'icônes ; ici il annonce une feuille qui monte du bas.
      Une rotation STATIQUE, donc hors du périmètre de check-anim (rien n'est animé). */
   .sel-do svg{transform:rotate(90deg)}
-  /* Le filet qui précède « Annuler » en large : il sépare les ACTES de la SORTIE. Il vit dans
-     `.sel-acts`, donc il disparaît avec elle en étroit — un séparateur sans rien à séparer. */
-  .sel-sep{flex:none;width:1px;height:24px;background:var(--line);margin:0 2px}
   /* « Annuler » N'A PAS DE CONTOUR, ni sous son mot ni sous sa croix : c'est la SORTIE du mode,
      pas une commande de la barre. Lui donner la même boîte qu'aux actes en ferait un quatrième
      acte — et sur la maquette 20b, c'est le seul objet dessiné sans filet, aux deux largeurs.
@@ -2419,13 +2446,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sens — l'encre et le fond — et le filet prend le token que la doctrine assigne aux bordures
      de composant (le seul qui tienne 3:1, cf. A67). */
   .sel-bar .btn.danger{background:var(--crit-soft)}
-  /* ⚠ LE SEUIL DE DÉPLIAGE PASSE PAR `html.zw1200`, JAMAIS UNE MEDIA QUERY (règle 10), ET IL EST À
-     1200 px, PAS À 560 : la barre dépliée réclame 757 px UTILES, et sa largeur n'est pas monotone
-     en largeur de fenêtre (la colonne gauche lui prend 224 px à 780). `@container` reste écarté.
-     Replié : actes au tiroir, « Annuler » en croix. Détail : doctrine-css.md C41. */
-  html.zw1200 .sel-acts{display:none}
-  html.zw1200 .sel-bar .sel-x{width:40px;height:40px;padding:0}
-  html.zw1200 .sel-x .sel-lbl{display:none}
+  /* A476 (v5.50) : LE TIROIR À TOUTES LES LARGEURS — avec « Collection… », cinq actes en libellés entiers ne
+     tiennent jamais dans une barre plafonnée à 960 px (mesuré 962/960 avec quatre) : A228 appliquée, la feuille
+     « Actions » est le régime normal, « Annuler » en croix. Le dépliage sur la ligne (C41) a vécu. */
+  .sel-acts{display:none}
+  .sel-bar .sel-x{width:40px;height:40px;padding:0}
   /* ══ SOUS 430 px EFFECTIFS — COMPRESSION, PUIS DÉPART DU SEGMENT ═════════════════════════════
      Le compte est le seul élément élastique : tout ce qui manque à la ligne se prend SUR LUI, et
      il s'ellipse. Mesuré à 390 px, avant correctif : le compte réduit à 47 px pour 58 nécessaires
@@ -2434,16 +2459,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      par un renommage — les intitulés entiers sont tout l'objet de la planche. */
   html.zw430 .sel-bar{gap:6px;padding:0 8px}
   html.zw430 .sel-bar .btn:not(.sel-x){padding:0 10px}
-  /* DÉPLIÉ — le tiroir s'ouvre SUR LA MÊME LIGNE (`display:contents` : les trois boutons
-     deviennent des enfants directs de la barre, aucun objet intermédiaire, aucune duplication de
-     balisage). La barre y est celle d'hier, mais à ordre IMPOSÉ et sans repli possible. */
-  html:not(.zw1200) .sel-do{display:none}
-  html:not(.zw1200) .sel-acts{display:contents}
-  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 10px}   /* A392 : quatre actes (Exporter en plus) — à 14 px de marge, le compte « n cochés » était tronqué à 1200 px (29 px manquants) */
-  html:not(.zw1200) .sel-x .sel-g{display:none}
-  /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (la case maîtresse et le
-     compte) à gauche, ce qui AGIT sur elle à droite. Le compte (`flex:1 1 auto`) pousse les actes au
-     bord sans entretoise — `.sel-sp` est purgée (consigne 1) — et reste le seul élément qui cède. */
   /* La case d'une rangée : cible ≥ 32 px hors crise (règle 9), et un VRAI rôle de case à cocher
      (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
      sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
@@ -9054,6 +9069,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal dlg-confirm" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="confirmModalTitle">Confirmer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p id="confirmMsg" style="white-space:pre-line;font-size:15px;color:var(--ink)"></p>
+  <input class="auth-field" id="confirmInput" maxlength="60" autocomplete="off" aria-labelledby="confirmMsg" hidden>
   <label class="auth-check" id="confirmCheckRow" hidden><input type="checkbox" id="confirmCheck"><span id="confirmCheckLbl"></span></label>
   <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes" data-dlgdef>Confirmer</button></div>
 </div></div>
@@ -9068,7 +9084,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.49.0';
+const APP_VERSION='5.50.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9397,7 +9413,8 @@ async function moveLocalDataTo(space){
     w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);w('protocols_v1',prots);
   }
   // Épingles + marqueur « catégories à pousser » suivent dans l'espace cible (poussés au 1er sync).
-  try{localStorage.setItem(spaceKeyFor('ac-pins',space,owner),JSON.stringify(pins));}catch(e){}
+  try{localStorage.setItem(spaceKeyFor('ac-pins',space,owner),JSON.stringify(pins));
+      localStorage.setItem(spaceKeyFor('ac-colls',space,owner),JSON.stringify(colls));}catch(e){}
   try{localStorage.setItem(spaceKeyFor('ac-cats-dirty:',space,owner),'1');
       localStorage.setItem(spaceKeyFor('ac-cats-updated:',space,owner),String(Date.now()));}catch(e){}
   // Vide l'espace source : ces données n'existent plus « hors compte ».
@@ -9408,7 +9425,7 @@ async function moveLocalDataTo(space){
   for(const p of prots){try{await Data.delProtocol(p.id);}catch(e){}}
   try{await Data.setNotes({});}catch(e){}
   try{await Data.setCats(null);}catch(e){}
-  try{localStorage.removeItem(spaceKey('ac-pins'));}catch(e){}
+  try{localStorage.removeItem(spaceKey('ac-pins'));localStorage.removeItem(spaceKey('ac-colls'));}catch(e){}
 }
 // Éligibilité au transfert INVERSE « compte -> hors compte » — PURE (testée via ?__actest).
 // Réservé à un compte NON APPROUVÉ (pending/rejected) que CET appareil n'a JAMAIS synchronisé
@@ -10818,6 +10835,33 @@ function togglePin(id){const i=pins.indexOf(id);
   if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
   try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
   schedulePrefsPush();}   // marque le document perso « à pousser » et programme une synchro
+/* COLLECTIONS (v5.50, A475) : le rangement PERSONNEL. Une liste nommée d'ids — jamais une copie : une
+   aide reste dans sa bibliothèque et peut être dans plusieurs collections, même en lecture seule.
+   Synchronisées dans le document perso, comme les épingles. L'Accès direct en est la première (`COLL_PIN`). */
+const COLL_PIN='*';
+const sanitizeColls=a=>{const seen=new Set();
+  return (Array.isArray(a)?a:[]).slice(0,50).map(c=>{if(!c||typeof c!=='object')return null;
+    const id=safeMetaId(c.id),name=sstr(typeof c.name==='string'?c.name:'',60).trim();if(!id||!name||seen.has(id))return null;seen.add(id);
+    return {id,name,ids:[...new Set((Array.isArray(c.ids)?c.ids:[]).slice(0,500).filter(x=>safeMetaId(x)))].slice(0,300)};}).filter(Boolean);};
+let colls=[];try{colls=sanitizeColls(JSON.parse(localStorage.getItem(spaceKey('ac-colls'))||'[]'));}catch(e){}
+function collsSave(){try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringify(colls));}catch(e){}schedulePrefsPush();}
+const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
+const collHas=(cid,id)=>{const c=collById(cid);return !!c&&c.ids.indexOf(id)>=0;};
+// Filtre de l'accueil : `state.coll` vide = tout ; sinon les seuls éléments rangés dans la collection.
+const collOn=x=>!state.coll||collHas(state.coll,x.id);
+/* Les collections qui contiennent `id`, Accès direct d'abord — la sous-ligne du menu ⋯ et « aussi dans ». */
+const collsOf=id=>(isPinned(id)?[collById(COLL_PIN)]:[]).concat(colls.filter(c=>c.ids.indexOf(id)>=0));
+const collsLbl=a=>a.map(c=>c.name).join(', ').replace(/, ([^,]*)$/,' et $1');
+/* Ajoute ou retire `ids`. L'Accès direct passe par `togglePin` (un brouillon n'y entre pas, K5). */
+function collSet(cid,ids,on){
+  if(cid===COLL_PIN){ids.forEach(id=>{if(isPinned(id)!==on)togglePin(id);});return;}
+  const c=collById(cid);if(!c)return;
+  c.ids=on?[...new Set(c.ids.concat(ids))].slice(0,300):c.ids.filter(x=>ids.indexOf(x)<0);collsSave();}
+function collNew(name,ids){const c={id:uid('k'),name:sstr(name,60).trim()||'Collection',ids:[...new Set(ids||[])].slice(0,300)};
+  colls.push(c);colls.sort((a,b)=>a.name.localeCompare(b.name,'fr',{sensitivity:'base'}));collsSave();return c;}
+// Les éléments d'une collection qui existent sur l'appareil — les autres sont « indisponibles » (accès perdu, supprimés).
+const collItems=c=>{const by=new Map((fiches||[]).concat(protocols||[]).filter(x=>x&&!x.deletedAt).map(x=>[x.id,x]));
+  return c.ids.map(id=>by.get(id)).filter(Boolean);};
 // ----- FRECENCY (v4.4.6) : fréquence + récence d'OUVERTURE par fiche/protocole. N'ordonne QUE
 // les résultats de RECHERCHE (liste par défaut ALPHABÉTIQUE, décision v4.3.2 ; épingles
 // premières) ; score STABLE pendant la frappe (calme sous stress). Synchronisée v4.4.7 :
@@ -14601,12 +14645,14 @@ function homeResTitle(){return 'Résultats — '+(state.homeLib!=null?esc(homeLi
 function filtersList(){const p=[];
   if(state.homeRev)p.push({k:'type',t:'Afficher',v:'À relire'});
   else if(state.section==='fiches'||state.section==='protocols')p.push({k:'type',t:'Afficher',v:state.section==='fiches'?'Aides':'Protocoles'});
+  if(state.coll){const c=collById(state.coll);p.push({k:'coll',t:'Collection',v:c?c.name:'—'});}
   if(state.homeLib!=null)p.push({k:'lib',t:'Bibliothèque',v:homeLibLbl()});
   if(state.cat){const c=categories.find(x=>catKey(x)===state.cat);p.push({k:'cat',t:'Catégorie',v:c?c.name:state.cat,col:c?safeColor(c.color):''});}
   return p;}
 function dropFilter(k){const all=k==='all';
   if(all||k==='type'){state.homeRev=false;if(state.section!=='all'){state.section='all';try{localStorage.setItem(spaceKey('ac-section'),'all');}catch(e){}}}
   if(all||k==='lib')state.homeLib=null;
+  if(all||k==='coll')state.coll=null;
   if(all||k==='cat')state.cat='';
   state.libLimit=LIB_PAGE;}
 /* P4 : une puce par filtre posé, sous la ligne de compte — la valeur se LIT là où l'on lit la liste ; la puce rouvre
@@ -14671,6 +14717,11 @@ function libChipsHtml(){const bibs=bibGroups(homeVis()).filter(g=>g.key!=null);i
     +chip('*','Toutes','',state.homeLib==null)
     +bibs.map(g=>chip(g.key,g.L,g.lib?uiIcon(canEditScope(g.lib.id)?'book':'lock',13):uiIcon('user',13),state.homeLib===g.key)).join('')
     +`</div></div>`;}
+/* A475 : les collections en puces, AVANT la bibliothèque — le rangement personnel d'abord ; « ＋ » toujours là. */
+function collChipsHtml(){const L=(pins.length?[collById(COLL_PIN)]:[]).concat(colls);
+  return `<div class="vs-g vs-cats"><div class="vs-h" id="vsh-coll">Mes collections <span class="vs-hs">à vous seul</span></div><div class="chiprow" role="group" aria-labelledby="vsh-coll">`
+    +(L.length?`<button class="catchip${!state.coll?' on':''}" data-vscoll="" aria-pressed="${state.coll?'false':'true'}">Toutes</button>`+L.map(c=>collChip(c,'data-vscoll')).join(''):'')
+    +`<button type="button" class="catchip coll-new" data-vscollnew>${uiIcon('plus',14,{sw:2.4})}Nouvelle collection</button></div></div>`;}
 function catChipsHtml(){
   return `<button class="catchip${!state.cat?' on':''}" data-cat="">Toutes</button>`
     +catsUtilesAll().map(c=>catChipHtml(c,state.cat===catKey(c),'catchip','data-cat')).join('');}
@@ -14689,6 +14740,75 @@ function hsRow(o){const actIn=!!o.act&&!/^<button/.test(o.act),tin=(!o.act||actI
     +`<button class="hs-row" ${o.attrs||''}><span class="hs-mk">${o.mark||''}</span>`
     +`<span class="hs-name">${o.label}</span>${actIn?o.act:''}${tin}</button>${actIn?'':(o.act||'')}${tin?'':(o.tail||'')}</div>`;}
 const HS_RING='<span class="hs-ring"></span>';
+/* ══ COLLECTIONS À L'ACCUEIL (A475) ══ « Ajouter à une collection… » : des CASES (une aide peut être dans
+   plusieurs), effet immédiat, rien n'est déplacé — la notice le dit. Tiret = sélection rangée en partie. */
+const collIc=c=>c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',14,{sw:2.2});
+/* « aussi dans … » sous une rangée, dans une collection ouverte : la même aide vit ailleurs, sans copie. */
+function collAlsoHtml(id){if(!state.coll)return '';const a=collsOf(id).filter(c=>c.id!==state.coll);
+  return a.length?`<span class="dir-also">${uiIcon('bookmark',12,{sw:2.4})}aussi dans ${esc(collsLbl(a))}</span>`:'';}
+async function collAsk(title,value){return confirmDlg('Nom de la collection',{title,yes:title==='Renommer'?'Renommer':'Créer',input:{value:value||'',placeholder:'Ex. Garde SMUR'}});}
+/* La rangée du menu ⋯ : active même en lecture seule (« Modifier » grisé juste au-dessus) — la preuve par le geste. */
+const collMenuRow=x=>({label:'Ajouter à une collection…',ic:uiIcon('bookmark',16),
+  get sub(){const a=collsOf(x.id);return a.length?'dans '+collsLbl(a):'votre rangement, à vous seul';},   // lue à l'ouverture du menu
+  act:()=>openCollPick([x.id],{trigger:document.getElementById('hdrMore'),redo:()=>{}})});
+function openCollPick(ids,o){o=o||{};if(!ids.length)return;
+  const all=(fiches||[]).concat(protocols||[]);
+  const ents=ids.map(id=>all.find(x=>x&&x.id===id)).filter(Boolean),n=ids.length;
+  const st=cid=>{const k=ids.filter(id=>collHas(cid,id)).length;return k===0?'false':(k===n?'true':'mixed');};
+  const libs=[...new Set(ents.map(x=>x.library||null))].map(impLibName);
+  const redo=o.redo||(()=>{if(state.view==='library')renderLibrary();});
+  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:true,multi:true,trigger:o.trigger,back:o.back,
+    options:[{val:COLL_PIN,name:'Accès direct',sub:'les tuiles en tête de l’accueil',on:st(COLL_PIN)}]
+      .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id)}))),
+    head:`<b>${esc(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))}</b><span>${esc(libs.join(' · '))}</span>`
+      +`<div class="notice">${uiIcon('bookmark',15)}<div>${esc('Vos collections sont à vous seul. '+(libs.length===1?(n===1?'L’élément reste':'Les éléments restent')+' dans '+libs[0]:'Chaque élément reste dans sa bibliothèque')+' : seul votre rangement change.')}</div></div>`,
+    onToggle:(cid,cur)=>{collSet(cid,ids,cur!=='true');return st(cid);},
+    done:'Terminé',onClose:redo,
+    action:{label:'＋ Nouvelle collection…',fn:async()=>{const name=await collAsk('Nouvelle collection');if(!name)return;
+      const c=collNew(name,ids);toast('Collection « '+c.name+' » créée avec '+nb(ids.length,'élément')+'.');redo();}}});}
+/* Choisir une collection = poser le filtre (re-tap = le retirer) ; « + » la crée vide et la montre. */
+function collSel(id){state.coll=(id&&state.coll!==id)?id:null;state.libLimit=LIB_PAGE;if(homeTab()!=='aides')state.homeTab='aides';}
+async function collCreateShow(){const name=await collAsk('Nouvelle collection');if(!name)return;
+  const c=collNew(name,[]);collSel(c.id);render();toast('Collection « '+c.name+' » créée — ajoutez-y des aides par « Ajouter des aides ».');}
+/* L'en-tête d'une collection ouverte : ce qu'elle est (à vous seul), d'où vient son contenu, et ses gestes. */
+function collHeadHtml(){const c=collById(state.coll);if(!c)return '';
+  const it=collItems(c),perdus=c.ids.length-it.length,nl=new Set(it.map(x=>x.library||'')).size;
+  return `<div class="coll-head"><div class="coll-ht"><span class="coll-k">${collIc(c)}${c.id===COLL_PIN?'Accès direct · à vous seul':'Collection · à vous seul'}</span>`
+    +`<h2 class="coll-t">${esc(c.name)}</h2><span class="coll-s">${esc(nb(it.length,'élément')+(nl>1?' venus de '+nl+' bibliothèques':'')+' — rien n’a été déplacé'+(perdus?' · '+nb(perdus,'indisponible'):''))}</span></div>`
+    +`<div class="coll-acts"><button type="button" class="rang-btn" data-colladd>${uiIcon('plus',16,{sw:2.4})}Ajouter des aides</button>`
+    +(c.id===COLL_PIN?'':`<button type="button" class="rang-btn coll-more" data-collmenu aria-haspopup="listbox" aria-label="Gérer la collection « ${esc(c.name)} »">⋯</button>`)+`</div></div>`;}
+/* « Ajouter des aides » : la même feuille à cases, sur TOUT ce que l'accueil montre (filtre « Filtrer… » dès 9). */
+function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
+  const vis=homeVis().slice().sort(byTitle);
+  openPickMenu(document.body,{aria:'Ajouter des aides à '+c.name,sheet:true,multi:true,trigger,
+    options:vis.map(x=>({val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),sub:(protocols.indexOf(x)>=0?'Protocole':'Aide')+' · '+impLibName(x.library||null),on:collHas(c.id,x.id)?'true':'false'})),
+    head:`<b>${esc(c.name)}</b><span>${esc('Cochez ce qui doit y être · rien n’est déplacé')}</span>`,
+    onToggle:(id,cur)=>{collSet(c.id,[id],cur!=='true');return collHas(c.id,id)?'true':'false';},
+    done:'Terminé',onClose:()=>render()});}
+function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_PIN)return;
+  const perdus=c.ids.length-collItems(c).length;
+  openPickMenu(trigger.parentNode,{aria:'Gérer la collection',trigger,
+    options:[{val:'ren',name:'Renommer…',ic:uiIcon('pen',18)}]
+      .concat(perdus?[{val:'clean',name:'Retirer les indisponibles',sub:nb(perdus,'élément')+' supprimé'+(perdus>1?'s':'')+' ou dont l’accès a été retiré',ic:uiIcon('undo',18)}]:[])
+      .concat([{val:'del',name:'Supprimer la collection…',sub:'les aides restent où elles sont',ic:uiIcon('trash',18),danger:true}]),
+    onPick:async v=>{
+      if(v==='ren'){const name=await collAsk('Renommer',c.name);if(name){c.name=sstr(name,60);collsSave();render();}}
+      else if(v==='clean'){const ok=new Set(collItems(c).map(x=>x.id));c.ids=c.ids.filter(id=>ok.has(id));collsSave();render();}
+      else if(v==='del'&&await confirmDlg('La collection « '+c.name+' » disparaît ; ses '+nb(collItems(c).length,'élément')+' restent dans leurs bibliothèques.',{title:'Supprimer la collection ?',yes:'Supprimer',danger:true})){
+        colls=colls.filter(x=>x!==c);collsSave();state.coll=null;render();toast('Collection supprimée — aucune aide n’a été touchée.');}}});}
+/* Au téléphone : une RANGÉE de collections sous l'Accès direct (même dessin que les puces de catégorie), et
+   au bureau une section de la colonne gauche. Absente tant qu'il n'y en a aucune : la porte est « Ajouter à une collection… ». */
+function collChip(c,attr){const on=state.coll===c.id;
+  return `<button type="button" class="catchip coll-chip${on?' on':''}" ${attr}="${esc(c.id)}" aria-pressed="${on?'true':'false'}">${collIc(c)}${esc(c.name)}<span class="coll-n">${collItems(c).length}</span></button>`;}
+function collRailHtml(){if(!colls.length)return '';
+  return `<div class="coll-rail"><div class="dir-h"><b>Mes collections</b><span class="dir-hs">à vous seul</span></div>`
+    +`<div class="chiprow" role="group" aria-label="Mes collections">${colls.map(c=>collChip(c,'data-collsel')).join('')}`
+    +`<button type="button" class="catchip coll-new" data-collnew aria-label="Nouvelle collection">${uiIcon('plus',14,{sw:2.4})}</button></div></div>`;}
+function collSideHtml(){const num=n=>`<span class="hs-n">${n}</span>`;
+  return `<div class="hs-h">Mes collections<span class="hs-hs">à vous seul</span></div>`
+    +[collById(COLL_PIN)].concat(colls).map(c=>hsRow({on:state.coll===c.id,label:esc(c.name),tail:num(collItems(c).length),
+      mark:collIc(c),attrs:`data-collsel="${esc(c.id)}" aria-pressed="${state.coll===c.id?'true':'false'}"`})).join('')
+    +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'})+`<div class="hs-sep"></div>`;}
 /* Ce que l'accueil peut montrer (brouillons d'autrui exclus) — la colonne gauche et la feuille « Affichage » comptent ici. */
 const homeVis=()=>(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
 function homeSideHtml(){
@@ -14770,6 +14890,7 @@ function homeSideHtml(){
       <div class="hs-sep"></div>
     </div>
     <div class="hs-scroll">
+      ${collSideHtml()}
       <div class="hs-h hs-h-stick">Catégories${catMgrOn()?'<button type="button" class="hs-lnk" data-catmgr aria-haspopup="dialog" aria-label="Gérer les catégories">Gérer</button>':''}</div>${catAll}${catIdx}
     </div>
     <div class="hs-foot"><div class="hs-sep"></div></div>
@@ -14959,7 +15080,11 @@ function bindHomeChrome(rerender){
   qsa('[data-navaides]').forEach(b=>b.onclick=()=>setHomeTab('aides'));
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
   qsa('[data-navme]').forEach(b=>b.onclick=()=>openAuth());
-  qsa('[data-libmgr]').forEach(b=>b.onclick=openLibMgr);   // A389 : même patron que « Gérer » des catégories
+  qsa('[data-libmgr]').forEach(b=>b.onclick=openLibMgr);
+  qsa('[data-collsel]').forEach(b=>b.onclick=()=>{collSel(b.dataset.collsel);rr();});
+  qsa('[data-collnew]').forEach(b=>b.onclick=collCreateShow);
+  qsa('[data-colladd]').forEach(b=>b.onclick=()=>openCollAdd(b));
+  qsa('[data-collmenu]').forEach(b=>b.onclick=()=>openCollMenu(b));   // A389 : même patron que « Gérer » des catégories
   /* REJOINDRE SANS CODE NI RÉSEAU (v5.14.2, signalé à l'usage : « impossible de rejoindre —
      la fenêtre exige un code ou un lien, donc internet »). L'écran d'entrée devient joignable
      d'un geste depuis l'accueil : c'est LUI qui porte « Scanner le code de l'hôte » et
@@ -15320,17 +15445,17 @@ function selBarHtml(){
     <span class="sel-n" id="selN" role="status">${esc(cpt+motif)}</span>${n?`
     <button type="button" class="btn sm primary sel-do" id="selDo" aria-haspopup="listbox" aria-expanded="false">Actions${uiIcon('chev',11,{sw:2.4})}</button>
     <span class="sel-acts">
+      <button type="button" class="btn sm" id="selCol" aria-label="${esc(SEL_ACTES.col)}">${uiIcon('bookmark',18)}Collection…</button>
       <button type="button" class="btn sm" id="selLib" aria-label="${esc(SEL_ACTES.lib)}">${uiIcon('book',18)}Bibliothèque…</button>
       <button type="button" class="btn sm" id="selCat" aria-label="${esc(SEL_ACTES.cat)}">${uiIcon('tag',18)}Catégorie…</button>
       <button type="button" class="btn sm" id="selExp" aria-label="${esc(SEL_ACTES.exp)}">${uiIcon('download',18)}Exporter…</button>
       <button type="button" class="btn sm danger" id="selDel" aria-label="${esc(selDelLabel(n))}">${uiIcon('trash',18)}Supprimer…</button>
-      <span class="sel-sep" aria-hidden="true"></span>
     </span>`:''}
-    <button type="button" class="btn sm sel-x" id="selCancel" aria-label="Quitter la sélection"><span class="sel-lbl">Annuler</span><span class="sel-g" aria-hidden="true">\u00d7</span></button>
+    <button type="button" class="btn sm sel-x" id="selCancel" aria-label="Quitter la sélection"><span class="sel-g" aria-hidden="true">\u00d7</span></button>
   </div>`;}
 /* Les intitulés LONGS — ceux de la feuille, et le seul nom accessible de chaque acte. Écrits une
    fois : la barre les reprend en `aria-label` sur ses libellés courts, le tiroir les affiche. */
-const SEL_ACTES={lib:'Déplacer vers une bibliothèque…',cat:'Ranger dans une catégorie…',exp:'Exporter la sélection…'};
+const SEL_ACTES={col:'Ajouter à une collection…',lib:'Déplacer vers une bibliothèque…',cat:'Ranger dans une catégorie…',exp:'Exporter la sélection…'};
 const selDelLabel=n=>'Supprimer '+(n>1?('les '+n+' éléments'):'l\'élément')+'…';
 /* « 3 cochés · deux bibliothèques » — le mot, pas le chiffre : deux nombres collés (« 3 · 2 »)
    se lisent comme un seul. Au-delà de neuf on retombe sur le chiffre, qui reste exact. */
@@ -15348,7 +15473,9 @@ function openSelActs(trigger){
   const ent=selEnt(),n=ent.length;if(!n)return;
   const libs=[...new Set(ent.map(e=>e.o.library||null))];
   const lib=libs.length===1?libs[0]:null;
-  const opts=[{val:'selLib',name:SEL_ACTES.lib,ic:uiIcon('book',20),sub:'choisir la bibliothèque de destination',chev:true}];
+  /* A475 : le rangement personnel d'abord — il ne déplace rien ; la bibliothèque, elle, change qui y a accès. */
+  const opts=[{val:'selCol',name:SEL_ACTES.col,ic:uiIcon('bookmark',20),sub:'votre rangement, à vous seul · rien n’est déplacé',chev:true},
+    {val:'selLib',name:SEL_ACTES.lib,ic:uiIcon('book',20),sub:'change qui y a accès',chev:true}];
   opts.push({val:'selCat',name:SEL_ACTES.cat,ic:uiIcon('tag',20),chev:true,
     sub:libs.length>1?'par nom, dans la bibliothèque de chacun':'choisir la catégorie'});   // A424
   opts.push({val:'selExp',name:SEL_ACTES.exp,ic:uiIcon('download',20),sub:'un seul fichier, réimportable (.json ou .zip)'});   // A392
@@ -15370,6 +15497,16 @@ async function selWrite(ent){for(const e of ent){e.o.updatedAt=Date.now();
    la destination a la même (c'est le geste attendu : « je range ces fiches ailleurs, mêmes
    rayons »), et on la vide seulement à défaut — jamais on ne CRÉE de catégorie ici, un
    déplacement n'est pas un import. */
+/* Le cœur du déplacement (sélection, conversion en collection — A475) : la catégorie suit PAR SON NOM, sinon
+   elle est retirée ; rend le nombre de catégories perdues. Les confirmations restent à l'appelant. */
+async function entsMoveLib(ent,lib){let perdues=0;
+  ent.forEach(e=>{
+    if((e.o.library||null)===lib)return;
+    const av=e.o.category?categories.find(c=>c.id===e.o.category&&catScope(c)===(e.o.library||null)):null;
+    e.o.library=lib||null;
+    if(av){const eq=catNamed(lib,av.name);e.o.category=eq?eq.id:'';if(!eq)perdues++;}
+    else e.o.category='';});
+  await selWrite(ent);return perdues;}
 async function selMoveLib(lib,redo){
   const ent=selEnt();if(!ent.length)return;
   const sortants=ent.filter(e=>(e.o.library||null)&&(e.o.library||null)!==lib);
@@ -15382,14 +15519,7 @@ async function selMoveLib(lib,redo){
   if(!entrants.length&&sortants.length&&!await confirmDlg(
     sortants.length+' élément'+(sortants.length>1?'s vont':' va')+' quitter une bibliothèque partagée : les autres membres n\'y auront plus accès. Prévenez-les avant si besoin.',
     {title:'Retirer de la bibliothèque partagée',yes:'Déplacer',danger:true}))return;
-  let perdues=0;
-  ent.forEach(e=>{
-    if((e.o.library||null)===lib)return;
-    const av=e.o.category?categories.find(c=>c.id===e.o.category&&catScope(c)===(e.o.library||null)):null;
-    e.o.library=lib||null;
-    if(av){const eq=catNamed(lib,av.name);e.o.category=eq?eq.id:'';if(!eq)perdues++;}
-    else e.o.category='';});
-  await selWrite(ent);
+  const perdues=await entsMoveLib(ent,lib);
   /* ⚠ LA DESTINATION DEVIENT LA VUE — via `homeLib`, pas `scope` : depuis la v5.18 la colonne
      gauche filtre par `state.homeLib`, et cette ligne écrivait encore l'ancien `state.scope` que
      l'accueil ne lit plus. Le défaut qu'elle prévenait était donc revenu (mesuré : 2 rangées → 0).
@@ -15512,6 +15642,7 @@ function bindSelBar(cfg){
       value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'';})(),
       onPick:v=>selMoveLib(v||null,redo)});}
   {const b=document.getElementById('selCat');if(b)b.onclick=()=>openSelCat(b,redo);}
+  {const b=document.getElementById('selCol');if(b)b.onclick=()=>openCollPick(selEnt().map(e=>e.o.id),{trigger:selTrig(b),back:selBack(),redo});}
   {const b=document.getElementById('selDel');if(b)b.onclick=()=>selDelete(redo);}
   {const b=document.getElementById('selExp');if(b)b.onclick=selExport;}
   bindSelLongPress(cfg);}
@@ -15595,13 +15726,13 @@ function renderHomeList(cfg){
      filtre sans résultat ou lecture seule = `.empty` ordinaire sans bouton (« Aucun résultat »).
      `empty.anon`/`empty.libEdit`/`empty.cta` PURGÉS avec `#emptyNew` (règle 14).
      Détail : doctrine-js.md J87. */
-  const dansFiltre=!!(state.q||state.cat);
+  const dansFiltre=!!(state.q||state.cat||state.coll);
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
   const emptyHtml=introK.length
     ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
       +(introK.length>1?emptyIntroBothHtml():introK.map(emptyIntroHtml).join(''))
     :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
-        dansFiltre?(state.q?'Rien ne correspond à cette recherche.':'Rien ne correspond à ce filtre.')
+        dansFiltre?(state.q?'Rien ne correspond à cette recherche.':(state.coll&&!state.cat?'Cette collection est vide : « Ajouter des aides » la remplit, sans rien déplacer.':'Rien ne correspond à ce filtre.'))
                   :cfg.empty.libRead}</div>`;
   let listHtml,railHtml='';
   if(q){
@@ -15656,8 +15787,9 @@ function renderHomeList(cfg){
       /* v5.18 (A261, décision utilisateur sur capture) : l'accès direct est en TUILES à toutes
          les largeurs — plusieurs par ligne dès que la place le permet ; les fiches restent
          AUSSI dans le répertoire (un raccourci ne déménage rien). */
-      (tiles.length&&!state.selOn?`<div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">${tiles.length} épinglée${tiles.length>1?'s':''}</span></div>
+      (tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">${tiles.length} épinglée${tiles.length>1?'s':''}</span></div>
         <div class="qa-grid">${tiles.map(cfg.tile).join('')}</div></div>`:'')
+      +(!wide&&!state.selOn?collRailHtml():'')+(state.selOn?'':collHeadHtml())
       /* v5.19.1 (signalé à l'usage) : en voie ÉTROITE, « Rangé par » et « Sélectionner » passent
          SOUS l'intertitre « Répertoire » — ils gouvernent cette liste, ils ne la précèdent pas.
          En large ils vivent déjà DANS la rangée du titre (`desk`), rien n'y change. */
@@ -15669,7 +15801,7 @@ function renderHomeList(cfg){
       +`<div class="dir-book${state.homeCompact?' compact':''}">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
       +`</div>`
-      :((state.selOn?'':filtersBarHtml())+emptyHtml)}</div>`;   /* A429 : « aucun résultat » est justement là où l'on retire un filtre */
+      :((!wide&&!state.selOn?collRailHtml():'')+(state.selOn?'':collHeadHtml()+filtersBarHtml())+emptyHtml)}</div>`;   /* A429 : « aucun résultat » est justement là où l'on retire un filtre */
     /* Le rail n'indexe que l'ALPHABET (v5.18) : en rangement bibliothèque ou catégories, les
        intertitres collants orientent déjà — et en voie large c'est la colonne gauche qui indexe. */
     if(gk==='az'&&list.length&&az.length>=2)railHtml=`<nav class="azrail" id="azRail" aria-label="Aller à la lettre">${az.map(g=>`<button type="button" data-azl="${esc(g.L)}" aria-label="Aller à ${esc(g.L)}" title="${esc(g.L)}">${esc(g.L)}</button>`).join('')}</nav>`;
@@ -15770,7 +15902,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     /* v5.18 : UNION des bibliothèques (le rangement fait les sections) ; brouillon visible si
        l'on peut éditer SA bibliothèque (par fiche) ; le cran catégorie agit partout, par nom. */
     list:(q)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      const ok=f=>homeLibOn(f)&&catFilterOn(f)&&(canEditFiche(f)||f.status!=='draft')&&(!q||hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T));
+      const ok=f=>homeLibOn(f)&&catFilterOn(f)&&collOn(f)&&(canEditFiche(f)||f.status!=='draft')&&(!q||hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T));
       return fiches.slice().sort(homeCmp(sc)).filter(ok);},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session, chrono vivant (tickAll), « Reprendre »
     // plein, « Terminer » en texte rouge (destructif : jamais plein, jamais premier). En mode
@@ -15807,7 +15939,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         ${selCkHtml(f)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
-          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${searchLibTag(f)}</span>${dirStateHtml(f,true,isLive)}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
         </div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${esc(f.id)}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
@@ -15888,7 +16020,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     /* Même règle que pour les aides : un cran posé agit aussi en recherche (v5.6). */
     /* v5.18 : même règle que les aides — union, brouillons par item, catégorie par nom. */
     list:(q)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      const ok=p=>homeLibOn(p)&&catFilterOn(p)&&(canEditFiche(p)||p.status!=='draft')&&(!q||hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T));
+      const ok=p=>homeLibOn(p)&&catFilterOn(p)&&collOn(p)&&(canEditFiche(p)||p.status!=='draft')&&(!q||hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T));
       return protocols.slice().sort(homeCmp(sc)).filter(ok);},
     /* Même rangée que les fiches (un seul langage sur tout l'accueil) ; « n PDF » reste — c'est
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
@@ -15898,7 +16030,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
         ${selCkHtml(p)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(p.id)}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
-          <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}</span>${dirStateHtml(p,false,false)}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}${collAlsoHtml(p.id)}</span>${dirStateHtml(p,false,false)}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q)+docSnipHtml(p):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${esc(p.id)}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
@@ -16460,6 +16592,7 @@ function renderProtocolRead(){
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page.
   if(!preview)setMoreMenu([
     {label:'Modifier',ic:uiIcon('pen',16),sub:canEditFiche(p)?'hors urgence':'lecture seule',disabled:!canEditFiche(p),act:()=>openProtocolEdit(p.id)},
+    collMenuRow(p),
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',p)},
     {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(p)},
@@ -17250,6 +17383,9 @@ function openPickMenu(host,opts){
   const O=opts.options||[],val=String(opts.value==null?'':opts.value),trigger=opts.trigger;
   const row=o=>{if(o.head)return `<div class="mm-head" role="presentation">${esc(o.head)}${o.n?`<span class="mm-head-n">${esc(o.n)}</span>`:''}</div>`;   // intertitre (A424)
     const v=String(o.val==null?'':o.val),sel=v===val;
+    // `multi` (A475) : des CASES — plusieurs choix, la feuille reste ouverte ; `o.on` = 'true' · 'false' · 'mixed'.
+    if(opts.multi)return menuRowHtml({label:o.name,sub:o.sub,ic:`<span class="mm-box">${uiIcon('check',14,{sw:3})}</span>`,
+      attrs:`role="menuitemcheckbox" aria-checked="${esc(o.on||'false')}" data-pickopt="${esc(v)}"`});
     return menuRowHtml({label:o.name,sub:o.sub,ic:o.ic,dot:!o.ic&&o.dot!==false,col:o.col,danger:o.danger,
       attrs:`role="option" aria-selected="${sel?'true':'false'}" data-pickopt="${esc(v)}"${o.tt?` title="${esc(o.tt)}"`:''}`,
       tail:(sel?`<span class="mm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:'')+(o.chev?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:'')});};
@@ -17257,10 +17393,11 @@ function openPickMenu(host,opts){
   // ancré) ou par la largeur — le seuil de la feuille de style d'hier, à l'identique.
   // `up` (v5.48.6) : ancré au-dessus de son hôte, jamais en feuille (la feuille basse vivrait sous le clavier).
   const sheet=!opts.up&&(!!opts.sheet||window.innerWidth<780);
-  const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'');menu.setAttribute('role','listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
+  const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'');menu.setAttribute('role',opts.multi?'menu':'listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
   menu.innerHTML=`<div class="popmenu-head">${opts.back?menuRowHtml({label:opts.back.label,sub:opts.back.sub,ic:uiIcon('backto',18),attrs:'data-pickback'}):''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
     +O.map(row).join('')
-    +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'');
+    +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
+    +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
   const veil=document.createElement('div');veil.className='popmenu-veil'+(sheet?' sheet':'');
   /* ⚠ UNE FEUILLE SE MONTE SUR `<body>`, JAMAIS DANS SON DÉCLENCHEUR (signalé à l'usage : « les
      sélecteurs Ranger et Déplacer s'affichent mal lorsqu'il y a la sidebar » ; « sur écrans moins
@@ -17285,7 +17422,8 @@ function openPickMenu(host,opts){
   const close=(refocus)=>{menu.remove();veil.remove();document.removeEventListener('pointerdown',out,true);document.removeEventListener('keydown',keys,true);
     marques.forEach(b=>{if(document.contains(b))b.setAttribute('aria-expanded','false');});
     if(_pickClose===close)_pickClose=null;
-    if(refocus&&trigger&&document.contains(trigger))trigger.focus();};
+    if(refocus&&trigger&&document.contains(trigger))trigger.focus();
+    if(opts.onClose)opts.onClose();};
   _pickClose=close;
   const out=e=>{if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
   const rows=()=>[...menu.querySelectorAll('.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none');
@@ -17298,7 +17436,10 @@ function openPickMenu(host,opts){
     r[(i+(e.key==='ArrowDown'?1:-1)+r.length)%r.length].focus();};
   document.addEventListener('pointerdown',out,true);
   document.addEventListener('keydown',keys,true);
-  menu.querySelectorAll('[data-pickopt]').forEach(b=>b.onclick=()=>{const v=b.dataset.pickopt;close(false);opts.onPick(v);});
+  menu.querySelectorAll('[data-pickopt]').forEach(b=>b.onclick=()=>{const v=b.dataset.pickopt;
+    if(opts.multi){b.setAttribute('aria-checked',opts.onToggle(v,b.getAttribute('aria-checked')));return;}
+    close(false);opts.onPick(v);});
+  {const d=menu.querySelector('[data-pickdone]');if(d)d.onclick=()=>close(true);}
   if(opts.action){const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);opts.action.fn();};}
   {const bk=menu.querySelector('[data-pickback]');if(bk)bk.onclick=()=>{close(false);opts.back.fn();};}   // v5.30.1 : « ‹ Actions », pour jongler entre les sous-feuilles
   const fl=menu.querySelector('.catmenu-filter');
@@ -17523,6 +17664,8 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   palette:'<path d="M12 3a9 9 0 100 18c1.2 0 2-.9 2-2 0-.6-.3-1-.5-1.4-.3-.5-.3-1.2.2-1.6.4-.3.9-.5 1.4-.5H17a4 4 0 004-4c0-4.8-4-8.5-9-8.5z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/>',
   doc:DOC_GLYPH,img:IMG_GLYPH,
   book:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/>',
+  // Signet (v5.50, A475) : une COLLECTION — le rangement personnel, distinct du livre de la bibliothèque.
+  bookmark:'<path d="M6 3.5h12v17l-6-4-6 4z"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>',
   list:'<path d="M4 6h16M4 12h16M4 18h16"/>',
   /* `table` — la Page. MÊME TRACÉ que le bouton « Tableau » de la barre markdown : un second
@@ -20559,6 +20702,7 @@ function bindReadEvents(f,blk,cur){
   const aideRows=[
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
+    collMenuRow(f),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
     {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(f)},
     'sep',
@@ -26976,7 +27120,7 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
   // Deux BLOCS encadrés, chacun son titre et son icône DEDANS : ce qui restreint, puis ce qui range.
   const part=(id,ic,t,tail,inner)=>`<section class="vs-sec" aria-labelledby="${id}"><div class="vs-part"><span class="vs-pic" aria-hidden="true">${uiIcon(ic,16)}</span><h4 class="vs-pt" id="${id}">${t}</h4>${tail}</div>${inner}</section>`;
   body.innerHTML=part('vsp-f','filter','Filtrer','<span class="vs-pn" id="vsN"></span><button type="button" class="linkbtn" id="viewSheetClear">Tout effacer</button>',
-      seg(G[0])+libChipsHtml()+`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`)
+      seg(G[0])+collChipsHtml()+libChipsHtml()+`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`)
     +part('vsp-p','ladder','Présenter','',G.slice(1).map(seg).join(''))
     +((!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories'}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
   /* « Tout effacer » remet les familles de FILTRE à leur cran neutre d'un geste ; il ne paraît que s'il y a à effacer. */
@@ -26991,6 +27135,9 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
     else if(k==='group')setHomeGroup(v);
     else if(k==='dens')setHomePref('homeCompact',v==='1');
     viewSheetRedo();paintViewFoot();});
+  body.querySelectorAll('[data-vscoll]').forEach(x=>x.onclick=()=>{const v=x.dataset.vscoll;if(v==='')state.coll=null;else collSel(v);
+    viewSheetRedo();paintViewSheet();});
+  {const nw=body.querySelector('[data-vscollnew]');if(nw)nw.onclick=()=>{closeViewSheet();collCreateShow();};}
   /* A428 : filtrer par bibliothèque au téléphone et à la tablette — le cran de la colonne gauche (`state.homeLib`). */
   body.querySelectorAll('[data-vslib]').forEach(x=>x.onclick=()=>{const v=x.dataset.vslib;
     state.homeLib=v==='*'?null:v;state.libLimit=LIB_PAGE;viewSheetRedo();paintViewSheet();});
@@ -28025,7 +28172,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-held-edits','ac-att-del','ac-section'];
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -28328,18 +28475,25 @@ function acctLibsHtml(){
   const cnt=id=>(fiches||[]).filter(f=>!f.deletedAt&&(f.library||null)===id).length+(protocols||[]).filter(x=>!x.deletedAt&&(x.library||null)===id).length;
   const n=v=>`${v} élément${v>1?'s':''}`;
   const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
-  const rows=[menuRowHtml({label:'Perso',sub:'votre bibliothèque · '+n(cnt(null)),ic:uiIcon('user',20),inert:true})]
+  const rows=[menuRowHtml({label:'Perso',sub:'vous seul · '+n(cnt(null)),ic:uiIcon('user',20),inert:true})]
     .concat(sortedLibraries().map(l=>{const admin=l.role==='admin'||myIsAppAdmin;
       return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),inert:!admin,
         attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:'',tail:admin?chev:''});}));
-  return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques</div><div class="acct-card acct-list">${rows.join('')}${myIsAppAdmin?`<button type="button" class="catmenu-new" data-newlib>＋ Nouvelle bibliothèque</button>`:''}</div></div>`;}
+  return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques <span class="acct-hs">où vivent les aides, et qui y a accès</span></div><div class="acct-card acct-list">${rows.join('')}${myIsAppAdmin?`<button type="button" class="catmenu-new" data-newlib>＋ Nouvelle bibliothèque</button>`:''}</div></div>`;}
+/* A475 : MES COLLECTIONS dans Moi, connecté ou non (elles vivent sur l'appareil, et suivent le compte s'il y en a un).
+   Une rangée mène à la collection depuis l'accueil ; ailleurs elle informe (on ne quitte pas une aide ouverte par Moi). */
+function acctCollsHtml(){const go=state.view==='library';
+  const rows=[collById(COLL_PIN)].concat(colls).map(c=>menuRowHtml({label:c.name,sub:(c.id===COLL_PIN?'les tuiles de l’accueil · ':'')+nb(collItems(c).length,'élément'),
+    ic:c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',20),inert:!go,attrs:go?`data-collgo="${esc(c.id)}"`:'',tail:go?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:''}));
+  return `<div class="acct-zone" id="acctColls"><div class="auth-stats-h">Mes collections <span class="acct-hs">votre rangement, à vous seul</span></div><div class="acct-card acct-list">${rows.join('')}`
+    +`<button type="button" class="catmenu-new" data-collnew>＋ Nouvelle collection</button></div></div>`;}
 function accountPrefsHtml(slot){
   // Zone « CET APPAREIL », identique dans les deux états (repères stables — audit v4.5) :
   // état des données -> [action sur ces données, si fournie] -> préférence d'affichage.
   const z=currentZoom();
   const nl=myLibraries.length+1; // + Perso
   const HINT={90:'S · 90 %',100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
-  return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
+  return `${acctCollsHtml()}<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <div class="acct-card"><p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${''/* Un SEUL conteneur pour les trois boutons : deux `.auth-actions` collés donnaient 0 px entre « Exporter
        mes données » et « Prendre en main », 12 entre les deux suivants (signalé). */}
@@ -28430,6 +28584,10 @@ function bindTagsPref(body){
     setTimeout(()=>{const ins=document.querySelectorAll('#authModal [data-tgl]');
       const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
+  body.querySelectorAll('[data-collgo]').forEach(b=>b.onclick=()=>{if(authModal.classList.contains('on'))closeAuth();
+    state.coll=b.dataset.collgo;state.libLimit=LIB_PAGE;state.homeTab='aides';render();});
+  body.querySelectorAll('#acctColls [data-collnew]').forEach(b=>b.onclick=async()=>{if(authModal.classList.contains('on'))closeAuth();
+    if(state.view==='library')state.homeTab='aides';await collCreateShow();});
   {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}
   {const w=body.querySelector('#acctGuide');if(w)w.onclick=openGuide;}   // A466 : gestes, glossaire, et « Revoir l'accueil » (A460)   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
@@ -28635,7 +28793,8 @@ const GUIDE_GESTES=[
 const GLOSSAIRE=[
   ['Aide','Un parcours à cocher, bloc par bloc, en situation réelle ou en exercice.'],
   ['Protocole','Un texte de référence à lire : posologies, procédures, consignes. Il ne se coche pas.'],
-  ['Bibliothèque','Un ensemble d’aides et de protocoles, personnel (« Perso ») ou partagé avec une équipe.'],
+  ['Bibliothèque','Là où vivent les aides et les protocoles, et qui y a accès : « Perso » (vous seul) ou partagée avec une équipe.'],
+  ['Collection','Votre rangement, à vous seul : une liste d’aides venues de n’importe quelle bibliothèque. Rien n’est copié ni déplacé, et une aide peut être dans plusieurs.'],
   ['Catégorie','Le rangement d’une aide (SMUR, Urgences…), avec sa couleur.'],
   ['Session','Le déroulé réel d’une aide : chrono, minuteurs, coches horodatées, compte rendu.'],
   ['Exercice','Une session de répétition, sans patient, marquée « Exercice » partout.'],
@@ -29450,6 +29609,7 @@ async function reassignFicheId(f){
     // Épingles rangées dans le document de catégories PERSO -> à pousser.
     try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
     markPrefsDirty();}
+  colls.forEach(c=>{const k=c.ids.indexOf(oldId);if(k>=0){c.ids[k]=f.id;collsSave();}});
   for(const s of sessions.filter(s=>s.ficheId===oldId)){s.ficheId=f.id;_putSessionSafe(s);}
   try{for(const b of await Data.getBackups(oldId)){await Data.delBackup(b.bid);b.ficheId=f.id;await Data.putBackup(b);}}catch(e){}
   if(liveSessions[oldId]){liveSessions[f.id]=liveSessions[oldId];delete liveSessions[oldId];liveSessions[f.id].ficheId=f.id;liveSessions[f.id].fiche=f;}
@@ -29466,7 +29626,7 @@ async function reassignFicheId(f){
    liée à l'action, ex. « effacer aussi les fiches locales »). Dans ce mode SEULEMENT, la promesse
    se résout avec un OBJET `{checked}` sur validation (et null sur abandon) — les appelants sans
    `opts.check` gardent le retour booléen habituel (rétrocompatibilité de l'idiome ci-dessus). */
-let _confirmRes=null,_confirmCheck=false;
+let _confirmRes=null,_confirmCheck=false,_confirmInput=false;
 function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
   if(_confirmRes)_confirmRes(null);            // une seule confirmation à la fois
   _confirmRes=res;_confirmCheck=!!opts.check;
@@ -29492,12 +29652,20 @@ function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
     const upd=()=>{y.className='btn '+((opts.danger||(cb.checked&&!opts.checkSafe))?'danger':'primary');
       if(opts.checkRequired)y.disabled=!cb.checked;};cb.onchange=upd;upd();
   }else{row.hidden=true;cb.onchange=null;y.disabled=false;y.className='btn '+(opts.danger?'danger':'primary');}
+  /* `input` (A475) : un NOM à saisir (collection) — même fenêtre ; valider rend le texte, vide = bouton fermé. */
+  {const inp=document.getElementById('confirmInput');_confirmInput=!!opts.input;inp.hidden=!opts.input;
+   inp.toggleAttribute('data-dlgfocus',!!opts.input);
+   if(opts.input){y.removeAttribute('data-dlgfocus');no.removeAttribute('data-dlgfocus');
+     inp.value=opts.input.value||'';inp.placeholder=opts.input.placeholder||'';
+     const upd=()=>{y.disabled=!inp.value.trim();};inp.oninput=upd;upd();
+     inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&inp.value.trim()){e.preventDefault();_confirmEnd(true);}};}}
   confirmModal.classList.add('on');});}
 // Résolution : en mode case à cocher, `true` (validation) -> {checked}, tout le reste -> null ;
 // sinon on transmet la valeur brute (true/false/null).
 function _confirmEnd(v){confirmModal.classList.remove('on');
   document.getElementById('confirmYes').disabled=false;   // le verrou `checkRequired` ne survit pas à la fenêtre
   const r=_confirmRes;_confirmRes=null;if(!r)return;
+  if(_confirmInput){r(v===true?document.getElementById('confirmInput').value.trim():null);return;}
   r(_confirmCheck?(v===true?{checked:!!document.getElementById('confirmCheck').checked}:null):v);}
 document.getElementById('confirmYes').onclick=()=>_confirmEnd(true);
 document.getElementById('confirmNo').onclick=()=>_confirmEnd(false);
@@ -29934,6 +30102,9 @@ const Sync={
         // Document PERSO : il transporte aussi les épingles (data.pins) et les PRÉFÉRENCES
         // par utilisateur (data.prefs : thème + taille du texte + couleur d'accent, v4.5) — appliquées à l'arrivée.
         if(!s.library&&remote.data&&Array.isArray(remote.data.pins)){pins=sanitizePins(remote.data.pins);try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}}
+        // Collections (A475) : remplacées comme les épingles ; un document SANS le champ (client antérieur) ne les efface pas.
+        if(!s.library&&remote.data&&Array.isArray(remote.data.colls)){colls=sanitizeColls(remote.data.colls);try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringify(colls));}catch(e){}
+          if(state.coll&&!collById(state.coll))state.coll=null;}
         // Frecency (v4.4.7) : FUSIONNÉE, jamais remplacée — chaque appareil compte ses propres
         // ouvertures ; un remplacement en bloc (comme les épingles) perdrait les comptes locaux.
         if(!s.library&&remote.data&&remote.data.usage){_frecency=mergeUsage(_frecency,sanitizeUsage(remote.data.usage));
@@ -29966,7 +30137,7 @@ const Sync={
       }
       if(s.canPush&&(dirty||!remote)){const now=localTs||Date.now();
         const data={categories:catsForScope(s.library).map(c=>({id:c.id,name:c.name,color:c.color,library:s.library}))};
-        if(!s.library)data.pins=sanitizePins(pins);   // épingles : uniquement dans le document perso
+        if(!s.library){data.pins=sanitizePins(pins);data.colls=sanitizeColls(colls);}   // épingles et collections : uniquement dans le document perso
         if(!s.library)data.usage=sanitizeUsage(_frecency);   // frecency (v4.4.7) : idem, fusionnée côté lecteur
         // Préférences par utilisateur (V5) : voyagent avec le document perso.
         if(!s.library)data.prefs={theme:localStorage.getItem(spaceKey('ac-theme'))||'auto',zoom:currentZoom(),accent:currentAccent(),readMode:currentReadMode(),
@@ -32197,6 +32368,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
     <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app. Ajouts, rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>
+    ${isAdmin&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
     ${myIsAppAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
       <button class="btn outline-danger" id="libDelete">Supprimer la bibliothèque…</button>
       <p class="danger-caption">${(nFi||nPr)?`Supprime ${nFi} aide${nFi>1?'s':''} et ${nPr} protocole${nPr>1?'s':''} pour tous les membres. `:''}Action irréversible — confirmation demandée.</p></div>`:''}`;
@@ -32232,43 +32404,69 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     try{await rest('PATCH','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),{name:nn},{'Prefer':'return=minimal'});
       await Sync.loadProfile();closeMembers(true);if(state.view==='library')renderLibrary();}
     catch(e){sv.disabled=false;setNameMsg('Renommage impossible : '+e.message,'err');}};}
+  {const cv=body.querySelector('#libToColl');if(cv)cv.onclick=()=>libToColl(_memLib);}
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUT son contenu partagé ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
-      closeMembers();state.scope=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
+      closeMembers();state.homeLib=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);
+/* A477 — CONVERTIR une bibliothèque de rangement : ses éléments passent dans Perso (cœur du déplacement de la
+   sélection) et forment une collection du même nom. On ne supprime RIEN ici : la bibliothèque vide reste,
+   sa suppression garde sa propre fenêtre (zone sensible). */
+async function libToColl(lib){const nom=libName(lib)||'Collection';
+  const ent=fiches.filter(f=>f.library===lib&&!f.deletedAt).map(o=>({kind:'f',o})).concat(protocols.filter(x=>x.library===lib&&!x.deletedAt).map(o=>({kind:'p',o})));
+  if(!ent.length||!await confirmDlg(nb(ent.length,'élément')+(ent.length>1?' passent':' passe')+' dans Perso et forment la collection « '+nom+' ». Les catégories suivent par leur nom.'
+    +(myIsAppAdmin?' La bibliothèque, vide, pourra ensuite être supprimée depuis cette fenêtre.':''),{title:'Convertir en collection',yes:'Convertir'}))return;
+  const perdues=await entsMoveLib(ent,null),c=collNew(nom,ent.map(e=>e.o.id));
+  closeMembers(true);if(authModal.classList.contains('on'))closeAuth();
+  Object.assign(state,{homeLib:null,cat:'',coll:c.id,homeTab:'aides'});if(state.view==='library')render();
+  toast('Collection « '+c.name+' » : '+nb(ent.length,'élément')+' dans Perso'+(perdues?' · '+nb(perdues,'catégorie')+' sans équivalent retirée'+(perdues>1?'s':''):'')+'.',6000,true);}
 // Fenêtre "Créer une bibliothèque" (app-admin uniquement ; la RLS rejette sinon si contournée) :
 // même gabarit que les autres fenêtres (.ai-modal/.ai-card). Explique d'abord ce qu'est une
 // bibliothèque avant de demander un nom.
 const newLibModal=document.getElementById('newLibModal');
+/* « AVEC QUI ? » D'ABORD (A477) : une bibliothèque sert à partager. Personne d'invité → la fenêtre propose une
+   collection (à vous seul, une aide dans plusieurs) avant de créer un espace partagé pour ranger. */
+const emailsIn=v=>[...new Set(String(v||'').split(/[\s,;]+/).map(x=>x.trim().toLowerCase()).filter(x=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x)))].slice(0,20);
 function renderNewLib(){const body=document.getElementById('newLibBody');if(!body)return;
-  // Même composant que « Modifier la bibliothèque » (SPEC-dialogue-bibliotheque) — seuls
-  // changent le titre, le CTA, et l'absence de membres/zone sensible. Pas de segmenté
-  // Privée/Partagée : « Perso » EST l'espace privé (décision utilisateur v4.5).
-  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Une <b>bibliothèque</b> est un espace partagé : les aides et protocoles qu’elle contient sont accessibles aux membres que vous y invitez (rôle lecteur, éditeur ou admin), pour travailler à plusieurs sur les mêmes aides cognitives — une équipe, un service...</p>
+  body.innerHTML=`<p class="auth-sub" style="margin-top:0">Une <b>bibliothèque</b> sert à <b>partager</b> : ses aides et protocoles sont accessibles aux membres que vous y invitez (lecteur, éditeur ou admin) — une équipe, un service…</p>
     <div class="field-label">Nom</div>
     <input class="auth-field" id="newLibName" maxlength="60" placeholder="Ex. Équipe déchocage">
-    <div class="share-note" style="margin-top:10px">Les droits d'accès sont appliqués <strong>côté serveur</strong> ; la bibliothèque reste consultable hors ligne une fois synchronisée.</div>
+    <div class="field-label">Avec qui ?</div>
+    <div class="invite-row"><input id="newLibWho" type="text" inputmode="email" autocomplete="off" placeholder="e-mails, séparés par une virgule" aria-label="Personnes à inviter"><select id="newLibRole" aria-label="Rôle des invités">${roleOptions('editor')}</select></div>
+    <p class="roles-caption">Chaque personne doit s'être <b>connectée une fois</b> à l'app. Vous pourrez en inviter d'autres ensuite.</p>
+    <div class="notice" id="newLibColl">${uiIcon('bookmark',15)}<div><b>Personne n'est invité.</b> Pour ranger vos propres aides, une collection suffit : elle est à vous seul, et une même aide peut être dans plusieurs, sans copie.</div></div>
     <p class="auth-msg" id="newLibMsg"></p>
-    <div class="dlg-actions"><button class="btn" id="newLibCancel">Annuler</button><button class="btn primary is-locked" id="newLibOk" title="Donnez d'abord un nom à la bibliothèque">Créer la bibliothèque</button></div>`;
-  {const cn=body.querySelector('#newLibCancel');if(cn)cn.onclick=closeNewLib;}
-  // CTA verrouillé (jamais muet) tant que le NOM est vide (règle §8.1).
-  {const ok=body.querySelector('#newLibOk'),inp=body.querySelector('#newLibName');
-   const syncLock=()=>{const empty=!(inp.value||'').trim();ok.classList.toggle('is-locked',empty);ok.title=empty?'Donnez d\u2019abord un nom à la bibliothèque':'';};
-   inp.addEventListener('input',syncLock);syncLock();}
-  const inp=body.querySelector('#newLibName');inp.focus();
-  const setMsg=(t,c)=>{const e=document.getElementById('newLibMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
+    <div class="dlg-actions"><button class="btn" id="newLibCancel">Annuler</button><button class="btn" id="newLibColl2">Créer une collection</button><button class="btn primary is-locked" id="newLibOk">Créer la bibliothèque</button></div>`;
+  const $=id=>body.querySelector('#'+id),inp=$('newLibName'),who=$('newLibWho'),ok=$('newLibOk'),cb=$('newLibColl2');
+  $('newLibCancel').onclick=closeNewLib;
+  // CTA verrouillé (jamais muet) tant que le NOM est vide (règle §8.1) ; sans invité, la collection devient l'action principale.
+  const sync=()=>{const empty=!(inp.value||'').trim(),seul=!emailsIn(who.value).length;
+    ok.classList.toggle('is-locked',empty);ok.title=empty?'Donnez d’abord un nom à la bibliothèque':'';
+    $('newLibColl').hidden=!seul;cb.hidden=!seul;
+    ok.className='btn'+(seul?'':' primary')+(empty?' is-locked':'');cb.className='btn'+(seul?' primary':'')+(empty?' is-locked':'');
+    ok.textContent=seul?'Créer la bibliothèque quand même':'Créer la bibliothèque';};
+  inp.addEventListener('input',sync);who.addEventListener('input',sync);sync();inp.focus();
+  const setMsg=(t,c)=>{const e=$('newLibMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
+  cb.onclick=()=>{const name=(inp.value||'').trim();if(!name){setMsg('Donnez un nom à la collection.','err');return;}
+    const c=collNew(name,[]);closeNewLib(true);if(authModal.classList.contains('on'))closeAuth();
+    state.coll=c.id;state.homeTab='aides';if(state.view==='library')render();toast('Collection « '+c.name+' » créée — ajoutez-y des aides par « Ajouter des aides ».');};
   const submit=async()=>{
     const name=(inp.value||'').trim();if(!name){setMsg('Donnez un nom à la bibliothèque.','err');return;}
-    const btn=document.getElementById('newLibOk');btn.disabled=true;setMsg('Création…','');
+    ok.disabled=true;setMsg('Création…','');
     const id='lib-'+(catSlug(name).slice(0,32)||'x')+'-'+Math.random().toString(36).slice(2,6);
     try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
+      const r=await inviteAll(id,emailsIn(who.value),$('newLibRole').value);
       await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
-      closeNewLib(true);state.scope=id;renderLibrary();toast('Bibliothèque « '+name+' » créée.');
-    }catch(e){btn.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
-  document.getElementById('newLibOk').onclick=submit;
+      closeNewLib(true);state.homeLib=id;renderLibrary();toast('Bibliothèque « '+name+' » créée'+r+'.',r?7000:4000,!!r);
+    }catch(e){ok.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
+  ok.onclick=submit;
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}
+/* Invite une liste d'e-mails (RPC `invite_member`, une par personne) ; rend la phrase des échecs, vide si tout a réussi. */
+async function inviteAll(lib,emails,role){const ko=[];
+  for(const em of emails){try{const r=await rpc('invite_member',{p_library:lib,p_email:em,p_role:role});if(r!=='ok')ko.push(em);}catch(e){ko.push(em);}}
+  return ko.length?' · non invité'+(ko.length>1?'s':'')+' (compte absent ou en attente) : '+ko.join(', '):'';}
 function openNewLib(){
   if(!myIsAppAdmin){toast('Seul un administrateur peut créer une bibliothèque.');return;}
   renderNewLib();newLibModal.classList.add('on');}
@@ -32584,7 +32782,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
-    txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
+    txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
