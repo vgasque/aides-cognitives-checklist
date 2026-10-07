@@ -1,5 +1,37 @@
 # Journal des modifications
 
+## [5.51.0] — 2026-10-07
+Qui peut créer une bibliothèque, et comment la demander (A478-A479, doctrine `docs/decisions/lot-v5-51.md`).
+**⚠ Rejouer `supabase/schema.sql`** (§ 9 et 9bis) pour en profiter ; sans cela, l'app garde l'ancienne règle
+(administrateurs seulement) et Administration le signale.
+- **Administration › Création de bibliothèques** : trois réglages — *Administrateurs seulement*, *Personnes
+  autorisées*, *Tout compte approuvé*. Par défaut, « Personnes autorisées » avec une liste vide : rien ne change tant
+  que vous n'autorisez personne. « ＋ Autoriser une personne… » choisit parmi les comptes approuvés ; « Retirer » rend
+  la règle commune. Une personne autorisée devient administratrice de ce qu'elle crée, et ne peut créer qu'à son nom.
+- **Les autres demandent** : « ＋ Demander une bibliothèque… » ouvre la même fenêtre que la création (nom, avec qui,
+  rôle des invités ; sans invité, elle rappelle qu'une collection suffit pour ranger). La demande apparaît en tête
+  d'Administration : « Créer » ouvre la bibliothèque au nom du demandeur et y invite les personnes indiquées ;
+  « Refuser » la classe. Dans Moi, chacun voit ses demandes en attente (Annuler) ou refusées (Effacer).
+- **Données** : les adresses des personnes à inviter ne sont gardées que jusqu'à la décision (registre RGPD § 3).
+
+## [5.50.0] — 2026-10-07
+Les collections : ranger ses aides sans rien déplacer (A475-A477, doctrine `docs/decisions/lot-v5-50.md`).
+- **Une collection est votre rangement, à vous seul** : une liste nommée d'aides et de protocoles venus de n'importe
+  quelle bibliothèque, même en lecture seule. Rien n'est copié ni déplacé, et une même aide peut être dans plusieurs
+  collections. Elles suivent votre compte sur tous vos appareils ; les autres membres d'une bibliothèque ne les voient pas.
+- **Où les trouver** : au téléphone, une rangée « Mes collections » sous l'Accès direct ; au bureau, dans la colonne de
+  gauche ; dans la feuille Affichage ; dans Moi. L'Accès direct est la première collection.
+- **Ranger** : « Ajouter à une collection… » dans le menu ⋯ de chaque aide et protocole (même quand « Modifier » est
+  grisé) et en tête de la feuille Actions d'une sélection. Des cases : cocher range, décocher retire.
+- **Une collection ouverte** dit qu'elle est à vous seul et d'où vient son contenu, propose « Ajouter des aides » et,
+  par ⋯, Renommer, Retirer les indisponibles, Supprimer — les aides restent toujours où elles sont.
+- **La barre de sélection ouvre ses actes par « Actions » à toutes les largeurs** : avec « Collection… », les cinq actes
+  en toutes lettres ne tiennent plus sur la ligne au bureau.
+- **« Nouvelle bibliothèque » demande d'abord « Avec qui ? »** et invite ces personnes à la création. Sans invité, elle
+  propose une collection, qui suffit pour ranger. Une bibliothèque partagée avec personne peut être **convertie en
+  collection** depuis sa fenêtre : ses éléments passent dans Perso, rien n'est supprimé.
+- **Mettez à jour tous vos appareils** : une version antérieure ne connaît pas les collections (elle ne les efface pas).
+
 ## [5.49.0] — 2026-10-06
 L'étape qui attend un seuil dit enfin ce qui est compté et quand sa case s'ouvre (A474), et quatre retours d'usage corrigés (A473, doctrine `docs/decisions/lot-v5-48.md`).
 - **La jauge d'un seuil vit dans son étiquette.** « CHOCS DÉLIVRÉS ≥ 3 ●○□ » : les points comptent le compteur
@@ -231,35 +263,3 @@ La barre de sélection et l'en-tête de l'accueil ne rognent plus rien sous Wind
 - Pourquoi seulement sous Windows et Linux : le texte y est un peu plus large (lettres arrondies au pixel) et la barre de
   défilement prend de la place ; sur Mac ces lignes tenaient au pixel près. Les audits de la CI, qui tournent sous Linux,
   échouaient sur ces deux points depuis la v5.30.
-
-## [5.43.0] — 2026-10-04
-Le parcours montre les décisions imbriquées comme un arbre, et l'en-tête d'une branche ne déborde plus (A450, doctrine `docs/decisions/lot-v5-43.md`).
-- **Chaque réponse d'une décision ouvre sa branche juste sous elle** : « SI Oui », « SI Non, crise arrêtée »…, la
-  réponse écrite à l'ambre, comme dans la décision, et sans fond (seule la décision est une carte). Les deux réponses
-  ont le même dessin ; la décision les annonce par « ↓ 3 », « ↓ 7 ».
-- **Une décision dans une branche décale ses propres branches d'un cran de plus**, deux crans au plus pour garder de la
-  place aux titres dans la colonne. Au-delà, la branche reste au deuxième cran et dit de quelle décision elle part
-  (« SI Non à ◇11 »).
-- **Plus de pastille « BRANCHE ◇ 4 « … » »** : son texte débordait du fond ambré dans la colonne (tablette, ordinateur).
-- Les numéros des blocs ne changent pas (ce sont les mêmes que dans le journal, la Page et le Schéma). Une réponse qui
-  revient en arrière ou rejoint la suite n'ouvre pas de branche vide : la décision le dit (« ↺ 2 », « → 7 »).
-
-## [5.42.0] — 2026-10-04
-La revue « à tout moment » (ex. causes réversibles 4H / 4T) montre, sans un mot, qu'elle ne retient pas la suite (A449, doctrine `docs/decisions/lot-v5-42.md`).
-- **Fermée par défaut.** Elle s'ouvrait d'elle-même tant qu'elle n'était pas faite : ses huit cases s'ajoutaient au
-  bloc et repoussaient « Continuer » sous le quai. Elle s'ouvre maintenant d'un tap sur sa ligne.
-- **Plus de case, une jauge.** À la place de la case pointillée, un anneau d'un segment par hypothèse, qui se remplit au
-  fil des coches, dans n'importe quel ordre. La ligne n'a plus de fond d'étape mais un contour pointillé — le même que
-  celui d'une étape « pas encore son moment » — et le libellé est un cran plus petit que celui des étapes.
-- **Plus de bleu ni de « à faire ».** Le compte « 3/8 » est en gris ; il passe au vert avec « faite » et un ✓ quand
-  tout est coché.
-- **Ouverte, des jetons au lieu d'une liste** : ni case à gauche ni numéro, un jeton vert pâle à coche à droite une fois
-  passé en revue. Cocher ne déplace plus le texte (ni « ✓ » ajouté devant la réponse, ni changement de graisse). La
-  réponse suit le libellé sur la même ligne, ce qui rend les jetons plus bas (44 px au lieu de 56).
-- **Une ou deux colonnes selon la longueur des libellés** : deux jetons par ligne seulement si le plus long libellé y
-  tient (au téléphone, une dizaine de caractères) ; sinon une seule colonne. Le choix suit la largeur réelle, réglage
-  de taille du texte compris.
-- **« Nouvelle revue » reste au pied des jetons**, loin du chevron qui replie : elle efface toutes les coches de la
-  revue pour la session.
-- Accessibilité : la ligne de la revue est un vrai bouton (la rangée entière l'était et contenait des cases), et le
-  lecteur d'écran entend qu'elle se remplit quand on veut, sans retenir la suite.

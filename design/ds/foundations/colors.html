@@ -1914,6 +1914,9 @@
   .dlg-actions{display:flex;gap:8px;align-items:stretch;margin-top:6px}
   .dlg-actions .btn{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:var(--r-3);font-size:var(--t-item);font-weight:700;text-align:center}   /* A359 */
   @media (max-width:429.98px){.dlg-actions .btn{padding-left:10px;padding-right:10px}}
+  /* Trois actions (A477, « Nouvelle bibliothèque » sans invité) : la principale sur sa ligne, en tête ; les deux autres dessous. */
+  .dlg-actions:has(>.btn:nth-child(2):not([hidden])~.btn:nth-child(3):not([hidden])){flex-wrap:wrap}
+  .dlg-actions:has(>.btn:nth-child(2):not([hidden])~.btn:nth-child(3):not([hidden]))>.btn.primary{order:-1;flex-basis:100%}
   /* Fenêtre Compte : « Exporter mes données » ne tient pas sur une ligne en demi-largeur de
      téléphone (159px à 12.5px/700 — sous le plancher 11px il déborde encore) -> la paire
      s'empile en pleine largeur sous 430px, comme « Synchroniser maintenant » juste au-dessus. */
@@ -1991,6 +1994,36 @@
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
   .qa-sec{margin:0 0 4px}
+  /* ══ COLLECTIONS (A475) ══ La rangée du téléphone reprend les puces de catégorie ; l'en-tête d'une
+     collection ouverte dit « à vous seul » avant son nom ; le signet (`bookmark`) les distingue du livre. */
+  .coll-rail .dir-h{margin-top:12px}
+  .coll-rail .chiprow{padding-bottom:4px}
+  .coll-chip svg,.coll-new svg{flex:none;color:var(--act)}
+  .coll-chip.on svg{color:inherit}
+  .coll-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .coll-chip.on .coll-n{color:inherit}
+  .coll-new{border-style:dashed;color:var(--act)}
+  .coll-head{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;margin:16px 0 4px;padding:14px 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
+  .coll-ht{flex:1 1 240px;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .coll-k{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--act)}
+  .coll-k svg{flex:none;width:13px;height:13px}
+  .coll-t{margin:0;font-size:var(--t-val);font-weight:800;line-height:1.15;color:var(--ink);overflow-wrap:anywhere}
+  .coll-s{font-size:var(--t-body);color:var(--ink-2)}
+  .coll-acts{display:flex;gap:8px;flex:none}
+  .coll-more{min-width:40px;justify-content:center;font-size:var(--t-item)}
+  .dir-also{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-meta);color:var(--ink-2)}
+  .dir-also svg{flex:none;color:var(--act)}
+  .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
+  /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box svg{opacity:0}
+  [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
+  [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
+  [aria-checked="mixed"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
+  [aria-checked="mixed"]>.mm-ic .mm-box::after{content:"";position:absolute;width:10px;height:2px;background:var(--work)}
+  .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
+  .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
+  .popmenu-foot .btn{min-width:120px}
   /* Étroit (A261) : deux tuiles par ligne dès 390 px ; le titre long gagne une 4e ligne et un
      corps de 13,5 (l'ellipse reste la borne — la tuile OUVRE la fiche, le titre entier est à
      un tap). La boîte reste bornée : c'est le témoin « titres longs » qui tient le plafond. */
@@ -2041,15 +2074,9 @@
   .sel-mix{position:relative;width:10px;height:2px;background:var(--work);display:none}
   .sel-ck[aria-checked="mixed"] .sel-mix{display:block}
   .sel-ck[aria-checked="mixed"]>svg{display:none}
-  /* Les actes dépliés portent le glyphe de leur rangée dans le tiroir : un dessin, deux lieux. */
-  .sel-acts .btn>svg{flex:none;color:var(--ink-2)}
-  .sel-acts .btn.danger>svg{color:inherit}
   /* `chev` pointe à DROITE dans le jeu d'icônes ; ici il annonce une feuille qui monte du bas.
      Une rotation STATIQUE, donc hors du périmètre de check-anim (rien n'est animé). */
   .sel-do svg{transform:rotate(90deg)}
-  /* Le filet qui précède « Annuler » en large : il sépare les ACTES de la SORTIE. Il vit dans
-     `.sel-acts`, donc il disparaît avec elle en étroit — un séparateur sans rien à séparer. */
-  .sel-sep{flex:none;width:1px;height:24px;background:var(--line);margin:0 2px}
   /* « Annuler » N'A PAS DE CONTOUR, ni sous son mot ni sous sa croix : c'est la SORTIE du mode,
      pas une commande de la barre. Lui donner la même boîte qu'aux actes en ferait un quatrième
      acte — et sur la maquette 20b, c'est le seul objet dessiné sans filet, aux deux largeurs.
@@ -2063,13 +2090,11 @@
      sens — l'encre et le fond — et le filet prend le token que la doctrine assigne aux bordures
      de composant (le seul qui tienne 3:1, cf. A67). */
   .sel-bar .btn.danger{background:var(--crit-soft)}
-  /* ⚠ LE SEUIL DE DÉPLIAGE PASSE PAR `html.zw1200`, JAMAIS UNE MEDIA QUERY (règle 10), ET IL EST À
-     1200 px, PAS À 560 : la barre dépliée réclame 757 px UTILES, et sa largeur n'est pas monotone
-     en largeur de fenêtre (la colonne gauche lui prend 224 px à 780). `@container` reste écarté.
-     Replié : actes au tiroir, « Annuler » en croix. Détail : doctrine-css.md C41. */
-  html.zw1200 .sel-acts{display:none}
-  html.zw1200 .sel-bar .sel-x{width:40px;height:40px;padding:0}
-  html.zw1200 .sel-x .sel-lbl{display:none}
+  /* A476 (v5.50) : LE TIROIR À TOUTES LES LARGEURS — avec « Collection… », cinq actes en libellés entiers ne
+     tiennent jamais dans une barre plafonnée à 960 px (mesuré 962/960 avec quatre) : A228 appliquée, la feuille
+     « Actions » est le régime normal, « Annuler » en croix. Le dépliage sur la ligne (C41) a vécu. */
+  .sel-acts{display:none}
+  .sel-bar .sel-x{width:40px;height:40px;padding:0}
   /* ══ SOUS 430 px EFFECTIFS — COMPRESSION, PUIS DÉPART DU SEGMENT ═════════════════════════════
      Le compte est le seul élément élastique : tout ce qui manque à la ligne se prend SUR LUI, et
      il s'ellipse. Mesuré à 390 px, avant correctif : le compte réduit à 47 px pour 58 nécessaires
@@ -2078,16 +2103,6 @@
      par un renommage — les intitulés entiers sont tout l'objet de la planche. */
   html.zw430 .sel-bar{gap:6px;padding:0 8px}
   html.zw430 .sel-bar .btn:not(.sel-x){padding:0 10px}
-  /* DÉPLIÉ — le tiroir s'ouvre SUR LA MÊME LIGNE (`display:contents` : les trois boutons
-     deviennent des enfants directs de la barre, aucun objet intermédiaire, aucune duplication de
-     balisage). La barre y est celle d'hier, mais à ordre IMPOSÉ et sans repli possible. */
-  html:not(.zw1200) .sel-do{display:none}
-  html:not(.zw1200) .sel-acts{display:contents}
-  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 10px}   /* A392 : quatre actes (Exporter en plus) — à 14 px de marge, le compte « n cochés » était tronqué à 1200 px (29 px manquants) */
-  html:not(.zw1200) .sel-x .sel-g{display:none}
-  /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (la case maîtresse et le
-     compte) à gauche, ce qui AGIT sur elle à droite. Le compte (`flex:1 1 auto`) pousse les actes au
-     bord sans entretoise — `.sel-sp` est purgée (consigne 1) — et reste le seul élément qui cède. */
   /* La case d'une rangée : cible ≥ 32 px hors crise (règle 9), et un VRAI rôle de case à cocher
      (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
      sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
@@ -6056,6 +6071,10 @@
   .adm-leg .adm-v{font-weight:500;font-size:var(--t-body)}
   .adm-note{display:flex;gap:10px;align-items:flex-start;margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
   .adm-note>svg{flex:none;margin-top:1px}
+  /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
+  .adm-reqa{display:flex;gap:8px;flex:none}
+  #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+  #admLibs .seg{margin:4px 0 10px}
   .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
   .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
   .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}

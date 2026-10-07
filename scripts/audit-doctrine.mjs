@@ -7019,21 +7019,17 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
   }
   // À zéro coché, RIEN DE MORT : la touche d'actes n'existe pas, elle n'est pas grisée.
   t(`${P} · 0 coché : la touche d'actes n'est pas rendue`, !/selDo/.test(r.zero.ids), r.zero.ids);
-  // Le palier de dépliage (1200 px EFFECTIFS, cf. .sel-bar) se franchit réellement.
-  const deplie=/selLib/.test(r.plein.ids)&&/selCat/.test(r.plein.ids)&&/selDel/.test(r.plein.ids);
-  const tiroir=/selDo/.test(r.plein.ids);
-  if (W>=1200) t(`${P} · déplié : les trois actes sont SUR la ligne, pas de touche d'actes`,
-    deplie&&!tiroir, r.plein.ids);
-  else t(`${P} · replié : une touche d'actes, aucun acte sur la ligne`,
-    tiroir&&!deplie, r.plein.ids);
+  // A476 : le tiroir à TOUTE largeur — cinq actes en libellés entiers ne tiennent jamais sur la ligne.
+  const deplie=/selCol|selLib|selCat|selExp|selDel/.test(r.plein.ids);
+  t(`${P} · une touche d'actes, aucun acte sur la ligne (A476)`, /selDo/.test(r.plein.ids)&&!deplie, r.plein.ids);
   await page.close();
 }
 });
 
 /* ══ A451 — LA CASE MAÎTRESSE : TROIS ÉTATS, UN GESTE ═════════════════════════════════════════
    Elle remplace le segment « Tout cocher / Tout décocher ». On mesure l'état ANNONCÉ (aria-checked
-   et nom) à chaque pas, et ce que le geste fait réellement aux rangées. À 1200 px, les actes
-   dépliés portent le glyphe de leur rangée dans le tiroir. */
+   et nom) à chaque pas, et ce que le geste fait réellement aux rangées. La feuille « Actions » porte les
+   cinq actes, chacun avec son glyphe (A476 : plus de dépliage sur la ligne). */
 await sec('SÉLECTION · A451 case maîtresse à trois états, actes à glyphes', async () => {
 for (const W of [390, 1200]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
@@ -7051,8 +7047,10 @@ for (const W of [390, 1200]) {
     const out={};
     document.getElementById('selTog').click(); await w(250); out.zero=st();
     document.querySelector('[data-selid]').click(); await w(200); out.partie=st();
-    out.glyphes=['selLib','selCat','selExp','selDel'].map(id=>{const b=document.getElementById(id);
-      return !!(b&&b.offsetParent&&b.querySelector('svg'));});
+    // A476 : la feuille « Actions » porte les cinq actes, en libellés entiers, chacun avec son glyphe — Collection en tête.
+    document.getElementById('selDo').click(); await w(300);
+    out.feuille=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>(x.querySelector('.mm-ic svg')?'':'∅')+x.dataset.pickopt);
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); await w(200);
     document.getElementById('selAll').click(); await w(200); out.tout=st();
     document.getElementById('selAll').click(); await w(200); out.rien=st();
     return out;});
@@ -7065,7 +7063,112 @@ for (const W of [390, 1200]) {
   t(`${P} · la case coche TOUT ce que la liste montre, et annonce « Tout décocher »`,
     r.tout.aria==='true'&&r.tout.nom==='Tout décocher'&&r.tout.coches===r.tout.total, JSON.stringify(r.tout));
   t(`${P} · … puis décoche tout`, r.rien.aria==='false'&&r.rien.coches===0&&r.rien.cpt==='0 coché', JSON.stringify(r.rien));
-  if (W>=1200) t(`${P} · déplié : chaque acte porte son glyphe`, r.glyphes.every(Boolean), JSON.stringify(r.glyphes));
+  t(`${P} · la feuille Actions : Collection, Bibliothèque, Catégorie, Exporter, Supprimer — glyphe chacun`,
+    r.feuille.join()==='selCol,selLib,selCat,selExp,selDel', r.feuille.join());
+  await page.close();
+}
+});
+
+/* ══ A475 — COLLECTIONS : le rangement personnel, sans rien déplacer ══════════════════════════════
+   Au téléphone une rangée sous l'Accès direct, au bureau une section de la colonne ; choisir = un filtre
+   annoncé (puce + en-tête « à vous seul ») ; « Ajouter à une collection… » vit dans le menu ⋯ d'une aide
+   EN LECTURE SEULE (« Modifier » grisé juste au-dessus) et coche sans déplacer. */
+await sec('ACCUEIL · A475 collections — filtre, en-tête, cases, lecture seule', async () => {
+for (const W of [390, 1280]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:W<780});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    myLibraries.length=0;myLibraries.push({id:'lib-ro',name:'SAMU 31',role:'viewer'});
+    const f=JSON.parse(JSON.stringify(fiches[0]));f.id='ro1';f.title='Aide du SAMU';f.library='lib-ro';f.status='validated';fiches.push(migrate(f));
+    const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await w(300);
+    out.rail=!!document.querySelector('.home-main .coll-rail [data-collsel]');
+    out.col=!!document.querySelector('.home-side [data-collsel="'+c.id+'"]');
+    document.querySelector('[data-collsel="'+c.id+'"]').click();await w(300);
+    out.coll=state.coll===c.id;
+    out.puce=(document.querySelector('.af-bar')||{}).textContent||'';
+    out.tete=(document.querySelector('.coll-head')||{}).textContent||'';
+    out.rangees=document.querySelectorAll('.dir-row').length;
+    document.querySelector('[data-colladd]').click();await w(300);
+    out.cases=document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(250);
+    openRead('ro1');await w(400);
+    document.getElementById('hdrMore').click();await w(250);
+    const rows=[...document.querySelectorAll('#moreMenu .mm-row, .mm-row')];
+    const mod=rows.find(x=>/^Modifier/.test(x.textContent)),col=rows.find(x=>/Ajouter à une collection/.test(x.textContent));
+    out.modOff=!!mod&&mod.disabled;out.colOn=!!col&&!col.disabled;out.colSub=col?col.textContent:'';
+    col.click();await w(350);
+    const box=v=>document.querySelector('.popmenu [data-pickopt="'+v+'"]');
+    out.avant=box(c.id).getAttribute('aria-checked');
+    out.notice=(document.querySelector('.popmenu .notice')||{}).textContent||'';
+    box(c.id).click();await w(150);
+    out.apres=[box(c.id).getAttribute('aria-checked'),collHas(c.id,'ro1'),fiches.find(x=>x.id==='ro1').library];
+    box('*').click();await w(150);out.pin=isPinned('ro1');
+    document.querySelector('.popmenu [data-pickdone]').click();await w(200);
+    out.ferme=!document.querySelector('[data-pickdone]');
+    return out;});
+  const P=`${W}px`;
+  t(`${P} · une seule porte de collections selon la largeur (rangée < 780, colonne ≥ 780)`, W<780?(r.rail&&!r.col):(r.col&&!r.rail), JSON.stringify([r.rail,r.col]));
+  t(`${P} · choisir pose le filtre, annoncé en puce et en en-tête « à vous seul »`,
+    r.coll&&/Collection/.test(r.puce)&&/Garde SMUR/.test(r.puce)&&/à vous seul/i.test(r.tete)&&/1 indisponible/.test(r.tete), r.puce+' | '+r.tete);
+  t(`${P} · la liste ne montre que les deux éléments rangés`, r.rangees===2, String(r.rangees));
+  t(`${P} · « Ajouter des aides » : des cases sur tout l'accueil`, r.cases>=3, String(r.cases));
+  t(`${P} · lecture seule : « Modifier » grisé, « Ajouter à une collection… » actif et dit où elle est`,
+    r.modOff&&r.colOn&&/Garde SMUR/.test(r.colSub), r.colSub);
+  t(`${P} · la feuille coche sans déplacer, et le dit`,
+    r.avant==='true'&&r.apres[0]==='false'&&r.apres[1]===false&&r.apres[2]==='lib-ro'&&/à vous seul/.test(r.notice)&&/SAMU 31/.test(r.notice), JSON.stringify(r.apres)+' '+r.notice);
+  t(`${P} · « Accès direct » est une case de la même feuille (épingle)`, r.pin===true, String(r.pin));
+  t(`${P} · « Terminé » referme`, r.ferme, '');
+  await page.close();
+}
+});
+
+/* ══ A478-A479 — QUI CRÉE UNE BIBLIOTHÈQUE, QUI LA DEMANDE ══════════════════════════════════════
+   Réseau SIMULÉ (aucune dépendance au vrai serveur) : l'administrateur voit la règle et la file ; un compte
+   sans le droit voit « Demander une bibliothèque… » et la même fenêtre en mode demande ; un serveur ANTÉRIEUR
+   (RPC absentes) retombe sur l'ancienne règle sans rien casser. */
+await sec('MOI · A478-A479 droit de créer, demandes de bibliothèque', async () => {
+const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,list_unapproved_users:[],get_instance_stats:{users:3},
+  get_library_creation:'creators',list_users:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',is_admin:false,can_create:true}],
+  list_library_requests:[{id:'11111111-1111-1111-1111-111111111111',email:'b@x.fr',name:'Pédia',invitees:['c@x.fr'],role:'editor'}],
+  my_library_requests:[{id:'22222222-2222-2222-2222-222222222222',name:'Bloc pédia',status:'pending',invitees:1,created_at:'2026-10-07T10:00:00Z'}]};
+for (const cas of ['admin','demandeur','ancien']) {
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const m=route.request().url().match(/rpc\/([a-z_]+)/);
+    if(cas==='ancien'&&m&&/library|list_users/.test(m[1]))return route.fulfill({status:404,contentType:'application/json',body:'{"message":"not found"}'});
+    let b=m?RPC[m[1]]:[];if(cas==='demandeur'&&m&&/is_app_admin|can_create_library/.test(m[1]))b=false;
+    route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(b===undefined?null:b)});});
+  await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms));
+    myAccountStatus='approved';await Sync.loadProfile();openAuth();await w(900);
+    const out={peut:myCanCreateLib,reqs:myLibReqs.length};
+    const libs=document.getElementById('acctLibs');
+    out.porte=((libs&&libs.querySelector('[data-newlib]'))||{}).textContent||'';
+    out.attente=!!(libs&&libs.querySelector('[data-libreqx]'));
+    const z=document.getElementById('admLibs');
+    out.regle=z?z.querySelectorAll('[data-libmode]').length:-1;
+    out.file=z?z.querySelectorAll('[data-libreq]').length:-1;
+    out.note=z?(z.querySelector('.adm-note')||{}).textContent||'':'';
+    if(libs&&libs.querySelector('[data-newlib]')){libs.querySelector('[data-newlib]').click();await w(300);
+      out.titre=document.getElementById('newLibModalTitle').textContent;
+      const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
+      out.cta=document.getElementById('newLibOk').textContent;}
+    return out;});
+  if (cas==='admin') {
+    t('administrateur : la règle à trois crans et la file des demandes (Refuser · Créer)', r.peut&&r.regle===3&&r.file===2, JSON.stringify(r));
+    t('… « Nouvelle bibliothèque » et la fenêtre de création', /Nouvelle bibliothèque/.test(r.porte)&&r.titre==='Nouvelle bibliothèque', r.porte+' | '+r.titre);
+  } else if (cas==='demandeur') {
+    t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de règle', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.regle===-1, JSON.stringify(r));
+    t('… la MÊME fenêtre, en mode demande (garde-fou sans invité)', r.titre==='Demander une bibliothèque'&&/Demander quand même/.test(r.cta), r.titre+' | '+r.cta);
+  } else {
+    t('serveur antérieur : repli sur « administrateur seul », Administration dit de rejouer le schéma', r.peut===true&&r.regle===0&&/schema\.sql/.test(r.note), JSON.stringify(r));
+  }
   await page.close();
 }
 });

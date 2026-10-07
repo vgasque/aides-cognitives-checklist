@@ -1134,6 +1134,75 @@ begin
   reset role;
 
 
+  ------------------------------------------------------------------ 15. CRÉER OU DEMANDER UNE BIBLIOTHÈQUE (v5.51)
+  -- État hérité : alice app-admin ; frank approuvé, viewer de lib-team ; require_approval=TRUE.
+  -- 15.1 Règle par défaut ('creators', liste vide) : frank ne crée pas (comportement d'avant).
+  reset role;
+  update public.app_settings set library_creation = 'creators' where id;
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  if public.can_create_library() then raise exception 'ÉCHEC 15.1 : frank peut créer sans être autorisé'; end if;
+  begin
+    insert into public.libraries(id,name) values ('lib-f1','Frank');
+    raise exception 'ÉCHEC 15.1 : frank a créé une bibliothèque sans autorisation';
+  exception when insufficient_privilege then null; end;
+  -- 15.2 La table des personnes autorisées n'est pas lisible ni modifiable en direct, ni la RPC hors admin.
+  begin
+    perform 1 from public.library_creators limit 1;
+    raise exception 'ÉCHEC 15.2 : library_creators est lisible';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform public.set_library_creator(frank, true);
+    raise exception 'ÉCHEC 15.2 : frank s''est autorisé lui-même';
+  exception when raise_exception then
+    if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  -- 15.3 Autorisé par l'administrateur : frank crée POUR LUI, jamais au nom d'un autre.
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'email','alice@test.local','role','authenticated')::text, true);
+  perform public.set_library_creator(frank, true);
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.libraries(id,name) values ('lib-f2','Frank équipe');
+  begin
+    insert into public.libraries(id,name,created_by) values ('lib-f3','Au nom de Bob',bob);
+    raise exception 'ÉCHEC 15.3 : frank a créé une bibliothèque au nom de bob';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  select count(*) into v_cnt from public.memberships where user_id=frank and library_id='lib-f2' and role='admin';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 15.3 : le créateur n''est pas admin de sa bibliothèque'; end if;
+  -- 15.4 Règle 'admins' : même autorisé, frank ne crée plus.
+  update public.app_settings set library_creation = 'admins' where id;
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  if public.can_create_library() then raise exception 'ÉCHEC 15.4 : la règle « admins » laisse créer'; end if;
+  reset role;
+  -- 15.5 Demande : frank (sans droit) demande, ne voit que les siennes ; bob ne voit pas la file.
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'email','frank@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  v_sec := public.request_library('Pédia SMUR','["BOB@test.local","pas-un-mail","frank@test.local"]'::jsonb,'editor')::text;
+  select count(*) into v_cnt from public.my_library_requests();
+  if v_cnt <> 1 then raise exception 'ÉCHEC 15.5 : frank ne voit pas sa demande (%)', v_cnt; end if;
+  begin
+    perform 1 from public.library_requests limit 1;
+    raise exception 'ÉCHEC 15.5 : library_requests est lisible en direct';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',bob,'email','bob@test.local','role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.list_library_requests();
+  if v_cnt <> 0 then raise exception 'ÉCHEC 15.5 : un non-admin lit la file des demandes'; end if;
+  reset role;
+  -- 15.6 L'administrateur accepte : bibliothèque créée, frank admin, l'adresse invalide écartée, frank jamais rétrogradé.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'email','alice@test.local','role','authenticated')::text, true);
+  v_j := public.decide_library_request(v_sec::uuid, true);
+  if v_j->>'status' <> 'created' then raise exception 'ÉCHEC 15.6 : décision non appliquée (%)', v_j; end if;
+  select count(*) into v_cnt from public.memberships where user_id=frank and library_id=v_j->>'library' and role='admin';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 15.6 : le demandeur n''est pas admin de la bibliothèque créée'; end if;
+  select count(*) into v_cnt from public.library_requests where id = v_sec::uuid;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 15.6 : la demande acceptée (et ses e-mails) reste stockée'; end if;
+  update public.app_settings set library_creation = 'creators' where id;   -- remise en état
+
+
   ------------------------------------------------------------------ FIN
   reset role;
   raise notice '✅ TOUS LES TESTS RLS PASSENT';

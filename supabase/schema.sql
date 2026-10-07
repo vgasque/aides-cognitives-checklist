@@ -9,8 +9,9 @@
 --
 --  Modèle : espace PERSONNEL (library_id NULL, isolé par owner) + BIBLIOTHÈQUES
 --  PARTAGÉES multiples (library_id renseigné). Rôles : viewer / editor / admin.
---  Création de bibliothèque réservée aux app-admins (table app_admins, gérée au
---  dashboard). La sécurité réelle = ces politiques RLS, jamais le client.
+--  Création de bibliothèque : app-admins (table app_admins, gérée au dashboard), plus, depuis v5.51,
+--  les personnes autorisées ou tout compte approuvé selon la règle d'instance (§ 9) ; les autres
+--  demandent (§ 9bis). La sécurité réelle = ces politiques RLS, jamais le client.
 -- ============================================================================
 
 -- ---------- 0. RENOMMAGE v5 (lot T9) — À LIRE AVANT DE REJOUER CE FICHIER --------
@@ -174,7 +175,7 @@ create policy cats_shared_write on public.category_sets for all
   using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
   with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
 
--- libraries : lecture = membre ou app-admin ; création = app-admin uniquement ;
+-- libraries : lecture = membre ou app-admin ; création = app-admin (réécrite au § 9 : règle d'instance, v5.51) ;
 --             renommage = app-admin ou library-admin ; suppression = app-admin
 drop policy if exists lib_select on public.libraries;
 create policy lib_select on public.libraries for select
@@ -1626,6 +1627,176 @@ returns jsonb language sql stable security definer set search_path = public, aut
   ) end;
 $$;
 grant execute on function public.get_instance_stats() to authenticated;
+
+-- ---------- 9. CRÉER UNE BIBLIOTHÈQUE : QUI EN A LE DROIT (v5.51, A478) -------------------------
+-- Une bibliothèque sert à PARTAGER : sa création reste gouvernée. Règle d'instance
+-- `app_settings.library_creation` : 'admins' (administrateurs seulement), 'creators' (+ personnes
+-- autorisées, `library_creators`), 'approved' (tout compte approuvé). Défaut 'creators' avec une liste
+-- vide = le comportement d'avant. Les autres DEMANDENT (`library_requests`, § 9bis).
+-- Placé ici (après app_settings, is_approved) : une fonction `language sql` résout ses tables à la création.
+alter table public.app_settings add column if not exists library_creation text not null default 'creators';
+do $$ begin
+  alter table public.app_settings add constraint app_settings_library_creation_chk
+    check (library_creation in ('admins','creators','approved'));
+exception when duplicate_object then null; end $$;
+
+create table if not exists public.library_creators (
+  user_id    uuid primary key references auth.users on delete cascade,
+  granted_at timestamptz not null default now(),
+  granted_by uuid references auth.users on delete set null
+);
+-- Aucune politique, aucun grant (comme app_admins) : lue par les seules fonctions ci-dessous.
+alter table public.library_creators enable row level security;
+
+create or replace function public.can_create_library()
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select public.is_app_admin() or (public.is_approved() and
+    case coalesce((select library_creation from public.app_settings limit 1), 'creators')
+      when 'approved' then true
+      when 'creators' then exists (select 1 from public.library_creators where user_id = auth.uid())
+      else false end);
+$$;
+grant execute on function public.can_create_library() to authenticated;
+
+-- Remplace la politique du § 3 (`is_app_admin()` seul). Un non-administrateur ne crée QUE pour lui-même :
+-- sans `created_by = auth.uid()`, le trigger lib_add_creator ferait administrateur quelqu'un d'autre.
+drop policy if exists lib_insert on public.libraries;
+create policy lib_insert on public.libraries for insert
+  with check (public.is_app_admin() or (public.can_create_library() and created_by = auth.uid()));
+
+-- Réglage (administrateur seulement).
+create or replace function public.get_library_creation()
+returns text language sql stable security definer set search_path = public, pg_temp as $$
+  select case when public.is_app_admin()
+    then coalesce((select library_creation from public.app_settings limit 1), 'creators') end;
+$$;
+grant execute on function public.get_library_creation() to authenticated;
+
+create or replace function public.set_library_creation(p_mode text)
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if p_mode not in ('admins','creators','approved') then raise exception 'invalid mode'; end if;
+  update public.app_settings set library_creation = p_mode where id = true;
+end;$$;
+grant execute on function public.set_library_creation(text) to authenticated;
+
+-- Comptes approuvés, pour choisir les personnes autorisées (administrateur seulement ; vide sinon).
+create or replace function public.list_users()
+returns table(user_id uuid, email text, is_admin boolean, can_create boolean)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select s.user_id, s.email,
+         exists (select 1 from public.app_admins a where a.user_id = s.user_id),
+         exists (select 1 from public.library_creators c where c.user_id = s.user_id)
+  from public.user_status s
+  where s.status = 'approved' and public.is_app_admin()
+  order by lower(s.email);
+$$;
+grant execute on function public.list_users() to authenticated;
+
+create or replace function public.set_library_creator(p_user uuid, p_on boolean)
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if p_on then
+    insert into public.library_creators(user_id, granted_by) values (p_user, auth.uid())
+      on conflict (user_id) do nothing;
+  else
+    delete from public.library_creators where user_id = p_user;
+  end if;
+end;$$;
+grant execute on function public.set_library_creator(uuid, boolean) to authenticated;
+
+-- ---------- 9bis. DEMANDER UNE BIBLIOTHÈQUE (v5.51, A479) -----------------------------------------
+-- Qui n'a pas le droit DEMANDE : nom, personnes à inviter (e-mails) et leur rôle. L'administrateur
+-- crée pour lui — le demandeur devient administrateur de la bibliothèque (trigger lib_add_creator) et
+-- les invités sont ajoutés par `invite_member`. Données personnelles : les e-mails des invités, gardés
+-- jusqu'à la décision seulement (acceptée : ligne supprimée ; refusée : liste vidée). Registre § 3.
+create table if not exists public.library_requests (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users on delete cascade,
+  name       text not null check (char_length(btrim(name)) between 1 and 60),
+  invitees   jsonb not null default '[]'::jsonb
+             check (jsonb_typeof(invitees) = 'array' and jsonb_array_length(invitees) <= 20),
+  role       text not null default 'editor' check (role in ('viewer','editor','admin')),
+  status     text not null default 'pending' check (status in ('pending','rejected')),
+  created_at timestamptz not null default now(),
+  decided_at timestamptz
+);
+-- Aucune politique, aucun grant : accès par les fonctions ci-dessous seulement.
+alter table public.library_requests enable row level security;
+
+create or replace function public.request_library(p_name text, p_invitees jsonb default '[]'::jsonb, p_role text default 'editor')
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_id uuid; v_inv jsonb;
+begin
+  if auth.uid() is null or not public.is_approved() then raise exception 'not allowed'; end if;
+  if public.can_create_library() then raise exception 'can_create'; end if;
+  if char_length(btrim(coalesce(p_name, ''))) not between 1 and 60 then raise exception 'invalid name'; end if;
+  if (select count(*) from public.library_requests where user_id = auth.uid() and status = 'pending') >= 3 then
+    raise exception 'too_many';
+  end if;
+  select coalesce(jsonb_agg(distinct lower(btrim(e))), '[]'::jsonb) into v_inv
+    from jsonb_array_elements_text(case when jsonb_typeof(p_invitees) = 'array' then p_invitees else '[]'::jsonb end) e
+    -- une adresse : un seul @, un point après, aucun blanc (sans ancre « $ », que check-sql lirait comme un délimiteur)
+    where char_length(e) <= 254 and btrim(e) like '_%@_%._%' and btrim(e) !~ '[[:space:]]'
+      and char_length(btrim(e)) - char_length(replace(btrim(e), '@', '')) = 1;
+  if jsonb_array_length(v_inv) > 20 then raise exception 'too_many_invitees'; end if;
+  insert into public.library_requests(user_id, name, invitees, role)
+    values (auth.uid(), btrim(p_name), v_inv, case when p_role in ('viewer','editor','admin') then p_role else 'editor' end)
+    returning id into v_id;
+  return v_id;
+end;$$;
+grant execute on function public.request_library(text, jsonb, text) to authenticated;
+
+create or replace function public.my_library_requests()
+returns table(id uuid, name text, status text, invitees int, created_at timestamptz, decided_at timestamptz)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select r.id, r.name, r.status, jsonb_array_length(r.invitees), r.created_at, r.decided_at
+  from public.library_requests r where r.user_id = auth.uid()
+  order by r.created_at desc;
+$$;
+grant execute on function public.my_library_requests() to authenticated;
+
+-- Annuler une demande en attente, ou effacer une demande refusée : les siennes seulement.
+create or replace function public.cancel_library_request(p_id uuid)
+returns void language sql security definer set search_path = public, pg_temp as $$
+  delete from public.library_requests where id = p_id and user_id = auth.uid();
+$$;
+grant execute on function public.cancel_library_request(uuid) to authenticated;
+
+create or replace function public.list_library_requests()
+returns table(id uuid, user_id uuid, email text, name text, invitees jsonb, role text, created_at timestamptz)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select r.id, r.user_id, u.email::text, r.name, r.invitees, r.role, r.created_at
+  from public.library_requests r join auth.users u on u.id = r.user_id
+  where r.status = 'pending' and public.is_app_admin()
+  order by r.created_at;
+$$;
+grant execute on function public.list_library_requests() to authenticated;
+
+create or replace function public.decide_library_request(p_id uuid, p_ok boolean)
+returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare r public.library_requests; v_lib text; v_em text; v_me text; v_ok int := 0; v_ko int := 0;
+begin
+  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  select * into r from public.library_requests where id = p_id and status = 'pending' for update;
+  if not found then return jsonb_build_object('status', 'gone'); end if;
+  if not p_ok then
+    update public.library_requests set status = 'rejected', decided_at = now(), invitees = '[]'::jsonb where id = p_id;
+    return jsonb_build_object('status', 'rejected');
+  end if;
+  v_lib := 'lib-' || substr(md5(random()::text || clock_timestamp()::text), 1, 12);
+  insert into public.libraries(id, name, created_by) values (v_lib, r.name, r.user_id);   -- le demandeur en devient admin
+  select lower(email) into v_me from auth.users where id = r.user_id;
+  for v_em in select jsonb_array_elements_text(r.invitees) loop
+    continue when v_em = v_me;   -- jamais de rétrogradation du demandeur par sa propre adresse
+    if public.invite_member(v_lib, v_em, r.role) = 'ok' then v_ok := v_ok + 1; else v_ko := v_ko + 1; end if;
+  end loop;
+  delete from public.library_requests where id = p_id;
+  return jsonb_build_object('status', 'created', 'library', v_lib, 'invited', v_ok, 'not_invited', v_ko);
+end;$$;
+grant execute on function public.decide_library_request(uuid, boolean) to authenticated;
 
 -- ---------- 5quater. LA PROHIBITION anon NE PORTAIT PAS SUR PUBLIC (correctif) --------------
 -- Le bloc « GRANTS » plus haut annonce une « INTERDICTION EXPLICITE POUR anon ». Elle ne faisait
