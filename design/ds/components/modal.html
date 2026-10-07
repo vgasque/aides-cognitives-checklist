@@ -6434,6 +6434,7 @@
      autrement, et c'est ce qui rend la transition invisible quand le clavier reprend la main. */
   /* A313 : le halo est réservé aux boutons ; un champ signale son focus par sa bordure (dessin .field). */
   .ai-modal .dlg-ring:not(input):not(textarea):not(select):focus{outline:2px solid var(--act);outline-offset:2px}
+  .ai-modal .dlg-anchor:focus{outline:none}   /* A492 : le titre reçoit le focus d'une fenêtre ouverte au pointeur — sans anneau */
   .ai-modal :is(input:not([type=range]):not([type=checkbox]):not([type=radio]),textarea,select):focus{outline:2px solid var(--act);outline-offset:0;border-color:transparent}
   .ai-modal.dlg-confirm{align-items:center}
   /* ══ QUATRIÈME PLACEMENT, ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR (v5.6, décision

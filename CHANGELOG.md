@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.54.0] — 2026-10-08
+Anneaux bleus, retour à l'accueil et colonne (A490-A493, doctrine `docs/decisions/lot-v5-54.md`).
+- **Anneaux bleus** : une fenêtre ouverte au doigt ou à la souris n'encadre plus rien. Une confirmation met
+  toujours son action par défaut sous Entrée, les autres fenêtres (Créer, Affichage, Moi, Catégories, Sessions,
+  Prendre en main…) ne présélectionnent plus rien et n'ouvrent plus le clavier du téléphone. Au clavier, l'anneau
+  reste — dès l'ouverture, et au premier Tab.
+- **Retour à l'accueil** : en tablette et au bureau, revenir d'une aide repose la liste là où vous l'aviez laissée
+  (comme au téléphone). Après « Terminer la session », l'accueil s'ouvre en haut, sur la carte-bilan.
+- **Colonne gauche** : une bibliothèque que vous venez de créer y apparaît même vide (compte 0) ; les collections
+  ont leur remise à zéro « Tout », comme les bibliothèques et les catégories.
+
 ## [5.53.0] — 2026-10-07
 Retours d'usage après les collections, et une colonne gauche qui dit avec qui (A485-A489, doctrine
 `docs/decisions/lot-v5-53.md`).
@@ -232,7 +243,3 @@ Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/
 - Éditeur : le champ « Nom court » d'un compteur propose le nom entier comme valeur par défaut, et non plus un
   abrégé.
 
-## [5.46.1] — 2026-10-05
-- **Accueil au téléphone** : plus d'air sous « Sessions · Créer · Moi ». L'en-tête gagne 8 px en bas. Avant, ces mots
-  étaient à 3 px de la carte « Besoin d'exemples » et à 5 px du bandeau ; ils en sont maintenant à 11 et 13 px, et à
-  19 px de la liste (A461).

@@ -227,6 +227,11 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   main — `:focus-visible` ne s'allume pas sur un focus programmatique ouvert à la souris
   (A237), et un état juste mais invisible ne vaut rien. **Le halo est réservé aux boutons ; un
   champ s'allume par sa BORDURE.** Le focus d'ouverture va sur l'ACTION, jamais sur la croix.
+- **L'ANNEAU D'OUVERTURE SUIT LA MODALITÉ** (A492, amende A237) : ouverte au CLAVIER, une fenêtre pose son
+  anneau sur son point d'entrée ; ouverte au doigt ou à la souris, rien n'est encadré — une décision
+  (confirmation, nom à saisir) met le focus sur son action ou son champ, une fenêtre qu'on parcourt
+  (Créer, Affichage, Moi, Catégories, Sessions…) sur son TITRE : rien de présélectionné, aucun clavier
+  ouvert. Le premier Tab rallume l'anneau.
 - **Un halo de cible se vérifie en CAPTURE, pas en géométrie** (A278) : `elementFromPoint` au
   centre et aux quatre coins. Un `::after` de 44 px peut être parfaitement dimensionné et ne
   rien recevoir — c'est ce qui rendait deux survols inertes pendant des versions.
@@ -811,7 +816,7 @@ d'une case, ligne k/n neutre ; ouverte, des JETONS à coche à droite dont le li
 La **bande des repères** du bloc (`item.poso`) dit « fait · à faire · à préparer », venus de la
 coche — jamais d'un état de minuteur.
 
-## Ranger : collections et bibliothèques (A475-A479, A483-A489)
+## Ranger : collections et bibliothèques (A475-A479, A483-A493)
 
 **Une bibliothèque, c'est AVEC QUI ; une collection, c'est POUR MOI.** Aucune phrase ne le dit
 telle quelle — chaque écran le dit à sa façon :
@@ -846,6 +851,8 @@ telle quelle — chaque écran le dit à sa façon :
   mot — vous seul · partagée · lecture ; « Collections · pour vous » porte le signet. Une seule bibliothèque :
   une rangée active et « ＋ Partager avec une équipe… » (jamais « Nouvelle bibliothèque » à côté de « Nouvelle
   collection »).
+- La colonne liste aussi les bibliothèques VIDES (compte 0, A490), et les collections ont leur remise à zéro
+  « Tout » (A493 — ni « Toutes », ni « Toutes les aides » : les protocoles en sont).
 - **La barre de sélection** est UNE ligne de 56 px à toutes les largeurs : case maîtresse à trois
   états, compte, « Actions » qui ouvre la feuille (Ajouter à une collection · Déplacer · Ranger ·
   Exporter · Supprimer), sortie en croix. Cinq libellés entiers ne tiennent jamais dans 960 px :
