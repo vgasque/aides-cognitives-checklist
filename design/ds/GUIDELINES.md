@@ -842,11 +842,16 @@ telle quelle — chaque écran le dit à sa façon :
 - **Créer une bibliothèque demande d'abord « Avec qui ? »** (A477) ; sans invité, la fenêtre
   propose une collection. Le droit de créer est une règle d'instance (administrateurs · personnes
   autorisées · tout compte approuvé, A478) ; les autres DEMANDENT par la même fenêtre (A479).
-- **L'administrateur de l'instance voit tout** (A483), dans Moi › Administration et sans fenêtre
-  neuve : « Comptes · n » (une rangée par compte, qui se DÉPLIE sur place — statut et son geste,
-  droit de créer, rôle par bibliothèque) et « Bibliothèques de l'instance · n » (la rangée ouvre
-  la fenêtre Membres, qui gère aussi une bibliothèque dont l'administrateur n'est pas membre et le
-  dit en tête, A484). Un champ « Filtrer… » au-delà de 8 rangées.
+- **L'administrateur de l'instance voit tout** (A483), dans une PAGE ouverte depuis Moi (A494) — jamais une
+  entrée de la colonne gauche. Moi ne porte qu'une porte sous la carte du compte (« Administration », résumé,
+  pastille « n à traiter »). La page : **À traiter** d'abord (une seule file, demandes de compte et de
+  bibliothèque réglées sur place, « Rien à traiter » sans couleur), puis Annuaire, Règles, État. Au-delà de 8
+  comptes ou bibliothèques, une section à recherche, filtres à compteurs, tri et pages de 40 ; en deçà, la
+  liste posée dans la page. Un compte s'ouvre à côté de la liste en vue large (≥ 900 px rendus), en page au
+  téléphone ; approuver ou refuser PAR LOT par « Sélectionner ». Une bibliothèque ouvre la fenêtre Membres, qui
+  gère aussi celle dont l'administrateur n'est pas membre et le dit en tête (A484). Les règles (validation des
+  nouveaux comptes, création de bibliothèques) se changent par un bandeau de confirmation qui dit l'effet réel.
+  « En attente » et « △ sans administrateur » en ambre ; les autres statuts sans couleur.
 - **La colonne dit AVEC QUI** (A489) : une bibliothèque porte des personnes (`user` Perso, `users` partagée) et un
   mot — vous seul · partagée · lecture ; « Collections · pour vous » porte le signet. Une seule bibliothèque :
   une rangée active et « ＋ Partager avec une équipe… » (jamais « Nouvelle bibliothèque » à côté de « Nouvelle

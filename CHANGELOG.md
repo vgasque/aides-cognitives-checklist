@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.55.0] — 2026-10-08
+Administration devient une page claire, à petite comme à grande échelle (A494, doctrine `docs/decisions/lot-v5-55.md`).
+Rien à rejouer côté serveur.
+- **Moi** : la carte du compte ne change pas ; juste dessous, une carte **Administration** dit combien de demandes
+  attendent (« 13 à traiter »). Tout le reste de l'instance quitte Moi.
+- **Une page Administration**, ouverte depuis cette carte — en fenêtre au téléphone, dans la colonne principale en
+  tablette et au bureau (la colonne gauche ne change pas). Quatre parties, en onglets sur grand écran :
+  - **Vue d'ensemble** : « À traiter » en tête — demandes de compte et de bibliothèque dans une seule liste, les plus
+    anciennes d'abord, avec Refuser · Approuver (ou Créer) sur place ; puis l'annuaire, les règles et l'état de
+    l'instance (chiffres, contenus, stockage).
+  - **Comptes** : recherche, filtres avec leur nombre (En attente, Approuvés, Refusés, Peuvent créer,
+    Administrateurs), tri, 40 comptes à la fois ; **« Sélectionner » pour approuver ou refuser plusieurs comptes d'un
+    coup**. Un compte s'ouvre à côté de la liste sur grand écran : statut, droit de créer, bibliothèques et rôles,
+    « Ajouter à une bibliothèque… », bibliothèques qu'il a créées, suspension ou suppression.
+  - **Bibliothèques** : recherche, filtres « △ Sans administrateur » (personne ne peut y inviter), « Vides »,
+    « Dont je suis membre » ; toucher une bibliothèque ouvre sa gestion, comme avant.
+  - **Règles** : « Valider chaque nouveau compte » (l'interrupteur qui était caché dans « Comptes en attente ») et
+    « Création de bibliothèques » (trois choix expliqués). Chaque changement se confirme, et la confirmation dit ce
+    qui va se passer — couper la validation donne accès tout de suite aux comptes déjà en attente.
+- Avec peu de comptes et de bibliothèques (8 ou moins), tout reste visible sur la vue d'ensemble, sans recherche ni
+  filtres.
+- La fenêtre « Comptes en attente » disparaît : son contenu est dans « À traiter » et dans « Règles ».
+- Le retour (geste ou bouton) remonte d'un compte à la liste, puis à la vue d'ensemble, puis à Moi.
+
 ## [5.54.0] — 2026-10-08
 Anneaux bleus, retour à l'accueil et colonne (A490-A493, doctrine `docs/decisions/lot-v5-54.md`).
 - **Anneaux bleus** : une fenêtre ouverte au doigt ou à la souris n'encadre plus rien. Une confirmation met
@@ -234,12 +258,4 @@ Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/
   des réglages d'une étape porte un exemple.
 - **Accessibilité** : au clavier, la touche Tab atteint de nouveau les rubriques dépliables des fenêtres
   (« Pourquoi créer un compte ? »…).
-
-## [5.46.2] — 2026-10-05
-- **Le compteur affiché dans la capsule de session dit son nom en entier.** Au téléphone, la tuile montrait
-  « CHOCS DE… ». Elle se lit maintenant en ligne : la valeur d'abord, puis le nom complet sur deux lignes
-  (« 0 Chocs délivrés »). Si vous avez donné un nom court au compteur, c'est lui qui s'affiche. Le nom n'est coupé
-  qu'à 320 px ou en très grand texte (A462).
-- Éditeur : le champ « Nom court » d'un compteur propose le nom entier comme valeur par défaut, et non plus un
-  abrégé.
 

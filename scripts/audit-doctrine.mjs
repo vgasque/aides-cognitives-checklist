@@ -7245,7 +7245,8 @@ for (const W of [390, 1280]) {
 /* ══ A478-A479 — QUI CRÉE UNE BIBLIOTHÈQUE, QUI LA DEMANDE ══════════════════════════════════════
    Réseau SIMULÉ (aucune dépendance au vrai serveur) : l'administrateur voit la règle et la file ; un compte
    sans le droit voit « Demander une bibliothèque… » et la même fenêtre en mode demande ; un serveur ANTÉRIEUR
-   (RPC absentes) retombe sur l'ancienne règle sans rien casser. */
+   (RPC absentes) retombe sur l'ancienne règle sans rien casser. A494 : Administration est une PAGE ouverte
+   depuis Moi — la section suit sa nouvelle forme (porte, À traiter, Règles, compte à côté de la liste). */
 await sec('MOI · A478-A479, A483 droit de créer, demandes, comptes et bibliothèques de l’instance', async () => {
 const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,list_unapproved_users:[],get_instance_stats:{users:3},
   get_library_creation:'creators',list_users:[{user_id:'00000000-0000-0000-0000-00000000000a',email:'a@x.fr',is_admin:false,can_create:true}],
@@ -7266,6 +7267,7 @@ for (const cas of ['admin','demandeur','ancien']) {
     let b=m?RPC[m[1]]:[];if(cas==='demandeur'&&m&&/is_app_admin|can_create_library/.test(m[1]))b=false;
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(b===undefined?null:b)});});
   await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
+  await page.addInitScript(()=>{window.__appels=[];window.__compte=n=>window.__appels.filter(x=>x===n).length;const f=window.fetch;window.fetch=function(u){try{const m=String(u&&u.url||u).match(/rpc\/([a-z_]+)/);if(m)window.__appels.push(m[1]);}catch(e){}return f.apply(this,arguments);};});   // A494 : les envois se comptent DANS la page (exposeFunction injecte un script inline, que la CSP refuse)
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   const r = await page.evaluate(async () => {
@@ -7275,48 +7277,134 @@ for (const cas of ['admin','demandeur','ancien']) {
     const libs=document.getElementById('acctLibs');
     out.porte=((libs&&libs.querySelector('[data-newlib]'))||{}).textContent||'';
     out.attente=!!(libs&&libs.querySelector('[data-libreqx]'));
-    const z=document.getElementById('admLibs');
-    out.regle=z?z.querySelectorAll('[data-libmode]').length:-1;
-    out.file=z?z.querySelectorAll('[data-libreq]').length:-1;
-    out.note=z?(z.querySelector('.adm-note')||{}).textContent||'':'';
-    const ap=z&&z.querySelector('[data-libmode="approved"]');
-    if(ap){ap.click();await w(150);const ask=document.getElementById('admLibAsk');out.ask=!!ask&&!ask.hidden&&/Tout compte approuvé/.test(ask.textContent);}
-    const pe=document.getElementById('admPeople');
-    out.comptes=pe?pe.querySelectorAll('[data-admuser]').length:-1;
-    out.libs=pe?[...pe.querySelectorAll('[data-admlib]')].map(b=>b.textContent):[];
-    out.peNote=pe?(pe.querySelector('.adm-note')||{}).textContent||'':'';
-    const ua=pe&&pe.querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]');
-    if(ua){ua.click();await w(400);const pa=pe.querySelector('[data-admpanel]');
-      out.panneau={ouvert:pe.querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]').getAttribute('aria-expanded'),
-        suspendre:!!(pa&&pa.querySelector('[data-admact="suspend"]')),creer:!!(pa&&pa.querySelector('[data-admcreate]')),
-        roles:pa?pa.querySelectorAll('[data-admrole]').length:0};
-      const sel=pa&&pa.querySelector('[data-admrole]');if(sel){sel.value='admin';sel.dispatchEvent(new Event('change'));await w(300);}}
-    const lb=pe&&pe.querySelector('[data-admlib="lib-1"]');
+    /* A494 : Moi ne porte plus que la PORTE d'Administration, avec ce qui attend. */
+    const door=document.getElementById('admDoor');
+    out.porteAdm=door?door.textContent.replace(/\s+/g,' ').trim():null;
+    out.pile=!!document.getElementById('authStats');
+    const nouvelle=async()=>{const nl=document.querySelector('#acctLibs [data-newlib]');if(!nl)return;nl.click();await w(300);
+      out.titre=document.getElementById('newLibModalTitle').textContent;
+      const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
+      out.cta=document.getElementById('newLibOk').textContent;};
+    if(!door){await nouvelle();return out;}
+    door.click();await w(800);
+    out.vue={tab:state.homeTab,admView:!!document.getElementById('admView'),moi:(document.querySelector('.home-side [data-navme]')||{}).getAttribute?.('aria-current')||null,niveaux:_hViewLevels()};
+    const R=()=>document.getElementById('admView');
+    out.todo={comptes:R().querySelectorAll('[data-admst]').length,biblio:R().querySelectorAll('[data-libreq]').length,calme:!!R().querySelector('.adm-calm')};
+    out.note=[...R().querySelectorAll('.adm-note')].map(n=>n.textContent).join(' | ');
+    out.comptes=R().querySelectorAll('[data-admuser]').length;
+    out.libs=[...R().querySelectorAll('[data-admlib]')].map(b=>b.textContent);
+    /* Règles : la création à trois choix et l'interrupteur de validation, tous deux CONFIRMÉS avant tout envoi. */
+    admGo('regles');await w(200);
+    out.regle=R().querySelectorAll('[data-libmode]').length;
+    out.regleNote=(R().querySelector('.adm-note')||{}).textContent||'';
+    const ap=R().querySelector('[data-libmode="approved"]');
+    if(ap){ap.click();await w(150);const ask=R().querySelector('.adm-ask');out.ask=!!ask&&/Tout compte approuvé/.test(ask.textContent);
+      R().querySelector('[data-admno]').click();await w(100);}
+    const sw=R().querySelector('[data-admap]');
+    if(sw){out.valid=sw.getAttribute('aria-checked');sw.click();await w(150);const ask=R().querySelector('.adm-ask');
+      out.validAsk=ask?ask.textContent:'';out.validAvant=(window.__compte('set_approval_required'))>0;
+      R().querySelector('[data-admyes="ap"]').click();await w(400);out.validApres=(window.__compte('set_approval_required'))>0;}
+    /* Comptes → un compte : liste ET détail côte à côte en vue large. */
+    admGo('comptes');await w(200);
+    const ua=R().querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]');
+    if(ua){ua.click();await w(500);const pa=R().querySelector('aside');
+      out.panneau={split:!!R().querySelector('.adm-split'),courant:(R().querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]')||{}).getAttribute?.('aria-current'),
+        suspendre:!!(pa&&pa.querySelector('[data-admact="suspend"]')),creer:!!(pa&&pa.querySelector('[data-admcreate]')),roles:pa?pa.querySelectorAll('[data-admrole]').length:0,profondeur:admDepth()};
+      const sel=pa&&pa.querySelector('[data-admrole]');if(sel){sel.value='admin';sel.dispatchEvent(new Event('change',{bubbles:true}));await w(400);}}
+    /* La bibliothèque d'un autre (A484) s'ouvre depuis Bibliothèques ; refermer relit l'instance. */
+    admGo('libs');await w(200);
+    const lb=R().querySelector('[data-admlib="lib-1"]');
     if(lb){lb.click();await w(500);const mb=document.getElementById('membersBody');
       out.gerer={nom:document.getElementById('libNameField').value,horsAdh:/pas membre/.test((mb.querySelector('.notice')||{}).textContent||''),
         compte:(mb.querySelector('.danger-caption')||{}).textContent||'',invite:!!mb.querySelector('#memInvite'),convertir:!!mb.querySelector('#libToColl'),retirer:mb.querySelectorAll('[data-remove]').length};
-      document.getElementById('memEmail').value='c@x.fr';document.getElementById('memInvite').click();await w(300);closeMembers(true);await w(300);}
-    if(libs&&libs.querySelector('[data-newlib]')){libs.querySelector('[data-newlib]').click();await w(300);
-      out.titre=document.getElementById('newLibModalTitle').textContent;
-      const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
-      out.cta=document.getElementById('newLibOk').textContent;}
+      document.getElementById('memEmail').value='c@x.fr';document.getElementById('memInvite').click();await w(300);
+      const avant=window.__compte('list_accounts');closeMembers(true);await w(500);
+      out.relu=(window.__compte('list_accounts'))>avant;}
+    setHomeTab('me');await w(300);await nouvelle();
     return out;});
   if (cas==='admin') {
-    t('administrateur : la règle à trois crans et la file des demandes (Refuser · Créer)', r.peut&&r.regle===3&&r.file===2, JSON.stringify(r));
+    t('A494 : Moi porte la PORTE d’Administration (compte « à traiter »), plus la pile d’A438/A483', /Administration/.test(r.porteAdm||'')&&/2 à traiter/.test(r.porteAdm||'')&&!r.pile, JSON.stringify([r.porteAdm,r.pile]));
+    t('… dès 780, une vue de la colonne ouverte depuis Moi — la colonne garde « Moi » courant, deux niveaux de retour', r.vue&&r.vue.tab==='admin'&&r.vue.admView&&r.vue.moi==='page'&&r.vue.niveaux===2, JSON.stringify(r.vue));
+    t('À traiter : la demande de compte et la demande de bibliothèque, réglées sur place', r.todo&&r.todo.comptes===2&&r.todo.biblio===2&&!r.todo.calme, JSON.stringify(r.todo));
+    t('administrateur : la règle à trois choix', r.peut&&r.regle===3, JSON.stringify(r));
     t('A481 : changer la règle ouvre un bandeau de confirmation, et rien ne part avant « Confirmer »', r.ask===true&&!appels.includes('set_library_creation'), JSON.stringify([r.ask,appels.filter(x=>/set_/.test(x))]));
-    t('A483 : tous les comptes et toutes les bibliothèques de l’instance, avec leur créateur', r.comptes===2&&r.libs.length===1&&/créée par a@x\.fr/.test(r.libs[0]), JSON.stringify([r.comptes,r.libs]));
-    t('… un compte se déplie sur place : statut, droit de créer, rôle par bibliothèque', r.panneau&&r.panneau.ouvert==='true'&&r.panneau.suspendre&&r.panneau.creer&&r.panneau.roles===1, JSON.stringify(r.panneau));
+    t('A494 : « Valider chaque nouveau compte » — la confirmation dit que les comptes en attente auront accès, rien ne part avant', r.valid==='true'&&/compte en attente aura accès aussitôt/.test(r.validAsk)&&!r.validAvant&&r.validApres, JSON.stringify([r.valid,r.validAsk,r.validAvant,r.validApres]));
+    t('A483 : tous les comptes et toutes les bibliothèques de l’instance, avec leur créateur (posés dans la page sous 8)', r.comptes===2&&r.libs.length===1&&/créée par a@x\.fr/.test(r.libs[0]), JSON.stringify([r.comptes,r.libs]));
+    t('… un compte s’ouvre à côté de la liste : statut, droit de créer, rôle par bibliothèque', r.panneau&&r.panneau.split&&r.panneau.courant==='true'&&r.panneau.suspendre&&r.panneau.creer&&r.panneau.roles===1&&r.panneau.profondeur===2, JSON.stringify(r.panneau));
     t('… changer un rôle ne touche QUE l’adhésion de ce compte', ecrits.some(x=>/^PATCH memberships\?library_id=eq\.lib-1&user_id=eq\.00000000-0000-0000-0000-00000000000a/.test(x)), JSON.stringify(ecrits));
-    t('A484 : la bibliothèque d’un autre se gère depuis Administration — nom, inviter, retirer, compte venu du serveur', r.gerer&&r.gerer.nom==='Bloc CHU'&&r.gerer.horsAdh&&r.gerer.invite&&r.gerer.retirer===1&&!r.gerer.convertir&&/2 aides et 1 protocole/.test(r.gerer.compte)&&appels.includes('invite_member'), JSON.stringify(r.gerer));
+    t('A484 : la bibliothèque d’un autre se gère depuis Administration — nom, inviter, retirer, compte venu du serveur ; refermer relit l’instance', r.gerer&&r.gerer.nom==='Bloc CHU'&&r.gerer.horsAdh&&r.gerer.invite&&r.gerer.retirer===1&&!r.gerer.convertir&&/2 aides et 1 protocole/.test(r.gerer.compte)&&appels.includes('invite_member')&&r.relu, JSON.stringify([r.gerer,r.relu]));
     t('… « Nouvelle bibliothèque » et la fenêtre de création', /Nouvelle bibliothèque/.test(r.porte)&&r.titre==='Nouvelle bibliothèque', r.porte+' | '+r.titre);
   } else if (cas==='demandeur') {
-    t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de règle', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.regle===-1, JSON.stringify(r));
+    t('sans le droit : « Demander une bibliothèque… », ses demandes annulables, pas de porte d’Administration', !r.peut&&/Demander une bibliothèque/.test(r.porte)&&r.attente&&r.porteAdm===null, JSON.stringify(r));
     t('… la MÊME fenêtre, en mode demande (garde-fou sans invité)', r.titre==='Demander une bibliothèque'&&/Demander quand même/.test(r.cta), r.titre+' | '+r.cta);
   } else {
-    t('serveur antérieur : repli sur « administrateur seul », Administration dit de rejouer le schéma', r.peut===true&&r.regle===0&&/schema\.sql/.test(r.note)&&/schema\.sql/.test(r.peNote), JSON.stringify(r));
+    t('serveur antérieur : repli sur « administrateur seul », Administration dit de rejouer le schéma (comptes et règle)', r.peut===true&&r.regle===0&&/schema\.sql/.test(r.note)&&/schema\.sql/.test(r.regleNote), JSON.stringify(r));
   }
   await page.close();
 }
+});
+
+/* ══ A494 — ADMINISTRATION À L'ÉCHELLE (téléphone) ═══════════════════════════════════════════
+   60 comptes dont 12 en attente, 20 bibliothèques : la page-fenêtre s'ouvre depuis la porte de Moi ;
+   « À traiter » montre trois demandes et renvoie à la liste filtrée ; la liste cherche, se pagine par 40,
+   approuve PAR LOT (un envoi par compte) ; le retour système remonte d'un compte à la liste ; franchir
+   780 fait de la fenêtre la vue de la colonne, section gardée. */
+await sec('MOI · A494 Administration à l’échelle : liste, lot, retour, 780', async () => {
+const acc=[];for(let i=0;i<60;i++){const st=i<12?'pending':i<56?'approved':'rejected';
+  acc.push({user_id:'00000000-0000-0000-0000-'+String(i).padStart(12,'0'),email:'u'+String(i).padStart(2,'0')+'@x.fr',status:st,is_admin:i===20,can_create:false,libraries:st==='approved'?1:0,created_at:new Date(Date.UTC(2026,8,1+i)).toISOString()});}
+const libs=[];for(let i=0;i<20;i++)libs.push({id:'lib-'+i,name:'Biblio '+String(i).padStart(2,'0'),creator:'u30@x.fr',members:3,admins:i===4?0:1,aids:i===9?0:2,protocols:0});
+const RPC={is_app_admin:true,can_create_library:true,get_approval_required:true,list_unapproved_users:[],get_instance_stats:{users:56},
+  get_library_creation:'admins',list_users:[],list_library_requests:[],my_library_requests:[],list_accounts:acc,list_all_libraries:libs,list_user_memberships:[],set_user_status:null};
+const page = await br.newPage({viewport:{width:390,height:844}});
+page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+const appels=[];
+await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const m=route.request().url().match(/rpc\/([a-z_]+)/);if(m)appels.push(m[1]);
+  const b=m?RPC[m[1]]:[];route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(b===undefined?null:b)});});
+await page.addInitScript(()=>{window.__appels=[];window.__compte=n=>window.__appels.filter(x=>x===n).length;const f=window.fetch;window.fetch=function(u){try{const m=String(u&&u.url||u).match(/rpc\/([a-z_]+)/);if(m)window.__appels.push(m[1]);}catch(e){}return f.apply(this,arguments);};});   // A494 : les envois se comptent DANS la page (exposeFunction injecte un script inline, que la CSP refuse)
+await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
+await page.goto(`http://localhost:${port}/index.html`);
+await amorce(page);
+const r = await page.evaluate(async () => {
+  const w=ms=>new Promise(r=>setTimeout(r,ms));const B=()=>document.getElementById('admBody');
+  myAccountStatus='approved';await Sync.loadProfile();openAuth();await w(900);
+  document.getElementById('admDoor').click();await w(700);
+  const out={fenetre:document.getElementById('admModal').classList.contains('on'),onglets:!!B().querySelector('.adm-tabs')};
+  out.todo=B().querySelectorAll('[data-admst$=":approved"]').length;
+  out.annuaire=[...B().querySelectorAll('[data-admgo="comptes"]:not([data-admf]),[data-admgo="libs"]')].map(b=>b.textContent.replace(/\s+/g,' ').trim());
+  const voir=B().querySelector('[data-admgo="comptes"][data-admf="pending"]');out.voir=voir?voir.textContent:'';
+  voir.click();await w(300);
+  out.filtre=B().querySelectorAll('[data-admuser]').length;
+  B().querySelector('[data-admsel]').click();await w(150);
+  const p=B().querySelectorAll('[data-admpick]');p[0].click();await w(100);B().querySelectorAll('[data-admpick]')[1].click();await w(100);
+  out.barre=(B().querySelector('.adm-selbar')||{}).textContent||'';
+  const avant=window.__compte('set_user_status');
+  B().querySelector('[data-admbulk="approved"]').click();await w(700);
+  out.lot=(window.__compte('set_user_status'))-avant;out.selFin=_adm.sel===null;
+  B().querySelector('[data-admf="all"]').click();await w(200);
+  out.page1=B().querySelectorAll('[data-admuser]').length;out.plus=(B().querySelector('[data-admmore="acc"]')||{}).textContent||'';
+  B().querySelector('[data-admmore="acc"]').click();await w(200);out.page2=B().querySelectorAll('[data-admuser]').length;
+  const q=B().querySelector('[data-admq="acc"]');q.focus();q.value='u05';q.dispatchEvent(new Event('input',{bubbles:true}));await w(150);
+  out.cherche=[B().querySelectorAll('[data-admuser]').length,document.activeElement===q];
+  B().querySelector('[data-admuser]').click();await w(400);
+  out.compte=[_adm.sec,admDepth(),_histLevels()];
+  history.back();await w(1200);
+  out.retour=_adm.sec;
+  admGo('libs');await w(200);
+  out.libs=[B().querySelectorAll('[data-admlib]').length,B().querySelectorAll('.adm-chips [data-admlf]').length,!!B().querySelector('[data-admlib="lib-4"] .adm-warn')];
+  return out;});
+t('390 : la porte de Moi ouvre une page-fenêtre, sans onglets', r.fenetre&&!r.onglets, JSON.stringify([r.fenetre,r.onglets]));
+t('… À traiter montre trois demandes de compte et renvoie aux douze', r.todo===3&&/Voir les 12 demandes de compte/.test(r.voir), r.todo+' | '+r.voir);
+t('… au-delà de 8, l’annuaire se résume en deux rangées (60 comptes, 20 bibliothèques, l’ambre pour « sans administrateur »)', r.annuaire.length===2&&/60/.test(r.annuaire[0])&&/20/.test(r.annuaire[1])&&/1 sans administrateur/.test(r.annuaire[1]), JSON.stringify(r.annuaire));
+t('… la liste filtrée « En attente » tient les 12', r.filtre===12, String(r.filtre));
+t('… approuver PAR LOT : la barre dit la sélection, un envoi par compte, la sélection se referme', /2 sélectionnés/.test(r.barre)&&r.lot===2&&r.selFin, JSON.stringify([r.barre,r.lot,r.selFin]));
+t('… 40 rangées à la fois, puis « Afficher 20 de plus »', r.page1===40&&/Afficher 20 de plus/.test(r.plus)&&r.page2===60, JSON.stringify([r.page1,r.plus,r.page2]));
+t('… chercher ne repeint que la liste : le champ garde le focus', r.cherche[0]===1&&r.cherche[1], JSON.stringify(r.cherche));
+t('… un compte ouvert depuis la liste = deux niveaux de retour, le retour système remonte à la liste', r.compte[0]==='compte'&&r.compte[1]===2&&r.retour==='comptes', JSON.stringify([r.compte,r.retour]));
+t('… Bibliothèques : recherche et filtres de santé (sans administrateur, vides)', r.libs[0]===20&&r.libs[1]>=3&&r.libs[2], JSON.stringify(r.libs));
+await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(500);
+const v=await page.evaluate(()=>({tab:state.homeTab,vue:!!document.getElementById('admView'),fenetre:document.getElementById('admModal').classList.contains('on'),sec:_adm.sec}));
+t('… franchir 780 : la fenêtre devient la vue de la colonne, section gardée', v.tab==='admin'&&v.vue&&!v.fenetre&&v.sec==='libs', JSON.stringify(v));
+await page.close();
 });
 
 /* ══ LE GESTIONNAIRE DE CATÉGORIES COMPTE COMME LA COLONNE ═══════════════════════════════════
