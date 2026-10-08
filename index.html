@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-t+koo6TaFGhmnfxR2ESAxqovvZkNqcdiwxtNpqKLTTc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DdHb497yeJULmcQdXs1LYiclWaw9qBoWCHvqXevSqEM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2260,8 +2260,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Placeholder de DÉMARRAGE (HTML statique dans <main>, remplacé par le tout premier render()) :
      l'app dit « Chargement… » au lieu d'une page vide pendant la lecture IndexedDB initiale. */
   .boot-load{display:flex;align-items:center;justify-content:center;padding:56px 16px;color:var(--ink-soft);font-size:13.5px}
-  .btn.ghost-danger{background:transparent;border-color:transparent;color:var(--crit)}
-  .btn.ghost-danger:hover{background:var(--crit-soft);border-color:transparent}
   /* SPEC gestion §3 : Annuler / CTA demi-largeur ; ZONE SENSIBLE sous séparateur, bouton
      CONTOUR rouge (jamais plein, jamais côte à côte avec le CTA principal). */
   /* Jumeaux demi-largeur : `min-width:0` neutralise le plancher min-content (sans lui, le
@@ -6382,27 +6380,93 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .acct-more[open]>summary::after{content:"▴"}
   .acct-more>summary:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:8px}
   .acct-more[open]{margin-bottom:4px}
-  /* ADMINISTRATION (v5.39.10, A438 — maquette validée par l'auteur, canevas « Administration —
-     Compte & synchronisation ») : la seule ACTION en tête (rangée « Demandes de compte »), quatre
-     chiffres clés en tuiles de LECTURE (ni survol, ni chevron : rien n'y répond — la crainte de
-     v4.71.1 tenait à la tuile qui promet un objet, d'où l'absence de toute affordance), puis deux
-     cartes — Contenus & sessions, Stockage — côte à côte DÈS QUE LA PLACE LE PERMET : `auto-fit`
-     sur un minimum de 300 px, donc la largeur RENDUE décide (zoom compris, règle 10), sans media
-     query ni `@container`. Valeurs en mono tabulaire, comme avant. */
-  .adm-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px;padding:0 4px}
-  .adm-top .auth-stats-h{margin:0;padding:0}
-  .adm-when{font-size:var(--t-meta);color:var(--ink-2)}
-  .adm-req{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;margin:0 0 8px;
-    font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
-  .adm-req:hover{background:var(--amb-2)}
-  .adm-req:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .adm-ic{flex:none;width:36px;height:36px;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center}
-  .adm-tx{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
-  .adm-lb{font-size:var(--t-item);font-weight:700}
+  /* ADMINISTRATION — UNE PAGE À SECTIONS (v5.55, A494 ; maquette validée par l'auteur, canevas
+     « Administration — refonte ») : Moi ne porte plus qu'une PORTE (`.adm-door`) ; la page dit d'abord
+     ce qui attend (« À traiter »), puis l'annuaire, les règles, l'état. Les listes passent de « tout
+     afficher » à recherche + filtres + 40 rangées à la fois au-delà de 8 éléments ; en deçà, elles
+     restent posées dans la page. Tuiles et cartes de lecture reprises d'A438. */
+  .adm-door{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;margin:0 0 12px;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .adm-door:hover{background:var(--amb-2)}
+  .adm-door:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .adm-ic{flex:none;width:40px;height:40px;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center}
+  .adm-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .adm-lb{font-size:var(--t-item);font-weight:800}
   .adm-sub{font-size:var(--t-body);color:var(--ink-2)}
-  .adm-go{flex:none;display:inline-flex;align-items:center;gap:2px;font-size:var(--t-body);font-weight:700;color:var(--act)}
-  /* Dès 560 px effectifs, l'action se dit par un bouton plein (la rangée entière reste la cible). */
-  html:not(.zw560) .adm-req.on .adm-go{min-height:40px;padding:0 12px 0 16px;border-radius:var(--r-2);background:var(--act);color:var(--on-primary)}
+  .adm-badge{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:var(--act);color:var(--on-primary);font-size:var(--t-meta);font-weight:700;white-space:nowrap}
+  .adm-badge b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+  .home-main>.hv-page.adm-page{max-width:1100px}   /* la vue large tient la liste ET le détail d'un compte */
+  .adm-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;margin:0 0 4px -4px;padding:0 8px 0 0;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
+  .adm-back:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-2)}
+  .adm-back svg{transform:scaleX(-1)}
+  .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
+  .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
+  .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}
+  .adm-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--amb-2);color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta);font-weight:600;letter-spacing:0}
+  .adm-n.on{background:var(--act);color:var(--on-primary)}
+  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-sh:first-child{margin-top:4px}
+  .adm-sh small{margin-left:auto;font-size:var(--t-meta);font-weight:500;letter-spacing:0;text-transform:none}
+  .adm-title{margin:0 0 2px;font-size:var(--t-step);font-weight:800}
+  .adm-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;padding:0 4px}
+  .adm-when{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-calm{display:flex;align-items:center;gap:10px;min-height:48px;margin:0;padding:0 14px;border:1px dashed var(--line-strong);border-radius:var(--r-4);font-size:var(--t-body);color:var(--ink-2)}
+  /* Une demande : les gestes au bout de la ligne quand la place le permet, dessous sinon — un `flex-wrap`,
+     donc la largeur RENDUE décide (zoom compris, règle 10), sans palier. */
+  .adm-tr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 0}
+  .adm-tr:not(:first-child){border-top:1px solid var(--work-line)}
+  .adm-tr>.mm-ic{align-self:flex-start;padding-top:2px}
+  .adm-tr>.mm-tx{flex:1 1 240px}
+  .adm-tr .adm-reqa{margin-left:auto}
+  :is(#admBody,#admView) .mm-sub{white-space:normal}   /* une sous-ligne d'administration se lit en entier ; le libellé reste sur une ligne */
+  .adm-kind{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .adm-more{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0;border:0;border-top:1px solid var(--work-line);background:none;font-family:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .adm-more:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 4px 8px;font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-tools .adm-count{flex:1;min-width:0;white-space:nowrap}
+  .adm-tools select{height:32px;padding:0 6px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink)}
+  .adm-q{width:100%;height:44px;margin:12px 0 0;padding:0 16px;box-sizing:border-box;border:1px solid var(--work-line);border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-item);color:var(--ink)}
+  .adm-q:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .adm-chips{margin-top:12px}
+  .adm-chips .catchip .adm-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta)}   /* pas d'opacité : 4,11:1 dans la puce ambre (mesuré) */
+  .adm-chips .catchip.warn{color:var(--warn)}
+  .adm-chips .catchip.warn.on{color:var(--on-primary)}
+  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-grp:not(:first-child){border-top:1px solid var(--work-line)}
+  .adm-grp+.mm-row{border-top:0!important}
+  .adm-st{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .adm-st.wait{color:var(--warn)}
+  .adm-st.adm{color:var(--ink)}
+  .adm-warn{font-weight:700;color:var(--warn)}
+  .mm-row[aria-current="true"]{background:var(--primary-soft)}
+  .adm-box{flex:none;width:24px;height:24px;border-radius:var(--r-3);border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;color:var(--on-primary)}
+  .adm-box svg{visibility:hidden}
+  [aria-checked="true"]>.adm-box{background:var(--act);border-color:var(--act)}
+  [aria-checked="true"]>.adm-box svg{visibility:visible}
+  .adm-selbar{position:sticky;bottom:8px;z-index:2;display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:8px 8px 8px 16px;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-float);font-size:var(--t-body);font-weight:700}
+  .adm-selbar>span{flex:1;min-width:0}
+  .adm-head{display:flex;align-items:center;gap:14px;margin:4px 0 4px}
+  .adm-ava{flex:none;width:48px;height:48px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-item);font-weight:800}
+  .adm-head .adm-tx{gap:2px}
+  .adm-head .adm-lb{font-size:var(--t-step);overflow-wrap:anywhere}
+  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:52px;padding:6px 0;font-size:var(--t-item)}
+  .adm-urow+.adm-urow,.acct-card>.adm-urow~.mem-row{border-top:1px solid var(--work-line)}
+  .adm-urow small{display:block;font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-urow>span:first-child{flex:1 1 200px;min-width:0}
+  .acct-list .mem-row{padding:6px 0;border:0;border-radius:0;background:none}
+  .acct-list .mem-row+.mem-row{border-top:1px solid var(--work-line)}
+  .adm-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);gap:16px;align-items:start}
+  .adm-split>aside{position:sticky;top:8px}
+  .adm-radio{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 0;border:0;background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .adm-radio:not(:first-child){border-top:1px solid var(--work-line)}
+  .adm-radio:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-rmark{flex:none;width:22px;height:22px;margin-top:1px;box-sizing:border-box;border-radius:50%;border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center}
+  .adm-rmark::after{content:"";width:10px;height:10px;border-radius:50%}
+  .adm-radio[aria-checked="true"] .adm-rmark{border-color:var(--act)}
+  .adm-radio[aria-checked="true"] .adm-rmark::after{background:var(--act)}
+  .adm-radio .adm-tx{gap:2px}
+  .adm-radio .adm-lb{font-weight:700}
+  .adm-radio .adm-st{margin-top:2px}
   .adm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 8px}
   .adm-kpi{display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
   .adm-kv{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
@@ -6435,19 +6499,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .adm-leg .adm-v{font-weight:500;font-size:var(--t-body)}
   .adm-note{display:flex;gap:10px;align-items:flex-start;margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
   .adm-note>svg{flex:none;margin-top:1px}
-  /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
+  .adm-hint{margin:8px 4px 0;font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
+  .adm-sh+.adm-hint{margin:-4px 4px 8px}
+  .acct-list>.adm-hint{margin:8px 0}
+  /* A478-A479 : Refuser · Créer au bout de la rangée, et le bandeau qui CONFIRME une règle (A481). */
   .adm-reqa{display:flex;gap:8px;flex:none}
-  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask{margin:0 0 12px;padding-right:14px;font-size:var(--t-body)}
+  .adm-ask>div{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
   .adm-ask .adm-reqa{margin-left:auto}
-  #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
-  #admLibs .seg{margin:4px 0 10px}
-  #admPeople{display:flex;flex-direction:column;gap:12px;margin:0 0 12px}
-  .adm-list .catmenu-filter{margin:0 0 6px}
-  .adm-user{margin:0 0 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb)}
-  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;font-size:var(--t-body)}
-  .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
-  .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
-  .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
   .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
   .auth-actions{display:flex;flex-direction:column;gap:12px}
   /* A376 : dans la carte « Sur cet appareil », les actions se posent en rangée dès 780 et gardent leur largeur de contenu — un bouton de 720 px pour « Un problème ? » ne disait rien de plus (signalé). */
@@ -8870,9 +8929,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="newLibBody" class="ai-body"></div>
 </div></div>
-<div class="ai-modal" id="pendingModal" role="dialog" aria-modal="true" aria-labelledby="pendingModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="pendingModalTitle">Comptes en attente</h3><button class="ai-x" aria-label="Fermer">×</button></div>
-  <div id="pendingBody" class="ai-body"></div>
+<div class="ai-modal page" id="admModal" role="dialog" aria-modal="true" aria-labelledby="admModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="admModalTitle">Administration</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div id="admBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal page" id="sessModal" role="dialog" aria-modal="true" aria-labelledby="sessModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="sessModalTitle">Sessions</h3><button class="ai-x" aria-label="Fermer">×</button></div>
@@ -9098,7 +9157,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.54.0';
+const APP_VERSION='5.55.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14481,10 +14540,12 @@ function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
   state.homeTab=t;if(state.selOn)selEnd();render();
   const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
 function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
-  if(!mqHomeWide.matches){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();return;}
+  if(!mqHomeWide.matches){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();
+    if(t==='admin'){admModal.classList.add('on');renderAdm();}return;}
   let t2=null;
   if(sessModal.classList.contains('on')&&_sessFiche==='*'){closeSessHist();t2='sessions';}
   if(authModal.classList.contains('on')){closeAuth();t2='me';}
+  if(admModal.classList.contains('on')){admModal.classList.remove('on');t2='admin';}   // A494 : la section ouverte survit
   if(t2)setHomeTab(t2);}
 const _onHomeBp=()=>{if(state.view!=='library')return;syncHomeTabs();render();};
 if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);else if(mqHomeWide.addListener)mqHomeWide.addListener(_onHomeBp);
@@ -14923,7 +14984,7 @@ function homeSideHtml(){
       <nav class="hs-nav" aria-label="Sections">
         ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),attrs:'data-navaides'+cur('aides')})}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist'+cur('sessions')})}
-        ${hsRow({on:tab==='me',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme'+cur('me')})}
+        ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
       <div class="hs-h">${seule?'Bibliothèque':'Bibliothèques'}<span class="hs-hs">avec qui</span>${!seule&&mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
       <div class="hs-sep"></div>
@@ -15731,10 +15792,14 @@ function bindSelLongPress(cfg){
 /* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
 function renderHomeTab(cfg){const t=homeTab();
-  main.innerHTML=homeSideHtml()+`<div class="home-main"><section class="hv-page">`
-    +(t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`:`<h2 class="hv-title">Moi</h2><div id="meView"></div>`)
+  main.innerHTML=homeSideHtml()+`<div class="home-main"><section class="hv-page${t==='admin'?' adm-page':''}">`
+    +(t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
+      :t==='admin'?`<button type="button" class="adm-back" data-admmoi>${uiIcon('chev',18)}Moi</button><h2 class="hv-title">Administration</h2><div id="admView"></div>`   // A494 : une page ouverte depuis Moi, pas une entrée de la colonne
+      :`<h2 class="hv-title">Moi</h2><div id="meView"></div>`)
     +`</section></div>`;
-  if(t==='sessions'){_sessFiche='*';renderSessHist();}else renderAuth();
+  if(t==='sessions'){_sessFiche='*';renderSessHist();}
+  else if(t==='admin'){main.querySelector('[data-admmoi]').onclick=()=>setHomeTab('me');renderAdm();if(!_admD)admRefresh();}
+  else renderAuth();
   bindHomeChrome(cfg.rerender);placeFooter();}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
@@ -17753,6 +17818,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   chev:'<path d="M9 6l6 6-6 6"/>',
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
   lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+  shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/>',
   play:'<path fill="currentColor" stroke="none" d="M8 5v14l11-7z"/>',
   stop:'<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>',
   undo:'<path d="M3 12a9 9 0 102.6-6.4L3 8"/><path d="M3 3v5h5"/>',
@@ -28272,13 +28338,6 @@ async function wipeCurrentSpace(){
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.endsWith(suffix))localStorage.removeItem(k);}
   }catch(e){}
 }
-// État de l'instance (app-admin) : petit tableau de bord affiché dans l'écran Compte. Chargé en
-// asynchrone (RPC get_instance_stats, réservée aux app-admins) pour ne pas retarder l'ouverture.
-/* La note du garde-fou : dans la carte Stockage quand l'état est chargé, seule sinon. */
-/* ══ DROITS DE CRÉATION ET DEMANDES DE BIBLIOTHÈQUE (v5.51, A478-A479) ══ La sécurité vit dans RLS
-   (`can_create_library`, `lib_insert`) : l'app ne fait qu'afficher le bon bouton. Serveur antérieur
-   (schéma pas rejoué) : repli sur l'ancienne règle, administrateur seulement, et rien d'autre ne casse. */
-const LIB_MODES=[['admins','Administrateurs seulement'],['creators','Personnes autorisées'],['approved','Tout compte approuvé']];
 // Moi : mes demandes (en attente ou refusées) — une rangée chacune, annulable ou effaçable.
 function libReqRowsHtml(){return (myLibReqs||[]).map(r=>{const ko=r.status==='rejected';
   return menuRowHtml({label:'« '+r.name+' »',ic:uiIcon(ko?'warn':'history',20),inert:true,
@@ -28286,123 +28345,115 @@ function libReqRowsHtml(){return (myLibReqs||[]).map(r=>{const ko=r.status==='re
     tail:`<button type="button" class="btn sm" data-libreqx="${esc(r.id)}">${ko?'Effacer':'Annuler'}</button>`});}).join('');}
 async function libReqCancel(id){try{await rpc('cancel_library_request',{p_id:id});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
   myLibReqs=(myLibReqs||[]).filter(r=>r.id!==id);saveProfileCache();renderAuth();}
-/* Administration : qui crée (segmenté à pastille), les personnes autorisées, et la file des demandes. */
-async function loadLibRights(box){const z=box.querySelector('#admLibs');if(!z)return;
-  let mode,users,reqs;
-  try{[mode,users,reqs]=await Promise.all([rpc('get_library_creation'),rpc('list_users'),rpc('list_library_requests')]);}
-  catch(e){z.innerHTML=`<p class="adm-note">Rejouez <b>supabase/schema.sql</b> (v5.51) pour choisir qui crée des bibliothèques et recevoir les demandes.</p>`;return;}
-  if(!document.body.contains(z))return;
-  const i=Math.max(0,LIB_MODES.findIndex(m=>m[0]===mode)),pers=(users||[]).filter(u=>u.can_create&&!u.is_admin);
-  z.innerHTML=((reqs||[]).length?`<div class="acct-card acct-list"><div class="adm-h">${esc(nb(reqs.length,'demande')+' de bibliothèque')}</div>`
-      +reqs.map(r=>menuRowHtml({label:'« '+r.name+' »',ic:uiIcon('book',20),inert:true,
-        sub:r.email+' · '+nb((r.invitees||[]).length,'invité')+' · '+(ROLE_FR[r.role]||'Éditeur'),
-        tail:`<span class="adm-reqa"><button type="button" class="btn sm" data-libreq="${esc(r.id)}:0">Refuser</button><button type="button" class="btn sm primary" data-libreq="${esc(r.id)}:1">Créer</button></span>`})).join('')+'</div>':'')
-    +`<div class="acct-card"><div class="adm-h">Création de bibliothèques</div>`
-    +`<div class="seg vs-seg vs-wrap" role="radiogroup" aria-label="Qui peut créer une bibliothèque" style="--seg-n:3;--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>`
-    +LIB_MODES.map(([k,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-libmode="${k}">${esc(l)}</button>`).join('')+`</div>`
-    +`<div class="notice adm-ask" id="admLibAsk" role="alertdialog" aria-label="Confirmer la règle de création" hidden>${uiIcon('info',15)}<div><span class="adm-askt"></span><span class="adm-reqa"><button type="button" class="btn sm" data-libno>Annuler</button><button type="button" class="btn sm primary" data-libyes>Confirmer</button></span></div></div>`
-    +`<p class="adm-note">${esc(mode==='admins'?'Seuls les administrateurs créent ; les autres demandent.':mode==='approved'?'Tout compte approuvé crée et devient administrateur de ce qu’il crée.':'Les personnes ci-dessous créent et deviennent administratrices de ce qu’elles créent ; les autres demandent.')} Pour ranger ses aides, personne n’a besoin de ce droit : les collections sont à tous.</p>`
-    +(mode==='creators'?`<div class="acct-list">${pers.map(u=>menuRowHtml({label:u.email,ic:uiIcon('user',20),inert:true,
-        tail:`<button type="button" class="btn sm" data-libcr="${esc(u.user_id)}">Retirer</button>`})).join('')}`
-      +`<button type="button" class="catmenu-new" data-libcradd>＋ Autoriser une personne…</button></div>`:'')+`</div>`;
-  /* Changer la règle se CONFIRME dans un bandeau sous le segmenté (A481) : elle vaut pour toute l'instance. */
-  const LIB_EFFET={admins:'seuls les administrateurs créeront ; les autres demanderont.',creators:'seules les personnes autorisées créeront ; les autres demanderont.',approved:'tout compte approuvé pourra créer des bibliothèques et en deviendra administrateur.'};
-  z.querySelectorAll('[data-libmode]').forEach(b=>b.onclick=()=>{const k=b.dataset.libmode,ask=z.querySelector('#admLibAsk');
-    if(k===mode){if(ask)ask.hidden=true;return;}
-    ask.hidden=false;ask.querySelector('.adm-askt').textContent='Passer à « '+LIB_MODES.find(m=>m[0]===k)[1]+' » : '+LIB_EFFET[k];
-    ask.querySelector('[data-libyes]').onclick=async()=>{try{await rpc('set_library_creation',{p_mode:k});toast('Création de bibliothèques : '+LIB_MODES.find(m=>m[0]===k)[1].toLowerCase()+'.',4000,true);}catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);};
-    ask.querySelector('[data-libno]').onclick=()=>{ask.hidden=true;};
-    ask.querySelector('[data-libyes]').focus();});
-  z.querySelectorAll('[data-libcr]').forEach(b=>b.onclick=async()=>{try{await rpc('set_library_creator',{p_user:b.dataset.libcr,p_on:false});}catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);});
-  {const a=z.querySelector('[data-libcradd]');if(a)a.onclick=()=>openPickMenu(a.parentNode,{aria:'Autoriser une personne',sheet:true,trigger:a,
-    options:(users||[]).filter(u=>!u.can_create&&!u.is_admin).map(u=>({val:u.user_id,name:u.email,ic:uiIcon('user',18)})),
-    onPick:async v=>{try{await rpc('set_library_creator',{p_user:v,p_on:true});}catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);}});}
-  z.querySelectorAll('[data-libreq]').forEach(b=>b.onclick=async()=>{const [id,ok]=b.dataset.libreq.split(':');b.disabled=true;
-    try{const r=await rpc('decide_library_request',{p_id:id,p_ok:ok==='1'});
-      toast(ok==='1'?(r&&r.status==='created'?'Bibliothèque créée'+(r.not_invited?' · '+nb(r.not_invited,'invité')+' non ajouté'+(r.not_invited>1?'s':'')+' (compte absent ou en attente)':'')+'.':'Demande déjà traitée.'):'Demande refusée.',5000,true);
-      await Sync.loadProfile();}
-    catch(e){toast('⚠ Échec : '+e.message,5000,true);}loadLibRights(box);});}
-/* ══ A483 — ADMINISTRER LES COMPTES ET VOIR TOUTES LES BIBLIOTHÈQUES (v5.52) ══ Lecture par trois RPC réservées à
-   l'administrateur ; les GESTES passent par l'existant (set_user_status, set_library_creator, memberships, openMembers).
-   Un compte se déplie SUR PLACE (une seule rangée ouverte, patron du gestionnaire de catégories) — aucune fenêtre neuve. */
-let _admOpen=null;
-const ACC_ST={approved:'Approuvé',pending:'En attente',rejected:'Refusé'};
-async function loadAdmPeople(box){const z=box.querySelector('#admPeople');if(!z)return;
-  let acc,libs;try{[acc,libs]=await Promise.all([rpc('list_accounts'),rpc('list_all_libraries')]);}
-  catch(e){z.innerHTML=`<p class="adm-note">Rejouez <b>supabase/schema.sql</b> (v5.52) pour administrer les comptes et voir toutes les bibliothèques.</p>`;return;}
-  if(!document.body.contains(z))return;acc=acc||[];libs=libs||[];
-  libs.forEach(l=>{_admLibs[l.id]=l;});
-  const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
-  const filt=n=>n>8?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" data-admfilt aria-label="Filtrer">`:'';
-  const uRow=u=>{const on=_admOpen===u.user_id;
-    const sub=[u.is_admin?'Administrateur':ACC_ST[u.status]||u.status,nb(u.libraries,'bibliothèque'),u.can_create&&!u.is_admin?'peut créer':''].filter(Boolean).join(' · ');
-    return menuRowHtml({label:u.email,sub,ic:uiIcon('user',20),attrs:`data-admuser="${esc(u.user_id)}" aria-expanded="${on?'true':'false'}"`,tail:chev})
-      +(on?`<div class="adm-user" data-admpanel="${esc(u.user_id)}"><p class="adm-note">Chargement…</p></div>`:'');};
-  z.innerHTML=`<div class="acct-card acct-list adm-list"><div class="adm-h">Comptes · ${acc.length}</div>${filt(acc.length)}${acc.map(uRow).join('')}</div>`
-    +`<div class="acct-card acct-list adm-list"><div class="adm-h">Bibliothèques de l’instance · ${libs.length}</div>${filt(libs.length)}`
-    +(libs.length?libs.map(l=>menuRowHtml({label:l.name,ic:uiIcon('book',20),attrs:`data-admlib="${esc(l.id)}"`,tail:chev,
-        sub:[roleOf(l.id)?'vous : '+ROLE_FR[roleOf(l.id)]:'',nb(l.members,'membre'),nb(l.admins,'admin'),nb((l.aids||0)+(l.protocols||0),'élément'),l.creator?'créée par '+l.creator:''].filter(Boolean).join(' · ')})).join('')
-      :'<p class="adm-note">Aucune bibliothèque partagée.</p>')+`</div>`;
-  const redo=()=>loadAdmPeople(box);
-  z.querySelectorAll('[data-admfilt]').forEach(f=>f.addEventListener('input',()=>{const q=txNorm(f.value);
-    f.parentNode.querySelectorAll('.mm-row').forEach(r=>{r.style.display=!q||txNorm(r.textContent).includes(q)?'':'none';});}));
-  z.querySelectorAll('[data-admlib]').forEach(b=>b.onclick=()=>openMembers(b.dataset.admlib));
-  z.querySelectorAll('[data-admuser]').forEach(b=>b.onclick=()=>{_admOpen=_admOpen===b.dataset.admuser?null:b.dataset.admuser;redo();});
-  const pane=z.querySelector('[data-admpanel]');if(pane)admUserPanel(pane,acc.find(u=>u.user_id===_admOpen),redo);}
-async function admUserPanel(pane,u,redo){if(!u)return;
-  let mem=[];try{mem=await rpc('list_user_memberships',{p_user:u.user_id})||[];}catch(e){}
-  if(!document.body.contains(pane))return;
-  const act=(k,l,cls)=>`<button type="button" class="btn sm${cls?' '+cls:''}" data-admact="${k}">${esc(l)}</button>`;
-  pane.innerHTML=`<div class="adm-urow"><span>Statut : <b>${esc(u.is_admin?'administrateur de l’instance':ACC_ST[u.status]||u.status)}</b></span><span class="adm-reqa">${
-      u.is_admin?'':u.status==='approved'?act('suspend','Suspendre l’accès…','danger'):u.status==='pending'?act('reject','Refuser')+act('approve','Approuver','primary'):act('delete','Supprimer le compte…','danger')+act('approve','Réapprouver','primary')}</span></div>`
-    +`<div class="adm-urow"><span id="admCrLbl">Peut créer des bibliothèques</span>${u.is_admin?'<span class="adm-note">toujours</span>':swHtml(u.can_create,'data-admcreate aria-labelledby="admCrLbl"')}</div>`
-    +`<div class="adm-h">Bibliothèques · ${mem.length}</div>`
-    +(mem.length?mem.map(m=>`<div class="mem-row"><div class="mem-info"><span class="mem-email">${esc(m.name)}</span></div><div class="mem-act"><select data-admrole="${esc(m.library_id)}" aria-label="${esc('Rôle dans '+m.name)}">${roleOptions(m.role)}</select><button class="mini del" data-admrm="${esc(m.library_id)}" aria-label="${esc('Retirer de '+m.name)}">×</button></div></div>`).join('')
-      :'<p class="adm-note">Membre d’aucune bibliothèque partagée. On l’invite depuis la bibliothèque (« Gérer »).</p>');
-  const err=e=>toast('⚠ Échec : '+e.message,5000,true);
-  const st=async(v,msg)=>{try{await rpc('set_user_status',{p_user:u.user_id,p_status:v});toast(msg,4000,true);}catch(e){err(e);}redo();};
-  pane.querySelectorAll('[data-admact]').forEach(b=>b.onclick=async()=>{const k=b.dataset.admact;
-    if(k==='approve')st('approved','Compte approuvé.');
-    else if(k==='reject'){if(await confirmDlg('Refuser ce compte ?',{yes:'Refuser',danger:true}))st('rejected','Compte refusé.');}
-    else if(k==='suspend'){if(await confirmDlg(u.email+' perd l’accès à la synchronisation et à ses '+nb(mem.length,'bibliothèque')+' partagée'+(mem.length>1?'s':'')+'. Si le compte est réapprouvé plus tard, il faudra réinviter la personne dans chacune.',{title:'Suspendre l’accès ?',yes:'Suspendre',danger:true}))st('rejected','Accès suspendu.');}
-    else if(k==='delete'){if(await confirmDlg('Supprimer définitivement le compte '+u.email+' ? La personne pourra recréer un compte avec cette adresse e-mail (nouvelle demande à valider).',{yes:'Supprimer',danger:true})){try{await rpc('delete_rejected_user',{p_user:u.user_id});_admOpen=null;toast('Compte supprimé.',4000,true);}catch(e){err(e);}redo();}}});
-  {const sw=pane.querySelector('[data-admcreate]');if(sw)sw.onclick=async()=>{try{await rpc('set_library_creator',{p_user:u.user_id,p_on:!u.can_create});}catch(e){err(e);}redo();};}
-  pane.querySelectorAll('[data-admrole]').forEach(sel=>sel.onchange=async()=>{
-    try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(sel.dataset.admrole)+'&user_id=eq.'+encodeURIComponent(u.user_id),{role:sel.value},{'Prefer':'return=minimal'});toast('Rôle modifié.',3000,true);}catch(e){err(e);}redo();});
-  pane.querySelectorAll('[data-admrm]').forEach(b=>b.onclick=async()=>{if(!await confirmDlg('Retirer '+u.email+' de « '+(libName(b.dataset.admrm)||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
-    try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(b.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(e){err(e);}redo();});}
+/* ══ ADMINISTRATION — UNE PAGE À SECTIONS (v5.55, A494 ; maquette validée, canevas « Administration —
+   refonte ») ══ Moi ne porte plus qu'une PORTE (carte « Administration · n à traiter ») ; la page s'ouvre
+   en page-fenêtre (téléphone, ou depuis une aide) et en VUE de la colonne dès 780 sur l'accueil (A365) —
+   la colonne gauche ne change pas (décision de l'auteur). Sections : vue d'ensemble (À traiter · Annuaire
+   · Règles · État), Comptes, un compte, Bibliothèques, Règles. UNE lecture (`admLoad`), chaque RPC tolérée
+   seule : un schéma ancien n'éteint que sa section. Les GESTES passent par l'existant (set_user_status,
+   delete_rejected_user, set_library_creator, set_library_creation, set_approval_required,
+   decide_library_request, invite_member, memberships). Au-delà d'ADM_INLINE éléments une liste devient une
+   section à recherche, filtres et pages d'ADM_PAGE ; en deçà elle reste posée dans la vue d'ensemble.
+   Remplace la fenêtre « Comptes en attente » (son interrupteur vit dans Règles) et la pile d'A438/A483.
+   Détail : lot-v5-55.md A494. */
+const LIB_MODES=[['admins','Administrateurs seulement'],['creators','Personnes autorisées'],['approved','Tout compte approuvé']];
+const LIB_MODE_DESC={admins:'Seuls les administrateurs de l’instance créent ; tous les autres font une demande.',
+  creators:'Les personnes de la liste créent et administrent ce qu’elles créent ; les autres demandent.',
+  approved:'Chacun crée librement et devient administrateur de ce qu’il crée. Aucune demande.'};
+const LIB_EFFET={admins:'seuls les administrateurs créeront ; les autres demanderont.',creators:'seules les personnes autorisées créeront ; les autres demanderont.',approved:'tout compte approuvé pourra créer des bibliothèques et en deviendra administrateur.'};
+const ACC_ST={approved:'Approuvé',pending:'En attente',rejected:'Refusé',admin:'Administrateur'};
+const ADM_GRP={pending:'À examiner',approved:'Approuvés',admin:'Administrateurs',rejected:'Refusés'};
+const ADM_PAGE=40,ADM_INLINE=8;
+const admModal=document.getElementById('admModal');
+let _admD=null,_admBusy=null;
+let _adm={sec:'home',from:'home',user:null,f:'all',q:'',lim:ADM_PAGE,sort:'todo',lf:'all',lq:'',llim:ADM_PAGE,lsort:'todo',sel:null,apAsk:null,modeAsk:null,mem:Object.create(null)};
+const admArr=v=>Array.isArray(v)?v.filter(x=>x&&typeof x==='object'):[];
+async function admLoad(){const T=p=>p.then(v=>({v}),e=>({e}));
+  const [st,acc,libs,reqs,mode,users,ap]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required'].map(n=>T(rpc(n))));
+  let un=null;if(acc.e){const r=await T(rpc('list_unapproved_users'));un=r.e?null:admArr(r.v);}   // serveur d'avant v5.52 : la file seule
+  _admD={t:Date.now(),stats:st.e?null:st.v,acc:acc.e?null:admArr(acc.v),un,libs:libs.e?null:admArr(libs.v),reqs:reqs.e?null:admArr(reqs.v),
+    mode:mode.e?null:mode.v,users:users.e?null:admArr(users.v),approval:ap.e?true:ap.v!==false};
+  (_admD.libs||[]).forEach(l=>{if(l.id)_admLibs[l.id]=l;});
+  return _admD;}
+function admRefresh(force){if(_admBusy)return _admBusy;if(!force&&_admD&&Date.now()-_admD.t<30000){admPaintDoor();return Promise.resolve(_admD);}
+  _admBusy=admLoad().catch(()=>null).then(d=>{_admBusy=null;renderAdm();admPaintDoor();return d;});return _admBusy;}
+const admAfter=msg=>{if(msg)toast(msg,4000,true);return admRefresh(true);};
+const admView=()=>document.getElementById('admView');
+function admRoot(){return admView()||(admModal.classList.contains('on')?document.getElementById('admBody'):null);}
+function openAdmin(sec){_adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;
+  if(homeTabsOn()){if(homeTab()==='admin')renderAdm({top:true});else setHomeTab('admin');}
+  else{admModal.classList.add('on');renderAdm({top:true});}
+  admRefresh(true);}
+function closeAdmin(){admModal.classList.remove('on');_adm.sec='home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;admPaintDoor();}
+bindModalDismiss(admModal,closeAdmin);
+/* Profondeur DANS la page (retour système, A430) : un compte ouvert depuis Comptes = 2, toute section = 1. */
+function admDepth(){const s=_adm.sec;return s==='home'?0:s==='compte'&&_adm.from==='comptes'?2:1;}
+function admBack(){admGo(_adm.sec==='compte'?(_adm.from||'home'):'home');}
+function admGo(sec,o){o=o||{};
+  if(sec==='compte'){if(_adm.sec!=='compte')_adm.from=_adm.sec==='comptes'?'comptes':'home';_adm.user=o.user||_adm.user;}else _adm.user=null;
+  if(sec==='comptes'&&o.f){_adm.f=o.f;_adm.lim=ADM_PAGE;}
+  if(sec!=='comptes'&&sec!=='compte')_adm.sel=null;
+  _adm.sec=sec;_adm.apAsk=_adm.modeAsk=null;renderAdm({top:sec!=='compte'||!admSplit()});_histSync();}
+const admUser=()=>_admD&&(_admD.acc||[]).find(u=>u.user_id===_adm.user)||null;
+/* Catégorie d'un compte : validation coupée, un « en attente » a déjà accès (`my_status`) — il se lit approuvé. */
+function admCat(u){if(u.is_admin)return 'admin';if(u.status==='pending'&&_admD&&!_admD.approval)return 'approved';return ACC_ST[u.status]?u.status:'approved';}
+function admPendingAcc(){const D=_admD;if(!D||!D.approval)return [];return (D.acc||D.un||[]).filter(u=>u.status==='pending'&&!u.is_admin);}
+const admT=x=>String(x&&x.created_at||'');
+function admTodo(){const D=_admD;if(!D)return [];
+  return admPendingAcc().map(u=>({k:'acc',u,t:admT(u)})).concat((D.reqs||[]).map(q=>({k:'lib',q,t:admT(q)}))).sort((a,b)=>a.t.localeCompare(b.t));}
+function admDate(t){const d=new Date(t);if(!t||isNaN(d))return '';
+  return d.toLocaleDateString('fr-FR',d.getFullYear()===new Date().getFullYear()?{day:'numeric',month:'short'}:{day:'numeric',month:'short',year:'numeric'});}
+const admChev=()=>`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
+const admN=(n,on)=>n?`<span class="adm-n${on?' on':''}">${esc(String(n))}</span>`:'';
+const admSh=(l,n,on,small)=>`<h4 class="adm-sh">${esc(l)}${admN(n,on)}${small?`<small>${esc(small)}</small>`:''}</h4>`;
+const admBackHtml=(l,sec)=>`<button type="button" class="adm-back" data-admgo="${sec}" data-admk="back">${uiIcon('chev',18)}${esc(l)}</button>`;
+function admSubHead(view,title,meta){return (view?'':admBackHtml('Administration','home'))+`<h4 class="adm-title">${esc(title)}</h4>`+(meta?`<p class="adm-when">${esc(meta)}</p>`:'');}
+function admAskHtml(k,text,yes){return `<div class="notice adm-ask" role="alertdialog" aria-label="Confirmer le changement">${uiIcon('info',15)}<div><span>${esc(text)}</span><span class="adm-reqa"><button type="button" class="btn sm" data-admno="${k}">Annuler</button><button type="button" class="btn sm primary" data-admyes="${k}" data-admk="yes-${k}">${esc(yes)}</button></span></div></div>`;}
 const admNoteHtml=()=>`<p class="adm-note">${uiIcon('lock',16)}<span>Compte administrateur : il ne se supprime pas d’ici. Passez par la console d’administration (garde-fou).</span></p>`;
-async function loadInstanceStats(){const box=document.getElementById('authStats');if(!box)return;
-  let s=null;try{s=await rpc('get_instance_stats');}catch(e){}
-  if(!document.body.contains(box))return;
-  if(!s){box.innerHTML='<div class="auth-stats-h">Administration</div>'+admNoteHtml();return;}
-  /* A438 (v5.39.10) — LA SEULE ACTION EN TÊTE, PUIS CE QUI SE LIT. « Examiner » (v4.71.1 : un
-     bouton dans la ligne « En attente ») devient la rangée de tête, la rangée ENTIÈRE est la
-     cible ; à zéro elle reste (les refusées s'y consultent) mais neutre, sans bouton plein. Les
-     chiffres que l'on compare d'un coup d'œil montent en tuiles de LECTURE ; le détail suit en
-     rangées libellé / valeur, deux cartes côte à côte quand la place le permet (CSS). La barre de
-     stockage garde son dénominateur réel (données + documents), et gagne sa légende. */
+const admSchema=(v,quoi)=>`<p class="adm-note">Rejouez <b>supabase/schema.sql</b> (${v}) pour ${quoi}.</p>`;
+/* ── La porte, dans Moi : sous la carte du compte, le compte de ce qui attend ─────────────────── */
+function admDoorSub(){const D=_admD;if(!D)return 'Comptes, bibliothèques, règles de l’instance';
+  return [D.acc?nb(D.acc.length,'compte'):'',D.libs?nb(D.libs.length,'bibliothèque'):'','règles','état de l’instance'].filter(Boolean).join(' · ');}
+function admDoorBadge(){const n=admTodo().length;return n?`<span class="adm-badge"><b>${n}</b> à traiter</span>`:'';}
+const admDoorHtml=()=>`<button type="button" class="acct-card adm-door" id="admDoor"><span class="adm-ic" aria-hidden="true">${uiIcon('shield',22)}</span><span class="adm-tx"><span class="adm-lb">Administration</span><span class="adm-sub" id="admDoorSub">${esc(admDoorSub())}</span></span><span id="admDoorN">${admDoorBadge()}</span>${admChev()}</button>`;
+function admPaintDoor(){const d=document.getElementById('admDoor');if(!d)return;const n=admTodo().length;
+  document.getElementById('admDoorSub').textContent=admDoorSub();document.getElementById('admDoorN').innerHTML=admDoorBadge();
+  d.setAttribute('aria-label','Administration de l’instance'+(n?', '+n+' à traiter':''));}
+/* ── Rangées partagées ───────────────────────────────────────────────────────────────────────── */
+function admStOf(u){const c=admCat(u);return [ACC_ST[c],c==='pending'?' wait':c==='admin'?' adm':''];}
+function admAccSub(u){return [+u.libraries?nb(+u.libraries,'bibliothèque'):'aucune bibliothèque',u.can_create&&!u.is_admin?'peut créer':'',u.created_at?'inscrit le '+admDate(u.created_at):''].filter(Boolean).join(' · ');}
+function admAccRow(u){const s=admStOf(u),id=esc(u.user_id),sel=_adm.sel&&!u.is_admin,on=sel&&_adm.sel.has(u.user_id);
+  return `<button type="button" class="mm-row" ${sel?`role="checkbox" aria-checked="${on}" data-admpick="${id}"`:`data-admuser="${id}"`} data-admk="u-${id}"${!sel&&_adm.user===u.user_id?' aria-current="true"':''}>`
+    +(sel?`<span class="adm-box" aria-hidden="true">${uiIcon('check',16)}</span>`:`<span class="mm-ic" aria-hidden="true">${uiIcon('user',20)}</span>`)
+    +`<span class="mm-tx"><span class="mm-lb">${esc(u.email||'')}</span><span class="mm-sub">${esc(admAccSub(u))}</span></span><span class="adm-st${s[1]}">${esc(s[0])}</span>${sel?'':admChev()}</button>`;}
+const admEl=l=>(+l.aids||0)+(+l.protocols||0);
+function admLibRow(l){const me=roleOf(l.id),el=admEl(l);
+  return `<button type="button" class="mm-row" data-admlib="${esc(l.id)}" data-admk="l-${esc(l.id)}"><span class="mm-ic" aria-hidden="true">${uiIcon('book',20)}</span><span class="mm-tx"><span class="mm-lb">${esc(l.name||'Bibliothèque partagée')}</span>`
+    +(+l.admins?'':'<span class="mm-sub adm-warn">△ aucun administrateur : personne ne peut y inviter</span>')
+    +`<span class="mm-sub">${esc([me?'vous : '+ROLE_FR[me]:'',nb(+l.members||0,'membre'),nb(+l.admins||0,'admin'),el?nb(el,'élément'):'vide',l.creator?'créée par '+l.creator:''].filter(Boolean).join(' · '))}</span></span>${admChev()}</button>`;}
+function admNavRow(sec,ic,label,sub,n){return `<button type="button" class="mm-row" data-admgo="${sec}" data-admk="go-${sec}"><span class="mm-ic" aria-hidden="true">${uiIcon(ic,20)}</span><span class="mm-tx"><span class="mm-lb">${esc(label)}</span><span class="mm-sub">${sub}</span></span><span class="adm-v">${esc(String(n))}</span>${admChev()}</button>`;}
+function admAccCounts(){const c={pending:0,approved:0,rejected:0,admin:0,cr:0};(_admD.acc||[]).forEach(u=>{c[admCat(u)]++;if(u.can_create&&!u.is_admin)c.cr++;});return c;}
+function admLibCounts(){const L=_admD.libs||[];return {noadm:L.filter(l=>!+l.admins).length,empty:L.filter(l=>!admEl(l)).length,mine:L.filter(l=>roleOf(l.id)).length};}
+function admTodoRow(x){
+  if(x.k==='acc'){const u=x.u,id=esc(u.user_id),d=admDate(u.created_at);
+    return `<div class="adm-tr"><span class="mm-ic" aria-hidden="true">${uiIcon('user',20)}</span><span class="mm-tx"><span class="adm-kind">Demande de compte</span><span class="mm-lb">${esc(u.email||'')}</span><span class="mm-sub">${esc('e-mail vérifié'+(d?' · '+d:''))}</span></span>`
+      +`<span class="adm-reqa"><button type="button" class="btn sm" data-admst="${id}:rejected" data-admk="st-${id}-r">Refuser</button><button type="button" class="btn sm primary" data-admst="${id}:approved" data-admk="st-${id}-a">Approuver</button></span></div>`;}
+  const r=x.q,id=esc(r.id),d=admDate(r.created_at);
+  return `<div class="adm-tr"><span class="mm-ic" aria-hidden="true">${uiIcon('book',20)}</span><span class="mm-tx"><span class="adm-kind">Demande de bibliothèque</span><span class="mm-lb">« ${esc(r.name||'')} »</span><span class="mm-sub">${esc(['par '+(r.email||'?'),nb(Array.isArray(r.invitees)?r.invitees.length:0,'invité'),ROLE_FR[r.role]||'Éditeur',d].filter(Boolean).join(' · '))}</span></span>`
+    +`<span class="adm-reqa"><button type="button" class="btn sm" data-libreq="${id}:0" data-admk="lq-${id}-0">Refuser</button><button type="button" class="btn sm primary" data-libreq="${id}:1" data-admk="lq-${id}-1">Créer</button></span></div>`;}
+/* ── Vue d'ensemble ──────────────────────────────────────────────────────────────────────────── */
+function admStatsHtml(s){if(!s)return `<div class="acct-card adm-sto"><p class="adm-hint">État indisponible pour le moment.</p>${admNoteHtml()}</div>`;
   const n=v=>+v||0,pl=(v,a,b)=>n(v)>1?b:a;
-  const pend=n(s.pending),rej=n(s.rejected),live=n(s.shares_live);
-  const fiches=n(s.fiches_perso)+n(s.fiches_shared);
-  const donnees=n(s.storage_bytes),pdf=n(s.attachments_bytes),tot=donnees+pdf;
+  const live=n(s.shares_live),fi=n(s.fiches_perso)+n(s.fiches_shared),donnees=n(s.storage_bytes),pdf=n(s.attachments_bytes),tot=donnees+pdf;
   const part=tot>0?Math.max(2,Math.min(98,Math.round(donnees/tot*100))):50;
-  const hh=new Date(),heure=String(hh.getHours()).padStart(2,'0')+':'+String(hh.getMinutes()).padStart(2,'0');
-  const refus=rej?`${rej} ${pl(rej,'refusée','refusées')}`:'';
   const nf=v=>esc(n(v).toLocaleString('fr-FR'));   // « 1 208 » : des nombres qu'on compare
   const kpi=(v,l,dot)=>`<div class="adm-kpi"><span class="adm-kv">${nf(v)}${dot?'<span class="adm-live" aria-hidden="true"></span>':''}</span><span class="adm-kl">${esc(l)}</span></div>`;
   const row=(k,v,d)=>`<div class="adm-row"><span class="adm-k">${esc(k)}${d?`<small>${esc(d)}</small>`:''}</span><span class="adm-v">${nf(v)}</span></div>`;
-  box.innerHTML=`<div class="adm-top"><div class="auth-stats-h">Administration</div><span class="adm-when">Instance · mis à jour à ${heure}</span></div>`
-    +`<button type="button" class="acct-card adm-req${pend?' on':''}" id="authPending"><span class="adm-ic" aria-hidden="true">${uiIcon('user',20)}</span>`
-      +`<span class="adm-tx"><span class="adm-lb">${pend?`${pend} ${pl(pend,'demande de compte','demandes de compte')}`:'Demandes de compte'}</span>`
-      +`<span class="adm-sub">${esc([pend?'À approuver ou refuser':'Aucune en attente',refus].filter(Boolean).join(' · '))}</span></span>`
-      +`<span class="adm-go">${pend?'Examiner':''}${uiIcon('chev',18)}</span></button>`
-    +'<div id="admLibs"></div><div id="admPeople"></div>'
-    +'<div class="adm-kpis">'+kpi(n(s.users),pl(s.users,'compte actif','comptes actifs'))+kpi(fiches,pl(fiches,'aide','aides'))
+  return '<div class="adm-kpis">'+kpi(n(s.users),pl(s.users,'compte actif','comptes actifs'))+kpi(fi,pl(fi,'aide','aides'))
       +kpi(n(s.protocols),pl(s.protocols,'protocole','protocoles'))+kpi(live,live>1?'partages en cours':'partage en cours',live>0)+'</div>'
     +'<div class="adm-cols"><div class="acct-card"><div class="adm-h">Contenus</div>'
       +row('Bibliothèques',n(s.libraries))
-      +row('Aides',fiches,`${n(s.fiches_perso)} ${pl(s.fiches_perso,'personnelle','personnelles')} · ${n(s.fiches_shared)} ${pl(s.fiches_shared,'partagée','partagées')}`)
+      +row('Aides',fi,`${n(s.fiches_perso)} ${pl(s.fiches_perso,'personnelle','personnelles')} · ${n(s.fiches_shared)} ${pl(s.fiches_shared,'partagée','partagées')}`)
       +'<div class="adm-h">Sessions</div>'
       +row('Partages de session',n(s.shares_rows),`dont ${live} en cours en ce moment`)
       +row('Sessions synchronisées',n(s.sessions))+'</div>'
@@ -28410,9 +28461,203 @@ async function loadInstanceStats(){const box=document.getElementById('authStats'
       +`<div class="adm-bar" role="img" aria-label="${esc(fmtBytes(donnees))} de données, ${esc(fmtBytes(pdf))} de documents PDF"><span style="width:${part}%"></span><span></span></div>`
       +`<div class="adm-leg"><div><span class="adm-sw"></span><span>Données (aides, sessions)</span><span class="adm-v">${esc(fmtBytes(donnees))}</span></div>`
       +`<div><span class="adm-sw pdf"></span><span>Documents PDF</span><span class="adm-v">${esc(fmtBytes(pdf))}</span></div></div>`
-      +admNoteHtml()+'</div></div>';
-  {const ap=box.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}
-  loadLibRights(box);loadAdmPeople(box);}
+      +admNoteHtml()+'</div></div>';}
+function admHomeHtml(){const D=_admD,acc=D.acc,libs=D.libs,hh=new Date(D.t);
+  let h=`<div class="adm-top"><span class="adm-when">Instance · mise à jour à ${String(hh.getHours()).padStart(2,'0')}:${String(hh.getMinutes()).padStart(2,'0')}</span><button type="button" class="btn sm" data-admref data-admk="ref">Actualiser</button></div>`;
+  /* À TRAITER : une seule file, les plus anciennes d'abord ; toutes les demandes de bibliothèque
+     (rares), trois demandes de compte — au-delà, la liste des comptes filtrée, qui approuve par lot. */
+  const todo=admTodo(),accN=todo.filter(x=>x.k==='acc').length;
+  h+=admSh('À traiter',todo.length,true,todo.length>1?'les plus anciennes d’abord':'');
+  if(!todo.length)h+=`<p class="adm-calm">${uiIcon('check',18)}<span>Rien à traiter · aucune demande en attente</span></p>`;
+  else{let a=0;h+=`<div class="acct-card acct-list">`+todo.filter(x=>x.k==='lib'||a++<3).map(admTodoRow).join('')
+    +(accN>3?`<button type="button" class="adm-more" data-admgo="comptes" data-admf="pending" data-admk="todo-all"><span>Voir les ${accN} demandes de compte · approuver par lot</span>${uiIcon('chev',18)}</button>`:'')+'</div>';}
+  /* ANNUAIRE : une rangée-résumé au-delà d'ADM_INLINE, la liste posée en deçà. */
+  const big=[];let inl='';
+  if(acc){const c=admAccCounts();
+    if(acc.length>ADM_INLINE)big.push(admNavRow('comptes','users','Comptes',esc([nb(c.approved,'approuvé'),c.pending?c.pending+' en attente':'',c.rejected?nb(c.rejected,'refusé'):'',nb(c.admin,'administrateur')].filter(Boolean).join(' · ')),acc.length));
+    else inl+=admSh('Comptes',acc.length)+`<div class="acct-card acct-list">${acc.map(admAccRow).join('')}</div>`;}
+  else inl+=admSh('Comptes')+admSchema('v5.52','administrer les comptes et voir toutes les bibliothèques');
+  if(libs){const c=admLibCounts(),w=[c.noadm?`<span class="adm-warn">△ ${c.noadm} sans administrateur</span>`:'',c.empty?esc(c.empty+' vide'+(c.empty>1?'s':'')):'',esc('vous êtes membre de '+c.mine)].filter(Boolean).join(' · ');
+    if(libs.length>ADM_INLINE)big.push(admNavRow('libs','book','Bibliothèques',w,libs.length));
+    else inl+=admSh('Bibliothèques',libs.length)+`<div class="acct-card acct-list">${libs.length?libs.map(admLibRow).join(''):'<p class="adm-hint">Aucune bibliothèque partagée.</p>'}</div>`;}
+  if(big.length)h+=admSh('Annuaire')+`<div class="acct-card acct-list">${big.join('')}</div>`;
+  h+=inl;
+  /* RÈGLES : deux rangées, une page. */
+  const pers=(D.users||[]).filter(u=>u.can_create&&!u.is_admin).length,mo=LIB_MODES.find(m=>m[0]===D.mode);
+  h+=admSh('Règles de l’instance')+`<div class="acct-card acct-list">`
+    +menuRowHtml({label:'Nouveaux comptes',sub:D.approval?'Validés un par un par un administrateur':'Approuvés dès leur e-mail vérifié',ic:uiIcon('shield',20),attrs:'data-admgo="regles" data-admk="go-r1"',tail:admChev()})
+    +menuRowHtml({label:'Création de bibliothèques',sub:mo?mo[1]+(D.mode==='creators'?' · '+(pers?nb(pers,'personne'):'aucune personne'):'')+(D.mode==='approved'?'':' · les autres demandent'):'Règle indisponible (schéma à rejouer)',ic:uiIcon('book',20),attrs:'data-admgo="regles" data-admk="go-r2"',tail:admChev()})+'</div>';
+  return h+admSh('État de l’instance')+admStatsHtml(D.stats);}
+/* ── Comptes ─────────────────────────────────────────────────────────────────────────────────── */
+function admAccList(){const q=txNorm(_adm.q),f=_adm.f,S=_adm.sort,ord={pending:0,approved:1,admin:2,rejected:3},em=u=>String(u.email||'');
+  return (_admD.acc||[]).filter(u=>(f==='all'||(f==='cr'?u.can_create&&!u.is_admin:admCat(u)===f))&&(!q||txNorm(em(u)).includes(q)))
+    .sort(S==='az'?(a,b)=>em(a).localeCompare(em(b)):S==='recent'?(a,b)=>admT(b).localeCompare(admT(a)):S==='libs'?(a,b)=>(+b.libraries||0)-(+a.libraries||0)||em(a).localeCompare(em(b))
+      :(a,b)=>ord[admCat(a)]-ord[admCat(b)]||em(a).localeCompare(em(b)));}
+function admAccListHtml(){const L=admAccList(),n=L.length,sel=_adm.sel,lim=_adm.lim,grp=_adm.sort==='todo'&&_adm.f==='all';
+  const per=Object.create(null);if(grp)L.forEach(u=>{const c=admCat(u);per[c]=(per[c]||0)+1;});
+  let rows='',prev=null;
+  L.slice(0,lim).forEach(u=>{const c=admCat(u);if(grp&&c!==prev){rows+=`<div class="adm-grp">${esc(ADM_GRP[c])} · ${per[c]}</div>`;prev=c;}rows+=admAccRow(u);});
+  const ok=(_admD.acc||[]).some(u=>!u.is_admin);
+  return `<div class="adm-tools"><span class="adm-count">${n>lim?`${lim} sur ${n}`:nb(n,'compte')}</span>`
+    +`<select data-admsort="acc" data-admk="sort-acc" aria-label="Trier les comptes">${[['todo','À traiter d’abord'],['az','E-mail A→Z'],['recent','Inscription récente'],['libs','Plus de bibliothèques']].map(([k,l])=>`<option value="${k}"${_adm.sort===k?' selected':''}>${l}</option>`).join('')}</select>`
+    +(ok?`<button type="button" class="btn sm${sel?' primary':''}" data-admsel data-admk="sel" aria-pressed="${!!sel}">${sel?'Terminer':'Sélectionner'}</button>`:'')+'</div>'
+    +(n?`<div class="acct-card acct-list">${rows}${n>lim?`<button type="button" class="adm-more" data-admmore="acc" data-admk="more-acc"><span>Afficher ${Math.min(ADM_PAGE,n-lim)} de plus</span></button>`:''}</div>`:'<p class="adm-calm">Aucun compte ne correspond.</p>')
+    +(sel?`<div class="adm-selbar" role="region" aria-label="Sélection"><span>${sel.size?nb(sel.size,'sélectionné'):'Touchez les comptes à traiter'}</span><button type="button" class="btn sm" data-admbulk="rejected" data-admk="bulk-r"${sel.size?'':' disabled'}>Refuser</button><button type="button" class="btn sm primary" data-admbulk="approved" data-admk="bulk-a"${sel.size?'':' disabled'}>Approuver</button></div>`:'');}
+function admComptesHtml(view){const D=_admD;
+  if(!D.acc)return admSubHead(view,'Comptes')+admSchema('v5.52','administrer les comptes');
+  const acc=D.acc,c=admAccCounts();
+  let h=admSubHead(view,'Comptes',`${nb(acc.length,'compte')} · ${nb(c.admin,'administrateur')} de l’instance`);
+  if(acc.length>ADM_INLINE)h+=`<input class="adm-q" type="search" data-admq="acc" data-admk="q-acc" placeholder="Chercher un e-mail…" aria-label="Chercher un compte" autocomplete="off" value="${esc(_adm.q)}">`
+    +`<div class="chiprow adm-chips" role="group" aria-label="Filtrer les comptes">`
+    +[['all','Tous',acc.length],['pending','En attente',c.pending],['approved','Approuvés',c.approved],['rejected','Refusés',c.rejected],['cr','Peuvent créer',c.cr],['admin','Administrateurs',c.admin]]
+      .filter(x=>x[0]==='all'||x[2]||_adm.f===x[0]).map(([k,l,n])=>`<button type="button" class="catchip${_adm.f===k?' on':''}${k==='pending'?' warn':''}" aria-pressed="${_adm.f===k}" data-admf="${k}" data-admk="f-${k}">${esc(l)} <span class="adm-cn">${n}</span></button>`).join('')+'</div>';
+  h+=`<div id="admList">${admAccListHtml()}</div>`;
+  const u=_adm.sec==='compte'&&view&&admSplit()&&admUser();
+  return u?`<div class="adm-split"><div>${h}</div><aside aria-label="Détail du compte">${admCompteBody(u)}</aside></div>`:h;}
+/* ── Un compte ───────────────────────────────────────────────────────────────────────────────── */
+function admSplit(){const v=admView();return !!v&&v.clientWidth>=900;}
+function admCompteHtml(){const u=admUser();if(!u)return admComptesHtml(!!admView());
+  return admBackHtml(_adm.from==='comptes'?'Comptes':'Administration',_adm.from==='comptes'?'comptes':'home')+admCompteBody(u);}
+function admCompteBody(u){const D=_admD,mem=_adm.mem[u.user_id],c=admCat(u),moi=Auth.user()&&Auth.user().id===u.user_id;
+  const act=(k,l,cls)=>`<button type="button" class="btn sm${cls?' '+cls:''}" data-admact="${k}" data-admk="a-${k}">${esc(l)}</button>`;
+  const crSub=u.is_admin?'toujours, en tant qu’administrateur':D.mode&&D.mode!=='creators'?'sans effet tant que la règle est « '+LIB_MODES.find(m=>m[0]===D.mode)[1]+' »':'sinon, la personne en fait la demande';
+  let h=`<div class="adm-head"><span class="adm-ava" aria-hidden="true">${esc(String(u.email||'?').slice(0,2).toUpperCase())}</span><span class="adm-tx"><span class="adm-lb">${esc(u.email||'')}</span><span class="adm-sub">${esc([ACC_ST[c],u.created_at?'inscrit le '+admDate(u.created_at):''].filter(Boolean).join(' · '))}</span></span></div>`
+    +admSh('Accès')+`<div class="acct-card acct-list"><div class="adm-urow"><span>Statut</span><span class="adm-reqa">${u.is_admin?'<b>Administrateur de l’instance</b>':c==='pending'?act('reject','Refuser')+act('approve','Approuver','primary'):c==='rejected'?act('approve','Réapprouver','primary'):'<b>'+esc(ACC_ST[c])+'</b>'}</span></div>`
+    +`<div class="adm-urow"><span id="admCrLbl">Peut créer des bibliothèques<small>${esc(crSub)}</small></span>${u.is_admin?'':swHtml(u.can_create,'data-admcreate data-admk="cr" aria-labelledby="admCrLbl"')}</div></div>`;
+  const libsFree=(D.libs||[]).filter(l=>!(mem||[]).some(m=>m.library_id===l.id));
+  h+=admSh('Bibliothèques',mem&&mem.length,false,mem&&mem.length?'rôle modifiable sur place':'')+'<div class="acct-card acct-list">'
+    +(!mem?'<p class="adm-hint">Chargement…</p>':mem.length?mem.map(m=>`<div class="mem-row"><div class="mem-info"><span class="mem-email">${esc(m.name||'')}</span></div><div class="mem-act"><select data-admrole="${esc(m.library_id)}" data-admk="role-${esc(m.library_id)}" aria-label="${esc('Rôle dans '+(m.name||''))}">${roleOptions(m.role)}</select><button type="button" class="mini del" data-admrm="${esc(m.library_id)}" data-admk="rm-${esc(m.library_id)}" aria-label="${esc('Retirer de '+(m.name||''))}">×</button></div></div>`).join('')
+      :'<p class="adm-hint">Membre d’aucune bibliothèque partagée.</p>')
+    +(mem&&c!=='pending'&&c!=='rejected'&&libsFree.length?`<button type="button" class="catmenu-new" data-admaddlib data-admk="addlib">＋ Ajouter à une bibliothèque…</button>`:'')+'</div>';
+  const crees=(D.libs||[]).filter(l=>l.creator&&l.creator===u.email);
+  if(crees.length)h+=admSh('Créées par ce compte',crees.length)+`<div class="acct-card acct-list">${crees.map(admLibRow).join('')}</div>`;
+  if(!u.is_admin&&!moi&&(c==='approved'||c==='rejected'))h+=`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>`
+    +(c==='approved'?`<button type="button" class="btn outline-danger" data-admact="suspend" data-admk="a-suspend">Suspendre l’accès…</button><p class="danger-caption">Retire ${mem?nb(mem.length,'adhésion'):'ses adhésions'}. Si le compte est réapprouvé, il faudra réinviter la personne dans chaque bibliothèque. Confirmation demandée.</p>`
+      :`<button type="button" class="btn outline-danger" data-admact="delete" data-admk="a-delete">Supprimer le compte…</button><p class="danger-caption">La personne pourra recréer un compte avec cette adresse (nouvelle demande à valider). Confirmation demandée.</p>`)+'</div>';
+  return h;}
+async function admMemLoad(id){if(!id||_adm.mem[id]||_adm.memBusy===id)return;_adm.memBusy=id;
+  let m=[];try{m=admArr(await rpc('list_user_memberships',{p_user:id}));}catch(e){}
+  _adm.memBusy=null;_adm.mem[id]=m;if(_adm.user===id)renderAdm();}
+/* ── Bibliothèques ───────────────────────────────────────────────────────────────────────────── */
+function admLibList(){const q=txNorm(_adm.lq),f=_adm.lf,S=_adm.lsort,nm=l=>String(l.name||'');
+  return (_admD.libs||[]).filter(l=>(f==='all'||(f==='noadm'&&!+l.admins)||(f==='empty'&&!admEl(l))||(f==='mine'&&roleOf(l.id)))&&(!q||txNorm(nm(l)+' '+(l.creator||'')).includes(q)))
+    .sort(S==='az'?(a,b)=>nm(a).localeCompare(nm(b)):S==='members'?(a,b)=>(+b.members||0)-(+a.members||0):S==='el'?(a,b)=>admEl(b)-admEl(a):S==='recent'?(a,b)=>admT(b).localeCompare(admT(a))
+      :(a,b)=>(!+b.admins)-(!+a.admins)||(!admEl(b))-(!admEl(a))||nm(a).localeCompare(nm(b)));}
+function admLibListHtml(){const L=admLibList(),n=L.length,lim=_adm.llim;
+  return `<div class="adm-tools"><span class="adm-count">${n>lim?`${lim} sur ${n}`:n+' bibliothèque'+(n>1?'s':'')}</span>`
+    +`<select data-admsort="lib" data-admk="sort-lib" aria-label="Trier les bibliothèques">${[['todo','À surveiller d’abord'],['az','Nom A→Z'],['members','Plus de membres'],['el','Plus d’éléments'],['recent','Création récente']].map(([k,l])=>`<option value="${k}"${_adm.lsort===k?' selected':''}>${l}</option>`).join('')}</select></div>`
+    +(n?`<div class="acct-card acct-list">${L.slice(0,lim).map(admLibRow).join('')}${n>lim?`<button type="button" class="adm-more" data-admmore="lib" data-admk="more-lib"><span>Afficher ${Math.min(ADM_PAGE,n-lim)} de plus</span></button>`:''}</div>`:'<p class="adm-calm">Aucune bibliothèque ne correspond.</p>');}
+function admLibsHtml(view){const D=_admD;
+  if(!D.libs)return admSubHead(view,'Bibliothèques')+admSchema('v5.52','voir toutes les bibliothèques');
+  const L=D.libs,c=admLibCounts();
+  let h=admSubHead(view,'Bibliothèques',`${L.length} bibliothèque${L.length>1?'s':''} partagée${L.length>1?'s':''} · vous êtes membre de ${c.mine}`);
+  if(L.length>ADM_INLINE)h+=`<input class="adm-q" type="search" data-admq="lib" data-admk="q-lib" placeholder="Chercher un nom, un créateur…" aria-label="Chercher une bibliothèque" autocomplete="off" value="${esc(_adm.lq)}">`
+    +`<div class="chiprow adm-chips" role="group" aria-label="Filtrer les bibliothèques">`
+    +[['all','Toutes',L.length],['noadm','△ Sans administrateur',c.noadm],['empty','Vides',c.empty],['mine','Dont je suis membre',c.mine]]
+      .filter(x=>x[0]==='all'||x[2]||_adm.lf===x[0]).map(([k,l,n])=>`<button type="button" class="catchip${_adm.lf===k?' on':''}${k==='noadm'?' warn':''}" aria-pressed="${_adm.lf===k}" data-admlf="${k}" data-admk="lf-${k}">${esc(l)} <span class="adm-cn">${n}</span></button>`).join('')+'</div>';
+  return h+`<div id="admList">${admLibListHtml()}</div><p class="adm-hint">Une rangée ouvre la bibliothèque : inviter, changer un rôle, retirer, renommer — même sans en être membre.</p>`;}
+/* ── Règles de l'instance ────────────────────────────────────────────────────────────────────── */
+function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.status==='pending'&&!u.is_admin).length;
+  let h=admSubHead(view,'Règles de l’instance','Elles valent pour tous les comptes ; chaque changement se confirme.');
+  /* NOUVEAUX COMPTES — l'interrupteur de l'ancienne fenêtre « Comptes en attente ». Couper agit AUSSI sur
+     les comptes déjà en attente (`my_status`, `is_approved` lisent le réglage) : la confirmation le dit. */
+  h+=admSh('Nouveaux comptes')+`<div class="acct-card acct-list"><div class="adm-urow"><span id="admApL">Valider chaque nouveau compte<small>${D.approval?'Un compte reste « en attente » jusqu’à votre approbation, après la vérification de son e-mail.':'Désactivé : un compte est approuvé dès que son e-mail est vérifié.'}</small></span>${swHtml(_adm.apAsk!=null?_adm.apAsk:D.approval,'data-admap data-admk="ap" aria-labelledby="admApL"')}</div>`
+    +(D.approval&&pend&&_adm.apAsk==null?`<button type="button" class="adm-more" data-admgo="comptes" data-admf="pending" data-admk="ap-go"><span class="adm-warn">${esc(nb(pend,'compte')+' en attente')}</span><span>À traiter</span></button>`:'')+'</div>';
+  if(_adm.apAsk!=null)h+=admAskHtml('ap',_adm.apAsk===false
+      ?'Ne plus valider les comptes : '+(pend?(pend>1?'les '+pend+' comptes en attente auront accès aussitôt, et ':'le compte en attente aura accès aussitôt, et '):'')+'chaque nouveau compte sera approuvé dès son e-mail vérifié.'
+      :'Valider chaque nouveau compte : les prochains attendront votre approbation. Les comptes approuvés entre-temps le restent'+(pend?(pend>1?' ; les '+pend+' comptes restés « en attente » le redeviennent.':' ; le compte resté « en attente » le redevient.'):'.'),
+    _adm.apAsk===false?'Ne plus valider':'Valider les comptes');
+  h+=admSh('Création de bibliothèques')+'<p class="adm-hint">Pour ranger ses aides, personne n’a besoin de ce droit : les collections sont à tous.</p>';
+  if(D.mode==null)h+=admSchema('v5.51','choisir qui crée des bibliothèques et recevoir les demandes');
+  else{const cur=D.mode,sel=_adm.modeAsk||cur;
+    h+=`<div class="acct-card acct-list" role="radiogroup" aria-label="Qui peut créer une bibliothèque">`+LIB_MODES.map(([k,l])=>`<button type="button" class="adm-radio" role="radio" aria-checked="${sel===k}" data-libmode="${k}" data-admk="m-${k}"><span class="adm-rmark" aria-hidden="true"></span><span class="adm-tx"><span class="adm-lb">${esc(l)}</span><span class="adm-sub">${esc(LIB_MODE_DESC[k])}</span></span>${cur===k?'<span class="adm-st">en vigueur</span>':''}</button>`).join('')+'</div>';
+    if(_adm.modeAsk)h+=admAskHtml('mode','Passer à « '+LIB_MODES.find(m=>m[0]===_adm.modeAsk)[1]+' » : '+LIB_EFFET[_adm.modeAsk],'Confirmer');
+    if(sel==='creators'&&D.users){const pers=D.users.filter(u=>u.can_create&&!u.is_admin),na=D.users.filter(u=>u.is_admin).length;
+      h+=admSh('Personnes autorisées',pers.length,false,na?'+ '+na+' admin'+(na>1?'s':'')+', toujours':'')+`<div class="acct-card acct-list">`
+        +pers.map(u=>menuRowHtml({label:u.email,ic:uiIcon('user',20),inert:true,tail:`<button type="button" class="btn sm" data-libcr="${esc(u.user_id)}" data-admk="cr-${esc(u.user_id)}">Retirer</button>`})).join('')
+        +`<button type="button" class="catmenu-new" data-libcradd data-admk="cradd">＋ Autoriser une personne…</button></div>`;}}
+  if((D.reqs||[]).length)h+=admSh('Les autres demandent')+`<div class="acct-card acct-list">`+menuRowHtml({label:D.reqs.length+' demande'+(D.reqs.length>1?'s':'')+' de bibliothèque en attente',ic:uiIcon('book',20),attrs:'data-admgo="home" data-admk="go-req"',tail:admChev()})+'</div>';
+  return h;}
+/* ── Rendu, onglets (vue large), gestes ──────────────────────────────────────────────────────── */
+function admTabsHtml(){const D=_admD,tab=_adm.sec==='compte'?'comptes':_adm.sec;
+  return `<nav class="adm-tabs" aria-label="Sections de l’administration">`+[['home','Vue d’ensemble',admTodo().length,true],['comptes','Comptes',D.acc&&D.acc.length],['libs','Bibliothèques',D.libs&&D.libs.length],['regles','Règles']]
+    .map(([k,l,n,on])=>`<button type="button" class="adm-tab" data-admgo="${k}" data-admk="tab-${k}"${tab===k?' aria-current="page"':''}>${esc(l)}${admN(n,on)}</button>`).join('')+'</nav>';}
+function renderAdm(o){o=o||{};const box=admRoot();if(!box)return;
+  const ae=document.activeElement,k=ae&&box.contains(ae)?ae.getAttribute('data-admk'):null;
+  if(!box._admB){box._admB=true;admBind(box);}
+  if(!_admD){box.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement…</p>';return;}
+  const view=!!admView(),s=_adm.sec;
+  box.innerHTML=(view?admTabsHtml():'')+(s==='comptes'?admComptesHtml(view):s==='compte'?(view&&admSplit()?admComptesHtml(view):admCompteHtml()):s==='libs'?admLibsHtml(view):s==='regles'?admReglesHtml(view):admHomeHtml());
+  if(k){const el=box.querySelector('[data-admk="'+CSS.escape(k)+'"]');if(el)el.focus({preventScroll:true});}
+  if(o.top){const sc=view?main.querySelector('.home-main'):box.closest('.ai-card');if(sc)sc.scrollTop=0;box.scrollTop=0;}
+  if(s==='compte')admMemLoad(_adm.user);}
+async function admSetStatus(id,st,msg){try{await rpc('set_user_status',{p_user:id,p_status:st});}catch(e){toast('⚠ Échec : '+e.message,5000,true);renderAdm();return;}
+  delete _adm.mem[id];admAfter(msg||(st==='approved'?'Compte approuvé.':'Compte refusé.'));}
+async function admBulk(st){const us=[..._adm.sel||[]].map(id=>(_admD.acc||[]).find(u=>u.user_id===id)).filter(u=>u&&!u.is_admin);if(!us.length)return;
+  if(st==='rejected'){const ap=us.filter(u=>admCat(u)==='approved').length;
+    if(!await confirmDlg('Refuser '+nb(us.length,'compte')+' ?'+(ap?' '+(ap>1?ap+' comptes déjà approuvés perdront l’accès et leurs adhésions':'Un compte déjà approuvé perdra l’accès et ses adhésions')+' ; il faudra réinviter.':''),{title:'Refuser la sélection',yes:'Refuser',danger:true}))return;}
+  let ko=0;for(const u of us){try{await rpc('set_user_status',{p_user:u.user_id,p_status:st});delete _adm.mem[u.user_id];}catch(e){ko++;}}
+  _adm.sel=null;admAfter((st==='approved'?'Approuvés : ':'Refusés : ')+(us.length-ko)+(ko?' · en échec : '+ko:'')+'.');}
+async function admAct(k){const u=admUser();if(!u)return;const mem=_adm.mem[u.user_id]||[];
+  if(k==='approve')return admSetStatus(u.user_id,'approved');
+  if(k==='reject'){if(await confirmDlg('Refuser ce compte ?',{yes:'Refuser',danger:true}))admSetStatus(u.user_id,'rejected');return;}
+  if(k==='suspend'){if(await confirmDlg(u.email+' perd l’accès à la synchronisation et à ses '+nb(mem.length,'bibliothèque')+' partagée'+(mem.length>1?'s':'')+'. Si le compte est réapprouvé plus tard, il faudra réinviter la personne dans chacune.',{title:'Suspendre l’accès ?',yes:'Suspendre',danger:true}))admSetStatus(u.user_id,'rejected','Accès suspendu.');return;}
+  if(k==='delete'){if(!await confirmDlg('Supprimer définitivement le compte '+u.email+' ? La personne pourra recréer un compte avec cette adresse e-mail (nouvelle demande à valider).',{yes:'Supprimer',danger:true}))return;
+    try{await rpc('delete_rejected_user',{p_user:u.user_id});}catch(e){toast('⚠ Échec : '+e.message,5000,true);return;}
+    _adm.sec=_adm.from||'home';_adm.user=null;admAfter('Compte supprimé.');}}
+function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
+  box.addEventListener('click',async e=>{const t=e.target.closest('button');if(!t||!box.contains(t)||t.disabled)return;
+    if(t.dataset.admgo!=null){admGo(t.dataset.admgo,{f:t.dataset.admf});return;}
+    if(t.dataset.admref!=null){admRefresh(true);return;}
+    if(t.dataset.admf!=null){_adm.f=t.dataset.admf;_adm.lim=ADM_PAGE;renderAdm();return;}
+    if(t.dataset.admlf!=null){_adm.lf=t.dataset.admlf;_adm.llim=ADM_PAGE;renderAdm();return;}
+    if(t.dataset.admmore!=null){if(t.dataset.admmore==='acc')_adm.lim+=ADM_PAGE;else _adm.llim+=ADM_PAGE;renderAdm();return;}
+    if(t.dataset.admsel!=null){_adm.sel=_adm.sel?null:new Set();renderAdm();return;}
+    if(t.dataset.admpick!=null){const s=_adm.sel;if(s){if(s.has(t.dataset.admpick))s.delete(t.dataset.admpick);else s.add(t.dataset.admpick);}renderAdm();return;}
+    if(t.dataset.admbulk!=null){admBulk(t.dataset.admbulk);return;}
+    if(t.dataset.admuser!=null){admGo('compte',{user:t.dataset.admuser});return;}
+    if(t.dataset.admlib!=null){openMembers(t.dataset.admlib);return;}
+    if(t.dataset.admst!=null){const [id,st]=t.dataset.admst.split(':');if(st==='rejected'&&!await confirmDlg('Refuser ce compte ?',{yes:'Refuser',danger:true}))return;t.disabled=true;admSetStatus(id,st);return;}
+    if(t.dataset.libreq!=null){const [id,ok]=t.dataset.libreq.split(':');t.disabled=true;
+      try{const r=await rpc('decide_library_request',{p_id:id,p_ok:ok==='1'});
+        toast(ok==='1'?(r&&r.status==='created'?'Bibliothèque créée'+(r.not_invited?' · '+nb(r.not_invited,'invité')+' non ajouté'+(r.not_invited>1?'s':'')+' (compte absent ou en attente)':'')+'.':'Demande déjà traitée.'):'Demande refusée.',5000,true);
+        await Sync.loadProfile();}
+      catch(x){err(x);}admRefresh(true);return;}
+    if(t.dataset.admact!=null){admAct(t.dataset.admact);return;}
+    if(t.dataset.admcreate!=null){const u=admUser();if(!u)return;try{await rpc('set_library_creator',{p_user:u.user_id,p_on:!u.can_create});}catch(x){err(x);}admAfter();return;}
+    if(t.dataset.admaddlib!=null){const u=admUser();if(!u)return;const mem=_adm.mem[u.user_id]||[];
+      openPickMenu(t.parentNode,{aria:'Ajouter à une bibliothèque',sheet:true,trigger:t,
+        options:(_admD.libs||[]).filter(l=>!mem.some(m=>m.library_id===l.id)).map(l=>({val:l.id,name:l.name||'Bibliothèque partagée',ic:uiIcon('book',18)})),
+        onPick:async v=>{let r;try{r=await rpc('invite_member',{p_library:v,p_email:u.email,p_role:'viewer'});}catch(x){err(x);return;}
+          if(r!=='ok'){toast(r==='not_approved'?'⚠ Ce compte n’est pas approuvé : il ne peut pas être ajouté.':'⚠ Ajout impossible ('+r+').',5000,true);return;}
+          delete _adm.mem[u.user_id];admAfter('Ajouté comme Lecteur — le rôle se change sur place.');}});return;}
+    if(t.dataset.admrm!=null){const u=admUser();if(!u)return;
+      if(!await confirmDlg('Retirer '+u.email+' de « '+(libName(t.dataset.admrm)||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
+      try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(x){err(x);}
+      delete _adm.mem[u.user_id];admAfter();return;}
+    if(t.dataset.admap!=null){_adm.apAsk=_adm.apAsk!=null?null:!_admD.approval;renderAdm();admFocusYes('ap');return;}
+    if(t.dataset.libmode!=null){_adm.modeAsk=t.dataset.libmode===_admD.mode?null:t.dataset.libmode;renderAdm();admFocusYes('mode');return;}
+    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else _adm.modeAsk=null;renderAdm();return;}
+    if(t.dataset.admyes==='ap'){const v=_adm.apAsk;_adm.apAsk=null;
+      try{await rpc('set_approval_required',{p_value:v});}catch(x){err(x);renderAdm();return;}
+      admAfter(v?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes sont approuvés automatiquement.');return;}
+    if(t.dataset.admyes==='mode'){const k=_adm.modeAsk;_adm.modeAsk=null;
+      try{await rpc('set_library_creation',{p_mode:k});}catch(x){err(x);renderAdm();return;}
+      admAfter('Création de bibliothèques : '+LIB_MODES.find(m=>m[0]===k)[1].toLowerCase()+'.');return;}
+    if(t.dataset.libcr!=null){try{await rpc('set_library_creator',{p_user:t.dataset.libcr,p_on:false});}catch(x){err(x);}admAfter();return;}
+    if(t.dataset.libcradd!=null){openPickMenu(t.parentNode,{aria:'Autoriser une personne',sheet:true,trigger:t,
+      options:(_admD.users||[]).filter(u=>!u.can_create&&!u.is_admin).map(u=>({val:u.user_id,name:u.email,ic:uiIcon('user',18)})),
+      onPick:async v=>{try{await rpc('set_library_creator',{p_user:v,p_on:true});}catch(x){err(x);}admAfter();}});}});
+  /* La recherche ne repeint QUE la liste : le champ garde son focus et son curseur. */
+  box.addEventListener('input',e=>{const t=e.target;if(!t.dataset||t.dataset.admq==null)return;
+    if(t.dataset.admq==='acc'){_adm.q=t.value;_adm.lim=ADM_PAGE;}else{_adm.lq=t.value;_adm.llim=ADM_PAGE;}
+    const l=box.querySelector('#admList');if(l)l.innerHTML=t.dataset.admq==='acc'?admAccListHtml():admLibListHtml();});
+  box.addEventListener('change',async e=>{const t=e.target;if(!t.dataset)return;
+    if(t.dataset.admsort!=null){if(t.dataset.admsort==='acc')_adm.sort=t.value;else _adm.lsort=t.value;renderAdm();return;}
+    if(t.dataset.admrole!=null){const u=admUser();if(!u)return;
+      try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrole)+'&user_id=eq.'+encodeURIComponent(u.user_id),{role:t.value},{'Prefer':'return=minimal'});toast('Rôle modifié.',3000,true);}catch(x){toast('⚠ Échec : '+x.message,5000,true);}
+      delete _adm.mem[u.user_id];admAfter();}});}
+function admFocusYes(k){const r=admRoot(),b=r&&r.querySelector('[data-admyes="'+k+'"]');if(b)b.focus();}
 function renderAuth(){const body=document.getElementById('meView')||document.getElementById('authBody');if(!body)return;
   /* A372 : le champ ACTIF se relâche AVANT que le DOM ne soit remplacé — un champ retiré sous le
      clavier ne fait pas de blur, donc pas de focusout, donc pas de recollage (`unpan`) : sur iOS 27
@@ -28594,9 +28839,10 @@ function renderAuthAccount(body,u,doOut){
     body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
         <div class="acct-acts"><button class="btn" id="authSync">Synchroniser</button><button class="btn" id="authExport">Exporter</button><button class="btn acct-out" id="authOut">Se déconnecter</button></div></div>
       <p class="st-hint acct-promise">Votre bibliothèque personnelle suit ce compte sur <b>tous vos appareils connectés</b>.</p>
+      ${myIsAppAdmin?admDoorHtml():''}
       ${acctLibsHtml()}
       ${accountPrefsHtml()}
-      ${myIsAppAdmin?`<div class="acct-zone" id="authStats" aria-label="État de l'instance"><div class="auth-stats-h">Administration</div><p class="adm-when">Chargement…</p>${admNoteHtml()}</div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+      ${myIsAppAdmin?'':`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
         <p class="danger-caption">Supprime le compte, les données synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
@@ -28614,10 +28860,8 @@ function renderAuthAccount(body,u,doOut){
     // (case décochée par défaut, cf. confirmLeave).
     body.querySelector('#authOut').onclick=doOut;
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
-    /* « Examiner · n » vit désormais DANS la ligne « En attente de validation », donc dans le
-       bloc chargé en asynchrone : c'est `loadInstanceStats` qui le câble. Un second câblage ici
-       ne trouverait rien (le bouton n'existe pas encore) et donnerait l'illusion d'une garde. */
-    if(myIsAppAdmin)loadInstanceStats();  // état de l'instance : chargé en asynchrone, sans bloquer l'écran
+    /* A494 : Administration est une PAGE ; Moi n'en porte que la porte, dont le compte « à traiter » se relit en asynchrone. */
+    if(myIsAppAdmin){const d=body.querySelector('#admDoor');if(d)d.onclick=()=>openAdmin();admPaintDoor();admRefresh();}
 }
 /* ----- Fenêtre Compte : préférences PAR UTILISATEUR (V5, canvas turn 6) — compteurs de
    l'appareil, taille du texte S/M/L/XL, « Exporter mes données ». Affichées connecté COMME
@@ -32501,8 +32745,7 @@ function closeMembers(force){
   if(force!==true&&inp&&(inp.value||'').trim()!==_libNameOrig){
     confirmDlg('Abandonner les modifications ?',{yes:'Abandonner',danger:true}).then(ok=>{if(ok)closeMembers(true);});return;}
   membersModal.classList.remove('on');_memLib=null;
-  {const st=document.getElementById('authStats');if(st)loadAdmPeople(st);}}   // Moi : fenêtre en étroit, vue dès 780 (A365)
-const memIni=e=>((String(e||'?').trim()[0])||'?').toUpperCase();
+  if(admRoot())admRefresh(true);}   // A484 → A494 : Administration relit membres, administrateurs, adhésions
 async function renderMembers(){const body=document.getElementById('membersBody');if(!body||!_memLib)return;
   body.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement des membres…</p>';
   let list=[];try{list=await rpc('list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
@@ -32649,38 +32892,6 @@ function closeNewLib(force){
     confirmDlg('Abandonner les modifications ?',{yes:'Abandonner',danger:true}).then(ok=>{if(ok)closeNewLib(true);});return;}
   newLibModal.classList.remove('on');}
 bindModalDismiss(newLibModal,closeNewLib);
-// Fenêtre "Comptes en attente" (app-admin uniquement ; visible depuis la fenêtre Compte). Liste les
-// comptes ayant vérifié leur e-mail (code OTP) mais pas encore approuvés (pending) ou refusés
-// (rejected, pour pouvoir revenir dessus). Approuver/refuser = RPC set_user_status (RLS : app-admin
-// uniquement, et ne peut jamais rétrograder un app-admin — voir schema.sql).
-const pendingModal=document.getElementById('pendingModal');
-async function renderPending(){const body=document.getElementById('pendingBody');if(!body)return;
-  body.innerHTML='<p class="auth-msg">Chargement…</p>';
-  let list=[],required=true;
-  try{const r=await Promise.all([rpc('list_unapproved_users'),rpc('get_approval_required')]);list=r[0]||[];required=r[1]!==false;}
-  catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement.</p>';return;}
-  body.innerHTML=`<label class="auth-check pend-toggle"><input type="checkbox" id="pendToggle"${required?' checked':''}><span>Exiger une validation pour les nouveaux comptes</span></label>
-    <p class="ai-note" style="margin:-4px 0 16px">${required?"Chaque nouveau compte reste « en attente » jusqu'à votre approbation ci-dessous.":"Désactivé : les nouveaux comptes sont approuvés automatiquement, sans validation de votre part."}</p>
-    ${list.length?`<p class="auth-sub" style="margin-top:0">Ces comptes ont vérifié leur e-mail (code reçu)${required?' mais attendent votre approbation pour synchroniser leurs données dans le cloud':''}.</p>
-    <div class="mem-list">${list.map(u=>`<div class="mem-row"><div class="mem-avatar">${esc(memIni(u.email))}</div><div class="mem-info"><span class="mem-email">${esc(u.email)}</span><span class="pend-badge ${u.status}">${u.status==='rejected'?'Refusé':'En attente'}</span></div><div class="mem-act">${u.status==='rejected'?`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="btn sm ghost-danger" data-delete="${esc(u.user_id)}" title="Supprimer la demande pour laisser une 2e chance">Supprimer</button>`:`<button class="btn sm primary" data-approve="${esc(u.user_id)}">Approuver</button><button class="mini del" data-reject="${esc(u.user_id)}" title="Refuser">×</button>`}</div></div>`).join('')}</div>`
-    :'<p class="auth-msg" style="text-align:center">Aucun compte en attente.</p>'}`;
-  document.getElementById('pendToggle').onchange=async e=>{const val=e.target.checked;
-    try{await rpc('set_approval_required',{p_value:val});await renderPending();toast(val?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes seront approuvés automatiquement.');}
-    catch(err){e.target.checked=!val;toast('⚠ Échec : '+err.message);}};
-  body.querySelectorAll('[data-approve]').forEach(b=>b.onclick=async()=>{
-    try{await rpc('set_user_status',{p_user:b.dataset.approve,p_status:'approved'});await renderPending();await Sync.loadProfile();toast('Compte approuvé.');}
-    catch(e){toast('⚠ Échec : '+e.message);}});
-  body.querySelectorAll('[data-reject]').forEach(b=>b.onclick=async()=>{
-    if(!await confirmDlg('Refuser ce compte ?',{yes:'Refuser',danger:true}))return;
-    try{await rpc('set_user_status',{p_user:b.dataset.reject,p_status:'rejected'});await renderPending();await Sync.loadProfile();}
-    catch(e){toast('⚠ Échec : '+e.message);}});
-  body.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{
-    if(!await confirmDlg("Supprimer définitivement ce compte refusé ? La personne pourra recréer un compte avec cette adresse e-mail (nouvelle demande à valider).",{yes:'Supprimer',danger:true}))return;
-    try{await rpc('delete_rejected_user',{p_user:b.dataset.delete});await renderPending();toast('Compte supprimé.');}
-    catch(e){toast('⚠ Échec : '+e.message);}});}
-async function openPending(){pendingModal.classList.add('on');await renderPending();}
-function closePending(){pendingModal.classList.remove('on');}
-bindModalDismiss(pendingModal,closePending);
 
 /* ===== Accessibilité des fenêtres modales =====
    Gestion CENTRALISÉE de toutes les .ai-modal (ARIA posé dans le HTML, aucune modif des fonctions
@@ -32894,7 +33105,7 @@ const _hOn=id=>{const e=_hEl(id);return !!e&&e.classList.contains('on');};
 // Niveaux de la VUE : accueil 0 (1 sur Sessions/Moi), lecture 1 + pile d'origine, éditeur =
 // sa page de lecture + 1 (1 s'il crée : il sort à l'accueil), aperçu = son éditeur + 1.
 function _hViewLevels(){const v=state.view,rs=(state.readStack||[]).length;
-  if(v==='library')return homeTab()!=='aides'?1:0;
+  if(v==='library')return homeTab()==='admin'?2:homeTab()!=='aides'?1:0;   // A494 : Administration s'ouvre depuis Moi
   const ed=w=>{const d=w==='edit'?state.draft:state.pdraft;return d&&(w==='edit'?fiches:protocols).some(x=>x.id===d.id)?2+rs:1;};
   if(v==='edit'||v==='protocolEdit')return ed(v);
   return state.previewFrom?ed(state.previewFrom)+1:1+rs;}
@@ -32903,6 +33114,8 @@ function _hViewLevels(){const v=state.view,rs=(state.readStack||[]).length;
    l'affordance visible (✕, « ‹ » avec sa pile et sa garde 700 ms). */
 const _H_LAYERS=[
   [()=>{const j=_hEl('joinScreen');return j&&!j.hidden&&!SHARE_NOTRACE?1:0;},()=>closeJoinScreen],
+  /* A494 : les sections d'Administration sont des niveaux ; une fenêtre posée par-dessus (Membres) se ferme d'abord. */
+  [()=>admRoot()?admDepth():0,()=>()=>{const m=_topModal();if(m&&(admView()||m!==admModal)){const x=m.querySelector('.ai-x');if(x)x.click();return;}admBack();}],
   [()=>_openModals().length,()=>{const m=_topModal(),x=m.querySelector('.ai-x');
     // Sans ✕ (« Terminer la session ? ») : clic sur le voile = bindModalDismiss, donc « Poursuivre ».
     return()=>{if(x)x.click();else m.dispatchEvent(new MouseEvent('click',{bubbles:true}));};}],
@@ -32911,7 +33124,7 @@ const _H_LAYERS=[
   [()=>monOn()?1:0,()=>monClose],
   [()=>_hOn('flowFull')?1:0,()=>closeFlowFull],
   [()=>_hOn('lightbox')?1:0,()=>closeLightbox],
-  [_hViewLevels,()=>state.view==='library'?()=>setHomeTab('aides'):()=>_hEl('hdrBack').click()]];
+  [_hViewLevels,()=>state.view==='library'?()=>setHomeTab(homeTab()==='admin'?'me':'aides'):()=>_hEl('hdrBack').click()]];
 const _histLevels=()=>_H_LAYERS.reduce((t,[n])=>t+n(),0);
 function _histBackAction(){const l=_H_LAYERS.find(([n])=>n()>0);return l?l[1]():null;}
 const _hDepth=()=>{const s=history.state;return s&&s.ac===_H_ID?s.d:-1;};

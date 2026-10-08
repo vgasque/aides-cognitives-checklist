@@ -122,7 +122,7 @@ const AUDIT = `(() => {
       if(el.matches('button,[role="button"],a[href],summary,input,select,[tabindex="0"]')){
         // La CIBLE est la zone qui accepte le pointeur, pas le seul élément (WCAG 2.5.8).
         // Une case à cocher DANS un <label> est activée par tout le label : mesurer la case seule
-        // produisait un faux positif — #pendToggle fait 13×13 px, mais son label 358×65, et
+        // produisait un faux positif — la case d'une ancienne fenêtre faisait 13×13 px, mais son label 358×65, et
         // cliquer sur le texte coche bien la case (vérifié). Même esprit que la recherche de
         // l'anneau de focus sur les ANCÊTRES, déjà en place plus haut.
         const lab=(el.tagName==='INPUT'||el.tagName==='SELECT')?el.closest('label'):null;
@@ -272,8 +272,28 @@ const SURFACES = [
       await openPdfViewer({id:'att-x',name:'Protocole.pdf',size:by.byteLength},f); } },
   { nom:'membres bibliothèque',w:390,  scope:'#membersModal', fn: async()=>{
       if(typeof openMembers==='function')openMembers('lib-x'); } },
-  { nom:'comptes en attente',  w:390,  scope:'#pendingModal', fn: async()=>{
-      if(typeof openPending==='function')openPending(); } },
+  /* ADMINISTRATION (v5.55, A494) — remplace « comptes en attente ». Aucun serveur ici : la lecture de l'instance
+     est POSÉE (fixture), puis la page s'ouvre par son VRAI point d'entrée (`openAdmin`) ; `_admBusy` tient la
+     relecture, qui sinon remplacerait la fixture par des sections « schéma à rejouer ». 60 comptes : la liste
+     passe en recherche + filtres + sélection, la forme qu'on veut mesurer. */
+  { nom:'administration',      w:390,  scope:'#admModal', fn: async()=>{
+      const acc=[];for(let i=0;i<60;i++)acc.push({user_id:'00000000-0000-0000-0000-'+String(i).padStart(12,'0'),email:'compte'+i+'@hopital.exemple',status:i<5?'pending':'approved',is_admin:i===9,can_create:i===10,libraries:i%3,created_at:new Date(Date.UTC(2026,8,1+i)).toISOString()});
+      _admD={t:Date.now(),stats:{users:55,fiches_perso:10,fiches_shared:30,protocols:4,shares_live:1,shares_rows:3,sessions:20,libraries:2,storage_bytes:2e6,attachments_bytes:9e6},
+        acc,un:null,libs:[{id:'lib-a',name:'Urgences',creator:'compte3@hopital.exemple',members:12,admins:0,aids:8,protocols:1}],
+        reqs:[{id:'r1',email:'compte2@hopital.exemple',name:'Pédiatrie',invitees:['x@y.fr'],role:'editor',created_at:new Date().toISOString()}],
+        mode:'creators',users:acc.map(u=>({user_id:u.user_id,email:u.email,is_admin:u.is_admin,can_create:u.can_create})),approval:true};
+      _admBusy=Promise.resolve(_admD);openAdmin(); } },
+  { nom:'administration · comptes', w:390, scope:'#admModal', fn: async()=>{
+      const acc=[];for(let i=0;i<60;i++)acc.push({user_id:'00000000-0000-0000-0000-'+String(i).padStart(12,'0'),email:'compte'+i+'@hopital.exemple',status:i<5?'pending':'approved',is_admin:i===9,can_create:false,libraries:1,created_at:new Date(Date.UTC(2026,8,1+i)).toISOString()});
+      _admD={t:Date.now(),stats:null,acc,un:null,libs:[],reqs:[],mode:'admins',users:[],approval:true};
+      _admBusy=Promise.resolve(_admD);openAdmin('comptes');
+      await new Promise(r=>setTimeout(r,200));document.querySelector('#admBody [data-admsel]').click();
+      await new Promise(r=>setTimeout(r,150));document.querySelector('#admBody [data-admpick]').click(); } },
+  { nom:'administration · règles', w:390, scope:'#admModal', fn: async()=>{
+      _admD={t:Date.now(),stats:null,acc:[{user_id:'00000000-0000-0000-0000-000000000001',email:'a@hopital.exemple',status:'pending',is_admin:false,can_create:false,libraries:0}],un:null,libs:[],reqs:[],mode:'creators',
+        users:[{user_id:'00000000-0000-0000-0000-000000000002',email:'b@hopital.exemple',is_admin:false,can_create:true}],approval:true};
+      _admBusy=Promise.resolve(_admD);openAdmin('regles');
+      await new Promise(r=>setTimeout(r,200));document.querySelector('#admBody [data-admap]').click(); } },
   { nom:'erreur de synchro',   w:390,  scope:'#syncErrModal', fn: async()=>{
       if(typeof openSyncErr==='function')openSyncErr('La synchronisation a échoué : réseau indisponible.'); } },
   { nom:'joindre un document', w:390,  scope:'#attPickModal', fn: async()=>{

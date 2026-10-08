@@ -1904,8 +1904,6 @@
   /* Placeholder de DÉMARRAGE (HTML statique dans <main>, remplacé par le tout premier render()) :
      l'app dit « Chargement… » au lieu d'une page vide pendant la lecture IndexedDB initiale. */
   .boot-load{display:flex;align-items:center;justify-content:center;padding:56px 16px;color:var(--ink-soft);font-size:13.5px}
-  .btn.ghost-danger{background:transparent;border-color:transparent;color:var(--crit)}
-  .btn.ghost-danger:hover{background:var(--crit-soft);border-color:transparent}
   /* SPEC gestion §3 : Annuler / CTA demi-largeur ; ZONE SENSIBLE sous séparateur, bouton
      CONTOUR rouge (jamais plein, jamais côte à côte avec le CTA principal). */
   /* Jumeaux demi-largeur : `min-width:0` neutralise le plancher min-content (sans lui, le
@@ -6026,27 +6024,93 @@
   .acct-more[open]>summary::after{content:"▴"}
   .acct-more>summary:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:8px}
   .acct-more[open]{margin-bottom:4px}
-  /* ADMINISTRATION (v5.39.10, A438 — maquette validée par l'auteur, canevas « Administration —
-     Compte & synchronisation ») : la seule ACTION en tête (rangée « Demandes de compte »), quatre
-     chiffres clés en tuiles de LECTURE (ni survol, ni chevron : rien n'y répond — la crainte de
-     v4.71.1 tenait à la tuile qui promet un objet, d'où l'absence de toute affordance), puis deux
-     cartes — Contenus & sessions, Stockage — côte à côte DÈS QUE LA PLACE LE PERMET : `auto-fit`
-     sur un minimum de 300 px, donc la largeur RENDUE décide (zoom compris, règle 10), sans media
-     query ni `@container`. Valeurs en mono tabulaire, comme avant. */
-  .adm-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px;padding:0 4px}
-  .adm-top .auth-stats-h{margin:0;padding:0}
-  .adm-when{font-size:var(--t-meta);color:var(--ink-2)}
-  .adm-req{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;margin:0 0 8px;
-    font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
-  .adm-req:hover{background:var(--amb-2)}
-  .adm-req:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .adm-ic{flex:none;width:36px;height:36px;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center}
-  .adm-tx{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
-  .adm-lb{font-size:var(--t-item);font-weight:700}
+  /* ADMINISTRATION — UNE PAGE À SECTIONS (v5.55, A494 ; maquette validée par l'auteur, canevas
+     « Administration — refonte ») : Moi ne porte plus qu'une PORTE (`.adm-door`) ; la page dit d'abord
+     ce qui attend (« À traiter »), puis l'annuaire, les règles, l'état. Les listes passent de « tout
+     afficher » à recherche + filtres + 40 rangées à la fois au-delà de 8 éléments ; en deçà, elles
+     restent posées dans la page. Tuiles et cartes de lecture reprises d'A438. */
+  .adm-door{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;margin:0 0 12px;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .adm-door:hover{background:var(--amb-2)}
+  .adm-door:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .adm-ic{flex:none;width:40px;height:40px;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center}
+  .adm-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .adm-lb{font-size:var(--t-item);font-weight:800}
   .adm-sub{font-size:var(--t-body);color:var(--ink-2)}
-  .adm-go{flex:none;display:inline-flex;align-items:center;gap:2px;font-size:var(--t-body);font-weight:700;color:var(--act)}
-  /* Dès 560 px effectifs, l'action se dit par un bouton plein (la rangée entière reste la cible). */
-  html:not(.zw560) .adm-req.on .adm-go{min-height:40px;padding:0 12px 0 16px;border-radius:var(--r-2);background:var(--act);color:var(--on-primary)}
+  .adm-badge{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:var(--act);color:var(--on-primary);font-size:var(--t-meta);font-weight:700;white-space:nowrap}
+  .adm-badge b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+  .home-main>.hv-page.adm-page{max-width:1100px}   /* la vue large tient la liste ET le détail d'un compte */
+  .adm-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;margin:0 0 4px -4px;padding:0 8px 0 0;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
+  .adm-back:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-2)}
+  .adm-back svg{transform:scaleX(-1)}
+  .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
+  .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
+  .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}
+  .adm-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--amb-2);color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta);font-weight:600;letter-spacing:0}
+  .adm-n.on{background:var(--act);color:var(--on-primary)}
+  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-sh:first-child{margin-top:4px}
+  .adm-sh small{margin-left:auto;font-size:var(--t-meta);font-weight:500;letter-spacing:0;text-transform:none}
+  .adm-title{margin:0 0 2px;font-size:var(--t-step);font-weight:800}
+  .adm-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;padding:0 4px}
+  .adm-when{font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-calm{display:flex;align-items:center;gap:10px;min-height:48px;margin:0;padding:0 14px;border:1px dashed var(--line-strong);border-radius:var(--r-4);font-size:var(--t-body);color:var(--ink-2)}
+  /* Une demande : les gestes au bout de la ligne quand la place le permet, dessous sinon — un `flex-wrap`,
+     donc la largeur RENDUE décide (zoom compris, règle 10), sans palier. */
+  .adm-tr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 0}
+  .adm-tr:not(:first-child){border-top:1px solid var(--work-line)}
+  .adm-tr>.mm-ic{align-self:flex-start;padding-top:2px}
+  .adm-tr>.mm-tx{flex:1 1 240px}
+  .adm-tr .adm-reqa{margin-left:auto}
+  :is(#admBody,#admView) .mm-sub{white-space:normal}   /* une sous-ligne d'administration se lit en entier ; le libellé reste sur une ligne */
+  .adm-kind{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .adm-more{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0;border:0;border-top:1px solid var(--work-line);background:none;font-family:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .adm-more:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 4px 8px;font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-tools .adm-count{flex:1;min-width:0;white-space:nowrap}
+  .adm-tools select{height:32px;padding:0 6px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink)}
+  .adm-q{width:100%;height:44px;margin:12px 0 0;padding:0 16px;box-sizing:border-box;border:1px solid var(--work-line);border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-item);color:var(--ink)}
+  .adm-q:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .adm-chips{margin-top:12px}
+  .adm-chips .catchip .adm-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta)}   /* pas d'opacité : 4,11:1 dans la puce ambre (mesuré) */
+  .adm-chips .catchip.warn{color:var(--warn)}
+  .adm-chips .catchip.warn.on{color:var(--on-primary)}
+  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-grp:not(:first-child){border-top:1px solid var(--work-line)}
+  .adm-grp+.mm-row{border-top:0!important}
+  .adm-st{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .adm-st.wait{color:var(--warn)}
+  .adm-st.adm{color:var(--ink)}
+  .adm-warn{font-weight:700;color:var(--warn)}
+  .mm-row[aria-current="true"]{background:var(--primary-soft)}
+  .adm-box{flex:none;width:24px;height:24px;border-radius:var(--r-3);border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;color:var(--on-primary)}
+  .adm-box svg{visibility:hidden}
+  [aria-checked="true"]>.adm-box{background:var(--act);border-color:var(--act)}
+  [aria-checked="true"]>.adm-box svg{visibility:visible}
+  .adm-selbar{position:sticky;bottom:8px;z-index:2;display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:8px 8px 8px 16px;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-float);font-size:var(--t-body);font-weight:700}
+  .adm-selbar>span{flex:1;min-width:0}
+  .adm-head{display:flex;align-items:center;gap:14px;margin:4px 0 4px}
+  .adm-ava{flex:none;width:48px;height:48px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-item);font-weight:800}
+  .adm-head .adm-tx{gap:2px}
+  .adm-head .adm-lb{font-size:var(--t-step);overflow-wrap:anywhere}
+  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:52px;padding:6px 0;font-size:var(--t-item)}
+  .adm-urow+.adm-urow,.acct-card>.adm-urow~.mem-row{border-top:1px solid var(--work-line)}
+  .adm-urow small{display:block;font-size:var(--t-meta);color:var(--ink-2)}
+  .adm-urow>span:first-child{flex:1 1 200px;min-width:0}
+  .acct-list .mem-row{padding:6px 0;border:0;border-radius:0;background:none}
+  .acct-list .mem-row+.mem-row{border-top:1px solid var(--work-line)}
+  .adm-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);gap:16px;align-items:start}
+  .adm-split>aside{position:sticky;top:8px}
+  .adm-radio{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 0;border:0;background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .adm-radio:not(:first-child){border-top:1px solid var(--work-line)}
+  .adm-radio:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-rmark{flex:none;width:22px;height:22px;margin-top:1px;box-sizing:border-box;border-radius:50%;border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center}
+  .adm-rmark::after{content:"";width:10px;height:10px;border-radius:50%}
+  .adm-radio[aria-checked="true"] .adm-rmark{border-color:var(--act)}
+  .adm-radio[aria-checked="true"] .adm-rmark::after{background:var(--act)}
+  .adm-radio .adm-tx{gap:2px}
+  .adm-radio .adm-lb{font-weight:700}
+  .adm-radio .adm-st{margin-top:2px}
   .adm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0 0 8px}
   .adm-kpi{display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
   .adm-kv{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:600;letter-spacing:-.02em;color:var(--ink)}
@@ -6079,19 +6143,14 @@
   .adm-leg .adm-v{font-weight:500;font-size:var(--t-body)}
   .adm-note{display:flex;gap:10px;align-items:flex-start;margin:0;padding-top:12px;border-top:1px solid var(--line);font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
   .adm-note>svg{flex:none;margin-top:1px}
-  /* A478-A479 : la file des demandes (Refuser · Créer au bout de la rangée) et la règle de création. */
+  .adm-hint{margin:8px 4px 0;font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
+  .adm-sh+.adm-hint{margin:-4px 4px 8px}
+  .acct-list>.adm-hint{margin:8px 0}
+  /* A478-A479 : Refuser · Créer au bout de la rangée, et le bandeau qui CONFIRME une règle (A481). */
   .adm-reqa{display:flex;gap:8px;flex:none}
-  .adm-ask>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .adm-ask{margin:0 0 12px;padding-right:14px;font-size:var(--t-body)}
+  .adm-ask>div{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
   .adm-ask .adm-reqa{margin-left:auto}
-  #admLibs{display:flex;flex-direction:column;gap:12px;margin:12px 0}
-  #admLibs .seg{margin:4px 0 10px}
-  #admPeople{display:flex;flex-direction:column;gap:12px;margin:0 0 12px}
-  .adm-list .catmenu-filter{margin:0 0 6px}
-  .adm-user{margin:0 0 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb)}
-  .adm-urow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;font-size:var(--t-body)}
-  .pend-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;margin-left:6px}
-  .pend-badge.pending{color:var(--warn);background:var(--warn-soft)}
-  .pend-badge.rejected{color:var(--crit);background:var(--crit-soft)}
   .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
   .auth-actions{display:flex;flex-direction:column;gap:12px}
   /* A376 : dans la carte « Sur cet appareil », les actions se posent en rangée dès 780 et gardent leur largeur de contenu — un bouton de 720 px pour « Un problème ? » ne disait rien de plus (signalé). */

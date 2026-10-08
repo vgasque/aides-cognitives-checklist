@@ -226,11 +226,12 @@ politiques RLS, pas du secret de cette clé).
    insert into public.app_admins(user_id)
    select id from auth.users where email = 'vous@etablissement.fr';
    ```
-3. Rouvrir l'app : vous pouvez créer des bibliothèques partagées, ouvrir « Comptes en attente », et
-   l'écran **Compte** affiche l'**état de l'instance** (nombre de comptes, fiches, stockage consommé…).
+3. Rouvrir l'app : vous pouvez créer des bibliothèques partagées, et **Moi** porte la carte
+   **Administration** — demandes à traiter, comptes, bibliothèques, règles et **état de l'instance**
+   (nombre de comptes, aides, stockage consommé…).
 
 ### 1.6 Gouvernance (au choix)
-- **Validation des comptes** : *Compte → Comptes en attente* → activer « Exiger une validation ».
+- **Validation des comptes** : *Moi → Administration → Règles* → « Valider chaque nouveau compte ».
   Chaque nouveau compte reste « en attente » jusqu'à votre approbation.
 - **Rôles de bibliothèque** : lecteur (consultation), éditeur (rédaction), admin (gestion des
   membres). Le statut *brouillon* masque une fiche non validée aux lecteurs.
