@@ -6042,6 +6042,10 @@
   .adm-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;margin:0 0 4px -4px;padding:0 8px 0 0;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
   .adm-back:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-2)}
   .adm-back svg{transform:scaleX(-1)}
+  /* La fenêtre (v5.55.1) : retour au-dessus du titre, comme la vue large ; la croix reste sur la ligne du titre. */
+  #admModal .ai-top{align-items:flex-end}
+  .adm-ttl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+  .adm-ttl .adm-back{min-height:32px}
   .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
   .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
   .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}

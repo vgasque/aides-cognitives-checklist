@@ -852,6 +852,8 @@ telle quelle — chaque écran le dit à sa façon :
   gère aussi celle dont l'administrateur n'est pas membre et le dit en tête (A484). Les règles (validation des
   nouveaux comptes, création de bibliothèques) se changent par un bandeau de confirmation qui dit l'effet réel.
   « En attente » et « △ sans administrateur » en ambre ; les autres statuts sans couleur.
+  Le retour se pose AU-DESSUS du titre à toute largeur (« ‹ Moi » sur « Administration », « ‹ Administration »
+  sur « Comptes ») ; au téléphone la barre de la fenêtre porte le titre de la section (A495).
 - **La colonne dit AVEC QUI** (A489) : une bibliothèque porte des personnes (`user` Perso, `users` partagée) et un
   mot — vous seul · partagée · lecture ; « Collections · pour vous » porte le signet. Une seule bibliothèque :
   une rangée active et « ＋ Partager avec une équipe… » (jamais « Nouvelle bibliothèque » à côté de « Nouvelle

@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.55.1] — 2026-10-08
+Deux retours sur la page Administration (A495, doctrine `docs/decisions/lot-v5-55.md`).
+- **Règles de l'instance** : une seule rangée, « Nouveaux comptes et bibliothèques », qui dit les deux réglages en
+  vigueur. Les deux rangées d'avant menaient à la même page.
+- **Retour au même endroit à toutes les largeurs** : au téléphone, « ‹ Moi », « ‹ Administration » ou « ‹ Comptes »
+  se placent désormais au-dessus du titre, comme au bureau, et la barre de la fenêtre porte le nom de la partie
+  ouverte (Comptes, Bibliothèques, Règles de l'instance…). Le titre n'est plus écrit deux fois.
+
 ## [5.55.0] — 2026-10-08
 Administration devient une page claire, à petite comme à grande échelle (A494, doctrine `docs/decisions/lot-v5-55.md`).
 Rien à rejouer côté serveur.
@@ -239,23 +247,4 @@ L'exercice guidé (A467, doctrine `docs/decisions/lot-v5-48.md`), dernier point 
 - **Le guide et « Prendre en main » suivent l'app** : leurs mots et leurs cibles viennent de l'écran et de l'aide.
   Deux nouveaux garde-fous les vérifient à chaque changement : `check-guide` (libellés cités, commandes visées) et
   le harnais `audit-guide` (déroulé complet à 390, 1280 et 360 px à 130 %).
-
-## [5.47.0] — 2026-10-05
-Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/lot-v5-47.md`).
-- **« Prendre en main », dans Moi** : dix gestes expliqués (trouver, démarrer, cocher, chrono et minuteurs,
-  complication, horodater, tout voir, partager, terminer, écrire une aide) et un glossaire de seize termes (session,
-  exercice, essai, complication, revue, jalon…). « Revoir l'accueil » y vit désormais.
-- **Une aide ou un protocole neuf naît en brouillon**, et non plus « Validée ». Vous la validez une fois relue. Dans une
-  bibliothèque partagée, la fenêtre de création dit qui la voit.
-- **Lien direct vers une aide** : menu ⋯ › « Copier le lien direct ». Le lien ouvre l'aide sur tout appareil qui la
-  possède (raccourci d'écran d'accueil, collègue de la même bibliothèque). Un appui long sur l'icône de l'app propose
-  « Chercher une aide » et « Sessions ».
-- **Texte agrandi (115 et 130 %)** : les touches du quai gardent leur mot entier (« Tout voir » n'est plus un glyphe
-  seul, plus de « Horoda / ter »). Le titre du bloc en cours ne se coupe plus au milieu d'un mot : « EN COURS » passe
-  au-dessus de lui.
-- La légende sous le titre d'un bloc dit en clair : « sous l'étape, en gris : la réponse attendue ».
-- **Éditeur** : l'identité d'une aide existante s'ouvre repliée, et l'éditeur s'ouvre sur le contenu. Chaque section
-  des réglages d'une étape porte un exemple.
-- **Accessibilité** : au clavier, la touche Tab atteint de nouveau les rubriques dépliables des fenêtres
-  (« Pourquoi créer un compte ? »…).
 

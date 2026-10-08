@@ -1,4 +1,4 @@
-# Lot v5.55 — A494
+# Lot v5.55 — A494-A495
 
 Demande de l'auteur : « améliore le panneau Administration dans l'onglet Moi pour y ajouter de la structure et de la
 clarté, il y a plein de nouvelles options qui sont apparues récemment. Je dois pouvoir gérer un petit nombre comme un
@@ -76,3 +76,23 @@ Témoins : `audit-doctrine` « MOI · A478-A479, A483 » (réécrit : porte, vue
 compte à côté de la liste, A484 et relecture) et « MOI · A494 Administration à l'échelle » (390 → 1280 : 60 comptes,
 filtre, lot, pages de 40, recherche qui garde le focus, retour système, franchissement de 780) ; `audit-a11y`
 « administration », « administration · comptes », « administration · règles » (remplacent « comptes en attente »).
+
+## A495 — deux retours sur la page (v5.55.1)
+
+Signalés par l'auteur après la v5.55.0 :
+
+- **« Nouveaux comptes » et « Création de bibliothèques » menaient à la MÊME page.** La vue d'ensemble posait deux
+  rangées sous « Règles de l'instance », chacune ouvrant la page qui porte les deux règles. Deux portes pour une
+  pièce promettent deux pièces. **Une seule rangée** : « Nouveaux comptes et bibliothèques », dont la sous-ligne dit
+  les deux réglages en vigueur (« Comptes validés un par un · création : personnes autorisées (5) »). Séparer en deux
+  pages a été écarté : la page des règles est courte, et les deux réglages se lisent mieux ensemble.
+- **Le retour n'avait pas la même place selon la largeur** : au-dessus du titre en vue large (« ‹ Moi » sur
+  « Administration »), SOUS le titre au téléphone (la fenêtre gardait « Administration » dans sa barre et posait
+  « ‹ Administration » puis « Comptes » dans le corps — le mot écrit deux fois). Au téléphone, la barre de la fenêtre
+  porte désormais le titre de la SECTION et le retour AU-DESSUS (`admTopPaint`, `#admBack`) : « ‹ Moi » sur
+  « Administration » (Moi ouvert dessous), « ‹ Administration » sur « Comptes », « ‹ Comptes » sur « Compte » ; la
+  croix reste sur la ligne du titre. Le corps ne répète plus ni retour ni titre. En vue large rien ne change : « ‹ Moi »
+  au-dessus d'« Administration », les onglets portent la section.
+
+Témoin : `audit-doctrine` « MOI · A494 Administration à l'échelle » (titre et retour aux trois niveaux, aucun retour
+ni titre dans le corps, une seule rangée de règles).
