@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DdHb497yeJULmcQdXs1LYiclWaw9qBoWCHvqXevSqEM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-w0ukxmiemySTTW2Y86/pSP312mQb1pDviu88hJ5R1+Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6398,6 +6398,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .adm-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;margin:0 0 4px -4px;padding:0 8px 0 0;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
   .adm-back:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-2)}
   .adm-back svg{transform:scaleX(-1)}
+  /* La fenêtre (v5.55.1) : retour au-dessus du titre, comme la vue large ; la croix reste sur la ligne du titre. */
+  #admModal .ai-top{align-items:flex-end}
+  .adm-ttl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+  .adm-ttl .adm-back{min-height:32px}
   .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
   .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
   .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}
@@ -8930,7 +8934,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div id="newLibBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal page" id="admModal" role="dialog" aria-modal="true" aria-labelledby="admModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="admModalTitle">Administration</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><div class="adm-ttl"><button type="button" class="adm-back" id="admBack" hidden></button><h3 id="admModalTitle">Administration</h3></div><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="admBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal page" id="sessModal" role="dialog" aria-modal="true" aria-labelledby="sessModalTitle"><div class="ai-card">
@@ -9157,7 +9161,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.55.0';
+const APP_VERSION='5.55.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28407,7 +28411,9 @@ const admChev=()=>`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}
 const admN=(n,on)=>n?`<span class="adm-n${on?' on':''}">${esc(String(n))}</span>`:'';
 const admSh=(l,n,on,small)=>`<h4 class="adm-sh">${esc(l)}${admN(n,on)}${small?`<small>${esc(small)}</small>`:''}</h4>`;
 const admBackHtml=(l,sec)=>`<button type="button" class="adm-back" data-admgo="${sec}" data-admk="back">${uiIcon('chev',18)}${esc(l)}</button>`;
-function admSubHead(view,title,meta){return (view?'':admBackHtml('Administration','home'))+`<h4 class="adm-title">${esc(title)}</h4>`+(meta?`<p class="adm-when">${esc(meta)}</p>`:'');}
+/* v5.55.1 : en fenêtre, le titre de la section EST celui de la fenêtre et le retour se pose au-dessus (`admTopPaint`) —
+   la même place que « ‹ Moi » au-dessus d'« Administration » en vue large. En vue large, les onglets portent la section. */
+function admSubHead(view,title,meta){return (view?`<h4 class="adm-title">${esc(title)}</h4>`:'')+(meta?`<p class="adm-when">${esc(meta)}</p>`:'');}
 function admAskHtml(k,text,yes){return `<div class="notice adm-ask" role="alertdialog" aria-label="Confirmer le changement">${uiIcon('info',15)}<div><span>${esc(text)}</span><span class="adm-reqa"><button type="button" class="btn sm" data-admno="${k}">Annuler</button><button type="button" class="btn sm primary" data-admyes="${k}" data-admk="yes-${k}">${esc(yes)}</button></span></div></div>`;}
 const admNoteHtml=()=>`<p class="adm-note">${uiIcon('lock',16)}<span>Compte administrateur : il ne se supprime pas d’ici. Passez par la console d’administration (garde-fou).</span></p>`;
 const admSchema=(v,quoi)=>`<p class="adm-note">Rejouez <b>supabase/schema.sql</b> (${v}) pour ${quoi}.</p>`;
@@ -28484,9 +28490,10 @@ function admHomeHtml(){const D=_admD,acc=D.acc,libs=D.libs,hh=new Date(D.t);
   h+=inl;
   /* RÈGLES : deux rangées, une page. */
   const pers=(D.users||[]).filter(u=>u.can_create&&!u.is_admin).length,mo=LIB_MODES.find(m=>m[0]===D.mode);
+  /* v5.55.1 : UNE rangée — les deux règles vivent sur la même page ; deux rangées y menaient toutes deux (signalé). */
   h+=admSh('Règles de l’instance')+`<div class="acct-card acct-list">`
-    +menuRowHtml({label:'Nouveaux comptes',sub:D.approval?'Validés un par un par un administrateur':'Approuvés dès leur e-mail vérifié',ic:uiIcon('shield',20),attrs:'data-admgo="regles" data-admk="go-r1"',tail:admChev()})
-    +menuRowHtml({label:'Création de bibliothèques',sub:mo?mo[1]+(D.mode==='creators'?' · '+(pers?nb(pers,'personne'):'aucune personne'):'')+(D.mode==='approved'?'':' · les autres demandent'):'Règle indisponible (schéma à rejouer)',ic:uiIcon('book',20),attrs:'data-admgo="regles" data-admk="go-r2"',tail:admChev()})+'</div>';
+    +menuRowHtml({label:'Nouveaux comptes et bibliothèques',ic:uiIcon('shield',20),attrs:'data-admgo="regles" data-admk="go-r"',tail:admChev(),
+      sub:(D.approval?'Comptes validés un par un':'Comptes approuvés dès l’e-mail vérifié')+' · création : '+(mo?mo[1].toLowerCase()+(D.mode==='creators'?' ('+pers+')':''):'règle indisponible')})+'</div>';
   return h+admSh('État de l’instance')+admStatsHtml(D.stats);}
 /* ── Comptes ─────────────────────────────────────────────────────────────────────────────────── */
 function admAccList(){const q=txNorm(_adm.q),f=_adm.f,S=_adm.sort,ord={pending:0,approved:1,admin:2,rejected:3},em=u=>String(u.email||'');
@@ -28517,7 +28524,7 @@ function admComptesHtml(view){const D=_admD;
 /* ── Un compte ───────────────────────────────────────────────────────────────────────────────── */
 function admSplit(){const v=admView();return !!v&&v.clientWidth>=900;}
 function admCompteHtml(){const u=admUser();if(!u)return admComptesHtml(!!admView());
-  return admBackHtml(_adm.from==='comptes'?'Comptes':'Administration',_adm.from==='comptes'?'comptes':'home')+admCompteBody(u);}
+  return (admView()?admBackHtml(_adm.from==='comptes'?'Comptes':'Administration',_adm.from==='comptes'?'comptes':'home'):'')+admCompteBody(u);}
 function admCompteBody(u){const D=_admD,mem=_adm.mem[u.user_id],c=admCat(u),moi=Auth.user()&&Auth.user().id===u.user_id;
   const act=(k,l,cls)=>`<button type="button" class="btn sm${cls?' '+cls:''}" data-admact="${k}" data-admk="a-${k}">${esc(l)}</button>`;
   const crSub=u.is_admin?'toujours, en tant qu’administrateur':D.mode&&D.mode!=='creators'?'sans effet tant que la règle est « '+LIB_MODES.find(m=>m[0]===D.mode)[1]+' »':'sinon, la personne en fait la demande';
@@ -28582,12 +28589,19 @@ function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.st
 function admTabsHtml(){const D=_admD,tab=_adm.sec==='compte'?'comptes':_adm.sec;
   return `<nav class="adm-tabs" aria-label="Sections de l’administration">`+[['home','Vue d’ensemble',admTodo().length,true],['comptes','Comptes',D.acc&&D.acc.length],['libs','Bibliothèques',D.libs&&D.libs.length],['regles','Règles']]
     .map(([k,l,n,on])=>`<button type="button" class="adm-tab" data-admgo="${k}" data-admk="tab-${k}"${tab===k?' aria-current="page"':''}>${esc(l)}${admN(n,on)}</button>`).join('')+'</nav>';}
+const ADM_TITRES={home:'Administration',comptes:'Comptes',compte:'Compte',libs:'Bibliothèques',regles:'Règles de l’instance'};
+function admTopPaint(){const s=_adm.sec,b=document.getElementById('admBack');
+  document.getElementById('admModalTitle').textContent=ADM_TITRES[s]||'Administration';
+  const l=s==='home'?(authModal.classList.contains('on')?'Moi':''):s==='compte'&&_adm.from==='comptes'?'Comptes':'Administration';
+  b.hidden=!l;b.innerHTML=l?uiIcon('chev',18)+esc(l):'';}
+document.getElementById('admBack').onclick=()=>{if(_adm.sec==='home')closeAdmin();else admBack();};
 function renderAdm(o){o=o||{};const box=admRoot();if(!box)return;
   const ae=document.activeElement,k=ae&&box.contains(ae)?ae.getAttribute('data-admk'):null;
   if(!box._admB){box._admB=true;admBind(box);}
   if(!_admD){box.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement…</p>';return;}
   const view=!!admView(),s=_adm.sec;
   box.innerHTML=(view?admTabsHtml():'')+(s==='comptes'?admComptesHtml(view):s==='compte'?(view&&admSplit()?admComptesHtml(view):admCompteHtml()):s==='libs'?admLibsHtml(view):s==='regles'?admReglesHtml(view):admHomeHtml());
+  if(!view)admTopPaint();
   if(k){const el=box.querySelector('[data-admk="'+CSS.escape(k)+'"]');if(el)el.focus({preventScroll:true});}
   if(o.top){const sc=view?main.querySelector('.home-main'):box.closest('.ai-card');if(sc)sc.scrollTop=0;box.scrollTop=0;}
   if(s==='compte')admMemLoad(_adm.user);}

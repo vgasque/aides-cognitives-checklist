@@ -7369,11 +7369,14 @@ const r = await page.evaluate(async () => {
   myAccountStatus='approved';await Sync.loadProfile();openAuth();await w(900);
   document.getElementById('admDoor').click();await w(700);
   const out={fenetre:document.getElementById('admModal').classList.contains('on'),onglets:!!B().querySelector('.adm-tabs')};
+  /* v5.55.1 : le retour se pose AU-DESSUS du titre de la fenêtre (comme « ‹ Moi » en vue large), le titre suit la section. */
+  const tete=()=>{const b=document.getElementById('admBack');return [document.getElementById('admModalTitle').textContent,b.hidden?'':b.textContent,B().querySelectorAll('.adm-back,.adm-title').length];};
+  out.teteHome=tete();out.regles=B().querySelectorAll('[data-admgo="regles"]').length;
   out.todo=B().querySelectorAll('[data-admst$=":approved"]').length;
   out.annuaire=[...B().querySelectorAll('[data-admgo="comptes"]:not([data-admf]),[data-admgo="libs"]')].map(b=>b.textContent.replace(/\s+/g,' ').trim());
   const voir=B().querySelector('[data-admgo="comptes"][data-admf="pending"]');out.voir=voir?voir.textContent:'';
   voir.click();await w(300);
-  out.filtre=B().querySelectorAll('[data-admuser]').length;
+  out.filtre=B().querySelectorAll('[data-admuser]').length;out.teteComptes=tete();
   B().querySelector('[data-admsel]').click();await w(150);
   const p=B().querySelectorAll('[data-admpick]');p[0].click();await w(100);B().querySelectorAll('[data-admpick]')[1].click();await w(100);
   out.barre=(B().querySelector('.adm-selbar')||{}).textContent||'';
@@ -7386,13 +7389,16 @@ const r = await page.evaluate(async () => {
   const q=B().querySelector('[data-admq="acc"]');q.focus();q.value='u05';q.dispatchEvent(new Event('input',{bubbles:true}));await w(150);
   out.cherche=[B().querySelectorAll('[data-admuser]').length,document.activeElement===q];
   B().querySelector('[data-admuser]').click();await w(400);
-  out.compte=[_adm.sec,admDepth(),_histLevels()];
+  out.compte=[_adm.sec,admDepth(),_histLevels()];out.teteCompte=tete();
   history.back();await w(1200);
   out.retour=_adm.sec;
   admGo('libs');await w(200);
   out.libs=[B().querySelectorAll('[data-admlib]').length,B().querySelectorAll('.adm-chips [data-admlf]').length,!!B().querySelector('[data-admlib="lib-4"] .adm-warn')];
   return out;});
 t('390 : la porte de Moi ouvre une page-fenêtre, sans onglets', r.fenetre&&!r.onglets, JSON.stringify([r.fenetre,r.onglets]));
+t('v5.55.1 : retour AU-DESSUS du titre, titre = la section (Administration ‹ Moi · Comptes ‹ Administration · Compte ‹ Comptes), rien dans le corps',
+  JSON.stringify(r.teteHome)==='["Administration","Moi",0]'&&JSON.stringify(r.teteComptes)==='["Comptes","Administration",0]'&&JSON.stringify(r.teteCompte)==='["Compte","Comptes",0]', JSON.stringify([r.teteHome,r.teteComptes,r.teteCompte]));
+t('v5.55.1 : une seule rangée « Règles de l’instance » (les deux menaient à la même page)', r.regles===1, String(r.regles));
 t('… À traiter montre trois demandes de compte et renvoie aux douze', r.todo===3&&/Voir les 12 demandes de compte/.test(r.voir), r.todo+' | '+r.voir);
 t('… au-delà de 8, l’annuaire se résume en deux rangées (60 comptes, 20 bibliothèques, l’ambre pour « sans administrateur »)', r.annuaire.length===2&&/60/.test(r.annuaire[0])&&/20/.test(r.annuaire[1])&&/1 sans administrateur/.test(r.annuaire[1]), JSON.stringify(r.annuaire));
 t('… la liste filtrée « En attente » tient les 12', r.filtre===12, String(r.filtre));
