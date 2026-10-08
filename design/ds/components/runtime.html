@@ -3462,13 +3462,16 @@
      ce qui ne demande rien n'a pas de registre — la ligne était en `--act`, le bleu de l'action) ; (4) le libellé
      un cran plus bas que les étapes (`--t-item`, amende A345 pour ce seul cas) ; (5) fermée d'office. La tête
      (`.rv-head`) est le bouton : la rangée ne l'est plus, elle contient des cases (rôle interactif imbriqué). */
-  :root ol.steps li.rv-step{display:block;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  :root ol.steps li.rv-step{display:block;padding-top:14px;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   ol.steps li.rv-step.done{background:none}
   .rv-head{position:relative;display:flex;align-items:flex-start;gap:12px;border-radius:var(--r-1);cursor:pointer}
-  :root ol.steps li.rv-step .rv-head>.txt{padding-top:6px;font-size:var(--t-item)}
+  :root ol.steps li.rv-step .rv-head>.txt{padding-top:8px;font-size:var(--t-item)}
   :root ol.steps li.rv-step .rv-head:has(>.txt>.stp-mks){padding-top:24px}
   :root ol.steps li.rv-step .rv-head>.txt>.stp-mks{top:0;left:48px}
   .rv-ring{flex:none;display:grid;place-items:center;width:36px;height:36px}
+  /* A495 (v5.55.0) : l'anneau a la TAILLE VISIBLE de la case (rayon 16 : 0 → 36 px avec son trait plein — il en faisait 32,
+     et paraissait plus haut que les cases voisines) ; la rangée se pose comme une étape simple (case à 14 px du haut) et
+     l'intitulé, plus petit d'un cran (A449), descend de 2 px pour se centrer sur l'anneau comme l'intitulé d'une étape sur sa case. */
   .rv-ring>*{grid-area:1/1}
   /* Piste FINE (`--ctl-line`, 3:1) et segments faits ÉPAIS à l'encre : vide et plein se distinguent par l'épaisseur
      autant que par la valeur — `--line-strong` disparaissait la nuit (#2c313a sur la carte). */
@@ -3599,6 +3602,64 @@
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
+  /* ═══ ESSAI ET ▼ (A494, v5.55.0) — « Étapes » : trois dessins à trancher en conditions réelles (Moi › Affichage).
+     COMMUN aux trois (html.essai-et) : deux niveaux de texte seulement — l'intitulé et sa réponse en exergue, tout le
+     reste en UN style de 12 px ; la case se cale sur l'intitulé, qui ne bouge plus (tête et pied vivent hors du corps) ;
+     « Faire maintenant » est un lien à droite de l'intitulé. Puis un sous-bloc par variante. Rien ici ne s'applique
+     sans essai choisi. Garder / retirer : lot-v5-55.md, A494. */
+  html.essai-et ol.steps:not(.rev)>li{align-items:flex-start;min-height:0;padding:12px}
+  html.essai-et ol.steps:not(.rev)>li .txt{padding-top:6px;font-weight:800}
+  html.essai-et ol.steps:not(.rev)>li.rv-step{padding-top:12px}
+  html.essai-et ol.steps:not(.rev)>li.rv-step .rv-head>.txt{padding-top:8px}
+  html.essai-et ol.steps:not(.rev)>li .stp-r{margin-top:4px;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  html.essai-et ol.steps:not(.rev)>li:is(.done,.mo-wait,.mo-gone) .stp-r{color:var(--ink-2)}
+  html.essai-et .et-head{display:flex;flex-wrap:nowrap;align-items:center;gap:0 8px;min-width:0}
+  html.essai-et .et-head .stp-mk{flex:none;display:inline-flex;align-items:center;height:20px;margin:0;padding:0;background:none;box-shadow:none;font-size:var(--t-meta);letter-spacing:.04em;line-height:20px;white-space:nowrap}
+  html.essai-et .et-head .stp-mk:is(.mo,.mo-ok,.mo-due,.mo-n){text-transform:none;letter-spacing:0}
+  html.essai-et .et-head .stp-mk.mo,html.essai-et ol.steps li.done .et-head .stp-mk{color:var(--ink-2);background:none}
+  html.essai-et .et-head .mo-pips{margin-left:6px}
+  html.essai-et .et-foot{display:flex;align-items:center;gap:0 12px;min-width:0}
+  html.essai-et .et-foot .wt{height:20px;margin:0;padding:0;gap:4px;max-width:100%;min-width:0;font-size:var(--t-meta);font-weight:600;line-height:20px;color:var(--ink-2)}
+  html.essai-et .et-foot .wt:not(.due){background:none;box-shadow:none}
+  html.essai-et .et-foot .wt.due{padding:0 6px}
+  html.essai-et .et-foot :is(.wt-g,.wt-v,.wt-e){flex:none}
+  html.essai-et .et-foot .wt-g{width:12px;height:12px}
+  html.essai-et .et-foot .wt-v{font-weight:700;color:var(--ink-2)}
+  html.essai-et .et-foot .wt-n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  html.essai-et .et-foot .wt:is(.run,.up) :is(.wt-v,.wt-g){color:var(--act)}
+  html.essai-et ol.steps:not(.rev)>li .txt>.stp-now{float:right;height:20px;margin:1px 0 0 12px;padding:0 2px;background:none;box-shadow:none;font-size:var(--t-meta);font-weight:800;color:var(--act);text-decoration:underline;text-underline-offset:3px}
+  html.essai-et ol.steps:not(.rev)>li .txt>.stp-now::after{inset:-12px -8px}   /* cible 44 px (règle 9, halo admis) */
+  /* — ESSAI ET · V1 et V2 : la tête et le pied sont des BANDEAUX sur toute la largeur, DANS la tuile (rectangle net) ;
+     le corps garde 12 px d'air en haut comme en bas. Écart constant de 8 px entre tuiles. */
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li+li{margin-top:8px}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li:is(.et-hd,.et-ft){display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:12px;row-gap:0;align-items:start;overflow:hidden}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li.et-hd{padding-top:0}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li.et-ft{padding-bottom:0}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps>li>:is(.et-head,.et-foot){grid-column:1/-1;min-height:28px;box-sizing:border-box;padding:4px 12px}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps>li>.et-head{margin:0 -12px 12px}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps>li>.et-foot{margin:12px -12px 0;justify-content:flex-end}
+  html.essai-et-v1 ol.steps>li>:is(.et-head,.et-foot){background:color-mix(in srgb,var(--ink) 6%,transparent)}   /* V1 : bandeaux teintés */
+  html.essai-et-v2 ol.steps>li>.et-head{box-shadow:inset 0 -1px 0 var(--line-strong)}   /* V2 : matière de la tuile, un filet */
+  html.essai-et-v2 ol.steps>li>.et-foot{box-shadow:inset 0 1px 0 var(--line-strong)}
+  /* — ESSAI ET · S6c : la tête et le pied sont des ONGLETS à cheval sur les arêtes de la tuile — avant en haut à
+     gauche, après en bas à droite ; CRITIQUE / VIGILANCE dans une pastille teintée, séparée de la condition. Écart
+     constant de 24 px : l'onglet du bas d'une tuile et celui du haut de la suivante ne se touchent jamais. */
+  html.essai-et-s6c ol.steps:not(.rev)>li{position:relative}
+  html.essai-et-s6c ol.steps:not(.rev)>li+li{margin-top:24px}
+  html.essai-et-s6c ol.steps:not(.rev):has(>li:first-child.et-hd){padding-top:10px}
+  html.essai-et-s6c ol.steps:not(.rev):has(>li:last-child.et-ft){padding-bottom:10px}
+  html.essai-et-s6c ol.steps>li>:is(.et-head,.et-foot){position:absolute;z-index:1;height:20px;box-sizing:border-box;background:var(--amb-2)}
+  html.essai-et-s6c ol.steps>li>.et-head{top:-10px;left:48px;max-width:calc(100% - 60px);padding:0 12px;border-radius:var(--r-2) var(--r-2) 0 0}
+  html.essai-et-s6c ol.steps>li>.et-foot{bottom:-10px;right:12px;max-width:calc(100% - 72px);min-width:72px;padding:0 10px;overflow:hidden;border-radius:0 0 var(--r-2) var(--r-2)}
+  html.essai-et-s6c ol.steps>li.done>:is(.et-head,.et-foot){background:var(--ok-soft)}
+  html.essai-et-s6c ol.steps>li.mo-wait>:is(.et-head,.et-foot){background:var(--work);border:1.5px dashed var(--ctl-line)}
+  html.essai-et-s6c ol.steps>li.mo-wait>.et-head{border-bottom:0}
+  html.essai-et-s6c ol.steps>li.mo-wait>.et-foot{border-top:0}
+  html.essai-et-s6c .et-foot .wt.due{margin:0 -10px;padding:0 10px}
+  html.essai-et-s6c .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){height:16px;padding:0 6px;border-radius:3px;background:var(--crit-soft);line-height:16px}
+  html.essai-et-s6c .vigil .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){background:var(--warn-soft)}
+  html.essai-et-s6c ol.steps li.done .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){background:color-mix(in srgb,var(--ink) 8%,transparent)}
+  /* ESSAI ET ▲ */
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:10px 14px;font-size:15px}

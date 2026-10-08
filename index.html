@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-t+koo6TaFGhmnfxR2ESAxqovvZkNqcdiwxtNpqKLTTc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-JQmeM1BSS4oIBbGUuQJButI262iNCI/WWKGIbZd2gsE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3818,13 +3818,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ce qui ne demande rien n'a pas de registre — la ligne était en `--act`, le bleu de l'action) ; (4) le libellé
      un cran plus bas que les étapes (`--t-item`, amende A345 pour ce seul cas) ; (5) fermée d'office. La tête
      (`.rv-head`) est le bouton : la rangée ne l'est plus, elle contient des cases (rôle interactif imbriqué). */
-  :root ol.steps li.rv-step{display:block;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  :root ol.steps li.rv-step{display:block;padding-top:14px;background:none;cursor:default;box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   ol.steps li.rv-step.done{background:none}
   .rv-head{position:relative;display:flex;align-items:flex-start;gap:12px;border-radius:var(--r-1);cursor:pointer}
-  :root ol.steps li.rv-step .rv-head>.txt{padding-top:6px;font-size:var(--t-item)}
+  :root ol.steps li.rv-step .rv-head>.txt{padding-top:8px;font-size:var(--t-item)}
   :root ol.steps li.rv-step .rv-head:has(>.txt>.stp-mks){padding-top:24px}
   :root ol.steps li.rv-step .rv-head>.txt>.stp-mks{top:0;left:48px}
   .rv-ring{flex:none;display:grid;place-items:center;width:36px;height:36px}
+  /* A495 (v5.55.0) : l'anneau a la TAILLE VISIBLE de la case (rayon 16 : 0 → 36 px avec son trait plein — il en faisait 32,
+     et paraissait plus haut que les cases voisines) ; la rangée se pose comme une étape simple (case à 14 px du haut) et
+     l'intitulé, plus petit d'un cran (A449), descend de 2 px pour se centrer sur l'anneau comme l'intitulé d'une étape sur sa case. */
   .rv-ring>*{grid-area:1/1}
   /* Piste FINE (`--ctl-line`, 3:1) et segments faits ÉPAIS à l'encre : vide et plein se distinguent par l'épaisseur
      autant que par la valeur — `--line-strong` disparaissait la nuit (#2c313a sur la carte). */
@@ -3955,6 +3958,64 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
+  /* ═══ ESSAI ET ▼ (A494, v5.55.0) — « Étapes » : trois dessins à trancher en conditions réelles (Moi › Affichage).
+     COMMUN aux trois (html.essai-et) : deux niveaux de texte seulement — l'intitulé et sa réponse en exergue, tout le
+     reste en UN style de 12 px ; la case se cale sur l'intitulé, qui ne bouge plus (tête et pied vivent hors du corps) ;
+     « Faire maintenant » est un lien à droite de l'intitulé. Puis un sous-bloc par variante. Rien ici ne s'applique
+     sans essai choisi. Garder / retirer : lot-v5-55.md, A494. */
+  html.essai-et ol.steps:not(.rev)>li{align-items:flex-start;min-height:0;padding:12px}
+  html.essai-et ol.steps:not(.rev)>li .txt{padding-top:6px;font-weight:800}
+  html.essai-et ol.steps:not(.rev)>li.rv-step{padding-top:12px}
+  html.essai-et ol.steps:not(.rev)>li.rv-step .rv-head>.txt{padding-top:8px}
+  html.essai-et ol.steps:not(.rev)>li .stp-r{margin-top:4px;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  html.essai-et ol.steps:not(.rev)>li:is(.done,.mo-wait,.mo-gone) .stp-r{color:var(--ink-2)}
+  html.essai-et .et-head{display:flex;flex-wrap:nowrap;align-items:center;gap:0 8px;min-width:0}
+  html.essai-et .et-head .stp-mk{flex:none;display:inline-flex;align-items:center;height:20px;margin:0;padding:0;background:none;box-shadow:none;font-size:var(--t-meta);letter-spacing:.04em;line-height:20px;white-space:nowrap}
+  html.essai-et .et-head .stp-mk:is(.mo,.mo-ok,.mo-due,.mo-n){text-transform:none;letter-spacing:0}
+  html.essai-et .et-head .stp-mk.mo,html.essai-et ol.steps li.done .et-head .stp-mk{color:var(--ink-2);background:none}
+  html.essai-et .et-head .mo-pips{margin-left:6px}
+  html.essai-et .et-foot{display:flex;align-items:center;gap:0 12px;min-width:0}
+  html.essai-et .et-foot .wt{height:20px;margin:0;padding:0;gap:4px;max-width:100%;min-width:0;font-size:var(--t-meta);font-weight:600;line-height:20px;color:var(--ink-2)}
+  html.essai-et .et-foot .wt:not(.due){background:none;box-shadow:none}
+  html.essai-et .et-foot .wt.due{padding:0 6px}
+  html.essai-et .et-foot :is(.wt-g,.wt-v,.wt-e){flex:none}
+  html.essai-et .et-foot .wt-g{width:12px;height:12px}
+  html.essai-et .et-foot .wt-v{font-weight:700;color:var(--ink-2)}
+  html.essai-et .et-foot .wt-n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  html.essai-et .et-foot .wt:is(.run,.up) :is(.wt-v,.wt-g){color:var(--act)}
+  html.essai-et ol.steps:not(.rev)>li .txt>.stp-now{float:right;height:20px;margin:1px 0 0 12px;padding:0 2px;background:none;box-shadow:none;font-size:var(--t-meta);font-weight:800;color:var(--act);text-decoration:underline;text-underline-offset:3px}
+  html.essai-et ol.steps:not(.rev)>li .txt>.stp-now::after{inset:-12px -8px}   /* cible 44 px (règle 9, halo admis) */
+  /* — ESSAI ET · V1 et V2 : la tête et le pied sont des BANDEAUX sur toute la largeur, DANS la tuile (rectangle net) ;
+     le corps garde 12 px d'air en haut comme en bas. Écart constant de 8 px entre tuiles. */
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li+li{margin-top:8px}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li:is(.et-hd,.et-ft){display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:12px;row-gap:0;align-items:start;overflow:hidden}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li.et-hd{padding-top:0}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps:not(.rev)>li.et-ft{padding-bottom:0}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps>li>:is(.et-head,.et-foot){grid-column:1/-1;min-height:28px;box-sizing:border-box;padding:4px 12px}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps>li>.et-head{margin:0 -12px 12px}
+  html:is(.essai-et-v1,.essai-et-v2) ol.steps>li>.et-foot{margin:12px -12px 0;justify-content:flex-end}
+  html.essai-et-v1 ol.steps>li>:is(.et-head,.et-foot){background:color-mix(in srgb,var(--ink) 6%,transparent)}   /* V1 : bandeaux teintés */
+  html.essai-et-v2 ol.steps>li>.et-head{box-shadow:inset 0 -1px 0 var(--line-strong)}   /* V2 : matière de la tuile, un filet */
+  html.essai-et-v2 ol.steps>li>.et-foot{box-shadow:inset 0 1px 0 var(--line-strong)}
+  /* — ESSAI ET · S6c : la tête et le pied sont des ONGLETS à cheval sur les arêtes de la tuile — avant en haut à
+     gauche, après en bas à droite ; CRITIQUE / VIGILANCE dans une pastille teintée, séparée de la condition. Écart
+     constant de 24 px : l'onglet du bas d'une tuile et celui du haut de la suivante ne se touchent jamais. */
+  html.essai-et-s6c ol.steps:not(.rev)>li{position:relative}
+  html.essai-et-s6c ol.steps:not(.rev)>li+li{margin-top:24px}
+  html.essai-et-s6c ol.steps:not(.rev):has(>li:first-child.et-hd){padding-top:10px}
+  html.essai-et-s6c ol.steps:not(.rev):has(>li:last-child.et-ft){padding-bottom:10px}
+  html.essai-et-s6c ol.steps>li>:is(.et-head,.et-foot){position:absolute;z-index:1;height:20px;box-sizing:border-box;background:var(--amb-2)}
+  html.essai-et-s6c ol.steps>li>.et-head{top:-10px;left:48px;max-width:calc(100% - 60px);padding:0 12px;border-radius:var(--r-2) var(--r-2) 0 0}
+  html.essai-et-s6c ol.steps>li>.et-foot{bottom:-10px;right:12px;max-width:calc(100% - 72px);min-width:72px;padding:0 10px;overflow:hidden;border-radius:0 0 var(--r-2) var(--r-2)}
+  html.essai-et-s6c ol.steps>li.done>:is(.et-head,.et-foot){background:var(--ok-soft)}
+  html.essai-et-s6c ol.steps>li.mo-wait>:is(.et-head,.et-foot){background:var(--work);border:1.5px dashed var(--ctl-line)}
+  html.essai-et-s6c ol.steps>li.mo-wait>.et-head{border-bottom:0}
+  html.essai-et-s6c ol.steps>li.mo-wait>.et-foot{border-top:0}
+  html.essai-et-s6c .et-foot .wt.due{margin:0 -10px;padding:0 10px}
+  html.essai-et-s6c .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){height:16px;padding:0 6px;border-radius:3px;background:var(--crit-soft);line-height:16px}
+  html.essai-et-s6c .vigil .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){background:var(--warn-soft)}
+  html.essai-et-s6c ol.steps li.done .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){background:color-mix(in srgb,var(--ink) 8%,transparent)}
+  /* ESSAI ET ▲ */
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
   ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:10px 14px;font-size:15px}
@@ -9098,7 +9159,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.54.0';
+const APP_VERSION='5.55.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9594,6 +9655,20 @@ function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.s
 /* ESSAIS (A380) TRANCHÉS en v5.39.9 : capsule en TUILES, instruments en COLONNE — les deux essais
    sont retirés ; les clés d'appareil `ac-essai-*` se purgent au démarrage. */
 try{localStorage.removeItem('ac-essai-x1');localStorage.removeItem('ac-essai-x2');}catch(e){}
+/* ═══ ESSAI ET ▼ (A494, v5.55.0) — « Étapes » : trois dessins de l'étape en session (V1, V2, S6c), au choix de
+   l'APPAREIL (Moi › Affichage), à trancher en conditions réelles. Réglage jamais synchronisé : on compare sur sa
+   tablette sans rien imposer à l'équipe. Défaut : aucun essai — l'étape est rendue comme avant, à l'octet près.
+   TOUT le code de l'essai est balisé « ESSAI ET » (JS, CSS, Moi, audit) ou passe par `essaiEt()` :
+   `grep -n "ESSAI ET\|essaiEt\|essai-et" index.html scripts/*.mjs` les liste tous.
+   Garder une variante, retirer les autres, ou retirer tout l'essai : procédure pas à pas dans lot-v5-55.md, A494. */
+const ESSAI_ET={v1:['V1','essai-et-v1'],v2:['V2','essai-et-v2'],s6c:['S6c','essai-et-s6c']};   // clé → [libellé de Moi, classe de <html>]
+function essaiEt(){let v='';try{v=localStorage.getItem('ac-essai-et')||'';}catch(e){}return ESSAI_ET[v]?v:'';}
+function essaiEtPose(){const v=essaiEt(),cl=document.documentElement.classList;
+  cl.toggle('essai-et',!!v);Object.keys(ESSAI_ET).forEach(k=>cl.toggle(ESSAI_ET[k][1],k===v));}
+function essaiEtSet(v){try{ESSAI_ET[v]?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');}catch(e){}
+  essaiEtPose();if(state.view==='read'&&state.fiche)render();}   // un geste de l'utilisateur : l'aide ouverte se redessine aussitôt
+essaiEtPose();
+/* ESSAI ET ▲ */
 /* Le PLAN n'a plus qu'UNE vue (l'Échelle) depuis v4.25.0 : PLAN_VIEWS / currentPlanView /
    setPlanViewPref et le champ state.ovPlanView ont été supprimés avec le sélecteur d'affichage.
    Rien à mémoriser, donc — et si un jour une seconde vue revenait, sa préférence resterait LOCALE
@@ -22316,6 +22391,7 @@ function sharePaintLive(f,e){
    près — dégradation propre. Détail : doctrine-js.md J166. */
 function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
   const its=Array.isArray(opts.items)?opts.items:null,_f=Runtime.fiche||state.fiche;
+  const ET=opts.cls==='rev'?'':essaiEt();   // ESSAI ET (A494) : les jetons d'une revue gardent leur dessin
   const lis=steps.map((st,i)=>{const k=seq+':'+blockId+':'+i;
     const dl=!!(its&&its[i]&&its[i].dual);
     const ck=!!state.checked[k];
@@ -22348,10 +22424,33 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
          revient avec la case, au moment où le geste se fait. Faite à un passage précédent, elle le garde (grisé). */
       const mcls=gone?cls:cls.replace(/^(crit|vigil) /,'');
       const line=!gone&&!!wt;   // A474 : sans ligne, « Faire maintenant » se pose au bout de la rangée
+      if(ET)return etLiHtml({pre:'',cls:`${mcls} mo-${mo.st}`,post:'',box:`<span class="box" aria-hidden="true">${gone?uiIcon('check',19,{sw:3,cls:''}):''}</span>`,st,mark:gone,tag:tg,wt,now});   // ESSAI ET
       return `<li class="${mcls} mo-${mo.st}${line?' has-wt':''}"><span class="box" aria-hidden="true">${gone?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:gone,tag:tg,after:line?`<span class="mo-line">${wt}${now}</span>`:''})}${line?'':now}</li>`;}
+    if(ET)return etLiHtml({pre:` data-ck="${esc(k)}"`,cls:`${cls}${dl?' dual':''}`,post:`${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"`,box:`<span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>`,st,mark:true,tag:tg+dual,wt,vf:tag});   // ESSAI ET
     if(mt&&!wt&&!(it&&it.from&&it.repeat!=='due'))wt='<span class="wt"></span>';   // A9 : la ligne du dessous reste réservée d'un état à l'autre (A474 : un seuil seul n'en a dans aucun)
     return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual,after:wt})}${tag}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
+/* ESSAI ET ▼ (A494) — une rangée d'étape en TROIS parties : la TÊTE (ce qui précède la coche : mot CRITIQUE /
+   VIGILANCE, condition du moment, « Double contrôle »), le CORPS (case · intitulé · réponse · « Faire maintenant »),
+   le PIED (ce que fait la coche : minuteur, compteur, avec son nom). La tête et le pied n'existent que s'ils ont quelque
+   chose à dire ; c'est le CSS de chaque variante (html.essai-et-v1 / -v2 / -s6c) qui les pose — bandeaux DANS la tuile
+   (V1, V2) ou onglets sur ses arêtes (S6c). Les réserves vides d'A9 (`<span class="wt"></span>`) n'ont plus lieu
+   d'être : le pied naît avec ce qu'il dit. */
+function etLiHtml(o){const cr=stepCR(stepText(o.st));
+  const mk=(o.mark?stepMarkHtml(o.st):'')+(o.tag||''),wt=/data-wt=/.test(o.wt||'')?o.wt:'';
+  const head=mk?`<span class="et-head">${mk}</span>`:'',foot=wt?`<span class="et-foot">${wt}</span>`:'';
+  return `<li${o.pre} class="${o.cls}${head?' et-hd':''}${foot?' et-ft':''}"${o.post}>${head}${o.box}<span class="txt">${o.now||''}${fmt(cr.c)}${cr.r?` <span class="stp-r">${fmt(cr.r)}</span>`:''}${o.vf||''}</span>${foot}</li>`;}
+/* Les mots de la légende dans le pied : la valeur puis le NOM, sans « à la coche » (la place le dit) — « +1 Chocs
+   délivrés », puis « 4 Chocs délivrés » ; « 04:00 Adrén. dose ». Pendant les 10 s d'annulation, le modèle remplace
+   déjà le nom par « décocher annule · 6 s ». */
+function etWt(m){if(!m||!essaiEt())return m;
+  if(m.g==='count'){const parts=String(m.n||'').replace(/^à la coche · /,'').replace(/^· /,'').split(' · ');
+    if(m.vb!=null)return {cls:m.cls,g:'count',v:String(m.vb),n:parts[0]};
+    const ar=/^(\d+) → (\d+)$/.exec(m.v||'');
+    return {cls:m.cls,g:'count',v:ar?'+'+(+ar[2]-ar[1]):m.v,n:parts[0]};}
+  if(m.n)return {...m,n:String(m.n).replace(/^à la coche · /,'').replace(/^à chaque entrée · /,'').replace(/^· /,'')};
+  return m;}
+/* ESSAI ET ▲ */
 // A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé r:revue:index).
 // A449 : plus de « à faire » ni « en cours » (des mots d'obligation) ; neutre au repos, « faite » en vert à n/n.
 function revLineHtml(rs,open){
@@ -22359,8 +22458,8 @@ function revLineHtml(rs,open){
 /* A449 — la JAUGE de la revue, à la place de la case : un segment par hypothèse (un arc continu au-delà de douze,
    les segments deviendraient des points), remplis dans l'ordre des coches faites — une quantité qui s'accumule,
    pas une case qui attend. Pleine et verte à n/n, ✓ au centre (jamais la couleur seule, règle 8). */
-function revRingHtml(rs){const n=Math.max(1,rs.n),k=Math.min(rs.k,n),C=2*Math.PI*15,seg=n<=12,g=seg&&n>1?2.5:0,d=C/n-g,r2=x=>+x.toFixed(2);
-  const arc=(cls,da)=>`<circle class="${cls}" cx="18" cy="18" r="15" fill="none"${da?` stroke-dasharray="${da}"`:''} transform="rotate(${r2(-90+g/2/C*360)} 18 18)"/>`;
+function revRingHtml(rs){const n=Math.max(1,rs.n),k=Math.min(rs.k,n),C=2*Math.PI*16,seg=n<=12,g=seg&&n>1?2.5:0,d=C/n-g,r2=x=>+x.toFixed(2);
+  const arc=(cls,da)=>`<circle class="${cls}" cx="18" cy="18" r="16" fill="none"${da?` stroke-dasharray="${da}"`:''} transform="rotate(${r2(-90+g/2/C*360)} 18 18)"/>`;
   let fg='';
   if(k>=n)fg=arc('rg-fg',g?r2(d)+' '+r2(g):'');
   else if(k>0)fg=arc('rg-fg',seg?Array(k).fill(r2(d)+' '+r2(g)).join(' ').replace(/ [\d.]+$/,' '+r2(C-k*d-(k-1)*g)):r2(C*k/n)+' '+r2(C));
@@ -22456,12 +22555,12 @@ function wtModelFor(spec,now,vnow){
     m=wtCountModel(c,R.counters[L.id]||0,done,done?evs.slice().reverse().find(x=>x.ck===a)||null:null,evs[evs.length-1]||null,vnow);}
   if(m&&back!=null)m.back=back;   // décochée à l'instant : la valeur redescend
   return m;}
-function wtSpanHtml(spec,blk){const m=wtModelFor(spec,Date.now(),vfNow());if(!m)return '';
+function wtSpanHtml(spec,blk){const m=etWt(wtModelFor(spec,Date.now(),vfNow()));if(!m)return '';   // ESSAI ET : etWt
   return `<span class="wt${m.cls?' '+m.cls:''}${blk?' wt-blk':''}" data-wt="${esc(spec)}" data-wth="${esc(JSON.stringify(m))}">${wtInner(m)}</span>`;}
 // Repeinture au tick et après une coche liée, par classe (les ids de tuile sont pris).
 function paintWitness(){const els=main.querySelectorAll('[data-wt]');if(!els.length)return;
   const now=Date.now(),vn=vfNow();
-  els.forEach(el=>{const m=wtModelFor(el.dataset.wt,now,vn);if(!m)return;
+  els.forEach(el=>{const m=etWt(wtModelFor(el.dataset.wt,now,vn));if(!m)return;   // ESSAI ET : etWt
     const cls='wt'+(m.cls?' '+m.cls:'')+(el.classList.contains('wt-blk')?' wt-blk':'');
     if(el.className!==cls)el.className=cls;
     const h=JSON.stringify(m);if(el.dataset.wth!==h){el.dataset.wth=h;el.innerHTML=wtInner(m);}});}
@@ -28676,6 +28775,14 @@ function accountPrefsHtml(slot){
         `<button type="button" class="seg-btn${currentReadMode()===k?' on':''}" data-disp="${k}" role="radio" aria-checked="${currentReadMode()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
     <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « Tout voir » montre l’aide entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
+    ${''/* ESSAI ET ▼ (A494) — le choix de l'essai « Étapes », réglage de cet appareil seulement. */}
+    <div class="set-row" style="margin-top:12px"><span class="set-l" id="etLbl">Essai · Étapes</span>
+    <div class="seg" id="etSeg" role="radiogroup" aria-labelledby="etLbl" style="--seg-n:4;--seg-i:${['',...Object.keys(ESSAI_ET)].indexOf(essaiEt())}"><span class="seg-pill" aria-hidden="true"></span>${
+      [['','Actuel'],...Object.keys(ESSAI_ET).map(k=>[k,ESSAI_ET[k][0]])].map(([k,l])=>
+        `<button type="button" class="seg-btn${essaiEt()===k?' on':''}" data-et="${k}" role="radio" aria-checked="${essaiEt()===k?'true':'false'}">${esc(l)}</button>`).join('')
+    }</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Trois dessins des étapes en session, sur <b>cet appareil seulement</b> : <b>V1</b> en-tête et pied teintés dans l’étape ; <b>V2</b> en-tête et pied séparés par un filet ; <b>S6c</b> onglets sur les bords de l’étape. « Actuel » garde le dessin d’aujourd’hui.</div>
+    ${''/* ESSAI ET ▲ */}
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"><span aria-hidden="true">${acctIniTxt()}</span></button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">Colore <b>vos initiales</b> — le bouton de votre compte, en haut ou dans la colonne de gauche — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
@@ -28784,6 +28891,13 @@ function bindAccountPrefs(body){
       btns.forEach(b=>{const on=b.dataset.disp===m;
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
+    peindre();}}
+  {const es=body.querySelector('#etSeg');   // ESSAI ET (A494) : on peint sur place, la pastille glisse
+   if(es){const btns=[...es.querySelectorAll('[data-et]')],K=['',...Object.keys(ESSAI_ET)];
+    const peindre=()=>{const v=essaiEt();es.style.setProperty('--seg-i',Math.max(0,K.indexOf(v)));
+      btns.forEach(b=>{const on=b.dataset.et===v;
+        b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
+    btns.forEach(b=>b.onclick=()=>{essaiEtSet(b.dataset.et);peindre();});
     peindre();}}
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{

@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.55.0] — 2026-10-08
+Essai « Étapes » : trois dessins des étapes en session, à comparer sur votre appareil (A494-A495, doctrine
+`docs/decisions/lot-v5-55.md`).
+- **Moi › Affichage › Essai · Étapes** : Actuel, V1, V2 ou S6c, sur cet appareil seulement. « Actuel » garde le
+  dessin d'aujourd'hui ; changer redessine aussitôt l'aide ouverte.
+- **Ce que les trois essais ont en commun** : chaque étape se lit en trois parties — en tête ce qui précède la coche
+  (CRITIQUE, VIGILANCE, la condition comme « Chocs délivrés ≥ 3 »), au milieu la case, l'intitulé et sa réponse
+  (en exergue), en pied ce que fait la coche (minuteur ou compteur, avec son nom : « +1 Chocs délivrés », « 04:00
+  Adrén. dose »). La case est toujours au même endroit à côté de l'intitulé ; « Faire maintenant » est un lien à
+  droite de l'intitulé.
+- **V1** : en-tête et pied en bandeaux teintés, dans l'étape. **V2** : les mêmes bandeaux, séparés par un filet.
+  **S6c** : en-tête et pied en onglets sur les bords de l'étape, CRITIQUE dans une pastille.
+- **Revue « à tout moment »** : son anneau a maintenant la taille exacte d'une case et son intitulé se centre dessus,
+  dans tous les dessins — il paraissait un peu plus haut que les cases voisines.
+
 ## [5.54.0] — 2026-10-08
 Anneaux bleus, retour à l'accueil et colonne (A490-A493, doctrine `docs/decisions/lot-v5-54.md`).
 - **Anneaux bleus** : une fenêtre ouverte au doigt ou à la souris n'encadre plus rien. Une confirmation met
@@ -234,12 +249,3 @@ Troisième lot de l'audit de prise en main (A463-A466, doctrine `docs/decisions/
   des réglages d'une étape porte un exemple.
 - **Accessibilité** : au clavier, la touche Tab atteint de nouveau les rubriques dépliables des fenêtres
   (« Pourquoi créer un compte ? »…).
-
-## [5.46.2] — 2026-10-05
-- **Le compteur affiché dans la capsule de session dit son nom en entier.** Au téléphone, la tuile montrait
-  « CHOCS DE… ». Elle se lit maintenant en ligne : la valeur d'abord, puis le nom complet sur deux lignes
-  (« 0 Chocs délivrés »). Si vous avez donné un nom court au compteur, c'est lui qui s'affiche. Le nom n'est coupé
-  qu'à 320 px ou en très grand texte (A462).
-- Éditeur : le champ « Nom court » d'un compteur propose le nom entier comme valeur par défaut, et non plus un
-  abrégé.
-
