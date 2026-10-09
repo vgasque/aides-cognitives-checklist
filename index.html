@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-+qVfNJ4ZCOyhGDNzOO4ds34nAzYu4YWrYTnyX7tt0EE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-TUfX2jR2jfK/fhB7PNPSoe6l+UOp/qC4ZGrxVbclJAk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4025,6 +4025,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.essai-et-s6f ol.steps:not(.rev)>li.et-ft{border-bottom-right-radius:0}
   html.essai-et-s6f ol.steps>li>.et-head{left:0;max-width:calc(100% - 12px)}
   html.essai-et-s6f ol.steps>li>.et-foot{right:0}
+  /* — ESSAI ET · CRITIQUE dans le corps (A497, v5.55.2) : le mot quitte la tête pour le début de l'intitulé, en
+     pastille ; B1 « À droite » le cale à droite de la première ligne (les lignes suivantes reprennent toute la
+     largeur), B4 « Au-dessus » le colle au-dessus de l'intitulé — la case ne bouge dans aucun des deux. */
+  html.essai-et .et-mk{display:inline-flex;align-items:center;flex:none}
+  html.essai-et .et-mk .stp-mk{display:inline-flex;align-items:center;height:16px;margin:0;padding:0 6px;border-radius:3px;background:var(--crit-soft);box-shadow:none;font-size:var(--t-meta);letter-spacing:.04em;line-height:16px;white-space:nowrap}
+  html.essai-et .vigil .et-mk .stp-mk{background:var(--warn-soft)}
+  html.essai-et ol.steps li.done .et-mk .stp-mk{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink-2)}
+  html.essai-mk-b1 ol.steps:not(.rev)>li .txt>.et-mk{float:right;height:20px;margin:2px 0 0 12px}
+  html.essai-mk-b4 ol.steps:not(.rev)>li .txt:has(>.et-mk){padding-top:0}
+  html.essai-mk-b4 ol.steps:not(.rev)>li .txt>.et-mk{display:flex;width:fit-content;height:16px;margin:0}
   /* ESSAI ET ▲ */
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
@@ -9169,7 +9179,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.55.1';
+const APP_VERSION='5.55.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9673,7 +9683,16 @@ try{localStorage.removeItem('ac-essai-x1');localStorage.removeItem('ac-essai-x2'
    Garder une variante, retirer les autres, ou retirer tout l'essai : procédure pas à pas dans lot-v5-55.md, A494. */
 const ESSAI_ET={v1:['V1','essai-et-v1'],v2:['V2','essai-et-v2'],s6c:['S6c','essai-et-s6c'],s6f:['S6f','essai-et-s6c essai-et-s6f']};   // clé → [libellé de Moi, classe(s) de <html>] — S6f se pose PAR-DESSUS S6c (A496)
 function essaiEt(){let v='';try{v=localStorage.getItem('ac-essai-et')||'';}catch(e){}return ESSAI_ET[v]?v:'';}
-function essaiEtPose(){const v=essaiEt(),cl=document.documentElement.classList;
+/* Où se lit CRITIQUE / VIGILANCE (A497, v5.55.2) — réglage d'appareil distinct, valable pour toute variante : dans la
+   tête (défaut), « À droite » de la première ligne de l'intitulé (B1, dessin du parcours A388), « Au-dessus », collé à
+   l'intitulé dans l'étape (B4). Dans les deux cas le mot quitte la tête pour le début de `.txt` (`etLiHtml`), la case
+   ne bouge pas ; seul le CSS les distingue. */
+const ESSAI_MK={b1:['À droite','essai-mk-b1'],b4:['Au-dessus','essai-mk-b4']};
+function essaiMk(){let v='';try{v=localStorage.getItem('ac-essai-mk')||'';}catch(e){}return essaiEt()&&ESSAI_MK[v]?v:'';}
+function essaiMkSet(v){try{ESSAI_MK[v]?localStorage.setItem('ac-essai-mk',v):localStorage.removeItem('ac-essai-mk');}catch(e){}
+  essaiEtPose();if(state.view==='read'&&state.fiche)render();}
+function essaiEtPose(){const v=essaiEt(),m=essaiMk(),cl=document.documentElement.classList;
+  Object.keys(ESSAI_MK).forEach(k=>cl.toggle(ESSAI_MK[k][1],k===m));
   const on=new Set(v?ESSAI_ET[v][1].split(' '):[]);
   cl.toggle('essai-et',!!v);Object.values(ESSAI_ET).forEach(([,c])=>c.split(' ').forEach(x=>cl.toggle(x,on.has(x))));}
 function essaiEtSet(v){try{ESSAI_ET[v]?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');}catch(e){}
@@ -22448,9 +22467,10 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
    (V1, V2) ou onglets sur ses arêtes (S6c). Les réserves vides d'A9 (`<span class="wt"></span>`) n'ont plus lieu
    d'être : le pied naît avec ce qu'il dit. */
 function etLiHtml(o){const cr=stepCR(stepText(o.st));
-  const mk=(o.mark?stepMarkHtml(o.st):'')+(o.tag||''),wt=/data-wt=/.test(o.wt||'')?o.wt:'';
+  const reg=o.mark?stepMarkHtml(o.st):'',bas=!!(reg&&essaiMk());   // A497 : CRITIQUE / VIGILANCE descend dans le corps
+  const mk=(bas?'':reg)+(o.tag||''),wt=/data-wt=/.test(o.wt||'')?o.wt:'';
   const head=mk?`<span class="et-head">${mk}</span>`:'',foot=wt?`<span class="et-foot">${wt}</span>`:'';
-  return `<li${o.pre} class="${o.cls}${head?' et-hd':''}${foot?' et-ft':''}"${o.post}>${head}${o.box}<span class="txt">${o.now||''}${fmt(cr.c)}${cr.r?` <span class="stp-r">${fmt(cr.r)}</span>`:''}${o.vf||''}</span>${foot}</li>`;}
+  return `<li${o.pre} class="${o.cls}${head?' et-hd':''}${foot?' et-ft':''}"${o.post}>${head}${o.box}<span class="txt">${bas?`<span class="et-mk">${reg}</span>`:''}${o.now||''}${fmt(cr.c)}${cr.r?` <span class="stp-r">${fmt(cr.r)}</span>`:''}${o.vf||''}</span>${foot}</li>`;}
 /* Les mots de la légende dans le pied : la valeur puis le NOM, sans « à la coche » (la place le dit) — « +1 Chocs
    délivrés », puis « 4 Chocs délivrés » ; « 04:00 Adrén. dose ». Pendant les 10 s d'annulation, le modèle remplace
    déjà le nom par « décocher annule · 6 s ». */
@@ -28793,6 +28813,12 @@ function accountPrefsHtml(slot){
         `<button type="button" class="seg-btn${essaiEt()===k?' on':''}" data-et="${k}" role="radio" aria-checked="${essaiEt()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
     <div class="st-hint" style="margin-bottom:4px">Quatre dessins des étapes en session, sur <b>cet appareil seulement</b> : <b>V1</b> en-tête et pied teintés dans l’étape ; <b>V2</b> en-tête et pied séparés par un filet ; <b>S6c</b> onglets sur les bords de l’étape ; <b>S6f</b> les mêmes onglets collés aux bords, comme des intercalaires. « Actuel » garde le dessin d’aujourd’hui.</div>
+    <div class="set-row" style="margin-top:12px"><span class="set-l" id="mkLbl">Essai · Critique</span>
+    <div class="seg" id="mkSeg" role="radiogroup" aria-labelledby="mkLbl" style="--seg-n:${1+Object.keys(ESSAI_MK).length};--seg-i:${['',...Object.keys(ESSAI_MK)].indexOf(essaiMk())}"><span class="seg-pill" aria-hidden="true"></span>${
+      [['','En tête'],...Object.keys(ESSAI_MK).map(k=>[k,ESSAI_MK[k][0]])].map(([k,l])=>
+        `<button type="button" class="seg-btn${essaiMk()===k?' on':''}" data-mk="${k}" role="radio" aria-checked="${essaiMk()===k?'true':'false'}">${esc(l)}</button>`).join('')
+    }</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Où se lit <b>CRITIQUE</b> dans une étape, avec l’un des quatre dessins ci-dessus : en tête avec la condition ; <b>à droite</b> de l’intitulé ; ou <b>au-dessus</b>, collé à l’intitulé. La case ne bouge pas.</div>
     ${''/* ESSAI ET ▲ */}
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"><span aria-hidden="true">${acctIniTxt()}</span></button>`).join('')}</div></div>
@@ -28903,13 +28929,13 @@ function bindAccountPrefs(body){
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
     peindre();}}
-  {const es=body.querySelector('#etSeg');   // ESSAI ET (A494) : on peint sur place, la pastille glisse
-   if(es){const btns=[...es.querySelectorAll('[data-et]')],K=['',...Object.keys(ESSAI_ET)];
-    const peindre=()=>{const v=essaiEt();es.style.setProperty('--seg-i',Math.max(0,K.indexOf(v)));
-      btns.forEach(b=>{const on=b.dataset.et===v;
-        b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
-    btns.forEach(b=>b.onclick=()=>{essaiEtSet(b.dataset.et);peindre();});
-    peindre();}}
+  {const segs=[['#etSeg','[data-et]',b=>b.dataset.et,ESSAI_ET,essaiEt,essaiEtSet],['#mkSeg','[data-mk]',b=>b.dataset.mk,ESSAI_MK,essaiMk,essaiMkSet]];   // ESSAI ET (A494, A497) : on peint sur place, la pastille glisse
+   const peindre=()=>segs.forEach(([sel,q,val,T,get])=>{const es=body.querySelector(sel);if(!es)return;
+     const v=get(),K=['',...Object.keys(T)];es.style.setProperty('--seg-i',Math.max(0,K.indexOf(v)));
+     es.querySelectorAll(q).forEach(b=>{const on=val(b)===v;
+       b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});});
+   segs.forEach(([sel,q,val,,,set])=>{const es=body.querySelector(sel);if(es)es.querySelectorAll(q).forEach(b=>b.onclick=()=>{set(val(b));peindre();});});
+   peindre();}
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
     const on=!sessSyncOn();

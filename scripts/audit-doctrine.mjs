@@ -8748,7 +8748,7 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
   await page.close();
 });
 
-/* ══ v5.55 · A494 — ESSAI ET « Étapes » (V1, V2, S6c, S6f — A496) ; A495 — l'anneau de la revue à la taille de la case ═════════
+/* ══ v5.55 · A494 — ESSAI ET « Étapes » (V1, V2, S6c, S6f — A496 ; CRITIQUE à droite / au-dessus — A497) ; A495 — l'anneau de la revue à la taille de la case ═════════
    ESSAI ET : ce témoin part avec l'essai (procédure lot-v5-55.md A494) — garder une variante = garder sa partie.
    Pour chaque variante, l'étape CHARGÉE (CRITIQUE + condition + minuteur ; VIGILANCE + condition + compteur), à 390 et
    1280 px, aux trois moments (seuil atteint, après la coche, 2ᵉ passage) : aucune boîte ni ligne qui en chevauche une
@@ -8757,28 +8757,29 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
 await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c, S6f) sans chevauchement ; A495 anneau de revue', async () => {
   const CHARGE=()=>{const f=fiches.find(x=>/Arrêt/.test(x.title));const b=f.blocks.find(b=>/^Choquable/.test(b.title));const its=bItems(b);its[1].level=3;its[3].level=2;its[3].counts=its[0].counts;};
   const CK=()=>{const ol=document.querySelector('.ov-block.cur ol.steps:not(.rev)'),out=[];
-    const SEL='.et-head,.et-foot,.stp-now,.wt,:scope>li>.box,.rv-ring';const R=[];
+    const SEL='.et-mk,.et-head,.et-foot,.stp-now,.wt,:scope>li>.box,.rv-ring';const R=[];
     ol.querySelectorAll(SEL).forEach(e=>{const r=e.getBoundingClientRect();if(r.width>1&&r.height>1)R.push({e,r,n:e.className.toString().split(' ')[0]});});
     ol.querySelectorAll(':scope>li .txt').forEach(t=>{const w=document.createTreeWalker(t,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(!n.textContent.trim()||n.parentElement.closest(SEL+',.sr-only'))continue;const rg=document.createRange();rg.selectNodeContents(n);[...rg.getClientRects()].forEach(r=>{if(r.width>1)R.push({e:n.parentElement,r,n:'«'+n.textContent.trim().slice(0,10)+'»'});});}});
     const inter=(a,b)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>0.5&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>0.5;
     const near=(a,b)=>a.left<b.right+2&&b.left<a.right+2&&a.top<b.bottom+2&&b.top<a.bottom+2;
-    const boxy=x=>/^(et-head|et-foot|stp-now|box|rv-ring)$/.test(x.n);
+    const boxy=x=>/^(et-mk|et-head|et-foot|stp-now|box|rv-ring)$/.test(x.n);
     for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const A=R[i],B=R[j];if(A.e.contains(B.e)||B.e.contains(A.e))continue;
       if(A.e.parentElement===B.e.parentElement&&/^«/.test(A.n)&&/^«/.test(B.n))continue;
       if(inter(A.r,B.r))out.push(A.n+'⟂'+B.n);else if((boxy(A)||boxy(B))&&near(A.r,B.r))out.push(A.n+'≈'+B.n);}
     R.forEach(A=>{const l=A.e.closest('li').getBoundingClientRect();if(A.r.right>l.right+0.5||A.r.left<l.left-0.5)out.push('déborde '+A.n);});
     const corps=[...ol.children].map(li=>{const b=li.querySelector(':scope>.box,.rv-ring');const h=li.querySelector(':scope>.et-head');
       const top=h&&getComputedStyle(h).position!=='absolute'?h.getBoundingClientRect().bottom:li.getBoundingClientRect().top;return Math.round(b.getBoundingClientRect().top-top);});
-    return {pb:[...new Set(out)],corps,tetes:ol.querySelectorAll('.et-head').length,pieds:ol.querySelectorAll('.et-foot').length};};
+    return {pb:[...new Set(out)],corps,tetes:ol.querySelectorAll('.et-head').length,pieds:ol.querySelectorAll('.et-foot').length,
+      mkCorps:ol.querySelectorAll('.txt>.et-mk').length,mkTete:[...ol.querySelectorAll('.et-head .stp-mk')].filter(x=>/critique|vigilance/i.test(x.textContent)).length};};
   const pas=async(page)=>page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));for(let g=0;g<8;g++){const li=[...document.querySelectorAll('.ov-block.cur li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}document.querySelector('.ov-block.cur [data-ovnext]').click();await w(400);[...document.querySelectorAll('.ov-block.cur [data-ovopt]')][0].click();await w(500);});
-  for(const et of ['','v1','v2','s6c','s6f'])for(const W of [390,1280]){
+  for(const [et,mk] of [['',''],['v1',''],['v2',''],['s6c',''],['s6f',''],['s6c','b1'],['s6c','b4'],['s6f','b1'],['s6f','b4']])for(const W of [390,1280]){
     const page=await br.newPage({viewport:{width:W,height:1200},hasTouch:W<500});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-    await page.addInitScript(v=>{try{v?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');}catch(e){}},et);
+    await page.addInitScript(([v,m])=>{try{v?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');m?localStorage.setItem('ac-essai-mk',m):localStorage.removeItem('ac-essai-mk');}catch(e){}},[et,mk]);
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.evaluate(CHARGE);
     await ouvrirFiche(page,'Arrêt cardiaque');await demarrerSession(page);
     await page.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important}'});
-    const nom=(et||'actuel')+' '+W;
+    const nom=(et||'actuel')+(mk?'·'+mk:'')+' '+W;
     if(!et){const r=await page.evaluate(CK);
       t(`A494 · ${nom} : sans essai, ni tête ni pied — le rendu d'avant`,r.tetes===0&&r.pieds===0,JSON.stringify(r));}
     await pas(page);
@@ -8799,6 +8800,7 @@ await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c, S6f) sans chevauc
         t(`A494 · ${nom} · ${m} : aucun chevauchement, rien hors de sa tuile`,r.pb.length===0,r.pb.slice(0,4).join(' | '));
       t(`A494 · ${nom} : la case est au même endroit dans le corps de chaque étape`,new Set([...a.corps,...b.corps,...c.corps]).size===1,JSON.stringify([a.corps,c.corps]));
       t(`A494 · ${nom} : la tête porte le mot et la condition, le pied le minuteur ou le compteur`,a.tetes>=3&&a.pieds>=2,JSON.stringify({t:a.tetes,p:a.pieds}));
+      t(`A497 · ${nom} : CRITIQUE ${mk?'dans le corps de l\'étape, plus dans la tête':'dans la tête'}`,mk?(a.mkCorps>=2&&a.mkTete===0):(a.mkCorps===0&&a.mkTete>=2),JSON.stringify({corps:a.mkCorps,tete:a.mkTete}));
     }
     t(`A495 · ${nom} : l'anneau de la revue a la taille de la case (rayon 16) et son centre`,rv.svgR===16&&(et?rv.anneauC===rv.caseC:Math.abs(rv.anneauC-32)<=1),JSON.stringify(rv));
     await page.close();}
@@ -8810,9 +8812,13 @@ await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c, S6f) sans chevauc
      seg.querySelector('[data-et="s6c"]').click();await w(100);out.s6c=document.documentElement.classList.contains('essai-et-s6c')&&document.documentElement.classList.contains('essai-et');
      seg.querySelector('[data-et="s6f"]').click();await w(100);out.s6f=['essai-et','essai-et-s6c','essai-et-s6f'].every(c=>document.documentElement.classList.contains(c));
      seg.querySelector('[data-et="s6c"]').click();await w(100);out.s6fPart=!document.documentElement.classList.contains('essai-et-s6f');
+     const mks=document.getElementById('mkSeg');out.mkN=mks?mks.querySelectorAll('[data-mk]').length:0;
+     seg.querySelector('[data-et="s6c"]').click();await w(100);mks.querySelector('[data-mk="b4"]').click();await w(100);
+     out.b4=document.documentElement.classList.contains('essai-mk-b4')&&localStorage.getItem('ac-essai-mk')==='b4';
+     mks.querySelector('[data-mk=""]').click();await w(100);out.mkRetour=!document.documentElement.classList.contains('essai-mk-b4')&&!localStorage.getItem('ac-essai-mk');
      seg.querySelector('[data-et=""]').click();await w(100);out.retour=!document.documentElement.classList.contains('essai-et')&&!localStorage.getItem('ac-essai-et');
      return out;});
-   t('A494 · Moi › Affichage : « Essai · Étapes » à cinq crans, la variante se pose et se retire (S6f par-dessus S6c, A496)',r.seg&&r.n===5&&r.s6c&&r.s6f&&r.s6fPart&&r.retour,JSON.stringify(r));
+   t('A494 · Moi › Affichage : « Essai · Étapes » à cinq crans et « Essai · Critique » à trois, la variante se pose et se retire (S6f par-dessus S6c, A496 ; A497)',r.seg&&r.n===5&&r.s6c&&r.s6f&&r.s6fPart&&r.retour&&r.mkN===3&&r.b4&&r.mkRetour,JSON.stringify(r));
    await page.close();}
 });
 

@@ -1,4 +1,4 @@
-# Lot v5.55 — A494-A496
+# Lot v5.55 — A494-A497
 
 Le chantier « cases en session », ouvert après v5.54.0 : douze tours de maquettes sur l'app réelle, puis un essai à
 trancher en conditions réelles.
@@ -145,3 +145,34 @@ même grep, même procédure (A494).
 
 **Témoin.** La section A494 boucle aussi sur `s6f` (chevauchements, case au même endroit, tête et pied, anneau de la
 revue) ; Moi : cinq crans, S6f pose ses deux classes, revenir à S6c retire `essai-et-s6f`.
+
+## A497 — où se lit CRITIQUE : en tête, à droite de l'intitulé, ou collé au-dessus (v5.55.2)
+
+Question de l'auteur : « pourquoi on a décidé de mettre critique en haut ? et si on le redescendait ? ». En haut parce
+qu'A345 avait posé le mot en étiquette AU-DESSUS du libellé et que l'essai l'a rangé dans la tête (« ce qu'on lit avant
+de cocher »), avec la condition. Maquetté sur l'app réelle (quatorzième tour du canevas), libellés courts et LONGS :
+B1 (à droite de la première ligne de l'intitulé — le dessin du parcours, A388), B2 (dans l'onglet du bas — retiré par
+l'auteur), B3 (au-dessus de l'intitulé, case descendue de 24 px — refusé : « sans décaler la coche ») puis B4 (collé
+au-dessus, case immobile). Décision de l'auteur : B1 et B4 en options dans Moi.
+
+**Réglage.** Moi › Affichage, « Essai · Critique » : En tête | À droite | Au-dessus — réglage d'APPAREIL distinct
+(`ac-essai-mk`), valable pour les quatre dessins de l'essai, sans effet hors essai (`essaiMk()` rend `''` si
+`essaiEt()` est vide). Classes `essai-mk-b1` / `essai-mk-b4` sur `<html>`, posées par `essaiEtPose`.
+
+**Rendu.** `etLiHtml` : si `essaiMk()`, le mot (`stepMarkHtml`, `sr-only` compris) quitte la tête et ouvre `.txt`
+dans `<span class="et-mk">` — la tête ne garde que la condition et disparaît sans elle ; le lecteur d'écran lit
+« Étape critique. » avant l'intitulé. Mot en pastille teintée (crit-soft, warn-soft, gris une fois fait). B1 : la
+pastille flotte à droite de la PREMIÈRE ligne (les suivantes reprennent toute la largeur — un libellé long gagne au
+plus une ligne). B4 : `.txt` perd ses 6 px de haut et la pastille se pose collée au-dessus de l'intitulé ; la case ne
+bouge pas, l'intitulé descend d'environ 12 px dans les étapes critiques (la case fait face au bloc mot + intitulé).
+Pas de conflit avec « Faire maintenant », qui flotte aussi à droite : avant son moment une étape n'affiche pas son
+registre (A398).
+
+**Code.** Balisé « ESSAI ET » comme le reste : `ESSAI_MK`, `essaiMk`, `essaiMkSet` (bloc JS du registre), deux lignes
+dans `etLiHtml`, le sous-bloc CSS « — ESSAI ET · CRITIQUE dans le corps », la rangée « Essai · Critique » de Moi ; la
+liaison des deux segmentés de Moi est factorisée (`segs`). Garder une position : `essaiMk()` renvoie la clé gardée et
+le CSS de l'autre part ; garder « En tête » : supprimer ces lignes et la clé (`ac-essai-mk` à purger au démarrage).
+
+**Témoin.** La section A494 joue aussi S6c et S6f × B1 et B4 (chevauchements, case au même endroit, tête et pied) et
+vérifie où est le mot (dans le corps, plus dans la tête — et l'inverse sans réglage) ; Moi : trois crans, B4 se pose et
+se retire.

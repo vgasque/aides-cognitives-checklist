@@ -3669,6 +3669,16 @@
   html.essai-et-s6f ol.steps:not(.rev)>li.et-ft{border-bottom-right-radius:0}
   html.essai-et-s6f ol.steps>li>.et-head{left:0;max-width:calc(100% - 12px)}
   html.essai-et-s6f ol.steps>li>.et-foot{right:0}
+  /* — ESSAI ET · CRITIQUE dans le corps (A497, v5.55.2) : le mot quitte la tête pour le début de l'intitulé, en
+     pastille ; B1 « À droite » le cale à droite de la première ligne (les lignes suivantes reprennent toute la
+     largeur), B4 « Au-dessus » le colle au-dessus de l'intitulé — la case ne bouge dans aucun des deux. */
+  html.essai-et .et-mk{display:inline-flex;align-items:center;flex:none}
+  html.essai-et .et-mk .stp-mk{display:inline-flex;align-items:center;height:16px;margin:0;padding:0 6px;border-radius:3px;background:var(--crit-soft);box-shadow:none;font-size:var(--t-meta);letter-spacing:.04em;line-height:16px;white-space:nowrap}
+  html.essai-et .vigil .et-mk .stp-mk{background:var(--warn-soft)}
+  html.essai-et ol.steps li.done .et-mk .stp-mk{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink-2)}
+  html.essai-mk-b1 ol.steps:not(.rev)>li .txt>.et-mk{float:right;height:20px;margin:2px 0 0 12px}
+  html.essai-mk-b4 ol.steps:not(.rev)>li .txt:has(>.et-mk){padding-top:0}
+  html.essai-mk-b4 ol.steps:not(.rev)>li .txt>.et-mk{display:flex;width:fit-content;height:16px;margin:0}
   /* ESSAI ET ▲ */
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}

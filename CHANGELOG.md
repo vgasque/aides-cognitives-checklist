@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.55.2] — 2026-10-09
+Essai « Étapes » : choisir où se lit CRITIQUE (A497, doctrine `docs/decisions/lot-v5-55.md`).
+- **Moi › Affichage › Essai · Critique** : En tête (comme jusqu'ici), **À droite** de l'intitulé, ou **Au-dessus**,
+  collé à l'intitulé. Réglage de cet appareil, valable avec les quatre dessins de l'essai.
+- Dans les deux nouvelles positions, CRITIQUE (ou VIGILANCE) quitte l'onglet du haut, qui ne porte plus que la
+  condition (« Chocs délivrés ≥ 3 ») et disparaît quand il n'y en a pas. La case ne bouge pas.
+- « À droite » : le mot se cale au bout de la première ligne de l'intitulé, les lignes suivantes gardent toute la
+  largeur. « Au-dessus » : l'intitulé garde toute sa largeur et descend d'une petite ligne sous le mot.
+
 ## [5.55.1] — 2026-10-09
 Essai « Étapes » : une quatrième option, S6f (A496, doctrine `docs/decisions/lot-v5-55.md`).
 - **Moi › Affichage › Essai · Étapes** propose maintenant Actuel, V1, V2, S6c et **S6f**.
@@ -222,19 +231,3 @@ saccadait.
   et laisse la cible nette ; il ne bloque aucun toucher. Il suit le thème clair ou sombre (A467).
 - Le harnais `audit-guide` vérifie ce voile à chaque bulle : il couvre la fenêtre et son ouverture correspond à la
   cible.
-
-## [5.48.0] — 2026-10-05
-L'exercice guidé (A467, doctrine `docs/decisions/lot-v5-48.md`), dernier point de l'audit de prise en main.
-- **Apprendre avec une aide d'exemple, geste par geste.** Sur l'ACR et l'anaphylaxie d'exemple, une carte propose
-  « Commencer le guide » ou « Ne plus proposer ». Le guide lance un exercice et pose une bulle sur la vraie commande
-  de l'écran : démarrer, cocher une étape, lire la capsule, passer au bloc suivant et répondre à la question, ouvrir la
-  revue des causes réversibles, ouvrir une complication puis « Reprendre », horodater, terminer en maintenant 1,2 s.
-  La bulle de la complication explique aussi le jalon (« … quand Chocs délivrés atteint 3 »).
-- On avance en faisant le geste ; « Suivant » quand il n'y a qu'à regarder ; « Passer » et « Quitter le guide » à tout
-  moment, l'exercice continuant seul. Le reste de l'écran s'estompe légèrement et reste utilisable. À la fin, une carte
-  récapitule les gestes et propose de refaire le guide.
-- Le guide n'existe qu'en exercice : jamais pendant une session réelle, rien n'est enregistré comme soin. On le
-  relance par le menu ⋯ de l'aide d'exemple ou par Moi › Prendre en main › « Lancer l'exercice guidé ».
-- **Le guide et « Prendre en main » suivent l'app** : leurs mots et leurs cibles viennent de l'écran et de l'aide.
-  Deux nouveaux garde-fous les vérifient à chaque changement : `check-guide` (libellés cités, commandes visées) et
-  le harnais `audit-guide` (déroulé complet à 390, 1280 et 360 px à 130 %).
