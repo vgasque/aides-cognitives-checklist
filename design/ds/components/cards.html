@@ -3642,29 +3642,30 @@
   html.essai-et-v2 ol.steps>li>.et-head{box-shadow:inset 0 -1px 0 var(--line-strong)}   /* V2 : matière de la tuile, un filet */
   html.essai-et-v2 ol.steps>li>.et-foot{box-shadow:inset 0 1px 0 var(--line-strong)}
   /* — ESSAI ET · S6c : la tête et le pied sont des ONGLETS à cheval sur les arêtes de la tuile — avant en haut à
-     gauche, après en bas à droite ; CRITIQUE / VIGILANCE dans une pastille teintée, séparée de la condition. Écart
-     constant de 24 px : l'onglet du bas d'une tuile et celui du haut de la suivante ne se touchent jamais. */
+     gauche, après en bas à droite ; CRITIQUE / VIGILANCE dans une pastille teintée, séparée de la condition. Onglet de
+     16 px, 8 dehors et 8 dedans (A498) ; écart constant de 20 px = 8 + 4 + 8 : l'onglet du bas d'une tuile et celui du
+     haut de la suivante gardent 4 px entre eux, comme l'onglet et la case. */
   html.essai-et-s6c ol.steps:not(.rev)>li{position:relative}
-  html.essai-et-s6c ol.steps:not(.rev)>li+li{margin-top:24px}
-  html.essai-et-s6c ol.steps:not(.rev):has(>li:first-child.et-hd){padding-top:10px}
-  html.essai-et-s6c ol.steps:not(.rev):has(>li:last-child.et-ft){padding-bottom:10px}
-  html.essai-et-s6c ol.steps>li>:is(.et-head,.et-foot){position:absolute;z-index:1;height:20px;box-sizing:border-box;background:var(--amb-2)}
-  html.essai-et-s6c ol.steps>li>.et-head{top:-10px;left:48px;max-width:calc(100% - 60px);padding:0 12px;border-radius:var(--r-2) var(--r-2) 0 0}
-  html.essai-et-s6c ol.steps>li>.et-foot{bottom:-10px;right:12px;max-width:calc(100% - 72px);min-width:72px;padding:0 10px;overflow:hidden;border-radius:0 0 var(--r-2) var(--r-2)}
+  html.essai-et-s6c ol.steps:not(.rev)>li+li{margin-top:20px}
+  html.essai-et-s6c ol.steps:not(.rev):has(>li:first-child.et-hd){padding-top:8px}
+  html.essai-et-s6c ol.steps:not(.rev):has(>li:last-child.et-ft){padding-bottom:8px}
+  html.essai-et-s6c ol.steps>li>:is(.et-head,.et-foot){position:absolute;z-index:1;height:16px;box-sizing:border-box;background:var(--amb-2)}
+  html.essai-et-s6c ol.steps>li>.et-head{top:-8px;left:48px;max-width:calc(100% - 60px);padding:0 12px;border-radius:var(--r-2) var(--r-2) 0 0}
+  html.essai-et-s6c ol.steps>li>.et-foot{bottom:-8px;right:12px;max-width:calc(100% - 72px);min-width:72px;padding:0 10px;overflow:hidden;border-radius:0 0 var(--r-2) var(--r-2)}
   html.essai-et-s6c ol.steps>li.done>:is(.et-head,.et-foot){background:var(--ok-soft)}
   html.essai-et-s6c ol.steps>li.mo-wait>:is(.et-head,.et-foot){background:var(--work);border:1.5px dashed var(--ctl-line)}
   html.essai-et-s6c ol.steps>li.mo-wait>.et-head{border-bottom:0}
   html.essai-et-s6c ol.steps>li.mo-wait>.et-foot{border-top:0}
   html.essai-et-s6c .et-foot .wt.due{margin:0 -10px;padding:0 10px}
-  html.essai-et-s6c .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){height:16px;padding:0 6px;border-radius:3px;background:var(--crit-soft);line-height:16px}
+  html.essai-et-s6c :is(.et-head .stp-mk,.et-foot .wt){height:14px;line-height:14px}   /* A498 : dans l'onglet de 16 px, 1 px d'air au-dessus et au-dessous */
+  html.essai-et-s6c .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){height:14px;padding:0 6px;border-radius:3px;background:var(--crit-soft);line-height:14px}
   html.essai-et-s6c .vigil .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){background:var(--warn-soft)}
   html.essai-et-s6c ol.steps li.done .et-head .stp-mk:not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n):not(.mk-dual){background:color-mix(in srgb,var(--ink) 8%,transparent)}
   /* — ESSAI ET · S6f (A496, v5.55.1) : S6c en INTERCALAIRE, posé par-dessus S6c (<html> porte les deux classes). L'onglet
      du haut part du bord gauche de la tuile (la pastille s'aligne sur la case), le pied touche le bord droit ; la tuile
-     perd son coin arrondi sous chacun (bord continu, le pointillé d'attente ne fait plus de cran) ; la case descend de
-     12 à 16 px dans TOUTES les étapes, revue comprise — sinon l'onglet passe à 2 px du haut de la case. */
-  html.essai-et-s6f ol.steps:not(.rev)>li{padding-top:16px}
-  html.essai-et-s6f ol.steps:not(.rev)>li.rv-step{padding-top:16px}
+     perd son coin arrondi sous chacun (bord continu, le pointillé d'attente ne fait plus de cran). La case reste à 12 px
+     du haut, comme en S6c : l'onglet n'entre que de 8 px et garde 4 px au-dessus d'elle (A498 — la v5.55.1 descendait
+     la case de 4 px pour un onglet qui entrait de 10). */
   html.essai-et-s6f ol.steps:not(.rev)>li.et-hd{border-top-left-radius:0}
   html.essai-et-s6f ol.steps:not(.rev)>li.et-ft{border-bottom-right-radius:0}
   html.essai-et-s6f ol.steps>li>.et-head{left:0;max-width:calc(100% - 12px)}

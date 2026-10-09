@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.55.3] — 2026-10-09
+Essai « Étapes » : S6c et S6f resserrés (A498, doctrine `docs/decisions/lot-v5-55.md`).
+- **Moins d'espace entre les étapes** : les onglets du haut et du bas passent de 20 à 16 px de haut, toujours à cheval
+  à moitié sur le bord de l'étape ; l'écart entre deux étapes passe de 24 à 20 px. Entre deux onglets voisins, comme
+  entre l'onglet et la case, il reste partout le même petit jour de 4 px.
+- **S6f** : la case remonte de 4 px et retrouve la même place qu'en S6c.
+- Sur un bloc de cinq étapes, à 390 px : 18 px gagnés en S6c, 38 px en S6f.
+
 ## [5.55.2] — 2026-10-09
 Essai « Étapes » : choisir où se lit CRITIQUE (A497, doctrine `docs/decisions/lot-v5-55.md`).
 - **Moi › Affichage › Essai · Critique** : En tête (comme jusqu'ici), **À droite** de l'intitulé, ou **Au-dessus**,
@@ -223,11 +231,3 @@ saccadait.
 - Le guide ne ramène jamais la page vers la cible quand on défile soi-même.
 - Au bureau, la carte se pose dans la colonne d'action, en ligne ; sur un pliable, d'un seul côté de la charnière.
 - `audit-guide` vérifie désormais tout cela, pliable émulé compris.
-
-## [5.48.1] — 2026-10-05
-- **Exercice guidé : tout l'écran s'estompe, sauf la commande visée.** En v5.48.0, seuls certains éléments
-  pâlissaient (les blocs, les touches du quai, la capsule) ; l'en-tête, la bande « Exercice », la ligne « Parcours »,
-  les cartes sous le bloc et la fenêtre de fin restaient nets. Un voile unique, léger, couvre désormais tout l'écran
-  et laisse la cible nette ; il ne bloque aucun toucher. Il suit le thème clair ou sombre (A467).
-- Le harnais `audit-guide` vérifie ce voile à chaque bulle : il couvre la fenêtre et son ouverture correspond à la
-  cible.

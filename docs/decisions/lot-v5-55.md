@@ -1,4 +1,4 @@
-# Lot v5.55 — A494-A497
+# Lot v5.55 — A494-A498
 
 Le chantier « cases en session », ouvert après v5.54.0 : douze tours de maquettes sur l'app réelle, puis un essai à
 trancher en conditions réelles.
@@ -176,3 +176,37 @@ le CSS de l'autre part ; garder « En tête » : supprimer ces lignes et la clé
 **Témoin.** La section A494 joue aussi S6c et S6f × B1 et B4 (chevauchements, case au même endroit, tête et pied) et
 vérifie où est le mot (dans le corps, plus dans la tête — et l'inverse sans réglage) ; Moi : trois crans, B4 se pose et
 se retire.
+
+## A498 — S6c et S6f resserrés : onglet de 16 px, écart de 20 px (v5.55.3)
+
+Question de l'auteur : « possibilité de réduire un petit peu l'espacement entre les cases tout en restant symétrique et
+harmonieux ? ». L'écart de 24 px d'A494 venait de l'onglet : 20 px de haut, à cheval à parts égales (10 dehors, 10
+dedans), plus 4 px pour que le pied d'une tuile et la tête de la suivante ne se touchent jamais (ils peuvent se
+superposer en largeur : tête longue à gauche, pied à droite). Réduire l'écart sans toucher l'onglet les aurait mis en
+contact (l'audit l'avait montré à 20 px) ; décaler l'onglet vers l'intérieur aurait cassé le « à cheval » symétrique.
+
+**Ce qui change.** L'onglet passe à 16 px, toujours à cheval à parts égales (8 dehors, 8 dedans) ; son texte (12 px)
+garde 1 px d'air au-dessus et au-dessous (pastille CRITIQUE et légende du pied à 14 px). L'écart devient 20 px =
+8 + 4 + 8, et le même 4 px se retrouve partout : entre deux onglets voisins, entre l'onglet et la case. La liste garde
+8 px au-dessus du premier onglet et sous le dernier. En S6f, la case remonte de 16 à 12 px du haut (amende A496 : elle
+était descendue de 4 px pour un onglet qui entrait de 10 ; il n'entre plus que de 8) — S6c et S6f ont désormais le
+même corps.
+
+Mesuré à 390 px sur le bloc chargé du témoin (cinq étapes) : S6c 515 → 497 px, S6f 535 → 497 px ; tuiles de 77 px dans
+les deux.
+
+**Écarté : CRITIQUE / VIGILANCE à la verticale, sur le côté de la tuile** (demandé dans la même question, avec « c'est
+WCAG AA ? »). WCAG 2.2 n'interdit pas le texte tourné : aucun critère A/AA ne l'exclut s'il reste du vrai texte dans
+l'ordre du DOM (1.3.2), contrasté (1.4.3), agrandissable (1.4.4) et sans coupe quand on augmente l'espacement (1.4.12).
+C'est ce dernier point et la place qui ferment la porte : le mot mesure 72 px (CRITIQUE) et 80 px (VIGILANCE) en 12 px,
+80 et 88 px avec l'espacement de 1.4.12 — plus que la tuile d'une étape à une ligne (77 px avec réponse, 60 sans).
+Il faudrait allonger chaque tuile critique, l'inverse de ce qui était demandé, ou couper le mot (échec de 1.4.12). Et
+un mot tourné de 90° se lit nettement plus lentement qu'un mot horizontal — le contraire de ce qu'on demande au seul
+mot qui dit « ceci tue si on l'oublie », lu sous stress. Pour garder la couleur sur le côté, il y a déjà le liseré
+(« Liseré gauche 4 px ») et la bordure de case au registre (A345) ; le MOT reste horizontal.
+
+**Code.** Le sous-bloc CSS « — ESSAI ET · S6c » (hauteur et position des onglets, écart, marges de liste, une ligne
+pour la hauteur des pastilles) et le sous-bloc S6f (deux lignes `padding-top:16px` retirées). Aucun JS.
+
+**Témoin.** La section A494 inchangée (chevauchements, contact à moins de 2 px, case au même endroit) passe à 20 px ;
+vérifiée capable d'échouer en ramenant l'écart à 16 px (onglets en contact).
