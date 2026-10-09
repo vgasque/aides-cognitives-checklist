@@ -8748,13 +8748,13 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
   await page.close();
 });
 
-/* ══ v5.55 · A494 — ESSAI ET « Étapes » (V1, V2, S6c) ; A495 — l'anneau de la revue à la taille de la case ═════════
+/* ══ v5.55 · A494 — ESSAI ET « Étapes » (V1, V2, S6c, S6f — A496) ; A495 — l'anneau de la revue à la taille de la case ═════════
    ESSAI ET : ce témoin part avec l'essai (procédure lot-v5-55.md A494) — garder une variante = garder sa partie.
    Pour chaque variante, l'étape CHARGÉE (CRITIQUE + condition + minuteur ; VIGILANCE + condition + compteur), à 390 et
    1280 px, aux trois moments (seuil atteint, après la coche, 2ᵉ passage) : aucune boîte ni ligne qui en chevauche une
    autre, aucune boîte dessinée (tête, pied, case, lien) à moins de 2 px d'une autre, rien hors de sa tuile ; la case
    sous l'intitulé (le corps ne bouge jamais) ; et sans essai, aucune tête ni pied : le rendu d'avant. */
-await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c) sans chevauchement ; A495 anneau de revue', async () => {
+await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c, S6f) sans chevauchement ; A495 anneau de revue', async () => {
   const CHARGE=()=>{const f=fiches.find(x=>/Arrêt/.test(x.title));const b=f.blocks.find(b=>/^Choquable/.test(b.title));const its=bItems(b);its[1].level=3;its[3].level=2;its[3].counts=its[0].counts;};
   const CK=()=>{const ol=document.querySelector('.ov-block.cur ol.steps:not(.rev)'),out=[];
     const SEL='.et-head,.et-foot,.stp-now,.wt,:scope>li>.box,.rv-ring';const R=[];
@@ -8771,7 +8771,7 @@ await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c) sans chevauchemen
       const top=h&&getComputedStyle(h).position!=='absolute'?h.getBoundingClientRect().bottom:li.getBoundingClientRect().top;return Math.round(b.getBoundingClientRect().top-top);});
     return {pb:[...new Set(out)],corps,tetes:ol.querySelectorAll('.et-head').length,pieds:ol.querySelectorAll('.et-foot').length};};
   const pas=async(page)=>page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));for(let g=0;g<8;g++){const li=[...document.querySelectorAll('.ov-block.cur li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}document.querySelector('.ov-block.cur [data-ovnext]').click();await w(400);[...document.querySelectorAll('.ov-block.cur [data-ovopt]')][0].click();await w(500);});
-  for(const et of ['','v1','v2','s6c'])for(const W of [390,1280]){
+  for(const et of ['','v1','v2','s6c','s6f'])for(const W of [390,1280]){
     const page=await br.newPage({viewport:{width:W,height:1200},hasTouch:W<500});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.addInitScript(v=>{try{v?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');}catch(e){}},et);
@@ -8802,15 +8802,17 @@ await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c) sans chevauchemen
     }
     t(`A495 · ${nom} : l'anneau de la revue a la taille de la case (rayon 16) et son centre`,rv.svgR===16&&(et?rv.anneauC===rv.caseC:Math.abs(rv.anneauC-32)<=1),JSON.stringify(rv));
     await page.close();}
-  /* Moi › Affichage : le segmenté à quatre crans pose et retire la variante sur <html>, sans recharger */
+  /* Moi › Affichage : le segmenté à cinq crans pose et retire la variante sur <html>, sans recharger */
   {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
    const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));openAuth();await w(700);
      const seg=document.getElementById('etSeg');if(!seg)return {seg:false};const out={seg:true,n:seg.querySelectorAll('[data-et]').length};
      seg.querySelector('[data-et="s6c"]').click();await w(100);out.s6c=document.documentElement.classList.contains('essai-et-s6c')&&document.documentElement.classList.contains('essai-et');
+     seg.querySelector('[data-et="s6f"]').click();await w(100);out.s6f=['essai-et','essai-et-s6c','essai-et-s6f'].every(c=>document.documentElement.classList.contains(c));
+     seg.querySelector('[data-et="s6c"]').click();await w(100);out.s6fPart=!document.documentElement.classList.contains('essai-et-s6f');
      seg.querySelector('[data-et=""]').click();await w(100);out.retour=!document.documentElement.classList.contains('essai-et')&&!localStorage.getItem('ac-essai-et');
      return out;});
-   t('A494 · Moi › Affichage : « Essai · Étapes » à quatre crans, la variante se pose et se retire',r.seg&&r.n===4&&r.s6c&&r.retour,JSON.stringify(r));
+   t('A494 · Moi › Affichage : « Essai · Étapes » à cinq crans, la variante se pose et se retire (S6f par-dessus S6c, A496)',r.seg&&r.n===5&&r.s6c&&r.s6f&&r.s6fPart&&r.retour,JSON.stringify(r));
    await page.close();}
 });
 

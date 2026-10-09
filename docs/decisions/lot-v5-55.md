@@ -1,4 +1,4 @@
-# Lot v5.55 — A494-A495
+# Lot v5.55 — A494-A496
 
 Le chantier « cases en session », ouvert après v5.54.0 : douze tours de maquettes sur l'app réelle, puis un essai à
 trancher en conditions réelles.
@@ -71,12 +71,14 @@ Les jetons d'une revue ouverte (`ol.steps.rev`) gardent leur dessin dans les tro
 **Procédure — le jour où l'auteur tranche.** Chaque étape se vérifie par `npm run check` puis la section d'audit.
 
 *Garder UNE variante (ex. S6c) — le geste sûr, sans toucher à la spécificité :*
-1. JS — `function essaiEt()` devient `function essaiEt(){return 's6c';}` ; `ESSAI_ET` ne garde que `s6c` ; supprimer
+1. JS — `function essaiEt()` devient `function essaiEt(){return 's6c';}` ; `ESSAI_ET` ne garde que `s6c` (pour S6f :
+   `return 's6f'` et `ESSAI_ET` ne garde que `s6f`, dont l'entrée pose les DEUX classes) ; supprimer
    `essaiEtSet` et la purge éventuelle de la clé (ajouter `localStorage.removeItem('ac-essai-et')` au démarrage, à côté
    de la purge des essais A380).
 2. CSS — supprimer le sous-bloc des variantes écartées (pour garder S6c : tout le sous-bloc « — ESSAI ET · V1 et V2 » ;
    pour garder V1 : le sous-bloc S6c et les deux lignes `html.essai-et-v2` ; pour garder V2 : le sous-bloc S6c et la
-   ligne `html.essai-et-v1`). Ne PAS retirer les préfixes `html.essai-et` des règles gardées : ils portent la
+   ligne `html.essai-et-v1` ; pour garder **S6f** : le sous-bloc « V1 et V2 » seulement — S6f se pose PAR-DESSUS
+   S6c, ses deux sous-blocs restent, cf. A496). Ne PAS retirer les préfixes `html.essai-et` des règles gardées : ils portent la
    spécificité qui l'emporte sur `html.zw360 ol.steps li` et sur les règles d'étiquette d'avant.
 3. Moi — supprimer la rangée « Essai · Étapes » (entre ses balises) et la liaison `#etSeg`.
 4. Audit — la section A494 ne boucle plus que sur `['','<variante gardée>']`, puis seulement sur la variante (le rendu
@@ -119,3 +121,27 @@ limite connue des bandeaux, pas un défaut d'alignement.
 
 **Témoin.** Même section : rayon 16, centre de l'anneau = centre de la case voisine (variantes), à ±1 px de 32 dans le
 dessin actuel.
+
+## A496 — S6f : les onglets de S6c collés aux bords, en intercalaire (v5.55.1)
+
+Question de l'auteur sur S6c : « pourquoi tu n'as pas collé plus à gauche l'onglet supérieur ? c'était pour ne pas le
+mettre au-dessus de la case ? » — oui : en S6c l'onglet commence au bord droit de la case (48 px), le mot tombe
+au-dessus de l'intitulé, et la colonne des cases reste vide ; collé à gauche, il passerait à 2 px du haut de la case.
+Maquetté sur l'app réelle (treizième tour du canevas) : S6e (bord de l'onglet sur celui de la case) et S6f (onglet
+au bord de la tuile). Recommandation donnée : garder S6c (colonne des cases vide, condition lue avec l'intitulé ; S6e
+crée un troisième alignement). Décision de l'auteur : corriger S6f sur maquette, puis l'ajouter en option.
+
+**S6f.** L'onglet du haut part du bord gauche de la tuile (la pastille CRITIQUE s'aligne sur la case), le pied touche
+le bord droit. Deux défauts vus sur la première maquette, corrigés : sous l'onglet, le coin arrondi de la tuile faisait
+un cran (le rayon de la tuile dépasse les 10 px de l'onglet qui y entrent) — la tuile perd ce coin (`.et-hd` : coin haut
+gauche ; `.et-ft` : coin bas droit), le bord devient continu ; le pointillé de l'étape en attente ne double plus. La case
+descend de 12 à 16 px dans TOUTES les étapes, revue comprise : sinon l'onglet passe à 2 px du haut de la case. Prix :
+4 px par étape.
+
+**Code.** Une entrée de plus dans `ESSAI_ET` (`s6f`) dont la classe est `essai-et-s6c essai-et-s6f` : S6f n'est qu'un
+réglage PAR-DESSUS S6c, `essaiEtPose` pose chaque classe de la liste. Un sous-bloc CSS « — ESSAI ET · S6f » de six
+lignes à la fin du bloc de l'essai ; le segmenté de Moi compte ses crans sur le registre (`--seg-n`). Mêmes balises,
+même grep, même procédure (A494).
+
+**Témoin.** La section A494 boucle aussi sur `s6f` (chevauchements, case au même endroit, tête et pied, anneau de la
+revue) ; Moi : cinq crans, S6f pose ses deux classes, revenir à S6c retire `essai-et-s6f`.
