@@ -127,7 +127,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A483-A484 | `lot-v5-52.md` | Administration : tous les comptes (dépliables : statut, droit de créer, rôles) et toutes les bibliothèques de l'instance ; A484 : gérer celle d'un autre (membres, nom, suppression) sans en être membre |
 | A485-A489 | `lot-v5-53.md` | Retours après les collections ; la colonne dit avec qui (option 1), une seule bibliothèque = une rangée et « Partager avec une équipe… » |
 | A490-A493 | `lot-v5-54.md` | Bibliothèque vide dans la colonne, position gardée au retour (toute largeur), anneau d'ouverture au clavier seulement, « Tout » des collections |
-| A494-A498 | `lot-v5-55.md` | Essai « Étapes » V1 / V2 / S6c / S6f et place de CRITIQUE au choix dans Moi (procédure garder / retirer), anneau de la revue à la taille de la case, S6c/S6f resserrés (onglet 16 px, écart 20 px) |
+| A494-A499 | `lot-v5-55.md` | Essai « Étapes » V1 / V2 / S6c / S6f et place de CRITIQUE au choix dans Moi (procédure garder / retirer), anneau de la revue à la taille de la case, S6c/S6f resserrés (onglet 16 px, écart 20 px), onglets « Légende » / « Filigrane » au choix |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

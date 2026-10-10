@@ -3670,6 +3670,18 @@
   html.essai-et-s6f ol.steps:not(.rev)>li.et-ft{border-bottom-right-radius:0}
   html.essai-et-s6f ol.steps>li>.et-head{left:0;max-width:calc(100% - 12px)}
   html.essai-et-s6f ol.steps>li>.et-foot{right:0}
+  /* — ESSAI ET · Onglets (A499, v5.55.4) : deux dessins de l'onglet, sur S6c comme sur S6f (« Essai · Onglets »,
+     `essai-ot-b` / `essai-ot-c` sur <html>, posés avec S6c ou S6f seulement). L'écart de 20 px est constant, mais un
+     onglet gris de la matière de la tuile y ajoutait une MASSE : serré là où un pied et une tête se suivent, large entre
+     deux étapes nues. Les deux retirent cette masse, géométrie inchangée (positions, hauteurs, écart).
+     B « Légende » : l'onglet prend le fond de la carte (--work), coins tous arrondis — il interrompt le bord de l'étape
+     comme la légende d'un cadre ; sur S6f la tuile garde ses coins (il n'y a plus de matière à prolonger).
+     C « Filigrane » : la forme de l'onglet reste, en fond de carte, cernée d'un filet sur ses côtés extérieurs. */
+  html.essai-et-s6c.essai-ot-b ol.steps>li:is(*,.done,.mo-wait)>:is(.et-head,.et-foot){background:var(--work);border:0;box-shadow:none;border-radius:8px}
+  html.essai-et-s6f.essai-ot-b ol.steps:not(.rev)>li:is(.et-hd,.et-ft){border-radius:var(--r-4)}
+  html.essai-et-s6c.essai-ot-c ol.steps>li:is(*,.done)>:is(.et-head,.et-foot){background:var(--work)}
+  html.essai-et-s6c.essai-ot-c ol.steps>li:not(.mo-wait)>.et-head{box-shadow:inset 0 1px 0 var(--line-strong),inset 1px 0 0 var(--line-strong),inset -1px 0 0 var(--line-strong)}
+  html.essai-et-s6c.essai-ot-c ol.steps>li:not(.mo-wait)>.et-foot{box-shadow:inset 0 -1px 0 var(--line-strong),inset 1px 0 0 var(--line-strong),inset -1px 0 0 var(--line-strong)}
   /* — ESSAI ET · CRITIQUE dans le corps (A497, v5.55.2) : le mot quitte la tête pour le début de l'intitulé, en
      pastille ; B1 « À droite » le cale à droite de la première ligne (les lignes suivantes reprennent toute la
      largeur), B4 « Au-dessus » le colle au-dessus de l'intitulé — la case ne bouge dans aucun des deux. */

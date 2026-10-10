@@ -1,4 +1,4 @@
-# Lot v5.55 — A494-A498
+# Lot v5.55 — A494-A499
 
 Le chantier « cases en session », ouvert après v5.54.0 : douze tours de maquettes sur l'app réelle, puis un essai à
 trancher en conditions réelles.
@@ -210,3 +210,36 @@ pour la hauteur des pastilles) et le sous-bloc S6f (deux lignes `padding-top:16p
 
 **Témoin.** La section A494 inchangée (chevauchements, contact à moins de 2 px, case au même endroit) passe à 20 px ;
 vérifiée capable d'échouer en ramenant l'écart à 16 px (onglets en contact).
+
+## A499 — deux dessins de l'onglet : « Légende » et « Filigrane » (v5.55.4)
+
+Signalé par l'auteur après A498 : « à cause des bulles au-dessus et en-dessous, il y a cet effet de distance inégale
+entre les étapes ». Mesuré : l'écart est bien constant (20 px), mais l'onglet est de la MATIÈRE de la tuile (`--amb-2`),
+donc l'œil le compte dans la tuile. Là où le pied d'une étape et la tête de la suivante se font face, le vide visible
+tombe à 4-12 px ; entre deux étapes sans onglet il reste 20 px francs. L'écart paraît serré ici, large là.
+
+Maquetté sur l'app (planche « Étapes S6 — rythme égal », même contenu à 390 px) : A « Écart compensé » (12 px + 8 par
+onglet dans l'écart), B « Légende de cadre », C « Onglet en filigrane », D « Sans débord » (tête et pied dans la tuile).
+Recommandation donnée : B (la cause disparaît, l'écart reste fixe) ; A déconseillée (les tuiles ne sont plus à
+intervalle régulier, ce qui se lit moins vite) ; D = les écarts strictement égaux, au prix des onglets. Décision de
+l'auteur : B et C en options.
+
+**Réglage.** Moi › Affichage, « Essai · Onglets » : Pleins | Légende | Filigrane — réglage d'APPAREIL (`ac-essai-ot`),
+valable sur S6c et S6f seulement (`essaiOt()` rend `''` pour les autres dessins ; revenir à S6c ou S6f retrouve le
+choix). Classes `essai-ot-b` / `essai-ot-c` sur `<html>`, posées par `essaiEtPose`.
+
+**Rendu.** Géométrie inchangée (positions, 16 px de haut, écart de 20 px, case au même endroit) : seule la matière de
+l'onglet change. B : l'onglet prend le fond de la carte (`--work`), sans bordure, coins tous arrondis (8 px) — il
+interrompt le bord de l'étape comme la légende d'un cadre, pointillé de l'attente compris ; sur S6f la tuile garde ses
+coins arrondis (la coupe d'A496 servait à prolonger une matière qui n'est plus là). C : la forme de l'onglet de S6c /
+S6f reste, en fond de carte, cernée d'un filet `--line-strong` sur ses côtés extérieurs ; l'onglet d'une étape en
+attente garde son pointillé. Une étape faite garde son vert, son onglet passe au fond de la carte dans les deux.
+
+**Code.** Balisé « ESSAI ET » : `ESSAI_OT`, `essaiOt`, `essaiOtSet` (bloc JS du registre), une ligne dans
+`essaiEtPose`, le sous-bloc CSS « — ESSAI ET · Onglets » (cinq lignes), la rangée « Essai · Onglets » de Moi et une
+entrée de plus dans la liaison `segs`. Garder un dessin : `essaiOt()` renvoie la clé gardée et le CSS de l'autre
+part ; garder « Pleins » : supprimer ces lignes et la clé (`ac-essai-ot` à purger au démarrage).
+
+**Témoin.** La section A494 joue aussi S6c et S6f × Légende et Filigrane, à 390 et 1280 px (chevauchements, contact,
+case au même endroit, tête et pied) et vérifie que l'onglet a le fond de la carte ; Moi : trois crans, Filigrane se
+pose, disparaît sous V1, revient sous S6f, se retire.

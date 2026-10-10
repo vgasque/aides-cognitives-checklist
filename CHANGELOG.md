@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.55.4] — 2026-10-10
+Essai « Étapes » : deux dessins pour les onglets de S6c et S6f (A499, doctrine `docs/decisions/lot-v5-55.md`).
+- **Moi › Affichage › Essai · Onglets** : Pleins (comme jusqu'ici), **Légende** ou **Filigrane**. Réglage de cet
+  appareil, valable avec S6c et S6f.
+- Pourquoi : les onglets gris, de la couleur de l'étape, remplissaient une partie de l'espace entre deux étapes. Là où
+  un onglet du bas et un onglet du haut se suivent, l'espace paraissait serré ; entre deux étapes sans onglet, il
+  paraissait large. L'écart réel, lui, est le même partout.
+- **Légende** : l'onglet prend la couleur du fond de la carte et coupe le bord de l'étape, comme la légende d'un cadre.
+- **Filigrane** : l'onglet garde sa forme, de la couleur du fond, cerné d'un filet fin.
+- Rien d'autre ne bouge : même place pour les onglets, la case et le texte, même écart entre les étapes.
+
 ## [5.55.3] — 2026-10-09
 Essai « Étapes » : S6c et S6f resserrés (A498, doctrine `docs/decisions/lot-v5-55.md`).
 - **Moins d'espace entre les étapes** : les onglets du haut et du bas passent de 20 à 16 px de haut, toujours à cheval
@@ -216,18 +227,3 @@ Deux retouches de l'éditeur des références signalées à l'usage (A468, doctr
   aide » prend le dessin du mode Exercice : fond hachuré bleu pâle, bord en pointillé, titre et bouton en bleu —
   comme la bande d'exercice et la touche « ▲ Exercice ». Elle se distingue des cartes de l'aide en clair comme en
   sombre ; « Démarrer la session » reste le seul bouton plein de l'écran (A467).
-
-## [5.48.2] — 2026-10-05
-Retour d'essai sur iPhone de l'exercice guidé (A467) : la bulle cachait ce que le geste ouvrait, et le défilement
-saccadait.
-- **La bulle devient une carte fixe au-dessus du quai.** Elle ne suit plus la page, donc plus de saccade ; la commande
-  visée se montre par son anneau. La page réserve sa hauteur en bas : on peut toujours défiler jusqu'à la dernière ligne.
-- **Plus rien de caché.** Le volet des minuteurs s'arrête au-dessus de la carte (et défile). Pour « Cochez les étapes
-  restantes », aucune bulle ni anneau devant les cases : toutes les cases libres sont amenées en vue, puis l'anneau
-  se pose sur « Continuer » quand il est prêt. Dans une complication, la carte dit où l'on est et que le bloc quitté
-  attend, coches gardées.
-- **La capsule s'apprend par la main** au téléphone : l'ouvrir, puis la refermer.
-- **▾ réduit la carte** en une pastille « ▲ Guide 4/8 » pour voir tout l'écran ; un toucher la rouvre.
-- Le guide ne ramène jamais la page vers la cible quand on défile soi-même.
-- Au bureau, la carte se pose dans la colonne d'action, en ligne ; sur un pliable, d'un seul côté de la charnière.
-- `audit-guide` vérifie désormais tout cela, pliable émulé compris.

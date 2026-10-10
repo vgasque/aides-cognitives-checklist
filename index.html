@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WL9V5eyfvj7N7PwBCHIgEWT494rJd6kkEmJJ3WyzKTg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-JxTweHGNlfkwsRIKR6jySNcPRfwsFmOpkak1r5dQDQA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4026,6 +4026,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.essai-et-s6f ol.steps:not(.rev)>li.et-ft{border-bottom-right-radius:0}
   html.essai-et-s6f ol.steps>li>.et-head{left:0;max-width:calc(100% - 12px)}
   html.essai-et-s6f ol.steps>li>.et-foot{right:0}
+  /* — ESSAI ET · Onglets (A499, v5.55.4) : deux dessins de l'onglet, sur S6c comme sur S6f (« Essai · Onglets »,
+     `essai-ot-b` / `essai-ot-c` sur <html>, posés avec S6c ou S6f seulement). L'écart de 20 px est constant, mais un
+     onglet gris de la matière de la tuile y ajoutait une MASSE : serré là où un pied et une tête se suivent, large entre
+     deux étapes nues. Les deux retirent cette masse, géométrie inchangée (positions, hauteurs, écart).
+     B « Légende » : l'onglet prend le fond de la carte (--work), coins tous arrondis — il interrompt le bord de l'étape
+     comme la légende d'un cadre ; sur S6f la tuile garde ses coins (il n'y a plus de matière à prolonger).
+     C « Filigrane » : la forme de l'onglet reste, en fond de carte, cernée d'un filet sur ses côtés extérieurs. */
+  html.essai-et-s6c.essai-ot-b ol.steps>li:is(*,.done,.mo-wait)>:is(.et-head,.et-foot){background:var(--work);border:0;box-shadow:none;border-radius:8px}
+  html.essai-et-s6f.essai-ot-b ol.steps:not(.rev)>li:is(.et-hd,.et-ft){border-radius:var(--r-4)}
+  html.essai-et-s6c.essai-ot-c ol.steps>li:is(*,.done)>:is(.et-head,.et-foot){background:var(--work)}
+  html.essai-et-s6c.essai-ot-c ol.steps>li:not(.mo-wait)>.et-head{box-shadow:inset 0 1px 0 var(--line-strong),inset 1px 0 0 var(--line-strong),inset -1px 0 0 var(--line-strong)}
+  html.essai-et-s6c.essai-ot-c ol.steps>li:not(.mo-wait)>.et-foot{box-shadow:inset 0 -1px 0 var(--line-strong),inset 1px 0 0 var(--line-strong),inset -1px 0 0 var(--line-strong)}
   /* — ESSAI ET · CRITIQUE dans le corps (A497, v5.55.2) : le mot quitte la tête pour le début de l'intitulé, en
      pastille ; B1 « À droite » le cale à droite de la première ligne (les lignes suivantes reprennent toute la
      largeur), B4 « Au-dessus » le colle au-dessus de l'intitulé — la case ne bouge dans aucun des deux. */
@@ -9180,7 +9192,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.55.3';
+const APP_VERSION='5.55.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9692,8 +9704,16 @@ const ESSAI_MK={b1:['À droite','essai-mk-b1'],b4:['Au-dessus','essai-mk-b4']};
 function essaiMk(){let v='';try{v=localStorage.getItem('ac-essai-mk')||'';}catch(e){}return essaiEt()&&ESSAI_MK[v]?v:'';}
 function essaiMkSet(v){try{ESSAI_MK[v]?localStorage.setItem('ac-essai-mk',v):localStorage.removeItem('ac-essai-mk');}catch(e){}
   essaiEtPose();if(state.view==='read'&&state.fiche)render();}
-function essaiEtPose(){const v=essaiEt(),m=essaiMk(),cl=document.documentElement.classList;
+/* Le dessin de l'onglet de S6c / S6f (A499, v5.55.4) — réglage d'appareil distinct, sans effet hors de ces deux
+   variantes : « Pleins » (défaut, la matière de la tuile), B « Légende » (fond de la carte, coupe le bord), C
+   « Filigrane » (fond de la carte, filet). Seul le CSS les distingue. */
+const ESSAI_OT={b:['Légende','essai-ot-b'],c:['Filigrane','essai-ot-c']};
+function essaiOt(){let v='';try{v=localStorage.getItem('ac-essai-ot')||'';}catch(e){}return /^s6/.test(essaiEt())&&ESSAI_OT[v]?v:'';}
+function essaiOtSet(v){try{ESSAI_OT[v]?localStorage.setItem('ac-essai-ot',v):localStorage.removeItem('ac-essai-ot');}catch(e){}
+  essaiEtPose();if(state.view==='read'&&state.fiche)render();}
+function essaiEtPose(){const v=essaiEt(),m=essaiMk(),o=essaiOt(),cl=document.documentElement.classList;
   Object.keys(ESSAI_MK).forEach(k=>cl.toggle(ESSAI_MK[k][1],k===m));
+  Object.keys(ESSAI_OT).forEach(k=>cl.toggle(ESSAI_OT[k][1],k===o));
   const on=new Set(v?ESSAI_ET[v][1].split(' '):[]);
   cl.toggle('essai-et',!!v);Object.values(ESSAI_ET).forEach(([,c])=>c.split(' ').forEach(x=>cl.toggle(x,on.has(x))));}
 function essaiEtSet(v){try{ESSAI_ET[v]?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');}catch(e){}
@@ -28820,6 +28840,12 @@ function accountPrefsHtml(slot){
         `<button type="button" class="seg-btn${essaiMk()===k?' on':''}" data-mk="${k}" role="radio" aria-checked="${essaiMk()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
     <div class="st-hint" style="margin-bottom:4px">Où se lit <b>CRITIQUE</b> dans une étape, avec l’un des quatre dessins ci-dessus : en tête avec la condition ; <b>à droite</b> de l’intitulé ; ou <b>au-dessus</b>, collé à l’intitulé. La case ne bouge pas.</div>
+    <div class="set-row" style="margin-top:12px"><span class="set-l" id="otLbl">Essai · Onglets</span>
+    <div class="seg" id="otSeg" role="radiogroup" aria-labelledby="otLbl" style="--seg-n:${1+Object.keys(ESSAI_OT).length};--seg-i:${['',...Object.keys(ESSAI_OT)].indexOf(essaiOt())}"><span class="seg-pill" aria-hidden="true"></span>${
+      [['','Pleins'],...Object.keys(ESSAI_OT).map(k=>[k,ESSAI_OT[k][0]])].map(([k,l])=>
+        `<button type="button" class="seg-btn${essaiOt()===k?' on':''}" data-ot="${k}" role="radio" aria-checked="${essaiOt()===k?'true':'false'}">${esc(l)}</button>`).join('')
+    }</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Le dessin des onglets de <b>S6c</b> et <b>S6f</b> : <b>pleins</b>, de la couleur de l’étape ; <b>légende</b>, du fond de la carte, qui coupe le bord de l’étape ; ou <b>filigrane</b>, du fond de la carte, cerné d’un filet. Sans effet sur les autres dessins.</div>
     ${''/* ESSAI ET ▲ */}
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"><span aria-hidden="true">${acctIniTxt()}</span></button>`).join('')}</div></div>
@@ -28930,7 +28956,7 @@ function bindAccountPrefs(body){
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
     peindre();}}
-  {const segs=[['#etSeg','[data-et]',b=>b.dataset.et,ESSAI_ET,essaiEt,essaiEtSet],['#mkSeg','[data-mk]',b=>b.dataset.mk,ESSAI_MK,essaiMk,essaiMkSet]];   // ESSAI ET (A494, A497) : on peint sur place, la pastille glisse
+  {const segs=[['#etSeg','[data-et]',b=>b.dataset.et,ESSAI_ET,essaiEt,essaiEtSet],['#mkSeg','[data-mk]',b=>b.dataset.mk,ESSAI_MK,essaiMk,essaiMkSet],['#otSeg','[data-ot]',b=>b.dataset.ot,ESSAI_OT,essaiOt,essaiOtSet]];   // ESSAI ET (A494, A497, A499) : on peint sur place, la pastille glisse
    const peindre=()=>segs.forEach(([sel,q,val,T,get])=>{const es=body.querySelector(sel);if(!es)return;
      const v=get(),K=['',...Object.keys(T)];es.style.setProperty('--seg-i',Math.max(0,K.indexOf(v)));
      es.querySelectorAll(q).forEach(b=>{const on=val(b)===v;

@@ -8748,7 +8748,7 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
   await page.close();
 });
 
-/* ══ v5.55 · A494 — ESSAI ET « Étapes » (V1, V2, S6c, S6f — A496 ; CRITIQUE à droite / au-dessus — A497) ; A495 — l'anneau de la revue à la taille de la case ═════════
+/* ══ v5.55 · A494 — ESSAI ET « Étapes » (V1, V2, S6c, S6f — A496 ; CRITIQUE à droite / au-dessus — A497 ; onglets légende / filigrane — A499) ; A495 — l'anneau de la revue à la taille de la case ═════════
    ESSAI ET : ce témoin part avec l'essai (procédure lot-v5-55.md A494) — garder une variante = garder sa partie.
    Pour chaque variante, l'étape CHARGÉE (CRITIQUE + condition + minuteur ; VIGILANCE + condition + compteur), à 390 et
    1280 px, aux trois moments (seuil atteint, après la coche, 2ᵉ passage) : aucune boîte ni ligne qui en chevauche une
@@ -8772,14 +8772,17 @@ await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c, S6f) sans chevauc
     return {pb:[...new Set(out)],corps,tetes:ol.querySelectorAll('.et-head').length,pieds:ol.querySelectorAll('.et-foot').length,
       mkCorps:ol.querySelectorAll('.txt>.et-mk').length,mkTete:[...ol.querySelectorAll('.et-head .stp-mk')].filter(x=>/critique|vigilance/i.test(x.textContent)).length};};
   const pas=async(page)=>page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));for(let g=0;g<8;g++){const li=[...document.querySelectorAll('.ov-block.cur li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}document.querySelector('.ov-block.cur [data-ovnext]').click();await w(400);[...document.querySelectorAll('.ov-block.cur [data-ovopt]')][0].click();await w(500);});
-  for(const [et,mk] of [['',''],['v1',''],['v2',''],['s6c',''],['s6f',''],['s6c','b1'],['s6c','b4'],['s6f','b1'],['s6f','b4']])for(const W of [390,1280]){
+  for(const [et,mk,ot=''] of [['',''],['v1',''],['v2',''],['s6c',''],['s6f',''],['s6c','b1'],['s6c','b4'],['s6f','b1'],['s6f','b4'],['s6c','','b'],['s6c','','c'],['s6f','','b'],['s6f','','c']])for(const W of [390,1280]){
     const page=await br.newPage({viewport:{width:W,height:1200},hasTouch:W<500});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-    await page.addInitScript(([v,m])=>{try{v?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');m?localStorage.setItem('ac-essai-mk',m):localStorage.removeItem('ac-essai-mk');}catch(e){}},[et,mk]);
+    await page.addInitScript(([v,m,o])=>{try{v?localStorage.setItem('ac-essai-et',v):localStorage.removeItem('ac-essai-et');m?localStorage.setItem('ac-essai-mk',m):localStorage.removeItem('ac-essai-mk');o?localStorage.setItem('ac-essai-ot',o):localStorage.removeItem('ac-essai-ot');}catch(e){}},[et,mk,ot]);
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.evaluate(CHARGE);
     await ouvrirFiche(page,'Arrêt cardiaque');await demarrerSession(page);
     await page.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important}'});
-    const nom=(et||'actuel')+(mk?'·'+mk:'')+' '+W;
+    const nom=(et||'actuel')+(mk?'·'+mk:'')+(ot?'·onglet '+ot:'')+' '+W;
+    if(ot){const r=await page.evaluate(([o])=>{const cl=document.documentElement.classList,h=document.querySelector('.ov-block.cur ol.steps:not(.rev) .et-head');
+      return {pose:cl.contains('essai-ot-'+o),fond:h?getComputedStyle(h).backgroundColor:'',carte:getComputedStyle(document.querySelector('.ov-block.cur')).backgroundColor};},[ot]);
+      t(`A499 · ${nom} : l'onglet prend le fond de la carte (plus la matière de la tuile)`,r.pose&&r.fond===r.carte,JSON.stringify(r));}
     if(!et){const r=await page.evaluate(CK);
       t(`A494 · ${nom} : sans essai, ni tête ni pied — le rendu d'avant`,r.tetes===0&&r.pieds===0,JSON.stringify(r));}
     await pas(page);
@@ -8816,9 +8819,14 @@ await sec('v5.55 · A494 — essai « Étapes » (V1, V2, S6c, S6f) sans chevauc
      seg.querySelector('[data-et="s6c"]').click();await w(100);mks.querySelector('[data-mk="b4"]').click();await w(100);
      out.b4=document.documentElement.classList.contains('essai-mk-b4')&&localStorage.getItem('ac-essai-mk')==='b4';
      mks.querySelector('[data-mk=""]').click();await w(100);out.mkRetour=!document.documentElement.classList.contains('essai-mk-b4')&&!localStorage.getItem('ac-essai-mk');
+     const ots=document.getElementById('otSeg');out.otN=ots?ots.querySelectorAll('[data-ot]').length:0;
+     ots.querySelector('[data-ot="c"]').click();await w(100);out.otC=document.documentElement.classList.contains('essai-ot-c')&&localStorage.getItem('ac-essai-ot')==='c';
+     seg.querySelector('[data-et="v1"]').click();await w(100);out.otHorsS6=!document.documentElement.classList.contains('essai-ot-c');
+     seg.querySelector('[data-et="s6f"]').click();await w(100);out.otRevient=document.documentElement.classList.contains('essai-ot-c');
+     ots.querySelector('[data-ot=""]').click();await w(100);out.otRetour=!document.documentElement.classList.contains('essai-ot-c')&&!localStorage.getItem('ac-essai-ot');
      seg.querySelector('[data-et=""]').click();await w(100);out.retour=!document.documentElement.classList.contains('essai-et')&&!localStorage.getItem('ac-essai-et');
      return out;});
-   t('A494 · Moi › Affichage : « Essai · Étapes » à cinq crans et « Essai · Critique » à trois, la variante se pose et se retire (S6f par-dessus S6c, A496 ; A497)',r.seg&&r.n===5&&r.s6c&&r.s6f&&r.s6fPart&&r.retour&&r.mkN===3&&r.b4&&r.mkRetour,JSON.stringify(r));
+   t('A494 · Moi › Affichage : « Essai · Étapes » à cinq crans, « Essai · Critique » et « Essai · Onglets » à trois, la variante se pose et se retire (S6f par-dessus S6c, A496 ; A497 ; A499 : l\'onglet ne vaut que sur S6c / S6f)',r.seg&&r.n===5&&r.s6c&&r.s6f&&r.s6fPart&&r.retour&&r.mkN===3&&r.b4&&r.mkRetour&&r.otN===3&&r.otC&&r.otHorsS6&&r.otRevient&&r.otRetour,JSON.stringify(r));
    await page.close();}
 });
 
