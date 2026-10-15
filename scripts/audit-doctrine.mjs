@@ -7242,6 +7242,72 @@ for (const W of [390, 1280]) {
 }
 });
 
+/* ══ A496-A497 — COLLECTIONS À LA CRÉATION, « NOUVEAU PROTOCOLE », LE VOILE ABSORBE LE TAP ═══════
+   Au téléphone (390, tactile) : un protocole neuf se nomme, la pancarte d'identité porte une rangée Collections
+   qui ouvre la feuille à cases de l'accueil (A475), un brouillon ne s'épingle pas même avant sa première frappe,
+   un brouillon abandonné sans titre sort des collections ; et un TAP RÉEL sur le voile d'une feuille
+   (`touchscreen.tap` : touchstart → pointerdown → click synthétisé par le moteur) ferme la feuille SANS toucher ce
+   qu'il couvrait — le défaut vivait au `pointerdown` (voile retiré avant le `click`, qui tombait sur la pancarte). */
+await sec('ÉDITEUR · A496-A497 collections à la création, « Nouveau protocole », voile des feuilles', async () => {
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r1 = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    newProtocol();await w(300);
+    out.proto=(document.querySelector('.ed-ident .id-t')||{}).textContent||'';
+    out.pkProto=!!document.getElementById('collPicker');
+    out.aucune=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
+    document.getElementById('hdrBack').click();await w(800);
+    const c=collNew('Garde SMUR',[]);collSel(c.id);render();await w(300);
+    newFiche();await w(300);
+    out.aide=(document.querySelector('.ed-ident .id-t')||{}).textContent||'';
+    out.dans=collHas(c.id,state.draft.id);
+    out.chip=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
+    document.querySelector('#collPicker .cat-chip-other').click();await w(350);
+    const box=v=>document.querySelector('.popmenu [data-pickopt="'+v+'"]');
+    out.cases=document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
+    out.coche=box(c.id)?box(c.id).getAttribute('aria-checked'):'';
+    out.pinSub=(box('*')||{}).textContent||'';
+    if(box('*')){box('*').click();await w(150);}out.pin=isPinned(state.draft.id);
+    out.ferme1=!!document.querySelector('.popmenu-veil.sheet');
+    // Le point du tap : le résumé de la pancarte d'identité, SOUS le voile (la feuille vit en bas).
+    const sm=document.querySelector('details.ed-ident>summary').getBoundingClientRect();
+    out.pt=[Math.round(sm.left+sm.width/2),Math.round(sm.top+sm.height/2)];
+    const el=document.elementFromPoint(out.pt[0],out.pt[1]);out.sous=el?el.className:'';
+    out.ouvertAvant=document.querySelector('details.ed-ident').open;
+    return out;});
+  await page.touchscreen.tap(r1.pt[0], r1.pt[1]);
+  await page.waitForTimeout(400);
+  const r2 = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    out.ferme=!document.querySelector('.catmenu.popmenu')&&!document.querySelector('.popmenu-veil');   // `.catmenu` : le menu ⋯ statique est aussi un `.popmenu`, caché
+    out.ouvertApres=document.querySelector('details.ed-ident').open;
+    out.chip=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
+    const id=state.draft.id;
+    document.getElementById('hdrBack').click();await w(800);
+    out.purge=colls.every(c=>c.ids.indexOf(id)<0)&&!isPinned(id);out.vue=state.view;
+    return out;});
+  t('390px · un protocole neuf se nomme « Nouveau protocole » dans la pancarte d’identité, une aide « Nouvelle aide »',
+    r1.proto==='Nouveau protocole'&&r1.aide==='Nouvelle aide', JSON.stringify([r1.proto,r1.aide]));
+  t('390px · la pancarte porte une rangée Collections (protocole et aide), « Aucune collection » par défaut',
+    r1.pkProto&&r1.aucune==='Aucune collection', JSON.stringify([r1.pkProto,r1.aucune]));
+  t('390px · créer depuis une collection affichée y range le brouillon, et la pancarte le dit',
+    r1.dans===true&&/Garde SMUR/.test(r1.chip), JSON.stringify([r1.dans,r1.chip]));
+  t('390px · « Choisir… » ouvre la feuille à cases de l’accueil, la collection cochée',
+    r1.cases>=2&&r1.coche==='true', JSON.stringify([r1.cases,r1.coche]));
+  t('390px · K5 : le brouillon ne s’épingle pas, même avant sa première frappe — la case le dit',
+    r1.pin===false&&/brouillon/.test(r1.pinSub), JSON.stringify([r1.pin,r1.pinSub]));
+  t('390px · A497 : sous le point du tap il y a le voile, et le tap FERME la feuille sans rien toucher dessous',
+    /popmenu-veil/.test(r1.sous)&&r1.ferme1&&r2.ferme&&r1.ouvertAvant===true&&r2.ouvertApres===true,
+    JSON.stringify({sous:r1.sous,ferme:r2.ferme,avant:r1.ouvertAvant,apres:r2.ouvertApres}));
+  t('390px · fermer la feuille repeint la pancarte (le jeton suit la collection)', /Garde SMUR/.test(r2.chip), r2.chip);
+  t('390px · quitter un brouillon sans titre le retire des collections (aucun « indisponible » fantôme)',
+    r2.purge===true&&r2.vue==='library', JSON.stringify([r2.purge,r2.vue]));
+  await page.close();
+});
+
 /* ══ A478-A479 — QUI CRÉE UNE BIBLIOTHÈQUE, QUI LA DEMANDE ══════════════════════════════════════
    Réseau SIMULÉ (aucune dépendance au vrai serveur) : l'administrateur voit la règle et la file ; un compte
    sans le droit voit « Demander une bibliothèque… » et la même fenêtre en mode demande ; un serveur ANTÉRIEUR

@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-w0ukxmiemySTTW2Y86/pSP312mQb1pDviu88hJ5R1+Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-IZExEPE2Ir2PsYqIamRBkfUrCNLVN3XDChcX/9nVVhI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4774,6 +4774,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border-radius:14px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   html[data-theme="dark"] .cat-chip-selected{color:color-mix(in srgb,var(--catcol) 60%,var(--ink))}   /* contraste texte en sombre */
   .cat-chip-selected.none{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
+  .cat-chip-selected.coll{--catcol:var(--ink-soft)}   /* A496 : un rangement personnel n'a pas de registre — neutre, le signet dit le reste */
   .cat-chip-other{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:14px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .cat-chip-other:hover,.cat-chip-selected:hover{filter:brightness(.97)}
   /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante.
@@ -9161,7 +9162,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.55.1';
+const APP_VERSION='5.56.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10913,7 +10914,7 @@ const sanitizePins=a=>(Array.isArray(a)?a:[]).slice(0,50).filter(id=>typeof id==
    la recherche les trouve : on ne cache rien, on refuse seulement de leur donner la place réservée
    à ce qu'on saisit sans lire. DÉSÉPINGLER reste toujours possible — sinon une fiche épinglée puis
    repassée en brouillon resterait coincée là. */
-function pinBlocked(id){const x=fiches.concat(protocols).find(e=>e.id===id);return !!x&&x.status==='draft';}
+function pinBlocked(id){const x=fiches.concat(protocols).find(e=>e.id===id)||[state.draft,state.pdraft].find(e=>e&&e.id===id);return !!x&&x.status==='draft';}   // A496 : le brouillon de l'éditeur aussi, avant même d'entrer dans la liste
 function togglePin(id){const i=pins.indexOf(id);
   if(i<0&&pinBlocked(id)){toast('Un brouillon ne s’épingle pas en accès direct — passez-le à « À relire » ou « Validée ».',5000,true);return;}
   if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
@@ -10943,6 +10944,10 @@ function collSet(cid,ids,on){
   if(cid===COLL_PIN){ids.forEach(id=>{if(isPinned(id)!==on)togglePin(id);});return;}
   const c=collById(cid);if(!c)return;
   c.ids=on?[...new Set(c.ids.concat(ids))].slice(0,300):c.ids.filter(x=>ids.indexOf(x)<0);collsSave();}
+/* Un id qui n'existera jamais (brouillon abandonné sans titre, A496) : retiré des collections et de l'Accès
+   direct, sans rien écrire s'il n'y était pas — sinon la collection compterait « 1 indisponible » pour toujours. */
+function collForget(id){let ch=false;colls.forEach(c=>{const k=c.ids.indexOf(id);if(k>=0){c.ids.splice(k,1);ch=true;}});if(ch)collsSave();
+  if(isPinned(id))togglePin(id);}
 function collNew(name,ids){const c={id:uid('k'),name:sstr(name,60).trim()||'Collection',ids:[...new Set(ids||[])].slice(0,300)};
   colls.push(c);colls.sort((a,b)=>a.name.localeCompare(b.name,'fr',{sensitivity:'base'}));collsSave();return c;}
 // Les éléments d'une collection qui existent sur l'appareil — les autres sont « indisponibles » (accès perdu, supprimés).
@@ -14853,7 +14858,7 @@ const collMenuRow=x=>({label:'Ajouter à une collection…',ic:uiIcon('bookmark'
   act:()=>openCollPick([x.id],{trigger:document.getElementById('hdrMore'),redo:()=>{}})});
 function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   const all=(fiches||[]).concat(protocols||[]);
-  const ents=ids.map(id=>all.find(x=>x&&x.id===id)).filter(Boolean),n=ids.length;
+  const ents=o.ents||ids.map(id=>all.find(x=>x&&x.id===id)).filter(Boolean),n=ids.length;   // `o.ents` (A496) : un brouillon pas encore dans la liste
   // A487 : un brouillon n'entre pas dans l'Accès direct (K5) — compté avec, la case restait « en partie » à jamais.
   const pinOk=ids.filter(id=>isPinned(id)||!pinBlocked(id)),pool=cid=>cid===COLL_PIN?pinOk:ids;
   const st=cid=>{const p=pool(cid),k=p.filter(id=>collHas(cid,id)).length;return k===0?'false':(k===p.length?'true':'mixed');};
@@ -17432,7 +17437,7 @@ function editorMetaFieldsHtml(d,prefix,L){
      lit d'un coup d'œil sans se confondre avec le titre. « Identité ▾ » n'est plus une étiquette
      posée devant, mais le DÉCLENCHEUR à droite : le mot ne prend la place du titre que là où il
      agit. */
-  const resume=vide?'<b class="id-t muted">Nouvelle aide</b>'
+  const resume=vide?'<b class="id-t muted">'+(L.fem?'Nouvelle aide':'Nouveau protocole')+'</b>'   // A496 : un protocole neuf disait « Nouvelle aide »
     :('<b class="id-t">'+esc(d.title)+'</b>'+(d.code?'<span class="id-c">'+esc(d.code)+'</span>':''));
   /* LE DÉPLIANT NE SE REFERME PAS TOUT SEUL (signalé à l'usage : « une fois rempli, Nouvelle
      fiche se replie automatiquement ? »). L'ouverture d'office se DÉCIDE à l'entrée dans
@@ -17450,6 +17455,7 @@ function editorMetaFieldsHtml(d,prefix,L){
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.library?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.library===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.library&&!myLibraries.some(l=>l.id===d.library)?`<option value="${esc(d.library)}" selected>${esc(libName(d.library)||'Bibliothèque')}</option>`:''}</select></div>`:''}
+    <div class="field"><label>Collections <span class="hint">votre rangement, à vous seul — rien n’est déplacé</span></label><div class="cat-picker" id="collPicker">${collPickerHtml(d)}</div></div>
     <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--f-mono)" maxlength="40"></div>
       <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validatedAt))}" placeholder="MM/AAAA"></div></div>
     <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.library)}</div></details>`;}
@@ -17464,6 +17470,14 @@ function catPickerHtml(d){
   const cur=c?`<button type="button" class="cat-chip-selected" data-catmenu style="--catcol:${safeColor(c.color)}" aria-haspopup="listbox" aria-expanded="false" title="Changer de catégorie"><span class="cat-dot"></span>${esc(c.name)}</button>`
     :`<button type="button" class="cat-chip-selected none" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Choisir une catégorie">Sans catégorie</button>`;
   return cur+`<button type="button" class="cat-chip-other" data-catmenu aria-haspopup="listbox" aria-expanded="false">Autre…</button>`;}
+/* COLLECTIONS DANS L'ÉDITEUR (A496, lot v5.56) : la même rangée que la catégorie — un jeton par collection
+   qui contient le brouillon (« Aucune collection » sinon, neutre) et « Choisir… », qui ouvre LA feuille à cases
+   de l'accueil (`openCollPick`, « ＋ Nouvelle collection… » comprise) sur le seul brouillon. Rien n'est écrit
+   dans le brouillon : une collection est un rangement personnel, lu par `collsOf` — comme à l'accueil. */
+function collPickerHtml(d){const a=collsOf(d.id);
+  const cur=a.length?a.map(c=>`<button type="button" class="cat-chip-selected coll" data-collpick aria-haspopup="menu" aria-expanded="false" title="Changer de collection">${collIc(c)}${esc(c.name)}</button>`).join('')
+    :`<button type="button" class="cat-chip-selected none" data-collpick aria-haspopup="menu" aria-expanded="false" title="Choisir une collection">Aucune collection</button>`;
+  return cur+`<button type="button" class="cat-chip-other" data-collpick aria-haspopup="menu" aria-expanded="false">Choisir…</button>`;}
 /* ═══ MENU ANCRÉ GÉNÉRIQUE (v5.11.0) — le CORPS EXACT de l'ancien `openCatMenu`, extrait ═══════
    Trois usages (éditeur, catégorie et bibliothèque d'une rangée d'atelier) : machinerie unique
    (voile, piège clavier, filtre, retour de focus, aria-expanded) ; DOM et classes INCHANGÉS
@@ -17550,7 +17564,12 @@ function openPickMenu(host,opts){
     if(refocus&&trigger&&document.contains(trigger))trigger.focus();
     if(opts.onClose)opts.onClose();};
   _pickClose=close;
-  const out=e=>{if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
+  /* LE VOILE N'EST PAS « DEHORS » (A497, v5.56, signalé au téléphone : « cliquer à côté pour fermer clique sur
+     l'item en dessous du grisé »). Fermer au `pointerdown` retirait le voile AVANT le `click` du même doigt, qui
+     tombait alors sur la rangée d'accueil ou la carte que le voile couvrait — et l'ouvrait. Le `pointerdown` hors
+     menu ne ferme donc que ce qui est VRAIMENT dehors (menu ancré sans voile, chrome au-dessus du voile) ; un tap sur
+     le voile se ferme à son `click`, que le voile absorbe parce qu'il est encore là pour le recevoir. */
+  const out=e=>{if(e.target===veil)return;if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
   const rows=()=>[...menu.querySelectorAll('.mm-back,.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none');
   const keys=e=>{
     if(e.key==='Escape'){e.stopPropagation();e.preventDefault();close(true);return;}
@@ -17622,6 +17641,10 @@ function bindEditorMetaFields(d,prefix,o){
   // « ＋ Nouvelle catégorie » y ouvre le gestionnaire (même fenêtre que l'accueil).
   {const pick=document.getElementById('catPicker');
    if(pick)pick.querySelectorAll('[data-catmenu]').forEach(b=>b.onclick=()=>openCatMenu(pick,d,o.rerender,b));}
+  // Collections (A496) : la feuille à cases de l'accueil, sur ce seul brouillon ; `ents` passe le brouillon
+  // lui-même — il n'est pas encore dans la liste tant qu'il n'a pas de titre.
+  {const pk=document.getElementById('collPicker');
+   if(pk)pk.querySelectorAll('[data-collpick]').forEach(b=>b.onclick=()=>openCollPick([d.id],{trigger:b,ents:[d],redo:o.rerender}));}
   // Bibliothèque : les catégories sont propres à une bibliothèque — si l'actuelle n'appartient
   // pas à la nouvelle, elle est retirée du brouillon.
   /* K5 (v4.72.0) — LA CONFIRMATION DE PUBLICATION SUIT LE GESTE QUI LA DÉCLENCHE. Elle vivait
@@ -17667,7 +17690,7 @@ function bindEditorExit(cfg){
     await edFlush();
     if(cfg.leaveGC)cfg.leaveGC(d);
     const exists=cfg.list().some(x=>x.id===d.id);
-    if(!exists){await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();if(cfg.onCleanNew)cfg.onCleanNew(d);}
+    if(!exists){await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();collForget(d.id);if(cfg.onCleanNew)cfg.onCleanNew(d);}   // A496 : ses collections aussi
     cfg.clearDraft();state.draftRestored=null;
     if(exists)cfg.openExisting(d.id);else{state.view='library';render();}};
   {const gd=document.getElementById('ghostDrop');if(gd)gd.onclick=async()=>{
@@ -17733,7 +17756,7 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
 async function newProtocol(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
-  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -26203,7 +26226,7 @@ async function newFiche(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
   /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
-  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;state.edTocOpen=false;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;state.edTocOpen=false;if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
