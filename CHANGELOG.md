@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.56.0] — 2026-10-15
+Trois retours d'usage (A496-A497, doctrine `docs/decisions/lot-v5-56.md`). Rien à rejouer côté serveur.
+- **La collection se choisit à la création.** La pancarte d'identité d'une aide ou d'un protocole porte une rangée
+  **Collections**, sous Bibliothèque, dessinée comme la rangée Catégorie : les collections qui contiennent l'aide en
+  jetons (ou « Aucune collection »), puis « Choisir… », qui ouvre la même feuille à cases que l'accueil — Accès
+  direct, vos collections, « ＋ Nouvelle collection… ». Rien n'est écrit dans l'aide : une collection reste votre
+  rangement, à vous seul, et se choisit aussi sur une aide en lecture seule. Créer depuis une collection affichée y
+  range la nouvelle aide (la pancarte le montre, un tap le retire). Un brouillon ne s'épingle toujours pas en Accès
+  direct, même avant sa première frappe ; un brouillon abandonné sans titre ne laisse rien dans vos collections.
+- **« Nouveau protocole »** : la pancarte d'identité d'un protocole neuf disait « Nouvelle aide ».
+- **Au téléphone, toucher à côté d'une feuille ne touche plus ce qu'elle couvrait.** Un tap sur le grisé fermait le
+  sélecteur (catégorie, bibliothèque, collection, actions…) puis atteignait la rangée ou le bouton situé dessous, et
+  l'ouvrait. Le grisé absorbe désormais le tap : la feuille se ferme, et rien d'autre ne bouge.
+
 ## [5.55.1] — 2026-10-08
 Deux retours sur la page Administration (A495, doctrine `docs/decisions/lot-v5-55.md`).
 - **Règles de l'instance** : une seule rangée, « Nouveaux comptes et bibliothèques », qui dit les deux réglages en
@@ -231,20 +245,3 @@ saccadait.
   et laisse la cible nette ; il ne bloque aucun toucher. Il suit le thème clair ou sombre (A467).
 - Le harnais `audit-guide` vérifie ce voile à chaque bulle : il couvre la fenêtre et son ouverture correspond à la
   cible.
-
-## [5.48.0] — 2026-10-05
-L'exercice guidé (A467, doctrine `docs/decisions/lot-v5-48.md`), dernier point de l'audit de prise en main.
-- **Apprendre avec une aide d'exemple, geste par geste.** Sur l'ACR et l'anaphylaxie d'exemple, une carte propose
-  « Commencer le guide » ou « Ne plus proposer ». Le guide lance un exercice et pose une bulle sur la vraie commande
-  de l'écran : démarrer, cocher une étape, lire la capsule, passer au bloc suivant et répondre à la question, ouvrir la
-  revue des causes réversibles, ouvrir une complication puis « Reprendre », horodater, terminer en maintenant 1,2 s.
-  La bulle de la complication explique aussi le jalon (« … quand Chocs délivrés atteint 3 »).
-- On avance en faisant le geste ; « Suivant » quand il n'y a qu'à regarder ; « Passer » et « Quitter le guide » à tout
-  moment, l'exercice continuant seul. Le reste de l'écran s'estompe légèrement et reste utilisable. À la fin, une carte
-  récapitule les gestes et propose de refaire le guide.
-- Le guide n'existe qu'en exercice : jamais pendant une session réelle, rien n'est enregistré comme soin. On le
-  relance par le menu ⋯ de l'aide d'exemple ou par Moi › Prendre en main › « Lancer l'exercice guidé ».
-- **Le guide et « Prendre en main » suivent l'app** : leurs mots et leurs cibles viennent de l'écran et de l'aide.
-  Deux nouveaux garde-fous les vérifient à chaque changement : `check-guide` (libellés cités, commandes visées) et
-  le harnais `audit-guide` (déroulé complet à 390, 1280 et 360 px à 130 %).
-
