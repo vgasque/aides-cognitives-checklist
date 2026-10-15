@@ -52,6 +52,30 @@ rangée présente sur les deux éditeurs, création depuis une collection affich
 rangée, brouillon non épinglé et case qui le dit, jeton repeint à la fermeture, purge à la sortie d'un brouillon sans
 titre.
 
+### Amende v5.56.1 — le menu des collections s'ANCRE dans l'éditeur, comme celui des catégories
+
+**Signalé par l'auteur sur capture** : au bureau, « Choisir… » ouvrait une feuille BASSE centrée en bas de page, là où
+« Autre… » (catégorie) ouvre un menu ancré sous ses jetons. Ce n'était pas un choix : `openPickMenu` gère les deux
+formes et choisit la feuille sous 780 px OU quand l'appelant l'impose ; `openCollPick` l'impose (`sheet:true`) parce
+que ses appelants d'origine — menu ⋯, barre de sélection (A475) — n'ont pas d'ancre. L'éditeur en a une, et le
+forçage n'avait pas été levé.
+
+**Après.** L'éditeur passe son hôte (`#collPicker`), `sheet:false` et `compact:true` ; `openCollPick` respecte
+`o.sheet` quand il est donné. Trois ajustements mesurés sur la capture suivante :
+- **Une coque large** (`.catmenu.wide`, 320-420 px, hauteur 520 bornée par `dvh ÷ zoom`) : celle des catégories
+  (340 × 340) coupait « ＋ Nouvelle collection… » sous le pied « Terminé ».
+- **Titre, contexte et notice RESTENT** (décision de l'auteur : « Ajouter à une collection » et sa définition « à vous
+  seul, rien n'est déplacé » se lisent au moment du geste), resserrés d'un cran dans la coque ancrée (titre 15,
+  contexte et notice 12) — la tête est collante et les rangées doivent rester visibles sous elle. Une première forme
+  sans tête, « comme les catégories », a été ÉCARTÉE.
+- **Un menu ancré tient sous son ancre** : à 1280 × 900, sept collections sous la rangée sortaient de l'écran.
+  `openPickMenu` borne désormais tout menu ancré à l'espace disponible sous lui (même mesure que `fitMoreMenu`,
+  J203 : hauteur visuelle, px CSS ÷ zoom, plancher 180) — vaut pour tous les sélecteurs ancrés, pas seulement
+  celui-ci.
+- **Filtre de texte dès cinq collections** (`seuilFiltre:4`, demande de l'auteur « pour rechercher facilement ») — le
+  mécanisme est celui des catégories (`.catmenu-filter`), qui l'ouvre à partir de neuf ; une collection se cherche
+  par son nom dès qu'il y en a une poignée, et la feuille de l'accueil en profite aussi.
+
 ## A497 — Le voile d'une feuille absorbe le tap (v5.56.0)
 
 **Le défaut, mesuré.** Sous 780 px, un sélecteur (`openPickMenu`) est une feuille basse sous un voile plein écran

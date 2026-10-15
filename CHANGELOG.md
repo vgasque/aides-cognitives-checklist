@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.56.1] — 2026-10-15
+Deux retours de l'auteur sur capture (amende A496, doctrine `docs/decisions/lot-v5-56.md`).
+- **Au bureau, « Choisir… » (Collections) ouvre un menu ancré sous ses jetons**, comme « Autre… » pour la catégorie —
+  il s'ouvrait en feuille au bas de l'écran. Le titre « Ajouter à une collection » et sa définition restent, d'un cran
+  plus serrés ; le menu prend une coque plus large et ne sort plus de l'écran (il se borne à la place disponible sous
+  la rangée, et c'est vrai de tous les menus ancrés).
+- **Un filtre de texte dès cinq collections**, dans le menu de l'éditeur comme dans la feuille de l'accueil, pour
+  retrouver une collection par son nom.
+
 ## [5.56.0] — 2026-10-15
 Trois retours d'usage (A496-A497, doctrine `docs/decisions/lot-v5-56.md`). Rien à rejouer côté serveur.
 - **La collection se choisit à la création.** La pancarte d'identité d'une aide ou d'un protocole porte une rangée
@@ -237,11 +246,3 @@ saccadait.
 - Le guide ne ramène jamais la page vers la cible quand on défile soi-même.
 - Au bureau, la carte se pose dans la colonne d'action, en ligne ; sur un pliable, d'un seul côté de la charnière.
 - `audit-guide` vérifie désormais tout cela, pliable émulé compris.
-
-## [5.48.1] — 2026-10-05
-- **Exercice guidé : tout l'écran s'estompe, sauf la commande visée.** En v5.48.0, seuls certains éléments
-  pâlissaient (les blocs, les touches du quai, la capsule) ; l'en-tête, la bande « Exercice », la ligne « Parcours »,
-  les cartes sous le bloc et la fenêtre de fin restaient nets. Un voile unique, léger, couvre désormais tout l'écran
-  et laisse la cible nette ; il ne bloque aucun toucher. Il suit le thème clair ou sombre (A467).
-- Le harnais `audit-guide` vérifie ce voile à chaque bulle : il couvre la fenêtre et son ouverture correspond à la
-  cible.
