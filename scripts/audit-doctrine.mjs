@@ -7278,6 +7278,7 @@ await sec('ÉDITEUR · A496-A497 collections à la création, « Nouveau protoco
     const el=document.elementFromPoint(out.pt[0],out.pt[1]);out.sous=el?el.className:'';
     out.ouvertAvant=document.querySelector('details.ed-ident').open;
     return out;});
+
   await page.touchscreen.tap(r1.pt[0], r1.pt[1]);
   await page.waitForTimeout(400);
   const r2 = await page.evaluate(async () => {
@@ -7285,6 +7286,11 @@ await sec('ÉDITEUR · A496-A497 collections à la création, « Nouveau protoco
     out.ferme=!document.querySelector('.catmenu.popmenu')&&!document.querySelector('.popmenu-veil');   // `.catmenu` : le menu ⋯ statique est aussi un `.popmenu`, caché
     out.ouvertApres=document.querySelector('details.ed-ident').open;
     out.chip=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
+    // A498 : le menu des catégories dit ce qu'est une catégorie (Perso : le pivot est le nombre, pas « l'équipe ») — APRÈS le tap, pour ne pas fermer la feuille mesurée
+    document.querySelector('#catPicker .cat-chip-other').click();await w(400);
+    out.catTitre=(document.querySelector('.catmenu.popmenu .mm-title')||{}).textContent||'';
+    out.catNotice=(document.querySelector('.catmenu.popmenu .notice')||{}).textContent||'';
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(250);
     const id=state.draft.id;
     document.getElementById('hdrBack').click();await w(800);
     out.purge=colls.every(c=>c.ids.indexOf(id)<0)&&!isPinned(id);out.vue=state.view;
@@ -7303,6 +7309,8 @@ await sec('ÉDITEUR · A496-A497 collections à la création, « Nouveau protoco
     /popmenu-veil/.test(r1.sous)&&r1.ferme1&&r2.ferme&&r1.ouvertAvant===true&&r2.ouvertApres===true,
     JSON.stringify({sous:r1.sous,ferme:r2.ferme,avant:r1.ouvertAvant,apres:r2.ouvertApres}));
   t('390px · fermer la feuille repeint la pancarte (le jeton suit la collection)', /Garde SMUR/.test(r2.chip), r2.chip);
+  t('390px · A498 : le menu des catégories a un titre et une définition d’une ligne — Perso sans « équipe », renvoi aux collections',
+    r2.catTitre==='Choisir la catégorie'&&/Une seule par aide/.test(r2.catNotice)&&!/équipe/.test(r2.catNotice)&&/plusieurs collections/.test(r2.catNotice), JSON.stringify([r2.catTitre,r2.catNotice]));
   t('390px · quitter un brouillon sans titre le retire des collections (aucun « indisponible » fantôme)',
     r2.purge===true&&r2.vue==='library', JSON.stringify([r2.purge,r2.vue]));
   await page.close();

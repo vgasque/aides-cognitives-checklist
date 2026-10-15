@@ -52,6 +52,30 @@ rangée présente sur les deux éditeurs, création depuis une collection affich
 rangée, brouillon non épinglé et case qui le dit, jeton repeint à la fermeture, purge à la sortie d'un brouillon sans
 titre.
 
+### Amende v5.56.1 — le menu des collections s'ANCRE dans l'éditeur, comme celui des catégories
+
+**Signalé par l'auteur sur capture** : au bureau, « Choisir… » ouvrait une feuille BASSE centrée en bas de page, là où
+« Autre… » (catégorie) ouvre un menu ancré sous ses jetons. Ce n'était pas un choix : `openPickMenu` gère les deux
+formes et choisit la feuille sous 780 px OU quand l'appelant l'impose ; `openCollPick` l'impose (`sheet:true`) parce
+que ses appelants d'origine — menu ⋯, barre de sélection (A475) — n'ont pas d'ancre. L'éditeur en a une, et le
+forçage n'avait pas été levé.
+
+**Après.** L'éditeur passe son hôte (`#collPicker`), `sheet:false` et `compact:true` ; `openCollPick` respecte
+`o.sheet` quand il est donné. Trois ajustements mesurés sur la capture suivante :
+- **Une coque large** (`.catmenu.wide`, 320-420 px, hauteur 520 bornée par `dvh ÷ zoom`) : celle des catégories
+  (340 × 340) coupait « ＋ Nouvelle collection… » sous le pied « Terminé ».
+- **Titre, contexte et notice RESTENT** (décision de l'auteur : « Ajouter à une collection » et sa définition « à vous
+  seul, rien n'est déplacé » se lisent au moment du geste), resserrés d'un cran dans la coque ancrée (titre 15,
+  contexte et notice 12) — la tête est collante et les rangées doivent rester visibles sous elle. Une première forme
+  sans tête, « comme les catégories », a été ÉCARTÉE.
+- **Un menu ancré tient sous son ancre** : à 1280 × 900, sept collections sous la rangée sortaient de l'écran.
+  `openPickMenu` borne désormais tout menu ancré à l'espace disponible sous lui (même mesure que `fitMoreMenu`,
+  J203 : hauteur visuelle, px CSS ÷ zoom, plancher 180) — vaut pour tous les sélecteurs ancrés, pas seulement
+  celui-ci.
+- **Filtre de texte dès cinq collections** (`seuilFiltre:4`, demande de l'auteur « pour rechercher facilement ») — le
+  mécanisme est celui des catégories (`.catmenu-filter`), qui l'ouvre à partir de neuf ; une collection se cherche
+  par son nom dès qu'il y en a une poignée, et la feuille de l'accueil en profite aussi.
+
 ## A497 — Le voile d'une feuille absorbe le tap (v5.56.0)
 
 **Le défaut, mesuré.** Sous 780 px, un sélecteur (`openPickMenu`) est une feuille basse sous un voile plein écran
@@ -78,3 +102,31 @@ dans les deux cas la couche reçoit le clic qui la ferme. Les trois autres `poin
 un `click()` programmatique qui n'aurait rien prouvé) ; `elementFromPoint` atteste que le voile est bien sous le
 point ; la feuille est fermée ET le dépliant d'identité toujours ouvert. Vérifié ROUGE sur l'ancien gestionnaire
 (dépliant refermé), vert après.
+
+## A498 — Le menu des catégories dit ce qu'est une catégorie (v5.56.2)
+
+**Demande de l'auteur**, après la définition des deux notions (« une catégorie est une propriété de l'aide, une
+collection est un rangement de la personne ») : « pourquoi ne pas ajouter cette information dans les fenêtres de
+sélection de catégories ? ». Le menu des catégories datait d'avant les feuilles à tête (A480) et n'avait jamais été
+repris : rangées nues, sans titre ni contexte.
+
+**Après.** `openCatMenu` prend la tête d'`openPickMenu` comme la feuille des collections : titre « Choisir la
+catégorie », contexte « titre · bibliothèque », et une définition d'UNE ligne (ce menu s'ouvre souvent — une
+notice de trois lignes, première forme montrée, a été RACCOURCIE à la demande de l'auteur) :
+
+> Bibliothèque partagée : « Une seule par aide, avec sa couleur, vue par toute l'équipe de « SAMU 31 ». Pour un
+> rangement à vous seul : les collections. »
+> Perso : « Une seule par aide, avec sa couleur, pour classer l'accueil. Une aide peut être dans plusieurs
+> collections. »
+
+**La phrase change de PIVOT selon la bibliothèque** (quatre relevés de l'auteur sur les formes successives) : « vue
+par tous les membres de Perso » était faux, Perso n'a pas de membres ; « rangement personnel : les collections »
+n'opposait plus rien dans Perso, où tout est déjà personnel ; « écrite dans l'aide » parle à qui connaît le modèle,
+pas à qui range ses aides ; « c'est son rayon » est une image, pas une explication (A1 retenue parmi trois
+propositions : la phrase dit ce que la catégorie FAIT — classer l'accueil — et ce qu'une collection permet —
+plusieurs par aide). Dans une bibliothèque partagée, ce qui distingue la
+collection est la PROPRIÉTÉ (à vous seul) ; dans Perso, c'est le NOMBRE (une catégorie, plusieurs listes). Coque
+`.catmenu.wide` dès 780 (la tête ne tenait pas dans celle de 340), feuille au téléphone, inchangée.
+
+**Témoin.** Section « ÉDITEUR · A496-A497 … » : titre présent, notice d'une ligne sans « équipe » sur Perso, renvoi
+aux collections.
