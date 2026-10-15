@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.56.2] — 2026-10-15
+Le menu des catégories dit ce qu'est une catégorie (A498, doctrine `docs/decisions/lot-v5-56.md`).
+- **« Choisir la catégorie »** prend la même tête que la feuille des collections : titre, l'aide et sa bibliothèque,
+  et une définition d'une ligne qui dit ce qui la distingue d'une collection. Dans une bibliothèque partagée :
+  « Une seule par aide, avec sa couleur, vue par toute l'équipe de « SAMU 31 ». Pour un rangement à vous seul : les
+  collections. » Dans Perso, où tout est déjà personnel : « Une seule par aide, avec sa couleur, pour classer
+  l'accueil. Une aide peut être dans plusieurs collections. »
+
 ## [5.56.1] — 2026-10-15
 Deux retours de l'auteur sur capture (amende A496, doctrine `docs/decisions/lot-v5-56.md`).
 - **Au bureau, « Choisir… » (Collections) ouvre un menu ancré sous ses jetons**, comme « Autre… » pour la catégorie —
@@ -231,18 +239,3 @@ Deux retouches de l'éditeur des références signalées à l'usage (A468, doctr
   aide » prend le dessin du mode Exercice : fond hachuré bleu pâle, bord en pointillé, titre et bouton en bleu —
   comme la bande d'exercice et la touche « ▲ Exercice ». Elle se distingue des cartes de l'aide en clair comme en
   sombre ; « Démarrer la session » reste le seul bouton plein de l'écran (A467).
-
-## [5.48.2] — 2026-10-05
-Retour d'essai sur iPhone de l'exercice guidé (A467) : la bulle cachait ce que le geste ouvrait, et le défilement
-saccadait.
-- **La bulle devient une carte fixe au-dessus du quai.** Elle ne suit plus la page, donc plus de saccade ; la commande
-  visée se montre par son anneau. La page réserve sa hauteur en bas : on peut toujours défiler jusqu'à la dernière ligne.
-- **Plus rien de caché.** Le volet des minuteurs s'arrête au-dessus de la carte (et défile). Pour « Cochez les étapes
-  restantes », aucune bulle ni anneau devant les cases : toutes les cases libres sont amenées en vue, puis l'anneau
-  se pose sur « Continuer » quand il est prêt. Dans une complication, la carte dit où l'on est et que le bloc quitté
-  attend, coches gardées.
-- **La capsule s'apprend par la main** au téléphone : l'ouvrir, puis la refermer.
-- **▾ réduit la carte** en une pastille « ▲ Guide 4/8 » pour voir tout l'écran ; un toucher la rouvre.
-- Le guide ne ramène jamais la page vers la cible quand on défile soi-même.
-- Au bureau, la carte se pose dans la colonne d'action, en ligne ; sur un pliable, d'un seul côté de la charnière.
-- `audit-guide` vérifie désormais tout cela, pliable émulé compris.

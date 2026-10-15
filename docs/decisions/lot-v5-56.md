@@ -102,3 +102,31 @@ dans les deux cas la couche reçoit le clic qui la ferme. Les trois autres `poin
 un `click()` programmatique qui n'aurait rien prouvé) ; `elementFromPoint` atteste que le voile est bien sous le
 point ; la feuille est fermée ET le dépliant d'identité toujours ouvert. Vérifié ROUGE sur l'ancien gestionnaire
 (dépliant refermé), vert après.
+
+## A498 — Le menu des catégories dit ce qu'est une catégorie (v5.56.2)
+
+**Demande de l'auteur**, après la définition des deux notions (« une catégorie est une propriété de l'aide, une
+collection est un rangement de la personne ») : « pourquoi ne pas ajouter cette information dans les fenêtres de
+sélection de catégories ? ». Le menu des catégories datait d'avant les feuilles à tête (A480) et n'avait jamais été
+repris : rangées nues, sans titre ni contexte.
+
+**Après.** `openCatMenu` prend la tête d'`openPickMenu` comme la feuille des collections : titre « Choisir la
+catégorie », contexte « titre · bibliothèque », et une définition d'UNE ligne (ce menu s'ouvre souvent — une
+notice de trois lignes, première forme montrée, a été RACCOURCIE à la demande de l'auteur) :
+
+> Bibliothèque partagée : « Une seule par aide, avec sa couleur, vue par toute l'équipe de « SAMU 31 ». Pour un
+> rangement à vous seul : les collections. »
+> Perso : « Une seule par aide, avec sa couleur, pour classer l'accueil. Une aide peut être dans plusieurs
+> collections. »
+
+**La phrase change de PIVOT selon la bibliothèque** (quatre relevés de l'auteur sur les formes successives) : « vue
+par tous les membres de Perso » était faux, Perso n'a pas de membres ; « rangement personnel : les collections »
+n'opposait plus rien dans Perso, où tout est déjà personnel ; « écrite dans l'aide » parle à qui connaît le modèle,
+pas à qui range ses aides ; « c'est son rayon » est une image, pas une explication (A1 retenue parmi trois
+propositions : la phrase dit ce que la catégorie FAIT — classer l'accueil — et ce qu'une collection permet —
+plusieurs par aide). Dans une bibliothèque partagée, ce qui distingue la
+collection est la PROPRIÉTÉ (à vous seul) ; dans Perso, c'est le NOMBRE (une catégorie, plusieurs listes). Coque
+`.catmenu.wide` dès 780 (la tête ne tenait pas dans celle de 340), feuille au téléphone, inchangée.
+
+**Témoin.** Section « ÉDITEUR · A496-A497 … » : titre présent, notice d'une ligne sans « équipe » sur Perso, renvoi
+aux collections.
