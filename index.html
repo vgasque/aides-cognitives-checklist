@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-EaiArmk3VThfhJY6CPDzfBAMzzyO6wsOnJBawgUxnBg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zVFebYca3N1bGrilePo7qszl5+ZOfrIIhH5EHfUCH+Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2123,10 +2123,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la couleur n'est jamais seule : buste plein/contour + chip texte du pied de page. */
   .acct-dot{position:absolute;right:2px;bottom:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--work);background:var(--ok)}
   /* Synchro EN COURS : la pastille devient un anneau tournant (indicateur d'activité, registre
-     INFO — mouvement = « ça travaille », jamais une alerte). Un seul endroit, constant, dans
-     toutes les vues ; en crise le bouton Compte est masqué (body.crisis-live) -> aucun signal
-     non actionnable pendant un soin. Piloté par setSyncChip (source unique), zéro JS ajouté. */
-  .acct-dot.busy{background:transparent;border:2px solid var(--line);border-top-color:var(--act);animation:spin .8s linear infinite}
+     INFO — mouvement = « ça travaille », jamais une alerte). DEUX sites, une porte (A500) : le
+     bouton Compte de l'en-tête, et l'avatar « Moi » de la colonne de l'accueil ≥ 780 — l'en-tête
+     n'y a plus de bouton Compte depuis A351, et la pastille y manquait ; en crise le bouton
+     Compte est masqué (body.crisis-live) -> aucun signal non actionnable pendant un soin.
+     Piloté par setSyncChip (source unique). Anneau en `--line-strong` (A500) : en `--line`, la
+     nuit, il se fondait dans l'avatar. */
+  .acct-dot.busy{background:transparent;border:2px solid var(--line-strong);border-top-color:var(--act);animation:spin .8s linear infinite}
   .acct-dot.err{background:var(--crit)}.acct-dot.off{background:var(--line-strong)}
   .acct-dot.pending{background:var(--warn)}.acct-dot.rejected{background:var(--crit)}
   main{flex:1;padding:18px}
@@ -6248,6 +6251,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      les rangées comparables — les trois font 32, gap 0, et le seul écart sépare les registres. */
   footer.tools .tools-status{padding:0 12px;min-height:32px}
   footer.tools .tools-status:has(.sync-chip[hidden]){padding-left:32px}
+  /* A499 (essai) : la synthèse « Tout est prêt » porte DÉJÀ la version (A272) — dépliée, la rangée d'état la
+     répétait (« ✓ Synchronisé v5.56.0 » sous « Tout est prêt v5.56.0 »), et sans compte elle ne contenait plus
+     que ce doublon sur une rangée de 32 px. Sous une synthèse visible : la version se tait, et la rangée sans
+     état disparaît. Sans synthèse (erreur, attente), la version reste et se cale à droite, comme un cachet. */
+  footer.tools:has(#footSum:not([hidden])) #count{display:none}
+  footer.tools:has(#footSum:not([hidden])) .tools-status:has(.sync-chip[hidden]){display:none}
+  footer.tools .tools-status #count{margin-left:auto}
   footer.tools .sync-chip{background:none;padding:0;border-radius:0;gap:6px;line-height:1.4}
   footer.tools .sync-chip.off{background:none}
   footer.tools .sync-chip.ok{background:none}
@@ -7500,7 +7510,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .hs-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
     .hs-n{font-family:var(--f-mono)}
     .home-side .cat-dot{border-radius:3px}
-    .hs-avatar{width:22px;height:22px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+    .hs-avatar{position:relative;width:22px;height:22px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+    .hs-avatar>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}   /* A500 : la pastille de l'en-tête, à l'échelle d'un avatar de 22 */
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
     body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
     /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
@@ -9169,7 +9180,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.56.2';
+const APP_VERSION='5.57.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15003,7 +15014,7 @@ function homeSideHtml(){
       <nav class="hs-nav" aria-label="Sections">
         ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),attrs:'data-navaides'+cur('aides')})}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist'+cur('sessions')})}
-        ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
+        ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
       <div class="hs-h">${seule?'Bibliothèque':'Bibliothèques'}<span class="hs-hs">avec qui</span>${!seule&&mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
       <div class="hs-sep"></div>
@@ -28291,6 +28302,9 @@ function setSyncChip(state,text){
   // Pastille d'état sur l'icône Compte de l'en-tête (présence + état de synchro), discrète.
   const dot=document.getElementById('acctDot'),top=document.getElementById('acctTop');
   if(dot){dot.hidden=!Auth.signedIn();dot.className='acct-dot '+(state||'ok');}
+  /* A500 : l'accueil ≥ 780 n'a pas de bouton Compte dans l'en-tête (A351) — « Moi » vit dans la colonne, et son
+     avatar porte la MÊME pastille, peinte ici, par la même porte, au même état. */
+  document.querySelectorAll('.hs-avatar>.acct-dot').forEach(d=>{d.className='acct-dot '+(state||'ok');});
   if(top)top.classList.toggle('on',Auth.signedIn());
   // Initiales du compte (2 premières lettres du mail, en capitales) quand connecté.
   {const ini=document.getElementById('acctIni');if(ini){const u=Auth.user();const em=(u&&u.email||'').trim();

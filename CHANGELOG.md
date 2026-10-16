@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.57.0] — 2026-10-16
+Deux retours de l'auteur sur la pastille du compte et le pied « Tout est prêt » (A499-A500, doctrine
+`docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
+- **« Tout est prêt » déplié ne répète plus la version.** La première rangée du dépliant redisait « v5.56.0 » juste
+  sous la synthèse qui le porte déjà ; sans compte elle ne contenait plus que ce doublon. Sous une synthèse visible
+  la version se tait et la rangée vide disparaît ; en erreur ou en attente (synthèse cachée) la version reste,
+  calée à droite.
+- **La pastille du compte est aussi sur « Moi » de la colonne, au bureau.** Depuis la refonte v5, l'accueil large
+  n'a plus de bouton Compte dans l'en-tête : l'état de synchronisation n'y était plus visible. L'avatar à initiales de
+  la colonne porte désormais la même pastille (synchronisé, en cours, erreur, en attente), peinte par la même
+  porte que l'en-tête.
+- **L'anneau « en cours » se voit la nuit** : trait renforcé sur les deux sites.
 ## [5.56.2] — 2026-10-15
 Le menu des catégories dit ce qu'est une catégorie (A498, doctrine `docs/decisions/lot-v5-56.md`).
 - **« Choisir la catégorie »** prend la même tête que la feuille des collections : titre, l'aide et sa bibliothèque,
@@ -234,8 +246,3 @@ Deux retouches de l'éditeur des références signalées à l'usage (A468, doctr
 - **Exercice guidé, « Cochez les étapes restantes » :** le bloc en cours reste entièrement net, sans anneau, et le
   reste de l'écran (en-tête, capsule, quai) s'estompe — on voit d'un coup d'œil où cocher (A467).
 
-## [5.48.3] — 2026-10-06
-- **La proposition d'exercice guidé saute aux yeux.** Sur les aides d'exemple, la rangée « Apprendre avec cette
-  aide » prend le dessin du mode Exercice : fond hachuré bleu pâle, bord en pointillé, titre et bouton en bleu —
-  comme la bande d'exercice et la touche « ▲ Exercice ». Elle se distingue des cartes de l'aide en clair comme en
-  sombre ; « Démarrer la session » reste le seul bouton plein de l'écran (A467).
