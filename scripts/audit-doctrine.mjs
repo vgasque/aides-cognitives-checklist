@@ -7077,6 +7077,46 @@ for (const W of [390, 1200]) {
    Une bibliothèque vide se voit dans la colonne ; le retour d'une aide repose la liste là où on l'a
    laissée À TOUTE LARGEUR (dès 780 px elle défile dans `.home-main`, window.scrollY y vaut 0) ;
    « Terminer la session » ramène en haut, où est la carte-bilan ; « Tout » remet les collections à zéro. */
+/* ══ A499-A500 — LE PIED NE RÉPÈTE PLUS LA VERSION, LA PASTILLE DU COMPTE SUIT L'AVATAR DE LA COLONNE ═════
+   Compte SIMULÉ (Auth.signedIn/user surchargés dans la page, setSyncChip appelé — la vraie porte). Sous une synthèse
+   « Tout est prêt » visible, la rangée d'état ne montre plus la version (déjà dans la synthèse) ; sans compte elle
+   disparaît ; en erreur (synthèse cachée) la version reste. L'avatar « Moi » de la colonne porte la pastille, au même
+   état que l'en-tête, repeinte par setSyncChip ; l'anneau « en cours » est en --line-strong. */
+await sec('ACCUEIL · A499-A500 pied sans version en double, pastille du compte en colonne', async () => {
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    const vis=el=>!!el&&getComputedStyle(el).display!=='none'&&!el.hidden;
+    // sans compte, synthèse ouverte : la rangée d'état (chip cachée + version) n'existe pas à l'écran
+    _attSum.off=0;_attSum.idx=0;syncFootSum();await w(80);
+    const b=document.getElementById('footMore');if(b&&b.getAttribute('aria-expanded')!=='true')b.click();await w(150);
+    out.sansCompte={statusRow:vis(document.querySelector('footer.tools .tools-status')),count:vis(document.getElementById('count')),sum:vis(document.getElementById('footSum'))};
+    // compte simulé, synchronisé : la chip se voit, la version se tait
+    Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});setSyncChip('ok','Synchronisé');render();await w(300);
+    _attSum.off=0;_attSum.idx=0;syncFootSum();await w(80);
+    {const b2=document.getElementById('footMore');if(b2&&b2.getAttribute('aria-expanded')!=='true')b2.click();await w(150);}
+    out.ok={chip:vis(document.getElementById('syncChip')),count:vis(document.getElementById('count')),sum:vis(document.getElementById('footSum'))};
+    const colDot=()=>document.querySelector('.home-side .hs-avatar>.acct-dot');
+    out.colOk=colDot()?colDot().className:'absent';
+    // erreur : synthèse cachée, version visible, pastille de colonne en erreur
+    setSyncChip('err','Erreur de synchronisation');await w(150);
+    out.err={sum:vis(document.getElementById('footSum')),count:vis(document.getElementById('count')),col:colDot()?colDot().className:'absent'};
+    // en cours : anneau en --line-strong
+    setSyncChip('busy','Synchronisation…');await w(100);
+    const d=colDot();const cs=d?getComputedStyle(d):null;const strong=getComputedStyle(document.documentElement).getPropertyValue('--line-strong').trim();
+    out.busy={col:d?d.className:'absent',border:cs?cs.borderLeftColor:'',strong,strongRgb:(()=>{const t=document.createElement('span');t.style.color=strong;document.body.appendChild(t);const c=getComputedStyle(t).color;t.remove();return c;})()};
+    return out;});
+  t('1280px · sans compte, synthèse ouverte : aucune rangée d’état vide (ni chip, ni version isolée)', r.sansCompte.sum&&!r.sansCompte.statusRow&&!r.sansCompte.count, JSON.stringify(r.sansCompte));
+  t('1280px · connecté et synchronisé : la chip se voit, la version ne se répète pas sous « Tout est prêt »', r.ok.sum&&r.ok.chip&&!r.ok.count, JSON.stringify(r.ok));
+  t('1280px · A500 : l’avatar « Moi » de la colonne porte la pastille, à l’état de l’en-tête', /acct-dot ok/.test(r.colOk), r.colOk);
+  t('1280px · erreur : la synthèse se cache, la version reste, la pastille de colonne passe en erreur', !r.err.sum&&r.err.count&&/acct-dot err/.test(r.err.col), JSON.stringify(r.err));
+  t('1280px · en cours : l’anneau de la pastille est tracé en --line-strong', /busy/.test(r.busy.col)&&r.busy.border===r.busy.strongRgb, JSON.stringify(r.busy));
+  await page.close();
+});
+
 await sec('ACCUEIL · A490-A493 bibliothèque vide, position au retour, « Tout » des collections', async () => {
 for (const W of [390, 1280]) {
   const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
