@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A516** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A517** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -140,6 +140,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A514 | `lot-v6-0.md` | Lot 2 de la refonte, outillage : `audit-verre` (contraste au pixel sous capsule et quai), `audit-retour` au téléphone, crans 34/28 du titre de page admis pour `.pg-ttl` seul |
 | A515 | `lot-v6-0.md` | Lot 3 de la refonte (v5.58.0) : cases rondes partout (36 px en session, jauge en rond plus grand) ; accueil en rangées groupées, plus de liseré, épinglées en premier groupe (renverse A261, tuiles purgées) |
 | A516 | `lot-v6-0.md` | Lot 3 réaligné sur la maquette (v5.58.1) : point de catégorie 10 px en tête, sous-ligne « Aide · SMUR · adulte · △ À relire », rangée 52 px, filet au texte, groupes sans bord, intertitres en phrase ; amende A338 (nature en minuscules, état à la suite) et A422 (état sans aplat) |
+| A517 | `lot-v6-0.md` | Lot 4 de la refonte (v5.59.0) : au téléphone, barre d'onglets flottante (Aides · Sessions · Moi + recherche), Sessions/Moi en onglets sans niveau de retour, rangée du haut (Sélectionner, Créer) et grand titre 34 qui se replie, champ et pastilles de filtre ; en large, titre 28 ; le titre précède l'Accès direct |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -10,6 +10,12 @@
          étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
+      <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
+    </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée

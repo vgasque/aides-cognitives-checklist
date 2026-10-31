@@ -311,3 +311,51 @@ maquette) ; l'état suit l'identité en vue détaillée. **Amende A422** : l'ét
 maquette, soumis à l'auteur** : la maquette n'écrivait pas « Aide » (toutes ses rangées étaient des aides).
 
 *Forme écartée* : garder le point dans la sous-ligne hors sélection (v5.58.0) — elle contredisait A506.
+
+## A517 — Lot 4 de la refonte : la navigation du téléphone (v5.59.0)
+
+Implémente A504 et A505 d'après la maquette « trois directions » (A · Natif, accueil téléphone et tablette),
+avec les arbitrages d'A510 §2-§3.
+
+**Au téléphone en portrait (< 780 px, hors paysage bas)** — `tabNavOn()`, classe `html.tabnav` :
+- **Barre d'onglets flottante en bas** : Aides · Sessions · Moi (icône + mot ; « Moi » porte les initiales et la
+  pastille du compte, A500 ; Sessions un point vert quand une session tourne, comme la colonne), et la
+  **recherche dans un rond** à droite. Matière : verre ≈ 90 % (`--glass`, A510 §1), repli opaque sans
+  `backdrop-filter` et sous `prefers-reduced-transparency`. Elle se retire en sélection (le tiroir « Actions »
+  prend le bas, A476).
+- **Sessions et Moi deviennent des ONGLETS** : la même vue que la colonne large (`renderHomeTab`), plus des
+  page-fenêtres. **Un onglet n'est pas un niveau de retour** (A510 §2). Administration, ouverte depuis Moi, RESTE
+  une page-fenêtre au téléphone (un niveau, son dessin de la v5.55.1 : retour au-dessus du titre, titre = section). Retaper l'onglet courant remonte en haut. Depuis une aide, Moi et Sessions restent des fenêtres
+  (l'accueil n'est pas à l'écran).
+- **La rangée d'en-tête de l'accueil disparaît** (marque, Sessions, Créer, Moi) : « Sélectionner » à gauche et
+  « ＋ Créer » à droite montent dans une **rangée du haut collante** de 52 px, au-dessus du **grand titre de
+  34 px** (28 sous 360 px effectifs) qui est du contenu. Titre sorti par le haut, la rangée prend le petit titre
+  de 17,5 sur fond de verre (`.pg-top.stuck`, IntersectionObserver) — la rangée ne change jamais de hauteur (C16).
+- **Champ de recherche sous le titre**, puis **filtres en pastilles** : Tout · n, Accès direct, les collections,
+  les catégories (point + nom). Les pastilles écrivent les mêmes crans que la colonne (`state.coll`, `state.cat`)
+  et lisent la même liste de catégories (`homeCatGroups`, extraite de `homeSideHtml`). La rangée « Mes
+  collections » du téléphone s'efface : les pastilles la remplacent.
+- **Rechercher** : le rond (ou le champ sous le titre) fait paraître le dock de recherche existant (#homeDock,
+  sa mécanique de clavier A192-A197 intacte) à la place de la barre ; champ vidé et quitté → la barre revient.
+- **« Affichage »** (ranger, densité, catégories) monte sur la ligne du compte : au téléphone, sa porte était le
+  bouton rond du dock, qui n'est plus là hors recherche.
+
+**En large (≥ 780) et téléphone tourné** : le grand titre de **28 px** « Aides » ouvre la ligne du compte (maquette
+tablette) ; la colonne gauche ne change pas.
+
+**Feuilles du bas (A508)** : au téléphone, « Créer » (une page plein écran jusqu'ici) et « Affichage » (une fenêtre
+centrée) deviennent des feuilles du bas à poignée, la grammaire de « Réglages de l'étape » et du menu ⋯ (A361) ; ✕,
+le voile (A497) et la poignée TIRÉE vers le bas les ferment (`bindSheetDrag`, aussi sur « Réglages de l'étape »).
+Un choix ne prend toujours pas toute la hauteur (92 % au plus).
+
+**Pour tous** : la ligne du titre précède désormais le groupe « Accès direct » (avant : l'accès direct d'abord,
+v5.19.1) — la maquette ouvre la page sur son titre.
+
+**Pas encore fait (dit, pas tu)** : la colonne gauche du téléphone tourné (A513 §2 — il garde l'en-tête d'avant) ;
+le dessin Natif de Moi et de Sessions (maquette « écran par écran » : lot des surfaces) ; le menu ⋯ ancré en large
+avec son voile (A510 §5) ; le groupe « En cours » (A510 §6).
+
+*Témoins réécrits sciemment* : `audit-retour` à 390 px (annoncé par A514) — Sessions et Moi sont des onglets sans
+niveau, Administration une fenêtre d'un niveau qui ramène à l'onglet Moi ; `audit-doctrine` — la marque est absente de l'accueil en portrait et mesurée au téléphone tourné, la feuille de
+filtres s'éprouve recherche ouverte, les page-fenêtres Compte/Sessions s'ouvrent depuis une aide. La barre de
+navigation s'appelle `#tabNav` : `#tabBar` reste le nom PURGÉ de l'ancienne barre de filtre par type (M4).

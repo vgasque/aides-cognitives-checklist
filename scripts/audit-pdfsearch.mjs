@@ -16,7 +16,7 @@
  * Le PDF de test est FABRIQUÉ ici (une trentaine de lignes, xref calculé) : dépendre d'un
  * fichier binaire commité rendrait le harnais opaque, et le dépôt n'en sert aucun.
  */
-import { serveApp, moteur, NOM_MOTEUR, amorce } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce, remplir } from './harness.mjs';
 
 /* Un PDF minimal, deux pages, texte Helvetica — de quoi exercer getTextContent pour de vrai.
    Les offsets de la table xref sont calculés, pas devinés : pdf.js sait reconstruire un xref
@@ -149,7 +149,7 @@ try {
      la file d'indexation part au repos, plafond 2,5 s). On garde ces 10 s pour ne rien affaiblir. */
   await page.waitForTimeout(10000);
   const pdfAvant = await page.evaluate(() => _pdfjs === null);
-  await page.fill('#q', 'anterolaterale');
+  await remplir(page, 'anterolaterale');
   await page.waitForFunction(() => document.querySelectorAll('.doc-hit').length > 0, null, { timeout: 5000 })
     .catch(() => {});
   const hit = await page.evaluate(() => {
@@ -182,24 +182,24 @@ try {
     'pdf.js n’est PAS chargé par la frappe (1 773 Ko, règle 13)');
 
   // Un mot de la SECONDE page : la granularité par page est ce qui rend le résultat utile.
-  await page.fill('#q', 'remplissage');
+  await remplir(page, 'remplissage');
   await page.waitForTimeout(300);
   const pg2 = await page.evaluate(() => { const b = document.querySelector('.doc-hit'); return b ? b.dataset.docpg : null; });
   t(pg2 === '2', 'un mot de la 2ᵉ page renvoie à la page 2', String(pg2));
 
   // Conjonction : les deux mots ne sont sur AUCUNE page commune -> aucun document.
-  await page.fill('#q', 'anterolaterale remplissage');
+  await remplir(page, 'anterolaterale remplissage');
   await page.waitForTimeout(300);
   t(await page.evaluate(() => document.querySelectorAll('.doc-hit').length === 0),
     'deux mots de pages différentes ne rendent aucun document (ET logique)');
 
   // Un mot absent : ni faux positif, ni erreur.
-  await page.fill('#q', 'zzintrouvable');
+  await remplir(page, 'zzintrouvable');
   await page.waitForTimeout(300);
   t(await page.evaluate(() => document.querySelectorAll('.doc-hit').length === 0), 'un mot absent ne rend rien');
 
   sec('ouvrir le document à la page');
-  await page.fill('#q', 'remplissage');
+  await remplir(page, 'remplissage');
   await page.waitForFunction(() => document.querySelectorAll('.doc-hit').length > 0, null, { timeout: 5000 });
   await page.click('.doc-hit');
   await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 });
@@ -227,8 +227,8 @@ try {
   /* Le mot « remplissage » ne vit QUE dans le PDF : la fiche doit pourtant sortir dans la liste
      (v5.3.0 — le document qui correspond fait correspondre son porteur), avec l'extrait « dans
      ‹nom› · p. n ». */
-  await page.fill('#q', '');
-  await page.fill('#q', 'remplissage');
+  await remplir(page, '');
+  await remplir(page, 'remplissage');
   await page.waitForTimeout(400);
   const listeDoc = await page.evaluate(() => ({
     rangees: document.querySelectorAll('.dir-row').length,
@@ -239,7 +239,7 @@ try {
   t(/p\. 2/.test(listeDoc.snip) && /proto/.test(listeDoc.snip), 'son extrait dit le document et la page', listeDoc.snip);
 
   // Le champ de la feuille « Toute la fiche » couvre les documents joints de la fiche.
-  await page.fill('#q', '');
+  await remplir(page, '');
   await page.evaluate(() => { const c = [...document.querySelectorAll('.card-open')].find(x => /Anaphylaxie/i.test(x.textContent)); c.click(); });
   await page.waitForFunction(() => document.body.classList.contains('view-read'));
   await page.evaluate(() => { const b = document.getElementById('allBtn'); if (!b) throw new Error('allBtn absent'); b.click(); });
@@ -348,8 +348,8 @@ try {
   await page.evaluate(() => ixResetAll());
   await page.waitForFunction(id => attIx.has(id), attId, { timeout: 30000 }).catch(() => {});
   t(await page.evaluate(id => attIx.has(id), attId), 'ixResetAll() reconstruit l’index');
-  await page.fill('#q', '');
-  await page.fill('#q', 'remplissage');
+  await remplir(page, '');
+  await remplir(page, 'remplissage');
   await page.waitForTimeout(400);
   t(await page.evaluate(() => document.querySelectorAll('.doc-hit').length === 1),
     '… et la recherche retrouve le document après réindexation');

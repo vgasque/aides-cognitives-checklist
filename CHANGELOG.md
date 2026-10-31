@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.59.0] — 2026-10-31
+Lot 4 de la refonte « Natif » : la navigation du téléphone (A517, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Une barre d'onglets en bas au téléphone** : Aides · Sessions · Moi, et la recherche dans un rond à droite. Elle
+  flotte en verre, comme les barres d'iOS. « Moi » porte vos initiales et l'état de la synchronisation.
+- **Sessions et Moi sont des onglets**, plus des fenêtres qui s'ouvrent par-dessus : le retour du téléphone ne les
+  referme plus (on change d'onglet), seule Administration, ouverte depuis Moi, se referme par le retour.
+- **Un grand titre « Aides »** en tête de page, qui se replie dans la barre du haut quand on fait défiler.
+  « Sélectionner » est en haut à gauche, « ＋ Créer » en haut à droite.
+- **Les filtres sont des pastilles** sous le champ de recherche : Tout, Accès direct, vos collections, vos
+  catégories. « Affichage » (ranger, densité) est sur la ligne du compte.
+- **« Créer » et « Affichage » s'ouvrent en feuille du bas** qu'on referme en la tirant vers le bas (ou ✕).
+- Sur tablette et ordinateur, le titre « Aides » ouvre la liste, avant le groupe « Accès direct ».
+- Téléphone tourné : rien ne change encore (la colonne gauche viendra plus tard).
+
 ## [5.58.1] — 2026-10-31
 Le lot 3 de la refonte « Natif » remis sur la maquette (A516, doctrine `docs/decisions/lot-v6-0.md`) : la v5.58.0
 s'en écartait. Rien à rejouer côté serveur.
@@ -257,12 +272,3 @@ L'étape qui attend un seuil dit enfin ce qui est compté et quand sa case s'ouv
   minuteur tournait) : la tuile cède la place plutôt que de s'abréger. Les minuteurs restent prioritaires.
 - **« Relâcher avant la fin annule »** se pose 14 px sous les boutons de la fenêtre de fin (il les touchait).
 - **Moi : « Exporter mes données », « Prendre en main » et « Un problème ? »** sont espacés de la même façon (12 px).
-
-## [5.48.9] — 2026-10-06
-Au téléphone, dans Safari, toucher juste sous les boutons de la barre d'outils marche (A472, doctrine `docs/decisions/lot-v5-48.md`).
-- **Ce qui se passait** : sous la barre, la bande blanche jusqu'à la barre « ⌃ ⌄ ✓ » du clavier n'appartient pas à la
-  page mais à Safari (sa barre d'adresse flottante, environ 43 px). Un toucher y déplie Safari et ferme le clavier ;
-  l'app ne le reçoit jamais, donc ne peut ni l'empêcher ni le rendre au bouton visé.
-- **Une bande de 12 px sous les boutons fait désormais partie de la barre**, dans Safari seulement : un doigt qui vise un
-  peu bas tombe chez l'app et va au bouton le plus proche. Elle prend 12 px au texte.
-- **App installée sur l'écran d'accueil** : la bande de Safari n'existe pas, la barre reste à 41 px.

@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QM30rhYnfjzsf2/rEwNL2l0DmZ6U18iKcw9NBuRfphw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GbkauuzD9Hu9b0Rffax5fzHILBH1jwcl2fbweDY+0UY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -426,6 +426,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :root{
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+  --glass:color-mix(in srgb,var(--work) 90%,transparent);   /* A517 (A510 §1) : les barres qui FLOTTENT, et elles seules */
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
   --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
   /* PÉRIMÈTRE ET CREUX DE LA MATIÈRE SYSTÈME (v5.15.0, planche 17/1a). --sys-edge : la nuit ne
@@ -1327,6 +1328,71 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
     body.view-home footer.tools{border-top:0}
   }
+
+  /* ═══ A517 — LA NAVIGATION DU TÉLÉPHONE (refonte « Natif », lot 4 : A504, A505, A510 §2-§3) ═══════════════
+     En portrait sous 780 px, l'accueil perd sa rangée d'en-tête : « Sélectionner » et « Créer » montent dans la
+     rangée du haut de la page, le grand titre (34) est du contenu, la recherche et la navigation descendent dans
+     une barre d'onglets FLOTTANTE en verre (≈ 90 %, repli opaque). Pendant une recherche, le champ (#homeDock,
+     sa mécanique de clavier intacte, A192-A197) prend la place de la barre. */
+  .tab-bar{display:none}
+  html.tabnav body.view-home header.bar{min-height:0;height:0;padding:0;border:0;box-shadow:none;background:none}
+  html.tabnav body.view-home header.bar .id-row>:not(#homeDock):not(#tabNav){display:none}
+  html.tabnav:not(.tb-q) body.view-home #homeDock{display:none}
+  /* Le dock paraît APRÈS le premier rendu : sa largeur intrinsèque (champ ≈ 380 px) élargissait la fenêtre
+     mobile au lieu de rétrécir — le champ prend la place restante, jamais plus. */
+  html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
+  html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
+  html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
+    left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:calc(12px + var(--sab,0px));pointer-events:none}
+  .tb-tabs{flex:1;display:flex;min-width:0;height:62px;padding:4px;border-radius:999px;pointer-events:auto}
+  .tb-srch{flex:none;display:grid;place-items:center;width:62px;height:62px;padding:0;border-radius:999px;cursor:pointer;pointer-events:auto}
+  :is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  :is(.tb-tabs,.tb-srch){border:1px solid var(--work-line);box-shadow:var(--shadow-float);color:var(--ink)}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  html[data-theme="dark"] :is(.tb-tabs,.tb-srch){border-color:var(--ctl-line)}
+  .tb-tab{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    padding:0;border:0;border-radius:999px;background:none;font:inherit;font-size:var(--t-cap);font-weight:700;color:var(--ink);cursor:pointer}
+  .tb-tab.on{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--act)}
+  .tb-tab.live::after{content:"";position:absolute;top:9px;left:calc(50% + 9px);width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  :is(.tb-tab,.tb-srch):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .tb-av{position:relative;width:24px;height:24px;border-radius:50%;background:var(--primary-soft);color:var(--act);
+    display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-cap);font-weight:800}
+  .tb-av>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}
+  /* La rangée du haut : collante sous la bande de l'heure, hauteur FIXE (C16) ; le petit titre n'y paraît qu'une
+     fois le grand sorti par le haut (`.stuck`, IntersectionObserver). */
+  .pg-top{position:sticky;top:calc(var(--sat) / var(--zf,1));z-index:7;display:grid;grid-template-columns:1fr auto 1fr;
+    align-items:center;gap:8px;height:52px;margin:0 -18px;padding:0 18px}   /* 18 : le rembourrage de main au téléphone */
+  .pg-top.stuck{box-shadow:0 1px 0 var(--line)}
+  .pg-l{justify-self:start;display:flex}.pg-r{justify-self:end;display:flex}
+  .pg-tt{font-size:var(--t-step);font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}
+  .pg-top.stuck .pg-tt{opacity:1}
+  .pg-top :is(.pg-btn,.sel-tog){display:inline-flex;align-items:center;gap:6px;height:40px;min-height:40px;margin:0;padding:0 16px;
+    border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);
+    font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer}
+  .pg-top :is(.pg-btn,.sel-tog):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pg-top :is(.pg-btn,.sel-tog){position:relative}
+  .pg-top :is(.pg-btn,.sel-tog)::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible (zone haute) */
+  .pg-ttl{margin:2px 4px 12px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink);text-wrap:balance}
+  html.zw360 .pg-ttl{font-size:28px}
+  .pg-srch{display:flex;align-items:center;gap:8px;width:100%;height:40px;margin:0 0 12px;padding:0 12px;border:0;border-radius:var(--r-3);
+    background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink-2);font:inherit;font-size:var(--t-item);text-align:left;cursor:text}
+  .pg-srch>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pg-srch:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pg-chips{display:flex;gap:8px;margin:0 -18px 14px;padding:2px 18px;overflow-x:auto;scrollbar-width:none}
+  .pg-chips::-webkit-scrollbar{display:none}
+  .pg-chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:0;border-radius:999px;
+    background:var(--work);box-shadow:inset 0 0 0 1px var(--line-strong);font:inherit;font-size:var(--t-body);font-weight:600;
+    color:var(--ink);white-space:nowrap;cursor:pointer}
+  .pg-chip svg{width:14px;height:14px}
+  .pg-chip .cat-dot{width:8px;height:8px;margin:0;box-shadow:none}
+  .pg-chip.on{background:var(--ink);color:var(--amb);box-shadow:none}
+  .pg-chip:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  html.tabnav body.view-home .hv-page{padding-top:0}
+  /* En large (et téléphone tourné), le grand titre est de 28 px sur la ligne du compte (maquette tablette, A505). */
+  .dir-sum .pg-ttl{flex:none;margin:0 6px 0 0;font-size:28px;line-height:1.15}
+  .dir-sum:has(.pg-ttl){align-items:baseline}
+  .dir-sum:has(.pg-ttl) .dir-hs{flex:1}
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
      replie fait remonter tout le contenu d'un coup) : #crisisBand = TITRE (flux, relayé par la
      barre) ; #cbTimers = ÉTAT VIVANT (collant, ne quitte jamais l'écran — ECAM, aucun chrono
@@ -2384,7 +2450,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
-  .qa-sec{margin:0 0 4px}
+  .qa-sec{margin:0 0 24px}   /* A517 : le même pas qu'entre deux groupes (gap de .dir-book) */
   /* ══ COLLECTIONS (A475) ══ La rangée du téléphone reprend les puces de catégorie ; l'en-tête d'une
      collection ouverte dit « à vous seul » avant son nom ; le signet (`bookmark`) les distingue du livre. */
   .coll-rail .dir-h{margin-top:12px}
@@ -2774,7 +2840,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .vs-seg.vs-wrap .seg-btn{white-space:normal;line-height:1.15;hyphens:manual;text-align:center}
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
-  @media (max-width:779.98px){#rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock */
+  @media (max-width:779.98px){html:not(.tabnav) #rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock — sauf sous la barre d'onglets (A517), où le dock n'est plus là hors recherche */
   /* SESSION EN COURS (v5.30, A355 — l'aplat vert est parti) : le liseré passe au registre CONFIRMATION
      (6 px, celui de la carte « Session en cours »), la carte reste BLANCHE, et l'état devient le chrono
      vivant « ● En cours 12:04 » en vert — un glyphe et un mot, jamais un fond (règle 8). Même dessin en
@@ -5282,6 +5348,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #stepSetModal{align-items:center;padding:24px}
     #stepSetModal .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
     .sst-hd{display:none}}
+  /* A517 (A508) — « Créer » et « Affichage » au téléphone : FEUILLES DU BAS à poignée, la grammaire de « Réglages de
+     l'étape » et du menu ⋯ (A361). Un CHOIX ne prend jamais toute la hauteur (témoin « trois gabarits ») ; ✕, le voile
+     (A497) et la poignée tirée vers le bas (`bindSheetDrag`) ferment. */
+  @media (max-width:779.98px){
+    #createModal,#viewSheet{align-items:flex-end;padding:0;background:var(--scrim)}
+    #createModal .ai-card,#viewSheet .ai-card{max-width:none;width:100%;min-height:0;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;
+      padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;overscroll-behavior:contain;box-shadow:var(--shadow-up)}
+    :is(#createModal,#viewSheet) .ai-card::before{content:"";display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
+  }
   .sst-step{margin:2px 0 0;font-size:13.5px;font-weight:600;color:var(--ink-2)}
   .sst-h{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .sst-h i{font-style:normal;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act)}
@@ -8698,6 +8773,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
+    <nav class="tab-bar" id="tabNav" hidden aria-label="Sections"><div class="tb-tabs">
+      <button type="button" class="tb-tab" data-tab="aides"><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="sessions"><span>Sessions</span></button>
+      <button type="button" class="tb-tab" data-tab="me"><span>Moi</span></button>
+    </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"></button></nav>
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
@@ -9261,7 +9342,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.58.1';
+const APP_VERSION='5.59.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12739,6 +12820,18 @@ async function load(){
    via le ✕ — voir la section Accessibilité des fenêtres modales). */
 function bindModalDismiss(modal,close){const x=modal.querySelector('.ai-x');if(x)x.onclick=close;
   modal.onclick=e=>{if(e.target===modal)close();};}
+/* A517 (A508) : une feuille du bas se ferme en la TIRANT vers le bas — depuis sa tête, ou partout quand son contenu est
+   en haut (sinon le geste est un défilement). Au-delà de 96 px, ✕ ; en deçà, elle revient. Toucher seul. */
+function bindSheetDrag(modal){const card=modal&&modal.querySelector('.ai-card');if(!card)return;
+  let y0=null,dy=0;
+  card.addEventListener('touchstart',e=>{if(matchMedia('(min-width:780px)').matches)return;
+    const t=e.target,tete=t.closest&&t.closest('.ai-top');
+    if(!tete&&card.scrollTop>0)return;
+    y0=e.touches[0].clientY;dy=0;},{passive:true});
+  card.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;
+    if(dy>0&&card.scrollTop<=0){card.style.transform=`translateY(${dy}px)`;}else{card.style.transform='';}},{passive:true});
+  card.addEventListener('touchend',()=>{if(y0==null)return;y0=null;card.style.transform='';
+    if(dy>96){const x=modal.querySelector('.ai-x');if(x)x.click();}},{passive:true});}
 /* REVOIR L'ACCUEIL (v5.45.0, A460 — audit d'apprentissage) : l'écran de bienvenue se fermait pour
    TOUJOURS au premier tap, petite croix comprise, et aucune porte ne le rouvrait. Moi › « Revoir
    l'accueil » le rouvre ; ses portes restent vraies : « Découvrir avec 2 exemples » s'efface si les
@@ -14069,6 +14162,7 @@ function applyViewChrome(){
   document.querySelector('header.bar').classList.toggle('home',state.view==='library');
   // Accueil V5 : tab bar basse (< 780px) + grille à colonne gauche (>= 780px) — cf. body.view-home.
   document.body.classList.toggle('view-home',state.view==='library');
+  syncTabBar();
   // Vue fiche V5 : conteneur élargi à >= 1000px (colonne droite minuteurs) — cf. body.view-read.
   document.body.classList.toggle('view-read',state.view==='read'&&!!state.fiche);
   // Éditeurs V5 : conteneur élargi à >= 1000px (colonne droite « Aperçu en direct »).
@@ -14586,6 +14680,9 @@ function paintSeg(root,attr,idx){
 // Recherche FIXE de l'en-tête (V5) : champ STATIQUE (jamais re-rendu -> le focus survit aux
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
+ /* A517 : au téléphone, quitter le champ vide rend la barre d'onglets (Échap aussi). */
+ qi.addEventListener('blur',()=>{if(document.documentElement.classList.contains('tabnav'))tbSearchMaybeClose();});
+ qi.addEventListener('keydown',e=>{if(e.key==='Escape'&&!qi.value&&document.documentElement.classList.contains('tabnav'))qi.blur();});
  /* v5.18.2 (signalé sur iPhone : « quand on tape la barre en bas, le scroll fait n'importe
     quoi et descend ») — au FOCUS d'un champ, iOS fait défiler le DOCUMENT pour amener le champ
     « en vue » ; or la pilule est FIXE et se repositionne elle-même au viewport visuel
@@ -14649,12 +14746,16 @@ const mqHomeWide=window.matchMedia('(min-width:780px)');
    ailleurs — téléphone, ou depuis une fiche — les MÊMES portes ouvrent la page-fenêtre. Au
    franchissement de 780 la surface change de peau sans se perdre (`syncHomeTabs`). */
 const homeTab=()=>state.homeTab||'aides';
-const homeTabsOn=()=>state.view==='library'&&mqHomeWide.matches;
+const homeTabsOn=()=>state.view==='library'&&(mqHomeWide.matches||tabNavOn());
+/* A517 (lot 4, A504) : au téléphone en portrait, l'accueil a une BARRE D'ONGLETS en bas — Aides · Sessions · Moi.
+   Un téléphone tourné garde son en-tête (A513 : la colonne gauche y viendra). */
+const tabNavOn=()=>state.view==='library'&&!mqHomeWide.matches&&!paysageBas();
 function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
   state.homeTab=t;if(state.selOn)selEnd();render();
   const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
 function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
-  if(!mqHomeWide.matches){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();
+  if(tabNavOn()&&t==='admin'){state.homeTab='me';render();admModal.classList.add('on');renderAdm();return;}   // A517
+  if(!mqHomeWide.matches&&!tabNavOn()){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();
     if(t==='admin'){admModal.classList.add('on');renderAdm();}return;}
   let t2=null;
   if(sessModal.classList.contains('on')&&_sessFiche==='*'){closeSessHist();t2='sessions';}
@@ -14663,6 +14764,7 @@ function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
   if(t2)setHomeTab(t2);}
 const _onHomeBp=()=>{if(state.view!=='library')return;syncHomeTabs();render();};
 if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);else if(mqHomeWide.addListener)mqHomeWide.addListener(_onHomeBp);
+{const mo=window.matchMedia('(orientation:landscape)');if(mo.addEventListener)mo.addEventListener('change',_onHomeBp);}
 // Vue fiche TRÈS large (>= 1000px, canvas turn 6) : minuteurs/compteurs + horodatage passent en
 // COLONNE DROITE collante (toujours visibles pendant la checklist) — re-rendu au seuil.
 const mqReadWide=window.matchMedia('(min-width:1000px)');
@@ -15029,6 +15131,18 @@ function collSideHtml(){const num=n=>`<span class="hs-n">${n}</span>`;
     +[collById(COLL_PIN)].concat(colls).map(c=>hsRow({on:state.coll===c.id,label:esc(c.name),tail:num(collItems(c).length),
       mark:collIc(c),attrs:`data-collsel="${esc(c.id)}" aria-pressed="${state.coll===c.id?'true':'false'}"`})).join('')
     +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'})+`<div class="hs-sep"></div>`;}
+/* Les catégories du périmètre affiché, UNE PAR NOM (cf. homeSideHtml) — la colonne gauche et les pastilles du
+   téléphone (A517) lisent la même liste. `cnt` : Map catégorie → compte ; sans lui, compté ici. */
+function homeCatGroups(cnt){const catNom=state.cat||null;
+  if(!cnt){cnt=new Map();homeVis().filter(homeLibOn).forEach(x=>{const c=catOf(x);if(c)cnt.set(c,(cnt.get(c)||0)+1);});}
+  const par=new Map();
+  categories.forEach(c=>{const n=txNorm(c.name||'');if(!n||!homeLibOn(c))return;
+    const k=cnt.get(c)||0;if(!k&&catNom!==n)return;
+    const g=par.get(n)||{n,c,nb:0,cols:[]};
+    g.nb+=k;
+    const col=safeColor(c.color);if(col&&g.cols.indexOf(col)<0)g.cols.push(col);
+    par.set(n,g);});
+  return [...par.values()].filter(g=>g.nb>0||catNom===g.n).sort((a,b)=>byCatName(a.c,b.c));}
 /* Ce que l'accueil peut montrer (brouillons d'autrui exclus) — la colonne gauche et la feuille « Affichage » comptent ici. */
 const homeVis=()=>(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
 function homeSideHtml(){
@@ -15070,14 +15184,8 @@ function homeSideHtml(){
      Une couleur ne contribue que si sa catégorie est DU PÉRIMÈTRE AFFICHÉ (`homeLibOn`) et y
      compte au moins un élément — ou porte le filtre actif, seule rangée qui reste à zéro. */
   const catNom=state.cat||null;
-  const catIdx=(()=>{const par=new Map();
-    categories.forEach(c=>{const n=txNorm(c.name||'');if(!n||!homeLibOn(c))return;
-      const k=cnt.get(c)||0;if(!k&&catNom!==n)return;
-      const g=par.get(n)||{n,c,nb:0,cols:[]};
-      g.nb+=k;
-      const col=safeColor(c.color);if(col&&g.cols.indexOf(col)<0)g.cols.push(col);
-      par.set(n,g);});
-    return [...par.values()].filter(g=>g.nb>0||catNom===g.n).sort((a,b)=>byCatName(a.c,b.c)).map(g=>{
+  const catIdx=(()=>{
+    return homeCatGroups(cnt).map(g=>{
       const on=catNom===g.n;
       return hsRow({on,label:esc(g.c.name),tail:num(g.nb),mark:catDotHtml(g.cols,'cat-dot'),
         attrs:`data-cat="${esc(g.n)}" aria-pressed="${on?'true':'false'}"`});}).join('');})();
@@ -15646,6 +15754,70 @@ const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
 // Le déclencheur, dans la rangée de groupement (cf. CSS). Il n'existe que si l'on peut agir :
 // lecteur d'une bibliothèque partagée -> rien à sélectionner, donc pas de bouton (jamais de
 // commande morte).
+/* A517 (A504-A505) — LA TÊTE DE PAGE DU TÉLÉPHONE, d'après la maquette Natif : « Sélectionner » en haut à gauche,
+   « ＋ Créer » à droite, le grand titre de 34 px DANS le contenu (il se replie en 17,5 dans la rangée du haut au
+   défilement, A510 : la rangée garde sa hauteur), le champ de recherche, puis les filtres en pastilles. */
+function pgHeadHtml(title,opts){opts=opts||{};
+  const nw=opts.create&&canEditScope(homeScope())
+    ?`<button type="button" class="pg-btn" id="pgNew">${uiIcon('plus',16,{sw:2.4})}Créer</button>`:'';
+  return `<div class="pg-top"><span class="pg-l">${opts.sel?selTogHtml():''}</span>`
+    +`<span class="pg-tt" aria-hidden="true">${esc(title)}</span><span class="pg-r">${nw}</span></div>`
+    +`<h1 class="pg-ttl">${esc(title)}</h1>`
+    +(opts.search?`<button type="button" class="pg-srch" data-tbsrch>${uiIcon('search',18,{sw:2})}<span>Rechercher une aide, un protocole</span></button>`:'')
+    +(opts.chips?pgChipsHtml():'');}
+function pgChipsHtml(){
+  const chip=(on,attrs,inner)=>`<button type="button" class="pg-chip${on?' on':''}" ${attrs} aria-pressed="${on?'true':'false'}">${inner}</button>`;
+  return `<div class="pg-chips" role="group" aria-label="Filtrer la liste">`
+    +chip(!state.coll&&!state.cat,'data-pgall',`Tout · ${homeVis().length}`)
+    +[collById(COLL_PIN)].concat(colls).map(c=>chip(state.coll===c.id,`data-collsel="${esc(c.id)}"`,collIc(c)+esc(c.name))).join('')
+    +homeCatGroups().map(g=>chip(state.cat===g.n,`data-pgcat="${esc(g.n)}"`,catDotHtml(g.cols,'cat-dot')+esc(g.c.name))).join('')
+    +`</div>`;}
+function bindPgHead(rerender){
+  const n=main.querySelector('#pgNew');if(n)n.onclick=()=>openCreateDlg();
+  main.querySelectorAll('[data-tbsrch]').forEach(b=>b.onclick=tbSearchOpen);
+  main.querySelectorAll('[data-pgall]').forEach(b=>b.onclick=()=>{state.coll=null;state.cat=null;state.libLimit=LIB_PAGE;rerender();});
+  main.querySelectorAll('[data-pgcat]').forEach(b=>b.onclick=()=>{const v=b.dataset.pgcat;state.cat=state.cat===v?null:v;state.libLimit=LIB_PAGE;rerender();});
+  /* Le grand titre sorti par le haut, la rangée du haut prend le petit (patron `.titled` de la lecture). */
+  const t=main.querySelector('.pg-ttl'),top=main.querySelector('.pg-top');
+  if(_pgIo){_pgIo.disconnect();_pgIo=null;}
+  if(t&&top&&window.IntersectionObserver){_pgIo=new IntersectionObserver(es=>{es.forEach(e=>top.classList.toggle('stuck',!e.isIntersecting));},
+    {rootMargin:`-${Math.round((top.offsetHeight||44)+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0))}px 0px 0px 0px`});_pgIo.observe(t);}}
+let _pgIo=null;
+/* LA BARRE D'ONGLETS (A517, A504) : statique dans la coque, peinte à chaque rendu. Elle se retire en sélection
+   (le tiroir « Actions » prend le bas, A476) et pendant une recherche (le champ prend sa place, A510 §3). */
+let _tbSrch=false;
+function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
+  const on=tabNavOn();
+  if(!on||(!_tbSrch&&!txNorm(String(state.q||''))))_tbSrch=on&&!!txNorm(String(state.q||''));
+  document.documentElement.classList.toggle('tabnav',on);
+  document.documentElement.classList.toggle('tb-q',on&&_tbSrch);
+  n.hidden=!on||state.selOn||_tbSrch;
+  if(n.hidden)return;
+  if(!n.dataset.built){n.dataset.built='1';
+    n.querySelector('[data-tab="aides"]').insertAdjacentHTML('afterbegin',uiIcon('list',22,{sw:2}));
+    n.querySelector('[data-tab="sessions"]').insertAdjacentHTML('afterbegin',uiIcon('history',22,{sw:2}));
+    n.querySelector('#tbSrch').innerHTML=uiIcon('search',22,{sw:2.2});
+    n.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
+      if(homeTab()===t||(t==='me'&&homeTab()==='admin')){const s=main.querySelector('.home-main');window.scrollTo(0,0);if(s)s.scrollTop=0;if(homeTab()==='admin')setHomeTab('me');return;}
+      setHomeTab(t);window.scrollTo(0,0);});
+    n.querySelector('#tbSrch').onclick=tbSearchOpen;}
+  /* « Moi » porte les initiales et la pastille du compte, comme la colonne (A500). */
+  {const b=n.querySelector('[data-tab="me"]'),u=Auth.user();const em=(Auth.signedIn()&&u&&u.email)?String(u.email).trim():'';
+   const ini=em?esc(em.slice(0,2).toUpperCase()):'';
+   const k=ini?'i'+ini:'u';if(b.dataset.k!==k){b.dataset.k=k;
+     b.innerHTML=(ini?`<span class="hs-avatar tb-av" aria-hidden="true">${ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',22,{sw:2}))+'<span>Moi</span>';}}
+  const t=homeTab();
+  n.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===t||(b.dataset.tab==='me'&&t==='admin');
+    b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  {const s=n.querySelector('[data-tab="sessions"]');s.classList.toggle('live',!!Object.keys(liveSessions).length);}}
+function tbSearchOpen(){if(homeTab()!=='aides'){state.homeTab='aides';render();}
+  _tbSrch=true;syncTabBar();const q=document.getElementById('q');if(q)q.focus({preventScroll:true});}
+/* On quitte la recherche quand le champ est vide ET que le focus a quitté le dock (pas au tap du filtre). */
+function tbSearchMaybeClose(){setTimeout(()=>{if(!_tbSrch||txNorm(String(state.q||'')))return;
+  const a=document.activeElement,d=document.getElementById('homeDock');
+  if(d&&a&&d.contains(a))return;
+  if(document.querySelector('.ai-modal.on,.sheet.on'))return;
+  _tbSrch=false;syncTabBar();},150);}
 function selTogHtml(){
   if(state.selOn||!canEditScope(homeScope()))return '';
   return `<button type="button" class="sel-tog" id="selTog">Sélectionner</button>`;}   // A375 : pilule M 40 du chrome, sans icône
@@ -15913,15 +16085,18 @@ function bindSelLongPress(cfg){
 /* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
 function renderHomeTab(cfg){const t=homeTab();
-  main.innerHTML=homeSideHtml()+`<div class="home-main"><section class="hv-page${t==='admin'?' adm-page':''}">`
-    +(t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
+  const tn=tabNavOn();
+  main.innerHTML=(tn?'':homeSideHtml())+`<div class="home-main"><section class="hv-page${t==='admin'?' adm-page':''}">`
+    +(tn&&t!=='admin'?pgHeadHtml(t==='sessions'?'Sessions':'Moi'):'')
+    +(tn&&t!=='admin'?(t==='sessions'?'<div id="sessView"></div>':'<div id="meView"></div>'):
+     t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
       :t==='admin'?`<button type="button" class="adm-back" data-admmoi>${uiIcon('chev',18)}Moi</button><h2 class="hv-title">Administration</h2><div id="admView"></div>`   // A494 : une page ouverte depuis Moi, pas une entrée de la colonne
       :`<h2 class="hv-title">Moi</h2><div id="meView"></div>`)
     +`</section></div>`;
   if(t==='sessions'){_sessFiche='*';renderSessHist();}
   else if(t==='admin'){main.querySelector('[data-admmoi]').onclick=()=>setHomeTab('me');renderAdm();if(!_admD)admRefresh();}
   else renderAuth();
-  bindHomeChrome(cfg.rerender);placeFooter();}
+  bindHomeChrome(cfg.rerender);bindPgHead(cfg.rerender);placeFooter();}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
   /* v5.18 — la liste est l'UNION des bibliothèques accessibles : le RANGEMENT en fait des
@@ -15946,7 +16121,7 @@ function renderHomeList(cfg){
       if(l2.length){corrige={saisi:String(state.q||'').trim(),montre:fx};list=l2;}}}
   // La STRUCTURE dépend de la largeur (colonne gauche en large) : mqHomeWide re-rend au seuil.
   const wide=mqHomeWide.matches;
-  if(wide&&homeTab()!=='aides'){renderHomeTab(cfg);return;}
+  if((wide||tabNavOn())&&homeTab()!=='aides'){renderHomeTab(cfg);return;}   // A517 : les onglets du téléphone aussi
   /* Le déclencheur de filtre est PEINT à chaque rendu (statique dans le dock, jamais recréé) ;
      type + catégorie s'ouvrent en feuille à TOUTES les largeurs depuis v5.18. */
   syncFiltTog(true);
@@ -16019,19 +16194,19 @@ function renderHomeList(cfg){
        commandes, puis le répertoire — en large elles vivent SUR la ligne RÉPERTOIRE (A257a),
        en étroit sur leur rangée, juste au-dessus d'elle. */
     listHtml=`<div class="dir-wrap">${list.length?
-      /* v5.18 (A261, décision utilisateur sur capture) : l'accès direct est en TUILES à toutes
-         les largeurs — plusieurs par ligne dès que la place le permet ; les fiches restent
+      /* L'accès direct est le PREMIER GROUPE de rangées (A515, renverse les tuiles d'A261) ; les fiches restent
          AUSSI dans le répertoire (un raccourci ne déménage rien). */
-      (tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
-      +(!wide&&!state.selOn?collRailHtml():'')+(state.selOn?'':collHeadHtml())
       /* v5.19.1 (signalé à l'usage) : en voie ÉTROITE, « Rangé par » et « Sélectionner » passent
          SOUS l'intertitre « Répertoire » — ils gouvernent cette liste, ils ne la précèdent pas.
          En large ils vivent déjà DANS la rangée du titre, rien n'y change. */
       /* v5.30 (maquette v5) : plus d'intertitre « Répertoire » — la ligne dit le compte et porte
          « Affichage » (rangement, catégories). */
-      +`<div class="dir-h dir-sum"><span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
-          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${selTogHtml()}</div>`
+      /* A517 : le TITRE d'abord (maquette Natif) — la ligne du compte précède désormais l'Accès direct. */
+      `<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
+          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`
       +(state.selOn?'':filtersBarHtml())
+      +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
+      +(!wide&&!state.selOn&&!tabNavOn()?collRailHtml():'')+(state.selOn?'':collHeadHtml())
       +`<div class="dir-book${state.homeCompact?' compact':''}">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
       +`</div>`
@@ -16058,6 +16233,7 @@ function renderHomeList(cfg){
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
+    ${tabNavOn()&&!state.selOn?pgHeadHtml('Aides',{sel:true,create:true,search:true,chips:true}):''}
     ${selBarHtml()}
     ${state.selOn?'':`${homeJoinHtml()}
     ${cfg.topHtml?cfg.topHtml():''}`}
@@ -16071,6 +16247,7 @@ function renderHomeList(cfg){
   // (`azr-on` est PURGÉE avec la condition qu'elle servait : la gouttière est désormais réservée
   //  sans regarder si le rail existe — règle 14, plus aucun lecteur.)
   bindHomeChrome(cfg.rerender);   // sélecteur de section, bibliothèques, catégories
+  bindPgHead(cfg.rerender);
   /* La clé de groupement se change SANS toucher au corpus : on re-rend la liste, rien d'autre.
      Le rail se reconstruit avec elle (c'est le même index, dans l'autre clé). */
   {const b=main.querySelector('#rangBtn');
@@ -17962,6 +18139,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   download:'<path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/>',
   print:'<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
   history:'<path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   back:'<path d="M15 6l-6 6 6 6"/>',
   camera:'<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',
   monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
@@ -27362,6 +27540,7 @@ bindModalDismiss(createModal,closeCreateDlg);
 /* ── Feuille « Affichage » (v5.30, maquette v5) : afficher · trier · regrouper · densité, quatre
    segmentés à pastille ; chaque cran re-range la liste derrière la feuille. ── */
 const viewSheet=document.getElementById('viewSheet');let _viewRerender=null;
+[createModal,viewSheet,document.getElementById('stepSetModal')].forEach(bindSheetDrag);   // A517 (A508)
 /* A421 : LE RE-RENDU SUIT LE TYPE CHOISI, JAMAIS LA VUE D'OUVERTURE (signalé : « Afficher » Aides /
    Protocoles « ne filtre pas »). Ouverte par le bouton « Affichage » de la liste, la feuille reçoit
    `cfg.rerender` — la vue du moment (renderAll sur « Tout ») : `setSection` rendait la bonne liste,
@@ -28536,7 +28715,8 @@ const admAfter=msg=>{if(msg)toast(msg,4000,true);return admRefresh(true);};
 const admView=()=>document.getElementById('admView');
 function admRoot(){return admView()||(admModal.classList.contains('on')?document.getElementById('admBody'):null);}
 function openAdmin(sec){_adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;
-  if(homeTabsOn()){if(homeTab()==='admin')renderAdm({top:true});else setHomeTab('admin');}
+  /* A517 : au téléphone, Administration reste une page-fenêtre (un NIVEAU ouvert depuis Moi, A494) — pas un onglet. */
+  if(homeTabsOn()&&!tabNavOn()){if(homeTab()==='admin')renderAdm({top:true});else setHomeTab('admin');}
   else{admModal.classList.add('on');renderAdm({top:true});}
   admRefresh(true);}
 function closeAdmin(){admModal.classList.remove('on');_adm.sec='home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;admPaintDoor();}
@@ -28743,7 +28923,7 @@ function admTabsHtml(){const D=_admD,tab=_adm.sec==='compte'?'comptes':_adm.sec;
 const ADM_TITRES={home:'Administration',comptes:'Comptes',compte:'Compte',libs:'Bibliothèques',regles:'Règles de l’instance'};
 function admTopPaint(){const s=_adm.sec,b=document.getElementById('admBack');
   document.getElementById('admModalTitle').textContent=ADM_TITRES[s]||'Administration';
-  const l=s==='home'?(authModal.classList.contains('on')?'Moi':''):s==='compte'&&_adm.from==='comptes'?'Comptes':'Administration';
+  const l=s==='home'?((authModal.classList.contains('on')||(state.view==='library'&&homeTab()==='me'))?'Moi':''):s==='compte'&&_adm.from==='comptes'?'Comptes':'Administration';   // A517 : Moi peut être l'onglet dessous
   b.hidden=!l;b.innerHTML=l?uiIcon('chev',18)+esc(l):'';}
 document.getElementById('admBack').onclick=()=>{if(_adm.sec==='home')closeAdmin();else admBack();};
 function renderAdm(o){o=o||{};const box=admRoot();if(!box)return;
@@ -33270,7 +33450,8 @@ const _hOn=id=>{const e=_hEl(id);return !!e&&e.classList.contains('on');};
 // Niveaux de la VUE : accueil 0 (1 sur Sessions/Moi), lecture 1 + pile d'origine, éditeur =
 // sa page de lecture + 1 (1 s'il crée : il sort à l'accueil), aperçu = son éditeur + 1.
 function _hViewLevels(){const v=state.view,rs=(state.readStack||[]).length;
-  if(v==='library')return homeTab()==='admin'?2:homeTab()!=='aides'?1:0;   // A494 : Administration s'ouvre depuis Moi
+  if(v==='library'){const t=homeTab();if(tabNavOn())return 0;   // A517 (A510 §2) : un onglet n'est pas un niveau (Administration y est une fenêtre)
+    return t==='admin'?2:t!=='aides'?1:0;}   // A494 : Administration s'ouvre depuis Moi
   const ed=w=>{const d=w==='edit'?state.draft:state.pdraft;return d&&(w==='edit'?fiches:protocols).some(x=>x.id===d.id)?2+rs:1;};
   if(v==='edit'||v==='protocolEdit')return ed(v);
   return state.previewFrom?ed(state.previewFrom)+1:1+rs;}

@@ -1,6 +1,6 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner, ouvrirRecherche, remplir } from './harness.mjs';
 import { readFile } from 'node:fs/promises';
 
 const { port, srv } = await serveApp();
@@ -1287,6 +1287,9 @@ await sec('Audit design · la feuille de filtres', async () => {
     /* v5.18 (décision utilisateur, maquette Zero) : HORS recherche, la pilule est SEULE — aucun
        déclencheur nulle part. Les filtres vivent dans la FONCTION RECHERCHE : chercher fait
        paraître la rangée (crans de type + « Filtrer ») au-dessus de la pilule. */
+    /* A517 : sous la barre d'onglets du téléphone, le dock n'existe que RECHERCHE OUVERTE (le rond l'ouvre) —
+       on l'ouvre d'abord ; « hors recherche » se lit alors champ vide, dock présent. */
+    if(document.documentElement.classList.contains('tabnav')){tbSearchOpen();await w(250);}
     const reposTog=!!tog(), reposRangee=(()=>{const d=document.getElementById('dockFilt');
       return !!d&&!d.hidden;})();
     const qi=document.getElementById('q');
@@ -1566,8 +1569,17 @@ await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () =>
    proportionnée au dessin. ⚠ Il rencontre son cas d'abord : hors accueil, le logo n'existe pas. */
 await sec('Accueil · le verrou logo + mot-marque', async () => {
 {
-  for(const w of [320,390,430,1280]){
+  /* A517 : au téléphone en PORTRAIT l'accueil n'a plus de rangée de marque (barre d'onglets, maquette Natif) —
+     on la vérifie absente là, et on mesure le verrou où il vit : téléphone tourné (667 × 375) et colonne large. */
+  for(const w of [390]){
     const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.waitForTimeout(250);
+    const vis=await page.evaluate(()=>[...document.querySelectorAll('.brand-logo')].filter(e=>e.getClientRects().length).length);
+    t(`${w} px portrait · la marque quitte l'accueil (barre d'onglets, A517)`, vis===0, `${vis} logo(s) visible(s)`);
+    await page.close();
+  }
+  for(const [w,hh] of [[667,375],[1280,760]]){
+    const page = await br.newPage({viewport:{width:w,height:hh},hasTouch:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
@@ -1800,7 +1812,7 @@ await sec('Recherche · la croix d\'effacement', async () => {
   /* ⚠ ON MESURE AVANT LE DÉBOUNCE (150 ms) : le re-rendu repeint tout, donc attendre le laisserait
      vert même si la croix ne se peignait qu'au rendu — c'est-à-dire une croix qui paraît un sixième
      de seconde après la lettre qu'on vient de taper. C'est la frappe qui doit la poser. */
-  await page.fill('#q','anaphyl');
+  await remplir(page,'anaphyl');
   const surLeChamp=await vis();
   await page.waitForTimeout(350);
   const saisie=await vis(), filtre=await nRows();
@@ -3184,6 +3196,7 @@ for (const W of [320, 360, 390, 700, 1400]) {
   await amorce(page);
   // Le VRAI geste : on tape dans le champ de l'en-tête (poser `state.q` à la main court-circuite
   // l'écouteur et le re-rendu, donc mesurerait un écran que personne n'obtient).
+  await ouvrirRecherche(page);   // A517 : au téléphone, le rond de la barre d'onglets ouvre le champ
   await page.click('#hdrSearch');
   await page.type('#hdrSearch','adrénaline',{delay:15});
   await page.waitForFunction(()=>document.querySelectorAll('.card-snip').length>0,null,{timeout:4000})
@@ -4217,7 +4230,8 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
       const out={enLigne,horsGabarit,fen:{}};
       /* A365 : ≥ 780 sur l'accueil, Compte et Sessions sont des VUES de la colonne — la
          page-fenêtre, seule mesurée ici, s'ouvre alors depuis une fiche. */
-      const surFiche=()=>{if(innerWidth>=780&&state.view==='library')openRead(fiches[0].id);};
+      /* A517 : au téléphone aussi (barre d'onglets) — la page-fenêtre s'ouvre depuis une fiche. */
+      const surFiche=()=>{if((innerWidth>=780||document.documentElement.classList.contains('tabnav'))&&state.view==='library')openRead(fiches[0].id);};
       const cmds={viewSheet:()=>document.getElementById('filtTog').click(), authModal:()=>{surFiche();openAuth();},
                   catModal:()=>openCatMgr(), sessModal:()=>{surFiche();openSessHist();}, storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
@@ -4335,7 +4349,9 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
     await amorce(page);
     const mesure=()=>page.evaluate(()=>{const o={};
-      for(const sel of ['#hdrNew','#hdrTheme','#hdrMore','#acctTop']){
+      /* A517 : sous la barre d'onglets, les commandes du haut de l'accueil vivent dans la rangée de page. */
+      const tn=document.documentElement.classList.contains('tabnav')&&state.view==='library';
+      for(const sel of tn?['#selTog','#pgNew']:['#hdrNew','#hdrTheme','#hdrMore','#acctTop']){
         const e=document.querySelector(sel);if(!e||e.hidden||!e.offsetParent)continue;
         const r=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
         /* La cible EFFECTIVE = dessin + halo, jamais `min-height` : c'est le halo qui la rend en
@@ -5876,7 +5892,7 @@ await sec('v5.6 · tolérance orthographique du répertoire', async () => {
      contenu est. Les QUATRE bornes de la doctrine se mesurent au RENDU, pas sur la fonction pure
      (tests.html la couvre déjà) : c'est le CÂBLAGE qui peut se tromper de cas. */
   await amorce(page);
-  const cherche = async q => { await page.fill('#q', q); await page.waitForTimeout(400);
+  const cherche = async q => { await remplir(page, q); await page.waitForTimeout(400);
     return page.evaluate(() => ({
       n: document.querySelectorAll('.dir-row').length,
       fix: (document.querySelector('.fix-line') || {}).textContent || '',
@@ -7358,7 +7374,8 @@ for (const W of [390, 1280]) {
     myLibraries.length=0;myLibraries.push({id:'lib-ro',name:'SAMU 31',role:'viewer'});
     const f=JSON.parse(JSON.stringify(fiches[0]));f.id='ro1';f.title='Aide du SAMU';f.library='lib-ro';f.status='validated';fiches.push(migrate(f));
     const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await w(300);
-    out.rail=!!document.querySelector('.home-main .coll-rail [data-collsel]');
+    /* A517 : au téléphone, la porte des collections est la rangée de PASTILLES sous le grand titre (elle remplace la rangée « Mes collections »). */
+    out.rail=!!document.querySelector('.home-main :is(.coll-rail,.pg-chips) [data-collsel]')&&document.querySelectorAll('.home-main .coll-rail').length===0===document.documentElement.classList.contains('tabnav');
     out.col=!!document.querySelector('.home-side [data-collsel="'+c.id+'"]');
     document.querySelector('[data-collsel="'+c.id+'"]').click();await w(300);
     out.coll=state.coll===c.id;

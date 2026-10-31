@@ -33,6 +33,7 @@
   :root{
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+  --glass:color-mix(in srgb,var(--work) 90%,transparent);   /* A517 (A510 §1) : les barres qui FLOTTENT, et elles seules */
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
   --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
   /* PÉRIMÈTRE ET CREUX DE LA MATIÈRE SYSTÈME (v5.15.0, planche 17/1a). --sys-edge : la nuit ne
@@ -934,6 +935,71 @@
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
     body.view-home footer.tools{border-top:0}
   }
+
+  /* ═══ A517 — LA NAVIGATION DU TÉLÉPHONE (refonte « Natif », lot 4 : A504, A505, A510 §2-§3) ═══════════════
+     En portrait sous 780 px, l'accueil perd sa rangée d'en-tête : « Sélectionner » et « Créer » montent dans la
+     rangée du haut de la page, le grand titre (34) est du contenu, la recherche et la navigation descendent dans
+     une barre d'onglets FLOTTANTE en verre (≈ 90 %, repli opaque). Pendant une recherche, le champ (#homeDock,
+     sa mécanique de clavier intacte, A192-A197) prend la place de la barre. */
+  .tab-bar{display:none}
+  html.tabnav body.view-home header.bar{min-height:0;height:0;padding:0;border:0;box-shadow:none;background:none}
+  html.tabnav body.view-home header.bar .id-row>:not(#homeDock):not(#tabNav){display:none}
+  html.tabnav:not(.tb-q) body.view-home #homeDock{display:none}
+  /* Le dock paraît APRÈS le premier rendu : sa largeur intrinsèque (champ ≈ 380 px) élargissait la fenêtre
+     mobile au lieu de rétrécir — le champ prend la place restante, jamais plus. */
+  html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
+  html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
+  html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
+    left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:calc(12px + var(--sab,0px));pointer-events:none}
+  .tb-tabs{flex:1;display:flex;min-width:0;height:62px;padding:4px;border-radius:999px;pointer-events:auto}
+  .tb-srch{flex:none;display:grid;place-items:center;width:62px;height:62px;padding:0;border-radius:999px;cursor:pointer;pointer-events:auto}
+  :is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  :is(.tb-tabs,.tb-srch){border:1px solid var(--work-line);box-shadow:var(--shadow-float);color:var(--ink)}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  [data-theme="dark"] :is(.tb-tabs,.tb-srch){border-color:var(--ctl-line)}
+  .tb-tab{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    padding:0;border:0;border-radius:999px;background:none;font:inherit;font-size:var(--t-cap);font-weight:700;color:var(--ink);cursor:pointer}
+  .tb-tab.on{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--act)}
+  .tb-tab.live::after{content:"";position:absolute;top:9px;left:calc(50% + 9px);width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  :is(.tb-tab,.tb-srch):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .tb-av{position:relative;width:24px;height:24px;border-radius:50%;background:var(--primary-soft);color:var(--act);
+    display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-cap);font-weight:800}
+  .tb-av>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}
+  /* La rangée du haut : collante sous la bande de l'heure, hauteur FIXE (C16) ; le petit titre n'y paraît qu'une
+     fois le grand sorti par le haut (`.stuck`, IntersectionObserver). */
+  .pg-top{position:sticky;top:calc(var(--sat) / var(--zf,1));z-index:7;display:grid;grid-template-columns:1fr auto 1fr;
+    align-items:center;gap:8px;height:52px;margin:0 -18px;padding:0 18px}   /* 18 : le rembourrage de main au téléphone */
+  .pg-top.stuck{box-shadow:0 1px 0 var(--line)}
+  .pg-l{justify-self:start;display:flex}.pg-r{justify-self:end;display:flex}
+  .pg-tt{font-size:var(--t-step);font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}
+  .pg-top.stuck .pg-tt{opacity:1}
+  .pg-top :is(.pg-btn,.sel-tog){display:inline-flex;align-items:center;gap:6px;height:40px;min-height:40px;margin:0;padding:0 16px;
+    border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);
+    font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer}
+  .pg-top :is(.pg-btn,.sel-tog):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pg-top :is(.pg-btn,.sel-tog){position:relative}
+  .pg-top :is(.pg-btn,.sel-tog)::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible (zone haute) */
+  .pg-ttl{margin:2px 4px 12px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink);text-wrap:balance}
+  html.zw360 .pg-ttl{font-size:28px}
+  .pg-srch{display:flex;align-items:center;gap:8px;width:100%;height:40px;margin:0 0 12px;padding:0 12px;border:0;border-radius:var(--r-3);
+    background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink-2);font:inherit;font-size:var(--t-item);text-align:left;cursor:text}
+  .pg-srch>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pg-srch:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pg-chips{display:flex;gap:8px;margin:0 -18px 14px;padding:2px 18px;overflow-x:auto;scrollbar-width:none}
+  .pg-chips::-webkit-scrollbar{display:none}
+  .pg-chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:0;border-radius:999px;
+    background:var(--work);box-shadow:inset 0 0 0 1px var(--line-strong);font:inherit;font-size:var(--t-body);font-weight:600;
+    color:var(--ink);white-space:nowrap;cursor:pointer}
+  .pg-chip svg{width:14px;height:14px}
+  .pg-chip .cat-dot{width:8px;height:8px;margin:0;box-shadow:none}
+  .pg-chip.on{background:var(--ink);color:var(--amb);box-shadow:none}
+  .pg-chip:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  html.tabnav body.view-home .hv-page{padding-top:0}
+  /* En large (et téléphone tourné), le grand titre est de 28 px sur la ligne du compte (maquette tablette, A505). */
+  .dir-sum .pg-ttl{flex:none;margin:0 6px 0 0;font-size:28px;line-height:1.15}
+  .dir-sum:has(.pg-ttl){align-items:baseline}
+  .dir-sum:has(.pg-ttl) .dir-hs{flex:1}
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
      replie fait remonter tout le contenu d'un coup) : #crisisBand = TITRE (flux, relayé par la
      barre) ; #cbTimers = ÉTAT VIVANT (collant, ne quitte jamais l'écran — ECAM, aucun chrono
@@ -1991,7 +2057,7 @@
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
-  .qa-sec{margin:0 0 4px}
+  .qa-sec{margin:0 0 24px}   /* A517 : le même pas qu'entre deux groupes (gap de .dir-book) */
   /* ══ COLLECTIONS (A475) ══ La rangée du téléphone reprend les puces de catégorie ; l'en-tête d'une
      collection ouverte dit « à vous seul » avant son nom ; le signet (`bookmark`) les distingue du livre. */
   .coll-rail .dir-h{margin-top:12px}
@@ -2381,7 +2447,7 @@
   .vs-seg.vs-wrap .seg-btn{white-space:normal;line-height:1.15;hyphens:manual;text-align:center}
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
-  @media (max-width:779.98px){#rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock */
+  @media (max-width:779.98px){html:not(.tabnav) #rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock — sauf sous la barre d'onglets (A517), où le dock n'est plus là hors recherche */
   /* SESSION EN COURS (v5.30, A355 — l'aplat vert est parti) : le liseré passe au registre CONFIRMATION
      (6 px, celui de la carte « Session en cours »), la carte reste BLANCHE, et l'état devient le chrono
      vivant « ● En cours 12:04 » en vert — un glyphe et un mot, jamais un fond (règle 8). Même dessin en
@@ -4889,6 +4955,15 @@
     #stepSetModal{align-items:center;padding:24px}
     #stepSetModal .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
     .sst-hd{display:none}}
+  /* A517 (A508) — « Créer » et « Affichage » au téléphone : FEUILLES DU BAS à poignée, la grammaire de « Réglages de
+     l'étape » et du menu ⋯ (A361). Un CHOIX ne prend jamais toute la hauteur (témoin « trois gabarits ») ; ✕, le voile
+     (A497) et la poignée tirée vers le bas (`bindSheetDrag`) ferment. */
+  @media (max-width:779.98px){
+    #createModal,#viewSheet{align-items:flex-end;padding:0;background:var(--scrim)}
+    #createModal .ai-card,#viewSheet .ai-card{max-width:none;width:100%;min-height:0;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;
+      padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;overscroll-behavior:contain;box-shadow:var(--shadow-up)}
+    :is(#createModal,#viewSheet) .ai-card::before{content:"";display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
+  }
   .sst-step{margin:2px 0 0;font-size:13.5px;font-weight:600;color:var(--ink-2)}
   .sst-h{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .sst-h i{font-style:normal;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act)}
@@ -8324,6 +8399,12 @@
          étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
+      <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
+    </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
@@ -8396,7 +8477,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvwvjws0pw6d8n1d">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvwvjws01ueuxet1">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvwwq8f41j5p7ed1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvwwq8f41tktix10">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8431,6 +8512,12 @@
          étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
+      <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
+    </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
@@ -8503,7 +8590,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvwvjws0pw6d8n1d">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvwvjws01ueuxet1">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvwwq8f41j5p7ed1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvwwq8f41tktix10">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

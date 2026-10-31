@@ -74,23 +74,29 @@ t('geste AVANT : rien ne se rouvre, l’historique redescend', h5.v==='library'&
    Consulter du cockpit et sa touche ; « Un bloc » est désormais le seul retour du quai.) */
 await p.close();
 console.log('=== retour SYSTÈME au TÉLÉPHONE (390 px) — socle du lot 4 de la refonte (A504, A510 §2) ===');
-/* Jusqu'ici la pile n'était jouée qu'à 1000 px. Au téléphone, Sessions et Moi sont des PAGE-FENÊTRES
-   (syncHomeTabs) : chacune compte un niveau. Ce témoin fige ce comportement AVANT la barre d'onglets
-   (A504), où un onglet ne sera PLUS un niveau (A510 §2) : il devra alors changer, sciemment. */
+/* Jusqu'ici la pile n'était jouée qu'à 1000 px. A517 (lot 4) : au téléphone, Sessions et Moi sont des ONGLETS —
+   comme sur iOS, un onglet n'est PAS un niveau de retour (A510 §2) ; Administration, ouverte depuis Moi, reste une
+   page-fenêtre et compte un niveau.
+   Changé sciemment (A514 l'annonçait) : avant, chacune était une page-fenêtre d'un niveau. Depuis une aide, Moi
+   reste une fenêtre (l'accueil n'est pas à l'écran). */
 {const q=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
  q.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
  await q.goto(`http://localhost:${port}/index.html`);await amorce(q);
  /* `AC_RETOUR_ESSAI=1` : la pile n'est plus synchronisée — ce témoin DOIT rougir (preuve d'échec). */
  if(process.env.AC_RETOUR_ESSAI==='1')await q.evaluate(()=>{window._histSync=function(){};});
  // Un retour sans entrée quitte l'app : la lecture le dit (« sorti ») au lieu de planter.
- const hq=()=>q.evaluate(()=>({v:state.view,d:history.state&&history.state.d,L:_histLevels(),mod:_openModals().length})).catch(()=>({v:'sorti'}));
+ const hq=()=>q.evaluate(()=>({v:state.view,t:homeTab(),d:history.state&&history.state.d,L:_histLevels(),mod:_openModals().length})).catch(()=>({v:'sorti'}));
  const rq=async()=>{await q.evaluate(()=>history.back()).catch(()=>{});await q.waitForTimeout(950);return hq();};
  await q.evaluate(()=>openSessHist());await q.waitForTimeout(400);
- const s0=await hq(),s1=await rq();
- t('390 · Sessions est une page-fenêtre : un niveau, et le retour ramène à l’accueil', s0.mod===1&&s0.d===1&&s1.mod===0&&s1.v==='library'&&s1.d===0, JSON.stringify([s0,s1]));
+ const s0=await hq();
+ t('390 · Sessions est un onglet : aucune fenêtre, aucun niveau de retour', s0.mod===0&&s0.t==='sessions'&&s0.L===0&&!(s0.d>0), JSON.stringify(s0));
  await q.evaluate(()=>openAuth());await q.waitForTimeout(400);
- const m0=await hq(),m1=await rq();
- t('390 · Moi : idem', m0.mod===1&&m0.d===1&&m1.mod===0&&m1.v==='library'&&m1.d===0, JSON.stringify([m0,m1]));
+ const m0=await hq();
+ t('390 · Moi : idem', m0.mod===0&&m0.t==='me'&&m0.L===0&&!(m0.d>0), JSON.stringify(m0));
+ await q.evaluate(()=>openAdmin&&openAdmin());await q.waitForTimeout(500);
+ const d0=await hq(),d1=await rq();
+ t('390 · Administration depuis Moi : une fenêtre d’un niveau, le retour ramène à l’onglet Moi', d0.mod===1&&d0.d===1&&d1.mod===0&&d1.t==='me'&&d1.d===0&&d1.v==='library', JSON.stringify([d0,d1]));
+ await q.evaluate(()=>setHomeTab('aides'));await q.waitForTimeout(300);
  if((await hq()).v==='sorti'){await q.goto(`http://localhost:${port}/index.html`);await q.waitForFunction(()=>!document.querySelector('.boot-load'));if(process.env.AC_RETOUR_ESSAI==='1')await q.evaluate(()=>{window._histSync=function(){};});}
  await ouvrirFiche(q,/Arrêt cardiaque/);await q.waitForTimeout(300);
  await q.evaluate(()=>openAuth());await q.waitForTimeout(400);

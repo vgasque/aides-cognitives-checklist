@@ -437,6 +437,12 @@ et le type devient un filtre à trois crans — **« Tout » par défaut** —, 
 chose qu'on applique APRÈS avoir vu, jamais avant. **Ordre du rail de filtres : Bibliothèque,
 Type, Catégorie** — du plus large au plus étroit ; on choisit d'abord OÙ l'on cherche.
 
+**Au téléphone (A517, maquette Natif)** : pas de rangée d'en-tête — une rangée du haut collante (« Sélectionner » ·
+petit titre au défilement · « ＋ Créer »), le **grand titre de 34 px** dans le contenu, le champ de recherche, les
+**filtres en pastilles** (Tout · Accès direct · collections · catégories), puis la ligne du compte avec « Affichage ».
+En bas, une **barre d'onglets flottante en verre** (Aides · Sessions · Moi) et la recherche dans un rond ; Sessions
+et Moi sont des onglets, jamais des niveaux de retour. En large, le titre fait 28 px et ouvre la ligne du compte.
+
 **Trois étages** : groupe **« Accès direct »** des épinglées ★ (les favoris SEULS — jamais de
 remplissage par fréquence d'usage ; des RANGÉES, même dessin que le répertoire, plus des tuiles — A515), **répertoire A→Z**, **rail alphabétique** (tap = saut, glisser = parcours ;
 il DISPARAÎT s'il ne tient pas en hauteur — jamais de lettres coupées). En recherche : liste

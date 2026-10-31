@@ -258,3 +258,13 @@ export async function demarrerSession(page) {
   // Deux rAF : laisser retomber le re-rendu de démarrage avant que la sonde ne mesure.
   await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
 }
+
+/* A517 — OUVRIR LA RECHERCHE PAR SON VRAI GESTE. Sous la barre d'onglets du téléphone, le champ de l'accueil
+   n'existe qu'une fois la recherche OUVERTE (le rond de la barre) ; ailleurs il est toujours là. Idempotent :
+   à appeler avant chaque frappe dans #q. `remplir` = ouvrir puis taper (page.fill). */
+export async function ouvrirRecherche(page) {
+  const ferme = await page.evaluate(() => document.documentElement.classList.contains('tabnav')
+    && !document.documentElement.classList.contains('tb-q'));
+  if (ferme) { await page.click('#tbSrch'); await page.waitForTimeout(150); }
+}
+export async function remplir(page, v) { await ouvrirRecherche(page); await page.fill('#q', v); }
