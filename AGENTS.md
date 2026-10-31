@@ -251,7 +251,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-53.md`](docs/decisions/lot-v5-53.md) · [`-54`](docs/decisions/lot-v5-54.md) | A485-A493 | La colonne dit « avec qui » ; bibliothèques vides ; l'anneau d'ouverture suit la modalité |
 | [`lot-v5-55.md`](docs/decisions/lot-v5-55.md) | A494-A495 | Administration devient une page à sections |
 | [`lot-v5-56.md`](docs/decisions/lot-v5-56.md) | A496-A498 | La collection se choisit à la création ; le voile d'une feuille absorbe le tap ; tête du menu des catégories |
-| [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad |
+| [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501, A511-A512 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad ; A511 : paysage bas, quai à mots entiers, correctifs de mesure ; A512 : zones sûres latérales |
 
 ### Carte par sujet
 
@@ -275,7 +275,7 @@ plages A renvoient au tableau ci-dessus.
 | **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459 |
 | **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392 |
 | **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387 |
-| **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501 |
+| **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501, A511-A512 |
 | **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483 |
 | **Outillage, garde-fous, audits** | Collision de noms de classe · Hygiène de suppression | A154-A158, A278-A283, A289, A292-A293, A329, A420, A439, A451, A482 ; `garde-fous-et-audits.md` |
 

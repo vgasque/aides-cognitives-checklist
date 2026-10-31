@@ -351,7 +351,7 @@ const SURFACES = [
       const b=document.getElementById('allBtn'); if(b)b.click();
       await new Promise(r=>setTimeout(r,500)); } },
   { nom:'mode moniteur',       w:390,  scope:'#monMode', prep:'read', fn: async()=>{
-      if(typeof openMonitor==='function')openMonitor();
+      if(typeof monOpen==='function')monOpen();
       await new Promise(r=>setTimeout(r,400)); } },
   { nom:'lecture de référence',w:390,  fn: async()=>{
       protocols.push(migrateProtocol({id:'pA11y',title:'Référence témoin',kind:'reference',
