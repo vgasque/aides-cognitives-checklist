@@ -68,3 +68,51 @@ iPad + 16 de fondu), la marque descend exactement d'autant et reste entière sou
 l'en-tête suit le même inset ; sans inset, la marque est à 12 px (équivalence à l'octet avec l'état d'avant).
 **À vérifier sur l'appareil** (iPad installé, portrait et paysage) : la mesure simule l'inset, elle ne le lit pas.
 
+
+## A511 — Correctifs issus d'une mesure sans a priori (v5.57.2)
+
+**Origine.** À la demande de l'auteur (« refais une mesure complète sans a priori, re-mesure absolument tout »),
+une sonde générique — aucune liste de défauts attendus — a ouvert 38 états par les vrais points d'entrée et les a
+mesurés à 10 tailles d'écran (320 → 1920, paysage compris), 2 à 3 tailles de texte, nuit et WebKit : 1 436 mesures,
+chaque anomalie vérifiée ensuite sur capture ou par un vrai clic. (Les numéros A502-A510 sont pris par la refonte
+« Natif », doctrine sans code tenue sur sa propre branche.)
+
+**1. Paysage bas : la capsule monte dans l'en-tête (exception à A354, décision de l'auteur).** Téléphone tourné
+(844 × 390) : en-tête, rangée de capsule et quai prenaient **54 %** de l'écran, **71 %** avec le texte à 130 % —
+aucune étape visible en entier. Sous `zh500` (hauteur effective < 500, règle 10) **et** plus large que haut
+(`paysageBas()`), la capsule rejoint `#hdrCrisisSlot` comme au bureau. Une tablette n'y descend jamais (> 670 en
+paysage) : A354 tient pour elle. Le créneau y reste DANS le flux de la rangée, entre titre et actions (centré en
+absolu, il couvrait le titre), sa largeur venant d'une répartition flex (titre 2, capsule 3, base 0) — jamais d'un
+ajustement au contenu (cf. la rétroaction documentée au-dessus du créneau). La capsule est bornée au créneau, sinon
+`#cbTimers` ne débordait jamais de sa propre boîte et sa boucle d'ajustement ne repliait rien en « +n » ; et la clé
+de cette boucle prend désormais l'emplacement (rangée ↔ en-tête) : à largeur de fenêtre égale, elle réutilisait la
+mesure faite pour la rangée pleine. Mesuré après : **35 %** (100 %) et **45 %** (130 %).
+*Forme écartée par l'auteur* : capsule compacte sur une ligne à sa place sous l'en-tête (~55 % / ~41 % de place).
+
+**2. Le quai garde ses mots à toute largeur (étend A465, renverse N4).** A465 ne valait que sous `zw360` ; au-dessus,
+la césure automatique coupait « Horo-dater » (844 et 1280 px à 130 %) et les points de suspension mangeaient
+« FV réfractaire ». La césure et la coupe dans un mot sont retirées partout ; si un mot déborde encore, **tout** le
+quai descend d'un cran mesuré (`fitQuaiLbls` : 13,5 → 12 → 11 px, rembourrage 6 → 2 → 1 px), pour que les touches
+restent identiques. Hors session (Exercice, Démarrer) : non concerné.
+
+**3. Accessibilité et cibles.** `#hdrBack` n'avait aucun nom (« bouton », sans plus) : `aria-label="Retour"`. Les
+mentions « démarre avec la session », « 2:00 cyclique, à lancer » du démarrage et le « ⌘K » de la recherche étaient
+en `--ink-3`, 2,1:1 sur blanc : `--ink-2`. En session, halo à 44 px pour les renvois du parcours (`.pf-ref`) et dans
+les deux sens pour la croix du volet de la capsule (`.rt-x`, la largeur restait à 36) ; champ et corbeille d'un
+repère horodaté à 44 px.
+
+**4. Moniteur : la garantie d'A231 se calcule sur la bande rendue.** « 18 signes ≈ 115 px contre 142 px de
+demi-bande à 320 px » ne valait qu'à 100 % : à 320 × 130 la demi-bande tombe à 105 px. Le plafond de signes d'une
+étiquette d'échéance suit la demi-bande mesurée (6,4 px par signe à 12 px gras), borné à 18, jamais sous 6. Et
+`audit-a11y` appelait `openMonitor`, qui n'existe pas (`monOpen`) : le contraste du moniteur n'avait jamais été
+mesuré.
+
+**Mesuré, laissé tel quel (doctrine en vigueur)** : la destination d'une réponse de décision s'ellipse (A376, « le
+CSS ellipse à la place disponible ») ; la légende d'une étape liée tient sur une ligne de 24 px réservés (A377, A9) ;
+le compteur « 1 coché » de la barre de sélection manque de 3 à 25 px sous 400 px effectifs (dessin d'A476).
+
+**Témoins.** `audit-doctrine` : « QUAI · texte agrandi » joue aussi 320 × 130, 375 × 130, 1280 × 130 et le paysage
+(100 et 130 %) ; nouvelle section « PAYSAGE BAS » (capsule dans l'en-tête, barres ≤ 38 % / 48 %, la plus haute
+étape tient entière, ni débordement ni recouvrement du retour et du titre ; tablette : capsule sous l'en-tête). Les
+deux, vérifiés capables d'échouer : 10 rouges sur le code d'avant, dont les 54 % et 71 % d'origine.
+**À vérifier sur l'appareil** : iPhone tourné, capsule dans l'en-tête et rotation aller-retour pendant une session.

@@ -783,7 +783,7 @@
      et le champ réserve la largeur du plus long des deux pour que son texte ne passe jamais
      dessous — la place réservée ne doit pas dépendre du clavier de celui qui regarde. */
   .dock-kbd{display:none;position:absolute;right:10px;align-items:center;
-    font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink-3);
+    font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink-2);   /* A511 : --ink-3 = 2,1:1 */
     border:1px solid var(--line);border-radius:var(--r-1);padding:1px 6px;pointer-events:none}
   .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
   .srch-x:hover{background:var(--amb-2);color:var(--ink)}
@@ -1030,6 +1030,15 @@
   /* v5.30 (A354) : le créneau n'existe qu'au BUREAU (≥ 1440) — une tablette en paysage garde la bande. */
   .hdr-crisis-slot{display:none}
   @media (min-width:1440px){.hdr-crisis-slot{display:flex;align-items:center;gap:8px;min-width:0}}
+  /* A511 — PAYSAGE BAS (téléphone tourné) : le créneau existe aussi, mais DANS le flux de la rangée, entre
+     le titre et les actions — centré en absolu, il couvrait le titre (844 px : capsule ~350 px). Sa
+     largeur reste DÉFINIE (flex-basis), jamais un ajustement au contenu : cf. la rétroaction plus bas. */
+  html.zh500 body.view-read.chrome-hdr .hdr-crisis-slot{display:flex;align-items:center;min-width:0;position:static;transform:none;flex:3 1 0;width:auto;margin:0 8px;justify-content:center;overflow:hidden}
+  html.zh500 body.view-read.chrome-hdr .id-row>.brand{flex:2 1 0}
+  /* La capsule est BORNÉE au créneau : sans plafond, `#cbTimers` (flex:0 0 auto) ne débordait jamais de sa propre
+     boîte et la boucle d'ajustement, qui mesure ce débordement, ne repliait rien en « +n » (mesuré à 667 px). */
+  html.zh500 body.view-read.chrome-hdr :is(#crisisDock,#crisisDock .dock-in){min-width:0;max-width:100%}
+  html.zh500 body.view-read.chrome-hdr #cbTimers{flex:0 1 auto;min-width:0;max-width:100%}
   .hdr-crisis-slot:empty{display:none}
   body.chrome-hdr #crisisDock{position:static;background:transparent;border-bottom:0;box-shadow:none}
   body.chrome-hdr #crisisDock .dock-in{max-width:none;padding:0;margin:0;gap:8px;flex-wrap:nowrap}
@@ -1362,7 +1371,11 @@
      la touche ⚡︎ porte le NOM d'une complication quand il n'y en a qu'une, et « FV RÉFRA… » ne dit
      pas où l'on va. Deux lignes au plus — au-delà, la touche grandirait sous le doigt. */
   .sd-key .dp-lbl.sd-name{text-transform:none;letter-spacing:0;font-weight:700}
-  .sd-key .dp-lbl{font-size:var(--t-body);font-weight:800;letter-spacing:0;text-transform:none;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}   /* N5 : 13,5 (lu à distance), en casse de phrase — en capitales « HORODATER » demandait 82 px pour 73 à 390 (mesuré) ; N4 : césure avant toute coupe au milieu du mot */
+  .sd-key .dp-lbl{font-size:var(--t-body);font-weight:800;letter-spacing:0;text-transform:none;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:normal;-webkit-hyphens:manual;hyphens:manual}   /* N5 : 13,5 (lu à distance), en casse de phrase — en capitales « HORODATER » demandait 82 px pour 73 à 390 (mesuré) ; A511 (renverse N4) : jamais de césure ni de coupe dans un mot, à toute largeur — un mot qui ne tient pas fait descendre le quai d'un cran (fitQuaiLbls) */
+  #sessionDock.lbl-s .sd-key .dp-lbl{font-size:var(--t-meta)}
+  #sessionDock.lbl-xs .sd-key .dp-lbl{font-size:var(--t-cap)}
+  #sessionDock.lbl-s .sd-key:not(.sd-exo):not(.sd-start){padding:0 2px}
+  #sessionDock.lbl-xs .sd-key:not(.sd-exo):not(.sd-start){padding:0 1px}
   /* A2 — à 320 px les DEUX OUVERTURES passent au glyphe seul (aria-label conservé) ; hors du
      contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT — les GESTES gardent
      leurs mots. ⚠ Ce palier est une CLASSE `zw*`, jamais une media query (règle 10, déjà enfreinte
@@ -2758,9 +2771,11 @@
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
-  .pf-ref{display:inline-flex;align-items:center;gap:6px;min-height:32px;max-width:100%;padding:0 4px;border:0;background:none;font-family:inherit;font-size:var(--t-body);font-weight:700;color:var(--ink-2);cursor:pointer;text-align:left;min-width:0}
+  .pf-ref{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:32px;max-width:100%;padding:0 4px;border:0;background:none;font-family:inherit;font-size:var(--t-body);font-weight:700;color:var(--ink-2);cursor:pointer;text-align:left;min-width:0}
   .pf-ref>span:first-child{flex:none;white-space:nowrap}
   .pf-ref .pf-rt{flex:1 1 auto;min-width:0}
+  /* A511 : un renvoi « ↓ 3 Choquable » se touche en session — halo à 44 px (A8), la rangée garde ses 32 px. */
+  .pf-ref::after{content:"";position:absolute;inset:-6px 0}
   .pf-n{flex:none;width:20px;height:20px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);display:inline-grid;place-items:center;font-size:var(--t-cap);font-weight:800}
   .pf-rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pf-end{font-size:var(--t-body);font-weight:800;color:var(--ok);padding-top:2px}
@@ -4118,9 +4133,9 @@
   .tk-pick:hover{background:var(--primary-soft);border-color:var(--act)}
   .tk-pick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
 
-  .tk-lab{flex:1;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink);font-size:13.5px}
+  .tk-lab{flex:1;min-width:0;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink);font-size:13.5px}
   .tk-lab:focus{outline:2px solid var(--act);border-color:transparent}
-  .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--amb);color:var(--ink-soft);font-size:15px}
+  .tk-del{flex-shrink:0;width:44px;height:44px;border:0;border-radius:8px;background:var(--amb);color:var(--ink-soft);font-size:15px}
   /* REPÈRE ANNULÉ — barré et estompé, jamais retiré : le journal alimente le compte-rendu, et une
      trace qu'un tap efface sans laisser de marque n'est pas une trace. L'heure reste EN ENCRE
      PLEINE (c'est la donnée clinique ; l'estomper serait l'inversion à ne pas faire, cf. la règle
@@ -4495,7 +4510,7 @@
      de 17, sur un écran de soin. Le halo est VERTICAL SEUL (`inset:-6px 0`), comme l'exige la
      règle juste au-dessus : un débordement à droite entrerait dans le `scrollWidth` de la rangée,
      que le harnais doctrine mesure. 36 de dessin + 12 de halo = 48 de cible, au-dessus des 44. */
-  .rt-x::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
+  .rt-x::after{content:"";position:absolute;inset:-4px;border-radius:8px}   /* A511 : 36 + 2 × 4 = 44 dans LES DEUX sens (la largeur restait à 36) */
   .rt-find input{min-height:44px}
   /* `.st-seg` est le segmenté de STATUT des ÉDITEURS — hors surface de crise, donc hors du seuil
      de 44 px (vérifié : aucune émission en lecture). 38 px tient largement les 24×24 de
@@ -5388,7 +5403,7 @@
   .pre-rows{display:grid;gap:2px;margin-top:6px}
   .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .pre-rn{flex:1;min-width:0}
-  .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-3);text-align:right}
+  .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}

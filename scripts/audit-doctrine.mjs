@@ -3401,8 +3401,10 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
 await sec('QUAI · texte agrandi : chaque touche garde son mot entier (A465)', async () => {
 /* Sous 360 px effectifs, les touches du quai perdaient leur mot (« Tout voir » réduit au glyphe) ou le
    coupaient au milieu (« Horoda / ter »). On mesure la boîte du libellé ET le mot le plus long. */
-  for (const [W,z] of [[390,130],[360,130],[320,115]]) {
-    const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  /* A511 : 320 × 130 (régime dégradé d'A510 : les mots y restent entiers), 1280 × 130 et le PAYSAGE
+     (844 × 390) — trois cas où « FV réfractaire » et « Horodater » se coupaient encore (mesure v5.57.1). */
+  for (const [W,z,H] of [[390,130],[360,130],[320,115],[320,130,640],[375,130,667],[1280,130,800],[844,130,390],[844,100,390]]) {
+    const page = await br.newPage({viewport:{width:W,height:H||844},hasTouch:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
@@ -3421,7 +3423,45 @@ await sec('QUAI · texte agrandi : chaque touche garde son mot entier (A465)', a
         return {k:l.textContent.trim(),ok:!coupe,why:coupe?'coupé':''};});
       c.remove();return out;});
     const fautes=r.filter(x=>!x.ok);
-    t(`${W} px · ${z} % · ${r.length} touches, toutes avec leur mot entier`, r.length>=3&&!fautes.length, JSON.stringify(fautes));
+    t(`${W}${H?' × '+H:''} px · ${z} % · ${r.length} touches, toutes avec leur mot entier`, r.length>=3&&!fautes.length, JSON.stringify(fautes));
+    await page.close();
+  }
+});
+
+await sec('PAYSAGE BAS : la capsule monte dans l\u2019en-tête, les étapes gardent la place (A511)', async () => {
+/* Mesuré v5.57.1 : à 844 × 390, en-tête + rangée de capsule + quai prenaient 54 % de l'écran (71 % à
+   130 %) et aucune étape n'était visible en entier. Sous `zh500` et plus large que haut, la capsule
+   monte dans l'en-tête (comme au bureau, A354 ≥ 1440) ; une tablette n'y descend pas. */
+  for (const [W,H,z] of [[844,390,100],[844,390,130],[667,375,100],[1024,768,130]]) {
+    const page = await br.newPage({viewport:{width:W,height:H},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await page.evaluate(z=>applyZoom(z),z);
+    await ouvrirFiche(page,/Arrêt cardiaque/);
+    await demarrerSession(page);
+    await page.evaluate(()=>{Object.values(Runtime.timers).slice(0,2).forEach(t=>tmRestart(t));render();});
+    await new Promise(r=>setTimeout(r,1500));
+    const m = await page.evaluate(()=>{
+      const dk=document.getElementById('crisisDock'),slot=document.getElementById('hdrCrisisSlot');
+      const hdr=document.querySelector('header.bar').getBoundingClientRect(),quai=document.getElementById('sessionDock').getBoundingClientRect();
+      const cap=dk.getBoundingClientRect(),cb=document.getElementById('cbTimers');
+      const bt=document.getElementById('brandTitle').getBoundingClientRect(),back=document.getElementById('hdrBack').getBoundingClientRect();
+      const bande=hdr.bottom+(slot.contains(dk)?0:cap.height)+(innerHeight-quai.top);
+      const haut=slot.contains(dk)?hdr.bottom:Math.max(hdr.bottom,cap.bottom);
+      const lis=[...document.querySelectorAll('.ov-block.cur ol.steps li')].map(li=>li.getBoundingClientRect().height).filter(h=>h>0);
+      const entiere=lis.length>0&&Math.max(...lis)<=quai.top-haut;   // la plus haute étape du bloc TIENT entière dans la fenêtre laissée (au défilement)
+      return {monte:slot.contains(dk),part:bande/innerHeight,entiere,deborde:cb.scrollWidth>cb.clientWidth+1,
+        couvre:cap.left<bt.left+20&&slot.contains(dk)||cap.left<back.right,titre:bt.width,paysage:innerWidth>innerHeight&&innerHeight/((parseFloat(document.documentElement.style.zoom)||100)/100)<500};});
+    if (m.paysage) {
+      t(`${W} × ${H} · ${z} % · la capsule est dans l'en-tête`, m.monte, JSON.stringify(m));
+      /* Plafonds calés sur la mesure de la correction (avant : 54 % et 71 %), pour qu'une régression se voie. */
+      const plaf=z>100?0.48:0.38;
+      t(`${W} × ${H} · ${z} % · barres ≤ ${Math.round(plaf*100)} % de l'écran (mesuré : ${Math.round(m.part*100)} %)`, m.part<=plaf, JSON.stringify(m));
+      t(`${W} × ${H} · ${z} % · la plus haute étape du bloc tient entière entre l'en-tête et le quai`, m.entiere, JSON.stringify(m));
+      t(`${W} × ${H} · ${z} % · la capsule ne déborde pas de son créneau et ne couvre ni le retour ni le titre`, !m.deborde&&!m.couvre&&m.titre>=40, JSON.stringify(m));
+    } else t(`${W} × ${H} · ${z} % · tablette : la capsule reste sous l'en-tête (A354)`, !m.monte, JSON.stringify(m));
     await page.close();
   }
 });
