@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513 au lot v6.0 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A514 au lot v6.0 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A513 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A514 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -252,7 +252,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-55.md`](docs/decisions/lot-v5-55.md) | A494-A495 | Administration devient une page à sections |
 | [`lot-v5-56.md`](docs/decisions/lot-v5-56.md) | A496-A498 | La collection se choisit à la création ; le voile d'une feuille absorbe le tap ; tête du menu des catégories |
 | [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501, A511-A512 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad ; A511 : paysage bas, quai à mots entiers, correctifs de mesure ; A512 : zones sûres latérales |
-| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
+| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513-A514 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
 
 ### Carte par sujet
 
@@ -278,7 +278,7 @@ plages A renvoient au tableau ci-dessus.
 | **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387 |
 | **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501, A502-A504, A508, A511-A512 |
 | **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483 |
-| **Outillage, garde-fous, audits** | Collision de noms de classe · Hygiène de suppression | A154-A158, A278-A283, A289, A292-A293, A329, A420, A439, A451, A482 ; `garde-fous-et-audits.md` |
+| **Outillage, garde-fous, audits** | Collision de noms de classe · Hygiène de suppression | A154-A158, A278-A283, A289, A292-A293, A329, A420, A439, A451, A482, A514 ; `garde-fous-et-audits.md` |
 
 ## Règle de publication (IMPÉRATIF)
 Publier une version = trois étapes, dans cet ordre :
@@ -326,7 +326,7 @@ dans [`docs/decisions/garde-fous-et-audits.md`](docs/decisions/garde-fous-et-aud
    `npm run design:check`. ⚠ Il porte `--strict`, qui fait `git checkout -- design/ds` : joué entre
    le build et le `git add`, il efface la régénération. Vérifier au `git status` que `design/ds` est
    STAGÉ.
-5. **`npm run audit`, passe COMPLÈTE** — les **23 harnais** Playwright (liste : `HARNAIS` dans
+5. **`npm run audit`, passe COMPLÈTE** — les **24 harnais** Playwright (liste : `HARNAIS` dans
    `scripts/audit-run.mjs`), en parallèle, rapport agrégé, cache vert par harnais. Pour itérer :
    `npm run audit -- <noms>` (annoncée PARTIELLE), `--grep <motif>` (sections de doctrine et
    partage), `--rouges` (rejoue les seules sections rouges), `--force` (ignore le cache) ;

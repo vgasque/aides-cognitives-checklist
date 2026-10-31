@@ -219,3 +219,29 @@ affiche la colonne gauche. Seul l'iPhone SE (667 px) restait dessous. Il suit d�
 bas (`paysageBas()`, A511), l'accueil prend la colonne gauche, jamais la barre d'onglets. Un seul dessin pour « un
 téléphone tourné », et la hauteur, déjà rare (A511), reste au contenu. La colonne y loge l'inset latéral (A512).
 *Forme écartée* : une barre d'onglets compacte sur une ligne (~44 px) en paysage.
+
+## A514 — Lot 2 de la refonte : l'outillage avant le code (aucun changement servi)
+
+Ordre d'A510 : avant de toucher un pixel, poser ce qui saura dire si la refonte casse quelque chose.
+
+**1. `audit-verre` — le contraste se mesure AU PIXEL sous les barres.** `audit-a11y` compose le fond d'un texte par
+ses ancêtres du DOM : juste pour une surface opaque, faux sous une barre translucide (A503), où le fond réel est ce
+qui défile dessous. Le nouveau harnais amène l'étape CRITIQUE puis une étape cochée sous la capsule et sous le quai,
+masque la barre, capture ce qui passe dessous, y compose la pile de fonds réelle de la barre et garde le PIRE
+contraste de chaque texte (seuils WCAG 1.4.3). Téléphone jour et nuit, paysage, bureau : 16 contrôles. Il a déjà
+servi : en paysage, la capsule montée dans l'en-tête (A511) repose sur une barre translucide — pire contraste réel
+4,94:1. Preuve d'échec rejouable : `AC_VERRE_ESSAI=1` pose un verre clair à 60 % sous l'encre système — 1,0 à 1,1:1,
+les 16 rouges (c'est la mesure qu'avait prédite le rapport d'obstacles). Aucun fetch : la CSP de l'app l'interdit
+sur `data:`, la capture est décodée par une image.
+
+**2. `audit-retour` joue le téléphone (390 px).** La pile de retour (A430) n'était mesurée qu'à 1000 px. Trois
+contrôles figent le comportement d'AVANT la barre d'onglets : Sessions et Moi sont des page-fenêtres d'un niveau,
+une aide puis Moi font deux niveaux défaits dans l'ordre. Au lot 4 (A504), un onglet cessera d'être un niveau
+(A510 §2) : ce témoin devra changer, sciemment. Preuve d'échec : `AC_RETOUR_ESSAI=1` coupe la synchronisation de
+l'historique.
+
+**3. `check-type` admet les deux crans du grand titre, pour le seul `.pg-ttl`.** 34 px (téléphone) et 28 px (large,
+titre d'aide), A505 : exemptions NOMMÉES par sélecteur, comme le titre de bienvenue — vérifié, un 34 px hors
+`.pg-ttl` reste refusé. L'échelle de tout le reste ne bouge pas.
+
+Le harnais `audit-verre` entre dans `HARNAIS` (24 harnais) ; rien de servi ne change (`index.html` intact).
