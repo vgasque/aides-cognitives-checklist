@@ -130,8 +130,8 @@ touche une surface — c'est la seule protection dont il dispose.
   PAS là où la DATE de validation est visible** : la date dit la même chose en plus
   précis, et une carte ne porte un statut que si elle ATTEND quelque chose. Sans date, la
   pastille reste — sinon rien ne distinguerait une fiche validée d'une fiche sans statut.
-  Sur les cartes d'accueil, la pilule de catégorie est NEUTRE : la couleur de catégorie
-  ne vit que dans le liseré. Les badges d'attente sont ACHROMATIQUES — seul « À revérifier » est
+  Sur les rangées d'accueil, la catégorie se dit par son POINT SUIVI DE SON NOM dans la sous-ligne
+  (« ● SMUR ») — plus de liseré, et jamais le point seul (A515 ; rangées GROUPÉES, plus de cartes). Les badges d'attente sont ACHROMATIQUES — seul « À revérifier » est
   ambre (A347) ; l'état d'une carte est au palier méta 12, gras s'il attend quelque chose (A422).
 - Pastilles d'état (compte/synchro) : ok = `--ok`, attente = `--warn`,
   erreur = `--crit`, inactif = `--line-strong`, synchro EN COURS = anneau tournant en
@@ -436,8 +436,8 @@ et le type devient un filtre à trois crans — **« Tout » par défaut** —, 
 chose qu'on applique APRÈS avoir vu, jamais avant. **Ordre du rail de filtres : Bibliothèque,
 Type, Catégorie** — du plus large au plus étroit ; on choisit d'abord OÙ l'on cherche.
 
-**Trois étages** : tuiles **épinglées ★** (les favoris SEULS — jamais de remplissage par
-fréquence d'usage), **répertoire A→Z**, **rail alphabétique** (tap = saut, glisser = parcours ;
+**Trois étages** : groupe **« Accès direct »** des épinglées ★ (les favoris SEULS — jamais de
+remplissage par fréquence d'usage ; des RANGÉES, même dessin que le répertoire, plus des tuiles — A515), **répertoire A→Z**, **rail alphabétique** (tap = saut, glisser = parcours ;
 il DISPARAÎT s'il ne tient pas en hauteur — jamais de lettres coupées). En recherche : liste
 plate triée par pertinence, avec extraits contextuels.
 
@@ -464,8 +464,8 @@ n'est plus celui d'une queue qui tombe :
 La méta reste du **texte séparé par des points, jamais une suite de chips** : une chip a une
 largeur incompressible et se coupe net, un texte s'ellipse proprement.
 
-**« Session en cours » cumule trois canaux à coût nul** : liseré au registre CONFIRMATION,
-teinte de rangée, et la DATE qui cède la place au **chrono vivant** (une place déjà prise —
+**« Session en cours » se dit par le MOT et le chrono** (le liseré au registre CONFIRMATION est parti
+avec tous les liserés d'accueil, A515) : la DATE qui cède la place au **chrono vivant** (une place déjà prise —
 une date de validation n'apprend rien pendant qu'une session tourne). Peint sur place par le
 tick, jamais par un re-rendu : reconstruire l'annuaire chaque seconde détruirait le nœud sous
 le doigt.

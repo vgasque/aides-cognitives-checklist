@@ -245,3 +245,40 @@ titre d'aide), A505 : exemptions NOMMÉES par sélecteur, comme le titre de bien
 `.pg-ttl` reste refusé. L'échelle de tout le reste ne bouge pas.
 
 Le harnais `audit-verre` entre dans `HARNAIS` (24 harnais) ; rien de servi ne change (`index.html` intact).
+
+## A515 — Lot 3 de la refonte : cases rondes et rangées groupées (v5.58.0)
+
+**Cases rondes (A507, précisé par A510).** Toutes les cases deviennent rondes : étape de session (36 px gardés),
+case de sélection de l'accueil et case maîtresse, cases du choix de collections, cases d'Administration, listes
+cochables des références (`li.md-task`, 20 px, alignement suspendu inchangé). La bordure de l'étape porte toujours
+le registre (rouge CRITIQUE, ambre VIGILANCE), la case cochée reste verte pleine. Le dernier repère de la jauge
+d'un seuil (A474), qui figurait la case par un carré, devient un rond PLUS GRAND (10 px contre 8). L'anneau de focus
+de la case de sélection suit la forme ronde. La Page (`.sv-bx`) garde ses cases : c'est un document imprimé.
+
+**Rangées groupées à l'accueil (A506).** La vue DÉTAILLÉE n'est plus une pile de cartes : un groupe arrondi par
+section (`--r-4`, matière de travail, ombre de travail), des rangées séparées par un filet, plus de filet sous la
+dernière ; l'intertitre de section reste au-dessus du groupe. La vue COMPACTE l'était déjà (livre à filets) et ne
+change que par le liseré. Le LISERÉ de catégorie (3 à 6 px) disparaît partout à l'accueil : la catégorie se dit par
+le point suivi de son nom dans la sous-ligne (« ● SMUR », A242) — jamais le point seul (A326). Le liseré vert d'une
+aide en session part aussi (amende A355) : l'état reste dit par « ● En cours 12:04 » en vert sur la rangée. Les
+états se composent avec la rangée groupée : sélection bleu pâle, survol en teinte, et plus de soulèvement au survol
+(c'était le geste d'une carte).
+
+**Arbitrages de l'auteur (sur question, recommandations retenues)** :
+1. « Détaillée / Compacte » restent tous deux — deux lignes ou une, dans le même groupe.
+2. L'étoile d'accès direct reste à droite, sans chevron : toute la rangée ouvre l'aide.
+3. En sélection, la case prend l'avant et le point de catégorie reste dans la sous-ligne.
+4. Les épinglées deviennent le PREMIER GROUPE de rangées, « Accès direct » (`.dir-book.pinned`), même rangée que le
+   répertoire, à toutes les largeurs — **renverse A261** (tuiles). Le dessin des tuiles (`.qa-tile`, `.qa-grid`,
+   `.qa-t`, `.qa-sub`, `cfg.tile`) est PURGÉ (règle 14) ; la fiche reste aussi dans le répertoire.
+*Formes écartées* : une seule forme de rangée (sans réglage) ; chevron à droite et épingler au glissement ; point
+supprimé en sélection ; grille de tuiles conservée.
+
+**Pas encore fait (dit, pas tu)** : le groupe « En cours » d'A510 §6 — l'aide en session reste à sa place dans sa
+catégorie ; c'est la carte « Session en cours » en tête de l'accueil qui la met en avant, comme avant. Les autres
+listes (Sessions, Moi, Administration, colonne d'état) gardent leur dessin : elles relèvent des lots suivants.
+
+**Témoins.** `audit-doctrine` « REFONTE · cases rondes et rangées groupées (A506-A507) » (8 contrôles, 5 rouges sur le
+code d'avant) ; réécrits sciemment : « les épinglées ont le rythme du répertoire » (groupe de rangées de même largeur,
+plus aucune tuile), « titres longs » (cas de la rangée seul), « la rangée a un rythme régulier » (plancher 64 px des
+rangées groupées au lieu de 76 des cartes). Captures du design system relevées.

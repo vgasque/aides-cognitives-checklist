@@ -1964,29 +1964,6 @@
   .dir-h .dir-hs{font-size:12px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dir-h.dir-sum{margin:8px 0 12px}
   .dir-h.dir-sum .dir-hs{flex:1;font-size:var(--t-body)}
-  /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
-     catégorie par ::before (canal --stripe). Grille FLUIDE partagée avec le répertoire : même
-     minimum et même gouttière que .dir-grid, jamais un nombre de colonnes figé — tuiles et rangées
-     s'alignent colonne pour colonne, une transition ne change que le NOMBRE. Détail : doctrine-css.md C36. */
-  .qa-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-  /* E1 niveau 1 : une tuile d'accueil est du CONTENU (plat + filet) — l'ombre est rendue aux
-     surfaces vives. Le fond `--amb` un cran plus profond (E7) la fait « porter » sans elle. */
-  /* v5.30 (maquette v5) : tuile 76 px, liseré 6 px, point vert PULSANT (`.sess-dot`) à droite si
-     une session est en cours — un mot au nom accessible, jamais la couleur seule. */
-  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:76px;background:var(--work);border:1px solid var(--line-strong);border-radius:var(--r-3);padding:10px 12px 10px 20px;cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
-  .qa-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-  .qa-tile:hover{border-color:var(--line-strong)}
-  .qa-tile:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .qa-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--stripe,transparent)}
-  /* Titre de tuile : 3 lignes max puis ellipse (nom accessible et info-bulle entiers), corps 15 px
-     — et NON 16,5 comme la rangée du répertoire (A3-1, monté puis REVENU sur mesure : la tuile a
-     une hauteur FLUIDE, 16,5 coûtait ~35 px à chaque rangée de tuiles). Ne pas « harmoniser » les
-     deux paliers : c'est la CONTRAINTE qui décide, pas l'objet montré. Détail : doctrine-css.md C37. */
-  .qa-t{font-size:15px;font-weight:750;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word}
-  .qa-sub{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-size:11px;color:var(--ink-soft)}
-  .qa-sub>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .qa-sub>.code,.qa-sub>.tag{flex:none}
-  .qa-sub .code{font-family:var(--f-mono);white-space:nowrap}
   /* Répertoire : lettre de classement en SERIF graisse 600 (la seule embarquée — un index
      d'ouvrage, pas du chrome) ; le rail A→Z, lui, RESTE en mono. ⚠ Deux régimes : en étroit UNE
      carte à rangées (un livre, pas une pile de cadres), en large des cartes en grille fluide —
@@ -2037,7 +2014,7 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:50%;background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
@@ -2052,13 +2029,6 @@
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
-  /* Étroit (A261) : deux tuiles par ligne dès 390 px ; le titre long gagne une 4e ligne et un
-     corps de 13,5 (l'ellipse reste la borne — la tuile OUVRE la fiche, le titre entier est à
-     un tap). La boîte reste bornée : c'est le témoin « titres longs » qui tient le plafond. */
-  @media (max-width:779.98px){
-    .qa-grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
-    .qa-t{font-size:13.5px;-webkit-line-clamp:4}
-  }
   /* ═══ A170 — LE MODE SÉLECTION VIT DANS LA RANGÉE DE GROUPEMENT ═══════════════════════════
      Et NON dans l'en-tête (décision de l'auteur : « l'en-tête est déjà saturé »). Le logement est
      juste : cette rangée est celle où l'on choisit COMMENT ce qu'on voit est rangé, juste
@@ -2135,11 +2105,11 @@
      (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
      sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
   .dir-ck{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--act);cursor:pointer}
-  .dir-ck::before{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work)}
+  .dir-ck::before{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:50%;background:var(--work)}
   .dir-ck>svg{position:relative;opacity:0}
   .dir-row.selon .dir-ck::before{background:var(--act);border-color:var(--act)}
   .dir-row.selon .dir-ck>svg{opacity:1;color:var(--work)}
-  .dir-ck:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
+  .dir-ck:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:50%}   /* A507 : l'anneau suit la case ronde */
   /* ⚠ LA COCHE EST UNE COLONNE DE LA GRILLE, PAS UN INTRUS (correctif, signalé à l'usage :
      « réduis l'espace entre la coche et le reste de la carte — c'est encore plus marquant sur
      plusieurs colonnes »). `.dir-row` est une GRILLE à deux pistes (`minmax(0,1fr) auto`) :
@@ -2303,18 +2273,16 @@
   html.zw360 .dir-st{margin-left:0;padding-left:0}
   html.zw360 .dir-book .dir-row{height:80px}   /* deux lignes de méta (badge compris) : une seule hauteur de rangée */
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
-  .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:var(--catcol,var(--line-strong));border-radius:var(--r-3) 0 0 var(--r-3)}
-  /* Dans le LIVRE, la rangée n'a plus de bord à elle : le liseré de catégorie se pose dans la
-     marge de la carte, où il reste lisible comme un onglet d'annuaire. */
-  .dir-book .dir-row::before{left:-16px;border-radius:0;top:1px;bottom:1px}
+  /* A506 (refonte « Natif », lot 3) — LISTES GROUPÉES : plus de liseré. La catégorie se dit par le point
+     SUIVI DE SON NOM dans la sous-ligne (« ● SMUR », A242) — jamais le point seul (A326) ; en sélection,
+     la case prend l'avant et le point reste dans la sous-ligne (choix de l'auteur). */
+  .dir-row::before{content:none}
   /* ⚠ PLUS DE `background:none` SUR L'ÉTAT (v5.6, signalé à l'usage : « on a l'impression qu'elle
      n'a plus de fond de carte »). Cette règle vaut (0,3,0) et battait aussi bien la teinte de
      l'état que la MATIÈRE de la carte posée au palier ≥ 640 px — la rangée d'une aide en session
      s'y retrouvait donc sans fond du tout. Un état se COMPOSE avec l'objet, il ne le remplace
      jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
      carte quand il y en a une, sur le blanc du livre sinon. */
-  .dir-book .dir-row.live::before{width:4px}   /* compact : le livre à filets garde un liseré plus fin */
   /* v5.30 (maquette v5) — vue DÉTAILLÉE : une CARTE par rangée (liseré 6 px, titre 15/700,
      discriminant sur sa ligne, méta 13,5) ; la vue COMPACTE garde le livre à filets. A389 : à TOUTES
      les largeurs — elle n'existait que sous 780 px, et « Détaillée » / « Compacte » rendaient la même
@@ -2324,17 +2292,23 @@
        intertitre, 10 px sous lui (planche A) ; le livre compact à filets ne change pas. */
     .dir-book:not(.compact){display:flex;flex-direction:column;gap:24px}
     .dir-book:not(.compact) .dir-g{background:none;border:0;border-radius:0;overflow:visible;margin:0;display:flex;flex-direction:column;gap:10px}
-    .dir-book:not(.compact) .dir-grid{display:flex;flex-direction:column;gap:8px}
+    /* A506 : la vue DÉTAILLÉE n'est plus une pile de cartes mais un GROUPE arrondi de rangées séparées par un
+       filet — la matière du livre compact, avec deux lignes ; l'intertitre reste AU-DESSUS du groupe. */
+    .dir-book:not(.compact) .dir-grid{display:block;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip;box-shadow:var(--shadow-work)}
     .dir-book:not(.compact) .dir-l{position:static;background:none;box-shadow:none;padding:6px 4px 0;font-size:var(--t-meta)}
-    .dir-book:not(.compact) .dir-row{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);min-height:76px;padding:12px 12px 12px 20px;overflow:hidden}
-    .dir-book:not(.compact) .dir-grid>.dir-row:last-child{border-bottom:1px solid var(--work-line)}
-    .dir-book:not(.compact) .dir-row::before{left:0;top:0;bottom:0;width:6px;border-radius:0}
+    .dir-book:not(.compact) .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;min-height:64px;padding:10px 12px 10px 16px;overflow:hidden}
     .dir-book:not(.compact) .dir-row .card-open{font-size:var(--t-item);font-weight:700}   /* A375 : 15/700 comme en large (choix de l’auteur, « bigger is not better ») — A359 disait 17,5 */
     .dir-book:not(.compact) .dir-sub{flex-wrap:wrap;white-space:normal;row-gap:4px;margin-top:4px}
     .dir-book:not(.compact) .dir-disc{order:-1;flex:1 0 100%;font-size:var(--t-body);font-weight:600;color:var(--ink)}
-    /* A359 (signalé : « bordure du bas de certaines cartes invisible en sombre ») : le livre à filets efface le filet
-       du DERNIER rang d'un groupe ; une CARTE garde ses quatre bords. */
-    .dir-book:not(.compact) .dir-grid>.dir-row:last-child,.dir-book:not(.compact) .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:1px solid var(--work-line)}
+    /* A506 : comme le livre à filets, le DERNIER rang d'un groupe n'a pas de filet — le bord du groupe le remplace
+       (A359 gardait les quatre bords d'une CARTE ; il n'y a plus de carte). */
+    .dir-book:not(.compact) .dir-grid>.dir-row:last-child{border-bottom:0}
+    /* A506 : les ÉTATS se composent avec la rangée groupée (la règle de fond ci-dessus, plus spécifique, les
+       effaçait — vu en capture) : sélection bleu pâle, survol en teinte ; une rangée de groupe ne se SOULÈVE
+       pas au survol (ce geste était celui d'une carte). */
+    .dir-book .dir-row.selon,.dir-book:not(.compact) .dir-row.selon{background:var(--primary-soft)}
+    .dir-book:not(.compact) .dir-row:hover{background:var(--amb-2)}
+    .dir-book .dir-row:is(:hover,:active){transform:none;box-shadow:none}
     /* Sous 360 px effectifs, la carte garde sa géométrie (hauteur libre, méta en ligne qui s'enroule) :
        les règles du LIVRE (hauteur unique, méta en colonne) ne la concernent pas. */
     html.zw360 .dir-book:not(.compact) .dir-row{height:auto}
@@ -2375,7 +2349,8 @@
      (6 px, celui de la carte « Session en cours »), la carte reste BLANCHE, et l'état devient le chrono
      vivant « ● En cours 12:04 » en vert — un glyphe et un mot, jamais un fond (règle 8). Même dessin en
      vue compacte (livre à filets) : liseré et mot, rien d'autre. */
-  .dir-row.live::before{background:var(--ok);width:6px}
+  /* (A506 : le liseré « session en cours » est parti avec le liseré de catégorie — l'état reste dit par
+     « ● En cours 12:04 » en vert sur la rangée, un glyphe et un mot.) */
   .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
   .dir-st.dir-live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
   .dir-row .pinbtn{position:relative;z-index:1}
@@ -2564,7 +2539,7 @@
   .empty b{display:block;color:var(--ink);font-size:17.5px;margin-bottom:6px}
   /* DIRECTION A, lot 2 : équilibre des titres multi-lignes (amélioration progressive pure —
      moteur sans text-wrap:balance = comportement actuel). JAMAIS sur un titre clampé
-     (.dir-t, .qa-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
+     (.dir-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
      tronque — on perdrait des mots pour gagner une symétrie. */
   .ai-top h3,.empty b{text-wrap:balance}
   .empty .btn{margin-top:14px}
@@ -3471,7 +3446,7 @@
   /* A474 : la jauge dans l'étiquette du seuil — points ronds, le dernier repère carré (la case), à l'encre de l'étiquette. */
   .mo-pips{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:-1px}
   .mo-pips i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
-  .mo-pips i.goal{border-radius:3px;background:var(--work);box-shadow:inset 0 0 0 1.5px currentColor}
+  .mo-pips i.goal{width:10px;height:10px;border-radius:50%;background:var(--work);box-shadow:inset 0 0 0 1.5px currentColor}   /* A507/A510 : la case est ronde, son repère aussi — un rond PLUS GRAND, plus un carré */
   .stp-mk .mo-nn{margin-left:6px;font-family:var(--f-mono);letter-spacing:0}
   /* A396 — l'étape-revue : la rangée est la PORTE de sa revue (case pointillée, pleine à n/n), la grille des
      hypothèses se déplie DANS sa boîte — rien entre les rangées. Détail : lot-v5-37.md. */
@@ -3609,7 +3584,9 @@
      entière (60 px, role checkbox sur le li). Détail : doctrine-css.md C70. */
   /* La case : 36 px, bordure 2,5 px au REGISTRE (neutre / --crit / --warn-line), fond de travail —
      jamais une bordure sur la rangée (elle décalerait la colonne de cases). Détail : doctrine-css.md C71. */
-  ol.steps li .box{width:36px;height:36px;border:2.5px solid var(--ctl-line);border-radius:var(--r-3);flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:var(--work)}
+  /* A507 (refonte « Natif », lot 3) : la case d'étape est RONDE — 36 px gardés (A510 : 30 l'aurait rétrécie). La
+     bordure porte toujours le registre (rouge CRITIQUE, ambre VIGILANCE), la case cochée reste verte pleine. */
+  ol.steps li .box{width:36px;height:36px;border:2.5px solid var(--ctl-line);border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:var(--work)}
   ol.steps li.crit .box{border-color:var(--crit)}
   ol.steps li.vigil .box{border-color:var(--warn-line)}
   /* Étape COCHÉE : case verte pleine + ✓, rangée --ok-soft, encre douce et graisse 600 — NI opacité
@@ -6126,7 +6103,7 @@
   .adm-st.adm{color:var(--ink)}
   .adm-warn{font-weight:700;color:var(--warn)}
   .mm-row[aria-current="true"]{background:var(--primary-soft)}
-  .adm-box{flex:none;width:24px;height:24px;border-radius:var(--r-3);border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;color:var(--on-primary)}
+  .adm-box{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;color:var(--on-primary)}
   .adm-box svg{visibility:hidden}
   [aria-checked="true"]>.adm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.adm-box svg{visibility:visible}
@@ -7472,7 +7449,7 @@
      par bindProtoTasks — dans les aperçus la case est un simple dessin. Rangée entière cliquable
      (min-height 32px = cible tactile), coche SVG toujours présente, révélée par .done. */
   li.md-task{list-style:none;display:flex;align-items:flex-start;gap:10px;min-height:32px;padding:4px 8px;margin:2px 0 2px -32px;border-radius:8px}
-  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:8px;display:grid;place-items:center;background:transparent;color:var(--work)}
+  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--work)}
   /* Case centrée sur la PREMIÈRE ligne de texte quelle que soit la taille de police du contexte
      (lecture 15px, aperçus compacts 12.5px, préférence S/M/L/XL) : 1lh = l'interligne hérité,
      identique à celui du texte voisin. Repli (navigateurs sans lh) = le margin-top:1px ci-dessus,
@@ -8048,14 +8025,14 @@
      enfoncement — transform/opacity SEULEMENT (règle v4.41.0), 120 ms, survol au POINTEUR FIN seul
      (leçon v4.4.4). Jamais en crise (le mouvement est réservé à l'alarme, ECAM), jamais en gros sur
      `.btn` ni `.ai-card` : la liste des porteurs est NOMINATIVE. Détail : doctrine-css.md C135. */
-  .dir-row,.qa-tile,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  .dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
   @media (hover:hover) and (pointer:fine){
-    :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow-work)}
+    :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow-work)}
   }
-  :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
+  :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
   @media (prefers-reduced-motion:reduce){
-    .dir-row,.qa-tile,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
-    :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
+    .dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
+    :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
@@ -8298,10 +8275,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmuyo59t2ldllkq1c" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmvwtipk91iluh9h1" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmuyo59t2ldllkq1c" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmvwtipk91iluh9h1" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 </body></html>

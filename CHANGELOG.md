@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.58.0] — 2026-10-31
+Premier lot visible de la refonte « Natif » (A506-A507, A515 ; doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Les cases sont rondes**, partout : étapes en session (même taille, 36 px ; la bordure rouge ou ambre dit
+  toujours CRITIQUE ou VIGILANCE), sélection, collections, listes à cocher des références, Administration. Dans
+  l'étiquette d'une étape qui attend un seuil (« Chocs délivrés ≥ 3 ●○○ »), le dernier repère devient un rond plus
+  grand.
+- **L'accueil passe en listes groupées.** La vue détaillée n'est plus une pile de cartes mais un groupe arrondi
+  de rangées séparées par un filet, comme la vue compacte. Plus de liseré coloré : la catégorie se lit « ● SMUR »
+  sous le titre, et une aide en session « ● En cours 12:04 ».
+- **Les épinglées deviennent le premier groupe, « Accès direct »**, avec la même rangée que le reste de la liste
+  (les tuiles disparaissent). L'étoile reste à droite.
+- Les modes « Détaillée » et « Compacte » restent tous les deux.
+
 ## [5.57.3] — 2026-10-31
 Trouvé en testant sur le simulateur iOS ce que la mesure n'avait pas pu voir (A512, doctrine
 `docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
@@ -251,11 +265,3 @@ Au téléphone, toucher un peu à côté d'un bouton de la barre d'outils ne fer
   12 px) va au bouton le plus proche ; une bande de 8 px au-dessus de la barre fait de même.
 - **La barre garde sa hauteur de 41 px** : clavier et barre de Safari ouverts, elle laisse au texte la même place
   qu'avant (sur iPhone 15, environ 12 lignes visibles).
-
-## [5.48.7] — 2026-10-06
-Au téléphone, toucher la barre d'outils au-dessus du clavier marche à chaque fois (A470, doctrine `docs/decisions/lot-v5-48.md`).
-- **Le clavier ne se ferme plus quand on touche un bouton de la barre ou une ligne de ses menus.** Sur iPhone, il se
-  fermait une fois sur deux : le toucher retirait parfois le focus au texte avant que l'app ait pu l'en empêcher, et le
-  bouton touché ne répondait alors pas toujours.
-- **Retoucher le bouton d'un menu ouvert le ferme** (avant, il se refermait et se rouvrait aussitôt).
-- Un glissé du doigt sur la barre ne déclenche rien.

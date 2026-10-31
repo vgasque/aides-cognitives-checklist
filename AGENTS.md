@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A514 au lot v6.0 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A515 au lot v6.0 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A514 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A515 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -252,7 +252,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-55.md`](docs/decisions/lot-v5-55.md) | A494-A495 | Administration devient une page à sections |
 | [`lot-v5-56.md`](docs/decisions/lot-v5-56.md) | A496-A498 | La collection se choisit à la création ; le voile d'une feuille absorbe le tap ; tête du menu des catégories |
 | [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501, A511-A512 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad ; A511 : paysage bas, quai à mots entiers, correctifs de mesure ; A512 : zones sûres latérales |
-| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513-A514 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
+| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513-A515 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
 
 ### Carte par sujet
 
@@ -264,13 +264,13 @@ plages A renvoient au tableau ci-dessus.
 |---|---|---|
 | **Couleur, registres, accents, catégories** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories | A222-A224, A308-A316, A400, A406-A408, A416-A417, A435, A485, A503, A506 |
 | **Typographie, espacement, contrôles** | Largeurs & échelles fermées | A345 (échelle A6 normative), A350, A374-A375, A403-A404, A505-A506 |
-| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » | A345, A381, A388, A401-A402, A411, A463 |
+| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » | A345, A381, A388, A401-A402, A411, A463, A515 |
 | **Mode crise : session, quai, capsule, volet** | Mode statique · Challenge-response · Alarme de minuteur · Dialogue « Terminer la session ? » · ZONE HAUTE DE CRISE | A1-A112, A331, A336-A337, A346, A349, A354-A357, A363, A403, A409-A415, A462, A473, A503, A507-A509 |
 | **Minuteurs et compteurs liés, moment d'une étape, moniteur** | JALONS DE BOUCLE | A231-A232, A341-A342, A377-A382, A440, A474 |
 | **Parcours, Se repérer, Page, Schéma** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE | A133-A138, A339, A343-A344, A376, A388-A395, A448, A450 |
 | **Complications, revue « à tout moment », bande des repères** | COMPLICATIONS · PORTÉE D'UNE ACTION DE REPRISE · REPÈRES POSOLOGIQUES | A333-A335, A396-A399, A449 |
 | **Écran d'entrée d'une aide, exercice, guide** | MODE EXERCICE | A330, A347, A358, A366, A460, A463-A467 |
-| **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506 |
+| **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506, A515 |
 | **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499 |
 | **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496 |
 | **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459 |
