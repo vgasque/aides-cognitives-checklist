@@ -31,7 +31,11 @@ async function mesurer(page, sel, vise) {
   // 2. inventaire des textes de la barre, avec la pile de fonds DANS la barre (jusqu'à sa racine)
   const inv = await page.evaluate((sel) => {
     const root = document.querySelector(sel); if (!root) return null;
-    const parse = c => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const a = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [a[0], a[1], a[2], a.length > 3 ? a[3] : 1]; };
+    /* ⚠ `color-mix()` se calcule en `color(srgb r g b / a)` (canaux 0-1), pas en rgba() : sans ce cas, le verre
+       d'A518 sortait de la pile et le texte se mesurait sur le contenu brut (A518, vu sur un 1,06:1). */
+    const parse = c => { let m = c.match(/color\(srgb ([^)]+)\)/);
+      if (m) { const a = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [a[0] * 255, a[1] * 255, a[2] * 255, a.length > 3 ? a[3] : 1]; }
+      m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const a = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [a[0], a[1], a[2], a.length > 3 ? a[3] : 1]; };
     const z = (parseFloat(document.documentElement.style.zoom) || 100) / 100;
     const out = [];
     root.querySelectorAll('*').forEach(e => {
@@ -88,7 +92,9 @@ for (const [Wd, H, th] of [[390, 844, 'light'], [390, 844, 'dark'], [844, 390, '
   page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
-  if (ESSAI) await page.addStyleTag({ content: '#cbTimers,#sessionDock .sd-in,#crisisDock{background:rgba(255,255,255,.6)!important;backdrop-filter:blur(8px)}' });
+  /* Depuis A518 l'encre des barres claires est FONCÉE : l'essai réimpose l'encre système claire de la nuit sous le
+     verre clair — le défaut que la sonde doit voir. */
+  if (ESSAI) await page.addStyleTag({ content: '#cbTimers,#sessionDock .sd-in,#crisisDock{background:rgba(255,255,255,.6)!important;backdrop-filter:blur(8px);--sys-ink:#e6eaf0!important;--sys-ink-2:#9aa5b3!important;--ok-sys:#4ade80!important;--warn-sys:#fbbf24!important;--crit-sys:#ff9d94!important}' });
   await ouvrirFiche(page, /Arrêt cardiaque/);
   await demarrerSession(page);
   await page.evaluate(() => { Object.values(Runtime.timers).slice(0, 2).forEach(t => tmRestart(t)); render(); });

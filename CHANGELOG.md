@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.60.0] — 2026-10-31
+Lot 5 de la refonte « Natif » : le verre clair et le moniteur (A518, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **En thème clair, la capsule des minuteurs, le quai et leurs volets deviennent du verre clair**, comme les
+  barres d'iOS, au lieu de la bande sombre. Le contraste a été mesuré au pixel au-dessus des étapes les plus
+  chargées (4,9:1 au pire). En thème sombre, rien ne change.
+- **Le moniteur est redessiné** sans changer de nature (plein écran, lu à deux mètres) : « ● Session » devant le
+  chrono, « Revenir » dans une pilule (toucher n'importe où ferme toujours), une barre de progression sous le
+  grand chiffre, et la bande devient une carte où chaque minuteur a sa rangée, son nom en tête et « dans 01:59 »
+  sur l'axe. Sur une tablette posée, le grand chiffre monte jusqu'à 220 px.
+
 ## [5.59.0] — 2026-10-31
 Lot 4 de la refonte « Natif » : la navigation du téléphone (A517, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -253,22 +264,3 @@ Les collections : ranger ses aides sans rien déplacer (A475-A477, doctrine `doc
   propose une collection, qui suffit pour ranger. Une bibliothèque partagée avec personne peut être **convertie en
   collection** depuis sa fenêtre : ses éléments passent dans Perso, rien n'est supprimé.
 - **Mettez à jour tous vos appareils** : une version antérieure ne connaît pas les collections (elle ne les efface pas).
-
-## [5.49.0] — 2026-10-06
-L'étape qui attend un seuil dit enfin ce qui est compté et quand sa case s'ouvre (A474), et quatre retours d'usage corrigés (A473, doctrine `docs/decisions/lot-v5-48.md`).
-- **La jauge d'un seuil vit dans son étiquette.** « CHOCS DÉLIVRÉS ≥ 3 ●○□ » : les points comptent le compteur
-  nommé juste avant, et le dernier repère a la forme d'une case — c'est là que l'étape devient cochable. Sous le
-  libellé, les points et « encore 3 » se lisaient comme le compte de l'étape (« cochable encore 3 fois »).
-- **Avant son seuil, la case de l'étape est là, estompée** (pleine et pâle) au lieu d'un pointillé qui se lisait
-  « inatteignable » — « Faire maintenant » la coche à tout moment, à droite de la rangée. Au seuil, l'étiquette
-  passe au vert, jauge pleine, et la case reprend son trait.
-- **L'instant du seuil se voit** : au choc qui atteint le seuil, l'étape qui s'ouvre rebondit et s'éclaire brièvement
-  de vert, une fois — seulement sur l'appareil qui a fait le geste, et jamais avec « réduire les animations ».
-- **« Se déconnecter » ne déconnecte plus que cet appareil.** Il révoquait toutes les sessions du compte : les autres
-  appareils se retrouvaient déconnectés au rafraîchissement suivant.
-- **La capsule de session montre deux compteurs quand ils tiennent, toujours avec leur nom entier.** Le rappel à côté
-  du chevron dit « +1 compteur » (ou « +1 minuteur ») quand une partie est déjà montrée : « 1 compteur » à côté d'une
-  tuile de compteur se lisait comme le total. Un nom de compteur n'est plus jamais coupé (« Chocs délivr… » quand un
-  minuteur tournait) : la tuile cède la place plutôt que de s'abréger. Les minuteurs restent prioritaires.
-- **« Relâcher avant la fin annule »** se pose 14 px sous les boutons de la fenêtre de fin (il les touchait).
-- **Moi : « Exporter mes données », « Prendre en main » et « Un problème ? »** sont espacés de la même façon (12 px).

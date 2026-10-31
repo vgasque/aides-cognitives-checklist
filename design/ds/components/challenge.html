@@ -936,6 +936,31 @@
     body.view-home footer.tools{border-top:0}
   }
 
+
+  /* ═══ A518 — CAPSULE, QUAI ET VOLETS EN VERRE CLAIR (refonte « Natif », lot 5 : A503, A510 §1) ═══════════════
+     En thème CLAIR seulement, les barres de session prennent la matière des barres flottantes d'iOS — verre ≈ 90 %
+     (`--glass`), flou, bord fin, ombre douce — au lieu de la matière système sombre. Les tokens de la matière
+     système sont REDÉCLARÉS EN CONTEXTE sur ces seules surfaces : `--sys` garde ses autres lecteurs (carte de session
+     de l'accueil, bulle du guide, toasts, alarme, scanner…). Registres propres aux barres claires : l'encre de la
+     page (`--ok`, `--warn`, `--crit`) — les « -sys » font 1,6 à 2:1 sur un fond clair. Le contraste se mesure AU
+     PIXEL sous la barre (`audit-verre`). En thème sombre, rien ne change (A503). */
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){
+    --sys:var(--glass);--sys-hi:var(--amb-2);--sys-2:color-mix(in srgb,var(--ink) 6%,transparent);--sys-line:var(--line-strong);
+    --sys-ink:var(--ink);--sys-ink-2:var(--ink-2);--sys-key:color-mix(in srgb,var(--ink) 7%,transparent);--sys-edge:var(--work-line);
+    --ok-sys:var(--ok);--warn-sys:var(--warn);--crit-sys:var(--crit);--warn-sys-bg:var(--warn-soft);--on-sys-fill:var(--work);
+    --ctl-sys:var(--ctl-line);--alarm-bd:var(--warn-line);--dock-ring:var(--act)}
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in){box-shadow:inset 0 0 0 1px var(--work-line),var(--shadow-float)}
+  /* Sur le verre, le POULS de l'alarme ne touche plus le texte : à 55 % d'opacité, « 00:00 » tombait à 3,4:1
+     (audit-a11y). Il passe sur l'APLAT seul (pseudo-élément), le temps reste plein. */
+  @media (prefers-reduced-motion:no-preference){
+    html:not([data-theme="dark"]) #cbTimers .seg.due{position:relative;isolation:isolate;animation:none;background:none}
+    html:not([data-theme="dark"]) #cbTimers .seg.due::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+      background:var(--warn-sys-bg);animation:alarmPulse 2s ease-in-out infinite}}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){--sys:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){
+    html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){--sys:var(--work)}}
   /* ═══ A517 — LA NAVIGATION DU TÉLÉPHONE (refonte « Natif », lot 4 : A504, A505, A510 §2-§3) ═══════════════
      En portrait sous 780 px, l'accueil perd sa rangée d'en-tête : « Sélectionner » et « Créer » montent dans la
      rangée du haut de la page, le grand titre (34) est du contenu, la recherche et la navigation descendent dans
@@ -5960,6 +5985,45 @@
   .mb-chip.due{color:var(--warn);border-color:var(--verify-line)}
   .mb-chip b{font-family:var(--f-mono);color:var(--ink);font-weight:700}
   .mb-chip.due b{color:var(--warn)}
+  /* ═══ A518 — LE MONITEUR NATIF (A509, planche « Moniteur Natif » validée) ═══════════════════════════════════
+     Il reste un AFFICHEUR plein écran, lu à deux mètres : seuls changent sa matière et sa bande. « ● Session » nomme
+     le chrono vert ; « Revenir » est nommé dans une pilule de verre (le toucher partout ferme toujours) ; une barre
+     de progression épaisse et NEUTRE sous le grand chiffre ; la bande devient une CARTE à rangées NOMMÉES — le nom en
+     tête de rangée, l'étiquette ne dit plus que le temps, « maintenant » au-dessus de sa ligne, l'axe dessous, le
+     passé estompé. Le grand chiffre monte à 220 px sur une tablette posée (plafond toujours pris sur la bande, A341). */
+  .mon-top{align-items:center}
+  .mon-sk{flex:none;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ok)}
+  .mon-sk.exo{color:var(--act)}
+  .mon-hint{display:inline-flex;align-items:center;height:40px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    font-size:var(--t-item);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .mon-val{font-size:min(clamp(64px,min(20vw,32vh),220px),var(--mon-vmax,220px))}
+  .mon-prog{display:block;width:100%;max-width:640px;height:8px;margin-top:8px;border-radius:999px;background:var(--amb-2);overflow:hidden}
+  .mon-prog>i{display:block;height:100%;border-radius:999px;background:var(--ink-2)}
+  .mon-due{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+  .mon-band{--nw:clamp(84px,24%,180px);padding:12px 14px;border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
+  [data-theme="dark"] .mon-band{box-shadow:inset 0 0 0 1px var(--work-line)}
+  .mb-ax,.mb-past,.mb-line,.mb-leg,.mb-plus{margin-left:var(--nw)}
+  .mb-axt{position:relative;display:block;height:16px;margin-bottom:4px}
+  .mb-axt>span{position:absolute;transform:translateX(-50%);color:var(--ok);font-weight:600}
+  .mb-axb{margin:6px 0 0 var(--nw)}
+  .mb-line{gap:0;padding:0;min-height:36px;background:none}
+  .mb-row{height:36px}
+  .mb-row+.mb-row{border-top:1px solid var(--line)}
+  .mb-row::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:var(--mb-now);border-radius:var(--r-1) 0 0 var(--r-1);background:var(--amb-2)}
+  .mb-nm{position:absolute;right:100%;top:0;width:var(--nw);padding-right:10px;line-height:36px;font-size:var(--t-body);font-weight:700;
+    color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mb-due{top:50%;height:22px;transform:translateY(-50%);z-index:1;font-family:var(--f-mono);background:var(--work);border-left-width:4px;padding-right:6px}
+  .mb-due.gche{border-right-width:4px;padding-left:6px}
+  .mb-ghost{top:10px;height:16px;border-left-color:var(--ink-3)}
+  /* Paysage bas : la hauteur est rare (A511) — la carte se resserre, rangées de 28 px (`monRangH`). */
+  html.zh500 .mon-band{padding:6px 10px}
+  html.zh500 :is(.mb-row,.mb-line){height:28px;min-height:28px}
+  html.zh500 .mb-nm{line-height:28px}
+  html.zh500 .mb-row::before{top:5px;bottom:5px}
+  html.zh500 .mb-ghost{top:6px}
+  html.zh500 .mb-axt{height:14px;margin-bottom:2px}
+  html.zh500 .mb-axb{margin-top:2px}
   /* I4 — densité « LECTEUR » : la liste est celle de la page, seuls les CORPS changent (modèle
      ECL : liste entière + curseur, pastilles du rail — jamais d'alerte). L'état ne disparaît
      jamais (ECAM) : le lecteur porte sa PROPRE bande de minuteurs, échus d'abord, jamais de
@@ -8387,10 +8451,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmvwwq9ut1r22xb91" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmvwxiwhu620ebfdi" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmvwwq9ut1r22xb91" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur vfy" data-ovb="bmvwxiwhu620ebfdi" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-cur">En cours</span> Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 </body></html>

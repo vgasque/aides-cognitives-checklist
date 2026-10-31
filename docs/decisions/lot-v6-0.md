@@ -359,3 +359,35 @@ avec son voile (A510 §5) ; le groupe « En cours » (A510 §6).
 niveau, Administration une fenêtre d'un niveau qui ramène à l'onglet Moi ; `audit-doctrine` — la marque est absente de l'accueil en portrait et mesurée au téléphone tourné, la feuille de
 filtres s'éprouve recherche ouverte, les page-fenêtres Compte/Sessions s'ouvrent depuis une aide. La barre de
 navigation s'appelle `#tabNav` : `#tabBar` reste le nom PURGÉ de l'ancienne barre de filtre par type (M4).
+
+## A518 — Lot 5 de la refonte : le verre clair et le moniteur Natif (v5.60.0)
+
+**1. Capsule, quai et volets en verre clair, en thème clair (A503, A510 §1).** Les tokens de la matière système
+(`--sys`, `--sys-ink`, `--sys-2`, `--sys-key`, `--ok-sys`, `--warn-sys`, `--crit-sys`, `--warn-sys-bg`…) sont
+REDÉCLARÉS EN CONTEXTE sur `#cbTimers`, `.sd-in`, `.ds-card` et `.rt-dock`, thème clair seulement : verre ≈ 90 %
+(`--glass`), flou, bord fin, ombre de flottaison ; encres et registres de la page (« -sys » à 1,6-2:1 sur fond
+clair). `--sys` garde ses autres lecteurs. Repli opaque sans `backdrop-filter` et sous
+`prefers-reduced-transparency`. Thème sombre : rien ne change. Mesuré au pixel (`audit-verre`, 16/16, pire 4,88:1).
+Gardés tels quels, par décision antérieure et non par la maquette : le mot « Fin » en gris et son ■ rouge (C1) ; la
+touche « Horodater » pleine en CREUX neutre, pas en bleu — un second bouton plein bleu à l'écran contredirait A375.
+Sur le verre, le POULS de l'alarme (minuteur échu dans la capsule) ne fait plus varier l'opacité du texte — à 55 %,
+« 00:00 » tombait à 3,4:1 (`audit-a11y`) : il passe sur l'aplat seul, porté par un pseudo-élément.
+
+**Piège de sonde corrigé.** `audit-verre` lisait les fonds en `rgba()` ; `color-mix()` se calcule en
+`color(srgb … / a)` : le verre sortait de la pile et le texte se mesurait sur le contenu brut (un faux 1,06:1, et
+des verts qui ne prouvaient rien). La sonde lit désormais les deux ; sa preuve d'échec réimpose l'encre système
+CLAIRE sous le verre clair (14/16 rouges).
+
+**2. Le moniteur Natif (A509, planche validée).** Il reste un afficheur plein écran, lecture seule. Changent :
+« ● Session » nomme le chrono vert (« ▲ Exercice » en exercice) ; « Revenir » est nommé dans une pilule de verre
+(le toucher n'importe où ferme toujours) ; une barre de progression épaisse et NEUTRE sous le grand chiffre
+(`--ink-2`, jamais bleue, A407) ; la mention ÉCHU en pastille ambre ; la bande devient une CARTE à rangées NOMMÉES —
+le nom du minuteur en tête de sa rangée, l'étiquette ne porte plus que le temps (« dans 01:59 », « échu », A510),
+« maintenant » au-dessus de sa ligne, « −2 min / +5 min » dessous, le passé estompé par rangée. Grand chiffre jusqu'à
+220 px (tablette posée), plafond toujours pris sur la bande rendue (A341). Rangées de 36 px, 28 en paysage bas
+(`monRangH`) — à 844 × 390 et texte 130 %, la carte de 36 px recouvrait le chiffre de 25 px (témoin). La garantie
+de signes d'A511 (`MAXC`) part avec le nom de l'étiquette : 11 signes au plus.
+
+**Pas encore fait (dit, pas tu)** : le menu ⋯ ancré en large avec son voile (A510 §5) ; le groupe « En cours »
+(A510 §6) ; la colonne gauche du téléphone tourné (A513 §2) ; le dessin Natif des surfaces (démarrage, éditeur,
+Sessions, Moi, Administration, Page — planche « écran par écran »).

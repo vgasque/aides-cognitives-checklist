@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GbkauuzD9Hu9b0Rffax5fzHILBH1jwcl2fbweDY+0UY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-nhQ/8VXABIpRBy2ekKQf4BW+iyALGA0FtRFT5Wavr4Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1329,6 +1329,31 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home footer.tools{border-top:0}
   }
 
+
+  /* ═══ A518 — CAPSULE, QUAI ET VOLETS EN VERRE CLAIR (refonte « Natif », lot 5 : A503, A510 §1) ═══════════════
+     En thème CLAIR seulement, les barres de session prennent la matière des barres flottantes d'iOS — verre ≈ 90 %
+     (`--glass`), flou, bord fin, ombre douce — au lieu de la matière système sombre. Les tokens de la matière
+     système sont REDÉCLARÉS EN CONTEXTE sur ces seules surfaces : `--sys` garde ses autres lecteurs (carte de session
+     de l'accueil, bulle du guide, toasts, alarme, scanner…). Registres propres aux barres claires : l'encre de la
+     page (`--ok`, `--warn`, `--crit`) — les « -sys » font 1,6 à 2:1 sur un fond clair. Le contraste se mesure AU
+     PIXEL sous la barre (`audit-verre`). En thème sombre, rien ne change (A503). */
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){
+    --sys:var(--glass);--sys-hi:var(--amb-2);--sys-2:color-mix(in srgb,var(--ink) 6%,transparent);--sys-line:var(--line-strong);
+    --sys-ink:var(--ink);--sys-ink-2:var(--ink-2);--sys-key:color-mix(in srgb,var(--ink) 7%,transparent);--sys-edge:var(--work-line);
+    --ok-sys:var(--ok);--warn-sys:var(--warn);--crit-sys:var(--crit);--warn-sys-bg:var(--warn-soft);--on-sys-fill:var(--work);
+    --ctl-sys:var(--ctl-line);--alarm-bd:var(--warn-line);--dock-ring:var(--act)}
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in){box-shadow:inset 0 0 0 1px var(--work-line),var(--shadow-float)}
+  /* Sur le verre, le POULS de l'alarme ne touche plus le texte : à 55 % d'opacité, « 00:00 » tombait à 3,4:1
+     (audit-a11y). Il passe sur l'APLAT seul (pseudo-élément), le temps reste plein. */
+  @media (prefers-reduced-motion:no-preference){
+    html:not([data-theme="dark"]) #cbTimers .seg.due{position:relative;isolation:isolate;animation:none;background:none}
+    html:not([data-theme="dark"]) #cbTimers .seg.due::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+      background:var(--warn-sys-bg);animation:alarmPulse 2s ease-in-out infinite}}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){--sys:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){
+    html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){--sys:var(--work)}}
   /* ═══ A517 — LA NAVIGATION DU TÉLÉPHONE (refonte « Natif », lot 4 : A504, A505, A510 §2-§3) ═══════════════
      En portrait sous 780 px, l'accueil perd sa rangée d'en-tête : « Sélectionner » et « Créer » montent dans la
      rangée du haut de la page, le grand titre (34) est du contenu, la recherche et la navigation descendent dans
@@ -6353,6 +6378,45 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mb-chip.due{color:var(--warn);border-color:var(--verify-line)}
   .mb-chip b{font-family:var(--f-mono);color:var(--ink);font-weight:700}
   .mb-chip.due b{color:var(--warn)}
+  /* ═══ A518 — LE MONITEUR NATIF (A509, planche « Moniteur Natif » validée) ═══════════════════════════════════
+     Il reste un AFFICHEUR plein écran, lu à deux mètres : seuls changent sa matière et sa bande. « ● Session » nomme
+     le chrono vert ; « Revenir » est nommé dans une pilule de verre (le toucher partout ferme toujours) ; une barre
+     de progression épaisse et NEUTRE sous le grand chiffre ; la bande devient une CARTE à rangées NOMMÉES — le nom en
+     tête de rangée, l'étiquette ne dit plus que le temps, « maintenant » au-dessus de sa ligne, l'axe dessous, le
+     passé estompé. Le grand chiffre monte à 220 px sur une tablette posée (plafond toujours pris sur la bande, A341). */
+  .mon-top{align-items:center}
+  .mon-sk{flex:none;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ok)}
+  .mon-sk.exo{color:var(--act)}
+  .mon-hint{display:inline-flex;align-items:center;height:40px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    font-size:var(--t-item);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .mon-val{font-size:min(clamp(64px,min(20vw,32vh),220px),var(--mon-vmax,220px))}
+  .mon-prog{display:block;width:100%;max-width:640px;height:8px;margin-top:8px;border-radius:999px;background:var(--amb-2);overflow:hidden}
+  .mon-prog>i{display:block;height:100%;border-radius:999px;background:var(--ink-2)}
+  .mon-due{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+  .mon-band{--nw:clamp(84px,24%,180px);padding:12px 14px;border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
+  html[data-theme="dark"] .mon-band{box-shadow:inset 0 0 0 1px var(--work-line)}
+  .mb-ax,.mb-past,.mb-line,.mb-leg,.mb-plus{margin-left:var(--nw)}
+  .mb-axt{position:relative;display:block;height:16px;margin-bottom:4px}
+  .mb-axt>span{position:absolute;transform:translateX(-50%);color:var(--ok);font-weight:600}
+  .mb-axb{margin:6px 0 0 var(--nw)}
+  .mb-line{gap:0;padding:0;min-height:36px;background:none}
+  .mb-row{height:36px}
+  .mb-row+.mb-row{border-top:1px solid var(--line)}
+  .mb-row::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:var(--mb-now);border-radius:var(--r-1) 0 0 var(--r-1);background:var(--amb-2)}
+  .mb-nm{position:absolute;right:100%;top:0;width:var(--nw);padding-right:10px;line-height:36px;font-size:var(--t-body);font-weight:700;
+    color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mb-due{top:50%;height:22px;transform:translateY(-50%);z-index:1;font-family:var(--f-mono);background:var(--work);border-left-width:4px;padding-right:6px}
+  .mb-due.gche{border-right-width:4px;padding-left:6px}
+  .mb-ghost{top:10px;height:16px;border-left-color:var(--ink-3)}
+  /* Paysage bas : la hauteur est rare (A511) — la carte se resserre, rangées de 28 px (`monRangH`). */
+  html.zh500 .mon-band{padding:6px 10px}
+  html.zh500 :is(.mb-row,.mb-line){height:28px;min-height:28px}
+  html.zh500 .mb-nm{line-height:28px}
+  html.zh500 .mb-row::before{top:5px;bottom:5px}
+  html.zh500 .mb-ghost{top:6px}
+  html.zh500 .mb-axt{height:14px;margin-bottom:2px}
+  html.zh500 .mb-axb{margin-top:2px}
   /* I4 — densité « LECTEUR » : la liste est celle de la page, seuls les CORPS changent (modèle
      ECL : liste entière + curseur, pastilles du rail — jamais d'alerte). L'état ne disparaît
      jamais (ECAM) : le lecteur porte sa PROPRE bande de minuteurs, échus d'abord, jamais de
@@ -9001,7 +9065,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sens propre : un écran d'état qu'on lit sans le toucher, à 2 m. AUCUN contrôle : un tap
      n'importe où revient à la fiche (une surface sans commande ne peut pas être actionnée par
      erreur, et c'est précisément ce qu'on veut d'un appareil posé). -->
-<div id="monMode" role="dialog" aria-modal="true" aria-label="Mode moniteur — affichage seul"><div class="mon-top"><span class="mon-sess" id="monSess"></span><span class="mon-hint">tap = revenir</span></div><div class="mon-main" id="monMain"></div><div class="mon-band" id="monBand"></div></div>
+<div id="monMode" role="dialog" aria-modal="true" aria-label="Mode moniteur — affichage seul"><div class="mon-top"><span class="mon-sk" id="monSk">● Session</span><span class="mon-sess" id="monSess"></span><span class="mon-hint">Revenir</span></div><div class="mon-main" id="monMain"></div><div class="mon-band" id="monBand"></div></div>
 <div id="flowFull" role="dialog" aria-modal="true" aria-label="Schéma — plein écran"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
@@ -9342,7 +9406,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.59.0';
+const APP_VERSION='5.60.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24312,7 +24376,9 @@ function monBandData(timers,events,now,labels){
    peints, règle 10). Le chrome se calcule sur les DONNÉES ; les deux lignes de pied sont MAJORÉES
    d'office (seule sortie non circulaire, tombe du bon côté) ; le cap n'est jamais silencieux
    (`.mb-plus`). Détail : doctrine-js.md J179. */
-const MON_RANG_H=22, MON_RANGS_MAX=4, MON_VAL_MIN=64, MON_VAL_ABS=24;
+const MON_RANGS_MAX=4, MON_VAL_MIN=64, MON_VAL_ABS=24;
+/* A518 : rangées nommées de 36 px (A509), 28 en paysage bas (la hauteur y est rare, A511). */
+const monRangH=()=>document.documentElement.classList.contains('zh500')?28:36;
 /* Le passé nommé : trois rangées au plus, 16 px chacune, 10 px pour la ligne des points. */
 const MON_REP_NOM=3, MON_REP_H=16, MON_REP_PTS=10;
 /* L'ÂGE D'UN REPÈRE SORTI DE L'AXE : en toutes lettres, parce qu'il n'a plus de position à lire.
@@ -24344,7 +24410,7 @@ function monPlace(d){
      PLANCHER (l'étiquette + les 64 px sous lesquels le chiffre ne descend jamais, plancher déjà
      posé par son `clamp`), on en déduit les rangées, puis on rend au chiffre TOUT ce qui reste.
      Aucune des deux étapes ne lit la hauteur de l'autre. */
-  const chrome=20/*axe*/+14/*passé*/+12/*marge*/
+  const chrome=20/*axe*/+18/*axe du bas, A518*/+24/*carte, A518*/+14/*passé*/+12/*marge*/
     +((d&&d.sans.length)?44:0)                        /* « sans heure » : son intitulé + ses chips */
     +((d&&d.dated.some(x=>x.ghosts.length))?22:0)     /* légende des tours projetés */
     +((d&&d.dated.length>1)?22:0);                    /* « + n plus tard », majoré */
@@ -24361,8 +24427,8 @@ function monPlace(d){
      la bande a réellement coûté HORS rangées au dernier rendu : la valeur ne dépend pas du
      chiffre, donc rien ne boucle. Détail : lot-v5-28.md A341. */
   const chr=(_monChrome>=0)?_monChrome:chrome;
-  const rangs=Math.max(1,Math.min(MON_RANGS_MAX,Math.floor((util-monValMin()-chr)/MON_RANG_H)));
-  return {rangs, vmax:Math.max(MON_VAL_ABS,util-chr-rangs*MON_RANG_H)};}
+  const rangs=Math.max(1,Math.min(MON_RANGS_MAX,Math.floor((util-monValMin()-chr)/monRangH())));
+  return {rangs, vmax:Math.max(MON_VAL_ABS,util-chr-rangs*monRangH())};}
 /* LA PLACE LIBRE HORS BANDE — même lecture pour le nombre de rangées et pour le plafond du
    chiffre (une seule mesure, donc jamais deux qui divergent). */
 function monUtil(){
@@ -24395,13 +24461,16 @@ function monRender(){
    const v=R.started?fmtMs(now-(R.startedAt||now)):'—';
    if(el.textContent!==v)el.textContent=v;
    el.classList.toggle('exo',exo);
-   el.setAttribute('aria-label',(exo?'Exercice':'Session')+' — durée '+v);}
+   el.setAttribute('aria-label',(exo?'Exercice':'Session')+' — durée '+v);
+   const sk=document.getElementById('monSk');if(sk){const k=exo?'▲ Exercice':'● Session';if(sk.textContent!==k)sk.textContent=k;sk.classList.toggle('exo',exo);}}
   const t=monPick(R.timers,now);
   const due=t&&timerDue(t);
   const h=t
     ? `<span class="mon-lbl">${esc(tmLabelParts(t.label).name||'Minuteur')}</span>`
       +`<span class="mon-val${due?' due':''}">${esc(timerDisplay(t,now).val)}</span>`
-      +(due?'<span class="mon-due">△ échu — à réévaluer</span>':'')
+      /* A518 (A509) : barre de progression ÉPAISSE et NEUTRE — jamais bleue (A407), c'est un état qui tourne. */
+      +(due?'<span class="mon-due">△ échu — à réévaluer</span>'
+        :(t.seconds?`<span class="mon-prog" aria-hidden="true"><i style="width:${Math.min(100,Math.round((t.elapsedMs+(t.running?now-t.lastStart:0))/(t.seconds*10)))}%"></i></span>`:''))
     : '<span class="mon-none">Aucun minuteur en cours</span>';
   {const el=document.getElementById('monMain');if(el.innerHTML!==h)el.innerHTML=h;}
   /* Le DERNIER REPÈRE, en toutes lettres quand le vocabulaire le permet — `tkLabels` est la même
@@ -24433,11 +24502,8 @@ function monRender(){
       grandit vers le centre : 18 signes ≈ 115 px contre 142 px de demi-bande à 320 px — garantie
       arithmétique, pas espérée). Détail : doctrine-js.md J180. */
    const place=monPlace(d), RANGS=place.rangs;
-   /* A511 — LA GARANTIE SE CALCULE SUR LA BANDE RENDUE. « 18 signes ≈ 115 px contre 142 de demi-bande à
-      320 px » ne valait qu'à 100 % : à 320 × 130, la demi-bande ne fait plus que 105 px et l'étiquette
-      pouvait sortir de l'axe (mesuré). Le plafond de signes suit la demi-bande mesurée (6,4 px par signe
-      à 12 px gras), borné à 18 comme avant et jamais sous 6. */
-   const MAXC=Math.max(6,Math.min(18,Math.floor((el.clientWidth/2-8)/6.4)));
+   /* A518 (A509-A510) : le NOM du minuteur est en tête de sa rangée ; l'étiquette ne porte plus que le TEMPS
+      (« dans 00:48 », « échu ») — 11 signes au plus, la garantie d'A511 (plafond de signes) devient sans objet. */
    monVMax(place.vmax);
    const vus=d.dated.slice(0,RANGS), reste=d.dated.length-vus.length;
    /* ⚠ L'ÉTIQUETTE COMMENCE À SON INSTANT (A342) : son bord gauche EST le moment, donc il n'y a
@@ -24462,15 +24528,16 @@ function monRender(){
            +'<i>'+esc(fmtHM(p.t))+'</i></span>';}).join('')
        +d.past.map(p=>'<span class="mb-dot'+(p===nommes[nommes.length-1]?' now':'')
            +'" style="left:'+pct(p.x)+'"></span>').join('');
-   const h='<div class="mb-ax"><span>−2 min</span><span>maintenant</span><span>+5 min</span></div>'
+   const h='<div class="mb-ax mb-axt"><span style="left:'+pct(MON_NOW)+'">maintenant</span></div>'
      +'<div class="mb-past" style="height:'+hPast+'px">'+passeH+'</div>'
-     +'<div class="mb-line"><span class="mb-now" style="left:'+pct(MON_NOW)+'"></span>'
-       +vus.map(x=>'<span class="mb-row">'
+     +'<div class="mb-line" style="--mb-now:'+pct(MON_NOW)+'"><span class="mb-now" style="left:'+pct(MON_NOW)+'"></span>'
+       +vus.map(x=>'<span class="mb-row"><span class="mb-nm">'+esc(tmLabelParts(x.lab).name||'Minuteur')+'</span>'
          +x.ghosts.map(g=>'<span class="mb-ghost" style="left:'+pct(g)+'"></span>').join('')
          +'<span class="mb-due'+(x.x>0.5?' gche':'')+'" style="'
            +(x.x>0.5?'right:'+pct(1-x.x):'left:'+pct(x.x))+'">'
-         +esc(sstr(tmLabelParts(x.lab).name||'Minuteur',MAXC))+'</span></span>').join('')
+         +esc(x.t<=now?'échu':'dans '+fmtMs(x.t-now))+'</span></span>').join('')
      +'</div>'
+     +'<div class="mb-ax mb-axb"><span>−2 min</span><span>+5 min</span></div>'
      /* AUCUN ÉCART TU : au-delà de quatre rangées la bande mangerait le grand chiffre (elle est
         `flex:none` au-dessus d'un `.mon-main` qui cède). On garde les échéances les plus PROCHES
         — `dated` est trié par date — et l'on DIT combien attendent derrière. */
@@ -24484,7 +24551,7 @@ function monRender(){
       la bande ne dépend que de ses rangées et de ses chips — jamais du chiffre —, donc la mesurer
       APRÈS l'avoir écrite n'est pas circulaire, et c'est la seule valeur juste sous zoom. */
    const hb=monBandH(el);
-   _monChrome=Math.max(0,Math.round(hb-vus.length*MON_RANG_H));
+   _monChrome=Math.max(0,Math.round(hb-vus.length*monRangH()));
    monVMax(Math.max(MON_VAL_ABS,Math.round(monUtil()-hb)));}}
 
 /* ===== Editor =====
