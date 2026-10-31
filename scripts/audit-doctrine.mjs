@@ -7117,6 +7117,29 @@ await sec('ACCUEIL · A499-A500 pied sans version en double, pastille du compte 
   await page.close();
 });
 
+/* ══ A501 — LA COLONNE GAUCHE POSE SOUS LA BARRE D'ÉTAT (iPad installé) ═══════════════════════════
+   Signalé sur capture : « Aides cognitives » coupé sous l'heure. La colonne est fixée à 0 et son premier étage
+   ne lisait pas --sat, que l'en-tête de droite lit depuis toujours. ⚠ `env(safe-area-inset-top)` vaut 0 en
+   navigateur (le défaut a survécu à tous les harnais) : on SUBSTITUE --sat par un littéral (24 px de barre
+   d'état iPad + 16 px de fondu iOS 27 = 40), sans toucher au code mesuré, et l'on compare au nominal. */
+await sec('ACCUEIL LARGE · A501 la colonne gauche pose sous la barre d’état', async () => {
+  const page = await br.newPage({viewport:{width:1180,height:820}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const mesure=()=>page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();
+    return {brand:Math.round(r('.home-side .hs-brand').top),search:Math.round(r('header.bar #q').top),
+      sat:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0};});
+  const nominal=await mesure();
+  await page.addStyleTag({content:':root{--sat:40px}'});
+  await page.waitForTimeout(120);
+  const inset=await mesure();
+  t('1180px · témoin : sans inset, la marque de la colonne est à son bord (12 px)', nominal.sat===0&&nominal.brand===12, JSON.stringify(nominal));
+  t('1180px · avec 40 px d’inset, la marque descend d’autant — entière sous la bande', inset.brand-nominal.brand===40&&inset.brand>=40, JSON.stringify({nominal,inset}));
+  t('1180px · la recherche de l’en-tête suit le même inset : les deux colonnes partagent un bord haut', inset.search-nominal.search===40, JSON.stringify({nominal,inset}));
+  await page.close();
+});
+
 await sec('ACCUEIL · A490-A493 bibliothèque vide, position au retour, « Tout » des collections', async () => {
 for (const W of [390, 1280]) {
   const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
