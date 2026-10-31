@@ -1225,19 +1225,16 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
     /* ⚠ ON MESURE LE <span> DU TITRE, PAS LE <button> : celui-ci porte un rembourrage compensé
        et une line-height 'normal' — y compter des lignes rend un chiffre qui ne veut rien dire
        (piège tombé en écrivant ce contrôle : 46 px / 1 = « 46 lignes »). */
-    /* v5.18 (A245) : « Accès direct » n'existe qu'à ≥ 1200 px — des TUILES (.qa-tile) au-dessus
-       du tableau ; en deçà, les épinglées sont des rangées ordinaires du répertoire (étoile
-       remplie), déjà couvertes par `rows`. Le témoin de tuile ne vaut donc qu'en bureau. */
-    const desk=!document.documentElement.classList.contains('zw1200');
-    const rows=scan('.dir-book .dir-row','.dir-t'), tiles=scan('.qa-grid .qa-tile','.qa-t');
-    return {rows,tiles,desk,
-      casRow:rows.some(x=>x.long), casTile:tiles.some(x=>x.long),
+    /* A506 : les épinglées sont des rangées (groupe « Accès direct », `.dir-book.pinned`) — `rows` les mesure. */
+    const rows=scan('.dir-book .dir-row','.dir-t');
+    return {rows,
+      casRow:rows.some(x=>x.long),
       pireRow:Math.max(0,...rows.map(x=>x.debord)), clipRow:Math.max(0,...rows.map(x=>x.clip)),
-      pireTile:Math.max(0,...tiles.map(x=>x.debord)), clipTile:Math.max(0,...tiles.map(x=>x.clip)),
-      hTile:Math.max(0,...tiles.map(x=>x.h)),
       lignesRow:Math.max(0,...rows.map(x=>x.lignes))};},zm);
+  /* A506 (refonte « Natif ») : les épinglées ne sont plus des TUILES mais des rangées (groupe « Accès direct ») —
+     le cas adverse et ses mesures sont ceux de la rangée ; les contrôles de tuile sont partis avec elle. */
   t(`${w}/z${zm} · témoin : le cas adverse est constitué (titre long rendu)`,
-    r.casRow===true&&r.casTile===true, `rangée ${r.casRow}, tuile ${r.casTile}`);
+    r.casRow===true, `rangée ${r.casRow}`);
   t(`${w}/z${zm} · la rangée de répertoire ne déborde pas`, r.pireRow<=0, `${r.pireRow} px`);
   /* Le débordement ne suffit pas : `.dir-sub` est en overflow:hidden, donc la boîte reste propre
      pendant que la donnée disparaît. On mesure AUSSI le rognage réel. */
@@ -1253,12 +1250,6 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
      est inerte dès que le display calculé n'est pas `-webkit-box` — c'est ce qui, à 130 %, faisait
      passer un titre réel à trois lignes et poussait la méta hors du cadre (signalé à l'usage). */
   t(`${w}/z${zm} · le titre tient en deux lignes`, r.lignesRow<=2.05, `${r.lignesRow} ligne(s)`);
-  t(`${w}/z${zm} · la tuile épinglée ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
-  t(`${w}/z${zm} · … et ne rogne rien`, r.clipTile<=1, `${r.clipTile} px rognés`);
-  /* PLAFOND DE CROISSANCE : la tuile est le premier objet de l'écran ; un titre long ne doit pas
-     la faire enfler au point de repousser le répertoire (clamp 3 lignes à 15 px en large,
-     4 lignes à 13,5 en étroit — A261). */
-  t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=(r.desk?110:132), `${r.hTile} px`);
   await page.close();
 }
 });
@@ -2814,7 +2805,9 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   t(`${W} · témoin : plusieurs rangées sont mesurées`, r.n>=2, `${r.n}`);
   /* v5.30 : vue détaillée, la rangée est une CARTE dont la hauteur suit son contenu (maquette v5 ; à toutes les
      largeurs depuis A389) — le rythme unique reste la règle du LIVRE, c'est-à-dire la vue compacte. */
-  if(r.cartes)t(`${W} · les cartes tiennent le plancher de 76 px`, Math.min(...r.hauteurs)>=76, JSON.stringify(r.hauteurs));
+  /* A506 : la vue détaillée n'est plus une pile de CARTES (plancher 76) mais un groupe de rangées — même plancher
+     que le livre compact, 64 px ; la hauteur suit toujours le contenu (deux lignes). */
+  if(r.cartes)t(`${W} · les rangées groupées tiennent le plancher de 64 px`, Math.min(...r.hauteurs)>=64, JSON.stringify(r.hauteurs));
   else t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
   t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
   /* ⚠ 16,5 px DEPUIS L'AUDIT DESIGN v5.0.0 (A3-1) — et le contrôle EXPRIME DÉSORMAIS SON
@@ -6321,9 +6314,52 @@ await sec('Q1 · les propositions de relecture', async () => {
    répertoire contre 976 pour une épinglée. On mesure la PROPRIÉTÉ — même largeur de rangée dans
    les deux sections, à toutes les largeurs — et non le nombre de colonnes, qui dépend de la
    grille fluide et n'a pas à être encodé ici. */
-/* v5.18 (A261, décision utilisateur sur capture) : « Accès direct » est en TUILES à TOUTES
-   les largeurs — plusieurs par ligne dès que la place le permet (deux dès 390 px), titre long
-   à 4 lignes en étroit. La fiche reste AUSSI à sa place dans le répertoire. */
+/* A506 (refonte « Natif », lot 3, choix de l'auteur) — renverse A261 : « Accès direct » n'est plus une grille de
+   TUILES mais le PREMIER GROUPE DE RANGÉES de la liste, même rangée que le répertoire, à toutes les largeurs. La fiche
+   reste AUSSI à sa place dans le répertoire (un raccourci ne déménage rien). Le témoin retrouve donc sa propriété
+   d'origine : les épinglées ont le RYTHME du répertoire — même largeur de rangée dans les deux sections. */
+await sec('REFONTE · cases rondes et rangées groupées (A506-A507)', async () => {
+/* Lot 3 de la refonte « Natif ». A507 : toute case est RONDE (étape 36 px, jauge, sélection, collections, liste
+   cochable), la bordure de l'étape porte toujours le registre. A506 : à l'accueil, plus de liseré — la catégorie
+   se dit par le point SUIVI de son nom ; la vue détaillée est un GROUPE de rangées, pas une pile de cartes. */
+  const page = await br.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await amorce(page);
+  const acc = await page.evaluate(async () => { const w = m => new Promise(r => setTimeout(r, m));
+    state.homeCompact = false; selStart(fiches[0].id); render(); await w(300);
+    const rows = [...document.querySelectorAll('.dir-book .dir-row')];
+    const ck = document.querySelector('.dir-ck'), ckb = ck ? getComputedStyle(ck, '::before').borderRadius : '';
+    const out = { n: rows.length,
+      liseres: rows.filter(r => { const b = getComputedStyle(r, '::before'); return b.content !== 'none' && b.content !== 'normal' && parseFloat(b.width) > 0; }).length,
+      pointNom: rows.every(r => { const c = r.querySelector('.dir-cat'); return !c || (c.querySelector('.cat-dot') && c.textContent.trim().length > 0); }),
+      groupe: (() => { const g = document.querySelector('.dir-book:not(.compact) .dir-grid'); return g ? parseFloat(getComputedStyle(g).borderTopLeftRadius) : 0; })(),
+      cartes: rows.filter(r => parseFloat(getComputedStyle(r).borderTopLeftRadius) > 0).length, selRond: ckb };
+    selEnd(); render(); return out; });
+  t('accueil · témoin : des rangées sont rendues', acc.n >= 2, JSON.stringify(acc));
+  t('accueil · aucune rangée ne porte de liseré (A506)', acc.liseres === 0, JSON.stringify(acc));
+  t('accueil · la catégorie se dit par le point SUIVI de son nom', acc.pointNom, JSON.stringify(acc));
+  t('accueil · vue détaillée : un groupe arrondi, des rangées sans coins (plus de cartes)', acc.groupe > 0 && acc.cartes === 0, JSON.stringify(acc));
+  t('sélection · la case est ronde (A507)', acc.selRond === '50%', acc.selRond);
+  await ouvrirFiche(page, /Arrêt cardiaque/);
+  await demarrerSession(page);
+  await page.evaluate(() => { const f = state.fiche; const b = f.blocks.find(b => /^Choquable/.test(b.title)); jumpToBlock(f, b.id); });
+  await page.waitForTimeout(500);
+  const ses = await page.evaluate(() => {
+    const bx = [...document.querySelectorAll('.ov-block.cur li[data-ck] .box')];
+    const crit = document.querySelector('.ov-block.cur li.crit .box');
+    const goal = document.querySelector('.mo-pips i.goal'), pip = document.querySelector('.mo-pips i:not(.goal)');
+    return { n: bx.length, ronds: bx.filter(b => getComputedStyle(b).borderTopLeftRadius === '50%').length,
+      taille: bx[0] ? Math.round(bx[0].getBoundingClientRect().width) : 0,
+      critBord: crit ? getComputedStyle(crit).borderTopColor : '', crit: getComputedStyle(document.documentElement).getPropertyValue('--crit').trim(),
+      goalRond: goal ? getComputedStyle(goal).borderTopLeftRadius : '', goalW: goal ? goal.getBoundingClientRect().width : 0, pipW: pip ? pip.getBoundingClientRect().width : 0 }; });
+  t('session · toutes les cases d\u2019étape sont rondes, 36 px (A507, A510)', ses.n >= 1 && ses.ronds === ses.n && ses.taille === 36, JSON.stringify(ses));
+  t('session · la case CRITIQUE garde sa bordure de registre', !!ses.critBord && ses.critBord !== 'rgba(0, 0, 0, 0)', JSON.stringify(ses));
+  t('session · le dernier repère de la jauge est un rond PLUS GRAND (A507)', ses.goalRond === '50%' && ses.goalW > ses.pipW, JSON.stringify(ses));
+  await page.close();
+});
+
 await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
   const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(`http://localhost:${port}/index.html`);
@@ -6336,29 +6372,19 @@ await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
     const r = await page.evaluate(() => {
       const qa = document.querySelector('.qa-sec');
       const vis = !!qa && getComputedStyle(qa).display !== 'none';
-      const tiles = qa ? [...qa.querySelectorAll('.qa-tile')] : [];
-      const book = document.querySelector('.dir-book');
+      const ep = qa ? [...qa.querySelectorAll('.dir-row')] : [];
+      const rep = [...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')];
       const lg = e => e ? Math.round(e.getBoundingClientRect().width) : 0;
-      return { desk: !document.documentElement.classList.contains('zw1200'), vis,
-        nT: tiles.length, tuile: lg(tiles[0]), livre: lg(book),
-        tuileTops: tiles.slice(0, 2).map(e => Math.round(e.getBoundingClientRect().top)),
+      return { vis, nE: ep.length, tuiles: document.querySelectorAll('.qa-tile').length,
+        lE: lg(ep[0]), lR: lg(rep[0]),
         etoiles: document.querySelectorAll('.dir-row .pinbtn.on').length,
-        rangees: document.querySelectorAll('.dir-row').length }; });
+        rangees: rep.length }; });
     t(`${w} px · témoin : deux épinglées existent, le répertoire les garde`,
       r.etoiles >= 2 && r.rangees >= 2, JSON.stringify(r));
-    if (r.desk) {
-      t(`${w} px · ≥ 1200 : « Accès direct » rend ses tuiles`, r.vis === true && r.nT >= 2,
-        `${r.nT} tuile(s), visible ${r.vis}`);
-      t(`${w} px · … et une tuile ne prend PAS toute la largeur du livre`,
-        r.tuile > 0 && r.tuile < r.livre - 40, `${r.tuile} px dans ${r.livre} px`);
-    } else {
-      t(`${w} px · < 1200 : les TUILES restent (A261)`, r.vis === true && r.nT >= 2,
-        `${r.nT} tuile(s), visibles ${r.vis}`);
-      if (w <= 430)
-        t(`${w} px · … et DEUX tiennent sur une même ligne`,
-          r.tuileTops.length === 2 && Math.abs(r.tuileTops[0] - r.tuileTops[1]) <= 1,
-          JSON.stringify(r.tuileTops));
-    }
+    t(`${w} px · « Accès direct » est un groupe de rangées (A506), plus aucune tuile`,
+      r.vis === true && r.nE >= 2 && r.tuiles === 0, JSON.stringify(r));
+    t(`${w} px · … et ses rangées ont la largeur de celles du répertoire`,
+      r.lE > 0 && Math.abs(r.lE - r.lR) <= 2, `${r.lE} px contre ${r.lR} px`);
   }
   await page.close();
 });
