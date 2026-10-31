@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.58.1] — 2026-10-31
+Le lot 3 de la refonte « Natif » remis sur la maquette (A516, doctrine `docs/decisions/lot-v6-0.md`) : la v5.58.0
+s'en écartait. Rien à rejouer côté serveur.
+- **La catégorie est un point coloré en tête de chaque rangée**, son nom dans la ligne du dessous ; en sélection,
+  la case prend sa place et le point revient devant le nom.
+- **La ligne du dessous se lit comme une phrase** : « Aide · SMUR · adulte · △ À relire ». L'état suit l'identité
+  au lieu d'être calé à droite dans une pastille, et la ligne passe à la ligne plutôt que de couper un mot.
+- **Des rangées plus serrées** (52 px au minimum), un filet qui commence au texte, des groupes sans bord ni ombre,
+  des intertitres en minuscules (« Accès direct 1 », « SMUR 1 »).
+- La vue compacte garde sa ligne unique avec l'état à droite ; elle perd la pastille et le gras.
+
 ## [5.58.0] — 2026-10-31
 Premier lot visible de la refonte « Natif » (A506-A507, A515 ; doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -255,13 +266,3 @@ Au téléphone, dans Safari, toucher juste sous les boutons de la barre d'outils
 - **Une bande de 12 px sous les boutons fait désormais partie de la barre**, dans Safari seulement : un doigt qui vise un
   peu bas tombe chez l'app et va au bouton le plus proche. Elle prend 12 px au texte.
 - **App installée sur l'écran d'accueil** : la bande de Safari n'existe pas, la barre reste à 41 px.
-
-## [5.48.8] — 2026-10-06
-Au téléphone, toucher un peu à côté d'un bouton de la barre d'outils ne ferme plus le clavier (A471, doctrine `docs/decisions/lot-v5-48.md`).
-- **Mesuré avant correction** : un toucher sur sept à un sur quatre dans la barre (entre deux boutons, sur les bords,
-  dans le vide avant « Insérer ») et environ 40 % des touchers entre les lignes d'un menu ouvert faisaient perdre la
-  main au texte, donc fermaient le clavier.
-- **Toute la barre et tout le menu gardent maintenant le clavier ouvert**, et un toucher à côté d'un bouton (jusqu'à
-  12 px) va au bouton le plus proche ; une bande de 8 px au-dessus de la barre fait de même.
-- **La barre garde sa hauteur de 41 px** : clavier et barre de Safari ouverts, elle laisse au texte la même place
-  qu'avant (sur iPhone 15, environ 12 lignes visibles).

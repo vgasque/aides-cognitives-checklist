@@ -282,3 +282,32 @@ listes (Sessions, Moi, Administration, colonne d'état) gardent leur dessin : el
 code d'avant) ; réécrits sciemment : « les épinglées ont le rythme du répertoire » (groupe de rangées de même largeur,
 plus aucune tuile), « titres longs » (cas de la rangée seul), « la rangée a un rythme régulier » (plancher 64 px des
 rangées groupées au lieu de 76 des cartes). Captures du design system relevées.
+
+## A516 — Lot 3 réaligné sur la maquette (v5.58.1) : la rangée d'A506 à la lettre
+
+**Signalé par l'auteur à la relecture de la v5.58.0** : « tu es tellement éloigné des maquettes et des décisions ».
+Constat : le lot 3 avait été jugé contre la v5.57 (avant/après), jamais contre la maquette Natif ; il gardait des
+cartes à trois lignes, « AIDE » en capitales, le point de catégorie dans la sous-ligne, une rangée de 64 px et des
+intertitres en capitales espacées. A506 disait autre chose.
+
+**Ce qui change (maquette « trois directions », A · Natif, accueil téléphone et tablette)** :
+- **Point de catégorie de 10 px EN TÊTE de rangée** (emplacement « avant » d'A506), son nom dans la sous-ligne ;
+  en sélection, la case prend l'avant et le point revient devant le nom (A515 §3). Sans catégorie, pas
+  d'emplacement : la rangée garde deux pistes (`has-av`, piège relevé en maquette).
+- **Sous-ligne en texte séparé par des points**, 13,5 : « Aide · SMUR · adulte · △ À relire » — nature,
+  catégorie, discriminant, puis l'état en mots, à la suite (plus calé à droite, plus de pastille d'aplat). Titre
+  15/600 (A510 §4).
+- **Rangée de 52 px au minimum** (A506, A375), le **filet commence au texte** (dégradé d'une ligne, aucun élément
+  ajouté), le groupe n'a **ni bord ni ombre** (maquette : un aplat de travail sur le fond).
+- **Intertitres en phrase**, 13,5/600 (« Accès direct   1 », « SMUR   1 ») ; le groupe « Accès direct » prend le même
+  intertitre que les autres (plus de « n épinglées » en capitales). Le point d'un intertitre de catégorie reste :
+  c'est lui qui dit les homonymes multicolores (A485).
+- **La vue compacte** garde sa ligne unique à état calé à droite (A338) ; elle perd la pastille et le gras.
+
+**Amende A338** (« nature · discriminant · ● catégorie, état calé à droite ») : la nature reste sur CHAQUE rangée
+(demande de l'auteur, témoin d'`audit-doctrine` : en vue « Tout » les deux natures se mêlent), mais en minuscules
+dans la ligne à points, plus en petites capitales ; la catégorie passe avant le discriminant (ordre de la
+maquette) ; l'état suit l'identité en vue détaillée. **Amende A422** : l'état n'a plus d'aplat. **Écart à la
+maquette, soumis à l'auteur** : la maquette n'écrivait pas « Aide » (toutes ses rangées étaient des aides).
+
+*Forme écartée* : garder le point dans la sous-ligne hors sélection (v5.58.0) — elle contredisait A506.

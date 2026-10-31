@@ -2807,7 +2807,8 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
      largeurs depuis A389) — le rythme unique reste la règle du LIVRE, c'est-à-dire la vue compacte. */
   /* A506 : la vue détaillée n'est plus une pile de CARTES (plancher 76) mais un groupe de rangées — même plancher
      que le livre compact, 64 px ; la hauteur suit toujours le contenu (deux lignes). */
-  if(r.cartes)t(`${W} · les rangées groupées tiennent le plancher de 64 px`, Math.min(...r.hauteurs)>=64, JSON.stringify(r.hauteurs));
+  /* A516 : le plancher est celui d'A506 À LA LETTRE, 52 px (A375) — 64 était celui du livre d'avant. */
+  if(r.cartes)t(`${W} · les rangées groupées tiennent le plancher de 52 px`, Math.min(...r.hauteurs)>=52, JSON.stringify(r.hauteurs));
   else t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
   t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
   /* ⚠ 16,5 px DEPUIS L'AUDIT DESIGN v5.0.0 (A3-1) — et le contrôle EXPRIME DÉSORMAIS SON

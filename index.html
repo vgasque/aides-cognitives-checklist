@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ho4sqFWnKQfJ+MxassdNKufzmAS737q79FkoybdPyco='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QM30rhYnfjzsf2/rEwNL2l0DmZ6U18iKcw9NBuRfphw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2708,6 +2708,43 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     html.zw360 .dir-book:not(.compact) .dir-sub{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
     html.zw360 .dir-book:not(.compact) .dir-id{display:contents}
     html.zw360 .dir-book:not(.compact) .dir-st{margin-left:auto;padding-left:6px}
+  /* A516 (lot 3 réaligné sur la maquette Natif) — LA RANGÉE D'A506, À LA LETTRE : point de catégorie de 10 px
+     EN TÊTE, titre 15 (A510 §4), sous-ligne 13,5 en texte séparé par des points (« SMUR · adulte · △ À relire »,
+     état compris, plus de pastille), étoile à droite ; 52 px au minimum ; groupe sans bord ni ombre ; le filet
+     commence au texte. Sans catégorie, la rangée reste sur deux pistes (piège relevé en maquette, A506). */
+  .dir-av{width:10px;height:10px;border-radius:50%;background:var(--catcol)}
+  .dir-row.has-av{grid-template-columns:auto minmax(0,1fr) auto;column-gap:14px}
+  .dir-row.has-av.selm{column-gap:8px}
+  .dir-row.has-av:not(.selm) .dir-cat .cat-dot{display:none}
+  .dir-book:not(.compact) .dir-grid{border:0;box-shadow:none}
+  .dir-book:not(.compact) .dir-row{min-height:52px;padding:8px 8px 8px 16px;border-bottom:0;
+    background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-position:right bottom;background-size:calc(100% - 16px) 1px}
+  .dir-book:not(.compact) .dir-row.has-av:not(.selm){background-size:calc(100% - 40px) 1px}
+  .dir-book:not(.compact) .dir-grid>.dir-row:last-child{background-image:none}
+  .dir-book:not(.compact) .dir-row .card-open{font-weight:600}
+  .dir-book:not(.compact) .dir-sub{display:block;margin-top:2px;white-space:normal;overflow:visible;
+    font-size:var(--t-body);line-height:1.35;color:var(--ink-2)}
+  .dir-book:not(.compact) :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){display:inline;min-width:0;margin:0;padding:0;
+    overflow:visible;white-space:normal;font-size:inherit}
+  .dir-book:not(.compact) .dir-id>*+*::before,.dir-book:not(.compact) .dir-id:not(:empty)+.dir-st::before{
+    content:"·";margin:0 6px;font-weight:400;color:var(--ink-2)}
+  .dir-book:not(.compact) .dir-disc{order:0;font-weight:400;color:inherit}
+  .dir-book:not(.compact) .dir-kind{font-size:inherit;font-weight:400;letter-spacing:0;text-transform:none}
+  html .dir-book:not(.compact) .dir-sub>.dir-st{margin:0;padding:0}
+  /* Atome insécable, mais une coupure possible AVANT lui (une boîte en ligne « nowrap » n'en offre aucune). */
+  .dir-book:not(.compact) .dir-sub>.dir-st{display:inline-block;white-space:nowrap}
+  .dir-book:not(.compact) .dir-kind{white-space:nowrap}
+  /* La vue COMPACTE garde sa ligne unique à état calé à droite (A338) ; elle perd la pastille et le gras. */
+  .dir-book .dir-st.b{background:none;padding:0;color:var(--ink-2)}
+  .dir-book.compact .dir-disc{font-weight:400;color:inherit}
+  .dir-book.compact .dir-l{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none}
+  .dir-book.compact .dir-l .dir-ll{font-size:inherit}
+  /* Intertitre de groupe : la phrase de la maquette (« Accès direct   4 »), 13,5/600, aligné sur le texte des
+     rangées — plus de capitales espacées. */
+  .dir-book:not(.compact) .dir-l{padding:0 16px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .dir-book:not(.compact) .dir-l .dir-ll{font-size:inherit}
+  .dir-book:not(.compact) .dir-l .dir-ln{font-family:inherit;font-size:inherit;font-weight:600;color:var(--ink-2)}
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
@@ -9224,7 +9261,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.58.0';
+const APP_VERSION='5.58.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15151,6 +15188,10 @@ function homeJoinHtml(){
    C'est un item DUR de la méta : il ne rétrécit pas, il ne tombe pas — c'est la première chose
    qu'on veut savoir, et un mot amputé en dirait moins que rien. */
 function dirKindHtml(k){return `<span class="dir-kind${k==='p'?' p':''}">${k==='p'?'Protocole':'Aide'}</span>`;}
+/* A516 : l'emplacement « avant » de la rangée (A506) — le point de catégorie de 10 px ; en sélection la case
+   le remplace et le point revient dans la sous-ligne (A515 §3). Sans catégorie, pas d'emplacement. */
+const dirAvHtml=cc=>cc?'<span class="dir-av" aria-hidden="true"></span>':'';
+const dirAvCls=(x,cc)=>(state.selOn&&canEditFiche(x))||cc?' has-av':'';
 /* UN JETON COURT EST UN ITEM DUR (audit externe v5.10.0 ; le raisonnement est au site CSS
    `.dir-sub>.m-dur`). Seul point de décision, partagé par les rangées d'AIDE et de RÉFÉRENCE :
    recopié, il finirait par compter autrement ici que là. Le seuil vaut 5 caractères — au-delà,
@@ -15981,8 +16022,7 @@ function renderHomeList(cfg){
       /* v5.18 (A261, décision utilisateur sur capture) : l'accès direct est en TUILES à toutes
          les largeurs — plusieurs par ligne dès que la place le permet ; les fiches restent
          AUSSI dans le répertoire (un raccourci ne déménage rien). */
-      (tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">${tiles.length} épinglée${tiles.length>1?'s':''}</span></div>
-        <div class="dir-book pinned${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
+      (tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
       +(!wide&&!state.selOn?collRailHtml():'')+(state.selOn?'':collHeadHtml())
       /* v5.19.1 (signalé à l'usage) : en voie ÉTROITE, « Rangé par » et « Sélectionner » passent
          SOUS l'intertitre « Répertoire » — ils gouvernent cette liste, ils ne la précèdent pas.
@@ -16132,11 +16172,11 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        la sous-ligne : la couleur d'une catégorie n'est jamais seule (SPEC crise §1). */
     row:f=>{const isLive=sessionLive(f.id);const cc=catOf(f);const inQ=txNorm(state.q);
       return `
-      <div class="dir-row${isLive?' live':''}${selRowCls(f)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
-        ${selCkHtml(f)}
+      <div class="dir-row${isLive?' live':''}${selRowCls(f)}${dirAvCls(f,cc)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
+        ${selCkHtml(f)||dirAvHtml(cc)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
-          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
         </div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${esc(f.id)}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
@@ -16214,8 +16254,8 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
       return `
-      <div class="dir-row${selRowCls(p)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
-        ${selCkHtml(p)}
+      <div class="dir-row${selRowCls(p)}${dirAvCls(p,cc)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
+        ${selCkHtml(p)||dirAvHtml(cc)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(p.id)}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
           <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}${collAlsoHtml(p.id)}</span>${dirStateHtml(p,false,false)}</span>

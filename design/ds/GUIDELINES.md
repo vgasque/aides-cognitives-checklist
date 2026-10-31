@@ -130,9 +130,10 @@ touche une surface — c'est la seule protection dont il dispose.
   PAS là où la DATE de validation est visible** : la date dit la même chose en plus
   précis, et une carte ne porte un statut que si elle ATTEND quelque chose. Sans date, la
   pastille reste — sinon rien ne distinguerait une fiche validée d'une fiche sans statut.
-  Sur les rangées d'accueil, la catégorie se dit par son POINT SUIVI DE SON NOM dans la sous-ligne
-  (« ● SMUR ») — plus de liseré, et jamais le point seul (A515 ; rangées GROUPÉES, plus de cartes). Les badges d'attente sont ACHROMATIQUES — seul « À revérifier » est
-  ambre (A347) ; l'état d'une carte est au palier méta 12, gras s'il attend quelque chose (A422).
+  Sur les rangées d'accueil, la catégorie se dit par un POINT DE 10 px EN TÊTE de rangée, son NOM dans la
+  sous-ligne — plus de liseré, jamais le point seul (A516 ; en sélection la case prend la tête et le point revient
+  devant le nom). Les états d'attente sont ACHROMATIQUES et SANS APLAT — seul « À revérifier » est ambre (A347) ;
+  l'état est au palier méta 12, gras s'il attend quelque chose (A422).
 - Pastilles d'état (compte/synchro) : ok = `--ok`, attente = `--warn`,
   erreur = `--crit`, inactif = `--line-strong`, synchro EN COURS = anneau tournant en
   `--line-strong` (activité ≠ alerte ; en `--line`, il se fondait la nuit — A500). **Deux sites,
@@ -448,8 +449,13 @@ plein milieu d'une ligne. La rangée est donc bornée PAR LE BAS et jamais figé
 la liste éditoriale, **71** en recherche (l'extrait s'ajoute), **76** sous 360 px effectifs, où
 la méta prend deux lignes.
 
-**La méta dit UNE IDENTITÉ à gauche et UN ÉTAT à droite** (A338, lot v5.28) — et cet ordre-là
-n'est plus celui d'une queue qui tombe :
+**Vue détaillée (A516, maquette Natif)** : la sous-ligne est une phrase à points, 13,5 —
+« Aide · SMUR · adulte · △ À relire » —, l'état SUIT l'identité et la ligne passe à la ligne au lieu de
+s'ellipser ; rangée de **52 px** au minimum, filet qui commence au texte, groupe sans bord ni ombre,
+intertitres en phrase 13,5/600. **La vue compacte** garde la règle d'A338 ci-dessous (une ligne, état à droite).
+
+**La méta dit UNE IDENTITÉ à gauche et UN ÉTAT à droite** (A338, lot v5.28 ; vue compacte depuis A516) — et
+cet ordre-là n'est plus celui d'une queue qui tombe :
 
 - à gauche, l'**identité** : nature · discriminant · ● catégorie, alignés sur la LIGNE DE BASE
   (nature 11 px, texte 12 px) ;
