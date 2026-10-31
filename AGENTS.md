@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 au lot v6.0 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513 au lot v6.0 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A512 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A513 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -252,7 +252,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-55.md`](docs/decisions/lot-v5-55.md) | A494-A495 | Administration devient une page à sections |
 | [`lot-v5-56.md`](docs/decisions/lot-v5-56.md) | A496-A498 | La collection se choisit à la création ; le voile d'une feuille absorbe le tap ; tête du menu des catégories |
 | [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501, A511-A512 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad ; A511 : paysage bas, quai à mots entiers, correctifs de mesure ; A512 : zones sûres latérales |
-| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
+| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
 
 ### Carte par sujet
 

@@ -201,3 +201,21 @@ taille du texte de l'app : 390 px à 130 % laissent 300 px, 375 px à 130 % en l
 - **320 px à 130 %** (246 px de place, deux réglages d'agrandissement cumulés) : régime DÉGRADÉ. A465 tient — aucun
   mot coupé, une seconde ligne est permise — mais le plafond de hauteur du chrome ne s'y applique pas. Les témoins
   y vérifient l'absence de mot coupé et de débordement horizontal, rien de plus.
+
+## A513 — Deux questions tranchées avant le lot 2 : la décision en session, l'iPhone SE tourné
+
+**1. La carte de décision perd son fond ambré (renverse la carte « AMBRE DOUX » d'A345).** Depuis la v5.30, la
+carte de décision en session est sur `--warn-soft`. La refonte la remet au régime des autres blocs — fond de
+travail, contour bleu quand elle est le bloc courant — et ne garde l'ambre que sur le mot « ◆ Décision ». Raison
+(choisie par l'auteur sur la planche « Étapes en session Natif ») : la règle 8 réserve l'ambre au risque d'erreur et
+à l'échéance ; une question n'en est pas un, et un aplat ambre permanent use le registre qui doit signaler une dose
+ou un minuteur échu. La question garde son corps (`--t-step-l`), les réponses disent toujours où elles mènent, la
+ligne de jalon « SI … » et sa jauge restent.
+*Forme écartée* : garder l'aplat ambre pour repérer la décision de loin.
+
+**2. Un téléphone tourné prend la colonne gauche, quelle que soit sa largeur (précise A504).** La barre d'onglets
+d'A504 ne vaut que sous 780 px. Vérifié au simulateur : un iPhone standard tourné (844 px) est déjà au-dessus et
+affiche la colonne gauche. Seul l'iPhone SE (667 px) restait dessous. Il suit désormais la même règle : en paysage
+bas (`paysageBas()`, A511), l'accueil prend la colonne gauche, jamais la barre d'onglets. Un seul dessin pour « un
+téléphone tourné », et la hauteur, déjà rare (A511), reste au contenu. La colonne y loge l'inset latéral (A512).
+*Forme écartée* : une barre d'onglets compacte sur une ligne (~44 px) en paysage.
