@@ -115,11 +115,11 @@ qu'elle n'apparaît qu'en mode sélection.
 
 ## A508 — Feuilles du bas à poignée et menu ⋯ ancré, au téléphone
 
-**Décision.** Au téléphone, Créer, Affichage, Partager, Moniteur s'ouvrent en **feuille du bas** (mi-hauteur ou
+**Décision.** Au téléphone, Créer, Affichage, Partager s'ouvrent en **feuille du bas** (mi-hauteur ou
 pleine), poignée en tête, fermeture en la tirant vers le bas ou par « ✕ » ; le voile absorbe le tap (A497). Le menu
 **⋯** devient un **menu contextuel ancré à son bouton** (verre, sections séparées, « Terminer la session… » en rouge
 en dernier), la session restant visible dessous. Rien de cela ne s'ouvre sans geste de l'utilisateur pendant une
-session (règle 11). En large, les feuilles restent des fenêtres centrées ou des vues de la colonne, comme
+session (règle 11). Le moniteur n'en est pas une : il reste un afficheur plein écran (A509). En large, les feuilles restent des fenêtres centrées ou des vues de la colonne, comme
 aujourd'hui.
 
 ## A509 — Le moniteur reste un afficheur ; sa refonte Natif
@@ -142,3 +142,62 @@ Ce qui change :
 - tablette posée sur le chariot : le grand chiffre monte à ~220 px, plafond toujours pris sur la bande rendue (A341).
 
 **Forme écartée** : le moniteur en liste groupée à commandes (cf. A506).
+
+## A510 — Arbitrages après mesure (266 vues) et lecture du code
+
+Avant tout code, l'app a été mesurée sur 14 écrans × 7 largeurs (320 → 1440) × 2 tailles de texte, et chaque
+décision A503-A509 relue contre le code et la doctrine. Rapport : planche « Obstacles de la refonte Natif ». Six
+points demandaient un arbitrage ; l'auteur a laissé le choix (« pour le reste je te laisse choisir »). Retenus :
+
+1. **Verre (amende A503, renverse A423 en connaissance de cause).** Verre à ≈ 90 % d'opacité, pas 78 % : à 78 %,
+   « ● SESSION » tombait à 3,4:1 au-dessus d'un texte foncé. Les VOLETS collés aux barres (capsule, quai) prennent la
+   même matière, sinon deux mondes se touchent. Tokens redéclarés EN CONTEXTE (capsule, quai, volets), thème clair
+   seulement : `--sys` garde ses douze autres lecteurs (carte de session de l'accueil, bulle du guide, toasts,
+   alarme, scanner QR…). Registres propres aux barres claires (les « -sys » font 1,6 à 2:1 sur fond clair). Repli
+   opaque sans `backdrop-filter` et sous `prefers-reduced-transparency`. Le contraste se mesure sur le contenu le plus
+   chargé qui passe dessous (étape CRITIQUE, aplat « fait »), par une sonde à écrire — `audit-a11y` compose le fond
+   par les ancêtres du DOM et donnerait un faux vert sous une barre fixe.
+2. **Un onglet n'est pas un niveau de retour (amende A504, A430).** Comme sur iOS : le retour système ne change pas
+   d'onglet ; chaque onglet garde sa position de défilement. Témoin de retour à 390 px à ajouter (`audit-retour` ne
+   joue que 1000 px).
+3. **La recherche au clavier (amende A504, respecte A192-A197).** Au toucher, le rond s'ouvre en champ posé
+   au-dessus du clavier, dans sa propre couche ; la barre d'onglets se retire comme tout chrome épinglé.
+4. **Titre des rangées (amende A506, respecte A375).** 15 px à l'accueil et dans les listes (A375), 17,5 dans les
+   étapes de session (A345 inchangé). Le 17 de la planche n'était pas un cran.
+5. **Menu ⋯ au téléphone (amende A508, garde A361).** La feuille basse d'A361 reste au téléphone ; le menu ancré ne
+   sert qu'en large, et il gagne un voile transparent qui absorbe le tap de fermeture (A497) : aujourd'hui il se
+   ferme au clic du document sans l'arrêter, et ce tap pourrait cocher l'étape dessous.
+6. **L'aide en cours à l'accueil (amende A506, remplace le liseré vert de 6 px d'A355).** Elle sort de sa catégorie
+   et monte en tête, dans un groupe « En cours », avec « ● Session 04:12 » en vert sur sa rangée.
+
+**Autres corrections issues de la mesure** :
+- **Cases rondes (amende A507)** : 36 px comme la case actuelle, pas 30 (A507 l'aurait rendue plus petite) ; dernier
+  repère de la jauge d'A474 = un rond plus grand que les autres (il figurait la case par un carré).
+- **Grand titre (précise A505)** : deux crans nommés 34 et 28 dans `check-type`, réduits sous `zw430`/`zw360` ;
+  jamais en session (budget d'écran). Mécanique : le patron `.titled`/`syncHdrScroll` de la lecture d'une aide — le
+  grand titre défile dans le contenu, la barre de hauteur fixe n'affiche que le petit (C16 : jamais d'en-tête qui
+  change de hauteur).
+- **Progression en session** : pas de « Bloc n sur 4 » ni de segments (aucun total honnête sur une aide ramifiée,
+  et prédire le chemin est exclu) ; « Parcours · x/y étapes » et la pilule « En cours » au-dessus du titre (A465).
+- **Moniteur (précise A509)** : le nom étant en tête de rangée, l'étiquette d'échéance ne porte plus que le temps ;
+  c'est ce qui rend la place que la colonne de nom prend à l'axe.
+- **Ordre des lots (remplace celui d'A502)** : (1) correctifs des défauts déjà présents, (2) outillage de mesure
+  (sonde de contraste sous barre, témoins étroits avec texte agrandi, retour au téléphone, crans de titre),
+  (3) rangée groupée et cases rondes, (4) navigation du téléphone, (5) verre et moniteur.
+
+**Défauts trouvés dans l'app actuelle, indépendants de la refonte** : mots du quai coupés à 320 et 1280 px avec le
+texte à 130 % (« FV réfractair », « Horodate » — contraire à A465, dont le témoin ne joue 320 qu'à 115 %) ;
+`audit-a11y.mjs` appelle `openMonitor`, qui n'existe pas (`monOpen`), si bien que le contraste du moniteur n'a
+jamais été mesuré ; la garantie arithmétique d'A231 est fausse à 130 % (demi-bande de 105 px pour 115 px
+d'étiquette) ; le nom de l'aide se réduit à « A… » en session à 320 × 130 %.
+
+**320 px, tranché (l'auteur laisse le choix).** Qui affiche 320 px : iPhone SE 2/3 et 12/13 mini en « Zoom de
+l'affichage : Agrandi », iPad en Slide Over ou dans la colonne étroite de Split View, et les iPhone 5/SE 1 devenus
+marginaux ; c'est aussi le plancher WCAG 1.4.10, servi depuis la v4.43.0. Mais le cas fréquent sous 320 vient de la
+taille du texte de l'app : 390 px à 130 % laissent 300 px, 375 px à 130 % en laissent 288. Règle retenue :
+- **320 px à 100 % et 115 %** : servi en entier, comme aujourd'hui (budget de chrome, mots entiers, cibles).
+- **375 et 390 px à 130 %** : servis en entier ; c'est là que vit le gros texte réel, et le budget d'écran de
+  session (`audit-budget`) s'y mesure.
+- **320 px à 130 %** (246 px de place, deux réglages d'agrandissement cumulés) : régime DÉGRADÉ. A465 tient — aucun
+  mot coupé, une seconde ligne est permise — mais le plafond de hauteur du chrome ne s'y applique pas. Les témoins
+  y vérifient l'absence de mot coupé et de débordement horizontal, rien de plus.
