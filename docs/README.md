@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A501** à la v5.57 (et ça continue — la
-prochaine est A502), attribués dans
+Les décisions de conception portent des numéros **A1 → A509** à la v5.57 + lot v6.0 (et ça continue — la
+prochaine est A510), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -133,6 +133,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A494-A495 | `lot-v5-55.md` | Administration devient une page à sections ouverte depuis Moi : À traiter, comptes et bibliothèques à l'échelle (recherche, filtres, pages de 40, lot), règles confirmées ; une rangée de règles, retour au-dessus du titre à toute largeur |
 | A496-A498 | `lot-v5-56.md` | La collection se choisit à la création (rangée « Collections » de la pancarte d'identité, feuille à cases de l'accueil réutilisée), « Nouveau protocole » ; le voile d'une feuille absorbe le tap au lieu de le laisser passer à ce qu'il couvre ; le menu des catégories dit ce qu'est une catégorie |
 | A499-A501 | `lot-v5-57.md` | Le pied « Tout est prêt » déplié ne répète plus la version ; la pastille du compte suit l'avatar « Moi » de la colonne au bureau, anneau de nuit renforcé ; A501 : la colonne gauche de l'accueil pose sous la barre d'état de l'iPad installé |
+| A502-A509 | `lot-v6-0.md` | REFONTE « Natif » (décidée sur maquettes, pas encore implémentée) : direction retenue et formes écartées (Cockpit, Document, verre généralisé) ; capsule et quai en verre clair en thème clair ; barre d'onglets au téléphone ; grand titre 34 px ; listes groupées à rangée à quatre emplacements ; cases rondes ; feuilles du bas et menu ⋯ ancré ; A509 : le moniteur reste un afficheur, bande en carte à rangées nommées |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
