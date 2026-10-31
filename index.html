@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-C+ZgbyYxF2HX0TZ2l+AW7UAvNYVMiLcmLeZEvJnF3oI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xLovAD7AiBFpiRFqoiw0UIFOToYVy3YEXO87QYL5wWM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -563,6 +563,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A511 — ZONES SÛRES LATÉRALES : un iPhone en PAYSAGE a l'encoche ou la Dynamic Island sur un côté
+     (~60 pt). Seule la visionneuse PDF les lisait : sur l'appareil, l'île couvrait le bouton retour et
+     coupait « PARCOURS ». Nulles en portrait, en navigateur de bureau et sur iPad. ÷ --zf à l'usage (règle 10). */
+  --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
   /* A373 — CONTOURNEMENT iOS 27, RÉVERSIBLE EN UNE LIGNE : le système délave et floute le bord haut
      d'une app installée sur l'inset de l'heure ET ~16 pt au-delà (mesuré, A370). Tout ce qui se
      cale sous l'heure lit --sat = inset + ce décalage, au lieu de l'inset nu ; le sol ::before le
@@ -800,7 +804,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      vérité = AGENTS.md « Largeurs & échelles fermées » — cadre .app fluide, chaque vue PLAFONNE
      et CENTRE son contenu ; l'excédent ne va JAMAIS allonger les lignes (~75 caractères max).
      Détail : doctrine-css.md C9. */
-  .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip}
+  .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip;padding-left:calc(var(--sal) / var(--zf,1));padding-right:calc(var(--sar) / var(--zf,1))}
   body.view-home main{width:100%;max-width:1622px;margin:0 auto}
   body.view-read main{width:100%;max-width:1440px;margin:0 auto}
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
@@ -1176,7 +1180,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      et le champ réserve la largeur du plus long des deux pour que son texte ne passe jamais
      dessous — la place réservée ne doit pas dépendre du clavier de celui qui regarde. */
   .dock-kbd{display:none;position:absolute;right:10px;align-items:center;
-    font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink-3);
+    font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ink-2);   /* A511 : --ink-3 = 2,1:1 */
     border:1px solid var(--line);border-radius:var(--r-1);padding:1px 6px;pointer-events:none}
   .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
   .srch-x:hover{background:var(--amb-2);color:var(--ink)}
@@ -1423,6 +1427,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.30 (A354) : le créneau n'existe qu'au BUREAU (≥ 1440) — une tablette en paysage garde la bande. */
   .hdr-crisis-slot{display:none}
   @media (min-width:1440px){.hdr-crisis-slot{display:flex;align-items:center;gap:8px;min-width:0}}
+  /* A511 — PAYSAGE BAS (téléphone tourné) : le créneau existe aussi, mais DANS le flux de la rangée, entre
+     le titre et les actions — centré en absolu, il couvrait le titre (844 px : capsule ~350 px). Sa
+     largeur reste DÉFINIE (flex-basis), jamais un ajustement au contenu : cf. la rétroaction plus bas. */
+  html.zh500 body.view-read.chrome-hdr .hdr-crisis-slot{display:flex;align-items:center;min-width:0;position:static;transform:none;flex:3 1 0;width:auto;margin:0 8px;justify-content:center;overflow:hidden}
+  html.zh500 body.view-read.chrome-hdr .id-row>.brand{flex:2 1 0}
+  /* La capsule est BORNÉE au créneau : sans plafond, `#cbTimers` (flex:0 0 auto) ne débordait jamais de sa propre
+     boîte et la boucle d'ajustement, qui mesure ce débordement, ne repliait rien en « +n » (mesuré à 667 px). */
+  html.zh500 body.view-read.chrome-hdr :is(#crisisDock,#crisisDock .dock-in){min-width:0;max-width:100%}
+  html.zh500 body.view-read.chrome-hdr #cbTimers{flex:0 1 auto;min-width:0;max-width:100%}
   .hdr-crisis-slot:empty{display:none}
   body.chrome-hdr #crisisDock{position:static;background:transparent;border-bottom:0;box-shadow:none}
   body.chrome-hdr #crisisDock .dock-in{max-width:none;padding:0;margin:0;gap:8px;flex-wrap:nowrap}
@@ -1513,12 +1526,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
      commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
   #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+  /* A511 : fixé bord à bord, le quai entrait dans les coins arrondis et la zone de l'île en paysage (simulateur iOS). */
+  #sessionDock{padding-left:calc(14px + var(--sal) / var(--zf,1));padding-right:calc(14px + var(--sar) / var(--zf,1))}
   /* ⚠ LE DOCK RESTE FLOTTANT À TOUTES LES LARGEURS — décision de l'auteur, contre la planche 7c
      (en pied de colonne, le geste d'entrée serait à un défilement complet de ce qu'il commande).
      De 7c on garde la LARGEUR : le dock s'aligne sur la COLONNE D'ACTION, jamais sur la fenêtre —
      grille canonique calculée en CSS, aucune mesure JS. Détail : doctrine-css.md C20. */
   @media (min-width:780px){
-    #sessionDock{padding-inline:20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+    #sessionDock{padding-left:calc(20px + var(--sal) / var(--zf,1));padding-right:calc(20px + var(--sar) / var(--zf,1));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
     #sessionDock .sd-in{max-width:none;margin-right:calc(var(--col-state) + var(--col-gap))}
   }
   @media (min-width:1200px){
@@ -1755,7 +1770,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la touche ⚡︎ porte le NOM d'une complication quand il n'y en a qu'une, et « FV RÉFRA… » ne dit
      pas où l'on va. Deux lignes au plus — au-delà, la touche grandirait sous le doigt. */
   .sd-key .dp-lbl.sd-name{text-transform:none;letter-spacing:0;font-weight:700}
-  .sd-key .dp-lbl{font-size:var(--t-body);font-weight:800;letter-spacing:0;text-transform:none;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}   /* N5 : 13,5 (lu à distance), en casse de phrase — en capitales « HORODATER » demandait 82 px pour 73 à 390 (mesuré) ; N4 : césure avant toute coupe au milieu du mot */
+  .sd-key .dp-lbl{font-size:var(--t-body);font-weight:800;letter-spacing:0;text-transform:none;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:normal;-webkit-hyphens:manual;hyphens:manual}   /* N5 : 13,5 (lu à distance), en casse de phrase — en capitales « HORODATER » demandait 82 px pour 73 à 390 (mesuré) ; A511 (renverse N4) : jamais de césure ni de coupe dans un mot, à toute largeur — un mot qui ne tient pas fait descendre le quai d'un cran (fitQuaiLbls) */
+  #sessionDock.lbl-s .sd-key .dp-lbl{font-size:var(--t-meta)}
+  #sessionDock.lbl-xs .sd-key .dp-lbl{font-size:var(--t-cap)}
+  #sessionDock.lbl-s .sd-key:not(.sd-exo):not(.sd-start){padding:0 2px}
+  #sessionDock.lbl-xs .sd-key:not(.sd-exo):not(.sd-start){padding:0 1px}
   /* A2 — à 320 px les DEUX OUVERTURES passent au glyphe seul (aria-label conservé) ; hors du
      contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT — les GESTES gardent
      leurs mots. ⚠ Ce palier est une CLASSE `zw*`, jamais une media query (règle 10, déjà enfreinte
@@ -3151,9 +3170,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
-  .pf-ref{display:inline-flex;align-items:center;gap:6px;min-height:32px;max-width:100%;padding:0 4px;border:0;background:none;font-family:inherit;font-size:var(--t-body);font-weight:700;color:var(--ink-2);cursor:pointer;text-align:left;min-width:0}
+  .pf-ref{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:32px;max-width:100%;padding:0 4px;border:0;background:none;font-family:inherit;font-size:var(--t-body);font-weight:700;color:var(--ink-2);cursor:pointer;text-align:left;min-width:0}
   .pf-ref>span:first-child{flex:none;white-space:nowrap}
   .pf-ref .pf-rt{flex:1 1 auto;min-width:0}
+  /* A511 : un renvoi « ↓ 3 Choquable » se touche en session — halo à 44 px (A8), la rangée garde ses 32 px. */
+  .pf-ref::after{content:"";position:absolute;inset:-6px 0}
   .pf-n{flex:none;width:20px;height:20px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);display:inline-grid;place-items:center;font-size:var(--t-cap);font-weight:800}
   .pf-rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pf-end{font-size:var(--t-body);font-weight:800;color:var(--ok);padding-top:2px}
@@ -4271,7 +4292,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente.
      `position:relative` porte le HALO tactile (cf. le bloc A8 plus bas) : le dessin reste à 36 px,
      la cible monte à 48 sans épaissir la rangée d'un pixel. */
-  .rt-x{position:relative;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
+  .rt-x{position:relative;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:44px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
   .rt-x:hover{background:var(--amb-2);color:var(--ink)}
   .rt-x:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   @media (min-width:1000px){.rt-x{display:none}}
@@ -4511,9 +4532,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-pick:hover{background:var(--primary-soft);border-color:var(--act)}
   .tk-pick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
 
-  .tk-lab{flex:1;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink);font-size:13.5px}
+  .tk-lab{flex:1;min-width:0;min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink);font-size:13.5px}
   .tk-lab:focus{outline:2px solid var(--act);border-color:transparent}
-  .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--amb);color:var(--ink-soft);font-size:15px}
+  .tk-del{flex-shrink:0;width:44px;height:44px;border:0;border-radius:8px;background:var(--amb);color:var(--ink-soft);font-size:15px}
   /* REPÈRE ANNULÉ — barré et estompé, jamais retiré : le journal alimente le compte-rendu, et une
      trace qu'un tap efface sans laisser de marque n'est pas une trace. L'heure reste EN ENCRE
      PLEINE (c'est la donnée clinique ; l'estomper serait l'inversion à ne pas faire, cf. la règle
@@ -4888,7 +4909,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de 17, sur un écran de soin. Le halo est VERTICAL SEUL (`inset:-6px 0`), comme l'exige la
      règle juste au-dessus : un débordement à droite entrerait dans le `scrollWidth` de la rangée,
      que le harnais doctrine mesure. 36 de dessin + 12 de halo = 48 de cible, au-dessus des 44. */
-  .rt-x::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
+  .rt-x::after{content:"";position:absolute;inset:-4px 0;border-radius:8px}   /* A511 : 36 + 2 × 4 = 44 en hauteur ; la largeur, elle, est RÉELLE (min-width 44) — un halo latéral débordait du bandeau de 4 px */
   .rt-find input{min-height:44px}
   /* `.st-seg` est le segmenté de STATUT des ÉDITEURS — hors surface de crise, donc hors du seuil
      de 44 px (vérifié : aucune émission en lecture). 38 px tient largement les 24×24 de
@@ -5781,7 +5802,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-rows{display:grid;gap:2px;margin-top:6px}
   .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .pre-rn{flex:1;min-width:0}
-  .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-3);text-align:right}
+  .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
@@ -6156,7 +6177,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* MODE MONITEUR (D3) : même coquille que le lecteur (z 92, sous le flash d'alarme à 99),
      corps calibrés pour une lecture À DEUX MÈTRES. Registres INCHANGÉS : un minuteur échu y est
      ambre + le mot « échu », jamais la couleur seule. */
-  #monMode{position:fixed;inset:0;z-index:92;background:var(--amb);display:none;flex-direction:column;padding:calc(14px + var(--sat)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
+  #monMode{position:fixed;inset:0;z-index:92;background:var(--amb);display:none;flex-direction:column;padding:calc(14px + var(--sat)) calc(18px + var(--sar) / var(--zf,1)) calc(14px + env(safe-area-inset-bottom)) calc(18px + var(--sal) / var(--zf,1));cursor:pointer}
   #monMode.on{display:flex}
   @supports (height:100dvh){#monMode{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}}   /* --vvt : cf. « une hauteur ne suffit pas » (couches plein écran) */
   .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
@@ -6670,7 +6691,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      contrainte la plus stricte des ancêtres ; étendre fenêtre par fenêtre.
      Détail : doctrine-css.md C110. */
   #authModal{touch-action:pan-y}
-  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + var(--sat)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + var(--sat)) calc(14px + var(--sar) / var(--zf,1)) calc(18px + env(safe-area-inset-bottom)) calc(14px + var(--sal) / var(--zf,1));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
   /* ⚠ Axe X des fenêtres FERMÉ (`overflow-x:clip`, v5.10.5 : 2 px d'arrondi au zoom fractionnaire
      suffisent à ouvrir le panoramique iOS — le contenu, lui, ne déborde jamais). Hauteur : `--vvh`
      (visualViewport, posé en JS) est la seule vérité, dvh = repli, ÷ --zf (règle v4.24.0) ; et la
@@ -7525,6 +7546,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
+    /* A511 : fixée à 0, la colonne passait sous l'île en paysage ; elle s'élargit de l'inset et le loge à gauche —
+       la colonne principale, elle, est décalée d'autant par le rembourrage de `.app`. */
+    .home-side{width:calc(var(--side-w) + var(--sal) / var(--zf,1));padding-left:calc(var(--sal) / var(--zf,1))}
     /* A501 (v5.57.1, signalé sur iPad installé : « Aides cognitives » coupé sous l'heure) : la colonne
        est FIXÉE À 0 et son premier étage ne lisait pas l'inset haut — l'en-tête de droite le lit depuis
        toujours (`calc(12px + var(--sat))`), la marque passait donc sous la barre d'état et sous le fondu
@@ -8649,7 +8673,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        (#cbTimers, segments + GLOBAL), badge de statut (protocoles/éditeurs), Créer, thème, compte.
        Hauteur CONSTANTE : elle ne se replie pas au défilement (cf. la règle CSS de header.bar). -->
   <header class="bar"><div class="id-row">
-    <button class="hdr-back" id="hdrBack" hidden><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span id="hdrBackLbl">Bibliothèque</span></button>
+    <button class="hdr-back" id="hdrBack" hidden aria-label="Retour"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span id="hdrBackLbl">Bibliothèque</span></button>
     <span class="brand-logo" aria-hidden="true"></span>
     <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><!-- A14 — EN-TÊTE À TROIS ZONES ANCRÉES. Le sur-titre « ■ MODE CRISE » vit AU-DESSUS du titre,
          et non à sa suite : accolé au nom de la fiche, le statut se lisait comme un fragment de ce
@@ -9223,7 +9247,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.57.1';
+const APP_VERSION='5.57.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10148,13 +10172,17 @@ function rescueCrisisChrome(){
 /* v5.6 (lot 2) — IL N'Y A PLUS QU'UN OBJET À DÉPLACER, ET LE PALIER DESCEND À 1000 : seule la
    CAPSULE monte encore dans l'en-tête (A14 : au CENTRE, absolue, dès 1000 px — `mqReadWide`
    porte ce seuil, mesuré et déclaré). Détail : doctrine-js.md J11. */
+/* A511 — PAYSAGE BAS : hauteur effective < 500 (`zh500`, règle 10) ET plus large que haut. Un téléphone
+   tourné ; une tablette n'y descend pas (> 670 en paysage), donc A354 tient pour elle. */
+function paysageBas(){return document.documentElement.classList.contains('zh500')&&window.innerWidth>window.innerHeight;}
 function placeCrisisChrome(){
   const dk=document.getElementById('crisisDock');
   const slot=document.getElementById('hdrCrisisSlot');
   if(!dk||!slot)return;
   // v5.30 (A354) : la capsule ne monte dans l'en-tête qu'au BUREAU (≥ 1440, `mqHdrCap`) ; en deçà —
-  // tablettes comprises, en paysage aussi — elle reste sous l'en-tête, à sa forme pleine.
-  if(!(mqHdrCap.matches&&state.view==='read'&&state.fiche))return;
+  // tablettes comprises — elle reste sous l'en-tête, à sa forme pleine. A511 : SAUF en paysage bas
+  // (`paysageBas`, téléphone tourné) — sa rangée de 80 px y laissait 29 % de l'écran aux étapes à 130 %.
+  if(!((mqHdrCap.matches||paysageBas())&&state.view==='read'&&state.fiche))return;
   if(dk.parentNode!==slot)slot.appendChild(dk);
   // A328 : le bandeau « par l'écran » ne monte PAS dans l'en-tête (il y couvrait le titre) — il reste
   // dans le flux, sous l'en-tête, en rangée compacte collante ; même patron nomade, jamais recréé.
@@ -13763,7 +13791,8 @@ function updateRtStrip(now){
      `#cbTimers` (overflow:hidden) débordait EN SILENCE (mesuré à 320 px : 119 px de trop). Les
      intitulés entrent dans la clé ; `glob` n'étant JAMAIS expulsé par la boucle (cf. `write`), le
      libellé de session est BORNÉ en code, ci-dessus. Détail : doctrine-js.md J55. */
-  const fitKey=window.innerWidth+'|'+wideRail+'|'+pool.length+'|'+want.length+'|'
+  const fitKey=window.innerWidth+'|'+wideRail+'|'+document.body.classList.contains('chrome-hdr')+'|'   // A511 : même largeur de fenêtre, autre boîte (rangée ↔ en-tête)
+    +pool.length+'|'+want.length+'|'
     +(started?fmtMs(now-Runtime.startedAt).length:0)+'|'+want.map(x=>x.d.val.length).join(',')
     +'|'+want.map(x=>tmShort(x.t).length).join(',')+'|'+globLbl.length
     +'|'+want.map(x=>x.due?1:0).join('')   // l'échéance AJOUTE le glyphe △ : c'est une largeur
@@ -21974,6 +22003,16 @@ function syncSheetH(){
 /* A331 : le signal d'arrivée se joue UNE fois par ouverture de fiche — jamais rejoué au re-rendu. */
 let _dockArriveFor=null;
 function startHintSeen(){try{return !!localStorage.getItem('ac-start-hint');}catch(e){return true;}}
+/* A511 — LE QUAI GARDE SES MOTS À TOUTE LARGEUR (étend A465, qui ne valait que sous `zw360`). Mesuré :
+   à 844 et 1280 px avec le texte à 130 %, « Horo-dater » se césurait et « FV réfractaire » perdait sa
+   fin ; à 320 × 130, il manquait 4 à 6 px par touche. La césure est retirée partout (CSS) et, si un mot
+   déborde encore, TOUT le quai descend d'un cran — 12, puis 11 px, rembourrage resserré — pour que les
+   touches restent identiques entre elles. Hors session (Exercice, Démarrer) : non concerné. */
+function fitQuaiLbls(d){
+  const keys=[...d.querySelectorAll('.sd-key:not([hidden]):not(.sd-start):not(.sd-exo)')];
+  d.classList.remove('lbl-s','lbl-xs');
+  const deborde=()=>keys.some(k=>{const l=k.querySelector('.dp-lbl');return l&&(l.scrollWidth>l.clientWidth||l.scrollHeight>l.clientHeight+2);});   // hauteur : 2 px d'arrondi de ligne tolérés, largeur : aucun
+  for(const c of ['lbl-s','lbl-xs']){if(!deborde())return;d.classList.add(c);}}
 function syncDock(){
   syncSheetH();
   // Rangée d'ÉTAT : visible si un état vit (session ou minuteur).
@@ -22016,6 +22055,7 @@ function syncDock(){
         complication sur deux lignes l'épaissit), et qui le faisait CHEVAUCHER la barre de 8 px
         là où la maquette laisse un petit écart. On expose la hauteur RÉELLE, comme `--hdr-h`
         le fait déjà pour la couche du haut ; le CSS y ajoute l'écart. */
+     if(!d.hidden)fitQuaiLbls(d);   // A511 : avant la mesure de hauteur — un cran de texte la change
      if(!d.hidden){const h=Math.round(d.getBoundingClientRect().height/zoomF());
        document.documentElement.style.setProperty('--dock-h',h+'px');}}}
   /* L'AJUSTEMENT AVANT LA MESURE : la composition du dock vient de changer, donc `--hdr-h` et
@@ -22162,7 +22202,10 @@ function syncZoomWidth(){
   ZOOM_W_STEPS.forEach(b=>cl.toggle('zw'+b,w<b));
   /* v5.33.2 : HAUTEUR effective < 500 (téléphone en paysage) — le rail collant n'y gardait que
      110 px sous l'en-tête, le quai et le dock (mesuré à 844 × 340) : il redevient du flux (CSS). */
+  const bas=cl.contains('zh500');
   cl.toggle('zh500',window.innerHeight/zoomF()<500);
+  /* A511 : franchir `zh500` déplace la capsule (paysage bas ↔ portrait) — même re-rendu que les paliers de lecture. */
+  if(bas!==cl.contains('zh500')&&typeof _onReadBp==='function')try{_onReadBp();}catch(e){}
   /* Franchir le palier 1200 re-rend la liste (le tableau ≥ 1200 a vécu — v5.18 ; reste la barre de
      sélection, qui déplie ses actes à 1200). Idempotent hors accueil. */
   if(av!==cl.contains('zw1200')&&state.view==='library')try{render();}catch(e){}
@@ -24211,6 +24254,11 @@ function monRender(){
       grandit vers le centre : 18 signes ≈ 115 px contre 142 px de demi-bande à 320 px — garantie
       arithmétique, pas espérée). Détail : doctrine-js.md J180. */
    const place=monPlace(d), RANGS=place.rangs;
+   /* A511 — LA GARANTIE SE CALCULE SUR LA BANDE RENDUE. « 18 signes ≈ 115 px contre 142 de demi-bande à
+      320 px » ne valait qu'à 100 % : à 320 × 130, la demi-bande ne fait plus que 105 px et l'étiquette
+      pouvait sortir de l'axe (mesuré). Le plafond de signes suit la demi-bande mesurée (6,4 px par signe
+      à 12 px gras), borné à 18 comme avant et jamais sous 6. */
+   const MAXC=Math.max(6,Math.min(18,Math.floor((el.clientWidth/2-8)/6.4)));
    monVMax(place.vmax);
    const vus=d.dated.slice(0,RANGS), reste=d.dated.length-vus.length;
    /* ⚠ L'ÉTIQUETTE COMMENCE À SON INSTANT (A342) : son bord gauche EST le moment, donc il n'y a
@@ -24242,7 +24290,7 @@ function monRender(){
          +x.ghosts.map(g=>'<span class="mb-ghost" style="left:'+pct(g)+'"></span>').join('')
          +'<span class="mb-due'+(x.x>0.5?' gche':'')+'" style="'
            +(x.x>0.5?'right:'+pct(1-x.x):'left:'+pct(x.x))+'">'
-         +esc(sstr(tmLabelParts(x.lab).name||'Minuteur',18))+'</span></span>').join('')
+         +esc(sstr(tmLabelParts(x.lab).name||'Minuteur',MAXC))+'</span></span>').join('')
      +'</div>'
      /* AUCUN ÉCART TU : au-delà de quatre rangées la bande mangerait le grand chiffre (elle est
         `flex:none` au-dessus d'un `.mon-main` qui cède). On garde les échéances les plus PROCHES
