@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.57.3] — 2026-10-31
+Trouvé en testant sur le simulateur iOS ce que la mesure n'avait pas pu voir (A512, doctrine
+`docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
+- **Rien ne passe plus sous l'encoche ou la Dynamic Island en paysage.** iPhone tourné, l'île couvrait le bouton
+  retour et coupait « PARCOURS » ; à l'accueil, la marque de la colonne gauche passait dessous, et le quai entrait
+  dans les coins arrondis. Le contenu, la colonne gauche, le quai, le moniteur et les fenêtres respectent désormais
+  les marges de sécurité latérales de l'écran. Rien ne change en portrait, sur iPad ni sur ordinateur.
+- Vérifié sur le simulateur (iPhone, iOS 26.5) : session en paysage, rotation aller-retour pendant une session.
+
 ## [5.57.2] — 2026-10-31
 Correctifs issus d'une mesure de l'app sans a priori — 38 états, 10 tailles d'écran, 2 à 3 tailles de texte, nuit
 et WebKit (A511, doctrine `docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
@@ -250,11 +259,3 @@ Au téléphone, toucher la barre d'outils au-dessus du clavier marche à chaque 
   bouton touché ne répondait alors pas toujours.
 - **Retoucher le bouton d'un menu ouvert le ferme** (avant, il se refermait et se rouvrait aussitôt).
 - Un glissé du doigt sur la barre ne déclenche rien.
-
-## [5.48.6] — 2026-10-06
-Au téléphone, les menus de la barre d'outils fonctionnent pendant qu'on écrit (A469, doctrine `docs/decisions/lot-v5-48.md`).
-- **Titre, Liste, Encadré et Insérer s'ouvrent juste au-dessus de la barre**, sur toute sa largeur, quand elle est posée
-  au-dessus du clavier. Avant, toucher l'un d'eux fermait le clavier : la barre redescendait sous le doigt et le menu
-  s'ouvrait en bas de l'écran, sous le clavier.
-- **Le clavier reste ouvert** pendant le choix, et après : on reprend la frappe là où l'on était. Toucher le texte
-  referme le menu.

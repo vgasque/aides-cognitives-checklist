@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WZ/02YaTWgZlOs95+kuurvY97xZhjWOXmycdhDZkBVM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xLovAD7AiBFpiRFqoiw0UIFOToYVy3YEXO87QYL5wWM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -563,6 +563,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A511 — ZONES SÛRES LATÉRALES : un iPhone en PAYSAGE a l'encoche ou la Dynamic Island sur un côté
+     (~60 pt). Seule la visionneuse PDF les lisait : sur l'appareil, l'île couvrait le bouton retour et
+     coupait « PARCOURS ». Nulles en portrait, en navigateur de bureau et sur iPad. ÷ --zf à l'usage (règle 10). */
+  --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
   /* A373 — CONTOURNEMENT iOS 27, RÉVERSIBLE EN UNE LIGNE : le système délave et floute le bord haut
      d'une app installée sur l'inset de l'heure ET ~16 pt au-delà (mesuré, A370). Tout ce qui se
      cale sous l'heure lit --sat = inset + ce décalage, au lieu de l'inset nu ; le sol ::before le
@@ -800,7 +804,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      vérité = AGENTS.md « Largeurs & échelles fermées » — cadre .app fluide, chaque vue PLAFONNE
      et CENTRE son contenu ; l'excédent ne va JAMAIS allonger les lignes (~75 caractères max).
      Détail : doctrine-css.md C9. */
-  .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip}
+  .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip;padding-left:calc(var(--sal) / var(--zf,1));padding-right:calc(var(--sar) / var(--zf,1))}
   body.view-home main{width:100%;max-width:1622px;margin:0 auto}
   body.view-read main{width:100%;max-width:1440px;margin:0 auto}
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
@@ -1522,12 +1526,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
      commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
   #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+  /* A511 : fixé bord à bord, le quai entrait dans les coins arrondis et la zone de l'île en paysage (simulateur iOS). */
+  #sessionDock{padding-left:calc(14px + var(--sal) / var(--zf,1));padding-right:calc(14px + var(--sar) / var(--zf,1))}
   /* ⚠ LE DOCK RESTE FLOTTANT À TOUTES LES LARGEURS — décision de l'auteur, contre la planche 7c
      (en pied de colonne, le geste d'entrée serait à un défilement complet de ce qu'il commande).
      De 7c on garde la LARGEUR : le dock s'aligne sur la COLONNE D'ACTION, jamais sur la fenêtre —
      grille canonique calculée en CSS, aucune mesure JS. Détail : doctrine-css.md C20. */
   @media (min-width:780px){
-    #sessionDock{padding-inline:20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+    #sessionDock{padding-left:calc(20px + var(--sal) / var(--zf,1));padding-right:calc(20px + var(--sar) / var(--zf,1));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
     #sessionDock .sd-in{max-width:none;margin-right:calc(var(--col-state) + var(--col-gap))}
   }
   @media (min-width:1200px){
@@ -6171,7 +6177,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* MODE MONITEUR (D3) : même coquille que le lecteur (z 92, sous le flash d'alarme à 99),
      corps calibrés pour une lecture À DEUX MÈTRES. Registres INCHANGÉS : un minuteur échu y est
      ambre + le mot « échu », jamais la couleur seule. */
-  #monMode{position:fixed;inset:0;z-index:92;background:var(--amb);display:none;flex-direction:column;padding:calc(14px + var(--sat)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
+  #monMode{position:fixed;inset:0;z-index:92;background:var(--amb);display:none;flex-direction:column;padding:calc(14px + var(--sat)) calc(18px + var(--sar) / var(--zf,1)) calc(14px + env(safe-area-inset-bottom)) calc(18px + var(--sal) / var(--zf,1));cursor:pointer}
   #monMode.on{display:flex}
   @supports (height:100dvh){#monMode{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}}   /* --vvt : cf. « une hauteur ne suffit pas » (couches plein écran) */
   .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
@@ -6685,7 +6691,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      contrainte la plus stricte des ancêtres ; étendre fenêtre par fenêtre.
      Détail : doctrine-css.md C110. */
   #authModal{touch-action:pan-y}
-  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + var(--sat)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + var(--sat)) calc(14px + var(--sar) / var(--zf,1)) calc(18px + env(safe-area-inset-bottom)) calc(14px + var(--sal) / var(--zf,1));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
   /* ⚠ Axe X des fenêtres FERMÉ (`overflow-x:clip`, v5.10.5 : 2 px d'arrondi au zoom fractionnaire
      suffisent à ouvrir le panoramique iOS — le contenu, lui, ne déborde jamais). Hauteur : `--vvh`
      (visualViewport, posé en JS) est la seule vérité, dvh = repli, ÷ --zf (règle v4.24.0) ; et la
@@ -7540,6 +7546,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
+    /* A511 : fixée à 0, la colonne passait sous l'île en paysage ; elle s'élargit de l'inset et le loge à gauche —
+       la colonne principale, elle, est décalée d'autant par le rembourrage de `.app`. */
+    .home-side{width:calc(var(--side-w) + var(--sal) / var(--zf,1));padding-left:calc(var(--sal) / var(--zf,1))}
     /* A501 (v5.57.1, signalé sur iPad installé : « Aides cognitives » coupé sous l'heure) : la colonne
        est FIXÉE À 0 et son premier étage ne lisait pas l'inset haut — l'en-tête de droite le lit depuis
        toujours (`calc(12px + var(--sat))`), la marque passait donc sous la barre d'état et sous le fondu
@@ -9238,7 +9247,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.57.2';
+const APP_VERSION='5.57.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

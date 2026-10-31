@@ -3466,6 +3466,37 @@ await sec('PAYSAGE BAS : la capsule monte dans l\u2019en-tête, les étapes gard
   }
 });
 
+await sec('ZONES SÛRES LATÉRALES : rien sous l\u2019île en paysage (A511, relevé au simulateur iOS)', async () => {
+/* Sur un iPhone en paysage (simulateur, iOS 26.5), la Dynamic Island couvrait le bouton retour et coupait
+   « PARCOURS ». Headless n'a pas d'encoche : on substitue l'inset (59 px, iPhone en paysage) à --sal et
+   --sar, comme A501 substitue --sat ; sans inset, tout reste à l'octet. */
+  for (const [W,H,z] of [[844,390,100],[844,390,130]]) {
+    const page = await br.newPage({viewport:{width:W,height:H},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await page.evaluate(z=>applyZoom(z),z);
+    const ins=59;
+    await page.evaluate(i=>{document.documentElement.style.setProperty('--sal',i+'px');document.documentElement.style.setProperty('--sar',i+'px');},ins);
+    await new Promise(r=>setTimeout(r,300));
+    const acc = await page.evaluate(()=>{const s=document.querySelector('.home-side');const b=s&&[...s.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().width>0).map(e=>e.getBoundingClientRect().left);return {colonne:b&&b.length?Math.min(...b):null};});
+    t(`${W} × ${H} · ${z} % · accueil : la colonne gauche commence après l'inset`, acc.colonne!==null&&acc.colonne>=ins-1, JSON.stringify(acc));
+    await ouvrirFiche(page,/Arrêt cardiaque/);
+    await demarrerSession(page);
+    await new Promise(r=>setTimeout(r,600));
+    const m = await page.evaluate(()=>{const R=s=>{const e=document.querySelector(s);return e?e.getBoundingClientRect():null;};
+      const quai=[...document.querySelectorAll('#sessionDock .sd-key:not([hidden])')].map(k=>k.getBoundingClientRect());
+      return {retour:R('#hdrBack').left,quaiG:Math.min(...quai.map(r=>r.left)),quaiD:Math.max(...quai.map(r=>r.right)),bloc:R('.ov-block.cur')?R('.ov-block.cur').left:null,W:innerWidth};});
+    t(`${W} × ${H} · ${z} % · session : retour, bloc et quai commencent après l'inset gauche`, m.retour>=ins-1&&m.bloc>=ins-1&&m.quaiG>=ins-1, JSON.stringify(m));
+    t(`${W} × ${H} · ${z} % · session : le quai finit avant l'inset droit`, m.quaiD<=m.W-ins+1, JSON.stringify(m));
+    await page.evaluate(()=>monOpen());await new Promise(r=>setTimeout(r,500));
+    const mo = await page.evaluate(()=>{const e=document.getElementById('monSess');return e?e.getBoundingClientRect().left:null;});
+    t(`${W} × ${H} · ${z} % · moniteur : le chrono commence après l'inset`, mo!==null&&mo>=ins-1, String(mo));
+    await page.close();
+  }
+});
+
 await sec('QUAI · la structure survit aux ticks', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
