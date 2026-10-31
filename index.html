@@ -33,7 +33,8 @@
      • Aucune action destructive par surprise : confirmation + réversibilité.
      • Dégradation gracieuse (repli local) ; l'opérateur garde le contrôle.
      • Rendu correct et cohérent sur ordinateur ET téléphone (iPhone).
-     • Aucune dépendance externe : tout tient dans CE fichier (JS « vanilla »).
+     • Aucune dépendance externe : tout tient dans CE fichier (JS « vanilla »), aux
+       exceptions VENDORISÉES près (pdf.js, jsQR, polices — AGENTS.md règle 13).
      • La sécurité du cloud repose sur la RLS SERVEUR, jamais sur ce client.
    En cas de doute : la simplicité et la sécurité priment sur l'esthétique.
   ──────────────────────────────────────────────────────────────────────────────
@@ -43,23 +44,30 @@
     - sw.js ................... service worker (cache hors ligne)
     - manifest.webmanifest .... métadonnées d'installation PWA
     - icon-*.png .............. icônes de l'app
+    - vendor/ ................. pdf.js, jsQR et polices (chargés paresseusement, précachés)
     - supabase/schema.sql ..... schéma + sécurité (RLS) de la synchro cloud,
                                 à exécuter une fois côté Supabase (cf. point 9)
   L'installation comme app + le cache automatique exigent un hébergement HTTPS
-  (GitHub Pages / Netlify / intranet). Ouvert en fichier local, tout marche
+  (production : Cloudflare Workers Assets ; GitHub Pages / Netlify / intranet possibles). Ouvert en fichier local, tout marche
   aussi hors ligne, mais sans installation ni service worker.
 
   FONCTIONNALITÉS
   ---------------
-  1. CRUD de fiches : créer / lire / modifier / dupliquer / supprimer.
-  2. Structure d'une fiche : confirmation diagnostique, prise en charge,
-     à vérifier, ne pas oublier, diagnostics différentiels, références,
-     contexte local, images/captures, date de validation.
+  (Liste d'ORIENTATION, tenue à jour à l'audit des instructions du 31/10/2026 — la doctrine
+   détaillée de chaque fonctionnalité vit dans docs/decisions/, cf. AGENTS.md « Où trouver quoi ».)
+  1. CRUD des aides cognitives (« fiches » dans le code) et des protocoles (« références ») :
+     créer / lire / modifier / dupliquer / supprimer ; une aide neuve naît en brouillon.
+  2. Structure d'une aide : un POOL d'items à RÔLE (entrée/confirmation, à faire, à surveiller,
+     repère posologique, diagnostic différentiel — cf. MODÈLE DE DONNÉES v4), références,
+     contexte local, images/captures, documents PDF joints, date de validation.
   3. Checklists CONDITIONNELLES : la "prise en charge" est faite de BLOCS.
-     - bloc 'steps'    = liste d'étapes cochables, avec un bloc suivant.
+     - bloc 'do'       = liste d'étapes cochables, avec un bloc suivant.
      - bloc 'decision' = question + options, chaque option pointant vers un
        autre bloc (branchement "si oui -> A, si non -> B").
-     => arbre décisionnel parcouru pas à pas en mode crise.
+     - bloc 'review'   = revue « à tout moment », hors tronc, posée dans le fil par une
+       étape-revue (A396).
+     => arbre décisionnel parcouru pas à pas en mode crise ; complications « à tout moment »
+        (excursions, avec retour au passage interrompu) et jalons de boucle.
   4. ALGORITHME auto : un schéma SVG (organigramme en couches) est généré
      automatiquement à partir des blocs et de leurs liens (buildFlowSVG),
      visible en aperçu dans l'éditeur et à la demande en lecture.
@@ -72,15 +80,28 @@
      - compteurs +/- (ex. nombre de doses).
   7. SESSIONS : on enregistre l'état d'utilisation d'une fiche (étapes cochées,
      position dans l'arbre, compteurs, temps/cycles des minuteurs) sous un nom,
-     pour la REPRENDRE plus tard ou la SUPPRIMER. Stockées par appareil.
+     pour la REPRENDRE plus tard ou la SUPPRIMER. Stockées par appareil ; historique des
+     sessions TERMINÉES synchronisable en option (défaut fermé). Mode Exercice et exercice
+     guidé (GUIDE_ETAPES) ; vues Se repérer, Page (imprimable), Schéma, Moniteur.
   8. EXPORT / IMPORT JSON (fiches + catégories ; PAS les sessions) = sauvegarde
-     et transfert manuel, surtout utile SANS compte (filet de sécurité local).
+     et transfert manuel, surtout utile SANS compte (filet de sécurité local) ; conteneur
+     .zip « avec documents » quand des PDF sont joints.
   9. SYNCHRONISATION CLOUD optionnelle via Supabase : avec un compte
      (connexion par code e-mail), la bibliothèque personnelle est sauvegardée en
      ligne et accessible sur tous ses appareils ; BIBLIOTHÈQUES PARTAGÉES multiples
      avec rôles (lecteur/éditeur/admin) pour les équipes. Reste LOCAL-FIRST :
      déconnecté, l'app fonctionne exactement comme avant. Détails : module `Auth`,
      objet `Sync`, fichier supabase/schema.sql (RLS = vraie sécurité, côté serveur).
+     Règle d'instance « qui crée une bibliothèque », demandes de bibliothèque, page
+     Administration (A478-A484, A494).
+ 10. PROTOCOLES (« références ») : texte en mini-Markdown + documents PDF joints, visionneuse
+     pdf.js (sommaire, liens, recherche plein texte indexée dans le store 'attidx').
+ 11. PARTAGE DE SESSION EN DIRECT : miroir additif entre appareils — en ligne (relais
+     Supabase), en direct (WebRTC sur le réseau local) ou « par l'écran » (QR optiques, jsQR) ;
+     aucun texte libre ne traverse le réseau (AGENTS.md règle 15).
+ 12. RANGEMENT : catégories par bibliothèque, COLLECTIONS personnelles (une aide dans
+     plusieurs, Accès direct = la première), filtres/tris/regroupements de l'accueil, sélection
+     multiple ; lien direct #a=<id>.
 
   ARCHITECTURE GÉNÉRALE (voir aussi les commentaires de chaque section JS)
   -----------------------------------------------------------------------
@@ -99,12 +120,14 @@
     IndexedDB reste la SOURCE DE VÉRITÉ ; rien ne bloque jamais l'usage hors-ligne.
   - ÉTAT GLOBAL :
       `state`   = quoi afficher (view library|edit|read, recherche, filtres,
-                  bibliothèque affichée (scope), brouillon, fiche affichée, navigation...).
+                  bibliothèque affichée (state.homeLib, lue par homeScope() — l'ancien
+                  champ state.scope est mort depuis v5.18), brouillon, fiche affichée, navigation...).
       `Runtime` = état VIVANT d'une fiche ouverte en mode crise (cochages,
                   position, compteurs, minuteurs qui tournent). Survit aux
                   allers-retours bibliothèque<->lecture ; invalidé après édition.
   - RENDU : une seule fonction render() réécrit #main selon state.view, en
-    déléguant à renderFiches / renderEditor / renderRead. Pas de framework :
+    déléguant à renderLibrary (accueil) / renderEditor / renderRead / renderProtocolRead /
+    renderProtocolEdit, avec des re-rendus ciblés (renderOvOnly, renderTkOnly…). Pas de framework :
     le HTML est produit par template strings, puis les écouteurs sont rattachés.
   - Les minuteurs sont rafraîchis par un unique setInterval(tickAll, 300)
     qui met à jour le DOM par id (sans re-rendu complet) et déclenche les alertes.
@@ -122,13 +145,18 @@
     validatedAt('AAAA-MM'), local, order(tri),
 
     items:    [{ id, role:'entry'|'do'|'watch'|'dose'|'ddx', do, expect, level:1|2|3,
-                 memory(bool), dual(bool), note }],
+                 memory(bool), dual(bool), note,
+                 starts?(idMinuteur — la coche LANCE, A377) | counts?(idCompteur — la coche
+                 COMPTE, A377 ; exclusifs), from?{counter,n} et repeat?('due'|'once'|'need')
+                 (le MOMENT de l'étape, A382), review?(idBloc 'review' — étape-revue, A396),
+                 poso?(id d'un item 'dose' — repère de la bande, A397) }],
               // LE POOL — la liste de TOUS les items de l'aide, toutes portées confondues.
               // Les cinq listes v3 (confirmation/notForget/verify/posology/differentials)
               // n'existent plus comme champs : ce sont des RÔLES. Un item a une IDENTITÉ,
               // donc un compte rendu ne se décale plus quand on insère une ligne, et l'on
               // peut lui accrocher `memory` (★, rejoint « Ne pas oublier ») et `dual` (×2).
-              // level 3 = ⚠ vital, 2 = △ vigilance, 1 = ordinaire. `expect` = la réponse
+              // level 3 = CRITIQUE (vital), 2 = VIGILANCE, 1 = ordinaire — annoncés en MOTS
+              // depuis A345 (plus de glyphe ⚠/△) ; `dual` s'affiche « Double contrôle » (A402). `expect` = la réponse
               // attendue (ex-séparateur « :: »).
               // ⚠ MUTATION : jamais `bItems(b).splice(...)` — bItems rend une COPIE résolue.
               // Trois verbes, et pas un quatrième : bItemAdd / bItemDel / bItemMove.
@@ -158,7 +186,11 @@
                                   items[ ids du pool ], image, imageW, imageH (mêmes
                                   dimensions que ci-dessus, autre nom), next(idBloc|null),
                                   nextLbl (v4.5, facultatif : destination annoncée par le
-                                  bouton Continuer — repli = titre du bloc suivant) }
+                                  bouton Continuer — repli = titre du bloc suivant),
+                                  timer?(idMinuteur : le bloc MINUTE à chaque entrée, A377),
+                                  milestones[{at:'pass'|'count',n,counter,text,go}] (jalons) }
+              | bloc 'review'   { id, kind, title, items[ ids ] }   (A396 : hors tronc, ni next,
+                                  ni timer, ni jalons ; visé par un item `review`)
               | bloc 'decision' { id, kind, title, phase, question, image,
                                   options:[{ label, target(idBloc) }] } ],
               // ⚠ `kind` (et non `type`) ; le cas GÉNÉRAL se teste par `!== 'decision'`, jamais
@@ -173,24 +205,28 @@
     (mini-Markdown) et `kind:'reference'`. PAS de blocks, PAS d'items, PAS de start, PAS de
     timers ni de counters — donc pas d'imageW/imageH : ses images n'existent que dans la
     galerie, en w/h.
-  Catégorie : { id, name, color(hex), libraryId(null=Perso | id de bibliothèque) }
+  Catégorie : { id, name, color(hex), library(null=Perso | id de bibliothèque) }
                (collection séparée, store 'meta' ; synchronisée PAR bibliothèque).
   ESPACES LOCAUX PAR COMPTE : tout le stockage local (base IndexedDB, clés localStorage,
                repli KV) est cloisonné par compte — voir le bloc « ESPACES LOCAUX » de la
                section Backends (currentSpace/dbNameFor/spaceKey). L'espace suit le DERNIER
                compte connecté ; il ne bascule (reload) qu'à la connexion d'un autre compte ou
                au retour explicite vers l'espace sans compte (écran de connexion).
-  Protocole : { id, title, category, validation, body(mini-Markdown, <= 20 000 car.),
-               images[{id,data,caption}] (référencées par ![…](img:ID) dans body),
-               attachments[{id,name,size}] (documents PDF, store 'attachments' partagé
-               avec les fiches), order, status, updatedBy, updatedAt, deletedAt,
-               ownerId, libraryId } — store IndexedDB 'protocols' (KV : 'protocols_v1'),
-               assaini par migrateProtocol() (mêmes règles que migrate()). Section
-               séparée de l'accueil (sélecteur « Aides cognitives | Protocoles »).
+  Protocole : c'est la RÉFÉRENCE ci-dessus (blankProtocol : id, title, code, category,
+               validatedAt, body, images, docs, links, sources, order, status, updatedBy,
+               updatedAt, deletedAt, ownerId, library) — store IndexedDB 'protocols' (KV :
+               'protocols_v1'), assaini par migrateProtocol() (sanitizeEntityCommon, mêmes
+               règles que migrate()). ⚠ Ce bloc décrivait encore jusqu'en v5.57 l'ancien modèle
+               (validation, attachments, libraryId) et une « section séparée » de l'accueil :
+               la bibliothèque est UNIQUE depuis v5.0.0, le type n'est qu'un filtre.
+  Collection : { id, name, ids[ ids d'aides/protocoles ] } — rangement PERSONNEL qui ne
+               déplace rien (A475), clé locale 'ac-colls' par espace, synchronisée dans le
+               document perso comme les épingles ; assainie par sanitizeColls ; l'Accès direct
+               en est la première (COLL_PIN).
   Note perso : { ficheId: { t(texte), at(ms), dirty? } } — carte unique sous la clé 'notes'
                du store 'meta' (KV : 'notes_v1'). TOUJOURS personnelle : hors de la fiche
                (un éditeur qui modifie une fiche partagée n'y touche pas), jamais exportée,
-               synchronisée entre les appareils du MÊME compte via la table fiche_notes
+               synchronisée entre les appareils du MÊME compte via la table aid_notes
                (RLS : chacun ne lit/écrit que les siennes). t='' = effacée (tombstone).
   Session   : { id, ficheId, ficheTitle, name, savedAt,
                 checked{'seqVisite:idBloc:index':bool}, nav[idBloc...],
@@ -231,8 +267,8 @@
     accepté en lecture), plafonds
     MAX_PDF_BYTES / MAX_ATT_PER_ENTITY, validés par safeAttachment (id JAMAIS régénéré :
     entrée invalide rejetée). Indisponibles en repli KV (supportsAttachments). Lecture par la
-    visionneuse intégrée (pdf.js VENDORISÉ dans vendor/pdfjs — SEULE dépendance runtime,
-    chargée paresseusement, précachée par sw.js ; voir AGENTS.md).
+    visionneuse intégrée (pdf.js VENDORISÉ dans vendor/pdfjs — avec jsQR, les deux seules
+    dépendances runtime, chargées paresseusement, précachées par sw.js ; voir AGENTS.md).
   - Audio (alerte minuteur) : nécessite un premier geste utilisateur pour
     débloquer l'AudioContext (créé/réveillé dans ensureAudio).
   - AUCUNE donnée patient n'est prévue ; le contenu clinique est sous la
@@ -269,9 +305,10 @@
 
   POUR ÉTENDRE (pistes connues, non implémentées)
   -----------------------------------------------
-  - Sync des SESSIONS (aujourd'hui locales à l'appareil) ; résolution de conflit
-    plus fine que le "dernier qui écrit gagne" ; envoi des codes par SMTP (cf. README).
-  - Partage d'une fiche par lien/QR ; impression déjà gérée (window.print).
+  - Sync des sessions EN COURS (seul l'historique des sessions terminées se synchronise, en
+    option) ; résolution de conflit plus fine que le "dernier qui écrit gagne".
+  - Partage d'une aide à quelqu'un qui n'y a pas accès (le lien direct #a=<id> n'ouvre qu'une
+    aide déjà présente sur l'appareil) ; impression déjà gérée (window.print, Page en PDF).
 ===============================================================================
 -->
 <html lang="fr">
@@ -290,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-8rRWU13WwLqes9hBdbFw5sDEJGk3UfOiV9wOBk4/oX8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-C+ZgbyYxF2HX0TZ2l+AW7UAvNYVMiLcmLeZEvJnF3oI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9600,7 +9637,7 @@ function switchToAnonSpace(){
 let fiches=[],categories=[],sessions=[],protocols=[];
 // Notes personnelles PAR FICHE : { ficheId: {t:texte, at:ms, dirty?:true} }. Toujours PRIVÉES
 // (jamais dans la fiche, jamais exportées, invisibles des autres membres d'une bibliothèque) ;
-// synchronisées entre les appareils du MÊME compte via la table fiche_notes (RLS : les siennes
+// synchronisées entre les appareils du MÊME compte via la table aid_notes (RLS : les siennes
 // uniquement). t='' = note effacée (conservée comme tombstone local minuscule pour propager
 // l'effacement par last-write-wins).
 let notes={};
@@ -11847,10 +11884,11 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
     if(v.dirty===true)out[k].dirty=true;}
   return out;}
 /* ----- PROTOCOLES : documents de service (PDF joints) et/ou contenu rédigé en mini-Markdown.
-   Modèle : { id, title, category, validation('AAAA-MM'), body(mini-Markdown, <= MD_MAX_CHARS),
-   images[{id,data,caption}] (référencées par ![…](img:ID) dans body), attachments[{id,name,size}]
-   (mêmes documents PDF que les fiches — store IndexedDB 'attachments' partagé), order, status,
-   updatedBy, updatedAt, deletedAt, ownerId, libraryId }. migrateProtocol = point d'entrée UNIQUE
+   Modèle (v4, cf. blankProtocol) : { id, title, code, category, validatedAt('AAAA-MM'),
+   body(mini-Markdown, <= MD_MAX_CHARS), images[{id,data,caption}] (référencées par ![…](img:ID)
+   dans body), docs[{id,name,size}] (mêmes documents PDF que les fiches — store IndexedDB
+   'attachments' partagé), links, sources, order, status, updatedBy, updatedAt, deletedAt,
+   ownerId, library }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
 function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',body:'',images:[],docs:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
@@ -30633,7 +30671,7 @@ const Sync={
       }
     }
     if(changed){await Data.setCats(categories);render();}},
-  // NOTES PERSONNELLES par fiche : table fiche_notes (RLS : chacun ne voit que les siennes).
+  // NOTES PERSONNELLES par fiche : table aid_notes, ex-fiche_notes (RLS : chacun ne voit que les siennes).
   // Volume minuscule (du texte) -> PULL complet à chaque synchro (pas de curseur), LWW par fiche
   // via `at`/updated_at, puis PUSH des entrées `dirty` (upsert ; t vide = note effacée).
   async _syncNotes(){

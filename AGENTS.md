@@ -13,18 +13,18 @@ vitale, sous stress : clarté et robustesse priment.
 > chargé paresseusement au premier scan, cache séparé `JSQR_CACHE` gardé par `check-vendor`,
 > témoin encodeur-maison→décodeur dans `tests.html` ; décision explicite de l'auteur,
 > 17/08/2026).
-> Vendorisé dans `vendor/pdfjs/` (version figée, notée dans `vendor/pdfjs/README.txt`), chargé
+> pdf.js est vendorisé dans `vendor/pdfjs/` (version figée, notée dans `vendor/pdfjs/README.txt`), chargé
 > **paresseusement** (`import()` au premier document ouvert — jamais au démarrage), **précaché
 > par `sw.js`** (hors ligne dès l'installation).
 > **LA VIGNETTE D'UN DOCUMENT COMPTE COMME UNE OUVERTURE** et suit donc la même règle (v4.36.0) :
 > `bindAttList` appelait `hydrateAttThumbs` inconditionnellement, si bien qu'ouvrir une FICHE
 > portant un PDF chargeait 1 773 Ko de pdf.js — pour 0 rangée à l'écran, les documents ayant
-> déménagé dans la feuille « Consulter » en v4.23.0. Ne générer une vignette que si une rangée est
+> déménagé dans la feuille « Consulter » en v4.23.0 (feuille elle-même purgée en v5.30, A367). Ne générer une vignette que si une rangée est
 > réellement dans le flux : `if(main.querySelector('[data-thumb]'))`. Mettre à jour pdf.js = décision explicite +
 > test hors-ligne complet (mode avion, PDF 50+ pages, iPhone). **Aucune autre dépendance runtime
 > n'est autorisée** ; tout nouveau fichier servi doit être ajouté à `ASSETS` (`sw.js`).
 
-### Mettre à jour un actif vendorisé (pdf.js, police) — la marche à suivre
+### Mettre à jour un actif vendorisé (pdf.js, jsQR, polices) — la marche à suivre
 
 **⚠ CHANGER LES FICHIERS NE SUFFIT PAS À CHANGER CE QUI TOURNE (v5.0.0, audit).** Le service
 worker range pdf.js dans un cache versionné par pdf.js lui-même (`PDFJS_CACHE`), et son
@@ -47,8 +47,8 @@ de sécurité qui n'atteint personne. `scripts/check-vendor.mjs` relie désormai
    avion, PDF de 50+ pages, iPhone — et sur un appareil **DÉJÀ INSTALLÉ**, seul cas où le piège
    du cache se manifeste.
 
-Même discipline pour la police (`vendor/fonts/README.txt` annonce sa taille en octets ;
-`check-vendor` la compare au fichier). **`playwright` ne suit pas cette règle** : c'est une
+Même discipline pour jsQR (`vendor/jsqr/README.txt` + `JSQR_CACHE`) et pour les polices
+(`vendor/fonts/README.txt` annonce leur taille en octets ; `check-vendor` la compare aux fichiers). **`playwright` ne suit pas cette règle** : c'est une
 dépendance de DÉVELOPPEMENT, elle n'est ni servie, ni précachée, ni exécutée chez un utilisateur —
 `npm outdated` et `npm audit` suffisent, et la CI installe le lock à l'identique (`npm ci`).
 
@@ -62,10 +62,10 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    notes et taguer. Ne JAMAIS éditer les numéros de version à la main (un décalage entre
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
-2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises **et stylées** ·
-   animations · service worker · **actifs vendorisés** · **entrées de fichier** · SQL · harnais ·
-   **ids lus** · **exports de test** · **lexique affiché** · **guide** · hashs CSP) et
-   `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
+2. **Avant chaque commit** : `npm run check` (les 27 garde-fous statiques du script `check` de
+   `package.json` — syntaxe JS **et CSS**, couleurs, classes émises **et stylées**, échelles, service
+   worker, actifs vendorisés, entrées de fichier, SQL, ids, exports de test, lexique, guide, tokens,
+   fonctions, hashs CSP…) et `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
    **La passe d'audit qui vaut avant un commit est la COMPLÈTE** (`npm run audit` sans argument) ;
    `npm run audit -- <noms>` n'est qu'un accélérateur d'itération et s'annonce « PARTIELLE ».
 3. **Toute édition du script inline exige `node scripts/csp-hashes.mjs`.** Sans cela, la CSP par
@@ -126,11 +126,13 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
     version. Ajouter un champ reste libre ; en retirer un engage ces trois obligations.
 13. **Aucune dépendance runtime**, aux exceptions vendorisées près : pdf.js et, depuis v5.14,
     jsQR (chacune chargée paresseusement, précachée dans son cache versionné, gardée par
-    `check-vendor`). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Une POLICE embarquée
-    depuis v4.61.0** (`vendor/fonts/source-serif-4-latin-600.woff2`, 21 Ko, SIL OFL) : ce n'est
-    pas une dépendance runtime — aucun code, aucun appel réseau — mais un ACTIF SERVI, donc soumis
-    à la même règle (entrée dans `ASSETS`, `font-src 'self'`, mise à jour = décision explicite
-    comme pdf.js).
+    `check-vendor`). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Des POLICES
+    embarquées** (`vendor/fonts/` : Source Serif 4 depuis v4.61.0, puis Manrope et IBM Plex Mono
+    depuis v5.6 — trois familles, quatre fichiers woff2, SIL OFL, tailles en octets dans
+    `vendor/fonts/README.txt`) : ce n'est pas une dépendance runtime — aucun code, aucun appel
+    réseau — mais des ACTIFS SERVIS, donc soumis à la même règle (entrée dans `ASSETS`,
+    `font-src 'self'`, trois tokens de famille gardés par `check-fonts`, mise à jour = décision
+    explicite comme pdf.js).
 14. **Une suppression de composant se VÉRIFIE au grep** (zéro émission hors CSS) et emporte son CSS,
     ses commentaires et la doc qui le cite. Une purge à moitié faite est pire qu'aucune purge : la
     doctrine affirme alors un nettoyage qui n'a pas eu lieu — c'est arrivé en v4.25.0, et le CSS
@@ -148,103 +150,140 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
     la promesse faite aux utilisateurs dans la notice de l'écran d'entrée et au registre RGPD
     (`docs/deploiement-et-conformite.md` § 3.1) : les changer, c'est changer un document opposable.
 
+## Avant toute modification — la méthode pour tout prendre en compte
+
+**POURQUOI CETTE SECTION (audit des instructions, 31/10/2026).** La doctrine compte plus de 500
+décisions numérotées, réparties sur une cinquantaine de fichiers, et **beaucoup s'amendent ou se
+renversent** (« amende A383 », « renverse A126 »). Une demande qui ne lit que le code, ou que la
+première entrée trouvée, défait une décision récente sans le savoir. Ce fichier ne peut pas tout
+contenir (il a déjà été tronqué en silence à 797 Ko) ; il dit donc **comment chercher**, et c'est
+non négociable :
+
+1. **Lire la doctrine que le code cite.** Autour de chaque ligne touchée, les commentaires
+   renvoient à leur source : `A‹n›` (décisions, `docs/decisions/lot-*.md`), `doctrine-js.md J‹n›`,
+   `doctrine-css.md C‹n›`. Ouvrir ces entrées **avant** d'éditer — un commentaire resserré n'est
+   qu'un renvoi, le détail (et le piège) est dans le fichier cité.
+2. **Chercher par NOM, pas seulement par sujet** : chaque fonction, classe, `#id`, clé de stockage
+   ou libellé affiché qu'on touche se cherche dans la doctrine —
+   `grep -rn "nomDeFonction\|.classe\|libellé" docs/decisions/` — puis la **carte par sujet**
+   ci-dessous donne les lots à relire.
+3. **La dernière décision gagne.** Pour toute entrée trouvée, chercher ses amendements :
+   `grep -rn "A383\b" docs/decisions/` — une entrée plus récente peut l'amender, la renverser ou la
+   clore. Le numéro le plus élevé fait foi.
+4. **Ne jamais reproposer une forme refusée.** La plupart des lots de design se terminent par
+   des « formes refusées / écartées » (par l'auteur, sur maquette) :
+   `grep -rln "refusée\|écartée" docs/decisions/` sur le sujet avant de proposer un dessin.
+5. **Suivre les couplages** — une fonctionnalité n'est finie que si ce qui la RÉPÈTE suit
+   (garde-fou entre parenthèses quand il existe) :
+   - modèle de données : `migrate()`/`sanitizeCats()`/`migrateProtocol()` (règle 5), le commentaire
+     « MODÈLE DE DONNÉES » en tête d'`index.html`, le prompt IA `AI_PROMPT` (`audit-prompt`), les
+     deux aides d'exemple `seed()`/`seed2()`, et `docs/conversion-v3-vers-v4.md` si un champ part
+     (règle 12) ;
+   - un geste ou un libellé de session : `GUIDE_ETAPES`/`GUIDE_GESTES`/`GLOSSAIRE`
+     (`check-guide`, `audit-guide`) ; tout mot affiché : lexique fermé aide · protocole · données
+     (`check-lexique`, A461) ;
+   - ce qui sort de l'appareil : registre RGPD `docs/deploiement-et-conformite.md` § 3-3.2 ET
+     notice de `#joinScreen` (règle 15) ; toute sortie individualisée : § 2 réglementaire **avant**
+     le code ;
+   - schéma serveur : `supabase/schema.sql` (à rejouer : le dire dans les notes de version) et
+     `supabase/rls-tests.sql` (syntaxe des deux : `check-sql`) ;
+   - une clé locale : `WIPE_SPACE_KEYS` (A290) ; un fichier servi : `ASSETS` de `sw.js`
+     (`check-sw`) ; une fonction exportée au test : `__ac_test__` (`check-actest`) ;
+   - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
+     `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
+     rien ne signale sa péremption).
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A501 à la v5.57 ;
+   le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
+   dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
+   formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
+   `docs/README.md`, et l'entrée `CHANGELOG.md`. Jamais de doctrine détaillée dans CE fichier.
+
 ## Où trouver quoi
 
-**LA DOCTRINE DÉTAILLÉE VIT DANS `docs/decisions/` DEPUIS LA v5.10.3** — ce fichier avait atteint
-797 Ko, au-delà de la fenêtre de contexte de tout outil IA : les instructions canoniques étaient
-tronquées EN SILENCE à chaque session, l'exact défaut que le découpage du changelog avait guéri
-(v5.0.0, « l'archive avait dépassé le fichier qu'elle soulage »). Le déplacement est À L'OCTET
-(empreintes sha256 dans chaque fichier, 164 entrées A réconciliées) ; rien n'est réécrit, et ces
-fichiers restent **normatifs** — on les consulte À LA DEMANDE avant de toucher leur sujet :
+**LA DOCTRINE DÉTAILLÉE VIT DANS `docs/decisions/`** (depuis la v5.10.3 : ce fichier avait
+atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
+on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
+l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
+**L'index fin — une ligne par décision, A1 → A501 — est `docs/README.md`.** Ci-dessous : la liste
+des fichiers, puis la carte par sujet.
 
-| Fichier | Contenu |
-|---|---|
-| [`docs/decisions/conventions-de-code.md`](docs/decisions/conventions-de-code.md) (498 Ko) | **La doctrine par composant** — tous les intitulés du tableau ci-dessous |
-| [`docs/decisions/doctrine-css.md`](docs/decisions/doctrine-css.md) (254 Ko) | **C1-C135** — les commentaires longs du `<style>` d'index.html, repris À L'OCTET (v5.20.5, A292) : le commentaire en place est resserré et renvoie « doctrine-css.md C‹n› » ; le détail intégral se retrouve ici sous l'id cité |
-| [`docs/decisions/doctrine-js.md`](docs/decisions/doctrine-js.md) (408 Ko) | **J1-J239** — les commentaires longs du grand script d'index.html, repris À L'OCTET (v5.20.6, A293), même contrat que doctrine-css.md : renvoi « doctrine-js.md J‹n› » en place, détail intégral ici |
-| [`docs/decisions/refonte-v5-6.md`](docs/decisions/refonte-v5-6.md) (149 Ko) | Refonte « verre clinique » — **A1-A112**, capsule/dock, trois matières |
-| [`docs/decisions/lots-v5-7-a-v5-9.md`](docs/decisions/lots-v5-7-a-v5-9.md) (54 Ko) | **A113-A132** — retour au bloc, tri vivant, atelier d'import |
-| [`docs/decisions/lot-v5-10.md`](docs/decisions/lot-v5-10.md) (13 Ko) | **A133-A138** — la Page devient un document (grille unique) |
-| [`docs/decisions/lot-v5-10-1.md`](docs/decisions/lot-v5-10-1.md) (30 Ko) | **A139-A153** — audit design externe |
-| [`docs/decisions/lot-v5-10-2.md`](docs/decisions/lot-v5-10-2.md) (4 Ko) | **A154-A158** — audit de code externe |
-| [`docs/decisions/lot-v5-11.md`](docs/decisions/lot-v5-11.md) (8 Ko) | **A159-A169** — l'atelier d'import dit aussi **où** ça va (destination par rangée) |
-| [`docs/decisions/lot-v5-12.md`](docs/decisions/lot-v5-12.md) | **A170-A197** — sélection multiple à l'accueil, titres repliables des références (v5.12, A170-A191) ; puis, **en second chapitre du même fichier**, le **lot v5.13 (A192-A197)** — clavier ouvert : le chrome cesse de poursuivre le viewport visuel (l'index annonçait « A170-A179 » et le lot v5.13 n'était indexé nulle part — corrigé à l'audit v5.19.3) |
-| [`docs/decisions/lot-v5-14.md`](docs/decisions/lot-v5-14.md) | **A198-A221** — partage sans serveur, CLOS et validé terrain (couture `_io`, ShareLocal/QR/optique, secours chaud, bascules seamless deux sens, aller-retour et relais optiques, modèle de menace § 3.2) |
-| [`docs/decisions/lot-v5-15.md`](docs/decisions/lot-v5-15.md) | **A222-A224** — les barres flottantes deviennent lisibles (planches 17-18) : la matière système MONTE la nuit + périmètre `--sys-edge`, ombre du quai élargie au token, registre `--act-sys` du geste d'entrée |
-| [`docs/decisions/lot-v5-16.md`](docs/decisions/lot-v5-16.md) | **A225-A226** — plusieurs `.json`/`.zip` d'un geste (file d'ateliers nommés, `readImportFile` promissifié) ; QR agrandis d'un cran (240/260 px, palier < 360 intact) |
-| [`docs/decisions/lot-v5-17.md`](docs/decisions/lot-v5-17.md) | **A227-A237** — la barre de sélection tient sur UNE LIGNE de 56 px (planche 20) : actes dans un tiroir, palier de dépliage mesuré à 1200 px et non 560, libellés qui disent ce qu'ils déclenchent. Puis le plan de vol du MONITEUR tient à plusieurs minuteurs (une rangée par échéance ; corriger une collision horizontale en ouvrait une verticale). **A233-A236 (v5.17.4)** : quatre écrans qui affirmaient du faux — l'état volatil se relit à la PEINTURE (pied de stockage), une décision montre TOUTES ses branches même celles sans bloc, un cran fermé dit sa VRAIE cause et répond au tap (`aria-disabled`), les dialogues prennent le focus sur l'action et non sur la croix. **A237 (v5.17.5)** : l'anneau de focus d'une fenêtre se POSE À LA MAIN (`:focus-visible` ne s'allume pas sur un focus programmatique ouvert à la souris — un état juste mais invisible) |
-| [`docs/decisions/lot-v5-18.md`](docs/decisions/lot-v5-18.md) | **A238-A268** — l'accueil sans mécanisme : en-tête statique, accès dans `#homeDock` (pilule au pouce en étroit, BARRE DU HAUT en large), UNION des bibliothèques en une liste à trois rangements (phrase « Rangé par… », sections-cartes à intertitre collant DEDANS), sidebar deux clés qui FILTRENT (« Toutes » ou une bibliothèque, catégories du périmètre — pas de bouton filtre ≥ 780), provenance des homonymes, liste éditoriale unique (le tableau ≥ 1200 a vécu), palier 390, purge de home-slim et des rescues |
-| [`docs/decisions/lot-v5-19.md`](docs/decisions/lot-v5-19.md) | **A269-A285** — la colonne gauche à TROIS ÉTAGES (un seul défile : le pied ne peut plus être coupé), densité 32/34 px, remise à zéro « Toutes les catégories », commandes distinctes des filtres ; le pied fusionne ses deux ✓ en UNE rangée dépliable — sans aucun aplat (« nominal = neutre ») — et devient une COLONNE de rangées à une seule colonne de texte (20 px), au lieu d'une coulée qui enjambe ; UN SEUL dessin de marque (la pastille de synchro perd sa pilule et prend un glyphe), commandes du pied en boutons discrets ; puis la colonne passe à TROIS VERTICALES (marque 24 · libellé 44 · nombre au bord droit, fabrique `hsRow`) et le socle se replie en UNE ligne « Tout est prêt » dépliable sur place ; le type à créer cesse de filtrer la liste (et DEUX harnais s'appuyaient sur ce défaut), un seul bandeau présente les deux natures ; la PILE DU QUAI se purge à toute fermeture quelle que soit la porte de sortie, et une seule primaire verte — le sommet (A277). **A278-A279 (audit design externe)** : le halo de cible se vérifie en CAPTURE (`elementFromPoint`), plus seulement en géométrie — sonde d'audit-a11y + surface « filtres posés », et `.dir-hf` porte ses 24 px dans le dessin ; la Page ANNONCE son débordement horizontal dans la barre d'échelle (l'ajustement d'office reste refusé). **A280-A282 (audit interne v5.19.3)** : un token se vérifie déclaré ET lu (`--hover` n'existait pas — deux survols inertes, prouvés réparés à la sonde ; six tokens morts purgés), la règle des 20 du CHANGELOG devient exécutoire (`check-changelog.mjs`, né rouge), et le périmètre de déploiement est TRANCHÉ — dépôt servi en entier, ce qui ne doit pas être public SORT du dépôt (`sonde/` supprimée). **A283 (v5.19.4)** : les trois trous se ferment en garde-fous — `check-tokens` (déclaré ↔ lu), `check-ids` sens inverse (#id stylé → émis), `check-fns` (déclaration → citée), tous nés rouges ; le pli QR passe par `slFoldSan`, `ltSnapUnpack` borné, purge SW par préfixe, cinq duplications factorisées. **A284 (v5.19.5)** : la chaîne d'ÉDITEUR (640→430→360) passe aux paliers `zw` — sous zoom, la recette anti-chevauchement des halos ne s'appliquait pas à la largeur effective ; équivalence exacte à zoom 1 prouvée ; les quatre paliers de composition restants ne se convertissent pas d'office (arbitrage écrit). **A285 (v5.19.6)** : un `#id` reprenait EN SILENCE la respiration d'A268 — `#filtSheetBody{padding:0 0 4px}` l'emporte sur `.ai-card>.ai-body` et remet l'axe inline à zéro, la marge négative survivant seule : anneau de focus rasé et chips 4 px à gauche du titre, sur la SEULE fenêtre qu'aucun harnais n'ouvrait. Corrigé en une propriété (`padding-block`), gardé par `check-ring.mjs`, et la feuille de filtres entre dans les surfaces d'`audit-a11y` |
-| [`docs/decisions/lot-v5-20.md`](docs/decisions/lot-v5-20.md) | **A286-A296** — un saut du rail A→Z se pose sous CE QUI COIFFE le haut du défileur (barre de sélection collante, bande de zone sûre de l'iPhone installé : `env` vaut 0 en navigateur, d'où vingt et un harnais aveugles — témoin à trois cas, dont l'encoche simulée) ; et la GESTION descend au pouce — rangée au socle masquée ≥ 780, patron de « Rejoindre une session » (v5.14.3), qui n'invente aucune fenêtre. **A288** : en voie large les défileurs de l'accueil (`.home-main`, `.hs-scroll`) vivent dans `main.innerHTML` — ils repartaient de zéro à chaque re-rendu, là où la voie étroite gardait la position ; capture/restauration au patron de `.read-side`, et un piège de mesure de la famille A267 évité en route (nœud détaché). **A289 (v5.20.2)** : assainissement mesuré — trois garde-fous nés ROUGES (`check-fns` sens 2 : let écrit jamais lu ; `check-ids` sens 3 : id émis → lu, 20 croix mortes dont une née pendant l'inventaire ; `check-icons` sens 3 : entrée de table jamais citée), purges CSS/JS prouvées au grep, vingt factorisations à sortie identique (récepteur optique, memOps, cœur de cochage…), verdict perf « rien à optimiser, le boot est parse-bound », et le ✓ de « Quand l'utiliser » retrouve son vert (`:not` d'états morts qui écrasait `.pc-n.ok`, prouvé à la sonde deux moteurs). **A290 (v5.20.3)** : `ac-held-edits` survivait à `wipeLocal()` (deux listes recopiées avaient divergé) — liste UNIQUE `WIPE_SPACE_KEYS` consommée par les deux effacements, prouvé rouge→vert à la sonde |
-| [`docs/decisions/lot-v5-21.md`](docs/decisions/lot-v5-21.md) | **A297-A307** — trois signalements ont la MÊME cause de fond : la refonte v5.18 a remplacé `state.scope` par `state.homeLib` sans que tous ses lecteurs suivent. **A297** : `onclick=openCatMgr` en référence NUE passait l'ÉVÈNEMENT de clic comme bibliothèque (`_catScopeForce` = MouseEvent, zéro catégorie) — et derrière, `activeCatScope` lisait un champ mort. **A298** : le gestionnaire suit le filtre et montre une SECTION PAR BIBLIOTHÈQUE sur « Toutes » (comptes, cibles de déplacement et clé de suppression bornés à leur périmètre, `data-cscope` plutôt qu'une fermeture ; lecture seule exclue). **A299** : une rangée par NOM dans la colonne (le filtre compare par nom depuis la v5.18 — deux homonymes filtraient à l'identique), pastille MULTICOLORE quand les couleurs divergent. **A300** : `.rt-dock .tm-btn:hover` (0,3,0) battait `.tm-reset.holding` (0,2,0) et son raccourci `background:` effaçait la jauge de « Maintenir » — invisible à toute sonde qui dispatche un `pointerdown` SANS amener le pointeur, et le survol reste collé au toucher iOS. **A301** : l'anneau nocturne `--sys-edge` s'arrêtait à la capsule ; le volet, sans ombre la nuit, n'avait aucun bord — trois côtés, le haut étant la jointure. **A302** : la passation de la main, mesurée — le rôle ne borne QUE le fil, les droits de PROPRIÉTÉ (arrêter, couper, rouvrir, réécrire un rôle) ne se transfèrent jamais, et l'hôte n'est jamais bridé sur son écran ; l'arrêt gelait donc celui qui CONDUISAIT (`Share.soloLead`), le dialogue disait faux, et `_reclaimLead` existait SANS PORTE (« Reprendre la main »). **A303** : « la destination devient la vue » écrivait `state.scope` — no-op, et la liste tombait de deux rangées à ZÉRO ; six autres lecteurs de `state.scope` restent faux, mesurés et listés. **A304 (v5.21.1)** : ces six lecteurs sont ralliés à une SOURCE UNIQUE (`homeScope()`) — plus de « Sélectionner »/« Créer » morts sur une bibliothèque en lecture seule, création DANS la bibliothèque affichée mais ANNONCÉE (une entité neuve naît `validated`, donc publiée aussitôt), import et renvoi croisé qui suivent ; ⚠ rendre VARIABLE une condition jusque-là constante oblige à re-vérifier qui la rejoue — `#hdrNew` restait périmé au tap de la colonne, d'où `syncNewBtn` sur le patron de `syncMgrBtn`, et `newFiche()` reste synchrone par court-circuit AVANT l'await (trois harnais en dépendent). **A305 (v5.21.2)** : le filtre de lecture seule ne vivait que dans UNE des deux branches de `catMgrScopes` — le gestionnaire s'ouvrait donc éditable sur une bibliothèque `viewer`, et le renommage s'y appliquait LOCALEMENT avant refus RLS (commande MENTEUSE, pas morte) ; un prédicat unique aux deux branches, `catMgrOn()` à ses trois portes. Et le compte du gestionnaire ignorait les PROTOCOLES — divergence avec la colonne, et la suppression n'en déplaçait aucun : `catItems` devient la source unique (compte, confirmation, déplacement). **A306 (v5.21.3)** : la pastille MULTICOLORE d'A299 lisait `categories` BRUT — une homonyme hors du filtre ou à zéro élément la teintait, et le filtre de bibliothèque n'y changeait rien ; une couleur ne contribue que si sa catégorie est du périmètre affiché ET y compte, et le compte passe par OBJET de catégorie (deux bibliothèques peuvent porter le même id : compté deux fois). Le signalement voisin (✎ du quart supérieur qui remonterait en haut, voie étroite) a été MESURÉ et NON reproduit — dix-huit cas listés dans l'entrée, dont l'app installée du simulateur iOS 26.5 : ne pas corriger à l'aveugle. **A307 (v5.21.4)** : le diagnostic P2 des relances iOS (v5.10.3) est CLOS par la mesure — 33 relances complètes pour 109 reprises sur 7 jours (≈ 23 % des retours, cause non distinguée : premier lancement, longue pause, rechargements de mise à jour) ; l'hypothèse d'éviction d'A153 tombe, **le poids du monofichier est définitivement un non-sujet runtime** (les octets de source pèsent quelques pour cent d'un processus WebKit, aucune décision de jetsam n'en dépend) ; « monofichier sans build » n'est pas rouvert, R2 reste abandonné, et l'instrumentation (`bootLogBump`, ligne du Compte, clé `ac-boot-log` purgée au démarrage) part avec le diagnostic |
-| [`docs/decisions/lot-v5-22.md`](docs/decisions/lot-v5-22.md) | **A308-A316** — le gestionnaire de catégories passe en LISTE (rangées 44 px, « Ajouter » en tête, palette ouverte pour UNE catégorie à la fois), plus de couleurs par un curseur de teinte sur l'anneau OKLCH L 0,48 · C 0,08 (chroma maximale dans le gamut ; les deux contrastes de la régression #3 tiennent par construction, garde-fou de proximité 4,0 ΔE) ; le rail de session passe à 280 px entre 780 et 999 (à 820 px, 320 laissait 444 px à l'action). **A309 (v5.22.1)** : dans le rail, « ＋ Minuteur » et « ＋ Compteur » partagent UNE rangée sous les compteurs (gestes de session gardés à 44 px, ≈ 54 px rendus à l'état) ; volet étroit inchangé. **A310 (v5.22.2)** : la grille de lecture lit `--col-state` par palier (280 dès 780, 320 dès 1000) — A308 avait posé un littéral, et le dock flottant, qui lit le token, s'arrêtait 42 px avant la colonne. **A311 (v5.22.3)** : sur « Toutes », une BANDE COLLANTE par bibliothèque dans le gestionnaire (dessin de `.dir-l` : glyphe, nom, « partagée », compte), 24 px entre sections. **A312 (v5.22.4)** : un degré, UNE couleur — les presets ne sont pas sur l'anneau (jusqu'à 9 ΔE au même degré), le curseur rend le preset ou la couleur d'origine à leur degré (`catHueSnap`). **A313 (v5.22.5)** : le piège Tab des fenêtres déplace LUI-MÊME le focus à chaque Tab (WebKit saute les boutons par défaut et l'ordre natif sortait de la fenêtre) et pose l'anneau ; halo réservé aux boutons, les champs s'allument par la bordure. **A314 (v5.22.6)** : l'anneau du curseur est ANCRÉ sur les presets (L et C interpolées en teinte, clarté bornée) — écart nul aux treize degrés, A312 sans objet ; la palette elle-même est mesurée et RESTE (contraintes clair/sombre incompatibles à cette chroma, couleurs stockées immuables). **A315 (v5.22.7)** : le curseur se replie derrière un bouton « palette » (14ᵉ pastille, icône `uiIcon`), ouvert d'office quand la couleur n'est pas un preset. **A316 (v5.22.8)** : écart des pastilles 6 → 8 px (la pastille choisie débordait de 5,92 px : 0,08 px de jeu), et renommer repeint l'aperçu |
-| [`docs/decisions/lot-v5-23.md`](docs/decisions/lot-v5-23.md) | **A317-A326** — le partage SANS QUESTION (demande de l'auteur : « le maître mot c'est seamless »). **A317 (v5.23.0)** : un seul état visible, « ● Partagé » quel que soit le canal — le transport se lit dans la feuille et aux transitions. **A318 (v5.23.1)** : la panne se détecte en < 5 s (la sonde tranche au premier raté, `offline` aussitôt), la transition se VOIT (mot de 8 s au quai par `slSay`, porte unique), « Secours prêt » dit une fois. **A319 (v5.23.2)** : le retour en ligne se fait SEUL après une panne (3 sondes OK, ≥ 60 s en direct, invités à ramener, feuille fermée, jamais contre un choix manuel) — conformité § 3.2 écrite d'abord. **A320 (v5.23.3)** : au réveil, un hôte direct aux canaux morts revient SEUL en ligne si le retour est armé et le serveur répond (`slWake`, sans hystérésis) ; sinon « ● Lien à refaire ». **A321 (v5.23.4)** : le journal du lien — cinq dernières transitions horodatées, écrites par la même porte `slSay`, montrées dans les deux feuilles de partage, en mémoire seulement. **A322 (v5.23.5)** : le réseau de terrain — chute totale du Wi-Fi (reprise du MÊME partage cloud des deux côtés, gestes du direct au journal), serveur en erreur (retour toujours armé), battement (hystérésis doublée, `offline` à 1,5 s), portail captif (= chute totale, par contrat) ; carte des situations et de leurs témoins. **A323 (v5.23.6)** : l'hôte rechargé reprend SON partage cloud (billet en sessionStorage, `slHostRehost` à la reprise de session, la sonde retente si le serveur est muet). **A324 (v5.23.7)** : « Lien perdu » — UNE source d'état (`slLink`), une rangée ambre de 41 px dans le quai collant (Recevoir / Renvoyer / Montrer la progression / Se reconnecter, ⓘ Pourquoi), la feuille de l'INVITÉ naît et dit la même chose, partage expiré détecté. **A325 (v5.23.8)** : l'invité RECHARGÉ en direct retrouve la session par son billet cloud persistant (`slBootCloudResume`, la sonde retente) ; « Lien perdu » devient « Connexion perdue ». **A326 (v5.23.9)** : trois signalements d'affichage — sous 780 px le badge « ● En cours » de la tuile épinglée descend sur la sous-ligne (le titre reprend sa largeur, le mot reste), la queue d'une rangée `hsRow` sans acte frère entre DANS le bouton (chevron de « Gérer les catégories » enfin actif), et le gestionnaire de catégories tient une colonne de compte FIXE (champs de même largeur) et pose le fond gris `.ask` sous la confirmation de suppression |
-| [`docs/decisions/lot-v5-24.md`](docs/decisions/lot-v5-24.md) | **A327-A329** — la feuille de partage dit QUOI FAIRE : l'app choisit le canal (serveur joignable → en ligne ; serveur muet + adresse locale → en direct ; sinon PAR L'ÉCRAN d'office), plus de sélecteur en tête mais une ligne d'état (mode + raison) et des étapes numérotées dont le bouton EST l'étape (par l'écran en miroir : hôte ① Montrer ② Recevoir, invité ① Recevoir ② Renvoyer, ③ refaire) ; « Envoyer le lien… » remplace l'adresse brute ; le bandeau du mode crise = l'étape ① compressée, et l'HÔTE REÇOIT aussi ; porte de secours « Mode : automatique › » (feuille à quatre rangées, Automatique réarme le retour) ; `slPhase`/`slSheetNow`, seule porte de « quelle feuille montrer ». **A328 (v5.24.1)** : le mode courant est le TRANSPORT (« par l'écran » = couche par-dessus — le confondre fermait le partage en ligne et en ouvrait un neuf) ; un invité qui SUIT la session la reçoit aussi par l'écran ; bandeau compact au cockpit. **A329 (v5.24.2)** : l'audit `partage` passe de 220 s à ~75 s — durée par section imprimée, section E2E découpée en CINQ sur un banc partagé (`bancRelais`, 5 tranches), montre d'offre réglable au banc (`__acKickMs`) ; et l'invité en direct reprend le cloud À LA SONDE (`slGuestBack`), plus au prochain sondage |
-| [`docs/decisions/lot-v5-25.md`](docs/decisions/lot-v5-25.md) | **A330** — l'écran d'entrée d'une aide se lit comme un ÉCRAN DE DÉMARRAGE : trois chapitres de même niveau sans numéro (« ■ Quand l'utiliser », « ■ Ne pas oublier », « Parcours » — les intitulés SORTENT de leurs cadres), aperçu du plan À PLAT (ni carte, ni « 0/4 », ni « ICI »), Tableau/Schéma à largeur de contenu sous le titre, rail « En session » (rien ne démarre sauf le chrono : minuteurs « à lancer »), sur-titre « Avant la session », queue sous filet ; liste des formes REFUSÉES par l'auteur, à ne pas reproposer |
-| [`docs/decisions/lot-v5-26.md`](docs/decisions/lot-v5-26.md) | **A331** — il reste UN geste après avoir ouvert une carte, et le quai le dit : à l'arrivée sur une fiche la capsule se relève une fois puis TROIS anneaux s'en éloignent (fini à 4,8 s — sous les 5 s de WCAG 2.2.2, jamais de boucle ; l'anneau entoure la capsule, jamais le bouton seul), et une BULLE d'apprentissage vit 16 px au-dessus tant qu'aucune session n'a été démarrée sur l'appareil ; « Exo. » sous 430 px ; liste des formes REFUSÉES (fondu en boucle, onde débordante, anneau dans le bouton, marque rouge sur le bouton). **A332 (v5.26.2)** : ce que la PANNE fait aux gestes — l'arrêt d'un minuteur est DATÉ chez l'autre (heure de l'évènement, jamais une clé de charge), l'hôte n'est plus refusé pour péremption (sa coche faite lien figé était perdue), un hôte passé en direct SANS invité revient par son billet (panne côté hôte seul : il restait en direct pour toujours), la reprise de l'invité REPEINT, et le bridage de l'invité périmé se VOIT (`body.share-stale`) et se dit ; carte des situations réseau mesurées. **v5.26.3** : la BOUÉE — à sa bascule en direct l'hôte le crie sur chaque canal dormant (`SL_BOUEE`, hors trame RPC) et l'invité suit même si SON relais répond ; l'invité hors du réseau commun, que rien n'atteint, lit « △ Hôte silencieux · ① Recevoir » (`shareHostSilenceMs`, seuil 45 s) — ses gestes, eux, arrivent au journal |
-| [`docs/decisions/lot-v5-27.md`](docs/decisions/lot-v5-27.md) | **A333-A334** — « Reprendre » après une complication RAMÈNE le passage interrompu au bout du journal (même visite, coches gardées, `navRestore`) et la carte ⚡ se range juste avant lui — décision de l'auteur qui RENVERSE A126 (« cases neuves ») ; les replis suivent leur visite (`ovFoldRemap`, aussi chez l'invité), et « l'entrée suivante du fil » saute les excursions (`navNextIdx`, pure : une décision répondue ne se rouvre pas parce qu'une carte ⚡ s'est rangée devant sa cible). **A334** : la barre « ↩ Bloc… » se resynchronise dans `render()` — le tick des minuteurs, seul à l'appeler, s'arrête avec la session, et « Terminer » la laissait sur l'accueil pour toujours (le retour d'en-tête, une seconde). **A335 (v5.27.1)** : `--dock-h` contient déjà l'inset de zone sûre — l'ajouter au `bottom` de la barre et du volet les posait à 42 px du quai sur iPhone (8 en navigateur, d'où la mesure à inset simulé) ; icône `backto` sur les deux retours, dans le flux du texte ; « Bloc Bloc 1 » et tags dans le libellé corrigés ; l'éclair `bolt` REMPLI (`--bolt`/`--bolt-edge`, fabrique `boltIcon`) remplace l'emoji ⚡ sur quinze sites — sauf les `<option>` du sélecteur de renvoi, où l'emoji reste |
-| [`docs/decisions/lot-v5-28.md`](docs/decisions/lot-v5-28.md) | **A336-A343** — la session se TERMINE LÀ OÙ ELLE SE LIT : rangée « Terminer la session… » au pied du volet (étroit) et du rail (large), contour, « confirmation demandée », la fenêtre reste la seule porte ; un seul bouton permanent, pas de rappels (formes refusées listées). Le menu ⋯ NE RÉPÈTE PAS LE DOCK en session (Complication, Consulter sortent — remplace la double entrée de v4.26.1), ouvertures en TUILES, intertitres, sous-titre sous le libellé (rangées 44/52 px prévisibles), pli « L'aide › » en session, rangée danger en pied encadré ; 14 → 7 rangées en session. **A338** : la méta d'une rangée d'accueil = identité à gauche (nature · discriminant · ● catégorie), UN état en mots à droite (En cours › Brouillon › À compléter › Sans date › À revérifier › Validée + date), ligne de base alignée, sans glyphe ni point ; catégorie puis discriminant s'abrègent, jamais la nature ni l'état. **A339 (v5.28.1)** : le RETRAIT DE PROFONDEUR du parcours devient un token ADDITIF (`--pl-ind`, 12/24/32) ajouté à la gouttière de chaque régime — quatre échelles absolues coexistaient et chaque régime les effaçait par un raccourci `padding` plus spécifique : étiquettes de branche toutes au même x avant le soin (deux niveaux confondus), TOUTES les rangées à 10 px en session (arbre plat), et les trois retraits de l'aperçu à plat nés en v5.25.0 n'avaient JAMAIS rien fait ; l'alignement « la chip sur le marqueur du bloc enfant » devient structurel, douze règles tombent, et le témoin qui le gardait était vert PARCE QUE tout était à plat (il ne comparait pas les niveaux entre eux). **A340 (v5.28.2)** : fermer une photo ne remonte plus la page — tout en bas d'un protocole, la restauration de `_bgUnlock` n'était pas fausse mais TROP TÔT (mesuré sur iPhone : position juste après la fermeture, puis WebKit repose la sienne — 0 — à la frame SUIVANTE) ; elle se repose donc aussi après le layout, sans jamais contrarier un geste ; vaut pour TOUTES les fenêtres, et le témoin MODÈLE le moteur (trente configurations de banc étaient vertes). **A341 (v5.28.2)** : dans le moniteur, le plafond du grand chiffre se prend sur la bande RENDUE (les littéraux sous-estimaient de 167 contre 90 px à 130 % de texte) et son plancher est une taille VUE (64 ÷ zoom, règle 10) — sans quoi le chiffre recouvrait la bande de 18 à 60 px en paysage ; le témoin gagne la dimension ZOOM, et sur un écran sur-souscrit (300 px pour 388 de contenu, manque mesuré à 88) il borne le recouvrement au manque au lieu de s'exempter. **A342 (v5.28.3)** : le DERNIER REPÈRE quitte le pied et se pose sur la bande, à son instant — la bande portait déjà un point par repère mais ANONYME, le pied disait quoi et quand sans position : deux objets pour un fait. L'étiquette COMMENCE à son instant (aucun segment horizontal, donc rien à croiser — c'est l'alignement à gauche du premier dessin qui fabriquait les croisements), le plus récent en bas, les plus anciens montent ; ce qui n'est pas nommé se compte (« + 3 repères avant », le pendant de « + 1 minuteur plus tard ») ; hors des −2 min, demi-point au bord et âge en toutes lettres — le dernier repère existe TOUJOURS quelque part. Le nombre de noms est une mesure (`min(3, place.rangs)`), le plus récent ne fusionne jamais, le trait de rappel reste 1 px encre douce (2 px encre pleine = registre « daté ») ; `.mon-foot` et `.mb-dot b` purgés. **A343 (v5.28.4)** : la Page n'a qu'UN axe vertical — la règle tactile de C87 (`overflow-y:clip`) était bornée à `main`, or la fenêtre « Tableau » (`#planBody`, ouverte par l'écran de démarrage et par « Plein écran ») défile elle-même : double défilement mesuré sur les deux moteurs ; `.sv-scroll` sans portée, `.flow-scroll` garde la sienne (le schéma a son défileur) |
-| [`docs/decisions/lot-v5-29.md`](docs/decisions/lot-v5-29.md) | **A344** — la Page : L'ARBRE EST LE FIL. Une colonne de largeur A4 (740 px) où la composition dessine la structure : le NUMÉRO est l'ancre de tout trait (entrée par le haut, retour par la gauche), la colonne des numéros est la surface de dessin (tronc plein, fourche = barre + descentes, rail = équerres pour trois branches ou plus), les sorties s'écrivent « SI … ALLER À n » et se tracent en pointillé par la voie de droite, un trait ne croise jamais rien. Cellules façon ECAM (case · libellé · points · réponse mono à droite, ou dessous). `flowPlan` : arêtes de retour exclues de la post-dominance, convergence = post-dominateur commun à DEUX options au moins, sorties chaînées après le tronc — numérotation « le tronc d'abord », partagée par journal/Parcours/schéma. `svTreePlan` (pure) remplace `svGridPlan` ; tronc/fourche/rail en CSS sans mesure, seules les voies se mesurent. Référence en pied partout, 48 % à 390 px. **v5.29.1-3** : « Exporter en PDF » imprime LA PAGE (plus la vue d'ensemble d'une session), quai fixé et coque masqués sur papier ; une voie part du bord de la BOÎTE et jamais de la ligne (zéro croisement mesuré), le collecteur descend dans l'interstice ; la feuille EST la page (210 mm, padding calculé pour garder la largeur d'auteur au pixel près) ; la destination est une PASTILLE encadrée (une sortie part de son bord, un retour du bord de la boîte), les sorties vers une même cible forment UN BUS et tous les couloirs sortent d'un registre partagé. **v5.29.4** : `svPaginate` POSE les sauts de page, donc il les connaît — les voies sont coupées aux frontières et décalées, elles reviennent JUSTES sur le papier (il renonce, et le dit, si un bloc dépasse une page) ; la feuille imprimée garde sa géométrie d'écran et se centre dans les 210 mm |
-| [`docs/decisions/lot-v5-30.md`](docs/decisions/lot-v5-30.md) | **A345-A376** — la REFONTE v5 (maquettes smartphone + planche large, grille A ; décision typo NORMATIVE : échelle A6 fermée, l'affectation monte d'un cran). **A345** : A11 ROUVERT — toutes les étapes d'une liste partagent le même corps (17,5 en session, 15 en lecture) et la même colonne ; le danger = le MOT en étiquette « CRITIQUE / VIGILANCE » au-dessus du libellé + bordure de case au registre + `.sr-only`, aucun glyphe ⚠/△ (`stepMarkHtml`, une fabrique pour la rangée et l'aperçu à plat) ; encre VIGILANCE en `--warn` (`--warn-line` tombe à 3,19:1 la nuit) ; rangées 64 px `--amb-2`, case 36 px, titre de bloc 21, question 21, carte de décision ambre doux, `--g-cmd` 17,5, `--shadow-cur`. **A346** : « Fin » au quai (`#endKey`, `--crit-sys`) ouvre la fenêtre, dont la confirmation se MAINTIENT 1,2 s (`holdToReset` paramétrée) — le quai garde ses touches constantes, « Se repérer · Schéma » en rangée sous la capsule < 1200. **A347** : accueil sans « Répertoire » (ligne de compte + « Affichage » à pastille + Sélectionner), rangement par catégorie par défaut, rangées 64/13,5, badges d'attente ACHROMATIQUES (seul « À revérifier » ambre — amende A338), tuiles 76/liseré 6/point pulsant, livres en grille ≥ 780 ; sur-titre CATÉGORIE · CODE, chips 12/800, trois CARTES DÉPLIABLES par fiche (`mdFold*` : when/forget/flow — reprend deux formes refusées d'A330, sur maquette de l'auteur), statut de l'éditeur en segmenté `.seg` glissant ; capsule 64 px en tuiles à barre 3 px, « + Minuteur » 1·2·3·5 min libellé = durée, pastille numérotée du bloc. **A348** : capsule dans l'en-tête au seul COCKPIT (≥ 1200), `--col-orient` dans la grille du protocole, « Sommaire · n sections » + compte par titre et sections sans résultat repliées en recherche, pliables `horizontal-viewport-segments:2` (deux volets, gouttière 24 sur la pliure). **A349** (seconde passe sur les captures, demande de l'auteur) : « Journal · n » au quai (le tap pose l'heure puis relit le journal), premier compteur en tuile dans la capsule, accueil en CARTES en étroit + feuille « Affichage » (afficher · trier · regrouper · densité — `HOME_GROUPS`, `homeSort`, `homeCompact`) + « Sessions » en en-tête, écran de bienvenue à trois portes (titre 38 = exception NOMMÉE de `check-type`), « Créer » par deux cartes de type, parcours de l'écran d'entrée en liste numérotée à renvois écrits (`preFlowFlatHtml`), « Parcours · x/y » + pilule « EN COURS », historique des sessions en cartes, sommaire de protocole en carte (titres 17,5, chevron à gauche), identité de l'éditeur ouverte **A350** (troisième passe, « l'ENSEMBLE du style ») : UNE pastille glissante (`.seg:has(>.seg-pill)`, piste `--amb-2`, pastille blanche), en-tête sur l'AMBIANCE à pastilles de 40 px, titre de lecture en sans, quai hors session sans matière (« Démarrer » rempli, « Exercice » pointillé, `--act-sys` purgé), champs d'éditeur sur `--amb-2`, fenêtre Compte en cartes ; six écarts restants nommés À DÉCIDER (volets blancs/⋯ en feuille, quai à trois tuiles, « Aides », socle, sommaire sous le titre, bibliothèques dans Moi) **A351** (relecture de l'auteur) : titre jamais écrit deux fois (page au téléphone, barre dès 780, discriminant sur la ligne du titre), colonne gauche de la planche large (marque, Aides · Sessions · Moi, compte au pied), cartes dépliables SOUS le bloc en session (« Ne pas oublier » d'abord — témoin CHAPEAU retourné), sommaire de protocole collant sous le titre (`#refBar` purgé), socle du téléphone supprimé, « Mode écran » au menu ⋯ **A352** (cinquième passe) : DEUX MATIÈRES de fenêtre — destinations en page-fenêtre (`.ai-modal.page`, fond d'ambiance, cartes, form-sheet dès 780), dialogues en carte blanche ; `.btn` à la matière v5, anneaux jamais rognés, barre de sélection en carte, Compte en cartes **A353** (sixième passe) : bandeau système en bulle, UNE feuille « Affichage » (rangement + filtres, feuille Filtrer purgée) ouverte par le bouton rond à gauche de la recherche (renverse A238), un seul « ＋ Créer », « Moi » à initiales **A354** : « Références » en carte de session, « Consulter » hors du quai (quatre touches), « Mode écran » retiré, capsule en en-tête au seul bureau ≥ 1440 **A355** : filets entre les touches du quai, rangée vive sans aplat vert **A356** : légende mono, volet sans « Terminer », contraste de la carte vive **A357** : une grammaire pour les cinq dépliants de session **A358** : une seule carte dépliable (`foldCardHtml`) avant et pendant la session **A359** : boutons de gestion sur la matière v5, recherche 17,5/icône 24 au téléphone, bord bas des cartes ; **A360** : la feuille « Actions » de la sélection sur la grammaire du menu ⋯ (icône · sous-ligne · chevron par rangée, `openPickMenu` ic/sub/chev, matière de travail, rangées 52) ; **A361** : UN dessin de menu (`menuRowHtml`, coque `.popmenu` ancrée/feuille), le menu ⋯ en FEUILLE BASSE sous 780 (décision « ⋯ en feuille » prise, A337 amendée : plus de pied encadré) ; **A362** : cartes d'un groupe à 8 px, groupes à 24 (elles se touchaient), compact inchangé. **Lot v5.30.1 — A363** : volets sombres et quai à quatre touches CLOS (décisions de l'auteur), titre de la carte vive 17,5/800 partout, ligne des minuteurs à la gouttière ; **A364** : Moi liste les bibliothèques avec leur rôle (rangées `menuRowHtml`, inertes sauf administrées) ; **A365** : Sessions et Moi sont des VUES de la colonne ≥ 780 (mêmes portes, mêmes rendus — `renderHomeTab`, `homeTab`, `syncHomeTabs` au franchissement de 780 ; page-fenêtre partout ailleurs) ; **A366** : onze points — un filet au pied de colonne, feuille Affichage identique à toutes les largeurs, Affichage/Sélectionner au même dessin, vues centrées, les quatre cartes de session AVANT la session fermées d'office (`foldCardsH`, `PRE_CLOSED`), tuiles sans filet, Parcours à 56, ✕ du rappel bornée, « ‹ Actions » dans les sous-feuilles, pas de pied de page en lecture ; **A367** : la feuille « Consulter » a VÉCU — ses trois portes mènent à la carte de la page (`openFoldCard`), purge au grep, palier 924 parti ; **A368** : barre d'état iOS en style default contre le verre flou d'iOS 27 (à vérifier sur l'appareil), recherche du bas à 44 ; **A369** : la bulle d'HISTORIQUE sur la ligne « Parcours » (PARCOURS · « Fait · 1→2 · diagnostic confirmé » · compte, pilule 28 px, s'allume quand un bloc la rejoint), 40 px rendus au premier bloc. **Lot v5.30.2 — A370** : le verre flou d'iOS 27 est peint PAR LE SYSTÈME au-dessus de la page (sonde rouge : sol opaque délavé, pseudo-élément ou vrai div) — un sol de la couleur du fond sous l'heure sur toutes les vues le rend invisible, reste le fondu natif de 16 pt ; DEUX balises de barre d'état coexistaient (A368 jamais en vigueur) ; `default` mesuré (barre grise opaque, contenu jamais flouté, mise en page à reprendre) et laissé au choix ; **A371** : le pied de lecture était `.crisis-footer`, pas `footer.tools` — correctif mort de 5.30.1, purge ; **A372** : `renderAuth()` relâche le champ actif avant de remplacer le DOM (fenêtre Compte disparue sous le clavier iOS 27, non reproduit) ; **A373 (v5.30.3)** : le contenu descend sous le fondu d'iOS 27 par un token RÉVERSIBLE (`--ios27-top`, lu via `--sat` par tous les consommateurs de l'inset haut — retour arrière : `0px`), version au pied du téléphone, « Un problème ? » dans Moi, et la bulle « Coller » revient (`hold-noselect` restait collée quand le bouton « Maintenir » était re-rendu pendant l'appui) ; **A374 (v5.30.4)** : audit typographique MESURÉ sur 46 surfaces (échelle respectée, lue par le bas) — six écarts refermés : recherche 17,5 au téléphone, feuille « Se repérer » 13,5/12, tuiles ⋯ 13,5, méta stables entre largeurs, AIDE 12, libellés d'éditeur 13,5 ; le 16 px des champs et les titres 24/17,5 (A352) restent ; **A375 (v5.30.5)** : échelle FERMÉE des CONTRÔLES S 32 · M 40 · L 44 · XL 56 · rangées 52 (18 hauteurs de bouton mesurées avant, 6 après ; chrome 40 partout, Sélectionner pilule sans icône, carte d'accueil téléphone 15/700 — « bigger is not better ») ; garde-fou `check-ctrl` à écrire ; **A376 (v5.30.6)** : huit retouches de l'auteur (notice = bulle système, boutons de Moi en rangée, ligne Parcours à 20 px au cockpit, UNE barre d'outils M 40 pour Schéma/Page/plein écran/‹ › des recherches, « Vérifier :: » XL 56, options au corps des étapes sans coupe à 17 caractères, carte visée signalée 2,4 s) et LE PARCOURS N'A PLUS QU'UN DESSIN — `preFlowFlatHtml(f,{md,off})` rend la feuille « Se repérer », le cockpit et le rail avec l'état de session ; `ovPlanLadderHtml` (l'Échelle) PURGÉE, 65 règles, épitaphe |
-| [`docs/decisions/lot-v5-31.md`](docs/decisions/lot-v5-31.md) | **A377-A381** — la coche LANCE un minuteur (`item.starts`), la coche COMPTE (`item.counts`, le geste du « + » factorisé dans `cnBump`), le bloc MINUTE à chaque entrée par un geste de conduite (`block.timer` ; au bloc où la session démarre, avec elle — amende A330 sur ce seul cas). Effets dans `applyCheck` et aux portes de conduite, JAMAIS à la réception d'un état (le partage transporte l'effet comme tout état ; naviguer ≠ conduire, donc rien dans `navAdvance`). Annulable par la case (le + tombe, le repère est barré ; 10 s pour rendre un minuteur à son état d'avant), arrêt structurel à la sortie de boucle (`loopExitStops`), rien n'est choisi à l'échéance — qualification § 2 écrite avant. Une LÉGENDE d'une ligne sous l'étape et sous le titre du bloc : 24 px réservés dans tous les états (A9), valeur d'abord (celle de la tuile), gris au repos, bleu SANS FOND en cours (A11), pastille ambre à l'échéance ; annoncée sans état dans le parcours, la Page et l'éditeur. Prompt IA : 0 à 3 liens par fiche, 0 ou 1 minuteur de bloc. **A378** : des micro-mouvements qui disent ce que le geste a fait — cocher fait MONTER le chiffre ou REMPLIR l'anneau (relancé depuis zéro), décocher fait REDESCENDRE, une jauge se vide avec les 10 s d'annulation, l'échéance se pose en fondu, la légende naît dans l'éditeur au choix du lien ; phase par délai négatif (le tick ne relance rien), rien sous mouvement réduit. **A379** : NE PAS ANTICIPER — un délai qui court depuis un geste (dose, injection) n'a pas `autoloop` : il repart à la coche de ce geste, jamais à la sonnerie, et reste « Échu » entre les deux ; le cycle RCP reste à cycles (décision de l'auteur), un minuteur neuf de l'éditeur naît sans reprise seule. **A380** : deux ESSAIS d'affichage au choix de l'appareil (Moi › Affichage) — X1 capsule « horizon » (axe de 5 min, minuteurs lancés seulement, rien d'extrapolé), X2 instruments en bande dès 780 px (volet des corrections au toucher, rail = journal et posologie) ; code balisé `ESSAI Xn ▼/▲` + `essaiOn('xn')`, procédure garder/retirer dans l'entrée **A381 (v5.31.1)** : croix de notice centrée sur la 1ʳᵉ ligne, recherche de l'accueil à 16 px au toucher, étiquette CRITIQUE/VIGILANCE hors du flux (la case reste centrée sur le libellé), parcours du rail pliable bloc par bloc (bloc courant seul déplié) |
-| [`docs/decisions/lot-v5-32.md`](docs/decisions/lot-v5-32.md) | **A382** — le MOMENT d'une étape dans un bloc parcouru plusieurs fois : `from` {compteur, n} (commence au seuil) et `repeat` (à l'échéance du minuteur que relance la coche · une seule fois · au besoin). Avant son moment l'étape reste visible, en pointillé, sans case, sa règle en étiquette et la progression dessous, et ne retient pas « Continuer » ; « Faire maintenant » la coche (jamais « en avance »). La case revient sur place (A9, `momWatch`) ; repli sûr « à chaque passage » si le minuteur disparaît. Éditeur, parcours à plat, Page, prompt IA (n° 18) et les deux exemples suivent ; § 2 écrit avant le code |
-| [`docs/decisions/lot-v5-33.md`](docs/decisions/lot-v5-33.md) | **A383-A387** — l'éditeur : écrire une étape n'ouvre rien ; un bouton « Réglages » par étape ouvre UNE feuille (basse au téléphone, centrée dès 780) à trois sections nommées — importance, ce que fait la coche, moment ; ce qui est réglé se lit en PASTILLES sous l'étape (le registre aussi : plus de marque ni de teinte dans le champ). Point 2 : moment, minuteur du bloc et jalons seulement si le bloc se répète (`blkInLoop`) ou s'ils sont posés. « Options du bloc » en carte dépliable (la phase quitte l'en-tête), jalon en phrase « compteur ≥ n », règles d'usage une fois ; refusés : mode simple/expert, menus à sous-menus, panneau latéral. **A384 (v5.33.1)** : la rangée d'étape reste ouverte tant que le focus y reste (`.ed-on` — `:has(input:focus)` se relâchait entre deux champs et le clic sur la réponse vide repliait l'étape), champs du bloc au gabarit des listes du chapeau (15 px, M 40, 16 au toucher), glisser de pastille DÉLÉGUÉ au document (`bindSegDrag` purgé : chaque sélecteur neuf l'oubliait), UN dessin `.ed-ic` pour les boutons d'outil de l'éditeur (quatre dessins purgés), croix de complication qui ne chevauche plus la cible. **A385 (v5.33.2)** : l'invité FIGÉ garde ses gestes (file persistée, envoi au retour — renverse l'arbitrage d'A332, `share-stale` purgé) ; chez l'invité un lot distant ne s'applique qu'à la session PARTAGÉE (`onEvents` : sa propre session de la même aide recevait les coches de l'hôte), une bascule automatique ne l'arrache plus à SA session, « Démarrer »/« Exercice » suivent `ensureStarted` ; la même fuite côté HÔTE est corrigée en A387. **A386 (v5.33.2)** : un champ du VOLET du quai garde le volet en place sous `html.kbd` (même garde que l'en-tête), `renderTkOnly` resynchronise `kb-open` (le champ d'heure part pendant son blur : dock masqué, `main` qui saute), le volet défile seul pour montrer le champ au-dessus du clavier ; `zh500` (hauteur ÷ zoom < 500) rend le rail au flux en paysage de téléphone (110 px pour 1 058 de contenu). **A387** : l'HÔTE qui consulte une autre aide — le lot reçu va à la session HÉBERGÉE (`Share.hostedRt()` = `liveSessions[Share.fiche.id]`), en état seul (`shareApplyAway` ; l'état des appliqueurs vivants est SÉPARÉ de leur peinture : `shareStateLive`/`shareNavState`/`shareVfState`, écrits une fois), la base de diff la suit ; `shareEmitDiff` n'émet que la session hébergée (une autre session vive envoyait ses coches à l'invité) |
-| [`docs/decisions/lot-v5-34.md`](docs/decisions/lot-v5-34.md) | **A388** — le parcours : UN dessin, trois LIEUX (`st.place` : carte d'entrée, feuille « Se repérer », colonne du cockpit et rail) qui fixent densité et repli, jamais la session. Tout bloc se plie (décisions et complications comprises) ; la colonne naît REPLIÉE avant comme pendant la session (titre seul ; une décision garde sa ligne de branches), en densité un cran plus bas (13,5), avec « Tout déplier » ; carte et feuille dépliées d'office. Les réglages de coche s'écrivent EN MOTS (`pfStepQual`) : « Si seuil : » coiffe les étapes consécutives au même seuil, le reste suit l'étape en gris (« si pas déjà faite », « toutes les 4 min », « +1 Chocs délivrés », « relance … »). Le jalon se lit « Si … : » avec renvoi ⚡, les complications ferment la liste (« À tout moment »). Le mot CRITIQUE / VIGILANCE perd son aplat et se cale à DROITE de la première ligne (le libellé ne bouge pas, rien n'est tronqué) ; la réponse passe au corps du texte, en gris (`.pl-r` purgée). Formes refusées listées |
-| [`docs/decisions/lot-v5-35.md`](docs/decisions/lot-v5-35.md) | **A389-A391** — **A389** : l'accueil en UNE colonne à toutes les largeurs (bornée à 960 px ; les livres côte à côte d'A347 tronquaient la méta) ; « Détaillée » = cartes, « Compacte » = liste à filets sur UNE ligne au bureau (≥ 1200 effectifs, `zw1200`) — la densité n'agissait que sous 780 ; colonne gauche sans ✎ ni « Nouvelle bibliothèque », un « Gérer » vers Moi › Bibliothèques (`openLibMgr`, `#acctLibs`) ; « Tout voir » perd l'onglet « Parcours » (redit « Se repérer ») — `ovParcoursHtml`, `.pc-*`, `.pl-brc/.pl-here/.pl-sech` purgés, témoins reportés sur « Se repérer » et la colonne. « À tout moment » RESTE dans la colonne (décision de l'auteur, renverse v5.0.0). **A390** : sous 1200 px la Structure de l'éditeur devient le DÉPLIANT du sommaire des protocoles (collant, fermé d'office, se referme au saut) ; l'aperçu « Essayer » suit la VRAIE page avant et pendant l'essai (cartes, quai, minuteurs — une quinzaine de `!previewFrom` retirés, seuls restent ceux qui protègent), « Fin » rejoue l'essai ; les replis de l'aperçu vivent en mémoire (`_pvFold`). **A391** : la Page — une sortie vers une branche de fourche REJOINT sa barre (une seule pointe, plus de `sv-tgt`), un retour de pilule sort par le BAS (ni tronc traversé ni bordure longée), l'échelle des voies se MESURE (largeur rendue ÷ largeur de mise en page : l'animation d'ouverture décalait tout de 1,5 %), un chemin pointillé par segment (coudes toujours sur un tiret), le tronc rejoint le raccord d'une pilule (prolongements écrasés par la spécificité des `:not()` → `:where()`), la voie de retour s'écarte à 18 px (la pointe se posait sur le coude) ; réglages de coche en mots comme le parcours, dans la Page ET le Schéma SVG (`stepGroups`, `blkTimerTxt`, `stepQualTxt` partagés ; espaces insécables respectés par `wrapText` ; `momRuleHtml`, `wtStaticHtml`, `.mo-rule`, `.wt-sv` purgés) |
-| [`docs/decisions/lot-v5-36.md`](docs/decisions/lot-v5-36.md) | **A392-A395** —  six retours d'usage. L'IMPRESSION de la Page : traits en BORDURES (sans « arrière-plans » il ne restait que les pointes), une CALE par page (`.sv-pgb`, vraie boîte portant le saut) qui porte le calque de SA page (`.sv-gutk`, coordonnées locales) — plus un calque unique recalé par une hauteur de page inconnue (voies décalées, page blanche) ; repagination si un re-rendu survient pendant l'impression ; page blanche à 1280 (`.care-flat` masqué) réparée. En mode Page, seule « Références » reste sous la feuille. Losange du parcours : pastille droite, losange en `::before` (chiffre centré). « Exporter… » la sélection de l'accueil (`selExp`, même enveloppe que l'export global). Lecteur PDF : liens cliquables (http(s)/mailto/tel seulement, noopener) et « Sommaire » des signets. « ✓ faite — plus à refaire » pour une étape « une seule fois » déjà cochée en mode guidé (parcours, Page, Schéma ; jamais sur papier). **A393** : le PDF enregistré porte le nom de l'aide (titre du document le temps de l'impression) ; la pastille de branche tient dans la colonne (passe à la ligne, 12 px de jeu). **A394** (amende A376) : « Chemin n » devient « Branche ◇ n « réponse » », les blocs d'une branche s'indentent d'un cran le long d'UN trait (coin arrondi + filet, sans glyphe ↳) (deux colonnes de numéros au plus), « ■ Fin » remplace « Fin du parcours ». **A395** (amende A391) : dans la Page, le jalon SUIT les réponses et prend leur ligne « SI … ……… [⚡ complication] », en gris ; un seul dessin de « SI » (chasse fixe, ambre pour une réponse, gris pour un seuil), groupes d'étapes compris |
-| [`docs/decisions/lot-v5-37.md`](docs/decisions/lot-v5-37.md) | **A396-A399** — la REVUE « à tout moment » : bloc `review` hors tronc, posé dans le fil par une ÉTAPE-REVUE (`item.review`, nom hérité) dont la grille se déplie DANS sa boîte, coches `visite:revue:index` (partage inchangé), faite d'elle-même à n/n, jamais de « Continuer » retenu ; la BANDE DES REPÈRES du bloc (`item.poso`, `posBandModel`) : un repère par étape liée, « fait · à faire · à préparer » venus de la coche, jamais d'état de minuteur, repliable, détail dans `item.note` ; icônes `pill`/`grid` ; formes REFUSÉES listées ; **A398 (v5.37.1)** : la revue est UNE par session (clé `r:revue:index`, choquable et non choquable voient les mêmes coches — amende A396), `.rev-row` était déjà la liste « à relire » (collision → `rv-step`), l'étiquette d'une hypothèse a sa place dans la grille, pas de CRITIQUE/VIGILANCE avant le moment d'une étape, bande : « à préparer » avant le moment, rangées en deux lignes, gélule à moitié pleine ; **A399 (v5.37.2)** : la capsule d'une hypothèse s'ANCRE sur son libellé (un décalage en px partait 10 px à gauche sous 360), la tête de la bande prend la grille des rangées (titre, résumé et noms au même bord) |
-| [`docs/decisions/lot-v5-38.md`](docs/decisions/lot-v5-38.md) | **A400-A417** — l'AUDIT UX du 27/09/2026, mesuré puis maquetté sur l'app réelle : volet Outils à 4,5:1 et harnais qui compose l'alpha (A400) ; memory item sur une ligne (A401) ; « Double contrôle » (A402) ; nom court `short` sinon abrégé d'office, capsule et quai à 13,5, quai en casse de phrase, césure (A403) ; halos 44 hors crise (A404) ; PLIABLES : `--hinge`, rien sur la charnière, fenêtres au volet gauche, harnais `audit-pliables` (A405) ; rouge réservé à CRITIQUE et à l'alarme (A406) ; barre de minuteur neutre, règle 8 réécrite (A407) ; nuancier sorti des registres, vermillon retiré, garde-fou au gestionnaire (A408) ; « Terminer ? » neutre, étape vitale en rouge (A409) ; capsule à sa largeur (A410) ; réponse en casse de phrase (A411) ; « Horodater » (A412) ; « Créer » neutre (A413) ; « Vérifier » (A414) ; sous-ligne de démarrage (A415) ; formes refusées listées. **A416 (v5.38.1)** : les 38 ALIAS PURS de la refonte v5.6 sont purgés (table de correspondance dans l'entrée ; les fichiers de `docs/decisions/` gardent les anciens noms), `check-tokens` refuse tout alias pur, styles calculés identiques sur 4 714 éléments. **A417 (v5.38.2)** : le survol bleu pâle (`--primary-100`) devient visible, jour et nuit |
-| [`docs/decisions/lot-v5-39.md`](docs/decisions/lot-v5-39.md) | **A418-A439** — le sommaire d'un PDF joint se consulte comme celui d'un protocole, mais reste une OPTION : dès 1000 px une colonne à gauche des pages qui se REPLIE en un bouton ≡ (choix retenu, `ac-pdf-toc`), en dessous une bande sous la barre, fermée d'office et refermée après un choix (bouton « Sommaire » sur la ligne du titre — la rangée d'outils débordait à 390 px) ; numéros de page, section en cours en bleu (`tocPin`), saut SUR le titre (`pdfDestPos`/`pdfPosY`), et `.pdf-scroll` positionné : tous les sauts de la visionneuse arrivaient ~60 px trop bas (offsetTop lu depuis la carte). **A419 (v5.39.1)** : le filtre de catégorie retient le NOM (`state.cat` = `catKey`) — l'id dérive du nom d'origine, une catégorie renommée garde celui de son homonyme d'une autre bibliothèque et le filtre visait la mauvaise sur « Toutes » ; Entrée dans le champ e-mail envoie le code **A420 (v5.39.2)** : le temps des audits se MESURE — attentes fixes rejouées réduites, divisées par deux, triplées : presque toutes utiles (31 contrôles changent à ×0,5), aucune raccourcie en masse ; pdfsearch payait 60 s de délais (`window.attIx` toujours faux) → 16 s ; tranches équilibrées par durée mesurée (plan `AC_PLAN`, 155 sections vertes seules d'abord) ; quatre verts de partage qui ne tenaient qu'à la vitesse du harnais corrigés **A421 (v5.39.4)** : « Afficher » ouvert par le bouton « Affichage » de la liste repeignait la vue d'ouverture par-dessus le type choisi (`viewSheetRedo`, à l'accueil `renderLibrary`) ; l'anneau d'arrivée du quai passe du `box-shadow` repeint à un trait composé (`transform`/`opacity`, échelle de départ mesurée par axe) **A422 (v5.39.5)** : l'état d'une carte d'accueil (`.dir-st`) passe au palier méta 12 — 700 s'il attend quelque chose, poids normal s'il est nominal ; il était en 13,5/800, plus gras que le titre **A423-A425 (v5.39.6)** : au téléphone, recherche et filtre FLOTTENT, opaques et séparés, sur un bord doux (plus de bande ; `--shadow-float`) ; ranger une sélection sur plusieurs bibliothèques PAR NOM, le sélecteur dit qui va où avant le geste (notice, intertitres `{head,n}` d'`openPickMenu`, `selCatPlan`/`catNamed`) ; sur écran très large, la colonne de l'accueil se centre et l'en-tête suit son axe (`--home-g`) **A426-A429 (v5.39.7)** : cadenas alignés (colonne de nombres fixe) et pastilles d'accent de Moi hors du bord ; au retour au premier plan, `unpan()` recale le viewport visuel (haut de page perdu, quai qui ne flottait plus — à vérifier sur iPhone) ; filtre par BIBLIOTHÈQUE dans « Affichage » (`libChipsHtml`, ≥ 2 bibliothèques) ; la feuille en deux sections encadrées « Filtrer » / « Présenter » (compte et « Tout effacer » dans l'en-tête de Filtrer), et les filtres posés en PUCES retirables sous la ligne de compte (`filtersList`/`dropFilter`, `.dir-hf` purgée), gardées dans l'état « Aucun résultat » **A430 (v5.39.8)** : le retour système devient une PILE RÉELLE — une entrée d'historique par niveau ouvert (`_H_LAYERS` compte ET ferme, `_histSync` en microtâche avant la peinture, rien poussé dans le retour), pour que le balayage d'iOS et le retour prédictif d'Android fassent glisser le bon écran ; amende J238 (sentinelle unique de v4.30.0) **A431-A437 (v5.39.9)** : la colonne gauche n'a qu'un bord droit (les étages fixes réservent la gouttière du défileur — « Gérer » ×2 alignés) ; le gestionnaire de catégories prend une gouttière de carte et l'avertissement C3 retrouve son ambre (`.ai-card p` l'écrasait) ; la barre « ↩ Bloc » réserve sa hauteur au bas de page (`bkrShow`/`body.bkr-on`) ; essais A380 TRANCHÉS — tuiles et colonne, les deux essais retirés ; les pastilles d'accent SONT l'avatar (carré, initiales, « Par défaut » bleu pâle) et l'accent teinte les trois avatars ; refus de caméra en carte ambre `.sl-cam` et flèche ▾ du dépliant de « Rejoindre » ; le bandeau « Filtrer » ne grandit plus à « Tout effacer » ; maquette « Administration » de Moi **A438 (v5.39.10)** : « Administration » de Moi d'après la maquette validée — la seule action en tête (rangée « n demandes de compte »), quatre chiffres en tuiles de lecture, Contenus & Sessions et Stockage en deux cartes côte à côte dès que la largeur rendue le permet (`auto-fit`, minimum 300 px), `.ist-*` purgées **A439 (v5.39.11)** : ce que la CHARGE révélait — passe complète processeur ralenti (÷3) : deux contrôles seulement ; k5 « à la prise » mesurait pendant `grabWake` (la sonde attend la fin des animations finies) ; `amorce()` ajoutait les exemples en double sous charge (il attend les fiches au lieu de presser l'autre bouton) et `addSeedFiches` gagne une garde (`_seeding`) ; et un vrai défaut — `keepAnchor` lisait l'ancre transformée par `grabWake` et décalait la page pour de bon (jusqu'à 6 px), il termine l'animation de l'objet tenu avant de lire |
-| [`docs/decisions/lot-v5-40.md`](docs/decisions/lot-v5-40.md) | **A440** — une étape qui compte sur un compteur qui RELANCE un minuteur (`timerId`) le dit et le défait : un seul lien par étape gardé (décision de l'auteur, le lien vit sur le compteur), mais DEUX lignes de légende réservées (le compte, puis le minuteur au dessin d'un lien direct — la ligne unique, mesurée, ne tenait pas à 390 px), nom court de la tuile sur les lignes de minuteur liées, la grâce de 10 s rend aussi le minuteur relancé par le compteur (il restait relancé), « et relance … » + bouton « Compteur » dans les Réglages de l'étape, « Compté par n étapes » sur la carte du compteur, carte ambre « △ Minuteur cyclique » quand un geste relance un cycle ; partage : rien de nouveau ne voyage (l'état part, la grâce reste à l'appareil qui a coché) |
-| [`docs/decisions/lot-v5-41.md`](docs/decisions/lot-v5-41.md) | **A441-A448** — la porte « Ajouter » de l'éditeur devient une PILULE NOMMÉE à sous-titre (« Ajouter · bloc · minuteur · dose… », filet `--act`, glose à toutes les largeurs ; `sticky` : au bas de la page elle reprend sa rangée et ne recouvre rien, mesuré ; formes écartées listées) ; la pastille d'« Afficher » se peint avant l'action (A442) ; le cadenas d'une bibliothèque et son compte entrent dans le bouton de la rangée (A443) ; « Options du bloc » toujours repliée à l'ouverture (A444, amende A383) ; nom de minuteur/compteur à 17,5 et « Nom court » dit facultatif (A445) ; **A446 (v5.41.1)** : la porte « Ajouter » devient REMPLIE `--act` (amende A441 — seule action primaire de l'éditeur) ; **A447** : en recherche, le titre dit la bibliothèque filtrée (« Résultats — Perso ») et les puces des filtres posés s'affichent, « Dans les documents » suit les mêmes crans ; **A448** : une décision repliée n'est plus plus haute que dépliée — réponse, flèche et « · » forment une unité insécable dans la ligne de branches |
-| [`docs/decisions/lot-v5-42.md`](docs/decisions/lot-v5-42.md) | **A449** — la revue « à tout moment » se DESSINE, sans un mot (demande de l'auteur, canevas A + C) : fermée d'office (elle s'ouvrait tant qu'elle n'était pas faite — huit cases de plus dans le fil), hors de la matière des étapes (contour pointillé d'A382, libellé à `--t-item`, amende A345), JAUGE de n segments au lieu d'une case (`revRingHtml`, piste fine/segments épais), ligne k/n neutre (plus de `--act` ni de « à faire ») ; ouverte, des JETONS à coche à droite dont le libellé ne bouge pas, réponse dans la ligne, deux colonnes seulement si le plus long libellé tient (`--rv-ch`, `auto-fit`, 0,92 ch mesuré) ; la tête devient le bouton (`.rv-head`) ; « Nouvelle revue » reste au pied, loin du chevron ; tiroir flottant écarté (règle 11, A396) |
-| [`docs/decisions/lot-v5-43.md`](docs/decisions/lot-v5-43.md) | **A450-A451** — le PARCOURS SUIT L'ARBRE de `flowPlan`, BORNÉ À DEUX CRANS (amende A394 ; choix de l'auteur sur canevas « C borné ») : chaque réponse d'une décision ouvre SA branche sous elle, « SI réponse » à l'ambre des réponses, sans fond (seule la décision est une carte), filet en coin ; une branche dans une branche se décale d'un cran de plus, deux au plus — au-delà `.plat` et « à ◇n » ; la numérotation ne bouge pas (`flowPlan` numérote dans l'ordre de son arbre) ; renvois « ↓ n » vérifiés ; une réponse sans bloc propre n'ouvre pas d'en-tête vide ; le losange d'une décision n'est jamais redessiné dans la colonne des numéros ; trois formes refusées listées (pastille dessous, carte ambrée, losange répété) **A451 (v5.43.1, second chapitre)** : ce qui tenait sur Mac à 0 px près et débordait sous Linux/Windows (Chromium Linux arrondit l'avance des glyphes au pixel, barre de défilement classique de 15 px dans `.home-main`) : CASE MAÎTRESSE à trois états (`#selAll`, `aria-checked` false · mixed · true lu sur la liste affichée) à la place du segment « Tout cocher / Tout décocher » à toutes les largeurs, actes dépliés à glyphes (ceux du tiroir), « 0 coché », mot-marque d'accueil à 17,5 sous 480 px (`zw480`) ; vérifié dans l'image Playwright Linux ; formes écartées listées |
-| [`docs/decisions/lot-v5-44.md`](docs/decisions/lot-v5-44.md) | **A452-A459** — l'ÉDITEUR MARKDOWN des références : lier un PDF joint sans recopier d'identifiant (menu, frappe de « ](att: », bouton ou glisser, `#pN` = page) ; barre regroupée B·I·S + Titre/Liste/Encadré/＋ Insérer sur `openPickMenu` ; `mdSplice` par `insertText` (⌘Z annule la barre), Entrée continue une liste, Tab change le niveau ; disposition par largeur (Écrire\|Aperçu, côte à côte 780-999, colonne ≥ 1000), « Plan » des titres, aperçu qui suit le curseur (`ln`/`data-ln`) ; tableau en grille (`mdTableAt`/`mdTableMd`, `#mdToolModal`) ; collage Word/PDF (`mdFromHtml`/`mdFromPlain`, couleur jamais reprise) ; relecture de l'ÉCRITURE (`mdLint` : liens, tableaux, titres, doses « .5 mg », « 5,0 mg », ug, U, cc — jamais le contenu, § 2 ; pas de « tout corriger ») ; coloration par calque (pointeur fin sans tactile) ; pliables à deux segments : texte à gauche, aperçu à droite |
-| [`docs/decisions/lot-v5-45.md`](docs/decisions/lot-v5-45.md) | **A460** — les gains rapides de l'audit d'apprentissage (`docs/audit-apprentissage-2026-10.md`) : discriminant cherché, Entrée ouvre le premier résultat, « Exercice » entier dès 360 effectifs (et « Annul. » armé), « Catégorie »/« Bibliothèque » entiers dans « Regrouper », info-bulle de « Vérifier » en français, « maintenir 1,2 s » DANS le bouton de fin, « Confirmé — » réservé à la session réelle, badge « À compléter » tappable à l'accueil, exemples livrés « À relire », Moi › « Revoir l'accueil » ; le nom du compteur dans la capsule reste À DÉCIDER |
-| [`docs/decisions/lot-v5-46.md`](docs/decisions/lot-v5-46.md) | **A461** — lexique FERMÉ du texte affiché : « aide » (parcours à cocher), « protocole » (texte à lire), « données » (les deux, compte/synchro/stockage) — « fiche » banni de la prose par `check-lexique.mjs` (prompt IA exempté) ; un nom et une icône par vue (Tout voir · Page [ex-Tableau] · Schéma · Se repérer · Moniteur, `expand` réservé à « Plein écran ») ; sous 780 px, les pastilles de l'accueil portent leur mot dessous (Sessions · Créer · Moi), palier 390 purgé ; le ◑ des aides RESTE (décision v5.6). **A462 (v5.46.2)** : la tuile du compteur dans la capsule se lit en ligne — valeur d'abord, nom ENTIER sur deux lignes (ou le nom court de l'auteur) ; `cnShort`/`SHORT_CN` purgés ; formes A, C et mélange B/C écartées |
-| [`docs/decisions/lot-v5-47.md`](docs/decisions/lot-v5-47.md) | **A463-A466** — une aide (ou un protocole) neuve naît en BROUILLON (amende A304) ; lien direct `#a=<id>` (`deepLinkFromHash`/`applyDeepLink`, jamais par-dessus une session réelle, garde `popstate` d'A430), « Copier le lien direct » au menu ⋯, raccourcis du manifeste `#chercher`/`#sessions` ; sous `zw360` le quai garde ses mots (12 px, deux lignes, jamais de mot coupé — témoin d'audit-doctrine), « EN COURS » en étiquette au-dessus du titre de bloc, légende « sous l'étape, en gris : la réponse attendue », Identité repliée pour une aide titrée, exemples dans les Réglages d'étape ; Moi › « Prendre en main » (dix gestes + glossaire de seize termes) et `summary` dans les focalisables des fenêtres (le piège Tab sautait les dépliants) ; 19 et 20 maquettés, en attente |
-| [`docs/decisions/lot-v5-48.md`](docs/decisions/lot-v5-48.md) | **A467-A472** — l'EXERCICE GUIDÉ : une bulle par geste sur la VRAIE commande, en exercice seulement (règle 11) — démarrer, cocher, capsule, continuer et répondre, revue, complication (+ phrase du jalon) puis « Reprendre », horodater, terminer maintenu ; carte « Apprendre avec cette aide » sur les aides d'exemple (choix, « Ne plus proposer », `ac-guide`), menu ⋯ et Moi › Prendre en main ; on avance par le geste fait (lu dans l'état), « Suivant » pour regarder, « Passer » / « Quitter le guide » ; tout le reste s'estompe sous UN voile percé autour de la cible (v5.48.1 : la v5.48.0 n'estompait qu'une liste d'éléments), inerte au toucher. **v5.48.2** : la bulle devient une CARTE ANCRÉE au-dessus du quai, dans sa largeur (colonne d'action au bureau, un côté de la charnière sur pliable), immobile au défilement et qui réserve sa hauteur ; ▾ la réduit en pastille ; le guide n'amène la cible qu'en début de phase, jamais contre un défilement à la main. **v5.48.3** : la rangée d'entrée porte le placard d'exercice (hachures, pointillé `--act`). **LE GUIDE SUIT L'APP** : sélecteurs vivants et mots lus dans l'aide ; `check-guide.mjs` (libellés cités, cibles émises, icônes, geste par étape) et `audit-guide.mjs` (déroulé complet à 390, 1280, 360 à 130 %) rougissent si un geste change sans lui — toucher un geste de session = mettre à jour GUIDE_ETAPES et GUIDE_GESTES dans le même commit. **A468 (v5.48.5)** : éditeur d'une référence — aperçu en COLONNE dès 780 (`mqRail`, `--col-state` ; `.md-split` purgé), barre d'outils au-dessus du clavier au toucher (`html.md-kbd`, patron du dock C15) ; ⚠ annuler `mousedown`, jamais `pointerdown` (WebKit supprime alors le clic). **A469 (v5.48.6)** : clavier ouvert, les menus de la barre s'ouvrent AU-DESSUS d'elle sans prendre le focus (`openPickMenu` options `up` et `keep`). **A470 (v5.48.7)** : au toucher, `touchstart` annulé et clic rejoué au `touchend` (`tapKeepsFocus`) — annuler `mousedown` arrive trop tard sur iOS ; un bouton de menu bascule. **A471 (v5.48.8)** : toute la surface de la barre et du menu garde le champ, toucher attribué à la cible la plus proche (12 px), garde de 8 px au-dessus ; la barre reste à 41 px (mesuré : 0 % de perte, ≈ 12 lignes de texte sur iPhone 15 dans Safari) **A472 (v5.48.9)** : sous la barre, ~43 pt appartiennent à la barre d'adresse de Safari (inatteignable par la page) — 12 px de rattrapage sous les boutons, dans Safari seulement |
-| [`docs/decisions/lot-v5-49.md`](docs/decisions/lot-v5-49.md) | **A473-A474** — **A473** : « Se déconnecter » ne révoque plus que CET appareil (`scope=local` — GoTrue est `global` par défaut) ; la capsule accueille deux compteurs, jamais ellipsés (la boucle d'ajustement refuse une tuile coupée), et le rappel dit « +n » quand une partie est montrée ; « Relâcher avant la fin annule » à 14 px (`.ai-card p` l'écrasait) ; les trois boutons de Moi dans un seul conteneur. **A474** (amende A382) : la jauge d'un seuil vit DANS son étiquette (« CHOCS DÉLIVRÉS ≥ 3 ●○□ », dernier repère en forme de case, `momGaugeHtml`), la case attend ESTOMPÉE et non pointillée, « Faire maintenant » au bout de la rangée, et l'INSTANT DU SEUIL anime l'étape qui s'ouvre une fois, chez celui qui a fait le geste seulement (`_momGest`, jamais à la réception — A377) ; formes écartées listées (dont la case-jauge, trop proche de la revue A449) |
-| [`docs/decisions/lot-v5-50.md`](docs/decisions/lot-v5-50.md) | **A475-A477** — les COLLECTIONS : un rangement PERSONNEL qui ne déplace rien (une liste nommée d'ids, une aide dans plusieurs, même en lecture seule ; synchronisées dans le document perso comme les épingles, `sanitizeColls`) — l'Accès direct en est la première (`COLL_PIN`), filtre `state.coll` annoncé en puce et en en-tête « à vous seul », rangée de puces au téléphone, section de la colonne au bureau, famille de la feuille Affichage, zone de Moi, « Ajouter à une collection… » au menu ⋯ (actif en lecture seule) et en tête de la feuille Actions ; `openPickMenu` gagne `multi`/`done`/`onClose`, `confirmDlg` gagne `input` (aucune fenêtre neuve) ; **A476** : la barre de sélection en tiroir à TOUTE largeur (A228 appliquée : cinq libellés entiers ne tiennent jamais dans 960 px — glyphe seul refusé) ; **A477** : « Nouvelle bibliothèque » demande « Avec qui ? » (invitations à la création), sans invité propose une collection ; « Convertir en collection » (rien n'est supprimé, `entsMoveLib` factorisé) |
-| [`docs/decisions/lot-v5-51.md`](docs/decisions/lot-v5-51.md) | **A478-A479** — QUI CRÉE une bibliothèque : réglage d'instance dans Administration (Administrateurs seulement · Personnes autorisées · Tout compte approuvé ; défaut « autorisées » à liste vide = comportement d'avant), `library_creators`, `can_create_library()`, politique `lib_insert` réécrite (un non-administrateur ne crée que POUR LUI, `created_by = auth.uid()`) ; `myCanCreateLib` remplace `myIsAppAdmin` aux portes de création, repli sur l'ancienne règle si le schéma n'est pas rejoué ; **A479** : qui n'a pas le droit DEMANDE (« Demander une bibliothèque… », MÊME fenêtre qu'A477), file dans Administration (Refuser · Créer : bibliothèque créée au nom du demandeur, invités ajoutés, demande supprimée ; refus = e-mails vidés), mes demandes dans Moi ; tests RLS § 15 ; `schema.sql` à rejouer. **A480 (v5.51.1)** : la tête d'une feuille — « ‹ Actions » en LIEN, TITRE = le geste, UNE ligne de contexte (`selCtx`), ★/signet dans la feuille à cases, « Déplacer » ne coche plus rien sur une sélection mêlée ; **A481** : changer la règle de création se confirme dans un bandeau ; **A482** : le design system se relève sur l'app — `design/capture.mjs` (DOM réel de neuf fiches), Couleurs sur les tokens actuels, `GUIDELINES.md` rattrapé à la v5.51 |
-| [`docs/decisions/lot-v5-52.md`](docs/decisions/lot-v5-52.md) | **A483** — l'administrateur de l'instance voit TOUT dans Administration : « Comptes · n » (tous statuts ; la rangée se déplie sur place — statut et geste, droit de créer, rôle et retrait par bibliothèque) et « Bibliothèques de l'instance · n » (créateur, comptes ; la rangée ouvre Membres) ; trois lectures `security definer` vides hors administrateur (`list_accounts`, `list_user_memberships`, `list_all_libraries`, § 9ter), aucune écriture neuve ; les adhésions du profil filtrées par `user_id` ; **A484 (v5.52.1)** : la bibliothèque d'un AUTRE se gère depuis cette liste (fenêtre Membres existante, serveur déjà permissif) — bandeau « vous n'en êtes pas membre », compte de la zone sensible lu au serveur (`_admLibs`), Administration relue à la fermeture |
-| [`docs/decisions/lot-v5-53.md`](docs/decisions/lot-v5-53.md) | **A485-A489** — retours après les collections : pastille d'une catégorie homonyme lue sur SES éléments (`catCols`/`catDotHtml`) ; « Nouvelle catégorie… » depuis Ranger crée ET range (`catNew`) ; case « Accès direct » qui ne bloque plus sur un brouillon, une seule étoile animée (`pinTap`) ; « ＋ Ajouter » → « Ajouter à « … » » avec la catégorie par rangée ; **la colonne dit AVEC QUI** (option 1 du canevas) — `user`/`users` et vous seul · partagée · lecture, « Collections · pour vous » + Gérer, une seule bibliothèque = une rangée et « Partager avec une équipe… » ; `.hs-act`/`lockopen` purgés ; menu ⋯ d'une collection sous son bouton |
-| [`docs/decisions/lot-v5-54.md`](docs/decisions/lot-v5-54.md) | **A490-A493** — la colonne liste aussi les bibliothèques VIDES (`bibGroups(list,toutes)`) ; le retour à l'accueil repose la liste à toute largeur (`_libInner` : `.home-main`/`.hs-scroll`, window.scrollY vaut 0 dès 780), sauf après « Terminer la session » (carte-bilan en haut) ; **l'anneau d'ouverture suit la MODALITÉ** (amende A237) — clavier : point d'entrée + anneau ; pointeur : une décision (`DLG_DECIDE`) prend le focus sans anneau, une fenêtre qu'on parcourt le pose sur son titre (`.dlg-anchor`), plus de clavier ouvert ; « Tout » en tête des collections de la colonne |
-| [`docs/decisions/lot-v5-55.md`](docs/decisions/lot-v5-55.md) | **A494-A495** — Administration devient une PAGE à sections ouverte depuis Moi (porte `#admDoor` sous la carte du compte, inchangée ; page-fenêtre `#admModal` au téléphone, vue de la colonne `homeTab='admin'` dès 780 — jamais d'entrée dans la colonne gauche, décision de l'auteur) : « À traiter » (une file, demandes de compte et de bibliothèque réglées sur place), Comptes (recherche, filtres à compteurs, tri, pages de 40, approbation PAR LOT, un compte à côté de la liste ≥ 900 px rendus), Bibliothèques (filtres de santé : sans administrateur, vides), Règles (validation des nouveaux comptes — l'interrupteur de l'ancienne fenêtre « Comptes en attente », purgée — et création, confirmées dans un bandeau qui dit l'effet réel) ; en deçà de 8 éléments les listes restent posées dans la vue d'ensemble ; une lecture `admLoad`, chaque RPC tolérée seule ; aucune écriture serveur neuve. **A495 (v5.55.1)** : une seule rangée « Nouveaux comptes et bibliothèques » (deux portes menaient à la même page) ; au téléphone la barre de la fenêtre porte le titre de la SECTION et le retour AU-DESSUS (`admTopPaint`, `#admBack`), comme « ‹ Moi » au-dessus d'« Administration » en vue large |
-| [`docs/decisions/lot-v5-56.md`](docs/decisions/lot-v5-56.md) | **A496-A498** — la COLLECTION se choisit à la création, comme la catégorie et la bibliothèque : rangée « Collections » dans la pancarte d'identité des deux éditeurs (`collPickerHtml`, jetons de la rangée Catégorie), qui ouvre LA feuille à cases de l'accueil (`openCollPick` avec `ents`, « ＋ Nouvelle collection… » comprise) ; rien n'est écrit dans l'aide (rangement personnel, lu par `collsOf`) ; créer depuis une collection affichée y range le brouillon (patron A304) ; K5 vaut avant la première frappe (`pinBlocked` lit aussi `state.draft`/`state.pdraft`) ; un brouillon sans titre abandonné sort des collections (`collForget` dans `bindEditorExit`) ; « Nouveau protocole » (le résumé du dépliant ignorait `L.fem`) ; **v5.56.1** : dans l'éditeur le menu s'ANCRE sous ses jetons comme celui des catégories (coque `.catmenu.wide`, titre et définition gardés et resserrés, filtre dès cinq collections), et tout menu ancré se borne à l'espace sous son ancre (patron `fitMoreMenu`). **A498 (v5.56.2)** : le menu des catégories prend la tête des feuilles (titre, contexte, définition d'UNE ligne dont le PIVOT suit la bibliothèque — partagée : « Une seule par aide, avec sa couleur, vue par toute l'équipe de « … ». Pour un rangement à vous seul : les collections. » ; Perso, où tout est déjà personnel : « Une seule par aide, avec sa couleur, pour classer l'accueil. Une aide peut être dans plusieurs collections. » — sans jargon ni métaphore, quatre formes écartées par l'auteur). **A497** : le VOILE d'une feuille absorbe le tap — le `pointerdown` capturé fermait la feuille et retirait le voile AVANT le `click` du même doigt, qui activait ce qu'il couvrait (séquence mesurée) ; le `pointerdown` ignore le voile, qui se ferme à son `click` ; `.ai-modal` et le menu ⋯ fermaient déjà au clic, non concernés |
-| [`docs/decisions/lot-v5-56.md`](docs/decisions/lot-v5-56.md) | **A496-A497** — la COLLECTION se choisit à la création, comme la catégorie et la bibliothèque : rangée « Collections » dans la pancarte d'identité des deux éditeurs (`collPickerHtml`, jetons de la rangée Catégorie), qui ouvre LA feuille à cases de l'accueil (`openCollPick` avec `ents`, « ＋ Nouvelle collection… » comprise) ; rien n'est écrit dans l'aide (rangement personnel, lu par `collsOf`) ; créer depuis une collection affichée y range le brouillon (patron A304) ; K5 vaut avant la première frappe (`pinBlocked` lit aussi `state.draft`/`state.pdraft`) ; un brouillon sans titre abandonné sort des collections (`collForget` dans `bindEditorExit`) ; « Nouveau protocole » (le résumé du dépliant ignorait `L.fem`). **A497** : le VOILE d'une feuille absorbe le tap — le `pointerdown` capturé fermait la feuille et retirait le voile AVANT le `click` du même doigt, qui activait ce qu'il couvrait (séquence mesurée) ; le `pointerdown` ignore le voile, qui se ferme à son `click` ; `.ai-modal` et le menu ⋯ fermaient déjà au clic, non concernés |
-| [`docs/decisions/lot-v5-57.md`](docs/decisions/lot-v5-57.md) | **A499-A501** — « Tout est prêt » déplié ne répète plus la version (`#count` se tait sous une synthèse visible, la rangée sans chip disparaît ; en erreur la version reste, calée à droite) ; la PASTILLE DU COMPTE suit l'avatar « Moi » de la colonne ≥ 780 (l'en-tête n'y a plus de bouton Compte depuis A351 — `#acctTop` mesurait 0 × 0 sur l'accueil bureau), même porte `setSyncChip`, 9 px sur un avatar de 22 ; option A choisie sur planche (tous états) ; anneau « en cours » en `--line-strong` (il se fondait la nuit). **A501 (v5.57.1)** : sur iPad installé la marque de la colonne gauche passait sous la barre d'état — `.home-side` est fixée à 0 et `.hs-top` ne lisait pas `--sat` (l'en-tête de droite le lit depuis toujours, le sol d'A370 ne vit que sous 780) ; une propriété, inset simulé au témoin |
+### Les fichiers
 
-Le classement des A-entrées est CHRONOLOGIQUE (par lot) et non thématique, à dessein : la doctrine
-se cite elle-même par numéro (« cf. A140 ») — le numéro EST l'adresse, et une dispersion par thème
-casserait chaque renvoi. **La carte plage → fichier vit aussi dans `docs/README.md`** (audit
-v5.19.3) : un outil qui explore `docs/` sans passer par ce fichier — une IA générique — y résout
-tout renvoi A-xxx sans grep intégral. Pour chercher par SUJET, la carte ci-dessous donne les intitulés à
-retrouver (grep) dans `conventions-de-code.md` :
+| Fichier | Plage | Sujet |
+|---|---|---|
+| [`conventions-de-code.md`](docs/decisions/conventions-de-code.md) | — | Doctrine PAR COMPOSANT (antérieure à v5.10.3, amendée depuis) : chercher par intitulé, cf. carte par sujet |
+| [`doctrine-css.md`](docs/decisions/doctrine-css.md) / [`doctrine-js.md`](docs/decisions/doctrine-js.md) | C1-C135 / J1-J239 | Les commentaires longs du `<style>` et du script, repris à l'octet : un renvoi « C‹n› » / « J‹n› » dans le code se résout ici |
+| [`garde-fous-et-audits.md`](docs/decisions/garde-fous-et-audits.md) | — | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais (ex-« Avant chaque commit ») |
+| [`refonte-v5-6.md`](docs/decisions/refonte-v5-6.md) | A1-A112 | Refonte « verre clinique, mat » : capsule, quai, volets, trois matières |
+| [`lots-v5-7-a-v5-9.md`](docs/decisions/lots-v5-7-a-v5-9.md) | A113-A132 | Retour au bloc, tri vivant, atelier d'import |
+| [`lot-v5-10.md`](docs/decisions/lot-v5-10.md) · [`-10-1`](docs/decisions/lot-v5-10-1.md) · [`-10-2`](docs/decisions/lot-v5-10-2.md) | A133-A158 | La Page devient un document ; audits design et code externes |
+| [`lot-v5-11.md`](docs/decisions/lot-v5-11.md) | A159-A169 | L'atelier d'import dit où ça va (destination par rangée) |
+| [`lot-v5-12.md`](docs/decisions/lot-v5-12.md) | A170-A197 | Sélection multiple, titres repliables ; 2ᵉ chapitre = lot v5.13 (clavier ouvert, A192-A197) |
+| [`lot-v5-14.md`](docs/decisions/lot-v5-14.md) | A198-A221 | Partage SANS serveur (direct, QR, par l'écran), modèle de menace |
+| [`lot-v5-15.md`](docs/decisions/lot-v5-15.md) · [`-16`](docs/decisions/lot-v5-16.md) | A222-A226 | Barres flottantes lisibles ; multi-import, QR agrandis |
+| [`lot-v5-17.md`](docs/decisions/lot-v5-17.md) | A227-A237 | Barre de sélection sur une ligne, moniteur multi-minuteurs, écrans véridiques, anneau de focus posé à la main |
+| [`lot-v5-18.md`](docs/decisions/lot-v5-18.md) | A238-A268 | L'accueil sans mécanisme : union des bibliothèques, colonne gauche qui filtre |
+| [`lot-v5-19.md`](docs/decisions/lot-v5-19.md) | A269-A285 | Colonne à trois étages, halo vérifié en capture, garde-fous tokens/ids/fonctions |
+| [`lot-v5-20.md`](docs/decisions/lot-v5-20.md) | A286-A296 | Rail A→Z sous ce qui coiffe, défileurs gardés, assainissement mesuré, `WIPE_SPACE_KEYS` |
+| [`lot-v5-21.md`](docs/decisions/lot-v5-21.md) | A297-A307 | `state.scope` → `homeScope()`, gestionnaire de catégories par bibliothèque, passation de la main |
+| [`lot-v5-22.md`](docs/decisions/lot-v5-22.md) | A308-A316 | Gestionnaire de catégories en liste, curseur de teinte OKLCH, rail 280 px |
+| [`lot-v5-23.md`](docs/decisions/lot-v5-23.md) · [`-24`](docs/decisions/lot-v5-24.md) | A317-A329 | Partage « seamless » : panne détectée, retour seul, « Connexion perdue », feuille qui dit quoi faire |
+| [`lot-v5-25.md`](docs/decisions/lot-v5-25.md) · [`-26`](docs/decisions/lot-v5-26.md) | A330-A332 | Écran de démarrage d'une aide ; arrivée sur une aide (anneaux du quai) ; la panne et les gestes |
+| [`lot-v5-27.md`](docs/decisions/lot-v5-27.md) | A333-A335 | « Reprendre » après une complication (renverse A126), barre « ↩ Bloc », éclair `bolt` |
+| [`lot-v5-28.md`](docs/decisions/lot-v5-28.md) | A336-A343 | Terminer la session, menu ⋯, méta d'accueil, retrait du parcours, moniteur, dernier repère |
+| [`lot-v5-29.md`](docs/decisions/lot-v5-29.md) | A344 | La Page : l'arbre est le fil (voies, impression) |
+| [`lot-v5-30.md`](docs/decisions/lot-v5-30.md) | A345-A376 | LA REFONTE v5 — échelle typo A6 NORMATIVE, étapes CRITIQUE/VIGILANCE en mots, quai, accueil en cartes, deux matières de fenêtre, échelle des contrôles, un seul dessin du parcours |
+| [`lot-v5-31.md`](docs/decisions/lot-v5-31.md) · [`-32`](docs/decisions/lot-v5-32.md) | A377-A382 | La coche lance / compte / le bloc minute ; ne pas anticiper ; le MOMENT d'une étape (`from`, `repeat`) |
+| [`lot-v5-33.md`](docs/decisions/lot-v5-33.md) | A383-A387 | Éditeur : « Réglages » par étape ; partage : invité figé, hôte qui consulte une autre aide |
+| [`lot-v5-34.md`](docs/decisions/lot-v5-34.md) · [`-35`](docs/decisions/lot-v5-35.md) | A388-A391 | Parcours : un dessin, trois lieux ; accueil en une colonne ; « Essayer » fidèle ; Page (voies) |
+| [`lot-v5-36.md`](docs/decisions/lot-v5-36.md) | A392-A395 | Impression de la Page, export d'une sélection, « Branche », jalon en ligne « SI » |
+| [`lot-v5-37.md`](docs/decisions/lot-v5-37.md) | A396-A399 | La revue « à tout moment » (bloc `review`), la bande des repères (`item.poso`) |
+| [`lot-v5-38.md`](docs/decisions/lot-v5-38.md) | A400-A417 | Audit UX : registres réécrits (règle 8), nom court, pliables, alias de tokens purgés |
+| [`lot-v5-39.md`](docs/decisions/lot-v5-39.md) | A418-A439 | Sommaire des PDF, filtre par nom, feuille « Affichage », retour système en pile réelle (A430), Administration, charge |
+| [`lot-v5-40.md`](docs/decisions/lot-v5-40.md) · [`-41`](docs/decisions/lot-v5-41.md) | A440-A448 | Compteur qui relance un minuteur ; porte « Ajouter » de l'éditeur, recherche |
+| [`lot-v5-42.md`](docs/decisions/lot-v5-42.md) · [`-43`](docs/decisions/lot-v5-43.md) | A449-A451 | La revue se dessine (jauge) ; le parcours suit l'arbre (deux crans) ; case maîtresse, rendu Linux |
+| [`lot-v5-44.md`](docs/decisions/lot-v5-44.md) | A452-A459 | L'éditeur Markdown des références (liens PDF, tableaux, collage, relecture `mdLint`) |
+| [`lot-v5-45.md`](docs/decisions/lot-v5-45.md) · [`-46`](docs/decisions/lot-v5-46.md) · [`-47`](docs/decisions/lot-v5-47.md) | A460-A466 | Apprentissage : lexique fermé (A461), un nom par vue, brouillon par défaut, lien direct `#a=`, « Prendre en main » |
+| [`lot-v5-48.md`](docs/decisions/lot-v5-48.md) | A467-A472 | L'exercice guidé (le guide suit l'app) ; barre Markdown au-dessus du clavier iOS |
+| [`lot-v5-49.md`](docs/decisions/lot-v5-49.md) | A473-A474 | Déconnexion d'un seul appareil, deux compteurs dans la capsule ; jauge du seuil dans l'étiquette |
+| [`lot-v5-50.md`](docs/decisions/lot-v5-50.md) | A475-A477 | Les COLLECTIONS (rangement personnel), barre de sélection en tiroir, « Avec qui ? » |
+| [`lot-v5-51.md`](docs/decisions/lot-v5-51.md) · [`-52`](docs/decisions/lot-v5-52.md) | A478-A484 | Qui crée une bibliothèque, demandes, l'administrateur voit tout ; tête de feuille ; design system relevé |
+| [`lot-v5-53.md`](docs/decisions/lot-v5-53.md) · [`-54`](docs/decisions/lot-v5-54.md) | A485-A493 | La colonne dit « avec qui » ; bibliothèques vides ; l'anneau d'ouverture suit la modalité |
+| [`lot-v5-55.md`](docs/decisions/lot-v5-55.md) | A494-A495 | Administration devient une page à sections |
+| [`lot-v5-56.md`](docs/decisions/lot-v5-56.md) | A496-A498 | La collection se choisit à la création ; le voile d'une feuille absorbe le tap ; tête du menu des catégories |
+| [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad |
 
-| Sujet | Chercher les intitulés |
-|---|---|
-| **Couleur, registres, accents** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories |
-| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
-| **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · JALONS DE BOUCLE · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
-| **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
-| **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
-| **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF |
-| **Données, stockage, sécurité** | Documents PDF · CHERCHER DANS LES DOCUMENTS PDF · Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE · Nommage SQL · (et les points 4 à 6 ci-dessus) |
-| **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ |
-| **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
+### Carte par sujet
 
-Restent dans CE fichier, en entier : les **15 règles**, la **règle de publication**, **Avant
-chaque commit** (garde-fous et audits), le **Périmètre réglementaire** (statut
-non-dispositif-médical — à consulter AVANT toute fonctionnalité produisant une sortie
-individualisée) et **Se repérer dans `index.html`** (carte du monofichier, avec la commande qui en
-donne l'index exact). **Toute NOUVELLE entrée A va dans le fichier de son lot** sous
-`docs/decisions/`, jamais ici — c'est ce qui borne la croissance de ce fichier par construction.
+Point d'entrée de lecture, pas une liste exhaustive : compléter TOUJOURS par le `grep` de la
+méthode (étapes 2-3). Les intitulés de `conventions-de-code.md` sont à chercher tels quels ; les
+plages A renvoient au tableau ci-dessus.
+
+| Sujet | `conventions-de-code.md` (intitulés) | Lots postérieurs (A) |
+|---|---|---|
+| **Couleur, registres, accents, catégories** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories | A222-A224, A308-A316, A400, A406-A408, A416-A417, A435, A485 |
+| **Typographie, espacement, contrôles** | Largeurs & échelles fermées | A345 (échelle A6 normative), A350, A374-A375, A403-A404 |
+| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » | A345, A381, A388, A401-A402, A411, A463 |
+| **Mode crise : session, quai, capsule, volet** | Mode statique · Challenge-response · Alarme de minuteur · Dialogue « Terminer la session ? » · ZONE HAUTE DE CRISE | A1-A112, A331, A336-A337, A346, A349, A354-A357, A363, A403, A409-A415, A462, A473 |
+| **Minuteurs et compteurs liés, moment d'une étape, moniteur** | JALONS DE BOUCLE | A231-A232, A341-A342, A377-A382, A440, A474 |
+| **Parcours, Se repérer, Page, Schéma** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE | A133-A138, A339, A343-A344, A376, A388-A395, A448, A450 |
+| **Complications, revue « à tout moment », bande des repères** | COMPLICATIONS · PORTÉE D'UNE ACTION DE REPRISE · REPÈRES POSOLOGIQUES | A333-A335, A396-A399, A449 |
+| **Écran d'entrée d'une aide, exercice, guide** | MODE EXERCICE | A330, A347, A358, A366, A460, A463-A467 |
+| **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500 |
+| **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499 |
+| **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496 |
+| **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459 |
+| **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392 |
+| **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387 |
+| **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501 |
+| **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483 |
+| **Outillage, garde-fous, audits** | Collision de noms de classe · Hygiène de suppression | A154-A158, A278-A283, A289, A292-A293, A329, A420, A439, A451, A482 ; `garde-fous-et-audits.md` |
 
 ## Règle de publication (IMPÉRATIF)
 Publier une version = trois étapes, dans cet ordre :
 
-1. `./release.sh X.Y.Z` — synchronise `APP_VERSION` (`index.html`) et `CACHE` (`sw.js`), ébauche
+1. `./release.sh X.Y.Z` — synchronise `APP_VERSION` (`index.html`), `CACHE` (`sw.js`),
+   `package.json` et `package-lock.json`, recalcule les hashs CSP, régénère `design/ds/`, ébauche
    l'entrée `CHANGELOG.md`, vérifie syntaxe et tests. **Ne jamais éditer ces numéros à la main**
    (un décalage casse la mise à jour du service worker). Le script **ne committe pas**.
 2. Rédiger l'entrée `CHANGELOG.md` (contenu réel, pas de « à compléter » laissé en place).
@@ -254,339 +293,63 @@ Publier une version = trois étapes, dans cet ordre :
 Les étapes 2 et 3 sont le travail de l'IA (ou de l'humain), jamais du script.
 **Le CHANGELOG garde les 20 dernières versions** ; au-delà, déplacer les plus anciennes dans
 **`docs/changelog/vN.md`, un fichier par VERSION MAJEURE** — telles quelles, sans réécriture, EN
-FIN d'archive (convention constatée des lots déjà déplacés). La
-règle existait et n'avait servi qu'une fois en 112 entrées : le fichier pesait alors 221 Ko, la
-moitié de toute la documentation. **Et elle refuyait** (21 entrées re-mesurées à l'audit
-v5.19.3, `release.sh` insère sans jamais élaguer) : `scripts/check-changelog.mjs` la rend
-exécutoire depuis — compte ≤ 20 et aucune entrée en double avec une archive, dans `npm run
-check` donc en CI, vérifié capable d'échouer (rouge sur l'état à 21 avant l'archivage).
-**L'ARCHIVE UNIQUE AVAIT DÉPASSÉ LE FICHIER QU'ELLE SOULAGE (v5.0.0, audit)** : `CHANGELOG-archive.md`
-atteignait **471 Ko pour 196 entrées** — plus que `CHANGELOG.md`, plus que tout `docs/`. La règle
-déplaçait donc le volume sans jamais le borner, et l'archive devenait à son tour illisible et
-inouvrable. Découpée par majeure, elle borne sa croissance par construction : une majeure close ne
-grossit plus jamais. Le contenu est repris **à l'octet** (réconciliation vérifiée : 196 entrées
-avant, 196 après, aucun contenu modifié) ; seule une coquille de crochet doublé sur `[4.29.8]` a
-été normalisée pour que l'entrée reste analysable.
-Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
-Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y).
+FIN d'archive. `release.sh` insère sans jamais élaguer : `scripts/check-changelog.mjs` rend la
+règle exécutoire (≤ 20 entrées, aucune en double avec une archive). Historique de la règle :
+`docs/decisions/garde-fous-et-audits.md` et `docs/changelog/v5.md` (v5.0.0, v5.19.3).
+Versionnage sémantique : correctif → patch (Z), nouvelle fonctionnalité → mineure (Y). Un commit
+de documentation seule (rien de servi ne change de comportement) peut se faire sans version, au
+format `doc : …` (précédents dans l'historique).
 Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
 ## Avant chaque commit
-- `npm run check` — garde-fous sans dépendance : **syntaxe** des scripts inline (attrape les
-  templates mal fermés) **ET DE LA FEUILLE DE STYLE** (v4.74.2 — commentaires jamais imbriqués et
-  tous fermés, accolades équilibrées, chaînes retirées d'abord). Ce dernier volet existe parce que
-  le contrôle ne regardait que du JavaScript, alors qu'une erreur de parse CSS est aussi grave et
-  BEAUCOUP plus silencieuse : un fermeur de commentaire en trop laisse du texte à nu, et le parseur,
-  pour se resynchroniser, **AVALE LA RÈGLE SUIVANTE**. C'est arrivé deux fois de suite sur des
-  commentaires coupés en deux, et la seconde fois **la v4.74.0 a livré un correctif mort** — la
-  règle `.hs-wrap>.hs-row:hover` était mangée depuis sa publication, `npm run check` vert de bout en
-  bout. Corollaire de méthode : après toute édition du CSS, ne pas se fier au vert de `check-colors`
-  et `check-type`, qui travaillent au motif et ne voient pas une règle disparue. Puis **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
-  typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées),
-  **polices** (`check-fonts.mjs`, v5.6 — trois familles embarquées, trois tokens ; une
-  `font-family` écrite en clair est SILENCIEUSE, cf. A22),
-  **espacement** (`check-space.mjs`, v5.0.0 — 1 356 déclarations, échelle fermée à 21 valeurs,
-  migration à ≤ 1 px de déplacement : c'était la moitié du système sans aucun garde-fou),
-  **rayons** (`check-radius.mjs`, v5.0.0 — dix-neuf valeurs distinctes pour trois tokens, ramenées
-  à sept), et `check-type` couvre désormais AUSSI la bande d'AFFICHAGE (≥ 20 px : 20 · 24 · 26 ·
-  34 · 40) **ET la liste « 16 px tactile » (v5.4.0, signalé à l'usage iPhone : « quand on clique
-  à l'intérieur d'un protocole l'écran zoome »)** : le champ « Chercher dans la référence » était
-  né en v5.0.0 à 12 px sans rejoindre le bloc `@media (hover:none) and (pointer:coarse)` de fin
-  de feuille — la source de vérité unique des 16 px (v4.4.2), tenue À LA MAIN, donc un champ
-  oublié était un trou silencieux (famille MUTE_SEL/placards). Le contrôle exige désormais que
-  tout sélecteur posant < 16 px sur un jeton d'élément `input`/`textarea`/`select` figure dans
-  cette liste ; il a immédiatement attrapé TROIS autres champs jamais signalés (phase de bloc à
-  11 px, lignes du chapeau et nom de minuteur à 13,5). Limite dite : un champ stylé par sa seule
-  CLASSE échappe au repérage statique. ⚠ Sa PREMIÈRE version était un no-op silencieux — écrite
-  via un heredoc Python, son `\b` de regex était devenu un BACKSPACE (le piège « un patch scripté
-  mutile en silence », déjà payé sur les `$$` SQL) et le test de réintroduction restait VERT ;
-  rejoué rouge/vert après réparation, et la preuve dynamique (pointeur grossier émulé, corps
-  calculé 16 px sur les quatre champs) est passée aux deux moteurs,
-  **paliers de largeur** (`check-paliers.mjs`, v5.0.0 — l'échelle responsive cesse d'être
-  déclarative ; cf. « Largeurs & échelles fermées »), et
-  **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
-  fois : on édite le script inline, on oublie de rejouer `node scripts/csp-hashes.mjs`, et la CSP
-  bloque le SEUL script de l'app — elle ne démarre plus, et le symptôme (page blanche, ou
-  « `__ac_test__` introuvable » côté tests) ne désigne pas sa cause. Le même contrôle refuse tout
-  attribut `on*=` dans `index.html` : sous une CSP à hashs, `'unsafe-inline'` est ignoré et un
-  gestionnaire inline est du code MORT et silencieux (c'est arrivé au bouton « Recharger » de
-  l'écran d'échec de démarrage, seul recours d'une app installée).
-  `check-anim.mjs` (v4.41.0) complète la série : **aucune propriété de MISE EN PAGE dans un
-  `transition` ni dans un `@keyframes`** (cf. « ON ANIME LA COMPOSITION » dans Conventions). Les
-  propriétés de PEINTURE seule (couleurs, ombres, contours) ne sont pas concernées — elles
-  repeignent, elles ne remettent pas en page. UNE exemption, motivée dans le fichier :
-  `.skiplink` (glissement de 120 ms, une fois par focus — pas une animation continue, et le
-  convertir mettrait en jeu une position dépendant d'`env(safe-area-inset-top)`, soit un risque
-  d'accessibilité pour un gain nul). Le contrôle a été vérifié CAPABLE D'ÉCHOUER (défaut
-  réintroduit puis fichier restauré à l'octet) : un garde-fou qui ne peut pas échouer ne prouve
-  rien — leçon v4.31.1.
-  `check-sw.mjs` (v4.44.0) ferme le trou le plus gênant du dispositif : **la fonction dont tout
-  dépend en intervention — exister hors ligne — était la seule que rien ne mesurait**, aucun des
-  onze harnais ne regardant `sw.js` ni le manifeste (trois des défauts les plus graves de l'audit
-  vivaient là et n'ont été trouvés qu'à la lecture). Quatre contrôles STATIQUES, donc instantanés,
-  donc jouables à chaque commit : (1) toute entrée d'`ASSETS`/`CORE_ASSETS`/`PDFJS_ASSETS` existe
-  sur le disque — une entrée fantôme dans `CORE_ASSETS` fait échouer `addAll`, qui est
-  tout-ou-rien, et supprime le hors-ligne ENTIER ; (2) `CORE_ASSETS` ⊆ `ASSETS` ; (3) tout fichier
-  servable de la RACINE est dans `ASSETS` — la règle 13 ne s'auto-exécutait pas (les fichiers en
-  point sont exclus : ce sont les sondes gitignorées) ; (4) `CACHE` aligné sur `APP_VERSION`,
-  c'est-à-dire la règle 1. Le comportement DYNAMIQUE (install, fetch, hors-ligne réel) reste hors
-  de portée : il demande un navigateur et deux précautions documentées — désinscrire le worker et
-  purger les caches entre exécutions (piège v4.30.0), sans quoi on teste la version précachée.
-- `npm test` — exécute `tests.html` en headless sur **DEUX moteurs, Chromium ET WebKit** (v4.34.0 :
-  iOS Safari est la cible principale et n'était jamais testé — toute la suite tournait sur Blink
-  seul, alors que le dossier « bande basse iOS » a montré qu'un comportement WebKit peut couper
-  l'écran sans qu'aucune mesure ne le voie). WebKit manquant = AVERTISSEMENT, pas échec
-  (`npx playwright install webkit`). À défaut de npm, ouvrir `tests.html` **servi en http**
-  (pas en `file://` : les iframes cross-origin y sont bloquées).
-- **Si le CSS d'`index.html` a changé** : `npm run design:build` régénère `design/ds/` (source
-  de vérité = le monofichier) — puis committer la régénération. `npm run design:check` échoue si
-  `design/ds/` a dérivé du code (le CI le rejoue ; `release.sh` régénère automatiquement). Pousser
-  le résultat vers le projet Claude Design distant reste un geste explicite (skill `/design-sync`).
-  **⚠ PIÈGE VÉCU (v4.74.1) — `npm run design:check` PORTE `--strict`, ET `--strict` FAIT
-  `git checkout -- design/ds`.** Il restaure donc les fichiers GÉNÉRÉS pour ne pas polluer l'espace
-  de travail du CI ; joué APRÈS un `design:build` local et AVANT le `git add`, il efface la
-  régénération qu'il vient lui-même de réclamer — et le commit part sans elle, le CI échoue sur
-  exactement le message qu'on croyait avoir traité. L'ordre est donc : `design:build` → `git add
-  design/ds` → (facultatif) `design:check`. **Ne jamais intercaler `design:check` entre les deux**,
-  et vérifier au `git status` que les fiches sont bien STAGÉES avant de committer.
-- `npm run audit` — **audit transverse (v4.23.0 ; SOCLE COMMUN + MOTEUR CHOISISSABLE v4.45.0)**.
-  Les harnais partagent `scripts/harness.mjs` (serveur statique, table MIME, choix du
-  moteur) : ils recopiaient le même bloc, et la DIVERGENCE avait déjà commencé —
-  `audit-retour.mjs` était le seul dont la table MIME omettait `.ico`. Surtout, les onze d'alors
-  lançaient `chromium.launch()` EN DUR : **iOS Safari, la cible principale déclarée, n'était
-  auditée par AUCUN harnais**, alors que `npm test` tourne sur deux moteurs depuis v4.34.0. Le
-  moteur se choisit désormais par `AC_ENGINE` (`chromium` par défaut, donc rien ne change sans
-  décision ; un nom inconnu échoue bruyamment plutôt que de retomber en silence sur chromium) :
-  `AC_ENGINE=webkit npm run audit`.
-  **Le premier passage sur WebKit a immédiatement payé** : la sonde WCAG 2.4.11 signalait 8
-  masquages sur 11 cibles, tous avec un bas NÉGATIF — les éléments n'étaient pas encore revenus
-  à l'écran. Sur WebKit, le défilement induit par un focus PROGRAMMATIQUE est **asynchrone** ;
-  la sonde lisait la géométrie d'avant et mesurait la synchronicité du moteur, pas
-  l'application. Avec 60 ms d'attente : 0 sur les deux moteurs, à sélecteur et scénario
-  identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
-  attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
-  savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, à la feuille Plan, aux cartes de consultation ou à un token de couleur. **DIX-HUIT harnais Playwright qui
-  MESURENT au lieu d'affirmer (liste exacte dans `scripts/audit-run.mjs` : a11y, doctrine,
-  budget, verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice, **guide** (v5.48, A467),
-  **k5**, **prompt**, retour, qr, partage, historique, **stockage**, **pliables** (v5.38, A405)).
-  **LANCEUR PARALLÈLE À RAPPORT AGRÉGÉ (v5.0.0, `scripts/audit-run.mjs`)** : la chaîne `&&` de
-  `package.json` payait la SOMME des durées (mesuré 9 min 42 s, dont 87 % dans doctrine/a11y/
-  partage/k5) et son fail-fast CACHAIT tout ce qui suivait le premier rouge — l'incident « un
-  harnais qui plante en emporte cinq » (v4.70.1), revécu à chaque itération. Le lanceur joue les
-  dix-huit en concurrence (pool `AC_JOBS`, défaut 4, lourds d'abord — temps mural ≈ le max, pas la
-  somme) et rapporte TOUS les échecs d'une passe ; les sondes, leurs seuils et `AC_ENGINE` sont
-  inchangés, et chaque harnais reste lançable seul. **CIBLAGE pendant l'itération** :
-  `npm run audit -- partage qr` ne joue que les harnais nommés — la passe s'annonce alors
-  « PARTIELLE » en toutes lettres (un vert partiel pris pour un complet serait pire que le statu
-  quo), un nom inconnu ÉCHOUE bruyamment (une faute de frappe qui lancerait une passe vide aurait
-  l'air verte), et la règle « avant chaque commit » reste la passe COMPLÈTE, que la CI rejoue.
-  **SECTIONS CIBLABLES ET TRANCHES (v5.4.4, audit du dispositif lui-même — mesuré avant de
-  décider)** : la boucle d'itération payait le harnais ENTIER pour confirmer UN témoin corrigé
-  (doctrine : 216,7 s mesurées pour 51 sections indépendantes — seul état partagé, les compteurs
-  ok/ko), et la passe complète avait doctrine pour temps mural À LUI SEUL (216,7 s = 100 % du
-  mural, le pool absorbant les 19 autres pendant qu'il tourne). Quatre réponses, AUCUNE sonde
-  changée : (1) **`--grep <motif>`** sur doctrine et partage (`secRunner`, harness.mjs) — chaque
-  section est enveloppée dans `await sec('nom', …)`, une section ciblée se confirme en ~2-8 s au
-  lieu de 217 ; motif sans correspondance = échec BRUYANT listant les sections (une passe vide
-  aurait l'air verte), passe filtrée annoncée « PARTIELLE » jusque dans le bilan final. La
-  transformation a été vérifiée par ÉQUIVALENCE DE SORTIE (737/737 et 291/291, diff byte à byte
-  contre la sortie d'avant, hors ligne `##SEC`). (2) **`tranches: n`** dans `HARNAIS` : le lanceur
-  joue doctrine en 4 processus `--shard k/n` (découpe au modulo, ordre gardé — **équilibrée par
-  durées depuis v5.39.2** : le lanceur passe un plan `AC_PLAN` calculé sur les ⏱ de la passe
-  précédente, modulo en l'absence de mesure), a11y en 2 (tranches
-  du tableau SURFACES ; la sonde focus 2.4.11 ne tourne que dans la tranche 1), partage en 2 —
-  temps mural de la passe complète ~217 → ~120 s. GARDE-FOU : chaque tranche imprime
-  `##SEC joues=j total=N` et le lanceur VÉRIFIE que la somme couvre le total — une tranche qui
-  perdrait des sections serait une troncature silencieuse, rouge fabriqué. (3) **`--rouges`
-  REJOUE PAR SECTION (v5.4.4 ; affiné v5.10.5)** : chaque passe enregistre dans
-  `.audit-etat.json` (racine, gitignoré) les harnais rouges ET, pour les harnais à secRunner
-  (doctrine, partage), les NOMS des sections rouges lus dans la sortie capturée ; `--rouges`
-  rejoue alors ces seules sections par `--grep` (noms exacts, ancrés, échappés) — confirmer un
-  correctif tombe de ~2 min à quelques secondes. Toujours annoncé PARTIELLE, et TROIS garde-fous :
-  l'attribution n'est tentée que si le harnais a atteint son bilan (`##SEC` présent — sinon repli
-  sur le harnais ENTIER, jamais trop peu) ; un `--grep` qui rejoue moins de sections qu'attendu
-  (renommée depuis ?) est FORCÉ ROUGE ; un rejeu par sections n'écrit JAMAIS de vert au cache.
-  (4) **CACHE VERT PAR HARNAIS (v5.4.4 ; par harnais depuis v5.10.5)** : le cache était
-  tout-ou-rien (un octet changé dans `audit-qr.mjs` faisait repayer doctrine, 217 s) ; l'empreinte
-  SHA-256 est désormais PAR HARNAIS — socle commun (servables de la racine, vendor/,
-  `harness.mjs`, `audit-run.mjs`, moteur) + son script + ses `deps` déclarées (audit-qr :
-  `qr-decode.swift`). Une passe qui joue un harnais EN ENTIER et le trouve vert enregistre son
-  empreinte ; la passe COMPLÈTE suivante ne rejoue que les harnais dont un intrant a changé et
-  LISTE les autres « réutilisés » (même argument que le cache d'origine : entrées identiques →
-  même verdict). Les `check-*.mjs` sont sciemment HORS empreinte : aucun harnais ne les lit, les
-  inclure fabriquait des repasses complètes fantômes. `--force` rejoue tout ; un ciblage par noms
-  ÉCRIT le vert du harnais joué mais ne consomme jamais le cache.
-  **UNE MANŒUVRE, UNE SECTION (v5.6, demande de l'auteur : « optimise les audits, évite les
-  doublons »)** : deux sections qui montent le MÊME décor pour mesurer deux propriétés d'un même
-  geste paient deux fois le démarrage — et surtout, elles finissent par diverger (l'une apprend un
-  piège que l'autre ignore). Quand une propriété nouvelle se mesure sur un contexte DÉJÀ dressé,
-  elle rejoint la section qui le dresse ; quand elle demande une autre LARGEUR, on redimensionne
-  (`setViewportSize`) au lieu de recharger — l'état de session et les volets survivent. Précédent :
-  « acquitter un minuteur échu » a fusionné dans la section A9, qui fait déjà échoir un minuteur
-  volet ouvert. ⚠ La limite est la LISIBILITÉ DU ROUGE : une section est une UNITÉ DE VERDICT, et
-  l'on ne fusionne pas des mesures sans rapport pour économiser une page.
-  **LE WORKFLOW QUI EN DÉCOULE** : une passe complète de
-  DÉCOUVERTE en début de chantier (le rapport agrégé montre tous les rouges d'un coup), puis
-  correction → section ciblée en secondes, puis UNE passe complète finale — la porte de commit est
-  STRICTEMENT inchangée. **CE QUI N'A PAS ÉTÉ FAIT, et pourquoi** : pas de carte « fichier modifié
-  → harnais à jouer » (monofichier + dix-neuf pièges de cascade : une édition CSS anodine casse
-  des témoins dans des harnais sans rapport — une carte serait un vert menteur) ; pas de témoins
-  auto-régénérés façon snapshots (un contrôle qui ne peut plus échouer ne prouve rien, leçon
-  v4.31.1) ; k5 n'est pas découpé (scénario séquentiel monopage, ~67 s incompressibles).
-  **GESTES D'AMORÇAGE PARTAGÉS (v5.0.0, `harness.mjs` : `amorce`/`ouvrirFiche`/`demarrerSession`)** :
-  les dix-sept recopiaient « Commencer → fiches d'exemple → `.card-open` → `#sessStart` » avec des
-  délais déjà divergents (120/350 ici, 200/700 là) — un changement du flux d'accueil coûtait
-  jusqu'à dix-sept éditions. Une copie désormais, avec attentes sur CONDITIONS RÉELLES
-  (`waitForFunction`) au lieu de délais fixes ; le point d'entrée reste le VRAI (doctrine v4.40.0).
-  DEUX sites gardent leur amorçage inline À DESSEIN, commentés sur place dans `audit-doctrine.mjs` :
-  la sonde de l'écran de bienvenue (l'amorçage est son SUJET de mesure, pas sa mise en condition)
-  et la sonde qui injecte SA fiche sans poser les exemples (autre trajet, pas une copie).
-  Ils tournent en CI en mode **NON BLOQUANT** (`continue-on-error`) : visibles à chaque
-  push, mais un échec y demande un arbitrage humain, pas un blocage de merge. Les trois plus
-  anciens, en détail :
-  - `scripts/audit-a11y.mjs` — **25 surfaces × 2 thèmes, dont les 21 `.ai-modal` du monofichier
-    et l'écran d'entrée de l'invité** (v4.40.0) : plancher typographique 11 px, contraste
-    calculé sur le fond EFFECTIF (remontée des ancêtres + composition alpha, exemption « grand
-    texte »), cibles (44 px en crise, 24 px ailleurs, halo `::after` compté), `--ink-3` en couleur
-    de texte, « hors chemin » signalé par la seule opacité, et **focus visible sous de VRAIES
-    touches Tab** — un `.focus()` programmatique ne déclenche pas `:focus-visible` et produisait
-    des faux positifs en série. L'anneau est cherché sur l'élément ET ses ancêtres (motif
-    `.card:has(.card-open:focus-visible)` : le bouton pose `outline:none`, la CARTE porte
-    l'anneau, 3 niveaux plus haut) — mais sur un ancêtre on n'accepte QUE l'outline, son
-    `box-shadow` étant en général une élévation permanente qui masquerait un vrai défaut.
-    **UNE SONDE OUVRE PAR LE VRAI POINT D'ENTRÉE, ELLE NE RECONSTRUIT JAMAIS L'ÉTAT (v4.40.0)** :
-    ni `classList.add('on')` sur une fenêtre (elle serait vide — rien à mesurer, verdicts faux), ni
-    `state.view='read'; state.fiche=f; render()` à la main — c'est `openRead(id)` qui appelle
-    `buildRuntime` + `bindStateToRuntime`, et sans lui le clic sur « démarrer la session » ne
-    démarre RIEN (mesuré : `Runtime.started=false`, `liveSessions=0`). Trois surfaces ont ainsi
-    mesuré pendant une version un contexte SANS session vive tout en annonçant l'inverse. Chaque
-    fenêtre CONSTRUIT donc son contexte par les fonctions de l'app (session vive, sauvegarde de
-    version, document joint, complication déclarée, session archivée pour le compte-rendu — qui
-    exige le parcours complet, `exportSessionReport` prenant un **ID** et lisant les sessions
-    ARCHIVÉES). `prep` accepte une FONCTION, sérialisée par Playwright : la CSP du projet interdit
-    `eval()`, une sonde qui passe du code en chaîne est bloquée.
-  - `scripts/audit-doctrine.mjs` — ECAM/QRH/AC 120-71B traduits en invariants observables :
-    ordre du quai et position en px des boutons Plan/Réf. INCHANGÉS quel que soit l'état,
-    débordement annoncé, memory items dans le flux et non recopiés dans la feuille, feuille
-    carte Références inerte (0 coche, 0 démarrage), taper un nœud du plan ne démarre ni ne coche,
-    snackbar mis en attente en session, mouvement nul sous `prefers-reduced-motion`.
-  - `scripts/audit-verify.mjs` — la passe Do-Verify laisse un résultat CONSULTABLE (cf. trace de
-    vérification). **Les sondes JETABLES s'écrivent à la racine en `.nom.mjs`** (pour trouver
-    `playwright` dans `node_modules`) et sont ignorées par git ; seuls les harnais qui RESTENT
-    vivent dans `scripts/`.
-  - `check-sql.mjs` (v4.44.1) — `supabase/*.sql` n'était couvert par RIEN : ni servi, ni chargé
-    par les tests, l'erreur ne se voyant qu'au collage dans l'éditeur SQL de Supabase, donc **sur
-    une instance de production**. Vérifie les runs de dollars (un délimiteur de corps s'écrit
-    `$$`), leur parité, et qu'aucun en-tête de fonction ne contient un `;` avant son corps.
-    **PIÈGE À CONNAÎTRE AVANT TOUT PATCH SCRIPTÉ** : `String.prototype.replace()` interprète
-    `$$` DANS LA CHAÎNE DE REMPLACEMENT comme un dollar littéral unique — comme `$&`, `` $` ``,
-    `$'` et `$1`. Un script qui réinjecte du SQL contenant `$$` le mutile donc **en silence** :
-    c'est arrivé en v4.44.0 sur deux fonctions trigger, et l'utilisateur l'a découvert en rejouant
-    le schéma. Remède : passer une **fonction** de remplacement (aucune substitution n'y est
-    faite), ou `split().join()`. Corollaire de méthode : le contrôle qui avait été fait à
-    l'époque comptait les `$$` et vérifiait la PARITÉ — or un `$$` amputé ne matche plus le
-    motif, il disparaît du compte des deux côtés et la parité reste vraie. Un contrôle aveugle au
-    défaut qu'il prétend couvrir ne vaut rien (leçon v4.31.1, redite ici au prix fort).
-  `check-upload.mjs` (v5.0.0) tient la porte des ENTRÉES DE FICHIER : un seul
-  `<input type="file">` dans tout le fichier (il y en avait cinq), aucun `accept` écrit à la main
-  (il vient de `UP_KINDS`, sur la même ligne que la signature qui sera vérifiée), aucun `accept`
-  fourre-tout du genre « image/étoile » — c'est par là que le SVG entrait —, cinq champs par
-  nature, et **le compte des sites qui lisent `.files`** : un quatrième serait, par construction,
-  un chemin d'upload qui ne passe pas par `acceptFile`, c'est-à-dire le défaut d'avant ce chantier
-  en train de revenir. Il neutralise les commentaires avant de mesurer (le fichier CITE la règle à
-  plusieurs endroits) et cette approximation tombe du bon côté : sur-neutraliser fait ÉCHOUER, pas
-  passer sous silence. Vérifié capable d'échouer sur ses cinq points, fichier restauré à l'octet.
-  `check-actions.mjs` (v5.6) exige qu'un `data-*` ÉMIS ait un LECTEUR (cf. A112).
-  `check-ids.mjs` (v5.10.2) est son symétrique pour les IDS : tout `getElementById('X')` littéral
-  doit avoir une émission (`id="X"` ou fabrique déclarée — `upDropHtml`, `crtCard`). Quatre
-  lecteurs fantômes (#crisisCtrl ×3, #planBtn ×2, #endSess) vivaient dans ce trou, dont un qui
-  recalculait `--ctrl-h` à chaque évènement de défilement pour un élément inexistant.
-  `check-actest.mjs` (v5.10.2) tient la SURFACE DE TEST : toute clé exportée vers `__ac_test__`
-  doit être citée par `tests.html` ou un harnais, et les doublons du littéral échouent — c'est le
-  trou par lequel `flattenFiche` (exportée, citée nulle part) est restée verte pendant que le
-  diff de versions devenait aveugle sur cinq listes sur six. ⚠ `tests.html` se lit en OCTETS :
-  `grep` sans `-a` le croit binaire et répond zéro sur TOUT — le piège qui a fait dire « 0
-  test » à un audit entier (toujours `grep -a` sur ce fichier).
-  `check-ring.mjs` (v5.19.6, A285) tient LA RESPIRATION DU BORD DE DÉCOUPE : aucune règle ciblant un
-  corps de fenêtre par son `#id` ne pose une respiration inline < 4 px — la garde d'A268 qui laisse
-  l'anneau de focus entier. Elle avait été reprise en silence par un RACCOURCI `padding` (spécificité
-  d'un id contre celle de `.ai-card>.ai-body`), et la marge négative survivant seule décalait le contenu
-  de 4 px vers la découpe. Les règles visant un DESCENDANT ne sont pas concernées. Vérifié capable
-  d'échouer sur l'état d'avant correctif.
-  `check-stick.mjs` (v5.12.1) tient LE DÉCALAGE « SOUS L'EN-TÊTE » : aucune propriété `top` ne
-  s'ancre sur `--hdr-h` sans tenir compte de `--vvt` (le décalage du viewport visuel, clavier
-  ouvert) — elles lisent `--hdr-off`, qui porte les deux. Il naît d'une récidive : la v5.12.0 a
-  fait suivre le clavier au chrome collant mais n'a corrigé que TROIS des CINQ sites qui
-  recopiaient le calcul, et `#refBar` — la barre de recherche d'une référence — continuait de
-  disparaître dans le cas qu'on venait de réparer. Une exemption nommée (`.azrail`, dont le haut
-  est gelé par mesure). Vérifié capable d'échouer.
-  `check-tokens.mjs`, le sens inverse de `check-ids` et `check-fns.mjs` (v5.19.4, A283) ferment
-  les trois trous de l'audit interne : token CSS déclaré ↔ lu (le cas `--hover`, survol inerte en
-  production), sélecteur `#id` stylé → émis, déclaration top-niveau → citée ailleurs que sur sa
-  ligne. Commentaires dépouillés d'abord (`strip-comments.mjs`, source unique) : un nom cité dans
-  la doctrine n'est pas un usage. Asymétrie choisie : une citation en chaîne compte comme usage —
-  jamais de faux rouge, au prix de morts manqués. Détail : A283.
-  `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
-  (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
-  réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le
-  trou serait silencieux (la fuite exacte de l'échelle des paliers, rejouée ici) ; (2) aucun
-  harnais ne recopie l'amorçage « Commencer » — on passe par `amorce()`/`ouvrirFiche()`/
-  `demarrerSession()` de `harness.mjs`, et une exemption se marque SUR PLACE par le commentaire
-  « PAS `amorce()` ici » avec sa justification (jamais dans une liste du contrôle, qui se
-  périmerait). Vérifié CAPABLE D'ÉCHOUER dans les deux sens (harnais fantôme → rouge ; copie
-  d'amorçage réintroduite → rouge ; états restaurés).
-- L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
-  `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
-  puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe
-  exactement le contenu du lock, donc reproductible — `release.sh` synchronise désormais la
-  version de `package-lock.json` avec les trois autres fichiers (elle était restée à 4.3.0).
 
-## Refonte v5.6 — direction « verre clinique, mat »
+La procédure. **L'histoire et la raison de chaque garde-fou, et le détail de chaque piège, vivent
+dans [`docs/decisions/garde-fous-et-audits.md`](docs/decisions/garde-fous-et-audits.md)** (repris
+à l'octet) ; chaque script dit aussi en tête ce qu'il garde et pourquoi.
 
-> **Déplacée dans [`docs/decisions/refonte-v5-6.md`](docs/decisions/refonte-v5-6.md)** (v5.10.3) — contenu repris à
-> l'octet, rien n'est réécrit : La refonte « verre clinique, mat » — A1 à A112 (+ R6, R9, dock, volets, partage résumé).
+1. **Script inline édité → `node scripts/csp-hashes.mjs`** (règle 3). Aucun attribut `on*=` dans
+   `index.html` : sous la CSP à hashs, c'est du code mort et silencieux.
+2. **`npm run check`** — les **27 garde-fous statiques**, sans dépendance (liste exacte : script
+   `check` de `package.json`) : syntaxe des scripts ET de la feuille de style, couleurs, classes
+   émises et stylées, animations, échelles (typo, polices, espacement, rayons, paliers), service
+   worker, actifs vendorisés, entrées de fichier, SQL, stores, icônes, `data-*` lus, ids (lus,
+   stylés, émis), exports de test, harnais, collant, anneau, CHANGELOG, lexique, guide, tokens,
+   fonctions, hashs CSP. ⚠ Ils travaillent AU MOTIF : après une édition CSS, un commentaire mal
+   fermé AVALE la règle suivante sans que `check-colors`/`check-type` ne le voient — c'est
+   `check-syntax` qui le garde, ne pas le contourner. Un garde-fou nouveau se vérifie **capable
+   d'échouer** (défaut réintroduit → rouge → fichier restauré).
+3. **`npm test`** — `tests.html` en headless sur **Chromium ET WebKit** (WebKit absent =
+   avertissement : `npx playwright install webkit`). Sans npm : `tests.html` **servi en http**,
+   jamais en `file://`. ⚠ `tests.html` se lit en octets : toujours `grep -a`.
+4. **CSS changé → `npm run design:build` → `git add design/ds`**, et seulement ensuite (facultatif)
+   `npm run design:check`. ⚠ Il porte `--strict`, qui fait `git checkout -- design/ds` : joué entre
+   le build et le `git add`, il efface la régénération. Vérifier au `git status` que `design/ds` est
+   STAGÉ.
+5. **`npm run audit`, passe COMPLÈTE** — les **23 harnais** Playwright (liste : `HARNAIS` dans
+   `scripts/audit-run.mjs`), en parallèle, rapport agrégé, cache vert par harnais. Pour itérer :
+   `npm run audit -- <noms>` (annoncée PARTIELLE), `--grep <motif>` (sections de doctrine et
+   partage), `--rouges` (rejoue les seules sections rouges), `--force` (ignore le cache) ;
+   `AC_ENGINE=webkit`, `AC_JOBS=n`. Flux : une passe complète de découverte, des sections ciblées
+   pendant la correction, UNE passe complète finale — c'est elle qui vaut.
 
-## Lot v5.7 — « la bonne information, au bon moment, au bon endroit »
+**Écrire ou modifier un harnais** — pièges payés, à ne pas rejouer :
+- tout `scripts/audit-*.mjs` figure dans `HARNAIS` (`check-harnais`) ; l'amorçage passe par
+  `amorce()`/`ouvrirFiche()`/`demarrerSession()` de `harness.mjs` — une exception se marque sur
+  place « PAS `amorce()` ici » avec sa raison ;
+- une sonde ouvre par le **vrai point d'entrée** (`openRead(id)`…), elle ne reconstruit jamais
+  l'état à la main ; `prep` est une **fonction** (la CSP interdit `eval`) ;
+- sur WebKit, le défilement induit par un `focus()` programmatique est asynchrone : **attendre**
+  avant de lire une géométrie ; le focus visible se mesure sous de vraies touches Tab ;
+- une manœuvre = une section (une propriété nouvelle sur un décor déjà dressé rejoint sa section ;
+  autre largeur : `setViewportSize`, pas de rechargement) ;
+- sondes jetables à la racine en `.nom.mjs` (gitignorées) ; seuls les harnais qui restent vivent
+  dans `scripts/` ;
+- patch scripté de SQL : `String.replace()` interprète `$$` dans la chaîne de remplacement —
+  passer une **fonction** de remplacement, ou `split().join()`.
 
-> **Déplacée dans [`docs/decisions/lots-v5-7-a-v5-9.md`](docs/decisions/lots-v5-7-a-v5-9.md)** (v5.10.3) — contenu repris à
-> l'octet, rien n'est réécrit : Lots v5.7 à v5.9 — A113 à A132 (retour au bloc, tri vivant, atelier d'import).
-
-## Lot v5.10 — « Page » : la feuille devient un document
-
-> **Déplacée dans [`docs/decisions/lot-v5-10.md`](docs/decisions/lot-v5-10.md)** (v5.10.3) — contenu repris à
-> l'octet, rien n'est réécrit : Lot v5.10 « Page » — A133 à A138 (grille unique, largeur d'auteur).
-
-## Lot v5.10.1 — audit design externe : ce que les garde-fous ne voyaient pas
-
-> **Déplacée dans [`docs/decisions/lot-v5-10-1.md`](docs/decisions/lot-v5-10-1.md)** (v5.10.3) — contenu repris à
-> l'octet, rien n'est réécrit : Lot v5.10.1 — audit design externe, A139 à A153.
-
-## Lot v5.10.2 — audit de code externe : ce que les dix-huit garde-fous ne voyaient pas
-
-> **Déplacée dans [`docs/decisions/lot-v5-10-2.md`](docs/decisions/lot-v5-10-2.md)** (v5.10.3) — contenu repris à
-> l'octet, rien n'est réécrit : Lot v5.10.2 — audit de code externe, A154 à A158.
-
-## Lot v5.12 — agir sur plusieurs fiches, replier un document
-
-> **Vit dans [`docs/decisions/lot-v5-12.md`](docs/decisions/lot-v5-12.md)** — A170 à A191 (et le
-> lot **v5.13**, A192-A197, en second chapitre du même fichier) : sélection
-> multiple à l'accueil (déplacer, ranger, supprimer avec confirmation forte), titres H1/H2/H3
-> repliables et mémorisés par protocole, et le chrome collant qui suit enfin le viewport visuel.
-> **Le CONTENU de la barre a été refait en v5.17** (planche 20, A227-A230) : hauteur constante de
-> 56 px, actes dans un tiroir sous les 1200 px, libellés entiers — cf.
-> [`docs/decisions/lot-v5-17.md`](docs/decisions/lot-v5-17.md). La coque décrite ici n'a pas bougé.
-
-## Lot v5.11 — l'atelier d'import dit aussi « où » ça va
-
-> **Vit dans [`docs/decisions/lot-v5-11.md`](docs/decisions/lot-v5-11.md)** — A159 à A169 : destination
-> (bibliothèque **et** catégorie) réglable RANGÉE PAR RANGÉE dans l'atelier, bandeau qui commande les
-> cochées, « garder celle du fichier » par défaut, menus en feuille à toute largeur.
-
-## Conventions de code
-
-> **Déplacée dans [`docs/decisions/conventions-de-code.md`](docs/decisions/conventions-de-code.md)** (v5.10.3) — contenu repris à
-> l'octet, rien n'est réécrit : Conventions de code — la doctrine détaillée par composant (registres, chrome, accueil, partage, stockage…).
+**Intégration continue** (`.github/workflows/ci.yml`, chaque push sur `main` et chaque PR) :
+`npm run check`, `design-check --strict`, `npm ci`, `npm test` (deux moteurs), puis
+`npm run audit` en **non bloquant** (un rouge d'audit demande un arbitrage humain, pas un blocage).
 
 ## Périmètre réglementaire
 L'app est un **support de contenu** rédigé et validé par l'utilisateur, sans calcul ni
@@ -608,39 +371,44 @@ par défaut borné à 12 h, purge 30 min après expiration) et ce qui ne sort ja
 cohérent avec la notice affichée à l'invité** (`#joinScreen`) : les deux évoluent ensemble, ou
 aucun.
 
-## Se repérer dans `index.html` (monofichier, ~18 800 lignes)
+## Se repérer dans `index.html` (monofichier, ~33 400 lignes à la v5.57)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
 
 > **Le tableau ci-dessous est un RÉSUMÉ, pas un index** : il décrit une vingtaine de sections sur
-> les **63** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
+> les **79** bannières `/* ===== … ===== */` du fichier, et volontairement sans numéros de ligne —
 > ils seraient périmés au commit suivant. Pour l'index EXACT et à jour, une commande :
 >
 > ```bash
 > grep -n '^/\* ===== \|^  /\* ===== ' index.html
 > ```
 >
-> Découpage global : CSS ≈ lignes 273-3379, coque HTML statique ≈ 3381-3697 (dont **24 fenêtres
-> modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, toutes auditées par
+> Découpage global (v5.57 — les chiffres glissent à chaque lot, la commande fait foi) : grand
+> commentaire d'architecture ≈ lignes 2-276, CSS ≈ 361-8605, coque HTML statique ≈ 8606-9178 (dont
+> **~26 fenêtres modales** déclarées en dur — `grep -c 'class="ai-modal' index.html`, auditées par
 > `audit-a11y.mjs` —, plus deux surfaces plein écran qui n'en sont pas : `#monMode` et
-> `#joinScreen`), JavaScript ≈ 3699 à la fin.
+> `#joinScreen`), JavaScript ≈ 9179 à la fin.
 
 | Section (bannières `/* ===== … ===== */`) | Contenu |
 |---|---|
 | `<style>` | Tout le CSS (variables dans `:root`, thème sombre via `html[data-theme="dark"]`) |
-| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) ; stores IndexedDB v5 : `fiches`, `meta`, `sessions`, `backups`, `attachments` (ArrayBuffer PDF), `protocols` |
-| State & Runtime | `state` (quoi afficher) ; `Runtime` (état vivant du mode crise) ; garde-fous `safeId`/`safeColor`/`safeImg`/`safeAttachment`/`sstr`/`sarr` |
-| Modèle | `blankFiche`, `migrate` (point d'entrée sécurité/compat), `seed`/`seed2`, catégories |
+| Backends | `KV` / `IDB` / `MEM` : trois stockages locaux interchangeables derrière `Data` ; **un espace local par compte** (`currentSpace`/`dbNameFor`/`spaceKey`, bascule par reload à la connexion d'un autre compte, jamais de mélange entre comptes) ; base IndexedDB version 6 (`openSpaceDb`), stores `fiches`, `meta`, `sessions`, `backups`, `attachments` (ArrayBuffer PDF), `protocols`, `attidx` (index de recherche dans les PDF) — un store neuf exige une montée de version, et tout store LU doit exister (`check-stores`) |
+| State & Runtime | `state` (quoi afficher ; la bibliothèque affichée est `state.homeLib`, lue par la SOURCE UNIQUE `homeScope()` — `state.scope` est un champ MORT depuis v5.18, cf. A297-A304) ; collections personnelles `colls`/`sanitizeColls` (A475) ; `Runtime` (état vivant du mode crise) ; garde-fous `safeId`/`safeColor`/`safeImg`/`safeAttachment`/`sstr`/`sarr` |
+| Modèle | `blankFiche`, `migrate` (point d'entrée sécurité/compat — SEUL lecteur de format, le v4 à pool), pool d'items (`bItems`/`bItemAdd`/`bItemDel`/`bItemMove`), `seed`/`seed2` (les deux aides d'exemple, seul matériel pédagogique livré), catégories |
 | Load | `chooseBackend`, `load()` (démarrage), `persist`, `softDelete` |
 | Runtime | minuteurs/compteurs/audio (`tickAll`, `beep`), sessions vives (`liveSessions`) |
 | Sessions | auto-enregistrement (`persistLive`), reprise, compte-rendu |
-| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderFiches`/`renderProtocols` / `renderRead` / `renderEditor` (template strings + écouteurs) ; en lecture de fiche, `overviewSection` (JOURNAL de parcours + PLAN de l'aide, défaut) ou `navSection` (vue guidée), re-rendus ciblés `renderOvOnly`/`renderNavOnly` |
+| Render | `render()` → `applyViewChrome` (chrome d'en-tête) puis `renderLibrary` (accueil : `renderHomeList` sur la liste UNIE aides + protocoles, le type est un filtre `state.section` — `renderFiches`/`renderProtocols` n'en sont que des enveloppes ; vues Sessions/Moi/Administration de la colonne par `renderHomeTab`) / `renderRead` / `renderEditor` / `renderProtocolRead` / `renderProtocolEdit` (template strings + écouteurs) ; en lecture d'une aide, `overviewSection` (JOURNAL de parcours) et re-rendus ciblés `renderOvOnly`/`renderSvOnly`/`renderTkOnly` (la vue guidée `navSection`/`renderNavOnly` est PURGÉE depuis v5.20.9) |
 | Flow SVG | `buildFlowSVG(f,cache)` : organigramme auto — géométrie PURE sans état (v4.7.0) ; l'état de session est PEINT par classes après insertion (`flowPaintState` : `fn-cur`/`fn-ok`/`fn-off`, halo et badge ✓ bakés masqués) et les nœuds sont NAVIGABLES en lecture (`bindSvgNav` → `jumpToBlock` — jamais de cochage dans le SVG, jamais de démarrage de session ; inerte dans l'éditeur) |
 | Visionneuse PDF | `pdfLib` (chargement paresseux de `vendor/pdfjs`), `openPdfViewer` (rendu virtualisé par IntersectionObserver ; zoom d'OUVERTURE = « page entière » calculé d'après le ratio du document et la fenêtre, `pdfFitPageZ`, bornes 25–400 %, boutons « Page »/« Largeur », bouton ⤓ Télécharger v4.19.0 : relecture FRAÎCHE du binaire en IndexedDB via `attDlName` — JAMAIS le buffer déjà passé à pdf.js, `getDocument` le TRANSFÈRE à son worker et le laisse détaché, un blob resservi serait vide ; en PWA INSTALLÉE le téléchargement passe par la FEUILLE DE PARTAGE native — v4.19.1, `dlBlob` : en standalone, WebKit ignore `download` et NAVIGUE vers l'URL blob:, plein écran sans retour), fenêtre `#pdfModal` ; miniatures de la 1ʳᵉ page dans les listes « Documents » (`attThumbHtml`/`genAttThumb` : paresseuses, une à la fois, cache mémoire de session — jamais de chargement de pdf.js au démarrage) ; badge « △ à télécharger » si le binaire n'est pas encore sur l'appareil (`hydrateAttThumbs`/`refreshAttRow` — état décidé sur la lecture IndexedDB, rafraîchi en direct par le téléchargement de fond de la synchro) |
 | Mini-Markdown | `mdBlocks`/`mdInline`/`mdRender`/`mdStrip`/`mdCells`/`mdCallout`/`mdTask` : parseur maison XSS-safe (esc() d'abord) du contenu rédigé des protocoles — titres, listes, citation, code, image, TABLEAUX (v4.4.2), ENCADRÉS TYPÉS et `==surligné==` (v4.4.3), LISTES COCHABLES `- [ ]` (v4.5.4). Registre et alignement viennent toujours d'un jeu FERMÉ posé en CLASSE, jamais d'un attribut piloté par l'utilisateur |
-| Protocoles | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocols`/`renderProtocolRead`/`renderProtocolEdit`, sélecteur de section dans l'en-tête (`#hdrSec` statique, `state.section`) |
-| Export / Import | JSON `version: 3` + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
+| Protocoles (« références » à l'écran) | `blankProtocol`/`migrateProtocol` (point d'entrée sécurité/compat), `renderProtocolRead`/`renderProtocolEdit` (éditeur Markdown, A452-A459) ; plus de sélecteur de section dans l'en-tête — la bibliothèque est UNIQUE depuis v5.0.0 (bannière « R4 ») |
+| Export / Import | JSON (enveloppe `version: 3` — numéro de l'ENVELOPPE, le contenu est le modèle v4) + conteneur `.zip` « avec documents » (`zipBuild`/`zipParse` maison, `importAtts`) ; règles de rétrocompatibilité documentées sur place |
 | Compte & synchro | `Auth` (OTP e-mail), `Sync` (pull/push local-first), fenêtres associées |
-| Partage de session | `Share` (sondage REST, cadence adaptative, file hors-ligne, horloge de Cristian), noyau PUR `shareSnap`/`shareDiff`/`shareFold`/`shareCan`, application chirurgicale `SHARE_APPLY`/`sharePaintLive`, décision de démarrage `shareBootDecide` + écran `#joinScreen`, fenêtre d'appariement `#shareModal` et encodeur QR maison. Le serveur (`supabase/schema.sql`, section « partage de session ») est l'autorité : liste blanche des champs, secret par participant, code consommé, append-only, purge |
+| Partage de session | `Share` (sondage REST, cadence adaptative, file hors-ligne, horloge de Cristian), noyau PUR `shareSnap`/`shareDiff`/`shareFold`/`shareCan`, application chirurgicale `SHARE_APPLY`/`sharePaintLive`, décision de démarrage `shareBootDecide` + écran `#joinScreen`, fenêtre d'appariement `#shareModal` et encodeur QR maison ; partage SANS serveur (v5.14) : noyau pur `sl*` (signalisation compacte, trame RPC, `slHub` — l'hôte tient la sémantique serveur), transports en direct (WebRTC) et « par l'écran » (QR optiques, jsQR), état unique du lien `slLink`, porte de parole `slSay`. Le serveur (`supabase/schema.sql`, section « partage de session ») est l'autorité : liste blanche des champs, secret par participant, code consommé, append-only, purge |
 | Accessibilité | gestion centralisée des modales (focus, Échap, Tab ; v4.21.0 : verrou du défilement de fond `_bgLock`/`_bgUnlock` + `overscroll-behavior:contain` sur `.ai-modal`, position restaurée au pixel à la dernière fermeture ; **TECHNIQUE CHANGÉE v4.29.9** : le verrou est `overflow:hidden` sur `html` ET `body` (classes posées sur LES DEUX éléments), plus JAMAIS `body{position:fixed;top:-scrollY}` — sur iPhone, un body fixé RÉTRÉCISSAIT le rendu des fenêtres fixées de ~60 px en bas [« bande morte », dossier v4.29.x prouvé à la règle visuelle : accueil sain, fenêtre coupée dès le verrou] sans qu'AUCUNE mesure web ne le voie, et la bande était MASQUÉE depuis v4.23.3 par le fond peint sur html ; ne pas réintroduire de position:fixed sur body). **v4.23.0** : une fenêtre marquée `.sheet-full` (OPAQUE et plein écran, ex. feuille Plan) verrouille le fond à **TOUS les pointeurs** (`body.modal-full`) — la restriction au toucher n'existe que parce que figer `body` au pointeur fin décale le fond visible AUTOUR d'un petit dialogue ; une feuille opaque ne laisse rien voir du fond, et sans verrou la page continue de défiler derrière (constaté sur ordinateur) |
-| Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` |
+| Prompt IA · Créer | `AI_PROMPT` (le contrat donné à une IA pour produire une aide importable — à faire suivre à TOUT changement de modèle, gardé par `audit-prompt`), dialogue « Créer » (`renderCreateDlg`) |
+| Compte · Moi · Administration | `renderAuth*` (fenêtre/vue Moi), `renderAdm` (page Administration, A494), `renderMembers`, `renderNewLib` (« Avec qui ? », demandes de bibliothèque A477-A479) |
+| Guide · Prendre en main | `GUIDE_GESTES`, `GLOSSAIRE`, `GUIDE_ETAPES` (exercice guidé, A467) — gardés par `check-guide` et `audit-guide` |
+| Retour système | pile réelle d'historique (`_H_LAYERS`, `_histSync`, A430), lien direct `#a=<id>` (`deepLinkFromHash`, A463) |
+| Mode test | hook `?__actest` : expose les fonctions pures pour `tests.html` (`__ac_test__`, gardé par `check-actest`) |

@@ -41,7 +41,7 @@ Dossier **hors app** : rien ici n'est servi par la PWA (absent d'`ASSETS` dans `
 automatiquement. Attention à sa mécanique en mode `--strict` : il régénère, compare, **puis
 restaure** — un arbre propre après un échec ne veut donc pas dire qu'il n'y a pas de dérive.
 
-> **Poids dans l'historique git.** Ces 20 fiches de **~815 Ko chacune** (le CSS embarqué a
+> **Poids dans l’historique git.** Ces 21 fiches de **~815 Ko chacune** (le CSS embarqué a
 > triplé depuis le « ~275 Ko » d'origine — chiffre corrigé à l'audit v5.19.5) sont réécrites en
 > bloc à chaque `design:build`. Elles sont quasi identiques entre elles et d'une version à
 > l'autre, donc elles se delta-compressent très bien : `git gc` a ramené `.git` de 151 Mo à
