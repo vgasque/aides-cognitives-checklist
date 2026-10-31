@@ -6,6 +6,24 @@ conditionnelles (décisions « si oui → liste A, si non → liste B »), caté
 éditables, aperçu automatique de l'algorithme, et un poste de minuteurs/compteurs/sessions
 pour l'usage en temps réel.
 
+## Ce que fait l'application (vue d'ensemble)
+- **Deux natures de contenu**, dans une seule bibliothèque : les **aides cognitives**
+  (parcours à cocher, en blocs d'étapes et de décisions) et les **protocoles** (textes de
+  référence en mini-Markdown, avec documents PDF joints — visionneuse intégrée, sommaire,
+  recherche dans les PDF).
+- **Mode crise (session)** : étapes CRITIQUE / VIGILANCE annoncées en mots, réponse attendue,
+  minuteurs et compteurs (une coche peut lancer un minuteur ou compter), moment d'une étape
+  (« à partir de n chocs », « à chaque échéance »), complications « à tout moment » avec retour
+  au passage interrompu, revue « à tout moment » (ex. causes réversibles), journal horodaté,
+  vues **Se repérer**, **Page** (l'algorithme entier, imprimable en PDF), **Schéma** et
+  **Moniteur** ; mode **Exercice** et **exercice guidé** sur les aides d'exemple.
+- **Partage de session en direct** entre appareils (en ligne, en direct sur le réseau local,
+  ou « par l'écran » par QR codes) — miroir sans texte libre, jamais bloquant.
+- **Rangement** : catégories (par bibliothèque, couleur), **collections** personnelles (une aide
+  peut être dans plusieurs), Accès direct, filtres et tris de l'accueil, sélection multiple.
+- **Équipes** (optionnel, avec compte) : bibliothèques partagées à rôles, demandes de
+  bibliothèque, page **Administration** pour l'administrateur de l'instance.
+
 Code réalisé avec Claude AI.
 
 > Vous êtes l'auteur et le responsable du contenu clinique. Validez chaque fiche avec
@@ -14,7 +32,7 @@ Code réalisé avec Claude AI.
 ## Contenu du dépôt
 - `index.html` — **toute l'application** (HTML + CSS + JS vanille, sans dépendance) ;
 - `sw.js`, `manifest.webmanifest`, `icon-*.png` — service worker (hors ligne) et installation PWA ;
-- `exemples/` — fiches d'exemple prêtes à importer ;
+- `exemples/` — aides d'exemple prêtes à importer ;
 - `supabase/` — schéma et tests de sécurité (RLS) de la synchronisation optionnelle ;
 - `CHANGELOG.md` — les 20 dernières versions ; `docs/changelog/vN.md` — l'archive, une par
   version majeure ;
@@ -45,16 +63,17 @@ dans le même dossier.
   automatiquement, en local, par appareil ; on peut la reprendre, la terminer, en tirer un
   **compte-rendu** imprimable.
 
-## Créer une fiche avec une IA
-Le dialogue « Créer » propose trois méthodes : rédiger soi-même, **« Avec l'IA »** (un prompt
-type à copier dans une IA — ChatGPT, Claude… — en y joignant un PDF, une image ou une
-recommandation ; l'IA renvoie un fichier JSON), ou **« Importer un fichier »** (.json). Toute
-fiche importée par ce dialogue arrive en statut **Brouillon** : relisez-la toujours avant usage.
+## Créer une aide avec une IA
+Le dialogue « Créer » fait d'abord choisir le type (**Aide cognitive** ou **Protocole**), puis
+propose de rédiger soi-même, **« Rédiger avec l'IA à partir d'un document »** (aides seulement :
+un prompt type à copier dans une IA — ChatGPT, Claude… — en y joignant un PDF, une image ou une
+recommandation ; l'IA renvoie un fichier JSON), ou **« Importer un fichier (.json ou .zip) »**.
+Toute aide créée ou importée arrive en statut **Brouillon** : relisez-la toujours avant usage.
 
-## Fiches d'exemple (`exemples/`)
-Deux fiches sont créées automatiquement à la première ouverture (« Anaphylaxie (choc
-anaphylactique) », « Arrêt cardiaque »). Le dossier `exemples/` en fournit deux autres à importer
-(dialogue « Créer » → « Importer un fichier » ; l'import d'une seule fiche fusionne, ne remplace
+## Aides d'exemple (`exemples/`)
+Deux aides sont proposées à la première ouverture à la première ouverture (« Anaphylaxie (choc
+anaphylactique) », « Arrêt cardiaque (ACR) — algorithme »). Le dossier `exemples/` en fournit deux autres à importer
+(dialogue « Créer » → « Importer un fichier » ; l'import d'une seule aide fusionne, ne remplace
 jamais la bibliothèque) :
 - `accouchement-inopine-prehospitalier.json` — accouchement inopiné en pré-hospitalier (SMUR) ;
 - `etat-de-mal-epileptique.json` — état de mal épileptique de l'adulte (urgences).
@@ -82,16 +101,17 @@ l'installation et le cache automatique demandent l'https.
 ## Données & synchronisation
 Par défaut, tout est stocké **localement, par appareil** : l'application fonctionne entièrement
 hors-ligne et **sans compte**. Pour transférer sans cloud : « Exporter mes données »
-(fenêtre Compte) puis dialogue « Créer » → « Importer un fichier » sur l'autre appareil — toute la
-bibliothèque ou une seule fiche (menu ⋯ → Export .json). (Les sessions ne sont pas incluses dans
-l'export.)
+(dans « Moi ») puis dialogue « Créer » → « Importer un fichier » sur l'autre appareil — toute la
+bibliothèque, une sélection (accueil → Sélectionner → « Exporter la sélection… ») ou une seule aide (menu ⋯).
+Avec des PDF joints, l'export peut être un `.zip` « avec documents ». (Les sessions ne sont pas
+incluses dans l'export.)
 
-**Synchronisation multi-appareils (optionnelle).** En vous connectant (bouton **Compte**), votre
+**Synchronisation multi-appareils (optionnelle).** En vous connectant (**Moi** → Compte), votre
 bibliothèque personnelle devient accessible sur tous vos appareils, avec des **bibliothèques
 partagées** d'équipe (rôles lecteur/éditeur/admin). Le principe reste **local-first** : IndexedDB
 demeure la source de vérité, le cloud n'est qu'un miroir, et la synchro ne bloque jamais l'usage.
 En cas de modification concurrente, la version la plus récente s'applique et **la précédente est
-conservée** (bouton « Versions » dans la fiche).
+conservée** (« Versions » dans le menu ⋯ de l'aide).
 
 L'activation nécessite une configuration unique (Supabase + Brevo, ~30 min, gratuite) : suivre le
 **kit de déploiement** dans [`docs/deploiement-et-conformite.md`](docs/deploiement-et-conformite.md).
@@ -103,19 +123,24 @@ inaudible : le flash d'écran sert d'alerte de secours.
 
 ## Développement
 - **Publier une version** : `./release.sh X.Y.Z` synchronise les numéros de version (index.html +
-  sw.js + package.json) et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le
+  sw.js + package.json + package-lock.json), recalcule les hashs CSP et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le
   CHANGELOG et committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` enchaîne
-  la vingtaine de garde-fous statiques (syntaxe, couleurs, classes, échelles typographique et
-  d'espacement, service worker, SQL, CHANGELOG, hashs CSP…) ; `npm run audit`
-  rejoue les **21 harnais** de mesure (accessibilité, doctrine, surfaces). L'intégration continue
+  les **27 garde-fous statiques** (syntaxe, couleurs, classes, échelles typographique et
+  d'espacement, service worker, SQL, CHANGELOG, lexique, guide, hashs CSP…) ; `npm run audit`
+  rejoue les **23 harnais** de mesure (accessibilité, doctrine, partage, surfaces).
+- **Contribuer avec une IA** : `AGENTS.md` donne les quinze règles, la méthode de recherche
+  dans la doctrine (`docs/decisions/`) à suivre avant toute modification, et la procédure de
+  commit. L'intégration continue
   (`.github/workflows/ci.yml`) rejoue check + `design:check` + tests à chaque push, et l'audit en
   mode indicatif (non bloquant).
 
 ## Sécurité & confidentialité
-- **Aucune dépendance externe** : un seul fichier HTML en JavaScript « vanille », sans CDN ni
-  bibliothèque tierce. Rien n'est chargé depuis un autre domaine.
+- **Aucune dépendance externe** : un seul fichier HTML en JavaScript « vanille », sans CDN. Deux
+  bibliothèques seulement sont **embarquées** dans le dépôt (pdf.js pour les PDF, jsQR pour les QR
+  du partage), avec les polices ; chargées paresseusement, servies par la même origine. Rien n'est
+  chargé depuis un autre domaine.
 - **Content-Security-Policy stricte** (`index.html` et `_headers`) : `default-src 'self'`, seules
   les connexions vers votre projet Supabase sont autorisées, `object-src 'none'`. Nota : le fichier
   `_headers` est appliqué par la production Cloudflare (Workers Assets), comme par Netlify et
@@ -131,10 +156,10 @@ inaudible : le flash d'écran sert d'alerte de secours.
 ## Données personnelles (RGPD)
 - **Par défaut, tout reste sur l'appareil** (IndexedDB) : rien n'est envoyé tant que vous ne créez
   pas de compte. La synchro cloud est **facultative**.
-- **Suppression du compte** intégrée (efface fiches et catégories **personnelles** + le compte ;
+- **Suppression du compte** intégrée (efface aides, protocoles et catégories **personnels**, les partages ouverts, puis le compte ;
   les contributions aux bibliothèques **partagées** restent, contenu d'équipe).
 - **Hébergement UE** possible (région Supabase Francfort conseillée).
-- **Ne saisissez aucune donnée patient** : les fiches sont des aides cognitives génériques.
+- **Ne saisissez aucune donnée patient** : les aides sont génériques.
 - Modèles de registre RGPD et de conditions d'utilisation : voir
   [`docs/deploiement-et-conformite.md`](docs/deploiement-et-conformite.md).
 
@@ -144,5 +169,5 @@ inaudible : le flash d'écran sert d'alerte de secours.
   reste récupérable (« Versions »).
 - **Grandes bibliothèques** : affichage par pages (« Afficher plus ») ; la recherche reste
   instantanée.
-- **Version** : le numéro affiché en bas de la barre latérale de l'accueil (`APP_VERSION`) et le
-  cache de `sw.js` sont tenus synchronisés par `release.sh` — ne pas les modifier à la main.
+- **Version** : le numéro affiché au pied de l'accueil (`APP_VERSION`) et le cache de `sw.js`
+  sont tenus synchronisés par `release.sh` — ne pas les modifier à la main.
