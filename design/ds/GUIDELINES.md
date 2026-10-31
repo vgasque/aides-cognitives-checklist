@@ -1,4 +1,4 @@
-# Aides cognitives — Lignes directrices du design (v5.0, relu v5.51.0)
+# Aides cognitives — Lignes directrices du design (v5.0, relu v5.57.1)
 
 PWA médicale monofichier, utilisée **en urgence vitale, sous stress** : la clarté et la
 robustesse priment sur toute considération esthétique. Tout choix de design se juge à
@@ -22,6 +22,22 @@ versions, dont tout le chantier du partage de session, **puis à la v4.55 pendan
 chantier v5** : il a décrit trois surfaces supprimées (le rail ①②③, le mode lecteur, la
 bascule Guidé/Statique) jusqu'à ce que l'auteur le demande. À relire à chaque lot qui
 touche une surface — c'est la seule protection dont il dispose.
+
+> **RELECTURE v5.57.1 (31/10/2026).** Six lots depuis la précédente (v5.51.1 à v5.57.1,
+> A480-A501). Aucun fait devenu FAUX dans ce qui était écrit ; des surfaces nouvelles ou
+> resserrées, AJOUTÉES à leur section :
+> - **la tête d'une feuille** (A480) : lien de retour, titre = le geste, une ligne de contexte ;
+>   un menu ancré se borne à l'espace sous son ancre ; le voile d'une feuille absorbe le tap
+>   (A497) — § Interaction ;
+> - **la pastille du compte** vit aussi sur l'avatar « Moi » de la colonne ≥ 780 (A500), anneau
+>   « en cours » en `--line-strong` — § Couleur ;
+> - **l'accueil** : pastille d'une catégorie homonyme lue sur SES éléments (A485), liste reposée
+>   où on l'avait laissée au retour (A491), pied « Tout est prêt » qui ne répète plus la version
+>   (A499), colonne gauche sous la barre d'état de l'iPad installé (A501) — § L'accueil ;
+> - **ranger** : la collection se choisit à la création (A496), « Nouvelle catégorie… » crée ET
+>   range (A486), « Ajouter à « … » » (A488), le menu des catégories dit ce qu'est une catégorie
+>   (A498), un brouillon ne s'épingle pas et une seule étoile s'anime (A487) — § Ranger.
+> Tout nom cité ci-dessous comme vivant (classe, token, fonction) a été vérifié dans le code.
 
 > **RELECTURE v5.51.0 (07/10/2026).** Vingt-deux lots depuis la précédente (v5.30 à v5.51,
 > A345-A479). **Faits devenus FAUX, corrigés ci-dessous** — tous du type « surface remplacée » :
@@ -118,8 +134,12 @@ touche une surface — c'est la seule protection dont il dispose.
   ne vit que dans le liseré. Les badges d'attente sont ACHROMATIQUES — seul « À revérifier » est
   ambre (A347) ; l'état d'une carte est au palier méta 12, gras s'il attend quelque chose (A422).
 - Pastilles d'état (compte/synchro) : ok = `--ok`, attente = `--warn`,
-  erreur = `--crit`, inactif = `--line-strong`, synchro EN COURS = anneau tournant
-  (activité ≠ alerte).
+  erreur = `--crit`, inactif = `--line-strong`, synchro EN COURS = anneau tournant en
+  `--line-strong` (activité ≠ alerte ; en `--line`, il se fondait la nuit — A500). **Deux sites,
+  une porte** (`setSyncChip`) : le bouton Compte de l'en-tête, et l'avatar `.hs-avatar` de la
+  rangée « Moi » de la colonne ≥ 780 (9 px au coin d'un avatar de 22, même liseré `--work`) —
+  depuis A351 l'accueil bureau n'a plus de bouton Compte en en-tête, et l'état n'y était plus
+  lisible. Pas de pastille sans compte.
 - Fond des champs de saisie = `--amb-2` (A350), partout.
 - Contraste : texte ≥ 4.5:1, composants ≥ 3:1 (WCAG 2.2 AA), dans les DEUX thèmes.
 - La couleur n'est **jamais le seul canal** : toujours texte, forme ou position en plus.
@@ -198,7 +218,14 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
 - En lecture, les actions secondaires vivent dans le **menu ⋯** : rangées de hauteur
   PRÉVISIBLE (44 px, 52 avec sous-titre), intertitres, ouvertures en TUILES, action
   destructrice DERNIÈRE. **UN dessin de menu** (`menuRowHtml`, A361) : feuille BASSE sous 780 px,
-  menu ancré au-delà — plus de pied encadré ; les sous-feuilles portent « ‹ Actions » (A366). **Ordre = logique ECAM
+  menu ancré au-delà — plus de pied encadré ; les sous-feuilles portent « ‹ Actions » (A366).
+  **La tête d'une feuille** (A480) : « ‹ Actions » est un petit LIEN de retour (`.mm-back`), le
+  TITRE est le geste (`.mm-title`, 17,5/800 : « Déplacer vers une bibliothèque », « Ranger dans
+  une catégorie »…), puis UNE ligne grise de contexte (`.mm-ctxl` : « 2 éléments · deux
+  bibliothèques ») — jamais trois lignes sans hiérarchie. **Un menu ancré tient sous son ancre**
+  (borné à l'espace visible, plancher 180, A496) ; un filtre de texte apparaît quand la liste
+  s'allonge. **Le voile d'une feuille absorbe le tap** (A497) : un tap « dehors » ferme la
+  feuille et n'active JAMAIS ce que le voile couvrait. **Ordre = logique ECAM
   E/WD → SD** : la conduite EN COURS d'abord, puis le cycle de vie de la session, puis la
   gestion, puis les exports. **Jamais deux entrées d'un même menu avec le même dessin**, ni
   deux dessins quasi identiques côte à côte.
@@ -481,6 +508,22 @@ L 0,48 · C 0,08** — la chroma maximale tenable dans le gamut, où les deux co
 par construction, avec un garde-fou de proximité de 4,0 ΔE ; l'anneau est ANCRÉ sur les presets
 (écart nul aux treize degrés), un degré ne rendant jamais deux couleurs. Sur « Toutes », une
 BANDE COLLANTE par bibliothèque reprend le dessin d'une rangée d'accueil.
+
+**Une pastille de catégorie se lit sur les ÉLÉMENTS qu'elle range** (A485) : deux bibliothèques
+peuvent porter une catégorie du même nom, de couleurs différentes — l'intertitre d'une section
+prend la couleur de SES éléments, plusieurs couleurs donnant la pastille multicolore d'A299
+(`catDotHtml`, un seul dessin pour la colonne et les intertitres).
+
+**Le retour à l'accueil repose la liste où on l'avait laissée**, à toute largeur (A491 : dès
+780 px la liste défile dans `.home-main` et la colonne dans `.hs-scroll`, recréés à chaque
+retour — `_libInner` les mémorise). **Sauf après « Terminer la session »** : l'accueil s'ouvre en
+haut, sur la carte-bilan de la session, qu'on vient voir.
+
+**Le pied de la colonne** : replié, « ✓ Tout est prêt » et la version (A272) ; déplié, la version
+ne se répète pas et une rangée d'état sans pastille disparaît (A499). Quand un fait l'ouvre de
+force (erreur, attente, stockage presque plein), la version reste, calée à droite comme un cachet.
+**La colonne gauche lit la zone sûre** comme l'en-tête (A501 : `--sat`, divisé par le zoom) — sur
+iPad installé, la marque passait sous la barre d'état ; invisible en navigateur, où l'inset vaut 0.
 
 **Une seule source dit OÙ l'on est** : `homeScope()` (A304). Le champ `state.scope` est MORT à
 l'accueil depuis la refonte v5.18 — sept de ses lecteurs ont survécu et disaient faux (une
@@ -860,6 +903,27 @@ telle quelle — chaque écran le dit à sa façon :
   collection »).
 - La colonne liste aussi les bibliothèques VIDES (compte 0, A490), et les collections ont leur remise à zéro
   « Tout » (A493 — ni « Toutes », ni « Toutes les aides » : les protocoles en sont).
+- **La collection se choisit À LA CRÉATION** (A496), comme la catégorie et la bibliothèque : une rangée
+  « Collections » dans la pancarte d'identité des deux éditeurs (`collPickerHtml`, jetons de la rangée
+  Catégorie), qui ouvre LA feuille à cases de l'accueil (`openCollPick`) — aucune fenêtre neuve ; ancrée
+  sous ses jetons au bureau (coque `.catmenu.wide`), feuille au téléphone, tête et définition gardées. **Un
+  jeton de collection n'a pas de registre** (`--ink-soft`) : un rangement personnel ne tue pas, ne trompe
+  pas, n'est ni fait ni en cours. Rien n'est écrit dans l'aide ; créer depuis une collection affichée y range
+  le brouillon, et le DIT par son jeton. Écartés : un champ de plus dans « Créer », un choix unique, une
+  collection stockée dans l'aide.
+- **Dans une collection ouverte**, le geste est « ＋ Ajouter » (on ajoute aussi des protocoles) et la feuille
+  s'intitule « Ajouter à « ‹collection› » » — jamais « Ajouter à une collection », titre de la feuille INVERSE ;
+  chaque rangée porte la pastille de sa catégorie et « nature · catégorie · bibliothèque » (A488).
+- **« ＋ Nouvelle catégorie… » depuis Ranger crée ET range** (A486) : un nom, « Créer et ranger » — sur le
+  patron de « Nouvelle collection… », sans détour par le gestionnaire (la sélection n'était rangée nulle part).
+- **Le menu des catégories dit ce qu'est une catégorie** (A498), en UNE ligne sous son titre « Choisir la
+  catégorie », dont le PIVOT suit la bibliothèque — partagée : la PROPRIÉTÉ (« … vue par toute l'équipe de
+  « … ». Pour un rangement à vous seul : les collections. ») ; Perso : le NOMBRE (« … pour classer l'accueil.
+  Une aide peut être dans plusieurs collections. »). Ni jargon (« écrite dans l'aide »), ni image (« son
+  rayon ») : quatre formes écartées par l'auteur.
+- **Accès direct** : un brouillon ne s'épingle pas (K5) — la case d'une sélection qui en contient le dit
+  (« 1 brouillon ne s'épingle pas ») au lieu de rester « en partie » pour toujours ; et seule l'étoile touchée
+  s'anime (`.pinbtn.on.pop`), jamais toutes les étoiles allumées à chaque re-rendu (A487).
 - **La barre de sélection** est UNE ligne de 56 px à toutes les largeurs : case maîtresse à trois
   états, compte, « Actions » qui ouvre la feuille (Ajouter à une collection · Déplacer · Ranger ·
   Exporter · Supprimer), sortie en croix. Cinq libellés entiers ne tiennent jamais dans 960 px :
