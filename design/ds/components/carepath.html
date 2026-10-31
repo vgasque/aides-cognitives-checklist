@@ -7132,6 +7132,12 @@
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
+    /* A501 (v5.57.1, signalé sur iPad installé : « Aides cognitives » coupé sous l'heure) : la colonne
+       est FIXÉE À 0 et son premier étage ne lisait pas l'inset haut — l'en-tête de droite le lit depuis
+       toujours (`calc(12px + var(--sat))`), la marque passait donc sous la barre d'état et sous le fondu
+       d'iOS 27 (A370). Même source que les collants du téléphone : --sat ÷ --zf (règle 10). Inerte en
+       navigateur et sur Mac (env vaut 0). */
+    .hs-top{padding-top:calc(12px + var(--sat) / var(--zf,1))}
     body.view-home main{padding-left:var(--side-w)}
     /* A425 : recherche, « Créer » et bandeau système suivent l'AXE de la colonne centrée (--home-g : la gouttière
        qui centre 960 px dans l'espace à droite de la colonne gauche ; un % de marge se prend sur la largeur du corps). */

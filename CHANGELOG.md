@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.57.1] — 2026-10-31
+Un signalement sur capture, iPad installé (A501, doctrine `docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
+- **La colonne gauche de l'accueil ne passe plus sous la barre d'état de l'iPad.** En app installée, la marque
+  « Aides cognitives » en tête de la colonne était coupée et délavée sous l'heure, alors que la recherche et
+  « Créer » avaient leur dégagement : la colonne est fixée au bord haut et son premier étage ne lisait pas l'inset
+  de zone sûre, que l'en-tête lit depuis toujours. Une propriété ; rien ne change en navigateur ni sur Mac.
+  À vérifier sur l'appareil, portrait et paysage.
+
 ## [5.57.0] — 2026-10-16
 Deux retours de l'auteur sur la pastille du compte et le pied « Tout est prêt » (A499-A500, doctrine
 `docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
@@ -241,8 +249,3 @@ Deux retouches de l'éditeur des références signalées à l'usage (A468, doctr
   l'accueil. Le texte ne bouge pas quand elle se détache. Toucher un outil (B, I, S) n'abaisse plus le clavier ;
   les menus (Titre, Liste, Encadré, Insérer) l'abaissent le temps du choix, puis le texte reprend la main. À
   vérifier sur iPhone réel : le rendu dépend du clavier d'iOS.
-
-## [5.48.4] — 2026-10-06
-- **Exercice guidé, « Cochez les étapes restantes » :** le bloc en cours reste entièrement net, sans anneau, et le
-  reste de l'écran (en-tête, capsule, quai) s'estompe — on voit d'un coup d'œil où cocher (A467).
-

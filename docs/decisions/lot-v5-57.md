@@ -1,4 +1,4 @@
-# Lot v5.57 — A499-A500
+# Lot v5.57 — A499-A501
 
 Question de l'auteur, après le lot v5.56 : « le petit indicateur pastille sur le compte est-il toujours bien
 désigné depuis les modifications ? Pareil pour le bas de page « Tout est prêt » ». Mesuré sur l'app réelle à 390 et
@@ -44,3 +44,27 @@ pastille sans compte (l'avatar n'existe qu'avec des initiales).
 **Témoin.** `audit-doctrine` « ACCUEIL · A499-A500 … » : rangée d'état absente sans compte, version tue sous la
 synthèse et présente en erreur, pastille de colonne à l'état de l'en-tête (ok, err, busy), anneau en
 `--line-strong` (couleur calculée comparée au token).
+
+## A501 — La colonne gauche de l'accueil pose sous la barre d'état (v5.57.1)
+
+**Signalé sur capture, iPad installé (iPadOS, 31/10/2026).** En tête de la colonne gauche, la marque « Aides
+cognitives » passait sous la barre d'état : texte coupé et délavé par le fondu d'iOS 27 (A370), alors que la
+recherche et « Créer », à droite, avaient leur dégagement.
+
+**Cause.** Depuis la planche large (v5.30, A351), la colonne `.home-side` est `position:fixed;top:0` et son premier
+étage `.hs-top` porte un rembourrage haut de 12 px — un littéral. L'en-tête de droite lit `--sat` depuis toujours
+(`calc(12px + var(--sat))`) ; la colonne, née après, ne l'a jamais lu. Le SOL d'A370 (`body::before` sous l'heure) et
+les collants qui s'y calent ne vivent que sous 780 px : au-dessus, rien ne portait l'inset à gauche. Invisible en
+navigateur et sur Mac, où `env(safe-area-inset-top)` vaut 0 — c'est pourquoi aucun harnais ne le voyait (même
+famille qu'A286).
+
+**Après, en une propriété.** `.hs-top{padding-top:calc(12px + var(--sat) / var(--zf,1))}` dans le bloc ≥ 780 —
+même source que les collants du téléphone (`--sat` = inset + décalage iOS 27, réversible par `--ios27-top`),
+divisée par le zoom (règle 10). La zone ainsi dégagée est un aplat `--work` : le verre d'iOS 27 n'y a rien à
+flouter. Rien ne change sans inset.
+
+**Témoin.** `audit-doctrine` « ACCUEIL LARGE · A501 … » : à 1180 px, `--sat` substitué à 40 px (24 de barre d'état
+iPad + 16 de fondu), la marque descend exactement d'autant et reste entière sous la bande, la recherche de
+l'en-tête suit le même inset ; sans inset, la marque est à 12 px (équivalence à l'octet avec l'état d'avant).
+**À vérifier sur l'appareil** (iPad installé, portrait et paysage) : la mesure simule l'inset, elle ne le lit pas.
+
