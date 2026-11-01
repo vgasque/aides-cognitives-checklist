@@ -18,7 +18,10 @@ await p.evaluate(()=>{const f=fiches.find(x=>/Arr.t cardiaque/.test(x.title));
 await ouvrirFiche(p,/Arr.t cardiaque/);
 // AVANT LA SESSION : les cartes, fermées d'office, et les deux liens qui y mènent
 const r=await p.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
- const etat=()=>Object.fromEntries([...document.querySelectorAll('.care-flat [data-prefold]')].map(b=>[b.dataset.prefold,b.closest('.fold-card,.cf-stage').classList.contains('closed')?'fermée':'ouverte']));
+ /* A520 : avant la session, « Quand l'utiliser » et « Ne pas oublier » sont des LISTES (`.fold-card.flat`, sans porte de
+    repli) — toujours ouvertes ; elles se lisent par leur `data-sf`. */
+ const etat=()=>Object.assign(Object.fromEntries([...document.querySelectorAll('.care-flat [data-prefold]')].map(b=>[b.dataset.prefold,b.closest('.fold-card,.cf-stage').classList.contains('closed')?'fermée':'ouverte'])),
+   Object.fromEntries([...document.querySelectorAll('.care-flat .fold-card.flat[data-sf]')].map(c=>[c.dataset.sf,'ouverte'])));
  const avant=etat();
  const al=document.getElementById('atypLink');if(al)al.click();await w(500);
  const apresDiff=etat();
@@ -36,7 +39,7 @@ const r=await p.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
  return {avant,apresDiff,diffEnHaut:rd?(rd.top>=0&&(rd.top<200||auPlancher)):null,apresDocs,refsDocs:!!(refs&&refs.querySelector('[data-att]')),tuiles,feuille:!!document.getElementById('refModal')};});
 t('avant la session, Parcours et les quatre cartes sont FERMÉES d’office', ['flow','verify','diff','pos','refs'].every(k=>r.avant[k]==='fermée'), JSON.stringify(r.avant));
 t('« Quand l’utiliser » et « Ne pas oublier » restent ouvertes d’office', r.avant.when==='ouverte'&&r.avant.forget==='ouverte', JSON.stringify(r.avant));
-t('« Le tableau ne colle pas ? » ouvre la carte des différentiels SEULE', r.apresDiff.diff==='ouverte'&&Object.entries(r.apresDiff).every(([k,v])=>k==='diff'||v==='fermée'), JSON.stringify(r.apresDiff));
+t('« Le tableau ne colle pas ? » ouvre la carte des différentiels SEULE', r.apresDiff.diff==='ouverte'&&Object.entries(r.apresDiff).every(([k,v])=>k==='diff'||k==='when'||k==='forget'||v==='fermée'), JSON.stringify(r.apresDiff));
 t('… et l’amène en haut de l’écran (ou au plancher du défilement, page courte)', r.diffEnHaut===true, JSON.stringify(r.diffEnHaut));
 t('« Documents · n » ouvre la carte Références, qui porte les documents', r.apresDocs.refs==='ouverte'&&r.refsDocs===true, JSON.stringify(r.apresDocs));
 t('plus aucune tuile « Consulter » au menu ⋯, plus de feuille dans le document', !r.tuiles.some(x=>/Consulter/.test(x))&&r.feuille===false, JSON.stringify(r.tuiles));

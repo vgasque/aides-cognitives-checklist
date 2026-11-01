@@ -53,6 +53,12 @@ const EXEMPTIONS = [
   /* v5.30 (maquette v5, exception ASSUMÉE par l'auteur) : le titre de l'écran de bienvenue — un
      écran hors crise, vu une fois — est composé à 38 px, hors échelle. Nulle part ailleurs. */
   { rx: /\.wl-t/, val: 38, motif: 'titre de l’écran de bienvenue (exception assumée, maquette v5)' },
+  /* Refonte « Natif » (A505, précisé par A510) : le GRAND TITRE DE PAGE a deux crans nommés, 34 px au
+     téléphone (Aides, Sessions, Moi) et 28 px en large et pour le titre d'une aide — et ce seul objet,
+     sous la seule classe `.pg-ttl`. Posés au lot 2 (outillage), avant leur premier usage au lot 4 :
+     aucun autre sélecteur ne peut s'en servir, la discussion reste forcée pour le reste. */
+  { rx: /\.pg-ttl/, val: 34, motif: 'grand titre de page, téléphone (A505)' },
+  { rx: /\.pg-ttl/, val: 28, motif: 'grand titre de page, large et titre d’aide (A505)' },
 ];
 
 const src = await readFile(ROOT + 'index.html', 'utf8');

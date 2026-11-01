@@ -116,6 +116,7 @@ const HARNAIS = [
   { nom: 'audit-session-card',  poids: 4 },
   { nom: 'audit-verify-live',   poids: 4 },
   { nom: 'audit-retour',        poids: 4 },
+  { nom: 'audit-verre',         poids: 8 },   // lot 2 refonte (A510 §1) : contraste AU PIXEL sous capsule et quai
   { nom: 'audit-verify',        poids: 3 },
   { nom: 'audit-consulter',     poids: 3 },
   { nom: 'audit-pliables',      poids: 3 },

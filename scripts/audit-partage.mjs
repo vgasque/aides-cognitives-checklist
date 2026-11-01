@@ -2035,8 +2035,8 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
      exception (étiquette vide, pas de hachure) et le mode est dit UNE fois, par la barre. */
   t('témoin : l’hôte n’annonce aucune exception (bandeau nu, sans hachure)',
     r.hoteTag === '' && r.hoteHachure === '0', `«${r.hoteTag}» / ${r.hoteHachure}`);
-  t('… et le mode est dit UNE fois, par le sur-titre', /Mode crise/.test(r.hoteEnTete)
-    && !/Mode crise/i.test(r.hoteTag), `${r.hoteEnTete} / «${r.hoteTag}»`);
+  t('… et le mode est dit UNE fois, par le sur-titre (« ● Session », A519)', /Session/.test(r.hoteEnTete)
+    && !/Session/i.test(r.hoteTag), `${r.hoteEnTete} / «${r.hoteTag}»`);
   t('l’invité lit « Vous suivez »', /Vous suivez/.test(r.inviteTag), r.inviteTag);
   t('… et son étiquette est BLEUE, pas rouge', r.inviteCouleur===r.inviteCouleurAttendue,
     `${r.inviteCouleur} au lieu de ${r.inviteCouleurAttendue}`);

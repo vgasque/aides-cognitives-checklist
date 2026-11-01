@@ -130,9 +130,10 @@ touche une surface — c'est la seule protection dont il dispose.
   PAS là où la DATE de validation est visible** : la date dit la même chose en plus
   précis, et une carte ne porte un statut que si elle ATTEND quelque chose. Sans date, la
   pastille reste — sinon rien ne distinguerait une fiche validée d'une fiche sans statut.
-  Sur les cartes d'accueil, la pilule de catégorie est NEUTRE : la couleur de catégorie
-  ne vit que dans le liseré. Les badges d'attente sont ACHROMATIQUES — seul « À revérifier » est
-  ambre (A347) ; l'état d'une carte est au palier méta 12, gras s'il attend quelque chose (A422).
+  Sur les rangées d'accueil, la catégorie se dit par un POINT DE 10 px EN TÊTE de rangée, son NOM dans la
+  sous-ligne — plus de liseré, jamais le point seul (A516 ; en sélection la case prend la tête et le point revient
+  devant le nom). Les états d'attente sont ACHROMATIQUES et SANS APLAT — seul « À revérifier » est ambre (A347) ;
+  l'état est au palier méta 12, gras s'il attend quelque chose (A422).
 - Pastilles d'état (compte/synchro) : ok = `--ok`, attente = `--warn`,
   erreur = `--crit`, inactif = `--line-strong`, synchro EN COURS = anneau tournant en
   `--line-strong` (activité ≠ alerte ; en `--line`, il se fondait la nuit — A500). **Deux sites,
@@ -393,7 +394,7 @@ Trois réponses, et le choix se déduit de ce que coûte l'information cachée :
     la capsule monte DANS l'en-tête : même contenu, même ordre. Elle accueille deux compteurs au
     nom entier, jamais ellipsé, et le rappel dit « +n » (A462, A473).
   - **Le bandeau de crise reste BLANC** : un aplat rouge permanent désensibilise au rouge. Le
-    statut s'annonce en TEXTE (« ■ Mode crise »). Il porte en outre l'étape ① du partage,
+    statut s'annonce en TEXTE (« ● Session », A519 ; « ■ Mode crise » avant). Il porte en outre l'étape ① du partage,
     COMPRESSÉE (A327-A328) — jamais une seconde pilule.
   - **LA FIN DE SESSION EST UNE TOUCHE DU QUAI** (A346, qui remplace la rangée d'A336 au pied
     du volet et du rail — A356 l'en retire) : UN SEUL bouton permanent, la fenêtre reste la seule
@@ -436,8 +437,14 @@ et le type devient un filtre à trois crans — **« Tout » par défaut** —, 
 chose qu'on applique APRÈS avoir vu, jamais avant. **Ordre du rail de filtres : Bibliothèque,
 Type, Catégorie** — du plus large au plus étroit ; on choisit d'abord OÙ l'on cherche.
 
-**Trois étages** : tuiles **épinglées ★** (les favoris SEULS — jamais de remplissage par
-fréquence d'usage), **répertoire A→Z**, **rail alphabétique** (tap = saut, glisser = parcours ;
+**Au téléphone (A517, maquette Natif)** : pas de rangée d'en-tête — une rangée du haut collante (« Sélectionner » ·
+petit titre au défilement · « ＋ Créer »), le **grand titre de 34 px** dans le contenu, le champ de recherche, les
+**filtres en pastilles** (Tout · Accès direct · collections · catégories), puis la ligne du compte avec « Affichage ».
+En bas, une **barre d'onglets flottante en verre** (Aides · Sessions · Moi) et la recherche dans un rond ; Sessions
+et Moi sont des onglets, jamais des niveaux de retour. En large, le titre fait 28 px et ouvre la ligne du compte.
+
+**Trois étages** : groupe **« Accès direct »** des épinglées ★ (les favoris SEULS — jamais de
+remplissage par fréquence d'usage ; des RANGÉES, même dessin que le répertoire, plus des tuiles — A515), **répertoire A→Z**, **rail alphabétique** (tap = saut, glisser = parcours ;
 il DISPARAÎT s'il ne tient pas en hauteur — jamais de lettres coupées). En recherche : liste
 plate triée par pertinence, avec extraits contextuels.
 
@@ -448,8 +455,13 @@ plein milieu d'une ligne. La rangée est donc bornée PAR LE BAS et jamais figé
 la liste éditoriale, **71** en recherche (l'extrait s'ajoute), **76** sous 360 px effectifs, où
 la méta prend deux lignes.
 
-**La méta dit UNE IDENTITÉ à gauche et UN ÉTAT à droite** (A338, lot v5.28) — et cet ordre-là
-n'est plus celui d'une queue qui tombe :
+**Vue détaillée (A516, maquette Natif)** : la sous-ligne est une phrase à points, 13,5 —
+« Aide · SMUR · adulte · △ À relire » —, l'état SUIT l'identité et la ligne passe à la ligne au lieu de
+s'ellipser ; rangée de **52 px** au minimum, filet qui commence au texte, groupe sans bord ni ombre,
+intertitres en phrase 13,5/600. **La vue compacte** garde la règle d'A338 ci-dessous (une ligne, état à droite).
+
+**La méta dit UNE IDENTITÉ à gauche et UN ÉTAT à droite** (A338, lot v5.28 ; vue compacte depuis A516) — et
+cet ordre-là n'est plus celui d'une queue qui tombe :
 
 - à gauche, l'**identité** : nature · discriminant · ● catégorie, alignés sur la LIGNE DE BASE
   (nature 11 px, texte 12 px) ;
@@ -464,8 +476,8 @@ n'est plus celui d'une queue qui tombe :
 La méta reste du **texte séparé par des points, jamais une suite de chips** : une chip a une
 largeur incompressible et se coupe net, un texte s'ellipse proprement.
 
-**« Session en cours » cumule trois canaux à coût nul** : liseré au registre CONFIRMATION,
-teinte de rangée, et la DATE qui cède la place au **chrono vivant** (une place déjà prise —
+**« Session en cours » se dit par le MOT et le chrono** (le liseré au registre CONFIRMATION est parti
+avec tous les liserés d'accueil, A515) : la DATE qui cède la place au **chrono vivant** (une place déjà prise —
 une date de validation n'apprend rien pendant qu'une session tourne). Peint sur place par le
 tick, jamais par un re-rendu : reconstruire l'annuaire chaque seconde détruirait le nœud sous
 le doigt.
@@ -776,14 +788,16 @@ bloc dépasse une page entière ; un intitulé de branche ne finit jamais une pa
 ## Listes d'étapes — un corps, une colonne, le danger en MOT (A345, A11 rouvert)
 
 - **Toutes les étapes d'une liste partagent le même corps** (17,5 en session, 15 en lecture) et la
-  même colonne : rangées de 64 px sur `--amb-2`, case de 36 px, sans numéro (on coche dans
-  n'importe quel ordre).
-- **Le danger est un MOT, pas un glyphe** : étiquette **CRITIQUE** (`--crit`) ou **VIGILANCE**
-  (`--warn`) au-dessus du libellé (dans le parcours : calée à DROITE de la première ligne, sans
+  même colonne : rangées de 64 px À PLAT dans la carte du bloc (A519 : plus de tuile `--amb-2`, seule l'étape
+  faite garde son aplat vert), case RONDE de 36 px, sans numéro (on coche dans n'importe quel ordre).
+- **Le danger est un MOT, pas un glyphe** : **CRITIQUE** (`--crit`) ou **VIGILANCE** (`--warn`) écrit seul, SANS
+  pastille (A519), au-dessus du libellé (dans le parcours : calée à DROITE de la première ligne, sans
   aplat — A388), plus la bordure de case au registre et un texte `.sr-only`. ⚠ **Les glyphes ⚠/△
   d'avant ont vécu** — `stepMarkHtml` est l'unique fabrique (rangée et aperçu à plat).
 - Sous l'étape, en gris : la réponse attendue (« challenge :: réponse »), et la **LÉGENDE** de ce
-  que fait la coche (§ Ce que fait la coche).
+  que fait la coche (§ Ce que fait la coche). La légende du BLOC (« sous l'étape, en gris… ») est purgée (A519) ;
+  la tête du bloc courant dit « En cours · Bloc n » (« ◆ Décision · bloc n » en ambre sur une décision, carte
+  blanche, A513).
 - Étape COCHÉE = aplatie ; une étape signalée cochée garde son mot, cadre vert doux.
 
 ## Challenge-response (v4.11.0 — FAA Order 8900.1 Vol. 3 Ch. 32 §3-3403.A)

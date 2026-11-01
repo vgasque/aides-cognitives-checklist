@@ -10,7 +10,7 @@
      · ouvrir l'éditeur pose UN point de version — le filet qui remplace le « Annuler » disparu.
    Les trois derniers contrôles sont les plus importants : ce sont eux qui garantissent qu'un
    essai d'auteur ne contamine pas l'historique clinique de quelqu'un. */
-import { serveApp, moteur, amorce } from './harness.mjs';
+import { serveApp, moteur, amorce, ouvrirBloc } from './harness.mjs';
 const {port,srv}=await serveApp(); const br=await moteur().launch();
 const p=await br.newPage({viewport:{width:390,height:900}});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
@@ -496,7 +496,7 @@ await p.waitForTimeout(400);
   await p.setViewportSize({width:820,height:820}); await p.waitForTimeout(500);
   const etroit=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
     flux:!!document.querySelector('.flow-prev'),
-    dansLeFlux:!!document.querySelector('fieldset .flow-prev')}));
+    dansLeFlux:!!document.querySelector('.ed-slist .flow-prev')}));
   await p.setViewportSize({width:1250,height:820}); await p.waitForTimeout(500);
   const retour=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
     flux:!!document.querySelector('.flow-prev')}));
@@ -555,6 +555,7 @@ console.log('=== A383 : écrire n’ouvre rien, les réglages agissent vraiment 
   const CH='.blk:not(.blk-dec) .li input[data-sf]';
   const cle=await p.evaluate(()=>{const b=document.querySelector('.blk:not(.blk-dec)');return b?b.dataset.bid:null;});
   const etapes=async()=>p.evaluate(id=>bItems(state.draft.blocks.find(b=>b.id===id)||{}).map(v4ItemToStr),cle);
+  await ouvrirBloc(p,cle);   // A521 : le bloc s'ouvre sur sa page
   await p.click(CH); await p.waitForTimeout(250);
   const vus=await p.evaluate(()=>{const li=document.querySelector('.blk:not(.blk-dec) .li');
     return {reglages:li.querySelectorAll('select,.seg,.li-tools').length,fenetre:document.getElementById('stepSetModal').classList.contains('on'),
@@ -914,6 +915,7 @@ t('… et EFFACÉE, elle disparaît', U.apresEffacement===false, String(U.apresE
 await p.setViewportSize({width:1280,height:900});
 const PH=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   await openEdit(fiches[0].id);await w(700);
+  {const b=document.querySelector('.ed-pec .blk');const r=b&&[...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===b.dataset.bid&&x.offsetParent);if(r){r.click();await w(250);}}   // A521 : sa page
   const h=document.querySelector('.blk [data-bopt]');if(h&&h.getAttribute('aria-expanded')!=='true'){h.click();await w(200);}
   const ph=document.querySelector('.bo-row .blk-phase select');
   return {tag:ph?ph.tagName:'—',ph:ph?Math.round(ph.getBoundingClientRect().height):0,

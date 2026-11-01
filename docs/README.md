@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A501** à la v5.57 (et ça continue — la
-prochaine est A502), attribués dans
+Les décisions de conception portent des numéros **A1 → A539** à la v5.57 + lot v6.0 (et ça continue — la
+prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -133,8 +133,36 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A494-A495 | `lot-v5-55.md` | Administration devient une page à sections ouverte depuis Moi : À traiter, comptes et bibliothèques à l'échelle (recherche, filtres, pages de 40, lot), règles confirmées ; une rangée de règles, retour au-dessus du titre à toute largeur |
 | A496-A498 | `lot-v5-56.md` | La collection se choisit à la création (rangée « Collections » de la pancarte d'identité, feuille à cases de l'accueil réutilisée), « Nouveau protocole » ; le voile d'une feuille absorbe le tap au lieu de le laisser passer à ce qu'il couvre ; le menu des catégories dit ce qu'est une catégorie |
 | A499-A501 | `lot-v5-57.md` | Le pied « Tout est prêt » déplié ne répète plus la version ; la pastille du compte suit l'avatar « Moi » de la colonne au bureau, anneau de nuit renforcé ; A501 : la colonne gauche de l'accueil pose sous la barre d'état de l'iPad installé |
-| A511 | `lot-v5-57.md` | Correctifs d'une mesure sans a priori (1 436 mesures) : en paysage bas la capsule monte dans l'en-tête (exception à A354) ; le quai garde ses mots à toute largeur (étend A465) ; retour nommé, contrastes `--ink-3`, halos de session ; garantie du moniteur sur la bande rendue. (A502-A510 : refonte « Natif », branche à part) |
+| A502-A510, A513-A515 | `lot-v6-0.md` | REFONTE « Natif » (décidée sur maquettes, pas encore implémentée) : direction retenue et formes écartées (Cockpit, Document, verre généralisé) ; capsule et quai en verre clair en thème clair ; barre d'onglets au téléphone ; grand titre 34 px ; listes groupées à rangée à quatre emplacements ; cases rondes ; feuilles du bas et menu ⋯ ancré ; A509 : le moniteur reste un afficheur, bande en carte à rangées nommées ; A510 : arbitrages après mesure de 266 vues (verre à 90 % et volets en verre, onglet ≠ niveau de retour, recherche au clavier, titres 15/17,5, menu ⋯ en feuille au téléphone, aide en cours en tête), ordre des lots révisé, défauts actuels relevés |
+| A511 | `lot-v5-57.md` | Correctifs d'une mesure sans a priori (1 436 mesures) : en paysage bas la capsule monte dans l'en-tête (exception à A354) ; le quai garde ses mots à toute largeur (étend A465) ; retour nommé, contrastes `--ink-3`, halos de session ; garantie du moniteur sur la bande rendue. (A502-A510 : refonte « Natif », lot v6.0) |
 | A512 | `lot-v5-57.md` | Zones sûres latérales (`--sal`/`--sar`) : rien sous l'encoche ni l'île en paysage — trouvé au simulateur iOS ; césure des étapes sous Safari iOS laissée en question |
+| A513 | `lot-v6-0.md` | Refonte : la carte de décision perd son fond ambré (mot seul en ambre, renverse A345) ; un téléphone tourné prend la colonne gauche, iPhone SE compris |
+| A514 | `lot-v6-0.md` | Lot 2 de la refonte, outillage : `audit-verre` (contraste au pixel sous capsule et quai), `audit-retour` au téléphone, crans 34/28 du titre de page admis pour `.pg-ttl` seul |
+| A515 | `lot-v6-0.md` | Lot 3 de la refonte (v5.58.0) : cases rondes partout (36 px en session, jauge en rond plus grand) ; accueil en rangées groupées, plus de liseré, épinglées en premier groupe (renverse A261, tuiles purgées) |
+| A516 | `lot-v6-0.md` | Lot 3 réaligné sur la maquette (v5.58.1) : point de catégorie 10 px en tête, sous-ligne « Aide · SMUR · adulte · △ À relire », rangée 52 px, filet au texte, groupes sans bord, intertitres en phrase ; amende A338 (nature en minuscules, état à la suite) et A422 (état sans aplat) |
+| A517 | `lot-v6-0.md` | Lot 4 de la refonte (v5.59.0) : au téléphone, barre d'onglets flottante (Aides · Sessions · Moi + recherche), Sessions/Moi en onglets sans niveau de retour, rangée du haut (Sélectionner, Créer) et grand titre 34 qui se replie, champ et pastilles de filtre ; en large, titre 28 ; le titre précède l'Accès direct |
+| A518 | `lot-v6-0.md` | Lot 5 de la refonte (v5.60.0) : capsule, quai et volets en verre clair en thème clair (tokens système redéclarés en contexte, repli opaque) ; sonde `audit-verre` qui lit `color()` ; moniteur Natif (« ● Session », « Revenir » en pilule, barre de progression neutre, carte à rangées nommées, étiquette = le temps) |
+| A519 | `lot-v6-0.md` | Session Natif, arbitrages de l'auteur (lot 6, v5.61.0) : étapes à plat et registre sans fond (amende A345), légende du bloc retirée et numéro discret, « Session » au lieu de « MODE CRISE » et thème dans ⋯ (amende A14), repères en une ligne et jalon au pied (amende A397, A450) ; décision sans fond ambré (A513 §1) |
+| A520 | `lot-v6-0.md` | Surfaces Natif, arbitrages de l'auteur (lots 7-11 ; démarrage v5.62.0, Sessions et Moi v5.63.0, éditeur habillage v5.64.0) : démarrage en listes groupées (amende A330), éditeur en rangées de réglages en deux lots (habillage puis navigation), Sessions en rangées par jour, Administration en liste et fiche au bureau (amende A494) ; Moi et la Page proposés sans question |
+| A521 | `lot-v6-0.md` | L'éditeur se parcourt (lot 10, v5.65.0) : Identité en rangées « Titre · valeur › », structure en liste dans le fil (amende A390, `edTocHtml` purgé), un bloc s'ouvre sur sa page (`state.edFocus`, classes `ed-ov`/`ed-focus`, niveau du retour système) |
+| A522 | `lot-v6-0.md` | Administration au bureau et la Page à la maquette (lot 11, v5.66.0) : sections en segmenté, intertitres en phrase, statut en pastille ; Page avec « Fermer », échelle segmentée dans la barre, Imprimer · Exporter en PDF, feuille centrée sur fond gris |
+| A523 | `lot-v6-0.md` | Groupe « En cours » en tête de l'accueil (A510 §6, v5.67.0) : l'aide en session quitte sa section, « ● Session mm:ss » ; carte sombre retirée (sauf session partagée), « Terminer » reste dans la session |
+| A524 | `lot-v6-0.md` | Une seule recherche au téléphone, le rond de la barre d'onglets (v5.67.1, arbitrage de l'auteur) : champ-leurre sous le titre purgé (amende A517) ; « ● Session » sans « · » orphelin |
+| A525 | `lot-v6-0.md` | Menu ⋯ ancré en large : voile transparent qui absorbe le tap de fermeture (A510 §5, v5.68.0) |
+| A526 | `lot-v6-0.md` | Un téléphone tourné prend la colonne gauche quelle que soit sa largeur (A513 §2, v5.68.0) : une liste de media queries partagée par le CSS et `mqHomeWide` |
+| A527 | `lot-v6-0.md` | Seul le protocole dit sa nature sur sa rangée ; l'aide n'écrit plus « Aide » (arbitrage de l'auteur, v5.69.0) |
+| A528 | `lot-v6-0.md` | Au téléphone, « Affichage » est la première pastille ; plus de ligne du compte (arbitrage de l'auteur, v5.69.0) |
+| A529 | `lot-v6-0.md` | La Page n'a qu'un bouton « Imprimer ou PDF » (arbitrage de l'auteur, v5.69.0) |
+| A530 | `lot-v6-0.md` | Remesure : tout ce qui se clique répond au survol, une rangée ne se soulève plus (v5.70.0) |
+| A531 | `lot-v6-0.md` | Remesure : intertitres et étiquettes en phrase partout, mots d'état en capitales (v5.70.0) |
+| A532 | `lot-v6-0.md` | Remesure : téléphone tourné, « Schéma » au menu ⋯ ; sous 360 px l'état « Avant la session » se retire (v5.70.0) |
+| A533 | `lot-v6-0.md` | Remesure : grand chiffre du moniteur à 28 vw en portrait (v5.70.0) |
+| A534 | `lot-v6-0.md` | Conformité aux maquettes (v5.71.0) : colonne « Parcours » en liste légère, « Cochez les n restantes », comptes de la colonne gauche |
+| A535 | `lot-v6-0.md` | Rail de session à la maquette (v5.72.0) : compteur « − 1 + », minuteur en aplat gris, jalon à jauge et sous-ligne |
+| A536 | `lot-v6-0.md` | Bords au téléphone (v5.72.1) : barre collante pleine largeur, « Fermer » de la Page, rien de fixé sous une feuille opaque (bande de Safari 26) |
+| A537 | `lot-v6-0.md` | Vue compacte au dessin Natif (52 px au téléphone, 44 px en large), accès direct en tuiles (renverse A515 §4), « Affichage » aligné (v5.73.0) |
+| A538 | `lot-v6-0.md` | Recherche du bas à la hauteur de la barre d'onglets (62, clavier fermé) ; contraste du dock sombre mesuré (v5.73.0) |
+| A539 | `lot-v6-0.md` | Onglet actif en pastille pleine (1,2 → 7,8:1), avatar de « Moi » et point vivant bordés (v5.73.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

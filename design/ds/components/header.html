@@ -33,6 +33,7 @@
   :root{
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+  --glass:color-mix(in srgb,var(--work) 90%,transparent);   /* A517 (A510 §1) : les barres qui FLOTTENT, et elles seules */
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
   --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
   /* PÉRIMÈTRE ET CREUX DE LA MATIÈRE SYSTÈME (v5.15.0, planche 17/1a). --sys-edge : la nuit ne
@@ -569,9 +570,9 @@
      centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
      Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:40px;padding:0;justify-content:center}
+  /* A520 (lot 9) : « ▶ Essayer » garde son MOT au téléphone (jamais un libellé réduit au glyphe) — c'est l'état
+     « À relire » qui quitte l'en-tête étroit (il se lit et se règle dans « État », plus bas). */
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-badge{display:none}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
   html.zw400:not(.zw360) body.view-home header.bar.home :is(.hdr-new,.bar-acct){width:36px;height:36px}   /* A375 : sous 400 px, trois boutons de 40 ne tiennent plus avec la marque — palier de compression, 36 + halo 4 = 44 */
@@ -650,6 +651,16 @@
     padding:0;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);
     font-family:inherit;cursor:pointer;flex:none}
   .hdr-theme[hidden]{display:none}
+  .hdr-pl{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--work);box-shadow:var(--shadow-work);font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer;flex:none}
+  .hdr-pl[hidden]{display:none}
+  /* A520 : au téléphone, avant la session, « Page » prend la place de la catégorie dans le sur-titre — elle est dite
+     juste dessous, dans la sous-ligne ; le mot du mode (« Avant la session ») reste. */
+  @media (max-width:779.98px){#brandSur.pre .bs-cat{display:none}}
+  .hdr-pl:hover{background:var(--amb-2)}
+  .hdr-pl{position:relative}
+  .hdr-pl::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible : l'écran d'entrée se mesure comme le mode crise */
+  .hdr-pl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-theme:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -692,7 +703,7 @@
   .mm-chev{flex:none;display:inline-flex;color:var(--ink-3)}
   .mm-sep{height:1px;background:var(--line);margin:4px 8px}
   /* A337 : INTERTITRE de groupe (Session · L'aide) — à huit rangées et plus, on balaie par groupe. */
-  .mm-head{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:10px 10px 4px}
+  .mm-head{font-size:var(--t-meta);font-weight:600;color:var(--ink-2);padding:10px 10px 4px}   /* A531 */
   /* A337 : les OUVERTURES en TUILES — elles ouvrent une vue, elles ne font rien ; quatre rangées
      (176 px) tiennent en 56. Même classe `.mm-row` : clavier, focus et témoins inchangés. */
   .mm-tiles{display:flex;gap:4px}
@@ -836,7 +847,7 @@
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
      chrome — même hauteur que partout (doctrine v5.6). Sous 390 px la ligne n'a pas la place du
      mot ni des 24 px : marque 21, « ＋ » seul (réserve ≥ 8 px mesurée par la doctrine). */
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home .brand .brand-name{font-size:21px}
   }
   html.zw480 body.view-home .brand .brand-name{font-size:17.5px}   /* E2 : sous 480 px effectifs la marque à 21 ne laissait aucune réserve (−2/−4 px sous Linux) */
@@ -846,19 +857,16 @@
   /* v5.30 (A356, demande de l'auteur) : au téléphone la carte « Session en cours » est la MÊME BANDE
      système qu'à la tablette et au bureau — matière --sys, « Reprendre » plein clair, « Terminer » au
      registre critique système ; seule la composition change (grille à deux rangées). */
-  @media (max-width:779.98px){
-    body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info chrono" "rep rep end";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
+    body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info info" "rep rep rep";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
     body.view-home .ls-card .sess-dot{grid-area:dot;margin-top:6px}
     body.view-home .ls-card .ls-info{grid-area:info;gap:2px}
     body.view-home .ls-info .ls-k{font-size:12px;letter-spacing:.08em;color:var(--sys-ink-2)}
     /* v5.30.1 : même corps qu'en large (17,5/800) — le 21 d'A351 paraissait trop grand au téléphone (signalé). */
     body.view-home .ls-info .ls-t{font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--sys-ink)}
-    body.view-home .ls-info .ls-w{font-size:var(--t-item);color:var(--sys-ink-2)}
-    body.view-home .ls-chrono{grid-area:chrono;color:var(--sys-ink)}
     body.view-home .ls-card .btn.primary{grid-area:rep;min-height:48px;background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
     body.view-home .ls-card .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
     body.view-home .ls-card .btn:focus-visible{outline:2px solid var(--sys-ink)}
-    body.view-home .ls-card .ls-end{grid-area:end;margin-left:0;min-height:48px;border:1.5px solid var(--crit-sys);color:var(--crit-sys)}   /* A356 : le bord dit le registre (≥ 3:1) */
   }
   #homeDock{display:none}
   /* v5.30 (A353, changement d'avis de l'auteur) : le filtre est un bouton ROND à gauche de la recherche,
@@ -871,7 +879,7 @@
   body.view-home #homeDock{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
     position:fixed;left:0;right:0;bottom:0;z-index:20;
     padding:0 16px calc(12px + var(--sab,0px))}
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home #homeDock::before{content:"";position:absolute;left:0;right:0;bottom:0;top:-40px;z-index:-1;pointer-events:none;
       -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
       background:linear-gradient(to top,color-mix(in srgb,var(--amb) 94%,transparent) 0,color-mix(in srgb,var(--amb) 86%,transparent) calc(100% - 64px),color-mix(in srgb,var(--amb) 40%,transparent) calc(100% - 24px),transparent);
@@ -902,7 +910,7 @@
   /* A423 : capsule (pleinement arrondie, comme le cercle voisin) et ombre de flottaison ; la nuit, sans
      ombre, le contour --ctl-line (3:1) borde les deux commandes, qui passent sur des cartes de leur teinte. */
   #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow-float)}
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     #homeDock .hdr-search input{padding-left:40px}
     #homeDock .hdr-search .srch-box>svg{left:16px}
     [data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
@@ -928,12 +936,107 @@
      « bas de page non visible à cause de la barre flottante ») : la réserve est le REMBOURRAGE
      du pied lui-même — un ::after l'étendait SOUS le viewport, donc une page courte défilait de
      96 px pour un pied qui restait sous le dock. --sab compte : le dock le porte aussi. */
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
     body.view-home footer.tools{border-top:0}
   }
+
+
+  /* ═══ A518 — CAPSULE, QUAI ET VOLETS EN VERRE CLAIR (refonte « Natif », lot 5 : A503, A510 §1) ═══════════════
+     En thème CLAIR seulement, les barres de session prennent la matière des barres flottantes d'iOS — verre ≈ 90 %
+     (`--glass`), flou, bord fin, ombre douce — au lieu de la matière système sombre. Les tokens de la matière
+     système sont REDÉCLARÉS EN CONTEXTE sur ces seules surfaces : `--sys` garde ses autres lecteurs (carte de session
+     de l'accueil, bulle du guide, toasts, alarme, scanner…). Registres propres aux barres claires : l'encre de la
+     page (`--ok`, `--warn`, `--crit`) — les « -sys » font 1,6 à 2:1 sur un fond clair. Le contraste se mesure AU
+     PIXEL sous la barre (`audit-verre`). En thème sombre, rien ne change (A503). */
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){
+    --sys:var(--glass);--sys-hi:var(--amb-2);--sys-2:color-mix(in srgb,var(--ink) 6%,transparent);--sys-line:var(--line-strong);
+    --sys-ink:var(--ink);--sys-ink-2:var(--ink-2);--sys-key:color-mix(in srgb,var(--ink) 7%,transparent);--sys-edge:var(--work-line);
+    --ok-sys:var(--ok);--warn-sys:var(--warn);--crit-sys:var(--crit);--warn-sys-bg:var(--warn-soft);--on-sys-fill:var(--work);
+    --ctl-sys:var(--ctl-line);--alarm-bd:var(--warn-line);--dock-ring:var(--act)}
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in){box-shadow:inset 0 0 0 1px var(--work-line),var(--shadow-float)}
+  /* Sur le verre, le POULS de l'alarme ne touche plus le texte : à 55 % d'opacité, « 00:00 » tombait à 3,4:1
+     (audit-a11y). Il passe sur l'APLAT seul (pseudo-élément), le temps reste plein. */
+  @media (prefers-reduced-motion:no-preference){
+    html:not([data-theme="dark"]) #cbTimers .seg.due{position:relative;isolation:isolate;animation:none;background:none}
+    html:not([data-theme="dark"]) #cbTimers .seg.due::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+      background:var(--warn-sys-bg);animation:alarmPulse 2s ease-in-out infinite}}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){--sys:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){
+    html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){--sys:var(--work)}}
+  /* ═══ A517 — LA NAVIGATION DU TÉLÉPHONE (refonte « Natif », lot 4 : A504, A505, A510 §2-§3) ═══════════════
+     En portrait sous 780 px, l'accueil perd sa rangée d'en-tête : « Sélectionner » et « Créer » montent dans la
+     rangée du haut de la page, le grand titre (34) est du contenu, la recherche et la navigation descendent dans
+     une barre d'onglets FLOTTANTE en verre (≈ 90 %, repli opaque). Pendant une recherche, le champ (#homeDock,
+     sa mécanique de clavier intacte, A192-A197) prend la place de la barre. */
+  .tab-bar{display:none}
+  html.tabnav body.view-home header.bar{min-height:0;height:0;padding:0;border:0;box-shadow:none;background:none}
+  html.tabnav body.view-home header.bar .id-row>:not(#homeDock):not(#tabNav){display:none}
+  html.tabnav:not(.tb-q) body.view-home #homeDock{display:none}
+  /* Le dock paraît APRÈS le premier rendu : sa largeur intrinsèque (champ ≈ 380 px) élargissait la fenêtre
+     mobile au lieu de rétrécir — le champ prend la place restante, jamais plus. */
+  html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
+  html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
+  /* A538 : clavier fermé, la recherche prend la hauteur de la barre d'onglets qu'elle remplace (62) — elle tombait à
+     44, filtre compris. Clavier ouvert, le dock compact d'A423 reste (44). */
+  html.tabnav:not(.kbd) body.view-home #homeDock .filt-tog{width:62px;height:62px;min-height:62px}
+  html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
+  html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
+    left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:calc(12px + var(--sab,0px));pointer-events:none}
+  .tb-tabs{flex:1;display:flex;min-width:0;height:62px;padding:4px;border-radius:999px;pointer-events:auto}
+  .tb-srch{flex:none;display:grid;place-items:center;width:62px;height:62px;padding:0;border-radius:999px;cursor:pointer;pointer-events:auto}
+  :is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  :is(.tb-tabs,.tb-srch){border:1px solid var(--work-line);box-shadow:var(--shadow-float);color:var(--ink)}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  [data-theme="dark"] :is(.tb-tabs,.tb-srch){border-color:var(--ctl-line)}
+  .tb-tab{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    padding:0;border:0;border-radius:999px;background:none;font:inherit;font-size:var(--t-cap);font-weight:700;color:var(--ink);cursor:pointer}
+  /* A539 : l'onglet actif en pastille PLEINE — la pastille grise ne se détachait de la barre qu'à 1,2:1 (1.4.11 : 3:1) ;
+     pleine, 7,8:1 en sombre et 9,3:1 en clair. */
+  .tb-tab.on{background:var(--act);color:var(--on-primary)}
+  .tb-tab.live::after{content:"";position:absolute;top:9px;left:calc(50% + 9px);width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--work)}   /* A539 : l'anneau le détache de la pastille pleine (vert sur bleu : 1,2 à 1,7:1) */
+  :is(.tb-tab,.tb-srch):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .tb-av{position:relative;width:24px;height:24px;border-radius:50%;background:var(--primary-soft);color:var(--act);
+    display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-cap);font-weight:800}
+  .tb-av>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}
+  .tb-av{box-shadow:inset 0 0 0 1px var(--ctl-line)}   /* A539 : le disque se perdait dans la barre (1,06:1 en sombre, 1,18:1 en clair) */
+  /* La rangée du haut : collante sous la bande de l'heure, hauteur FIXE (C16) ; le petit titre n'y paraît qu'une
+     fois le grand sorti par le haut (`.stuck`, IntersectionObserver). */
+  .pg-top{position:sticky;top:calc(var(--sat) / var(--zf,1));z-index:7;display:grid;grid-template-columns:1fr auto 1fr;
+    align-items:center;gap:8px;height:52px;margin:0 -18px;padding:0 18px}   /* 18 : le rembourrage de main au téléphone */
+  .pg-top.stuck{box-shadow:0 1px 0 var(--line)}
+  .pg-l{justify-self:start;display:flex}.pg-r{justify-self:end;display:flex}
+  .pg-tt{font-size:var(--t-step);font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}
+  .pg-top.stuck .pg-tt{opacity:1}
+  .pg-top :is(.pg-btn,.sel-tog){display:inline-flex;align-items:center;gap:6px;height:40px;min-height:40px;margin:0;padding:0 16px;
+    border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);
+    font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer}
+  .pg-top :is(.pg-btn,.sel-tog):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pg-top :is(.pg-btn,.sel-tog){position:relative}
+  .pg-top :is(.pg-btn,.sel-tog)::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible (zone haute) */
+  .pg-ttl{margin:2px 4px 12px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink);text-wrap:balance}
+  html.zw360 .pg-ttl{font-size:28px}
+  .pg-chips{display:flex;gap:8px;margin:0 -18px 14px;padding:2px 18px;overflow-x:auto;scrollbar-width:none}
+  .pg-chips::-webkit-scrollbar{display:none}
+  .pg-chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:0;border-radius:999px;
+    background:var(--work);box-shadow:inset 0 0 0 1px var(--line-strong);font:inherit;font-size:var(--t-body);font-weight:600;
+    color:var(--ink);white-space:nowrap;cursor:pointer}
+  .pg-chip svg{width:14px;height:14px}
+  .pg-chip .cat-dot{width:8px;height:8px;margin:0;box-shadow:none}
+  .pg-chip.on{background:var(--ink);color:var(--amb);box-shadow:none}
+  .pg-chip:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  html.tabnav body.view-home .hv-page{padding-top:0}
+  /* En large (et téléphone tourné), le grand titre est de 28 px sur la ligne du compte (maquette tablette, A505). */
+  .dir-sum .pg-ttl{flex:none;margin:0 6px 0 0;font-size:28px;line-height:1.15}
+  .dir-sum:has(.pg-ttl){align-items:baseline}
+  .dir-sum:has(.pg-ttl) .dir-hs{flex:1}
+  /* A537 : titre et compte sur la ligne de base, les boutons centrés ensemble (Affichage, enveloppé, tombait 3 px plus haut). */
+  .dir-sum:has(.pg-ttl)>:is(.rang-wrap,.sel-tog){align-self:center}
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
      replie fait remonter tout le contenu d'un coup) : #crisisBand = TITRE (flux, relayé par la
      barre) ; #cbTimers = ÉTAT VIVANT (collant, ne quitte jamais l'écran — ECAM, aucun chrono
@@ -971,6 +1074,7 @@
      juste en dessous) : c'est donc le discriminant qui s'ellipse s'il faut, et lui seul. */
   .brand-sur .bs-m{flex:none}
   .brand-sur.pre .bs-m{color:var(--ink-2);font-weight:700}   /* « Avant la session » : un état, pas une alerte */
+  html.zw360 .brand-sur.pre{display:none}   /* A532 : sous 360 px l'état « Avant la session » passait sous « Page » ; le grand titre et « Confirmé — démarrer » le disent */
   /* v5.30 (maquette v5, K6) : le discriminant suit le TITRE sur sa ligne — « Titre · adulte » —, jamais dans la chaîne ellipsée. */
   .bt-line{display:flex;align-items:baseline;gap:6px;min-width:0}
   #brandDisc{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);white-space:nowrap;line-height:inherit}
@@ -1545,6 +1649,8 @@
     color:var(--ink-soft);border-top:1px solid var(--line)}
   .rt-jl:first-of-type{border-top:0}
   .rt-jlc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-jlc small{display:block;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-meta);font-weight:400;color:var(--ink-2)}   /* A535 */
+  .rt-jl .mo-pips{flex:none;margin-left:0}
   .rt-jlp{flex:none;font-family:var(--f-mono);font-weight:700;color:var(--ink);
     font-variant-numeric:tabular-nums}
   .rt-jl.on{color:var(--warn);font-weight:700}
@@ -1819,7 +1925,7 @@
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--act);flex:none;display:inline-flex}
   .sys-banner .sb-txt{flex:1;min-width:0}
-  .sys-banner .sb-act{background:none;border:0;color:var(--act);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:8px;cursor:pointer;flex:none}
+  .sys-banner .sb-act{background:none;border:0;color:var(--act);font-size:var(--t-body);font-weight:700;padding:6px 8px;min-height:32px;border-radius:8px;cursor:pointer;flex:none}
   .sys-banner .sb-act:hover{background:var(--primary-100)}
   /* 15,5 px et non 19 (v5.0.0, audit design A3-1) : à l'accueil, cette croix était le plus
      GROS glyphe de l'écran après la marque — le point focal d'un bandeau était son bouton
@@ -1964,29 +2070,6 @@
   .dir-h .dir-hs{font-size:12px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dir-h.dir-sum{margin:8px 0 12px}
   .dir-h.dir-sum .dir-hs{flex:1;font-size:var(--t-body)}
-  /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
-     catégorie par ::before (canal --stripe). Grille FLUIDE partagée avec le répertoire : même
-     minimum et même gouttière que .dir-grid, jamais un nombre de colonnes figé — tuiles et rangées
-     s'alignent colonne pour colonne, une transition ne change que le NOMBRE. Détail : doctrine-css.md C36. */
-  .qa-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-  /* E1 niveau 1 : une tuile d'accueil est du CONTENU (plat + filet) — l'ombre est rendue aux
-     surfaces vives. Le fond `--amb` un cran plus profond (E7) la fait « porter » sans elle. */
-  /* v5.30 (maquette v5) : tuile 76 px, liseré 6 px, point vert PULSANT (`.sess-dot`) à droite si
-     une session est en cours — un mot au nom accessible, jamais la couleur seule. */
-  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:76px;background:var(--work);border:1px solid var(--line-strong);border-radius:var(--r-3);padding:10px 12px 10px 20px;cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
-  .qa-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-  .qa-tile:hover{border-color:var(--line-strong)}
-  .qa-tile:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .qa-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--stripe,transparent)}
-  /* Titre de tuile : 3 lignes max puis ellipse (nom accessible et info-bulle entiers), corps 15 px
-     — et NON 16,5 comme la rangée du répertoire (A3-1, monté puis REVENU sur mesure : la tuile a
-     une hauteur FLUIDE, 16,5 coûtait ~35 px à chaque rangée de tuiles). Ne pas « harmoniser » les
-     deux paliers : c'est la CONTRAINTE qui décide, pas l'objet montré. Détail : doctrine-css.md C37. */
-  .qa-t{font-size:15px;font-weight:750;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word}
-  .qa-sub{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-size:11px;color:var(--ink-soft)}
-  .qa-sub>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .qa-sub>.code,.qa-sub>.tag{flex:none}
-  .qa-sub .code{font-family:var(--f-mono);white-space:nowrap}
   /* Répertoire : lettre de classement en SERIF graisse 600 (la seule embarquée — un index
      d'ouvrage, pas du chrome) ; le rail A→Z, lui, RESTE en mono. ⚠ Deux régimes : en étroit UNE
      carte à rangées (un livre, pas une pile de cadres), en large des cartes en grille fluide —
@@ -2014,7 +2097,7 @@
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
-  .qa-sec{margin:0 0 4px}
+  .qa-sec{margin:0 0 24px}   /* A517 : le même pas qu'entre deux groupes (gap de .dir-book) */
   /* ══ COLLECTIONS (A475) ══ La rangée du téléphone reprend les puces de catégorie ; l'en-tête d'une
      collection ouverte dit « à vous seul » avant son nom ; le signet (`bookmark`) les distingue du livre. */
   .coll-rail .dir-h{margin-top:12px}
@@ -2037,7 +2120,7 @@
   .dir-also svg{flex:none;color:var(--act)}
   .hs-hs,.vs-hs,.acct-hs{font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-2);margin-left:6px}
   /* La case d'une rangée à choix multiple (`openPickMenu` multi) : dessin de `.dir-ck`, trois états. */
-  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--work)}
+  .mm-box{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:2px solid var(--ctl-line);border-radius:50%;background:var(--work);color:var(--work)}
   .mm-box svg{opacity:0}
   [aria-checked="true"]>.mm-ic .mm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.mm-ic .mm-box svg{opacity:1}
@@ -2052,13 +2135,6 @@
   .popmenu-foot{position:sticky;bottom:-6px;display:flex;justify-content:flex-end;margin:6px -6px -6px;padding:10px 6px;border-top:1px solid var(--line);background:var(--work)}
   .popmenu.sheet .popmenu-foot{margin:6px -16px 0;padding:10px 16px}
   .popmenu-foot .btn{min-width:120px}
-  /* Étroit (A261) : deux tuiles par ligne dès 390 px ; le titre long gagne une 4e ligne et un
-     corps de 13,5 (l'ellipse reste la borne — la tuile OUVRE la fiche, le titre entier est à
-     un tap). La boîte reste bornée : c'est le témoin « titres longs » qui tient le plafond. */
-  @media (max-width:779.98px){
-    .qa-grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
-    .qa-t{font-size:13.5px;-webkit-line-clamp:4}
-  }
   /* ═══ A170 — LE MODE SÉLECTION VIT DANS LA RANGÉE DE GROUPEMENT ═══════════════════════════
      Et NON dans l'en-tête (décision de l'auteur : « l'en-tête est déjà saturé »). Le logement est
      juste : cette rangée est celle où l'on choisit COMMENT ce qu'on voit est rangé, juste
@@ -2135,11 +2211,11 @@
      (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
      sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
   .dir-ck{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--act);cursor:pointer}
-  .dir-ck::before{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--work)}
+  .dir-ck::before{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:50%;background:var(--work)}
   .dir-ck>svg{position:relative;opacity:0}
   .dir-row.selon .dir-ck::before{background:var(--act);border-color:var(--act)}
   .dir-row.selon .dir-ck>svg{opacity:1;color:var(--work)}
-  .dir-ck:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
+  .dir-ck:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:50%}   /* A507 : l'anneau suit la case ronde */
   /* ⚠ LA COCHE EST UNE COLONNE DE LA GRILLE, PAS UN INTRUS (correctif, signalé à l'usage :
      « réduis l'espace entre la coche et le reste de la carte — c'est encore plus marquant sur
      plusieurs colonnes »). `.dir-row` est une GRILLE à deux pistes (`minmax(0,1fr) auto`) :
@@ -2301,20 +2377,18 @@
   html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
   html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
   html.zw360 .dir-st{margin-left:0;padding-left:0}
-  html.zw360 .dir-book .dir-row{height:80px}   /* deux lignes de méta (badge compris) : une seule hauteur de rangée */
+  html.zw360 .dir-book.compact .dir-id{display:inline}   /* A537 : la compacte garde sa méta sur UNE ligne, même à 320 px */
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
-  .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:var(--catcol,var(--line-strong));border-radius:var(--r-3) 0 0 var(--r-3)}
-  /* Dans le LIVRE, la rangée n'a plus de bord à elle : le liseré de catégorie se pose dans la
-     marge de la carte, où il reste lisible comme un onglet d'annuaire. */
-  .dir-book .dir-row::before{left:-16px;border-radius:0;top:1px;bottom:1px}
+  /* A506 (refonte « Natif », lot 3) — LISTES GROUPÉES : plus de liseré. La catégorie se dit par le point
+     SUIVI DE SON NOM dans la sous-ligne (« ● SMUR », A242) — jamais le point seul (A326) ; en sélection,
+     la case prend l'avant et le point reste dans la sous-ligne (choix de l'auteur). */
+  .dir-row::before{content:none}
   /* ⚠ PLUS DE `background:none` SUR L'ÉTAT (v5.6, signalé à l'usage : « on a l'impression qu'elle
      n'a plus de fond de carte »). Cette règle vaut (0,3,0) et battait aussi bien la teinte de
      l'état que la MATIÈRE de la carte posée au palier ≥ 640 px — la rangée d'une aide en session
      s'y retrouvait donc sans fond du tout. Un état se COMPOSE avec l'objet, il ne le remplace
      jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
      carte quand il y en a une, sur le blanc du livre sinon. */
-  .dir-book .dir-row.live::before{width:4px}   /* compact : le livre à filets garde un liseré plus fin */
   /* v5.30 (maquette v5) — vue DÉTAILLÉE : une CARTE par rangée (liseré 6 px, titre 15/700,
      discriminant sur sa ligne, méta 13,5) ; la vue COMPACTE garde le livre à filets. A389 : à TOUTES
      les largeurs — elle n'existait que sous 780 px, et « Détaillée » / « Compacte » rendaient la même
@@ -2322,25 +2396,93 @@
     /* A362 : les cartes d'un groupe se touchaient (0 px, coins 14 qui se chevauchaient) et un
        groupe n'était séparé du suivant que par 10 px — 8 px ENTRE les cartes, 24 px AVANT chaque
        intertitre, 10 px sous lui (planche A) ; le livre compact à filets ne change pas. */
-    .dir-book:not(.compact){display:flex;flex-direction:column;gap:24px}
-    .dir-book:not(.compact) .dir-g{background:none;border:0;border-radius:0;overflow:visible;margin:0;display:flex;flex-direction:column;gap:10px}
-    .dir-book:not(.compact) .dir-grid{display:flex;flex-direction:column;gap:8px}
-    .dir-book:not(.compact) .dir-l{position:static;background:none;box-shadow:none;padding:6px 4px 0;font-size:var(--t-meta)}
-    .dir-book:not(.compact) .dir-row{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);min-height:76px;padding:12px 12px 12px 20px;overflow:hidden}
-    .dir-book:not(.compact) .dir-grid>.dir-row:last-child{border-bottom:1px solid var(--work-line)}
-    .dir-book:not(.compact) .dir-row::before{left:0;top:0;bottom:0;width:6px;border-radius:0}
-    .dir-book:not(.compact) .dir-row .card-open{font-size:var(--t-item);font-weight:700}   /* A375 : 15/700 comme en large (choix de l’auteur, « bigger is not better ») — A359 disait 17,5 */
-    .dir-book:not(.compact) .dir-sub{flex-wrap:wrap;white-space:normal;row-gap:4px;margin-top:4px}
-    .dir-book:not(.compact) .dir-disc{order:-1;flex:1 0 100%;font-size:var(--t-body);font-weight:600;color:var(--ink)}
-    /* A359 (signalé : « bordure du bas de certaines cartes invisible en sombre ») : le livre à filets efface le filet
-       du DERNIER rang d'un groupe ; une CARTE garde ses quatre bords. */
-    .dir-book:not(.compact) .dir-grid>.dir-row:last-child,.dir-book:not(.compact) .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:1px solid var(--work-line)}
+    .dir-book{display:flex;flex-direction:column;gap:24px}
+    .dir-book .dir-g{background:none;border:0;border-radius:0;overflow:visible;margin:0;display:flex;flex-direction:column;gap:10px}
+    /* A506 : la vue DÉTAILLÉE n'est plus une pile de cartes mais un GROUPE arrondi de rangées séparées par un
+       filet — la matière du livre compact, avec deux lignes ; l'intertitre reste AU-DESSUS du groupe. */
+    .dir-book .dir-grid{display:block;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip;box-shadow:var(--shadow-work)}
+    .dir-book .dir-l{position:static;background:none;box-shadow:none;padding:6px 4px 0;font-size:var(--t-meta)}
+    .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;min-height:64px;padding:10px 12px 10px 16px;overflow:hidden}
+    .dir-book .dir-row .card-open{font-size:var(--t-item);font-weight:700}   /* A375 : 15/700 comme en large (choix de l’auteur, « bigger is not better ») — A359 disait 17,5 */
+    /* A506 : comme le livre à filets, le DERNIER rang d'un groupe n'a pas de filet — le bord du groupe le remplace
+       (A359 gardait les quatre bords d'une CARTE ; il n'y a plus de carte). */
+    .dir-book .dir-grid>.dir-row:last-child{border-bottom:0}
+    /* A506 : les ÉTATS se composent avec la rangée groupée (la règle de fond ci-dessus, plus spécifique, les
+       effaçait — vu en capture) : sélection bleu pâle, survol en teinte ; une rangée de groupe ne se SOULÈVE
+       pas au survol (ce geste était celui d'une carte). */
+    .dir-book .dir-row.selon{background:var(--primary-soft)}
+    .dir-book .dir-row:hover{background:var(--amb-2)}
+    .dir-book .dir-row:is(:hover,:active){transform:none;box-shadow:none}
     /* Sous 360 px effectifs, la carte garde sa géométrie (hauteur libre, méta en ligne qui s'enroule) :
        les règles du LIVRE (hauteur unique, méta en colonne) ne la concernent pas. */
     html.zw360 .dir-book:not(.compact) .dir-row{height:auto}
     html.zw360 .dir-book:not(.compact) .dir-sub{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
     html.zw360 .dir-book:not(.compact) .dir-id{display:contents}
     html.zw360 .dir-book:not(.compact) .dir-st{margin-left:auto;padding-left:6px}
+  /* A516 (lot 3 réaligné sur la maquette Natif) — LA RANGÉE D'A506, À LA LETTRE : point de catégorie de 10 px
+     EN TÊTE, titre 15 (A510 §4), sous-ligne 13,5 en texte séparé par des points (« SMUR · adulte · △ À relire »,
+     état compris, plus de pastille), étoile à droite ; 52 px au minimum ; groupe sans bord ni ombre ; le filet
+     commence au texte. Sans catégorie, la rangée reste sur deux pistes (piège relevé en maquette, A506). */
+  .dir-av{width:10px;height:10px;border-radius:50%;background:var(--catcol)}
+  .dir-row.has-av{grid-template-columns:auto minmax(0,1fr) auto;column-gap:14px}
+  .dir-row.has-av.selm{column-gap:8px}
+  .dir-row.has-av:not(.selm) .dir-cat .cat-dot{display:none}
+  .dir-book .dir-grid{border:0;box-shadow:none}
+  .dir-book .dir-row{min-height:52px;padding:8px 8px 8px 16px;border-bottom:0;
+    background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-position:right bottom;background-size:calc(100% - 16px) 1px}
+  .dir-book .dir-row.has-av:not(.selm){background-size:calc(100% - 40px) 1px}
+  .dir-book .dir-grid>.dir-row:last-child{background-image:none}
+  .dir-book .dir-row .card-open{font-weight:600}
+  .dir-book .dir-sub{display:block;margin-top:2px;white-space:normal;overflow:visible;
+    font-size:var(--t-body);line-height:1.35;color:var(--ink-2)}
+  .dir-book :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){display:inline;min-width:0;margin:0;padding:0;
+    overflow:visible;white-space:normal;font-size:inherit}
+  .dir-book .dir-id>*+*::before,.dir-book .dir-id:not(:empty)+.dir-st::before{
+    content:"·";margin:0 6px;font-weight:400;color:var(--ink-2)}
+  .dir-book .dir-disc{order:0;font-weight:400;color:inherit}
+  .dir-book .dir-kind{font-size:inherit;font-weight:400;letter-spacing:0;text-transform:none}
+  html .dir-book .dir-row .dir-sub>.dir-st{margin:0;padding:0}
+  /* Atome insécable, mais une coupure possible AVANT lui (une boîte en ligne « nowrap » n'en offre aucune). */
+  .dir-book .dir-sub>.dir-st{display:inline-block;white-space:nowrap}
+  .dir-book .dir-kind{white-space:nowrap}
+  .dir-book .dir-st.b{background:none;padding:0;color:var(--ink-2)}
+  /* Intertitre de groupe : la phrase de la maquette (« Accès direct   4 »), 13,5/600, aligné sur le texte des
+     rangées — plus de capitales espacées. */
+  .dir-book .dir-l{padding:0 16px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .dir-book .dir-l .dir-ll{font-size:inherit}
+  .dir-book .dir-l .dir-ln{font-family:inherit;font-size:inherit;font-weight:600;color:var(--ink-2)}
+  /* A537 : la vue COMPACTE prend le groupe, l'intertitre et la rangée de la détaillée ; elle se distingue par une
+     HAUTEUR FIXE. Sous 1200 px effectifs : deux lignes serrées (52 px), titre sur une ligne, méta sur une ligne
+     (nature, discriminant, état ; la catégorie est déjà dans l'intertitre quand on range par catégorie, le nombre
+     de PDF se lit dans l'aide). Au-delà : une ligne de 44 px, méta entière à droite (plus bas, après l'en-tête). */
+  .dir-book.compact .dir-row{padding-block:6px}
+  .dir-book.compact .dir-row .card-open .dir-t{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* la coupure au mot de -webkit-line-clamp laissait « Limitation et arrêt des… » et du vide */
+  .dir-book.compact .dir-sub{margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-meta)}
+  .dir-book.compact :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){white-space:nowrap}
+  .dir-book.compact .dir-sub>.dir-st{display:inline}
+  html.zw1200 .dir-book.compact .dir-id>span:not([class]){display:none}
+  html.zw1200 .dir-book.compact.by-cat .dir-cat{display:none}
+  html.zw1200 .dir-book.compact.by-cat .dir-id>.dir-cat:first-child+*::before,
+  html.zw1200 .dir-book.compact.by-cat .dir-id:has(>.dir-cat:only-child)+.dir-st::before{content:none}
+  /* A537 (renverse A515 §4, demande de l'auteur) : l'ACCÈS DIRECT en tuiles, plusieurs par ligne, quelle que soit la
+     densité. Une tuile dit le titre (trois lignes au plus), la catégorie avec son point, puis l'état — ni nature ni
+     discriminant. Au téléphone, pas d'étoile sur la tuile : l'aide reste dans la liste, où l'étoile la retire. */
+  .dir-book.pinned .dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%/2 - 4px,200px),1fr));gap:8px;background:none;overflow:visible}
+  .dir-book.pinned .dir-row{grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:6px;min-height:88px;padding:12px 6px 12px 14px;background:var(--work);border-radius:var(--r-4)}
+  .dir-book.pinned .dir-row:hover{background:var(--amb-2)}
+  .dir-book.pinned .dir-av{display:none}
+  .dir-book.pinned .dir-row .card-open .dir-t{-webkit-line-clamp:3;max-height:none}
+  .dir-book.pinned .dir-sub{margin-top:6px;font-size:var(--t-meta);white-space:nowrap}
+  .dir-book.pinned .dir-id>:not(.dir-cat){display:none}
+  .dir-book.pinned .dir-id>.dir-cat{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-sub>.dir-id+.dir-st::before{content:none}
+  .dir-book.pinned .dir-row.has-av .dir-cat .cat-dot{display:inline-block;margin-right:6px;vertical-align:1px}
+  .dir-book.pinned .dir-sub>.dir-st{display:block}
+  .dir-book.pinned .pinbtn{margin-top:-8px}
+  html.zw560 .dir-book.pinned .dir-row{grid-template-columns:minmax(0,1fr);padding-right:14px}
+  html.zw560 .dir-book.pinned .pinbtn{display:none}
+  html.zw560 .dir-book.pinned .dir-row .card-open .dir-t{-webkit-hyphens:auto;hyphens:auto}
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
@@ -2349,12 +2491,12 @@
      voisin ; en large, le tonal d'« Affichage » et « Sélectionner ». */
   body.view-home #hdrNew{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink);border-radius:var(--r-4)}
   body.view-home #hdrNew:hover{background:var(--amb-2)}
-  @media (min-width:780px){
+  @media (min-width:780px), (orientation:landscape) and (max-height:499.98px){
     body.view-home #hdrNew{background:var(--amb-2);border-color:transparent;box-shadow:none;color:var(--act)}
     body.view-home #hdrNew:hover{background:var(--line)}
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
-  .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .vs-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
   .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
   .vs-part{display:flex;align-items:center;gap:8px;min-height:calc(32px + 10px + 1px);padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}   /* v5.39.9 : la cible de 32 px de « Tout effacer », plus le pied et le filet (boîte en border-box) — sa venue ne grandit plus le bandeau (39 → 43 px mesurés) */
@@ -2370,14 +2512,17 @@
   .vs-seg.vs-wrap .seg-btn{white-space:normal;line-height:1.15;hyphens:manual;text-align:center}
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
-  @media (max-width:779.98px){#rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock */
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){html:not(.tabnav) #rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock — sauf sous la barre d'onglets (A517), où le dock n'est plus là hors recherche */
   /* SESSION EN COURS (v5.30, A355 — l'aplat vert est parti) : le liseré passe au registre CONFIRMATION
      (6 px, celui de la carte « Session en cours »), la carte reste BLANCHE, et l'état devient le chrono
      vivant « ● En cours 12:04 » en vert — un glyphe et un mot, jamais un fond (règle 8). Même dessin en
      vue compacte (livre à filets) : liseré et mot, rien d'autre. */
-  .dir-row.live::before{background:var(--ok);width:6px}
+  /* (A506 : le liseré « session en cours » est parti avec le liseré de catégorie — l'état reste dit par
+     « ● En cours 12:04 » en vert sur la rangée, un glyphe et un mot.) */
   .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
-  .dir-st.dir-live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+  .dir-live .dl-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}
+  .dir-book .dir-id:not(:empty)+.dir-st.dir-live::before{content:none}   /* le point vert sépare déjà : pas de « · » orphelin à la coupure */
+  .dir-book .dir-id:not(:empty)+.dir-st.dir-live .dl-dot{margin-left:10px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
@@ -2443,6 +2588,9 @@
        valeur à l'existence du rail). 8 px est le PLANCHER, déduit : sous 6 le fond translucide du
        rail peindrait sur la rangée ; gouttière = 18 − (rail − 12). Détail : doctrine-css.md C53. */
     body.view-home .home-main{padding-right:8px}
+    /* A536 : le fond de la barre collante traverse la réservation (18 + 8) jusqu'au bord ; ses boutons
+       restent alignés sur les cartes. */
+    body.view-home .pg-top{margin-right:calc(-18px - 8px);padding-right:calc(18px + 8px)}
     /* ⚠ Rebond de fin de page : WebKit translate aussi les `fixed` — aucune mesure JS ne le voit.
        `overscroll-behavior-y:none` supprime le rebond, borné à l'accueil en voie étroite, posé
        sur `html` ET `body` (racine obligatoire), et SEULEMENT pendant le geste (pointerdown sur
@@ -2493,6 +2641,7 @@
      au-dessus du seuil de 24 px de WCAG 2.5.8 une fois l'écart de la rangée compté) et reste
      entier en largeur, où il ne dispute rien. */
   .tag.todo::after{content:"";position:absolute;inset:0 -6px}
+  .read-meta .tag.todo::after{inset:-11px -6px}   /* écran de démarrage : rien au-dessus à disputer, la cible monte à 44 px */
   .tag.todo:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* Fiches liées : chips en lecture, éditeur avec croix de retrait. */
   .related{margin:16px 0 4px}.related>b{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px}
@@ -2564,7 +2713,7 @@
   .empty b{display:block;color:var(--ink);font-size:17.5px;margin-bottom:6px}
   /* DIRECTION A, lot 2 : équilibre des titres multi-lignes (amélioration progressive pure —
      moteur sans text-wrap:balance = comportement actuel). JAMAIS sur un titre clampé
-     (.dir-t, .qa-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
+     (.dir-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
      tronque — on perdrait des mots pour gagner une symétrie. */
   .ai-top h3,.empty b{text-wrap:balance}
   .empty .btn{margin-top:14px}
@@ -2580,7 +2729,6 @@
      --ink-2) ; la barre garde le sien pour le défilement. En session la méta s'efface (règle ci-dessous). */
   .read-head{padding:4px 8px 0}
   body:is(.view-read,.view-pread) .read-head h2{font-size:var(--t-val);font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
-  .read-sub{margin:2px 0 0;font-size:var(--t-step);font-weight:600;color:var(--ink-2);line-height:1.3}
   @media screen{body.view-read:has(#cbTimers:not([hidden])) .read-head{display:none}}
   /* Une AIDE : la méta se lit d'un trait (bibliothèque · catégorie · validation · état) ; le protocole garde ses chips. */
   body.view-read .read-meta{display:block;padding:0 8px;font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
@@ -2589,6 +2737,12 @@
   body.view-read .read-meta .tag.cat .cat-dot{margin-right:4px}
   body.view-read .read-meta>*+*::before{content:"·";margin:0 6px;color:var(--line-strong)}
   body.view-read .read-meta svg{display:none}
+  /* A520 : la sous-ligne de la maquette — 15, encre secondaire, le discriminant à sa place ; les ÉTATS en pastille
+     achromatique (A347 : seul « À revérifier » est ambre), sans point devant. */
+  body.view-read .read-meta{padding:0 4px;font-size:var(--t-item);line-height:1.6}
+  body.view-read .read-meta :is(.tag,.status-tag,.card-date,.read-disc){font-size:inherit;font-weight:500}
+  body.view-read .read-meta :is(.status-tag,.tag.todo){display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:700;line-height:1.5}
+  body.view-read .read-meta>:is(.status-tag,.tag.todo)::before{content:none}
   .read-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 18px;font-size:var(--t-meta);color:var(--ink-2)}
   /* v5.30 (maquette v5) : chips à 12 px/800 — bibliothèque en bleu doux, statut et catégorie sur
      l'ambiance (pastille carrée), code et date en mono. */
@@ -2651,6 +2805,10 @@
   /* Cartes de session (v5.30) : même carte de travail que l'écran d'entrée ; l'intertitre interne se tait, la tête le dit. */
   .conf-block.fold-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);margin:10px 0 0}
   .fold-card .sf-body{padding:0 16px 6px}
+  /* A520 — le chapeau AVANT la session : intertitre en phrase (13,5/600) au-dessus d'un groupe arrondi de rangées. */
+  .conf-block.fold-card.flat{background:none;border:0;box-shadow:none;margin:14px 0 0}
+  .fold-card.flat>.sf-body{padding:0 16px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
+  .pre-lh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
   .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
@@ -2770,6 +2928,18 @@
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
   .pf-flat.dense .pf-br>:is(.pf-row,.pf-br){margin-left:14px}
+  /* A534 (maquette Natif, colonne « Parcours » au bureau) : une LISTE légère, plus des cartes — numéro sur carré gris,
+     le bloc courant en teinte bleue (numéro plein, titre bleu) sans cadre, la décision sans aplat ambre (son losange
+     et ses branches disent le registre), chevron discret. La mécanique d'A388 (repli, « Ici », branches) ne change pas. */
+  .pf-flat.dense .pf-row.dec{background:none}
+  .pf-flat.dense .pf-row.cur{box-shadow:none}
+  .pf-flat.dense .pf-row.cur .pf-title{color:var(--act)}
+  .pf-flat.dense .pf-badge{background:var(--amb-2);color:var(--ink-2)}
+  .pf-flat.dense .pf-row.cur .pf-badge{background:var(--act);color:var(--on-primary)}
+  .pf-flat.dense .pf-row.done .pf-badge{background:var(--ok);color:var(--on-primary)}
+  .pf-flat.dense .pf-row.dec .pf-badge{background:none;color:var(--warn)}   /* le losange garde le registre de la décision */
+  .pf-flat.dense .pf-chev{opacity:.55}
+  .pf-flat.dense .pf-tg:hover .pf-chev{opacity:1}
   .pf-flat.dense .pf-br>.pf-br.plat{margin-left:0}
   .pf-flat.dense .pf-br::before{left:7px;width:16px}
   .pf-flat.dense .pf-bh{padding:0 12px 0 28px}   /* A393 : 12 px de jeu à droite — l'en-tête ne frôle jamais le bord de la colonne */
@@ -2790,7 +2960,7 @@
   .pf-arr>span{font-weight:700}
   .pf-src{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:var(--amb-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink);cursor:pointer}
   .pf-seg{display:flex;align-items:center;gap:10px;margin:24px 0 8px;padding:0 8px}
-  .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+  .pf-segl{font-size:var(--t-body);font-weight:600;color:var(--ink-2);white-space:nowrap}   /* A531 : intertitre en phrase */
   .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
   /* A394, REDESSINÉE EN A450 : une BRANCHE = « SI réponse » puis ses blocs, décalés d'un cran le long d'UN filet (coin
      arrondi vers l'en-tête, puis descente). L'arbre suit celui de `flowPlan` : une branche dans une branche se décale
@@ -2839,9 +3009,6 @@
      On répare EN (1,1,2), jamais par l'ordre ; 14 px — un objet interactif ne finit pas au
      contact d'une bordure de coupure. */
   .ref-tocwrap>.ref-toc[open]{padding-bottom:14px}
-  .ed-toc-l{padding-top:4px}   /* A390 : la Structure de l'éditeur dans le dépliant du sommaire — rangées `.eds-row` de la colonne */
-  .ed-toc .rail-head{display:flex;align-items:baseline;gap:8px;margin:12px 0 4px}
-  .ed-toc .rail-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2)}
   details.ref-toc{background:none;border:0;border-radius:0}
   /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
      maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
@@ -3289,21 +3456,61 @@
      une suggestion), rangées ≥ 44 px puisqu'elles ancrent vers la ligne concernée. */
   /* K4 — dépliant « Identité » : l'en-tête PORTE déjà le titre et le code, donc replié il
      n'escamote rien de ce qu'on a besoin de vérifier d'un coup d'œil. */
-  .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
-  .ed-ident>summary{display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 12px;cursor:pointer;list-style:none;font-family:inherit}
+  /* A521 (lot 10) : l'Identité est un GROUPE DE RANGÉES « Titre · valeur » sous son intertitre (maquette Natif) ;
+     ouverte, le sommaire n'est plus qu'un en-tête « Identité · Replier » au-dessus des champs. */
+  .ed-sech{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:clip}
+  .ed-ident>summary{display:block;cursor:pointer;list-style:none;font-family:inherit}
   .ed-ident>summary::-webkit-details-marker{display:none}
-  .ed-ident>summary::after{content:"▾";color:var(--act);font-size:11px;flex:none;margin-left:-4px}
-  .ed-ident[open]>summary::after{content:"▴"}
-  .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-3)}
-  .ed-ident .id-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17.5px;font-weight:640;color:var(--ink)}
-  .ed-ident .id-t.muted{color:var(--ink-soft);font-weight:600}
-  .ed-ident .id-c{flex:none;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);background:var(--amb-2);border-radius:8px;padding:2px 6px}
-  .ed-ident .id-a{flex:none;font-size:13.5px;font-weight:700;color:var(--act)}
+  .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-4)}
+  .ed-ident .id-row,.ed-ident .id-a{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
+  .ed-ident .id-row+.id-row{border-top:1px solid var(--line)}
+  .ed-ident .id-k{flex:none;font-size:var(--t-body);color:var(--ink)}
+  .ed-ident :is(.id-t,.id-c,.id-v){flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:400;color:var(--ink-2)}
+  .ed-ident .id-v{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+  .ed-ident .id-v .dir-av{flex:none}
+  .ed-ident :is(.id-t,.id-c).muted{color:var(--ink-soft)}
+  .ed-ident .id-chev{flex:none;display:inline-flex;color:var(--ink-soft);margin-right:-4px}
+  .ed-ident .id-a{display:none}
+  .ed-ident .id-x{margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--act)}
+  .ed-ident[open] .id-row{display:none}
+  .ed-ident[open] .id-a{display:flex;margin:0 -14px 12px;border-bottom:1px solid var(--line)}
+  .ed-ident[open] .id-a .id-k{font-weight:600}
   .ed-ident[open]{padding:0 14px 8px}
-  /* Le premier champ ne se colle pas au filet du sommaire (signalé à l'usage : « titre de la
-     situation très collé à Nouvelle fiche ») — le sommaire est un EN-TÊTE de carte, pas la
-     première ligne du formulaire. */
-  .ed-ident[open]>summary{margin:0 -14px 12px;border-bottom:1px solid var(--line)}
+  /* A521 : la STRUCTURE dans le fil (< 1200 px) — une rangée par bloc, elle ouvre le bloc sur sa page. */
+  .ed-slist{margin:0 0 16px}
+  .esl-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
+  .esl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
+    padding:8px 12px 8px 16px;background:none;border:0;border-top:1px solid var(--line);text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
+  .esl-grp>:first-child{border-top:0}
+  .esl-row:hover{background:var(--amb-2)}
+  .esl-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .esl-row:disabled{cursor:default}
+  .esl-n{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--amb-2);color:var(--ink-2);
+    font-size:var(--t-body);font-weight:600;font-variant-numeric:tabular-nums}
+  .esl-row.dec .esl-n{background:var(--warn-soft);color:var(--warn)}
+  .esl-row.exc .esl-n{color:var(--warn)}
+  .esl-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .esl-tx b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:600}
+  .esl-tx span{font-size:var(--t-meta);color:var(--ink-2)}
+  .esl-chev{display:inline-flex;color:var(--ink-soft)}
+  .esl-ph{margin:0;padding:10px 16px 4px;border-top:1px solid var(--line);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .ed-slist .flow-prev{margin-top:12px}
+  /* A521 : UN BLOC SUR SA PAGE. Vue d'ensemble (`ed-ov`) : les blocs vivent dans la liste, « Prise en charge » se
+     retire ; page d'un bloc (`ed-focus`) : seul le bloc `.ed-cur` reste, avec la porte « Ajouter ». */
+  body.view-edit.ed-ov .ed-pec{display:none}
+  body.view-edit.ed-focus #main>:not(.read-grid):not(.ed-pec):not(.ed-door),
+  body.view-edit.ed-focus .ed-cockpit>.read-main>:not(.ed-pec):not(.ed-door),
+  body.view-edit.ed-focus .ed-pec>:not(.ed-cur){display:none}
+  /* A521 : la colonne Structure (≥ 1200 px) prend le dessin de la maquette — intitulé en phrase, rangée sur deux
+     lignes (titre, compte), sans filet ; le bloc ouvert est surligné, son numéro plein. */
+  .ed-struct .rail-head .rail-n{display:none}
+  .ed-struct .eds-row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:0;align-items:center;min-height:52px;padding:6px 8px;border-top:0;border-radius:10px}
+  .ed-struct .eds-n{grid-row:span 2;width:24px;height:24px;border-radius:8px}
+  .ed-struct .eds-t{font-size:var(--t-body);font-weight:400}
+  .ed-struct .eds-c{grid-column:2;font-size:var(--t-meta);color:var(--ink-2)}
+  body.view-edit .eds-row.on{background:var(--primary-soft);color:var(--act)}
+  body.view-edit .eds-row.on .eds-n{background:var(--act);color:var(--on-primary)}
   /* Les rangées de la colonne STRUCTURE : désaturées comme le rail de lecture — elle oriente,
      la colonne du centre agit. Cible 44 px (c'est une navigation). */
   .eds-row{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;text-align:left;
@@ -3471,7 +3678,7 @@
   /* A474 : la jauge dans l'étiquette du seuil — points ronds, le dernier repère carré (la case), à l'encre de l'étiquette. */
   .mo-pips{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:-1px}
   .mo-pips i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
-  .mo-pips i.goal{border-radius:3px;background:var(--work);box-shadow:inset 0 0 0 1.5px currentColor}
+  .mo-pips i.goal{width:10px;height:10px;border-radius:50%;background:var(--work);box-shadow:inset 0 0 0 1.5px currentColor}   /* A507/A510 : la case est ronde, son repère aussi — un rond PLUS GRAND, plus un carré */
   .stp-mk .mo-nn{margin-left:6px;font-family:var(--f-mono);letter-spacing:0}
   /* A396 — l'étape-revue : la rangée est la PORTE de sa revue (case pointillée, pleine à n/n), la grille des
      hypothèses se déplie DANS sa boîte — rien entre les rangées. Détail : lot-v5-37.md. */
@@ -3538,7 +3745,6 @@
   /* La tête est sur la GRILLE DES RANGÉES (icône dans la colonne de 20 px) : titre, résumé et noms des repères
      partent du même bord, et le compte se pose sur la ligne de base du titre. */
   .pb-head{grid-template-columns:20px minmax(0,1fr) auto auto;padding:0 8px}
-  .pb-hic{display:grid;place-items:center;color:var(--ink-2)}
   .pb-t{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .pb-n{font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2)}
   .pb-sum{justify-self:end;text-align:right;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
@@ -3547,7 +3753,6 @@
   html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:4}
   .pband.closed .pb-body{display:none}
   .pb-row{grid-template-columns:20px minmax(0,1fr) auto auto;align-items:start;row-gap:2px;padding:6px 8px}
-  .pb-ic{width:20px;height:20px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--primary-soft);color:var(--act)}
   .pb-nm{align-self:center;font-size:var(--t-body);font-weight:800;line-height:1.3;text-transform:uppercase;letter-spacing:.02em}
   .pb-bd{grid-column:2/-1;font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;line-height:1.45;overflow-wrap:break-word}
   .pb-bd.solo{grid-column:2;align-self:center}
@@ -3557,7 +3762,17 @@
   .pb-stt{white-space:nowrap;margin-top:2px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;line-height:1;text-transform:uppercase;background:var(--amb-2);color:var(--ink-2)}
   .pb-stt.on{background:var(--primary-soft);color:var(--act)}
   .pb-stt.ok{background:var(--ok-soft);color:var(--ok)}
-  .pb-det{margin:0 0 6px 40px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
+  /* A519 (amende A397-A398) — UN REPÈRE TIENT SUR UNE LIGNE : « △ Adrénaline — IV/IO » en ambre (le △ des repères
+     posologiques reste, A409), l'état en mots à droite, la dose en mono dessous ; plus d'icône ni de chevron par
+     repère — la rangée entière déplie son détail. L'intertitre perd son icône. */
+  .pb-head{grid-template-columns:minmax(0,1fr) auto auto;padding:0 4px}
+  .pb-row{grid-template-columns:minmax(0,1fr) auto;padding:8px 4px;border-top:1px solid var(--line);border-radius:0}
+  .pb-nm{color:var(--warn);text-transform:none;letter-spacing:0}
+  .pb-bd,html .pb-bd.solo{grid-column:1/-1}
+  .pb-stt{grid-row:1;grid-column:2;align-self:center;padding:4px 8px;border-radius:999px;font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  html.zw430 .pb-row .pb-stt{grid-row:1;grid-column:2;justify-self:end}
+  html.zw430 .pb-row .pb-nm{grid-column:1}
+  .pb-det{margin:0 0 6px 4px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
   .mo-pips i.on{background:currentColor;box-shadow:none}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
@@ -3609,7 +3824,9 @@
      entière (60 px, role checkbox sur le li). Détail : doctrine-css.md C70. */
   /* La case : 36 px, bordure 2,5 px au REGISTRE (neutre / --crit / --warn-line), fond de travail —
      jamais une bordure sur la rangée (elle décalerait la colonne de cases). Détail : doctrine-css.md C71. */
-  ol.steps li .box{width:36px;height:36px;border:2.5px solid var(--ctl-line);border-radius:var(--r-3);flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:var(--work)}
+  /* A507 (refonte « Natif », lot 3) : la case d'étape est RONDE — 36 px gardés (A510 : 30 l'aurait rétrécie). La
+     bordure porte toujours le registre (rouge CRITIQUE, ambre VIGILANCE), la case cochée reste verte pleine. */
+  ol.steps li .box{width:36px;height:36px;border:2.5px solid var(--ctl-line);border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:var(--work)}
   ol.steps li.crit .box{border-color:var(--crit)}
   ol.steps li.vigil .box{border-color:var(--warn-line)}
   /* Étape COCHÉE : case verte pleine + ✓, rangée --ok-soft, encre douce et graisse 600 — NI opacité
@@ -3619,6 +3836,16 @@
   ol.steps li.done .box svg{animation:pop .25s ease}
   ol.steps li.done .txt{color:var(--ink-2);font-weight:600}
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
+  /* ═══ A519 — LA SESSION NATIF (lot 6) ═══════════════════════════════════════════════════════════════════════
+     1. Les étapes vivent À PLAT dans la carte du bloc : plus de tuile `--amb-2` ; seule l'étape FAITE garde son aplat
+        vert. Le mot CRITIQUE / VIGILANCE s'écrit seul, en couleur, sans pastille — le dessin des rappels du chapeau
+        (A401) ; cochée, il s'éteint en gris. Le danger reste dit par le mot, la bordure de la case et le préfixe
+        lecteur d'écran (A345). L'étiquette d'un seuil (A382) passe en aplat neutre, sans filet. */
+  ol.steps li{background:none}
+  ol.steps li.done{background:var(--ok-soft)}
+  ol.steps li .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){background:none;padding-left:0;padding-right:0}
+  ol.steps li.done .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){color:var(--ink-2)}
+  .stp-mk.mo{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
@@ -3788,7 +4015,7 @@
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--crit);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
-  .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A531 : même étiquette que .tme-l */
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
   /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
@@ -3981,6 +4208,13 @@
      exactement les 4 px rapportés. Une règle écrite pour une disposition ne vaut pas dans
      l'autre : c'est la même leçon que le filet des repères (v5.0.9). */
   body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;margin-top:0;display:flex;gap:6px}
+  /* A535 (maquette Natif) : « − 1 + » — la valeur ENTRE ses deux boutons ; et la carte de minuteur du rail est un
+     aplat gris sans filet (l'échu garde son filet ambre). */
+  body.view-read .read-side .cncard .cn-ctrl{display:contents}
+  body.view-read .read-side .cncard .cn-btn[data-cndec]{order:1;margin-left:auto}
+  body.view-read .read-side .cncard .cn-val{order:2;min-width:32px;justify-content:center}
+  body.view-read .read-side .cncard .cn-btn[data-cninc]{order:3}
+  body.view-read .read-side .tmcard:not(.due){background:var(--amb-2);border-color:transparent}
   body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
   /* Rail droit : UNE variable --tcol pilote libellé + temps + barre (+ --tbd) ; échu = AMBRE
      (rouge réservé au vital), pause = encre douce + texte, jamais couleur seule ; --act = minuteur
@@ -4085,19 +4319,6 @@
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
-  /* v5.30 (A356) : la légende parle avec la VOIX des réponses attendues (`.stp-r` : mono, capitales,
-     encre secondaire) — plus de pilule, un seul dessin pour un seul objet. */
-  .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px;font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;
-    letter-spacing:.3px;color:var(--ink-2)}   /* A356 : même voix que les réponses, un cran plus bas et en minuscules — une légende ne crie pas */
-  .stp-legend svg{vertical-align:-2px;color:var(--crit)}
-  /* ⚠ LE SÉPARATEUR DE LA LÉGENDE N'EST PLUS UN CARACTÈRE (v5.6). C'était un « · » à 1,6:1 :
-     invisible, donc inutile — mais mesuré comme du TEXTE, et à juste titre, puisque c'en était.
-     Un séparateur qui doit rester discret ne s'écrit pas en lettres : c'est un ÉCART. La légende
-     porte déjà `gap`, il suffit de l'élargir entre les groupes. Rien à exempter, rien à teinter,
-     et l'arbre d'accessibilité n'a plus un caractère de ponctuation à annoncer entre deux mots.
-     `.lg-sp` est PURGÉE avec le caractère qu'elle habillait (règle 14). */
-  .lg-it{display:inline-flex;align-items:center;gap:4px}
-  .stp-legend>*+*{margin-left:10px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
 
@@ -4203,6 +4424,24 @@
   .sess-row .sess-acts{display:flex;gap:8px;flex-wrap:wrap}
   .sess-row .sess-acts .btn{flex:1;min-height:44px;border-radius:var(--r-3);font-size:var(--t-item);font-weight:700}
   .sess-row .sess-acts .sess-del{min-width:44px;min-height:44px}
+  /* A520 (lot 8) — les sessions en RANGÉES GROUPÉES par jour (maquette Natif) : groupe arrondi sans ombre, rangée de
+     60 px (point de catégorie · titre 15 · « heure · durée » 13,5 · chevron), filet qui commence au texte ; le détail
+     ouvert d'un tap porte les actions. Intertitres en phrase. */
+  .sess-gh{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .sess-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
+  .sess-grp .sess-row{gap:0;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:none}
+  .sess-grp .sess-row+.sess-row{background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;background-position:right top;background-size:calc(100% - 40px) 1px}
+  .sess-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
+    padding:8px 12px 8px 16px;border:0;background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+  .sess-main:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .sess-main .dir-av.none{visibility:hidden}
+  .sess-grp .sess-row .sn{display:block;font-size:var(--t-item);font-weight:600;line-height:1.3}
+  .sess-grp .sess-row .sd{display:block;margin-top:2px;font-size:var(--t-body);color:var(--ink-2)}
+  .sess-grp .sess-livetag{margin:0;padding:0;background:none;color:var(--ok);font-size:inherit;font-weight:700}
+  .sess-grp .sess-row .sess-acts{padding:0 12px 12px 40px}
+  .sess-grp .sess-row .sess-acts .btn{min-height:44px}   /* audit-a11y : 44 dans l’historique, comme avant */
+  .sess-grp .sess-row .sess-acts .sess-del{flex:0 1 auto;color:var(--crit)}
+  .sess-grp .sess-exotag{border-radius:999px}
   /* Accueil : sessions en cours (SPEC §5) — une carte par session, empilées (gap 8px), surface
      + bordure primaire + liseré gauche 3px, chrono mono tabular, Terminer en TEXTE rouge. */
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -4294,31 +4533,9 @@
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
   .ls-info .ls-t{font-size:15px;font-weight:700;color:var(--sys-ink)}
-  /* « Bloc 7 · Reprise du massage — dernier repère 15h47 » : deux données déjà en mémoire, sur une
-     carte qui existe. Encre secondaire de la matière SYSTÈME (la carte de session est sombre),
-     une seule ligne — au-delà, c'est le titre qui compte, pas la précision. */
-  .ls-info .ls-w{font-size:var(--t-cap);font-weight:600;color:var(--sys-ink-2);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ls-chrono{font-family:var(--f-mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok-sys)}
-  /* ⚠ LA PORTE DE RENTRÉE DANS UNE RÉANIMATION PREND LE PLANCHER DE LA CRISE (audit externe
-     v5.10.0). Mesuré : « Reprendre » 93 × 38 et « Terminer » 84 × 36, à 10 px l'un de l'autre.
-     Trois défauts d'un coup, et chacun a déjà sa règle ailleurs dans le dossier : deux boutons
-     voisins de hauteurs DIFFÉRENTES se lisent comme deux objets sans rapport (A103) ; un geste
-     DESTRUCTEUR ne se met jamais au contact de son voisin, sinon le pouce corrige et supprime du
-     même geste (v4.68.0) ; et si le plancher de 32 px vaut pour l'accueil, il ne vaut pas pour
-     ces deux-là — ils ne consultent rien, ils rentrent dans un soin EN COURS, et c'est le contrat
-     des 44 px qui s'applique au geste, pas la moyenne de l'écran où il se trouve.
-     L'écart passe à 16 px et il est posé sur le SÉPARATEUR, pas sur le gap de la carte : le gap
-     de 10 px règle aussi la distance au chrono et au bloc d'information, qui n'ont rien demandé. */
-  .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys);margin-left:6px}
-  /* ⚠ (0,3,0) ET NON (0,2,0), ET C'EST UN TÉMOIN D'USAGE QUI L'A DIT : « c'est normal que
-     Reprendre et Terminer ne soient plus de la même taille ? ». Non. Écrite `.ls-card :is(.btn,
-     .ls-end)`, la règle valait (0,2,0) — exactement comme `.btn.sm{min-height:38px}`, déclarée
-     3 000 lignes plus bas : à spécificité égale, c'est l'ORDRE qui tranche, et « Reprendre »
-     restait à 38 px pendant que « Terminer » montait à 44. Le vingt-troisième piège de cascade du
-     dossier, sous sa forme la plus classique. On ne compte plus sur l'ordre. */
-  .ls-card .btn.sm,.ls-card .ls-end{min-height:44px}
-  .ls-card .ls-end:hover{background:var(--sys-2)}
+  /* « Reprendre » rentre dans un soin EN COURS : plancher de crise, 44 px (audit v5.10.0). Spécificité (0,3,0)
+     contre `.btn.sm` — on ne compte pas sur l'ordre. Seule la session PARTAGÉE garde cette carte (A523). */
+  .ls-card .btn.sm{min-height:44px}
   /* ⚠ « Reprendre » = retour d'excursion (v5.10.0) : rempli `--ok-sys` (même registre que
      `.sd-key.dp-back`), encre `--on-sys-fill` JAMAIS `--on-primary`, anneau de focus `--sys-ink`
      (`--act` illisible sur cette carte), survol sans second vert (élévation seule), règle du
@@ -4329,20 +4546,13 @@
   .ls-card .btn{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
   .ls-card .btn:hover{background:var(--sys-line)}
   .ls-card .tag{background:var(--sys-2);color:var(--sys-ink-2)}
-  /* P3-13 (audit design v4.56) : un lien texte rouge = cible étroite et affordance faible à
-     côté d'un bouton rempli. Contour `--crit` compact (grammaire contour = gérer), cible
-     44 px par le halo — jamais rempli : le rouge plein reste à la confirmation finale. */
-  .ls-end{position:relative;background:none;border:1px solid var(--critical-line);color:var(--crit);font-family:inherit;font-size:13.5px;font-weight:700;min-height:36px;padding:0 12px;border-radius:8px;cursor:pointer}
-  .ls-end::after{content:"";position:absolute;inset:-4px}
-  .ls-end:hover{background:var(--crit-soft)}
-  .ls-end:focus-visible{outline:2px solid var(--crit);outline-offset:2px}
   /* DEUX RÔLES, DEUX TOKENS, SUR LA MATIÈRE SYSTÈME (v5.15.0, planche 17) : --sys-line DESSINE
      (séparateurs .ds-row — un séparateur n'est pas une cible, il garde son filet discret),
      --ctl-sys se VISE : la limite d'un CONTRÔLE posé sur la matière système tient 3:1 (1.4.11)
      dans les deux thèmes. Écrite APRÈS les déclarations de base de chaque consommateur : à
      spécificité égale (.ls-card .btn, .sd-key.sd-exo), c'est l'ordre qui tranche — et les états
      plus spécifiques (.btn.primary, .sd-exo.on) gardent leur bordure propre. */
-  :is(.ls-card .btn,.ls-card .ls-end,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
+  :is(.ls-card .btn,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--act);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
@@ -4364,7 +4574,7 @@
   /* Ligne label + bouton (ex. « B » du contexte local) : le bouton reste HORS du <label>
      (un bouton DANS un label devient son contrôle implicite -> cliquer le libellé cliquait le bouton). */
   .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-  .field .lab-row>label{display:block;font-size:var(--t-body);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .field .lab-row>label{display:block;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   .field .hint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-2);font-size:12px}
   .field input[type=text],.field textarea,.field select{width:100%;min-height:44px;padding:8px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
   .field .ed-title-in{min-height:52px;font-size:17.5px;font-weight:700}
@@ -4398,7 +4608,7 @@
   .add-line{margin-top:4px;min-height:44px;border:1.5px dashed var(--ctl-line);background:transparent;color:var(--ink-2);padding:8px 12px;border-radius:var(--r-3);font-size:15px;font-weight:700;width:100%}
   .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
   fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
-  .sub2{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .sub2{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:0 0 8px}   /* A531 */
   /* `.trow` PURGÉ en v4.78.0 (règle 14) : c'était la rangée plate du compteur, remplacée par la
      carte `.tmedit` — celle du minuteur, dont l'en-tête tient déjà la poignée et la croix à place
      constante. Vérifié au grep : zéro émission. Les champs du compteur héritent désormais des
@@ -4491,6 +4701,7 @@
   .popmenu.sheet .catmenu-filter{width:100%;margin:0 0 8px}
   .popmenu.sheet .catmenu-new{width:100%;margin:10px 0 0;min-height:52px;border-radius:var(--r-3);font-size:var(--t-item)}
   .popmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
+  .popmenu-veil.anchor{display:block;position:fixed;inset:0;background:transparent;z-index:19}   /* A525 : absorbe le tap de fermeture du menu ⋯ ancré */
   /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
      le menu à 420 px centrés ») : au-delà de 780 la feuille d'un sélecteur reste une feuille (même
      geste, même poignée) mais cesse d'être une bannière. Le menu ⋯ n'y est jamais en feuille. */
@@ -4535,7 +4746,7 @@
   .crit-guide[open] summary{margin-bottom:2px}
   .crit-guide .cg-r{color:var(--crit)}
   .crit-guide .cg-a{color:var(--warn)}
-  .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+  .flow-prev-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:0 0 6px}   /* A531 */
   /* Aperçu d'algorithme éditeur étroit (< 1000 px) : ENTREBÂILLÉ, jamais fermé. PAS un details
      (fermé il ne rend rien) — conteneur + vrai bouton + `max-height`, sans AUCUNE transition
      dessus (mise en page, check-anim). Le fondu du bas dit « ça continue » et fond vers
@@ -4612,6 +4823,28 @@
      Coquille NEUTRE, comme le `.block` de lecture — la couleur reste aux registres (rouge du
      chapeau, ambre d'une décision) ; une carte de plus qui se teinterait les affaiblirait tous. */
   .ed-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);padding:12px 12px;margin-bottom:16px}
+  /* ═══ A520 (lot 9) — L'ÉDITEUR, HABILLAGE NATIF ══════════════════════════════════════════════════════════════
+     Grand titre ; les LISTES (chapeau, condition d'entrée) deviennent des intertitres en phrase au-dessus de groupes
+     de rangées (`.le-grp`) — l'ajout est la dernière rangée, en lien ; ✕ ronds ; cartes sans ombre. Les gestes
+     d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
+  :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
+  :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
+  :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
+  :is(.ed-forget,.ed-entry)>label{min-height:0;margin:0 0 6px;padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-forget>label::before{content:none}
+  .ed-forget>label .lst-n{margin-left:auto}
+  .ed-entry>label .hint,.ed-entry .list-edit.bare>label .hint{font-weight:500;color:var(--ink-2)}
+  .ed-entry .list-edit.bare>label{padding:0 16px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .le-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);padding:0 8px 0 12px}
+  .le-grp>.li{min-height:52px;margin:0}
+  .le-grp>.li+.li,.le-grp>.add-line{border-top:1px solid var(--line)}
+  .le-grp>.add-line{display:flex;align-items:center;width:100%;min-height:48px;margin:0;padding:0 4px;border-left:0;border-right:0;border-bottom:0;border-radius:0;
+    background:none;color:var(--act);font-weight:600;text-align:left}
+  .le-grp>.add-line:hover{background:none;text-decoration:underline}
+  .le-foot{margin:6px 16px 0;font-size:var(--t-meta);color:var(--ink-2)}
+  .le-grp .ed-ic.del{width:32px;height:32px;min-width:32px;border:0;border-radius:999px;background:var(--amb-2);color:var(--ink-2)}
+  :is(body.view-edit) :is(.ed-ident,.ed-card){box-shadow:none}
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
@@ -4875,6 +5108,15 @@
     #stepSetModal{align-items:center;padding:24px}
     #stepSetModal .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
     .sst-hd{display:none}}
+  /* A517 (A508) — « Créer » et « Affichage » au téléphone : FEUILLES DU BAS à poignée, la grammaire de « Réglages de
+     l'étape » et du menu ⋯ (A361). Un CHOIX ne prend jamais toute la hauteur (témoin « trois gabarits ») ; ✕, le voile
+     (A497) et la poignée tirée vers le bas (`bindSheetDrag`) ferment. */
+  @media (max-width:779.98px){
+    #createModal,#viewSheet{align-items:flex-end;padding:0;background:var(--scrim)}
+    #createModal .ai-card,#viewSheet .ai-card{max-width:none;width:100%;min-height:0;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;
+      padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;overscroll-behavior:contain;box-shadow:var(--shadow-up)}
+    :is(#createModal,#viewSheet) .ai-card::before{content:"";display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
+  }
   .sst-step{margin:2px 0 0;font-size:13.5px;font-weight:600;color:var(--ink-2)}
   .sst-h{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .sst-h i{font-style:normal;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act)}
@@ -4927,6 +5169,12 @@
   .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
   html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  /* A520 : « Apprendre avec cette aide » devient une RANGÉE de groupe — matière de travail, icône en tuile pleine,
+     titre à l'encre, bouton tonal ; plus de hachures (une invitation, pas un placard). */
+  .gd-card{background:var(--work);background-image:none;border:1px solid var(--work-line);border-radius:var(--r-4);padding:10px 8px 10px 12px}
+  .gd-ci{background:var(--act);color:var(--on-primary)}
+  .gd-cx b{color:var(--ink);font-weight:700}
+  .gd-card .btn{background:var(--amb-2);border-color:transparent;color:var(--ink)}
   .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
   .gd-tip[hidden]{display:none}
   /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
@@ -5012,7 +5260,7 @@
   .tme-row input[type=number]{width:64px;flex:none;padding:8px;border:1.5px solid var(--ctl-line);
     border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit}
   .tme-row.due input[type=text]{flex:1;min-width:0}
-  .tme-l{flex:none;min-width:82px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .tme-l{flex:none;min-width:82px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A531 : étiquette de champ en phrase */
   .tme-u{flex:none;font-size:12px;color:var(--ink-soft)}
   .tme-loop{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)}
   .tme-h{margin:0;font-size:11px;line-height:1.4;color:var(--ink-soft)}
@@ -5039,7 +5287,7 @@
      (Les variantes steps/decision, jamais émises — l'éditeur n'a que tm-kind —, sont purgées.) */
   .blk-type.tm-kind{background:var(--amb-2);color:var(--ink-2);font-family:var(--f-mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
-  .blk .sub{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:12px 0 4px}
+  .blk .sub{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:12px 0 4px}   /* A531 */
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   /* v5.33.1 : les champs d'un bloc (question, réponses, cibles) au gabarit des étapes — M 40, 15 px (16 au toucher). */
   .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]){min-height:40px;padding-block:8px;font-size:15px}
@@ -5158,12 +5406,16 @@
      TRAVAIL ; le registre est annoncé par l'étiquette du bloc (« Bloc n · Décision ») et le
      liseré gauche, qui restent ambre. */
   .ov-block.dec{background:var(--warn-soft);border-color:var(--verify-line)}
+  /* A519 (A513 §1, renverse la carte « AMBRE DOUX » d'A345) : la décision est une carte de TRAVAIL comme les autres —
+     contour bleu quand elle est le bloc courant ; seul « ◆ Décision » reste ambre. */
+  .ov-block.dec{background:var(--work);border-color:var(--work-line)}
   /* Un bloc de DÉCISION garde son ambre même courant (v4.24.0, décision utilisateur) : le REGISTRE
      n'est jamais masqué par un état transitoire (ECAM) — un canal par signification. La pilule
      `.ov-here` est PURGÉE depuis A12 (v5.6, zéro émission) : ne pas la réintroduire — purger une
      classe (règle 14), c'est aussi purger les commentaires qui la citent.
      Détail : doctrine-css.md C95. */
   .ov-block.dec.cur{border-color:var(--warn-line);border-left-color:var(--warn-line)}
+  .ov-block.dec.cur{border-color:var(--act);border-left-color:var(--act)}   /* A519 : le contour du bloc courant, comme tout bloc */
   /* ⚠ Un bloc complet l'est sur TOUTE sa bordure (v5.0.9) : cadre entier au registre CONFIRMATION,
      jamais la seule arête gauche (deux registres sur un même trait). PAS de fond teinté carte
      OUVERTE (les boîtes ⚠/△ doivent rester lisibles sur `--work`) — contrairement à
@@ -5210,7 +5462,7 @@
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
   .ov-cur{display:table;margin-bottom:6px;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}   /* A465 : étiquette AU-DESSUS du titre — à côté, elle lui prenait la largeur d'un mot (« Reconnaissan / ce ») */
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
-  .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 : « Parcours » en phrase */
   /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
      titre et le compte, libellé qui s'abrège avant de toucher le compte, cible 44 par halo ; elle s'allume
      une fois quand un bloc coché la rejoint (ombre seule : peinture, jamais de mise en page). */
@@ -5230,6 +5482,22 @@
   /* Sous 360 px effectifs (320 px, ou 320 × 130 %), la première étape doit rester au-dessus du pli : la ligne
      « Parcours » et la pilule cèdent, le compte du bloc revient sur la carte. */
   html.zw360 .ov-cur{display:none}
+  /* A519 : « En cours » et « Bloc n » sur une ligne ; le carré du numéro s'efface sur le bloc courant. */
+  .ov-curl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ov-curl>.ov-cur{display:inline-block;margin:0}
+  .ov-curn{font-size:var(--t-meta);font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .ov-curn.dec{font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--warn)}
+  /* A519 : le jalon au pied — « SI » en petites capitales, condition, jauge, compte ; le texte de l'auteur dessous. */
+  .jl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:8px;border-top:1px solid var(--line);padding:10px 4px 4px;font-size:var(--t-body)}
+  .jl-row>.jl-go{align-self:center}
+  html.zw430 .jl-row>.jl-go{grid-column:2/-1;justify-self:start;margin-top:6px}
+  .jl-si{flex:none;align-self:flex-start;margin-top:2px;font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;color:var(--ink-2)}
+  .jl-tx{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+  .jl-txt{flex:1 1 100%;font-size:var(--t-meta);color:var(--ink-2)}
+  .jl-pips{display:inline-flex}
+  .ov-block.numin:not(.closed)>.ov-head .ov-n{display:none}
+  .ov-block.closed .ov-curl{display:none}   /* replié sur place (sans re-rendu) : le carré revient, la ligne « En cours » part */
+  html.zw360 .ov-curl{margin-bottom:2px}
   html.zw360 .ov-prog>span:first-child{display:none}   /* A369 : la ligne reste — elle porte l'historique ; seul le mot cède */
   html.zw360 .ov-block.cur:not(.closed) .ov-c{display:inline}
   /* … et l'étape redescend d'un cran (--t-item), rangée 56 px : à 246 px effectifs, le corps 17,5
@@ -5237,7 +5505,6 @@
      hiérarchie : toutes les rangées descendent ensemble (A345 tient). */
   html.zw360 ol.steps li{min-height:56px;padding:8px 10px}
   html.zw360 ol.steps li .txt{font-size:var(--t-item)}
-  html.zw360 .stp-legend{display:none}   /* les mots de registre sont sur les rangées ; « réponse attendue » se lit sur la pilule */
   html.zw360 #cbTimers{min-height:56px}
   html.zw360 #cbTimers .seg{min-height:44px}
   /* Le journal relu dans la feuille « Repère posé ». */
@@ -5382,7 +5649,7 @@
      ordinaire (deux canaux pour un état). Détail : doctrine-css.md C101. */
   /* A374 : le titre de rail n'était stylé qu'au-dessus de 780 (11 px) — au téléphone il tombait sur le 16 px
      du navigateur. Une règle, un corps (meta), aux deux largeurs. */
-  .rail-title{font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .rail-title{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}   /* A531 : intertitre de colonne en phrase (grammaire Natif, maquettes) */
   /* ⚠ Le losange a EXACTEMENT le style de la pastille ; le carré tourné vit en `::before` À
      L'INTÉRIEUR (26 px à 45° = 37 de diagonale, rogné — leçon v5.0.0), le chiffre reste droit.
      ⚠ `z-index:-1` sans contexte d'empilement passe SOUS le fond du parent : `isolation:isolate`
@@ -5410,6 +5677,13 @@
   .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .pre-rn{flex:1;min-width:0}
   .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
+  /* A520 : les objets prêts en TUILES (maquette) — nom en tête, valeur de départ en mono, pastille d'état à droite. */
+  .pre-rows{gap:8px}
+  .pre-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:10px 12px;border-radius:var(--r-4);background:var(--amb-2)}
+  .pre-row>.pre-rn{grid-column:1;color:var(--ink-2)}
+  .pre-rt{grid-column:1;font-family:var(--f-mono);font-size:var(--t-val);font-weight:600;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pre-rt.mute{color:var(--ink-2)}
+  .pre-row>.pre-rv{grid-column:2;grid-row:1/3;max-width:none;padding:4px 10px;border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700}
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
@@ -5808,7 +6082,7 @@
      `monPlace` sur la surface elle-même ; en son absence, rien ne change (190 px, le plafond
      d'origine). Le plancher de 64 px du `clamp` reste intouchable — c'est lui que `monPlace`
      réserve avant de compter ses rangées. */
-  .mon-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:min(clamp(64px,min(20vw,32vh),190px),var(--mon-vmax,190px));font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  .mon-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:min(clamp(64px,min(28vw,32vh),190px),var(--mon-vmax,190px));font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
   .mon-val.due{color:var(--warn-line)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--warn-line)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
@@ -5871,6 +6145,45 @@
   .mb-chip.due{color:var(--warn);border-color:var(--verify-line)}
   .mb-chip b{font-family:var(--f-mono);color:var(--ink);font-weight:700}
   .mb-chip.due b{color:var(--warn)}
+  /* ═══ A518 — LE MONITEUR NATIF (A509, planche « Moniteur Natif » validée) ═══════════════════════════════════
+     Il reste un AFFICHEUR plein écran, lu à deux mètres : seuls changent sa matière et sa bande. « ● Session » nomme
+     le chrono vert ; « Revenir » est nommé dans une pilule de verre (le toucher partout ferme toujours) ; une barre
+     de progression épaisse et NEUTRE sous le grand chiffre ; la bande devient une CARTE à rangées NOMMÉES — le nom en
+     tête de rangée, l'étiquette ne dit plus que le temps, « maintenant » au-dessus de sa ligne, l'axe dessous, le
+     passé estompé. Le grand chiffre monte à 220 px sur une tablette posée (plafond toujours pris sur la bande, A341). */
+  .mon-top{align-items:center}
+  .mon-sk{flex:none;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ok)}
+  .mon-sk.exo{color:var(--act)}
+  .mon-hint{display:inline-flex;align-items:center;height:40px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    font-size:var(--t-item);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .mon-val{font-size:min(clamp(64px,min(28vw,32vh),220px),var(--mon-vmax,220px))}   /* A533 : 28vw (était 20) — en portrait la largeur bridait le chiffre lu à 2 m */
+  .mon-prog{display:block;width:100%;max-width:640px;height:8px;margin-top:8px;border-radius:999px;background:var(--amb-2);overflow:hidden}
+  .mon-prog>i{display:block;height:100%;border-radius:999px;background:var(--ink-2)}
+  .mon-due{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+  .mon-band{--nw:clamp(84px,24%,180px);padding:12px 14px;border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
+  [data-theme="dark"] .mon-band{box-shadow:inset 0 0 0 1px var(--work-line)}
+  .mb-ax,.mb-past,.mb-line,.mb-leg,.mb-plus{margin-left:var(--nw)}
+  .mb-axt{position:relative;display:block;height:16px;margin-bottom:4px}
+  .mb-axt>span{position:absolute;transform:translateX(-50%);color:var(--ok);font-weight:600}
+  .mb-axb{margin:6px 0 0 var(--nw)}
+  .mb-line{gap:0;padding:0;min-height:36px;background:none}
+  .mb-row{height:36px}
+  .mb-row+.mb-row{border-top:1px solid var(--line)}
+  .mb-row::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:var(--mb-now);border-radius:var(--r-1) 0 0 var(--r-1);background:var(--amb-2)}
+  .mb-nm{position:absolute;right:100%;top:0;width:var(--nw);padding-right:10px;line-height:36px;font-size:var(--t-body);font-weight:700;
+    color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mb-due{top:50%;height:22px;transform:translateY(-50%);z-index:1;font-family:var(--f-mono);background:var(--work);border-left-width:4px;padding-right:6px}
+  .mb-due.gche{border-right-width:4px;padding-left:6px}
+  .mb-ghost{top:10px;height:16px;border-left-color:var(--ink-3)}
+  /* Paysage bas : la hauteur est rare (A511) — la carte se resserre, rangées de 28 px (`monRangH`). */
+  html.zh500 .mon-band{padding:6px 10px}
+  html.zh500 :is(.mb-row,.mb-line){height:28px;min-height:28px}
+  html.zh500 .mb-nm{line-height:28px}
+  html.zh500 .mb-row::before{top:5px;bottom:5px}
+  html.zh500 .mb-ghost{top:6px}
+  html.zh500 .mb-axt{height:14px;margin-bottom:2px}
+  html.zh500 .mb-axb{margin-top:2px}
   /* I4 — densité « LECTEUR » : la liste est celle de la page, seuls les CORPS changent (modèle
      ECL : liste entière + curseur, pastilles du rail — jamais d'alerte). L'état ne disparaît
      jamais (ECAM) : le lecteur porte sa PROPRE bande de minuteurs, échus d'abord, jamais de
@@ -6085,13 +6398,17 @@
   #admModal .ai-top{align-items:flex-end}
   .adm-ttl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
   .adm-ttl .adm-back{min-height:32px}
-  .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
-  .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
-  .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}
+  /* A522 (lot 11, A520 §4) : les sections en SEGMENTÉ — piste grise, cran courant blanc, compte en gris. */
+  .adm-tabs{display:inline-flex;flex-wrap:nowrap;max-width:100%;overflow-x:auto;scrollbar-width:none;gap:2px;margin:0 0 16px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}   /* une ligne, défilable : sur deux lignes la piste se lisait comme deux segmentés */
+  .adm-tab{flex:none}
+  .adm-tab{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 14px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:var(--t-body);font-weight:600;color:var(--ink-2);cursor:pointer}
+  .adm-tab[aria-current="page"]{color:var(--ink);background:var(--work);box-shadow:var(--shadow-work)}
   .adm-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-tab .adm-n{min-width:0;height:auto;padding:0;background:none;color:var(--ink-2);font-weight:500}
+  .adm-tab .adm-n.on{background:none;color:var(--act);font-weight:700}
   .adm-n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--amb-2);color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta);font-weight:600;letter-spacing:0}
   .adm-n.on{background:var(--act);color:var(--on-primary)}
-  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A522 : intertitre en phrase */
   .adm-sh:first-child{margin-top:4px}
   .adm-sh small{margin-left:auto;font-size:var(--t-meta);font-weight:500;letter-spacing:0;text-transform:none}
   .adm-title{margin:0 0 2px;font-size:var(--t-step);font-weight:800}
@@ -6118,15 +6435,15 @@
   .adm-chips .catchip .adm-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta)}   /* pas d'opacité : 4,11:1 dans la puce ambre (mesuré) */
   .adm-chips .catchip.warn{color:var(--warn)}
   .adm-chips .catchip.warn.on{color:var(--on-primary)}
-  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .adm-grp:not(:first-child){border-top:1px solid var(--work-line)}
   .adm-grp+.mm-row{border-top:0!important}
-  .adm-st{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
-  .adm-st.wait{color:var(--warn)}
+  .adm-st{flex:none;padding:2px 8px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A522 : le statut en pastille */
+  .adm-st.wait{background:var(--warn-soft);color:var(--warn)}
   .adm-st.adm{color:var(--ink)}
   .adm-warn{font-weight:700;color:var(--warn)}
   .mm-row[aria-current="true"]{background:var(--primary-soft)}
-  .adm-box{flex:none;width:24px;height:24px;border-radius:var(--r-3);border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;color:var(--on-primary)}
+  .adm-box{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;color:var(--on-primary)}
   .adm-box svg{visibility:hidden}
   [aria-checked="true"]>.adm-box{background:var(--act);border-color:var(--act)}
   [aria-checked="true"]>.adm-box svg{visibility:visible}
@@ -6144,6 +6461,7 @@
   .acct-list .mem-row+.mem-row{border-top:1px solid var(--work-line)}
   .adm-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);gap:16px;align-items:start}
   .adm-split>aside{position:sticky;top:8px}
+  .adm-split>aside>.adm-head{margin:0 0 4px;padding:12px 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work)}   /* A522 : l'en-tête de la fiche en carte */
   .adm-radio{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 0;border:0;background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
   .adm-radio:not(:first-child){border-top:1px solid var(--work-line)}
   .adm-radio:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
@@ -6201,6 +6519,10 @@
   /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
+  /* A520 (lot 8) — Moi, même grammaire que l'accueil (A516) : intertitres en phrase 13,5/600 au-dessus de groupes
+     sans ombre ; la sous-phrase reste en encre secondaire. */
+  .auth-stats-h{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;padding:0 16px;margin:0 0 6px}
+  .acct-zone .acct-card{box-shadow:none}
   /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
   .acct-list{padding:4px 12px}   /* 4 px : le survol d'une première ou dernière rangée ne touche pas le bord de la carte */   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
   .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
@@ -6216,7 +6538,7 @@
   .auth-hero-ic{width:56px;height:56px;border-radius:14px;background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
   .auth-hero h4{margin:0 0 4px;font-size:17.5px;color:var(--ink)}
   .auth-hero .auth-sub{margin:0}
-  .auth-label{display:block;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .auth-label{display:block;font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin-bottom:6px}   /* A531 */
   .auth-full{width:100%;justify-content:center;margin-top:8px}
   .auth-code{text-align:center;letter-spacing:8px;font-size:21px;font-weight:700;padding-left:8px}
   /* Suppression de compte : MÊME grammaire que « Supprimer la bibliothèque… » / « Supprimer
@@ -6500,6 +6822,9 @@
     html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   }
   html.modal-full,html.modal-full body{overflow:hidden;overscroll-behavior:none}
+  /* A536 : Safari 26 teint sa barre du bas avec l'élément FIXÉ qui touche le bas, même couvert (le
+     « Démarrer » bleu, la bulle du guide). Derrière une feuille opaque, rien de fixé ne reste peint. */
+  html.modal-full :is(.app,#gdTip,#gdVeil){visibility:hidden}
   /* Feuille « Plan » : PLEIN ÉCRAN à toutes largeurs, la modale est LE défileur. ⚠ align-items
      reste flex-start : `stretch` fige la carte à l'écran et le seul défileur devient la page
      DERRIÈRE (bogue constaté) ; min-height:100dvh ; overscroll-behavior:none — rien derrière ne
@@ -6512,6 +6837,22 @@
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
   .plan-modal .ai-x{flex:none;position:static}
+  /* A522 (lot 11) : « Fermer » en mot, à gauche ; l'échelle en segmenté au centre ; Imprimer et Exporter à droite ;
+     la Page est une feuille blanche CENTRÉE sur un fond gris. */
+  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;margin:0;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
+  .pm-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
+  .pm-tools:empty{display:none}
+  .pm-out{display:flex;gap:8px}
+  .pm-out .btn{gap:6px}
+  .pm-tools .sv-zoom{margin:0;padding:4px;gap:2px;border-radius:var(--r-3);background:var(--amb-2)}
+  .pm-tools .sv-zb{border:0;background:none;box-shadow:none}
+  .pm-tools .sv-ovf{order:9;flex-basis:100%;text-align:right;font-size:var(--t-meta);color:var(--ink-2)}
+  html.zw560 .pm-tools{flex-basis:100%;justify-content:flex-start}
+  html.zw560 .pm-tools .sv-ovf{text-align:left}
+  .plan-modal.pm-page .pm-body{background:var(--amb-2)}
+  .plan-modal.pm-page .sv-calant{width:fit-content;margin:0 auto}   /* zoomé, la largeur écrite en ligne l'emporte */
+  .plan-modal.pm-page .sv-sheet{box-shadow:var(--shadow-float)}
+  html.zw560 .pm-out{display:none}   /* au téléphone, l'impression reste dans le menu ⋯ */
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
   .pm-body{flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
@@ -6984,7 +7325,7 @@
        10 d'un intertitre à sa première rangée (8 de marge + le gap de 2)
        12 au-dessus d'un intertitre, et de part et d'autre d'un filet
      Corollaire : un filet porte 10 de marge et non 12, le gap de 2 de son étage complétant. */
-  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:12px 0 8px}
+  .hs-h{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2);padding:0 12px;margin:12px 0 8px}   /* A531 */
   .hs-top>.hs-h:first-child{margin-top:0}
   /* ══ v5.19 — LA COLONNE A TROIS ÉTAGES, ET UN SEUL DÉFILE ═══════════════════════════════════
      MESURÉ AVANT DE DÉCIDER (iPad 11″ paysage, 1194 × 834 → 774 px utiles) : avec 3 bibliothèques
@@ -7084,7 +7425,7 @@
      (`.hs-wrap.quiet`). La grammaire pointillé=créer / contour=gérer vaut dans un ÉDITEUR ; dans
      une colonne de navigation elle donnait le plus de poids aux deux actions les plus rares et
      coupait la seule liste qu'on parcourt. Décision d'auteur, sur maquette. */
-  @media (min-width:780px){
+  @media (min-width:780px), (orientation:landscape) and (max-height:499.98px){
     /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
        SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
        « colle » : plus aucun scroll de page, donc plus aucun déplacement possible à la bascule
@@ -7145,11 +7486,10 @@
     .dir-book,.dir-h.dir-sum{max-width:960px}
     /* Compacte, au bureau (≥ 1200 px effectifs, palier `zw1200` — règle 10) : titre et méta sur UNE ligne, la méta à
        droite ; en dessous, deux lignes comme au téléphone (mesuré à 900 px : titres et état coupés). */
-    html:not(.zw1200) .dir-book.compact .dir-row{min-height:48px}
+    html:not(.zw1200) .dir-book.compact .dir-row{min-height:44px;padding-block:0}
     html:not(.zw1200) .dir-book.compact .dir-main{display:flex;align-items:baseline;gap:16px}
     html:not(.zw1200) .dir-book.compact .dir-row .card-open{flex:1 1 auto;min-width:0}
-    html:not(.zw1200) .dir-book.compact .dir-row .card-open .dir-t{-webkit-line-clamp:1;max-height:1.2em}
-    html:not(.zw1200) .dir-book.compact .dir-sub{flex:0 1 auto;max-width:60%;margin-top:0}
+    html:not(.zw1200) .dir-book.compact .dir-sub{flex:0 1 auto;max-width:60%;font-size:var(--t-body)}
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
@@ -7188,9 +7528,7 @@
     .hs-avatar>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}   /* A500 : la pastille de l'en-tête, à l'échelle d'un avatar de 22 */
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
     body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
-    /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
-       et « Reprendre » un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
-    body.view-home .ls-card .ls-end{border:1.5px solid var(--crit-sys);color:var(--crit-sys)}
+    /* A356 : sur la BANDE, « Reprendre » prend un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
     body.view-home .ls-card .btn.primary{background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
     body.view-home .ls-card .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
     body.view-home .ls-info .ls-k{color:var(--sys-ink-2)}
@@ -7384,7 +7722,7 @@
     body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
-    body.view-edit .ed-tocwrap{display:none}   /* A390 : la colonne Structure prend le relais du dépliant */
+    body.view-edit .ed-slist{display:none}   /* A521 (amende A390) : la colonne Structure prend le relais de la liste */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
@@ -7396,7 +7734,7 @@
      Elle rejouait en petit ce que la colonne du milieu montre en grand depuis K1 (v4.64.0) ; la
      garder aurait laissé une seconde grammaire à tenir à jour pour zéro information nouvelle,
      exactement la dette que la v4.31.1 a payée au prix fort. */
-  .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .ep-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:0 0 8px}   /* A531 */
   .ep-card{border:1px solid var(--line);border-radius:var(--r-4);background:var(--amb);overflow:hidden;box-shadow:var(--shadow-work)}
   .ep-empty{font-size:12px;color:var(--ink-soft);text-align:center;padding:10px 0}
   .ep-card.ep-md{background:var(--work);padding:12px 14px;font-size:12px}
@@ -7472,7 +7810,7 @@
      par bindProtoTasks — dans les aperçus la case est un simple dessin. Rangée entière cliquable
      (min-height 32px = cible tactile), coche SVG toujours présente, révélée par .done. */
   li.md-task{list-style:none;display:flex;align-items:flex-start;gap:10px;min-height:32px;padding:4px 8px;margin:2px 0 2px -32px;border-radius:8px}
-  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:8px;display:grid;place-items:center;background:transparent;color:var(--work)}
+  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--work)}
   /* Case centrée sur la PREMIÈRE ligne de texte quelle que soit la taille de police du contexte
      (lecture 15px, aperçus compacts 12.5px, préférence S/M/L/XL) : 1lh = l'interligne hérité,
      identique à celui du texte voisin. Repli (navigateurs sans lh) = le margin-top:1px ci-dessus,
@@ -8048,14 +8386,23 @@
      enfoncement — transform/opacity SEULEMENT (règle v4.41.0), 120 ms, survol au POINTEUR FIN seul
      (leçon v4.4.4). Jamais en crise (le mouvement est réservé à l'alarme, ECAM), jamais en gros sur
      `.btn` ni `.ai-card` : la liste des porteurs est NOMINATIVE. Détail : doctrine-css.md C135. */
-  .dir-row,.qa-tile,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  .dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  /* A530 (remesure de la refonte, étend A506) : une RANGÉE ne se soulève plus au survol — elle se teinte. Seul ce qui
+     FLOTTE (la porte « Ajouter ») garde le soulèvement. Et tout ce qui se clique répond au survol, selon sa famille :
+     bouton gris → un cran plus sombre, lien bleu → souligné, rangée → teinte. Les survols « inertes » (fond de survol
+     égal au fond de repos) sont corrigés ici, en un seul endroit. */
   @media (hover:hover) and (pointer:fine){
-    :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow-work)}
+    .ed-door:hover{transform:translateY(-1px);box-shadow:var(--shadow-work)}
+    :is(.rang-btn,.sel-tog,.pg-btn,.flow-ctrl.has-ver .blk-ver,.tag.todo,body.view-read .read-meta .tag.todo):hover{background:var(--line)}
+    :is(.hs-lnk,.pf-all,.pf-ref,button.pf-bh,.fold-card .atyp-link,.acct-more>summary,.auth-why>summary):hover{text-decoration:underline;text-underline-offset:3px}
+    :is(.conf-head.fold-head,.ov-tgl,.sess-join,.ed-ident>summary,.rt-sound:not(.off)):hover{background:var(--amb-2)}
+    .ov-prog>.ov-runline:hover{border-color:var(--line-strong)}
+    #cbTimers:hover{filter:brightness(.98)}
   }
-  :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
+  :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
   @media (prefers-reduced-motion:reduce){
-    .dir-row,.qa-tile,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
-    :is(.qa-tile,.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
+    .dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
+    :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
@@ -8299,7 +8646,7 @@
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
 <div class="ds-capt ds-fix" style="max-width:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden"><header class="bar home"><div class="id-row">
-    <button class="hdr-back" id="hdrBack" hidden=""><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
+    <button class="hdr-back" id="hdrBack" hidden="" aria-label="Retour"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
     <span class="brand-logo" aria-hidden="true"></span>
     <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><!-- A14 — EN-TÊTE À TROIS ZONES ANCRÉES. Le sur-titre « ■ MODE CRISE » vit AU-DESSUS du titre,
          et non à sa suite : accolé au nom de la fiche, le statut se lisait comme un fragment de ce
@@ -8310,6 +8657,12 @@
          étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
+      <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
+    </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
@@ -8370,6 +8723,9 @@
          Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
          par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
          là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <!-- A520 : « Page » et « Schéma » montent dans l'en-tête de l'écran de démarrage (peints par applyViewChrome). -->
+    <button type="button" class="hdr-pl" id="hdrPage" data-prelink="page" hidden=""></button>
+    <button type="button" class="hdr-pl" id="hdrSvg" data-prelink="svg" hidden=""></button>
     <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
     <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
@@ -8382,7 +8738,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmuyo58dg1t9kyube">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmuyo58dg1t1lgpa1">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvy4a6c918zfot11">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvy4a6c9s0umpd1g">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8401,12 +8757,12 @@
     <button id="sessStart" type="button" class="sd-key sd-start" aria-label="Confirmé — démarrer la session — chrono, minuteurs et journal ; démarre aussi à la première action" hidden=""><span class="dp-lbl">Confirmé — démarrer la session</span><span class="sd-sub" id="sessStartSub" hidden="">Lance le chrono · minuteurs prêts</span></button>
   </div></div></div>
 <p class="ds-cap">Capture réelle, le QUAI au pouce : quatre touches de largeur égale, position CONSTANTE — Fin · Tout voir · Complications · Horodater (A346, A354, A412). « Horodater » est la seule REMPLIE ; « Fin » porte le ■ rouge système et ouvre une confirmation qui se MAINTIENT 1,2 s.</p>
-<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px"><div class="more-menu popmenu" id="moreMenu" role="menu" style="max-height: 828px;"><div class="mm-tiles" role="presentation"><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="0" aria-label="Moniteur — appareil posé, lisible à 2 m"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>Moniteur</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="1" aria-label="Se repérer — échelle des blocs"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg></span><span>Se repérer</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="2" aria-label="Schéma — l’arbre des blocs, plein écran"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="4.5" rx="1"></rect><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"></rect><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"></rect><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"></path></svg></span><span>Schéma</span></button></div><div class="mm-head" role="presentation">Session</div><button type="button" class="mm-row" role="menuitem" data-mmi="2"><span class="mm-ic" aria-hidden="true">⇄</span><span class="mm-tx"><span class="mm-lb">Partager la session…</span><span class="mm-sub">un collègue suit en direct</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="3" disabled=""><span class="mm-ic" aria-hidden="true">▲</span><span class="mm-tx"><span class="mm-lb">Répéter en exercice</span><span class="mm-sub">session en cours</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="4"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 102.6-6.4L3 8"></path><path d="M3 3v5h5"></path></svg></span><span class="mm-tx"><span class="mm-lb">Recommencer le parcours</span><span class="mm-sub">repart du début</span></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row" role="menuitem" data-mmi="6"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="mm-tx"><span class="mm-lb">L’aide</span><span class="mm-sub">modifier, versions, exporter</span></span><span class="mm-chev" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row danger" role="menuitem" data-mmi="8"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="mm-tx"><span class="mm-lb">Terminer la session…</span></span></button></div></div>
+<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px"><div class="more-menu popmenu" id="moreMenu" role="menu" style="max-height: 828px;"><div class="mm-tiles" role="presentation"><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="0" aria-label="Moniteur — appareil posé, lisible à 2 m"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>Moniteur</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="1" aria-label="Se repérer — échelle des blocs"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg></span><span>Se repérer</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="2" aria-label="Schéma — l’arbre des blocs, plein écran"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="4.5" rx="1"></rect><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"></rect><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"></rect><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"></path></svg></span><span>Schéma</span></button></div><button type="button" class="mm-row" role="menuitem" data-mmi="1"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></span><span class="mm-tx"><span class="mm-lb">Thème : automatique</span><span class="mm-sub">automatique · clair · sombre</span></span></button><div class="mm-head" role="presentation">Session</div><button type="button" class="mm-row" role="menuitem" data-mmi="3"><span class="mm-ic" aria-hidden="true">⇄</span><span class="mm-tx"><span class="mm-lb">Partager la session…</span><span class="mm-sub">un collègue suit en direct</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="4" disabled=""><span class="mm-ic" aria-hidden="true">▲</span><span class="mm-tx"><span class="mm-lb">Répéter en exercice</span><span class="mm-sub">session en cours</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="5"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 102.6-6.4L3 8"></path><path d="M3 3v5h5"></path></svg></span><span class="mm-tx"><span class="mm-lb">Recommencer le parcours</span><span class="mm-sub">repart du début</span></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row" role="menuitem" data-mmi="7"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="mm-tx"><span class="mm-lb">L’aide</span><span class="mm-sub">modifier, versions, exporter</span></span><span class="mm-chev" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row danger" role="menuitem" data-mmi="9"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="mm-tx"><span class="mm-lb">Terminer la session…</span></span></button></div></div>
 <p class="ds-cap">Capture réelle, menu ⋯ en session (ancré au bureau, feuille basse sous 780 px — A361) : il ne répète pas le quai (A337), tuiles d’ouverture, intertitres, « L’aide › » replié en session (Modifier, Ajouter à une collection…, exports) — hors session ces rangées sont à plat, et « Ajouter à une collection… » reste actif quand « Modifier » est grisé (lecture seule).</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
 <div class="ds-capt ds-fix" style="max-width:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden"><header class="bar home"><div class="id-row">
-    <button class="hdr-back" id="hdrBack" hidden=""><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
+    <button class="hdr-back" id="hdrBack" hidden="" aria-label="Retour"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span id="hdrBackLbl">Bibliothèque</span></button>
     <span class="brand-logo" aria-hidden="true"></span>
     <div class="brand"><h1 class="brand-name">Aides cognitives</h1><span id="brandSub">Bibliothèque</span><!-- A14 — EN-TÊTE À TROIS ZONES ANCRÉES. Le sur-titre « ■ MODE CRISE » vit AU-DESSUS du titre,
          et non à sa suite : accolé au nom de la fiche, le statut se lisait comme un fragment de ce
@@ -8417,6 +8773,12 @@
          étroite il est position:fixed en bas (zone du pouce — hors flux, l'en-tête ne change
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
+    <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
+      <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
+    </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
@@ -8477,6 +8839,9 @@
          Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
          par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
          là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <!-- A520 : « Page » et « Schéma » montent dans l'en-tête de l'écran de démarrage (peints par applyViewChrome). -->
+    <button type="button" class="hdr-pl" id="hdrPage" data-prelink="page" hidden=""></button>
+    <button type="button" class="hdr-pl" id="hdrSvg" data-prelink="svg" hidden=""></button>
     <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
     <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
@@ -8489,7 +8854,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmuyo58dg1t9kyube">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmuyo58dg1t1lgpa1">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvy4a6c918zfot11">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvy4a6c9s0umpd1g">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8508,6 +8873,6 @@
     <button id="sessStart" type="button" class="sd-key sd-start" aria-label="Confirmé — démarrer la session — chrono, minuteurs et journal ; démarre aussi à la première action" hidden=""><span class="dp-lbl">Confirmé — démarrer la session</span><span class="sd-sub" id="sessStartSub" hidden="">Lance le chrono · minuteurs prêts</span></button>
   </div></div></div>
 <p class="ds-cap">Capture réelle, le QUAI au pouce : quatre touches de largeur égale, position CONSTANTE — Fin · Tout voir · Complications · Horodater (A346, A354, A412). « Horodater » est la seule REMPLIE ; « Fin » porte le ■ rouge système et ouvre une confirmation qui se MAINTIENT 1,2 s.</p>
-<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px"><div class="more-menu popmenu" id="moreMenu" role="menu" style="max-height: 828px;"><div class="mm-tiles" role="presentation"><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="0" aria-label="Moniteur — appareil posé, lisible à 2 m"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>Moniteur</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="1" aria-label="Se repérer — échelle des blocs"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg></span><span>Se repérer</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="2" aria-label="Schéma — l’arbre des blocs, plein écran"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="4.5" rx="1"></rect><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"></rect><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"></rect><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"></path></svg></span><span>Schéma</span></button></div><div class="mm-head" role="presentation">Session</div><button type="button" class="mm-row" role="menuitem" data-mmi="2"><span class="mm-ic" aria-hidden="true">⇄</span><span class="mm-tx"><span class="mm-lb">Partager la session…</span><span class="mm-sub">un collègue suit en direct</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="3" disabled=""><span class="mm-ic" aria-hidden="true">▲</span><span class="mm-tx"><span class="mm-lb">Répéter en exercice</span><span class="mm-sub">session en cours</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="4"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 102.6-6.4L3 8"></path><path d="M3 3v5h5"></path></svg></span><span class="mm-tx"><span class="mm-lb">Recommencer le parcours</span><span class="mm-sub">repart du début</span></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row" role="menuitem" data-mmi="6"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="mm-tx"><span class="mm-lb">L’aide</span><span class="mm-sub">modifier, versions, exporter</span></span><span class="mm-chev" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row danger" role="menuitem" data-mmi="8"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="mm-tx"><span class="mm-lb">Terminer la session…</span></span></button></div></div>
+<div class="ds-capt ds-fix" style="max-width:340px;margin-top:16px"><div class="more-menu popmenu" id="moreMenu" role="menu" style="max-height: 828px;"><div class="mm-tiles" role="presentation"><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="0" aria-label="Moniteur — appareil posé, lisible à 2 m"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></span><span>Moniteur</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="1" aria-label="Se repérer — échelle des blocs"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16"></path><path d="M8 6h11M10 12h9M12 18h7"></path></svg></span><span>Se repérer</span></button><button class="mm-row mm-tile" role="menuitem" data-mmi="0" data-mmt="2" aria-label="Schéma — l’arbre des blocs, plein écran"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="4.5" rx="1"></rect><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"></rect><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"></rect><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"></path></svg></span><span>Schéma</span></button></div><button type="button" class="mm-row" role="menuitem" data-mmi="1"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></span><span class="mm-tx"><span class="mm-lb">Thème : automatique</span><span class="mm-sub">automatique · clair · sombre</span></span></button><div class="mm-head" role="presentation">Session</div><button type="button" class="mm-row" role="menuitem" data-mmi="3"><span class="mm-ic" aria-hidden="true">⇄</span><span class="mm-tx"><span class="mm-lb">Partager la session…</span><span class="mm-sub">un collègue suit en direct</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="4" disabled=""><span class="mm-ic" aria-hidden="true">▲</span><span class="mm-tx"><span class="mm-lb">Répéter en exercice</span><span class="mm-sub">session en cours</span></span></button><button type="button" class="mm-row" role="menuitem" data-mmi="5"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 102.6-6.4L3 8"></path><path d="M3 3v5h5"></path></svg></span><span class="mm-tx"><span class="mm-lb">Recommencer le parcours</span><span class="mm-sub">repart du début</span></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row" role="menuitem" data-mmi="7"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M9 13h6M9 17h6"></path></svg></span><span class="mm-tx"><span class="mm-lb">L’aide</span><span class="mm-sub">modifier, versions, exporter</span></span><span class="mm-chev" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><div class="mm-sep" role="separator"></div><button type="button" class="mm-row danger" role="menuitem" data-mmi="9"><span class="mm-ic" aria-hidden="true"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"></rect></svg></span><span class="mm-tx"><span class="mm-lb">Terminer la session…</span></span></button></div></div>
 <p class="ds-cap">Capture réelle, menu ⋯ en session (ancré au bureau, feuille basse sous 780 px — A361) : il ne répète pas le quai (A337), tuiles d’ouverture, intertitres, « L’aide › » replié en session (Modifier, Ajouter à une collection…, exports) — hors session ces rangées sont à plat, et « Ajouter à une collection… » reste actif quand « Modifier » est grisé (lecture seule).</p></div>
 </body></html>

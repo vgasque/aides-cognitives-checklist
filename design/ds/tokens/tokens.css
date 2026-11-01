@@ -2,6 +2,7 @@
 :root{
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+  --glass:color-mix(in srgb,var(--work) 90%,transparent);   /* A517 (A510 §1) : les barres qui FLOTTENT, et elles seules */
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
   --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
   /* PÉRIMÈTRE ET CREUX DE LA MATIÈRE SYSTÈME (v5.15.0, planche 17/1a). --sys-edge : la nuit ne

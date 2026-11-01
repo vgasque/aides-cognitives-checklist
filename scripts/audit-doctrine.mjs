@@ -1,6 +1,6 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner, ouvrirRecherche, remplir, ouvrirBloc } from './harness.mjs';
 import { readFile } from 'node:fs/promises';
 
 const { port, srv } = await serveApp();
@@ -1225,19 +1225,17 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
     /* ⚠ ON MESURE LE <span> DU TITRE, PAS LE <button> : celui-ci porte un rembourrage compensé
        et une line-height 'normal' — y compter des lignes rend un chiffre qui ne veut rien dire
        (piège tombé en écrivant ce contrôle : 46 px / 1 = « 46 lignes »). */
-    /* v5.18 (A245) : « Accès direct » n'existe qu'à ≥ 1200 px — des TUILES (.qa-tile) au-dessus
-       du tableau ; en deçà, les épinglées sont des rangées ordinaires du répertoire (étoile
-       remplie), déjà couvertes par `rows`. Le témoin de tuile ne vaut donc qu'en bureau. */
-    const desk=!document.documentElement.classList.contains('zw1200');
-    const rows=scan('.dir-book .dir-row','.dir-t'), tiles=scan('.qa-grid .qa-tile','.qa-t');
-    return {rows,tiles,desk,
-      casRow:rows.some(x=>x.long), casTile:tiles.some(x=>x.long),
+    /* A506 : les épinglées sont des rangées (groupe « Accès direct », `.dir-book.pinned`) — `rows` les mesure. */
+    /* A537 : les épinglées sont des TUILES (titre sur trois lignes au plus) ; le répertoire garde ses deux lignes. */
+    const rows=scan('.dir-book .dir-row','.dir-t'),rep=scan('.dir-book:not(.pinned) .dir-row','.dir-t'),tu=scan('.dir-book.pinned .dir-row','.dir-t');
+    return {rows,
+      casRow:rows.some(x=>x.long),
       pireRow:Math.max(0,...rows.map(x=>x.debord)), clipRow:Math.max(0,...rows.map(x=>x.clip)),
-      pireTile:Math.max(0,...tiles.map(x=>x.debord)), clipTile:Math.max(0,...tiles.map(x=>x.clip)),
-      hTile:Math.max(0,...tiles.map(x=>x.h)),
-      lignesRow:Math.max(0,...rows.map(x=>x.lignes))};},zm);
+      lignesRow:Math.max(0,...rep.map(x=>x.lignes)), lignesTuile:Math.max(0,...tu.map(x=>x.lignes))};},zm);
+  /* A506 (refonte « Natif ») : les épinglées ne sont plus des TUILES mais des rangées (groupe « Accès direct ») —
+     le cas adverse et ses mesures sont ceux de la rangée ; les contrôles de tuile sont partis avec elle. */
   t(`${w}/z${zm} · témoin : le cas adverse est constitué (titre long rendu)`,
-    r.casRow===true&&r.casTile===true, `rangée ${r.casRow}, tuile ${r.casTile}`);
+    r.casRow===true, `rangée ${r.casRow}`);
   t(`${w}/z${zm} · la rangée de répertoire ne déborde pas`, r.pireRow<=0, `${r.pireRow} px`);
   /* Le débordement ne suffit pas : `.dir-sub` est en overflow:hidden, donc la boîte reste propre
      pendant que la donnée disparaît. On mesure AUSSI le rognage réel. */
@@ -1253,12 +1251,7 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
      est inerte dès que le display calculé n'est pas `-webkit-box` — c'est ce qui, à 130 %, faisait
      passer un titre réel à trois lignes et poussait la méta hors du cadre (signalé à l'usage). */
   t(`${w}/z${zm} · le titre tient en deux lignes`, r.lignesRow<=2.05, `${r.lignesRow} ligne(s)`);
-  t(`${w}/z${zm} · la tuile épinglée ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
-  t(`${w}/z${zm} · … et ne rogne rien`, r.clipTile<=1, `${r.clipTile} px rognés`);
-  /* PLAFOND DE CROISSANCE : la tuile est le premier objet de l'écran ; un titre long ne doit pas
-     la faire enfler au point de repousser le répertoire (clamp 3 lignes à 15 px en large,
-     4 lignes à 13,5 en étroit — A261). */
-  t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=(r.desk?110:132), `${r.hTile} px`);
+  t(`${w}/z${zm} · le titre d'une tuile d'accès direct tient en trois lignes (A537)`, r.lignesTuile<=3.05, `${r.lignesTuile} ligne(s)`);
   await page.close();
 }
 });
@@ -1296,6 +1289,9 @@ await sec('Audit design · la feuille de filtres', async () => {
     /* v5.18 (décision utilisateur, maquette Zero) : HORS recherche, la pilule est SEULE — aucun
        déclencheur nulle part. Les filtres vivent dans la FONCTION RECHERCHE : chercher fait
        paraître la rangée (crans de type + « Filtrer ») au-dessus de la pilule. */
+    /* A517 : sous la barre d'onglets du téléphone, le dock n'existe que RECHERCHE OUVERTE (le rond l'ouvre) —
+       on l'ouvre d'abord ; « hors recherche » se lit alors champ vide, dock présent. */
+    if(document.documentElement.classList.contains('tabnav')){tbSearchOpen();await w(250);}
     const reposTog=!!tog(), reposRangee=(()=>{const d=document.getElementById('dockFilt');
       return !!d&&!d.hidden;})();
     const qi=document.getElementById('q');
@@ -1575,8 +1571,17 @@ await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () =>
    proportionnée au dessin. ⚠ Il rencontre son cas d'abord : hors accueil, le logo n'existe pas. */
 await sec('Accueil · le verrou logo + mot-marque', async () => {
 {
-  for(const w of [320,390,430,1280]){
+  /* A517 : au téléphone en PORTRAIT l'accueil n'a plus de rangée de marque (barre d'onglets, maquette Natif) —
+     on la vérifie absente là, et on mesure le verrou où il vit : téléphone tourné (667 × 375) et colonne large. */
+  for(const w of [390]){
     const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.waitForTimeout(250);
+    const vis=await page.evaluate(()=>[...document.querySelectorAll('.brand-logo')].filter(e=>e.getClientRects().length).length);
+    t(`${w} px portrait · la marque quitte l'accueil (barre d'onglets, A517)`, vis===0, `${vis} logo(s) visible(s)`);
+    await page.close();
+  }
+  for(const [w,hh] of [[667,375],[1280,760]]){
+    const page = await br.newPage({viewport:{width:w,height:hh},hasTouch:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
@@ -1660,7 +1665,13 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
     const g = await page.evaluate(async()=>{
       const util=()=>{const h=document.querySelector('.home-main'),c=getComputedStyle(h);
         return Math.round(h.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight));};
-      const ecart=()=>{const gr=document.querySelector('.dir-sum'),nx=gr&&gr.nextElementSibling;   /* v5.30 : la ligne de compte porte les commandes */
+      /* v5.30 : la ligne de compte porte les commandes ; A528 : sous les onglets, c'est la rangée des pastilles, qui porte
+         « Affichage » — sans cartes la PORTE disparaît (la rangée garde les filtres, elle n'est donc pas mesurée). */
+      const ecart=()=>{const tn=document.documentElement.classList.contains('tabnav');
+        if(tn&&!document.querySelector('.pg-chips>#rangBtn'))return null;
+        const gr=document.querySelector(tn?'.pg-chips':'.dir-sum');let nx=gr&&gr.nextElementSibling;
+        while(nx&&!nx.getBoundingClientRect().height)nx=nx.nextElementSibling;
+        if(!nx&&gr){const w=gr.closest('.hv-page,main');nx=w&&w.querySelector('.dir-wrap>*');}
         return (gr&&nx)?Math.round(nx.getBoundingClientRect().top-gr.getBoundingClientRect().bottom):null;};
       const avec={util:util(),ecart:ecart()};
       fiches.length=0;protocols.length=0;render();
@@ -1809,7 +1820,7 @@ await sec('Recherche · la croix d\'effacement', async () => {
   /* ⚠ ON MESURE AVANT LE DÉBOUNCE (150 ms) : le re-rendu repeint tout, donc attendre le laisserait
      vert même si la croix ne se peignait qu'au rendu — c'est-à-dire une croix qui paraît un sixième
      de seconde après la lettre qu'on vient de taper. C'est la frappe qui doit la poser. */
-  await page.fill('#q','anaphyl');
+  await remplir(page,'anaphyl');
   const surLeChamp=await vis();
   await page.waitForTimeout(350);
   const saisie=await vis(), filtre=await nRows();
@@ -2493,7 +2504,7 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
     document.body.appendChild(sonde);const warn=getComputedStyle(sonde).color,warnBg=getComputedStyle(sonde).backgroundColor;sonde.remove();
     const dec=root.querySelector('.pf-row.dec');const opts=dec?[...dec.querySelectorAll('.pf-opt')]:[];
     const rows=[...root.querySelectorAll('.pf-row')];
-    return {dec:!!dec,decBg:dec?getComputedStyle(dec).backgroundColor:'',warn,warnBg,
+    return {dec:!!dec,decBg:dec?getComputedStyle(dec).backgroundColor:'',warn,warnBg,dense:!!(dec&&dec.closest('.pf-flat.dense')),
       branches:opts.map(o=>((o.querySelector('b')||{}).textContent||'').trim()),
       branchesInk:[...new Set(opts.map(o=>{const b=o.querySelector('b');return b?getComputedStyle(b).color:'';}))],
       branchesDest:opts.map(o=>!!o.querySelector('.pf-ref')||/▪ fin|ci-dessous/.test(o.textContent)),
@@ -2514,8 +2525,9 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
   /* A345/A349 (maquette de l'auteur) : la décision est ambre doux et ses branches portent le mot en
      ambre — c'est le registre de la DÉCISION, pas un emprunt à ATTENTION (l'ancienne chip de branche
      de l'Échelle n'y avait pas droit ; la liste, elle, DIT la décision). */
-  t('la décision porte le registre de la DÉCISION (ambre doux), ses branches le mot en ambre',
-    R.decBg===R.warnBg&&R.branchesInk.length===1&&R.branchesInk[0]===R.warn,
+  /* A534 (maquette Natif) : dans la COLONNE, la décision perd son aplat — son losange et ses branches portent le registre. */
+  t('la décision porte le registre de la DÉCISION (ambre doux hors colonne, aucun aplat en colonne), ses branches le mot en ambre',
+    (R.dense?R.decBg==='rgba(0, 0, 0, 0)':R.decBg===R.warnBg)&&R.branchesInk.length===1&&R.branchesInk[0]===R.warn,
     `fond ${R.decBg} (attendu ${R.warnBg}) · encre ${JSON.stringify(R.branchesInk)} (attendue ${R.warn})`);
   t('la colonne ne porte plus de section « à tout moment »', R.cxCol===0, `${R.cxCol}`);
   /* ⚠ UN SEUL ÉCART ENTRE UN TITRE ET SES RANGÉES (demande utilisateur). */
@@ -2772,6 +2784,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
           pinBox:`${Math.round(R-L)}×${Math.round(B-T)} px, hors rangée : ${R>rr.right+0.5}`};})(),
       /* La NATURE de l'objet : présente sur chaque rangée, item DUR (jamais rétréci). */
       kinds:[...document.querySelectorAll('.dir-row .dir-kind')].map(e=>e.textContent.trim()),
+      nP:rows.filter(x=>{const o=x.querySelector('[data-open]');return !!o&&protocols.some(p=>p.id===o.dataset.open);}).length,
       kindsTronq:[...document.querySelectorAll('.dir-row .dir-kind')]
         .filter(e=>e.scrollWidth>e.clientWidth+1).length,
       /* Les rangées de filtres partent-elles du même x ? (les intitulés ont des longueurs
@@ -2814,7 +2827,10 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   t(`${W} · témoin : plusieurs rangées sont mesurées`, r.n>=2, `${r.n}`);
   /* v5.30 : vue détaillée, la rangée est une CARTE dont la hauteur suit son contenu (maquette v5 ; à toutes les
      largeurs depuis A389) — le rythme unique reste la règle du LIVRE, c'est-à-dire la vue compacte. */
-  if(r.cartes)t(`${W} · les cartes tiennent le plancher de 76 px`, Math.min(...r.hauteurs)>=76, JSON.stringify(r.hauteurs));
+  /* A506 : la vue détaillée n'est plus une pile de CARTES (plancher 76) mais un groupe de rangées — même plancher
+     que le livre compact, 64 px ; la hauteur suit toujours le contenu (deux lignes). */
+  /* A516 : le plancher est celui d'A506 À LA LETTRE, 52 px (A375) — 64 était celui du livre d'avant. */
+  if(r.cartes)t(`${W} · les rangées groupées tiennent le plancher de 52 px`, Math.min(...r.hauteurs)>=52, JSON.stringify(r.hauteurs));
   else t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
   t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
   /* ⚠ 16,5 px DEPUIS L'AUDIT DESIGN v5.0.0 (A3-1) — et le contrôle EXPRIME DÉSORMAIS SON
@@ -2862,8 +2878,9 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   /* LA NATURE SE LIT SUR LA RANGÉE (demande utilisateur, d'après la maquette) : en vue « Tout »
      les deux types se mêlent et rien ne disait lequel on allait ouvrir. C'est un item DUR : il ne
      s'abrège jamais — un mot de nature amputé en dirait moins que rien. */
-  t(`${W} · chaque rangée dit sa NATURE`,
-    r.kinds.length===r.n&&r.kinds.every(k=>k==='Aide'||k==='Protocole'), JSON.stringify(r.kinds.slice(0,3)));
+  /* A527 (arbitrage de l'auteur) : seul le PROTOCOLE porte le mot ; l'aide, cas courant, n'en porte aucun. */
+  t(`${W} · chaque PROTOCOLE dit « Protocole », une aide ne porte pas de mot`,
+    r.kinds.length===r.nP&&r.kinds.every(k=>k==='Protocole'), JSON.stringify({kinds:r.kinds.slice(0,3),nP:r.nP}));
   t(`${W} · … et ce mot n'est jamais abrégé`, r.kindsTronq===0, `${r.kindsTronq}`);
   /* LES RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné). */
   if(W<780)t(`${W} · les rangées de filtres sont alignées`, r.chipsX.length<=1, JSON.stringify(r.chipsX));
@@ -3036,7 +3053,7 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
      mesure est « la vue n'a pas basculé sur les aides seules », donc le contenu du répertoire. */
   const etat=()=>page.evaluate(()=>({section:state.section,
     rangees:document.querySelectorAll('.dir-book:not(.pinned) .dir-row').length,
-    natures:[...new Set([...document.querySelectorAll('.dir-book:not(.pinned) .dir-kind')].map(e=>e.textContent.trim()))]}));
+    natures:[...new Set([...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')].map(r=>r.querySelector('.dir-kind')?'Protocole':'Aide'))]}));   // A527 : l'aide n'a plus de mot
   const av=await etat();
   t('témoin : la vue « Tout » montre les DEUX natures',
     av.section==='all'&&av.natures.length===2, JSON.stringify(av));
@@ -3190,6 +3207,7 @@ for (const W of [320, 360, 390, 700, 1400]) {
   await amorce(page);
   // Le VRAI geste : on tape dans le champ de l'en-tête (poser `state.q` à la main court-circuite
   // l'écouteur et le re-rendu, donc mesurerait un écran que personne n'obtient).
+  await ouvrirRecherche(page);   // A517 : au téléphone, le rond de la barre d'onglets ouvre le champ
   await page.click('#hdrSearch');
   await page.type('#hdrSearch','adrénaline',{delay:15});
   await page.waitForFunction(()=>document.querySelectorAll('.card-snip').length>0,null,{timeout:4000})
@@ -3857,18 +3875,26 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
            le remplace, et Tableau / Schéma vivent SOUS son titre, AU-DESSUS de la première rangée. */
         liens:Y('.pre-links'), parc:(()=>{const h=[...document.querySelectorAll('.pre-ch,.fold-head')]   /* v5.30 : en étroit, « Parcours » est l'en-tête d'une carte dépliable */
           .find(x=>/Parcours/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
+        hdrPage:(()=>{const b=document.getElementById('hdrPage');return !!b&&!b.hidden&&!!b.offsetParent;})(),
+        hdrSvg:(()=>{const b=document.getElementById('hdrSvg');return !!b&&!b.hidden&&!!b.offsetParent;})(),
         rang1:Y('.pre-lad .pl-line,.pre-lad .pf-row'), pec:document.querySelectorAll('main .cp-h').length,   /* v5.30 : en étroit, le parcours à plat (.pf-row) */
-        hLien:(()=>{const b=document.querySelector('.pre-link');return b?Math.round(b.getBoundingClientRect().height):null;})(),
+        /* A520 : « Page » (et « Schéma » dès 780) sont montés dans l'EN-TÊTE — cible = dessin + halo. */
+        hLien:(()=>{const b=document.getElementById('hdrPage');if(!b||b.hidden)return null;const a=getComputedStyle(b,'::after');
+          const h=a.content!=='none'?Math.abs(parseFloat(a.top)||0):0;return Math.round(b.getBoundingClientRect().height+2*h);})(),
         rangee:(()=>{const l=document.querySelector('.rail-lad .pf-row');return l?Math.round(l.getBoundingClientRect().height):null;})()};   // A376 : la colonne rend la liste
       /* SCHÉMA : il n'ouvrait RIEN — `openFlowFull(f)` prend la fiche et l'appel l'omettait. */
-      const bs=[...document.querySelectorAll('.pre-link')].find(x=>/Schéma/.test(x.textContent));
-      if(bs)bs.click();await w(450);
+      /* A520 : « Schéma » vit dans l'en-tête dès 780 px, dans le menu ⋯ au téléphone. */
+      {const hs=document.getElementById('hdrSvg');
+       if(hs&&!hs.hidden)hs.click();
+       else{document.getElementById('hdrMore').click();await w(300);
+         const tl=[...document.querySelectorAll('#moreMenu .mm-tile')].find(x=>/Schéma/.test(x.textContent));if(tl)tl.click();}}
+      await w(450);
       const ff=document.getElementById('flowFull');
       const svg={ouvert:!!(ff&&ff.classList.contains('on')),
         noeuds:ff?ff.querySelectorAll('svg .fn, svg g').length:0};
       document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(350);
       /* TABLEAU : une feuille, donc la page reste dessous — et l'on en SORT. */
-      const bt=document.querySelector('.pre-link[data-prelink="page"]');   // A461 : « Tableau » s'appelle « Page »
+      const bt=document.querySelector('#hdrPage[data-prelink="page"]');   // A461 : « Tableau » s'appelle « Page » ; A520 : dans l'en-tête
       if(bt)bt.click();await w(600);
       const pm=document.getElementById('planModal');
       const tab={ouvert:!!(pm&&pm.classList.contains('on')),
@@ -3883,9 +3909,10 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     t(`${nom} · « Surveillances & pièges » n'est pas sur l'écran d'entrée`,
       !r.av.titres.some(x=>/Surveillance/i.test(x)), JSON.stringify(r.av.titres));
     t(`${nom} · ni la rangée « Consulter »`, r.av.consulter===0, `${r.av.consulter}`);
-    t(`${nom} · Tableau/Schéma vivent SOUS le titre « Parcours » et AU-DESSUS de l'aperçu`,
-      r.av.liens!=null&&r.av.parc!=null&&r.av.rang1!=null&&r.av.parc<r.av.liens&&r.av.liens<r.av.rang1,
-      `Parcours ${r.av.parc}, liens ${r.av.liens}, 1re rangée ${r.av.rang1}`);
+    /* A520 (remplace « Tableau/Schéma sous le titre Parcours ») : avant la session, « Page » monte dans l'en-tête, et
+       « Schéma » aussi dès 780 px (au téléphone il est dans le menu ⋯). */
+    t(`${nom} · « Page »${W>=780?' et « Schéma »':''} vivent dans l'en-tête de l'écran d'entrée`,
+      r.av.hdrPage===true&&(W<780||r.av.hdrSvg===true), JSON.stringify({page:r.av.hdrPage,schema:r.av.hdrSvg}));
     t(`${nom} · … et « Prise en charge » n'est plus un titre de l'écran d'entrée`, r.av.pec===0, `${r.av.pec} .cp-h`);
     t(`${nom} · … et ce sont des boutons de 44 px`, r.av.hLien>=44, `${r.av.hLien} px`);
     /* Le parcours se resserre AVANT le soin — et pas d'un cheveu : la rangée passe sous les 44 px
@@ -4223,7 +4250,8 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
       const out={enLigne,horsGabarit,fen:{}};
       /* A365 : ≥ 780 sur l'accueil, Compte et Sessions sont des VUES de la colonne — la
          page-fenêtre, seule mesurée ici, s'ouvre alors depuis une fiche. */
-      const surFiche=()=>{if(innerWidth>=780&&state.view==='library')openRead(fiches[0].id);};
+      /* A517 : au téléphone aussi (barre d'onglets) — la page-fenêtre s'ouvre depuis une fiche. */
+      const surFiche=()=>{if((innerWidth>=780||document.documentElement.classList.contains('tabnav'))&&state.view==='library')openRead(fiches[0].id);};
       const cmds={viewSheet:()=>document.getElementById('filtTog').click(), authModal:()=>{surFiche();openAuth();},
                   catModal:()=>openCatMgr(), sessModal:()=>{surFiche();openSessHist();}, storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
@@ -4341,7 +4369,9 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
     await amorce(page);
     const mesure=()=>page.evaluate(()=>{const o={};
-      for(const sel of ['#hdrNew','#hdrTheme','#hdrMore','#acctTop']){
+      /* A517 : sous la barre d'onglets, les commandes du haut de l'accueil vivent dans la rangée de page. */
+      const tn=document.documentElement.classList.contains('tabnav')&&state.view==='library';
+      for(const sel of tn?['#selTog','#pgNew']:['#hdrNew','#hdrTheme','#hdrMore','#acctTop']){
         const e=document.querySelector(sel);if(!e||e.hidden||!e.offsetParent)continue;
         const r=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
         /* La cible EFFECTIVE = dessin + halo, jamais `min-height` : c'est le halo qui la rend en
@@ -4357,7 +4387,9 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     for(const [nom,m] of [['accueil',acc],['lecture',lec]]){
       const v=Object.entries(m);
       /* v5.30 (A351) : ≥ 780 l'accueil ne garde que « Créer » — le compte et l'historique sont dans la colonne. */
-      t(`${W} · ${nom} : témoin — la rangée porte au moins ${W>=780&&nom==='accueil'?'un':'deux'} contrôle(s)`, v.length>=(W>=780&&nom==='accueil'?1:2), JSON.stringify(Object.keys(m)));
+      /* A519 : sur une aide, le thème a quitté l'en-tête pour le menu ⋯ — au téléphone la rangée de lecture ne porte plus que ⋯. */
+      const un=(W>=780&&nom==='accueil')||(W<780&&nom==='lecture');
+      t(`${W} · ${nom} : témoin — la rangée porte au moins ${un?'un':'deux'} contrôle(s)`, v.length>=(un?1:2), JSON.stringify(Object.keys(m)));
       /* Les GLYPHES ont tous le même carré ; « Créer » en large porte son mot et s'allonge, mais
          sa HAUTEUR reste celle de la rangée — c'est l'alignement qui se lit, pas la largeur. */
       const hs=[...new Set(v.map(([,x])=>x.h))], ys=[...new Set(v.map(([,x])=>x.y))];
@@ -4388,10 +4420,12 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     t(`${W} · le retour d'en-tête a 44 px de cible dans les DEUX sens`,
       !!back&&back.w>=44&&back.h>=44, back?`${back.w}×${back.h}`:'absent');
 
-    /* Le raccourci de thème : présent en LECTURE, absent de l'accueil — c'est le moment qui le
-       justifie, pas la place. */
-    t(`${W} · le thème est un raccourci de LECTURE, pas de l'accueil`,
-      !acc['#hdrTheme']&&!!lec['#hdrTheme'], `accueil ${!!acc['#hdrTheme']}, lecture ${!!lec['#hdrTheme']}`);
+    /* A519 (amende le raccourci de lecture) : sur une AIDE, le thème vit dans le menu ⋯ (« Thème : … »), plus dans
+       l'en-tête ; il reste un raccourci d'en-tête sur une référence. */
+    const menuTh=await page.evaluate(()=>{if(typeof _moreBuild==='function')_moreBuild();
+      return (_moreRows||[]).some(r=>r&&/^Thème/.test(r.label||''));});
+    t(`${W} · A519 · sur une aide, le thème est dans le menu ⋯, pas dans l'en-tête`,
+      !acc['#hdrTheme']&&!lec['#hdrTheme']&&menuTh, `accueil ${!!acc['#hdrTheme']}, lecture ${!!lec['#hdrTheme']}, menu ${menuTh}`);
     /* Trois crans, comme le réglage canonique — sinon « Auto » deviendrait inatteignable depuis
        la fiche, et l'on ne saurait plus si l'on est en clair CHOISI ou en clair SUIVI. */
     const cy=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));const v=[];
@@ -5290,6 +5324,7 @@ await sec('v5.33 · A383 — l’éditeur, réglages d’étape', async () => {
     o.optHors=lbl(B1);o.optBoucle=lbl(B3);
     const adr=[...B3.querySelectorAll('.li')].find(l=>/Adrénaline/.test(l.querySelector('input[data-sf]').value));
     o.pastilles=[...adr.querySelectorAll('.li-chip')].map(x=>x.className.replace('li-chip','').trim());
+    [...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===B3.dataset.bid&&x.offsetParent).click();await w(250);   // A521 : sa page
     adr.querySelector('.li-set').click();await w(300);
     o.momentBoucle=!!document.querySelector('#stepSetBody [data-ssfrom]');
     document.querySelector('#stepSetBody [data-ssrp="once"]').click();await w(250);
@@ -5444,7 +5479,8 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
   }
   await essai('« Ne pas oublier »','.ed-forget input:not([disabled])','[data-fgadd]',
     ()=>forgetAll(state.draft).length);
-  await essai('étapes d\'un bloc','.blk[data-bid] input[data-sf]','[data-addstep]',
+  await ouvrirBloc(page,await page.evaluate(()=>state.draft.blocks[0].id));   // A521 : le bloc s'ouvre sur sa page
+  await essai('étapes d\'un bloc','.blk.ed-cur input[data-sf]','.blk.ed-cur [data-addstep]',
     ()=>bItems(state.draft.blocks[0]).length);
   /* ⚠ UN RE-RENDU PENDANT QU'UN CHAMP VIDE EST FOCALISÉ NE DOIT PAS AVORTER (v5.6, trouvé au
      balayage). Le champ d'étape vide se supprime AU BLUR — mais ce blur peut être celui du rendu
@@ -5518,7 +5554,8 @@ await sec('v5.6 · un re-rendu ne s\'interrompt pas lui-même', async () => {
      efface sa ligne, sans dépendre d'un raccourci clavier qui n'a pas le même sens d'un système
      à l'autre (`Control+A` n'est PAS « tout sélectionner » sur macOS : le témoin effaçait un
      caractère et mesurait autre chose). */
-  await page.fill('.blk .li input[data-sf]','');
+  await ouvrirBloc(page);   // A521 : le premier bloc s'ouvre sur sa page
+  await page.fill('.blk.ed-cur .li input[data-sf]','');
   await page.waitForTimeout(250);
   const av=await page.evaluate(()=>{const e=document.activeElement;
     return {focus:!!e&&!!e.matches&&e.matches('.blk .li input[data-sf]')&&e.value==='',
@@ -5882,7 +5919,7 @@ await sec('v5.6 · tolérance orthographique du répertoire', async () => {
      contenu est. Les QUATRE bornes de la doctrine se mesurent au RENDU, pas sur la fonction pure
      (tests.html la couvre déjà) : c'est le CÂBLAGE qui peut se tromper de cas. */
   await amorce(page);
-  const cherche = async q => { await page.fill('#q', q); await page.waitForTimeout(400);
+  const cherche = async q => { await remplir(page, q); await page.waitForTimeout(400);
     return page.evaluate(() => ({
       n: document.querySelectorAll('.dir-row').length,
       fix: (document.querySelector('.fix-line') || {}).textContent || '',
@@ -6321,10 +6358,53 @@ await sec('Q1 · les propositions de relecture', async () => {
    répertoire contre 976 pour une épinglée. On mesure la PROPRIÉTÉ — même largeur de rangée dans
    les deux sections, à toutes les largeurs — et non le nombre de colonnes, qui dépend de la
    grille fluide et n'a pas à être encodé ici. */
-/* v5.18 (A261, décision utilisateur sur capture) : « Accès direct » est en TUILES à TOUTES
-   les largeurs — plusieurs par ligne dès que la place le permet (deux dès 390 px), titre long
-   à 4 lignes en étroit. La fiche reste AUSSI à sa place dans le répertoire. */
-await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
+/* A506 (refonte « Natif », lot 3, choix de l'auteur) — renverse A261 : « Accès direct » n'est plus une grille de
+   TUILES mais le PREMIER GROUPE DE RANGÉES de la liste, même rangée que le répertoire, à toutes les largeurs. La fiche
+   reste AUSSI à sa place dans le répertoire (un raccourci ne déménage rien). Le témoin retrouve donc sa propriété
+   d'origine : les épinglées ont le RYTHME du répertoire — même largeur de rangée dans les deux sections. */
+await sec('REFONTE · cases rondes et rangées groupées (A506-A507)', async () => {
+/* Lot 3 de la refonte « Natif ». A507 : toute case est RONDE (étape 36 px, jauge, sélection, collections, liste
+   cochable), la bordure de l'étape porte toujours le registre. A506 : à l'accueil, plus de liseré — la catégorie
+   se dit par le point SUIVI de son nom ; la vue détaillée est un GROUPE de rangées, pas une pile de cartes. */
+  const page = await br.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await amorce(page);
+  const acc = await page.evaluate(async () => { const w = m => new Promise(r => setTimeout(r, m));
+    state.homeCompact = false; selStart(fiches[0].id); render(); await w(300);
+    const rows = [...document.querySelectorAll('.dir-book .dir-row')];
+    const ck = document.querySelector('.dir-ck'), ckb = ck ? getComputedStyle(ck, '::before').borderRadius : '';
+    const out = { n: rows.length,
+      liseres: rows.filter(r => { const b = getComputedStyle(r, '::before'); return b.content !== 'none' && b.content !== 'normal' && parseFloat(b.width) > 0; }).length,
+      pointNom: rows.every(r => { const c = r.querySelector('.dir-cat'); return !c || (c.querySelector('.cat-dot') && c.textContent.trim().length > 0); }),
+      groupe: (() => { const g = document.querySelector('.dir-book:not(.compact) .dir-grid'); return g ? parseFloat(getComputedStyle(g).borderTopLeftRadius) : 0; })(),
+      cartes: rows.filter(r => parseFloat(getComputedStyle(r).borderTopLeftRadius) > 0).length, selRond: ckb };
+    selEnd(); render(); return out; });
+  t('accueil · témoin : des rangées sont rendues', acc.n >= 2, JSON.stringify(acc));
+  t('accueil · aucune rangée ne porte de liseré (A506)', acc.liseres === 0, JSON.stringify(acc));
+  t('accueil · la catégorie se dit par le point SUIVI de son nom', acc.pointNom, JSON.stringify(acc));
+  t('accueil · vue détaillée : un groupe arrondi, des rangées sans coins (plus de cartes)', acc.groupe > 0 && acc.cartes === 0, JSON.stringify(acc));
+  t('sélection · la case est ronde (A507)', acc.selRond === '50%', acc.selRond);
+  await ouvrirFiche(page, /Arrêt cardiaque/);
+  await demarrerSession(page);
+  await page.evaluate(() => { const f = state.fiche; const b = f.blocks.find(b => /^Choquable/.test(b.title)); jumpToBlock(f, b.id); });
+  await page.waitForTimeout(500);
+  const ses = await page.evaluate(() => {
+    const bx = [...document.querySelectorAll('.ov-block.cur li[data-ck] .box')];
+    const crit = document.querySelector('.ov-block.cur li.crit .box');
+    const goal = document.querySelector('.mo-pips i.goal'), pip = document.querySelector('.mo-pips i:not(.goal)');
+    return { n: bx.length, ronds: bx.filter(b => getComputedStyle(b).borderTopLeftRadius === '50%').length,
+      taille: bx[0] ? Math.round(bx[0].getBoundingClientRect().width) : 0,
+      critBord: crit ? getComputedStyle(crit).borderTopColor : '', crit: getComputedStyle(document.documentElement).getPropertyValue('--crit').trim(),
+      goalRond: goal ? getComputedStyle(goal).borderTopLeftRadius : '', goalW: goal ? goal.getBoundingClientRect().width : 0, pipW: pip ? pip.getBoundingClientRect().width : 0 }; });
+  t('session · toutes les cases d\u2019étape sont rondes, 36 px (A507, A510)', ses.n >= 1 && ses.ronds === ses.n && ses.taille === 36, JSON.stringify(ses));
+  t('session · la case CRITIQUE garde sa bordure de registre', !!ses.critBord && ses.critBord !== 'rgba(0, 0, 0, 0)', JSON.stringify(ses));
+  t('session · le dernier repère de la jauge est un rond PLUS GRAND (A507)', ses.goalRond === '50%' && ses.goalW > ses.pipW, JSON.stringify(ses));
+  await page.close();
+});
+
+await sec('v5.7 · A537 l\'accès direct en tuiles à côté du répertoire', async () => {
   const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
@@ -6336,29 +6416,22 @@ await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
     const r = await page.evaluate(() => {
       const qa = document.querySelector('.qa-sec');
       const vis = !!qa && getComputedStyle(qa).display !== 'none';
-      const tiles = qa ? [...qa.querySelectorAll('.qa-tile')] : [];
-      const book = document.querySelector('.dir-book');
+      const ep = qa ? [...qa.querySelectorAll('.dir-row')] : [];
+      const rep = [...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')];
       const lg = e => e ? Math.round(e.getBoundingClientRect().width) : 0;
-      return { desk: !document.documentElement.classList.contains('zw1200'), vis,
-        nT: tiles.length, tuile: lg(tiles[0]), livre: lg(book),
-        tuileTops: tiles.slice(0, 2).map(e => Math.round(e.getBoundingClientRect().top)),
+      return { vis, nE: ep.length, tuiles: document.querySelectorAll('.qa-tile').length,
+        lE: lg(ep[0]), lR: lg(rep[0]),
+        cote: ep.length >= 2 && Math.round(ep[0].getBoundingClientRect().top) === Math.round(ep[1].getBoundingClientRect().top),
         etoiles: document.querySelectorAll('.dir-row .pinbtn.on').length,
-        rangees: document.querySelectorAll('.dir-row').length }; });
+        rangees: rep.length }; });
     t(`${w} px · témoin : deux épinglées existent, le répertoire les garde`,
       r.etoiles >= 2 && r.rangees >= 2, JSON.stringify(r));
-    if (r.desk) {
-      t(`${w} px · ≥ 1200 : « Accès direct » rend ses tuiles`, r.vis === true && r.nT >= 2,
-        `${r.nT} tuile(s), visible ${r.vis}`);
-      t(`${w} px · … et une tuile ne prend PAS toute la largeur du livre`,
-        r.tuile > 0 && r.tuile < r.livre - 40, `${r.tuile} px dans ${r.livre} px`);
-    } else {
-      t(`${w} px · < 1200 : les TUILES restent (A261)`, r.vis === true && r.nT >= 2,
-        `${r.nT} tuile(s), visibles ${r.vis}`);
-      if (w <= 430)
-        t(`${w} px · … et DEUX tiennent sur une même ligne`,
-          r.tuileTops.length === 2 && Math.abs(r.tuileTops[0] - r.tuileTops[1]) <= 1,
-          JSON.stringify(r.tuileTops));
-    }
+    /* A537 (renverse A515 §4) : l'accès direct est une grille de TUILES, plusieurs par ligne — l'ancien dessin
+       `.qa-tile` reste purgé, la tuile est la rangée du livre `pinned`. */
+    t(`${w} px · « Accès direct » est un groupe (A506), sans l'ancien dessin de tuile`,
+      r.vis === true && r.nE >= 2 && r.tuiles === 0, JSON.stringify(r));
+    t(`${w} px · … en tuiles : deux côte à côte, plus étroites que les rangées du répertoire (A537)`,
+      r.cote === true && r.lE > 0 && r.lE < r.lR * 0.6, `${r.lE} px contre ${r.lR} px ; côte à côte ${r.cote}`);
   }
   await page.close();
 });
@@ -7331,7 +7404,8 @@ for (const W of [390, 1280]) {
     myLibraries.length=0;myLibraries.push({id:'lib-ro',name:'SAMU 31',role:'viewer'});
     const f=JSON.parse(JSON.stringify(fiches[0]));f.id='ro1';f.title='Aide du SAMU';f.library='lib-ro';f.status='validated';fiches.push(migrate(f));
     const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await w(300);
-    out.rail=!!document.querySelector('.home-main .coll-rail [data-collsel]');
+    /* A517 : au téléphone, la porte des collections est la rangée de PASTILLES sous le grand titre (elle remplace la rangée « Mes collections »). */
+    out.rail=!!document.querySelector('.home-main :is(.coll-rail,.pg-chips) [data-collsel]')&&document.querySelectorAll('.home-main .coll-rail').length===0===document.documentElement.classList.contains('tabnav');
     out.col=!!document.querySelector('.home-side [data-collsel="'+c.id+'"]');
     document.querySelector('[data-collsel="'+c.id+'"]').click();await w(300);
     out.coll=state.coll===c.id;
@@ -8340,12 +8414,227 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
 }
 });
 
+/* ══ A530-A533 — REMESURE DE LA REFONTE (survols, intertitres en phrase, téléphone tourné, moniteur) ══════════ */
+await sec('Remesure · A530-A533', async () => {
+  // A530 : une rangée se teinte sans se soulever ; un contrôle gris s'assombrit au survol.
+  {const page=await br.newPage({viewport:{width:1280,height:800}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.waitForTimeout(300);
+    const pos=s=>page.evaluate(s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};},s);
+    const st=s=>page.evaluate(s=>{const c=getComputedStyle(document.querySelector(s));return {t:c.transform,bg:c.backgroundColor};},s);
+    const r={};
+    for(const [k,s] of [['ligne','.hs-wrap:not(.on)'],['gris','#rangBtn']]){const p0=await pos(s);if(!p0){r[k]='absent';continue;}
+      await page.mouse.move(1,1);await page.waitForTimeout(250);const a=await st(s);await page.mouse.move(p0.x,p0.y);await page.waitForTimeout(250);r[k]={a,z:await st(s)};}
+    t('A530 · une rangée de la colonne se teinte au survol, sans se soulever',r.ligne&&r.ligne.z&&r.ligne.z.t==='none'&&r.ligne.z.bg!==r.ligne.a.bg,JSON.stringify(r.ligne));
+    t('A530 · « Affichage » (bouton gris) change de fond au survol',r.gris&&r.gris.z&&r.gris.z.bg!==r.gris.a.bg,JSON.stringify(r.gris));
+    // A531 : aucun intertitre en capitales — seuls les MOTS D'ÉTAT et l'eyebrow de l'en-tête le restent.
+    await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
+    const caps=await page.evaluate(async()=>{const ok=/\b(bs-|code|seg-sess|ov-cur|stp-mk|pf-here|fs-mk|tm-kind|cx-tag|tmm-l|sd-|dp-|rf-here|sv-|mon-)/;const L=[];
+      const scan=()=>{for(const e of document.querySelectorAll('main *,#crisisDock *')){if(!e.offsetParent)continue;if(getComputedStyle(e).textTransform!=='uppercase')continue;
+        const tx=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.nodeValue).join('').trim();if(tx.length<3)continue;
+        const k=(e.className&&e.className.baseVal===undefined?e.className:'')||e.tagName;if(ok.test(k)||e.closest('.sv-sheet'))continue;L.push(k+' «'+tx.slice(0,20)+'»');}};
+      scan();openEdit(state.fiche?state.fiche.id:fiches[0].id);await new Promise(x=>setTimeout(x,600));scan();return [...new Set(L)];});
+    t('A531 · en session et dans l\'éditeur, aucun intertitre ni étiquette en capitales',caps.length===0,JSON.stringify(caps.slice(0,6)));
+    await page.close();}
+  // A532 : téléphone tourné — « Schéma » dans le menu ⋯, pas dans l'en-tête.
+  {const page=await br.newPage({viewport:{width:844,height:390},hasTouch:true,isMobile:true});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
+    const r=await page.evaluate(()=>({svg:!document.getElementById('hdrSvg').hidden,page:!document.getElementById('hdrPage').hidden}));
+    t('A532 · 844 × 390, avant la session : « Page » dans l\'en-tête, « Schéma » non (il est dans le menu ⋯)',r.page&&!r.svg,JSON.stringify(r));
+    await page.close();}
+  // A533 : en portrait, le grand chiffre du moniteur n'est plus bridé par 20 % de la largeur.
+  {const page=await br.newPage({viewport:{width:820,height:1180}});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
+    const fs=await page.evaluate(async()=>{monOpen();await new Promise(x=>setTimeout(x,500));const v=document.querySelector('#monMode .mon-val');return v?parseFloat(getComputedStyle(v).fontSize):0;});
+    t('A533 · iPad en portrait : le grand chiffre du moniteur atteint son plafond de 220 px',fs>=219,`${fs} px`);
+    await page.close();}
+});
+
+/* ══ A539 — L'ONGLET ACTIF EN PASTILLE PLEINE ; AVATAR ET POINT VIVANT BORDÉS ══════════════════════════════════ */
+await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async () => {
+  for(const th of ['light','dark']){
+    const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true,colorScheme:th});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});render();await new Promise(x=>setTimeout(x,200));
+      const s=document.querySelector('[data-tab="sessions"]');s.classList.add('live');
+      const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--act)';document.body.appendChild(sonde);const act=getComputedStyle(sonde).backgroundColor;sonde.remove();
+      const on=document.querySelector('.tb-tab.on'),av=document.querySelector('.tb-av');
+      return {plein:getComputedStyle(on).backgroundColor===act,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
+    t(`A539 · ${th} : l'onglet actif est une pastille pleine (--act)`,r.plein,JSON.stringify(r));
+    t(`A539 · ${th} : connecté, le disque de l'avatar est bordé ; le point vivant a son anneau`,/inset/.test(r.av)&&r.point!=='none',JSON.stringify(r));
+    await page.close();
+  }
+});
+
+/* ══ A538 — LA RECHERCHE DU BAS À LA HAUTEUR DE LA BARRE D'ONGLETS ═══════════════════════════════════════════ */
+await sec('Accueil · A538 recherche à la hauteur des onglets', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const onglets=await page.evaluate(()=>{const r=document.querySelector('.tb-tabs').getBoundingClientRect();return {h:r.height,b:r.bottom};});
+  await ouvrirRecherche(page);await page.waitForTimeout(300);
+  const r=await page.evaluate(()=>{const q=document.getElementById('q').getBoundingClientRect(),f=document.querySelector('#homeDock .filt-tog').getBoundingClientRect();
+    document.documentElement.classList.add('kbd');const k=document.getElementById('q').getBoundingClientRect().height;document.documentElement.classList.remove('kbd');
+    return {q:q.height,qb:q.bottom,f:f.height,kbd:k};});
+  t('A538 · 402 px : champ et filtre à la hauteur de la barre d\'onglets, même bas',r.q===onglets.h&&r.f===onglets.h&&Math.abs(r.qb-onglets.b)<0.5,JSON.stringify({onglets,r}));
+  t('A538 · clavier ouvert : le dock compact reste (44)',r.kbd===44,JSON.stringify(r));
+  await page.close();
+});
+
+/* ══ A537 — LA COMPACTE AU DESSIN NATIF, L'ACCÈS DIRECT EN TUILES, AFFICHAGE ALIGNÉ ═════════════════════════════ */
+await sec('Accueil · A537 compacte Natif, tuiles d\'accès direct, Affichage aligné', async () => {
+  for(const [W,H,m,haut] of [[402,874,1,52],[1280,800,0,44]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:!!m,isMobile:!!m});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>{protocols.push(migrateProtocol({title:"Limitation et arrêt des thérapeutiques jusqu'au décès",validatedAt:'2026-06',status:'validated'}));setHomePref('homeCompact',true);render();});
+    await page.waitForTimeout(300);
+    for(let i=0;i<2;i++){await page.evaluate(()=>{const b=document.querySelector('.dir-book:not(.pinned) [data-pin]:not(.on)');b&&b.click();});await page.waitForTimeout(200);}
+    const r=await page.evaluate(()=>{const rows=[...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')];
+      const k=document.querySelector('.dir-book:not(.pinned) .dir-kind'),g=document.querySelector('.dir-book:not(.pinned) .dir-grid');
+      const t=[...document.querySelectorAll('.dir-book.pinned .dir-row')].map(e=>e.getBoundingClientRect());
+      const a=document.getElementById('rangBtn'),s=document.getElementById('selTog');
+      return {h:[...new Set(rows.map(e=>Math.round(e.getBoundingClientRect().height)))],
+        titre1:rows.every(e=>{const x=e.querySelector('.dir-t');return x.getBoundingClientRect().height<30;}),
+        maj:k?getComputedStyle(k).textTransform:'∅',bord:getComputedStyle(g).borderTopWidth,
+        tuiles:t.length,uneLigne:t.length>=2&&Math.round(t[0].top)===Math.round(t[1].top),
+        etoile:getComputedStyle(document.querySelector('.dir-book.pinned .pinbtn')).display,
+        cat:!!document.querySelector('.dir-book.pinned .dir-cat')&&getComputedStyle(document.querySelector('.dir-book.pinned .dir-cat')).display,
+        aff:a&&s&&a.offsetParent&&s.offsetParent?Math.abs(a.getBoundingClientRect().top-s.getBoundingClientRect().top):null};});
+    t(`A537 · ${W} px : compacte à hauteur fixe ${haut} px, titre sur une ligne`,r.h.length===1&&r.h[0]===haut&&r.titre1,JSON.stringify(r));
+    t(`A537 · ${W} px : compacte au dessin Natif (« Protocole » en minuscules, groupe sans bord)`,r.maj==='none'&&r.bord==='0px',JSON.stringify(r));
+    t(`A537 · ${W} px : accès direct en tuiles, deux sur une ligne, catégorie lisible`,r.uneLigne&&r.cat==='block',JSON.stringify(r));
+    t(`A537 · ${W} px : étoile de tuile ${m?'absente au téléphone':'présente en large'}`,m?r.etoile==='none':r.etoile!=='none',JSON.stringify(r));
+    if(!m)t('A537 · 1280 px : « Affichage » et « Sélectionner » à la même hauteur',r.aff!==null&&r.aff<0.5,JSON.stringify(r));
+    await page.close();
+  }
+});
+
+/* ══ A536 — BORDS AU TÉLÉPHONE : BARRE COLLANTE PLEINE LARGEUR, « FERMER » DE LA PAGE, BANDE DE SAFARI ══════════ */
+await sec('Bords · A536 barre pleine largeur, Fermer, rien de fixé sous une feuille', async () => {
+  const page=await br.newPage({viewport:{width:430,height:932},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const h=await page.evaluate(()=>{const b=document.querySelector('.pg-top').getBoundingClientRect(),r=document.querySelector('.pg-r').getBoundingClientRect(),c=(()=>{let e=document.querySelector('.card-open');while(e&&getComputedStyle(e).backgroundColor==='rgba(0, 0, 0, 0)')e=e.parentElement;return e.getBoundingClientRect();})();
+    return {bord:Math.round(innerWidth-b.right),r:Math.round(r.right),carte:Math.round(c.right)};});
+  t('A536 · 430 px : le fond de la barre collante touche le bord droit',h.bord===0,JSON.stringify(h));
+  t('A536 · 430 px : « Créer » reste aligné sur les cartes',Math.abs(h.r-h.carte)<=1,JSON.stringify(h));
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const p=await page.evaluate(async()=>{openPlanSheet('page');await new Promise(x=>setTimeout(x,400));
+    const bar=document.querySelector('#planModal .pm-bar').getBoundingClientRect(),x=document.querySelector('#planModal .pm-close').getBoundingClientRect(),tt=document.querySelector('#planModal .pm-ttl').getBoundingClientRect();
+    return {haut:Math.round(x.top-bar.top),air:Math.round(tt.left-x.right),app:getComputedStyle(document.querySelector('.app')).visibility};});
+  t('A536 · Page : « Fermer » a son air (haut ≥ 8, titre ≥ 8)',p.haut>=8&&p.air>=8,JSON.stringify(p));
+  t('A536 · Page ouverte : rien de l\'app ne reste peint dessous (Safari 26 en teint sa barre)',p.app==='hidden',JSON.stringify(p));
+  const apres=await page.evaluate(async()=>{document.querySelector('#planModal .pm-close').click();await new Promise(x=>setTimeout(x,300));return getComputedStyle(document.querySelector('.app')).visibility;});
+  t('A536 · Page fermée : l\'app revient',apres==='visible',apres);
+  await page.close();
+});
+
+/* ══ A535 — LE RAIL DE SESSION AU DESSIN DE LA MAQUETTE ═══════════════════════════════════════════════════════ */
+await sec('Session · A535 rail : « − 1 + », minuteur gris, jalon à jauge', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:800}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
+  const r=await page.evaluate(()=>{const S=document.querySelector('.read-side');const c=S.querySelector('.cncard');
+    const x=sel=>Math.round(c.querySelector(sel).getBoundingClientRect().left);
+    const sonde=document.createElement('i');sonde.style.cssText='background:var(--amb-2);position:absolute';document.body.appendChild(sonde);const gris=getComputedStyle(sonde).backgroundColor;sonde.remove();
+    const tm=S.querySelector('.tmcard:not(.due)'),jl=S.querySelector('.rt-jl');
+    return {ordre:x('[data-cndec]')<x('.cn-val')&&x('.cn-val')<x('[data-cninc]'),tm:tm?getComputedStyle(tm).backgroundColor===gris:null,
+      pips:jl?jl.querySelectorAll('.mo-pips i').length:-1,sous:!!(jl&&jl.querySelector('.rt-jlc small'))};});
+  t('A535 · compteur du rail : « − valeur + »',r.ordre===true,JSON.stringify(r));
+  t('A535 · carte de minuteur du rail en aplat gris',r.tm===true,JSON.stringify(r));
+  t('A535 · jalon : jauge à points et texte de l\'auteur en sous-ligne',r.pips>=2&&r.sous,JSON.stringify(r));
+  await page.close();
+});
+
+/* ══ A529 — LA PAGE N'A QU'UN BOUTON D'IMPRESSION (arbitrage de l'auteur) ═══════════════════════════════════ */
+await sec('Page · A529 un bouton « Imprimer ou PDF »', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:800}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const r=await page.evaluate(async()=>{openPlanSheet('page');await new Promise(x=>setTimeout(x,400));
+    return [...document.querySelectorAll('#pmTools [data-pmprint]')].map(b=>b.textContent.trim());});
+  t('1280 px : la barre de la Page porte UN bouton, « Imprimer ou PDF »',r.length===1&&r[0]==='Imprimer ou PDF',JSON.stringify(r));
+  await page.close();
+});
+
+/* ══ A526 — UN TÉLÉPHONE TOURNÉ PREND LA COLONNE GAUCHE, QUELLE QUE SOIT SA LARGEUR (A513 §2) ═════════════════
+   L'iPhone SE tourné (667 × 375) restait sous 780 px : ni onglets (A511) ni colonne. Il suit le 844 × 390. */
+await sec('Accueil · A526 téléphone tourné', async () => {
+  for(const [W,H,colonne] of [[667,375,true],[375,667,false]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    const r=await page.evaluate(()=>{const s=document.querySelector('.home-side');
+      return {col:!!s&&getComputedStyle(s).display!=='none',tabs:document.documentElement.classList.contains('tabnav'),deb:document.documentElement.scrollWidth-innerWidth};});
+    t(`${W} × ${H} : ${colonne?'colonne gauche, pas d\'onglets':'onglets, pas de colonne'} ; aucun débordement`,r.col===colonne&&r.tabs===!colonne&&r.deb<=0,JSON.stringify(r));
+    await page.close();
+  }
+});
+
+/* ══ A525 — EN LARGE, LE TAP QUI FERME LE MENU ⋯ NE COCHE RIEN (A510 §5, A497) ═════════════════════════════
+   Le menu ancré se fermait au clic du document SANS l'arrêter : le même tap cochait l'étape dessous. */
+await sec('Session · A525 voile du menu ⋯ ancré', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  await demarrerSession(page);await page.waitForTimeout(400);
+  const box=await page.evaluate(()=>{const li=[...document.querySelectorAll('main ol.steps li')].find(l=>!l.classList.contains('done')&&l.getBoundingClientRect().top>200);
+    const r=li.getBoundingClientRect();return {x:r.left+30,y:r.top+r.height/2,n:document.querySelectorAll('main ol.steps li.done').length};});
+  await page.click('#hdrMore');await page.waitForTimeout(300);
+  const ouvert=await page.evaluate(()=>!document.getElementById('moreMenu').hidden&&!!document.querySelector('.popmenu-veil.anchor'));
+  await page.mouse.click(box.x,box.y);await page.waitForTimeout(400);
+  const r=await page.evaluate(n=>({ferme:document.getElementById('moreMenu').hidden,coches:document.querySelectorAll('main ol.steps li.done').length-n,voile:!!document.querySelector('.popmenu-veil')}),box.n);
+  t('1280 px : le menu ⋯ ancré pose un voile transparent',ouvert);
+  t('… le tap à côté ferme le menu SANS cocher l\'étape dessous, et le voile part avec lui',r.ferme&&r.coches===0&&!r.voile,JSON.stringify(r));
+  await page.close();
+});
+
+/* ══ A523 — L'AIDE EN SESSION MONTE EN TÊTE DE L'ACCUEIL, DANS « EN COURS » (A510 §6) ════════════════════
+   Elle quitte sa section, porte « ● Session mm:ss » en vert ; la carte sombre « Session en cours » n'existe plus. */
+await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    await ouvrirFiche(page,/Arrêt cardiaque/);
+    await demarrerSession(page);
+    const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const id=state.fiche.id;
+      state.view='library';state.fiche=null;render();await w(1300);
+      const g=document.querySelector('.dir-book.live-grp');const rows=g?[...g.querySelectorAll('[data-open]')].map(b=>b.dataset.open):[];
+      const ailleurs=[...document.querySelectorAll('.dir-book:not(.live-grp):not(.pinned) [data-open]')].some(b=>b.dataset.open===id);
+      const st=g&&g.querySelector('.dir-live');
+      const premier=document.querySelector('.dir-book');
+      return {rows,id,ailleurs,mot:st?st.textContent.replace(/\s+/g,' ').trim():'',vert:st?getComputedStyle(st).color:'',
+        point:st&&st.querySelector('.dl-dot')?Math.round(st.querySelector('.dl-dot').getBoundingClientRect().width):0,
+        tete:premier===g,carte:!!document.querySelector('[data-openlive],.ls-chrono')};});
+    t(`${W} px : l'aide en session est dans « En cours », en tête, et a quitté sa section`,r.rows.length===1&&r.rows[0]===r.id&&!r.ailleurs&&r.tete,JSON.stringify(r));
+    t(`${W} px : « ● Session mm:ss » — point rond de 8 px, mot, chrono`,/^Session en cours depuis Session \d+:\d\d$/.test(r.mot)&&r.point===8,JSON.stringify(r));
+    t(`${W} px : plus de carte sombre « Session en cours »`,!r.carte);
+    if(W<780){const sr=await page.evaluate(()=>({tabnav:document.documentElement.classList.contains('tabnav'),
+        rond:!!document.getElementById('tbSrch'),leurres:document.querySelectorAll('main button [class*="srch"],main .pg-srch,main [data-tbsrch]').length}));
+      t('A524 · au téléphone, UNE recherche : le rond de la barre d\'onglets, aucun champ-leurre sous le titre',sr.tabnav&&sr.rond&&sr.leurres===0,JSON.stringify(sr));
+      /* A528 : « Affichage » ouvre la rangée des pastilles (plus de ligne du compte) et ouvre sa feuille. */
+      const af=await page.evaluate(async()=>{const b=document.querySelector('.pg-chips>#rangBtn');const o={premier:!!b&&b===b.parentNode.firstElementChild,ligne:!!document.querySelector('.dir-sum')};
+        if(b){b.click();await new Promise(x=>setTimeout(x,400));o.feuille=!![...document.querySelectorAll('.ai-modal.on')].length;}return o;});
+      t('A528 · au téléphone, « Affichage » est la première pastille, sans ligne du compte, et ouvre sa feuille',af.premier&&!af.ligne&&af.feuille,JSON.stringify(af));}
+    await page.close();
+  }
+});
+
 /* ══ A390 — LA STRUCTURE DE L'ÉDITEUR SOUS 1200 px ; L'APERÇU SUIT LA VRAIE PAGE ═══════════════════════
    (1) Sous 1200 px la colonne Structure n'existait pas : elle devient le dépliant collant du sommaire des
    protocoles, fermé d'office, qui se referme au saut. (2) « Essayer » rendait la page d'avant la v5.30 — ni
    cartes, ni quai, ni minuteurs — parce qu'une quinzaine de conditions écartaient l'aperçu ; il suit désormais
    la vraie lecture, avant comme pendant l'essai, sans rien écrire. (3) Les replis de l'aperçu ne s'enregistrent pas. */
-await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
+await sec('Éditeur · A390 A521 Structure en liste, bloc sur sa page, aperçu fidèle', async () => {
 {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -8356,13 +8645,20 @@ await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const id=state.fiche.id;
     const replis0=JSON.stringify([...mdFoldGet(id)]);
     await openEdit(id);await w(500);
-    const d=document.querySelector('details.ed-toc');const o={toc:!!d,ferme:d&&!d.open,
-      colle:d?getComputedStyle(d.parentElement).position:'',rangs:d?d.querySelectorAll('[data-edgo]').length:0};
-    window.scrollTo(0,2000);await w(150);
-    d.querySelector('summary').click();await w(200);o.ouvert=d.open;
-    const b=d.querySelectorAll('[data-edgo]')[2];const bid=b.dataset.edgo;b.click();await w(500);
-    const el=document.querySelector('.blk[data-bid="'+bid+'"]').getBoundingClientRect();
-    o.refermeApresSaut=!document.querySelector('details.ed-toc').open;o.blocVisible=el.top<innerHeight&&el.bottom>0;
+    /* A521 (amende A390) : la structure est une LISTE dans le fil ; une rangée ouvre le bloc sur sa page. */
+    const L=document.querySelector('.ed-slist');const o={liste:!!L,rangs:L?L.querySelectorAll('[data-edgo]').length:0,
+      pecCachee:getComputedStyle(document.querySelector('.ed-pec')).display==='none',toc:!!document.querySelector('.ed-toc'),
+      identRangs:[...document.querySelectorAll('.ed-ident .id-row .id-k')].map(e=>e.textContent)};
+    const b=L.querySelectorAll('.esl-row[data-edgo]')[2];const bid=b.dataset.edgo;const n0=_histLevels();b.click();await w(400);
+    const el=document.querySelector('.blk[data-bid="'+bid+'"]');const r0=el.getBoundingClientRect();
+    o.page=document.body.classList.contains('ed-focus')&&el.classList.contains('ed-cur')&&r0.top<innerHeight&&r0.bottom>0;
+    o.seul=[...document.querySelectorAll('.ed-pec .blk')].filter(x=>x.offsetParent).length===1&&!document.querySelector('.ed-slist').offsetParent&&!document.querySelector('.ed-ident').offsetParent;
+    o.niveau=_histLevels()===n0+1;
+    history.back();await w(600);
+    o.retour=state.view==='edit'&&!state.edFocus&&document.body.classList.contains('ed-ov')&&!!document.querySelector('.ed-slist').offsetParent;
+    L.querySelectorAll('.esl-row[data-edgo]')[2].click();await w(300);
+    document.getElementById('hdrBack').click();await w(400);
+    o.retourEnTete=state.view==='edit'&&!state.edFocus;
     document.getElementById('hdrPreview').click();await w(600);
     o.cartesAvant=[...document.querySelectorAll('main .fold-head .fh-t')].map(e=>e.textContent.trim());
     o.demarrer=(document.querySelector('#sessStart:not([hidden]) .dp-lbl')||{}).textContent||'';
@@ -8375,9 +8671,10 @@ await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
     document.getElementById('hdrBack').click();await w(400);
     o.replisIntacts=JSON.stringify([...mdFoldGet(id)])===replis0;
     return o;});
-  t('éditeur 390 px : la Structure est un dépliant collant, fermé d\'office, une rangée par bloc',
-    r.toc&&r.ferme&&r.colle==='sticky'&&r.rangs>=5,JSON.stringify(r));
-  t('… il s\'ouvre, se referme au saut, et le bloc visé est à l\'écran',r.ouvert&&r.refermeApresSaut&&r.blocVisible,JSON.stringify(r));
+  t('éditeur 390 px : Identité en rangées, la Structure en liste dans le fil (A521), les blocs n\'y sont plus',
+    r.liste&&!r.toc&&r.rangs>=6&&r.pecCachee&&r.identRangs.join('|')==='Titre|Code court|Catégorie',JSON.stringify(r));
+  t('… une rangée ouvre le bloc SEUL sur sa page, un niveau du retour système',r.page&&r.seul&&r.niveau,JSON.stringify(r));
+  t('… le retour système et le « ‹ » de l\'en-tête ramènent à l\'aide, sans quitter l\'éditeur',r.retour&&r.retourEnTete,JSON.stringify(r));
   t('aperçu, avant l\'essai : les MÊMES cartes que la vraie lecture',JSON.stringify(r.cartesAvant)===JSON.stringify(lecture),JSON.stringify({apercu:r.cartesAvant,lecture}));
   t('… le quai démarre « l\'essai », sans exercice',/l’essai/.test(r.demarrer)&&!r.exo,JSON.stringify({d:r.demarrer,exo:r.exo}));
   t('pendant l\'essai : le quai de session et les cartes sous le bloc, sans session vive enregistrée',
@@ -8391,9 +8688,9 @@ await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
   await amorce(page);
   await ouvrirFiche(page,/Arrêt cardiaque/);
   const d=await page.evaluate(async()=>{await openEdit(state.fiche.id);await new Promise(x=>setTimeout(x,400));
-    const t=document.querySelector('.ed-tocwrap'),c=document.querySelector('.ed-struct');
+    const t=document.querySelector('.ed-slist'),c=document.querySelector('.ed-struct');
     return {toc:t?getComputedStyle(t).display:'absent',col:c?getComputedStyle(c).display:'absent'};});
-  t('≥ 1200 px : la colonne Structure prend le relais, le dépliant se retire',d.toc==='none'&&d.col==='flex',JSON.stringify(d));
+  t('≥ 1200 px : la colonne Structure prend le relais, la liste se retire',d.toc==='none'&&d.col==='flex',JSON.stringify(d));
   await page.close();
 }
 });
