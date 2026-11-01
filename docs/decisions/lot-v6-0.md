@@ -721,3 +721,67 @@ cartes) ; supprimer la réservation de 8 px (C53 : sous 6 px, le fond du rail pe
 Non reproduit : une différence de couleur en bas de l'accueil seul (la bande y a la couleur de la page, mesurée sur la
 capture : 242,246,247 partout).
 Témoin : `audit-doctrine` « Bords · A536 » (vérifié capable d'échouer : 3 rouges sur l'avant).
+
+## A537 — La vue compacte au dessin Natif, l'accès direct en tuiles, « Affichage » aligné (v5.73.0)
+
+*Amende A517 (« la vue compacte garde sa ligne unique ») et A338 ; renverse A515 §4 (épinglées en rangées) ; décisions
+de l'auteur sur planches, 01/11/2026.*
+
+1. **La vue compacte n'avait pas suivi la refonte.** Mesurée : bande grise d'intertitre dans une boîte à bord,
+   « PROTOCOLE » en capitales, et au téléphone des rangées PLUS hautes que la détaillée pour une aide courte (64 px
+   contre 53). Elle prend désormais le groupe, l'intertitre et la rangée de la détaillée (les règles
+   `.dir-book:not(.compact)` du groupe deviennent `.dir-book`) et ne s'en distingue que par une **hauteur fixe** :
+   - **sous 1200 px effectifs** (palier `zw1200`, règle 10) : deux lignes serrées, **52 px**. Le titre sur une ligne,
+     coupé à la lettre (`white-space:nowrap` + ellipse : `-webkit-line-clamp:1` coupait au mot, « Limitation et arrêt
+     des… » suivi de vide) ; la méta sur une ligne, en 12 : nature, discriminant, état. Rangée par catégorie
+     (classe `by-cat` sur le livre), la catégorie part — l'intertitre la dit ; le nombre de PDF part toujours.
+   - **à partir de 1200 px** : une ligne de **44 px**, la méta entière calée à droite en 13,5.
+2. **L'accès direct en tuiles**, plusieurs par ligne, à toutes les largeurs et quelle que soit la densité (le livre
+   `pinned` ne prend plus la classe `compact`). Grille `repeat(auto-fill, minmax(min(50% − 4px, 200px), 1fr))` :
+   deux tuiles au téléphone, autant que la largeur en tient au-delà. Une tuile dit le **titre** (trois lignes au plus),
+   la **catégorie avec son point**, puis l'**état** — ni nature ni discriminant. Au téléphone, **pas d'étoile** sur la
+   tuile (elle prenait le tiers de la largeur) : l'aide reste dans la liste, où l'étoile la retire ; césure des mots
+   longs au téléphone seulement.
+3. **« Affichage » et « Sélectionner » à la même hauteur** en large : la ligne du titre aligne titre et compte sur la
+   ligne de base, et « Affichage », dans son enveloppe `.rang-wrap`, tombait 3 px plus haut. Les deux boutons sont
+   centrés ensemble (`align-self:center`).
+
+Vérifié : la vue détaillée est inchangée à 320, 402, 820 et 1280 px (chaque boîte comparée avant/après ; seule la
+liste remonte de 3 px avec la ligne du titre) — deux règles mortes de la détaillée (`margin-top:4px`,
+`.dir-disc{order:-1}`), qui reprenaient la main une fois les sélecteurs simplifiés, sont retirées (règle 14).
+*Formes écartées* : la compacte sur une ligne au téléphone (titre réduit à « Limitation et… ») ; supprimer la
+compacte ; une tuile avec étoile au téléphone ; la nature et le discriminant sur la tuile.
+Témoin : `audit-doctrine` « Accueil · A537 » (vérifié capable d'échouer : 8 rouges sur l'avant).
+
+## A538 — La recherche du bas à la hauteur de la barre d'onglets (v5.73.0)
+
+*Précise A423 (filtre et champ en L 44) sous la navigation par onglets (A513) ; signalé par l'auteur, 01/11/2026.*
+
+Au téléphone, la recherche REMPLACE la barre d'onglets (même bas, 12 px + zone sûre), mais elle tombait de 62 à 44 px
+de haut, filtre compris : la barre rétrécissait au tap. Clavier fermé, le champ et le cercle du filtre prennent la
+hauteur de la barre d'onglets (62). Clavier ouvert, le dock compact d'A423 reste (44) : il loge le champ au-dessus du
+clavier, dans une bande opaque où la hauteur se compte.
+
+**Contraste du dock en thème sombre (mesuré sur capture, WebKit 402 px)** : libellés sur le verre 13,4:1, libellé
+actif sur sa pastille 9,3:1, contour de la barre `--ctl-line` sur le fond ≈ 4:1 (le verre lui-même ne se détache du
+fond qu'à 1,19:1 : c'est le contour qui borde la barre, comme prévu par A423). Point faible relevé, non tranché ici :
+la pastille de l'onglet actif ne se détache de la barre qu'à 1,2:1 (1,15:1 en clair) ; l'état actif tient à la
+couleur du libellé et à cette pastille.
+Témoin : `audit-doctrine` « Accueil · A538 » (vérifié capable d'échouer).
+
+## A539 — L'onglet actif en pastille pleine ; l'avatar et le point vivant bordés (v5.73.0)
+
+*Amende A513 (pastille grise de la maquette) ; choix de l'auteur sur planche (« pastille pleine »), 01/11/2026.*
+
+Mesuré sur captures (WebKit 402 px) : la pastille grise de l'onglet actif ne se détachait de la barre qu'à 1,2:1 en
+sombre (1,15:1 en clair) — sous le 3:1 d'un repère d'état (WCAG 1.4.11) ; l'état tenait à la couleur du libellé,
+proche de celle des autres. Écartées sur planche : un libellé gras avec une pastille grise plus franche (1,4:1) ; une
+pastille bleue translucide (1,6:1) — toutes deux grisaient aussi les autres onglets. **Retenu : pastille PLEINE**
+(`--act`, libellé `--on-primary`) : 7,8:1 en sombre, 9,3:1 en clair ; les autres libellés gardent leur encre. Le bleu
+y dit « où l'on est », ce que la règle 8 lui confie.
+
+Mesuré ensuite CONNECTÉ (signalé par l'auteur : « Moi » change) : le disque de l'avatar se perdait dans la barre
+(1,06:1 en sombre, 1,18:1 en clair ; les initiales, elles, passent à 7,8 et 9,3:1) → filet intérieur `--ctl-line` ;
+le point vert de session en cours, sur la pastille pleine de « Sessions », tombait à 1,2-1,7:1 → anneau de 2 px
+dans la teinte de la barre, comme la pastille de synchronisation.
+Témoin : `audit-doctrine` « Accueil · A539 » (vérifié capable d'échouer).

@@ -981,6 +981,10 @@
      mobile au lieu de rétrécir — le champ prend la place restante, jamais plus. */
   html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
   html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
+  /* A538 : clavier fermé, la recherche prend la hauteur de la barre d'onglets qu'elle remplace (62) — elle tombait à
+     44, filtre compris. Clavier ouvert, le dock compact d'A423 reste (44). */
+  html.tabnav:not(.kbd) body.view-home #homeDock .filt-tog{width:62px;height:62px;min-height:62px}
+  html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
   html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
     left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:calc(12px + var(--sab,0px));pointer-events:none}
   .tb-tabs{flex:1;display:flex;min-width:0;height:62px;padding:4px;border-radius:999px;pointer-events:auto}
@@ -992,12 +996,15 @@
   [data-theme="dark"] :is(.tb-tabs,.tb-srch){border-color:var(--ctl-line)}
   .tb-tab{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
     padding:0;border:0;border-radius:999px;background:none;font:inherit;font-size:var(--t-cap);font-weight:700;color:var(--ink);cursor:pointer}
-  .tb-tab.on{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--act)}
-  .tb-tab.live::after{content:"";position:absolute;top:9px;left:calc(50% + 9px);width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  /* A539 : l'onglet actif en pastille PLEINE — la pastille grise ne se détachait de la barre qu'à 1,2:1 (1.4.11 : 3:1) ;
+     pleine, 7,8:1 en sombre et 9,3:1 en clair. */
+  .tb-tab.on{background:var(--act);color:var(--on-primary)}
+  .tb-tab.live::after{content:"";position:absolute;top:9px;left:calc(50% + 9px);width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--work)}   /* A539 : l'anneau le détache de la pastille pleine (vert sur bleu : 1,2 à 1,7:1) */
   :is(.tb-tab,.tb-srch):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .tb-av{position:relative;width:24px;height:24px;border-radius:50%;background:var(--primary-soft);color:var(--act);
     display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-cap);font-weight:800}
   .tb-av>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}
+  .tb-av{box-shadow:inset 0 0 0 1px var(--ctl-line)}   /* A539 : le disque se perdait dans la barre (1,06:1 en sombre, 1,18:1 en clair) */
   /* La rangée du haut : collante sous la bande de l'heure, hauteur FIXE (C16) ; le petit titre n'y paraît qu'une
      fois le grand sorti par le haut (`.stuck`, IntersectionObserver). */
   .pg-top{position:sticky;top:calc(var(--sat) / var(--zf,1));z-index:7;display:grid;grid-template-columns:1fr auto 1fr;
@@ -1028,6 +1035,8 @@
   .dir-sum .pg-ttl{flex:none;margin:0 6px 0 0;font-size:28px;line-height:1.15}
   .dir-sum:has(.pg-ttl){align-items:baseline}
   .dir-sum:has(.pg-ttl) .dir-hs{flex:1}
+  /* A537 : titre et compte sur la ligne de base, les boutons centrés ensemble (Affichage, enveloppé, tombait 3 px plus haut). */
+  .dir-sum:has(.pg-ttl)>:is(.rang-wrap,.sel-tog){align-self:center}
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
      replie fait remonter tout le contenu d'un coup) : #crisisBand = TITRE (flux, relayé par la
      barre) ; #cbTimers = ÉTAT VIVANT (collant, ne quitte jamais l'écran — ECAM, aucun chrono
@@ -2368,7 +2377,7 @@
   html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
   html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
   html.zw360 .dir-st{margin-left:0;padding-left:0}
-  html.zw360 .dir-book .dir-row{height:80px}   /* deux lignes de méta (badge compris) : une seule hauteur de rangée */
+  html.zw360 .dir-book.compact .dir-id{display:inline}   /* A537 : la compacte garde sa méta sur UNE ligne, même à 320 px */
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   /* A506 (refonte « Natif », lot 3) — LISTES GROUPÉES : plus de liseré. La catégorie se dit par le point
      SUIVI DE SON NOM dans la sous-ligne (« ● SMUR », A242) — jamais le point seul (A326) ; en sélection,
@@ -2387,24 +2396,22 @@
     /* A362 : les cartes d'un groupe se touchaient (0 px, coins 14 qui se chevauchaient) et un
        groupe n'était séparé du suivant que par 10 px — 8 px ENTRE les cartes, 24 px AVANT chaque
        intertitre, 10 px sous lui (planche A) ; le livre compact à filets ne change pas. */
-    .dir-book:not(.compact){display:flex;flex-direction:column;gap:24px}
-    .dir-book:not(.compact) .dir-g{background:none;border:0;border-radius:0;overflow:visible;margin:0;display:flex;flex-direction:column;gap:10px}
+    .dir-book{display:flex;flex-direction:column;gap:24px}
+    .dir-book .dir-g{background:none;border:0;border-radius:0;overflow:visible;margin:0;display:flex;flex-direction:column;gap:10px}
     /* A506 : la vue DÉTAILLÉE n'est plus une pile de cartes mais un GROUPE arrondi de rangées séparées par un
        filet — la matière du livre compact, avec deux lignes ; l'intertitre reste AU-DESSUS du groupe. */
-    .dir-book:not(.compact) .dir-grid{display:block;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip;box-shadow:var(--shadow-work)}
-    .dir-book:not(.compact) .dir-l{position:static;background:none;box-shadow:none;padding:6px 4px 0;font-size:var(--t-meta)}
-    .dir-book:not(.compact) .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;min-height:64px;padding:10px 12px 10px 16px;overflow:hidden}
-    .dir-book:not(.compact) .dir-row .card-open{font-size:var(--t-item);font-weight:700}   /* A375 : 15/700 comme en large (choix de l’auteur, « bigger is not better ») — A359 disait 17,5 */
-    .dir-book:not(.compact) .dir-sub{flex-wrap:wrap;white-space:normal;row-gap:4px;margin-top:4px}
-    .dir-book:not(.compact) .dir-disc{order:-1;flex:1 0 100%;font-size:var(--t-body);font-weight:600;color:var(--ink)}
+    .dir-book .dir-grid{display:block;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip;box-shadow:var(--shadow-work)}
+    .dir-book .dir-l{position:static;background:none;box-shadow:none;padding:6px 4px 0;font-size:var(--t-meta)}
+    .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;min-height:64px;padding:10px 12px 10px 16px;overflow:hidden}
+    .dir-book .dir-row .card-open{font-size:var(--t-item);font-weight:700}   /* A375 : 15/700 comme en large (choix de l’auteur, « bigger is not better ») — A359 disait 17,5 */
     /* A506 : comme le livre à filets, le DERNIER rang d'un groupe n'a pas de filet — le bord du groupe le remplace
        (A359 gardait les quatre bords d'une CARTE ; il n'y a plus de carte). */
-    .dir-book:not(.compact) .dir-grid>.dir-row:last-child{border-bottom:0}
+    .dir-book .dir-grid>.dir-row:last-child{border-bottom:0}
     /* A506 : les ÉTATS se composent avec la rangée groupée (la règle de fond ci-dessus, plus spécifique, les
        effaçait — vu en capture) : sélection bleu pâle, survol en teinte ; une rangée de groupe ne se SOULÈVE
        pas au survol (ce geste était celui d'une carte). */
-    .dir-book .dir-row.selon,.dir-book:not(.compact) .dir-row.selon{background:var(--primary-soft)}
-    .dir-book:not(.compact) .dir-row:hover{background:var(--amb-2)}
+    .dir-book .dir-row.selon{background:var(--primary-soft)}
+    .dir-book .dir-row:hover{background:var(--amb-2)}
     .dir-book .dir-row:is(:hover,:active){transform:none;box-shadow:none}
     /* Sous 360 px effectifs, la carte garde sa géométrie (hauteur libre, méta en ligne qui s'enroule) :
        les règles du LIVRE (hauteur unique, méta en colonne) ne la concernent pas. */
@@ -2420,35 +2427,62 @@
   .dir-row.has-av{grid-template-columns:auto minmax(0,1fr) auto;column-gap:14px}
   .dir-row.has-av.selm{column-gap:8px}
   .dir-row.has-av:not(.selm) .dir-cat .cat-dot{display:none}
-  .dir-book:not(.compact) .dir-grid{border:0;box-shadow:none}
-  .dir-book:not(.compact) .dir-row{min-height:52px;padding:8px 8px 8px 16px;border-bottom:0;
+  .dir-book .dir-grid{border:0;box-shadow:none}
+  .dir-book .dir-row{min-height:52px;padding:8px 8px 8px 16px;border-bottom:0;
     background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
     background-position:right bottom;background-size:calc(100% - 16px) 1px}
-  .dir-book:not(.compact) .dir-row.has-av:not(.selm){background-size:calc(100% - 40px) 1px}
-  .dir-book:not(.compact) .dir-grid>.dir-row:last-child{background-image:none}
-  .dir-book:not(.compact) .dir-row .card-open{font-weight:600}
-  .dir-book:not(.compact) .dir-sub{display:block;margin-top:2px;white-space:normal;overflow:visible;
+  .dir-book .dir-row.has-av:not(.selm){background-size:calc(100% - 40px) 1px}
+  .dir-book .dir-grid>.dir-row:last-child{background-image:none}
+  .dir-book .dir-row .card-open{font-weight:600}
+  .dir-book .dir-sub{display:block;margin-top:2px;white-space:normal;overflow:visible;
     font-size:var(--t-body);line-height:1.35;color:var(--ink-2)}
-  .dir-book:not(.compact) :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){display:inline;min-width:0;margin:0;padding:0;
+  .dir-book :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){display:inline;min-width:0;margin:0;padding:0;
     overflow:visible;white-space:normal;font-size:inherit}
-  .dir-book:not(.compact) .dir-id>*+*::before,.dir-book:not(.compact) .dir-id:not(:empty)+.dir-st::before{
+  .dir-book .dir-id>*+*::before,.dir-book .dir-id:not(:empty)+.dir-st::before{
     content:"·";margin:0 6px;font-weight:400;color:var(--ink-2)}
-  .dir-book:not(.compact) .dir-disc{order:0;font-weight:400;color:inherit}
-  .dir-book:not(.compact) .dir-kind{font-size:inherit;font-weight:400;letter-spacing:0;text-transform:none}
-  html .dir-book:not(.compact) .dir-sub>.dir-st{margin:0;padding:0}
+  .dir-book .dir-disc{order:0;font-weight:400;color:inherit}
+  .dir-book .dir-kind{font-size:inherit;font-weight:400;letter-spacing:0;text-transform:none}
+  html .dir-book .dir-row .dir-sub>.dir-st{margin:0;padding:0}
   /* Atome insécable, mais une coupure possible AVANT lui (une boîte en ligne « nowrap » n'en offre aucune). */
-  .dir-book:not(.compact) .dir-sub>.dir-st{display:inline-block;white-space:nowrap}
-  .dir-book:not(.compact) .dir-kind{white-space:nowrap}
-  /* La vue COMPACTE garde sa ligne unique à état calé à droite (A338) ; elle perd la pastille et le gras. */
+  .dir-book .dir-sub>.dir-st{display:inline-block;white-space:nowrap}
+  .dir-book .dir-kind{white-space:nowrap}
   .dir-book .dir-st.b{background:none;padding:0;color:var(--ink-2)}
-  .dir-book.compact .dir-disc{font-weight:400;color:inherit}
-  .dir-book.compact .dir-l{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none}
-  .dir-book.compact .dir-l .dir-ll{font-size:inherit}
   /* Intertitre de groupe : la phrase de la maquette (« Accès direct   4 »), 13,5/600, aligné sur le texte des
      rangées — plus de capitales espacées. */
-  .dir-book:not(.compact) .dir-l{padding:0 16px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
-  .dir-book:not(.compact) .dir-l .dir-ll{font-size:inherit}
-  .dir-book:not(.compact) .dir-l .dir-ln{font-family:inherit;font-size:inherit;font-weight:600;color:var(--ink-2)}
+  .dir-book .dir-l{padding:0 16px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .dir-book .dir-l .dir-ll{font-size:inherit}
+  .dir-book .dir-l .dir-ln{font-family:inherit;font-size:inherit;font-weight:600;color:var(--ink-2)}
+  /* A537 : la vue COMPACTE prend le groupe, l'intertitre et la rangée de la détaillée ; elle se distingue par une
+     HAUTEUR FIXE. Sous 1200 px effectifs : deux lignes serrées (52 px), titre sur une ligne, méta sur une ligne
+     (nature, discriminant, état ; la catégorie est déjà dans l'intertitre quand on range par catégorie, le nombre
+     de PDF se lit dans l'aide). Au-delà : une ligne de 44 px, méta entière à droite (plus bas, après l'en-tête). */
+  .dir-book.compact .dir-row{padding-block:6px}
+  .dir-book.compact .dir-row .card-open .dir-t{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* la coupure au mot de -webkit-line-clamp laissait « Limitation et arrêt des… » et du vide */
+  .dir-book.compact .dir-sub{margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-meta)}
+  .dir-book.compact :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){white-space:nowrap}
+  .dir-book.compact .dir-sub>.dir-st{display:inline}
+  html.zw1200 .dir-book.compact .dir-id>span:not([class]){display:none}
+  html.zw1200 .dir-book.compact.by-cat .dir-cat{display:none}
+  html.zw1200 .dir-book.compact.by-cat .dir-id>.dir-cat:first-child+*::before,
+  html.zw1200 .dir-book.compact.by-cat .dir-id:has(>.dir-cat:only-child)+.dir-st::before{content:none}
+  /* A537 (renverse A515 §4, demande de l'auteur) : l'ACCÈS DIRECT en tuiles, plusieurs par ligne, quelle que soit la
+     densité. Une tuile dit le titre (trois lignes au plus), la catégorie avec son point, puis l'état — ni nature ni
+     discriminant. Au téléphone, pas d'étoile sur la tuile : l'aide reste dans la liste, où l'étoile la retire. */
+  .dir-book.pinned .dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%/2 - 4px,200px),1fr));gap:8px;background:none;overflow:visible}
+  .dir-book.pinned .dir-row{grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:6px;min-height:88px;padding:12px 6px 12px 14px;background:var(--work);border-radius:var(--r-4)}
+  .dir-book.pinned .dir-row:hover{background:var(--amb-2)}
+  .dir-book.pinned .dir-av{display:none}
+  .dir-book.pinned .dir-row .card-open .dir-t{-webkit-line-clamp:3;max-height:none}
+  .dir-book.pinned .dir-sub{margin-top:6px;font-size:var(--t-meta);white-space:nowrap}
+  .dir-book.pinned .dir-id>:not(.dir-cat){display:none}
+  .dir-book.pinned .dir-id>.dir-cat{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-sub>.dir-id+.dir-st::before{content:none}
+  .dir-book.pinned .dir-row.has-av .dir-cat .cat-dot{display:inline-block;margin-right:6px;vertical-align:1px}
+  .dir-book.pinned .dir-sub>.dir-st{display:block}
+  .dir-book.pinned .pinbtn{margin-top:-8px}
+  html.zw560 .dir-book.pinned .dir-row{grid-template-columns:minmax(0,1fr);padding-right:14px}
+  html.zw560 .dir-book.pinned .pinbtn{display:none}
+  html.zw560 .dir-book.pinned .dir-row .card-open .dir-t{-webkit-hyphens:auto;hyphens:auto}
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
@@ -2487,8 +2521,8 @@
      « ● En cours 12:04 » en vert sur la rangée, un glyphe et un mot.) */
   .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
   .dir-live .dl-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}
-  .dir-book:not(.compact) .dir-id:not(:empty)+.dir-st.dir-live::before{content:none}   /* le point vert sépare déjà : pas de « · » orphelin à la coupure */
-  .dir-book:not(.compact) .dir-id:not(:empty)+.dir-st.dir-live .dl-dot{margin-left:10px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
+  .dir-book .dir-id:not(:empty)+.dir-st.dir-live::before{content:none}   /* le point vert sépare déjà : pas de « · » orphelin à la coupure */
+  .dir-book .dir-id:not(:empty)+.dir-st.dir-live .dl-dot{margin-left:10px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
@@ -7452,11 +7486,10 @@
     .dir-book,.dir-h.dir-sum{max-width:960px}
     /* Compacte, au bureau (≥ 1200 px effectifs, palier `zw1200` — règle 10) : titre et méta sur UNE ligne, la méta à
        droite ; en dessous, deux lignes comme au téléphone (mesuré à 900 px : titres et état coupés). */
-    html:not(.zw1200) .dir-book.compact .dir-row{min-height:48px}
+    html:not(.zw1200) .dir-book.compact .dir-row{min-height:44px;padding-block:0}
     html:not(.zw1200) .dir-book.compact .dir-main{display:flex;align-items:baseline;gap:16px}
     html:not(.zw1200) .dir-book.compact .dir-row .card-open{flex:1 1 auto;min-width:0}
-    html:not(.zw1200) .dir-book.compact .dir-row .card-open .dir-t{-webkit-line-clamp:1;max-height:1.2em}
-    html:not(.zw1200) .dir-book.compact .dir-sub{flex:0 1 auto;max-width:60%;margin-top:0}
+    html:not(.zw1200) .dir-book.compact .dir-sub{flex:0 1 auto;max-width:60%;font-size:var(--t-body)}
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
@@ -8616,29 +8649,29 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxxxua1dyxvsbgv"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvy4a6c91q6a4vn1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxxxua1dyxvsbgv" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
-      </div></div></div></div></div><div class="dir-book"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
+        <button class="pinbtn on" data-pin="fmvy4a6c91q6a4vn1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+      </div></div></div></div></div><div class="dir-book by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxxxua1dyxvsbgv"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvy4a6c91q6a4vn1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxxxua1dyxvsbgv" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmvy4a6c91q6a4vn1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxxxua0hl9zsb15"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmvy4a6c7wmt76z11"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn" data-pin="fmvxxxua0hl9zsb15" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmvy4a6c7wmt76z11" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
@@ -8647,29 +8680,29 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxxxua1dyxvsbgv"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvy4a6c91q6a4vn1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxxxua1dyxvsbgv" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
-      </div></div></div></div></div><div class="dir-book"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
+        <button class="pinbtn on" data-pin="fmvy4a6c91q6a4vn1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+      </div></div></div></div></div><div class="dir-book by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxxxua1dyxvsbgv"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvy4a6c91q6a4vn1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxxxua1dyxvsbgv" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmvy4a6c91q6a4vn1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxxxua0hl9zsb15"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmvy4a6c7wmt76z11"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn" data-pin="fmvxxxua0hl9zsb15" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmvy4a6c7wmt76z11" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 </body></html>

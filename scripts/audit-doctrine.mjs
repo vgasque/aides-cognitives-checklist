@@ -1226,11 +1226,12 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
        et une line-height 'normal' — y compter des lignes rend un chiffre qui ne veut rien dire
        (piège tombé en écrivant ce contrôle : 46 px / 1 = « 46 lignes »). */
     /* A506 : les épinglées sont des rangées (groupe « Accès direct », `.dir-book.pinned`) — `rows` les mesure. */
-    const rows=scan('.dir-book .dir-row','.dir-t');
+    /* A537 : les épinglées sont des TUILES (titre sur trois lignes au plus) ; le répertoire garde ses deux lignes. */
+    const rows=scan('.dir-book .dir-row','.dir-t'),rep=scan('.dir-book:not(.pinned) .dir-row','.dir-t'),tu=scan('.dir-book.pinned .dir-row','.dir-t');
     return {rows,
       casRow:rows.some(x=>x.long),
       pireRow:Math.max(0,...rows.map(x=>x.debord)), clipRow:Math.max(0,...rows.map(x=>x.clip)),
-      lignesRow:Math.max(0,...rows.map(x=>x.lignes))};},zm);
+      lignesRow:Math.max(0,...rep.map(x=>x.lignes)), lignesTuile:Math.max(0,...tu.map(x=>x.lignes))};},zm);
   /* A506 (refonte « Natif ») : les épinglées ne sont plus des TUILES mais des rangées (groupe « Accès direct ») —
      le cas adverse et ses mesures sont ceux de la rangée ; les contrôles de tuile sont partis avec elle. */
   t(`${w}/z${zm} · témoin : le cas adverse est constitué (titre long rendu)`,
@@ -1250,6 +1251,7 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
      est inerte dès que le display calculé n'est pas `-webkit-box` — c'est ce qui, à 130 %, faisait
      passer un titre réel à trois lignes et poussait la méta hors du cadre (signalé à l'usage). */
   t(`${w}/z${zm} · le titre tient en deux lignes`, r.lignesRow<=2.05, `${r.lignesRow} ligne(s)`);
+  t(`${w}/z${zm} · le titre d'une tuile d'accès direct tient en trois lignes (A537)`, r.lignesTuile<=3.05, `${r.lignesTuile} ligne(s)`);
   await page.close();
 }
 });
@@ -6402,7 +6404,7 @@ await sec('REFONTE · cases rondes et rangées groupées (A506-A507)', async () 
   await page.close();
 });
 
-await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
+await sec('v5.7 · A537 l\'accès direct en tuiles à côté du répertoire', async () => {
   const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
@@ -6419,14 +6421,17 @@ await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
       const lg = e => e ? Math.round(e.getBoundingClientRect().width) : 0;
       return { vis, nE: ep.length, tuiles: document.querySelectorAll('.qa-tile').length,
         lE: lg(ep[0]), lR: lg(rep[0]),
+        cote: ep.length >= 2 && Math.round(ep[0].getBoundingClientRect().top) === Math.round(ep[1].getBoundingClientRect().top),
         etoiles: document.querySelectorAll('.dir-row .pinbtn.on').length,
         rangees: rep.length }; });
     t(`${w} px · témoin : deux épinglées existent, le répertoire les garde`,
       r.etoiles >= 2 && r.rangees >= 2, JSON.stringify(r));
-    t(`${w} px · « Accès direct » est un groupe de rangées (A506), plus aucune tuile`,
+    /* A537 (renverse A515 §4) : l'accès direct est une grille de TUILES, plusieurs par ligne — l'ancien dessin
+       `.qa-tile` reste purgé, la tuile est la rangée du livre `pinned`. */
+    t(`${w} px · « Accès direct » est un groupe (A506), sans l'ancien dessin de tuile`,
       r.vis === true && r.nE >= 2 && r.tuiles === 0, JSON.stringify(r));
-    t(`${w} px · … et ses rangées ont la largeur de celles du répertoire`,
-      r.lE > 0 && Math.abs(r.lE - r.lR) <= 2, `${r.lE} px contre ${r.lR} px`);
+    t(`${w} px · … en tuiles : deux côte à côte, plus étroites que les rangées du répertoire (A537)`,
+      r.cote === true && r.lE > 0 && r.lE < r.lR * 0.6, `${r.lE} px contre ${r.lR} px ; côte à côte ${r.cote}`);
   }
   await page.close();
 });
@@ -8443,6 +8448,67 @@ await sec('Remesure · A530-A533', async () => {
     const fs=await page.evaluate(async()=>{monOpen();await new Promise(x=>setTimeout(x,500));const v=document.querySelector('#monMode .mon-val');return v?parseFloat(getComputedStyle(v).fontSize):0;});
     t('A533 · iPad en portrait : le grand chiffre du moniteur atteint son plafond de 220 px',fs>=219,`${fs} px`);
     await page.close();}
+});
+
+/* ══ A539 — L'ONGLET ACTIF EN PASTILLE PLEINE ; AVATAR ET POINT VIVANT BORDÉS ══════════════════════════════════ */
+await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async () => {
+  for(const th of ['light','dark']){
+    const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true,colorScheme:th});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});render();await new Promise(x=>setTimeout(x,200));
+      const s=document.querySelector('[data-tab="sessions"]');s.classList.add('live');
+      const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--act)';document.body.appendChild(sonde);const act=getComputedStyle(sonde).backgroundColor;sonde.remove();
+      const on=document.querySelector('.tb-tab.on'),av=document.querySelector('.tb-av');
+      return {plein:getComputedStyle(on).backgroundColor===act,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
+    t(`A539 · ${th} : l'onglet actif est une pastille pleine (--act)`,r.plein,JSON.stringify(r));
+    t(`A539 · ${th} : connecté, le disque de l'avatar est bordé ; le point vivant a son anneau`,/inset/.test(r.av)&&r.point!=='none',JSON.stringify(r));
+    await page.close();
+  }
+});
+
+/* ══ A538 — LA RECHERCHE DU BAS À LA HAUTEUR DE LA BARRE D'ONGLETS ═══════════════════════════════════════════ */
+await sec('Accueil · A538 recherche à la hauteur des onglets', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const onglets=await page.evaluate(()=>{const r=document.querySelector('.tb-tabs').getBoundingClientRect();return {h:r.height,b:r.bottom};});
+  await ouvrirRecherche(page);await page.waitForTimeout(300);
+  const r=await page.evaluate(()=>{const q=document.getElementById('q').getBoundingClientRect(),f=document.querySelector('#homeDock .filt-tog').getBoundingClientRect();
+    document.documentElement.classList.add('kbd');const k=document.getElementById('q').getBoundingClientRect().height;document.documentElement.classList.remove('kbd');
+    return {q:q.height,qb:q.bottom,f:f.height,kbd:k};});
+  t('A538 · 402 px : champ et filtre à la hauteur de la barre d\'onglets, même bas',r.q===onglets.h&&r.f===onglets.h&&Math.abs(r.qb-onglets.b)<0.5,JSON.stringify({onglets,r}));
+  t('A538 · clavier ouvert : le dock compact reste (44)',r.kbd===44,JSON.stringify(r));
+  await page.close();
+});
+
+/* ══ A537 — LA COMPACTE AU DESSIN NATIF, L'ACCÈS DIRECT EN TUILES, AFFICHAGE ALIGNÉ ═════════════════════════════ */
+await sec('Accueil · A537 compacte Natif, tuiles d\'accès direct, Affichage aligné', async () => {
+  for(const [W,H,m,haut] of [[402,874,1,52],[1280,800,0,44]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:!!m,isMobile:!!m});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>{protocols.push(migrateProtocol({title:"Limitation et arrêt des thérapeutiques jusqu'au décès",validatedAt:'2026-06',status:'validated'}));setHomePref('homeCompact',true);render();});
+    await page.waitForTimeout(300);
+    for(let i=0;i<2;i++){await page.evaluate(()=>{const b=document.querySelector('.dir-book:not(.pinned) [data-pin]:not(.on)');b&&b.click();});await page.waitForTimeout(200);}
+    const r=await page.evaluate(()=>{const rows=[...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')];
+      const k=document.querySelector('.dir-book:not(.pinned) .dir-kind'),g=document.querySelector('.dir-book:not(.pinned) .dir-grid');
+      const t=[...document.querySelectorAll('.dir-book.pinned .dir-row')].map(e=>e.getBoundingClientRect());
+      const a=document.getElementById('rangBtn'),s=document.getElementById('selTog');
+      return {h:[...new Set(rows.map(e=>Math.round(e.getBoundingClientRect().height)))],
+        titre1:rows.every(e=>{const x=e.querySelector('.dir-t');return x.getBoundingClientRect().height<30;}),
+        maj:k?getComputedStyle(k).textTransform:'∅',bord:getComputedStyle(g).borderTopWidth,
+        tuiles:t.length,uneLigne:t.length>=2&&Math.round(t[0].top)===Math.round(t[1].top),
+        etoile:getComputedStyle(document.querySelector('.dir-book.pinned .pinbtn')).display,
+        cat:!!document.querySelector('.dir-book.pinned .dir-cat')&&getComputedStyle(document.querySelector('.dir-book.pinned .dir-cat')).display,
+        aff:a&&s&&a.offsetParent&&s.offsetParent?Math.abs(a.getBoundingClientRect().top-s.getBoundingClientRect().top):null};});
+    t(`A537 · ${W} px : compacte à hauteur fixe ${haut} px, titre sur une ligne`,r.h.length===1&&r.h[0]===haut&&r.titre1,JSON.stringify(r));
+    t(`A537 · ${W} px : compacte au dessin Natif (« Protocole » en minuscules, groupe sans bord)`,r.maj==='none'&&r.bord==='0px',JSON.stringify(r));
+    t(`A537 · ${W} px : accès direct en tuiles, deux sur une ligne, catégorie lisible`,r.uneLigne&&r.cat==='block',JSON.stringify(r));
+    t(`A537 · ${W} px : étoile de tuile ${m?'absente au téléphone':'présente en large'}`,m?r.etoile==='none':r.etoile!=='none',JSON.stringify(r));
+    if(!m)t('A537 · 1280 px : « Affichage » et « Sélectionner » à la même hauteur',r.aff!==null&&r.aff<0.5,JSON.stringify(r));
+    await page.close();
+  }
 });
 
 /* ══ A536 — BORDS AU TÉLÉPHONE : BARRE COLLANTE PLEINE LARGEUR, « FERMER » DE LA PAGE, BANDE DE SAFARI ══════════ */

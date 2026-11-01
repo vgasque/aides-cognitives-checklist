@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.73.0] — 2026-11-01
+L'accueil retouché (A537-A539, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Accès direct en tuiles** : les aides épinglées s'affichent en grille, deux par ligne au téléphone, autant que la
+  largeur en tient ailleurs. Une tuile montre le titre, la catégorie et l'état.
+- **Vue compacte redessinée** : même dessin que la vue détaillée, mais chaque entrée tient sur une hauteur fixe —
+  deux lignes serrées au téléphone et sur tablette, une seule ligne sur grand écran.
+- **Barre du bas** : l'onglet actif est une pastille bleue pleine, bien visible dans les deux thèmes ; l'avatar de
+  « Moi » et le point de session en cours se détachent mieux. La recherche a la même hauteur que la barre d'onglets.
+- **Grand écran** : « Affichage » et « Sélectionner » sont alignés.
+
 ## [5.72.1] — 2026-11-01
 Bords au téléphone, signalés sur iPhone (A536, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Accueil** : la barre du haut, quand elle reste collée en défilant, va jusqu'au bord droit de l'écran (elle
@@ -188,22 +198,3 @@ Trouvé en testant sur le simulateur iOS ce que la mesure n'avait pas pu voir (A
   dans les coins arrondis. Le contenu, la colonne gauche, le quai, le moniteur et les fenêtres respectent désormais
   les marges de sécurité latérales de l'écran. Rien ne change en portrait, sur iPad ni sur ordinateur.
 - Vérifié sur le simulateur (iPhone, iOS 26.5) : session en paysage, rotation aller-retour pendant une session.
-
-## [5.57.2] — 2026-10-31
-Correctifs issus d'une mesure de l'app sans a priori — 38 états, 10 tailles d'écran, 2 à 3 tailles de texte, nuit
-et WebKit (A511, doctrine `docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
-- **En paysage, la session rend la place aux étapes.** Téléphone tourné, l'en-tête, la rangée des minuteurs et le
-  quai prenaient 54 % de l'écran (71 % avec le texte agrandi) : aucune étape n'était visible en entier. La capsule
-  des minuteurs monte désormais dans l'en-tête, comme au bureau : 35 % (45 % avec le texte agrandi). Les tablettes
-  ne changent pas. À vérifier sur un iPhone tourné, rotation comprise pendant une session.
-- **Le quai garde ses mots, à toute taille.** « Horodater » se coupait en « Horo-dater » et « FV réfractaire »
-  perdait sa fin avec le texte agrandi, au téléphone en paysage comme au bureau. Plus aucune césure : si un mot ne
-  tient pas, tout le quai descend d'un cran de texte.
-- **Le bouton retour a un nom** pour les lecteurs d'écran (« Retour »).
-- **Plus lisible** : « démarre avec la session », « 2:00 cyclique, à lancer » (écran de démarrage, au bureau) et le
-  raccourci « ⌘K » passent d'un gris à 2,1:1 au gris de lecture.
-- **Cibles de 44 px en session** pour les renvois du parcours, la croix du volet des minuteurs et les commandes d'un
-  repère horodaté.
-- **Moniteur** : avec le texte agrandi sur un petit écran, l'étiquette d'une échéance ne peut plus sortir de sa bande.
-- Outillage : le harnais d'accessibilité ouvrait le moniteur par une fonction inexistante (son contraste n'était
-  jamais mesuré) ; deux témoins nouveaux ou élargis (quai à texte agrandi, paysage bas), vérifiés capables d'échouer.
