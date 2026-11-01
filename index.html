@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fbb0aYynTXZ/6OIGlWz9BXgVl17Z0VBcVFh4KD0PL3U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-+T+/EgkSZR3sCEwpeVt/jLIRgEStOWRyxzHzQMuz/zE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9604,7 +9604,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.73.0';
+const APP_VERSION='5.73.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15742,7 +15742,7 @@ function azrCentrer(rail,deja){
      exacte (témoin doctrine 1280×900, écart ≤ 2 px) — la dérivation par la boîte ne vaut que là
      où le CSS `svh` la gouverne, c'est-à-dire la voie étroite. */
   const sab=matchMedia('(display-mode:standalone)').matches
-    ?(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0):0;
+    ?insetPx('--sab'):0;
   const ecran=mqHomeWide.matches
     ?document.documentElement.clientHeight/z
     :(b.bottom+(96+sab)*z)/z;   // bord bas du small viewport — 96 px : la réserve du dock (v5.18)
@@ -16056,8 +16056,10 @@ function bindPgHead(rerender){
   /* Le grand titre sorti par le haut, la rangée du haut prend le petit (patron `.titled` de la lecture). */
   const t=main.querySelector('.pg-ttl'),top=main.querySelector('.pg-top');
   if(_pgIo){_pgIo.disconnect();_pgIo=null;}
-  if(t&&top&&window.IntersectionObserver){_pgIo=new IntersectionObserver(es=>{es.forEach(e=>top.classList.toggle('stuck',!e.isIntersecting));},
-    {rootMargin:`-${Math.round((top.offsetHeight||44)+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0))}px 0px 0px 0px`});_pgIo.observe(t);}}
+  /* A540 : le verre vient dès que le titre COMMENCE à passer sous la barre (ratio < 1), pas une fois sorti : sinon les
+     boutons transparents chevauchaient le titre puis les pastilles. */
+  if(t&&top&&window.IntersectionObserver){_pgIo=new IntersectionObserver(es=>{es.forEach(e=>top.classList.toggle('stuck',e.intersectionRatio<0.99));},
+    {rootMargin:`-${Math.round((top.offsetHeight||44)+insetPx('--sat'))}px 0px 0px 0px`,threshold:[0,0.99,1]});_pgIo.observe(t);}}
 let _pgIo=null;
 /* LA BARRE D'ONGLETS (A517, A504) : statique dans la coque, peinte à chaque rendu. Elle se retire en sélection
    (le tiroir « Actions » prend le bas, A476) et pendant une recherche (le champ prend sa place, A510 §3). */
@@ -22656,6 +22658,10 @@ function repaintRailLad(){
   if(box)box.scrollTop=y;
   bindRailLad();bindRailTm();}
 function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/100;}
+/* A540 : la valeur en px d'un token d'inset (--sat, --sab). getPropertyValue rend le TEXTE du token (« calc(env(…)…) »),
+   que parseFloat lit 0 : la barre collante de l'accueil ne passait jamais en verre dans l'app installée. */
+function insetPx(tok){const d=document.createElement('div');d.style.cssText='position:absolute;visibility:hidden;height:0;padding-top:var('+tok+')';
+  document.body.appendChild(d);const v=parseFloat(getComputedStyle(d).paddingTop)||0;d.remove();return v;}
 /* PALIERS DE LARGEUR EFFECTIVE (v4.73.1) — le pendant de `--zf` pour les SEUILS (règle 10) : sous
    `zoom` la mise en page dispose de largeur ÷ zoom, qu'une media query ne voit pas. Équivalent
    exact des `max-width` remplacés à zoom 1, bornes comprises. Posé à CHAQUE rendu
@@ -30321,7 +30327,7 @@ function fitMoreMenu(){
   const vv=window.visualViewport;
   const bas=(vv&&vv.height)?vv.height:window.innerHeight;
   const r=moreMenuEl.getBoundingClientRect();
-  const sab=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
+  const sab=insetPx('--sab');
   const dispo=(bas-r.top)/zoomF()-10-sab;
   moreMenuEl.style.maxHeight=Math.round(Math.max(180,dispo))+'px';}
 hdrMoreBtn.onclick=e=>{e.stopPropagation();if(moreMenuEl.hidden)openMoreMenu();else closeMoreMenu();};

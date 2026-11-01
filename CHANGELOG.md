@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.73.1] — 2026-11-01
+Correctif de l'app installée sur iPhone (A540, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Accueil** : en défilant, la barre du haut prend son fond de verre dès que le titre « Aides » passe dessous ;
+  « Sélectionner » et « Créer » ne chevauchent plus le titre ni les pastilles.
+- La hauteur de la barre d'état et de la zone basse est désormais lue correctement (menu ⋯, barre du bas).
+
 ## [5.73.0] — 2026-11-01
 L'accueil retouché (A537-A539, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Accès direct en tuiles** : les aides épinglées s'affichent en grille, deux par ligne au téléphone, autant que la
@@ -189,12 +195,3 @@ rejouer côté serveur.
 - **Les épinglées deviennent le premier groupe, « Accès direct »**, avec la même rangée que le reste de la liste
   (les tuiles disparaissent). L'étoile reste à droite.
 - Les modes « Détaillée » et « Compacte » restent tous les deux.
-
-## [5.57.3] — 2026-10-31
-Trouvé en testant sur le simulateur iOS ce que la mesure n'avait pas pu voir (A512, doctrine
-`docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
-- **Rien ne passe plus sous l'encoche ou la Dynamic Island en paysage.** iPhone tourné, l'île couvrait le bouton
-  retour et coupait « PARCOURS » ; à l'accueil, la marque de la colonne gauche passait dessous, et le quai entrait
-  dans les coins arrondis. Le contenu, la colonne gauche, le quai, le moniteur et les fenêtres respectent désormais
-  les marges de sécurité latérales de l'écran. Rien ne change en portrait, sur iPad ni sur ordinateur.
-- Vérifié sur le simulateur (iPhone, iOS 26.5) : session en paysage, rotation aller-retour pendant une session.

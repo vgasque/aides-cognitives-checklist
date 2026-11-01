@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A539** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A540** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -163,6 +163,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A537 | `lot-v6-0.md` | Vue compacte au dessin Natif (52 px au téléphone, 44 px en large), accès direct en tuiles (renverse A515 §4), « Affichage » aligné (v5.73.0) |
 | A538 | `lot-v6-0.md` | Recherche du bas à la hauteur de la barre d'onglets (62, clavier fermé) ; contraste du dock sombre mesuré (v5.73.0) |
 | A539 | `lot-v6-0.md` | Onglet actif en pastille pleine (1,2 → 7,8:1), avatar de « Moi » et point vivant bordés (v5.73.0) |
+| A540 | `lot-v6-0.md` | Barre collante de l'accueil en verre dans l'app installée (`--sat` lu 0 : `insetPx`) ; piste « default » d'iOS 27 mesurée, non retenue |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -8450,6 +8450,26 @@ await sec('Remesure · A530-A533', async () => {
     await page.close();}
 });
 
+/* ══ A540 — LA BARRE COLLANTE DE L'ACCUEIL PASSE EN VERRE SOUS UNE BARRE D'ÉTAT (APP INSTALLÉE) ═════════════════
+   `--sat` est un calc(env()…) : lu par getPropertyValue + parseFloat, il valait 0. On le simule SOUS FORME DE CALC. */
+await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(()=>{document.documentElement.style.setProperty('--sat','calc(59px + 16px)');
+    for(let i=0;i<20;i++)protocols.push(migrateProtocol({title:'Protocole '+i}));render();});
+  await page.waitForTimeout(400);
+  const lire=()=>page.evaluate(()=>{const t=document.querySelector('.pg-ttl').getBoundingClientRect(),top=document.querySelector('.pg-top');
+    return {titreHaut:Math.round(t.top),titreBas:Math.round(t.bottom),barreBas:Math.round(top.getBoundingClientRect().bottom),stuck:top.classList.contains('stuck')};});
+  const repos=await lire();
+  await page.evaluate(()=>scrollTo(0,60));await page.waitForTimeout(400);const moitie=await lire();
+  await page.evaluate(()=>scrollTo(0,200));await page.waitForTimeout(400);const sorti=await lire();
+  t('A540 · inset de 75 px, au repos : barre transparente, titre visible',!repos.stuck&&repos.titreHaut>=repos.barreBas,JSON.stringify(repos));
+  t('A540 · titre À MOITIÉ sous la barre : elle a déjà son verre (plus de chevauchement transparent)',moitie.titreHaut<moitie.barreBas&&moitie.titreBas>moitie.barreBas&&moitie.stuck,JSON.stringify(moitie));
+  t('A540 · titre sorti : verre et petit titre',sorti.stuck,JSON.stringify(sorti));
+  await page.close();
+});
+
 /* ══ A539 — L'ONGLET ACTIF EN PASTILLE PLEINE ; AVATAR ET POINT VIVANT BORDÉS ══════════════════════════════════ */
 await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async () => {
   for(const th of ['light','dark']){
