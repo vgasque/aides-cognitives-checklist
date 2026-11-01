@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-pF3pse3kGQy26/5iQLQ07J6lBZucY09A+ZYGNcczkdU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-IIPqQCvpGtY3BgnKdAa8+4HZ6SsBEpujFz/VzADTQV8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2033,6 +2033,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     color:var(--ink-soft);border-top:1px solid var(--line)}
   .rt-jl:first-of-type{border-top:0}
   .rt-jlc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-jlc small{display:block;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-meta);font-weight:400;color:var(--ink-2)}   /* A535 */
+  .rt-jl .mo-pips{flex:none;margin-left:0}
   .rt-jlp{flex:none;font-family:var(--f-mono);font-weight:700;color:var(--ink);
     font-variant-numeric:tabular-nums}
   .rt-jl.on{color:var(--warn);font-weight:700}
@@ -4562,6 +4564,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      exactement les 4 px rapportés. Une règle écrite pour une disposition ne vaut pas dans
      l'autre : c'est la même leçon que le filet des repères (v5.0.9). */
   body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;margin-top:0;display:flex;gap:6px}
+  /* A535 (maquette Natif) : « − 1 + » — la valeur ENTRE ses deux boutons ; et la carte de minuteur du rail est un
+     aplat gris sans filet (l'échu garde son filet ambre). */
+  body.view-read .read-side .cncard .cn-ctrl{display:contents}
+  body.view-read .read-side .cncard .cn-btn[data-cndec]{order:1;margin-left:auto}
+  body.view-read .read-side .cncard .cn-val{order:2;min-width:32px;justify-content:center}
+  body.view-read .read-side .cncard .cn-btn[data-cninc]{order:3}
+  body.view-read .read-side .tmcard:not(.due){background:var(--amb-2);border-color:transparent}
   body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
   /* Rail droit : UNE variable --tcol pilote libellé + temps + barre (+ --tbd) ; échu = AMBRE
      (rouge réservé au vital), pause = encre douce + texte, jamais couleur seule ; --act = minuteur
@@ -9556,7 +9565,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.71.0';
+const APP_VERSION='5.72.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20385,11 +20394,12 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
     const pass=ix>=0?passInfo(state.nav,ix).pass:0;
     b.milestones.forEach(j=>{if(!j)return;
       const p=jalonProg(j,pass,j.counter?((Runtime.counters||{})[j.counter]||0):0);
-      jalons.push({cond:jalonCondLbl(f,j),cur:p.cur,goal:p.goal,on:!!p.active});});});
+      jalons.push({cond:jalonCondLbl(f,j),cur:p.cur,goal:p.goal,on:!!p.active,tx:stripBold(String(j.text||'')).trim()});});});
   const jalonsB=jalons.length
-    ?jalons.map(j=>`<div class="rt-jl${j.on?' on':''}"><span aria-hidden="true">△</span>`
-      +`<span class="rt-jlc">${esc(j.cond)}</span>`
-      +`<span class="rt-jlp" aria-label="${j.cur} sur un seuil de ${j.goal}">${j.cur}/${j.goal}</span></div>`).join('')
+    /* A535 (maquette Natif) : le seuil, sa jauge à points (A474) et son compte, puis le texte de l'auteur en sous-ligne. */
+    ?jalons.map(j=>{const N=j.goal,pips=N<=8?`<span class="mo-pips" aria-hidden="true">${Array.from({length:N},(x,k)=>`<i class="${k===N-1?'goal':''}${k<Math.min(j.cur,N)?(k===N-1?' on':'on'):''}"></i>`).join('')}</span>`:'';
+      return `<div class="rt-jl${j.on?' on':''}"><span class="rt-jlc">${esc(j.cond)}${j.tx?`<small>→ ${esc(j.tx)}</small>`:''}</span>`
+      +pips+`<span class="rt-jlp" aria-label="${j.cur} sur un seuil de ${j.goal}">${j.cur}/${j.goal}</span></div>`;}).join('')
     :'';
   const timersC=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}`;
   const timersB=timersC+tmAddHtml();

@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.72.0] — 2026-11-01
+Le rail de la session à la maquette Natif (A535, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Compteurs** : « − 1 + », la valeur entre ses deux boutons.
+- **Minuteurs** : cartes grises, sans bordure (un minuteur échu garde son bord ambre).
+- **Jalons** : une jauge à points à côté du compte, et le texte de l'aide en dessous (« → envisager une FV
+  réfractaire »).
+
 ## [5.71.0] — 2026-11-01
 Conformité aux maquettes Natif (A534, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **La colonne « Parcours »** (avant et pendant la session, sur grand écran) devient une liste légère : le bloc en
@@ -200,16 +207,3 @@ Un signalement sur capture, iPad installé (A501, doctrine `docs/decisions/lot-v
   « Créer » avaient leur dégagement : la colonne est fixée au bord haut et son premier étage ne lisait pas l'inset
   de zone sûre, que l'en-tête lit depuis toujours. Une propriété ; rien ne change en navigateur ni sur Mac.
   À vérifier sur l'appareil, portrait et paysage.
-
-## [5.57.0] — 2026-10-16
-Deux retours de l'auteur sur la pastille du compte et le pied « Tout est prêt » (A499-A500, doctrine
-`docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
-- **« Tout est prêt » déplié ne répète plus la version.** La première rangée du dépliant redisait « v5.56.0 » juste
-  sous la synthèse qui le porte déjà ; sans compte elle ne contenait plus que ce doublon. Sous une synthèse visible
-  la version se tait et la rangée vide disparaît ; en erreur ou en attente (synthèse cachée) la version reste,
-  calée à droite.
-- **La pastille du compte est aussi sur « Moi » de la colonne, au bureau.** Depuis la refonte v5, l'accueil large
-  n'a plus de bouton Compte dans l'en-tête : l'état de synchronisation n'y était plus visible. L'avatar à initiales de
-  la colonne porte désormais la même pastille (synchronisé, en cours, erreur, en attente), peinte par la même
-  porte que l'en-tête.
-- **L'anneau « en cours » se voit la nuit** : trait renforcé sur les deux sites.

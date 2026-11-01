@@ -1640,6 +1640,8 @@
     color:var(--ink-soft);border-top:1px solid var(--line)}
   .rt-jl:first-of-type{border-top:0}
   .rt-jlc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-jlc small{display:block;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-meta);font-weight:400;color:var(--ink-2)}   /* A535 */
+  .rt-jl .mo-pips{flex:none;margin-left:0}
   .rt-jlp{flex:none;font-family:var(--f-mono);font-weight:700;color:var(--ink);
     font-variant-numeric:tabular-nums}
   .rt-jl.on{color:var(--warn);font-weight:700}
@@ -4169,6 +4171,13 @@
      exactement les 4 px rapportés. Une règle écrite pour une disposition ne vaut pas dans
      l'autre : c'est la même leçon que le filet des repères (v5.0.9). */
   body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;margin-top:0;display:flex;gap:6px}
+  /* A535 (maquette Natif) : « − 1 + » — la valeur ENTRE ses deux boutons ; et la carte de minuteur du rail est un
+     aplat gris sans filet (l'échu garde son filet ambre). */
+  body.view-read .read-side .cncard .cn-ctrl{display:contents}
+  body.view-read .read-side .cncard .cn-btn[data-cndec]{order:1;margin-left:auto}
+  body.view-read .read-side .cncard .cn-val{order:2;min-width:32px;justify-content:center}
+  body.view-read .read-side .cncard .cn-btn[data-cninc]{order:3}
+  body.view-read .read-side .tmcard:not(.due){background:var(--amb-2);border-color:transparent}
   body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
   /* Rail droit : UNE variable --tcol pilote libellé + temps + barre (+ --tbd) ; échu = AMBRE
      (rouge réservé au vital), pause = encre douce + texte, jamais couleur seule ; --act = minuteur

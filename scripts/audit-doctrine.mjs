@@ -8445,6 +8445,23 @@ await sec('Remesure · A530-A533', async () => {
     await page.close();}
 });
 
+/* ══ A535 — LE RAIL DE SESSION AU DESSIN DE LA MAQUETTE ═══════════════════════════════════════════════════════ */
+await sec('Session · A535 rail : « − 1 + », minuteur gris, jalon à jauge', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:800}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
+  const r=await page.evaluate(()=>{const S=document.querySelector('.read-side');const c=S.querySelector('.cncard');
+    const x=sel=>Math.round(c.querySelector(sel).getBoundingClientRect().left);
+    const sonde=document.createElement('i');sonde.style.cssText='background:var(--amb-2);position:absolute';document.body.appendChild(sonde);const gris=getComputedStyle(sonde).backgroundColor;sonde.remove();
+    const tm=S.querySelector('.tmcard:not(.due)'),jl=S.querySelector('.rt-jl');
+    return {ordre:x('[data-cndec]')<x('.cn-val')&&x('.cn-val')<x('[data-cninc]'),tm:tm?getComputedStyle(tm).backgroundColor===gris:null,
+      pips:jl?jl.querySelectorAll('.mo-pips i').length:-1,sous:!!(jl&&jl.querySelector('.rt-jlc small'))};});
+  t('A535 · compteur du rail : « − valeur + »',r.ordre===true,JSON.stringify(r));
+  t('A535 · carte de minuteur du rail en aplat gris',r.tm===true,JSON.stringify(r));
+  t('A535 · jalon : jauge à points et texte de l\'auteur en sous-ligne',r.pips>=2&&r.sous,JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A529 — LA PAGE N'A QU'UN BOUTON D'IMPRESSION (arbitrage de l'auteur) ═══════════════════════════════════ */
 await sec('Page · A529 un bouton « Imprimer ou PDF »', async () => {
   const page=await br.newPage({viewport:{width:1280,height:800}});

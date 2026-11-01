@@ -684,6 +684,14 @@ trois, corrigés ici :
    — même cause dite (A235), une ligne au lieu de deux (`cochezLbl`).
 3. **La colonne gauche dit le compte de ses sections** : « Aides n », « Sessions n » (si l'historique n'est pas vide).
 
-**Non repris, et dit** : l'ordre « − 1 + » des compteurs du rail (l'app écrit « 1  − + », valeur à gauche) ; la
-jauge en points des jalons (l'app écrit « 0/3 ») ; les cartes de minuteur grises du rail (blanches dans l'app).
-Trois détails d'habillage du rail droit, sans incidence d'usage — à reprendre si l'auteur les veut.
+Les trois détails d'habillage du rail droit, d'abord laissés, sont repris en A535 à la demande de l'auteur.
+
+## A535 — Le rail de session au dessin de la maquette (v5.72.0)
+
+Demande de l'auteur après A534. Dans le rail droit de la session (≥ 1200 px) :
+- **compteur « − 1 + »** : la valeur entre ses deux boutons (`.cn-ctrl` en `display:contents`, ordre posé en CSS ; le
+  DOM et les cibles de 44 px ne changent pas) ;
+- **carte de minuteur en aplat gris** (`--amb-2`), sans filet — l'échu garde son filet ambre ;
+- **jalon** : la condition, sa jauge à points (celle des étapes au seuil, A474), le compte, et le texte de l'auteur en
+  sous-ligne « → … ». Le △ de tête part (déjà retiré de la colonne en A388).
+Témoin : `audit-doctrine` « Session · A535 » (vérifié capable d'échouer).
