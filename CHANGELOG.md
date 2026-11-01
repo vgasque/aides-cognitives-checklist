@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.73.4] — 2026-11-01
+Correctif de la recherche au téléphone (A544, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- Après avoir ouvert la recherche puis le bouton filtre, quitter rend bien la barre d'onglets du bas (la recherche
+  restait affichée à sa place).
+
 ## [5.73.3] — 2026-11-01
 Le haut et le bas de l'accueil au téléphone (A542-A543, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Une seule bande en haut** une fois la liste défilée : la bande sous l'heure prend la teinte de la barre du haut,
@@ -167,18 +172,3 @@ rejouer côté serveur.
   chrono, « Revenir » dans une pilule (toucher n'importe où ferme toujours), une barre de progression sous le
   grand chiffre, et la bande devient une carte où chaque minuteur a sa rangée, son nom en tête et « dans 01:59 »
   sur l'axe. Sur une tablette posée, le grand chiffre monte jusqu'à 220 px.
-
-## [5.59.0] — 2026-10-31
-Lot 4 de la refonte « Natif » : la navigation du téléphone (A517, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Une barre d'onglets en bas au téléphone** : Aides · Sessions · Moi, et la recherche dans un rond à droite. Elle
-  flotte en verre, comme les barres d'iOS. « Moi » porte vos initiales et l'état de la synchronisation.
-- **Sessions et Moi sont des onglets**, plus des fenêtres qui s'ouvrent par-dessus : le retour du téléphone ne les
-  referme plus (on change d'onglet), seule Administration, ouverte depuis Moi, se referme par le retour.
-- **Un grand titre « Aides »** en tête de page, qui se replie dans la barre du haut quand on fait défiler.
-  « Sélectionner » est en haut à gauche, « ＋ Créer » en haut à droite.
-- **Les filtres sont des pastilles** sous le champ de recherche : Tout, Accès direct, vos collections, vos
-  catégories. « Affichage » (ranger, densité) est sur la ligne du compte.
-- **« Créer » et « Affichage » s'ouvrent en feuille du bas** qu'on referme en la tirant vers le bas (ou ✕).
-- Sur tablette et ordinateur, le titre « Aides » ouvre la liste, avant le groupe « Accès direct ».
-- Téléphone tourné : rien ne change encore (la colonne gauche viendra plus tard).

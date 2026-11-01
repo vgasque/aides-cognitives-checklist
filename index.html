@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-CoaHAAxYg77VAI60KggQ+P7rVdTOpCk2lhv5UOUoTc4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-EF1afDLx6tIsY0SNidQ3lHNhGLeWz85j94FKrqAh3JA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9612,7 +9612,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.73.3';
+const APP_VERSION='5.73.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14960,7 +14960,11 @@ function paintSeg(root,attr,idx){
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
  /* A517 : au téléphone, quitter le champ vide rend la barre d'onglets (Échap aussi). */
- qi.addEventListener('blur',()=>{if(document.documentElement.classList.contains('tabnav'))tbSearchMaybeClose();});
+ /* A544 : la sortie du focus s'écoute sur TOUT le dock (le bouton filtre reprend le focus en fermant sa feuille), et un
+    tap hors du dock referme aussi (Safari iOS ne déplace pas toujours le focus d'un bouton au tap ailleurs). */
+ document.getElementById('homeDock').addEventListener('focusout',()=>{if(document.documentElement.classList.contains('tabnav'))tbSearchMaybeClose();});
+ document.addEventListener('pointerdown',e=>{if(!_tbSrch||!document.documentElement.classList.contains('tabnav'))return;
+   const d=document.getElementById('homeDock');if((d&&d.contains(e.target))||e.target.closest('.ai-modal,.sheet'))return;tbSearchMaybeClose(true);},true);
  qi.addEventListener('keydown',e=>{if(e.key==='Escape'&&!qi.value&&document.documentElement.classList.contains('tabnav'))qi.blur();});
  /* v5.18.2 (signalé sur iPhone : « quand on tape la barre en bas, le scroll fait n'importe
     quoi et descend ») — au FOCUS d'un champ, iOS fait défiler le DOCUMENT pour amener le champ
@@ -16099,9 +16103,9 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
 function tbSearchOpen(){if(homeTab()!=='aides'){state.homeTab='aides';render();}
   _tbSrch=true;syncTabBar();const q=document.getElementById('q');if(q)q.focus({preventScroll:true});}
 /* On quitte la recherche quand le champ est vide ET que le focus a quitté le dock (pas au tap du filtre). */
-function tbSearchMaybeClose(){setTimeout(()=>{if(!_tbSrch||txNorm(String(state.q||'')))return;
+function tbSearchMaybeClose(horsDock){setTimeout(()=>{if(!_tbSrch||txNorm(String(state.q||'')))return;
   const a=document.activeElement,d=document.getElementById('homeDock');
-  if(d&&a&&d.contains(a))return;
+  if(!horsDock&&d&&a&&d.contains(a))return;
   if(document.querySelector('.ai-modal.on,.sheet.on'))return;
   _tbSrch=false;syncTabBar();},150);}
 function selTogHtml(){
