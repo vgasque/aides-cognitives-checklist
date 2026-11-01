@@ -484,3 +484,12 @@ restent dans leur groupe (v4.27.0). `.sess-k`/`.sess-kd` purgées (règle 14). M
 sans ombre ; la collection « Accès direct » ne dit plus « les tuiles de l'accueil » (purgées en A515) mais « en tête
 de l'accueil ». **Non fait, et dit** : « Sélectionner » en haut de l'onglet Sessions — l'app n'a pas de sélection
 de sessions ; l'ajouter serait une fonction nouvelle, pas un habillage.
+
+**Lot 9 implémenté (v5.64.0) — l'éditeur, habillage.** Grand titre « Modifier l'aide » (« Nouvelle aide » à la
+création, 24) ; « ▶ Essayer » garde son mot au téléphone (il passait au glyphe seul sous 430 px, contre la règle
+« jamais un libellé réduit au glyphe ») et c'est l'état « À relire » qui quitte l'en-tête étroit ; les listes
+(chapeau « Ne pas oublier », condition d'entrée : critères, diagnostics à éliminer) deviennent des intertitres en
+phrase au-dessus de groupes de rangées (`.le-grp`), l'ajout en dernière rangée en lien bleu, ✕ ronds, la consigne
+des 4 rappels en note SOUS le groupe (`.le-foot`) ; libellés de section en phrase ; cartes sans ombre. Gestes
+d'édition inchangés. **Laissé au lot 10** : Identité en rangées « Titre · valeur › » (un champ s'ouvre sur sa page),
+les blocs, la colonne de structure et le schéma.

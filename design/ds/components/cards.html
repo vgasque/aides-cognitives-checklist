@@ -570,9 +570,9 @@
      centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
      Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:40px;padding:0;justify-content:center}
+  /* A520 (lot 9) : « ▶ Essayer » garde son MOT au téléphone (jamais un libellé réduit au glyphe) — c'est l'état
+     « À relire » qui quitte l'en-tête étroit (il se lit et se règle dans « État », plus bas). */
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-badge{display:none}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
   html.zw400:not(.zw360) body.view-home header.bar.home :is(.hdr-new,.bar-acct){width:36px;height:36px}   /* A375 : sous 400 px, trois boutons de 40 ne tiennent plus avec la marque — palier de compression, 36 + halo 4 = 44 */
@@ -4759,6 +4759,28 @@
      Coquille NEUTRE, comme le `.block` de lecture — la couleur reste aux registres (rouge du
      chapeau, ambre d'une décision) ; une carte de plus qui se teinterait les affaiblirait tous. */
   .ed-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);padding:12px 12px;margin-bottom:16px}
+  /* ═══ A520 (lot 9) — L'ÉDITEUR, HABILLAGE NATIF ══════════════════════════════════════════════════════════════
+     Grand titre ; les LISTES (chapeau, condition d'entrée) deviennent des intertitres en phrase au-dessus de groupes
+     de rangées (`.le-grp`) — l'ajout est la dernière rangée, en lien ; ✕ ronds ; cartes sans ombre. Les gestes
+     d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
+  :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
+  :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
+  :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
+  :is(.ed-forget,.ed-entry)>label{min-height:0;margin:0 0 6px;padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-forget>label::before{content:none}
+  .ed-forget>label .lst-n{margin-left:auto}
+  .ed-entry>label .hint,.ed-entry .list-edit.bare>label .hint{font-weight:500;color:var(--ink-2)}
+  .ed-entry .list-edit.bare>label{padding:0 16px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .le-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);padding:0 8px 0 12px}
+  .le-grp>.li{min-height:52px;margin:0}
+  .le-grp>.li+.li,.le-grp>.add-line{border-top:1px solid var(--line)}
+  .le-grp>.add-line{display:flex;align-items:center;width:100%;min-height:48px;margin:0;padding:0 4px;border-left:0;border-right:0;border-bottom:0;border-radius:0;
+    background:none;color:var(--act);font-weight:600;text-align:left}
+  .le-grp>.add-line:hover{background:none;text-decoration:underline}
+  .le-foot{margin:6px 16px 0;font-size:var(--t-meta);color:var(--ink-2)}
+  .le-grp .ed-ic.del{width:32px;height:32px;min-width:32px;border:0;border-radius:999px;background:var(--amb-2);color:var(--ink-2)}
+  :is(body.view-edit) :is(.ed-ident,.ed-card,.ed-tocwrap .ref-toc){box-shadow:none}
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
@@ -8533,29 +8555,29 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxiqvgmobvfhgab"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvxjb5dffzhi7f1a"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxiqvgmobvfhgab" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmvxjb5dffzhi7f1a" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div><div class="dir-book"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxiqvgmobvfhgab"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvxjb5dffzhi7f1a"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxiqvgmobvfhgab" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmvxjb5dffzhi7f1a" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxiqvgl188j5opa"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmvxjb5dd165cyxgz"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn" data-pin="fmvxiqvgl188j5opa" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmvxjb5dd165cyxgz" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
@@ -8564,29 +8586,29 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxiqvgmobvfhgab"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvxjb5dffzhi7f1a"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxiqvgmobvfhgab" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmvxjb5dffzhi7f1a" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div><div class="dir-book"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxiqvgmobvfhgab"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmvxjb5dffzhi7f1a"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvxiqvgmobvfhgab" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmvxjb5dffzhi7f1a" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvxiqvgl188j5opa"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmvxjb5dd165cyxgz"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-kind">Aide</span><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn" data-pin="fmvxiqvgl188j5opa" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmvxjb5dd165cyxgz" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 </body></html>

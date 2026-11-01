@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.64.0] — 2026-11-01
+Lot 9 de la refonte « Natif » : l'habillage de l'éditeur (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Un grand titre « Modifier l'aide »** en tête de l'éditeur.
+- **Les listes sont des groupes de rangées** sous leur intertitre (« Ne pas oublier », « Critères », « Diagnostics à
+  éliminer ») : l'ajout est la dernière rangée, les ✕ sont ronds, la consigne des 4 rappels passe sous le groupe.
+- **« ▶ Essayer » garde son mot au téléphone** ; l'état « À relire » quitte l'en-tête étroit (il reste dans
+  « État »).
+- La façon d'éditer ne change pas : chaque ligne reste un champ, la poignée glisse comme avant.
+
 ## [5.63.0] — 2026-11-01
 Lot 8 de la refonte « Natif » : Sessions et Moi (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
 serveur.

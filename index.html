@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-6SzpgVcQrfwGiO11zmmijnbWcE0ugt0hxaA7V7Ru4SM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-n5RuGmnHIEcFKys+g/JGHqcTP+AarSSbqftqpJax4kI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -963,9 +963,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
      Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:40px;padding:0;justify-content:center}
+  /* A520 (lot 9) : « ▶ Essayer » garde son MOT au téléphone (jamais un libellé réduit au glyphe) — c'est l'état
+     « À relire » qui quitte l'en-tête étroit (il se lit et se règle dans « État », plus bas). */
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-badge{display:none}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
   html.zw400:not(.zw360) body.view-home header.bar.home :is(.hdr-new,.bar-acct){width:36px;height:36px}   /* A375 : sous 400 px, trois boutons de 40 ne tiennent plus avec la marque — palier de compression, 36 + halo 4 = 44 */
@@ -5152,6 +5152,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Coquille NEUTRE, comme le `.block` de lecture — la couleur reste aux registres (rouge du
      chapeau, ambre d'une décision) ; une carte de plus qui se teinterait les affaiblirait tous. */
   .ed-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);padding:12px 12px;margin-bottom:16px}
+  /* ═══ A520 (lot 9) — L'ÉDITEUR, HABILLAGE NATIF ══════════════════════════════════════════════════════════════
+     Grand titre ; les LISTES (chapeau, condition d'entrée) deviennent des intertitres en phrase au-dessus de groupes
+     de rangées (`.le-grp`) — l'ajout est la dernière rangée, en lien ; ✕ ronds ; cartes sans ombre. Les gestes
+     d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
+  :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
+  :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
+  :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
+  :is(.ed-forget,.ed-entry)>label{min-height:0;margin:0 0 6px;padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-forget>label::before{content:none}
+  .ed-forget>label .lst-n{margin-left:auto}
+  .ed-entry>label .hint,.ed-entry .list-edit.bare>label .hint{font-weight:500;color:var(--ink-2)}
+  .ed-entry .list-edit.bare>label{padding:0 16px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .le-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);padding:0 8px 0 12px}
+  .le-grp>.li{min-height:52px;margin:0}
+  .le-grp>.li+.li,.le-grp>.add-line{border-top:1px solid var(--line)}
+  .le-grp>.add-line{display:flex;align-items:center;width:100%;min-height:48px;margin:0;padding:0 4px;border-left:0;border-right:0;border-bottom:0;border-radius:0;
+    background:none;color:var(--act);font-weight:600;text-align:left}
+  .le-grp>.add-line:hover{background:none;text-decoration:underline}
+  .le-foot{margin:6px 16px 0;font-size:var(--t-meta);color:var(--ink-2)}
+  .le-grp .ed-ic.del{width:32px;height:32px;min-width:32px;border:0;border-radius:999px;background:var(--amb-2);color:var(--ink-2)}
+  :is(body.view-edit) :is(.ed-ident,.ed-card,.ed-tocwrap .ref-toc){box-shadow:none}
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
@@ -9487,7 +9509,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.63.0';
+const APP_VERSION='5.64.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24676,9 +24698,12 @@ function forgetEditorHtml(f){
         :`<button type="button" class="ed-ic del" data-fgdel="${i}" aria-label="Supprimer la ligne">×</button>`)
       +`</div>`;});
   const n=U.length,reste=Math.max(0,4-n);
-  return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier <span class="hint">4 rappels maximum — ils s’affichent en permanence, en tête d’aide</span>`
-    +`<span class="lst-n${n>4?' over':''}">${n}/4</span></label>${rows}`
-    +`<button class="add-line" data-fgadd>＋ Rappel${reste?' ('+reste+' restant'+(reste>1?'s':'')+')':''}</button>`
+  /* A520 (lot 9) : intertitre au-dessus d'un GROUPE de rangées (`.le-grp`), l'ajout en dernière rangée, la consigne
+     en note SOUS le groupe (maquette). */
+  return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier`
+    +`<span class="lst-n${n>4?' over':''}">${n}/4</span></label><div class="le-grp">${rows}`
+    +`<button class="add-line" data-fgadd>＋ Rappel${reste?' ('+reste+' restant'+(reste>1?'s':'')+')':''}</button></div>`
+    +`<p class="le-foot">4 rappels maximum — ils s’affichent en permanence, en tête d’aide.</p>`
     +`<p class="nf-guard" id="nfGuard" role="status">${esc(nfGuardTxt(forgetAll(f))||'')}</p></fieldset>`;}
 function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
   /* DÉFENSIF DEPUIS L'ÉTAPE B : les cinq listes de portée fiche ne sont plus des CHAMPS mais une
@@ -24704,7 +24729,7 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
   const reste=plafond?Math.max(0,plafond-n):0;
   const cptH=plafond?`<span class="lst-n${n>plafond?' over':''}">${n}/${plafond}</span>`:'';
   const addTxt=plafond?('＋ Rappel'+(reste?' ('+reste+' restant'+(reste>1?'s':'')+')':'')):'+ Ajouter une ligne';
-  return `<fieldset class="field list-edit${opts.shell?' '+opts.shell:''}"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}${cptH}</label>${rows}${opts.after||''}<button class="add-line" data-add="${key}">${addTxt}</button>${opts.guard?`<p class="nf-guard" id="${esc(opts.guard)}" role="status">${esc(opts.guardTxt||'')}</p>`:''}</fieldset>`;}
+  return `<fieldset class="field list-edit${opts.shell?' '+opts.shell:''}"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}${cptH}</label><div class="le-grp">${rows}${opts.after||''}<button class="add-line" data-add="${key}">${addTxt}</button></div>${opts.guard?`<p class="nf-guard" id="${esc(opts.guard)}" role="status">${esc(opts.guardTxt||'')}</p>`:''}</fieldset>`;}
 // Garde-fou « Ne pas oublier » (v4.4.0, non bloquant — registre ATTENTION) : au-delà de 4
 // memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
 // On suggère le reclassement, on n'empêche rien.
@@ -25754,6 +25779,7 @@ function renderEditor(){_renderN++;
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
+    <h1 class="ed-ttl">${isNew?'Nouvelle aide':'Modifier l’aide'}</h1>${''/* A520 (lot 9) : le grand titre de la page (24) */}
     ${edTocHtml(f)}
     ${edGrabBanner(f)}
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette aide',codePh:'ex. URG-ANA-01',fem:true})}
