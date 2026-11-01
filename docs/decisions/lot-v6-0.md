@@ -826,3 +826,25 @@ dans l'app installée au simulateur iOS 27.0 (thème sombre) : au repos, « Sél
 pastilles sont sous l'heure, visibles ; Moi idem ; en navigateur, rien ne bouge (inset 0).
 La planche « une seule bande » (bande sous l'heure teintée comme la barre une fois collée) reste à trancher par l'auteur.
 Témoin : `audit-doctrine` « Accueil · A541 » (accueil, Moi, Sessions, sans bannière ; vérifié capable d'échouer : 3 rouges).
+
+## A542 — Une seule bande en haut une fois défilé (v5.73.3)
+
+*Amende A370 (sol opaque couleur de page) ; choix de l'auteur sur planche (« Oui, une bande »), 01/11/2026.*
+
+Une fois l'accueil défilé, deux bandes s'empilaient : le SOL sous l'heure (couleur de page, A370) puis la barre collante
+en verre, plus claire — le contenu semblait coupé au bas du sol. Quand la barre est collée (`.stuck`), le sol prend
+SA teinte : `color-mix(--work 90 %, --amb)`, le verre de la barre posé sur la page. Une seule bande, de l'heure au bas
+de la barre, comme une barre de navigation iOS. Au repos, le sol reste couleur de page. Le sol reste OPAQUE : le flou
+qu'iOS 27 pose sur le bord haut reste invisible (A370). *Formes écartées* : retirer la descente de 16 px d'A373 (les
+deux bandes restaient) ; garder deux bandes.
+
+## A543 — La barre d'onglets au bas d'iOS (v5.73.3)
+
+*Précise A517 et A538 ; signalé par l'auteur : « le dock n'est-il pas un peu haut ? ».*
+
+Mesuré au simulateur iOS 27.0 (iPhone 17, app installée) contre la barre d'onglets de Photos : la nôtre finissait à
+47 pt du bord bas (12 px + zone sûre de 34), celle d'iOS à 23 pt — une barre d'onglets native descend DANS la zone de
+la barre d'accueil. Un token unique `--tb-bot: max(12px, var(--sab) − 10px)` place la barre d'onglets ET la recherche
+qui la remplace (A538) : 24 pt sur un iPhone à Face ID, 12 px sans zone sûre (navigateur, iPhone SE). La réserve du
+pied (96 px + zone sûre) reste plus que suffisante.
+Témoin (A542-A543) : `audit-doctrine` « Accueil · A542-A543 » (vérifié capable d'échouer : 2 rouges).

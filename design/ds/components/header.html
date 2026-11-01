@@ -171,6 +171,9 @@
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A543 : le bas des barres flottantes du téléphone (onglets, recherche). Comme une barre d'onglets iOS, elle descend
+     DANS la zone de la barre d'accueil (24 pt du bord sur iPhone à Face ID, mesuré sur Photos d'iOS 27) ; 12 px sans zone. */
+  --tb-bot:max(12px, calc(var(--sab) - 10px));
   /* A511 — ZONES SÛRES LATÉRALES : un iPhone en PAYSAGE a l'encoche ou la Dynamic Island sur un côté
      (~60 pt). Seule la visionneuse PDF les lisait : sur l'appareil, l'île couvrait le bouton retour et
      coupait « PARCOURS ». Nulles en portrait, en navigateur de bureau et sur iPad. ÷ --zf à l'usage (règle 10). */
@@ -831,6 +834,9 @@
        flouter (signalements iOS 27 : MeshMonitor #5286, grappa-irc #2190). Sous les fenêtres (z 55). */
     body:is(.view-home,.view-read,.view-pread,.view-edit,.view-pedit)::before{content:"";position:fixed;left:0;right:0;top:0;z-index:90;
       height:calc(var(--sat) / var(--zf,1));background:var(--amb);pointer-events:none}
+    /* A542 : la barre collante en verre, le sol prend SA teinte (le verre posé sur la page) — une seule bande de l'heure
+       au bas de la barre, comme une barre de navigation iOS ; au repos, il reste couleur de page. */
+    body.view-home:has(.pg-top.stuck)::before{background:color-mix(in srgb,var(--work) 90%,var(--amb))}
     /* z 90 : AU-DESSUS des fenêtres (55) et des feuilles (70) — c'est le contenu d'une page-fenêtre qui
        défile sous l'heure (Moi, Sessions) que le verre floute ; sous l'écran d'entrée de l'invité (96) et
        les alertes (80). ⚠ CE SOL NE SUPPRIME PAS LE VERRE, IL LE REND INVISIBLE (A370, sonde rouge au
@@ -878,7 +884,7 @@
      de verre translucide, dont le contraste dépend de ce qui passe dessous (A222, mesures NN/G). */
   body.view-home #homeDock{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
     position:fixed;left:0;right:0;bottom:0;z-index:20;
-    padding:0 16px calc(12px + var(--sab,0px))}
+    padding:0 16px var(--tb-bot)}
   @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home #homeDock::before{content:"";position:absolute;left:0;right:0;bottom:0;top:-40px;z-index:-1;pointer-events:none;
       -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
@@ -988,7 +994,7 @@
   html.tabnav:not(.kbd) body.view-home #homeDock .filt-tog{width:62px;height:62px;min-height:62px}
   html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
   html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
-    left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:calc(12px + var(--sab,0px));pointer-events:none}
+    left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:var(--tb-bot);pointer-events:none}
   .tb-tabs{flex:1;display:flex;min-width:0;height:62px;padding:4px;border-radius:999px;pointer-events:auto}
   .tb-srch{flex:none;display:grid;place-items:center;width:62px;height:62px;padding:0;border-radius:999px;cursor:pointer;pointer-events:auto}
   :is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
@@ -8740,7 +8746,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvy6w1x6aiuetc18">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvy6w1x61ei6gwj1">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvyal1p91w85otsw">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvyal1p9r6d6mguh">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8856,7 +8862,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvy6w1x6aiuetc18">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvy6w1x61ei6gwj1">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvyal1p91w85otsw">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvyal1p9r6d6mguh">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
