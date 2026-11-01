@@ -695,3 +695,29 @@ Demande de l'auteur après A534. Dans le rail droit de la session (≥ 1200 px) 
 - **jalon** : la condition, sa jauge à points (celle des étapes au seuil, A474), le compte, et le texte de l'auteur en
   sous-ligne « → … ». Le △ de tête part (déjà retiré de la colonne en A388).
 Témoin : `audit-doctrine` « Session · A535 » (vérifié capable d'échouer).
+
+## A536 — Les bords au téléphone : barre collante pleine largeur, « Fermer » de la Page, bande de Safari (v5.72.1)
+
+Signalé par l'auteur sur iPhone (Safari 26, navigation privée), deux captures : « problème largeur en haut, problème
+couleur fond en bas ». Reproduit en WebKit et dans Safari du simulateur iOS 26.5.
+
+1. **La barre collante de l'accueil s'arrêtait à 8 px du bord droit.** Elle déborde de `main` de 18 px de chaque côté
+   (`margin:0 -18px`), mais `.home-main` garde à droite la réservation de 8 px du rail A→Z (C53) : le verre finissait à
+   422 px sur 430, et le gris de la page passait dessous. Le fond traverse maintenant les 26 px (`margin-right:-26px`) ;
+   la réservation reste, et « Créer » reste aligné sur le bord des cartes (`padding-right:26px`).
+2. **« Fermer » de la Page était collé en haut et contre le titre.** La règle générique `.ai-card .ai-x` lui donnait
+   `margin:-10px -10px -10px 0` (le × d'un dialogue). `.pm-close` remet `margin:0` : 10 px d'air en haut, 12 px avant
+   le titre.
+3. **La bande du bas de Safari prenait la couleur de ce qui restait sous la feuille.** Safari 26 teint sa barre
+   d'outils avec l'élément FIXÉ qui touche le bas de la fenêtre, même entièrement couvert : sous la feuille « Page »,
+   c'était le bouton bleu « Démarrer » du quai (bande bleu marine), ou la bulle sombre du guide. Une feuille opaque
+   (`.sheet-full`, classe `modal-full`) masque désormais l'app et la bulle du guide (`visibility:hidden` sur `.app`,
+   `#gdTip`, `#gdVeil`) : la bande prend la couleur de la feuille. Le verrou est levé AVANT le retour du focus
+   (`_bgUnlock` puis `focus()`), donc l'élément d'origine est déjà visible quand il le reçoit. `#alerts` et `#srLive`
+   sont hors de `.app` : les annonces continuent.
+
+*Formes écartées* : remettre les boutons symétriques à 18 px des bords (« Créer » se décalait de 8 px par rapport aux
+cartes) ; supprimer la réservation de 8 px (C53 : sous 6 px, le fond du rail peint sur les rangées).
+Non reproduit : une différence de couleur en bas de l'accueil seul (la bande y a la couleur de la page, mesurée sur la
+capture : 242,246,247 partout).
+Témoin : `audit-doctrine` « Bords · A536 » (vérifié capable d'échouer : 3 rouges sur l'avant).

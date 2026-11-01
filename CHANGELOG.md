@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.72.1] — 2026-11-01
+Bords au téléphone, signalés sur iPhone (A536, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Accueil** : la barre du haut, quand elle reste collée en défilant, va jusqu'au bord droit de l'écran (elle
+  s'arrêtait 8 px avant).
+- **Page** : « Fermer » n'est plus collé en haut ni contre le titre.
+- **Safari** : sous la Page (et toute feuille plein écran), la bande du bas ne prend plus la couleur du bouton bleu
+  « Démarrer » ou de la bulle du guide restés dessous.
+
 ## [5.72.0] — 2026-11-01
 Le rail de la session à la maquette Natif (A535, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Compteurs** : « − 1 + », la valeur entre ses deux boutons.
@@ -199,11 +207,3 @@ et WebKit (A511, doctrine `docs/decisions/lot-v5-57.md`). Rien à rejouer côté
 - **Moniteur** : avec le texte agrandi sur un petit écran, l'étiquette d'une échéance ne peut plus sortir de sa bande.
 - Outillage : le harnais d'accessibilité ouvrait le moniteur par une fonction inexistante (son contraste n'était
   jamais mesuré) ; deux témoins nouveaux ou élargis (quai à texte agrandi, paysage bas), vérifiés capables d'échouer.
-
-## [5.57.1] — 2026-10-31
-Un signalement sur capture, iPad installé (A501, doctrine `docs/decisions/lot-v5-57.md`). Rien à rejouer côté serveur.
-- **La colonne gauche de l'accueil ne passe plus sous la barre d'état de l'iPad.** En app installée, la marque
-  « Aides cognitives » en tête de la colonne était coupée et délavée sous l'heure, alors que la recherche et
-  « Créer » avaient leur dégagement : la colonne est fixée au bord haut et son premier étage ne lisait pas l'inset
-  de zone sûre, que l'en-tête lit depuis toujours. Une propriété ; rien ne change en navigateur ni sur Mac.
-  À vérifier sur l'appareil, portrait et paysage.

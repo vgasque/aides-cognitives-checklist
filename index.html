@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-IIPqQCvpGtY3BgnKdAa8+4HZ6SsBEpujFz/VzADTQV8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-uuO4OdkOjNAqTbIy6eI8YVrLGNSQVQ5wZM2pfkuWv2M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2947,6 +2947,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        valeur à l'existence du rail). 8 px est le PLANCHER, déduit : sous 6 le fond translucide du
        rail peindrait sur la rangée ; gouttière = 18 − (rail − 12). Détail : doctrine-css.md C53. */
     body.view-home .home-main{padding-right:8px}
+    /* A536 : le fond de la barre collante traverse la réservation (18 + 8) jusqu'au bord ; ses boutons
+       restent alignés sur les cartes. */
+    body.view-home .pg-top{margin-right:calc(-18px - 8px);padding-right:calc(18px + 8px)}
     /* ⚠ Rebond de fin de page : WebKit translate aussi les `fixed` — aucune mesure JS ne le voit.
        `overscroll-behavior-y:none` supprime le rebond, borné à l'accueil en voie étroite, posé
        sur `html` ET `body` (racine obligatoire), et SEULEMENT pendant le geste (pointerdown sur
@@ -7178,6 +7181,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   }
   html.modal-full,html.modal-full body{overflow:hidden;overscroll-behavior:none}
+  /* A536 : Safari 26 teint sa barre du bas avec l'élément FIXÉ qui touche le bas, même couvert (le
+     « Démarrer » bleu, la bulle du guide). Derrière une feuille opaque, rien de fixé ne reste peint. */
+  html.modal-full :is(.app,#gdTip,#gdVeil){visibility:hidden}
   /* Feuille « Plan » : PLEIN ÉCRAN à toutes largeurs, la modale est LE défileur. ⚠ align-items
      reste flex-start : `stretch` fige la carte à l'écran et le seul défileur devient la page
      DERRIÈRE (bogue constaté) ; min-height:100dvh ; overscroll-behavior:none — rien derrière ne
@@ -7192,7 +7198,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .plan-modal .ai-x{flex:none;position:static}
   /* A522 (lot 11) : « Fermer » en mot, à gauche ; l'échelle en segmenté au centre ; Imprimer et Exporter à droite ;
      la Page est une feuille blanche CENTRÉE sur un fond gris. */
-  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
+  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;margin:0;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
   .pm-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
   .pm-tools:empty{display:none}
   .pm-out{display:flex;gap:8px}
@@ -9565,7 +9571,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.72.0';
+const APP_VERSION='5.72.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

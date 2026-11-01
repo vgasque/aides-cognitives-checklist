@@ -2554,6 +2554,9 @@
        valeur à l'existence du rail). 8 px est le PLANCHER, déduit : sous 6 le fond translucide du
        rail peindrait sur la rangée ; gouttière = 18 − (rail − 12). Détail : doctrine-css.md C53. */
     body.view-home .home-main{padding-right:8px}
+    /* A536 : le fond de la barre collante traverse la réservation (18 + 8) jusqu'au bord ; ses boutons
+       restent alignés sur les cartes. */
+    body.view-home .pg-top{margin-right:calc(-18px - 8px);padding-right:calc(18px + 8px)}
     /* ⚠ Rebond de fin de page : WebKit translate aussi les `fixed` — aucune mesure JS ne le voit.
        `overscroll-behavior-y:none` supprime le rebond, borné à l'accueil en voie étroite, posé
        sur `html` ET `body` (racine obligatoire), et SEULEMENT pendant le geste (pointerdown sur
@@ -6785,6 +6788,9 @@
     html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   }
   html.modal-full,html.modal-full body{overflow:hidden;overscroll-behavior:none}
+  /* A536 : Safari 26 teint sa barre du bas avec l'élément FIXÉ qui touche le bas, même couvert (le
+     « Démarrer » bleu, la bulle du guide). Derrière une feuille opaque, rien de fixé ne reste peint. */
+  html.modal-full :is(.app,#gdTip,#gdVeil){visibility:hidden}
   /* Feuille « Plan » : PLEIN ÉCRAN à toutes largeurs, la modale est LE défileur. ⚠ align-items
      reste flex-start : `stretch` fige la carte à l'écran et le seul défileur devient la page
      DERRIÈRE (bogue constaté) ; min-height:100dvh ; overscroll-behavior:none — rien derrière ne
@@ -6799,7 +6805,7 @@
   .plan-modal .ai-x{flex:none;position:static}
   /* A522 (lot 11) : « Fermer » en mot, à gauche ; l'échelle en segmenté au centre ; Imprimer et Exporter à droite ;
      la Page est une feuille blanche CENTRÉE sur un fond gris. */
-  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
+  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;margin:0;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
   .pm-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
   .pm-tools:empty{display:none}
   .pm-out{display:flex;gap:8px}

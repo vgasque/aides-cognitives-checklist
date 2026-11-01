@@ -2554,6 +2554,9 @@
        valeur à l'existence du rail). 8 px est le PLANCHER, déduit : sous 6 le fond translucide du
        rail peindrait sur la rangée ; gouttière = 18 − (rail − 12). Détail : doctrine-css.md C53. */
     body.view-home .home-main{padding-right:8px}
+    /* A536 : le fond de la barre collante traverse la réservation (18 + 8) jusqu'au bord ; ses boutons
+       restent alignés sur les cartes. */
+    body.view-home .pg-top{margin-right:calc(-18px - 8px);padding-right:calc(18px + 8px)}
     /* ⚠ Rebond de fin de page : WebKit translate aussi les `fixed` — aucune mesure JS ne le voit.
        `overscroll-behavior-y:none` supprime le rebond, borné à l'accueil en voie étroite, posé
        sur `html` ET `body` (racine obligatoire), et SEULEMENT pendant le geste (pointerdown sur
@@ -6785,6 +6788,9 @@
     html.modal-open,html.modal-open body{overflow:hidden;overscroll-behavior:none}
   }
   html.modal-full,html.modal-full body{overflow:hidden;overscroll-behavior:none}
+  /* A536 : Safari 26 teint sa barre du bas avec l'élément FIXÉ qui touche le bas, même couvert (le
+     « Démarrer » bleu, la bulle du guide). Derrière une feuille opaque, rien de fixé ne reste peint. */
+  html.modal-full :is(.app,#gdTip,#gdVeil){visibility:hidden}
   /* Feuille « Plan » : PLEIN ÉCRAN à toutes largeurs, la modale est LE défileur. ⚠ align-items
      reste flex-start : `stretch` fige la carte à l'écran et le seul défileur devient la page
      DERRIÈRE (bogue constaté) ; min-height:100dvh ; overscroll-behavior:none — rien derrière ne
@@ -6799,7 +6805,7 @@
   .plan-modal .ai-x{flex:none;position:static}
   /* A522 (lot 11) : « Fermer » en mot, à gauche ; l'échelle en segmenté au centre ; Imprimer et Exporter à droite ;
      la Page est une feuille blanche CENTRÉE sur un fond gris. */
-  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
+  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;margin:0;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
   .pm-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
   .pm-tools:empty{display:none}
   .pm-out{display:flex;gap:8px}
@@ -8699,7 +8705,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxr6gp4el0jhfqw">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxr6gp4rw18qm5g">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxxxua11h7k9vm1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxxxua1z7idris5">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8815,7 +8821,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxr6gp4el0jhfqw">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxr6gp4rw18qm5g">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxxxua11h7k9vm1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxxxua1z7idris5">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

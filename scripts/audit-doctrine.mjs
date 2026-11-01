@@ -8445,6 +8445,26 @@ await sec('Remesure · A530-A533', async () => {
     await page.close();}
 });
 
+/* ══ A536 — BORDS AU TÉLÉPHONE : BARRE COLLANTE PLEINE LARGEUR, « FERMER » DE LA PAGE, BANDE DE SAFARI ══════════ */
+await sec('Bords · A536 barre pleine largeur, Fermer, rien de fixé sous une feuille', async () => {
+  const page=await br.newPage({viewport:{width:430,height:932},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const h=await page.evaluate(()=>{const b=document.querySelector('.pg-top').getBoundingClientRect(),r=document.querySelector('.pg-r').getBoundingClientRect(),c=(()=>{let e=document.querySelector('.card-open');while(e&&getComputedStyle(e).backgroundColor==='rgba(0, 0, 0, 0)')e=e.parentElement;return e.getBoundingClientRect();})();
+    return {bord:Math.round(innerWidth-b.right),r:Math.round(r.right),carte:Math.round(c.right)};});
+  t('A536 · 430 px : le fond de la barre collante touche le bord droit',h.bord===0,JSON.stringify(h));
+  t('A536 · 430 px : « Créer » reste aligné sur les cartes',Math.abs(h.r-h.carte)<=1,JSON.stringify(h));
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const p=await page.evaluate(async()=>{openPlanSheet('page');await new Promise(x=>setTimeout(x,400));
+    const bar=document.querySelector('#planModal .pm-bar').getBoundingClientRect(),x=document.querySelector('#planModal .pm-close').getBoundingClientRect(),tt=document.querySelector('#planModal .pm-ttl').getBoundingClientRect();
+    return {haut:Math.round(x.top-bar.top),air:Math.round(tt.left-x.right),app:getComputedStyle(document.querySelector('.app')).visibility};});
+  t('A536 · Page : « Fermer » a son air (haut ≥ 8, titre ≥ 8)',p.haut>=8&&p.air>=8,JSON.stringify(p));
+  t('A536 · Page ouverte : rien de l\'app ne reste peint dessous (Safari 26 en teint sa barre)',p.app==='hidden',JSON.stringify(p));
+  const apres=await page.evaluate(async()=>{document.querySelector('#planModal .pm-close').click();await new Promise(x=>setTimeout(x,300));return getComputedStyle(document.querySelector('.app')).visibility;});
+  t('A536 · Page fermée : l\'app revient',apres==='visible',apres);
+  await page.close();
+});
+
 /* ══ A535 — LE RAIL DE SESSION AU DESSIN DE LA MAQUETTE ═══════════════════════════════════════════════════════ */
 await sec('Session · A535 rail : « − 1 + », minuteur gris, jalon à jauge', async () => {
   const page=await br.newPage({viewport:{width:1280,height:800}});
