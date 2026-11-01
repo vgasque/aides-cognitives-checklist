@@ -848,3 +848,15 @@ la barre d'accueil. Un token unique `--tb-bot: max(12px, var(--sab) − 10px)` p
 qui la remplace (A538) : 24 pt sur un iPhone à Face ID, 12 px sans zone sûre (navigateur, iPhone SE). La réserve du
 pied (96 px + zone sûre) reste plus que suffisante.
 Témoin (A542-A543) : `audit-doctrine` « Accueil · A542-A543 » (vérifié capable d'échouer : 2 rouges).
+
+## A544 — Recherche, filtre, quitter : la barre d'onglets revient (v5.73.4)
+
+*Précise A517 (la recherche remplace la barre d'onglets) et A538 ; signalé par l'auteur.*
+
+Au téléphone : ouvrir la recherche, toucher le bouton filtre à gauche du champ, fermer la feuille, puis quitter —
+la recherche restait affichée à la place de la barre d'onglets. La fermeture ne s'écoutait qu'au `blur` du CHAMP ;
+en fermant la feuille, le focus revient au bouton filtre (dans le dock), puis plus rien ne déclenchait la sortie.
+**Correctif.** La sortie du focus s'écoute sur tout le dock (`focusout`), et un tap hors du dock et hors d'une feuille
+referme aussi, champ vide (`tbSearchMaybeClose(horsDock)` : Safari iOS ne déplace pas toujours le focus d'un bouton
+au tap ailleurs). Un tap DANS une feuille ne compte pas : en revenant des filtres, la recherche reste ouverte.
+Témoin : `audit-doctrine` « Accueil · A544 » (vérifié capable d'échouer).

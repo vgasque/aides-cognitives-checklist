@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A543** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A544** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -167,6 +167,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A541 | `lot-v6-0.md` | Au téléphone, l'en-tête vidé par les onglets garde la réserve de la barre d'état : accueil, Moi, Sessions n'étaient plus tronqués au repos (v5.73.2) |
 | A542 | `lot-v6-0.md` | Une seule bande en haut une fois défilé : le sol sous l'heure prend la teinte de la barre collée (v5.73.3) |
 | A543 | `lot-v6-0.md` | Barre d'onglets et recherche au bas d'iOS (`--tb-bot`, 24 pt sur Face ID, 12 px sinon) (v5.73.3) |
+| A544 | `lot-v6-0.md` | Recherche → filtre → quitter : la barre d'onglets revient (focusout du dock, tap hors du dock) (v5.73.4) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -8450,6 +8450,23 @@ await sec('Remesure · A530-A533', async () => {
     await page.close();}
 });
 
+/* ══ A544 — RECHERCHE → FILTRE → QUITTER : LA BARRE D'ONGLETS REVIENT ══════════════════════════════════════════ */
+await sec('Accueil · A544 recherche, filtre, quitter', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const etat=()=>page.evaluate(()=>({recherche:document.documentElement.classList.contains('tb-q'),onglets:!document.getElementById('tabNav').hidden}));
+  await page.tap('#tbSrch');await page.waitForTimeout(300);
+  await page.tap('#homeDock .filt-tog');await page.waitForTimeout(500);
+  await (await page.$('#viewSheet .ai-x')).tap();await page.waitForTimeout(500);
+  const apresFeuille=await etat();
+  await page.mouse.click(200,400);await page.waitForTimeout(500);
+  const apresTap=await etat();
+  t('A544 · feuille de filtres fermée : la recherche reste ouverte',apresFeuille.recherche&&!apresFeuille.onglets,JSON.stringify(apresFeuille));
+  t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
+  await page.close();
+});
+
 /* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
 await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async () => {
   const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
