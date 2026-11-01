@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.70.0] — 2026-11-01
+Remesure complète de la refonte « Natif » sur 18 formats (A530-A533, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Survols** : une quinzaine de boutons et de rangées ne réagissaient pas au passage de la souris ; ils réagissent
+  tous, selon leur famille. Les rangées ne se soulèvent plus, elles se teintent.
+- **Intertitres en minuscules partout** (colonnes de la session, éditeur, Moi, menu ⋯, Affichage) ; seuls les mots
+  d'état (« Critique », « Vigilance », « ● Session », « En cours ») restent en capitales.
+- **Téléphone tourné** : le titre de l'aide n'est plus coupé dans l'en-tête (« Schéma » passe au menu ⋯).
+- **Moniteur** : en portrait, le grand chiffre est nettement plus grand (220 px sur iPad, 109 px sur iPhone).
+- Petits écrans : « Avant la session » ne passe plus sous « Page » à 320 px ; la pastille « À compléter » a une cible
+  de 44 px ; le sélecteur de sections d'Administration reste sur une ligne.
+
 ## [5.69.0] — 2026-11-01
 Refonte « Natif » : trois arbitrages de forme tranchés sur planche (A527-A529, doctrine `docs/decisions/lot-v6-0.md`).
 Rien à rejouer côté serveur.
@@ -201,12 +213,3 @@ Le menu des catégories dit ce qu'est une catégorie (A498, doctrine `docs/decis
   « Une seule par aide, avec sa couleur, vue par toute l'équipe de « SAMU 31 ». Pour un rangement à vous seul : les
   collections. » Dans Perso, où tout est déjà personnel : « Une seule par aide, avec sa couleur, pour classer
   l'accueil. Une aide peut être dans plusieurs collections. »
-
-## [5.56.1] — 2026-10-15
-Deux retours de l'auteur sur capture (amende A496, doctrine `docs/decisions/lot-v5-56.md`).
-- **Au bureau, « Choisir… » (Collections) ouvre un menu ancré sous ses jetons**, comme « Autre… » pour la catégorie —
-  il s'ouvrait en feuille au bas de l'écran. Le titre « Ajouter à une collection » et sa définition restent, d'un cran
-  plus serrés ; le menu prend une coque plus large et ne sort plus de l'écran (il se borne à la place disponible sous
-  la rangée, et c'est vrai de tous les menus ancrés).
-- **Un filtre de texte dès cinq collections**, dans le menu de l'éditeur comme dans la feuille de l'accueil, pour
-  retrouver une collection par son nom.

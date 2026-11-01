@@ -703,7 +703,7 @@
   .mm-chev{flex:none;display:inline-flex;color:var(--ink-3)}
   .mm-sep{height:1px;background:var(--line);margin:4px 8px}
   /* A337 : INTERTITRE de groupe (Session · L'aide) — à huit rangées et plus, on balaie par groupe. */
-  .mm-head{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:10px 10px 4px}
+  .mm-head{font-size:var(--t-meta);font-weight:600;color:var(--ink-2);padding:10px 10px 4px}   /* A531 */
   /* A337 : les OUVERTURES en TUILES — elles ouvrent une vue, elles ne font rien ; quatre rangées
      (176 px) tiennent en 56. Même classe `.mm-row` : clavier, focus et témoins inchangés. */
   .mm-tiles{display:flex;gap:4px}
@@ -1065,6 +1065,7 @@
      juste en dessous) : c'est donc le discriminant qui s'ellipse s'il faut, et lui seul. */
   .brand-sur .bs-m{flex:none}
   .brand-sur.pre .bs-m{color:var(--ink-2);font-weight:700}   /* « Avant la session » : un état, pas une alerte */
+  html.zw360 .brand-sur.pre{display:none}   /* A532 : sous 360 px l'état « Avant la session » passait sous « Page » ; le grand titre et « Confirmé — démarrer » le disent */
   /* v5.30 (maquette v5, K6) : le discriminant suit le TITRE sur sa ligne — « Titre · adulte » —, jamais dans la chaîne ellipsée. */
   .bt-line{display:flex;align-items:baseline;gap:6px;min-width:0}
   #brandDisc{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);white-space:nowrap;line-height:inherit}
@@ -1913,7 +1914,7 @@
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--act);flex:none;display:inline-flex}
   .sys-banner .sb-txt{flex:1;min-width:0}
-  .sys-banner .sb-act{background:none;border:0;color:var(--act);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:8px;cursor:pointer;flex:none}
+  .sys-banner .sb-act{background:none;border:0;color:var(--act);font-size:var(--t-body);font-weight:700;padding:6px 8px;min-height:32px;border-radius:8px;cursor:pointer;flex:none}
   .sys-banner .sb-act:hover{background:var(--primary-100)}
   /* 15,5 px et non 19 (v5.0.0, audit design A3-1) : à l'accueil, cette croix était le plus
      GROS glyphe de l'écran après la marque — le point focal d'un bandeau était son bouton
@@ -2459,7 +2460,7 @@
     body.view-home #hdrNew:hover{background:var(--line)}
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
-  .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .vs-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
   .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
   .vs-part{display:flex;align-items:center;gap:8px;min-height:calc(32px + 10px + 1px);padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}   /* v5.39.9 : la cible de 32 px de « Tout effacer », plus le pied et le filet (boîte en border-box) — sa venue ne grandit plus le bandeau (39 → 43 px mesurés) */
@@ -2601,6 +2602,7 @@
      au-dessus du seuil de 24 px de WCAG 2.5.8 une fois l'écart de la rangée compté) et reste
      entier en largeur, où il ne dispute rien. */
   .tag.todo::after{content:"";position:absolute;inset:0 -6px}
+  .read-meta .tag.todo::after{inset:-11px -6px}   /* écran de démarrage : rien au-dessus à disputer, la cible monte à 44 px */
   .tag.todo:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* Fiches liées : chips en lecture, éditeur avec croix de retrait. */
   .related{margin:16px 0 4px}.related>b{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px}
@@ -2907,7 +2909,7 @@
   .pf-arr>span{font-weight:700}
   .pf-src{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:var(--amb-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink);cursor:pointer}
   .pf-seg{display:flex;align-items:center;gap:10px;margin:24px 0 8px;padding:0 8px}
-  .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+  .pf-segl{font-size:var(--t-body);font-weight:600;color:var(--ink-2);white-space:nowrap}   /* A531 : intertitre en phrase */
   .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
   /* A394, REDESSINÉE EN A450 : une BRANCHE = « SI réponse » puis ses blocs, décalés d'un cran le long d'UN filet (coin
      arrondi vers l'en-tête, puis descente). L'arbre suit celui de `flowPlan` : une branche dans une branche se décale
@@ -3451,7 +3453,6 @@
   body.view-edit.ed-focus .ed-pec>:not(.ed-cur){display:none}
   /* A521 : la colonne Structure (≥ 1200 px) prend le dessin de la maquette — intitulé en phrase, rangée sur deux
      lignes (titre, compte), sans filet ; le bloc ouvert est surligné, son numéro plein. */
-  .ed-struct .rail-head .rail-title{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
   .ed-struct .rail-head .rail-n{display:none}
   .ed-struct .eds-row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:0;align-items:center;min-height:52px;padding:6px 8px;border-top:0;border-radius:10px}
   .ed-struct .eds-n{grid-row:span 2;width:24px;height:24px;border-radius:8px}
@@ -3963,7 +3964,7 @@
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--crit);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
-  .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A531 : même étiquette que .tme-l */
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
   /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
@@ -4515,7 +4516,7 @@
   /* Ligne label + bouton (ex. « B » du contexte local) : le bouton reste HORS du <label>
      (un bouton DANS un label devient son contrôle implicite -> cliquer le libellé cliquait le bouton). */
   .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-  .field .lab-row>label{display:block;font-size:var(--t-body);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+  .field .lab-row>label{display:block;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   .field .hint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-2);font-size:12px}
   .field input[type=text],.field textarea,.field select{width:100%;min-height:44px;padding:8px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
   .field .ed-title-in{min-height:52px;font-size:17.5px;font-weight:700}
@@ -4549,7 +4550,7 @@
   .add-line{margin-top:4px;min-height:44px;border:1.5px dashed var(--ctl-line);background:transparent;color:var(--ink-2);padding:8px 12px;border-radius:var(--r-3);font-size:15px;font-weight:700;width:100%}
   .add-line:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
   fieldset{border:0;margin:0 0 4px;padding:0;min-width:0}
-  .sub2{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .sub2{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:0 0 8px}   /* A531 */
   /* `.trow` PURGÉ en v4.78.0 (règle 14) : c'était la rangée plate du compteur, remplacée par la
      carte `.tmedit` — celle du minuteur, dont l'en-tête tient déjà la poignée et la croix à place
      constante. Vérifié au grep : zéro émission. Les champs du compteur héritent désormais des
@@ -4687,7 +4688,7 @@
   .crit-guide[open] summary{margin-bottom:2px}
   .crit-guide .cg-r{color:var(--crit)}
   .crit-guide .cg-a{color:var(--warn)}
-  .flow-prev-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+  .flow-prev-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:0 0 6px}   /* A531 */
   /* Aperçu d'algorithme éditeur étroit (< 1000 px) : ENTREBÂILLÉ, jamais fermé. PAS un details
      (fermé il ne rend rien) — conteneur + vrai bouton + `max-height`, sans AUCUNE transition
      dessus (mise en page, check-anim). Le fondu du bas dit « ça continue » et fond vers
@@ -5201,7 +5202,7 @@
   .tme-row input[type=number]{width:64px;flex:none;padding:8px;border:1.5px solid var(--ctl-line);
     border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit}
   .tme-row.due input[type=text]{flex:1;min-width:0}
-  .tme-l{flex:none;min-width:82px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .tme-l{flex:none;min-width:82px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A531 : étiquette de champ en phrase */
   .tme-u{flex:none;font-size:12px;color:var(--ink-soft)}
   .tme-loop{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft)}
   .tme-h{margin:0;font-size:11px;line-height:1.4;color:var(--ink-soft)}
@@ -5228,7 +5229,7 @@
      (Les variantes steps/decision, jamais émises — l'éditeur n'a que tm-kind —, sont purgées.) */
   .blk-type.tm-kind{background:var(--amb-2);color:var(--ink-2);font-family:var(--f-mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
-  .blk .sub{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:12px 0 4px}
+  .blk .sub{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:12px 0 4px}   /* A531 */
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   /* v5.33.1 : les champs d'un bloc (question, réponses, cibles) au gabarit des étapes — M 40, 15 px (16 au toucher). */
   .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]){min-height:40px;padding-block:8px;font-size:15px}
@@ -5403,7 +5404,7 @@
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
   .ov-cur{display:table;margin-bottom:6px;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}   /* A465 : étiquette AU-DESSUS du titre — à côté, elle lui prenait la largeur d'un mot (« Reconnaissan / ce ») */
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
-  .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 : « Parcours » en phrase */
   /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
      titre et le compte, libellé qui s'abrège avant de toucher le compte, cible 44 par halo ; elle s'allume
      une fois quand un bloc coché la rejoint (ombre seule : peinture, jamais de mise en page). */
@@ -5590,7 +5591,7 @@
      ordinaire (deux canaux pour un état). Détail : doctrine-css.md C101. */
   /* A374 : le titre de rail n'était stylé qu'au-dessus de 780 (11 px) — au téléphone il tombait sur le 16 px
      du navigateur. Une règle, un corps (meta), aux deux largeurs. */
-  .rail-title{font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .rail-title{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}   /* A531 : intertitre de colonne en phrase (grammaire Natif, maquettes) */
   /* ⚠ Le losange a EXACTEMENT le style de la pastille ; le carré tourné vit en `::before` À
      L'INTÉRIEUR (26 px à 45° = 37 de diagonale, rogné — leçon v5.0.0), le chiffre reste droit.
      ⚠ `z-index:-1` sans contexte d'empilement passe SOUS le fond du parent : `isolation:isolate`
@@ -6023,7 +6024,7 @@
      `monPlace` sur la surface elle-même ; en son absence, rien ne change (190 px, le plafond
      d'origine). Le plancher de 64 px du `clamp` reste intouchable — c'est lui que `monPlace`
      réserve avant de compter ses rangées. */
-  .mon-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:min(clamp(64px,min(20vw,32vh),190px),var(--mon-vmax,190px));font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  .mon-val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:min(clamp(64px,min(28vw,32vh),190px),var(--mon-vmax,190px));font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
   .mon-val.due{color:var(--warn-line)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--warn-line)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
@@ -6098,7 +6099,7 @@
   .mon-hint{display:inline-flex;align-items:center;height:40px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;
     background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
     font-size:var(--t-item);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
-  .mon-val{font-size:min(clamp(64px,min(20vw,32vh),220px),var(--mon-vmax,220px))}
+  .mon-val{font-size:min(clamp(64px,min(28vw,32vh),220px),var(--mon-vmax,220px))}   /* A533 : 28vw (était 20) — en portrait la largeur bridait le chiffre lu à 2 m */
   .mon-prog{display:block;width:100%;max-width:640px;height:8px;margin-top:8px;border-radius:999px;background:var(--amb-2);overflow:hidden}
   .mon-prog>i{display:block;height:100%;border-radius:999px;background:var(--ink-2)}
   .mon-due{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
@@ -6340,7 +6341,8 @@
   .adm-ttl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
   .adm-ttl .adm-back{min-height:32px}
   /* A522 (lot 11, A520 §4) : les sections en SEGMENTÉ — piste grise, cran courant blanc, compte en gris. */
-  .adm-tabs{display:inline-flex;flex-wrap:wrap;gap:2px;margin:0 0 16px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}
+  .adm-tabs{display:inline-flex;flex-wrap:nowrap;max-width:100%;overflow-x:auto;scrollbar-width:none;gap:2px;margin:0 0 16px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}   /* une ligne, défilable : sur deux lignes la piste se lisait comme deux segmentés */
+  .adm-tab{flex:none}
   .adm-tab{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 14px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:var(--t-body);font-weight:600;color:var(--ink-2);cursor:pointer}
   .adm-tab[aria-current="page"]{color:var(--ink);background:var(--work);box-shadow:var(--shadow-work)}
   .adm-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
@@ -6478,7 +6480,7 @@
   .auth-hero-ic{width:56px;height:56px;border-radius:14px;background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
   .auth-hero h4{margin:0 0 4px;font-size:17.5px;color:var(--ink)}
   .auth-hero .auth-sub{margin:0}
-  .auth-label{display:block;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .auth-label{display:block;font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin-bottom:6px}   /* A531 */
   .auth-full{width:100%;justify-content:center;margin-top:8px}
   .auth-code{text-align:center;letter-spacing:8px;font-size:21px;font-weight:700;padding-left:8px}
   /* Suppression de compte : MÊME grammaire que « Supprimer la bibliothèque… » / « Supprimer
@@ -7262,7 +7264,7 @@
        10 d'un intertitre à sa première rangée (8 de marge + le gap de 2)
        12 au-dessus d'un intertitre, et de part et d'autre d'un filet
      Corollaire : un filet porte 10 de marge et non 12, le gap de 2 de son étage complétant. */
-  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:12px 0 8px}
+  .hs-h{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2);padding:0 12px;margin:12px 0 8px}   /* A531 */
   .hs-top>.hs-h:first-child{margin-top:0}
   /* ══ v5.19 — LA COLONNE A TROIS ÉTAGES, ET UN SEUL DÉFILE ═══════════════════════════════════
      MESURÉ AVANT DE DÉCIDER (iPad 11″ paysage, 1194 × 834 → 774 px utiles) : avec 3 bibliothèques
@@ -7672,7 +7674,7 @@
      Elle rejouait en petit ce que la colonne du milieu montre en grand depuis K1 (v4.64.0) ; la
      garder aurait laissé une seconde grammaire à tenir à jour pour zéro information nouvelle,
      exactement la dette que la v4.31.1 a payée au prix fort. */
-  .ep-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+  .ep-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2);margin:0 0 8px}   /* A531 */
   .ep-card{border:1px solid var(--line);border-radius:var(--r-4);background:var(--amb);overflow:hidden;box-shadow:var(--shadow-work)}
   .ep-empty{font-size:12px;color:var(--ink-soft);text-align:center;padding:10px 0}
   .ep-card.ep-md{background:var(--work);padding:12px 14px;font-size:12px}
@@ -8325,8 +8327,17 @@
      (leçon v4.4.4). Jamais en crise (le mouvement est réservé à l'alarme, ECAM), jamais en gros sur
      `.btn` ni `.ai-card` : la liste des porteurs est NOMINATIVE. Détail : doctrine-css.md C135. */
   .dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s,transform .12s cubic-bezier(.2,0,0,1),box-shadow .15s}
+  /* A530 (remesure de la refonte, étend A506) : une RANGÉE ne se soulève plus au survol — elle se teinte. Seul ce qui
+     FLOTTE (la porte « Ajouter ») garde le soulèvement. Et tout ce qui se clique répond au survol, selon sa famille :
+     bouton gris → un cran plus sombre, lien bleu → souligné, rangée → teinte. Les survols « inertes » (fond de survol
+     égal au fond de repos) sont corrigés ici, en un seul endroit. */
   @media (hover:hover) and (pointer:fine){
-    :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):hover{transform:translateY(-1px);box-shadow:var(--shadow-work)}
+    .ed-door:hover{transform:translateY(-1px);box-shadow:var(--shadow-work)}
+    :is(.rang-btn,.sel-tog,.pg-btn,.flow-ctrl.has-ver .blk-ver,.tag.todo,body.view-read .read-meta .tag.todo):hover{background:var(--line)}
+    :is(.hs-lnk,.pf-all,.pf-ref,button.pf-bh,.fold-card .atyp-link,.acct-more>summary,.auth-why>summary):hover{text-decoration:underline;text-underline-offset:3px}
+    :is(.conf-head.fold-head,.ov-tgl,.sess-join,.ed-ident>summary,.rt-sound:not(.off)):hover{background:var(--amb-2)}
+    .ov-prog>.ov-runline:hover{border-color:var(--line-strong)}
+    #cbTimers:hover{filter:brightness(.98)}
   }
   :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
   @media (prefers-reduced-motion:reduce){
@@ -8574,7 +8585,7 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxo8ha71gwkkxq4" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxo8ha71gwkkxq4:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxo8ha71gwkkxq4:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxo8ha71gwkkxq4:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxo8ha71gwkkxq4:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxo8ha7t9ju1216" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxpogsl55ha4g1j" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxpogsl55ha4g1j:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxpogsl55ha4g1j:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxpogsl55ha4g1j:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxpogsl55ha4g1j:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxpogsl10rvs7c1" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
   <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>
@@ -8582,7 +8593,7 @@
 <p class="ds-cap">Capture réelle (A345) : toutes les étapes partagent le même corps et la même colonne, case à DROITE ; le danger est un MOT — étiquette CRITIQUE (--crit) ou VIGILANCE (--warn) + bordure de case au registre + texte .sr-only, jamais un glyphe ⚠/△. Sous l’étape, en gris : la réponse attendue (« challenge :: réponse »). « Continuer » ne s’active qu’étapes cochées, et dit pourquoi tant qu’il ne l’est pas ; « Vérifier » ouvre la passe de constat.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxo8ha71gwkkxq4" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxo8ha71gwkkxq4:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxo8ha71gwkkxq4:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxo8ha71gwkkxq4:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxo8ha71gwkkxq4:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxo8ha7t9ju1216" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxpogsl55ha4g1j" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxpogsl55ha4g1j:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxpogsl55ha4g1j:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxpogsl55ha4g1j:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxpogsl55ha4g1j:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxpogsl10rvs7c1" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
   <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>

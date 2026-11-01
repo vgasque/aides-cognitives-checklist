@@ -623,3 +623,47 @@ même dialogue du système : un bouton « Imprimer ou PDF ». *Forme écartée* 
 
 Témoins : `audit-doctrine` « Accueil · … A528 », « Page · A529 », et la nature des rangées réécrite (« chaque
 protocole dit « Protocole », une aide ne porte pas de mot ») ; vérifiés capables d'échouer.
+
+## A530-A533 — Remesure complète de la refonte (v5.70.0)
+
+Demande de l'auteur : une fois les lots finis, tout remesurer. Méthode : une sonde sur 13 écrans × 18 formats
+(iPhone SE 1 et 2, 390, 430, Galaxy Fold plié 344 et déplié 882 × 1104, Surface Duo simple 540 et double 1114,
+téléphones tournés 667/844/932, iPad mini, Air portrait et paysage, 1024, 1280, 1440, 1920) : débordement horizontal,
+éléments hors écran, texte rogné, polices < 11 px, cibles, chevauchements de contrôles réellement atteignables
+(test de l'élément au point), erreurs de console ; puis, au bureau, chaque contrôle survolé (avant / après, parents
+compris) et l'inventaire des transitions ; enfin des planches-contacts relues écran par écran.
+**Résultat** : 0 débordement, 0 police < 11 px, 0 erreur de console ; transitions cohérentes (0,12-0,15 s pour les
+états, 0,25 s pour les étapes, 0,3 s pour la pastille glissante, toutes coupées sous « réduire les animations »).
+Corrigé :
+
+**A530 — Tout ce qui se clique répond au survol ; une rangée ne se soulève plus (étend A506).** 15 contrôles au
+curseur « main » restaient inertes (survol absent, ou égal au repos) : « Affichage », « Sélectionner », « Vérifier »,
+« Gérer », « Tout déplier », renvois du parcours, têtes de cartes repliables, « Rejoindre une session », bascules son
+et veille, « Identité », « À compléter »… Grammaire unique : bouton gris → un cran plus sombre, lien bleu → souligné,
+rangée → teinte. Le soulèvement au survol (`translateY` + ombre) quitte toutes les rangées (colonne gauche, palette,
+relecture, documents, versions) ; seule la porte « Ajouter », qui flotte, le garde. La pastille « À compléter » de
+l'écran de démarrage reçoit un halo de 44 px (rien au-dessus à disputer, contrairement à la liste).
+
+**A531 — Intertitres et étiquettes en phrase, partout (étend A516-A520).** Restaient en petites capitales espacées :
+les intertitres des colonnes (« PARCOURS », « MINUTEURS », « COMPTEURS », « JALONS », « BIBLIOTHÈQUE »,
+« COLLECTIONS », « CATÉGORIES »), « À TOUT MOMENT », « PARCOURS » en tête de la session, les intertitres et étiquettes
+de l'éditeur (« ÉTAPES », « ÉTAPE SUIVANTE », « MINUTEURS », « NOM COURT », « DURÉE », « CONTEXTE LOCAL »,
+« SCHÉMA — APERÇU »), « ADRESSE E-MAIL », « J'AI COMPRIS », l'intertitre du menu ⋯ et ceux de la feuille
+« Affichage ». **Restent en capitales, à dessein** : les MOTS D'ÉTAT (« Critique », « Vigilance », « ● Session »,
+« En cours », « Ici ») — registre ECAM, A345 — et l'eyebrow de l'en-tête ; la Page (document imprimé) garde sa typo.
+
+**A532 — Téléphone tourné : le titre garde sa place.** À 844 et 932 px de large, l'en-tête portait titre + Page +
+Schéma + ⋯ + compte, et le titre tombait à « Arrêt car… ». En paysage bas, « Schéma » quitte l'en-tête comme au
+téléphone en portrait (il est dans le menu ⋯). Sous 360 px, l'état « Avant la session » passait sous « Page » et se
+coupait net : il se retire (un état, pas une alerte ; le grand titre et « Confirmé — démarrer » le disent).
+
+**A533 — Le grand chiffre du moniteur grandit en portrait (précise A341).** Borné par `min(20vw, 32vh)`, il restait
+à 164 px sur un iPad en portrait (78 px sur un iPhone) avec une hauteur libre immense. 28 vw : 220 px (le plafond)
+sur iPad, 109 px sur iPhone ; il tient en largeur jusqu'à 320 px, et `--mon-vmax` (bande, A232) reste le garde-fou.
+Le segmenté d'Administration reste sur UNE ligne (défilable) au lieu de se replier dans sa piste à 667 px.
+
+**Vérifié et laissé** : les chevauchements relevés sont des barres flottantes au-dessus du contenu (voulu ; le bas de
+page reste atteignable au-dessus d'elles) ; l'anneau d'ouverture d'une fenêtre ouverte par script (A492 : au doigt,
+le focus va au titre) ; la césure de « Caté-gorie » / « Biblio-thèque » sous 430 px (A460) ; « Cochez les étapes
+restantes (4) » sur trois lignes à 320 px (libellé entier, A465).
+Témoin : `audit-doctrine` « Remesure · A530-A533 » (vérifié capable d'échouer : 5 rouges sur l'avant).

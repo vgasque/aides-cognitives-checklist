@@ -8408,6 +8408,42 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
 }
 });
 
+/* ══ A530-A533 — REMESURE DE LA REFONTE (survols, intertitres en phrase, téléphone tourné, moniteur) ══════════ */
+await sec('Remesure · A530-A533', async () => {
+  // A530 : une rangée se teinte sans se soulever ; un contrôle gris s'assombrit au survol.
+  {const page=await br.newPage({viewport:{width:1280,height:800}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.waitForTimeout(300);
+    const pos=s=>page.evaluate(s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};},s);
+    const st=s=>page.evaluate(s=>{const c=getComputedStyle(document.querySelector(s));return {t:c.transform,bg:c.backgroundColor};},s);
+    const r={};
+    for(const [k,s] of [['ligne','.hs-wrap:not(.on)'],['gris','#rangBtn']]){const p0=await pos(s);if(!p0){r[k]='absent';continue;}
+      await page.mouse.move(1,1);await page.waitForTimeout(250);const a=await st(s);await page.mouse.move(p0.x,p0.y);await page.waitForTimeout(250);r[k]={a,z:await st(s)};}
+    t('A530 · une rangée de la colonne se teinte au survol, sans se soulever',r.ligne&&r.ligne.z&&r.ligne.z.t==='none'&&r.ligne.z.bg!==r.ligne.a.bg,JSON.stringify(r.ligne));
+    t('A530 · « Affichage » (bouton gris) change de fond au survol',r.gris&&r.gris.z&&r.gris.z.bg!==r.gris.a.bg,JSON.stringify(r.gris));
+    // A531 : aucun intertitre en capitales — seuls les MOTS D'ÉTAT et l'eyebrow de l'en-tête le restent.
+    await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
+    const caps=await page.evaluate(async()=>{const ok=/\b(bs-|code|seg-sess|ov-cur|stp-mk|pf-here|fs-mk|tm-kind|cx-tag|tmm-l|sd-|dp-|rf-here|sv-|mon-)/;const L=[];
+      const scan=()=>{for(const e of document.querySelectorAll('main *,#crisisDock *')){if(!e.offsetParent)continue;if(getComputedStyle(e).textTransform!=='uppercase')continue;
+        const tx=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.nodeValue).join('').trim();if(tx.length<3)continue;
+        const k=(e.className&&e.className.baseVal===undefined?e.className:'')||e.tagName;if(ok.test(k)||e.closest('.sv-sheet'))continue;L.push(k+' «'+tx.slice(0,20)+'»');}};
+      scan();openEdit(state.fiche?state.fiche.id:fiches[0].id);await new Promise(x=>setTimeout(x,600));scan();return [...new Set(L)];});
+    t('A531 · en session et dans l\'éditeur, aucun intertitre ni étiquette en capitales',caps.length===0,JSON.stringify(caps.slice(0,6)));
+    await page.close();}
+  // A532 : téléphone tourné — « Schéma » dans le menu ⋯, pas dans l'en-tête.
+  {const page=await br.newPage({viewport:{width:844,height:390},hasTouch:true,isMobile:true});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
+    const r=await page.evaluate(()=>({svg:!document.getElementById('hdrSvg').hidden,page:!document.getElementById('hdrPage').hidden}));
+    t('A532 · 844 × 390, avant la session : « Page » dans l\'en-tête, « Schéma » non (il est dans le menu ⋯)',r.page&&!r.svg,JSON.stringify(r));
+    await page.close();}
+  // A533 : en portrait, le grand chiffre du moniteur n'est plus bridé par 20 % de la largeur.
+  {const page=await br.newPage({viewport:{width:820,height:1180}});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
+    const fs=await page.evaluate(async()=>{monOpen();await new Promise(x=>setTimeout(x,500));const v=document.querySelector('#monMode .mon-val');return v?parseFloat(getComputedStyle(v).fontSize):0;});
+    t('A533 · iPad en portrait : le grand chiffre du moniteur atteint son plafond de 220 px',fs>=219,`${fs} px`);
+    await page.close();}
+});
+
 /* ══ A529 — LA PAGE N'A QU'UN BOUTON D'IMPRESSION (arbitrage de l'auteur) ═══════════════════════════════════ */
 await sec('Page · A529 un bouton « Imprimer ou PDF »', async () => {
   const page=await br.newPage({viewport:{width:1280,height:800}});

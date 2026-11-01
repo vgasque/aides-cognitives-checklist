@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A529** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A533** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -153,6 +153,10 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A527 | `lot-v6-0.md` | Seul le protocole dit sa nature sur sa rangée ; l'aide n'écrit plus « Aide » (arbitrage de l'auteur, v5.69.0) |
 | A528 | `lot-v6-0.md` | Au téléphone, « Affichage » est la première pastille ; plus de ligne du compte (arbitrage de l'auteur, v5.69.0) |
 | A529 | `lot-v6-0.md` | La Page n'a qu'un bouton « Imprimer ou PDF » (arbitrage de l'auteur, v5.69.0) |
+| A530 | `lot-v6-0.md` | Remesure : tout ce qui se clique répond au survol, une rangée ne se soulève plus (v5.70.0) |
+| A531 | `lot-v6-0.md` | Remesure : intertitres et étiquettes en phrase partout, mots d'état en capitales (v5.70.0) |
+| A532 | `lot-v6-0.md` | Remesure : téléphone tourné, « Schéma » au menu ⋯ ; sous 360 px l'état « Avant la session » se retire (v5.70.0) |
+| A533 | `lot-v6-0.md` | Remesure : grand chiffre du moniteur à 28 vw en portrait (v5.70.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
