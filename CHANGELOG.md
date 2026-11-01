@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.71.0] — 2026-11-01
+Conformité aux maquettes Natif (A534, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **La colonne « Parcours »** (avant et pendant la session, sur grand écran) devient une liste légère : le bloc en
+  cours en bleu, la décision sans fond ambre, les chevrons discrets. Replier et déplier marchent comme avant.
+- **Le bouton du bloc** dit « Cochez les 3 restantes » (une ligne au lieu de deux).
+- **La colonne de gauche** affiche le nombre d'aides et de sessions.
+
 ## [5.70.0] — 2026-11-01
 Remesure complète de la refonte « Natif » sur 18 formats (A530-A533, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -206,10 +213,3 @@ Deux retours de l'auteur sur la pastille du compte et le pied « Tout est prêt 
   la colonne porte désormais la même pastille (synchronisé, en cours, erreur, en attente), peinte par la même
   porte que l'en-tête.
 - **L'anneau « en cours » se voit la nuit** : trait renforcé sur les deux sites.
-## [5.56.2] — 2026-10-15
-Le menu des catégories dit ce qu'est une catégorie (A498, doctrine `docs/decisions/lot-v5-56.md`).
-- **« Choisir la catégorie »** prend la même tête que la feuille des collections : titre, l'aide et sa bibliothèque,
-  et une définition d'une ligne qui dit ce qui la distingue d'une collection. Dans une bibliothèque partagée :
-  « Une seule par aide, avec sa couleur, vue par toute l'équipe de « SAMU 31 ». Pour un rangement à vous seul : les
-  collections. » Dans Perso, où tout est déjà personnel : « Une seule par aide, avec sa couleur, pour classer
-  l'accueil. Une aide peut être dans plusieurs collections. »

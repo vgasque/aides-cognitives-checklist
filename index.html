@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GdPlj1RufeYg3ENYKrVFf6bq9keiWM8iPHXUa3gZU/w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-pF3pse3kGQy26/5iQLQ07J6lBZucY09A+ZYGNcczkdU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3282,6 +3282,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
   .pf-flat.dense .pf-br>:is(.pf-row,.pf-br){margin-left:14px}
+  /* A534 (maquette Natif, colonne « Parcours » au bureau) : une LISTE légère, plus des cartes — numéro sur carré gris,
+     le bloc courant en teinte bleue (numéro plein, titre bleu) sans cadre, la décision sans aplat ambre (son losange
+     et ses branches disent le registre), chevron discret. La mécanique d'A388 (repli, « Ici », branches) ne change pas. */
+  .pf-flat.dense .pf-row.dec{background:none}
+  .pf-flat.dense .pf-row.cur{box-shadow:none}
+  .pf-flat.dense .pf-row.cur .pf-title{color:var(--act)}
+  .pf-flat.dense .pf-badge{background:var(--amb-2);color:var(--ink-2)}
+  .pf-flat.dense .pf-row.cur .pf-badge{background:var(--act);color:var(--on-primary)}
+  .pf-flat.dense .pf-row.done .pf-badge{background:var(--ok);color:var(--on-primary)}
+  .pf-flat.dense .pf-row.dec .pf-badge{background:none;color:var(--warn)}   /* le losange garde le registre de la décision */
+  .pf-flat.dense .pf-chev{opacity:.55}
+  .pf-flat.dense .pf-tg:hover .pf-chev{opacity:1}
   .pf-flat.dense .pf-br>.pf-br.plat{margin-left:0}
   .pf-flat.dense .pf-br::before{left:7px;width:16px}
   .pf-flat.dense .pf-bh{padding:0 12px 0 28px}   /* A393 : 12 px de jeu à droite — l'en-tête ne frôle jamais le bord de la colonne */
@@ -9544,7 +9556,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.70.0';
+const APP_VERSION='5.71.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15418,8 +15430,8 @@ function homeSideHtml(){
     <div class="hs-top">
       <div class="hs-brand"><span class="brand-logo" aria-hidden="true"></span><span class="hs-brand-t">Aides cognitives</span></div>
       <nav class="hs-nav" aria-label="Sections">
-        ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),attrs:'data-navaides'+cur('aides')})}
-        ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist'+cur('sessions')})}
+        ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),tail:`<span class="hs-n">${homeVis().length}</span>`,attrs:'data-navaides'+cur('aides')})}${''/* A534 : les sections disent leur compte (maquette) */}
+        ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot+(sessions.length?`<span class="hs-n">${sessions.length}</span>`:''),attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
       <div class="hs-h">${seule?'Bibliothèque':'Bibliothèques'}<span class="hs-hs">avec qui</span>${!seule&&mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
@@ -15845,6 +15857,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)azrAim(fals
 /* « Session en cours » = session DÉMARRÉE (`R.started`), jamais une fiche simplement ouverte —
    prédicat écrit UNE fois (chrono figé à 0:00 d'un exercice à peine ouvert, v5.2.0) ; le garde le
    dit en toutes lettres plutôt que de reposer sur l'invariant. Détail : doctrine-js.md J83. */
+/* A534 : le bouton fermé dit sa cause (A235) avec les mots de la maquette Natif — « Cochez les 3 restantes » tient sur une ligne. */
+const cochezLbl=n=>n>1?'Cochez les '+n+' restantes':'Cochez la restante';
 function sessionLive(id){const L=liveSessions[id];return !!(L&&L.started);}
 function dirLiveMs(id){const L=liveSessions[id];if(!L)return 0;
   const t0=L.startedAt||(L.rt&&L.rt.startedAt)||0;return t0?Math.max(0,Date.now()-t0):0;}
@@ -21796,9 +21810,9 @@ function ovInstHtml(f,id,idx,topo,pres){
          seconde formule pour le même geste est exactement ce qu'AC 120-71B proscrit. Le libellé
          reste « Continuer — X → », identique aux deux sites (journal et vue guidée). */
       if(nxt){const lbl='Continuer — '+((b.nextLbl||'').trim()||(nxt.title||'').trim()||'suite')+' →';
-        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovnext="${esc(b.next)}" data-contlbl="${esc(lbl)}"${allDone?'':' aria-disabled="true"'}>${allDone?esc(lbl):'Cochez les étapes restantes ('+(nd.tot-dn)+')'}</button></div>`;}
+        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovnext="${esc(b.next)}" data-contlbl="${esc(lbl)}"${allDone?'':' aria-disabled="true"'}>${allDone?esc(lbl):cochezLbl(nd.tot-dn)}</button></div>`;}
       else if(!state.flowEnded&&!(Runtime.cxBack||{})[seq]){
-        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':'Cochez les étapes restantes ('+(nd.tot-dn)+')'}</button></div>`;}
+        ctl=`<div class="flow-ctrl"><button type="button" class="btn cont ${allDone?'okay':'idle'}" data-ovend data-contlbl="Terminer l’algorithme ✓"${allDone?'':' aria-disabled="true"'}>${allDone?'Terminer l’algorithme ✓':cochezLbl(nd.tot-dn)}</button></div>`;}
       /* EXCURSION DE COMPLICATION (v4.26.0) : « Terminer l'algorithme » n'a pas de sens ici — le
          parcours n'est pas fini, il est INTERROMPU. Le contrôle de l'excursion est le RETOUR,
          toujours actif (non bloquant : on reprend quand l'événement est maîtrisé, pas quand
@@ -23124,7 +23138,7 @@ function ovAfterCheck(f,sec,anchorKey){
    if(n)n.innerHTML=ovNumHtml(all,sec.dataset.ovn,!!n.querySelector('.bolt'));}
   const adv=sec.querySelector('[data-ovnext],[data-ovend]');
   if(adv){adv.classList.toggle('okay',all);adv.classList.toggle('idle',!all);
-    adv.textContent=all?(adv.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
+    adv.textContent=all?(adv.dataset.contlbl||'Continuer →'):(cochezLbl(boxes.length-dn));
     if(all)adv.removeAttribute('aria-disabled');else adv.setAttribute('aria-disabled','true');}
   // Fin déjà actée (.flow-end en bout de journal) mais on vient de décocher : le bouton
   // « Terminer » doit revenir dans l'instance du bout -> re-rendu ancré sur la case tapée.

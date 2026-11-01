@@ -2889,6 +2889,18 @@
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
   .pf-flat.dense .pf-br>:is(.pf-row,.pf-br){margin-left:14px}
+  /* A534 (maquette Natif, colonne « Parcours » au bureau) : une LISTE légère, plus des cartes — numéro sur carré gris,
+     le bloc courant en teinte bleue (numéro plein, titre bleu) sans cadre, la décision sans aplat ambre (son losange
+     et ses branches disent le registre), chevron discret. La mécanique d'A388 (repli, « Ici », branches) ne change pas. */
+  .pf-flat.dense .pf-row.dec{background:none}
+  .pf-flat.dense .pf-row.cur{box-shadow:none}
+  .pf-flat.dense .pf-row.cur .pf-title{color:var(--act)}
+  .pf-flat.dense .pf-badge{background:var(--amb-2);color:var(--ink-2)}
+  .pf-flat.dense .pf-row.cur .pf-badge{background:var(--act);color:var(--on-primary)}
+  .pf-flat.dense .pf-row.done .pf-badge{background:var(--ok);color:var(--on-primary)}
+  .pf-flat.dense .pf-row.dec .pf-badge{background:none;color:var(--warn)}   /* le losange garde le registre de la décision */
+  .pf-flat.dense .pf-chev{opacity:.55}
+  .pf-flat.dense .pf-tg:hover .pf-chev{opacity:1}
   .pf-flat.dense .pf-br>.pf-br.plat{margin-left:0}
   .pf-flat.dense .pf-br::before{left:7px;width:16px}
   .pf-flat.dense .pf-bh{padding:0 12px 0 28px}   /* A393 : 12 px de jeu à droite — l'en-tête ne frôle jamais le bord de la colonne */

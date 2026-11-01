@@ -2502,7 +2502,7 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
     document.body.appendChild(sonde);const warn=getComputedStyle(sonde).color,warnBg=getComputedStyle(sonde).backgroundColor;sonde.remove();
     const dec=root.querySelector('.pf-row.dec');const opts=dec?[...dec.querySelectorAll('.pf-opt')]:[];
     const rows=[...root.querySelectorAll('.pf-row')];
-    return {dec:!!dec,decBg:dec?getComputedStyle(dec).backgroundColor:'',warn,warnBg,
+    return {dec:!!dec,decBg:dec?getComputedStyle(dec).backgroundColor:'',warn,warnBg,dense:!!(dec&&dec.closest('.pf-flat.dense')),
       branches:opts.map(o=>((o.querySelector('b')||{}).textContent||'').trim()),
       branchesInk:[...new Set(opts.map(o=>{const b=o.querySelector('b');return b?getComputedStyle(b).color:'';}))],
       branchesDest:opts.map(o=>!!o.querySelector('.pf-ref')||/▪ fin|ci-dessous/.test(o.textContent)),
@@ -2523,8 +2523,9 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
   /* A345/A349 (maquette de l'auteur) : la décision est ambre doux et ses branches portent le mot en
      ambre — c'est le registre de la DÉCISION, pas un emprunt à ATTENTION (l'ancienne chip de branche
      de l'Échelle n'y avait pas droit ; la liste, elle, DIT la décision). */
-  t('la décision porte le registre de la DÉCISION (ambre doux), ses branches le mot en ambre',
-    R.decBg===R.warnBg&&R.branchesInk.length===1&&R.branchesInk[0]===R.warn,
+  /* A534 (maquette Natif) : dans la COLONNE, la décision perd son aplat — son losange et ses branches portent le registre. */
+  t('la décision porte le registre de la DÉCISION (ambre doux hors colonne, aucun aplat en colonne), ses branches le mot en ambre',
+    (R.dense?R.decBg==='rgba(0, 0, 0, 0)':R.decBg===R.warnBg)&&R.branchesInk.length===1&&R.branchesInk[0]===R.warn,
     `fond ${R.decBg} (attendu ${R.warnBg}) · encre ${JSON.stringify(R.branchesInk)} (attendue ${R.warn})`);
   t('la colonne ne porte plus de section « à tout moment »', R.cxCol===0, `${R.cxCol}`);
   /* ⚠ UN SEUL ÉCART ENTRE UN TITRE ET SES RANGÉES (demande utilisateur). */

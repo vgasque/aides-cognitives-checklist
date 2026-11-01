@@ -667,3 +667,23 @@ page reste atteignable au-dessus d'elles) ; l'anneau d'ouverture d'une fenêtre 
 le focus va au titre) ; la césure de « Caté-gorie » / « Biblio-thèque » sous 430 px (A460) ; « Cochez les étapes
 restantes (4) » sur trois lignes à 320 px (libellé entier, A465).
 Témoin : `audit-doctrine` « Remesure · A530-A533 » (vérifié capable d'échouer : 5 rouges sur l'avant).
+
+## A534 — Conformité aux maquettes : les trois écarts sans décision (v5.71.0)
+
+Contrôle demandé par l'auteur (« on est bien conforme aux maquettes ? ») : chaque maquette Natif posée à côté de
+l'app servie au même format. Les écarts restants étaient tous tranchés (A515 étoile, A524 recherche, A527-A529,
+A422 états achromatiques, A510 pas de « Bloc n sur 4 », A375 « Horodater », A462 compteur dans la capsule), sauf
+trois, corrigés ici :
+
+1. **La colonne « Parcours » (démarrage et session, ≥ 780 px) devient une liste légère** (amende A388 pour le seul
+   habillage) : numéro sur carré gris, bloc courant en teinte bleue (numéro plein, titre bleu) SANS cadre, décision
+   SANS aplat ambre — son losange chiffré et ses branches « Oui ↓ 3 · Non ↓ 4 » portent le registre —, chevron
+   discret (plein au survol). La mécanique d'A388 est intacte (repli, « Ici », branches visibles, réglages en mots).
+   La carte de l'écran d'entrée et la feuille « Se repérer » gardent leur dessin.
+2. **Le bouton fermé dit « Cochez les 3 restantes »** (« Cochez la restante » au singulier), les mots de la maquette
+   — même cause dite (A235), une ligne au lieu de deux (`cochezLbl`).
+3. **La colonne gauche dit le compte de ses sections** : « Aides n », « Sessions n » (si l'historique n'est pas vide).
+
+**Non repris, et dit** : l'ordre « − 1 + » des compteurs du rail (l'app écrit « 1  − + », valeur à gauche) ; la
+jauge en points des jalons (l'app écrit « 0/3 ») ; les cartes de minuteur grises du rail (blanches dans l'app).
+Trois détails d'habillage du rail droit, sans incidence d'usage — à reprendre si l'auteur les veut.
