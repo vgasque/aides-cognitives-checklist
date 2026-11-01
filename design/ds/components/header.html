@@ -4332,6 +4332,24 @@
   .sess-row .sess-acts{display:flex;gap:8px;flex-wrap:wrap}
   .sess-row .sess-acts .btn{flex:1;min-height:44px;border-radius:var(--r-3);font-size:var(--t-item);font-weight:700}
   .sess-row .sess-acts .sess-del{min-width:44px;min-height:44px}
+  /* A520 (lot 8) — les sessions en RANGÉES GROUPÉES par jour (maquette Natif) : groupe arrondi sans ombre, rangée de
+     60 px (point de catégorie · titre 15 · « heure · durée » 13,5 · chevron), filet qui commence au texte ; le détail
+     ouvert d'un tap porte les actions. Intertitres en phrase. */
+  .sess-gh{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .sess-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
+  .sess-grp .sess-row{gap:0;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:none}
+  .sess-grp .sess-row+.sess-row{background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;background-position:right top;background-size:calc(100% - 40px) 1px}
+  .sess-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
+    padding:8px 12px 8px 16px;border:0;background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+  .sess-main:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .sess-main .dir-av.none{visibility:hidden}
+  .sess-grp .sess-row .sn{display:block;font-size:var(--t-item);font-weight:600;line-height:1.3}
+  .sess-grp .sess-row .sd{display:block;margin-top:2px;font-size:var(--t-body);color:var(--ink-2)}
+  .sess-grp .sess-livetag{margin:0;padding:0;background:none;color:var(--ok);font-size:inherit;font-weight:700}
+  .sess-grp .sess-row .sess-acts{padding:0 12px 12px 40px}
+  .sess-grp .sess-row .sess-acts .btn{min-height:44px}   /* audit-a11y : 44 dans l’historique, comme avant */
+  .sess-grp .sess-row .sess-acts .sess-del{flex:0 1 auto;color:var(--crit)}
+  .sess-grp .sess-exotag{border-radius:999px}
   /* Accueil : sessions en cours (SPEC §5) — une carte par session, empilées (gap 8px), surface
      + bordure primaire + liseré gauche 3px, chrono mono tabular, Terminer en TEXTE rouge. */
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -6410,6 +6428,10 @@
   /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
+  /* A520 (lot 8) — Moi, même grammaire que l'accueil (A516) : intertitres en phrase 13,5/600 au-dessus de groupes
+     sans ombre ; la sous-phrase reste en encre secondaire. */
+  .auth-stats-h{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;padding:0 16px;margin:0 0 6px}
+  .acct-zone .acct-card{box-shadow:none}
   /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
   .acct-list{padding:4px 12px}   /* 4 px : le survol d'une première ou dernière rangée ne touche pas le bord de la carte */   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
   .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
@@ -8600,7 +8622,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxhusy61sgk761j">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxhusy61pm8e12l">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxiqvgm6fkczc1d">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxiqvgmx1ei2q1g">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8716,7 +8738,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxhusy61sgk761j">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxhusy61pm8e12l">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxiqvgm6fkczc1d">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxiqvgmx1ei2q1g">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

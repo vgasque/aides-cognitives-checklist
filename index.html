@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-SsOOrg05o6EFCO0w3t62GYJu3wzY1YisroTVDZIABkQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-6SzpgVcQrfwGiO11zmmijnbWcE0ugt0hxaA7V7Ru4SM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4725,6 +4725,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sess-row .sess-acts{display:flex;gap:8px;flex-wrap:wrap}
   .sess-row .sess-acts .btn{flex:1;min-height:44px;border-radius:var(--r-3);font-size:var(--t-item);font-weight:700}
   .sess-row .sess-acts .sess-del{min-width:44px;min-height:44px}
+  /* A520 (lot 8) — les sessions en RANGÉES GROUPÉES par jour (maquette Natif) : groupe arrondi sans ombre, rangée de
+     60 px (point de catégorie · titre 15 · « heure · durée » 13,5 · chevron), filet qui commence au texte ; le détail
+     ouvert d'un tap porte les actions. Intertitres en phrase. */
+  .sess-gh{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .sess-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
+  .sess-grp .sess-row{gap:0;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:none}
+  .sess-grp .sess-row+.sess-row{background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;background-position:right top;background-size:calc(100% - 40px) 1px}
+  .sess-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
+    padding:8px 12px 8px 16px;border:0;background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+  .sess-main:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .sess-main .dir-av.none{visibility:hidden}
+  .sess-grp .sess-row .sn{display:block;font-size:var(--t-item);font-weight:600;line-height:1.3}
+  .sess-grp .sess-row .sd{display:block;margin-top:2px;font-size:var(--t-body);color:var(--ink-2)}
+  .sess-grp .sess-livetag{margin:0;padding:0;background:none;color:var(--ok);font-size:inherit;font-weight:700}
+  .sess-grp .sess-row .sess-acts{padding:0 12px 12px 40px}
+  .sess-grp .sess-row .sess-acts .btn{min-height:44px}   /* audit-a11y : 44 dans l’historique, comme avant */
+  .sess-grp .sess-row .sess-acts .sess-del{flex:0 1 auto;color:var(--crit)}
+  .sess-grp .sess-exotag{border-radius:999px}
   /* Accueil : sessions en cours (SPEC §5) — une carte par session, empilées (gap 8px), surface
      + bordure primaire + liseré gauche 3px, chrono mono tabular, Terminer en TEXTE rouge. */
   .live-sessions{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
@@ -6803,6 +6821,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
+  /* A520 (lot 8) — Moi, même grammaire que l'accueil (A516) : intertitres en phrase 13,5/600 au-dessus de groupes
+     sans ombre ; la sous-phrase reste en encre secondaire. */
+  .auth-stats-h{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;padding:0 16px;margin:0 0 6px}
+  .acct-zone .acct-card{box-shadow:none}
   /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
   .acct-list{padding:4px 12px}   /* 4 px : le survol d'une première ou dernière rangée ne touche pas le bord de la carte */   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
   .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
@@ -9465,7 +9487,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.62.0';
+const APP_VERSION='5.63.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -29364,7 +29386,7 @@ function acctLibsHtml(){
 /* A475 : MES COLLECTIONS dans Moi, connecté ou non (elles vivent sur l'appareil, et suivent le compte s'il y en a un).
    Une rangée mène à la collection depuis l'accueil ; ailleurs elle informe (on ne quitte pas une aide ouverte par Moi). */
 function acctCollsHtml(){const go=state.view==='library';
-  const rows=[collById(COLL_PIN)].concat(colls).map(c=>menuRowHtml({label:c.name,sub:(c.id===COLL_PIN?'les tuiles de l’accueil · ':'')+nb(collItems(c).length,'élément'),
+  const rows=[collById(COLL_PIN)].concat(colls).map(c=>menuRowHtml({label:c.name,sub:(c.id===COLL_PIN?'en tête de l’accueil · ':'')+nb(collItems(c).length,'élément'),
     ic:c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',20),inert:!go,attrs:go?`data-collgo="${esc(c.id)}"`:'',tail:go?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:''}));
   return `<div class="acct-zone" id="acctColls"><div class="auth-stats-h">Mes collections <span class="acct-hs">votre rangement, à vous seul</span></div><div class="acct-card acct-list">${rows.join('')}`
     +`<button type="button" class="catmenu-new" data-collnew>＋ Nouvelle collection</button></div></div>`;}
@@ -33197,7 +33219,7 @@ bindModalDismiss(versModal,closeVersions);
    vit dans le compte-rendu, où la chronologie est l'objet même. PURE, testée. */
 function sessStamp(ms){const d=new Date(ms||0);
   return d.toLocaleDateString('fr-FR')+' · '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
-const sessModal=document.getElementById('sessModal');let _sessFiche=null;
+const sessModal=document.getElementById('sessModal');let _sessFiche=null,_sessOpen=null;   // A520 : la session dont le détail est ouvert
 function openSessHist(ficheId){if(!ficheId&&homeTabsOn()){setHomeTab('sessions');return;}
   _sessFiche=ficheId||'*';sessModal.classList.add('on');renderSessHist();}
 function closeSessHist(){sessModal.classList.remove('on');_sessFiche=null;}
@@ -33211,10 +33233,28 @@ function renderSessHist(){const body=document.getElementById('sessView')||docume
      deux groupes, badge « ▲ EXERCICE » sur chaque rangée d'exercice. */
   const det=x=>{const d=fmtMs(Math.max(0,(x.savedAt||Date.now())-(x.startedAt||x.savedAt)));const n=x.checked&&typeof x.checked==='object'?Object.values(x.checked).filter(Boolean).length:0;
     return `Durée ${d}${n?` · ${n} étape${n>1?'s':''} cochée${n>1?'s':''}`:''}`;};
-  const row=x=>`<div class="sess-row"><div class="sess-k"><span class="sess-kd${x.live?' live':''}" aria-hidden="true"></span>${x.live?'En cours':'Terminée'}</div><div class="si"><div class="sn">${x.exercise?'<span class="sess-exotag">▲ EXERCICE</span> ':''}${esc(x.name)}${x.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${glob&&x.ficheTitle&&String(x.name||'').indexOf(x.ficheTitle)<0?esc(x.ficheTitle)+' · ':''}${esc(sessStamp(x.savedAt))}</div><div class="sd">${det(x)}</div></div><div class="sess-acts">${x.live?`<button class="btn sm primary" data-resume="${esc(x.id)}">Reprendre</button>`:`<button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del sess-del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session « ${esc(x.name)} »" title="Supprimer la session (confirmation demandée)">×</button>`}</div></div>`;
+  /* A520 (lot 8) — UNE RANGÉE PAR SESSION, GROUPÉES PAR JOUR (maquette Natif) : point de catégorie, titre, « 14:32 · durée ·
+     n étapes cochées », chevron ; les actions (Rouvrir, Compte-rendu, Supprimer) dans le DÉTAIL ouvert d'un tap ; une
+     session vive garde « Reprendre » à vue. Les exercices restent dans LEUR groupe (v4.27.0 : jamais mêlés). */
+  const DAY=864e5,j0=(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();})();
+  const quand=x=>{const t=x.savedAt||0;return x.live?'En cours':t>=j0?'Aujourd’hui':t>=j0-DAY?'Hier':t>=j0-6*DAY?'Cette semaine'
+    :new Date(t).toLocaleDateString('fr-FR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());};
+  const row=x=>{const f=fiches.find(z=>z.id===x.ficheId),cc=f?catOf(f):null,op=_sessOpen===x.id;
+    const t=x.savedAt||0,proche=t>=j0-6*DAY;
+    const nm=glob&&x.ficheTitle?x.ficheTitle:(x.name||'Session');
+    const sub=[x.live?'<span class="sess-livetag">● En cours</span>':'',esc(proche?fmtHM(x.startedAt||t):sessStamp(t)),esc(det(x))].filter(Boolean).join(' · ');
+    const acts=x.live?`<button class="btn sm primary" data-resume="${esc(x.id)}">Reprendre</button>`
+      :`<button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="btn sm sess-del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session « ${esc(x.name)} »" title="Supprimer la session (confirmation demandée)">Supprimer</button>`;
+    return `<div class="sess-row${op?' open':''}${x.live?' live':''}"><button type="button" class="sess-main" data-sessopen="${esc(x.id)}" aria-expanded="${op||x.live?'true':'false'}">`
+      +`<span class="dir-av${cc?'':' none'}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''} aria-hidden="true"></span>`
+      +`<span class="si"><span class="sn">${x.exercise?'<span class="sess-exotag">▲ Exercice</span> ':''}${esc(nm)}</span><span class="sd">${sub}</span></span>`
+      +(x.live?'':chevHtml(op,'sess-chev'))+`</button>${op||x.live?`<div class="sess-acts">${acts}</div>`:''}</div>`;};
+  const groupes=arr=>{const g=[];arr.forEach(x=>{const k=quand(x);let o=g.find(y=>y.k===k);if(!o){o={k,l:[]};g.push(o);}o.l.push(x);});
+    return g.map(o=>`<p class="sess-gh">${esc(o.k)}</p><div class="sess-grp">${o.l.map(row).join('')}</div>`).join('');};
   const clin=ss.filter(x=>!x.exercise),exo=ss.filter(x=>x.exercise);
-  body.innerHTML=joinRow+`<div class="sess-list">${clin.length?`<p class="sess-gh">Sessions cliniques (${clin.length})</p>`+clin.map(row).join(''):''}${exo.length?`<p class="sess-gh">Exercices (${exo.length})</p>`+exo.map(row).join(''):''}</div>`;
+  body.innerHTML=joinRow+`<div class="sess-list">${groupes(clin)}${exo.length?`<p class="sess-gh">Exercices (${exo.length})</p><div class="sess-grp">${exo.map(row).join('')}</div>`:''}</div>`;
   bindJoin();
+  body.querySelectorAll('[data-sessopen]').forEach(b=>b.onclick=()=>{const id=b.dataset.sessopen;if(b.closest('.sess-row.live'))return;_sessOpen=_sessOpen===id?null:id;renderSessHist();});
   body.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>{closeSessHist();resumeSession(b.dataset.resume);});
   body.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>exportSessionReport(b.dataset.report));
   body.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=async()=>{await deleteSession(b.dataset.delsess);renderSessHist();});

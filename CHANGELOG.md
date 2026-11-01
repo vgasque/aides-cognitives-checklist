@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.63.0] — 2026-11-01
+Lot 8 de la refonte « Natif » : Sessions et Moi (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
+serveur.
+- **Sessions est une liste groupée par jour** (« Aujourd'hui », « Hier », « Cette semaine », puis le mois) : une
+  rangée par session avec sa catégorie, l'heure, la durée et les étapes cochées. Un tap ouvre ses actions
+  (Rouvrir, Compte-rendu, Supprimer) ; une session en cours garde « Reprendre » à vue. Les exercices restent à part.
+- **Moi** prend la même allure : intertitres en minuscules, groupes sans ombre ; l'Accès direct se décrit « en tête
+  de l'accueil ».
+
 ## [5.62.0] — 2026-11-01
 Lot 7 de la refonte « Natif » : l'écran de démarrage d'une aide (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -227,34 +236,3 @@ Rien à rejouer côté serveur au-delà de la 5.52.0.
 - Fermer la fenêtre met à jour les listes d'Administration (membres, administrateurs, bibliothèques de chaque compte).
 - Dans la liste des bibliothèques de l'instance, les vôtres disent « vous : Admin » (ou votre rôle).
 - « Convertir en collection » n'est plus proposé sur une bibliothèque dont vous n'êtes pas membre.
-
-## [5.52.0] — 2026-10-07
-L'administrateur de l'instance voit tous les comptes et toutes les bibliothèques, et en règle les droits (A483,
-doctrine `docs/decisions/lot-v5-52.md`). **⚠ Rejouer `supabase/schema.sql`** (§ 9ter) puis `rls-tests.sql` (§ 15.7) ;
-sans cela, Administration le signale et rien d'autre ne change.
-- **Administration › Comptes** : tous les comptes, approuvés, en attente ou refusés, avec leur nombre de
-  bibliothèques. Toucher un compte le déplie sur place : son statut et le geste qui va avec (Approuver, Refuser,
-  Suspendre l'accès…, Réapprouver, Supprimer le compte…), « Peut créer des bibliothèques », et chacune de ses
-  bibliothèques avec son rôle à changer ou ✕ pour l'en retirer.
-- **Administration › Bibliothèques de l'instance** : toutes les bibliothèques partagées, même celles dont vous n'êtes
-  pas membre, avec membres, administrateurs, éléments et créateur ; toucher une bibliothèque ouvre ses Membres
-  (inviter, changer un rôle, retirer).
-- Un champ « Filtrer… » apparaît au-delà de huit comptes ou bibliothèques.
-- Correctif : un administrateur ne voit plus les bibliothèques des autres comptes parmi les siennes.
-
-## [5.51.1] — 2026-10-07
-Les feuilles de la sélection disent ce qu'on fait, la règle de création se confirme, et le design system rattrape
-l'app (A480-A482, doctrine `docs/decisions/lot-v5-51.md`).
-- **Feuilles ouvertes depuis « Actions »** (Ajouter à une collection, Déplacer, Ranger) : « ‹ Actions » devient un
-  petit lien de retour, le titre de la feuille est le geste, et une seule ligne dit sur quoi l'on agit (« 2 éléments ·
-  deux bibliothèques ») — la même partout, collections comprises.
-- **« Ajouter à une collection »** : chaque case porte son icône — l'étoile pour l'Accès direct, le signet pour les
-  collections — et la case vide se voit enfin en thème sombre.
-- **« Déplacer vers une bibliothèque »** ne coche plus « Ma bibliothèque perso » quand la sélection est répartie sur
-  deux bibliothèques.
-- **Administration › Création de bibliothèques** : changer de règle ouvre un bandeau qui dit ce que cela changera,
-  avec Annuler / Confirmer ; rien n'est appliqué avant « Confirmer ».
-- **Design system (claude.ai/design)** : la fiche Couleurs suit les couleurs actuelles (31 pastilles étaient vides),
-  neuf fiches sont désormais relevées sur l'app elle-même (démarrage, étapes, Vérifier, journal, parcours, Page,
-  accueil, en-tête et quai, menu ⋯) au lieu de montrer des composants retirés, une fiche « Rangement » s'ajoute, et
-  les lignes directrices sont à jour de la v5.51.

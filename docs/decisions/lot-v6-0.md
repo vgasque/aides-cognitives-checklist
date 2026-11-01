@@ -475,3 +475,12 @@ que les documents ; au téléphone, la catégorie quitte le sur-titre avant la s
 les objets prêts deviennent des tuiles « Prêts pour la session » (nom, valeur de départ en mono, « au démarrage » /
 « à lancer »). Témoins réécrits sciemment : `audit-doctrine` (écran d'entrée : Page et Schéma dans l'en-tête, 44 px
 de cible avec halo ; Schéma par le menu au téléphone), `audit-consulter` (les deux listes sont toujours ouvertes).
+
+**Lot 8 implémenté (v5.63.0) — Sessions et Moi.** `renderSessHist` : une rangée par session (`.sess-main` : point de
+catégorie, titre, « heure · durée · n étapes cochées », chevron) dans des groupes par jour (« En cours »,
+« Aujourd'hui », « Hier », « Cette semaine », puis le mois) ; un tap ouvre le détail (`_sessOpen`) qui porte
+Rouvrir · Compte-rendu · Supprimer (en mots, 44 px) ; une session vive garde « Reprendre » à vue ; les exercices
+restent dans leur groupe (v4.27.0). `.sess-k`/`.sess-kd` purgées (règle 14). Moi : intertitres en phrase, groupes
+sans ombre ; la collection « Accès direct » ne dit plus « les tuiles de l'accueil » (purgées en A515) mais « en tête
+de l'accueil ». **Non fait, et dit** : « Sélectionner » en haut de l'onglet Sessions — l'app n'a pas de sélection
+de sessions ; l'ajouter serait une fonction nouvelle, pas un habillage.
