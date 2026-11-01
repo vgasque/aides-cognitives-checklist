@@ -858,18 +858,15 @@
      système qu'à la tablette et au bureau — matière --sys, « Reprendre » plein clair, « Terminer » au
      registre critique système ; seule la composition change (grille à deux rangées). */
   @media (max-width:779.98px){
-    body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info chrono" "rep rep end";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
+    body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info info" "rep rep rep";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
     body.view-home .ls-card .sess-dot{grid-area:dot;margin-top:6px}
     body.view-home .ls-card .ls-info{grid-area:info;gap:2px}
     body.view-home .ls-info .ls-k{font-size:12px;letter-spacing:.08em;color:var(--sys-ink-2)}
     /* v5.30.1 : même corps qu'en large (17,5/800) — le 21 d'A351 paraissait trop grand au téléphone (signalé). */
     body.view-home .ls-info .ls-t{font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--sys-ink)}
-    body.view-home .ls-info .ls-w{font-size:var(--t-item);color:var(--sys-ink-2)}
-    body.view-home .ls-chrono{grid-area:chrono;color:var(--sys-ink)}
     body.view-home .ls-card .btn.primary{grid-area:rep;min-height:48px;background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
     body.view-home .ls-card .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
     body.view-home .ls-card .btn:focus-visible{outline:2px solid var(--sys-ink)}
-    body.view-home .ls-card .ls-end{grid-area:end;margin-left:0;min-height:48px;border:1.5px solid var(--crit-sys);color:var(--crit-sys)}   /* A356 : le bord dit le registre (≥ 3:1) */
   }
   #homeDock{display:none}
   /* v5.30 (A353, changement d'avis de l'auteur) : le filtre est un bouton ROND à gauche de la recherche,
@@ -2490,7 +2487,7 @@
   /* (A506 : le liseré « session en cours » est parti avec le liseré de catégorie — l'état reste dit par
      « ● En cours 12:04 » en vert sur la rangée, un glyphe et un mot.) */
   .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
-  .dir-st.dir-live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+  .dir-live .dl-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
@@ -4479,31 +4476,9 @@
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
   .ls-info .ls-t{font-size:15px;font-weight:700;color:var(--sys-ink)}
-  /* « Bloc 7 · Reprise du massage — dernier repère 15h47 » : deux données déjà en mémoire, sur une
-     carte qui existe. Encre secondaire de la matière SYSTÈME (la carte de session est sombre),
-     une seule ligne — au-delà, c'est le titre qui compte, pas la précision. */
-  .ls-info .ls-w{font-size:var(--t-cap);font-weight:600;color:var(--sys-ink-2);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ls-chrono{font-family:var(--f-mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok-sys)}
-  /* ⚠ LA PORTE DE RENTRÉE DANS UNE RÉANIMATION PREND LE PLANCHER DE LA CRISE (audit externe
-     v5.10.0). Mesuré : « Reprendre » 93 × 38 et « Terminer » 84 × 36, à 10 px l'un de l'autre.
-     Trois défauts d'un coup, et chacun a déjà sa règle ailleurs dans le dossier : deux boutons
-     voisins de hauteurs DIFFÉRENTES se lisent comme deux objets sans rapport (A103) ; un geste
-     DESTRUCTEUR ne se met jamais au contact de son voisin, sinon le pouce corrige et supprime du
-     même geste (v4.68.0) ; et si le plancher de 32 px vaut pour l'accueil, il ne vaut pas pour
-     ces deux-là — ils ne consultent rien, ils rentrent dans un soin EN COURS, et c'est le contrat
-     des 44 px qui s'applique au geste, pas la moyenne de l'écran où il se trouve.
-     L'écart passe à 16 px et il est posé sur le SÉPARATEUR, pas sur le gap de la carte : le gap
-     de 10 px règle aussi la distance au chrono et au bloc d'information, qui n'ont rien demandé. */
-  .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys);margin-left:6px}
-  /* ⚠ (0,3,0) ET NON (0,2,0), ET C'EST UN TÉMOIN D'USAGE QUI L'A DIT : « c'est normal que
-     Reprendre et Terminer ne soient plus de la même taille ? ». Non. Écrite `.ls-card :is(.btn,
-     .ls-end)`, la règle valait (0,2,0) — exactement comme `.btn.sm{min-height:38px}`, déclarée
-     3 000 lignes plus bas : à spécificité égale, c'est l'ORDRE qui tranche, et « Reprendre »
-     restait à 38 px pendant que « Terminer » montait à 44. Le vingt-troisième piège de cascade du
-     dossier, sous sa forme la plus classique. On ne compte plus sur l'ordre. */
-  .ls-card .btn.sm,.ls-card .ls-end{min-height:44px}
-  .ls-card .ls-end:hover{background:var(--sys-2)}
+  /* « Reprendre » rentre dans un soin EN COURS : plancher de crise, 44 px (audit v5.10.0). Spécificité (0,3,0)
+     contre `.btn.sm` — on ne compte pas sur l'ordre. Seule la session PARTAGÉE garde cette carte (A523). */
+  .ls-card .btn.sm{min-height:44px}
   /* ⚠ « Reprendre » = retour d'excursion (v5.10.0) : rempli `--ok-sys` (même registre que
      `.sd-key.dp-back`), encre `--on-sys-fill` JAMAIS `--on-primary`, anneau de focus `--sys-ink`
      (`--act` illisible sur cette carte), survol sans second vert (élévation seule), règle du
@@ -4514,20 +4489,13 @@
   .ls-card .btn{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
   .ls-card .btn:hover{background:var(--sys-line)}
   .ls-card .tag{background:var(--sys-2);color:var(--sys-ink-2)}
-  /* P3-13 (audit design v4.56) : un lien texte rouge = cible étroite et affordance faible à
-     côté d'un bouton rempli. Contour `--crit` compact (grammaire contour = gérer), cible
-     44 px par le halo — jamais rempli : le rouge plein reste à la confirmation finale. */
-  .ls-end{position:relative;background:none;border:1px solid var(--critical-line);color:var(--crit);font-family:inherit;font-size:13.5px;font-weight:700;min-height:36px;padding:0 12px;border-radius:8px;cursor:pointer}
-  .ls-end::after{content:"";position:absolute;inset:-4px}
-  .ls-end:hover{background:var(--crit-soft)}
-  .ls-end:focus-visible{outline:2px solid var(--crit);outline-offset:2px}
   /* DEUX RÔLES, DEUX TOKENS, SUR LA MATIÈRE SYSTÈME (v5.15.0, planche 17) : --sys-line DESSINE
      (séparateurs .ds-row — un séparateur n'est pas une cible, il garde son filet discret),
      --ctl-sys se VISE : la limite d'un CONTRÔLE posé sur la matière système tient 3:1 (1.4.11)
      dans les deux thèmes. Écrite APRÈS les déclarations de base de chaque consommateur : à
      spécificité égale (.ls-card .btn, .sd-key.sd-exo), c'est l'ordre qui tranche — et les états
      plus spécifiques (.btn.primary, .sd-exo.on) gardent leur bordure propre. */
-  :is(.ls-card .btn,.ls-card .ls-end,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
+  :is(.ls-card .btn,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--act);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
@@ -7499,9 +7467,7 @@
     .hs-avatar>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}   /* A500 : la pastille de l'en-tête, à l'échelle d'un avatar de 22 */
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
     body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
-    /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
-       et « Reprendre » un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
-    body.view-home .ls-card .ls-end{border:1.5px solid var(--crit-sys);color:var(--crit-sys)}
+    /* A356 : sur la BANDE, « Reprendre » prend un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
     body.view-home .ls-card .btn.primary{background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
     body.view-home .ls-card .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
     body.view-home .ls-info .ls-k{color:var(--sys-ink-2)}
@@ -8702,7 +8668,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxl4zmhd38nqvol">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxl4zmhdzxyzd19">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxmm4qh1f2usocy">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxmm4qh15vozoix">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8818,7 +8784,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxl4zmhd38nqvol">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxl4zmhdzxyzd19">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxmm4qh1f2usocy">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxmm4qh15vozoix">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

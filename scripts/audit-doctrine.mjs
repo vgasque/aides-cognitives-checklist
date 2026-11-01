@@ -8400,6 +8400,32 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
 }
 });
 
+/* ══ A523 — L'AIDE EN SESSION MONTE EN TÊTE DE L'ACCUEIL, DANS « EN COURS » (A510 §6) ════════════════════
+   Elle quitte sa section, porte « ● Session mm:ss » en vert ; la carte sombre « Session en cours » n'existe plus. */
+await sec('Accueil · A523 groupe « En cours »', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    await ouvrirFiche(page,/Arrêt cardiaque/);
+    await demarrerSession(page);
+    const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const id=state.fiche.id;
+      state.view='library';state.fiche=null;render();await w(1300);
+      const g=document.querySelector('.dir-book.live-grp');const rows=g?[...g.querySelectorAll('[data-open]')].map(b=>b.dataset.open):[];
+      const ailleurs=[...document.querySelectorAll('.dir-book:not(.live-grp):not(.pinned) [data-open]')].some(b=>b.dataset.open===id);
+      const st=g&&g.querySelector('.dir-live');
+      const premier=document.querySelector('.dir-book');
+      return {rows,id,ailleurs,mot:st?st.textContent.replace(/\s+/g,' ').trim():'',vert:st?getComputedStyle(st).color:'',
+        point:st&&st.querySelector('.dl-dot')?Math.round(st.querySelector('.dl-dot').getBoundingClientRect().width):0,
+        tete:premier===g,carte:!!document.querySelector('[data-openlive],.ls-chrono')};});
+    t(`${W} px : l'aide en session est dans « En cours », en tête, et a quitté sa section`,r.rows.length===1&&r.rows[0]===r.id&&!r.ailleurs&&r.tete,JSON.stringify(r));
+    t(`${W} px : « ● Session mm:ss » — point rond de 8 px, mot, chrono`,/^Session en cours depuis Session \d+:\d\d$/.test(r.mot)&&r.point===8,JSON.stringify(r));
+    t(`${W} px : plus de carte sombre « Session en cours »`,!r.carte);
+    await page.close();
+  }
+});
+
 /* ══ A390 — LA STRUCTURE DE L'ÉDITEUR SOUS 1200 px ; L'APERÇU SUIT LA VRAIE PAGE ═══════════════════════
    (1) Sous 1200 px la colonne Structure n'existait pas : elle devient le dépliant collant du sommaire des
    protocoles, fermé d'office, qui se referme au saut. (2) « Essayer » rendait la page d'avant la v5.30 — ni

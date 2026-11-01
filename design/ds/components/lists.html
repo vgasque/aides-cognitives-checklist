@@ -858,18 +858,15 @@
      système qu'à la tablette et au bureau — matière --sys, « Reprendre » plein clair, « Terminer » au
      registre critique système ; seule la composition change (grille à deux rangées). */
   @media (max-width:779.98px){
-    body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info chrono" "rep rep end";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
+    body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info info" "rep rep rep";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
     body.view-home .ls-card .sess-dot{grid-area:dot;margin-top:6px}
     body.view-home .ls-card .ls-info{grid-area:info;gap:2px}
     body.view-home .ls-info .ls-k{font-size:12px;letter-spacing:.08em;color:var(--sys-ink-2)}
     /* v5.30.1 : même corps qu'en large (17,5/800) — le 21 d'A351 paraissait trop grand au téléphone (signalé). */
     body.view-home .ls-info .ls-t{font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--sys-ink)}
-    body.view-home .ls-info .ls-w{font-size:var(--t-item);color:var(--sys-ink-2)}
-    body.view-home .ls-chrono{grid-area:chrono;color:var(--sys-ink)}
     body.view-home .ls-card .btn.primary{grid-area:rep;min-height:48px;background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
     body.view-home .ls-card .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
     body.view-home .ls-card .btn:focus-visible{outline:2px solid var(--sys-ink)}
-    body.view-home .ls-card .ls-end{grid-area:end;margin-left:0;min-height:48px;border:1.5px solid var(--crit-sys);color:var(--crit-sys)}   /* A356 : le bord dit le registre (≥ 3:1) */
   }
   #homeDock{display:none}
   /* v5.30 (A353, changement d'avis de l'auteur) : le filtre est un bouton ROND à gauche de la recherche,
@@ -2490,7 +2487,7 @@
   /* (A506 : le liseré « session en cours » est parti avec le liseré de catégorie — l'état reste dit par
      « ● En cours 12:04 » en vert sur la rangée, un glyphe et un mot.) */
   .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
-  .dir-st.dir-live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+  .dir-live .dl-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
@@ -4479,31 +4476,9 @@
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
   .ls-info .ls-t{font-size:15px;font-weight:700;color:var(--sys-ink)}
-  /* « Bloc 7 · Reprise du massage — dernier repère 15h47 » : deux données déjà en mémoire, sur une
-     carte qui existe. Encre secondaire de la matière SYSTÈME (la carte de session est sombre),
-     une seule ligne — au-delà, c'est le titre qui compte, pas la précision. */
-  .ls-info .ls-w{font-size:var(--t-cap);font-weight:600;color:var(--sys-ink-2);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ls-chrono{font-family:var(--f-mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok-sys)}
-  /* ⚠ LA PORTE DE RENTRÉE DANS UNE RÉANIMATION PREND LE PLANCHER DE LA CRISE (audit externe
-     v5.10.0). Mesuré : « Reprendre » 93 × 38 et « Terminer » 84 × 36, à 10 px l'un de l'autre.
-     Trois défauts d'un coup, et chacun a déjà sa règle ailleurs dans le dossier : deux boutons
-     voisins de hauteurs DIFFÉRENTES se lisent comme deux objets sans rapport (A103) ; un geste
-     DESTRUCTEUR ne se met jamais au contact de son voisin, sinon le pouce corrige et supprime du
-     même geste (v4.68.0) ; et si le plancher de 32 px vaut pour l'accueil, il ne vaut pas pour
-     ces deux-là — ils ne consultent rien, ils rentrent dans un soin EN COURS, et c'est le contrat
-     des 44 px qui s'applique au geste, pas la moyenne de l'écran où il se trouve.
-     L'écart passe à 16 px et il est posé sur le SÉPARATEUR, pas sur le gap de la carte : le gap
-     de 10 px règle aussi la distance au chrono et au bloc d'information, qui n'ont rien demandé. */
-  .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys);margin-left:6px}
-  /* ⚠ (0,3,0) ET NON (0,2,0), ET C'EST UN TÉMOIN D'USAGE QUI L'A DIT : « c'est normal que
-     Reprendre et Terminer ne soient plus de la même taille ? ». Non. Écrite `.ls-card :is(.btn,
-     .ls-end)`, la règle valait (0,2,0) — exactement comme `.btn.sm{min-height:38px}`, déclarée
-     3 000 lignes plus bas : à spécificité égale, c'est l'ORDRE qui tranche, et « Reprendre »
-     restait à 38 px pendant que « Terminer » montait à 44. Le vingt-troisième piège de cascade du
-     dossier, sous sa forme la plus classique. On ne compte plus sur l'ordre. */
-  .ls-card .btn.sm,.ls-card .ls-end{min-height:44px}
-  .ls-card .ls-end:hover{background:var(--sys-2)}
+  /* « Reprendre » rentre dans un soin EN COURS : plancher de crise, 44 px (audit v5.10.0). Spécificité (0,3,0)
+     contre `.btn.sm` — on ne compte pas sur l'ordre. Seule la session PARTAGÉE garde cette carte (A523). */
+  .ls-card .btn.sm{min-height:44px}
   /* ⚠ « Reprendre » = retour d'excursion (v5.10.0) : rempli `--ok-sys` (même registre que
      `.sd-key.dp-back`), encre `--on-sys-fill` JAMAIS `--on-primary`, anneau de focus `--sys-ink`
      (`--act` illisible sur cette carte), survol sans second vert (élévation seule), règle du
@@ -4514,20 +4489,13 @@
   .ls-card .btn{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
   .ls-card .btn:hover{background:var(--sys-line)}
   .ls-card .tag{background:var(--sys-2);color:var(--sys-ink-2)}
-  /* P3-13 (audit design v4.56) : un lien texte rouge = cible étroite et affordance faible à
-     côté d'un bouton rempli. Contour `--crit` compact (grammaire contour = gérer), cible
-     44 px par le halo — jamais rempli : le rouge plein reste à la confirmation finale. */
-  .ls-end{position:relative;background:none;border:1px solid var(--critical-line);color:var(--crit);font-family:inherit;font-size:13.5px;font-weight:700;min-height:36px;padding:0 12px;border-radius:8px;cursor:pointer}
-  .ls-end::after{content:"";position:absolute;inset:-4px}
-  .ls-end:hover{background:var(--crit-soft)}
-  .ls-end:focus-visible{outline:2px solid var(--crit);outline-offset:2px}
   /* DEUX RÔLES, DEUX TOKENS, SUR LA MATIÈRE SYSTÈME (v5.15.0, planche 17) : --sys-line DESSINE
      (séparateurs .ds-row — un séparateur n'est pas une cible, il garde son filet discret),
      --ctl-sys se VISE : la limite d'un CONTRÔLE posé sur la matière système tient 3:1 (1.4.11)
      dans les deux thèmes. Écrite APRÈS les déclarations de base de chaque consommateur : à
      spécificité égale (.ls-card .btn, .sd-key.sd-exo), c'est l'ordre qui tranche — et les états
      plus spécifiques (.btn.primary, .sd-exo.on) gardent leur bordure propre. */
-  :is(.ls-card .btn,.ls-card .ls-end,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
+  :is(.ls-card .btn,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--act);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
@@ -7499,9 +7467,7 @@
     .hs-avatar>.acct-dot{right:-3px;bottom:-3px;width:9px;height:9px}   /* A500 : la pastille de l'en-tête, à l'échelle d'un avatar de 22 */
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
     body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
-    /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
-       et « Reprendre » un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
-    body.view-home .ls-card .ls-end{border:1.5px solid var(--crit-sys);color:var(--crit-sys)}
+    /* A356 : sur la BANDE, « Reprendre » prend un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
     body.view-home .ls-card .btn.primary{background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
     body.view-home .ls-card .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
     body.view-home .ls-info .ls-k{color:var(--sys-ink-2)}
@@ -8609,7 +8575,7 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxl51218ghh041k" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxl51218ghh041k:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxl51218ghh041k:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxl51218ghh041k:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxl51218ghh041k:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxl51211a7lrnlg" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxmm65r1hszh2la" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxmm65r1hszh2la:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxmm65r1hszh2la:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxmm65r1hszh2la:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxmm65r1hszh2la:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxmm65r7tb5en1b" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
   <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>
@@ -8617,7 +8583,7 @@
 <p class="ds-cap">Capture réelle (A345) : toutes les étapes partagent le même corps et la même colonne, case à DROITE ; le danger est un MOT — étiquette CRITIQUE (--crit) ou VIGILANCE (--warn) + bordure de case au registre + texte .sr-only, jamais un glyphe ⚠/△. Sous l’étape, en gris : la réponse attendue (« challenge :: réponse »). « Continuer » ne s’active qu’étapes cochées, et dit pourquoi tant qu’il ne l’est pas ; « Vérifier » ouvre la passe de constat.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxl51218ghh041k" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxl51218ghh041k:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxl51218ghh041k:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxl51218ghh041k:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxl51218ghh041k:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxl51211a7lrnlg" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin" data-ovb="bmvxmm65r1hszh2la" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">1/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><ol class="steps"><li data-ck="1:bmvxmm65r1hszh2la:0" class="done" role="checkbox" aria-checked="true" tabindex="0"><span class="box"><svg class="" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg></span><span class="txt">Vérifier conscience et respiration</span></li><li data-ck="1:bmvxmm65r1hszh2la:1" class="" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt">Alerter, appeler du renfort + défibrillateur</span></li><li data-ck="1:bmvxmm65r1hszh2la:2" class="vigil " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Vigilance. </span><span class="stp-mk" aria-hidden="true">Vigilance</span></span>Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></li><li data-ck="1:bmvxmm65r1hszh2la:3" class="crit " role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span class="txt"><span class="stp-mks"><span class="sr-only">Étape critique. </span><span class="stp-mk" aria-hidden="true">Critique</span></span>RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></li></ol><div class="flow-ctrl has-ver"><button type="button" class="blk-act blk-ver" data-ovverify="0" title="Relire ce bloc étape par étape : « Constaté ✓ » coche l’étape, « △ Écart » passe sans cocher. Les réponses attendues s’affichent au passage.">Vérifier</button><button type="button" class="btn cont idle" data-ovnext="bmvxmm65r7tb5en1b" data-contlbl="Continuer — Analyse du rythme →" aria-disabled="true">Cochez les étapes restantes (3)</button></div></div></section></div></div>
   <section class="block" style="margin-top:16px"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>

@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.67.0] — 2026-11-01
+Refonte « Natif » : le groupe « En cours » à l'accueil (A523, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
+côté serveur.
+- **Une aide en session monte en tête de l'accueil**, dans un groupe « En cours », avec « ● Session 04:12 » en vert ;
+  elle quitte sa catégorie le temps de la session. Un tap la rouvre.
+- **La carte sombre « Session en cours » disparaît** (elle doublait la rangée). « Terminer » se fait dans la
+  session, par « Fin ». La carte d'une session partagée reste.
+
 ## [5.66.0] — 2026-11-01
 Lot 11 de la refonte « Natif » : Administration au bureau et la Page (A522, doctrine `docs/decisions/lot-v6-0.md`).
 Rien à rejouer côté serveur.
@@ -227,14 +235,3 @@ Rien à rejouer côté serveur.
   filtres.
 - La fenêtre « Comptes en attente » disparaît : son contenu est dans « À traiter » et dans « Règles ».
 - Le retour (geste ou bouton) remonte d'un compte à la liste, puis à la vue d'ensemble, puis à Moi.
-
-## [5.54.0] — 2026-10-08
-Anneaux bleus, retour à l'accueil et colonne (A490-A493, doctrine `docs/decisions/lot-v5-54.md`).
-- **Anneaux bleus** : une fenêtre ouverte au doigt ou à la souris n'encadre plus rien. Une confirmation met
-  toujours son action par défaut sous Entrée, les autres fenêtres (Créer, Affichage, Moi, Catégories, Sessions,
-  Prendre en main…) ne présélectionnent plus rien et n'ouvrent plus le clavier du téléphone. Au clavier, l'anneau
-  reste — dès l'ouverture, et au premier Tab.
-- **Retour à l'accueil** : en tablette et au bureau, revenir d'une aide repose la liste là où vous l'aviez laissée
-  (comme au téléphone). Après « Terminer la session », l'accueil s'ouvre en haut, sur la carte-bilan.
-- **Colonne gauche** : une bibliothèque que vous venez de créer y apparaît même vide (compte 0) ; les collections
-  ont leur remise à zéro « Tout », comme les bibliothèques et les catégories.

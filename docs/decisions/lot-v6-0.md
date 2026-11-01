@@ -544,3 +544,22 @@ le chrome de la feuille Page (`#planModal`).*
      nomme ainsi et que l'utilisateur cherche l'un ou l'autre ; **à arbitrer** si l'auteur préfère un seul bouton.
    - Au téléphone (`html.zw560`), Imprimer et Exporter se retirent de la barre : ils restent dans le menu ⋯.
    - Vérifié : imprimer la Page ouverte sort la Page seule (barre et fenêtre absentes du PDF).
+
+## A523 — Le groupe « En cours » en tête de l'accueil (v5.67.0)
+
+*Applique A510 §6 ; amende A355-A356 (carte sombre « Session en cours » de l'accueil) et A506 (liseré vert).*
+
+Une aide dont la session est DÉMARRÉE (`sessionLive`) quitte sa section du répertoire et monte en tête, dans un
+groupe « En cours » (`.dir-book.live-grp`), avant l'Accès direct : même rangée que partout, et l'état dit
+« ● Session 04:12 » en vert (le chrono vivant de `paintDirLive`). Le groupe montre TOUTES les sessions vives, quel
+que soit le filtre posé (la carte les montrait toutes) ; il se retire en sélection, et la recherche garde ses
+résultats. L'Accès direct garde la rangée (un raccourci ne déménage rien, A515).
+
+La carte sombre « Session en cours » (chrono, « Reprendre », « Terminer », ligne « Bloc n · … ») est retirée pour une
+aide de la liste : elle doublait la rangée. **Ce qu'on perd, et dit** : « Terminer » depuis l'accueil — il reste à
+un tap, dans la session (« Fin » du quai). La carte d'une session **partagée** (invité, miroir) reste : ce n'est pas
+une aide du répertoire. Purgés (règle 14) : `.ls-w`, `.ls-chrono`, `.ls-end`, `data-openlive`, `data-endlive`, le
+battement `data-lschrono`. Le point vert devient un élément (`.dl-dot`) : en vue détaillée, `::before` porte déjà
+le séparateur « · » et l'écrasait en trait.
+
+Témoin : `audit-doctrine` « Accueil · A523 groupe « En cours » » (390 et 1280 ; vérifié capable d'échouer).
