@@ -3641,7 +3641,6 @@
   /* La tête est sur la GRILLE DES RANGÉES (icône dans la colonne de 20 px) : titre, résumé et noms des repères
      partent du même bord, et le compte se pose sur la ligne de base du titre. */
   .pb-head{grid-template-columns:20px minmax(0,1fr) auto auto;padding:0 8px}
-  .pb-hic{display:grid;place-items:center;color:var(--ink-2)}
   .pb-t{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .pb-n{font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2)}
   .pb-sum{justify-self:end;text-align:right;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
@@ -3650,7 +3649,6 @@
   html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:4}
   .pband.closed .pb-body{display:none}
   .pb-row{grid-template-columns:20px minmax(0,1fr) auto auto;align-items:start;row-gap:2px;padding:6px 8px}
-  .pb-ic{width:20px;height:20px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--primary-soft);color:var(--act)}
   .pb-nm{align-self:center;font-size:var(--t-body);font-weight:800;line-height:1.3;text-transform:uppercase;letter-spacing:.02em}
   .pb-bd{grid-column:2/-1;font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;line-height:1.45;overflow-wrap:break-word}
   .pb-bd.solo{grid-column:2;align-self:center}
@@ -3660,7 +3658,17 @@
   .pb-stt{white-space:nowrap;margin-top:2px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;line-height:1;text-transform:uppercase;background:var(--amb-2);color:var(--ink-2)}
   .pb-stt.on{background:var(--primary-soft);color:var(--act)}
   .pb-stt.ok{background:var(--ok-soft);color:var(--ok)}
-  .pb-det{margin:0 0 6px 40px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
+  /* A519 (amende A397-A398) — UN REPÈRE TIENT SUR UNE LIGNE : « △ Adrénaline — IV/IO » en ambre (le △ des repères
+     posologiques reste, A409), l'état en mots à droite, la dose en mono dessous ; plus d'icône ni de chevron par
+     repère — la rangée entière déplie son détail. L'intertitre perd son icône. */
+  .pb-head{grid-template-columns:minmax(0,1fr) auto auto;padding:0 4px}
+  .pb-row{grid-template-columns:minmax(0,1fr) auto;padding:8px 4px;border-top:1px solid var(--line);border-radius:0}
+  .pb-nm{color:var(--warn);text-transform:none;letter-spacing:0}
+  .pb-bd,html .pb-bd.solo{grid-column:1/-1}
+  .pb-stt{grid-row:1;grid-column:2;align-self:center;padding:4px 8px;border-radius:999px;font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  html.zw430 .pb-row .pb-stt{grid-row:1;grid-column:2;justify-self:end}
+  html.zw430 .pb-row .pb-nm{grid-column:1}
+  .pb-det{margin:0 0 6px 4px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
   .mo-pips i.on{background:currentColor;box-shadow:none}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
@@ -3724,6 +3732,16 @@
   ol.steps li.done .box svg{animation:pop .25s ease}
   ol.steps li.done .txt{color:var(--ink-2);font-weight:600}
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
+  /* ═══ A519 — LA SESSION NATIF (lot 6) ═══════════════════════════════════════════════════════════════════════
+     1. Les étapes vivent À PLAT dans la carte du bloc : plus de tuile `--amb-2` ; seule l'étape FAITE garde son aplat
+        vert. Le mot CRITIQUE / VIGILANCE s'écrit seul, en couleur, sans pastille — le dessin des rappels du chapeau
+        (A401) ; cochée, il s'éteint en gris. Le danger reste dit par le mot, la bordure de la case et le préfixe
+        lecteur d'écran (A345). L'étiquette d'un seuil (A382) passe en aplat neutre, sans filet. */
+  ol.steps li{background:none}
+  ol.steps li.done{background:var(--ok-soft)}
+  ol.steps li .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){background:none;padding-left:0;padding-right:0}
+  ol.steps li.done .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){color:var(--ink-2)}
+  .stp-mk.mo{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
@@ -4190,19 +4208,6 @@
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
-  /* v5.30 (A356) : la légende parle avec la VOIX des réponses attendues (`.stp-r` : mono, capitales,
-     encre secondaire) — plus de pilule, un seul dessin pour un seul objet. */
-  .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px;font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;
-    letter-spacing:.3px;color:var(--ink-2)}   /* A356 : même voix que les réponses, un cran plus bas et en minuscules — une légende ne crie pas */
-  .stp-legend svg{vertical-align:-2px;color:var(--crit)}
-  /* ⚠ LE SÉPARATEUR DE LA LÉGENDE N'EST PLUS UN CARACTÈRE (v5.6). C'était un « · » à 1,6:1 :
-     invisible, donc inutile — mais mesuré comme du TEXTE, et à juste titre, puisque c'en était.
-     Un séparateur qui doit rester discret ne s'écrit pas en lettres : c'est un ÉCART. La légende
-     porte déjà `gap`, il suffit de l'élargir entre les groupes. Rien à exempter, rien à teinter,
-     et l'arbre d'accessibilité n'a plus un caractère de ponctuation à annoncer entre deux mots.
-     `.lg-sp` est PURGÉE avec le caractère qu'elle habillait (règle 14). */
-  .lg-it{display:inline-flex;align-items:center;gap:4px}
-  .stp-legend>*+*{margin-left:10px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
 
@@ -5272,12 +5277,16 @@
      TRAVAIL ; le registre est annoncé par l'étiquette du bloc (« Bloc n · Décision ») et le
      liseré gauche, qui restent ambre. */
   .ov-block.dec{background:var(--warn-soft);border-color:var(--verify-line)}
+  /* A519 (A513 §1, renverse la carte « AMBRE DOUX » d'A345) : la décision est une carte de TRAVAIL comme les autres —
+     contour bleu quand elle est le bloc courant ; seul « ◆ Décision » reste ambre. */
+  .ov-block.dec{background:var(--work);border-color:var(--work-line)}
   /* Un bloc de DÉCISION garde son ambre même courant (v4.24.0, décision utilisateur) : le REGISTRE
      n'est jamais masqué par un état transitoire (ECAM) — un canal par signification. La pilule
      `.ov-here` est PURGÉE depuis A12 (v5.6, zéro émission) : ne pas la réintroduire — purger une
      classe (règle 14), c'est aussi purger les commentaires qui la citent.
      Détail : doctrine-css.md C95. */
   .ov-block.dec.cur{border-color:var(--warn-line);border-left-color:var(--warn-line)}
+  .ov-block.dec.cur{border-color:var(--act);border-left-color:var(--act)}   /* A519 : le contour du bloc courant, comme tout bloc */
   /* ⚠ Un bloc complet l'est sur TOUTE sa bordure (v5.0.9) : cadre entier au registre CONFIRMATION,
      jamais la seule arête gauche (deux registres sur un même trait). PAS de fond teinté carte
      OUVERTE (les boîtes ⚠/△ doivent rester lisibles sur `--work`) — contrairement à
@@ -5344,6 +5353,22 @@
   /* Sous 360 px effectifs (320 px, ou 320 × 130 %), la première étape doit rester au-dessus du pli : la ligne
      « Parcours » et la pilule cèdent, le compte du bloc revient sur la carte. */
   html.zw360 .ov-cur{display:none}
+  /* A519 : « En cours » et « Bloc n » sur une ligne ; le carré du numéro s'efface sur le bloc courant. */
+  .ov-curl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ov-curl>.ov-cur{display:inline-block;margin:0}
+  .ov-curn{font-size:var(--t-meta);font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .ov-curn.dec{font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--warn)}
+  /* A519 : le jalon au pied — « SI » en petites capitales, condition, jauge, compte ; le texte de l'auteur dessous. */
+  .jl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:8px;border-top:1px solid var(--line);padding:10px 4px 4px;font-size:var(--t-body)}
+  .jl-row>.jl-go{align-self:center}
+  html.zw430 .jl-row>.jl-go{grid-column:2/-1;justify-self:start;margin-top:6px}
+  .jl-si{flex:none;align-self:flex-start;margin-top:2px;font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;color:var(--ink-2)}
+  .jl-tx{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+  .jl-txt{flex:1 1 100%;font-size:var(--t-meta);color:var(--ink-2)}
+  .jl-pips{display:inline-flex}
+  .ov-block.numin:not(.closed)>.ov-head .ov-n{display:none}
+  .ov-block.closed .ov-curl{display:none}   /* replié sur place (sans re-rendu) : le carré revient, la ligne « En cours » part */
+  html.zw360 .ov-curl{margin-bottom:2px}
   html.zw360 .ov-prog>span:first-child{display:none}   /* A369 : la ligne reste — elle porte l'historique ; seul le mot cède */
   html.zw360 .ov-block.cur:not(.closed) .ov-c{display:inline}
   /* … et l'étape redescend d'un cran (--t-item), rangée 56 px : à 246 px effectifs, le corps 17,5
@@ -5351,7 +5376,6 @@
      hiérarchie : toutes les rangées descendent ensemble (A345 tient). */
   html.zw360 ol.steps li{min-height:56px;padding:8px 10px}
   html.zw360 ol.steps li .txt{font-size:var(--t-item)}
-  html.zw360 .stp-legend{display:none}   /* les mots de registre sont sur les rangées ; « réponse attendue » se lit sur la pilule */
   html.zw360 #cbTimers{min-height:56px}
   html.zw360 #cbTimers .seg{min-height:44px}
   /* Le journal relu dans la feuille « Repère posé ». */
@@ -8451,10 +8475,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur dec" data-ovb="bmvwxiwhuphexk013" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-cur">En cours</span> Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="jl-wrap"><div class="jl-row"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span> — 3 CEE sans RACS — envisager une <b>FV réfractaire</b></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span></div></div><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvwxiwhu91wwghqn"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvwxiwhu17np2551"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvxglz1rwxl1jh14" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvxglz1ric57y95w"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvxglz1rldfi2610"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur dec" data-ovb="bmvwxiwhuphexk013" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-cur">En cours</span> Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="jl-wrap"><div class="jl-row"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span> — 3 CEE sans RACS — envisager une <b>FV réfractaire</b></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span></div></div><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvwxiwhu91wwghqn"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvwxiwhu17np2551"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvxglz1rwxl1jh14" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvxglz1ric57y95w"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvxglz1rldfi2610"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 </body></html>

@@ -29,11 +29,11 @@ t('option de branche AU MOINS aussi grande qu\'une étape',
 const a=await p.evaluate(()=>{const d=document.querySelector('.ov-block.dec.cur');if(!d)return null;
  const cs=getComputedStyle(d);
  return {bord:cs.borderLeftColor,cur:d.getAttribute('aria-current'),
-   seulOuvert:document.querySelectorAll('.ov-block:not(.closed)').length};});
-/* Le REGISTRE prime sur l'état : un bloc de décision courant garde sa bordure ambre — la position,
-   elle, passe par un AUTRE canal (un canal par signification, v4.24.0). --verify-bd pointe
-   désormais sur --warn-line, la fusion des deux ambres (lot 1). */
-t('bloc décision COURANT : bordure ambre (--warn-line), pas bleue', a&&a.bord==='rgb(180, 83, 9)', JSON.stringify(a));
+   seulOuvert:document.querySelectorAll('.ov-block:not(.closed)').length,
+   mot:!!d.querySelector('.ov-curn.dec')&&/Décision/.test(d.querySelector('.ov-curn.dec').textContent)};});
+/* A519 (A513 §1, renverse v4.24.0) : la décision est un bloc comme les autres — contour BLEU quand elle est courante ;
+   son registre passe par le MOT « ◆ Décision » en ambre, sur la ligne de « En cours ». */
+t('bloc décision COURANT : contour bleu (--act) et mot « ◆ Décision » ambre', a&&a.bord==='rgb(23, 71, 127)'&&a.mot, JSON.stringify(a));
 /* A12 (v5.6) — « ICI » N'EXISTE PLUS QUE DANS UNE LISTE. Sur la carte il était redondant avec
    trois signaux déjà présents ; ce qui doit rester VÉRIFIABLE, c'est qu'un de ces canaux porte
    effectivement la position, et le plus fort des trois est aussi le seul lisible par un lecteur

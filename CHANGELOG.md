@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.61.0] — 2026-11-01
+Lot 6 de la refonte « Natif » : la session, selon vos quatre arbitrages sur planche (A519, doctrine
+`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Les étapes sont à plat dans la carte du bloc**, sans tuile grise ; seule l'étape faite garde son fond vert.
+  CRITIQUE et VIGILANCE s'écrivent seuls, en couleur, sans pastille.
+- **La tête du bloc dit « En cours · Bloc 3 »** ; la légende « sous l'étape, en gris : la réponse attendue »
+  disparaît.
+- **La décision n'a plus de fond ambré** : contour bleu comme tout bloc en cours, et « ◆ Décision · bloc 2 » en
+  ambre. Son jalon passe au pied : « SI Chocs délivrés ≥ 3 ●○○ 0/3 », le texte dessous, le raccourci ⚡ au seuil.
+- **L'en-tête dit « ● Session »** au lieu de « ■ Mode crise » ; le choix du thème passe dans le menu ⋯ (il reste
+  dans l'en-tête d'une référence).
+- **Les repères du bloc tiennent sur une ligne** : « △ Adrénaline — IV/IO » en ambre, l'état à droite, la dose
+  dessous.
+- Gardé : la cellule de compteur de la capsule (valeur, puis nom entier), pour ne jamais abréger son nom.
+
 ## [5.60.0] — 2026-10-31
 Lot 5 de la refonte « Natif » : le verre clair et le moniteur (A518, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -246,21 +261,3 @@ Qui peut créer une bibliothèque, et comment la demander (A478-A479, doctrine `
   d'Administration : « Créer » ouvre la bibliothèque au nom du demandeur et y invite les personnes indiquées ;
   « Refuser » la classe. Dans Moi, chacun voit ses demandes en attente (Annuler) ou refusées (Effacer).
 - **Données** : les adresses des personnes à inviter ne sont gardées que jusqu'à la décision (registre RGPD § 3).
-
-## [5.50.0] — 2026-10-07
-Les collections : ranger ses aides sans rien déplacer (A475-A477, doctrine `docs/decisions/lot-v5-50.md`).
-- **Une collection est votre rangement, à vous seul** : une liste nommée d'aides et de protocoles venus de n'importe
-  quelle bibliothèque, même en lecture seule. Rien n'est copié ni déplacé, et une même aide peut être dans plusieurs
-  collections. Elles suivent votre compte sur tous vos appareils ; les autres membres d'une bibliothèque ne les voient pas.
-- **Où les trouver** : au téléphone, une rangée « Mes collections » sous l'Accès direct ; au bureau, dans la colonne de
-  gauche ; dans la feuille Affichage ; dans Moi. L'Accès direct est la première collection.
-- **Ranger** : « Ajouter à une collection… » dans le menu ⋯ de chaque aide et protocole (même quand « Modifier » est
-  grisé) et en tête de la feuille Actions d'une sélection. Des cases : cocher range, décocher retire.
-- **Une collection ouverte** dit qu'elle est à vous seul et d'où vient son contenu, propose « Ajouter des aides » et,
-  par ⋯, Renommer, Retirer les indisponibles, Supprimer — les aides restent toujours où elles sont.
-- **La barre de sélection ouvre ses actes par « Actions » à toutes les largeurs** : avec « Collection… », les cinq actes
-  en toutes lettres ne tiennent plus sur la ligne au bureau.
-- **« Nouvelle bibliothèque » demande d'abord « Avec qui ? »** et invite ces personnes à la création. Sans invité, elle
-  propose une collection, qui suffit pour ranger. Une bibliothèque partagée avec personne peut être **convertie en
-  collection** depuis sa fenêtre : ses éléments passent dans Perso, rien n'est supprimé.
-- **Mettez à jour tous vos appareils** : une version antérieure ne connaît pas les collections (elle ne les efface pas).

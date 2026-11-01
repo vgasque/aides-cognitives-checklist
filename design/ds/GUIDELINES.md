@@ -394,7 +394,7 @@ Trois réponses, et le choix se déduit de ce que coûte l'information cachée :
     la capsule monte DANS l'en-tête : même contenu, même ordre. Elle accueille deux compteurs au
     nom entier, jamais ellipsé, et le rappel dit « +n » (A462, A473).
   - **Le bandeau de crise reste BLANC** : un aplat rouge permanent désensibilise au rouge. Le
-    statut s'annonce en TEXTE (« ■ Mode crise »). Il porte en outre l'étape ① du partage,
+    statut s'annonce en TEXTE (« ● Session », A519 ; « ■ Mode crise » avant). Il porte en outre l'étape ① du partage,
     COMPRESSÉE (A327-A328) — jamais une seconde pilule.
   - **LA FIN DE SESSION EST UNE TOUCHE DU QUAI** (A346, qui remplace la rangée d'A336 au pied
     du volet et du rail — A356 l'en retire) : UN SEUL bouton permanent, la fenêtre reste la seule
@@ -788,14 +788,16 @@ bloc dépasse une page entière ; un intitulé de branche ne finit jamais une pa
 ## Listes d'étapes — un corps, une colonne, le danger en MOT (A345, A11 rouvert)
 
 - **Toutes les étapes d'une liste partagent le même corps** (17,5 en session, 15 en lecture) et la
-  même colonne : rangées de 64 px sur `--amb-2`, case de 36 px, sans numéro (on coche dans
-  n'importe quel ordre).
-- **Le danger est un MOT, pas un glyphe** : étiquette **CRITIQUE** (`--crit`) ou **VIGILANCE**
-  (`--warn`) au-dessus du libellé (dans le parcours : calée à DROITE de la première ligne, sans
+  même colonne : rangées de 64 px À PLAT dans la carte du bloc (A519 : plus de tuile `--amb-2`, seule l'étape
+  faite garde son aplat vert), case RONDE de 36 px, sans numéro (on coche dans n'importe quel ordre).
+- **Le danger est un MOT, pas un glyphe** : **CRITIQUE** (`--crit`) ou **VIGILANCE** (`--warn`) écrit seul, SANS
+  pastille (A519), au-dessus du libellé (dans le parcours : calée à DROITE de la première ligne, sans
   aplat — A388), plus la bordure de case au registre et un texte `.sr-only`. ⚠ **Les glyphes ⚠/△
   d'avant ont vécu** — `stepMarkHtml` est l'unique fabrique (rangée et aperçu à plat).
 - Sous l'étape, en gris : la réponse attendue (« challenge :: réponse »), et la **LÉGENDE** de ce
-  que fait la coche (§ Ce que fait la coche).
+  que fait la coche (§ Ce que fait la coche). La légende du BLOC (« sous l'étape, en gris… ») est purgée (A519) ;
+  la tête du bloc courant dit « En cours · Bloc n » (« ◆ Décision · bloc n » en ambre sur une décision, carte
+  blanche, A513).
 - Étape COCHÉE = aplatie ; une étape signalée cochée garde son mot, cadre vert doux.
 
 ## Challenge-response (v4.11.0 — FAA Order 8900.1 Vol. 3 Ch. 32 §3-3403.A)

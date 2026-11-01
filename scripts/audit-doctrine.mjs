@@ -4367,7 +4367,9 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     for(const [nom,m] of [['accueil',acc],['lecture',lec]]){
       const v=Object.entries(m);
       /* v5.30 (A351) : ≥ 780 l'accueil ne garde que « Créer » — le compte et l'historique sont dans la colonne. */
-      t(`${W} · ${nom} : témoin — la rangée porte au moins ${W>=780&&nom==='accueil'?'un':'deux'} contrôle(s)`, v.length>=(W>=780&&nom==='accueil'?1:2), JSON.stringify(Object.keys(m)));
+      /* A519 : sur une aide, le thème a quitté l'en-tête pour le menu ⋯ — au téléphone la rangée de lecture ne porte plus que ⋯. */
+      const un=(W>=780&&nom==='accueil')||(W<780&&nom==='lecture');
+      t(`${W} · ${nom} : témoin — la rangée porte au moins ${un?'un':'deux'} contrôle(s)`, v.length>=(un?1:2), JSON.stringify(Object.keys(m)));
       /* Les GLYPHES ont tous le même carré ; « Créer » en large porte son mot et s'allonge, mais
          sa HAUTEUR reste celle de la rangée — c'est l'alignement qui se lit, pas la largeur. */
       const hs=[...new Set(v.map(([,x])=>x.h))], ys=[...new Set(v.map(([,x])=>x.y))];
@@ -4398,10 +4400,12 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     t(`${W} · le retour d'en-tête a 44 px de cible dans les DEUX sens`,
       !!back&&back.w>=44&&back.h>=44, back?`${back.w}×${back.h}`:'absent');
 
-    /* Le raccourci de thème : présent en LECTURE, absent de l'accueil — c'est le moment qui le
-       justifie, pas la place. */
-    t(`${W} · le thème est un raccourci de LECTURE, pas de l'accueil`,
-      !acc['#hdrTheme']&&!!lec['#hdrTheme'], `accueil ${!!acc['#hdrTheme']}, lecture ${!!lec['#hdrTheme']}`);
+    /* A519 (amende le raccourci de lecture) : sur une AIDE, le thème vit dans le menu ⋯ (« Thème : … »), plus dans
+       l'en-tête ; il reste un raccourci d'en-tête sur une référence. */
+    const menuTh=await page.evaluate(()=>{if(typeof _moreBuild==='function')_moreBuild();
+      return (_moreRows||[]).some(r=>r&&/^Thème/.test(r.label||''));});
+    t(`${W} · A519 · sur une aide, le thème est dans le menu ⋯, pas dans l'en-tête`,
+      !acc['#hdrTheme']&&!lec['#hdrTheme']&&menuTh, `accueil ${!!acc['#hdrTheme']}, lecture ${!!lec['#hdrTheme']}, menu ${menuTh}`);
     /* Trois crans, comme le réglage canonique — sinon « Auto » deviendrait inatteignable depuis
        la fiche, et l'on ne saurait plus si l'on est en clair CHOISI ou en clair SUIVI. */
     const cy=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));const v=[];

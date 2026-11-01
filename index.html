@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-nhQ/8VXABIpRBy2ekKQf4BW+iyALGA0FtRFT5Wavr4Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-v716R2H8NmzEis3Rr5i4KHFRff5fvSAmMn8HMqPy2f8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4034,7 +4034,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La tête est sur la GRILLE DES RANGÉES (icône dans la colonne de 20 px) : titre, résumé et noms des repères
      partent du même bord, et le compte se pose sur la ligne de base du titre. */
   .pb-head{grid-template-columns:20px minmax(0,1fr) auto auto;padding:0 8px}
-  .pb-hic{display:grid;place-items:center;color:var(--ink-2)}
   .pb-t{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .pb-n{font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2)}
   .pb-sum{justify-self:end;text-align:right;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
@@ -4043,7 +4042,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:4}
   .pband.closed .pb-body{display:none}
   .pb-row{grid-template-columns:20px minmax(0,1fr) auto auto;align-items:start;row-gap:2px;padding:6px 8px}
-  .pb-ic{width:20px;height:20px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--primary-soft);color:var(--act)}
   .pb-nm{align-self:center;font-size:var(--t-body);font-weight:800;line-height:1.3;text-transform:uppercase;letter-spacing:.02em}
   .pb-bd{grid-column:2/-1;font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;line-height:1.45;overflow-wrap:break-word}
   .pb-bd.solo{grid-column:2;align-self:center}
@@ -4053,7 +4051,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pb-stt{white-space:nowrap;margin-top:2px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;line-height:1;text-transform:uppercase;background:var(--amb-2);color:var(--ink-2)}
   .pb-stt.on{background:var(--primary-soft);color:var(--act)}
   .pb-stt.ok{background:var(--ok-soft);color:var(--ok)}
-  .pb-det{margin:0 0 6px 40px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
+  /* A519 (amende A397-A398) — UN REPÈRE TIENT SUR UNE LIGNE : « △ Adrénaline — IV/IO » en ambre (le △ des repères
+     posologiques reste, A409), l'état en mots à droite, la dose en mono dessous ; plus d'icône ni de chevron par
+     repère — la rangée entière déplie son détail. L'intertitre perd son icône. */
+  .pb-head{grid-template-columns:minmax(0,1fr) auto auto;padding:0 4px}
+  .pb-row{grid-template-columns:minmax(0,1fr) auto;padding:8px 4px;border-top:1px solid var(--line);border-radius:0}
+  .pb-nm{color:var(--warn);text-transform:none;letter-spacing:0}
+  .pb-bd,html .pb-bd.solo{grid-column:1/-1}
+  .pb-stt{grid-row:1;grid-column:2;align-self:center;padding:4px 8px;border-radius:999px;font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  html.zw430 .pb-row .pb-stt{grid-row:1;grid-column:2;justify-self:end}
+  html.zw430 .pb-row .pb-nm{grid-column:1}
+  .pb-det{margin:0 0 6px 4px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
   .mo-pips i.on{background:currentColor;box-shadow:none}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
@@ -4117,6 +4125,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.done .box svg{animation:pop .25s ease}
   ol.steps li.done .txt{color:var(--ink-2);font-weight:600}
   ol.steps li.done .stp-mk{background:var(--amb-2);color:var(--ink-2)}
+  /* ═══ A519 — LA SESSION NATIF (lot 6) ═══════════════════════════════════════════════════════════════════════
+     1. Les étapes vivent À PLAT dans la carte du bloc : plus de tuile `--amb-2` ; seule l'étape FAITE garde son aplat
+        vert. Le mot CRITIQUE / VIGILANCE s'écrit seul, en couleur, sans pastille — le dessin des rappels du chapeau
+        (A401) ; cochée, il s'éteint en gris. Le danger reste dit par le mot, la bordure de la case et le préfixe
+        lecteur d'écran (A345). L'étiquette d'un seuil (A382) passe en aplat neutre, sans filet. */
+  ol.steps li{background:none}
+  ol.steps li.done{background:var(--ok-soft)}
+  ol.steps li .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){background:none;padding-left:0;padding-right:0}
+  ol.steps li.done .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){color:var(--ink-2)}
+  .stp-mk.mo{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
@@ -4583,19 +4601,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
-  /* v5.30 (A356) : la légende parle avec la VOIX des réponses attendues (`.stp-r` : mono, capitales,
-     encre secondaire) — plus de pilule, un seul dessin pour un seul objet. */
-  .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px;font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;
-    letter-spacing:.3px;color:var(--ink-2)}   /* A356 : même voix que les réponses, un cran plus bas et en minuscules — une légende ne crie pas */
-  .stp-legend svg{vertical-align:-2px;color:var(--crit)}
-  /* ⚠ LE SÉPARATEUR DE LA LÉGENDE N'EST PLUS UN CARACTÈRE (v5.6). C'était un « · » à 1,6:1 :
-     invisible, donc inutile — mais mesuré comme du TEXTE, et à juste titre, puisque c'en était.
-     Un séparateur qui doit rester discret ne s'écrit pas en lettres : c'est un ÉCART. La légende
-     porte déjà `gap`, il suffit de l'élargir entre les groupes. Rien à exempter, rien à teinter,
-     et l'arbre d'accessibilité n'a plus un caractère de ponctuation à annoncer entre deux mots.
-     `.lg-sp` est PURGÉE avec le caractère qu'elle habillait (règle 14). */
-  .lg-it{display:inline-flex;align-items:center;gap:4px}
-  .stp-legend>*+*{margin-left:10px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
 
@@ -5665,12 +5670,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      TRAVAIL ; le registre est annoncé par l'étiquette du bloc (« Bloc n · Décision ») et le
      liseré gauche, qui restent ambre. */
   .ov-block.dec{background:var(--warn-soft);border-color:var(--verify-line)}
+  /* A519 (A513 §1, renverse la carte « AMBRE DOUX » d'A345) : la décision est une carte de TRAVAIL comme les autres —
+     contour bleu quand elle est le bloc courant ; seul « ◆ Décision » reste ambre. */
+  .ov-block.dec{background:var(--work);border-color:var(--work-line)}
   /* Un bloc de DÉCISION garde son ambre même courant (v4.24.0, décision utilisateur) : le REGISTRE
      n'est jamais masqué par un état transitoire (ECAM) — un canal par signification. La pilule
      `.ov-here` est PURGÉE depuis A12 (v5.6, zéro émission) : ne pas la réintroduire — purger une
      classe (règle 14), c'est aussi purger les commentaires qui la citent.
      Détail : doctrine-css.md C95. */
   .ov-block.dec.cur{border-color:var(--warn-line);border-left-color:var(--warn-line)}
+  .ov-block.dec.cur{border-color:var(--act);border-left-color:var(--act)}   /* A519 : le contour du bloc courant, comme tout bloc */
   /* ⚠ Un bloc complet l'est sur TOUTE sa bordure (v5.0.9) : cadre entier au registre CONFIRMATION,
      jamais la seule arête gauche (deux registres sur un même trait). PAS de fond teinté carte
      OUVERTE (les boîtes ⚠/△ doivent rester lisibles sur `--work`) — contrairement à
@@ -5737,6 +5746,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Sous 360 px effectifs (320 px, ou 320 × 130 %), la première étape doit rester au-dessus du pli : la ligne
      « Parcours » et la pilule cèdent, le compte du bloc revient sur la carte. */
   html.zw360 .ov-cur{display:none}
+  /* A519 : « En cours » et « Bloc n » sur une ligne ; le carré du numéro s'efface sur le bloc courant. */
+  .ov-curl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .ov-curl>.ov-cur{display:inline-block;margin:0}
+  .ov-curn{font-size:var(--t-meta);font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .ov-curn.dec{font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--warn)}
+  /* A519 : le jalon au pied — « SI » en petites capitales, condition, jauge, compte ; le texte de l'auteur dessous. */
+  .jl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:8px;border-top:1px solid var(--line);padding:10px 4px 4px;font-size:var(--t-body)}
+  .jl-row>.jl-go{align-self:center}
+  html.zw430 .jl-row>.jl-go{grid-column:2/-1;justify-self:start;margin-top:6px}
+  .jl-si{flex:none;align-self:flex-start;margin-top:2px;font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;color:var(--ink-2)}
+  .jl-tx{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+  .jl-txt{flex:1 1 100%;font-size:var(--t-meta);color:var(--ink-2)}
+  .jl-pips{display:inline-flex}
+  .ov-block.numin:not(.closed)>.ov-head .ov-n{display:none}
+  .ov-block.closed .ov-curl{display:none}   /* replié sur place (sans re-rendu) : le carré revient, la ligne « En cours » part */
+  html.zw360 .ov-curl{margin-bottom:2px}
   html.zw360 .ov-prog>span:first-child{display:none}   /* A369 : la ligne reste — elle porte l'historique ; seul le mot cède */
   html.zw360 .ov-block.cur:not(.closed) .ov-c{display:inline}
   /* … et l'étape redescend d'un cran (--t-item), rangée 56 px : à 246 px effectifs, le corps 17,5
@@ -5744,7 +5769,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      hiérarchie : toutes les rangées descendent ensemble (A345 tient). */
   html.zw360 ol.steps li{min-height:56px;padding:8px 10px}
   html.zw360 ol.steps li .txt{font-size:var(--t-item)}
-  html.zw360 .stp-legend{display:none}   /* les mots de registre sont sur les rangées ; « réponse attendue » se lit sur la pilule */
   html.zw360 #cbTimers{min-height:56px}
   html.zw360 #cbTimers .seg{min-height:44px}
   /* Le journal relu dans la feuille « Repère posé ». */
@@ -9406,7 +9430,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.60.0';
+const APP_VERSION='5.61.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10693,7 +10717,10 @@ function jalonsHtml(f,b,idx){
     const p=jalonProg(j,pi.pass,j.counter?((Runtime.counters||{})[j.counter]||0):0);
     const ex=(p.active&&j.go)?cxAll(f).find(c=>c.target===j.go):null;
     const btn=ex?`<button type="button" class="jl-go" data-cxgo="${esc(ex.target)}" title="${ex.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">${boltIcon(14)} ${esc(ex.label)}${ex.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`:'';
-    return `<div class="jl-row${p.active?' on':''}"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">${esc(jalonCondLbl(f,j))}</span> — ${fmt(j.text)}</span><span class="jl-prog" aria-label="${p.cur} sur un seuil de ${p.goal}">${p.cur}/${p.goal}</span>${btn}</div>`;});
+    /* A519 : « SI condition ●●○ » en tête de ligne (le dessin du jalon de la Page, A395), le texte de l'auteur dessous,
+       le raccourci ⚡ au bout ; la jauge est celle des étapes au seuil (A474), le compte reste lu à l'écran. */
+    const N=p.goal,pips=N<=8?`<span class="mo-pips jl-pips" aria-hidden="true">${Array.from({length:N},(x,k)=>`<i class="${k===N-1?'goal':''}${k<Math.min(p.cur,N)?(k===N-1?' on':'on'):''}"></i>`).join('')}</span>`:'';
+    return `<div class="jl-row${p.active?' on':''}"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">${esc(jalonCondLbl(f,j))}</span>${pips}<span class="jl-prog" aria-label="${p.cur} sur un seuil de ${p.goal}">${p.cur}/${p.goal}</span><span class="jl-txt">${fmt(j.text)}</span></span>${btn}</div>`;});
   return `<div class="jl-wrap">${rows.join('')}</div>`;}
 /* Repeinture CHIRURGICALE (jamais un re-rendu — leçon du quai) : appelée par `setCounterVal`, le
    point d'étranglement des valeurs de compteur (local, distant, reset). La navigation, elle,
@@ -14311,7 +14338,8 @@ function applyViewChrome(){
          premier geste. Jamais chez l'invité (il a son mot) ni en aperçu d'essai. */
       const xAvant=crisis&&!on&&!xEss&&!Runtime.started&&!sharedShown()&&hasFlow(state.fiche);
       bs.classList.toggle('pre',xAvant);
-      m.textContent=xEss?'■ Aperçu':(!on?(xAvant?'Avant la session':''):(xExo?'▲ Exercice':(xInv?'▪ Vous suivez':'■ Mode crise')));
+      /* A519 : « Session » (le mot du capsule et de l'accueil), plus « Mode crise » (amende A14). */
+      m.textContent=xEss?'■ Aperçu':(!on?(xAvant?'Avant la session':''):(xExo?'▲ Exercice':(xInv?'▪ Vous suivez':'● Session')));
       syncBrandSur();}}
    if(crisis){
      /* ═══ DEUX ANNONCIATEURS, DEUX OFFICES (v4.70.1, demande utilisateur) ═══════════════════
@@ -14519,7 +14547,8 @@ function applyViewChrome(){
      qui justifie le second contrôle, pas la commodité — et sa condition est donc la VUE, jamais
      la largeur (une commande qui apparaît selon la place romprait la constance, v4.31.0). */
   {const th=document.getElementById('hdrTheme');
-   if(th){th.hidden=!(state.view==='read'||state.view==='protocolRead');
+   /* A519 : sur une aide, le thème quitte l'en-tête pour le menu ⋯ (`themeMenuRow`) ; il reste sur une référence. */
+   if(th){th.hidden=state.view!=='protocolRead';
      if(!th.hidden&&!th.innerHTML)applyTheme(_themeMode());}}
   // Menu ⋯ : réinitialisé à chaque rendu — chaque vue fiche/protocole (re)déclare ses rangées.
   setMoreMenu(null);
@@ -21158,6 +21187,7 @@ function bindReadEvents(f,blk,cur){
       : []),
     ...(!started&&cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:boltIcon(15),sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
     ...conduiteTiles(),
+    themeMenuRow(),
     {head:'Session'},
     /* PARTAGER — dans le groupe de la CONDUITE EN COURS, jamais dans le chrome de crise : la
        rangée de commandes n'a que 2,1 px de marge à 320 px, et un contrôle qui apparaîtrait selon
@@ -21567,7 +21597,9 @@ function ovInstHtml(f,id,idx,topo,pres){
        le retour n'est jamais laissé à la mémoire (AC 120-71B), il ne le tenait qu'à moitié. */
     /* Les JALONS s'affichent AVANT la question (v5.5.0) : le cas canonique — « 3 CEE sans RACS :
        envisager FV réfractaire » — se lit au moment où l'on va RÉPONDRE à l'analyse, pas après. */
-    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}${tip?jalonsHtml(f,b,idx):''}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f),false,id):''}`;
+    /* A519 : le jalon passe AU PIED de la décision (« SI … », raccourci ⚡) — il renverse l'ordre de la v5.5.0 : la
+       question est l'acte, le jalon une condition qui l'accompagne. */
+    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip?jalonsHtml(f,b,idx):''}${tip&&cxAll(f).length?cxRowHtml(cxAll(f),false,id):''}`;
     count=taken?'✓':'?';}
   else{
     const steps=clean(stepsOf(b));
@@ -21621,16 +21653,8 @@ function ovInstHtml(f,id,idx,topo,pres){
     /* Le retour d'excursion, en TÊTE du corps de la carte (cf. la note au pied) : il est calculé
        ici parce que le gabarit du corps se compose plus bas, et il ne dépend que de la visite. */
     const cxBackH=cxBackHtml(f,seq,tip);
-    /* A1 (v5.0.0, lot M2, maquettes proto-r4) — LA LÉGENDE DES REGISTRES VIT SUR LA CARTE (seule
-       à s'apprendre hors éditeur). ⚠ Elle ne liste QUE ce que le bloc porte (« un panneau vide est
-       du bruit », signe par signe) — aucun des trois → pas de légende. ⚠ Chaque entrée est un
-       ÉLÉMENT, pas un fragment (v5.6, correctif « vital△ » : `gap` espace des boîtes, pas du
-       texte). Détail : doctrine-js.md J145. */
-    /* A345 : les registres se lisent sur la rangée (étiquette CRITIQUE / VIGILANCE) — la légende
-       n'annonce plus que la réponse attendue. */
-    const _lg=[];
-    if(_its.some(it=>(it.expect||'').trim()))_lg.push('sous l’étape, en gris : la réponse attendue');   // A465 : dite en clair
-    const legH=_lg.length?`<div class="stp-legend">${_lg.map(x=>`<span class="lg-it">${x}</span>`).join('')}</div>`:'';
+    /* A519 : plus de légende sur la carte (« sous l'étape, en gris : la réponse attendue ») — la réponse se lit
+       d'elle-même, en mono gris sous son étape. La légende des registres l'avait précédée (A1, A345) ; purgée. */
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=dn>=nd.tot;
@@ -21666,7 +21690,7 @@ function ovInstHtml(f,id,idx,topo,pres){
          ctl=ctl.replace('<div class="flow-ctrl">','<div class="flow-ctrl has-ver">'+verH);
        else if(verH)ctl+=`<div class="cx-row">${verH}</div>`;
        }}
-    bodyH=`${cxBackH}${imgH}${legH}${tip?jalonsHtml(f,b,idx):''}${listeH}${ctl}`;
+    bodyH=`${cxBackH}${imgH}${tip?jalonsHtml(f,b,idx):''}${listeH}${ctl}`;
     count=nd.tot?dn+'/'+nd.tot:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
   // Boutons d'en-tête : en vérification -> ✕ seulement ; sinon « Lecteur » (bout du journal,
@@ -21684,7 +21708,10 @@ function ovInstHtml(f,id,idx,topo,pres){
        cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
        Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
     :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">${uiIcon('undo',13)} Refaire</button>`:'');
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${tip&&!closed?'<span class="ov-cur">En cours</span> ':''}${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}${(b.timer&&pi.pass===pi.total)?wtSpanHtml('b|'+id,true):''}</span><span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  /* A519 : sur le bloc COURANT, le numéro quitte le carré noir pour « Bloc n » en gris à côté de « En cours » ; un bloc
+     hors tronc (sans numéro) garde sa pastille d'éclair. */
+  const curN=tip&&!closed&&!(Runtime.cxBack||{})[seq]&&(topo[id]||dec);
+  return `<section class="ov-block${tip?' cur':''}${curN?' numin':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${tip&&!closed?`<span class="ov-curl"><span class="ov-cur">En cours</span>${curN?`<span class="ov-curn${dec?' dec':''}">${dec?'◆ Décision'+(topo[id]?' · bloc '+topo[id]:''):'Bloc '+topo[id]}</span>`:''}</span>`:''}${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}${(b.timer&&pi.pass===pi.total)?wtSpanHtml('b|'+id,true):''}</span><span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, UNE vue depuis v4.25.0) : rendu de flowPlan, INERTE
    côté cochage, sert à NAVIGUER. L'ÉCHELLE (ovPlanLadderHtml, compact ECAM) : une ligne par bloc,
    retraits avec étiquette de branche (« OUI › »), renvois mono abrégés (optAbbr), tap = détails
@@ -22849,8 +22876,8 @@ function posBandHtml(f,b,seq){const rows=posBandModel(f,b,seq,state.checked,(it,
   /* A398 : une rangée = DEUX lignes — le nom et l'état en tête, la posologie dessous sur toute la largeur
      (dans une colonne étroite entre l'icône et l'état, le nom se coupait au milieu du mot à 320 px). */
   const line=r=>{const o=!!(state.posOpen&&state.posOpen[r.id]);
-    return `<button type="button" class="pb-row${o?' open':''}" data-pbrow="${esc(r.id)}" aria-expanded="${o?'true':'false'}"><span class="pb-ic" aria-hidden="true">${uiIcon('pill',15,{cls:''})}</span>${r.name?`<span class="pb-nm">${esc(r.name)}</span>`:`<span class="pb-bd solo">${fmt(r.body)}</span>`}<span class="pb-stt${SC[r.stt]?' '+SC[r.stt]:''}">${r.stt}</span>${chevHtml(o,'pb-chev')}${r.name&&r.body?`<span class="pb-bd">${fmt(r.body)}</span>`:''}</button>${o?`<div class="pb-det">${r.note?fmt(r.note).replace(/\n/g,'<br>'):'Aucun détail rédigé.'}</div>`:''}`;};
-  return `<div class="pband${open?'':' closed'}"><button type="button" class="pb-head" data-pbtg aria-expanded="${open?'true':'false'}"><span class="pb-hic" aria-hidden="true">${uiIcon('pill',15,{cls:''})}</span><span class="pb-t">Repères de ce bloc <span class="pb-n">${rows.length}</span></span><span class="pb-sum">${open?'':esc(sum)}</span>${chevHtml(open,'pb-chev')}</button><div class="pb-body">${rows.map(line).join('')}</div></div>`;}
+    return `<button type="button" class="pb-row${o?' open':''}" data-pbrow="${esc(r.id)}" aria-expanded="${o?'true':'false'}">${r.name?`<span class="pb-nm"><span aria-hidden="true">△ </span>${esc(r.name)}</span>`:`<span class="pb-bd solo">${fmt(r.body)}</span>`}<span class="pb-stt${SC[r.stt]?' '+SC[r.stt]:''}">${r.stt}</span>${r.name&&r.body?`<span class="pb-bd">${fmt(r.body)}</span>`:''}</button>${o?`<div class="pb-det">${r.note?fmt(r.note).replace(/\n/g,'<br>'):'Aucun détail rédigé.'}</div>`:''}`;};
+  return `<div class="pband${open?'':' closed'}"><button type="button" class="pb-head" data-pbtg aria-expanded="${open?'true':'false'}"><span class="pb-t">Repères de ce bloc <span class="pb-n">${rows.length}</span></span><span class="pb-sum">${open?'':esc(sum)}</span>${chevHtml(open,'pb-chev')}</button><div class="pb-body">${rows.map(line).join('')}</div></div>`;}
 /* A377 — la légende d'un objet lié : une ligne de 24 px dans tous les états (A9), la valeur d'abord
    (celle de la tuile), gris au repos, bleu sans fond en cours (A11), pastille ambre à l'échéance.
    Modèles PURS ; `paintWitness` ne réécrit que si le modèle change. Détail : lot-v5-31.md. */
@@ -29918,6 +29945,11 @@ function applyTheme(mode){try{localStorage.setItem(spaceKey('ac-theme'),mode);lo
   setThemeColorMeta(themeColorCurrent());}
 /* Le cycle du raccourci — MÊME ORDRE que le sélecteur de Compte (auto · clair · sombre) : deux
    contrôles d'une même valeur qui la parcourraient dans deux ordres seraient deux mécaniques. */
+/* A519 : la rangée du menu ⋯ qui remplace le raccourci d'en-tête sur une aide — même cycle, l'état dit en mots. */
+function themeMenuRow(){const m=_themeMode();
+  return {label:'Thème : '+(m==='auto'?'automatique':(m==='dark'?'sombre':'clair')),
+    ic:m==='auto'?uiIcon('autotheme',16):(m==='dark'?uiIcon('moon',16):uiIcon('sun',16)),
+    sub:'automatique · clair · sombre',act:()=>{cycleTheme();if(_moreBuild)_moreBuild();}};}
 function cycleTheme(){const K=['auto','light','dark'];
   const cur=_themeMode();applyTheme(K[(K.indexOf(cur)+1)%K.length]);schedulePrefsPush();}
 // Couleur de la barre d'état (meta theme-color) — HELPER UNIQUE (thème ET flash d'alarme).

@@ -392,7 +392,7 @@ de signes d'A511 (`MAXC`) part avec le nom de l'étiquette : 11 signes au plus.
 (A510 §6) ; la colonne gauche du téléphone tourné (A513 §2) ; le dessin Natif des surfaces (démarrage, éditeur,
 Sessions, Moi, Administration, Page — planche « écran par écran »).
 
-## A519 — La session Natif : quatre arbitrages de l'auteur sur planche (lot 6, à implémenter)
+## A519 — La session Natif : quatre arbitrages de l'auteur sur planche (lot 6, v5.61.0)
 
 Planche « La session, l'app contre la cible » (01/11/2026) : captures de la v5.60.0 contre la cible « Étapes en
 session Natif », même aide (ACR d'exemple), mêmes états. L'auteur a retenu les quatre recommandations.
@@ -418,6 +418,19 @@ session Natif », même aide (ACR d'exemple), mêmes états. L'auteur a retenu l
    *Formes écartées* : repères seuls (jalon en tête) ; garder l'actuel.
 
 **Déjà tranché et entrant dans le même lot** : la carte de décision perd son fond ambré (A513 §1, décidé mais jamais
-codé — constaté sur la planche) ; cellules de la capsule « nom au-dessus, valeur dessous » pour toutes ; étiquette
-d'une étape au seuil en aplat neutre sans filet. **Gardés** : « Fin » au mot gris (C1), « Horodater » en creux
+codé — constaté sur la planche) ; étiquette d'une étape au seuil en aplat neutre sans filet.
+
+**Témoins réécrits sciemment** : `audit-doctrine` (rangée de lecture à un contrôle au téléphone ; thème dans le
+menu ⋯ d'une aide), `audit-verify-live` (décision courante : contour bleu et mot ambre, renverse v4.24.0),
+`audit-exercice` et `audit-partage` (« ● Session » au sur-titre).
+
+**Implémentation (v5.61.0).** `ol.steps li` sans fond, `.stp-mk` de registre sans aplat (gris une fois cochée) ;
+`.stp-legend`/`.lg-it` PURGÉES (règle 14) ; « Bloc n » (`.ov-curn`) à côté de « En cours » et carré masqué
+(`.ov-block.numin`), « ◆ Décision · bloc n » en ambre sur une décision courante ; sur-titre « ● Session » ;
+`#hdrTheme` ne reste que sur une référence, `themeMenuRow()` dans le menu ⋯ d'une aide ; `jalonsHtml` : « SI »,
+condition, jauge (`.mo-pips`), compte, texte de l'auteur dessous, et sur une décision le jalon est rendu APRÈS les
+options (renverse l'ordre de la v5.5.0) ; repères : plus d'icône ni de chevron par rangée, nom ambre précédé de △,
+état à droite en casse de phrase. **Écarté à l'implémentation, et dit** : la cellule de compteur de la capsule « nom
+au-dessus » — A462 promet le nom ENTIER d'un compteur, et cette forme l'abrégeait (« ADRÉN. DO… ») ; elle reste
+« valeur, puis nom sur deux lignes ». **Gardés** : « Fin » au mot gris (C1), « Horodater » en creux
 (A375), « Parcours · x/y étapes » (A510), le pli « Fait · … », les sections du chapeau sous le bloc.

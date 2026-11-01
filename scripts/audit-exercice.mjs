@@ -201,8 +201,8 @@ const e7=await p.evaluate(async()=>{
   wm:/class="wm">EXERCICE/.test(h),cx:/class="tic bolt"/.test(h)&&/Laryngospasme/.test(h)};});
 /* v4.70.1 : la session RÉELLE n'a plus d'étiquette de bandeau — le mode se lit dans la barre,
    une seule fois. Le témoin mesure donc les DEUX moitiés : bandeau nu ET pilule « Crise ». */
-t('session réelle : bandeau nu, « ■ Mode crise » en tête, « ● Session » au quai',
-  e7.real.tag===''&&/Mode crise/.test(e7.real.pilule)&&!e7.real.exo&&/● Session/.test(e7.real.strip),
+t('session réelle : bandeau nu, « ● Session » en tête (A519) et au quai',
+  e7.real.tag===''&&/● Session/.test(e7.real.pilule)&&!e7.real.exo&&/● Session/.test(e7.real.strip),
   JSON.stringify(e7.real));
 t('carte-bilan réelle : « Session terminée »', /Session terminée/.test(e7.carte||''), ''+e7.carte);
 t('compte-rendu RÉEL : ⚡ complication restituée, SANS filigrane', e7.cx&&!e7.wm, JSON.stringify({cx:e7.cx,wm:e7.wm}));
