@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.73.2] — 2026-11-01
+Correctif de l'app installée sur iPhone (A541, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Accueil, Sessions et Moi** ne sont plus tronqués en haut : même page au repos, le contenu commençait sous l'heure et
+  la barre du haut recouvrait le grand titre et les pastilles.
+
 ## [5.73.1] — 2026-11-01
 Correctif de l'app installée sur iPhone (A540, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Accueil** : en défilant, la barre du haut prend son fond de verre dès que le titre « Aides » passe dessous ;
@@ -181,17 +186,3 @@ s'en écartait. Rien à rejouer côté serveur.
 - **Des rangées plus serrées** (52 px au minimum), un filet qui commence au texte, des groupes sans bord ni ombre,
   des intertitres en minuscules (« Accès direct 1 », « SMUR 1 »).
 - La vue compacte garde sa ligne unique avec l'état à droite ; elle perd la pastille et le gras.
-
-## [5.58.0] — 2026-10-31
-Premier lot visible de la refonte « Natif » (A506-A507, A515 ; doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Les cases sont rondes**, partout : étapes en session (même taille, 36 px ; la bordure rouge ou ambre dit
-  toujours CRITIQUE ou VIGILANCE), sélection, collections, listes à cocher des références, Administration. Dans
-  l'étiquette d'une étape qui attend un seuil (« Chocs délivrés ≥ 3 ●○○ »), le dernier repère devient un rond plus
-  grand.
-- **L'accueil passe en listes groupées.** La vue détaillée n'est plus une pile de cartes mais un groupe arrondi
-  de rangées séparées par un filet, comme la vue compacte. Plus de liseré coloré : la catégorie se lit « ● SMUR »
-  sous le titre, et une aide en session « ● En cours 12:04 ».
-- **Les épinglées deviennent le premier groupe, « Accès direct »**, avec la même rangée que le reste de la liste
-  (les tuiles disparaissent). L'étoile reste à droite.
-- Les modes « Détaillée » et « Compacte » restent tous les deux.

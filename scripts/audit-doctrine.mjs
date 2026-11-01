@@ -8450,6 +8450,22 @@ await sec('Remesure · A530-A533', async () => {
     await page.close();}
 });
 
+/* ══ A541 — AU TÉLÉPHONE, L'ACCUEIL RÉSERVE LA BARRE D'ÉTAT, PAGE AU REPOS ══════════════════════════════════════
+   L'en-tête vidé par les onglets faisait 0 px : sans bannière système, tout commençait sous l'heure. */
+await sec('Accueil · A541 réserve de la barre d\'état au repos', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  for(const tab of ['aides','me','sessions']){
+    const r=await page.evaluate(async tab=>{document.documentElement.style.setProperty('--sat','calc(62px + 16px)');
+      const b=document.getElementById('sysBanner');if(b)b.hidden=true;setHomeTab(tab);scrollTo(0,0);await new Promise(x=>setTimeout(x,300));
+      const top=document.querySelector('.pg-top').getBoundingClientRect(),tt=document.querySelector('.pg-ttl').getBoundingClientRect();
+      return {barreHaut:Math.round(top.top),barreBas:Math.round(top.bottom),titreHaut:Math.round(tt.top),stuck:document.querySelector('.pg-top').classList.contains('stuck')};},tab);
+    t(`A541 · ${tab}, inset 78 px, sans bannière : la barre sous l'heure, le grand titre dessous, rien de collé`,r.barreHaut>=78&&r.titreHaut>=r.barreBas&&!r.stuck,JSON.stringify(r));
+  }
+  await page.close();
+});
+
 /* ══ A540 — LA BARRE COLLANTE DE L'ACCUEIL PASSE EN VERRE SOUS UNE BARRE D'ÉTAT (APP INSTALLÉE) ═════════════════
    `--sat` est un calc(env()…) : lu par getPropertyValue + parseFloat, il valait 0. On le simule SOUS FORME DE CALC. */
 await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
@@ -8462,7 +8478,10 @@ await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
   const lire=()=>page.evaluate(()=>{const t=document.querySelector('.pg-ttl').getBoundingClientRect(),top=document.querySelector('.pg-top');
     return {titreHaut:Math.round(t.top),titreBas:Math.round(t.bottom),barreBas:Math.round(top.getBoundingClientRect().bottom),stuck:top.classList.contains('stuck')};});
   const repos=await lire();
-  await page.evaluate(()=>scrollTo(0,60));await page.waitForTimeout(400);const moitie=await lire();
+  /* Défiler de quoi mettre le titre À MOITIÉ sous la barre (la réserve d'A541 décale la page : pas de valeur fixe). */
+  await page.evaluate(()=>{const t=document.querySelector('.pg-ttl').getBoundingClientRect(),top=document.querySelector('.pg-top');
+    const bas=parseFloat(getComputedStyle(top).top)+top.getBoundingClientRect().height;scrollTo(0,Math.round(t.top+t.height/2-bas));});
+  await page.waitForTimeout(400);const moitie=await lire();
   await page.evaluate(()=>scrollTo(0,200));await page.waitForTimeout(400);const sorti=await lire();
   t('A540 · inset de 75 px, au repos : barre transparente, titre visible',!repos.stuck&&repos.titreHaut>=repos.barreBas,JSON.stringify(repos));
   t('A540 · titre À MOITIÉ sous la barre : elle a déjà son verre (plus de chevauchement transparent)',moitie.titreHaut<moitie.barreBas&&moitie.titreBas>moitie.barreBas&&moitie.stuck,JSON.stringify(moitie));
