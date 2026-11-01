@@ -580,3 +580,24 @@ Avec : l'état vivant d'une rangée (« ● Session ») ne prend plus le sépara
 ligne à la coupure au téléphone — le point vert sépare déjà.
 
 Témoin : `audit-doctrine` « Accueil · A523 …, A524 une recherche » (vérifié capable d'échouer).
+
+## A525 — Le menu ⋯ ancré pose un voile transparent, en large (v5.68.0)
+
+*Applique A510 §5 (et A497).* Au-delà de 780 px, le menu ⋯ reste ancré à son bouton (A508, A361 au téléphone
+inchangée), mais il se fermait au clic du document SANS l'arrêter : le tap de fermeture cochait l'étape dessous —
+mesuré en session à 1280 px. Il gagne un voile **transparent** (`.popmenu-veil.anchor`, `z-index` 19) : sous
+l'en-tête (20) qui porte le menu, au-dessus du contenu, de la capsule (15-17) et du quai (18). Le tap tombe sur le
+voile, le menu se ferme, rien dessous ne bouge ; le voile part avec le menu. Témoin : `audit-doctrine` « Session ·
+A525 » (vérifié capable d'échouer : l'étape se cochait).
+
+## A526 — Un téléphone tourné prend la colonne gauche, quelle que soit sa largeur (v5.68.0)
+
+*Applique A513 §2.* L'iPhone SE tourné (667 × 375) n'avait ni onglets (retirés en paysage bas, A511) ni colonne
+(réservée à ≥ 780 px). La condition « accueil large » devient UNE liste de media queries, partagée par le CSS et
+`mqHomeWide` : `(min-width:780px), (orientation:landscape) and (max-height:499.98px)` ; les règles propres au
+téléphone en portrait prennent son complément. `tabNavOn` ne lit plus que `mqHomeWide`. Sept blocs de l'accueil
+seulement (coque, dock de recherche, pied, carte partagée, « Créer », « Affichage ») : la lecture et la session
+gardent leurs règles de paysage bas (A511).
+*Écart mesuré, accepté* : à 667 px la colonne (255 px) laisse 412 px à la liste — le compte « 2 aides · 2 à relire »
+se tronque à côté du titre, comme sur un iPad étroit. Témoin : `audit-doctrine` « Accueil · A526 » (667 × 375 et
+375 × 667 ; vérifié capable d'échouer).

@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.68.0] — 2026-11-01
+Refonte « Natif », fin des suites d'A510 (A525-A526, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
+serveur.
+- **Menu ⋯ sur grand écran** : le tap qui le ferme ne coche plus l'étape qui se trouve dessous.
+- **iPhone SE tourné** : l'accueil prend la colonne de gauche, comme les autres téléphones tournés et les tablettes
+  (il n'avait ni onglets ni colonne).
+
 ## [5.67.1] — 2026-11-01
 Correctif (A524, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Une seule recherche au téléphone** : le champ sous le titre « Aides », qui ne faisait qu'ouvrir la recherche du
@@ -209,11 +216,3 @@ Trois retours d'usage (A496-A497, doctrine `docs/decisions/lot-v5-56.md`). Rien 
 - **Au téléphone, toucher à côté d'une feuille ne touche plus ce qu'elle couvrait.** Un tap sur le grisé fermait le
   sélecteur (catégorie, bibliothèque, collection, actions…) puis atteignait la rangée ou le bouton situé dessous, et
   l'ouvrait. Le grisé absorbe désormais le tap : la feuille se ferme, et rien d'autre ne bouge.
-
-## [5.55.1] — 2026-10-08
-Deux retours sur la page Administration (A495, doctrine `docs/decisions/lot-v5-55.md`).
-- **Règles de l'instance** : une seule rangée, « Nouveaux comptes et bibliothèques », qui dit les deux réglages en
-  vigueur. Les deux rangées d'avant menaient à la même page.
-- **Retour au même endroit à toutes les largeurs** : au téléphone, « ‹ Moi », « ‹ Administration » ou « ‹ Comptes »
-  se placent désormais au-dessus du titre, comme au bureau, et la barre de la fenêtre porte le nom de la partie
-  ouverte (Comptes, Bibliothèques, Règles de l'instance…). Le titre n'est plus écrit deux fois.

@@ -8400,6 +8400,41 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
 }
 });
 
+/* ══ A526 — UN TÉLÉPHONE TOURNÉ PREND LA COLONNE GAUCHE, QUELLE QUE SOIT SA LARGEUR (A513 §2) ═════════════════
+   L'iPhone SE tourné (667 × 375) restait sous 780 px : ni onglets (A511) ni colonne. Il suit le 844 × 390. */
+await sec('Accueil · A526 téléphone tourné', async () => {
+  for(const [W,H,colonne] of [[667,375,true],[375,667,false]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    const r=await page.evaluate(()=>{const s=document.querySelector('.home-side');
+      return {col:!!s&&getComputedStyle(s).display!=='none',tabs:document.documentElement.classList.contains('tabnav'),deb:document.documentElement.scrollWidth-innerWidth};});
+    t(`${W} × ${H} : ${colonne?'colonne gauche, pas d\'onglets':'onglets, pas de colonne'} ; aucun débordement`,r.col===colonne&&r.tabs===!colonne&&r.deb<=0,JSON.stringify(r));
+    await page.close();
+  }
+});
+
+/* ══ A525 — EN LARGE, LE TAP QUI FERME LE MENU ⋯ NE COCHE RIEN (A510 §5, A497) ═════════════════════════════
+   Le menu ancré se fermait au clic du document SANS l'arrêter : le même tap cochait l'étape dessous. */
+await sec('Session · A525 voile du menu ⋯ ancré', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  await demarrerSession(page);await page.waitForTimeout(400);
+  const box=await page.evaluate(()=>{const li=[...document.querySelectorAll('main ol.steps li')].find(l=>!l.classList.contains('done')&&l.getBoundingClientRect().top>200);
+    const r=li.getBoundingClientRect();return {x:r.left+30,y:r.top+r.height/2,n:document.querySelectorAll('main ol.steps li.done').length};});
+  await page.click('#hdrMore');await page.waitForTimeout(300);
+  const ouvert=await page.evaluate(()=>!document.getElementById('moreMenu').hidden&&!!document.querySelector('.popmenu-veil.anchor'));
+  await page.mouse.click(box.x,box.y);await page.waitForTimeout(400);
+  const r=await page.evaluate(n=>({ferme:document.getElementById('moreMenu').hidden,coches:document.querySelectorAll('main ol.steps li.done').length-n,voile:!!document.querySelector('.popmenu-veil')}),box.n);
+  t('1280 px : le menu ⋯ ancré pose un voile transparent',ouvert);
+  t('… le tap à côté ferme le menu SANS cocher l\'étape dessous, et le voile part avec lui',r.ferme&&r.coches===0&&!r.voile,JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A523 — L'AIDE EN SESSION MONTE EN TÊTE DE L'ACCUEIL, DANS « EN COURS » (A510 §6) ════════════════════
    Elle quitte sa section, porte « ● Session mm:ss » en vert ; la carte sombre « Session en cours » n'existe plus. */
 await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () => {

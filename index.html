@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0oLAcdrMeWJ4kmODyHLrsLfVUAlMApjTnuO3coobsdU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-LKJZhscxLEClNUDjt+p7rguPPmgfBCbssGG2yUKAaTE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1240,7 +1240,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
      chrome — même hauteur que partout (doctrine v5.6). Sous 390 px la ligne n'a pas la place du
      mot ni des 24 px : marque 21, « ＋ » seul (réserve ≥ 8 px mesurée par la doctrine). */
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home .brand .brand-name{font-size:21px}
   }
   html.zw480 body.view-home .brand .brand-name{font-size:17.5px}   /* E2 : sous 480 px effectifs la marque à 21 ne laissait aucune réserve (−2/−4 px sous Linux) */
@@ -1250,7 +1250,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.30 (A356, demande de l'auteur) : au téléphone la carte « Session en cours » est la MÊME BANDE
      système qu'à la tablette et au bureau — matière --sys, « Reprendre » plein clair, « Terminer » au
      registre critique système ; seule la composition change (grille à deux rangées). */
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home .ls-card{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot info info" "rep rep rep";column-gap:10px;row-gap:12px;align-items:start;background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);padding:14px 16px}
     body.view-home .ls-card .sess-dot{grid-area:dot;margin-top:6px}
     body.view-home .ls-card .ls-info{grid-area:info;gap:2px}
@@ -1272,7 +1272,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-home #homeDock{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
     position:fixed;left:0;right:0;bottom:0;z-index:20;
     padding:0 16px calc(12px + var(--sab,0px))}
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home #homeDock::before{content:"";position:absolute;left:0;right:0;bottom:0;top:-40px;z-index:-1;pointer-events:none;
       -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
       background:linear-gradient(to top,color-mix(in srgb,var(--amb) 94%,transparent) 0,color-mix(in srgb,var(--amb) 86%,transparent) calc(100% - 64px),color-mix(in srgb,var(--amb) 40%,transparent) calc(100% - 24px),transparent);
@@ -1303,7 +1303,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A423 : capsule (pleinement arrondie, comme le cercle voisin) et ombre de flottaison ; la nuit, sans
      ombre, le contour --ctl-line (3:1) borde les deux commandes, qui passent sur des cartes de leur teinte. */
   #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow-float)}
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     #homeDock .hdr-search input{padding-left:40px}
     #homeDock .hdr-search .srch-box>svg{left:16px}
     html[data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
@@ -1329,7 +1329,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « bas de page non visible à cause de la barre flottante ») : la réserve est le REMBOURRAGE
      du pied lui-même — un ::after l'étendait SOUS le viewport, donc une page courte défilait de
      96 px pour un pied qui restait sous le dock. --sab compte : le dock le porte aussi. */
-  @media (max-width:779.98px){
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
@@ -2847,7 +2847,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      voisin ; en large, le tonal d'« Affichage » et « Sélectionner ». */
   body.view-home #hdrNew{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink);border-radius:var(--r-4)}
   body.view-home #hdrNew:hover{background:var(--amb-2)}
-  @media (min-width:780px){
+  @media (min-width:780px), (orientation:landscape) and (max-height:499.98px){
     body.view-home #hdrNew{background:var(--amb-2);border-color:transparent;box-shadow:none;color:var(--act)}
     body.view-home #hdrNew:hover{background:var(--line)}
   }
@@ -2868,7 +2868,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .vs-seg.vs-wrap .seg-btn{white-space:normal;line-height:1.15;hyphens:manual;text-align:center}
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
-  @media (max-width:779.98px){html:not(.tabnav) #rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock — sauf sous la barre d'onglets (A517), où le dock n'est plus là hors recherche */
+  @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){html:not(.tabnav) #rangBtn{display:none}}   /* v5.30 (A353) : au téléphone la porte est le bouton rond du dock — sauf sous la barre d'onglets (A517), où le dock n'est plus là hors recherche */
   /* SESSION EN COURS (v5.30, A355 — l'aplat vert est parti) : le liseré passe au registre CONFIRMATION
      (6 px, celui de la carte « Session en cours »), la carte reste BLANCHE, et l'état devient le chrono
      vivant « ● En cours 12:04 » en vert — un glyphe et un mot, jamais un fond (règle 8). Même dessin en
@@ -5035,6 +5035,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .popmenu.sheet .catmenu-filter{width:100%;margin:0 0 8px}
   .popmenu.sheet .catmenu-new{width:100%;margin:10px 0 0;min-height:52px;border-radius:var(--r-3);font-size:var(--t-item)}
   .popmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
+  .popmenu-veil.anchor{display:block;position:fixed;inset:0;background:transparent;z-index:19}   /* A525 : absorbe le tap de fermeture du menu ⋯ ancré */
   /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
      le menu à 420 px centrés ») : au-delà de 780 la feuille d'un sélecteur reste une feuille (même
      geste, même poignée) mais cesse d'être une bannière. Le menu ⋯ n'y est jamais en feuille. */
@@ -7754,7 +7755,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (`.hs-wrap.quiet`). La grammaire pointillé=créer / contour=gérer vaut dans un ÉDITEUR ; dans
      une colonne de navigation elle donnait le plus de poids aux deux actions les plus rares et
      coupait la seule liste qu'on parcourt. Décision d'auteur, sur maquette. */
-  @media (min-width:780px){
+  @media (min-width:780px), (orientation:landscape) and (max-height:499.98px){
     /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
        SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
        « colle » : plus aucun scroll de page, donc plus aucun déplacement possible à la bascule
@@ -9532,7 +9533,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.67.1';
+const APP_VERSION='5.68.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14938,7 +14939,7 @@ function syncQClear(){const qi=document.getElementById('q'),x=document.getElemen
    state.q='';state.libLimit=LIB_PAGE;clearTimeout(_qDebounce);render();});}
 // Bascule étroit/large (seuil 780px de l'échelle fermée) : l'accueil change de STRUCTURE
 // (chips + tab bar <-> colonne gauche) -> re-rendu au franchissement du seuil.
-const mqHomeWide=window.matchMedia('(min-width:780px)');
+const mqHomeWide=window.matchMedia('(min-width:780px), (orientation:landscape) and (max-height:499.98px)');   // A526 (A513 §2) : un téléphone tourné prend la colonne gauche
 /* SESSIONS ET MOI SONT DES VUES DE LA COLONNE (v5.30.1, A365) : ≥ 780 sur l'accueil, la colonne
    principale les montre À LA PLACE de la liste (la colonne gauche reste active, aucun voile) ;
    ailleurs — téléphone, ou depuis une fiche — les MÊMES portes ouvrent la page-fenêtre. Au
@@ -14947,7 +14948,7 @@ const homeTab=()=>state.homeTab||'aides';
 const homeTabsOn=()=>state.view==='library'&&(mqHomeWide.matches||tabNavOn());
 /* A517 (lot 4, A504) : au téléphone en portrait, l'accueil a une BARRE D'ONGLETS en bas — Aides · Sessions · Moi.
    Un téléphone tourné garde son en-tête (A513 : la colonne gauche y viendra). */
-const tabNavOn=()=>state.view==='library'&&!mqHomeWide.matches&&!paysageBas();
+const tabNavOn=()=>state.view==='library'&&!mqHomeWide.matches;
 function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
   state.homeTab=t;if(state.selOn)selEnd();render();
   const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
@@ -30206,7 +30207,11 @@ function openMoreMenu(){
   if(sheet&&moreMenuEl.parentNode!==document.body)document.body.appendChild(moreMenuEl);
   else if(!sheet&&moreMenuEl.parentNode===document.body)hdrMoreBtn.closest('header').appendChild(moreMenuEl);
   moreMenuEl.classList.toggle('sheet',sheet);
-  if(sheet&&!_moreVeil){_moreVeil=document.createElement('div');_moreVeil.className='popmenu-veil sheet';document.body.insertBefore(_moreVeil,moreMenuEl);}
+  /* A525 (A510 §5) : en large aussi, un voile — transparent, sous l'en-tête (z 19 < 20) : le tap qui ferme le menu
+     tombe sur lui, jamais sur l'étape dessous (A497). Il couvre le contenu, pas l'en-tête qui porte le menu. */
+  if(_moreVeil&&_moreVeil.classList.contains('sheet')!==sheet){_moreVeil.remove();_moreVeil=null;}
+  if(!_moreVeil){_moreVeil=document.createElement('div');_moreVeil.className='popmenu-veil '+(sheet?'sheet':'anchor');
+    if(sheet)document.body.insertBefore(_moreVeil,moreMenuEl);else document.body.appendChild(_moreVeil);}
   moreMenuEl.innerHTML=(sheet?'<div class="popmenu-head" role="presentation"></div>':'')+shown.map(mmRowHtml).join('');
   moreMenuEl.querySelectorAll('[data-mmi]').forEach(b=>b.onclick=e=>{
     let r=shown[+b.dataset.mmi];if(r&&r.tiles)r=r.tiles[+b.dataset.mmt];
