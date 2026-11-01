@@ -434,3 +434,33 @@ options (renverse l'ordre de la v5.5.0) ; repères : plus d'icône ni de chevron
 au-dessus » — A462 promet le nom ENTIER d'un compteur, et cette forme l'abrégeait (« ADRÉN. DO… ») ; elle reste
 « valeur, puis nom sur deux lignes ». **Gardés** : « Fin » au mot gris (C1), « Horodater » en creux
 (A375), « Parcours · x/y étapes » (A510), le pli « Fait · … », les sections du chapeau sous le bloc.
+
+## A520 — Les surfaces Natif : quatre arbitrages de l'auteur sur planche (lots 7 à 11, à implémenter)
+
+Planche « Les autres écrans, l'app contre la cible » (01/11/2026) : captures de la v5.61.0 contre la planche « Natif,
+écran par écran ». L'auteur a retenu les quatre recommandations.
+
+1. **Démarrage d'une aide en listes groupées (amende A330, A376).** Le chapeau quitte ses cartes repliables à icône :
+   « Quand l'utiliser » et « Ne pas oublier » deviennent des listes groupées sous un intertitre en phrase ; les
+   diagnostics à éliminer restent derrière leur lien repliable. L'état (« △ À relire ») passe dans la sous-ligne
+   « ● SMUR · adulte · validée 01/2025 » au lieu d'un bandeau ; « Apprendre avec cette aide » devient une rangée ;
+   « Page » (et « Schéma » au bureau) montent en haut ; au bureau, les minuteurs prêts sont des tuiles à droite.
+   *Formes écartées* : garder les cartes repliables en ne changeant que la méta ; garder l'actuel.
+2. **L'éditeur en rangées de réglages, en DEUX lots (amende A383-A384, A390, A441-A446).** D'abord l'HABILLAGE :
+   grand titre « Modifier l'aide », Identité en rangées « Titre · valeur › », rappels en rangées à ✕, structure en
+   liste à chevron, relecture en note ambre — sans toucher aux gestes d'édition. Ensuite la NAVIGATION : un bloc
+   s'ouvre sur sa propre page ; au bureau, structure à gauche, schéma et relecture à droite.
+   *Formes écartées* : tout d'un coup ; pas maintenant.
+3. **Sessions en rangées groupées par jour.** Une rangée par session (titre, heure · durée · n/m étapes, chevron)
+   sous « Aujourd'hui », « Cette semaine »… ; Rouvrir et Compte-rendu passent dans le détail ouvert d'un tap ;
+   « Sélectionner » en haut de l'onglet.
+   *Formes écartées* : rangées avec actions visibles ; garder les cartes.
+4. **Administration au bureau en liste et fiche (amende A494-A495).** Onglets en segmenté ; au bureau, la fiche d'un
+   compte s'ouvre à côté de la liste au lieu d'une page de plus. Au téléphone, rien ne change.
+   *Formes écartées* : segmenté seulement ; garder l'actuel.
+
+**Proposés sans question (même grammaire qu'A516)** : Moi en rangées groupées, intertitres en phrase ; la Page en
+feuille centrée sur fond gris, zoom en segmenté, Imprimer et Exporter en PDF dans sa barre.
+
+**Ordre des lots** : 7 démarrage, 8 Sessions et Moi, 9 éditeur (habillage), 10 éditeur (navigation), 11
+Administration et la Page. Chaque lot se compare à sa planche avant commit (maquette · avant · après).
