@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.73.3] — 2026-11-01
+Le haut et le bas de l'accueil au téléphone (A542-A543, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Une seule bande en haut** une fois la liste défilée : la bande sous l'heure prend la teinte de la barre du haut,
+  plus de coupure entre les deux.
+- **La barre du bas descend** à la hauteur d'une barre d'onglets iOS (24 pt du bord sur un iPhone à Face ID, au lieu de
+  47) ; la recherche suit.
+
 ## [5.73.2] — 2026-11-01
 Correctif de l'app installée sur iPhone (A541, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Accueil, Sessions et Moi** ne sont plus tronqués en haut : même page au repos, le contenu commençait sous l'heure et
@@ -175,14 +182,3 @@ rejouer côté serveur.
 - **« Créer » et « Affichage » s'ouvrent en feuille du bas** qu'on referme en la tirant vers le bas (ou ✕).
 - Sur tablette et ordinateur, le titre « Aides » ouvre la liste, avant le groupe « Accès direct ».
 - Téléphone tourné : rien ne change encore (la colonne gauche viendra plus tard).
-
-## [5.58.1] — 2026-10-31
-Le lot 3 de la refonte « Natif » remis sur la maquette (A516, doctrine `docs/decisions/lot-v6-0.md`) : la v5.58.0
-s'en écartait. Rien à rejouer côté serveur.
-- **La catégorie est un point coloré en tête de chaque rangée**, son nom dans la ligne du dessous ; en sélection,
-  la case prend sa place et le point revient devant le nom.
-- **La ligne du dessous se lit comme une phrase** : « Aide · SMUR · adulte · △ À relire ». L'état suit l'identité
-  au lieu d'être calé à droite dans une pastille, et la ligne passe à la ligne plutôt que de couper un mot.
-- **Des rangées plus serrées** (52 px au minimum), un filet qui commence au texte, des groupes sans bord ni ombre,
-  des intertitres en minuscules (« Accès direct 1 », « SMUR 1 »).
-- La vue compacte garde sa ligne unique avec l'état à droite ; elle perd la pastille et le gras.

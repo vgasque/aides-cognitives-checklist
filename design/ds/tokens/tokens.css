@@ -140,6 +140,9 @@
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A543 : le bas des barres flottantes du téléphone (onglets, recherche). Comme une barre d'onglets iOS, elle descend
+     DANS la zone de la barre d'accueil (24 pt du bord sur iPhone à Face ID, mesuré sur Photos d'iOS 27) ; 12 px sans zone. */
+  --tb-bot:max(12px, calc(var(--sab) - 10px));
   /* A511 — ZONES SÛRES LATÉRALES : un iPhone en PAYSAGE a l'encoche ou la Dynamic Island sur un côté
      (~60 pt). Seule la visionneuse PDF les lisait : sur l'appareil, l'île couvrait le bouton retour et
      coupait « PARCOURS ». Nulles en portrait, en navigateur de bureau et sur iPad. ÷ --zf à l'usage (règle 10). */

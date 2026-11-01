@@ -8450,6 +8450,26 @@ await sec('Remesure · A530-A533', async () => {
     await page.close();}
 });
 
+/* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
+await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const st=document.documentElement.style;st.setProperty('--sat','calc(62px + 16px)');st.setProperty('--sab','34px');
+    const b=document.getElementById('sysBanner');if(b)b.hidden=true;
+    for(let i=0;i<14;i++)protocols.push(migrateProtocol({title:'Protocole '+i}));render();
+    const w=m=>new Promise(x=>setTimeout(x,m));scrollTo(0,0);await w(300);
+    const sol=()=>getComputedStyle(document.body,'::before').backgroundColor;
+    const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--amb)';document.body.appendChild(sonde);const amb=getComputedStyle(sonde).backgroundColor;sonde.remove();
+    const repos=sol();scrollTo(0,300);await w(400);
+    return {amb,repos,colle:sol(),stuck:document.querySelector('.pg-top').classList.contains('stuck'),
+      bas:Math.round(innerHeight-document.querySelector('.tb-tabs').getBoundingClientRect().bottom)};});
+  t('A542 · au repos, la bande sous l\'heure est couleur de page',r.repos===r.amb,JSON.stringify(r));
+  t('A542 · barre collée : la bande prend la teinte de la barre (une seule bande)',r.stuck&&r.colle!==r.amb,JSON.stringify(r));
+  t('A543 · zone basse de 34 px : la barre d\'onglets à 24 px du bord (comme iOS), pas 46',r.bas===24,JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A541 — AU TÉLÉPHONE, L'ACCUEIL RÉSERVE LA BARRE D'ÉTAT, PAGE AU REPOS ══════════════════════════════════════
    L'en-tête vidé par les onglets faisait 0 px : sans bannière système, tout commençait sous l'heure. */
 await sec('Accueil · A541 réserve de la barre d\'état au repos', async () => {
