@@ -601,3 +601,25 @@ gardent leurs règles de paysage bas (A511).
 *Écart mesuré, accepté* : à 667 px la colonne (255 px) laisse 412 px à la liste — le compte « 2 aides · 2 à relire »
 se tronque à côté du titre, comme sur un iPad étroit. Témoin : `audit-doctrine` « Accueil · A526 » (667 × 375 et
 375 × 667 ; vérifié capable d'échouer).
+
+## A527-A529 — Trois arbitrages de forme, tranchés par l'auteur sur planche (v5.69.0)
+
+Planche « Trois arbitrages Natif » (état actuel contre proposition, captures de l'app servie) ; l'auteur a retenu les
+trois propositions (« B partout »).
+
+**A527 — Seul le protocole dit sa nature (amende A516, A338).** La rangée d'une aide n'écrit plus « Aide » : c'est le
+cas courant, le mot se lisait sur presque toutes les rangées sans rien apprendre. Le protocole, l'exception, garde
+« Protocole » en tête de sa sous-ligne ; la vue « Tout » distingue toujours les deux. `dirKindHtml('f')` rend vide.
+*Forme écartée* : « Aide » sur chaque rangée (demande antérieure de l'auteur, qu'il lève ici).
+
+**A528 — « Affichage » en tête des pastilles, au téléphone (amende A517).** La ligne « n aides · n à relire  ·
+Affichage » sous les pastilles disparaît en navigation par onglets ; « Affichage » (ranger, densité, catégories)
+devient la PREMIÈRE pastille, même id `#rangBtn` (un seul câblage). « Tout · n » dit le compte. Ce qu'on perd, et
+dit : le total « à relire » d'un coup d'œil au téléphone (chaque rangée garde son « △ À relire ») ; en large rien
+ne change. *Forme écartée* : garder la ligne.
+
+**A529 — Un seul bouton d'impression dans la Page (amende A522).** « Imprimer » et « Exporter en PDF » ouvraient le
+même dialogue du système : un bouton « Imprimer ou PDF ». *Forme écartée* : deux boutons, fidèles à la maquette.
+
+Témoins : `audit-doctrine` « Accueil · … A528 », « Page · A529 », et la nature des rangées réécrite (« chaque
+protocole dit « Protocole », une aide ne porte pas de mot ») ; vérifiés capables d'échouer.

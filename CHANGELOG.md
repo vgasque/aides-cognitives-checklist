@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.69.0] — 2026-11-01
+Refonte « Natif » : trois arbitrages de forme tranchés sur planche (A527-A529, doctrine `docs/decisions/lot-v6-0.md`).
+Rien à rejouer côté serveur.
+- **Rangées de l'accueil** : une aide n'écrit plus « Aide » ; un protocole garde « Protocole ».
+- **Au téléphone, « Affichage » est la première pastille** sous le titre ; la ligne du compte disparaît (« Tout · n »
+  dit le compte).
+- **La Page n'a plus qu'un bouton « Imprimer ou PDF »** (le dialogue du système propose les deux).
+
 ## [5.68.0] — 2026-11-01
 Refonte « Natif », fin des suites d'A510 (A525-A526, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
 serveur.
@@ -202,17 +210,3 @@ Deux retours de l'auteur sur capture (amende A496, doctrine `docs/decisions/lot-
   la rangée, et c'est vrai de tous les menus ancrés).
 - **Un filtre de texte dès cinq collections**, dans le menu de l'éditeur comme dans la feuille de l'accueil, pour
   retrouver une collection par son nom.
-
-## [5.56.0] — 2026-10-15
-Trois retours d'usage (A496-A497, doctrine `docs/decisions/lot-v5-56.md`). Rien à rejouer côté serveur.
-- **La collection se choisit à la création.** La pancarte d'identité d'une aide ou d'un protocole porte une rangée
-  **Collections**, sous Bibliothèque, dessinée comme la rangée Catégorie : les collections qui contiennent l'aide en
-  jetons (ou « Aucune collection »), puis « Choisir… », qui ouvre la même feuille à cases que l'accueil — Accès
-  direct, vos collections, « ＋ Nouvelle collection… ». Rien n'est écrit dans l'aide : une collection reste votre
-  rangement, à vous seul, et se choisit aussi sur une aide en lecture seule. Créer depuis une collection affichée y
-  range la nouvelle aide (la pancarte le montre, un tap le retire). Un brouillon ne s'épingle toujours pas en Accès
-  direct, même avant sa première frappe ; un brouillon abandonné sans titre ne laisse rien dans vos collections.
-- **« Nouveau protocole »** : la pancarte d'identité d'un protocole neuf disait « Nouvelle aide ».
-- **Au téléphone, toucher à côté d'une feuille ne touche plus ce qu'elle couvrait.** Un tap sur le grisé fermait le
-  sélecteur (catégorie, bibliothèque, collection, actions…) puis atteignait la rangée ou le bouton situé dessous, et
-  l'ouvrait. Le grisé absorbe désormais le tap : la feuille se ferme, et rien d'autre ne bouge.

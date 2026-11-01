@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-LKJZhscxLEClNUDjt+p7rguPPmgfBCbssGG2yUKAaTE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-CyI5RNXnu1OdP2Yw3gpFyU9Hk2rl4vlzpI45X4u3oko='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7182,7 +7182,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .plan-modal.pm-page .pm-body{background:var(--amb-2)}
   .plan-modal.pm-page .sv-calant{width:fit-content;margin:0 auto}   /* zoomé, la largeur écrite en ligne l'emporte */
   .plan-modal.pm-page .sv-sheet{box-shadow:var(--shadow-float)}
-  html.zw560 .pm-out{display:none}   /* au téléphone, l'impression reste dans le menu ⋯ (« Exporter en PDF ») */
+  html.zw560 .pm-out{display:none}   /* au téléphone, l'impression reste dans le menu ⋯ */
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
   .pm-body{flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
@@ -9533,7 +9533,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.68.0';
+const APP_VERSION='5.69.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15494,7 +15494,8 @@ function homeJoinHtml(){
    de filtre, et le tag reste juste (il ne ment jamais, il est seulement redondant avec le filtre).
    C'est un item DUR de la méta : il ne rétrécit pas, il ne tombe pas — c'est la première chose
    qu'on veut savoir, et un mot amputé en dirait moins que rien. */
-function dirKindHtml(k){return `<span class="dir-kind${k==='p'?' p':''}">${k==='p'?'Protocole':'Aide'}</span>`;}
+/* A527 (arbitrage de l'auteur, amende A516) : seul le PROTOCOLE dit sa nature ; l'aide, cas courant, n'écrit rien. */
+function dirKindHtml(k){return k==='p'?'<span class="dir-kind p">Protocole</span>':'';}
 /* A516 : l'emplacement « avant » de la rangée (A506) — le point de catégorie de 10 px ; en sélection la case
    le remplace et le point revient dans la sous-ligne (A515 §3). Sans catégorie, pas d'emplacement. */
 const dirAvHtml=cc=>cc?'<span class="dir-av" aria-hidden="true"></span>':'';
@@ -15965,7 +15966,11 @@ function pgHeadHtml(title,opts){opts=opts||{};
     +(opts.chips?pgChipsHtml():'');}
 function pgChipsHtml(){
   const chip=(on,attrs,inner)=>`<button type="button" class="pg-chip${on?' on':''}" ${attrs} aria-pressed="${on?'true':'false'}">${inner}</button>`;
+  /* A528 (arbitrage de l'auteur) : « Affichage » (ranger, densité, catégories) ouvre la rangée — plus de ligne du compte
+     au téléphone, « Tout · n » dit déjà le compte. Même id que la porte large : un seul câblage (`#rangBtn`). */
+  const gk=homeGroupKey(),lbl=(HOME_RANG.find(([k])=>k===gk)||HOME_RANG[0])[1];
   return `<div class="pg-chips" role="group" aria-label="Filtrer la liste">`
+    +(homeVis().length?`<button type="button" class="pg-chip" id="rangBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Affichage — rangé par ${esc(lbl)}">${uiIcon('ladder',16,{sw:2.2})}Affichage</button>`:'')   // A263 : rien à ranger, pas de porte
     +chip(!state.coll&&!state.cat,'data-pgall',`Tout · ${homeVis().length}`)
     +[collById(COLL_PIN)].concat(colls).map(c=>chip(state.coll===c.id,`data-collsel="${esc(c.id)}"`,collIc(c)+esc(c.name))).join('')
     +homeCatGroups().map(g=>chip(state.cat===g.n,`data-pgcat="${esc(g.n)}"`,catDotHtml(g.cols,'cat-dot')+esc(g.c.name))).join('')
@@ -16405,8 +16410,8 @@ function renderHomeList(cfg){
       /* v5.30 (maquette v5) : plus d'intertitre « Répertoire » — la ligne dit le compte et porte
          « Affichage » (rangement, catégories). */
       /* A517 : le TITRE d'abord (maquette Natif) — la ligne du compte précède désormais l'Accès direct. */
-      `<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
-          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`
+      (tabNavOn()?'':`<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
+          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » ouvre les pastilles */
       +(state.selOn?'':filtersBarHtml())
       +enCours
       +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
@@ -21890,12 +21895,11 @@ function renderPlanSheet(){
      aucun démarrage) — on vient la REGARDER avant d'entrer, pas la conduire. */
   if(page)pbody.onclick=e=>{const z=e.target.closest('[data-svzoom]');if(z)svZoomStep(z.dataset.svzoom,pbody);};
   else pbody.onclick=null;
-  /* A522 (lot 11, maquette Natif) : la barre porte l'échelle (déplacée hors de la feuille) puis Imprimer et
-     Exporter en PDF — tous deux ouvrent le dialogue d'impression du système, qui propose l'enregistrement PDF. */
+  /* A522 (lot 11) : la barre porte l'échelle (déplacée hors de la feuille) puis l'impression ; A529 (arbitrage de
+     l'auteur) : UN bouton « Imprimer ou PDF » — le dialogue du système propose les deux. */
   const tools=document.getElementById('pmTools');tools.innerHTML='';
   if(page){const z=pbody.querySelector('.sv-zoom');if(z){tools.appendChild(z);const o=z.querySelector('.sv-ovf');if(o)tools.appendChild(o);}   // l'annonce de débordement sort de la piste
-    tools.insertAdjacentHTML('beforeend',`<span class="pm-out"><button type="button" class="btn sm" data-pmprint>${uiIcon('print',16)} Imprimer</button>`
-      +`<button type="button" class="btn sm" data-pmprint>${uiIcon('download',16)} Exporter en PDF</button></span>`);
+    tools.insertAdjacentHTML('beforeend',`<span class="pm-out"><button type="button" class="btn sm" data-pmprint>${uiIcon('print',16)} Imprimer ou PDF</button></span>`);
     tools.onclick=e=>{const z=e.target.closest('[data-svzoom]');if(z){svZoomStep(z.dataset.svzoom,pbody);return;}
       if(e.target.closest('[data-pmprint]'))exportPdfCurrent();};}
   planModal.classList.toggle('pm-page',page);

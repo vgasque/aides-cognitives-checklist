@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A526** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A529** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -150,6 +150,9 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A524 | `lot-v6-0.md` | Une seule recherche au téléphone, le rond de la barre d'onglets (v5.67.1, arbitrage de l'auteur) : champ-leurre sous le titre purgé (amende A517) ; « ● Session » sans « · » orphelin |
 | A525 | `lot-v6-0.md` | Menu ⋯ ancré en large : voile transparent qui absorbe le tap de fermeture (A510 §5, v5.68.0) |
 | A526 | `lot-v6-0.md` | Un téléphone tourné prend la colonne gauche quelle que soit sa largeur (A513 §2, v5.68.0) : une liste de media queries partagée par le CSS et `mqHomeWide` |
+| A527 | `lot-v6-0.md` | Seul le protocole dit sa nature sur sa rangée ; l'aide n'écrit plus « Aide » (arbitrage de l'auteur, v5.69.0) |
+| A528 | `lot-v6-0.md` | Au téléphone, « Affichage » est la première pastille ; plus de ligne du compte (arbitrage de l'auteur, v5.69.0) |
+| A529 | `lot-v6-0.md` | La Page n'a qu'un bouton « Imprimer ou PDF » (arbitrage de l'auteur, v5.69.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

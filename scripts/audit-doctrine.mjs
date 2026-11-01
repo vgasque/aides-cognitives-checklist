@@ -1663,7 +1663,13 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
     const g = await page.evaluate(async()=>{
       const util=()=>{const h=document.querySelector('.home-main'),c=getComputedStyle(h);
         return Math.round(h.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight));};
-      const ecart=()=>{const gr=document.querySelector('.dir-sum'),nx=gr&&gr.nextElementSibling;   /* v5.30 : la ligne de compte porte les commandes */
+      /* v5.30 : la ligne de compte porte les commandes ; A528 : sous les onglets, c'est la rangée des pastilles, qui porte
+         « Affichage » — sans cartes la PORTE disparaît (la rangée garde les filtres, elle n'est donc pas mesurée). */
+      const ecart=()=>{const tn=document.documentElement.classList.contains('tabnav');
+        if(tn&&!document.querySelector('.pg-chips>#rangBtn'))return null;
+        const gr=document.querySelector(tn?'.pg-chips':'.dir-sum');let nx=gr&&gr.nextElementSibling;
+        while(nx&&!nx.getBoundingClientRect().height)nx=nx.nextElementSibling;
+        if(!nx&&gr){const w=gr.closest('.hv-page,main');nx=w&&w.querySelector('.dir-wrap>*');}
         return (gr&&nx)?Math.round(nx.getBoundingClientRect().top-gr.getBoundingClientRect().bottom):null;};
       const avec={util:util(),ecart:ecart()};
       fiches.length=0;protocols.length=0;render();
@@ -2775,6 +2781,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
           pinBox:`${Math.round(R-L)}×${Math.round(B-T)} px, hors rangée : ${R>rr.right+0.5}`};})(),
       /* La NATURE de l'objet : présente sur chaque rangée, item DUR (jamais rétréci). */
       kinds:[...document.querySelectorAll('.dir-row .dir-kind')].map(e=>e.textContent.trim()),
+      nP:rows.filter(x=>{const o=x.querySelector('[data-open]');return !!o&&protocols.some(p=>p.id===o.dataset.open);}).length,
       kindsTronq:[...document.querySelectorAll('.dir-row .dir-kind')]
         .filter(e=>e.scrollWidth>e.clientWidth+1).length,
       /* Les rangées de filtres partent-elles du même x ? (les intitulés ont des longueurs
@@ -2868,8 +2875,9 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   /* LA NATURE SE LIT SUR LA RANGÉE (demande utilisateur, d'après la maquette) : en vue « Tout »
      les deux types se mêlent et rien ne disait lequel on allait ouvrir. C'est un item DUR : il ne
      s'abrège jamais — un mot de nature amputé en dirait moins que rien. */
-  t(`${W} · chaque rangée dit sa NATURE`,
-    r.kinds.length===r.n&&r.kinds.every(k=>k==='Aide'||k==='Protocole'), JSON.stringify(r.kinds.slice(0,3)));
+  /* A527 (arbitrage de l'auteur) : seul le PROTOCOLE porte le mot ; l'aide, cas courant, n'en porte aucun. */
+  t(`${W} · chaque PROTOCOLE dit « Protocole », une aide ne porte pas de mot`,
+    r.kinds.length===r.nP&&r.kinds.every(k=>k==='Protocole'), JSON.stringify({kinds:r.kinds.slice(0,3),nP:r.nP}));
   t(`${W} · … et ce mot n'est jamais abrégé`, r.kindsTronq===0, `${r.kindsTronq}`);
   /* LES RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné). */
   if(W<780)t(`${W} · les rangées de filtres sont alignées`, r.chipsX.length<=1, JSON.stringify(r.chipsX));
@@ -3042,7 +3050,7 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
      mesure est « la vue n'a pas basculé sur les aides seules », donc le contenu du répertoire. */
   const etat=()=>page.evaluate(()=>({section:state.section,
     rangees:document.querySelectorAll('.dir-book:not(.pinned) .dir-row').length,
-    natures:[...new Set([...document.querySelectorAll('.dir-book:not(.pinned) .dir-kind')].map(e=>e.textContent.trim()))]}));
+    natures:[...new Set([...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')].map(r=>r.querySelector('.dir-kind')?'Protocole':'Aide'))]}));   // A527 : l'aide n'a plus de mot
   const av=await etat();
   t('témoin : la vue « Tout » montre les DEUX natures',
     av.section==='all'&&av.natures.length===2, JSON.stringify(av));
@@ -8400,6 +8408,19 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
 }
 });
 
+/* ══ A529 — LA PAGE N'A QU'UN BOUTON D'IMPRESSION (arbitrage de l'auteur) ═══════════════════════════════════ */
+await sec('Page · A529 un bouton « Imprimer ou PDF »', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:800}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const r=await page.evaluate(async()=>{openPlanSheet('page');await new Promise(x=>setTimeout(x,400));
+    return [...document.querySelectorAll('#pmTools [data-pmprint]')].map(b=>b.textContent.trim());});
+  t('1280 px : la barre de la Page porte UN bouton, « Imprimer ou PDF »',r.length===1&&r[0]==='Imprimer ou PDF',JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A526 — UN TÉLÉPHONE TOURNÉ PREND LA COLONNE GAUCHE, QUELLE QUE SOIT SA LARGEUR (A513 §2) ═════════════════
    L'iPhone SE tourné (667 × 375) restait sous 780 px : ni onglets (A511) ni colonne. Il suit le 844 × 390. */
 await sec('Accueil · A526 téléphone tourné', async () => {
@@ -8459,7 +8480,11 @@ await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () 
     t(`${W} px : plus de carte sombre « Session en cours »`,!r.carte);
     if(W<780){const sr=await page.evaluate(()=>({tabnav:document.documentElement.classList.contains('tabnav'),
         rond:!!document.getElementById('tbSrch'),leurres:document.querySelectorAll('main button [class*="srch"],main .pg-srch,main [data-tbsrch]').length}));
-      t('A524 · au téléphone, UNE recherche : le rond de la barre d\'onglets, aucun champ-leurre sous le titre',sr.tabnav&&sr.rond&&sr.leurres===0,JSON.stringify(sr));}
+      t('A524 · au téléphone, UNE recherche : le rond de la barre d\'onglets, aucun champ-leurre sous le titre',sr.tabnav&&sr.rond&&sr.leurres===0,JSON.stringify(sr));
+      /* A528 : « Affichage » ouvre la rangée des pastilles (plus de ligne du compte) et ouvre sa feuille. */
+      const af=await page.evaluate(async()=>{const b=document.querySelector('.pg-chips>#rangBtn');const o={premier:!!b&&b===b.parentNode.firstElementChild,ligne:!!document.querySelector('.dir-sum')};
+        if(b){b.click();await new Promise(x=>setTimeout(x,400));o.feuille=!![...document.querySelectorAll('.ai-modal.on')].length;}return o;});
+      t('A528 · au téléphone, « Affichage » est la première pastille, sans ligne du compte, et ouvre sa feuille',af.premier&&!af.ligne&&af.feuille,JSON.stringify(af));}
     await page.close();
   }
 });
