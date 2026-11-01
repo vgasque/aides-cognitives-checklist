@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.66.0] — 2026-11-01
+Lot 11 de la refonte « Natif » : Administration au bureau et la Page (A522, doctrine `docs/decisions/lot-v6-0.md`).
+Rien à rejouer côté serveur.
+- **Administration** : les sections (Vue d'ensemble, Comptes, Bibliothèques, Règles) sont un sélecteur segmenté ;
+  les intertitres passent en minuscules ; le statut d'un compte est une pastille (ambre « En attente ») ; la fiche
+  d'un compte, à côté de la liste, s'ouvre sur une carte d'en-tête.
+- **La Page** : « Fermer » en mot à gauche, l'échelle en segmenté dans la barre, puis **Imprimer** et **Exporter en
+  PDF** (au téléphone, ils restent dans le menu ⋯). La feuille est centrée sur un fond gris.
+
 ## [5.65.0] — 2026-11-01
 Lot 10 de la refonte « Natif » : l'éditeur se parcourt (A521, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -229,19 +238,3 @@ Anneaux bleus, retour à l'accueil et colonne (A490-A493, doctrine `docs/decisio
   (comme au téléphone). Après « Terminer la session », l'accueil s'ouvre en haut, sur la carte-bilan.
 - **Colonne gauche** : une bibliothèque que vous venez de créer y apparaît même vide (compte 0) ; les collections
   ont leur remise à zéro « Tout », comme les bibliothèques et les catégories.
-
-## [5.53.0] — 2026-10-07
-Retours d'usage après les collections, et une colonne gauche qui dit avec qui (A485-A489, doctrine
-`docs/decisions/lot-v5-53.md`).
-- **Colonne gauche (bureau)** : chaque bibliothèque dit avec qui — Perso « vous seul », une bibliothèque partagée
-  « partagée » ou « lecture », avec une icône de personnes ; les collections gardent leur signet sous « Collections ·
-  pour vous », avec « Gérer » vers Moi. Avec une seule bibliothèque, une seule rangée, et « ＋ Partager avec une
-  équipe… » pour en créer ou en demander une.
-- **Collections** : le bouton « Ajouter » ouvre « Ajouter à « ‹collection› » », et chaque aide ou protocole y montre
-  sa catégorie ; le menu ⋯ d'une collection s'ouvre sous son bouton en tablette et au bureau.
-- **Ranger › Nouvelle catégorie…** : on nomme la catégorie, « Créer et ranger », et la sélection y est rangée.
-- **Accès direct** : une sélection qui contient un brouillon ne bloque plus la case « Accès direct » (un brouillon ne
-  s'épingle pas, la rangée le dit) ; toucher une étoile n'anime plus toutes les autres.
-- **Catégories homonymes** : l'intertitre d'une section prend la couleur de sa propre bibliothèque (bicolore sur
-  « Toutes » quand les couleurs diffèrent).
-- Moi : le survol d'une première rangée ne touche plus le bord de la carte.

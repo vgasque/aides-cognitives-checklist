@@ -522,3 +522,25 @@ les blocs, la colonne de structure et le schéma.
    - Les revues (`kind:'review'`) ne vivent pas dans « Prise en charge » : leur rangée amène à la section Revues.
    *Formes écartées* : re-rendre l'éditeur en n'émettant que le bloc (chaque geste aurait à connaître le mode) ;
    une fenêtre par bloc (règle : pas de modale pour écrire ce qui est le cœur de l'aide).
+
+## A522 — Administration au bureau et la Page, à la maquette (lot 11, v5.66.0)
+
+*Applique A520 §4 (Administration) et la Page « proposée sans question » ; amende A494-A495 (dessin des onglets) et
+le chrome de la feuille Page (`#planModal`).*
+
+1. **Administration.** La liste et la fiche côte à côte existaient déjà (`.adm-split`, dès 900 px de vue) : le lot
+   n'en change que l'habillage. Les sections deviennent un **segmenté** (piste grise, cran courant blanc, compte en
+   gris — en bleu pour « À traiter ») ; les intertitres (`.adm-sh`, `.adm-grp`) passent **en phrase** ; le statut
+   d'un compte est une **pastille** (ambre « En attente », grise sinon) ; l'en-tête de la fiche (avatar, e-mail)
+   devient une carte. Au téléphone, rien ne change de place.
+   **Non repris de la maquette, et dit** : les cercles de sélection sur chaque rangée (la sélection reste derrière
+   « Sélectionner », A475) et la disparition de l'icône de compte en tête de rangée (rangée de menu partagée).
+2. **La Page.** La barre porte, dans l'ordre : **« Fermer »** en mot à gauche (était « × » à droite), le titre,
+   l'échelle en **segmenté** (Ajusté · − · % · + · 1:1, déplacée hors de la feuille — `svApplyZoom` lit la valeur
+   dans la barre), puis **Imprimer** et **Exporter en PDF**. La feuille est **centrée sur un fond gris**, ombrée.
+   L'annonce « la feuille dépasse à droite » sort de la piste et passe sous la barre.
+   - Les deux boutons ouvrent le même dialogue d'impression du système (qui propose l'enregistrement en PDF) —
+     c'est déjà le cas de « Exporter en PDF » du menu ⋯. Deux mots pour un geste, gardés parce que la maquette les
+     nomme ainsi et que l'utilisateur cherche l'un ou l'autre ; **à arbitrer** si l'auteur préfère un seul bouton.
+   - Au téléphone (`html.zw560`), Imprimer et Exporter se retirent de la barre : ils restent dans le menu ⋯.
+   - Vérifié : imprimer la Page ouverte sort la Page seule (barre et fenêtre absentes du PDF).

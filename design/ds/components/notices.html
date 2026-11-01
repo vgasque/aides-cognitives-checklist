@@ -6372,13 +6372,16 @@
   #admModal .ai-top{align-items:flex-end}
   .adm-ttl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
   .adm-ttl .adm-back{min-height:32px}
-  .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
-  .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
-  .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}
+  /* A522 (lot 11, A520 §4) : les sections en SEGMENTÉ — piste grise, cran courant blanc, compte en gris. */
+  .adm-tabs{display:inline-flex;flex-wrap:wrap;gap:2px;margin:0 0 16px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}
+  .adm-tab{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 14px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:var(--t-body);font-weight:600;color:var(--ink-2);cursor:pointer}
+  .adm-tab[aria-current="page"]{color:var(--ink);background:var(--work);box-shadow:var(--shadow-work)}
   .adm-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-tab .adm-n{min-width:0;height:auto;padding:0;background:none;color:var(--ink-2);font-weight:500}
+  .adm-tab .adm-n.on{background:none;color:var(--act);font-weight:700}
   .adm-n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--amb-2);color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta);font-weight:600;letter-spacing:0}
   .adm-n.on{background:var(--act);color:var(--on-primary)}
-  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A522 : intertitre en phrase */
   .adm-sh:first-child{margin-top:4px}
   .adm-sh small{margin-left:auto;font-size:var(--t-meta);font-weight:500;letter-spacing:0;text-transform:none}
   .adm-title{margin:0 0 2px;font-size:var(--t-step);font-weight:800}
@@ -6405,11 +6408,11 @@
   .adm-chips .catchip .adm-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta)}   /* pas d'opacité : 4,11:1 dans la puce ambre (mesuré) */
   .adm-chips .catchip.warn{color:var(--warn)}
   .adm-chips .catchip.warn.on{color:var(--on-primary)}
-  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .adm-grp:not(:first-child){border-top:1px solid var(--work-line)}
   .adm-grp+.mm-row{border-top:0!important}
-  .adm-st{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
-  .adm-st.wait{color:var(--warn)}
+  .adm-st{flex:none;padding:2px 8px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A522 : le statut en pastille */
+  .adm-st.wait{background:var(--warn-soft);color:var(--warn)}
   .adm-st.adm{color:var(--ink)}
   .adm-warn{font-weight:700;color:var(--warn)}
   .mm-row[aria-current="true"]{background:var(--primary-soft)}
@@ -6431,6 +6434,7 @@
   .acct-list .mem-row+.mem-row{border-top:1px solid var(--work-line)}
   .adm-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);gap:16px;align-items:start}
   .adm-split>aside{position:sticky;top:8px}
+  .adm-split>aside>.adm-head{margin:0 0 4px;padding:12px 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work)}   /* A522 : l'en-tête de la fiche en carte */
   .adm-radio{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 0;border:0;background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
   .adm-radio:not(:first-child){border-top:1px solid var(--work-line)}
   .adm-radio:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
@@ -6803,6 +6807,22 @@
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
   .plan-modal .ai-x{flex:none;position:static}
+  /* A522 (lot 11) : « Fermer » en mot, à gauche ; l'échelle en segmenté au centre ; Imprimer et Exporter à droite ;
+     la Page est une feuille blanche CENTRÉE sur un fond gris. */
+  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
+  .pm-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
+  .pm-tools:empty{display:none}
+  .pm-out{display:flex;gap:8px}
+  .pm-out .btn{gap:6px}
+  .pm-tools .sv-zoom{margin:0;padding:4px;gap:2px;border-radius:var(--r-3);background:var(--amb-2)}
+  .pm-tools .sv-zb{border:0;background:none;box-shadow:none}
+  .pm-tools .sv-ovf{order:9;flex-basis:100%;text-align:right;font-size:var(--t-meta);color:var(--ink-2)}
+  html.zw560 .pm-tools{flex-basis:100%;justify-content:flex-start}
+  html.zw560 .pm-tools .sv-ovf{text-align:left}
+  .plan-modal.pm-page .pm-body{background:var(--amb-2)}
+  .plan-modal.pm-page .sv-calant{width:fit-content;margin:0 auto}   /* zoomé, la largeur écrite en ligne l'emporte */
+  .plan-modal.pm-page .sv-sheet{box-shadow:var(--shadow-float)}
+  html.zw560 .pm-out{display:none}   /* au téléphone, l'impression reste dans le menu ⋯ (« Exporter en PDF ») */
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
   .pm-body{flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}

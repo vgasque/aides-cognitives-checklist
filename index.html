@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-82wkolYeZn/TNP+qlT6fL28tMd7ZSJfJbXHxUvNgKaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-N75W4DxE9TQBU79zLD4tnomzcy1xgUYqPvf1GyM1aFY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6765,13 +6765,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #admModal .ai-top{align-items:flex-end}
   .adm-ttl{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
   .adm-ttl .adm-back{min-height:32px}
-  .adm-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
-  .adm-tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink-2);cursor:pointer}
-  .adm-tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--act)}
+  /* A522 (lot 11, A520 §4) : les sections en SEGMENTÉ — piste grise, cran courant blanc, compte en gris. */
+  .adm-tabs{display:inline-flex;flex-wrap:wrap;gap:2px;margin:0 0 16px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}
+  .adm-tab{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 14px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:var(--t-body);font-weight:600;color:var(--ink-2);cursor:pointer}
+  .adm-tab[aria-current="page"]{color:var(--ink);background:var(--work);box-shadow:var(--shadow-work)}
   .adm-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .adm-tab .adm-n{min-width:0;height:auto;padding:0;background:none;color:var(--ink-2);font-weight:500}
+  .adm-tab .adm-n.on{background:none;color:var(--act);font-weight:700}
   .adm-n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--amb-2);color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta);font-weight:600;letter-spacing:0}
   .adm-n.on{background:var(--act);color:var(--on-primary)}
-  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-sh{display:flex;align-items:center;gap:8px;margin:24px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A522 : intertitre en phrase */
   .adm-sh:first-child{margin-top:4px}
   .adm-sh small{margin-left:auto;font-size:var(--t-meta);font-weight:500;letter-spacing:0;text-transform:none}
   .adm-title{margin:0 0 2px;font-size:var(--t-step);font-weight:800}
@@ -6798,11 +6801,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .adm-chips .catchip .adm-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-meta)}   /* pas d'opacité : 4,11:1 dans la puce ambre (mesuré) */
   .adm-chips .catchip.warn{color:var(--warn)}
   .adm-chips .catchip.warn.on{color:var(--on-primary)}
-  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .adm-grp{padding:12px 0 4px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .adm-grp:not(:first-child){border-top:1px solid var(--work-line)}
   .adm-grp+.mm-row{border-top:0!important}
-  .adm-st{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
-  .adm-st.wait{color:var(--warn)}
+  .adm-st{flex:none;padding:2px 8px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A522 : le statut en pastille */
+  .adm-st.wait{background:var(--warn-soft);color:var(--warn)}
   .adm-st.adm{color:var(--ink)}
   .adm-warn{font-weight:700;color:var(--warn)}
   .mm-row[aria-current="true"]{background:var(--primary-soft)}
@@ -6824,6 +6827,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .acct-list .mem-row+.mem-row{border-top:1px solid var(--work-line)}
   .adm-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);gap:16px;align-items:start}
   .adm-split>aside{position:sticky;top:8px}
+  .adm-split>aside>.adm-head{margin:0 0 4px;padding:12px 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work)}   /* A522 : l'en-tête de la fiche en carte */
   .adm-radio{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 0;border:0;background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
   .adm-radio:not(:first-child){border-top:1px solid var(--work-line)}
   .adm-radio:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
@@ -7196,6 +7200,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
   .plan-modal .ai-x{flex:none;position:static}
+  /* A522 (lot 11) : « Fermer » en mot, à gauche ; l'échelle en segmenté au centre ; Imprimer et Exporter à droite ;
+     la Page est une feuille blanche CENTRÉE sur un fond gris. */
+  .plan-modal .ai-x.pm-close{order:-1;width:auto;min-width:0;height:44px;padding:0 16px;border:1px solid var(--work-line);border-radius:999px;background:var(--work);color:var(--ink);font-size:var(--t-body);font-weight:600}
+  .pm-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 12px}
+  .pm-tools:empty{display:none}
+  .pm-out{display:flex;gap:8px}
+  .pm-out .btn{gap:6px}
+  .pm-tools .sv-zoom{margin:0;padding:4px;gap:2px;border-radius:var(--r-3);background:var(--amb-2)}
+  .pm-tools .sv-zb{border:0;background:none;box-shadow:none}
+  .pm-tools .sv-ovf{order:9;flex-basis:100%;text-align:right;font-size:var(--t-meta);color:var(--ink-2)}
+  html.zw560 .pm-tools{flex-basis:100%;justify-content:flex-start}
+  html.zw560 .pm-tools .sv-ovf{text-align:left}
+  .plan-modal.pm-page .pm-body{background:var(--amb-2)}
+  .plan-modal.pm-page .sv-calant{width:fit-content;margin:0 auto}   /* zoomé, la largeur écrite en ligne l'emporte */
+  .plan-modal.pm-page .sv-sheet{box-shadow:var(--shadow-float)}
+  html.zw560 .pm-out{display:none}   /* au téléphone, l'impression reste dans le menu ⋯ (« Exporter en PDF ») */
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
   .pm-body{flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
@@ -9492,8 +9512,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal plan-modal sheet-full" id="planModal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
   <div class="ai-card">
     <div class="pm-bar">
+      <button class="ai-x pm-close" id="planX">Fermer</button>
       <h3 class="pm-ttl" id="planModalTitle">Se repérer — <span id="pmName"></span></h3>
-      <button class="ai-x" id="planX" aria-label="Fermer le plan">×</button>
+      <div class="pm-tools" id="pmTools"></div>
     </div>
     <div class="pm-body" id="planBody"></div>
   </div>
@@ -9547,7 +9568,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.65.0';
+const APP_VERSION='5.66.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21904,6 +21925,15 @@ function renderPlanSheet(){
      aucun démarrage) — on vient la REGARDER avant d'entrer, pas la conduire. */
   if(page)pbody.onclick=e=>{const z=e.target.closest('[data-svzoom]');if(z)svZoomStep(z.dataset.svzoom,pbody);};
   else pbody.onclick=null;
+  /* A522 (lot 11, maquette Natif) : la barre porte l'échelle (déplacée hors de la feuille) puis Imprimer et
+     Exporter en PDF — tous deux ouvrent le dialogue d'impression du système, qui propose l'enregistrement PDF. */
+  const tools=document.getElementById('pmTools');tools.innerHTML='';
+  if(page){const z=pbody.querySelector('.sv-zoom');if(z){tools.appendChild(z);const o=z.querySelector('.sv-ovf');if(o)tools.appendChild(o);}   // l'annonce de débordement sort de la piste
+    tools.insertAdjacentHTML('beforeend',`<span class="pm-out"><button type="button" class="btn sm" data-pmprint>${uiIcon('print',16)} Imprimer</button>`
+      +`<button type="button" class="btn sm" data-pmprint>${uiIcon('download',16)} Exporter en PDF</button></span>`);
+    tools.onclick=e=>{const z=e.target.closest('[data-svzoom]');if(z){svZoomStep(z.dataset.svzoom,pbody);return;}
+      if(e.target.closest('[data-pmprint]'))exportPdfCurrent();};}
+  planModal.classList.toggle('pm-page',page);
   /* Les flèches se mesurent APRÈS la mise en page (rAF) : la feuille vient d'être remplie, et une
      passe immédiate lirait des rectangles nuls. Elle est rejouée au redimensionnement tant que la
      feuille est ouverte — le tableau réorganise ses colonnes aux paliers. */
@@ -23776,7 +23806,8 @@ function svRoot(){return (planSheetOpen()&&_pmVue==='page')
 function svApplyZoom(racine){
   const E=svSheetEls(racine||svRoot());if(!E)return;
   const k=svZoom;
-  const v=E.wrap.querySelector('.sv-zv');if(v)v.textContent=Math.round(k*100)+'%';
+  const bar=E.wrap.closest('.plan-modal')||E.wrap;   // A522 : dans la Page, l'échelle vit dans la barre
+  const v=bar.querySelector('.sv-zv');if(v)v.textContent=Math.round(k*100)+'%';
   if(Math.abs(k-1)<0.001){E.ca.classList.remove('z');E.ca.style.width='';E.ca.style.height='';E.sh.style.transform='';}
   else{E.ca.classList.add('z');E.sh.style.transform='scale('+k+')';
   E.ca.style.width=Math.round(E.sh.offsetWidth*k)+'px';
@@ -23785,7 +23816,7 @@ function svApplyZoom(racine){
      le défileur (cette fonction est déjà « une mesure après rendu, groupée » — svPaintArrows —
      donc la relecture ne coûte pas une passe de plus). Marge de 4 px : un arrondi de sous-pixel
      ne doit pas faire clignoter le mot. */
-  const ov=E.wrap.querySelector('.sv-ovf');
+  const ov=bar.querySelector('.sv-ovf');
   if(ov)ov.hidden=!(E.sc.scrollWidth>E.sc.clientWidth+4);}
 function svZoomStep(a,racine){
   const E=svSheetEls(racine||svRoot());
