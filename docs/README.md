@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A523** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A524** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -147,6 +147,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A521 | `lot-v6-0.md` | L'éditeur se parcourt (lot 10, v5.65.0) : Identité en rangées « Titre · valeur › », structure en liste dans le fil (amende A390, `edTocHtml` purgé), un bloc s'ouvre sur sa page (`state.edFocus`, classes `ed-ov`/`ed-focus`, niveau du retour système) |
 | A522 | `lot-v6-0.md` | Administration au bureau et la Page à la maquette (lot 11, v5.66.0) : sections en segmenté, intertitres en phrase, statut en pastille ; Page avec « Fermer », échelle segmentée dans la barre, Imprimer · Exporter en PDF, feuille centrée sur fond gris |
 | A523 | `lot-v6-0.md` | Groupe « En cours » en tête de l'accueil (A510 §6, v5.67.0) : l'aide en session quitte sa section, « ● Session mm:ss » ; carte sombre retirée (sauf session partagée), « Terminer » reste dans la session |
+| A524 | `lot-v6-0.md` | Une seule recherche au téléphone, le rond de la barre d'onglets (v5.67.1, arbitrage de l'auteur) : champ-leurre sous le titre purgé (amende A517) ; « ● Session » sans « · » orphelin |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

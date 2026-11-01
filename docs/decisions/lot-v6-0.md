@@ -563,3 +563,20 @@ battement `data-lschrono`. Le point vert devient un élément (`.dl-dot`) : en v
 le séparateur « · » et l'écrasait en trait.
 
 Témoin : `audit-doctrine` « Accueil · A523 groupe « En cours » » (390 et 1280 ; vérifié capable d'échouer).
+
+## A524 — Une seule recherche au téléphone : le rond (v5.67.1)
+
+*Amende A517 (« champ de recherche sous le titre ») ; garde A510 §3. Arbitrage de l'auteur, 01/11/2026.*
+
+Signalé par l'auteur : « deux barres de recherche, dont une totalement inutilisable — celle du haut renvoie à celle
+du bas ». La maquette montrait les deux ; A510 §3 voulait la saisie AU-DESSUS du clavier (à portée du pouce) : le
+champ sous le titre n'était donc qu'un leurre qui ouvrait le dock du bas. **Retenu : le rond seul** (barre
+d'onglets, `#tbSrch`) — un seul endroit, toujours visible, le modèle d'iOS 26. `.pg-srch` et son geste
+`[data-tbsrch]` sont PURGÉS (règle 14).
+*Forme écartée* : garder le champ du haut en vrai champ et retirer le rond (plus visible, mais en haut de liste et
+loin du pouce).
+
+Avec : l'état vivant d'une rangée (« ● Session ») ne prend plus le séparateur « · », qui restait seul en début de
+ligne à la coupure au téléphone — le point vert sépare déjà.
+
+Témoin : `audit-doctrine` « Accueil · A523 …, A524 une recherche » (vérifié capable d'échouer).

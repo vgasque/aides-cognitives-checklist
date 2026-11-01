@@ -8402,7 +8402,7 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
 
 /* ══ A523 — L'AIDE EN SESSION MONTE EN TÊTE DE L'ACCUEIL, DANS « EN COURS » (A510 §6) ════════════════════
    Elle quitte sa section, porte « ● Session mm:ss » en vert ; la carte sombre « Session en cours » n'existe plus. */
-await sec('Accueil · A523 groupe « En cours »', async () => {
+await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () => {
   for(const W of [390,1280]){
     const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -8422,6 +8422,9 @@ await sec('Accueil · A523 groupe « En cours »', async () => {
     t(`${W} px : l'aide en session est dans « En cours », en tête, et a quitté sa section`,r.rows.length===1&&r.rows[0]===r.id&&!r.ailleurs&&r.tete,JSON.stringify(r));
     t(`${W} px : « ● Session mm:ss » — point rond de 8 px, mot, chrono`,/^Session en cours depuis Session \d+:\d\d$/.test(r.mot)&&r.point===8,JSON.stringify(r));
     t(`${W} px : plus de carte sombre « Session en cours »`,!r.carte);
+    if(W<780){const sr=await page.evaluate(()=>({tabnav:document.documentElement.classList.contains('tabnav'),
+        rond:!!document.getElementById('tbSrch'),leurres:document.querySelectorAll('main button [class*="srch"],main .pg-srch,main [data-tbsrch]').length}));
+      t('A524 · au téléphone, UNE recherche : le rond de la barre d\'onglets, aucun champ-leurre sous le titre',sr.tabnav&&sr.rond&&sr.leurres===0,JSON.stringify(sr));}
     await page.close();
   }
 });
