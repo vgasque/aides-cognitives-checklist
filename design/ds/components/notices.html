@@ -974,7 +974,9 @@
      une barre d'onglets FLOTTANTE en verre (≈ 90 %, repli opaque). Pendant une recherche, le champ (#homeDock,
      sa mécanique de clavier intacte, A192-A197) prend la place de la barre. */
   .tab-bar{display:none}
-  html.tabnav body.view-home header.bar{min-height:0;height:0;padding:0;border:0;box-shadow:none;background:none}
+  /* A541 : l'en-tête vidé garde la RÉSERVE de la barre d'état (--sat) — à 0, tout l'accueil commençait sous l'heure
+     et la barre collée à --sat couvrait le grand titre et les pastilles, page au repos (app installée). */
+  html.tabnav body.view-home header.bar{min-height:0;height:auto;padding:calc(var(--sat) / var(--zf,1)) 0 0;border:0;box-shadow:none;background:none}
   html.tabnav body.view-home header.bar .id-row>:not(#homeDock):not(#tabNav){display:none}
   html.tabnav:not(.tb-q) body.view-home #homeDock{display:none}
   /* Le dock paraît APRÈS le premier rendu : sa largeur intrinsèque (champ ≈ 380 px) élargissait la fenêtre

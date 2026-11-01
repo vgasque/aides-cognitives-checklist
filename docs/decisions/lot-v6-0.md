@@ -810,3 +810,19 @@ bande, au repos (première ligne de la notice d'accueil), et l'app n'est pas éc
 (A370 §4). Le même fil note que `prefers-color-scheme` est figé par processus en app installée : la bande garderait la
 couleur du thème de l'ouverture. **Non retenu** : `black-translucent` reste, avec le sol et la descente d'A370-A373.
 Témoin : `audit-doctrine` « Accueil · A540 » (inset de 75 px simulé SOUS FORME DE CALC ; vérifié capable d'échouer).
+
+## A541 — Au téléphone, l'accueil réserve la barre d'état, même page au repos (v5.73.2)
+
+*Signalé par l'auteur sur iPhone (app installée) : « tous les écrans sont tronqués en haut, même non défilés ».
+Précise A517 (navigation par onglets) et A373.*
+
+**Cause.** En navigation par onglets, l'en-tête de l'accueil est vidé (`header.bar` réduit à 0 : recherche et onglets
+deviennent flottants). Il portait la RÉSERVE de la barre d'état (`calc(12px + var(--sat))`) : à 0, l'accueil, Sessions
+et Moi commençaient à y = 0, sous l'heure, et la barre collante (collée à `--sat`) recouvrait le grand titre et les
+pastilles, page AU REPOS. Rien ne l'a vu : en navigateur l'inset vaut 0, et dans les mesures la bannière système
+(`#sysBanner`, 99 px) occupait justement cette place — c'est elle qui a masqué le défaut en A540.
+**Correctif.** L'en-tête vidé garde sa réserve : `padding-top:calc(var(--sat) / var(--zf,1))`, rien d'autre. Vérifié
+dans l'app installée au simulateur iOS 27.0 (thème sombre) : au repos, « Sélectionner »/« Créer », le grand titre et les
+pastilles sont sous l'heure, visibles ; Moi idem ; en navigateur, rien ne bouge (inset 0).
+La planche « une seule bande » (bande sous l'heure teintée comme la barre une fois collée) reste à trancher par l'auteur.
+Témoin : `audit-doctrine` « Accueil · A541 » (accueil, Moi, Sessions, sans bannière ; vérifié capable d'échouer : 3 rouges).
