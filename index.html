@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-v716R2H8NmzEis3Rr5i4KHFRff5fvSAmMn8HMqPy2f8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-SsOOrg05o6EFCO0w3t62GYJu3wzY1YisroTVDZIABkQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1044,6 +1044,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     padding:0;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);
     font-family:inherit;cursor:pointer;flex:none}
   .hdr-theme[hidden]{display:none}
+  .hdr-pl{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--work);box-shadow:var(--shadow-work);font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer;flex:none}
+  .hdr-pl[hidden]{display:none}
+  /* A520 : au téléphone, avant la session, « Page » prend la place de la catégorie dans le sur-titre — elle est dite
+     juste dessous, dans la sous-ligne ; le mot du mode (« Avant la session ») reste. */
+  @media (max-width:779.98px){#brandSur.pre .bs-cat{display:none}}
+  .hdr-pl:hover{background:var(--amb-2)}
+  .hdr-pl{position:relative}
+  .hdr-pl::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible : l'écran d'entrée se mesure comme le mode crise */
+  .hdr-pl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-theme:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -3076,7 +3086,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      --ink-2) ; la barre garde le sien pour le défilement. En session la méta s'efface (règle ci-dessous). */
   .read-head{padding:4px 8px 0}
   body:is(.view-read,.view-pread) .read-head h2{font-size:var(--t-val);font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
-  .read-sub{margin:2px 0 0;font-size:var(--t-step);font-weight:600;color:var(--ink-2);line-height:1.3}
   @media screen{body.view-read:has(#cbTimers:not([hidden])) .read-head{display:none}}
   /* Une AIDE : la méta se lit d'un trait (bibliothèque · catégorie · validation · état) ; le protocole garde ses chips. */
   body.view-read .read-meta{display:block;padding:0 8px;font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
@@ -3085,6 +3094,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-meta .tag.cat .cat-dot{margin-right:4px}
   body.view-read .read-meta>*+*::before{content:"·";margin:0 6px;color:var(--line-strong)}
   body.view-read .read-meta svg{display:none}
+  /* A520 : la sous-ligne de la maquette — 15, encre secondaire, le discriminant à sa place ; les ÉTATS en pastille
+     achromatique (A347 : seul « À revérifier » est ambre), sans point devant. */
+  body.view-read .read-meta{padding:0 4px;font-size:var(--t-item);line-height:1.6}
+  body.view-read .read-meta :is(.tag,.status-tag,.card-date,.read-disc){font-size:inherit;font-weight:500}
+  body.view-read .read-meta :is(.status-tag,.tag.todo){display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:700;line-height:1.5}
+  body.view-read .read-meta>:is(.status-tag,.tag.todo)::before{content:none}
   .read-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 18px;font-size:var(--t-meta);color:var(--ink-2)}
   /* v5.30 (maquette v5) : chips à 12 px/800 — bibliothèque en bleu doux, statut et catégorie sur
      l'ambiance (pastille carrée), code et date en mono. */
@@ -3147,6 +3162,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Cartes de session (v5.30) : même carte de travail que l'écran d'entrée ; l'intertitre interne se tait, la tête le dit. */
   .conf-block.fold-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);margin:10px 0 0}
   .fold-card .sf-body{padding:0 16px 6px}
+  /* A520 — le chapeau AVANT la session : intertitre en phrase (13,5/600) au-dessus d'un groupe arrondi de rangées. */
+  .conf-block.fold-card.flat{background:none;border:0;box-shadow:none;margin:14px 0 0}
+  .fold-card.flat>.sf-body{padding:0 16px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
+  .pre-lh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
   .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
@@ -5439,6 +5458,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
   html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  /* A520 : « Apprendre avec cette aide » devient une RANGÉE de groupe — matière de travail, icône en tuile pleine,
+     titre à l'encre, bouton tonal ; plus de hachures (une invitation, pas un placard). */
+  .gd-card{background:var(--work);background-image:none;border:1px solid var(--work-line);border-radius:var(--r-4);padding:10px 8px 10px 12px}
+  .gd-ci{background:var(--act);color:var(--on-primary)}
+  .gd-cx b{color:var(--ink);font-weight:700}
+  .gd-card .btn{background:var(--amb-2);border-color:transparent;color:var(--ink)}
   .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
   .gd-tip[hidden]{display:none}
   /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
@@ -5941,6 +5966,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .pre-rn{flex:1;min-width:0}
   .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
+  /* A520 : les objets prêts en TUILES (maquette) — nom en tête, valeur de départ en mono, pastille d'état à droite. */
+  .pre-rows{gap:8px}
+  .pre-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:10px 12px;border-radius:var(--r-4);background:var(--amb-2)}
+  .pre-row>.pre-rn{grid-column:1;color:var(--ink-2)}
+  .pre-rt{grid-column:1;font-family:var(--f-mono);font-size:var(--t-val);font-weight:600;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pre-rt.mute{color:var(--ink-2)}
+  .pre-row>.pre-rv{grid-column:2;grid-row:1/3;max-width:none;padding:4px 10px;border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700}
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
@@ -8927,6 +8959,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
          par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
          là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <!-- A520 : « Page » et « Schéma » montent dans l'en-tête de l'écran de démarrage (peints par applyViewChrome). -->
+    <button type="button" class="hdr-pl" id="hdrPage" data-prelink="page" hidden></button>
+    <button type="button" class="hdr-pl" id="hdrSvg" data-prelink="svg" hidden></button>
     <button class="hdr-theme" id="hdrTheme" hidden aria-label="Thème"></button>
     <button class="hdr-more" id="hdrMore" hidden aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
@@ -9430,7 +9465,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.61.0';
+const APP_VERSION='5.62.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14546,6 +14581,11 @@ function applyViewChrome(){
      ou d'une référence, on peut avoir les mains prises et la pièce qui s'éteint. C'est le MOMENT
      qui justifie le second contrôle, pas la commodité — et sa condition est donc la VUE, jamais
      la largeur (une commande qui apparaît selon la place romprait la constance, v4.31.0). */
+  /* A520 : avant la session, « Page » (et « Schéma » dès 780 px — au téléphone il est dans le menu ⋯) dans l'en-tête. */
+  {const pre=state.view==='read'&&!!state.fiche&&!state.previewFrom&&!(Runtime.started&&Runtime.ficheId===state.fiche.id)&&!sharedShown();
+   const pg=document.getElementById('hdrPage'),sv=document.getElementById('hdrSvg');
+   if(pg){pg.hidden=!pre;if(pre&&!pg.innerHTML)pg.innerHTML=uiIcon('doc',16)+'<span>Page</span>';}
+   if(sv){sv.hidden=!(pre&&hasFlow(state.fiche)&&mqRail.matches);if(!sv.hidden&&!sv.innerHTML)sv.innerHTML=uiIcon('flow',16)+'<span>Schéma</span>';}}
   {const th=document.getElementById('hdrTheme');
    /* A519 : sur une aide, le thème quitte l'en-tête pour le menu ⋯ (`themeMenuRow`) ; il reste sur une référence. */
    if(th){th.hidden=state.view!=='protocolRead';
@@ -20755,11 +20795,11 @@ function renderRead(){
        AVANT : carte au CONTOUR d'alerte (jamais un aplat), « ■ Quand l'utiliser », un ■ rouge par
        critère, SANS chevron (rien à replier avant d'avoir répondu). APRÈS : le dépliant de
        traçabilité, inchangé. Détail : doctrine-js.md J130. */
-    if(!Runtime.started){const o2=preFoldOpen(f,'when');
-      return foldCardHtml('when','◎','Quand l’utiliser',confItems.length,o2,
+    if(!Runtime.started){
+      return foldCardHtml('when','◎','Quand l’utiliser',confItems.length,true,
         `<ul class="flat confirm entry">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`
         +(diffH?`<button type="button" class="atyp-link" id="atypLink">Le tableau ne colle pas ? → ${clean(listOf(f,'differentials')).length} diagnostic${clean(listOf(f,'differentials')).length>1?'s':''} à éliminer ▸</button>`:''),
-        {cls:'entry'});}
+        {cls:'entry',flat:true});}
     return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}Diagnostic confirmé</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span>${chevHtml(open)}</button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
 
   /* ⚠ POSÉ AVANT QUE LE JOURNAL NE SOIT CONSTRUIT : `overviewSection` court plus haut dans
@@ -20791,7 +20831,7 @@ function renderRead(){
     const open=démarrée?(state.sessFold||new Set()).has('forget'):preFoldOpen(f,'forget');
     return foldCardHtml('forget','!','Ne pas oublier',items.length,open,
       `<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${forgetItemHtml(x)}</span></div>`).join('')}</div>`,
-      {crit:true,cls:'forget-strip',attr:démarrée?'data-sessfold':'data-prefold'});})();
+      {crit:true,cls:'forget-strip',attr:démarrée?'data-sessfold':'data-prefold',flat:!démarrée});})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
   const started=Runtime.started;
@@ -21019,12 +21059,14 @@ function renderRead(){
   const _dockY=(()=>{const d=document.querySelector('.rt-dock');return d?d.scrollTop:0;})();
   main.innerHTML=`
     ${gridOpen}
-    <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2>${f.discriminant?`<div class="read-sub">${esc(f.discriminant)}</div>`:''}</div>
-    <div class="read-meta">${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}</div>
+    <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
+    ${''/* A520 : UNE sous-ligne, dans l'ordre de la maquette — « ● SMUR · adulte · ACR · validée 01/2025 », puis les
+       états en pastilles (« △ À relire », « △ À compléter ») ; le discriminant y entre, le bandeau « À relire » part. */}
+    <div class="read-meta">${catTag(f,true)}${f.discriminant?`<span class="read-disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette aide n’a pas encore été validée pour l’usage clinique.</div></div>`:''}
     ${''/* A460 : « À relire » est un signal de MAINTENANCE — il se lit avant la session, pas pendant : en
        session il n'appelle aucun geste et repoussait la 1ʳᵉ étape sous le pli (budget, 320 px à 130 %).
-       « Brouillon », lui, touche à l'usage clinique et reste affiché partout. */}${f.status==='review'&&!started?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette aide est signalée à relire avant validation.</div></div>`:''}
+       « Brouillon », lui, touche à l'usage clinique et reste affiché partout. */}
     ${guideCardHtml(f,started)}
     ${shareOverHtml()}
     ${dockPanel}
@@ -21256,7 +21298,7 @@ function bindReadEvents(f,blk,cur){
      demande correspond déjà au verrou tenu), donc l'appeler à chaque rendu de lecture ne
      redemande rien — c'est ce qui évite la boucle de consommation que la planche redoute. */
   wakeApply();syncWakeBtn();
-  main.querySelectorAll('[data-prelink]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-prelink]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.prelink;
     /* ⚠ TROIS EXCURSIONS, TROIS FEUILLES — ET AUCUNE NE TOUCHE À L'ÉTAT DE LECTURE (v5.6, signalé
        à l'usage : « cliquer sur tableau mène au tableau mais impossible de revenir, et on
@@ -23283,13 +23325,14 @@ function carryLineHtml(f){
 function preStartHtml(f){
   const tl=(f.timers||[]);
   const li=t=>{const nm=esc(tmName(t));
-    const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
     /* ⚠ RIEN NE PART SAUF LE CHRONO (v5.25.0, correction de l'auteur) : « Ce qui démarrera »
        affirmait que les minuteurs partaient avec la session — ils sont À DISPOSITION, à lancer. */
-    const nat=(t.type==='interval'?(t.autoloop?`${per} cyclique`:`${per}`):'compte à partir de 0')+', à lancer';
-    return `<div class="pre-row"><span class="pre-rn">${nm}</span><span class="pre-rv">${esc(nat)}</span></div>`;};
-  return `<div class="rail-head"><span class="rail-title">En session</span><span class="rail-n">${tl.length+1}</span></div>`
-    +`<div class="pre-rows"><div class="pre-row"><span class="pre-rn">Chrono de session</span><span class="pre-rv">démarre avec la session</span></div>`
+    /* A520 : une TUILE par objet (maquette « Prêts pour la session ») — le nom (et « cyclique »), la valeur de départ en
+       mono, l'état en pastille : « au démarrage » pour le chrono, « à lancer » pour les minuteurs (A330). */
+    const val=t.type==='interval'?fmtMs((t.seconds||0)*1000):'00:00';
+    return `<div class="pre-row"><span class="pre-rn">${nm}${t.type==='interval'&&t.autoloop?' · cyclique':''}</span><span class="pre-rt">${esc(val)}</span><span class="pre-rv">à lancer</span></div>`;};
+  return `<div class="rail-head"><span class="rail-title">Prêts pour la session</span><span class="rail-n">${tl.length+1}</span></div>`
+    +`<div class="pre-rows"><div class="pre-row"><span class="pre-rn">Chrono de session</span><span class="pre-rt mute">00:00</span><span class="pre-rv">au démarrage</span></div>`
     +tl.map(li).join('')+'</div>';}
 /* LA DERNIÈRE SESSION DE CETTE AIDE (7c) : une ligne, et le compte rendu à un tap. C'est une
    information de DÉBRIEF posée là où l'on décide d'en ouvrir une nouvelle — jamais une invite.
@@ -23494,6 +23537,8 @@ function foldHeadHtml(k,ic,title,count,open,crit,attr,sub){
    rangées (`.fold-card .sf-body`) ; seuls diffèrent l'ÉTAT (par fiche avant la session — mdFold —, transitoire
    pendant — state.sessFold) et la PORTE (`data-prefold` re-rend, `data-sessfold` bascule sur place). */
 function foldCardHtml(k,ic,title,count,open,inner,o){o=o||{};
+  /* A520 : AVANT la session, le chapeau est une LISTE GROUPÉE sous son intertitre — plus de carte repliable à icône. */
+  if(o.flat)return `<section class="conf-block fold-card flat${o.cls?' '+o.cls:''}" data-sf="${k}"><div class="pre-lh" role="heading" aria-level="2">${esc(title)}</div><div class="sf-body">${inner}</div></section>`;
   return `<section class="conf-block fold-card${o.cls?' '+o.cls:''}${open?'':' closed'}" data-sf="${k}">${foldHeadHtml(k,ic,title,String(count),open,!!o.crit,o.attr,o.sub)}<div class="sf-body"${open?'':' hidden'}>${inner}</div></section>`;}
 function preChapH(t,o){o=o||{};
   return `<div role="heading" aria-level="2" class="pre-ch${o.crit?' crit':''}"><span class="pre-cht">${o.crit?'<span class="conf-mk" aria-hidden="true">■</span>':''}${esc(t)}</span>${o.sub?`<span class="pre-chs">${esc(o.sub)}</span>`:''}</div>`;}
@@ -23534,8 +23579,7 @@ async function refreshPreReady(f){
 function preLinksHtml(f){
   const nd=(f.docs||[]).length;
   return `<div class="pre-links">`
-    +`<button type="button" class="pre-link" data-prelink="page">${uiIcon('doc',15)}Page</button>`
-    +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">${uiIcon('flow',15)}Schéma</button>`:'')
+    /* A520 : « Page » et « Schéma » sont montés dans l'en-tête (#hdrPage, #hdrSvg) ; restent ici les documents. */
     +(nd?`<button type="button" class="pre-link" data-prelink="docs">${uiIcon('doc',15)}Documents · ${nd}</button>`:'')
     +`</div>`+(nd?`<div class="pre-ready" id="preReady" hidden></div>`:'');}
 function staticSection(f){

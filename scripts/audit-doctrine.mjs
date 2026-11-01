@@ -3864,18 +3864,26 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
            le remplace, et Tableau / Schéma vivent SOUS son titre, AU-DESSUS de la première rangée. */
         liens:Y('.pre-links'), parc:(()=>{const h=[...document.querySelectorAll('.pre-ch,.fold-head')]   /* v5.30 : en étroit, « Parcours » est l'en-tête d'une carte dépliable */
           .find(x=>/Parcours/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
+        hdrPage:(()=>{const b=document.getElementById('hdrPage');return !!b&&!b.hidden&&!!b.offsetParent;})(),
+        hdrSvg:(()=>{const b=document.getElementById('hdrSvg');return !!b&&!b.hidden&&!!b.offsetParent;})(),
         rang1:Y('.pre-lad .pl-line,.pre-lad .pf-row'), pec:document.querySelectorAll('main .cp-h').length,   /* v5.30 : en étroit, le parcours à plat (.pf-row) */
-        hLien:(()=>{const b=document.querySelector('.pre-link');return b?Math.round(b.getBoundingClientRect().height):null;})(),
+        /* A520 : « Page » (et « Schéma » dès 780) sont montés dans l'EN-TÊTE — cible = dessin + halo. */
+        hLien:(()=>{const b=document.getElementById('hdrPage');if(!b||b.hidden)return null;const a=getComputedStyle(b,'::after');
+          const h=a.content!=='none'?Math.abs(parseFloat(a.top)||0):0;return Math.round(b.getBoundingClientRect().height+2*h);})(),
         rangee:(()=>{const l=document.querySelector('.rail-lad .pf-row');return l?Math.round(l.getBoundingClientRect().height):null;})()};   // A376 : la colonne rend la liste
       /* SCHÉMA : il n'ouvrait RIEN — `openFlowFull(f)` prend la fiche et l'appel l'omettait. */
-      const bs=[...document.querySelectorAll('.pre-link')].find(x=>/Schéma/.test(x.textContent));
-      if(bs)bs.click();await w(450);
+      /* A520 : « Schéma » vit dans l'en-tête dès 780 px, dans le menu ⋯ au téléphone. */
+      {const hs=document.getElementById('hdrSvg');
+       if(hs&&!hs.hidden)hs.click();
+       else{document.getElementById('hdrMore').click();await w(300);
+         const tl=[...document.querySelectorAll('#moreMenu .mm-tile')].find(x=>/Schéma/.test(x.textContent));if(tl)tl.click();}}
+      await w(450);
       const ff=document.getElementById('flowFull');
       const svg={ouvert:!!(ff&&ff.classList.contains('on')),
         noeuds:ff?ff.querySelectorAll('svg .fn, svg g').length:0};
       document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(350);
       /* TABLEAU : une feuille, donc la page reste dessous — et l'on en SORT. */
-      const bt=document.querySelector('.pre-link[data-prelink="page"]');   // A461 : « Tableau » s'appelle « Page »
+      const bt=document.querySelector('#hdrPage[data-prelink="page"]');   // A461 : « Tableau » s'appelle « Page » ; A520 : dans l'en-tête
       if(bt)bt.click();await w(600);
       const pm=document.getElementById('planModal');
       const tab={ouvert:!!(pm&&pm.classList.contains('on')),
@@ -3890,9 +3898,10 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     t(`${nom} · « Surveillances & pièges » n'est pas sur l'écran d'entrée`,
       !r.av.titres.some(x=>/Surveillance/i.test(x)), JSON.stringify(r.av.titres));
     t(`${nom} · ni la rangée « Consulter »`, r.av.consulter===0, `${r.av.consulter}`);
-    t(`${nom} · Tableau/Schéma vivent SOUS le titre « Parcours » et AU-DESSUS de l'aperçu`,
-      r.av.liens!=null&&r.av.parc!=null&&r.av.rang1!=null&&r.av.parc<r.av.liens&&r.av.liens<r.av.rang1,
-      `Parcours ${r.av.parc}, liens ${r.av.liens}, 1re rangée ${r.av.rang1}`);
+    /* A520 (remplace « Tableau/Schéma sous le titre Parcours ») : avant la session, « Page » monte dans l'en-tête, et
+       « Schéma » aussi dès 780 px (au téléphone il est dans le menu ⋯). */
+    t(`${nom} · « Page »${W>=780?' et « Schéma »':''} vivent dans l'en-tête de l'écran d'entrée`,
+      r.av.hdrPage===true&&(W<780||r.av.hdrSvg===true), JSON.stringify({page:r.av.hdrPage,schema:r.av.hdrSvg}));
     t(`${nom} · … et « Prise en charge » n'est plus un titre de l'écran d'entrée`, r.av.pec===0, `${r.av.pec} .cp-h`);
     t(`${nom} · … et ce sont des boutons de 44 px`, r.av.hLien>=44, `${r.av.hLien} px`);
     /* Le parcours se resserre AVANT le soin — et pas d'un cheveu : la rangée passe sous les 44 px

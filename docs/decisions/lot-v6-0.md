@@ -464,3 +464,14 @@ feuille centrée sur fond gris, zoom en segmenté, Imprimer et Exporter en PDF d
 
 **Ordre des lots** : 7 démarrage, 8 Sessions et Moi, 9 éditeur (habillage), 10 éditeur (navigation), 11
 Administration et la Page. Chaque lot se compare à sa planche avant commit (maquette · avant · après).
+
+**Lot 7 implémenté (v5.62.0) — le démarrage.** `foldCardHtml(…,{flat:true})` rend « Quand l'utiliser » et « Ne pas
+oublier » en listes groupées sous un intertitre (`.fold-card.flat`, `.pre-lh`), sans porte de repli avant la session
+(en session, la carte repliable est inchangée) ; la méta est UNE sous-ligne « ● SMUR · adulte · ACR · validation »
+suivie des états en pastilles achromatiques (`.read-disc` ; `.read-sub` PURGÉE ; bandeau « À relire » retiré) ;
+« Apprendre avec cette aide » devient une rangée de travail (plus de hachures) ; « Page » et « Schéma » montent dans
+l'en-tête (`#hdrPage`, `#hdrSvg` dès 780 ; au téléphone, Schéma reste dans le menu ⋯) et `preLinksHtml` ne garde
+que les documents ; au téléphone, la catégorie quitte le sur-titre avant la session (elle est dans la sous-ligne) ;
+les objets prêts deviennent des tuiles « Prêts pour la session » (nom, valeur de départ en mono, « au démarrage » /
+« à lancer »). Témoins réécrits sciemment : `audit-doctrine` (écran d'entrée : Page et Schéma dans l'en-tête, 44 px
+de cible avec halo ; Schéma par le menu au téléphone), `audit-consulter` (les deux listes sont toujours ouvertes).

@@ -651,6 +651,16 @@
     padding:0;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);
     font-family:inherit;cursor:pointer;flex:none}
   .hdr-theme[hidden]{display:none}
+  .hdr-pl{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--work);box-shadow:var(--shadow-work);font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer;flex:none}
+  .hdr-pl[hidden]{display:none}
+  /* A520 : au téléphone, avant la session, « Page » prend la place de la catégorie dans le sur-titre — elle est dite
+     juste dessous, dans la sous-ligne ; le mot du mode (« Avant la session ») reste. */
+  @media (max-width:779.98px){#brandSur.pre .bs-cat{display:none}}
+  .hdr-pl:hover{background:var(--amb-2)}
+  .hdr-pl{position:relative}
+  .hdr-pl::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible : l'écran d'entrée se mesure comme le mode crise */
+  .hdr-pl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-theme:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -2683,7 +2693,6 @@
      --ink-2) ; la barre garde le sien pour le défilement. En session la méta s'efface (règle ci-dessous). */
   .read-head{padding:4px 8px 0}
   body:is(.view-read,.view-pread) .read-head h2{font-size:var(--t-val);font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
-  .read-sub{margin:2px 0 0;font-size:var(--t-step);font-weight:600;color:var(--ink-2);line-height:1.3}
   @media screen{body.view-read:has(#cbTimers:not([hidden])) .read-head{display:none}}
   /* Une AIDE : la méta se lit d'un trait (bibliothèque · catégorie · validation · état) ; le protocole garde ses chips. */
   body.view-read .read-meta{display:block;padding:0 8px;font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
@@ -2692,6 +2701,12 @@
   body.view-read .read-meta .tag.cat .cat-dot{margin-right:4px}
   body.view-read .read-meta>*+*::before{content:"·";margin:0 6px;color:var(--line-strong)}
   body.view-read .read-meta svg{display:none}
+  /* A520 : la sous-ligne de la maquette — 15, encre secondaire, le discriminant à sa place ; les ÉTATS en pastille
+     achromatique (A347 : seul « À revérifier » est ambre), sans point devant. */
+  body.view-read .read-meta{padding:0 4px;font-size:var(--t-item);line-height:1.6}
+  body.view-read .read-meta :is(.tag,.status-tag,.card-date,.read-disc){font-size:inherit;font-weight:500}
+  body.view-read .read-meta :is(.status-tag,.tag.todo){display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:700;line-height:1.5}
+  body.view-read .read-meta>:is(.status-tag,.tag.todo)::before{content:none}
   .read-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 18px;font-size:var(--t-meta);color:var(--ink-2)}
   /* v5.30 (maquette v5) : chips à 12 px/800 — bibliothèque en bleu doux, statut et catégorie sur
      l'ambiance (pastille carrée), code et date en mono. */
@@ -2754,6 +2769,10 @@
   /* Cartes de session (v5.30) : même carte de travail que l'écran d'entrée ; l'intertitre interne se tait, la tête le dit. */
   .conf-block.fold-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);margin:10px 0 0}
   .fold-card .sf-body{padding:0 16px 6px}
+  /* A520 — le chapeau AVANT la session : intertitre en phrase (13,5/600) au-dessus d'un groupe arrondi de rangées. */
+  .conf-block.fold-card.flat{background:none;border:0;box-shadow:none;margin:14px 0 0}
+  .fold-card.flat>.sf-body{padding:0 16px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
+  .pre-lh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
   .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
@@ -5046,6 +5065,12 @@
   .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
   html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  /* A520 : « Apprendre avec cette aide » devient une RANGÉE de groupe — matière de travail, icône en tuile pleine,
+     titre à l'encre, bouton tonal ; plus de hachures (une invitation, pas un placard). */
+  .gd-card{background:var(--work);background-image:none;border:1px solid var(--work-line);border-radius:var(--r-4);padding:10px 8px 10px 12px}
+  .gd-ci{background:var(--act);color:var(--on-primary)}
+  .gd-cx b{color:var(--ink);font-weight:700}
+  .gd-card .btn{background:var(--amb-2);border-color:transparent;color:var(--ink)}
   .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
   .gd-tip[hidden]{display:none}
   /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
@@ -5548,6 +5573,13 @@
   .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .pre-rn{flex:1;min-width:0}
   .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
+  /* A520 : les objets prêts en TUILES (maquette) — nom en tête, valeur de départ en mono, pastille d'état à droite. */
+  .pre-rows{gap:8px}
+  .pre-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:10px 12px;border-radius:var(--r-4);background:var(--amb-2)}
+  .pre-row>.pre-rn{grid-column:1;color:var(--ink-2)}
+  .pre-rt{grid-column:1;font-family:var(--f-mono);font-size:var(--t-val);font-weight:600;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pre-rt.mute{color:var(--ink-2)}
+  .pre-row>.pre-rv{grid-column:2;grid-row:1/3;max-width:none;padding:4px 10px;border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700}
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
@@ -8475,10 +8507,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin vfy" data-ovb="bmvxglz1r1bee80nc" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin vfy" data-ovb="bmvxhuuei2ggg6grp" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin vfy" data-ovb="bmvxglz1r1bee80nc" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-journal"><section class="ov-block cur numin vfy" data-ovb="bmvxhuuei2ggg6grp" data-ovi="0" data-ovn="1" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="0" aria-expanded="true"><span class="ov-n">1</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn">Bloc 1</span></span>Reconnaissance &amp; alerte</span><span class="ov-c">2/4</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx="" title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div><div class="v-tally"><span class="ok">✓✓ 1 constaté</span><span class="gap">△ 1 écart</span><span class="rest">2 restantes</span></div><div class="vstp ok2"><span class="vst">✓✓</span><span class="txt">Vérifier conscience et respiration</span><span class="v-tag ok">✓✓ constaté</span></div><div class="vstp vgap"><span class="vst">△</span><span class="txt">Alerter, appeler du renfort + défibrillateur</span><span class="v-tag gap">△ écart</span></div><div class="vstp vcur"><span class="vst">▸</span><span class="txt">Relais du masseur <span class="stp-r">toutes les 2 min — annoncer le changement</span></span></div><div class="vstp"><span class="vst"></span><span class="txt">RCP immédiate <span class="stp-r">30:2 — sans délai</span></span></div><div class="v-act"><button type="button" class="v-ok" data-ovvok="">Constaté ✓</button><button type="button" class="v-gap" data-ovvgap="">△ Écart</button></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle de la passe « Vérifier » : elle redéroule TOUTES les étapes ; « Constaté ✓ » coche, « △ Écart » avance SANS cocher et ne décoche jamais (la coche est la trace). Le résultat s’affiche dès qu’il est prononcé. La réponse attendue (« challenge :: réponse ») s’y montre au passage.</p></div>
 </body></html>

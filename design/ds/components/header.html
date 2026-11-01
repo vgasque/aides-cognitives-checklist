@@ -651,6 +651,16 @@
     padding:0;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);
     font-family:inherit;cursor:pointer;flex:none}
   .hdr-theme[hidden]{display:none}
+  .hdr-pl{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid var(--work-line);border-radius:999px;
+    background:var(--work);box-shadow:var(--shadow-work);font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer;flex:none}
+  .hdr-pl[hidden]{display:none}
+  /* A520 : au téléphone, avant la session, « Page » prend la place de la catégorie dans le sur-titre — elle est dite
+     juste dessous, dans la sous-ligne ; le mot du mode (« Avant la session ») reste. */
+  @media (max-width:779.98px){#brandSur.pre .bs-cat{display:none}}
+  .hdr-pl:hover{background:var(--amb-2)}
+  .hdr-pl{position:relative}
+  .hdr-pl::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible : l'écran d'entrée se mesure comme le mode crise */
+  .hdr-pl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-theme:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -2683,7 +2693,6 @@
      --ink-2) ; la barre garde le sien pour le défilement. En session la méta s'efface (règle ci-dessous). */
   .read-head{padding:4px 8px 0}
   body:is(.view-read,.view-pread) .read-head h2{font-size:var(--t-val);font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
-  .read-sub{margin:2px 0 0;font-size:var(--t-step);font-weight:600;color:var(--ink-2);line-height:1.3}
   @media screen{body.view-read:has(#cbTimers:not([hidden])) .read-head{display:none}}
   /* Une AIDE : la méta se lit d'un trait (bibliothèque · catégorie · validation · état) ; le protocole garde ses chips. */
   body.view-read .read-meta{display:block;padding:0 8px;font-size:var(--t-meta);line-height:1.5;color:var(--ink-2)}
@@ -2692,6 +2701,12 @@
   body.view-read .read-meta .tag.cat .cat-dot{margin-right:4px}
   body.view-read .read-meta>*+*::before{content:"·";margin:0 6px;color:var(--line-strong)}
   body.view-read .read-meta svg{display:none}
+  /* A520 : la sous-ligne de la maquette — 15, encre secondaire, le discriminant à sa place ; les ÉTATS en pastille
+     achromatique (A347 : seul « À revérifier » est ambre), sans point devant. */
+  body.view-read .read-meta{padding:0 4px;font-size:var(--t-item);line-height:1.6}
+  body.view-read .read-meta :is(.tag,.status-tag,.card-date,.read-disc){font-size:inherit;font-weight:500}
+  body.view-read .read-meta :is(.status-tag,.tag.todo){display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:700;line-height:1.5}
+  body.view-read .read-meta>:is(.status-tag,.tag.todo)::before{content:none}
   .read-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 18px;font-size:var(--t-meta);color:var(--ink-2)}
   /* v5.30 (maquette v5) : chips à 12 px/800 — bibliothèque en bleu doux, statut et catégorie sur
      l'ambiance (pastille carrée), code et date en mono. */
@@ -2754,6 +2769,10 @@
   /* Cartes de session (v5.30) : même carte de travail que l'écran d'entrée ; l'intertitre interne se tait, la tête le dit. */
   .conf-block.fold-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);margin:10px 0 0}
   .fold-card .sf-body{padding:0 16px 6px}
+  /* A520 — le chapeau AVANT la session : intertitre en phrase (13,5/600) au-dessus d'un groupe arrondi de rangées. */
+  .conf-block.fold-card.flat{background:none;border:0;box-shadow:none;margin:14px 0 0}
+  .fold-card.flat>.sf-body{padding:0 16px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
+  .pre-lh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
   .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
@@ -5046,6 +5065,12 @@
   .gd-card .notice-x{position:relative;top:auto;right:auto;flex:none}   /* relative : le halo ::after reste autour de la croix */
   html.zw430 .gd-card{flex-wrap:wrap}   /* étroit : « Commencer » passe sous le texte, la croix reste en haut à droite */
   html.zw430 .gd-card .btn{order:3;flex:1 0 100%}
+  /* A520 : « Apprendre avec cette aide » devient une RANGÉE de groupe — matière de travail, icône en tuile pleine,
+     titre à l'encre, bouton tonal ; plus de hachures (une invitation, pas un placard). */
+  .gd-card{background:var(--work);background-image:none;border:1px solid var(--work-line);border-radius:var(--r-4);padding:10px 8px 10px 12px}
+  .gd-ci{background:var(--act);color:var(--on-primary)}
+  .gd-cx b{color:var(--ink);font-weight:700}
+  .gd-card .btn{background:var(--amb-2);border-color:transparent;color:var(--ink)}
   .gd-tip{position:fixed;z-index:60;box-sizing:border-box;padding:14px 16px;border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);box-shadow:var(--shadow-float)}
   .gd-tip[hidden]{display:none}
   /* v5.48.2 : une CARTE ANCRÉE au-dessus du quai (ni flèche ni suivi du défilement) — la cible se montre par
@@ -5548,6 +5573,13 @@
   .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .pre-rn{flex:1;min-width:0}
   .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
+  /* A520 : les objets prêts en TUILES (maquette) — nom en tête, valeur de départ en mono, pastille d'état à droite. */
+  .pre-rows{gap:8px}
+  .pre-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:10px 12px;border-radius:var(--r-4);background:var(--amb-2)}
+  .pre-row>.pre-rn{grid-column:1;color:var(--ink-2)}
+  .pre-rt{grid-column:1;font-family:var(--f-mono);font-size:var(--t-val);font-weight:600;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pre-rt.mute{color:var(--ink-2)}
+  .pre-row>.pre-rv{grid-column:2;grid-row:1/3;max-width:none;padding:4px 10px;border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700}
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
@@ -8553,6 +8585,9 @@
          Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
          par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
          là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <!-- A520 : « Page » et « Schéma » montent dans l'en-tête de l'écran de démarrage (peints par applyViewChrome). -->
+    <button type="button" class="hdr-pl" id="hdrPage" data-prelink="page" hidden=""></button>
+    <button type="button" class="hdr-pl" id="hdrSvg" data-prelink="svg" hidden=""></button>
     <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
     <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
@@ -8565,7 +8600,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxglxlc8id4hju1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxglxlcow1kehsx">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxhusy61sgk761j">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxhusy61pm8e12l">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8666,6 +8701,9 @@
          Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
          par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
          là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <!-- A520 : « Page » et « Schéma » montent dans l'en-tête de l'écran de démarrage (peints par applyViewChrome). -->
+    <button type="button" class="hdr-pl" id="hdrPage" data-prelink="page" hidden=""></button>
+    <button type="button" class="hdr-pl" id="hdrSvg" data-prelink="svg" hidden=""></button>
     <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
     <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
@@ -8678,7 +8716,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxglxlc8id4hju1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxglxlcow1kehsx">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmvxhusy61sgk761j">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmvxhusy61pm8e12l">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

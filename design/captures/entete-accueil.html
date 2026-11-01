@@ -76,6 +76,9 @@
          Deux contrôles pour une même valeur est une exception ASSUMÉE à §5.5 : elle se justifie
          par le MOMENT, pas par la commodité, et c'est pourquoi il n'existe pas sur l'accueil —
          là, la fenêtre Compte est à un tap et rien ne presse. -->
+    <!-- A520 : « Page » et « Schéma » montent dans l'en-tête de l'écran de démarrage (peints par applyViewChrome). -->
+    <button type="button" class="hdr-pl" id="hdrPage" data-prelink="page" hidden=""></button>
+    <button type="button" class="hdr-pl" id="hdrSvg" data-prelink="svg" hidden=""></button>
     <button class="hdr-theme" id="hdrTheme" hidden="" aria-label="Thème : auto (suit votre appareil) — changer" title="Thème : auto (suit votre appareil) — changer"><svg class="tic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none"></path></svg></button>
     <button class="hdr-more" id="hdrMore" hidden="" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"></circle><circle cx="10" cy="10" r="2"></circle><circle cx="16" cy="10" r="2"></circle></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même

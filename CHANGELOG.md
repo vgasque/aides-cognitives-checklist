@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.62.0] — 2026-11-01
+Lot 7 de la refonte « Natif » : l'écran de démarrage d'une aide (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **« Quand l'utiliser » et « Ne pas oublier » sont des listes groupées** sous leur intertitre, toujours ouvertes
+  avant la session (en session, rien ne change).
+- **Une seule ligne sous le titre** : « SMUR · adulte · ACR · validation », puis « △ À relire » et « △ À compléter »
+  en pastilles ; le bandeau « À relire » disparaît.
+- **« Page » (et « Schéma » sur tablette et ordinateur) sont en haut de l'écran.**
+- « Apprendre avec cette aide » devient une rangée sobre ; sur ordinateur, les minuteurs prêts sont des tuiles
+  (« au démarrage », « à lancer »).
+
 ## [5.61.0] — 2026-11-01
 Lot 6 de la refonte « Natif » : la session, selon vos quatre arbitrages sur planche (A519, doctrine
 `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
@@ -247,17 +258,3 @@ l'app (A480-A482, doctrine `docs/decisions/lot-v5-51.md`).
   neuf fiches sont désormais relevées sur l'app elle-même (démarrage, étapes, Vérifier, journal, parcours, Page,
   accueil, en-tête et quai, menu ⋯) au lieu de montrer des composants retirés, une fiche « Rangement » s'ajoute, et
   les lignes directrices sont à jour de la v5.51.
-
-## [5.51.0] — 2026-10-07
-Qui peut créer une bibliothèque, et comment la demander (A478-A479, doctrine `docs/decisions/lot-v5-51.md`).
-**⚠ Rejouer `supabase/schema.sql`** (§ 9 et 9bis) pour en profiter ; sans cela, l'app garde l'ancienne règle
-(administrateurs seulement) et Administration le signale.
-- **Administration › Création de bibliothèques** : trois réglages — *Administrateurs seulement*, *Personnes
-  autorisées*, *Tout compte approuvé*. Par défaut, « Personnes autorisées » avec une liste vide : rien ne change tant
-  que vous n'autorisez personne. « ＋ Autoriser une personne… » choisit parmi les comptes approuvés ; « Retirer » rend
-  la règle commune. Une personne autorisée devient administratrice de ce qu'elle crée, et ne peut créer qu'à son nom.
-- **Les autres demandent** : « ＋ Demander une bibliothèque… » ouvre la même fenêtre que la création (nom, avec qui,
-  rôle des invités ; sans invité, elle rappelle qu'une collection suffit pour ranger). La demande apparaît en tête
-  d'Administration : « Créer » ouvre la bibliothèque au nom du demandeur et y invite les personnes indiquées ;
-  « Refuser » la classe. Dans Moi, chacun voit ses demandes en attente (Annuler) ou refusées (Effacer).
-- **Données** : les adresses des personnes à inviter ne sont gardées que jusqu'à la décision (registre RGPD § 3).
