@@ -391,3 +391,33 @@ de signes d'A511 (`MAXC`) part avec le nom de l'étiquette : 11 signes au plus.
 **Pas encore fait (dit, pas tu)** : le menu ⋯ ancré en large avec son voile (A510 §5) ; le groupe « En cours »
 (A510 §6) ; la colonne gauche du téléphone tourné (A513 §2) ; le dessin Natif des surfaces (démarrage, éditeur,
 Sessions, Moi, Administration, Page — planche « écran par écran »).
+
+## A519 — La session Natif : quatre arbitrages de l'auteur sur planche (lot 6, à implémenter)
+
+Planche « La session, l'app contre la cible » (01/11/2026) : captures de la v5.60.0 contre la cible « Étapes en
+session Natif », même aide (ACR d'exemple), mêmes états. L'auteur a retenu les quatre recommandations.
+
+1. **Étapes à plat, mot de registre sans fond (amende A345).** Plus de tuile `--amb-2` sous chaque étape : les
+   étapes vivent à plat dans la carte du bloc, seule l'étape FAITE garde son aplat `--ok-soft`. CRITIQUE et
+   VIGILANCE s'écrivent seuls, en couleur (`--crit`, `--warn`), sans pastille — le dessin des rappels du chapeau
+   (A401). Le danger reste dit par le mot, la bordure de la case ronde et le préfixe lecteur d'écran (A345 garde
+   ses trois canaux ; seul l'aplat de l'étiquette part).
+   *Formes écartées* : retirer les tuiles en gardant la pastille ; garder l'actuel.
+2. **Tête du bloc : la légende part, le numéro reste, discret (amende A345).** « sous l'étape, en gris : la réponse
+   attendue » disparaît (la réponse se lit d'elle-même, en mono gris). Le numéro du bloc, qui le relie au parcours
+   (A388), passe du carré noir à un numéro gris à côté de la pastille « En cours ».
+   *Formes écartées* : retirer les deux (la cible à la lettre) ; garder les deux.
+3. **En-tête de session : « Session » (amende A14).** Le sur-titre dit « SMUR · Session » (« Exercice » en exercice)
+   au lieu de « ■ MODE CRISE » ; le discriminant (« adulte ») suit le nom ; le bouton ◐ de thème quitte l'en-tête
+   pour le menu ⋯.
+   *Formes écartées* : changer le mot en gardant ◐ dans l'en-tête ; garder l'actuel.
+4. **Repères et jalon compacts (amende A397, A450).** Un repère du bloc tient sur une ligne : « △ Adrénaline —
+   IV/IO » en ambre, la dose en mono dessous, l'état (« À préparer », « Fait ») à droite, sans icône ni chevron par
+   repère. Le jalon d'une carte de décision passe AU PIED : « SI Chocs délivrés ≥ 3 ●●○ » et le raccourci
+   ⚡ FV réfractaire.
+   *Formes écartées* : repères seuls (jalon en tête) ; garder l'actuel.
+
+**Déjà tranché et entrant dans le même lot** : la carte de décision perd son fond ambré (A513 §1, décidé mais jamais
+codé — constaté sur la planche) ; cellules de la capsule « nom au-dessus, valeur dessous » pour toutes ; étiquette
+d'une étape au seuil en aplat neutre sans filet. **Gardés** : « Fin » au mot gris (C1), « Horodater » en creux
+(A375), « Parcours · x/y étapes » (A510), le pli « Fait · … », les sections du chapeau sous le bloc.
