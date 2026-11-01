@@ -785,3 +785,28 @@ Mesuré ensuite CONNECTÉ (signalé par l'auteur : « Moi » change) : le disque
 le point vert de session en cours, sur la pastille pleine de « Sessions », tombait à 1,2-1,7:1 → anneau de 2 px
 dans la teinte de la barre, comme la pastille de synchronisation.
 Témoin : `audit-doctrine` « Accueil · A539 » (vérifié capable d'échouer).
+
+## A540 — La barre collante de l'accueil passe en verre dans l'app installée ; la piste « default » mesurée sur iOS 27
+
+*Signalé par l'auteur sur iPhone (app installée, thème sombre, 01/11/2026) : « Sélectionner » et « Créer » chevauchent
+le grand titre « Aides » puis les pastilles, sur une barre restée transparente.*
+
+**Cause.** La barre collante prend son verre (`.stuck`) quand le grand titre passe sous elle ; l'observateur retranche
+la hauteur de la barre ET l'inset haut (`--sat`). Ce dernier se lisait par `getPropertyValue('--sat')`, qui rend le
+TEXTE du token (`calc(env(safe-area-inset-top) + var(--ios27-top))`) : `parseFloat` y lit 0. Dans un navigateur
+l'inset vaut 0 et rien ne se voyait ; dans l'app installée (inset ≈ 59 + 16 px) le verre ne venait qu'une fois le
+titre passé sous l'HEURE — entre-temps, boutons transparents sur le titre puis sur les pastilles. Même lecture
+fausse de `--sab` en deux endroits (hauteur du menu ⋯, ancrage du dock) : `--sab` est un `env()` nu, même défaut.
+**Correctif.** `insetPx(tok)` résout un token d'inset en px (un `padding-top:var(--tok)` mesuré), aux trois lectures.
+Et le verre vient dès que le titre COMMENCE à passer sous la barre (`intersectionRatio < 0,99`), plus seulement
+quand il en est sorti. Vérifié dans l'app installée au simulateur iOS 27.0 (iPhone 17) : à mi-défilement la barre
+porte le verre et le petit titre « Aides », les pastilles passent dessous.
+
+**La piste du fil Reddit (« le flou ne touche que `black-translucent` ; avec `default`, un vrai élément fixé de 1 px
+en haut donne sa couleur à la barre d'état »), MESURÉE** au même simulateur, sur une copie installée à part
+(`default` + `<div>` fixé de 1 px à `--amb`) : la bande de la barre d'état prend bien la couleur de la page à
+l'accueil (244,245,247, comme la page ; blanche sur l'écran de bienvenue) ; mais le contenu reste FLOUTÉ sous la
+bande, au repos (première ligne de la notice d'accueil), et l'app n'est pas écrite pour un inset haut nul
+(A370 §4). Le même fil note que `prefers-color-scheme` est figé par processus en app installée : la bande garderait la
+couleur du thème de l'ouverture. **Non retenu** : `black-translucent` reste, avec le sol et la descente d'A370-A373.
+Témoin : `audit-doctrine` « Accueil · A540 » (inset de 75 px simulé SOUS FORME DE CALC ; vérifié capable d'échouer).
