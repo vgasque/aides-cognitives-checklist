@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A520** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A521** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -144,6 +144,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A518 | `lot-v6-0.md` | Lot 5 de la refonte (v5.60.0) : capsule, quai et volets en verre clair en thème clair (tokens système redéclarés en contexte, repli opaque) ; sonde `audit-verre` qui lit `color()` ; moniteur Natif (« ● Session », « Revenir » en pilule, barre de progression neutre, carte à rangées nommées, étiquette = le temps) |
 | A519 | `lot-v6-0.md` | Session Natif, arbitrages de l'auteur (lot 6, v5.61.0) : étapes à plat et registre sans fond (amende A345), légende du bloc retirée et numéro discret, « Session » au lieu de « MODE CRISE » et thème dans ⋯ (amende A14), repères en une ligne et jalon au pied (amende A397, A450) ; décision sans fond ambré (A513 §1) |
 | A520 | `lot-v6-0.md` | Surfaces Natif, arbitrages de l'auteur (lots 7-11 ; démarrage v5.62.0, Sessions et Moi v5.63.0, éditeur habillage v5.64.0) : démarrage en listes groupées (amende A330), éditeur en rangées de réglages en deux lots (habillage puis navigation), Sessions en rangées par jour, Administration en liste et fiche au bureau (amende A494) ; Moi et la Page proposés sans question |
+| A521 | `lot-v6-0.md` | L'éditeur se parcourt (lot 10, v5.65.0) : Identité en rangées « Titre · valeur › », structure en liste dans le fil (amende A390, `edTocHtml` purgé), un bloc s'ouvre sur sa page (`state.edFocus`, classes `ed-ov`/`ed-focus`, niveau du retour système) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

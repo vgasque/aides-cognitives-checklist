@@ -493,3 +493,32 @@ phrase au-dessus de groupes de rangées (`.le-grp`), l'ajout en dernière rangé
 des 4 rappels en note SOUS le groupe (`.le-foot`) ; libellés de section en phrase ; cartes sans ombre. Gestes
 d'édition inchangés. **Laissé au lot 10** : Identité en rangées « Titre · valeur › » (un champ s'ouvre sur sa page),
 les blocs, la colonne de structure et le schéma.
+
+## A521 — L'éditeur se parcourt : Identité en rangées, structure en liste, un bloc sur sa page (lot 10, v5.65.0)
+
+*Amende A390 (la structure n'est plus un dépliant collant sous 1200 px) et K4 (le dépliant « Identité »).*
+
+1. **Identité en rangées.** Replié, le sommaire de `details.ed-ident` est un groupe de trois rangées sous
+   l'intertitre « Identité » : *Titre · valeur*, *Code court · valeur* (« — » s'il manque), *Catégorie · ● nom ›*.
+   Ouvert, il n'est plus qu'un en-tête « Identité · Replier » au-dessus des champs, inchangés.
+   **Écart à la maquette, assumé** : la maquette ouvre chaque champ « sur sa page » ; ici, un tap sur une rangée
+   déplie les champs sur place. Une page par champ coûtait une navigation de plus par champ pour l'auteur qui
+   remplit une aide neuve (titre, discriminant, catégorie, bibliothèque, code, validation, état d'affilée) — et
+   ouvrait sept niveaux de retour. À rouvrir si l'auteur le demande.
+2. **Structure en liste dans le fil (< 1200 px).** Après « Ne pas oublier » : intertitre « Structure · n blocs »,
+   une rangée par bloc (numéro en carré — ambre pour une décision —, titre, sous-ligne « n étapes » /
+   « Décision · n branches » / « Revue · n éléments », chevron), puis les complications « À tout moment ». Le schéma
+   du téléphone (`.flow-prev`) suit la liste. `edTocHtml` et le CSS `.ed-toc*` sont PURGÉS (règle 14).
+   ≥ 1200 px, la colonne `.ed-struct` prend le même dessin (intitulé en phrase, rangées sur deux lignes sans
+   filet, bloc ouvert surligné, numéro plein).
+3. **Un bloc s'ouvre sur sa page.** Une rangée de structure ouvre le bloc seul (`state.edFocus`,
+   `edFocusSet`/`edApplyFocus`). Le DOM de l'éditeur reste ENTIER — deux classes sur `<body>` masquent le reste :
+   `ed-ov` (vue d'ensemble : « Prise en charge » se retire, les blocs sont dans la liste) et `ed-focus` (seul le
+   bloc `.ed-cur` reste, avec la porte « Ajouter »). Ainsi glisser, porte, relecture, réglages ne changent pas.
+   - C'est un niveau du retour système (`_H_LAYERS`) et du « ‹ Retour » de l'en-tête : on revient à l'aide.
+   - Ce qu'on amène à l'écran reste visible (`edReveal`) : une remarque de relecture, un rappel « → » ou un
+     objet créé par la porte ouvre la page de son bloc ; hors bloc, on revient à l'ensemble.
+   - En mode « prendre / poser », TOUT est montré (on pose ailleurs que là où l'on a pris).
+   - Les revues (`kind:'review'`) ne vivent pas dans « Prise en charge » : leur rangée amène à la section Revues.
+   *Formes écartées* : re-rendre l'éditeur en n'émettant que le bloc (chaque geste aurait à connaître le mode) ;
+   une fenêtre par bloc (règle : pas de modale pour écrire ce qui est le cœur de l'aide).

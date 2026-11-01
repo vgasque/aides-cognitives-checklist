@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.65.0] — 2026-11-01
+Lot 10 de la refonte « Natif » : l'éditeur se parcourt (A521, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **L'Identité se lit en rangées** : « Titre », « Code court », « Catégorie » avec leur valeur à droite. Un tap
+  déplie les champs sur place, « Replier » les range.
+- **La structure est une liste** sous « Ne pas oublier » au téléphone et sur tablette : une rangée par bloc (numéro,
+  titre, nombre d'étapes ou de branches), puis les complications. Le schéma suit la liste.
+- **Un bloc s'ouvre sur sa page** : seul le bloc est affiché, avec la porte « Ajouter ». « ‹ Retour » ou le geste
+  retour du téléphone ramène à l'aide. Une remarque de relecture ou un rappel « → » ouvre directement la page du
+  bloc concerné ; « prendre / poser » montre toute l'aide.
+- **Sur grand écran**, la colonne Structure prend le même dessin (deux lignes par bloc, bloc ouvert surligné).
+
 ## [5.64.0] — 2026-11-01
 Lot 9 de la refonte « Natif » : l'habillage de l'éditeur (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -233,16 +245,3 @@ Retours d'usage après les collections, et une colonne gauche qui dit avec qui (
 - **Catégories homonymes** : l'intertitre d'une section prend la couleur de sa propre bibliothèque (bicolore sur
   « Toutes » quand les couleurs diffèrent).
 - Moi : le survol d'une première rangée ne touche plus le bord de la carte.
-
-## [5.52.1] — 2026-10-07
-L'administrateur gère aussi les bibliothèques dont il n'est pas membre (A484, doctrine `docs/decisions/lot-v5-52.md`).
-Rien à rejouer côté serveur au-delà de la 5.52.0.
-- **Administration › Bibliothèques de l'instance** : toucher une bibliothèque ouvre sa fenêtre de gestion, même
-  si vous n'en êtes pas membre — inviter quelqu'un, changer un rôle, retirer un membre, la renommer ou la supprimer.
-  Un bandeau en tête le dit : vous la gérez comme administrateur de l'instance, et son contenu ne s'affiche pas
-  chez vous tant que vous ne vous y ajoutez pas.
-- La suppression annonce le vrai nombre d'aides et de protocoles qu'elle emporte (elle disait 0 pour une
-  bibliothèque dont vous n'étiez pas membre).
-- Fermer la fenêtre met à jour les listes d'Administration (membres, administrateurs, bibliothèques de chaque compte).
-- Dans la liste des bibliothèques de l'instance, les vôtres disent « vous : Admin » (ou votre rôle).
-- « Convertir en collection » n'est plus proposé sur une bibliothèque dont vous n'êtes pas membre.

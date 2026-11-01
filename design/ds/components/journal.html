@@ -2961,9 +2961,6 @@
      On répare EN (1,1,2), jamais par l'ordre ; 14 px — un objet interactif ne finit pas au
      contact d'une bordure de coupure. */
   .ref-tocwrap>.ref-toc[open]{padding-bottom:14px}
-  .ed-toc-l{padding-top:4px}   /* A390 : la Structure de l'éditeur dans le dépliant du sommaire — rangées `.eds-row` de la colonne */
-  .ed-toc .rail-head{display:flex;align-items:baseline;gap:8px;margin:12px 0 4px}
-  .ed-toc .rail-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2)}
   details.ref-toc{background:none;border:0;border-radius:0}
   /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
      maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
@@ -3411,21 +3408,62 @@
      une suggestion), rangées ≥ 44 px puisqu'elles ancrent vers la ligne concernée. */
   /* K4 — dépliant « Identité » : l'en-tête PORTE déjà le titre et le code, donc replié il
      n'escamote rien de ce qu'on a besoin de vérifier d'un coup d'œil. */
-  .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
-  .ed-ident>summary{display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 12px;cursor:pointer;list-style:none;font-family:inherit}
+  /* A521 (lot 10) : l'Identité est un GROUPE DE RANGÉES « Titre · valeur » sous son intertitre (maquette Natif) ;
+     ouverte, le sommaire n'est plus qu'un en-tête « Identité · Replier » au-dessus des champs. */
+  .ed-sech{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:clip}
+  .ed-ident>summary{display:block;cursor:pointer;list-style:none;font-family:inherit}
   .ed-ident>summary::-webkit-details-marker{display:none}
-  .ed-ident>summary::after{content:"▾";color:var(--act);font-size:11px;flex:none;margin-left:-4px}
-  .ed-ident[open]>summary::after{content:"▴"}
-  .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-3)}
-  .ed-ident .id-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17.5px;font-weight:640;color:var(--ink)}
-  .ed-ident .id-t.muted{color:var(--ink-soft);font-weight:600}
-  .ed-ident .id-c{flex:none;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);background:var(--amb-2);border-radius:8px;padding:2px 6px}
-  .ed-ident .id-a{flex:none;font-size:13.5px;font-weight:700;color:var(--act)}
+  .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-4)}
+  .ed-ident .id-row,.ed-ident .id-a{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
+  .ed-ident .id-row+.id-row{border-top:1px solid var(--line)}
+  .ed-ident .id-k{flex:none;font-size:var(--t-body);color:var(--ink)}
+  .ed-ident :is(.id-t,.id-c,.id-v){flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:400;color:var(--ink-2)}
+  .ed-ident .id-v{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+  .ed-ident .id-v .dir-av{flex:none}
+  .ed-ident :is(.id-t,.id-c).muted{color:var(--ink-soft)}
+  .ed-ident .id-chev{flex:none;display:inline-flex;color:var(--ink-soft);margin-right:-4px}
+  .ed-ident .id-a{display:none}
+  .ed-ident .id-x{margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--act)}
+  .ed-ident[open] .id-row{display:none}
+  .ed-ident[open] .id-a{display:flex;margin:0 -14px 12px;border-bottom:1px solid var(--line)}
+  .ed-ident[open] .id-a .id-k{font-weight:600}
   .ed-ident[open]{padding:0 14px 8px}
-  /* Le premier champ ne se colle pas au filet du sommaire (signalé à l'usage : « titre de la
-     situation très collé à Nouvelle fiche ») — le sommaire est un EN-TÊTE de carte, pas la
-     première ligne du formulaire. */
-  .ed-ident[open]>summary{margin:0 -14px 12px;border-bottom:1px solid var(--line)}
+  /* A521 : la STRUCTURE dans le fil (< 1200 px) — une rangée par bloc, elle ouvre le bloc sur sa page. */
+  .ed-slist{margin:0 0 16px}
+  .esl-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
+  .esl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
+    padding:8px 12px 8px 16px;background:none;border:0;border-top:1px solid var(--line);text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
+  .esl-grp>:first-child{border-top:0}
+  .esl-row:hover{background:var(--amb-2)}
+  .esl-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .esl-row:disabled{cursor:default}
+  .esl-n{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--amb-2);color:var(--ink-2);
+    font-size:var(--t-body);font-weight:600;font-variant-numeric:tabular-nums}
+  .esl-row.dec .esl-n{background:var(--warn-soft);color:var(--warn)}
+  .esl-row.exc .esl-n{color:var(--warn)}
+  .esl-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .esl-tx b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:600}
+  .esl-tx span{font-size:var(--t-meta);color:var(--ink-2)}
+  .esl-chev{display:inline-flex;color:var(--ink-soft)}
+  .esl-ph{margin:0;padding:10px 16px 4px;border-top:1px solid var(--line);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .ed-slist .flow-prev{margin-top:12px}
+  /* A521 : UN BLOC SUR SA PAGE. Vue d'ensemble (`ed-ov`) : les blocs vivent dans la liste, « Prise en charge » se
+     retire ; page d'un bloc (`ed-focus`) : seul le bloc `.ed-cur` reste, avec la porte « Ajouter ». */
+  body.view-edit.ed-ov .ed-pec{display:none}
+  body.view-edit.ed-focus #main>:not(.read-grid):not(.ed-pec):not(.ed-door),
+  body.view-edit.ed-focus .ed-cockpit>.read-main>:not(.ed-pec):not(.ed-door),
+  body.view-edit.ed-focus .ed-pec>:not(.ed-cur){display:none}
+  /* A521 : la colonne Structure (≥ 1200 px) prend le dessin de la maquette — intitulé en phrase, rangée sur deux
+     lignes (titre, compte), sans filet ; le bloc ouvert est surligné, son numéro plein. */
+  .ed-struct .rail-head .rail-title{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .ed-struct .rail-head .rail-n{display:none}
+  .ed-struct .eds-row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:0;align-items:center;min-height:52px;padding:6px 8px;border-top:0;border-radius:10px}
+  .ed-struct .eds-n{grid-row:span 2;width:24px;height:24px;border-radius:8px}
+  .ed-struct .eds-t{font-size:var(--t-body);font-weight:400}
+  .ed-struct .eds-c{grid-column:2;font-size:var(--t-meta);color:var(--ink-2)}
+  body.view-edit .eds-row.on{background:var(--primary-soft);color:var(--act)}
+  body.view-edit .eds-row.on .eds-n{background:var(--act);color:var(--on-primary)}
   /* Les rangées de la colonne STRUCTURE : désaturées comme le rail de lecture — elle oriente,
      la colonne du centre agit. Cible 44 px (c'est une navigation). */
   .eds-row{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;text-align:left;
@@ -4780,7 +4818,7 @@
   .le-grp>.add-line:hover{background:none;text-decoration:underline}
   .le-foot{margin:6px 16px 0;font-size:var(--t-meta);color:var(--ink-2)}
   .le-grp .ed-ic.del{width:32px;height:32px;min-width:32px;border:0;border-radius:999px;background:var(--amb-2);color:var(--ink-2)}
-  :is(body.view-edit) :is(.ed-ident,.ed-card,.ed-tocwrap .ref-toc){box-shadow:none}
+  :is(body.view-edit) :is(.ed-ident,.ed-card){box-shadow:none}
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
@@ -7637,7 +7675,7 @@
     body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
-    body.view-edit .ed-tocwrap{display:none}   /* A390 : la colonne Structure prend le relais du dépliant */
+    body.view-edit .ed-slist{display:none}   /* A521 (amende A390) : la colonne Structure prend le relais de la liste */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
@@ -8551,10 +8589,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvxjb6sbw4gmz11g" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvxjb6sb1rgsmc45"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvxjb6sb1pq5u3ot"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvxk3ku116t3tpz1" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvxk3ku21jgz6rqh"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvxk3ku2ql0k1h18"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvxjb6sbw4gmz11g" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvxjb6sb1rgsmc45"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvxjb6sb1pq5u3ot"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvxk3ku116t3tpz1" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvxk3ku21jgz6rqh"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvxk3ku2ql0k1h18"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 </body></html>

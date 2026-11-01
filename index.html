@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-n5RuGmnHIEcFKys+g/JGHqcTP+AarSSbqftqpJax4kI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-82wkolYeZn/TNP+qlT6fL28tMd7ZSJfJbXHxUvNgKaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3354,9 +3354,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      On répare EN (1,1,2), jamais par l'ordre ; 14 px — un objet interactif ne finit pas au
      contact d'une bordure de coupure. */
   .ref-tocwrap>.ref-toc[open]{padding-bottom:14px}
-  .ed-toc-l{padding-top:4px}   /* A390 : la Structure de l'éditeur dans le dépliant du sommaire — rangées `.eds-row` de la colonne */
-  .ed-toc .rail-head{display:flex;align-items:baseline;gap:8px;margin:12px 0 4px}
-  .ed-toc .rail-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2)}
   details.ref-toc{background:none;border:0;border-radius:0}
   /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
      maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
@@ -3804,21 +3801,62 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      une suggestion), rangées ≥ 44 px puisqu'elles ancrent vers la ligne concernée. */
   /* K4 — dépliant « Identité » : l'en-tête PORTE déjà le titre et le code, donc replié il
      n'escamote rien de ce qu'on a besoin de vérifier d'un coup d'œil. */
-  .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work)}
-  .ed-ident>summary{display:flex;align-items:center;gap:8px;min-height:48px;padding:6px 12px;cursor:pointer;list-style:none;font-family:inherit}
+  /* A521 (lot 10) : l'Identité est un GROUPE DE RANGÉES « Titre · valeur » sous son intertitre (maquette Natif) ;
+     ouverte, le sommaire n'est plus qu'un en-tête « Identité · Replier » au-dessus des champs. */
+  .ed-sech{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:clip}
+  .ed-ident>summary{display:block;cursor:pointer;list-style:none;font-family:inherit}
   .ed-ident>summary::-webkit-details-marker{display:none}
-  .ed-ident>summary::after{content:"▾";color:var(--act);font-size:11px;flex:none;margin-left:-4px}
-  .ed-ident[open]>summary::after{content:"▴"}
-  .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-3)}
-  .ed-ident .id-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17.5px;font-weight:640;color:var(--ink)}
-  .ed-ident .id-t.muted{color:var(--ink-soft);font-weight:600}
-  .ed-ident .id-c{flex:none;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);background:var(--amb-2);border-radius:8px;padding:2px 6px}
-  .ed-ident .id-a{flex:none;font-size:13.5px;font-weight:700;color:var(--act)}
+  .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-4)}
+  .ed-ident .id-row,.ed-ident .id-a{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
+  .ed-ident .id-row+.id-row{border-top:1px solid var(--line)}
+  .ed-ident .id-k{flex:none;font-size:var(--t-body);color:var(--ink)}
+  .ed-ident :is(.id-t,.id-c,.id-v){flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:400;color:var(--ink-2)}
+  .ed-ident .id-v{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+  .ed-ident .id-v .dir-av{flex:none}
+  .ed-ident :is(.id-t,.id-c).muted{color:var(--ink-soft)}
+  .ed-ident .id-chev{flex:none;display:inline-flex;color:var(--ink-soft);margin-right:-4px}
+  .ed-ident .id-a{display:none}
+  .ed-ident .id-x{margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--act)}
+  .ed-ident[open] .id-row{display:none}
+  .ed-ident[open] .id-a{display:flex;margin:0 -14px 12px;border-bottom:1px solid var(--line)}
+  .ed-ident[open] .id-a .id-k{font-weight:600}
   .ed-ident[open]{padding:0 14px 8px}
-  /* Le premier champ ne se colle pas au filet du sommaire (signalé à l'usage : « titre de la
-     situation très collé à Nouvelle fiche ») — le sommaire est un EN-TÊTE de carte, pas la
-     première ligne du formulaire. */
-  .ed-ident[open]>summary{margin:0 -14px 12px;border-bottom:1px solid var(--line)}
+  /* A521 : la STRUCTURE dans le fil (< 1200 px) — une rangée par bloc, elle ouvre le bloc sur sa page. */
+  .ed-slist{margin:0 0 16px}
+  .esl-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
+  .esl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
+    padding:8px 12px 8px 16px;background:none;border:0;border-top:1px solid var(--line);text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
+  .esl-grp>:first-child{border-top:0}
+  .esl-row:hover{background:var(--amb-2)}
+  .esl-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .esl-row:disabled{cursor:default}
+  .esl-n{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--amb-2);color:var(--ink-2);
+    font-size:var(--t-body);font-weight:600;font-variant-numeric:tabular-nums}
+  .esl-row.dec .esl-n{background:var(--warn-soft);color:var(--warn)}
+  .esl-row.exc .esl-n{color:var(--warn)}
+  .esl-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .esl-tx b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:600}
+  .esl-tx span{font-size:var(--t-meta);color:var(--ink-2)}
+  .esl-chev{display:inline-flex;color:var(--ink-soft)}
+  .esl-ph{margin:0;padding:10px 16px 4px;border-top:1px solid var(--line);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .ed-slist .flow-prev{margin-top:12px}
+  /* A521 : UN BLOC SUR SA PAGE. Vue d'ensemble (`ed-ov`) : les blocs vivent dans la liste, « Prise en charge » se
+     retire ; page d'un bloc (`ed-focus`) : seul le bloc `.ed-cur` reste, avec la porte « Ajouter ». */
+  body.view-edit.ed-ov .ed-pec{display:none}
+  body.view-edit.ed-focus #main>:not(.read-grid):not(.ed-pec):not(.ed-door),
+  body.view-edit.ed-focus .ed-cockpit>.read-main>:not(.ed-pec):not(.ed-door),
+  body.view-edit.ed-focus .ed-pec>:not(.ed-cur){display:none}
+  /* A521 : la colonne Structure (≥ 1200 px) prend le dessin de la maquette — intitulé en phrase, rangée sur deux
+     lignes (titre, compte), sans filet ; le bloc ouvert est surligné, son numéro plein. */
+  .ed-struct .rail-head .rail-title{font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+  .ed-struct .rail-head .rail-n{display:none}
+  .ed-struct .eds-row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:0;align-items:center;min-height:52px;padding:6px 8px;border-top:0;border-radius:10px}
+  .ed-struct .eds-n{grid-row:span 2;width:24px;height:24px;border-radius:8px}
+  .ed-struct .eds-t{font-size:var(--t-body);font-weight:400}
+  .ed-struct .eds-c{grid-column:2;font-size:var(--t-meta);color:var(--ink-2)}
+  body.view-edit .eds-row.on{background:var(--primary-soft);color:var(--act)}
+  body.view-edit .eds-row.on .eds-n{background:var(--act);color:var(--on-primary)}
   /* Les rangées de la colonne STRUCTURE : désaturées comme le rail de lecture — elle oriente,
      la colonne du centre agit. Cible 44 px (c'est une navigation). */
   .eds-row{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;text-align:left;
@@ -5173,7 +5211,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .le-grp>.add-line:hover{background:none;text-decoration:underline}
   .le-foot{margin:6px 16px 0;font-size:var(--t-meta);color:var(--ink-2)}
   .le-grp .ed-ic.del{width:32px;height:32px;min-width:32px;border:0;border-radius:999px;background:var(--amb-2);color:var(--ink-2)}
-  :is(body.view-edit) :is(.ed-ident,.ed-card,.ed-tocwrap .ref-toc){box-shadow:none}
+  :is(body.view-edit) :is(.ed-ident,.ed-card){box-shadow:none}
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
@@ -8030,7 +8068,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
-    body.view-edit .ed-tocwrap{display:none}   /* A390 : la colonne Structure prend le relais du dépliant */
+    body.view-edit .ed-slist{display:none}   /* A521 (amende A390) : la colonne Structure prend le relais de la liste */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
@@ -9509,7 +9547,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.64.0';
+const APP_VERSION='5.65.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17886,8 +17924,12 @@ function editorMetaFieldsHtml(d,prefix,L){
      lit d'un coup d'œil sans se confondre avec le titre. « Identité ▾ » n'est plus une étiquette
      posée devant, mais le DÉCLENCHEUR à droite : le mot ne prend la place du titre que là où il
      agit. */
-  const resume=vide?'<b class="id-t muted">'+(L.fem?'Nouvelle aide':'Nouveau protocole')+'</b>'   // A496 : un protocole neuf disait « Nouvelle aide »
-    :('<b class="id-t">'+esc(d.title)+'</b>'+(d.code?'<span class="id-c">'+esc(d.code)+'</span>':''));
+  /* A521 (lot 10, maquette Natif) : replié, le sommaire est un GROUPE DE RANGÉES « Titre · valeur » — titre, code
+     court, catégorie (pastille + nom ›) ; ouvert, il n'est plus qu'un en-tête « Identité · Replier ». */
+  const ic=catOf(d),ro=(k,v,x)=>`<span class="id-row"><span class="id-k">${k}</span>${v}${x||''}</span>`;
+  const resume=ro('Titre',vide?'<b class="id-t muted">'+(L.fem?'Nouvelle aide':'Nouveau protocole')+'</b>':'<b class="id-t">'+esc(d.title)+'</b>')   // A496 : un protocole neuf disait « Nouvelle aide »
+    +ro('Code court','<span class="id-c'+(d.code?'':' muted')+'">'+(d.code?esc(d.code):'—')+'</span>')
+    +ro('Catégorie','<span class="id-v">'+(ic?`<span class="dir-av" style="--catcol:${safeColor(ic.color)}" aria-hidden="true"></span>${esc(ic.name)}`:'Sans catégorie')+'</span>',chevHtml(false,'id-chev'));
   /* LE DÉPLIANT NE SE REFERME PAS TOUT SEUL (signalé à l'usage : « une fois rempli, Nouvelle
      fiche se replie automatiquement ? »). L'ouverture d'office se DÉCIDE à l'entrée dans
      l'éditeur, elle ne se RECALCULE pas à chaque rendu : `vide` devenant faux dès que le titre
@@ -17898,7 +17940,7 @@ function editorMetaFieldsHtml(d,prefix,L){
   if(state.edIdentFor!==d.id){state.edIdentFor=d.id;state.edIdentOpen=!(d.title||'').trim();}   // A465 (amende v5.30) : ouverte pour une aide neuve, repliée dès qu'elle a un titre — l'éditeur s'ouvre sur le contenu
   const ouvert=state.edIdentOpen;
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
-    <details class="ed-ident"${ouvert?' open':''}><summary>${resume}<span class="id-a">Identité</span></summary>
+    <p class="ed-sech">Identité</p><details class="ed-ident"${ouvert?' open':''}><summary>${resume}<span class="id-a"><span class="id-k">Identité</span><span class="id-x">Replier</span></span></summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" class="ed-title-in" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
     <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette aide d’une voisine — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
@@ -18140,6 +18182,7 @@ function bindEditorExit(cfg){
   document.getElementById('hdrBackLbl').hidden=false;document.getElementById('hdrBackLbl').textContent='Retour';
   document.getElementById('hdrBack').onclick=async()=>{
     if(Date.now()-_backGuardT<700)return;   // double-tap depuis l'aperçu : absorbé (garde ECAM)
+    if(edFocusOn()){edFocusSet(null);return;}   // A521 : de la page d'un bloc, on revient à l'aide
     const d=cfg.getDraft();
     /* K5 — LE RETOUR N'A PLUS RIEN À DEMANDER NI À ANNONCER. Il écrit ce qui reste (la frappe
        peut être plus récente que la dernière pause) puis nettoie ce qu'on ne garbage qu'à la
@@ -24796,6 +24839,7 @@ function edRevPaint(f){
 // Amène l'élément au centre et le fait clignoter UNE fois — 1300 ms, calé sur l'animation CSS
 // `revFl` (1.2 s) : les quatre ancrages de la relecture partagent ce geste.
 function revGoFlash(el){
+  edReveal(el);   // A521 : une ligne d'un bloc se montre sur la page de son bloc
   el.scrollIntoView({block:'center'});
   el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);}
 /* ANCRAGE : taper une remarque amène à la ligne et la fait clignoter une fois — PAS de focus dans
@@ -25238,9 +25282,9 @@ function edAdd(f,kind,pre){
   const CIBLE={steps:'.blk',decision:'.blk.blk-dec',interval:'.tmedit[data-ti]',
     stopwatch:'.tmedit[data-ti]',counter:'.tmedit[data-ci]',cx:'.cx-edit-row',review:'.blk.blk-rev'};
   if(ED_ADD_LIST[kind]){const r=main.querySelectorAll('[data-key="'+ED_ADD_LIST[kind]+'"]');
-    const c=r[r.length-1];if(c){c.scrollIntoView({block:'center'});c.focus();}return;}
+    const c=r[r.length-1];if(c){edReveal(c);c.scrollIntoView({block:'center'});c.focus();}return;}
   if(CIBLE[kind]){const r=main.querySelectorAll(CIBLE[kind]);const c=r[r.length-1];
-    if(c){c.scrollIntoView({block:'start'});
+    if(c){edReveal(c);c.scrollIntoView({block:'start'});
       const f2=c.querySelector('input,textarea,select');if(f2)f2.focus({preventScroll:true});}}}
 /* LA PORTE D'UNE RÉFÉRENCE (v5.0.0, refonte des protocoles). Même composant que la porte des
    aides mais AUTRE liste (corps, documents, renvois, sources — pas de bloc/étape/minuteur) ; même
@@ -25694,7 +25738,7 @@ function edStructHtml(f,o){o=o||{};
      ce qu'elle montrera. Une colonne large et vide se lit comme une panne, pas comme un état. */
   const exc=(f.excursions||[]);
   if(!bs.length&&!exc.length)return '';
-  return (o.nohead?'':`<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`)
+  return (o.nohead?'':`<div class="rail-head"><span class="rail-title">Structure · ${bs.length} bloc${bs.length>1?'s':''}</span></div>`)   // A521 : l'intitulé de la maquette
     /* ⚠ LE RAPPEL DES PHASES EST LA COLONNE ELLE-MÊME (demande utilisateur). Écrire une phase
        bloc par bloc sans jamais voir le découpage, c'est décider à l'aveugle : l'intertitre
        n'apparaît qu'AU CHANGEMENT de phase — c'est-à-dire là où l'auteur a effectivement décidé
@@ -25713,11 +25757,43 @@ function edStructHtml(f,o){o=o||{};
     +(exc.length?`<div class="rail-head eds-hors"><span class="rail-title">${boltIcon(12)} À tout moment</span><span class="rail-n">hors numérotation</span></div>`
       +exc.map(c=>{const bb=bs.find(x=>x.id===c.target);
         return `<button type="button" class="eds-row exc"${bb?` data-edgo="${esc(bb.id)}"`:''}><span class="eds-n">${boltIcon(13)}</span><span class="eds-t">${esc(c.label||'Complication')}</span><span class="eds-c">${bb?'bloc':'autre aide ↗'}</span></button>`;}).join(''):'');}
-/* A390 : SOUS 1200 px, LA STRUCTURE EST LE DÉPLIANT DU SOMMAIRE DES PROTOCOLES (même dessin, mêmes classes) :
-   collant sous l'en-tête, fermé d'office — une ligne quand on n'en a pas besoin. Toucher un bloc le referme et
-   amène le bloc à l'écran. L'état ouvert survit aux re-rendus de l'éditeur, pas à sa réouverture. */
-function edTocHtml(f){const h=edStructHtml(f,{nohead:true});if(!h)return '';const n=(f.blocks||[]).length;
-  return `<div class="ref-tocwrap ed-tocwrap"><details class="ref-toc ed-toc"${state.edTocOpen?' open':''}><summary class="rt-sum"><span class="rt-h">Structure</span><span class="rt-n">${n} bloc${n>1?'s':''}</span></summary><div class="ed-toc-l">${h}</div></details></div>`;}
+/* A521 (lot 10, amende A390) : SOUS 1200 px, LA STRUCTURE EST UNE LISTE DANS LE FIL (maquette Natif) — rangée
+   = numéro, titre, sous-ligne, chevron ; elle ouvre le bloc SUR SA PAGE (`edFocusSet`). Le schéma du téléphone
+   la suit (c'est le dessin de la même structure). ≥ 1200 px, la colonne `.ed-struct` tient ce rôle. */
+function edStructListHtml(f,fp){const bs=f.blocks||[];if(!bs.length)return '';
+  const exc=f.excursions||[];
+  const rows=bs.map((b,i)=>{const dec=b.kind==='decision',k=(b.options||[]).length,e=clean(stepsOf(b)).length;
+    const sub=dec?'Décision · '+k+' branche'+(k>1?'s':''):b.kind==='review'?'Revue · '+e+' élément'+(e>1?'s':''):e+' étape'+(e>1?'s':'');
+    const ph=phaseOf(f,b.id),prev=i?phaseOf(f,bs[i-1].id):'';
+    return (ph&&ph!==prev?`<p class="esl-ph">${esc(ph)}</p>`:'')
+      +`<button type="button" class="esl-row${dec?' dec':''}" data-edgo="${esc(b.id)}"><span class="esl-n">${i+1}</span>`
+      +`<span class="esl-tx"><b>${esc((b.title||'').trim())||(dec?'Décision':'Sans titre')}</b><span>${sub}</span></span>${chevHtml(false,'esl-chev')}</button>`;}).join('')
+    +exc.map(c=>{const bb=bs.find(x=>x.id===c.target);
+      return `<button type="button" class="esl-row exc"${bb?` data-edgo="${esc(bb.id)}"`:' disabled'}><span class="esl-n">${boltIcon(13)}</span>`
+        +`<span class="esl-tx"><b>${esc(c.label||'Complication')}</b><span>À tout moment · ${bb?'bloc':'autre aide'}</span></span>${bb?chevHtml(false,'esl-chev'):''}</button>`;}).join('');
+  return `<section class="ed-slist"><p class="ed-sech">Structure · ${bs.length} bloc${bs.length>1?'s':''}</p><div class="esl-grp">${rows}</div>${fp||''}</section>`;}
+/* A521 : UN BLOC S'OUVRE SUR SA PAGE. Le DOM reste celui de l'éditeur entier (glisser, porte, relecture ne
+   bougent pas) : deux classes sur <body> masquent le reste — `ed-ov` (vue d'ensemble : les blocs sont dans
+   la liste) et `ed-focus` (un bloc, `.ed-cur`). Un mode « prendre / poser » montre TOUT (on pose ailleurs).
+   C'est un niveau du retour système (`_H_LAYERS`) et du « ‹ Retour » de l'en-tête. */
+function edFocusOn(){return state.view==='edit'&&!!state.edFocus&&!state.edGrab;}
+function edApplyFocus(){const on=state.view==='edit';
+  let cur=null;
+  if(on&&state.edFocus){cur=main.querySelector('.ed-pec .blk[data-bid="'+CSS.escape(state.edFocus)+'"]');if(!cur)state.edFocus=null;}
+  main.querySelectorAll('.blk.ed-cur').forEach(x=>{if(x!==cur)x.classList.remove('ed-cur');});
+  if(cur)cur.classList.add('ed-cur');
+  const libre=on&&!state.edGrab;
+  document.body.classList.toggle('ed-focus',libre&&!!cur);
+  document.body.classList.toggle('ed-ov',libre&&!cur&&!!main.querySelector('.ed-slist,.ed-struct'));
+  main.querySelectorAll('[data-edgo]').forEach(b=>b.classList.toggle('on',!!cur&&b.dataset.edgo===state.edFocus));}
+function edFocusSet(bid){if((state.edFocus||null)===(bid||null))return;
+  state.edFocus=bid||null;edApplyFocus();
+  if(!state.edFocus||!state.edGrab)window.scrollTo(0,0);
+  _histSync();}
+/* Ce qu'on amène à l'écran doit être VISIBLE : dans un bloc, on ouvre sa page ; hors bloc, on revient à l'ensemble. */
+function edReveal(el){if(state.view!=='edit'||!el||state.edGrab)return;
+  const b=el.closest('.ed-pec .blk[data-bid]');const id=b?b.dataset.bid:null;
+  if((state.edFocus||null)!==id){state.edFocus=id;edApplyFocus();_histSync();}}
 /* LA COLONNE DE DROITE PORTE L'ALGORITHME, PLUS UNE MAQUETTE (demande utilisateur, K1 v4.64.0 :
    le milieu EST le rendu). Le schéma monte dans la colonne COLLANTE ; sous 1000 px il reprend le
    flux. ⚠ IL NE SE REDESSINE PAS À LA FRAPPE (comportement d'avant, pas une régression) :
@@ -25776,11 +25852,11 @@ function renderEditor(){_renderN++;
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
   edTouch(true);   // K5 : un geste STRUCTUREL vient d'avoir lieu — on écrit tout de suite
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
+  if(state.edFocusFor!==f.id){state.edFocusFor=f.id;state.edFocus=null;}   // A521 : une autre aide s'ouvre sur son ensemble
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
     <h1 class="ed-ttl">${isNew?'Nouvelle aide':'Modifier l’aide'}</h1>${''/* A520 (lot 9) : le grand titre de la page (24) */}
-    ${edTocHtml(f)}
     ${edGrabBanner(f)}
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette aide',codePh:'ex. URG-ANA-01',fem:true})}
     ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
@@ -25793,6 +25869,9 @@ function renderEditor(){_renderN++;
     d'un memory item se modifie là où il vit, dans son étape, sinon on aurait deux endroits pour
     écrire la même ligne (et le chapeau n'est PAS le propriétaire de cette ligne — l'étape l'est). */}
     ${forgetEditorHtml(f)}
+    ${edStructListHtml(f,wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
+      const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
+      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Schéma — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})())}
     ${''/* B4 (v5.0.0, lot M3, maquettes proto-large) — « CONDITION D'ENTRÉE » RÉUNIT LES DEUX
     MOITIÉS D'UNE MÊME DÉCISION. Les critères de confirmation et les diagnostics à éliminer
     vivaient dans deux sections éloignées de ~1 200 px, alors qu'ils répondent à UNE question et
@@ -25807,9 +25886,7 @@ function renderEditor(){_renderN++;
     ${listEditor('Critères','ce qui confirme le tableau','confirmation',listOf(f,'confirmation'),false,{shell:'bare'})}
     ${listOf(f,'differentials').length?listEditor('Diagnostics à éliminer','« le tableau ne colle pas » — premier motif d’ouverture de « Consulter »','differentials',listOf(f,'differentials'),false,{shell:'bare'}):''}
     </fieldset>
-    <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
-      const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
-      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Schéma — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${critGuideHtml()}${f.blocks.map((b,bi)=>b.kind==='review'?'':((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin d’aide'):''}</fieldset>
+    <fieldset class="field ed-pec"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${critGuideHtml()}${f.blocks.map((b,bi)=>b.kind==='review'?'':((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin d’aide'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -25879,9 +25956,9 @@ function renderEditor(){_renderN++;
      focus volé (l'auteur cherche, il n'écrit pas encore) ni de modification. */
   main.querySelectorAll('[data-edgo]').forEach(b=>b.onclick=()=>{
     const el=main.querySelector('.blk[data-bid="'+CSS.escape(b.dataset.edgo)+'"]');if(!el)return;
-    {const d=b.closest('details.ed-toc');if(d){d.open=false;state.edTocOpen=false;}}   // A390 : le dépliant se referme avant le saut
-    revGoFlash(el);});
-  {const d=main.querySelector('details.ed-toc');if(d)d.ontoggle=()=>{state.edTocOpen=d.open;};}
+    if(state.edGrab||!el.closest('.ed-pec')){revGoFlash(el);return;}   // prendre / poser, ou une revue (hors « Prise en charge ») : on amène à l'endroit
+    edFocusSet(b.dataset.edgo);});   // A521 : le bloc s'ouvre sur sa page
+  edApplyFocus();
   {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=edGrabDrop;}
   /* Échap repose l'objet — geste d'annulation universel de l'app (modales, lecteur, plan). Posé
      UNE fois, à la première ouverture d'éditeur : `_edEscBound` évite d'empiler un écouteur par
@@ -26682,7 +26759,7 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;
   state.view='read';render();}
-async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;state.edTocOpen=false;
+async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
   // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
@@ -26715,7 +26792,7 @@ async function newFiche(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
   /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
-  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;state.edTocOpen=false;if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -33679,6 +33756,7 @@ const _H_LAYERS=[
   [()=>monOn()?1:0,()=>monClose],
   [()=>_hOn('flowFull')?1:0,()=>closeFlowFull],
   [()=>_hOn('lightbox')?1:0,()=>closeLightbox],
+  [()=>edFocusOn()?1:0,()=>()=>edFocusSet(null)],   // A521 : la page d'un bloc est un niveau
   [_hViewLevels,()=>state.view==='library'?()=>setHomeTab(homeTab()==='admin'?'me':'aides'):()=>_hEl('hdrBack').click()]];
 const _histLevels=()=>_H_LAYERS.reduce((t,[n])=>t+n(),0);
 function _histBackAction(){const l=_H_LAYERS.find(([n])=>n()>0);return l?l[1]():null;}

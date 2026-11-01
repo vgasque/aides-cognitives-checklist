@@ -262,6 +262,13 @@ export async function demarrerSession(page) {
 /* A517 — OUVRIR LA RECHERCHE PAR SON VRAI GESTE. Sous la barre d'onglets du téléphone, le champ de l'accueil
    n'existe qu'une fois la recherche OUVERTE (le rond de la barre) ; ailleurs il est toujours là. Idempotent :
    à appeler avant chaque frappe dans #q. `remplir` = ouvrir puis taper (page.fill). */
+/* A521 : dans l'éditeur, un bloc s'ouvre SUR SA PAGE par sa rangée de structure (liste du fil ou colonne) —
+   le vrai geste ; sans `bid`, le premier bloc d'étapes. */
+export async function ouvrirBloc(page, bid) {
+  await page.evaluate(async id=>{id=id||(document.querySelector('.ed-pec .blk:not(.blk-dec)')||{dataset:{}}).dataset.bid;
+    const r=[...document.querySelectorAll('.esl-row[data-edgo],.eds-row[data-edgo]')].find(x=>x.dataset.edgo===id&&x.offsetParent);
+    if(r)r.click();await new Promise(x=>setTimeout(x,250));},bid||null);
+}
 export async function ouvrirRecherche(page) {
   const ferme = await page.evaluate(() => document.documentElement.classList.contains('tabnav')
     && !document.documentElement.classList.contains('tb-q'));

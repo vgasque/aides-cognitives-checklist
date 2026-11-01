@@ -1,6 +1,6 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner, ouvrirRecherche, remplir } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner, ouvrirRecherche, remplir, ouvrirBloc } from './harness.mjs';
 import { readFile } from 'node:fs/promises';
 
 const { port, srv } = await serveApp();
@@ -5313,6 +5313,7 @@ await sec('v5.33 · A383 — l’éditeur, réglages d’étape', async () => {
     o.optHors=lbl(B1);o.optBoucle=lbl(B3);
     const adr=[...B3.querySelectorAll('.li')].find(l=>/Adrénaline/.test(l.querySelector('input[data-sf]').value));
     o.pastilles=[...adr.querySelectorAll('.li-chip')].map(x=>x.className.replace('li-chip','').trim());
+    [...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===B3.dataset.bid&&x.offsetParent).click();await w(250);   // A521 : sa page
     adr.querySelector('.li-set').click();await w(300);
     o.momentBoucle=!!document.querySelector('#stepSetBody [data-ssfrom]');
     document.querySelector('#stepSetBody [data-ssrp="once"]').click();await w(250);
@@ -5467,7 +5468,8 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
   }
   await essai('« Ne pas oublier »','.ed-forget input:not([disabled])','[data-fgadd]',
     ()=>forgetAll(state.draft).length);
-  await essai('étapes d\'un bloc','.blk[data-bid] input[data-sf]','[data-addstep]',
+  await ouvrirBloc(page,await page.evaluate(()=>state.draft.blocks[0].id));   // A521 : le bloc s'ouvre sur sa page
+  await essai('étapes d\'un bloc','.blk.ed-cur input[data-sf]','.blk.ed-cur [data-addstep]',
     ()=>bItems(state.draft.blocks[0]).length);
   /* ⚠ UN RE-RENDU PENDANT QU'UN CHAMP VIDE EST FOCALISÉ NE DOIT PAS AVORTER (v5.6, trouvé au
      balayage). Le champ d'étape vide se supprime AU BLUR — mais ce blur peut être celui du rendu
@@ -5541,7 +5543,8 @@ await sec('v5.6 · un re-rendu ne s\'interrompt pas lui-même', async () => {
      efface sa ligne, sans dépendre d'un raccourci clavier qui n'a pas le même sens d'un système
      à l'autre (`Control+A` n'est PAS « tout sélectionner » sur macOS : le témoin effaçait un
      caractère et mesurait autre chose). */
-  await page.fill('.blk .li input[data-sf]','');
+  await ouvrirBloc(page);   // A521 : le premier bloc s'ouvre sur sa page
+  await page.fill('.blk.ed-cur .li input[data-sf]','');
   await page.waitForTimeout(250);
   const av=await page.evaluate(()=>{const e=document.activeElement;
     return {focus:!!e&&!!e.matches&&e.matches('.blk .li input[data-sf]')&&e.value==='',
@@ -8402,7 +8405,7 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
    protocoles, fermé d'office, qui se referme au saut. (2) « Essayer » rendait la page d'avant la v5.30 — ni
    cartes, ni quai, ni minuteurs — parce qu'une quinzaine de conditions écartaient l'aperçu ; il suit désormais
    la vraie lecture, avant comme pendant l'essai, sans rien écrire. (3) Les replis de l'aperçu ne s'enregistrent pas. */
-await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
+await sec('Éditeur · A390 A521 Structure en liste, bloc sur sa page, aperçu fidèle', async () => {
 {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -8413,13 +8416,20 @@ await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const id=state.fiche.id;
     const replis0=JSON.stringify([...mdFoldGet(id)]);
     await openEdit(id);await w(500);
-    const d=document.querySelector('details.ed-toc');const o={toc:!!d,ferme:d&&!d.open,
-      colle:d?getComputedStyle(d.parentElement).position:'',rangs:d?d.querySelectorAll('[data-edgo]').length:0};
-    window.scrollTo(0,2000);await w(150);
-    d.querySelector('summary').click();await w(200);o.ouvert=d.open;
-    const b=d.querySelectorAll('[data-edgo]')[2];const bid=b.dataset.edgo;b.click();await w(500);
-    const el=document.querySelector('.blk[data-bid="'+bid+'"]').getBoundingClientRect();
-    o.refermeApresSaut=!document.querySelector('details.ed-toc').open;o.blocVisible=el.top<innerHeight&&el.bottom>0;
+    /* A521 (amende A390) : la structure est une LISTE dans le fil ; une rangée ouvre le bloc sur sa page. */
+    const L=document.querySelector('.ed-slist');const o={liste:!!L,rangs:L?L.querySelectorAll('[data-edgo]').length:0,
+      pecCachee:getComputedStyle(document.querySelector('.ed-pec')).display==='none',toc:!!document.querySelector('.ed-toc'),
+      identRangs:[...document.querySelectorAll('.ed-ident .id-row .id-k')].map(e=>e.textContent)};
+    const b=L.querySelectorAll('.esl-row[data-edgo]')[2];const bid=b.dataset.edgo;const n0=_histLevels();b.click();await w(400);
+    const el=document.querySelector('.blk[data-bid="'+bid+'"]');const r0=el.getBoundingClientRect();
+    o.page=document.body.classList.contains('ed-focus')&&el.classList.contains('ed-cur')&&r0.top<innerHeight&&r0.bottom>0;
+    o.seul=[...document.querySelectorAll('.ed-pec .blk')].filter(x=>x.offsetParent).length===1&&!document.querySelector('.ed-slist').offsetParent&&!document.querySelector('.ed-ident').offsetParent;
+    o.niveau=_histLevels()===n0+1;
+    history.back();await w(600);
+    o.retour=state.view==='edit'&&!state.edFocus&&document.body.classList.contains('ed-ov')&&!!document.querySelector('.ed-slist').offsetParent;
+    L.querySelectorAll('.esl-row[data-edgo]')[2].click();await w(300);
+    document.getElementById('hdrBack').click();await w(400);
+    o.retourEnTete=state.view==='edit'&&!state.edFocus;
     document.getElementById('hdrPreview').click();await w(600);
     o.cartesAvant=[...document.querySelectorAll('main .fold-head .fh-t')].map(e=>e.textContent.trim());
     o.demarrer=(document.querySelector('#sessStart:not([hidden]) .dp-lbl')||{}).textContent||'';
@@ -8432,9 +8442,10 @@ await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
     document.getElementById('hdrBack').click();await w(400);
     o.replisIntacts=JSON.stringify([...mdFoldGet(id)])===replis0;
     return o;});
-  t('éditeur 390 px : la Structure est un dépliant collant, fermé d\'office, une rangée par bloc',
-    r.toc&&r.ferme&&r.colle==='sticky'&&r.rangs>=5,JSON.stringify(r));
-  t('… il s\'ouvre, se referme au saut, et le bloc visé est à l\'écran',r.ouvert&&r.refermeApresSaut&&r.blocVisible,JSON.stringify(r));
+  t('éditeur 390 px : Identité en rangées, la Structure en liste dans le fil (A521), les blocs n\'y sont plus',
+    r.liste&&!r.toc&&r.rangs>=6&&r.pecCachee&&r.identRangs.join('|')==='Titre|Code court|Catégorie',JSON.stringify(r));
+  t('… une rangée ouvre le bloc SEUL sur sa page, un niveau du retour système',r.page&&r.seul&&r.niveau,JSON.stringify(r));
+  t('… le retour système et le « ‹ » de l\'en-tête ramènent à l\'aide, sans quitter l\'éditeur',r.retour&&r.retourEnTete,JSON.stringify(r));
   t('aperçu, avant l\'essai : les MÊMES cartes que la vraie lecture',JSON.stringify(r.cartesAvant)===JSON.stringify(lecture),JSON.stringify({apercu:r.cartesAvant,lecture}));
   t('… le quai démarre « l\'essai », sans exercice',/l’essai/.test(r.demarrer)&&!r.exo,JSON.stringify({d:r.demarrer,exo:r.exo}));
   t('pendant l\'essai : le quai de session et les cartes sous le bloc, sans session vive enregistrée',
@@ -8448,9 +8459,9 @@ await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
   await amorce(page);
   await ouvrirFiche(page,/Arrêt cardiaque/);
   const d=await page.evaluate(async()=>{await openEdit(state.fiche.id);await new Promise(x=>setTimeout(x,400));
-    const t=document.querySelector('.ed-tocwrap'),c=document.querySelector('.ed-struct');
+    const t=document.querySelector('.ed-slist'),c=document.querySelector('.ed-struct');
     return {toc:t?getComputedStyle(t).display:'absent',col:c?getComputedStyle(c).display:'absent'};});
-  t('≥ 1200 px : la colonne Structure prend le relais, le dépliant se retire',d.toc==='none'&&d.col==='flex',JSON.stringify(d));
+  t('≥ 1200 px : la colonne Structure prend le relais, la liste se retire',d.toc==='none'&&d.col==='flex',JSON.stringify(d));
   await page.close();
 }
 });
