@@ -849,9 +849,20 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       &&A.mdSecMove(B,2,-1)===null&&A.mdSecMove(B,11,1)===null&&A.mdSecMove(B,5,-1)===null&&A.mdSecMove(B,0,1)===null
       &&dup.v==='Intro\n\n## A\na1\n\n### A.1\nx\n\n## B\nb1\n\n## B\nb1\n\n## C\nc1'&&dup.at===11
       &&del.v==='Intro\n\n## B\nb1\n\n## C\nc1'&&last.v.endsWith('## C\nc1\n\n## B\nb1');})());
-  ok('A546 bloc au curseur : le source du seul bloc qui contient la ligne', (()=>{const B='## T\n\n> [!WARNING]\n> Voie IM\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\nfin';
-    return A.mdBlockSrc(B,3)==='> [!WARNING]\n> Voie IM'&&A.mdBlockSrc(B,7)==='| a | b |\n|---|---|\n| 1 | 2 |'&&A.mdBlockSrc(B,0)==='## T'&&A.mdBlockSrc('',0)==='';})());
-
+  /* A547 — document par blocs : bornes, déplacer, dupliquer, supprimer, insérer ; jamais deux paragraphes fusionnés. */
+  ok('A547 blocs : bornes en lignes, blancs de fin exclus', (()=>{const B='## T\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n\n| a |\n|---|\n| 1 |\n';
+    const R=A.mdBlockRanges(B);return JSON.stringify(R.map(r=>[r.a,r.e]))==='[[0,1],[1,2],[3,5],[7,10]]'&&A.mdBlockRanges('').length===0;})());
+  ok('A547 blocs : monter, descendre, dupliquer, supprimer, insérer', (()=>{const B='Para a.\n\nPara b.\n\n## T';
+    const up=A.mdBlkMove(B,1,-1),dn=A.mdBlkMove(B,0,1),dup=A.mdBlkDup(B,0),del=A.mdBlkDel(B,1),ins=A.mdBlkIns(B,0,'> [!NOTE]\n> x'),ins0=A.mdBlkIns('',-1,'## H');
+    const glued=A.mdBlkMove('## T\nPara.',0,1);   // titre collé à son paragraphe : la ligne vide est posée à l'échange
+    return up.v==='Para b.\n\nPara a.\n\n## T'&&up.i===0&&dn.v===up.v&&dn.i===1&&A.mdBlkMove(B,0,-1)===null&&A.mdBlkMove(B,2,1)===null
+      &&dup.v==='Para a.\n\nPara a.\n\nPara b.\n\n## T'&&dup.i===1&&del.v==='Para a.\n\n## T'
+      &&ins.v==='Para a.\n\n> [!NOTE]\n> x\n\nPara b.\n\n## T'&&ins.i===1&&ins0.v==='## H'&&ins0.i===0
+      &&glued.v==='Para.\n\n## T'&&A.mdBlockRanges(glued.v).length===2;})());
+  ok('A548 blocs : glisser un bloc avant un autre ou à la fin (échanges successifs)', (()=>{const B='A.\n\nB.\n\nC.\n\nD.';
+    const fin=A.mdBlkMoveTo(B,0,4),tete=A.mdBlkMoveTo(B,3,0),mil=A.mdBlkMoveTo(B,0,2);
+    return fin.v==='B.\n\nC.\n\nD.\n\nA.'&&fin.i===3&&tete.v==='D.\n\nA.\n\nB.\n\nC.'&&tete.i===0&&mil.v==='B.\n\nA.\n\nC.\n\nD.'
+      &&A.mdBlkMoveTo(B,1,1)===null&&A.mdBlkMoveTo(B,1,2)===null&&A.mdBlkMoveTo(B,0,9)===null;})());
   group('mini-Markdown — listes cochables - [ ] (v4.6.0)');
   eq('- [ ] a → tâche non cochée, texte nettoyé', A.mdTask('[ ] a'), {done:false,text:'a'});
   eq('[x] et [X] → cochée', [A.mdTask('[x] a').done,A.mdTask('[X] a').done], [true,true]);

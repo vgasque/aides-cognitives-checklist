@@ -8520,57 +8520,123 @@ await sec('Accueil · A545 le titre choisit', async () => {
   await page.close();
 });
 
-/* ══ A546 — L'ÉDITEUR DE RÉFÉRENCE : VOIR EN ÉCRIVANT ═════════════════════════════════════════════════════════════
-   Téléphone, clavier ouvert (émulé : `visualViewport.height` réduit) : la bande rend le bloc au curseur au-dessus de la
-   barre, ne cache pas la ligne écrite, l'œil la masque (retenu), la barre tient sur une ligne de 320 à 390. Bureau
-   (≥ 1000) : source et rendu à parts égales, le rendu suit le défilement du champ. Plan : la section se déplace. */
-await sec('Éditeur · A546 voir en écrivant (bande, parts égales, sections)', async () => {
+/* ══ A546 — L'ÉDITEUR DE RÉFÉRENCE EN MARKDOWN : RENDU À PARTS ÉGALES, SECTIONS PAR LE PLAN ════════════════════════
+   Mode Markdown (interrupteur « Mise en forme en direct » coupé, A547) : à partir de 1000, source et rendu à parts égales,
+   le rendu suit le défilement du champ ; le Plan déplace la section courante. (La bande au-dessus du clavier d'A546 est
+   RETIRÉE, A547 : refusée par l'auteur.) */
+await sec('Éditeur · A546 Markdown à parts égales, sections par le Plan', async () => {
   const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d'abord : **0,5 mg**\n\n## Posologie\n\n| Âge | Dose |\n|---|---|\n| Adulte | 0,5 mg |\n\n"
     +Array.from({length:6},(_,i)=>`## Section ${i+1}\n\nTexte de la section ${i+1}, assez long pour remplir une ligne ou deux.\n\n- a\n- b\n`).join('\n');
-  const ouvrir=async page=>{await page.evaluate(async c=>{const pr=migrateProtocol({title:'Témoin A546',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);await page.waitForTimeout(500);};
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async c=>{try{localStorage.setItem('ac-mdlive','0');}catch(e){}const pr=migrateProtocol({title:'Témoin A546',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+  await page.waitForTimeout(500);
+  const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={ecart2:null,actes:[],peek:!!document.querySelector('.md-peek,[data-mdpeek]')};
+    const g=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);out.cols=g;
+    const t=document.getElementById('p-body'),s=document.getElementById('editSide');out.s0=s.scrollTop;
+    const L=t.value.split('\n').findIndex(l=>l==='## Section 3');t.scrollTop=mdLineTop(t,L);t.dispatchEvent(new Event('scroll'));await w(150);
+    const e=s.querySelector('.ep-md [data-ln="'+L+'"]');out.ecart=e?Math.round(e.getBoundingClientRect().top-s.getBoundingClientRect().top):null;out.s1=s.scrollTop;out.butee=s.scrollTop>=s.scrollHeight-s.clientHeight-1;
+    const L2=t.value.split('\n').findIndex(l=>l==='## Posologie');t.scrollTop=mdLineTop(t,L2);t.dispatchEvent(new Event('scroll'));await w(150);
+    const e2=s.querySelector('.ep-md [data-ln="'+L2+'"]');out.ecart2=e2?Math.round(e2.getBoundingClientRect().top-s.getBoundingClientRect().top):null;
+    const i=t.value.indexOf('## Section 3');t.focus();t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await w(100);
+    document.querySelector('[data-mdplan]').click();await w(250);out.actes=[...document.querySelectorAll('.popmenu [data-pickopt^="act:"]')].map(b=>b.dataset.pickopt);
+    const dn=document.querySelector('.popmenu [data-pickopt="act:down"]');if(!dn)return out;dn.click();await w(250);
+    const v=t.value;out.ordre=v.indexOf('## Section 4')<v.indexOf('## Section 3');out.curseur=t.value.split('\n')[mdCaretLine(t)];
+    try{localStorage.removeItem('ac-mdlive');}catch(e){}
+    return out;});
+  t('A546 · Markdown (≥ 1000) : source et rendu à parts égales',r.cols.length===2&&Math.abs(r.cols[0]-r.cols[1])<=1,JSON.stringify(r.cols));
+  t('A546 · le rendu suit le défilement du champ',r.s1>r.s0&&r.ecart!=null&&(Math.abs(r.ecart)<=40||r.butee)&&r.ecart2!=null&&Math.abs(r.ecart2)<=40,JSON.stringify(r));
+  t('A546 · Plan : la section courante se déplace, le curseur la suit',r.actes.join(',')==='act:up,act:down,act:dup,act:del'&&r.ordre&&r.curseur==='## Section 3',JSON.stringify(r));
+  t('A547 · la bande au-dessus du clavier est retirée (refusée)',!r.peek,String(r.peek));
+  await page.close();
+});
+
+/* ══ A547 — MISE EN FORME EN DIRECT : LE DOCUMENT S'ÉDITE PAR BLOCS ═════════════════════════════════════════════════════
+   Par défaut, le contenu rédigé s'affiche RENDU ; toucher un bloc l'ouvre en Markdown dans son propre champ, le reste reste
+   rendu ; la frappe écrit le corps ; ↑ ↓ Dupliquer Supprimer ; « Ajouter un bloc » ; copier plusieurs blocs copie leur
+   Markdown ; l'interrupteur rend le champ entier. Téléphone (clavier émulé) et bureau (relecture seule à côté). */
+await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
+  const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d'abord : **0,5 mg**\n\n## Posologie\n\n| Âge | Dose |\n|---|---|\n| Adulte | 0,5 mg |";
   {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrir(page);
-    const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={};try{localStorage.removeItem('ac-mdpeek');}catch(e){}
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A547',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+    await page.waitForTimeout(500);
+    const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};
+      o.doc=true;o.rendu={encadre:!!d.querySelector('.md-call'),tableau:!!d.querySelector('table'),champ:getComputedStyle(document.querySelector('.md-hlw')).display==='none',barre:getComputedStyle(document.querySelector('.md-toolbar')).display==='none'};
       const vv=window.visualViewport;Object.defineProperty(vv,'height',{get:()=>470,configurable:true});vv.dispatchEvent(new Event('resize'));
-      const t=document.getElementById('p-body');t.focus();const i=t.value.indexOf('Voie IM');t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await w(350);
-      const pk=document.querySelector('.md-peek'),tb=document.querySelector('.md-toolbar');if(!pk)return {bande:{},masque:{},tableau:false};   // rouge, pas plantage
-      const bas=t.getBoundingClientRect().top+mdLineTop(t,mdCaretLine(t))-t.scrollTop+parseFloat(getComputedStyle(t).paddingTop)+parseFloat(getComputedStyle(t).lineHeight);
-      out.bande={encadre:!!pk.querySelector('.callout,[class*="co-"],blockquote'),h:Math.round(pk.getBoundingClientRect().height),audessus:pk.getBoundingClientRect().bottom<=tb.getBoundingClientRect().top,
-        ligne:Math.round(bas)<=Math.round(pk.getBoundingClientRect().top),texte:pk.textContent.replace(/\s+/g,' ').trim()};
-      const j=t.value.indexOf('| Adulte');t.setSelectionRange(j+2,j+2);t.dispatchEvent(new Event('keyup'));await w(250);out.tableau=!!pk.querySelector('table');
-      document.querySelector('[data-mdpeek]').click();await w(200);
-      out.masque={vide:!pk.getBoundingClientRect().height,pressed:document.querySelector('[data-mdpeek]').getAttribute('aria-pressed'),retenu:localStorage.getItem('ac-mdpeek'),focus:document.activeElement===t};
-      document.querySelector('[data-mdpeek]').click();await w(200);
-      return out;});
-    t('A546 · téléphone : le bloc au curseur rendu au-dessus de la barre, borné, sans cacher la ligne écrite',
-      r.bande.encadre&&/Voie IM/.test(r.bande.texte)&&r.bande.h>0&&r.bande.h<=96&&r.bande.audessus&&r.bande.ligne&&r.tableau,JSON.stringify(r.bande)+' tableau='+r.tableau);
-    t('A546 · l\'œil masque la bande, retenu sur l\'appareil, le champ garde le focus',r.masque.vide&&r.masque.pressed==='false'&&r.masque.retenu==='0'&&r.masque.focus,JSON.stringify(r.masque));
-    const lignes=[];for(const w of [390,360,344,320]){await page.setViewportSize({width:w,height:740});await page.waitForTimeout(250);
-      lignes.push(await page.evaluate(w=>{const b=document.querySelector('.md-toolbar');const ys=new Set([...b.querySelectorAll('.mini')].filter(x=>x.offsetParent).map(x=>Math.round(x.getBoundingClientRect().top)));return {w,deborde:b.scrollWidth-b.clientWidth,rangs:ys.size};},w));}
-    t('A546 · la barre, l\'œil compris, tient sur une ligne de 320 à 390',lignes.every(x=>x.deborde<=0&&x.rangs===1),JSON.stringify(lignes));
+      d.querySelector('.md-call').closest('.mdb').click();await w(250);const t=d.querySelector('.mdb-ta');
+      o.ouvert={champ:!!t,src:t&&t.value,focus:document.activeElement===t,autres:d.querySelectorAll('.mdb:not(.on)').length,
+        barre:(()=>{const b=document.querySelector('.md-toolbar');return getComputedStyle(b).position==='fixed'&&document.documentElement.classList.contains('kbd');})()};
+      t.setSelectionRange(t.value.length,t.value.length);document.execCommand('insertText',false,' Répéter.');await w(100);
+      o.ecrit=state.pdraft.body.includes('**0,5 mg** Répéter.')&&document.getElementById('p-body').value===state.pdraft.body;
+      d.querySelector('[data-mdbact="up"]').click();await w(150);o.monte=state.pdraft.body.indexOf('> [!WARNING]')<state.pdraft.body.indexOf('Texte.');
+      d.querySelector('[data-mdbact="done"]').click();await w(150);o.ferme=!d.querySelector('.mdb-ta');
+      d.querySelector('.mdb-add:not(.mdb-first)').click();await w(300);const op=document.querySelector('.popmenu [data-pickopt="h"]');o.menu=!!op;if(op){op.click();await w(250);}
+      const t2=d.querySelector('.mdb-ta');o.ajout=t2&&t2.value==='## Titre'&&t2.value.slice(t2.selectionStart,t2.selectionEnd)==='Titre'&&/## Titre$/.test(state.pdraft.body);
+      return o;});
+    t('A547 · téléphone : le contenu s\'affiche rendu, le champ Markdown et la barre restent cachés tant qu\'aucun bloc n\'est ouvert',
+      r.doc&&r.rendu.encadre&&r.rendu.tableau&&r.rendu.champ&&r.rendu.barre,JSON.stringify(r.rendu||r));
+    t('A547 · toucher l\'encadré l\'ouvre seul en Markdown, focus posé, barre au-dessus du clavier',
+      r.doc&&r.ouvert.champ&&/^> \[!WARNING\]/.test(r.ouvert.src)&&r.ouvert.focus&&r.ouvert.autres>=4&&r.ouvert.barre,JSON.stringify(r.ouvert||r));
+    t('A547 · la frappe écrit le corps ; Monter, Terminé ; « Ajouter un bloc » pose un titre, mot à remplacer sélectionné',
+      r.doc&&r.ecrit&&r.monte&&r.ferme&&r.menu&&r.ajout,JSON.stringify(r));
     await page.close();}
   {const page=await br.newPage({viewport:{width:1280,height:860}});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrir(page);
-    const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={};
-      out.ecart2=null;out.actes=[];const g=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);out.cols=g;
-      const t=document.getElementById('p-body'),s=document.getElementById('editSide');out.s0=s.scrollTop;
-      const L=t.value.split('\n').findIndex(l=>l==='## Section 3');t.scrollTop=mdLineTop(t,L);t.dispatchEvent(new Event('scroll'));await w(150);
-      const e=s.querySelector('.ep-md [data-ln="'+L+'"]');out.ecart=e?Math.round(e.getBoundingClientRect().top-s.getBoundingClientRect().top):null;out.s1=s.scrollTop;out.butee=s.scrollTop>=s.scrollHeight-s.clientHeight-1;
-      // Une section du HAUT du rendu (pas de butée possible) : elle doit s'aligner.
-      const L2=t.value.split('\n').findIndex(l=>l==='## Posologie');t.scrollTop=mdLineTop(t,L2);t.dispatchEvent(new Event('scroll'));await w(150);
-      const e2=s.querySelector('.ep-md [data-ln="'+L2+'"]');out.ecart2=e2?Math.round(e2.getBoundingClientRect().top-s.getBoundingClientRect().top):null;
-      // Plan : « Descendre » la section courante.
-      const i=t.value.indexOf('## Section 3');t.focus();t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await w(100);
-      document.querySelector('[data-mdplan]').click();await w(250);out.actes=[...document.querySelectorAll('.popmenu [data-pickopt^="act:"]')].map(b=>b.dataset.pickopt);
-      const dn=document.querySelector('.popmenu [data-pickopt="act:down"]');if(!dn)return out;dn.click();await w(250);
-      const v=t.value;out.ordre=v.indexOf('## Section 4')<v.indexOf('## Section 3');out.curseur=t.value.split('\n')[mdCaretLine(t)];
-      return out;});
-    t('A546 · bureau : source et rendu à parts égales',r.cols.length===2&&Math.abs(r.cols[0]-r.cols[1])<=1,JSON.stringify(r.cols));
-    t('A546 · le rendu suit le défilement du champ (la section en haut du champ est en haut du rendu)',r.s1>r.s0&&r.ecart!=null&&(Math.abs(r.ecart)<=40||r.butee)&&r.ecart2!=null&&Math.abs(r.ecart2)<=40,JSON.stringify(r));
-    t('A546 · Plan : la section courante se déplace, le curseur la suit',r.actes.join(',')==='act:up,act:down,act:dup,act:del'&&r.ordre&&r.curseur==='## Section 3',JSON.stringify(r));
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A547',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+    await page.waitForTimeout(500);
+    const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};o.doc=true;
+      o.cols=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);
+      o.apercuCache=getComputedStyle(document.querySelector('#editSide .ep-card')).display==='none';
+      const s=getSelection();s.removeAllRanges();const g=document.createRange(),bs=d.querySelectorAll('.mdb');g.setStart(bs[0],0);g.setEnd(bs[2],bs[2].childNodes.length);s.addRange(g);
+      const dt=new DataTransfer();bs[1].dispatchEvent(new ClipboardEvent('copy',{clipboardData:dt,bubbles:true,cancelable:true}));o.copie=dt.getData('text/plain');
+      bs[1].click();await w(150);d.querySelector('[data-mdbact="dup"]').click();await w(100);o.dup=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      d.querySelector('[data-mdbact="del"]').click();await w(100);o.del=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      document.querySelector('[data-mdlive]').click();await w(300);o.markdown=!document.getElementById('mdDoc')&&getComputedStyle(document.querySelector('.md-hlw')).display!=='none'&&localStorage.getItem('ac-mdlive')==='0';
+      try{localStorage.removeItem('ac-mdlive');}catch(e){}
+      return o;});
+    t('A547 · bureau : la colonne ne garde que la relecture (320), le document est le rendu',r.doc&&r.cols[1]===320&&r.apercuCache,JSON.stringify(r));
+    t('A547 · copier plusieurs blocs rendus copie leur Markdown',r.doc&&r.copie==='## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d\'abord : **0,5 mg**',JSON.stringify(r.copie));
+    t('A547 · Dupliquer puis Supprimer un bloc ; l\'interrupteur rend le Markdown entier, retenu sur l\'appareil',r.doc&&r.dup===2&&r.del===1&&r.markdown,JSON.stringify(r));
     await page.close();}
+});
+
+/* ══ A548 — LE BLOC OUVERT SE RÈGLE SUR PLACE ; GLISSER UN BLOC ═══════════════════════════════════════════════════════
+   Un encadré ouvert : son registre en pastilles (glyphe + mot), qui réécrivent le marqueur. Une image ouverte : l'image
+   au-dessus du champ, sa taille en pastilles (écrite dans le modèle, le texte inchangé). Au pointeur fin : la poignée
+   ⋮⋮ glisse un bloc avant un autre (événements de glisser-déposer). */
+await sec('Éditeur · A548 réglages du bloc ouvert, glisser un bloc', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const c=document.createElement('canvas');c.width=40;c.height=30;c.getContext('2d').fillRect(0,0,40,30);
+    const pr=migrateProtocol({title:'Témoin A548',body:'## A\n\n> [!WARNING]\n> Voie IM\n\n![Site](img:i1)\n\nFin.',images:[{id:'i1',data:c.toDataURL('image/png'),w:40,h:30,scale:100}]});protocols.push(pr);await openProtocolEdit(pr.id);});
+  await page.waitForTimeout(500);
+  const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};o.doc=true;
+    d.querySelector('.md-call').closest('.mdb').click();await w(150);
+    const ch=[...d.querySelectorAll('[data-mdbreg]')];o.reg={n:ch.length,mots:ch.map(x=>x.textContent.replace(/[^A-Za-zÀ-ÿ]/g,'')).join('|'),glyphes:ch.every(x=>!!x.querySelector('svg')||/[△⚠ℹ✓]/.test(x.textContent)),on:(d.querySelector('[data-mdbreg].on')||{dataset:{}}).dataset.mdbreg};
+    if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await w(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
+    const dn=d.querySelector('[data-mdbact="done"]');if(dn)dn.click();await w(100);
+    const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await w(150);}
+    o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('[data-mdbscale]').length};
+    const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await w(150);}
+    o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,ouvert:!!d.querySelector('.mdb-ta')};
+    const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await w(100);
+    const bs=d.querySelectorAll('.mdb'),g=bs[bs.length-1].querySelector('.mdb-grip');o.poignee=!!g;
+    if(g){const dt=new DataTransfer();g.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:dt}));const q=bs[0].getBoundingClientRect();
+      bs[0].dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,clientX:q.left+20,clientY:q.top+2,dataTransfer:dt}));o.ligne=!!d.querySelector('.mdb-drop-b');
+      bs[0].dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,clientX:q.left+20,clientY:q.top+2,dataTransfer:dt}));await w(100);}
+    o.tete=state.pdraft.body.split('\n')[0];
+    return o;});
+  t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
+    r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
+  t('A548 · image ouverte : l\'image au-dessus du champ, sa taille réglée sur le bloc (modèle, texte inchangé)',
+    r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele===50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
+  t('A548 · glisser la poignée du dernier bloc sur le premier : ligne de dépôt, bloc posé en tête',r.doc&&r.poignee&&r.ligne&&r.tete==='Fin.',JSON.stringify(r));
+  await page.close();
 });
 
 /* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
