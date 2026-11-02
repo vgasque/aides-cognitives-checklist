@@ -898,3 +898,46 @@ pastilles qui vont à la ligne et « Voir les n aides » (un tap de plus pour ap
 Témoins : `audit-doctrine` « Accueil · A545 le titre choisit » (vérifié capable d'échouer : 6 rouges sur l'avant),
 et réécrits sciemment : A475 (la porte des collections au téléphone est le titre), A528 → A545 (« Affichage » au bout
 de la ligne du titre), la gouttière du rail (la rangée mesurée est la ligne du titre).
+
+## A546 — L'éditeur de référence : voir en écrivant (v5.75.0)
+
+*Amende A455 (« ≥ 1000 : la colonne d'aperçu, inchangée ») et A459 (le calque) ; garde l'écart d'A452-A459 (pas de
+`contenteditable`) et la barre au-dessus du clavier d'A468-A472. Demande de l'auteur (« voir directement les
+modifications, la mise en page, les images ») ; option A retenue sur la planche Claude Design « Éditeur de protocoles
+— voir en écrivant », 02/11/2026, après arbitrage sur le copier-coller.*
+
+**Constat** (mesuré v5.74) : au téléphone, « Écrire | Aperçu » ne montrait jamais les deux ; vérifier un encadré, un
+tableau ou une image obligeait à basculer et à perdre sa place. La source restait brute au doigt (le calque d'A459
+n'existe qu'à la souris), et une image n'était qu'un identifiant `![…](img:ID)`. Au bureau, le rendu tenait dans la
+colonne de 320 px, sous la relecture, loin de la ligne écrite.
+
+**Décision — un seul champ, natif, et son rendu à côté :**
+- **Téléphone, clavier ouvert** : la bande « bloc rendu » au-dessus de la barre (`.md-peek`, `mdPeekPaint`) rend le
+  SEUL bloc qui contient le curseur (`mdBlockSrc`, pure) — encadré, tableau, image. Bornée à 96 px (l'écran est compté,
+  A471) ; si le curseur passe sous elle, la page remonte d'autant (la ligne écrite reste visible). Un **œil** dans la
+  barre la masque (`[data-mdpeek]`, `aria-pressed`) ; le choix est retenu SUR L'APPAREIL (`ac-mdpeek`, réglage
+  d'affichage comme le thème, hors espace de compte, donc hors `WIPE_SPACE_KEYS`). Un toucher sur la bande garde le
+  champ (surface de la barre, `tapKeepsFocus`) ; 16 px la séparent des boutons, plus que les 12 de rattrapage. Sous 400
+  px effectifs, l'œil prend la place du séparateur : la barre tient sur une ligne de 320 à 390 (mesuré).
+- **Bureau et tablette paysage (≥ 1000)** : source et rendu **à parts égales** (`body.view-pedit .read-grid` en
+  `1fr 1fr`, page bornée à 1440 au lieu de 1202). Le rendu **suit le défilement du champ** (`mdScrollLink`) : la
+  section en haut du champ vient en haut de la colonne, par interpolation entre les débuts de blocs, mesurés en une
+  fois par un double aux métriques du champ (`mdLineTops`). De 780 à 999, la colonne d'A468 reste.
+- **Images** : au pointeur fin, le calque pose au bout d'une ligne `![…](img:ID)` la vignette et la taille de l'image
+  (`.hl-imc`, en absolu : aucune place prise dans la ligne ; la taille en `attr(data-s)` : le texte du calque reste
+  octet pour octet celui du champ). Au téléphone, la bande montre l'image elle-même.
+- **Déplacer sans couper-coller** : le menu **Plan** propose, pour la section où l'on écrit, Monter · Descendre ·
+  Dupliquer · Supprimer (seuls les gestes possibles). Une section = son titre jusqu'au prochain titre de niveau égal ou
+  supérieur ; ses voisines = même niveau sous le même parent (`mdSecAt`, `mdSecMove`, `mdSecDup`, `mdSecDel`, pures).
+  L'écriture passe par `mdSplice` sur la seule plage qui change (`mdReplaceBody`) : ⌘Z natif et ↶ de l'éditeur
+  l'annulent ; la suppression le dit dans un toast.
+
+**Ce qui ne change pas, à dessein** : le copier-coller, la sélection et l'annulation restent ceux du champ natif (la
+raison du choix de A sur B) ; « Écrire | Aperçu » reste au téléphone pour lire tout le rendu.
+*Formes écartées* (planche) : **B — l'édition par blocs** (le rendu devient l'éditeur, un bloc touché s'ouvre en
+Markdown, réglages d'encadré et d'image sur place, « ＋ » entre deux blocs) : reportée, pas refusée — elle complique le
+copier-coller de plusieurs blocs (une sélection ne traverse pas les champs ; copier le rendu perd le Markdown) et
+demande un historique d'annulation propre ; à reprendre si le besoin de modifier sur le rendu se confirme, avec la
+source entière à un tap pour les longs copier-coller. Le WYSIWYG `contenteditable` reste écarté (A452-A459).
+Témoins : `tests.html` (calque et vignette, sections, bloc au curseur) ; `audit-doctrine` « Éditeur · A546 » (clavier
+émulé par `visualViewport.height` ; vérifié capable d'échouer : 5 rouges sur l'avant).

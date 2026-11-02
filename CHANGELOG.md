@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.75.0] — 2026-11-02
+L'éditeur des références : voir en écrivant (A546, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
+serveur.
+- **Au téléphone, clavier ouvert**, le passage où vous écrivez s'affiche rendu juste au-dessus de la barre d'outils :
+  encadré, tableau ou image, sans basculer sur « Aperçu ». L'œil de la barre le masque ou le remet ; ce choix est
+  retenu sur l'appareil.
+- **Sur ordinateur et tablette en paysage**, le texte et son rendu sont à parts égales, et le rendu suit le défilement
+  du texte.
+- **Les images** : au bout de la ligne `![…](img:…)`, une vignette montre laquelle et à quelle taille (à la souris).
+- **Déplacer une section** : le menu « Plan » propose Monter, Descendre, Dupliquer ou Supprimer la section où vous
+  écrivez. ⌘Z ou ↶ annule.
+- Le copier-coller et l'annulation restent ceux du texte, comme avant.
+
 ## [5.74.0] — 2026-11-02
 Au téléphone, choisir une collection ou une catégorie (A545, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
 côté serveur.
@@ -158,18 +171,3 @@ rejouer côté serveur.
 - **« Page » (et « Schéma » sur tablette et ordinateur) sont en haut de l'écran.**
 - « Apprendre avec cette aide » devient une rangée sobre ; sur ordinateur, les minuteurs prêts sont des tuiles
   (« au démarrage », « à lancer »).
-
-## [5.61.0] — 2026-11-01
-Lot 6 de la refonte « Natif » : la session, selon vos quatre arbitrages sur planche (A519, doctrine
-`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Les étapes sont à plat dans la carte du bloc**, sans tuile grise ; seule l'étape faite garde son fond vert.
-  CRITIQUE et VIGILANCE s'écrivent seuls, en couleur, sans pastille.
-- **La tête du bloc dit « En cours · Bloc 3 »** ; la légende « sous l'étape, en gris : la réponse attendue »
-  disparaît.
-- **La décision n'a plus de fond ambré** : contour bleu comme tout bloc en cours, et « ◆ Décision · bloc 2 » en
-  ambre. Son jalon passe au pied : « SI Chocs délivrés ≥ 3 ●○○ 0/3 », le texte dessous, le raccourci ⚡ au seuil.
-- **L'en-tête dit « ● Session »** au lieu de « ■ Mode crise » ; le choix du thème passe dans le menu ⋯ (il reste
-  dans l'en-tête d'une référence).
-- **Les repères du bloc tiennent sur une ligne** : « △ Adrénaline — IV/IO » en ambre, l'état à droite, la dose
-  dessous.
-- Gardé : la cellule de compteur de la capsule (valeur, puis nom entier), pour ne jamais abréger son nom.
