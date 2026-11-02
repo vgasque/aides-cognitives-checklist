@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.76.0] — 2026-11-02
+L'éditeur des références met en forme pendant qu'on écrit (A547, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Mise en forme en direct** (par défaut) : le contenu rédigé s'affiche comme à la lecture — titres, gras, encadrés,
+  tableaux, images. Touchez un passage : lui seul s'ouvre en Markdown, le reste reste mis en forme. « Terminé » (ou
+  Échap) le referme.
+- Sur le passage ouvert : **Monter, Descendre, Dupliquer, Supprimer** (↶ annule). **« Ajouter un bloc »** propose
+  paragraphe, titre, encadré, liste, cases, tableau, image ou séparateur.
+- **Copier plusieurs passages** copie leur Markdown : la mise en forme suit au collage.
+- L'interrupteur **« Mise en forme en direct »** ramène au texte Markdown entier, pour les longs copier-coller ; ce choix
+  est retenu sur l'appareil.
+- La bande d'aperçu au-dessus du clavier (5.75) est retirée.
+
 ## [5.75.0] — 2026-11-02
 L'éditeur des références : voir en écrivant (A546, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
 serveur.
@@ -160,14 +173,3 @@ serveur.
   (Rouvrir, Compte-rendu, Supprimer) ; une session en cours garde « Reprendre » à vue. Les exercices restent à part.
 - **Moi** prend la même allure : intertitres en minuscules, groupes sans ombre ; l'Accès direct se décrit « en tête
   de l'accueil ».
-
-## [5.62.0] — 2026-11-01
-Lot 7 de la refonte « Natif » : l'écran de démarrage d'une aide (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **« Quand l'utiliser » et « Ne pas oublier » sont des listes groupées** sous leur intertitre, toujours ouvertes
-  avant la session (en session, rien ne change).
-- **Une seule ligne sous le titre** : « SMUR · adulte · ACR · validation », puis « △ À relire » et « △ À compléter »
-  en pastilles ; le bandeau « À relire » disparaît.
-- **« Page » (et « Schéma » sur tablette et ordinateur) sont en haut de l'écran.**
-- « Apprendre avec cette aide » devient une rangée sobre ; sur ordinateur, les minuteurs prêts sont des tuiles
-  (« au démarrage », « à lancer »).

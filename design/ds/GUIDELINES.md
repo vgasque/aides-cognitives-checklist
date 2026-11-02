@@ -309,9 +309,10 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
 - **Les éditeurs ne sont PAS alignés sur leur vue de lecture** — cette ligne l'affirmait,
   c'était faux et mesuré tel quel (1400 px rend 900 + 320, jamais 860 + 360). L'éditeur
   de FICHE est une colonne d'édition **fluide** (1fr) + aperçu sticky 320 px dès 1000 px ;
-  l'éditeur de PROTOCOLE, dès 1000 px, met la source et son rendu **à parts égales** (A546 ;
-  page bornée à 1440), le rendu suivant le défilement du champ. Au téléphone, clavier ouvert, le
-  bloc au curseur se rend au-dessus de la barre (l'œil le masque, choix retenu sur l'appareil).
+  l'éditeur de PROTOCOLE s'écrit **par blocs** (A547, « Mise en forme en direct », par défaut) : le
+  contenu rédigé s'affiche rendu, toucher un bloc l'ouvre seul en Markdown ; la colonne de droite ne
+  garde que la relecture (320). Interrupteur coupé (choix retenu sur l'appareil) : le Markdown entier,
+  et dès 1000 px source et rendu **à parts égales**, le rendu suivant le défilement du champ (A546).
 - **Deux seuils distincts, à ne jamais refusionner** : 780 = rail de LECTURE ;
   1000 = aperçu en direct des ÉDITEURS.
 - **Rayons — ÉCHELLE FERMÉE À QUATRE CRANS** (v5.6) : `--r-1` 8 · `--r-2` 10 · `--r-3` 12 ·
