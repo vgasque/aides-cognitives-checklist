@@ -998,9 +998,31 @@ bureau ; vérifié capable d'échouer : 7 rouges sur l'avant), « Éditeur · A5
   l'échelle fermée `MD_SCALES`) écrite dans le modèle comme la section « Images » — le texte `![…](img:ID)` ne change
   pas (doctrine « marqueur hors du champ ») — et « Remplacer… » (nouvelle photo, même identifiant : toutes les
   références suivent).
-- **Glisser un bloc** (pointeur fin) : la poignée ⋮⋮ (`.mdb-grip`, cachée au toucher, `aria-hidden` : Monter /
+- **Glisser un bloc** (pointeur fin, RENVERSÉ par A549 — « Prendre / Poser ») : la poignée ⋮⋮ (`.mdb-grip`, cachée au toucher, `aria-hidden` : Monter /
   Descendre restent le geste au doigt et au clavier) ; une ligne bleue dit où le bloc se pose (`.mdb-drop-b`,
   `.mdb-drop-a`) ; `mdBlkMoveTo` (pure) déplace par échanges successifs, chacun ne touchant que la paire échangée.
 - **Encore à faire (dit)** : glisser une section entière dans le Plan ; glisser au doigt.
 Témoins : `tests.html` (`mdBlkMoveTo`) ; `audit-doctrine` « Éditeur · A548 » (vérifié capable d'échouer : 3 rouges sur
 l'avant ; le glisser est éprouvé par événements de glisser-déposer).
+
+## A549 — Déplacer un bloc d'une référence : « Prendre / Poser », le geste de l'éditeur d'aide (v5.78.0)
+
+*Renverse la poignée de glisser d'A548 et retire Monter / Descendre d'A547. Demande de l'auteur : « reprends le
+déplacement comme lorsqu'on modifie une aide et qu'on déplace des blocs, pour être cohérent ».*
+
+Le déplacement d'un bloc d'une référence prend **exactement** le geste de l'éditeur d'aide (MK5-b et ses suites,
+`conventions-de-code.md` : « RÉORDONNER PAR « PRENDRE / POSER » », « UN DÉPLACEMENT EST UN GESTE MODAL ») :
+- **Prendre** : la poignée ⠿ du bloc (`.mini.grab.mdb-grab`, au survol au pointeur fin) ou, au doigt, « ⠿ Déplacer » du
+  bloc ouvert (les outils suivent le focus, K3). Commencer à glisser la poignée AMORCE le mode (v4.75.0).
+- **Le mode** : bandeau `.ed-grab` qui NOMME le bloc (« Déplacement : « … » », « touchez une destination », ✕) ; le bloc
+  pris porte `.grabbed` (« ⠿ en déplacement », anneau `--act`, pleinement lisible) ; la page se réécrit en cibles
+  `.ed-drop` pleine largeur ≥ 44 px — « Poser en tête », « Poser ici », « Poser en fin ». Le reste du formulaire est
+  INERTE par `disabled` natif (Plan, interrupteur), comme l'éditeur d'aide.
+- **Poser** : un toucher sur une cible (ou le lâcher d'un glisser sur elle) — `mdBlkMoveTo` ; **annuler** : ✕, Échap ou le
+  bloc pris lui-même ; le focus revient à la poignée.
+- **Retirés (règle 14)** : Monter / Descendre du bloc ouvert (les ↑ ↓ avaient quitté l'éditeur d'aide pour la même raison :
+  plus lents, un rendu par tap), la poignée `.mdb-grip` et sa ligne de dépôt (`.mdb-drop-b`, `.mdb-drop-a`, `.mdb-drag`).
+  `mdBlkMove` reste : `mdBlkMoveTo` déplace par échanges successifs.
+*Forme écartée* : un appui long au doigt pour glisser (proposée en cours de lot) — MK5-b l'écarte comme mécanisme (gants,
+une main, appareil qui bouge).
+Témoin : `audit-doctrine` « Éditeur · A548-A549 » (vérifié capable d'échouer sur la v5.77).

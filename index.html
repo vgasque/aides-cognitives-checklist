@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eebxaGU2x9K/Gbz+Et18R3UR9lyMuZiGBRixKQdkFE4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-8kn9Uf1SJu9auC3VlqDcYFIV8csB5Lghpctx8sAO5L4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5344,9 +5344,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La marque vaut pour TOUT ce qui se prend (lot 2, v4.75.0) : un bloc, une étape, une ligne de
      liste, une carte de minuteur, une rangée de compteur. Un seul jeu de règles — sinon la
      cinquième rangée ajoutée demain n'aurait pas la marque et personne ne le verrait. */
-  :is(.blk,.li,.tmedit).grabbed{outline:2px solid var(--act);outline-offset:2px;background:var(--primary-soft)}
+  :is(.blk,.li,.tmedit,.mdb).grabbed{outline:2px solid var(--act);outline-offset:2px;background:var(--primary-soft)}
   :is(.blk,.tmedit).grabbed{box-shadow:var(--shadow-work)}
-  :is(.blk,.li,.tmedit).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
+  :is(.blk,.li,.tmedit,.mdb).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
     font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--act);margin-bottom:4px}
   .li.grabbed{border-radius:8px}
   /* LA MARQUE PASSE À LA LIGNE (v4.78.0, signalé à l'usage : « tout le champ texte est rétréci au
@@ -5388,7 +5388,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Détail : doctrine-css.md C90. */
   @media (prefers-reduced-motion:no-preference){
     .ed-drop{animation:dropIn .18s cubic-bezier(.2,0,0,1) both;animation-delay:calc(var(--i,0) * 22ms)}
-    :is(.blk,.li,.tmedit).grabbed{animation:grabWake .5s cubic-bezier(.3,.05,.3,1)}
+    :is(.blk,.li,.tmedit,.mdb).grabbed{animation:grabWake .5s cubic-bezier(.3,.05,.3,1)}
     .ed-grab{animation:grabBanIn .22s cubic-bezier(.2,0,0,1)}
   }
   @keyframes dropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
@@ -8358,13 +8358,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
   .mdb-imgv img{display:block;max-width:100%;height:auto;border-radius:var(--r-1)}
-  .mdb-grip{position:absolute;top:8px;left:-24px;width:20px;text-align:center;font-size:var(--t-meta);font-weight:800;letter-spacing:-2px;color:var(--ink-3);cursor:grab;opacity:0;user-select:none}
-  .mdb:hover .mdb-grip{opacity:1}
-  @media (pointer:coarse){.mdb-grip{display:none}}
-  .mdb.mdb-drag{opacity:.45}
-  .mdb.mdb-drop-b{box-shadow:0 -3px 0 var(--act)}
-  .mdb.mdb-drop-a{box-shadow:0 3px 0 var(--act)}
-  @media (pointer:fine){.md-doc{padding-left:24px}}
+  .mdb-grab{position:absolute;top:4px;left:-36px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}
+  .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
+  @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
+  @media (pointer:fine){.md-doc{padding-left:40px}}
+  .md-doc>.ed-grab{margin:0 0 4px}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
   .mdt-g{position:relative;display:inline-flex}
@@ -9690,7 +9688,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.77.0';
+const APP_VERSION='5.78.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17615,30 +17613,41 @@ function mdBlkToolsHtml(src,p){const k=mdSrcCall(src);
     +MD_SCALES.map(v=>`<button type="button" class="mdb-chip${v===_scale(im.scale)?' on':''}" data-mdbscale="${v}" role="radio" aria-checked="${v===_scale(im.scale)}">${v} %</button>`).join('')
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
   return '';}
-function mdDocHtml(p,open){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
+/* A549 — DÉPLACER UN BLOC = « PRENDRE / POSER », LE GESTE DE L'ÉDITEUR D'AIDE (MK5-b, v4.75.0-v4.79.0) : la poignée ⠿
+   soulève le bloc (« ⠿ en déplacement », bandeau qui le nomme, ✕), la page se réécrit en cibles « Poser ici » pleine
+   largeur, un toucher le pose ; Échap, ✕ ou le bloc lui-même l'annulent ; commencer à glisser la poignée AMORCE le mode.
+   Mêmes classes (`.ed-grab`, `.ed-drop`, `.grabbed`) : un seul dessin du déplacement dans l'application. */
+const mdBlkLabel=src=>{const t=mdStrip(String(src||'').replace(/^>\s*\[![^\]]*\]\s*/,'')).replace(/\s+/g,' ').trim();return t?'« '+(t.length>60?t.slice(0,59)+'…':t)+' »':'ce bloc';};
+function mdGrabHtml(p,grab){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n'),src=r=>L.slice(r.a,r.e).join('\n');
+  const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
+  return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(mdBlkLabel(src(R[grab])))}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
+    +R.map((r,i)=>drop(i)+`<div class="mdb${i===grab?' grabbed':''}" data-mdb="${i}"${i===grab?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
+function mdDocHtml(p,open,grab){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab);
+  const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
   if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1">${uiIcon('plus',16,{sw:2.4})}Écrire le contenu…</button>`;
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
     if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea>
       <div class="mdb-acts" role="group" aria-label="Ce bloc">
-        <button type="button" class="btn sm" data-mdbact="up"${i?'':' disabled'} aria-label="Monter ce bloc">${uiIcon('chev',14,{sw:2.4,cls:'mdt-up'})}Monter</button>
-        <button type="button" class="btn sm" data-mdbact="down"${i<R.length-1?'':' disabled'} aria-label="Descendre ce bloc">${uiIcon('chev',14,{sw:2.4,cls:'mdt-dn'})}Descendre</button>
-        <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
+${R.length>1?`        <button type="button" class="btn sm" data-mdbact="grab" title="Déplacer — touchez, puis touchez la destination"><span aria-hidden="true">⠿</span> Déplacer</button>
+`:''}        <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
         <button type="button" class="btn sm danger" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
         <button type="button" class="btn sm primary mdb-done" data-mdbact="done">Terminé</button></div></div>`;
     const h=mdRender(src,{images:p.images})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
-    return `<div class="mdb" data-mdb="${i}"><span class="mdb-grip" draggable="true" aria-hidden="true" title="Glisser pour déplacer">⋮⋮</span><button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`
+    return `<div class="mdb" data-mdb="${i}">${R.length>1?`<button type="button" class="mini grab mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`:''}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`
       +(i===open-1||i===open?'':`<button type="button" class="mdb-gap" data-mdbadd="${i}" aria-label="Ajouter un bloc après le bloc ${i+1}">${uiIcon('plus',14,{sw:2.6})}</button>`);}).join('')
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
 const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h','Titre de section','## Titre','## Titre'],['c','Encadré','> [!WARNING]','> [!WARNING]\n> Texte'],
   ['ul','Liste','- élément','- Élément'],['task','Cases à cocher','- [ ] élément','- [ ] Élément'],['tbl','Tableau','grille, modèle','| Colonne | Colonne |\n|---|---|\n|  |  |'],
   ['img','Image ou photo','appareil, galerie',''],['hr','Séparateur','---','---']];
 function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;
-  const card=doc.closest('.md-ed');let open=-1,blk=null,self=false;
+  const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1;
   const lines=()=>String(p.body||'').split('\n'),l2c=n=>n?lines().slice(0,n).join('\n').length+1:0;
   // Toute écriture passe par le champ entier (masqué) : enregistrement, relecture, Plan et ↶ voient le même texte.
   const push=v=>{self=true;ta.value=v;ta.dispatchEvent(new Event('input'));self=false;};
   const fit=t=>{t.style.height='auto';t.style.height=Math.ceil(t.scrollHeight/zoomF()+2)+'px';};
-  const paint=(sel)=>{doc.innerHTML=mdDocHtml(p,open);card.classList.toggle('mdl-open',open>=0);
+  const paint=(sel)=>{doc.innerHTML=mdDocHtml(p,open,grab);card.classList.toggle('mdl-open',open>=0);
+    // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
+    card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
     const t=doc.querySelector('.mdb-ta');setAct(t||null);if(!t){blk=null;return;}
     const r=mdBlockRanges(p.body)[open];if(!r){open=-1;return paint();}
     blk={a:r.a,n:r.e-r.a};{const c=l2c(blk.a);ta.setSelectionRange(c,c);ta.dispatchEvent(new Event('keyup'));}   // le Plan lit la section du bloc ouvert
@@ -17663,10 +17672,18 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],k=ph?T[3].lastIndexOf(ph):-1;
       openAt(r.i,k>=0?[k,k+ph.length]:undefined);
       if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t);}}}});
+  const take=i=>{open=-1;grab=i;paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});
+    const g=doc.querySelector('.grabbed');if(g)g.scrollIntoView({block:'nearest'});};
+  const drop=k=>{const i=grab;grab=-1;const r=mdBlkMoveTo(p.body,i,k);if(r)push(r.v);paint(false);
+    const b=doc.querySelector('[data-mdb="'+(r?r.i:i)+'"]');if(b){b.scrollIntoView({block:'nearest'});const h=b.querySelector('.mdb-grab');if(h)h.focus({preventScroll:true});}};
+  const cancel=()=>{const i=grab;grab=-1;paint(false);const h=doc.querySelector('[data-mdbgrab="'+i+'"]');if(h)h.focus({preventScroll:true});};
   doc.addEventListener('click',e=>{
+    if(grab>=0){const d=e.target.closest('[data-mdbdrop]');if(d)return drop(+d.dataset.mdbdrop);
+      if(e.target.closest('[data-mdbgrabx]'))return cancel();e.preventDefault();return;}
+    const gb=e.target.closest('[data-mdbgrab]');if(gb){e.stopPropagation();return take(+gb.dataset.mdbgrab);}
     const x=e.target.closest('[data-mdbact]');if(x){const k=x.dataset.mdbact,i=open;
       if(k==='done')return close();
-      if(k==='up'||k==='down')return apply(mdBlkMove(p.body,i,k==='up'?-1:1));
+      if(k==='grab')return take(i);
       if(k==='dup')return apply(mdBlkDup(p.body,i));
       if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}}
     const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
@@ -17684,18 +17701,15 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const bs=[...doc.querySelectorAll('.mdb')].filter(b=>s.containsNode(b,true));if(bs.length<2)return;
     const R=mdBlockRanges(p.body),l=lines(),a=R[+bs[0].dataset.mdb],z=R[+bs[bs.length-1].dataset.mdb];if(!a||!z)return;
     e.clipboardData.setData('text/plain',l.slice(a.a,z.e).join('\n'));e.preventDefault();});
-  /* A548 — GLISSER UN BLOC À LA SOURIS (pointeur fin) : la poignée ⋮⋮ ; le dépôt se fait entre deux blocs, la ligne de
-     dépôt dit où. Au doigt et au clavier, Monter / Descendre restent le geste (la poignée est cachée, aria-hidden). */
-  let drag=-1,dropAt=-1;const mark=k=>{doc.querySelectorAll('.mdb-drop-b,.mdb-drop-a').forEach(x=>x.classList.remove('mdb-drop-b','mdb-drop-a'));
-    const bs=doc.querySelectorAll('.mdb');if(k<0)return;if(k<bs.length)bs[k].classList.add('mdb-drop-b');else if(bs.length)bs[bs.length-1].classList.add('mdb-drop-a');};
-  doc.addEventListener('dragstart',e=>{const g=e.target.closest&&e.target.closest('.mdb-grip');if(!g){return;}const b=g.closest('.mdb');drag=+b.dataset.mdb;
-    e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',mdBlockRanges(p.body)[drag]?lines().slice(mdBlockRanges(p.body)[drag].a,mdBlockRanges(p.body)[drag].e).join('\n'):'');
-    try{e.dataTransfer.setDragImage(b,12,12);}catch(x){}b.classList.add('mdb-drag');});
-  doc.addEventListener('dragover',e=>{if(drag<0)return;e.preventDefault();e.dataTransfer.dropEffect='move';
-    const bs=[...doc.querySelectorAll('.mdb')];let k=bs.length;for(let j=0;j<bs.length;j++){const r=bs[j].getBoundingClientRect();if(e.clientY<r.top+r.height/2){k=j;break;}}
-    if(k!==dropAt){dropAt=k;mark(k===drag||k===drag+1?-1:k);}});
-  doc.addEventListener('drop',e=>{if(drag<0)return;e.preventDefault();const r=mdBlkMoveTo(p.body,drag,dropAt);drag=-1;mark(-1);if(r){push(r.v);open=-1;paint(false);}});
-  doc.addEventListener('dragend',()=>{drag=-1;dropAt=-1;mark(-1);doc.querySelectorAll('.mdb-drag').forEach(x=>x.classList.remove('mdb-drag'));});
+  /* A549 : commencer à glisser la poignée AMORCE le mode (le geste que fait instinctivement la souris) ; le dépôt se fait
+     sur une cible « Poser ici », au clic comme au lâcher. */
+  doc.addEventListener('dragstart',e=>{const g=e.target.closest&&e.target.closest('[data-mdbgrab]');if(!g||grab>=0)return;
+    try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','');}catch(x){}const i=+g.dataset.mdbgrab;setTimeout(()=>take(i),0);});
+  doc.addEventListener('dragover',e=>{if(grab>=0&&e.target.closest&&e.target.closest('[data-mdbdrop]')){e.preventDefault();try{e.dataTransfer.dropEffect='move';}catch(x){}}});
+  doc.addEventListener('drop',e=>{const d=grab>=0&&e.target.closest&&e.target.closest('[data-mdbdrop]');if(d){e.preventDefault();drop(+d.dataset.mdbdrop);}});
+  const esc_=e=>{if(!document.contains(doc)){document.removeEventListener('keydown',esc_,true);return;}
+    if(e.key==='Escape'&&grab>=0){e.preventDefault();e.stopPropagation();cancel();}};
+  document.addEventListener('keydown',esc_,true);
   // Un changement venu d'ailleurs (relecture, Plan, ↶) : le document se redessine, bloc refermé.
   ta.addEventListener('input',()=>{if(self)return;open=-1;paint(false);});
   _mdDocGo=(ln,openIt)=>{const R=mdBlockRanges(p.body);let i=-1;R.forEach((r,k)=>{if(r.a<=ln)i=k;});if(i<0)return;

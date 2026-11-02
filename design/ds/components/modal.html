@@ -4951,9 +4951,9 @@
   /* La marque vaut pour TOUT ce qui se prend (lot 2, v4.75.0) : un bloc, une étape, une ligne de
      liste, une carte de minuteur, une rangée de compteur. Un seul jeu de règles — sinon la
      cinquième rangée ajoutée demain n'aurait pas la marque et personne ne le verrait. */
-  :is(.blk,.li,.tmedit).grabbed{outline:2px solid var(--act);outline-offset:2px;background:var(--primary-soft)}
+  :is(.blk,.li,.tmedit,.mdb).grabbed{outline:2px solid var(--act);outline-offset:2px;background:var(--primary-soft)}
   :is(.blk,.tmedit).grabbed{box-shadow:var(--shadow-work)}
-  :is(.blk,.li,.tmedit).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
+  :is(.blk,.li,.tmedit,.mdb).grabbed::before{content:"⠿ en déplacement";display:block;width:100%;
     font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--act);margin-bottom:4px}
   .li.grabbed{border-radius:8px}
   /* LA MARQUE PASSE À LA LIGNE (v4.78.0, signalé à l'usage : « tout le champ texte est rétréci au
@@ -4995,7 +4995,7 @@
      Détail : doctrine-css.md C90. */
   @media (prefers-reduced-motion:no-preference){
     .ed-drop{animation:dropIn .18s cubic-bezier(.2,0,0,1) both;animation-delay:calc(var(--i,0) * 22ms)}
-    :is(.blk,.li,.tmedit).grabbed{animation:grabWake .5s cubic-bezier(.3,.05,.3,1)}
+    :is(.blk,.li,.tmedit,.mdb).grabbed{animation:grabWake .5s cubic-bezier(.3,.05,.3,1)}
     .ed-grab{animation:grabBanIn .22s cubic-bezier(.2,0,0,1)}
   }
   @keyframes dropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
@@ -7965,13 +7965,11 @@
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
   .mdb-imgv img{display:block;max-width:100%;height:auto;border-radius:var(--r-1)}
-  .mdb-grip{position:absolute;top:8px;left:-24px;width:20px;text-align:center;font-size:var(--t-meta);font-weight:800;letter-spacing:-2px;color:var(--ink-3);cursor:grab;opacity:0;user-select:none}
-  .mdb:hover .mdb-grip{opacity:1}
-  @media (pointer:coarse){.mdb-grip{display:none}}
-  .mdb.mdb-drag{opacity:.45}
-  .mdb.mdb-drop-b{box-shadow:0 -3px 0 var(--act)}
-  .mdb.mdb-drop-a{box-shadow:0 3px 0 var(--act)}
-  @media (pointer:fine){.md-doc{padding-left:24px}}
+  .mdb-grab{position:absolute;top:4px;left:-36px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}
+  .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
+  @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
+  @media (pointer:fine){.md-doc{padding-left:40px}}
+  .md-doc>.ed-grab{margin:0 0 4px}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
   .mdt-g{position:relative;display:inline-flex}
