@@ -1026,3 +1026,23 @@ Le déplacement d'un bloc d'une référence prend **exactement** le geste de l'�
 *Forme écartée* : un appui long au doigt pour glisser (proposée en cours de lot) — MK5-b l'écarte comme mécanisme (gants,
 une main, appareil qui bouge).
 Témoin : `audit-doctrine` « Éditeur · A548-A549 » (vérifié capable d'échouer sur la v5.77).
+
+## A550 — Le document par blocs garde le rythme de la lecture (v5.78.1)
+
+*Amende A547-A549 ; signalé par l'auteur sur captures : « quelques soucis de design — marges, padding ».*
+
+Mesuré sur ses captures : (1) les « ＋ » entre deux blocs (`.mdb-gap`) apparaissaient TOUS au survol du document et
+chevauchaient filets et textes ; (2) le cadre de survol était une BORDURE avec rembourrage — il décalait le contenu et
+le crayon mordait le bord ; (3) les marges du rendu étaient mises à zéro dans chaque bloc (`.mdb>*`), et le document
+perdait le rythme de la lecture (titre, paragraphe en gras et liste collés) ; (4) le bloc ouvert prenait le style
+générique `.field textarea` (spécificité 0,1,1 contre 0,1,0 : fond gris, anneau en second trait) et Plex Mono, embarquée
+en 600 seulement, le faisait lire en gras.
+
+**Décision.** Le document est un flux de BLOCS SANS MARGE NI BORDURE propres (`.md-doc` en bloc, plus en flex) : les
+marges du rendu se fondent entre blocs comme en lecture — ce que l'auteur voit est la référence lue. Le survol est un
+`outline` décalé de 6 px (rien ne bouge) ; ⠿ et le crayon se logent ensemble en haut à droite, dans ce cadre, et le
+texte garde l'alignement du formulaire (plus de gouttière de 40 px à gauche). Les « ＋ » entre blocs sont **retirés**
+(règle 14) : « ＋ Bloc après » rejoint les gestes du bloc ouvert, « Ajouter un bloc » reste en pied. Le bloc ouvert :
+fond de carte, UNE bordure `--act` et l'anneau doux `--primary-soft`, police d'interface (`--f-ui`, 16 px au toucher).
+*Forme écartée* : garder les « ＋ » au survol d'un seul interstice (une cible de 20 px entre deux blocs, introuvable au
+doigt et bruyante à la souris).

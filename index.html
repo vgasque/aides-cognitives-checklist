@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-8kn9Uf1SJu9auC3VlqDcYFIV8csB5Lghpctx8sAO5L4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DxsmwGi6aHxeracTbARJfhhyz2uo2tnLL21hD8/OY0E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8320,28 +8320,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-live input:checked{background:var(--act)}
   .md-live input:checked::after{left:16px}
   .md-live input:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .md-doc{display:flex;flex-direction:column;margin:4px 0 8px}
-  .mdb{position:relative;padding:4px 10px;border:1px solid transparent;border-radius:var(--r-2);cursor:text}
-  .mdb>:not(.mdb-ed){margin-top:0;margin-bottom:0}
-  @media (hover:hover){.mdb:not(.on):hover{border-color:var(--line)}}
-  .mdb.on{margin:4px 0;padding:4px 0}
-  .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-1);
-    background:var(--amb);color:var(--ink);font-family:var(--f-mono);font-size:var(--t-item);line-height:1.55}
-  @media (pointer:coarse){.mdb-ta{font-size:16px}}   /* règle 9 : sous 16 px, Safari iOS zoome au focus */
-  .mdb-ta:focus{outline:2px solid var(--act);outline-offset:1px}
+  /* A550 (v5.78.1, signalé : marges écrasées, « ＋ » partout, bloc ouvert trop lourd) : le document garde le RYTHME de la
+     lecture — blocs sans marge ni bordure propre, les marges du rendu se fondent comme en lecture ; le survol ne déplace rien
+     (un `outline`, pas une bordure). */
+  .md-doc{display:block;margin:4px 0 8px}
+  .mdb{position:relative;border-radius:var(--r-1);cursor:text}
+  .md-doc>.mdb:first-child>:first-child,.md-doc>.ed-grab+.ed-drop+.mdb>:first-child{margin-top:0}
+  @media (hover:hover){.mdb:not(.on):not(.grabbed):hover{outline:1px solid var(--line-strong);outline-offset:6px}}
+  .mdb.on{margin:12px 0}
+  .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:10px 12px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
+    background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
+  @media (pointer:coarse){.md-doc .mdb-ta{font-size:16px}}   /* règle 9 : sous 16 px, Safari iOS zoome au focus */
+  .md-doc .mdb-ta:focus{outline:none;border-color:var(--act);box-shadow:0 0 0 3px var(--primary-soft)}   /* une seule bordure : l'anneau doux, pas un second trait */
   .mdb-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
   .mdb-acts .mdb-done{margin-left:auto}
-  .mdb-ed{position:absolute;top:4px;right:4px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;
+  .mdb-ed{position:absolute;top:-4px;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;
     border:1px solid var(--line);border-radius:50%;background:var(--work);color:var(--ink-2);opacity:0;cursor:pointer}
   .mdb:hover .mdb-ed,.mdb-ed:focus-visible{opacity:1}
   .mdb-ed:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-raw{font-family:var(--f-mono);color:var(--ink-2)}
-  .mdb-gap{position:relative;z-index:1;align-self:center;display:inline-flex;align-items:center;justify-content:center;width:32px;height:20px;margin:-10px 0;padding:0;border:0;border-radius:999px;
-    background:transparent;color:var(--ink-3);cursor:pointer;opacity:0}
-  .mdb-gap:hover,.mdb-gap:focus-visible,.md-doc:hover .mdb-gap{opacity:1}
-  .mdb-gap:hover{background:var(--primary-soft);color:var(--act)}
-  .mdb-gap:focus-visible{outline:2px solid var(--act);outline-offset:1px}
-  @media (pointer:coarse){.mdb-gap{display:none}}   /* au doigt : « Ajouter un bloc » en pied, et « Dupliquer » sur le bloc ouvert */
   .mdb-add{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:10px 12px;min-height:44px;border:1px dashed var(--line-strong);border-radius:var(--r-2);
     background:transparent;font:inherit;font-size:var(--t-item);font-weight:600;color:var(--act);cursor:pointer}
   .mdb-add:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -8358,10 +8355,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
   .mdb-imgv img{display:block;max-width:100%;height:auto;border-radius:var(--r-1)}
-  .mdb-grab{position:absolute;top:4px;left:-36px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}
+  .mdb-grab{position:absolute;top:-4px;right:34px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}   /* à côté du crayon : le texte garde l'alignement du formulaire */
   .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
   @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
-  @media (pointer:fine){.md-doc{padding-left:40px}}
+
   .md-doc>.ed-grab{margin:0 0 4px}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
@@ -9688,7 +9685,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.78.0';
+const APP_VERSION='5.78.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17629,12 +17626,12 @@ function mdDocHtml(p,open,grab){if(grab>=0&&mdBlockRanges(p.body)[grab])return m
     if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea>
       <div class="mdb-acts" role="group" aria-label="Ce bloc">
 ${R.length>1?`        <button type="button" class="btn sm" data-mdbact="grab" title="Déplacer — touchez, puis touchez la destination"><span aria-hidden="true">⠿</span> Déplacer</button>
-`:''}        <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
+`:''}        <button type="button" class="btn sm" data-mdbadd="${i}">${uiIcon('plus',14,{sw:2.4})}Bloc après</button>
+        <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
         <button type="button" class="btn sm danger" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
         <button type="button" class="btn sm primary mdb-done" data-mdbact="done">Terminé</button></div></div>`;
     const h=mdRender(src,{images:p.images})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
-    return `<div class="mdb" data-mdb="${i}">${R.length>1?`<button type="button" class="mini grab mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`:''}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`
-      +(i===open-1||i===open?'':`<button type="button" class="mdb-gap" data-mdbadd="${i}" aria-label="Ajouter un bloc après le bloc ${i+1}">${uiIcon('plus',14,{sw:2.6})}</button>`);}).join('')
+    return `<div class="mdb" data-mdb="${i}">${R.length>1?`<button type="button" class="mini grab mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`:''}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`}).join('')
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
 const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h','Titre de section','## Titre','## Titre'],['c','Encadré','> [!WARNING]','> [!WARNING]\n> Texte'],
   ['ul','Liste','- élément','- Élément'],['task','Cases à cocher','- [ ] élément','- [ ] Élément'],['tbl','Tableau','grille, modèle','| Colonne | Colonne |\n|---|---|\n|  |  |'],
