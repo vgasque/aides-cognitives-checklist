@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.74.0] — 2026-11-02
+Au téléphone, choisir une collection ou une catégorie (A545, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
+côté serveur.
+- **Le titre choisit** : touchez « Aides ⌄ » pour ouvrir la feuille « Afficher » — Tout afficher, Accès direct, vos
+  collections et les catégories, chacune avec son nombre. Un tap applique le choix et ferme la feuille.
+- **Le titre dit ce qui est affiché** : il devient le nom de la collection ou de la catégorie choisie, avec
+  « Collection · à vous seul » ou « Catégorie » au-dessus ; « Tout afficher » revient à toute la liste.
+- **Plus de rangée de pastilles** qui défilait de côté (trois visibles sur quinze, et celle choisie partait hors de
+  l'écran). « Affichage » (ranger, densité) devient le bouton rond au bout de la ligne du titre.
+- Au téléphone, un filtre à la fois : choisir une catégorie retire la collection, et l'inverse. En large, rien ne
+  change.
+
 ## [5.73.4] — 2026-11-01
 Correctif de la recherche au téléphone (A544, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - Après avoir ouvert la recherche puis le bouton filtre, quitter rend bien la barre d'onglets du bas (la recherche
@@ -161,14 +173,3 @@ Lot 6 de la refonte « Natif » : la session, selon vos quatre arbitrages sur pl
 - **Les repères du bloc tiennent sur une ligne** : « △ Adrénaline — IV/IO » en ambre, l'état à droite, la dose
   dessous.
 - Gardé : la cellule de compteur de la capsule (valeur, puis nom entier), pour ne jamais abréger son nom.
-
-## [5.60.0] — 2026-10-31
-Lot 5 de la refonte « Natif » : le verre clair et le moniteur (A518, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **En thème clair, la capsule des minuteurs, le quai et leurs volets deviennent du verre clair**, comme les
-  barres d'iOS, au lieu de la bande sombre. Le contraste a été mesuré au pixel au-dessus des étapes les plus
-  chargées (4,9:1 au pire). En thème sombre, rien ne change.
-- **Le moniteur est redessiné** sans changer de nature (plein écran, lu à deux mètres) : « ● Session » devant le
-  chrono, « Revenir » dans une pilule (toucher n'importe où ferme toujours), une barre de progression sous le
-  grand chiffre, et la bande devient une carte où chaque minuteur a sa rangée, son nom en tête et « dans 01:59 »
-  sur l'axe. Sur une tablette posée, le grand chiffre monte jusqu'à 220 px.

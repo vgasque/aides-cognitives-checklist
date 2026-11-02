@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-EF1afDLx6tIsY0SNidQ3lHNhGLeWz85j94FKrqAh3JA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-U74kNTldCNNUXzzEg2IXFDP0Z+bNxdhgXdvl4t2o55s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1422,15 +1422,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pg-top :is(.pg-btn,.sel-tog)::after{content:"";position:absolute;inset:-2px}   /* 40 dessinés, 44 de cible (zone haute) */
   .pg-ttl{margin:2px 4px 12px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink);text-wrap:balance}
   html.zw360 .pg-ttl{font-size:28px}
-  .pg-chips{display:flex;gap:8px;margin:0 -18px 14px;padding:2px 18px;overflow-x:auto;scrollbar-width:none}
-  .pg-chips::-webkit-scrollbar{display:none}
-  .pg-chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:0;border-radius:999px;
-    background:var(--work);box-shadow:inset 0 0 0 1px var(--line-strong);font:inherit;font-size:var(--t-body);font-weight:600;
-    color:var(--ink);white-space:nowrap;cursor:pointer}
-  .pg-chip svg{width:14px;height:14px}
-  .pg-chip .cat-dot{width:8px;height:8px;margin:0;box-shadow:none}
-  .pg-chip.on{background:var(--ink);color:var(--amb);box-shadow:none}
-  .pg-chip:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A545 — le titre choisit : la ligne du titre porte le sélecteur (le titre lui-même) et « Affichage » en rond. */
+  .pg-pick{display:flex;align-items:flex-start;gap:12px;margin:2px 0 12px}
+  .pg-pl{flex:1;min-width:0}
+  .pg-pick .pg-ttl{margin:0}
+  .pg-eye{display:flex;align-items:center;gap:6px;margin:0 4px 2px;font-size:var(--t-cap);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .pg-eye svg{width:14px;height:14px}
+  .pg-eye .cat-dot{width:8px;height:8px;margin:0;box-shadow:none}
+  .pg-tb{display:inline-flex;align-items:center;gap:8px;max-width:100%;margin:0;padding:0 4px;border:0;border-radius:12px;background:none;
+    font:inherit;color:inherit;text-align:left;cursor:pointer}
+  .pg-tbt{min-width:0;overflow-wrap:anywhere}
+  .pg-chev{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
+    background:var(--primary-soft);color:var(--act)}
+  .pg-chev svg{transform:rotate(90deg)}
+  .pg-tb:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .pg-sub{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pg-acts{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+  .pg-ib{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0;padding:0;
+    border:1px solid var(--work-line);border-radius:50%;background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);cursor:pointer}
+  .pg-ib:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mm-cnt{flex:none;margin-left:auto;padding-left:8px;font-size:var(--t-body);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
   html.tabnav body.view-home .hv-page{padding-top:0}
   /* En large (et téléphone tourné), le grand titre est de 28 px sur la ligne du compte (maquette tablette, A505). */
   .dir-sum .pg-ttl{flex:none;margin:0 6px 0 0;font-size:28px;line-height:1.15}
@@ -9612,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.73.4';
+const APP_VERSION='5.74.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15252,7 +15263,7 @@ function dropFilter(k){const all=k==='all';
   state.libLimit=LIB_PAGE;}
 /* P4 : une puce par filtre posé, sous la ligne de compte — la valeur se LIT là où l'on lit la liste ; la puce rouvre
    la feuille, sa croix retire ce filtre seul. Remplace la phrase « filtres : … » (A278). */
-function filtersBarHtml(){const p=filtersList();if(!p.length)return '';
+function filtersBarHtml(){const ax=tabNavOn()?pgAxis():'';const p=filtersList().filter(f=>f.k!==ax);if(!p.length)return '';   // A545 : l'axe que le grand titre dit n'est pas redit en puce
   return `<div class="af-bar" role="group" aria-label="Filtres posés">`+p.map(f=>`<span class="af-chip"><button type="button" class="af-l" data-filttog aria-haspopup="dialog">${f.col?`<span class="cat-dot" style="--catcol:${f.col}"></span>`:''}${esc(f.t)} : <b>${esc(f.v)}</b></button>`
     +`<button type="button" class="af-x" data-afx="${f.k}" aria-label="${esc('Retirer le filtre '+f.t+' : '+f.v)}">\u00d7</button></span>`).join('')
     +(p.length>1?`<button type="button" class="linkbtn af-all" data-afx="all">Tout effacer</button>`:'')+`</div>`;}
@@ -15373,9 +15384,10 @@ async function collCreateShow(){const name=await collAsk('Nouvelle collection');
 /* L'en-tête d'une collection ouverte : ce qu'elle est (à vous seul), d'où vient son contenu, et ses gestes. */
 function collHeadHtml(){const c=collById(state.coll);if(!c)return '';
   const it=collItems(c),perdus=c.ids.length-it.length,nl=new Set(it.map(x=>x.library||'')).size;
-  return `<div class="coll-head"><div class="coll-ht"><span class="coll-k">${collIc(c)}${c.id===COLL_PIN?'Accès direct · à vous seul':'Collection · à vous seul'}</span>`
-    +`<h2 class="coll-t">${esc(c.name)}</h2><span class="coll-s">${esc(nb(it.length,'élément')+(nl>1?' venus de '+nl+' bibliothèques':'')+' — rien n’a été déplacé'+(perdus?' · '+nb(perdus,'indisponible'):''))}</span></div>`
-    +`<div class="coll-acts"><button type="button" class="rang-btn" data-colladd>${uiIcon('plus',16,{sw:2.4})}Ajouter</button>`
+  const tn=tabNavOn();   // A545 : au téléphone le grand titre dit déjà la collection — l'en-tête garde la provenance et les gestes
+  return `<div class="coll-head"><div class="coll-ht">${tn?'':`<span class="coll-k">${collIc(c)}${c.id===COLL_PIN?'Accès direct · à vous seul':'Collection · à vous seul'}</span>`
+    +`<h2 class="coll-t">${esc(c.name)}</h2>`}<span class="coll-s">${esc(nb(it.length,'élément')+(nl>1?' venus de '+nl+' bibliothèques':'')+' — rien n’a été déplacé'+(perdus?' · '+nb(perdus,'indisponible'):''))}</span></div>`
+    +`<div class="coll-acts">${tn?`<button type="button" class="rang-btn" data-pgall>${uiIcon('list',16,{sw:2.2})}Tout afficher</button>`:''}<button type="button" class="rang-btn" data-colladd>${uiIcon('plus',16,{sw:2.4})}Ajouter</button>`
     +(c.id===COLL_PIN?'':`<button type="button" class="rang-btn coll-more" data-collmenu aria-haspopup="listbox" aria-label="Gérer la collection « ${esc(c.name)} »">⋯</button>`)+`</div></div>`;}
 /* « Ajouter » : la même feuille à cases, sur TOUT ce que l'accueil montre (filtre « Filtrer… » dès 9) ; chaque rangée dit
    nature · catégorie (sa pastille) · bibliothèque — A488. */
@@ -16042,29 +16054,56 @@ const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
 // commande morte).
 /* A517 (A504-A505) — LA TÊTE DE PAGE DU TÉLÉPHONE, d'après la maquette Natif : « Sélectionner » en haut à gauche,
    « ＋ Créer » à droite, le grand titre de 34 px DANS le contenu (il se replie en 17,5 dans la rangée du haut au
-   défilement, A510 : la rangée garde sa hauteur), le champ de recherche, puis les filtres en pastilles. */
+   défilement, A510 : la rangée garde sa hauteur) ; A545 : ce titre est le sélecteur (feuille « Afficher »), les
+   pastilles de filtre sont purgées. */
 function pgHeadHtml(title,opts){opts=opts||{};
   const nw=opts.create&&canEditScope(homeScope())
     ?`<button type="button" class="pg-btn" id="pgNew">${uiIcon('plus',16,{sw:2.4})}Créer</button>`:'';
+  const pk=opts.chips?pgPickInfo():null;
   return `<div class="pg-top"><span class="pg-l">${opts.sel?selTogHtml():''}</span>`
-    +`<span class="pg-tt" aria-hidden="true">${esc(title)}</span><span class="pg-r">${nw}</span></div>`
-    +`<h1 class="pg-ttl">${esc(title)}</h1>`
-    +(opts.chips?pgChipsHtml():'');}
-function pgChipsHtml(){
-  const chip=(on,attrs,inner)=>`<button type="button" class="pg-chip${on?' on':''}" ${attrs} aria-pressed="${on?'true':'false'}">${inner}</button>`;
-  /* A528 (arbitrage de l'auteur) : « Affichage » (ranger, densité, catégories) ouvre la rangée — plus de ligne du compte
-     au téléphone, « Tout · n » dit déjà le compte. Même id que la porte large : un seul câblage (`#rangBtn`). */
+    +`<span class="pg-tt" aria-hidden="true">${esc(pk?pk.t:title)}</span><span class="pg-r">${nw}</span></div>`
+    +(pk?pgPickHtml(pk):`<h1 class="pg-ttl">${esc(title)}</h1>`);}
+/* A545 — LE TITRE CHOISIT (remplace la rangée de pastilles d'A517/A528, mesurée : 15 pastilles sur 1 741 px à 390,
+   trois visibles ; la pastille active repartait hors champ à chaque rendu). Le grand titre DIT ce que la liste montre
+   — « Aides », une collection, une catégorie — et c'est lui qu'on touche pour en changer (feuille « Afficher »,
+   `openHomePick`). L'axe montré par le titre : la collection d'abord, sinon la catégorie (une combinaison posée en
+   large garde l'autre en puce, `filtersBarHtml`). */
+function pgPickInfo(){
+  const c=state.coll?collById(state.coll):null;
+  if(c)return {k:'coll',t:c.name,eye:collIc(c)+(c.id===COLL_PIN?'Accès direct · à vous seul':'Collection · à vous seul')};
+  if(state.cat){const g=homeCatGroups().find(x=>x.n===state.cat);
+    return {k:'cat',t:g?g.c.name:state.cat,eye:(g?catDotHtml(g.cols,'cat-dot'):'')+'Catégorie',sub:g?nb(g.nb,'élément'):''};}
+  return {k:'all',t:'Aides',eye:'',sub:homeVis().length?'Tout · '+homeVis().length:''};}
+const pgAxis=()=>state.coll&&collById(state.coll)?'coll':state.cat?'cat':'';
+function pgPickHtml(pk){
   const gk=homeGroupKey(),lbl=(HOME_RANG.find(([k])=>k===gk)||HOME_RANG[0])[1];
-  return `<div class="pg-chips" role="group" aria-label="Filtrer la liste">`
-    +(homeVis().length?`<button type="button" class="pg-chip" id="rangBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Affichage — rangé par ${esc(lbl)}">${uiIcon('ladder',16,{sw:2.2})}Affichage</button>`:'')   // A263 : rien à ranger, pas de porte
-    +chip(!state.coll&&!state.cat,'data-pgall',`Tout · ${homeVis().length}`)
-    +[collById(COLL_PIN)].concat(colls).map(c=>chip(state.coll===c.id,`data-collsel="${esc(c.id)}"`,collIc(c)+esc(c.name))).join('')
-    +homeCatGroups().map(g=>chip(state.cat===g.n,`data-pgcat="${esc(g.n)}"`,catDotHtml(g.cols,'cat-dot')+esc(g.c.name))).join('')
-    +`</div>`;}
+  /* « Affichage » (ranger, densité, nature) : bouton rond au bout de la ligne du titre, même id `#rangBtn` (un câblage). */
+  const rang=homeVis().length?`<button type="button" class="pg-ib" id="rangBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Affichage — rangé par ${esc(lbl)}">${uiIcon('ladder',20,{sw:2.2})}</button>`:'';   // A263 : rien à ranger, pas de porte
+  return `<div class="pg-pick"><div class="pg-pl">${pk.eye?`<span class="pg-eye">${pk.eye}</span>`:''}`
+    +`<h1 class="pg-ttl"><button type="button" class="pg-tb" id="pgPick" aria-haspopup="listbox" aria-expanded="false" aria-label="${esc('Afficher : '+pk.t+'. Changer')}">`
+    +`<span class="pg-tbt">${esc(pk.t)}</span><span class="pg-chev" aria-hidden="true">${uiIcon('chev',18,{sw:2.6})}</span></button></h1>`
+    +(pk.sub?`<span class="pg-sub">${esc(pk.sub)}</span>`:'')
+    +(pk.k==='cat'?`<div class="pg-acts"><button type="button" class="rang-btn" data-pgall>${uiIcon('list',16,{sw:2.2})}Tout afficher</button></div>`:'')
+    +`</div>${rang}</div>`;}
+/* La feuille « Afficher » : une liste groupée (A506), un tap = appliqué et fermé. Au téléphone, UN filtre à la fois
+   (une collection OU une catégorie) : la combinaison reste possible en large, où la colonne montre les deux axes. */
+function openHomePick(trigger,rerender){
+  const pin=collById(COLL_PIN),groups=homeCatGroups();
+  const cur=state.coll&&collById(state.coll)?'c:'+state.coll:state.cat?'k:'+state.cat:'all';
+  const set=(coll,cat)=>{state.coll=coll;state.cat=cat;state.libLimit=LIB_PAGE;rerender();window.scrollTo(0,0);};
+  openPickMenu(document.body,{aria:'Afficher',sheet:true,trigger,value:cur,seuilFiltre:999,title:'Afficher',
+    options:[{val:'all',name:'Tout afficher',ic:uiIcon('list',18),cnt:homeVis().length},
+      {val:'c:'+COLL_PIN,name:'Accès direct',ic:collIc(pin),cnt:collItems(pin).length},
+      {head:'Mes collections'}]
+      .concat(colls.map(c=>({val:'c:'+c.id,name:c.name,ic:collIc(c),cnt:collItems(c).length})))
+      .concat(groups.length?[{head:'Catégories'}]:[])
+      .concat(groups.map(g=>({val:'k:'+g.n,name:g.c.name,ic:catDotHtml(g.cols,'cat-dot'),cnt:g.nb}))),
+    onPick:v=>{if(v==='all')set(null,'');else if(v.slice(0,2)==='c:')set(v.slice(2),'');else set(null,v.slice(2));},
+    action:{label:'＋ Nouvelle collection…',fn:()=>collCreateShow()}});}
 function bindPgHead(rerender){
   const n=main.querySelector('#pgNew');if(n)n.onclick=()=>openCreateDlg();
-  main.querySelectorAll('[data-pgall]').forEach(b=>b.onclick=()=>{state.coll=null;state.cat=null;state.libLimit=LIB_PAGE;rerender();});
-  main.querySelectorAll('[data-pgcat]').forEach(b=>b.onclick=()=>{const v=b.dataset.pgcat;state.cat=state.cat===v?null:v;state.libLimit=LIB_PAGE;rerender();});
+  main.querySelectorAll('[data-pgall]').forEach(b=>b.onclick=()=>{state.coll=null;state.cat='';state.libLimit=LIB_PAGE;rerender();});
+  {const p=main.querySelector('#pgPick');if(p)p.onclick=()=>openHomePick(p,rerender);}
   /* Le grand titre sorti par le haut, la rangée du haut prend le petit (patron `.titled` de la lecture). */
   const t=main.querySelector('.pg-ttl'),top=main.querySelector('.pg-top');
   if(_pgIo){_pgIo.disconnect();_pgIo=null;}
@@ -16499,7 +16538,7 @@ function renderHomeList(cfg){
          « Affichage » (rangement, catégories). */
       /* A517 : le TITRE d'abord (maquette Natif) — la ligne du compte précède désormais l'Accès direct. */
       (tabNavOn()?'':`<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
-          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » ouvre les pastilles */
+          return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » est au bout de la ligne du titre (A545) */
       +(state.selOn?'':filtersBarHtml())
       +enCours
       +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
@@ -18096,7 +18135,7 @@ function openPickMenu(host,opts){
       attrs:`role="menuitemcheckbox" aria-checked="${esc(o.on||'false')}" data-pickopt="${esc(v)}"`});
     return menuRowHtml({label:o.name,sub:o.sub,ic:o.ic,dot:!o.ic&&o.dot!==false,col:o.col,danger:o.danger,
       attrs:`role="option" aria-selected="${sel?'true':'false'}" data-pickopt="${esc(v)}"${o.tt?` title="${esc(o.tt)}"`:''}`,
-      tail:(sel?`<span class="mm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:'')+(o.chev?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:'')});};
+      tail:(o.cnt!=null?`<span class="mm-cnt">${esc(String(o.cnt))}</span>`:'')+(sel?`<span class="mm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:'')+(o.chev?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:'')});};
   // Feuille imposée par l'appelant (atelier d'import : le corps de fenêtre couperait un menu
   // ancré) ou par la largeur — le seuil de la feuille de style d'hier, à l'identique.
   // `up` (v5.48.6) : ancré au-dessus de son hôte, jamais en feuille (la feuille basse vivrait sous le clavier).

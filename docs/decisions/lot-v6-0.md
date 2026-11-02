@@ -860,3 +860,41 @@ en fermant la feuille, le focus revient au bouton filtre (dans le dock), puis pl
 referme aussi, champ vide (`tbSearchMaybeClose(horsDock)` : Safari iOS ne déplace pas toujours le focus d'un bouton
 au tap ailleurs). Un tap DANS une feuille ne compte pas : en revenant des filtres, la recherche reste ouverte.
 Témoin : `audit-doctrine` « Accueil · A544 » (vérifié capable d'échouer).
+
+## A545 — Au téléphone, le titre choisit : collections et catégories dans une feuille « Afficher » (v5.74.0)
+
+*Renverse A517 (« filtres en pastilles ») et A528 (« Affichage » en première pastille) ; amende A475 (porte des
+collections au téléphone). Signalé par l'auteur (« le choix de catégories/collection sur téléphone est limité et pas
+pratique ») ; option B retenue sur planche Claude Design « Filtres de l'accueil au téléphone », 02/11/2026.*
+
+**Mesuré** (390 px, 8 catégories, 4 collections, 24 aides) : la rangée de pastilles tenait **15 pastilles sur
+1 741 px**, trois visibles (Affichage, Tout, Accès direct) — collections et catégories hors champ, sans indice ;
+après un tap, la rangée se redessinait à 0 et la pastille active (« Urgences », à 1 637 px) disparaissait, d'où une
+puce « Catégorie : Urgences × » qui redisait le filtre ; collection « Pédiatrie » et catégorie « Pédiatrie »
+voisines, distinguées par la seule icône ; le titre disait « Aides » quel que soit le filtre.
+
+**Décision.** Le grand titre (34 px, A505) **est le sélecteur** (`#pgPick`, `pgPickHtml`) :
+- au repos « Aides ⌄ », sous-ligne « Tout · n » ; filtré, il devient le NOM du filtre, coiffé de son œil
+  (« Collection · à vous seul » + signet, « Catégorie » + point) ; le petit titre de la rangée collante suit ;
+- un tap ouvre la feuille **« Afficher »** (`openHomePick`, sur `openPickMenu`) : Tout afficher, Accès direct, puis
+  « Mes collections » et « Catégories » en listes groupées (A506), un **compte** par rangée (`.mm-cnt`), coche sur le
+  courant, « ＋ Nouvelle collection… » en pied ; **un tap = appliqué et fermé**, la page remonte en haut ;
+- **un filtre à la fois au téléphone** : choisir une collection retire la catégorie, et l'inverse. Une combinaison
+  posée en large reste lisible : le titre dit la collection, la catégorie reste en puce (`filtersBarHtml` ne redit
+  que l'axe que le titre NE dit PAS, `pgAxis`) ;
+- « Tout afficher » (une catégorie : sous le titre ; une collection : dans son en-tête, à côté d'« Ajouter » et ⋯)
+  remet « Aides ». Au téléphone l'en-tête de collection perd son œil et son titre, que le grand titre porte ;
+- **« Affichage »** (ranger, densité, nature) devient le bouton rond de 44 px au bout de la ligne du titre (même id
+  `#rangBtn`, un câblage).
+
+Purgés (règle 14) : `pgChipsHtml`, `.pg-chips`, `.pg-chip`, les gestes `[data-pgcat]`. En large (≥ 780) et au
+téléphone tourné, rien ne change : la colonne gauche montre les deux axes.
+**Ce qu'on perd, et dit** : filtrer sur l'Accès direct prend deux taps au lieu d'un — ses tuiles sont déjà en tête de
+l'accueil (A537) ; combiner collection ET catégorie ne se fait plus au téléphone.
+*Formes écartées* (planche) : **A** — deux rangées de pastilles, une par famille, l'active en tête (correctif léger :
+on défile encore de côté, une rangée de plus) ; **C** — une pastille « Filtrer · n » et l'état en pastilles, feuille à
+pastilles qui vont à la ligne et « Voir les n aides » (un tap de plus pour appliquer) ; l'arborescence « Parcourir »
+(un niveau de retour de plus avant la liste, sous stress).
+Témoins : `audit-doctrine` « Accueil · A545 le titre choisit » (vérifié capable d'échouer : 6 rouges sur l'avant),
+et réécrits sciemment : A475 (la porte des collections au téléphone est le titre), A528 → A545 (« Affichage » au bout
+de la ligne du titre), la gouttière du rail (la rangée mesurée est la ligne du titre).
