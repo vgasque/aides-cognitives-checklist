@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-U74kNTldCNNUXzzEg2IXFDP0Z+bNxdhgXdvl4t2o55s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-2o1mqknqS9TGTti/k48w/CcotxdZnA9eTEr4K1kybN0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -813,7 +813,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read main{width:100%;max-width:1440px;margin:0 auto}
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
   body.view-pedit main{width:100%;max-width:816px;margin:0 auto}
-  @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
+  @media (min-width:1000px){body.view-pedit main{max-width:1440px}}   /* A546 : source et rendu à parts égales (était 1202 : 780 + 26 + 360) */
   /* ⚠ UNE COLONNE D'ORIENTATION S'AJOUTE AU PLAFOND, ELLE NE SE PRÉLÈVE PAS DESSUS (v5.0.0,
      signalé à l'usage : « pourquoi le sommaire est dans l'espace central ? »). Le protocole est
      plafonné à 780 px « à toutes les largeurs » — poser la grille du sommaire DEDANS le mettait
@@ -8113,7 +8113,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        compris au-delà de 1200 px, où cette règle l'emporte sur le palier déclaré en tête de
        feuille (spécificité égale, déclaration plus tardive). Mesuré à 1400 px : 936+320. */
     :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 20px;align-items:start}
-    body.view-pedit .read-grid{grid-template-columns:minmax(0,1fr) 320px}
+    /* A546 — LA RÉFÉRENCE S'ÉCRIT À PARTS ÉGALES : la source à gauche, son rendu à droite (la colonne de 320 px était
+       plus étroite que la lecture). Le rendu suit le défilement du champ (`mdScrollLink`). */
+    body.view-pedit .read-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
@@ -8128,6 +8130,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      GÉOMÉTRIE, ne jamais dépendre de l'ordre. */
   /* A308 : l'état reprend 320 px dès 1000, où l'action n'en souffre plus. */
   @media (min-width:1000px){:root{--col-state:320px}body.view-read .read-grid{grid-template-columns:minmax(0,1fr) var(--col-state)}}
+
   @media (min-width:1200px){
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) var(--col-state)}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
@@ -8303,6 +8306,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      App installée : cette zone n'existe pas, la barre garde ses 41 px. */
   @media (display-mode:browser){html.kbd.md-kbd .md-toolbar{padding-bottom:12px}}
   html.kbd.md-kbd .md-toolbar+.md-wpane{padding-top:40px}   /* place réservée hors clavier : la barre y mesure 40 px */
+  /* A546 : l'œil et la bande du bloc rendu n'existent que clavier ouvert, au toucher (la colonne d'aperçu sert dès 780). */
+  .md-peek,.md-peek-t{display:none}
+  html.kbd.md-kbd .md-peek-t{display:inline-flex;justify-content:center;min-width:36px;padding:0;margin-right:4px}
+  html.kbd.md-kbd .md-peek-t[aria-pressed="true"]{background:var(--primary-soft);color:var(--act);border-color:var(--primary-200)}
+  html.kbd.md-kbd.md-peek-on .md-peek:not(:empty){display:block;position:absolute;left:12px;right:12px;bottom:calc(100% + 16px);
+    max-height:96px;overflow:hidden;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--work);
+    box-shadow:var(--shadow-float);font-size:var(--t-body);line-height:1.4}   /* surface de la barre : un toucher y garde le champ ; 16 px > la marge de 12 de tapKeepsFocus (aucun bouton visé par erreur) */
+  html.kbd.md-kbd.md-peek-on .md-peek:not(:empty)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:20px;
+    background:linear-gradient(transparent,var(--work))}
+  .md-peek>:first-child{margin-top:0}.md-peek>:last-child{margin-bottom:0}
+  .md-peek img{max-height:72px;width:auto}
+  html.zw400.kbd.md-kbd .md-toolbar .mdt-sep{display:none}   /* A546 : l’œil prend la place du séparateur sous 400 (mesuré à 360 : 16 px de trop) */
+  html.zw400.kbd.md-kbd .md-peek-t{min-width:32px;margin-right:0}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
   .mdt-g{position:relative;display:inline-flex}
@@ -8313,6 +8329,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
   .mdt-n,.mdt-hx{font-weight:800}
+  .mdt-up{transform:rotate(-90deg)}.mdt-dn{transform:rotate(90deg)}   /* A546 : Monter / Descendre une section */
   .mdt-n{display:none}
   html.zw560 .md-toolbar .mdt-w{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* lu, pas montré */
   html.zw560 .md-toolbar .mdt-n{display:inline}
@@ -8391,6 +8408,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-hlw{position:relative}
   .md-hlw #p-body{display:block}
   .md-hl{display:none}
+  .hl-imc{position:absolute;display:inline-flex;align-items:center;gap:6px;margin-left:10px;padding:0 6px 0 0;border-radius:var(--r-1);
+    background:var(--amb-2);font-family:var(--f-ui);font-size:var(--t-meta);font-weight:600;color:var(--ink-2);white-space:nowrap}   /* A546 */
+  .hl-imc[data-s]::after{content:attr(data-s)}   /* la taille en CSS : le texte du calque reste octet pour octet celui du champ */
+  .hl-imc img{height:1.4em;width:auto;max-width:48px;border-radius:var(--r-1);object-fit:cover}
   .md-hlw.on .md-hl{display:block;position:absolute;inset:0;margin:0;overflow:hidden;padding:10px 12px;border:1px solid transparent;border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word}
   .md-hlw.on #p-body{position:relative;background:transparent;color:transparent;caret-color:var(--ink)}
   .md-hlw.on #p-body::selection{color:transparent;background:color-mix(in srgb,var(--act) 28%,transparent)}
@@ -9623,7 +9644,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.74.0';
+const APP_VERSION='5.75.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17455,8 +17476,30 @@ function mdToolbarHtml(){
     ${dd('h','<span class="mdt-w">Titre</span><b class="mdt-n" aria-hidden="true">H</b>')}
     ${dd('list',uiIcon('ul',16)+'<span class="mdt-w">Liste</span>')}
     ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>')}
-    <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
+    <span class="mdt-g mdt-end"><button type="button" class="mini md-peek-t" data-mdpeek aria-pressed="${mdPeekOn()?'true':'false'}" aria-label="Voir le bloc rendu au-dessus du clavier" title="Voir le bloc rendu au-dessus du clavier">${uiIcon('eye',16)}</button><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
+    <div class="md-peek" aria-hidden="true"></div>
   </div>`;}
+/* A546 — AU TÉLÉPHONE, LE BLOC OÙ L'ON ÉCRIT, RENDU AU-DESSUS DE LA BARRE (clavier ouvert). « Écrire | Aperçu »
+   obligeait à basculer pour vérifier un encadré, un tableau ou une image. La bande rend le seul bloc au curseur,
+   bornée en hauteur (l'écran est compté, A471) ; l'œil de la barre la masque, choix retenu SUR L'APPAREIL (un
+   réglage d'affichage, comme le thème : `ac-mdpeek`, hors espace de compte). */
+const mdPeekOn=()=>{try{return localStorage.getItem('ac-mdpeek')!=='0';}catch(e){return true;}};
+function mdPeekSet(on){try{localStorage.setItem('ac-mdpeek',on?'1':'0');}catch(e){}
+  document.documentElement.classList.toggle('md-peek-on',on);
+  main.querySelectorAll('[data-mdpeek]').forEach(b=>b.setAttribute('aria-pressed',on?'true':'false'));}
+// Le source du bloc qui contient la ligne `L` (pure, ?__actest) : de sa première ligne à celle du bloc suivant.
+function mdBlockSrc(body,L){const v=String(body||''),B=mdBlocks(v),ln=v.split('\n');let i=-1;
+  B.forEach((b,k)=>{if(b.ln!=null&&b.ln<=L)i=k;});if(i<0)return '';
+  const nx=B.slice(i+1).find(b=>b.ln!=null&&b.ln>B[i].ln);
+  return ln.slice(B[i].ln,nx?nx.ln:ln.length).join('\n').replace(/\s+$/,'');}
+function mdPeekPaint(ta,p){const pk=main.querySelector('.md-peek');if(!pk)return;
+  if(!document.documentElement.classList.contains('md-kbd')||!mdPeekOn()){if(pk.innerHTML)pk.innerHTML='';return;}
+  const src=mdBlockSrc(ta.value,mdCaretLine(ta)),h=src?mdRender(src,{images:p.images}):'';
+  if(pk._src!==src){pk._src=src;pk.innerHTML=h;}
+  /* La bande ne cache jamais la ligne où l'on écrit : si le curseur passe sous elle, la page remonte d'autant. */
+  if(!h)return;const r=pk.getBoundingClientRect(),q=ta.getBoundingClientRect(),lh=parseFloat(getComputedStyle(ta).lineHeight)||20;
+  const y=q.top+mdLineTop(ta,mdCaretLine(ta))-ta.scrollTop+parseFloat(getComputedStyle(ta).paddingTop)+lh;
+  if(y>r.top-8)window.scrollBy(0,(y-r.top+8)/zoomF());}
 // Barre posée au-dessus du clavier (`html.kbd.md-kbd`) : ses menus s'ouvrent AU-DESSUS d'elle, sur sa largeur.
 const mdKbdUp=()=>{const c=document.documentElement.classList;return c.contains('kbd')&&c.contains('md-kbd');};
 const mdMenuHost=btn=>mdKbdUp()?{host:btn.closest('.md-toolbar'),up:true,keep:true}:{host:btn.parentNode};
@@ -17511,6 +17554,34 @@ function mdHeadHtml(){const on=state.mdPv==='p';
 // Titres du corps : {ln, n (niveau), text (sans balisage)}.
 const mdHeads=body=>mdBlocks(body).filter(b=>/^h[123]$/.test(b.t)).map(b=>({ln:b.ln,n:+b.t[1],text:mdStrip(b.text).trim()||'Sans titre'}));
 const mdCaretLine=ta=>ta.value.slice(0,ta.selectionStart||0).split('\n').length-1;
+/* A546 — LES SECTIONS SE DÉPLACENT PAR LE PLAN. Une section = son titre et tout ce qui suit jusqu'au prochain titre
+   de niveau égal ou supérieur. Ses voisines = les sections de MÊME niveau sous le même parent (un « ## » ne passe
+   jamais au-dessus du « # » qui le coiffe). Fonctions PURES sur le texte (?__actest) : elles rendent le nouveau corps,
+   ou null quand le geste est impossible ; l'écriture passe ensuite par `mdSplice` (⌘Z natif et ↶ de l'éditeur). */
+function mdSecAt(body,ln){const L=String(body||'').split('\n'),H=mdHeads(body),i=H.findIndex(h=>h.ln===ln);if(i<0)return null;
+  const h=H[i],nx=H.slice(i+1).find(x=>x.n<=h.n),e=nx?nx.ln:L.length;
+  let pv=null;for(let j=i-1;j>=0;j--){if(H[j].n<h.n)break;if(H[j].n===h.n){pv=H[j];break;}}
+  return {L,h,a:h.ln,e,prev:pv,next:nx&&nx.n===h.n?nx:null};}
+const mdTrimEnd=a=>{a=a.slice();while(a.length&&!a[a.length-1].trim())a.pop();return a;};
+// Échange deux plages de lignes contiguës [a,m) et [m,e), une ligne vide entre elles, les blancs de fin conservés.
+function mdSwapLines(L,a,m,e){const A=L.slice(a,m),B=L.slice(m,e);let k=0;for(let j=e-1;j>=m&&!L[j].trim();j--)k++;
+  const out=mdTrimEnd(B).concat([''],mdTrimEnd(A),Array(e<L.length?Math.max(k,1):k).fill(''));
+  return {v:L.slice(0,a).concat(out,L.slice(e)).join('\n'),at:a};}
+function mdSecMove(body,ln,dir){const s=mdSecAt(body,ln);if(!s)return null;
+  if(dir<0){if(!s.prev)return null;return mdSwapLines(s.L,s.prev.ln,s.a,s.e);}
+  if(!s.next)return null;const t=mdSecAt(body,s.next.ln),r=mdSwapLines(s.L,s.a,t.a,t.e);
+  return {v:r.v,at:s.a+mdTrimEnd(s.L.slice(t.a,t.e)).length+1};}
+function mdSecDup(body,ln){const s=mdSecAt(body,ln);if(!s)return null;const S=mdTrimEnd(s.L.slice(s.a,s.e));
+  const pre=mdTrimEnd(s.L.slice(0,s.e)),post=s.L.slice(s.e);
+  const v=pre.concat([''],S,post.length?['']:[],post).join('\n');return {v,at:pre.length+1};}
+function mdSecDel(body,ln){const s=mdSecAt(body,ln);if(!s)return null;
+  const pre=s.L.slice(0,s.a),post=s.L.slice(s.e);return {v:pre.concat(post).join('\n'),at:Math.max(0,Math.min(s.a,pre.length+post.length-1))};}
+/* Remplace tout le corps par `v` en ne réécrivant que la plage qui change (préfixe et suffixe communs gardés) :
+   une seule entrée dans l'historique natif du champ, curseur posé au début de la ligne `at`. */
+function mdReplaceBody(ta,v,at){const o=ta.value;let a=0;while(a<o.length&&a<v.length&&o[a]===v[a])a++;
+  let b=0;while(b<o.length-a&&b<v.length-a&&o[o.length-1-b]===v[v.length-1-b])b++;
+  mdSplice(ta,a,o.length-b,v.slice(a,v.length-b));
+  const c=at>0?v.split('\n').slice(0,at).join('\n').length+1:0;ta.setSelectionRange(c,c);}
 function mdCaretSync(ta,p){if(!ta||!document.contains(ta))return;const L=mdCaretLine(ta),H=mdHeads(p.body);
   const cur=H.filter(h=>h.ln<=L).pop(),pb=main.querySelector('[data-mdplan]');
   if(pb){pb.hidden=!H.length;pb.querySelector('.md-plan-t').textContent=cur?'Plan · '+cur.text:'Plan';}
@@ -17529,6 +17600,25 @@ function mdLineTop(ta,ln){const c=document.createElement('textarea'),cs=getCompu
   Object.assign(c.style,{position:'absolute',visibility:'hidden',height:'0',minHeight:'0',overflow:'hidden',paddingBottom:'0',borderBottomWidth:'0',left:'-9999px',top:'0'});
   c.setAttribute('aria-hidden','true');c.tabIndex=-1;c.value=ta.value.split('\n').slice(0,ln).join('\n')+(ln?'\n':'');
   document.body.appendChild(c);const h=ln?c.scrollHeight-(parseFloat(cs.lineHeight)||0):0;c.remove();return Math.max(0,h);}
+/* A546 — LE RENDU SUIT LE DÉFILEMENT DU CHAMP (bureau, colonnes à parts égales). Hauteur de début de chaque ligne de
+   `lns` en UNE mesure : un double en <div> aux métriques du champ (celles du calque, alignement vérifié A459), un
+   repère vide en tête de chaque ligne visée. */
+function mdLineTops(ta,lns){const d=document.createElement('div'),cs=getComputedStyle(ta);
+  ['boxSizing','width','paddingLeft','paddingRight','paddingTop','borderLeftWidth','borderRightWidth','borderTopWidth','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','overflowWrap','wordBreak','tabSize'].forEach(k=>d.style[k]=cs[k]);
+  Object.assign(d.style,{position:'absolute',visibility:'hidden',left:'-9999px',top:'0',whiteSpace:'pre-wrap',borderStyle:'solid',borderColor:'transparent'});
+  d.style.width=ta.clientWidth+parseFloat(cs.borderLeftWidth)+parseFloat(cs.borderRightWidth)+'px';   // la barre de défilement du champ rétrécit ses lignes
+  const want=new Set(lns);d.innerHTML=ta.value.split('\n').map((l,i)=>(want.has(i)?'<i data-k="'+i+'"></i>':'')+esc(l)).join('\n')+' ';
+  d.setAttribute('aria-hidden','true');document.body.appendChild(d);const o=Object.create(null);
+  d.querySelectorAll('i[data-k]').forEach(x=>{o[x.dataset.k]=x.offsetTop-parseFloat(cs.paddingTop);});d.remove();
+  return lns.map(n=>o[n]==null?Infinity:o[n]);}
+function mdScrollLink(ta,side,lns,tops){const pv=side.querySelector('.ep-md');if(!pv||!lns.length)return;
+  const y=ta.scrollTop;if(y<=0){side.scrollTop=0;return;}
+  let k=-1;tops.forEach((t,i)=>{if(t<=y+2)k=i;});if(k<0)return;
+  const at=n=>{const e=pv.querySelector('[data-ln="'+n+'"]');return e?e.getBoundingClientRect().top-side.getBoundingClientRect().top+side.scrollTop:null;};
+  const a=at(lns[k]);if(a==null)return;
+  const b=k+1<lns.length?at(lns[k+1]):null,t1=k+1<tops.length&&isFinite(tops[k+1])?tops[k+1]:ta.scrollHeight;
+  const f=Math.max(0,Math.min(1,(y-tops[k])/Math.max(1,t1-tops[k])));
+  side.scrollTop=a+(b!=null?(b-a)*f:0)-12;}
 function mdGoLine(ta,ln){if(state.mdPv==='p')mdPvSet('w',ta,state.pdraft);
   const v=ta.value.split('\n'),a=v.slice(0,ln).join('\n').length+(ln?1:0);
   ta.focus({preventScroll:true});ta.setSelectionRange(a,a);
@@ -17536,9 +17626,20 @@ function mdGoLine(ta,ln){if(state.mdPv==='p')mdPvSet('w',ta,state.pdraft);
   const r=ta.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)ta.scrollIntoView({block:'center'});
   mdCaretSync(ta,state.pdraft);}
 function mdPlanOpen(btn,ta,p){const L=mdCaretLine(ta),H=mdHeads(p.body),cur=H.filter(h=>h.ln<=L).pop();
+  /* A546 : la section où l'on écrit se déplace, se duplique ou se supprime ici — au doigt, couper-coller une longue
+     section est pénible. Seuls les gestes possibles sont proposés (pas de « Monter » pour la première). */
+  const s=cur&&mdSecAt(p.body,cur.ln),act=s?[{head:'Section « '+cur.text+' »'}]
+    .concat(s.prev?[{val:'act:up',name:'Monter',sub:'avant « '+s.prev.text+' »',ic:uiIcon('chev',16,{sw:2.4,cls:'mdt-up'})}]:[])
+    .concat(s.next?[{val:'act:down',name:'Descendre',sub:'après « '+s.next.text+' »',ic:uiIcon('chev',16,{sw:2.4,cls:'mdt-dn'})}]:[])
+    .concat([{val:'act:dup',name:'Dupliquer',sub:'la copie suit la section',ic:uiIcon('copy',16)},
+      {val:'act:del',name:'Supprimer la section',sub:'⌘Z ou ↶ pour annuler',ic:uiIcon('trash',16),danger:true}]):[];
   openPickMenu(btn.parentNode,{aria:'Plan du contenu',trigger:btn,value:cur?String(cur.ln):'',
-    options:H.map(h=>({val:String(h.ln),name:h.text,sub:'ligne '+(h.ln+1),ic:`<b class="mdt-hx ${['','','md-lv2','md-lv3'][h.n]}">H${h.n}</b>`})),
-    onPick:v=>mdGoLine(ta,+v)});}
+    options:H.map(h=>({val:String(h.ln),name:h.text,sub:'ligne '+(h.ln+1),ic:`<b class="mdt-hx ${['','','md-lv2','md-lv3'][h.n]}">H${h.n}</b>`})).concat(act),
+    onPick:v=>{if(!/^act:/.test(v))return mdGoLine(ta,+v);
+      const k=v.slice(4),r=k==='up'?mdSecMove(ta.value,cur.ln,-1):k==='down'?mdSecMove(ta.value,cur.ln,1):k==='dup'?mdSecDup(ta.value,cur.ln):mdSecDel(ta.value,cur.ln);
+      if(!r)return;mdReplaceBody(ta,r.v,r.at);
+      if(k==='del')toast('Section « '+cur.text+' » supprimée — ⌘Z ou ↶ pour annuler.');
+      mdGoLine(ta,r.at);}});}
 function mdPvSet(k,ta,p){state.mdPv=k;const card=main.querySelector('.md-ed');if(!card)return;
   card.classList.toggle('md-pv',k==='p');
   const sg=card.querySelector('.md-seg');paintSeg(sg,'data-mdpv',k==='p'?1:0);
@@ -17750,9 +17851,13 @@ function mdLintAct(ta,x){if(!x)return;
    Le champ garde frappe, curseur, sélection et annulation natives : son texte devient transparent.
    Pointeur fin sans écran tactile seulement (le champ d'iOS décale son texte de quelques px). */
 const MD_HL=[[1,'hl-m'],[2,'hl-h'],[4,'hl-crit'],[8,'hl-vig'],[16,'hl-info'],[32,'hl-ok'],[64,'hl-lint']],MD_HL_K={crit:4,vig:8,info:16,ok:32};
-function mdHlHtml(body,lint){const v=String(body||''),C=new Uint8Array(v.length);
+function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.length);
+  /* A546 : au bout d'une ligne « ![…](img:ID) », la VIGNETTE de l'image et sa taille — l'identifiant seul ne disait
+     ni laquelle ni à quelle taille. Posée en absolu : elle ne prend aucune place dans la ligne (métriques du champ). */
+  const IM=Object.create(null);(imgs||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)IM[im.id]=im;});const brk=new Map();
   let o=0,code=false,qk=0;
-  v.split('\n').forEach(l=>{const set=(i,n,b)=>{for(let k=o+i,e=Math.min(o+i+n,C.length);k<e;k++)C[k]|=b;};let m;
+  v.split('\n').forEach(l=>{{const mi=!code&&l.match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/),im=mi&&IM[mi[1]],src=im&&safeImg(im.data);
+      if(src)brk.set(o+l.replace(/\s+$/,'').length,`<span class="hl-imc" data-s="${esc((im.scale||100)+' %')}"><img src="${src}" alt=""></span>`);}const set=(i,n,b)=>{for(let k=o+i,e=Math.min(o+i+n,C.length);k<e;k++)C[k]|=b;};let m;
     if(/^```/.test(l)){code=!code;set(0,l.length,1);}
     else if(!code){
       if((m=l.match(/^>\s?/))){const c=mdCallout(l.slice(m[0].length));if(c.kind)qk=MD_HL_K[c.kind]||0;
@@ -17767,11 +17872,14 @@ function mdHlHtml(body,lint){const v=String(body||''),C=new Uint8Array(v.length)
     o+=l.length+1;});
   (lint||[]).forEach(x=>{for(let k=x.from;k<x.to&&k<C.length;k++)C[k]|=64;});
   let h='',i=0;
-  while(i<v.length){let j=i;while(j<v.length&&C[j]===C[i])j++;const t=esc(v.slice(i,j));
-    h+=C[i]?'<span class="'+MD_HL.filter(([b])=>C[i]&b).map(x=>x[1]).join(' ')+'">'+t+'</span>':t;i=j;}
+  while(i<v.length){let j=i;while(j<v.length&&C[j]===C[i]&&(j===i||!brk.has(j)))j++;
+    const t=esc(v.slice(i,j));
+    h+=C[i]?'<span class="'+MD_HL.filter(([b])=>C[i]&b).map(x=>x[1]).join(' ')+'">'+t+'</span>':t;i=j;
+    if(brk.has(i)){h+=brk.get(i);brk.delete(i);}}
+  if(brk.has(v.length))h+=brk.get(v.length);
   return h+(v.endsWith('\n')?' ':'');}   // une ligne finale VIDE a aussi sa hauteur dans le champ
-function mdHlSync(ta,docs){const w=ta.parentNode;if(!w||!w.classList.contains('on'))return;const hl=w.firstElementChild,cs=getComputedStyle(ta);
-  hl.innerHTML=mdHlHtml(ta.value,mdLint(ta.value,docs));
+function mdHlSync(ta,docs,imgs){const w=ta.parentNode;if(!w||!w.classList.contains('on'))return;const hl=w.firstElementChild,cs=getComputedStyle(ta);
+  hl.innerHTML=mdHlHtml(ta.value,mdLint(ta.value,docs),imgs);
   // La barre de défilement du champ rétrécit sa ligne : le calque réserve la même largeur.
   hl.style.paddingRight=(parseFloat(cs.paddingRight)+ta.offsetWidth-ta.clientWidth-parseFloat(cs.borderLeftWidth)-parseFloat(cs.borderRightWidth))+'px';
   hl.scrollTop=ta.scrollTop;}
@@ -17875,8 +17983,10 @@ function renderProtocolEdit(){
     ta.addEventListener('blur',()=>{R.classList.remove('md-kbd');const m=main.querySelector('.md-toolbar>.popmenu.up');if(m&&_pickClose)_pickClose(false);});
     // `mousedown` seul : annuler `pointerdown` supprime le clic sous WebKit (mesuré).
     const tb=main.querySelector('.md-toolbar');
-    tb.addEventListener('mousedown',e=>{if(e.target.closest('[data-mdtool],[data-mdmenu]'))e.preventDefault();});
-    tapKeepsFocus(tb,'[data-mdtool],[data-mdmenu]');}
+    tb.addEventListener('mousedown',e=>{if(e.target.closest('[data-mdtool],[data-mdmenu],[data-mdpeek]'))e.preventDefault();});
+    tapKeepsFocus(tb,'[data-mdtool],[data-mdmenu],[data-mdpeek]');}
+  document.documentElement.classList.toggle('md-peek-on',mdPeekOn());
+  {const pb=main.querySelector('[data-mdpeek]');if(pb)pb.onclick=()=>{mdPeekSet(!mdPeekOn());mdPeekPaint(ta,p);};}
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>tool(b.dataset.mdtool));
   main.querySelectorAll('[data-mdmenu]').forEach(b=>b.onclick=()=>mdMenuOpen(b,p,tool));
   ta.addEventListener('keydown',e=>{if(e.isComposing)return;
@@ -17894,16 +18004,22 @@ function renderProtocolEdit(){
     b.onclick=()=>{const x=d();if(x)mdLinkDoc(ta,x);};
     b.ondragstart=e=>{const x=d();if(x)e.dataTransfer.setData('text/plain',mdDocLink(x,''));};});
   // Plan, curseur suivi par l'aperçu, aperçu qui ramène au texte, bascule Écrire / Aperçu (v5.44).
-  const sync=()=>requestAnimationFrame(()=>mdCaretSync(ta,p));
+  const sync=()=>requestAnimationFrame(()=>{mdCaretSync(ta,p);mdPeekPaint(ta,p);});
   ['keyup','click','focus','input'].forEach(ev=>ta.addEventListener(ev,sync));
   {const pb=main.querySelector('[data-mdplan]');if(pb)pb.onclick=()=>mdPlanOpen(pb,ta,p);}
+  // A546 : à parts égales (≥ 1000), le rendu de la colonne suit le défilement du champ. Mesure refaite après la frappe.
+  {const side=document.getElementById('editSide');if(side&&matchMedia('(min-width:1000px)').matches){let lns=[],tops=null,raf=0;
+    ta.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;
+      if(!tops){lns=[...new Set([...side.querySelectorAll('.ep-md [data-ln]')].map(x=>+x.dataset.ln))].sort((a,b)=>a-b);tops=mdLineTops(ta,lns);}
+      mdScrollLink(ta,side,lns,tops);});},{passive:true});
+    ta.addEventListener('input',()=>{tops=null;});new ResizeObserver(()=>{tops=null;}).observe(ta);}}
   main.querySelectorAll('[data-mdpv]').forEach(b=>b.onclick=()=>mdPvSet(b.dataset.mdpv,ta,p));
   mdCaretSync(ta,p);
   bindRevPanel();   // les rangées du volet d'une référence répondent enfin au tap (v5.44)
   {const lb=main.querySelector('.md-lint-box');mdLintPaint(p);
    lb.addEventListener('click',e=>{const b=e.target.closest('[data-mdlint]');if(b)mdLintAct(ta,(lb._lint||[])[+b.dataset.mdlint]);});}
   if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
-    ta.parentNode.classList.add('on');const hs=()=>mdHlSync(ta,p.docs);
+    ta.parentNode.classList.add('on');const hs=()=>mdHlSync(ta,p.docs,p.images);
     ta.addEventListener('input',hs);ta.addEventListener('scroll',()=>{ta.previousElementSibling.scrollTop=ta.scrollTop;});
     new ResizeObserver(hs).observe(ta);hs();}
   // La zone de dépôt permanente de la section « Images », plus la cible d'un dépôt fait
@@ -18497,7 +18613,8 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
      de le rendre en emoji COULEUR, dans un dessin dont toute la couleur est sémantique. Or c'est
      exactement le motif d'A106 (« les anciens glyphes texte rendaient un dessin différent selon la
      police du système ») : un tracé supprime le risque au lieu de le border. */
-  bolt:'<path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/>'};
+  bolt:'<path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'};
   const s=size||15,cls=opts.cls===undefined?'tic':opts.cls;
   return `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${opts.sw||2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]||''}</svg>`;}
 /* L'éclair de complication, UNE fabrique pour ses quinze sites : classe `bolt` (rempli, cf. CSS),
@@ -33946,7 +34063,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockSrc,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

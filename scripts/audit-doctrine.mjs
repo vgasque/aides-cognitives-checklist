@@ -8520,6 +8520,59 @@ await sec('Accueil · A545 le titre choisit', async () => {
   await page.close();
 });
 
+/* ══ A546 — L'ÉDITEUR DE RÉFÉRENCE : VOIR EN ÉCRIVANT ═════════════════════════════════════════════════════════════
+   Téléphone, clavier ouvert (émulé : `visualViewport.height` réduit) : la bande rend le bloc au curseur au-dessus de la
+   barre, ne cache pas la ligne écrite, l'œil la masque (retenu), la barre tient sur une ligne de 320 à 390. Bureau
+   (≥ 1000) : source et rendu à parts égales, le rendu suit le défilement du champ. Plan : la section se déplace. */
+await sec('Éditeur · A546 voir en écrivant (bande, parts égales, sections)', async () => {
+  const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d'abord : **0,5 mg**\n\n## Posologie\n\n| Âge | Dose |\n|---|---|\n| Adulte | 0,5 mg |\n\n"
+    +Array.from({length:6},(_,i)=>`## Section ${i+1}\n\nTexte de la section ${i+1}, assez long pour remplir une ligne ou deux.\n\n- a\n- b\n`).join('\n');
+  const ouvrir=async page=>{await page.evaluate(async c=>{const pr=migrateProtocol({title:'Témoin A546',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);await page.waitForTimeout(500);};
+  {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrir(page);
+    const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={};try{localStorage.removeItem('ac-mdpeek');}catch(e){}
+      const vv=window.visualViewport;Object.defineProperty(vv,'height',{get:()=>470,configurable:true});vv.dispatchEvent(new Event('resize'));
+      const t=document.getElementById('p-body');t.focus();const i=t.value.indexOf('Voie IM');t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await w(350);
+      const pk=document.querySelector('.md-peek'),tb=document.querySelector('.md-toolbar');if(!pk)return {bande:{},masque:{},tableau:false};   // rouge, pas plantage
+      const bas=t.getBoundingClientRect().top+mdLineTop(t,mdCaretLine(t))-t.scrollTop+parseFloat(getComputedStyle(t).paddingTop)+parseFloat(getComputedStyle(t).lineHeight);
+      out.bande={encadre:!!pk.querySelector('.callout,[class*="co-"],blockquote'),h:Math.round(pk.getBoundingClientRect().height),audessus:pk.getBoundingClientRect().bottom<=tb.getBoundingClientRect().top,
+        ligne:Math.round(bas)<=Math.round(pk.getBoundingClientRect().top),texte:pk.textContent.replace(/\s+/g,' ').trim()};
+      const j=t.value.indexOf('| Adulte');t.setSelectionRange(j+2,j+2);t.dispatchEvent(new Event('keyup'));await w(250);out.tableau=!!pk.querySelector('table');
+      document.querySelector('[data-mdpeek]').click();await w(200);
+      out.masque={vide:!pk.getBoundingClientRect().height,pressed:document.querySelector('[data-mdpeek]').getAttribute('aria-pressed'),retenu:localStorage.getItem('ac-mdpeek'),focus:document.activeElement===t};
+      document.querySelector('[data-mdpeek]').click();await w(200);
+      return out;});
+    t('A546 · téléphone : le bloc au curseur rendu au-dessus de la barre, borné, sans cacher la ligne écrite',
+      r.bande.encadre&&/Voie IM/.test(r.bande.texte)&&r.bande.h>0&&r.bande.h<=96&&r.bande.audessus&&r.bande.ligne&&r.tableau,JSON.stringify(r.bande)+' tableau='+r.tableau);
+    t('A546 · l\'œil masque la bande, retenu sur l\'appareil, le champ garde le focus',r.masque.vide&&r.masque.pressed==='false'&&r.masque.retenu==='0'&&r.masque.focus,JSON.stringify(r.masque));
+    const lignes=[];for(const w of [390,360,344,320]){await page.setViewportSize({width:w,height:740});await page.waitForTimeout(250);
+      lignes.push(await page.evaluate(w=>{const b=document.querySelector('.md-toolbar');const ys=new Set([...b.querySelectorAll('.mini')].filter(x=>x.offsetParent).map(x=>Math.round(x.getBoundingClientRect().top)));return {w,deborde:b.scrollWidth-b.clientWidth,rangs:ys.size};},w));}
+    t('A546 · la barre, l\'œil compris, tient sur une ligne de 320 à 390',lignes.every(x=>x.deborde<=0&&x.rangs===1),JSON.stringify(lignes));
+    await page.close();}
+  {const page=await br.newPage({viewport:{width:1280,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrir(page);
+    const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={};
+      out.ecart2=null;out.actes=[];const g=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);out.cols=g;
+      const t=document.getElementById('p-body'),s=document.getElementById('editSide');out.s0=s.scrollTop;
+      const L=t.value.split('\n').findIndex(l=>l==='## Section 3');t.scrollTop=mdLineTop(t,L);t.dispatchEvent(new Event('scroll'));await w(150);
+      const e=s.querySelector('.ep-md [data-ln="'+L+'"]');out.ecart=e?Math.round(e.getBoundingClientRect().top-s.getBoundingClientRect().top):null;out.s1=s.scrollTop;out.butee=s.scrollTop>=s.scrollHeight-s.clientHeight-1;
+      // Une section du HAUT du rendu (pas de butée possible) : elle doit s'aligner.
+      const L2=t.value.split('\n').findIndex(l=>l==='## Posologie');t.scrollTop=mdLineTop(t,L2);t.dispatchEvent(new Event('scroll'));await w(150);
+      const e2=s.querySelector('.ep-md [data-ln="'+L2+'"]');out.ecart2=e2?Math.round(e2.getBoundingClientRect().top-s.getBoundingClientRect().top):null;
+      // Plan : « Descendre » la section courante.
+      const i=t.value.indexOf('## Section 3');t.focus();t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await w(100);
+      document.querySelector('[data-mdplan]').click();await w(250);out.actes=[...document.querySelectorAll('.popmenu [data-pickopt^="act:"]')].map(b=>b.dataset.pickopt);
+      const dn=document.querySelector('.popmenu [data-pickopt="act:down"]');if(!dn)return out;dn.click();await w(250);
+      const v=t.value;out.ordre=v.indexOf('## Section 4')<v.indexOf('## Section 3');out.curseur=t.value.split('\n')[mdCaretLine(t)];
+      return out;});
+    t('A546 · bureau : source et rendu à parts égales',r.cols.length===2&&Math.abs(r.cols[0]-r.cols[1])<=1,JSON.stringify(r.cols));
+    t('A546 · le rendu suit le défilement du champ (la section en haut du champ est en haut du rendu)',r.s1>r.s0&&r.ecart!=null&&(Math.abs(r.ecart)<=40||r.butee)&&r.ecart2!=null&&Math.abs(r.ecart2)<=40,JSON.stringify(r));
+    t('A546 · Plan : la section courante se déplace, le curseur la suit',r.actes.join(',')==='act:up,act:down,act:dup,act:del'&&r.ordre&&r.curseur==='## Section 3',JSON.stringify(r));
+    await page.close();}
+});
+
 /* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
 await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async () => {
   const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});

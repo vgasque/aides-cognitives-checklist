@@ -839,6 +839,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('bloc de code ignoré', A.mdLint('```\n.5 mg\n```',[]), []);
   ok('coloration : texte rendu à l\'identique, échappé', (()=>{const src='## Titre <b>\n> [!CAUTION]\n> **x** .5 mg\n| a |\n|---|';const h=A.mdHlHtml(src,A.mdLint(src,[]));
     const d=document.createElement('div');d.innerHTML=h;return d.textContent===src&&A.mdHlHtml('a\n',[]).endsWith('\n ')&&!d.querySelector('b')&&d.querySelector('.hl-crit')&&d.querySelector('.hl-lint').textContent==='.5'&&d.querySelector('.hl-h').textContent.startsWith('Titre');})());
+  /* A546 — vignette d'image dans le calque, sections déplacées par le Plan, bloc au curseur (bande du téléphone). */
+  ok('A546 calque : vignette au bout de la ligne d\'image, texte du calque inchangé', (()=>{const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const src='![Site](img:i1)\nsuite';const h=A.mdHlHtml(src,[],[{id:'i1',data:png,scale:60}]);const d=document.createElement('div');d.innerHTML=h;
+    const c=d.querySelector('.hl-imc');return d.textContent===src&&!!c&&c.dataset.s==='60 %'&&!!c.querySelector('img')&&!A.mdHlHtml('![x](img:absente)',[],[]).includes('hl-imc');})());
+  ok('A546 sections : monter, descendre, dupliquer, supprimer — voisines de même niveau seulement', (()=>{const B='Intro\n\n## A\na1\n\n### A.1\nx\n\n## B\nb1\n\n## C\nc1';
+    const up=A.mdSecMove(B,8,-1),dn=A.mdSecMove(B,2,1),dup=A.mdSecDup(B,8),del=A.mdSecDel(B,2),last=A.mdSecMove(B,8,1);
+    return up.v==='Intro\n\n## B\nb1\n\n## A\na1\n\n### A.1\nx\n\n## C\nc1'&&up.at===2&&dn.v===up.v&&dn.at===5
+      &&A.mdSecMove(B,2,-1)===null&&A.mdSecMove(B,11,1)===null&&A.mdSecMove(B,5,-1)===null&&A.mdSecMove(B,0,1)===null
+      &&dup.v==='Intro\n\n## A\na1\n\n### A.1\nx\n\n## B\nb1\n\n## B\nb1\n\n## C\nc1'&&dup.at===11
+      &&del.v==='Intro\n\n## B\nb1\n\n## C\nc1'&&last.v.endsWith('## C\nc1\n\n## B\nb1');})());
+  ok('A546 bloc au curseur : le source du seul bloc qui contient la ligne', (()=>{const B='## T\n\n> [!WARNING]\n> Voie IM\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\nfin';
+    return A.mdBlockSrc(B,3)==='> [!WARNING]\n> Voie IM'&&A.mdBlockSrc(B,7)==='| a | b |\n|---|---|\n| 1 | 2 |'&&A.mdBlockSrc(B,0)==='## T'&&A.mdBlockSrc('',0)==='';})());
 
   group('mini-Markdown — listes cochables - [ ] (v4.6.0)');
   eq('- [ ] a → tâche non cochée, texte nettoyé', A.mdTask('[ ] a'), {done:false,text:'a'});
