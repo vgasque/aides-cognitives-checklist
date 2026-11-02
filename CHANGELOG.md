@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.78.2] — 2026-11-02
+Le bouton ↶ (annuler) apparaît après toute modification (A551, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
+côté serveur.
+- Dans l'éditeur des références, **supprimer, déplacer, dupliquer ou ajouter un passage**, changer le type d'un encadré
+  ou la taille d'une image faisaient la modification sans proposer ↶ ni enregistrer tout de suite : c'est corrigé.
+- **La taille d'une image** réglée dans la liste « Images » et **la date de validation** (références et aides) ne
+  proposaient pas non plus ↶ : corrigé, pour tout réglage de ce genre.
+- Vérifié geste par geste : chaque modification fait paraître ↶ en haut de l'éditeur, et ↶ rend l'état d'avant.
+
 ## [5.78.1] — 2026-11-02
 Correctif de mise en page de l'éditeur des références, mise en forme en direct (A550, doctrine
 `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
@@ -160,12 +169,3 @@ côté serveur.
   elle quitte sa catégorie le temps de la session. Un tap la rouvre.
 - **La carte sombre « Session en cours » disparaît** (elle doublait la rangée). « Terminer » se fait dans la
   session, par « Fin ». La carte d'une session partagée reste.
-
-## [5.66.0] — 2026-11-01
-Lot 11 de la refonte « Natif » : Administration au bureau et la Page (A522, doctrine `docs/decisions/lot-v6-0.md`).
-Rien à rejouer côté serveur.
-- **Administration** : les sections (Vue d'ensemble, Comptes, Bibliothèques, Règles) sont un sélecteur segmenté ;
-  les intertitres passent en minuscules ; le statut d'un compte est une pastille (ambre « En attente ») ; la fiche
-  d'un compte, à côté de la liste, s'ouvre sur une carte d'en-tête.
-- **La Page** : « Fermer » en mot à gauche, l'échelle en segmenté dans la barre, puis **Imprimer** et **Exporter en
-  PDF** (au téléphone, ils restent dans le menu ⋯). La feuille est centrée sur un fond gris.

@@ -1046,3 +1046,24 @@ texte garde l'alignement du formulaire (plus de gouttière de 40 px à gauche). 
 fond de carte, UNE bordure `--act` et l'anneau doux `--primary-soft`, police d'interface (`--f-ui`, 16 px au toucher).
 *Forme écartée* : garder les « ＋ » au survol d'un seul interstice (une cible de 20 px entre deux blocs, introuvable au
 doigt et bruyante à la souris).
+
+## A551 — Toute modification pose son point de reprise : ↶ paraît, quel que soit le geste (v5.78.2)
+
+*Signalé par l'auteur : « où est le bouton retour en arrière ? », « même après un déplacement de bloc », « vérifie qu'il
+s'affiche bien pour toute modification, peu importe laquelle ».*
+
+**Cause.** L'éditeur pose l'enregistrement et le point de reprise (↶, `edUndoNote` / `edTouch`) par DEUX accroches
+(`conventions-de-code.md` : « DEUX ACCROCHES, ET DEUX SEULEMENT ») : la saisie, captée par délégation de `input` sur
+`#main`, et les gestes structurels, qui se terminent tous par un re-rendu de l'éditeur. Deux familles y échappaient :
+(1) **les gestes du document par blocs** (A547-A549 : supprimer, dupliquer, déplacer, ajouter, registre, taille, image
+remplacée) écrivent le corps dans le champ masqué sans re-rendre l'éditeur, et l'événement de ce champ ne bulle pas ;
+(2) **les réglages par `change`** qui ne re-rendent pas — mesuré : la taille d'une image dans la liste « Images » et la
+date de validation (référence ET aide).
+
+**Décision.** (1) Le document par blocs appelle `edTouch` à chaque écriture (`push`). (2) **Une troisième accroche** :
+`change` délégué sur `#main` comme `input` — tout sélecteur, case ou interrupteur ajouté demain est couvert sans qu'on y
+pense ; sans changement réel du brouillon, `edTouch` ne fait rien.
+**Vérifié** (sonde, chaque geste puis ↶) : dans l'éditeur de référence, 15 gestes du document, du Plan, de la relecture,
+des images et du mode Markdown, et chacun des champs ; dans l'éditeur d'aide, ses 37 champs ; date de validation des
+deux éditeurs. Tous posent ↶, et ↶ rend l'état d'avant.
+Témoins : `audit-doctrine` « Éditeur · A547 » (↶ après une duplication) et « A548-A549 » (↶ après un déplacement).

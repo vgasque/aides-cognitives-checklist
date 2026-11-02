@@ -8593,13 +8593,19 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
       const s=getSelection();s.removeAllRanges();const g=document.createRange(),bs=d.querySelectorAll('.mdb');g.setStart(bs[0],0);g.setEnd(bs[2],bs[2].childNodes.length);s.addRange(g);
       const dt=new DataTransfer();bs[1].dispatchEvent(new ClipboardEvent('copy',{clipboardData:dt,bubbles:true,cancelable:true}));o.copie=dt.getData('text/plain');
       bs[1].click();await w(150);d.querySelector('[data-mdbact="dup"]').click();await w(100);o.dup=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
-      d.querySelector('[data-mdbact="del"]').click();await w(100);o.del=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      // A551 : le geste d'un bloc pose le point de reprise — ↶ paraît et défait la duplication.
+      const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await w(100);o.undo=!u.hidden;
+      if(o.undo){u.click();await w(300);}o.rendu=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      {const d2=document.getElementById('mdDoc');   // ↶ redessine l'éditeur : on relit le document
+       const b2=[...d2.querySelectorAll('.mdb')].find(x=>{const q=x.querySelector('p');return !!q&&q.textContent.trim()==='Texte.';});   /* la poignée ⠿ fait partie du texte du bloc */if(b2){b2.click();await w(150);d2.querySelector('[data-mdbact="del"]').click();await w(100);}}
+      o.del=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
       document.querySelector('[data-mdlive]').click();await w(300);o.markdown=!document.getElementById('mdDoc')&&getComputedStyle(document.querySelector('.md-hlw')).display!=='none'&&localStorage.getItem('ac-mdlive')==='0';
       try{localStorage.removeItem('ac-mdlive');}catch(e){}
       return o;});
     t('A547 · bureau : la colonne ne garde que la relecture (320), le document est le rendu',r.doc&&r.cols[1]===320&&r.apercuCache,JSON.stringify(r));
     t('A547 · copier plusieurs blocs rendus copie leur Markdown',r.doc&&r.copie==='## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d\'abord : **0,5 mg**',JSON.stringify(r.copie));
-    t('A547 · Dupliquer puis Supprimer un bloc ; l\'interrupteur rend le Markdown entier, retenu sur l\'appareil',r.doc&&r.dup===2&&r.del===1&&r.markdown,JSON.stringify(r));
+    t('A547 · Dupliquer puis Supprimer un bloc ; l\'interrupteur rend le Markdown entier, retenu sur l\'appareil',r.doc&&r.dup===2&&r.del===0&&r.markdown,JSON.stringify(r));
+    t('A551 · après la duplication d\'un bloc, ↶ paraît dans l\'en-tête et la défait',r.doc&&r.undo&&r.rendu===1,JSON.stringify({undo:r.undo,rendu:r.rendu}));
     await page.close();}
 });
 
@@ -8628,7 +8634,9 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     if(g){g.click();await w(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
       pris:!!d.querySelector('.mdb.grabbed'),inerte:document.querySelector('[data-mdplan]').disabled&&document.querySelector('[data-mdlive]').disabled};
       d.querySelector('[data-mdbdrop="0"]').click();await w(150);o.libre=!d.querySelector('.ed-grab')&&!document.querySelector('[data-mdplan]').disabled;}
-    o.tete=state.pdraft.body.split('\n')[0];o.n=n;
+    o.tete=state.pdraft.body.split('\n')[0];
+    {const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await w(100);o.undoDep=!u.hidden;if(o.undoDep){u.click();await w(300);}o.apresUndo=state.pdraft.body.split('\n')[0];}
+    o.n=n;
     return o;});
   t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
     r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
@@ -8636,6 +8644,7 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele===50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
   t('A549 · « Prendre / Poser » (geste de l\'éditeur d\'aide) : ⠿ prend le dernier bloc, bandeau qui le nomme, une cible par place, le reste inerte ; « Poser en tête » le pose',
     r.doc&&r.poignee&&r.mode&&r.mode.bandeau&&r.mode.cibles===r.n+1&&r.mode.pris&&r.mode.inerte&&r.libre&&r.tete==='Fin.',JSON.stringify(r));
+  t('A551 · après un déplacement, ↶ paraît et remet le bloc à sa place',r.doc&&r.undoDep&&r.apresUndo==='## A',JSON.stringify({undo:r.undoDep,apres:r.apresUndo}));
   await page.close();
 });
 
