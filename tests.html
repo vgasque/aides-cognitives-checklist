@@ -859,6 +859,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       &&dup.v==='Para a.\n\nPara a.\n\nPara b.\n\n## T'&&dup.i===1&&del.v==='Para a.\n\n## T'
       &&ins.v==='Para a.\n\n> [!NOTE]\n> x\n\nPara b.\n\n## T'&&ins.i===1&&ins0.v==='## H'&&ins0.i===0
       &&glued.v==='Para.\n\n## T'&&A.mdBlockRanges(glued.v).length===2;})());
+  ok('A548 blocs : glisser un bloc avant un autre ou à la fin (échanges successifs)', (()=>{const B='A.\n\nB.\n\nC.\n\nD.';
+    const fin=A.mdBlkMoveTo(B,0,4),tete=A.mdBlkMoveTo(B,3,0),mil=A.mdBlkMoveTo(B,0,2);
+    return fin.v==='B.\n\nC.\n\nD.\n\nA.'&&fin.i===3&&tete.v==='D.\n\nA.\n\nB.\n\nC.'&&tete.i===0&&mil.v==='B.\n\nA.\n\nC.\n\nD.'
+      &&A.mdBlkMoveTo(B,1,1)===null&&A.mdBlkMoveTo(B,1,2)===null&&A.mdBlkMoveTo(B,0,9)===null;})());
   group('mini-Markdown — listes cochables - [ ] (v4.6.0)');
   eq('- [ ] a → tâche non cochée, texte nettoyé', A.mdTask('[ ] a'), {done:false,text:'a'});
   eq('[x] et [X] → cochée', [A.mdTask('[x] a').done,A.mdTask('[X] a').done], [true,true]);

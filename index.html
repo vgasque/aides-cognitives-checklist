@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eS+OU5luVj3bidaen/0T8hqIikrnGjKE5YGwU+L/6ZM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eebxaGU2x9K/Gbz+Et18R3UR9lyMuZiGBRixKQdkFE4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8346,6 +8346,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:transparent;font:inherit;font-size:var(--t-item);font-weight:600;color:var(--act);cursor:pointer}
   .mdb-add:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-first{margin-top:0}
+  /* A548 : réglages du bloc ouvert, poignée de glisser (pointeur fin), ligne de dépôt. */
+  .mdb-tools{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+  .mdb-chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:999px;
+    background:var(--work);font:inherit;font-size:var(--t-body);font-weight:700;color:var(--ink);cursor:pointer}
+  .mdb-chip:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdb-chip svg{width:14px;height:14px}
+  .mdb-chip.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
+  .mdb-chip.crit.on{border-color:var(--crit-line);background:var(--crit-soft);color:var(--crit)}
+  .mdb-chip.vig.on{border-color:var(--warn-line);background:var(--warn-soft);color:var(--warn)}
+  .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+  .mdb-imgv{margin:0 0 8px}
+  .mdb-imgv img{display:block;max-width:100%;height:auto;border-radius:var(--r-1)}
+  .mdb-grip{position:absolute;top:8px;left:-24px;width:20px;text-align:center;font-size:var(--t-meta);font-weight:800;letter-spacing:-2px;color:var(--ink-3);cursor:grab;opacity:0;user-select:none}
+  .mdb:hover .mdb-grip{opacity:1}
+  @media (pointer:coarse){.mdb-grip{display:none}}
+  .mdb.mdb-drag{opacity:.45}
+  .mdb.mdb-drop-b{box-shadow:0 -3px 0 var(--act)}
+  .mdb.mdb-drop-a{box-shadow:0 3px 0 var(--act)}
+  @media (pointer:fine){.md-doc{padding-left:24px}}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
   .md-toolbar>.popmenu.up{top:auto;bottom:calc(100% + 6px);left:12px;right:12px;width:auto;min-width:0;max-width:none;max-height:calc(var(--vvh,100dvh) / var(--zf,1) - 120px)}
   .mdt-g{position:relative;display:inline-flex}
@@ -9671,7 +9690,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.76.0';
+const APP_VERSION='5.77.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17579,10 +17598,27 @@ function mdBlkDel(body,i){const R=mdBlockRanges(body);if(!R[i])return null;const
 function mdBlkIns(body,i,text){const R=mdBlockRanges(body),L=String(body||'').split('\n'),T=String(text).split('\n');
   if(!R.length)return {v:T.join('\n'),i:0};const at=i<0?0:R[Math.min(i,R.length-1)].e;
   return {v:mdGlue(L.slice(0,at),[''],T,L.slice(at)).join('\n').replace(/^\n+/,''),i:i<0?0:Math.min(i,R.length-1)+1};}
+// Déplace le bloc `from` pour qu'il précède le bloc `to` (to = nombre de blocs : à la fin) — par échanges successifs,
+// chacun ne touche que la paire échangée (A548, glisser à la souris).
+function mdBlkMoveTo(body,from,to){const n=mdBlockRanges(body).length;if(from<0||from>=n||to<0||to>n||to===from||to===from+1)return null;
+  let v=String(body),i=from;const t=to>from?to-1:to;while(i!==t){const r=mdBlkMove(v,i,t>i?1:-1);if(!r)return null;v=r.v;i=r.i;}return {v,i};}
+/* A548 — LE BLOC OUVERT SE RÈGLE SUR PLACE. Un encadré : son registre en pastilles (glyphe + mot, jamais la couleur
+   seule, règle 8) ; une image : sa taille en pastilles, l'image elle-même au-dessus du champ, « Remplacer… ». */
+const MD_REG_WORD={crit:'CAUTION',vig:'WARNING',info:'NOTE',ok:'TIP'};
+const mdSrcCall=src=>{const l=String(src||'').split('\n')[0];if(!/^>/.test(l))return null;const c=mdCallout(l.replace(/^>\s?/,''));return c.kind||'';};
+const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)$/);return m?m[1]:null;};
+function mdBlkToolsHtml(src,p){const k=mdSrcCall(src);
+  if(k!=null)return `<div class="mdb-tools" role="radiogroup" aria-label="Registre de l'encadré">`+Object.keys(MD_CALL_LBL).map(x=>
+    `<button type="button" class="mdb-chip ${x}${x===k?' on':''}" data-mdbreg="${x}" role="radio" aria-checked="${x===k}">${calloutIcon(x)}${MD_CALL_LBL[x]}</button>`).join('')+`</div>`;
+  const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
+  if(data)return `<div class="mdb-imgv"><img src="${data}" alt="" style="width:${_scale(im.scale)}%"></div><div class="mdb-tools" role="radiogroup" aria-label="Taille de l'image">`
+    +MD_SCALES.map(v=>`<button type="button" class="mdb-chip${v===_scale(im.scale)?' on':''}" data-mdbscale="${v}" role="radio" aria-checked="${v===_scale(im.scale)}">${v} %</button>`).join('')
+    +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
+  return '';}
 function mdDocHtml(p,open){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
   if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1">${uiIcon('plus',16,{sw:2.4})}Écrire le contenu…</button>`;
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
-    if(i===open)return `<div class="mdb on" data-mdb="${i}"><textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea>
+    if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea>
       <div class="mdb-acts" role="group" aria-label="Ce bloc">
         <button type="button" class="btn sm" data-mdbact="up"${i?'':' disabled'} aria-label="Monter ce bloc">${uiIcon('chev',14,{sw:2.4,cls:'mdt-up'})}Monter</button>
         <button type="button" class="btn sm" data-mdbact="down"${i<R.length-1?'':' disabled'} aria-label="Descendre ce bloc">${uiIcon('chev',14,{sw:2.4,cls:'mdt-dn'})}Descendre</button>
@@ -17590,7 +17626,7 @@ function mdDocHtml(p,open){const R=mdBlockRanges(p.body),L=String(p.body||'').sp
         <button type="button" class="btn sm danger" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
         <button type="button" class="btn sm primary mdb-done" data-mdbact="done">Terminé</button></div></div>`;
     const h=mdRender(src,{images:p.images})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
-    return `<div class="mdb" data-mdb="${i}"><button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`
+    return `<div class="mdb" data-mdb="${i}"><span class="mdb-grip" draggable="true" aria-hidden="true" title="Glisser pour déplacer">⋮⋮</span><button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`
       +(i===open-1||i===open?'':`<button type="button" class="mdb-gap" data-mdbadd="${i}" aria-label="Ajouter un bloc après le bloc ${i+1}">${uiIcon('plus',14,{sw:2.6})}</button>`);}).join('')
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
 const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h','Titre de section','## Titre','## Titre'],['c','Encadré','> [!WARNING]','> [!WARNING]\n> Texte'],
@@ -17608,7 +17644,9 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     blk={a:r.a,n:r.e-r.a};{const c=l2c(blk.a);ta.setSelectionRange(c,c);ta.dispatchEvent(new Event('keyup'));}   // le Plan lit la section du bloc ouvert
     bindField(t);fit(t);
     t.addEventListener('input',()=>{const l=lines(),nl=t.value.split('\n');
-      push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);});
+      push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);
+      // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
+      const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));});
     t.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key==='Enter'&&(e.metaKey||e.ctrlKey))){e.preventDefault();e.stopPropagation();close();}});
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
       const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(q.top<70||q.bottom>innerHeight-80)b.scrollIntoView({block:'center'});}};
@@ -17631,6 +17669,13 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(k==='up'||k==='down')return apply(mdBlkMove(p.body,i,k==='up'?-1:1));
       if(k==='dup')return apply(mdBlkDup(p.body,i));
       if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}}
+    const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
+      mdCalloutLines(t,MD_REG_WORD[rg.dataset.mdbreg]);paint();return;}
+    const sc=e.target.closest('[data-mdbscale]');if(sc){const id=mdSrcImg((doc.querySelector('.mdb-ta')||{}).value),im=id&&(p.images||[]).find(x=>x.id===id);if(!im)return;
+      im.scale=_scale(sc.dataset.mdbscale);self=true;ta.dispatchEvent(new Event('input'));self=false;paint();return;}   // le texte ne change pas : la taille vit dans le modèle (A459, « marqueur hors du champ »)
+    const rp=e.target.closest('[data-mdbrepl]');if(rp){const im=(p.images||[]).find(x=>x.id===rp.dataset.mdbrepl);if(!im)return;
+      pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
+        im.data=r.data;im.w=r.w;im.h=r.h;self=true;ta.dispatchEvent(new Event('input'));self=false;paint();},false);return;}
     const ad=e.target.closest('[data-mdbadd]');if(ad){addMenu(ad,+ad.dataset.mdbadd);return;}
     const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();openAt(+b.dataset.mdb);}});
   /* Copier PLUSIEURS blocs rendus copie leur Markdown (sinon la mise en forme se perdait au collage) ; une sélection
@@ -17639,6 +17684,18 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const bs=[...doc.querySelectorAll('.mdb')].filter(b=>s.containsNode(b,true));if(bs.length<2)return;
     const R=mdBlockRanges(p.body),l=lines(),a=R[+bs[0].dataset.mdb],z=R[+bs[bs.length-1].dataset.mdb];if(!a||!z)return;
     e.clipboardData.setData('text/plain',l.slice(a.a,z.e).join('\n'));e.preventDefault();});
+  /* A548 — GLISSER UN BLOC À LA SOURIS (pointeur fin) : la poignée ⋮⋮ ; le dépôt se fait entre deux blocs, la ligne de
+     dépôt dit où. Au doigt et au clavier, Monter / Descendre restent le geste (la poignée est cachée, aria-hidden). */
+  let drag=-1,dropAt=-1;const mark=k=>{doc.querySelectorAll('.mdb-drop-b,.mdb-drop-a').forEach(x=>x.classList.remove('mdb-drop-b','mdb-drop-a'));
+    const bs=doc.querySelectorAll('.mdb');if(k<0)return;if(k<bs.length)bs[k].classList.add('mdb-drop-b');else if(bs.length)bs[bs.length-1].classList.add('mdb-drop-a');};
+  doc.addEventListener('dragstart',e=>{const g=e.target.closest&&e.target.closest('.mdb-grip');if(!g){return;}const b=g.closest('.mdb');drag=+b.dataset.mdb;
+    e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',mdBlockRanges(p.body)[drag]?lines().slice(mdBlockRanges(p.body)[drag].a,mdBlockRanges(p.body)[drag].e).join('\n'):'');
+    try{e.dataTransfer.setDragImage(b,12,12);}catch(x){}b.classList.add('mdb-drag');});
+  doc.addEventListener('dragover',e=>{if(drag<0)return;e.preventDefault();e.dataTransfer.dropEffect='move';
+    const bs=[...doc.querySelectorAll('.mdb')];let k=bs.length;for(let j=0;j<bs.length;j++){const r=bs[j].getBoundingClientRect();if(e.clientY<r.top+r.height/2){k=j;break;}}
+    if(k!==dropAt){dropAt=k;mark(k===drag||k===drag+1?-1:k);}});
+  doc.addEventListener('drop',e=>{if(drag<0)return;e.preventDefault();const r=mdBlkMoveTo(p.body,drag,dropAt);drag=-1;mark(-1);if(r){push(r.v);open=-1;paint(false);}});
+  doc.addEventListener('dragend',()=>{drag=-1;dropAt=-1;mark(-1);doc.querySelectorAll('.mdb-drag').forEach(x=>x.classList.remove('mdb-drag'));});
   // Un changement venu d'ailleurs (relecture, Plan, ↶) : le document se redessine, bloc refermé.
   ta.addEventListener('input',()=>{if(self)return;open=-1;paint(false);});
   _mdDocGo=(ln,openIt)=>{const R=mdBlockRanges(p.body);let i=-1;R.forEach((r,k)=>{if(r.a<=ln)i=k;});if(i<0)return;
@@ -34170,7 +34227,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

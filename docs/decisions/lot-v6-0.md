@@ -984,3 +984,23 @@ appareils, sans effet). *Forme refusée par l'auteur* : un aperçu au-dessus du 
 barre et la section « Images » s'en chargent) ; glisser un bloc à la souris ; le Plan qui glisse ses sections.
 Témoins : `tests.html` (bornes et gestes des blocs) ; `audit-doctrine` « Éditeur · A547 » (téléphone clavier émulé et
 bureau ; vérifié capable d'échouer : 7 rouges sur l'avant), « Éditeur · A546 » réécrit en mode Markdown.
+
+## A548 — Le bloc ouvert se règle sur place ; glisser un bloc (v5.77.0)
+
+*Suite d'A547 (« pas encore fait ») et de la planche B (B2, B4). Demande de l'auteur : « poursuis ».*
+
+- **Encadré ouvert** : ses quatre registres en pastilles au-dessus du champ (`[data-mdbreg]`, `role="radio"`) —
+  Alerte · Attention · Information · Confirmation, chacune avec son glyphe et son mot (règle 8 : jamais la couleur
+  seule), la courante allumée à SON registre. Une pastille réécrit le marqueur du bloc par `mdCalloutLines` (forme
+  canonique de GitHub, A453) : rien à taper. Les pastilles suivent le texte : un registre retapé à la main s'allume, un
+  encadré défait les retire.
+- **Image ouverte** : l'image elle-même au-dessus du champ (`.mdb-imgv`), sa taille en pastilles (`[data-mdbscale]`,
+  l'échelle fermée `MD_SCALES`) écrite dans le modèle comme la section « Images » — le texte `![…](img:ID)` ne change
+  pas (doctrine « marqueur hors du champ ») — et « Remplacer… » (nouvelle photo, même identifiant : toutes les
+  références suivent).
+- **Glisser un bloc** (pointeur fin) : la poignée ⋮⋮ (`.mdb-grip`, cachée au toucher, `aria-hidden` : Monter /
+  Descendre restent le geste au doigt et au clavier) ; une ligne bleue dit où le bloc se pose (`.mdb-drop-b`,
+  `.mdb-drop-a`) ; `mdBlkMoveTo` (pure) déplace par échanges successifs, chacun ne touchant que la paire échangée.
+- **Encore à faire (dit)** : glisser une section entière dans le Plan ; glisser au doigt.
+Témoins : `tests.html` (`mdBlkMoveTo`) ; `audit-doctrine` « Éditeur · A548 » (vérifié capable d'échouer : 3 rouges sur
+l'avant ; le glisser est éprouvé par événements de glisser-déposer).

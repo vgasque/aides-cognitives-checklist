@@ -8604,6 +8604,41 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     await page.close();}
 });
 
+/* ══ A548 — LE BLOC OUVERT SE RÈGLE SUR PLACE ; GLISSER UN BLOC ═══════════════════════════════════════════════════════
+   Un encadré ouvert : son registre en pastilles (glyphe + mot), qui réécrivent le marqueur. Une image ouverte : l'image
+   au-dessus du champ, sa taille en pastilles (écrite dans le modèle, le texte inchangé). Au pointeur fin : la poignée
+   ⋮⋮ glisse un bloc avant un autre (événements de glisser-déposer). */
+await sec('Éditeur · A548 réglages du bloc ouvert, glisser un bloc', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const c=document.createElement('canvas');c.width=40;c.height=30;c.getContext('2d').fillRect(0,0,40,30);
+    const pr=migrateProtocol({title:'Témoin A548',body:'## A\n\n> [!WARNING]\n> Voie IM\n\n![Site](img:i1)\n\nFin.',images:[{id:'i1',data:c.toDataURL('image/png'),w:40,h:30,scale:100}]});protocols.push(pr);await openProtocolEdit(pr.id);});
+  await page.waitForTimeout(500);
+  const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};o.doc=true;
+    d.querySelector('.md-call').closest('.mdb').click();await w(150);
+    const ch=[...d.querySelectorAll('[data-mdbreg]')];o.reg={n:ch.length,mots:ch.map(x=>x.textContent.replace(/[^A-Za-zÀ-ÿ]/g,'')).join('|'),glyphes:ch.every(x=>!!x.querySelector('svg')||/[△⚠ℹ✓]/.test(x.textContent)),on:(d.querySelector('[data-mdbreg].on')||{dataset:{}}).dataset.mdbreg};
+    if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await w(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
+    const dn=d.querySelector('[data-mdbact="done"]');if(dn)dn.click();await w(100);
+    const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await w(150);}
+    o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('[data-mdbscale]').length};
+    const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await w(150);}
+    o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,ouvert:!!d.querySelector('.mdb-ta')};
+    const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await w(100);
+    const bs=d.querySelectorAll('.mdb'),g=bs[bs.length-1].querySelector('.mdb-grip');o.poignee=!!g;
+    if(g){const dt=new DataTransfer();g.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:dt}));const q=bs[0].getBoundingClientRect();
+      bs[0].dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,clientX:q.left+20,clientY:q.top+2,dataTransfer:dt}));o.ligne=!!d.querySelector('.mdb-drop-b');
+      bs[0].dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,clientX:q.left+20,clientY:q.top+2,dataTransfer:dt}));await w(100);}
+    o.tete=state.pdraft.body.split('\n')[0];
+    return o;});
+  t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
+    r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
+  t('A548 · image ouverte : l\'image au-dessus du champ, sa taille réglée sur le bloc (modèle, texte inchangé)',
+    r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele===50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
+  t('A548 · glisser la poignée du dernier bloc sur le premier : ligne de dépôt, bloc posé en tête',r.doc&&r.poignee&&r.ligne&&r.tete==='Fin.',JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
 await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async () => {
   const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
