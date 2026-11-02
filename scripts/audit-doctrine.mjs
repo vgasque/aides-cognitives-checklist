@@ -8571,7 +8571,6 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
         barre:(()=>{const b=document.querySelector('.md-toolbar');return getComputedStyle(b).position==='fixed'&&document.documentElement.classList.contains('kbd');})()};
       t.setSelectionRange(t.value.length,t.value.length);document.execCommand('insertText',false,' Répéter.');await w(100);
       o.ecrit=state.pdraft.body.includes('**0,5 mg** Répéter.')&&document.getElementById('p-body').value===state.pdraft.body;
-      d.querySelector('[data-mdbact="up"]').click();await w(150);o.monte=state.pdraft.body.indexOf('> [!WARNING]')<state.pdraft.body.indexOf('Texte.');
       d.querySelector('[data-mdbact="done"]').click();await w(150);o.ferme=!d.querySelector('.mdb-ta');
       d.querySelector('.mdb-add:not(.mdb-first)').click();await w(300);const op=document.querySelector('.popmenu [data-pickopt="h"]');o.menu=!!op;if(op){op.click();await w(250);}
       const t2=d.querySelector('.mdb-ta');o.ajout=t2&&t2.value==='## Titre'&&t2.value.slice(t2.selectionStart,t2.selectionEnd)==='Titre'&&/## Titre$/.test(state.pdraft.body);
@@ -8580,8 +8579,8 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
       r.doc&&r.rendu.encadre&&r.rendu.tableau&&r.rendu.champ&&r.rendu.barre,JSON.stringify(r.rendu||r));
     t('A547 · toucher l\'encadré l\'ouvre seul en Markdown, focus posé, barre au-dessus du clavier',
       r.doc&&r.ouvert.champ&&/^> \[!WARNING\]/.test(r.ouvert.src)&&r.ouvert.focus&&r.ouvert.autres>=4&&r.ouvert.barre,JSON.stringify(r.ouvert||r));
-    t('A547 · la frappe écrit le corps ; Monter, Terminé ; « Ajouter un bloc » pose un titre, mot à remplacer sélectionné',
-      r.doc&&r.ecrit&&r.monte&&r.ferme&&r.menu&&r.ajout,JSON.stringify(r));
+    t('A547 · la frappe écrit le corps ; Terminé ; « Ajouter un bloc » pose un titre, mot à remplacer sélectionné',
+      r.doc&&r.ecrit&&r.ferme&&r.menu&&r.ajout,JSON.stringify(r));
     await page.close();}
   {const page=await br.newPage({viewport:{width:1280,height:860}});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -8608,7 +8607,7 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
    Un encadré ouvert : son registre en pastilles (glyphe + mot), qui réécrivent le marqueur. Une image ouverte : l'image
    au-dessus du champ, sa taille en pastilles (écrite dans le modèle, le texte inchangé). Au pointeur fin : la poignée
    ⋮⋮ glisse un bloc avant un autre (événements de glisser-déposer). */
-await sec('Éditeur · A548 réglages du bloc ouvert, glisser un bloc', async () => {
+await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bloc', async () => {
   const page=await br.newPage({viewport:{width:1280,height:860}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
@@ -8625,17 +8624,18 @@ await sec('Éditeur · A548 réglages du bloc ouvert, glisser un bloc', async ()
     const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await w(150);}
     o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,ouvert:!!d.querySelector('.mdb-ta')};
     const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await w(100);
-    const bs=d.querySelectorAll('.mdb'),g=bs[bs.length-1].querySelector('.mdb-grip');o.poignee=!!g;
-    if(g){const dt=new DataTransfer();g.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:dt}));const q=bs[0].getBoundingClientRect();
-      bs[0].dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,clientX:q.left+20,clientY:q.top+2,dataTransfer:dt}));o.ligne=!!d.querySelector('.mdb-drop-b');
-      bs[0].dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,clientX:q.left+20,clientY:q.top+2,dataTransfer:dt}));await w(100);}
-    o.tete=state.pdraft.body.split('\n')[0];
+    const n=d.querySelectorAll('.mdb').length,g=d.querySelector('[data-mdbgrab="'+(n-1)+'"]');o.poignee=!!g;
+    if(g){g.click();await w(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
+      pris:!!d.querySelector('.mdb.grabbed'),inerte:document.querySelector('[data-mdplan]').disabled&&document.querySelector('[data-mdlive]').disabled};
+      d.querySelector('[data-mdbdrop="0"]').click();await w(150);o.libre=!d.querySelector('.ed-grab')&&!document.querySelector('[data-mdplan]').disabled;}
+    o.tete=state.pdraft.body.split('\n')[0];o.n=n;
     return o;});
   t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
     r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
   t('A548 · image ouverte : l\'image au-dessus du champ, sa taille réglée sur le bloc (modèle, texte inchangé)',
     r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele===50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
-  t('A548 · glisser la poignée du dernier bloc sur le premier : ligne de dépôt, bloc posé en tête',r.doc&&r.poignee&&r.ligne&&r.tete==='Fin.',JSON.stringify(r));
+  t('A549 · « Prendre / Poser » (geste de l\'éditeur d\'aide) : ⠿ prend le dernier bloc, bandeau qui le nomme, une cible par place, le reste inerte ; « Poser en tête » le pose',
+    r.doc&&r.poignee&&r.mode&&r.mode.bandeau&&r.mode.cibles===r.n+1&&r.mode.pris&&r.mode.inerte&&r.libre&&r.tete==='Fin.',JSON.stringify(r));
   await page.close();
 });
 

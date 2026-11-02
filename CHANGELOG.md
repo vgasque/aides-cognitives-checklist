@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.78.1] — 2026-11-02
+Correctif de mise en page de l'éditeur des références, mise en forme en direct (A550, doctrine
+`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- Les espacements sont ceux de la lecture : titres, paragraphes et listes respirent comme dans la référence lue.
+- Plus de « ＋ » entre chaque passage ; pour insérer un passage, « ＋ Bloc après » sur le passage ouvert, ou « Ajouter
+  un bloc » en bas.
+- Le survol encadre le passage sans rien décaler ; ⠿ et le crayon se rangent ensemble en haut à droite.
+- Le passage ouvert est plus léger : fond blanc, une seule bordure, texte en police normale (plus en gras).
+
+## [5.78.0] — 2026-11-02
+Déplacer un passage d'une référence comme une étape d'aide (A549, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **« Prendre / Poser »**, le même geste que dans l'éditeur d'une aide : touchez ⠿ (à gauche d'un passage, sur
+  ordinateur) ou « ⠿ Déplacer » sur le passage ouvert (au doigt), puis touchez « Poser ici » à l'endroit voulu. Le
+  bandeau du haut dit ce que vous déplacez ; ✕ ou Échap annule.
+- « Monter » et « Descendre » disparaissent, comme dans l'éditeur d'aide ; sur ordinateur, on peut aussi commencer à
+  glisser la poignée.
+
 ## [5.77.0] — 2026-11-02
 Les passages se règlent sur place (A548, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Encadré** : ouvert, il propose ses quatre types en pastilles — Alerte, Attention, Information, Confirmation. Un
@@ -151,25 +169,3 @@ Rien à rejouer côté serveur.
   d'un compte, à côté de la liste, s'ouvre sur une carte d'en-tête.
 - **La Page** : « Fermer » en mot à gauche, l'échelle en segmenté dans la barre, puis **Imprimer** et **Exporter en
   PDF** (au téléphone, ils restent dans le menu ⋯). La feuille est centrée sur un fond gris.
-
-## [5.65.0] — 2026-11-01
-Lot 10 de la refonte « Natif » : l'éditeur se parcourt (A521, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **L'Identité se lit en rangées** : « Titre », « Code court », « Catégorie » avec leur valeur à droite. Un tap
-  déplie les champs sur place, « Replier » les range.
-- **La structure est une liste** sous « Ne pas oublier » au téléphone et sur tablette : une rangée par bloc (numéro,
-  titre, nombre d'étapes ou de branches), puis les complications. Le schéma suit la liste.
-- **Un bloc s'ouvre sur sa page** : seul le bloc est affiché, avec la porte « Ajouter ». « ‹ Retour » ou le geste
-  retour du téléphone ramène à l'aide. Une remarque de relecture ou un rappel « → » ouvre directement la page du
-  bloc concerné ; « prendre / poser » montre toute l'aide.
-- **Sur grand écran**, la colonne Structure prend le même dessin (deux lignes par bloc, bloc ouvert surligné).
-
-## [5.64.0] — 2026-11-01
-Lot 9 de la refonte « Natif » : l'habillage de l'éditeur (A520, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Un grand titre « Modifier l'aide »** en tête de l'éditeur.
-- **Les listes sont des groupes de rangées** sous leur intertitre (« Ne pas oublier », « Critères », « Diagnostics à
-  éliminer ») : l'ajout est la dernière rangée, les ✕ sont ronds, la consigne des 4 rappels passe sous le groupe.
-- **« ▶ Essayer » garde son mot au téléphone** ; l'état « À relire » quitte l'en-tête étroit (il reste dans
-  « État »).
-- La façon d'éditer ne change pas : chaque ligne reste un champ, la poignée glisse comme avant.
