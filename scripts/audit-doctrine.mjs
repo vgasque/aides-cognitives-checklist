@@ -8465,10 +8465,13 @@ await sec('Accueil · A544 recherche, filtre, quitter', async () => {
   await page.tap('#homeDock .filt-tog');await page.waitForTimeout(500);
   await (await page.$('#viewSheet .ai-x')).tap();await page.waitForTimeout(500);
   const apresFeuille=await etat();
-  await page.mouse.click(200,400);await page.waitForTimeout(500);
-  const apresTap=await etat();
+  /* A545 : un tap sur une zone NEUTRE (la sous-ligne du titre) — un point fixe tombait, selon la mise en page, sur le
+     titre d'une aide qui s'ouvrait (la barre d'onglets n'existe pas en lecture : faux rouge). */
+  const neutre=await page.evaluate(()=>{const e=document.querySelector('.pg-sub');if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};});
+  await page.mouse.click(neutre?neutre.x:200,neutre?neutre.y:400);await page.waitForTimeout(500);
+  const apresTap={...await etat(),accueil:await page.evaluate(()=>document.body.classList.contains('view-home'))};
   t('A544 · feuille de filtres fermée : la recherche reste ouverte',apresFeuille.recherche&&!apresFeuille.onglets,JSON.stringify(apresFeuille));
-  t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
+  t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',apresTap.accueil&&!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
   await page.close();
 });
 
