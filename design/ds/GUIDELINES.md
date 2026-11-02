@@ -438,8 +438,10 @@ chose qu'on applique APRÈS avoir vu, jamais avant. **Ordre du rail de filtres :
 Type, Catégorie** — du plus large au plus étroit ; on choisit d'abord OÙ l'on cherche.
 
 **Au téléphone (A517, maquette Natif)** : pas de rangée d'en-tête — une rangée du haut collante (« Sélectionner » ·
-petit titre au défilement · « ＋ Créer »), le **grand titre de 34 px** dans le contenu, le champ de recherche, les
-**filtres en pastilles** (Tout · Accès direct · collections · catégories), puis la ligne du compte avec « Affichage ».
+petit titre au défilement · « ＋ Créer »), le **grand titre de 34 px** dans le contenu, qui **est le sélecteur**
+(A545) : « Aides ⌄ » ouvre la feuille « Afficher » (Tout afficher, Accès direct, Mes collections, Catégories — listes
+groupées, compte par rangée, un tap = appliqué), et devient le nom du filtre posé, coiffé de son œil (« Collection · à
+vous seul », « Catégorie »). « Affichage » est le bouton rond au bout de cette ligne. Plus de rangée de pastilles.
 En bas, une **barre d'onglets flottante en verre** (Aides · Sessions · Moi) et la recherche dans un rond ; Sessions
 et Moi sont des onglets, jamais des niveaux de retour. En large, le titre fait 28 px et ouvre la ligne du compte.
 

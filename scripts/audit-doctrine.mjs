@@ -1665,11 +1665,11 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
     const g = await page.evaluate(async()=>{
       const util=()=>{const h=document.querySelector('.home-main'),c=getComputedStyle(h);
         return Math.round(h.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight));};
-      /* v5.30 : la ligne de compte porte les commandes ; A528 : sous les onglets, c'est la rangée des pastilles, qui porte
-         « Affichage » — sans cartes la PORTE disparaît (la rangée garde les filtres, elle n'est donc pas mesurée). */
+      /* v5.30 : la ligne de compte porte les commandes ; A545 : sous les onglets, c'est la ligne du TITRE-sélecteur, qui
+         porte « Affichage » — sans cartes la PORTE disparaît (le titre reste, il n'est donc pas mesuré). */
       const ecart=()=>{const tn=document.documentElement.classList.contains('tabnav');
-        if(tn&&!document.querySelector('.pg-chips>#rangBtn'))return null;
-        const gr=document.querySelector(tn?'.pg-chips':'.dir-sum');let nx=gr&&gr.nextElementSibling;
+        if(tn&&!document.querySelector('.pg-pick #rangBtn'))return null;
+        const gr=document.querySelector(tn?'.pg-pick':'.dir-sum');let nx=gr&&gr.nextElementSibling;
         while(nx&&!nx.getBoundingClientRect().height)nx=nx.nextElementSibling;
         if(!nx&&gr){const w=gr.closest('.hv-page,main');nx=w&&w.querySelector('.dir-wrap>*');}
         return (gr&&nx)?Math.round(nx.getBoundingClientRect().top-gr.getBoundingClientRect().bottom):null;};
@@ -7404,13 +7404,18 @@ for (const W of [390, 1280]) {
     myLibraries.length=0;myLibraries.push({id:'lib-ro',name:'SAMU 31',role:'viewer'});
     const f=JSON.parse(JSON.stringify(fiches[0]));f.id='ro1';f.title='Aide du SAMU';f.library='lib-ro';f.status='validated';fiches.push(migrate(f));
     const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await w(300);
-    /* A517 : au téléphone, la porte des collections est la rangée de PASTILLES sous le grand titre (elle remplace la rangée « Mes collections »). */
-    out.rail=!!document.querySelector('.home-main :is(.coll-rail,.pg-chips) [data-collsel]')&&document.querySelectorAll('.home-main .coll-rail').length===0===document.documentElement.classList.contains('tabnav');
+    /* A545 (après A517) : au téléphone, la porte des collections est le grand TITRE, qui ouvre la feuille « Afficher ». */
+    const tn=document.documentElement.classList.contains('tabnav');
+    out.rail=tn?(!!document.getElementById('pgPick')&&!document.querySelector('.home-main .coll-rail')):!!document.querySelector('.home-main .coll-rail [data-collsel]');
     out.col=!!document.querySelector('.home-side [data-collsel="'+c.id+'"]');
-    document.querySelector('[data-collsel="'+c.id+'"]').click();await w(300);
+    if(tn){document.getElementById('pgPick').click();await w(300);document.querySelector('.popmenu [data-pickopt="c:'+c.id+'"]').click();}
+    else document.querySelector('[data-collsel="'+c.id+'"]').click();
+    await w(300);
     out.coll=state.coll===c.id;
-    out.puce=(document.querySelector('.af-bar')||{}).textContent||'';
-    out.tete=(document.querySelector('.coll-head')||{}).textContent||'';
+    /* Au téléphone, le titre dit l'axe (« Collection · à vous seul », le nom) : la puce ne le redit pas (A545). */
+    out.puce=tn?((document.querySelector('.pg-eye')||{}).textContent||'').replace(/·.*/,'')+' '+((document.getElementById('pgPick')||{}).textContent||'')+((document.querySelector('.af-bar')||{}).textContent||'')
+      :(document.querySelector('.af-bar')||{}).textContent||'';
+    out.tete=(tn?((document.querySelector('.pg-eye')||{}).textContent||'')+' ':'')+((document.querySelector('.coll-head')||{}).textContent||'');   // A545 : au téléphone « à vous seul » monte au-dessus du titre
     out.rangees=document.querySelectorAll('.dir-row').length;
     document.querySelector('[data-colladd]').click();await w(300);
     out.cases=document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
@@ -7433,7 +7438,7 @@ for (const W of [390, 1280]) {
     out.ferme=!document.querySelector('[data-pickdone]');
     return out;});
   const P=`${W}px`;
-  t(`${P} · une seule porte de collections selon la largeur (rangée < 780, colonne ≥ 780)`, W<780?(r.rail&&!r.col):(r.col&&!r.rail), JSON.stringify([r.rail,r.col]));
+  t(`${P} · une seule porte de collections selon la largeur (titre < 780, colonne ≥ 780)`, W<780?(r.rail&&!r.col):(r.col&&!r.rail), JSON.stringify([r.rail,r.col]));
   t(`${P} · choisir pose le filtre, annoncé en puce et en en-tête « à vous seul »`,
     r.coll&&/Collection/.test(r.puce)&&/Garde SMUR/.test(r.puce)&&/à vous seul/i.test(r.tete)&&/1 indisponible/.test(r.tete), r.puce+' | '+r.tete);
   t(`${P} · la liste ne montre que les deux éléments rangés`, r.rangees===2, String(r.rangees));
@@ -8460,10 +8465,58 @@ await sec('Accueil · A544 recherche, filtre, quitter', async () => {
   await page.tap('#homeDock .filt-tog');await page.waitForTimeout(500);
   await (await page.$('#viewSheet .ai-x')).tap();await page.waitForTimeout(500);
   const apresFeuille=await etat();
-  await page.mouse.click(200,400);await page.waitForTimeout(500);
-  const apresTap=await etat();
+  /* A545 : un tap sur une zone NEUTRE (la sous-ligne du titre) — un point fixe tombait, selon la mise en page, sur le
+     titre d'une aide qui s'ouvrait (la barre d'onglets n'existe pas en lecture : faux rouge). */
+  const neutre=await page.evaluate(()=>{const e=document.querySelector('.pg-sub');if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};});
+  await page.mouse.click(neutre?neutre.x:200,neutre?neutre.y:400);await page.waitForTimeout(500);
+  const apresTap={...await etat(),accueil:await page.evaluate(()=>document.body.classList.contains('view-home'))};
   t('A544 · feuille de filtres fermée : la recherche reste ouverte',apresFeuille.recherche&&!apresFeuille.onglets,JSON.stringify(apresFeuille));
-  t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
+  t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',apresTap.accueil&&!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
+  await page.close();
+});
+
+/* ══ A545 — LE TITRE CHOISIT (au téléphone) ═══════════════════════════════════════════════════════════════════
+   Plus de rangée de pastilles qui défile de côté (mesurée : 15 sur 1 741 px, 3 visibles, l'active hors champ après le
+   tap). Le grand titre dit ce que la liste montre et ouvre la feuille « Afficher » : listes groupées, compte par rangée,
+   coche sur le courant, un tap = appliqué et fermé, un filtre à la fois ; l'axe dit par le titre n'est pas redit en puce. */
+await sec('Accueil · A545 le titre choisit', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={};
+    const c=collNew('Garde de nuit',[fiches[0].id]);render();await w(300);
+    const tt=()=>((document.getElementById('pgPick')||{}).textContent||'').trim();
+    out.repos={titre:tt(),pastilles:document.querySelectorAll('.pg-chips,.pg-chip').length,largeur:document.documentElement.scrollWidth};
+    out.feuille={};out.coll={};out.combi={};out.cat={};out.tout={};
+    if(!document.getElementById('pgPick'))return out;   // sans sélecteur : rouge, pas plantage
+    document.getElementById('pgPick').click();await w(350);
+    const m=document.querySelector('.popmenu.sheet');
+    out.feuille={titre:(m&&m.querySelector('.mm-title')||{}).textContent,
+      tetes:[...(m?m.querySelectorAll('.mm-head'):[])].map(x=>x.textContent),
+      coche:!!(m&&m.querySelector('[data-pickopt="all"][aria-selected="true"] .mm-ck')),
+      comptes:[...(m?m.querySelectorAll('.mm-row .mm-cnt'):[])].length===[...(m?m.querySelectorAll('[data-pickopt]'):[])].length,
+      cats:m?m.querySelectorAll('[data-pickopt^="k:"]').length:0,
+      expanded:document.getElementById('pgPick').getAttribute('aria-expanded')};
+    m.querySelector('[data-pickopt="c:'+c.id+'"]').click();await w(350);
+    out.coll={ouverte:!!document.querySelector('.popmenu.sheet'),coll:state.coll===c.id,titre:tt(),
+      oeil:(document.querySelector('.pg-eye')||{}).textContent||'',puces:document.querySelectorAll('.af-chip').length,
+      petit:(document.querySelector('.pg-tt')||{}).textContent,ttCollHead:!!document.querySelector('.coll-head .coll-t')};
+    const k=homeCatGroups()[0];state.cat=k.n;render();await w(300);   // combinaison posée en large : la catégorie reste en puce
+    out.combi={titre:tt(),puce:(document.querySelector('.af-bar')||{}).textContent||''};
+    document.getElementById('pgPick').click();await w(300);
+    document.querySelector('.popmenu [data-pickopt="k:'+k.n+'"]').click();await w(300);
+    out.cat={coll:state.coll,cat:state.cat===k.n,titre:tt(),oeil:(document.querySelector('.pg-eye')||{}).textContent||'',nom:k.c.name};
+    document.querySelector('[data-pgall]').click();await w(300);
+    out.tout={coll:state.coll,cat:state.cat,titre:tt()};
+    return out;});
+  t('A545 · au repos : « Aides » est le sélecteur, aucune pastille, rien ne déborde',r.repos.titre==='Aides'&&r.repos.pastilles===0&&r.repos.largeur<=390,JSON.stringify(r.repos));
+  t('A545 · feuille « Afficher » : groupes Mes collections et Catégories, un compte par rangée, coche sur « Tout afficher »',
+    r.feuille.titre==='Afficher'&&r.feuille.tetes.join('|')==='Mes collections|Catégories'&&r.feuille.coche&&r.feuille.comptes&&r.feuille.cats>0&&r.feuille.expanded==='true',JSON.stringify(r.feuille));
+  t('A545 · un tap applique et ferme ; le titre dit la collection, l\'œil « Collection · à vous seul », aucune puce ne le redit',
+    !r.coll.ouverte&&r.coll.coll&&r.coll.titre==='Garde de nuit'&&/^Collection · à vous seul$/.test(r.coll.oeil.trim())&&r.coll.puces===0&&r.coll.petit==='Garde de nuit'&&!r.coll.ttCollHead,JSON.stringify(r.coll));
+  t('A545 · une combinaison venue du large : le titre dit la collection, la catégorie reste en puce',r.combi.titre==='Garde de nuit'&&/Catégorie/.test(r.combi.puce),JSON.stringify(r.combi));
+  t('A545 · un filtre à la fois : choisir une catégorie retire la collection, le titre la dit',r.cat.coll===null&&r.cat.cat&&r.cat.titre===r.cat.nom&&/Catégorie/.test(r.cat.oeil),JSON.stringify(r.cat));
+  t('A545 · « Tout afficher » remet « Aides »',r.tout.coll===null&&!r.tout.cat&&r.tout.titre==='Aides',JSON.stringify(r.tout));
   await page.close();
 });
 
@@ -8697,10 +8750,11 @@ await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () 
     if(W<780){const sr=await page.evaluate(()=>({tabnav:document.documentElement.classList.contains('tabnav'),
         rond:!!document.getElementById('tbSrch'),leurres:document.querySelectorAll('main button [class*="srch"],main .pg-srch,main [data-tbsrch]').length}));
       t('A524 · au téléphone, UNE recherche : le rond de la barre d\'onglets, aucun champ-leurre sous le titre',sr.tabnav&&sr.rond&&sr.leurres===0,JSON.stringify(sr));
-      /* A528 : « Affichage » ouvre la rangée des pastilles (plus de ligne du compte) et ouvre sa feuille. */
-      const af=await page.evaluate(async()=>{const b=document.querySelector('.pg-chips>#rangBtn');const o={premier:!!b&&b===b.parentNode.firstElementChild,ligne:!!document.querySelector('.dir-sum')};
+      /* A545 (amende A528) : « Affichage » est le bouton rond au bout de la ligne du titre (plus de pastilles, plus de ligne
+         du compte) et ouvre sa feuille. */
+      const af=await page.evaluate(async()=>{const b=document.querySelector('.pg-pick>#rangBtn');const o={dernier:!!b&&b===b.parentNode.lastElementChild,ligne:!!document.querySelector('.dir-sum')};
         if(b){b.click();await new Promise(x=>setTimeout(x,400));o.feuille=!![...document.querySelectorAll('.ai-modal.on')].length;}return o;});
-      t('A528 · au téléphone, « Affichage » est la première pastille, sans ligne du compte, et ouvre sa feuille',af.premier&&!af.ligne&&af.feuille,JSON.stringify(af));}
+      t('A545 · au téléphone, « Affichage » est le rond au bout de la ligne du titre, sans ligne du compte, et ouvre sa feuille',af.dernier&&!af.ligne&&af.feuille,JSON.stringify(af));}
     await page.close();
   }
 });
