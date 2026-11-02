@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DxsmwGi6aHxeracTbARJfhhyz2uo2tnLL21hD8/OY0E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ZwDCfxHvfFR3ojaTj98vHhEbobZv5WaK4IQEiktCiuE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9685,7 +9685,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.78.1';
+const APP_VERSION='5.78.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17640,7 +17640,9 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1;
   const lines=()=>String(p.body||'').split('\n'),l2c=n=>n?lines().slice(0,n).join('\n').length+1:0;
   // Toute écriture passe par le champ entier (masqué) : enregistrement, relecture, Plan et ↶ voient le même texte.
-  const push=v=>{self=true;ta.value=v;ta.dispatchEvent(new Event('input'));self=false;};
+  /* A551 : le geste d'un bloc (supprimer, déplacer, dupliquer, ajouter, registre, taille) n'est pas une frappe — l'événement
+     du champ masqué ne remonte pas à l'éditeur ; `edTouch` pose donc lui-même l'enregistrement et le point de reprise (↶). */
+  const push=v=>{self=true;ta.value=v;ta.dispatchEvent(new Event('input'));self=false;edTouch();};
   const fit=t=>{t.style.height='auto';t.style.height=Math.ceil(t.scrollHeight/zoomF()+2)+'px';};
   const paint=(sel)=>{doc.innerHTML=mdDocHtml(p,open,grab);card.classList.toggle('mdl-open',open>=0);
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
@@ -17686,10 +17688,10 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
       mdCalloutLines(t,MD_REG_WORD[rg.dataset.mdbreg]);paint();return;}
     const sc=e.target.closest('[data-mdbscale]');if(sc){const id=mdSrcImg((doc.querySelector('.mdb-ta')||{}).value),im=id&&(p.images||[]).find(x=>x.id===id);if(!im)return;
-      im.scale=_scale(sc.dataset.mdbscale);self=true;ta.dispatchEvent(new Event('input'));self=false;paint();return;}   // le texte ne change pas : la taille vit dans le modèle (A459, « marqueur hors du champ »)
+      im.scale=_scale(sc.dataset.mdbscale);self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();return;}   // le texte ne change pas : la taille vit dans le modèle (A459, « marqueur hors du champ »)
     const rp=e.target.closest('[data-mdbrepl]');if(rp){const im=(p.images||[]).find(x=>x.id===rp.dataset.mdbrepl);if(!im)return;
       pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
-        im.data=r.data;im.w=r.w;im.h=r.h;self=true;ta.dispatchEvent(new Event('input'));self=false;paint();},false);return;}
+        im.data=r.data;im.w=r.w;im.h=r.h;self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();},false);return;}
     const ad=e.target.closest('[data-mdbadd]');if(ad){addMenu(ad,+ad.dataset.mdbadd);return;}
     const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();openAt(+b.dataset.mdb);}});
   /* Copier PLUSIEURS blocs rendus copie leur Markdown (sinon la mise en forme se perdait au collage) ; une sélection
@@ -27065,6 +27067,11 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
    Chercher un à un les cinquante gestes de mutation aurait produit la même liste à tenir à jour
    que celle des soixante verbes que `persistLive` a précisément permis de ne PAS écrire. */
 main.addEventListener('input',()=>{if(edKind())edTouch(false);});
+/* A551 — UNE TROISIÈME ACCROCHE, LE `change` (mesuré : la taille d'une image réglée dans la liste « Images » ne posait ni
+   enregistrement ni ↶ — son sélecteur ne lance pas de re-rendu et l'`input` qu'il émet ne bulle pas). Un sélecteur, une case
+   ou un interrupteur qui modifie le brouillon SANS re-rendre l'éditeur échappait aux deux accroches ; `change` bulle comme
+   `input` : tout réglage ajouté demain est couvert sans qu'on y pense. Sans changement réel, `edTouch` ne fait rien. */
+main.addEventListener('change',()=>{if(edKind())edTouch(false);});
 /* ═══ LE GLISSER AMORCE LE MODE, IL N'EST PAS LE MÉCANISME (lot 2, v4.75.0) ═══════════════════
    MK5-b a écarté le glisser comme MÉCANISME pour de bonnes raisons — gants, une seule main,
    appareil qui bouge : c'est le point de défaillance du drag au doigt. Mais l'écarter comme
