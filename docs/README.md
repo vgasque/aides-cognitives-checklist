@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A551** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A552** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -175,6 +175,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A549 | `lot-v6-0.md` | Déplacer un bloc d'une référence par « Prendre / Poser », le geste de l'éditeur d'aide (bandeau, cibles « Poser ici », reste inerte) ; Monter/Descendre et la poignée de glisser retirés (v5.78.0) |
 | A550 | `lot-v6-0.md` | Le document par blocs garde le rythme de la lecture : marges du rendu, survol en outline, « ＋ » entre blocs retirés (« Bloc après »), bloc ouvert allégé (v5.78.1) |
 | A551 | `lot-v6-0.md` | Toute modification pose son point de reprise (↶) : gestes du document par blocs, et une 3ᵉ accroche `change` délégué (taille d'image, date de validation) (v5.78.2) |
+| A552 | `lot-v6-0.md` | Un toucher en dehors referme le bloc ouvert, donc découpe un collage en ses blocs ; barre, menus, fenêtres exclus ; ↶ défait le collage entier (v5.78.3) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

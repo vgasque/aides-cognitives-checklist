@@ -8607,6 +8607,28 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     t('A547 · Dupliquer puis Supprimer un bloc ; l\'interrupteur rend le Markdown entier, retenu sur l\'appareil',r.doc&&r.dup===2&&r.del===0&&r.markdown,JSON.stringify(r));
     t('A551 · après la duplication d\'un bloc, ↶ paraît dans l\'en-tête et la défait',r.doc&&r.undo&&r.rendu===1,JSON.stringify({undo:r.undo,rendu:r.rendu}));
     await page.close();}
+  /* A552 : un toucher EN DEHORS du bloc ouvert le referme — un collage de plusieurs styles devient ses blocs ; la barre
+     d'outils, elle, le laisse ouvert. Vrais gestes (souris au bureau, doigt au téléphone) : le geste passe par pointer*. */
+  for(const vp of [{width:1280,height:860},{width:390,height:844,hasTouch:true,isMobile:true}]){
+    const {hasTouch,isMobile,...v}=vp;const page=await br.newPage({viewport:v,hasTouch:!!hasTouch,isMobile:!!isMobile});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A552',body:'Avant.\n\nAprès.'});protocols.push(pr);await openProtocolEdit(pr.id);});
+    await page.waitForTimeout(500);
+    const tap=async l=>{if(hasTouch)await l.tap();else await l.click();};
+    await tap(page.locator('#mdDoc .mdb').first());await page.waitForTimeout(200);
+    await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(t.value.length,t.value.length);
+      document.execCommand('insertText',false,'\n\n## Indications\n\nChoc **grade III-IV**.\n\n- un\n- deux');});
+    await page.waitForTimeout(200);
+    const o={colle:await page.locator('#mdDoc .mdb').count()};
+    await tap(page.locator('.md-toolbar [data-mdtool="b"]'));await page.waitForTimeout(200);o.barre=await page.locator('#mdDoc .mdb-ta').count();
+    const box=await page.locator('#main').boundingBox();const x=box.x+12,y=box.y+20;
+    if(hasTouch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await page.waitForTimeout(250);
+    o.ferme=await page.locator('#mdDoc .mdb-ta').count();o.blocs=await page.locator('#mdDoc .mdb').count();
+    o.corps=await page.evaluate(()=>/## Indications\n\nChoc \*\*grade III-IV\*\*\.\n\n- un\n- deux/.test(state.pdraft.body));
+    t('A552 · '+(hasTouch?'téléphone (doigt)':'bureau (souris)')+' : la barre laisse le bloc ouvert, un toucher dehors le referme et découpe le collage',
+      o.colle===2&&o.barre===1&&o.ferme===0&&o.blocs===5&&o.corps,JSON.stringify(o));
+    await page.close();}
 });
 
 /* ══ A548 — LE BLOC OUVERT SE RÈGLE SUR PLACE ; GLISSER UN BLOC ═══════════════════════════════════════════════════════

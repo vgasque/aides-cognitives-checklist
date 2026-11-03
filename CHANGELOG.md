@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.78.3] — 2026-11-03
+Correctif de l'éditeur des références, mise en forme en direct (A552, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Toucher en dehors du passage ouvert le referme.** Un texte Markdown collé (titres, listes, encadrés, tableaux) se
+  découpe alors de lui-même en passages, sans avoir à toucher « Terminé ».
+- La barre de mise en forme, ses menus et les fenêtres (tableau, collage depuis Word) laissent le passage ouvert ; faire
+  défiler la page ne ferme rien ; toucher un autre champ (le titre…) y laisse le curseur.
+- ↶ après un collage défait le collage entier : la référence revient à son état d'avant.
+
 ## [5.78.2] — 2026-11-02
 Le bouton ↶ (annuler) apparaît après toute modification (A551, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
 côté serveur.
@@ -161,11 +170,3 @@ Correctif (A524, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté 
 - **Une seule recherche au téléphone** : le champ sous le titre « Aides », qui ne faisait qu'ouvrir la recherche du
   bas, disparaît. On cherche par le rond de la barre d'onglets, au-dessus du clavier.
 - « ● Session » ne traîne plus un « · » seul en début de ligne quand la rangée passe à la ligne.
-
-## [5.67.0] — 2026-11-01
-Refonte « Natif » : le groupe « En cours » à l'accueil (A523, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
-côté serveur.
-- **Une aide en session monte en tête de l'accueil**, dans un groupe « En cours », avec « ● Session 04:12 » en vert ;
-  elle quitte sa catégorie le temps de la session. Un tap la rouvre.
-- **La carte sombre « Session en cours » disparaît** (elle doublait la rangée). « Terminer » se fait dans la
-  session, par « Fin ». La carte d'une session partagée reste.

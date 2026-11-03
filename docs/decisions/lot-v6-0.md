@@ -967,7 +967,7 @@ reste écarté (A452-A459 : fragile sous iOS, Markdown non portable).
   les raccourcis (`bindField`, les gestes d'A453-A457 posés sur chaque champ) ; la barre ne paraît que bloc ouvert, au
   téléphone au-dessus du clavier (A468, place réservée sous `.md-doc` aussi).
 - **Gestes du bloc ouvert** : Monter, Descendre, Dupliquer, Supprimer (toast « ↶ pour annuler »), Terminé (Échap,
-  ⌘Entrée). Fonctions PURES : `mdBlockRanges`, `mdBlkMove`, `mdBlkDup`, `mdBlkDel`, `mdBlkIns` — une ligne vide est
+  ⌘Entrée ; et, depuis A552, un toucher en dehors du bloc). Fonctions PURES : `mdBlockRanges`, `mdBlkMove`, `mdBlkDup`, `mdBlkDel`, `mdBlkIns` — une ligne vide est
   toujours posée entre deux blocs recollés (deux paragraphes ne fusionnent jamais).
 - **Ajouter** : « Ajouter un bloc » en pied (et un « ＋ » entre deux blocs, au pointeur fin) ouvre le choix — paragraphe,
   titre, encadré, liste, cases, tableau (grille d'A456 ouverte d'office), image (sélecteur), séparateur ; le mot à
@@ -1067,3 +1067,28 @@ pense ; sans changement réel du brouillon, `edTouch` ne fait rien.
 des images et du mode Markdown, et chacun des champs ; dans l'éditeur d'aide, ses 37 champs ; date de validation des
 deux éditeurs. Tous posent ↶, et ↶ rend l'état d'avant.
 Témoins : `audit-doctrine` « Éditeur · A547 » (↶ après une duplication) et « A548-A549 » (↶ après un déplacement).
+
+## A552 — Un toucher en dehors referme le bloc, donc découpe un collage (v5.78.3)
+
+*Demandé par l'auteur : « si on copie-colle un texte Markdown de plusieurs lignes, plusieurs styles, il sépare lui-même
+dès qu'on clique en dehors de la boîte ? » — mesuré : non, le bloc restait ouvert ; seuls Terminé, Échap et ⌘Entrée le
+refermaient.*
+
+**Décision.** Un toucher EN DEHORS du bloc ouvert le referme ; le document se redessine, et un collage de plusieurs
+styles y devient ses blocs (titre, paragraphe, liste, encadré, tableau). Terminé, Échap et ⌘Entrée restent.
+- **Toucher, pas glisser** : appui puis relâchement à moins de 10 px — un défilement au doigt ne ferme rien. Par
+  `pointerdown`/`pointerup` en capture sur le document, pas `click` : Safari iOS n'émet pas de clic sur un fond de page
+  inerte. Les écouteurs se retirent d'eux-mêmes quand le document par blocs a quitté la page (comme Échap, A549).
+- **Restent DEDANS** (ne ferment rien) : le document lui-même (un autre bloc s'ouvre par son propre geste), la barre
+  d'outils et ses menus (`.md-toolbar`, `.popmenu`, `.popmenu-veil`), les fenêtres (grille de tableau, collage depuis
+  Word : `.ai-modal`), le toast. En mode « Prendre / Poser », le toucher appartient au dépôt (A549).
+- **Rien ne reprend le focus** : toucher le titre y laisse le curseur (contrairement à Terminé, qui rend le focus au bloc
+  rendu pour le clavier).
+- **↶ après un collage** : il défait le collage entier — le corps revient à son état d'avant, tous les blocs nés du
+  découpage disparaissent ensemble. Il ne « recolle » pas le collage en un seul bloc : le découpage n'est qu'un rendu,
+  le Markdown est le même avant et après, il n'y a donc pas d'étape à défaire entre les deux.
+
+**Écarté** : fermer sur `blur` (la barre, ses menus et le sélecteur d'image volent le focus : le bloc se fermerait sous
+le doigt) ; fermer sur `click` seul (muet sur iOS hors d'un élément interactif).
+Témoin : `audit-doctrine` « Éditeur · A547 » — à la souris et au doigt : la barre laisse le bloc ouvert, un toucher dehors
+le referme et le collage devient cinq blocs (vérifié capable d'échouer : geste retiré → rouge).
