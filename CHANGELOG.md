@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.79.0] — 2026-11-03
+Rétablir une modification annulée, dans les deux éditeurs (A553, doctrine `docs/decisions/lot-v6-0.md`). Rien à
+rejouer côté serveur.
+- **Nouveau bouton ↷ « Rétablir »**, à côté de ↶ : il apparaît dès qu'on a annulé et refait ce qui vient d'être
+  annulé. Au clavier, hors d'un champ : Maj-Cmd-Z (Mac), Maj-Ctrl-Z ou Ctrl-Y (Windows). Une nouvelle modification
+  le fait disparaître.
+- **Éditeur des références** : quand un texte collé se découpe en plusieurs passages, un message le dit — « Découpé
+  en n blocs — ↶ annule le collage. »
+- Les messages de confirmation (annulé, rétabli, découpé) se remplacent au lieu de s'empiler.
+
 ## [5.78.3] — 2026-11-03
 Correctif de l'éditeur des références, mise en forme en direct (A552, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -164,9 +174,3 @@ serveur.
 - **Menu ⋯ sur grand écran** : le tap qui le ferme ne coche plus l'étape qui se trouve dessous.
 - **iPhone SE tourné** : l'accueil prend la colonne de gauche, comme les autres téléphones tournés et les tablettes
   (il n'avait ni onglets ni colonne).
-
-## [5.67.1] — 2026-11-01
-Correctif (A524, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Une seule recherche au téléphone** : le champ sous le titre « Aides », qui ne faisait qu'ouvrir la recherche du
-  bas, disparaît. On cherche par le rond de la barre d'onglets, au-dessus du clavier.
-- « ● Session » ne traîne plus un « · » seul en début de ligne quand la rangée passe à la ligne.

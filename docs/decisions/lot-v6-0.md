@@ -1092,3 +1092,34 @@ styles y devient ses blocs (titre, paragraphe, liste, encadré, tableau). Termin
 le doigt) ; fermer sur `click` seul (muet sur iOS hors d'un élément interactif).
 Témoin : `audit-doctrine` « Éditeur · A547 » — à la souris et au doigt : la barre laisse le bloc ouvert, un toucher dehors
 le referme et le collage devient cinq blocs (vérifié capable d'échouer : geste retiré → rouge).
+
+## A553 — « ↷ Rétablir », et le découpage d'un collage s'annonce (v5.79.0)
+
+*Demandé par l'auteur : « peux-tu rajouter un bouton rétablir les modifications ? » ; et, pour le collage, le message
+retenu au lieu d'un ↶ en deux temps (ci-dessous, « Écarté »).*
+
+**↷ Rétablir.** Le pendant de l'anneau d'annulation (v4.74.2, A551), dans les deux éditeurs :
+- **Une pile `_edRedo`** : ↶ y range l'état qu'il QUITTE (frappe pas encore notée comprise — sinon un ↶ en pleine
+  rafale perdait ces mots pour de bon) ; `edRedoDo` le rend, remet l'état présent sur l'anneau (un ↶ le refera), passe
+  par `migrate`/`migrateProtocol` (règle 5) et écrit par `edCommit` (même raison que ↶ : la garde d'`edTouch`).
+- **Elle se vide** dès qu'un geste NOUVEAU pose un point (`edUndoNote`) : ce qui avait été annulé n'a plus de suite
+  logique — la convention de tous les éditeurs. Et avec l'anneau : autre brouillon, sortie de l'éditeur.
+- **Le bouton `#hdrRedo`** vit à côté de ↶, même gabarit (`.hdr-undo`), icône `redo` (le miroir d'`undo`) ; **masqué
+  tant que la pile est vide** — il n'existe qu'après une annulation, donc l'en-tête du téléphone ne s'alourdit pas au
+  repos (mesuré à 390 px).
+- **Clavier** : Maj-Cmd/Ctrl-Z, et Ctrl-Y (l'usage Windows), **hors champ de saisie** comme Cmd-Z — dans un champ le
+  raccourci reste au navigateur.
+
+**Le découpage d'un collage s'annonce.** Refermer un bloc où l'on a COLLÉ et qui devient plusieurs blocs (A552) dit
+« Découpé en n blocs — ↶ annule le collage. » : on voit que le découpage a eu lieu, et ce que fera ↶. Rien quand le
+bloc reste un seul bloc, rien quand on a seulement tapé.
+**Un accusé de geste remplace le précédent** (`toast(…,…,true)`) : « Découpé… » puis « ↶ Geste annulé » s'empilaient au
+même endroit, illisibles (capture à 390 px). Les nouvelles de fond ne sont jamais retirées ainsi.
+
+**Écarté** (proposé par l'auteur, puis retiré d'un commun accord) : un premier ↶ qui « recolle » le collage découpé en
+un seul bloc ouvert, le second retirant le collage. Le découpage ne change pas le texte — le Markdown est le même
+avant et après —, si bien que ce ↶ aurait été une étape d'AFFICHAGE dans un anneau d'états du brouillon, à invalider
+au moindre geste ; et le besoin qu'il servait (reprendre tout le Markdown d'un coup) a déjà son outil : l'interrupteur
+« Mise en forme en direct » coupé. À rouvrir sur un cas d'usage concret.
+Témoins : `audit-k5` (↷ après ↶, Maj-Ctrl-Z, geste nouveau qui le retire) ; `audit-doctrine` « Éditeur · A547 »
+(l'annonce du découpage, souris et doigt).
