@@ -312,7 +312,7 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   l'éditeur de PROTOCOLE s'écrit **par blocs** (A547, « Mise en forme en direct », par défaut) : le
   contenu rédigé s'affiche rendu, toucher un bloc l'ouvre seul en Markdown (un encadré y règle son
   registre en pastilles, une image sa taille — A548 ; un bloc se déplace par « Prendre / Poser », le geste de
-  l'éditeur d'aide — A549) ; la colonne de droite ne
+  l'éditeur d'aide — A549 ; un toucher en dehors le referme, donc découpe un collage en ses blocs — A552) ; la colonne de droite ne
   garde que la relecture (320). Interrupteur coupé (choix retenu sur l'appareil) : le Markdown entier,
   et dès 1000 px source et rendu **à parts égales**, le rendu suivant le défilement du champ (A546).
 - **Deux seuils distincts, à ne jamais refusionner** : 780 = rail de LECTURE ;
