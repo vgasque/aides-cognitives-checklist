@@ -2133,6 +2133,8 @@
   (leçon `persistLive`). **JAMAIS PERSISTÉ, JAMAIS SYNCHRO** : c'est un geste, pas un état du
   brouillon — même statut que `state.edGrab`. Plafond 20 : au-delà ce n'est plus une annulation mais
   une restauration, et elle a son outil (« Versions » + le point de version de chaque ouverture).
+  **AMENDÉ PAR A553 (v5.79.0)** : l'anneau a son pendant, « ↷ Rétablir » (`_edRedo`, `edRedoDo`, Maj-Cmd/Ctrl-Z
+  et Ctrl-Y hors champ) — `lot-v6-0.md`.
 - **LES PALIERS AVANT L'ENROULEMENT — LE TROU DE 430 À 441 px (v4.74.2, signalé à l'usage)** : le
   palier de compression suivant est à 430 (`ZOOM_W_STEPS`), donc entre 430 et ~441 la rangée de
   commandes n'a plus la place de la recette large et n'a pas encore DROIT à la recette compressée —

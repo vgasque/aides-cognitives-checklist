@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DkVk4GLbTj7xNrvUGUNPMSxuPUsJanJRt2r+PIdbeU8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-J4J/kuLRONOhU9rkWmAAdrqfc46mstCid/nFxRCb+vQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9163,6 +9163,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          pendant : l'un dit ce qui est écrit, l'autre le défait. Masqué tant que la pile est vide
          (aucun bouton mort) et hors des éditeurs. -->
     <button class="hdr-undo" id="hdrUndo" hidden title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
+    <!-- A553 : « ↷ Rétablir » — le pendant de ↶, présent seulement après une annulation (aucun bouton mort). -->
+    <button class="hdr-undo" id="hdrRedo" hidden title="Rétablir le geste annulé (Cmd/Ctrl-Maj-Z)" aria-label="Rétablir le geste annulé"></button>
     <span class="hdr-saved" id="hdrSaved" role="status" hidden></span>
     <!-- « ▶ Essayer » passe en TONAL (v4.77.0) : l'unique bouton REMPLI de l'éditeur est désormais la
          porte « ＋ ». C'est un arbitrage, pas un détail — l'action primaire d'un ÉDITEUR est
@@ -9685,7 +9687,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.78.3';
+const APP_VERSION='5.79.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14790,7 +14792,9 @@ function applyViewChrome(){
      /* On QUITTE l'éditeur : l'anneau d'annulation meurt avec la séance (c'est un geste, pas un
         état du brouillon). Le filet de plus longue portée reste le point de version de v4.72.0. */
      _edUndo=[];_edPrev=null;_edUndoFor=null;
+     _edRedo=[];
      const ub=document.getElementById('hdrUndo');if(ub)ub.hidden=true;
+     const rb2=document.getElementById('hdrRedo');if(rb2)rb2.hidden=true;
      const rb=document.getElementById('hdrRev');if(rb)rb.hidden=true;}
    else if(_edSaveState)edSaySave(_edSaveState);
    document.getElementById('hdrPreview').hidden=!ed;}
@@ -17637,7 +17641,7 @@ const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h','Titre de section','##
   ['ul','Liste','- élément','- Élément'],['task','Cases à cocher','- [ ] élément','- [ ] Élément'],['tbl','Tableau','grille, modèle','| Colonne | Colonne |\n|---|---|\n|  |  |'],
   ['img','Image ou photo','appareil, galerie',''],['hr','Séparateur','---','---']];
 function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;
-  const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1;
+  const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1,pasted=false;
   const lines=()=>String(p.body||'').split('\n'),l2c=n=>n?lines().slice(0,n).join('\n').length+1:0;
   // Toute écriture passe par le champ entier (masqué) : enregistrement, relecture, Plan et ↶ voient le même texte.
   /* A551 : le geste d'un bloc (supprimer, déplacer, dupliquer, ajouter, registre, taille) n'est pas une frappe — l'événement
@@ -17656,10 +17660,14 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
       const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));});
     t.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key==='Enter'&&(e.metaKey||e.ctrlKey))){e.preventDefault();e.stopPropagation();close();}});
+    t.addEventListener('paste',()=>{pasted=true;});
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
       const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(q.top<70||q.bottom>innerHeight-80)b.scrollIntoView({block:'center'});}};
-  const close=()=>{const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
-  const openAt=(i,sel)=>{open=i;paint(sel);};
+  /* A553 : refermer un bloc où l'on a COLLÉ, et qui se découpe, le dit — et dit ce que fera ↶ (le collage entier, A552). */
+  const said=()=>{const t=doc.querySelector('.mdb-ta'),n=t&&pasted?mdBlockRanges(t.value).length:0;pasted=false;
+    if(n>1)toast('Découpé en '+n+' blocs — ↶ annule le collage.',4000,true);};
+  const close=()=>{said();const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
+  const openAt=(i,sel)=>{if(open>=0)said();pasted=false;open=i;paint(sel);};
   const apply=(r,o)=>{if(!r)return;push(r.v);open=o==null?r.i:o;paint(open>=0?undefined:false);};
   const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,
     options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:v==='c'?'<span class="mdc-crit">'+uiIcon('warn',16)+'</span>':uiIcon({p:'pen',h:'list',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',16)})),
@@ -17718,7 +17726,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const down_=e=>{if(!document.contains(doc)){document.removeEventListener('pointerdown',down_,true);document.removeEventListener('pointerup',up_,true);return;}
     pd=open>=0&&grab<0&&!inside(e.target)?{x:e.clientX,y:e.clientY}:null;};
   const up_=e=>{const d0=pd;pd=null;if(!d0||open<0||grab>=0||inside(e.target))return;
-    if(Math.hypot(e.clientX-d0.x,e.clientY-d0.y)>10)return;open=-1;paint(false);};
+    if(Math.hypot(e.clientX-d0.x,e.clientY-d0.y)>10)return;said();open=-1;paint(false);};
   document.addEventListener('pointerdown',down_,true);document.addEventListener('pointerup',up_,true);
   // Un changement venu d'ailleurs (relecture, Plan, ↶) : le document se redessine, bloc refermé.
   ta.addEventListener('input',()=>{if(self)return;open=-1;paint(false);});
@@ -18553,7 +18561,7 @@ function bindEditorMetaFields(d,prefix,o){
   /* Anneau d'annulation : le bouton vit dans l'EN-TÊTE, hors de `main` — il survit aux re-rendus,
      mais son `onclick` est reposé ici parce que c'est le point de câblage COMMUN aux deux éditeurs
      (le peindre ailleurs demanderait de le faire deux fois, donc de le laisser diverger un jour). */
-  {const ub=document.getElementById('hdrUndo');if(ub)ub.onclick=edUndoDo;}
+  {const ub=document.getElementById('hdrUndo');if(ub)ub.onclick=edUndoDo;const rb=document.getElementById('hdrRedo');if(rb)rb.onclick=edRedoDo;}
   edUndoPaint();
   edRevPaint(prefix==='f'?d:null);
   // Aperçu du brouillon (V5) : bouton d'en-tête + colonne en direct (>= 1000px, cf. bindEditSide).
@@ -18775,6 +18783,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   play:'<path fill="currentColor" stroke="none" d="M8 5v14l11-7z"/>',
   stop:'<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/>',
   undo:'<path d="M3 12a9 9 0 102.6-6.4L3 8"/><path d="M3 3v5h5"/>',
+  redo:'<path d="M21 12a9 9 0 11-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>',
   // Étiquette (catégorie) et corbeille (v5.30.0, A360) : la feuille « Actions » nomme ses actes.
   tag:'<path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z"/><circle cx="7" cy="7" r="1.5"/>',
   trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
@@ -26989,6 +26998,10 @@ function edUntitled(kind){const d=(kind||edKind())==='f'?state.draft:state.pdraf
    plus une annulation, c'est une restauration — et elle a déjà son outil, « Versions ». */
 const ED_UNDO_MAX=20;
 let _edUndo=[],_edPrev=null,_edUndoFor=null;
+/* A553 — LA PILE DE RÉTABLISSEMENT. ↶ y range l'état qu'il quitte ; ↷ le rend. Elle se vide dès qu'un geste NOUVEAU
+   pose un point (on a repris la main : ce qui avait été annulé n'a plus de suite logique), et avec l'anneau
+   (autre brouillon, sortie de l'éditeur). Même statut que l'anneau : un geste, jamais persisté, jamais synchro. */
+let _edRedo=[];
 /* Pose un point de reprise. Appelée EN TÊTE des deux `render*Edit()` (geste structurel, avant
    `edTouch`) et à la pause de frappe : dans les deux cas `_edPrev` porte encore l'état du point
    précédent, donc l'état d'AVANT ce qui vient d'arriver. */
@@ -26997,19 +27010,24 @@ function edUndoNote(){
   if(!k){_edUndo=[];_edPrev=null;_edUndoFor=null;return;}
   const d=k==='f'?state.draft:state.pdraft;if(!d)return;
   const snap=JSON.stringify(d);
-  if(_edUndoFor!==d.id){_edUndoFor=d.id;_edUndo=[];_edPrev=snap;edUndoPaint();return;}   // autre brouillon : on repart de zéro
+  if(_edUndoFor!==d.id){_edUndoFor=d.id;_edUndo=[];_edRedo=[];_edPrev=snap;edUndoPaint();return;}   // autre brouillon : on repart de zéro
   if(_edPrev===null||_edPrev===snap){_edPrev=snap;return;}                               // rien n'a bougé
   _edUndo.push(_edPrev);if(_edUndo.length>ED_UNDO_MAX)_edUndo.shift();
+  _edRedo=[];                        // A553 : un geste nouveau clôt ce qui avait été annulé
   _edPrev=snap;edUndoPaint();}
 function edUndoPaint(){
   const b=document.getElementById('hdrUndo');if(!b)return;
   const on=!!edKind()&&_edUndo.length>0;
   b.hidden=!on;
   if(on){b.innerHTML=uiIcon('undo',17);
-    b.title='Annuler le dernier geste ('+_edUndo.length+' en mémoire) — Cmd/Ctrl-Z';}}
+    b.title='Annuler le dernier geste ('+_edUndo.length+' en mémoire) — Cmd/Ctrl-Z';}
+  const r=document.getElementById('hdrRedo');if(!r)return;
+  const ron=!!edKind()&&_edRedo.length>0;r.hidden=!ron;
+  if(ron){r.innerHTML=uiIcon('redo',17);r.title='Rétablir le geste annulé ('+_edRedo.length+' en mémoire) — Cmd/Ctrl-Maj-Z';}}
 function edUndoDo(){
   const k=edKind();if(!k||!_edUndo.length)return;
   const snap=_edUndo.pop();
+  _edRedo.push(JSON.stringify(k==='f'?state.draft:state.pdraft));if(_edRedo.length>ED_UNDO_MAX)_edRedo.shift();   // A553 : l'état quitté, frappe en cours comprise
   /* Une donnée qui rentre repasse par son point d'entrée, même si elle vient de nous : règle 5.
      Le brouillon a déjà été migré à l'ouverture, donc c'est gratuit — mais un jour où `migrate`
      posera un défaut de plus, on ne veut pas d'un chemin qui l'ait contourné. */
@@ -27027,6 +27045,18 @@ function edUndoDo(){
   /* Snackbar en RÉPONSE À UN GESTE (troisième argument explicite, v4.55.4) : ce n'est pas une
      nouvelle de fond, c'est l'accusé de réception du bouton qu'on vient de presser. */
   toast('↶ Geste annulé.',2000,true);}
+/* A553 — ↷ : le chemin exact de ↶ en sens inverse. L'état présent retourne sur l'anneau (un ↶ le rendra), l'état rétabli
+   repasse par son point d'entrée (règle 5) et s'écrit par `edCommit` (même raison que ↶). */
+function edRedoDo(){
+  const k=edKind();if(!k||!_edRedo.length)return;
+  const snap=_edRedo.pop();
+  _edUndo.push(JSON.stringify(k==='f'?state.draft:state.pdraft));if(_edUndo.length>ED_UNDO_MAX)_edUndo.shift();
+  if(k==='f')state.draft=migrate(JSON.parse(snap));
+  else state.pdraft=migrateProtocol(JSON.parse(snap));
+  state.edGrab=null;_edPrev=null;
+  (k==='f'?renderEditor:renderProtocolEdit)();
+  edCommit(k);
+  toast('↷ Geste rétabli.',2000,true);}
 async function edCommit(kind){
   kind=kind||edKind();if(!kind)return false;
   const d=edSnapshot(kind);if(!d)return false;
@@ -31157,6 +31187,9 @@ function toast(msg,ms,direct){
   if(s.charCodeAt(0)===0x26A0){t.innerHTML=uiIcon('warn',14)+' ';t.appendChild(document.createTextNode(s.replace(/^⚠️?\s*/,'')));}
   else t.textContent=s;
   t.appendChild(lifeBar(ms||4500));
+  /* A553 : un accusé de GESTE remplace l'accusé de geste précédent — « Découpé en 4 blocs » puis « ↶ Geste annulé »
+     s'empilaient au même endroit, illisibles. Les nouvelles de fond (sans `direct`) ne sont jamais retirées ainsi. */
+  if(direct){document.querySelectorAll('.toast[data-g]').forEach(x=>x.remove());t.dataset.g='1';}
   document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
 function notifyConflicts(list){if(!list.length)return;
@@ -34143,12 +34176,15 @@ document.addEventListener('toggle',e=>{
    la frappe, et c'est très bien ainsi (l'anneau, lui, ne couvre que les gestes STRUCTURELS).
    On n'intervient donc que hors champ de saisie, dans un éditeur, fenêtre fermée. */
 document.addEventListener('keydown',e=>{
-  if(e.key!=='z'&&e.key!=='Z')return;
-  if(!(e.metaKey||e.ctrlKey)||e.altKey||e.shiftKey)return;
+  const z=e.key==='z'||e.key==='Z',y=(e.key==='y'||e.key==='Y')&&e.ctrlKey&&!e.metaKey;
+  if(!z&&!y)return;
+  if(!(e.metaKey||e.ctrlKey)||e.altKey||(y&&e.shiftKey))return;
   if(!edKind())return;
   const t=e.target;
   if(t&&(t.matches&&t.matches('input,textarea,select,[contenteditable=""],[contenteditable="true"]')))return;
   if(document.querySelector('.ai-modal.on'))return;
+  /* A553 : Maj-Cmd/Ctrl-Z (et Ctrl-Y, l'usage Windows) rétablit — même règle : jamais dans un champ. */
+  if(y||e.shiftKey){if(!_edRedo.length)return;e.preventDefault();edRedoDo();return;}
   if(!_edUndo.length)return;
   e.preventDefault();edUndoDo();});
 

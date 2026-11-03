@@ -8618,6 +8618,7 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     const tap=async l=>{if(hasTouch)await l.tap();else await l.click();};
     await tap(page.locator('#mdDoc .mdb').first());await page.waitForTimeout(200);
     await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(t.value.length,t.value.length);
+      t.dispatchEvent(new ClipboardEvent('paste',{clipboardData:new DataTransfer(),bubbles:true,cancelable:true}));   // A553 : c'est un collage
       document.execCommand('insertText',false,'\n\n## Indications\n\nChoc **grade III-IV**.\n\n- un\n- deux');});
     await page.waitForTimeout(200);
     const o={colle:await page.locator('#mdDoc .mdb').count()};
@@ -8626,8 +8627,10 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     if(hasTouch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await page.waitForTimeout(250);
     o.ferme=await page.locator('#mdDoc .mdb-ta').count();o.blocs=await page.locator('#mdDoc .mdb').count();
     o.corps=await page.evaluate(()=>/## Indications\n\nChoc \*\*grade III-IV\*\*\.\n\n- un\n- deux/.test(state.pdraft.body));
+    o.annonce=await page.evaluate(()=>[...document.querySelectorAll('.toast')].some(x=>/^Découpé en \d+ blocs — ↶ annule le collage\./.test(x.textContent)));
     t('A552 · '+(hasTouch?'téléphone (doigt)':'bureau (souris)')+' : la barre laisse le bloc ouvert, un toucher dehors le referme et découpe le collage',
       o.colle===2&&o.barre===1&&o.ferme===0&&o.blocs===5&&o.corps,JSON.stringify(o));
+    t('A553 · '+(hasTouch?'téléphone':'bureau')+' : le découpage d\'un collage s\'annonce, et dit ce que fera ↶',o.annonce,JSON.stringify(o));
     await page.close();}
 });
 

@@ -245,6 +245,25 @@ const g2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
 t('Cmd-Z DANS un champ ne touche pas à l’anneau', g2.dansChamp===g2.av, JSON.stringify(g2));
 t('Ctrl-Z hors champ annule bien', g2.horsChamp===g2.av-1, JSON.stringify(g2));
 
+/* A553 — ↷ RÉTABLIR, le pendant de ↶ : absent tant que rien n'est annulé ; après ↶, il rend le geste ; Maj-Ctrl-Z
+   aussi ; un geste NOUVEAU le retire (ce qui avait été annulé n'a plus de suite). */
+const g2r=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+  const nb=()=>document.querySelectorAll('.blk .li').length,rb=()=>document.getElementById('hdrRedo');
+  const o={};
+  document.querySelector('.blk [data-addstep]').click(); await w(400);   // (le contrôle précédent vient d'annuler : ce geste neuf clôt son ↷)
+  o.avant=!rb().hidden;const n1=nb();
+  document.getElementById('hdrUndo').click(); await w(700);o.undoN=nb()===n1-1;o.visible=!rb().hidden;
+  rb().click(); await w(700);o.redoN=nb()===n1;o.cacheApres=rb().hidden;
+  document.body.focus();
+  document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true})); await w(700);
+  document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Z',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true})); await w(700);
+  o.clavier=nb()===n1;
+  document.getElementById('hdrUndo').click(); await w(700);o.reVisible=!rb().hidden;
+  document.querySelector('.blk [data-addstep]').click(); await w(400);o.geste=rb().hidden;
+  return o;});
+t('A553 · ↷ absent sans annulation ; après ↶ il paraît et rend le geste',!g2r.avant&&g2r.undoN&&g2r.visible&&g2r.redoN&&g2r.cacheApres,JSON.stringify(g2r));
+t('A553 · Maj-Ctrl-Z rétablit hors champ ; un geste nouveau retire ↷',g2r.clavier&&g2r.reVisible&&g2r.geste,JSON.stringify(g2r));
+
 /* Sortir de l'éditeur vide l'anneau : c'est un GESTE, pas un état du brouillon (même statut que
    `state.edGrab`). Le filet de plus longue portée reste le point de version de v4.72.0. */
 const g3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
