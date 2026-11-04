@@ -9592,6 +9592,75 @@ await sec('LA PAGE · un seul axe vertical, dans main comme dans la fenêtre « 
   await page.close();
 });
 
+/* A554 (v5.80.0) — PINCER POUR ZOOMER, COMME UNE FEUILLE : la Page (fenêtre « Tableau ») et la visionneuse
+   PDF. Ce qu'on garde : (a) le défileur porte `pan-x pan-y`, JAMAIS `none` (le glisser à un doigt reste
+   natif) ; (b) un pincer change l'échelle ET laisse le point pincé sous les doigts ; (c) au lâcher, plus
+   aucune transformation résiduelle sur le calque (au repos, rien n'est une image étirée) ; (d) Ctrl +
+   molette fait le même geste à la souris ; (e) PDF : le pincer change le zoom, le point reste sous les
+   doigts et la page est RE-RENDUE à la nouvelle échelle. Le toucher est simulé par des TouchEvent
+   construits en page (le moteur qui n'a pas le constructeur `Touch` le dit, sans rouge). */
+await sec('A554 · pincer pour zoomer la Page et le PDF, le point reste sous les doigts', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);await ouvrirFiche(page,/cardiaque/i);
+  const pince=async(sel,cx,cy,d0,d1)=>page.evaluate(async([sel,cx,cy,d0,d1])=>{
+    if(typeof Touch!=='function')return false;
+    const sc=document.querySelector(sel),w=m=>new Promise(r=>setTimeout(r,m));
+    const tt=d=>[new Touch({identifier:1,target:sc,clientX:cx-d/2,clientY:cy}),new Touch({identifier:2,target:sc,clientX:cx+d/2,clientY:cy})];
+    const ev=(type,t)=>sc.dispatchEvent(new TouchEvent(type,{touches:t,targetTouches:t,changedTouches:t,bubbles:true,cancelable:true}));
+    ev('touchstart',tt(d0));for(let i=1;i<=6;i++){ev('touchmove',tt(d0+(d1-d0)*i/6));await w(20);}
+    ev('touchend',[]);await w(150);return true;},[sel,cx,cy,d0,d1]);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}}
+    document.querySelector('[data-prelink="page"]').click();await w(500);
+    return {fen:planModal.classList.contains('on'),ta:getComputedStyle(document.querySelector('#planBody .sv-scroll')).touchAction,
+      taPdf:getComputedStyle(document.getElementById('pdfScroll')).touchAction};});
+  t('témoin : « Tableau » ouvre bien la fenêtre de la Page',r.fen===true);
+  t('Page et PDF : le défileur coupe le seul pincer du navigateur (pan-x pan-y, jamais none)',
+    r.ta==='pan-x pan-y'&&r.taPdf==='pan-x pan-y',JSON.stringify(r));
+  const mesure=(x,y)=>page.evaluate(([x,y])=>{const sh=document.querySelector('#planBody .sv-sheet'),b=sh.getBoundingClientRect(),
+    ca=document.querySelector('#planBody .sv-calant');
+    return {k:svZoom,fx:(x-b.left)/b.width,fy:(y-b.top)/b.height,tr:ca.style.transform||'',wc:ca.style.willChange||''};},[x,y]);
+  const a0=await mesure(200,420);
+  const touche=await pince('#planBody .sv-scroll',200,420,100,220);
+  if(!touche)console.log('  · moteur sans constructeur Touch : pincer tactile non simulé ici (Ctrl + molette seul)');
+  else{const a1=await mesure(200,420);
+    t('Page : le pincer agrandit la feuille (×2,2)',Math.abs(a1.k-2.2)<0.02,JSON.stringify([a0.k,a1.k]));
+    t('Page : le point pincé reste sous les doigts (écart < 1 %)',Math.abs(a1.fx-a0.fx)<0.01&&Math.abs(a1.fy-a0.fy)<0.01,JSON.stringify([a0,a1]));
+    t('Page : au lâcher, aucune transformation résiduelle sur le calque',!a1.tr&&!a1.wc,JSON.stringify(a1));}
+  await page.evaluate(()=>{svZoom=1;svApplyZoom(document.getElementById('planBody'));});
+  await page.mouse.move(200,420);await page.keyboard.down('Control');
+  await page.mouse.wheel(0,60);await page.keyboard.up('Control');await page.waitForTimeout(400);
+  const a2=await mesure(200,420);
+  t('Page : Ctrl + molette réduit la feuille (même geste à la souris)',a2.k<0.9&&a2.k>=0.2&&!a2.tr,JSON.stringify(a2));
+  await page.evaluate(async()=>{document.getElementById('planX').click();await new Promise(r=>setTimeout(r,300));
+    /* Un PDF de deux pages, écrit à la main : la visionneuse l'ouvre par son VRAI point d'entrée. */
+    const st='BT /F1 24 Tf 72 700 Td (Feuille) Tj ET';
+    const ob=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 6 0 R >> >> >>',
+      `<< /Length ${st.length} >>\nstream\n${st}\nendstream`,
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 6 0 R >> >> >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+    let o='%PDF-1.4\n';const off=[];ob.forEach((x,i)=>{off.push(o.length);o+=`${i+1} 0 obj\n${x}\nendobj\n`;});
+    const xr=o.length;o+=`xref\n0 ${ob.length+1}\n0000000000 65535 f \n`+off.map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')
+      +`trailer\n<< /Size ${ob.length+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`;
+    const buf=new TextEncoder().encode(o).buffer;
+    await attPut({id:'a554pdf',buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
+    await openPdfViewer({id:'a554pdf',name:'a554.pdf'},null);});
+  await page.waitForFunction(()=>!!document.querySelector('.pdf-page[data-p="1"] canvas'),null,{timeout:15000});
+  const pm=(x,y)=>page.evaluate(([x,y])=>{const el=document.querySelector('.pdf-page[data-p="1"]'),b=el.getBoundingClientRect(),c=el.querySelector('canvas');
+    return {z:_pv.z,fx:(x-b.left)/b.width,fy:(y-b.top)/b.height,cw:c?c.width:0,css:Math.round(b.width),
+      tr:document.querySelector('#pdfScroll>.pdf-pages').style.transform||''};},[x,y]);
+  const p0=await pm(200,300);
+  if(await pince('#pdfScroll',200,300,80,200)){
+    await page.waitForTimeout(700);const p1=await pm(200,300);
+    t('PDF : le pincer agrandit le document',p1.z>p0.z*2.2,JSON.stringify([p0.z,p1.z]));
+    t('PDF : le point pincé reste sous les doigts (écart < 1 %)',Math.abs(p1.fx-p0.fx)<0.01&&Math.abs(p1.fy-p0.fy)<0.01,JSON.stringify([p0,p1]));
+    t('PDF : la page est RE-RENDUE à la nouvelle échelle, sans transformation résiduelle',p1.cw>p0.cw*2&&!p1.tr,JSON.stringify(p1));}
+  await page.close();
+});
+
 /* v5.33.2 (signalé à l'usage iPhone) : (1) corriger une heure DANS le volet du quai — `kb-open` restait
    posée après la validation (le champ part avec le panneau pendant son blur, son `focusout` n'atteint
    plus le document) : dock masqué, bas de `main` qui saute ; et sous `html.kbd` le volet redevenait du

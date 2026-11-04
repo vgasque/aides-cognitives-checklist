@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A553** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A554** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -177,6 +177,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A551 | `lot-v6-0.md` | Toute modification pose son point de reprise (↶) : gestes du document par blocs, et une 3ᵉ accroche `change` délégué (taille d'image, date de validation) (v5.78.2) |
 | A552 | `lot-v6-0.md` | Un toucher en dehors referme le bloc ouvert, donc découpe un collage en ses blocs ; barre, menus, fenêtres exclus ; ↶ défait le collage entier (v5.78.3) |
 | A553 | `lot-v6-0.md` | « ↷ Rétablir » (pile `_edRedo`, Maj-Cmd/Ctrl-Z, Ctrl-Y) ; le découpage d'un collage s'annonce ; un accusé de geste remplace le précédent (v5.79.0) |
+| A554 | `lot-v6-0.md` | Pincer pour zoomer la Page et le PDF « comme une feuille » (`pinchBind`, `pan-x pan-y`, calque transformé pendant le geste, re-tramé au lâcher, point sous les doigts) ; renverse le « pas de pinch » d'A133/J175 ; canevas PDF plafonné, plus de page blanche après zoom (v5.80.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

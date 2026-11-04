@@ -4144,6 +4144,10 @@
 
 ## J175 — ── LOT 3 · ÉCHELLE DE LA FEUILLE ────────────────────────────────────────────────────────────
 
+> **Amendé par A554 (v5.80.0)** : le « pas de pinch écrit à la main » et le « pas d'échelle continue » ci-dessous sont
+> RENVERSÉS — `pan-x pan-y` (et non `none`) garde le défilement natif, et le calque n'est transformé que pendant le
+> geste, re-tramé au lâcher. Le reste tient (largeur d'auteur, `scale`, pas d'ajustement d'office). Texte d'origine :
+
 ```
 /* ── LOT 3 · ÉCHELLE DE LA FEUILLE ────────────────────────────────────────────────────────────
    La feuille a une largeur d'AUTEUR fixe (`--sheet-w`), jamais un pourcentage : c'est ce qui en

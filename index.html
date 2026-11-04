@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-J4J/kuLRONOhU9rkWmAAdrqfc46mstCid/nFxRCb+vQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NHSvGALZMZOK4QgERsFGxehlF9dI+MQlDjOxZ4USNAo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6202,8 +6202,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      branche EMPILÉE sous 640 px, or la feuille ne s'empile plus — elle garde sa géométrie et
      c'est l'échelle qui s'adapte. La cause est partie, le mécanisme la suit. */
   .sv-wrap{position:relative;margin:10px 0 18px}
-  /* L'ÉCHELLE — cinq pas discrets, jamais une échelle continue (le texte « bave » quand le moteur
-     travaille une image mise en cache au lieu de re-tramer). La barre vit HORS du défileur : elle
+  /* L'ÉCHELLE — boutons à pas de 10 % et pincer (A554 : continu PENDANT le geste, re-tramé au
+     lâcher — le texte ne « bave » jamais au repos). La barre vit HORS du défileur : elle
      ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
   .sv-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px}
   /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
@@ -6220,7 +6220,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 
   /* A356 : la Page n'a qu'UN axe vertical — celui de la fenêtre — à TOUT pointeur (A343 ne le clôturait qu'au tactile,
      et la feuille A4 défilait encore en elle-même à la souris) ; l'horizontal reste celui de la feuille. */
-  .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch}
+  .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}   /* A554 : glisser natif, pincer maison */
   /* LE CALANT : sans lui, le défileur ignore la transformation et ne défile sur rien. Il n'est
      dimensionné QUE hors de l'échelle 1 (`.z`) — le cas nominal n'a ni transformation, ni taille
      forcée, ni image intermédiaire à la première peinture. */
@@ -8585,6 +8585,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      MESURÉE `--pdfhl-r` (pdfHlSync), 0 sans pilule. ⚠ Mesure en `offsetHeight`, jamais le rect :
      il rendrait des px visuels à diviser par zoomF() (règle 10). Détail : doctrine-css.md C130. */
   .pdf-scroll{flex:1;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-scroll{touch-action:pan-x pan-y}   /* A554 : glisser natif, pincer maison (pinchBind) */
+  .pdf-pages{min-width:min-content}   /* le calque du pincer : aussi large que la page la plus large */
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
@@ -9687,7 +9689,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.79.0';
+const APP_VERSION='5.80.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24195,10 +24197,10 @@ function startSessionGesture(){
 
 /* ── LOT 3 · ÉCHELLE DE LA FEUILLE ────────────────────────────────────────────────────────────
    Largeur d'AUTEUR fixe (`--sheet-w`), agrandissement par `scale` (jamais `zoom` CSS : il refait la
-   mise en page et les minima de police mobiles reprennent la main). ⚠ Pas de pinch maison
-   (`touch-action:none` tuerait le défilement — contrainte la plus stricte de la chaîne d'ancêtres,
-   leçon déjà payée ; le pinch du navigateur marche par-dessus). ⚠ Pas d'échelle continue (pas
-   discrets = re-tramage propre). ⚠ Pas d'ajustement d'office à l'ouverture (k ≈ 0,28 à 390 px =
+   mise en page et les minima de police mobiles reprennent la main). PINCER MAISON depuis A554
+   (renverse le « pas de pinch » et le « pas d'échelle continue » de J175) : `pan-x pan-y`, jamais
+   `touch-action:none` ; calque transformé PENDANT le geste, échelle fixée et re-tramée au LÂCHER
+   (cf. pinchBind). Les boutons gardent leurs pas de 10 %. ⚠ Pas d'ajustement d'office à l'ouverture (k ≈ 0,28 à 390 px =
    cibles < 13 px, arbitrage MESURÉ contre le brief) ; « ⤢ ajusté » = UN TAP, échelle jamais
    mémorisée (même statut que `state.allTab`). Détail : doctrine-js.md J175. */
 let svZoom=1;
@@ -24219,7 +24221,8 @@ function svRoot(){return (planSheetOpen()&&_pmVue==='page')
    agit sur le rendu et non sur le layout). À k = 1 on ne pose RIEN : le cas nominal n'a ni
    transformation, ni taille forcée, ni image intermédiaire à la première peinture. */
 function svApplyZoom(racine){
-  const E=svSheetEls(racine||svRoot());if(!E)return;
+  const R=racine||svRoot(),E=svSheetEls(R);if(!E)return;
+  svPinchBind(E.sc,R);   // A554 : le pincer se branche sur le défileur du moment (idempotent)
   const k=svZoom;
   const bar=E.wrap.closest('.plan-modal')||E.wrap;   // A522 : dans la Page, l'échelle vit dans la barre
   const v=bar.querySelector('.sv-zv');if(v)v.textContent=Math.round(k*100)+'%';
@@ -24241,6 +24244,72 @@ function svZoomStep(a,racine){
   else if(a==='out')svZoom=Math.max(SV_ZMIN,Math.round((svZoom-0.1)*100)/100);
   else svZoom=1;
   svApplyZoom(racine||svRoot());}
+/* A554 — PINCER POUR ZOOMER, COMME UNE FEUILLE (v5.80.0, demande de l'auteur : « comme un
+   navigateur PDF, pinch to zoom très rapide sans lag, se déplacer, dézoomer rapidement » — « l'idée
+   est de pouvoir le lire et le regarder facilement comme une feuille »). RENVERSE le « pas de pinch
+   maison » et le « pas d'échelle continue » d'A133/J175, dont les deux raisons ne tiennent plus :
+   · `touch-action:none` n'est PAS requis : le défileur porte `pan-x pan-y` — le glisser à un doigt
+     reste NATIF (inertie comprise), seul le pincer du navigateur est retiré, et c'est nous qui le
+     faisons. Ce n'est pas la contrainte qui « tue le défilement ».
+   · Le texte ne « bave » que PENDANT le geste : on y transforme seulement un calque (GPU, aucune
+     mise en page — d'où l'absence de lag), et au LÂCHER l'échelle est fixée puis re-tramée (Page :
+     `svApplyZoom` ; PDF : nouveau rendu des canevas). Au repos, rien n'est une image étirée.
+   Le point pincé RESTE SOUS LES DOIGTS : on note sa place relative dans un élément-repère (la
+   feuille, ou la page PDF sous les doigts), et après l'échelle on décale les défileurs d'autant.
+   Les mesures client sont des px VISUELS : division par zoomF() (règle 10).
+   CE QUI NE CHANGE PAS : ouverture à la taille d'auteur (A133, A150 — un tap « ⤢ Ajusté » ou un
+   pincer pour voir la feuille entière) ; l'échelle n'est jamais mémorisée ; les boutons restent
+   (clavier, lecteur d'écran). Sur ordinateur : Ctrl + molette et le pincer du pavé tactile.
+   `o` : { k(), min, max, layer() → élément transformé pendant le geste, ref(x,y) → repère,
+   commit(k), scY() → défileur vertical }. */
+function pzScrollY(el){
+  for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){const o=getComputedStyle(p).overflowY;
+    if((o==='auto'||o==='scroll')&&p.scrollHeight>p.clientHeight)return p;}
+  return document.scrollingElement||document.documentElement;}
+function pinchBind(sc,o){
+  if(!sc||sc._pz)return;sc._pz=1;
+  let g=null,raf=0,wheelT=0,quiet=0,touching=false,d0=1;
+  const begin=(cx,cy)=>{const L=o.layer();if(!L)return null;
+    const z=zoomF(),lr=L.getBoundingClientRect(),R=o.ref(cx,cy)||L,rr=R.getBoundingClientRect();
+    L.style.transformOrigin=((cx-lr.left)/z)+'px '+((cy-lr.top)/z)+'px';L.style.willChange='transform';
+    return {L,R,k0:o.k(),s:1,cx0:cx,cy0:cy,cx,cy,fx:(cx-rr.left)/(rr.width||1),fy:(cy-rr.top)/(rr.height||1)};};
+  const paint=()=>{raf=0;if(!g)return;const z=zoomF();
+    g.L.style.transform='translate('+((g.cx-g.cx0)/z)+'px,'+((g.cy-g.cy0)/z)+'px) scale('+g.s+')';};
+  const move=(s,cx,cy)=>{if(!g)return;
+    g.s=Math.max(o.min/g.k0,Math.min(o.max/g.k0,s));g.cx=cx;g.cy=cy;if(!raf)raf=requestAnimationFrame(paint);};
+  const end=()=>{if(!g)return;const G=g;g=null;if(raf){cancelAnimationFrame(raf);raf=0;}
+    G.L.style.transform='';G.L.style.transformOrigin='';G.L.style.willChange='';quiet=Date.now();
+    if(Math.abs(G.s-1)<0.01||!G.R.isConnected)return;
+    o.commit(G.k0*G.s);
+    const z=zoomF(),rr=G.R.getBoundingClientRect();
+    sc.scrollLeft+=(rr.left+G.fx*rr.width-G.cx)/z;
+    (o.scY?o.scY():sc).scrollTop+=(rr.top+G.fy*rr.height-G.cy)/z;};
+  const mid=t=>[(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2];
+  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1;
+  sc.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;
+    touching=true;d0=dist(e.touches);const m=mid(e.touches);g=begin(m[0],m[1]);},{passive:true});
+  sc.addEventListener('touchmove',e=>{if(!touching||e.touches.length<2)return;
+    if(e.cancelable)e.preventDefault();const m=mid(e.touches);move(dist(e.touches)/d0,m[0],m[1]);},{passive:false});
+  const tEnd=e=>{if(touching&&e.touches.length<2){touching=false;end();}};
+  sc.addEventListener('touchend',tEnd);sc.addEventListener('touchcancel',tEnd);
+  /* Safari émet aussi des événements `gesture*` : sur iPhone on les neutralise (le toucher mène) ;
+     sur Mac, sans toucher, ce sont EUX qui portent le pincer du pavé tactile. */
+  sc.addEventListener('gesturestart',e=>{e.preventDefault();if(!touching&&!g)g=begin(e.clientX,e.clientY);},{passive:false});
+  sc.addEventListener('gesturechange',e=>{e.preventDefault();if(!touching&&g)move(e.scale,g.cx0,g.cy0);},{passive:false});
+  sc.addEventListener('gestureend',e=>{e.preventDefault();if(!touching)end();},{passive:false});
+  // Ctrl + molette (et le pincer du pavé tactile sous Chromium/Firefox, qui l'émet ainsi).
+  sc.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();
+    if(!g)g=begin(e.clientX,e.clientY);if(!g)return;
+    const dy=Math.max(-25,Math.min(25,e.deltaMode?e.deltaY*33:e.deltaY));
+    move(g.s*Math.exp(-dy/100),g.cx0,g.cy0);clearTimeout(wheelT);wheelT=setTimeout(end,160);},{passive:false});
+  // Lever les doigts après un pincer ne « tape » rien (un nœud de la Page, un lien du PDF).
+  sc.addEventListener('click',e=>{if(Date.now()-quiet<350){e.preventDefault();e.stopPropagation();}},true);}
+function svPinchBind(sc,racine){
+  pinchBind(sc,{k:()=>svZoom,min:SV_ZMIN,max:SV_ZMAX,
+    layer:()=>{const E=svSheetEls(racine);return E&&E.ca;},
+    ref:()=>{const E=svSheetEls(racine);return E&&E.sh;},
+    commit:k=>{svZoom=Math.max(SV_ZMIN,Math.min(SV_ZMAX,Math.round(k*100)/100));svApplyZoom(racine);},
+    scY:()=>pzScrollY(sc)});}
 /* `plein` : la PORTE VERS LA FENÊTRE PLEIN ÉCRAN (v5.10.0, demande de l'auteur — « en mode crise,
    un bouton pour la voir en plein écran »). C'est EXACTEMENT la fenêtre que « Tableau » ouvre
    depuis l'écran d'entrée : même coque, même générateur, même sortie (✕, Échap, voile, retour
@@ -27308,6 +27377,14 @@ function closePdfViewer(){
   pdfModal.classList.remove('on');}
 bindModalDismiss(pdfModal,closePdfViewer);
 pdfModal.querySelectorAll('[data-pz]').forEach(b=>b.onclick=()=>pdfZoom(b.dataset.pz));
+// A554 : pincer / Ctrl + molette dans le document (bornes communes avec les boutons : 25-400 %).
+pinchBind(document.getElementById('pdfScroll'),{k:()=>_pv?_pv.z:1,min:0.25,max:4,
+  layer:()=>_pv&&document.querySelector('#pdfScroll>.pdf-pages'),
+  ref:(x,y)=>{if(!_pv)return null;let best=null,bd=Infinity;
+    for(const s of _pv.pages){const r=s.el.getBoundingClientRect(),d=y<r.top?r.top-y:y>r.bottom?y-r.bottom:0;
+      if(d<bd){bd=d;best=s.el;if(!d)break;}}
+    return best;},
+  commit:k=>{if(!_pv)return;_pv.z=Math.max(0.25,Math.min(4,Math.round(k*100)/100));pdfApplyScale();pdfRenderNear();}});
 // Télécharger le document ouvert (v4.19.0) : relecture FRAÎCHE depuis IndexedDB (aucun réseau) —
 // jamais le buffer déjà passé à pdf.js : getDocument le TRANSFÈRE à son worker, qui le laisse
 // détaché (byteLength 0 — un blob resservi de mémoire serait VIDE, constaté en E2E) ; nom de
@@ -27334,7 +27411,10 @@ function pdfApplyScale(){if(!_pv)return;const sc=document.getElementById('pdfScr
   const zv=document.getElementById('pdfZoomVal');if(zv)zv.textContent=Math.round(_pv.z*100)+'%';
   _pv.pages.forEach(s=>{const w=s.vp?s.vp.width:_pv.baseW,h=s.vp?s.vp.height:_pv.baseH;
     s.el.style.width=_pv.cssW+'px';s.el.style.height=Math.round(h*(_pv.cssW/w))+'px';
-    releasePdfPage(s);});}
+    /* A554 : l'ancien canevas RESTE, étiré à la nouvelle taille, jusqu'à ce que le nouveau rendu
+       le remplace (`renderPdfPage`) — plus de page blanche après un zoom. Seuls les calques posés
+       au pixel (surlignage, liens) partent : ils seraient décalés. */
+    s.el.querySelectorAll('.pdf-hl,.pdf-lnk').forEach(x=>x.remove());});}
 // Zoom « page entière » : z tel que la 1re page tient en HAUTEUR dans la fenêtre, borné à
 // 100 % (jamais plus large que l'écran) et au plancher commun 25 %. Ne dépend que du ratio
 // RÉEL du document (baseH/baseW) : un PDF paysage donne z=1 (déjà entier à pleine largeur).
@@ -27501,6 +27581,7 @@ async function pdfTocInit(){const b=document.getElementById('pdfToc');if(!b||!_p
     n.appendChild(l);});
   b.onclick=()=>pdfTocSet(n.hidden);
   pdfTocSet(mqReadWide.matches&&pdfTocPref(),true);}
+const PDF_MAX_PX=5242880;
 async function renderPdfPage(s){if(!_pv||s.rendering)return;
   if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle
   s.rendering=true;
@@ -27508,8 +27589,12 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     if(!s.page){s.page=await _pv.doc.getPage(+s.el.dataset.p);s.vp=s.page.getViewport({scale:1});
       if(_pv)s.el.style.height=Math.round(s.vp.height*(_pv.cssW/s.vp.width))+'px';}
     if(!_pv||!s.vis){s.rendering=false;return;}
-    const dpr=Math.min(2,window.devicePixelRatio||1);      // dpr plafonné : netteté vs mémoire iOS
-    const vp=s.page.getViewport({scale:(_pv.cssW/s.vp.width)*dpr});
+    /* dpr plafonné (netteté vs mémoire iOS) ET surface plafonnée (A554) : zoomé à 400 %, une page
+       demanderait ~25 Mpx — au-delà du plafond de canevas d'iOS, le rendu échoue en BLANC. Même
+       plafond que pdf.js sur iOS ; au-delà, le canevas est étiré (un peu moins net, jamais vide). */
+    const base=_pv.cssW/s.vp.width,area=s.vp.width*base*s.vp.height*base;
+    const dpr=Math.min(2,window.devicePixelRatio||1,Math.sqrt(PDF_MAX_PX/Math.max(1,area)));
+    const vp=s.page.getViewport({scale:base*dpr});
     const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
     const targetW=_pv.cssW;
     await s.page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
@@ -27567,7 +27652,10 @@ async function openPdfViewer(att,entity,page,hl){
   _pv={doc,pages:[],observer:null,z:1,cssW:0,baseW:vp1.width,baseH:vp1.height};
   _pv.z=pdfFitPageZ();   // zoom d'ouverture = page entière (<= 100 %), cf. commentaire d'intro
   sc.innerHTML='';
-  for(let i=1;i<=doc.numPages;i++){const el=document.createElement('div');el.className='pdf-page';el.dataset.p=i;sc.appendChild(el);
+  /* A554 : les pages vivent dans UN calque — c'est lui que le pincer transforme pendant le geste
+     (le défileur le rogne). Non positionné : `offsetTop` des pages reste relatif au défileur. */
+  const pagesEl=document.createElement('div');pagesEl.className='pdf-pages';sc.appendChild(pagesEl);
+  for(let i=1;i<=doc.numPages;i++){const el=document.createElement('div');el.className='pdf-page';el.dataset.p=i;pagesEl.appendChild(el);
     _pv.pages.push({el,page:i===1?p1:null,vp:i===1?vp1:null,canvas:null,renderedW:0,rendering:false,vis:false});}
   pdfApplyScale();
   _pv.observer=new IntersectionObserver(es=>es.forEach(en=>{const s=_pv&&_pv.pages[+en.target.dataset.p-1];if(!s)return;

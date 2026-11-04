@@ -5809,8 +5809,8 @@
      branche EMPILÉE sous 640 px, or la feuille ne s'empile plus — elle garde sa géométrie et
      c'est l'échelle qui s'adapte. La cause est partie, le mécanisme la suit. */
   .sv-wrap{position:relative;margin:10px 0 18px}
-  /* L'ÉCHELLE — cinq pas discrets, jamais une échelle continue (le texte « bave » quand le moteur
-     travaille une image mise en cache au lieu de re-tramer). La barre vit HORS du défileur : elle
+  /* L'ÉCHELLE — boutons à pas de 10 % et pincer (A554 : continu PENDANT le geste, re-tramé au
+     lâcher — le texte ne « bave » jamais au repos). La barre vit HORS du défileur : elle
      ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
   .sv-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px}
   /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
@@ -5827,7 +5827,7 @@
 
   /* A356 : la Page n'a qu'UN axe vertical — celui de la fenêtre — à TOUT pointeur (A343 ne le clôturait qu'au tactile,
      et la feuille A4 défilait encore en elle-même à la souris) ; l'horizontal reste celui de la feuille. */
-  .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch}
+  .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}   /* A554 : glisser natif, pincer maison */
   /* LE CALANT : sans lui, le défileur ignore la transformation et ne défile sur rien. Il n'est
      dimensionné QUE hors de l'échelle 1 (`.z`) — le cas nominal n'a ni transformation, ni taille
      forcée, ni image intermédiaire à la première peinture. */
@@ -8192,6 +8192,8 @@
      MESURÉE `--pdfhl-r` (pdfHlSync), 0 sans pilule. ⚠ Mesure en `offsetHeight`, jamais le rect :
      il rendrait des px visuels à diviser par zoomF() (règle 10). Détail : doctrine-css.md C130. */
   .pdf-scroll{flex:1;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-scroll{touch-action:pan-x pan-y}   /* A554 : glisser natif, pincer maison (pinchBind) */
+  .pdf-pages{min-width:min-content}   /* le calque du pincer : aussi large que la page la plus large */
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */

@@ -1123,3 +1123,51 @@ au moindre geste ; et le besoin qu'il servait (reprendre tout le Markdown d'un c
 « Mise en forme en direct » coupé. À rouvrir sur un cas d'usage concret.
 Témoins : `audit-k5` (↷ après ↶, Maj-Ctrl-Z, geste nouveau qui le retire) ; `audit-doctrine` « Éditeur · A547 »
 (l'annonce du découpage, souris et doigt).
+
+## A554 — Pincer pour zoomer, comme une feuille : la Page et la visionneuse PDF (v5.80.0)
+
+*Demandé par l'auteur : « le mode Page affiche toute l'aide format A4 : est-ce possible de faire comme un navigateur
+PDF, avec pinch to zoom très rapide sans lag, se déplacer, dézoomer rapidement ? Et pareil pour l'affichage d'un
+fichier PDF » — puis : « l'idée est de pouvoir le lire et le regarder facilement comme une feuille ».*
+
+**RENVERSE deux refus d'A133 / J175** — « pas de pinch écrit à la main » et « pas d'échelle continue ». Leurs raisons
+ne tenaient qu'à une technique, pas au geste :
+- *« il exigerait `touch-action:none`, qui tue le défilement »* — non : le défileur porte **`pan-x pan-y`**. Le glisser
+  à un doigt reste NATIF (inertie, rebond), seul le pincer du navigateur est retiré, et c'est l'application qui le
+  fait. Mesuré : même défilement à un doigt avant et après (fenêtre « Tableau », 390 px).
+- *« une échelle qui glisse fait baver le texte »* — seulement PENDANT le geste. On y transforme un **calque**
+  (`.sv-calant` pour la Page, `.pdf-pages` pour le PDF) : composition seule, aucune mise en page, d'où l'absence de
+  lag. **Au lâcher** l'échelle est fixée puis re-tramée (Page : `svApplyZoom` ; PDF : nouveau rendu des canevas). Au
+  repos, rien n'est une image étirée — `audit-doctrine` le vérifie (aucune transformation résiduelle).
+- Le pincer du NAVIGATEUR, qu'A133 laissait « marcher par-dessus », agrandissait toute l'application (barres, quai)
+  et étirait les canevas PDF sans les re-rendre : c'est ce que l'auteur ressentait comme du lag.
+
+**Le mécanisme, un seul pour les deux surfaces** (`pinchBind`) :
+- **Le point pincé reste sous les doigts** : sa place relative est notée dans un repère (la feuille ; la page PDF sous
+  les doigts), et après l'échelle on décale le défileur horizontal et le défileur vertical (fenêtre « Tableau »,
+  fenêtre du navigateur dans `main`, défileur du PDF) d'autant. Les doigts qui glissent pendant le pincer déplacent
+  la feuille. Mesures client = px visuels : division par `zoomF()` (règle 10).
+- **Sur ordinateur** : Ctrl + molette, et le pincer du pavé tactile (Chromium/Firefox l'émettent en Ctrl + molette,
+  Safari en `gesture*` — sur iPhone ces derniers sont neutralisés, le toucher mène).
+- **Lever les doigts ne « tape » rien** : un clic dans les 350 ms qui suivent un pincer est avalé (un nœud de la Page
+  mène ailleurs par `svJump`, un lien du PDF ouvre une adresse).
+- **Bornes inchangées** : Page 20-300 % (`SV_ZMIN`/`SV_ZMAX`), PDF 25-400 %. Les boutons gardent leurs pas (clavier,
+  lecteur d'écran).
+
+**PDF : plus de page blanche après un zoom.** `pdfApplyScale` ne libère plus les canevas : l'ancien reste, étiré, le
+temps que le nouveau rendu le remplace ; seuls les calques posés au pixel (surlignage, liens) partent. Et la
+**surface d'un canevas est plafonnée** (`PDF_MAX_PX`, 5 Mpx — le plafond de pdf.js sur iOS) : zoomée à 400 %, une page
+demandait ~25 Mpx, au-delà de ce qu'iOS accepte, et le rendu échouait en blanc. Au-delà du plafond le canevas est
+étiré : un peu moins net, jamais vide.
+
+**CE QUI NE CHANGE PAS.** La largeur d'auteur et l'échelle par `scale` (A133) ; l'ouverture de la Page à la taille
+d'auteur (A133, A150 : l'ajustement d'office ferait tomber les cibles sous 13 px — voir la feuille entière reste UN
+geste, « ⤢ Ajusté » ou un pincer) ; l'ouverture du PDF en page entière (`pdfFitPageZ`) ; l'échelle jamais mémorisée ;
+le mode crise n'est ni interrompu ni défilé d'office (règle 11 : rien ne bouge sans le geste).
+
+**Écarté** : le double-tap pour zoomer. Sur la Page, un tap sur un nœud mène au bloc (`svJump`) et un double-tap
+déclencherait d'abord ce saut ; à rouvrir avec un délai de discrimination mesuré, si l'usage le demande.
+
+Témoin : `audit-doctrine` « A554 » — `pan-x pan-y` sur les deux défileurs ; pincer ×2,2 sur la Page, point sous les
+doigts à < 1 %, aucune transformation résiduelle ; Ctrl + molette ; pincer sur un PDF, point sous les doigts, page
+re-rendue (vérifié capable d'échouer : correction de défilement neutralisée → 2 rouges).
