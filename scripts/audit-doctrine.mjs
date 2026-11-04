@@ -1140,20 +1140,22 @@ await sec('T9 · une seule bibliothèque, le type en filtre', async () => {
        Ce témoin mesure ce que font les CRANS, pas leur présence au repos — il déplie donc par le
        VRAI geste, comme l'utilisateur. Sans cela il cliquait sur `null` et emportait la passe.
        Le repli lui-même a ses propres témoins, juste en dessous. */
-    const deplier=async()=>{const b=document.querySelector('[data-filttog]');if(b){b.click();await w(450);}};
+    /* A556 : au téléphone, les crans de type sont le segment « Type » en tête de la feuille « Afficher » du grand
+       titre (ils vivaient dans la feuille « Affichage », qui ne fait plus que présenter). Porte réelle : `#pgPick`. */
+    const deplier=async()=>{const b=main.querySelector('#pgPick');if(b){b.click();await w(450);}};
     await deplier();
-    /* v5.30 (A353) : les crans de type sont le segment « Afficher » de la feuille Affichage. */
-    const cran=v=>document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`);
-    const px=()=>{const e=document.querySelector('#viewSheetBody [data-vs^="filt:"].on');return e?e.dataset.vs.split(':')[1]:null;};
-    const crans=[...document.querySelectorAll('#viewSheetBody [data-vs^="filt:"]')].map(e=>e.textContent.trim());
-    const actif=(document.querySelector('#viewSheetBody [data-vs^="filt:"].on')||{}).textContent||'';
+    const F='.popmenu.sheet [data-pknat';
+    const cran=v=>document.querySelector(`${F}="filt:${v}"]`);
+    const px=()=>{const e=document.querySelector(`${F}^="filt:"].on`);return e?e.dataset.pknat.split(':')[1]:null;};
+    const crans=[...document.querySelectorAll(`${F}^="filt:"]`)].map(e=>e.textContent.trim());
+    const actif=(document.querySelector(`${F}^="filt:"].on`)||{}).textContent||'';
     const tout=n(),pTout=px();
     cran('fiches').click(); await w(500);
     const aides=n(),pAides=px();
     cran('protocols').click(); await w(500);
     const prot=n(),pProt=px();
     cran('all').click(); await w(500);
-    closeViewSheet(); await w(300);
+    {const v=document.querySelector('.popmenu-veil');if(v)v.click();} await w(300);
     state.q='décontamination';render();await w(500);
     const q=n();state.q='';render();await w(400);
     return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length,
@@ -1256,6 +1258,15 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
 }
 });
 
+/* A556 (v5.82.0) — RÉÉCRIT SCIEMMENT. Cette section mesurait le bouton rond « Affichage et filtres » du dock (#filtTog) :
+   sa place à gauche du champ, son chiffre, son annonce. Il est PURGÉ — il ouvrait la même feuille que le bouton du
+   titre, et cette feuille redisait collections et catégories. Ce qui reste vrai est mesuré ici, au téléphone puis en
+   large :
+   · TÉLÉPHONE — ce qui RESTREINT se choisit dans la feuille « Afficher » du grand titre (type en tête, puis
+     collections et catégories, « Gérer » avec elles) ; le bouton rond « Trier et présenter » ne fait que présenter ;
+     les crans de type de la recherche restent ; un filtre posé reste ANNONCÉ (puce) et sa puce rouvre « Afficher ».
+     Ouvrir l'une ou l'autre feuille ne déplace rien de la liste.
+   · LARGE — la feuille « Affichage » garde ses deux parties, son pied qui annonce le compte JUSTE et « Tout effacer ». */
 await sec('Audit design · la feuille de filtres', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
@@ -1264,232 +1275,91 @@ await sec('Audit design · la feuille de filtres', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    /* v5.30 (A353) : les familles sont les groupes de la feuille Affichage, comptés feuille OUVERTE
-       (son corps garde son contenu une fois fermée — compter le pli serait la leçon du rail, v5.4.3). */
-    const rangees=()=>document.getElementById('viewSheet').classList.contains('on')?document.querySelectorAll('#viewSheetBody .vs-g').length:0;
-    const tog=()=>{const b=document.getElementById('filtTog');return b&&!b.hidden&&b.offsetParent?b:null;};
-    /* On mesure le BORD DROIT : le déclencheur grossit du chiffre qu'il porte, mais il est le
-       dernier objet de sa rangée — sa position apprise est celle de son bord droit. */
-    const bordD=()=>{const b=tog();return b?Math.round(b.getBoundingClientRect().right):null;};
-    const etat=()=>{const b=tog();if(!b)return null;
-      const n=document.getElementById('filtN');
-      return {act:b.classList.contains('act'),n:n&&!n.hidden?n.textContent:'',lbl:b.getAttribute('aria-label')||''};};
-    /* Le premier contenu CLINIQUE, c'est-à-dire le point que tout ce lot cherche à remonter. */
-    const yPremier=()=>{const e=document.querySelector('.dir-row .card-open');
-      return e?Math.round(e.getBoundingClientRect().top):null;};
-    await w(400);
-    /* v5.6 (planche 8c) — LES FILTRES SONT UNE FEUILLE. On mesure donc EN PLUS la hauteur du
-       chrome collant et la position du premier contenu AVANT et PENDANT l'ouverture : la
-       propriété du lot n'est plus « le repli remonte le contenu » (il n'y a plus de repli) mais
-       « ouvrir ne déplace RIEN », ce qui est strictement plus fort. */
+    {const pr=blankProtocol();pr.title='Procédure témoin A556';protocols.push(migrateProtocol(pr));render();await w(300);}
+    const yPremier=()=>{const e=document.querySelector('.dir-row .card-open');return e?Math.round(e.getBoundingClientRect().top):null;};
     const hdrH=()=>Math.round(document.querySelector('header.bar').getBoundingClientRect().height);
-    const feuille=()=>document.getElementById('viewSheet').classList.contains('on');
-    const familles=()=>[...document.querySelectorAll('#viewSheetBody .vs-h')]
-      .filter(e=>e.offsetParent!==null).length;
-    /* v5.18 (décision utilisateur, maquette Zero) : HORS recherche, la pilule est SEULE — aucun
-       déclencheur nulle part. Les filtres vivent dans la FONCTION RECHERCHE : chercher fait
-       paraître la rangée (crans de type + « Filtrer ») au-dessus de la pilule. */
-    /* A517 : sous la barre d'onglets du téléphone, le dock n'existe que RECHERCHE OUVERTE (le rond l'ouvre) —
-       on l'ouvre d'abord ; « hors recherche » se lit alors champ vide, dock présent. */
-    if(document.documentElement.classList.contains('tabnav')){tbSearchOpen();await w(250);}
-    const reposTog=!!tog(), reposRangee=(()=>{const d=document.getElementById('dockFilt');
-      return !!d&&!d.hidden;})();
+    const pick=()=>document.querySelector('.popmenu.sheet');
+    const n=()=>main.querySelectorAll('.dir-row').length;
+    const out={tog:!!document.getElementById('filtTog'),y0:yPremier(),h0:hdrH(),n0:n()};
+    /* ── la feuille « Afficher » du titre ── */
+    main.querySelector('#pgPick').click();await w(450);
+    const P=pick();
+    out.pick={ouverte:!!P,y:yPremier(),h:hdrH(),
+      crans:P?[...P.querySelectorAll('[data-pknat]')].map(b=>b.textContent.trim()):[],
+      heads:P?[...P.querySelectorAll('.mm-head,.vs-h')].map(x=>x.textContent.trim()):[],
+      gerer:P?[...P.querySelectorAll('.mm-row')].some(x=>/Gérer/.test(x.textContent)):false};
+    P.querySelector('[data-pknat="filt:fiches"]').click();await w(450);
+    out.cranAides={resteOuverte:!!pick(),n:n(),nF:fiches.length,on:!!pick().querySelector('[data-pknat="filt:fiches"].on'),
+      puce:(main.querySelector('.af-l')||{}).textContent||'',sous:(main.querySelector('.pg-sub')||{}).textContent||''};
+    document.querySelector('.popmenu-veil').click();await w(350);
+    /* la puce du filtre posé rouvre « Afficher », pas la feuille du bouton rond */
+    main.querySelector('.af-l').click();await w(450);
+    out.puceOuvre={pick:!!pick(),vs:document.getElementById('viewSheet').classList.contains('on')};
+    pick().querySelector('[data-pknat="filt:all"]').click();await w(400);
+    document.querySelector('.popmenu-veil').click();await w(350);
+    out.nRetour=n();
+    /* ── la feuille du bouton rond ── */
+    main.querySelector('#rangBtn').click();await w(450);
+    out.rond={titre:document.getElementById('viewSheetTitle').textContent,y:yPremier(),h:hdrH(),
+      heads:[...document.querySelectorAll('#viewSheetBody .vs-h')].map(x=>x.textContent.trim()),
+      filtres:document.querySelectorAll('#viewSheetBody :is(.catchip,[data-vs^="filt:"],[data-vscoll],[data-catmgr])').length,
+      pied:document.getElementById('viewSheetGo').textContent,
+      lbl:main.querySelector('#rangBtn').getAttribute('aria-label')};
+    document.getElementById('viewSheetGo').click();await w(350);
+    out.rondFermee=!document.getElementById('viewSheet').classList.contains('on');
+    /* ── la recherche garde ses crans de type ── */
+    tbSearchOpen();await w(250);
     const qi=document.getElementById('q');
+    out.repos=(()=>{const d=document.getElementById('dockFilt');return !!d&&!d.hidden;})();
     qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
-    const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier(), xRepli=bordD(), hRepli=hdrH();
-    const chercheRangee=(()=>{const d=document.getElementById('dockFilt');
-      return !!d&&!d.hidden&&d.offsetParent!==null;})();
-    const chercheChips=[...document.querySelectorAll('#dockFilt .scopebtn')].map(b=>b.textContent.trim());
-    if(!repliTog)return {reposTog,reposRangee,chercheRangee,chercheChips,
-      repliRangees,repliTog,yRepli,xRepli,geo:null,ouvRangees:0,ouvTog:false,yOuvert:null,
-      actifRangees:0,actifTog:false,actifEtat:null,chipOn:false,apresRender:0,apresTog:false,apresEtat:null,
-      repliActifRangees:0,repliActifEtat:null,xRepliActif:null,avaitCat:false,deuxEtat:null,zeroEtat:null,
-      chipDirect:null,porte:null};
-    /* v5.6 (maquette) — LE DÉCLENCHEUR VIT SUR LA RANGÉE DES CONTRÔLES DE LISTE, à son bord
-       DROIT, en face du sélecteur de groupement. Il ne coûte toujours aucune ligne (cette rangée
-       existe de toute façon) et il gagne son MOT, que l'en-tête ne pouvait pas lui offrir : à
-       320 px la rangée d'identité n'avait la place que d'un glyphe.
-       ⚠ SA RANGÉE EST ÉMISE MÊME SANS LISTE : sinon il déménagerait dans l'en-tête dès qu'un
-       filtre ne rend rien — c'est-à-dire exactement au moment où on le cherche. */
-    /* ⚠ IL NE DÉMÉNAGE PLUS (v5.6, demande de l'auteur) — le témoin change donc de VOISIN. Il
-       mesurait le déclencheur contre le sélecteur de groupement, c'est-à-dire son adresse quand on
-       est en haut de page ; or il en changeait au défilement. La propriété est désormais « il est
-       contre le CHAMP DE RECHERCHE, et il y reste » : même rangée, à sa droite, dans l'écran. */
-    /* v5.18 : le déclencheur vit dans la RANGÉE DE RECHERCHE, au-dessus de la pilule, dans le
-       dock — la géométrie qui compte : au-dessus de la boîte, aligné à droite, dans l'écran. */
-    /* v5.30 (A353, changement d'avis de l'auteur) : le bouton ROND vit À GAUCHE de la recherche,
-       sur sa rangée, en permanence. */
-    const geo=(()=>{const b=tog(),q=document.querySelector('.hdr-search .srch-box');
-      if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
-      return {aGauche:Math.round(rb.right)<=Math.round(rq.left)+1&&Math.abs((rb.top+rb.bottom)-(rq.top+rq.bottom))<=4,
-              h:Math.round(rb.height), w:Math.round(rb.width),
-              dansDock:!!b.closest('#homeDock'),
-              dansEcran:Math.round(rb.right)<=innerWidth};})();
-    /* Le dock est FIXE : défiler ne déplace ni la rangée ni le déclencheur. */
-    window.scrollTo(0,600);
-    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    const apresScroll=!!(tog()&&tog().closest('#homeDock'));
-    window.scrollTo(0,0);
-    /* Un cran de la rangée agit EN DIRECT — et il ne PERD pas la recherche (c'est son contexte). */
-    document.querySelector('#dockFilt [data-section="fiches"]').click(); await w(450);
-    const chipDirect={q:String(state.q||''),section:state.section,
-      on:!!document.querySelector('#dockFilt [data-section="fiches"].on')};
-    document.querySelector('#dockFilt [data-section="all"]').click(); await w(450);
-    tog().click(); await w(500);
-    const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
-    const ouvFeuille=feuille(), ouvFam=familles(), hOuvert=hdrH();
-    const piedAvant=(document.getElementById('viewSheetGo')||{}).textContent||'';
-    const nRangees=document.querySelectorAll('.dir-row').length;
-    /* On pose un filtre : à partir de là, le déclencheur doit le DIRE, et ne jamais s'en aller. */
-    document.querySelector('#viewSheetBody [data-vs="filt:fiches"]').click(); await w(500);
-    const actifRangees=rangees(), actifTog=!!tog(), actifEtat=etat();
-    const chipOn=!!document.querySelector('#viewSheetBody [data-vs="filt:fiches"].on');
-    /* Et il doit le rester après un re-rendu complet, pas seulement juste après le clic. */
-    render(); await w(500);
-    const apresRender=rangees(), apresTog=!!tog(), apresEtat=etat();
-    /* PUIS ON REPLIE ALORS QU'UN FILTRE AGIT : les rangées s'en vont, l'ÉTAT reste annoncé.
-       ⚠ Chaque geste est GARDÉ : un déclencheur absent est précisément le défaut que ce bloc
-       mesure — le laisser lever ferait planter le harnais, et « un harnais qui plante en emporte
-       cinq » (v4.70.1). On veut un ROUGE lisible, pas une exception. */
-    tog()?.click(); await w(500);
-    /* ⚠ ON MESURE LA FEUILLE, PLUS LE NOMBRE DE RANGÉES (v5.6). Les chips vivent désormais dans
-       `#viewSheetBody`, qui GARDE son contenu une fois la feuille fermée — compter les rangées
-       du document reviendrait à compter l'intérieur d'un pli, la leçon déjà payée sur le rail
-       (v5.4.3). Ce qui compte est que la SURFACE soit refermée et que l'annonce demeure. */
-    const repliActifRangees=feuille()?1:0, repliActifEtat=etat(), xRepliActif=bordD();
-    /* HORS recherche, un filtre ACTIF reste annoncé ET modifiable : sa puce sous la ligne de compte (A429, ex-phrase
-       « filtres : … ») est la porte de la feuille (la rangée, elle, n'existe plus). */
-    qi.value='';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
-    const porte=(()=>{const d=document.getElementById('dockFilt');
-      const f=document.querySelector('.af-l');
-      return {rangeePartie:!d||d.hidden,ligne:!!f,texte:f?f.textContent.trim():''};})();
-    if(porte.ligne){document.querySelector('.af-l').click();await w(400);
-      porte.ouvre=feuille();
-      if(porte.ouvre){document.getElementById('viewSheetGo').click();await w(300);}}
-    qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
-    /* Deux filtres : le chiffre COMPTE, il ne se contente pas d'exister.
-       ⚠ Les chips sont re-rendues à chaque geste : on RE-INTERROGE le DOM, une référence gardée
-       d'avant le clic désignerait un nœud détaché et le geste ne ferait rien. */
-    tog()?.click(); await w(400);
-    const cat2=[...document.querySelectorAll('#viewSheetBody [data-cat]')].find(b=>b.dataset.cat);
-    const avaitCat=!!cat2; if(cat2)cat2.click(); await w(500);
-    const deuxEtat=etat();
-    document.querySelector('#viewSheetBody [data-vs="filt:all"]').click(); await w(400);
-    document.querySelector('#viewSheetBody [data-cat=""]')?.click(); await w(500);
-    const zeroEtat=etat();
-    /* Le pied ANNONCE puis ferme : on mesure les deux, et que l'annonce du déclencheur reprenne
-       la main derrière (l'état ne peut pas se perdre entre deux surfaces). */
-    tog()?.click(); await w(400);
-    const cat3=[...document.querySelectorAll('#viewSheetBody [data-cat]')].find(b=>b.dataset.cat);
-    if(cat3)cat3.click(); await w(400);
-    const piedApres=(document.getElementById('viewSheetGo')||{}).textContent||'';
-    const nApres=document.querySelectorAll('.dir-row').length;
-    document.getElementById('viewSheetGo').click(); await w(400);
-    const fermee=!feuille(), etatApresPied=etat();
-    tog()?.click(); await w(300);
-    document.getElementById('viewSheetClear').click(); await w(400);
-    const apresClear=etat(); document.getElementById('viewSheetGo').click(); await w(300);
-    return {hRepli,hOuvert,ouvFeuille,ouvFam,piedAvant,nRangees,piedApres,nApres,fermee,etatApresPied,apresClear,
-            reposTog,reposRangee,chercheRangee,chercheChips,chipDirect,porte,
-            repliRangees,repliTog,yRepli,xRepli,geo,apresScroll,ouvRangees,ouvTog,yOuvert,
-            actifRangees,actifTog,actifEtat,chipOn,apresRender,apresTog,apresEtat,
-            repliActifRangees,repliActifEtat,xRepliActif,avaitCat,deuxEtat,zeroEtat};});
-
-  /* TÉMOIN D'ABORD : sans rangées à déplier, tout ce qui suit mesurerait le vide.
-     ⚠ LE COMPTE DÉPEND DE L'ÉTAT DU COMPTE, et l'attendre à 3 était une erreur de la SONDE :
-     `.scopebar` n'est émise que CONNECTÉ (`Auth.signedIn()`), donc une session déconnectée —
-     celle de ce harnais — en porte DEUX (type, catégorie). On mesure donc l'INVARIANCE du
-     nombre entre « déplié » et « filtre actif », qui est la propriété qui compte, plutôt qu'un
-     chiffre en dur qui ne vaudrait que pour un état de connexion. */
-  t('témoin : le cas est constitué (des rangées existent une fois dépliées)',
-    r.ouvRangees>=2, `${r.ouvRangees} rangée(s)`);
-  /* v5.30 (A353, changement d'avis de l'auteur — renverse A238 sur ce point) : le bouton rond est
-     LÀ en permanence ; seules les chips de type suivent la recherche. */
-  t('hors recherche, le bouton rond est là et la rangée de chips absente',
-    r.reposTog===true&&r.reposRangee===false, `déclencheur ${r.reposTog}, rangée ${r.reposRangee}`);
-  t('chercher fait paraître la rangée de filtres, crans de type compris',
-    r.chercheRangee===true&&r.repliTog===true&&r.chercheChips.length===3,
-    JSON.stringify(r.chercheChips));
-  t('un cran de la rangée agit EN DIRECT, sans perdre la recherche',
-    !!r.chipDirect&&r.chipDirect.on===true&&r.chipDirect.section==='fiches'&&r.chipDirect.q==='a',
-    JSON.stringify(r.chipDirect));
-  t('hors recherche, un filtre ACTIF reste annoncé et MODIFIABLE (ligne Répertoire)',
-    !!r.porte&&r.porte.rangeePartie===true&&r.porte.ligne===true&&r.porte.ouvre===true,
-    JSON.stringify(r.porte));
-  t('… la feuille reste repliée tant qu\'on ne l\'appelle pas',
-    r.repliRangees===0, `${r.repliRangees} rangée(s) dépliées`);
-  t('le déclencheur les ouvre', r.ouvRangees>=2&&r.ouvTog===true, `${r.ouvRangees} rangée(s)`);
-  /* ══ v5.6, PLANCHE 8c — LA PROPRIÉTÉ A CHANGÉ, ET ELLE EST PLUS FORTE ══
-     Le témoin d'avant mesurait un GAIN (« le repli remonte le contenu de ≥ 40 px ») : c'était
-     la bonne mesure d'un DÉPLIANT, qui poussait le contenu quand on l'ouvrait. Une feuille ne
-     pousse rien — le gain serait donc de 0 px et le témoin rougirait sur un correctif JUSTE.
-     Ce qu'on mesure désormais est ce que le dépliant ne pouvait pas offrir : demander à voir les
-     filtres ne coûte AUCUN pixel de liste, et le chrome collant ne grandit pas d'un pixel. */
-  t('ouvrir les filtres ne déplace pas le contenu d\'un pixel',
-    r.yRepli!==null&&r.yOuvert!==null&&Math.abs(r.yOuvert-r.yRepli)<=1,
-    `${r.yRepli} px puis ${r.yOuvert} px`);
-  t('… ni ne fait grandir le chrome collant', Math.abs(r.hOuvert-r.hRepli)<=1,
-    `${r.hRepli} px puis ${r.hOuvert} px`);
-  t('… et c\'est bien une FEUILLE qui s\'ouvre', r.ouvFeuille===true);
-  /* Les trois familles d'un coup : c'est le reproche exact fait au dépliant, où l'on déroulait
-     une rangée après l'autre dans un espace qui poussait le reste vers le bas. */
-  t('… où les familles de filtres sont visibles ENSEMBLE', r.ouvFam>=2, `${r.ouvFam} famille(s)`);
-  /* LE PIED ANNONCE LE RÉSULTAT AVANT DE FERMER — et le nombre annoncé est celui de la liste
-     RÉELLEMENT rendue dessous, jamais un second comptage qui pourrait diverger. */
-  t('le pied annonce le nombre de résultats, et il est JUSTE',
-    new RegExp('(^|\\D)'+r.nRangees+'(\\D|$)').test(r.piedAvant)||(r.nRangees===1&&/le résultat/.test(r.piedAvant)),
-    `« ${r.piedAvant} » pour ${r.nRangees} rangée(s)`);
-  t('… et il suit le filtre qu\'on vient de poser, sans fermer',
-    r.piedApres!==r.piedAvant||r.nApres===r.nRangees,
-    `« ${r.piedApres} » pour ${r.nApres} rangée(s)`);
-  t('… le valider ferme la feuille et rend l\'annonce au déclencheur',
-    r.fermee===true&&!!r.etatApresPied&&r.etatApresPied.act===true,
-    `fermée ${r.fermee}, ${JSON.stringify(r.etatApresPied)}`);
-  /* « Tout effacer » remet les trois familles à leur cran neutre d'un geste. */
-  t('« Tout effacer » remet tout à zéro d\'un geste',
-    !!r.apresClear&&r.apresClear.act===false&&r.apresClear.n==='',
-    JSON.stringify(r.apresClear));
-  /* v5.0.3 posait le déclencheur CONTRE la recherche ; v5.18 (maquette Zero) le fait entrer
-     DANS la boîte — plus d'îlot séparé sur téléphone. */
-  t('le bouton vit À GAUCHE de la recherche, sur sa rangée, dans le dock',
-    !!r.geo&&r.geo.aGauche===true&&r.geo.dansEcran&&r.geo.dansDock===true,
-    JSON.stringify(r.geo));
-  /* ⚠ ET IL Y RESTE APRÈS DÉFILEMENT — c'est le défaut signalé : il changeait d'adresse selon
-     l'endroit où l'on se trouvait dans la page. Le témoin mesure donc les DEUX états. */
-  t('… et défiler ne la déplace pas (dock fixe)', r.apresScroll===true, `${r.apresScroll}`);
-  /* Cible ≥ 32 px hors mode crise (règle 9) — le halo ::after l'étend encore de 4 px. */
-  t('… et sa cible reste réglementaire', !!r.geo&&r.geo.h>=32&&r.geo.w>=32,
-    r.geo?`${r.geo.w}×${r.geo.h} px`:'—');
-  /* (Le témoin d'alignement « sur le sélecteur d'en face » est parti avec l'îlot : un bouton
-     DANS la boîte n'a plus de voisin à égaler — son centrage vertical est déjà mesuré. */
-  /* LA CONTREPARTIE, ET C'EST LA GARANTIE QUI COMPTE (v5.0.3 : elle a CHANGÉ DE PORTEUR).
-     La v5.0.0 forçait les rangées ouvertes dès qu'un filtre agissait, et retirait le
-     déclencheur — donc un contrôle qui apparaît et disparaît selon l'état. L'état actif est
-     désormais porté par le déclencheur LUI-MÊME : couleur + CHIFFRE + nom accessible, à position
-     constante dans l'en-tête. Il ne peut donc plus se cacher, et le bouton ne peut plus mourir. */
-  t('⚠ un filtre ACTIF est annoncé par le déclencheur, qui RESTE',
-    r.actifTog===true&&!!r.actifEtat&&r.actifEtat.act===true&&r.actifEtat.n==='1'&&r.chipOn===true,
-    `${JSON.stringify(r.actifEtat)}, chip active ${r.chipOn}`);
-  /* RÈGLE 8 : la couleur n'est jamais seule — le chiffre et le nom accessible portent l'info. */
-  t('… et pas par la seule couleur (chiffre + nom accessible)',
-    !!r.actifEtat&&/1 actif/.test(r.actifEtat.lbl), r.actifEtat?r.actifEtat.lbl:'—');
-  t('… et cela survit à un re-rendu complet',
-    r.apresRender===r.ouvRangees&&r.apresTog===true&&!!r.apresEtat&&r.apresEtat.act===true,
-    `${r.apresRender} rangée(s), déclencheur ${r.apresTog} ${JSON.stringify(r.apresEtat)}`);
-  /* CE QUI REMPLACE LE FORÇAGE : replier avec un filtre actif est permis, mais l'annonce demeure —
-     on ne peut pas se retrouver dans un corpus restreint sans savoir pourquoi. */
-  t('refermer la feuille avec un filtre actif garde l\'annonce',
-    r.repliActifRangees===0&&!!r.repliActifEtat&&r.repliActifEtat.act===true&&r.repliActifEtat.n==='1',
-    `feuille ouverte ${r.repliActifRangees}, ${JSON.stringify(r.repliActifEtat)}`);
-  /* CONSTANCE POSITIONNELLE : il grossit du chiffre, son bord droit ne bouge d'aucun état. */
-  t('… et sa position ne bouge pas d\'un état à l\'autre',
-    r.xRepli!==null&&r.xRepliActif!==null&&Math.abs(r.xRepli-r.xRepliActif)<=1,
-    `${r.xRepli} px puis ${r.xRepliActif} px`);
-  /* TÉMOIN : sans seconde dimension filtrable, on mesurerait « 1 » en croyant mesurer « 2 ». */
-  t('témoin : une seconde dimension de filtre existe', r.avaitCat===true);
-  t('le chiffre COMPTE les filtres posés',
-    !!r.deuxEtat&&r.deuxEtat.n==='2'&&!!r.zeroEtat&&r.zeroEtat.act===false&&r.zeroEtat.n==='',
-    `deux → ${JSON.stringify(r.deuxEtat)} ; aucun → ${JSON.stringify(r.zeroEtat)}`);
+    out.cherche=[...document.querySelectorAll('#dockFilt .scopebtn')].map(b=>b.textContent.trim());
+    document.querySelector('#dockFilt [data-section="fiches"]').click();await w(450);
+    out.direct={q:String(state.q||''),section:state.section};
+    document.querySelector('#dockFilt [data-section="all"]').click();await w(300);
+    return out;});
+  t('A556 · le bouton rond du dock (#filtTog) est purgé', r.tog===false);
+  t('témoin : le cas est constitué (aides ET protocoles)', r.n0>=3, `${r.n0} rangée(s)`);
+  t('« Afficher » (titre) : une feuille, qui ne déplace ni la liste ni le chrome',
+    r.pick.ouverte&&Math.abs(r.pick.y-r.y0)<=1&&Math.abs(r.pick.h-r.h0)<=1, JSON.stringify([r.y0,r.h0,r.pick.y,r.pick.h]));
+  t('… le type en tête : Tout · Aides · Protocoles · À relire', r.pick.crans.join('|')==='Tout|Aides|Protocoles|À relire', r.pick.crans.join('|'));
+  t('… puis collections et catégories, « Gérer » avec les catégories',
+    r.pick.heads.includes('Mes collections')&&r.pick.heads.includes('Catégories')&&r.pick.gerer, JSON.stringify(r.pick));
+  t('… un cran de type agit EN DIRECT et la feuille reste ouverte',
+    r.cranAides.resteOuverte&&r.cranAides.on&&r.cranAides.n===r.cranAides.nF, JSON.stringify(r.cranAides));
+  t('… le filtre posé reste ANNONCÉ (puce), et « Tout · n » ne le contredit plus',
+    /Aides/.test(r.cranAides.puce)&&!/Tout/.test(r.cranAides.sous), JSON.stringify(r.cranAides));
+  t('… sa puce rouvre « Afficher », pas la feuille du bouton rond', r.puceOuvre.pick&&!r.puceOuvre.vs, JSON.stringify(r.puceOuvre));
+  t('… et « Tout » rend toute la liste', r.nRetour===r.n0, `${r.nRetour} / ${r.n0}`);
+  t('bouton rond : « Trier et présenter », trois réglages, aucun filtre',
+    r.rond.titre==='Trier et présenter'&&r.rond.heads.join('|')==='Trier|Regrouper|Densité'&&r.rond.filtres===0&&/^Trier et présenter/.test(r.rond.lbl),
+    JSON.stringify(r.rond));
+  t('… elle ne déplace rien, et « Terminé » la ferme',
+    Math.abs(r.rond.y-r.y0)<=1&&Math.abs(r.rond.h-r.h0)<=1&&r.rond.pied==='Terminé'&&r.rondFermee, JSON.stringify(r.rond));
+  t('recherche : hors requête, aucune rangée de crans ; une requête fait paraître les trois crans',
+    r.repos===false&&r.cherche.join('|')==='Tout|Aides|Protocoles', JSON.stringify([r.repos,r.cherche]));
+  t('… un cran agit EN DIRECT, sans perdre la recherche', r.direct.section==='fiches'&&r.direct.q==='a', JSON.stringify(r.direct));
+  /* ── LARGE : la feuille « Affichage » garde ses deux parties, son pied et « Tout effacer » ── */
+  await page.setViewportSize({width:1100,height:844});await page.waitForTimeout(400);
+  const L=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    state.q='';render();await w(300);
+    main.querySelector('#rangBtn').click();await w(450);
+    const n=()=>main.querySelectorAll('.dir-row').length;
+    const o={titre:document.getElementById('viewSheetTitle').textContent,parts:[...document.querySelectorAll('#viewSheetBody .vs-pt')].map(x=>x.textContent),
+      piedAvant:document.getElementById('viewSheetGo').textContent,nAvant:n()};
+    document.querySelector('#viewSheetBody [data-vs="filt:fiches"]').click();await w(450);
+    o.piedApres=document.getElementById('viewSheetGo').textContent;o.nApres=n();
+    o.clearVisible=!document.getElementById('viewSheetClear').hidden;
+    document.getElementById('viewSheetClear').click();await w(400);
+    o.apresClear={n:filtersCount(),liste:n()};
+    document.getElementById('viewSheetGo').click();await w(300);
+    o.fermee=!document.getElementById('viewSheet').classList.contains('on');
+    return o;});
+  t('large : « Affichage » garde Filtrer et Présenter', L.titre==='Affichage'&&L.parts.join('|')==='Filtrer|Présenter', JSON.stringify(L));
+  t('… le pied annonce le nombre de résultats, et il est JUSTE, avant et après un filtre',
+    new RegExp('(^|\\D)'+L.nAvant+'(\\D|$)').test(L.piedAvant)&&(new RegExp('(^|\\D)'+L.nApres+'(\\D|$)').test(L.piedApres)||(L.nApres===1&&/le résultat/.test(L.piedApres))),
+    JSON.stringify(L));
+  t('… « Tout effacer » paraît avec un filtre et remet tout à zéro d\'un geste',
+    L.clearVisible&&L.apresClear.n===0&&L.apresClear.liste===L.nAvant&&L.fermee, JSON.stringify(L));
   await page.close();
 }
 });
@@ -4221,7 +4091,7 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
 await sec('v5.6 · trois gabarits de fenêtre', async () => {
 {
   const GABARITS=[420,480,720];
-  const OUV={viewSheet:"document.getElementById('filtTog').click()", authModal:'openAuth()',
+  const OUV={viewSheet:"main.querySelector('#rangBtn').click()", authModal:'openAuth()',
              catModal:'openCatMgr()', sessModal:'openSessHist()', storageModal:'openStorageInfo()',
              reportModal:null};
   for(const W of [390,1100]){
@@ -4252,7 +4122,7 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
          page-fenêtre, seule mesurée ici, s'ouvre alors depuis une fiche. */
       /* A517 : au téléphone aussi (barre d'onglets) — la page-fenêtre s'ouvre depuis une fiche. */
       const surFiche=()=>{if((innerWidth>=780||document.documentElement.classList.contains('tabnav'))&&state.view==='library')openRead(fiches[0].id);};
-      const cmds={viewSheet:()=>document.getElementById('filtTog').click(), authModal:()=>{surFiche();openAuth();},
+      const cmds={viewSheet:()=>main.querySelector('#rangBtn').click(), authModal:()=>{surFiche();openAuth();},
                   catModal:()=>openCatMgr(), sessModal:()=>{surFiche();openSessHist();}, storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
         try{go();}catch(e){out.fen[id]={err:e.message};continue;}
@@ -4324,7 +4194,7 @@ await sec('v5.6 · l\'accueil ne dépend pas du chemin d\'arrivée', async () =>
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const chrome=()=>page.evaluate(()=>{const o={};
-    for(const id of ['hdrNew','filtTog','q','hdrSearch']){
+    for(const id of ['hdrNew','homeDock','q','hdrSearch']){   // A556 : `#filtTog` purgé — on garde le dock, son logement
       const e=document.getElementById(id);
       o[id]=e?{cls:e.className,par:e.parentElement.id||e.parentElement.className,hidden:!!e.hidden,
         x:Math.round(e.getBoundingClientRect().x),h:Math.round(e.getBoundingClientRect().height)}:'ABSENT';}
@@ -4334,13 +4204,13 @@ await sec('v5.6 · l\'accueil ne dépend pas du chemin d\'arrivée', async () =>
   /* ⚠ ON MESURE AUSSI PENDANT LE SÉJOUR : c'est là que le bouton disparaissait. Un contrôle qui
      ne regarderait que le retour verrait l'accueil réparé par son propre re-rendu complet, et
      resterait vert sur une destruction bien réelle. */
-  const pendant=await page.evaluate(()=>!!document.getElementById('filtTog'));
+  const pendant=await page.evaluate(()=>!!document.getElementById('homeDock'));
   await demarrerSession(page);
   await page.evaluate(()=>{const b=document.getElementById('hdrBack');if(b)b.click();});
   await page.waitForFunction(()=>document.body.classList.contains('view-home'));
   await page.waitForTimeout(500);
   const apres=await chrome();
-  t('le déclencheur de filtre survit au départ de l\'accueil', pendant===true);
+  t('le dock de recherche survit au départ de l\'accueil', pendant===true);
   for(const k of Object.keys(avant)){
     t(`${k} : même logement et même habit au retour`,
       JSON.stringify(avant[k])===JSON.stringify(apres[k]),
@@ -6917,7 +6787,7 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
         on:[...document.querySelectorAll('.home-side [data-cat][aria-pressed="true"]')].map(x=>x.querySelector('.hs-name').textContent)};
       document.querySelector('.home-side [data-catall]').click();await w(300);}
     /* Même filtre depuis la feuille « Affichage » : la pastille « Urgences » ne s'allume qu'elle, et filtre juste. */
-    document.getElementById('filtTog').click();await w(300);
+    main.querySelector('#rangBtn').click();await w(300);   // A556 : en large, la porte de la feuille est « Affichage »
     [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()==='Urgences').click();await w(300);
     out.feuille={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
       on:[...document.querySelectorAll('#viewSheetBody .catchip[data-cat].on')].map(x=>x.textContent.trim())};
@@ -8462,15 +8332,19 @@ await sec('Accueil · A544 recherche, filtre, quitter', async () => {
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   const etat=()=>page.evaluate(()=>({recherche:document.documentElement.classList.contains('tb-q'),onglets:!document.getElementById('tabNav').hidden}));
   await page.tap('#tbSrch');await page.waitForTimeout(300);
-  await page.tap('#homeDock .filt-tog');await page.waitForTimeout(500);
-  await (await page.$('#viewSheet .ai-x')).tap();await page.waitForTimeout(500);
+  /* A556 : le bouton filtre du dock est purgé ; la jambe « filtre » passe par un cran de type de la recherche (une
+     requête les fait paraître), puis on vide le champ — la recherche doit rester ouverte jusqu'au tap ailleurs. */
+  await page.fill('#q','a');await page.waitForTimeout(400);
+  await page.tap('#dockFilt [data-section="fiches"]');await page.waitForTimeout(400);
+  await page.fill('#q','');await page.waitForTimeout(400);
+  await page.evaluate(()=>setSection('all',true,{keepCat:true}));await page.waitForTimeout(300);
   const apresFeuille=await etat();
   /* A545 : un tap sur une zone NEUTRE (la sous-ligne du titre) — un point fixe tombait, selon la mise en page, sur le
      titre d'une aide qui s'ouvrait (la barre d'onglets n'existe pas en lecture : faux rouge). */
   const neutre=await page.evaluate(()=>{const e=document.querySelector('.pg-sub');if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};});
   await page.mouse.click(neutre?neutre.x:200,neutre?neutre.y:400);await page.waitForTimeout(500);
   const apresTap={...await etat(),accueil:await page.evaluate(()=>document.body.classList.contains('view-home'))};
-  t('A544 · feuille de filtres fermée : la recherche reste ouverte',apresFeuille.recherche&&!apresFeuille.onglets,JSON.stringify(apresFeuille));
+  t('A544 · après un cran de type, champ vidé : la recherche reste ouverte',apresFeuille.recherche&&!apresFeuille.onglets,JSON.stringify(apresFeuille));
   t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',apresTap.accueil&&!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
   await page.close();
 });
@@ -8494,7 +8368,7 @@ await sec('Accueil · A545 le titre choisit', async () => {
     out.feuille={titre:(m&&m.querySelector('.mm-title')||{}).textContent,
       tetes:[...(m?m.querySelectorAll('.mm-head'):[])].map(x=>x.textContent),
       coche:!!(m&&m.querySelector('[data-pickopt="all"][aria-selected="true"] .mm-ck')),
-      comptes:[...(m?m.querySelectorAll('.mm-row .mm-cnt'):[])].length===[...(m?m.querySelectorAll('[data-pickopt]'):[])].length,
+      comptes:[...(m?m.querySelectorAll('.mm-row .mm-cnt'):[])].length===[...(m?m.querySelectorAll('[data-pickopt]:not([data-pickopt="mgr"])'):[])].length,   // A556 : « Gérer » est une action, pas un filtre — elle ne compte rien
       cats:m?m.querySelectorAll('[data-pickopt^="k:"]').length:0,
       expanded:document.getElementById('pgPick').getAttribute('aria-expanded')};
     m.querySelector('[data-pickopt="c:'+c.id+'"]').click();await w(350);
@@ -8756,10 +8630,10 @@ await sec('Accueil · A538 recherche à la hauteur des onglets', async () => {
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   const onglets=await page.evaluate(()=>{const r=document.querySelector('.tb-tabs').getBoundingClientRect();return {h:r.height,b:r.bottom};});
   await ouvrirRecherche(page);await page.waitForTimeout(300);
-  const r=await page.evaluate(()=>{const q=document.getElementById('q').getBoundingClientRect(),f=document.querySelector('#homeDock .filt-tog').getBoundingClientRect();
+  const r=await page.evaluate(()=>{const q=document.getElementById('q').getBoundingClientRect();
     document.documentElement.classList.add('kbd');const k=document.getElementById('q').getBoundingClientRect().height;document.documentElement.classList.remove('kbd');
-    return {q:q.height,qb:q.bottom,f:f.height,kbd:k};});
-  t('A538 · 402 px : champ et filtre à la hauteur de la barre d\'onglets, même bas',r.q===onglets.h&&r.f===onglets.h&&Math.abs(r.qb-onglets.b)<0.5,JSON.stringify({onglets,r}));
+    return {q:q.height,qb:q.bottom,kbd:k};});
+  t('A538 · 402 px : le champ à la hauteur de la barre d\'onglets, même bas (A556 : le filtre voisin est purgé)',r.q===onglets.h&&Math.abs(r.qb-onglets.b)<0.5,JSON.stringify({onglets,r}));
   t('A538 · clavier ouvert : le dock compact reste (44)',r.kbd===44,JSON.stringify(r));
   await page.close();
 });
@@ -9695,6 +9569,69 @@ await sec('A555 · pincer pour zoomer une image ouverte, le point reste sous les
     sc.dispatchEvent(new MouseEvent('click',{bubbles:true}));await new Promise(r=>setTimeout(r,200));
     return !document.getElementById('lightbox').classList.contains('on');});
   t('un tap sur le fond autour de l\'image ferme toujours',ferme===true);
+  await page.close();
+});
+
+/* A557 (v5.82.0) — CE QU'ON REGARDE SURVIT AU REDIMENSIONNEMENT (signalé : « si je modifie la taille de la fenêtre à
+   l'état zoomé, ça casse tout »). Zoomé dans une image, un PDF (page 4 d'un document de 6), la Page « Tableau » et la
+   Page de l'aide (re-rendue au palier de largeur : le défileur est REMPLACÉ), on change la taille de la fenêtre : le
+   point au centre de ce qu'on regarde doit rester au centre, à < 1 % près. */
+await sec('A557 · redimensionner en état zoomé garde le point regardé', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:800}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const taille=async(w,h)=>{await page.setViewportSize({width:w,height:h});await page.waitForTimeout(800);};
+  const proche=(a,b)=>Math.abs(a.fx-b.fx)<0.01&&Math.abs(a.fy-b.fy)<0.01;
+  // — image
+  await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=1600;c.height=1200;const g=c.getContext('2d');
+    for(let i=0;i<16;i++){g.fillStyle=i%2?'#335':'#ccd';g.fillRect(i*100,0,100,1200);}
+    openLightbox(c.toDataURL(),'');await new Promise(r=>setTimeout(r,400));
+    _lbZ=4;lbFit();const sc=document.getElementById('lbScroll');sc.scrollLeft=900;sc.scrollTop=700;});
+  await page.waitForTimeout(300);
+  const im=()=>page.evaluate(()=>{const r=document.getElementById('lbScroll').getBoundingClientRect(),b=document.getElementById('lbImg').getBoundingClientRect();
+    return {fx:((r.left+r.width/2)-b.left)/b.width,fy:((r.top+r.height/2)-b.top)/b.height};});
+  const i0=await im();await taille(700,600);const i1=await im();await taille(1280,800);
+  t('image ×4 : le point au centre reste au centre après 1280 → 700 px',proche(i0,i1),JSON.stringify([i0,i1]));
+  await page.evaluate(()=>closeLightbox());
+  // — PDF
+  await page.evaluate(async()=>{const st='BT /F1 24 Tf 72 700 Td (Page) Tj ET',N=6;
+    const ob=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids ['+Array.from({length:N},(_,i)=>(5+i)+' 0 R').join(' ')+'] /Count '+N+' >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',`<< /Length ${st.length} >>\nstream\n${st}\nendstream`];
+    for(let i=0;i<N;i++)ob.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 3 0 R >> >> >>');
+    let o='%PDF-1.4\n';const off=[];ob.forEach((x,i)=>{off.push(o.length);o+=`${i+1} 0 obj\n${x}\nendobj\n`;});
+    const xr=o.length;o+=`xref\n0 ${ob.length+1}\n0000000000 65535 f \n`+off.map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${ob.length+1} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`;
+    const buf=new TextEncoder().encode(o).buffer;await attPut({id:'a557',buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
+    await openPdfViewer({id:'a557',name:'a557.pdf'},null);});
+  await page.waitForFunction(()=>!!document.querySelector('.pdf-page[data-p="1"] canvas'),null,{timeout:15000});
+  await page.evaluate(()=>{_pv.z=2;pdfApplyScale();pdfRenderNear();const sc=document.getElementById('pdfScroll');
+    sc.scrollTop=document.querySelector('.pdf-page[data-p="4"]').offsetTop+300;sc.scrollLeft=200;});
+  await page.waitForTimeout(400);
+  const pd=()=>page.evaluate(()=>{const r=document.getElementById('pdfScroll').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const el=[...document.querySelectorAll('.pdf-page')].find(e=>{const b=e.getBoundingClientRect();return b.top<=cy&&b.bottom>=cy;});
+    const b=el.getBoundingClientRect();return {p:el.dataset.p,fx:(cx-b.left)/b.width,fy:(cy-b.top)/b.height};});
+  const p0=await pd();await taille(700,600);const p1=await pd();await taille(1280,800);
+  t('PDF à 200 % : même page, même point après 1280 → 700 px',p0.p===p1.p&&proche(p0,p1),JSON.stringify([p0,p1]));
+  await page.evaluate(()=>closePdfViewer());
+  // — Page, fenêtre « Tableau » puis Page de l'aide
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const pg=(sel)=>page.evaluate((sel)=>{const sc=document.querySelector(sel+' .sv-scroll'),r=sc.getBoundingClientRect(),b=document.querySelector(sel+' .sv-sheet').getBoundingClientRect();
+    const cx=(Math.max(r.left,0)+Math.min(r.right,innerWidth))/2,cy=(Math.max(r.top,0)+Math.min(r.bottom,innerHeight))/2;
+    return {fx:(cx-b.left)/b.width,fy:(cy-b.top)/b.height};},sel);
+  await page.evaluate(async()=>{openPlanSheet('page');await new Promise(r=>setTimeout(r,600));
+    const pb=document.getElementById('planBody');svZoom=2.5;svApplyZoom(pb);
+    document.getElementById('planModal').scrollTop=900;pb.querySelector('.sv-scroll').scrollLeft=500;});
+  await page.waitForTimeout(400);
+  const f0=await pg('#planBody');await taille(700,600);const f1=await pg('#planBody');await taille(1280,800);
+  t('Page « Tableau » à 250 % : le point au centre reste au centre',proche(f0,f1),JSON.stringify([f0,f1]));
+  await page.evaluate(()=>document.getElementById('planX').click());await page.waitForTimeout(300);
+  await demarrerSession(page);
+  await page.evaluate(async()=>{document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,500));svZoom=2;svApplyZoom(main);
+    const sh=main.querySelector('.sv-sheet');window.scrollTo(0,sh.getBoundingClientRect().top+scrollY+900);main.querySelector('.sv-scroll').scrollLeft=300;});
+  await page.waitForTimeout(400);
+  const m0=await pg('main');const sc0=await page.evaluate(()=>{window.__a557=main.querySelector('.sv-scroll');return true;});
+  await taille(900,700);const m1=await pg('main');const neuf=await page.evaluate(()=>window.__a557!==main.querySelector('.sv-scroll'));
+  t('Page de l\'aide à 200 % : le point regardé survit au re-rendu du palier (défileur remplacé)',sc0&&proche(m0,m1),JSON.stringify({m0,m1,neuf}));
   await page.close();
 });
 

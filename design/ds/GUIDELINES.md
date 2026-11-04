@@ -443,9 +443,12 @@ Type, Catégorie** — du plus large au plus étroit ; on choisit d'abord OÙ l'
 
 **Au téléphone (A517, maquette Natif)** : pas de rangée d'en-tête — une rangée du haut collante (« Sélectionner » ·
 petit titre au défilement · « ＋ Créer »), le **grand titre de 34 px** dans le contenu, qui **est le sélecteur**
-(A545) : « Aides ⌄ » ouvre la feuille « Afficher » (Tout afficher, Accès direct, Mes collections, Catégories — listes
-groupées, compte par rangée, un tap = appliqué), et devient le nom du filtre posé, coiffé de son œil (« Collection · à
-vous seul », « Catégorie »). « Affichage » est le bouton rond au bout de cette ligne. Plus de rangée de pastilles.
+(A545) : « Aides ⌄ » ouvre la feuille « Afficher » (A556 : en tête, le **Type** — Tout · Aides · Protocoles · À
+relire — et la bibliothèque s'il y en a plusieurs, réglages en direct ; puis Tout afficher, Accès direct, Mes
+collections, Catégories et « Gérer » — listes groupées, compte par rangée, un tap = appliqué et fermé), et devient le
+nom du filtre posé, coiffé de son œil (« Collection · à vous seul », « Catégorie »). Le bouton rond ↑↓ au bout de
+cette ligne ouvre **« Trier et présenter »** (trier, regrouper, densité — aucun filtre). Plus de rangée de pastilles,
+plus de bouton filtre à côté de la recherche (A556).
 En bas, une **barre d'onglets flottante en verre** (Aides · Sessions · Moi) et la recherche dans un rond ; Sessions
 et Moi sont des onglets, jamais des niveaux de retour. En large, le titre fait 28 px et ouvre la ligne du compte.
 

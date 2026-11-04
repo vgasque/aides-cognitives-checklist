@@ -893,7 +893,7 @@
     html.kbd body.view-home #homeDock::before{display:none}
   }
   /* La rangée des filtres de recherche : chips de type + déclencheur de la feuille. Elle
-     n'existe QUE pendant une recherche (syncFiltTog) — hors recherche, la pilule est seule. */
+     n'existe QUE pendant une recherche (syncDockFilt) — hors recherche, la pilule est seule. */
   /* padding haut/droit : le badge-compte déborde du bouton de 4 px, et un défileur horizontal
      rogne aussi en Y — sans cet air, le chiffre serait amputé. */
   .dock-filt{flex:1 1 100%;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 0 0}
@@ -901,7 +901,6 @@
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
   /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
-  #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* A429 (P4) : les filtres posés en PUCES sous la ligne de compte — bleu : un état actif, jamais un registre de
      danger (règle 8). Cibles de 32 px (règle 9) ; la croix a sa propre cible. */
@@ -919,7 +918,7 @@
   @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     #homeDock .hdr-search input{padding-left:40px}
     #homeDock .hdr-search .srch-box>svg{left:16px}
-    [data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
+    [data-theme="dark"] #homeDock .hdr-search input{border-color:var(--ctl-line)}
   }
   /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13). Son bas
      épouse EXACTEMENT le viewport visuel : top = vvt + vvh, remonté de sa PROPRE hauteur
@@ -990,8 +989,7 @@
   html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
   html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
   /* A538 : clavier fermé, la recherche prend la hauteur de la barre d'onglets qu'elle remplace (62) — elle tombait à
-     44, filtre compris. Clavier ouvert, le dock compact d'A423 reste (44). */
-  html.tabnav:not(.kbd) body.view-home #homeDock .filt-tog{width:62px;height:62px;min-height:62px}
+     44. Clavier ouvert, le dock compact d'A423 reste (44). */
   html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
   html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
     left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:var(--tb-bot);pointer-events:none}
@@ -2515,6 +2513,9 @@
     body.view-home #hdrNew:hover{background:var(--line)}
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
+  /* A556 : la nature (et la bibliothèque) en tête de la feuille « Afficher » du titre, avant les rangées. */
+  .pk-top{padding:2px 0 6px}
+  .pk-top .chiprow{flex-wrap:wrap;overflow:visible;padding:0;margin:0}
   .vs-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
   .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
@@ -7270,37 +7271,8 @@
      règle 8 tenue par la PASTILLE du nombre de filtres + le nom accessible.
      Détail : doctrine-css.md C119. */
 
-  /* ⚠ Le glyphe SUIT le bouton : 20 px pour un rond de 48 (rapport encre/rond de « ＋ »). ON NE
-     TOUCHE PAS À LA COQUE : ses width/height sont des attributs de présentation que le CSS
-     remplace, et le tracé est DUPLIQUÉ dans `uiIcon` ; l'épaisseur suit d'elle-même (stroke-width
-     dans le viewBox de 24, aucune valeur à écrire). Détail : doctrine-css.md C120. */
-  .filt-tog>svg{width:20px;height:20px;flex:none}
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
-    /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
-       même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
-       la phase et le titre dans l'éditeur). Cible 46 px par le halo. */
-    /* ⚠ `--ctl-line` ET NON `--line-strong` : dans la palette v5.6 c'est `--ctl-line` qui tient le
-       3:1 des BORDURES DE COMPOSANT (3,08 en clair, 3,68 en sombre) — `--line-strong` n'y vaut
-       plus que 1,62 et 1,33, et un bouton PLEIN dont la limite ne se voit pas est le défaut de la
-       pastille du compte (A43), à l'identique. Mesuré au balayage. */
-    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--work-line);
-    border-radius:999px;background:var(--work);color:var(--ink-2);box-shadow:var(--shadow-work);font-family:inherit;
-    font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
-    cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
-  .filt-tog[hidden]{display:none}
-  .filt-tog::after{content:"";position:absolute;inset:-4px;border-radius:999px}
-  /* Le compte se pose SUR le bouton, en pastille — il ne l'allonge plus : la position du
-     déclencheur ne doit pas dépendre du nombre de filtres. */
-  .filt-n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
-    display:inline-flex;align-items:center;justify-content:center;border-radius:999px;
-    background:var(--act);color:var(--on-primary);font-size:11px;font-weight:800;line-height:1;
-    box-shadow:0 0 0 2px var(--work)}
-  .filt-tog:hover{background:var(--amb-2);border-color:var(--ctl-line);color:var(--ink)}
-  .filt-tog.on{background:var(--primary-100);border-color:var(--act);color:var(--act)}
-  .filt-tog.act{background:var(--act);border-color:var(--act);color:var(--on-primary)}
-  .filt-tog.act:hover{background:var(--act);border-color:var(--act);color:var(--on-primary)}
-  .filt-tog:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .filt-n[hidden]{display:none}
+  /* `.filt-tog`/`.filt-n` (le bouton rond « Affichage et filtres » du dock et son compte) : PURGÉS en A556 — la même
+     feuille avait deux portes au téléphone ; le filtre posé se lit dans le grand titre et dans les puces. */
   /* Sélecteur SEGMENTÉ générique : l'état vit sur la RACINE jamais re-rendue (la pastille GLISSE).
      Cas N segments par `--seg-n`/`--seg-i` sur le COMPOSANT, jamais sur un seul porteur ni par une
      classe de plus (l'ordre trancherait — piège de cascade payé cinq fois, cf. .read-grid, .cbt-n,
@@ -7566,7 +7538,7 @@
        haut de la maquette (recherche au centre, Créer/Compte à droite). La marque garde la
        largeur de la sidebar : la recherche commence au bord de la colonne de contenu. */
     body.view-home #homeDock{position:static;flex:1 1 auto;flex-direction:row;min-width:0;margin:0;padding:0;border:0;background:none;gap:0}
-    body.view-home #homeDock :is(.dock-filt,.filt-tog){display:none}   /* ≥ 780 : les filtres sont la colonne */
+    body.view-home #homeDock .dock-filt{display:none}   /* ≥ 780 : les filtres sont la colonne */
     body.view-home .id-row .brand{flex:0 0 auto;min-width:calc(250px - 56px)}
 
     body.view-home #homeDock .hdr-search{flex:1 1 auto;min-width:0;max-width:640px}
@@ -8737,29 +8709,29 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvz97ge3p9o4dg1v"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmw26yw3lskejhd17"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvz97ge3p9o4dg1v" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmw26yw3lskejhd17" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div><div class="dir-book by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvz97ge3p9o4dg1v"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmw26yw3lskejhd17"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvz97ge3p9o4dg1v" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmw26yw3lskejhd17" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvz97ge014xymfu1"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmw26yw3j4zm2fgia"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn" data-pin="fmvz97ge014xymfu1" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmw26yw3j4zm2fgia" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
@@ -8768,29 +8740,29 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvz97ge3p9o4dg1v"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmw26yw3lskejhd17"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvz97ge3p9o4dg1v" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmw26yw3lskejhd17" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div><div class="dir-book by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvz97ge3p9o4dg1v"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmw26yw3lskejhd17"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn on" data-pin="fmvz97ge3p9o4dg1v" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmw26yw3lskejhd17" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmvz97ge014xymfu1"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmw26yw3j4zm2fgia"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
         </div>
-        <button class="pinbtn" data-pin="fmvz97ge014xymfu1" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmw26yw3j4zm2fgia" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
 </body></html>

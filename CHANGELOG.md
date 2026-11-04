@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.82.0] — 2026-11-04
+Accueil au téléphone : un bouton pour choisir QUOI afficher, un pour COMMENT le présenter (A556) ; le zoom survit au
+redimensionnement (A557). Doctrine `docs/decisions/lot-v6-0.md`. Rien à rejouer côté serveur.
+- **« Aides ⌄ » choisit ce qu'on voit** : la feuille « Afficher » commence par le **Type** (Tout · Aides · Protocoles ·
+  À relire) et, s'il y en a plusieurs, la bibliothèque — ils agissent tout de suite, la feuille reste ouverte. Puis
+  l'accès direct, les collections, les catégories et **« Gérer les catégories »**.
+- **Le bouton rond ↑↓ devient « Trier et présenter »** : trier, regrouper, densité — plus aucun filtre en double. On
+  le ferme par « Terminé ».
+- **Le bouton filtre à côté de la recherche disparaît** : il ouvrait la même feuille que le bouton rond. Le champ
+  prend toute la largeur ; les crans Tout · Aides · Protocoles restent quand on tape.
+- Un filtre posé reste annoncé par sa puce sous le titre, qui rouvre « Afficher ».
+- **Zoom et taille de fenêtre** : agrandir ou réduire la fenêtre pendant qu'une image, un PDF ou la Page est zoomé
+  garde l'endroit regardé (le PDF restait sur une autre page).
+- En large (tablette, ordinateur), l'accueil ne change pas.
+
 ## [5.81.0] — 2026-11-04
 Pincer pour zoomer une image ouverte (A555, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Une image jointe qu'on ouvre se pince comme la Page et les PDF** : elle s'ouvre ajustée à l'écran, le pincer
@@ -166,15 +181,3 @@ Conformité aux maquettes Natif (A534, doctrine `docs/decisions/lot-v6-0.md`). R
   cours en bleu, la décision sans fond ambre, les chevrons discrets. Replier et déplier marchent comme avant.
 - **Le bouton du bloc** dit « Cochez les 3 restantes » (une ligne au lieu de deux).
 - **La colonne de gauche** affiche le nombre d'aides et de sessions.
-
-## [5.70.0] — 2026-11-01
-Remesure complète de la refonte « Natif » sur 18 formats (A530-A533, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Survols** : une quinzaine de boutons et de rangées ne réagissaient pas au passage de la souris ; ils réagissent
-  tous, selon leur famille. Les rangées ne se soulèvent plus, elles se teintent.
-- **Intertitres en minuscules partout** (colonnes de la session, éditeur, Moi, menu ⋯, Affichage) ; seuls les mots
-  d'état (« Critique », « Vigilance », « ● Session », « En cours ») restent en capitales.
-- **Téléphone tourné** : le titre de l'aide n'est plus coupé dans l'en-tête (« Schéma » passe au menu ⋯).
-- **Moniteur** : en portrait, le grand chiffre est nettement plus grand (220 px sur iPad, 109 px sur iPhone).
-- Petits écrans : « Avant la session » ne passe plus sous « Page » à 320 px ; la pastille « À compléter » a une cible
-  de 44 px ; le sélecteur de sections d'Administration reste sur une ligne.

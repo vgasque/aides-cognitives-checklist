@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-mkz1e7J58h8bxb32GsJZhkiNApbzcVSS8PfS5Eveb08='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-pTYN954Aky2b70fesAX7tzYzCR8NoFL5oyiQQPM9XYk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1286,7 +1286,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     html.kbd body.view-home #homeDock::before{display:none}
   }
   /* La rangée des filtres de recherche : chips de type + déclencheur de la feuille. Elle
-     n'existe QUE pendant une recherche (syncFiltTog) — hors recherche, la pilule est seule. */
+     n'existe QUE pendant une recherche (syncDockFilt) — hors recherche, la pilule est seule. */
   /* padding haut/droit : le badge-compte déborde du bouton de 4 px, et un défileur horizontal
      rogne aussi en Y — sans cet air, le chiffre serait amputé. */
   .dock-filt{flex:1 1 100%;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 0 0}
@@ -1294,7 +1294,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
   /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
-  #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* A429 (P4) : les filtres posés en PUCES sous la ligne de compte — bleu : un état actif, jamais un registre de
      danger (règle 8). Cibles de 32 px (règle 9) ; la croix a sa propre cible. */
@@ -1312,7 +1311,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     #homeDock .hdr-search input{padding-left:40px}
     #homeDock .hdr-search .srch-box>svg{left:16px}
-    html[data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
+    html[data-theme="dark"] #homeDock .hdr-search input{border-color:var(--ctl-line)}
   }
   /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13). Son bas
      épouse EXACTEMENT le viewport visuel : top = vvt + vvh, remonté de sa PROPRE hauteur
@@ -1383,8 +1382,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
   html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
   /* A538 : clavier fermé, la recherche prend la hauteur de la barre d'onglets qu'elle remplace (62) — elle tombait à
-     44, filtre compris. Clavier ouvert, le dock compact d'A423 reste (44). */
-  html.tabnav:not(.kbd) body.view-home #homeDock .filt-tog{width:62px;height:62px;min-height:62px}
+     44. Clavier ouvert, le dock compact d'A423 reste (44). */
   html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
   html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
     left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:var(--tb-bot);pointer-events:none}
@@ -2908,6 +2906,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home #hdrNew:hover{background:var(--line)}
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
+  /* A556 : la nature (et la bibliothèque) en tête de la feuille « Afficher » du titre, avant les rangées. */
+  .pk-top{padding:2px 0 6px}
+  .pk-top .chiprow{flex-wrap:wrap;overflow:visible;padding:0;margin:0}
   .vs-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
   .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
@@ -7663,37 +7664,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      règle 8 tenue par la PASTILLE du nombre de filtres + le nom accessible.
      Détail : doctrine-css.md C119. */
 
-  /* ⚠ Le glyphe SUIT le bouton : 20 px pour un rond de 48 (rapport encre/rond de « ＋ »). ON NE
-     TOUCHE PAS À LA COQUE : ses width/height sont des attributs de présentation que le CSS
-     remplace, et le tracé est DUPLIQUÉ dans `uiIcon` ; l'épaisseur suit d'elle-même (stroke-width
-     dans le viewBox de 24, aucune valeur à écrire). Détail : doctrine-css.md C120. */
-  .filt-tog>svg{width:20px;height:20px;flex:none}
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
-    /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
-       même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
-       la phase et le titre dans l'éditeur). Cible 46 px par le halo. */
-    /* ⚠ `--ctl-line` ET NON `--line-strong` : dans la palette v5.6 c'est `--ctl-line` qui tient le
-       3:1 des BORDURES DE COMPOSANT (3,08 en clair, 3,68 en sombre) — `--line-strong` n'y vaut
-       plus que 1,62 et 1,33, et un bouton PLEIN dont la limite ne se voit pas est le défaut de la
-       pastille du compte (A43), à l'identique. Mesuré au balayage. */
-    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--work-line);
-    border-radius:999px;background:var(--work);color:var(--ink-2);box-shadow:var(--shadow-work);font-family:inherit;
-    font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
-    cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
-  .filt-tog[hidden]{display:none}
-  .filt-tog::after{content:"";position:absolute;inset:-4px;border-radius:999px}
-  /* Le compte se pose SUR le bouton, en pastille — il ne l'allonge plus : la position du
-     déclencheur ne doit pas dépendre du nombre de filtres. */
-  .filt-n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
-    display:inline-flex;align-items:center;justify-content:center;border-radius:999px;
-    background:var(--act);color:var(--on-primary);font-size:11px;font-weight:800;line-height:1;
-    box-shadow:0 0 0 2px var(--work)}
-  .filt-tog:hover{background:var(--amb-2);border-color:var(--ctl-line);color:var(--ink)}
-  .filt-tog.on{background:var(--primary-100);border-color:var(--act);color:var(--act)}
-  .filt-tog.act{background:var(--act);border-color:var(--act);color:var(--on-primary)}
-  .filt-tog.act:hover{background:var(--act);border-color:var(--act);color:var(--on-primary)}
-  .filt-tog:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .filt-n[hidden]{display:none}
+  /* `.filt-tog`/`.filt-n` (le bouton rond « Affichage et filtres » du dock et son compte) : PURGÉS en A556 — la même
+     feuille avait deux portes au téléphone ; le filtre posé se lit dans le grand titre et dans les puces. */
   /* Sélecteur SEGMENTÉ générique : l'état vit sur la RACINE jamais re-rendue (la pastille GLISSE).
      Cas N segments par `--seg-n`/`--seg-i` sur le COMPOSANT, jamais sur un seul porteur ni par une
      classe de plus (l'ordre trancherait — piège de cascade payé cinq fois, cf. .read-grid, .cbt-n,
@@ -7959,7 +7931,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        haut de la maquette (recherche au centre, Créer/Compte à droite). La marque garde la
        largeur de la sidebar : la recherche commence au bord de la colonne de contenu. */
     body.view-home #homeDock{position:static;flex:1 1 auto;flex-direction:row;min-width:0;margin:0;padding:0;border:0;background:none;gap:0}
-    body.view-home #homeDock :is(.dock-filt,.filt-tog){display:none}   /* ≥ 780 : les filtres sont la colonne */
+    body.view-home #homeDock .dock-filt{display:none}   /* ≥ 780 : les filtres sont la colonne */
     body.view-home .id-row .brand{flex:0 0 auto;min-width:calc(250px - 56px)}
 
     body.view-home #homeDock .hdr-search{flex:1 1 auto;min-width:0;max-width:640px}
@@ -9128,10 +9100,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
-         au-dessus d'elle : crans de type + déclencheur de la feuille. Chips peintes par
-         syncFiltTog (état), rangée statique (écouteurs délégués). -->
+         au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
+         peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden><span class="df-chips" id="dockFiltChips"></span></div>
-    <button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-haspopup="dialog" aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span class="filt-n" id="filtN" hidden></span></button>
     <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
@@ -9694,7 +9665,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.81.0';
+const APP_VERSION='5.82.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15016,9 +14987,13 @@ let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'inpu
    feuille). Délégué : le bouton rond du dock est statique, le fragment « filtres : … » est re-rendu. */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-afx]');if(!b)return;
   dropFilter(b.dataset.afx);render();
-  const n=main.querySelector('.af-x')||document.getElementById('rangBtn')||document.getElementById('filtTog');if(n&&n.offsetParent)n.focus({preventScroll:true});});
+  const n=main.querySelector('.af-x')||document.getElementById('rangBtn')||main.querySelector('#pgPick');if(n&&n.offsetParent)n.focus({preventScroll:true});});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-filttog]');
-  if(b){if(viewSheet.classList.contains('on'))closeViewSheet();else openViewSheet();}});
+  if(!b)return;
+  /* A556 : au téléphone, une puce de filtre posé rouvre la feuille où ce filtre se CHOISIT — « Afficher », celle du
+     titre ; la feuille du bouton rond ne fait plus que trier et présenter. */
+  if(tabNavOn()){const p=main.querySelector('#pgPick');if(p)openHomePick(p,render);return;}
+  if(viewSheet.classList.contains('on'))closeViewSheet();else openViewSheet();});
 /* Les crans de type de la rangée de recherche : ils AGISSENT sans quitter la recherche (la
    requête est le contexte même du geste). */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#dockFilt [data-section]');
@@ -15359,29 +15334,16 @@ function homeRangHtml(){
 /* Le déclencheur est STATIQUE (il vit dans l'en-tête, hors de tout re-rendu) : on ne le
    reconstruit pas, on le PEINT. `avail` = il y a quelque chose à déplier ici — sinon la seule
    chose honnête est de ne rien montrer (aucun bouton mort). */
-function syncFiltTog(avail){
-  const b=document.getElementById('filtTog'),n=document.getElementById('filtN');
-  if(!b)return;
-  /* v5.18 (décision utilisateur, maquette Zero) : les filtres vivent dans la FONCTION
-     RECHERCHE — la rangée (chips de type + ce déclencheur) ne paraît que pendant une
-     recherche ; hors recherche la pilule est seule, et un filtre actif reste modifiable
-     par le bouton « filtres : … » de la ligne Répertoire. */
+function syncDockFilt(avail){
+  /* v5.18 (décision utilisateur, maquette Zero) : les crans de type de la recherche ne paraissent que pendant une
+     recherche ; hors recherche la pilule est seule. A556 : le bouton rond qui ouvrait la feuille à côté du champ est
+     PURGÉ (même feuille que le bouton du titre — deux portes) ; restent ces crans, qui agissent sans quitter la
+     recherche. */
   const cherche=avail&&!!txNorm(String(state.q||''));
-  {const row=document.getElementById('dockFilt'),ch=document.getElementById('dockFiltChips');
-   if(row){row.hidden=!cherche;
-     if(cherche&&ch)ch.innerHTML=SEC_T.map(([k,l])=>
-       `<button type="button" class="scopebtn${state.section===k?' on':''}" data-section="${k}" aria-pressed="${state.section===k?'true':'false'}">${l}</button>`).join('');}}
-  b.hidden=!avail;   /* v5.30 (A353) : le bouton rond est toujours là ; seules les chips suivent la recherche */
-  if(!avail)return;
-  const open=viewSheet.classList.contains('on'),k=filtersCount();
-  b.classList.toggle('on',open&&!k);
-  b.classList.toggle('act',k>0);
-  b.setAttribute('aria-expanded',open?'true':'false');
-  n.hidden=!k;n.textContent=k?String(k):'';
-  // UN SEUL libellé pour l'info-bulle et le nom accessible : deux formulations pour un même
-  // bouton seraient deux vocabulaires pour une même chose (AC 120-71B §5.5).
-  const lbl=(open?'Fermer l\'affichage et les filtres':'Affichage et filtres')+(k?` — ${k} actif${k>1?'s':''}`:'');
-  b.setAttribute('aria-label',lbl);b.title=lbl;}
+  const row=document.getElementById('dockFilt'),ch=document.getElementById('dockFiltChips');
+  if(row){row.hidden=!cherche;
+    if(cherche&&ch)ch.innerHTML=SEC_T.map(([k,l])=>
+      `<button type="button" class="scopebtn${state.section===k?' on':''}" data-section="${k}" aria-pressed="${state.section===k?'true':'false'}">${l}</button>`).join('');}}
 /* v5.18 — une bibliothèque n'est pas un filtre (elle DÉFINIT le corpus, doctrine T9) : la
    feuille ne porte plus que ce qui RESTREINT — type et catégorie. scopeBarHtml est PURGÉE. */
 const SEC_T=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles']];
@@ -15390,9 +15352,9 @@ const SEC_T=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles']];
 // Rangée de catégories en chips (accueil ÉTROIT) : mêmes pastilles pour fiches et protocoles.
 // Chips de catégorie de la feuille « Affichage » (v5.30, A353) : mêmes pastilles pour fiches et protocoles.
 /* A428 : les bibliothèques en puces, même dessin que les catégories ; absentes s'il n'y en a qu'une. */
-function libChipsHtml(){const bibs=bibGroups(homeVis()).filter(g=>g.key!=null);if(bibs.length<2)return '';
-  const chip=(key,label,ic,on)=>`<button class="catchip${on?' on':''}" data-vslib="${esc(key)}" aria-pressed="${on?'true':'false'}">${ic}${esc(label)}</button>`;
-  return `<div class="vs-g vs-cats"><div class="vs-h" id="vsh-lib">Bibliothèque</div><div class="chiprow" role="group" aria-labelledby="vsh-lib">`
+function libChipsHtml(attr,idp){attr=attr||'data-vslib';idp=idp||'vsh-';const bibs=bibGroups(homeVis()).filter(g=>g.key!=null);if(bibs.length<2)return '';
+  const chip=(key,label,ic,on)=>`<button class="catchip${on?' on':''}" ${attr}="${esc(key)}" aria-pressed="${on?'true':'false'}">${ic}${esc(label)}</button>`;
+  return `<div class="vs-g vs-cats"><div class="vs-h" id="${idp}lib">Bibliothèque</div><div class="chiprow" role="group" aria-labelledby="${idp}lib">`
     +chip('*','Toutes','',state.homeLib==null)
     +bibs.map(g=>chip(g.key,g.L,g.lib?uiIcon(canEditScope(g.lib.id)?'users':'lock',13):uiIcon('user',13),state.homeLib===g.key)).join('')
     +`</div></div>`;}
@@ -16146,12 +16108,14 @@ function pgPickInfo(){
   if(c)return {k:'coll',t:c.name,eye:collIc(c)+(c.id===COLL_PIN?'Accès direct · à vous seul':'Collection · à vous seul')};
   if(state.cat){const g=homeCatGroups().find(x=>x.n===state.cat);
     return {k:'cat',t:g?g.c.name:state.cat,eye:(g?catDotHtml(g.cols,'cat-dot'):'')+'Catégorie',sub:g?nb(g.nb,'élément'):''};}
-  return {k:'all',t:'Aides',eye:'',sub:homeVis().length?'Tout · '+homeVis().length:''};}
+  /* « Tout · n » ne se dit que si la nature n'est pas restreinte : sinon la puce « Afficher : … » le dit (A556). */
+  return {k:'all',t:'Aides',eye:'',sub:homeVis().length&&!filtersList().some(f=>f.k==='type')?'Tout · '+homeVis().length:''};}
 const pgAxis=()=>state.coll&&collById(state.coll)?'coll':state.cat?'cat':'';
 function pgPickHtml(pk){
   const gk=homeGroupKey(),lbl=(HOME_RANG.find(([k])=>k===gk)||HOME_RANG[0])[1];
-  /* « Affichage » (ranger, densité, nature) : bouton rond au bout de la ligne du titre, même id `#rangBtn` (un câblage). */
-  const rang=homeVis().length?`<button type="button" class="pg-ib" id="rangBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Affichage — rangé par ${esc(lbl)}">${uiIcon('ladder',20,{sw:2.2})}</button>`:'';   // A263 : rien à ranger, pas de porte
+  /* « Trier et présenter » (A556 ; « Affichage » en A545) : bouton rond au bout de la ligne du titre, même id `#rangBtn`
+     (un câblage) ; flèches ↑↓, le geste de trier — l'échelle ne disait ni trier ni filtrer. */
+  const rang=homeVis().length?`<button type="button" class="pg-ib" id="rangBtn" aria-haspopup="dialog" aria-expanded="false" aria-label="Trier et présenter — rangé par ${esc(lbl)}">${uiIcon('sort',20,{sw:2.2})}</button>`:'';   // A263 : rien à ranger, pas de porte
   return `<div class="pg-pick"><div class="pg-pl">${pk.eye?`<span class="pg-eye">${pk.eye}</span>`:''}`
     +`<h1 class="pg-ttl"><button type="button" class="pg-tb" id="pgPick" aria-haspopup="listbox" aria-expanded="false" aria-label="${esc('Afficher : '+pk.t+'. Changer')}">`
     +`<span class="pg-tbt">${esc(pk.t)}</span><span class="pg-chev" aria-hidden="true">${uiIcon('chev',18,{sw:2.6})}</span></button></h1>`
@@ -16164,14 +16128,30 @@ function openHomePick(trigger,rerender){
   const pin=collById(COLL_PIN),groups=homeCatGroups();
   const cur=state.coll&&collById(state.coll)?'c:'+state.coll:state.cat?'k:'+state.cat:'all';
   const set=(coll,cat)=>{state.coll=coll;state.cat=cat;state.libLimit=LIB_PAGE;rerender();window.scrollTo(0,0);};
-  openPickMenu(document.body,{aria:'Afficher',sheet:true,trigger,value:cur,seuilFiltre:999,title:'Afficher',
+  /* A556 — LA FEUILLE DIT TOUT CE QUI RESTREINT LA LISTE : la NATURE (Tout · Aides · Protocoles · À relire) et, s'il y
+     en a plusieurs, la BIBLIOTHÈQUE montent en tête — elles vivaient dans la feuille du bouton rond, qui ne fait plus
+     que présenter. Ce sont des réglages, pas des destinations : ils agissent en direct et la feuille RESTE ouverte
+     (on choisit ensuite une collection ou une catégorie, ou l'on referme) ; une rangée, elle, applique et ferme (A545).
+     « Gérer les catégories » rejoint les catégories qu'il gère. */
+  const nat=Object.assign(viewSheetGroups()[0],{t:'Type'}),gere=catMgrOn()||mgrDeux();   // « Afficher » est déjà le titre de la feuille ; « Type », le mot de « Regrouper »
+  const top=`<div class="pk-top">${vsSegHtml(nat,'data-pknat','pkh-','')}${libChipsHtml('data-pklib','pkh-')}</div>`;
+  openPickMenu(document.body,{aria:'Afficher',sheet:true,trigger,value:cur,seuilFiltre:999,title:'Afficher',top,
     options:[{val:'all',name:'Tout afficher',ic:uiIcon('list',18),cnt:homeVis().length},
       {val:'c:'+COLL_PIN,name:'Accès direct',ic:collIc(pin),cnt:collItems(pin).length},
       {head:'Mes collections'}]
       .concat(colls.map(c=>({val:'c:'+c.id,name:c.name,ic:collIc(c),cnt:collItems(c).length})))
-      .concat(groups.length?[{head:'Catégories'}]:[])
-      .concat(groups.map(g=>({val:'k:'+g.n,name:g.c.name,ic:catDotHtml(g.cols,'cat-dot'),cnt:g.nb}))),
-    onPick:v=>{if(v==='all')set(null,'');else if(v.slice(0,2)==='c:')set(v.slice(2),'');else set(null,v.slice(2));},
+      .concat(groups.length||gere?[{head:'Catégories'}]:[])
+      .concat(groups.map(g=>({val:'k:'+g.n,name:g.c.name,ic:catDotHtml(g.cols,'cat-dot'),cnt:g.nb})))
+      .concat(gere?[{val:'mgr',name:mgrRowLbl(),ic:uiIcon('gear',18),chev:true}]:[]),
+    onPick:v=>{if(v==='mgr')openHomeMgr();else if(v==='all')set(null,'');else if(v.slice(0,2)==='c:')set(v.slice(2),'');else set(null,v.slice(2));},
+    onOpen:menu=>{
+      menu.querySelectorAll('[data-pknat]').forEach(b=>b.onclick=()=>{const root=b.closest('.seg');
+        paintSeg(root,'data-pknat',[...root.querySelectorAll('[data-pknat]')].indexOf(b));
+        root.querySelectorAll('[data-pknat]').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
+        setHomeNature(b.dataset.pknat.split(':')[1]);});
+      menu.querySelectorAll('[data-pklib]').forEach(b=>b.onclick=()=>{const v=b.dataset.pklib;
+        state.homeLib=v==='*'?null:v;state.libLimit=LIB_PAGE;rerender();
+        menu.querySelectorAll('[data-pklib]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on?'true':'false');});});},
     action:{label:'＋ Nouvelle collection…',fn:()=>collCreateShow()}});}
 function bindPgHead(rerender){
   const n=main.querySelector('#pgNew');if(n)n.onclick=()=>openCreateDlg();
@@ -16526,7 +16506,7 @@ function renderHomeList(cfg){
   if((wide||tabNavOn())&&homeTab()!=='aides'){renderHomeTab(cfg);return;}   // A517 : les onglets du téléphone aussi
   /* Le déclencheur de filtre est PEINT à chaque rendu (statique dans le dock, jamais recréé) ;
      type + catégorie s'ouvrent en feuille à TOUTES les largeurs depuis v5.18. */
-  syncFiltTog(true);
+  syncDockFilt(true);
   /* Le pied nomade se parque avant le wipe (cfg.rerender écrase `main` sans passer par render). */
   rescueFooter();
   /* ACCUEIL v5.18 (maquettes « Accueil — la barre d'en-tête »). RECHERCHE : liste plate triée
@@ -18462,7 +18442,7 @@ function openPickMenu(host,opts){
   const sheet=!opts.up&&(!!opts.sheet||window.innerWidth<780);
   const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'')+(opts.wide&&!sheet?' wide':'');menu.setAttribute('role',opts.multi?'menu':'listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
   /* Tête (A480) : « ‹ Actions » en LIEN de retour, puis le TITRE = le geste, puis UNE ligne de contexte ; `head` garde les notices. */
-  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
     +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
@@ -18529,7 +18509,8 @@ function openPickMenu(host,opts){
   else if(!opts.keep){const first=menu.querySelector('.mm-row');if(first)first.focus();}
   // `keep` (v5.48.6) : le champ en cours garde le focus — donc le clavier — pendant qu'on choisit.
   if(opts.keep){menu.addEventListener('mousedown',e=>{if(e.target.closest('.mm-row'))e.preventDefault();});tapKeepsFocus(menu,'.mm-row');}
-  veil.onclick=()=>close(false);}
+  veil.onclick=()=>close(false);
+  if(opts.onOpen)opts.onOpen(menu);}   // A556 : l'appelant câble ce qu'il a posé dans `top`
 function openCatMenu(host,d,rerender,trigger){
   /* A498 : la tête dit ce qu'EST une catégorie, en miroir de la feuille des collections — une par aide, ÉCRITE dans
      l'aide (donc vue par toute l'équipe d'une bibliothèque partagée ; Perso n'a pas de membres, la phrase le sait) ;
@@ -18728,9 +18709,9 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   // interface sont ce que la v4.28.0 a proscrit.
   // « Filtrer » = RÉGLETTES horizontales (v5.3.1, décision utilisateur sur maquette comparative —
   // l'entonnoir à queue pliée datait) : trois curseurs, la convention contemporaine du
-  // « affiner ce qu'on voit ». ⚠ Tracé DUPLIQUÉ dans le SVG en dur du bouton #filtTog (coque
-  // statique) : changer l'un = changer l'autre, la duplication est assumée et signalée des deux
-  // côtés (même discipline que l'icône `user`).
+  // « affiner ce qu'on voit ». (Le SVG en dur du bouton #filtTog qui le dupliquait est parti avec lui, A556.)
+  // A556 : « Trier et présenter » — deux flèches opposées, la convention du tri.
+  sort:'<path d="M7 4v16M3.5 7.5 7 4l3.5 3.5M17 20V4M13.5 16.5 17 20l3.5-3.5"/>',
   filter:'<path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/>',
   // Échelle des blocs (v4.28.0 — remplace l'ex-icône « plan », quasi identique à « flow » :
   // deux dessins à nœud + deux branches côte à côte dans le menu se confondaient) : un RAIL
@@ -24288,7 +24269,8 @@ function pinchBind(sc,o){
     o.commit(G.k0*G.s);
     const z=zoomF(),rr=G.R.getBoundingClientRect();
     sc.scrollLeft+=(rr.left+G.fx*rr.width-G.cx)/z;
-    (o.scY?o.scY():sc).scrollTop+=(rr.top+G.fy*rr.height-G.cy)/z;};
+    (o.scY?o.scY():sc).scrollTop+=(rr.top+G.fy*rr.height-G.cy)/z;
+    if(sc._pzNoter)requestAnimationFrame(sc._pzNoter);};
   const mid=t=>[(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2];
   const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1;
   sc.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;
@@ -24308,9 +24290,55 @@ function pinchBind(sc,o){
     const dy=Math.max(-25,Math.min(25,e.deltaMode?e.deltaY*33:e.deltaY));
     move(g.s*Math.exp(-dy/100),g.cx0,g.cy0);clearTimeout(wheelT);wheelT=setTimeout(end,160);},{passive:false});
   // Lever les doigts après un pincer ne « tape » rien (un nœud de la Page, un lien du PDF).
-  sc.addEventListener('click',e=>{if(Date.now()-quiet<350){e.preventDefault();e.stopPropagation();}},true);}
-function svPinchBind(sc,racine){
+  sc.addEventListener('click',e=>{if(Date.now()-quiet<350){e.preventDefault();e.stopPropagation();}},true);
+  /* A557 — CE QU'ON REGARDE SURVIT AU REDIMENSIONNEMENT (signalé : « si je modifie la taille de la fenêtre à l'état
+     zoomé, ça casse tout »). L'échelle se recalcule sur la nouvelle largeur (image ajustée, PDF en % de la largeur,
+     feuille), mais le défilement restait en px ABSOLUS : on se retrouvait ailleurs — sur un PDF, à une autre page.
+     On retient donc en continu le point au CENTRE du défileur, en proportion du repère (la page, la feuille,
+     l'image) ; après le redimensionnement — une fois les gestionnaires de mise à l'échelle passés — on le remet au
+     centre. ⚠ Un défilement émis pendant le changement de taille (le navigateur borne la position quand le contenu
+     rétrécit) ne doit pas écraser le point retenu : on ne note que si la fenêtre a gardé sa taille. */
+  let ancre=null,taille=innerWidth+'x'+innerHeight,rafA=0,rafR=0;
+  /* Le centre de la part VISIBLE du défileur : dans `main`, la Page défile avec la fenêtre — le défileur est aussi haut
+     que la feuille, son milieu géométrique n'est pas ce qu'on regarde. */
+  const centre=()=>{const r=sc.getBoundingClientRect();
+    return [(Math.max(r.left,0)+Math.min(r.right,innerWidth))/2,(Math.max(r.top,0)+Math.min(r.bottom,innerHeight))/2];};
+  const noter=()=>{rafA=0;if(g||!sc.offsetParent||innerWidth+'x'+innerHeight!==taille)return;
+    const [cx,cy]=centre(),R=o.ref(cx,cy);if(!R)return;
+    const rr=R.getBoundingClientRect();if(!rr.width||!rr.height)return;
+    ancre={R,fx:(cx-rr.left)/rr.width,fy:(cy-rr.top)/rr.height};
+    if(o.memo)o.memo.set({fx:ancre.fx,fy:ancre.fy,taille,t:Date.now()});};
+  const vy=o.scY?o.scY:()=>sc;
+  const v0=vy(),cible=(v0===document.scrollingElement||v0===document.documentElement)?window:v0;
+  /* Les écouteurs posés AILLEURS que sur le défileur (fenêtre, défileur vertical) se retirent d'eux-mêmes quand le
+     défileur quitte le document : la Page se re-rend souvent, et chaque rendu en poserait de nouveaux. */
+  const suivre=()=>{if(!sc.isConnected){if(cible!==sc)cible.removeEventListener('scroll',suivre);return;}
+    if(!rafA)rafA=requestAnimationFrame(noter);};
+  sc.addEventListener('scroll',suivre,{passive:true});
+  if(cible!==sc)cible.addEventListener('scroll',suivre,{passive:true});
+  const auRedim=()=>{if(!sc.isConnected){removeEventListener('resize',auRedim);return;}
+    if(rafR)cancelAnimationFrame(rafR);
+    rafR=requestAnimationFrame(()=>{rafR=0;taille=innerWidth+'x'+innerHeight;
+      const A=ancre;if(!A||!A.R.isConnected||!sc.offsetParent){noter();return;}
+      const z=zoomF(),[cx,cy]=centre(),rr=A.R.getBoundingClientRect();
+      sc.scrollLeft+=(rr.left+A.fx*rr.width-cx)/z;
+      vy().scrollTop+=(rr.top+A.fy*rr.height-cy)/z;
+      noter();});};
+  addEventListener('resize',auRedim);
+  /* Un défileur NEUF, né d'un re-rendu que le redimensionnement a lui-même provoqué (la Page dans `main` se re-rend
+     aux paliers de largeur) : il n'a rien retenu — il reprend le point que l'ancien avait noté, s'il est récent et
+     d'une autre taille de fenêtre. Le repère d'un tel défileur doit être unique (la feuille), pas « ce qui est
+     sous le centre ». */
+  if(o.memo){const m=o.memo.get();
+    if(m&&m.taille!==taille&&Date.now()-m.t<3000)requestAnimationFrame(()=>{if(!sc.offsetParent)return;
+      const [cx,cy]=centre(),R=o.ref(cx,cy);if(!R)return;
+      const z=zoomF(),rr=R.getBoundingClientRect();
+      sc.scrollLeft+=(rr.left+m.fx*rr.width-cx)/z;vy().scrollTop+=(rr.top+m.fy*rr.height-cy)/z;noter();});}
+  sc._pzNoter=noter;}
+const _svAncre=Object.create(null);   // A557 : le point regardé de la feuille, par lieu (main · fenêtre « Tableau »)
+function svPinchBind(sc,racine){const lieu=racine===main?'main':'plan';
   pinchBind(sc,{k:()=>svZoom,min:SV_ZMIN,max:SV_ZMAX,
+    memo:{get:()=>_svAncre[lieu],set:v=>{_svAncre[lieu]=v;}},
     layer:()=>{const E=svSheetEls(racine);return E&&E.ca;},
     ref:()=>{const E=svSheetEls(racine);return E&&E.sh;},
     commit:k=>{svZoom=Math.max(SV_ZMIN,Math.min(SV_ZMAX,Math.round(k*100)/100));svApplyZoom(racine);},
@@ -28392,12 +28420,24 @@ const viewSheet=document.getElementById('viewSheet');let _viewRerender=null;
    `renderLibrary`, qui aiguille selon `state.section`, qui re-rend ; le témoin d'A419 passait par
    le bouton rond (sans rappel) et ne voyait pas ce chemin. */
 function viewSheetRedo(){if(state.view==='library')renderLibrary();else if(_viewRerender)_viewRerender();else render();}
-function openViewSheet(rerender){_viewRerender=rerender||null;viewSheet.classList.add('on');_bgLock();paintViewSheet();syncFiltTog(true);}
-function closeViewSheet(){if(!viewSheet.classList.contains('on'))return;viewSheet.classList.remove('on');_bgUnlock();syncFiltTog(true);
-  const t=document.getElementById('filtTog');
-  if(t&&!t.hidden&&t.offsetParent)t.focus({preventScroll:true});
+function openViewSheet(rerender){_viewRerender=rerender||null;viewSheet.classList.add('on');_bgLock();paintViewSheet();
+  {const r=main.querySelector('#rangBtn');if(r)r.setAttribute('aria-expanded','true');}}
+function closeViewSheet(){if(!viewSheet.classList.contains('on'))return;viewSheet.classList.remove('on');_bgUnlock();
+  const t=main.querySelector('#rangBtn');if(t)t.setAttribute('aria-expanded','false');
+  if(t&&t.offsetParent)t.focus({preventScroll:true});
   else{const f=main.querySelector('.af-l');if(f)f.focus({preventScroll:true});}}
 bindModalDismiss(viewSheet,closeViewSheet);
+/* Un groupe segmenté de la feuille (crans d'un réglage) — partagé par la feuille « Trier et présenter » et, pour la
+   NATURE, par la feuille « Afficher » du titre (A556) : `attr` nomme l'attribut d'action, `idp` préfixe l'id de
+   l'intitulé (deux feuilles, jamais deux ids égaux), `focus` le groupe dont le cran actif prend le focus d'ouverture. */
+function vsSegHtml(g,attr,idp,focus){const i=Math.max(0,g.o.findIndex(x=>x[0]===g.v));
+  return `<div class="vs-g"><div class="vs-h" id="${idp}${g.k}">${esc(g.t)}</div><div class="seg vs-seg${g.wrap?' vs-wrap':''}" role="radiogroup" aria-labelledby="${idp}${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" ${attr}="${g.k}:${v}"${g.k===focus&&j===i?' data-dlgfocus':''}>${esc(l)}</button>`).join('')}</div></div>`;}
+/* La nature montrée (« Afficher »), posée d'un geste — la même écriture depuis les deux feuilles. */
+function setHomeNature(v){const r0=state.homeRev,s0=state.section;state.homeRev=v==='review';
+  setSection(v==='review'?'all':v,true,{keepCat:true});
+  if(state.section===s0&&state.homeRev!==r0){state.libLimit=LIB_PAGE;render();}}   // « Tout » ↔ « À relire » : même section, setSection ne re-rend pas
+/* Le libellé de la rangée de gestion — la colonne large dit « Gérer » ; au téléphone la rangée vit dans « Afficher ». */
+const mgrRowLbl=()=>mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories';
 function viewSheetGroups(){
   const filt=state.homeRev?'review':(state.section||'all');
   return [
@@ -28411,23 +28451,28 @@ function viewSheetGroups(){
    restreint : afficher, bibliothèque, catégorie ; compte et « Tout effacer » à son titre) puis « Présenter » (ce qui
    range : trier, regrouper, densité). Chaque geste agit en direct derrière la feuille, qui se repeint. */
 function paintViewSheet(){const body=document.getElementById('viewSheetBody');if(!body)return;
-  const seg=g=>{const i=Math.max(0,g.o.findIndex(x=>x[0]===g.v));
-    return `<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg${g.wrap?' vs-wrap':''}" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}"${g.k==='filt'&&j===i?' data-dlgfocus':''}>${esc(l)}</button>`).join('')}</div></div>`;};   // focus d'ouverture sur le cran actif d'« Afficher », jamais sur « Tout effacer »
+  const seg=g=>vsSegHtml(g,'data-vs','vsh-',!tabNavOn()?'filt':'sort');   // focus d'ouverture sur le premier groupe montré, jamais sur « Tout effacer »
   const G=viewSheetGroups();
   // Deux BLOCS encadrés, chacun son titre et son icône DEDANS : ce qui restreint, puis ce qui range.
   const part=(id,ic,t,tail,inner)=>`<section class="vs-sec" aria-labelledby="${id}"><div class="vs-part"><span class="vs-pic" aria-hidden="true">${uiIcon(ic,16)}</span><h4 class="vs-pt" id="${id}">${t}</h4>${tail}</div>${inner}</section>`;
-  body.innerHTML=part('vsp-f','filter','Filtrer','<span class="vs-pn" id="vsN"></span><button type="button" class="linkbtn" id="viewSheetClear">Tout effacer</button>',
+  /* A556 — AU TÉLÉPHONE (barre d'onglets), CETTE FEUILLE NE FAIT QUE PRÉSENTER : « Trier et présenter ». Ce qui
+     RESTREINT (nature, collections, bibliothèque, catégories) se choisit dans la feuille « Afficher » du grand titre,
+     qui en était déjà la porte (A545) — les deux feuilles portaient collections et catégories, deux fois. En large,
+     la colonne gauche filtre et la feuille garde ses deux parties (la nature n'a pas d'autre place). */
+  const tel=tabNavOn();
+  {const t=document.getElementById('viewSheetTitle');if(t)t.textContent=tel?'Trier et présenter':'Affichage';}
+  body.innerHTML=tel?G.slice(1).map(seg).join(''):part('vsp-f','filter','Filtrer','<span class="vs-pn" id="vsN"></span><button type="button" class="linkbtn" id="viewSheetClear">Tout effacer</button>',
       seg(G[0])+collChipsHtml()+libChipsHtml()+`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`)
     +part('vsp-p','ladder','Présenter','',G.slice(1).map(seg).join(''))
-    +((!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories'}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
+    +((tel||!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrRowLbl()}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
   /* « Tout effacer » remet les familles de FILTRE à leur cran neutre d'un geste ; il ne paraît que s'il y a à effacer. */
-  document.getElementById('viewSheetClear').onclick=()=>{dropFilter('all');render();paintViewSheet();};
+  {const c=document.getElementById('viewSheetClear');if(c)c.onclick=()=>{dropFilter('all');render();paintViewSheet();};}
   /* La pastille se peint AVANT d'agir (signalé sous Chrome : le 1ᵉʳ clic filtrait, la pastille
      ne suivait qu'au 2ᵉ) — `setSection` re-rend toute la liste ; peinte après, elle en dépendait. */
   body.querySelectorAll('[data-vs]').forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.vs.split(':');
     const root=b.closest('.seg');paintSeg(root,'data-vs',[...root.querySelectorAll('[data-vs]')].indexOf(b));
     root.querySelectorAll('[data-vs]').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
-    if(k==='filt'){state.homeRev=v==='review';setSection(v==='review'?'all':v,true,{keepCat:true});}
+    if(k==='filt')setHomeNature(v);
     else if(k==='sort')setHomePref('homeSort',v);
     else if(k==='group')setHomeGroup(v);
     else if(k==='dens')setHomePref('homeCompact',v==='1');
@@ -28448,7 +28493,8 @@ function paintViewFoot(){
   const go=document.getElementById('viewSheetGo'),cl=document.getElementById('viewSheetClear');
   if(!go)return;
   const n=main.querySelectorAll('.dir-row').length;
-  go.textContent=n?`Voir ${n===1?'le résultat':'les '+n+' résultats'}`:'Aucun résultat';
+  /* A556 : une feuille qui ne filtre pas n'annonce pas de résultats — elle se ferme. */
+  go.textContent=tabNavOn()?'Terminé':n?`Voir ${n===1?'le résultat':'les '+n+' résultats'}`:'Aucun résultat';
   const k=filtersCount(),nn=document.getElementById('vsN');
   if(cl)cl.hidden=!k;
   if(nn)nn.textContent=k?k+' actif'+(k>1?'s':''):'';}

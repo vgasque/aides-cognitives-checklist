@@ -19,10 +19,9 @@
     <div id="homeDock">
     <!-- v5.18 : LES FILTRES VIVENT DANS LA FONCTION RECHERCHE (décision utilisateur, maquette
          Zero) — hors recherche la pilule est SEULE ; chercher fait paraître cette rangée
-         au-dessus d'elle : crans de type + déclencheur de la feuille. Chips peintes par
-         syncFiltTog (état), rangée statique (écouteurs délégués). -->
+         au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
+         peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
-    <button type="button" id="filtTog" class="filt-tog" data-filttog="" aria-haspopup="dialog" aria-expanded="false" aria-label="Affichage et filtres" title="Affichage et filtres"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"></path></svg><span class="filt-n" id="filtN" hidden=""></span></button>
     <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">Ctrl K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
@@ -61,6 +60,8 @@
          pendant : l'un dit ce qui est écrit, l'autre le défait. Masqué tant que la pile est vide
          (aucun bouton mort) et hors des éditeurs. -->
     <button class="hdr-undo" id="hdrUndo" hidden="" title="Annuler le dernier geste (Cmd/Ctrl-Z)" aria-label="Annuler le dernier geste"></button>
+    <!-- A553 : « ↷ Rétablir » — le pendant de ↶, présent seulement après une annulation (aucun bouton mort). -->
+    <button class="hdr-undo" id="hdrRedo" hidden="" title="Rétablir le geste annulé (Cmd/Ctrl-Maj-Z)" aria-label="Rétablir le geste annulé"></button>
     <span class="hdr-saved" id="hdrSaved" role="status" hidden=""></span>
     <!-- « ▶ Essayer » passe en TONAL (v4.77.0) : l'unique bouton REMPLI de l'éditeur est désormais la
          porte « ＋ ». C'est un arbitrage, pas un détail — l'action primaire d'un ÉDITEUR est
