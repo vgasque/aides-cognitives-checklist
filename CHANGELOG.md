@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.86.0] — 2026-11-04
+Importer une page Notion (A562, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Le .zip d'un export Notion (« Markdown & CSV ») s'importe tel quel** par « Importer un fichier » ou en le
+  déposant : chaque page devient une **référence en brouillon**, avec ses images (retrouvées dans le dossier de la
+  page, réduites comme une photo prise dans l'éditeur). L'atelier d'import la montre avant d'écrire.
+- Le titre de la page devient celui de la référence ; les propriétés Notion (« Statut », « Date »…) sont retirées ;
+  le souligné passe en gras, les encadrés Notion deviennent des encadrés (« Attention » quand ils commencent
+  par ⚠️).
+- Un **.md seul** s'importe aussi ; ses images, restées à côté, sont signalées absentes — le .zip est conseillé.
+- Rien ne se perd en silence : une image introuvable est nommée dans le texte, et ce qui n'a pas pu entrer est dit
+  avant l'import.
+
 ## [5.85.0] — 2026-11-04
 Éditeurs : le dépliant « Identité » et le mode « déplacer » (A560-A561, doctrine `docs/decisions/lot-v6-0.md`).
 Rien à rejouer côté serveur.
@@ -178,13 +190,3 @@ Correctif de l'app installée sur iPhone (A540, doctrine `docs/decisions/lot-v6-
 - **Accueil** : en défilant, la barre du haut prend son fond de verre dès que le titre « Aides » passe dessous ;
   « Sélectionner » et « Créer » ne chevauchent plus le titre ni les pastilles.
 - La hauteur de la barre d'état et de la zone basse est désormais lue correctement (menu ⋯, barre du bas).
-
-## [5.73.0] — 2026-11-01
-L'accueil retouché (A537-A539, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Accès direct en tuiles** : les aides épinglées s'affichent en grille, deux par ligne au téléphone, autant que la
-  largeur en tient ailleurs. Une tuile montre le titre, la catégorie et l'état.
-- **Vue compacte redessinée** : même dessin que la vue détaillée, mais chaque entrée tient sur une hauteur fixe —
-  deux lignes serrées au téléphone et sur tablette, une seule ligne sur grand écran.
-- **Barre du bas** : l'onglet actif est une pastille bleue pleine, bien visible dans les deux thèmes ; l'avatar de
-  « Moi » et le point de session en cours se détachent mieux. La recherche a la même hauteur que la barre d'onglets.
-- **Grand écran** : « Affichage » et « Sélectionner » sont alignés.

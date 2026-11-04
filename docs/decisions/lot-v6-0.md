@@ -1328,3 +1328,35 @@ restait en mode sans savoir pourquoi.
   vide déjà `state.edGrab`).
 - Un glisser n'émet pas de clic : défiler la page pendant le mode ne l'annule pas.
 Témoin : `audit-doctrine` « Éditeur · A561 » (vrais clics ; vérifié capable d'échouer : écouteur neutralisé → rouge).
+
+## A562 — Importer une page Notion telle qu'exportée (.zip ou .md) (v5.86.0)
+
+*Complète l'atelier d'import (A129, A159) et la porte des fichiers (`UP_KINDS`, « TOUTE ENTRÉE DE FICHIER »).*
+
+Demande de l'auteur : « importer facilement des protocoles depuis Notion (fichier .md avec dossier contenant les
+images, en chemins relatifs) ». Mesuré sur un export réel (« Motifs de recours en cardiologie », 1 page, 48 images,
+9 Mo) : 48/48 images retrouvées, 2,6 Mo après réduction, texte de 12 300 caractères.
+- **Le .zip de l'export entre tel quel**, par la même porte que les autres (« Importer un fichier », dépôt) : une
+  archive SANS `.json` mais avec des `.md` est un export Notion. Notion l'emballe parfois dans un second .zip
+  (« …-Part-1.zip ») : un niveau de plus est ouvert, pas davantage. **Chaque `.md` devient une RÉFÉRENCE, en
+  brouillon**, qui passe par l'atelier comme toute entité (on voit avant d'écrire).
+- **Les images** citées en chemin RELATIF (`![…](Page%20x/Untitled%201.png)`) sont résolues depuis le dossier du
+  `.md` (`notionPath` : `%xx`, `./`, `../`, NFC — macOS écrit les noms en NFD), signées (`imgKind`), bornées
+  (`MAX_IMG_BYTES`, `MAX_IMG_PER_ENTITY`), réduites par `downscale` comme une photo de l'éditeur, puis rangées dans
+  la référence (`img:<id>`). Une image placée en milieu de ligne passe sur sa ligne (le mini-Markdown n'en lit
+  qu'une par ligne, en tête). La légende inventée par Notion (« Untitled », nom de fichier, « Capture… ») est tue.
+- **Conversion** (`notionMd`, PURE) : le `# Titre` de tête devient le titre (hash de 32 caractères retiré) ; les
+  PROPRIÉTÉS de base Notion qui le suivent (« Statut: … », « Date: … ») sont retirées — des champs, pas du contenu ;
+  `<u>` → gras, `<mark>` → `==surligné==`, `<aside>` → encadré (« Attention » si ⚠️/❗/🚨 en tête, « Information »
+  sinon) ; `####` et plus → `###` ; un lien vers une autre page de l'export garde son texte seul ; le code reste
+  littéral.
+- **Rien ne se perd en silence** : une image citée mais absente est NOMMÉE dans le texte (« *[Image absente de
+  l'archive : x.png]* ») ; images manquantes, au-delà du plafond, texte au-delà de `MD_MAX_CHARS` se disent dans un
+  avis avant l'atelier.
+- **Un `.md` seul** est reconnu à sa tête (`dataKind` → `'md'` : premier caractère signifiant « # » suivi d'une
+  espace ou d'un « # ») — le texte libre reste refusé à la porte (« bonjour » → null, test conservé). Ses images,
+  restées dans le dossier, sont nommées absentes et l'avis conseille d'importer plutôt le .zip.
+*Forme écartée* : sélectionner le `.md` ET ses images ensemble — le sélecteur de fichiers d'iOS ne prend pas un
+dossier, et l'export Notion est déjà un .zip.
+Témoins : `tests.html` « Import — page Notion » (pur) ; `audit-doctrine` « Import · A562 » (archive fabriquée,
+vrai point d'entrée ; vérifié capable d'échouer : branche Notion retirée → 2 rouges).

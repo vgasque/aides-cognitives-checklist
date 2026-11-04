@@ -8586,6 +8586,29 @@ await sec('Éditeur · A561 toucher à côté annule le déplacement', async () 
   await page.close();
 });
 
+/* ══ A562 — UN EXPORT NOTION (.zip : page .md + dossier d'images en chemins relatifs) S'IMPORTE TEL QUEL ══════
+   Par le VRAI point d'entrée (`readImportFile`) : l'archive est fabriquée dans la page (`zipBuild`, une image PNG
+   réelle, une image citée mais absente), l'atelier s'ouvre sur UNE référence, l'import l'écrit avec son image. */
+await sec('Import · A562 export Notion (.md + images)', async () => {
+  const page=await br.newPage({viewport:{width:1100,height:850}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=60;c.height=40;c.getContext('2d').fillRect(0,0,60,40);
+    const png=new Uint8Array(await (await new Promise(r=>c.toBlob(r,'image/png'))).arrayBuffer()),T=s=>new TextEncoder().encode(s);
+    const md='# Page témoin\n\nStatut: Terminé\n\nIntro\n\n![Untitled](Page%20t%C3%A9moin/Untitled.png)\n\n![x](Page%20t%C3%A9moin/absente.png)';
+    const z=zipBuild([{name:'Page témoin 0123456789abcdef0123456789abcdef.md',data:T(md)},{name:'Page témoin/Untitled.png',data:png}]);
+    window.__n0=protocols.length;window.__fin=readImportFile(new File([z],'Export.zip'));});
+  const vu=await page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);   // un rouge LISIBLE, pas un plantage
+  const a=await page.evaluate(()=>({rangs:document.querySelectorAll('#impList .imp-row').length,kind:(document.querySelector('#impList .imp-kind')||{}).textContent||''}));
+  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await page.waitForTimeout(300);
+  const r=await page.evaluate(()=>{const x=protocols[protocols.length-1]||{};return {n:protocols.length-window.__n0,titre:x.title,imgs:(x.images||[]).length,
+    lie:(x.images||[]).length===1&&(x.body||'').includes('img:'+x.images[0].id),absente:/Image absente de l’archive : absente\.png/.test(x.body||''),prop:/Statut/.test(x.body||''),statut:x.status};});
+  t('A562 · le .zip Notion ouvre l\'atelier sur UNE référence',a.rangs===1&&/Référence/i.test(a.kind),JSON.stringify(a));
+  t('A562 · importée : titre sans le hash, image rangée et liée (img:<id>), absente nommée, propriétés retirées, en brouillon',
+    r.n===1&&r.titre==='Page témoin'&&r.lie&&r.absente&&!r.prop&&r.statut==='draft',JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
 await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async () => {
   const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
