@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GdpeDaXAm58VktGqhr3BjjaIxXnq5rsAA4cP3/0kzGI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fDJHjqjhj1CCdQ4+msHZChjAY5feuWzrFD+F0FMWqhs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3872,24 +3872,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A521 (lot 10) : l'Identité est un GROUPE DE RANGÉES « Titre · valeur » sous son intertitre (maquette Natif) ;
      ouverte, le sommaire n'est plus qu'un en-tête « Identité · Replier » au-dessus des champs. */
   .ed-sech{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* A560 : LE DÉPLIANT SE COMMANDE DE SON INTERTITRE — « Modifier ⌄ » / « Replier ⌃ », à la même place dans les deux
+     états (le chevron de la rangée « Catégorie » se lisait comme celui de la catégorie seule). Ouvert, la carte ne
+     rogne plus (`overflow:clip` coupait le menu ancré des catégories) : le sommaire y est masqué, plus rien à rogner. */
+  .ed-sech-row{display:flex;align-items:center;gap:8px;margin:16px 16px 6px}
+  .ed-sech-row .ed-sech{margin:0}
+  .id-tgl{margin-left:auto;display:inline-flex;align-items:center;gap:2px;min-height:32px;padding:0 2px 0 8px;border:0;border-radius:var(--r-2);background:none;font-family:inherit;font-size:var(--t-body);font-weight:600;color:var(--act);cursor:pointer}
+  .id-tgl .conf-chev{margin-left:0;color:inherit}
+  .id-tgl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:clip}
   .ed-ident>summary{display:block;cursor:pointer;list-style:none;font-family:inherit}
   .ed-ident>summary::-webkit-details-marker{display:none}
   .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-4)}
-  .ed-ident .id-row,.ed-ident .id-a{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
+  .ed-ident .id-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
   .ed-ident .id-row+.id-row{border-top:1px solid var(--line)}
   .ed-ident .id-k{flex:none;font-size:var(--t-body);color:var(--ink)}
   .ed-ident :is(.id-t,.id-c,.id-v){flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:400;color:var(--ink-2)}
   .ed-ident .id-v{display:flex;align-items:center;justify-content:flex-end;gap:8px}
   .ed-ident .id-v .dir-av{flex:none}
   .ed-ident :is(.id-t,.id-c).muted{color:var(--ink-soft)}
-  .ed-ident .id-chev{flex:none;display:inline-flex;color:var(--ink-soft);margin-right:-4px}
-  .ed-ident .id-a{display:none}
-  .ed-ident .id-x{margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--act)}
-  .ed-ident[open] .id-row{display:none}
-  .ed-ident[open] .id-a{display:flex;margin:0 -14px 12px;border-bottom:1px solid var(--line)}
-  .ed-ident[open] .id-a .id-k{font-weight:600}
-  .ed-ident[open]{padding:0 14px 8px}
+  .ed-ident[open]{padding:12px 14px 8px;overflow:visible}
+  .ed-ident[open]>summary{display:none}
   /* A521 : la STRUCTURE dans le fil (< 1200 px) — une rangée par bloc, elle ouvre le bloc sur sa page. */
   .ed-slist{margin:0 0 16px}
   .esl-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}
@@ -9665,7 +9668,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.84.0';
+const APP_VERSION='5.85.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17685,11 +17688,11 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],k=ph?T[3].lastIndexOf(ph):-1;
       openAt(r.i,k>=0?[k,k+ph.length]:undefined);
       if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t);}}}});
-  const take=i=>{open=-1;grab=i;paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});
+  const take=i=>{open=-1;grab=i;_mdGrabCancel=cancel;grabOutBind();paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});
     const g=doc.querySelector('.grabbed');if(g)g.scrollIntoView({block:'nearest'});};
-  const drop=k=>{const i=grab;grab=-1;const r=mdBlkMoveTo(p.body,i,k);if(r)push(r.v);paint(false);
+  const drop=k=>{const i=grab;grab=-1;_mdGrabCancel=null;const r=mdBlkMoveTo(p.body,i,k);if(r)push(r.v);paint(false);
     const b=doc.querySelector('[data-mdb="'+(r?r.i:i)+'"]');if(b){b.scrollIntoView({block:'nearest'});const h=b.querySelector('.mdb-grab');if(h)h.focus({preventScroll:true});}};
-  const cancel=()=>{const i=grab;grab=-1;paint(false);const h=doc.querySelector('[data-mdbgrab="'+i+'"]');if(h)h.focus({preventScroll:true});};
+  const cancel=()=>{const i=grab;grab=-1;_mdGrabCancel=null;paint(false);const h=doc.querySelector('[data-mdbgrab="'+i+'"]');if(h)h.focus({preventScroll:true});};
   doc.addEventListener('click',e=>{
     if(grab>=0){const d=e.target.closest('[data-mdbdrop]');if(d)return drop(+d.dataset.mdbdrop);
       if(e.target.closest('[data-mdbgrabx]'))return cancel();e.preventDefault();return;}
@@ -18366,7 +18369,7 @@ function editorMetaFieldsHtml(d,prefix,L){
   const ic=catOf(d),ro=(k,v,x)=>`<span class="id-row"><span class="id-k">${k}</span>${v}${x||''}</span>`;
   const resume=ro('Titre',vide?'<b class="id-t muted">'+(L.fem?'Nouvelle aide':'Nouveau protocole')+'</b>':'<b class="id-t">'+esc(d.title)+'</b>')   // A496 : un protocole neuf disait « Nouvelle aide »
     +ro('Code court','<span class="id-c'+(d.code?'':' muted')+'">'+(d.code?esc(d.code):'—')+'</span>')
-    +ro('Catégorie','<span class="id-v">'+(ic?`<span class="dir-av" style="--catcol:${safeColor(ic.color)}" aria-hidden="true"></span>${esc(ic.name)}`:'Sans catégorie')+'</span>',chevHtml(false,'id-chev'));
+    +ro('Catégorie','<span class="id-v">'+(ic?`<span class="dir-av" style="--catcol:${safeColor(ic.color)}" aria-hidden="true"></span>${esc(ic.name)}`:'Sans catégorie')+'</span>');
   /* LE DÉPLIANT NE SE REFERME PAS TOUT SEUL (signalé à l'usage : « une fois rempli, Nouvelle
      fiche se replie automatiquement ? »). L'ouverture d'office se DÉCIDE à l'entrée dans
      l'éditeur, elle ne se RECALCULE pas à chaque rendu : `vide` devenant faux dès que le titre
@@ -18377,7 +18380,7 @@ function editorMetaFieldsHtml(d,prefix,L){
   if(state.edIdentFor!==d.id){state.edIdentFor=d.id;state.edIdentOpen=!(d.title||'').trim();}   // A465 (amende v5.30) : ouverte pour une aide neuve, repliée dès qu'elle a un titre — l'éditeur s'ouvre sur le contenu
   const ouvert=state.edIdentOpen;
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
-    <p class="ed-sech">Identité</p><details class="ed-ident"${ouvert?' open':''}><summary>${resume}<span class="id-a"><span class="id-k">Identité</span><span class="id-x">Replier</span></span></summary>
+    <div class="ed-sech-row"><p class="ed-sech">Identité</p><button type="button" class="id-tgl" data-identtgl aria-expanded="${ouvert?'true':'false'}"><span class="id-tgl-l">${ouvert?'Replier':'Modifier'}</span>${chevHtml(ouvert)}</button></div><details class="ed-ident"${ouvert?' open':''}><summary tabindex="-1">${resume}</summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" class="ed-title-in" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
     <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette aide d’une voisine — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
@@ -18549,8 +18552,11 @@ function bindEditorMetaFields(d,prefix,o){
   document.getElementById(prefix+'-title').addEventListener('input',e=>{d.title=e.target.value;setBarTitle(e.target.value);});
   // Le repli du dépliant « Identité » est le GESTE de l'auteur : on le mémorise, aucun rendu ne
   // le reprend (cf. editorMetaFieldsHtml). L'évènement `toggle` ne bulle pas : écoute directe.
-  {const idt=main.querySelector('details.ed-ident');
-   if(idt)idt.addEventListener('toggle',()=>{state.edIdentOpen=idt.open;});}
+  {const idt=main.querySelector('details.ed-ident'),tg=main.querySelector('[data-identtgl]');
+   if(idt)idt.addEventListener('toggle',()=>{state.edIdentOpen=idt.open;
+     if(tg){tg.setAttribute('aria-expanded',idt.open?'true':'false');tg.querySelector('.id-tgl-l').textContent=idt.open?'Replier':'Modifier';
+       const ch=tg.querySelector('.conf-chev');if(ch)ch.classList.toggle('open',idt.open);}});
+   if(idt&&tg)tg.onclick=()=>{idt.open=!idt.open;};}
   {const pc=document.getElementById(prefix+'-code');if(pc)pc.addEventListener('input',e=>{d.code=e.target.value;});}
   {const pd=document.getElementById(prefix+'-disc');if(pd)pd.addEventListener('input',e=>{d.discriminant=e.target.value;});}   // K6
   // Date de validation : champ tolérant — interprétée au blur (« janv 2026 », « 01/2026 »…) puis
@@ -25989,6 +25995,18 @@ function edGrabAnchorSel(){
 function edGrabDrop(){
   const sel=edGrabAnchorSel();state.edGrab=null;
   if(sel)keepAnchor(sel,renderEditor);else renderEditor();}
+/* A561 — TOUCHER À CÔTÉ REPOSE L'OBJET (demande de l'auteur : « cliquer en dehors désélectionne et sort du mode
+   déplacer, c'est plus logique »). Un tap qui ne tombe ni sur une destination, ni sur une poignée, ni sur le bandeau
+   annule le déplacement — dans l'éditeur d'aide (`state.edGrab`) comme dans celui d'une référence (`_mdGrabCancel`).
+   Le tap est ABSORBÉ (il ne fait que reposer : sans cela, il ouvrirait le bloc touché) — sauf dans la barre d'en-tête,
+   où « ‹ Retour » reste un geste d'un seul tap. Un écouteur, posé une fois, en capture. */
+let _mdGrabCancel=null;
+const GRAB_KEEP='[data-drop],[data-ldrop],[data-grab],[data-lgrab],#edGrabX,.ed-grab,.ed-drop,[data-mdbdrop],[data-mdbgrabx],[data-mdbgrab],[data-mdbact="grab"],.ai-modal,.popmenu';
+function grabOutBind(){if(window._grabOutBound)return;window._grabOutBound=true;
+  document.addEventListener('click',e=>{const t=e.target;if(!(t instanceof Element)||t.closest(GRAB_KEEP))return;
+    const md=_mdGrabCancel,ed=state.edGrab&&(state.view==='edit'||state.view==='protocolEdit');if(!md&&!ed)return;
+    if(!t.closest('header.bar')){e.preventDefault();e.stopPropagation();}
+    if(md)md();else edGrabDrop();},true);}
 function edGrabBanner(f){
   if(!state.edGrab)return '';
   return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(edGrabLabel(f))}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" id="edGrabX" aria-label="Annuler le déplacement">✕</button></div>`;}
@@ -26527,6 +26545,7 @@ function renderEditor(){_renderN++;
     edFocusSet(b.dataset.edgo);});   // A521 : le bloc s'ouvre sur sa page
   edApplyFocus();
   {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=edGrabDrop;}
+  grabOutBind();   // A561
   /* Échap repose l'objet — geste d'annulation universel de l'app (modales, lecteur, plan). Posé
      UNE fois, à la première ouverture d'éditeur : `_edEscBound` évite d'empiler un écouteur par
      re-rendu (l'éditeur se re-rend à chaque frappe de structure). */

@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A559** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A561** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -183,6 +183,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A557 | `lot-v6-0.md` | Redimensionner en état zoomé garde le point regardé (image, PDF, Page) : point au centre retenu en proportion du repère, remis au centre ; `_svAncre` pour la Page re-rendue (v5.82.0) |
 | A558 | `lot-v6-0.md` | Le pincer d'A554 s'applique au plein écran du schéma (`#flowFull`) : SVG transformé pendant le geste, `flowZoom` fixé et re-tracé au lâcher, 40-400 % (v5.83.0) |
 | A559 | `lot-v6-0.md` | L'aperçu du schéma dans la page se pince aussi (`flowPinchBind`, échelle `flowZoom` partagée, défileur vertical choisi à la volée, `_flowAncre` au redimensionnement) (v5.84.0) |
+| A560 | `lot-v6-0.md` | « Identité » se plie depuis son intertitre (« Modifier ⌄ » / « Replier ⌃ », `.id-tgl`) ; ouverte, la carte ne rogne plus le menu des catégories (v5.85.0) |
+| A561 | `lot-v6-0.md` | Toucher à côté annule un déplacement « prendre / poser », dans les deux éditeurs (`grabOutBind`, `GRAB_KEEP`, tap absorbé hors barre d'en-tête) (v5.85.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

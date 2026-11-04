@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.85.0] — 2026-11-04
+Éditeurs : le dépliant « Identité » et le mode « déplacer » (A560-A561, doctrine `docs/decisions/lot-v6-0.md`).
+Rien à rejouer côté serveur.
+- **Toucher à côté sort du mode « déplacer »**, dans l'éditeur d'une aide (blocs, étapes, listes, minuteurs…) comme
+  dans celui d'une référence (blocs) : un tap qui ne tombe pas sur une destination « Poser ici » repose l'élément à
+  sa place. Ce tap ne fait rien d'autre (il n'ouvre pas le bloc touché) ; « ‹ Retour » reste actif en un tap.
+- **Le menu « Choisir la catégorie » n'est plus coupé** : ouvert depuis « Autre… », il se faisait rogner par le bas
+  de la carte « Identité ».
+- **Déplier et replier « Identité » se fait d'un seul endroit**, à droite de l'intertitre : « Modifier ⌄ » quand
+  la carte est repliée, « Replier ⌃ » quand elle est ouverte. Le chevron qui pendait au bout de la seule rangée
+  « Catégorie » est retiré ; toucher une rangée repliée déplie toujours.
+
 ## [5.84.0] — 2026-11-04
 Pincer pour zoomer l'aperçu du schéma dans la page (A559, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
 serveur.
@@ -176,11 +188,3 @@ L'accueil retouché (A537-A539, doctrine `docs/decisions/lot-v6-0.md`). Rien à 
 - **Barre du bas** : l'onglet actif est une pastille bleue pleine, bien visible dans les deux thèmes ; l'avatar de
   « Moi » et le point de session en cours se détachent mieux. La recherche a la même hauteur que la barre d'onglets.
 - **Grand écran** : « Affichage » et « Sélectionner » sont alignés.
-
-## [5.72.1] — 2026-11-01
-Bords au téléphone, signalés sur iPhone (A536, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Accueil** : la barre du haut, quand elle reste collée en défilant, va jusqu'au bord droit de l'écran (elle
-  s'arrêtait 8 px avant).
-- **Page** : « Fermer » n'est plus collé en haut ni contre le titre.
-- **Safari** : sous la Page (et toute feuille plein écran), la bande du bas ne prend plus la couleur du bouton bleu
-  « Démarrer » ou de la bulle du guide restés dessous.

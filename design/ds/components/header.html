@@ -3479,24 +3479,27 @@
   /* A521 (lot 10) : l'Identité est un GROUPE DE RANGÉES « Titre · valeur » sous son intertitre (maquette Natif) ;
      ouverte, le sommaire n'est plus qu'un en-tête « Identité · Replier » au-dessus des champs. */
   .ed-sech{margin:16px 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* A560 : LE DÉPLIANT SE COMMANDE DE SON INTERTITRE — « Modifier ⌄ » / « Replier ⌃ », à la même place dans les deux
+     états (le chevron de la rangée « Catégorie » se lisait comme celui de la catégorie seule). Ouvert, la carte ne
+     rogne plus (`overflow:clip` coupait le menu ancré des catégories) : le sommaire y est masqué, plus rien à rogner. */
+  .ed-sech-row{display:flex;align-items:center;gap:8px;margin:16px 16px 6px}
+  .ed-sech-row .ed-sech{margin:0}
+  .id-tgl{margin-left:auto;display:inline-flex;align-items:center;gap:2px;min-height:32px;padding:0 2px 0 8px;border:0;border-radius:var(--r-2);background:none;font-family:inherit;font-size:var(--t-body);font-weight:600;color:var(--act);cursor:pointer}
+  .id-tgl .conf-chev{margin-left:0;color:inherit}
+  .id-tgl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .ed-ident{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:clip}
   .ed-ident>summary{display:block;cursor:pointer;list-style:none;font-family:inherit}
   .ed-ident>summary::-webkit-details-marker{display:none}
   .ed-ident>summary:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-4)}
-  .ed-ident .id-row,.ed-ident .id-a{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
+  .ed-ident .id-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px}
   .ed-ident .id-row+.id-row{border-top:1px solid var(--line)}
   .ed-ident .id-k{flex:none;font-size:var(--t-body);color:var(--ink)}
   .ed-ident :is(.id-t,.id-c,.id-v){flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-body);font-weight:400;color:var(--ink-2)}
   .ed-ident .id-v{display:flex;align-items:center;justify-content:flex-end;gap:8px}
   .ed-ident .id-v .dir-av{flex:none}
   .ed-ident :is(.id-t,.id-c).muted{color:var(--ink-soft)}
-  .ed-ident .id-chev{flex:none;display:inline-flex;color:var(--ink-soft);margin-right:-4px}
-  .ed-ident .id-a{display:none}
-  .ed-ident .id-x{margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--act)}
-  .ed-ident[open] .id-row{display:none}
-  .ed-ident[open] .id-a{display:flex;margin:0 -14px 12px;border-bottom:1px solid var(--line)}
-  .ed-ident[open] .id-a .id-k{font-weight:600}
-  .ed-ident[open]{padding:0 14px 8px}
+  .ed-ident[open]{padding:12px 14px 8px;overflow:visible}
+  .ed-ident[open]>summary{display:none}
   /* A521 : la STRUCTURE dans le fil (< 1200 px) — une rangée par bloc, elle ouvre le bloc sur sa page. */
   .ed-slist{margin:0 0 16px}
   .esl-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:clip}

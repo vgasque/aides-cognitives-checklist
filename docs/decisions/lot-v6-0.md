@@ -1294,3 +1294,37 @@ l'aperçu `.flow-scroll`, rebranché par `bindFlowZoom` à chaque rendu (l'aper�
   mesuré à 1280 → 900 px, le point au centre dérivait de 11 % en largeur.
 Témoin : `audit-doctrine` « A559 » — contrôles d'A558 sur l'aperçu (390 px, tactile), et le redimensionnement 1280 →
 900 à 250 % (vérifié capable d'échouer : branchement retiré et mémoire coupée → 2 rouges).
+
+## A560 — « Identité » se plie depuis son intertitre ; la carte ouverte ne rogne plus le menu (v5.85.0)
+
+*Amende A521 §1 (le chevron de la rangée « Catégorie » et l'en-tête intérieur « Identité · Replier »).*
+
+Signalé à l'usage, sur capture : « c'est coupé, et je n'aime pas l'emplacement de la flèche pour déplier ».
+1. **Le menu des catégories était coupé.** `details.ed-ident` porte `overflow:clip` (pour que les rangées épousent
+   l'arrondi) ; le menu ancré de « Autre… » vit DANS la carte (`openPickMenu` monte un menu ancré dans son hôte) et
+   se faisait rogner au bas de la carte. Ouverte, la carte n'a plus rien à rogner (le sommaire y est masqué) : elle
+   passe en `overflow:visible`. Repliée, elle garde le `clip` — aucun menu ne s'ouvre depuis les rangées.
+2. **Un seul déclencheur, à une seule place.** Le chevron ›, posé au bout de la seule rangée « Catégorie », se
+   lisait comme celui de la catégorie, et l'état ouvert mettait « Replier » ailleurs (en-tête intérieur, qui
+   doublait l'intertitre). Le déclencheur est désormais à droite de l'intertitre, dans les deux états :
+   « Modifier ⌄ » / « Replier ⌃ » (`.id-tgl`, `aria-expanded`). Le tap sur les rangées repliées déplie toujours
+   (A521) ; le sommaire sort de l'ordre de tabulation (`tabindex="-1"`), le bouton étant LA commande clavier.
+   `.id-a`, `.id-x`, `.id-chev` sont purgés (règle 14).
+
+## A561 — Toucher à côté repose l'objet « en main » (v5.85.0)
+
+*Complète MK5-b (« UN DÉPLACEMENT EST UN GESTE MODAL », `conventions-de-code.md`) et A549 : aux trois façons d'annuler
+(✕ du bandeau, Échap, l'objet pris lui-même) s'ajoute la plus naturelle.*
+
+Demande de l'auteur : « pour tout type de déplacement […] cliquer en dehors désélectionne et sort du mode déplacer,
+c'est plus logique ». Jusqu'ici un tap hors cible ne faisait RIEN (le formulaire est inerte, `disabled`), et l'on
+restait en mode sans savoir pourquoi.
+- **Un écouteur, en capture sur `document`** (`grabOutBind`, posé une fois) : pendant un déplacement de l'éditeur
+  d'aide (`state.edGrab`) ou d'une référence (`_mdGrabCancel`, tenu par `mdDocBind`), un clic qui ne tombe pas sur
+  `GRAB_KEEP` (cibles, poignées, bandeau, fenêtres et menus) annule — par `edGrabDrop` (ancré, v4.77.0 : le regard ne
+  bouge pas) ou `cancel` (focus rendu à la poignée).
+- **Le tap qui repose est ABSORBÉ** (`preventDefault` + `stopPropagation`) : sans cela, dans une référence, le même
+  tap ouvrait le bloc touché. **Exception : la barre d'en-tête**, où « ‹ Retour » reste un geste d'un tap (le retour
+  vide déjà `state.edGrab`).
+- Un glisser n'émet pas de clic : défiler la page pendant le mode ne l'annule pas.
+Témoin : `audit-doctrine` « Éditeur · A561 » (vrais clics ; vérifié capable d'échouer : écouteur neutralisé → rouge).

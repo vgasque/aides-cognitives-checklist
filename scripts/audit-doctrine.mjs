@@ -8547,6 +8547,45 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
   await page.close();
 });
 
+/* ══ A561 — TOUCHER À CÔTÉ REPOSE L'OBJET, DANS LES DEUX ÉDITEURS ══════════════════════════════════════════════
+   Vrais clics souris (l'écouteur est en capture sur `document`) : prendre, toucher une zone neutre, plus de mode ;
+   et le tap qui repose est absorbé (il n'ouvre pas le bloc touché). Poser sur une cible marche toujours. */
+await sec('Éditeur · A561 toucher à côté annule le déplacement', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  // 1. Éditeur d'aide : une étape prise, puis un clic sur le grand titre de la page.
+  await page.evaluate(async()=>{await openEdit(fiches[0].id);});await page.waitForTimeout(400);
+  const inertes0=await page.evaluate(()=>[...document.querySelectorAll('main input')].filter(x=>x.disabled).length);
+  await page.evaluate(()=>{const g=document.querySelector('[data-grab^="s:"]');g.scrollIntoView({block:'center'});g.click();});await page.waitForTimeout(200);
+  const a0=await page.evaluate(()=>({pris:!!state.edGrab,bandeau:!!document.querySelector('.ed-grab')}));
+  {const b=await page.evaluate(()=>{const r=document.querySelector('.ed-grab').getBoundingClientRect();return {x:Math.round(r.left+4),y:Math.round(r.bottom+6)};});
+   const neutre=await page.evaluate(()=>{const h=document.querySelector('main h1, main .pg-ttl, main .ed-h1');if(h){const r=h.getBoundingClientRect();return {x:Math.round(r.right+20),y:Math.round(r.top+r.height/2)};}return null;});
+   const pt=neutre||b;await page.mouse.click(pt.x,pt.y);}
+  await page.waitForTimeout(300);
+  const a1=await page.evaluate(()=>({pris:!!state.edGrab,bandeau:!!document.querySelector('.ed-grab'),inertes:[...document.querySelectorAll('main input')].filter(x=>x.disabled).length}));
+  t('A561 · éditeur d\'aide : une étape prise, un clic à côté la repose (plus de bandeau, formulaire rendu)',
+    a0.pris&&a0.bandeau&&!a1.pris&&!a1.bandeau&&a1.inertes===inertes0,JSON.stringify([a0,a1,inertes0]));
+  // 2. Éditeur de référence : un bloc pris, un clic sur un AUTRE bloc le repose sans l'ouvrir.
+  await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A561',body:'## A\n\nUn.\n\nDeux.'});protocols.push(pr);await openProtocolEdit(pr.id);});
+  await page.waitForTimeout(500);
+  await page.evaluate(()=>{document.querySelector('#mdDoc [data-mdbgrab="2"]').click();});await page.waitForTimeout(200);
+  const b0=await page.evaluate(()=>!!document.querySelector('#mdDoc .ed-grab'));
+  {const r=await page.evaluate(()=>{const e=document.querySelector('#mdDoc .mdb[data-mdb="0"]').getBoundingClientRect();return {x:Math.round(e.left+e.width/2),y:Math.round(e.top+e.height/2)};});
+   await page.mouse.click(r.x,r.y);}
+  await page.waitForTimeout(250);
+  const b1=await page.evaluate(()=>({mode:!!document.querySelector('#mdDoc .ed-grab'),ouvert:!!document.querySelector('#mdDoc .mdb-ta'),corps:state.pdraft.body,plan:document.querySelector('[data-mdplan]').disabled}));
+  await page.evaluate(()=>{document.querySelector('#mdDoc [data-mdbgrab="2"]').click();});await page.waitForTimeout(200);
+  {const r=await page.evaluate(()=>{const e=document.querySelector('#mdDoc [data-mdbdrop="0"]').getBoundingClientRect();return {x:Math.round(e.left+e.width/2),y:Math.round(e.top+e.height/2)};});
+   await page.mouse.click(r.x,r.y);}
+  await page.waitForTimeout(250);
+  const b2=await page.evaluate(()=>state.pdraft.body.split('\n')[0]);
+  t('A561 · référence : un bloc pris, un clic sur un autre bloc le repose sans l\'ouvrir ni rien déplacer',
+    b0&&!b1.mode&&!b1.ouvert&&b1.corps==='## A\n\nUn.\n\nDeux.'&&!b1.plan,JSON.stringify(b1));
+  t('A561 · … et poser sur une cible déplace toujours',b2==='Deux.',b2);
+  await page.close();
+});
+
 /* ══ A542-A543 — UNE SEULE BANDE EN HAUT UNE FOIS DÉFILÉ ; LA BARRE D'ONGLETS AU BAS D'IOS ═══════════════════════ */
 await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async () => {
   const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
