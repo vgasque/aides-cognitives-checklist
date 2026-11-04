@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.86.0] — 2026-11-04
+Importer une page Notion (A562, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Le .zip d'un export Notion (« Markdown & CSV ») s'importe tel quel** par « Importer un fichier » ou en le
+  déposant : chaque page devient une **référence en brouillon**, avec ses images (retrouvées dans le dossier de la
+  page, réduites comme une photo prise dans l'éditeur). L'atelier d'import la montre avant d'écrire.
+- Le titre de la page devient celui de la référence ; les propriétés Notion (« Statut », « Date »…) sont retirées ;
+  le souligné passe en gras, les encadrés Notion deviennent des encadrés (« Attention » quand ils commencent
+  par ⚠️).
+- Un **.md seul** s'importe aussi ; ses images, restées à côté, sont signalées absentes — le .zip est conseillé.
+- Rien ne se perd en silence : une image introuvable est nommée dans le texte, et ce qui n'a pas pu entrer est dit
+  avant l'import.
+
+## [5.85.0] — 2026-11-04
+Éditeurs : le dépliant « Identité » et le mode « déplacer » (A560-A561, doctrine `docs/decisions/lot-v6-0.md`).
+Rien à rejouer côté serveur.
+- **Toucher à côté sort du mode « déplacer »**, dans l'éditeur d'une aide (blocs, étapes, listes, minuteurs…) comme
+  dans celui d'une référence (blocs) : un tap qui ne tombe pas sur une destination « Poser ici » repose l'élément à
+  sa place. Ce tap ne fait rien d'autre (il n'ouvre pas le bloc touché) ; « ‹ Retour » reste actif en un tap.
+- **Le menu « Choisir la catégorie » n'est plus coupé** : ouvert depuis « Autre… », il se faisait rogner par le bas
+  de la carte « Identité ».
+- **Déplier et replier « Identité » se fait d'un seul endroit**, à droite de l'intertitre : « Modifier ⌄ » quand
+  la carte est repliée, « Replier ⌃ » quand elle est ouverte. Le chevron qui pendait au bout de la seule rangée
+  « Catégorie » est retiré ; toucher une rangée repliée déplie toujours.
+
 ## [5.84.0] — 2026-11-04
 Pincer pour zoomer l'aperçu du schéma dans la page (A559, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
 serveur.
@@ -166,21 +190,3 @@ Correctif de l'app installée sur iPhone (A540, doctrine `docs/decisions/lot-v6-
 - **Accueil** : en défilant, la barre du haut prend son fond de verre dès que le titre « Aides » passe dessous ;
   « Sélectionner » et « Créer » ne chevauchent plus le titre ni les pastilles.
 - La hauteur de la barre d'état et de la zone basse est désormais lue correctement (menu ⋯, barre du bas).
-
-## [5.73.0] — 2026-11-01
-L'accueil retouché (A537-A539, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Accès direct en tuiles** : les aides épinglées s'affichent en grille, deux par ligne au téléphone, autant que la
-  largeur en tient ailleurs. Une tuile montre le titre, la catégorie et l'état.
-- **Vue compacte redessinée** : même dessin que la vue détaillée, mais chaque entrée tient sur une hauteur fixe —
-  deux lignes serrées au téléphone et sur tablette, une seule ligne sur grand écran.
-- **Barre du bas** : l'onglet actif est une pastille bleue pleine, bien visible dans les deux thèmes ; l'avatar de
-  « Moi » et le point de session en cours se détachent mieux. La recherche a la même hauteur que la barre d'onglets.
-- **Grand écran** : « Affichage » et « Sélectionner » sont alignés.
-
-## [5.72.1] — 2026-11-01
-Bords au téléphone, signalés sur iPhone (A536, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Accueil** : la barre du haut, quand elle reste collée en défilant, va jusqu'au bord droit de l'écran (elle
-  s'arrêtait 8 px avant).
-- **Page** : « Fermer » n'est plus collé en haut ni contre le titre.
-- **Safari** : sous la Page (et toute feuille plein écran), la bande du bas ne prend plus la couleur du bouton bleu
-  « Démarrer » ou de la bulle du guide restés dessous.

@@ -1342,6 +1342,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('bloc de code ``` accepté (le prompt IA en produit)', A.dataKind(A2('```json\n{"a":1}')), 'json');
    eq('un PDF renommé .json est refusé', A.dataKind(A2('%PDF-1.7')), null);
    eq('du texte libre est refusé', A.dataKind(A2('bonjour')), null);
+   // A562 : une page Notion exportée commence par « # Titre » — c'est ce signe-là, et lui seul, qui fait un Markdown.
+   eq('Markdown (« # Titre ») reconnu', A.dataKind(A2('# Motifs de recours\n\nTexte')), 'md');
+   eq('… BOM et blancs en tête compris', A.dataKind(B([0xEF,0xBB,0xBF,0x0A,0x23,0x20,0x54])), 'md');
+   eq('« #hashtag » n’est pas un titre', A.dataKind(A2('#hashtag')), null);
 
    // Détection croisée : c'est elle qui ROUTE un fichier déposé n'importe où dans un éditeur.
    eq('routage : PDF', A.upDetect(A2('%PDF-1.4')), 'pdf');
@@ -2310,6 +2314,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('… et 2 protocoles',(r4.protocols||[]).length,2);
   }
 
+  group('Import — page Notion (.md + dossier d’images, A562)');
+  {
+    const src='# Ma page\n\nStatut: Terminé\nDate: 30 janvier 2024\n\nIntro\n\n![Untitled](Ma%20page/Untitled%201.png)\n\n'
+      +'<u>Signes</u> : voir ![Schéma ECG](Ma%20page/ecg.png) ici\n\n#### Petit titre\n\n<aside>\n⚠️ Piège\n</aside>\n\n'
+      +'Voir [Autre page](Autre%20page%20abc.md) et ![x](Ma%20page/absente.png)\n\n```\n<u>code</u>\n```';
+    eq('les chemins sont décodés et résolus depuis le dossier du .md',A.notionImgPaths(src,'Export'),
+      ['Export/Ma page/Untitled 1.png','Export/Ma page/ecg.png','Export/Ma page/absente.png']);
+    eq('« ../ » remonte, une URL externe n’est pas cherchée dans l’archive',
+      A.notionImgPaths('![a](../img/a.png) ![b](https://x.org/b.png)','d/e'),['d/img/a.png']);
+    const ids=Object.create(null);ids['Ma page/Untitled 1.png']='i1';ids['Ma page/ecg.png']='i2';
+    const r=A.notionMd(src,'',ids);
+    eq('le titre vient du « # » de tête',r.title,'Ma page');
+    ok('les propriétés de base Notion sont retirées',!/Statut|janvier/.test(r.body),r.body);
+    ok('une image devient « img:<id> », sans la légende inventée « Untitled »',r.body.includes('\n![](img:i1)\n'),r.body);
+    ok('une image en milieu de ligne passe sur sa ligne, légende réelle gardée',/voir\n\n?!\[Schéma ECG\]\(img:i2\)\n\n?ici/.test(r.body),r.body);
+    ok('<u> devient du gras',r.body.includes('**Signes** :'),r.body);
+    ok('#### devient ### (le mini-Markdown en a trois)',r.body.includes('\n### Petit titre'),r.body);
+    ok('<aside> devient un encadré, ⚠️ en tête → Attention',r.body.includes('> [!WARNING]\n> ⚠️ Piège'),r.body);
+    ok('un lien vers une page absente garde son texte seul',r.body.includes('Voir Autre page et'),r.body);
+    eq('une image absente est NOMMÉE et comptée, jamais perdue en silence',[r.manque,/Image absente de l’archive : absente\.png/.test(r.body)],[1,true]);
+    ok('le code reste littéral',r.body.includes('```\n<u>code</u>\n```'),r.body);
+    eq('sans « # » en tête : pas de titre, rien de mangé',A.notionMd('Texte: seul\n\nSuite','',{}).body,'Texte: seul\n\nSuite');
+    const rb=A.mdBlocks(r.body);
+    ok('… et le mini-Markdown y lit bien les images et l’encadré',rb.filter(b=>b.t==='img').length===2&&rb.some(b=>b.t==='q'&&b.kind==='vig'),JSON.stringify(rb.map(b=>b.t+(b.kind||''))));
+  }
   group('Synchro — table REST ≠ store local (v5.0.4)');
   {
     /* Signalé à l'usage : « Erreur synchronisation — One of the specified object stores was not

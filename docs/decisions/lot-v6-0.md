@@ -1294,3 +1294,69 @@ l'aperçu `.flow-scroll`, rebranché par `bindFlowZoom` à chaque rendu (l'aper�
   mesuré à 1280 → 900 px, le point au centre dérivait de 11 % en largeur.
 Témoin : `audit-doctrine` « A559 » — contrôles d'A558 sur l'aperçu (390 px, tactile), et le redimensionnement 1280 →
 900 à 250 % (vérifié capable d'échouer : branchement retiré et mémoire coupée → 2 rouges).
+
+## A560 — « Identité » se plie depuis son intertitre ; la carte ouverte ne rogne plus le menu (v5.85.0)
+
+*Amende A521 §1 (le chevron de la rangée « Catégorie » et l'en-tête intérieur « Identité · Replier »).*
+
+Signalé à l'usage, sur capture : « c'est coupé, et je n'aime pas l'emplacement de la flèche pour déplier ».
+1. **Le menu des catégories était coupé.** `details.ed-ident` porte `overflow:clip` (pour que les rangées épousent
+   l'arrondi) ; le menu ancré de « Autre… » vit DANS la carte (`openPickMenu` monte un menu ancré dans son hôte) et
+   se faisait rogner au bas de la carte. Ouverte, la carte n'a plus rien à rogner (le sommaire y est masqué) : elle
+   passe en `overflow:visible`. Repliée, elle garde le `clip` — aucun menu ne s'ouvre depuis les rangées.
+2. **Un seul déclencheur, à une seule place.** Le chevron ›, posé au bout de la seule rangée « Catégorie », se
+   lisait comme celui de la catégorie, et l'état ouvert mettait « Replier » ailleurs (en-tête intérieur, qui
+   doublait l'intertitre). Le déclencheur est désormais à droite de l'intertitre, dans les deux états :
+   « Modifier ⌄ » / « Replier ⌃ » (`.id-tgl`, `aria-expanded`). Le tap sur les rangées repliées déplie toujours
+   (A521) ; le sommaire sort de l'ordre de tabulation (`tabindex="-1"`), le bouton étant LA commande clavier.
+   `.id-a`, `.id-x`, `.id-chev` sont purgés (règle 14).
+
+## A561 — Toucher à côté repose l'objet « en main » (v5.85.0)
+
+*Complète MK5-b (« UN DÉPLACEMENT EST UN GESTE MODAL », `conventions-de-code.md`) et A549 : aux trois façons d'annuler
+(✕ du bandeau, Échap, l'objet pris lui-même) s'ajoute la plus naturelle.*
+
+Demande de l'auteur : « pour tout type de déplacement […] cliquer en dehors désélectionne et sort du mode déplacer,
+c'est plus logique ». Jusqu'ici un tap hors cible ne faisait RIEN (le formulaire est inerte, `disabled`), et l'on
+restait en mode sans savoir pourquoi.
+- **Un écouteur, en capture sur `document`** (`grabOutBind`, posé une fois) : pendant un déplacement de l'éditeur
+  d'aide (`state.edGrab`) ou d'une référence (`_mdGrabCancel`, tenu par `mdDocBind`), un clic qui ne tombe pas sur
+  `GRAB_KEEP` (cibles, poignées, bandeau, fenêtres et menus) annule — par `edGrabDrop` (ancré, v4.77.0 : le regard ne
+  bouge pas) ou `cancel` (focus rendu à la poignée).
+- **Le tap qui repose est ABSORBÉ** (`preventDefault` + `stopPropagation`) : sans cela, dans une référence, le même
+  tap ouvrait le bloc touché. **Exception : la barre d'en-tête**, où « ‹ Retour » reste un geste d'un tap (le retour
+  vide déjà `state.edGrab`).
+- Un glisser n'émet pas de clic : défiler la page pendant le mode ne l'annule pas.
+Témoin : `audit-doctrine` « Éditeur · A561 » (vrais clics ; vérifié capable d'échouer : écouteur neutralisé → rouge).
+
+## A562 — Importer une page Notion telle qu'exportée (.zip ou .md) (v5.86.0)
+
+*Complète l'atelier d'import (A129, A159) et la porte des fichiers (`UP_KINDS`, « TOUTE ENTRÉE DE FICHIER »).*
+
+Demande de l'auteur : « importer facilement des protocoles depuis Notion (fichier .md avec dossier contenant les
+images, en chemins relatifs) ». Mesuré sur un export réel (« Motifs de recours en cardiologie », 1 page, 48 images,
+9 Mo) : 48/48 images retrouvées, 2,6 Mo après réduction, texte de 12 300 caractères.
+- **Le .zip de l'export entre tel quel**, par la même porte que les autres (« Importer un fichier », dépôt) : une
+  archive SANS `.json` mais avec des `.md` est un export Notion. Notion l'emballe parfois dans un second .zip
+  (« …-Part-1.zip ») : un niveau de plus est ouvert, pas davantage. **Chaque `.md` devient une RÉFÉRENCE, en
+  brouillon**, qui passe par l'atelier comme toute entité (on voit avant d'écrire).
+- **Les images** citées en chemin RELATIF (`![…](Page%20x/Untitled%201.png)`) sont résolues depuis le dossier du
+  `.md` (`notionPath` : `%xx`, `./`, `../`, NFC — macOS écrit les noms en NFD), signées (`imgKind`), bornées
+  (`MAX_IMG_BYTES`, `MAX_IMG_PER_ENTITY`), réduites par `downscale` comme une photo de l'éditeur, puis rangées dans
+  la référence (`img:<id>`). Une image placée en milieu de ligne passe sur sa ligne (le mini-Markdown n'en lit
+  qu'une par ligne, en tête). La légende inventée par Notion (« Untitled », nom de fichier, « Capture… ») est tue.
+- **Conversion** (`notionMd`, PURE) : le `# Titre` de tête devient le titre (hash de 32 caractères retiré) ; les
+  PROPRIÉTÉS de base Notion qui le suivent (« Statut: … », « Date: … ») sont retirées — des champs, pas du contenu ;
+  `<u>` → gras, `<mark>` → `==surligné==`, `<aside>` → encadré (« Attention » si ⚠️/❗/🚨 en tête, « Information »
+  sinon) ; `####` et plus → `###` ; un lien vers une autre page de l'export garde son texte seul ; le code reste
+  littéral.
+- **Rien ne se perd en silence** : une image citée mais absente est NOMMÉE dans le texte (« *[Image absente de
+  l'archive : x.png]* ») ; images manquantes, au-delà du plafond, texte au-delà de `MD_MAX_CHARS` se disent dans un
+  avis avant l'atelier.
+- **Un `.md` seul** est reconnu à sa tête (`dataKind` → `'md'` : premier caractère signifiant « # » suivi d'une
+  espace ou d'un « # ») — le texte libre reste refusé à la porte (« bonjour » → null, test conservé). Ses images,
+  restées dans le dossier, sont nommées absentes et l'avis conseille d'importer plutôt le .zip.
+*Forme écartée* : sélectionner le `.md` ET ses images ensemble — le sélecteur de fichiers d'iOS ne prend pas un
+dossier, et l'export Notion est déjà un .zip.
+Témoins : `tests.html` « Import — page Notion » (pur) ; `audit-doctrine` « Import · A562 » (archive fabriquée,
+vrai point d'entrée ; vérifié capable d'échouer : branche Notion retirée → 2 rouges).
