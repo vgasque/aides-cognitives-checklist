@@ -4799,11 +4799,11 @@
   .rt-fnav .mini{min-width:44px;height:44px;min-height:44px}   /* A376 : les ‹ › d'une recherche sont les compagnons d'un champ de 44 — même hauteur (L) */
   .fz-spc{flex:1}
   .fzv,.sv-zv{font-family:var(--f-mono);font-size:var(--t-body);font-weight:700;color:var(--ink-2);min-width:48px;text-align:center}
-  /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
+  /* Plein écran de l'algorithme SVG (zoom + défilement ; A558 : pincer maison, `pan-x pan-y` sur le défileur) */
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--amb);display:none;flex-direction:column}
   #flowFull.on{display:flex}
   #flowFull .ff-bar{display:flex;align-items:center;gap:6px;padding:calc(9px + var(--sat)) 12px 9px;background:var(--work);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
-  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
+  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper);touch-action:pan-x pan-y}
   /* ═══ K1 (v4.64.0, audit design — maquettes MK) : ON ÉDITE DANS LA GRAMMAIRE DE LECTURE ═══
      L'éditeur était un FORMULAIRE : champs empilés d'un côté, aperçu de l'autre — l'auteur
      composait à l'aveugle et ne découvrait le rendu qu'en basculant. Désormais le chapeau EST le

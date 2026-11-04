@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.83.0] — 2026-11-04
+Pincer pour zoomer le schéma en plein écran (A558, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Le schéma en plein écran se pince comme la Page, les PDF et les images** : il suit les doigts sans délai, l'endroit
+  pincé reste sous les doigts, et il redevient net au lâcher (de 40 à 400 %).
+- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
+- Lever les doigts après un pincer n'ouvre plus un bloc par accident, et changer la taille de la fenêtre garde
+  l'endroit regardé.
+
 ## [5.82.0] — 2026-11-04
 Accueil au téléphone : un bouton pour choisir QUOI afficher, un pour COMMENT le présenter (A556) ; le zoom survit au
 redimensionnement (A557). Doctrine `docs/decisions/lot-v6-0.md`. Rien à rejouer côté serveur.
@@ -174,10 +182,3 @@ Le rail de la session à la maquette Natif (A535, doctrine `docs/decisions/lot-v
 - **Minuteurs** : cartes grises, sans bordure (un minuteur échu garde son bord ambre).
 - **Jalons** : une jauge à points à côté du compte, et le texte de l'aide en dessous (« → envisager une FV
   réfractaire »).
-
-## [5.71.0] — 2026-11-01
-Conformité aux maquettes Natif (A534, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **La colonne « Parcours »** (avant et pendant la session, sur grand écran) devient une liste légère : le bloc en
-  cours en bleu, la décision sans fond ambre, les chevrons discrets. Replier et déplier marchent comme avant.
-- **Le bouton du bloc** dit « Cochez les 3 restantes » (une ligne au lieu de deux).
-- **La colonne de gauche** affiche le nombre d'aides et de sessions.
