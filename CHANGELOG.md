@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.84.0] — 2026-11-04
+Pincer pour zoomer l'aperçu du schéma dans la page (A559, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
+serveur.
+- **L'aperçu du schéma dans une aide se pince** comme le plein écran : il suit les doigts, l'endroit pincé reste sous
+  les doigts, et il redevient net au lâcher (de 40 à 400 %). Le zoom est commun à l'aperçu et au plein écran.
+- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
+- Lever les doigts après un pincer n'ouvre pas de bloc par accident, et changer la taille de la fenêtre garde
+  l'endroit regardé.
+
 ## [5.83.0] — 2026-11-04
 Pincer pour zoomer le schéma en plein écran (A558, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Le schéma en plein écran se pince comme la Page, les PDF et les images** : il suit les doigts sans délai, l'endroit
@@ -175,10 +184,3 @@ Bords au téléphone, signalés sur iPhone (A536, doctrine `docs/decisions/lot-v
 - **Page** : « Fermer » n'est plus collé en haut ni contre le titre.
 - **Safari** : sous la Page (et toute feuille plein écran), la bande du bas ne prend plus la couleur du bouton bleu
   « Démarrer » ou de la bulle du guide restés dessous.
-
-## [5.72.0] — 2026-11-01
-Le rail de la session à la maquette Natif (A535, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Compteurs** : « − 1 + », la valeur entre ses deux boutons.
-- **Minuteurs** : cartes grises, sans bordure (un minuteur échu garde son bord ambre).
-- **Jalons** : une jauge à points à côté du compte, et le texte de l'aide en dessous (« → envisager une FV
-  réfractaire »).
