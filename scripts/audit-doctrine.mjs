@@ -6453,7 +6453,7 @@ await sec('A129 · l\'atelier d\'import', async () => {
   // Une seule question suit (Perso par défaut, donc pas de destination ; 2 éléments -> fusion).
   await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
   await page.click('#confirmYes');
-  await page.waitForFunction(()=>fiches.some(f=>/ATELIER — aide validée/.test(f.title)),null,{timeout:8000}).catch(()=>{});
+  await page.waitForFunction(()=>fiches.some(f=>/ATELIER — aide validée/.test(f.title))&&protocols.some(p=>/ATELIER — référence/.test(p.title)),null,{timeout:8000}).catch(()=>{});
   const apres=await page.evaluate(async()=>{
     const A=fiches.find(f=>/ATELIER — aide validée/.test(f.title));
     return {a:!!A,statutA:A?A.status:null,
