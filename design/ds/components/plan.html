@@ -4782,7 +4782,7 @@
   /* Entrebâillé, les commandes de zoom n'ont rien à régler : on ne manipule pas une vignette. */
   .flow-prev:not(.on) .flow-zoom{display:none}
   .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
-  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1));touch-action:pan-x pan-y}   /* A559 : glisser natif, pincer maison */
   /* ⚠ Tactile : le plan INLINE ne défile plus verticalement en interne — axe FERMÉ par
      `overflow-y:clip` (un axe auto rebondit sur iOS même vide) ; l'horizontal est conservé. Vaut
      pour `.flow-scroll` (portée `main` : #flowFull a SON défileur, `.ff-scroll`) ET `.sv-scroll`

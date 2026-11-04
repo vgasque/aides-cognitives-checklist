@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-G9CjxaPFUHncC3dF092r+Kkc6ubNI31OreCndGKtt4o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GdpeDaXAm58VktGqhr3BjjaIxXnq5rsAA4cP3/0kzGI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5175,7 +5175,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Entrebâillé, les commandes de zoom n'ont rien à régler : on ne manipule pas une vignette. */
   .flow-prev:not(.on) .flow-zoom{display:none}
   .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
-  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1));touch-action:pan-x pan-y}   /* A559 : glisser natif, pincer maison */
   /* ⚠ Tactile : le plan INLINE ne défile plus verticalement en interne — axe FERMÉ par
      `overflow-y:clip` (un axe auto rebondit sur iOS même vide) ; l'horizontal est conservé. Vaut
      pour `.flow-scroll` (portée `main` : #flowFull a SON défileur, `.ff-scroll`) ET `.sv-scroll`
@@ -9665,7 +9665,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.83.0';
+const APP_VERSION='5.84.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10881,8 +10881,8 @@ function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScr
 // sur un algorithme très large. Ensuite on conserve la position de l'utilisateur.
 function centerOnStart(el){const svg=el.querySelector('svg');const cx=svg?+svg.getAttribute('data-startcx')||0:0;const target=(cx?cx*flowZoom:el.scrollWidth/2)-el.clientWidth/2;return Math.max(0,Math.min(el.scrollWidth-el.clientWidth,Math.round(target)));}
 function restoreFlow(){const el=main.querySelector('.flow-scroll');if(!el)return;if(flowScroll.left==null){el.scrollLeft=centerOnStart(el);el.scrollTop=flowScroll.top||0;}else{el.scrollLeft=flowScroll.left;el.scrollTop=flowScroll.top;}}
-// Zoom de l'aperçu algorithme via boutons dédiés (le pinch-to-zoom du navigateur reste natif,
-// on ne capture aucun geste tactile). Le déplacement se fait par le défilement du conteneur.
+// Zoom de l'aperçu algorithme : boutons dédiés, et pincer (A558-A559, `flowPinchBind`). Le déplacement se fait par
+// le défilement du conteneur.
 let flowZoom=1;
 // Le zoom s'applique au SVG d'aperçu (inline) ET au SVG plein écran s'il est ouvert ; tous les
 // indicateurs de % (.fzv, inline + plein écran) sont synchronisés.
@@ -11129,6 +11129,7 @@ function bindFlowZoom(root){const R=root||main;
   R.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoom));
   R.querySelectorAll('[data-flowfull]').forEach(b=>b.onclick=()=>{if(flowCtx.f)openFlowFull(flowCtx.f);});
   {const fs=R.querySelector('.flow-scroll');bindSvgImages(fs);
+   if(fs)flowPinchBind(fs);   // A559 : l'aperçu se pince comme le plein écran (même échelle `flowZoom`)
    // v4.7.0 : en LECTURE (aperçu de brouillon compris — bac à sable), l'organigramme est
    // navigable et peint selon l'état ; dans l'ÉDITEUR il reste inerte (pas d'état de session).
    if(fs&&state.view==='read'&&state.fiche){flowPaintState(fs,state.fiche);bindSvgNav(fs,state.fiche);}}}
@@ -11138,12 +11139,20 @@ function bindFlowZoom(root){const R=root||main;
    du schéma »). Le pincer du navigateur agrandissait toute l'application (barre comprise) ; désormais le SVG suit les
    doigts (transformé pendant le geste), puis l'échelle partagée `flowZoom` est fixée au lâcher et le dessin vectoriel
    re-tracé net (`applyFlowZoom`). Bornes des boutons : 40-400 %. Lever les doigts ne « tape » aucun nœud ; le point
-   regardé survit au redimensionnement (A557). L'aperçu dans la page (`.flow-scroll`) garde le pincer natif : non
-   demandé, et sa hauteur suit la page. */
-pinchBind(document.querySelector('#flowFull .ff-scroll'),{k:()=>flowZoom,min:0.4,max:4,
-  layer:()=>document.querySelector('#flowFull .ff-scroll svg'),
-  ref:()=>document.querySelector('#flowFull .ff-scroll svg'),
-  commit:k=>{flowZoom=Math.max(0.4,Math.min(4,Math.round(k*100)/100));applyFlowZoom();}});
+   regardé survit au redimensionnement (A557). (L'aperçu dans la page l'a rejoint en A559.) */
+/* A559 — L'APERÇU DANS LA PAGE AUSSI (demande de l'auteur : « fais pareil pour l'aperçu du schéma dans la page »).
+   Un seul branchement pour les deux défileurs ; l'échelle `flowZoom` est PARTAGÉE (comme avec les boutons) : pincer
+   l'aperçu agrandit aussi le plein écran, et l'inverse. L'aperçu est re-rendu à chaque geste de session — son
+   défileur neuf est rebranché par `bindFlowZoom` (pinchBind est idempotent par élément). */
+const _flowAncre=Object.create(null);   // A559 : le point regardé, par lieu — l'aperçu se re-rend aux paliers (A557)
+function flowPinchBind(sc){const lieu=sc.closest('#flowFull')?'plein':'page';
+  pinchBind(sc,{k:()=>flowZoom,min:0.4,max:4,layer:()=>sc.querySelector('svg'),ref:()=>sc.querySelector('svg'),
+    memo:{get:()=>_flowAncre[lieu],set:v=>{_flowAncre[lieu]=v;}},
+    commit:k=>{flowZoom=Math.max(0.4,Math.min(4,Math.round(k*100)/100));applyFlowZoom();},
+    /* Au tactile, l'aperçu dans `main` n'a pas d'axe vertical à lui (A356 : un seul axe, celui de la fenêtre —
+       `overflow-y:clip`) : c'est alors la fenêtre qu'on recale verticalement. */
+    scY:()=>{const o=getComputedStyle(sc).overflowY;return (o==='auto'||o==='scroll')?sc:pzScrollY(sc);}});}
+flowPinchBind(document.querySelector('#flowFull .ff-scroll'));
 function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_layerEnter(ov);applyFlowZoom();bindSvgImages(sc);
   if(state.view==='read'&&state.fiche===f){flowPaintState(sc,f);bindSvgNav(sc,f,true);}
   sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}

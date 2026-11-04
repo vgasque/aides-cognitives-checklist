@@ -1273,7 +1273,24 @@ boutons, 40-400 % — et `applyFlowZoom` re-trace le dessin vectoriel net. Le po
 molette et le pavé tactile font le même geste ; le point regardé survit au redimensionnement (A557).
 **Lever les doigts ne « tape » aucun nœud** : un nœud tapé ferme le plein écran et mène au bloc (`bindSvgNav`) — le
 clic qui suit un pincer est avalé (A554).
-**Hors périmètre** : l'aperçu du schéma dans la page (`.flow-scroll`) garde le pincer natif — non demandé.
+**Hors périmètre** : l'aperçu du schéma dans la page (`.flow-scroll`) garde le pincer natif — non demandé. *(Clos par A559.)*
 Témoin : `audit-doctrine` « A558 » — `pan-x pan-y`, pincer ×2,5 avec le point sous les doigts à < 1 %, aucune
 transformation résiduelle, le plein écran reste ouvert après le lever des doigts (vérifié capable d'échouer :
 branchement retiré → 3 rouges).
+
+## A559 — L'aperçu du schéma dans la page se pince aussi (v5.84.0)
+
+*Demandé par l'auteur, après A558 : « fais pareil pour l'aperçu du schéma dans la page ». Clôt le « hors périmètre »
+d'A558.*
+
+Un seul branchement pour les deux défileurs du schéma (`flowPinchBind`) : le plein écran (une fois, au démarrage) et
+l'aperçu `.flow-scroll`, rebranché par `bindFlowZoom` à chaque rendu (l'aperçu se re-rend à chaque geste de session ;
+`pinchBind` est idempotent par élément). `pan-x pan-y` sur `.flow-scroll`.
+- **L'échelle `flowZoom` reste PARTAGÉE**, comme avec les boutons : pincer l'aperçu agrandit aussi le plein écran.
+- **Le défileur vertical est choisi à la volée** : au tactile, l'aperçu dans `main` n'a pas d'axe vertical à lui
+  (A356, `overflow-y:clip`) — c'est la fenêtre qu'on recale ; ailleurs, l'aperçu lui-même (mesuré : sans ce choix,
+  le point pincé dérivait de 15 % en hauteur).
+- **Le point regardé survit au re-rendu du palier** (`_flowAncre`, par lieu, même patron que `_svAncre` d'A557) :
+  mesuré à 1280 → 900 px, le point au centre dérivait de 11 % en largeur.
+Témoin : `audit-doctrine` « A559 » — contrôles d'A558 sur l'aperçu (390 px, tactile), et le redimensionnement 1280 →
+900 à 250 % (vérifié capable d'échouer : branchement retiré et mémoire coupée → 2 rouges).

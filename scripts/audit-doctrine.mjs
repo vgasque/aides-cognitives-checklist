@@ -9607,6 +9607,53 @@ await sec('A558 · pincer pour zoomer le plein écran du schéma', async () => {
   await page.close();
 });
 
+/* A559 (v5.84.0) — L'APERÇU DU SCHÉMA DANS LA PAGE (`.flow-scroll`) se pince comme le plein écran : mêmes contrôles
+   qu'A558, mesurés sur l'aperçu de la vue « Toute l'aide · Schéma ». ⚠ Le point pincé est pris DANS l'aperçu visible
+   (on l'amène en haut de l'écran) : un toucher hors du défileur ne déclencherait rien. */
+await sec('A559 · pincer pour zoomer l\'aperçu du schéma dans la page', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
+  const r0=await page.evaluate(async()=>{flowZoom=1;state.readMode='static';state.allTab='schema';render();await new Promise(r=>setTimeout(r,700));
+    const sc=main.querySelector('.flow-scroll');if(sc)sc.scrollIntoView({block:'start'});await new Promise(r=>setTimeout(r,200));
+    return {on:!!sc,ta:sc?getComputedStyle(sc).touchAction:''};});
+  t('témoin : l\'aperçu du schéma est dans la page',r0.on===true);
+  t('son défileur coupe le seul pincer du navigateur (pan-x pan-y)',r0.ta==='pan-x pan-y',r0.ta);
+  const m=(x,y)=>page.evaluate(([x,y])=>{const s=document.querySelector('main .flow-scroll svg');
+    if(!s)return {z:flowZoom,w:0,fx:NaN,fy:NaN,tr:'',on:!document.getElementById('flowFull').classList.contains('on')&&state.view==='read'};   // fermé : un ROUGE lisible, pas une exception
+    const b=s.getBoundingClientRect();
+    return {z:flowZoom,w:Math.round(b.width),fx:(x-b.left)/b.width,fy:(y-b.top)/b.height,tr:s.style.transform||'',on:!document.getElementById('flowFull').classList.contains('on')&&state.view==='read'};},[x,y]);
+  const a0=await m(200,300);
+  const ok2=await page.evaluate(async([cx,cy,d0,d1])=>{if(typeof Touch!=='function')return false;
+    const sc=main.querySelector('.flow-scroll'),w=ms=>new Promise(r=>setTimeout(r,ms));
+    const tt=d=>[new Touch({identifier:1,target:sc,clientX:cx-d/2,clientY:cy}),new Touch({identifier:2,target:sc,clientX:cx+d/2,clientY:cy})];
+    const ev=(type,t)=>sc.dispatchEvent(new TouchEvent(type,{touches:t,targetTouches:t,changedTouches:t,bubbles:true,cancelable:true}));
+    ev('touchstart',tt(d0));for(let i=1;i<=6;i++){ev('touchmove',tt(d0+(d1-d0)*i/6));await w(20);}
+    ev('touchend',[]);await w(60);
+    const n=document.elementFromPoint(cx,cy);if(n)n.dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:cx,clientY:cy}));   // le « tap » du lever des doigts
+    await w(200);return true;},[200,300,80,200]);
+  if(!ok2)console.log('  · moteur sans constructeur Touch : pincer tactile non simulé ici');
+  else{const a1=await m(200,300);
+    t('le pincer agrandit le schéma (×2,5)',Math.abs(a1.z-2.5)<0.02&&a1.w>a0.w*2.4,JSON.stringify([a0,a1]));
+    t('le point pincé reste sous les doigts (écart < 1 %)',Math.abs(a1.fx-a0.fx)<0.01&&Math.abs(a1.fy-a0.fy)<0.01,JSON.stringify([a0,a1]));
+    t('au lâcher, aucune transformation résiduelle (le SVG porte la taille)',!a1.tr,a1.tr);
+    t('lever les doigts ne « tape » aucun nœud : on reste sur l\'aperçu, rien ne s\'ouvre',a1.on===true);}
+  await page.evaluate(()=>{flowZoom=1;applyFlowZoom();});
+  await page.close();
+  /* Redimensionner (1280 → 900) re-rend l'aperçu au palier : le point regardé doit survivre au défileur remplacé (A557). */
+  {const p2=await br.newPage({viewport:{width:1280,height:800}});
+   await p2.goto(`http://localhost:${port}/index.html`);await amorce(p2);await ouvrirFiche(p2,/Arrêt cardiaque/);
+   await p2.evaluate(async()=>{state.readMode='static';state.allTab='schema';render();await new Promise(r=>setTimeout(r,600));
+     flowZoom=2.5;applyFlowZoom();const sc=main.querySelector('.flow-scroll');sc.scrollIntoView({block:'start'});sc.scrollLeft=300;sc.scrollTop=200;});
+   await p2.waitForTimeout(400);
+   const c=()=>p2.evaluate(()=>{const sc=main.querySelector('.flow-scroll'),r=sc.getBoundingClientRect(),b=sc.querySelector('svg').getBoundingClientRect();
+     const cx=(Math.max(r.left,0)+Math.min(r.right,innerWidth))/2,cy=(Math.max(r.top,0)+Math.min(r.bottom,innerHeight))/2;return {fx:(cx-b.left)/b.width,fy:(cy-b.top)/b.height};});
+   const c0=await c();await p2.setViewportSize({width:900,height:700});await p2.waitForTimeout(800);const c1=await c();
+   t('1280 → 900 px à 250 % : le point regardé survit au re-rendu de l\'aperçu',Math.abs(c0.fx-c1.fx)<0.01&&Math.abs(c0.fy-c1.fy)<0.01,JSON.stringify([c0,c1]));
+   await p2.evaluate(()=>{flowZoom=1;applyFlowZoom();});await p2.close();}
+});
+
 /* A557 (v5.82.0) — CE QU'ON REGARDE SURVIT AU REDIMENSIONNEMENT (signalé : « si je modifie la taille de la fenêtre à
    l'état zoomé, ça casse tout »). Zoomé dans une image, un PDF (page 4 d'un document de 6), la Page « Tableau » et la
    Page de l'aide (re-rendue au palier de largeur : le défileur est REMPLACÉ), on change la taille de la fenêtre : le
