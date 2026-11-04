@@ -893,7 +893,7 @@
     html.kbd body.view-home #homeDock::before{display:none}
   }
   /* La rangée des filtres de recherche : chips de type + déclencheur de la feuille. Elle
-     n'existe QUE pendant une recherche (syncFiltTog) — hors recherche, la pilule est seule. */
+     n'existe QUE pendant une recherche (syncDockFilt) — hors recherche, la pilule est seule. */
   /* padding haut/droit : le badge-compte déborde du bouton de 4 px, et un défileur horizontal
      rogne aussi en Y — sans cet air, le chiffre serait amputé. */
   .dock-filt{flex:1 1 100%;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 0 0}
@@ -901,7 +901,6 @@
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
   /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
-  #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* A429 (P4) : les filtres posés en PUCES sous la ligne de compte — bleu : un état actif, jamais un registre de
      danger (règle 8). Cibles de 32 px (règle 9) ; la croix a sa propre cible. */
@@ -919,7 +918,7 @@
   @media (max-width:779.98px) and (orientation:portrait), (max-width:779.98px) and (min-height:500px){
     #homeDock .hdr-search input{padding-left:40px}
     #homeDock .hdr-search .srch-box>svg{left:16px}
-    [data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
+    [data-theme="dark"] #homeDock .hdr-search input{border-color:var(--ctl-line)}
   }
   /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13). Son bas
      épouse EXACTEMENT le viewport visuel : top = vvt + vvh, remonté de sa PROPRE hauteur
@@ -990,8 +989,7 @@
   html.tabnav body.view-home #homeDock :is(.hdr-search,.srch-box){flex:1 1 0;min-width:0}
   html.tabnav body.view-home #homeDock #q{width:100%;min-width:0}
   /* A538 : clavier fermé, la recherche prend la hauteur de la barre d'onglets qu'elle remplace (62) — elle tombait à
-     44, filtre compris. Clavier ouvert, le dock compact d'A423 reste (44). */
-  html.tabnav:not(.kbd) body.view-home #homeDock .filt-tog{width:62px;height:62px;min-height:62px}
+     44. Clavier ouvert, le dock compact d'A423 reste (44). */
   html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
   html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
     left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:var(--tb-bot);pointer-events:none}
@@ -2515,6 +2513,9 @@
     body.view-home #hdrNew:hover{background:var(--line)}
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
+  /* A556 : la nature (et la bibliothèque) en tête de la feuille « Afficher » du titre, avant les rangées. */
+  .pk-top{padding:2px 0 6px}
+  .pk-top .chiprow{flex-wrap:wrap;overflow:visible;padding:0;margin:0}
   .vs-h{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A531 */
   /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
   .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
@@ -5809,8 +5810,8 @@
      branche EMPILÉE sous 640 px, or la feuille ne s'empile plus — elle garde sa géométrie et
      c'est l'échelle qui s'adapte. La cause est partie, le mécanisme la suit. */
   .sv-wrap{position:relative;margin:10px 0 18px}
-  /* L'ÉCHELLE — cinq pas discrets, jamais une échelle continue (le texte « bave » quand le moteur
-     travaille une image mise en cache au lieu de re-tramer). La barre vit HORS du défileur : elle
+  /* L'ÉCHELLE — boutons à pas de 10 % et pincer (A554 : continu PENDANT le geste, re-tramé au
+     lâcher — le texte ne « bave » jamais au repos). La barre vit HORS du défileur : elle
      ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
   .sv-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px}
   /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
@@ -5827,7 +5828,7 @@
 
   /* A356 : la Page n'a qu'UN axe vertical — celui de la fenêtre — à TOUT pointeur (A343 ne le clôturait qu'au tactile,
      et la feuille A4 défilait encore en elle-même à la souris) ; l'horizontal reste celui de la feuille. */
-  .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch}
+  .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}   /* A554 : glisser natif, pincer maison */
   /* LE CALANT : sans lui, le défileur ignore la transformation et ne défile sur rien. Il n'est
      dimensionné QUE hors de l'échelle 1 (`.z`) — le cas nominal n'a ni transformation, ni taille
      forcée, ni image intermédiaire à la première peinture. */
@@ -6627,11 +6628,16 @@
   .diff-note{font-size:11px;color:var(--ink-soft);margin:8px 0 2px}
   .lightbox{position:fixed;inset:0;background:var(--scrim-full);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
+  /* A555 : l'image vit dans un DÉFILEUR — le pincer l'agrandit (pinchBind), on s'y déplace au doigt. `margin:auto` dans
+     un flex centre l'image tant qu'elle tient et laisse défiler depuis son bord dès qu'elle dépasse (jamais de
+     `justify-content:center`, qui rendrait le bord gauche inatteignable). La taille est posée en ligne par lbFit. */
+  .lb-scroll{flex:1 1 auto;min-height:0;align-self:stretch;display:flex;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y}
+  .lightbox .lb-scroll img{margin:auto;max-width:none;max-height:none;flex:none}
   /* ⚠ 600 N'EST PAS UN GABARIT DE FENÊTRE (audit 9b) : c'est une MESURE DE LISIBILITÉ — la légende
      d'une image, ~70 signes par ligne. La rabattre sur 480 ou 720 réglerait une cohérence de
      fenêtres sur un objet qui n'en est pas une, et casserait la seule chose qu'elle mesure. */
   .lightbox .cap{color:var(--lb-cap);font-size:13.5px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
+  .lightbox .x{position:absolute;z-index:1;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
   /* « ai- » : préfixe HISTORIQUE devenu générique des modales — ne pas y lire un lien avec l'IA,
      renommer casserait sélecteurs CSS+JS pour un gain nul. ⚠ On contraint le GESTE, pas la boîte :
      `touch-action:pan-y`, jamais `overflow-x:hidden` (rejeté par l'auteur : il TRONQUE, et WebKit
@@ -7265,37 +7271,8 @@
      règle 8 tenue par la PASTILLE du nombre de filtres + le nom accessible.
      Détail : doctrine-css.md C119. */
 
-  /* ⚠ Le glyphe SUIT le bouton : 20 px pour un rond de 48 (rapport encre/rond de « ＋ »). ON NE
-     TOUCHE PAS À LA COQUE : ses width/height sont des attributs de présentation que le CSS
-     remplace, et le tracé est DUPLIQUÉ dans `uiIcon` ; l'épaisseur suit d'elle-même (stroke-width
-     dans le viewBox de 24, aucune valeur à écrire). Détail : doctrine-css.md C120. */
-  .filt-tog>svg{width:20px;height:20px;flex:none}
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
-    /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
-       même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
-       la phase et le titre dans l'éditeur). Cible 46 px par le halo. */
-    /* ⚠ `--ctl-line` ET NON `--line-strong` : dans la palette v5.6 c'est `--ctl-line` qui tient le
-       3:1 des BORDURES DE COMPOSANT (3,08 en clair, 3,68 en sombre) — `--line-strong` n'y vaut
-       plus que 1,62 et 1,33, et un bouton PLEIN dont la limite ne se voit pas est le défaut de la
-       pastille du compte (A43), à l'identique. Mesuré au balayage. */
-    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--work-line);
-    border-radius:999px;background:var(--work);color:var(--ink-2);box-shadow:var(--shadow-work);font-family:inherit;
-    font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
-    cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
-  .filt-tog[hidden]{display:none}
-  .filt-tog::after{content:"";position:absolute;inset:-4px;border-radius:999px}
-  /* Le compte se pose SUR le bouton, en pastille — il ne l'allonge plus : la position du
-     déclencheur ne doit pas dépendre du nombre de filtres. */
-  .filt-n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
-    display:inline-flex;align-items:center;justify-content:center;border-radius:999px;
-    background:var(--act);color:var(--on-primary);font-size:11px;font-weight:800;line-height:1;
-    box-shadow:0 0 0 2px var(--work)}
-  .filt-tog:hover{background:var(--amb-2);border-color:var(--ctl-line);color:var(--ink)}
-  .filt-tog.on{background:var(--primary-100);border-color:var(--act);color:var(--act)}
-  .filt-tog.act{background:var(--act);border-color:var(--act);color:var(--on-primary)}
-  .filt-tog.act:hover{background:var(--act);border-color:var(--act);color:var(--on-primary)}
-  .filt-tog:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .filt-n[hidden]{display:none}
+  /* `.filt-tog`/`.filt-n` (le bouton rond « Affichage et filtres » du dock et son compte) : PURGÉS en A556 — la même
+     feuille avait deux portes au téléphone ; le filtre posé se lit dans le grand titre et dans les puces. */
   /* Sélecteur SEGMENTÉ générique : l'état vit sur la RACINE jamais re-rendue (la pastille GLISSE).
      Cas N segments par `--seg-n`/`--seg-i` sur le COMPOSANT, jamais sur un seul porteur ni par une
      classe de plus (l'ordre trancherait — piège de cascade payé cinq fois, cf. .read-grid, .cbt-n,
@@ -7561,7 +7538,7 @@
        haut de la maquette (recherche au centre, Créer/Compte à droite). La marque garde la
        largeur de la sidebar : la recherche commence au bord de la colonne de contenu. */
     body.view-home #homeDock{position:static;flex:1 1 auto;flex-direction:row;min-width:0;margin:0;padding:0;border:0;background:none;gap:0}
-    body.view-home #homeDock :is(.dock-filt,.filt-tog){display:none}   /* ≥ 780 : les filtres sont la colonne */
+    body.view-home #homeDock .dock-filt{display:none}   /* ≥ 780 : les filtres sont la colonne */
     body.view-home .id-row .brand{flex:0 0 auto;min-width:calc(250px - 56px)}
 
     body.view-home #homeDock .hdr-search{flex:1 1 auto;min-width:0;max-width:640px}
@@ -8192,6 +8169,8 @@
      MESURÉE `--pdfhl-r` (pdfHlSync), 0 sans pilule. ⚠ Mesure en `offsetHeight`, jamais le rect :
      il rendrait des px visuels à diviser par zoomF() (règle 10). Détail : doctrine-css.md C130. */
   .pdf-scroll{flex:1;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-scroll{touch-action:pan-x pan-y}   /* A554 : glisser natif, pincer maison (pinchBind) */
+  .pdf-pages{min-width:min-content}   /* le calque du pincer : aussi large que la page la plus large */
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
@@ -8726,10 +8705,10 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvyb2x1ulpcdq310" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvyb2x1u123r9c9c"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvyb2x1useam681w"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmw26yxo41s3mcxee" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmw26yxo41lrzgdap"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmw26yxo4h1jlzi19"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmvyb2x1ulpcdq310" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmvyb2x1u123r9c9c"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmvyb2x1useam681w"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
+<div class="ds-capt" style="max-width:620px"><div class="ov-wrap"><div class="ov-prog"><span>Parcours</span><button type="button" class="ov-runline bump" data-ovrun="r:0" aria-expanded="false" title="1 bloc fait · Reconnaissance &amp; alerte · diagnostic confirmé · taper pour déplier"><span class="ovr-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></span><span class="ovr-t">Fait · 1 · diagnostic confirmé</span><span class="conf-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><span>4/12 étapes</span></div><div class="ov-journal"><section class="ov-block cur numin dec" data-ovb="bmw26yxo41s3mcxee" data-ovi="1" data-ovn="2" aria-current="step"><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="1" aria-expanded="true"><span class="ov-n">2</span><span class="ov-t"><span class="ov-curl"><span class="ov-cur">En cours</span><span class="ov-curn dec">◆ Décision · bloc 2</span></span>Analyse du rythme</span><span class="ov-c">?</span><span class="ov-chev open" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="ov-body"><div class="question">Rythme choquable (FV / TV sans pouls) ?</div><div class="options"><button type="button" class="opt" data-ovopt="bmw26yxo41lrzgdap"><span class="ftxt">Oui — choquable</span><span class="opt-go">→ bloc 3 · Choquable (FV / TVsp)</span></button><button type="button" class="opt" data-ovopt="bmw26yxo4h1jlzi19"><span class="ftxt">Non — non choquable</span><span class="opt-go">→ bloc 4 · Non choquable (AESP / asystolie)</span></button></div><div class="jl-wrap"><div class="jl-row"><span class="jl-si" aria-hidden="true">SI</span><span class="jl-tx"><span class="jl-cond">Chocs délivrés ≥ 3</span><span class="mo-pips jl-pips" aria-hidden="true"><i class=""></i><i class=""></i><i class="goal"></i></span><span class="jl-prog" aria-label="0 sur un seuil de 3">0/3</span><span class="jl-txt">3 CEE sans RACS — envisager une <b>FV réfractaire</b></span></span></div></div></div></section></div></div></div>
 <p class="ds-cap">Capture réelle, en session : le journal EST la chronologie (ne JAMAIS poser un état temporel sur une carte spatiale). Un passage terminé se referme dans la ligne de progression ; le bout est toujours une carte dépliée. Une décision est une carte AMBRE DOUX, ses réponses en options pleine largeur.</p></div>
 </body></html>

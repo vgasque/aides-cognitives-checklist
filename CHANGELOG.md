@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [5.82.0] — 2026-11-04
+Accueil au téléphone : un bouton pour choisir QUOI afficher, un pour COMMENT le présenter (A556) ; le zoom survit au
+redimensionnement (A557). Doctrine `docs/decisions/lot-v6-0.md`. Rien à rejouer côté serveur.
+- **« Aides ⌄ » choisit ce qu'on voit** : la feuille « Afficher » commence par le **Type** (Tout · Aides · Protocoles ·
+  À relire) et, s'il y en a plusieurs, la bibliothèque — ils agissent tout de suite, la feuille reste ouverte. Puis
+  l'accès direct, les collections, les catégories et **« Gérer les catégories »**.
+- **Le bouton rond ↑↓ devient « Trier et présenter »** : trier, regrouper, densité — plus aucun filtre en double. On
+  le ferme par « Terminé ».
+- **Le bouton filtre à côté de la recherche disparaît** : il ouvrait la même feuille que le bouton rond. Le champ
+  prend toute la largeur ; les crans Tout · Aides · Protocoles restent quand on tape.
+- Un filtre posé reste annoncé par sa puce sous le titre, qui rouvre « Afficher ».
+- **Zoom et taille de fenêtre** : agrandir ou réduire la fenêtre pendant qu'une image, un PDF ou la Page est zoomé
+  garde l'endroit regardé (le PDF restait sur une autre page).
+- En large (tablette, ordinateur), l'accueil ne change pas.
+
+## [5.81.0] — 2026-11-04
+Pincer pour zoomer une image ouverte (A555, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Une image jointe qu'on ouvre se pince comme la Page et les PDF** : elle s'ouvre ajustée à l'écran, le pincer
+  l'agrandit jusqu'à ×6 en gardant l'endroit pincé sous les doigts, et l'on s'y déplace au doigt. Nette au lâcher.
+- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
+- Toucher le fond autour de l'image la ferme toujours ; lever les doigts après un pincer ne ferme rien.
+
+## [5.80.0] — 2026-11-04
+Pincer pour zoomer, comme sur une feuille : la Page d'une aide et les documents PDF (A554, doctrine
+`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Pincer à deux doigts agrandit ou réduit la Page** (fenêtre « Tableau » et Page dans l'aide) **et les documents
+  PDF**, en suivant les doigts sans délai ; l'endroit pincé reste sous les doigts, et l'on peut déplacer la feuille
+  en pinçant. Au lâcher, le texte redevient net à la nouvelle taille.
+- Le glisser à un doigt ne change pas. Les boutons − / ＋ / ⤢ restent.
+- **Sur ordinateur** : Ctrl + molette, ou le pincer du pavé tactile, font le même geste.
+- **PDF** : plus de page blanche le temps du rendu après un zoom (l'ancienne image reste jusqu'à la nouvelle), et
+  un document très agrandi ne s'affiche plus en blanc sur iPhone (taille d'image plafonnée).
+- Lever les doigts après un pincer n'ouvre plus par accident un bloc ou un lien.
+
 ## [5.79.0] — 2026-11-03
 Rétablir une modification annulée, dans les deux éditeurs (A553, doctrine `docs/decisions/lot-v6-0.md`). Rien à
 rejouer côté serveur.
@@ -147,30 +181,3 @@ Conformité aux maquettes Natif (A534, doctrine `docs/decisions/lot-v6-0.md`). R
   cours en bleu, la décision sans fond ambre, les chevrons discrets. Replier et déplier marchent comme avant.
 - **Le bouton du bloc** dit « Cochez les 3 restantes » (une ligne au lieu de deux).
 - **La colonne de gauche** affiche le nombre d'aides et de sessions.
-
-## [5.70.0] — 2026-11-01
-Remesure complète de la refonte « Natif » sur 18 formats (A530-A533, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Survols** : une quinzaine de boutons et de rangées ne réagissaient pas au passage de la souris ; ils réagissent
-  tous, selon leur famille. Les rangées ne se soulèvent plus, elles se teintent.
-- **Intertitres en minuscules partout** (colonnes de la session, éditeur, Moi, menu ⋯, Affichage) ; seuls les mots
-  d'état (« Critique », « Vigilance », « ● Session », « En cours ») restent en capitales.
-- **Téléphone tourné** : le titre de l'aide n'est plus coupé dans l'en-tête (« Schéma » passe au menu ⋯).
-- **Moniteur** : en portrait, le grand chiffre est nettement plus grand (220 px sur iPad, 109 px sur iPhone).
-- Petits écrans : « Avant la session » ne passe plus sous « Page » à 320 px ; la pastille « À compléter » a une cible
-  de 44 px ; le sélecteur de sections d'Administration reste sur une ligne.
-
-## [5.69.0] — 2026-11-01
-Refonte « Natif » : trois arbitrages de forme tranchés sur planche (A527-A529, doctrine `docs/decisions/lot-v6-0.md`).
-Rien à rejouer côté serveur.
-- **Rangées de l'accueil** : une aide n'écrit plus « Aide » ; un protocole garde « Protocole ».
-- **Au téléphone, « Affichage » est la première pastille** sous le titre ; la ligne du compte disparaît (« Tout · n »
-  dit le compte).
-- **La Page n'a plus qu'un bouton « Imprimer ou PDF »** (le dialogue du système propose les deux).
-
-## [5.68.0] — 2026-11-01
-Refonte « Natif », fin des suites d'A510 (A525-A526, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
-serveur.
-- **Menu ⋯ sur grand écran** : le tap qui le ferme ne coche plus l'étape qui se trouve dessous.
-- **iPhone SE tourné** : l'accueil prend la colonne de gauche, comme les autres téléphones tournés et les tablettes
-  (il n'avait ni onglets ni colonne).

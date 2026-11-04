@@ -488,23 +488,37 @@ const SURFACES = [
      ouvre le plus souvent depuis la recherche. Point d'entrée RÉEL : le déclencheur `#filtTog`,
      qui n'existe que PENDANT une recherche (v5.18) — on pose donc la requête dans l'état que
      l'application lit elle-même, puis `render()` décide. */
-  /* v5.30 (A353) : la feuille Filtrer a fusionné dans « Affichage » (chips de catégorie, segments). */
-  { nom:'feuille affichage & filtres',  w:390,  scope:'#viewSheet', must:'#viewSheetBody .catchip', fn: async()=>{
-      state.q='br'; state.view='library'; render();
+  /* v5.30 (A353) : la feuille Filtrer a fusionné dans « Affichage » (chips de catégorie, segments).
+     A556 : `#filtTog` est PURGÉ et, au téléphone, cette feuille ne fait plus que présenter (« Trier et présenter ») ;
+     les chips de filtre — la surface qui avait rogné l'anneau de focus — ne vivent plus qu'en LARGE : on l'audite
+     donc à 1100, par sa porte réelle (« Affichage », `#rangBtn`), et la feuille du téléphone à part. */
+  { nom:'feuille affichage & filtres',  w:1100,  scope:'#viewSheet', must:'#viewSheetBody .catchip', fn: async()=>{
+      state.view='library'; render();
       await new Promise(r=>setTimeout(r,350));
-      const t=document.getElementById('filtTog'); if(t)t.click();
+      const t=main.querySelector('#rangBtn'); if(t)t.click();
+      await new Promise(r=>setTimeout(r,450)); } },
+  /* A556 : la feuille « Afficher » du grand titre porte désormais des réglages (crans de type) en tête de ses rangées. */
+  { nom:'feuille afficher (titre)',  w:390,  scope:'.popmenu.sheet', must:'.popmenu.sheet [data-pknat]', fn: async()=>{
+      state.view='library'; render();
+      await new Promise(r=>setTimeout(r,350));
+      const t=main.querySelector('#pgPick'); if(t)t.click();
+      await new Promise(r=>setTimeout(r,450)); } },
+  { nom:'feuille trier et présenter',  w:390,  scope:'#viewSheet', must:'#viewSheetBody [data-vs^="sort:"]', fn: async()=>{
+      state.view='library'; render();
+      await new Promise(r=>setTimeout(r,350));
+      const t=main.querySelector('#rangBtn'); if(t)t.click();
       await new Promise(r=>setTimeout(r,450)); } },
   /* LA FEUILLE « GÉRER » (v5.20.0) : la contrepartie ÉTROITE des rangées de gestion de la colonne
      gauche — elle n'existe donc que sous 780 px, et rien d'autre ici ne l'ouvre. Point d'entrée
-     RÉEL : la rangée « Gérer… » de la feuille Affichage (v5.30 ; c'était `#mgrBtn` au socle). Elle ne s'ouvre que s'il y a une bibliothèque à administrer (sinon
+     RÉEL : la rangée « Gérer… » de la feuille « Afficher » du titre (A556 ; feuille Affichage en v5.30, `#mgrBtn` au socle). Elle ne s'ouvre que s'il y a une bibliothèque à administrer (sinon
      la rangée va DROIT au gestionnaire de catégories) : on pose donc le profil que l'application
      lit elle-même, puis `render()` décide. */
   { nom:'feuille gérer',       w:390,  scope:'#mgrSheet', must:'#mgrSheetBody [data-libedit]', fn: async()=>{
       myLibraries=[{id:'lib1',name:'Équipe déchocage',role:'admin'}];
       state.view='library'; render();
       await new Promise(r=>setTimeout(r,350));
-      openViewSheet(); await new Promise(r=>setTimeout(r,300));   // v5.30 : la porte réelle est la rangée de la feuille Affichage
-      const t=document.querySelector('#viewSheetBody [data-catmgr]'); if(t)t.click();
+      main.querySelector('#pgPick').click(); await new Promise(r=>setTimeout(r,300));   // A556 : la rangée vit dans « Afficher »
+      const t=document.querySelector('.popmenu.sheet [data-pickopt="mgr"]'); if(t)t.click();
       await new Promise(r=>setTimeout(r,450)); } },
   { nom:'nouvelle biblio.',    w:390,  scope:'#newLibModal', fn: async()=>{
       // openNewLib est gardée par myIsAppAdmin : garde MÉTIER légitime, dont la vraie barrière

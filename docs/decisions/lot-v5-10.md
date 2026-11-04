@@ -24,7 +24,7 @@ reflux, pas de pile, pas de réordonnancement.
 · **L'AGRANDISSEMENT EST UNE TRANSFORMATION** (`transform:scale`, cinq pas discrets), **jamais un
   `zoom` CSS** — celui-ci refait la mise en page au lieu de la transformer, et à petite échelle les
   tailles minimales de police des moteurs mobiles reprennent la main, c'est-à-dire exactement ce
-  qu'on cherchait à figer. Ni pinch écrit à la main (il exigerait `touch-action:none`, qui tue le
+  qu'on cherchait à figer. *(Amendé par A554 : le pincer maison est admis, en `pan-x pan-y`, re-tramé au lâcher.)* Ni pinch écrit à la main (il exigerait `touch-action:none`, qui tue le
   défilement et ne se rend pas depuis un enfant), ni échelle continue (une échelle qui glisse fait
   travailler une image en cache — c'est là que le texte « bave »).
 · **UN CALANT PARENT reçoit W×k et H×k**, sinon le défileur ignore la transformation et ne défile

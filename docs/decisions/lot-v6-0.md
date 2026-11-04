@@ -886,6 +886,7 @@ voisines, distinguées par la seule icône ; le titre disait « Aides » quel qu
   remet « Aides ». Au téléphone l'en-tête de collection perd son œil et son titre, que le grand titre porte ;
 - **« Affichage »** (ranger, densité, nature) devient le bouton rond de 44 px au bout de la ligne du titre (même id
   `#rangBtn`, un câblage).
+  *(Amendé par A556 : il devient « Trier et présenter » — trier, regrouper, densité ; la nature monte dans « Afficher ».)*
 
 Purgés (règle 14) : `pgChipsHtml`, `.pg-chips`, `.pg-chip`, les gestes `[data-pgcat]`. En large (≥ 780) et au
 téléphone tourné, rien ne change : la colonne gauche montre les deux axes.
@@ -1123,3 +1124,140 @@ au moindre geste ; et le besoin qu'il servait (reprendre tout le Markdown d'un c
 « Mise en forme en direct » coupé. À rouvrir sur un cas d'usage concret.
 Témoins : `audit-k5` (↷ après ↶, Maj-Ctrl-Z, geste nouveau qui le retire) ; `audit-doctrine` « Éditeur · A547 »
 (l'annonce du découpage, souris et doigt).
+
+## A554 — Pincer pour zoomer, comme une feuille : la Page et la visionneuse PDF (v5.80.0)
+
+*Demandé par l'auteur : « le mode Page affiche toute l'aide format A4 : est-ce possible de faire comme un navigateur
+PDF, avec pinch to zoom très rapide sans lag, se déplacer, dézoomer rapidement ? Et pareil pour l'affichage d'un
+fichier PDF » — puis : « l'idée est de pouvoir le lire et le regarder facilement comme une feuille ».*
+
+**RENVERSE deux refus d'A133 / J175** — « pas de pinch écrit à la main » et « pas d'échelle continue ». Leurs raisons
+ne tenaient qu'à une technique, pas au geste :
+- *« il exigerait `touch-action:none`, qui tue le défilement »* — non : le défileur porte **`pan-x pan-y`**. Le glisser
+  à un doigt reste NATIF (inertie, rebond), seul le pincer du navigateur est retiré, et c'est l'application qui le
+  fait. Mesuré : même défilement à un doigt avant et après (fenêtre « Tableau », 390 px).
+- *« une échelle qui glisse fait baver le texte »* — seulement PENDANT le geste. On y transforme un **calque**
+  (`.sv-calant` pour la Page, `.pdf-pages` pour le PDF) : composition seule, aucune mise en page, d'où l'absence de
+  lag. **Au lâcher** l'échelle est fixée puis re-tramée (Page : `svApplyZoom` ; PDF : nouveau rendu des canevas). Au
+  repos, rien n'est une image étirée — `audit-doctrine` le vérifie (aucune transformation résiduelle).
+- Le pincer du NAVIGATEUR, qu'A133 laissait « marcher par-dessus », agrandissait toute l'application (barres, quai)
+  et étirait les canevas PDF sans les re-rendre : c'est ce que l'auteur ressentait comme du lag.
+
+**Le mécanisme, un seul pour les deux surfaces** (`pinchBind`) :
+- **Le point pincé reste sous les doigts** : sa place relative est notée dans un repère (la feuille ; la page PDF sous
+  les doigts), et après l'échelle on décale le défileur horizontal et le défileur vertical (fenêtre « Tableau »,
+  fenêtre du navigateur dans `main`, défileur du PDF) d'autant. Les doigts qui glissent pendant le pincer déplacent
+  la feuille. Mesures client = px visuels : division par `zoomF()` (règle 10).
+- **Sur ordinateur** : Ctrl + molette, et le pincer du pavé tactile (Chromium/Firefox l'émettent en Ctrl + molette,
+  Safari en `gesture*` — sur iPhone ces derniers sont neutralisés, le toucher mène).
+- **Lever les doigts ne « tape » rien** : un clic dans les 350 ms qui suivent un pincer est avalé (un nœud de la Page
+  mène ailleurs par `svJump`, un lien du PDF ouvre une adresse).
+- **Bornes inchangées** : Page 20-300 % (`SV_ZMIN`/`SV_ZMAX`), PDF 25-400 %. Les boutons gardent leurs pas (clavier,
+  lecteur d'écran).
+
+**PDF : plus de page blanche après un zoom.** `pdfApplyScale` ne libère plus les canevas : l'ancien reste, étiré, le
+temps que le nouveau rendu le remplace ; seuls les calques posés au pixel (surlignage, liens) partent. Et la
+**surface d'un canevas est plafonnée** (`PDF_MAX_PX`, 5 Mpx — le plafond de pdf.js sur iOS) : zoomée à 400 %, une page
+demandait ~25 Mpx, au-delà de ce qu'iOS accepte, et le rendu échouait en blanc. Au-delà du plafond le canevas est
+étiré : un peu moins net, jamais vide.
+
+**CE QUI NE CHANGE PAS.** La largeur d'auteur et l'échelle par `scale` (A133) ; l'ouverture de la Page à la taille
+d'auteur (A133, A150 : l'ajustement d'office ferait tomber les cibles sous 13 px — voir la feuille entière reste UN
+geste, « ⤢ Ajusté » ou un pincer) ; l'ouverture du PDF en page entière (`pdfFitPageZ`) ; l'échelle jamais mémorisée ;
+le mode crise n'est ni interrompu ni défilé d'office (règle 11 : rien ne bouge sans le geste).
+
+**Écarté** : le double-tap pour zoomer. Sur la Page, un tap sur un nœud mène au bloc (`svJump`) et un double-tap
+déclencherait d'abord ce saut ; à rouvrir avec un délai de discrimination mesuré, si l'usage le demande.
+
+Témoin : `audit-doctrine` « A554 » — `pan-x pan-y` sur les deux défileurs ; pincer ×2,2 sur la Page, point sous les
+doigts à < 1 %, aucune transformation résiduelle ; Ctrl + molette ; pincer sur un PDF, point sous les doigts, page
+re-rendue (vérifié capable d'échouer : correction de défilement neutralisée → 2 rouges).
+
+## A555 — Le pincer s'applique aux images ouvertes (lightbox) (v5.81.0)
+
+*Demandé par l'auteur, après A554 : « est-ce qu'il peut appliquer ça aux images jointes qu'on ouvre ? »*
+
+**Même mécanisme qu'A554 (`pinchBind`), même contrat** : le calque transformé pendant le geste est l'image
+elle-même ; au lâcher, sa taille est **posée en ligne** (`lbFit`) et le navigateur la re-trame depuis la source — nette
+à toute échelle tant que le fichier a les pixels. Le point pincé reste sous les doigts ; Ctrl + molette et le pavé
+tactile font le même geste.
+- **L'image vit désormais dans un défileur** (`#lbScroll`, `pan-x pan-y`) : agrandie, on s'y déplace au doigt. Elle y
+  est centrée par `margin:auto` dans un flex — jamais `justify-content:center`, qui rendrait le bord gauche d'une image
+  plus large que l'écran inatteignable.
+- **k = 1 est l'image AJUSTÉE à l'écran, et c'est le plancher** (jamais plus grande que nature à l'ouverture, jamais
+  plus petite que l'écran au pincer) ; plafond ×6. L'échelle repart de 1 à chaque ouverture, et suit la fenêtre au
+  redimensionnement.
+- **Un tap sur le fond ferme toujours** : le fond autour de l'image est maintenant le défileur, il ferme comme le voile
+  le faisait. Un tap dans les 350 ms d'un pincer est avalé (A554), donc lever les doigts ne ferme rien.
+- **La croix passe au-dessus du défileur** (`z-index:1`) : une image agrandie défilait sinon PAR-DESSUS ✕.
+
+**Hors périmètre** : le plein écran de l'algorithme (`#flowFull`) garde ses boutons et le pincer natif — non demandé.
+
+Témoin : `audit-doctrine` « A555 » — ouverture ajustée, `pan-x pan-y`, pincer ×3 avec le point sous les doigts à
+< 1 %, aucune transformation résiduelle, tap sur le fond qui ferme (vérifié capable d'échouer : échelle ignorée par
+`lbFit` → rouge).
+
+## A556 — Au téléphone, un bouton pour QUOI, un pour COMMENT ; le filtre du dock est purgé (v5.82.0)
+
+*Amende A545 (« Affichage » = ranger, densité, nature, au bout de la ligne du titre) et A353 (la porte de la feuille au
+téléphone est le bouton rond du dock) ; renverse A423/A538 sur le bouton filtre. Signalé par l'auteur (« que penses-tu
+du bouton à côté de “Aides”, du bouton Trier/Affichage et du bouton filtrer à côté du champ de recherche ? ») ;
+proposition retenue sur planche Claude Design « Accueil téléphone — Quoi / Comment », 04/11/2026 (« OK pour ta
+proposition »).*
+
+**Mesuré** (390 px, captures de l'app servie) : trois boutons, deux feuilles. Le bouton rond du titre (⫶≡) et le
+bouton rond à gauche de la recherche (`#filtTog`) ouvraient **la même feuille** « Affichage » — deux portes pour une
+feuille, ce que le lot v5.30 interdisait (§ 5.5) et qu'A528/A545 avaient rétabli sans retirer la seconde. Cette
+feuille redisait **collections et catégories**, déjà dans « Afficher » (A545 annonçait « ranger, densité, nature » :
+le code n'avait pas suivi). « Afficher » et « Affichage », deux noms presque identiques ; la nature (Aides /
+Protocoles / À relire) rangée dans la feuille du COMMENT ; une icône (échelle) qui ne disait ni trier ni filtrer.
+
+**Décision — au téléphone (barre d'onglets, `tabNavOn()`) :**
+- **« Aides ⌄ » = QUOI.** La feuille « Afficher » reçoit en tête le **Type** (Tout · Aides · Protocoles · À relire,
+  segmenté `vsSegHtml` — « Type », le mot de « Regrouper » : « Afficher » est déjà son titre) et, s'il y en a
+  plusieurs, la **Bibliothèque** (puces). Ce sont des RÉGLAGES : ils agissent en direct et la feuille reste ouverte ;
+  une rangée (collection, catégorie) reste une DESTINATION : un tap applique et ferme (A545). **« Gérer les
+  catégories »** rejoint les catégories qu'il gère, en dernière rangée du groupe. `openPickMenu` gagne `top` (sous la
+  tête) et `onOpen` (câblage par l'appelant).
+- **Le bouton rond = COMMENT.** Icône ↑↓ (`sort`), nom « Trier et présenter » ; sa feuille (`#viewSheet`, même
+  câblage) ne montre plus que Trier, Regrouper, Densité, et son pied dit « Terminé » — une feuille qui ne filtre pas
+  n'annonce pas de résultats.
+- **`#filtTog` est PURGÉ** (règle 14 : bouton, `.filt-tog`/`.filt-n`, les règles de dock qui le dimensionnaient, le
+  SVG dupliqué de l'icône `filter`) ; `syncFiltTog` devient `syncDockFilt` et ne garde que les crans de type de la
+  recherche, qui agissent sans quitter la requête. La recherche prend toute la largeur.
+- **Un filtre posé reste annoncé** : la puce « Afficher : Aides × » sous la ligne de compte, qui rouvre désormais
+  « Afficher » ; la sous-ligne « Tout · n » se tait quand le type est restreint (elle contredisait la puce).
+  `setHomeNature` : une seule écriture du type depuis les deux feuilles (« Tout » ↔ « À relire » ne changeait pas de
+  section, donc ne re-rendait pas).
+
+**En large (≥ 780) rien ne change** : la colonne filtre, la feuille « Affichage » garde Filtrer et Présenter (le type
+n'a pas d'autre place) et son pied qui compte.
+**Ce qu'on perd, et dit** : le badge chiffré « n filtres actifs » du bouton purgé — le grand titre dit le filtre de
+collection ou de catégorie, la puce dit le type.
+*Formes écartées* : garder l'entonnoir pour la seule recherche (une porte de plus vers la même chose) ; renommer la
+feuille en large « Trier et présenter » (elle y filtre encore).
+Témoins : `audit-doctrine` « Audit design · la feuille de filtres » (RÉÉCRIT SCIEMMENT — il mesurait le bouton purgé ;
+vérifié capable d'échouer : feuille du bouton rond rendue à ses filtres → rouge), « T9 » (les crans de type sont dans
+« Afficher »), « A544 » (la jambe « filtre » passe par un cran de la recherche), « A538 » (le champ seul à la hauteur
+des onglets), « trois gabarits », « chemin d'arrivée », « A419 » (porte `#rangBtn`) ; `audit-a11y` : « feuille
+affichage & filtres » à 1100, « feuille trier et présenter » et « feuille afficher (titre) » à 390, « feuille gérer »
+par la rangée d'« Afficher ».
+
+## A557 — Redimensionner en état zoomé garde ce qu'on regarde (v5.82.0)
+
+*Amende A554-A555. Signalé par l'auteur : « bug pour les images et PDF et Page : si je modifie la taille de la fenêtre
+à l'état zoomé, ça me casse tout ».*
+
+**Mesuré** : l'échelle se recalcule sur la nouvelle largeur (image ajustée × k, PDF en % de la largeur, feuille), mais
+le défilement restait en px ABSOLUS — après 1280 → 700 px on regardait une autre partie de l'image ; sur un PDF à
+200 %, une autre PAGE ; la Page de l'aide, re-rendue au palier de largeur, repartait du bord gauche.
+
+**Décision** (`pinchBind`) : chaque défileur retient en continu le point au **centre de sa part visible**, en
+proportion de son repère (la page PDF sous le centre, la feuille, l'image) ; au redimensionnement — une image après
+les gestionnaires qui remettent l'échelle — il le remet au centre. Un défilement émis PENDANT le changement de taille
+(le navigateur borne la position quand le contenu rétrécit) n'écrase pas le point : on ne note qu'à taille de fenêtre
+inchangée. La Page de l'aide, dont le défileur est REMPLACÉ par le re-rendu, reprend le point de l'ancien
+(`_svAncre`, par lieu : `main` · fenêtre « Tableau »), s'il est récent et d'une autre taille. Les écouteurs posés sur
+la fenêtre se retirent d'eux-mêmes quand leur défileur quitte le document (la Page se re-rend souvent).
+Témoin : `audit-doctrine` « A557 » — image ×4, PDF à 200 % page 4, Page « Tableau » à 250 %, Page de l'aide à 200 %
+(défileur remplacé) : le point au centre à < 1 % (vérifié capable d'échouer : rattrapage retiré → 4 rouges).
