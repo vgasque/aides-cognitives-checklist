@@ -1191,7 +1191,7 @@ tactile font le même geste.
   le faisait. Un tap dans les 350 ms d'un pincer est avalé (A554), donc lever les doigts ne ferme rien.
 - **La croix passe au-dessus du défileur** (`z-index:1`) : une image agrandie défilait sinon PAR-DESSUS ✕.
 
-**Hors périmètre** : le plein écran de l'algorithme (`#flowFull`) garde ses boutons et le pincer natif — non demandé.
+**Hors périmètre** : le plein écran de l'algorithme (`#flowFull`) garde ses boutons et le pincer natif — non demandé. *(Clos par A558.)*
 
 Témoin : `audit-doctrine` « A555 » — ouverture ajustée, `pan-x pan-y`, pincer ×3 avec le point sous les doigts à
 < 1 %, aucune transformation résiduelle, tap sur le fond qui ferme (vérifié capable d'échouer : échelle ignorée par
@@ -1261,3 +1261,19 @@ inchangée. La Page de l'aide, dont le défileur est REMPLACÉ par le re-rendu, 
 la fenêtre se retirent d'eux-mêmes quand leur défileur quitte le document (la Page se re-rend souvent).
 Témoin : `audit-doctrine` « A557 » — image ×4, PDF à 200 % page 4, Page « Tableau » à 250 %, Page de l'aide à 200 %
 (défileur remplacé) : le point au centre à < 1 % (vérifié capable d'échouer : rattrapage retiré → 4 rouges).
+
+## A558 — Le pincer s'applique au plein écran du schéma (v5.83.0)
+
+*Demandé par l'auteur, après A554-A557 : « fais pareil pour le plein écran du schéma ». Clôt le « hors périmètre »
+d'A555.*
+
+Même mécanisme (`pinchBind`), même contrat : le défileur `#flowFull .ff-scroll` porte `pan-x pan-y` ; pendant le geste
+le SVG est transformé (il suit les doigts, sans lag) ; au lâcher, l'échelle partagée `flowZoom` est fixée — bornes des
+boutons, 40-400 % — et `applyFlowZoom` re-trace le dessin vectoriel net. Le point pincé reste sous les doigts ; Ctrl +
+molette et le pavé tactile font le même geste ; le point regardé survit au redimensionnement (A557).
+**Lever les doigts ne « tape » aucun nœud** : un nœud tapé ferme le plein écran et mène au bloc (`bindSvgNav`) — le
+clic qui suit un pincer est avalé (A554).
+**Hors périmètre** : l'aperçu du schéma dans la page (`.flow-scroll`) garde le pincer natif — non demandé.
+Témoin : `audit-doctrine` « A558 » — `pan-x pan-y`, pincer ×2,5 avec le point sous les doigts à < 1 %, aucune
+transformation résiduelle, le plein écran reste ouvert après le lever des doigts (vérifié capable d'échouer :
+branchement retiré → 3 rouges).

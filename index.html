@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-pTYN954Aky2b70fesAX7tzYzCR8NoFL5oyiQQPM9XYk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-G9CjxaPFUHncC3dF092r+Kkc6ubNI31OreCndGKtt4o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5192,11 +5192,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-fnav .mini{min-width:44px;height:44px;min-height:44px}   /* A376 : les ‹ › d'une recherche sont les compagnons d'un champ de 44 — même hauteur (L) */
   .fz-spc{flex:1}
   .fzv,.sv-zv{font-family:var(--f-mono);font-size:var(--t-body);font-weight:700;color:var(--ink-2);min-width:48px;text-align:center}
-  /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
+  /* Plein écran de l'algorithme SVG (zoom + défilement ; A558 : pincer maison, `pan-x pan-y` sur le défileur) */
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--amb);display:none;flex-direction:column}
   #flowFull.on{display:flex}
   #flowFull .ff-bar{display:flex;align-items:center;gap:6px;padding:calc(9px + var(--sat)) 12px 9px;background:var(--work);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
-  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
+  #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper);touch-action:pan-x pan-y}
   /* ═══ K1 (v4.64.0, audit design — maquettes MK) : ON ÉDITE DANS LA GRAMMAIRE DE LECTURE ═══
      L'éditeur était un FORMULAIRE : champs empilés d'un côté, aperçu de l'autre — l'auteur
      composait à l'aveugle et ne découvrait le rendu qu'en basculant. Désormais le chapeau EST le
@@ -9665,7 +9665,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.82.0';
+const APP_VERSION='5.83.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11132,8 +11132,18 @@ function bindFlowZoom(root){const R=root||main;
    // v4.7.0 : en LECTURE (aperçu de brouillon compris — bac à sable), l'organigramme est
    // navigable et peint selon l'état ; dans l'ÉDITEUR il reste inerte (pas d'état de session).
    if(fs&&state.view==='read'&&state.fiche){flowPaintState(fs,state.fiche);bindSvgNav(fs,state.fiche);}}}
-// Plein écran de l'algorithme : superpose le SVG (même peinture d'état), zoom + défilement
-// (pinch natif aussi). On centre horizontalement à l'ouverture. Taper un nœud = fermer + y aller.
+// Plein écran de l'algorithme : superpose le SVG (même peinture d'état), zoom + défilement. On centre
+// horizontalement à l'ouverture. Taper un nœud = fermer + y aller.
+/* A558 — LE PINCER D'A554 S'APPLIQUE AU PLEIN ÉCRAN DU SCHÉMA (demande de l'auteur : « fais pareil pour le plein écran
+   du schéma »). Le pincer du navigateur agrandissait toute l'application (barre comprise) ; désormais le SVG suit les
+   doigts (transformé pendant le geste), puis l'échelle partagée `flowZoom` est fixée au lâcher et le dessin vectoriel
+   re-tracé net (`applyFlowZoom`). Bornes des boutons : 40-400 %. Lever les doigts ne « tape » aucun nœud ; le point
+   regardé survit au redimensionnement (A557). L'aperçu dans la page (`.flow-scroll`) garde le pincer natif : non
+   demandé, et sa hauteur suit la page. */
+pinchBind(document.querySelector('#flowFull .ff-scroll'),{k:()=>flowZoom,min:0.4,max:4,
+  layer:()=>document.querySelector('#flowFull .ff-scroll svg'),
+  ref:()=>document.querySelector('#flowFull .ff-scroll svg'),
+  commit:k=>{flowZoom=Math.max(0.4,Math.min(4,Math.round(k*100)/100));applyFlowZoom();}});
 function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_layerEnter(ov);applyFlowZoom();bindSvgImages(sc);
   if(state.view==='read'&&state.fiche===f){flowPaintState(sc,f);bindSvgNav(sc,f,true);}
   sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}

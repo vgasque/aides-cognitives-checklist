@@ -9572,6 +9572,41 @@ await sec('A555 · pincer pour zoomer une image ouverte, le point reste sous les
   await page.close();
 });
 
+/* A558 (v5.83.0) — LE PINCER S'APPLIQUE AU PLEIN ÉCRAN DU SCHÉMA (#flowFull) : `pan-x pan-y` sur son défileur ; un
+   pincer change `flowZoom` en gardant le point sous les doigts ; au lâcher, plus de transformation et le SVG porte la
+   nouvelle taille (re-tracé net) ; lever les doigts ne ferme pas le plein écran (un nœud tapé le fermerait). */
+await sec('A558 · pincer pour zoomer le plein écran du schéma', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
+  const r0=await page.evaluate(async()=>{flowZoom=1;openFlowFull(state.fiche);await new Promise(r=>setTimeout(r,400));
+    return {on:document.getElementById('flowFull').classList.contains('on'),ta:getComputedStyle(document.querySelector('#flowFull .ff-scroll')).touchAction};});
+  t('témoin : le plein écran du schéma est ouvert',r0.on===true);
+  t('son défileur coupe le seul pincer du navigateur (pan-x pan-y)',r0.ta==='pan-x pan-y',r0.ta);
+  const m=(x,y)=>page.evaluate(([x,y])=>{const s=document.querySelector('#flowFull .ff-scroll svg');
+    if(!s)return {z:flowZoom,w:0,fx:NaN,fy:NaN,tr:'',on:document.getElementById('flowFull').classList.contains('on')};   // fermé : un ROUGE lisible, pas une exception
+    const b=s.getBoundingClientRect();
+    return {z:flowZoom,w:Math.round(b.width),fx:(x-b.left)/b.width,fy:(y-b.top)/b.height,tr:s.style.transform||'',on:document.getElementById('flowFull').classList.contains('on')};},[x,y]);
+  const a0=await m(200,300);
+  const ok2=await page.evaluate(async([cx,cy,d0,d1])=>{if(typeof Touch!=='function')return false;
+    const sc=document.querySelector('#flowFull .ff-scroll'),w=ms=>new Promise(r=>setTimeout(r,ms));
+    const tt=d=>[new Touch({identifier:1,target:sc,clientX:cx-d/2,clientY:cy}),new Touch({identifier:2,target:sc,clientX:cx+d/2,clientY:cy})];
+    const ev=(type,t)=>sc.dispatchEvent(new TouchEvent(type,{touches:t,targetTouches:t,changedTouches:t,bubbles:true,cancelable:true}));
+    ev('touchstart',tt(d0));for(let i=1;i<=6;i++){ev('touchmove',tt(d0+(d1-d0)*i/6));await w(20);}
+    ev('touchend',[]);await w(60);
+    const n=document.elementFromPoint(cx,cy);if(n)n.dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:cx,clientY:cy}));   // le « tap » du lever des doigts
+    await w(200);return true;},[200,300,80,200]);
+  if(!ok2)console.log('  · moteur sans constructeur Touch : pincer tactile non simulé ici');
+  else{const a1=await m(200,300);
+    t('le pincer agrandit le schéma (×2,5)',Math.abs(a1.z-2.5)<0.02&&a1.w>a0.w*2.4,JSON.stringify([a0,a1]));
+    t('le point pincé reste sous les doigts (écart < 1 %)',Math.abs(a1.fx-a0.fx)<0.01&&Math.abs(a1.fy-a0.fy)<0.01,JSON.stringify([a0,a1]));
+    t('au lâcher, aucune transformation résiduelle (le SVG porte la taille)',!a1.tr,a1.tr);
+    t('lever les doigts ne « tape » aucun nœud : le plein écran reste ouvert',a1.on===true);}
+  await page.evaluate(()=>{closeFlowFull();flowZoom=1;applyFlowZoom();});
+  await page.close();
+});
+
 /* A557 (v5.82.0) — CE QU'ON REGARDE SURVIT AU REDIMENSIONNEMENT (signalé : « si je modifie la taille de la fenêtre à
    l'état zoomé, ça casse tout »). Zoomé dans une image, un PDF (page 4 d'un document de 6), la Page « Tableau » et la
    Page de l'aide (re-rendue au palier de largeur : le défileur est REMPLACÉ), on change la taille de la fenêtre : le
