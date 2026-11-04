@@ -6627,11 +6627,16 @@
   .diff-note{font-size:11px;color:var(--ink-soft);margin:8px 0 2px}
   .lightbox{position:fixed;inset:0;background:var(--scrim-full);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
+  /* A555 : l'image vit dans un DÉFILEUR — le pincer l'agrandit (pinchBind), on s'y déplace au doigt. `margin:auto` dans
+     un flex centre l'image tant qu'elle tient et laisse défiler depuis son bord dès qu'elle dépasse (jamais de
+     `justify-content:center`, qui rendrait le bord gauche inatteignable). La taille est posée en ligne par lbFit. */
+  .lb-scroll{flex:1 1 auto;min-height:0;align-self:stretch;display:flex;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y}
+  .lightbox .lb-scroll img{margin:auto;max-width:none;max-height:none;flex:none}
   /* ⚠ 600 N'EST PAS UN GABARIT DE FENÊTRE (audit 9b) : c'est une MESURE DE LISIBILITÉ — la légende
      d'une image, ~70 signes par ligne. La rabattre sur 480 ou 720 réglerait une cohérence de
      fenêtres sur un objet qui n'en est pas une, et casserait la seule chose qu'elle mesure. */
   .lightbox .cap{color:var(--lb-cap);font-size:13.5px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
+  .lightbox .x{position:absolute;z-index:1;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
   /* « ai- » : préfixe HISTORIQUE devenu générique des modales — ne pas y lire un lien avec l'IA,
      renommer casserait sélecteurs CSS+JS pour un gain nul. ⚠ On contraint le GESTE, pas la boîte :
      `touch-action:pan-y`, jamais `overflow-x:hidden` (rejeté par l'auteur : il TRONQUE, et WebKit

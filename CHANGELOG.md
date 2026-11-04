@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.81.0] — 2026-11-04
+Pincer pour zoomer une image ouverte (A555, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Une image jointe qu'on ouvre se pince comme la Page et les PDF** : elle s'ouvre ajustée à l'écran, le pincer
+  l'agrandit jusqu'à ×6 en gardant l'endroit pincé sous les doigts, et l'on s'y déplace au doigt. Nette au lâcher.
+- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
+- Toucher le fond autour de l'image la ferme toujours ; lever les doigts après un pincer ne ferme rien.
+
 ## [5.80.0] — 2026-11-04
 Pincer pour zoomer, comme sur une feuille : la Page d'une aide et les documents PDF (A554, doctrine
 `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
@@ -171,11 +178,3 @@ rejouer côté serveur.
 - **Moniteur** : en portrait, le grand chiffre est nettement plus grand (220 px sur iPad, 109 px sur iPhone).
 - Petits écrans : « Avant la session » ne passe plus sous « Page » à 320 px ; la pastille « À compléter » a une cible
   de 44 px ; le sélecteur de sections d'Administration reste sur une ligne.
-
-## [5.69.0] — 2026-11-01
-Refonte « Natif » : trois arbitrages de forme tranchés sur planche (A527-A529, doctrine `docs/decisions/lot-v6-0.md`).
-Rien à rejouer côté serveur.
-- **Rangées de l'accueil** : une aide n'écrit plus « Aide » ; un protocole garde « Protocole ».
-- **Au téléphone, « Affichage » est la première pastille** sous le titre ; la ligne du compte disparaît (« Tout · n »
-  dit le compte).
-- **La Page n'a plus qu'un bouton « Imprimer ou PDF »** (le dialogue du système propose les deux).

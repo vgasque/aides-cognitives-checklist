@@ -1171,3 +1171,27 @@ déclencherait d'abord ce saut ; à rouvrir avec un délai de discrimination mes
 Témoin : `audit-doctrine` « A554 » — `pan-x pan-y` sur les deux défileurs ; pincer ×2,2 sur la Page, point sous les
 doigts à < 1 %, aucune transformation résiduelle ; Ctrl + molette ; pincer sur un PDF, point sous les doigts, page
 re-rendue (vérifié capable d'échouer : correction de défilement neutralisée → 2 rouges).
+
+## A555 — Le pincer s'applique aux images ouvertes (lightbox) (v5.81.0)
+
+*Demandé par l'auteur, après A554 : « est-ce qu'il peut appliquer ça aux images jointes qu'on ouvre ? »*
+
+**Même mécanisme qu'A554 (`pinchBind`), même contrat** : le calque transformé pendant le geste est l'image
+elle-même ; au lâcher, sa taille est **posée en ligne** (`lbFit`) et le navigateur la re-trame depuis la source — nette
+à toute échelle tant que le fichier a les pixels. Le point pincé reste sous les doigts ; Ctrl + molette et le pavé
+tactile font le même geste.
+- **L'image vit désormais dans un défileur** (`#lbScroll`, `pan-x pan-y`) : agrandie, on s'y déplace au doigt. Elle y
+  est centrée par `margin:auto` dans un flex — jamais `justify-content:center`, qui rendrait le bord gauche d'une image
+  plus large que l'écran inatteignable.
+- **k = 1 est l'image AJUSTÉE à l'écran, et c'est le plancher** (jamais plus grande que nature à l'ouverture, jamais
+  plus petite que l'écran au pincer) ; plafond ×6. L'échelle repart de 1 à chaque ouverture, et suit la fenêtre au
+  redimensionnement.
+- **Un tap sur le fond ferme toujours** : le fond autour de l'image est maintenant le défileur, il ferme comme le voile
+  le faisait. Un tap dans les 350 ms d'un pincer est avalé (A554), donc lever les doigts ne ferme rien.
+- **La croix passe au-dessus du défileur** (`z-index:1`) : une image agrandie défilait sinon PAR-DESSUS ✕.
+
+**Hors périmètre** : le plein écran de l'algorithme (`#flowFull`) garde ses boutons et le pincer natif — non demandé.
+
+Témoin : `audit-doctrine` « A555 » — ouverture ajustée, `pan-x pan-y`, pincer ×3 avec le point sous les doigts à
+< 1 %, aucune transformation résiduelle, tap sur le fond qui ferme (vérifié capable d'échouer : échelle ignorée par
+`lbFit` → rouge).

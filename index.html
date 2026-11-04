@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NHSvGALZMZOK4QgERsFGxehlF9dI+MQlDjOxZ4USNAo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-mkz1e7J58h8bxb32GsJZhkiNApbzcVSS8PfS5Eveb08='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7020,11 +7020,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .diff-note{font-size:11px;color:var(--ink-soft);margin:8px 0 2px}
   .lightbox{position:fixed;inset:0;background:var(--scrim-full);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
+  /* A555 : l'image vit dans un DÉFILEUR — le pincer l'agrandit (pinchBind), on s'y déplace au doigt. `margin:auto` dans
+     un flex centre l'image tant qu'elle tient et laisse défiler depuis son bord dès qu'elle dépasse (jamais de
+     `justify-content:center`, qui rendrait le bord gauche inatteignable). La taille est posée en ligne par lbFit. */
+  .lb-scroll{flex:1 1 auto;min-height:0;align-self:stretch;display:flex;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y}
+  .lightbox .lb-scroll img{margin:auto;max-width:none;max-height:none;flex:none}
   /* ⚠ 600 N'EST PAS UN GABARIT DE FENÊTRE (audit 9b) : c'est une MESURE DE LISIBILITÉ — la légende
      d'une image, ~70 signes par ligne. La rabattre sur 480 ou 720 réglerait une cohérence de
      fenêtres sur un objet qui n'en est pas une, et casserait la seule chose qu'elle mesure. */
   .lightbox .cap{color:var(--lb-cap);font-size:13.5px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
+  .lightbox .x{position:absolute;z-index:1;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
   /* « ai- » : préfixe HISTORIQUE devenu générique des modales — ne pas y lire un lien avec l'IA,
      renommer casserait sélecteurs CSS+JS pour un gain nul. ⚠ On contraint le GESTE, pas la boîte :
      `touch-action:pan-y`, jamais `overflow-x:hidden` (rejeté par l'auteur : il TRONQUE, et WebKit
@@ -9349,7 +9354,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      erreur, et c'est précisément ce qu'on veut d'un appareil posé). -->
 <div id="monMode" role="dialog" aria-modal="true" aria-label="Mode moniteur — affichage seul"><div class="mon-top"><span class="mon-sk" id="monSk">● Session</span><span class="mon-sess" id="monSess"></span><span class="mon-hint">Revenir</span></div><div class="mon-main" id="monMain"></div><div class="mon-band" id="monBand"></div></div>
 <div id="flowFull" role="dialog" aria-modal="true" aria-label="Schéma — plein écran"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><div class="lb-scroll" id="lbScroll"><img id="lbImg" alt=""></div><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
      en cartes verticales ; la méthode IA est un SOUS-ÉCRAN du même dialogue (retour « ‹ Autres
      méthodes »). Un import passé par ici s'ouvre dans l'ATELIER, comme tous les autres : il n'est
@@ -9689,7 +9694,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.80.0';
+const APP_VERSION='5.81.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27337,13 +27342,29 @@ async function newFiche(){const lib=homeScope();
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
-function openLightbox(src,cap){const im=document.getElementById('lbImg');im.src=src;
+/* A555 : le pincer d'A554 s'applique à l'image ouverte. k = 1 est l'image AJUSTÉE à l'écran (jamais plus grande
+   que nature) ; au lâcher, la taille est posée en ligne et le navigateur re-trame depuis la source — net à
+   toute échelle tant que l'image a les pixels. Bornes : ajustée (1) à ×6. */
+let _lbZ=1;
+function lbFit(){const im=document.getElementById('lbImg'),sc=document.getElementById('lbScroll');
+  if(!lb.classList.contains('on')||!im.naturalWidth)return;
+  const f=Math.min(1,sc.clientWidth/im.naturalWidth,sc.clientHeight/im.naturalHeight);
+  im.style.width=Math.round(im.naturalWidth*f*_lbZ)+'px';im.style.height=Math.round(im.naturalHeight*f*_lbZ)+'px';}
+pinchBind(document.getElementById('lbScroll'),{k:()=>_lbZ,min:1,max:6,
+  layer:()=>document.getElementById('lbImg'),ref:()=>document.getElementById('lbImg'),
+  commit:k=>{_lbZ=Math.max(1,Math.min(6,Math.round(k*100)/100));lbFit();}});
+document.getElementById('lbImg').addEventListener('load',lbFit);
+addEventListener('resize',lbFit);
+function openLightbox(src,cap){const im=document.getElementById('lbImg');
+  _lbZ=1;im.style.width=im.style.height='';im.src=src;
   // Le nom accessible de l'image est sa LÉGENDE quand elle en a une : `alt=""` la rendait
   // décorative alors qu'elle est le contenu même de la couche.
   im.alt=cap||'Image agrandie';
-  document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_layerEnter(lb);}
+  document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_layerEnter(lb);
+  {const sc=document.getElementById('lbScroll');sc.scrollTop=sc.scrollLeft=0;}
+  if(im.complete)lbFit();}
 function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';_layerLeave();}
-document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb)closeLightbox();};
+document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb||e.target.id==='lbScroll')closeLightbox();};   // A555 : le fond autour de l'image est désormais le défileur
 // Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
 document.querySelectorAll('#flowFull [data-zoomf]').forEach(b=>b.onclick=()=>zoomStep(b.dataset.zoomf));
 document.getElementById('ffClose').onclick=closeFlowFull;

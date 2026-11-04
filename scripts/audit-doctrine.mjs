@@ -9661,6 +9661,43 @@ await sec('A554 · pincer pour zoomer la Page et le PDF, le point reste sous les
   await page.close();
 });
 
+/* A555 (v5.81.0) — LE PINCER D'A554 S'APPLIQUE À L'IMAGE OUVERTE (lightbox) : elle s'ouvre AJUSTÉE à l'écran,
+   le pincer l'agrandit en gardant le point sous les doigts, au lâcher la taille est posée en ligne (aucune
+   transformation résiduelle), le défileur garde `pan-x pan-y`, et un tap sur le fond ferme toujours. */
+await sec('A555 · pincer pour zoomer une image ouverte, le point reste sous les doigts', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r0=await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=1600;c.height=1200;
+    const g=c.getContext('2d');for(let i=0;i<16;i++){g.fillStyle=i%2?'#333':'#ccc';g.fillRect(i*100,0,100,1200);}
+    openLightbox(c.toDataURL('image/png'),'Témoin');await new Promise(r=>setTimeout(r,400));
+    const im=document.getElementById('lbImg'),sc=document.getElementById('lbScroll'),b=im.getBoundingClientRect();
+    return {w:Math.round(b.width),scw:sc.clientWidth,ta:getComputedStyle(sc).touchAction};});
+  t('l\'image s\'ouvre AJUSTÉE à la largeur de l\'écran',Math.abs(r0.w-r0.scw)<=2,JSON.stringify(r0));
+  t('le défileur coupe le seul pincer du navigateur (pan-x pan-y)',r0.ta==='pan-x pan-y',r0.ta);
+  const m=(x,y)=>page.evaluate(([x,y])=>{const im=document.getElementById('lbImg'),b=im.getBoundingClientRect();
+    return {z:_lbZ,w:Math.round(b.width),fx:(x-b.left)/b.width,fy:(y-b.top)/b.height,tr:im.style.transform||''};},[x,y]);
+  const a0=await m(150,400);
+  const ok2=await page.evaluate(async([cx,cy,d0,d1])=>{if(typeof Touch!=='function')return false;
+    const sc=document.getElementById('lbScroll'),w=ms=>new Promise(r=>setTimeout(r,ms));
+    const tt=d=>[new Touch({identifier:1,target:sc,clientX:cx-d/2,clientY:cy}),new Touch({identifier:2,target:sc,clientX:cx+d/2,clientY:cy})];
+    const ev=(type,t)=>sc.dispatchEvent(new TouchEvent(type,{touches:t,targetTouches:t,changedTouches:t,bubbles:true,cancelable:true}));
+    ev('touchstart',tt(d0));for(let i=1;i<=6;i++){ev('touchmove',tt(d0+(d1-d0)*i/6));await w(20);}
+    ev('touchend',[]);await w(200);return true;},[150,400,80,240]);
+  if(!ok2)console.log('  · moteur sans constructeur Touch : pincer tactile non simulé ici');
+  else{const a1=await m(150,400);
+    t('le pincer agrandit l\'image (×3)',Math.abs(a1.z-3)<0.02&&a1.w>a0.w*2.9,JSON.stringify([a0,a1]));
+    t('le point pincé reste sous les doigts (écart < 1 %)',Math.abs(a1.fx-a0.fx)<0.01&&Math.abs(a1.fy-a0.fy)<0.01,JSON.stringify([a0,a1]));
+    t('au lâcher, aucune transformation résiduelle (taille posée en ligne)',!a1.tr,a1.tr);}
+  await page.waitForTimeout(400);
+  const ferme=await page.evaluate(async()=>{const sc=document.getElementById('lbScroll');
+    sc.dispatchEvent(new MouseEvent('click',{bubbles:true}));await new Promise(r=>setTimeout(r,200));
+    return !document.getElementById('lightbox').classList.contains('on');});
+  t('un tap sur le fond autour de l\'image ferme toujours',ferme===true);
+  await page.close();
+});
+
 /* v5.33.2 (signalé à l'usage iPhone) : (1) corriger une heure DANS le volet du quai — `kb-open` restait
    posée après la validation (le champ part avec le panneau pendant son blur, son `focusout` n'atteint
    plus le document) : dock masqué, bas de `main` qui saute ; et sous `html.kbd` le volet redevenait du
