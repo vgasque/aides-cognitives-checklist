@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.86.2] — 2026-11-05
+Le quai garde ses mots à 320 px avec le texte à 130 % (A568, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
+côté serveur.
+- **Correctif : « FV réfractaire » et « Horodater » pouvaient être coupés** dans la barre du bas pendant une session,
+  sur un écran étroit (320 px) avec le texte agrandi à 130 %. Quand un mot ne tient toujours pas à la plus petite
+  taille de texte autorisée, les touches « Fin » et « Tout voir », dont les mots sont courts, se resserrent à 44 px
+  (la taille minimale d'une touche en session) et rendent cette place aux mots longs. Rien ne change ailleurs.
+- Audit : la sonde du partage qui vérifie les gestes réservés attend que l'invité ait vraiment rejoint au lieu
+  d'une durée fixe ; la sonde des mots du quai dit, quand elle échoue, ce qui manque et dans quelle police.
+
 ## [5.86.1] — 2026-11-05
 Le retour système ne recule plus jamais deux fois (A563, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
 serveur.
@@ -190,8 +200,3 @@ Le haut et le bas de l'accueil au téléphone (A542-A543, doctrine `docs/decisio
   plus de coupure entre les deux.
 - **La barre du bas descend** à la hauteur d'une barre d'onglets iOS (24 pt du bord sur un iPhone à Face ID, au lieu de
   47) ; la recherche suit.
-
-## [5.73.2] — 2026-11-01
-Correctif de l'app installée sur iPhone (A541, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Accueil, Sessions et Moi** ne sont plus tronqués en haut : même page au repos, le contenu commençait sous l'heure et
-  la barre du haut recouvrait le grand titre et les pastilles.
