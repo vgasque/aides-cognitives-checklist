@@ -1515,3 +1515,29 @@ entrer dans `HARNAIS` (`check-harnais`), donc dans les lots de CI, dont le bilan
 *Forme écartée* : interdire toute pause fixe courte (rouge dès la première) — 312 existantes, dont 131 où la
 conversion ne gagne rien (partage, mesuré A564) : le cliquet fait baisser le compte au fil des modifications sans
 imposer une conversion en bloc.
+
+## A568 — Le quai à 320 × 130 % : un cran de plus, mesuré, pour les mots longs ; deux sondes que la CI répartie a fait parler (v5.86.2)
+
+*Étend A465 et A511 (`fitQuaiLbls`). Révélé par la première CI répartie (A566), dont les lots rapportent enfin leurs
+rouges au lieu de les noyer dans un « succès » (`continue-on-error`).*
+
+**Le quai.** À 320 px et 130 % (246 px effectifs, régime DÉGRADÉ d'A510 où « aucun mot coupé » tient), le quai était
+déjà au dernier cran d'A511 (11 px, le plancher) avec ~1 px de marge pour « réfractaire » et ~3 px pour « Horodater »
+(mesure locale). Le témoin A465 était ROUGE en CI à chaque passe, `main` compris, avant même A563-A567 — invisible
+jusque-là. Le témoin, enrichi pour dire ce qui manque, a rapporté du runner : Manrope **chargée**, mais rendue ~8 %
+plus large (« réfractaire » 61,5 px pour une boîte de 58,1 ; « Horodater » 60,0). Un iPhone de 320 px au rendu
+différent n'aurait pas eu plus de marge : le défaut est dans l'app, la CI n'a fait que le montrer.
+- **Troisième cran `lbl-fit`** : au plancher de 11 px, si un mot déborde ENCORE, « Fin » et « Tout voir » (mots courts,
+  48 et 52 px depuis A465) descendent à **44 px — la cible du mode crise (règle 9), jamais en deçà** — et rendent
+  ~6 px à chacune des deux touches à mot long. Ni taille ni graisse de texte ne changent. Décidé par la MESURE, comme
+  les deux crans d'A511 : un rendu étroit ne le déclenche pas (les autres largeurs sont identiques à l'octet).
+- **Vérifié** en reproduisant le rendu du runner (espacement de 0,4 px sur les libellés : exactement 61,5 / 58,1) :
+  code d'avant → « FV réfractaire » coupé, comme en CI ; avec `lbl-fit` → touches longues à 66,1 px, boîte 64,1,
+  rien de coupé ; 320 × 115, 360 × 130 et 390 × 130 inchangés.
+*Formes écartées* : passer les libellés en graisse 700 (≈ 1 px gagné, et un registre typographique de plus) ;
+réduire les gouttières du quai (règles d'A512 sur les zones sûres, pour 2 px) ; descendre sous 11 px (règle 9).
+
+**Les sondes** (aucun seuil changé) : `audit-partage` « le bridage se VOIT » attendait 500 ms fixes après `joinGo()` ;
+rouge une fois sur un runner très lent (10 min pour installer Chromium) — elle attend désormais ce qui pose la classe
+de bridage (invité joint, fiche partagée affichée), plafond 8 s. Le témoin A465 rapporte, quand il rougit, mot,
+boîte, touche, police et chargement : sans ces mesures, ce défaut n'était pas corrigeable.

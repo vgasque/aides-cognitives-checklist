@@ -3316,7 +3316,11 @@ await sec('QUAI · texte agrandi : chaque touche garde son mot entier (A465)', a
         const cs=getComputedStyle(l);c.style.font=cs.font;
         const mot=Math.max(...l.textContent.trim().split(/\s+/).map(w=>{c.textContent=w;return c.getBoundingClientRect().width;}));
         const coupe=l.scrollHeight>l.clientHeight+6||l.scrollWidth>l.clientWidth+1||mot>l.getBoundingClientRect().width+1;   // +6 : l'interligne 1,1 déborde de 2 px sans rien cacher
-        return {k:l.textContent.trim(),ok:!coupe,why:coupe?'coupé':''};});
+        /* Diagnostic (A568) : ce rouge ne se voyait qu'en CI — on dit CE QUI manque, et dans quelle police. */
+        const z=zoomF(),cw=w=>+(w/z).toFixed(1);
+        return {k:l.textContent.trim(),ok:!coupe,why:coupe?'coupé':'',...(coupe?{mot:cw(mot),boite:cw(l.getBoundingClientRect().width),touche:cw(k.getBoundingClientRect().width),
+          h:[l.scrollHeight,l.clientHeight],sw:[l.scrollWidth,l.clientWidth],police:cs.fontFamily.split(',')[0]+' '+cs.fontWeight+' '+cs.fontSize,
+          chargee:document.fonts.check(cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily.split(',')[0]),quai:document.getElementById('sessionDock').className}:{})};});
       c.remove();return out;});
     const fautes=r.filter(x=>!x.ok);
     t(`${W}${H?' × '+H:''} px · ${z} % · ${r.length} touches, toutes avec leur mot entier`, r.length>=3&&!fautes.length, JSON.stringify(fautes));

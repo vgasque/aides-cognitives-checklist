@@ -1503,6 +1503,10 @@
   #sessionDock.lbl-xs .sd-key .dp-lbl{font-size:var(--t-cap)}
   #sessionDock.lbl-s .sd-key:not(.sd-exo):not(.sd-start){padding:0 2px}
   #sessionDock.lbl-xs .sd-key:not(.sd-exo):not(.sd-start){padding:0 1px}
+  /* A568 — dernier cran : au plancher de 11 px, si un mot déborde encore, les deux touches à mot court rendent leur
+     largeur aux mots longs — jusqu'à la cible du mode crise (44 px, règle 9), jamais en deçà. Mesuré en CI : le rendu
+     Linux élargit Manrope de ~8 % (« réfractaire » 61,5 px pour une boîte de 58,1). */
+  #sessionDock.lbl-fit :is(#endKey,#allBtn){flex:0 0 44px}
   /* A2 — à 320 px les DEUX OUVERTURES passent au glyphe seul (aria-label conservé) ; hors du
      contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT — les GESTES gardent
      leurs mots. ⚠ Ce palier est une CLASSE `zw*`, jamais une media query (règle 10, déjà enfreinte

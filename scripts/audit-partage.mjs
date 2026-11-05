@@ -981,7 +981,12 @@ await sec(`PARTAGE · le bridage se VOIT, et les deux listes ne divergent pas �
       participants: [], server_time: new Date().toISOString() });
     const pousses = [];
     Share._io.push = async (s, sh, ev) => { pousses.push(...ev); return { ok: true, server_time: new Date().toISOString() }; };
-    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 500));
+    openJoinScreen('K7M2P4Q9'); await joinGo();
+    /* ON ATTEND LA JONCTION, PAS UNE DURÉE (A568) : une pause fixe de 500 ms a rougi une fois en CI, sur un runner
+       très lent (10 min pour installer Chromium) — la classe de bridage n'était pas encore posée, et les quatre
+       témoins suivants en découlaient. On attend ce qui la CAUSE (invité joint, fiche partagée affichée), jamais
+       la classe elle-même, que le témoin vérifie ensuite ; plafond 8 s, au-delà le témoin rougit comme avant. */
+    for (let i = 0; i < 80 && !(Share.mode === 'guest' && sharedShown()); i++) await new Promise(x => setTimeout(x, 100));
 
     /* LE PANNEAU DES MINUTEURS S'OUVRE AVANT LE RELEVÉ, et l'ordre n'est pas un détail : la
        version précédente l'ouvrait APRÈS avoir photographié les contrôles bridés — elle relevait
