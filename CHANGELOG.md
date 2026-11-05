@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.86.1] — 2026-11-05
+Le retour système ne recule plus jamais deux fois (A563, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
+serveur.
+- **Correctif : l'application pouvait se quitter toute seule en fermant une fenêtre ou un écran**, sur un appareil
+  très chargé. Quand le navigateur tardait plus d'une seconde à revenir d'un cran dans l'historique, l'application
+  croyait la demande perdue et la répétait : elle reculait de deux crans et sortait de son propre écran (vers la page
+  précédente, voire hors de l'application installée). Elle attend désormais que le premier recul arrive, et ne le
+  répète jamais.
+- Audit : trois sondes ne dépendent plus de la vitesse de la machine (atelier d'import, voile du guide pendant le
+  défilement) ou disent où en était l'application quand elles échouent (recherche dans les PDF). Aucun seuil changé.
+
 ## [5.86.0] — 2026-11-04
 Importer une page Notion (A562, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Le .zip d'un export Notion (« Markdown & CSV ») s'importe tel quel** par « Importer un fichier » ou en le
@@ -184,9 +195,3 @@ Le haut et le bas de l'accueil au téléphone (A542-A543, doctrine `docs/decisio
 Correctif de l'app installée sur iPhone (A541, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - **Accueil, Sessions et Moi** ne sont plus tronqués en haut : même page au repos, le contenu commençait sous l'heure et
   la barre du haut recouvrait le grand titre et les pastilles.
-
-## [5.73.1] — 2026-11-01
-Correctif de l'app installée sur iPhone (A540, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Accueil** : en défilant, la barre du haut prend son fond de verre dès que le titre « Aides » passe dessous ;
-  « Sélectionner » et « Créer » ne chevauchent plus le titre ni les pastilles.
-- La hauteur de la barre d'état et de la zone basse est désormais lue correctement (menu ⋯, barre du bas).

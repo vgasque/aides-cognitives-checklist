@@ -1360,3 +1360,158 @@ images, en chemins relatifs) ». Mesuré sur un export réel (« Motifs de recou
 dossier, et l'export Notion est déjà un .zip.
 Témoins : `tests.html` « Import — page Notion » (pur) ; `audit-doctrine` « Import · A562 » (archive fabriquée,
 vrai point d'entrée ; vérifié capable d'échouer : branche Notion retirée → 2 rouges).
+
+## A563 — Le retour système ne recule jamais deux fois : un parcours d'historique en retard n'est pas perdu (v5.86.1)
+
+*Amende A430 (le filet « popstate perdu » de `_histSync`).*
+
+Trouvé en cherchant à raccourcir l'audit : à pool 6 sur 4 cœurs, une tranche de doctrine plantait sur « Execution
+context was destroyed, most likely because of a navigation » — l'app avait QUITTÉ son document en pleine sonde.
+**Cause.** Quand l'app ferme un niveau, `_histSync` redescend l'historique par `history.go`, qui est ASYNCHRONE, et
+arme un filet de 1 s pour le `popstate` « perdu ». Sous charge, le parcours arrive après 1 s : le filet le croyait
+perdu, remettait `_hSkip` à zéro et relançait `history.go` sur une profondeur pas encore bougée — **double recul**,
+sous la base de l'historique, donc hors de l'application (et le `popstate` tardif, n'étant plus ignoré, pouvait en
+outre être lu comme un geste retour de l'utilisateur). **Mesuré** en différant `history.go` dans la page : 1,2 s
+→ la page sort sur `about:blank` ; bloquer le thread principal ne reproduit RIEN (il retarde le minuteur ET le
+parcours) — c'est le navigateur qui tarde, pas la page. Sur un appareil réel lent, la sortie mène à la page
+précédente, voire hors de la PWA : inacceptable dans une app d'urgence.
+- **Profondeur inchangée = parcours EN ROUTE** (`_hWatch`) : on attend, par pas de 1 s, 5 s au plus, et on ne
+  relance JAMAIS un second `history.go`. Au-delà, on rend la main sans rien relancer : un parcours tardif tombe alors
+  sur d = L (sans effet) ; un parcours réellement perdu laisse des entrées au-dessus, que le popstate « d > L »
+  redescend déjà.
+- **Profondeur changée sans popstate** (le cas que le filet visait) : on se recale comme avant.
+*Forme écartée* : allonger le filet (2 s, 5 s) — une autre course, plus rare, même défaut.
+Témoin : `audit-retour` « un parcours d'historique EN RETARD ne fait pas reculer deux fois (A563) » (`history.go`
+différé de 1,2 s et 2,5 s : un seul recul, l'app reste sur son document, pile alignée ; vérifié capable d'échouer :
+rouge sur le code d'avant, la page sort sur `about:blank`).
+
+**Le même lot fiabilise deux sondes que la charge faisait rougir** (aucun seuil ne change) : `audit-doctrine`
+« A129 · l'atelier d'import » attend l'aide ET la référence importées avant de lire ; `audit-guide` lit le voile
+DANS le premier `scroll` (écouteur posé après celui de l'app) au lieu de 120 ms après la molette — le voile tombe
+à chaque `scroll` et revient 220 ms après, la lecture à heure fixe était une course (un observateur de classe,
+essayé d'abord, restait vert sur une app qui ne retirait plus le voile : écarté). `audit-pdfsearch` dit désormais
+l'état de l'app quand le document joint n'apparaît pas (rouge vu une fois, non reproduit).
+
+## A564 — Les harnais attendent que l'écran se pose, pas une durée (outillage, sans version)
+
+*Piste 2 de l'optimisation de l'audit ; complète A563 (piste 1 : les rouges de charge).*
+
+**Constat mesuré.** L'audit attendait surtout : ~830 pauses fixes (`w(600)`, `waitForTimeout(400)`…) dans doctrine,
+a11y et k5, chacune payée en entier même quand l'écran était posé en 80 ms. Essai sans garde-fou (TOUTES les
+pauses de doctrine converties) : 708 s → 542 s de sections, et exactement quatre sections rouges — celles où le
+temps EST le témoin (ticks du quai, A474, reprise Q2, tri vivant P4b). C'est le signal qui a fixé la règle.
+**L'outil.** `__acCalme(max)` (`installeCalme`, `harness.mjs`), posé avant tout code de l'app sur toute page de tout
+harnais (`moteur().launch()` ajoute le script d'initialisation à `newPage`/`newContext`). Il rend la main quand :
+deux images peintes, aucune mutation du DOM depuis 80 ms, aucun `setTimeout` de l'app échéant avant le plafond,
+aucun `requestAnimationFrame` en attente, aucune transaction IndexedDB ouverte, aucun `fetch` en vol, aucune
+animation finie d'élément en cours. PLAFOND = l'ancienne durée : jamais plus lent, jamais une lecture plus tardive
+qu'avant. Côté Node : `calme(page, N)`.
+- **Ignorées, et pourquoi** : l'animation infinie (halo d'alarme : elle ne finit jamais) et celle d'un
+  PSEUDO-élément — l'anneau d'ouverture `sd-ring` (A493, 0,8 s + 3 × 1,3 s sur un `::after`) faisait payer son
+  plafond entier à toute lecture d'aide hors session (mesuré 602/600 ms) ; aucune sonde ne mesure une boîte de
+  pseudo.
+- **Non suivi, à dessein** : le `setInterval` (le tick de 300 ms est perpétuel — l'attendre, c'est attendre le
+  plafond). D'où la règle ci-dessous.
+**La règle de conversion.** Pause de RENDU (< 700 ms) → `__acCalme(N)` / `calme(page, N)`, explicitement dans le
+code (on distingue à la lecture une attente de rendu d'une attente d'horloge). Pause d'HORLOGE (≥ 700 ms : garde,
+tick, échéance, minute) → durée inchangée, comme toutes celles des quatre sections où le temps est le témoin. Un
+repli Node (`const __acCalme = pause`) en tête de chaque harnais converti : le code passé à `page.evaluate` est
+sérialisé et y résout le `__acCalme` de la page, le code Node résout le repli — chacun le bon, sans heuristique
+(une détection statique « dans un evaluate ? » a été essayée : les littéraux d'expressions régulières faussent
+l'appariement des parenthèses, écartée).
+**Mesuré, à verdicts identiques** (sections jouées en parallèle, avant → après) : doctrine 708 → 602 s (1 914/1 914
+contrôles) ; k5 74 → 56 s ; a11y 217 → 184 s. **Non converti, parce que rien à gagner** (mesuré) : partage
+394,6 → 390,5 s (seuils de protocole réels) et guide 84 → 84 s (il attend les délais propres du guide, pas des
+pauses de sonde).
+*Formes écartées* : remplacer chaque pause par une condition écrite à la main (~830 éditions, autant de risques) ;
+une attente au seul DOM (rendait la main avant un anti-rebond, une écriture IndexedDB lente sous charge — c'est-à-
+dire refaisait les rouges de charge qu'A563 venait de chasser).
+**Témoin** : `audit-calme` (nouveau harnais, dans `HARNAIS`) — minuteur, boucle rAF, animation, transaction
+IndexedDB dont l'effet tombe APRÈS 80 ms de silence du DOM, plafond, repos rapide, `calme(page, N)` ; vérifié
+capable d'échouer (suivi des minuteurs et des rAF retiré → deux rouges).
+
+## A565 — Le pool d'audit suit la machine : 2 × cœurs, 8 au plus ; doctrine en 6 tranches, a11y en 3, guide en 2 (outillage, sans version)
+
+*Piste 3 de l'optimisation de l'audit. Renverse la prudence du lot v5.24 (« `AC_JOBS` reste à 4 par défaut — à 8 sur
+ce Mac une section à attentes fixes a rougi une fois, et rien ne garantit la CI »).*
+
+**Pourquoi c'est devenu possible.** L'audit ATTEND plus qu'il ne calcule (mesuré : 70 % de CPU occupé à 6
+navigateurs sur 4 cœurs) : le pool ne doit pas suivre les cœurs, il peut les dépasser. Ce qui l'interdisait, c'étaient
+des sondes que la charge faisait mentir ; A563 (retour système, trois courses) et A564 (attendre l'écran posé) les ont
+traitées. **Mesuré sur 4 cœurs, passes complètes forcées** : pool 3 (l'ancien défaut ici, `min(4, cœurs − 1)`) 496 s ;
+pool 6 281 s (cinq passes vertes) ; pool 8 **225 à 231 s (trois passes vertes sur trois)**, ≈ 300 Mo par navigateur
+au pic (3 Go pour 8).
+- **Défaut** : `min(8, 2 × cœurs, mémoire libre ÷ 500 Mo)` ; `AC_JOBS` reste souverain. Au-delà de 8, la tranche la
+  plus longue borne le temps mural (pool 8 encore saturé : somme des tâches ÷ 8 = 224 s pour 225 s mesurés, mais à
+  4 cœurs le CPU devient la limite).
+- **Tranches** : doctrine 4 → 6 (130-141 s chacune au lieu de 175-186), a11y 2 → 3, guide 0 → 2. Guide se découpe
+  par CAS (`--shard k/n`, modulo, ligne `##SEC` vérifiée par le lanceur) ; son bloc final « Prendre en main », hors
+  des cas, est joué par la SEULE tranche 1 — sans cette garde, les tranches le jouaient chacune (468 contrôles au lieu
+  de 462 : relevé en comparant les comptes, la somme des tranches doit égaler le harnais entier).
+**Ce qui reste vrai** : un rouge obtenu sous forte charge se confirme en rejouant le harnais SEUL avant d'y croire ; un
+poste chargé par ailleurs se règle par `AC_JOBS`. **Non mesuré** : la CI GitHub (4 vCPU, comme ce banc : défaut 8)
+et un Mac de 8 cœurs et plus (défaut 8, la valeur qui avait rougi en v5.24 — avant A563/A564) ; l'audit de CI étant
+non bloquant, un rouge y demande un arbitrage, pas un blocage.
+*Forme écartée* : un pool proportionnel aux cœurs seuls (`cœurs − 1`, l'ancien) — il laissait le CPU aux deux tiers
+inoccupé ; un pool sans plafond — 12 navigateurs n'apportent rien tant qu'une tranche de doctrine dure 130 s.
+
+## A566 — En CI, l'audit se répartit en trois lots sur trois machines ; un bilan vérifie que leur union est la passe complète (outillage, sans version)
+
+*Piste 4 de l'optimisation de l'audit. Complète A565 : sur une machine, la tranche la plus longue et le CPU bornent la
+passe ; seule une autre machine lève les deux.*
+
+**Avant.** L'audit était la DERNIÈRE étape du job `test` : il attendait la fin des tests (deux moteurs), puis jouait
+les 37 tâches sur un seul runner.
+**Ce qui change.**
+- **`audit-run.mjs --lot k/n --rapport f.json`** : la machine k ne joue que SA part de la passe complète. Le partage
+  (`partageLots`, glouton LPT, déterministe) porte sur la liste `tachesCompletes()` — chaque harnais ou chacune de
+  ses tranches, au POIDS DÉCLARÉ de `HARNAIS`, jamais aux durées apprises de `.audit-etat.json` : deux machines qui
+  n'auraient pas le même état découperaient différemment, et perdraient ou doubleraient des tâches. Un lot ne
+  consomme pas le cache vert, n'écrit pas l'état, ne vérifie pas seul la somme des tranches (elles sont réparties)
+  et s'annonce « LOT k/n … seul le bilan conclut ».
+- **`audit-run.mjs --bilan rapports/*.json`** : il RECALCULE lui-même la liste attendue et exige que l'union des
+  rapports la couvre EXACTEMENT — chaque tâche jouée une fois, aucune inconnue, lots 1..n tous présents et uniques,
+  même commit, même moteur, chaque harnais découpé couvrant toutes ses sections (`##SEC`, la vérification qu'aucun
+  lot seul ne peut faire). Un lot perdu (job annulé, artefact manquant, lanceur planté) ne fabrique jamais un vert.
+  Vérifié capable d'échouer sur six rapports falsifiés : lot manquant, lot en double, tâche rouge, tranche de
+  doctrine tronquée d'une section (157/158), lot d'un autre commit, aucun rapport — six refus motivés.
+- **`ci.yml`** : l'audit sort du job `test` ; une matrice `audit` de trois lots (`fail-fast: false`, Chromium
+  seul, cache Playwright à clé distincte pour ne pas enregistrer un cache sans WebKit sous la clé de `test`) tourne
+  EN MÊME TEMPS que les tests, téléverse ses rapports même rouges, et `audit-bilan` (`if: always()`, Node seul) les
+  rassemble. Toujours NON BLOQUANT (`continue-on-error` sur les deux jobs) : un rouge d'audit reste un arbitrage.
+- **Poids de `HARNAIS` re-mesurés** (ils avaient dérivé : doctrine déclaré 478 pour 807 mesurés) : ce sont eux, et
+  eux seuls, qui partagent la passe ; seul leur rapport compte, à re-mesurer quand un harnais change de taille.
+**Mesuré** (sur ce banc à 4 cœurs, chaque lot joué seul, comme sur son runner) : lots 127 s, 126 s et 106 s pour
+une passe complète de 219-231 s sur une machine ; bilan 37/37. **Non mesuré** : les runners GitHub eux-mêmes
+(nombre de cœurs selon la visibilité du dépôt, temps d'installation) — le premier passage de la CI le dira.
+*Formes écartées* : faire confiance à chaque lot sur sa propre part (un lot absent ne dit rien) ; partager sur les
+durées apprises (non reproductibles d'une machine à l'autre) ; un lot par harnais (doctrine seul fixerait le temps).
+
+## A567 — Les optimisations de l'audit se gardent seules : cliquet des pauses fixes, alertes de dérive (outillage, sans version)
+
+*Clôt les pistes d'optimisation (A563-A566). Demande de l'auteur : « comment faire en sorte que les prochaines modifs
+d'audit suivent ces optimisations ? »*
+
+**Ce qui était déjà automatique** : l'attente de calme est posée sur toute page de tout harnais (`moteur().launch()`,
+A564) ; le pool 8 fait rougir à la passe complète une sonde que la charge fait mentir (A565) ; un harnais neuf doit
+entrer dans `HARNAIS` (`check-harnais`), donc dans les lots de CI, dont le bilan refuse toute passe incomplète (A566) ;
+`audit-calme` garde l'outil. **Ce qui ne reposait que sur une ligne d'AGENTS.md** — et une règle déclarative fuit :
+1. **`check-pauses.mjs`, 28ᵉ garde-fou de `npm run check`** : CLIQUET par harnais sur les pauses FIXES de moins de
+   700 ms (`waitForTimeout(N)`, `setTimeout(r, N)`, appel d'un utilitaire de pause du fichier). Plafond relevé à
+   l'introduction (`scripts/pauses-plafond.json` : 312 — doctrine 21, celles des quatre sections où le temps est le
+   témoin ; partage 131 ; a11y et k5 0). Au-dessus → rouge, qui dit quoi écrire ; en dessous → rouge aussi, qui
+   demande `--maj` (un plafond resté haut laisserait revenir autant de pauses qu'on vient d'en retirer). Exemption
+   NOMMÉE sur place : `// horloge : <raison>` sur la ligne. Le repli Node `const __acCalme = …` a la forme d'un
+   utilitaire de pause et en est exclu ; un utilitaire redéfini dans chaque `evaluate` (doctrine : ~125 `const w`)
+   ne se compte qu'une fois — deux pièges du premier jet (2 924 puis 2 165 « pauses » au lieu de 312), relevés en
+   confrontant le compte au relevé fait à la main. Vérifié capable d'échouer : pause ajoutée → rouge ; pause
+   retirée → rouge `--maj` ; même pause marquée `// horloge` → vert.
+2. **Alertes de fin de passe complète** (`audit-run.mjs`, jamais un rouge — aucun verdict en cause) :
+   `△ poids de X à re-mesurer` quand la PART déclarée d'un harnais (poids de `HARNAIS`) s'écarte de plus de ×1,5 de sa
+   part mesurée (parts, pas secondes : une machine plus rapide raccourcit tout, les parts restent ; seuil 2 % pour
+   taire les petits) — ce sont ces poids qui partagent les lots de CI ; `△ X dure plus que la plus longue tranche :
+   à découper` — une tâche non découpée bornerait seule le temps mural. Vérifié : k5 déclaré 600 au lieu de 60 →
+   « 25,3 % déclaré pour 3,3 % mesuré », et aucune alerte sur les 24 autres.
+*Forme écartée* : interdire toute pause fixe courte (rouge dès la première) — 312 existantes, dont 131 où la
+conversion ne gagne rien (partage, mesuré A564) : le cliquet fait baisser le compte au fil des modifications sans
+imposer une conversion en bloc.

@@ -6,7 +6,10 @@
      • focus visible au CLAVIER (parcours Tab réel, pas un .focus() programmatique)
      • règles projet : jamais --ink-3 en couleur de texte, « hors chemin » jamais par opacité seule
 */
-import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession, trancheArg } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession, trancheArg, calme } from './harness.mjs';
+/* Pauses de RENDU (< 700 ms) → attente de calme : `__acCalme(N)` dans la page, `calme(page, N)` côté Node ; les
+   pauses d'HORLOGE (≥ 700 ms) restent des durées. Repli Node, et raison complète : A564, tête d'audit-doctrine.mjs. */
+const __acCalme=m=>new Promise(r=>setTimeout(r,m));
 
 
 const { port, srv } = await serveApp();
@@ -221,10 +224,10 @@ const SURFACES = [
   /* A467 : la carte d'entrée de l'exercice guidé (aide d'exemple, avant la session) et sa bulle, ouvertes
      par leurs vrais points d'entrée. */
   { nom:'carte exercice guidé', w:390, scope:'.gd-card', fn: async()=>{
-      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));openRead(f.id);await new Promise(r=>setTimeout(r,400)); } },
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));openRead(f.id);await __acCalme(400); } },
   { nom:'bulle exercice guidé', w:390, scope:'#gdTip', fn: async()=>{
-      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));await guideStart(f);await new Promise(r=>setTimeout(r,500));
-      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,600)); } },
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));await guideStart(f);await __acCalme(500);
+      document.getElementById('sessStart').click();await __acCalme(600); } },
   { nom:'bienvenue',           w:390,  scope:'#welcomeModal', noSeed:true, fn: async()=>{} },
   /* v5.44 : la fenêtre des outils du contenu rédigé (une fenêtre, deux corps), ouverte par ses vraies
      fonctions depuis un éditeur de référence réel. */
@@ -241,13 +244,13 @@ const SURFACES = [
         okText:'Supprimer',danger:true}); } },
   { nom:'historique sessions', w:390,  scope:'#sessModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      openRead(f.id);await new Promise(r=>setTimeout(r,400));
-      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
+      openRead(f.id);await __acCalme(400);
+      document.getElementById('sessStart').click();await __acCalme(450);
       openSessHist(); } },
   { nom:'terminer la session', w:390,  scope:'#endSessModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      openRead(f.id);await new Promise(r=>setTimeout(r,400));
-      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,450));
+      openRead(f.id);await __acCalme(400);
+      document.getElementById('sessStart').click();await __acCalme(450);
       confirmEndSession(f); } },
   /* L'index ⚡ n'est plus une FENÊTRE mais un dépliant DANS la carte (v5.0.0, audit design) : la
      surface change de porteur, pas de nature — on l'ouvre par son vrai point d'entrée, et il faut
@@ -256,11 +259,11 @@ const SURFACES = [
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
                     {label:'Choc réfractaire',target:f.blocks[0].id}];
-      await Data.put(f);openRead(f.id);await new Promise(r=>setTimeout(r,400));
+      await Data.put(f);openRead(f.id);await __acCalme(400);
       const sb=document.getElementById('sessStart');if(sb)sb.click();
-      await new Promise(r=>setTimeout(r,500));
+      await __acCalme(500);
       const b=document.querySelector('#cxKey');if(b)b.click();
-      await new Promise(r=>setTimeout(r,350)); } },
+      await __acCalme(350); } },
   { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});
@@ -287,13 +290,13 @@ const SURFACES = [
       const acc=[];for(let i=0;i<60;i++)acc.push({user_id:'00000000-0000-0000-0000-'+String(i).padStart(12,'0'),email:'compte'+i+'@hopital.exemple',status:i<5?'pending':'approved',is_admin:i===9,can_create:false,libraries:1,created_at:new Date(Date.UTC(2026,8,1+i)).toISOString()});
       _admD={t:Date.now(),stats:null,acc,un:null,libs:[],reqs:[],mode:'admins',users:[],approval:true};
       _admBusy=Promise.resolve(_admD);openAdmin('comptes');
-      await new Promise(r=>setTimeout(r,200));document.querySelector('#admBody [data-admsel]').click();
-      await new Promise(r=>setTimeout(r,150));document.querySelector('#admBody [data-admpick]').click(); } },
+      await __acCalme(200);document.querySelector('#admBody [data-admsel]').click();
+      await __acCalme(150);document.querySelector('#admBody [data-admpick]').click(); } },
   { nom:'administration · règles', w:390, scope:'#admModal', fn: async()=>{
       _admD={t:Date.now(),stats:null,acc:[{user_id:'00000000-0000-0000-0000-000000000001',email:'a@hopital.exemple',status:'pending',is_admin:false,can_create:false,libraries:0}],un:null,libs:[],reqs:[],mode:'creators',
         users:[{user_id:'00000000-0000-0000-0000-000000000002',email:'b@hopital.exemple',is_admin:false,can_create:true}],approval:true};
       _admBusy=Promise.resolve(_admD);openAdmin('regles');
-      await new Promise(r=>setTimeout(r,200));document.querySelector('#admBody [data-admap]').click(); } },
+      await __acCalme(200);document.querySelector('#admBody [data-admap]').click(); } },
   { nom:'erreur de synchro',   w:390,  scope:'#syncErrModal', fn: async()=>{
       if(typeof openSyncErr==='function')openSyncErr('La synchronisation a échoué : réseau indisponible.'); } },
   { nom:'joindre un document', w:390,  scope:'#attPickModal', fn: async()=>{
@@ -303,7 +306,7 @@ const SURFACES = [
       // Un document joint AILLEURS : sans lui, la liste filtrable serait vide et ne mesurerait rien.
       const g=fiches.find(x=>x.id!==f.id);
       if(g){g.docs=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
-      openEdit(f.id);await new Promise(r=>setTimeout(r,500));
+      openEdit(f.id);await __acCalme(500);
       openAttPicker(state.draft,()=>{}); } },
   /* ATELIER D'IMPORT (v5.7, A129) : la surface où l'on décide de ce qui entre dans la
      bibliothèque. Ouverte par son VRAI point d'entrée — `readImportFile`, l'entonnoir des trois
@@ -317,25 +320,25 @@ const SURFACES = [
          blocks:[{id:'bb',kind:'do',title:'Long',items:['1','2','3','4','5','6','7','8','9']}]}],
         protocols:[{id:'a11yc',title:'Import — référence',status:'review',body:'Texte',sources:['Recos 2024']}]});
       readImportFile(new File([j],'a11y.json'));
-      await new Promise(r=>setTimeout(r,600)); } },
+      await __acCalme(600); } },
   /* A383 : la feuille « Réglages de l'étape », ouverte par son bouton, sur une étape d'un bloc qui se
      répète — les trois sections (importance, coche, moment) sont alors toutes rendues. */
   { nom:'réglages de l\'étape', w:390,  scope:'#stepSetModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      openEdit(f.id);await new Promise(r=>setTimeout(r,500));
+      openEdit(f.id);await __acCalme(500);
       const li=[...document.querySelectorAll('.blk .li')].find(l=>/Adrénaline/.test(l.querySelector('input[data-sf]').value));
-      li.querySelector('.li-set').click();await new Promise(r=>setTimeout(r,300)); } },
+      li.querySelector('.li-set').click();await __acCalme(300); } },
   { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      openEdit(f.id);await new Promise(r=>setTimeout(r,500));
+      openEdit(f.id);await __acCalme(500);
       openRelPicker(state.draft,()=>{}); } },
   { nom:'compte-rendu',        w:390,  scope:'#reportModal', fn: async()=>{
       // exportSessionReport prend un ID et lit `sessions` (les ARCHIVÉES) : le seul chemin est
       // donc de dérouler la session complète — ouvrir, démarrer, terminer.
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
-      openRead(f.id);await new Promise(r=>setTimeout(r,400));
-      document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,500));
-      confirmEndSession(f);await new Promise(r=>setTimeout(r,300));
+      openRead(f.id);await __acCalme(400);
+      document.getElementById('sessStart').click();await __acCalme(500);
+      confirmEndSession(f);await __acCalme(300);
       document.getElementById('endSessYes').click();await new Promise(r=>setTimeout(r,800));
       const last=sessions[sessions.length-1];
       if(last)exportSessionReport(last.id); } },
@@ -349,17 +352,17 @@ const SURFACES = [
      l'information légale ne serait pas mesuré du tout. */
   { nom:'mode statique',       w:390,  prep:'read', fn: async()=>{
       const b=document.getElementById('allBtn'); if(b)b.click();
-      await new Promise(r=>setTimeout(r,500)); } },
+      await __acCalme(500); } },
   { nom:'mode moniteur',       w:390,  scope:'#monMode', prep:'read', fn: async()=>{
       if(typeof monOpen==='function')monOpen();
-      await new Promise(r=>setTimeout(r,400)); } },
+      await __acCalme(400); } },
   { nom:'lecture de référence',w:390,  fn: async()=>{
       protocols.push(migrateProtocol({id:'pA11y',title:'Référence témoin',kind:'reference',
         body:'# Titre A\n\ntexte de la référence\n\n## Sous-titre\n\n- [ ] tâche\n\n## Autre\n\ntexte'}));
-      openProtocolRead('pA11y'); await new Promise(r=>setTimeout(r,500)); } },
+      openProtocolRead('pA11y'); await __acCalme(500); } },
   { nom:'éditeur de protocole',w:1100, fn: async()=>{
       protocols.push(migrateProtocol({id:'pEd',title:'Référence à écrire',kind:'reference',body:'# A\n\nx'}));
-      await openProtocolEdit('pEd'); await new Promise(r=>setTimeout(r,500)); } },
+      await openProtocolEdit('pEd'); await __acCalme(500); } },
   /* ═══ ÉTATS ═══ (audit design v5.0.0 — ACTION 1, et c'est la plus importante du rapport).
      Ce harnais ouvrait chaque surface AU REPOS. Or DEUX violations AA ont vécu à l'écran sans
      qu'il les voie, parce qu'elles n'existent qu'après un geste : le surlignage de recherche
@@ -375,7 +378,7 @@ const SURFACES = [
   { nom:'état · bibliothèque vide', w:390, must:'.emp-intro .emp-anat b', fn: async()=>{
       fiches.length=0; protocols.length=0;
       state.section='all'; state.q=''; state.cat=''; state.view='library';
-      render(); await new Promise(r=>setTimeout(r,400)); } },
+      render(); await __acCalme(400); } },
   /* FILTRES POSÉS (audit design v5.19 ; A429 : les puces .af-bar remplacent la phrase .dir-hf) : le déclencheur n'existe
      qu'avec un filtre actif — il ne vivait donc dans AUCUNE surface mesurée, et son halo rogné
      par .dir-hs (overflow:hidden) est resté invisible au harnais. Un défaut hors scope n'est
@@ -383,13 +386,13 @@ const SURFACES = [
      elle-même (state.section), puis render() décide — on ne fabrique pas l'écran. */
   { nom:'état · filtres posés', w:1100, must:'.af-bar', fn: async()=>{
       state.section='fiches'; state.view='library'; render();
-      await new Promise(r=>setTimeout(r,400)); } },
+      await __acCalme(400); } },
   { nom:'état · recherche active', w:390, prep:'read', must:'mark.pf-h', fn: async()=>{
       const b=document.getElementById('allBtn'); if(b)b.click();
-      await new Promise(r=>setTimeout(r,600));
+      await __acCalme(600);
       const q=document.getElementById('pfQ');
       if(q){q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));}
-      await new Promise(r=>setTimeout(r,450)); } },
+      await __acCalme(450); } },
   { nom:'état · excursion (retour)', w:390, prep:'read', must:'[data-cxback]', fn: async()=>{
       /* ⚠ ON NE RÉ-OUVRE PAS LA FICHE : `openRead` reconstruit le Runtime, donc la session
          démarrée par la préparation disparaîtrait — et `cxEnter` refuse d'enregistrer un retour
@@ -399,9 +402,9 @@ const SURFACES = [
       /* v5.6 : l'entrée sur complication est passée au DOCK. La touche ⚡︎ est peinte par le
          chrome (applyViewChrome), pas par le journal : un `renderOvOnly` ne la ferait pas
          paraître, et le témoin mesurerait un écran où rien n'a été construit. */
-      render(); await new Promise(r=>setTimeout(r,400));
+      render(); await __acCalme(400);
       const k=document.getElementById('cxKey'); if(k)k.click();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       const g=document.querySelector('#dockSheet [data-cxgo]'); if(g)g.click();
       await new Promise(r=>setTimeout(r,700)); } },
   { nom:'état · minuteur échu', w:390, prep:'read', must:'.seg.due,.tmcard.due', fn: async()=>{
@@ -415,19 +418,19 @@ const SURFACES = [
         t.autoloop=false;src.autoloop=false;
         t.running=true;t.elapsedMs=0;t.lastStart=Date.now()-((src.seconds||60)*1000+9000);}
       if(typeof tickAll==='function')tickAll();
-      await new Promise(r=>setTimeout(r,500)); } },
+      await __acCalme(500); } },
   /* Le volet Outils ouvert n'était mesuré par aucune surface : « MAINTENIR » y tenait 2,64:1
      (collision de cascade, audit UX 27/09/2026 N1). Minuteur arrêté : la remise à zéro est active. */
   { nom:'état · volet Outils', w:390, prep:'read', must:'.rt-dock .tm-reset .tmr-hint', fn: async()=>{
       const k=document.getElementById('cbTimers'); if(k)k.click();
-      await new Promise(r=>setTimeout(r,600)); } },
+      await __acCalme(600); } },
   { nom:'état · index ⚡ déplié', w:390, prep:'read', must:'#dockSheet .ds-row', fn: async()=>{
       const f=state.fiche;
       f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
                     {label:'Choc réfractaire',target:f.blocks[0].id}];
-      renderOvOnly(); await new Promise(r=>setTimeout(r,350));
+      renderOvOnly(); await __acCalme(350);
       const b=document.querySelector('#cxKey'); if(b)b.click();
-      await new Promise(r=>setTimeout(r,450)); } },
+      await __acCalme(450); } },
   /* ═══ ÉTATS D'ITEM (v5.0.0, audit design A1-2) ═══
      LES CINQ ÉTATS DE SURFACE ci-dessus mesuraient des ÉCRANS après un geste. Aucun ne mesurait
      l'état d'un ITEM — et c'est par là qu'une violation AA a survécu à 443 contrôles verts :
@@ -446,7 +449,7 @@ const SURFACES = [
       const sig=li.find(e=>e.classList.contains('crit')||e.classList.contains('vigil'));
       if(sig)sig.click(); else if(li[1])li[1].click();
       /* La transition d'état dure 250 ms : mesurer avant, c'est mesurer une couleur en vol. */
-      await new Promise(r=>setTimeout(r,600)); } },
+      await __acCalme(600); } },
   { nom:'état · trace do-verify', w:390, prep:'read', must:'.stp-vf', fn: async()=>{
       /* La passe Do-Verify laisse DEUX marqueurs DURABLES et distincts de `checked` (v4.23.0) :
          « ✓✓ constaté » (`.stp-vf.ok`) et « △ écart » (`.stp-vf.gap`), peints sur la rangée par
@@ -456,13 +459,13 @@ const SURFACES = [
          autre composant. Mesurer là aurait couvert l'écran de passe et laissé la trace dehors —
          exactement le trou que ces entrées existent pour fermer. */
       const v=document.querySelector('[data-ovverify]'); if(v)v.click();
-      await new Promise(r=>setTimeout(r,450));
+      await __acCalme(450);
       const ok=document.querySelector('[data-ovvok]'); if(ok)ok.click();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       const gap=document.querySelector('[data-ovvgap]'); if(gap)gap.click();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       const x=document.querySelector('[data-ovvx]'); if(x)x.click();
-      await new Promise(r=>setTimeout(r,600)); } },
+      await __acCalme(600); } },
   { nom:'état · bloc hors chemin', w:1280, prep:'read', must:'.pl-line.off,.sv-cell.off,[class*="off"]', fn: async()=>{
       /* Le « hors chemin » est signalé par une encre douce PLUS la mention en toutes lettres —
          jamais par l'opacité seule (le harnais a une sonde dédiée pour ça). Il faut donc une
@@ -475,10 +478,10 @@ const SURFACES = [
          les composants inactifs du seuil, mais la sonde vérifie le reste de la surface, et
          surtout que le grisé ne déborde pas sur le contenu CLINIQUE, qui doit rester lisible. */
       document.body.classList.add('share-scribe');
-      await new Promise(r=>setTimeout(r,400)); } },
+      await __acCalme(400); } },
   { nom:'état · lien de partage mort', w:390, prep:'read', must:'.share-dead,[data-sharedead],#srLive', fn: async()=>{
       if(typeof Share!=='undefined'&&Share.freeze){Share.mode='guest';Share.freeze('over');}
-      await new Promise(r=>setTimeout(r,500)); } },
+      await __acCalme(500); } },
   { nom:'entrée invité',       w:320,  scope:'#joinScreen', fn: async()=>{
       openJoinScreen('K7M2P4Q9');
       const d=document.querySelector('#joinScreen .join-info'); if(d)d.open=true; } },
@@ -494,20 +497,20 @@ const SURFACES = [
      donc à 1100, par sa porte réelle (« Affichage », `#rangBtn`), et la feuille du téléphone à part. */
   { nom:'feuille affichage & filtres',  w:1100,  scope:'#viewSheet', must:'#viewSheetBody .catchip', fn: async()=>{
       state.view='library'; render();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       const t=main.querySelector('#rangBtn'); if(t)t.click();
-      await new Promise(r=>setTimeout(r,450)); } },
+      await __acCalme(450); } },
   /* A556 : la feuille « Afficher » du grand titre porte désormais des réglages (crans de type) en tête de ses rangées. */
   { nom:'feuille afficher (titre)',  w:390,  scope:'.popmenu.sheet', must:'.popmenu.sheet [data-pknat]', fn: async()=>{
       state.view='library'; render();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       const t=main.querySelector('#pgPick'); if(t)t.click();
-      await new Promise(r=>setTimeout(r,450)); } },
+      await __acCalme(450); } },
   { nom:'feuille trier et présenter',  w:390,  scope:'#viewSheet', must:'#viewSheetBody [data-vs^="sort:"]', fn: async()=>{
       state.view='library'; render();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       const t=main.querySelector('#rangBtn'); if(t)t.click();
-      await new Promise(r=>setTimeout(r,450)); } },
+      await __acCalme(450); } },
   /* LA FEUILLE « GÉRER » (v5.20.0) : la contrepartie ÉTROITE des rangées de gestion de la colonne
      gauche — elle n'existe donc que sous 780 px, et rien d'autre ici ne l'ouvre. Point d'entrée
      RÉEL : la rangée « Gérer… » de la feuille « Afficher » du titre (A556 ; feuille Affichage en v5.30, `#mgrBtn` au socle). Elle ne s'ouvre que s'il y a une bibliothèque à administrer (sinon
@@ -516,10 +519,10 @@ const SURFACES = [
   { nom:'feuille gérer',       w:390,  scope:'#mgrSheet', must:'#mgrSheetBody [data-libedit]', fn: async()=>{
       myLibraries=[{id:'lib1',name:'Équipe déchocage',role:'admin'}];
       state.view='library'; render();
-      await new Promise(r=>setTimeout(r,350));
-      main.querySelector('#pgPick').click(); await new Promise(r=>setTimeout(r,300));   // A556 : la rangée vit dans « Afficher »
+      await __acCalme(350);
+      main.querySelector('#pgPick').click(); await __acCalme(300);   // A556 : la rangée vit dans « Afficher »
       const t=document.querySelector('.popmenu.sheet [data-pickopt="mgr"]'); if(t)t.click();
-      await new Promise(r=>setTimeout(r,450)); } },
+      await __acCalme(450); } },
   { nom:'nouvelle biblio.',    w:390,  scope:'#newLibModal', fn: async()=>{
       // openNewLib est gardée par myIsAppAdmin : garde MÉTIER légitime, dont la vraie barrière
       // est la RLS serveur. On la lève pour auditer le RENDU, ce qui est l'objet du harnais.
@@ -554,14 +557,14 @@ for (const theme of ['light','dark']) {
       const f=fiches.find(x=>x.id===id);
       f.posology=['△ **ADRÉNALINE — IV** : 1 mg / 3–5 min','**Remplissage** : cristalloïdes','**O₂** : haut débit','**Amiodarone** : 300 mg'];
       f.sources=['Réanimation — recommandations 2023.'];
-      if(kind==='edit'){openEdit(id);await new Promise(r=>setTimeout(r,350));return;}
+      if(kind==='edit'){openEdit(id);await __acCalme(350);return;}
       c.click();
       /* VT (direction A, lot 7) : sous startViewTransition le rendu d'openRead est différé d'une
          frame — on attend la CONDITION réelle (le bouton existe), pas un délai fixe : c'est la
          discipline d'amorce()/ouvrirFiche(), que cette sonde inline n'appliquait pas. */
-      for(let i=0;i<40&&!document.getElementById('sessStart');i++)await new Promise(r=>setTimeout(r,50));
+      for(let i=0;i<40&&!document.getElementById('sessStart');i++)await __acCalme(50);
       document.getElementById('sessStart').click();
-      await new Promise(r=>setTimeout(r,300));
+      await __acCalme(300);
       /* LOT T8 (v5.0.0) — le bouton « Se repérer » a QUITTÉ la rangée de commandes : son Échelle
          est devenue l'onglet « Parcours » du cran « Toute la fiche ». La FEUILLE, elle, existe
          toujours (menu ⋯, « complet » depuis le rail) et reste donc à mesurer : on l'ouvre par sa
@@ -570,19 +573,19 @@ for (const theme of ['light','dark']) {
          défaut de la v4.70.1 exactement. */
       if(kind==='plan'){const b=document.getElementById('planBtn');
         if(b)b.click();else if(typeof openPlanSheet==='function')openPlanSheet();
-        await new Promise(r=>setTimeout(r,300));}
+        await __acCalme(300);}
     }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep); }
     // Fenêtres ouvertes par leur VRAI point d'entrée (jamais un classList.add('on') : une modale
     // forcée vide n'a pas le contenu qu'on veut mesurer, et produirait des verdicts faux).
     if (S.prep && S.prep.indexOf('dlg:') === 0) {
       const fn = S.prep.slice(4);
       await page.evaluate(async (f) => { try { window[f] ? window[f]() : eval(f + '()'); } catch (e) {}
-        await new Promise(r => setTimeout(r, 400)); }, fn);
+        await __acCalme(400); }, fn);
     }
     // Fenêtres à contexte construit : leur préparation est une vraie fonction.
     if (S.fn) { await page.evaluate(S.fn); await page.waitForTimeout(700); }
     if (S.scope) await page.evaluate(s => { window.__acScope = s; }, S.scope);
-    await page.waitForTimeout(250);
+    await calme(page, 250);
 
     /* ⚠ UN ÉTAT QUI NE S'EST PAS CONSTRUIT EST UN REPOS QU'ON MESURE EN CROYANT MESURER AUTRE
        CHOSE — c'est la leçon la plus redite du dossier. Chaque entrée d'état déclare donc CE QUI
@@ -674,7 +677,7 @@ console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session,
       // mesurait la synchronicité du moteur, pas la conformité de l'app. Avec l'attente : 0 sur
       // les deux moteurs, à sélecteur et scénario identiques (variable isolée). Le défaut n'est
       // apparu qu'en jouant enfin les harnais sur WebKit — ils lançaient tous Chromium en dur.
-      await new Promise(r=>setTimeout(r,60));
+      await __acCalme(60);
       const r=el.getBoundingClientRect();
       if(r.height>0&&r.bottom<=stick())out.push((el.textContent||'').trim().slice(0,32)||el.className);
     }

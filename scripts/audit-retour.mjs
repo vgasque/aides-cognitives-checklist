@@ -103,5 +103,27 @@ console.log('=== retour SYSTÈME au TÉLÉPHONE (390 px) — socle du lot 4 de l
  const a0=await hq(),a1=await rq(),a2=await rq();
  t('390 · aide puis Moi : deux niveaux, défaits dans l’ordre (fenêtre, puis l’aide)', a0.d===2&&a1.mod===0&&a1.v==='read'&&a2.v==='library'&&a2.d===0, JSON.stringify([a0,a1,a2]));
  await q.close();}
+console.log('=== retour SYSTÈME : un parcours d’historique EN RETARD ne fait pas reculer deux fois (A563) ===');
+/* Sous charge, le parcours de `history.go` peut arriver après le filet de 1 s : l'ancien filet le
+   croyait perdu, relançait `history.go`, et l'app sortait de son document (vu en audit, pool 6 sur
+   4 cœurs : « Execution context was destroyed »). Le retard est SIMULÉ en différant `history.go` —
+   c'est le navigateur qui tarde, pas la page : un thread principal bloqué retarde les deux à la fois
+   et ne reproduit rien (mesuré). */
+{const q=await br.newPage({viewport:{width:1000,height:950}});
+ q.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ let charges=0;q.on('domcontentloaded',()=>charges++);
+ await q.goto(`http://localhost:${port}/index.html`);await amorce(q);
+ const c0=charges;
+ for(const retard of [1200,2500]){
+   await q.evaluate(async r=>{const g=window.__acGo||(window.__acGo=history.go.bind(history));window.__goN=0;
+     history.go=n=>{window.__goN++;setTimeout(()=>g(n),r);};
+     document.querySelector('.home-side [data-catmgr]').click();await new Promise(x=>setTimeout(x,400));
+     window.__ouvert=_histLevels();_topModal().querySelector('.ai-x').click();},retard);
+   await q.waitForTimeout(retard+1500);
+   const h=await q.evaluate(()=>({ouvert:window.__ouvert,d:history.state&&history.state.d,L:_histLevels(),go:window.__goN,app:typeof fiches!=='undefined'})).catch(()=>({app:false}));
+   t(`parcours différé de ${retard} ms : UN seul recul, l’app reste sur son document, pile alignée`,
+     h.app&&h.ouvert===1&&charges===c0&&h.go===1&&h.d===0&&h.L===0, JSON.stringify({...h,url:q.url(),charges:charges-c0}));
+   if(!h.app)break;}
+ await q.close();}
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);process.exit(ko?1:0);

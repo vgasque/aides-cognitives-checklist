@@ -113,7 +113,7 @@
   `package.json` payait la SOMME des durées (mesuré 9 min 42 s, dont 87 % dans doctrine/a11y/
   partage/k5) et son fail-fast CACHAIT tout ce qui suivait le premier rouge — l'incident « un
   harnais qui plante en emporte cinq » (v4.70.1), revécu à chaque itération. Le lanceur joue les
-  dix-huit en concurrence (pool `AC_JOBS`, défaut 4, lourds d'abord — temps mural ≈ le max, pas la
+  dix-huit en concurrence (pool `AC_JOBS`, défaut 4 — 2 × cœurs, 8 au plus, depuis A565 —, lourds d'abord — temps mural ≈ le max, pas la
   somme) et rapporte TOUS les échecs d'une passe ; les sondes, leurs seuils et `AC_ENGINE` sont
   inchangés, et chaque harnais reste lançable seul. **CIBLAGE pendant l'itération** :
   `npm run audit -- partage qr` ne joue que les harnais nommés — la passe s'annonce alors
@@ -275,9 +275,17 @@
   « PAS `amorce()` ici » avec sa justification (jamais dans une liste du contrôle, qui se
   périmerait). Vérifié CAPABLE D'ÉCHOUER dans les deux sens (harnais fantôme → rouge ; copie
   d'amorçage réintroduite → rouge ; états restaurés).
+  `check-pauses.mjs` (A567) garde l'optimisation d'A564 : dans un harnais, une pause FIXE de moins
+  de 700 ms (`waitForTimeout(N)`, `setTimeout(r, N)`, `w(N)`) est une pause de rendu qui devrait
+  être une attente de calme (`__acCalme(N)` / `calme(page, N)`). Cliquet par harnais
+  (`scripts/pauses-plafond.json`, relevé à l'introduction : 312, dont 131 dans partage où il n'y
+  avait rien à gagner) : au-dessus → rouge ; en dessous → rouge aussi, qui demande
+  `node scripts/check-pauses.mjs --maj` pour que les pauses retirées ne puissent pas revenir. Une
+  pause dont la DURÉE est le témoin se marque `// horloge : <raison>` sur sa ligne. Vérifié
+  CAPABLE D'ÉCHOUER dans les deux sens (pause ajoutée → rouge ; pause retirée → rouge `--maj`).
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
-  puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe
+  puis `npm run audit` **en non bloquant** — depuis A566, en trois lots parallèles et un bilan. `npm ci` (et non `npm install`) : la CI installe
   exactement le contenu du lock, donc reproductible — `release.sh` synchronise désormais la
   version de `package-lock.json` avec les trois autres fichiers (elle était restée à 4.3.0).
 

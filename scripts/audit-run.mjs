@@ -31,9 +31,9 @@
  * Préalable vérifié : les 155 sections de doctrine et partage, jouées SEULES, sont toutes vertes.
  *
  * ORDONNANCEMENT : les plus lourds partent en PREMIER (poids mesurés ci-dessous), sinon un
- * mastodonte lancé en dernier fixe seul le temps mural. Pool borné à AC_JOBS (défaut 4) : les
- * sondes portent des attentes en temps réel, et un pool trop large les affamerait en CPU — un
- * rouge obtenu sous forte charge se confirme en rejouant le harnais SEUL avant d'y croire.
+ * mastodonte lancé en dernier fixe seul le temps mural. Pool borné à AC_JOBS (défaut : 2 × cœurs,
+ * 8 au plus, borné par la mémoire libre — A565 ; il était de 4, cf. ci-dessous) : un rouge obtenu
+ * sous forte charge se confirme toujours en rejouant le harnais SEUL avant d'y croire.
  *
  * CIBLAGE (`npm run audit -- partage qr`) : pendant l'itération on ne rejoue que les harnais du
  * domaine touché. DEUX GARDE-FOUS, non négociables : une passe partielle s'annonce « PARTIELLE »
@@ -82,10 +82,14 @@
  *     npm run audit -- doctrine                 → un seul harnais (ses 4 tranches), PARTIELLE
  *     npm run audit -- --rouges                 → rouges de la dernière passe (sections si connues)
  *     AC_JOBS=2 npm run audit                   → pool réduit (machine chargée)
+ *     node scripts/audit-run.mjs --lot 2/3 --rapport audit-lot-2.json
+ *                                               → lot 2 sur 3 d'une passe RÉPARTIE (CI, A566)
+ *     node scripts/audit-run.mjs --bilan audit-lot-*.json
+ *                                               → l'union des lots est-elle la passe complète, verte ?
  */
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { availableParallelism } from 'node:os';
+import { availableParallelism, freemem } from 'node:os';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 
@@ -98,36 +102,39 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
    condition du rejeu par sections de `--rouges`. `deps` : fichiers HORS scripts/<nom>.mjs que le
    harnais lit ou exécute, à entrer dans son empreinte. */
 const HARNAIS = [
-  // Poids re-mesurés le 28/09/2026 (v5.39.2) : ils avaient dérivé du simple au double (doctrine
-  // déclaré 217 pour 478 mesurés). Ils ne servent plus qu'en l'ABSENCE de mesure — la passe
-  // précédente fournit les durées réelles (`.audit-etat.json`, clés `durees`/`taches`).
-  { nom: 'audit-doctrine',      poids: 478, tranches: 4, sections: true },
-  { nom: 'audit-partage',       poids: 343, tranches: 5, sections: true },
-  { nom: 'audit-a11y',          poids: 154, tranches: 2 },
-  { nom: 'audit-k5',            poids: 67 },
-  { nom: 'audit-pdfsearch',     poids: 16 },
-  { nom: 'audit-exercice',      poids: 12 },
-  { nom: 'audit-guide',         poids: 25 },
-  { nom: 'audit-complications', poids: 11 },
-  { nom: 'audit-qr',            poids: 11, deps: ['scripts/qr-decode.swift'] },
-  { nom: 'audit-budget',        poids: 11 },
-  { nom: 'audit-modeseg',       poids: 6 },
-  { nom: 'audit-upload',        poids: 4 },
-  { nom: 'audit-session-card',  poids: 4 },
-  { nom: 'audit-verify-live',   poids: 4 },
-  { nom: 'audit-retour',        poids: 4 },
-  { nom: 'audit-verre',         poids: 8 },   // lot 2 refonte (A510 §1) : contraste AU PIXEL sous capsule et quai
-  { nom: 'audit-verify',        poids: 3 },
-  { nom: 'audit-consulter',     poids: 3 },
-  { nom: 'audit-pliables',      poids: 3 },
-  { nom: 'audit-historique',    poids: 2 },
-  { nom: 'audit-zoom-scroll',   poids: 2 },
+  // Poids re-mesurés le 05/11/2026 (A566 : moyenne de deux passes forcées, pool 8, 4 cœurs, somme des
+  // tranches) — ils avaient de nouveau dérivé (doctrine déclaré 478 pour 807 mesurés). Localement, ils ne
+  // servent qu'en l'ABSENCE de mesure (`.audit-etat.json`, clés `durees`/`taches`) ; mais ce sont EUX, et
+  // eux seuls, qui partagent une passe en lots (`--lot k/n`, CI) : seul leur RAPPORT compte, à re-mesurer
+  // quand un harnais change de taille.
+  { nom: 'audit-doctrine',      poids: 808, tranches: 6, sections: true },
+  { nom: 'audit-partage',       poids: 463, tranches: 5, sections: true },
+  { nom: 'audit-a11y',          poids: 230, tranches: 3 },
+  { nom: 'audit-k5',            poids: 60 },
+  { nom: 'audit-pdfsearch',     poids: 22 },
+  { nom: 'audit-exercice',      poids: 14 },
+  { nom: 'audit-guide',         poids: 92, tranches: 2 },
+  { nom: 'audit-complications', poids: 14 },
+  { nom: 'audit-qr',            poids: 2, deps: ['scripts/qr-decode.swift'] },
+  { nom: 'audit-budget',        poids: 16 },
+  { nom: 'audit-modeseg',       poids: 9 },
+  { nom: 'audit-upload',        poids: 6 },
+  { nom: 'audit-session-card',  poids: 6 },
+  { nom: 'audit-verify-live',   poids: 6 },
+  { nom: 'audit-retour',        poids: 27 },
+  { nom: 'audit-verre',         poids: 17 },   // lot 2 refonte (A510 §1) : contraste AU PIXEL sous capsule et quai
+  { nom: 'audit-verify',        poids: 5 },
+  { nom: 'audit-consulter',     poids: 5 },
+  { nom: 'audit-pliables',      poids: 6 },
+  { nom: 'audit-historique',    poids: 5 },
+  { nom: 'audit-zoom-scroll',   poids: 4 },
   // `deps` porte sw.js : c'est le SUJET de ce harnais, et il n'est lu par aucun autre. Sans cette
   // déclaration, corriger le worker n'invaliderait pas son vert en cache — le seul contrôle
   // dynamique du hors-ligne serait « réutilisé » sans avoir rejoué (v5.17.3).
-  { nom: 'audit-sw',            poids: 1, deps: ['sw.js'] },
-  { nom: 'audit-stockage',      poids: 1 },
-  { nom: 'audit-prompt',        poids: 1 },
+  { nom: 'audit-sw',            poids: 5, deps: ['sw.js'] },
+  { nom: 'audit-stockage',      poids: 3 },
+  { nom: 'audit-prompt',        poids: 3 },
+  { nom: 'audit-calme',         poids: 5 },   // A564 : l'attente de calme des harnais ne rend pas la main trop tôt
 ];
 
 const SCRIPTS = fileURLToPath(new URL('.', import.meta.url));
@@ -229,13 +236,97 @@ function planTranches(durees, n) {
    Un nom qui ne correspond à RIEN échoue : une faute de frappe qui retomberait sur « rien à
    faire » produirait une passe vide et verte, c'est-à-dire un mensonge. */
 const brut = process.argv.slice(2);
+/* Drapeaux À VALEUR (A566) : `--lot k/n` et `--rapport <fichier>` ; `--bilan` prend tout le reste (les rapports). */
+let bilanFichiers = null;
+{ const i = brut.indexOf('--bilan');
+  if (i >= 0) { bilanFichiers = brut.splice(i).slice(1);
+    if (!bilanFichiers.length) { console.error('✗ --bilan attend les rapports des lots (audit-lot-*.json).'); process.exit(1); } } }
+const valeur = nom => { const i = brut.indexOf(nom); if (i < 0) return null;
+  const v = brut[i + 1]; if (!v || v.startsWith('--')) { console.error(`✗ ${nom} attend une valeur.`); process.exit(1); }
+  brut.splice(i, 2); return v; };
+const lotBrut = valeur('--lot'), rapportF = valeur('--rapport');
 const drapeaux = new Set(brut.filter(a => a.startsWith('--')));
 const demandes = brut.filter(a => !a.startsWith('-'));
 for (const d of drapeaux) if (!['--rouges', '--force'].includes(d)) {
-  console.error(`✗ drapeau inconnu : ${d} (connus : --rouges, --force)`); process.exit(1);
+  console.error(`✗ drapeau inconnu : ${d} (connus : --rouges, --force, --lot k/n, --rapport f, --bilan f…)`); process.exit(1);
 }
 if (drapeaux.has('--rouges') && demandes.length) {
   console.error('✗ --rouges ne se combine pas avec des noms de harnais.'); process.exit(1);
+}
+let lot = null;
+if (lotBrut) {
+  const m = /^([1-9]\d*)\/([1-9]\d*)$/.exec(lotBrut);
+  if (!m || +m[1] > +m[2]) { console.error('✗ --lot attend k/n avec 1 ≤ k ≤ n (ex. 2/3).'); process.exit(1); }
+  if (demandes.length || drapeaux.has('--rouges')) { console.error('✗ --lot joue une part de la passe COMPLÈTE : ni noms de harnais, ni --rouges.'); process.exit(1); }
+  lot = { k: +m[1], n: +m[2] };
+}
+
+/* LES TÂCHES D'UNE PASSE COMPLÈTE, SANS AUCUNE MESURE LOCALE (A566) : chaque harnais, ou chacune de ses tranches,
+   avec son POIDS DÉCLARÉ. C'est la liste que les lots se partagent et que le bilan exige : elle ne dépend que de
+   `HARNAIS`, donc toutes les machines la calculent à l'identique — des durées apprises (`.audit-etat.json`)
+   différeraient d'une machine à l'autre, et deux lots qui ne partagent pas le même découpage perdraient ou
+   doubleraient des tâches. */
+function tachesCompletes() {
+  const out = [];
+  for (const h of HARNAIS) {
+    if (h.tranches) for (let k = 1; k <= h.tranches; k++)
+      out.push({ nom: h.nom, label: `${h.nom} ${k}/${h.tranches}`, args: ['--shard', `${k}/${h.tranches}`], env: null, poids: h.poids / h.tranches });
+    else out.push({ nom: h.nom, label: h.nom, args: [], env: null, poids: h.poids });
+  }
+  return out;
+}
+/* Partage en n LOTS équilibrés : la plus lourde d'abord, dans le lot le moins chargé (glouton LPT, comme
+   planTranches) ; égalités départagées par le libellé puis par le numéro de lot — déterministe. */
+function partageLots(taches, n) {
+  const tri = [...taches].sort((a, b) => b.poids - a.poids || (a.label < b.label ? -1 : 1));
+  const charges = Array(n).fill(0), lots = Array.from({ length: n }, () => []);
+  for (const t of tri) { let k = 0; for (let j = 1; j < n; j++) if (charges[j] < charges[k]) k = j; charges[k] += t.poids; lots[k].push(t); }
+  return { lots, charges };
+}
+
+/* BILAN DES LOTS (A566) — `--bilan audit-lot-*.json`. Une passe répartie sur plusieurs machines n'est COMPLÈTE que
+   si l'UNION de ses lots l'est : chaque tâche jouée exactement une fois, par des lots du même commit et du même
+   moteur, chaque harnais découpé couvrant toutes ses sections (vérification ##SEC qu'aucun lot seul ne peut faire,
+   ses tranches étant réparties). Un lot perdu (job annulé, artefact manquant) ne doit JAMAIS produire un vert :
+   le bilan recalcule la liste attendue lui-même, il ne croit pas les lots sur parole. */
+if (bilanFichiers) {
+  const pb = [], rapports = [];
+  for (const f of bilanFichiers) {
+    try { rapports.push({ f, r: JSON.parse(readFileSync(f, 'utf8')) }); }
+    catch (e) { pb.push(`${f} : illisible (${e.message.split('\n')[0]})`); }
+  }
+  const attendues = tachesCompletes().map(t => t.label);
+  const un = (k, quoi) => { const v = [...new Set(rapports.map(x => x.r[k]))]; if (v.length > 1) pb.push(`${quoi} différents d'un lot à l'autre : ${v.join(' ≠ ')}`); return v[0]; };
+  const n = un('n', 'nombres de lots'), mot = un('moteur', 'moteurs'); un('sha', 'commits');
+  const vus = new Map();
+  for (const { f, r } of rapports) {
+    if (r.version !== 1) pb.push(`${f} : format de rapport inconnu (${r.version})`);
+    if (vus.has(r.k)) pb.push(`lot ${r.k}/${r.n} présent deux fois (${vus.get(r.k)} et ${f})`); else vus.set(r.k, f);
+  }
+  for (let k = 1; k <= (n || 0); k++) if (!vus.has(k)) pb.push(`lot ${k}/${n} ABSENT — la passe n'est pas complète`);
+  const parLabel = new Map();
+  for (const { r } of rapports) for (const t of r.taches || []) {
+    if (parLabel.has(t.label)) pb.push(`tâche « ${t.label} » jouée deux fois`); else parLabel.set(t.label, t);
+  }
+  for (const l of attendues) if (!parLabel.has(l)) pb.push(`tâche « ${l} » jamais jouée`);
+  for (const l of parLabel.keys()) if (!attendues.includes(l)) pb.push(`tâche « ${l} » inconnue de ce lanceur (rapport d'une autre version ?)`);
+  for (const h of HARNAIS.filter(x => x.tranches)) {
+    const runs = [...parLabel.values()].filter(t => t.nom === h.nom);
+    if (runs.length !== h.tranches || runs.some(t => t.code !== 0)) continue;   // absence ou rouge : déjà dit
+    const totaux = new Set(runs.map(t => t.sec && t.sec.total)), joues = runs.reduce((a, t) => a + (t.sec ? t.sec.joues : 0), 0);
+    if (runs.some(t => !t.sec) || totaux.size !== 1 || joues !== [...totaux][0])
+      pb.push(`${h.nom} : tranches incohérentes (${joues} sections jouées pour ${[...totaux].join('/')} attendues) — troncature possible`);
+  }
+  const rouges = [...parLabel.values()].filter(t => t.code !== 0);
+  console.log(`Bilan de ${rapports.length} lot(s) — moteur ${mot || '?'}, ${parLabel.size}/${attendues.length} tâches rapportées.`);
+  for (const { r } of [...rapports].sort((a, b) => a.r.k - b.r.k))
+    console.log(`  lot ${r.k}/${r.n} : ${(r.taches || []).length} tâches, ${(r.taches || []).filter(t => t.code !== 0).length} rouge(s), ${r.duree}s`);
+  for (const t of rouges) { console.log(`\n──── ${t.label} (code ${t.code}) ────`); console.log(String(t.sortie || '').trimEnd()); }
+  for (const x of pb) console.log('✗ ' + x);
+  const ok = !pb.length && !rouges.length;
+  console.log(`\n${ok ? '✓' : '✗'} Passe complète répartie : ${parLabel.size - rouges.length}/${attendues.length} tâches vertes` +
+    (pb.length ? ` — ${pb.length} défaut(s) de couverture` : '') + '.');
+  process.exit(ok ? 0 : 1);
 }
 
 const etatPrec = lireEtat() || {};
@@ -268,6 +359,8 @@ if (drapeaux.has('--rouges')) {
    par sections ne couvre pas les harnais entiers, et un vert `--rouges` ne vaut jamais la porte
    de commit. */
 const partiel = modeRouges || liste.length < HARNAIS.length;
+/* Un LOT n'est ni une passe partielle au sens de l'itération (il joue sa part de la passe COMPLÈTE), ni une passe
+   complète : il ne consomme pas le cache vert, n'écrit pas l'état, et seul le bilan conclut. */
 
 const EMP = empreintes();
 
@@ -276,7 +369,7 @@ const EMP = empreintes();
    les octets courants, il est listé « réutilisé » au lieu d'être rejoué. */
 let reutilises = [];
 let aJouer = liste;
-if (!partiel && !drapeaux.has('--force')) {
+if (!partiel && !lot && !drapeaux.has('--force')) {
   const verts = etatPrec.verts || {};
   reutilises = liste.filter(h => verts[h.nom]?.hash === EMP[h.nom]);
   aJouer = liste.filter(h => !reutilises.includes(h));
@@ -296,10 +389,11 @@ if (!partiel && !drapeaux.has('--force')) {
 /* Poids d'ordonnancement : la durée MESURÉE de la tâche à la passe précédente (`taches`), à
    défaut le poids déclaré. Un plan de tranches, quand les durées par section sont connues,
    fournit à la fois l'affectation (AC_PLAN, lu par secRunner) et la charge de chaque tranche. */
-const mesures = (etatPrec.mesures || {})[moteur]?.taches || {};
-const dureesPrec = (etatPrec.mesures || {})[moteur]?.durees || {};
-const taches = [];
-for (const h of aJouer) {
+const mesures = lot ? {} : (etatPrec.mesures || {})[moteur]?.taches || {};
+const dureesPrec = lot ? {} : (etatPrec.mesures || {})[moteur]?.durees || {};
+let taches = [];
+if (lot) taches = partageLots(tachesCompletes(), lot.n).lots[lot.k - 1];
+else for (const h of aJouer) {
   const secs = modeRouges && h.sections ? (etatPrec.sections || {})[h.nom] : null;
   if (secs?.length) {
     const motif = '^(?:' + secs.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$';
@@ -317,12 +411,20 @@ for (const h of aJouer) {
 }
 taches.sort((a, b) => b.poids - a.poids);
 
-/* Pool adaptatif : 4 au plus, et jamais tous les cœurs — sur un runner CI à 4 vCPU, quatre
-   navigateurs affameraient les sondes à délais (un rouge de charge n'est pas un rouge). */
-const defJobs = Math.max(1, Math.min(4, availableParallelism() - 1));
+/* POOL PAR DÉFAUT (A565, renverse la prudence du lot v5.24 : « 4, jamais tous les cœurs »). L'audit ATTEND plus
+   qu'il ne calcule (mesuré : 70 % de CPU occupé à 6 navigateurs sur 4 cœurs), donc un pool au-delà du nombre de
+   cœurs paie. Ce qui l'interdisait, c'étaient des sondes que la charge faisait mentir : corrigées par A563 (le
+   retour système et trois courses) et A564 (attendre l'écran posé, plus une durée). Mesuré sur 4 cœurs : pool 3
+   496 s, pool 6 281 s, pool 8 225-231 s — trois passes forcées vertes sur trois à 8, cinq à 6.
+   2 × cœurs, 8 au plus (au-delà, la tranche la plus longue borne de toute façon le temps mural), et jamais plus
+   que la mémoire libre ne porte (≈ 300 Mo par navigateur mesurés, 500 comptés). AC_JOBS reste souverain. */
+const defJobs = Math.max(1, Math.min(8, 2 * availableParallelism(), Math.floor(freemem() / (500 * 2 ** 20))));
 const JOBS = Math.max(1, parseInt(process.env.AC_JOBS || String(defJobs), 10) || defJobs);
 
-if (partiel) {
+if (lot) {
+  console.log(`⚠ LOT ${lot.k}/${lot.n} d'une passe complète répartie — ${taches.length}/${tachesCompletes().length} tâches ; seul le bilan`);
+  console.log('  (`node scripts/audit-run.mjs --bilan audit-lot-*.json`) dit si la passe est complète et verte.');
+} else if (partiel) {
   console.log(`⚠ PASSE PARTIELLE — ${liste.length}/${HARNAIS.length} harnais (${liste.map(h => h.nom.replace(/^audit-/, '')).join(', ')})${modeRouges ? ', mode --rouges' : ''}.`);
   console.log('  Un vert partiel ne vaut PAS la suite : « avant chaque commit », npm run audit sans argument.');
 }
@@ -330,7 +432,7 @@ if (reutilises.length) {
   console.log(`≡ ${reutilises.length} harnais réutilisés — vert déjà prouvé sur ces octets exacts :`);
   console.log('  ' + reutilises.map(h => h.nom.replace(/^audit-/, '')).join(' · '));
 }
-console.log(`Audit ${partiel ? 'partiel' : 'complet'} — ${aJouer.length} harnais à jouer (${taches.length} tâches), pool ${JOBS}, moteur ${moteur}.\n`);
+console.log(`Audit ${lot ? `lot ${lot.k}/${lot.n}` : partiel ? 'partiel' : 'complet'} — ${lot ? new Set(taches.map(t => t.nom)).size : aJouer.length} harnais à jouer (${taches.length} tâches), pool ${JOBS}, moteur ${moteur}.\n`);
 
 /* Une tâche = un processus enfant, sortie CAPTURÉE (stdout+stderr mêlés dans l'ordre d'arrivée).
    En vert on n'affiche que sa dernière ligne (le « ✓ … » que chaque harnais imprime) ; en rouge,
@@ -394,6 +496,7 @@ for (const r of resultats) {
 for (const [nom, runs] of parHarnais) {
   const h = HARNAIS.find(x => x.nom === nom);
   if (!h?.tranches || runs.some(r => r.grep) || runs.some(r => r.code !== 0)) continue; // un rouge se voit déjà
+  if (lot) continue;   // les tranches d'un harnais sont réparties entre les lots : c'est le BILAN qui vérifie leur somme
   let joues = 0, totalSec = null, sans = false;
   for (const r of runs) {
     const m = /##SEC joues=(\d+) total=(\d+)/.exec(r.sortie);
@@ -423,8 +526,10 @@ if (rouges.length) {
    des rouges mais N'ENTRE PAS dans `verts` (seules ses sections rouges ont été rejouées) ;
    rouge → entre dans les rouges, sort de `verts`, et ses sections rouges sont enregistrées si
    l'attribution est fiable (sinon on efface : le prochain --rouges rejouera le harnais entier).
-   Un harnais non adressé garde son état. */
-{
+   Un harnais non adressé garde son état.
+   Un LOT n'écrit rien : il ne joue qu'une part des harnais (« non joué » y serait lu « réutilisé »), et la CI qui
+   les joue est éphémère. */
+if (!lot) {
   const etat = lireEtat() || {};
   const rougesEtat = new Set(etat.rouges || []);
   const sectionsEtat = { ...(etat.sections || {}) };
@@ -476,5 +581,45 @@ if (rouges.length) {
   ecrireEtat({ quand, moteur, rouges: [...rougesEtat], sections: sectionsEtat, verts: vertsEtat, mesures: mesuresEtat });
 }
 
+/* DÉRIVES À SIGNALER (A567) — après une passe COMPLÈTE seulement (ni lot, ni partielle : il faut tout le monde pour
+   comparer). Deux dérives n'invalident aucun verdict mais dégradent le temps, sans bruit :
+   · le POIDS déclaré d'un harnais (HARNAIS) s'écarte de sa durée mesurée — or ce sont les poids, et eux seuls, qui
+     partagent la passe en lots de CI (A566) : comparés en PARTS du total (une machine plus rapide raccourcit tout,
+     les parts restent), écart au-delà de ×1,5 sur un harnais qui pèse au moins 2 % ;
+   · une tâche NON découpée dure plus que la plus longue tranche : elle borne seule le temps mural (A565).
+   Un avertissement, jamais un rouge : la correction est une ligne de HARNAIS, décidée à froid. */
+if (!lot && !partiel) {
+  const dur = new Map();
+  for (const r of resultats) dur.set(r.nom, (dur.get(r.nom) || 0) + +r.s);
+  const joues = HARNAIS.filter(h => dur.has(h.nom) && (parHarnais.get(h.nom) || []).length === (h.tranches || 1));
+  const sD = joues.reduce((a, h) => a + dur.get(h.nom), 0), sP = joues.reduce((a, h) => a + h.poids, 0);
+  const alertes = [];
+  if (joues.length >= 5 && sD > 0) for (const h of joues) {
+    const pm = dur.get(h.nom) / sD, pd = h.poids / sP;
+    if (Math.max(pm, pd) >= 0.02 && (pm / pd > 1.5 || pd / pm > 1.5))
+      alertes.push(`poids de ${h.nom} à re-mesurer : ${(100 * pd).toFixed(1)} % déclaré pour ${(100 * pm).toFixed(1)} % mesuré (HARNAIS, audit-run.mjs)`);
+  }
+  const tranches = resultats.filter(r => HARNAIS.find(h => h.nom === r.nom)?.tranches);
+  const plusLongue = tranches.reduce((a, r) => Math.max(a, +r.s), 0);
+  for (const r of resultats) if (!HARNAIS.find(h => h.nom === r.nom)?.tranches && plusLongue && +r.s > plusLongue)
+    alertes.push(`${r.nom} (${r.s} s) dure plus que la plus longue tranche (${plusLongue} s) : à découper (tranches, A565)`);
+  if (alertes.length) { console.log('\n△ Dérives de l\'ordonnancement (A567 — avertissement, aucun verdict en cause) :');
+    for (const a of alertes) console.log('  △ ' + a); }
+}
+
+/* RAPPORT (A566, `--rapport <fichier>`) : ce que le bilan rassemble. La sortie n'est gardée que pour un rouge. */
+if (rapportF) {
+  let sha = process.env.GITHUB_SHA || null;
+  if (!sha) try { sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: RACINE, encoding: 'utf8' }).trim(); } catch (e) {}
+  const secDe = o => { const m = /##SEC joues=(\d+) total=(\d+)/.exec(o); return m ? { joues: +m[1], total: +m[2] } : null; };
+  writeFileSync(rapportF, JSON.stringify({ version: 1, k: lot ? lot.k : 1, n: lot ? lot.n : 1, moteur, sha, duree: +total,
+    taches: resultats.map(r => ({ label: r.label, nom: r.nom, code: r.code, s: +r.s, sec: secDe(r.sortie),
+      ...(r.code !== 0 ? { sortie: r.sortie } : {}) })) }, null, 1) + '\n');
+  console.log(`  rapport écrit : ${rapportF}`);
+}
+if (lot) {
+  console.log(`\n${rouges.length ? '✗' : '✓'} lot ${lot.k}/${lot.n} : ${resultats.length - rouges.length}/${resultats.length} tâches vertes en ${total}s — part d'une passe répartie : le BILAN conclut.`);
+  process.exit(rouges.length ? 1 : 0);
+}
 console.log(`\n${rouges.length ? '✗' : '✓'} ${resultats.length - rouges.length}/${resultats.length} tâches vertes (${aJouer.length} harnais joués${reutilises.length ? `, ${reutilises.length} réutilisés` : ''}) en ${total}s${partiel ? ' — PASSE PARTIELLE (la passe complète reste due avant commit)' : ''}.`);
 process.exit(rouges.length ? 1 : 0);

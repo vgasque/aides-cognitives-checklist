@@ -6,7 +6,7 @@
    bouger quand la page défile, réserver sa hauteur au bas de la page ; et le geste réel doit la faire
    avancer. Une commande renommée, déplacée ou retirée sans mise à jour de GUIDE_ETAPES rougit ici. Le pendant
    statique (libellés cités, sélecteurs émis) est `check-guide.mjs`. */
-import { serveApp, moteur, NOM_MOTEUR, amorce, ouvrirFiche } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce, ouvrirFiche, trancheArg } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -50,7 +50,11 @@ const etat = p => p.evaluate(() => {
     cible: !!g, couvre, dedans, tr: tr && [tr.left | 0, tr.top | 0, tr.right | 0, tr.bottom | 0], dbg: [tr && [tr.top | 0, tr.bottom | 0], gr && [gr.top | 0, gr.bottom | 0], g && g.className, bas | 0, _gd && [_gd.room, (_gd.userT || 0) > (_gd.phaseT || 0), scrollY | 0]],
     fin: !!(tip && tip.classList.contains('end')) };
 });
-for (const c of CAS) {
+/* TRANCHES (A565) : les cinq cas sont indépendants (chacun son contexte) ; `--shard k/n` en joue un sur n, au modulo.
+   La ligne `##SEC` permet au lanceur de VÉRIFIER que les tranches couvrent tous les cas (aucune troncature muette). */
+const tranche = trancheArg();
+const JOUES = tranche ? CAS.filter((_, i) => i % tranche.n === tranche.k - 1) : CAS;
+for (const c of JOUES) {
   if (c.duo && NOM_MOTEUR !== 'chromium') { console.log(`=== pliable : SAUTÉ sur ${NOM_MOTEUR} (charnière émulée par CDP Chromium) ===`); continue; }
   console.log(`=== ${c.aide.source} — ${c.W}×${c.H} à ${c.z} %${c.duo ? ' · pliable, charnière à ' + c.duo.off : ''} ===`);
   const ctx = await br.newContext({ viewport: { width: c.W, height: c.H }, hasTouch: !!c.duo });
@@ -91,9 +95,21 @@ for (const c of CAS) {
     if (!mobilite && e.id === 'check') {
       mobilite = true;
       // Défilement À LA MAIN (molette) : c'est lui que le guide doit respecter, pas un scrollTo de sonde.
-      const avant = await p.evaluate(() => document.getElementById('gdTip').getBoundingClientRect().top | 0);
-      await p.mouse.move(c.W / 2, c.H / 3); await p.mouse.wheel(0, 90); await w(120);
-      const pendant = await p.evaluate(() => ({ apres: document.getElementById('gdTip').getBoundingClientRect().top | 0, voilePendant: !!document.querySelector('#gdVeil.on') }));
+      /* Le voile tombe à CHAQUE `scroll` et revient 220 ms après le dernier (guideSync) : le lire à heure fixe
+         après la molette (120 ms) était une course — sous charge, l'événement n'était pas encore traité
+         (voile encore là) ou déjà retombé (voile revenu) ; vu rouge en audit, pool 6 sur 4 cœurs. On le lit
+         donc DANS le premier `scroll`, par un écouteur posé après celui de l'app (même dispatch, juste après
+         lui) : aucune horloge. Un observateur de classe ne suffit pas — guideSync retire et repose le voile
+         en se recalant, il restait vert sur une app qui ne le retirait plus (preuve d'échec faite). */
+      const avant = await p.evaluate(() => { const v = document.getElementById('gdVeil');
+        window.__gdV = { avantOn: !!(v && v.classList.contains('on')), dansScroll: null, y0: scrollY };
+        addEventListener('scroll', () => { window.__gdV.dansScroll = !!document.querySelector('#gdVeil.on'); }, { once: true, passive: true });
+        return document.getElementById('gdTip').getBoundingClientRect().top | 0; });
+      await p.mouse.move(c.W / 2, c.H / 3); await p.mouse.wheel(0, 90);
+      await p.waitForFunction(() => window.__gdV.dansScroll !== null, null, { timeout: 5000 }).catch(() => {});
+      await w(120);
+      const pendant = await p.evaluate(() => ({ apres: document.getElementById('gdTip').getBoundingClientRect().top | 0,
+        voilePendant: !(window.__gdV.avantOn && window.__gdV.dansScroll === false), avantOn: window.__gdV.avantOn, dansScroll: window.__gdV.dansScroll }));
       // Deux fois : au bas de page la barre « ↩ Bloc » paraît et réserve sa propre hauteur, la page s'allonge.
       await p.mouse.wheel(0, 20000); await w(700); await p.mouse.wheel(0, 20000); await w(700);
       const bout = await p.evaluate(() => { const tip = document.getElementById('gdTip'), main = document.getElementById('main');
@@ -138,8 +154,10 @@ for (const c of CAS) {
   t('aucune session réelle n’a été créée', await p.evaluate(() => !sessions.some(s => !s.exercise)));
   await ctx.close();
 }
+/* Bloc unique, hors des cas : joué par la SEULE tranche 1 (le dupliquer mesurerait deux fois la même chose). */
+const BLOC_FINAL = !tranche || tranche.k === 1;
+if (BLOC_FINAL) {
 console.log('=== carte réduite · jamais en session réelle · « Prendre en main » ===');
-{
   const p = await br.newPage({ viewport: { width: 390, height: 844 } });
   p.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
   await p.goto(`http://localhost:${port}/index.html`);
@@ -165,4 +183,6 @@ console.log('=== carte réduite · jamais en session réelle · « Prendre en ma
   await p.close();
 }
 await br.close(); srv.close();
-console.log(`\n${ok}/${ok + ko} OK${ko ? ` — ${ko} ÉCHEC(S)` : ''}`); process.exit(ko ? 1 : 0);
+console.log(`##SEC joues=${JOUES.length + (BLOC_FINAL ? 1 : 0)} total=${CAS.length + 1}` + (tranche ? ` tranche=${tranche.k}/${tranche.n}` : ''));
+if (tranche) console.log(`⚠ PASSE PARTIELLE — tranche ${tranche.k}/${tranche.n} (${JOUES.length}/${CAS.length} cas) ; le harnais entier reste dû avant commit.`);
+console.log(`\n${ok}/${ok + ko} OK${ko ? ` — ${ko} ÉCHEC(S)` : ''}${tranche ? ` — PARTIEL (tranche ${tranche.k}/${tranche.n})` : ''}`); process.exit(ko ? 1 : 0);
