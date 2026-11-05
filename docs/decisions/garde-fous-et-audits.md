@@ -275,9 +275,17 @@
   « PAS `amorce()` ici » avec sa justification (jamais dans une liste du contrôle, qui se
   périmerait). Vérifié CAPABLE D'ÉCHOUER dans les deux sens (harnais fantôme → rouge ; copie
   d'amorçage réintroduite → rouge ; états restaurés).
+  `check-pauses.mjs` (A567) garde l'optimisation d'A564 : dans un harnais, une pause FIXE de moins
+  de 700 ms (`waitForTimeout(N)`, `setTimeout(r, N)`, `w(N)`) est une pause de rendu qui devrait
+  être une attente de calme (`__acCalme(N)` / `calme(page, N)`). Cliquet par harnais
+  (`scripts/pauses-plafond.json`, relevé à l'introduction : 312, dont 131 dans partage où il n'y
+  avait rien à gagner) : au-dessus → rouge ; en dessous → rouge aussi, qui demande
+  `node scripts/check-pauses.mjs --maj` pour que les pauses retirées ne puissent pas revenir. Une
+  pause dont la DURÉE est le témoin se marque `// horloge : <raison>` sur sa ligne. Vérifié
+  CAPABLE D'ÉCHOUER dans les deux sens (pause ajoutée → rouge ; pause retirée → rouge `--maj`).
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
-  puis `npm run audit` **en non bloquant**. `npm ci` (et non `npm install`) : la CI installe
+  puis `npm run audit` **en non bloquant** — depuis A566, en trois lots parallèles et un bilan. `npm ci` (et non `npm install`) : la CI installe
   exactement le contenu du lock, donc reproductible — `release.sh` synchronise désormais la
   version de `package-lock.json` avec les trois autres fichiers (elle était restée à 4.3.0).
 

@@ -127,9 +127,9 @@ inaudible : le flash d'écran sert d'alerte de secours.
   CHANGELOG et committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` enchaîne
-  les **27 garde-fous statiques** (syntaxe, couleurs, classes, échelles typographique et
+  les **28 garde-fous statiques** (syntaxe, couleurs, classes, échelles typographique et
   d'espacement, service worker, SQL, CHANGELOG, lexique, guide, hashs CSP…) ; `npm run audit`
-  rejoue les **23 harnais** de mesure (accessibilité, doctrine, partage, surfaces).
+  rejoue les **25 harnais** de mesure (accessibilité, doctrine, partage, surfaces).
 - **Contribuer avec une IA** : `AGENTS.md` donne les quinze règles, la méthode de recherche
   dans la doctrine (`docs/decisions/`) à suivre avant toute modification, et la procédure de
   commit. L'intégration continue

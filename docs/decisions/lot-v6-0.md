@@ -1486,3 +1486,32 @@ une passe complète de 219-231 s sur une machine ; bilan 37/37. **Non mesuré** 
 (nombre de cœurs selon la visibilité du dépôt, temps d'installation) — le premier passage de la CI le dira.
 *Formes écartées* : faire confiance à chaque lot sur sa propre part (un lot absent ne dit rien) ; partager sur les
 durées apprises (non reproductibles d'une machine à l'autre) ; un lot par harnais (doctrine seul fixerait le temps).
+
+## A567 — Les optimisations de l'audit se gardent seules : cliquet des pauses fixes, alertes de dérive (outillage, sans version)
+
+*Clôt les pistes d'optimisation (A563-A566). Demande de l'auteur : « comment faire en sorte que les prochaines modifs
+d'audit suivent ces optimisations ? »*
+
+**Ce qui était déjà automatique** : l'attente de calme est posée sur toute page de tout harnais (`moteur().launch()`,
+A564) ; le pool 8 fait rougir à la passe complète une sonde que la charge fait mentir (A565) ; un harnais neuf doit
+entrer dans `HARNAIS` (`check-harnais`), donc dans les lots de CI, dont le bilan refuse toute passe incomplète (A566) ;
+`audit-calme` garde l'outil. **Ce qui ne reposait que sur une ligne d'AGENTS.md** — et une règle déclarative fuit :
+1. **`check-pauses.mjs`, 28ᵉ garde-fou de `npm run check`** : CLIQUET par harnais sur les pauses FIXES de moins de
+   700 ms (`waitForTimeout(N)`, `setTimeout(r, N)`, appel d'un utilitaire de pause du fichier). Plafond relevé à
+   l'introduction (`scripts/pauses-plafond.json` : 312 — doctrine 21, celles des quatre sections où le temps est le
+   témoin ; partage 131 ; a11y et k5 0). Au-dessus → rouge, qui dit quoi écrire ; en dessous → rouge aussi, qui
+   demande `--maj` (un plafond resté haut laisserait revenir autant de pauses qu'on vient d'en retirer). Exemption
+   NOMMÉE sur place : `// horloge : <raison>` sur la ligne. Le repli Node `const __acCalme = …` a la forme d'un
+   utilitaire de pause et en est exclu ; un utilitaire redéfini dans chaque `evaluate` (doctrine : ~125 `const w`)
+   ne se compte qu'une fois — deux pièges du premier jet (2 924 puis 2 165 « pauses » au lieu de 312), relevés en
+   confrontant le compte au relevé fait à la main. Vérifié capable d'échouer : pause ajoutée → rouge ; pause
+   retirée → rouge `--maj` ; même pause marquée `// horloge` → vert.
+2. **Alertes de fin de passe complète** (`audit-run.mjs`, jamais un rouge — aucun verdict en cause) :
+   `△ poids de X à re-mesurer` quand la PART déclarée d'un harnais (poids de `HARNAIS`) s'écarte de plus de ×1,5 de sa
+   part mesurée (parts, pas secondes : une machine plus rapide raccourcit tout, les parts restent ; seuil 2 % pour
+   taire les petits) — ce sont ces poids qui partagent les lots de CI ; `△ X dure plus que la plus longue tranche :
+   à découper` — une tâche non découpée bornerait seule le temps mural. Vérifié : k5 déclaré 600 au lieu de 60 →
+   « 25,3 % déclaré pour 3,3 % mesuré », et aucune alerte sur les 24 autres.
+*Forme écartée* : interdire toute pause fixe courte (rouge dès la première) — 312 existantes, dont 131 où la
+conversion ne gagne rien (partage, mesuré A564) : le cliquet fait baisser le compte au fil des modifications sans
+imposer une conversion en bloc.

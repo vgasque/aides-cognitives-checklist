@@ -581,6 +581,32 @@ if (!lot) {
   ecrireEtat({ quand, moteur, rouges: [...rougesEtat], sections: sectionsEtat, verts: vertsEtat, mesures: mesuresEtat });
 }
 
+/* DÉRIVES À SIGNALER (A567) — après une passe COMPLÈTE seulement (ni lot, ni partielle : il faut tout le monde pour
+   comparer). Deux dérives n'invalident aucun verdict mais dégradent le temps, sans bruit :
+   · le POIDS déclaré d'un harnais (HARNAIS) s'écarte de sa durée mesurée — or ce sont les poids, et eux seuls, qui
+     partagent la passe en lots de CI (A566) : comparés en PARTS du total (une machine plus rapide raccourcit tout,
+     les parts restent), écart au-delà de ×1,5 sur un harnais qui pèse au moins 2 % ;
+   · une tâche NON découpée dure plus que la plus longue tranche : elle borne seule le temps mural (A565).
+   Un avertissement, jamais un rouge : la correction est une ligne de HARNAIS, décidée à froid. */
+if (!lot && !partiel) {
+  const dur = new Map();
+  for (const r of resultats) dur.set(r.nom, (dur.get(r.nom) || 0) + +r.s);
+  const joues = HARNAIS.filter(h => dur.has(h.nom) && (parHarnais.get(h.nom) || []).length === (h.tranches || 1));
+  const sD = joues.reduce((a, h) => a + dur.get(h.nom), 0), sP = joues.reduce((a, h) => a + h.poids, 0);
+  const alertes = [];
+  if (joues.length >= 5 && sD > 0) for (const h of joues) {
+    const pm = dur.get(h.nom) / sD, pd = h.poids / sP;
+    if (Math.max(pm, pd) >= 0.02 && (pm / pd > 1.5 || pd / pm > 1.5))
+      alertes.push(`poids de ${h.nom} à re-mesurer : ${(100 * pd).toFixed(1)} % déclaré pour ${(100 * pm).toFixed(1)} % mesuré (HARNAIS, audit-run.mjs)`);
+  }
+  const tranches = resultats.filter(r => HARNAIS.find(h => h.nom === r.nom)?.tranches);
+  const plusLongue = tranches.reduce((a, r) => Math.max(a, +r.s), 0);
+  for (const r of resultats) if (!HARNAIS.find(h => h.nom === r.nom)?.tranches && plusLongue && +r.s > plusLongue)
+    alertes.push(`${r.nom} (${r.s} s) dure plus que la plus longue tranche (${plusLongue} s) : à découper (tranches, A565)`);
+  if (alertes.length) { console.log('\n△ Dérives de l\'ordonnancement (A567 — avertissement, aucun verdict en cause) :');
+    for (const a of alertes) console.log('  △ ' + a); }
+}
+
 /* RAPPORT (A566, `--rapport <fichier>`) : ce que le bilan rassemble. La sortie n'est gardée que pour un rouge. */
 if (rapportF) {
   let sha = process.env.GITHUB_SHA || null;
