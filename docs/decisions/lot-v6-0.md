@@ -1454,3 +1454,35 @@ et un Mac de 8 cœurs et plus (défaut 8, la valeur qui avait rougi en v5.24 —
 non bloquant, un rouge y demande un arbitrage, pas un blocage.
 *Forme écartée* : un pool proportionnel aux cœurs seuls (`cœurs − 1`, l'ancien) — il laissait le CPU aux deux tiers
 inoccupé ; un pool sans plafond — 12 navigateurs n'apportent rien tant qu'une tranche de doctrine dure 130 s.
+
+## A566 — En CI, l'audit se répartit en trois lots sur trois machines ; un bilan vérifie que leur union est la passe complète (outillage, sans version)
+
+*Piste 4 de l'optimisation de l'audit. Complète A565 : sur une machine, la tranche la plus longue et le CPU bornent la
+passe ; seule une autre machine lève les deux.*
+
+**Avant.** L'audit était la DERNIÈRE étape du job `test` : il attendait la fin des tests (deux moteurs), puis jouait
+les 37 tâches sur un seul runner.
+**Ce qui change.**
+- **`audit-run.mjs --lot k/n --rapport f.json`** : la machine k ne joue que SA part de la passe complète. Le partage
+  (`partageLots`, glouton LPT, déterministe) porte sur la liste `tachesCompletes()` — chaque harnais ou chacune de
+  ses tranches, au POIDS DÉCLARÉ de `HARNAIS`, jamais aux durées apprises de `.audit-etat.json` : deux machines qui
+  n'auraient pas le même état découperaient différemment, et perdraient ou doubleraient des tâches. Un lot ne
+  consomme pas le cache vert, n'écrit pas l'état, ne vérifie pas seul la somme des tranches (elles sont réparties)
+  et s'annonce « LOT k/n … seul le bilan conclut ».
+- **`audit-run.mjs --bilan rapports/*.json`** : il RECALCULE lui-même la liste attendue et exige que l'union des
+  rapports la couvre EXACTEMENT — chaque tâche jouée une fois, aucune inconnue, lots 1..n tous présents et uniques,
+  même commit, même moteur, chaque harnais découpé couvrant toutes ses sections (`##SEC`, la vérification qu'aucun
+  lot seul ne peut faire). Un lot perdu (job annulé, artefact manquant, lanceur planté) ne fabrique jamais un vert.
+  Vérifié capable d'échouer sur six rapports falsifiés : lot manquant, lot en double, tâche rouge, tranche de
+  doctrine tronquée d'une section (157/158), lot d'un autre commit, aucun rapport — six refus motivés.
+- **`ci.yml`** : l'audit sort du job `test` ; une matrice `audit` de trois lots (`fail-fast: false`, Chromium
+  seul, cache Playwright à clé distincte pour ne pas enregistrer un cache sans WebKit sous la clé de `test`) tourne
+  EN MÊME TEMPS que les tests, téléverse ses rapports même rouges, et `audit-bilan` (`if: always()`, Node seul) les
+  rassemble. Toujours NON BLOQUANT (`continue-on-error` sur les deux jobs) : un rouge d'audit reste un arbitrage.
+- **Poids de `HARNAIS` re-mesurés** (ils avaient dérivé : doctrine déclaré 478 pour 807 mesurés) : ce sont eux, et
+  eux seuls, qui partagent la passe ; seul leur rapport compte, à re-mesurer quand un harnais change de taille.
+**Mesuré** (sur ce banc à 4 cœurs, chaque lot joué seul, comme sur son runner) : lots 127 s, 126 s et 106 s pour
+une passe complète de 219-231 s sur une machine ; bilan 37/37. **Non mesuré** : les runners GitHub eux-mêmes
+(nombre de cœurs selon la visibilité du dépôt, temps d'installation) — le premier passage de la CI le dira.
+*Formes écartées* : faire confiance à chaque lot sur sa propre part (un lot absent ne dit rien) ; partager sur les
+durées apprises (non reproductibles d'une machine à l'autre) ; un lot par harnais (doctrine seul fixerait le temps).

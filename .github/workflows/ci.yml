@@ -48,12 +48,69 @@ jobs:
       - name: Lancer la suite de tests (Chromium + WebKit)
         run: npm test
 
-      # AUDIT TRANSVERSE — NON BLOQUANT, à dessein. AGENTS.md pose qu'un échec d'audit « demande
-      # un arbitrage humain, pas un blocage de merge » : ces harnais MESURENT des invariants de
-      # doctrine (contraste sur le fond effectif, cibles tactiles, ordre du quai, compression sous
-      # 400 px…) dont la correction relève parfois d'une décision de conception. Ne pas les jouer
-      # du tout laissait pourtant leurs 180+ contrôles dépendre du fait que quelqu'un y pense :
-      # ils tournent donc à chaque push, visibles dans le journal, sans bloquer la fusion.
-      - name: Audit transverse (accessibilité, doctrine, surfaces) — indicatif
-        continue-on-error: true
-        run: npm run audit
+      # L'AUDIT TRANSVERSE n'est plus ici : il tourne dans les jobs `audit` (trois lots en parallèle) et
+      # `audit-bilan` ci-dessous, en même temps que ce job au lieu de s'ajouter à sa fin (A566).
+
+  # AUDIT TRANSVERSE — NON BLOQUANT, à dessein. AGENTS.md pose qu'un échec d'audit « demande un arbitrage
+  # humain, pas un blocage de merge » : ces harnais MESURENT des invariants de doctrine (contraste sur le fond
+  # effectif, cibles tactiles, ordre du quai, compression sous 400 px…) dont la correction relève parfois d'une
+  # décision de conception. Ils tournent donc à chaque push, visibles dans le journal, sans bloquer la fusion.
+  # RÉPARTI EN TROIS LOTS (A566) : chaque machine joue sa part de la passe COMPLÈTE (`--lot k/3`, partage
+  # déterministe sur les poids déclarés de HARNAIS) et écrit un rapport ; `audit-bilan` les rassemble et vérifie
+  # que CHAQUE tâche a été jouée exactement une fois — un lot perdu ne fabrique jamais un vert.
+  audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false        # un lot rouge n'annule pas les autres : on veut TOUS les rouges d'une passe
+      matrix:
+        lot: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Installer les dépendances de test
+        run: npm ci
+      # Clé distincte de celle du job `test` : ce job n'installe que Chromium (l'audit tourne sur AC_ENGINE
+      # par défaut), et ne doit pas enregistrer un cache sans WebKit sous la clé que `test` restaure.
+      - name: Cache du navigateur Playwright (Chromium)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Audit — lot ${{ matrix.lot }}/3 (indicatif)
+        run: node scripts/audit-run.mjs --lot ${{ matrix.lot }}/3 --rapport audit-lot-${{ matrix.lot }}.json
+      # Toujours téléversé, rouge compris : le bilan a besoin des trois. Un lot qui n'a rien écrit (plantage du
+      # lanceur) n'envoie rien, et le bilan le déclare ABSENT.
+      - name: Téléverser le rapport du lot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-lot-${{ matrix.lot }}
+          path: audit-lot-${{ matrix.lot }}.json
+          if-no-files-found: ignore
+
+  audit-bilan:
+    needs: audit
+    if: always()              # même (surtout) quand un lot a échoué ou manque
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Rassembler les rapports des lots
+        uses: actions/download-artifact@v4
+        with:
+          pattern: audit-lot-*
+          merge-multiple: true
+          path: rapports
+      # Le bilan n'utilise que Node : ni `npm ci`, ni navigateur. Il recalcule lui-même la liste attendue des
+      # tâches et ne conclut au vert que si l'union des lots la couvre exactement, toute verte.
+      - name: Bilan de la passe complète répartie (indicatif)
+        run: node scripts/audit-run.mjs --bilan rapports/*.json
