@@ -59,7 +59,13 @@ export function moteur() {
     console.error(`harness : AC_ENGINE="${process.env.AC_ENGINE}" inconnu (chromium | webkit | firefox).`);
     process.exit(1);
   }
-  return pw[nom];
+  const eng = pw[nom];
+  return { ...eng, name: () => eng.name(), launch: async (o) => {
+    const br = await eng.launch(o);
+    const nP = br.newPage.bind(br), nC = br.newContext.bind(br);
+    br.newContext = async (...a) => { const c = await nC(...a); await c.addInitScript(installeCalme); return c; };
+    br.newPage = async (...a) => { const p = await nP(...a); await p.addInitScript(installeCalme); return p; };
+    return br; } };
 }
 
 /* Nom du moteur, pour que les harnais puissent l'afficher dans leur en-tête — un résultat qui ne
@@ -193,6 +199,77 @@ export function secRunner() {
   return sec;
 }
 
+/* ATTENDRE QUE L'ÉCRAN SE POSE, AU LIEU D'UNE DURÉE (A564). `__acCalme(max)`, dans la page, rend la main dès
+   que TOUT ce qui peut encore changer l'écran s'est tu :
+     · une image au moins peinte (deux rAF), et AUCUNE mutation du DOM depuis 80 ms ;
+     · aucun minuteur de l'app (`setTimeout`) dont l'échéance tombe avant le plafond — anti-rebonds, re-rendus
+       différés : ils ne mutent le DOM qu'APRÈS, 80 ms de calme ne les verraient pas venir ;
+     · aucun `requestAnimationFrame` en attente, aucune transaction IndexedDB ouverte, aucun `fetch` en vol —
+       sous charge, une écriture lente laisserait passer 80 ms de silence AVANT son effet ;
+     · aucune animation FINIE en cours sur un ÉLÉMENT. Ignorées : l'animation infinie (halo d'alarme : elle ne
+       finira jamais) et celle d'un PSEUDO-élément (anneau d'ouverture `sd-ring`, A493 : 0,8 s + 3 × 1,3 s sur un
+       ::after) — aucune sonde ne mesure une boîte de pseudo, et elle ne déplace aucun élément mesuré.
+   PLAFOND = l'ancienne durée fixe : `calme(600)` à la place de `w(600)` ne rend jamais une sonde plus lente, ni ne
+   la fait lire plus tard qu'avant.
+   CE QU'ELLE NE REMPLACE PAS, et qui reste une durée : une attente d'HORLOGE (garde de 700 ms, tick de 300 ms d'un
+   `setInterval` — non suivi, il est perpétuel —, seconde d'un minuteur, fenêtre du geste local d'A474, minute qui
+   passe), et l'attente qui précède un témoin NÉGATIF (« rien n'a bougé ») sans témoin de cas rencontré.
+   POSÉE AVANT TOUT CODE DE L'APP, sur toute page de tout harnais : `moteur().launch()` rend un navigateur dont
+   `newPage`/`newContext` ajoutent ce script d'initialisation (Playwright l'injecte hors CSP). */
+function installeCalme() {
+  if (window.__acCalme) return;
+  const sT = window.setTimeout.bind(window), cT = window.clearTimeout.bind(window);
+  const rAF = window.requestAnimationFrame.bind(window), cAF = window.cancelAnimationFrame.bind(window);
+  const dus = new Map(), rafs = new Set(); let idb = 0, net = 0;
+  window.setTimeout = function (fn, ms, ...a) {
+    const id = sT(function () { dus.delete(id); return typeof fn === 'function' ? fn.apply(this, a) : undefined; }, ms, ...a);
+    dus.set(id, performance.now() + (+ms || 0)); return id; };
+  window.clearTimeout = id => { dus.delete(id); return cT(id); };
+  window.requestAnimationFrame = fn => { const id = rAF(t => { rafs.delete(id); return fn(t); }); rafs.add(id); return id; };
+  window.cancelAnimationFrame = id => { rafs.delete(id); return cAF(id); };
+  try {
+    const tx = IDBDatabase.prototype.transaction;
+    IDBDatabase.prototype.transaction = function (...a) {
+      const t = tx.apply(this, a); idb++; let fini = false;
+      const f = () => { if (!fini) { fini = true; idb--; } };
+      t.addEventListener('complete', f); t.addEventListener('abort', f); t.addEventListener('error', f); return t; };
+  } catch (e) {}
+  if (window.fetch) { const fe = window.fetch.bind(window);
+    window.fetch = (...a) => { net++; const p = fe(...a); p.then(() => net--, () => net--); return p; }; }
+  const tourne = a => { try { return a.playState === 'running' && a.effect && !a.effect.pseudoElement
+    && a.effect.getComputedTiming().iterations !== Infinity; } catch (e) { return false; } };
+  window.__acCalme = (max, q = 80) => new Promise(res => {
+    const t0 = performance.now(), fin = t0 + max; let last = t0, peint = false;
+    const mo = new MutationObserver(() => { last = performance.now(); });
+    mo.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+    rAF(() => rAF(() => { peint = true; }));
+    const minuteur = () => { for (const d of dus.values()) if (d <= fin) return true; return false; };
+    const tic = () => {
+      const now = performance.now();
+      const motif = { mutation: now - last < q, minuteur: minuteur(), raf: rafs.size > 0, idb: idb > 0, net: net > 0,
+        animation: document.getAnimations().some(tourne) };
+      const occupe = !peint || Object.values(motif).some(Boolean);
+      if (now >= fin || !occupe) {
+        /* Relevé du motif quand le plafond est atteint (mesure seulement, jamais lu pour un verdict) : une attente
+           qui bute toujours sur son plafond n'a rien gagné, et c'est lui qui dit pourquoi. */
+        window.__acCalmeMotif = now >= fin ? motif : null;
+        mo.disconnect(); res(); }
+      else sT(tic, 16);
+    };
+    sT(tic, 16);
+  });
+}
+/* Repli pour une page créée hors de `moteur().launch()` : poser `__acCalme` après coup (les minuteurs déjà
+   armés lui échappent alors — d'où l'injection à la création, qui est la règle). */
+export async function poserCalme(page) {
+  try { await page.evaluate(installeCalme); } catch (e) {}
+}
+/* Côté Node : `await calme(page, 600)` à la place de `page.waitForTimeout(600)`. */
+export async function calme(page, max) {
+  try { await page.evaluate(m => window.__acCalme ? window.__acCalme(m) : new Promise(r => setTimeout(r, m)), max); }
+  catch (e) { await page.waitForTimeout(max); }
+}
+
 /* Traverser l'écran de bienvenue et poser les fiches d'exemple. Prérequis : `page.goto` déjà
    fait par le harnais (les URL et viewports varient). Rendu final attendu : l'accueil avec au
    moins une rangée ouvrable. */
@@ -200,6 +277,7 @@ export async function amorce(page) {
   /* BANC HERMÉTIQUE (v5.14.19) : la sonde de joignabilité du sélecteur de mode interroge le
      VRAI serveur — une porte de commit ne dépend jamais du réseau du poste. Ici, joignable. */
   try { await page.evaluate(() => { window.__acNetOk = true; }); } catch (e) {}
+  await poserCalme(page);
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
   const parExemples = await page.evaluate(() => {
     /* v5.30 : l'écran de bienvenue propose « Découvrir avec 2 exemples » (ajoute les fiches

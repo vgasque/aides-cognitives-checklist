@@ -128,6 +128,7 @@ const HARNAIS = [
   { nom: 'audit-sw',            poids: 1, deps: ['sw.js'] },
   { nom: 'audit-stockage',      poids: 1 },
   { nom: 'audit-prompt',        poids: 1 },
+  { nom: 'audit-calme',         poids: 2 },   // A564 : l'attente de calme des harnais ne rend pas la main trop tôt
 ];
 
 const SCRIPTS = fileURLToPath(new URL('.', import.meta.url));

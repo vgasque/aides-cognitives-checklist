@@ -1391,3 +1391,41 @@ DANS le premier `scroll` (écouteur posé après celui de l'app) au lieu de 120 
 à chaque `scroll` et revient 220 ms après, la lecture à heure fixe était une course (un observateur de classe,
 essayé d'abord, restait vert sur une app qui ne retirait plus le voile : écarté). `audit-pdfsearch` dit désormais
 l'état de l'app quand le document joint n'apparaît pas (rouge vu une fois, non reproduit).
+
+## A564 — Les harnais attendent que l'écran se pose, pas une durée (outillage, sans version)
+
+*Piste 2 de l'optimisation de l'audit ; complète A563 (piste 1 : les rouges de charge).*
+
+**Constat mesuré.** L'audit attendait surtout : ~830 pauses fixes (`w(600)`, `waitForTimeout(400)`…) dans doctrine,
+a11y et k5, chacune payée en entier même quand l'écran était posé en 80 ms. Essai sans garde-fou (TOUTES les
+pauses de doctrine converties) : 708 s → 542 s de sections, et exactement quatre sections rouges — celles où le
+temps EST le témoin (ticks du quai, A474, reprise Q2, tri vivant P4b). C'est le signal qui a fixé la règle.
+**L'outil.** `__acCalme(max)` (`installeCalme`, `harness.mjs`), posé avant tout code de l'app sur toute page de tout
+harnais (`moteur().launch()` ajoute le script d'initialisation à `newPage`/`newContext`). Il rend la main quand :
+deux images peintes, aucune mutation du DOM depuis 80 ms, aucun `setTimeout` de l'app échéant avant le plafond,
+aucun `requestAnimationFrame` en attente, aucune transaction IndexedDB ouverte, aucun `fetch` en vol, aucune
+animation finie d'élément en cours. PLAFOND = l'ancienne durée : jamais plus lent, jamais une lecture plus tardive
+qu'avant. Côté Node : `calme(page, N)`.
+- **Ignorées, et pourquoi** : l'animation infinie (halo d'alarme : elle ne finit jamais) et celle d'un
+  PSEUDO-élément — l'anneau d'ouverture `sd-ring` (A493, 0,8 s + 3 × 1,3 s sur un `::after`) faisait payer son
+  plafond entier à toute lecture d'aide hors session (mesuré 602/600 ms) ; aucune sonde ne mesure une boîte de
+  pseudo.
+- **Non suivi, à dessein** : le `setInterval` (le tick de 300 ms est perpétuel — l'attendre, c'est attendre le
+  plafond). D'où la règle ci-dessous.
+**La règle de conversion.** Pause de RENDU (< 700 ms) → `__acCalme(N)` / `calme(page, N)`, explicitement dans le
+code (on distingue à la lecture une attente de rendu d'une attente d'horloge). Pause d'HORLOGE (≥ 700 ms : garde,
+tick, échéance, minute) → durée inchangée, comme toutes celles des quatre sections où le temps est le témoin. Un
+repli Node (`const __acCalme = pause`) en tête de chaque harnais converti : le code passé à `page.evaluate` est
+sérialisé et y résout le `__acCalme` de la page, le code Node résout le repli — chacun le bon, sans heuristique
+(une détection statique « dans un evaluate ? » a été essayée : les littéraux d'expressions régulières faussent
+l'appariement des parenthèses, écartée).
+**Mesuré, à verdicts identiques** (sections jouées en parallèle, avant → après) : doctrine 708 → 602 s (1 914/1 914
+contrôles) ; k5 74 → 56 s ; a11y 217 → 184 s. **Non converti, parce que rien à gagner** (mesuré) : partage
+394,6 → 390,5 s (seuils de protocole réels) et guide 84 → 84 s (il attend les délais propres du guide, pas des
+pauses de sonde).
+*Formes écartées* : remplacer chaque pause par une condition écrite à la main (~830 éditions, autant de risques) ;
+une attente au seul DOM (rendait la main avant un anti-rebond, une écriture IndexedDB lente sous charge — c'est-à-
+dire refaisait les rouges de charge qu'A563 venait de chasser).
+**Témoin** : `audit-calme` (nouveau harnais, dans `HARNAIS`) — minuteur, boucle rAF, animation, transaction
+IndexedDB dont l'effet tombe APRÈS 80 ms de silence du DOM, plafond, repos rapide, `calme(page, N)` ; vérifié
+capable d'échouer (suivi des minuteurs et des rAF retiré → deux rouges).

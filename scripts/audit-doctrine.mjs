@@ -1,6 +1,14 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner, ouvrirRecherche, remplir, ouvrirBloc } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner, ouvrirRecherche, remplir, ouvrirBloc, calme } from './harness.mjs';
+/* ATTENDRE QUE L'ÉCRAN SE POSE, PAS UNE DURÉE (A564). Une pause de RENDU (moins de 700 ms : après une ouverture, un
+   clic, une frappe, un re-rendu) s'écrit `__acCalme(N)` dans la page et `calme(page, N)` côté Node : elle rend la
+   main dès que l'écran est posé, au plus N ms — jamais plus tard qu'avant (cf. installeCalme, harness.mjs).
+   Une pause d'HORLOGE (700 ms et plus : garde, tick, échéance, minute qui passe) reste une durée, de même que
+   toutes celles des quatre sections où le temps EST le témoin (ticks du quai, A474, reprise Q2, tri vivant P4b).
+   Ce repli NODE fait de `__acCalme` une simple pause hors de la page : le code passé à `page.evaluate` est
+   sérialisé et y résout le `__acCalme` de la page ; le code Node résout celui-ci — chacun le bon, sans deviner. */
+const __acCalme=m=>new Promise(r=>setTimeout(r,m));
 import { readFile } from 'node:fs/promises';
 
 const { port, srv } = await serveApp();
@@ -45,10 +53,10 @@ await sec('ECAM · constance positionnelle du quai', async () => {
        pas QUAND L'ÉTAT VARIE, ne rencontrait plus son cas. */
     for(let i=0;i<3;i++){
       const b=document.querySelector('[data-rtadd]');if(!b)break;
-      b.click();await new Promise(r=>setTimeout(r,120));
+      b.click();await __acCalme(120);
       const d=document.querySelector('[data-rtnew]');if(!d)break;
-      d.click();await new Promise(r=>setTimeout(r,150));}});
-  await page.waitForTimeout(300);
+      d.click();await __acCalme(150);}});
+  await calme(page, 300);
   const nAp=await page.evaluate(()=>Object.keys(Runtime.timers).length);
   t('témoin : l\'état a bien varié (minuteurs ajoutés)', nAp>nAv, `${nAv} → ${nAp}`);
   const b=await snap(), pb=await geo('allBtn');
@@ -65,13 +73,13 @@ await sec('ECAM · constance positionnelle du quai', async () => {
        ne doit jamais pouvoir pendre, sinon c'est la passe entière qu'il emporte. */
     for(let n=0;ids.length<3&&n<6;n++){
       const b=document.querySelector('[data-rtadd]');if(!b)break;
-      b.click();await new Promise(r=>setTimeout(r,150));
+      b.click();await __acCalme(150);
       const d=document.querySelector('[data-rtnew]');if(!d)break;
-      d.click();await new Promise(r=>setTimeout(r,200));
+      d.click();await __acCalme(200);
       ids.splice(0,ids.length,...Object.keys(Runtime.timers));}
     ids.slice(0,3).forEach(k=>{const t=Runtime.timers[k];
       t.type='interval';t.seconds=t.seconds||120;t.running=false;t.elapsedMs=t.seconds*1000+5000;});
-    updateRtStrip(Date.now());await new Promise(r=>setTimeout(r,120));
+    updateRtStrip(Date.now());await __acCalme(120);
     const s=document.getElementById('cbTimers');
     const due=Object.values(Runtime.timers).filter(t=>t.type==='interval'&&!t.running
       &&t.elapsedMs>=t.seconds*1000).length;
@@ -100,7 +108,7 @@ await sec('AC 120-71B · memory items en accès direct', async () => {
     /* A367 : la feuille « Consulter » a vécu — c'est la carte « Références » de la page qui reste
        INERTE (documents, schémas, renvois : rien à cocher, rien qui démarre). */
     const h=document.querySelector('[data-prefold="refs"],[data-sessfold="refs"]');if(!h)return {absent:true,boxes:0,starts:0};
-    if(h.closest('.fold-card').classList.contains('closed')){h.click();await new Promise(r=>setTimeout(r,350));}
+    if(h.closest('.fold-card').classList.contains('closed')){h.click();await __acCalme(350);}
     const c=document.querySelector('[data-sf="refs"] .sf-body');
     return {boxes:c.querySelectorAll('input[type=checkbox],.stp').length,starts:c.querySelectorAll('[data-navgo],#sessStart').length};});
   t('carte Références INERTE (aucune coche, aucun démarrage)',
@@ -125,7 +133,7 @@ await sec('ECAM · naviguer ≠ agir', async () => {
   const after=await page.evaluate(async()=>{
     const nd=document.querySelector('.pf-row[data-plln]');   // A376 : la feuille rend la liste numérotée
     if(nd)nd.click();
-    await new Promise(r=>setTimeout(r,300));
+    await __acCalme(300);
     return {clique:!!nd,live:Object.keys(liveSessions||{}).length,checked:JSON.stringify(Runtime.checked||{})};});
   t('un nœud du plan est bien présent et cliqué (le contrôle n\'est pas vide)', after.clique===true);
   t('taper un nœud du plan ne DÉMARRE pas de session', before.live===after.live, `${before.live} → ${after.live}`);
@@ -142,7 +150,7 @@ await sec('ECAM · pas d\'alerte flottante en session', async () => {
     const vis=()=>[...document.querySelectorAll('.toast')].filter(e=>getComputedStyle(e).display!=='none'
       &&getComputedStyle(e).visibility!=='hidden'&&e.getBoundingClientRect().height>0).length;
     const avant=vis();                       // un toast antérieur au démarrage peut encore vivre
-    toast('essai');await new Promise(r=>setTimeout(r,250));
+    toast('essai');await __acCalme(250);
     const sb=document.getElementById('sysBanner');
     return {crise:document.body.classList.contains('crisis-live'),nouveaux:vis()-avant,
       banner:sb?(!sb.hidden&&sb.getBoundingClientRect().height>0):false};});
@@ -169,9 +177,9 @@ await sec('Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de t
     for(const z of [100,130]) for(const sab of [0,34]){
       const r=await page.evaluate(async([z,sab])=>{
         document.documentElement.style.setProperty('--sab',sab+'px');
-        applyZoom(z);render();await new Promise(x=>setTimeout(x,260));
+        applyZoom(z);render();await __acCalme(260);
         document.getElementById('hdrMore').click();
-        await new Promise(x=>setTimeout(x,220));
+        await __acCalme(220);
         const m=document.getElementById('moreMenu');
         const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
         const vv=window.visualViewport;
@@ -179,7 +187,7 @@ await sec('Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de t
         const b=m.getBoundingClientRect();
         // Dernière rangée atteignable : on défile le menu au bout et on la mesure là.
         m.scrollTop=m.scrollHeight;
-        await new Promise(x=>setTimeout(x,60));
+        await __acCalme(60);
         const rows=[...m.querySelectorAll('.mm-row')];
         const der=rows.length?rows[rows.length-1].getBoundingClientRect():null;
         // A361 : la FEUILLE (fixée) descend jusqu'au bord — sa marge basse porte --sab ; c'est sa
@@ -236,7 +244,7 @@ await sec('ECAM · dock de session sans rognage (320/360/375/390)', async () => 
       aria:btns.map(b=>b.getAttribute('aria-label')||b.textContent.trim()).join('|')};});
   for(const w of [320,360,375,390]){
     await page.setViewportSize({width:w,height:820});
-    await page.waitForTimeout(220);
+    await calme(page, 220);
     const r=await lire();
     t(`aucune touche du dock hors écran à ${w} px`, r.right<=r.vw&&r.doc<=r.vw,
       `bord droit ${r.right} px / viewport ${r.vw} px`);
@@ -259,7 +267,7 @@ await sec('ECAM · dock de session sans rognage (320/360/375/390)', async () => 
   for(const w of [390,430]){
     await page.setViewportSize({width:w,height:820});
     for(const z of [90,100,115,130]){
-      await page.evaluate(async(z)=>{applyZoom(z);render();await new Promise(x=>setTimeout(x,260));},z);
+      await page.evaluate(async(z)=>{applyZoom(z);render();await __acCalme(260);},z);
       const r=await lire();
       t(`${w} px à ${z} % : aucune touche du dock rognée`,
         r.right<=r.vw+0.5&&r.right<=r.bordInterne+0.5,
@@ -284,7 +292,7 @@ await sec('ECAM · dock de session sans rognage (320/360/375/390)', async () => 
 await sec('ECAM · bascule guidé ↔ statique ancrée sur le bloc courant', async () => {
 {
   const page=await session(390);
-  await page.waitForTimeout(250);
+  await calme(page, 250);
   const r=await page.evaluate(async()=>{
     const w=m=>new Promise(x=>setTimeout(x,m));
     const CUR='.ov-block.cur,.sv-cell.cur,.sv-band.cur';
@@ -292,11 +300,11 @@ await sec('ECAM · bascule guidé ↔ statique ancrée sur le bloc courant', asy
     // on défile pour que le bloc courant ne soit PAS en haut de l'écran
     const el=main.querySelector(CUR);
     window.scrollTo(0,window.scrollY+el.getBoundingClientRect().top-260);
-    await w(200);
+    await __acCalme(200);
     const av=top();
-    document.getElementById('allBtn').click(); await w(400);
+    document.getElementById('allBtn').click(); await __acCalme(400);
     const apStat=top(), yStat=window.scrollY;
-    document.getElementById('allBtn').click(); await w(400);
+    document.getElementById('allBtn').click(); await __acCalme(400);
     const apDyn=top();
     return {av:Math.round(av),apStat:Math.round(apStat),apDyn:Math.round(apDyn),yStat:Math.round(yStat)};});
   t('guidé → statique : le bloc courant ne dérive pas', Math.abs(r.apStat-r.av)<=2,
@@ -318,10 +326,10 @@ await sec('ECAM · barre d\'éditeur sans rognage (320/360)', async () => {
   await amorce(page);
   await page.evaluate(async()=>{
     const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title))||fiches[0];
-    await openEdit(f.id);await new Promise(r=>setTimeout(r,600));});
+    await openEdit(f.id);await __acCalme(600);});
   for(const w of [320,360]){
     await page.setViewportSize({width:w,height:844});
-    await page.waitForTimeout(250);
+    await calme(page, 250);
     const r=await page.evaluate(()=>{
       // Seulement ce qui est RÉELLEMENT peint : `hidden` et `display:none` ne débordent de rien.
       const vis=[...document.querySelectorAll('header.bar button')]
@@ -389,10 +397,10 @@ await sec('Lot Page · une seule grille, la même image aux trois formats', asyn
        le clic « Commencer » seul n'est pas une copie du geste partagé, c'est un autre trajet. */
     await page.evaluate(async f=>{
       const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');if(b)b.click();
-      await new Promise(r=>setTimeout(r,120));
+      await __acCalme(120);
       const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
       state.view='read';state.fiche=nf;state.readMode='static';render();
-      await new Promise(r=>setTimeout(r,650));},FICHE);
+      await __acCalme(650);},FICHE);
     return page;};
   const mesure=async page=>page.evaluate(()=>{
     const sheet=document.querySelector('.sv-sheet'),algo=document.querySelector('.sv-algo');
@@ -482,7 +490,7 @@ await sec('Rendu guidé · décocher annule la fin de l\'algorithme', async () =
     const f=migrate({id:'dgui',title:'Sonde guidée',blocks:[
       {id:'b1',kind:'do',title:'Bloc unique',items:['Étape A','Étape B'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
-    openRead(f.id);await new Promise(r=>setTimeout(r,350));
+    openRead(f.id);await __acCalme(350);
     /* Une fiche SANS branchement n'a pas de bascule de format — c'est la part juste de la
        doctrine d'origine — mais elle rend bien la carte de travail. */
     const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.ov-block');
@@ -495,11 +503,11 @@ await sec('Rendu guidé · décocher annule la fin de l\'algorithme', async () =
     for(let g=0;g<12;g++){
       const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));if(!li)break;
       li.dispatchEvent(new MouseEvent('click',{bubbles:true}));
-      await new Promise(r=>setTimeout(r,300));}
+      await __acCalme(300);}
     const nn=av();if(nn)nn.click();
-    await new Promise(r=>setTimeout(r,350));
+    await __acCalme(350);
     const finActee=!!document.querySelector('.flow-end')&&state.flowEnded===true;
-    document.querySelector('[data-ck]').click();await new Promise(r=>setTimeout(r,400));
+    document.querySelector('[data-ck]').click();await __acCalme(400);
     return {guide,finActee,flowEnded:state.flowEnded,
       banniere:!!document.querySelector('.flow-end'),bouton:!!av()};});
   t('une fiche sans branchement rend la CARTE, et sans bascule de format',r.guide);
@@ -539,8 +547,8 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
      sous le doigt. */
   const a=await page.evaluate(async()=>{
     const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title))||fiches[0];
-    openRead(f.id);await new Promise(r=>setTimeout(r,350));
-    document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,500));
+    openRead(f.id);await __acCalme(350);
+    document.getElementById('sessStart').click();await __acCalme(500);
     /* ⚠ LE DÉCLENCHEUR A CHANGÉ, PAS L'INVARIANT (v5.6). Le geste d'entrée n'est plus un COCHAGE
        — avant la session, la colonne montre le parcours inerte, il n'y a pas de case — et il ne
        passe pas par `keepAnchor` mais par un ATTERRISSAGE mesuré (`startSessionGesture`, couvert
@@ -549,11 +557,11 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
        l'élément touché » (ECAM, v4.4.0). Son cas le plus exposé est désormais l'AVANCEMENT — on
        coche tout, on presse « Continuer », et le journal se recompose SOUS le doigt. */
     document.querySelectorAll('ol.steps li[data-ck]').forEach(li=>li.click());
-    await new Promise(r=>setTimeout(r,300));
-    window.scrollTo(0,600);await new Promise(r=>setTimeout(r,250));
+    await __acCalme(300);
+    window.scrollTo(0,600);await __acCalme(250);
     window.__anc=[];
     const nx=document.querySelector('[data-ovnext]');if(nx)nx.click();
-    await new Promise(r=>setTimeout(r,600));return window.__anc;});
+    await __acCalme(600);return window.__anc;});
   t('avancement : l\'ancrage est bien invoqué',a.length>0,'aucun appel de keepAnchor');
   /* ⚠ ET ON N'EN DEMANDE PAS PLUS SUR CE DÉCLENCHEUR (v5.6). « PAS MESURÉ » N'EST PAS « N'A PAS
      BOUGÉ » : si l'ancre DISPARAÎT pendant le re-rendu, `keepAnchor` ne peut rien compenser et la
@@ -583,18 +591,18 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
     const f=migrate({id:'ancd',title:'Ancre mono-bloc',blocks:[
       {id:'b1',kind:'do',title:'Bloc unique',items:etp.map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
-    openRead(f.id);await w(350);
-    document.getElementById('sessStart').click();await w(400);
+    openRead(f.id);await __acCalme(350);
+    document.getElementById('sessStart').click();await __acCalme(400);
     for(let i=0;i<30;i++){const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));
-      if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await w(120);}
-    const fin=document.querySelector('[data-ovend]');if(fin)fin.click();await w(400);
-    window.scrollTo(0,300);await w(250);
+      if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await __acCalme(120);}
+    const fin=document.querySelector('[data-ovend]');if(fin)fin.click();await __acCalme(400);
+    window.scrollTo(0,300);await __acCalme(250);
     /* Témoin de la condition ci-dessus : on n'est PAS collé au bas de la page. */
     const auBout=Math.round(scrollY)>=Math.round(document.documentElement.scrollHeight-innerHeight)-2;
     window.__anc=[];
     const li=document.querySelector('[data-ck].done');
     if(li)li.dispatchEvent(new MouseEvent('click',{bubbles:true}));
-    await w(450);return {anc:window.__anc,auBout};});
+    await __acCalme(450);return {anc:window.__anc,auBout};});
   t('témoin : la page n\'est pas collée au bas (sinon on mesure le rabat du navigateur)',
     g.auBout===false, `auBout ${g.auBout}`);
   const gg=g.anc;
@@ -640,11 +648,11 @@ for(const w of [320,360,390]){
     const ids=Object.keys(Runtime.timers).slice(0,3);
     ids.forEach(id=>{const t=Runtime.timers[id];t.running=true;t.lastStart=Date.now();});
     Runtime.startedAt=Date.now()-3*3600*1000;      // chrono à h:mm:ss, le cas le plus large
-    updateRtStrip();await new Promise(x=>setTimeout(x,400));
+    updateRtStrip();await __acCalme(400);
     const el=document.getElementById('cbTimers');
     const depAvant=el.scrollWidth-el.clientWidth;
     if(ids[0])Runtime.timers[ids[0]].label='Cycle de compressions thoraciques profondes';
-    updateRtStrip();await new Promise(x=>setTimeout(x,400));
+    updateRtStrip();await __acCalme(400);
     const dep=el.scrollWidth-el.clientWidth;
     const nb=el.querySelectorAll('.seg').length;
     const plus=!!el.querySelector('.cbt-n');
@@ -682,7 +690,7 @@ for(const w of [320,360,390]){
       t.elapsedMs=i===0?125000:0;});                       // le 1ᵉʳ est ÉCHU
     if(ids[0])Runtime.timers[ids[0]].label='Cycle de compressions thoraciques profondes';
     Runtime.startedAt=Date.now()-3*3600*1000;              // chrono h:mm:ss, le cas le plus large
-    updateRtStrip();await new Promise(x=>setTimeout(x,400));
+    updateRtStrip();await __acCalme(400);
     const el=document.getElementById('cbTimers');
     const due=el.querySelector('.seg.due');
     const lu=()=>({dep:el.scrollWidth-el.clientWidth, alarme:!!el.querySelector('.seg.due'),
@@ -693,7 +701,7 @@ for(const w of [320,360,390]){
        elle doit être mesurée ici, pas supposée. */
     Share.mode='guest';Share.status='active';Share.role='scribe';
     Share.lastOk=Date.now();Share._act=Date.now();
-    updateRtStrip();await new Promise(x=>setTimeout(x,250));
+    updateRtStrip();await __acCalme(250);
     const avecJeton=lu(), jeton=/suit/.test(el.textContent);
     Share.mode='off';Share.status='off';
     return {dep:nu.dep, alarme:nu.alarme,
@@ -733,15 +741,15 @@ for(const w of [320,360,390]){
        une branche sur le mode global (elle suivait l'invité jusque sur SES aides, signalé). */
     Runtime.started=true;Runtime.sessionId=null;
     Runtime.startedAt=Date.now()-65000;                     // le chrono REÇU de l'hôte
-    updateRtStrip();await new Promise(x=>setTimeout(x,250));
+    updateRtStrip();await __acCalme(250);
     const lu=()=>{const l=el.querySelector('.seg-l.seg-sess');
       return {txt:l?l.textContent:'',coupe:!!l&&l.scrollWidth>Math.round(l.getBoundingClientRect().width)+1};};
     const suit=lu(), dep1=el.scrollWidth-el.clientWidth, cache=el.hidden;
-    Share.role='lead';updateRtStrip();await new Promise(x=>setTimeout(x,120));
+    Share.role='lead';updateRtStrip();await __acCalme(120);
     const main=lu();
-    Share.lastOk=Date.now()-120000;updateRtStrip();await new Promise(x=>setTimeout(x,120));
+    Share.lastOk=Date.now()-120000;updateRtStrip();await __acCalme(120);
     const fige=lu(), off=!!el.querySelector('.seg-l.seg-sess.off');
-    Share.lastOk=Date.now();Share.status='revoked';updateRtStrip();await new Promise(x=>setTimeout(x,120));
+    Share.lastOk=Date.now();Share.status='revoked';updateRtStrip();await __acCalme(120);
     const coupe=lu(), toujours=!el.hidden;
     Share.mode='off';Share.status='off';
     return {avant,cache,dep1,suit,main,fige,off,coupe,toujours};
@@ -778,14 +786,14 @@ await sec('Journal · incrémenter un compteur pose un repère horodaté', async
     const cLab=((Runtime.fiche.counters||[]).find(x=>x.id===cid)||{}).label||'';
     const rail=document.querySelector('.read-side');
     if(rail)rail.scrollTop=60;
-    await new Promise(x=>setTimeout(x,200));
+    await __acCalme(200);
     const railAvant=rail?rail.scrollTop:null;
     const avant=(Runtime.events||[]).length;
     // Deux incréments : le second doit porter le rang 2, pas répéter le premier.
-    inc.click();await new Promise(x=>setTimeout(x,250));
+    inc.click();await __acCalme(250);
     const inc2=document.querySelector('[data-cninc="'+CSS.escape(cid)+'"]');
     if(inc2)inc2.click();
-    await new Promise(x=>setTimeout(x,300));
+    await __acCalme(300);
     const ev=Runtime.events||[];
     const labs=window.__acTkLabels?window.__acTkLabels(ev,Runtime.fiche):null;
     const lignes=[...document.querySelectorAll('.tk-panel .tk-lab')].map(i=>i.value);
@@ -817,7 +825,7 @@ await sec('Journal · incrémenter un compteur pose un repère horodaté', async
     const b=document.querySelector('.tk-panel [data-tkdel]');
     if(!b)return {err:'aucun repère à annuler'};
     const id=b.dataset.tkdel;
-    b.click();await new Promise(x=>setTimeout(x,250));
+    b.click();await __acCalme(250);
     const apresAnnul={n:(Runtime.events||[]).length,
       voidAt:!!(Runtime.events.find(e=>e.id===id)||{}).voidAt,
       barre:!!document.querySelector('.tk-panel .tk-item.tk-void'),
@@ -830,7 +838,7 @@ await sec('Journal · incrémenter un compteur pose un repère horodaté', async
         return b?{titre:b.title||b.getAttribute('aria-label')||'',
           trace:!!b.querySelector('svg'), croix:/^\s*×\s*$/.test(b.textContent||'')}:null;})()};
     const b2=document.querySelector('.tk-panel [data-tkdel="'+CSS.escape(id)+'"]');
-    if(b2)b2.click();await new Promise(x=>setTimeout(x,250));
+    if(b2)b2.click();await __acCalme(250);
     return {err:null,n0,apresAnnul,
       apresRetour:{n:(Runtime.events||[]).length,
         voidAt:!!(Runtime.events.find(e=>e.id===id)||{}).voidAt,
@@ -874,10 +882,10 @@ for (const w of [320, 360, 390]) {
        18 px de rembourrage sur la carte, alors que ces feuilles se donnent `padding:0` — leur
        barre est `sticky top:0` et doit toucher le bord. `:not()` COMPTE LA SPÉCIFICITÉ DE SON
        ARGUMENT : (0,3,0) contre (0,2,0), la règle générique gagnait. */
-    openPlanSheet(); await new Promise(x => setTimeout(x, 450));
+    openPlanSheet(); await __acCalme(450);
     {const c = document.querySelector('#planModal .ai-card'), b = document.querySelector('#planModal .pm-bar');
      o.planBarTop = (c && b) ? Math.round(b.getBoundingClientRect().top - c.getBoundingClientRect().top) : null;}
-    document.getElementById('planX').click(); await new Promise(x => setTimeout(x, 300));
+    document.getElementById('planX').click(); await __acCalme(300);
 
     /* (c) UNE DÉCISION À HUIT OPTIONS. `flowPlan` met en cache par OBJET (WeakMap) : muter la
        fiche en place ne suffirait pas, il faut un objet neuf. */
@@ -891,8 +899,8 @@ for (const w of [320, 360, 390]) {
      const f = migrate(src);
      state.fiche = f; Runtime.fiche = f;
      state.nav = ['zzdec']; state.navSeq = [0]; state.navPos = 0; state.checked = {};
-     render(); await new Promise(x => setTimeout(x, 300));}
-    openPlanSheet(); await new Promise(x => setTimeout(x, 450));
+     render(); await __acCalme(300);}
+    openPlanSheet(); await __acCalme(450);
     {const body = document.getElementById('planBody');
      let pire = 0, qui = '';
      if (body) { const br2 = body.getBoundingClientRect();
@@ -902,7 +910,7 @@ for (const w of [320, 360, 390]) {
          if (d > pire) { pire = d; qui = (el.className || el.tagName) + ''; } }); }
      o.planDebord = pire; o.planQui = qui;
      o.planNbLignes = document.querySelectorAll('#planModal .pf-row').length;}   // A376 : rangées de la liste
-    document.getElementById('planX').click(); await new Promise(x => setTimeout(x, 300));
+    document.getElementById('planX').click(); await __acCalme(300);
 
     /* (b) LA CROIX DU PANNEAU MINUTEURS RESTE DANS LE CADRE. On mesure contre le bord INTÉRIEUR,
        comme le fait l'œil : un bouton qui touche la bordure est déjà coupé.
@@ -912,7 +920,7 @@ for (const w of [320, 360, 390]) {
        rembourrage : le contrôle est passé au rouge sur une croix parfaitement dans le cadre.
        Un littéral qui décrit un mécanisme rougit sur un changement JUSTE (leçon v5.0.0). */
     // v5.4.2 : le panneau s'ouvre par le QUAI (la rangée repliée n'existe plus).
-    const o2 = document.getElementById('cbTimers'); if (o2) { o2.click(); await new Promise(x => setTimeout(x, 350)); }
+    const o2 = document.getElementById('cbTimers'); if (o2) { o2.click(); await __acCalme(350); }
     {const pan = document.querySelector('.rt-panel'), head = document.querySelector('.rt-head'),
       k = document.querySelector('.rt-x');
      if (pan && k) { const p = pan.getBoundingClientRect(), kr = k.getBoundingClientRect();
@@ -947,13 +955,13 @@ for (const w of [320, 360, 390, 430]) {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
-    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
-    const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await __acCalme(400);
+    const b=document.getElementById('sessStart'); if(b)b.click(); await __acCalme(600);
     const e=document.getElementById('cbTimers');
     const lis=()=>({txt:(e.innerText||'').replace(/\s+/g,' ').trim(),
                     deb:e.scrollWidth-e.clientWidth,h:Math.round(e.getBoundingClientRect().height)});
     const repos=lis();
-    const t=Object.values(Runtime.timers)[0]; if(t){toggleTimer(t);updateRtStrip();} await wt(400);
+    const t=Object.values(Runtime.timers)[0]; if(t){toggleTimer(t);updateRtStrip();} await __acCalme(400);
     const arme=lis();
     return {repos,arme,declare:Object.keys(Runtime.timers).length};});
   t(`${w} · au repos, le quai NOMME les minuteurs déclarés`, /minuteur/.test(r.repos.txt), r.repos.txt);
@@ -993,8 +1001,8 @@ for (const w of [320, 390]) {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
-    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await wt(400);
-    const b=document.getElementById('sessStart'); if(b)b.click(); await wt(600);
+    const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0]; openRead(f.id); await __acCalme(400);
+    const b=document.getElementById('sessStart'); if(b)b.click(); await __acCalme(600);
     const seg=[document.querySelector('#allBtn .dp-lbl').textContent.trim()];
     /* Le RETOUR est-il garanti ? On relève le libellé APRÈS l'excursion : le même bouton, à la
        même place, doit nommer le chemin inverse. C'est ce qui distingue une excursion d'un
@@ -1005,7 +1013,7 @@ for (const w of [320, 390]) {
        contrôle est à la MÊME place et la barre garde la MÊME hauteur avant et après. */
     const hAv=Math.round(document.querySelector('#sessionDock .sd-in').getBoundingClientRect().height);
     const prefAv=currentReadMode();
-    document.getElementById('allBtn').click(); await wt(600);
+    document.getElementById('allBtn').click(); await __acCalme(600);
     const segRetour=document.querySelector('#allBtn .dp-lbl').textContent.trim();
     const xAp=Math.round(document.getElementById('allBtn').getBoundingClientRect().left);
     const hAp=Math.round(document.querySelector('#sessionDock .sd-in').getBoundingClientRect().height);
@@ -1018,19 +1026,19 @@ for (const w of [320, 390]) {
     const cible=Math.min(...[...document.querySelectorAll('.at-b')].map(e=>e.getBoundingClientRect().height));
     /* A389 : l'onglet « Parcours » a VÉCU — il redisait la feuille « Se repérer » (A388). On mesure son absence. */
     const parc=!document.querySelector('[data-alltab="parcours"]');
-    document.querySelector('[data-alltab="schema"]').click(); await wt(600);
+    document.querySelector('[data-alltab="schema"]').click(); await __acCalme(600);
     const zAv=(document.querySelector('.all-svg .fzv')||{}).textContent||'';
-    const zb=document.querySelector('.all-svg [data-zoom="in"]'); if(zb)zb.click(); await wt(300);
+    const zb=document.querySelector('.all-svg [data-zoom="in"]'); if(zb)zb.click(); await __acCalme(300);
     const zAp=(document.querySelector('.all-svg .fzv')||{}).textContent||'';
     const peint=!!document.querySelector('.all-svg svg .fn-cur, .all-svg svg .fn-ok');
     const navAv=(state.nav||[]).length;
     const coche=Object.keys(state.checked||{}).filter(k=>state.checked[k]).length;
-    const nd=document.querySelector('.all-svg svg [data-fgo]'); if(nd)nd.dispatchEvent(new MouseEvent('click',{bubbles:true})); await wt(300);
+    const nd=document.querySelector('.all-svg svg [data-fgo]'); if(nd)nd.dispatchEvent(new MouseEvent('click',{bubbles:true})); await __acCalme(300);
     /* ── LOT B : la recherche, mesurée sur l'onglet Page puis rejouée sur Parcours ── */
-    document.querySelector('[data-alltab="page"]').click(); await wt(500);
+    document.querySelector('[data-alltab="page"]').click(); await __acCalme(500);
     const avantHtml=document.querySelector('.sv-sheet').innerHTML;
     {const q=document.getElementById('pfQ');q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));}
-    await wt(400);
+    await __acCalme(400);
     const hits=document.querySelectorAll('.sv-sheet mark.pf-h').length;
     const cpt=(document.getElementById('pfCount')||{}).textContent||'';
     const cache=[...document.querySelectorAll('.sv-sheet .sv-cell')].filter(e=>getComputedStyle(e).display==='none').length;
@@ -1038,24 +1046,24 @@ for (const w of [320, 390]) {
     const champH=Math.round(qEl.getBoundingClientRect().height),champFs=getComputedStyle(qEl).fontSize;
     const fleches=[...document.querySelectorAll('.rt-find-all .rt-fnav .mini')]
       .map(b=>Math.round(Math.min(b.getBoundingClientRect().width,b.getBoundingClientRect().height)));
-    document.querySelector('[data-alltab="schema"]').click(); await wt(600);
+    document.querySelector('[data-alltab="schema"]').click(); await __acCalme(600);
     const champSchema=!!document.getElementById('pfQ'),marksSchema=document.querySelectorAll('mark.pf-h').length;
-    document.querySelector('[data-alltab="page"]').click(); await wt(600);
+    document.querySelector('[data-alltab="page"]').click(); await __acCalme(600);
     const hitsParcours=document.querySelectorAll('.sv-sheet mark.pf-h').length;   // A389 : la requête survit au passage par le Schéma
     {const q=document.getElementById('pfQ');q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
-    await wt(350);
+    await __acCalme(350);
     const identique=document.querySelector('.sv-sheet').innerHTML===avantHtml;
     /* ── Le registre du bouton, dans les DEUX préférences ── */
     const vert=()=>document.getElementById('allBtn').classList.contains('dp-back');
-    document.getElementById('allBtn').click(); await wt(500);      // retour « chez soi »
+    document.getElementById('allBtn').click(); await __acCalme(500);      // retour « chez soi »
     const vertRepos=vert();
-    document.getElementById('allBtn').click(); await wt(500);
+    document.getElementById('allBtn').click(); await __acCalme(500);
     const vertLoin=vert();
-    document.getElementById('allBtn').click(); await wt(500);
-    setReadModePref('static'); openRead(f.id); await wt(500);
-    {const b2=document.getElementById('sessStart'); if(b2)b2.click(); await wt(500);}
+    document.getElementById('allBtn').click(); await __acCalme(500);
+    setReadModePref('static'); openRead(f.id); await __acCalme(500);
+    {const b2=document.getElementById('sessStart'); if(b2)b2.click(); await __acCalme(500);}
     const vertReposStatic=vert();
-    document.getElementById('allBtn').click(); await wt(500);
+    document.getElementById('allBtn').click(); await __acCalme(500);
     const vertLoinStatic=vert();
     setReadModePref('overview');
     return {seg,segRetour,xAv,xAp,hAv,hAp,prefAv,prefAp,planBtn,ong,defaut,pageOk,debord,cible,parc,zAv,zAp,peint,
@@ -1128,7 +1136,7 @@ await sec('T9 · une seule bibliothèque, le type en filtre', async () => {
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const pr=blankProtocol();pr.title='Procédure de décontamination';
-    protocols.push(migrateProtocol(pr));await persist();render();await w(600);
+    protocols.push(migrateProtocol(pr));await persist();render();await __acCalme(600);
     const n=()=>document.querySelectorAll('.dir-row').length;
     /* v5.0.0, lot M4 : le type n'est plus une TAB BAR à pastille glissante mais une rangée de
        CHIPS, comme la bibliothèque et la catégorie — il est devenu un filtre parmi les filtres.
@@ -1142,7 +1150,7 @@ await sec('T9 · une seule bibliothèque, le type en filtre', async () => {
        Le repli lui-même a ses propres témoins, juste en dessous. */
     /* A556 : au téléphone, les crans de type sont le segment « Type » en tête de la feuille « Afficher » du grand
        titre (ils vivaient dans la feuille « Affichage », qui ne fait plus que présenter). Porte réelle : `#pgPick`. */
-    const deplier=async()=>{const b=main.querySelector('#pgPick');if(b){b.click();await w(450);}};
+    const deplier=async()=>{const b=main.querySelector('#pgPick');if(b){b.click();await __acCalme(450);}};
     await deplier();
     const F='.popmenu.sheet [data-pknat';
     const cran=v=>document.querySelector(`${F}="filt:${v}"]`);
@@ -1150,14 +1158,14 @@ await sec('T9 · une seule bibliothèque, le type en filtre', async () => {
     const crans=[...document.querySelectorAll(`${F}^="filt:"]`)].map(e=>e.textContent.trim());
     const actif=(document.querySelector(`${F}^="filt:"].on`)||{}).textContent||'';
     const tout=n(),pTout=px();
-    cran('fiches').click(); await w(500);
+    cran('fiches').click(); await __acCalme(500);
     const aides=n(),pAides=px();
-    cran('protocols').click(); await w(500);
+    cran('protocols').click(); await __acCalme(500);
     const prot=n(),pProt=px();
-    cran('all').click(); await w(500);
-    {const v=document.querySelector('.popmenu-veil');if(v)v.click();} await w(300);
-    state.q='décontamination';render();await w(500);
-    const q=n();state.q='';render();await w(400);
+    cran('all').click(); await __acCalme(500);
+    {const v=document.querySelector('.popmenu-veil');if(v)v.click();} await __acCalme(300);
+    state.q='décontamination';render();await __acCalme(500);
+    const q=n();state.q='';render();await __acCalme(400);
     return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length,
       tabbar:document.querySelectorAll('#tabBar,#tabSeg').length};});
   t('le type est un FILTRE à trois crans (+ « À relire », A349)', r.crans.join('|')==='Tout|Aides|Protocoles|À relire', r.crans.join('|'));
@@ -1275,47 +1283,47 @@ await sec('Audit design · la feuille de filtres', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    {const pr=blankProtocol();pr.title='Procédure témoin A556';protocols.push(migrateProtocol(pr));render();await w(300);}
+    {const pr=blankProtocol();pr.title='Procédure témoin A556';protocols.push(migrateProtocol(pr));render();await __acCalme(300);}
     const yPremier=()=>{const e=document.querySelector('.dir-row .card-open');return e?Math.round(e.getBoundingClientRect().top):null;};
     const hdrH=()=>Math.round(document.querySelector('header.bar').getBoundingClientRect().height);
     const pick=()=>document.querySelector('.popmenu.sheet');
     const n=()=>main.querySelectorAll('.dir-row').length;
     const out={tog:!!document.getElementById('filtTog'),y0:yPremier(),h0:hdrH(),n0:n()};
     /* ── la feuille « Afficher » du titre ── */
-    main.querySelector('#pgPick').click();await w(450);
+    main.querySelector('#pgPick').click();await __acCalme(450);
     const P=pick();
     out.pick={ouverte:!!P,y:yPremier(),h:hdrH(),
       crans:P?[...P.querySelectorAll('[data-pknat]')].map(b=>b.textContent.trim()):[],
       heads:P?[...P.querySelectorAll('.mm-head,.vs-h')].map(x=>x.textContent.trim()):[],
       gerer:P?[...P.querySelectorAll('.mm-row')].some(x=>/Gérer/.test(x.textContent)):false};
-    P.querySelector('[data-pknat="filt:fiches"]').click();await w(450);
+    P.querySelector('[data-pknat="filt:fiches"]').click();await __acCalme(450);
     out.cranAides={resteOuverte:!!pick(),n:n(),nF:fiches.length,on:!!pick().querySelector('[data-pknat="filt:fiches"].on'),
       puce:(main.querySelector('.af-l')||{}).textContent||'',sous:(main.querySelector('.pg-sub')||{}).textContent||''};
-    document.querySelector('.popmenu-veil').click();await w(350);
+    document.querySelector('.popmenu-veil').click();await __acCalme(350);
     /* la puce du filtre posé rouvre « Afficher », pas la feuille du bouton rond */
-    main.querySelector('.af-l').click();await w(450);
+    main.querySelector('.af-l').click();await __acCalme(450);
     out.puceOuvre={pick:!!pick(),vs:document.getElementById('viewSheet').classList.contains('on')};
-    pick().querySelector('[data-pknat="filt:all"]').click();await w(400);
-    document.querySelector('.popmenu-veil').click();await w(350);
+    pick().querySelector('[data-pknat="filt:all"]').click();await __acCalme(400);
+    document.querySelector('.popmenu-veil').click();await __acCalme(350);
     out.nRetour=n();
     /* ── la feuille du bouton rond ── */
-    main.querySelector('#rangBtn').click();await w(450);
+    main.querySelector('#rangBtn').click();await __acCalme(450);
     out.rond={titre:document.getElementById('viewSheetTitle').textContent,y:yPremier(),h:hdrH(),
       heads:[...document.querySelectorAll('#viewSheetBody .vs-h')].map(x=>x.textContent.trim()),
       filtres:document.querySelectorAll('#viewSheetBody :is(.catchip,[data-vs^="filt:"],[data-vscoll],[data-catmgr])').length,
       pied:document.getElementById('viewSheetGo').textContent,
       lbl:main.querySelector('#rangBtn').getAttribute('aria-label')};
-    document.getElementById('viewSheetGo').click();await w(350);
+    document.getElementById('viewSheetGo').click();await __acCalme(350);
     out.rondFermee=!document.getElementById('viewSheet').classList.contains('on');
     /* ── la recherche garde ses crans de type ── */
-    tbSearchOpen();await w(250);
+    tbSearchOpen();await __acCalme(250);
     const qi=document.getElementById('q');
     out.repos=(()=>{const d=document.getElementById('dockFilt');return !!d&&!d.hidden;})();
-    qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
+    qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(450);
     out.cherche=[...document.querySelectorAll('#dockFilt .scopebtn')].map(b=>b.textContent.trim());
-    document.querySelector('#dockFilt [data-section="fiches"]').click();await w(450);
+    document.querySelector('#dockFilt [data-section="fiches"]').click();await __acCalme(450);
     out.direct={q:String(state.q||''),section:state.section};
-    document.querySelector('#dockFilt [data-section="all"]').click();await w(300);
+    document.querySelector('#dockFilt [data-section="all"]').click();await __acCalme(300);
     return out;});
   t('A556 · le bouton rond du dock (#filtTog) est purgé', r.tog===false);
   t('témoin : le cas est constitué (aides ET protocoles)', r.n0>=3, `${r.n0} rangée(s)`);
@@ -1339,19 +1347,19 @@ await sec('Audit design · la feuille de filtres', async () => {
     r.repos===false&&r.cherche.join('|')==='Tout|Aides|Protocoles', JSON.stringify([r.repos,r.cherche]));
   t('… un cran agit EN DIRECT, sans perdre la recherche', r.direct.section==='fiches'&&r.direct.q==='a', JSON.stringify(r.direct));
   /* ── LARGE : la feuille « Affichage » garde ses deux parties, son pied et « Tout effacer » ── */
-  await page.setViewportSize({width:1100,height:844});await page.waitForTimeout(400);
+  await page.setViewportSize({width:1100,height:844});await calme(page, 400);
   const L=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    state.q='';render();await w(300);
-    main.querySelector('#rangBtn').click();await w(450);
+    state.q='';render();await __acCalme(300);
+    main.querySelector('#rangBtn').click();await __acCalme(450);
     const n=()=>main.querySelectorAll('.dir-row').length;
     const o={titre:document.getElementById('viewSheetTitle').textContent,parts:[...document.querySelectorAll('#viewSheetBody .vs-pt')].map(x=>x.textContent),
       piedAvant:document.getElementById('viewSheetGo').textContent,nAvant:n()};
-    document.querySelector('#viewSheetBody [data-vs="filt:fiches"]').click();await w(450);
+    document.querySelector('#viewSheetBody [data-vs="filt:fiches"]').click();await __acCalme(450);
     o.piedApres=document.getElementById('viewSheetGo').textContent;o.nApres=n();
     o.clearVisible=!document.getElementById('viewSheetClear').hidden;
-    document.getElementById('viewSheetClear').click();await w(400);
+    document.getElementById('viewSheetClear').click();await __acCalme(400);
     o.apresClear={n:filtersCount(),liste:n()};
-    document.getElementById('viewSheetGo').click();await w(300);
+    document.getElementById('viewSheetGo').click();await __acCalme(300);
     o.fermee=!document.getElementById('viewSheet').classList.contains('on');
     return o;});
   t('large : « Affichage » garde Filtrer et Présenter', L.titre==='Affichage'&&L.parts.join('|')==='Filtrer|Présenter', JSON.stringify(L));
@@ -1380,7 +1388,7 @@ await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () =>
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
     await amorce(page);
-    await page.waitForTimeout(300);
+    await calme(page, 300);
     const r = await page.evaluate(()=>{
       const io=s=>{const v=parseFloat(s);return isNaN(v)?0:v;};
       const brand=document.querySelector('.brand').getBoundingClientRect();
@@ -1445,7 +1453,7 @@ await sec('Accueil · le verrou logo + mot-marque', async () => {
      on la vérifie absente là, et on mesure le verrou où il vit : téléphone tourné (667 × 375) et colonne large. */
   for(const w of [390]){
     const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
-    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.waitForTimeout(250);
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await calme(page, 250);
     const vis=await page.evaluate(()=>[...document.querySelectorAll('.brand-logo')].filter(e=>e.getClientRects().length).length);
     t(`${w} px portrait · la marque quitte l'accueil (barre d'onglets, A517)`, vis===0, `${vis} logo(s) visible(s)`);
     await page.close();
@@ -1456,7 +1464,7 @@ await sec('Accueil · le verrou logo + mot-marque', async () => {
     await page.goto(`http://localhost:${port}/index.html`);
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
     await amorce(page);
-    await page.waitForTimeout(250);
+    await calme(page, 250);
     const r = await page.evaluate(async ()=>{
       /* v5.30 (A351) : dès 780 la marque vit dans la colonne (.hs-brand), plus dans l'en-tête. */
       const l=[...document.querySelectorAll('.brand-logo')].find(e=>e.getClientRects().length);
@@ -1505,8 +1513,8 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
       for(const ti of ['Bradycardie','Choc septique','Dyspnée','Hémorragie','Intubation']){
         const n=JSON.parse(JSON.stringify(f));n.id='x'+ti.slice(0,3);n.title=ti;fiches.push(migrate(n));}
       state.homeGroup='az';   /* v5.18 : le rail n'indexe que l'ALPHABET — il n'existe qu'ici */
-      render();await new Promise(r=>setTimeout(r,400));});
-    await page.waitForTimeout(300);
+      render();await __acCalme(400);});
+    await calme(page, 300);
     const r = await page.evaluate(()=>{
       const rail=document.querySelector('.azrail');
       if(!rail)return {rail:false};
@@ -1545,7 +1553,7 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
         return (gr&&nx)?Math.round(nx.getBoundingClientRect().top-gr.getBoundingClientRect().bottom):null;};
       const avec={util:util(),ecart:ecart()};
       fiches.length=0;protocols.length=0;render();
-      await new Promise(r=>setTimeout(r,350));
+      await __acCalme(350);
       return {avec,sans:{util:util(),ecart:ecart(),rail:!!document.querySelector('.azrail:not([hidden])')}};});
     t(`${w} px · la colonne ne s'élargit pas quand le rail disparaît`,
       g.avec.util===g.sans.util, `${g.avec.util} px avec rail, ${g.sans.util} sans`);
@@ -1585,24 +1593,24 @@ await sec('Accueil large · le défilement survit au re-rendu', async () => {
         n.id='y'+i+'-'+k;n.title='Fiche '+i+'.'+k;n.category=c.id;n.library=(k?'lib1':'');
         fiches.push(migrate(n));}}
     setHomeGroup('bib');   // le ✎ d'une bibliothèque ne vit que dans ce rangement (v5.30 : catégorie par défaut)
-    render();await new Promise(r=>setTimeout(r,400));
+    render();await __acCalme(400);
     /* ⚠ On RE-INTERROGE à chaque fois : le nœud d'avant le rendu est détaché (cf. en-tête). */
     const q=s=>document.querySelector(s);
     const liste=()=>q('.home-main'),cote=()=>q('.hs-scroll');
     const marge=e=>Math.max(0,e.scrollHeight-e.clientHeight);
     const peutL=marge(liste()),peutC=marge(cote());
     liste().scrollTop=600;cote().scrollTop=80;
-    await new Promise(r=>setTimeout(r,150));
+    await __acCalme(150);
     const avant={l:liste().scrollTop,c:cote().scrollTop};
-    render();await new Promise(r=>setTimeout(r,300));
+    render();await __acCalme(300);
     const rendu={l:liste().scrollTop,c:cote().scrollTop};
     /* Le geste SIGNALÉ, par son vrai chemin : le ✎ d'une bibliothèque pris dans la LISTE, puis la
        fermeture qui suit un enregistrement de nom (`closeMembers(true)` + `renderLibrary()`). */
-    liste().scrollTop=600;await new Promise(r=>setTimeout(r,150));
+    liste().scrollTop=600;await __acCalme(150);
     const crayon=!!document.querySelector('main .dir-la');
-    openMembers('lib1');await new Promise(r=>setTimeout(r,350));
+    openMembers('lib1');await __acCalme(350);
     const ouverte=document.getElementById('membersModal').classList.contains('on');
-    closeMembers(true);renderLibrary();await new Promise(r=>setTimeout(r,350));
+    closeMembers(true);renderLibrary();await __acCalme(350);
     return {peutL,peutC,avant,rendu,crayon,ouverte,ferme:{l:liste().scrollTop,c:cote().scrollTop}};});
   t('témoin : les deux défileurs ont de la marge, et le ✎ est bien dans la liste',
     r.peutL>600&&r.peutC>80&&r.crayon===true&&r.ouverte===true, JSON.stringify(r));
@@ -1639,15 +1647,15 @@ await sec('Accueil · le rail A→Z pose sous ce qui coiffe', async () => {
     await page.evaluate(async(TT)=>{const f=JSON.parse(JSON.stringify(fiches[0]));
       for(const ti of TT){for(let k=0;k<3;k++){
         const n=JSON.parse(JSON.stringify(f));n.id='x'+ti.slice(0,4)+k;n.title=ti+' '+k;fiches.push(migrate(n));}}
-      state.homeGroup='az';render();await new Promise(r=>setTimeout(r,400));},TT);
-    if(cas==='sélection'){await page.click('#selTog');await page.waitForTimeout(400);}
-    await page.waitForTimeout(300);
+      state.homeGroup='az';render();await __acCalme(400);},TT);
+    if(cas==='sélection'){await page.click('#selTog');await calme(page, 400);}
+    await calme(page, 300);
     const r = await page.evaluate(async()=>{
       const out=[];
       for(const L of ['F','I']){
         const b=document.querySelector(`#azRail [data-azl="${L}"]`);
         if(!b){out.push({L,rail:false});continue;}
-        b.click();await new Promise(r=>setTimeout(r,300));
+        b.click();await __acCalme(300);
         const g=document.querySelector(`[data-azg="${L}"]`);
         const head=g.querySelector('.dir-l'),row=g.querySelector('.dir-row');
         /* Le bas de ce qui coiffe : la barre de sélection quand elle est là, sinon la bande de
@@ -1692,7 +1700,7 @@ await sec('Recherche · la croix d\'effacement', async () => {
      de seconde après la lettre qu'on vient de taper. C'est la frappe qui doit la poser. */
   await remplir(page,'anaphyl');
   const surLeChamp=await vis();
-  await page.waitForTimeout(350);
+  await calme(page, 350);
   const saisie=await vis(), filtre=await nRows();
   /* Elle ne doit pas RECOUVRIR le texte saisi : sa place est réservée par le rembourrage. */
   const geo=await page.evaluate(()=>{const x=document.getElementById('qClear'),q=document.getElementById('q');
@@ -1706,7 +1714,7 @@ await sec('Recherche · la croix d\'effacement', async () => {
             reserve:Math.round(pr)>=Math.round(rx.width),
             w:Math.round(rx.width-io(a.left)-io(a.right)),h:Math.round(rx.height-io(a.top)-io(a.bottom)),
             pr:Math.round(pr)};});
-  await page.click('#qClear'); await page.waitForTimeout(350);
+  await page.click('#qClear'); await calme(page, 350);
   const apres=await vis(), rendu=await nRows();
   const foc=await page.evaluate(()=>document.activeElement&&document.activeElement.id);
   const val=await page.inputValue('#q');
@@ -1739,24 +1747,24 @@ await sec('T7 · ★ mémoire — de l\'éditeur au chapeau', async () => {
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
-    openRead(f.id); await w(500);
+    openRead(f.id); await __acCalme(500);
     const avant=document.querySelectorAll('.forget-strip .fs-i').length;
     openEdit(f.id); await w(700);
     // A383 : l'étoile se pose dans la feuille « Réglages de l'étape ».
-    {const o=document.querySelector('.blk .li[data-si="1"] .li-set');if(o)o.click();}await w(300);
+    {const o=document.querySelector('.blk .li[data-si="1"] .li-set');if(o)o.click();}await __acCalme(300);
     const btn=document.querySelector('#stepSetBody [data-sst="mem"]');
     /* v5.0.0, étape B : le bloc ne porte que des IDENTIFIANTS — on passe par le résolveur, qui
        est aussi ce que fait l'éditeur. */
     const txt=bItems(state.draft.blocks[0])[1].do;
     if(btn)btn.click(); await w(700);
     const pose=bItems(state.draft.blocks[0])[1].memory===true;
-    render(); await w(400);
+    render(); await __acCalme(400);
     openRead(f.id); await w(700);
     const chap=[...document.querySelectorAll('.forget-strip .fs-i')].map(e=>e.textContent);
     /* v5.6 : les étapes ne se voient qu'une fois la session démarrée (la page d'avant montre le
        parcours inerte). Ce qui est mesuré — « le memory item RESTE dans son bloc, le chapeau
        AGRÈGE » — vaut au moment où on l'exécute, donc en session. */
-    {const b=document.getElementById('sessStart');if(b)b.click();}await w(600);
+    {const b=document.getElementById('sessStart');if(b)b.click();}await __acCalme(600);
     const bloc=[...document.querySelectorAll('ol.steps li')].map(e=>e.textContent);
     return {avant,pose,apres:chap.length,dansChapeau:chap.some(x=>x.includes(txt)),
             resteDansBloc:bloc.some(x=>x.includes(txt)),
@@ -1832,7 +1840,7 @@ await sec('T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignen
     const m=document.getElementById('welcomeModal');
     const paras=m.querySelectorAll('p').length;
     const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');
-    if(b)b.click(); await w(300);
+    if(b)b.click(); await __acCalme(300);
     const cta=[...document.querySelectorAll('button')].find(x=>x.id==='seedAdd');
     const av=cta?cta.getBoundingClientRect():null;
     if(cta)cta.click(); await w(900);
@@ -1935,39 +1943,39 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
         '## Matériel',Array(20).fill('cristalloïdes et tubulure').join('\n\n'),
         '# Déroulé',Array(20).fill('Poser la voie veineuse.').join('\n\n'),
         '## Surveillance','fin'].join('\n\n')});
-    protocols.push(pr);openProtocolRead('pz');await w(600);
+    protocols.push(pr);openProtocolRead('pz');await __acCalme(600);
     const toc=document.querySelector('.ref-toc'),grid=document.querySelector('.ref-grid');
     const bodyL=Math.round(document.querySelector('.md-body').getBoundingClientRect().left);
     const avant=document.querySelector('.md-body').innerHTML;
     const q=document.getElementById('pfQ');
     if(q){q.value='perfusion';q.dispatchEvent(new Event('input',{bubbles:true}));}
-    await w(500);
+    await __acCalme(500);
     const marks=document.querySelectorAll('mark.pf-h').length;
     const cnt=(document.getElementById('pfCount')||{}).textContent||'';
     /* On efface la recherche : le document doit revenir À L'IDENTIQUE, sinon le surlignage
        laisserait des nœuds derrière lui à chaque frappe. */
     if(q){q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
-    await w(300);
+    await __acCalme(300);
     /* ⚠ LA COLONNE NE DÉPEND PLUS DU NOMBRE DE TITRES (v5.0.0, demande utilisateur) : elle porte
        aussi la RECHERCHE et les annexes. Ce qui reste conditionnel est le SOMMAIRE lui-même — une
        liste de titres n'a de sens que s'il y en a. Le cas à mesurer est donc une référence SANS
        AUCUN titre : la colonne doit exister (on cherche encore dans le texte), la liste non. */
     const court=migrateProtocol({id:'pzc',title:'Court',kind:'reference',
       body:'Un paragraphe sans le moindre titre.\n\nUn autre paragraphe.'});
-    protocols.push(court);openProtocolRead('pzc');await w(600);
+    protocols.push(court);openProtocolRead('pzc');await __acCalme(600);
     const gC=document.querySelector('.ref-grid');
     const sansToc={toc:!!document.querySelector('.ref-toc'),
       recherche:!!document.getElementById('pfQ'),
       liens:document.querySelectorAll('.ref-toc [data-rtgo]').length,
       cls:gC?gC.className:'',largeur:Math.round(document.querySelector('.md-body').getBoundingClientRect().width)};
-    openProtocolRead('pz');await w(500);
+    openProtocolRead('pz');await __acCalme(500);
     /* ⚠ ON RE-INTERROGE LE DOM. `toc` a été capturé AVANT que la sonde ouvre le protocole court
        puis rouvre le long : la référence pointe un nœud DÉTACHÉ, dont toutes les mesures valent
        zéro — et un témoin qui mesure un nœud détaché mesure le vide (leçon v4.78.0). */
     /* Une référence à TRENTE titres : sans elle, le bornage ne rencontrerait pas son cas. */
     const secs=[];for(let i=1;i<=30;i++)secs.push('## Section '+i,'texte '+i);
     const lg=migrateProtocol({id:'pzL',title:'Longue',kind:'reference',body:'# Grand\n\n'+secs.join('\n\n')});
-    protocols.push(lg);openProtocolRead('pzL');await w(600);
+    protocols.push(lg);openProtocolRead('pzL');await __acCalme(600);
     const dk=await (async()=>{const d=document.querySelector('details.ref-toc'),bar=document.querySelector('.ref-tocwrap');
       if(!d||!bar)return {pos:'—',visibleLoin:null,loin:0,borne:0,defile:'',liens:0,corpsLien:'',
         ecart:999,fond:'—',hdrLine:'—',sousLaBarre:null,dansLaBarre:false};
@@ -1984,12 +1992,12 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
          APRÈS le battement, survivait. Ce qui se voit à l'usage est le battement lui-même :
          un seul geste d'ouverture doit produire un seul `toggle`. */
       let nt=0;d.addEventListener('toggle',()=>{nt++;});
-      d.open=true;await w(260);const c2=getComputedStyle(d);
+      d.open=true;await __acCalme(260);const c2=getComputedStyle(d);
       /* ⚠ LE DÉPLIAGE NE DOIT PAS SE DÉFAIRE TOUT SEUL : la mesure de hauteur refermait le
          panneau pour lire sa taille repliée, et `toggle` étant asynchrone, le handler se
          rappelait — le panneau battait et perdait son défilement. On mesure donc qu'il est
          ENCORE ouvert et qu'un défilement acquis SURVIT. */
-      d.scrollTop=200;await w(160);
+      d.scrollTop=200;await __acCalme(160);
       const b=parseFloat(c2.maxHeight)||0,ov=c2.overflowY,nb=d.querySelectorAll('.rt-lnk').length;
       const cl=l?getComputedStyle(l).fontSize:'';
       /* ⚠ ON VÉRIFIE QU'ON A VRAIMENT DÉFILÉ (v5.6, balayage A46) : `scrollTo(0,1200)` est ÉCRÊTÉ
@@ -2010,7 +2018,7 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
         ecart:ec,fond:cc.backgroundColor===ch.backgroundColor?'identique':cc.backgroundColor,
         hdrLine:ch.borderBottomWidth,barLine:cc.borderBottomWidth,sousLaBarre:sous,sousTitre,
         dansLaBarre:bar.contains(d)};})();
-    openProtocolRead('pz');await w(500);
+    openProtocolRead('pz');await __acCalme(500);
     const toc2=document.querySelector('.ref-toc');
     const rb=document.querySelector('.md-body').getBoundingClientRect();
     const rt=toc2?toc2.getBoundingClientRect():null;
@@ -2134,7 +2142,7 @@ for (const W of [320, 390]) {
   await amorce(page);
   const r = await page.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>(x.excursions||[]).length);
-    openRead(f.id);await wt(400);
+    openRead(f.id);await __acCalme(400);
     {const b=document.getElementById('sessStart');if(b)b.click();}await wt(700);
     /* UN SEUL ÉVÉNEMENT : l'événement EST la touche (elle porte son NOM), et taper n'ouvre
        AUCUN index — on entre d'un tap. v5.6 : la touche vit au dock, à position constante. */
@@ -2147,7 +2155,7 @@ for (const W of [320, 390]) {
     const _actesAvant=[...document.querySelectorAll('.cx-row .blk-act,.flow-ctrl.has-ver .blk-ver')].map(e=>{
       const c=getComputedStyle(e);
       return {fs:c.fontSize,pad:c.padding,h:Math.round(e.getBoundingClientRect().height),col:c.color};});
-    window.scrollTo(0,700);await wt(200);
+    window.scrollTo(0,700);await __acCalme(200);
     if(un){un.click();}await wt(900);
     /* L'index ne doit pas s'être ouvert : on est entré directement. */
     const indexAUn=!document.getElementById('dockSheet').hidden;
@@ -2174,23 +2182,23 @@ for (const W of [320, 390]) {
     const premier=corps?(corps.firstElementChild&&corps.firstElementChild.className||''):'';
     /* DEUX ÉVÉNEMENTS : l'index reparaît, en dépliant — et la porte EXTERNE le dit par « ↗ ». */
     f.excursions.push({label:'Arrêt cardiaque',target:fiches.find(x=>x.id!==f.id).id});
-    openRead(f.id);await wt(400);
+    openRead(f.id);await __acCalme(400);
     {const b=document.getElementById('sessStart');if(b)b.click();}await wt(700);
     const tg=document.getElementById('cxKey');
     const tgLbl=tg?tg.textContent.replace(/\s+/g,' ').trim():null;
-    if(tg){tg.click();}await wt(600);
+    if(tg){tg.click();}await __acCalme(600);
     const items=[...document.querySelectorAll('#dockSheet .ds-row')];
     const modale2=[...document.querySelectorAll('.ai-modal.on')].length;
     const cible=items.length?Math.round(Math.min(...items.map(e=>e.getBoundingClientRect().height))):0;
     const ext=items.some(e=>/↗/.test(e.textContent));
-    {const b=document.getElementById('cxKey');if(b)b.click();}await wt(400);
+    {const b=document.getElementById('cxKey');if(b)b.click();}await __acCalme(400);
     const referme=document.getElementById('dockSheet').hidden;
     /* ⚠ ON MESURE L'ÉTAT « on y est » LÀ OÙ IL EXISTE DÉJÀ : la première moitié du contrôle nous
        a fait ENTRER sur l'unique complication, et la session vive garde cette position. Il suffit
        donc de déclarer le second événement et de rouvrir l'index. Ma première version rouvrait
        puis cliquait la rangée courante — laquelle est justement DÉSACTIVÉE : le clic ne faisait
        rien et le dernier tap REFERMAIT l'index, d'où zéro rangée mesurée. */
-    {const b=document.getElementById('cxKey');if(b)b.click();}await wt(500);
+    {const b=document.getElementById('cxKey');if(b)b.click();}await __acCalme(500);
     const ap=[...document.querySelectorAll('#dockSheet .ds-row')];
     const iciEl=ap.find(e=>e.classList.contains('ici'));
     const iciTxt=iciEl?iciEl.textContent.replace(/\s+/g,' ').trim():null;
@@ -2264,10 +2272,10 @@ for (const th of ['light','dark']) {
   await page.evaluate(th=>{document.documentElement.dataset.theme=th;},th);
   await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    openRead(fiches[0].id);await w(400);
-    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
+    openRead(fiches[0].id);await __acCalme(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await __acCalme(600);
     document.getElementById('allBtn').click();await w(700);
-    const q=document.getElementById('pfQ');q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));await w(400);},th);
+    const q=document.getElementById('pfQ');q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(400);},th);
   const R=await page.evaluate(()=>{
     const lum=c=>{const m=c.match(/[\d.]+/g).map(Number);const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);};
       return .2126*f(m[0])+.7152*f(m[1])+.0722*f(m[2]);};
@@ -2300,7 +2308,7 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    fiches[0].discriminant='adulte';openRead(fiches[0].id);await w(500);
+    fiches[0].discriminant='adulte';openRead(fiches[0].id);await __acCalme(500);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);});
   const R=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const cb=document.getElementById('crisisBand'),bt=document.getElementById('brandTitle');
@@ -2318,12 +2326,12 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
       disc:discVu&&!bt.contains(bd)&&bt.scrollWidth>bt.clientWidth,
       /* v5.6 (A14) : la pilule de mode a cédé la place au SUR-TITRE, dans la zone d'identité. */
       pilule:!document.getElementById('brandSur').hidden});
-    state.previewFrom='edit';render();await w(400);
+    state.previewFrom='edit';render();await __acCalme(400);
     const ess=Object.assign(lire(),{hach:getComputedStyle(document.querySelector('header.bar'),'::before').opacity,
       cls:document.querySelector('header.bar').classList.contains('ess')});
-    state.previewFrom=null;Runtime.exercise=true;render();await w(400);
+    state.previewFrom=null;Runtime.exercise=true;render();await __acCalme(400);
     const exo=lire();
-    Runtime.exercise=false;render();await w(300);
+    Runtime.exercise=false;render();await __acCalme(300);
     return {crise,ess,exo};});
   t('témoin : la crise est bien à l’écran (pilule de mode posée)', R.crise.pilule===true, String(R.crise.pilule));
   t('crise ordinaire : aucun bandeau, le titre est dans la barre',
@@ -2360,7 +2368,7 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
        seconde fois. Le témoin démarre donc la session — c'est l'état où la colonne vit. */
     document.getElementById('sessStart').click();await w(700);
     /* A388 : la colonne naît repliée — on déplie tout pour mesurer les rangées ouvertes. */
-    const tout=document.querySelector('.read-plan [data-plall="1"]');if(tout){tout.click();await w(250);}});
+    const tout=document.querySelector('.read-plan [data-plall="1"]');if(tout){tout.click();await __acCalme(250);}});
   const R=await page.evaluate(()=>{
     /* A376 : la colonne rend la LISTE numérotée (A349, un seul dessin du parcours) — mêmes propriétés,
        autre anatomie : une décision est une rangée au registre de la DÉCISION (ambre doux, A345), ses
@@ -2516,7 +2524,7 @@ await sec('PARCOURS · A450 au-delà de deux crans, « à ◇n » et pas de cran
       {id:'b12',title:'Avis neurochirurgical en urgence',next:null,items:[]},{id:'b13',title:'Ponction lombaire et EEG',next:null,items:[]}]});
     fiches.push(f);await Data.put(f);openRead(f.id);});
   await page.waitForFunction(()=>document.body.classList.contains('view-read'));
-  const r=await page.evaluate(async()=>{await new Promise(x=>setTimeout(x,400));
+  const r=await page.evaluate(async()=>{await __acCalme(400);
     const col=document.querySelector('.read-plan .pf-flat.dense');if(!col)return null;
     const prof=e=>{let n=0;for(let p=e.parentElement;p&&p!==col;p=p.parentElement)if(p.classList.contains('pf-br'))n++;return n;};
     const xOf=id=>{const r=col.querySelector(`.pf-row[data-plln="${id}"] .pf-badge`);return r?Math.round(r.getBoundingClientRect().left):null;};
@@ -2545,7 +2553,7 @@ await sec('RÉFÉRENCE · le palier se franchit RÉELLEMENT', async () => {
   await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const a=migrateProtocol({id:'pR',title:'Réf',kind:'reference',body:'# Un\n\nt\n\n## Deux\n\nt\n\n# Trois\n\nt'});
-    protocols.push(a);openProtocolRead('pR');await w(600);});
+    protocols.push(a);openProtocolRead('pR');await __acCalme(600);});
   const tag=async()=>page.evaluate(()=>(document.querySelector('.ref-toc')||{}).tagName||null);
   const a1=await tag();
   await page.setViewportSize({width:1400,height:900}); await page.waitForTimeout(700);
@@ -2576,7 +2584,7 @@ await sec('REPÈRES POSOLOGIQUES · deux repères qui se suivent restent sépar�
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
-    openRead(f.id);await w(500);
+    openRead(f.id);await __acCalme(500);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(800);
     const cs=[...document.querySelectorAll('.read-side .pos-card,.read-plan .pos-card')];
     const sep=e=>{const b=getComputedStyle(e,'::before');
@@ -2603,8 +2611,8 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     /* Une session EN COURS sur la première fiche : sans elle, le contrôle du chrono vivant ne
        rencontrerait pas son cas et resterait vert sur son absence. */
-    const f=fiches[0];openRead(f.id);await w(400);
-    const sb=document.getElementById('sessStart');if(sb)sb.click();await w(600);
+    const f=fiches[0];openRead(f.id);await __acCalme(400);
+    const sb=document.getElementById('sessStart');if(sb)sb.click();await __acCalme(600);
     /* ⚠ LE CONTRÔLE DOIT RENCONTRER SON CAS. Mesurer les fiches d'EXEMPLE ne prouvait rien : leur
        code fait trois caractères et leur catégorie un mot — la rangée ne pouvait pas déborder, et
        le témoin restait vert pendant qu'un code de trente caractères effaçait la date chez
@@ -2618,7 +2626,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
     g.code='ACR-CODE-TRES-LONG-2025';
     g.discriminant='adulte et adolescent > 12 ans';
     {const c=categories.find(x=>x.id===g.category);if(c)c.name='Urgences vitales préhospitalières';}
-    state.view='library';render();await w(600);
+    state.view='library';render();await __acCalme(600);
     const rows=[...document.querySelectorAll('.dir-row')];
     const H=[...new Set(rows.map(x=>Math.round(x.getBoundingClientRect().height)))];
     const titres=rows.map(x=>x.querySelector('.card-open'));
@@ -2837,12 +2845,12 @@ for (const W of [390]) {
        contrôle ne rencontrerait pas son cas. */
     for(let i=0;i<12;i++)fiches.push(migrate({id:'zaz'+i,
       title:String.fromCharCode(67+i)+' fiche de répertoire '+i,blocks:[]}));
-    state.homeGroup='az';state.view='library';render();await w(400);
+    state.homeGroup='az';state.view='library';render();await __acCalme(400);
     const rail=document.getElementById('azRail');if(!rail)return null;
     const sc=matchMedia('(min-width:780px)').matches?document.querySelector('main .home-main'):null;
     const pos=()=>sc?Math.round(sc.scrollTop):Math.round(window.scrollY);
     const go=async L=>{[...rail.querySelectorAll('[data-azl]')].find(x=>x.dataset.azl===L).click();
-      await w(120);return pos();};
+      await __acCalme(120);return pos();};
     const out={n:0,ecarts:[],derives:0};
     for(const L of [...rail.querySelectorAll('[data-azl]')].map(x=>x.dataset.azl).slice(0,5)){
       const a1=await go(L);
@@ -2867,7 +2875,7 @@ for (const W of [390]) {
      document est celui du système, PENDANT la visée le rebond est supprimé, APRÈS il revient. */
   const o = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const lire=()=>getComputedStyle(document.documentElement).overscrollBehaviorY;
-    state.view='library';render();await w(250);
+    state.view='library';render();await __acCalme(250);
     const rail=document.getElementById('azRail');
     const repos=lire();
     let vise=null,apres=null;
@@ -2876,8 +2884,8 @@ for (const W of [390]) {
         {bubbles:true,clientX:b.left+2,clientY:b.top+2,pointerId:1,buttons:1}));
       vise=lire();
       rail.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:1}));
-      await w(60);apres=lire();}
-    openRead(fiches[0].id);await w(350);
+      await __acCalme(60);apres=lire();}
+    openRead(fiches[0].id);await __acCalme(350);
     return {repos,vise,apres,lecture:lire(),
       modale:(()=>{const m=document.querySelector('.ai-modal');
         return m?getComputedStyle(m).overscrollBehaviorY:null;})()};});
@@ -2916,7 +2924,7 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
     protocols.push(migrateProtocol({id:'pT',title:'Référence témoin',kind:'reference',body:'# x'}));
     await Data.putProtocol(protocols[protocols.length-1]);
     state.section='all';render();});
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   /* ⚠ ON COMPTE LE RÉPERTOIRE, PAS LES ÉPINGLÉES (v5.6) : depuis que les épinglées sont des
      RANGÉES et non des tuiles, épingler une fiche en ajoute une seconde à l'écran — le total
      bougerait sans que le CORPUS ait changé, et le témoin rougirait sur un non-défaut. Ce qu'il
@@ -2938,15 +2946,15 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
     const b=[...document.querySelectorAll('#tabSeg .seg-btn, .grp-seg .seg-btn, [data-sec]')]
       .find(x=>/Aides/i.test(x.textContent||''));
     if(b)b.click();else if(typeof setSection==='function')setSection('fiches');
-    await w(60);
+    await __acCalme(60);
     const hm=document.querySelector('.home-main'), m=document.querySelector('main');
     const out={classes:m?[...m.classList].filter(c=>/sec-anim/.test(c)):[],
       nom:hm?getComputedStyle(hm).animationName:'—'};
-    state.section='all';render();await w(250);
+    state.section='all';render();await __acCalme(250);
     return out;});
   t('changer de cran n\'anime pas la liste',
     anim.classes.length===0&&(anim.nom==='none'||anim.nom==='—'), JSON.stringify(anim));
-  await page.click('[data-pin]');await page.waitForTimeout(600);
+  await page.click('[data-pin]');await calme(page, 600);
   const ap=await etat();
   t('épingler ne bascule pas sur les aides seules',
     ap.section==='all'&&ap.rangees===av.rangees&&ap.natures.length===2, JSON.stringify(ap));
@@ -2961,7 +2969,7 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
     const sb=document.getElementById('sysBanner');
     if(sb&&!sb.hidden)document.getElementById('sbX').click();
     state.section='all';render();});
-  await page.waitForTimeout(450);
+  await calme(page, 450);
   /* v5.19.1 : UN bandeau qui présente les DEUX natures (elles y sont comparées) — la propriété
      gardée reste la même, mais elle se compte sur les invites, pas sur les bandeaux. */
   const c0=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,
@@ -2971,7 +2979,7 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
   else{
     t('témoin : un bandeau fermable est présent, et l\'invite « ＋ Créer » est là',   /* v5.30 (A353) : une seule */
       c0.n===1&&c0.k===1, JSON.stringify(c0));
-    await x.click();await page.waitForTimeout(500);
+    await x.click();await calme(page, 500);
     const c1=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,
       k:document.querySelectorAll('[data-emptynew]').length,s:state.section}));
     t('fermer un bandeau n\'efface pas l\'invite',
@@ -3016,7 +3024,7 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
   /* v5.30 (A353) : un seul « ＋ Créer » en vue « Tout » (`any` : la feuille choisit le type). */
   for(const [sec,att,nb] of [['all',['any'],1],['fiches',['fiches'],1],['protocols',['protocols'],1]]){
     await page.evaluate(s=>{state.section=s;state.q='';state.cat='';render();},sec);
-    await page.waitForTimeout(300);
+    await calme(page, 300);
     const r=await lire();
     t(`vue « ${sec} » · ${nb} bandeau(x), ${att.length} type(s) créable(s) ici`,
       r.cartes===nb&&JSON.stringify(r.kinds)===JSON.stringify(att), `${r.cartes} bandeau(x) · `+JSON.stringify(r.kinds));
@@ -3030,12 +3038,12 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
   /* v5.30 (A353) : en vue « Tout » l'invite est unique (`any`) — le bouton typé vit dans la vue FILTRÉE. */
   for(const k of ['protocols','fiches']){
     await page.evaluate(k=>{state.section=k;render();},k);
-    await page.waitForTimeout(250);
+    await calme(page, 250);
     if(!await page.$(`[data-emptynew="${k}"]`)){
       t(`« ${k} » ouvre le dialogue Créer sur SON type`, false, 'bouton absent');
       continue;}
     await page.click(`[data-emptynew="${k}"]`);
-    await page.waitForTimeout(350);
+    await calme(page, 350);
     /* v5.19.1 : le type à créer n'est plus `state.section` — le dialogue a son propre cran, et
        ouvrir « Créer » ne doit PLUS filtrer la liste derrière lui (signalé à l'usage). On lit donc
        le cran VISIBLE du sélecteur segmenté, et l'on exige que le filtre n'ait pas bougé. */
@@ -3046,11 +3054,11 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
     t(`« ${k} » ouvre le dialogue Créer sur SON type`, r.ouvert===true&&r.cran===k,
       `ouvert=${r.ouvert} cran=${r.cran}`);
     t(`… sans changer le filtre derrière le dialogue`, r.section===k, `section=${r.section}`);
-    await page.keyboard.press('Escape');await page.waitForTimeout(250);
+    await page.keyboard.press('Escape');await calme(page, 250);
   }
   /* SOUS UN FILTRE : aucune carte, aucun bouton — on doit un résultat, pas un cours. */
   await page.evaluate(()=>{state.section='all';state.q='zzzintrouvable';render();});
-  await page.waitForTimeout(350);
+  await calme(page, 350);
   const r=await lire();
   t('sous un filtre, la leçon disparaît (0 carte, 0 bouton)', r.cartes===0&&r.kinds.length===0,
     `${r.cartes} carte(s), ${r.kinds.length} bouton(s)`);
@@ -3119,22 +3127,22 @@ await sec('RÉGRESSIONS · déplacement, flèches, losange', async () => {
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/cardiaque/i.test(x.title))||fiches[0];
     /* 1 — DÉPLACER UN BLOC, par le vrai geste : poignée puis interstice. */
-    state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await w(500);
+    state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await __acCalme(500);
     const av=state.draft.blocks.map(b=>b.id).join('|');
-    const g=document.querySelector('[data-grab^="b:"]');if(g)g.click();await w(400);
+    const g=document.querySelector('[data-grab^="b:"]');if(g)g.click();await __acCalme(400);
     const nInt=document.querySelectorAll('[data-drop]').length;
-    const d=[...document.querySelectorAll('[data-drop]')].pop();if(d)d.click();await w(400);
+    const d=[...document.querySelectorAll('[data-drop]')].pop();if(d)d.click();await __acCalme(400);
     const ap=state.draft.blocks.map(b=>b.id).join('|');
     state.edGrab=null;
     /* 2 — LES FLÈCHES DU SCHÉMA : une par lien `next` ET une par option. On compte les chemins
        PORTANT UNE POINTE (`marker-end`) : les autres `path` sont les glyphes et la pointe elle-même. */
-    openRead(f.id);await w(400);
+    openRead(f.id);await __acCalme(400);
     state.readMode='static';state.allTab='schema';render();await w(700);
     const svg=document.querySelector('.flow-scroll svg');
     const fleches=svg?[...svg.querySelectorAll('path')].filter(x=>x.getAttribute('marker-end')).length:0;
     const attendu=f.blocks.filter(b=>b.next).length+f.blocks.reduce((n,b)=>n+((b.options||[]).length),0);
     /* 3 — LE LOSANGE NE DÉBORDE PAS SA RANGÉE. */
-    state.readMode='overview';render();await w(400);
+    state.readMode='overview';render();await __acCalme(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
     const dec=document.querySelector('.pf-row.dec .pf-badge');   // A376
     const los=dec?(()=>{const q=dec.getBoundingClientRect(),pr=dec.parentElement.getBoundingClientRect();
@@ -3158,22 +3166,22 @@ for (const W of [320, 390]) {
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
-    openRead(f.id);await w(400);
+    openRead(f.id);await __acCalme(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
     const dockY=()=>{const e=document.getElementById('cbTimers');return e?Math.round(e.getBoundingClientRect().top):null;};
     const y0=Math.round(scrollY),d0=dockY();
-    document.getElementById('cbTimers').click();await w(600);
+    document.getElementById('cbTimers').click();await __acCalme(600);
     const sautQuai=Math.round(scrollY)-y0, dockBouge=Math.abs(dockY()-d0);
     const pn=document.querySelector('.rt-panel');
     const sousLeQuai=(()=>{const d=document.getElementById('cbTimers');
       return (d&&pn)?Math.round(pn.getBoundingClientRect().top-d.getBoundingClientRect().bottom):null;})();
-    document.getElementById('cbTimers').click();await w(400);        // refermer
+    document.getElementById('cbTimers').click();await __acCalme(400);        // refermer
     /* v5.6 : « ⏱ Noter l'heure » est une touche du DOCK, et sa réponse est le VOLET qui monte
        de la même touche — « la réponse vit là où le geste a eu lieu » (M11), l'adresse a suivi
        le geste. Le volet est FIXE : il ne peut, par construction, déplacer aucune géométrie de
        flux — c'est ce que le contrôle vérifie, exactement comme pour le volet du quai. */
     const y1=Math.round(scrollY);
-    document.getElementById('tkKey').click();await w(600);
+    document.getElementById('tkKey').click();await __acCalme(600);
     const sh=document.getElementById('dockSheet');
     return {sautQuai,dockBouge,sousLeQuai,panneau:!!pn,
       sautJournal:Math.round(scrollY)-y1,
@@ -3197,7 +3205,7 @@ await sec('PARCOURS INERTE · les marqueurs sont lisibles', async () => {
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Anaphylaxie/i.test(x.title))||fiches[0];
-    openRead(f.id);await w(400);
+    openRead(f.id);await __acCalme(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
     const lum=c=>{const m=String(c).match(/[\d.]+/g)||[0,0,0];
       const v=m.slice(0,3).map(x=>{const u=(+x)/255;return u<=0.03928?u/12.92:Math.pow((u+0.055)/1.055,2.4);});
@@ -3264,7 +3272,7 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
         deb:[...sb.querySelectorAll('.dp-lbl')].some(e=>getComputedStyle(e).display!=='none'&&e.scrollWidth>e.clientWidth+1)
           ||lbl.scrollWidth>lbl.clientWidth+1,nom:(ek.getAttribute('aria-label')||'').length>3};});
     const e390=await exoMesure();
-    await page.setViewportSize({width:340,height:844});await page.waitForTimeout(150);
+    await page.setViewportSize({width:340,height:844});await calme(page, 150);
     const e340=await exoMesure();
     const T=theme==='dark'?'sombre':'clair';
     t(`${T} · l'aplat du geste d'entrée tient 3:1 sur la page (limite de composant, 1.4.11)`,
@@ -3367,18 +3375,18 @@ await sec('ZONES SÛRES LATÉRALES : rien sous l\u2019île en paysage (A511, rel
     await page.evaluate(z=>applyZoom(z),z);
     const ins=59;
     await page.evaluate(i=>{document.documentElement.style.setProperty('--sal',i+'px');document.documentElement.style.setProperty('--sar',i+'px');},ins);
-    await new Promise(r=>setTimeout(r,300));
+    await __acCalme(300);
     const acc = await page.evaluate(()=>{const s=document.querySelector('.home-side');const b=s&&[...s.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().width>0).map(e=>e.getBoundingClientRect().left);return {colonne:b&&b.length?Math.min(...b):null};});
     t(`${W} × ${H} · ${z} % · accueil : la colonne gauche commence après l'inset`, acc.colonne!==null&&acc.colonne>=ins-1, JSON.stringify(acc));
     await ouvrirFiche(page,/Arrêt cardiaque/);
     await demarrerSession(page);
-    await new Promise(r=>setTimeout(r,600));
+    await __acCalme(600);
     const m = await page.evaluate(()=>{const R=s=>{const e=document.querySelector(s);return e?e.getBoundingClientRect():null;};
       const quai=[...document.querySelectorAll('#sessionDock .sd-key:not([hidden])')].map(k=>k.getBoundingClientRect());
       return {retour:R('#hdrBack').left,quaiG:Math.min(...quai.map(r=>r.left)),quaiD:Math.max(...quai.map(r=>r.right)),bloc:R('.ov-block.cur')?R('.ov-block.cur').left:null,W:innerWidth};});
     t(`${W} × ${H} · ${z} % · session : retour, bloc et quai commencent après l'inset gauche`, m.retour>=ins-1&&m.bloc>=ins-1&&m.quaiG>=ins-1, JSON.stringify(m));
     t(`${W} × ${H} · ${z} % · session : le quai finit avant l'inset droit`, m.quaiD<=m.W-ins+1, JSON.stringify(m));
-    await page.evaluate(()=>monOpen());await new Promise(r=>setTimeout(r,500));
+    await page.evaluate(()=>monOpen());await __acCalme(500);
     const mo = await page.evaluate(()=>{const e=document.getElementById('monSess');return e?e.getBoundingClientRect().left:null;});
     t(`${W} × ${H} · ${z} % · moniteur : le chrono commence après l'inset`, mo!==null&&mo>=ins-1, String(mo));
     await page.close();
@@ -3428,9 +3436,9 @@ await sec('aidRev · la révision lue pendant le soin', async () => {
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const f=fiches[0]; const revLue=f.updatedAt||0;
-    openRead(f.id); await w(400);
-    const b=document.getElementById('sessStart'); if(b)b.click(); await w(500);
-    const li=document.querySelector('ol.steps li[data-ck]'); if(li)li.click(); await w(400);
+    openRead(f.id); await __acCalme(400);
+    const b=document.getElementById('sessStart'); if(b)b.click(); await __acCalme(500);
+    const li=document.querySelector('ol.steps li[data-ck]'); if(li)li.click(); await __acCalme(400);
     const snap1=snapshotSession(Runtime);
     /* On RÉVISE la fiche après coup : la session archivée doit garder l'ANCIENNE révision. */
     f.updatedAt=revLue+60000;
@@ -3465,14 +3473,14 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
     /* On avance pour CONSTITUER le cas : un journal d'un seul passage tiendrait à l'écran. */
     for(let i=0;i<6;i++){
       const nb=bout(); if(!nb)break;
-      nb.querySelectorAll('li[data-ck]:not(.done)').forEach(e=>e.click()); await w(120);
+      nb.querySelectorAll('li[data-ck]:not(.done)').forEach(e=>e.click()); await __acCalme(120);
       const opt=[...nb.querySelectorAll('[data-ovopt]')].find(o=>/Non/.test(o.textContent));
-      if(opt){opt.click(); await w(400); continue;}
+      if(opt){opt.click(); await __acCalme(400); continue;}
       const nx=nb.querySelector('[data-ovnext]');
-      if(nx&&!nx.hasAttribute('aria-disabled')){nx.click(); await w(400);} else break;}
+      if(nx&&!nx.hasAttribute('aria-disabled')){nx.click(); await __acCalme(400);} else break;}
     // Réouverture depuis l'accueil, session vive.
-    state.view='library'; render(); await w(400);
-    openRead(f.id); await w(500);
+    state.view='library'; render(); await __acCalme(400);
+    openRead(f.id); await __acCalme(500);
     const etapesVis=()=>{const b=stickBase();
       return [...document.querySelectorAll('ol.steps li[data-ck]')]
         .filter(e=>{const g=e.getBoundingClientRect();return g.top>=b-1&&g.bottom<=innerHeight+1;}).length;};
@@ -3483,7 +3491,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
     /* CONTREFACTUEL — ce qu'on aurait SANS l'atterrissage : on remet en haut de page et l'on
        recompte. C'est cela que l'utilisateur perdait, et c'est non circulaire : le contrôle ne
        vaut que si l'arrivée en haut ne montrait effectivement aucune étape à cocher. */
-    scrollTo(0,0); await w(150);
+    scrollTo(0,0); await __acCalme(150);
     vive.etapesDepuisLeHaut=etapesVis();
     vive.aDefilerDepuisLeHaut=(()=>{const c=bout();
       return c?Math.max(0,Math.round(c.getBoundingClientRect().top-stickBase())):null;})();
@@ -3503,7 +3511,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
     // NON-RÉGRESSION : une aide SANS session vive s'ouvre en haut.
     const g=fiches.find(x=>x.id!==f.id);
     let inerte=null;
-    if(g){state.view='library'; render(); await w(300); openRead(g.id); await w(500);
+    if(g){state.view='library'; render(); await __acCalme(300); openRead(g.id); await __acCalme(500);
           inerte=Math.round(scrollY);}
     return {vive,inerte};});
   const v=r.vive;
@@ -3596,12 +3604,12 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',next:'b2',items:ITEMS.a},
               {id:'b2',kind:'do',title:'Réévaluation à 5 min',items:ITEMS.b}]});
     await Data.put(f);fiches.push(f);
-    openRead(f.id);await w(450);
+    openRead(f.id);await __acCalme(450);
     // On LIT les critères : défilement jusqu'au bas de la condition d'entrée, puis on démarre.
     const cb=document.querySelector('.conf-block').getBoundingClientRect();
-    scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await w(150);
+    scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await __acCalme(150);
     const yClic=Math.round(scrollY);
-    document.getElementById('sessStart').click();await w(600);
+    document.getElementById('sessStart').click();await __acCalme(600);
     const carte=()=>{const c=[...document.querySelectorAll('.ov-block')];return c[c.length-1]||null;};
     const haut=()=>{const c=carte();return c?Math.round(c.getBoundingClientRect().top-stickBase()):null;};
     const apres=haut();
@@ -3609,7 +3617,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
       return [...document.querySelectorAll('ol.steps li[data-ck]')]
         .filter(e=>{const g=e.getBoundingClientRect();return g.top>=b-1&&g.bottom<=innerHeight+1;}).length;})();
     // CONTREFACTUEL : la page reposée où elle était au clic — ce qu'on avait avant le correctif.
-    scrollTo(0,yClic);await w(150);
+    scrollTo(0,yClic);await __acCalme(150);
     const sans=haut();
     return {apres,sans,etapes};},
     {a:items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition','O2 haut débit au masque',
@@ -3648,14 +3656,14 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
         'Récidive possible jusqu’à 72 h — surveillance prolongée'],   // v5.4.2 : cf. fixture du flux
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
     await Data.put(f);fiches.push(f);
-    openRead(f.id);await w(450);
+    openRead(f.id);await __acCalme(450);
     const cb=document.querySelector('.conf-block').getBoundingClientRect();
-    scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await w(150);
+    scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await __acCalme(150);
     const yClic=Math.round(scrollY);
-    document.getElementById('sessStart').click();await w(600);
+    document.getElementById('sessStart').click();await __acCalme(600);
     const h=()=>{const c=[...document.querySelectorAll('.ov-block')].pop();
       return c?Math.round(c.getBoundingClientRect().top-stickBase()):null;};
-    const apres=h(); scrollTo(0,yClic); await w(150);
+    const apres=h(); scrollTo(0,yClic); await __acCalme(150);
     return {apres,sans:h(),guide:!!document.querySelector('.ov-block')&&!document.querySelector('#readTopSeg')};},
     items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition','O2 haut débit au masque']));
   t(`320× témoin : la fiche mono-bloc rend la carte, sans bascule de format`, r.guide===true);
@@ -3673,7 +3681,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   await ouvrirFiche(page,/Anaphylaxie/);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const y0=Math.round(scrollY);
-    document.getElementById('sessStart').click();await w(600);
+    document.getElementById('sessStart').click();await __acCalme(600);
     const c=[...document.querySelectorAll('.ov-block')].pop();
     return {saut:Math.round(scrollY)-y0,
       haut:c?Math.round(c.getBoundingClientRect().top-stickBase()):null};});
@@ -3697,11 +3705,11 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
   await amorce(page);
   await ouvrirFiche(page,/Anaphylaxie/);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-    await w(300);
+    await __acCalme(300);
     const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
     const avant={conf:Y('.conf-block'),fs:Y('.forget-strip'),btn:Y('#sessStart'),
       n:document.querySelectorAll('.forget-strip').length};
-    document.getElementById('sessStart').click();await w(600);
+    document.getElementById('sessStart').click();await __acCalme(600);
     const apres={fs:Y('.forget-strip'),carte:Y('.ov-block'),
       n:document.querySelectorAll('.forget-strip').length,
       replie:!!document.querySelector('.forget-strip.fold-card [data-sessfold]')};   /* v5.30 (A358) : même carte que les autres */
@@ -3738,7 +3746,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
       const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top):null;};
       // A366 : « Parcours » est repliée d'office avant la session — on l'ouvre pour lire son contenu.
-      {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}}
+      {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await __acCalme(400);}}
       const titres=[...document.querySelectorAll('main .cp-h')].map(e=>e.textContent.trim());
       const av={titres, consulter:document.querySelectorAll('main .annex-row').length,
         /* v5.25.0 : « Prise en charge » n'existe plus avant la session — le chapitre « Parcours »
@@ -3756,22 +3764,22 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
       /* A520 : « Schéma » vit dans l'en-tête dès 780 px, dans le menu ⋯ au téléphone. */
       {const hs=document.getElementById('hdrSvg');
        if(hs&&!hs.hidden)hs.click();
-       else{document.getElementById('hdrMore').click();await w(300);
+       else{document.getElementById('hdrMore').click();await __acCalme(300);
          const tl=[...document.querySelectorAll('#moreMenu .mm-tile')].find(x=>/Schéma/.test(x.textContent));if(tl)tl.click();}}
-      await w(450);
+      await __acCalme(450);
       const ff=document.getElementById('flowFull');
       const svg={ouvert:!!(ff&&ff.classList.contains('on')),
         noeuds:ff?ff.querySelectorAll('svg .fn, svg g').length:0};
-      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(350);
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(350);
       /* TABLEAU : une feuille, donc la page reste dessous — et l'on en SORT. */
       const bt=document.querySelector('#hdrPage[data-prelink="page"]');   // A461 : « Tableau » s'appelle « Page » ; A520 : dans l'en-tête
-      if(bt)bt.click();await w(600);
+      if(bt)bt.click();await __acCalme(600);
       const pm=document.getElementById('planModal');
       const tab={ouvert:!!(pm&&pm.classList.contains('on')),
         cellules:pm?pm.querySelectorAll('.sv-cell').length:0,
         sortie:!!(pm&&pm.querySelector('.ai-x')),
         modeIntact:state.readMode!=='static'};
-      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(450);
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(450);
       const apres={modale:!!document.querySelector('#planModal.on'),
         demarrer:!!document.getElementById('sessStart'),
         plan:!!document.querySelector('.read-plan'), rail:!!document.querySelector('.read-side')};
@@ -3809,16 +3817,16 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     const pr = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
       const f=state.fiche;
       f.docs=[{id:'zd1',name:'Protocole sédation 2024',size:1024},{id:'zd2',name:'Fiche produit',size:512}];
-      await persist();render();await w(600);
+      await persist();render();await __acCalme(600);
       const L=()=>{const e=document.getElementById('preReady');
         return e&&!e.hidden?{cls:e.className,txt:e.textContent.replace(/\s+/g,' ').trim()}:null;};
       const manque=L(), dem1=!!document.getElementById('sessStart');
       const pdf=new Uint8Array([37,80,68,70,45,49,46,52,10]).buffer;
       await IDB.putAtt({id:'zd1',blob:pdf,size:9});await IDB.putAtt({id:'zd2',blob:pdf,size:9});
-      await refreshPreReady(state.fiche);await w(250);
+      await refreshPreReady(state.fiche);await __acCalme(250);
       const pret=L();
       /* Une fiche SANS document n'a rien à dire : pas de ligne. */
-      f.docs=[];await persist();render();await w(500);
+      f.docs=[];await persist();render();await __acCalme(500);
       return {manque,dem1,pret,sansDoc:L()};});
     t(`${nom} · une pièce manquante se dit SUR la fiche`,
       !!pr.manque&&/warn/.test(pr.manque.cls)&&/non disponible/.test(pr.manque.txt),
@@ -3843,7 +3851,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
       verify:['TA toutes les 5 minutes','SpO2 en continu','Conscience et coloration',
         'Récidive possible jusqu’à 72 h — surveillance prolongée'],   // v5.4.2 : cf. fixture du flux
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
-    await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
+    await Data.put(f);fiches.push(f);openRead(f.id);await __acCalme(450);
     const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
     return {conf:!!document.querySelector('.fold-card[data-sf="when"]'),fs:Y('.forget-strip'),btn:Y('#sessStart')};},
     items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition']));
@@ -3879,10 +3887,10 @@ await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
         {id:'b2',kind:'decision',title:'Réévaluation',question:'Amélioration ?',
           options:[{label:'Oui — stabilisé',target:'b3'},{label:'Non — réfractaire',target:'b1'}]},
         {id:'b3',kind:'do',title:'Suite',items:[],next:null}]});
-    await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
-    document.getElementById('sessStart').click();await w(500);
+    await Data.put(f);fiches.push(f);openRead(f.id);await __acCalme(450);
+    document.getElementById('sessStart').click();await __acCalme(500);
     /* A389 : l'onglet « Parcours » a vécu — ses propriétés se mesurent sur le parcours de « Se repérer » (A388). */
-    openPlanSheet();await w(600);
+    openPlanSheet();await __acCalme(600);
     const wrap=document.querySelector('#planModal .pf-flat');if(!wrap)return {err:'pas de parcours dans « Se repérer »'};
     const deb=[],ecr=[];let avecR=0;
     wrap.querySelectorAll('.pf-row').forEach(c=>{const cb=c.getBoundingClientRect();
@@ -3892,7 +3900,7 @@ await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
         if(!rp)return;avecR++;const rb=rp.getBoundingClientRect();
         if(rb.right>cb.right+.5||rb.left<cb.left-.5)deb.push({t:(tx||{}).textContent,d:Math.round(rb.right-cb.right)});});});
     const avant=state.checked&&JSON.stringify(state.checked);
-    const it0=wrap.querySelector('.pf-steps li');if(it0)it0.click();await w(150);
+    const it0=wrap.querySelector('.pf-steps li');if(it0)it0.click();await __acCalme(150);
     return {deb,ecr,avecR,
       brc:[...wrap.querySelectorAll('.pf-row.dec .pf-opt b')].map(x=>x.textContent.trim()),
       jmp:[...wrap.querySelectorAll('.pf-row.dec .pf-opt')].map(x=>x.textContent.trim()),
@@ -3938,12 +3946,12 @@ await sec('CHROME · une géométrie ne se dérive pas d’une position', async 
   const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
     const T=id=>{const e=document.getElementById(id);return e?getComputedStyle(e).top:null;};
-    syncHdrScroll();await w(60);
+    syncHdrScroll();await __acCalme(60);
     const avant={h:V('--hdr-h'),s:V('--stick-top'),ctrl:T('crisisCtrl'),dock:T('crisisDock')};
     const hb=document.querySelector('header.bar'),old=hb.style.transform;
-    hb.style.transform='translateY(64px)';syncHdrScroll();await w(60);
+    hb.style.transform='translateY(64px)';syncHdrScroll();await __acCalme(60);
     const pendant={h:V('--hdr-h'),s:V('--stick-top'),ctrl:T('crisisCtrl'),dock:T('crisisDock')};
-    hb.style.transform=old;syncHdrScroll();await w(60);
+    hb.style.transform=old;syncHdrScroll();await __acCalme(60);
     const apres={h:V('--hdr-h'),s:V('--stick-top')};
     /* Le témoin doit rencontrer son cas : sans déplacement mesurable, il ne prouverait rien. */
     return {avant,pendant,apres,decale:64};});
@@ -3982,7 +3990,7 @@ await sec('BLOC COMPLET · le registre tient sur les quatre côtés', async () =
     let sec=document.querySelector('.ov-block.cur');
     const n=sec.querySelectorAll('[data-ck]').length;
     for(let i=0;i<n;i++){const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>!x.classList.contains('done'));
-      if(!li)break;li.click();await w(80);}
+      if(!li)break;li.click();await __acCalme(80);}
     return {avant,apres:cs(),n};});
   const a=r.avant,b=r.apres;
   t('témoin : le bloc n’était PAS complet au départ', !/\bdone\b/.test(a.cls)&&r.n>0, JSON.stringify({cls:a.cls,n:r.n}));
@@ -4009,8 +4017,8 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
   // Avancer jusqu'au bloc porteur : cocher le bloc 1, puis « Continuer » vers l'analyse.
   await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     for(let i=0;i<12;i++){const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>!x.classList.contains('done'));
-      if(!li)break;li.click();await w(60);}
-    const nx=document.querySelector('.ov-block.cur [data-ovnext]');if(nx)nx.click();await w(250);});
+      if(!li)break;li.click();await __acCalme(60);}
+    const nx=document.querySelector('.ov-block.cur [data-ovnext]');if(nx)nx.click();await __acCalme(250);});
   const c0=await page.evaluate(()=>{
     const cur=document.querySelector('.ov-block.cur');
     const row=cur&&cur.querySelector('.jl-row');
@@ -4028,7 +4036,7 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
     const btn=[...document.querySelectorAll('[data-cninc]')].find(b=>/Chocs/.test(b.getAttribute('aria-label')||''));
     if(!btn)return {err:'compteur Chocs introuvable dans le rail'};
     const y0=window.scrollY;
-    for(let i=0;i<3;i++){btn.click();await w(120);}
+    for(let i=0;i<3;i++){btn.click();await __acCalme(120);}
     const cur=document.querySelector('.ov-block.cur');
     const row=cur&&cur.querySelector('.jl-row');
     const go=cur&&cur.querySelector('.jl-go');
@@ -4043,7 +4051,7 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
   // à la mémoire (AC 120-71B).
   const c2=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const go=document.querySelector('.ov-block.cur .jl-go');if(!go)return {err:'pas de renvoi'};
-    go.click();await w(300);
+    go.click();await __acCalme(300);
     const cur=document.querySelector('.ov-block.cur');
     return {titre:cur?cur.textContent.slice(0,300):'',cx:!!(cur&&cur.querySelector('.cx-tag')),
       back:!!(cur&&cur.querySelector('[data-cxback]'))};});
@@ -4053,19 +4061,19 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
   // Retour à l'analyse, puis les vues de STRUCTURE annoncent le jalon (inertes, condition en
   // toutes lettres) et P4 annote les renvois de boucle de la période du cycle.
   const c3=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-    const bk=document.querySelector('.ov-block.cur [data-cxback]');if(bk)bk.click();await w(250);
+    const bk=document.querySelector('.ov-block.cur [data-cxback]');if(bk)bk.click();await __acCalme(250);
     /* A376 : la colonne rend la liste ; le jalon y est annoncé sur la rangée elle-même (.pf-jl), condition en toutes lettres. */
     /* La rangée d'une décision porte sa QUESTION (« Rythme choquable… ? »), pas le titre du bloc. */
     let lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));
     /* A388 : la colonne naît repliée — on déplie la décision par son chevron, comme l'utilisateur. */
-    {const tg=lad&&lad.querySelector('[data-plfold][aria-expanded="false"]');if(tg){tg.click();await w(200);
+    {const tg=lad&&lad.querySelector('[data-plfold][aria-expanded="false"]');if(tg){tg.click();await __acCalme(200);
       lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));}}
     const jll=lad?lad.querySelector('.pf-jl'):null;const srj=!!jll;
     /* A389 : l'onglet « Parcours » a vécu — le parcours se lit dans la colonne (A388), dépliée comme le ferait l'utilisateur. */
-    {const ta=document.querySelector('.read-plan [data-plall="1"]');if(ta){ta.click();await w(250);}}
+    {const ta=document.querySelector('.read-plan [data-plall="1"]');if(ta){ta.click();await __acCalme(250);}}
     const pcjl=[...document.querySelectorAll('.read-plan .pf-jl')].map(e=>e.textContent).join('|');
     const pcloop=[...document.querySelectorAll('.read-plan .pf-jump')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
-    const ab=document.getElementById('allBtn');if(ab)ab.click();await w(400);
+    const ab=document.getElementById('allBtn');if(ab)ab.click();await __acCalme(400);
     const svjl=[...document.querySelectorAll('.sv-jl')].map(e=>e.textContent).join('|');
     const svloop=[...document.querySelectorAll('.sv-jump.loop')].map(e=>e.textContent).join('|');
     return {srj,jll:jll?jll.textContent:'',svjl,svloop,pcjl,pcloop};});
@@ -4126,7 +4134,7 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
                   catModal:()=>openCatMgr(), sessModal:()=>{surFiche();openSessHist();}, storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
         try{go();}catch(e){out.fen[id]={err:e.message};continue;}
-        await w(450);
+        await __acCalme(450);
         const m=document.getElementById(id);
         if(!m||!m.classList.contains('on')){out.fen[id]={err:'pas ouverte'};continue;}
         const c=m.querySelector('.ai-card'),t=c.querySelector('.ai-top'),b=c.querySelector('.ai-body');
@@ -4142,7 +4150,7 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
           police:(()=>{const cs=getComputedStyle(t.querySelector('h3'));
             return Math.round(parseFloat(cs.fontSize)*10)/10+'/'+cs.fontWeight;})(),
           pleineHauteur:Math.round(rc.height)>=innerHeight-2};
-        const x=m.querySelector('.ai-x');if(x)x.click();await w(250);
+        const x=m.querySelector('.ai-x');if(x)x.click();await __acCalme(250);
       }
       out.tokens=['--dlg-confirm','--dlg-std','--dlg-atelier']
         .map(k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim());
@@ -4208,7 +4216,7 @@ await sec('v5.6 · l\'accueil ne dépend pas du chemin d\'arrivée', async () =>
   await demarrerSession(page);
   await page.evaluate(()=>{const b=document.getElementById('hdrBack');if(b)b.click();});
   await page.waitForFunction(()=>document.body.classList.contains('view-home'));
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   const apres=await chrome();
   t('le dock de recherche survit au départ de l\'accueil', pendant===true);
   for(const k of Object.keys(avant)){
@@ -4300,7 +4308,7 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
        la fiche, et l'on ne saurait plus si l'on est en clair CHOISI ou en clair SUIVI. */
     const cy=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));const v=[];
       for(let i=0;i<4;i++){v.push(localStorage.getItem(spaceKey('ac-theme'))||'auto');
-        document.getElementById('hdrTheme').click();await w(150);}
+        document.getElementById('hdrTheme').click();await __acCalme(150);}
       return v;});
     t(`${W} · … et il parcourt les TROIS crans, dans l'ordre du réglage`,
       cy.slice(0,3).join(',')==='auto,light,dark'&&cy[3]==='auto', cy.join(' → '));
@@ -4315,14 +4323,14 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
         return .2126*r+.7152*g+.0722*b;};
       const ratio=(x,y)=>{const [l1,l2]=[lum(x),lum(y)].sort((a,b)=>b-a);return Math.round(((l1+.05)/(l2+.05))*100)/100;};
       const out={};
-      for(const th of ['light','dark']){document.documentElement.dataset.theme=th;await w(200);
+      for(const th of ['light','dark']){document.documentElement.dataset.theme=th;await __acCalme(200);
         const e=document.getElementById('acctTop');if(!e){out[th]=null;continue;}
         const cs=getComputedStyle(e),bar=getComputedStyle(document.querySelector('header.bar')).backgroundColor;
         /* La limite peut être portée par le FOND ou par le filet — ici une ombre interne, qui ne
            déplace pas la boîte (36 px de dessin, 44 de cible : A30). On prend le meilleur des deux. */
         const sh=(cs.boxShadow||'').match(/rgba?\([^)]*\)/);
         out[th]={fond:ratio(cs.backgroundColor,bar),filet:sh?ratio(sh[0],bar):0};}
-      document.documentElement.dataset.theme='light';await w(150);
+      document.documentElement.dataset.theme='light';await __acCalme(150);
       return out;});
     for(const th of ['light','dark']){
       const m=past[th];
@@ -4356,7 +4364,7 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
       const f=blankFiche();f.title=l+' — démo';fiches.push(migrate(f));}
     /* v5.18 : le rail n'existe qu'en rangement A–Z. */
     state.homeGroup='az';
-    await persist();render();await w(400);
+    await persist();render();await __acCalme(400);
     const g=()=>{const el=document.getElementById('azRail');
       if(!el||el.hidden)return null;
       const b=el.getBoundingClientRect(),l=el.querySelector('[data-azl]');
@@ -4364,13 +4372,13 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
               l1:l?Math.round(l.getBoundingClientRect().top):null,
               n:el.querySelectorAll('[data-azl]').length};};
     const repos=g();
-    window.scrollTo(0,400);await w(350);
+    window.scrollTo(0,400);await __acCalme(350);
     const defile=g();
     /* Un tap qui NE CHANGE PAS le contenu du rail : c'est le cas signalé. Changer le groupement
        changerait le nombre de crans, donc leur position — ce serait mesurer autre chose. */
-    const pin=main.querySelector('[data-pin]');if(pin)pin.click();await w(500);
+    const pin=main.querySelector('[data-pin]');if(pin)pin.click();await __acCalme(500);
     const apres=g();
-    window.scrollTo(0,0);await w(350);
+    window.scrollTo(0,0);await __acCalme(350);
     const remonte=g();
     return {repos,defile,apres,remonte,avaitPin:!!pin};});
 
@@ -4488,7 +4496,7 @@ await sec('v5.6 · le volet du quai prolonge la capsule', async () => {
        contrôle mesurerait alors sa propre erreur (leçon déjà payée sur le rail, v5.4.3). */
     const SEL='.ov-block,.nav-wrap,.sv-cell';
     const av=g(document.querySelector(SEL)), capAv=g(cap());
-    cap().click(); await w(500);
+    cap().click(); await __acCalme(500);
     const d=document.querySelector('.rt-dock');
     const o={volet:g(d),capsule:g(cap()),contenuAv:av,contenuAp:g(document.querySelector(SEL)),capAv,
       /* La capsule doit rester DEVANT le volet : l'alarme ne se laisse jamais recouvrir (V2). */
@@ -4547,12 +4555,12 @@ await sec('v5.6 · le volet du quai prolonge la capsule', async () => {
      couverte par la section WCAG dédiée — la règle vit dans le bloc `no-preference`. */
   const roul=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const q=document.querySelector('#cbTimers');
-    q.click();await w(350);q.click();await w(60);          // on referme, on rouvre : l'animation rejoue
+    q.click();await __acCalme(350);q.click();await __acCalme(60);          // on referme, on rouvre : l'animation rejoue
     const v=document.querySelector('.rt-dock');if(!v)return null;
     const noms=v.getAnimations().map(a=>a.animationName||'');
     const inn=v.firstElementChild;
     const mid={ext:getComputedStyle(v).transform,int:inn?getComputedStyle(inn).transform:''};
-    await w(500);
+    await __acCalme(500);
     return {noms,mid,fin:getComputedStyle(v).transform,
       lab:(()=>{const l=v.querySelector('.tm-label');return l?Math.round(l.getBoundingClientRect().height):null;})()};});
   t('témoin : l\'ouverture joue bien une animation', !!roul&&roul.noms.length>0, JSON.stringify(roul&&roul.noms));
@@ -4601,7 +4609,7 @@ await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler 
     const key=[...document.querySelectorAll('#crisisDockBar button,.sd-key')]
       .find(b=>/HORODATER|NOTER|JOURNAL/i.test(b.textContent))   /* v5.30 : « Journal · n », « Horodater · n » depuis l’audit UX (P1) */;
     if(!key)return {err:'touche ⏱ introuvable'};
-    key.click(); await w(500);
+    key.click(); await __acCalme(500);
     const chip=document.querySelector('.ds-chip.ds-cnt');
     if(!chip)return {err:'aucune chip de compteur'};
     const cid=chip.dataset.tkcnt;
@@ -4611,7 +4619,7 @@ await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler 
       annonce:(chip.querySelector('.ds-cn')||{}).textContent||'',
       /* Le compteur est GARANTI dans la liste, il n'y est pas par chance de classement. */
       premier:document.querySelector('.ds-chip')===chip};
-    chip.click(); await w(500);
+    chip.click(); await __acCalme(500);
     const ev=(Runtime.events||[]);
     return {...avant, apres:{ev:ev.length, val:+(Runtime.counters||{})[cid]||0,
       refs:ev.map(e=>e.ref&&e.ref.type==='counter'?e.ref.v:null).filter(v=>v!=null),
@@ -4676,14 +4684,14 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     const bid=document.querySelector('.ov-block[data-ovb]').dataset.ovb;
     const bloc=Runtime.fiche.blocks.find(x=>x.id===bid);
     bItems(bloc).forEach(it=>{const src=(Runtime.fiche.items||[]).find(p=>p.id===it.id)||it;src.expect='';});
-    renderOvOnly();await w(350);
+    renderOvOnly();await __acCalme(350);
     const reste=bItems(bloc).filter(it=>(it.expect||'').trim()).length;
     const v=document.querySelector('[data-ovverify]');
     const c=document.querySelector('[data-ovnext]');
     const vr=v&&v.getBoundingClientRect(),cr=c&&c.getBoundingClientRect();
     const geo=v&&c?{gauche:vr.left<cr.left,rangee:Math.abs(vr.top-cr.top)<=6,h:Math.round(vr.height)}:null;
     if(!v)return {reste,present:false,geo:null};
-    v.click();await w(400);
+    v.click();await __acCalme(400);
     const passe=!!document.querySelector('[data-ovvok]');
     /* ⚠ LA SORTIE SE MET AU BOUT DE LA LIGNE QU'ELLE FERME (signalé à l'usage : « texte et croix
        ne sont pas sur la même ligne, même en desktop »). La rangée de la carte porte le titre sur
@@ -4705,10 +4713,10 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     /* On va jusqu'au BOUT de la passe : la pilule de trace est DURABLE, elle vit sur la liste
        d'étapes — laquelle ne revient qu'une fois la passe terminée (pendant, la carte affiche un
        item à la fois). Mesurer avant, c'est mesurer l'écran qui n'a pas encore la trace. */
-    for(let i=0;i<12;i++){const ok=document.querySelector('[data-ovvok]');if(!ok)break;ok.click();await w(220);}
+    for(let i=0;i<12;i++){const ok=document.querySelector('[data-ovvok]');if(!ok)break;ok.click();await __acCalme(220);}
     /* … puis on SORT de la passe : elle finit sur son bilan (« n/n vérifiées »), et la liste
        d'étapes — qui porte la trace — ne revient qu'après « Terminer la vérification ». */
-    const fin=document.querySelector('[data-ovvx]');if(fin)fin.click();await w(400);
+    const fin=document.querySelector('[data-ovvx]');if(fin)fin.click();await __acCalme(400);
     /* ⚠ LA TRACE SE RELÈVE AVANT D'AVANCER : le journal CONDENSE un passage terminé en ligne-bilan
        (ovPresList), donc les pilules quittent le DOM dès le geste suivant. Mesurée après, elle
        vaudrait zéro — et l'on croirait à une régression de la trace au lieu d'un défaut de sonde. */
@@ -4719,7 +4727,7 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     for(let i=0;i<8;i++){
       if(document.querySelector('.ov-block.dec .question'))break;
       document.querySelectorAll('.ov-block.cur [data-ck]').forEach(e=>e.click());
-      const c=document.querySelector('[data-ovnext]');if(!c)break;c.click();await w(220);}
+      const c=document.querySelector('[data-ovnext]');if(!c)break;c.click();await __acCalme(220);}
     const dec=document.querySelector('.ov-block.dec');
     /* HIÉRARCHIE DU BLOC DE DÉCISION (v5.6, signalé à l'usage : « titre du bloc et question
        s'affichent en même grandeur -> perturbant »). Les deux étaient à 21 px : `check-type` ne
@@ -4780,7 +4788,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
     /* ── A9 ── On ouvre le volet pour avoir les cartes de minuteur sous la main, puis on fait
        ÉCHOIR le minuteur sans toucher à rien d'autre : c'est le changement d'état non commandé
        que la règle vise. */
-    document.getElementById('cbTimers').click();await w(450);
+    document.getElementById('cbTimers').click();await __acCalme(450);
     const sel='.rt-dock .tmcard';
     const avant={capsule:H('#cbTimers'),carte:H(sel)};
     /* ⚠ ON FAIT ÉCHOIR PAR LE MODÈLE RÉEL : un minuteur d'intervalle porte `seconds`, `elapsedMs`
@@ -4793,7 +4801,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
     const t0=Object.keys(Runtime.timers||{})[0];
     if(t0){const tm=Runtime.timers[t0];tm.autoloop=false;
       tm.running=true;tm.elapsedMs=((tm.seconds||60)*1000)+5000;tm.lastStart=Date.now();}
-    tickAll();await w(400);
+    tickAll();await __acCalme(400);
     const apres={capsule:H('#cbTimers'),carte:H(sel)};
     const echu=!!document.querySelector('.rt-dock .tmcard.due,.tmcard.due,#cbTimers .seg.due');
     /* ── A6 ── Toutes les tailles de texte RÉELLEMENT peintes dans la vue de crise. On ignore ce
@@ -4862,9 +4870,9 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
         bouton:document.querySelectorAll('[data-tmack]').length,
         ctrl:ct?Math.round(ct.getBoundingClientRect().height):0};};
     const echu=st();
-    const b=document.querySelector('[data-tmack]');if(b)b.click();await w(400);
+    const b=document.querySelector('[data-tmack]');if(b)b.click();await __acCalme(400);
     const acq=st(),flag=!!Object.values(Runtime.timers)[0].ack;
-    const tg=document.querySelector('[data-tmtoggle]');if(tg)tg.click();await w(400);
+    const tg=document.querySelector('[data-tmtoggle]');if(tg)tg.click();await __acCalme(400);
     return {echu,acq,flag,relance:{...st(),ack:!!Object.values(Runtime.timers)[0].ack}};});
 
   t('acquitter · « ✓ Vu » paraît AU TICK, sans re-rendu', ack.echu.bouton===1);
@@ -4900,9 +4908,9 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
       let lignes=null;
       if(l){const rg=document.createRange();rg.selectNodeContents(l);lignes=rg.getClientRects().length;}
       return {carte:c?Math.round(c.getBoundingClientRect().height):null,lignes};};
-    t.ack=false;t.autoloop=false;t.running=false;t.elapsedMs=0;t.lastStart=0;tickAll();await w(400);
+    t.ack=false;t.autoloop=false;t.running=false;t.elapsedMs=0;t.lastStart=0;tickAll();await __acCalme(400);
     const nominal={...H(),txt:(document.querySelector('.rt-dock .tm-label')||{}).textContent||''};
-    t.elapsedMs=(t.seconds||60)*1000;tickAll();await w(400);
+    t.elapsedMs=(t.seconds||60)*1000;tickAll();await __acCalme(400);
     const echu={...H(),txt:(document.querySelector('.rt-dock .tm-label')||{}).textContent||''};
     return {nominal,echu};});
   t('témoin : le libellé s\'allonge bien en échéant', /réévaluer/.test(lab.echu.txt)&&!/réévaluer/.test(lab.nominal.txt));
@@ -4918,7 +4926,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
      différentes n'ont pas le même haut). */
   const repli=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const tg=document.querySelector('.ov-block .ov-tgl');if(!tg)return null;
-    tg.click();await w(400);
+    tg.click();await __acCalme(400);
     const b=document.querySelector('.ov-block'),g=b.querySelector('.ov-tgl');
     const mid=e=>{if(!e)return null;const r=e.getBoundingClientRect();return r.top+r.height/2;};
     const m0=mid(g);
@@ -4928,7 +4936,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
       h:Math.round(g.getBoundingClientRect().height),
       ecarts:{n:part('.ov-n'),t:part('.ov-t'),c:part('.ov-c'),chev:part('.ov-chev')},
       ordre:[gauche('.ov-n'),gauche('.ov-t'),gauche('.ov-c')]};
-    tg.click();await w(300);
+    tg.click();await __acCalme(300);
     return out;});
   t('replié · témoin : la carte est bien repliée', !!repli&&repli.repliee===true, JSON.stringify(repli));
   t('replié · les quatre parts sont centrées sur la rangée',
@@ -4948,7 +4956,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
      manœuvre, une section ») ; seul le thème change, et il est rendu à sa valeur ensuite. */
   const nuit=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const avant=document.documentElement.dataset.theme||'';
-    document.documentElement.dataset.theme='dark';await w(300);
+    document.documentElement.dataset.theme='dark';await __acCalme(300);
     const f=v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};
     const L=c=>{const m=(String(c).match(/[\d.]+/g)||[0,0,0]).slice(0,3).map(Number);
       return .2126*f(m[0])+.7152*f(m[1])+.0722*f(m[2]);};
@@ -4963,7 +4971,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
       filet:R(cs.borderTopColor,cs.backgroundColor),
       encre:t?R(getComputedStyle(t).color,cs.backgroundColor):null,
       systemeVsTravail:R(getComputedStyle(cap).backgroundColor,cs.backgroundColor)};
-    document.documentElement.dataset.theme=avant;await w(150);
+    document.documentElement.dataset.theme=avant;await __acCalme(150);
     return out;});
   t('nuit · témoin : la carte et la capsule sont bien mesurées', !!nuit&&nuit.encre!==null, JSON.stringify(nuit));
   /* Le SEUIL est celui de la limite d'un composant (WCAG 2.2 § 1.4.11). */
@@ -5006,7 +5014,7 @@ await sec('v5.30 · A345 — la marque d\'une étape critique (6b)', async () =>
         mk:(li.querySelector('.stp-mk')||{}).textContent||'',sr:(li.querySelector('.sr-only')||{}).textContent||'',
         glyph:/[⚠△]/.test(t.textContent)};});
     const avant=mes();
-    const crit=lis.find(li=>li.classList.contains('crit'));crit.click();await w(400);
+    const crit=lis.find(li=>li.classList.contains('crit'));crit.click();await __acCalme(400);
     const apres=mes();
     return {avant,apres,crit:norm(cv('--crit')),warnLine:norm(cv('--warn-line')),ctl:norm(cv('--ctl-line')),
       cap:Math.round(document.getElementById('cbTimers').getBoundingClientRect().height),
@@ -5051,28 +5059,28 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const cur=()=>document.querySelector('.ov-block.cur');
-    for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}
-    cur().querySelector('[data-ovnext]').click();await w(300);
-    [...cur().querySelectorAll('[data-ovopt]')][0].click();await w(300);
+    for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}
+    cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);
     const row=re=>[...cur().querySelectorAll('[data-ck]')].find(x=>re.test(x.textContent));
     const cn=()=>{const c=Runtime.fiche.counters[0];return Runtime.counters[c.id]||0;};
     const adr=()=>Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
     const hW=li=>{const e=li.querySelector('.wt');return e?Math.round(e.getBoundingClientRect().height):-1;};
     const o={},an=el=>el?el.getAnimations({subtree:true}).map(a=>a.animationName).join(','):'';
     let li=row(/Choc imm/);o.hChoc0=Math.round(li.getBoundingClientRect().height);o.wChoc0=hW(li);o.cn0=cn();
-    li.click();await w(300);li=row(/Choc imm/);
+    li.click();await __acCalme(300);li=row(/Choc imm/);
     o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;o.mvOn=an(li.querySelector('.wt'));
     o.ev1=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&!e.voidAt).length;
-    li.click();await w(30);o.mvOff=an(row(/Choc imm/).querySelector('.wt'));await w(270);
+    li.click();await __acCalme(30);o.mvOff=an(row(/Choc imm/).querySelector('.wt'));await __acCalme(270);
     o.cn2=cn();o.void2=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&e.voidAt).length;
-    {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;renderOvOnly();await w(200);}   // A382 : l'adrénaline du bloc choquable commence au 3ᵉ choc
+    {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;renderOvOnly();await __acCalme(200);}   // A382 : l'adrénaline du bloc choquable commence au 3ᵉ choc
     li=row(/^\s*Vigilance|Adrénaline/)||row(/Adrénaline/);
     const hA0=Math.round(li.getBoundingClientRect().height);
-    li.click();await w(30);o.mvArm=an(row(/Adrénaline/).querySelector('.wt'));await w(270);li=row(/Adrénaline/);
+    li.click();await __acCalme(30);o.mvArm=an(row(/Adrénaline/).querySelector('.wt'));await __acCalme(270);li=row(/Adrénaline/);
     o.adrRun=adr().running;o.clsRun=li.querySelector('.wt').className;
-    li.click();await w(300);li=row(/Adrénaline/);
+    li.click();await __acCalme(300);li=row(/Adrénaline/);
     o.adrUndo=!adr().running&&adr().elapsedMs===0;
-    li.click();await w(300);adr().lastStart=Date.now()-241000;await w(900);li=row(/Adrénaline/);
+    li.click();await __acCalme(300);adr().lastStart=Date.now()-241000;await w(900);li=row(/Adrénaline/);
     o.clsDue=li.querySelector('.wt').className;o.wDue=hW(li);o.hA0=hA0;o.hA1=Math.round(li.getBoundingClientRect().height);
     return o;});
   t('A377 · la coche du choc compte + 1', r.cn0===0&&r.cn1===1, `${r.cn0} → ${r.cn1}`);
@@ -5094,28 +5102,28 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
       {id:'b2',kind:'decision',title:'Réussie ?',question:'Réussie ?',options:[{label:'Oui',target:'b3'},{label:'Non',target:'b1'}]},
       {id:'b3',kind:'do',title:'Vérification',items:[{id:'i3',do:'Capno'}],next:null},
       {id:'b4',kind:'do',title:'Hors chemin',timer:'t1',items:[{id:'i4',do:'Rien'}],next:null}]});
-    await Data.put(f);fiches.push(f);openRead(f.id);await w(400);
+    await Data.put(f);fiches.push(f);openRead(f.id);await __acCalme(400);
     const t1=()=>Runtime.timers.t1,o={};
     o.avant=t1().running;
-    document.getElementById('sessStart').click();await w(40);
-    o.mvBlk=[...document.querySelectorAll('.ov-block.cur .wt-blk .wt-r1')].some(e=>e.getAnimations().some(a=>a.animationName==='wtArm'));await w(460);
+    document.getElementById('sessStart').click();await __acCalme(40);
+    o.mvBlk=[...document.querySelectorAll('.ov-block.cur .wt-blk .wt-r1')].some(e=>e.getAnimations().some(a=>a.animationName==='wtArm'));await __acCalme(460);
     o.demarre=t1().running;o.wBlk=!!document.querySelector('.ov-block.cur .wt-blk');
     const cur=()=>document.querySelector('.ov-block.cur');
-    cur().querySelector('[data-ck]').click();await w(150);
+    cur().querySelector('[data-ck]').click();await __acCalme(150);
     t1().lastStart=Date.now()-30000;
-    cur().querySelector('[data-ovnext]').click();await w(300);
+    cur().querySelector('[data-ovnext]').click();await __acCalme(300);
     o.surQuestion=t1().running&&t1().lastStart<Date.now()-25000;
     t1().lastStart=Date.now()-61000;await w(700);
     o.fil=Runtime.nav.join('>');
-    [...cur().querySelectorAll('[data-ovopt]')].find(x=>/Non/.test(x.textContent)).click();await w(300);
+    [...cur().querySelectorAll('[data-ovopt]')].find(x=>/Non/.test(x.textContent)).click();await __acCalme(300);
     o.rearme=t1().running&&Date.now()-t1().lastStart<3000;
-    cur().querySelector('[data-ck]').click();await w(150);
-    cur().querySelector('[data-ovnext]').click();await w(300);
-    [...cur().querySelectorAll('[data-ovopt]')].find(x=>/Oui/.test(x.textContent)).click();await w(300);
+    cur().querySelector('[data-ck]').click();await __acCalme(150);
+    cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')].find(x=>/Oui/.test(x.textContent)).click();await __acCalme(300);
     o.sortie=!t1().running&&!!(Runtime.linkArm.t1&&Runtime.linkArm.t1.x);
     /* CONSULTER en dernier : un bloc jamais visité entre au bout du journal (A-comportement du
        plan), mais il n'est pas CONDUIT — son minuteur de bloc (le même t1) ne doit pas repartir. */
-    const s0=t1().lastStart;jumpToBlock(f,'b4');await w(300);
+    const s0=t1().lastStart;jumpToBlock(f,'b4');await __acCalme(300);
     o.consulte=!t1().running&&t1().lastStart===s0;
     return o;});
   t('A377 · minuteur de bloc : rien avant la session', b.avant===false);
@@ -5145,12 +5153,12 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running),lg0:lg(),l0:ligne()};
     tmRestart(t);t.lastStart=Date.now()-139000;paintWitness();o.lg1=lg();o.l1=ligne();o.h1=LI().getBoundingClientRect().height;   // la dose d'avant : reste 02:41
     const s0=t.lastStart;
-    LI().click();await w(300);o.relance=t.running&&t.lastStart>s0;o.lg2=lg();o.l2=ligne();o.h2=LI().getBoundingClientRect().height;
-    LI().click();await w(300);o.rendu=t.running&&t.lastStart===s0&&(Runtime.counters[c.id]||0)===0;
+    LI().click();await __acCalme(300);o.relance=t.running&&t.lastStart>s0;o.lg2=lg();o.l2=ligne();o.h2=LI().getBoundingClientRect().height;
+    LI().click();await __acCalme(300);o.rendu=t.running&&t.lastStart===s0&&(Runtime.counters[c.id]||0)===0;
     t.running=false;t.elapsedMs=0;t.lastStart=0;   // retour à l'état de départ pour la suite
-    LI().click();await w(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await w(270);
+    LI().click();await __acCalme(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await __acCalme(270);
     o.cn=Runtime.counters[c.id]||0;o.run=!!(t&&t.running);
-    t.lastStart=Date.now()-301000;tickAll();await w(300);   // la sonnerie : rien ne repart seul
+    t.lastStart=Date.now()-301000;tickAll();await __acCalme(300);   // la sonnerie : rien ne repart seul
     o.echu=timerDue(t)&&!t.running;
     return o;});
   t('A377 · Anaphylaxie : les deux injections comptent (2 liens, pas plus)', r.liens===2, String(r.liens));
@@ -5187,29 +5195,29 @@ await sec('v5.33 · A383 — l’éditeur, réglages d’étape', async () => {
     const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));await openEdit(f.id);await w(700);
     const blk=re=>[...document.querySelectorAll('.blk')].find(b=>re.test(b.querySelector('[data-bf=title]').value));
     const B1=blk(/^Reconnaissance/),B3=blk(/^Choquable/),o={};
-    B1.querySelector('.li input[data-sf]').focus();await w(150);
+    B1.querySelector('.li input[data-sf]').focus();await __acCalme(150);
     o.ecrire=B1.querySelectorAll('.li select,.li .seg').length===0&&!document.getElementById('stepSetModal').classList.contains('on');
     o.boucle=!!B3.querySelector('.blk-loop')&&!B1.querySelector('.blk-loop');
     const lbl=b=>[...b.querySelectorAll('.bo-l')].map(x=>x.firstChild.textContent);
     o.optHors=lbl(B1);o.optBoucle=lbl(B3);
     const adr=[...B3.querySelectorAll('.li')].find(l=>/Adrénaline/.test(l.querySelector('input[data-sf]').value));
     o.pastilles=[...adr.querySelectorAll('.li-chip')].map(x=>x.className.replace('li-chip','').trim());
-    [...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===B3.dataset.bid&&x.offsetParent).click();await w(250);   // A521 : sa page
-    adr.querySelector('.li-set').click();await w(300);
+    [...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===B3.dataset.bid&&x.offsetParent).click();await __acCalme(250);   // A521 : sa page
+    adr.querySelector('.li-set').click();await __acCalme(300);
     o.momentBoucle=!!document.querySelector('#stepSetBody [data-ssfrom]');
-    document.querySelector('#stepSetBody [data-ssrp="once"]').click();await w(250);
+    document.querySelector('#stepSetBody [data-ssrp="once"]').click();await __acCalme(250);
     o.repeat=bItems(state.draft.blocks.find(b=>b.id===B3.dataset.bid)).find(it=>/Adrénaline/.test(it.do)).repeat;
     o.focusGarde=!!document.activeElement.matches('#stepSetBody [data-ssrp="once"]');
     return o;});
   const bas=await mesure();
-  await page.keyboard.press('Escape');await page.waitForTimeout(250);
+  await page.keyboard.press('Escape');await calme(page, 250);
   const r2=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const B1=[...document.querySelectorAll('.blk')].find(b=>/^Reconnaissance/.test(b.querySelector('[data-bf=title]').value));
     const o={retour:!!document.activeElement.matches('.li-set')};
-    B1.querySelector('.li-set').click();await w(300);
+    B1.querySelector('.li-set').click();await __acCalme(300);
     o.momentHors=!document.querySelector('#stepSetBody [data-ssfrom]')&&/bloc qui se répète/.test(document.getElementById('stepSetBody').textContent);
     return o;});
-  await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(300);
+  await page.setViewportSize({width:1280,height:900});await calme(page, 300);
   const large=await mesure();
   t('A383 · écrire une étape n’ouvre aucun réglage', r.ecrire===true);
   t('A383 · « Se répète » sur le bloc en boucle, pas sur les autres', r.boucle===true);
@@ -5236,22 +5244,22 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
   await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const cur=()=>document.querySelector('.ov-block.cur');
-    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}};
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}};
     const rang=re=>[...cur().querySelectorAll('ol.steps li')].find(x=>re.test(x.textContent));
     const cont=cur=>{const b=cur.querySelector('[data-ovnext]');return b&&b.getAttribute('aria-disabled')!=='true';};
-    const oui=async()=>{[...cur().querySelectorAll('[data-ovopt]')][0].click();await w(300);rang(/Choc imm/).click();await w(350);};
+    const oui=async()=>{[...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);rang(/Choc imm/).click();await __acCalme(350);};
     const adr=()=>Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
     const o={};
-    await tout();cur().querySelector('[data-ovnext]').click();await w(300);await oui();
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);await oui();
     let a=rang(/Adrénaline/);
     o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.stp-mks .mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
-    rang(/300 mg/).querySelector('[data-cknow]').click();await w(300);
+    rang(/300 mg/).querySelector('[data-cknow]').click();await __acCalme(300);
     o.now=!!Object.keys(state.checked).find(k=>state.checked[k]&&rang(/300 mg/)&&rang(/300 mg/).dataset.ck===k);
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;}await w(1300);   // le tick voit le compte changer
     a=rang(/Adrénaline/);
     o.seuil={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,cont:cont(cur())};
-    a.click();await w(400);
-    await tout();cur().querySelector('[data-ovnext]').click();await w(300);await oui();
+    a.click();await __acCalme(400);
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);await oui();
     a=rang(/Adrénaline/);
     o.p2={wait:a.classList.contains('mo-wait'),tag:a.querySelector('.stp-mks').textContent,run:/\brun\b/.test((a.querySelector('.wt')||{}).className||''),gone:rang(/300 mg/).classList.contains('mo-gone'),cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
     {const t=adr();t.running=false;t.elapsedMs=t.seconds*1000;t.lastStart=0;}await w(1300);
@@ -5330,9 +5338,9 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
     const av=await page.evaluate(compte);
     const ch=page.locator(selChamp).last();
     await ch.scrollIntoViewIfNeeded();await ch.click();
-    await page.keyboard.type('ZZ');await page.waitForTimeout(150);
+    await page.keyboard.type('ZZ');await calme(page, 150);
     const b=page.locator(selBtn).first();
-    await b.scrollIntoViewIfNeeded();await b.click();await page.waitForTimeout(400);
+    await b.scrollIntoViewIfNeeded();await b.click();await calme(page, 400);
     const ap=await page.evaluate(compte);
     t(`${nom} : la ligne est AJOUTÉE malgré le focus dans un champ`, ap===av+1, `${av} → ${ap}`);
     const garde=await page.evaluate(compte.toString().includes('forgetAll')
@@ -5364,7 +5372,7 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
      que la poignée ⠿ sortait de 35 px du cadre. On mesure ici, à la largeur où le défaut vit —
      un redimensionnement, pas une page de plus (règle « une manœuvre, une section »). */
   await page.setViewportSize({width:320,height:844});
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const bt=await page.evaluate(()=>{const top=document.querySelector('.blk-top');if(!top)return null;
     const carte=top.closest('.blk').getBoundingClientRect();
     const k=[...top.children].filter(e=>getComputedStyle(e).display!=='none');
@@ -5426,7 +5434,7 @@ await sec('v5.6 · un re-rendu ne s\'interrompt pas lui-même', async () => {
      caractère et mesurait autre chose). */
   await ouvrirBloc(page);   // A521 : le premier bloc s'ouvre sur sa page
   await page.fill('.blk.ed-cur .li input[data-sf]','');
-  await page.waitForTimeout(250);
+  await calme(page, 250);
   const av=await page.evaluate(()=>{const e=document.activeElement;
     return {focus:!!e&&!!e.matches&&e.matches('.blk .li input[data-sf]')&&e.value==='',
       champs:document.querySelectorAll('.blk .li input[data-sf]').length};});
@@ -5434,7 +5442,7 @@ await sec('v5.6 · un re-rendu ne s\'interrompt pas lui-même', async () => {
   errs.length=0;ko-=0;
   /* LE RE-RENDU EXTÉRIEUR : un redimensionnement, c'est-à-dire le geste le plus banal. */
   await page.setViewportSize({width:900,height:900});
-  await page.waitForTimeout(600);
+  await calme(page, 600);
   const ap=await page.evaluate(()=>({
     bind:!!document.querySelector('[data-addstep]')&&!!document.querySelector('.blk-top'),
     champs:document.querySelectorAll('.blk .li input[data-sf]').length}));
@@ -5461,12 +5469,12 @@ await sec('v5.6 · une fiche d\'un seul bloc', async () => {
       const A=v4MakeItem(uid('i'),'do','Geste unique',false),B=v4MakeItem(uid('i'),'do','Second geste',false);
       f0.items=[A,B];f0.blocks=[{id:'b1',kind:'do',title:'Le bloc',items:[A.id,B.id]}];f0.start='b1';
       const f=migrate(f0);fiches.push(f);await persist();
-      openRead(f.id);await w(600);
+      openRead(f.id);await __acCalme(600);
       const sb=document.getElementById('sessStart');if(sb)sb.click();await w(800);
       /* Deux étapes : une seule ne peut pas révéler un compte qui ne se met plus à jour. */
       for(let g=0;g<6;g++){
         const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));
-        if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await w(300);}
+        if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await __acCalme(300);}
       const apresCoches={compte:(document.querySelector('.ov-block .ov-c')||{}).textContent||'',
         btn:((document.querySelector('[data-ovnext],[data-ovend]')||{}).textContent||'').trim()};
       const side=document.querySelector('.read-side');
@@ -5521,18 +5529,18 @@ await sec('v5.6 · un filtre posé agit aussi en recherche', async () => {
        deux crans donnent « 1 » — un contrôle sur le compte serait rouge sur un correctif juste. */
     const titres=()=>[...document.querySelectorAll('.dir-row .dir-t')].map(e=>e.textContent.trim()).join('|');
     const q=document.getElementById('q');
-    q.value='a';q.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
+    q.value='a';q.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(450);
     const sansFiltre=n();
     /* On prend la catégorie d'UNE fiche réellement présente : un identifiant inventé ne
        filtrerait rien et le contrôle mesurerait le vide. */
     const vues=[...document.querySelectorAll('.dir-row')];
     const cats=[...new Set(fiches.map(f=>catKey(catOf(f))).filter(Boolean))];   // A419 : le filtre retient le NOM (clé)
     if(cats.length<2)return {err:'moins de deux catégories — cas non constitué'};
-    state.cat=cats[0];render();await w(450);
+    state.cat=cats[0];render();await __acCalme(450);
     const avecA=n(),titA=titres();
-    state.cat=cats[1];render();await w(450);
+    state.cat=cats[1];render();await __acCalme(450);
     const avecB=n(),titB=titres();
-    state.cat='';render();await w(450);
+    state.cat='';render();await __acCalme(450);
     return {sansFiltre,avecA,avecB,titA,titB,rendu:n(),vues:vues.length};});
 
   if(r.err){t('témoin : le cas est constitué',false,r.err);}
@@ -5575,29 +5583,29 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
   const avant=await page.evaluate(()=>({...window.__wl,tenu:wakeActive()}));
   t('hors session, aucun verrou n\'est demandé', avant.req===0&&avant.tenu===false, JSON.stringify(avant));
   await demarrerSession(page);
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const enSession={...window.__wl,tenu:wakeActive()};
-    for(let i=0;i<5;i++){render();await w(60);}
+    for(let i=0;i<5;i++){render();await __acCalme(60);}
     const apresRendus={...window.__wl,tenu:wakeActive()};
-    document.getElementById('cbTimers').click();await w(400);
-    document.getElementById('wakeToggle').click();await w(300);
+    document.getElementById('cbTimers').click();await __acCalme(400);
+    document.getElementById('wakeToggle').click();await __acCalme(300);
     const coupe={...window.__wl,tenu:wakeActive(),lbl:document.getElementById('wakeToggle').textContent.trim()};
-    document.getElementById('wakeToggle').click();await w(300);
+    document.getElementById('wakeToggle').click();await __acCalme(300);
     const repris={...window.__wl,tenu:wakeActive()};
     /* ══ MINUTEUR AD HOC : le ＋ DÉPLIE, la durée se choisit, le nom vient du dernier repère ══ */
     const lbl=()=>document.querySelector('[data-rtadd]').textContent.trim();
     const nu=lbl();
-    Runtime.events.push({id:'ez1',t:Date.now(),label:'Amiodarone'});render();await w(300);
+    Runtime.events.push({id:'ez1',t:Date.now(),label:'Amiodarone'});render();await __acCalme(300);
     const nomme=lbl();
-    document.querySelector('[data-rtadd]').click();await w(300);
+    document.querySelector('[data-rtadd]').click();await __acCalme(300);
     const durees=[...document.querySelectorAll('[data-rtnew]')].map(b=>b.textContent.trim());
     const champs=document.querySelectorAll('.rt-dock input[type=text],.rt-dock input[type=number]').length;
-    document.querySelector('[data-rtnew="180"]').click();await w(400);
+    document.querySelector('[data-rtnew="180"]').click();await __acCalme(400);
     const tm=Object.values(Runtime.timers).filter(x=>x.adhoc).pop();
     /* ══ COMPTEUR AD HOC : créé À 1, un repère horodaté, et AUCUN timerId ══ */
     const evAvant=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter').length;
-    document.querySelector('[data-cnadd]').click();await w(450);
+    document.querySelector('[data-cnadd]').click();await __acCalme(450);
     const c=(Runtime.adhocCounters||[]).pop();
     const cn={val:c?Runtime.counters[c.id]:null,lien:c?(c.timerId===undefined):null,
       reperes:(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter').length-evAvant};
@@ -5644,22 +5652,22 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
        l'état que ce bloc a laissé — et il n'en laisse pas forcément (mesuré : 0). */
     if(!(Runtime.adhocCounters||[]).length){
       const b=document.querySelector('[data-cnadd]');if(!b)return {erreur:'aucune porte de compteur'};
-      b.click();await w(500);}
+      b.click();await __acCalme(500);}
     if(!(Runtime.adhocCounters||[]).length)return {erreur:'la porte ne crée pas de compteur'};
     const cree=noms().filter(l=>/^Compteur \d/.test(l)).length;
     const bn=document.querySelector('[data-cnname]');
     if(!bn)return {erreur:'aucun bouton « nommer » — le compteur ad hoc n’est pas rendu'};
-    bn.click();await w(300);
+    bn.click();await __acCalme(300);
     const inp=document.querySelector('.cn-input');
     if(!inp)return {erreur:'le champ de nommage ne s’ouvre pas',cnadd:!!document.querySelector('[data-cnadd]'),
       cartes:document.querySelectorAll('.cncard').length,adhoc:(Runtime.adhocCounters||[]).length};
     inp.value='Chocs';
     inp.dispatchEvent(new Event('input',{bubbles:true}));
     inp.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
-    await w(500);
+    await __acCalme(500);
     const apresNom={dock:vis(),nomme:noms().includes('Chocs')};
-    document.querySelector('[data-cnrm]').click();await w(400);
-    const y=document.getElementById('confirmYes');if(y)y.click();await w(500);
+    document.querySelector('[data-cnrm]').click();await __acCalme(400);
+    const y=document.getElementById('confirmYes');if(y)y.click();await __acCalme(500);
     return {cree,apresNom,apresSuppr:noms().includes('Chocs'),dockFin:vis()};});
   if(cnb.erreur){t('témoin : le compteur ad hoc est manipulable',false,JSON.stringify(cnb));}
   else{
@@ -5678,11 +5686,11 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
      et le défilement PROPRE du volet, qui repartait en haut. */
   const roul=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const an=()=>{const d=document.querySelector('.rt-dock');return d?getComputedStyle(d).animationName:'—';};
-    document.getElementById('cbTimers').click();await w(300);          // referme
-    document.getElementById('cbTimers').click();await w(300);          // rouvre : le déroulé joue
+    document.getElementById('cbTimers').click();await __acCalme(300);          // referme
+    document.getElementById('cbTimers').click();await __acCalme(300);          // rouvre : le déroulé joue
     const ouverture=an();
     const d=document.querySelector('.rt-dock');d.scrollTop=40;const y0=d.scrollTop;
-    document.querySelector('[data-cnadd]').click();await w(450);
+    document.querySelector('[data-cnadd]').click();await __acCalme(450);
     const d2=document.querySelector('.rt-dock');
     return {ouverture,apres:an(),y0,y1:d2?d2.scrollTop:-1};});
   /* ══ A68 / planche 11g/1 — LA RANGÉE DE REPÈRE QUI VIENT D'ÊTRE ÉCRITE SE DÉSIGNE ═══════════
@@ -5695,12 +5703,12 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
     /* Le journal vit dans le VOLET en étroit : sans l'ouvrir, `.tk-item` n'est nulle part et l'on
        mesurerait un DOM vide en croyant mesurer une animation. */
     const tk=document.getElementById('tkKey');
-    tk.click();await w(300);document.getElementById('tkKey').click();await w(250);
-    tk.click();await w(300);document.getElementById('tkKey').click();await w(250);
+    tk.click();await __acCalme(300);document.getElementById('tkKey').click();await __acCalme(250);
+    tk.click();await __acCalme(300);document.getElementById('tkKey').click();await __acCalme(250);
     if(!document.querySelector('.rt-dock'))document.getElementById('cbTimers').click();
-    await w(450);
+    await __acCalme(450);
     const apres=an();
-    renderTkOnly();await w(200);
+    renderTkOnly();await __acCalme(200);
     return {apres,repeinture:an()};});
   t('la rangée qui vient d\'être écrite se désigne, et elle SEULE',
     fresh.apres.filter(x=>x==='cbIn').length===1&&fresh.apres.length>=2, JSON.stringify(fresh.apres));
@@ -5724,7 +5732,7 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
       f.timers=[];f.counters=[];await persist();});
     await ouvrirFiche(page,/Anaphylaxie/);await demarrerSession(page);
     const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-      if(innerWidth<780){document.getElementById('cbTimers').click();await w(400);}
+      if(innerWidth<780){document.getElementById('cbTimers').click();await __acCalme(400);}
       return {min:!!document.querySelector('[data-rtadd]'),cn:!!document.querySelector('[data-cnadd]')};});
     t(`${nom} · fiche sans minuteur : les deux portes existent`, r.min&&r.cn, JSON.stringify(r));
     await page.close();
@@ -5738,7 +5746,7 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);await ouvrirFiche(page,/Anaphylaxie/);await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-    document.getElementById('cbTimers').click();await w(400);
+    document.getElementById('cbTimers').click();await __acCalme(400);
     return {veille:!!document.getElementById('wakeToggle'),son:!!document.getElementById('soundToggle')};});
   t('sans l\'API, aucune ligne de veille — et le son reste', r.veille===false&&r.son===true,
     JSON.stringify(r));
@@ -5759,7 +5767,7 @@ await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
     const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
       const k=[...document.querySelectorAll('.sd-key')].find(x=>/HORODATER|NOTER|JOURNAL/i.test(x.textContent));   /* « Horodater · n » (audit UX, P1) */
       if(!k)return {err:'touche ⏱ introuvable'};
-      k.click();await w(500);
+      k.click();await __acCalme(500);
       const c=document.querySelector('.ds-card'),d=document.querySelector('#sessionDock .sd-in');
       if(!c||!d)return {err:'volet ou barre absents'};
       const C=c.getBoundingClientRect(),D=d.getBoundingClientRect();
@@ -5789,7 +5797,7 @@ await sec('v5.6 · tolérance orthographique du répertoire', async () => {
      contenu est. Les QUATRE bornes de la doctrine se mesurent au RENDU, pas sur la fonction pure
      (tests.html la couvre déjà) : c'est le CÂBLAGE qui peut se tromper de cas. */
   await amorce(page);
-  const cherche = async q => { await remplir(page, q); await page.waitForTimeout(400);
+  const cherche = async q => { await remplir(page, q); await calme(page, 400);
     return page.evaluate(() => ({
       n: document.querySelectorAll('.dir-row').length,
       fix: (document.querySelector('.fix-line') || {}).textContent || '',
@@ -5843,14 +5851,14 @@ await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce q
        police de repli, elle peut retenir un segment de moins et ne jamais se redire. Sans cette
        attente, le témoin mesure le hasard du chargement, pas l'application. */
     await page.evaluate(()=>document.fonts&&document.fonts.ready);
-    await page.click('#cbTimers');await page.waitForTimeout(400);
+    await page.click('#cbTimers');await calme(page, 400);
     await page.evaluate(()=>{const b=[...document.querySelectorAll('.rt-dock button')]
       .find(x=>/^Démarrer/.test((x.textContent||'').trim()));
       if(!b)throw new Error('bouton Démarrer introuvable');b.click();});
     /* ⚠ ON MESURE PENDANT L'ANIMATION, PAS APRÈS. La classe est posée sur le NŒUD et retirée par
        `animationend` : à 150 ms elle a déjà disparu, et un témoin qui la cherche là mesure sa
        propre lenteur. 50 ms — le quai répondant au geste, il n'y a plus rien à attendre. */
-    await page.waitForTimeout(50);
+    await calme(page, 50);
     const g=await page.evaluate(()=>{const el=document.getElementById('cbTimers');
       const s=el.querySelector('.seg.seg-in');
       return {marques:el.querySelectorAll('.seg.seg-in').length,
@@ -5906,7 +5914,7 @@ await sec('v5.6 · l\'index A→Z s\'éclaircit pour rester centré', async () =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0,k)
         .forEach(x=>fiches.push(migrate({id:uid('f'),title:x+'zz test',blocks:[]})));
       state.homeGroup='az';   /* v5.18 : le rail n'existe qu'en rangement A–Z */
-      await persist();render();await w(500);},n);
+      await persist();render();await __acCalme(500);},n);
     const r=await page.evaluate(()=>{
       const rail=document.querySelector('.azrail');
       /* v5.18 : en voie LARGE le rail n'existe plus (display:none) — l'index est la colonne
@@ -5977,8 +5985,8 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
   /* Un bloc achevé : la ligne-bilan apparaît et l'ABSORBE — c'est là qu'un déménagement se
      produirait. On mesure la position, pas le libellé. */
   await page.evaluate(async () => { const w = m => new Promise(r => setTimeout(r, m));
-    main.querySelectorAll('.ov-block.cur [data-ck]').forEach(e => e.click()); await w(250);
-    const n = main.querySelector('[data-ovnext]'); if (n) n.click(); await w(500); });
+    main.querySelectorAll('.ov-block.cur [data-ck]').forEach(e => e.click()); await __acCalme(250);
+    const n = main.querySelector('[data-ovnext]'); if (n) n.click(); await __acCalme(500); });
   const d1 = await lire();
   t('témoin : la ligne-bilan des blocs faits l\'a bien absorbée',
     /Fait/.test(d1.lbl || '') && /diagnostic confirmé/i.test(d1.lbl || ''), d1.lbl);
@@ -5986,7 +5994,7 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
     d1.enTete === true && d1.y != null && Math.abs(d1.y - d0.y) <= 2, `${d0.y} → ${d1.y} px`);
 
   await page.evaluate(() => main.querySelector('.ov-runline').click());
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const ouv = await lire();
   t('dépliée : une RANGÉE, comme les blocs — pas les critères en vrac',
     ouv.rangeeConf === 1 && ouv.rangees >= 2 && ouv.crits === 0,
@@ -5994,7 +6002,7 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
 
   await page.evaluate(() => { const r = [...main.querySelectorAll('.ovh-row')]
     .find(x => /Diagnostic confirmé/.test(x.textContent)); if (r) r.click(); });
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const det = await lire();
   t('… et cette rangée déroule ses critères d\'un tap', det.crits >= 2, `${det.crits} critère(s)`);
   await page.close();
@@ -6013,15 +6021,15 @@ await sec('P1 · le retour au bloc courant', async () => {
      sortir la carte courante de la zone utile (mesuré : 448 px de défilement pour 530 de carte).
      On les déplie : elles font partie de la page. */
   await page.evaluate(()=>document.querySelectorAll('.fold-card.closed [data-sessfold]').forEach(b=>b.click()));
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const hautCarte=()=>page.evaluate(()=>{const c=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
     return c?Math.round(c.getBoundingClientRect().top):null;});
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   t('au repos, la barre n\'existe pas', !(await vu()));
   const yAvant=await page.evaluate(()=>window.scrollY);
   // On descend jusqu'au bout : la carte du bloc courant doit sortir ENTIÈREMENT de la zone utile.
   await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
-  await page.waitForTimeout(600);
+  await calme(page, 600);
   /* ⚠ LE PRÉDICAT DU TÉMOIN EST CELUI DE L'APPLICATION, PAS UN AUTRE (leçon A109/4, rejouée
      ici) : la barre se règle sur la zone UTILE — sous les couches collantes, au-dessus du dock —,
      pas sur le rectangle brut de la fenêtre. Mesuré avec `r.bottom<0||r.top>innerHeight`, le
@@ -6053,10 +6061,10 @@ await sec('P1 · le retour au bloc courant', async () => {
     t('… et la barre s\'efface d\'elle-même une fois revenu', false, 'barre absente');}
   else{
     await bkr.click();
-    await page.waitForTimeout(400);
+    await calme(page, 400);
     const h=await hautCarte();
     t('un tap ramène la carte sous les couches collantes', h!==null&&h>0&&h<260, h+' px');
-    await page.waitForTimeout(500);
+    await calme(page, 500);
     t('… et la barre s\'efface d\'elle-même une fois revenu', !(await vu()));}
   t('le défilement de départ était bien en haut', yAvant<40, yAvant+' px');
   /* ⚠ ELLE NE CLIGNOTE PAS À CHAQUE RE-RENDU (v5.7, signalé à l'usage). L'observateur restait
@@ -6066,12 +6074,12 @@ await sec('P1 · le retour au bloc courant', async () => {
      aucun rendu ne doit rendre la barre visible, fût-ce une image. */
   await page.evaluate(async()=>{const c=document.querySelector('.ov-block.cur');
     if(c){const y=window.scrollY+c.getBoundingClientRect().top-140;window.scrollTo(0,Math.max(0,y));}
-    await new Promise(r=>setTimeout(r,500));});
+    await __acCalme(500);});
   const clign=await page.evaluate(async()=>{
     const h=document.getElementById('blkReturn');let vues=0;
     const mo=new MutationObserver(()=>{if(!h.hidden)vues++;});
     mo.observe(h,{attributes:true,attributeFilter:['hidden']});
-    for(let k=0;k<3;k++){renderOvOnly();await new Promise(r=>setTimeout(r,300));}
+    for(let k=0;k<3;k++){renderOvOnly();await __acCalme(300);}
     mo.disconnect();
     const c=document.querySelector('.ov-block.cur');const r=c.getBoundingClientRect();
     const d=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h'))||64;
@@ -6197,14 +6205,14 @@ await sec('Q1 · les propositions de relecture', async () => {
       items:[{id:'qa',do:t0}],blocks:[{id:'qb',title:'B',kind:'do',items:['qa']}],timers:tm||[]});
     state.view='edit';state.draft=f;render();return true;},[txt,timers]);
   await ouvrir('Analyse du rythme toutes les 3 min');
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   const offres=()=>page.evaluate(()=>[...document.querySelectorAll('[data-revoff]')].map(b=>b.dataset.revoff));
   const o=await offres();
   t('le cas est rencontré : le volet porte une proposition', o.indexOf('tm')>=0, o.join(','));
   const btn=await page.$('[data-revoff="tm"]');
   t('… et son bouton dit ce qu\'il crée', !!btn&&/Minuteur/.test((await btn.textContent())||''));
   if(btn){
-    await btn.click();await page.waitForTimeout(500);
+    await btn.click();await calme(page, 500);
     const tm=await page.evaluate(()=>((state.draft&&state.draft.timers)||[]).map(x=>({t:x.type,s:x.seconds})));
     t('le tap crée le minuteur', tm.length===1, JSON.stringify(tm));
     /* ⚠ LA PÉRIODE VIENT DE LA PHRASE, PAS D'UN DÉFAUT : 3 min lues dans le texte, pas 120 s. */
@@ -6212,10 +6220,10 @@ await sec('Q1 · les propositions de relecture', async () => {
     t('… et la proposition se tait ensuite', (await offres()).indexOf('tm')<0);}
   /* Le refus : la proposition s'écarte pour la séance, et rien n'est créé. */
   await ouvrir('Analyse du rythme toutes les 3 min');
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const no=await page.$('[data-revoffno="tm"]');
   t('une proposition écartée est possible', !!no);
-  if(no){await no.click();await page.waitForTimeout(400);
+  if(no){await no.click();await calme(page, 400);
     t('… elle ne revient pas de la séance', (await offres()).indexOf('tm')<0);
     t('… et rien n\'a été créé', (await page.evaluate(()=>((state.draft&&state.draft.timers)||[]).length))===0);}
   await page.close();
@@ -6242,7 +6250,7 @@ await sec('REFONTE · cases rondes et rangées groupées (A506-A507)', async () 
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
   await amorce(page);
   const acc = await page.evaluate(async () => { const w = m => new Promise(r => setTimeout(r, m));
-    state.homeCompact = false; selStart(fiches[0].id); render(); await w(300);
+    state.homeCompact = false; selStart(fiches[0].id); render(); await __acCalme(300);
     const rows = [...document.querySelectorAll('.dir-book .dir-row')];
     const ck = document.querySelector('.dir-ck'), ckb = ck ? getComputedStyle(ck, '::before').borderRadius : '';
     const out = { n: rows.length,
@@ -6259,7 +6267,7 @@ await sec('REFONTE · cases rondes et rangées groupées (A506-A507)', async () 
   await ouvrirFiche(page, /Arrêt cardiaque/);
   await demarrerSession(page);
   await page.evaluate(() => { const f = state.fiche; const b = f.blocks.find(b => /^Choquable/.test(b.title)); jumpToBlock(f, b.id); });
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   const ses = await page.evaluate(() => {
     const bx = [...document.querySelectorAll('.ov-block.cur li[data-ck] .box')];
     const crit = document.querySelector('.ov-block.cur li.crit .box');
@@ -6279,10 +6287,10 @@ await sec('v5.7 · A537 l\'accès direct en tuiles à côté du répertoire', as
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   await page.evaluate(async () => { (fiches || []).slice(0, 2).forEach(f => togglePin(f.id));
-    render(); await new Promise(r => setTimeout(r, 400)); });
+    render(); await __acCalme(400); });
   for (const w of [390, 1100, 1280, 1600]) {
     await page.setViewportSize({ width: w, height: 900 });
-    await page.waitForTimeout(320);
+    await calme(page, 320);
     const r = await page.evaluate(() => {
       const qa = document.querySelector('.qa-sec');
       const vis = !!qa && getComputedStyle(qa).display !== 'none';
@@ -6322,7 +6330,7 @@ await sec('v5.7 · A537 l\'accès direct en tuiles à côté du répertoire', as
    reste le défaut net que ce témoin exclut. */
 await sec('⚡ la reprise après complication redépose sur le bloc interrompu', async () => {
   const page=await session(390);
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const bout=()=>page.evaluate(()=>{const c=[...document.querySelectorAll('.ov-block[data-ovb]')].pop();
     return c?{id:c.dataset.ovb,ttl:(c.querySelector('.ov-t')||{}).textContent||''}:null;});
   const av=await bout();
@@ -6330,17 +6338,17 @@ await sec('⚡ la reprise après complication redépose sur le bloc interrompu',
   const cx=await page.$('#cxKey');
   t('… et la fiche déclare au moins une complication', !!cx);
   if(!av||!cx){await page.close();return;}
-  await cx.click();await page.waitForTimeout(350);
+  await cx.click();await calme(page, 350);
   /* À UNE seule complication, la touche entre directement (v5.0.0/B) ; à plusieurs elle déplie
      l'index. On couvre les deux sans supposer laquelle. */
   const go=await page.$('[data-cxgo]');
-  if(go){await go.click();await page.waitForTimeout(400);}
+  if(go){await go.click();await calme(page, 400);}
   const pend=await bout();
   t('entrer sur la complication pose un NOUVEAU passage', !!pend&&pend.id!==av.id, JSON.stringify(pend));
   const back=await page.$('[data-cxback]');
   t('… et le retour est proposé (jamais laissé à la mémoire)', !!back);
   if(!back){await page.close();return;}
-  await back.click();await page.waitForTimeout(500);
+  await back.click();await calme(page, 500);
   const ap=await bout();
   /* LE CONTRÔLE QUI TRANCHE : le bout du journal doit être le bloc QU'ON A QUITTÉ, pas le suivant. */
   t('reprendre redépose sur le bloc INTERROMPU, pas sur le suivant',
@@ -6370,10 +6378,10 @@ await sec('⚡ le volet prolonge la capsule, en crise comme en exercice', async 
     await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
     if(exo)await page.evaluate(()=>{const f=state.fiche||(typeof Runtime!=='undefined'&&Runtime.fiche);
       if(typeof startExercise==='function'&&f)startExercise(f);});
-    await page.waitForTimeout(250);
+    await calme(page, 250);
     await demarrerSession(page);
     await page.evaluate(()=>{const q=document.getElementById('cbTimers');if(q)q.click();});
-    await page.waitForTimeout(450);
+    await calme(page, 450);
     const m=await page.evaluate(()=>{const q=document.getElementById('crisisDock'),v=document.querySelector('.rt-dock');
       if(!q||!v)return null;
       return {rec:Math.round(q.getBoundingClientRect().bottom-v.getBoundingClientRect().top),
@@ -6547,7 +6555,7 @@ await sec('A130 · doublons annoncés, catégories filtrées', async () => {
     JSON.stringify(cmpAvant));
   if(cmpAvant.existe){
     await page.click('#impList [data-impcmp]');
-    await page.waitForTimeout(120);
+    await calme(page, 120);
     const cmp=await page.evaluate(()=>{const it=document.querySelector('#impList .imp-item');
       const d=it.querySelector('.imp-diff');
       return {ouvert:!d.hidden,txt:d.textContent||'',
@@ -6616,14 +6624,14 @@ await sec('A130 · « remplacer » annonce la sélection, pas le fichier', async
   const q=await page.evaluate(()=>document.getElementById('confirmMsg').textContent);
   t('la question de fusion compte la SÉLECTION',/2 éléments/.test(q),q);
   await page.click('#confirmNo');    // « REMPLACER » -> la confirmation destructive
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const d=await page.evaluate(()=>({titre:document.getElementById('confirmModalTitle').textContent,
     msg:document.getElementById('confirmMsg').textContent}));
   t('la confirmation destructive annonce « les 2 éléments cochés », jamais « le contenu du fichier »',
     /Remplacer la biblioth/i.test(d.titre)&&/2 éléments cochés/.test(d.msg)&&!/contenu du fichier/.test(d.msg),
     JSON.stringify(d));
   await page.click('#confirmNo');    // on n'écrase rien : l'import est abandonné
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const rien=await page.evaluate(()=>fiches.filter(f=>/A130 — lot/.test(f.title)).length);
   t('… et refuser la remplace n\'écrit rien du tout',rien===0,String(rien));
   await page.close();
@@ -6657,7 +6665,7 @@ await sec('A131 · sans horodatage, la rangée se tait', async () => {
   if(vu&&vu.dup)t('A131 · … et AUCUNE relation n\'est inventée à partir d\'un horodatage absent',
     vu.rel==='',JSON.stringify(vu.rel));
   await page.click('#impCancel');
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const rien=await page.evaluate(()=>fiches.some(f=>/A131 — sans horodatage/.test(f.title)));
   t('annuler l\'atelier n\'écrit rien',rien===false,String(rien));
   await page.close();
@@ -6681,17 +6689,17 @@ await sec('EXCURSION · « Tout voir » revient où l’on était', async () => 
   await amorce(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const f=fiches.find(x=>/Arrêt cardiaque/i.test(x.title))||fiches[0];
-    openRead(f.id);await w(500);
+    openRead(f.id);await __acCalme(500);
     document.getElementById('sessStart').click();await w(800);
     const vu=()=>{const b=[...document.querySelectorAll('[data-ovb]')]
       .find(e=>e.getBoundingClientRect().bottom>stickBase()+2);
       return b?{id:b.dataset.ovb,top:Math.round(b.getBoundingClientRect().top)}:null;};
-    window.scrollTo(0,300);await w(300);
+    window.scrollTo(0,300);await __acCalme(300);
     const avant={y:Math.round(scrollY),vu:vu(),h:document.documentElement.scrollHeight};
     document.getElementById('allBtn').click();await w(700);
     /* On va AU BOUT de l'excursion : c'est la position qui produisait le défaut, et sans elle le
        contrôle resterait vert (partir et revenir sans bouger ne discrimine rien). */
-    window.scrollTo(0,document.documentElement.scrollHeight);await w(400);
+    window.scrollTo(0,document.documentElement.scrollHeight);await __acCalme(400);
     const bout=Math.round(scrollY);
     /* LE COLLÈGUE AVANCE PENDANT L'EXCURSION — c'est le cas qui distingue une ANCRE d'un nombre.
        On passe par l'ÉTAT et non par le DOM : la vue « Tout voir » est inerte, et un lot distant
@@ -6700,7 +6708,7 @@ await sec('EXCURSION · « Tout voir » revient où l’on était', async () => 
     const bloc=Runtime.fiche.blocks.find(x=>x.id===b0)||{};
     (stepsOf(bloc)||[]).forEach((_,i)=>{state.checked[state.navPos+':'+b0+':'+i]=true;});
     if(bloc.next){Runtime.nav.push(bloc.next);state.navPos=Runtime.nav.length-1;}
-    await w(200);
+    await __acCalme(200);
     document.getElementById('allBtn').click();await w(900);
     const apres={y:Math.round(scrollY),vu:vu(),h:document.documentElement.scrollHeight,
       max:Math.round(document.documentElement.scrollHeight-innerHeight)};
@@ -6740,14 +6748,14 @@ await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => 
       id:b.dataset.cat,n:b.querySelector('.hs-name').textContent,
       c:(b.parentNode.querySelector('.hs-n')||{textContent:''}).textContent,
       on:b.parentNode.classList.contains('on')}));
-    state.view='library';state.cat=null;render();await w(400);
+    state.view='library';state.cat=null;render();await __acCalme(400);
     const nominal=lire();
     const tous=categories.length;
     const vides=categories.filter(c=>!fiches.concat(protocols).some(x=>x.category===c.id));
     /* LE CAS DU GARDE : une catégorie SÉLECTIONNÉE dont le compte est à zéro. */
-    state.cat=vides.length?catKey(vides[0]):null;render();await w(400);   // A419 : clé de nom
+    state.cat=vides.length?catKey(vides[0]):null;render();await __acCalme(400);   // A419 : clé de nom
     const selVide=lire();
-    state.cat=null;render();await w(200);
+    state.cat=null;render();await __acCalme(200);
     return {tous,nVides:vides.length,nominal,selVide,videId:vides.length?catKey(vides[0]):null};});
   // ON RENCONTRE SON CAS : sans catégorie vide au départ, l'absence de rangée ne prouverait rien.
   t('le cas est rencontré : des catégories sont vides sur une installation neuve',
@@ -6778,53 +6786,53 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
     categories.push({id:'c-urgences',name:'Urgences',color:'#7a2f6b',library:'lib-a'});
     const mk=(id,t,lib)=>{const f=JSON.parse(JSON.stringify(fiches[0]));f.id=id;f.title=t;f.library=lib;f.category='c-urgences';fiches.push(f);};
     mk('p419','Perso adultes',null);mk('a419','Biblio urgences','lib-a');
-    state.homeLib=null;render();await w(300);
+    state.homeLib=null;render();await __acCalme(300);
     const ids=()=>[...main.querySelectorAll('.dir-row')].map(x=>x.textContent).join('|');
     const out={};
     for(const [k,nom] of [['bib','Urgences'],['perso','Urgences adultes']]){
-      [...document.querySelectorAll('.home-side [data-cat]')].find(x=>x.querySelector('.hs-name').textContent===nom).click();await w(300);
+      [...document.querySelectorAll('.home-side [data-cat]')].find(x=>x.querySelector('.hs-name').textContent===nom).click();await __acCalme(300);
       out[k]={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
         on:[...document.querySelectorAll('.home-side [data-cat][aria-pressed="true"]')].map(x=>x.querySelector('.hs-name').textContent)};
-      document.querySelector('.home-side [data-catall]').click();await w(300);}
+      document.querySelector('.home-side [data-catall]').click();await __acCalme(300);}
     /* Même filtre depuis la feuille « Affichage » : la pastille « Urgences » ne s'allume qu'elle, et filtre juste. */
-    main.querySelector('#rangBtn').click();await w(300);   // A556 : en large, la porte de la feuille est « Affichage »
-    [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()==='Urgences').click();await w(300);
+    main.querySelector('#rangBtn').click();await __acCalme(300);   // A556 : en large, la porte de la feuille est « Affichage »
+    [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()==='Urgences').click();await __acCalme(300);
     out.feuille={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
       on:[...document.querySelectorAll('#viewSheetBody .catchip[data-cat].on')].map(x=>x.textContent.trim())};
     /* « Afficher » (Aides / Protocoles / À relire) sur « Toutes », éléments d'une bibliothèque compris, dans chaque
        rangement (signalé en même temps ; il n'a pas le défaut : il ne passe par aucun id). */
-    state.cat='';render();await w(200);
+    state.cat='';render();await __acCalme(200);
     {const p=JSON.parse(JSON.stringify(protocols[0]||blankProtocol()));p.id='pp419';p.title='Proto biblio';p.library='lib-a';p.status='review';protocols.push(p);}
     const kinds=()=>{const ids=[...main.querySelectorAll('.dir-row [data-open]')].map(b=>b.dataset.open);
       return [ids.filter(i=>fiches.some(x=>x.id===i)).length,ids.filter(i=>protocols.some(x=>x.id===i)).length,ids.includes('a419')?1:0,ids.includes('pp419')?1:0].join(',');};
     const nF=fiches.filter(x=>canEditFiche(x)||x.status!=='draft').length,nP=protocols.filter(x=>canEditFiche(x)||x.status!=='draft').length;
     const vu=[],attendu=[];
     for(const g of ['cat','none','kind','bib','az']){
-      document.querySelector(`#viewSheetBody [data-vs="group:${g}"]`).click();await w(250);
+      document.querySelector(`#viewSheetBody [data-vs="group:${g}"]`).click();await __acCalme(250);
       for(const [v,e] of [['all',[nF,nP,1,1]],['fiches',[nF,0,1,0]],['protocols',[0,nP,0,1]]]){
-        document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`).click();await w(250);vu.push(g+':'+v+'='+kinds());attendu.push(g+':'+v+'='+e.join(','));}}
+        document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`).click();await __acCalme(250);vu.push(g+':'+v+'='+kinds());attendu.push(g+':'+v+'='+e.join(','));}}
     out.types={ok:vu.join(' ')===attendu.join(' '),vu};
-    document.querySelector('#viewSheetBody [data-vs="group:cat"]').click();await w(200);
-    closeViewSheet();state.cat='';render();await w(200);
+    document.querySelector('#viewSheetBody [data-vs="group:cat"]').click();await __acCalme(200);
+    closeViewSheet();state.cat='';render();await __acCalme(200);
     /* A421 : le MÊME geste par le bouton « Affichage » de la liste (#rangBtn), qui passe `cfg.rerender` à la
        feuille — la vue d'ouverture (renderAll sur « Tout ») repeignait l'union par-dessus le type choisi.
        Le témoin ci-dessus ouvrait par le bouton rond, sans rappel : il ne pouvait pas voir ce chemin. */
     {const vuR=[],attR=[];
      for(const [v,e] of [['fiches',[nF,0,1,0]],['protocols',[0,nP,0,1]],['all',[nF,nP,1,1]],['protocols',[0,nP,0,1]]]){
-       if(!viewSheet.classList.contains('on')){const rb=main.querySelector('#rangBtn');if(!rb){vuR.push('pas de #rangBtn');break;}rb.click();await w(250);}
-       document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`).click();await w(250);
+       if(!viewSheet.classList.contains('on')){const rb=main.querySelector('#rangBtn');if(!rb){vuR.push('pas de #rangBtn');break;}rb.click();await __acCalme(250);}
+       document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`).click();await __acCalme(250);
        /* puis un geste de RANGEMENT dans la même feuille : il ne doit pas non plus ramener la vue d'ouverture */
-       document.querySelector('#viewSheetBody [data-vs="sort:recent"]').click();await w(200);
-       vuR.push(v+'='+kinds());attR.push(v+'='+e.join(','));closeViewSheet();await w(150);}
+       document.querySelector('#viewSheetBody [data-vs="sort:recent"]').click();await __acCalme(200);
+       vuR.push(v+'='+kinds());attR.push(v+'='+e.join(','));closeViewSheet();await __acCalme(150);}
      out.rang={ok:vuR.join(' ')===attR.join(' '),vu:vuR};
-     main.querySelector('#rangBtn').click();await w(200);
+     main.querySelector('#rangBtn').click();await __acCalme(200);
      document.querySelector('#viewSheetBody [data-vs="sort:alpha"]').click();
-     document.querySelector('#viewSheetBody [data-vs="filt:all"]').click();await w(200);closeViewSheet();await w(150);}
+     document.querySelector('#viewSheetBody [data-vs="filt:all"]').click();await __acCalme(200);closeViewSheet();await __acCalme(150);}
     /* Connexion : Entrée dans le champ e-mail déclenche l'envoi (l'appel réseau est remplacé). */
     let envoye='';Auth.sendCode=async e=>{envoye=e;};
-    _authStep.mode='email';_authStep.msg='';openAuth();await w(300);
+    _authStep.mode='email';_authStep.msg='';openAuth();await __acCalme(300);
     const em=document.getElementById('authEmail');em.value='test@example.org';
-    em.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await w(300);
+    em.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await __acCalme(300);
     out.auth={envoye,msg:(document.querySelector('.auth-msg')||{}).textContent||'',code:!!document.getElementById('authCode')};
     return out;});
   t('A419 : « Urgences » (bibliothèque) ne montre que ses aides, et seule sa rangée s\'allume',
@@ -6855,15 +6863,15 @@ await sec('Accueil · A424 ranger par nom une sélection sur deux bibliothèques
     categories.push({id:'c-urg-a',name:'Urgences',color:'#7a2f6b',library:'lib-a'},{id:'c-trauma',name:'Trauma',color:'#116b4c',library:'lib-a'});
     const mk=(id,lib,cat)=>{const f=JSON.parse(JSON.stringify(fiches[0]));f.id=id;f.title=id;f.library=lib;f.category=cat;fiches.push(f);return f;};
     const p=fiches[0],a1=mk('a424-1','lib-a','c-urg-a'),a2=mk('a424-2','lib-a','');const pCat=p.category;
-    state.homeLib=null;render();await w(300);
-    document.getElementById('selTog').click();await w(250);
-    for(const id of [p.id,a1.id,a2.id]){main.querySelector(`[data-selid="${id}"]`).click();await w(100);}
+    state.homeLib=null;render();await __acCalme(300);
+    document.getElementById('selTog').click();await __acCalme(250);
+    for(const id of [p.id,a1.id,a2.id]){main.querySelector(`[data-selid="${id}"]`).click();await __acCalme(100);}
     out.cpt=document.getElementById('selN').textContent;
     const rangs=()=>Object.fromEntries([...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>[x.querySelector('.mm-lb').textContent,(x.querySelector('.mm-sub')||{}).textContent||'']));
-    document.getElementById('selDo').click();await w(300);
+    document.getElementById('selDo').click();await __acCalme(300);
     out.acte=rangs()['Ranger dans une catégorie…'];
     const ranger=document.querySelector('.popmenu [data-pickopt="selCat"]');if(!ranger)return out;   // rangée absente : rouge, pas une panne
-    ranger.click();await w(300);
+    ranger.click();await __acCalme(300);
     out.tete=(document.querySelector('.popmenu .mm-ctx')||{}).textContent||'';
     const R=rangs();out.ordre=Object.keys(R).slice(0,2).join('|');
     /* intertitres : où le nom existe + le partage, une fois ; chaque nom sous le sien */
@@ -6871,13 +6879,13 @@ await sec('Accueil · A424 ranger par nom une sélection sur deux bibliothèques
       if(x.classList.contains('mm-head'))h=x.textContent;else if(h)(grp[h]=grp[h]||[]).push(x.querySelector('.mm-lb').textContent);});
     out.grp=grp;
     out.coche=[...document.querySelectorAll('.popmenu [aria-selected="true"]')].length;
-    [...document.querySelectorAll('.popmenu [data-pickopt]')].find(x=>x.querySelector('.mm-lb').textContent==='Trauma').click();await w(300);
+    [...document.querySelectorAll('.popmenu [data-pickopt]')].find(x=>x.querySelector('.mm-lb').textContent==='Trauma').click();await __acCalme(300);
     out.apres=[a1.category,a2.category,p.category===pCat];
     out.toast=[...document.querySelectorAll('.toast')].map(x=>x.textContent).join('|');
     /* une seule bibliothèque : ni en-tête, ni sous-ligne — le sélecteur d'avant */
-    selSet().clear();selSet().add(a1.id);selSet().add(a2.id);render();await w(250);
-    document.getElementById('selDo').click();await w(300);
-    document.querySelector('.popmenu [data-pickopt="selCat"]').click();await w(300);
+    selSet().clear();selSet().add(a1.id);selSet().add(a2.id);render();await __acCalme(250);
+    document.getElementById('selDo').click();await __acCalme(300);
+    document.querySelector('.popmenu [data-pickopt="selCat"]').click();await __acCalme(300);
     out.seule={tete:!!document.querySelector('.popmenu .mm-ctx'),sub:rangs().Urgences};
     return out;});
   t('A424 : le compte dit que la sélection mêle deux bibliothèques', /deux bibliothèques/.test(r.cpt), r.cpt);
@@ -6925,17 +6933,17 @@ for (const H of [844, 667]) {
     const f=fiches.find(x=>/cardiaque/i.test(x.title))||fiches[0];
     /* LE VRAI POINT D'ENTRÉE (doctrine v4.40.0) : `openEdit` pose le brouillon, la sauvegarde de
        version et l'état de restauration — un `state.view='edit'` à la main sauterait tout cela. */
-    await openEdit(f.id);await w(500);
+    await openEdit(f.id);await __acCalme(500);
     const stick=Math.round(parseFloat(getComputedStyle(document.documentElement)
       .getPropertyValue('--stick-top'))||0);
     const out={coarse:matchMedia('(pointer:coarse)').matches,stick,vh:innerHeight,cas:{}};
     const ouvrir=async kind=>{
-      window.scrollTo(0,1200);await w(150);
+      window.scrollTo(0,1200);await __acCalme(150);
       const porte=document.getElementById('edAddOpen');if(!porte)return null;
-      porte.click();await w(300);
+      porte.click();await __acCalme(300);
       const row=[...document.querySelectorAll('[data-edadd]')].find(b=>b.dataset.edadd===kind);
       if(!row)return null;
-      row.click();await w(400);return true;};
+      row.click();await __acCalme(400);return true;};
     /* OBJETS À TÊTE PROPRE : on exige l'ANCRAGE (haut ≈ --stick-top), pas la visibilité. */
     for(const [kind,sel] of [['steps','.blk'],['decision','.blk.blk-dec'],
         ['interval','.tmedit[data-ti]'],['counter','.tmedit[data-ci]'],['cx','.cx-edit-row']]){
@@ -7015,9 +7023,9 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
         cible:Math.min(...kids.filter(k=>k.tagName==='BUTTON').map(k=>k.offsetHeight)),
         ids:kids.map(k=>k.id||k.className).join(' ')};};
     const out={};
-    document.getElementById('selTog').click(); await w(300);
+    document.getElementById('selTog').click(); await __acCalme(300);
     out.zero=mes();
-    let c; while((c=[...document.querySelectorAll('[data-selid]')].filter(x=>x.getAttribute('aria-checked')!=='true')[0])){c.click();await w(150);}
+    let c; while((c=[...document.querySelectorAll('[data-selid]')].filter(x=>x.getAttribute('aria-checked')!=='true')[0])){c.click();await __acCalme(150);}
     out.n=selEnt().length;
     out.plein=mes();
     return out;});
@@ -7059,14 +7067,14 @@ for (const W of [390, 1200]) {
         coches:document.querySelectorAll('[data-selid][aria-checked="true"]').length,
         total:document.querySelectorAll('[data-selid]').length};};
     const out={};
-    document.getElementById('selTog').click(); await w(250); out.zero=st();
-    document.querySelector('[data-selid]').click(); await w(200); out.partie=st();
+    document.getElementById('selTog').click(); await __acCalme(250); out.zero=st();
+    document.querySelector('[data-selid]').click(); await __acCalme(200); out.partie=st();
     // A476 : la feuille « Actions » porte les cinq actes, en libellés entiers, chacun avec son glyphe — Collection en tête.
-    document.getElementById('selDo').click(); await w(300);
+    document.getElementById('selDo').click(); await __acCalme(300);
     out.feuille=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>(x.querySelector('.mm-ic svg')?'':'∅')+x.dataset.pickopt);
-    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); await w(200);
-    document.getElementById('selAll').click(); await w(200); out.tout=st();
-    document.getElementById('selAll').click(); await w(200); out.rien=st();
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); await __acCalme(200);
+    document.getElementById('selAll').click(); await __acCalme(200); out.tout=st();
+    document.getElementById('selAll').click(); await __acCalme(200); out.rien=st();
     return out;});
   const P=`${W}px`;
   t(`${P} · rien de coché : case vide, « Tout cocher », compte « 0 coché »`,
@@ -7105,21 +7113,21 @@ await sec('ACCUEIL · A499-A500 pied sans version en double, pastille du compte 
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
     const vis=el=>!!el&&getComputedStyle(el).display!=='none'&&!el.hidden;
     // sans compte, synthèse ouverte : la rangée d'état (chip cachée + version) n'existe pas à l'écran
-    _attSum.off=0;_attSum.idx=0;syncFootSum();await w(80);
-    const b=document.getElementById('footMore');if(b&&b.getAttribute('aria-expanded')!=='true')b.click();await w(150);
+    _attSum.off=0;_attSum.idx=0;syncFootSum();await __acCalme(80);
+    const b=document.getElementById('footMore');if(b&&b.getAttribute('aria-expanded')!=='true')b.click();await __acCalme(150);
     out.sansCompte={statusRow:vis(document.querySelector('footer.tools .tools-status')),count:vis(document.getElementById('count')),sum:vis(document.getElementById('footSum'))};
     // compte simulé, synchronisé : la chip se voit, la version se tait
-    Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});setSyncChip('ok','Synchronisé');render();await w(300);
-    _attSum.off=0;_attSum.idx=0;syncFootSum();await w(80);
-    {const b2=document.getElementById('footMore');if(b2&&b2.getAttribute('aria-expanded')!=='true')b2.click();await w(150);}
+    Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});setSyncChip('ok','Synchronisé');render();await __acCalme(300);
+    _attSum.off=0;_attSum.idx=0;syncFootSum();await __acCalme(80);
+    {const b2=document.getElementById('footMore');if(b2&&b2.getAttribute('aria-expanded')!=='true')b2.click();await __acCalme(150);}
     out.ok={chip:vis(document.getElementById('syncChip')),count:vis(document.getElementById('count')),sum:vis(document.getElementById('footSum'))};
     const colDot=()=>document.querySelector('.home-side .hs-avatar>.acct-dot');
     out.colOk=colDot()?colDot().className:'absent';
     // erreur : synthèse cachée, version visible, pastille de colonne en erreur
-    setSyncChip('err','Erreur de synchronisation');await w(150);
+    setSyncChip('err','Erreur de synchronisation');await __acCalme(150);
     out.err={sum:vis(document.getElementById('footSum')),count:vis(document.getElementById('count')),col:colDot()?colDot().className:'absent'};
     // en cours : anneau en --line-strong
-    setSyncChip('busy','Synchronisation…');await w(100);
+    setSyncChip('busy','Synchronisation…');await __acCalme(100);
     const d=colDot();const cs=d?getComputedStyle(d):null;const strong=getComputedStyle(document.documentElement).getPropertyValue('--line-strong').trim();
     out.busy={col:d?d.className:'absent',border:cs?cs.borderLeftColor:'',strong,strongRgb:(()=>{const t=document.createElement('span');t.style.color=strong;document.body.appendChild(t);const c=getComputedStyle(t).color;t.remove();return c;})()};
     return out;});
@@ -7146,7 +7154,7 @@ await sec('ACCUEIL LARGE · A501 la colonne gauche pose sous la barre d’état'
       sat:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0};});
   const nominal=await mesure();
   await page.addStyleTag({content:':root{--sat:40px}'});
-  await page.waitForTimeout(120);
+  await calme(page, 120);
   const inset=await mesure();
   t('1180px · témoin : sans inset, la marque de la colonne est à son bord (12 px)', nominal.sat===0&&nominal.brand===12, JSON.stringify(nominal));
   t('1180px · avec 40 px d’inset, la marque descend d’autant — entière sous la bande', inset.brand-nominal.brand===40&&inset.brand>=40, JSON.stringify({nominal,inset}));
@@ -7164,22 +7172,22 @@ for (const W of [390, 1280]) {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
     for(let i=0;i<30;i++){const f=JSON.parse(JSON.stringify(fiches[0]));f.id='fs'+i;f.title='Aide '+String(i).padStart(2,'0');f.status='validated';fiches.push(migrate(f));}
     myLibraries.length=0;myLibraries.push({id:'lib-vide',name:'Équipe neuve',role:'admin'});
-    const c=collNew('Garde SMUR',[fiches[0].id]);render();await w(300);
+    const c=collNew('Garde SMUR',[fiches[0].id]);render();await __acCalme(300);
     if(W>=780){out.vide=[...document.querySelectorAll('.home-side [data-libsel]')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).find(t=>/^Équipe neuve/.test(t))||'';
       const tout=()=>{const b=document.querySelector('.home-side [data-collsel=""]');return b?b.closest('.hs-wrap').classList.contains('on'):null;};
-      out.tout=[tout()];document.querySelector('.home-side [data-collsel="'+c.id+'"]').click();await w(200);out.tout.push(tout(),state.coll===c.id);
-      document.querySelector('.home-side [data-collsel=""]').click();await w(200);out.tout.push(tout(),state.coll);}
+      out.tout=[tout()];document.querySelector('.home-side [data-collsel="'+c.id+'"]').click();await __acCalme(200);out.tout.push(tout(),state.coll===c.id);
+      document.querySelector('.home-side [data-collsel=""]').click();await __acCalme(200);out.tout.push(tout(),state.coll);}
     const sc=()=>{const m=document.querySelector('.home-main');return (m&&m.scrollHeight>m.clientHeight+5&&getComputedStyle(m).overflowY!=='visible')?m:null;};
     const pose=y=>{const m=sc();if(m)m.scrollTop=y;else window.scrollTo(0,y);};const lit=()=>{const m=sc();return Math.round(m?m.scrollTop:window.scrollY);};
-    pose(900);await w(250);const avant=lit();
+    pose(900);await __acCalme(250);const avant=lit();
     const b=[...document.querySelectorAll('.home-main .card-open')].find(x=>{const q=x.getBoundingClientRect();return q.top>100&&q.bottom<innerHeight-100;});
-    b.click();await w(500);history.back();await w(700);out.retour=[avant,lit()];
+    b.click();await __acCalme(500);history.back();await w(700);out.retour=[avant,lit()];
     // Terminer la session : en haut, sur la carte-bilan
-    pose(900);await w(250);
-    [...document.querySelectorAll('.home-main .card-open')].find(x=>{const q=x.getBoundingClientRect();return q.top>100&&q.bottom<innerHeight-100;}).click();await w(400);
-    document.getElementById('sessStart').click();await w(400);
+    pose(900);await __acCalme(250);
+    [...document.querySelectorAll('.home-main .card-open')].find(x=>{const q=x.getBoundingClientRect();return q.top>100&&q.bottom<innerHeight-100;}).click();await __acCalme(400);
+    document.getElementById('sessStart').click();await __acCalme(400);
     confirmEndSession=async()=>true;   // la fenêtre maintenue 1,2 s a ses propres témoins ; ici, ce qui suit
-    await endCurrentSession();await w(500);
+    await endCurrentSession();await __acCalme(500);
     out.apresFin=lit();
     return out;},W);
   const P=W+' px';
@@ -7206,42 +7214,42 @@ for (const W of [390, 1280]) {
   const r = await page.evaluate(async (W) => {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
     // une colonne à Perso seule d'abord (bureau)
-    render();await w(250);
+    render();await __acCalme(250);
     if(W>=780){out.seule=[...document.querySelectorAll('.home-side .hs-row')].map(b=>b.textContent.trim()).filter(t=>/Perso|Toutes$|Partager/.test(t));}
     myLibraries.length=0;myLibraries.push({id:'lib-x',name:'Bloc',role:'viewer'});
     const urg=categories.find(c=>!c.library&&c.name==='Urgences');
     categories.push({id:'c-urg-x',name:'Urgences',color:'#2f6b3a',library:'lib-x'});
     const fx=JSON.parse(JSON.stringify(fiches[0]));fx.id='fx';fx.title='Aide du Bloc';fx.library='lib-x';fx.category='c-urg-x';fx.status='validated';fiches.push(migrate(fx));
     const fd=JSON.parse(JSON.stringify(fiches[0]));fd.id='fd';fd.title='Brouillon perso';fd.status='draft';fiches.push(migrate(fd));
-    state.homeGroup='cat';state.homeLib='lib-x';render();await w(250);
+    state.homeGroup='cat';state.homeLib='lib-x';render();await __acCalme(250);
     const dot=()=>{const l=[...document.querySelectorAll('.home-main .dir-l')].find(x=>/Urgences/.test(x.textContent));const d=l&&l.querySelector('.dir-dot');return d?getComputedStyle(d).backgroundColor:'';};
-    out.dotBloc=dot();state.homeLib=null;render();await w(250);
+    out.dotBloc=dot();state.homeLib=null;render();await __acCalme(250);
     out.dotToutes=(()=>{const l=[...document.querySelectorAll('.home-main .dir-l')].find(x=>/Urgences/.test(x.textContent));const d=l&&l.querySelector('.dir-dot');return d?getComputedStyle(d).backgroundImage:'';})();
     out.urgPerso=urg&&urg.color;
     if(W>=780)out.colonne=[...document.querySelectorAll('.home-side .hs-row')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).filter(t=>/^(Toutes|Perso|Bloc)/.test(t));
     // case « Accès direct » sur une sélection avec brouillon
-    const ids=fiches.map(f=>f.id);state.selOn=true;state.sel=new Set(ids);render();await w(200);
-    openCollPick(ids,{});await w(300);
+    const ids=fiches.map(f=>f.id);state.selOn=true;state.sel=new Set(ids);render();await __acCalme(200);
+    openCollPick(ids,{});await __acCalme(300);
     const pinRow=()=>[...document.querySelectorAll('.popmenu .mm-row')].find(x=>/Accès direct/.test(x.textContent));
     out.pinSub=pinRow().textContent;const pins0=[];
-    pinRow().click();await w(150);pins0.push(pinRow().getAttribute('aria-checked'));pinRow().click();await w(150);pins0.push(pinRow().getAttribute('aria-checked'),pins.length);
-    out.pinCase=pins0;document.querySelector('.popmenu [data-pickdone]').click();await w(200);
+    pinRow().click();await __acCalme(150);pins0.push(pinRow().getAttribute('aria-checked'));pinRow().click();await __acCalme(150);pins0.push(pinRow().getAttribute('aria-checked'),pins.length);
+    out.pinCase=pins0;document.querySelector('.popmenu [data-pickdone]').click();await __acCalme(200);
     // « Ranger » › « Nouvelle catégorie… » crée et range
-    state.sel=new Set([fiches[0].id]);render();await w(200);
-    selNewCat([null],()=>{});await w(300);
+    state.sel=new Set([fiches[0].id]);render();await __acCalme(200);
+    selNewCat([null],()=>{});await __acCalme(300);
     const inp=document.getElementById('confirmInput');inp.value='Transport';inp.dispatchEvent(new Event('input'));
-    out.creerRanger=document.getElementById('confirmYes').textContent;document.getElementById('confirmYes').click();await w(500);
-    out.range=catName(fiches[0]);state.selOn=false;state.sel=new Set();render();await w(200);
+    out.creerRanger=document.getElementById('confirmYes').textContent;document.getElementById('confirmYes').click();await __acCalme(500);
+    out.range=catName(fiches[0]);state.selOn=false;state.sel=new Set();render();await __acCalme(200);
     // une étoile touchée, une seule animée
-    pinTap(fiches[0].id,()=>render());await w(30);
+    pinTap(fiches[0].id,()=>render());await __acCalme(30);
     out.anim=[...document.querySelectorAll('.home-main .pinbtn')].filter(b=>{const s=b.querySelector('svg');return s&&getComputedStyle(s).animationName==='pop';}).length;
     // « Ajouter à « … » » : titre et catégorie par rangée ; menu ⋯ sous son bouton
-    const c=collNew('Garde SMUR',[]);state.coll=c.id;render();await w(250);
-    document.querySelector('[data-colladd]').click();await w(400);
+    const c=collNew('Garde SMUR',[]);state.coll=c.id;render();await __acCalme(250);
+    document.querySelector('[data-colladd]').click();await __acCalme(400);
     out.ajTitre=(document.querySelector('.popmenu .mm-title')||{}).textContent;
     out.ajSub=[...document.querySelectorAll('.popmenu .mm-row .mm-sub')].map(x=>x.textContent).find(t=>/Urgences/.test(t))||'';
-    document.querySelector('.popmenu [data-pickdone]').click();await w(250);
-    const b=document.querySelector('[data-collmenu]');b.click();await w(300);
+    document.querySelector('.popmenu [data-pickdone]').click();await __acCalme(250);
+    const b=document.querySelector('[data-collmenu]');b.click();await __acCalme(300);
     const m=[...document.querySelectorAll('.popmenu')].find(x=>x.id!=='moreMenu'&&x.getClientRects().length);
     if(m&&!m.classList.contains('sheet')){const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect();out.menuSous=Math.round(mr.top-br.bottom)>=0&&Math.round(mr.top-br.bottom)<=12&&Math.abs(Math.round(mr.right-br.right))<=1;}
     else out.menuSous=!!m;
@@ -7273,38 +7281,38 @@ for (const W of [390, 1280]) {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
     myLibraries.length=0;myLibraries.push({id:'lib-ro',name:'SAMU 31',role:'viewer'});
     const f=JSON.parse(JSON.stringify(fiches[0]));f.id='ro1';f.title='Aide du SAMU';f.library='lib-ro';f.status='validated';fiches.push(migrate(f));
-    const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await w(300);
+    const c=collNew('Garde SMUR',['ro1',fiches[0].id,'absent-1']);render();await __acCalme(300);
     /* A545 (après A517) : au téléphone, la porte des collections est le grand TITRE, qui ouvre la feuille « Afficher ». */
     const tn=document.documentElement.classList.contains('tabnav');
     out.rail=tn?(!!document.getElementById('pgPick')&&!document.querySelector('.home-main .coll-rail')):!!document.querySelector('.home-main .coll-rail [data-collsel]');
     out.col=!!document.querySelector('.home-side [data-collsel="'+c.id+'"]');
-    if(tn){document.getElementById('pgPick').click();await w(300);document.querySelector('.popmenu [data-pickopt="c:'+c.id+'"]').click();}
+    if(tn){document.getElementById('pgPick').click();await __acCalme(300);document.querySelector('.popmenu [data-pickopt="c:'+c.id+'"]').click();}
     else document.querySelector('[data-collsel="'+c.id+'"]').click();
-    await w(300);
+    await __acCalme(300);
     out.coll=state.coll===c.id;
     /* Au téléphone, le titre dit l'axe (« Collection · à vous seul », le nom) : la puce ne le redit pas (A545). */
     out.puce=tn?((document.querySelector('.pg-eye')||{}).textContent||'').replace(/·.*/,'')+' '+((document.getElementById('pgPick')||{}).textContent||'')+((document.querySelector('.af-bar')||{}).textContent||'')
       :(document.querySelector('.af-bar')||{}).textContent||'';
     out.tete=(tn?((document.querySelector('.pg-eye')||{}).textContent||'')+' ':'')+((document.querySelector('.coll-head')||{}).textContent||'');   // A545 : au téléphone « à vous seul » monte au-dessus du titre
     out.rangees=document.querySelectorAll('.dir-row').length;
-    document.querySelector('[data-colladd]').click();await w(300);
+    document.querySelector('[data-colladd]').click();await __acCalme(300);
     out.cases=document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
-    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(250);
-    openRead('ro1');await w(400);
-    document.getElementById('hdrMore').click();await w(250);
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(250);
+    openRead('ro1');await __acCalme(400);
+    document.getElementById('hdrMore').click();await __acCalme(250);
     const rows=[...document.querySelectorAll('#moreMenu .mm-row, .mm-row')];
     const mod=rows.find(x=>/^Modifier/.test(x.textContent)),col=rows.find(x=>/Ajouter à une collection/.test(x.textContent));
     out.modOff=!!mod&&mod.disabled;out.colOn=!!col&&!col.disabled;out.colSub=col?col.textContent:'';
-    col.click();await w(350);
+    col.click();await __acCalme(350);
     const box=v=>document.querySelector('.popmenu [data-pickopt="'+v+'"]');
     out.avant=box(c.id).getAttribute('aria-checked');
     out.fe=[(document.querySelector('.popmenu .mm-title')||{}).textContent,(document.querySelector('.popmenu .mm-ctxl')||{}).textContent];
     out.ic2=document.querySelectorAll('.popmenu [role="menuitemcheckbox"] .mm-ic2 svg').length===document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
     out.notice=(document.querySelector('.popmenu .notice')||{}).textContent||'';
-    box(c.id).click();await w(150);
+    box(c.id).click();await __acCalme(150);
     out.apres=[box(c.id).getAttribute('aria-checked'),collHas(c.id,'ro1'),fiches.find(x=>x.id==='ro1').library];
-    box('*').click();await w(150);out.pin=isPinned('ro1');
-    document.querySelector('.popmenu [data-pickdone]').click();await w(200);
+    box('*').click();await __acCalme(150);out.pin=isPinned('ro1');
+    document.querySelector('.popmenu [data-pickdone]').click();await __acCalme(200);
     out.ferme=!document.querySelector('[data-pickdone]');
     return out;});
   const P=`${W}px`;
@@ -7338,22 +7346,22 @@ await sec('ÉDITEUR · A496-A497 collections à la création, « Nouveau protoco
   await amorce(page);
   const r1 = await page.evaluate(async () => {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
-    newProtocol();await w(300);
+    newProtocol();await __acCalme(300);
     out.proto=(document.querySelector('.ed-ident .id-t')||{}).textContent||'';
     out.pkProto=!!document.getElementById('collPicker');
     out.aucune=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
     document.getElementById('hdrBack').click();await w(800);
-    const c=collNew('Garde SMUR',[]);collSel(c.id);render();await w(300);
-    newFiche();await w(300);
+    const c=collNew('Garde SMUR',[]);collSel(c.id);render();await __acCalme(300);
+    newFiche();await __acCalme(300);
     out.aide=(document.querySelector('.ed-ident .id-t')||{}).textContent||'';
     out.dans=collHas(c.id,state.draft.id);
     out.chip=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
-    document.querySelector('#collPicker .cat-chip-other').click();await w(350);
+    document.querySelector('#collPicker .cat-chip-other').click();await __acCalme(350);
     const box=v=>document.querySelector('.popmenu [data-pickopt="'+v+'"]');
     out.cases=document.querySelectorAll('.popmenu [role="menuitemcheckbox"]').length;
     out.coche=box(c.id)?box(c.id).getAttribute('aria-checked'):'';
     out.pinSub=(box('*')||{}).textContent||'';
-    if(box('*')){box('*').click();await w(150);}out.pin=isPinned(state.draft.id);
+    if(box('*')){box('*').click();await __acCalme(150);}out.pin=isPinned(state.draft.id);
     out.ferme1=!!document.querySelector('.popmenu-veil.sheet');
     // Le point du tap : le résumé de la pancarte d'identité, SOUS le voile (la feuille vit en bas).
     const sm=document.querySelector('details.ed-ident>summary').getBoundingClientRect();
@@ -7363,17 +7371,17 @@ await sec('ÉDITEUR · A496-A497 collections à la création, « Nouveau protoco
     return out;});
 
   await page.touchscreen.tap(r1.pt[0], r1.pt[1]);
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const r2 = await page.evaluate(async () => {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
     out.ferme=!document.querySelector('.catmenu.popmenu')&&!document.querySelector('.popmenu-veil');   // `.catmenu` : le menu ⋯ statique est aussi un `.popmenu`, caché
     out.ouvertApres=document.querySelector('details.ed-ident').open;
     out.chip=(document.querySelector('#collPicker .cat-chip-selected')||{}).textContent||'';
     // A498 : le menu des catégories dit ce qu'est une catégorie (Perso : le pivot est le nombre, pas « l'équipe ») — APRÈS le tap, pour ne pas fermer la feuille mesurée
-    document.querySelector('#catPicker .cat-chip-other').click();await w(400);
+    document.querySelector('#catPicker .cat-chip-other').click();await __acCalme(400);
     out.catTitre=(document.querySelector('.catmenu.popmenu .mm-title')||{}).textContent||'';
     out.catNotice=(document.querySelector('.catmenu.popmenu .notice')||{}).textContent||'';
-    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(250);
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(250);
     const id=state.draft.id;
     document.getElementById('hdrBack').click();await w(800);
     out.purge=colls.every(c=>c.ids.indexOf(id)<0)&&!isPinned(id);out.vue=state.view;
@@ -7438,7 +7446,7 @@ for (const cas of ['admin','demandeur','ancien']) {
     const door=document.getElementById('admDoor');
     out.porteAdm=door?door.textContent.replace(/\s+/g,' ').trim():null;
     out.pile=!!document.getElementById('authStats');
-    const nouvelle=async()=>{const nl=document.querySelector('#acctLibs [data-newlib]');if(!nl)return;nl.click();await w(300);
+    const nouvelle=async()=>{const nl=document.querySelector('#acctLibs [data-newlib]');if(!nl)return;nl.click();await __acCalme(300);
       out.titre=document.getElementById('newLibModalTitle').textContent;
       const n=document.getElementById('newLibName');n.value='Pédia';n.dispatchEvent(new Event('input'));
       out.cta=document.getElementById('newLibOk').textContent;};
@@ -7451,33 +7459,33 @@ for (const cas of ['admin','demandeur','ancien']) {
     out.comptes=R().querySelectorAll('[data-admuser]').length;
     out.libs=[...R().querySelectorAll('[data-admlib]')].map(b=>b.textContent);
     /* Règles : la création à trois choix et l'interrupteur de validation, tous deux CONFIRMÉS avant tout envoi. */
-    admGo('regles');await w(200);
+    admGo('regles');await __acCalme(200);
     out.regle=R().querySelectorAll('[data-libmode]').length;
     out.regleNote=(R().querySelector('.adm-note')||{}).textContent||'';
     const ap=R().querySelector('[data-libmode="approved"]');
-    if(ap){ap.click();await w(150);const ask=R().querySelector('.adm-ask');out.ask=!!ask&&/Tout compte approuvé/.test(ask.textContent);
-      R().querySelector('[data-admno]').click();await w(100);}
+    if(ap){ap.click();await __acCalme(150);const ask=R().querySelector('.adm-ask');out.ask=!!ask&&/Tout compte approuvé/.test(ask.textContent);
+      R().querySelector('[data-admno]').click();await __acCalme(100);}
     const sw=R().querySelector('[data-admap]');
-    if(sw){out.valid=sw.getAttribute('aria-checked');sw.click();await w(150);const ask=R().querySelector('.adm-ask');
+    if(sw){out.valid=sw.getAttribute('aria-checked');sw.click();await __acCalme(150);const ask=R().querySelector('.adm-ask');
       out.validAsk=ask?ask.textContent:'';out.validAvant=(window.__compte('set_approval_required'))>0;
-      R().querySelector('[data-admyes="ap"]').click();await w(400);out.validApres=(window.__compte('set_approval_required'))>0;}
+      R().querySelector('[data-admyes="ap"]').click();await __acCalme(400);out.validApres=(window.__compte('set_approval_required'))>0;}
     /* Comptes → un compte : liste ET détail côte à côte en vue large. */
-    admGo('comptes');await w(200);
+    admGo('comptes');await __acCalme(200);
     const ua=R().querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]');
-    if(ua){ua.click();await w(500);const pa=R().querySelector('aside');
+    if(ua){ua.click();await __acCalme(500);const pa=R().querySelector('aside');
       out.panneau={split:!!R().querySelector('.adm-split'),courant:(R().querySelector('[data-admuser="00000000-0000-0000-0000-00000000000a"]')||{}).getAttribute?.('aria-current'),
         suspendre:!!(pa&&pa.querySelector('[data-admact="suspend"]')),creer:!!(pa&&pa.querySelector('[data-admcreate]')),roles:pa?pa.querySelectorAll('[data-admrole]').length:0,profondeur:admDepth()};
-      const sel=pa&&pa.querySelector('[data-admrole]');if(sel){sel.value='admin';sel.dispatchEvent(new Event('change',{bubbles:true}));await w(400);}}
+      const sel=pa&&pa.querySelector('[data-admrole]');if(sel){sel.value='admin';sel.dispatchEvent(new Event('change',{bubbles:true}));await __acCalme(400);}}
     /* La bibliothèque d'un autre (A484) s'ouvre depuis Bibliothèques ; refermer relit l'instance. */
-    admGo('libs');await w(200);
+    admGo('libs');await __acCalme(200);
     const lb=R().querySelector('[data-admlib="lib-1"]');
-    if(lb){lb.click();await w(500);const mb=document.getElementById('membersBody');
+    if(lb){lb.click();await __acCalme(500);const mb=document.getElementById('membersBody');
       out.gerer={nom:document.getElementById('libNameField').value,horsAdh:/pas membre/.test((mb.querySelector('.notice')||{}).textContent||''),
         compte:(mb.querySelector('.danger-caption')||{}).textContent||'',invite:!!mb.querySelector('#memInvite'),convertir:!!mb.querySelector('#libToColl'),retirer:mb.querySelectorAll('[data-remove]').length};
-      document.getElementById('memEmail').value='c@x.fr';document.getElementById('memInvite').click();await w(300);
-      const avant=window.__compte('list_accounts');closeMembers(true);await w(500);
+      document.getElementById('memEmail').value='c@x.fr';document.getElementById('memInvite').click();await __acCalme(300);
+      const avant=window.__compte('list_accounts');closeMembers(true);await __acCalme(500);
       out.relu=(window.__compte('list_accounts'))>avant;}
-    setHomeTab('me');await w(300);await nouvelle();
+    setHomeTab('me');await __acCalme(300);await nouvelle();
     return out;});
   if (cas==='admin') {
     t('A494 : Moi porte la PORTE d’Administration (compte « à traiter »), plus la pile d’A438/A483', /Administration/.test(r.porteAdm||'')&&/2 à traiter/.test(r.porteAdm||'')&&!r.pile, JSON.stringify([r.porteAdm,r.pile]));
@@ -7532,24 +7540,24 @@ const r = await page.evaluate(async () => {
   out.todo=B().querySelectorAll('[data-admst$=":approved"]').length;
   out.annuaire=[...B().querySelectorAll('[data-admgo="comptes"]:not([data-admf]),[data-admgo="libs"]')].map(b=>b.textContent.replace(/\s+/g,' ').trim());
   const voir=B().querySelector('[data-admgo="comptes"][data-admf="pending"]');out.voir=voir?voir.textContent:'';
-  voir.click();await w(300);
+  voir.click();await __acCalme(300);
   out.filtre=B().querySelectorAll('[data-admuser]').length;out.teteComptes=tete();
-  B().querySelector('[data-admsel]').click();await w(150);
-  const p=B().querySelectorAll('[data-admpick]');p[0].click();await w(100);B().querySelectorAll('[data-admpick]')[1].click();await w(100);
+  B().querySelector('[data-admsel]').click();await __acCalme(150);
+  const p=B().querySelectorAll('[data-admpick]');p[0].click();await __acCalme(100);B().querySelectorAll('[data-admpick]')[1].click();await __acCalme(100);
   out.barre=(B().querySelector('.adm-selbar')||{}).textContent||'';
   const avant=window.__compte('set_user_status');
   B().querySelector('[data-admbulk="approved"]').click();await w(700);
   out.lot=(window.__compte('set_user_status'))-avant;out.selFin=_adm.sel===null;
-  B().querySelector('[data-admf="all"]').click();await w(200);
+  B().querySelector('[data-admf="all"]').click();await __acCalme(200);
   out.page1=B().querySelectorAll('[data-admuser]').length;out.plus=(B().querySelector('[data-admmore="acc"]')||{}).textContent||'';
-  B().querySelector('[data-admmore="acc"]').click();await w(200);out.page2=B().querySelectorAll('[data-admuser]').length;
-  const q=B().querySelector('[data-admq="acc"]');q.focus();q.value='u05';q.dispatchEvent(new Event('input',{bubbles:true}));await w(150);
+  B().querySelector('[data-admmore="acc"]').click();await __acCalme(200);out.page2=B().querySelectorAll('[data-admuser]').length;
+  const q=B().querySelector('[data-admq="acc"]');q.focus();q.value='u05';q.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(150);
   out.cherche=[B().querySelectorAll('[data-admuser]').length,document.activeElement===q];
-  B().querySelector('[data-admuser]').click();await w(400);
+  B().querySelector('[data-admuser]').click();await __acCalme(400);
   out.compte=[_adm.sec,admDepth(),_histLevels()];out.teteCompte=tete();
   history.back();await w(1200);
   out.retour=_adm.sec;
-  admGo('libs');await w(200);
+  admGo('libs');await __acCalme(200);
   out.libs=[B().querySelectorAll('[data-admlib]').length,B().querySelectorAll('.adm-chips [data-admlf]').length,!!B().querySelector('[data-admlib="lib-4"] .adm-warn')];
   return out;});
 t('390 : la porte de Moi ouvre une page-fenêtre, sans onglets', r.fenetre&&!r.onglets, JSON.stringify([r.fenetre,r.onglets]));
@@ -7564,7 +7572,7 @@ t('… 40 rangées à la fois, puis « Afficher 20 de plus »', r.page1===40&&/A
 t('… chercher ne repeint que la liste : le champ garde le focus', r.cherche[0]===1&&r.cherche[1], JSON.stringify(r.cherche));
 t('… un compte ouvert depuis la liste = deux niveaux de retour, le retour système remonte à la liste', r.compte[0]==='compte'&&r.compte[1]===2&&r.retour==='comptes', JSON.stringify([r.compte,r.retour]));
 t('… Bibliothèques : recherche et filtres de santé (sans administrateur, vides)', r.libs[0]===20&&r.libs[1]>=3&&r.libs[2], JSON.stringify(r.libs));
-await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(500);
+await page.setViewportSize({width:1280,height:900});await calme(page, 500);
 const v=await page.evaluate(()=>({tab:state.homeTab,vue:!!document.getElementById('admView'),fenetre:document.getElementById('admModal').classList.contains('on'),sec:_adm.sec}));
 t('… franchir 780 : la fenêtre devient la vue de la colonne, section gardée', v.tab==='admin'&&v.vue&&!v.fenetre&&v.sec==='libs', JSON.stringify(v));
 await page.close();
@@ -7589,7 +7597,7 @@ await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout'
     mkF('f1', 'Fiche ajoutée', 'c-urgences');
     protocols.push(migrateProtocol({ id: 'p1', title: 'Protocole un', category: 'c-urgences', library: null, body: 'x' }));
     protocols.push(migrateProtocol({ id: 'p2', title: 'Protocole deux', category: 'c-urgences', library: null, body: 'y' }));
-    render(); await w(400);
+    render(); await __acCalme(400);
     const out = {};
     out.reel = fiches.concat(protocols).filter(x => x.category === 'c-urgences' && !x.library).length;
     out.protos = protocols.filter(p => p.category === 'c-urgences' && !p.library).length;
@@ -7598,12 +7606,12 @@ await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout'
     const wrap = [...document.querySelectorAll('.home-side .hs-wrap')]
       .find(x => { const b = x.querySelector('[data-cat]'); return b && /Urgences/.test(b.textContent); });
     out.colonne = wrap ? (wrap.querySelector('.hs-n') || {}).textContent : '(absente)';
-    document.querySelector('.home-side [data-catmgr]').click(); await w(300);
+    document.querySelector('.home-side [data-catmgr]').click(); await __acCalme(300);
     const ligne = () => [...document.getElementById('catMgrBody').querySelectorAll('.cm-row')]
       .find(x => x.dataset.cid === 'c-urgences');
     out.gestionnaire = ligne().querySelector('.cm-count').textContent;
     // Supprimer en déplaçant vers « SMUR » : les DEUX natures doivent suivre.
-    ligne().querySelector('[data-askdel]').click(); await w(250);
+    ligne().querySelector('[data-askdel]').click(); await __acCalme(250);
     out.confirmation = (ligne().querySelector('.cm-confirm p') || {}).textContent || '';
     ligne().querySelector('[data-movesel]').value = 'c-smur';
     ligne().querySelector('[data-confdel]').click(); await w(700);
@@ -7655,7 +7663,7 @@ await sec('ACCUEIL · la pastille d\'un homonyme suit le périmètre affiché', 
       f.id = id; f.title = 'Fiche ' + id; f.library = lib; f.category = cat; fiches.push(migrate(f)); };
     for (let i = 0; i < 3; i++) { mk('p' + i, '', 'rea'); mk('l' + i, 'lib1', 'rea2'); }
     mk('t1', '', 'dup'); mk('t2', '', 'dup'); mk('t3', 'lib1', 'dup');
-    state.homeLib = null; render(); await w(300);
+    state.homeLib = null; render(); await __acCalme(300);
     const rangee = nom => {
       const b = [...document.querySelectorAll('.home-side [data-cat]')].find(x => x.textContent.includes(nom));
       if (!b) return null;
@@ -7666,20 +7674,20 @@ await sec('ACCUEIL · la pastille d\'un homonyme suit le périmètre affiché', 
       return { multi: d.classList.contains('cat-multi'), cols, n: +b.parentElement.querySelector('.hs-n').textContent }; };
     const aller = async k => {
       if (state.homeLib != null) { const t = [...document.querySelectorAll('.home-side [data-libsel]')]
-          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await w(200); }
+          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await __acCalme(200); }
       if (k != null) { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
           .find(y => y.dataset.libsel === k); if (x) x.click(); }
-      await w(300); };
+      await __acCalme(300); };
     const toutes = rangee('Réanimation'), trauma = rangee('Trauma');
     await aller('lib1'); const lib1 = rangee('Réanimation');
     await aller(''); const perso = rangee('Réanimation');
     await aller(null); const retour = rangee('Réanimation');
     // Le chemin du gestionnaire : une homonyme qui compte apparaît, puis disparaît (re-rendu).
     categories.push({ id: 'rea3', name: 'Réanimation', color: '#dd2200', library: 'lib1' });
-    mk('x1', 'lib1', 'rea3'); renderLibrary(); await w(300);
+    mk('x1', 'lib1', 'rea3'); renderLibrary(); await __acCalme(300);
     const avec = rangee('Réanimation');
     categories = categories.filter(c => c.id !== 'rea3'); fiches = fiches.filter(f => f.id !== 'x1');
-    renderLibrary(); await w(300);
+    renderLibrary(); await __acCalme(300);
     const sans = rangee('Réanimation');
     return { toutes, trauma, lib1, perso, retour, avec, sans }; });
   const memes = (a, b) => JSON.stringify((a || []).slice().sort()) === JSON.stringify(b.slice().sort());
@@ -7724,51 +7732,51 @@ await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélec
     const mk = (id, t, lib) => { const f = JSON.parse(JSON.stringify(fiches[0]));
       f.id = id; f.title = t; f.library = lib; f.category = ''; fiches.push(f); };
     mk('a1', 'Alpha un', 'lib-a'); mk('r1', 'Read un', 'lib-ro');
-    render(); await w(300);
+    render(); await __acCalme(300);
     const etat = () => ({ lib: state.homeLib, selTog: !!document.getElementById('selTog'),
       creer: !document.getElementById('hdrNew').hidden, imp: impLibDefaut() });
     // On repasse par « Toutes » avant chaque cible : la rangée est une BASCULE (re-tap = null).
     const aller = async k => {
       if (state.homeLib != null) { const t = [...document.querySelectorAll('.home-side [data-libsel]')]
-          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await w(200); }
+          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await __acCalme(200); }
       if (k) { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
           .find(y => y.dataset.libsel === k); if (x) x.click(); }
-      await w(300); };
+      await __acCalme(300); };
     const out = {};
     // 1 — « TOUTES » : tout est ouvert, et `newFiche()` reste SYNCHRONE (contrat de trois harnais).
     await aller(null); out.toutes = etat();
     newFiche();                       // sans await, exactement comme audit-k5 et audit-upload
     out.toutes.synchrone = !!state.draft;
     out.toutes.draftLib = state.draft ? (state.draft.library || '(perso)') : null;
-    state.draft = null; state.view = 'library'; render(); await w(250);
+    state.draft = null; state.view = 'library'; render(); await __acCalme(250);
     // 2 — LECTURE SEULE : aucune commande morte, et la création est refusée.
     await aller('lib-ro'); out.ro = etat();
-    newFiche(); await w(250); out.ro.refus = !state.draft;
+    newFiche(); await __acCalme(250); out.ro.refus = !state.draft;
     /* Le GESTIONNAIRE DE CATÉGORIES en fait partie : sur une lecture seule il offrait champ,
        palette, Supprimer et « ＋ Ajouter », et le renommage s'appliquait LOCALEMENT avant d'être
        refusé par la RLS — « croire contribuer », pire qu'une commande morte. */
     out.ro.gerer = !!document.querySelector('.home-side [data-catmgr]');
     out.ro.scopesGeres = catMgrScopes().length;
-    openCatMgr(); await w(250);                       // forcé : la fenêtre doit DIRE pourquoi
+    openCatMgr(); await __acCalme(250);                       // forcé : la fenêtre doit DIRE pourquoi
     { const bd = document.getElementById('catMgrBody');
       out.ro.fen = { txt: (bd.textContent || '').slice(0, 60),
         controles: bd.querySelectorAll('.cm-name,[data-setcol],[data-askdel],[data-cadd]').length }; }
-    closeCatMgr(); await w(200);
+    closeCatMgr(); await __acCalme(200);
     // 3 — ADMINISTRABLE : les commandes reviennent (donc le chrome n'est pas resté périmé), et la
     //     création vise la bibliothèque APRÈS l'avoir annoncée.
     await aller('lib-a'); out.adm = etat();
-    const pr = newFiche(); await w(300);
+    const pr = newFiche(); await __acCalme(300);
     out.adm.dit = (document.getElementById('confirmMsg') || {}).textContent || '';
     out.adm.rienAvantAccord = !state.draft;
-    document.getElementById('confirmYes').click(); await pr; await w(250);
+    document.getElementById('confirmYes').click(); await pr; await __acCalme(250);
     out.adm.draftLib = state.draft ? state.draft.library : null;
     out.adm.identOuvert = !!document.querySelector('.ed-ident[open]');
-    state.draft = null; state.view = 'library'; render(); await w(250);
+    state.draft = null; state.view = 'library'; render(); await __acCalme(250);
     // 4 — REFUSER ne crée rien.
     await aller('lib-a');
-    const pr2 = newFiche(); await w(300);
+    const pr2 = newFiche(); await __acCalme(300);
     out.refus = { vu: document.getElementById('confirmModal').classList.contains('on') };
-    document.getElementById('confirmNo').click(); await pr2; await w(250);
+    document.getElementById('confirmNo').click(); await pr2; await __acCalme(250);
     out.refus.rien = !state.draft;
     // 5 — l'édition de PROTOCOLE gère les catégories de SA bibliothèque.
     state.pdraft = { id: 'p1', library: 'lib-a' }; state.view = 'protocolEdit';
@@ -7824,24 +7832,24 @@ await sec('SÉLECTION · ce qu\'on déplace ne disparaît pas de l\'écran', asy
     const mk = (id, t, lib) => { const f = JSON.parse(JSON.stringify(fiches[0]));
       f.id = id; f.title = t; f.library = lib; f.category = ''; fiches.push(f); };
     mk('a1', 'Alpha un', 'lib-a'); mk('a2', 'Alpha deux', 'lib-a'); mk('b1', 'Beta un', 'lib-b');
-    render(); await w(300);
+    render(); await __acCalme(300);
     const titres = () => [...document.querySelectorAll('.card-open')].map(x => x.textContent.trim());
     const filtre = k => { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
         .find(y => y.dataset.libsel === k); if (x) x.click(); };
     // Le trajet RÉEL : « Sélectionner » → cocher → « Bibliothèque… » → destination → confirmer.
     const bouger = async (ids, dest) => {
-      document.getElementById('selTog').click(); await w(250);
-      for (const id of ids) { const c = document.querySelector(`[data-selid="${id}"]`); if (c) c.click(); await w(80); }
-      document.getElementById('selLib').click(); await w(250);
-      const o = document.querySelector(`[data-pickopt="${dest}"]`); if (o) o.click(); await w(300);
+      document.getElementById('selTog').click(); await __acCalme(250);
+      for (const id of ids) { const c = document.querySelector(`[data-selid="${id}"]`); if (c) c.click(); await __acCalme(80); }
+      document.getElementById('selLib').click(); await __acCalme(250);
+      const o = document.querySelector(`[data-pickopt="${dest}"]`); if (o) o.click(); await __acCalme(300);
       if (document.getElementById('confirmModal').classList.contains('on'))
         document.getElementById('confirmYes').click();
-      await w(600);
-      if (state.selOn) { document.getElementById('selCancel').click(); await w(200); }
+      await __acCalme(600);
+      if (state.selOn) { document.getElementById('selCancel').click(); await __acCalme(200); }
     };
     const out = {};
     // 1 — FILTRE POSÉ sur A, destination B : la vue suit, les déplacés restent à l'écran.
-    filtre('lib-a'); await w(300);
+    filtre('lib-a'); await __acCalme(300);
     out.avant = { lib: state.homeLib, n: titres().length };
     await bouger(['a1', 'a2'], 'lib-b');
     out.versB = { lib: state.homeLib, n: titres().length, vus: titres().includes('Alpha un') };
@@ -7849,12 +7857,12 @@ await sec('SÉLECTION · ce qu\'on déplace ne disparaît pas de l\'écran', asy
        l'ancienne ligne écrivait `null` — l'assertion serait restée verte sur le défaut. */
     out.scope = state.scope;
     // 2 — SUR « TOUTES » : aucun filtre n'est posé par le déplacement.
-    filtre('lib-b'); await w(200);            // re-tap : retour à « Toutes »
+    filtre('lib-b'); await __acCalme(200);            // re-tap : retour à « Toutes »
     out.toutes = state.homeLib;
     await bouger(['a1'], 'lib-a');
     out.apresToutes = { lib: state.homeLib, vus: titres().includes('Alpha un') };
     // 3 — DESTINATION PERSO : le filtre suit vers Perso (''), jamais vers « Toutes » (null).
-    filtre('lib-a'); await w(300);
+    filtre('lib-a'); await __acCalme(300);
     await bouger(['a1'], '');
     out.versPerso = { lib: state.homeLib, vus: titres().includes('Alpha un') };
     return out;
@@ -7905,11 +7913,11 @@ for (const [W,H,Z] of [[320,844,100],[390,844,100],[844,390,100],[667,375,100],[
   await amorce(page); await ouvrirFiche(page,/Arrêt cardiaque/); await demarrerSession(page);
   const r=await page.evaluate(async ({spec,Z})=>{
     const w=ms=>new Promise(r=>setTimeout(r,ms)); const now=Date.now();
-    applyZoom(Z); await w(150);
+    applyZoom(Z); await __acCalme(150);
     const T={}; spec.forEach((v,i)=>{T['k'+i]={id:'k'+i,label:v.lab,type:'interval',seconds:v.sec,
       autoloop:!!v.loop,elapsedMs:v.ago||0,cycles:0,running:!!v.run,lastStart:now,stoppedAt:0};});
     Runtime.timers=T; Runtime.events=[{t:now-45000},{t:now-20000}];
-    monOpen(); await w(400);
+    monOpen(); await __acCalme(400);
     const el=document.getElementById('monBand');
     if(el.hidden)return {vide:true};
     const R=n=>{const q=n.getBoundingClientRect();
@@ -7987,19 +7995,19 @@ await sec('PROTOCOLE · fermer une photo garde la page où elle était', async (
   await page.evaluate(async ({body,img})=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const p=migrateProtocol({id:'pLB',title:'Protocole photo',kind:'reference',body,
       images:[{id:'i1',data:img,caption:'Une légende',w:600,h:400}]});
-    protocols.push(p);openProtocolRead('pLB');await w(600);},{body:CORPS,img:IMG});
+    protocols.push(p);openProtocolRead('pLB');await __acCalme(600);},{body:CORPS,img:IMG});
   t('témoin : le pointeur est grossier (le chemin gardé est bien celui qu\'on mesure)',
     await page.evaluate(()=>matchMedia('(pointer:coarse)').matches));
   const essai=async (nom,fermer)=>{
     await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
-    await page.waitForTimeout(250);
+    await calme(page, 250);
     const y0=await page.evaluate(()=>Math.round(window.scrollY));
     await page.evaluate(()=>document.querySelector('img[data-full]').click());
-    await page.waitForTimeout(200);
+    await calme(page, 200);
     const ouverte=await page.evaluate(()=>document.getElementById('lightbox').classList.contains('on'));
     /* LE MOTEUR MODÉLISÉ : il repose SA position à la frame suivante, par-dessus la nôtre. */
     await page.evaluate((f)=>{new Function(f)();requestAnimationFrame(()=>window.scrollTo(0,0));},fermer);
-    await page.waitForTimeout(450);
+    await calme(page, 450);
     const y1=await page.evaluate(()=>Math.round(window.scrollY));
     t(`${nom} : la photo s'ouvre, et la page revient où elle était (${y0} px)`,
       ouverte&&y0>100&&Math.abs(y1-y0)<=1, `ouverte=${ouverte} · ${y0} → ${y1}`);};
@@ -8030,7 +8038,7 @@ for (const [W,H,Z] of [[390,844,100],[320,568,100],[844,390,130]]) {
   await amorce(page); await ouvrirFiche(page,/Arrêt cardiaque/); await demarrerSession(page);
   const r=await page.evaluate(async ({ages,Z})=>{
     const w=ms=>new Promise(r=>setTimeout(r,ms)); const now=Date.now();
-    applyZoom(Z); await w(120);
+    applyZoom(Z); await __acCalme(120);
     Runtime.timers={k0:{id:'k0',label:'Cycle RCP',type:'interval',seconds:120,autoloop:true,
         elapsedMs:30000,cycles:0,running:true,lastStart:now,stoppedAt:0},
       k1:{id:'k1',label:'Adrénaline — prochaine dose',type:'interval',seconds:240,autoloop:false,
@@ -8110,17 +8118,17 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
     {id:'b7',kind:'do',title:'Reprise d’activité (RACS)',items:it(['ABCDE · traiter la cause','SpO2 cible :: 94-98 %','PaCO2 normale :: 37-45 mmHg','PAS :: > 100 mmHg','ECG 12 dérivations','Contrôle de la température :: < 37.5°C','Coronarographie si indication']),next:null}]});
   f.blocks.find(b=>b.id==='b4').items.forEach(x=>{if(/^1 CEE/.test(x.do))x.counts=cn;if(/^Amiodarone/.test(x.do)){x.from={counter:cn,n:/300/.test(x.expect)?3:5};x.repeat='once';}});
   await Data.put(f);fiches.push(f);openRead(f.id);});
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-    setReadModePref('static');openRead('zprint');await w(500);
+    setReadModePref('static');openRead('zprint');await __acCalme(500);
     const cartes=[...document.querySelectorAll('main [data-prefold]')].map(b=>b.dataset.prefold);
     const tronc=(c=>({borderLeftWidth:c.borderLeftWidth,backgroundColor:c.backgroundColor}))(getComputedStyle(document.querySelector('.sv-col>.sv-row.sv-cell:not(:last-child)'),'::after'));   // lu TOUT DE SUITE : l'objet est vivant
-    const titre0=document.title;window.dispatchEvent(new Event('beforeprint'));await w(400);
+    const titre0=document.title;window.dispatchEvent(new Event('beforeprint'));await __acCalme(400);
     const titreImp=document.title;
     const cales=document.querySelectorAll('.sv-pgb').length,calques=[...document.querySelectorAll('.sv-pgb>.sv-gutk')].map(g=>g.querySelectorAll('path').length);
-    render();await w(300);svPaintArrows(main);   // un re-rendu pendant l'impression : la pagination se refait
+    render();await __acCalme(300);svPaintArrows(main);   // un re-rendu pendant l'impression : la pagination se refait
     const apres=document.querySelectorAll('.sv-pgb>.sv-gutk').length;
-    window.dispatchEvent(new Event('afterprint'));await w(300);setReadModePref('overview');
+    window.dispatchEvent(new Event('afterprint'));await __acCalme(300);setReadModePref('overview');
     const titreApres=document.title;
     return {titre0,titreImp,titreApres,cartes,trBord:tronc.borderLeftWidth,trFond:tronc.backgroundColor,cales,calques,apres,resteCales:document.querySelectorAll('.sv-pgb').length};});
   t('mode Page : sous la feuille, seule « Références » (le reste est DANS la Page)',JSON.stringify(r.cartes)==='["refs"]',JSON.stringify(r.cartes));
@@ -8133,7 +8141,7 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
   const nums=await page.evaluate(()=>[...document.querySelectorAll('.sv-num')].map(n=>getComputedStyle(n).borderTopWidth));
   await page.emulateMedia({media:'screen'});
   t('impression : chaque numéro de bloc de la Page est encadré (bordure, pas seulement un fond)',nums.length>0&&nums.every(b=>parseFloat(b)>=2),JSON.stringify(nums));
-  const segs=await page.evaluate(async()=>{openRead('zprint');await new Promise(x=>setTimeout(x,400));const all=document.querySelector('.pf-flat.dense [data-plall="1"]');if(all){all.click();await new Promise(x=>setTimeout(x,200));}
+  const segs=await page.evaluate(async()=>{openRead('zprint');await __acCalme(400);const all=document.querySelector('.pf-flat.dense [data-plall="1"]');if(all){all.click();await __acCalme(200);}
     const col=document.querySelector('.pf-flat.dense');
     return {txt:col.textContent,br:[...col.querySelectorAll('.pf-br')].map(b=>{const g=b.querySelector(':scope>.pf-bh'),pl=g&&g.lastElementChild,rail=getComputedStyle(b,'::before');
       const x=r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left);
@@ -8153,19 +8161,19 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
   const d=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const b=document.querySelector('.read-plan .pf-row.dec .pf-badge'),sp=b.querySelector('span'),rg=document.createRange();rg.selectNodeContents(sp);
     const t=rg.getBoundingClientRect(),bb=b.getBoundingClientRect();
-    const f=state.fiche;document.getElementById('sessStart').click();await w(500);
+    const f=state.fiche;document.getElementById('sessStart').click();await __acCalme(500);
     const bl=f.blocks.find(x=>/^Choquable/.test(x.title)),i=bItems(bl).findIndex(x=>/Amiodarone/.test(x.do)&&/300/.test(x.expect));
-    state.checked['1:'+bl.id+':'+i]=true;render();await w(300);
-    document.querySelector('.read-plan [data-plall="1"]').click();await w(250);
+    state.checked['1:'+bl.id+':'+i]=true;render();await __acCalme(300);
+    document.querySelector('.read-plan [data-plall="1"]').click();await __acCalme(250);
     return {dx:Math.abs((t.left+t.width/2)-(bb.left+bb.width/2)),dy:Math.abs((t.top+t.height/2)-(bb.top+bb.height/2)),
       faite:[...document.querySelectorAll('.read-plan .pf-q.faite .q-now')].map(e=>e.textContent.trim()),
       schema:(()=>{const x=document.createElement('div');x.innerHTML=buildFlowSVG(f,false);flowPaintState(x,f);return [...x.querySelectorAll('g.fq')].map(g=>g.classList.contains('faite'));})()};});
   t('losange : le chiffre est centré (< 0,6 px)',d.dx<0.6&&d.dy<0.6,JSON.stringify({dx:d.dx,dy:d.dy}));
   t('« une seule fois » déjà cochée : « ✓ faite » dans le parcours et le Schéma, pas l\'autre',
     d.faite.length===1&&/✓ faite/.test(d.faite[0])&&JSON.stringify(d.schema)==='[true,false]',JSON.stringify({faite:d.faite,schema:d.schema}));
-  await page.evaluate(()=>{state.view='library';render();});await page.waitForTimeout(300);
+  await page.evaluate(()=>{state.view='library';render();});await calme(page, 300);
   const [dl]=await Promise.all([page.waitForEvent('download'),page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-    document.getElementById('selTog').click();await w(200);document.getElementById('selAll').click();await w(200);document.getElementById('selExp').click();})]);
+    document.getElementById('selTog').click();await __acCalme(200);document.getElementById('selAll').click();await __acCalme(200);document.getElementById('selExp').click();})]);
   const txt=await (await import('node:fs')).promises.readFile(await dl.path(),'utf8');const j=JSON.parse(txt);
   t('la sélection s\'exporte en UN fichier réimportable (version 3, aides et catégories)',j.version===3&&j.fiches.length>=2&&j.categories.length>=1,JSON.stringify({v:j.version,n:j.fiches.length,c:j.categories.length}));
   await page.close();
@@ -8184,19 +8192,19 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
       await openPdfViewer({id:'a392pdf',name:'liens.pdf'},state.fiche);await w(1500);
       const l=[...document.querySelectorAll('#pdfScroll .pdf-lnk')];const sc=document.getElementById('pdfScroll');
       const ext=l.filter(a=>a.tagName==='A').map(a=>({href:a.getAttribute('href'),rel:a.rel,t:a.target}));
-      const bt=l.find(a=>a.tagName==='BUTTON');if(bt)bt.click();await w(500);const saut=sc.scrollTop;
+      const bt=l.find(a=>a.tagName==='BUTTON');if(bt)bt.click();await __acCalme(500);const saut=sc.scrollTop;
       /* A418 : ≥ 1000 px, colonne ouverte d'office (numéros de page, section en cours), repliée en UN bouton ≡, choix retenu. */
       const card=document.querySelector('.pdf-card'),nav=document.getElementById('pdfTocNav'),W=()=>document.querySelector('.pdf-page').offsetWidth;
-      sc.scrollTop=0;await w(200);
+      sc.scrollTop=0;await __acCalme(200);
       const lk=()=>[...nav.querySelectorAll('.rt-lnk')];
       const col={side:card.classList.contains('toc-side')&&!nav.hidden,n:lk().length,pages:lk().map(l=>l.querySelector('.pdf-tp')?.textContent),
         cur0:lk().findIndex(l=>l.hasAttribute('aria-current')),x:Math.round(sc.getBoundingClientRect().left),w:W()};
-      lk()[1].click();await w(400);col.saut=sc.scrollTop;col.cur1=lk().findIndex(l=>l.hasAttribute('aria-current'));
-      nav.querySelector('.pdf-tmin').click();await w(300);
+      lk()[1].click();await __acCalme(400);col.saut=sc.scrollTop;col.cur1=lk().findIndex(l=>l.hasAttribute('aria-current'));
+      nav.querySelector('.pdf-tmin').click();await __acCalme(300);
       const vis=[...nav.querySelectorAll('*')].filter(e=>e.getClientRects().length&&!e.closest('.pdf-tmin')&&!e.querySelector('.pdf-tmin'));
       col.min={cls:card.classList.contains('toc-min'),larg:Math.round(nav.getBoundingClientRect().width),visibles:vis.map(e=>e.className),
         pref:localStorage.getItem('ac-pdf-toc'),w:W(),garde:sc.scrollTop>100};
-      nav.querySelector('.pdf-tmin').click();await w(300);col.rouvre=!card.classList.contains('toc-min')&&localStorage.getItem('ac-pdf-toc')==='1';
+      nav.querySelector('.pdf-tmin').click();await __acCalme(300);col.rouvre=!card.classList.contains('toc-min')&&localStorage.getItem('ac-pdf-toc')==='1';
       return {ext,saut,col};},pdfB64);
     t('lecteur PDF : le lien externe est cliquable (http(s) seulement, noopener), le lien javascript: ne l\'est pas',
       r.ext.length===1&&r.ext[0].href==='https://www.erc.edu/'&&/noopener/.test(r.ext[0].rel)&&r.ext[0].t==='_blank',JSON.stringify(r.ext));
@@ -8207,13 +8215,13 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
     t('A418 : la colonne se replie en UN petit bouton (≤ 56 px), les pages s\'élargissent, la place est gardée, le choix est retenu',
       c.min.cls&&c.min.larg<=56&&c.min.visibles.length===0&&c.min.pref==='0'&&c.min.w>c.w&&c.min.garde&&c.rouvre,JSON.stringify(c.min));
     /* Étroit : bande sous la barre, fermée d'office, ouverte par « Sommaire », refermée après un choix. */
-    await page.setViewportSize({width:390,height:844});await page.waitForTimeout(400);
+    await page.setViewportSize({width:390,height:844});await calme(page, 400);
     const e=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const b=document.getElementById('pdfToc'),nav=document.getElementById('pdfTocNav'),sc=document.getElementById('pdfScroll');
-      document.querySelector('#pdfModal [data-pz="fit"]').click();await w(300);   // pleine largeur : le document dépasse l'écran
+      document.querySelector('#pdfModal [data-pz="fit"]').click();await __acCalme(300);   // pleine largeur : le document dépasse l'écran
       sc.scrollTop=0;const r={ferme:nav.hidden&&!document.querySelector('.pdf-card').classList.contains('toc-side'),bouton:b.getClientRects().length>0};
-      b.click();await w(200);r.ouvre=!nav.hidden&&b.getAttribute('aria-expanded')==='true'&&nav.getBoundingClientRect().top>=b.closest('.pdf-bar').getBoundingClientRect().bottom-1;
+      b.click();await __acCalme(200);r.ouvre=!nav.hidden&&b.getAttribute('aria-expanded')==='true'&&nav.getBoundingClientRect().top>=b.closest('.pdf-bar').getBoundingClientRect().bottom-1;
       r.tmin=nav.querySelector('.pdf-tmin').getClientRects().length;
-      nav.querySelectorAll('.rt-lnk')[1].click();await w(400);r.apres=nav.hidden&&sc.scrollTop>100;r.y=sc.scrollTop;r.h=nav.hidden;return r;});
+      nav.querySelectorAll('.rt-lnk')[1].click();await __acCalme(400);r.apres=nav.hidden&&sc.scrollTop>100;r.y=sc.scrollTop;r.h=nav.hidden;return r;});
     t('A418 : étroit, le sommaire est une bande sous la barre, fermée d\'office, ouverte par « Sommaire », refermée après un choix',
       e.ferme&&e.bouton&&e.ouvre&&e.tmin===0&&e.apres,JSON.stringify(e));
     await page.close();}
@@ -8239,7 +8247,7 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
       {id:'d1',kind:'decision',title:'Évolution',question:'Q2 ?',options:[{label:'Récidive',target:'b12'},{label:'Contrôlé',target:'b13'}]},
       {id:'b12',kind:'do',title:'Deux',items:it(['m']),next:null},
       {id:'b13',kind:'do',title:'Relais',items:it(['o']),next:null}]});
-    await Data.put(f);fiches.push(f);openRead(f.id);await w(300);openPlanSheet('page');await w(900);
+    await Data.put(f);fiches.push(f);openRead(f.id);await __acCalme(300);openPlanSheet('page');await w(900);
     const sheet=document.querySelector('#planModal .sv-sheet'),sr=sheet.getBoundingClientRect(),Z=sr.width/sheet.offsetWidth;
     const b13=sheet.querySelector('[data-svgo="b13"]'),brEl=b13.closest('.sv-br'),fk=b13.closest('.sv-fork');
     const X=v=>Math.round(v*10)/10,bar={x:X((brEl.getBoundingClientRect().left-sr.left)/Z+14),y:X((fk.getBoundingClientRect().top-sr.top)/Z-7)};
@@ -8247,9 +8255,9 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
     const fin=pts.some(a=>Math.abs(a[a.length-2]-bar.x)<1&&Math.abs(a[a.length-1]-bar.y)<1);
     const tete=[...sheet.querySelectorAll('.sv-gut path.lph')].some(p=>{const n=p.getAttribute('d').match(/-?[\d.]+/g).map(Number);return Math.abs(n[2]-bar.x)<8&&n[3]>bar.y;});
     const tgt=b13.classList.contains('sv-tgt');
-    closePlanSheet();await w(200);
+    closePlanSheet();await __acCalme(200);
     // ACR : retours par le bas, contenu en mots
-    const acr=fiches.find(x=>/Arrêt cardiaque/.test(x.title));openRead(acr.id);await w(300);openPlanSheet('page');await w(900);
+    const acr=fiches.find(x=>/Arrêt cardiaque/.test(x.title));openRead(acr.id);await __acCalme(300);openPlanSheet('page');await w(900);
     const sh=document.querySelector('#planModal .sv-sheet'),s2=sh.getBoundingClientRect(),Z2=s2.width/sh.offsetWidth;
     const pills=[...sh.querySelectorAll('[data-svpill]')].map(el=>{const b=el.getBoundingClientRect();return {l:(b.left-s2.left)/Z2,b:(b.bottom-s2.top)/Z2};});
     const segs=[...sh.querySelectorAll('.sv-gut path.lp')].map(p=>p.getAttribute('d').match(/-?[\d.]+/g).map(Number));
@@ -8294,12 +8302,12 @@ await sec('Remesure · A530-A533', async () => {
   // A530 : une rangée se teinte sans se soulever ; un contrôle gris s'assombrit au survol.
   {const page=await br.newPage({viewport:{width:1280,height:800}});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.waitForTimeout(300);
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await calme(page, 300);
     const pos=s=>page.evaluate(s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};},s);
     const st=s=>page.evaluate(s=>{const c=getComputedStyle(document.querySelector(s));return {t:c.transform,bg:c.backgroundColor};},s);
     const r={};
     for(const [k,s] of [['ligne','.hs-wrap:not(.on)'],['gris','#rangBtn']]){const p0=await pos(s);if(!p0){r[k]='absent';continue;}
-      await page.mouse.move(1,1);await page.waitForTimeout(250);const a=await st(s);await page.mouse.move(p0.x,p0.y);await page.waitForTimeout(250);r[k]={a,z:await st(s)};}
+      await page.mouse.move(1,1);await calme(page, 250);const a=await st(s);await page.mouse.move(p0.x,p0.y);await calme(page, 250);r[k]={a,z:await st(s)};}
     t('A530 · une rangée de la colonne se teinte au survol, sans se soulever',r.ligne&&r.ligne.z&&r.ligne.z.t==='none'&&r.ligne.z.bg!==r.ligne.a.bg,JSON.stringify(r.ligne));
     t('A530 · « Affichage » (bouton gris) change de fond au survol',r.gris&&r.gris.z&&r.gris.z.bg!==r.gris.a.bg,JSON.stringify(r.gris));
     // A531 : aucun intertitre en capitales — seuls les MOTS D'ÉTAT et l'eyebrow de l'en-tête le restent.
@@ -8308,7 +8316,7 @@ await sec('Remesure · A530-A533', async () => {
       const scan=()=>{for(const e of document.querySelectorAll('main *,#crisisDock *')){if(!e.offsetParent)continue;if(getComputedStyle(e).textTransform!=='uppercase')continue;
         const tx=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.nodeValue).join('').trim();if(tx.length<3)continue;
         const k=(e.className&&e.className.baseVal===undefined?e.className:'')||e.tagName;if(ok.test(k)||e.closest('.sv-sheet'))continue;L.push(k+' «'+tx.slice(0,20)+'»');}};
-      scan();openEdit(state.fiche?state.fiche.id:fiches[0].id);await new Promise(x=>setTimeout(x,600));scan();return [...new Set(L)];});
+      scan();openEdit(state.fiche?state.fiche.id:fiches[0].id);await __acCalme(600);scan();return [...new Set(L)];});
     t('A531 · en session et dans l\'éditeur, aucun intertitre ni étiquette en capitales',caps.length===0,JSON.stringify(caps.slice(0,6)));
     await page.close();}
   // A532 : téléphone tourné — « Schéma » dans le menu ⋯, pas dans l'en-tête.
@@ -8320,7 +8328,7 @@ await sec('Remesure · A530-A533', async () => {
   // A533 : en portrait, le grand chiffre du moniteur n'est plus bridé par 20 % de la largeur.
   {const page=await br.newPage({viewport:{width:820,height:1180}});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);await demarrerSession(page);
-    const fs=await page.evaluate(async()=>{monOpen();await new Promise(x=>setTimeout(x,500));const v=document.querySelector('#monMode .mon-val');return v?parseFloat(getComputedStyle(v).fontSize):0;});
+    const fs=await page.evaluate(async()=>{monOpen();await __acCalme(500);const v=document.querySelector('#monMode .mon-val');return v?parseFloat(getComputedStyle(v).fontSize):0;});
     t('A533 · iPad en portrait : le grand chiffre du moniteur atteint son plafond de 220 px',fs>=219,`${fs} px`);
     await page.close();}
 });
@@ -8331,18 +8339,18 @@ await sec('Accueil · A544 recherche, filtre, quitter', async () => {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   const etat=()=>page.evaluate(()=>({recherche:document.documentElement.classList.contains('tb-q'),onglets:!document.getElementById('tabNav').hidden}));
-  await page.tap('#tbSrch');await page.waitForTimeout(300);
+  await page.tap('#tbSrch');await calme(page, 300);
   /* A556 : le bouton filtre du dock est purgé ; la jambe « filtre » passe par un cran de type de la recherche (une
      requête les fait paraître), puis on vide le champ — la recherche doit rester ouverte jusqu'au tap ailleurs. */
-  await page.fill('#q','a');await page.waitForTimeout(400);
-  await page.tap('#dockFilt [data-section="fiches"]');await page.waitForTimeout(400);
-  await page.fill('#q','');await page.waitForTimeout(400);
-  await page.evaluate(()=>setSection('all',true,{keepCat:true}));await page.waitForTimeout(300);
+  await page.fill('#q','a');await calme(page, 400);
+  await page.tap('#dockFilt [data-section="fiches"]');await calme(page, 400);
+  await page.fill('#q','');await calme(page, 400);
+  await page.evaluate(()=>setSection('all',true,{keepCat:true}));await calme(page, 300);
   const apresFeuille=await etat();
   /* A545 : un tap sur une zone NEUTRE (la sous-ligne du titre) — un point fixe tombait, selon la mise en page, sur le
      titre d'une aide qui s'ouvrait (la barre d'onglets n'existe pas en lecture : faux rouge). */
   const neutre=await page.evaluate(()=>{const e=document.querySelector('.pg-sub');if(!e)return null;const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};});
-  await page.mouse.click(neutre?neutre.x:200,neutre?neutre.y:400);await page.waitForTimeout(500);
+  await page.mouse.click(neutre?neutre.x:200,neutre?neutre.y:400);await calme(page, 500);
   const apresTap={...await etat(),accueil:await page.evaluate(()=>document.body.classList.contains('view-home'))};
   t('A544 · après un cran de type, champ vidé : la recherche reste ouverte',apresFeuille.recherche&&!apresFeuille.onglets,JSON.stringify(apresFeuille));
   t('A544 · puis un tap ailleurs, champ vide : la barre d\'onglets revient',apresTap.accueil&&!apresTap.recherche&&apresTap.onglets,JSON.stringify(apresTap));
@@ -8358,12 +8366,12 @@ await sec('Accueil · A545 le titre choisit', async () => {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={};
-    const c=collNew('Garde de nuit',[fiches[0].id]);render();await w(300);
+    const c=collNew('Garde de nuit',[fiches[0].id]);render();await __acCalme(300);
     const tt=()=>((document.getElementById('pgPick')||{}).textContent||'').trim();
     out.repos={titre:tt(),pastilles:document.querySelectorAll('.pg-chips,.pg-chip').length,largeur:document.documentElement.scrollWidth};
     out.feuille={};out.coll={};out.combi={};out.cat={};out.tout={};
     if(!document.getElementById('pgPick'))return out;   // sans sélecteur : rouge, pas plantage
-    document.getElementById('pgPick').click();await w(350);
+    document.getElementById('pgPick').click();await __acCalme(350);
     const m=document.querySelector('.popmenu.sheet');
     out.feuille={titre:(m&&m.querySelector('.mm-title')||{}).textContent,
       tetes:[...(m?m.querySelectorAll('.mm-head'):[])].map(x=>x.textContent),
@@ -8371,16 +8379,16 @@ await sec('Accueil · A545 le titre choisit', async () => {
       comptes:[...(m?m.querySelectorAll('.mm-row .mm-cnt'):[])].length===[...(m?m.querySelectorAll('[data-pickopt]:not([data-pickopt="mgr"])'):[])].length,   // A556 : « Gérer » est une action, pas un filtre — elle ne compte rien
       cats:m?m.querySelectorAll('[data-pickopt^="k:"]').length:0,
       expanded:document.getElementById('pgPick').getAttribute('aria-expanded')};
-    m.querySelector('[data-pickopt="c:'+c.id+'"]').click();await w(350);
+    m.querySelector('[data-pickopt="c:'+c.id+'"]').click();await __acCalme(350);
     out.coll={ouverte:!!document.querySelector('.popmenu.sheet'),coll:state.coll===c.id,titre:tt(),
       oeil:(document.querySelector('.pg-eye')||{}).textContent||'',puces:document.querySelectorAll('.af-chip').length,
       petit:(document.querySelector('.pg-tt')||{}).textContent,ttCollHead:!!document.querySelector('.coll-head .coll-t')};
-    const k=homeCatGroups()[0];state.cat=k.n;render();await w(300);   // combinaison posée en large : la catégorie reste en puce
+    const k=homeCatGroups()[0];state.cat=k.n;render();await __acCalme(300);   // combinaison posée en large : la catégorie reste en puce
     out.combi={titre:tt(),puce:(document.querySelector('.af-bar')||{}).textContent||''};
-    document.getElementById('pgPick').click();await w(300);
-    document.querySelector('.popmenu [data-pickopt="k:'+k.n+'"]').click();await w(300);
+    document.getElementById('pgPick').click();await __acCalme(300);
+    document.querySelector('.popmenu [data-pickopt="k:'+k.n+'"]').click();await __acCalme(300);
     out.cat={coll:state.coll,cat:state.cat===k.n,titre:tt(),oeil:(document.querySelector('.pg-eye')||{}).textContent||'',nom:k.c.name};
-    document.querySelector('[data-pgall]').click();await w(300);
+    document.querySelector('[data-pgall]').click();await __acCalme(300);
     out.tout={coll:state.coll,cat:state.cat,titre:tt()};
     return out;});
   t('A545 · au repos : « Aides » est le sélecteur, aucune pastille, rien ne déborde',r.repos.titre==='Aides'&&r.repos.pastilles===0&&r.repos.largeur<=390,JSON.stringify(r.repos));
@@ -8405,17 +8413,17 @@ await sec('Éditeur · A546 Markdown à parts égales, sections par le Plan', as
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   await page.evaluate(async c=>{try{localStorage.setItem('ac-mdlive','0');}catch(e){}const pr=migrateProtocol({title:'Témoin A546',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={ecart2:null,actes:[],peek:!!document.querySelector('.md-peek,[data-mdpeek]')};
     const g=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);out.cols=g;
     const t=document.getElementById('p-body'),s=document.getElementById('editSide');out.s0=s.scrollTop;
-    const L=t.value.split('\n').findIndex(l=>l==='## Section 3');t.scrollTop=mdLineTop(t,L);t.dispatchEvent(new Event('scroll'));await w(150);
+    const L=t.value.split('\n').findIndex(l=>l==='## Section 3');t.scrollTop=mdLineTop(t,L);t.dispatchEvent(new Event('scroll'));await __acCalme(150);
     const e=s.querySelector('.ep-md [data-ln="'+L+'"]');out.ecart=e?Math.round(e.getBoundingClientRect().top-s.getBoundingClientRect().top):null;out.s1=s.scrollTop;out.butee=s.scrollTop>=s.scrollHeight-s.clientHeight-1;
-    const L2=t.value.split('\n').findIndex(l=>l==='## Posologie');t.scrollTop=mdLineTop(t,L2);t.dispatchEvent(new Event('scroll'));await w(150);
+    const L2=t.value.split('\n').findIndex(l=>l==='## Posologie');t.scrollTop=mdLineTop(t,L2);t.dispatchEvent(new Event('scroll'));await __acCalme(150);
     const e2=s.querySelector('.ep-md [data-ln="'+L2+'"]');out.ecart2=e2?Math.round(e2.getBoundingClientRect().top-s.getBoundingClientRect().top):null;
-    const i=t.value.indexOf('## Section 3');t.focus();t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await w(100);
-    document.querySelector('[data-mdplan]').click();await w(250);out.actes=[...document.querySelectorAll('.popmenu [data-pickopt^="act:"]')].map(b=>b.dataset.pickopt);
-    const dn=document.querySelector('.popmenu [data-pickopt="act:down"]');if(!dn)return out;dn.click();await w(250);
+    const i=t.value.indexOf('## Section 3');t.focus();t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await __acCalme(100);
+    document.querySelector('[data-mdplan]').click();await __acCalme(250);out.actes=[...document.querySelectorAll('.popmenu [data-pickopt^="act:"]')].map(b=>b.dataset.pickopt);
+    const dn=document.querySelector('.popmenu [data-pickopt="act:down"]');if(!dn)return out;dn.click();await __acCalme(250);
     const v=t.value;out.ordre=v.indexOf('## Section 4')<v.indexOf('## Section 3');out.curseur=t.value.split('\n')[mdCaretLine(t)];
     try{localStorage.removeItem('ac-mdlive');}catch(e){}
     return out;});
@@ -8436,17 +8444,17 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
     await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A547',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
-    await page.waitForTimeout(500);
+    await calme(page, 500);
     const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};
       o.doc=true;o.rendu={encadre:!!d.querySelector('.md-call'),tableau:!!d.querySelector('table'),champ:getComputedStyle(document.querySelector('.md-hlw')).display==='none',barre:getComputedStyle(document.querySelector('.md-toolbar')).display==='none'};
       const vv=window.visualViewport;Object.defineProperty(vv,'height',{get:()=>470,configurable:true});vv.dispatchEvent(new Event('resize'));
-      d.querySelector('.md-call').closest('.mdb').click();await w(250);const t=d.querySelector('.mdb-ta');
+      d.querySelector('.md-call').closest('.mdb').click();await __acCalme(250);const t=d.querySelector('.mdb-ta');
       o.ouvert={champ:!!t,src:t&&t.value,focus:document.activeElement===t,autres:d.querySelectorAll('.mdb:not(.on)').length,
         barre:(()=>{const b=document.querySelector('.md-toolbar');return getComputedStyle(b).position==='fixed'&&document.documentElement.classList.contains('kbd');})()};
-      t.setSelectionRange(t.value.length,t.value.length);document.execCommand('insertText',false,' Répéter.');await w(100);
+      t.setSelectionRange(t.value.length,t.value.length);document.execCommand('insertText',false,' Répéter.');await __acCalme(100);
       o.ecrit=state.pdraft.body.includes('**0,5 mg** Répéter.')&&document.getElementById('p-body').value===state.pdraft.body;
-      d.querySelector('[data-mdbact="done"]').click();await w(150);o.ferme=!d.querySelector('.mdb-ta');
-      d.querySelector('.mdb-add:not(.mdb-first)').click();await w(300);const op=document.querySelector('.popmenu [data-pickopt="h"]');o.menu=!!op;if(op){op.click();await w(250);}
+      d.querySelector('[data-mdbact="done"]').click();await __acCalme(150);o.ferme=!d.querySelector('.mdb-ta');
+      d.querySelector('.mdb-add:not(.mdb-first)').click();await __acCalme(300);const op=document.querySelector('.popmenu [data-pickopt="h"]');o.menu=!!op;if(op){op.click();await __acCalme(250);}
       const t2=d.querySelector('.mdb-ta');o.ajout=t2&&t2.value==='## Titre'&&t2.value.slice(t2.selectionStart,t2.selectionEnd)==='Titre'&&/## Titre$/.test(state.pdraft.body);
       return o;});
     t('A547 · téléphone : le contenu s\'affiche rendu, le champ Markdown et la barre restent cachés tant qu\'aucun bloc n\'est ouvert',
@@ -8460,20 +8468,20 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
     await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A547',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
-    await page.waitForTimeout(500);
+    await calme(page, 500);
     const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};o.doc=true;
       o.cols=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);
       o.apercuCache=getComputedStyle(document.querySelector('#editSide .ep-card')).display==='none';
       const s=getSelection();s.removeAllRanges();const g=document.createRange(),bs=d.querySelectorAll('.mdb');g.setStart(bs[0],0);g.setEnd(bs[2],bs[2].childNodes.length);s.addRange(g);
       const dt=new DataTransfer();bs[1].dispatchEvent(new ClipboardEvent('copy',{clipboardData:dt,bubbles:true,cancelable:true}));o.copie=dt.getData('text/plain');
-      bs[1].click();await w(150);d.querySelector('[data-mdbact="dup"]').click();await w(100);o.dup=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      bs[1].click();await __acCalme(150);d.querySelector('[data-mdbact="dup"]').click();await __acCalme(100);o.dup=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
       // A551 : le geste d'un bloc pose le point de reprise — ↶ paraît et défait la duplication.
-      const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await w(100);o.undo=!u.hidden;
-      if(o.undo){u.click();await w(300);}o.rendu=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);o.undo=!u.hidden;
+      if(o.undo){u.click();await __acCalme(300);}o.rendu=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
       {const d2=document.getElementById('mdDoc');   // ↶ redessine l'éditeur : on relit le document
-       const b2=[...d2.querySelectorAll('.mdb')].find(x=>{const q=x.querySelector('p');return !!q&&q.textContent.trim()==='Texte.';});   /* la poignée ⠿ fait partie du texte du bloc */if(b2){b2.click();await w(150);d2.querySelector('[data-mdbact="del"]').click();await w(100);}}
+       const b2=[...d2.querySelectorAll('.mdb')].find(x=>{const q=x.querySelector('p');return !!q&&q.textContent.trim()==='Texte.';});   /* la poignée ⠿ fait partie du texte du bloc */if(b2){b2.click();await __acCalme(150);d2.querySelector('[data-mdbact="del"]').click();await __acCalme(100);}}
       o.del=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
-      document.querySelector('[data-mdlive]').click();await w(300);o.markdown=!document.getElementById('mdDoc')&&getComputedStyle(document.querySelector('.md-hlw')).display!=='none'&&localStorage.getItem('ac-mdlive')==='0';
+      document.querySelector('[data-mdlive]').click();await __acCalme(300);o.markdown=!document.getElementById('mdDoc')&&getComputedStyle(document.querySelector('.md-hlw')).display!=='none'&&localStorage.getItem('ac-mdlive')==='0';
       try{localStorage.removeItem('ac-mdlive');}catch(e){}
       return o;});
     t('A547 · bureau : la colonne ne garde que la relecture (320), le document est le rendu',r.doc&&r.cols[1]===320&&r.apercuCache,JSON.stringify(r));
@@ -8488,17 +8496,17 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
     await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A552',body:'Avant.\n\nAprès.'});protocols.push(pr);await openProtocolEdit(pr.id);});
-    await page.waitForTimeout(500);
+    await calme(page, 500);
     const tap=async l=>{if(hasTouch)await l.tap();else await l.click();};
-    await tap(page.locator('#mdDoc .mdb').first());await page.waitForTimeout(200);
+    await tap(page.locator('#mdDoc .mdb').first());await calme(page, 200);
     await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(t.value.length,t.value.length);
       t.dispatchEvent(new ClipboardEvent('paste',{clipboardData:new DataTransfer(),bubbles:true,cancelable:true}));   // A553 : c'est un collage
       document.execCommand('insertText',false,'\n\n## Indications\n\nChoc **grade III-IV**.\n\n- un\n- deux');});
-    await page.waitForTimeout(200);
+    await calme(page, 200);
     const o={colle:await page.locator('#mdDoc .mdb').count()};
-    await tap(page.locator('.md-toolbar [data-mdtool="b"]'));await page.waitForTimeout(200);o.barre=await page.locator('#mdDoc .mdb-ta').count();
+    await tap(page.locator('.md-toolbar [data-mdtool="b"]'));await calme(page, 200);o.barre=await page.locator('#mdDoc .mdb-ta').count();
     const box=await page.locator('#main').boundingBox();const x=box.x+12,y=box.y+20;
-    if(hasTouch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await page.waitForTimeout(250);
+    if(hasTouch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await calme(page, 250);
     o.ferme=await page.locator('#mdDoc .mdb-ta').count();o.blocs=await page.locator('#mdDoc .mdb').count();
     o.corps=await page.evaluate(()=>/## Indications\n\nChoc \*\*grade III-IV\*\*\.\n\n- un\n- deux/.test(state.pdraft.body));
     o.annonce=await page.evaluate(()=>[...document.querySelectorAll('.toast')].some(x=>/^Découpé en \d+ blocs — ↶ annule le collage\./.test(x.textContent)));
@@ -8518,23 +8526,23 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const c=document.createElement('canvas');c.width=40;c.height=30;c.getContext('2d').fillRect(0,0,40,30);
     const pr=migrateProtocol({title:'Témoin A548',body:'## A\n\n> [!WARNING]\n> Voie IM\n\n![Site](img:i1)\n\nFin.',images:[{id:'i1',data:c.toDataURL('image/png'),w:40,h:30,scale:100}]});protocols.push(pr);await openProtocolEdit(pr.id);});
-  await page.waitForTimeout(500);
+  await calme(page, 500);
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};o.doc=true;
-    d.querySelector('.md-call').closest('.mdb').click();await w(150);
+    d.querySelector('.md-call').closest('.mdb').click();await __acCalme(150);
     const ch=[...d.querySelectorAll('[data-mdbreg]')];o.reg={n:ch.length,mots:ch.map(x=>x.textContent.replace(/[^A-Za-zÀ-ÿ]/g,'')).join('|'),glyphes:ch.every(x=>!!x.querySelector('svg')||/[△⚠ℹ✓]/.test(x.textContent)),on:(d.querySelector('[data-mdbreg].on')||{dataset:{}}).dataset.mdbreg};
-    if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await w(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
-    const dn=d.querySelector('[data-mdbact="done"]');if(dn)dn.click();await w(100);
-    const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await w(150);}
+    if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await __acCalme(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
+    const dn=d.querySelector('[data-mdbact="done"]');if(dn)dn.click();await __acCalme(100);
+    const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await __acCalme(150);}
     o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('[data-mdbscale]').length};
-    const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await w(150);}
+    const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await __acCalme(150);}
     o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,ouvert:!!d.querySelector('.mdb-ta')};
-    const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await w(100);
+    const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await __acCalme(100);
     const n=d.querySelectorAll('.mdb').length,g=d.querySelector('[data-mdbgrab="'+(n-1)+'"]');o.poignee=!!g;
-    if(g){g.click();await w(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
+    if(g){g.click();await __acCalme(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
       pris:!!d.querySelector('.mdb.grabbed'),inerte:document.querySelector('[data-mdplan]').disabled&&document.querySelector('[data-mdlive]').disabled};
-      d.querySelector('[data-mdbdrop="0"]').click();await w(150);o.libre=!d.querySelector('.ed-grab')&&!document.querySelector('[data-mdplan]').disabled;}
+      d.querySelector('[data-mdbdrop="0"]').click();await __acCalme(150);o.libre=!d.querySelector('.ed-grab')&&!document.querySelector('[data-mdplan]').disabled;}
     o.tete=state.pdraft.body.split('\n')[0];
-    {const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await w(100);o.undoDep=!u.hidden;if(o.undoDep){u.click();await w(300);}o.apresUndo=state.pdraft.body.split('\n')[0];}
+    {const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);o.undoDep=!u.hidden;if(o.undoDep){u.click();await __acCalme(300);}o.apresUndo=state.pdraft.body.split('\n')[0];}
     o.n=n;
     return o;});
   t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
@@ -8555,30 +8563,30 @@ await sec('Éditeur · A561 toucher à côté annule le déplacement', async () 
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   // 1. Éditeur d'aide : une étape prise, puis un clic sur le grand titre de la page.
-  await page.evaluate(async()=>{await openEdit(fiches[0].id);});await page.waitForTimeout(400);
+  await page.evaluate(async()=>{await openEdit(fiches[0].id);});await calme(page, 400);
   const inertes0=await page.evaluate(()=>[...document.querySelectorAll('main input')].filter(x=>x.disabled).length);
-  await page.evaluate(()=>{const g=document.querySelector('[data-grab^="s:"]');g.scrollIntoView({block:'center'});g.click();});await page.waitForTimeout(200);
+  await page.evaluate(()=>{const g=document.querySelector('[data-grab^="s:"]');g.scrollIntoView({block:'center'});g.click();});await calme(page, 200);
   const a0=await page.evaluate(()=>({pris:!!state.edGrab,bandeau:!!document.querySelector('.ed-grab')}));
   {const b=await page.evaluate(()=>{const r=document.querySelector('.ed-grab').getBoundingClientRect();return {x:Math.round(r.left+4),y:Math.round(r.bottom+6)};});
    const neutre=await page.evaluate(()=>{const h=document.querySelector('main h1, main .pg-ttl, main .ed-h1');if(h){const r=h.getBoundingClientRect();return {x:Math.round(r.right+20),y:Math.round(r.top+r.height/2)};}return null;});
    const pt=neutre||b;await page.mouse.click(pt.x,pt.y);}
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const a1=await page.evaluate(()=>({pris:!!state.edGrab,bandeau:!!document.querySelector('.ed-grab'),inertes:[...document.querySelectorAll('main input')].filter(x=>x.disabled).length}));
   t('A561 · éditeur d\'aide : une étape prise, un clic à côté la repose (plus de bandeau, formulaire rendu)',
     a0.pris&&a0.bandeau&&!a1.pris&&!a1.bandeau&&a1.inertes===inertes0,JSON.stringify([a0,a1,inertes0]));
   // 2. Éditeur de référence : un bloc pris, un clic sur un AUTRE bloc le repose sans l'ouvrir.
   await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A561',body:'## A\n\nUn.\n\nDeux.'});protocols.push(pr);await openProtocolEdit(pr.id);});
-  await page.waitForTimeout(500);
-  await page.evaluate(()=>{document.querySelector('#mdDoc [data-mdbgrab="2"]').click();});await page.waitForTimeout(200);
+  await calme(page, 500);
+  await page.evaluate(()=>{document.querySelector('#mdDoc [data-mdbgrab="2"]').click();});await calme(page, 200);
   const b0=await page.evaluate(()=>!!document.querySelector('#mdDoc .ed-grab'));
   {const r=await page.evaluate(()=>{const e=document.querySelector('#mdDoc .mdb[data-mdb="0"]').getBoundingClientRect();return {x:Math.round(e.left+e.width/2),y:Math.round(e.top+e.height/2)};});
    await page.mouse.click(r.x,r.y);}
-  await page.waitForTimeout(250);
+  await calme(page, 250);
   const b1=await page.evaluate(()=>({mode:!!document.querySelector('#mdDoc .ed-grab'),ouvert:!!document.querySelector('#mdDoc .mdb-ta'),corps:state.pdraft.body,plan:document.querySelector('[data-mdplan]').disabled}));
-  await page.evaluate(()=>{document.querySelector('#mdDoc [data-mdbgrab="2"]').click();});await page.waitForTimeout(200);
+  await page.evaluate(()=>{document.querySelector('#mdDoc [data-mdbgrab="2"]').click();});await calme(page, 200);
   {const r=await page.evaluate(()=>{const e=document.querySelector('#mdDoc [data-mdbdrop="0"]').getBoundingClientRect();return {x:Math.round(e.left+e.width/2),y:Math.round(e.top+e.height/2)};});
    await page.mouse.click(r.x,r.y);}
-  await page.waitForTimeout(250);
+  await calme(page, 250);
   const b2=await page.evaluate(()=>state.pdraft.body.split('\n')[0]);
   t('A561 · référence : un bloc pris, un clic sur un autre bloc le repose sans l\'ouvrir ni rien déplacer',
     b0&&!b1.mode&&!b1.ouvert&&b1.corps==='## A\n\nUn.\n\nDeux.'&&!b1.plan,JSON.stringify(b1));
@@ -8600,7 +8608,7 @@ await sec('Import · A562 export Notion (.md + images)', async () => {
     window.__n0=protocols.length;window.__fin=readImportFile(new File([z],'Export.zip'));});
   const vu=await page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);   // un rouge LISIBLE, pas un plantage
   const a=await page.evaluate(()=>({rangs:document.querySelectorAll('#impList .imp-row').length,kind:(document.querySelector('#impList .imp-kind')||{}).textContent||''}));
-  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await page.waitForTimeout(300);
+  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page, 300);
   const r=await page.evaluate(()=>{const x=protocols[protocols.length-1]||{};return {n:protocols.length-window.__n0,titre:x.title,imgs:(x.images||[]).length,
     lie:(x.images||[]).length===1&&(x.body||'').includes('img:'+x.images[0].id),absente:/Image absente de l’archive : absente\.png/.test(x.body||''),prop:/Statut/.test(x.body||''),statut:x.status};});
   t('A562 · le .zip Notion ouvre l\'atelier sur UNE référence',a.rangs===1&&/Référence/i.test(a.kind),JSON.stringify(a));
@@ -8617,10 +8625,10 @@ await sec('Accueil · A542-A543 bande unique, barre d\'onglets à 24 pt', async 
   const r=await page.evaluate(async()=>{const st=document.documentElement.style;st.setProperty('--sat','calc(62px + 16px)');st.setProperty('--sab','34px');
     const b=document.getElementById('sysBanner');if(b)b.hidden=true;
     for(let i=0;i<14;i++)protocols.push(migrateProtocol({title:'Protocole '+i}));render();
-    const w=m=>new Promise(x=>setTimeout(x,m));scrollTo(0,0);await w(300);
+    const w=m=>new Promise(x=>setTimeout(x,m));scrollTo(0,0);await __acCalme(300);
     const sol=()=>getComputedStyle(document.body,'::before').backgroundColor;
     const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--amb)';document.body.appendChild(sonde);const amb=getComputedStyle(sonde).backgroundColor;sonde.remove();
-    const repos=sol();scrollTo(0,300);await w(400);
+    const repos=sol();scrollTo(0,300);await __acCalme(400);
     return {amb,repos,colle:sol(),stuck:document.querySelector('.pg-top').classList.contains('stuck'),
       bas:Math.round(innerHeight-document.querySelector('.tb-tabs').getBoundingClientRect().bottom)};});
   t('A542 · au repos, la bande sous l\'heure est couleur de page',r.repos===r.amb,JSON.stringify(r));
@@ -8637,7 +8645,7 @@ await sec('Accueil · A541 réserve de la barre d\'état au repos', async () => 
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   for(const tab of ['aides','me','sessions']){
     const r=await page.evaluate(async tab=>{document.documentElement.style.setProperty('--sat','calc(62px + 16px)');
-      const b=document.getElementById('sysBanner');if(b)b.hidden=true;setHomeTab(tab);scrollTo(0,0);await new Promise(x=>setTimeout(x,300));
+      const b=document.getElementById('sysBanner');if(b)b.hidden=true;setHomeTab(tab);scrollTo(0,0);await __acCalme(300);
       const top=document.querySelector('.pg-top').getBoundingClientRect(),tt=document.querySelector('.pg-ttl').getBoundingClientRect();
       return {barreHaut:Math.round(top.top),barreBas:Math.round(top.bottom),titreHaut:Math.round(tt.top),stuck:document.querySelector('.pg-top').classList.contains('stuck')};},tab);
     t(`A541 · ${tab}, inset 78 px, sans bannière : la barre sous l'heure, le grand titre dessous, rien de collé`,r.barreHaut>=78&&r.titreHaut>=r.barreBas&&!r.stuck,JSON.stringify(r));
@@ -8653,15 +8661,15 @@ await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   await page.evaluate(()=>{document.documentElement.style.setProperty('--sat','calc(59px + 16px)');
     for(let i=0;i<20;i++)protocols.push(migrateProtocol({title:'Protocole '+i}));render();});
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const lire=()=>page.evaluate(()=>{const t=document.querySelector('.pg-ttl').getBoundingClientRect(),top=document.querySelector('.pg-top');
     return {titreHaut:Math.round(t.top),titreBas:Math.round(t.bottom),barreBas:Math.round(top.getBoundingClientRect().bottom),stuck:top.classList.contains('stuck')};});
   const repos=await lire();
   /* Défiler de quoi mettre le titre À MOITIÉ sous la barre (la réserve d'A541 décale la page : pas de valeur fixe). */
   await page.evaluate(()=>{const t=document.querySelector('.pg-ttl').getBoundingClientRect(),top=document.querySelector('.pg-top');
     const bas=parseFloat(getComputedStyle(top).top)+top.getBoundingClientRect().height;scrollTo(0,Math.round(t.top+t.height/2-bas));});
-  await page.waitForTimeout(400);const moitie=await lire();
-  await page.evaluate(()=>scrollTo(0,200));await page.waitForTimeout(400);const sorti=await lire();
+  await calme(page, 400);const moitie=await lire();
+  await page.evaluate(()=>scrollTo(0,200));await calme(page, 400);const sorti=await lire();
   t('A540 · inset de 75 px, au repos : barre transparente, titre visible',!repos.stuck&&repos.titreHaut>=repos.barreBas,JSON.stringify(repos));
   t('A540 · titre À MOITIÉ sous la barre : elle a déjà son verre (plus de chevauchement transparent)',moitie.titreHaut<moitie.barreBas&&moitie.titreBas>moitie.barreBas&&moitie.stuck,JSON.stringify(moitie));
   t('A540 · titre sorti : verre et petit titre',sorti.stuck,JSON.stringify(sorti));
@@ -8674,7 +8682,7 @@ await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async (
     const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true,colorScheme:th});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
-    const r=await page.evaluate(async()=>{Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});render();await new Promise(x=>setTimeout(x,200));
+    const r=await page.evaluate(async()=>{Auth.signedIn=()=>true;Auth.user=()=>({id:'u1',email:'jean.dupont@chu.fr'});render();await __acCalme(200);
       const s=document.querySelector('[data-tab="sessions"]');s.classList.add('live');
       const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--act)';document.body.appendChild(sonde);const act=getComputedStyle(sonde).backgroundColor;sonde.remove();
       const on=document.querySelector('.tb-tab.on'),av=document.querySelector('.tb-av');
@@ -8691,7 +8699,7 @@ await sec('Accueil · A538 recherche à la hauteur des onglets', async () => {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   const onglets=await page.evaluate(()=>{const r=document.querySelector('.tb-tabs').getBoundingClientRect();return {h:r.height,b:r.bottom};});
-  await ouvrirRecherche(page);await page.waitForTimeout(300);
+  await ouvrirRecherche(page);await calme(page, 300);
   const r=await page.evaluate(()=>{const q=document.getElementById('q').getBoundingClientRect();
     document.documentElement.classList.add('kbd');const k=document.getElementById('q').getBoundingClientRect().height;document.documentElement.classList.remove('kbd');
     return {q:q.height,qb:q.bottom,kbd:k};});
@@ -8707,8 +8715,8 @@ await sec('Accueil · A537 compacte Natif, tuiles d\'accès direct, Affichage al
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
     await page.evaluate(()=>{protocols.push(migrateProtocol({title:"Limitation et arrêt des thérapeutiques jusqu'au décès",validatedAt:'2026-06',status:'validated'}));setHomePref('homeCompact',true);render();});
-    await page.waitForTimeout(300);
-    for(let i=0;i<2;i++){await page.evaluate(()=>{const b=document.querySelector('.dir-book:not(.pinned) [data-pin]:not(.on)');b&&b.click();});await page.waitForTimeout(200);}
+    await calme(page, 300);
+    for(let i=0;i<2;i++){await page.evaluate(()=>{const b=document.querySelector('.dir-book:not(.pinned) [data-pin]:not(.on)');b&&b.click();});await calme(page, 200);}
     const r=await page.evaluate(()=>{const rows=[...document.querySelectorAll('.dir-book:not(.pinned) .dir-row')];
       const k=document.querySelector('.dir-book:not(.pinned) .dir-kind'),g=document.querySelector('.dir-book:not(.pinned) .dir-grid');
       const t=[...document.querySelectorAll('.dir-book.pinned .dir-row')].map(e=>e.getBoundingClientRect());
@@ -8739,12 +8747,12 @@ await sec('Bords · A536 barre pleine largeur, Fermer, rien de fixé sous une fe
   t('A536 · 430 px : le fond de la barre collante touche le bord droit',h.bord===0,JSON.stringify(h));
   t('A536 · 430 px : « Créer » reste aligné sur les cartes',Math.abs(h.r-h.carte)<=1,JSON.stringify(h));
   await ouvrirFiche(page,/Arrêt cardiaque/);
-  const p=await page.evaluate(async()=>{openPlanSheet('page');await new Promise(x=>setTimeout(x,400));
+  const p=await page.evaluate(async()=>{openPlanSheet('page');await __acCalme(400);
     const bar=document.querySelector('#planModal .pm-bar').getBoundingClientRect(),x=document.querySelector('#planModal .pm-close').getBoundingClientRect(),tt=document.querySelector('#planModal .pm-ttl').getBoundingClientRect();
     return {haut:Math.round(x.top-bar.top),air:Math.round(tt.left-x.right),app:getComputedStyle(document.querySelector('.app')).visibility};});
   t('A536 · Page : « Fermer » a son air (haut ≥ 8, titre ≥ 8)',p.haut>=8&&p.air>=8,JSON.stringify(p));
   t('A536 · Page ouverte : rien de l\'app ne reste peint dessous (Safari 26 en teint sa barre)',p.app==='hidden',JSON.stringify(p));
-  const apres=await page.evaluate(async()=>{document.querySelector('#planModal .pm-close').click();await new Promise(x=>setTimeout(x,300));return getComputedStyle(document.querySelector('.app')).visibility;});
+  const apres=await page.evaluate(async()=>{document.querySelector('#planModal .pm-close').click();await __acCalme(300);return getComputedStyle(document.querySelector('.app')).visibility;});
   t('A536 · Page fermée : l\'app revient',apres==='visible',apres);
   await page.close();
 });
@@ -8773,7 +8781,7 @@ await sec('Page · A529 un bouton « Imprimer ou PDF »', async () => {
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   await ouvrirFiche(page,/Arrêt cardiaque/);
-  const r=await page.evaluate(async()=>{openPlanSheet('page');await new Promise(x=>setTimeout(x,400));
+  const r=await page.evaluate(async()=>{openPlanSheet('page');await __acCalme(400);
     return [...document.querySelectorAll('#pmTools [data-pmprint]')].map(b=>b.textContent.trim());});
   t('1280 px : la barre de la Page porte UN bouton, « Imprimer ou PDF »',r.length===1&&r[0]==='Imprimer ou PDF',JSON.stringify(r));
   await page.close();
@@ -8802,12 +8810,12 @@ await sec('Session · A525 voile du menu ⋯ ancré', async () => {
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   await ouvrirFiche(page,/Arrêt cardiaque/);
-  await demarrerSession(page);await page.waitForTimeout(400);
+  await demarrerSession(page);await calme(page, 400);
   const box=await page.evaluate(()=>{const li=[...document.querySelectorAll('main ol.steps li')].find(l=>!l.classList.contains('done')&&l.getBoundingClientRect().top>200);
     const r=li.getBoundingClientRect();return {x:r.left+30,y:r.top+r.height/2,n:document.querySelectorAll('main ol.steps li.done').length};});
-  await page.click('#hdrMore');await page.waitForTimeout(300);
+  await page.click('#hdrMore');await calme(page, 300);
   const ouvert=await page.evaluate(()=>!document.getElementById('moreMenu').hidden&&!!document.querySelector('.popmenu-veil.anchor'));
-  await page.mouse.click(box.x,box.y);await page.waitForTimeout(400);
+  await page.mouse.click(box.x,box.y);await calme(page, 400);
   const r=await page.evaluate(n=>({ferme:document.getElementById('moreMenu').hidden,coches:document.querySelectorAll('main ol.steps li.done').length-n,voile:!!document.querySelector('.popmenu-veil')}),box.n);
   t('1280 px : le menu ⋯ ancré pose un voile transparent',ouvert);
   t('… le tap à côté ferme le menu SANS cocher l\'étape dessous, et le voile part avec lui',r.ferme&&r.coches===0&&!r.voile,JSON.stringify(r));
@@ -8842,7 +8850,7 @@ await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () 
       /* A545 (amende A528) : « Affichage » est le bouton rond au bout de la ligne du titre (plus de pastilles, plus de ligne
          du compte) et ouvre sa feuille. */
       const af=await page.evaluate(async()=>{const b=document.querySelector('.pg-pick>#rangBtn');const o={dernier:!!b&&b===b.parentNode.lastElementChild,ligne:!!document.querySelector('.dir-sum')};
-        if(b){b.click();await new Promise(x=>setTimeout(x,400));o.feuille=!![...document.querySelectorAll('.ai-modal.on')].length;}return o;});
+        if(b){b.click();await __acCalme(400);o.feuille=!![...document.querySelectorAll('.ai-modal.on')].length;}return o;});
       t('A545 · au téléphone, « Affichage » est le rond au bout de la ligne du titre, sans ligne du compte, et ouvre sa feuille',af.dernier&&!af.ligne&&af.feuille,JSON.stringify(af));}
     await page.close();
   }
@@ -8863,31 +8871,31 @@ await sec('Éditeur · A390 A521 Structure en liste, bloc sur sa page, aperçu f
   const lecture=await page.evaluate(()=>[...document.querySelectorAll('main .fold-head .fh-t')].map(e=>e.textContent.trim()));
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const id=state.fiche.id;
     const replis0=JSON.stringify([...mdFoldGet(id)]);
-    await openEdit(id);await w(500);
+    await openEdit(id);await __acCalme(500);
     /* A521 (amende A390) : la structure est une LISTE dans le fil ; une rangée ouvre le bloc sur sa page. */
     const L=document.querySelector('.ed-slist');const o={liste:!!L,rangs:L?L.querySelectorAll('[data-edgo]').length:0,
       pecCachee:getComputedStyle(document.querySelector('.ed-pec')).display==='none',toc:!!document.querySelector('.ed-toc'),
       identRangs:[...document.querySelectorAll('.ed-ident .id-row .id-k')].map(e=>e.textContent)};
-    const b=L.querySelectorAll('.esl-row[data-edgo]')[2];const bid=b.dataset.edgo;const n0=_histLevels();b.click();await w(400);
+    const b=L.querySelectorAll('.esl-row[data-edgo]')[2];const bid=b.dataset.edgo;const n0=_histLevels();b.click();await __acCalme(400);
     const el=document.querySelector('.blk[data-bid="'+bid+'"]');const r0=el.getBoundingClientRect();
     o.page=document.body.classList.contains('ed-focus')&&el.classList.contains('ed-cur')&&r0.top<innerHeight&&r0.bottom>0;
     o.seul=[...document.querySelectorAll('.ed-pec .blk')].filter(x=>x.offsetParent).length===1&&!document.querySelector('.ed-slist').offsetParent&&!document.querySelector('.ed-ident').offsetParent;
     o.niveau=_histLevels()===n0+1;
-    history.back();await w(600);
+    history.back();await __acCalme(600);
     o.retour=state.view==='edit'&&!state.edFocus&&document.body.classList.contains('ed-ov')&&!!document.querySelector('.ed-slist').offsetParent;
-    L.querySelectorAll('.esl-row[data-edgo]')[2].click();await w(300);
-    document.getElementById('hdrBack').click();await w(400);
+    L.querySelectorAll('.esl-row[data-edgo]')[2].click();await __acCalme(300);
+    document.getElementById('hdrBack').click();await __acCalme(400);
     o.retourEnTete=state.view==='edit'&&!state.edFocus;
-    document.getElementById('hdrPreview').click();await w(600);
+    document.getElementById('hdrPreview').click();await __acCalme(600);
     o.cartesAvant=[...document.querySelectorAll('main .fold-head .fh-t')].map(e=>e.textContent.trim());
     o.demarrer=(document.querySelector('#sessStart:not([hidden]) .dp-lbl')||{}).textContent||'';
     o.exo=!document.getElementById('exoKey').hidden;
-    {const fb=document.querySelector('[data-prefold="when"]');if(fb)fb.click();await w(250);}
-    document.getElementById('sessStart').click();await w(600);
+    {const fb=document.querySelector('[data-prefold="when"]');if(fb)fb.click();await __acCalme(250);}
+    document.getElementById('sessStart').click();await __acCalme(600);
     o.essai=Runtime.started&&Runtime.essai;o.vives=Object.keys(liveSessions).length;
     o.quai=[...document.querySelectorAll('#sessionDock .sd-key:not([hidden])')].map(k=>k.id);
     o.cartesSession=document.querySelectorAll('main [data-sessfold]').length;
-    document.getElementById('hdrBack').click();await w(400);
+    document.getElementById('hdrBack').click();await __acCalme(400);
     o.replisIntacts=JSON.stringify([...mdFoldGet(id)])===replis0;
     return o;});
   t('éditeur 390 px : Identité en rangées, la Structure en liste dans le fil (A521), les blocs n\'y sont plus',
@@ -8906,7 +8914,7 @@ await sec('Éditeur · A390 A521 Structure en liste, bloc sur sa page, aperçu f
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   await ouvrirFiche(page,/Arrêt cardiaque/);
-  const d=await page.evaluate(async()=>{await openEdit(state.fiche.id);await new Promise(x=>setTimeout(x,400));
+  const d=await page.evaluate(async()=>{await openEdit(state.fiche.id);await __acCalme(400);
     const t=document.querySelector('.ed-slist'),c=document.querySelector('.ed-struct');
     return {toc:t?getComputedStyle(t).display:'absent',col:c?getComputedStyle(c).display:'absent'};});
   t('≥ 1200 px : la colonne Structure prend le relais, la liste se retire',d.toc==='none'&&d.col==='flex',JSON.stringify(d));
@@ -8932,9 +8940,9 @@ await sec('Accueil · A389 une colonne, deux densités, gestion des bibliothèqu
   await page.evaluate(()=>{const cats=categories.slice(0,3);const base=fiches[0];
     for(let i=0;i<12;i++)fiches.push(migrate({...JSON.parse(JSON.stringify(base)),id:'a389-'+i,title:'Aide de mesure numéro '+(i+1),discriminant:i%4?'':'adulte',category:cats[i%3].id,code:''}));
     state.homeGroup='cat';state.homeCompact=false;render();});
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const det=await mesure();
-  await page.evaluate(()=>{state.homeCompact=true;render();});await page.waitForTimeout(300);
+  await page.evaluate(()=>{state.homeCompact=true;render();});await calme(page, 300);
   const cmp=await mesure();
   t('témoin : la liste est rendue en plusieurs groupes',det.n>=12,JSON.stringify(det.n));
   t('une seule colonne (tous les groupes au même x), aux deux densités',det.xs.length===1&&cmp.xs.length===1,JSON.stringify([det.xs,cmp.xs]));
@@ -8974,7 +8982,7 @@ await sec('Parcours · A388 lieu, repli, conditions en mots', async () => {
   t('… une décision repliée garde TOUTES ses branches, chacune avec sa destination',!!avant&&avant.branches.length===2&&avant.branches.every(b=>b.nom&&b.dest),JSON.stringify(avant&&avant.branches));
   t('… densité de colonne : titre à 13,5 px',!!avant&&avant.titre===13.5,String(avant&&avant.titre));
   t('… la complication « à tout moment » ferme la liste',!!avant&&avant.exc===1,String(avant&&avant.exc));
-  const tout=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));document.querySelector('.read-plan [data-plall]').click();await w(250);
+  const tout=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));document.querySelector('.read-plan [data-plall]').click();await __acCalme(250);
     const r=document.querySelector('.read-plan .pf-flat');
     const b3=[...r.querySelectorAll('.pf-row')].find(x=>/^Choquable/.test(x.querySelector('.pf-title').textContent.trim()));
     const gh=b3?[...b3.querySelectorAll('.pf-gh')].map(e=>e.textContent.trim()):[];
@@ -8993,14 +9001,14 @@ await sec('Parcours · A388 lieu, repli, conditions en mots', async () => {
   t('le mot CRITIQUE / VIGILANCE ne décale pas le libellé (une seule abscisse), sans aplat, calé à droite',
     tout.xs.length===1&&/rgba\(0, 0, 0, 0\)|transparent/.test(tout.mkFond)&&tout.mkFlot==='right',JSON.stringify({xs:tout.xs,fond:tout.mkFond,flot:tout.mkFlot}));
   const sess=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    openRead(state.fiche.id);await w(400);   // rouvrir remet les replis à zéro : on mesure le défaut, pas le « Tout déplier » d'au-dessus
+    openRead(state.fiche.id);await __acCalme(400);   // rouvrir remet les replis à zéro : on mesure le défaut, pas le « Tout déplier » d'au-dessus
     document.getElementById('sessStart').click();await w(700);
     const r=document.querySelector('.read-plan .pf-flat');
     return {ouverts:r.querySelectorAll('[data-plfold][aria-expanded="true"]').length,ici:(r.querySelector('.pf-row.cur .pf-here')||{}).textContent||''};});
   t('en session, la colonne reste repliée ; le bloc courant dit « Ici »',sess.ouverts===0&&/Ici/i.test(sess.ici),JSON.stringify(sess));
-  const feuille=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));openPlanSheet();await w(350);
+  const feuille=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));openPlanSheet();await __acCalme(350);
     const r=document.querySelector('#planModal .pf-flat');const n=r.querySelectorAll('[data-plfold]').length,o=r.querySelectorAll('[data-plfold][aria-expanded="true"]').length;
-    r.querySelector('[data-plfold]').click();await w(200);
+    r.querySelector('[data-plfold]').click();await __acCalme(200);
     return {n,o,apres:document.querySelectorAll('#planModal [data-plfold][aria-expanded="false"]').length,ouverte:planModal.classList.contains('on')};});
   t('« Se repérer » : chaque bloc a son chevron, tout est déplié d\'office, et replier ne ferme pas la feuille',
     feuille.n>=5&&feuille.o===feuille.n&&feuille.apres===1&&feuille.ouverte,JSON.stringify(feuille));
@@ -9076,7 +9084,7 @@ await sec('Parcours · A448 une décision repliée n\'est jamais plus haute que 
     fiches.push(f);await Data.put(f);openRead(f.id);
   });
   await page.waitForFunction(()=>document.body.classList.contains('view-read'));
-  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));await w(300);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));await __acCalme(300);
     const dec=()=>document.querySelector('.read-plan .pf-flat .pf-row.dec');
     const d0=dec();if(!d0)return null;
     const brief=d0.querySelector('.pf-brief');if(!brief)return {brief:false};
@@ -9086,7 +9094,7 @@ await sec('Parcours · A448 une décision repliée n\'est jamais plus haute que 
     const colle=opts.every(o=>{const b=o.querySelector('b').getBoundingClientRect();
       return [...o.querySelectorAll('.pf-ref,.pf-sep')].every(x=>{const c=x.getBoundingClientRect();const y=(c.top+c.bottom)/2;return y>=b.top-1&&y<=b.bottom+1;});});
     const hR=brief.getBoundingClientRect().height;
-    d0.querySelector('[data-plfold]').click();await w(250);
+    d0.querySelector('[data-plfold]').click();await __acCalme(250);
     const o=dec().querySelector('.pf-opts:not(.pf-brief)');
     return {brief:true,lignes,colle,hR:Math.round(hR),hD:o?Math.round(o.getBoundingClientRect().height):0};});
   t('témoin : la ligne de branches repliée enroule (deux rangées au moins)',!!r&&r.brief&&r.lignes>=2,JSON.stringify(r));
@@ -9118,7 +9126,7 @@ await sec('Revue · A449 à tout moment : jauge neutre, jetons immobiles, colonn
       const opt=[...document.querySelectorAll('[data-ovopt]')].find(x=>/Non/.test(x.textContent));if(opt){opt.click();return false;}
       if(cur)cur.querySelectorAll('[data-ck]:not(.done)').forEach(li=>li.click());
       const n=cur&&cur.querySelector('[data-ovnext]');if(n)n.click();return false;});
-    if(fini)break;await page.waitForTimeout(400);}
+    if(fini)break;await calme(page, 400);}
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const cur=()=>document.querySelector('.ov-block.cur'),head=()=>cur().querySelector('.rv-step [data-revtg],.rv-step[data-revtg]');
     if(!cur()||!head())return null;
@@ -9128,15 +9136,15 @@ await sec('Revue · A449 à tout moment : jauge neutre, jetons immobiles, colonn
     const p=document.createElement('i');p.style.color='var(--act)';document.body.appendChild(p);
     o.neutre=getComputedStyle(head().querySelector('.kline')).color!==getComputedStyle(p).color;p.remove();
     /* « Continuer » ne l'attend pas : les étapes ordinaires cochées, la revue à 0, le bouton est actif */
-    cur().querySelectorAll('ol.steps:not(.rev)>li[data-ck]:not(.done)').forEach(li=>li.click());await w(300);
+    cur().querySelectorAll('ol.steps:not(.rev)>li[data-ck]:not(.done)').forEach(li=>li.click());await __acCalme(300);
     const nx=cur().querySelector('[data-ovnext]');o.continuer=!!nx&&nx.getAttribute('aria-disabled')!=='true';
-    if(head().getAttribute('aria-expanded')!=='true'){head().click();await w(300);}
+    if(head().getAttribute('aria-expanded')!=='true'){head().click();await __acCalme(300);}
     const toks=()=>[...cur().querySelectorAll('ol.steps.rev>li[data-ck]')];
     if(toks().length<2)return o;
     const cols=()=>new Set(toks().map(li=>Math.round(li.getBoundingClientRect().left))).size;
     o.colsLongs=cols();
     const t0=toks()[1].querySelector('.txt').getBoundingClientRect();
-    toks()[1].click();await w(300);
+    toks()[1].click();await __acCalme(300);
     const t1=toks()[1].querySelector('.txt').getBoundingClientRect();
     o.immobile=toks()[1].classList.contains('done')&&Math.abs(t0.left-t1.left)<.5&&Math.abs(t0.top-t1.top)<.5&&Math.abs(t0.width-t1.width)<.5;
     o.jauge=!!head().querySelector('.rg-fg');
@@ -9146,7 +9154,7 @@ await sec('Revue · A449 à tout moment : jauge neutre, jetons immobiles, colonn
     /* les mêmes hypothèses, libellés courts : deux jetons par ligne */
     const f=Runtime.fiche,rb=f.blocks.find(x=>x.kind==='review'),pool=f.items||[];
     (rb.items||[]).forEach((id,i)=>{const it=typeof id==='object'?id:pool.find(x=>x.id===id);if(it)it.do=['Hypoxie','Acidose','Kaliémie','Glycémie','Toxiques','Thrombose','Tamponnade','Hypoxémie'][i%8];});
-    render();await w(400);
+    render();await __acCalme(400);
     o.colsCourts=cols();
     return o;});
   t('témoin : la revue de la fiche d\'exemple est atteinte en session',!!r,JSON.stringify(r));
@@ -9181,14 +9189,14 @@ await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus sui
   const page=await br.newPage({viewport:{width:1280,height:900}});
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
-  const anneau=async()=>{await page.waitForTimeout(180);
+  const anneau=async()=>{await calme(page, 180);
     return page.evaluate(()=>{const a=document.activeElement;if(!a)return null;
       const cs=getComputedStyle(a);
       return {el:a.id||a.className||a.tagName,
         anneau:cs.outlineStyle!=='none'&&parseFloat(cs.outlineWidth)>0};});};
   const souris=async(y)=>{await page.mouse.move(640,y||500);await page.mouse.down();await page.mouse.up();};
   const fermer=async sel=>{await page.evaluate(s=>{const x=document.querySelector(s);if(x)x.click();},sel);
-    await page.waitForTimeout(180);};
+    await calme(page, 180);};
 
   /* A492 (amende A237, décision de l'auteur) : l'anneau suit la MODALITÉ. À la souris : la décision reçoit
      le focus sur son action SANS anneau, une fenêtre qu'on parcourt sur son TITRE ; au clavier : l'anneau. */
@@ -9211,7 +9219,7 @@ await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus sui
   await fermer('#confirmModal .ai-x');
 
   // A365 : sur l'accueil ≥ 780, Compte est une VUE — la fenêtre se mesure depuis une fiche (souris sur la barre).
-  await page.evaluate(()=>openRead(fiches[0].id));await page.waitForTimeout(300);
+  await page.evaluate(()=>openRead(fiches[0].id));await calme(page, 300);
   await souris(30);
   await page.evaluate(()=>document.getElementById('acctTop').click());
   r=await anneau();
@@ -9224,8 +9232,8 @@ await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus sui
   // A313 — AU CLAVIER : Tab reste DANS la fenêtre et l'anneau suit (Safari saute les boutons par
   // défaut ; le piège déplace donc le focus lui-même et pose l'anneau à chaque pas).
   await souris();
-  await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T'});});await page.waitForTimeout(180);
-  const pas=[];for(let i=0;i<4;i++){await page.keyboard.press('Tab');await page.waitForTimeout(120);
+  await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T'});});await calme(page, 180);
+  const pas=[];for(let i=0;i<4;i++){await page.keyboard.press('Tab');await calme(page, 120);
     pas.push(await page.evaluate(()=>{const a=document.activeElement,m=document.getElementById('confirmModal'),cs=getComputedStyle(a);
       return {dedans:m.contains(a),tag:a.tagName.toLowerCase(),anneau:cs.outlineStyle==='solid'&&parseFloat(cs.outlineWidth)>=2};}));}
   t('confirmation : quatre Tab restent dans la fenêtre',pas.every(p=>p.dedans),JSON.stringify(pas));
@@ -9233,13 +9241,13 @@ await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus sui
   t('… et les boutons sont atteints (Safari les saute par défaut)',pas.filter(p=>p.tag==='button').length>=3,JSON.stringify(pas.map(p=>p.tag)));
   await fermer('#confirmModal .ai-x');
   await souris();
-  await page.evaluate(()=>openCatMgr());await page.waitForTimeout(250);
+  await page.evaluate(()=>openCatMgr());await calme(page, 250);
   const ch=[];for(let i=0;i<4;i++){ch.push(await page.evaluate(()=>{const a=document.activeElement,cs=getComputedStyle(a);return {tag:a.tagName.toLowerCase(),style:cs.outlineStyle,offset:cs.outlineOffset};}));
-    await page.keyboard.press('Tab');await page.waitForTimeout(120);}
+    await page.keyboard.press('Tab');await calme(page, 120);}
   const champs=ch.filter(c=>c.tag==='input');
   t('champs : bordure allumée (outline solid, décalage 0) — ni anneau du navigateur ni halo',champs.length>=1&&champs.every(c=>c.style==='solid'&&parseFloat(c.offset)===0),JSON.stringify(ch));
   t('… et un bouton est atteint en quatre Tab',ch.some(c=>c.tag==='button'),JSON.stringify(ch.map(c=>c.tag)));
-  await page.evaluate(()=>closeCatMgr());await page.waitForTimeout(150);
+  await page.evaluate(()=>closeCatMgr());await calme(page, 150);
   await page.close();
 }
 });
@@ -9252,7 +9260,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const out={};
-    document.querySelector('.home-side [data-catmgr]').click();await w(300);
+    document.querySelector('.home-side [data-catmgr]').click();await __acCalme(300);
     const bd=document.getElementById('catMgrBody');
     out.pastillesFermees=bd.querySelectorAll('[data-setcol]').length;
     const add=bd.querySelector('.cm-add'),list=bd.querySelector('.cm-list');
@@ -9260,50 +9268,50 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     out.ajoutVisible=!!add&&add.getBoundingClientRect().bottom<innerHeight;
     out.hauteurRangee=bd.querySelector('.cm-top').getBoundingClientRect().height;
     const rows=()=>[...bd.querySelectorAll('.cm-row')];
-    rows()[0].querySelector('[data-pick]').click();await w(200);
+    rows()[0].querySelector('[data-pick]').click();await __acCalme(200);
     out.ouvertes1=bd.querySelectorAll('.cm-row.open').length;
     out.pastillesOuvertes=bd.querySelectorAll('.cm-row.open .cm-sw [data-setcol]').length;out.nPal=PALETTE.length;   // A408 : le nuancier compte 12 presets — on lit sa taille
     out.focusPastille=!!document.activeElement&&document.activeElement.matches('[data-pick]');
-    rows()[1].querySelector('[data-pick]').click();await w(200);
+    rows()[1].querySelector('[data-pick]').click();await __acCalme(200);
     out.ouvertes2=bd.querySelectorAll('.cm-row.open').length;
     out.ouverteEstLa2e=rows()[1].classList.contains('open');
     let row=bd.querySelector('.cm-row.open');const cid=row.dataset.cid,cat=categories.find(c=>c.id===cid&&!c.library);
     // A315 : le curseur est replié derrière le bouton « palette » (14ᵉ pastille) et se déplie au tap.
     out.curseurCache=!row.querySelector('[data-hue]')&&!!row.querySelector('[data-huetog]')&&row.querySelectorAll('.cm-sw button').length===PALETTE.length+1;
-    row.querySelector('[data-huetog]').click();await w(200);row=bd.querySelector('.cm-row.open');
+    row.querySelector('[data-huetog]').click();await __acCalme(200);row=bd.querySelector('.cm-row.open');
     const orig=cat.color,hu=row.querySelector('[data-hue]');out.curseurOuvert=!!hu;
     // A316 : la pastille choisie (échelle 1,12 + anneau 4 px) ne mord sur aucune voisine, palette comprise.
     {const on=row.querySelector('.cm-sw .sw.on'),r=on.getBoundingClientRect(),ring={l:r.left-4,r:r.right+4,t:r.top-4,b:r.bottom+4};
      // jeu minimal entre l'anneau et une voisine : à 6 px d'écart il restait 0,08 px (« ça se touche »).
      out.jeu=Math.min(...[...row.querySelectorAll('.cm-sw button')].filter(b=>b!==on).map(b=>{const q=b.getBoundingClientRect();const dx=Math.max(ring.l-q.right,q.left-ring.r,0),dy=Math.max(ring.t-q.bottom,q.top-ring.b,0);return Math.hypot(dx,dy);}));}
     // A316 : renommer repeint l'aperçu de la palette ouverte.
-    {const nm=row.querySelector('[data-cname]');nm.value='Réa nommée';nm.dispatchEvent(new Event('input'));await w(60);
+    {const nm=row.querySelector('[data-cname]');nm.value='Réa nommée';nm.dispatchEvent(new Event('input'));await __acCalme(60);
      out.apercuNom=[...row.querySelectorAll('.cm-pv')].map(x=>x.textContent.trim());}
     // A312 : revenir au degré d'origine rend la couleur d'origine ; un degré de preset rend le preset.
-    hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);const sur120=cat.color;
-    hu.value=String(catHueDeg(orig));hu.dispatchEvent(new Event('input'));await w(60);
+    hu.value='120';hu.dispatchEvent(new Event('input'));await __acCalme(60);const sur120=cat.color;
+    hu.value=String(catHueDeg(orig));hu.dispatchEvent(new Event('input'));await __acCalme(60);
     out.retour=cat.color===orig&&sur120!==orig;
-    out.p0=PALETTE[0];hu.value=String(catHueDeg(PALETTE[0]));hu.dispatchEvent(new Event('input'));await w(60);out.preset19=cat.color;   // A408 : le vermillon a quitté le nuancier — le premier preset à son degré
-    hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);
+    out.p0=PALETTE[0];hu.value=String(catHueDeg(PALETTE[0]));hu.dispatchEvent(new Event('input'));await __acCalme(60);out.preset19=cat.color;   // A408 : le vermillon a quitté le nuancier — le premier preset à son degré
+    hu.value='120';hu.dispatchEvent(new Event('input'));await __acCalme(60);
     out.couleur=cat.color;out.hexValide=/^#[0-9a-f]{6}$/.test(cat.color);out.lisible=catLisible(cat.color);
     const [rr,gg,bb]=hexToRgb(cat.color).map(v=>Math.round(v*255));
     out.pointSuit=getComputedStyle(row.querySelector('.cm-dot span')).backgroundColor===`rgb(${rr}, ${gg}, ${bb})`;
     out.note=row.querySelector('.cm-pv-note').textContent;
-    hu.dispatchEvent(new Event('change'));await w(250);
+    hu.dispatchEvent(new Event('change'));await __acCalme(250);
     out.persist=((await Data.getCats())||[]).some(c=>c.id===cid&&c.color===cat.color);
     // couleur hors preset : le pli rouvert montre le curseur d'office (l'état se voit).
     // (la rangée est retrouvée par id : renommée, elle a changé de place dans le tri)
     const parId=()=>rows().find(r=>r.dataset.cid===cid);
-    parId().querySelector('[data-pick]').click();await w(150);parId().querySelector('[data-pick]').click();await w(200);
+    parId().querySelector('[data-pick]').click();await __acCalme(150);parId().querySelector('[data-pick]').click();await __acCalme(200);
     out.autoOuvert=!!bd.querySelector('.cm-row.open [data-hue]')&&bd.querySelector('.cm-row.open .sw-more').classList.contains('on');
-    closeCatMgr();await w(200);
+    closeCatMgr();await __acCalme(200);
     // Les DEUX éditeurs mènent à la même fenêtre par « ＋ Nouvelle catégorie ».
-    const porte=async()=>{const b=document.querySelector('#main [data-catmenu]');if(!b)return 'pas de menu';b.click();await w(250);
-      const nw=document.querySelector('.catmenu-new');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await w(300);
+    const porte=async()=>{const b=document.querySelector('#main [data-catmenu]');if(!b)return 'pas de menu';b.click();await __acCalme(250);
+      const nw=document.querySelector('.catmenu-new');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await __acCalme(300);
       const on=catModal.classList.contains('on'),liste=!!catModal.querySelector('.cm-add')&&!!catModal.querySelector('.cm-list');
-      closeCatMgr();await w(200);return on&&liste?'ok':`fenêtre ${on} liste ${liste}`;};
-    await openEdit(fiches[0].id);await w(500);out.ficheVue=state.view;out.porteFiche=await porte();
-    if(!protocols.length)await newProtocol();else await openProtocolEdit(protocols[0].id);await w(500);
+      closeCatMgr();await __acCalme(200);return on&&liste?'ok':`fenêtre ${on} liste ${liste}`;};
+    await openEdit(fiches[0].id);await __acCalme(500);out.ficheVue=state.view;out.porteFiche=await porte();
+    if(!protocols.length)await newProtocol();else await openProtocolEdit(protocols[0].id);await __acCalme(500);
     out.protoVue=state.view;out.porteProto=await porte();
     return out;});
   t('aucune pastille tant qu\'aucune palette n\'est ouverte',r.pastillesFermees===0,`${r.pastillesFermees}`);
@@ -9347,11 +9355,11 @@ await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async ()
     // A310 : le dock flottant s'aligne sur la colonne d'ACTION (même token que la grille).
     const dock=document.querySelector('#sessionDock .sd-in');
     out.dockEcart=dock?Math.round(dock.getBoundingClientRect().right-(side.getBoundingClientRect().left-20)):null;
-    tm.click();await w(300);
+    tm.click();await __acCalme(300);
     const d=document.querySelector('.read-side .tm-add-d');const r2=document.querySelector('.read-side .rt-adds');
     out.choixSousLaRangee=!!d&&!!r2&&d.getBoundingClientRect().top>=r2.getBoundingClientRect().bottom-1;
     out.durees=document.querySelectorAll('.read-side [data-rtnew]').length;
-    document.querySelector('.read-side [data-rtadd]').click();await w(200);
+    document.querySelector('.read-side [data-rtadd]').click();await __acCalme(200);
     return out;});
   const r=await mesure();
   t('rail : « ＋ Minuteur » et « ＋ Compteur » sur la même rangée',r.memeRangee===true,JSON.stringify(r));
@@ -9360,9 +9368,9 @@ await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async ()
   t('le dock flottant s\'arrête au bord de la colonne d\'action (A310)',r.dockEcart!==null&&Math.abs(r.dockEcart)<=3,`écart ${r.dockEcart} px (2 px de rembourrage attendus ; −42 avant A310)`);
   t('le choix de durée s\'ouvre sous la rangée',r.choixSousLaRangee===true&&r.durees===4,JSON.stringify([r.choixSousLaRangee,r.durees]));
   // ÉTROIT : le volet garde l'ordre par famille (« ＋ Minuteur » avant les compteurs).
-  await page.setViewportSize({width:430,height:900});await page.waitForTimeout(500);
+  await page.setViewportSize({width:430,height:900});await calme(page, 500);
   const e=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
-    const b=document.getElementById('cbTimers');if(b)b.click();await w(400);
+    const b=document.getElementById('cbTimers');if(b)b.click();await __acCalme(400);
     const tm=document.querySelector('.rt-dock [data-rtadd]'),cnt=document.querySelector('.rt-dock .rt-counters, .rt-dock [data-cnadd]');
     return {tm:!!tm,avant:!!tm&&!!cnt&&!!(tm.compareDocumentPosition(cnt)&Node.DOCUMENT_POSITION_FOLLOWING),rangee:!!document.querySelector('.rt-dock .rt-adds')};});
   t('volet étroit : inchangé, « ＋ Minuteur » reste dans sa famille',e.tm&&e.avant&&!e.rangee,JSON.stringify(e));
@@ -9380,8 +9388,8 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
     myLibraries.length=0;myLibraries.push({id:'lib-a',name:'SMUR 31',role:'admin'},{id:'lib-b',name:'Urgences CHU',role:'editor'});
     categories.push({id:'ca1',name:'Trauma',color:'#8d5c39',library:'lib-a'},{id:'cb1',name:'Pédiatrie',color:'#096e50',library:'lib-b'});
-    render();await w(300);
-    document.querySelector('.home-side [data-catmgr]').click();await w(300);
+    render();await __acCalme(300);
+    document.querySelector('.home-side [data-catmgr]').click();await __acCalme(300);
     const bd=document.getElementById('catMgrBody'),secs=[...bd.querySelectorAll('.cm-sec')],out={};
     out.sections=secs.length;
     out.bandes=secs.map(s=>{const l=s.querySelector('.cm-l');return l?l.textContent.replace(/\s+/g,' ').trim():null;});
@@ -9389,11 +9397,11 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
     out.ecart=secs.length>1?Math.round(secs[1].getBoundingClientRect().top-secs[0].getBoundingClientRect().bottom):null;
     out.ajoutDansSaSection=secs.every(s=>{const a=s.querySelector('[data-cadd]');return !!a&&(a.dataset.cadd||'')===(s.querySelector('.cm-row')||{dataset:{cscope:a.dataset.cadd}}).dataset.cscope;});
     out.defile=bd.scrollHeight>bd.clientHeight+40;
-    bd.scrollTop=220;await w(250);
+    bd.scrollTop=220;await __acCalme(250);
     const b=bd.querySelector('.cm-l').getBoundingClientRect(),t=bd.getBoundingClientRect();
     /* v5.30 (A352) : le corps respire de 4 px sur les deux axes — la bande colle au bord de CONTENU. */
     out.tientEnHaut=Math.abs(b.top-(t.top+parseFloat(getComputedStyle(bd).paddingTop)))<=1;out.aDefile=bd.scrollTop>150;
-    closeCatMgr();await w(150);return out;});
+    closeCatMgr();await __acCalme(150);return out;});
   t('une section par bibliothèque éditable (Perso + 2)',r.sections===3,JSON.stringify(r.bandes));
   t('la bande dit le nom, « partagée » et le compte',/^Espace personnel\s*8$/.test(r.bandes[0]||'')&&/^SMUR 31\s*partagée\s*1$/.test(r.bandes[1]||''),JSON.stringify(r.bandes));
   t('chaque « Ajouter » vise SA bibliothèque',r.ajoutDansSaSection===true,`${r.ajoutDansSaSection}`);
@@ -9430,7 +9438,7 @@ await sec('A344 · le tracé ne touche rien, et le papier se pagine avant d\'êt
      décision imbriquée, un renvoi de boucle et une sortie, c'est-à-dire les trois formes de voie. */
   await page.evaluate(async()=>{
     const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');if(b)b.click();
-    await new Promise(r=>setTimeout(r,150));
+    await __acCalme(150);
     const it=(n)=>Array.from({length:n},(_,i)=>'Étape '+(i+1)+' :: réponse attendue '+(i+1));
     const f=migrate({id:'aud-a344',title:'Audit — voies',start:'a',blocks:[
       {id:'a',kind:'do',title:'Début',items:it(4),next:'d1'},
@@ -9478,7 +9486,7 @@ await sec('A344 · le tracé ne touche rien, et le papier se pagine avant d\'êt
   t('A344 · aucune superposition de deux voies colinéaires', r.sup===0, r.sup+' superposition(s)');
   /* LE PAPIER : on passe par le VRAI gestionnaire d'impression, pas par un état reconstruit. */
   const pr=await page.evaluate(async()=>{window.dispatchEvent(new Event('beforeprint'));
-    await new Promise(r=>setTimeout(r,600));
+    await __acCalme(600);
     return {page:document.body.classList.contains('print-page'),mode:state.readMode,tab:state.allTab,
       pages:_svPages?_svPages.length:0,coupes:document.querySelectorAll('.sv-cut').length,
       nogut:document.body.classList.contains('print-nogut'),
@@ -9488,7 +9496,7 @@ await sec('A344 · le tracé ne touche rien, et le papier se pagine avant d\'êt
   t('A344 · le paginateur a posé ses pages, et il n\'a pas renoncé',
     pr.pages>=1&&pr.nogut===false, JSON.stringify(pr));
   const ap=await page.evaluate(async()=>{window.dispatchEvent(new Event('afterprint'));
-    await new Promise(r=>setTimeout(r,400));
+    await __acCalme(400);
     return {page:document.body.classList.contains('print-page'),coupes:document.querySelectorAll('.sv-cut').length,pages:_svPages};});
   t('A344 · et l\'écran retrouve son état : ni classe d\'impression, ni saut, ni pagination',
     ap.page===false&&ap.coupes===0&&ap.pages===null, JSON.stringify(ap));
@@ -9506,18 +9514,18 @@ await sec('LA PAGE · un seul axe vertical, dans main comme dans la fenêtre « 
     const out={coarse:matchMedia('(pointer:coarse)').matches};
     // LE VRAI POINT D'ENTRÉE : le lien « Tableau » de l'écran de démarrage — dans la carte
     // « Parcours », repliée d'office (A366) : on l'ouvre d'abord.
-    {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}}
-    document.querySelector('[data-prelink="page"]').click();await w(400);
+    {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await __acCalme(400);}}
+    document.querySelector('[data-prelink="page"]').click();await __acCalme(400);
     const m=document.getElementById('planModal'),sc=m.querySelector('#planBody .sv-scroll');
     out.fenetre=m.classList.contains('on');out.fen=axes(sc);out.fenAxe=axes(m).oy;
     const h0=m.scrollHeight;
-    m.querySelector('[data-svzoom="in"]').click();m.querySelector('[data-svzoom="in"]').click();await w(300);
+    m.querySelector('[data-svzoom="in"]').click();m.querySelector('[data-svzoom="in"]').click();await __acCalme(300);
     out.zoom={avant:h0,apres:m.scrollHeight,interne:sc.scrollHeight-sc.clientHeight};
-    document.getElementById('planX').click();await w(300);
+    document.getElementById('planX').click();await __acCalme(300);
     return out;});
   await demarrerSession(page);
   const r2=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    document.getElementById('allBtn').click();await w(500);
+    document.getElementById('allBtn').click();await __acCalme(500);
     const sc=main.querySelector('.sv-scroll');
     return {mode:state.readMode,main:sc?{oy:getComputedStyle(sc).overflowY,ox:getComputedStyle(sc).overflowX}:null};});
   t('témoin : le régime TACTILE est bien émulé (pointer:coarse)',r.coarse===true);
@@ -9545,11 +9553,11 @@ await sec('A554 · pincer pour zoomer la Page et le PDF, le point reste sous les
     const sc=document.querySelector(sel),w=m=>new Promise(r=>setTimeout(r,m));
     const tt=d=>[new Touch({identifier:1,target:sc,clientX:cx-d/2,clientY:cy}),new Touch({identifier:2,target:sc,clientX:cx+d/2,clientY:cy})];
     const ev=(type,t)=>sc.dispatchEvent(new TouchEvent(type,{touches:t,targetTouches:t,changedTouches:t,bubbles:true,cancelable:true}));
-    ev('touchstart',tt(d0));for(let i=1;i<=6;i++){ev('touchmove',tt(d0+(d1-d0)*i/6));await w(20);}
-    ev('touchend',[]);await w(150);return true;},[sel,cx,cy,d0,d1]);
+    ev('touchstart',tt(d0));for(let i=1;i<=6;i++){ev('touchmove',tt(d0+(d1-d0)*i/6));await __acCalme(20);}
+    ev('touchend',[]);await __acCalme(150);return true;},[sel,cx,cy,d0,d1]);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}}
-    document.querySelector('[data-prelink="page"]').click();await w(500);
+    {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await __acCalme(400);}}
+    document.querySelector('[data-prelink="page"]').click();await __acCalme(500);
     return {fen:planModal.classList.contains('on'),ta:getComputedStyle(document.querySelector('#planBody .sv-scroll')).touchAction,
       taPdf:getComputedStyle(document.getElementById('pdfScroll')).touchAction};});
   t('témoin : « Tableau » ouvre bien la fenêtre de la Page',r.fen===true);
@@ -9567,10 +9575,10 @@ await sec('A554 · pincer pour zoomer la Page et le PDF, le point reste sous les
     t('Page : au lâcher, aucune transformation résiduelle sur le calque',!a1.tr&&!a1.wc,JSON.stringify(a1));}
   await page.evaluate(()=>{svZoom=1;svApplyZoom(document.getElementById('planBody'));});
   await page.mouse.move(200,420);await page.keyboard.down('Control');
-  await page.mouse.wheel(0,60);await page.keyboard.up('Control');await page.waitForTimeout(400);
+  await page.mouse.wheel(0,60);await page.keyboard.up('Control');await calme(page, 400);
   const a2=await mesure(200,420);
   t('Page : Ctrl + molette réduit la feuille (même geste à la souris)',a2.k<0.9&&a2.k>=0.2&&!a2.tr,JSON.stringify(a2));
-  await page.evaluate(async()=>{document.getElementById('planX').click();await new Promise(r=>setTimeout(r,300));
+  await page.evaluate(async()=>{document.getElementById('planX').click();await __acCalme(300);
     /* Un PDF de deux pages, écrit à la main : la visionneuse l'ouvre par son VRAI point d'entrée. */
     const st='BT /F1 24 Tf 72 700 Td (Feuille) Tj ET';
     const ob=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
@@ -9607,7 +9615,7 @@ await sec('A555 · pincer pour zoomer une image ouverte, le point reste sous les
   await amorce(page);
   const r0=await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=1600;c.height=1200;
     const g=c.getContext('2d');for(let i=0;i<16;i++){g.fillStyle=i%2?'#333':'#ccc';g.fillRect(i*100,0,100,1200);}
-    openLightbox(c.toDataURL('image/png'),'Témoin');await new Promise(r=>setTimeout(r,400));
+    openLightbox(c.toDataURL('image/png'),'Témoin');await __acCalme(400);
     const im=document.getElementById('lbImg'),sc=document.getElementById('lbScroll'),b=im.getBoundingClientRect();
     return {w:Math.round(b.width),scw:sc.clientWidth,ta:getComputedStyle(sc).touchAction};});
   t('l\'image s\'ouvre AJUSTÉE à la largeur de l\'écran',Math.abs(r0.w-r0.scw)<=2,JSON.stringify(r0));
@@ -9626,9 +9634,9 @@ await sec('A555 · pincer pour zoomer une image ouverte, le point reste sous les
     t('le pincer agrandit l\'image (×3)',Math.abs(a1.z-3)<0.02&&a1.w>a0.w*2.9,JSON.stringify([a0,a1]));
     t('le point pincé reste sous les doigts (écart < 1 %)',Math.abs(a1.fx-a0.fx)<0.01&&Math.abs(a1.fy-a0.fy)<0.01,JSON.stringify([a0,a1]));
     t('au lâcher, aucune transformation résiduelle (taille posée en ligne)',!a1.tr,a1.tr);}
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const ferme=await page.evaluate(async()=>{const sc=document.getElementById('lbScroll');
-    sc.dispatchEvent(new MouseEvent('click',{bubbles:true}));await new Promise(r=>setTimeout(r,200));
+    sc.dispatchEvent(new MouseEvent('click',{bubbles:true}));await __acCalme(200);
     return !document.getElementById('lightbox').classList.contains('on');});
   t('un tap sur le fond autour de l\'image ferme toujours',ferme===true);
   await page.close();
@@ -9642,7 +9650,7 @@ await sec('A558 · pincer pour zoomer le plein écran du schéma', async () => {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
-  const r0=await page.evaluate(async()=>{flowZoom=1;openFlowFull(state.fiche);await new Promise(r=>setTimeout(r,400));
+  const r0=await page.evaluate(async()=>{flowZoom=1;openFlowFull(state.fiche);await __acCalme(400);
     return {on:document.getElementById('flowFull').classList.contains('on'),ta:getComputedStyle(document.querySelector('#flowFull .ff-scroll')).touchAction};});
   t('témoin : le plein écran du schéma est ouvert',r0.on===true);
   t('son défileur coupe le seul pincer du navigateur (pan-x pan-y)',r0.ta==='pan-x pan-y',r0.ta);
@@ -9678,7 +9686,7 @@ await sec('A559 · pincer pour zoomer l\'aperçu du schéma dans la page', async
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
   const r0=await page.evaluate(async()=>{flowZoom=1;state.readMode='static';state.allTab='schema';render();await new Promise(r=>setTimeout(r,700));
-    const sc=main.querySelector('.flow-scroll');if(sc)sc.scrollIntoView({block:'start'});await new Promise(r=>setTimeout(r,200));
+    const sc=main.querySelector('.flow-scroll');if(sc)sc.scrollIntoView({block:'start'});await __acCalme(200);
     return {on:!!sc,ta:sc?getComputedStyle(sc).touchAction:''};});
   t('témoin : l\'aperçu du schéma est dans la page',r0.on===true);
   t('son défileur coupe le seul pincer du navigateur (pan-x pan-y)',r0.ta==='pan-x pan-y',r0.ta);
@@ -9706,9 +9714,9 @@ await sec('A559 · pincer pour zoomer l\'aperçu du schéma dans la page', async
   /* Redimensionner (1280 → 900) re-rend l'aperçu au palier : le point regardé doit survivre au défileur remplacé (A557). */
   {const p2=await br.newPage({viewport:{width:1280,height:800}});
    await p2.goto(`http://localhost:${port}/index.html`);await amorce(p2);await ouvrirFiche(p2,/Arrêt cardiaque/);
-   await p2.evaluate(async()=>{state.readMode='static';state.allTab='schema';render();await new Promise(r=>setTimeout(r,600));
+   await p2.evaluate(async()=>{state.readMode='static';state.allTab='schema';render();await __acCalme(600);
      flowZoom=2.5;applyFlowZoom();const sc=main.querySelector('.flow-scroll');sc.scrollIntoView({block:'start'});sc.scrollLeft=300;sc.scrollTop=200;});
-   await p2.waitForTimeout(400);
+   await calme(p2, 400);
    const c=()=>p2.evaluate(()=>{const sc=main.querySelector('.flow-scroll'),r=sc.getBoundingClientRect(),b=sc.querySelector('svg').getBoundingClientRect();
      const cx=(Math.max(r.left,0)+Math.min(r.right,innerWidth))/2,cy=(Math.max(r.top,0)+Math.min(r.bottom,innerHeight))/2;return {fx:(cx-b.left)/b.width,fy:(cy-b.top)/b.height};});
    const c0=await c();await p2.setViewportSize({width:900,height:700});await p2.waitForTimeout(800);const c1=await c();
@@ -9730,9 +9738,9 @@ await sec('A557 · redimensionner en état zoomé garde le point regardé', asyn
   // — image
   await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=1600;c.height=1200;const g=c.getContext('2d');
     for(let i=0;i<16;i++){g.fillStyle=i%2?'#335':'#ccd';g.fillRect(i*100,0,100,1200);}
-    openLightbox(c.toDataURL(),'');await new Promise(r=>setTimeout(r,400));
+    openLightbox(c.toDataURL(),'');await __acCalme(400);
     _lbZ=4;lbFit();const sc=document.getElementById('lbScroll');sc.scrollLeft=900;sc.scrollTop=700;});
-  await page.waitForTimeout(300);
+  await calme(page, 300);
   const im=()=>page.evaluate(()=>{const r=document.getElementById('lbScroll').getBoundingClientRect(),b=document.getElementById('lbImg').getBoundingClientRect();
     return {fx:((r.left+r.width/2)-b.left)/b.width,fy:((r.top+r.height/2)-b.top)/b.height};});
   const i0=await im();await taille(700,600);const i1=await im();await taille(1280,800);
@@ -9750,7 +9758,7 @@ await sec('A557 · redimensionner en état zoomé garde le point regardé', asyn
   await page.waitForFunction(()=>!!document.querySelector('.pdf-page[data-p="1"] canvas'),null,{timeout:15000});
   await page.evaluate(()=>{_pv.z=2;pdfApplyScale();pdfRenderNear();const sc=document.getElementById('pdfScroll');
     sc.scrollTop=document.querySelector('.pdf-page[data-p="4"]').offsetTop+300;sc.scrollLeft=200;});
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const pd=()=>page.evaluate(()=>{const r=document.getElementById('pdfScroll').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
     const el=[...document.querySelectorAll('.pdf-page')].find(e=>{const b=e.getBoundingClientRect();return b.top<=cy&&b.bottom>=cy;});
     const b=el.getBoundingClientRect();return {p:el.dataset.p,fx:(cx-b.left)/b.width,fy:(cy-b.top)/b.height};});
@@ -9762,17 +9770,17 @@ await sec('A557 · redimensionner en état zoomé garde le point regardé', asyn
   const pg=(sel)=>page.evaluate((sel)=>{const sc=document.querySelector(sel+' .sv-scroll'),r=sc.getBoundingClientRect(),b=document.querySelector(sel+' .sv-sheet').getBoundingClientRect();
     const cx=(Math.max(r.left,0)+Math.min(r.right,innerWidth))/2,cy=(Math.max(r.top,0)+Math.min(r.bottom,innerHeight))/2;
     return {fx:(cx-b.left)/b.width,fy:(cy-b.top)/b.height};},sel);
-  await page.evaluate(async()=>{openPlanSheet('page');await new Promise(r=>setTimeout(r,600));
+  await page.evaluate(async()=>{openPlanSheet('page');await __acCalme(600);
     const pb=document.getElementById('planBody');svZoom=2.5;svApplyZoom(pb);
     document.getElementById('planModal').scrollTop=900;pb.querySelector('.sv-scroll').scrollLeft=500;});
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const f0=await pg('#planBody');await taille(700,600);const f1=await pg('#planBody');await taille(1280,800);
   t('Page « Tableau » à 250 % : le point au centre reste au centre',proche(f0,f1),JSON.stringify([f0,f1]));
-  await page.evaluate(()=>document.getElementById('planX').click());await page.waitForTimeout(300);
+  await page.evaluate(()=>document.getElementById('planX').click());await calme(page, 300);
   await demarrerSession(page);
-  await page.evaluate(async()=>{document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,500));svZoom=2;svApplyZoom(main);
+  await page.evaluate(async()=>{document.getElementById('allBtn').click();await __acCalme(500);svZoom=2;svApplyZoom(main);
     const sh=main.querySelector('.sv-sheet');window.scrollTo(0,sh.getBoundingClientRect().top+scrollY+900);main.querySelector('.sv-scroll').scrollLeft=300;});
-  await page.waitForTimeout(400);
+  await calme(page, 400);
   const m0=await pg('main');const sc0=await page.evaluate(()=>{window.__a557=main.querySelector('.sv-scroll');return true;});
   await taille(900,700);const m1=await pg('main');const neuf=await page.evaluate(()=>window.__a557!==main.querySelector('.sv-scroll'));
   t('Page de l\'aide à 200 % : le point regardé survit au re-rendu du palier (défileur remplacé)',sc0&&proche(m0,m1),JSON.stringify({m0,m1,neuf}));
@@ -9790,27 +9798,27 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);await ouvrirFiche(page,/cardiaque/i);await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const tk=document.getElementById('tkKey');tk.click();await w(200);dockSheetClose();
-    document.getElementById('cbTimers').click();await w(400);
+    const tk=document.getElementById('tkKey');tk.click();await __acCalme(200);dockSheetClose();
+    document.getElementById('cbTimers').click();await __acCalme(400);
     const t=document.querySelector('.rt-dock [data-tktime]');if(!t)return {err:'pas de journal dans le volet'};
-    t.click();await w(150);
+    t.click();await __acCalme(150);
     const inp=document.querySelector('.rt-dock .tk-time-edit');
     const pose=document.body.classList.contains('kb-open');
     // le clavier se simule par la classe que son poseur écrirait : champ du volet → PAS de `kbd`
     window._vvhSync&&window._vvhSync();
     const kbd=document.documentElement.classList.contains('kbd');
-    inp.value='1630';inp.blur();await w(250);
+    inp.value='1630';inp.blur();await __acCalme(250);
     return {pose,kbd,kbOpen:document.body.classList.contains('kb-open'),
       dock:getComputedStyle(document.getElementById('sessionDock')).display,
       vol:!!document.querySelector('.rt-dock'),t:(document.querySelector('.rt-dock .tk-time')||{}).textContent};});
   t('témoin : le champ d\'heure du volet pose bien `kb-open` au focus',!r.err&&r.pose===true,JSON.stringify(r));
   t('après validation, `kb-open` tombe : le dock revient',r.kbOpen===false&&r.dock!=='none',JSON.stringify(r));
   t('… le volet reste ouvert et l\'heure est corrigée',r.vol===true&&r.t==='16:30:00',JSON.stringify(r));
-  await page.setViewportSize({width:844,height:340});await page.waitForTimeout(400);
+  await page.setViewportSize({width:844,height:340});await calme(page, 400);
   const l=await page.evaluate(()=>{const s=document.querySelector('.read-side');
     return {zh:document.documentElement.classList.contains('zh500'),pos:getComputedStyle(s).position,sh:s.scrollHeight,ch:s.clientHeight};});
   t('paysage 844 × 340 : le rail est rendu au flux, tout son contenu visible',l.zh&&l.pos==='static'&&l.ch>=l.sh-1,JSON.stringify(l));
-  await page.setViewportSize({width:1024,height:700});await page.waitForTimeout(400);
+  await page.setViewportSize({width:1024,height:700});await calme(page, 400);
   const g=await page.evaluate(()=>{const s=document.querySelector('.read-side');
     return {zh:document.documentElement.classList.contains('zh500'),pos:getComputedStyle(s).position};});
   t('… mais une tablette (1024 × 700) garde son rail collant',!g.zh&&g.pos==='sticky',JSON.stringify(g));

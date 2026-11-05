@@ -10,7 +10,10 @@
      · ouvrir l'éditeur pose UN point de version — le filet qui remplace le « Annuler » disparu.
    Les trois derniers contrôles sont les plus importants : ce sont eux qui garantissent qu'un
    essai d'auteur ne contamine pas l'historique clinique de quelqu'un. */
-import { serveApp, moteur, amorce, ouvrirBloc } from './harness.mjs';
+import { serveApp, moteur, amorce, ouvrirBloc, calme } from './harness.mjs';
+/* Pauses de RENDU (< 700 ms) → attente de calme : `__acCalme(N)` dans la page, `calme(page, N)` côté Node ; les
+   pauses d'HORLOGE (≥ 700 ms) restent des durées. Repli Node, et raison complète : A564, tête d'audit-doctrine.mjs. */
+const __acCalme=m=>new Promise(r=>setTimeout(r,m));
 const {port,srv}=await serveApp(); const br=await moteur().launch();
 const p=await br.newPage({viewport:{width:390,height:900}});
 let ok=0,ko=0;const t=(n,c,d)=>{if(c){ok++;console.log('  ✓ '+n);}else{ko++;console.log('  ✗ '+n+(d?' — '+d:''));}};
@@ -20,7 +23,7 @@ await amorce(p);
 
 console.log('=== une fiche NEUVE sans titre n’entre pas ===');
 const a=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  const n0=fiches.length; newFiche(); render(); await w(300);
+  const n0=fiches.length; newFiche(); render(); await __acCalme(300);
   const bloc=document.querySelector('.blk .li input[type=text]');
   bloc.value='Poser une voie'; bloc.dispatchEvent(new Event('input',{bubbles:true}));
   await w(900);
@@ -46,9 +49,9 @@ await p.setViewportSize({width:900,height:900});
 /* ⚠ LE REDIMENSIONNEMENT RE-REND L'ÉDITEUR (`_onReadBp`, v4.77.0), et un re-rendu passe par
    `edTouch` qui repose « ⟳ Enregistrement… ». Poser l'état AVANT que le re-rendu soit retombé
    mesurait donc une course, pas un libellé : on laisse le rendu s'achever, PUIS on pose l'état. */
-await p.waitForTimeout(500);
+await calme(p, 500);
 await p.evaluate(()=>{if(typeof edSaySave==='function')edSaySave('saved');});
-await p.waitForTimeout(120);
+await calme(p, 120);
 const bLarge=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {etat:(document.getElementById('hdrSaved')||{}).textContent||''};});
 t('… et en toutes lettres au large', /^✓ Enregistré · \d{2}:\d{2}$/.test(bLarge.etat.trim()), bLarge.etat);
@@ -78,12 +81,12 @@ t('… et elle s’épingle', c.accepte);
 console.log('=== « ▶ Essayer » : une session qui ne laisse RIEN ===');
 const d=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const nS=sessions.length, nL=Object.keys(liveSessions).length;
-  document.getElementById('hdrPreview').click(); await w(500);
-  const ck=document.querySelector('[data-ck]'); if(ck)ck.click(); await w(500);
+  document.getElementById('hdrPreview').click(); await __acCalme(500);
+  const ck=document.querySelector('[data-ck]'); if(ck)ck.click(); await __acCalme(500);
   const demarre=Runtime.started&&!!Runtime.essai;
   const coche=Object.keys(state.checked||{}).length>0;
   // on quitte l'essai par le retour
-  const bk=document.getElementById('hdrBack'); bk.click(); await w(600);
+  const bk=document.getElementById('hdrBack'); bk.click(); await __acCalme(600);
   return {nS,nL,demarre,coche,sApres:sessions.length,lApres:Object.keys(liveSessions).length,
     retourEditeur:state.view==='edit'};});
 t('l’essai DÉMARRE vraiment (marqué essai)', d.demarre);
@@ -96,7 +99,7 @@ console.log('=== un point de version est posé à l’ouverture ===');
 const e=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const id=state.draft.id; const bk=document.getElementById('hdrBack'); bk.click(); await w(700);
   const av=(await Data.getBackups(id)).length;
-  await openEdit(id); await w(500);
+  await openEdit(id); await __acCalme(500);
   const ap=(await Data.getBackups(id)).length;
   return {av,ap};});
 t('ouvrir l’éditeur pose UN point de version', e.ap===e.av+1, `${e.av} → ${e.ap}`);
@@ -108,7 +111,7 @@ t('ouvrir l’éditeur pose UN point de version', e.ap===e.av+1, `${e.av} → ${
    enregistrement automatique là où `edCommit` sortait les bras vides, faute de titre. */
 console.log('=== l’état ne promet pas ce qui n’a pas lieu ===');
 const f1=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  newFiche(); render(); await w(300);
+  newFiche(); render(); await __acCalme(300);
   const ti=document.getElementById('f-title');
   ti.value='Provisoire'; ti.dispatchEvent(new Event('input',{bubbles:true})); await w(900);
   const avecTitre=(document.getElementById('hdrSaved')||{}).textContent||'';
@@ -129,9 +132,9 @@ const f2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const neuf=d().open;                                   // fiche vierge -> ouvert d'office
   const ti=document.getElementById('f-title');
   ti.value='Fiche à identité'; ti.dispatchEvent(new Event('input',{bubbles:true}));
-  renderEditor(); await w(400);                           // geste STRUCTUREL : le piège d'avant
+  renderEditor(); await __acCalme(400);                           // geste STRUCTUREL : le piège d'avant
   const apresRendu=d().open;
-  d().open=false; d().dispatchEvent(new Event('toggle')); renderEditor(); await w(400);
+  d().open=false; d().dispatchEvent(new Event('toggle')); renderEditor(); await __acCalme(400);
   const repliTenu=!d().open;
   return {neuf,apresRendu,repliTenu};});
 t('fiche vierge : ouvert d’office', f2.neuf);
@@ -142,7 +145,7 @@ console.log('=== une section vide ne s’affiche pas ===');
 const f3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const lbl=()=>[...document.querySelectorAll('fieldset.field>label')].map(x=>x.textContent);
   const vide=lbl();
-  edAdd(state.draft,'stopwatch'); await w(500);
+  edAdd(state.draft,'stopwatch'); await __acCalme(500);
   const avec=lbl();
   return {videMinuteurs:vide.some(x=>/Minuteurs/.test(x)),
     videCx:vide.some(x=>/Complications/.test(x)),
@@ -155,7 +158,7 @@ console.log('=== le bandeau « déplacement » tient sur un écran étroit ===')
 await p.setViewportSize({width:320,height:760});
 const f4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const g=document.querySelector('.blk .li .li-grab'); if(!g)return {absent:true};
-  g.click(); await w(400);
+  g.click(); await __acCalme(400);
   const b=document.querySelector('.ed-grab'); if(!b)return {absent:true};
   const l=b.querySelector('.eg-l'), x=b.querySelector('.eg-x');
   const rb=b.getBoundingClientRect(), rl=l.getBoundingClientRect(), rx=x.getBoundingClientRect();
@@ -166,7 +169,7 @@ const f4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
      le reste du formulaire (geste MODAL). Le laisser ouvert éteignait silencieusement chaque
      contrôle des blocs suivants — et un témoin qui laisse un état derrière lui fait échouer les
      autres pour la mauvaise raison. */
-  state.edGrab=null;renderEditor();await w(400);
+  state.edGrab=null;renderEditor();await __acCalme(400);
   return out;});
 t('le libellé garde au moins la moitié de la largeur du bandeau',
   !f4.absent&&f4.larg>=f4.boite*0.5, JSON.stringify(f4));
@@ -189,7 +192,7 @@ await p.setViewportSize({width:900,height:900});
 const g=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const id=state.draft.id;
   document.getElementById('hdrBack').click(); await w(800);
-  await openEdit(id); await w(600);
+  await openEdit(id); await __acCalme(600);
   const nb=()=>document.querySelectorAll('.blk .li').length;
   const pub=()=>((fiches.find(f=>f.id===id)||{blocks:[]}).blocks||[]).reduce((a,b)=>a+bItems(b).length,0);
   const bouton=()=>document.getElementById('hdrUndo');
@@ -197,13 +200,13 @@ const g=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   etat.push({e:'ouverture',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
   // deux étapes NOMMÉES, pour pouvoir en supprimer une sans vider le bloc
   for(const v of ['Sonde une','Sonde deux']){
-    document.querySelector('.blk [data-addstep]').click(); await w(250);
+    document.querySelector('.blk [data-addstep]').click(); await __acCalme(250);
     const ins=[...document.querySelectorAll('.blk .li input[data-sf]')];
     const cible=ins[ins.length-1]; cible.value=v; cible.dispatchEvent(new Event('input',{bubbles:true}));
     await w(700);}
   const base=_edUndo.length, nBase=nb(), pubBase=pub();
-  [...document.querySelectorAll('.blk .li-set')].pop().click(); await w(250);
-  document.querySelector('#stepSetBody [data-rmstep]').click(); await w(300);
+  [...document.querySelectorAll('.blk .li-set')].pop().click(); await __acCalme(250);
+  document.querySelector('#stepSetBody [data-rmstep]').click(); await __acCalme(300);
   etat.push({e:'suppression',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
   const inp=document.querySelectorAll('.blk .li input[data-sf]')[0];
   const txt0=inp.value;
@@ -231,12 +234,12 @@ t('on redescend jusqu’au point de départ', E[4].pile===g.base, `${E[4].pile} 
 /* Cmd/Ctrl-Z NE VOLE JAMAIS LE UNDO NATIF D'UN CHAMP : dans un `input`, le raccourci appartient
    au navigateur. Le témoin mesure la PROPRIÉTÉ (l'anneau n'a pas bougé), pas l'intention. */
 const g2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  document.querySelector('.blk .li-set').click(); await w(250);
-  document.querySelector('#stepSetBody [data-rmstep]').click(); await w(250);
+  document.querySelector('.blk .li-set').click(); await __acCalme(250);
+  document.querySelector('#stepSetBody [data-rmstep]').click(); await __acCalme(250);
   const av=_edUndo.length;
   const inp=document.querySelector('.blk .li input[data-sf]'); inp.focus();
   inp.dispatchEvent(new KeyboardEvent('keydown',{key:'z',metaKey:true,bubbles:true,cancelable:true}));
-  await w(300);
+  await __acCalme(300);
   const dansChamp=_edUndo.length;
   document.body.focus();
   document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true}));
@@ -250,7 +253,7 @@ t('Ctrl-Z hors champ annule bien', g2.horsChamp===g2.av-1, JSON.stringify(g2));
 const g2r=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const nb=()=>document.querySelectorAll('.blk .li').length,rb=()=>document.getElementById('hdrRedo');
   const o={};
-  document.querySelector('.blk [data-addstep]').click(); await w(400);   // (le contrôle précédent vient d'annuler : ce geste neuf clôt son ↷)
+  document.querySelector('.blk [data-addstep]').click(); await __acCalme(400);   // (le contrôle précédent vient d'annuler : ce geste neuf clôt son ↷)
   o.avant=!rb().hidden;const n1=nb();
   document.getElementById('hdrUndo').click(); await w(700);o.undoN=nb()===n1-1;o.visible=!rb().hidden;
   rb().click(); await w(700);o.redoN=nb()===n1;o.cacheApres=rb().hidden;
@@ -259,7 +262,7 @@ const g2r=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Z',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true})); await w(700);
   o.clavier=nb()===n1;
   document.getElementById('hdrUndo').click(); await w(700);o.reVisible=!rb().hidden;
-  document.querySelector('.blk [data-addstep]').click(); await w(400);o.geste=rb().hidden;
+  document.querySelector('.blk [data-addstep]').click(); await __acCalme(400);o.geste=rb().hidden;
   return o;});
 t('A553 · ↷ absent sans annulation ; après ↶ il paraît et rend le geste',!g2r.avant&&g2r.undoN&&g2r.visible&&g2r.redoN&&g2r.cacheApres,JSON.stringify(g2r));
 t('A553 · Maj-Ctrl-Z rétablit hors champ ; un geste nouveau retire ↷',g2r.clavier&&g2r.reVisible&&g2r.geste,JSON.stringify(g2r));
@@ -267,8 +270,8 @@ t('A553 · Maj-Ctrl-Z rétablit hors champ ; un geste nouveau retire ↷',g2r.cl
 /* Sortir de l'éditeur vide l'anneau : c'est un GESTE, pas un état du brouillon (même statut que
    `state.edGrab`). Le filet de plus longue portée reste le point de version de v4.72.0. */
 const g3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  document.querySelector('.blk .li-set').click(); await w(250);
-  document.querySelector('#stepSetBody [data-rmstep]').click(); await w(250);
+  document.querySelector('.blk .li-set').click(); await __acCalme(250);
+  document.querySelector('#stepSetBody [data-rmstep]').click(); await __acCalme(250);
   const av=_edUndo.length;
   document.getElementById('hdrBack').click(); await w(800);
   return {av,apres:_edUndo.length,cache:document.getElementById('hdrUndo').hidden};});
@@ -286,9 +289,9 @@ console.log('=== lot 2 : prendre / poser dans les listes ===');
 await p.setViewportSize({width:900,height:900});
 const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   // Le contrôle précédent a QUITTÉ l'éditeur pour vérifier que l'anneau se vide : on y rentre.
-  if(!state.draft){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(600);}
+  if(!state.draft){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await __acCalme(600);}
   const id=state.draft.id,d=state.draft;
-  if(state.edGrab){state.edGrab=null;renderEditor();await w(300);}
+  if(state.edGrab){state.edGrab=null;renderEditor();await __acCalme(300);}
   // un jeu de listes garni : deux objets par liste d'objets, quatre lignes en texte
   /* v5.0.0, étape B — ces listes ne sont plus des CHAMPS mais des RÔLES du pool `items` :
      `setList` est l'écriture réelle. Les écraser directement ne faisait plus rien, et la sonde
@@ -299,16 +302,16 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   while((d.counters||[]).length<2)edAdd(d,'counter');
   d.timers[0].label='Minuteur A';d.timers[1].label='Minuteur B';
   d.counters[0].label='Compteur A';d.counters[1].label='Compteur B';
-  renderEditor();await w(500);
+  renderEditor();await __acCalme(500);
   const cles=[...new Set([...document.querySelectorAll('[data-lgrab]')].map(b=>b.dataset.lgrab.split(':')[0]))];
   const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
   // une liste à UNE seule rangée n'a pas de poignée (aucun bouton mort)
-  d.sources=['Seule'];renderEditor();await w(400);
+  d.sources=['Seule'];renderEditor();await __acCalme(400);
   const refSeule=!H('sources:0');
   // PRISE : ancrage à 0 px + confinement
-  H('differentials:3').scrollIntoView({block:'center'});await w(150);
+  H('differentials:3').scrollIntoView({block:'center'});await __acCalme(150);
   const y0=Math.round(H('differentials:3').getBoundingClientRect().top);
-  H('differentials:3').click();await w(350);
+  H('differentials:3').click();await __acCalme(350);
   /* v5.39.11 (A439) — ON MESURE L'OBJET POSÉ, PAS SON TREMBLEMENT. Prendre une rangée lance
      `grabWake` (0,5 s : rotation jusqu'à −0,7°, échelle 1,015) et `getBoundingClientRect` compte
      les transformations : à 350 ms l'animation court encore — −0,7 à −1,9 px mesurés SANS charge
@@ -323,30 +326,30 @@ const L=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const marque=!!document.querySelector('.li.grabbed');
   const bandeau=(document.querySelector('.ed-grab .eg-l')||{}).textContent||'';
   // DÉPÔT
-  document.querySelector('[data-ldrop="differentials:0"]').click();await w(500);
+  document.querySelector('[data-ldrop="differentials:0"]').click();await __acCalme(500);
   const apres=listOf(d,'differentials').slice();
   const publie=listOf(fiches.find(f=>f.id===id)||{},'differentials').slice();
   // ÉCHAP repose l'objet sans rien déplacer
-  H('differentials:2').click();await w(350);
+  H('differentials:2').click();await __acCalme(350);
   const avantEchap=(d.differentials||[]).slice();
-  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(400);
+  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(400);
   const apresEchap=(d.differentials||[]).slice();
   // une liste d'OBJETS se réordonne par le même chemin
-  H('timers:1').click();await w(350);
+  H('timers:1').click();await __acCalme(350);
   const dropsT=[...document.querySelectorAll('[data-ldrop]')].map(b=>b.dataset.ldrop);
-  document.querySelector('[data-ldrop="timers:0"]').click();await w(500);
+  document.querySelector('[data-ldrop="timers:0"]').click();await __acCalme(500);
   const tApres=(d.timers||[]).map(t=>t.label);
   // LE GLISSER AMORCE LE MODE (et le glisser natif est annulé)
   const h=H('differentials:1');
   const ev=new DragEvent('dragstart',{bubbles:true,cancelable:true});
-  h.dispatchEvent(ev);await w(350);
+  h.dispatchEvent(ev);await __acCalme(350);
   const amorce=!!state.edGrab&&state.edGrab.kind==='l'&&state.edGrab.i===1;
   const annule=ev.defaultPrevented;
   // les micro-animations existent et cascadent
   const dl=[...document.querySelectorAll('.ed-drop')].map(x=>getComputedStyle(x).animationDelay);
   const animObjet=(()=>{const e=document.querySelector('.li.grabbed');return e?getComputedStyle(e).animationName:'';})();
   const animBan=(()=>{const e=document.querySelector('.ed-grab');return e?getComputedStyle(e).animationName:'';})();
-  state.edGrab=null;renderEditor();await w(300);
+  state.edGrab=null;renderEditor();await __acCalme(300);
   return {cles,refSeule,derivePrise:y1-y0,drops,marque,bandeau,apres,publie,
     avantEchap,apresEchap,dropsT,tApres,amorce,annule,dl,animObjet,animBan,
     flechesRestantes:document.querySelectorAll('[data-cmv],[data-tmv]').length};});
@@ -381,7 +384,7 @@ t('le bandeau entre dans le sens du geste', L.animBan==='grabBanIn', L.animBan);
 console.log('=== lot 3 : la porte de l’aide entière ===');
 await p.setViewportSize({width:900,height:900});
 const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  if(!state.draft){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(600);}
+  if(!state.draft){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await __acCalme(600);}
   const d=state.draft,id=d.id;
   const labels=()=>[...document.querySelectorAll('fieldset>label')].map(e=>e.textContent);
   const a=(rx)=>labels().some(x=>rx.test(x));
@@ -390,17 +393,17 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const dedansFieldset=!!porte().closest('fieldset');
   const collante=getComputedStyle(porte()).position;
   // (2) la palette : groupes + entrées
-  porte().click();await w(300);
+  porte().click();await __acCalme(300);
   const body=document.getElementById('edAddBody');
   const groupes=[...body.querySelectorAll('.ep-g')].map(e=>e.textContent);
   const cles=[...body.querySelectorAll('.ep-row')].map(e=>e.dataset.edadd);
   document.querySelector('#edAddModal .ai-x, #edAddModal [data-x]')?.click();
   if(document.querySelector('#edAddModal.on'))edAddClose();
-  await w(250);
+  await __acCalme(250);
   // (3) « présent dans la porte ⇔ masqué quand vide »
   setList(d,'verify',[]);setList(d,'differentials',[]);d.sources=[];setList(d,'posology',[]);d.images=[];d.docs=[];
   setList(d,'notForget',[]);setList(d,'confirmation',[]);
-  renderEditor();await w(500);
+  renderEditor();await __acCalme(500);
   /* v5.0.0, lot M3 : « Confirmation diagnostique » et « Diagnostics différentiels » sont réunis
      sous « Condition d'entrée » (critères + diagnostics à éliminer). Les LIBELLÉS changent, la
      RÈGLE ne change pas : les critères restent une invitation visible même vide, les diagnostics
@@ -411,33 +414,33 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   // (4) chaque entrée de liste recrée sa section
   const recree={};
   for(const [k,rx] of [['verify',/À vérifier/],['diff',/Diagnostics à éliminer/],['ref',/Références/],['poso',/Repères posologiques/]]){
-    porte().click();await w(250);
-    document.querySelector('[data-edadd="'+k+'"]').click();await w(450);
+    porte().click();await __acCalme(250);
+    document.querySelector('[data-edadd="'+k+'"]').click();await __acCalme(450);
     recree[k]=a(rx);}
   // (5) la porte redescend dans le flux pendant un déplacement
-  setList(d,'differentials',['Un','Deux']);renderEditor();await w(400);
-  document.querySelector('[data-lgrab="differentials:1"]').click();await w(350);
+  setList(d,'differentials',['Un','Deux']);renderEditor();await __acCalme(400);
+  document.querySelector('[data-lgrab="differentials:1"]').click();await __acCalme(350);
   const platPendantDeplacement=getComputedStyle(porte()).position;
-  state.edGrab=null;renderEditor();await w(350);
+  state.edGrab=null;renderEditor();await __acCalme(350);
   // (6) l'image s'associe à un bloc, et à UN SEUL
   const px='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  d.images=[{id:'i1',data:px,w:1,h:1,caption:'Sonde'}];renderEditor();await w(450);
+  d.images=[{id:'i1',data:px,w:1,h:1,caption:'Sonde'}];renderEditor();await __acCalme(450);
   const sel=document.querySelector('[data-imgblk="0"]');
   const nOptions=sel?sel.options.length:0;
   const cible=(d.blocks||[])[0].id;
-  sel.value=cible;sel.dispatchEvent(new Event('change'));await w(450);
+  sel.value=cible;sel.dispatchEvent(new Event('change'));await __acCalme(450);
   const porteurs=(d.blocks||[]).filter(b=>b.image===px).length;
   const sel2=document.querySelector('[data-imgblk="0"]');
   const memorise=sel2.value===cible;
-  sel2.value='';sel2.dispatchEvent(new Event('change'));await w(450);
+  sel2.value='';sel2.dispatchEvent(new Event('change'));await __acCalme(450);
   const detache=(d.blocks||[]).filter(b=>b.image===px).length;
   // (7) le compte de relecture
   const rb=document.getElementById('hdrRev');
-  setList(d,'notForget',['a']);renderEditor();await w(400);
+  setList(d,'notForget',['a']);renderEditor();await __acCalme(400);
   const revZero=rb.hidden;
-  setList(d,'notForget',['a','b','c','d','e']);renderEditor();await w(400);
+  setList(d,'notForget',['a','b','c','d','e']);renderEditor();await __acCalme(400);
   const revUn={cache:rb.hidden,txt:rb.textContent};
-  rb.click();await w(400);
+  rb.click();await __acCalme(400);
   const voletOuvert=!!document.querySelector('#revPanel details.rev-panel[open]');
   return {dedansFieldset,collante,groupes,cles,vides,recree,platPendantDeplacement,
     nOptions,porteurs,memorise,detache,revZero,revUn,voletOuvert,nBlocs:(d.blocks||[]).length};});
@@ -469,16 +472,16 @@ const E2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const cb=document.getElementById('crisisBand');
   const hach=()=>getComputedStyle(cb,'::before').opacity;
   const tag=()=>cb.querySelector('.cb-tag');
-  state.draft.notForget=['Adrénaline IM'];renderEditor();await w(350);
-  document.getElementById('hdrPreview').click();await w(700);window.scrollTo(0,0);await w(250);
+  state.draft.notForget=['Adrénaline IM'];renderEditor();await __acCalme(350);
+  document.getElementById('hdrPreview').click();await w(700);window.scrollTo(0,0);await __acCalme(250);
   /* COÛT NUL : on isole UNE variable, le placard lui-même. Dans l'éditeur `#crisisBand` est masqué
      (hauteur 0), donc le comparer à l'essai ne mesurerait rien ; on retire la seule classe du
      placard, on mesure, on la remet. C'est une mesure de CSS, pas une reconstruction d'état. */
   const hAvecPlacard=Math.round(cb.getBoundingClientRect().height);
   const opac=hach();                       // LU AVANT le retrait : la hachure est en fondu 300 ms
-  cb.classList.remove('ess');await w(120);
+  cb.classList.remove('ess');await __acCalme(120);
   const hAvant=Math.round(cb.getBoundingClientRect().height);
-  cb.classList.add('ess');await w(120);
+  cb.classList.add('ess');await __acCalme(120);
   return {classe:cb.classList.contains('ess'),hachure:opac,hAvecPlacard,
     etiquetteCachee:tag().hidden,
     hauteur:hAvecPlacard,hAvant,
@@ -507,16 +510,16 @@ console.log('=== v4.77.0 : l’éditeur suit les paliers ===');
 await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
   if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}});
-await p.waitForTimeout(400);
+await calme(p, 400);
 {
-  await p.setViewportSize({width:1250,height:820}); await p.waitForTimeout(500);
+  await p.setViewportSize({width:1250,height:820}); await calme(p, 500);
   const large=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
     flux:!!document.querySelector('.flow-prev')}));
-  await p.setViewportSize({width:820,height:820}); await p.waitForTimeout(500);
+  await p.setViewportSize({width:820,height:820}); await calme(p, 500);
   const etroit=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
     flux:!!document.querySelector('.flow-prev'),
     dansLeFlux:!!document.querySelector('.ed-slist .flow-prev')}));
-  await p.setViewportSize({width:1250,height:820}); await p.waitForTimeout(500);
+  await p.setViewportSize({width:1250,height:820}); await calme(p, 500);
   const retour=await p.evaluate(()=>({side:!!document.querySelector('#editSide .flow-scroll'),
     flux:!!document.querySelector('.flow-prev')}));
   t('≥ 1000 px : le schéma vit dans la colonne collante', large.side&&!large.flux, JSON.stringify(large));
@@ -530,11 +533,11 @@ console.log('=== v4.77.0 : le mode déplacement est modal, et réversible ===');
 await p.setViewportSize({width:900,height:900});
 const R2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const d=state.draft;
-  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await w(450);
+  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await __acCalme(450);
   const H=k=>document.querySelector('[data-lgrab="'+k+'"]');
-  H('differentials:2').scrollIntoView({block:'center'});await w(200);
+  H('differentials:2').scrollIntoView({block:'center'});await __acCalme(200);
   const y0=Math.round(H('differentials:2').getBoundingClientRect().top);
-  H('differentials:2').click();await w(400);
+  H('differentials:2').click();await __acCalme(400);
   // (a) le reste du formulaire est INERTE
   const champ=document.querySelector('#f-title');
   const suppr=document.querySelector('[data-bdel]');
@@ -546,13 +549,13 @@ const R2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const ban=document.querySelector('.ed-grab');
   const banHorsFieldset=!ban.closest('fieldset');
   // (c) re-presser la MÊME poignée repose l'objet, sans dérive
-  H('differentials:2').click();await w(450);
+  H('differentials:2').click();await __acCalme(450);
   const y1=Math.round(H('differentials:2').getBoundingClientRect().top);
   const repose=state.edGrab===null;
   const rendu={titre:!document.querySelector('#f-title').disabled};
   // (d) Échap repose aussi, sans dérive
-  H('differentials:2').click();await w(400);
-  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(450);
+  H('differentials:2').click();await __acCalme(400);
+  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(450);
   const y2=Math.round(H('differentials:2').getBoundingClientRect().top);
   return {inerte,banHorsFieldset,repose,rendu,deriveRepose:y1-y0,deriveEchap:y2-y0,
     edGrab:state.edGrab};});
@@ -575,21 +578,21 @@ console.log('=== A383 : écrire n’ouvre rien, les réglages agissent vraiment 
   const cle=await p.evaluate(()=>{const b=document.querySelector('.blk:not(.blk-dec)');return b?b.dataset.bid:null;});
   const etapes=async()=>p.evaluate(id=>bItems(state.draft.blocks.find(b=>b.id===id)||{}).map(v4ItemToStr),cle);
   await ouvrirBloc(p,cle);   // A521 : le bloc s'ouvre sur sa page
-  await p.click(CH); await p.waitForTimeout(250);
+  await p.click(CH); await calme(p, 250);
   const vus=await p.evaluate(()=>{const li=document.querySelector('.blk:not(.blk-dec) .li');
     return {reglages:li.querySelectorAll('select,.seg,.li-tools').length,fenetre:document.getElementById('stepSetModal').classList.contains('on'),
       bouton:!!li.querySelector('.li-set')};});
   t('écrire une étape n’ouvre aucun réglage', vus.reglages===0&&!vus.fenetre&&vus.bouton, JSON.stringify(vus));
   const av=await etapes();
-  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-set'); await p.waitForTimeout(350);
-  await p.click('#stepSetBody [data-ssreg]:not(.on)'); await p.waitForTimeout(400);
+  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-set'); await calme(p, 350);
+  await p.click('#stepSetBody [data-ssreg]:not(.on)'); await calme(p, 400);
   const ap=await etapes();
   t('le registre choisi dans la fenêtre change bien l’étape', av[0]!==ap[0], `« ${av[0]} » → « ${ap[0]} »`);
   const r=await p.evaluate(()=>({ouverte:document.getElementById('stepSetModal').classList.contains('on'),
     focus:!!(document.activeElement&&document.activeElement.matches('#stepSetBody [data-ssreg].on'))}));
   t('… la fenêtre reste ouverte, le focus sur le cran choisi', r.ouverte&&r.focus, JSON.stringify(r));
   const n0=(await etapes()).length;
-  await p.click('#stepSetBody [data-rmstep]'); await p.waitForTimeout(450);
+  await p.click('#stepSetBody [data-rmstep]'); await calme(p, 450);
   const n1=(await etapes()).length;
   t('« Supprimer l’étape » supprime bien l’étape', n1===n0-1, `${n0} → ${n1}`);
 }
@@ -597,7 +600,7 @@ console.log('=== A383 : écrire n’ouvre rien, les réglages agissent vraiment 
 console.log('=== v4.77.0 : guide replié, porte remplie, ajouts amenés à l’écran ===');
 const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   try{localStorage.removeItem('ac-cg-open');}catch(e){}
-  renderEditor();await w(450);
+  renderEditor();await __acCalme(450);
   const guides=[...document.querySelectorAll('details.crit-guide')].map(x=>x.open);
   const porte=document.getElementById('edAddOpen');
   /* v5.41.1 (A446, amende la maquette v5) : la porte est REMPLIE — fond --act, la seule action primaire de l'éditeur. */
@@ -610,8 +613,8 @@ const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     autresPleins:[...document.querySelectorAll('.btn.primary')].filter(b=>b.getClientRects().length&&getComputedStyle(b).visibility!=='hidden').map(b=>b.id||b.textContent.trim().slice(0,30)),vus:{}};
   // chaque type créé par la porte doit arriver DANS l'écran
   for(const k of ['interval','counter','cx']){
-    porte.click();await w(250);
-    document.querySelector('[data-edadd="'+k+'"]').click();await w(600);
+    porte.click();await __acCalme(250);
+    document.querySelector('[data-edadd="'+k+'"]').click();await __acCalme(600);
     const sel={interval:'.tmedit',counter:'.tmedit',cx:'.cx-edit-row'}[k];
     const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];
     const r=c.getBoundingClientRect();
@@ -637,27 +640,27 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
      `b.image` renseigné sans entrée de galerie — parce que c'est celui des fiches déjà écrites, et
      que le corriger seulement au point d'ajout n'aurait rien rattrapé. */
   d.images=[];d.blocks[0].image=px;d.blocks[0].imageW=1;d.blocks[0].imageH=1;
-  renderEditor();await w(500);
+  renderEditor();await __acCalme(500);
   const agrege={n:(d.images||[]).length,
     memeDonnee:((d.images||[])[0]||{}).data===px,
     vignette:!!document.querySelector('[data-imgblk]'),
     porteurMontre:(()=>{const sel=document.querySelector('[data-imgblk="0"]');
       return sel?sel.value===d.blocks[0].id:false;})()};
   // idempotence : un second rendu ne doit rien empiler
-  renderEditor();await w(400);
+  renderEditor();await __acCalme(400);
   const idem=(d.images||[]).length;
   /* DÉTACHER (« Aucun bloc ») : la vignette RESTE dans la galerie, prête pour un autre bloc. */
   {const sel=document.querySelector('[data-imgblk="0"]');sel.value='';
-   sel.dispatchEvent(new Event('change'));await w(450);}
+   sel.dispatchEvent(new Event('change'));await __acCalme(450);}
   const detache={images:(d.images||[]).length,blocs:(d.blocks||[]).filter(b=>b.image===px).length};
   /* RETIRER : l'image quitte l'aide entière — sinon la réconciliation la ramène. */
   {const sel=document.querySelector('[data-imgblk="0"]');sel.value=d.blocks[0].id;
-   sel.dispatchEvent(new Event('change'));await w(450);}
-  document.querySelector('[data-imgdel]').click();await w(500);
+   sel.dispatchEvent(new Event('change'));await __acCalme(450);}
+  document.querySelector('[data-imgdel]').click();await __acCalme(500);
   const retrait={images:(d.images||[]).length,blocs:(d.blocks||[]).filter(b=>b.image===px).length};
   /* (2) LE COMPTEUR A L'ANATOMIE DE LA CARTE DE MINUTEUR : poignée ET croix en tête, même rangée. */
   while((d.counters||[]).length<2)edAdd(d,'counter');
-  renderEditor();await w(500);
+  renderEditor();await __acCalme(500);
   const carte=document.querySelector('.tmedit[data-ci]');
   const top=carte?carte.querySelector('.tme-top'):null;
   const g=top?top.querySelector('[data-lgrab]'):null,x=top?top.querySelector('.ed-ic.del'):null;
@@ -667,16 +670,16 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     memeHauteur:(g&&x)?Math.abs(Math.round(g.getBoundingClientRect().height-x.getBoundingClientRect().height))<=1:false,
     trowDisparu:document.querySelectorAll('.trow').length===0};
   /* (3) UN BLOC SANS TITRE SE NOMME. */
-  d.blocks[1].title='';renderEditor();await w(450);   // sans re-rendu, le <select> garde l'ancien titre
+  d.blocks[1].title='';renderEditor();await __acCalme(450);   // sans re-rendu, le <select> garde l'ancien titre
   const nomme=(()=>{const o=[...document.querySelectorAll('select[data-target] option')]
     .map(x=>x.textContent);return o.some(t=>/Bloc sans titre \(\d\)/.test(t))&&!o.some(t=>/^b[_0-9a-z]{4,}$/.test(t));})();
   /* (4) LA MARQUE « EN DÉPLACEMENT » NE MANGE PLUS LE CHAMP D'UNE LIGNE DE LISTE. */
-  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await w(450);
+  setList(d,'differentials',['Un','Deux','Trois']);renderEditor();await __acCalme(450);
   const champ=()=>document.querySelector('.list-edit .li input[data-key="differentials"]');
   const lRepos=Math.round(champ().getBoundingClientRect().width);
-  document.querySelector('[data-lgrab="differentials:0"]').click();await w(450);
+  document.querySelector('[data-lgrab="differentials:0"]').click();await __acCalme(450);
   const lPris=Math.round(document.querySelector('.li.grabbed input[data-key="differentials"]').getBoundingClientRect().width);
-  state.edGrab=null;renderEditor();await w(400);
+  state.edGrab=null;renderEditor();await __acCalme(400);
   /* (5) LA PORTE A DE LA PROFONDEUR : élévation de niveau 3 + voile au-dessus. */
   const porte=document.getElementById('edAddOpen');
   const voile=getComputedStyle(porte,'::before');
@@ -728,10 +731,10 @@ const W=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
   if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
   const d=state.draft;
-  d.timers=[];d.counters=[];renderEditor();await w(400);
+  d.timers=[];d.counters=[];renderEditor();await __acCalme(400);
   const porte=()=>document.getElementById('edAddOpen');
-  const cree=async k=>{porte().click();await w(250);
-    document.querySelector('[data-edadd="'+k+'"]').click();await w(650);};
+  const cree=async k=>{porte().click();await __acCalme(250);
+    document.querySelector('[data-edadd="'+k+'"]').click();await __acCalme(650);};
   /* (1) UN CHRONOMÈTRE NE SONNE PAS : pas de champ « à l'échéance », et il le DIT. */
   await cree('stopwatch');
   const chr=[...document.querySelectorAll('.tmedit[data-ti]')].pop();
@@ -755,7 +758,7 @@ const W=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const rn=cpt.getBoundingClientRect();
   const compteur={vu:rn.top<window.innerHeight&&rn.bottom>0,
     dernierEstUnCompteur:[...document.querySelectorAll('.tmedit')].pop().dataset.ci!==undefined};
-  window.scrollTo(0,0);await w(200);
+  window.scrollTo(0,0);await __acCalme(200);
   await cree('stopwatch');
   const dernierMin=[...document.querySelectorAll('.tmedit[data-ti]')].pop();
   const rm=dernierMin.getBoundingClientRect();
@@ -790,7 +793,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
   if(state.view!=='edit'){const f=fiches.find(x=>!x.deletedAt);await openEdit(f.id);await w(700);}
   const d=state.draft;
-  setList(d,'confirmation',['Un critère','Deux']);renderEditor();await w(450);
+  setList(d,'confirmation',['Un critère','Deux']);renderEditor();await __acCalme(450);
   /* On mesure la RÈGLE, pas l'intention : encre, fond et curseur des deux boutons que l'utilisateur
      nomme (le ✕ d'une étape — le seul qui soit ROUGE au repos, donc celui où la spécificité pouvait
      échouer — et le B d'une ligne de liste). Et l'on vérifie le RETOUR à l'identique : le dégrisage
@@ -801,14 +804,14 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     return {stepDel:cs(b.querySelector('[data-bdel]')),
       bold:cs(document.querySelector('.list-edit [data-bold]')),
       poignee:cs(document.querySelector('.blk-top [data-grab]'))};};
-  const inp=document.querySelector('.blk:not(.blk-dec) .li input[data-sf]');inp.focus();await w(200);
+  const inp=document.querySelector('.blk:not(.blk-dec) .li input[data-sf]');inp.focus();await __acCalme(200);
   const avant=lire();
-  document.querySelector('.blk-top [data-grab]').click();await w(500);
+  document.querySelector('.blk-top [data-grab]').click();await __acCalme(500);
   const pendant=lire();
   const surface2=getComputedStyle(document.documentElement).getPropertyValue('--amb-2').trim();
   const bidon=document.createElement('span');bidon.style.background=surface2;document.body.appendChild(bidon);
   const attenduBg=getComputedStyle(bidon).backgroundColor;bidon.remove();
-  document.getElementById('edGrabX').click();await w(600);
+  document.getElementById('edGrabX').click();await __acCalme(600);
   const apres=lire();
   return {avant,pendant,apres,attenduBg};});
 
@@ -833,16 +836,16 @@ t('en sortant du mode, tout est DÉGRISÉ à l’identique',
    mots : c'est exactement là qu'un ajout se paie. */
 await p.setViewportSize({width:320,height:640});
 const M1=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  const f=fiches[0];state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await w(400);
+  const f=fiches[0];state.view='edit';state.draft=JSON.parse(JSON.stringify(f));render();await __acCalme(400);
   const li=document.querySelector('.blk .li');
   const inp=li?[...li.querySelectorAll('input[type=text]')]:[];
   if(inp[0]){inp[0].value='Geste témoin';inp[0].dispatchEvent(new Event('input',{bubbles:true}));}
   if(inp[1]){inp[1].value='30 mg';inp[1].dispatchEvent(new Event('input',{bubbles:true}));}
-  await w(80);
+  await __acCalme(80);
   const it0=bItems(state.draft.blocks[0])[0],do1=it0.do,exp1=it0.expect;
   /* Retaper le `do` SANS « :: » ne doit pas effacer la réponse attendue : ce sont deux champs. */
   if(inp[0]){inp[0].value='Geste témoin bis';inp[0].dispatchEvent(new Event('input',{bubbles:true}));}
-  await w(80);
+  await __acCalme(80);
   const it2=bItems(state.draft.blocks[0])[0];
   const r=li.getBoundingClientRect();let mx=0;
   [...li.children].forEach(c=>{const q=c.getBoundingClientRect();if(q.right>mx)mx=q.right;});
@@ -880,7 +883,7 @@ const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const li=[...document.querySelectorAll('.blk .li')].find(x=>x.querySelector('.li-chip:is(.crit,.vig)'))||document.querySelector('.blk .li');
   const lo=[...document.querySelectorAll('.blk .li')].find(x=>!x.querySelector('.li-chip:is(.crit,.vig)'))||li;
   const inp=li.querySelector('input[data-sf]');
-  inp.focus();await w(200);
+  inp.focus();await __acCalme(200);
   const ci=getComputedStyle(inp),ri=inp.getBoundingClientRect();
   const ro=lo.querySelector('input[data-sf]').getBoundingClientRect();
   const marque=!!li.querySelector('.li-chip:is(.crit,.vig)');
@@ -891,9 +894,9 @@ const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
      affichage hors focus — posée au rendu seulement, elle restait périmée dans les deux sens. */
   const li2=[...document.querySelectorAll('.blk .li')].find(x=>!x.classList.contains('has-exp'))||li;
   const ex2=li2.querySelector('.li-exp');
-  ex2.value='témoin';ex2.dispatchEvent(new Event('input',{bubbles:true}));await w(120);
+  ex2.value='témoin';ex2.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(120);
   const apresAjout=li2.classList.contains('has-exp');
-  ex2.value='';ex2.dispatchEvent(new Event('input',{bubbles:true}));await w(120);
+  ex2.value='';ex2.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(120);
   const apresEffacement=li2.classList.contains('has-exp');
   /* (3) LE SÉLECTEUR DE PHASE A LA BOÎTE DE SON VOISIN. */
   const ph=document.querySelector('.blk-phase select'),ti=document.querySelector('.blk-top input[data-bf="title"]');
@@ -910,8 +913,8 @@ const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const herTxt=heritee?heritee.querySelector('input').value:null;
   let deplace=null,apresTxt=null;
   if(heritee&&heritee.querySelector('[data-lgrab]')){
-    heritee.querySelector('[data-lgrab]').click();await w(320);
-    const d0=document.querySelector('.ed-forget [data-ldrop]');if(d0){d0.click();await w(420);}
+    heritee.querySelector('[data-lgrab]').click();await __acCalme(320);
+    const d0=document.querySelector('.ed-forget [data-ldrop]');if(d0){d0.click();await __acCalme(420);}
     apresTxt=forgetAll(state.draft)[0]||'';
     deplace=!!herTxt&&apresTxt.indexOf(herTxt.slice(0,18))>=0;}
   return {marque,chevauche,fsDo:ci.fontSize,fsEx:ce.fontSize,
@@ -934,8 +937,8 @@ t('… et EFFACÉE, elle disparaît', U.apresEffacement===false, String(U.apresE
 await p.setViewportSize({width:1280,height:900});
 const PH=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   await openEdit(fiches[0].id);await w(700);
-  {const b=document.querySelector('.ed-pec .blk');const r=b&&[...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===b.dataset.bid&&x.offsetParent);if(r){r.click();await w(250);}}   // A521 : sa page
-  const h=document.querySelector('.blk [data-bopt]');if(h&&h.getAttribute('aria-expanded')!=='true'){h.click();await w(200);}
+  {const b=document.querySelector('.ed-pec .blk');const r=b&&[...document.querySelectorAll('[data-edgo]')].find(x=>x.dataset.edgo===b.dataset.bid&&x.offsetParent);if(r){r.click();await __acCalme(250);}}   // A521 : sa page
+  const h=document.querySelector('.blk [data-bopt]');if(h&&h.getAttribute('aria-expanded')!=='true'){h.click();await __acCalme(200);}
   const ph=document.querySelector('.bo-row .blk-phase select');
   return {tag:ph?ph.tagName:'—',ph:ph?Math.round(ph.getBoundingClientRect().height):0,
     horsTete:!document.querySelector('.blk-top .blk-phase')};});
@@ -954,14 +957,14 @@ const PORTE=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m)
     if(!r)return null;const c=getComputedStyle(r);
     return {h:Math.round(r.getBoundingClientRect().height),fs:getComputedStyle(r.querySelector('.ep-n')||r).fontSize,
       ic:!!r.querySelector('.ep-ic'),n:!!r.querySelector('.ep-n')};};
-  document.getElementById('edAddOpen').click();await w(350);const A=mes();
-  document.querySelector('#edAddModal .ai-x').click();await w(250);
+  document.getElementById('edAddOpen').click();await __acCalme(350);const A=mes();
+  document.querySelector('#edAddModal .ai-x').click();await __acCalme(250);
   /* ⚠ UNE SONDE OUVRE PAR LE VRAI POINT D'ENTRÉE (doctrine v4.40.0) : reconstruire l'état à la
      main donnait un éditeur sans sa porte, et le témoin mesurait alors le vide. */
   protocols.push(migrateProtocol({id:'pT',title:'T',kind:'reference',body:''}));
   await openProtocolEdit('pT');await w(700);
   const b=document.getElementById('edAddOpenP');if(!b)return {A,B:null};
-  b.click();await w(350);const B=mes();
+  b.click();await __acCalme(350);const B=mes();
   return {A,B};});
 t('témoin : les deux portes ont été ouvertes', !!PORTE.A&&!!PORTE.B, JSON.stringify(PORTE));
 t('… et leurs rangées ont le même gabarit',
