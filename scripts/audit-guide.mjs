@@ -6,7 +6,7 @@
    bouger quand la page défile, réserver sa hauteur au bas de la page ; et le geste réel doit la faire
    avancer. Une commande renommée, déplacée ou retirée sans mise à jour de GUIDE_ETAPES rougit ici. Le pendant
    statique (libellés cités, sélecteurs émis) est `check-guide.mjs`. */
-import { serveApp, moteur, NOM_MOTEUR, amorce, ouvrirFiche } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce, ouvrirFiche, trancheArg } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -50,7 +50,11 @@ const etat = p => p.evaluate(() => {
     cible: !!g, couvre, dedans, tr: tr && [tr.left | 0, tr.top | 0, tr.right | 0, tr.bottom | 0], dbg: [tr && [tr.top | 0, tr.bottom | 0], gr && [gr.top | 0, gr.bottom | 0], g && g.className, bas | 0, _gd && [_gd.room, (_gd.userT || 0) > (_gd.phaseT || 0), scrollY | 0]],
     fin: !!(tip && tip.classList.contains('end')) };
 });
-for (const c of CAS) {
+/* TRANCHES (A565) : les cinq cas sont indépendants (chacun son contexte) ; `--shard k/n` en joue un sur n, au modulo.
+   La ligne `##SEC` permet au lanceur de VÉRIFIER que les tranches couvrent tous les cas (aucune troncature muette). */
+const tranche = trancheArg();
+const JOUES = tranche ? CAS.filter((_, i) => i % tranche.n === tranche.k - 1) : CAS;
+for (const c of JOUES) {
   if (c.duo && NOM_MOTEUR !== 'chromium') { console.log(`=== pliable : SAUTÉ sur ${NOM_MOTEUR} (charnière émulée par CDP Chromium) ===`); continue; }
   console.log(`=== ${c.aide.source} — ${c.W}×${c.H} à ${c.z} %${c.duo ? ' · pliable, charnière à ' + c.duo.off : ''} ===`);
   const ctx = await br.newContext({ viewport: { width: c.W, height: c.H }, hasTouch: !!c.duo });
@@ -150,8 +154,10 @@ for (const c of CAS) {
   t('aucune session réelle n’a été créée', await p.evaluate(() => !sessions.some(s => !s.exercise)));
   await ctx.close();
 }
+/* Bloc unique, hors des cas : joué par la SEULE tranche 1 (le dupliquer mesurerait deux fois la même chose). */
+const BLOC_FINAL = !tranche || tranche.k === 1;
+if (BLOC_FINAL) {
 console.log('=== carte réduite · jamais en session réelle · « Prendre en main » ===');
-{
   const p = await br.newPage({ viewport: { width: 390, height: 844 } });
   p.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
   await p.goto(`http://localhost:${port}/index.html`);
@@ -177,4 +183,6 @@ console.log('=== carte réduite · jamais en session réelle · « Prendre en ma
   await p.close();
 }
 await br.close(); srv.close();
-console.log(`\n${ok}/${ok + ko} OK${ko ? ` — ${ko} ÉCHEC(S)` : ''}`); process.exit(ko ? 1 : 0);
+console.log(`##SEC joues=${JOUES.length + (BLOC_FINAL ? 1 : 0)} total=${CAS.length + 1}` + (tranche ? ` tranche=${tranche.k}/${tranche.n}` : ''));
+if (tranche) console.log(`⚠ PASSE PARTIELLE — tranche ${tranche.k}/${tranche.n} (${JOUES.length}/${CAS.length} cas) ; le harnais entier reste dû avant commit.`);
+console.log(`\n${ok}/${ok + ko} OK${ko ? ` — ${ko} ÉCHEC(S)` : ''}${tranche ? ` — PARTIEL (tranche ${tranche.k}/${tranche.n})` : ''}`); process.exit(ko ? 1 : 0);

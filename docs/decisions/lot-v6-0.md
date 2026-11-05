@@ -1429,3 +1429,28 @@ dire refaisait les rouges de charge qu'A563 venait de chasser).
 **Témoin** : `audit-calme` (nouveau harnais, dans `HARNAIS`) — minuteur, boucle rAF, animation, transaction
 IndexedDB dont l'effet tombe APRÈS 80 ms de silence du DOM, plafond, repos rapide, `calme(page, N)` ; vérifié
 capable d'échouer (suivi des minuteurs et des rAF retiré → deux rouges).
+
+## A565 — Le pool d'audit suit la machine : 2 × cœurs, 8 au plus ; doctrine en 6 tranches, a11y en 3, guide en 2 (outillage, sans version)
+
+*Piste 3 de l'optimisation de l'audit. Renverse la prudence du lot v5.24 (« `AC_JOBS` reste à 4 par défaut — à 8 sur
+ce Mac une section à attentes fixes a rougi une fois, et rien ne garantit la CI »).*
+
+**Pourquoi c'est devenu possible.** L'audit ATTEND plus qu'il ne calcule (mesuré : 70 % de CPU occupé à 6
+navigateurs sur 4 cœurs) : le pool ne doit pas suivre les cœurs, il peut les dépasser. Ce qui l'interdisait, c'étaient
+des sondes que la charge faisait mentir ; A563 (retour système, trois courses) et A564 (attendre l'écran posé) les ont
+traitées. **Mesuré sur 4 cœurs, passes complètes forcées** : pool 3 (l'ancien défaut ici, `min(4, cœurs − 1)`) 496 s ;
+pool 6 281 s (cinq passes vertes) ; pool 8 **225 à 231 s (trois passes vertes sur trois)**, ≈ 300 Mo par navigateur
+au pic (3 Go pour 8).
+- **Défaut** : `min(8, 2 × cœurs, mémoire libre ÷ 500 Mo)` ; `AC_JOBS` reste souverain. Au-delà de 8, la tranche la
+  plus longue borne le temps mural (pool 8 encore saturé : somme des tâches ÷ 8 = 224 s pour 225 s mesurés, mais à
+  4 cœurs le CPU devient la limite).
+- **Tranches** : doctrine 4 → 6 (130-141 s chacune au lieu de 175-186), a11y 2 → 3, guide 0 → 2. Guide se découpe
+  par CAS (`--shard k/n`, modulo, ligne `##SEC` vérifiée par le lanceur) ; son bloc final « Prendre en main », hors
+  des cas, est joué par la SEULE tranche 1 — sans cette garde, les tranches le jouaient chacune (468 contrôles au lieu
+  de 462 : relevé en comparant les comptes, la somme des tranches doit égaler le harnais entier).
+**Ce qui reste vrai** : un rouge obtenu sous forte charge se confirme en rejouant le harnais SEUL avant d'y croire ; un
+poste chargé par ailleurs se règle par `AC_JOBS`. **Non mesuré** : la CI GitHub (4 vCPU, comme ce banc : défaut 8)
+et un Mac de 8 cœurs et plus (défaut 8, la valeur qui avait rougi en v5.24 — avant A563/A564) ; l'audit de CI étant
+non bloquant, un rouge y demande un arbitrage, pas un blocage.
+*Forme écartée* : un pool proportionnel aux cœurs seuls (`cœurs − 1`, l'ancien) — il laissait le CPU aux deux tiers
+inoccupé ; un pool sans plafond — 12 navigateurs n'apportent rien tant qu'une tranche de doctrine dure 130 s.

@@ -31,9 +31,9 @@
  * Préalable vérifié : les 155 sections de doctrine et partage, jouées SEULES, sont toutes vertes.
  *
  * ORDONNANCEMENT : les plus lourds partent en PREMIER (poids mesurés ci-dessous), sinon un
- * mastodonte lancé en dernier fixe seul le temps mural. Pool borné à AC_JOBS (défaut 4) : les
- * sondes portent des attentes en temps réel, et un pool trop large les affamerait en CPU — un
- * rouge obtenu sous forte charge se confirme en rejouant le harnais SEUL avant d'y croire.
+ * mastodonte lancé en dernier fixe seul le temps mural. Pool borné à AC_JOBS (défaut : 2 × cœurs,
+ * 8 au plus, borné par la mémoire libre — A565 ; il était de 4, cf. ci-dessous) : un rouge obtenu
+ * sous forte charge se confirme toujours en rejouant le harnais SEUL avant d'y croire.
  *
  * CIBLAGE (`npm run audit -- partage qr`) : pendant l'itération on ne rejoue que les harnais du
  * domaine touché. DEUX GARDE-FOUS, non négociables : une passe partielle s'annonce « PARTIELLE »
@@ -85,7 +85,7 @@
  */
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { availableParallelism } from 'node:os';
+import { availableParallelism, freemem } from 'node:os';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 
@@ -101,13 +101,13 @@ const HARNAIS = [
   // Poids re-mesurés le 28/09/2026 (v5.39.2) : ils avaient dérivé du simple au double (doctrine
   // déclaré 217 pour 478 mesurés). Ils ne servent plus qu'en l'ABSENCE de mesure — la passe
   // précédente fournit les durées réelles (`.audit-etat.json`, clés `durees`/`taches`).
-  { nom: 'audit-doctrine',      poids: 478, tranches: 4, sections: true },
+  { nom: 'audit-doctrine',      poids: 478, tranches: 6, sections: true },
   { nom: 'audit-partage',       poids: 343, tranches: 5, sections: true },
-  { nom: 'audit-a11y',          poids: 154, tranches: 2 },
+  { nom: 'audit-a11y',          poids: 154, tranches: 3 },
   { nom: 'audit-k5',            poids: 67 },
   { nom: 'audit-pdfsearch',     poids: 16 },
   { nom: 'audit-exercice',      poids: 12 },
-  { nom: 'audit-guide',         poids: 25 },
+  { nom: 'audit-guide',         poids: 85, tranches: 2 },
   { nom: 'audit-complications', poids: 11 },
   { nom: 'audit-qr',            poids: 11, deps: ['scripts/qr-decode.swift'] },
   { nom: 'audit-budget',        poids: 11 },
@@ -318,9 +318,14 @@ for (const h of aJouer) {
 }
 taches.sort((a, b) => b.poids - a.poids);
 
-/* Pool adaptatif : 4 au plus, et jamais tous les cœurs — sur un runner CI à 4 vCPU, quatre
-   navigateurs affameraient les sondes à délais (un rouge de charge n'est pas un rouge). */
-const defJobs = Math.max(1, Math.min(4, availableParallelism() - 1));
+/* POOL PAR DÉFAUT (A565, renverse la prudence du lot v5.24 : « 4, jamais tous les cœurs »). L'audit ATTEND plus
+   qu'il ne calcule (mesuré : 70 % de CPU occupé à 6 navigateurs sur 4 cœurs), donc un pool au-delà du nombre de
+   cœurs paie. Ce qui l'interdisait, c'étaient des sondes que la charge faisait mentir : corrigées par A563 (le
+   retour système et trois courses) et A564 (attendre l'écran posé, plus une durée). Mesuré sur 4 cœurs : pool 3
+   496 s, pool 6 281 s, pool 8 225-231 s — trois passes forcées vertes sur trois à 8, cinq à 6.
+   2 × cœurs, 8 au plus (au-delà, la tranche la plus longue borne de toute façon le temps mural), et jamais plus
+   que la mémoire libre ne porte (≈ 300 Mo par navigateur mesurés, 500 comptés). AC_JOBS reste souverain. */
+const defJobs = Math.max(1, Math.min(8, 2 * availableParallelism(), Math.floor(freemem() / (500 * 2 ** 20))));
 const JOBS = Math.max(1, parseInt(process.env.AC_JOBS || String(defJobs), 10) || defJobs);
 
 if (partiel) {
