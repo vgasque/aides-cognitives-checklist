@@ -97,7 +97,16 @@ try {
      jamais le contenu du PDF. `esc()` est la SEULE barrière du projet (règle 4). */
   await chooser.setFiles({ name: NOM_HOSTILE + '.pdf', mimeType: 'application/pdf', buffer: PDF });
 
-  await page.waitForFunction(() => document.querySelectorAll('[data-attname]').length > 0, null, { timeout: 15000 });
+  /* Un rouge NON REPRODUIT (une fois, passe à pool 6 sur 4 cœurs ; 0 sur 6 exécutions chargées depuis) n'a laissé
+     que « Timeout 15000ms exceeded ». Au prochain, l'échec dit OÙ en était l'app : vue, fenêtres ouvertes, porte
+     de fichier encore armée, documents du brouillon. */
+  await page.waitForFunction(() => document.querySelectorAll('[data-attname]').length > 0, null, { timeout: 15000 })
+    .catch(async e => {
+      const ou = await page.evaluate(() => ({ vue: state.view, fenetres: _openModals().map(m => m.id),
+        porteArmee: typeof _upCtx !== 'undefined' && !!_upCtx, docs: ((state.draft || {}).docs || []).length,
+        pile: history.state && history.state.d })).catch(x => 'illisible : ' + x.message.split('\n')[0]);
+      throw new Error(`${e.message.split('\n')[0]} — état de l'app : ${JSON.stringify(ou)}`);
+    });
   t(true, 'le document est joint à la fiche');
 
   const attId = await page.evaluate(() => (state.draft.docs || [])[0].id);

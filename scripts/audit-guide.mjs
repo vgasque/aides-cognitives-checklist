@@ -91,9 +91,21 @@ for (const c of CAS) {
     if (!mobilite && e.id === 'check') {
       mobilite = true;
       // Défilement À LA MAIN (molette) : c'est lui que le guide doit respecter, pas un scrollTo de sonde.
-      const avant = await p.evaluate(() => document.getElementById('gdTip').getBoundingClientRect().top | 0);
-      await p.mouse.move(c.W / 2, c.H / 3); await p.mouse.wheel(0, 90); await w(120);
-      const pendant = await p.evaluate(() => ({ apres: document.getElementById('gdTip').getBoundingClientRect().top | 0, voilePendant: !!document.querySelector('#gdVeil.on') }));
+      /* Le voile tombe à CHAQUE `scroll` et revient 220 ms après le dernier (guideSync) : le lire à heure fixe
+         après la molette (120 ms) était une course — sous charge, l'événement n'était pas encore traité
+         (voile encore là) ou déjà retombé (voile revenu) ; vu rouge en audit, pool 6 sur 4 cœurs. On le lit
+         donc DANS le premier `scroll`, par un écouteur posé après celui de l'app (même dispatch, juste après
+         lui) : aucune horloge. Un observateur de classe ne suffit pas — guideSync retire et repose le voile
+         en se recalant, il restait vert sur une app qui ne le retirait plus (preuve d'échec faite). */
+      const avant = await p.evaluate(() => { const v = document.getElementById('gdVeil');
+        window.__gdV = { avantOn: !!(v && v.classList.contains('on')), dansScroll: null, y0: scrollY };
+        addEventListener('scroll', () => { window.__gdV.dansScroll = !!document.querySelector('#gdVeil.on'); }, { once: true, passive: true });
+        return document.getElementById('gdTip').getBoundingClientRect().top | 0; });
+      await p.mouse.move(c.W / 2, c.H / 3); await p.mouse.wheel(0, 90);
+      await p.waitForFunction(() => window.__gdV.dansScroll !== null, null, { timeout: 5000 }).catch(() => {});
+      await w(120);
+      const pendant = await p.evaluate(() => ({ apres: document.getElementById('gdTip').getBoundingClientRect().top | 0,
+        voilePendant: !(window.__gdV.avantOn && window.__gdV.dansScroll === false), avantOn: window.__gdV.avantOn, dansScroll: window.__gdV.dansScroll }));
       // Deux fois : au bas de page la barre « ↩ Bloc » paraît et réserve sa propre hauteur, la page s'allonge.
       await p.mouse.wheel(0, 20000); await w(700); await p.mouse.wheel(0, 20000); await w(700);
       const bout = await p.evaluate(() => { const tip = document.getElementById('gdTip'), main = document.getElementById('main');

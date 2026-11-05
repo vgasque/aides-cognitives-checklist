@@ -1360,3 +1360,34 @@ images, en chemins relatifs) ». Mesuré sur un export réel (« Motifs de recou
 dossier, et l'export Notion est déjà un .zip.
 Témoins : `tests.html` « Import — page Notion » (pur) ; `audit-doctrine` « Import · A562 » (archive fabriquée,
 vrai point d'entrée ; vérifié capable d'échouer : branche Notion retirée → 2 rouges).
+
+## A563 — Le retour système ne recule jamais deux fois : un parcours d'historique en retard n'est pas perdu (v5.86.1)
+
+*Amende A430 (le filet « popstate perdu » de `_histSync`).*
+
+Trouvé en cherchant à raccourcir l'audit : à pool 6 sur 4 cœurs, une tranche de doctrine plantait sur « Execution
+context was destroyed, most likely because of a navigation » — l'app avait QUITTÉ son document en pleine sonde.
+**Cause.** Quand l'app ferme un niveau, `_histSync` redescend l'historique par `history.go`, qui est ASYNCHRONE, et
+arme un filet de 1 s pour le `popstate` « perdu ». Sous charge, le parcours arrive après 1 s : le filet le croyait
+perdu, remettait `_hSkip` à zéro et relançait `history.go` sur une profondeur pas encore bougée — **double recul**,
+sous la base de l'historique, donc hors de l'application (et le `popstate` tardif, n'étant plus ignoré, pouvait en
+outre être lu comme un geste retour de l'utilisateur). **Mesuré** en différant `history.go` dans la page : 1,2 s
+→ la page sort sur `about:blank` ; bloquer le thread principal ne reproduit RIEN (il retarde le minuteur ET le
+parcours) — c'est le navigateur qui tarde, pas la page. Sur un appareil réel lent, la sortie mène à la page
+précédente, voire hors de la PWA : inacceptable dans une app d'urgence.
+- **Profondeur inchangée = parcours EN ROUTE** (`_hWatch`) : on attend, par pas de 1 s, 5 s au plus, et on ne
+  relance JAMAIS un second `history.go`. Au-delà, on rend la main sans rien relancer : un parcours tardif tombe alors
+  sur d = L (sans effet) ; un parcours réellement perdu laisse des entrées au-dessus, que le popstate « d > L »
+  redescend déjà.
+- **Profondeur changée sans popstate** (le cas que le filet visait) : on se recale comme avant.
+*Forme écartée* : allonger le filet (2 s, 5 s) — une autre course, plus rare, même défaut.
+Témoin : `audit-retour` « un parcours d'historique EN RETARD ne fait pas reculer deux fois (A563) » (`history.go`
+différé de 1,2 s et 2,5 s : un seul recul, l'app reste sur son document, pile alignée ; vérifié capable d'échouer :
+rouge sur le code d'avant, la page sort sur `about:blank`).
+
+**Le même lot fiabilise deux sondes que la charge faisait rougir** (aucun seuil ne change) : `audit-doctrine`
+« A129 · l'atelier d'import » attend l'aide ET la référence importées avant de lire ; `audit-guide` lit le voile
+DANS le premier `scroll` (écouteur posé après celui de l'app) au lieu de 120 ms après la molette — le voile tombe
+à chaque `scroll` et revient 220 ms après, la lecture à heure fixe était une course (un observateur de classe,
+essayé d'abord, restait vert sur une app qui ne retirait plus le voile : écarté). `audit-pdfsearch` dit désormais
+l'état de l'app quand le document joint n'apparaît pas (rouge vu une fois, non reproduit).

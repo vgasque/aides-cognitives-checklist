@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A562** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A563** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -186,6 +186,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A560 | `lot-v6-0.md` | « Identité » se plie depuis son intertitre (« Modifier ⌄ » / « Replier ⌃ », `.id-tgl`) ; ouverte, la carte ne rogne plus le menu des catégories (v5.85.0) |
 | A561 | `lot-v6-0.md` | Toucher à côté annule un déplacement « prendre / poser », dans les deux éditeurs (`grabOutBind`, `GRAB_KEEP`, tap absorbé hors barre d'en-tête) (v5.85.0) |
 | A562 | `lot-v6-0.md` | Importer une page Notion telle qu'exportée : .zip (page .md + dossier d'images en chemins relatifs) ou .md seul → une référence en brouillon (`notionMd`, `notionImgPaths`, `notionRefs`) (v5.86.0) |
+| A563 | `lot-v6-0.md` | Le retour système ne recule jamais deux fois : un parcours d'historique en retard n'est pas perdu (`_hWatch`, amende A430) ; trois sondes fiabilisées sous charge (v5.86.1) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
