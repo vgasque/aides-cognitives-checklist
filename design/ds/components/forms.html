@@ -3683,14 +3683,16 @@
   .stp-mk.mo-ok{background:var(--ok-soft);box-shadow:none;color:var(--ok)}
   .stp-mk.mo-due{background:var(--warn-soft);box-shadow:none;color:var(--warn)}
   .stp-mk.mo-n{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
-  ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default;box-shadow:inset 0 0 0 1.5px var(--line)}
-  ol.steps li.mo-wait{box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  /* A569 : « faite une fois » (`mo-gone`) vit à plat, comme toute étape depuis A519 — son contour plein était le reste du
+     temps des tuiles (une rangée sans tuile devait encore se dessiner). Seule l'ATTENTE garde un contour (pointillé, A382). */
+  ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default}
+  ol.steps li.mo-wait{outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
      se lisait « inatteignable », or « Faire maintenant » la coche à tout instant. Le contour de la rangée reste pointillé. */
   ol.steps li.mo-wait .box{border-color:color-mix(in srgb,var(--ctl-line) 50%,transparent);background:var(--work)}
   /* A474 — l'instant du seuil (geste local seulement) : l'étiquette verte et la case rebondissent, la rangée s'éclaire
      de vert pâle et revient. Peinture et transform, une fois, rien sous mouvement réduit. */
-  @keyframes moOpen{0%,25%{background-color:var(--ok-soft)}100%{background-color:var(--amb-2)}}
+  @keyframes moOpen{0%,25%{background-color:var(--ok-soft)}100%{background-color:transparent}}   /* A569 : vers la rangée À PLAT (A519) — finir sur --amb-2 rallumait l'ancienne tuile grise, puis la coupait net */
   @media (prefers-reduced-motion:no-preference){
     ol.steps li.mo-open{animation:moOpen 1.2s ease-out}
     ol.steps li.mo-open :is(.box,.stp-mk.mo-ok){animation:pop .3s ease-out}
@@ -3872,7 +3874,13 @@
   ol.steps li.done{background:var(--ok-soft)}
   ol.steps li .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){background:none;padding-left:0;padding-right:0}
   ol.steps li.done .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){color:var(--ink-2)}
-  .stp-mk.mo{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
+  /* A569 : l'aplat neutre ne vise que la RÈGLE en attente — écrit `.stp-mk.mo` nu, il venait après `.mo-ok` / `.mo-due` /
+     `.mo-n` à spécificité égale et les éteignait tous : « ✓ Chocs délivrés ≥ 3 » (vert, A474), « Échu » (ambre, règle 8) et
+     « Faite » sortaient gris. */
+  .stp-mk.mo:not(.mo-ok,.mo-due,.mo-n){background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
+  /* A569 (étend A531) : une RÈGLE de moment s'écrit en phrase (« Chocs délivrés ≥ 3 », « À l'échéance », « Au besoin ») ;
+     seuls les MOTS D'ÉTAT gardent les capitales ECAM (`mo-w` : « Échu », « Faite »), comme CRITIQUE / VIGILANCE. */
+  .stp-mk.mo:not(.mo-w){font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
@@ -5549,7 +5557,7 @@
   /* v5.30 (A345) : le titre de bloc monte à --t-step-l ; sur une carte de DÉCISION c'est la
      QUESTION qui est l'acte (21), le titre redescend d'un cran pour la situer. */
   .ov-block.dec .ov-t{font-size:var(--t-step);font-weight:700}
-  .ov-t .pass-n{font-family:var(--f-mono);font-weight:600;color:var(--act);margin-left:6px;font-size:12px}
+  .ov-t .pass-n{font-family:var(--f-mono);font-weight:600;color:var(--act);margin-left:6px;font-size:12px;white-space:nowrap}   /* A569 : « passage » et « 4/4 » ne se séparent pas */
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
      ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */

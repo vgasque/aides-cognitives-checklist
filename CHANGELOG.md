@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.87.0] — 2026-11-05
+Les étapes « complexes » en session — celles qui attendent leur moment, comptent, lancent un minuteur — retrouvent
+leurs couleurs et s'allègent (A569, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Correctif : trois étiquettes d'étape avaient perdu leur couleur** depuis la v5.61. Au 3ᵉ choc, l'étiquette
+  « ✓ Chocs délivrés ≥ 3 » de l'étape qui devient faisable redevient **verte** ; « Échu » (l'échéance du minuteur
+  de l'étape) redevient **ambre** ; « Faite » (une étape à faire une seule fois, déjà faite) redevient verte. Elles
+  sortaient toutes grises, comme une règle encore en attente.
+- **Correctif : l'étape qui s'ouvre au seuil ne vire plus au gris.** Son éclairage vert finissait sur l'ancien fond
+  gris des étapes, puis disparaissait d'un coup ; il s'éteint maintenant en douceur vers la rangée nue.
+- L'étape « faite une fois » vit à plat, comme les autres étapes : son cadre gris disparaît. Seule l'étape qui
+  attend son moment garde un cadre, en pointillé.
+- Les règles de moment s'écrivent en phrase (« Chocs délivrés ≥ 3 », « À l'échéance », « Au besoin ») au lieu de
+  capitales espacées ; les mots d'état (« Échu », « Faite »), comme CRITIQUE et VIGILANCE, restent en capitales —
+  la règle et l'état se distinguent d'un coup d'œil.
+- « passage 4/4 » ne se coupe plus entre le mot et le compte au téléphone.
+- Audit : un témoin lit désormais la couleur et la casse de ces étiquettes (aucun ne le faisait).
+
 ## [5.86.2] — 2026-11-05
 Le quai garde ses mots à 320 px avec le texte à 130 % (A568, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
 côté serveur.
@@ -193,10 +210,3 @@ côté serveur.
 Correctif de la recherche au téléphone (A544, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
 - Après avoir ouvert la recherche puis le bouton filtre, quitter rend bien la barre d'onglets du bas (la recherche
   restait affichée à sa place).
-
-## [5.73.3] — 2026-11-01
-Le haut et le bas de l'accueil au téléphone (A542-A543, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Une seule bande en haut** une fois la liste défilée : la bande sous l'heure prend la teinte de la barre du haut,
-  plus de coupure entre les deux.
-- **La barre du bas descend** à la hauteur d'une barre d'onglets iOS (24 pt du bord sur un iPhone à Face ID, au lieu de
-  47) ; la recherche suit.

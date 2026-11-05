@@ -5318,6 +5318,48 @@ for(const rm of ['no-preference','reduce']){
 }
 });
 
+/* ══ v5.87 · A569 — LES ÉTAPES COMPLEXES À PLAT, CHAQUE ÉTIQUETTE À SON REGISTRE ═════════════════════════════
+   La règle neutre d'A519 (`.stp-mk.mo`) venait après `.mo-ok` / `.mo-due` à spécificité égale : « ✓ … ≥ 3 », « Échu » et
+   « Faite » sortaient gris, et aucun témoin ne lisait leur couleur. Ici : chaque étiquette à son encre, les règles en
+   phrase et les mots d'état en capitales, la rangée « faite une fois » sans contour, l'instant du seuil qui finit à plat. */
+await sec('v5.87 · A569 — étapes complexes à plat, étiquettes au registre', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));   // horloge : l'instant du seuil dure 1,2 s
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps:not(.rev)>li')].find(x=>re.test(x.textContent));
+    const enc=v=>{const e=document.createElement('i');e.style.color=`var(${v})`;document.body.appendChild(e);const c=getComputedStyle(e).color;e.remove();return c;};
+    const mk=li=>{const m=li&&li.querySelector(':scope>.txt>.stp-mks .stp-mk.mo');if(!m)return null;const c=getComputedStyle(m);return {tx:m.textContent.replace(/\s+/g,' ').trim().slice(0,24),c:c.color,tt:c.textTransform};};
+    const alpha=bg=>{const m=bg.match(/[\d.]+/g)||[];return bg==='transparent'?0:(m.length>=4?+m[3]:1);};
+    const o={ok:enc('--ok'),warn:enc('--warn')};
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);
+    const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=2;await w(3000);   // horloge : le tick resynchronise le compte posé
+    o.attente=mk(rang(/300 mg/));
+    rang(/Choc imm/).click();await w(1100);                                    // horloge : fin de l'instant du seuil
+    const a=rang(/300 mg/);o.seuil=mk(a);o.finAlpha=alpha(getComputedStyle(a).backgroundColor);
+    rang(/Adrénaline/).click();rang(/300 mg/).click();await __acCalme(300);
+    cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(400);
+    const g=rang(/300 mg/);o.faite=mk(g);o.gone=g.classList.contains('mo-gone');
+    const gs=getComputedStyle(g);o.contour={ombre:gs.boxShadow,trait:gs.outlineStyle};
+    for(const t of Object.values(Runtime.timers))if(t.running)t.lastStart-=300000;await w(1500);   // horloge : le tick pose l'échéance
+    o.echu=mk(rang(/Adrénaline/));
+    return o;});
+  t('A569 · une règle en attente s’écrit en phrase, à l’encre neutre', r.attente&&r.attente.tt==='none'&&r.attente.c!==r.ok&&r.attente.c!==r.warn, JSON.stringify(r.attente));
+  t('A569 · au seuil, « ✓ … ≥ 3 » est VERT (A474), en phrase', r.seuil&&/^✓/.test(r.seuil.tx)&&r.seuil.c===r.ok&&r.seuil.tt==='none', JSON.stringify(r.seuil)+' ok='+r.ok);
+  t('A569 · l’instant du seuil finit à plat (aucun retour de l’ancienne tuile grise)', r.finAlpha<0.2, 'alpha à 1,1 s : '+r.finAlpha);
+  t('A569 · « Faite » (une seule fois) est un mot d’état : vert, en capitales', r.gone&&r.faite&&/Faite/.test(r.faite.tx)&&r.faite.c===r.ok&&r.faite.tt==='uppercase', JSON.stringify(r.faite));
+  t('A569 · la rangée « faite une fois » vit à plat, sans contour', r.gone&&r.contour.ombre==='none'&&r.contour.trait==='none', JSON.stringify(r.contour));
+  t('A569 · « Échu » est AMBRE (règle 8), en capitales', r.echu&&/Échu/.test(r.echu.tx)&&r.echu.c===r.warn&&r.echu.tt==='uppercase', JSON.stringify(r.echu)+' warn='+r.warn);
+  await page.close();
+});
+
 /* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════
    Signalé à l'usage : « si j'ai tapé du texte dans le champ et que j'appuie directement sur
    ＋ Rappel, la ligne n'est pas ajoutée — il referme le bloc mais n'ajoute rien ; pareil pour la

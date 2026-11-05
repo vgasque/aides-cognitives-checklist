@@ -868,8 +868,10 @@ réservé à « Plein écran ».
   jamais à la sonnerie ; il reste « Échu » entre les deux.
 - **Le MOMENT d'une étape** dans un bloc parcouru plusieurs fois (A382, A474) : à partir d'un seuil
   de compteur, ou à l'échéance d'un minuteur. Avant son moment, l'étape reste visible, sa case
-  ESTOMPÉE, et sa jauge vit DANS l'étiquette du seuil (« CHOCS DÉLIVRÉS ≥ 3 ●○□ ») ; « Faire
-  maintenant » au bout de la rangée ; jamais elle ne retient « Continuer ».
+  ESTOMPÉE, et sa jauge vit DANS l'étiquette du seuil (« Chocs délivrés ≥ 3 ●●○ », en phrase,
+  A569) ; « Faire maintenant » au bout de la rangée ; jamais elle ne retient « Continuer ». Au
+  seuil l'étiquette passe au VERT (« ✓ … ≥ 3 ») ; « Échu » est ambre et « Faite » vert, tous deux
+  en capitales (mots d'état) ; faite une fois, la rangée vit à plat, sans contour (A569).
 - Micro-mouvements (A378) : cocher fait MONTER le chiffre ou REMPLIR l'anneau, décocher fait
   redescendre ; rien sous mouvement réduit.
 

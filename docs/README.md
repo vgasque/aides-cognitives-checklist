@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A568** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A569** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -192,6 +192,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A566 | `lot-v6-0.md` | En CI, l'audit en trois lots parallèles (`--lot k/n`) ; `--bilan` exige que leur union soit la passe complète ; poids de `HARNAIS` re-mesurés (outillage) |
 | A567 | `lot-v6-0.md` | Les optimisations de l'audit se gardent seules : cliquet `check-pauses` (pauses fixes courtes), alertes de fin de passe « poids à re-mesurer » / « à découper » (outillage) |
 | A568 | `lot-v6-0.md` | Quai à 320 × 130 % : cran `lbl-fit` (« Fin » et « Tout voir » à 44 px quand un mot déborde encore au plancher) ; sondes « bridage » et A465 (v5.86.2) |
+| A569 | `lot-v6-0.md` | Étapes complexes : « ✓ … ≥ n » vert, « Échu » ambre, « Faite » vert rendus (régression d'A519, sans témoin), l'instant du seuil finit à plat, « faite une fois » sans contour, règles de moment en phrase et mots d'état en capitales (étend A531), « passage n/N » insécable (v5.87.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

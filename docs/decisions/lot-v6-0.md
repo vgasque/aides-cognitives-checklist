@@ -1541,3 +1541,46 @@ réduire les gouttières du quai (règles d'A512 sur les zones sûres, pour 2 px
 rouge une fois sur un runner très lent (10 min pour installer Chromium) — elle attend désormais ce qui pose la classe
 de bridage (invité joint, fiche partagée affichée), plafond 8 s. Le témoin A465 rapporte, quand il rougit, mot,
 boîte, touche, police et chargement : sans ces mesures, ce défaut n'était pas corrigeable.
+
+## A569 — Les étapes complexes : chaque étiquette à son registre, « faite une fois » à plat (v5.87.0)
+
+*Demande de l'auteur : « améliore l'affichage des étapes cochables complexes » (registres, compteurs et minuteurs liés,
+étapes à moment). Méthode : l'ACR et l'Anaphylaxie d'exemple capturées en session, état par état (attente, seuil
+franchi, dose lancée, « une seule fois » faite, échéance), à 390 et 1180 px, clair et sombre. Rien de ce qui a été
+tranché sur planche n'est rouvert : le contour pointillé de l'attente (A382, A474), la place de « Faire maintenant »
+(A474, A9), la lecture « ✓ » de la réponse (challenge-response), la pastille « Double contrôle » (N3) restent.*
+
+**1. Trois étiquettes avaient perdu leur registre depuis A519 (régression, sans témoin).** La règle d'A519 « l'étiquette
+d'un seuil en aplat neutre » était écrite `.stp-mk.mo{…}` — or toutes les étiquettes de moment portent `mo`, et cette
+règle venait APRÈS `.mo-ok` / `.mo-due` / `.mo-n` à spécificité égale. Résultat mesuré : « ✓ Chocs délivrés ≥ 3 »
+(vert d'A474 — la couleur même de l'instant du seuil), « Échu » (ambre : l'échéance, règle 8) et « Faite » sortaient
+tous gris, identiques à une règle en attente. La règle neutre ne vise plus que la règle en attente
+(`.stp-mk.mo:not(.mo-ok,.mo-due,.mo-n)`).
+
+**2. L'instant du seuil finit à plat.** `moOpen` (A474) s'achevait sur `--amb-2`, la tuile des étapes d'avant A519 :
+pendant 1,2 s la rangée virait du vert au GRIS, puis l'animation finie la coupait net vers le fond nu. Elle finit
+désormais sur `transparent`.
+
+**3. « Faite une fois » vit à plat (étend A519).** La rangée `mo-gone` gardait un contour plein `--line`, reste du temps
+des tuiles (une rangée sans tuile devait encore se dessiner). À plat, comme toute étape : la case grise pleine ✓ et le
+mot « Faite » suffisent. Seule l'ATTENTE garde un contour, et il est pointillé (A382) — trois habillages de rangée
+(à plat, pointillé, plein) deviennent deux.
+
+**4. Les règles de moment s'écrivent en phrase (étend A531).** A531 a passé toutes les étiquettes en phrase sauf les
+MOTS D'ÉTAT (registre ECAM) ; le témoin exemptait toute la famille `.stp-mk`, si bien que les RÈGLES y étaient restées
+en capitales espacées (« CHOCS DÉLIVRÉS ≥ 5 ●●●○○ », jusqu'à 200 px d'étiquette au téléphone). Elles passent en phrase,
+12 px graisse 700 (« Chocs délivrés ≥ 3 », « À l'échéance », « Au besoin ») ; les mots d'état gardent les capitales
+— « Échu », « Faite » (classe `mo-w`), comme CRITIQUE et VIGILANCE. La règle et l'état se distinguent ainsi d'un coup
+d'œil, dans la même rangée.
+
+**5. « passage n/N » ne se coupe plus** entre le mot et le compte (`.pass-n` insécable) : à 390 px, « passage » restait
+au bout du titre du bloc et « 4/4 » tombait seul à la ligne.
+
+*Formes écartées* : retirer le contour pointillé des étapes en attente pour les mettre à plat elles aussi (il dit « pas
+maintenant, ne retient pas Continuer », A382 — à rouvrir sur planche seulement) ; « Faire maintenant » toujours au bout
+de la rangée (le bouton qui part au seuil ferait changer la hauteur, A9 — c'est la raison d'A474) ; passer « Échu » et
+« Faite » en phrase (des mots d'état, A531).
+
+**Témoin.** `audit-doctrine` « v5.87 · A569 » (6 contrôles, 6 rouges sur le code d'avant) : encre neutre et phrase de la
+règle en attente, « ✓ … ≥ 3 » vert, fin à plat de l'instant du seuil, « Faite » vert en capitales, rangée sans contour,
+« Échu » ambre en capitales.
