@@ -32,7 +32,7 @@
  *
  * ORDONNANCEMENT : les plus lourds partent en PREMIER (poids mesurés ci-dessous), sinon un
  * mastodonte lancé en dernier fixe seul le temps mural. Pool borné à AC_JOBS (défaut : 2 × cœurs,
- * 8 au plus, borné par la mémoire libre — A565 ; il était de 4, cf. ci-dessous) : un rouge obtenu
+ * 8 au plus, borné par la mémoire disponible — A565, A572 ; il était de 4, cf. ci-dessous) : un rouge obtenu
  * sous forte charge se confirme toujours en rejouant le harnais SEUL avant d'y croire.
  *
  * CIBLAGE (`npm run audit -- partage qr`) : pendant l'itération on ne rejoue que les harnais du
@@ -417,9 +417,33 @@ taches.sort((a, b) => b.poids - a.poids);
    retour système et trois courses) et A564 (attendre l'écran posé, plus une durée). Mesuré sur 4 cœurs : pool 3
    496 s, pool 6 281 s, pool 8 225-231 s — trois passes forcées vertes sur trois à 8, cinq à 6.
    2 × cœurs, 8 au plus (au-delà, la tranche la plus longue borne de toute façon le temps mural), et jamais plus
-   que la mémoire libre ne porte (≈ 300 Mo par navigateur mesurés, 500 comptés). AC_JOBS reste souverain. */
-const defJobs = Math.max(1, Math.min(8, 2 * availableParallelism(), Math.floor(freemem() / (500 * 2 ** 20))));
+   que la mémoire disponible ne porte (≈ 300 Mo par navigateur mesurés, 500 comptés). AC_JOBS reste souverain. */
+/* MÉMOIRE DISPONIBLE, pas « libre » (A572). Sur macOS, os.freemem() ne compte que les pages libres : le cache
+   récupérable (inactive, speculative) en est exclu, et un Mac en usage n'a presque rien de « libre » (mesuré :
+   367 Mo libres pour ≈ 4,3 Go inactifs → pool 1, passe de 174 s à 1 282 s). On lit vm_stat (sans dépendance) ;
+   purgeable n'est PAS ajouté, ses pages sont déjà comptées dans active/inactive. Ailleurs, freemem() suffit
+   (Linux : MemAvailable). Tout échec de lecture retombe sur freemem(). */
+function memDispo() {
+  if (process.platform === 'darwin') {
+    try {
+      const vm = execFileSync('vm_stat', { encoding: 'utf8', timeout: 2000 });
+      const page = +(vm.match(/page size of (\d+) bytes/) || [])[1] || 4096;
+      const pages = k => +(vm.match(new RegExp(`Pages ${k}:\\s+(\\d+)`)) || [])[1] || 0;
+      const n = pages('free') + pages('inactive') + pages('speculative');
+      if (n > 0) return { octets: n * page, comment: 'libres + inactifs (vm_stat)' };
+    } catch { /* retombe sur freemem() */ }
+  }
+  return { octets: freemem(), comment: 'libres' };
+}
+const MEM = memDispo();
+const jobsCpu = Math.min(8, 2 * availableParallelism());
+const jobsMem = Math.floor(MEM.octets / (500 * 2 ** 20));
+const defJobs = Math.max(1, Math.min(jobsCpu, jobsMem));
 const JOBS = Math.max(1, parseInt(process.env.AC_JOBS || String(defJobs), 10) || defJobs);
+/* Un pool réduit par la mémoire ne se devine pas à « pool 1 » en tête : il se dit, avec sa mesure (A572). */
+const avisMem = !process.env.AC_JOBS && jobsMem < jobsCpu
+  ? `△ pool ${JOBS} au lieu de ${jobsCpu} : ${Math.round(MEM.octets / 2 ** 20)} Mo ${MEM.comment} mesurés (500 Mo par navigateur) — AC_JOBS=${jobsCpu} pour forcer.`
+  : '';
 
 if (lot) {
   console.log(`⚠ LOT ${lot.k}/${lot.n} d'une passe complète répartie — ${taches.length}/${tachesCompletes().length} tâches ; seul le bilan`);
@@ -433,6 +457,7 @@ if (reutilises.length) {
   console.log('  ' + reutilises.map(h => h.nom.replace(/^audit-/, '')).join(' · '));
 }
 console.log(`Audit ${lot ? `lot ${lot.k}/${lot.n}` : partiel ? 'partiel' : 'complet'} — ${lot ? new Set(taches.map(t => t.nom)).size : aJouer.length} harnais à jouer (${taches.length} tâches), pool ${JOBS}, moteur ${moteur}.\n`);
+if (avisMem) console.log(avisMem + '\n');
 
 /* Une tâche = un processus enfant, sortie CAPTURÉE (stdout+stderr mêlés dans l'ordre d'arrivée).
    En vert on n'affiche que sa dernière ligne (le « ✓ … » que chaque harnais imprime) ; en rouge,
