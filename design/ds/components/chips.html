@@ -467,7 +467,7 @@
      l'auteur après onze correctifs) : le chrome REDEVIENT DU FLUX — sauf les couches plein écran,
      qui gardent `--vvh`/`--vvt` (v5.10.9) ; `html.kbd` est une CLASSE, jamais une media query.
      Détail : doctrine-css.md C11. */
-  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock,html.kbd .md-toolbar{position:static}
+  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock,html.kbd .md-toolbar,html.kbd main .sv-zoom{position:static}
   /* ⚠ L'EN-TÊTE S'EFFACE, IL NE PASSE PAS DESSOUS (correctif, capture à l'appui : « pas une bonne
      solution »). Le libérer ne suffisait pas : libéré, il défile — donc il revient en haut du
      document quand on y remonte, et se retrouvait alors DANS LA MÊME BANDE que la colonne du champ.
@@ -955,8 +955,9 @@
      système sont REDÉCLARÉS EN CONTEXTE sur ces seules surfaces : `--sys` garde ses autres lecteurs (carte de session
      de l'accueil, bulle du guide, toasts, alarme, scanner…). Registres propres aux barres claires : l'encre de la
      page (`--ok`, `--warn`, `--crit`) — les « -sys » font 1,6 à 2:1 sur un fond clair. Le contraste se mesure AU
-     PIXEL sous la barre (`audit-verre`). En thème sombre, rien ne change (A503). */
-  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock){
+     PIXEL sous la barre (`audit-verre`). En thème sombre, rien ne change (A503).
+     A574 : la barre « ↩ Bloc » (`.bkr`, objet du quai) en est — oubliée, elle gardait le vert « -sys » nocturne. */
+  html:not([data-theme="dark"]) :is(#cbTimers,.sd-in,.ds-card,.rt-dock,.bkr){
     --sys:var(--glass);--sys-hi:var(--amb-2);--sys-2:color-mix(in srgb,var(--ink) 6%,transparent);--sys-line:var(--line-strong);
     --sys-ink:var(--ink);--sys-ink-2:var(--ink-2);--sys-key:color-mix(in srgb,var(--ink) 7%,transparent);--sys-edge:var(--work-line);
     --ok-sys:var(--ok);--warn-sys:var(--warn);--crit-sys:var(--crit);--warn-sys-bg:var(--warn-soft);--on-sys-fill:var(--work);
@@ -4974,7 +4975,7 @@
   .flow-zoom{display:flex;align-items:center;gap:6px;margin-bottom:6px}
   .fz,.sv-zb,.rt-fnav .mini{border:1px solid var(--work-line);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);min-width:40px;height:40px;min-height:40px;padding:0 12px;border-radius:var(--r-3);font-family:inherit;font-size:var(--t-body);font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}   /* A376 : une seule barre d'outils (Schéma, Page, plein écran, ‹ › des recherches), sur la matière de travail v5.30, M 40 */
   .fz:hover,.sv-zb:hover,.rt-fnav .mini:hover{background:var(--amb-2)}.fz-r{width:auto}
-  .fz,.sv-zb{position:relative}.fz::after,.sv-zb::after{content:"";position:absolute;inset:-2px}   /* A376 : M 40 + halo = cible 44, la feuille Plan et le schéma vivent en session (règle 9) */
+  .fz,.sv-zb{position:relative}.fz::after,.sv-zb::after{content:"";position:absolute;inset:-3px}   /* A376 : M 40 + halo = cible 44, la feuille Plan et le schéma vivent en session (règle 9) ; A575 : −3, le ::after part de la boîte de REMPLISSAGE (bordure 1 px) — −2 ne donnait que 42 */
   .rt-fnav .mini{min-width:44px;height:44px;min-height:44px}   /* A376 : les ‹ › d'une recherche sont les compagnons d'un champ de 44 — même hauteur (L) */
   .fz-spc{flex:1}
   .fzv,.sv-zv{font-family:var(--f-mono);font-size:var(--t-body);font-weight:700;color:var(--ink-2);min-width:48px;text-align:center}
@@ -5995,6 +5996,9 @@
      lâcher — le texte ne « bave » jamais au repos). La barre vit HORS du défileur : elle
      ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
   .sv-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px}
+  /* A575 : dans `main`, la feuille défile avec la fenêtre (A356) et le pincer la recale (A554) — agrandir faisait
+     monter la barre sous l'en-tête, on perdait de quoi dézoomer. Elle COLLE sous ce qui est déjà collé. */
+  main .sv-zoom{position:sticky;top:var(--stick-top,64px);z-index:6;background:var(--amb);margin:0;padding:6px 0}
   /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
      seconde — pas un registre d'alerte, la feuille n'a rien de faux, elle a un bord. `hidden`
      est posé/levé par svApplyZoom sur la mesure du défileur ; en voie étroite le mot passe à
