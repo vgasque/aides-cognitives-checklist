@@ -113,7 +113,7 @@
   `package.json` payait la SOMME des durées (mesuré 9 min 42 s, dont 87 % dans doctrine/a11y/
   partage/k5) et son fail-fast CACHAIT tout ce qui suivait le premier rouge — l'incident « un
   harnais qui plante en emporte cinq » (v4.70.1), revécu à chaque itération. Le lanceur joue les
-  dix-huit en concurrence (pool `AC_JOBS`, défaut 4 — 2 × cœurs, 8 au plus, depuis A565 —, lourds d'abord — temps mural ≈ le max, pas la
+  dix-huit en concurrence (pool `AC_JOBS`, défaut 4 — 2 × cœurs, 8 au plus, borné par la mémoire disponible, depuis A565 et A572 —, lourds d'abord — temps mural ≈ le max, pas la
   somme) et rapporte TOUS les échecs d'une passe ; les sondes, leurs seuils et `AC_ENGINE` sont
   inchangés, et chaque harnais reste lançable seul. **CIBLAGE pendant l'itération** :
   `npm run audit -- partage qr` ne joue que les harnais nommés — la passe s'annonce alors
