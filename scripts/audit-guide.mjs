@@ -133,6 +133,9 @@ for (const c of JOUES) {
           for (const li of document.querySelectorAll(cur + ' ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)')) li.click();
           await new Promise(r => setTimeout(r, 150)); clic(cur + ' [data-ovnext]');
         }
+      } else if (id === 'moment') {   // A570 §9 : la case arme, « Annuler » renonce — on montre, on ne coche pas
+        if (!clic(cur + ' li>button.box[data-ckarm]')) clic('#gdNext.gd-b');
+        else { await __acCalme(150); clic(cur + ' .stp-no'); }
       } else if (id === 'revue') {
         if (!q(cur + ' li.rv-step.open')) clic(cur + ' li.rv-step .rv-head');
         await new Promise(r => setTimeout(r, 150)); clic(cur + ' li.rv-step.open [data-ck]');

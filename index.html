@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-b1oUYT+/h3ikNMjqCJYyiCOxAGFr7v+q6qzoI7nJ9MA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rmnQzMxiaErjS7pU4pZLOnXtMcWBxl/qmvl+9H4tuUc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4319,6 +4319,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.mo-wait.armed>.box{border-color:var(--ink)}
   ol.steps li .mo-line{flex-wrap:wrap;gap:4px 10px;height:auto;min-height:24px}
   .mo-ask{font-size:var(--t-body);font-weight:500;color:var(--ink-2)}
+  .mo-ask .wt{display:inline-flex;height:auto;margin:0;padding:0;vertical-align:-2px}
+  .mo-ask .wt .wt-n{display:none}
   :is(.stp-yes,.stp-no){position:relative;height:24px;padding:0 12px;border:0;border-radius:999px;font-family:inherit;font-size:var(--t-body);font-weight:700;white-space:nowrap;cursor:pointer}
   :is(.stp-yes,.stp-no)::after{content:"";position:absolute;inset:-10px -4px}   /* cible 44 px (règle 9, halo admis) */
   .stp-yes{background:var(--ink);color:var(--work)}
@@ -9729,7 +9731,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.88.0';
+const APP_VERSION='5.88.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13907,6 +13909,11 @@ function visitNeed(b,seq,checked){const its=bItems(b),ck=checked||{};let tot=0,d
     const on=!!ck[seq+':'+b.id+':'+i];if(stepReq(stepMoment(its[i],seq,b.id,i),on)){tot++;if(on)dn++;}});
   return {tot,dn};}
 // L'étiquette du moment : [classe, mot]. La condition s'écrit comme celle d'un jalon.
+/* A570 §9 — ce qui RESTE avant un seuil, en mots : « 2 chocs délivrés », « 1 choc délivré » (singulier naïf : chaque mot
+   en -s perd son s ; un libellé qui ne s'y prête pas reste lisible). */
+function momRestLbl(f,it){const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter),r=Math.max(1,(+it.from.n||1)-momCn(it.from.counter));
+  const nm=(tmLabelParts(c&&c.label).name||'compteur').replace(/^./,x=>x.toLowerCase());
+  return r+' '+(r===1?nm.replace(/([A-Za-zÀ-ÿ]{3,})s\b/g,'$1'):nm);}
 const momFromLbl=(f,it)=>{const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter);return (tmLabelParts(c&&c.label).name||'Compteur')+' ≥ '+it.from.n;};
 /* A474 — la jauge d'un seuil `from` : N repères, le dernier dessiné comme une CASE (c'est là que l'étape devient
    cochable) ; même taille et même écart que les points, pour ne pas se lire comme un compte en plus. Au-delà de 8, n/N. */
@@ -23475,21 +23482,26 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     /* A382 : pas encore (ne retient pas « Continuer », la case demande confirmation — A570 §9) ou déjà faite une fois. */
     if(!ck&&mo&&(mo.st==='wait'||mo.st==='gone')){
       /* A570 §9 (arbitrage de l'auteur, renverse A382/A474 pour le bouton) : plus de « Faire maintenant ». La CASE de
-         l'étape en attente répond : le toucher arme, la ligne réservée du dessous dit « Pas encore le moment. » et
-         offre « Cocher quand même » / « Annuler » — sur place, sans fenêtre (règle 11). Rien n'est écrit au repos ;
-         une coche par erreur (qui lancerait un minuteur, A377) est rattrapée. Le minuteur attendu est dans la tête. */
-      wt='';
+         l'étape en attente répond : le toucher arme, la ligne du dessous dit POURQUOI ce n'est pas le moment (« Pas
+         avant : chocs délivrés ≥ 3. ») et offre « Cocher » / « Annuler » — sur place, sans fenêtre (règle 11). Une coche
+         par erreur (qui lancerait un minuteur, A377) est rattrapée. Au repos, la ligne du dessous n'existe que si elle a
+         quelque chose à dire : ce que fera la coche d'une étape liée (`linkEffectHtml`, statique — le minuteur attendu se
+         lit dans la tête), identique avant et après le moment, donc sans saut de hauteur (A9). Sinon, pas de ligne. */
       const lbl=esc(stepCR(stepText(st)).c),armed=mo.st==='wait'&&state.momArm===k;
-      const now=armed?`<span class="mo-ask">Pas encore le moment.</span><button type="button" class="stp-yes" data-cknow="${esc(k)}" aria-label="Cocher quand même : ${lbl}">Cocher quand même</button><button type="button" class="stp-no" data-ckdisarm="${esc(k)}">Annuler</button>`:'';
+      // Pourquoi pas maintenant, et CE QUI RESTE, d'un coup d'œil (arbitrage de l'auteur) : « Prévue dans 2 chocs délivrés. »,
+      // « Prévue dans 03:56. » (en direct). La tête dit déjà la règle et la jauge ; la question dit l'écart.
+      const why='Prévue dans '+(mo.why==='from'?esc(momRestLbl(_f,it)):wtSpanHtml('h|'+momTid(_f,it)))+'.';
+      wt=mo.st==='wait'&&opts.wt?linkEffectHtml(_f,it):'';
+      const now=armed?`<span class="mo-ask">${why}</span><button type="button" class="stp-yes" data-cknow="${esc(k)}" aria-label="Cocher : ${lbl}">Cocher</button><button type="button" class="stp-no" data-ckdisarm="${esc(k)}">Annuler</button>`:wt;
       const gone=mo.st==='gone';
       /* A398 : AVANT son moment, l'étape ne dit pas encore CRITIQUE / VIGILANCE — seule sa règle, en étiquette ; le mot
          revient avec la case, au moment où le geste se fait. Faite à un passage précédent, elle le garde (grisé). */
       const mcls=gone?cls:cls.replace(/^(crit|vigil) /,'');
-      const line=!gone;
+      const line=!gone&&!!now;
       const box=gone?`<span class="box" aria-hidden="true">${uiIcon('check',19,{sw:3,cls:''})}</span>`
         :`<button type="button" class="box" data-ckarm="${esc(k)}" aria-expanded="${armed?'true':'false'}" aria-label="${lbl} — pas encore le moment"></button>`;
       return `<li class="${mcls} mo-${mo.st}${line?' has-wt':''}${armed?' armed':''}">${box}${stepTxtHtml(st,{mark:gone,tag:tg,after:line?`<span class="mo-line">${now}</span>`:''})}</li>`;}
-    if(!wt&&it&&(it.from||it.repeat==='due'))wt='<span class="wt"></span>';   // A9 / A570 : le pied d'une étape à moment reste réservé d'un état à l'autre
+    // A570 : plus de ligne réservée À VIDE — une étape liée a sa légende dans tous ses états, une étape sans lien n'en a jamais.
     return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual+tag,after:wt})}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
 // A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé r:revue:index).
@@ -23602,6 +23614,13 @@ function wtModelFor(spec,now,vnow){
     m=wtCountModel(c,R.counters[L.id]||0,done,done?evs.slice().reverse().find(x=>x.ck===a)||null:null,evs[evs.length-1]||null,vnow);}
   if(m&&back!=null)m.back=back;   // décochée à l'instant : la valeur redescend
   return m;}
+/* A570 — ce que FERA la coche d'une étape liée, au repos et sans horloge : « ◷ 04:00 Adrén. dose » (lance), « ⊞ +1 Chocs
+   délivrés » (compte). Même dessin que la légende ; statique (pas de `data-wt`) : le minuteur qui court se lit ailleurs. */
+function linkEffectHtml(f,it){const L=linkOf(it);if(!L)return '';
+  if(L.k==='tm'){const t=((f&&f.timers)||[]).find(x=>x&&x.id===L.id);if(!t)return '';
+    return `<span class="wt">${wtInner({cls:'',g:'watch',v:t.type==='interval'?fmtMs((t.seconds||0)*1000):'↑',n:tmShort(t)})}</span>`;}
+  const c=((f&&f.counters)||[]).find(x=>x&&x.id===L.id);if(!c)return '';
+  return `<span class="wt">${wtInner({cls:'',g:'count',v:'+'+(c.step||1),n:tmLabelParts(c.label).name||'Compteur'})}</span>`;}
 function wtSpanHtml(spec,blk){const m=wtModelFor(spec,Date.now(),vfNow());if(!m)return '';
   return `<span class="wt${m.cls?' '+m.cls:''}${blk?' wt-blk':''}" data-wt="${esc(spec)}" data-wth="${esc(JSON.stringify(m))}">${wtInner(m)}</span>`;}
 // Repeinture au tick et après une coche liée, par classe (les ids de tuile sont pris).
@@ -30633,6 +30652,7 @@ const GUIDE_GESTES=[
   ['list','Trouver une aide','Tapez dans la recherche : titre, précision (« adulte »), étapes, doses, documents PDF joints. Entrée ouvre le premier résultat. L’étoile épingle une aide en tête de l’accueil.'],
   ['play','Démarrer une session','Sur l’écran d’entrée, relisez « Quand l’utiliser », puis « Démarrer la session » : le chrono part, les minuteurs sont prêts. « Exercice » fait la même chose sans patient.'],
   ['check','Cocher une étape','Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche. « Continuer » passe au bloc suivant quand les étapes sont faites.'],
+  ['history','Une étape qui attend son moment','Sa condition est écrite au-dessus, en petit (un compte et sa jauge, ou une échéance et son minuteur), et elle ne retient pas « Continuer ». Pour la cocher avant, touchez sa case : l’app dit ce qui reste ; « Cocher » confirme, « Annuler » renonce.'],
   ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet : minuteurs, compteurs, « ＋ Minuteur ».'],
   ['bolt','Ouvrir une complication','La touche à l’éclair du quai ouvre la complication à tout moment. « Reprendre » vous ramène au bloc où vous étiez.'],
   ['alarm','Horodater','Note l’heure d’un geste imprévu, que vous pouvez nommer ensuite. Tout part au journal et au compte rendu.'],
@@ -30656,6 +30676,7 @@ const GLOSSAIRE=[
   ['Jalon','Un seuil de compteur qui fait paraître une consigne (« Chocs ≥ 3 : … »).'],
   ['Horodater','Noter l’heure d’un geste, puis le nommer : il part au journal.'],
   ['Critique · Vigilance','Ce qui tue si on l’oublie · là où l’on risque de se tromper (dose, seuil).'],
+  ['Moment d’une étape','Quand une étape se présente dans un bloc parcouru plusieurs fois : à partir d’un compte (« ≥ 3 »), à l’échéance d’un minuteur, une seule fois ou au besoin. Avant, sa case demande confirmation.'],
   ['Vérifier','Relire le bloc étape par étape, à deux : l’un lit, l’autre confirme.'],
   ['Repères posologiques','Les doses et seuils à consulter pendant l’aide, sans les cocher.']];
 const guideModal=document.getElementById('guideModal');
@@ -30712,6 +30733,14 @@ const GUIDE_ETAPES=[
             return {tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'« Continuer » est prêt : il mène au bloc suivant.',act:1};
           const n=document.querySelectorAll('#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)').length;
           return {tgt:null,trou:'#main .ov-block.cur',voir:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez les étapes restantes',x:'« Continuer » s’allumera quand '+(n>1?'les '+n+' cases seront cochées':'la dernière case sera cochée')+' : il mène au bloc suivant.',act:1};})();}},
+  /* A570 §9 — l'étape qui attend son moment : sa case ARME et dit ce qui reste ; on montre le geste, on ne coche pas. */
+  {id:'moment',nom:'Une étape à son moment',ok:f=>(f.blocks||[]).some(b=>bItems(b).some(it=>it&&(it.from||it.repeat))),
+    done:g=>{if(state.momArm)g.moArm=true;return (!!g.moArm&&!state.momArm)||!!g.seen.moment;},   // faite quand la question se REFERME (Cocher ou Annuler) ; ⚠ pas `g.mo` : c'est l'observateur de mutations du guide
+    ph:()=>{const b=document.querySelector('#main .ov-block.cur li>button.box[data-ckarm]');
+      if(!b)return {tgt:null,t:'Une étape à son moment',x:'Certaines étapes ne se présentent qu’à un compte ou à une échéance : leur condition est écrite au-dessus, en petit, et elles ne retiennent pas « Continuer ».',act:0};
+      return state.momArm
+        ?{tgt:'#main .ov-block.cur .mo-line:has(.stp-no)',avec:'#main .ov-block.cur li:has(.stp-no)',t:'Ce qui reste',x:'L’app dit ce qui manque pour que ce soit le moment. « Cocher » confirme, « Annuler » renonce : essayez « Annuler ».',act:1}
+        :{tgt:'#main .ov-block.cur li>button.box[data-ckarm]',avec:'#main .ov-block.cur li:has(>button.box[data-ckarm])',t:'Une étape qui attend son moment',x:'Sa condition est écrite au-dessus. Pour la cocher avant, touchez sa case.',act:1};}},
   {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
     done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
     ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');
@@ -30775,7 +30804,7 @@ function _gdTip(){let t=document.getElementById('gdTip');
     t.onclick=e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;const g=_gd;
       if(b.id==='gdQuit'){guideStop();announce('Guide quitté — l’exercice continue.');}
       else if(b.id==='gdNext'){const E=g&&GUIDE_ETAPES[g.i];if(!E)return;
-        if(E.id==='capsule'&&!E.ph(g,fiches.find(x=>x.id===g.fid)).act){g.seen.capsule=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}
+        if((E.id==='capsule'||E.id==='moment')&&!E.ph(g,fiches.find(x=>x.id===g.fid)).act){g.seen[E.id]=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}   // regarder suffit (A570 §9 pour « moment »)
       else if(b.id==='gdMin'||b.id==='gdOpen'){if(!g)return;g.min=b.id==='gdMin';g.key='';guideSync();
         const n=document.getElementById(g.min?'gdOpen':'gdMin');if(n)n.focus({preventScroll:true});}
       else if(b.id==='gdClose'){t.remove();}

@@ -5262,7 +5262,7 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
     o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.stp-mks .mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
     o.repos=!rang(/300 mg/).querySelector('[data-cknow]');   // A570 §9 : rien n'est écrit au repos
     rang(/300 mg/).querySelector('[data-ckarm]').click();await __acCalme(300);   // la case arme…
-    o.arme=!!rang(/300 mg/).querySelector('.mo-line [data-cknow]')&&/Pas encore le moment/.test(rang(/300 mg/).textContent)&&!Object.keys(state.checked).some(k=>state.checked[k]&&/:1$/.test(k)&&false);
+    o.arme=!!rang(/300 mg/).querySelector('.mo-line [data-cknow]')&&/Prévue dans \d+ chocs? délivrés?\./.test(rang(/300 mg/).textContent)&&!Object.keys(state.checked).some(k=>state.checked[k]&&/:1$/.test(k)&&false);
     rang(/300 mg/).querySelector('[data-cknow]').click();await __acCalme(300);   // … « Cocher quand même » coche
     o.now=!!Object.keys(state.checked).find(k=>state.checked[k]&&rang(/300 mg/)&&rang(/300 mg/).dataset.ck===k);
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;}await w(1300);   // le tick voit le compte changer
@@ -5279,7 +5279,7 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
   t('A382 · avant le seuil : l’étape reste visible, en pointillé, case estompée et inerte (A474)', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
   t('A382 · … sa règle en étiquette, la jauge du compteur DANS l’étiquette (A474)', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
   t('A382 · … et « Continuer » ne l’attend pas', r.p1.cont===true);
-  t('A570 · au repos, l’étape en attente n’écrit rien ; sa case arme et la ligne du dessous dit « Pas encore le moment. »', r.repos===true&&r.arme===true, JSON.stringify({repos:r.repos,arme:r.arme}));
+  t('A570 · au repos, l’étape en attente n’offre aucun bouton ; sa case arme et la ligne du dessous dit ce qui reste (« Prévue dans 2 chocs délivrés. »)', r.repos===true&&r.arme===true, JSON.stringify({repos:r.repos,arme:r.arme}));
   t('A382 · « Cocher quand même » coche l’étape (une coche comme une autre)', r.now===true);
   t('A382 · au seuil, la case revient sur place (règle cochée, icône d’A570) et « Continuer » l’attend', r.seuil.ck&&r.seuil.coche&&/≥ 3/.test(r.seuil.tag)&&r.seuil.cont===false, JSON.stringify(r.seuil));
   t('A382 · après la dose : attend l’échéance, le minuteur en cours sous l’étape', r.p2.wait&&/échéance/i.test(r.p2.tag)&&r.p2.run&&r.p2.cont, JSON.stringify(r.p2));
@@ -5358,9 +5358,10 @@ await sec('v5.88 · A570 — liste à filets, tête en mots, pied court', async 
     const a300=rang(/300 mg/),mk=a300.querySelector('.stp-mks .stp-mk'),mkc=getComputedStyle(mk);
     o.tete={fond:mkc.backgroundColor,graisse:mkc.fontWeight,maj:mkc.textTransform};
     const tx=a300.querySelector('.txt').getBoundingClientRect(),hRepos=a300.getBoundingClientRect().height;
+    o.sansLigne=!a300.querySelector('.mo-line');
     a300.querySelector('button.box[data-ckarm]').click();await __acCalme(250);
     const a3=rang(/300 mg/),yes=a3.querySelector('.mo-line .stp-yes'),no=a3.querySelector('.mo-line .stp-no');
-    o.bouton=!!yes&&!!no&&Math.abs(a3.querySelector('.mo-line').getBoundingClientRect().left-tx.left)<=1&&/Pas encore le moment/.test(a3.querySelector('.mo-line').textContent);   // la question peut passer sur deux lignes : c'est un geste (A9)
+    o.bouton=!!yes&&!!no&&Math.abs(a3.querySelector('.mo-line').getBoundingClientRect().left-tx.left)<=1&&/Prévue dans \d+ chocs? délivrés?\./.test(a3.querySelector('.mo-line').textContent);   // la question peut passer sur deux lignes : c'est un geste (A9)
     no.click();await __acCalme(250);o.annule=!rang(/300 mg/).querySelector('.stp-yes')&&!rang(/300 mg/).hasAttribute('data-ck');
     o.h300a=Math.round(hRepos);
     rang(/Choc imm/).click();await __acCalme(200);rang(/Choc imm/).click();await __acCalme(400);   // 3ᵉ choc (décocher puis recocher : +1)
@@ -5370,7 +5371,7 @@ await sec('v5.88 · A570 — liste à filets, tête en mots, pied court', async 
     cur().querySelector('[data-ovnext]').click();await __acCalme(300);
     [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(500);
     const ad=rang(/Adrénaline/);
-    o.echeance={tete:!!ad.querySelector('.stp-mks .wt'),pied:!!ad.querySelector('.mo-line .wt'),bouton:!!ad.querySelector('button.box[data-ckarm]')};
+    o.echeance={tete:!!ad.querySelector('.stp-mks .wt'),pied:!!ad.querySelector('.mo-line [data-wt]'),effet:/04:00/.test((ad.querySelector('.mo-line .wt')||{}).textContent||''),bouton:!!ad.querySelector('button.box[data-ckarm]')};
     for(const t of Object.values(Runtime.timers))if(t.running)t.lastStart-=300000;await w(1500);   // horloge : le tick pose l'échéance
     const ad2=rang(/Adrénaline/);
     o.coches=[...cur().querySelectorAll('ol.steps:not(.rev)>li')].filter(li=>{const t=li.querySelector('.txt');const b=t&&t.querySelector('.stp-r');
@@ -5382,10 +5383,11 @@ await sec('v5.88 · A570 — liste à filets, tête en mots, pied court', async 
   t('A570 · une seule taille de libellé dans la liste (A345, revue comprise)', r.tailles.length===1, JSON.stringify(r.tailles));
   t('A570 · la tête colle à son libellé (≤ 5 px) et se détache du filet (≥ 10 px) — sinon elle se lit avec l’étape du dessus', r.ecarts.length>=3&&r.ecarts.every(e=>e.tete>=1&&e.tete<=5&&e.filet>=10), JSON.stringify(r.ecarts));
   t('A570 · la tête est faite de mots nus : sans fond, en capitales, graisse 600', /rgba\(0, 0, 0, 0\)|transparent/.test(r.tete.fond)&&r.tete.maj==='uppercase'&&r.tete.graisse==='600', JSON.stringify(r.tete));
-  t('A570 · la case d’une étape en attente arme : « Pas encore le moment. » · « Cocher quand même » · « Annuler » au pied, aligné sur le texte', r.bouton);
+  t('A570 · la case d’une étape en attente arme : « Prévue dans n chocs délivrés. » · « Cocher » · « Annuler » au pied, aligné sur le texte', r.bouton);
   t('A570 · « Annuler » referme la question sans rien cocher', r.annule);
   t('A570 · A9 — une étape à seuil seul garde sa hauteur quand le seuil est franchi', Math.abs(r.h300a-r.h300b)<=1, `${r.h300a} → ${r.h300b} px`);
-  t('A570 · « à l’échéance » : le minuteur attendu se lit dans la tête, la case reste celle qui arme', r.echeance.tete&&!r.echeance.pied&&r.echeance.bouton, JSON.stringify(r.echeance));
+  t('A570 · « à l’échéance » : le minuteur attendu se lit dans la tête ; le pied dit ce que fera la coche (« 04:00 »), sans horloge ; la case arme', r.echeance.tete&&!r.echeance.pied&&r.echeance.effet&&r.echeance.bouton, JSON.stringify(r.echeance));
+  t('A570 · une étape en attente SANS lien n’a pas de ligne vide sous elle', r.sansLigne, String(r.sansLigne));
   t('A570 · échéance atteinte : « ✓ À l’échéance » en vert dans la tête (comme un seuil atteint), le pied ne dit pas « Échu »', r.echu.tete&&!/Échu/.test(r.echu.pied), JSON.stringify(r.echu));
   t('A570 · une seule coche : aucun « ✓ » texte dans la liste (ni devant la réponse, ni dans la tête)', r.coches===0, String(r.coches));
   await page.close();

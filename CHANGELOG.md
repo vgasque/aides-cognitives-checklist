@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.88.1] — 2026-11-06
+Retours sur la v5.88.0 : la confirmation d'une étape qui attend son moment dit ce qui reste, plus de lignes vides, et
+l'exercice guidé l'enseigne (A570 §10, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- Toucher la case d'une étape en attente affiche maintenant **ce qui reste** : « Prévue dans 2 chocs délivrés. »,
+  « Prévue dans 1 choc délivré. », ou « Prévue dans 03:56. » (le temps défile), puis **« Cocher »** ou **« Annuler »**.
+- **Plus de ligne vide** sous une étape en attente : sous une étape qui lance un minuteur ou compte, la ligne dit ce
+  que fera la coche (« ◷ 04:00 Adrén. dose ») ; sinon, il n'y a pas de ligne.
+- **L'exercice guidé** montre une étape qui attend son moment et la question de sa case ; « Prendre en main » gagne le
+  geste « Une étape qui attend son moment », et le glossaire le terme « Moment d'une étape ».
+
 ## [5.88.0] — 2026-11-06
 Les étapes « complexes » en session (registre, compteur ou minuteur liés, étapes qui attendent leur moment) sont
 redessinées sur une seule grammaire, plus légère (A570, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
@@ -220,15 +230,3 @@ serveur.
 - **Déplacer une section** : le menu « Plan » propose Monter, Descendre, Dupliquer ou Supprimer la section où vous
   écrivez. ⌘Z ou ↶ annule.
 - Le copier-coller et l'annulation restent ceux du texte, comme avant.
-
-## [5.74.0] — 2026-11-02
-Au téléphone, choisir une collection ou une catégorie (A545, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
-côté serveur.
-- **Le titre choisit** : touchez « Aides ⌄ » pour ouvrir la feuille « Afficher » — Tout afficher, Accès direct, vos
-  collections et les catégories, chacune avec son nombre. Un tap applique le choix et ferme la feuille.
-- **Le titre dit ce qui est affiché** : il devient le nom de la collection ou de la catégorie choisie, avec
-  « Collection · à vous seul » ou « Catégorie » au-dessus ; « Tout afficher » revient à toute la liste.
-- **Plus de rangée de pastilles** qui défilait de côté (trois visibles sur quinze, et celle choisie partait hors de
-  l'écran). « Affichage » (ranger, densité) devient le bouton rond au bout de la ligne du titre.
-- Au téléphone, un filtre à la fois : choisir une catégorie retire la collection, et l'inverse. En large, rien ne
-  change.

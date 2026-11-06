@@ -1669,12 +1669,29 @@ le fond ambre (D3).
 **9. Plus de « Faire maintenant » : la case demande confirmation sur place (planche, A — arbitrage de l'auteur ;
 renverse A382 et A474 pour le bouton).** Ni le texte « Faire maintenant › » ni la pastille grise ne convenaient. La case
 d'une étape en attente devient un bouton : la toucher l'ARME, et la ligne réservée du dessous dit « Pas encore le
-moment. » avec « Cocher quand même » et « Annuler » — sur place, sans fenêtre (règle 11), la hauteur ne change qu'au
-geste (A9). Au repos, rien n'est écrit. Une coche par erreur, qui lancerait « prochaine dose » (A377), est rattrapée.
+moment. » avec « Cocher quand même » et « Annuler » (mots revus au §10) — sur place, sans fenêtre (règle 11), la
+hauteur ne change qu'au geste (A9). Au repos, rien n'est écrit. Une coche par erreur, qui lancerait « prochaine dose » (A377), est rattrapée.
 La phrase dit le fait (« pas encore le moment »), pas l'état du compteur (« Chocs : 1 sur 3 », jugé moins clair par
 l'auteur). Au doigt, le focus ne saute pas sur « Cocher quand même » (A492 : l'anneau suit la modalité). *Écartées* :
 le lien « Cocher » dans la tête (B : cible petite, coche sans filet) ; la case qui se coche directement (C : la
 condition devient décorative).
+
+**10. La question dit ce qui RESTE, et plus de ligne vide (v5.88.1, retours de l'auteur sur la v5.88.0).**
+- **« Prévue dans 2 chocs délivrés. »**, « Prévue dans 1 choc délivré. », « Prévue dans ◯ 03:56. » (en direct), puis
+  « Cocher » / « Annuler ». « Pas encore le moment » était vague, « Pas avant l'échéance » long et abstrait,
+  « Cocher quand même » n'apportait rien : il faut savoir tout de suite POURQUOI ce n'est pas le moment et CE QUI
+  RESTE pour que ce le soit. La tête dit déjà la règle et sa jauge ; la question dit l'écart (`momRestLbl`, singulier
+  naïf : chaque mot en -s perd son s).
+- **Plus de ligne réservée à vide** sous une étape en attente : sous une étape LIÉE, la ligne dit ce que fera la coche
+  (`linkEffectHtml`, « ◷ 04:00 Adrén. dose », statique — le minuteur qui court se lit dans la tête), et c'est la même
+  ligne avant et après le moment (A9 tenu sans vide) ; sous une étape SANS lien, pas de ligne du tout. Seule la
+  question, qui suit un geste, l'ajoute.
+- **Le guide l'enseigne** (demande de l'auteur) : une phase « Une étape à son moment » dans l'exercice guidé
+  (`GUIDE_ETAPES`, après « Répondre ») montre la case d'une étape en attente, puis, la case touchée, « Ce qui reste »
+  (essayer « Annuler ») — faite quand la question se referme ; sans étape en attente à l'écran, elle se lit et
+  « Suivant » la compte comme vue. Un geste « Une étape qui attend son moment » dans `GUIDE_GESTES` et le terme
+  « Moment d'une étape » dans `GLOSSAIRE`. ⚠ Piège payé : l'état d'armement s'appelle `g.moArm` — `g.mo` est
+  l'observateur de mutations du guide (truthy), l'étape se croyait faite d'avance. Témoins : `check-guide`, `audit-guide`.
 
 *Formes écartées (planches)* : glyphe seul à la place de la légende au repos (le `title` n'existe pas au toucher, leçon
 d'A402) ; « Faire maintenant » révélé au toucher (action cachée en session ; la rangée en attente est inerte, A382) ; mot

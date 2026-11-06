@@ -876,7 +876,8 @@ réservé à « Plein écran ».
   lit à côté de sa condition. Le MILIEU est le geste (une seule taille de libellé). Le PIED dit ce
   que fait la coche (« +1 Chocs délivrés », « 04:00 Adrén. dose », « annulable 9 s ») et porte
   rien d'autre : pour cocher une étape avant son moment, on touche sa case, et la ligne du dessous
-  demande « Pas encore le moment. — Cocher quand même / Annuler ». Une seule police
+  dit ce qui reste — « Prévue dans 2 chocs délivrés. », « Prévue dans 03:56. » — avec « Cocher » /
+  « Annuler ». Aucune ligne vide sous une étape en attente. Une seule police
   dans la rangée : la réponse attendue en Manrope 15 / 500, encre douce (distincte du libellé par
   la taille et l'encre) ; le mono ne reste qu'aux chronos de la capsule et du moniteur. Les étapes forment une LISTE À FILETS : aucun cadre,
   aucun aplat de rangée ; l'état se lit par la case et l'encre (seule l'étape à faire est noire).
