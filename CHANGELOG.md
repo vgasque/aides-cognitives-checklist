@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [5.89.1] — 2026-11-06
+Correctif de la v5.89.0 (A571). Rien à rejouer côté serveur.
+- À 320 px, la capsule dit de nouveau combien de minuteurs elle cache (« 1 minuteur ») : le nouveau chevron lui prenait
+  la place, et le mot disparaissait quand le texte est rendu un peu plus large (constaté sur la CI Linux).
+
+## [5.89.0] — 2026-11-06
+La session, deuxième passe « Natif » : ce qui entoure les étapes se rapproche d'iOS et de Material 3 (A571, doctrine
+`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
+- **Le titre de l'aide n'est plus coupé** en session : il passe sur deux lignes, et « · adulte » le suit.
+- **L'historique redevient discret** : une ligne de texte gris, sans pastille, jamais coupée. Elle dit
+  « Historique · diagnostic confirmé », puis « Historique · 2 blocs ». Le mot « Parcours » a disparu ; le compte des
+  étapes reste à droite. Ouvert, il montre une boîte grise en retrait : la confirmation et ses critères, puis les blocs faits.
+- **Les boutons « Vérifier » et « Cochez les n restantes »** tiennent sur une ligne, en pilules.
+- **Le quai du bas est aligné et plus compact** : plus de séparateurs, une barre en pilule. Au téléphone, toutes les
+  icônes sur une même ligne et chaque mot sur la sienne ; sur tablette et au bureau, l'icône à gauche du mot. Avec plusieurs complications, la touche dit « Complications » et le nombre s'affiche dans une
+  pastille sur l'éclair.
+- **Sous le bloc, une seule liste « Pendant toute l'aide »** remplace les six cartes (Ne pas oublier, revue,
+  À vérifier, diagnostics, repères, références) ; chaque section se déplie sur place. La note locale s'intitule
+  « Contexte local ».
+- **Au bureau, la colonne de droite passe en listes** : chaque minuteur a son bouton « Démarrer » visible, chaque
+  compteur une pilule « − n + », « Ajouter un minuteur » et « Ajouter un compteur » sont au pied de leur liste, le son
+  et la veille deviennent des interrupteurs.
+
 ## [5.88.1] — 2026-11-06
 Retours sur la v5.88.0 : la confirmation d'une étape qui attend son moment dit ce qui reste, plus de lignes vides, et
 l'exercice guidé l'enseigne (A570 §10, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
@@ -204,29 +227,3 @@ Les passages se règlent sur place (A548, doctrine `docs/decisions/lot-v6-0.md`)
   la photo.
 - **Sur ordinateur**, la poignée ⋮⋮ à gauche d'un passage permet de le glisser ailleurs ; une ligne bleue montre où il
   se pose. Au doigt, « Monter » et « Descendre » restent le geste.
-
-## [5.76.0] — 2026-11-02
-L'éditeur des références met en forme pendant qu'on écrit (A547, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Mise en forme en direct** (par défaut) : le contenu rédigé s'affiche comme à la lecture — titres, gras, encadrés,
-  tableaux, images. Touchez un passage : lui seul s'ouvre en Markdown, le reste reste mis en forme. « Terminé » (ou
-  Échap) le referme.
-- Sur le passage ouvert : **Monter, Descendre, Dupliquer, Supprimer** (↶ annule). **« Ajouter un bloc »** propose
-  paragraphe, titre, encadré, liste, cases, tableau, image ou séparateur.
-- **Copier plusieurs passages** copie leur Markdown : la mise en forme suit au collage.
-- L'interrupteur **« Mise en forme en direct »** ramène au texte Markdown entier, pour les longs copier-coller ; ce choix
-  est retenu sur l'appareil.
-- La bande d'aperçu au-dessus du clavier (5.75) est retirée.
-
-## [5.75.0] — 2026-11-02
-L'éditeur des références : voir en écrivant (A546, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
-serveur.
-- **Au téléphone, clavier ouvert**, le passage où vous écrivez s'affiche rendu juste au-dessus de la barre d'outils :
-  encadré, tableau ou image, sans basculer sur « Aperçu ». L'œil de la barre le masque ou le remet ; ce choix est
-  retenu sur l'appareil.
-- **Sur ordinateur et tablette en paysage**, le texte et son rendu sont à parts égales, et le rendu suit le défilement
-  du texte.
-- **Les images** : au bout de la ligne `![…](img:…)`, une vignette montre laquelle et à quelle taille (à la souris).
-- **Déplacer une section** : le menu « Plan » propose Monter, Descendre, Dupliquer ou Supprimer la section où vous
-  écrivez. ⌘Z ou ↶ annule.
-- Le copier-coller et l'annulation restent ceux du texte, comme avant.

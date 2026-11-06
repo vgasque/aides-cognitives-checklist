@@ -1096,6 +1096,14 @@
   .bt-line{display:flex;align-items:baseline;gap:6px;min-width:0}
   #brandDisc{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);white-space:nowrap;line-height:inherit}
   #brandDisc[hidden]{display:none}
+  /* A571 : en session, le titre passe à la ligne (deux lignes au plus) au lieu de se couper ; le discriminant suit la dernière ligne. */
+  #brandTitle .bt-d{display:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* Jamais de coupe : ni ellipse, ni line-clamp (le discriminant, dans la chaîne, serait coupé le premier — K6).
+     Sous 360 px effectifs et en paysage bas, la hauteur manque : on revient à la ligne ellipsée d'avant, discriminant
+     HORS de la chaîne (#brandDisc), et le budget du chrome tient (audit-budget). */
+  html:not(.zw360):not(.zh500) header.bar.crisis #brandTitle{white-space:normal;text-overflow:clip}
+  html:not(.zw360):not(.zh500) header.bar.crisis #brandTitle .bt-d{display:inline}
+  html:not(.zw360):not(.zh500) header.bar.crisis #brandDisc{display:none}
   header.bar.titled:not(.ttl-on) #brandDisc{display:none}
   .brand-sur .bs-cat:not([hidden])~.bs-m:not(:empty)::before{content:"·";margin:0 6px;color:var(--line-strong);font-weight:400}
   /* v5.30 (maquette v5) : CATÉGORIE · CODE ouvrent le sur-titre, encre neutre, pastille CARRÉE de
@@ -1419,10 +1427,29 @@
      latéral il empiéterait sur le bouton voisin, les deux étant côte à côte. Vérifié à la sonde :
      aucun chevauchement avec le quai d'état en dessous. */
   .sd-key::after{content:"";position:absolute;inset:0}
-  /* v5.30 (A355, canevas « Quai et carte de session ») : un FILET discret entre deux touches visibles —
-     1 px, 28 px de haut, la matière des filets du quai (--sys-line) ; centré dans l'écart de 4 px. */
-  .sd-key:not([hidden])~.sd-key:not([hidden])::before{content:"";position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:1px;height:28px;background:var(--sys-line)}
-  .sd-in:has(.sd-start:not([hidden])) .sd-key::before{display:none}   /* hors session : deux boutons à air, pas de filet */
+  /* A571 — LE QUAI EN SESSION (renverse le filet d'A355). Quai et touches en PILULES concentriques (6 px de jeu).
+     Téléphone (< 560 px effectifs) : icône AU-DESSUS du mot, alignés par le haut (un nom sur deux lignes ne fait plus
+     monter son icône) ; chaque touche prend la LARGEUR DE SON MOT plus une part égale du reste (`flex:auto`) — à largeur
+     égale, « Tout voir » s'écrasait sur deux lignes à côté d'un « Bronchospasme » entouré de vide. Aucune ligne
+     réservée : le quai a la hauteur de ses mots. Quand TOUS les mots tiennent ainsi (`sd-h`, posé à la mesure par
+     `fitQuaiLbls`) : icône À GAUCHE du mot, une seule ligne, touches de 48 px — plus de quai de 78 px à moitié vide. */
+  .sd-in:not(:has(.sd-start:not([hidden]))){border-radius:999px}
+  .sd-in:not(:has(.sd-start:not([hidden]))) .sd-key{flex:1 1 auto;justify-content:flex-start;padding:8px 8px 6px;border-radius:999px}
+  .sd-in:not(:has(.sd-start:not([hidden]))) .sd-key .dp-ic{flex:none;position:relative;width:20px;height:20px}
+  .sd-in:not(:has(.sd-start:not([hidden]))) .sd-key .dp-ic svg{width:17px;height:17px}
+  #sessionDock.sd-h .sd-in .sd-key{flex-direction:row;justify-content:center;align-items:center;gap:8px;min-height:48px;padding:0 16px}
+  #sessionDock.sd-h .sd-in .sd-key .dp-lbl{white-space:nowrap;min-width:0}
+  /* Les touches dont le MOT CHANGE en cours de session (« Tout voir » ↔ « Un bloc », « Horodater » → « Horodater · n »)
+     ont une base FIXE, taillée sur leur mot le plus long : leur largeur, donc la place des voisines, ne bouge pas
+     d'un pixel quand le mot change (T8). */
+  html:not(.zw360) .sd-in:not(:has(.sd-start:not([hidden]))) #allBtn{flex:1 1 calc(5em + 16px)}
+  html:not(.zw360) .sd-in:not(:has(.sd-start:not([hidden]))) #tkKey{flex:1 1 calc(6.4em + 16px)}
+  /* Sous 360 px effectifs, les crans d'A465/A568 fixent « Fin » et « Tout voir » et les mots passent à la ligne : on y
+     réserve deux lignes, pour que la hauteur ne dépende pas du mot (A9). */
+  html.zw360 .sd-in:not(:has(.sd-start:not([hidden]))) .sd-key{flex:1 1 0}
+  html.zw360 .sd-in:not(:has(.sd-start:not([hidden]))) .sd-key .dp-lbl{min-height:2.2em}
+  /* « Complications » + le nombre en pastille sur l'éclair (A571 : « Complications · 3 » se coupait avant « · 3 »). */
+  .sd-key .dp-bdg{position:absolute;top:-6px;left:13px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--warn-sys);color:var(--sys);font-size:var(--t-cap);font-weight:800;line-height:16px;text-align:center;font-variant-numeric:tabular-nums}
   .sd-key[hidden]{display:none}
   /* RETOUR D'EXCURSION : registre CONFIRMATION, seul contrôle REMPLI VERT du dock (même grammaire
      que « ↩ Reprendre » d'une complication). ⚠ Il s'appelle `dp-back`, PAS `back` — `.back` est
@@ -1723,6 +1750,14 @@
      d'ajustement avant d'en arriver là ; l'ellipse n'est qu'un filet de sûreté. */
   #cbTimers .cbt-decl{gap:6px;min-width:0;font-weight:600;letter-spacing:0;overflow:hidden}
   #cbTimers .cbt-dl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #cbTimers .cbt-n:not(.cbt-decl):has(.cbt-cv){flex:none}
+  html.zw360 #cbTimers .cbt-cv{width:12px}
+  html.zw360 #cbTimers .cbt-chev svg{width:12px;height:12px}
+  html.zw360 #cbTimers .cbt-decl{gap:4px}   /* la place de l'ancien ▾ : le mot « n minuteurs » passe avant le chevron (rouge en CI Linux, texte plus large) */   /* 320 px : la capsule doit nommer ses minuteurs (ECAM) */
+  #cbTimers .cbt-cv{flex:none;display:grid;place-items:center;width:32px;height:44px;color:var(--sys-ink-2)}   /* A571 : le chevron de l'app, sans fond (planche) */
+  #cbTimers .cbt-chev{display:grid}
+  #cbTimers .cbt-chev svg{width:18px;height:18px;transform:rotate(90deg)}
+  #cbTimers .cbt-chev.open svg{transform:rotate(-90deg)}
   #cbTimers .cbt-n{display:flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;margin-left:auto;padding:0;font-size:12px;font-weight:700;color:var(--sys-ink-2);border:0}
   /* « +n » et chevron : des <span> DANS le bouton #cbTimers, jamais tapables seuls — la media
      query étroite se DÉCLARE APRÈS la base (spécificité égale : l'ordre seul l'emporte). ≥ 780 :
@@ -2825,6 +2860,22 @@
   .conf-head.fold-head{min-height:52px;padding:0 16px;gap:12px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
   .fh-ic{flex:none;width:26px;height:26px;border-radius:var(--r-1);display:grid;place-items:center;font-size:var(--t-body);font-weight:800;line-height:1;background:var(--primary-soft);color:var(--act)}
   .fh-ic.crit{background:var(--crit-soft);color:var(--crit)}
+  /* A571 — EN SESSION, UNE LISTE GROUPÉE : intertitre en phrase, un seul fond, filets qui commencent au texte, pastilles
+     grises (seul le « ! » de « Ne pas oublier » garde son rouge), chevron › qui pivote vers le bas à l'ouverture.
+     Chaque section se déplie sur place, comme avant (data-sessfold). */
+  .tout-grp{margin:14px 0 0}
+  .tout-gh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .tout-gl{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
+  .tout-gl>.conf-block.fold-card{position:relative;margin:0;border:0;border-radius:0;box-shadow:none;background:none}
+  .tout-gl>.fold-card+.fold-card::before{content:"";position:absolute;top:0;left:56px;right:0;height:1px;background:var(--work-line)}
+  .tout-gl .fh-ic:not(.crit){background:var(--amb-2);color:var(--ink-2)}
+  .tout-gl .fold-head .conf-chev{color:var(--ink-2)}
+  .tout-gl .fold-head{font-weight:600}
+  .tout-gl .fold-head .conf-chev svg{width:14px;height:14px;transform:none}
+  .tout-gl .fold-head .conf-chev.open svg{transform:rotate(90deg)}
+  .tout-gl .fh-ic{width:28px;height:28px}   /* 16 + 28 + 12 = 56 : le texte des rangées et des dépliés commence au même x */
+  .tout-gl .fold-card .sf-body{padding-left:56px}
+  .tout-grp>.local{margin:0}
   .fh-t{flex:1;min-width:0}
   /* Cartes de session (v5.30) : même carte de travail que l'écran d'entrée ; l'intertitre interne se tait, la tête le dit. */
   .conf-block.fold-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);margin:10px 0 0}
@@ -4127,6 +4178,10 @@
   .flow-ctrl.has-ver .blk-ver:hover{background:var(--amb-2)}
   .flow-ctrl.has-ver .blk-ver:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .flow-ctrl.has-ver .btn.cont{flex:1;min-width:0}
+  /* A571 : les deux boutons du pied de bloc en CAPSULES de 48 px, 15 px gras — « Cochez les 2 restantes » tenait sur deux
+     lignes (70 px) à 390 px. Rien d'autre ne change : registre, mots, ordre (A235, A375, A534). */
+  .ov-block .flow-ctrl .btn.cont{min-height:48px;font-size:var(--t-item);font-weight:700;border-radius:999px;padding:6px 18px;line-height:1.25}
+  .ov-block .flow-ctrl.has-ver .blk-ver{min-height:48px;border-radius:999px;padding:0 18px}
   .cx-row .blk-act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;
     border:1px solid var(--line-strong);border-radius:8px;background:var(--work);
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
@@ -4303,6 +4358,46 @@
   body.view-read .read-side .cncard .cn-btn[data-cninc]{order:3}
   body.view-read .read-side .tmcard:not(.due){background:var(--amb-2);border-color:transparent}
   body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
+  /* ═══ A571 — LE RAIL EN LISTES GROUPÉES (A506, validé sur planche) ═══
+     Un minuteur : nom · temps · commande visible, sur UNE rangée (renverse « les commandes paraissent au tap », C79) ;
+     en marche, la barre de progression sous la rangée. Un compteur : nom · capsule « − n + ». « Ajouter un … » en rangée
+     bleue au pied de sa liste. Son et veille : rangées à interrupteur. */
+  body.view-read .read-side .rt-gl{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:hidden}
+  body.view-read .read-side .rt-gl>.rt-grid,body.view-read .read-side .rt-gl>.rt-counters{display:block;margin:0}
+  body.view-read .read-side .rt-gl :is(.tmcard,.cncard){position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;column-gap:12px;row-gap:0;min-height:58px;margin:0;padding:6px 14px;border:0;border-radius:0;background:none;text-align:left}
+  body.view-read .read-side .rt-gl :is(.tmcard,.cncard)+:is(.tmcard,.cncard){border-top:1px solid var(--work-line)}
+  body.view-read .read-side .rt-gl .tmcard{grid-template-columns:minmax(0,1fr) auto;padding:8px 14px}
+  body.view-read .read-side .rt-gl .tmcard .tm-label{grid-row:1}
+  body.view-read .read-side .rt-gl .tmcard .tm-label,body.view-read .read-side .rt-gl .cncard .tm-label{grid-column:1;font-size:var(--t-item);font-weight:600;color:var(--ink);margin:0;min-height:0;-webkit-line-clamp:2}
+  body.view-read .read-side .rt-gl .tmcard .tm-val{grid-row:2;grid-column:1;font-size:17.5px}
+  body.view-read .read-side .rt-gl .tmcard .tm-ctrl,body.view-read .read-side .rt-gl .tmcard:not(.tm-open):not(.due) .tm-ctrl{grid-row:1/3;grid-column:2;display:flex;gap:6px;margin:0}
+  body.view-read .read-side .rt-gl .tmcard:not(.run):not(.paused) .tm-reset{display:none}
+  body.view-read .read-side .rt-gl .tmcard .tm-btn{min-height:44px;padding:0 14px;border-radius:999px;font-size:var(--t-body);font-weight:700}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused) .tm-bar-wrap{display:block;grid-column:1/-1;margin:6px 0 2px}
+  body.view-read .read-side .rt-gl .tmcard.due{background:var(--warn-soft)}
+  body.view-read .read-side .rt-gl .tmcard.due .tm-label{grid-column:1}
+  body.view-read .read-side .rt-gl .cncard .cn-log{grid-column:1/-1}
+  body.view-read .read-side .rt-gl .cncard .cn-btn[data-cndec]{grid-column:2;margin-left:0}
+  /* la capsule « − n + » : trois cases jointes sur un même fond, plus un − cerclé et un + bleu */
+  body.view-read .read-side .rt-gl .cncard{grid-template-columns:minmax(0,1fr) 44px 40px 44px;column-gap:0}
+  body.view-read .read-side .rt-gl .cncard .cn-btn{min-width:44px;min-height:44px;border:0;border-radius:999px 0 0 999px;background:var(--amb-2);color:var(--ink)}
+  body.view-read .read-side .rt-gl .cncard .cn-btn[data-cninc]{grid-column:4;border-radius:0 999px 999px 0}
+  body.view-read .read-side .rt-gl .cncard .cn-val{grid-column:3;min-height:44px;min-width:40px;align-self:center;background:var(--amb-2);font-family:var(--f-mono)}
+  body.view-read .read-side .rt-gl>.rt-add{display:flex;align-items:center;gap:10px;width:100%;margin:0;min-height:48px;padding:0 14px;border:0;border-top:1px solid var(--work-line);border-radius:0;background:none;color:var(--act);font-size:var(--t-item);font-weight:600;text-align:left}
+  body.view-read .read-side .rt-gl>.rt-add:first-child{border-top:0}
+  body.view-read .read-side .rt-gl>.rt-add:hover{background:var(--amb-2)}
+  body.view-read .read-side .rt-set.rt-gl{display:block;margin:0;padding:0}
+  body.view-read .read-side .rt-gl-jl{padding:0 14px}
+  body.view-read .read-side .rt-gl-jl>.rt-jl:first-child{border-top:0}
+  body.view-read .read-side .rt-set.rt-gl .rt-togs{display:flex;flex-direction:column;align-items:stretch;gap:0}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound{position:relative;display:flex;align-items:center;gap:8px;width:100%;min-height:58px;padding:0 72px 0 14px;border:0;border-radius:0;background:none;color:var(--ink);font-size:var(--t-item);font-weight:600;text-align:left}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound+.rt-sound{border-top:1px solid var(--work-line)}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound::before{content:"";position:absolute;right:14px;top:50%;width:51px;height:31px;transform:translateY(-50%);border-radius:999px;background:var(--ok)}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound::after{content:"";position:absolute;right:16px;top:50%;width:27px;height:27px;transform:translateY(-50%);border-radius:50%;background:var(--work);box-shadow:var(--shadow-work)}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound[aria-pressed="false"]::before{background:var(--line-strong)}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound[aria-pressed="false"]::after{right:38px}
+  body.view-read .read-side .rt-set.rt-gl .rt-sound.off{color:var(--ink)}
+  body.view-read .read-side .rt-set.rt-gl .rt-warn{margin:8px 14px}
   /* Rail droit : UNE variable --tcol pilote libellé + temps + barre (+ --tbd) ; échu = AMBRE
      (rouge réservé au vital), pause = encre douce + texte, jamais couleur seule ; --act = minuteur
      EN COURS, .due/.paused déclarées APRÈS gagnent (P2-7). ⚠ A9 : un état NON commandé ne change
@@ -4328,8 +4423,7 @@
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--act);font-size:12px;font-weight:700}
   .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
-  .rt-adds{display:flex;gap:8px}.rt-adds>.rt-add{flex:1;min-width:0}   /* A309 : une rangée, deux ajouts */
-  .rt-adds+.tm-add-d{margin-top:8px}
+  .rt-gl+.tm-add-d{margin-top:8px}   /* A571 : le choix de durée sous la liste des minuteurs (la rangée « + Minuteur · + Compteur » d'A309 est partie) */
   /* GRAISSE 500, PAS 700 (correctif — signalé à l'usage : « le texte du minuteur en gras très noir
      saute aux yeux plus que le contenu du milieu, confirmation diagnostique, étapes… ; pareil pour
      les décomptes de compteurs »). Le constat est juste et c'est une inversion de saillance : le
@@ -5553,19 +5647,20 @@
   /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
      titre et le compte, libellé qui s'abrège avant de toucher le compte, cible 44 par halo ; elle s'allume
      une fois quand un bloc coché la rejoint (ombre seule : peinture, jamais de mise en page). */
-  .ov-prog>.ov-runline{flex:0 1 auto;min-width:0;width:auto;min-height:32px;height:32px;margin:0 auto;padding:0 10px;justify-content:flex-start;position:relative;border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
-  .ov-prog>.ov-runline::after{content:"";position:absolute;inset:-8px 0}
+  /* A571 : plus de pilule — une ligne de TEXTE gris, sans fond ni bord, qui ne coupe plus (« Historique · … »). */
+  .ov-prog>.ov-runline{flex:1 1 auto;min-width:0;width:auto;min-height:32px;height:32px;margin:0;padding:0;justify-content:flex-start;position:relative;border:0;border-radius:var(--r-1);background:none;box-shadow:none;color:var(--ink-2);font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none}
+  .ov-prog>.ov-runline::after{content:"";position:absolute;inset:-4px 0 -8px}   /* A571 : 4 + 32 + 8 = 44 ; plus haut, le halo passait sous la capsule collante (titre sur deux lignes) */
   .ov-prog>.ov-runline .ovr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;padding-top:1px}   /* +1 px : le texte 12/700 paraissait haut face à l'icône de 14 ; interligne 1,35 — à 1, le débordement masqué des points de suspension TRONQUAIT les jambages (signalé) */
   .ov-runline .ovr-ic{display:inline-flex;flex:none;color:var(--ink-2)}
   /* la bulle se CENTRE entre le titre et le compte (marges auto) — spécificité au-dessus de `body.crisis-live .ov-runline` et de `.ov-prog span:last-child` */
-  .ov-wrap .ov-prog>.ov-runline{margin:0 auto;background:var(--amb-2);box-shadow:none}   /* (0,3,0) : passe devant `body.crisis-live .ov-runline` (0,2,1) ; matière DISCRÈTE — la carte blanche en dessous garde la vedette (signalé) */
-  .ov-prog>.ov-runline+span:last-child{margin-left:0}
+  .ov-wrap .ov-prog>.ov-runline{margin:0;background:none;box-shadow:none}   /* (0,3,0) : passe devant `body.crisis-live .ov-runline` (0,2,1) ; matière DISCRÈTE — la carte blanche en dessous garde la vedette (signalé) */
   .ov-runline .conf-chev{margin-left:0;padding:0}
-  .ov-runline .conf-chev svg{width:16px;height:16px}   /* dans la bulle de 28 px, un cran plus petit que sur les cartes (demande de l'auteur) */
+  .ov-runline .conf-chev svg{width:16px;height:16px}   /* un cran plus petit que sur les cartes (demande de l'auteur) */
+  .ov-prog>.ov-runline .conf-chev{color:var(--ink-2)}
   .ov-runline.bump{animation:ovBump .7s ease}
   @keyframes ovBump{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px var(--ok-soft)}}
   @media (prefers-reduced-motion:reduce){.ov-runline.bump{animation:none}}
-  .ov-prog>span:last-child{margin-left:auto;flex:none;white-space:nowrap;   /* enfant DIRECT : sans le `>`, la règle attrapait le chevron de la bulle */font-size:var(--t-body);font-weight:700;letter-spacing:0;text-transform:none}   /* A369 : le compte ne se coupe pas, c'est la bulle qui s'abrège */
+  .ov-prog>span:last-child{margin-left:auto;flex:none;white-space:nowrap;   /* enfant DIRECT : sans le `>`, la règle attrapait le chevron de la bulle */font-size:var(--t-body);font-weight:600;letter-spacing:0;text-transform:none}   /* A369 : le compte ne se coupe pas ; A571 : même voix que l'historique */
   /* Sous 360 px effectifs (320 px, ou 320 × 130 %), la première étape doit rester au-dessus du pli : la ligne
      « Parcours » et la pilule cèdent, le compte du bloc revient sur la carte. */
   html.zw360 .ov-cur{display:none}
@@ -5585,7 +5680,6 @@
   .ov-block.numin:not(.closed)>.ov-head .ov-n{display:none}
   .ov-block.closed .ov-curl{display:none}   /* replié sur place (sans re-rendu) : le carré revient, la ligne « En cours » part */
   html.zw360 .ov-curl{margin-bottom:2px}
-  html.zw360 .ov-prog>span:first-child{display:none}   /* A369 : la ligne reste — elle porte l'historique ; seul le mot cède */
   html.zw360 .ov-block.cur:not(.closed) .ov-c{display:inline}
   /* … et l'étape redescend d'un cran (--t-item), rangée 56 px : à 246 px effectifs, le corps 17,5
      enroulait la première étape sur quatre lignes, sous le pli. Palier de compression, pas une
@@ -5689,16 +5783,17 @@
      l'ancien `--ink-3` mesurait 2,13:1 (v5.6), et `aria-hidden` n'exempte pas du seuil. */
   /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
      blocs » se lise pareil partout. */
-  .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
-    padding:0 16px;margin:2px 0 8px}
+  .ov-hist{background:var(--amb-2);border:0;border-radius:var(--r-3);   /* A571 : boîte EN RETRAIT, au gris d'ambiance — l'historique ne fait pas concurrence au bloc */
+    padding:0 12px;margin:2px 0 8px}
   .ov-hist .ov-runline{margin:0;justify-content:flex-start}
   .ov-hist>:first-child{border-top:0}   /* A369 : la carte ouverte commence par une rangée — pas de filet sous le bord (signalé) */
   /* Les critères confirmés, dans le dépliant du journal : même rangée que les blocs faits, mais
      INERTE — un critère n'est pas un passage où l'on saute (doctrine du plan). Le ■ est celui de
      la carte « Quand l'utiliser », pour qu'on reconnaisse la même liste. */
-  .ovh-crit{display:flex;align-items:baseline;gap:8px;padding:8px 12px 8px 32px;border-top:1px solid var(--work-line);
+  .ovh-row.ovh-crit{display:flex;align-items:baseline;gap:8px;padding:4px 0 4px 24px;border-top:0;min-height:0;   /* A571 : les critères sous leur tête, serrés, sans filet */
     font-size:var(--t-meta);color:var(--ink-2);text-align:left}
   .ovh-crit .ovh-mk{color:var(--ink-2);font-weight:800;flex:none}   /* C1 : critère d'entrée, pas une étape critique */
+  .ovh-row.ovh-crit:last-child{padding-bottom:10px}
   .ovh-crit .ovh-t{flex:1 1 auto;min-width:0}
   .ovh-row{display:flex;gap:10px;align-items:center;width:100%;min-height:44px;padding:10px 0;   /* A369 : centré — la coche et le chevron ne s'alignent pas sur une ligne de base */
     background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
@@ -5706,6 +5801,7 @@
   .ovh-row:hover{color:var(--ink)}
   .ovh-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .ovh-ok{flex:none;color:var(--ok);font-weight:800}
+  .ovh-conf{cursor:default}   /* A571 : la tête « ✓ Diagnostic confirmé · n critères » du dépliant, inerte */
   .ovh-t{flex:1;min-width:0}
   .ovh-x{color:var(--ink-3);font-weight:600}
   .ovh-n{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}   /* A369 : même écriture que le compte des cartes */
@@ -8522,7 +8618,7 @@
     :is(.rang-btn,.sel-tog,.pg-btn,.flow-ctrl.has-ver .blk-ver,.tag.todo,body.view-read .read-meta .tag.todo):hover{background:var(--line)}
     :is(.hs-lnk,.pf-all,.pf-ref,button.pf-bh,.fold-card .atyp-link,.acct-more>summary,.auth-why>summary):hover{text-decoration:underline;text-underline-offset:3px}
     :is(.conf-head.fold-head,.ov-tgl,.sess-join,.ed-ident>summary,.rt-sound:not(.off)):hover{background:var(--amb-2)}
-    .ov-prog>.ov-runline:hover{border-color:var(--line-strong)}
+    .ov-prog>.ov-runline:hover{color:var(--ink)}
     #cbTimers:hover{filter:brightness(.98)}
   }
   :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):active{transform:scale(.99)}
@@ -8795,7 +8891,7 @@
          au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
          peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">Ctrl K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
@@ -8865,7 +8961,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw26yw3lc8p1wx1a">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw26yw3l8cw34p1c">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw510pda1vmub3m1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw510pda1kmblh79">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -8912,7 +9008,7 @@
          au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
          peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">Ctrl K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
@@ -8982,7 +9078,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw26yw3lc8p1wx1a">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw26yw3l8cw34p1c">0</span></span><span class="cbt-n"><span aria-hidden="true">▾</span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw510pda1vmub3m1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw510pda1kmblh79">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
