@@ -1801,3 +1801,29 @@ bouton de remise à zéro à « MAINTEN… ».
 - **La consignation d'un compteur** (« consigné T+00:42 · il y a 23:20 ») quitte le mono sur liseré et devient le
   SOUS-TITRE du nom (cellule iOS) : 12 px, encre douce, « il y a … » insécable ; la pilule « − n + » se centre sur les
   deux lignes. *Forme écartée (par l'auteur)* : la sous-ligne pleine largeur sous la pilule, « trop collée » à elle.
+
+## A574 — La barre « ↩ Bloc » prend le vert de la session en thème clair (v5.89.3)
+
+*Signalé par l'auteur : « le vert de retour à l'étape n'est plus le même vert que le reste en mode session ».*
+
+A518 redéclare les tokens de la matière système (`--ok-sys`, `--on-sys-fill`…) sur les barres de session en verre
+clair — `#cbTimers`, `.sd-in`, `.ds-card`, `.rt-dock` — mais la barre de retour au bloc (`.bkr`, `#blkReturn`), objet
+du quai, n'était pas dans la liste : elle gardait le vert NOCTURNE (`--ok-sys` #4ade80, encre noire) au milieu des
+verts de page (`--ok` #1d7a38, encre blanche). Elle rejoint la liste des redéclarations (tokens seulement : ni flou
+ni verre, elle reste un aplat). Thème sombre inchangé (A503).
+
+## A575 — Dans la session, la barre d'échelle de la Page colle sous ce qui est collé (v5.89.3)
+
+*Signalé par l'auteur, vidéo à l'appui : en session, pincer fort sur la Page fait disparaître la barre du haut.*
+
+Dans `main`, la Page n'a qu'un axe vertical, celui de la fenêtre (A356), et le pincer garde le point pincé sous les
+doigts (A554) en recalant CETTE fenêtre : plus on agrandit, plus la page défile, et les onglets, la recherche puis la
+barre d'échelle passent sous l'en-tête — on perd de quoi dézoomer ou revenir à « ⤢ Ajusté ». La barre `.sv-zoom` de
+`main` devient collante à `--stick-top` (sous l'en-tête et le quai de crise), sur le fond de page `--amb` ; clavier
+ouvert, elle redevient du flux comme tout chrome de page (`html.kbd`, check-stick). La fenêtre « Tableau » n'est pas
+concernée : sa barre vit déjà dans `.pm-tools`, hors du défileur.
+Rendue visible à la sonde, la barre a révélé un défaut ancien : le halo `::after` des boutons `.sv-zb`/`.fz` (A376)
+part de la boîte de REMPLISSAGE, la bordure de 1 px en mangeait un — `inset:-2px` donnait 42, pas 44 (audit-a11y,
+« halo rogné, capture perdue »). Il passe à `-3px`.
+*Non retenu* : ne plus recaler la fenêtre verticalement au pincer — le point pincé quitterait les doigts, ce
+qu'A554 exige.

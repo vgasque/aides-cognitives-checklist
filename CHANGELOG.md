@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.89.3] — 2026-11-06
+Deux correctifs de la session (A574, A575). Rien à rejouer côté serveur.
+- **La Page garde sa barre d'échelle en session** : en agrandissant beaucoup (pincer ou « + »), la barre « Plein écran ·
+  ⤢ Ajusté · − 300 % + · 1:1 » passait sous l'en-tête et l'on ne pouvait plus dézoomer. Elle reste maintenant
+  accrochée sous le quai de session, à toute échelle et à tout défilement.
+- **La barre verte de retour au bloc** (« ↩ le bloc en cours ») reprend le même vert que le reste de la session en
+  thème clair, avec un texte blanc — elle gardait le vert clair du thème sombre.
+
 ## [5.89.2] — 2026-11-06
 Correctif d'affichage du rail du bureau (A573). Rien à rejouer côté serveur.
 - **Un minuteur en marche, en pause ou échu** n'est plus coupé (« Cycle de… », « arrêté depuis… », « MAINTEN… ») :
@@ -216,12 +224,3 @@ Correctif de mise en page de l'éditeur des références, mise en forme en direc
   un bloc » en bas.
 - Le survol encadre le passage sans rien décaler ; ⠿ et le crayon se rangent ensemble en haut à droite.
 - Le passage ouvert est plus léger : fond blanc, une seule bordure, texte en police normale (plus en gras).
-
-## [5.78.0] — 2026-11-02
-Déplacer un passage d'une référence comme une étape d'aide (A549, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **« Prendre / Poser »**, le même geste que dans l'éditeur d'une aide : touchez ⠿ (à gauche d'un passage, sur
-  ordinateur) ou « ⠿ Déplacer » sur le passage ouvert (au doigt), puis touchez « Poser ici » à l'endroit voulu. Le
-  bandeau du haut dit ce que vous déplacez ; ✕ ou Échap annule.
-- « Monter » et « Descendre » disparaissent, comme dans l'éditeur d'aide ; sur ordinateur, on peut aussi commencer à
-  glisser la poignée.
