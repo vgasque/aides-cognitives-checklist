@@ -5296,6 +5296,94 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
 }
 });
 
+/* ══ v5.89.4 · A576 — L'ÉTAPE EN ATTENTE S'ARME PAR SON LIBELLÉ, ET UN SIGLE GARDE SA CASSE ═════════════════════
+   Signalé à l'usage : seule la case armait (le texte, qui coche toute étape ordinaire, était inerte), et « Prévue
+   dans 2 cEE. » — la minuscule de `momRestLbl` cassait un sigle. */
+await sec('v5.89.4 · A576 — le libellé arme, le sigle reste', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps li')].find(x=>re.test(x.textContent));
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);rang(/Choc imm/).click();await __acCalme(350);
+    const o={};
+    Runtime.fiche.counters[0].label='CEE';   // un sigle comme nom de compteur
+    rang(/300 mg/).querySelector('.txt').click();await __acCalme(300);   // le LIBELLÉ, pas la case
+    o.arme=state.momArm===rang(/300 mg/).dataset.moarm&&!!rang(/300 mg/).querySelector('.mo-line [data-cknow]');
+    o.coche=Object.keys(state.checked).some(k=>state.checked[k]&&k===rang(/300 mg/).dataset.moarm);
+    o.ask=(rang(/300 mg/).querySelector('.mo-ask')||{}).textContent||'';
+    {const q=rang(/300 mg/).querySelector('.mo-ask');if(q){q.click();await __acCalme(300);}}   // lire la question ne la referme pas
+    o.reste=!!o.ask&&state.momArm===rang(/300 mg/).dataset.moarm;
+    rang(/300 mg/).querySelector('.txt').click();await __acCalme(300);   // retoucher le libellé désarme, comme la case
+    o.desarme=state.momArm===null&&!rang(/300 mg/).querySelector('[data-cknow]');
+    Runtime.fiche.counters[0].label='Chocs délivrés';
+    o.cur=getComputedStyle(rang(/300 mg/)).cursor;
+    return o;});
+  t('A576 · toucher le libellé d’une étape en attente l’arme (comme sa case), sans la cocher', r.arme===true&&r.coche===false, JSON.stringify(r));
+  t('A576 · un sigle garde sa casse dans la question (« Prévue dans 2 CEE. »)', /Prévue dans 2 CEE\./.test(r.ask), r.ask);
+  t('A576 · lire la question ne la referme pas ; retoucher le libellé la referme', r.reste===true&&r.desarme===true, JSON.stringify(r));
+  t('A576 · la rangée se montre touchable (curseur)', r.cur==='pointer', r.cur);
+  await page.close();
+}
+});
+
+/* ══ v5.90 · A577 — LA BANDEROLE AU DESSIN DE L'ÉCHU, LE CHAPEAU EN CARTES, LES OBJETS PRÊTS EN LISTE ═════════════
+   Planche « Démarrage et alarme — Natif », arbitrée par l'auteur : banderole C (fond et bord ambre du segment « Échu »
+   de la capsule), retirée quand la session qu'elle annonce redevient visible ; « Quand l'utiliser » et « Ne pas
+   oublier » en cartes à tête sans porte ; « Prêts pour la session » en liste groupée au bureau. */
+await sec('v5.90 · A577-A578 — banderole, chapeau en cartes, objets prêts, sections en cartes', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  const e=await page.evaluate(()=>{const c=k=>document.querySelector('.fold-card.flat[data-sf="'+k+'"]');
+    const tete=k=>{const x=c(k);const h=x&&x.querySelector(':scope>.fold-head');return h?{tag:h.tagName,ic:!!h.querySelector('.fh-ic'),crit:!!h.querySelector('.fh-ic.crit'),n:(h.querySelector('.conf-sub')||{}).textContent,chev:!!h.querySelector('.conf-chev'),bg:getComputedStyle(x).backgroundColor}:null;};
+    return {when:tete('when'),forget:tete('forget')};});
+  t('A577 · « Quand l’utiliser » : une carte à tête (pastille, compte), sans bouton ni chevron', e.when&&e.when.tag==='DIV'&&e.when.ic&&e.when.n==='3'&&!e.when.chev&&e.when.bg!=='rgba(0, 0, 0, 0)', JSON.stringify(e.when));
+  t('A577 · « Ne pas oublier » : la même carte, pastille « ! » au registre critique', e.forget&&e.forget.crit&&!e.forget.chev, JSON.stringify(e.forget));
+  await demarrerSession(page);
+  const b=await page.evaluate(async()=>{
+    showBanner(Runtime.ficheId,Runtime.fiche.title,'Cycle RCP');
+    const el=document.querySelector('#alerts .alert-toast');
+    const o={k:(el.querySelector('.at-k')||{}).textContent,t:(el.querySelector('.at-tx b')||{}).textContent,bw:getComputedStyle(el).borderTopWidth,ic:el.querySelector('.at-ic').getBoundingClientRect().width,x:Math.round(el.querySelector('.at-x').getBoundingClientRect().width)};
+    render();await __acCalme(150);
+    o.reste=document.querySelectorAll('#alerts .alert-toast').length;
+    showBanner('autre-aide','Anaphylaxie','Adrénaline IM');render();await __acCalme(150);
+    o.autre=document.querySelectorAll('#alerts .alert-toast').length;
+    document.querySelectorAll('#alerts .alert-toast').forEach(x=>x.remove());
+    return o;});
+  t('A577 · la banderole dit « △ Échu · l’aide » en tête et le minuteur en titre', /^△ Échu · Arrêt cardiaque/.test(b.k)&&b.t==='Cycle RCP', JSON.stringify(b));
+  t('A577 · … bord de 2 px, pastille de 44, ✕ rond de 32', b.bw==='2px'&&Math.round(b.ic)===44&&b.x===32, JSON.stringify(b));
+  t('A577 · la session qu’elle annonce à l’écran : elle se retire ; celle d’une autre aide reste', b.reste===0&&b.autre===1, JSON.stringify(b));
+  const c=await page.evaluate(()=>{const cards=[...document.querySelectorAll('.fold-card[data-sessfold], .fold-card:has(>[data-sessfold])')];
+    const k=document.querySelector('.fold-card[data-sf="forget"]');
+    return {liste:!!document.querySelector('.tout-gl'),n:cards.length,forget:!!(k&&k.querySelector(':scope>button.fold-head .fh-ic.crit')),bg:k&&getComputedStyle(k).backgroundColor,mt:k&&getComputedStyle(k).marginTop};});
+  t('A578 · en session, les sections sont des CARTES (plus de liste « Pendant toute l’aide »), « Ne pas oublier » à pastille « ! »', !c.liste&&c.n>=4&&c.forget&&c.bg!=='rgba(0, 0, 0, 0)'&&c.mt!=='0px', JSON.stringify(c));
+  await page.close();
+}
+{
+  const page=await br.newPage({viewport:{width:1440,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  const r=await page.evaluate(()=>{const g=document.querySelector('.read-side .pre-rows');const rows=g?[...g.querySelectorAll('.pre-row')]:[];
+    return {n:rows.length,bg:g&&getComputedStyle(g).backgroundColor,rowBg:rows[1]&&getComputedStyle(rows[1]).backgroundColor,filet:rows[1]&&getComputedStyle(rows[1]).borderTopWidth,etat:rows.map(x=>(x.querySelector('.pre-rv')||{}).textContent)};});
+  t('A577 · au bureau, « Prêts pour la session » est UNE liste groupée (fond commun, filets, plus de tuiles)', r.n===3&&r.rowBg==='rgba(0, 0, 0, 0)'&&r.filet==='1px'&&r.bg!=='rgba(0, 0, 0, 0)', JSON.stringify(r));
+  t('A577 · … l’état en mot, sans commande', r.etat.join('|')==='au démarrage|à lancer|à lancer', JSON.stringify(r.etat));
+  await page.close();
+}
+});
+
 /* ══ v5.49 · A474 — L'INSTANT DU SEUIL ══════════════════════════════════════════════════════
    Au 3ᵉ choc COCHÉ ICI, les étapes qui attendaient « Chocs délivrés ≥ 3 » s'ouvrent avec un mouvement (une fois) ;
    un compte arrivé sans geste local — c'est le cas d'un état reçu par le partage — n'anime rien (A377) ; sous

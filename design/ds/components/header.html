@@ -2861,30 +2861,18 @@
   .conf-head.fold-head{min-height:52px;padding:0 16px;gap:12px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
   .fh-ic{flex:none;width:26px;height:26px;border-radius:var(--r-1);display:grid;place-items:center;font-size:var(--t-body);font-weight:800;line-height:1;background:var(--primary-soft);color:var(--act)}
   .fh-ic.crit{background:var(--crit-soft);color:var(--crit)}
-  /* A571 — EN SESSION, UNE LISTE GROUPÉE : intertitre en phrase, un seul fond, filets qui commencent au texte, pastilles
-     grises (seul le « ! » de « Ne pas oublier » garde son rouge), chevron › qui pivote vers le bas à l'ouverture.
-     Chaque section se déplie sur place, comme avant (data-sessfold). */
+  /* A578 (renverse A571 §6) : en session, les sections sont de nouveau des cartes comme à l'écran de démarrage ; seul
+     l'intertitre « Contexte local » garde ce dessin (`.tout-grp`/`.tout-gh`). */
   .tout-grp{margin:14px 0 0}
   .tout-gh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  .tout-gl{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
-  .tout-gl>.conf-block.fold-card{position:relative;margin:0;border:0;border-radius:0;box-shadow:none;background:none}
-  .tout-gl>.fold-card+.fold-card::before{content:"";position:absolute;top:0;left:56px;right:0;height:1px;background:var(--work-line)}
-  .tout-gl .fh-ic:not(.crit){background:var(--amb-2);color:var(--ink-2)}
-  .tout-gl .fold-head .conf-chev{color:var(--ink-2)}
-  .tout-gl .fold-head{font-weight:600}
-  .tout-gl .fold-head .conf-chev svg{width:14px;height:14px;transform:none}
-  .tout-gl .fold-head .conf-chev.open svg{transform:rotate(90deg)}
-  .tout-gl .fh-ic{width:28px;height:28px}   /* 16 + 28 + 12 = 56 : le texte des rangées et des dépliés commence au même x */
-  .tout-gl .fold-card .sf-body{padding-left:56px}
   .tout-grp>.local{margin:0}
   .fh-t{flex:1;min-width:0}
   /* Cartes de session (v5.30) : même carte de travail que l'écran d'entrée ; l'intertitre interne se tait, la tête le dit. */
   .conf-block.fold-card{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);margin:10px 0 0}
   .fold-card .sf-body{padding:0 16px 6px}
-  /* A520 — le chapeau AVANT la session : intertitre en phrase (13,5/600) au-dessus d'un groupe arrondi de rangées. */
-  .conf-block.fold-card.flat{background:none;border:0;box-shadow:none;margin:14px 0 0}
-  .fold-card.flat>.sf-body{padding:0 16px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4)}
-  .pre-lh{padding:0 16px 6px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* A577 (amende A520) — le chapeau AVANT la session est une carte comme les autres, tête sans porte : même pastille, même
+     titre 15/700, même compte que les cartes dépliables du dessous ; pas de chevron, pas de curseur de main. */
+  .fold-head.fh-fix{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
   .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
@@ -3737,6 +3725,7 @@
   /* A569 : « faite une fois » (`mo-gone`) vit à plat, comme toute étape depuis A519 — son contour plein était le reste du
      temps des tuiles (une rangée sans tuile devait encore se dessiner). Seule l'ATTENTE garde un contour (pointillé, A382). */
   ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default}
+  ol.steps li.mo-wait{cursor:pointer}   /* A576 : la rangée entière arme, comme une étape ordinaire */
   ol.steps li.mo-wait{outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
      se lisait « inatteignable », or on peut la cocher à tout instant (A570 §9 : la case elle-même, avec confirmation). */
@@ -4760,12 +4749,21 @@
      ⚠ 520 n'est PAS une quatrième largeur de fenêtre (audit 9b) : elle mesure une PHRASE, ne pas
      la rattacher à un gabarit. Et elle n'apparaît JAMAIS session sous les yeux (`onTimerFired`,
      branche `!activeVisible` seule — noyau §2). Détail : doctrine-css.md C84. */
-  .alert-toast{pointer-events:auto;position:relative;overflow:hidden;max-width:520px;width:100%;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,var(--warn-sys),var(--warn-sys));color:var(--warn-sys-bg);border:1px solid var(--warn-line);border-radius:12px;padding:12px 12px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
+  /* A577 — LA BANDEROLE PREND LE DESSIN DU SEGMENT « ÉCHU » DE LA CAPSULE (arbitrage de l'auteur, planche « Démarrage et
+     alarme — Natif », forme C) : fond --warn-soft, bord ambre de 2 px, pastille ambre pleine, « △ ÉCHU · aide » en
+     tête et le nom du minuteur en 17,5 gras. L'aplat jaune d'avant la refonte (B) et le verre (A, trop discret la
+     nuit) sont écartés. Le bord est --warn-line le jour, --warn la nuit (le brun disparaît sur fond sombre). */
+  .alert-toast{pointer-events:auto;position:relative;overflow:hidden;max-width:520px;width:100%;box-sizing:border-box;display:flex;gap:12px;align-items:center;background:var(--warn-soft);color:var(--ink);border:2px solid var(--warn-line);border-radius:var(--r-4);padding:12px 6px 14px 12px;box-shadow:0 10px 30px rgba(50,35,0,.28);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
+  [data-theme="dark"] .alert-toast{border-color:var(--warn)}
   .alert-toast.out{opacity:0;transform:translateY(-8px);transition:opacity .4s,transform .4s;animation:none}
-  .alert-toast .at-ic{font-size:15px;flex-shrink:0}
-  .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
-  .alert-toast .at-tx b{font-size:13.5px;color:var(--warn-sys-bg)}.alert-toast .at-tx span{font-size:12px;color:var(--warn-sys-bg)}
-  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--warn-sys-bg);border-radius:8px;width:38px;height:38px;font-size:15px;flex-shrink:0;cursor:pointer}
+  .alert-toast .at-ic{flex:none;width:44px;height:44px;border-radius:999px;display:grid;place-items:center;background:var(--warn-sys);color:var(--warn-sys-bg)}
+  .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.25}
+  .alert-toast .at-k{font-size:var(--t-cap);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--warn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .alert-toast .at-tx b{font-size:var(--t-step);font-weight:800;color:var(--ink)}
+  .alert-toast .at-x{position:relative;flex:none;width:32px;height:32px;margin:6px;border:0;border-radius:999px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--ink);font-size:var(--t-item);line-height:1;cursor:pointer}
+  .alert-toast .at-x::after{content:"";position:absolute;inset:-6px}   /* cible 44 */
+  .alert-toast .t-life{color:var(--warn-line)}
+  [data-theme="dark"] .alert-toast .t-life{color:var(--warn)}
   @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
   /* editor */
@@ -5875,17 +5873,16 @@
   /* « CE QUI DÉMARRERA » (7c) : des RANGÉES de lecture — nom à gauche, nature à droite. Aucun
      contrôle : rien ne s'arme avant le démarrage, et l'objet n'a donc pas la forme d'une carte
      de minuteur, qui, elle, se règle. */
-  .pre-rows{display:grid;gap:2px;margin-top:6px}
-  .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  .pre-rn{flex:1;min-width:0}
-  .pre-rv{flex:none;max-width:52%;font-family:var(--f-mono);font-size:var(--t-cap);color:var(--ink-2);text-align:right}   /* A511 : --ink-3 mesuré à 2,1:1 sur blanc — une information (« 2:00 cyclique, à lancer »), pas un décor */
-  /* A520 : les objets prêts en TUILES (maquette) — nom en tête, valeur de départ en mono, pastille d'état à droite. */
-  .pre-rows{gap:8px}
-  .pre-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:10px 12px;border-radius:var(--r-4);background:var(--amb-2)}
-  .pre-row>.pre-rn{grid-column:1;color:var(--ink-2)}
-  .pre-rt{grid-column:1;font-family:var(--f-mono);font-size:var(--t-val);font-weight:600;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+  /* A577 (amende A520, qui les posait en tuiles grises) : les objets prêts en LISTE GROUPÉE, au dessin du rail de session
+     (A571 §7) — nom 15/600, valeur de départ en mono dessous, état en mot gris à droite. Aucun contrôle : rien ne
+     s'arme avant le démarrage, donc ni « Démarrer » ni « − + » (l'objet n'a pas la forme d'une rangée qui se règle). */
+  .pre-rows{margin-top:6px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);overflow:hidden}
+  .pre-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px;min-height:58px;padding:8px 14px}
+  .pre-row+.pre-row{border-top:1px solid var(--work-line)}
+  .pre-rn{grid-column:1;min-width:0;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  .pre-rt{grid-column:1;font-family:var(--f-mono);font-size:var(--t-step);font-weight:600;line-height:1.2;color:var(--ink);font-variant-numeric:tabular-nums}
   .pre-rt.mute{color:var(--ink-2)}
-  .pre-row>.pre-rv{grid-column:2;grid-row:1/3;max-width:none;padding:4px 10px;border-radius:999px;background:var(--work);font-family:inherit;font-size:var(--t-meta);font-weight:700}
+  .pre-rv{grid-column:2;grid-row:1/3;font-size:var(--t-body);font-weight:600;color:var(--ink-2);text-align:right}   /* A511 : --ink-2, une information, pas un décor */
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
@@ -8913,7 +8910,7 @@
          au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
          peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">Ctrl K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
@@ -8983,7 +8980,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw52mip8hnq5vlgw">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw52mip812wruz91">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw58sbqcj54yefc8">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw58sbqcbvexncsd">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -9030,7 +9027,7 @@
          au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
          peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden=""><span class="df-chips" id="dockFiltChips"></span></div>
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">Ctrl K</kbd><button type="button" id="qClear" class="srch-x" hidden="" aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
@@ -9100,7 +9097,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw52mip8hnq5vlgw">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw52mip812wruz91">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw58sbqcj54yefc8">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw58sbqcbvexncsd">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
