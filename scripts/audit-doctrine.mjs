@@ -5296,6 +5296,44 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
 }
 });
 
+/* ══ v5.89.4 · A576 — L'ÉTAPE EN ATTENTE S'ARME PAR SON LIBELLÉ, ET UN SIGLE GARDE SA CASSE ═════════════════════
+   Signalé à l'usage : seule la case armait (le texte, qui coche toute étape ordinaire, était inerte), et « Prévue
+   dans 2 cEE. » — la minuscule de `momRestLbl` cassait un sigle. */
+await sec('v5.89.4 · A576 — le libellé arme, le sigle reste', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps li')].find(x=>re.test(x.textContent));
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);rang(/Choc imm/).click();await __acCalme(350);
+    const o={};
+    Runtime.fiche.counters[0].label='CEE';   // un sigle comme nom de compteur
+    rang(/300 mg/).querySelector('.txt').click();await __acCalme(300);   // le LIBELLÉ, pas la case
+    o.arme=state.momArm===rang(/300 mg/).dataset.moarm&&!!rang(/300 mg/).querySelector('.mo-line [data-cknow]');
+    o.coche=Object.keys(state.checked).some(k=>state.checked[k]&&k===rang(/300 mg/).dataset.moarm);
+    o.ask=(rang(/300 mg/).querySelector('.mo-ask')||{}).textContent||'';
+    {const q=rang(/300 mg/).querySelector('.mo-ask');if(q){q.click();await __acCalme(300);}}   // lire la question ne la referme pas
+    o.reste=!!o.ask&&state.momArm===rang(/300 mg/).dataset.moarm;
+    rang(/300 mg/).querySelector('.txt').click();await __acCalme(300);   // retoucher le libellé désarme, comme la case
+    o.desarme=state.momArm===null&&!rang(/300 mg/).querySelector('[data-cknow]');
+    Runtime.fiche.counters[0].label='Chocs délivrés';
+    o.cur=getComputedStyle(rang(/300 mg/)).cursor;
+    return o;});
+  t('A576 · toucher le libellé d’une étape en attente l’arme (comme sa case), sans la cocher', r.arme===true&&r.coche===false, JSON.stringify(r));
+  t('A576 · un sigle garde sa casse dans la question (« Prévue dans 2 CEE. »)', /Prévue dans 2 CEE\./.test(r.ask), r.ask);
+  t('A576 · lire la question ne la referme pas ; retoucher le libellé la referme', r.reste===true&&r.desarme===true, JSON.stringify(r));
+  t('A576 · la rangée se montre touchable (curseur)', r.cur==='pointer', r.cur);
+  await page.close();
+}
+});
+
 /* ══ v5.49 · A474 — L'INSTANT DU SEUIL ══════════════════════════════════════════════════════
    Au 3ᵉ choc COCHÉ ICI, les étapes qui attendaient « Chocs délivrés ≥ 3 » s'ouvrent avec un mouvement (une fois) ;
    un compte arrivé sans geste local — c'est le cas d'un état reçu par le partage — n'anime rien (A377) ; sous

@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A575** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A576** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -199,6 +199,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A573 | `lot-v6-0.md` | Le minuteur du rail en marche, en pause ou échu s'empile (nom · temps, barre, état, boutons sur leur ligne) ; la consignation d'un compteur en sous-ligne de l'interface (corrige A571 §7) |
 | A574 | `lot-v6-0.md` | La barre « ↩ Bloc » rejoint les redéclarations du verre clair (A518) : le vert de page, plus le vert nocturne |
 | A575 | `lot-v6-0.md` | En session, la barre d'échelle de la Page colle à `--stick-top` : pincer ne la fait plus passer sous l'en-tête |
+| A576 | `lot-v6-0.md` | L'étape en attente s'arme en touchant toute sa rangée, comme une étape ordinaire se coche (amende A570 §9) ; « Prévue dans 2 CEE. » : la minuscule de `momRestLbl` épargne les sigles |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -3737,6 +3737,7 @@
   /* A569 : « faite une fois » (`mo-gone`) vit à plat, comme toute étape depuis A519 — son contour plein était le reste du
      temps des tuiles (une rangée sans tuile devait encore se dessiner). Seule l'ATTENTE garde un contour (pointillé, A382). */
   ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default}
+  ol.steps li.mo-wait{cursor:pointer}   /* A576 : la rangée entière arme, comme une étape ordinaire */
   ol.steps li.mo-wait{outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
      se lisait « inatteignable », or on peut la cocher à tout instant (A570 §9 : la case elle-même, avec confirmation). */

@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.89.4] — 2026-11-06
+Deux correctifs des étapes qui attendent leur moment (A576). Rien à rejouer côté serveur.
+- **Une étape pas encore cochable se touche comme les autres** : toucher son texte (et plus seulement sa case) affiche
+  « Prévue dans … » avec « Cocher » / « Annuler ». Toucher de nouveau referme la question ; relire la question ne la
+  referme pas.
+- **Un sigle garde ses capitales** dans la question : « Prévue dans 2 CEE. » au lieu de « 2 cEE. » (les mots
+  ordinaires restent en minuscule : « 2 chocs délivrés »).
+
 ## [5.89.3] — 2026-11-06
 Deux correctifs de la session (A574, A575). Rien à rejouer côté serveur.
 - **La Page garde sa barre d'échelle en session** : en agrandissant beaucoup (pincer ou « + »), la barre « Plein écran ·
@@ -215,12 +223,3 @@ côté serveur.
 - **La taille d'une image** réglée dans la liste « Images » et **la date de validation** (références et aides) ne
   proposaient pas non plus ↶ : corrigé, pour tout réglage de ce genre.
 - Vérifié geste par geste : chaque modification fait paraître ↶ en haut de l'éditeur, et ↶ rend l'état d'avant.
-
-## [5.78.1] — 2026-11-02
-Correctif de mise en page de l'éditeur des références, mise en forme en direct (A550, doctrine
-`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- Les espacements sont ceux de la lecture : titres, paragraphes et listes respirent comme dans la référence lue.
-- Plus de « ＋ » entre chaque passage ; pour insérer un passage, « ＋ Bloc après » sur le passage ouvert, ou « Ajouter
-  un bloc » en bas.
-- Le survol encadre le passage sans rien décaler ; ⠿ et le crayon se rangent ensemble en haut à droite.
-- Le passage ouvert est plus léger : fond blanc, une seule bordure, texte en police normale (plus en gras).

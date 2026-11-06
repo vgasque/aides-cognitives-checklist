@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-+aitiGQnp54gefQNkL+kl9+Plv4xng3YI4WjAD9KHoc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-dIRS5HbNZRuMPspGOCmEwCCcdFqFsfGXjG/FV7xUTpI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4130,6 +4130,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A569 : « faite une fois » (`mo-gone`) vit à plat, comme toute étape depuis A519 — son contour plein était le reste du
      temps des tuiles (une rangée sans tuile devait encore se dessiner). Seule l'ATTENTE garde un contour (pointillé, A382). */
   ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default}
+  ol.steps li.mo-wait{cursor:pointer}   /* A576 : la rangée entière arme, comme une étape ordinaire */
   ol.steps li.mo-wait{outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
      se lisait « inatteignable », or on peut la cocher à tout instant (A570 §9 : la case elle-même, avec confirmation). */
@@ -9849,7 +9850,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.89.3';
+const APP_VERSION='5.89.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14030,7 +14031,9 @@ function visitNeed(b,seq,checked){const its=bItems(b),ck=checked||{};let tot=0,d
 /* A570 §9 — ce qui RESTE avant un seuil, en mots : « 2 chocs délivrés », « 1 choc délivré » (singulier naïf : chaque mot
    en -s perd son s ; un libellé qui ne s'y prête pas reste lisible). */
 function momRestLbl(f,it){const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter),r=Math.max(1,(+it.from.n||1)-momCn(it.from.counter));
-  const nm=(tmLabelParts(c&&c.label).name||'compteur').replace(/^./,x=>x.toLowerCase());
+  /* A576 : la minuscule n'est posée que devant une minuscule — « Chocs délivrés » → « chocs délivrés », mais un sigle
+     (« CEE », « RCP ») reste tel quel : « cEE » se lisait comme une faute. */
+  const nm=(tmLabelParts(c&&c.label).name||'compteur').replace(/^(\p{Lu})(?=\p{Ll})/u,x=>x.toLowerCase());
   return r+' '+(r===1?nm.replace(/([A-Za-zÀ-ÿ]{3,})s\b/g,'$1'):nm);}
 const momFromLbl=(f,it)=>{const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter);return (tmLabelParts(c&&c.label).name||'Compteur')+' ≥ '+it.from.n;};
 /* A474 — la jauge d'un seuil `from` : N repères, le dernier dessiné comme une CASE (c'est là que l'étape devient
@@ -23628,7 +23631,9 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
       const line=!gone&&!!now;
       const box=gone?`<span class="box" aria-hidden="true">${uiIcon('check',19,{sw:3,cls:''})}</span>`
         :`<button type="button" class="box" data-ckarm="${esc(k)}" aria-expanded="${armed?'true':'false'}" aria-label="${lbl} — pas encore le moment"></button>`;
-      return `<li class="${mcls} mo-${mo.st}${line?' has-wt':''}${armed?' armed':''}">${box}${stepTxtHtml(st,{mark:gone,tag:tg,after:line?`<span class="mo-line">${now}</span>`:''})}</li>`;}
+      /* A576 : toute la rangée arme, comme toute la rangée coche une étape ordinaire (`data-moarm`) ; la case reste
+         le bouton du clavier et du lecteur d'écran. Faite à un passage précédent, la rangée reste inerte. */
+      return `<li class="${mcls} mo-${mo.st}${line?' has-wt':''}${armed?' armed':''}"${gone?'':` data-moarm="${esc(k)}"`}>${box}${stepTxtHtml(st,{mark:gone,tag:tg,after:line?`<span class="mo-line">${now}</span>`:''})}</li>`;}
     // A570 : plus de ligne réservée À VIDE — une étape liée a sa légende dans tous ses états, une étape sans lien n'en a jamais.
     return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual+tag,after:wt})}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
@@ -23918,6 +23923,8 @@ function bindOverviewEvents(f){
     const nw=t.closest('[data-cknow]');if(nw){momNow(nw.dataset.cknow);return;}
     const ar=t.closest('[data-ckarm]');if(ar){momArmSet(state.momArm===ar.dataset.ckarm?null:ar.dataset.ckarm);return;}
     const da=t.closest('[data-ckdisarm]');if(da){const k=da.dataset.ckdisarm;momArmSet(null);const b=!_ptrNav&&main.querySelector('[data-ckarm="'+CSS.escape(k)+'"]');if(b)b.focus({preventScroll:true});return;}
+    // A576 : le libellé d'une étape en attente arme comme sa case ; la question posée dessous (et un lien) n'y touche pas.
+    const ma=t.closest('[data-moarm]');if(ma){if(!t.closest('.mo-ask,a'))momArmSet(state.momArm===ma.dataset.moarm?null:ma.dataset.moarm);return;}
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
     // A396 / A397 : la porte d'une revue, « Nouvelle revue », la bande des repères et ses lignes.
     const rn=t.closest('[data-revnew]');if(rn){revNew(f,rn.dataset.revnew);return;}
@@ -30780,7 +30787,7 @@ const GUIDE_GESTES=[
   ['list','Trouver une aide','Tapez dans la recherche : titre, précision (« adulte »), étapes, doses, documents PDF joints. Entrée ouvre le premier résultat. L’étoile épingle une aide en tête de l’accueil.'],
   ['play','Démarrer une session','Sur l’écran d’entrée, relisez « Quand l’utiliser », puis « Démarrer la session » : le chrono part, les minuteurs sont prêts. « Exercice » fait la même chose sans patient.'],
   ['check','Cocher une étape','Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche. « Continuer » passe au bloc suivant quand les étapes sont faites.'],
-  ['history','Une étape qui attend son moment','Sa condition est écrite au-dessus, en petit (un compte et sa jauge, ou une échéance et son minuteur), et elle ne retient pas « Continuer ». Pour la cocher avant, touchez sa case : l’app dit ce qui reste ; « Cocher » confirme, « Annuler » renonce.'],
+  ['history','Une étape qui attend son moment','Sa condition est écrite au-dessus, en petit (un compte et sa jauge, ou une échéance et son minuteur), et elle ne retient pas « Continuer ». Pour la cocher avant, touchez-la : l’app dit ce qui reste ; « Cocher » confirme, « Annuler » renonce.'],
   ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet : minuteurs, compteurs, « ＋ Minuteur ».'],
   ['bolt','Ouvrir une complication','La touche à l’éclair du quai ouvre la complication à tout moment. « Reprendre » vous ramène au bloc où vous étiez.'],
   ['alarm','Horodater','Note l’heure d’un geste imprévu, que vous pouvez nommer ensuite. Tout part au journal et au compte rendu.'],
@@ -30868,7 +30875,7 @@ const GUIDE_ETAPES=[
       if(!b)return {tgt:null,t:'Une étape à son moment',x:'Certaines étapes ne se présentent qu’à un compte ou à une échéance : leur condition est écrite au-dessus, en petit, et elles ne retiennent pas « Continuer ».',act:0};
       return state.momArm
         ?{tgt:'#main .ov-block.cur .mo-line:has(.stp-no)',avec:'#main .ov-block.cur li:has(.stp-no)',t:'Ce qui reste',x:'L’app dit ce qui manque pour que ce soit le moment. « Cocher » confirme, « Annuler » renonce : essayez « Annuler ».',act:1}
-        :{tgt:'#main .ov-block.cur li>button.box[data-ckarm]',avec:'#main .ov-block.cur li:has(>button.box[data-ckarm])',t:'Une étape qui attend son moment',x:'Sa condition est écrite au-dessus. Pour la cocher avant, touchez sa case.',act:1};}},
+        :{tgt:'#main .ov-block.cur li>button.box[data-ckarm]',avec:'#main .ov-block.cur li:has(>button.box[data-ckarm])',t:'Une étape qui attend son moment',x:'Sa condition est écrite au-dessus. Pour la cocher avant, touchez-la.',act:1};}},
   {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
     done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
     ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');

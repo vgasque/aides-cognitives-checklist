@@ -1827,3 +1827,27 @@ part de la boîte de REMPLISSAGE, la bordure de 1 px en mangeait un — `inset:-
 « halo rogné, capture perdue »). Il passe à `-3px`.
 *Non retenu* : ne plus recaler la fenêtre verticalement au pincer — le point pincé quitterait les doigts, ce
 qu'A554 exige.
+
+## A576 — L'étape en attente s'arme par son libellé ; un sigle garde sa casse dans « Prévue dans… » (v5.89.4)
+
+*Signalé à l'usage par l'auteur (06/11/2026), deux défauts d'A570 §9-§10.*
+
+1. **Toute la rangée d'une étape en attente arme la question, pas seulement sa case (amende A570 §9).** Une étape
+   ordinaire se coche en touchant n'importe où sur sa rangée ; une étape qui attend son moment ne répondait qu'à sa
+   case, et le libellé restait inerte — « perturbant » : le même geste ne faisait rien sur la rangée d'à côté. La
+   rangée porte `data-moarm` ; le libellé, la tête et la légende d'effet arment (ou désarment, comme la case) ; la
+   question posée (`.mo-ask`) et un lien n'y touchent pas — on peut la relire sans la refermer. La case reste le
+   bouton du clavier et du lecteur d'écran (`data-ckarm`, `aria-expanded`), la rangée prend le curseur de main. Une
+   étape « Déjà faite » (`mo-gone`) reste inerte. La consigne du guide passe de « touchez sa case » à « touchez-la »
+   (`GUIDE_GESTES`, `GUIDE_ETAPES`).
+2. **« Prévue dans 2 cEE. » → « Prévue dans 2 CEE. »** `momRestLbl` mettait en minuscule la première lettre du nom
+   du compteur pour l'insérer dans la phrase (« Chocs délivrés » → « chocs délivrés », A570 §10) — un sigle en sortait
+   cassé. La minuscule n'est plus posée que devant une minuscule (`/^(\p{Lu})(?=\p{Ll})/u`) : un mot ordinaire suit
+   la phrase, un sigle (« CEE », « RCP ») reste tel quel.
+
+*Forme écartée* : rendre la rangée entière `role=button` — elle contient déjà la case (le bouton) et, armée, deux
+autres boutons ; un bouton dans un bouton n'est pas valide. Le geste au doigt s'étend, la sémantique ne change pas.
+
+**Témoin.** `audit-doctrine` « v5.89.4 · A576 » (4 contrôles, rouges sur la v5.89.3) : le libellé arme sans cocher,
+« Prévue dans 2 CEE. », la question relue ne se referme pas et le libellé retouché la referme, curseur de main.
+
