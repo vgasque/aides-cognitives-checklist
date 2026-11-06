@@ -1751,7 +1751,9 @@
   #cbTimers .cbt-decl{gap:6px;min-width:0;font-weight:600;letter-spacing:0;overflow:hidden}
   #cbTimers .cbt-dl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #cbTimers .cbt-n:not(.cbt-decl):has(.cbt-cv){flex:none}
-  html.zw360 #cbTimers .cbt-cv{width:20px}   /* 320 px : la capsule doit nommer ses minuteurs (ECAM) */
+  html.zw360 #cbTimers .cbt-cv{width:12px}
+  html.zw360 #cbTimers .cbt-chev svg{width:12px;height:12px}
+  html.zw360 #cbTimers .cbt-decl{gap:4px}   /* la place de l'ancien ▾ : le mot « n minuteurs » passe avant le chevron (rouge en CI Linux, texte plus large) */   /* 320 px : la capsule doit nommer ses minuteurs (ECAM) */
   #cbTimers .cbt-cv{flex:none;display:grid;place-items:center;width:32px;height:44px;color:var(--sys-ink-2)}   /* A571 : le chevron de l'app, sans fond (planche) */
   #cbTimers .cbt-chev{display:grid}
   #cbTimers .cbt-chev svg{width:18px;height:18px;transform:rotate(90deg)}

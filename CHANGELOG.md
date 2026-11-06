@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.89.1] — 2026-11-06
+Correctif de la v5.89.0 (A571). Rien à rejouer côté serveur.
+- À 320 px, la capsule dit de nouveau combien de minuteurs elle cache (« 1 minuteur ») : le nouveau chevron lui prenait
+  la place, et le mot disparaissait quand le texte est rendu un peu plus large (constaté sur la CI Linux).
+
 ## [5.89.0] — 2026-11-06
 La session, deuxième passe « Natif » : ce qui entoure les étapes se rapproche d'iOS et de Material 3 (A571, doctrine
 `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
@@ -222,16 +227,3 @@ Les passages se règlent sur place (A548, doctrine `docs/decisions/lot-v6-0.md`)
   la photo.
 - **Sur ordinateur**, la poignée ⋮⋮ à gauche d'un passage permet de le glisser ailleurs ; une ligne bleue montre où il
   se pose. Au doigt, « Monter » et « Descendre » restent le geste.
-
-## [5.76.0] — 2026-11-02
-L'éditeur des références met en forme pendant qu'on écrit (A547, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Mise en forme en direct** (par défaut) : le contenu rédigé s'affiche comme à la lecture — titres, gras, encadrés,
-  tableaux, images. Touchez un passage : lui seul s'ouvre en Markdown, le reste reste mis en forme. « Terminé » (ou
-  Échap) le referme.
-- Sur le passage ouvert : **Monter, Descendre, Dupliquer, Supprimer** (↶ annule). **« Ajouter un bloc »** propose
-  paragraphe, titre, encadré, liste, cases, tableau, image ou séparateur.
-- **Copier plusieurs passages** copie leur Markdown : la mise en forme suit au collage.
-- L'interrupteur **« Mise en forme en direct »** ramène au texte Markdown entier, pour les longs copier-coller ; ce choix
-  est retenu sur l'appareil.
-- La bande d'aperçu au-dessus du clavier (5.75) est retirée.

@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-nRfjwXXZ+tKVbP0N/rJVgbRPpgftUpxhgHYl0ty3aOY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PIQfQgqionz5jc0dRzyKeX+uwITMgQbpUGPqlwzyLt0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2144,7 +2144,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .cbt-decl{gap:6px;min-width:0;font-weight:600;letter-spacing:0;overflow:hidden}
   #cbTimers .cbt-dl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #cbTimers .cbt-n:not(.cbt-decl):has(.cbt-cv){flex:none}
-  html.zw360 #cbTimers .cbt-cv{width:20px}   /* 320 px : la capsule doit nommer ses minuteurs (ECAM) */
+  html.zw360 #cbTimers .cbt-cv{width:12px}
+  html.zw360 #cbTimers .cbt-chev svg{width:12px;height:12px}
+  html.zw360 #cbTimers .cbt-decl{gap:4px}   /* la place de l'ancien ▾ : le mot « n minuteurs » passe avant le chevron (rouge en CI Linux, texte plus large) */   /* 320 px : la capsule doit nommer ses minuteurs (ECAM) */
   #cbTimers .cbt-cv{flex:none;display:grid;place-items:center;width:32px;height:44px;color:var(--sys-ink-2)}   /* A571 : le chevron de l'app, sans fond (planche) */
   #cbTimers .cbt-chev{display:grid}
   #cbTimers .cbt-chev svg{width:18px;height:18px;transform:rotate(90deg)}
@@ -9825,7 +9827,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.89.0';
+const APP_VERSION='5.89.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
