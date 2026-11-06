@@ -5999,6 +5999,9 @@
   /* A575 : dans `main`, la feuille défile avec la fenêtre (A356) et le pincer la recale (A554) — agrandir faisait
      monter la barre sous l'en-tête, on perdait de quoi dézoomer. Elle COLLE sous ce qui est déjà collé. */
   main .sv-zoom{position:sticky;top:var(--stick-top,64px);z-index:6;background:var(--amb);margin:0;padding:6px 0}
+  /* A582 (étend A581 à la session) : l'annonce du débordement PEND sous la barre collante, en languette à droite — en
+     ligne, elle renvoyait « + » et « 1:1 » à la ligne et la barre changeait de hauteur au passage du seuil. */
+  main .sv-zoom .sv-ovf{position:absolute;top:100%;right:0;max-width:100%;padding:4px 10px;background:var(--amb);border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-2) var(--r-2)}
   /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
      seconde — pas un registre d'alerte, la feuille n'a rien de faux, elle a un bord. `hidden`
      est posé/levé par svApplyZoom sur la mesure du défileur ; en voie étroite le mot passe à

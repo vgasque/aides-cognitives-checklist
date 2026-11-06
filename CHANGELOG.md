@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.90.2] — 2026-11-06
+Un correctif de la Page en session (A582). Rien à rejouer côté serveur.
+- **En session, zoomer la Page « Tout voir » ne dérange plus la barre d'échelle** : quand la feuille dépasse, « la
+  feuille dépasse à droite » s'affiche sous la barre, à droite, et « + » et « 1:1 » restent à leur place — comme dans
+  la fenêtre « Page » depuis la 5.90.1.
+
 ## [5.90.1] — 2026-11-06
 Trois correctifs d'affichage (A579-A581). Rien à rejouer côté serveur.
 - **À l'accueil, les titres ne perdent plus le bas de leurs lettres** (g, q, y, p, ç) ni le haut des accents des
@@ -219,13 +225,3 @@ Pincer pour zoomer, comme sur une feuille : la Page d'une aide et les documents 
 - **PDF** : plus de page blanche le temps du rendu après un zoom (l'ancienne image reste jusqu'à la nouvelle), et
   un document très agrandi ne s'affiche plus en blanc sur iPhone (taille d'image plafonnée).
 - Lever les doigts après un pincer n'ouvre plus par accident un bloc ou un lien.
-
-## [5.79.0] — 2026-11-03
-Rétablir une modification annulée, dans les deux éditeurs (A553, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Nouveau bouton ↷ « Rétablir »**, à côté de ↶ : il apparaît dès qu'on a annulé et refait ce qui vient d'être
-  annulé. Au clavier, hors d'un champ : Maj-Cmd-Z (Mac), Maj-Ctrl-Z ou Ctrl-Y (Windows). Une nouvelle modification
-  le fait disparaître.
-- **Éditeur des références** : quand un texte collé se découpe en plusieurs passages, un message le dit — « Découpé
-  en n blocs — ↶ annule le collage. »
-- Les messages de confirmation (annulé, rétabli, découpé) se remplacent au lieu de s'empiler.

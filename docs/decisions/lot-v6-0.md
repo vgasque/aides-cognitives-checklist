@@ -1936,3 +1936,14 @@ sans `pointer-events:none`, que le cliquet A68 réserve aux annonciateurs). Mesu
 `.sv-zoom` (flex-wrap, elle n'y déplace aucun bouton — inchangé).
 *Formes écartées* : la masquer dans la fenêtre (l'annonce suit la mesure, elle dit quoi faire) ; la réduire à un
 glyphe (jamais de libellé réduit au glyphe).
+
+## A582 — En session, l'annonce du débordement pend aussi sous la barre d'échelle (v5.90.2 ; étend A581)
+
+*Signalé par l'auteur (06/11/2026), après A581 : « la barre de zoom refait bugger quand on clique sur “Tout voir” en
+mode session ».* Ce n'est pas le centrage (A580) : des captures WebKit avec et sans la règle de `.sv-calant` sont
+identiques. Le défaut est celui d'A581, côté lecture : dans `main`, l'annonce « la feuille dépasse à droite » vit
+dans la barre collante `.sv-zoom` (A575) ; en ligne, elle renvoyait « + » et « 1:1 » à la ligne — la barre passait
+de 52 à 75 px à 820 px dès le seuil franchi. Même traitement que la fenêtre : `position:absolute` sous la barre
+(collante, donc ancêtre positionné), à droite, en languette sur le fond de page `--amb`. Mesuré en WebKit : 52 px à
+820 et à 1 180, de 100 % à 160 %. Au téléphone (390), la barre reste sur deux lignes avec ou sans annonce — ses six
+boutons ne tiennent pas dans 354 px ; ce n'est pas ce défaut et rien n'y change.
