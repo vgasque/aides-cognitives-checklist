@@ -1898,3 +1898,41 @@ l'aide » part avec la liste (il n'existait pas avant, et le démarrage n'en a p
 (A571 §6, deuxième moitié — non visé). Les règles `.tout-gl` sont purgées (règle 14).
 *Forme écartée* : garder la liste en session et l'étendre au démarrage (refusée en A577 §3).
 
+
+## A579 — Le titre d'une rangée de l'accueil garde ses jambages (v5.90.1)
+
+*Signalé par l'auteur sur capture (06/11/2026) : « les g et lettres longues sont coupées sur page d'accueil en vue
+détaillée et compacte ».* `.dir-t` portait un interligne de 1,15 sous `overflow:hidden` (indispensable au clamp à deux
+lignes, et à l'ellipse du compact). Mesuré : boîte de ligne 17,25 px à 15 px, ligne de base à 14, jambage de Manrope
+3,8 px (`actualBoundingBoxDescent` de « gqypç ») → l'encre descend à 17,8 et le masque rogne g, q, y, p, ç ; même
+chose en haut pour l'accent d'une capitale (« É » dépasse de 0,6). L'interligne passe à **1,3** (ligne de base 15,5,
+encre à 19,3 sous 19,5 ; « É » à 0,9 sous le haut), `max-height` suit (2,6 em), et une marge de −0,075 em en haut
+et en bas rend la hauteur exacte d'une rangée à une ligne (53,5 px en détaillée, 44 en compacte, inchangées). Un titre
+sur deux lignes gagne 2,25 px. 1,25 a été essayé et écarté : 0,02 px de marge, au sous-pixel près. Même leçon que le
+lot v5.30 (interligne 1,35 sous des points de suspension) : sous un débordement masqué, l'interligne n'est pas libre.
+
+## A580 — La Page « Tout voir » se centre dans sa colonne (v5.90.1)
+
+*Signalé par l'auteur (06/11/2026) : « vision en mode page "tout voir" en session en cours : pourquoi est collé à
+gauche et pas centré ? ».* La feuille (740 px) n'était centrée que dans la fenêtre « Tableau » (`.plan-modal.pm-page
+.sv-calant{width:fit-content;margin:0 auto}`) ; dans la lecture, le calant prenait toute la colonne et la feuille s'y
+calait à gauche (1 500 px : 0 à gauche, 324 à droite). La règle de la fenêtre devient celle de `.sv-calant` partout ;
+la règle propre à la fenêtre part. Zoomée, la largeur écrite en ligne par `svApplyZoom` l'emporte ; plus large que la
+colonne (téléphone), la marge automatique tombe à 0 et le défilement horizontal part du bord, comme avant. Le pincer
+(A554) et les flèches mesurent par rapport à la feuille, pas au défileur : inchangés (même chemin que la fenêtre).
+Mesuré à 1 500 px : 162 px de part et d'autre. L'impression avait déjà `margin:0 auto`.
+
+## A581 — Dans la fenêtre « Page », l'annonce du débordement pend sous la barre (v5.90.1)
+
+*Signalé par l'auteur sur capture (06/11/2026) : « lorsqu'on zoome et que la page dépasse la largeur de la fenêtre, un
+message s'affiche mais casse aussi l'affichage du titre et des boutons de zoom ».* L'annonce « la feuille dépasse à
+droite — défiler, ou « ⤢ Ajusté » » (`.sv-ovf`, montrée sur MESURE par `svApplyZoom`) vivait dans `.pm-tools` avec
+`flex-basis:100%` : sa ligne forçait la boîte d'outils à prendre toute la largeur, donc à passer SOUS le titre — la
+barre doublait de hauteur, le titre se dépliait, les boutons sautaient d'une ligne à chaque passage du seuil (94 % →
+150 % sur la capture). Elle sort du flux : `position:absolute` sous la barre (`.pm-bar`, collante, donc ancêtre
+positionné), à droite, en LANGUETTE (fond de la barre, bord sans haut, coins bas arrondis ;
+sans `pointer-events:none`, que le cliquet A68 réserve aux annonciateurs). Mesuré à 680 px : barre 68 px, titre et outils immobiles de 94 % à 150 %. La règle
+`html.zw560 … text-align:left` part avec l'ancienne disposition. Dans la lecture, la même annonce reste en ligne dans
+`.sv-zoom` (flex-wrap, elle n'y déplace aucun bouton — inchangé).
+*Formes écartées* : la masquer dans la fenêtre (l'annonce suit la mesure, elle dit quoi faire) ; la réduire à un
+glyphe (jamais de libellé réduit au glyphe).
