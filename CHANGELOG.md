@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.90.1] — 2026-11-06
+Trois correctifs d'affichage (A579-A581). Rien à rejouer côté serveur.
+- **À l'accueil, les titres ne perdent plus le bas de leurs lettres** (g, q, y, p, ç) ni le haut des accents des
+  capitales, en vue détaillée comme compacte. La hauteur des rangées ne change pas.
+- **La Page « Tout voir » est centrée** dans sa colonne, en session comme hors session, au lieu d'être collée à gauche
+  sur un écran large.
+- **Dans la fenêtre « Page », zoomer ne dérange plus la barre** : quand la feuille dépasse, « la feuille dépasse à
+  droite » s'affiche sous la barre, à droite, sans déplacer le titre ni les boutons de zoom.
+
 ## [5.90.0] — 2026-11-06
 L'alarme d'un minuteur et l'écran de démarrage d'une aide au design actuel ; en session, les sections reprennent le même dessin (A577, A578). Rien à rejouer côté serveur.
 - **La banderole d'un minuteur échu** (quand la session n'est pas à l'écran) reprend le dessin de l'échu dans la
@@ -220,12 +229,3 @@ rejouer côté serveur.
 - **Éditeur des références** : quand un texte collé se découpe en plusieurs passages, un message le dit — « Découpé
   en n blocs — ↶ annule le collage. »
 - Les messages de confirmation (annulé, rétabli, découpé) se remplacent au lieu de s'empiler.
-
-## [5.78.3] — 2026-11-03
-Correctif de l'éditeur des références, mise en forme en direct (A552, doctrine `docs/decisions/lot-v6-0.md`). Rien à
-rejouer côté serveur.
-- **Toucher en dehors du passage ouvert le referme.** Un texte Markdown collé (titres, listes, encadrés, tableaux) se
-  découpe alors de lui-même en passages, sans avoir à toucher « Terminé ».
-- La barre de mise en forme, ses menus et les fenêtres (tableau, collage depuis Word) laissent le passage ouvert ; faire
-  défiler la page ne ferme rien ; toucher un autre champ (le titre…) y laisse le curseur.
-- ↶ après un collage défait le collage entier : la référence revient à son état d'avant.

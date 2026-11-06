@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A578** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A581** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -202,6 +202,9 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A576 | `lot-v6-0.md` | L'étape en attente s'arme en touchant toute sa rangée, comme une étape ordinaire se coche (amende A570 §9) ; « Prévue dans 2 CEE. » : la minuscule de `momRestLbl` épargne les sigles |
 | A577 | `lot-v6-0.md` | Banderole d'un minuteur échu au dessin du segment « Échu » de la capsule (forme C, amende C84), retirée quand la session qu'elle annonce redevient visible ; « Quand l'utiliser » et « Ne pas oublier » en cartes à tête sans porte (amende A520 §1) ; « Prêts pour la session » en liste groupée |
 | A578 | `lot-v6-0.md` | En session, les sections sous le bloc redeviennent des cartes, le dessin du démarrage (renverse A571 §6 ; l'intertitre « Pendant toute l'aide » part, « Contexte local » reste) |
+| A579 | `lot-v6-0.md` | Titre d'une rangée de l'accueil : interligne 1,3 (était 1,15) sous le masque du clamp, marge −0,075 em — g, q, y, p, ç et accents des capitales ne sont plus rognés, hauteur d'une rangée inchangée |
+| A580 | `lot-v6-0.md` | La Page « Tout voir » se centre dans sa colonne (règle `.sv-calant` de la fenêtre « Tableau » généralisée) |
+| A581 | `lot-v6-0.md` | Fenêtre « Page » : l'annonce « la feuille dépasse à droite » pend sous la barre en languette, hors du flux — elle ne pousse plus les outils sous le titre au zoom |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

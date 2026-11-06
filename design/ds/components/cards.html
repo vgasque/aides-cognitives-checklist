@@ -2352,8 +2352,11 @@
      recalculer display en flow-root sur Chromium et DÉSACTIVE le clamp hérité — essayé, mesuré).
      Les deux lignes sont garanties par `max-height`, indépendante de tout moteur ; le clamp
      hérité n'apporte que l'ellipse là où il s'applique. Détail : doctrine-css.md C47. */
+  /* A579 : interligne 1,3, pas 1,15 — à 1,15 la boîte de ligne (17,25 px) s'arrêtait avant le jambage de Manrope
+     (ligne de base 14 + 3,8 = 17,8 : g, q, y, p, ç rognés, signalé sur capture) ; la marge négative rend la hauteur
+     d'une rangée à une ligne. Même leçon qu'en lot v5.30 (1,35 sous des points de suspension). */
   .dir-row .card-open .dir-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-    max-height:2.3em;overflow:hidden;line-height:1.15}
+    max-height:2.6em;overflow:hidden;line-height:1.3;margin:-.075em 0}
   .dir-row .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--r-3)}
   .dir-row .card-open:focus-visible{outline:none}
   .dir-row:has(.card-open:focus-visible){outline:2px solid var(--act);outline-offset:2px}
@@ -6014,7 +6017,7 @@
   /* LE CALANT : sans lui, le défileur ignore la transformation et ne défile sur rien. Il n'est
      dimensionné QUE hors de l'échelle 1 (`.z`) — le cas nominal n'a ni transformation, ni taille
      forcée, ni image intermédiaire à la première peinture. */
-  .sv-calant{position:relative}
+  .sv-calant{position:relative;width:fit-content;margin:0 auto}   /* A580 : la feuille se centre partout (zoomé, la largeur écrite en ligne l'emporte ; plus large que la colonne, la marge tombe à 0) */
   .sv-calant.z>.sv-sheet{position:absolute;top:0;left:0;transform-origin:top left}
   .sv-sheet{position:relative;width:var(--sheet-w,740px);background:var(--work);border:1px solid var(--line-strong);border-radius:3px;padding:12px 14px}
   /* CARTOUCHE — identité à gauche, révision et comptes à droite, avertissement de validation en
@@ -7052,11 +7055,11 @@
   .pm-out .btn{gap:6px}
   .pm-tools .sv-zoom{margin:0;padding:4px;gap:2px;border-radius:var(--r-3);background:var(--amb-2)}
   .pm-tools .sv-zb{border:0;background:none;box-shadow:none}
-  .pm-tools .sv-ovf{order:9;flex-basis:100%;text-align:right;font-size:var(--t-meta);color:var(--ink-2)}
+  /* A581 : le message de débordement PEND sous la barre (languette à droite), hors du flux — en ligne à 100 %, il
+     poussait toute la boîte d'outils sur sa propre ligne : barre doublée, titre déplié, boutons déplacés au zoom. */
+  .pm-tools .sv-ovf{position:absolute;top:100%;right:16px;max-width:calc(100% - 32px);padding:4px 10px;background:var(--work);border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-2) var(--r-2);font-size:var(--t-meta);color:var(--ink-2)}
   html.zw560 .pm-tools{flex-basis:100%;justify-content:flex-start}
-  html.zw560 .pm-tools .sv-ovf{text-align:left}
   .plan-modal.pm-page .pm-body{background:var(--amb-2)}
-  .plan-modal.pm-page .sv-calant{width:fit-content;margin:0 auto}   /* zoomé, la largeur écrite en ligne l'emporte */
   .plan-modal.pm-page .sv-sheet{box-shadow:var(--shadow-float)}
   html.zw560 .pm-out{display:none}   /* au téléphone, l'impression reste dans le menu ⋯ */
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
