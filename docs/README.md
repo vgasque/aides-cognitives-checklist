@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A584** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A585** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -208,6 +208,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A582 | `lot-v6-0.md` | En session, l'annonce du débordement pend sous la barre d'échelle collante (étend A581) : « + » et « 1:1 » ne passent plus à la ligne au zoom |
 | A583 | `lot-v6-0.md` | Les images d'une référence : une grille repliée « Images du texte » sous le contenu rédigé, une feuille par image (insérer, aller au passage, taille, remplacer, retirer) ; l'image entre dans la porte ; les PDF restent au-dessus (ordre lu) |
 | A584 | `lot-v6-0.md` | La taille d'une image se voit et se tire : un cadre (la colonne lue), une poignée aimantée aux crans, six pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine ; bloc ouvert et feuille de l'image (amende A548) |
+| A585 | `lot-v6-0.md` | Les images d'une aide : la grille et la feuille des références (légende sous la vignette, « ▣ Bloc n », feuille avec légende, « Affichée dans », remplacer, retirer) ; feuille rendue générique (`_miCtx`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

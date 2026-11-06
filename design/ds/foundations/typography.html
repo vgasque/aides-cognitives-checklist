@@ -5103,9 +5103,6 @@
   .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
   .ed-palette>.ep-g:first-child{margin-top:0}
   /* Vignette de galerie : légende, puis le bloc auquel l'image est associée. */
-  .gthumb .gcap{width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
-  .gthumb .gblk{width:100%;margin-top:4px}
-  .gthumb .btn.sm.danger{width:100%;margin-top:4px}
   /* PENDANT UN DÉPLACEMENT, ELLE REDESCEND DANS LE FLUX : collée, elle masquerait les interstices
      de dépôt du bas de l'écran — et « créer » n'a rien à faire sous le doigt de quelqu'un qui
      cherche où POSER. Mesuré : sans cette exception, le dernier « Poser ici » passe dessous. */
@@ -8248,7 +8245,17 @@
   .mi-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .mi-head>label{flex:1;margin:0}
   .mi-n{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
-  .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+  .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;align-items:start}
+  /* A585 — la même grille dans l'éditeur d'AIDE (« Schémas & captures ») : la légende sous la vignette (une aide n'a
+     pas de texte rédigé pour la dire), « ▣ Bloc n » sur celle qu'un bloc affiche. */
+  .mi-cell{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .mi-cell>.mi-tile{width:100%}
+  .mi-lg{font-size:var(--t-cap);font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mi-view{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0 4px;border-radius:var(--r-3);background:var(--amb-2)}
+  .mi-capin{width:100%;min-height:var(--hit);padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item)}
+  .mi-capin:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mi-act.on{color:var(--act)}
+  .mi-bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mi-tile,.mi-more{position:relative;aspect-ratio:1/1;min-height:44px;padding:0;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb-2);overflow:hidden;cursor:pointer;font:inherit}
   .mi-tile img{display:block;width:100%;height:100%;object-fit:cover}
   .mi-tile:focus-visible,.mi-more:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -8479,7 +8486,7 @@
   /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
      doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
      recherche (2px, grande surface, identifiée par son placeholder). Arbitré à l'audit v4.5. */
-  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.tme-row input[type=number],.optedit input,.optedit select,.gcap){border-color:var(--line-strong)}
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.tme-row input[type=number],.optedit input,.optedit select){border-color:var(--line-strong)}
   /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
   ::placeholder{color:var(--ink-soft);opacity:1}
   /* Lien d'évitement clavier : invisible jusqu'au focus. L'ombre ne vit QUE sur l'état focalisé :
@@ -8688,7 +8695,6 @@
      le bloc était écrasé par les règles suivantes (.invite-row input, #p-body…) et ne faisait
      donc RIEN. Les compacts restent < 16px au pointeur fin (desktop).
      Jamais de maximum-scale / user-scalable=no au viewport (WCAG 2.2 §1.4.4).
-     `input.gcap` (et non `.gcap`) : la même classe sert de LÉGENDE en lecture, qui reste à 11.5px.
      `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée.
      ⚠ `.rt-find input` MANQUAIT (v5.4.0, signalé à l'usage iPhone : « quand on clique à
      l'intérieur d'un protocole l'écran zoome ») : le champ « Chercher dans la référence » est né
@@ -8696,7 +8702,7 @@
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,
     .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}

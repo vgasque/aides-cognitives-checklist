@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.93.0] — 2026-11-06
+Les images d'une aide en grille, chacune avec sa feuille (A585). Rien à rejouer côté serveur.
+- **Dans l'éditeur d'une aide, « Schémas & captures » devient une grille** de vignettes repliée à deux rangs, la
+  légende sous chaque vignette et « ▣ Bloc n » sur celle qu'un bloc affiche. Elle remplace une grande carte par image.
+- **Toucher une image ouvre sa feuille**, la même que pour les références : la légende, « Affichée dans » (aucun bloc
+  ou un bloc), remplacer (le bloc qui l'affiche suit), retirer de l'aide (avec ↶ pour annuler).
+
 ## [5.92.0] — 2026-11-06
 La taille d'une image se voit et se tire (A584). Rien à rejouer côté serveur.
 - **Plus de pourcentages** : la taille d'une image se choisit parmi six pictogrammes, une colonne et la part qu'occupe
@@ -213,18 +220,3 @@ Pincer pour zoomer le schéma en plein écran (A558, doctrine `docs/decisions/lo
 - Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
 - Lever les doigts après un pincer n'ouvre plus un bloc par accident, et changer la taille de la fenêtre garde
   l'endroit regardé.
-
-## [5.82.0] — 2026-11-04
-Accueil au téléphone : un bouton pour choisir QUOI afficher, un pour COMMENT le présenter (A556) ; le zoom survit au
-redimensionnement (A557). Doctrine `docs/decisions/lot-v6-0.md`. Rien à rejouer côté serveur.
-- **« Aides ⌄ » choisit ce qu'on voit** : la feuille « Afficher » commence par le **Type** (Tout · Aides · Protocoles ·
-  À relire) et, s'il y en a plusieurs, la bibliothèque — ils agissent tout de suite, la feuille reste ouverte. Puis
-  l'accès direct, les collections, les catégories et **« Gérer les catégories »**.
-- **Le bouton rond ↑↓ devient « Trier et présenter »** : trier, regrouper, densité — plus aucun filtre en double. On
-  le ferme par « Terminé ».
-- **Le bouton filtre à côté de la recherche disparaît** : il ouvrait la même feuille que le bouton rond. Le champ
-  prend toute la largeur ; les crans Tout · Aides · Protocoles restent quand on tape.
-- Un filtre posé reste annoncé par sa puce sous le titre, qui rouvre « Afficher ».
-- **Zoom et taille de fenêtre** : agrandir ou réduire la fenêtre pendant qu'une image, un PDF ou la Page est zoomé
-  garde l'endroit regardé (le PDF restait sur une autre page).
-- En large (tablette, ordinateur), l'accueil ne change pas.

@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DIJCg9lvkIrBOdYlcaPa7fe4AlO6zTx4k/kxgaLbfwY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MkhKF7bnzzriuQSdajeNR2xTkH/gLIEYf9jS9oZnCmg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5496,9 +5496,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
   .ed-palette>.ep-g:first-child{margin-top:0}
   /* Vignette de galerie : légende, puis le bloc auquel l'image est associée. */
-  .gthumb .gcap{width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
-  .gthumb .gblk{width:100%;margin-top:4px}
-  .gthumb .btn.sm.danger{width:100%;margin-top:4px}
   /* PENDANT UN DÉPLACEMENT, ELLE REDESCEND DANS LE FLUX : collée, elle masquerait les interstices
      de dépôt du bas de l'écran — et « créer » n'a rien à faire sous le doigt de quelqu'un qui
      cherche où POSER. Mesuré : sans cette exception, le dernier « Poser ici » passe dessous. */
@@ -8641,7 +8638,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mi-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .mi-head>label{flex:1;margin:0}
   .mi-n{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
-  .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+  .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;align-items:start}
+  /* A585 — la même grille dans l'éditeur d'AIDE (« Schémas & captures ») : la légende sous la vignette (une aide n'a
+     pas de texte rédigé pour la dire), « ▣ Bloc n » sur celle qu'un bloc affiche. */
+  .mi-cell{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .mi-cell>.mi-tile{width:100%}
+  .mi-lg{font-size:var(--t-cap);font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mi-view{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0 4px;border-radius:var(--r-3);background:var(--amb-2)}
+  .mi-capin{width:100%;min-height:var(--hit);padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item)}
+  .mi-capin:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mi-act.on{color:var(--act)}
+  .mi-bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mi-tile,.mi-more{position:relative;aspect-ratio:1/1;min-height:44px;padding:0;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb-2);overflow:hidden;cursor:pointer;font:inherit}
   .mi-tile img{display:block;width:100%;height:100%;object-fit:cover}
   .mi-tile:focus-visible,.mi-more:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -8872,7 +8879,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
      doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
      recherche (2px, grande surface, identifiée par son placeholder). Arbitré à l'audit v4.5. */
-  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.tme-row input[type=number],.optedit input,.optedit select,.gcap){border-color:var(--line-strong)}
+  :is(.field input[type=text],.field textarea,.field select,.search input,.auth-field,.cm-name,.cm-add input,.tk-lab,.blk-top input,.tme-row input[type=number],.optedit input,.optedit select){border-color:var(--line-strong)}
   /* Placeholder maîtrisé (sinon gris navigateur non garanti sur nos fonds personnalisés). */
   ::placeholder{color:var(--ink-soft);opacity:1}
   /* Lien d'évitement clavier : invisible jusqu'au focus. L'ombre ne vit QUE sur l'état focalisé :
@@ -9081,7 +9088,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le bloc était écrasé par les règles suivantes (.invite-row input, #p-body…) et ne faisait
      donc RIEN. Les compacts restent < 16px au pointeur fin (desktop).
      Jamais de maximum-scale / user-scalable=no au viewport (WCAG 2.2 §1.4.4).
-     `input.gcap` (et non `.gcap`) : la même classe sert de LÉGENDE en lecture, qui reste à 11.5px.
      `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée.
      ⚠ `.rt-find input` MANQUAIT (v5.4.0, signalé à l'usage iPhone : « quand on clique à
      l'intérieur d'un protocole l'écran zoome ») : le champ « Chercher dans la référence » est né
@@ -9089,7 +9095,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,
     .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
@@ -9887,7 +9893,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.92.0';
+const APP_VERSION='5.93.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18387,10 +18393,12 @@ function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer de la référence</button></div>`;}
 const miEl=()=>document.getElementById('miModal');
-function miPaint(){const p=_miCtx&&_miCtx.p,ims=p?(p.images||[]).filter(im=>im&&im.data):[],i=ims.findIndex(x=>x.id===_miId);
+/* A585 : la feuille sert les DEUX éditeurs. Chacun pose son contexte `_miCtx` au rendu — `list` (ses images), `sheet`
+   (le corps), `onClick`, `onInput` facultatif — et la feuille ne sait rien d'autre. */
+function miPaint(){const c=_miCtx,ims=c?c.list():[],i=ims.findIndex(x=>x.id===_miId);
   if(i<0){miClose();return;}
   document.getElementById('miTitle').textContent=miName(ims[i],i);
-  document.getElementById('miBody').innerHTML=miSheetHtml(p,ims[i]);}
+  document.getElementById('miBody').innerHTML=c.sheet(ims[i],i);}
 function miOpen(id){_miId=id;miPaint();if(_miId)miEl().classList.add('on');}
 // Le focus revient à la vignette (re-rendue entre-temps, donc cherchée par son identifiant).
 function miClose(){const id=_miId;_miId=null;const t=id&&main.querySelector('[data-mitile="'+CSS.escape(id)+'"]');if(t)_modalReturnFocus=t;
@@ -18398,7 +18406,10 @@ function miClose(){const id=_miId;_miId=null;const t=id&&main.querySelector('[da
 {const m=miEl(),bd=document.getElementById('miBody');
  if(m&&bd){bindModalDismiss(m,miClose);
   bd.addEventListener('click',e=>{const t=e.target.closest('button'),c=_miCtx;if(!t||!c)return;
-    const p=c.p,im=(p.images||[]).find(x=>x.id===_miId);if(!im)return;
+    const im=c.list().find(x=>x.id===_miId);if(im)c.onClick(t,im,m);});
+  bd.addEventListener('input',e=>{const c=_miCtx,im=c&&c.onInput&&c.list().find(x=>x.id===_miId);if(im)c.onInput(e.target,im);});}}
+// Les gestes de la feuille d'une image de RÉFÉRENCE (A583).
+function miRefClick(c,t,im,m){const p=c.p,bd=document.getElementById('miBody');
     if(t.dataset.miscale!=null){const v=t.dataset.miscale;im.scale=_scale(v);c.refresh();edTouch();miPaint();
       const b=bd.querySelector('[data-miscale="'+v+'"]');if(b)b.focus();return;}
     const k=t.dataset.miact;
@@ -18414,7 +18425,7 @@ function miClose(){const id=_miId;_miId=null;const t=id&&main.querySelector('[da
     // Retirer = l'image ET ses lignes ; le re-rendu pose le point de reprise (↶).
     if(k==='rm'){const rx=miLineRx(im.id);p.body=String(p.body||'').split('\n').filter(l=>!rx.test(l)).join('\n');
       p.images=(p.images||[]).filter(x=>x!==im);_miId=null;modalHandoffClose(m);
-      keepAnchor('.mi-card',renderProtocolEdit);toast('Image retirée — ↶ pour annuler.');}});}}
+      keepAnchor('.mi-card',renderProtocolEdit);toast('Image retirée — ↶ pour annuler.');}}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
@@ -18542,7 +18553,8 @@ function renderProtocolEdit(){
   upTarget('image',takeImg);
   /* A583 : la grille des images. La feuille agit par `_miCtx` — le champ ACTIF (A547), le rafraîchissement d'une taille
      (aperçu, document par blocs, auto-enregistrement : le texte ne change pas), et le passage à montrer. */
-  _miCtx={p,field:()=>act,
+  _miCtx={p,field:()=>act,list:()=>(p.images||[]).filter(im=>im&&im.data),sheet:im=>miSheetHtml(p,im),
+    onClick:function(t,im,m){miRefClick(this,t,im,m);},
     refresh:()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}
       ta.dispatchEvent(new Event('input',{bubbles:false}));},
     goTo:(im,r)=>{const box=document.getElementById(live?'mdDoc':'mdPreview');
@@ -26787,6 +26799,51 @@ function edSyncGallery(f){
     if(!b||!b.image||vues.has(b.image))return;
     vues.add(b.image);
     f.images.push({id:uid('i'),data:b.image,w:b.imageW||0,h:b.imageH||0,caption:''});});}
+/* A585 — LES IMAGES D'UNE AIDE : LA GRILLE ET LA FEUILLE DES RÉFÉRENCES (A583), adaptées à ce qu'est une image d'aide.
+   Une aide n'a pas de texte rédigé : ses images sont la GALERIE (« Schémas & captures », l'agrégateur de v4.78.0) et,
+   pour certaines, l'image d'UN bloc (`b.image`, une copie de la donnée — format inchangé, règle 12). L'ancienne carte
+   par image (vignette 4:3, champ légende, menu du bloc, « Retirer ») faisait ≈ 230 px par rang de deux.
+   - Grille repliée au-delà de MI_FOLD, la légende sous la vignette, « ▣ Bloc n » sur celle qu'un bloc affiche.
+   - La feuille : la légende, « Affichée dans » (aucun bloc, ou UN bloc — on détache partout avant de rattacher, la
+     règle « une image, un bloc au plus » de v4.78.0), Remplacer… (la galerie ET le bloc qui la porte suivent), Retirer
+     de l'aide (galerie ET bloc : sinon `edSyncGallery` la ramènerait). Pas de taille : une aide n'en a pas. */
+const galBlkName=(f,b)=>((f.blocks||[]).indexOf(b)+1)+'. '+((stripBold(b.title||'')).trim()||(b.kind==='decision'?'Décision':'Sans titre'));
+const galDetach=(f,data)=>(f.blocks||[]).forEach(b=>{if(b.image===data){b.image=null;b.imageW=null;b.imageH=null;}});
+const galTileLabel=(f,im,i)=>{const bi=(f.blocks||[]).findIndex(b=>b.image===im.data);return miName(im,i)+(bi>=0?', affichée dans le bloc '+(bi+1):'');};
+function galCardHtml(f){const ims=(f.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
+  const fold=_miAll!==f.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims,bl=f.blocks||[];
+  return `<fieldset class="field ed-card mi-card"><div class="mi-head"><label>Schémas & captures <span class="mi-n">· ${ims.length}</span></label>
+    <button type="button" class="btn sm" id="addImg">${uiIcon('img',14)}Image</button></div>
+    <div class="mi-grid">${vis.map((im,i)=>{const bi=bl.findIndex(b=>b.image===im.data);
+      return `<div class="mi-cell"><button type="button" class="mi-tile" data-mitile="${esc(im.id)}" aria-label="${esc(galTileLabel(f,im,i))}"><img src="${im.data}" alt="" loading="lazy" decoding="async">${bi>=0?`<span class="mi-use">▣ Bloc ${bi+1}</span>`:''}</button><span class="mi-lg" aria-hidden="true">${esc(im.caption||'Sans légende')}</span></div>`;}).join('')}
+    ${fold?`<button type="button" class="mi-more" data-mimore>${ims.length-vis.length} de plus<span aria-hidden="true">⌄</span></button>`
+      :(ims.length>MI_FOLD?'<button type="button" class="mi-more" data-mimore>Replier<span aria-hidden="true">⌃</span></button>':'')}</div>
+    <p class="hint mi-hint">Toucher une image : légende, bloc qui l'affiche, remplacer, retirer. Toutes restent dans la galerie ; <b>▣</b> dit le bloc qui l'affiche aussi.</p></fieldset>`;}
+function galSheetHtml(f,im){const bl=f.blocks||[],cur=bl.find(b=>b.image===im.data);
+  const opts=[{id:'',n:'Aucun bloc — la galerie seulement'}].concat(bl.map(b=>({id:b.id,n:galBlkName(f,b)})));
+  return `<img class="mi-view" src="${im.data}" alt="">
+  <label class="sst-h" for="miCap">Légende</label><input type="text" id="miCap" class="mi-capin" data-micap value="${esc(im.caption||'')}" placeholder="Légende…" maxlength="300">
+  <h4 class="sst-h">Affichée dans</h4>
+  <div class="mi-acts" role="radiogroup" aria-label="Bloc qui affiche cette image">${opts.map(o=>{const on=cur?cur.id===o.id:!o.id;
+    return `<button type="button" class="mi-act${on?' on':''}" role="radio" aria-checked="${on}" data-miblk="${esc(o.id)}"><span class="mi-bn">${esc(o.n)}</span>${on?`<span class="mi-x">${uiIcon('check',17)}</span>`:''}</button>`;}).join('')}</div>
+  <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${cur?'le bloc suit':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer de l’aide</button></div>`;}
+function galClick(f,t,im,m){
+  if(t.dataset.miblk!=null){const v=t.dataset.miblk;galDetach(f,im.data);
+    if(v){const b=(f.blocks||[]).find(x=>x.id===v);if(b){b.image=im.data;b.imageW=im.w;b.imageH=im.h;}}
+    keepAnchor('.mi-card',renderEditor);miPaint();const n=document.querySelector('#miBody [data-miblk="'+CSS.escape(v)+'"]');if(n)n.focus();return;}
+  const k=t.dataset.miact;
+  if(k==='repl'){pickFile('image',async files=>{const x=files&&files[0],r=x&&await downscale(x);
+      if(!r){if(x)toast('⚠ « '+upShortName(x.name)+' » est illisible.',6000,true);return;}
+      const old=im.data;im.data=r.data;im.w=r.w;im.h=r.h;
+      (f.blocks||[]).forEach(b=>{if(b.image===old){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}});
+      keepAnchor('.mi-card',renderEditor);miPaint();},false);return;}
+  if(k==='rm'){galDetach(f,im.data);f.images=(f.images||[]).filter(x=>x!==im);_miId=null;modalHandoffClose(m);
+    keepAnchor('.mi-card',renderEditor);toast('Image retirée — ↶ pour annuler.');}}
+// La légende s'écrit à la frappe : la vignette et le titre de la feuille suivent sur place, sans re-rendu (le champ garde le focus).
+function galInput(f,el,im){if(el.dataset.micap==null)return;im.caption=el.value;
+  const ims=(f.images||[]).filter(x=>x&&x.data),i=ims.indexOf(im),tl=main.querySelector('[data-mitile="'+CSS.escape(im.id)+'"]');
+  if(tl){tl.setAttribute('aria-label',galTileLabel(f,im,i));const lg=tl.parentNode.querySelector('.mi-lg');if(lg)lg.textContent=im.caption||'Sans légende';}
+  document.getElementById('miTitle').textContent=miName(im,i);edTouch();}
 function renderEditor(){_renderN++;
   captureFlow();
   edSyncGallery(state.draft);
@@ -26868,8 +26925,7 @@ function renderEditor(){_renderN++;
     le format existant, et le changer serait un champ modèle de plus (règle 12) que les clients
     antérieurs ne sauraient pas lire. Associer duplique donc l'image ; retoucher la vignette de la
     galerie APRÈS coup ne suivra pas dans le bloc. */}
-    ${(f.images||[]).length?`<fieldset class="field ed-card"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>{const porteur=(f.blocks||[]).find(b=>b.image===im.data);
-      return `<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…"><select class="gblk" data-imgblk="${i}" aria-label="Bloc qui affiche cette image"><option value="">— Aucun bloc —</option>${(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${porteur&&porteur.id===b.id?' selected':''}>${esc((stripBold(b.title||'')).trim()||(b.kind==='decision'?'Décision':'Sans titre'))}</option>`).join('')}</select><button class="btn sm danger" data-imgdel="${i}">Retirer</button></div>`;}).join('')}</div>${upDropHtml('image','addImg','Ajouter une image / capture',' mt')}</fieldset>`:''}
+    ${galCardHtml(f)}
     ${(f.docs||[]).length?attFieldsetHtml(f):''}
     ${(f.sources||[]).length?listEditor('Références','sources de l’aide','sources',f.sources,false,{shell:'ed-card'}):''}
     ${relFieldsetHtml(f)}
@@ -26947,32 +27003,13 @@ function bindEditorEvents(f){
      le sélecteur de bloc de chaque vignette fait le rattachement. Déclaré même si le fieldset
      « Schémas & captures » n'est pas rendu (masqué quand vide) — déposer une image dans un
      éditeur doit marcher, section visible ou non. */
-  bindUpDrop(document.getElementById('addImg'),'image',edImgTaker(f,null),true);
   upTarget('image',edImgTaker(f,null));
-  /* RETIRER UNE IMAGE LA RETIRE PARTOUT (v4.78.0, signalé à l'usage : « cliquer sur retirer une
-     image ne la retire pas, elle apparaît toujours dans la liste »). Défaut DIRECT de l'agrégateur
-     ajouté plus haut : on la sortait de `f.images`, mais un bloc la portait encore dans `b.image`,
-     et `edSyncGallery` la remettait au rendu suivant — le geste se défaisait tout seul.
-     LES DEUX GESTES NE FONT DONC PAS LA MÊME CHOSE, et c'est la seule lecture cohérente de
-     l'agrégateur : « Retirer » DANS LA GALERIE retire l'image de l'aide ENTIÈRE (galerie + tout bloc
-     qui la porte), tandis que le sélecteur « Aucun bloc » ou le « Retirer » d'un BLOC ne fait que la
-     DÉTACHER — la vignette reste dans la galerie, disponible pour un autre bloc. La galerie est la
-     liste des images de l'aide : en sortir, c'est ne plus en faire partie. */
-  main.querySelectorAll('[data-imgdel]').forEach(b=>b.onclick=()=>{
-    const i=+b.dataset.imgdel;const im=(f.images||[])[i];
-    if(im&&im.data)(f.blocks||[]).forEach(x=>{if(x.image===im.data){x.image=null;x.imageW=null;x.imageH=null;}});
-    f.images.splice(i,1);renderEditor();});
-  main.querySelectorAll('[data-imgcap]').forEach(inp=>inp.addEventListener('input',e=>f.images[+e.target.dataset.imgcap].caption=e.target.value));
-  /* UNE IMAGE, UN BLOC AU PLUS : on détache d'abord partout, on rattache ensuite. Sans le premier
-     temps, la même image finirait sur deux blocs et le sélecteur de l'autre vignette montrerait un
-     porteur qui n'est plus le bon (deux sources pour un même état — le défaut que ce fichier
-     traque partout ailleurs). */
-  main.querySelectorAll('[data-imgblk]').forEach(sel=>sel.onchange=()=>{
-    const im=(f.images||[])[+sel.dataset.imgblk];if(!im)return;
-    (f.blocks||[]).forEach(b=>{if(b.image===im.data){b.image=null;b.imageW=null;b.imageH=null;}});
-    if(sel.value){const b=(f.blocks||[]).find(x=>x.id===sel.value);
-      if(b){b.image=im.data;b.imageW=im.w;b.imageH=im.h;}}
-    renderEditor();});
+  /* A585 : la grille « Schémas & captures » et la feuille de l'image (légende, bloc qui l'affiche, remplacer, retirer). */
+  {const ad=document.getElementById('addImg');if(ad)ad.onclick=()=>pickFile('image',edImgTaker(f,null),true);}
+  _miCtx={list:()=>(f.images||[]).filter(im=>im&&im.data),sheet:im=>galSheetHtml(f,im),
+    onClick:(t,im,m)=>galClick(f,t,im,m),onInput:(el,im)=>galInput(f,el,im)};
+  main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
+  {const mo=main.querySelector('[data-mimore]');if(mo)mo.onclick=()=>{_miAll=_miAll===f.id?null:f.id;keepAnchor('.mi-card',renderEditor);};}
   // minuteurs/compteurs
 
   main.querySelectorAll('[data-ti]').forEach(row=>{const t=f.timers[+row.dataset.ti];const lab=row.querySelector('[data-tf]'),sh=row.querySelector('[data-tshort]');if(lab)lab.addEventListener('input',e=>{t.label=e.target.value;if(sh)sh.placeholder=autoShort(t.label,SHORT_TM);});
