@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.92.0] — 2026-11-06
+La taille d'une image se voit et se tire (A584). Rien à rejouer côté serveur.
+- **Plus de pourcentages** : la taille d'une image se choisit parmi six pictogrammes, une colonne et la part qu'occupe
+  l'image (¼ · ⅓ · ½ · ⅔ · ¾ · Pleine), sur le bloc image ouvert comme dans la feuille de l'image.
+- **On voit le résultat** : l'image s'affiche dans un cadre qui représente la page lue sur grand écran, à la taille
+  choisie, même au téléphone. Une phrase rappelle qu'au téléphone l'image prend toujours toute la largeur.
+- **On peut tirer le bord** : la poignée bleue au bord de l'image se tire au doigt ou à la souris ; l'image s'aimante
+  à la taille la plus proche, affichée pendant le geste (« ½ · 50 % »).
+
 ## [5.91.0] — 2026-11-06
 Les images d'une référence en grille, chacune avec sa feuille (A583). Rien à rejouer côté serveur.
 - **Dans l'éditeur d'une référence, les images forment une carte « Images du texte »** sous le contenu rédigé : une
@@ -219,10 +228,3 @@ redimensionnement (A557). Doctrine `docs/decisions/lot-v6-0.md`. Rien à rejouer
 - **Zoom et taille de fenêtre** : agrandir ou réduire la fenêtre pendant qu'une image, un PDF ou la Page est zoomé
   garde l'endroit regardé (le PDF restait sur une autre page).
 - En large (tablette, ordinateur), l'accueil ne change pas.
-
-## [5.81.0] — 2026-11-04
-Pincer pour zoomer une image ouverte (A555, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Une image jointe qu'on ouvre se pince comme la Page et les PDF** : elle s'ouvre ajustée à l'écran, le pincer
-  l'agrandit jusqu'à ×6 en gardant l'endroit pincé sous les doigts, et l'on s'y déplace au doigt. Nette au lâcher.
-- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
-- Toucher le fond autour de l'image la ferme toujours ; lever les doigts après un pincer ne ferme rien.

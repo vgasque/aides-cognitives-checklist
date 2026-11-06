@@ -1989,3 +1989,35 @@ le nom désigne désormais la rangée de pastilles de la feuille), `.mi-ins`, `.
 `[data-miref]`, `[data-miuse]`, `#pImgDrop`.
 Témoins : `tests.html` (« A583 images », `miUses`/`miLineRx`) ; `audit-a11y` « feuille d'une image » (ouverte par sa
 vignette dans un éditeur réel).
+
+## A584 — La taille d'une image se voit et se tire : pictogrammes et poignée (v5.92.0)
+
+*Amende A548 (taille du bloc image ouvert en pastilles « 25 % … 100 % ») et A583 (même rangée dans la feuille de
+l'image). Demande de l'auteur, 06/11/2026 : « aucun autre moyen plus intuitif de régler la taille, y compris en mode
+direct ? », puis, sur la planche, « taille par pictogrammes, implémente, mais regarde si tu ne peux pas faire encore
+plus intuitif et rapide ».*
+
+**Constat.** Un pourcentage ne dit pas ce qu'il produit, et sous 560 px la taille n'a aucun effet (`.md-fig` ne réduit
+qu'au-dessus) : au téléphone, l'auteur choisissait « 66 % » sans rien voir changer.
+
+**Décision — un seul composant, `mdSizeHtml`, dans le bloc ouvert ET dans la feuille de l'image :**
+- **Le cadre** (`.mds-frame`) est la colonne de lecture d'un grand écran (780 px au plus, la largeur de la page lue) ;
+  l'image y prend SA part, au téléphone aussi. Une phrase le dit sous 560 px : « Sur téléphone, l'image prend toujours
+  toute la largeur. » (`.mds-note`).
+- **La poignée** (`.mds-grip`, au bord droit de l'image) **se tire**, au doigt comme à la souris : l'image suit,
+  aimantée au cran le plus proche de `MD_SCALES`, la part affichée pendant le geste (« ½ · 50 % ») et le pictogramme
+  visé allumé ; relâcher **touche ce pictogramme** — un seul chemin d'écriture par appelant (`data-mdbscale`,
+  `data-miscale`). Ratio de deux mesures prises dans le même repère : le zoom de la page n'y entre pas.
+- **Six pictogrammes** (`.mds-o`) : une colonne et la part qu'occupe l'image, avec la fraction ¼ ⅓ ½ ⅔ ¾ et « Pleine » ;
+  nom accessible en mots, qui CONTIENT le mot visible (« ½ — la moitié de la largeur », WCAG 2.5.3). La poignée est
+  `aria-hidden` : les pictogrammes sont le chemin du clavier et du lecteur d'écran.
+- Largeurs par CLASSE du jeu fermé `MD_SC`, jamais un nombre interpolé dans un style — le `style="width:…%"` du bloc
+  ouvert d'A548 est parti.
+
+*Formes écartées* : un curseur continu (la taille est un jeu fermé de six crans ; un curseur promet une précision qui
+n'existe pas) ; régler la taille sur le document par blocs sans ouvrir le bloc (un toucher sur une image ouvre déjà le
+bloc ; une poignée sur chaque image rendue gênerait la lecture et le défilement au doigt).
+**Retiré (règle 14)** : les pastilles « n % » de la taille (`.mdb-chip[data-mdbscale]`, `.mi-sc` et sa ligne d'aide
+`.mi-sch`), l'image de tête de la feuille `.mi-big`, `.mdb-imgv img`.
+Témoins : `audit-doctrine` « Éditeur · A584 » (vrais événements souris ; vérifié capable d'échouer : rouge sur la
+v5.91.0) ; « Éditeur · A548 » inchangé (six `[data-mdbscale]`, l'image au-dessus du champ).

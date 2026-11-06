@@ -8125,7 +8125,6 @@
   .mdb-chip.vig.on{border-color:var(--warn-line);background:var(--warn-soft);color:var(--warn)}
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
-  .mdb-imgv img{display:block;max-width:100%;height:auto;border-radius:var(--r-1)}
   .mdb-grab{position:absolute;top:-4px;right:34px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}   /* à côté du crayon : le texte garde l'alignement du formulaire */
   .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
   @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
@@ -8262,7 +8261,6 @@
   .mi-w{color:var(--warn)}
   /* La feuille d'une image : l'image, son usage, deux groupes de rangées (ce qu'on en fait dans le texte, ce qu'on fait
      d'elle), la taille entre les deux — la grammaire des listes groupées (A505). */
-  .mi-big{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0 12px;border-radius:var(--r-3);background:var(--amb-2)}
   .mi-st{margin:0 0 12px;font-size:var(--t-body);font-weight:700}
   .mi-st.ok{color:var(--ok)}
   .mi-st.w{color:var(--warn)}
@@ -8273,9 +8271,27 @@
   .mi-act:hover{background:var(--amb)}
   .mi-act:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .mi-act.del,.mi-act.del svg{color:var(--crit)}
+  /* A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE (un seul composant, `mdSizeHtml`, pour le bloc ouvert et la
+     feuille de l'image). Le CADRE est la colonne de lecture d'un grand écran (780 px au plus, la largeur de la page lue) : l'image y prend la part choisie, ce que
+     le téléphone ne montre jamais (la réduction ne vaut qu'au-dessus de 560 px, `.md-fig`) ; la poignée de son bord
+     se tire et s'aimante aux crans de MD_SCALES ; les pictogrammes disent la même part, d'un toucher. */
+  .mds-frame{max-width:780px;box-sizing:border-box;margin:0 0 8px;padding:8px;border:1px dashed var(--line-strong);border-radius:var(--r-2);background:var(--amb)}
+  .mds-img{position:relative;display:block;width:100%}
+  .mds-img.w25,.mds-b.w25{width:25%}.mds-img.w33,.mds-b.w33{width:33%}.mds-img.w50,.mds-b.w50{width:50%}
+  .mds-img.w66,.mds-b.w66{width:66%}.mds-img.w75,.mds-b.w75{width:75%}
+  .mds-img img{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  .mds-grip{position:absolute;top:50%;right:-12px;width:24px;height:44px;transform:translateY(-50%);border-radius:999px;background:var(--act);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
+  .mds-grip::before{content:'';position:absolute;inset:14px 8px;border-left:2px solid var(--on-primary);border-right:2px solid var(--on-primary)}
+  .mds-tip{position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}
+  .mds{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;max-width:780px}
+  .mds-o{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:var(--hit);padding:6px 2px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+  .mds-o:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mds-o.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
+  .mds-p{display:flex;width:32px;height:20px;padding:2px;border:1.5px solid currentColor;border-radius:3px;box-sizing:border-box}
+  .mds-b{display:block;width:100%;height:100%;background:currentColor}
+  .mds-note{margin:6px 0 0}
+  @media (min-width:560px){.mds-note{display:none}}
   .mi-x{margin-left:auto;font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
-  .mi-sc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-  .mi-sch{margin:-4px 0 8px}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:32px;height:32px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;resize:vertical}

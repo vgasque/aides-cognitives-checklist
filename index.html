@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-XRWoj69LBIP0jmHhi+cEj2Y9z6YvKG5DY2oWlFmch6o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DIJCg9lvkIrBOdYlcaPa7fe4AlO6zTx4k/kxgaLbfwY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8518,7 +8518,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-chip.vig.on{border-color:var(--warn-line);background:var(--warn-soft);color:var(--warn)}
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
-  .mdb-imgv img{display:block;max-width:100%;height:auto;border-radius:var(--r-1)}
   .mdb-grab{position:absolute;top:-4px;right:34px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}   /* à côté du crayon : le texte garde l'alignement du formulaire */
   .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
   @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
@@ -8655,7 +8654,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mi-w{color:var(--warn)}
   /* La feuille d'une image : l'image, son usage, deux groupes de rangées (ce qu'on en fait dans le texte, ce qu'on fait
      d'elle), la taille entre les deux — la grammaire des listes groupées (A505). */
-  .mi-big{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0 12px;border-radius:var(--r-3);background:var(--amb-2)}
   .mi-st{margin:0 0 12px;font-size:var(--t-body);font-weight:700}
   .mi-st.ok{color:var(--ok)}
   .mi-st.w{color:var(--warn)}
@@ -8666,9 +8664,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mi-act:hover{background:var(--amb)}
   .mi-act:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .mi-act.del,.mi-act.del svg{color:var(--crit)}
+  /* A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE (un seul composant, `mdSizeHtml`, pour le bloc ouvert et la
+     feuille de l'image). Le CADRE est la colonne de lecture d'un grand écran (780 px au plus, la largeur de la page lue) : l'image y prend la part choisie, ce que
+     le téléphone ne montre jamais (la réduction ne vaut qu'au-dessus de 560 px, `.md-fig`) ; la poignée de son bord
+     se tire et s'aimante aux crans de MD_SCALES ; les pictogrammes disent la même part, d'un toucher. */
+  .mds-frame{max-width:780px;box-sizing:border-box;margin:0 0 8px;padding:8px;border:1px dashed var(--line-strong);border-radius:var(--r-2);background:var(--amb)}
+  .mds-img{position:relative;display:block;width:100%}
+  .mds-img.w25,.mds-b.w25{width:25%}.mds-img.w33,.mds-b.w33{width:33%}.mds-img.w50,.mds-b.w50{width:50%}
+  .mds-img.w66,.mds-b.w66{width:66%}.mds-img.w75,.mds-b.w75{width:75%}
+  .mds-img img{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  .mds-grip{position:absolute;top:50%;right:-12px;width:24px;height:44px;transform:translateY(-50%);border-radius:999px;background:var(--act);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
+  .mds-grip::before{content:'';position:absolute;inset:14px 8px;border-left:2px solid var(--on-primary);border-right:2px solid var(--on-primary)}
+  .mds-tip{position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}
+  .mds{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;max-width:780px}
+  .mds-o{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:var(--hit);padding:6px 2px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+  .mds-o:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mds-o.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
+  .mds-p{display:flex;width:32px;height:20px;padding:2px;border:1.5px solid currentColor;border-radius:3px;box-sizing:border-box}
+  .mds-b{display:block;width:100%;height:100%;background:currentColor}
+  .mds-note{margin:6px 0 0}
+  @media (min-width:560px){.mds-note{display:none}}
   .mi-x{margin-left:auto;font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
-  .mi-sc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-  .mi-sch{margin:-4px 0 8px}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:32px;height:32px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;resize:vertical}
@@ -9871,7 +9887,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.91.0';
+const APP_VERSION='5.92.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10606,6 +10622,9 @@ const calloutIcon=k=>k==='crit'?uiIcon('warn',14):(k==='vig'?'<span class="mc-g"
 // Échelles d'image : jeu FERMÉ (une classe, jamais un nombre interpolé dans un style).
 const MD_SCALES=[25,33,50,66,75,100];
 const MD_SC={25:' w25',33:' w33',50:' w50',66:' w66',75:' w75'};
+// A584 : la part de la colonne, dite en fraction (pictogramme) et en mots (nom accessible, qui CONTIENT le mot visible).
+const MD_SC_LBL={25:'¼',33:'⅓',50:'½',66:'⅔',75:'¾',100:'Pleine'};
+const MD_SC_SR={25:'un quart de la largeur',33:'un tiers de la largeur',50:'la moitié de la largeur',66:'deux tiers de la largeur',75:'trois quarts de la largeur',100:'toute la largeur'};
 // Rendu HTML. ctx.images = tableau {id,data,caption,scale} de l'entité (ids déjà sûrs — migrateProtocol).
 // Référence d'image morte -> rien (pas d'image cassée à l'écran).
 function mdRender(src,ctx){ctx=ctx||{};
@@ -17840,12 +17859,36 @@ function mdBlkMoveTo(body,from,to){const n=mdBlockRanges(body).length;if(from<0|
 const MD_REG_WORD={crit:'CAUTION',vig:'WARNING',info:'NOTE',ok:'TIP'};
 const mdSrcCall=src=>{const l=String(src||'').split('\n')[0];if(!/^>/.test(l))return null;const c=mdCallout(l.replace(/^>\s?/,''));return c.kind||'';};
 const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)$/);return m?m[1]:null;};
+/* A584 — LA TAILLE D'UNE IMAGE, SANS CHIFFRES : le cadre (la colonne d'un grand écran, l'image à sa part, une poignée
+   au bord), puis six pictogrammes (¼ ⅓ ½ ⅔ ¾ Pleine). `attr` est l'attribut que lit l'appelant (`data-mdbscale` du
+   bloc ouvert, `data-miscale` de la feuille) : le glisser se termine par un CLIC sur le pictogramme visé, donc un seul
+   chemin d'écriture par appelant. La largeur vient d'une CLASSE du jeu fermé (MD_SC), jamais d'un nombre interpolé. */
+function mdSizeHtml(im,attr,head){const sc=_scale(im.scale),data=safeImg(im.data);if(!data)return '';
+  return `<div class="mds-frame" data-mdsframe><span class="mds-img${MD_SC[sc]||''}"><img src="${data}" alt="">`
+    +`<span class="mds-grip" data-mdsgrip aria-hidden="true" title="Tirer pour régler la taille"></span><span class="mds-tip" hidden></span></span></div>`
+    +(head||'')
+    +`<div class="mds" role="radiogroup" aria-label="Taille de l'image sur grand écran">${MD_SCALES.map(v=>
+      `<button type="button" class="mds-o${v===sc?' on':''}" ${attr}="${v}" data-mdsv="${v}" role="radio" aria-checked="${v===sc}" aria-label="${MD_SC_LBL[v]} — ${MD_SC_SR[v]}"><span class="mds-p" aria-hidden="true"><span class="mds-b${MD_SC[v]||''}"></span></span>${MD_SC_LBL[v]}</button>`).join('')}</div>`
+    +`<p class="hint mds-note">Sur téléphone, l'image prend toujours toute la largeur.</p>`;}
+// Tirer la poignée : l'image suit le doigt ou la souris, aimantée au cran le plus proche, la part affichée pendant le
+// geste ; relâcher touche le pictogramme visé. Ratio de deux mesures prises dans le même repère (zoom de la page compris).
+document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('[data-mdsgrip]');if(!g||e.button>0)return;
+  const box=g.parentNode,fr=box.closest('[data-mdsframe]'),root=fr&&fr.parentNode,tip=box.querySelector('.mds-tip');if(!root)return;
+  e.preventDefault();e.stopPropagation();try{g.setPointerCapture(e.pointerId);}catch(x){}
+  const cs=getComputedStyle(fr),r=fr.getBoundingClientRect(),z=(r.width/fr.offsetWidth)||1,px=k=>parseFloat(cs[k])||0;
+  const l=r.left+(px('paddingLeft')+px('borderLeftWidth'))*z,w=r.width-(px('paddingLeft')+px('paddingRight')+px('borderLeftWidth')+px('borderRightWidth'))*z;
+  let v=null;
+  const mv=ev=>{const pc=(ev.clientX-l)/w*100;v=MD_SCALES.reduce((a,b)=>Math.abs(b-pc)<Math.abs(a-pc)?b:a);
+    box.className='mds-img'+(MD_SC[v]||'');tip.textContent=MD_SC_LBL[v]+' · '+v+' %';tip.hidden=false;
+    root.querySelectorAll('.mds-o').forEach(b=>{const on=+b.dataset.mdsv===v;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);});};
+  const up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);g.removeEventListener('pointercancel',up);tip.hidden=true;
+    if(v!=null){const b=root.querySelector('.mds-o[data-mdsv="'+v+'"]');if(b)b.click();}};
+  g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);g.addEventListener('pointercancel',up);},true);
 function mdBlkToolsHtml(src,p){const k=mdSrcCall(src);
   if(k!=null)return `<div class="mdb-tools" role="radiogroup" aria-label="Registre de l'encadré">`+Object.keys(MD_CALL_LBL).map(x=>
     `<button type="button" class="mdb-chip ${x}${x===k?' on':''}" data-mdbreg="${x}" role="radio" aria-checked="${x===k}">${calloutIcon(x)}${MD_CALL_LBL[x]}</button>`).join('')+`</div>`;
   const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
-  if(data)return `<div class="mdb-imgv"><img src="${data}" alt="" style="width:${_scale(im.scale)}%"></div><div class="mdb-tools" role="radiogroup" aria-label="Taille de l'image">`
-    +MD_SCALES.map(v=>`<button type="button" class="mdb-chip${v===_scale(im.scale)?' on':''}" data-mdbscale="${v}" role="radio" aria-checked="${v===_scale(im.scale)}">${v} %</button>`).join('')
+  if(data)return `<div class="mdb-imgv">${mdSizeHtml(im,'data-mdbscale')}</div><div class="mdb-tools">`
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
   return '';}
 /* A549 — DÉPLACER UN BLOC = « PRENDRE / POSER », LE GESTE DE L'ÉDITEUR D'AIDE (MK5-b, v4.75.0-v4.79.0) : la poignée ⠿
@@ -18338,12 +18381,10 @@ function miPaintUse(p){const n=miUses(p.body);
     u.hidden=k<2;u.textContent='×'+k;o.hidden=k>0;
     t.setAttribute('aria-label',t.dataset.miname+(k>1?', '+k+' passages':k?'':', absente du texte'));});
   if(_miId&&miEl().classList.contains('on'))miPaint();}
-function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,sc=_scale(im.scale),g=(_miGo[im.id]||0)%Math.max(k,1);
-  return `<img class="mi-big" src="${im.data}" alt="">
+function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%Math.max(k,1);
+  return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">Taille sur grand écran</h4>')}
   <p class="mi-st ${k?'ok':'w'}">${k?'✓ Dans le texte · '+k+' passage'+(k>1?'s':''):'△ Absente du texte — sera retirée en quittant l’éditeur'}</p>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
-  <h4 class="sst-h">Taille d’affichage</h4><p class="hint mi-sch">S’applique au-dessus de 560 px de large.</p>
-  <div class="mi-sc" role="radiogroup" aria-label="Taille d’affichage">${MD_SCALES.map(v=>`<button type="button" class="mdb-chip${v===sc?' on':''}" role="radio" aria-checked="${v===sc}" data-miscale="${v}">${v} %</button>`).join('')}</div>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer de la référence</button></div>`;}
 const miEl=()=>document.getElementById('miModal');
 function miPaint(){const p=_miCtx&&_miCtx.p,ims=p?(p.images||[]).filter(im=>im&&im.data):[],i=ims.findIndex(x=>x.id===_miId);
