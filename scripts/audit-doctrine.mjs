@@ -2214,7 +2214,7 @@ for (const W of [320, 390]) {
   t(`${W} · B — à UN événement, il n'y a pas d'index (on entre d'un tap)`,
     r.indexAUn===false&&!!r.unLbl&&!/Complications/.test(r.unLbl), `${r.unLbl}`);
   t(`${W} · C — à DEUX, l'index reparaît, et il ne COUVRE rien`,
-    r.items===2&&r.modale2===0&&/Complications\s*·\s*2/.test(r.tgLbl||''), `${r.tgLbl} · ${r.items} rangée(s), ${r.modale2} fenêtre(s)`);
+    r.items===2&&r.modale2===0&&/^2\s*Complications$/.test(r.tgLbl||'')   /* A571 : nombre en pastille */, `${r.tgLbl} · ${r.items} rangée(s), ${r.modale2} fenêtre(s)`);
   t(`${W} · … rangées ≥ 56 px, et la porte EXTERNE se dit (↗)`, r.cible>=56&&r.ext===true,
     `${r.cible} px, externe=${r.ext}`);
   t(`${W} · … et re-presser referme`, r.referme===true, String(r.referme));
@@ -2322,8 +2322,14 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
        dans la chaîne qui s'ellipse. */
     const bd=document.getElementById('brandDisc');   // v5.30 : sur la ligne du titre, hors de sa chaîne ellipsée
     const discVu=!!bd&&!bd.hidden&&bd.getBoundingClientRect().width>0&&/adulte/.test(bd.textContent);
+    /* A571 : en session (≥ 360 px effectifs, hors paysage bas) le titre PASSE À LA LIGNE et le discriminant le suit
+       dans le texte (`.bt-d`) — la propriété de K6 tient si rien n'est coupé : le titre ne déborde ni en largeur ni en
+       hauteur, et `.bt-d` est peint. Sinon (ligne ellipsée), on retombe sur la mesure d'origine. */
+    const btd=bt.querySelector('.bt-d');
+    const enLigne=!!btd&&getComputedStyle(btd).display!=='none'&&btd.getBoundingClientRect().width>0&&/adulte/.test(btd.textContent)
+      &&bt.scrollWidth<=bt.clientWidth+1&&bt.scrollHeight<=bt.clientHeight+1;
     const crise=Object.assign(lire(),{titreBarre:bt.textContent.trim(),
-      disc:discVu&&!bt.contains(bd)&&bt.scrollWidth>bt.clientWidth,
+      disc:enLigne||(discVu&&!bt.contains(bd)&&bt.scrollWidth>bt.clientWidth),
       /* v5.6 (A14) : la pilule de mode a cédé la place au SUR-TITRE, dans la zone d'identité. */
       pilule:!document.getElementById('brandSur').hidden});
     state.previewFrom='edit';render();await __acCalme(400);
@@ -2336,7 +2342,7 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
   t('témoin : la crise est bien à l’écran (pilule de mode posée)', R.crise.pilule===true, String(R.crise.pilule));
   t('crise ordinaire : aucun bandeau, le titre est dans la barre',
     R.crise.vu===false&&R.crise.titreBarre.length>0, JSON.stringify(R.crise));
-  t('… et le discriminant SURVIT à la troncature du titre (K6), hors de la chaîne ellipsée',
+  t('… et le discriminant reste LISIBLE (K6) : titre entier à la ligne (A571), ou hors de la chaîne ellipsée',
     R.crise.disc===true, String(R.crise.disc));
   t('le bandeau ne porte plus AUCUN titre (purgé)', R.crise.titreDansBandeau===false, String(R.crise.titreDansBandeau));
   /* L'ESSAI N'EST PAS UNE EXCEPTION AU SENS DU BANDEAU : la barre y dit déjà tout, il ne manquait
@@ -6110,7 +6116,7 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
     const n = main.querySelector('[data-ovnext]'); if (n) n.click(); await __acCalme(500); });
   const d1 = await lire();
   t('témoin : la ligne-bilan des blocs faits l\'a bien absorbée',
-    /Fait/.test(d1.lbl || '') && /diagnostic confirmé/i.test(d1.lbl || ''), d1.lbl);
+    /^Historique · 1 bloc$/.test((d1.lbl || '').trim()), d1.lbl);   // A571 : « Historique · n blocs », la confirmation est DEDANS (rangée en tête du déplié)
   t('… et la ligne n\'a pas déménagé (A107)',
     d1.enTete === true && d1.y != null && Math.abs(d1.y - d0.y) <= 2, `${d0.y} → ${d1.y} px`);
 
@@ -8887,10 +8893,12 @@ await sec('Session · A535 rail : « − 1 + », minuteur gris, jalon à jauge',
     const x=sel=>Math.round(c.querySelector(sel).getBoundingClientRect().left);
     const sonde=document.createElement('i');sonde.style.cssText='background:var(--amb-2);position:absolute';document.body.appendChild(sonde);const gris=getComputedStyle(sonde).backgroundColor;sonde.remove();
     const tm=S.querySelector('.tmcard:not(.due)'),jl=S.querySelector('.rt-jl');
-    return {ordre:x('[data-cndec]')<x('.cn-val')&&x('.cn-val')<x('[data-cninc]'),tm:tm?getComputedStyle(tm).backgroundColor===gris:null,
+    /* A571 (renverse l'aplat gris d'A535) : le minuteur est une RANGÉE d'une liste groupée, sa commande visible. */
+    const mb=tm&&tm.querySelector('.tm-main');
+    return {ordre:x('[data-cndec]')<x('.cn-val')&&x('.cn-val')<x('[data-cninc]'),tm:tm?(!!tm.closest('.rt-gl')&&!!mb&&!!mb.offsetParent&&getComputedStyle(tm).backgroundColor!==gris):null,
       pips:jl?jl.querySelectorAll('.mo-pips i').length:-1,sous:!!(jl&&jl.querySelector('.rt-jlc small'))};});
   t('A535 · compteur du rail : « − valeur + »',r.ordre===true,JSON.stringify(r));
-  t('A535 · carte de minuteur du rail en aplat gris',r.tm===true,JSON.stringify(r));
+  t('A571 · minuteur du rail : une rangée de liste, « Démarrer » visible (renverse l\'aplat gris d\'A535)',r.tm===true,JSON.stringify(r));
   t('A535 · jalon : jauge à points et texte de l\'auteur en sous-ligne',r.pips>=2&&r.sous,JSON.stringify(r));
   await page.close();
 });
@@ -9457,7 +9465,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
 /* A309 — dans le RAIL, les deux ajouts (minuteur, compteur) tiennent sur une rangée sous les
    compteurs, cibles de 44 px gardées, le choix de durée s'ouvre SOUS la rangée ; le volet étroit
    garde « ＋ Minuteur » dans sa famille. */
-await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async () => {
+await sec('RAIL · chaque ajout au pied de sa liste (A571, ex-A309)', async () => {
 {
   const page=await br.newPage({viewport:{width:820,height:1180}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -9467,27 +9475,27 @@ await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async ()
   const mesure=()=>page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
     const side=document.querySelector('.read-side'),tm=side&&side.querySelector('[data-rtadd]'),cn=side&&side.querySelector('[data-cnadd]');
     if(!tm||!cn)return {absent:true,tm:!!tm,cn:!!cn};
-    const row=tm.closest('.rt-adds');const cnt=side.querySelector('.rt-counters');
-    const out={memeRangee:!!row&&row===cn.closest('.rt-adds'),
-      apresCompteurs:!!cnt&&!!row&&!!(cnt.compareDocumentPosition(row)&Node.DOCUMENT_POSITION_FOLLOWING),
+    /* A571 (renverse A309 dans le rail) : chaque ajout est la DERNIÈRE rangée de SA liste groupée. */
+    const gTm=tm.closest('.rt-gl'),gCn=cn.closest('.rt-gl');const cnt=side.querySelector('.rt-counters');
+    const out={memeRangee:!!gTm&&!!gTm.querySelector('.rt-grid')&&gTm.lastElementChild===tm,
+      apresCompteurs:!!gCn&&!!cnt&&gCn.contains(cnt)&&gCn.lastElementChild===cn,
       hTm:Math.round(tm.getBoundingClientRect().height),hCn:Math.round(cn.getBoundingClientRect().height),
-      coteACote:Math.abs(tm.getBoundingClientRect().top-cn.getBoundingClientRect().top)<1,
-      rangeeH:row?Math.round(row.getBoundingClientRect().height):0};
+      coteACote:true,rangeeH:0};
     // A310 : le dock flottant s'aligne sur la colonne d'ACTION (même token que la grille).
     const dock=document.querySelector('#sessionDock .sd-in');
     out.dockEcart=dock?Math.round(dock.getBoundingClientRect().right-(side.getBoundingClientRect().left-20)):null;
     tm.click();await __acCalme(300);
-    const d=document.querySelector('.read-side .tm-add-d');const r2=document.querySelector('.read-side .rt-adds');
+    const d=document.querySelector('.read-side .tm-add-d');const r2=document.querySelector('.read-side [data-rtadd]').closest('.rt-gl');
     out.choixSousLaRangee=!!d&&!!r2&&d.getBoundingClientRect().top>=r2.getBoundingClientRect().bottom-1;
     out.durees=document.querySelectorAll('.read-side [data-rtnew]').length;
     document.querySelector('.read-side [data-rtadd]').click();await __acCalme(200);
     return out;});
   const r=await mesure();
-  t('rail : « ＋ Minuteur » et « ＋ Compteur » sur la même rangée',r.memeRangee===true,JSON.stringify(r));
-  t('… placée APRÈS les compteurs',r.apresCompteurs===true,JSON.stringify(r));
-  t('… côte à côte, cibles ≥ 44 px',r.coteACote&&r.hTm>=44&&r.hCn>=44,JSON.stringify([r.coteACote,r.hTm,r.hCn]));
+  t('rail (A571) : « Ajouter un minuteur » au pied de la liste des minuteurs',r.memeRangee===true,JSON.stringify(r));
+  t('… « Ajouter un compteur » au pied de la liste des compteurs',r.apresCompteurs===true,JSON.stringify(r));
+  t('… rangées de 44 px au moins',r.hTm>=44&&r.hCn>=44,JSON.stringify([r.hTm,r.hCn]));
   t('le dock flottant s\'arrête au bord de la colonne d\'action (A310)',r.dockEcart!==null&&Math.abs(r.dockEcart)<=3,`écart ${r.dockEcart} px (2 px de rembourrage attendus ; −42 avant A310)`);
-  t('le choix de durée s\'ouvre sous la rangée',r.choixSousLaRangee===true&&r.durees===4,JSON.stringify([r.choixSousLaRangee,r.durees]));
+  t('le choix de durée s\'ouvre sous la liste des minuteurs',r.choixSousLaRangee===true&&r.durees===4,JSON.stringify([r.choixSousLaRangee,r.durees]));
   // ÉTROIT : le volet garde l'ordre par famille (« ＋ Minuteur » avant les compteurs).
   await page.setViewportSize({width:430,height:900});await calme(page, 500);
   const e=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));

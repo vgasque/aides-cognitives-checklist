@@ -1704,3 +1704,62 @@ raison, A345).
 ajouté après la mesure) ; réécrits sciemment : A377 (le compte obtenu), A440 (« +1 », « relance à », « annulable »),
 A569 (capitales) ; sonde « DÉMARRAGE » à 390 : le cas est rallongé (étapes plus denses), le seuil n'est pas relâché.
 `tests.html` : `wtCountModel` et `wtTimerModel` aux mots d'A570.
+
+## A571 — La session, deuxième passe Natif : l'historique en texte, le quai aligné, les sections en liste, le rail en rangées (v5.89.0)
+
+*Demande de l'auteur (06/11/2026) : « revois le design du mode session […] se rapprocher d'un design iOS / Material
+Design 3 […] montre-moi avant ». Méthode : captures de la v5.88.1 (390 et 1440 px, clair et sombre) contre une planche
+avant · après à flèches, arbitrée point par point par l'auteur (planche « Session Natif, passe 2 »). A569-A570 ayant déjà
+refait les étapes, la passe ne touche que ce qui les entoure.*
+
+1. **Le titre de session passe à la ligne (deux lignes au plus) au lieu de se couper** (« Arrêt cardiaque (ACR) — al… »).
+   Le discriminant le SUIT dans le texte (copie `.bt-d` dans `#brandTitle`, `#brandDisc` masqué en session) — A519 §3
+   tenu à la lettre. L'en-tête prend une ligne de plus quand le titre en a besoin ; sa hauteur ne change pas en cours de
+   session (C16), `--hdr-h` est mesurée.
+2. **La capsule** : le ▾ de 10 px collé au bord devient le chevron de l'app (`chevHtml`) dans un rond de 32 px
+   (`.cbt-cv`). La capsule entière reste la cible, comme avant.
+3. **L'historique redevient discret, et ne coupe plus (amende A369, A510).** Plus de pilule : une ligne de TEXTE gris
+   (13,5 / 600, sans fond ni bord, 32 px, halo de 44) ; le mot « Parcours » part (arbitrage de l'auteur, il prenait la place
+   qui coupait le libellé) ; le compte « x/y étapes » reste à droite, même voix. Le libellé dit ce que c'est :
+   **« Historique · diagnostic confirmé »**, puis **« Historique · n blocs »** (« 1→2 · diagnostic confirmé » était coupé
+   et peu clair ; la confirmation reste en tête, dedans). Ouvert, c'est une boîte EN RETRAIT au gris d'ambiance
+   (`--amb-2`, plus une carte blanche) : « ✓ Diagnostic confirmé · n critères », les critères serrés dessous (✓ gris au
+   lieu de ■), puis les blocs faits. Plus bas dans le fil (après une excursion), une série repliée dit « Fait · n blocs ».
+   *Formes écartées* : la rangée blanche pleine largeur de la première planche (« j'aimais bien l'historique en tout
+   petit car il n'attirait pas l'attention ») ; « Déjà fait · … » ; « Fait · … » gardé.
+4. **Les boutons du pied de bloc en capsules de 48 px, 15 px gras** : « Cochez les 2 restantes » tenait sur deux lignes
+   (70 px) à 390 px. Mots, registres et ordre inchangés (A235, A375, A534).
+5. **Le quai aligné (renverse le filet d'A355).** Quai et touches en pilules concentriques ; les filets verticaux
+   partent. **Au téléphone** (< 560 px effectifs) : icône dans une case de 20 px AU-DESSUS du mot, aligné PAR LE HAUT
+   (centrées, une complication à nom sur deux lignes faisait monter son éclair) ; chaque touche prend la largeur de son
+   mot plus une part égale du reste (`flex:auto`) — à largeur égale, « Tout voir » s'écrasait sur deux lignes à côté
+   d'un « Bronchospasme » entouré de vide ; « Tout voir » et « Horodater », dont le mot change en cours de session,
+   ont une base FIXE (leur largeur ne bouge pas quand le mot change, T8) ; sous 360 px effectifs les crans d'A465/A568
+   reprennent, à largeur égale, avec deux lignes réservées. **Dès 560 px effectifs, si tous les mots tiennent**
+   (décidé à la MESURE du quai par `fitQuaiLbls`, classe `sd-h` — au bureau à 130 % le quai est étroit) : icône À
+   GAUCHE du mot, une ligne, touches de 48 px (quai de 60 px) ; sinon icône au-dessus, puis les crans.
+   *Forme écartée (par l'auteur, à l'usage)* : deux lignes de mot RÉSERVÉES dans chaque touche pour que la hauteur ne
+   dépende pas des libellés — « pas très beau […] beaucoup d'espace vide, sur desktop c'est pire » (78 px, la moitié
+   vide au bureau). **« Complications · n » devient « Complications » avec
+   le nombre en pastille ambre sur l'éclair** (`.dp-bdg`) : à 12,5 px le mot se coupait avant « · 3 ». Le nombre reste
+   collé au nom qu'il compte ; le nom accessible garde « n complications prévues ». Éprouvé sur planche avec tous les
+   libellés possibles (nom court, nom de 20 signes, plusieurs, aucune, retour vert « Un bloc »), à 390 et 320 px.
+   *Forme écartée* : « Horodater » détaché en bouton à part, comme le rond de recherche d'iOS 26 (B : à 320 px la
+   complication n'avait plus que 55 px).
+6. **Les sections sous le bloc en UNE liste groupée « Pendant toute l'aide » (amende A519, qui les gardait en cartes).**
+   Un seul fond, filets qui commencent au texte (56 px), pastilles grises — seul le « ! » de « Ne pas oublier » garde
+   son rouge —, chevron › qui pivote vers le bas à l'ouverture ; chaque section se déplie sur place, comme avant
+   (`data-sessfold`), son contenu aligné sur le titre. Les rappels restent entiers (pas de coupe au « : »). La note
+   locale prend le nom que lui donne l'éditeur, « Contexte local », sous le même dessin d'intertitre.
+   *Formes écartées* : deux groupes (« À tout moment » pour la revue, « Garder en tête ») ; sans intertitre ; la section
+   ouverte détachée en carte (dessin B).
+7. **Le rail du bureau en listes groupées (applique A506, renverse C79 « les commandes paraissent au tap » et A309).**
+   Minuteur : nom, temps mono dessous, « Démarrer » visible à droite ; « ↺ » seulement en marche ou en pause, barre de
+   progression sous la rangée. Compteur : nom et une capsule « − n + » (A535 tenu : la valeur entre ses boutons) au lieu
+   d'un − cerclé et d'un + bleu. « Ajouter un minuteur », « Ajouter un compteur » en rangées bleues au pied de LEUR liste
+   (plus deux boîtes en pointillés côte à côte). Jalons dans une liste. Son et veille en rangées à interrupteur sous
+   « Pendant la session » ; leurs libellés d'état (« Son activé », « Veille coupée ») sont gardés — la piste « Écran
+   toujours allumé » de la planche n'est pas appliquée, le bouton est partagé avec le volet étroit.
+
+**Mesuré (390 px, ACR, deux étapes cochées)** : haut du bloc 195 px (185 avant), bas des boutons 651 px (662 avant) ;
+icônes du quai sur une même ligne (4/4 au même y) ; quai de 63 px au téléphone, 60 px au bureau (78 avant).

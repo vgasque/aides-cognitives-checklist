@@ -35,7 +35,7 @@ const d1=await p.evaluate(async()=>{
  document.querySelector('#cxKey').click();await new Promise(r=>setTimeout(r,300));
  return {nb:btns.length,lbl,rows,on,couvre,ferme:document.getElementById('dockSheet').hidden};});
 t('UN SEUL bouton, mot constant + compte',
-  d1.nb===1&&/Complications\s*·\s*2/.test(d1.lbl[0]), JSON.stringify(d1.lbl));
+  d1.nb===1&&/^2\s*Complications$/.test(d1.lbl[0]), JSON.stringify(d1.lbl));   // A571 : « Complications » + le nombre en pastille sur l'éclair (textContent : « 2Complications »)
 t('l’index liste les 2 événements en grandes rangées',
   d1.rows.length===2&&/Laryngospasme/.test(d1.rows[0])&&/Anaphylaxie/.test(d1.rows[1]), JSON.stringify(d1.rows));
 /* ⚠ L'INDEX EST UN VOLET, PAS UNE FENÊTRE (v5.0.0, audit design ; v5.6 : il monte du dock) :
