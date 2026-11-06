@@ -863,6 +863,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     const fin=A.mdBlkMoveTo(B,0,4),tete=A.mdBlkMoveTo(B,3,0),mil=A.mdBlkMoveTo(B,0,2);
     return fin.v==='B.\n\nC.\n\nD.\n\nA.'&&fin.i===3&&tete.v==='D.\n\nA.\n\nB.\n\nC.'&&tete.i===0&&mil.v==='B.\n\nA.\n\nC.\n\nD.'
       &&A.mdBlkMoveTo(B,1,1)===null&&A.mdBlkMoveTo(B,1,2)===null&&A.mdBlkMoveTo(B,0,9)===null;})());
+  ok('A583 images : usages comptés comme le ménage de sortie, lignes retirées par identifiant exact', (()=>{
+    const B='Intro\n\n![](img:i_a)\n\ntexte ![](img:i_b) en ligne\n\n![légende](img:i_a)\n\n![](img:i_ab)';
+    const n=A.miUses(B),rx=A.miLineRx('i_a'),rest=B.split('\n').filter(l=>!rx.test(l)).join('\n');
+    return n.i_a===2&&!n.i_b&&n.i_ab===1&&Object.getPrototypeOf(n)===null
+      &&rest.indexOf('img:i_a)')<0&&rest.indexOf('img:i_ab)')>0&&rest.indexOf('img:i_b)')>0;})());
   group('mini-Markdown — listes cochables - [ ] (v4.6.0)');
   eq('- [ ] a → tâche non cochée, texte nettoyé', A.mdTask('[ ] a'), {done:false,text:'a'});
   eq('[x] et [X] → cochée', [A.mdTask('[x] a').done,A.mdTask('[X] a').done], [true,true]);

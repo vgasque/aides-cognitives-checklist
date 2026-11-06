@@ -1947,3 +1947,77 @@ de 52 à 75 px à 820 px dès le seuil franchi. Même traitement que la fenêtre
 (collante, donc ancêtre positionné), à droite, en languette sur le fond de page `--amb`. Mesuré en WebKit : 52 px à
 820 et à 1 180, de 100 % à 160 %. Au téléphone (390), la barre reste sur deux lignes avec ou sans annonce — ses six
 boutons ne tiennent pas dans 354 px ; ce n'est pas ce défaut et rien n'y change.
+
+## A583 — Les images d'une référence : une grille sous le texte, une feuille par image (v5.91.0)
+
+*Remplace la liste « Images insérées » (v4.4.3, v5.0.0) ; lève l'exception nommée en tête de l'ancienne `mdImagesHtml`
+(« cette section existe même vide ») ; consigne la sortie de `.mi-sc`/`.mi-ins` (refonte-v5-6, audit 9d). Option A de la
+planche Claude Design « Références — fichiers joints dans l'éditeur », retenue par l'auteur le 06/11/2026 (« pars sur
+l'option A »).*
+
+**Constat.** Une rangée par image (vignette, nom, « ＋ Insérer dans le texte », menu « Taille », avertissement), jusqu'à
+`MAX_IMG_PER_ENTITY` = 60 : 22 images faisaient ≈ 1 500 px de liste au bas de la carte du contenu rédigé, une rangée
+passant à la ligne sous 430 px. Et depuis A548 la taille se règle sur le bloc image ouvert : le menu de la liste faisait
+doublon. L'auteur trouvait aussi « perturbant » d'avoir les PDF au-dessus du texte et les images en dessous.
+
+**Décision.**
+- **Les PDF ne bougent pas** : ils sont au-dessus du texte parce qu'en lecture (`renderProtocolRead`) ils sont au-dessus
+  du texte — l'éditeur montre l'ordre lu (K1). Les images se lisent DANS le texte ; leur stock vient donc APRÈS lui.
+- **« Images du texte · n »** : une carte À SOI (`miCardHtml`) sous le contenu rédigé, présente ⇔ au moins une image
+  (règle « présent dans la porte ⇔ masqué quand vide », v4.76.0 — l'image entre dans la porte, `ED_PALETTE_P`, groupe
+  Contenu, « dans le texte »). Grille de vignettes carrées (`auto-fill`, 72 px au moins : quatre au rang d'un téléphone),
+  **repliée** au-delà de `MI_FOLD` = 8 (7 vignettes et une case « n de plus » ; « Replier » une fois dépliée, pour ce
+  brouillon). Bouton « Image » dans la tête de la carte ; le dépôt n'importe où dans l'éditeur (`upTarget`) et l'outil
+  de la barre restent ; la zone de dépôt permanente (`#pImgDrop`) part avec la liste. Mesuré à 390 : 22 images, carte
+  de 280 px repliée (616 dépliée).
+- **Une vignette dit son usage**, glyphe et mot (règle 8) : « ×n » à partir de deux passages, « △ hors texte » à zéro.
+  Même critère que le ménage de sortie (`leaveGC`) : `miUses` (pure, `Object.create(null)`, règle 6), peint sur place
+  au rythme débouncé de l'aperçu (`miPaintUse`).
+- **La toucher ouvre SA feuille** (`#miModal`, feuille du bas au téléphone et fenêtre centrée dès 780 — la grammaire de
+  « Réglages de l'étape », CSS partagé) : l'image ; « ✓ Dans le texte · n passages » ou « △ Absente du texte — sera
+  retirée en quittant l'éditeur » ; **Insérer au curseur** (champ actif d'A547) ; **Aller au passage** (fait le tour
+  des n passages : document par blocs ou aperçu → défile jusqu'à la figure, source → curseur posé sur la ligne) ;
+  **Taille** en pastilles (`MD_SCALES`, `mdb-chip` d'A548, écrite dans le modèle) ; **Remplacer…** (même identifiant :
+  tous les passages suivent) ; **Retirer de la référence** (l'image et ses lignes `![…](img:ID)`, toast « ↶ pour
+  annuler » — le re-rendu pose le point de reprise).
+
+*Forme écartée* (planche) : **B — une carte « Fichiers joints »** sous le texte, PDF et images ensemble, une seule zone
+de dépôt. Plus simple à expliquer, mais l'éditeur ne montrerait plus l'ordre lu : les PDF sont au-dessus du texte en
+lecture.
+**Retiré (règle 14)** : `mdImagesHtml`, `.md-imgs`, `.mi-row`, `.mi-th`, `.mi-cap`, `.mi-lab`, `.mi-sc` (le sélecteur ;
+le nom désigne désormais la rangée de pastilles de la feuille), `.mi-ins`, `.mi-un`, `[data-miscale]` sur un `<select>`,
+`[data-miref]`, `[data-miuse]`, `#pImgDrop`.
+Témoins : `tests.html` (« A583 images », `miUses`/`miLineRx`) ; `audit-a11y` « feuille d'une image » (ouverte par sa
+vignette dans un éditeur réel).
+
+## A584 — La taille d'une image se voit et se tire : pictogrammes et poignée (v5.92.0)
+
+*Amende A548 (taille du bloc image ouvert en pastilles « 25 % … 100 % ») et A583 (même rangée dans la feuille de
+l'image). Demande de l'auteur, 06/11/2026 : « aucun autre moyen plus intuitif de régler la taille, y compris en mode
+direct ? », puis, sur la planche, « taille par pictogrammes, implémente, mais regarde si tu ne peux pas faire encore
+plus intuitif et rapide ».*
+
+**Constat.** Un pourcentage ne dit pas ce qu'il produit, et sous 560 px la taille n'a aucun effet (`.md-fig` ne réduit
+qu'au-dessus) : au téléphone, l'auteur choisissait « 66 % » sans rien voir changer.
+
+**Décision — un seul composant, `mdSizeHtml`, dans le bloc ouvert ET dans la feuille de l'image :**
+- **Le cadre** (`.mds-frame`) est la colonne de lecture d'un grand écran (780 px au plus, la largeur de la page lue) ;
+  l'image y prend SA part, au téléphone aussi. Une phrase le dit sous 560 px : « Sur téléphone, l'image prend toujours
+  toute la largeur. » (`.mds-note`).
+- **La poignée** (`.mds-grip`, au bord droit de l'image) **se tire**, au doigt comme à la souris : l'image suit,
+  aimantée au cran le plus proche de `MD_SCALES`, la part affichée pendant le geste (« ½ · 50 % ») et le pictogramme
+  visé allumé ; relâcher **touche ce pictogramme** — un seul chemin d'écriture par appelant (`data-mdbscale`,
+  `data-miscale`). Ratio de deux mesures prises dans le même repère : le zoom de la page n'y entre pas.
+- **Six pictogrammes** (`.mds-o`) : une colonne et la part qu'occupe l'image, avec la fraction ¼ ⅓ ½ ⅔ ¾ et « Pleine » ;
+  nom accessible en mots, qui CONTIENT le mot visible (« ½ — la moitié de la largeur », WCAG 2.5.3). La poignée est
+  `aria-hidden` : les pictogrammes sont le chemin du clavier et du lecteur d'écran.
+- Largeurs par CLASSE du jeu fermé `MD_SC`, jamais un nombre interpolé dans un style — le `style="width:…%"` du bloc
+  ouvert d'A548 est parti.
+
+*Formes écartées* : un curseur continu (la taille est un jeu fermé de six crans ; un curseur promet une précision qui
+n'existe pas) ; régler la taille sur le document par blocs sans ouvrir le bloc (un toucher sur une image ouvre déjà le
+bloc ; une poignée sur chaque image rendue gênerait la lecture et le défilement au doigt).
+**Retiré (règle 14)** : les pastilles « n % » de la taille (`.mdb-chip[data-mdbscale]`, `.mi-sc` et sa ligne d'aide
+`.mi-sch`), l'image de tête de la feuille `.mi-big`, `.mdb-imgv img`.
+Témoins : `audit-doctrine` « Éditeur · A584 » (vrais événements souris ; vérifié capable d'échouer : rouge sur la
+v5.91.0) ; « Éditeur · A548 » inchangé (six `[data-mdbscale]`, l'image au-dessus du champ).

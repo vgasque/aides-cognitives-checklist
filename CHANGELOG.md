@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.92.0] — 2026-11-06
+La taille d'une image se voit et se tire (A584). Rien à rejouer côté serveur.
+- **Plus de pourcentages** : la taille d'une image se choisit parmi six pictogrammes, une colonne et la part qu'occupe
+  l'image (¼ · ⅓ · ½ · ⅔ · ¾ · Pleine), sur le bloc image ouvert comme dans la feuille de l'image.
+- **On voit le résultat** : l'image s'affiche dans un cadre qui représente la page lue sur grand écran, à la taille
+  choisie, même au téléphone. Une phrase rappelle qu'au téléphone l'image prend toujours toute la largeur.
+- **On peut tirer le bord** : la poignée bleue au bord de l'image se tire au doigt ou à la souris ; l'image s'aimante
+  à la taille la plus proche, affichée pendant le geste (« ½ · 50 % »).
+
+## [5.91.0] — 2026-11-06
+Les images d'une référence en grille, chacune avec sa feuille (A583). Rien à rejouer côté serveur.
+- **Dans l'éditeur d'une référence, les images forment une carte « Images du texte »** sous le contenu rédigé : une
+  grille de vignettes, repliée à deux rangs (« n de plus » pour déplier). Elle remplace la liste d'une rangée par
+  image, qui pouvait occuper plusieurs écrans.
+- **Chaque vignette dit son usage** : « ×2 » quand l'image sert à deux passages, « △ hors texte » quand plus aucun
+  passage ne l'affiche (elle sera retirée en quittant l'éditeur, comme avant).
+- **Toucher une image ouvre sa feuille** : insérer au curseur, aller au passage (un toucher de plus passe au suivant),
+  taille d'affichage, remplacer (tous les passages suivent), retirer de la référence (avec ↶ pour annuler).
+- **« Image » entre dans le bouton « Ajouter »** de la référence. Déposer une image n'importe où dans l'éditeur et
+  l'outil image de la barre marchent toujours.
+- Les documents PDF restent au-dessus du texte : c'est là qu'ils s'affichent en lecture.
+
 ## [5.90.2] — 2026-11-06
 Un correctif de la Page en session (A582). Rien à rejouer côté serveur.
 - **En session, zoomer la Page « Tout voir » ne dérange plus la barre d'échelle** : quand la feuille dépasse, « la
@@ -206,22 +228,3 @@ redimensionnement (A557). Doctrine `docs/decisions/lot-v6-0.md`. Rien à rejouer
 - **Zoom et taille de fenêtre** : agrandir ou réduire la fenêtre pendant qu'une image, un PDF ou la Page est zoomé
   garde l'endroit regardé (le PDF restait sur une autre page).
 - En large (tablette, ordinateur), l'accueil ne change pas.
-
-## [5.81.0] — 2026-11-04
-Pincer pour zoomer une image ouverte (A555, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Une image jointe qu'on ouvre se pince comme la Page et les PDF** : elle s'ouvre ajustée à l'écran, le pincer
-  l'agrandit jusqu'à ×6 en gardant l'endroit pincé sous les doigts, et l'on s'y déplace au doigt. Nette au lâcher.
-- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
-- Toucher le fond autour de l'image la ferme toujours ; lever les doigts après un pincer ne ferme rien.
-
-## [5.80.0] — 2026-11-04
-Pincer pour zoomer, comme sur une feuille : la Page d'une aide et les documents PDF (A554, doctrine
-`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Pincer à deux doigts agrandit ou réduit la Page** (fenêtre « Tableau » et Page dans l'aide) **et les documents
-  PDF**, en suivant les doigts sans délai ; l'endroit pincé reste sous les doigts, et l'on peut déplacer la feuille
-  en pinçant. Au lâcher, le texte redevient net à la nouvelle taille.
-- Le glisser à un doigt ne change pas. Les boutons − / ＋ / ⤢ restent.
-- **Sur ordinateur** : Ctrl + molette, ou le pincer du pavé tactile, font le même geste.
-- **PDF** : plus de page blanche le temps du rendu après un zoom (l'ancienne image reste jusqu'à la nouvelle), et
-  un document très agrandi ne s'affiche plus en blanc sur iPhone (taille d'image plafonnée).
-- Lever les doigts après un pincer n'ouvre plus par accident un bloc ou un lien.

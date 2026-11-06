@@ -234,6 +234,11 @@ const SURFACES = [
   { nom:'tableau en grille',   w:390,  scope:'#mdToolModal', fn: async()=>{
       const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'| Médicament | Dose |\n|---|---|\n| Adrénaline | 0,5 mg |'});
       protocols.push(p);await openProtocolEdit(p.id);const ta=document.getElementById('p-body');ta.focus();ta.setSelectionRange(2,2);mdTblOpen(ta); } },
+  /* A583 : la feuille d'une image de référence, ouverte par sa vignette dans un éditeur réel. */
+  { nom:'feuille d’une image', w:390,  scope:'#miModal', fn: async()=>{
+      const c=document.createElement('canvas');c.width=8;c.height=6;const data=c.toDataURL('image/png');
+      const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'![](img:i_a)',images:[{id:'i_a',data,w:8,h:6,caption:'',scale:100}]});
+      protocols.push(p);await openProtocolEdit(p.id);await __acCalme(200);document.querySelector('[data-mitile]').click(); } },
   { nom:'texte collé',         w:390,  scope:'#mdToolModal', fn: async()=>{
       const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'a'});
       protocols.push(p);await openProtocolEdit(p.id);const ta=document.getElementById('p-body');

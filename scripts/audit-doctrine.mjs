@@ -8770,6 +8770,35 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
   await page.close();
 });
 
+/* ══ A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE ═══════════════════════════════════════════════════════════
+   Bloc image ouvert : six pictogrammes (¼ … Pleine), nommés en mots ; tirer la poignée du cadre jusqu'à la moitié
+   l'aimante à 50 % (bulle « ½ · 50 % » pendant le geste), écrit le modèle, le texte inchangé ; la feuille de l'image
+   porte le même composant. Vrais événements souris. */
+await sec('Éditeur · A584 taille d\'une image par pictogrammes et poignée', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const c=document.createElement('canvas');c.width=40;c.height=30;c.getContext('2d').fillRect(0,0,40,30);
+    const pr=migrateProtocol({title:'Témoin A584',body:'Avant.\n\n![](img:i1)\n\nFin.',images:[{id:'i1',data:c.toDataURL('image/png'),w:40,h:30,scale:100}]});protocols.push(pr);await openProtocolEdit(pr.id);});
+  await calme(page, 500);
+  await page.evaluate(()=>{[...document.querySelectorAll('#mdDoc .mdb')].find(b=>b.querySelector('img')).click();});await calme(page, 300);
+  const o=await page.evaluate(()=>{const b=[...document.querySelectorAll('#mdDoc .mds-o')];
+    return {mots:b.map(x=>x.textContent).join('|'),noms:b.every(x=>x.getAttribute('aria-label').startsWith(x.textContent+' — ')),on:(document.querySelector('#mdDoc .mds-o.on')||{}).textContent};});
+  const g=await (await page.$('#mdDoc [data-mdsgrip]')).boundingBox(),fr=await (await page.$('#mdDoc [data-mdsframe]')).boundingBox(),t0=await page.evaluate(()=>state.pdraft.body);
+  await page.mouse.move(g.x+g.width/2,g.y+g.height/2);await page.mouse.down();await page.mouse.move(fr.x+fr.width*0.5,g.y+g.height/2,{steps:6});
+  o.bulle=await page.$eval('#mdDoc .mds-tip',x=>x.hidden?'':x.textContent);
+  await page.mouse.up();await calme(page, 300);
+  Object.assign(o,await page.evaluate(t0=>({modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,on2:(document.querySelector('#mdDoc .mds-o.on')||{}).textContent,ouvert:!!document.querySelector('#mdDoc .mdb-ta')}),t0));
+  await page.evaluate(()=>document.querySelector('[data-mdbact="done"]').click());await calme(page, 200);
+  await page.click('[data-mitile]');await calme(page, 300);
+  o.feuille=await page.evaluate(()=>({n:document.querySelectorAll('#miBody .mds-o').length,on:(document.querySelector('#miBody .mds-o.on')||{}).textContent,cadre:!!document.querySelector('#miBody [data-mdsgrip]')}));
+  t('A584 · pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine, nommés en mots, la taille courante allumée',o.mots==='¼|⅓|½|⅔|¾|Pleine'&&o.noms&&o.on==='Pleine',JSON.stringify(o));
+  t('A584 · tirer la poignée jusqu\'à la moitié : bulle « ½ · 50 % », modèle à 50, texte inchangé, bloc toujours ouvert',
+    o.bulle==='½ · 50 %'&&o.modele===50&&o.texte&&o.on2==='½'&&o.ouvert,JSON.stringify(o));
+  t('A584 · la feuille de l\'image porte le même composant (cadre, poignée, six pictogrammes)',o.feuille.n===6&&o.feuille.on==='½'&&o.feuille.cadre,JSON.stringify(o.feuille));
+  await page.close();
+});
+
 /* ══ A561 — TOUCHER À CÔTÉ REPOSE L'OBJET, DANS LES DEUX ÉDITEURS ══════════════════════════════════════════════
    Vrais clics souris (l'écouteur est en capture sur `document`) : prendre, toucher une zone neutre, plus de mode ;
    et le tap qui repose est absorbé (il n'ouvre pas le bloc touché). Poser sur une cible marche toujours. */
