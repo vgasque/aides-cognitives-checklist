@@ -226,15 +226,3 @@ Pincer pour zoomer une image ouverte (A555, doctrine `docs/decisions/lot-v6-0.md
   l'agrandit jusqu'à ×6 en gardant l'endroit pincé sous les doigts, et l'on s'y déplace au doigt. Nette au lâcher.
 - Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
 - Toucher le fond autour de l'image la ferme toujours ; lever les doigts après un pincer ne ferme rien.
-
-## [5.80.0] — 2026-11-04
-Pincer pour zoomer, comme sur une feuille : la Page d'une aide et les documents PDF (A554, doctrine
-`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Pincer à deux doigts agrandit ou réduit la Page** (fenêtre « Tableau » et Page dans l'aide) **et les documents
-  PDF**, en suivant les doigts sans délai ; l'endroit pincé reste sous les doigts, et l'on peut déplacer la feuille
-  en pinçant. Au lâcher, le texte redevient net à la nouvelle taille.
-- Le glisser à un doigt ne change pas. Les boutons − / ＋ / ⤢ restent.
-- **Sur ordinateur** : Ctrl + molette, ou le pincer du pavé tactile, font le même geste.
-- **PDF** : plus de page blanche le temps du rendu après un zoom (l'ancienne image reste jusqu'à la nouvelle), et
-  un document très agrandi ne s'affiche plus en blanc sur iPhone (taille d'image plafonnée).
-- Lever les doigts après un pincer n'ouvre plus par accident un bloc ou un lien.
