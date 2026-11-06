@@ -868,8 +868,19 @@ réservé à « Plein écran ».
   jamais à la sonnerie ; il reste « Échu » entre les deux.
 - **Le MOMENT d'une étape** dans un bloc parcouru plusieurs fois (A382, A474) : à partir d'un seuil
   de compteur, ou à l'échéance d'un minuteur. Avant son moment, l'étape reste visible, sa case
-  ESTOMPÉE, et sa jauge vit DANS l'étiquette du seuil (« CHOCS DÉLIVRÉS ≥ 3 ●○□ ») ; « Faire
-  maintenant » au bout de la rangée ; jamais elle ne retient « Continuer ».
+  ESTOMPÉE, et sa jauge vit DANS l'étiquette du seuil (« CHOCS DÉLIVRÉS ≥ 3 ●●○ ») ; jamais elle
+  ne retient « Continuer ». **A570 — une place par chose** : la TÊTE (au-dessus du libellé, 3 px)
+  dit quand et quel risque, en mots nus d'une seule typographie (registre, moment, état —
+  « ✓ À L'ÉCHÉANCE » quand l'échéance arrive, comme un seuil atteint, « ✓ DÉJÀ FAITE » —,
+  vérification ; aucun fond ; une seule coche, l'icône de la case) ; le minuteur qu'attend une étape « à l'échéance » s'y
+  lit à côté de sa condition. Le MILIEU est le geste (une seule taille de libellé). Le PIED dit ce
+  que fait la coche (« +1 Chocs délivrés », « 04:00 Adrén. dose », « annulable 9 s ») et porte
+  rien d'autre : pour cocher une étape avant son moment, on touche sa case, et la ligne du dessous
+  dit ce qui reste — « Prévue dans 2 chocs délivrés. », « Prévue dans 03:56. » — avec « Cocher » /
+  « Annuler ». Aucune ligne vide sous une étape en attente. Une seule police
+  dans la rangée : la réponse attendue en Manrope 15 / 500, encre douce (distincte du libellé par
+  la taille et l'encre) ; le mono ne reste qu'aux chronos de la capsule et du moniteur. Les étapes forment une LISTE À FILETS : aucun cadre,
+  aucun aplat de rangée ; l'état se lit par la case et l'encre (seule l'étape à faire est noire).
 - Micro-mouvements (A378) : cocher fait MONTER le chiffre ou REMPLIR l'anneau, décocher fait
   redescendre ; rien sous mouvement réduit.
 

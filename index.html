@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-gY/MCghpuGOd3uaa2o1bo1pIqUvVrB43KVrPxDoIhsc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rmnQzMxiaErjS7pU4pZLOnXtMcWBxl/qmvl+9H4tuUc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4074,16 +4074,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A382 — le moment d'une étape : la règle en étiquette, la progression sur la ligne du dessous ; pas encore = pointillé, sans case. */
   .stp-mk.mo{background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ink-2);color:var(--ink)}
   .stp-mk.mo-ok{background:var(--ok-soft);box-shadow:none;color:var(--ok)}
-  .stp-mk.mo-due{background:var(--warn-soft);box-shadow:none;color:var(--warn)}
   .stp-mk.mo-n{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
-  ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default;box-shadow:inset 0 0 0 1.5px var(--line)}
-  ol.steps li.mo-wait{box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  /* A569 : « faite une fois » (`mo-gone`) vit à plat, comme toute étape depuis A519 — son contour plein était le reste du
+     temps des tuiles (une rangée sans tuile devait encore se dessiner). Seule l'ATTENTE garde un contour (pointillé, A382). */
+  ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default}
+  ol.steps li.mo-wait{outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
   /* A474 (amende A382) : avant son moment, la case est là mais ESTOMPÉE — pleine et pâle, pas pointillée : le pointillé
-     se lisait « inatteignable », or « Faire maintenant » la coche à tout instant. Le contour de la rangée reste pointillé. */
+     se lisait « inatteignable », or on peut la cocher à tout instant (A570 §9 : la case elle-même, avec confirmation). */
   ol.steps li.mo-wait .box{border-color:color-mix(in srgb,var(--ctl-line) 50%,transparent);background:var(--work)}
   /* A474 — l'instant du seuil (geste local seulement) : l'étiquette verte et la case rebondissent, la rangée s'éclaire
      de vert pâle et revient. Peinture et transform, une fois, rien sous mouvement réduit. */
-  @keyframes moOpen{0%,25%{background-color:var(--ok-soft)}100%{background-color:var(--amb-2)}}
+  @keyframes moOpen{0%,25%{background-color:var(--ok-soft)}100%{background-color:transparent}}   /* A569 : vers la rangée À PLAT (A519) — finir sur --amb-2 rallumait l'ancienne tuile grise, puis la coupait net */
   @media (prefers-reduced-motion:no-preference){
     ol.steps li.mo-open{animation:moOpen 1.2s ease-out}
     ol.steps li.mo-open :is(.box,.stp-mk.mo-ok){animation:pop .3s ease-out}
@@ -4093,8 +4094,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li:is(.mo-wait,.mo-gone) .txt{color:var(--ink-2)}
   .mo-line{display:flex;align-items:center;gap:8px;margin-top:6px}
   .mo-line .wt{flex:0 1 auto;min-width:0;margin-top:0}
-  .stp-now{position:relative;flex:none;margin-left:auto;height:28px;padding:0 10px;border:0;border-radius:var(--r-1);background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ctl-line);font-family:inherit;font-size:var(--t-meta);font-weight:700;white-space:nowrap;color:var(--ink);cursor:pointer}
-  .stp-now::after{content:"";position:absolute;inset:-8px -4px}   /* cible 44 px (règle 9, halo admis) */
   /* A474 : la jauge dans l'étiquette du seuil — points ronds, le dernier repère carré (la case), à l'encre de l'étiquette. */
   .mo-pips{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:-1px}
   .mo-pips i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
@@ -4126,7 +4125,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rv-step.done .rv-ring .rg-fg{stroke:var(--ok)}
   .rv-ring .ic{color:var(--ok)}
   .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--ink-2)}
-  .kline b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700}
+  .kline b{font-family:var(--f-ui);font-variant-numeric:tabular-nums;font-weight:700}   /* A570 : une police dans la rangée */
   .kline.ok{color:var(--ok)}
   /* Ouverte : des JETONS, pas une liste — ni case à gauche ni numéro, la coche se pose à DROITE (le libellé ne
      bouge pas sous le doigt, A9). Le nombre de colonnes suit le PLUS LONG libellé (`--rv-ch`, en caractères,
@@ -4142,7 +4141,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La réponse SUIT le libellé dans la ligne (elle passait dessous : 56 px par jeton, huit jetons = un écran),
      et cocher ne déplace rien : ni « ✓ » devant la réponse, ni changement de graisse — seule la coche à droite. */
   :root ol.steps.rev li .stp-r{display:inline;margin-top:0;font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
-  :root ol.steps.rev li.done .stp-r::before{content:none}
   :root ol.steps.rev li.done .txt{font-weight:700}
   /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, ANCRÉE SUR LUI (bord gauche
      du texte, 4 px au-dessus) et non sur la rangée : un décalage écrit en px supposait une case et une gouttière
@@ -4197,16 +4195,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
-  ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
-  ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
-  ol.steps li .stp-vf.gap{color:var(--warn);background:var(--warn-soft);border:1px solid var(--warn-line)}
+  /* A570 : la trace monte dans la TÊTE de l'étape, mot nu comme les autres (« ✓✓ CONSTATÉ » vert, « △ ÉCART » ambre) —
+     elle n'est plus une quatrième forme d'étiquette, en pilule à droite de la rangée. */
+  ol.steps li .stp-mks .stp-vf.ok{color:var(--ok)}
+  ol.steps li .stp-mks .stp-vf.gap{color:var(--warn)}
   /* A377 — légende d'un objet lié : 24 px réservés dans tous les états (A9), aplat ambre à
      l'échéance seulement (A11) ; le débord de 8 px garde le texte aligné sur le libellé. */
   .wt{display:flex;align-items:center;gap:6px;width:fit-content;max-width:calc(100% + 8px);box-sizing:border-box;height:24px;margin:6px 0 0 -8px;padding:0 8px;border-radius:var(--r-1);min-width:0;font-size:var(--t-body);font-weight:600;line-height:24px;letter-spacing:0;text-transform:none;color:var(--ink-2);white-space:nowrap}
   .wt-g{flex:none;width:14px;height:14px;color:var(--ink-2);overflow:visible}
   .wt-r0{fill:none;stroke:var(--primary-200);stroke-width:2.2}
   .wt-r1{fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:28.27;stroke-linecap:round;transform:rotate(-90deg);transform-origin:6px 6px}
-  .wt-v{flex:none;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+  .wt-v{flex:none;font-family:var(--f-ui);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}   /* A570 : une police dans la rangée — chiffres tabulaires ; le mono reste à la capsule et au moniteur */
   .wt-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
   .wt-e{flex:none;font-weight:800;color:var(--warn)}
   .wt-vb{display:inline-block}
@@ -4220,7 +4219,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.has-wt .txt{padding-top:6px}   /* 1ʳᵉ ligne du libellé centrée sur la case de 36 px */
   /* Mouvements — chacun répond à UN geste et dit ce qu'il a fait (lot-v5-31.md, A378) : cocher
      fait MONTER (le chiffre) ou REMPLIR (l'anneau, relancé depuis zéro), décocher fait REDESCENDRE ;
-     le filet sous « décocher annule » se vide avec la fenêtre de 10 s ; l'échéance se pose en
+     le filet sous « annulable » se vide avec la fenêtre de 10 s ; l'échéance se pose en
      fondu. transform/opacity/peinture seulement, une fois ; phase par --wt-d (délai négatif). */
   @keyframes wtRoll{0%{transform:translateY(55%);opacity:0}100%{transform:none;opacity:1}}
   @keyframes wtBack{0%{transform:translateY(-55%);opacity:0}100%{transform:none;opacity:1}}
@@ -4263,9 +4262,70 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
         lecteur d'écran (A345). L'étiquette d'un seuil (A382) passe en aplat neutre, sans filet. */
   ol.steps li{background:none}
   ol.steps li.done{background:var(--ok-soft)}
-  ol.steps li .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){background:none;padding-left:0;padding-right:0}
-  ol.steps li.done .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-due):not(.mo-n){color:var(--ink-2)}
-  .stp-mk.mo{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
+  ol.steps li .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-n){background:none;padding-left:0;padding-right:0}
+  ol.steps li.done .stp-mk:not(.mk-dual):not(.mo):not(.mo-ok):not(.mo-n){color:var(--ink-2)}
+  /* A569 : l'aplat neutre ne vise que la RÈGLE en attente — écrit `.stp-mk.mo` nu, il venait après `.mo-ok` / `.mo-due` /
+     `.mo-n` à spécificité égale (`.mo-due` est PURGÉE en A570 §8 : l'échéance atteinte est un `.mo-ok`) et les éteignait tous : « ✓ Chocs délivrés ≥ 3 » (vert, A474), « Échu » (ambre, règle 8) et
+     « Faite » sortaient gris. */
+  .stp-mk.mo:not(.mo-ok,.mo-n){background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
+  /* ═══ A570 — LES ÉTAPES COMPLEXES : UNE LISTE À FILETS, UNE TÊTE EN MOTS, UN PIED COURT ═══════════════════════════
+     Une place par chose : la TÊTE dit quand et quel risque (registre, double contrôle, moment, vérification), le
+     MILIEU le geste (seul en gras, une seule taille, A345), le PIED ce que fait la coche (et la question de la case, §9).
+     Les étapes sont les rangées d'une liste groupée (A506) : un filet qui commence au texte, aucun cadre, aucun aplat
+     de rangée — la faite perd son vert (amende A519), l'attente et la revue leur pointillé (amende A382, A474,
+     A449). L'état se lit par la case et l'encre : à faire = case au trait et libellé noir ; faite = case verte et
+     encre douce ; en attente = case estompée, encre douce, sa condition en tête. Détail : lot-v6-0.md, A570. */
+  ol.steps:not(.rev)>li{position:relative;border-radius:0;background-color:transparent;outline:0}
+  ol.steps:not(.rev)>li+li{margin-top:0}
+  ol.steps:not(.rev)>li+li::before{content:"";position:absolute;top:0;left:60px;right:12px;height:1px;background:var(--line)}
+  :root ol.steps:not(.rev)>li.rv-step{outline:0}
+  :root ol.steps li.rv-step .rv-head>.txt{font-size:var(--t-step)}   /* une seule taille de libellé (amende A449 §4) */
+  /* La tête : des mots nus, une seule typographie ; seul l'échu porte un fond (A11 : il exige un geste maintenant). */
+  ol.steps li .stp-mks .stp-mk{background:none;box-shadow:none;padding:0;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+  /* La tête appartient à SON libellé : 3 px au-dessus de lui, 14 px sous le filet (maquette mesurée). Placée par rapport
+     au haut de la rangée (A381, top 8), elle remontait contre le filet et s'éloignait du libellé (12 px) — on la lisait
+     comme la fin de l'étape du dessus. Toute rangée à tête aligne donc sa case sur la 1ʳᵉ ligne du libellé (le pas des
+     rangées à légende, `has-wt`) : la tête est à la même distance du libellé quel que soit l'état. Des mots nus de 12 px
+     n'ont plus besoin des 32 px réservés à la pastille de 20 px : 28 (échelle fermée). */
+  ol.steps:not(.rev)>li:has(>.txt>.stp-mks),:is(html.zw360,html.zw300) ol.steps:not(.rev)>li:has(>.txt>.stp-mks){padding-top:28px;align-items:flex-start}
+  ol.steps:not(.rev)>li:has(>.txt>.stp-mks)>.txt{padding-top:6px}
+  ol.steps:not(.rev)>li>.txt>.stp-mks{top:17px}
+  ol.steps li.mo-gone{align-items:flex-start}
+  ol.steps li.mo-gone .txt{padding-top:6px;font-weight:600}   /* faite à un passage d'avant : l'encre et la graisse d'une étape cochée, la case sur sa 1ʳᵉ ligne comme ses voisines */
+  ol.steps li .stp-mks .stp-mk.mo{color:var(--ink-2)}
+  ol.steps li .stp-mks .stp-mk.mo-ok{color:var(--ok)}
+  ol.steps li .stp-mks .stp-mk.mk-dual{color:var(--ink-2)}
+  ol.steps li .stp-mks .stp-mk~.stp-mk::before{content:"·";margin-right:6px;color:var(--ctl-line)}
+  /* UNE seule coche dans l'étape : l'icône de la case, réduite, devant un mot de la tête (seuil atteint, déjà faite,
+     constaté) — plus de « ✓ » texte, ni devant la réponse (le relevé du challenge-response faisait doublon avec la
+     case verte). */
+  ol.steps li .stp-mks .mk-ck{display:inline-block;width:11px;height:11px;margin-right:4px;vertical-align:-1px}
+  ol.steps li .stp-mks .mk-ck+.mk-ck{margin-left:-8px}
+  /* Le minuteur qu'attend une étape « à l'échéance » est la JAUGE de sa condition : il se lit dans la tête, à côté
+     d'elle, comme les points d'un seuil (« À L'ÉCHÉANCE ◯ 03:57 »). */
+  ol.steps li .stp-mks .wt{display:inline-flex;height:12px;margin:0 0 0 6px;padding:0;background:none;box-shadow:none;line-height:12px;font-size:var(--t-meta);text-transform:none;letter-spacing:0;vertical-align:-1px}
+  ol.steps li .stp-mks .wt .wt-n{display:none}
+  ol.steps li .stp-mks .wt .wt-g{width:12px;height:12px}
+  /* Le pied d'une étape à moment est réservé dans tous ses états (A9) : vide, ou la question de la case, puis la légende. */
+  ol.steps li .mo-line{height:24px}
+  /* UNE police dans la rangée (amende A411, arbitrage de l'auteur sur planche « Polices et bouton », variante B) : la
+     réponse attendue reste DISTINCTE du libellé (challenge-response) par la taille, la graisse et l'encre — 15/500 en
+     encre douce contre 17,5/700 en encre pleine — et non plus par le mono, qui ne sert plus qu'aux chronos de la
+     capsule et du moniteur (sa place d'origine : « une valeur qui ne doit jamais être amputée »). La règle vit sur
+     `ol.steps li .stp-r`, plus bas (une surcharge ici perdait contre elle, à spécificité égale). */
+  /* A570 §9 — la case d'une étape en attente est un bouton : elle ARME, la ligne du dessous pose la question sur place. */
+  ol.steps li.mo-wait>button.box{padding:0;font:inherit;cursor:pointer}
+  ol.steps li.mo-wait>button.box:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  ol.steps li.mo-wait.armed>.box{border-color:var(--ink)}
+  ol.steps li .mo-line{flex-wrap:wrap;gap:4px 10px;height:auto;min-height:24px}
+  .mo-ask{font-size:var(--t-body);font-weight:500;color:var(--ink-2)}
+  .mo-ask .wt{display:inline-flex;height:auto;margin:0;padding:0;vertical-align:-2px}
+  .mo-ask .wt .wt-n{display:none}
+  :is(.stp-yes,.stp-no){position:relative;height:24px;padding:0 12px;border:0;border-radius:999px;font-family:inherit;font-size:var(--t-body);font-weight:700;white-space:nowrap;cursor:pointer}
+  :is(.stp-yes,.stp-no)::after{content:"";position:absolute;inset:-10px -4px}   /* cible 44 px (règle 9, halo admis) */
+  .stp-yes{background:var(--ink);color:var(--work)}
+  .stp-no{background:var(--amb-2);color:var(--ink)}
+  :is(.stp-yes,.stp-no):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on.pop svg{animation:pop .25s ease}   /* A487 : la seule étoile touchée — un re-rendu rejouait toutes les allumées */
   ul.flat{list-style:none;margin:0;padding:0}
@@ -5942,7 +6002,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.30 (A345) : le titre de bloc monte à --t-step-l ; sur une carte de DÉCISION c'est la
      QUESTION qui est l'acte (21), le titre redescend d'un cran pour la situer. */
   .ov-block.dec .ov-t{font-size:var(--t-step);font-weight:700}
-  .ov-t .pass-n{font-family:var(--f-mono);font-weight:600;color:var(--act);margin-left:6px;font-size:12px}
+  .ov-t .pass-n{font-family:var(--f-mono);font-weight:600;color:var(--act);margin-left:6px;font-size:12px;white-space:nowrap}   /* A569 : « passage » et « 4/4 » ne se séparent pas */
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
      ligne recouvrait la ligne de titre PRÉCÉDENTE quand le titre se replie (v4.13.1). */
@@ -6427,14 +6487,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'action) et son corps est --t-body — juste SOUS --t-item, jamais au-dessus (audit v5.10.0 :
      un canal au plancher 11 px n'est pas un canal) ; le cliquet de check-type suit.
      Détail : doctrine-css.md C107. */
-  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2);text-transform:none;line-height:1.35}   /* H4 (audit UX 27/09/2026) : casse de phrase — la réponse reste distincte du libellé (défi-réponse) par la police, les capitales ralentissaient la lecture (FAA HF-STD-001 : casse mixte pour le texte lu) */   /* v5.30 : une VALEUR à relire, pas un registre — l'ambre reste au mot VIGILANCE */
+  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--f-ui);font-size:var(--t-item);font-weight:500;letter-spacing:0;color:var(--ink-2);text-transform:none;line-height:1.35}   /* H4 (audit UX 27/09/2026) : casse de phrase — la réponse reste distincte du libellé (défi-réponse) par la police, les capitales ralentissaient la lecture (FAA HF-STD-001 : casse mixte pour le texte lu) */   /* v5.30 : une VALEUR à relire, pas un registre — l'ambre reste au mot VIGILANCE */
   /* ⚠ ENCORE `--ink-3` EN ENCRE DE TEXTE (v5.6, trouvé en inversant la portée) : 2,32:1 en clair
      et 4,11:1 en sombre sur la réponse attendue d'une étape COCHÉE — c'est-à-dire l'état le plus
      fréquent de l'écran, et exactement la faute que la v5.0.0 a corrigée sur le texte de l'étape
      elle-même (« une étape cochée reste lisible »). La pilule de réponse est ce qu'on RELIT pour
      vérifier ce qui a été fait : elle ne peut pas être la seule chose illisible de la ligne. */
   ol.steps li.done .stp-r{color:var(--ink-2);text-transform:none}
-  ol.steps li.done .stp-r::before{content:"✓ "}
   /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
   .v-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--act);margin:8px 0 2px}
   .v-hint-t{flex:1 1 auto;min-width:0}
@@ -9672,7 +9731,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.86.2';
+const APP_VERSION='5.88.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13850,6 +13909,11 @@ function visitNeed(b,seq,checked){const its=bItems(b),ck=checked||{};let tot=0,d
     const on=!!ck[seq+':'+b.id+':'+i];if(stepReq(stepMoment(its[i],seq,b.id,i),on)){tot++;if(on)dn++;}});
   return {tot,dn};}
 // L'étiquette du moment : [classe, mot]. La condition s'écrit comme celle d'un jalon.
+/* A570 §9 — ce qui RESTE avant un seuil, en mots : « 2 chocs délivrés », « 1 choc délivré » (singulier naïf : chaque mot
+   en -s perd son s ; un libellé qui ne s'y prête pas reste lisible). */
+function momRestLbl(f,it){const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter),r=Math.max(1,(+it.from.n||1)-momCn(it.from.counter));
+  const nm=(tmLabelParts(c&&c.label).name||'compteur').replace(/^./,x=>x.toLowerCase());
+  return r+' '+(r===1?nm.replace(/([A-Za-zÀ-ÿ]{3,})s\b/g,'$1'):nm);}
 const momFromLbl=(f,it)=>{const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter);return (tmLabelParts(c&&c.label).name||'Compteur')+' ≥ '+it.from.n;};
 /* A474 — la jauge d'un seuil `from` : N repères, le dernier dessiné comme une CASE (c'est là que l'étape devient
    cochable) ; même taille et même écart que les points, pour ne pas se lire comme un compte en plus. Au-delà de 8, n/N. */
@@ -13861,8 +13925,11 @@ function momGaugeHtml(it){if(!it||!it.from)return '';const n=momCn(it.from.count
 function momTag(f,it,mo){if(!mo)return null;
   const fl=()=>momFromLbl(f,it);
   if(mo.st==='wait')return mo.why==='due'?['mo','À l’échéance']:['mo',fl()];
-  if(mo.st==='met')return ['mo mo-ok','✓ '+fl()];
-  return {due:['mo mo-due','Échu'],gone:['mo mo-ok','Faite'],need:['mo mo-n','Au besoin']}[mo.st]||null;}
+  if(mo.st==='met')return ['mo mo-ok',fl()];   // A570 : la coche est l'icône de la case (stepsListHtml), plus un « ✓ » texte
+  /* A570 (arbitrages de l'auteur) : l'échéance atteinte s'écrit « ✓ À l'échéance », comme un seuil atteint — ni
+     « Échu » (l'état du minuteur), ni « △ À faire » sur fond ambre (il passait devant CRITIQUE) ; « Déjà faite » et non
+     « Faite » — sans numéro de passage ni T+, illisibles sous stress. */
+  return {due:['mo mo-ok','À l’échéance'],gone:['mo mo-ok','Déjà faite'],need:['mo mo-n','Au besoin']}[mo.st]||null;}   // A570 §8 : l'échéance atteinte s'écrit comme un seuil atteint (vert, cochée)
 // Un compte ou une échéance qui change les moments de la visite courante re-rend sa carte (ancrée).
 let _momSig=null;
 function momWatch(paint=true,skip=-1){const f=Runtime.fiche,ix=state.nav.length-1,b=f&&blocksById(f.blocks||[])[state.nav[ix]];
@@ -23396,15 +23463,15 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     const dl=!!(its&&its[i]&&its[i].dual);
     const ck=!!state.checked[k];
     const vg=!!(state.vgaps||{})[k],vv=!vg&&!!(state.verified||{})[k];
-    const tag=vg?'<span class="stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
-      :(vv?'<span class="stp-vf ok" title="Constaté pendant la vérification">✓✓ constaté</span>':'');
+    const tag=vg?'<span class="stp-mk stp-vf gap" title="Écart constaté pendant la vérification">△ écart</span>'
+      :(vv?'<span class="stp-mk stp-vf ok" title="Constaté pendant la vérification">'+uiIcon('check',11,{sw:3.4,cls:'mk-ck'})+uiIcon('check',11,{sw:3.4,cls:'mk-ck'})+'constaté</span>':'');   // A570 : un mot de la tête, la coche de la case (doublée)
     const cls=(stepIsCrit(st)?'crit ':(stepIsVigil(st)?'vigil ':''))+(ck?'done':'')+(vg?' vgap':'')
       +((opts.cur===i)?' cur-step':'');
     const dual=dl?'<span class="sr-only">À confirmer par les deux (AC 120-71B §5.2.2.5). </span><span class="stp-mk mk-dual" aria-hidden="true">Double contrôle</span>':'';   // N3 : un mot, plus un glyphe à infobulle
     const it=its&&its[i],mo=it&&stepMoment(it,seq,blockId,i),mm=ck&&mo?momDone(it):mo,mt=momTag(_f,it,mm);   // cochée : la règle reste, rien ne change sous le doigt
     /* A474 : la jauge du compteur vit DANS l'étiquette de son seuil (« CHOCS DÉLIVRÉS ≥ 3 ●●■ ») — sous le libellé,
        elle se lisait comme le compte de l'étape (« encore 3 » = cochable encore 3 fois). */
-    const tg=mt?`<span class="stp-mk ${mt[0]}">${esc(mt[1])}${mm&&(mm.st==='met'||mm.why==='from')?momGaugeHtml(it):''}</span>`:'';
+    const tg=mt?`<span class="stp-mk ${mt[0]}">${/mo-ok/.test(mt[0])?uiIcon('check',11,{sw:3.4,cls:'mk-ck'}):''}${esc(mt[1])}${mm&&(mm.st==='met'||mm.why==='from')?momGaugeHtml(it):''}${!ck&&mo&&mo.st==='wait'&&mo.why==='due'?wtSpanHtml('h|'+momTid(_f,it)):''}</span>`:'';   // A570 : « À L'ÉCHÉANCE ◯ 03:57 »
     /* A396 : l'étape-revue est la PORTE de sa revue — la grille se déplie dans sa boîte, la coche est celle des hypothèses. */
     if(it&&it.review){const rb=blocksById(_f.blocks||[])[it.review];
       /* A449 : fermée d'office (elle s'ouvrait tant qu'elle n'était pas faite — huit cases de plus dans le fil, qui
@@ -23412,21 +23479,30 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
       if(rb){const rs=revState(rb,REV_SEQ,state.checked),ro=state.revOpen||{},open=!!ro[rb.id];
         return `<li class="${cls}rv-step${rs.done?' done':''}${open?' open':''}"><div class="rv-head" role="button" tabindex="0" data-revtg="${esc(rb.id)}" aria-expanded="${open?'true':'false'}">${revRingHtml(rs)}${stepTxtHtml(st,{mark:true,tag:tg,after:revLineHtml(rs,open)})}</div>${open?revGridHtml(_f,rb):''}</li>`;}}
     let wt=(opts.wt&&linkOf(it))?wtSpanHtml('s|'+k)+(cnRelTid(_f,it)?wtSpanHtml('r|'+k):''):'';   // A377 : passage le plus récent seulement ; A440 : + la relance
-    /* A382 : pas encore (sans case, ne retient pas « Continuer », « Faire maintenant ») ou déjà faite une fois. */
+    /* A382 : pas encore (ne retient pas « Continuer », la case demande confirmation — A570 §9) ou déjà faite une fois. */
     if(!ck&&mo&&(mo.st==='wait'||mo.st==='gone')){
-      /* A474 : la jauge est montée dans l'étiquette ; la ligne du dessous ne reste que si un autre état de la même
-         rangée en porte une (légende de lien, attente d'échéance) — A9, la rangée ne change pas de hauteur. */
-      if(mo.why==='from'){wt=(wt||it.repeat==='due')?'<span class="wt"></span>':'';}   // la légende du lien, coupée par « Faire maintenant », revient avec la case
-      else if(mo.why==='due')wt=wtSpanHtml('t|'+momTid(_f,it));
-      const now=mo.st==='wait'?`<button type="button" class="stp-now" data-cknow="${esc(k)}" aria-label="Faire maintenant : ${esc(stepCR(stepText(st)).c)}">Faire maintenant</button>`:'';
+      /* A570 §9 (arbitrage de l'auteur, renverse A382/A474 pour le bouton) : plus de « Faire maintenant ». La CASE de
+         l'étape en attente répond : le toucher arme, la ligne du dessous dit POURQUOI ce n'est pas le moment (« Pas
+         avant : chocs délivrés ≥ 3. ») et offre « Cocher » / « Annuler » — sur place, sans fenêtre (règle 11). Une coche
+         par erreur (qui lancerait un minuteur, A377) est rattrapée. Au repos, la ligne du dessous n'existe que si elle a
+         quelque chose à dire : ce que fera la coche d'une étape liée (`linkEffectHtml`, statique — le minuteur attendu se
+         lit dans la tête), identique avant et après le moment, donc sans saut de hauteur (A9). Sinon, pas de ligne. */
+      const lbl=esc(stepCR(stepText(st)).c),armed=mo.st==='wait'&&state.momArm===k;
+      // Pourquoi pas maintenant, et CE QUI RESTE, d'un coup d'œil (arbitrage de l'auteur) : « Prévue dans 2 chocs délivrés. »,
+      // « Prévue dans 03:56. » (en direct). La tête dit déjà la règle et la jauge ; la question dit l'écart.
+      const why='Prévue dans '+(mo.why==='from'?esc(momRestLbl(_f,it)):wtSpanHtml('h|'+momTid(_f,it)))+'.';
+      wt=mo.st==='wait'&&opts.wt?linkEffectHtml(_f,it):'';
+      const now=armed?`<span class="mo-ask">${why}</span><button type="button" class="stp-yes" data-cknow="${esc(k)}" aria-label="Cocher : ${lbl}">Cocher</button><button type="button" class="stp-no" data-ckdisarm="${esc(k)}">Annuler</button>`:wt;
       const gone=mo.st==='gone';
       /* A398 : AVANT son moment, l'étape ne dit pas encore CRITIQUE / VIGILANCE — seule sa règle, en étiquette ; le mot
          revient avec la case, au moment où le geste se fait. Faite à un passage précédent, elle le garde (grisé). */
       const mcls=gone?cls:cls.replace(/^(crit|vigil) /,'');
-      const line=!gone&&!!wt;   // A474 : sans ligne, « Faire maintenant » se pose au bout de la rangée
-      return `<li class="${mcls} mo-${mo.st}${line?' has-wt':''}"><span class="box" aria-hidden="true">${gone?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:gone,tag:tg,after:line?`<span class="mo-line">${wt}${now}</span>`:''})}${line?'':now}</li>`;}
-    if(mt&&!wt&&!(it&&it.from&&it.repeat!=='due'))wt='<span class="wt"></span>';   // A9 : la ligne du dessous reste réservée d'un état à l'autre (A474 : un seuil seul n'en a dans aucun)
-    return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual,after:wt})}${tag}</li>`;}).join('');
+      const line=!gone&&!!now;
+      const box=gone?`<span class="box" aria-hidden="true">${uiIcon('check',19,{sw:3,cls:''})}</span>`
+        :`<button type="button" class="box" data-ckarm="${esc(k)}" aria-expanded="${armed?'true':'false'}" aria-label="${lbl} — pas encore le moment"></button>`;
+      return `<li class="${mcls} mo-${mo.st}${line?' has-wt':''}${armed?' armed':''}">${box}${stepTxtHtml(st,{mark:gone,tag:tg,after:line?`<span class="mo-line">${now}</span>`:''})}</li>`;}
+    // A570 : plus de ligne réservée À VIDE — une étape liée a sa légende dans tous ses états, une étape sans lien n'en a jamais.
+    return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}"${stepReq(mo,ck)?'':' data-cko="1"'} role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,tag:tg+dual+tag,after:wt})}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
 // A396 — la ligne k/n de l'étape-revue et la grille de ses hypothèses (mêmes rangées `data-ck`, clé r:revue:index).
 // A449 : plus de « à faire » ni « en cours » (des mots d'obligation) ; neutre au repos, « faite » en vert à n/n.
@@ -23486,21 +23562,22 @@ function wtTimerModel(t,now,ctx){if(!t)return null;ctx=ctx||{};
     if(ctx.gr!=null)m.gr=ctx.gr;
     return m;}
   if(timerStarted(t))return {cls:'',g:'watch',v:d.val,n:'· '+name+' · '+(ctx.exited?'arrêté, sortie de la boucle':'arrêté')};
-  return {cls:'',g:'watch',v:iv?fmtMs((t.seconds||0)*1000):'↑',n:(ctx.lat||'à la coche')+' · '+name};}
+  return {cls:'',g:'watch',v:iv?fmtMs((t.seconds||0)*1000):'↑',n:(ctx.lat?ctx.lat+' · ':'')+name};}   // A570 : sous une étape, plus de « à la coche » (le pied dit ce que fait la coche)
 // `ev` = le repère de CETTE coche, `last` = le dernier repère vivant ; heures du journal.
 function wtCountModel(c,cur,done,ev,last,now){if(!c)return null;
   const name=tmLabelParts(c.label).name||'Compteur',step=c.step||1;
   const ago=t=>(now-t<10000)?'à l’instant':'il y a '+fmtMs(now-t);
-  if(done&&ev&&ev.ref)return {cls:'',g:'count',va:String(Math.max(0,(+ev.ref.v||0)-step)),vb:String(+ev.ref.v||0),fresh:now-ev.t<1800,n:'· '+name+' · '+ago(ev.t)};
-  if(done)return {cls:'',g:'count',v:String(cur),n:'· '+name};
-  return {cls:'',g:'count',v:cur+' → '+(cur+step),n:'à la coche · '+name+(last?' · dernier '+ago(last.t):'')};}
+  /* A570 : au repos « +1 Chocs délivrés », coché « 3 Chocs délivrés · à l'instant » — le chiffre neuf seul (il monte). */
+  if(done&&ev&&ev.ref)return {cls:'',g:'count',vb:String(+ev.ref.v||0),fresh:now-ev.t<1800,n:name+' · '+ago(ev.t)};
+  if(done)return {cls:'',g:'count',v:String(cur),n:name};
+  return {cls:'',g:'count',v:'+'+step,n:name};}   // A570 : « dernier il y a » part — l'heure du geste reste au journal
 function wtInner(m){if(!m)return '';
   const ph=x=>` style="--wt-d:-${Math.round(+x||0)}ms"`,arm=m.arm!=null,vm=m.back!=null?' wt-back':(arm&&m.g!=='ring'?' wt-arm':'');
   const g=m.g==='ring'
     ?`<svg class="wt-g${arm?' wt-arm':''}" viewBox="0 0 12 12" aria-hidden="true"${arm?ph(m.arm):''}><circle class="wt-r0" cx="6" cy="6" r="4.5"/><circle class="wt-r1" cx="6" cy="6" r="4.5" style="stroke-dashoffset:${+m.off||0}"/></svg>`
     :uiIcon(m.g==='count'?'counter':'stopwatch',14,{sw:1.8,cls:'wt-g'});
   const vp=vm?ph(m.back!=null?m.back:m.arm):'';
-  const v=m.vb!=null?`<span class="wt-v">${esc(m.va)} → <span class="wt-vb${m.fresh?' wt-go':''}">${esc(m.vb)}</span></span>`
+  const v=m.vb!=null?`<span class="wt-v"><span class="wt-vb${m.fresh?' wt-go':''}">${esc(m.vb)}</span></span>`
     :(m.v?`<span class="wt-v${vm}"${vp}>${esc(m.v)}</span>`:'');
   return g+(m.e?`<span class="wt-e">${esc(m.e)}</span>`:'')+v
     +`<span class="wt-n${m.gr!=null?' wt-gr':''}"${m.gr!=null?ph(m.gr):''}>${esc(m.n)}</span>`;}
@@ -23511,11 +23588,13 @@ function wtModelFor(spec,now,vnow){
   const tmOf=id=>R.timers[id]&&{...R.timers[id],onDue:((f.timers||[]).find(x=>x&&x.id===id)||{}).onDue||''};
   const ctxTm=(id,o)=>({...o,exited:!!(arm[id]&&arm[id].x)});
   if(kind==='t')return wtTimerModel(tmOf(a),now,ctxTm(a,{}));   // A382 : le minuteur qu'attend une étape
+  if(kind==='h'){const m=wtTimerModel(tmOf(a),now,ctxTm(a,{}));if(!m)return null;   // A570 : le même, dans la tête — la valeur seule
+    return m.cls==='due'?{cls:'',g:'ring',off:0,v:'00:00',n:''}:{...m,n:''};}
   if(kind==='r'){const ci=ckItem(f,a),tid=cnRelTid(f,ci&&ci.it),t=tid&&tmOf(tid);if(!t)return null;   // A440 : ce que relance le compteur
     const done=!!(state.checked&&state.checked[a]),g=(R.linkGrace||{})[a],inG=done&&g&&g.tid===tid&&now-g.real<LINK_GRACE_MS;
-    const hint=!t.running?'':done?(inG?'décocher annule · '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
-      :(tmCyc(t)?'la coche recale le cycle':'la coche relance'+(t.type==='interval'?' à '+fmtMs((t.seconds||0)*1000):''));
-    return wtTimerModel(t,now,ctxTm(tid,{lat:'à la coche',hint,gr:inG&&t.running?now-g.real:null,nm:tmShort(t)}));}
+    const hint=!t.running?'':done?(inG?'annulable '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
+      :(tmCyc(t)?'recale le cycle':'relance'+(t.type==='interval'?' à '+fmtMs((t.seconds||0)*1000):''));
+    return wtTimerModel(t,now,ctxTm(tid,{hint,gr:inG&&t.running?now-g.real:null,nm:tmShort(t)}));}
   if(kind==='b'){const b=blocksById(f.blocks||[])[a];
     return b&&b.timer?wtTimerModel(tmOf(b.timer),now,ctxTm(b.timer,{lat:'à chaque entrée'})):null;}
   const ci=ckItem(f,a),L=linkOf(ci&&ci.it);if(!L)return null;
@@ -23523,15 +23602,25 @@ function wtModelFor(spec,now,vnow){
   let m;
   if(L.k==='tm'){const t=tmOf(L.id);if(!t)return null;
     const g=(R.linkGrace||{})[a],inG=done&&g&&now-g.real<LINK_GRACE_MS;let hint='';
-    if(t.running)hint=done?(inG?'décocher annule · '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
+    if(t.running)hint=done?(inG?'annulable '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
       :(arm[L.id]&&arm[L.id].ck===a?'décochée, le minuteur continue'
-        :'la coche relance'+(t.type==='interval'?' à '+fmtMs((t.seconds||0)*1000):''));
-    m=wtTimerModel(t,now,ctxTm(L.id,{lat:'à la coche',hint,gr:inG&&t.running?now-g.real:null,nm:tmShort(t)}));}
+        :'relance'+(t.type==='interval'?' à '+fmtMs((t.seconds||0)*1000):''));
+    m=wtTimerModel(t,now,ctxTm(L.id,{hint,gr:inG&&t.running?now-g.real:null,nm:tmShort(t)}));
+    /* A570 : l'étape « à l'échéance » dont le minuteur est échu dit ÉCHU dans sa tête ; son pied dit ce que fera la
+       coche (relancer depuis zéro), sans redire « Échu ». */
+    if(m&&m.cls==='due'&&!done&&ci.it.repeat==='due')m={cls:'',g:'watch',v:fmtMs((t.seconds||0)*1000),n:tmShort(t)};}
   else{const c=(f.counters||[]).find(x=>x&&x.id===L.id);if(!c)return null;
     const evs=cnEvents(L.id);
     m=wtCountModel(c,R.counters[L.id]||0,done,done?evs.slice().reverse().find(x=>x.ck===a)||null:null,evs[evs.length-1]||null,vnow);}
   if(m&&back!=null)m.back=back;   // décochée à l'instant : la valeur redescend
   return m;}
+/* A570 — ce que FERA la coche d'une étape liée, au repos et sans horloge : « ◷ 04:00 Adrén. dose » (lance), « ⊞ +1 Chocs
+   délivrés » (compte). Même dessin que la légende ; statique (pas de `data-wt`) : le minuteur qui court se lit ailleurs. */
+function linkEffectHtml(f,it){const L=linkOf(it);if(!L)return '';
+  if(L.k==='tm'){const t=((f&&f.timers)||[]).find(x=>x&&x.id===L.id);if(!t)return '';
+    return `<span class="wt">${wtInner({cls:'',g:'watch',v:t.type==='interval'?fmtMs((t.seconds||0)*1000):'↑',n:tmShort(t)})}</span>`;}
+  const c=((f&&f.counters)||[]).find(x=>x&&x.id===L.id);if(!c)return '';
+  return `<span class="wt">${wtInner({cls:'',g:'count',v:'+'+(c.step||1),n:tmLabelParts(c.label).name||'Compteur'})}</span>`;}
 function wtSpanHtml(spec,blk){const m=wtModelFor(spec,Date.now(),vfNow());if(!m)return '';
   return `<span class="wt${m.cls?' '+m.cls:''}${blk?' wt-blk':''}" data-wt="${esc(spec)}" data-wth="${esc(JSON.stringify(m))}">${wtInner(m)}</span>`;}
 // Repeinture au tick et après une coche liée, par classe (les ids de tuile sont pris).
@@ -23543,8 +23632,11 @@ function paintWitness(){const els=main.querySelectorAll('[data-wt]');if(!els.len
     const h=JSON.stringify(m);if(el.dataset.wth!==h){el.dataset.wth=h;el.innerHTML=wtInner(m);}});}
 // (A391 : `wtStaticHtml` et `momRuleHtml` — la légende et la règle « au repos » — sont PURGÉES : parcours et Page
 //  écrivent les réglages de coche en mots, `pfStepQual` et `blkTimerTxt`.)
-// A382 : « Faire maintenant » = une coche comme une autre (effets de lien compris).
-function momNow(k){if(!applyCheck(k,true))return;linkRepaint(_linkLast);renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');momWatch(false);}
+// A382 / A570 : « Cocher quand même » = une coche comme une autre (effets de lien compris). Armer / désarmer la case
+// d'une étape en attente ne coche rien : c'est la question posée sur place.
+function momArmSet(k){state.momArm=k;renderOvOnlyKeepAnchor(k?'[data-ckarm="'+CSS.escape(k)+'"]':'.ov-block.cur');
+  const el=k&&!_ptrNav&&main.querySelector('[data-cknow="'+CSS.escape(k)+'"]');if(el)el.focus({preventScroll:true});}   // A492 : au clavier seulement
+function momNow(k){state.momArm=null;if(!applyCheck(k,true))return;linkRepaint(_linkLast);renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');momWatch(false);}
 function ovToggleStep(f,li,kb){
   const k=li.dataset.ck;
   const sec=li.closest('.ov-block');
@@ -23696,6 +23788,8 @@ function bindOverviewEvents(f){
        (`ovDropOpens`) : on ne change que le sens du tap. */
     if(orn){const k=orn.dataset.ovrun;state.ovFold[k]=(state.ovFold[k]===false);renderOvOnly();return;}
     const nw=t.closest('[data-cknow]');if(nw){momNow(nw.dataset.cknow);return;}
+    const ar=t.closest('[data-ckarm]');if(ar){momArmSet(state.momArm===ar.dataset.ckarm?null:ar.dataset.ckarm);return;}
+    const da=t.closest('[data-ckdisarm]');if(da){const k=da.dataset.ckdisarm;momArmSet(null);const b=!_ptrNav&&main.querySelector('[data-ckarm="'+CSS.escape(k)+'"]');if(b)b.focus({preventScroll:true});return;}
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
     // A396 / A397 : la porte d'une revue, « Nouvelle revue », la bande des repères et ses lignes.
     const rn=t.closest('[data-revnew]');if(rn){revNew(f,rn.dataset.revnew);return;}
@@ -30558,6 +30652,7 @@ const GUIDE_GESTES=[
   ['list','Trouver une aide','Tapez dans la recherche : titre, précision (« adulte »), étapes, doses, documents PDF joints. Entrée ouvre le premier résultat. L’étoile épingle une aide en tête de l’accueil.'],
   ['play','Démarrer une session','Sur l’écran d’entrée, relisez « Quand l’utiliser », puis « Démarrer la session » : le chrono part, les minuteurs sont prêts. « Exercice » fait la même chose sans patient.'],
   ['check','Cocher une étape','Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche. « Continuer » passe au bloc suivant quand les étapes sont faites.'],
+  ['history','Une étape qui attend son moment','Sa condition est écrite au-dessus, en petit (un compte et sa jauge, ou une échéance et son minuteur), et elle ne retient pas « Continuer ». Pour la cocher avant, touchez sa case : l’app dit ce qui reste ; « Cocher » confirme, « Annuler » renonce.'],
   ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet : minuteurs, compteurs, « ＋ Minuteur ».'],
   ['bolt','Ouvrir une complication','La touche à l’éclair du quai ouvre la complication à tout moment. « Reprendre » vous ramène au bloc où vous étiez.'],
   ['alarm','Horodater','Note l’heure d’un geste imprévu, que vous pouvez nommer ensuite. Tout part au journal et au compte rendu.'],
@@ -30581,6 +30676,7 @@ const GLOSSAIRE=[
   ['Jalon','Un seuil de compteur qui fait paraître une consigne (« Chocs ≥ 3 : … »).'],
   ['Horodater','Noter l’heure d’un geste, puis le nommer : il part au journal.'],
   ['Critique · Vigilance','Ce qui tue si on l’oublie · là où l’on risque de se tromper (dose, seuil).'],
+  ['Moment d’une étape','Quand une étape se présente dans un bloc parcouru plusieurs fois : à partir d’un compte (« ≥ 3 »), à l’échéance d’un minuteur, une seule fois ou au besoin. Avant, sa case demande confirmation.'],
   ['Vérifier','Relire le bloc étape par étape, à deux : l’un lit, l’autre confirme.'],
   ['Repères posologiques','Les doses et seuils à consulter pendant l’aide, sans les cocher.']];
 const guideModal=document.getElementById('guideModal');
@@ -30637,6 +30733,14 @@ const GUIDE_ETAPES=[
             return {tgt:'#main .ov-block.cur [data-ovnext]',t:'Passez au bloc suivant',x:'« Continuer » est prêt : il mène au bloc suivant.',act:1};
           const n=document.querySelectorAll('#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)').length;
           return {tgt:null,trou:'#main .ov-block.cur',voir:'#main .ov-block.cur ol.steps>li[data-ck][aria-checked="false"]:not(.rv-step)',t:'Cochez les étapes restantes',x:'« Continuer » s’allumera quand '+(n>1?'les '+n+' cases seront cochées':'la dernière case sera cochée')+' : il mène au bloc suivant.',act:1};})();}},
+  /* A570 §9 — l'étape qui attend son moment : sa case ARME et dit ce qui reste ; on montre le geste, on ne coche pas. */
+  {id:'moment',nom:'Une étape à son moment',ok:f=>(f.blocks||[]).some(b=>bItems(b).some(it=>it&&(it.from||it.repeat))),
+    done:g=>{if(state.momArm)g.moArm=true;return (!!g.moArm&&!state.momArm)||!!g.seen.moment;},   // faite quand la question se REFERME (Cocher ou Annuler) ; ⚠ pas `g.mo` : c'est l'observateur de mutations du guide
+    ph:()=>{const b=document.querySelector('#main .ov-block.cur li>button.box[data-ckarm]');
+      if(!b)return {tgt:null,t:'Une étape à son moment',x:'Certaines étapes ne se présentent qu’à un compte ou à une échéance : leur condition est écrite au-dessus, en petit, et elles ne retiennent pas « Continuer ».',act:0};
+      return state.momArm
+        ?{tgt:'#main .ov-block.cur .mo-line:has(.stp-no)',avec:'#main .ov-block.cur li:has(.stp-no)',t:'Ce qui reste',x:'L’app dit ce qui manque pour que ce soit le moment. « Cocher » confirme, « Annuler » renonce : essayez « Annuler ».',act:1}
+        :{tgt:'#main .ov-block.cur li>button.box[data-ckarm]',avec:'#main .ov-block.cur li:has(>button.box[data-ckarm])',t:'Une étape qui attend son moment',x:'Sa condition est écrite au-dessus. Pour la cocher avant, touchez sa case.',act:1};}},
   {id:'revue',nom:'Ouvrir la revue',ok:f=>(f.blocks||[]).some(b=>b.kind==='review'),
     done:()=>Object.keys(Runtime.checked||{}).some(k=>/^r:/.test(k)&&Runtime.checked[k]),
     ph:(g,f)=>{const rv=(f.blocks||[]).find(b=>b.kind==='review');
@@ -30700,7 +30804,7 @@ function _gdTip(){let t=document.getElementById('gdTip');
     t.onclick=e=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;const g=_gd;
       if(b.id==='gdQuit'){guideStop();announce('Guide quitté — l’exercice continue.');}
       else if(b.id==='gdNext'){const E=g&&GUIDE_ETAPES[g.i];if(!E)return;
-        if(E.id==='capsule'&&!E.ph(g,fiches.find(x=>x.id===g.fid)).act){g.seen.capsule=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}
+        if((E.id==='capsule'||E.id==='moment')&&!E.ph(g,fiches.find(x=>x.id===g.fid)).act){g.seen[E.id]=1;g.done.add(E.id);}else g.skip.add(E.id);g.i++;g.key='';guideSync();}   // regarder suffit (A570 §9 pour « moment »)
       else if(b.id==='gdMin'||b.id==='gdOpen'){if(!g)return;g.min=b.id==='gdMin';g.key='';guideSync();
         const n=document.getElementById(g.min?'gdOpen':'gdMin');if(n)n.focus({preventScroll:true});}
       else if(b.id==='gdClose'){t.remove();}

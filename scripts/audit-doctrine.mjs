@@ -3624,8 +3624,11 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
     scrollTo(0,yClic);await __acCalme(150);
     const sans=haut();
     return {apres,sans,etapes};},
+    /* v5.88 (A570), MÊME RAISON : les étapes en liste à filets sont plus denses (plus d'écart de 6 px entre rangées) —
+       la page raccourcissait de nouveau (-13 px pour un seuil à -20). On rallonge le CAS, on ne relâche pas le seuil. */
     {a:items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition','O2 haut débit au masque',
-      'Voie veineuse de gros calibre','Décubitus, jambes surélevées']),
+      'Voie veineuse de gros calibre','Décubitus, jambes surélevées','Monitorage : scope, SpO2, PNI',
+      'Appeler le renfort, désigner un lecteur']),
      b:items(['Réévaluer TA, SpO2, conscience','△ Seconde dose si non-amélioration'])});
   t(`${fmt.w}× le contrôle rencontre son cas (sans atterrissage, le haut est masqué)`,
     r.sans!=null && r.sans<-20, `${r.sans} px sous les couches collantes`);
@@ -5089,7 +5092,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     return o;});
   t('A377 · la coche du choc compte + 1', r.cn0===0&&r.cn1===1, `${r.cn0} → ${r.cn1}`);
   t('A377 · … et pose son repère au journal', r.ev1===1);
-  t('A377 · la légende dit le compte d’avant et d’après', /0 → 1/.test(r.txtChoc1), r.txtChoc1);
+  t('A377 · la légende dit le compte obtenu, « à l’instant » (mots d’A570)', /1\s*Chocs délivrés · à l’instant/.test(r.txtChoc1), r.txtChoc1);
   t('A377 · décocher retire le + 1 et BARRE le repère (jamais effacé)', r.cn2===0&&r.void2===1, `${r.cn2} · ${r.void2} barré`);
   t('A377 · A9 — cocher ne change pas la hauteur de la rangée liée', Math.abs(r.hChoc1-r.hChoc0)<=1, `${r.hChoc0} → ${r.hChoc1} px`);
   t('A377 · la légende réserve 24 px, au repos comme après la coche', r.wChoc0===24&&r.wChoc1===24, `${r.wChoc0} / ${r.wChoc1}`);
@@ -5169,9 +5172,9 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   t('A377 · … cocher l’adrénaline IM compte 1 et lance la réévaluation', r.avant===false&&r.cn===1&&r.run===true, JSON.stringify(r));
   t('A378 · mouvement réduit : la légende ne bouge pas, l’état change quand même', r.mv===0&&r.cn===1, String(r.mv));
   t('A379 · à la sonnerie la réévaluation reste « Échu » : elle repart à la prochaine injection cochée, jamais seule', r.echu===true);
-  t('A440 · au repos : deux lignes — le compte, puis le minuteur que la coche relance', /à la coche.*\|.*Rééval.*à la coche|à la coche.*\|.*à la coche.*Rééval/.test(r.lg0)&&r.l0, r.lg0);
-  t('A440 · minuteur en cours : la 2ᵉ ligne dit ce qui reste et que la coche le relance', /02:4\d.*la coche relance à 05:00/.test(r.lg1)&&r.l1, r.lg1);
-  t('A440 · cochée : relancée, « décocher annule » sur la ligne du minuteur, même hauteur (A9)', r.relance===true&&/décocher annule/.test(r.lg2)&&r.l2&&r.h1===r.h2, r.lg2+' '+r.h1+'/'+r.h2);
+  t('A440 · au repos : deux lignes — « +1 » le compte, puis le minuteur que la coche relance (mots d’A570)', /^\+1.*\|\s*05:00\s*Rééval/.test(r.lg0)&&r.l0, r.lg0);
+  t('A440 · minuteur en cours : la 2ᵉ ligne dit ce qui reste et « relance à » (A570)', /02:4\d.*relance à 05:00/.test(r.lg1)&&r.l1, r.lg1);
+  t('A440 · cochée : relancée, « annulable n s » sur la ligne du minuteur, même hauteur (A9)', r.relance===true&&/annulable \d+ s/.test(r.lg2)&&r.l2&&r.h1===r.h2, r.lg2+' '+r.h1+'/'+r.h2);
   t('A440 · décochée dans les 10 s : la réévaluation est RENDUE à son état d’avant (comme un lien direct)', r.rendu===true);
   await page.close();
 }
@@ -5257,11 +5260,14 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
     await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);await oui();
     let a=rang(/Adrénaline/);
     o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.stp-mks .mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
-    rang(/300 mg/).querySelector('[data-cknow]').click();await __acCalme(300);
+    o.repos=!rang(/300 mg/).querySelector('[data-cknow]');   // A570 §9 : rien n'est écrit au repos
+    rang(/300 mg/).querySelector('[data-ckarm]').click();await __acCalme(300);   // la case arme…
+    o.arme=!!rang(/300 mg/).querySelector('.mo-line [data-cknow]')&&/Prévue dans \d+ chocs? délivrés?\./.test(rang(/300 mg/).textContent)&&!Object.keys(state.checked).some(k=>state.checked[k]&&/:1$/.test(k)&&false);
+    rang(/300 mg/).querySelector('[data-cknow]').click();await __acCalme(300);   // … « Cocher quand même » coche
     o.now=!!Object.keys(state.checked).find(k=>state.checked[k]&&rang(/300 mg/)&&rang(/300 mg/).dataset.ck===k);
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;}await w(1300);   // le tick voit le compte changer
     a=rang(/Adrénaline/);
-    o.seuil={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,cont:cont(cur())};
+    o.seuil={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,coche:!!a.querySelector('.stp-mks .mo-ok svg.mk-ck'),cont:cont(cur())};
     a.click();await __acCalme(400);
     await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);await oui();
     a=rang(/Adrénaline/);
@@ -5273,11 +5279,12 @@ await sec('v5.32 · A382 — le moment d’une étape', async () => {
   t('A382 · avant le seuil : l’étape reste visible, en pointillé, case estompée et inerte (A474)', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
   t('A382 · … sa règle en étiquette, la jauge du compteur DANS l’étiquette (A474)', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
   t('A382 · … et « Continuer » ne l’attend pas', r.p1.cont===true);
-  t('A382 · « Faire maintenant » coche l’étape (une coche comme une autre)', r.now===true);
-  t('A382 · au seuil, la case revient sur place et « Continuer » l’attend', r.seuil.ck&&/✓/.test(r.seuil.tag)&&r.seuil.cont===false, JSON.stringify(r.seuil));
+  t('A570 · au repos, l’étape en attente n’offre aucun bouton ; sa case arme et la ligne du dessous dit ce qui reste (« Prévue dans 2 chocs délivrés. »)', r.repos===true&&r.arme===true, JSON.stringify({repos:r.repos,arme:r.arme}));
+  t('A382 · « Cocher quand même » coche l’étape (une coche comme une autre)', r.now===true);
+  t('A382 · au seuil, la case revient sur place (règle cochée, icône d’A570) et « Continuer » l’attend', r.seuil.ck&&r.seuil.coche&&/≥ 3/.test(r.seuil.tag)&&r.seuil.cont===false, JSON.stringify(r.seuil));
   t('A382 · après la dose : attend l’échéance, le minuteur en cours sous l’étape', r.p2.wait&&/échéance/i.test(r.p2.tag)&&r.p2.run&&r.p2.cont, JSON.stringify(r.p2));
   t('A382 · « une seule fois », faite : plus de case', r.p2.gone===true);
-  t('A382 · à l’échéance, la case revient (Échu) et « Continuer » l’attend — rien ne repart seul', r.echu.ck&&/Échu/.test(r.echu.tag)&&r.echu.cont===false, JSON.stringify(r.echu));
+  t('A382 · à l’échéance, la case revient (« ✓ À l’échéance », A570 §8) et « Continuer » l’attend — rien ne repart seul', r.echu.ck&&/À l’échéance/.test(r.echu.tag)&&r.echu.cont===false, JSON.stringify(r.echu));
   t('A382 · A9 — attendre ou retenir ne change pas la hauteur de la rangée', Math.abs(r.p2.h-r.echu.h)<=4&&Math.abs(r.p1.h-r.echu.h)<=4, `${r.p1.h} / ${r.p2.h} / ${r.echu.h} px`);
   await page.close();
 }
@@ -5316,6 +5323,116 @@ for(const rm of ['no-preference','reduce']){
   }else t('A474 · sous mouvement réduit, aucune animation', r.ouvertes===2&&r.anim==='none', JSON.stringify(r));
   await page.close();
 }
+});
+
+/* ══ v5.88 · A570 — LES ÉTAPES COMPLEXES : LISTE À FILETS, TÊTE EN MOTS, PIED COURT ══════════════════════════════
+   Une place par chose : la tête (quand, quel risque) en mots nus, le pied (ce que fait la coche) et « Faire
+   maintenant » toujours au pied ; une liste à filets, sans cadre ni aplat de rangée ; une seule taille de libellé ;
+   le minuteur attendu dans la tête ; « Échu » dit une fois ; la hauteur d'une étape à moment ne bouge pas (A9). */
+await sec('v5.88 · A570 — liste à filets, tête en mots, pied court', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,reducedMotion:'reduce'});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const lis=()=>[...cur().querySelectorAll('ol.steps:not(.rev)>li')];
+    const rang=re=>lis().find(x=>re.test(x.textContent));
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}};
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);
+    const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=1;await w(1500);   // horloge : le tick resynchronise le compte posé
+    rang(/Choc imm/).click();await __acCalme(300);   // 2 chocs : tout attend encore
+    const o={};const L=lis();
+    const bef=e=>getComputedStyle(e,'::before');
+    o.filets=L.slice(1).every(li=>bef(li).content!=='none'&&parseFloat(bef(li).left)>=50);
+    o.fonds=L.map(li=>[getComputedStyle(li).backgroundColor,getComputedStyle(li).outlineStyle]).filter(([b,ou])=>!/rgba\(0, 0, 0, 0\)|transparent/.test(b)||ou!=='none');
+    o.tailles=[...new Set(L.map(li=>getComputedStyle(li.querySelector('.txt')).fontSize))];
+    // La tête appartient à SON libellé : écart mesuré entre les boîtes de texte (maquette : 3 px, et 14 px sous le filet).
+    const boite=n=>{const r=document.createRange();r.selectNodeContents(n);return r.getClientRects()[0];};
+    o.ecarts=L.filter(li=>li.querySelector(':scope>.txt>.stp-mks')).map(li=>{const m=li.querySelector('.stp-mks .stp-mk'),tn=[...li.querySelector(':scope>.txt').childNodes].find(n=>n.nodeType===3&&n.nodeValue.trim());
+      const hb=boite([...m.childNodes].find(n=>n.nodeType===3)),lb=boite(tn),top=li.getBoundingClientRect().top;
+      return {tete:Math.round(lb.top-hb.bottom),filet:Math.round(hb.top-top)};});
+    const a300=rang(/300 mg/),mk=a300.querySelector('.stp-mks .stp-mk'),mkc=getComputedStyle(mk);
+    o.tete={fond:mkc.backgroundColor,graisse:mkc.fontWeight,maj:mkc.textTransform};
+    const tx=a300.querySelector('.txt').getBoundingClientRect(),hRepos=a300.getBoundingClientRect().height;
+    o.sansLigne=!a300.querySelector('.mo-line');
+    a300.querySelector('button.box[data-ckarm]').click();await __acCalme(250);
+    const a3=rang(/300 mg/),yes=a3.querySelector('.mo-line .stp-yes'),no=a3.querySelector('.mo-line .stp-no');
+    o.bouton=!!yes&&!!no&&Math.abs(a3.querySelector('.mo-line').getBoundingClientRect().left-tx.left)<=1&&/Prévue dans \d+ chocs? délivrés?\./.test(a3.querySelector('.mo-line').textContent);   // la question peut passer sur deux lignes : c'est un geste (A9)
+    no.click();await __acCalme(250);o.annule=!rang(/300 mg/).querySelector('.stp-yes')&&!rang(/300 mg/).hasAttribute('data-ck');
+    o.h300a=Math.round(hRepos);
+    rang(/Choc imm/).click();await __acCalme(200);rang(/Choc imm/).click();await __acCalme(400);   // 3ᵉ choc (décocher puis recocher : +1)
+    if((Runtime.counters[c.id]||0)<3){Runtime.counters[c.id]=3;await w(1500);}   // horloge : tick
+    o.h300b=Math.round(rang(/300 mg/).getBoundingClientRect().height);
+    rang(/Adrénaline/).click();rang(/300 mg/).click();await __acCalme(300);
+    cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(500);
+    const ad=rang(/Adrénaline/);
+    o.echeance={tete:!!ad.querySelector('.stp-mks .wt'),pied:!!ad.querySelector('.mo-line [data-wt]'),effet:/04:00/.test((ad.querySelector('.mo-line .wt')||{}).textContent||''),bouton:!!ad.querySelector('button.box[data-ckarm]')};
+    for(const t of Object.values(Runtime.timers))if(t.running)t.lastStart-=300000;await w(1500);   // horloge : le tick pose l'échéance
+    const ad2=rang(/Adrénaline/);
+    o.coches=[...cur().querySelectorAll('ol.steps:not(.rev)>li')].filter(li=>{const t=li.querySelector('.txt');const b=t&&t.querySelector('.stp-r');
+      return /✓/.test(t?t.textContent:'')||(b&&/✓/.test(getComputedStyle(b,'::before').content));}).length;
+    o.echu={tete:/À l’échéance/.test((ad2.querySelector('.stp-mks .mo-ok')||{}).textContent||'')&&!!ad2.querySelector('.stp-mks .mo-ok svg.mk-ck'),pied:[...ad2.querySelectorAll('.txt>.wt')].map(e=>e.textContent).join('|')};
+    return o;});
+  t('A570 · les étapes sont une liste à filets : un filet qui commence au texte entre deux rangées', r.filets, JSON.stringify(r.filets));
+  t('A570 · aucune rangée n’a de fond ni de cadre (faite, attente, revue comprises)', r.fonds.length===0, JSON.stringify(r.fonds));
+  t('A570 · une seule taille de libellé dans la liste (A345, revue comprise)', r.tailles.length===1, JSON.stringify(r.tailles));
+  t('A570 · la tête colle à son libellé (≤ 5 px) et se détache du filet (≥ 10 px) — sinon elle se lit avec l’étape du dessus', r.ecarts.length>=3&&r.ecarts.every(e=>e.tete>=1&&e.tete<=5&&e.filet>=10), JSON.stringify(r.ecarts));
+  t('A570 · la tête est faite de mots nus : sans fond, en capitales, graisse 600', /rgba\(0, 0, 0, 0\)|transparent/.test(r.tete.fond)&&r.tete.maj==='uppercase'&&r.tete.graisse==='600', JSON.stringify(r.tete));
+  t('A570 · la case d’une étape en attente arme : « Prévue dans n chocs délivrés. » · « Cocher » · « Annuler » au pied, aligné sur le texte', r.bouton);
+  t('A570 · « Annuler » referme la question sans rien cocher', r.annule);
+  t('A570 · A9 — une étape à seuil seul garde sa hauteur quand le seuil est franchi', Math.abs(r.h300a-r.h300b)<=1, `${r.h300a} → ${r.h300b} px`);
+  t('A570 · « à l’échéance » : le minuteur attendu se lit dans la tête ; le pied dit ce que fera la coche (« 04:00 »), sans horloge ; la case arme', r.echeance.tete&&!r.echeance.pied&&r.echeance.effet&&r.echeance.bouton, JSON.stringify(r.echeance));
+  t('A570 · une étape en attente SANS lien n’a pas de ligne vide sous elle', r.sansLigne, String(r.sansLigne));
+  t('A570 · échéance atteinte : « ✓ À l’échéance » en vert dans la tête (comme un seuil atteint), le pied ne dit pas « Échu »', r.echu.tete&&!/Échu/.test(r.echu.pied), JSON.stringify(r.echu));
+  t('A570 · une seule coche : aucun « ✓ » texte dans la liste (ni devant la réponse, ni dans la tête)', r.coches===0, String(r.coches));
+  await page.close();
+});
+
+/* ══ v5.87 · A569 — LES ÉTAPES COMPLEXES À PLAT, CHAQUE ÉTIQUETTE À SON REGISTRE ═════════════════════════════
+   La règle neutre d'A519 (`.stp-mk.mo`) venait après `.mo-ok` / `.mo-due` à spécificité égale : « ✓ … ≥ 3 », « Échu » et
+   « Faite » sortaient gris, et aucun témoin ne lisait leur couleur. Ici : chaque étiquette à son encre, les règles en
+   phrase et les mots d'état en capitales, la rangée « faite une fois » sans contour, l'instant du seuil qui finit à plat. */
+await sec('v5.87 · A569 — étapes complexes à plat, étiquettes au registre', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));   // horloge : l'instant du seuil dure 1,2 s
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await __acCalme(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps:not(.rev)>li')].find(x=>re.test(x.textContent));
+    const enc=v=>{const e=document.createElement('i');e.style.color=`var(${v})`;document.body.appendChild(e);const c=getComputedStyle(e).color;e.remove();return c;};
+    const mk=li=>{const m=li&&li.querySelector(':scope>.txt>.stp-mks .stp-mk.mo');if(!m)return null;const c=getComputedStyle(m);return {tx:m.textContent.replace(/\s+/g,' ').trim().slice(0,24),c:c.color,tt:c.textTransform,coche:!!m.querySelector('svg.mk-ck')};};
+    const alpha=bg=>{const m=bg.match(/[\d.]+/g)||[];return bg==='transparent'?0:(m.length>=4?+m[3]:1);};
+    const o={ok:enc('--ok'),warn:enc('--warn')};
+    await tout();cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(300);
+    const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=2;await w(3000);   // horloge : le tick resynchronise le compte posé
+    o.attente=mk(rang(/300 mg/));
+    rang(/Choc imm/).click();await w(1100);                                    // horloge : fin de l'instant du seuil
+    const a=rang(/300 mg/);o.seuil=mk(a);o.finAlpha=alpha(getComputedStyle(a).backgroundColor);
+    rang(/Adrénaline/).click();rang(/300 mg/).click();await __acCalme(300);
+    cur().querySelector('[data-ovnext]').click();await __acCalme(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await __acCalme(400);
+    const g=rang(/300 mg/);o.faite=mk(g);o.gone=g.classList.contains('mo-gone');
+    const gs=getComputedStyle(g);o.contour={ombre:gs.boxShadow,trait:gs.outlineStyle};
+    for(const t of Object.values(Runtime.timers))if(t.running)t.lastStart-=300000;await w(1500);   // horloge : le tick pose l'échéance
+    o.echu=mk(rang(/Adrénaline/));
+    return o;});
+  t('A569/A570 · une règle en attente : mot nu en capitales, à l’encre neutre', r.attente&&r.attente.tt==='uppercase'&&r.attente.c!==r.ok&&r.attente.c!==r.warn, JSON.stringify(r.attente));
+  t('A569/A570 · au seuil, « ✓ … ≥ 3 » est VERT (A474), en capitales, et sa coche est l’icône de la case', r.seuil&&r.seuil.coche&&!/✓/.test(r.seuil.tx)&&r.seuil.c===r.ok&&r.seuil.tt==='uppercase', JSON.stringify(r.seuil)+' ok='+r.ok);
+  t('A569 · l’instant du seuil finit à plat (aucun retour de l’ancienne tuile grise)', r.finAlpha<0.2, 'alpha à 1,1 s : '+r.finAlpha);
+  t('A569/A570 · « Déjà faite » (une seule fois) est un mot d’état : vert, en capitales', r.gone&&r.faite&&/Déjà faite/.test(r.faite.tx)&&r.faite.c===r.ok&&r.faite.tt==='uppercase', JSON.stringify(r.faite));
+  t('A569 · la rangée « faite une fois » vit à plat, sans contour', r.gone&&r.contour.ombre==='none'&&r.contour.trait==='none', JSON.stringify(r.contour));
+  t('A569/A570 · l’échéance atteinte s’écrit « ✓ À l’échéance », VERTE et cochée comme un seuil atteint (§8), jamais à fond ambre', r.echu&&/À l’échéance/.test(r.echu.tx)&&r.echu.c===r.ok&&r.echu.coche&&r.echu.tt==='uppercase', JSON.stringify(r.echu)+' ok='+r.ok);
+  await page.close();
 });
 
 /* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════

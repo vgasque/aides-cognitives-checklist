@@ -286,7 +286,7 @@
   **« challenge :: réponse »** = séparateur explicite DANS la chaîne d'étape (même philosophie
   que ⚠/△ : opt-in, export v3 inchangé, ancien client lisible) — `stepCR` (pure, APRÈS
   `stepText`, première occurrence) ; rendu `stepTxtHtml` (guidé + journal : pilule mono
-  `.stp-r` = réponse attendue, readback « ✓ » vert au cochage porté par le CSS seul), plan
+  `.stp-r` = réponse attendue, readback « ✓ » vert au cochage porté par le CSS seul — RETIRÉ en v5.88, A570 : il doublait la case verte), plan
   (`.pl-r` ; depuis A388, `.pf-r` : « — réponse » au corps du texte, en gris), SVG (« challenge — réponse ») ; le compte-rendu garde la chaîne brute.
   **Mode Vérification** (Do-Verify, journal) : `state.ovVerify={idx,i,gaps}` transitoire ;
   la passe redéroule TOUTES les étapes (déjà cochées comprises) — « Constaté ✓ » coche la
