@@ -1763,3 +1763,26 @@ refait les étapes, la passe ne touche que ce qui les entoure.*
 
 **Mesuré (390 px, ACR, deux étapes cochées)** : haut du bloc 195 px (185 avant), bas des boutons 651 px (662 avant) ;
 icônes du quai sur une même ligne (4/4 au même y) ; quai de 63 px au téléphone, 60 px au bureau (78 avant).
+
+## A572 — Le pool d'audit compte la mémoire DISPONIBLE, pas « libre », et dit quand elle le bride (outillage, sans version)
+
+*Amende A565 (borne mémoire du pool par défaut).*
+
+**Le défaut.** A565 bornait le pool à `os.freemem() ÷ 500 Mo`. Sur macOS, `freemem()` ne compte que les pages
+LIBRES : le cache récupérable (pages *inactive* et *speculative*, que le noyau rend à la demande) en est exclu, et un
+Mac en usage n'a presque rien de « libre ». **Mesuré le 06/11/2026 sur un Mac de 16 Go, 8 cœurs** : `freemem()` =
+367 Mo pour ≈ 4,3 Go de pages inactives (`vm_stat`) → pool 1, passe complète **1 282 s** au lieu de **174 s**
+(`AC_JOBS=8`), sans autre signal que « pool 1 » dans la ligne de tête.
+- **Mesure** : sur darwin, mémoire disponible = (free + inactive + speculative) × taille de page, lue dans `vm_stat`
+  (`memDispo()`, sans dépendance, 2 s au plus ; tout échec retombe sur `freemem()`). *Purgeable* n'est PAS ajouté :
+  ses pages sont déjà comptées dans active/inactive, l'ajouter compterait deux fois. Ailleurs, `freemem()` reste :
+  sous Linux (la CI) il lit `MemAvailable`, qui inclut déjà le cache récupérable.
+- **Annonce** : quand le pool par défaut tombe sous `min(8, 2 × cœurs)` À CAUSE de la mémoire, une ligne le dit, avec
+  sa mesure et la commande pour passer outre : « △ pool 1 au lieu de 8 : 367 Mo libres mesurés (500 Mo par
+  navigateur) — AC_JOBS=8 pour forcer. ». Rien ne s'affiche si `AC_JOBS` est posé (il reste souverain) ni si le pool
+  est borné par les cœurs.
+- **Vérifié** : sur le même Mac, `memDispo()` lit 4 941 Mo (contre 372 Mo pour `freemem()` au même instant) → pool 8.
+  Passe complète forcée sans `AC_JOBS` : **pool 8, 238 s**, sous une charge moyenne de 17 (une autre session travaillait sur la même machine) ; son seul rouge (« 700 · … et il entre en fondu », une sonde d'animation) est vert rejoué seul, et la passe complète suivante est verte. Annonce vérifiée avec un faux `vm_stat` à 367 Mo : « △ pool 1 au lieu de 8 … » ; muette sous `AC_JOBS=3`.
+*Forme écartée* : ajouter *purgeable* (double compte) ; abaisser le coût compté par navigateur sous 500 Mo (≈ 300
+mesurés au pic, la marge couvre les pics d'un harnais lourd) ; retirer la borne mémoire — elle reste utile sur une
+machine réellement à court, c'est la MESURE qui était fausse, pas la borne.
