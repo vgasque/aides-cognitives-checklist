@@ -239,6 +239,12 @@ const SURFACES = [
       const c=document.createElement('canvas');c.width=8;c.height=6;const data=c.toDataURL('image/png');
       const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'![](img:i_a)',images:[{id:'i_a',data,w:8,h:6,caption:'',scale:100}]});
       protocols.push(p);await openProtocolEdit(p.id);await __acCalme(200);document.querySelector('[data-mitile]').click(); } },
+  /* A585 : la même feuille dans l'éditeur d'AIDE (légende, « Affichée dans », remplacer, retirer). */
+  { nom:'feuille d’une image d’aide', w:390, scope:'#miModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));await openEdit(f.id);await __acCalme(300);
+      const c=document.createElement('canvas');c.width=8;c.height=6;
+      state.draft.images=[{id:'g1',data:c.toDataURL('image/png'),w:8,h:6,caption:'Sonde'}];renderEditor();await __acCalme(200);
+      document.querySelector('[data-mitile]').click(); } },
   { nom:'texte collé',         w:390,  scope:'#mdToolModal', fn: async()=>{
       const p=migrateProtocol({...blankProtocol(),title:'Référence',body:'a'});
       protocols.push(p);await openProtocolEdit(p.id);const ta=document.getElementById('p-body');

@@ -425,14 +425,15 @@ const P=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   // (6) l'image s'associe à un bloc, et à UN SEUL
   const px='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   d.images=[{id:'i1',data:px,w:1,h:1,caption:'Sonde'}];renderEditor();await __acCalme(450);
-  const sel=document.querySelector('[data-imgblk="0"]');
-  const nOptions=sel?sel.options.length:0;
+  // A585 : la feuille de l'image (vignette → « Affichée dans ») remplace le <select> de la carte.
+  const feuille=async()=>{document.querySelector('[data-mitile="i1"]').click();await __acCalme(300);};
+  const ferme=async()=>{document.querySelector('#miModal .sst-ok').click();await __acCalme(150);};
+  await feuille();const nOptions=document.querySelectorAll('#miBody [data-miblk]').length;
   const cible=(d.blocks||[])[0].id;
-  sel.value=cible;sel.dispatchEvent(new Event('change'));await __acCalme(450);
+  document.querySelector('#miBody [data-miblk="'+cible+'"]').click();await __acCalme(450);await ferme();
   const porteurs=(d.blocks||[]).filter(b=>b.image===px).length;
-  const sel2=document.querySelector('[data-imgblk="0"]');
-  const memorise=sel2.value===cible;
-  sel2.value='';sel2.dispatchEvent(new Event('change'));await __acCalme(450);
+  await feuille();const memorise=document.querySelector('#miBody [data-miblk="'+cible+'"]').getAttribute('aria-checked')==='true';
+  document.querySelector('#miBody [data-miblk=""]').click();await __acCalme(450);await ferme();
   const detache=(d.blocks||[]).filter(b=>b.image===px).length;
   // (7) le compte de relecture
   const rb=document.getElementById('hdrRev');
@@ -643,20 +644,22 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   renderEditor();await __acCalme(500);
   const agrege={n:(d.images||[]).length,
     memeDonnee:((d.images||[])[0]||{}).data===px,
-    vignette:!!document.querySelector('[data-imgblk]'),
-    porteurMontre:(()=>{const sel=document.querySelector('[data-imgblk="0"]');
-      return sel?sel.value===d.blocks[0].id:false;})()};
+    vignette:!!document.querySelector('[data-mitile]'),
+    // A585 : le porteur se lit sur la vignette (« ▣ Bloc 1 ») et dans son nom accessible.
+    porteurMontre:(()=>{const t=document.querySelector('[data-mitile]');
+      return !!t&&/▣ Bloc 1/.test(t.textContent)&&/affichée dans le bloc 1/.test(t.getAttribute('aria-label')||'');})()};
   // idempotence : un second rendu ne doit rien empiler
   renderEditor();await __acCalme(400);
   const idem=(d.images||[]).length;
   /* DÉTACHER (« Aucun bloc ») : la vignette RESTE dans la galerie, prête pour un autre bloc. */
-  {const sel=document.querySelector('[data-imgblk="0"]');sel.value='';
-   sel.dispatchEvent(new Event('change'));await __acCalme(450);}
+  {document.querySelector('[data-mitile]').click();await __acCalme(300);
+   document.querySelector('#miBody [data-miblk=""]').click();await __acCalme(450);
+   document.querySelector('#miModal .sst-ok').click();await __acCalme(150);}
   const detache={images:(d.images||[]).length,blocs:(d.blocks||[]).filter(b=>b.image===px).length};
   /* RETIRER : l'image quitte l'aide entière — sinon la réconciliation la ramène. */
-  {const sel=document.querySelector('[data-imgblk="0"]');sel.value=d.blocks[0].id;
-   sel.dispatchEvent(new Event('change'));await __acCalme(450);}
-  document.querySelector('[data-imgdel]').click();await __acCalme(500);
+  {document.querySelector('[data-mitile]').click();await __acCalme(300);
+   document.querySelector('#miBody [data-miblk="'+d.blocks[0].id+'"]').click();await __acCalme(450);}
+  document.querySelector('#miBody [data-miact="rm"]').click();await __acCalme(500);
   const retrait={images:(d.images||[]).length,blocs:(d.blocks||[]).filter(b=>b.image===px).length};
   /* (2) LE COMPTEUR A L'ANATOMIE DE LA CARTE DE MINUTEUR : poignée ET croix en tête, même rangée. */
   while((d.counters||[]).length<2)edAdd(d,'counter');

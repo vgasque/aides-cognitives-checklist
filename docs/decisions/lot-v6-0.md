@@ -2021,3 +2021,31 @@ bloc ; une poignée sur chaque image rendue gênerait la lecture et le défileme
 `.mi-sch`), l'image de tête de la feuille `.mi-big`, `.mdb-imgv img`.
 Témoins : `audit-doctrine` « Éditeur · A584 » (vrais événements souris ; vérifié capable d'échouer : rouge sur la
 v5.91.0) ; « Éditeur · A548 » inchangé (six `[data-mdbscale]`, l'image au-dessus du champ).
+
+## A585 — Les images d'une aide : la grille et la feuille des références (v5.93.0)
+
+*Étend A583 à l'éditeur d'aide ; remplace la carte par image de « Schémas & captures » (v4.78.0 : vignette 4:3, champ
+légende, menu « bloc », « Retirer »). Planche « Références — fichiers joints dans l'éditeur », écrans « Aides » ; demande
+de l'auteur, 06/11/2026 : « adapte aux aides ».*
+
+**Constat.** Une carte par image, deux par rang au téléphone : ≈ 230 px par rang, ≈ 2 300 px pour 20 images.
+
+**Décision.**
+- **Même grille que les références** (`galCardHtml`, classes `.mi-*` partagées), repliée au-delà de `MI_FOLD` ; la carte
+  garde sa place (annexes, après les blocs) et sa règle « présente ⇔ au moins une image » ; « Image » dans sa tête
+  (`#addImg`, que la porte « Ajouter » touche toujours).
+- **Une aide n'a pas de texte rédigé** : la LÉGENDE est sous la vignette (`.mi-lg`, « Sans légende » à défaut), et
+  « ▣ Bloc n » marque celle qu'un bloc affiche (nom accessible : « …, affichée dans le bloc n »).
+- **La même feuille** (`#miModal`), rendue générique : chaque éditeur pose `_miCtx` (`list`, `sheet`, `onClick`,
+  `onInput`). Pour une aide (`galSheetHtml`) : l'image ; la **légende** (écrite à la frappe, vignette et titre suivent
+  sur place) ; **« Affichée dans »** — « Aucun bloc — la galerie seulement » ou UN bloc, en rangées radio numérotées comme
+  les blocs (on détache partout avant de rattacher : « une image, un bloc au plus », v4.78.0) ; **Remplacer…** (la
+  galerie ET le bloc qui la porte suivent : `b.image` est une copie de la donnée) ; **Retirer de l'aide** (galerie ET
+  bloc, sinon `edSyncGallery` la ramènerait ; toast « ↶ pour annuler »). **Pas de taille** : une aide n'en a pas.
+- Modèle inchangé (`f.images`, `b.image`).
+
+**Retiré (règle 14)** : la carte par image (`[data-imgcap]`, `[data-imgblk]`, `[data-imgdel]`, `.gthumb .gcap/.gblk/
+.btn.sm.danger` côté éditeur, `input.gcap` de la liste des champs à 16 px), la zone de dépôt permanente de la galerie
+(le dépôt n'importe où dans l'éditeur reste). `.gallery`/`.gthumb`/`.gcap` restent : ce sont ceux de la LECTURE.
+Témoins : `audit-k5` (« la galerie agrège », association à un seul bloc, détacher, retirer — réécrits sur la feuille) ;
+`audit-a11y` « feuille d'une image d'aide ».
