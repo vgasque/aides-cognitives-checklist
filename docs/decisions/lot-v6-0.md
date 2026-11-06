@@ -1851,3 +1851,50 @@ autres boutons ; un bouton dans un bouton n'est pas valide. Le geste au doigt s'
 **Témoin.** `audit-doctrine` « v5.89.4 · A576 » (4 contrôles, rouges sur la v5.89.3) : le libellé arme sans cocher,
 « Prévue dans 2 CEE. », la question relue ne se referme pas et le libellé retouché la referme, curseur de main.
 
+## A577 — La banderole d'un minuteur échu au dessin de la capsule ; le chapeau du démarrage en cartes ; les objets prêts en liste (v5.90.0)
+
+*Demande de l'auteur (06/11/2026) : la banderole « n'a pas été revue depuis la mise à jour du design », et l'écran
+de démarrage à harmoniser avec la session. Méthode : planche « Démarrage et alarme — Natif » (canevas Design), captures
+de la v5.89.3 contre maquettes, clair et sombre, arbitrée point par point.*
+
+1. **La banderole prend le dessin du segment « Échu » de la capsule (forme C ; amende C84).** Fond `--warn-soft`, bord
+   ambre de 2 px (`--warn-line` le jour, `--warn` la nuit : le brun disparaît sur fond sombre), pastille ambre pleine
+   de 44 px (`--warn-sys` / `--warn-sys-bg`), « △ ÉCHU · <aide> » en tête (capitales, une ligne, A569), le nom du
+   minuteur — et l'action écrite par l'auteur (`onDue`, K7) — en titre 17,5 / 800, ✕ rond de 32 dans un halo de 44.
+   « — terminé » part : la capsule dit « Échu ». Le halo pulsé et la barre de vie restent.
+   *Formes écartées (planche)* : **A**, verre clair à pastille ambre — « joli mais pas assez visible », et le verre
+   devient gris anthracite la nuit ; **B**, aplat ambre plein au dessin Natif — la plus voyante, mais un grand
+   rectangle jaune la nuit, et c'est le dessin d'avant la refonte.
+2. **Une banderole se retire quand la session qu'elle annonce redevient visible** (`bannerSync`, au retour au premier
+   plan et à chaque rendu). Elle naît quand la session n'est pas sous les yeux (C84 inchangé) ; revenue dans l'app,
+   elle se posait SUR la capsule (signalé, capture). La capsule porte déjà l'alarme, sur place (règle 11) ; la
+   banderole d'une AUTRE aide reste.
+3. **« Quand l'utiliser » et « Ne pas oublier », avant la session, deviennent des cartes comme celles du dessous
+   (amende A520 §1).** Sous leur intertitre gris, les deux listes « faisaient out of place » à côté des cartes
+   Parcours, À vérifier, Diagnostics, Repères, Références. Même tête que ces cartes (pastille 26 px — « ◎ » bleu,
+   « ! » au registre critique —, titre 15 / 700, compte), mais SANS PORTE : `div.fold-head.fh-fix`, ni bouton ni
+   chevron — la condition d'entrée et les rappels ne se replient pas avant d'avoir été lus (A330, QRH). `.pre-lh` est
+   purgée (règle 14). Le reste de l'écran ne bouge pas.
+   *Forme écartée (planche, par l'auteur : « pas fan, laisse comme ça »)* : refaire tout l'écran à la grammaire de la
+   session — une seule liste « Pendant toute l'aide » à pastilles grises, « CRITIQUE » au-dessus du rappel,
+   « Contexte local » titré, le bouton de démarrage en pilule de verre.
+4. **Au bureau, « Prêts pour la session » en liste groupée (amende A520 lot 7, qui les posait en tuiles grises).** Le
+   dessin du rail de session (A571 §7) : nom 15 / 600, valeur de départ en mono dessous, état en mot gris à droite
+   (« au démarrage », « à lancer »), filets entre les rangées. Aucune commande : rien ne s'arme avant le démarrage.
+
+**Témoin.** `audit-doctrine` « v5.90 · A577 » (7 contrôles, 6 rouges sur la v5.89.4) : les deux cartes à tête sans
+porte, la banderole (mots, bord, pastille, ✕), son retrait par la session qu'elle annonce et pas par une autre, la liste
+des objets prêts.
+
+## A578 — En session, les sections sous le bloc redeviennent des cartes (v5.90.0 ; renverse A571 §6)
+
+*Demande de l'auteur (06/11/2026), après A577 : « reprends le même style en mode session (c'est ce qui était fait
+auparavant) ».* L'écran de démarrage garde ses cartes (A577 §3 : la liste unique y a été refusée) ; en session, les
+mêmes sections (Ne pas oublier, revue, À vérifier, Diagnostics, Repères, Références) étaient une liste groupée
+« Pendant toute l'aide » depuis A571 §6 — deux dessins pour les mêmes objets, d'un écran à l'autre. Elles reviennent
+au dessin d'avant la v5.89.0, celui du démarrage : cartes empilées, pastille teintée (« ! » au registre critique),
+titre 15 / 700, compte, chevron ˅, dépliage sur place inchangé (`data-sessfold`). L'intertitre « Pendant toute
+l'aide » part avec la liste (il n'existait pas avant, et le démarrage n'en a pas) ; « Contexte local » garde le sien
+(A571 §6, deuxième moitié — non visé). Les règles `.tout-gl` sont purgées (règle 14).
+*Forme écartée* : garder la liste en session et l'étendre au démarrage (refusée en A577 §3).
+

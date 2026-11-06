@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.90.0] — 2026-11-06
+L'alarme d'un minuteur et l'écran de démarrage d'une aide au design actuel ; en session, les sections reprennent le même dessin (A577, A578). Rien à rejouer côté serveur.
+- **La banderole d'un minuteur échu** (quand la session n'est pas à l'écran) reprend le dessin de l'échu dans la
+  capsule : fond et bord ambre, pastille réveil, « △ ÉCHU · nom de l'aide » puis le nom du minuteur en grand. Elle se
+  voit aussi bien en thème sombre. « — terminé » devient « Échu », le mot de la capsule.
+- **Elle ne se pose plus sur la session** : dès que la session qu'elle annonce revient à l'écran (retour dans l'app,
+  ou en y allant), elle disparaît — la capsule porte déjà l'alarme. Celle d'une autre aide reste.
+- **Avant la session, « Quand l'utiliser » et « Ne pas oublier »** sont des cartes comme celles du dessous (pastille,
+  titre, nombre), toujours ouvertes.
+- **Au bureau, « Prêts pour la session »** est une liste, comme les minuteurs de la session : nom, valeur de départ,
+  « au démarrage » ou « à lancer ».
+- **En session, les sections sous le bloc redeviennent des cartes** (Ne pas oublier, revue, À vérifier,
+  diagnostics, repères, références), comme sur l'écran de démarrage et comme avant la v5.89.0 — la liste
+  « Pendant toute l'aide » disparaît (A578).
+
 ## [5.89.4] — 2026-11-06
 Deux correctifs des étapes qui attendent leur moment (A576). Rien à rejouer côté serveur.
 - **Une étape pas encore cochable se touche comme les autres** : toucher son texte (et plus seulement sa case) affiche
@@ -214,12 +229,3 @@ rejouer côté serveur.
 - La barre de mise en forme, ses menus et les fenêtres (tableau, collage depuis Word) laissent le passage ouvert ; faire
   défiler la page ne ferme rien ; toucher un autre champ (le titre…) y laisse le curseur.
 - ↶ après un collage défait le collage entier : la référence revient à son état d'avant.
-
-## [5.78.2] — 2026-11-02
-Le bouton ↶ (annuler) apparaît après toute modification (A551, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
-côté serveur.
-- Dans l'éditeur des références, **supprimer, déplacer, dupliquer ou ajouter un passage**, changer le type d'un encadré
-  ou la taille d'une image faisaient la modification sans proposer ↶ ni enregistrer tout de suite : c'est corrigé.
-- **La taille d'une image** réglée dans la liste « Images » et **la date de validation** (références et aides) ne
-  proposaient pas non plus ↶ : corrigé, pour tout réglage de ce genre.
-- Vérifié geste par geste : chaque modification fait paraître ↶ en haut de l'éditeur, et ↶ rend l'état d'avant.
