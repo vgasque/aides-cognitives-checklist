@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hoO/BZNErtPGJdVP0WInIygH98784vU639sU8vCNs0Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-XRWoj69LBIP0jmHhi+cEj2Y9z6YvKG5DY2oWlFmch6o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5693,14 +5693,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La feuille « Réglages de l'étape » (maquettes E4, E5) : feuille basse au téléphone (grammaire de la
      feuille ⋯, A361), fenêtre centrée dès 780 (celle de « Affichage ») — un panneau latéral sous voile
      n'aurait rien montré de plus. */
-  #stepSetModal{align-items:flex-end;padding:0}
-  #stepSetModal .ai-card{max-width:none;width:100%;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;box-shadow:var(--shadow-up)}
+  :is(#stepSetModal,#miModal){align-items:flex-end;padding:0}
+  :is(#stepSetModal,#miModal) .ai-card{max-width:none;width:100%;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;box-shadow:var(--shadow-up)}
   .sst-hd{display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
-  #stepSetModal .ai-top{align-items:center}
-  #stepSetModal .ai-x.sst-ok{width:auto;height:40px;margin:0;padding:0 16px;border:0;border-radius:var(--r-2);background:var(--act);color:var(--on-primary);font-family:inherit;font-size:15px;font-weight:700}
+  :is(#stepSetModal,#miModal) .ai-top{align-items:center}
+  :is(#stepSetModal,#miModal) .ai-x.sst-ok{width:auto;height:40px;margin:0;padding:0 16px;border:0;border-radius:var(--r-2);background:var(--act);color:var(--on-primary);font-family:inherit;font-size:15px;font-weight:700}
   @media (min-width:780px){
-    #stepSetModal{align-items:center;padding:24px}
-    #stepSetModal .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
+    :is(#stepSetModal,#miModal){align-items:center;padding:24px}
+    :is(#stepSetModal,#miModal) .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
     .sst-hd{display:none}}
   /* A517 (A508) — « Créer » et « Affichage » au téléphone : FEUILLES DU BAS à poignée, la grammaire de « Réglages de
      l'étape » et du menu ⋯ (A361). Un CHOIX ne prend jamais toute la hauteur (témoin « trois gabarits ») ; ✕, le voile
@@ -8557,7 +8557,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-here{background:color-mix(in srgb,var(--act) 8%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--act) 8%,transparent);border-radius:3px}
   .md-preview [data-ln],#editSide .ep-md [data-ln]{cursor:pointer}
   @media (max-width:779.98px){
-    .md-ed.md-pv :is(.md-toolbar,.md-wpane,.md-imgs){display:none}
+    .md-ed.md-pv :is(.md-toolbar,.md-wpane){display:none}
     .md-ed:not(.md-pv) .md-ppane{display:none}
     .md-ed.md-pv .md-prev-h{display:none}
   }
@@ -8636,27 +8636,39 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      gras et le I italique — chaque outil montre son effet SUR SON GLYPHE, jamais sur sa boîte. */
   .md-toolbar .md-mkb{font-weight:800}
   .md-toolbar .md-mkb .mk-s{background:var(--amb-2);color:var(--ink-2);border-radius:3px;padding:0 2px}
-  /* Images insérées : une rangée par image, avec SA taille d'affichage (v4.4.3). */
-  .md-imgs{margin:12px 0 4px}
-  .mi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}
-  .mi-th{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:copy;flex:none}
-  .mi-cap{flex:1;min-width:120px;font-size:13.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mi-lab{font-size:12px;color:var(--ink-soft)}
-  /* CIBLES À 40 px, CONSIGNÉES COMME `.st-seg` L'A ÉTÉ (audit 9d) : la galerie d'images vit dans
-     l'ÉDITEUR — hors surface de crise, donc hors du contrat des 44 px, qui protège un geste ganté
-     sous adrénaline. 40 px passe très au-dessus des 24×24 de WCAG 2.2 §2.5.8, et le plancher
-     HORS crise du dossier est 32. Nommé ici pour que la question ne se repose pas. */
-  .mi-sc{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-size:13.5px;font-weight:600;min-height:40px}
-  .mi-sc:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  /* Réinsertion EXPLICITE (v5.0.0, signalé à l'usage : « on ne peut pas remettre la référence ») —
-     le tap sur la vignette existait depuis v4.4.3 mais n'était porté que par cursor:copy + title,
-     invisibles sur tactile et inaccessibles au clavier. Un vrai bouton, avec le mot. */
-  .mi-ins{border:1px solid var(--line);background:var(--work);color:var(--ink);min-height:40px;padding:0 12px;border-radius:var(--r-1);font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;flex:none}
-  .mi-ins:hover{background:var(--amb-2)}
-  .mi-ins:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  /* Une image absente du texte sera supprimée par le ménage de sortie (leaveGC) : on le DIT au
-     lieu de le laisser découvrir — registre ATTENTION (glyphe + mots, la couleur jamais seule). */
-  .mi-un{flex:1 1 100%;font-size:12px;font-weight:600;color:var(--warn)}
+  /* A583 — LES IMAGES D'UNE RÉFÉRENCE EN GRILLE (option A de la planche « fichiers joints ») : une carte À SOI sous le
+     texte qu'elles illustrent, vignettes carrées (quatre au rang d'un téléphone, davantage au-delà), repliées à deux
+     rangs. Tout réglage passe par la feuille de l'image (#miModal) : la vignette ne porte que son usage. */
+  .mi-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .mi-head>label{flex:1;margin:0}
+  .mi-n{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+  .mi-tile,.mi-more{position:relative;aspect-ratio:1/1;min-height:44px;padding:0;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb-2);overflow:hidden;cursor:pointer;font:inherit}
+  .mi-tile img{display:block;width:100%;height:100%;object-fit:cover}
+  .mi-tile:focus-visible,.mi-more:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* L'USAGE, glyphe et mot (règle 8) : « ×n » à deux passages et plus, « △ hors texte » à zéro — même critère que le
+     ménage de sortie (`leaveGC`), qui retirera l'image en quittant l'éditeur. */
+  .mi-use{position:absolute;left:4px;bottom:4px;padding:0 4px;border-radius:3px;background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:var(--t-cap);font-weight:600}
+  .mi-out{position:absolute;left:0;right:0;bottom:0;padding:2px 0;border-top:1px solid var(--warn-line);background:var(--warn-soft);color:var(--warn);font-size:var(--t-cap);font-weight:800;text-align:center}
+  .mi-more{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--amb);border-color:var(--ctl-line);color:var(--act);font-size:var(--t-body);font-weight:800;line-height:1.2}
+  .mi-hint{margin:10px 0 0}
+  .mi-w{color:var(--warn)}
+  /* La feuille d'une image : l'image, son usage, deux groupes de rangées (ce qu'on en fait dans le texte, ce qu'on fait
+     d'elle), la taille entre les deux — la grammaire des listes groupées (A505). */
+  .mi-big{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0 12px;border-radius:var(--r-3);background:var(--amb-2)}
+  .mi-st{margin:0 0 12px;font-size:var(--t-body);font-weight:700}
+  .mi-st.ok{color:var(--ok)}
+  .mi-st.w{color:var(--warn)}
+  .mi-acts{margin-bottom:12px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:hidden}
+  .mi-act{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--hit);padding:0 14px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
+  .mi-act:first-child{border-top:0}
+  .mi-act svg{flex:none;color:var(--act)}
+  .mi-act:hover{background:var(--amb)}
+  .mi-act:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .mi-act.del,.mi-act.del svg{color:var(--crit)}
+  .mi-x{margin-left:auto;font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .mi-sc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .mi-sch{margin:-4px 0 8px}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:32px;height:32px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;resize:vertical}
@@ -9062,7 +9074,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
-    .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
+    .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
@@ -9572,6 +9584,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-body" id="mdToolBody"></div>
   <div class="mdw-foot" id="mdToolFoot"></div>
 </div></div>
+<!-- A583 : la feuille d'UNE image d'une référence — feuille basse, fenêtre centrée dès 780 (la grammaire de
+     « Réglages de l'étape ») ; corps peint à l'ouverture (`miPaint`). -->
+<div class="ai-modal dlg-center sst-modal" id="miModal" role="dialog" aria-modal="true" aria-labelledby="miTitle"><div class="ai-card">
+  <span class="sst-hd" aria-hidden="true"></span>
+  <div class="ai-top"><h3 id="miTitle">Image</h3><button class="ai-x sst-ok">Terminé</button></div>
+  <div class="ai-body" id="miBody"></div>
+</div></div>
 <!-- A383 : les réglages d'UNE étape (importance, ce que fait la coche, moment) — feuille basse, fenêtre centrée dès 780 ;
      corps peint à l'ouverture (`stepSetPaint`). -->
 <div class="ai-modal dlg-center sst-modal" id="stepSetModal" role="dialog" aria-modal="true" aria-labelledby="stepSetTitle"><div class="ai-card">
@@ -9852,7 +9871,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.90.2';
+const APP_VERSION='5.91.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18287,27 +18306,74 @@ function mdHlSync(ta,docs,imgs){const w=ta.parentNode;if(!w||!w.classList.contai
   // La barre de défilement du champ rétrécit sa ligne : le calque réserve la même largeur.
   hl.style.paddingRight=(parseFloat(cs.paddingRight)+ta.offsetWidth-ta.clientWidth-parseFloat(cs.borderLeftWidth)-parseFloat(cs.borderRightWidth))+'px';
   hl.scrollTop=ta.scrollTop;}
-/* Images du contenu rédigé (v4.4.3) : chaque image insérée a SA taille d'affichage, réglée ici
-   (jamais tapée dans le texte — le champ resterait effaçable à la main, et un ancien client
-   perdrait l'image ; cf. la doctrine « marqueur d'étape hors du champ », v4.3.0).
-   Un tap sur une vignette insère aussi sa référence dans le texte (image réutilisable). */
-/* ⚠ CETTE SECTION EXISTE MÊME VIDE, contrairement à la règle « présent dans la porte ⇔ masqué
-   quand vide » (v4.76.0) — et l'exception est nommée : l'image N'EST PAS dans la porte « ＋ »
-   d'une référence (ED_PALETTE_P ne liste que corps, document, renvoi, source). Sa seule entrée
-   était le bouton ⧉ de la barre d'outils ; la zone de dépôt est la seconde, et une zone qui
-   n'apparaîtrait qu'une fois la première image posée ne servirait jamais à poser la première. */
-function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
-  return `<div class="md-imgs"><div class="sub2">Images${ims.length?' insérées':''} ${ims.length?`<span class="hint">taille d'affichage — s'applique au-dessus de 560 px de large</span>`:''}</div>
-    ${ims.map((im,i)=>`<div class="mi-row">
-      <img class="mi-th" src="${im.data}" alt="" data-miref="${esc(im.id)}" title="Insérer une nouvelle référence à cette image">
-      <span class="mi-cap">${esc(im.caption||'Image '+(i+1))}</span>
-      <button type="button" class="mi-ins" data-miref="${esc(im.id)}" title="Insère ![](img:…) à l'endroit du curseur — une image peut illustrer plusieurs passages">＋ Insérer dans le texte</button>
-      <label class="mi-lab" for="miSc${i}">Taille</label>
-      <select class="mi-sc" id="miSc${i}" data-miscale="${esc(im.id)}">
-        ${MD_SCALES.map(s=>`<option value="${s}"${(im.scale||100)===s?' selected':''}>${s} %</option>`).join('')}
-      </select>
-      <span class="mi-un" data-miuse="${esc(im.id)}" hidden>△ absente du texte — sera retirée en quittant l'éditeur</span></div>`).join('')}
-    ${upDropHtml('image','pImgDrop','Ajouter une image / capture',ims.length?' mt':'')}</div>`;}
+/* A583 — LES IMAGES D'UNE RÉFÉRENCE : UNE GRILLE, UNE FEUILLE (option A de la planche « fichiers joints », retenue
+   par l'auteur le 06/11/2026). Elle remplace la liste « Images insérées » (v4.4.3) : une rangée par image, jusqu'à
+   MAX_IMG_PER_ENTITY (60) — 22 images faisaient ≈ 1 500 px —, et un menu « Taille » devenu le doublon du bloc ouvert
+   (A548). La taille reste dans le MODÈLE (`im.scale`), jamais tapée dans le texte (« marqueur hors du champ », v4.3.0).
+   - Une CARTE À SOI sous le contenu rédigé, présente ⇔ au moins une image : l'image entre dans la porte « Ajouter »
+     (ED_PALETTE_P), et l'exception « cette section existe même vide » tombe. Le dépôt n'importe où dans l'éditeur
+     (`upTarget('image')`) et l'outil de la barre restent.
+   - Les PDF restent AU-DESSUS du texte : c'est leur place de LECTURE (renderProtocolRead). Les fusionner avec les
+     images, qui se lisent DANS le texte, est la forme B, écartée.
+   - Repliée à deux rangs au-delà de MI_FOLD ; la dernière case dit combien restent. Dépliée pour ce brouillon.
+   - La toucher ouvre SA feuille : insérer au curseur, aller au passage, taille (MD_SCALES), remplacer, retirer. */
+const MI_FOLD=8;
+let _miAll=null,_miCtx=null,_miId=null;
+const _miGo=Object.create(null);   // passage visé ensuite, par image (« Aller au passage » fait le tour)
+// Usages d'une image dans le corps — MÊME critère que le ménage de sortie (`leaveGC`) : une ligne `![…](img:ID)` seule.
+function miUses(body){const n=Object.create(null);mdBlocks(body||'').forEach(b=>{if(b.t==='img')n[b.id]=(n[b.id]||0)+1;});return n;}
+const miLineRx=id=>new RegExp('^\\s*!\\[[^\\]]*\\]\\(img:'+String(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\)\\s*$');
+const miName=(im,i)=>im.caption||('Image '+(i+1));
+function miCardHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
+  const fold=_miAll!==p.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims;
+  return `<fieldset class="field ed-card mi-card"><div class="mi-head"><label>Images du texte <span class="mi-n">· ${ims.length}</span></label>
+    <button type="button" class="btn sm" id="miAdd">${uiIcon('img',14)}Image</button></div>
+    <div class="mi-grid">${vis.map((im,i)=>`<button type="button" class="mi-tile" data-mitile="${esc(im.id)}" data-miname="${esc(miName(im,i))}" aria-label="${esc(miName(im,i))}"><img src="${im.data}" alt="" loading="lazy" decoding="async"><span class="mi-use" hidden></span><span class="mi-out" hidden>△ hors texte</span></button>`).join('')}
+    ${fold?`<button type="button" class="mi-more" data-mimore>${ims.length-vis.length} de plus<span aria-hidden="true">⌄</span></button>`
+      :(ims.length>MI_FOLD?'<button type="button" class="mi-more" data-mimore>Replier<span aria-hidden="true">⌃</span></button>':'')}</div>
+    <p class="hint mi-hint">Toucher une image : insérer, taille, remplacer, retirer. Une image <b class="mi-w">△ hors texte</b> sera retirée en quittant l'éditeur.</p></fieldset>`;}
+// Peint sur place l'usage de chaque vignette (le rendu n'est pas rejoué à la frappe) et la feuille ouverte.
+function miPaintUse(p){const n=miUses(p.body);
+  main.querySelectorAll('[data-mitile]').forEach(t=>{const k=n[t.dataset.mitile]||0,u=t.querySelector('.mi-use'),o=t.querySelector('.mi-out');
+    u.hidden=k<2;u.textContent='×'+k;o.hidden=k>0;
+    t.setAttribute('aria-label',t.dataset.miname+(k>1?', '+k+' passages':k?'':', absente du texte'));});
+  if(_miId&&miEl().classList.contains('on'))miPaint();}
+function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,sc=_scale(im.scale),g=(_miGo[im.id]||0)%Math.max(k,1);
+  return `<img class="mi-big" src="${im.data}" alt="">
+  <p class="mi-st ${k?'ok':'w'}">${k?'✓ Dans le texte · '+k+' passage'+(k>1?'s':''):'△ Absente du texte — sera retirée en quittant l’éditeur'}</p>
+  <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
+  <h4 class="sst-h">Taille d’affichage</h4><p class="hint mi-sch">S’applique au-dessus de 560 px de large.</p>
+  <div class="mi-sc" role="radiogroup" aria-label="Taille d’affichage">${MD_SCALES.map(v=>`<button type="button" class="mdb-chip${v===sc?' on':''}" role="radio" aria-checked="${v===sc}" data-miscale="${v}">${v} %</button>`).join('')}</div>
+  <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer de la référence</button></div>`;}
+const miEl=()=>document.getElementById('miModal');
+function miPaint(){const p=_miCtx&&_miCtx.p,ims=p?(p.images||[]).filter(im=>im&&im.data):[],i=ims.findIndex(x=>x.id===_miId);
+  if(i<0){miClose();return;}
+  document.getElementById('miTitle').textContent=miName(ims[i],i);
+  document.getElementById('miBody').innerHTML=miSheetHtml(p,ims[i]);}
+function miOpen(id){_miId=id;miPaint();if(_miId)miEl().classList.add('on');}
+// Le focus revient à la vignette (re-rendue entre-temps, donc cherchée par son identifiant).
+function miClose(){const id=_miId;_miId=null;const t=id&&main.querySelector('[data-mitile="'+CSS.escape(id)+'"]');if(t)_modalReturnFocus=t;
+  miEl().classList.remove('on');}
+{const m=miEl(),bd=document.getElementById('miBody');
+ if(m&&bd){bindModalDismiss(m,miClose);
+  bd.addEventListener('click',e=>{const t=e.target.closest('button'),c=_miCtx;if(!t||!c)return;
+    const p=c.p,im=(p.images||[]).find(x=>x.id===_miId);if(!im)return;
+    if(t.dataset.miscale!=null){const v=t.dataset.miscale;im.scale=_scale(v);c.refresh();edTouch();miPaint();
+      const b=bd.querySelector('[data-miscale="'+v+'"]');if(b)b.focus();return;}
+    const k=t.dataset.miact;
+    // Écrire dans le texte : la feuille se ferme d'abord, le focus revient au champ (modalHandoffClose).
+    if(k==='ins'){const f=c.field();_miId=null;modalHandoffClose(m);
+      mdInsertAt(f,(f.value&&!/\n$/.test(f.value.slice(0,f.selectionStart||0))?'\n':'')+'![](img:'+im.id+')\n');return;}
+    if(k==='go'){const n=miUses(p.body)[im.id]||0;if(!n)return;const r=(_miGo[im.id]||0)%n;_miGo[im.id]=r+1;
+      _miId=null;modalHandoffClose(m);c.goTo(im,r);return;}
+    // Même identifiant, nouvelle photo : toutes les références suivent (comme « Remplacer… » du bloc ouvert, A548).
+    if(k==='repl'){pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);
+        if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
+        im.data=r.data;im.w=r.w;im.h=r.h;keepAnchor('.mi-card',renderProtocolEdit);miPaint();},false);return;}
+    // Retirer = l'image ET ses lignes ; le re-rendu pose le point de reprise (↶).
+    if(k==='rm'){const rx=miLineRx(im.id);p.body=String(p.body||'').split('\n').filter(l=>!rx.test(l)).join('\n');
+      p.images=(p.images||[]).filter(x=>x!==im);_miId=null;modalHandoffClose(m);
+      keepAnchor('.mi-card',renderProtocolEdit);toast('Image retirée — ↶ pour annuler.');}});}}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
@@ -18338,8 +18404,8 @@ function renderProtocolEdit(){
       <div class="md-lint-box"></div>
       <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       <div class="md-ppane"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
-      ${mdImagesHtml(p)}
       </fieldset>
+    ${miCardHtml(p)}
     ${(p.sources||[]).length?listEditor('Références','sources du protocole (traçabilité)','sources',p.sources||[],false,{shell:'ed-card'}):''}
     ${''/* Le volet vit en PIED sous 1000 px (une seule colonne), et dans la colonne de droite
     au-dessus de l'aperçu au-delà — même arbitrage que l'éditeur d'aide : ce qu'on CONSULTE (liste
@@ -18368,11 +18434,8 @@ function renderProtocolEdit(){
   bindListEditors(p,renderProtocolEdit);   // Références (v4.2.2) — même composant que les fiches
   // Contenu rédigé : saisie -> brouillon + aperçu débouncé (même cadence que l'aperçu algorithme).
   const ta=document.getElementById('p-body');
-  // « △ absente du texte » : même critère que le ménage de sortie (mdBlocks, ligne ![](img:ID)
-  // seule) — deux critères divergents diraient « présente » à une image que leaveGC supprimera.
-  // Peint sur place (le rendu n'est pas rejoué à la frappe), au rythme débouncé de l'aperçu.
-  const paintMiUse=()=>{const used=new Set();mdBlocks(p.body||'').forEach(b=>{if(b.t==='img')used.add(b.id);});
-    main.querySelectorAll('[data-miuse]').forEach(s=>{s.hidden=used.has(s.dataset.miuse);});};
+  // L'usage des vignettes (A583) : même critère que le ménage de sortie, peint au rythme débouncé de l'aperçu.
+  const paintMiUse=()=>miPaintUse(p);
   /* L'APERÇU SE REPLIE COMME LA LECTURE (demande de l'auteur : « visible dans Essayer aussi ») :
      l'auteur doit voir ce que son lecteur verra, replis compris, et sur le MÊME état mémorisé —
      c'est le même protocole. `mdFoldApply` est idempotent et se garde sur le DOM, donc le rejouer
@@ -18434,22 +18497,21 @@ function renderProtocolEdit(){
     ta.parentNode.classList.add('on');const hs=()=>mdHlSync(ta,p.docs,p.images);
     ta.addEventListener('input',hs);ta.addEventListener('scroll',()=>{ta.previousElementSibling.scrollTop=ta.scrollTop;});
     new ResizeObserver(hs).observe(ta);hs();}
-  // La zone de dépôt permanente de la section « Images », plus la cible d'un dépôt fait
-  // n'importe où dans l'éditeur : le bouton ⧉ de la barre d'outils reste, il n'est plus seul.
-  bindUpDrop(document.getElementById('pImgDrop'),'image',takeImg,true);
+  // Le dépôt d'une image n'importe où dans l'éditeur (la zone permanente est partie avec la liste, A583).
   upTarget('image',takeImg);
-  // Taille PAR IMAGE : écrit dans le modèle (p.images[i].scale) et rafraîchit l'aperçu — le texte
-  // du protocole n'est jamais touché (la référence ![](img:ID) reste identique).
-  main.querySelectorAll('[data-miscale]').forEach(sel=>sel.onchange=()=>{
-    const im=(p.images||[]).find(x=>x.id===sel.dataset.miscale);if(!im)return;
-    im.scale=_scale(sel.value);
-    const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}
-    ta.dispatchEvent(new Event('input',{bubbles:false}));});   // auto-enregistrement du brouillon
-  // Vignette ET bouton « ＋ Insérer dans le texte » (même attribut data-miref) : insèrent une
-  // NOUVELLE référence à la même image (une image peut illustrer 2 passages). Le bouton est
-  // l'affordance visible — la vignette seule (cursor:copy + title) ne se découvrait pas.
-  main.querySelectorAll('[data-miref]').forEach(th=>th.onclick=()=>{const f=act;   // A547 : dans le bloc ouvert, s'il y en a un
-    mdInsertAt(f,(f.value&&!/\n$/.test(f.value.slice(0,f.selectionStart||0))?'\n':'')+'![](img:'+th.dataset.miref+')\n');});
+  /* A583 : la grille des images. La feuille agit par `_miCtx` — le champ ACTIF (A547), le rafraîchissement d'une taille
+     (aperçu, document par blocs, auto-enregistrement : le texte ne change pas), et le passage à montrer. */
+  _miCtx={p,field:()=>act,
+    refresh:()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}
+      ta.dispatchEvent(new Event('input',{bubbles:false}));},
+    goTo:(im,r)=>{const box=document.getElementById(live?'mdDoc':'mdPreview');
+      if(box&&(live||state.mdPv==='p')){const g=[...box.querySelectorAll('img')].filter(x=>x.getAttribute('src')===im.data)[r];
+        if(g)(g.closest('.mdb')||g).scrollIntoView({block:'center'});return;}
+      const rx=miLineRx(im.id);let c=0,n=0;for(const l of ta.value.split('\n')){if(rx.test(l)){if(n===r)break;n++;}c+=l.length+1;}
+      ta.focus({preventScroll:true});ta.setSelectionRange(c,c);ta.scrollIntoView({block:'center'});mdCaretSync(ta,p);}};
+  main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
+  {const mo=main.querySelector('[data-mimore]');if(mo)mo.onclick=()=>{_miAll=_miAll===p.id?null:p.id;keepAnchor('.mi-card',renderProtocolEdit);};}
+  {const ad=document.getElementById('miAdd');if(ad)ad.onclick=()=>pickFile('image',takeImg,true);}
 
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
@@ -26116,6 +26178,7 @@ function edAdd(f,kind,pre){
    Détail : doctrine-js.md J187. */
 const ED_PALETTE_P=[
   {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'titres, listes, tableaux'},
+  {g:'Contenu',    k:'img',  ic:'img',  n:'Image',           d:'dans le texte'},   // A583
   {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'lisible hors ligne'},
   {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre aide'},
   {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée'}];
@@ -26139,6 +26202,8 @@ function edAddProto(p,kind){
      de la palette (`renderProtocolEdit` est synchrone), sinon l'activation utilisateur est perdue
      et le navigateur refuse d'ouvrir le sélecteur (leçon v4.71.0). */
   if(kind==='att'){pickFile('pdf',upPdfTaker(p,renderProtocolEdit),true);return;}
+  // A583 : l'image, au curseur du texte (le champ Markdown porte la position même masqué, A547).
+  if(kind==='img'){pickFile('image',pImgTaker(p,document.getElementById('p-body')),true);return;}
   if(kind==='rel'){openRelPicker(p,renderProtocolEdit);return;}
   if(kind==='ref'){p.sources=(Array.isArray(p.sources)?p.sources:[]).concat('');}
   if(kind==='body'&&!String(p.body||'').trim())p.body=' ';
@@ -34850,7 +34915,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

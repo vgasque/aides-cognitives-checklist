@@ -5300,14 +5300,14 @@
   /* La feuille « Réglages de l'étape » (maquettes E4, E5) : feuille basse au téléphone (grammaire de la
      feuille ⋯, A361), fenêtre centrée dès 780 (celle de « Affichage ») — un panneau latéral sous voile
      n'aurait rien montré de plus. */
-  #stepSetModal{align-items:flex-end;padding:0}
-  #stepSetModal .ai-card{max-width:none;width:100%;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;box-shadow:var(--shadow-up)}
+  :is(#stepSetModal,#miModal){align-items:flex-end;padding:0}
+  :is(#stepSetModal,#miModal) .ai-card{max-width:none;width:100%;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;box-shadow:var(--shadow-up)}
   .sst-hd{display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
-  #stepSetModal .ai-top{align-items:center}
-  #stepSetModal .ai-x.sst-ok{width:auto;height:40px;margin:0;padding:0 16px;border:0;border-radius:var(--r-2);background:var(--act);color:var(--on-primary);font-family:inherit;font-size:15px;font-weight:700}
+  :is(#stepSetModal,#miModal) .ai-top{align-items:center}
+  :is(#stepSetModal,#miModal) .ai-x.sst-ok{width:auto;height:40px;margin:0;padding:0 16px;border:0;border-radius:var(--r-2);background:var(--act);color:var(--on-primary);font-family:inherit;font-size:15px;font-weight:700}
   @media (min-width:780px){
-    #stepSetModal{align-items:center;padding:24px}
-    #stepSetModal .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
+    :is(#stepSetModal,#miModal){align-items:center;padding:24px}
+    :is(#stepSetModal,#miModal) .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
     .sst-hd{display:none}}
   /* A517 (A508) — « Créer » et « Affichage » au téléphone : FEUILLES DU BAS à poignée, la grammaire de « Réglages de
      l'étape » et du menu ⋯ (A361). Un CHOIX ne prend jamais toute la hauteur (témoin « trois gabarits ») ; ✕, le voile
@@ -8164,7 +8164,7 @@
   .md-here{background:color-mix(in srgb,var(--act) 8%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--act) 8%,transparent);border-radius:3px}
   .md-preview [data-ln],#editSide .ep-md [data-ln]{cursor:pointer}
   @media (max-width:779.98px){
-    .md-ed.md-pv :is(.md-toolbar,.md-wpane,.md-imgs){display:none}
+    .md-ed.md-pv :is(.md-toolbar,.md-wpane){display:none}
     .md-ed:not(.md-pv) .md-ppane{display:none}
     .md-ed.md-pv .md-prev-h{display:none}
   }
@@ -8243,27 +8243,39 @@
      gras et le I italique — chaque outil montre son effet SUR SON GLYPHE, jamais sur sa boîte. */
   .md-toolbar .md-mkb{font-weight:800}
   .md-toolbar .md-mkb .mk-s{background:var(--amb-2);color:var(--ink-2);border-radius:3px;padding:0 2px}
-  /* Images insérées : une rangée par image, avec SA taille d'affichage (v4.4.3). */
-  .md-imgs{margin:12px 0 4px}
-  .mi-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}
-  .mi-th{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:copy;flex:none}
-  .mi-cap{flex:1;min-width:120px;font-size:13.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mi-lab{font-size:12px;color:var(--ink-soft)}
-  /* CIBLES À 40 px, CONSIGNÉES COMME `.st-seg` L'A ÉTÉ (audit 9d) : la galerie d'images vit dans
-     l'ÉDITEUR — hors surface de crise, donc hors du contrat des 44 px, qui protège un geste ganté
-     sous adrénaline. 40 px passe très au-dessus des 24×24 de WCAG 2.2 §2.5.8, et le plancher
-     HORS crise du dossier est 32. Nommé ici pour que la question ne se repose pas. */
-  .mi-sc{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-size:13.5px;font-weight:600;min-height:40px}
-  .mi-sc:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  /* Réinsertion EXPLICITE (v5.0.0, signalé à l'usage : « on ne peut pas remettre la référence ») —
-     le tap sur la vignette existait depuis v4.4.3 mais n'était porté que par cursor:copy + title,
-     invisibles sur tactile et inaccessibles au clavier. Un vrai bouton, avec le mot. */
-  .mi-ins{border:1px solid var(--line);background:var(--work);color:var(--ink);min-height:40px;padding:0 12px;border-radius:var(--r-1);font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;flex:none}
-  .mi-ins:hover{background:var(--amb-2)}
-  .mi-ins:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  /* Une image absente du texte sera supprimée par le ménage de sortie (leaveGC) : on le DIT au
-     lieu de le laisser découvrir — registre ATTENTION (glyphe + mots, la couleur jamais seule). */
-  .mi-un{flex:1 1 100%;font-size:12px;font-weight:600;color:var(--warn)}
+  /* A583 — LES IMAGES D'UNE RÉFÉRENCE EN GRILLE (option A de la planche « fichiers joints ») : une carte À SOI sous le
+     texte qu'elles illustrent, vignettes carrées (quatre au rang d'un téléphone, davantage au-delà), repliées à deux
+     rangs. Tout réglage passe par la feuille de l'image (#miModal) : la vignette ne porte que son usage. */
+  .mi-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .mi-head>label{flex:1;margin:0}
+  .mi-n{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .mi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
+  .mi-tile,.mi-more{position:relative;aspect-ratio:1/1;min-height:44px;padding:0;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb-2);overflow:hidden;cursor:pointer;font:inherit}
+  .mi-tile img{display:block;width:100%;height:100%;object-fit:cover}
+  .mi-tile:focus-visible,.mi-more:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* L'USAGE, glyphe et mot (règle 8) : « ×n » à deux passages et plus, « △ hors texte » à zéro — même critère que le
+     ménage de sortie (`leaveGC`), qui retirera l'image en quittant l'éditeur. */
+  .mi-use{position:absolute;left:4px;bottom:4px;padding:0 4px;border-radius:3px;background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:var(--t-cap);font-weight:600}
+  .mi-out{position:absolute;left:0;right:0;bottom:0;padding:2px 0;border-top:1px solid var(--warn-line);background:var(--warn-soft);color:var(--warn);font-size:var(--t-cap);font-weight:800;text-align:center}
+  .mi-more{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--amb);border-color:var(--ctl-line);color:var(--act);font-size:var(--t-body);font-weight:800;line-height:1.2}
+  .mi-hint{margin:10px 0 0}
+  .mi-w{color:var(--warn)}
+  /* La feuille d'une image : l'image, son usage, deux groupes de rangées (ce qu'on en fait dans le texte, ce qu'on fait
+     d'elle), la taille entre les deux — la grammaire des listes groupées (A505). */
+  .mi-big{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0 12px;border-radius:var(--r-3);background:var(--amb-2)}
+  .mi-st{margin:0 0 12px;font-size:var(--t-body);font-weight:700}
+  .mi-st.ok{color:var(--ok)}
+  .mi-st.w{color:var(--warn)}
+  .mi-acts{margin-bottom:12px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);overflow:hidden}
+  .mi-act{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--hit);padding:0 14px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
+  .mi-act:first-child{border-top:0}
+  .mi-act svg{flex:none;color:var(--act)}
+  .mi-act:hover{background:var(--amb)}
+  .mi-act:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .mi-act.del,.mi-act.del svg{color:var(--crit)}
+  .mi-x{margin-left:auto;font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .mi-sc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .mi-sch{margin:-4px 0 8px}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:32px;height:32px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:13.5px;line-height:1.55;resize:vertical}
@@ -8669,7 +8681,7 @@
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
-    .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
+    .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}

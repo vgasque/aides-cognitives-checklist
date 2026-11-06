@@ -910,7 +910,7 @@ ses constats se règlent en ÉCRIVANT ce qui était vrai, au lieu de changer le 
   INFORMATION, et rien d'autre ne peut s'y afficher en même temps (la notice d'auteur attend son
   acquittement). Étendre A11 à l'accueil interdirait la carte de session vive et les épinglées.
 · **`.mi-sc` / `.mi-ins` (40 px) SONT CONSIGNÉS comme `.st-seg` l'a été** : galerie de l'ÉDITEUR,
-  hors contrat des 44 px, très au-dessus des 24×24 de WCAG 2.2 § 2.5.8.
+  hors contrat des 44 px, très au-dessus des 24×24 de WCAG 2.2 § 2.5.8. *(Purgés en v5.91.0 avec la liste « Images insérées », A583.)*
 · **8f EST LIVRÉ** (A33) : dès qu'une session est à l'écran, `audit-a11y` scanne la page ENTIÈRE et
   compte le halo `::after` dans la zone tapable. L'audit le croyait ouvert parce qu'il ne lit pas
   `scripts/`.
