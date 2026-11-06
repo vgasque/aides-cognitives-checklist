@@ -1338,8 +1338,10 @@ await sec('Audit design · la feuille de filtres', async () => {
     /Aides/.test(r.cranAides.puce)&&!/Tout/.test(r.cranAides.sous), JSON.stringify(r.cranAides));
   t('… sa puce rouvre « Afficher », pas la feuille du bouton rond', r.puceOuvre.pick&&!r.puceOuvre.vs, JSON.stringify(r.puceOuvre));
   t('… et « Tout » rend toute la liste', r.nRetour===r.n0, `${r.nRetour} / ${r.n0}`);
-  t('bouton rond : « Trier et présenter », trois réglages, aucun filtre',
-    r.rond.titre==='Trier et présenter'&&r.rond.heads.join('|')==='Trier|Regrouper|Densité'&&r.rond.filtres===0&&/^Trier et présenter/.test(r.rond.lbl),
+  /* RÉÉCRIT SCIEMMENT (A587-A588) : la feuille gagne « Vos collections » (s'il en existe) et « Groupes » (tout plier,
+     tout déplier) — deux PRÉSENTATIONS, toujours aucun filtre. */
+  t('bouton rond : « Trier et présenter » — trier, regrouper, densité, puis la place des collections et les plis ; aucun filtre',
+    r.rond.titre==='Trier et présenter'&&/^Trier\|Regrouper\|Densité(\|Vos collections)?\|Groupes$/.test(r.rond.heads.join('|'))&&r.rond.filtres===0&&/^Trier et présenter/.test(r.rond.lbl),
     JSON.stringify(r.rond));
   t('… elle ne déplace rien, et « Terminé » la ferme',
     Math.abs(r.rond.y-r.y0)<=1&&Math.abs(r.rond.h-r.h0)<=1&&r.rond.pied==='Terminé'&&r.rondFermee, JSON.stringify(r.rond));
@@ -9098,6 +9100,103 @@ await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () 
       const af=await page.evaluate(async()=>{const b=document.querySelector('.pg-pick>#rangBtn');const o={dernier:!!b&&b===b.parentNode.lastElementChild,ligne:!!document.querySelector('.dir-sum')};
         if(b){b.click();await __acCalme(400);o.feuille=!![...document.querySelectorAll('.ai-modal.on')].length;}return o;});
       t('A545 · au téléphone, « Affichage » est le rond au bout de la ligne du titre, sans ligne du compte, et ouvre sa feuille',af.dernier&&!af.ligne&&af.feuille,JSON.stringify(af));}
+    await page.close();
+  }
+});
+
+/* ══ A587-A589 — L'ACCUEIL À L'ÉCHELLE ═════════════════════════════════════════════════════════════════
+   A587 : « Vos collections » en tête AU REPOS (repliées, dépliées sur place, pli retenu), « Tout » dessous ; absentes
+   sous filtre, recherche, sélection, ou réglage « Non » — qui rend l'accueil d'avant. A588 : l'intertitre plie son
+   groupe (pli retenu PAR regroupement), « Tout replier » ; au téléphone le petit titre collé nomme le groupe, en
+   large l'intertitre colle. A589 : la tuile dit sa bibliothèque, le « · » sort de la pastille, la rangée rangée par
+   catégorie ne redit pas sa catégorie, le nom d'une bibliothèque de la colonne n'est pas tronqué pour son mot. */
+await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenance', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    /* Décor (en mémoire, rejoué après le rechargement) : une bibliothèque partagée, vingt aides de plus — assez pour
+       défiler au téléphone —, deux collections, une épingle. Les collections et l'épingle sont écrites (localStorage). */
+    const decor=async()=>{myLibraries=[{id:'lib1',name:'Réanimation CHU',role:'editor'}];
+      if(!categories.some(c=>c.id==='c587'))categories.push({id:'c587',name:'Sepsis',color:'#1f6f96',library:'lib1'});
+      const base=JSON.parse(JSON.stringify(fiches.find(f=>!/^a587/.test(f.id))));
+      for(let i=0;i<20;i++){if(fiches.some(f=>f.id==='a587-'+i))continue;const n=JSON.parse(JSON.stringify(base));n.id='a587-'+i;n.title='Aide '+String.fromCharCode(65+i);
+        n.library=i%2?'lib1':null;n.category=i%2?'c587':(categories.find(c=>!c.library)||categories[0]).id;fiches.push(migrate(n));}
+      if(!colls.some(c=>c.name==='Garde')){collNew('Garde',[fiches[0].id,'a587-1','a587-2']);collNew('Vide',[]);}
+      if(!isPinned('a587-1'))togglePin('a587-1');
+      setHomeGroup('cat');setHomeColls(true);render();await __acCalme(500);};
+    await page.evaluate(decor);
+    const r=await page.evaluate(async()=>{
+      const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
+      const sec=q('.hc-sec'),tout=q('.dir-book.tout'),th=q('.hc-tout');
+      const o={sec:!!sec,lignes:qa('[data-hcoll]').length,repliees:qa('[data-hcoll]').every(b=>b.getAttribute('aria-expanded')==='false'),
+        ordre:!!sec&&!!tout&&!!(sec.compareDocumentPosition(tout)&Node.DOCUMENT_POSITION_FOLLOWING),toutH:th?[th.firstChild.textContent,(th.querySelector('.hc-hint')||{}).textContent].join('|'):''};
+      const toutIds=()=>qa('.dir-book.tout [data-open]').map(b=>b.dataset.open).sort().join(',');
+      o.idsOn=toutIds();
+      // Déplier « Garde » sur place : ses rangées, « Ouvrir », la même aide que dans « Tout ».
+      q('[data-hcoll]').click();await __acCalme(300);
+      const hb=q('.hc-book');o.deplie=q('[data-hcoll]').getAttribute('aria-expanded')==='true';
+      o.dedans=hb?[...hb.querySelectorAll('[data-open]')].map(b=>b.dataset.open).sort().join(','):'';
+      o.ouvrir=!!q('[data-hcopen]');o.memeAide=!!q('.dir-book.tout [data-open="a587-1"]')&&o.dedans.indexOf('a587-1')>=0;
+      o.aussi=hb?/aussi dans/.test(hb.textContent):false;
+      // Absente sous filtre, recherche, sélection.
+      const sans=async(fn,undo)=>{fn();render();await __acCalme(300);const v=!q('.hc-sec')&&!q('.hc-tout');undo();render();await __acCalme(300);return v;};
+      o.sousType=await sans(()=>{state.section='fiches';},()=>{state.section='all';});
+      o.sousCat=await sans(()=>{state.cat=catKey(categories[0]);},()=>{state.cat='';});
+      o.sousSel=await sans(()=>{state.selOn=true;},()=>{state.selOn=false;});
+      o.sousQ=await sans(()=>{state.q='Aide';},()=>{state.q='';});
+      // Réglage « Non » : l'accueil d'avant — ni section, ni intertitre « Tout », le même répertoire.
+      setHomeColls(false);render();await __acCalme(300);
+      o.off=!q('.hc-sec')&&!q('.hc-tout')&&toutIds()===o.idsOn;
+      setHomeColls(true);render();await __acCalme(300);
+      // A589 : tuile (bibliothèque au-dessus de la catégorie), séparateur hors pastille, pas de redite par catégorie.
+      const tile=q('.dir-book.pinned [data-open="a587-1"]');const tr=tile&&tile.closest('.dir-row');
+      const lt=tr&&tr.querySelector('.libtag'),ct=tr&&tr.querySelector('.dir-cat');
+      o.tuile=!!lt&&getComputedStyle(lt).display!=='none'&&lt.textContent.trim()==='Réanimation CHU'&&!!ct&&lt.getBoundingClientRect().bottom<=ct.getBoundingClientRect().top+1;
+      const rl=q('.dir-book.tout .dir-id>*+.libtag');
+      o.point=rl?getComputedStyle(rl,'::before').position:'';
+      const rc=q('.dir-book.tout .dir-cat');o.catCachee=rc?getComputedStyle(rc).display:'';
+      return o;});
+    t(`${W} px · A587 : au repos, « Vos collections » repliées (2) puis « Tout » (intertitre qui nomme le regroupement)`,r.sec&&r.lignes===2&&r.repliees&&r.ordre&&r.toutH==='Tout|par catégorie',JSON.stringify(r));
+    t(`${W} px · A587 : une collection se déplie sur place — ses rangées, « Aussi dans », « Ouvrir » ; la même aide reste dans « Tout »`,r.deplie&&r.dedans.split(',').length===3&&/a587-1/.test(r.dedans)&&/a587-2/.test(r.dedans)&&r.aussi&&r.ouvrir&&r.memeAide,JSON.stringify(r));
+    t(`${W} px · A587 : absente sous un type, une catégorie, une sélection, une recherche`,r.sousType&&r.sousCat&&r.sousSel&&r.sousQ,JSON.stringify(r));
+    t(`${W} px · A587 : réglage « Non » = l'accueil d'avant (ni section ni « Tout », même répertoire)`,r.off,JSON.stringify(r));
+    t(`${W} px · A589 : la tuile dit sa bibliothèque au-dessus de sa catégorie`,r.tuile,JSON.stringify(r));
+    t(`${W} px · A589 : le « · » de la provenance est posé hors de la pastille ; rangé par catégorie, la rangée ne la redit pas`,r.point==='absolute'&&r.catCachee==='none',JSON.stringify(r));
+    // A587 : le pli d'une collection est retenu au rechargement.
+    await page.reload();await page.waitForFunction(()=>!!document.querySelector('[data-hcoll]'));await calme(page,400);
+    await page.evaluate(decor);
+    const rel=await page.evaluate(()=>document.querySelector('[data-hcoll]').getAttribute('aria-expanded'));
+    t(`${W} px · A587 : le pli d'une collection est retenu au rechargement`,rel==='true',rel);
+    // A588 : plier un groupe ; retenu par regroupement ; « Tout replier » ; collant en large, petit titre au téléphone.
+    const g=await page.evaluate(async()=>{const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
+      const b0=q('[data-gfold]'),k=b0.dataset.gfold;b0.click();await __acCalme(300);
+      const g0=q('[data-gfold="'+CSS.escape(k)+'"]').closest('.dir-g');
+      const o={plie:g0.classList.contains('plie')&&!g0.querySelector('.dir-grid')&&g0.querySelector('[data-gfold]').getAttribute('aria-expanded')==='false',
+        compte:/\d/.test(g0.querySelector('.dir-ln').textContent)};
+      setHomeGroup('az');render();await __acCalme(300);o.azLibre=!q('.dir-book.tout .dir-g.plie');
+      setHomeGroup('cat');render();await __acCalme(300);o.retour=!!q('.dir-book.tout .dir-g.plie');
+      q('[data-gfold]').click();await __acCalme(300);   // déplie à nouveau
+      document.getElementById('rangBtn').click();await __acCalme(400);
+      q('[data-vsfold="1"]').click();await __acCalme(300);o.toutPlie=qa('.dir-book.tout .dir-g').every(x=>x.classList.contains('plie'));
+      q('[data-vsfold="0"]').click();await __acCalme(300);o.toutDeplie=!q('.dir-book.tout .dir-g.plie');
+      o.reglage=!!q('[data-vs="colls:1"]');closeViewSheet();await __acCalme(300);
+      const l=q('.dir-book.tout .dir-g>.dir-l');o.pos=l?getComputedStyle(l).position:'';
+      return o;});
+    t(`${W} px · A588 : l'intertitre plie son groupe (compte gardé), le pli vaut pour CE regroupement seulement`,g.plie&&g.compte&&g.azLibre&&g.retour,JSON.stringify(g));
+    t(`${W} px · A588 : « Tout replier » / « Tout déplier » et le réglage « Vos collections » dans la feuille`,g.toutPlie&&g.toutDeplie&&g.reglage,JSON.stringify(g));
+    t(`${W} px · A588 : l'intertitre ${W<780?'ne colle pas (une seule bande, A542)':'colle en tête de son groupe'}`,g.pos===(W<780?'static':'sticky'),g.pos);
+    if(W<780){
+      const tt=await page.evaluate(async()=>{const heads=[...document.querySelectorAll('.dir-book.tout .dir-g>.dir-l')];const h=heads[1];
+        const top=document.querySelector('.pg-top');window.scrollTo(0,h.getBoundingClientRect().top+scrollY-top.getBoundingClientRect().bottom+20);
+        await __acCalme(500);return {attendu:h.dataset.grptt,lu:top.querySelector('.pg-tt').textContent};});
+      t('390 px · A588 : défilé, le petit titre collé nomme le groupe sous le pouce',!!tt.attendu&&tt.lu===tt.attendu,JSON.stringify(tt));
+    }else{
+      const col=await page.evaluate(()=>{const n=[...document.querySelectorAll('.hs-name')].find(x=>x.textContent.trim()==='Réanimation CHU');
+        return n?{sw:n.scrollWidth,cw:n.clientWidth}:null;});
+      t('1280 px · A589 : le nom d\'une bibliothèque de la colonne n\'est pas tronqué pour son mot de partage',!!col&&col.sw<=col.cw,JSON.stringify(col));
+    }
     await page.close();
   }
 });

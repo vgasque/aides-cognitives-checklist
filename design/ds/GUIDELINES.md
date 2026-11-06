@@ -447,8 +447,21 @@ petit titre au défilement · « ＋ Créer »), le **grand titre de 34 px** dan
 relire — et la bibliothèque s'il y en a plusieurs, réglages en direct ; puis Tout afficher, Accès direct, Mes
 collections, Catégories et « Gérer » — listes groupées, compte par rangée, un tap = appliqué et fermé), et devient le
 nom du filtre posé, coiffé de son œil (« Collection · à vous seul », « Catégorie »). Le bouton rond ↑↓ au bout de
-cette ligne ouvre **« Trier et présenter »** (trier, regrouper, densité — aucun filtre). Plus de rangée de pastilles,
-plus de bouton filtre à côté de la recherche (A556).
+cette ligne ouvre **« Trier et présenter »** (trier, regrouper, densité, la place des collections, « Tout replier /
+Tout déplier » — aucun filtre). Plus de rangée de pastilles, plus de bouton filtre à côté de la recherche (A556, A587-A588).
+
+**À l'échelle — vos collections en tête, le répertoire qui se plie (A587-A589, v5.95.0).** Au REPOS (ni recherche, ni
+filtre, ni sélection), l'accueil se lit : En cours › Accès direct › **« Vos collections · pour vous »** › **« Tout »**.
+Les collections sont un SOMMAIRE replié (une rangée groupée par collection : signet, nom, compte, chevron) ; une rangée
+se déplie SUR PLACE — ses aides, « aussi dans … », puis « Ouvrir « … » › » vers la vue de la collection. « Tout » est le
+répertoire d'avant, rangé par « Regrouper », sous un intertitre de section qui nomme le regroupement. Une aide rangée
+paraît dans les deux : c'est la même aide, jamais une copie. Le réglage « Vos collections : En tête / Non » rend
+l'accueil de la v5.94 ; il n'existe que s'il y a une collection. **Chaque intertitre de groupe se plie** (chevron,
+compte gardé ; déplié par défaut ; pli retenu par regroupement). En défilant, le groupe sous le pouce se dit dans le
+petit titre de la barre collée au téléphone (une seule bande, A542), et l'intertitre colle en tête de son groupe en
+large. **La tuile d'Accès direct dit sa bibliothèque** (ligne au-dessus de la catégorie) dès qu'une bibliothèque est
+partagée ; le « · » qui précède la pastille de provenance est posé hors d'elle ; rangée par catégorie, la rangée ne
+redit pas sa catégorie.
 En bas, une **barre d'onglets flottante en verre** (Aides · Sessions · Moi) et la recherche dans un rond ; Sessions
 et Moi sont des onglets, jamais des niveaux de retour. En large, le titre fait 28 px et ouvre la ligne du compte.
 
@@ -908,9 +921,10 @@ telle quelle — chaque écran le dit à sa façon :
   aussitôt ; « Déplacer vers une bibliothèque… » est un choix UNIQUE et dit « change qui y a accès ».
 - **Le VERBE** : Déplacer (bibliothèque) · Ranger (catégorie, commune aux lecteurs) · Ajouter à
   (collection) · **Retirer** de la collection — jamais « Supprimer » une aide depuis une collection.
-- **La PLACE** : au téléphone, une rangée « Mes collections · à vous seul » sous l'Accès direct
-  (absente tant qu'il n'y en a aucune) ; au bureau, une section de la colonne gauche ; une famille
-  de la feuille Affichage ; une zone de Moi. Une collection ouverte a un EN-TÊTE « COLLECTION · À
+- **La PLACE** : en tête de l'accueil, la section « Vos collections · pour vous », repliée, qui se
+  déplie sur place (A587 ; absente tant qu'il n'y en a aucune) ; au téléphone, la feuille « Afficher »
+  du grand titre (A545) ; au bureau, une section de la colonne gauche (sous les bibliothèques, A489) ;
+  une famille de la feuille Affichage ; une zone de Moi. Une collection ouverte a un EN-TÊTE « COLLECTION · À
   VOUS SEUL », son compte, « venus de k bibliothèques — rien n'a été déplacé », et ses gestes
   (Ajouter des aides · ⋯ Renommer, Retirer les indisponibles, Supprimer). « aussi dans … » sous une
   rangée, seulement dans une collection ouverte.
