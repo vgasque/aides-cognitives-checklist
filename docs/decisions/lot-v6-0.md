@@ -1786,3 +1786,18 @@ Mac en usage n'a presque rien de « libre ». **Mesuré le 06/11/2026 sur un Mac
 *Forme écartée* : ajouter *purgeable* (double compte) ; abaisser le coût compté par navigateur sous 500 Mo (≈ 300
 mesurés au pic, la marge couvre les pics d'un harnais lourd) ; retirer la borne mémoire — elle reste utile sur une
 machine réellement à court, c'est la MESURE qui était fausse, pas la borne.
+
+## A573 — Le minuteur du rail en marche s'empile ; la consignation d'un compteur en sous-ligne (v5.89.2)
+
+*Signalé par l'auteur sur capture (v5.89.1) : « problèmes d'affichage » dans le rail du bureau, minuteur en pause.*
+
+A571 avait posé le minuteur du rail sur UNE rangée (nom et temps à gauche, commande à droite). Juste au repos, avec
+un seul bouton (« Démarrer »). En marche, en pause ou échu, la rangée porte DEUX boutons (« Relancer », « ↺ 02:00
+maintenir ») et une ligne d'état : dans 300 px, le nom tombait à « Cycle de… », l'état à « △ arrêté depuis… », le
+bouton de remise à zéro à « MAINTEN… ».
+- **Au repos** : rien ne change (nom, temps dessous, « Démarrer » à droite).
+- **En marche, en pause, échu** : la rangée s'empile — nom et temps sur la première ligne, la barre de progression,
+  l'état, puis les deux boutons sur leur propre ligne (« Relancer » prend la largeur, « ↺ maintenir » à côté).
+- **La consignation d'un compteur** (« consigné T+00:42 · il y a 23:20 ») quitte le mono sur liseré et devient le
+  SOUS-TITRE du nom (cellule iOS) : 12 px, encre douce, « il y a … » insécable ; la pilule « − n + » se centre sur les
+  deux lignes. *Forme écartée (par l'auteur)* : la sous-ligne pleine largeur sous la pilule, « trop collée » à elle.
