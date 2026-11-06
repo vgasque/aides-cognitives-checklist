@@ -328,7 +328,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-znX6VHk/TUVhYBY4Ow3V/tiQCcC1tSy9QHLpQiYmF/g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ckEJ3BndhIIS3qXmfDdmD5kYWZ/lJpOt8DFaKBPFWbU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2916,9 +2916,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-book.compact :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){white-space:nowrap}
   .dir-book.compact .dir-sub>.dir-st{display:inline}
   html.zw1200 .dir-book.compact .dir-id>span:not([class]){display:none}
-  html.zw1200 .dir-book.compact.by-cat .dir-cat{display:none}
-  html.zw1200 .dir-book.compact.by-cat .dir-id>.dir-cat:first-child+*::before,
-  html.zw1200 .dir-book.compact.by-cat .dir-id:has(>.dir-cat:only-child)+.dir-st::before{content:none}
+  /* A589 §3 (étend A537 à la détaillée) : sous un intertitre de catégorie, la rangée ne redit pas la catégorie — le
+     point de la rangée et l'intertitre la disent. */
+  .dir-book.by-cat .dir-cat{display:none}
+  .dir-book.by-cat .dir-id>.dir-cat:first-child+*::before,
+  .dir-book.by-cat .dir-id:has(>.dir-cat:only-child)+.dir-st::before{content:none}
+  .dir-book.by-cat .dir-id>.dir-cat:first-child+.libtag{margin-left:0}
   /* A537 (renverse A515 §4, demande de l'auteur) : l'ACCÈS DIRECT en tuiles, plusieurs par ligne, quelle que soit la
      densité. Une tuile dit le titre (trois lignes au plus), la catégorie avec son point, puis l'état — ni nature ni
      discriminant. Au téléphone, pas d'étoile sur la tuile : l'aide reste dans la liste, où l'étoile la retire. */
@@ -2928,7 +2931,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-book.pinned .dir-av{display:none}
   .dir-book.pinned .dir-row .card-open .dir-t{-webkit-line-clamp:3;max-height:none}
   .dir-book.pinned .dir-sub{margin-top:6px;font-size:var(--t-meta);white-space:nowrap}
-  .dir-book.pinned .dir-id>:not(.dir-cat){display:none}
+  .dir-book.pinned .dir-id>:not(.dir-cat,.libtag){display:none}
   .dir-book.pinned .dir-id>.dir-cat{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-sub>.dir-id+.dir-st::before{content:none}
   .dir-book.pinned .dir-row.has-av .dir-cat .cat-dot{display:inline-block;margin-right:6px;vertical-align:1px}
@@ -2937,6 +2940,56 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw560 .dir-book.pinned .dir-row{grid-template-columns:minmax(0,1fr);padding-right:14px}
   html.zw560 .dir-book.pinned .pinbtn{display:none}
   html.zw560 .dir-book.pinned .dir-row .card-open .dir-t{-webkit-hyphens:auto;hyphens:auto}
+  /* A589 §1 — LA TUILE DIT SA BIBLIOTHÈQUE (régime d'A242, que la tuile n'appliquait pas) : la bibliothèque d'abord, en
+     texte (la pastille est le dessin d'une rangée, pas d'une tuile), la catégorie et son point dessous — mesuré sur une
+     seule ligne à 390 px, les deux noms se coupaient (« Bloc centr… · Obstétri… »). */
+  .dir-book.pinned .dir-id:has(>.libtag){display:flex;flex-direction:column;min-width:0}
+  .dir-book.pinned .dir-id>.libtag{order:-1;display:block;min-width:0;margin:0;padding:0;background:none;
+    color:inherit;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:static}
+  .dir-book.pinned .dir-id>.libtag svg{display:none}
+  .dir-book.pinned .dir-id>.libtag::before{content:none}
+  /* A589 §2 — LE « · » NE TOMBE PLUS DANS LA PASTILLE de provenance : il se pose dans la marge, hors du fond. */
+  .dir-book .dir-id>*+.libtag{position:relative;margin-left:16px}
+  .dir-book .dir-id>*+.libtag::before{position:absolute;left:-11px;margin:0}
+  /* ══ A587 — « VOS COLLECTIONS » EN TÊTE, « TOUT » DESSOUS ══ Deux intertitres de SECTION (h2, 17,5/700) au-dessus
+     des intertitres de groupe : la collection est un sommaire replié, chaque rangée se déplie sur place. */
+  .hc-sec{margin:0 0 24px}
+  .hc-sh{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;padding:0 4px;font-size:var(--t-step);font-weight:700;color:var(--ink)}
+  .hc-hint{font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .hc-shn{margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .hc-tout{margin-top:0}
+  .dir-book.hc-book{gap:0}
+  .hc-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;margin:0;padding:8px 14px 8px 16px;border:0;
+    background:none;background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-position:right bottom;background-size:calc(100% - 16px) 1px;
+    font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+  .dir-grid>.hc-row:last-child{background-image:none}
+  .hc-row:hover,.hc-row[aria-expanded="true"]{background-color:var(--amb-2)}
+  .hc-row[aria-expanded="true"]{font-weight:700}
+  .hc-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .hc-ic{flex:none;display:inline-flex;color:var(--act)}
+  .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hc-cnt{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .hc-vide{padding:12px 16px;font-size:var(--t-body);color:var(--ink-2)}
+  .hc-open{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;margin:0;padding:8px 16px;border:0;
+    background:none;background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-position:right bottom;background-size:calc(100% - 16px) 1px;
+    font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);text-align:left;cursor:pointer}
+  .dir-grid>.hc-open:last-child{background-image:none}
+  .hc-open:hover{background-color:var(--amb-2)}
+  .hc-open:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  /* ══ A588 — L'INTERTITRE DE GROUPE PLIE SON GROUPE ══ Le bouton porte point, nom, cadenas et compte ; le chevron dit
+     l'état (vers la droite : plié ; vers le bas : déplié). */
+  .dir-lt{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:32px;margin:0;padding:0;border:0;
+    border-radius:8px;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+  .dir-lt:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .dir-chev{flex:none;display:inline-flex;color:var(--ink-soft)}
+  [aria-expanded="true"]>.dir-chev{transform:rotate(90deg)}
+  .dir-book .dir-g.plie{gap:0}
+  /* En large, l'intertitre colle en tête de son groupe pendant qu'il défile (A251, A588) ; au téléphone, une seule bande
+     en haut (A542) : c'est le petit titre de la barre collée qui nomme le groupe (`bindGroupTitle`). */
+  html:not(.tabnav) .dir-book.tout .dir-g>.dir-l{position:sticky;top:0;z-index:3;background:var(--amb);padding-block:6px}
+  .vs-acts{display:flex;flex-wrap:wrap;gap:8px}
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
@@ -7991,7 +8044,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Détail : doctrine-css.md C123. */
   .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
   html[data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
-  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}   /* A489 : le partage d'une bibliothèque, en un mot */
+  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}
+  /* A589 §4 : le mot de partage CÈDE le premier — le nom d'une bibliothèque n'est plus tronqué pour lui. Le mot prend
+     la place qui RESTE (base 0, calé à droite contre le compte) ; le nom ne rétrécit qu'une fois le mot à zéro. */
+  .hs-row .hs-name:has(+.hs-who){flex:0 1 auto}
+  .hs-row .hs-who{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* A489 : le partage d'une bibliothèque, en un mot */
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
   .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
@@ -9894,7 +9951,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.94.0';
+const APP_VERSION='5.95.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10375,6 +10432,22 @@ try{const _hg=localStorage.getItem(spaceKey('ac-home-group'))||'';
   if(HOME_GROUPS.indexOf(_hg)>=0)state.homeGroup=_hg;
   state.homeSort=localStorage.getItem(spaceKey('ac-home-sort'))==='recent'?'recent':'alpha';
   state.homeCompact=localStorage.getItem(spaceKey('ac-home-compact'))==='1';}catch(e){}
+/* A587 : « Vos collections » en tête de l'accueil — ON par défaut ; OFF rend l'accueil de la v5.94. Voyage dans
+   data.prefs comme le rangement (A256 : la synchro écrit la préférence, elle ne re-range jamais l'écran ouvert). */
+try{state.homeColls=localStorage.getItem(spaceKey('ac-home-colls'))!=='0';}catch(e){state.homeColls=true;}
+function setHomeColls(on){state.homeColls=!!on;
+  try{localStorage.setItem(spaceKey('ac-home-colls'),on?'1':'0');}catch(e){}
+  schedulePrefsPush();}
+/* A587-A588 : les PLIS de l'accueil, par appareil. Deux régimes opposés, donc deux listes : une collection est
+   REPLIÉE par défaut (on retient celles qu'on a ouvertes), un groupe du répertoire est DÉPLIÉ par défaut (on retient
+   ceux qu'on a pliés — clé « regroupement:libellé », plier « Trauma » par catégorie ne plie rien en A–Z). */
+const _homeFold={open:new Set(),fold:new Set()};
+/* Contexte de dessin d'une rangée (A587, A589) : la collection dépliée qui la contient, ou la tuile d'Accès direct. */
+let _rowCtx={coll:null,tile:false};
+try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-home-fold'))||'null')||{};
+  (Array.isArray(o.open)?o.open:[]).slice(0,60).forEach(x=>{if(typeof x==='string')_homeFold.open.add(x.slice(0,80));});
+  (Array.isArray(o.fold)?o.fold:[]).slice(0,200).forEach(x=>{if(typeof x==='string')_homeFold.fold.add(x.slice(0,140));});}catch(e){}
+function homeFoldSave(){try{localStorage.setItem(spaceKey('ac-home-fold'),JSON.stringify({open:[..._homeFold.open].slice(-60),fold:[..._homeFold.fold].slice(-200)}));}catch(e){}}
 function setHomePref(k,v){state[k]=v;try{localStorage.setItem(spaceKey(k==='homeSort'?'ac-home-sort':'ac-home-compact'),k==='homeSort'?v:(v?'1':'0'));}catch(e){}}
 function setHomeGroup(v){if(HOME_GROUPS.indexOf(v)<0)return;
   state.homeGroup=v;
@@ -11906,8 +11979,10 @@ const catName=f=>{const c=catOf(f);return c?c.name:'';};
    sont deux fiches différentes. En recherche (liste plate) et hors rangement « bibliothèque »
    (sections mélangées), toute rangée dit sa bibliothèque ; en rangement « bibliothèque »,
    seules les homonymes la portent (l'intertitre dit déjà le reste). */
+/* A589 : la TUILE d'Accès direct dit toujours sa bibliothèque (elle vit hors de tout rangement) ; une rangée dépliée
+   dans une collection aussi (la collection mêle les bibliothèques, A475). */
 function searchLibTag(x){if(!myLibraries.length)return '';
-  if(!txNorm(state.q)&&homeGroupKey()==='bib'&&!_homeDup.has(txNorm(x.title||'')))return '';
+  if(!_rowCtx.tile&&!_rowCtx.coll&&!txNorm(state.q)&&homeGroupKey()==='bib'&&!_homeDup.has(txNorm(x.title||'')))return '';
   const shared=!!x.library;const name=shared?(libName(x.library)||'Partagée'):'Perso';
   return `<span class="tag libtag" title="Bibliothèque : ${esc(name)}">${uiIcon(shared?'book':'user',11)}${esc(name)}</span>`;}
 function catTag(f,neutral){const c=catOf(f);if(!c)return '';const col=safeColor(c.color);
@@ -15658,7 +15733,9 @@ const HS_RING='<span class="hs-ring"></span>';
    plusieurs), effet immédiat, rien n'est déplacé — la notice le dit. Tiret = sélection rangée en partie. */
 const collIc=c=>c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',14,{sw:2.2});
 /* « aussi dans … » sous une rangée, dans une collection ouverte : la même aide vit ailleurs, sans copie. */
-function collAlsoHtml(id){if(!state.coll)return '';const a=collsOf(id).filter(c=>c.id!==state.coll);
+/* A587 : la rangée se dessine aussi DANS une collection dépliée de l'accueil — `_rowCtx.coll` la nomme le temps du
+   dessin (la collection elle-même est exclue, comme dans la vue ouverte). */
+function collAlsoHtml(id){const cur=_rowCtx.coll||state.coll;if(!cur||_rowCtx.tile)return '';const a=collsOf(id).filter(c=>c.id!==cur);
   return a.length?`<span class="dir-also">${uiIcon('bookmark',12,{sw:2.4})}aussi dans ${esc(collsLbl(a))}</span>`:'';}
 async function collAsk(title,value){return confirmDlg('Nom de la collection',{title,yes:title==='Renommer'?'Renommer':'Créer',input:{value:value||'',placeholder:'Ex. Garde SMUR'}});}
 /* La rangée du menu ⋯ : active même en lecture seule (« Modifier » grisé juste au-dessus) — la preuve par le geste. */
@@ -16438,6 +16515,20 @@ function bindPgHead(rerender){
   if(t&&top&&window.IntersectionObserver){_pgIo=new IntersectionObserver(es=>{es.forEach(e=>top.classList.toggle('stuck',e.intersectionRatio<0.99));},
     {rootMargin:`-${Math.round((top.offsetHeight||44)+insetPx('--sat'))}px 0px 0px 0px`,threshold:[0,0.99,1]});_pgIo.observe(t);}}
 let _pgIo=null;
+/* A588 §2-3 — AU TÉLÉPHONE, LE PETIT TITRE COLLÉ NOMME LE GROUPE SOUS LE POUCE (« Trauma », « Vos collections »…),
+   au lieu de redire « Aides » : une seule bande en haut (A542), donc pas d'intertitre collant de plus. Le dernier
+   intertitre passé sous la barre gagne (ordre du document) ; au-dessus du premier, le titre de la page revient.
+   IntersectionObserver, jamais l'évènement `scroll` (A267). */
+let _grpIo=null;
+function bindGroupTitle(){if(_grpIo){_grpIo.disconnect();_grpIo=null;}
+  const top=main.querySelector('.pg-top'),tt=top&&top.querySelector('.pg-tt');if(!tt)return;
+  const base=tt.textContent;
+  const heads=[...main.querySelectorAll('.home-main [data-grptt]')];if(!heads.length||!window.IntersectionObserver)return;
+  const paint=()=>{const lim=top.getBoundingClientRect().bottom+1;let cur=null;
+    for(const h of heads){if(h.getBoundingClientRect().top<lim)cur=h;else break;}
+    const t=cur?cur.dataset.grptt:base;if(tt.textContent!==t)tt.textContent=t;};
+  _grpIo=new IntersectionObserver(paint,{rootMargin:`-${Math.round((top.offsetHeight||52)+insetPx('--sat'))}px 0px 0px 0px`,threshold:[0,1]});
+  heads.forEach(h=>_grpIo.observe(h));}
 /* LA BARRE D'ONGLETS (A517, A504) : statique dans la coque, peinte à chaque rendu. Elle se retire en sélection
    (le tiroir « Actions » prend le bas, A476) et pendant une recherche (le champ prend sa place, A510 §3). */
 let _tbSrch=false;
@@ -16837,14 +16928,42 @@ function renderHomeList(cfg){
        répertoire : c'est le seul endroit où ce travail se voit sans le chercher. */
     /* L'intertitre d'une section dit ce qu'on doit savoir AVANT d'y entrer : nom, compte —
        et pour une bibliothèque, le cadenas (lecture seule) ou le ✎ (administrée). */
+    /* A588 : l'intertitre d'un groupe PLIE et DÉPLIE son groupe, sur place (déplié par défaut, pli retenu par
+       regroupement et libellé). Le bouton porte nom, cadenas et compte ; le ✎ d'une bibliothèque reste son frère
+       (jamais un bouton dans un bouton). `data-grptt` nomme le groupe pour le petit titre collé du téléphone. */
+    const foldKey=g=>gk+':'+(g.key!=null?g.key:g.L);
     const secHead=g=>{if(!g.L)return '';const admin=g.lib&&(g.lib.role==='admin'||myIsAppAdmin);
-      const ro=g.lib&&!canEditScope(g.lib.id);
-      return `<div class="dir-l">${g.cols&&g.cols.length?catDotHtml(g.cols,'dir-dot'):''}`
+      const ro=g.lib&&!canEditScope(g.lib.id),plie=_homeFold.fold.has(foldKey(g));
+      return `<div class="dir-l" data-grptt="${esc(g.L)}"><button type="button" class="dir-lt" data-gfold="${esc(foldKey(g))}" aria-expanded="${plie?'false':'true'}">`
+        +`${g.cols&&g.cols.length?catDotHtml(g.cols,'dir-dot'):''}`
         +`<span class="dir-ll">${esc(g.L)}</span>`
         +(ro?`<span class="dir-lk" title="Lecture seule">${uiIcon('lock',12)}<span class="sr-only">lecture seule</span></span>`:'')
-        +`<span class="dir-lr"></span><span class="dir-ln">${g.items.length}</span>`
+        +`<span class="dir-lr"></span><span class="dir-ln">${g.items.length}</span><span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button>`
         +(admin?`<button type="button" class="dir-la" data-libedit="${esc(g.lib.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(g.L)} »">${uiIcon('pen',13)}</button>`:'')
         +`</div>`;};
+    /* Dessiner des rangées dans un CONTEXTE (A587, A589) : la collection dépliée qui les contient, ou les tuiles. */
+    const rowsIn=(arr,ctx)=>{_rowCtx={coll:null,tile:false,...(ctx||{})};try{return arr.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false};}};
+    /* A587 — « VOS COLLECTIONS » EN TÊTE, AU REPOS SEULEMENT (ni recherche — on est dans la branche sans requête —,
+       ni filtre, ni sélection), et seulement si le réglage est ON et qu'une collection existe. Repliées par défaut :
+       la section est un SOMMAIRE ; une rangée se déplie sur place (aucun niveau de retour, A545) et se termine par
+       « Ouvrir la collection » (la vue d'A475 : en-tête, Ajouter, ⋯). Les rangées dépliées sont celles du
+       répertoire ; une aide rangée paraît aussi dans « Tout » — la même aide, jamais une copie. */
+    const auRepos=!state.selOn&&!filtersList().length;
+    const avecColls=auRepos&&state.homeColls!==false&&colls.length>0;
+    const collSec=avecColls?(()=>{const ids=new Map(listR.map(x=>[x.id,x]));
+      const rowsC=colls.map(c=>{const it=c.ids.map(id=>ids.get(id)).filter(Boolean).sort(srt),open=_homeFold.open.has(c.id);
+        return `<button type="button" class="hc-row" data-hcoll="${esc(c.id)}" data-grptt="${esc(c.name)}" aria-expanded="${open?'true':'false'}">`
+          +`<span class="hc-ic" aria-hidden="true">${collIc(c)}</span><span class="hc-n">${esc(c.name)}</span><span class="hc-cnt">${it.length}</span>`
+          +`<span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button>`
+          +(open?rowsIn(it,{coll:c.id})
+            +(it.length?'':`<div class="hc-vide">Cette collection est vide.</div>`)
+            +`<button type="button" class="hc-open" data-hcopen="${esc(c.id)}">Ouvrir « ${esc(c.name)} »<span aria-hidden="true">›</span></button>`:'');}).join('');
+      return `<section class="hc-sec" aria-labelledby="hcT"><h2 class="hc-sh" id="hcT" data-grptt="Vos collections">Vos collections<span class="hc-hint">pour vous</span><span class="hc-shn">${colls.length}</span></h2>`
+        +`<div class="dir-book hc-book${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-grid">${rowsC}</div></div></div></section>`;})():'';
+    /* « TOUT » — le répertoire d'avant, inchangé, sous son intertitre de section quand les collections le précèdent ;
+       la sous-ligne nomme le regroupement (A493 : « Tout » dit « aucun tri par collection »). */
+    const GK_SUB={none:'',kind:'par type',bib:'par bibliothèque',cat:'par catégorie',az:'de A à Z'};
+    const toutHead=avecColls?`<h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">${esc(GK_SUB[gk]||'')}</span><span class="hc-shn">${listR.length}</span></h2>`:'';
     /* v5.18 (A262, direction A « liste éditoriale » retenue sur canvas — remplace le TABLEAU
        d'A244) : UN SEUL dessin de rangée à toutes les largeurs — titre + ligne de méta. (Le drapeau
        `desk` qui gouvernait la composition ≥ 1200 était devenu sans lecteur : purgé en A515, règle 14.) */
@@ -16867,10 +16986,12 @@ function renderHomeList(cfg){
           return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » est au bout de la ligne du titre (A545) */
       +(state.selOn?'':filtersBarHtml())
       +enCours
-      +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div></div></div>`:'')
+      +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${rowsIn(tiles,{tile:true})}</div></div></div></div>`:'')
+      +collSec+toutHead
       +(!wide&&!state.selOn&&!tabNavOn()?collRailHtml():'')+(state.selOn?'':collHeadHtml())
-      +`<div class="dir-book${state.homeCompact?' compact':''}${homeGroupKey()==='cat'?' by-cat':''}">`
-      +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
+      +`<div class="dir-book tout${state.homeCompact?' compact':''}${homeGroupKey()==='cat'?' by-cat':''}">`
+      +az.map(g=>{const plie=!!g.L&&_homeFold.fold.has(foldKey(g));
+        return `<div class="dir-g${plie?' plie':''}" data-azg="${esc(g.L)}">${secHead(g)}${plie?'':`<div class="dir-grid">${g.items.map(rowFor).join('')}</div>`}</div>`;}).join('')
       +`</div>`
       :((!wide&&!state.selOn?collRailHtml():'')+(state.selOn?'':collHeadHtml()+filtersBarHtml())+enCours+emptyHtml)}</div>`;   /* A429 : « aucun résultat » est justement là où l'on retire un filtre */
     /* Le rail n'indexe que l'ALPHABET (v5.18) : en rangement bibliothèque ou catégories, les
@@ -16917,6 +17038,19 @@ function renderHomeList(cfg){
       colonne large porte déjà « Gérer »). */
    if(b)b.onclick=()=>openViewSheet(cfg.rerender);}
   bindAzRail();
+  /* A587-A588 : plier / déplier SUR PLACE — un re-rendu de la liste, le pli retenu. Aucun défilement imposé : ce qu'on
+     vient de toucher reste sous le doigt. Au CLAVIER (clic de détail 0), le focus revient au même intertitre (le nœud
+     est redessiné) ; au pointeur, pas d'anneau (A492 : l'anneau suit la modalité). */
+  const refold=(sel,kb)=>{cfg.rerender();const b=kb&&main.querySelector(sel);if(b)b.focus({preventScroll:true});};
+  main.querySelectorAll('[data-gfold]').forEach(b=>b.onclick=e=>{const k=b.dataset.gfold;
+    if(_homeFold.fold.has(k))_homeFold.fold.delete(k);else _homeFold.fold.add(k);homeFoldSave();
+    refold('[data-gfold="'+CSS.escape(k)+'"]',e.detail===0);});
+  main.querySelectorAll('[data-hcoll]').forEach(b=>b.onclick=e=>{const k=b.dataset.hcoll;
+    if(_homeFold.open.has(k))_homeFold.open.delete(k);else _homeFold.open.add(k);homeFoldSave();
+    refold('[data-hcoll="'+CSS.escape(k)+'"]',e.detail===0);});
+  main.querySelectorAll('[data-hcopen]').forEach(b=>b.onclick=()=>{state.coll=b.dataset.hcopen;state.cat='';state.libLimit=LIB_PAGE;
+    cfg.rerender();window.scrollTo(0,0);const m=main.querySelector('.home-main');if(m)m.scrollTop=0;});
+  bindGroupTitle();
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;cfg.rerender();};}
   main.querySelectorAll('[data-emptynew]').forEach(b=>b.onclick=()=>b.dataset.emptynew==='any'?openCreateDlg():openCreateFor(b.dataset.emptynew));
   // Voie étroite vers l'historique global (le lien du pied de page — la sidebar n'existe pas
@@ -28914,7 +29048,14 @@ function viewSheetGroups(){
     /* A460 : les mots ENTIERS, coupables en deux lignes par une césure douce (\u00AD) — « Catég. » et
        « Biblio. » n'étaient écrits en entier nulle part (cf. `.vs-wrap`). */
     {k:'group',t:'Regrouper',v:homeGroupKey(),wrap:1,o:[['none','Non'],['kind','Type'],['cat','Caté\u00ADgorie'],['bib','Biblio\u00ADthèque'],['az','A–Z']]},
-    {k:'dens',t:'Densité',v:state.homeCompact?'1':'0',o:[['0','Détaillée'],['1','Compacte']]}];}
+    {k:'dens',t:'Densité',v:state.homeCompact?'1':'0',o:[['0','Détaillée'],['1','Compacte']]}]
+    /* A587 : « Vos collections » en tête — « Non » rend l'accueil de la v5.94. Absent tant qu'aucune collection
+       n'existe : un réglage sans effet visible n'a rien à faire dans la feuille. */
+    .concat(colls.length?[{k:'colls',t:'Vos collections',v:state.homeColls!==false?'1':'0',o:[['1','En tête'],['0','Non']]}]:[]);}
+/* A588 : plier ou déplier d'un geste TOUS les groupes de « Tout » (le rangement courant) ; les collections gardent leur
+   pli, rangée par rangée — elles sont le sommaire. */
+const foldActsHtml=()=>`<div class="vs-g"><div class="vs-h" id="vsh-fold">Groupes</div><div class="vs-acts" role="group" aria-labelledby="vsh-fold">`
+  +`<button type="button" class="btn sm" data-vsfold="0">Tout déplier</button><button type="button" class="btn sm" data-vsfold="1">Tout replier</button></div></div>`;
 /* v5.30 (A353) : UNE feuille pour l'affichage ET les filtres. A429 (P1) : deux parties NOMMÉES — « Filtrer » (ce qui
    restreint : afficher, bibliothèque, catégorie ; compte et « Tout effacer » à son titre) puis « Présenter » (ce qui
    range : trier, regrouper, densité). Chaque geste agit en direct derrière la feuille, qui se repeint. */
@@ -28929,9 +29070,9 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
      la colonne gauche filtre et la feuille garde ses deux parties (la nature n'a pas d'autre place). */
   const tel=tabNavOn();
   {const t=document.getElementById('viewSheetTitle');if(t)t.textContent=tel?'Trier et présenter':'Affichage';}
-  body.innerHTML=tel?G.slice(1).map(seg).join(''):part('vsp-f','filter','Filtrer','<span class="vs-pn" id="vsN"></span><button type="button" class="linkbtn" id="viewSheetClear">Tout effacer</button>',
+  body.innerHTML=tel?G.slice(1).map(seg).join('')+foldActsHtml():part('vsp-f','filter','Filtrer','<span class="vs-pn" id="vsN"></span><button type="button" class="linkbtn" id="viewSheetClear">Tout effacer</button>',
       seg(G[0])+collChipsHtml()+libChipsHtml()+`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`)
-    +part('vsp-p','ladder','Présenter','',G.slice(1).map(seg).join(''))
+    +part('vsp-p','ladder','Présenter','',G.slice(1).map(seg).join('')+foldActsHtml())
     +((tel||!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrRowLbl()}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
   /* « Tout effacer » remet les familles de FILTRE à leur cran neutre d'un geste ; il ne paraît que s'il y a à effacer. */
   {const c=document.getElementById('viewSheetClear');if(c)c.onclick=()=>{dropFilter('all');render();paintViewSheet();};}
@@ -28944,7 +29085,12 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
     else if(k==='sort')setHomePref('homeSort',v);
     else if(k==='group')setHomeGroup(v);
     else if(k==='dens')setHomePref('homeCompact',v==='1');
+    else if(k==='colls')setHomeColls(v==='1');
     viewSheetRedo();paintViewFoot();});
+  /* Les clés pliables sont celles que l'accueil MONTRE (rangement courant) : on les lit sur les intertitres rendus. */
+  body.querySelectorAll('[data-vsfold]').forEach(b=>b.onclick=()=>{const plier=b.dataset.vsfold==='1';
+    main.querySelectorAll('[data-gfold]').forEach(x=>{const k=x.dataset.gfold;if(plier)_homeFold.fold.add(k);else _homeFold.fold.delete(k);});
+    homeFoldSave();viewSheetRedo();paintViewFoot();});
   body.querySelectorAll('[data-vscoll]').forEach(x=>x.onclick=()=>{const v=x.dataset.vscoll;if(v==='')state.coll=null;else collSel(v);
     viewSheetRedo();paintViewSheet();});
   {const nw=body.querySelector('[data-vscollnew]');if(nw)nw.onclick=()=>{closeViewSheet();collCreateShow();};}
@@ -30081,7 +30227,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-held-edits','ac-att-del','ac-section'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold'];
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -32366,7 +32512,10 @@ const Sync={
              n'est pas la vue courante, sinon au prochain lancement. */
           const hg=HOME_GROUPS.indexOf(pr.homeGroup)>=0?pr.homeGroup:null;
           if(hg){try{localStorage.setItem(spaceKey('ac-home-group'),hg);}catch(e){}
-            if(state.view!=='library')state.homeGroup=hg;}}
+            if(state.view!=='library')state.homeGroup=hg;}
+          /* A587 : même doctrine que le rangement — la préférence s'écrit, l'écran ouvert ne se re-range pas. */
+          if(typeof pr.homeColls==='boolean'){try{localStorage.setItem(spaceKey('ac-home-colls'),pr.homeColls?'1':'0');}catch(e){}
+            if(state.view!=='library')state.homeColls=pr.homeColls;}}
         try{localStorage.setItem(spaceKey('ac-cats-updated:'+s.key),String(Date.parse(remote.updated_at)));localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}
         changed=true;continue;
       }
@@ -32385,7 +32534,8 @@ const Sync={
              l'expliquer. C'est une préférence par UTILISATEUR, au même titre que le thème : elle
              suit le compte, pas la machine. */
           syncSessions:sessSyncOn(),
-          homeGroup:homeGroupKey()};   // rangement de l'accueil (v5.18) — suit le compte
+          homeGroup:homeGroupKey(),   // rangement de l'accueil (v5.18) — suit le compte
+          homeColls:state.homeColls!==false};   // A587 : « Vos collections » en tête, suit le compte comme le rangement
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.library,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }

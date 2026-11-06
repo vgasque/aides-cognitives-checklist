@@ -254,7 +254,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501, A511-A512 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad ; A511 : paysage bas, quai à mots entiers, correctifs de mesure ; A512 : zones sûres latérales |
 | [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513-A585 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
 | [`lot-v5-94.md`](docs/decisions/lot-v5-94.md) | A586 | Liens d'application (`#creer`, `#acces-direct`, `#bibliotheques`…), Moi › « Liens et raccourcis », raccourcis du manifeste, limite d'iOS |
-| [`lot-v5-95.md`](docs/decisions/lot-v5-95.md) | A587-A589 | Accueil à l'échelle (cible, à implémenter) : vos collections en tête, répertoire « Tout » qui se plie, réglage « comme avant », provenance sur la tuile |
+| [`lot-v5-95.md`](docs/decisions/lot-v5-95.md) | A587-A589 | Accueil à l'échelle (v5.95.0) : vos collections en tête, répertoire « Tout » qui se plie, réglage « comme avant », provenance sur la tuile |
 
 ### Carte par sujet
 

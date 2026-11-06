@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A589** au lot v5.95 (cible, à implémenter ; lot v6.0 compris) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A589** à la v5.95 (lot v6.0 compris) (et ça continue — la
 prochaine est A590), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -210,7 +210,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A584 | `lot-v6-0.md` | La taille d'une image se voit et se tire : un cadre (la colonne lue), une poignée aimantée aux crans, six pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine ; bloc ouvert et feuille de l'image (amende A548) |
 | A585 | `lot-v6-0.md` | Les images d'une aide : la grille et la feuille des références (légende sous la vignette, « ▣ Bloc n », feuille avec légende, « Affichée dans », remplacer, retirer) ; feuille rendue générique (`_miCtx`) |
 | A586 | `lot-v5-94.md` | Liens d'application : `#creer`, `#acces-direct`, `#bibliotheques`, `#bibliotheque=<id>`, `#collection=<id>` (table fermée, écriture inverse) ; Moi › « Liens et raccourcis » donne chaque lien ; quatre raccourcis au manifeste ; limite d'iOS dite (amende A464) |
-| A587 | `lot-v5-95.md` | Accueil à l'échelle (cible, à implémenter) : « Vos collections » en tête, repliées, dépliables sur place ; « Tout » dessous, rangé par « Regrouper » ; interrupteur « Collections en tête » (OFF = l'accueil de la v5.94) ; F1 « regrouper par collection » écartée (amende A489 sur l'accueil) |
+| A587 | `lot-v5-95.md` | Accueil à l'échelle (v5.95.0) : « Vos collections » en tête, repliées, dépliables sur place ; « Tout » dessous, rangé par « Regrouper » ; réglage « Vos collections : En tête / Non » (« Non » = l'accueil de la v5.94) ; F1 « regrouper par collection » écartée (amende A489 sur l'accueil) |
 | A588 | `lot-v5-95.md` | Le répertoire se plie par groupe (déplié par défaut, pli retenu par regroupement, « Tout replier ») ; le groupe courant se dit dans le petit titre collé au téléphone (A542), intertitre collant en large (amende A506/A515) |
 | A589 | `lot-v5-95.md` | Provenance : la tuile d'Accès direct dit sa bibliothèque (amende A537), séparateur hors pastille, pas de redite de catégorie dans la méta, nom de bibliothèque jamais tronqué pour son mot de partage |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
