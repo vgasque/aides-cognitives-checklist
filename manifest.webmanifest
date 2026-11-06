@@ -56,9 +56,34 @@
   ],
   "shortcuts": [
     {
+      "name": "Accès direct",
+      "short_name": "Accès direct",
+      "description": "Vos aides épinglées",
+      "url": "./#acces-direct",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Chercher une aide",
       "short_name": "Chercher",
       "url": "./#chercher",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Créer une aide",
+      "short_name": "Créer",
+      "url": "./#creer",
       "icons": [
         {
           "src": "./icon-192.png",

@@ -10071,6 +10071,60 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
   await page.close();
 });
 
+/* A586 — LES LIENS D'APPLICATION ouvrent leur destination par le VRAI point d'entrée (le fragment, donc `hashchange`) :
+   l'Accès direct filtré, « Créer », la liste des bibliothèques (feuille « Afficher » au téléphone, colonne en large),
+   une collection inconnue le DIT ; jamais par-dessus une session (règle 11) ; Moi les donne à emporter. */
+await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const vers=async h=>{await page.evaluate(x=>{location.hash=x;},h);await calme(page,400);};
+  await page.evaluate(()=>{togglePin(fiches[0].id);render();});
+  await vers('#acces-direct');
+  const a=await page.evaluate(()=>({coll:state.coll,tt:(document.querySelector('.pg-tbt')||{}).textContent,h:location.hash,
+    n:document.querySelectorAll('#main .dir-row').length}));
+  t('#acces-direct : l’accueil montre l’Accès direct, filtré sur l’épinglée, fragment retiré',a.coll==='*'&&a.tt==='Accès direct'&&a.n===1&&!a.h,JSON.stringify(a));
+  await vers('#creer');
+  const c=await page.evaluate(()=>({on:createModal.classList.contains('on')}));
+  t('#creer : la fenêtre « Créer » s’ouvre',c.on,JSON.stringify(c));
+  await page.evaluate(()=>closeCreateDlg());await calme(page,200);
+  await vers('#bibliotheques');
+  const b=await page.evaluate(()=>({pick:(document.getElementById('pgPick')||{}).getAttribute&&document.getElementById('pgPick').getAttribute('aria-expanded'),
+    opts:document.querySelectorAll('[data-pickopt]').length}));
+  t('#bibliotheques (téléphone) : la feuille « Afficher » s’ouvre (elle porte les bibliothèques en tête)',b.pick==='true'&&b.opts>0,JSON.stringify(b));
+  await page.keyboard.press('Escape');await calme(page,300);
+  await vers('#collection=zz_absente');
+  const x=await page.evaluate(()=>({coll:state.coll,toast:(document.querySelector('.toast')||{}).textContent||''}));
+  t('#collection=<absente> : rien ne change (l’Accès direct reste posé), une notice le dit',x.coll==='*'&&/collection absente/.test(x.toast),JSON.stringify(x));
+  await vers('#bibliotheque=perso');
+  const l=await page.evaluate(()=>({lib:state.homeLib}));
+  t('#bibliotheque=perso : l’accueil se restreint à Perso',l.lib==='',JSON.stringify(l));
+  /* Moi les donne : une rangée par destination stable, le toucher copie le lien (presse-papiers, sans feuille native). */
+  const m=await page.evaluate(async()=>{let got=null;
+    try{Object.defineProperty(navigator,'share',{value:undefined,configurable:true});}catch(e){}
+    try{Object.defineProperty(navigator,'clipboard',{value:{writeText:async v=>{got=v;}},configurable:true});}catch(e){}
+    setHomeTab('me');await __acCalme(300);
+    const rows=[...document.querySelectorAll('#acctLinks [data-applink]')];
+    const cr=rows.find(r=>r.dataset.applink==='#creer');if(cr)cr.click();await __acCalme(200);
+    return {n:rows.length,got,frags:rows.map(r=>r.dataset.applink)};});
+  t('Moi · Liens et raccourcis : cinq destinations, toucher « Créer une aide » copie son URL',
+    m.n>=5&&['#acces-direct','#chercher','#creer','#bibliotheques','#sessions'].every(f=>m.frags.includes(f))&&/\/index\.html#creer$/.test(m.got||''),JSON.stringify(m));
+  /* Règle 11 : un lien qui arrive pendant une session réelle ne change pas l'écran. */
+  await page.evaluate(()=>setHomeTab('aides'));await calme(page,300);
+  await ouvrirFiche(page,/cardiaque/i);await demarrerSession(page);
+  await vers('#acces-direct');
+  const r=await page.evaluate(()=>({view:state.view,started:!!Runtime.started}));
+  t('règle 11 : #acces-direct pendant une session ne quitte pas l’aide',r.view==='read'&&r.started,JSON.stringify(r));
+  await page.close();
+  const w=await br.newPage({viewport:{width:1280,height:820}});
+  await w.goto(`http://localhost:${port}/index.html`);await amorce(w);
+  await w.evaluate(()=>{location.hash='#bibliotheques';});await calme(w,400);
+  const g=await w.evaluate(()=>({f:!!(document.activeElement&&document.activeElement.closest('.home-side')&&document.activeElement.dataset.libsel!=null)}));
+  t('#bibliotheques (large) : le focus va à la liste des bibliothèques de la colonne',g.f,JSON.stringify(g));
+  await w.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
