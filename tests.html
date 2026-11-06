@@ -1222,14 +1222,16 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('wtTimerModel : arrêté à la sortie de la boucle — dit pourquoi',
      /sortie de la boucle/.test(A.wtTimerModel(T({elapsedMs:20000}),0,{exited:true}).n));
    const C={label:'Choc (joules)',step:1};   // la précision entre parenthèses est reléguée (tmLabelParts)
-   eq('wtCountModel : avant la coche — le compte d’avant et d’après',
-     A.wtCountModel(C,2,false,null,null,0), {cls:'',g:'count',v:'2 → 3',n:'à la coche · Choc'});
-   eq('wtCountModel : juste après la coche — le chiffre neuf, « à l’instant »',
-     A.wtCountModel(C,3,true,{t:1000,ref:{v:3}},null,1500), {cls:'',g:'count',va:'2',vb:'3',fresh:true,n:'· Choc · à l’instant'});
+   eq('wtCountModel : avant la coche — ce que fera la coche, « +1 » et le nom (A570)',
+     A.wtCountModel(C,2,false,null,null,0), {cls:'',g:'count',v:'+1',n:'Choc'});
+   eq('wtCountModel : juste après la coche — le chiffre neuf seul, « à l’instant » (A570)',
+     A.wtCountModel(C,3,true,{t:1000,ref:{v:3}},null,1500), {cls:'',g:'count',vb:'3',fresh:true,n:'Choc · à l’instant'});
    eq('wtCountModel : plus tard — « il y a », sans seuil ni couleur',
-     A.wtCountModel(C,3,true,{t:1000,ref:{v:3}},null,100000).n, '· Choc · il y a 01:39');
-   ok('wtCountModel : « dernier il y a » date un geste FAIT, jamais une omission',
-     /dernier il y a 00:30/.test(A.wtCountModel(C,1,false,null,{t:0},30000).n));
+     A.wtCountModel(C,3,true,{t:1000,ref:{v:3}},null,100000).n, 'Choc · il y a 01:39');
+   ok('wtCountModel : au repos, aucune heure — le dernier geste se lit au journal (A570)',
+     !/il y a|dernier/.test(A.wtCountModel(C,1,false,null,{t:0},30000).n));
+   eq('wtTimerModel : sous une étape, au repos — la durée puis le nom, sans « à la coche » (A570)',
+     A.wtTimerModel(T({}),0,{}).n, 'Tentative');
    eq('linkArmSnap : borne les ids (prototype banni) et les champs',
      A.linkArmSnap(JSON.parse('{"t1":{"b":"b1","x":"3","ck":"1:b1:0"},"__proto__":{"b":"x"},"bad id":{"b":"b"}}')), {t1:{b:'b1',x:3}});}
 

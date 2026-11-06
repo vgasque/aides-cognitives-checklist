@@ -1584,3 +1584,106 @@ de la rangée (le bouton qui part au seuil ferait changer la hauteur, A9 — c'e
 **Témoin.** `audit-doctrine` « v5.87 · A569 » (6 contrôles, 6 rouges sur le code d'avant) : encre neutre et phrase de la
 règle en attente, « ✓ … ≥ 3 » vert, fin à plat de l'instant du seuil, « Faite » vert en capitales, rangée sans contour,
 « Échu » ambre en capitales.
+
+## A570 — Les étapes complexes : une place par chose, une liste à filets, des mots courts (v5.88.0)
+
+*Demande de l'auteur (05-06/11/2026) : « améliore l'affichage des étapes cochables complexes » ; puis, sur planches
+successives : « plein d'éléments différents qui n'apportent pas de cohérence », « toutes les infos au même niveau que
+le libellé », « encore trop chargé », « pourquoi certains libellés plus gros », « l'écart critique / libellé correspond-il
+à la maquette ? ». Six planches (inventaire, v1 à v6, épreuve de charge à 320 px, proposition unique) ; la forme retenue
+est la planche « Allégée ». Arbitrages de l'auteur : retirer le pointillé, retirer l'aplat vert de la faite, hauteur
+fixe, implémenter.*
+
+**1. Une place par chose (une grammaire, toutes les étapes).**
+- **Tête = quand, et quel risque** : registre (CRITIQUE, VIGILANCE, DOUBLE CONTRÔLE), moment (CHOCS DÉLIVRÉS ≥ 3 ●○○,
+  À L'ÉCHÉANCE ◯ 03:57, AU BESOIN), état (✓ … ≥ 3, ✓ À L'ÉCHÉANCE, ✓ DÉJÀ FAITE — §6, §8), vérification (✓✓ CONSTATÉ, △ ÉCART).
+  Mots nus, une seule typographie (11 px, 600, capitales espacées), séparés par « · ». Aucun mot n'a de fond (§8) (A11 : il exige
+  un geste maintenant). La pastille neutre du seuil (A519), le filet de « Double contrôle » (A402) et la pilule de
+  vérification à droite de la rangée (v4.23.0) partent. **La casse en phrase d'A569 §4 est renversée** : une seule
+  typographie de tête, sinon la règle et l'état reforment deux dessins.
+- **Milieu = le geste** : libellé seul en gras, **une seule taille** (A345, revue comprise — amende A449 §4, qui
+  descendait l'étape-revue à 15), réponse en mono 600 (les seules graisses mono embarquées sont 600 et 700, règle 13).
+- **Pied = ce que fait la coche** : la légende d'A377 (et, depuis le §9, la question de la case d'une étape en
+  attente — « Faire maintenant » est retiré).
+- **Le minuteur qu'attend une étape « à l'échéance » monte dans la tête**, à côté de sa condition : il en est la jauge,
+  comme les points d'un seuil. À l'échéance, la tête dit △ À FAIRE et le pied ne dit pas « Échu » : il dit ce que fera la coche
+  (relancer, « ◷ 04:00 Adrén. dose »). « Échu » n'est dit qu'une fois.
+
+**2. Une liste à filets, sans cadre ni aplat de rangée.** Les étapes sont les rangées d'une liste groupée (A506) : un
+filet qui commence au texte (60 px), aucun écart entre rangées. **Renverse** l'aplat vert de la faite (A519 §1) et le
+contour pointillé de l'attente (A382, A474) et de la revue (A449) : l'état se lit par la case et l'encre — à faire =
+case au trait, libellé noir ; faite = case verte pleine, encre douce ; en attente = case estompée, encre douce,
+condition en tête. Seule l'étape à faire maintenant reste noire.
+
+**3. Des mots plus courts** (légende d'A377) : « 3 → 4 à la coche · Chocs délivrés » → « +1 Chocs délivrés » ;
+cochée « 3 Chocs délivrés · à l'instant » (le chiffre neuf seul, il monte toujours) ; « 04:00 à la coche · … » →
+« 04:00 Adrén. dose » ; « la coche relance à 05:00 » → « relance à 05:00 » ; « décocher annule · 9 s » →
+« annulable 9 s ». « dernier il y a » part de la légende au repos (l'heure du geste reste au journal). Le minuteur de
+BLOC garde « à chaque entrée » (il n'est sous aucune étape).
+
+**4. Hauteur fixe (A9).** Le pied d'une étape à moment est réservé dans tous ses états (bouton, puis légende) — y compris
+pour un seuil seul, qui n'en réservait plus depuis A474.
+
+**5. Mesuré contre la maquette** (390 px, 4ᵉ passage de l'ACR, boîtes de texte) : tailles, graisses, encres identiques ;
+hauteurs à ±2 px ; tête → libellé 3 px (maquette 3), filet → tête 13-14 px (maquette 14). **Écarts gardés, et pourquoi** :
+rembourrage de rangée 12 px (maquette 8 ; C68) ; case centrée sur la 1ʳᵉ ligne du libellé (A381 — la maquette la posait
+6 px trop bas) ; légende en 13,5 (A377 a retenu 13,5 contre 12 ; la maquette disait 12,5, hors échelle A6) et débord de
+8 px de la légende (A377) ; bouton de 24 px de haut dans la ligne réservée de 24 (cible 44 par halo) ; case estompée à
+50 % (A474 ; maquette 40). **Pas fait, et dit** : la paire compte + relance d'A440 reste sur deux lignes (la maquette la
+fusionnait) ; le nom de compteur reste entier (A462 ; la maquette disait « Chocs ») ; le glyphe « ▸ » de la maquette
+reste le chronomètre de l'app.
+**Piège corrigé pendant la mesure** : la tête, posée par rapport au haut de la rangée (A381, `top:8px`), remontait contre
+le filet (6 px) et s'éloignait de son libellé (12 px) — CRITIQUE se lisait avec l'étape du dessus. Toute rangée à tête
+aligne désormais sa case sur la 1ʳᵉ ligne du libellé (le pas des rangées `has-wt`), réserve 28 px (échelle fermée), tête à 17 px.
+
+**6. Trois mots et une coche, tranchés par l'auteur sur les captures** :
+- ~~« △ À faire »~~ et non « Échu » : quand le minuteur qu'attend une étape arrive au bout, « Échu » disait l'état du
+  minuteur, pas ce qu'on attend de l'équipe. **Remplacé au §8** par « ✓ À l'échéance » (le fond ambre passait devant
+  CRITIQUE). Le minuteur, lui, reste « Échu » dans la capsule et la légende d'une étape déjà cochée.
+- **« ✓ Déjà faite »** et non « Faite » : une étape « une seule fois » faite à un passage précédent. « Faite au passage
+  3 » et « T+04:12 » ont été jugés illisibles sous stress. **L'heure n'est pas disponible** : une coche n'est pas
+  horodatée (seules les coches liées à un compteur posent un repère daté) ; l'horodater serait une donnée de session
+  nouvelle, à faire suivre au partage et au registre RGPD — lot séparé, non décidé.
+- **Une seule coche** dans l'étape : l'icône de la case, réduite, devant un mot de la tête (seuil atteint, déjà faite,
+  constaté doublé). Le « ✓ » texte de la tête part, et **le relevé « ✓ » devant la réponse d'une étape cochée part**
+  (challenge-response, conventions-de-code « Statuts… ») : il doublait la case verte, dans un autre dessin.
+
+**7. Une police dans la rangée ; « Faire maintenant › » en texte (planche « Polices et bouton », variante B, action en
+gris foncé — arbitrage de l'auteur).** La rangée mélangeait Manrope (libellé, tête) et le mono (réponse, valeurs) : la
+réponse attendue passe en Manrope 15 / 500 à l'encre douce — **amende A411** : elle reste distincte du libellé
+(17,5 / 700, encre pleine), ce que le défi-réponse exige, par la taille, la graisse et l'encre et non plus par la
+police ; les valeurs des légendes et le compte de la revue passent en Manrope à chiffres tabulaires. Le mono ne reste
+qu'aux chronos de la capsule et du moniteur. « Faire maintenant » quitte sa pastille grise (lue comme une étiquette)
+pour une action en texte, encre pleine, chevron, souligné au survol (A530) — pas de bleu : l'app ne pousse pas le geste
+hors de son moment (A382). *Écartées* : le bouton à contour à droite (C : ~140 px de libellé en moins sur une étape en
+attente) ; l'action en bleu.
+
+**8. L'échéance atteinte s'écrit « ✓ À l'échéance », en vert, comme un seuil atteint (planche « Cocher avant son
+moment », D1 — arbitrage de l'auteur ; remplace le « △ À faire » du §6).** Sur fond ambre, « À faire » était le seul mot
+à fond de la tête : il passait devant CRITIQUE et se lisait « la seule chose à faire ». Une condition remplie s'écrit
+désormais toujours de la même façon (vert, cochée) ; « c'est maintenant » est dit par la case revenue et le libellé
+repassé en noir. L'ambre n'a plus de fond dans la tête ; `.mo-due` est purgée. L'alarme du minuteur reste dans la
+capsule, inchangée. *Écartées* : « À faire » en mot nu (D2 : un mot de plus pour la même situation qu'un seuil atteint) ;
+le fond ambre (D3).
+
+**9. Plus de « Faire maintenant » : la case demande confirmation sur place (planche, A — arbitrage de l'auteur ;
+renverse A382 et A474 pour le bouton).** Ni le texte « Faire maintenant › » ni la pastille grise ne convenaient. La case
+d'une étape en attente devient un bouton : la toucher l'ARME, et la ligne réservée du dessous dit « Pas encore le
+moment. » avec « Cocher quand même » et « Annuler » — sur place, sans fenêtre (règle 11), la hauteur ne change qu'au
+geste (A9). Au repos, rien n'est écrit. Une coche par erreur, qui lancerait « prochaine dose » (A377), est rattrapée.
+La phrase dit le fait (« pas encore le moment »), pas l'état du compteur (« Chocs : 1 sur 3 », jugé moins clair par
+l'auteur). Au doigt, le focus ne saute pas sur « Cocher quand même » (A492 : l'anneau suit la modalité). *Écartées* :
+le lien « Cocher » dans la tête (B : cible petite, coche sans filet) ; la case qui se coche directement (C : la
+condition devient décorative).
+
+*Formes écartées (planches)* : glyphe seul à la place de la légende au repos (le `title` n'existe pas au toucher, leçon
+d'A402) ; « Faire maintenant » révélé au toucher (action cachée en session ; la rangée en attente est inerte, A382) ; mot
+de registre retiré d'une faite (A519 le garde, en gris) ; colonne d'instruments à droite (v5 : libellé à ~14 caractères
+par ligne à 390 px, chevauchement à 320) ; instruments dans la tête (v5b : case décrochée du libellé, trois lignes avant
+le geste dès deux instruments) ; deux tailles de libellé selon l'état (« Choc immédiat » plus gros qu'« Amiodarone » sans
+raison, A345).
+
+**Témoins.** `audit-doctrine` « v5.88 · A570 » (9 contrôles ; 7 rouges sur la v5.87, le 9ᵉ — tête collée à son libellé —
+ajouté après la mesure) ; réécrits sciemment : A377 (le compte obtenu), A440 (« +1 », « relance à », « annulable »),
+A569 (capitales) ; sonde « DÉMARRAGE » à 390 : le cas est rallongé (étapes plus denses), le seuil n'est pas relâché.
+`tests.html` : `wtCountModel` et `wtTimerModel` aux mots d'A570.
