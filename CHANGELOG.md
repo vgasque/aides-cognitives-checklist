@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.89.2] — 2026-11-06
+Correctif d'affichage du rail du bureau (A573). Rien à rejouer côté serveur.
+- **Un minuteur en marche, en pause ou échu** n'est plus coupé (« Cycle de… », « arrêté depuis… », « MAINTEN… ») :
+  le nom et le temps sur la première ligne, puis la barre, l'état, et « Relancer » / « ↺ maintenir » sur leur ligne.
+- **La consignation d'un compteur** (« consigné T+00:42 · il y a 23:20 ») passe sous le nom du compteur, en petit,
+  au lieu d'être collée sous les boutons − / +.
+
 ## [5.89.1] — 2026-11-06
 Correctif de la v5.89.0 (A571). Rien à rejouer côté serveur.
 - À 320 px, la capsule dit de nouveau combien de minuteurs elle cache (« 1 minuteur ») : le nouveau chevron lui prenait
@@ -218,12 +225,3 @@ rejouer côté serveur.
   bandeau du haut dit ce que vous déplacez ; ✕ ou Échap annule.
 - « Monter » et « Descendre » disparaissent, comme dans l'éditeur d'aide ; sur ordinateur, on peut aussi commencer à
   glisser la poignée.
-
-## [5.77.0] — 2026-11-02
-Les passages se règlent sur place (A548, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Encadré** : ouvert, il propose ses quatre types en pastilles — Alerte, Attention, Information, Confirmation. Un
-  toucher change le type, rien à taper.
-- **Image** : ouverte, elle s'affiche au-dessus du texte avec ses tailles (25 à 100 %) et « Remplacer… » pour changer
-  la photo.
-- **Sur ordinateur**, la poignée ⋮⋮ à gauche d'un passage permet de le glisser ailleurs ; une ligne bleue montre où il
-  se pose. Au doigt, « Monter » et « Descendre » restent le geste.

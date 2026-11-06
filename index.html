@@ -327,7 +327,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PIQfQgqionz5jc0dRzyKeX+uwITMgQbpUGPqlwzyLt0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-izgppsDf/0wHZimZg1B7m6oW/QilDRdQxzG6t6EK4Qc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4763,13 +4763,31 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-side .rt-gl .tmcard .tm-label{grid-row:1}
   body.view-read .read-side .rt-gl .tmcard .tm-label,body.view-read .read-side .rt-gl .cncard .tm-label{grid-column:1;font-size:var(--t-item);font-weight:600;color:var(--ink);margin:0;min-height:0;-webkit-line-clamp:2}
   body.view-read .read-side .rt-gl .tmcard .tm-val{grid-row:2;grid-column:1;font-size:17.5px}
-  body.view-read .read-side .rt-gl .tmcard .tm-ctrl,body.view-read .read-side .rt-gl .tmcard:not(.tm-open):not(.due) .tm-ctrl{grid-row:1/3;grid-column:2;display:flex;gap:6px;margin:0}
+  body.view-read .read-side .rt-gl .tmcard:not(.run):not(.paused):not(.due) .tm-ctrl{grid-row:1/3;grid-column:2;display:flex;gap:6px;margin:0}   /* au repos seulement ; en marche, la rangée s'empile (A573) */
   body.view-read .read-side .rt-gl .tmcard:not(.run):not(.paused) .tm-reset{display:none}
   body.view-read .read-side .rt-gl .tmcard .tm-btn{min-height:44px;padding:0 14px;border-radius:999px;font-size:var(--t-body);font-weight:700}
   body.view-read .read-side .rt-gl .tmcard:is(.run,.paused) .tm-bar-wrap{display:block;grid-column:1/-1;margin:6px 0 2px}
   body.view-read .read-side .rt-gl .tmcard.due{background:var(--warn-soft)}
   body.view-read .read-side .rt-gl .tmcard.due .tm-label{grid-column:1}
-  body.view-read .read-side .rt-gl .cncard .cn-log{grid-column:1/-1}
+  /* A573 — EN MARCHE, EN PAUSE OU ÉCHU, LA RANGÉE S'EMPILE : deux boutons (« Relancer », « ↺ 02:00 maintenir ») et une
+     ligne d'état ne tiennent pas à côté du nom dans 300 px — ils coupaient le nom (« Cycle de… »), l'état (« arrêté
+     depuis… ») et le bouton (« MAINTEN… »). Ligne 1 : nom · temps ; la barre ; l'état ; les boutons sur leur ligne. */
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due){grid-template-columns:minmax(0,1fr) auto;padding:10px 14px 12px}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-label{grid-row:1;grid-column:1;align-self:center;-webkit-line-clamp:2}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-val{grid-row:1;grid-column:2;align-self:center}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-bar-wrap{grid-row:2;grid-column:1/-1;margin:8px 0 0}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-stop{grid-row:3;grid-column:1/-1;margin:6px 0 0}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-ctrl{grid-row:4;grid-column:1/-1;margin:10px 0 0;display:flex;gap:8px}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-ctrl .tm-main{flex:1 1 auto}
+  body.view-read .read-side .rt-gl .tmcard:is(.run,.paused,.due) .tm-ctrl .tm-reset{flex:none;border-radius:999px}
+  /* La consignation d'un compteur : une sous-ligne en police de l'interface, alignée sur le nom (plus de mono sur liseré). */
+  /* La consignation d'un compteur : SOUS-TITRE du nom (cellule iOS), la pilule « − n + » centrée sur les deux lignes —
+     posée sous la pilule, elle y était collée (signalé). Police de l'interface, plus de mono sur liseré. */
+  body.view-read .read-side .rt-gl .cncard .cn-log{grid-row:2;grid-column:1;align-self:start;margin:2px 12px 0 0;padding:0;border:0;font-family:var(--f-ui);font-size:var(--t-meta);font-weight:500;line-height:1.35;color:var(--ink-2)}
+  body.view-read .read-side .rt-gl .cncard:has(.cn-log:not(:empty)) .tm-label{grid-row:1;align-self:end}
+  body.view-read .read-side .rt-gl .cncard:has(.cn-log:not(:empty)) :is(.cn-btn,.cn-val){grid-row:1/3}
+  body.view-read .read-side .rt-gl .cncard .cn-log .cn-ago{white-space:nowrap}   /* « il y a 00:02 » ne se coupe pas au milieu */
+  body.view-read .read-side .rt-gl .cncard:has(.cn-log:not(:empty)){padding-block:10px}
   body.view-read .read-side .rt-gl .cncard .cn-btn[data-cndec]{grid-column:2;margin-left:0}
   /* la capsule « − n + » : trois cases jointes sur un même fond, plus un − cerclé et un + bleu */
   body.view-read .read-side .rt-gl .cncard{grid-template-columns:minmax(0,1fr) 44px 40px 44px;column-gap:0}
@@ -9827,7 +9845,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.89.1';
+const APP_VERSION='5.89.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

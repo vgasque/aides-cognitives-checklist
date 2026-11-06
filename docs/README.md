@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A572** à la v5.57 + lot v6.0 (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A573** à la v5.57 + lot v6.0 (et ça continue — la
 prochaine est A516), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -196,6 +196,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A570 | `lot-v6-0.md` | Étapes complexes : une place par chose (tête = quand en mots nus, pied = ce que fait la coche), liste à filets sans cadre ni aplat (renverse A519 §1, A382/A474/A449 pour le pointillé), une seule taille de libellé, minuteur attendu dans la tête, « ✓ À l'échéance » (comme un seuil atteint), « ✓ Déjà faite », une seule coche (relevé « ✓ » de la réponse retiré), une police dans la rangée (amende A411), plus de « Faire maintenant » : la case demande confirmation sur place et dit ce qui reste (« Prévue dans 2 chocs délivrés. », v5.88.1), mots courts, hauteur fixe ; mesuré contre la maquette (v5.88.0) |
 | A571 | `lot-v6-0.md` | Session, passe 2 Natif : titre sur deux lignes, chevron de la capsule, historique en texte gris « Historique · … » sans le mot « Parcours » (amende A369/A510), boutons du bloc en capsules de 48, quai aligné par le haut sans filets et « Complications » à pastille (renverse A355), sections en une liste « Pendant toute l'aide » (amende A519), « Contexte local », rail en listes groupées (A506 ; renverse C79, A309) |
 | A572 | `lot-v6-0.md` | Le pool d'audit compte la mémoire DISPONIBLE (macOS : free + inactive + speculative via `vm_stat`, `memDispo()`), plus `freemem()` seule qui donnait pool 1 sur un Mac en usage ; un pool bridé par la mémoire s'annonce « △ pool n au lieu de m » avec sa mesure (amende A565, outillage) |
+| A573 | `lot-v6-0.md` | Le minuteur du rail en marche, en pause ou échu s'empile (nom · temps, barre, état, boutons sur leur ligne) ; la consignation d'un compteur en sous-ligne de l'interface (corrige A571 §7) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
