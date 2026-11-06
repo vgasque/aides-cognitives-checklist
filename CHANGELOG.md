@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.94.0] — 2026-11-06
+Des liens pour ouvrir l'application à un endroit précis, depuis une autre app ou l'app Raccourcis d'Apple (A586). Rien
+à rejouer côté serveur.
+- **Nouveaux liens** : `#creer` ouvre « Créer une aide », `#acces-direct` ouvre vos aides épinglées,
+  `#bibliotheques` la liste des bibliothèques, `#bibliotheque=…` une bibliothèque, `#collection=…` une collection.
+  Ils s'ajoutent à `#chercher`, `#sessions` et au lien direct d'une aide.
+- **Moi › « Liens et raccourcis »** : une rangée par lien, toucher pour le partager ou le copier. Dans l'app
+  Raccourcis, l'action « Ouvrir les URL » suivie du lien crée un raccourci à lancer par Siri ou depuis l'écran
+  d'accueil.
+- **Appui long sur l'icône** (Android, ordinateur) : Accès direct, Chercher une aide, Créer une aide, Sessions.
+- Un lien ne change jamais l'écran pendant une session. Une collection ou une bibliothèque absente de l'appareil est
+  signalée par une notice.
+- **Limite d'iPhone et d'iPad** : un lien ouvert depuis une autre app s'ouvre souvent dans Safari, qui n'a pas les
+  données de l'app installée. Essayez le raccourci une fois avant d'en dépendre.
+
 ## [5.93.0] — 2026-11-06
 Les images d'une aide en grille, chacune avec sa feuille (A585). Rien à rejouer côté serveur.
 - **Dans l'éditeur d'une aide, « Schémas & captures » devient une grille** de vignettes repliée à deux rangs, la
@@ -211,12 +226,4 @@ serveur.
   les doigts, et il redevient net au lâcher (de 40 à 400 %). Le zoom est commun à l'aperçu et au plein écran.
 - Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
 - Lever les doigts après un pincer n'ouvre pas de bloc par accident, et changer la taille de la fenêtre garde
-  l'endroit regardé.
-
-## [5.83.0] — 2026-11-04
-Pincer pour zoomer le schéma en plein écran (A558, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Le schéma en plein écran se pince comme la Page, les PDF et les images** : il suit les doigts sans délai, l'endroit
-  pincé reste sous les doigts, et il redevient net au lâcher (de 40 à 400 %).
-- Sur ordinateur : Ctrl + molette, ou le pincer du pavé tactile.
-- Lever les doigts après un pincer n'ouvre plus un bloc par accident, et changer la taille de la fenêtre garde
   l'endroit regardé.

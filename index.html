@@ -101,7 +101,8 @@
      aucun texte libre ne traverse le réseau (AGENTS.md règle 15).
  12. RANGEMENT : catégories par bibliothèque, COLLECTIONS personnelles (une aide dans
      plusieurs, Accès direct = la première), filtres/tris/regroupements de l'accueil, sélection
-     multiple ; lien direct #a=<id>.
+     multiple ; lien direct #a=<id> et liens d'application #creer, #acces-direct,
+     #bibliotheques… (A586, `APP_LINKS`).
 
   ARCHITECTURE GÉNÉRALE (voir aussi les commentaires de chaque section JS)
   -----------------------------------------------------------------------
@@ -327,7 +328,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MkhKF7bnzzriuQSdajeNR2xTkH/gLIEYf9jS9oZnCmg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-znX6VHk/TUVhYBY4Ow3V/tiQCcC1tSy9QHLpQiYmF/g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9893,7 +9894,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.93.0';
+const APP_VERSION='5.94.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -19852,13 +19853,27 @@ function shareCodeFromHash(h){
   return m&&shareCodeValid(m[1])?shareCodeNorm(m[1]):null;}
 /* A464 — LIEN DIRECT : `#a=<id>` ouvre une aide ou un protocole (raccourci d'écran d'accueil, collègue
    de la même bibliothèque) ; `#chercher` et `#sessions` servent les raccourcis du manifeste. Jamais
-   par-dessus une session réelle à l'écran (règle 11) ; le fragment est retiré une fois lu. */
+   par-dessus une session réelle à l'écran (règle 11) ; le fragment est retiré une fois lu.
+   A586 — LES LIENS D'APPLICATION : un fragment STABLE par destination, pour une autre app, un favori,
+   l'app Raccourcis d'Apple ou un raccourci du manifeste — `#creer`, `#acces-direct`, `#bibliotheques`,
+   `#bibliotheque=<id|perso>`, `#collection=<id>`. Table FERMÉE (`APP_LINKS`) : un mot hors table n'est
+   pas un lien, et l'identifiant suit la même garde que `#a=`. Le lien ne porte qu'une DESTINATION,
+   jamais une donnée : son contenu se lit sur l'appareil qui l'ouvre (les épinglées de CET utilisateur). */
+const APP_LINKS={chercher:'search',sessions:'sessions',creer:'create','acces-direct':'pins',bibliotheques:'libs'};
 function deepLinkFromHash(h){
   h=String(h||'');const m=/[#&]a=([A-Za-z0-9_-]{1,64})/.exec(h);
   if(m&&BAD_KEYS.indexOf(m[1])<0)return {open:m[1]};
-  if(/^#chercher$/.test(h))return {go:'search'};
-  if(/^#sessions$/.test(h))return {go:'sessions'};
+  const w=/^#([a-z-]{1,24})$/.exec(h);
+  if(w&&Object.prototype.hasOwnProperty.call(APP_LINKS,w[1]))return {go:APP_LINKS[w[1]]};
+  const k=/^#(bibliotheque|collection)=([A-Za-z0-9_-]{1,64})$/.exec(h);
+  if(k&&BAD_KEYS.indexOf(k[2])<0)return k[1]==='collection'?{go:'coll',id:k[2]}:{go:'lib',id:k[2]};
   return null;}
+/* Le fragment d'une destination — l'écriture inverse de `deepLinkFromHash`, seule source des liens affichés. */
+function appLinkFrag(go,id){
+  if(go==='lib')return '#bibliotheque='+(id==null||id===''?'perso':id);
+  if(go==='coll')return '#collection='+id;
+  const k=Object.keys(APP_LINKS).find(x=>APP_LINKS[x]===go);return k?'#'+k:'';}
+const appLinkUrl=frag=>location.origin+location.pathname+frag;
 function applyDeepLink(){
   const d=deepLinkFromHash(location.hash);if(!d)return false;
   if(state.view==='read'&&Runtime.started&&!Runtime.exercise)return false;
@@ -19868,14 +19883,36 @@ function applyDeepLink(){
     else if(protocols.some(p=>p.id===d.open))openProtocolRead(d.open);
     else toast('Ce lien vise une aide absente de cet appareil (autre bibliothèque, ou pas encore synchronisée).',7000,true);
     return true;}
+  /* Une destination de l'accueil se pose AVANT le rendu : on arrive sur la liste déjà filtrée, jamais
+     sur l'accueil puis la liste (un saut). Les feuilles et fenêtres s'ouvrent APRÈS (elles lisent l'écran). */
+  const home=()=>{state.view='library';state.homeTab='aides';state.q='';state.libLimit=LIB_PAGE;
+    {const q=document.getElementById('q');if(q)q.value='';}};
+  if(d.go==='pins'||d.go==='coll'){const id=d.go==='pins'?COLL_PIN:d.id;
+    if(!collById(id)){toast('Ce lien vise une collection absente de cet appareil (créée ailleurs, ou supprimée).',7000,true);return true;}
+    home();state.coll=id;state.cat='';render();window.scrollTo(0,0);return true;}
+  if(d.go==='lib'){const id=d.id==='perso'?'':d.id;
+    if(id&&!myLibraries.some(l=>l.id===id)){toast('Ce lien vise une bibliothèque dont vous n’êtes pas membre sur cet appareil (connectez-vous, ou demandez l’accès).',7000,true);return true;}
+    home();state.homeLib=id;state.coll=null;state.cat='';render();window.scrollTo(0,0);return true;}
   if(state.view!=='library'){state.view='library';render();}
   if(d.go==='sessions')openSessHist();
+  else if(d.go==='create')openCreateDlg();
+  else if(d.go==='libs'){
+    /* La liste des bibliothèques : la colonne gauche en large (son rang actif prend le focus) ; au téléphone, la
+       feuille « Afficher » du grand titre, qui les porte en tête (A556). */
+    if(state.homeTab&&state.homeTab!=='aides'){state.homeTab='aides';render();}
+    const r=main.querySelector('.home-side [data-libsel][aria-pressed="true"]')||main.querySelector('.home-side [data-libsel]');
+    const p=main.querySelector('#pgPick');
+    if(r&&r.offsetParent)r.focus();else if(p)p.click();}
   else{const q=document.getElementById('q');if(q)q.focus();}
   return true;}
-async function copyDirectLink(x){const url=location.origin+location.pathname+'#a='+x.id;
-  try{if(navigator.share){await navigator.share({title:x.title||'',url});return;}}catch(e){if(e&&e.name==='AbortError')return;}
-  try{await navigator.clipboard.writeText(url);toast('Lien copié — il ouvre « '+(x.title||'cette aide')+' » sur tout appareil qui la possède.',5000);}
+/* Donner un lien : la feuille de partage native d'abord (elle porte « Copier », et sur iPhone l'app
+   Raccourcis), sinon le presse-papiers. `said` est la notice d'une copie réussie. */
+async function giveLink(title,url,said){
+  try{if(navigator.share){await navigator.share({title:title||'',url});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(url);toast(said,6000);}
   catch(e){toast('⚠ Copie impossible sur cet appareil.',5000,true);}}
+function copyDirectLink(x){return giveLink(x.title,appLinkUrl('#a='+x.id),'Lien copié — il ouvre « '+(x.title||'cette aide')+' » sur tout appareil qui la possède.');}
+function copyAppLink(name,frag){return giveLink(name,appLinkUrl(frag),'Lien « '+name+' » copié — collez-le dans un favori, une autre app, ou l’app Raccourcis (action « Ouvrir les URL »).');}
 /* COMMENT UN ÉVÈNEMENT DISTANT ATTEINT L'ÉCRAN — quatre régimes ; le critère : déplace-t-il le
    sol sous le doigt, et est-ce LÉGITIME. 'live' = chirurgie DOM pure ; 'anchored' = journal
    reconstruit DONC ancré (keepAnchor) et annoncé (le scribe DOIT suivre — mais la condensation
@@ -30647,13 +30684,27 @@ function acctCollsHtml(){const go=state.view==='library';
     ic:c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',20),inert:!go,attrs:go?`data-collgo="${esc(c.id)}"`:'',tail:go?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:''}));
   return `<div class="acct-zone" id="acctColls"><div class="auth-stats-h">Mes collections <span class="acct-hs">votre rangement, à vous seul</span></div><div class="acct-card acct-list">${rows.join('')}`
     +`<button type="button" class="catmenu-new" data-collnew>＋ Nouvelle collection</button></div></div>`;}
+/* A586 — LIENS ET RACCOURCIS dans Moi, connecté ou non : chaque destination stable de `APP_LINKS`, puis une rangée par
+   bibliothèque (s'il y en a une partagée) et par collection. Toucher une rangée DONNE le lien (feuille de partage, sinon
+   copie) — elle n'y va pas : c'est un lien qu'on emporte ailleurs (favori, autre app, app Raccourcis). La sous-ligne
+   montre le fragment, pour qu'on reconnaisse ce qu'on a collé. */
+const APP_LINK_ROWS=[['pins','Accès direct','pin'],['search','Chercher une aide','search'],['create','Créer une aide','plus'],
+  ['libs','Bibliothèques','book'],['sessions','Sessions','history']];
+function acctLinksHtml(){
+  const row=(name,frag,ic)=>menuRowHtml({label:name,sub:frag,ic:ic==='pin'?pinIcon(true):uiIcon(ic,20),
+    attrs:`data-applink="${esc(frag)}" data-applinkn="${esc(name)}" aria-label="${esc('Partager le lien « '+name+' »')}"`,tail:`<span class="mm-chev" aria-hidden="true">${uiIcon('share',18)}</span>`});
+  const libs=myLibraries.length?[row('Perso',appLinkFrag('lib',''),'user')].concat(sortedLibraries().map(l=>row(l.name||'Bibliothèque partagée',appLinkFrag('lib',l.id),'book'))):[];
+  const cs=colls.map(c=>row(c.name,appLinkFrag('coll',c.id),'bookmark'));
+  return `<div class="acct-zone" id="acctLinks"><div class="auth-stats-h">Liens et raccourcis <span class="acct-hs">vers une autre app</span></div><div class="acct-card acct-list">`
+    +APP_LINK_ROWS.map(([go,name,ic])=>row(name,appLinkFrag(go),ic)).join('')+libs.join('')+cs.join('')+`</div>`
+    +`<div class="st-hint" style="margin-bottom:4px">Touchez une rangée pour partager ou copier son lien.<details class="acct-more"><summary>En savoir plus</summary>Dans l’app <b>Raccourcis</b> d’Apple, l’action « Ouvrir les URL » suivie du lien crée un raccourci « Créer une aide » ou « Accès direct », à lancer par Siri, depuis l’écran d’accueil ou un widget. Le lien ne transporte <b>aucune donnée</b> : il ouvre l’endroit, et ce qu’on y voit vient de l’appareil qui l’ouvre. Sur iPhone et iPad, iOS ouvre parfois un lien venu d’une autre app dans Safari plutôt que dans l’app installée, et Safari n’a pas les mêmes données : essayez-le une fois avant d’en dépendre.</details></div></div>`;}
 function accountPrefsHtml(slot){
   // Zone « CET APPAREIL », identique dans les deux états (repères stables — audit v4.5) :
   // état des données -> [action sur ces données, si fournie] -> préférence d'affichage.
   const z=currentZoom();
   const nl=myLibraries.length+1; // + Perso
   const HINT={90:'S · 90 %',100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
-  return `${acctCollsHtml()}<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
+  return `${acctCollsHtml()}${acctLinksHtml()}<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <div class="acct-card"><p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${''/* Un SEUL conteneur pour les trois boutons : deux `.auth-actions` collés donnaient 0 px entre « Exporter
        mes données » et « Prendre en main », 12 entre les deux suivants (signalé). */}
@@ -30748,6 +30799,7 @@ function bindAccountPrefs(body){
     state.coll=b.dataset.collgo;state.libLimit=LIB_PAGE;state.homeTab='aides';render();});
   body.querySelectorAll('#acctColls [data-collnew]').forEach(b=>b.onclick=async()=>{if(authModal.classList.contains('on'))closeAuth();
     if(state.view==='library')state.homeTab='aides';await collCreateShow();});
+  body.querySelectorAll('#acctLinks [data-applink]').forEach(b=>b.onclick=()=>copyAppLink(b.dataset.applinkn,b.dataset.applink));   // A586
   {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}
   {const w=body.querySelector('#acctGuide');if(w)w.onclick=openGuide;}   // A466 : gestes, glossaire, et « Revoir l'accueil » (A460)   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
@@ -35016,7 +35068,7 @@ if(location.search.indexOf('__actest')>=0){
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
-    shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,deepLinkFromHash,
+    shareCodeNorm,shareCodeValid,shareCodeBadChars,shareCodeFmt,shareCodeFromHash,deepLinkFromHash,appLinkFrag,
     SHARE_ALPHA,
     SHARE_KEEP,SHARE_DROP,SHARE_TRAVELS,SHARE_LOCAL,SHARE_KINDS_ANY,SHARE_KINDS_LEAD,
     SHARE_APPLY,SHARE_STALE_MS};

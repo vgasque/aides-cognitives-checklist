@@ -2284,6 +2284,16 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('lien direct : raccourci « chercher »',JSON.stringify(A.deepLinkFromHash('#chercher')),JSON.stringify({go:'search'}));
   eq('lien direct : raccourci « sessions »',JSON.stringify(A.deepLinkFromHash('#sessions')),JSON.stringify({go:'sessions'}));
   ok('lien direct : le code de partage n’est pas un lien direct',A.deepLinkFromHash('#j=K7M2P4Q9')===null);
+  /* A586 — liens d'application : table fermée, identifiant gardé, écriture inverse. */
+  eq('lien d’app : #creer',JSON.stringify(A.deepLinkFromHash('#creer')),JSON.stringify({go:'create'}));
+  eq('lien d’app : #acces-direct',JSON.stringify(A.deepLinkFromHash('#acces-direct')),JSON.stringify({go:'pins'}));
+  eq('lien d’app : #bibliotheques',JSON.stringify(A.deepLinkFromHash('#bibliotheques')),JSON.stringify({go:'libs'}));
+  eq('lien d’app : #bibliotheque=<id>',JSON.stringify(A.deepLinkFromHash('#bibliotheque=3f2a-9c')),JSON.stringify({go:'lib',id:'3f2a-9c'}));
+  eq('lien d’app : #collection=<id>',JSON.stringify(A.deepLinkFromHash('#collection=c_k3x')),JSON.stringify({go:'coll',id:'c_k3x'}));
+  ok('lien d’app : mot hors table refusé',A.deepLinkFromHash('#toString')===null&&A.deepLinkFromHash('#constructor')===null&&A.deepLinkFromHash('#creerx')===null);
+  ok('lien d’app : identifiant interdit refusé',A.deepLinkFromHash('#collection=__proto__')===null&&A.deepLinkFromHash('#bibliotheque=a/b')===null);
+  ok('lien d’app : l’écriture relit sa lecture',['search','sessions','create','pins','libs'].every(g=>A.deepLinkFromHash(A.appLinkFrag(g)).go===g)
+    &&A.deepLinkFromHash(A.appLinkFrag('lib','')).id==='perso'&&A.deepLinkFromHash(A.appLinkFrag('coll','c_1')).id==='c_1');
   ok('un code invalide dans le fragment est rejeté, pas corrigé',
     A.shareCodeFromHash('#j=K7M2P4QO')===null);
   ok('aucun fragment : rien',A.shareCodeFromHash('')===null);
