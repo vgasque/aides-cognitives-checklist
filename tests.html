@@ -420,6 +420,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('rejette sans nom, id invalide ou en double', A.sanitizeColls([{id:'k1',name:''},{id:'__proto__',name:'x'},{id:'k2',name:'A'},{id:'k2',name:'B'},null,'x']), [{id:'k2',name:'A',ids:[]}]);
   eq('nom non-chaîne ignoré, ids absents → []', A.sanitizeColls([{id:'k3',name:{x:1}},{id:'k4',name:'Ok',ids:'x'}]), [{id:'k4',name:'Ok',ids:[]}]);
   eq('non-tableau → []', A.sanitizeColls({}), []);
+  eq('tri alphabétique fr, casse et accents ignorés (A592)', A.sanitizeColls([{id:'k1',name:'Zèbre'},{id:'k2',name:'éco'},{id:'k3',name:'Anesthésie'},{id:'k4',name:'Eau'}]).map(c=>c.name), ['Anesthésie','Eau','éco','Zèbre']);
   eq('borne 300 ids', A.sanitizeColls([{id:'k5',name:'N',ids:Array.from({length:400},(_,i)=>'i'+i)}])[0].ids.length, 300);
   group('emailsIn() — invités d’une nouvelle bibliothèque (A477)');
   eq('sépare, minuscule, dédoublonne, filtre', A.emailsIn(' A@x.fr, b@y.org;a@x.fr  pas-un-mail c@z'), ['a@x.fr','b@y.org']);
