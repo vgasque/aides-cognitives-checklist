@@ -328,7 +328,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-FGlm5sfR17ySDehbZZa6rOq40PtQpsZOVX9Fw9r4ZWM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4SN83vbd4irQDNmRuDd0VYsT8er2U8L1bAo4rdrV0zE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8658,17 +8658,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      carte du contenu rédigé, texte | poignée | aperçu À LA MÊME HAUTEUR, partant de la même ligne. Chaque volet défile
      dedans (hauteur relative à la fenêtre : règle 10) ; la part du texte est posée en JS (`mdsBind`, `ac-mdsplit`). */
   body.view-pedit .read-grid.etab-page{grid-template-columns:minmax(0,1fr)}
-  .etab-lh{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 8px}
+  /* La rangée commune en bande blanche pleine largeur (comme Identité) : dans la carte du texte, elle passait sur
+     plusieurs lignes sous 1000 px et la tête de l'aperçu, qui s'aligne sur elle, se creusait d'autant (signalé). */
+  .etab-lh{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:48px;box-sizing:border-box;margin:0 0 12px;padding:8px 16px;
+    background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work)}
   .etab-lh>label{margin:0;font-size:var(--t-body);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}   /* le libellé d'un champ (.field>label), qui a changé de parent */
   .etab-lh>label .hint{display:none}
   .etab-lh .md-head{flex:1 1 auto;margin:0}
   /* Le texte et l'aperçu en DEUX cartes séparées (planche) ; l'intitulé, sa rangée et la barre restent sur le blanc de la
      carte du texte, comme avant (demande de l'auteur). Le champ et le rendu gardent le cadre du champ d'avant. */
   .md-ed.etab{background:none;border:0;box-shadow:none;padding:0}
-  .etab-l,body.view-pedit .md-ed.etab .md-ppane{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);padding:12px}
+  .etab-l,body.view-pedit .md-ed.etab .md-ppane{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);padding:12px 16px}   /* 16 de côté : le bord d'Identité et de la bande */
   /* Identité repliée = UNE carte d'une ligne (planche) : « Identité » et « Modifier » posés DANS la carte — la rangée
      d'en-tête a une hauteur nulle, ses deux enfants seuls reçoivent le toucher ; titre en gras, puis « · code · catégorie ». */
-  .etab-page .ed-sech-row:has(.id-tgl[aria-expanded="false"]){position:relative;z-index:1;top:24px;height:0;margin:0 16px}
+  .etab-page .ed-sech-row:has(.id-tgl[aria-expanded="false"]){position:relative;z-index:1;top:24px;height:0;margin:0 16px;padding-left:1px}   /* + la bordure de la carte : « Identité » au bord du texte des cartes */
   .etab-page .ed-ident:not([open])>summary{display:flex;flex-wrap:nowrap;align-items:center;column-gap:8px;min-height:48px;
     padding:0 calc(16px + 6em) 0 calc(16px + 5em);overflow:hidden}
   .etab-page .ed-ident .id-row{width:auto;flex:0 1 auto;min-width:0;min-height:48px;padding:0;gap:8px}
@@ -8687,11 +8690,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-ed.etab #p-body{height:100%;min-height:0;resize:none}
   .md-ed.etab .md-lint-box{flex:none;max-height:30%;overflow-y:auto}
   .md-ed.etab>.md-syn{margin-top:12px}
-  .etab-rh{display:flex;align-items:flex-end;gap:8px;min-width:0;box-sizing:border-box;padding-bottom:8px}   /* posée sur le rendu, à la hauteur de la barre */
+  .etab-rh{display:flex;align-items:flex-start;gap:8px;min-width:0;box-sizing:border-box}   /* sur la PREMIÈRE ligne de la barre, à sa hauteur (32) */
+  .etab-rh .md-prev-h{line-height:32px}
   body.view-pedit .md-ed.etab .md-prev-h{display:block;flex:1;min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .etab-rh #revPanel{position:relative;flex:none}
   .etab-rh .rev-panel{margin:0}
-  .etab-rh .rev-panel>summary{min-height:32px;padding:4px 10px}
+  .etab-rh .rev-panel>summary{min-height:30px;padding:4px 10px}   /* 30 + sa bordure = 32, la hauteur de la barre */
   .etab-rh .rev-panel:not([open]) .rev-res{display:none}
   .etab-rh .rev-panel:not([open]){border:1px solid var(--verify-line);border-radius:var(--r-1);background:var(--warn-soft)}
   .etab-rh .rev-panel:not([open])>summary b{font-size:12px;font-weight:700;letter-spacing:0;text-transform:none}
@@ -18735,7 +18739,7 @@ function renderProtocolEdit(){
   const wideEdit=mqRail.matches||mqSeg.matches;   // v5.48.5 : la colonne d'aperçu dès 780
   const live=mdLiveOn();_mdDocGo=null;   // A547 : mise en forme en direct (document par blocs)
   const mds=wideEdit&&!live&&!mqSeg.matches;
-  // A593 : dans l'établi, l'intitulé et sa rangée (Plan, interrupteur) entrent dans la carte du texte, au-dessus de la barre.
+  // A593 : dans l'établi, l'intitulé et sa rangée (Plan, interrupteur) forment une bande blanche AU-DESSUS des deux cartes.
   const mdLabHtml=`<label>Contenu rédigé <span class="hint">${live?'facultatif — touchez un passage pour le modifier':'facultatif — mise en forme simple, aperçu à côté'}</span></label>`;   // A593 : l'établi (texte | poignée | aperçu) ; le Fold ouvert garde la charnière
   main.innerHTML=`${wideEdit?`<div class="read-grid${live?' mdl-grid':''}${mds?' etab-page':''}"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
@@ -18752,7 +18756,7 @@ function renderProtocolEdit(){
     ce qui garde une trace, ce sont les fiches. */}
     <fieldset class="field ed-card md-ed${state.mdPv==='p'&&!live?' md-pv':''}${live?' mdl':''}${mds?' etab':''}">${mds?'':mdLabHtml}
       ${mds?'':mdHeadHtml()}
-      ${mds?`<div class="etab-grid" id="etabGrid"><div class="etab-l"><div class="etab-lh">${mdLabHtml}${mdHeadHtml()}</div>`:''}
+      ${mds?`<div class="etab-lh">${mdLabHtml}${mdHeadHtml()}</div><div class="etab-grid" id="etabGrid"><div class="etab-l">`:''}
       ${mdToolbarHtml()}
       ${live?'<div class="md-doc" id="mdDoc"></div>':''}
       <div class="md-wpane">
