@@ -8640,6 +8640,7 @@ await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', 
     const t=document.getElementById('p-body'),pv=document.getElementById('mdPreview'),top=e=>e.getBoundingClientRect().top;
     out.memeLigne=Math.abs(top(t)-top(pv));out.hauteurs=Math.abs(t.getBoundingClientRect().height-pv.getBoundingClientRect().height);
     out.badge=(()=>{const d=document.querySelector('.etab-rh #revPanel details');return d?!d.open:null;})();
+    {const d=document.getElementById('edAddOpenP');scrollTo(0,0);out.pied=d?Math.round(d.getBoundingClientRect().top-g.getBoundingClientRect().bottom):null;}
     // la ligne L, posée en haut du champ, et son bloc dans l'aperçu : même hauteur à l'écran
     const cs=getComputedStyle(t),pad=parseFloat(cs.borderTopWidth)+parseFloat(cs.paddingTop);
     const ecart=L=>{const y=mdLineTops(t,[L])[0],e=pv.querySelector('[data-ln="'+L+'"]');return e?Math.round(top(e)-(top(t)+pad+y-t.scrollTop)):null;};
@@ -8659,6 +8660,7 @@ await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', 
   t('A593 · l’établi remplace la colonne : texte | poignée | aperçu, moitié-moitié par défaut',r.etabli&&r.cols.length===3&&r.cols[1]===32&&Math.abs(r.cols[0]-r.cols[2])<=1,JSON.stringify(r.cols));
   t('A593 · texte et aperçu partent de la même ligne, à la même hauteur',r.memeLigne<=1&&r.hauteurs<=1,JSON.stringify(r));
   t('A593 · la relecture est un badge replié dans la tête de l’aperçu',r.badge===true,String(r.badge));
+  t('A593 · l’établi s’arrête au-dessus de la porte « Ajouter » (rien ne couvre la fin du texte ni du rendu)',r.pied!=null&&r.pied>=8,String(r.pied));
   t('A593 · le rendu suit le champ : la ligne en haut et son bloc à la même hauteur',r.s1>0&&r.ecart!=null&&(Math.abs(r.ecart)<=4||r.butee),JSON.stringify(r));
   t('A593 · et l’inverse : défiler l’aperçu ramène le champ sur la ligne du bloc',r.t2>0&&r.ecart2!=null&&Math.abs(r.ecart2)<=4,JSON.stringify(r));
   t('A546 · Plan : la section courante se déplace, le curseur la suit',r.actes.join(',')==='act:up,act:down,act:dup,act:del'&&r.ordre&&r.curseur==='## Section 3',JSON.stringify(r));
