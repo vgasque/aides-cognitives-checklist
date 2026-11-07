@@ -1,4 +1,4 @@
-# Lot v5.96 — la rangée « En cours » redevient la bande de session (A590)
+# Lot v5.96 — la rangée « En cours » redevient la bande de session (A590-A591)
 
 > Fichier normatif. Les numéros A sont des adresses : ne jamais renuméroter. Décidé sur maquettes (captures de l'app
 > servie, modifiées en place), **implémenté en v5.96.0**. Amende A523 ; reprend A356 et le périmètre nocturne d'A222.
@@ -58,3 +58,35 @@ Le mode crise n'est pas concerné (règle 11) : l'accueil n'en fait pas partie, 
 Témoin : `audit-doctrine` « Accueil · A523 groupe « En cours », A524 une recherche, A590 la bande de session » (390 et
 1280 : bande `--sys`, aucune `.pinbtn`, bloc courant, deux boutons ≥ 44 px, « Terminer… » ouvre `#endSessModal` et
 « Annuler » garde la session ; vérifié capable d'échouer sur la v5.95.0 : 4 rouges).
+
+## A591 — La carte « Session terminée » suit la bande (v5.96.1)
+
+*Amende la carte-bilan de v4.16.3 et le statu quo du « liseré gauche 4 px » de v4.23.0 (`conventions-de-code.md`)
+pour `.last-sess` ; corrige A590 (survol en thème sombre).*
+
+Question de l'auteur après A590 : « le bandeau Session terminée doit-il être mis à jour avec les modifications récentes
+de design, ou il est très bien comme ça ? » Mesuré sur l'app servie (v5.96.0, 390 et 1280, clair et sombre) : le fond
+tient — carte BLANCHE (une session terminée n'est plus en cours : la bande sombre d'A590 ne lui revient pas), « ✓
+Session terminée » au vert du fait (règle 8), « Compte-rendu », ✕ — mais trois écarts au dessin actuel, et un défaut
+d'A590 :
+
+1. **Plus de liseré de 4 px.** La « signature partagée » de v4.23.0 n'est plus partagée : les rangées l'ont perdue en
+   A506, les notices aussi ; la carte-bilan en était le dernier porteur. La coche et le mot disent l'état. La variante
+   exercice (`.exo`) garde son glyphe ▲ et son mot au bleu, sans liseré.
+2. **Une seule place, sous le titre, juste avant « En cours »**, à toutes les largeurs. En large elle PRÉCÉDAIT le
+   titre « Aides » (le titre vit dans la liste depuis A517, la carte dans `topHtml` au-dessus), au téléphone elle le
+   suivait. `topHtml` (carte-bilan, et carte d'une session partagée) est désormais composé avec le groupe « En cours ».
+   L'accueil s'ouvre toujours en haut après « Terminer » (A491) : la carte y est.
+3. **Le compte en mots, sans coche** : « 0/1 bloc ✓ » posait une coche sur rien de fait ; la ligne dit « 0 bloc
+   terminé sur 1 », « 2 blocs terminés sur 3 » (`lsrBlocs`).
+4. **Survol de « Terminer… » sur la bande, en thème sombre** : la règle de survol commune du thème sombre
+   (`:is(.btn:not(.primary)…:hover)`, fond `--hover-dk`) l'emportait en spécificité sur celle de la bande et
+   noircissait le bouton. Une règle plus spécifique rend le survol de la matière système (`--sys-2`).
+
+*Formes écartées* :
+- **La carte-bilan sur la bande sombre** : elle se lirait « en cours » — l'état terminé est blanc, vert au mot.
+- **Garder le liseré au nom de la signature de v4.23.0** : il n'y a plus rien avec quoi la partager.
+
+Témoin : `audit-doctrine` « Accueil · A591 carte « Session terminée » et survol de la bande » (390 et 1280, fin par le
+vrai geste maintenu : bord gauche ≤ 1 px, carte juste avant « En cours » et après le titre, compte en mots sans ✓ ; en
+sombre à 1280, le survol ne prend pas `--hover-dk` ; vérifié capable d'échouer sur la v5.96.0 : 7 rouges).
