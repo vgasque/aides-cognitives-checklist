@@ -76,4 +76,4 @@ global l'avait cassée (poignée de l'image restaurée avant commit). Les classe
 Témoins : `tests.html` (`mdsBounds`, `mdsSnap`) ; `audit-doctrine` « Éditeur · A593 établi aligné et lié, poignée ;
 Plan d'A546 » (remplace la section A546 : même ligne et même hauteur, badge replié, pied au-dessus de la porte,
 liaison dans les deux sens au pixel près, poignée tirée et aimantée, clavier, survie au rendu, 880 px ; le Plan
-d'A546 et le retrait de la bande d'A547 y restent vérifiés).
+d’A546 et le retrait de la bande d’A547 y restent vérifiés ; vérifié capable d’échouer : 7 rouges sur la v5.96.2).

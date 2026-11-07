@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.97.0] — 2026-11-07
+L'éditeur de référence aligne enfin le texte et son aperçu, et une poignée règle leur largeur (A593, amende
+A546). Rien à rejouer côté serveur.
+- **Le texte et l'aperçu partent de la même ligne.** Sur ordinateur et tablette (à partir de 780 px de large), avec
+  « Mise en forme en direct » coupée, le texte Markdown et son rendu sont deux cartes côte à côte, de même hauteur ;
+  la ligne en haut du texte a son bloc en haut de l'aperçu. Avant, l'aperçu commençait une centaine de pixels plus
+  haut, et l'écart changeait selon le volet « Relecture ».
+- **Le défilement est lié dans les deux sens** : faire défiler l'aperçu ramène le texte au même endroit, et
+  inversement.
+- **Une poignée ⋮ entre les deux règle leur part** : la tirer (elle s'aimante au tiers, à la moitié, aux deux
+  tiers), double-clic ou Entrée pour revenir à moitié-moitié, flèches au clavier (5 %, 1 % avec Maj). Le réglage est
+  retenu sur l'appareil.
+- **« Relecture » devient un badge** dans la tête de l'aperçu ; il s'ouvre par-dessus le rendu sans le pousser.
+- **Identité tient sur une ligne** (titre, code, catégorie, « Modifier ») ; « Contenu rédigé », Plan et
+  l'interrupteur forment une bande au-dessus des deux cartes ; l'aide-mémoire de syntaxe passe dessous.
+- **L'éditeur tient dans l'écran** et s'arrête au-dessus du bouton « Ajouter », qui ne couvre plus la fin du texte.
+- Inchangé : au téléphone, « Écrire | Aperçu » ; en « Mise en forme en direct » (le réglage par défaut), le document
+  par blocs ; sur un écran pliable ouvert, la charnière sépare toujours texte et aperçu.
+
 ## [5.96.2] — 2026-11-07
 Correctif : les collections restent dans l'ordre alphabétique (A592). Rien à rejouer côté serveur.
 - **Renommer une collection la remet à sa place** : une collection renommée restait à son ancien rang, alors que la
@@ -227,13 +246,3 @@ leurs couleurs et s'allègent (A569, doctrine `docs/decisions/lot-v6-0.md`). Rie
   la règle et l'état se distinguent d'un coup d'œil.
 - « passage 4/4 » ne se coupe plus entre le mot et le compte au téléphone.
 - Audit : un témoin lit désormais la couleur et la casse de ces étiquettes (aucun ne le faisait).
-
-## [5.86.2] — 2026-11-05
-Le quai garde ses mots à 320 px avec le texte à 130 % (A568, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer
-côté serveur.
-- **Correctif : « FV réfractaire » et « Horodater » pouvaient être coupés** dans la barre du bas pendant une session,
-  sur un écran étroit (320 px) avec le texte agrandi à 130 %. Quand un mot ne tient toujours pas à la plus petite
-  taille de texte autorisée, les touches « Fin » et « Tout voir », dont les mots sont courts, se resserrent à 44 px
-  (la taille minimale d'une touche en session) et rendent cette place aux mots longs. Rien ne change ailleurs.
-- Audit : la sonde du partage qui vérifie les gestes réservés attend que l'invité ait vraiment rejoint au lieu
-  d'une durée fixe ; la sonde des mots du quai dit, quand elle échoue, ce qui manque et dans quelle police.
