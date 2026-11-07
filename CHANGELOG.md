@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.96.2] — 2026-11-07
+Correctif : les collections restent dans l'ordre alphabétique (A592). Rien à rejouer côté serveur.
+- **Renommer une collection la remet à sa place** : une collection renommée restait à son ancien rang, alors que la
+  liste est promise par ordre alphabétique (A475, A587).
+- **L'ordre se rétablit au chargement**, y compris pour les collections reçues d'un autre appareil par la synchro :
+  une liste déjà dérangée par un ancien renommage se remet en ordre d'elle-même, sans rien faire.
+
 ## [5.96.1] — 2026-11-07
 La carte « Session terminée » suit le nouveau dessin de l'accueil, et un défaut de la 5.96.0 est corrigé (A591).
 Rien à rejouer côté serveur.
@@ -230,14 +237,3 @@ côté serveur.
   (la taille minimale d'une touche en session) et rendent cette place aux mots longs. Rien ne change ailleurs.
 - Audit : la sonde du partage qui vérifie les gestes réservés attend que l'invité ait vraiment rejoint au lieu
   d'une durée fixe ; la sonde des mots du quai dit, quand elle échoue, ce qui manque et dans quelle police.
-
-## [5.86.1] — 2026-11-05
-Le retour système ne recule plus jamais deux fois (A563, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
-serveur.
-- **Correctif : l'application pouvait se quitter toute seule en fermant une fenêtre ou un écran**, sur un appareil
-  très chargé. Quand le navigateur tardait plus d'une seconde à revenir d'un cran dans l'historique, l'application
-  croyait la demande perdue et la répétait : elle reculait de deux crans et sortait de son propre écran (vers la page
-  précédente, voire hors de l'application installée). Elle attend désormais que le premier recul arrive, et ne le
-  répète jamais.
-- Audit : trois sondes ne dépendent plus de la vitesse de la machine (atelier d'import, voile du guide pendant le
-  défilement) ou disent où en était l'application quand elles échouent (recherche dans les PDF). Aucun seuil changé.

@@ -90,3 +90,20 @@ d'A590 :
 Témoin : `audit-doctrine` « Accueil · A591 carte « Session terminée » et survol de la bande » (390 et 1280, fin par le
 vrai geste maintenu : bord gauche ≤ 1 px, carte juste avant « En cours » et après le titre, compte en mots sans ✓ ; en
 sombre à 1280, le survol ne prend pas `--hover-dk` ; vérifié capable d'échouer sur la v5.96.0 : 7 rouges).
+
+## A592 — L'ordre alphabétique des collections se rétablit à l'entrée (v5.96.2)
+
+*Applique A475 et A587 (« dans l'ordre alphabétique, pas d'ordre manuel ») ; aucun changement de modèle.*
+
+Constat : les écrans dessinent `colls` dans l'ordre du tableau, et seul `collNew` le triait. Deux chemins défaisaient
+l'ordre promis par A587 : **renommer** (« Zèbre » renommée « Anesthésie » restait en fin de liste) et le **pull du
+document perso**, qui reprenait tel quel le tableau d'un appareil où l'on avait renommé.
+
+1. **`sanitizeColls` trie** (`collCmp` : `localeCompare` français, casse et accents ignorés, tri stable). C'est le
+   point d'entrée unique des collections chargées (localStorage, pull cloud) : l'ordre se rétablit au prochain
+   chargement sur tout appareil, sans migration.
+2. **Renommer re-range** sur place (`colls.sort(collCmp)` avant `collsSave`) ; le nom renommé est rogné comme à
+   l'entrée, un nom vide garde l'ancien.
+3. `collNew` emploie le même comparateur : une seule définition de l'ordre.
+
+Témoin : `tests.html`, groupe `sanitizeColls()` — « tri alphabétique fr, casse et accents ignorés (A592) ».
