@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.96.0] — 2026-11-07
+La session en cours se reconnaît de nouveau à l'accueil, et « Reprendre » et « Terminer » y reviennent (A590, amende
+A523). Rien à rejouer côté serveur.
+- **Plus d'étoile dans « En cours »** : elle se confondait avec Accès direct, où paraît la même aide. L'aide reste
+  épinglable dans Accès direct et dans la liste.
+- **La rangée « En cours » reprend la bande sombre** de la carte « Session en cours » d'avant la v5.67, sans revenir
+  à une carte en double : c'est la rangée de l'aide, sur fond sombre, avec le chrono en vert. Elle a désormais le
+  même dessin que la carte d'une session partagée.
+- **« Reprendre » et « Terminer… » sont de retour à l'accueil** (ils avaient disparu en v5.67.0), sous la rangée au
+  téléphone, à droite sur grand écran. « Terminer… » demande la même confirmation maintenue que « Fin » en session ;
+  il n'est pas rouge. Toucher la rangée reprend toujours la session.
+- **La rangée dit où l'on en est** : le bloc courant sous la ligne d'état (« 1 · Reconnaissance & alerte »).
+- **En thème sombre**, la bande et la carte d'une session partagée prennent un contour vert : sans lui, le fond
+  sombre ne se détachait plus.
+
 ## [5.95.0] — 2026-11-06
 L'accueil tient à cent aides et protocoles : vos collections en tête, des groupes qui se plient, la provenance mieux
 dite (A587-A589). Rien à rejouer côté serveur.
@@ -227,15 +242,3 @@ Importer une page Notion (A562, doctrine `docs/decisions/lot-v6-0.md`). Rien à 
 - Un **.md seul** s'importe aussi ; ses images, restées à côté, sont signalées absentes — le .zip est conseillé.
 - Rien ne se perd en silence : une image introuvable est nommée dans le texte, et ce qui n'a pas pu entrer est dit
   avant l'import.
-
-## [5.85.0] — 2026-11-04
-Éditeurs : le dépliant « Identité » et le mode « déplacer » (A560-A561, doctrine `docs/decisions/lot-v6-0.md`).
-Rien à rejouer côté serveur.
-- **Toucher à côté sort du mode « déplacer »**, dans l'éditeur d'une aide (blocs, étapes, listes, minuteurs…) comme
-  dans celui d'une référence (blocs) : un tap qui ne tombe pas sur une destination « Poser ici » repose l'élément à
-  sa place. Ce tap ne fait rien d'autre (il n'ouvre pas le bloc touché) ; « ‹ Retour » reste actif en un tap.
-- **Le menu « Choisir la catégorie » n'est plus coupé** : ouvert depuis « Autre… », il se faisait rogner par le bas
-  de la carte « Identité ».
-- **Déplier et replier « Identité » se fait d'un seul endroit**, à droite de l'intertitre : « Modifier ⌄ » quand
-  la carte est repliée, « Replier ⌃ » quand elle est ouverte. Le chevron qui pendait au bout de la seule rangée
-  « Catégorie » est retiré ; toucher une rangée repliée déplie toujours.

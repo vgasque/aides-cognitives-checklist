@@ -248,7 +248,8 @@
      gagne sur les box-shadow de jour de ces objets par sa spécificité (le #id dans :is() la porte
      à (1,1,1)) : elle remplace notamment l'ombre montante du quai (--shadow-up, none en sombre)
      et l'ombre en dur du volet .ds-card, inutiles sur du quasi-noir. */
-  [data-theme="dark"] :is(.ls-card,.sd-in:not(:has(.sd-start:not([hidden]))),.ds-card,#cbTimers){box-shadow:inset 0 0 0 1px var(--sys-edge)}
+  [data-theme="dark"] :is(.sd-in:not(:has(.sd-start:not([hidden]))),.ds-card,#cbTimers){box-shadow:inset 0 0 0 1px var(--sys-edge)}
+  [data-theme="dark"] body.view-home .ls-card{box-shadow:inset 0 0 0 2px var(--ok-sys)}   /* A590 : la carte d'une session partagée a le périmètre du groupe « En cours » */
   /* ⚠ L'ANNEAU SUIT LE VOLET (signalé : « la bordure ne suit pas »). Capsule et volet sont UN
      objet à deux étages, mais l'anneau s'arrêtait à la capsule et le volet, sans ombre la nuit,
      n'avait aucun bord. TROIS côtés : le haut est la jointure, où la capsule pose déjà son trait
@@ -2639,6 +2640,30 @@
   .dir-live .dl-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}
   .dir-book .dir-id:not(:empty)+.dir-st.dir-live::before{content:none}   /* le point vert sépare déjà : pas de « · » orphelin à la coupure */
   .dir-book .dir-id:not(:empty)+.dir-st.dir-live .dl-dot{margin-left:10px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
+  /* ═══ A590 (amende A523, reprend A356) — LA RANGÉE « EN COURS » EST LA BANDE DE SESSION ═══════════════════════
+     Une seule rangée (pas de carte en double, A523), habillée de la MATIÈRE SYSTÈME de l'ancienne carte (--sys) : le
+     seul aplat sombre de l'accueil, celui de la carte d'une session partagée — une session en cours a UN dessin, et
+     il se voit sans lire. Ni étoile (elle se lisait « Accès direct »), mais le bloc courant et deux actions :
+     « Reprendre » plein clair (A356), « Terminer… » en contour, jamais rouge (règle 8 : rien de permanent n'est rouge
+     — le rouge vit dans la confirmation). En sombre, l'aplat ne se détache plus du fond : périmètre --ok-sys, 2 px
+     (le vert = système nominal, règle 8). Actions sur la rangée en large, dessous sous 560 px EFFECTIFS (règle 10). */
+  .dir-book.live-grp .dir-grid{background:var(--sys);border-radius:var(--r-3);overflow:clip}
+  .dir-book.live-grp .dir-row{background-color:var(--sys);background-image:linear-gradient(var(--sys-line),var(--sys-line));padding-top:12px;padding-bottom:12px}
+  .dir-book.live-grp .dir-row:hover{background-color:var(--sys-hi)}
+  .live-grp .dir-row .card-open{color:var(--sys-ink)}
+  .live-grp .dir-sub,.live-grp .dir-sub :is(b,.dir-kind,.dir-cat,.libtag){color:var(--sys-ink-2)}
+  .live-grp .dir-st.dir-live{color:var(--ok-sys)}
+  .live-grp .dir-live .dl-dot{background:var(--ok-sys)}
+  .lv-w{display:block;margin-top:2px;font-size:var(--t-meta);line-height:1.35;color:var(--sys-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lv-act{display:flex;gap:8px;position:relative;z-index:1}   /* au-dessus du voile `.card-open::after` : le bouton se tape, pas la rangée */
+  .lv-act .btn{min-height:44px;background:none;border-color:var(--ctl-sys);color:var(--sys-ink);box-shadow:none}
+  .lv-act .btn:hover{background:var(--sys-2)}
+  .lv-act .btn.primary{background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
+  .lv-act .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
+  .lv-act .btn:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
+  html.zw560 .lv-act{grid-column:1/-1;margin-top:8px}
+  html.zw560 .lv-act .btn.primary{flex:1}
+  [data-theme="dark"] .dir-book.live-grp .dir-grid{border:2px solid var(--ok-sys)}
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
@@ -9077,7 +9102,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw58sbqcj54yefc8">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw58sbqcbvexncsd">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw6e1age18bbq6oo">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw6e1age2yjaxqi5">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -9194,7 +9219,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw58sbqcj54yefc8">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw58sbqcbvexncsd">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw6e1age18bbq6oo">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw6e1age2yjaxqi5">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

@@ -564,6 +564,9 @@ le séparateur « · » et l'écrasait en trait.
 
 Témoin : `audit-doctrine` « Accueil · A523 groupe « En cours » » (390 et 1280 ; vérifié capable d'échouer).
 
+*Amendé par A590 (v5.96.0, `lot-v5-96.md`) : dans « En cours », la rangée redevient la bande de session — matière
+système, sans étoile, bloc courant, « Reprendre » et « Terminer… » de retour à l'accueil.*
+
 ## A524 — Une seule recherche au téléphone : le rond (v5.67.1)
 
 *Amende A517 (« champ de recherche sous le titre ») ; garde A510 §3. Arbitrage de l'auteur, 01/11/2026.*

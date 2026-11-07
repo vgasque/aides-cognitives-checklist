@@ -328,7 +328,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ckEJ3BndhIIS3qXmfDdmD5kYWZ/lJpOt8DFaKBPFWbU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-t4Li2jPbiSwaf/K8M0cPHOEpCQ/wAZ8GnU2VcrySL20='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -642,7 +642,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      gagne sur les box-shadow de jour de ces objets par sa spécificité (le #id dans :is() la porte
      à (1,1,1)) : elle remplace notamment l'ombre montante du quai (--shadow-up, none en sombre)
      et l'ombre en dur du volet .ds-card, inutiles sur du quasi-noir. */
-  html[data-theme="dark"] :is(.ls-card,.sd-in:not(:has(.sd-start:not([hidden]))),.ds-card,#cbTimers){box-shadow:inset 0 0 0 1px var(--sys-edge)}
+  html[data-theme="dark"] :is(.sd-in:not(:has(.sd-start:not([hidden]))),.ds-card,#cbTimers){box-shadow:inset 0 0 0 1px var(--sys-edge)}
+  html[data-theme="dark"] body.view-home .ls-card{box-shadow:inset 0 0 0 2px var(--ok-sys)}   /* A590 : la carte d'une session partagée a le périmètre du groupe « En cours » */
   /* ⚠ L'ANNEAU SUIT LE VOLET (signalé : « la bordure ne suit pas »). Capsule et volet sont UN
      objet à deux étages, mais l'anneau s'arrêtait à la capsule et le volet, sans ombre la nuit,
      n'avait aucun bord. TROIS côtés : le haut est la jointure, où la capsule pose déjà son trait
@@ -3033,6 +3034,30 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-live .dl-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}
   .dir-book .dir-id:not(:empty)+.dir-st.dir-live::before{content:none}   /* le point vert sépare déjà : pas de « · » orphelin à la coupure */
   .dir-book .dir-id:not(:empty)+.dir-st.dir-live .dl-dot{margin-left:10px}   /* A523 : un élément, pas `::before` — celui-ci porte le séparateur « · » */
+  /* ═══ A590 (amende A523, reprend A356) — LA RANGÉE « EN COURS » EST LA BANDE DE SESSION ═══════════════════════
+     Une seule rangée (pas de carte en double, A523), habillée de la MATIÈRE SYSTÈME de l'ancienne carte (--sys) : le
+     seul aplat sombre de l'accueil, celui de la carte d'une session partagée — une session en cours a UN dessin, et
+     il se voit sans lire. Ni étoile (elle se lisait « Accès direct »), mais le bloc courant et deux actions :
+     « Reprendre » plein clair (A356), « Terminer… » en contour, jamais rouge (règle 8 : rien de permanent n'est rouge
+     — le rouge vit dans la confirmation). En sombre, l'aplat ne se détache plus du fond : périmètre --ok-sys, 2 px
+     (le vert = système nominal, règle 8). Actions sur la rangée en large, dessous sous 560 px EFFECTIFS (règle 10). */
+  .dir-book.live-grp .dir-grid{background:var(--sys);border-radius:var(--r-3);overflow:clip}
+  .dir-book.live-grp .dir-row{background-color:var(--sys);background-image:linear-gradient(var(--sys-line),var(--sys-line));padding-top:12px;padding-bottom:12px}
+  .dir-book.live-grp .dir-row:hover{background-color:var(--sys-hi)}
+  .live-grp .dir-row .card-open{color:var(--sys-ink)}
+  .live-grp .dir-sub,.live-grp .dir-sub :is(b,.dir-kind,.dir-cat,.libtag){color:var(--sys-ink-2)}
+  .live-grp .dir-st.dir-live{color:var(--ok-sys)}
+  .live-grp .dir-live .dl-dot{background:var(--ok-sys)}
+  .lv-w{display:block;margin-top:2px;font-size:var(--t-meta);line-height:1.35;color:var(--sys-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lv-act{display:flex;gap:8px;position:relative;z-index:1}   /* au-dessus du voile `.card-open::after` : le bouton se tape, pas la rangée */
+  .lv-act .btn{min-height:44px;background:none;border-color:var(--ctl-sys);color:var(--sys-ink);box-shadow:none}
+  .lv-act .btn:hover{background:var(--sys-2)}
+  .lv-act .btn.primary{background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
+  .lv-act .btn.primary:hover{background:var(--sys-ink);filter:brightness(.94)}
+  .lv-act .btn:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
+  html.zw560 .lv-act{grid-column:1/-1;margin-top:8px}
+  html.zw560 .lv-act .btn.primary{flex:1}
+  html[data-theme="dark"] .dir-book.live-grp .dir-grid{border:2px solid var(--ok-sys)}
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
@@ -9951,7 +9976,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.95.0';
+const APP_VERSION='5.96.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10443,7 +10468,7 @@ function setHomeColls(on){state.homeColls=!!on;
    ceux qu'on a pliés — clé « regroupement:libellé », plier « Trauma » par catégorie ne plie rien en A–Z). */
 const _homeFold={open:new Set(),fold:new Set()};
 /* Contexte de dessin d'une rangée (A587, A589) : la collection dépliée qui la contient, ou la tuile d'Accès direct. */
-let _rowCtx={coll:null,tile:false};
+let _rowCtx={coll:null,tile:false,live:false};
 try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-home-fold'))||'null')||{};
   (Array.isArray(o.open)?o.open:[]).slice(0,60).forEach(x=>{if(typeof x==='string')_homeFold.open.add(x.slice(0,80));});
   (Array.isArray(o.fold)?o.fold:[]).slice(0,200).forEach(x=>{if(typeof x==='string')_homeFold.fold.add(x.slice(0,140));});}catch(e){}
@@ -16916,7 +16941,7 @@ function renderHomeList(cfg){
        vives, quel que soit le filtre (la carte les montrait toutes) ; pas en sélection. */
     const live=state.selOn?[]:fiches.filter(f=>!f.deletedAt&&sessionLive(f.id));
     const liveIds=new Set(live.map(f=>f.id)),listR=list.filter(x=>!liveIds.has(x.id));
-    const enCours=live.length?`<div class="qa-sec"><div class="dir-book live-grp${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">En cours</span><span class="dir-lr"></span><span class="dir-ln">${live.length}</span></div><div class="dir-grid">${live.map(cfg.row).join('')}</div></div></div></div>`:'';
+    const enCours=live.length?`<div class="qa-sec"><div class="dir-book live-grp${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">En cours</span><span class="dir-lr"></span><span class="dir-ln">${live.length}</span></div><div class="dir-grid">${(()=>{_rowCtx={coll:null,tile:false,live:true};try{return live.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false,live:false};}})()}</div></div></div></div>`:'';
     const gk=homeGroupKey();
     const srt=state.homeSort==='recent'?((a,b)=>String(b.validatedAt||'').localeCompare(String(a.validatedAt||''))||byTitle(a,b)):byTitle;
     const az=gk==='bib'?bibGroups(listR.slice().sort(srt))
@@ -16942,7 +16967,7 @@ function renderHomeList(cfg){
         +(admin?`<button type="button" class="dir-la" data-libedit="${esc(g.lib.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(g.L)} »">${uiIcon('pen',13)}</button>`:'')
         +`</div>`;};
     /* Dessiner des rangées dans un CONTEXTE (A587, A589) : la collection dépliée qui les contient, ou les tuiles. */
-    const rowsIn=(arr,ctx)=>{_rowCtx={coll:null,tile:false,...(ctx||{})};try{return arr.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false};}};
+    const rowsIn=(arr,ctx)=>{_rowCtx={coll:null,tile:false,live:false,...(ctx||{})};try{return arr.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false,live:false};}};
     /* A587 — « VOS COLLECTIONS » EN TÊTE, AU REPOS SEULEMENT (ni recherche — on est dans la branche sans requête —,
        ni filtre, ni sélection), et seulement si le réglage est ON et qu'une collection existe. Repliées par défaut :
        la section est un SOMMAIRE ; une rangée se déplie sur place (aucun niveau de retour, A545) et se termine par
@@ -17142,16 +17167,21 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
        global de la sidebar prend le relais). Pastille + NOM de catégorie en toutes lettres dans
        la sous-ligne : la couleur d'une catégorie n'est jamais seule (SPEC crise §1). */
-    row:f=>{const isLive=sessionLive(f.id);const cc=catOf(f);const inQ=txNorm(state.q);
+    /* A590 (amende A523) : dans le groupe « En cours » (`_rowCtx.live`), la rangée devient la BANDE de session —
+       ni étoile (elle se lisait « Accès direct »), mais le bloc courant, « Reprendre » et « Terminer… ». */
+    row:f=>{const isLive=sessionLive(f.id);const cc=catOf(f);const inQ=txNorm(state.q);const lv=_rowCtx.live&&isLive;
+      const where=lv?liveWhereText(liveSessions[f.id]):'';
       return `
       <div class="dir-row${isLive?' live':''}${selRowCls(f)}${dirAvCls(f,cc)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         ${selCkHtml(f)||dirAvHtml(cc)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
           <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}</span>
+          ${where?`<span class="lv-w">${esc(where)}</span>`:''}
           ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
         </div>
-        <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${esc(f.id)}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
+        ${lv?'':`<button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${esc(f.id)}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>`}
+        ${lv?`<div class="lv-act"><button class="btn primary" data-livego="${esc(f.id)}">Reprendre</button><button class="btn" data-liveend="${esc(f.id)}" aria-label="Terminer la session — ${esc(f.title||'Sans titre')}">Terminer…</button></div>`:''}
       </div>`;},
     remainLbl:n=>'restante'+(n>1?'s':''),
     kinds:['fiches'],
@@ -17165,6 +17195,12 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       main.querySelectorAll('[data-openshared]').forEach(el=>{el.onclick=backToShared;
         el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();backToShared();}};});
       main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();pinTap(b.dataset.pin,redo);});
+      /* A590 : « Reprendre » = le tap de la rangée ; « Terminer… » passe par la MÊME confirmation maintenue que « Fin »
+         du quai (A346), puis la même fin que `endCurrentSession` — archive, runtime remis à zéro, bilan en tête (A491). */
+      main.querySelectorAll('[data-livego]').forEach(b=>b.onclick=()=>openRead(b.dataset.livego));
+      main.querySelectorAll('[data-liveend]').forEach(b=>b.onclick=async()=>{const id=b.dataset.liveend,R=liveSessions[id];
+        if(!R||!R.started||!await confirmEndSession(R))return;
+        endSession(R);if(Runtime.ficheId===id)resetRuntime();redo();});
       {const br=document.getElementById('lsrReport');if(br)br.onclick=()=>{if(lastEndedSession)exportSessionReport(lastEndedSession.id);};
        const bx=document.getElementById('lsrX');if(bx)bx.onclick=()=>{lastEndedSession=null;redo();};}
       }};}
