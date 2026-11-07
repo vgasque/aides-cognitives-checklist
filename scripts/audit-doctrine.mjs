@@ -2661,8 +2661,9 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
         if(e&&e.scrollWidth>e.clientWidth+1)c2++;});return c2;})(),
       pistes:getComputedStyle(rows[0].parentElement).gridTemplateColumns.split(' ').filter(Boolean).length,
       piste:Math.round(rows[0].getBoundingClientRect().width),
-      ...(()=>{const b=rows[0].querySelector('.pinbtn');if(!b)return {pinOk:false,pinBox:'aucune épingle'};
-        const cs=getComputedStyle(b,'::before'),rr=rows[0].getBoundingClientRect();
+      /* A590 : la bande « En cours » (en tête) n'a pas d'épingle par décision — on mesure la première rangée qui en porte. */
+      ...(()=>{const rp=rows.find(x=>x.querySelector('.pinbtn'));const b=rp&&rp.querySelector('.pinbtn');if(!b)return {pinOk:false,pinBox:'aucune épingle'};
+        const cs=getComputedStyle(b,'::before'),rr=rp.getBoundingClientRect();
         const q=b.getBoundingClientRect();
         const ins=Math.abs(parseFloat(cs.top)||0);
         const L=q.left-ins,R=q.right+ins,T=q.top-ins,B=q.bottom+ins;
@@ -9072,7 +9073,7 @@ await sec('Session · A525 voile du menu ⋯ ancré', async () => {
 
 /* ══ A523 — L'AIDE EN SESSION MONTE EN TÊTE DE L'ACCUEIL, DANS « EN COURS » (A510 §6) ════════════════════
    Elle quitte sa section, porte « ● Session mm:ss » en vert ; la carte sombre « Session en cours » n'existe plus. */
-await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () => {
+await sec('Accueil · A523 groupe « En cours », A524 une recherche, A590 la bande de session', async () => {
   for(const W of [390,1280]){
     const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -9092,6 +9093,21 @@ await sec('Accueil · A523 groupe « En cours », A524 une recherche', async () 
     t(`${W} px : l'aide en session est dans « En cours », en tête, et a quitté sa section`,r.rows.length===1&&r.rows[0]===r.id&&!r.ailleurs&&r.tete,JSON.stringify(r));
     t(`${W} px : « ● Session mm:ss » — point rond de 8 px, mot, chrono`,/^Session en cours depuis Session \d+:\d\d$/.test(r.mot)&&r.point===8,JSON.stringify(r));
     t(`${W} px : plus de carte sombre « Session en cours »`,!r.carte);
+    /* A590 (amende A523) : la rangée « En cours » est la BANDE de session — matière --sys, ni étoile, le bloc courant,
+       « Reprendre » et « Terminer… » (44 px), et « Terminer… » ouvre la confirmation maintenue (jamais une fin sèche). */
+    const b=await page.evaluate(async()=>{const g=document.querySelector('.dir-book.live-grp');if(!g)return {};const row=g.querySelector('.dir-row');
+      const sys=getComputedStyle(document.documentElement).getPropertyValue('--sys').trim();
+      const tmp=document.createElement('i');tmp.style.color=sys;document.body.appendChild(tmp);const sysC=getComputedStyle(tmp).color;tmp.remove();
+      const o={etoiles:g.querySelectorAll('.pinbtn').length,go:g.querySelectorAll('[data-livego]').length,fin:g.querySelectorAll('[data-liveend]').length,
+        bloc:(g.querySelector('.lv-w')||{}).textContent||'',bande:getComputedStyle(row).backgroundColor===sysC,
+        h:[...g.querySelectorAll('.lv-act .btn')].map(x=>Math.round(x.getBoundingClientRect().height))};
+      const fin=g.querySelector('[data-liveend]');o.confirme=false;
+      if(fin){fin.click();await __acCalme(400);o.confirme=document.getElementById('endSessModal').classList.contains('on');
+        document.getElementById('endSessNo').click();await __acCalme(300);}
+      o.vive=Object.values(liveSessions).some(L=>L&&L.started);return o;});
+    t(`${W} px : A590 — rangée « En cours » en bande --sys, sans étoile, bloc courant, Reprendre et Terminer… à 44 px`,
+      b.etoiles===0&&b.go===1&&b.fin===1&&/Reconnaissance/.test(b.bloc)&&b.bande&&b.h.length===2&&b.h.every(x=>x>=44),JSON.stringify(b));
+    t(`${W} px : A590 — « Terminer… » ouvre la confirmation, « Annuler » garde la session`,b.confirme&&b.vive,JSON.stringify(b));
     if(W<780){const sr=await page.evaluate(()=>({tabnav:document.documentElement.classList.contains('tabnav'),
         rond:!!document.getElementById('tbSrch'),leurres:document.querySelectorAll('main button [class*="srch"],main .pg-srch,main [data-tbsrch]').length}));
       t('A524 · au téléphone, UNE recherche : le rond de la barre d\'onglets, aucun champ-leurre sous le titre',sr.tabnav&&sr.rond&&sr.leurres===0,JSON.stringify(sr));

@@ -450,6 +450,11 @@ nom du filtre posé, coiffé de son œil (« Collection · à vous seul », « C
 cette ligne ouvre **« Trier et présenter »** (trier, regrouper, densité, la place des collections, « Tout replier /
 Tout déplier » — aucun filtre). Plus de rangée de pastilles, plus de bouton filtre à côté de la recherche (A556, A587-A588).
 
+**La session en cours, en tête (A523, A590, v5.96.0).** Le groupe « En cours » est la BANDE de session : la rangée
+de l'aide sur la matière système sombre (celle de la carte d'une session partagée), sans étoile, le bloc courant sous la
+méta, puis « Reprendre » (plein clair) et « Terminer… » (contour, jamais rouge — il ouvre la confirmation maintenue de
+« Fin »). Actions sur la rangée en large, dessous au téléphone ; en thème sombre, contour vert de 2 px.
+
 **À l'échelle — vos collections en tête, le répertoire qui se plie (A587-A589, v5.95.0).** Au REPOS (ni recherche, ni
 filtre, ni sélection), l'accueil se lit : En cours › Accès direct › **« Vos collections · pour vous »** › **« Tout »**.
 Les collections sont un SOMMAIRE replié (une rangée groupée par collection : signet, nom, compte, chevron) ; une rangée
