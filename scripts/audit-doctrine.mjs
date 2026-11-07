@@ -9120,6 +9120,45 @@ await sec('Accueil · A523 groupe « En cours », A524 une recherche, A590 la ba
   }
 });
 
+/* ══ A591 — LA CARTE « SESSION TERMINÉE » SUIT LA BANDE ══════════════════════════════════════════════════
+   Après « Terminer… » (le vrai geste, confirmation maintenue) : la carte-bilan n'a plus de liseré, se pose JUSTE avant
+   « En cours » sous le titre à toutes les largeurs, dit le compte en mots sans coche ; en sombre, survoler
+   « Terminer… » sur la bande ne prend pas le fond --hover-dk. */
+await sec('Accueil · A591 carte « Session terminée » et survol de la bande', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    for(const re of [/Arrêt cardiaque/,/Anaphylaxie/]){
+      await ouvrirFiche(page,re);await demarrerSession(page);
+      await page.evaluate(async()=>{state.view='library';state.fiche=null;render();await __acCalme(400);});}
+    await page.click('.live-grp [data-liveend]');await calme(page,400);
+    const yb=await (await page.$('#endSessYes')).boundingBox();
+    await page.mouse.move(yb.x+yb.width/2,yb.y+yb.height/2);await page.mouse.down();
+    await page.waitForTimeout(1500);   // horloge : la confirmation se MAINTIENT 1,2 s (A346)
+    await page.mouse.up();await calme(page,600);
+    const r=await page.evaluate(()=>{const c=document.querySelector('.last-sess');if(!c)return {carte:false};
+      const g=document.querySelector('.dir-book.live-grp'),sec=g&&g.closest('.qa-sec');
+      const ttl=document.querySelector('.pg-ttl');
+      const apresTitre=!!ttl&&!!(ttl.compareDocumentPosition(c)&Node.DOCUMENT_POSITION_FOLLOWING);
+      const avantEnCours=!!sec&&c.nextElementSibling===sec;
+      const tx=c.querySelector('.lsr-tx').textContent.replace(/\s+/g,' ').trim();
+      return {carte:true,lisere:parseFloat(getComputedStyle(c).borderLeftWidth),apresTitre,avantEnCours,tx};});
+    t(`${W} px : A591 — la carte-bilan n'a plus de liseré (bord gauche ≤ 1 px)`,r.carte&&r.lisere<=1,JSON.stringify(r));
+    t(`${W} px : A591 — elle se pose sous le titre, juste avant « En cours »`,r.carte&&r.apresTitre&&r.avantEnCours,JSON.stringify(r));
+    t(`${W} px : A591 — le compte se dit en mots, sans coche (« n bloc(s) terminé(s) sur p »)`,r.carte&&/\d+ blocs? terminés? sur \d+$/.test(r.tx)&&!/✓/.test(r.tx),JSON.stringify(r));
+    if(W>=780){
+      await page.evaluate(async()=>{applyTheme('dark');await __acCalme(300);});
+      const b=await page.$('.live-grp [data-liveend]');await b.hover();await calme(page,300);
+      const h=await page.evaluate(()=>{const b=document.querySelector('.live-grp [data-liveend]');
+        const probe=v=>{const i=document.createElement('i');i.style.background=v;document.body.appendChild(i);const c=getComputedStyle(i).backgroundColor;i.remove();return c;};
+        return {fond:getComputedStyle(b).backgroundColor,hoverDk:probe('var(--hover-dk)'),hover:b.matches(':hover')};});
+      t(`${W} px : A591 — en sombre, survoler « Terminer… » sur la bande ne le noircit pas (--hover-dk écarté)`,h.hover&&h.fond!==h.hoverDk,JSON.stringify(h));}
+    await page.close();
+  }
+});
+
 /* ══ A587-A589 — L'ACCUEIL À L'ÉCHELLE ═════════════════════════════════════════════════════════════════
    A587 : « Vos collections » en tête AU REPOS (repliées, dépliées sur place, pli retenu), « Tout » dessous ; absentes
    sous filtre, recherche, sélection, ou réglage « Non » — qui rend l'accueil d'avant. A588 : l'intertitre plie son

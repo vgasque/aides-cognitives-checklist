@@ -453,7 +453,8 @@ Tout déplier » — aucun filtre). Plus de rangée de pastilles, plus de bouton
 **La session en cours, en tête (A523, A590, v5.96.0).** Le groupe « En cours » est la BANDE de session : la rangée
 de l'aide sur la matière système sombre (celle de la carte d'une session partagée), sans étoile, le bloc courant sous la
 méta, puis « Reprendre » (plein clair) et « Terminer… » (contour, jamais rouge — il ouvre la confirmation maintenue de
-« Fin »). Actions sur la rangée en large, dessous au téléphone ; en thème sombre, contour vert de 2 px.
+« Fin »). Actions sur la rangée en large, dessous au téléphone ; en thème sombre, contour vert de 2 px. Après « Terminer », la carte
+« ✓ Session terminée » (blanche, sans liseré, compte des blocs en mots) se pose juste avant « En cours » (A591).
 
 **À l'échelle — vos collections en tête, le répertoire qui se plie (A587-A589, v5.95.0).** Au REPOS (ni recherche, ni
 filtre, ni sélection), l'accueil se lit : En cours › Accès direct › **« Vos collections · pour vous »** › **« Tout »**.

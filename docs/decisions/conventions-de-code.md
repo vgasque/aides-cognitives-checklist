@@ -118,6 +118,8 @@
 - **Liseré gauche 4 px — DÉCISION DE NE PAS TOUCHER (v4.23.0)** : le bord gauche épais des cartes
   (`.ov-block`, `.notice`, `.last-sess`, cartes d'accueil…) est une SIGNATURE partagée, et sur
   `.ov-block` sa COULEUR porte l'état (neutre = à venir, bleu = ici, vert = fait, ambre = décision).
+  *(A591, v5.96.1 : la carte-bilan `.last-sess` a perdu son liseré — rangées (A506) et notices l'avaient déjà
+  perdu ; la signature ne vit plus que là où sa couleur porte un état, comme `.ov-block`.)*
   Objection soulevée et RETENUE comme fondée : sur le bloc COURANT (`.cur`) toute la bordure passe
   déjà au bleu, donc les 4 px de gauche n'ajoutent alors aucune information et ne produisent qu'une
   asymétrie. **Statu quo décidé par l'utilisateur** : uniformiser sur le seul bloc courant casserait

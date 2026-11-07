@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.96.1] — 2026-11-07
+La carte « Session terminée » suit le nouveau dessin de l'accueil, et un défaut de la 5.96.0 est corrigé (A591).
+Rien à rejouer côté serveur.
+- **La carte « Session terminée » perd son trait vert à gauche** : la coche et le mot disent déjà que c'est fait.
+- **Elle a une seule place**, sous le titre « Aides », juste avant « En cours », au téléphone comme sur grand écran
+  (sur grand écran, elle passait au-dessus du titre).
+- **Le nombre de blocs se dit en mots** : « 2 blocs terminés sur 3 » au lieu de « 2/3 blocs ✓ » — l'ancienne forme
+  mettait une coche même quand aucun bloc n'était fait.
+- **Correctif** : en thème sombre, sur ordinateur, survoler « Terminer… » dans la bande « En cours » noircissait le
+  bouton ; il s'éclaircit désormais comme les autres boutons de la bande.
+
 ## [5.96.0] — 2026-11-07
 La session en cours se reconnaît de nouveau à l'accueil, et « Reprendre » et « Terminer » y reviennent (A590, amende
 A523). Rien à rejouer côté serveur.
@@ -230,15 +241,3 @@ serveur.
   répète jamais.
 - Audit : trois sondes ne dépendent plus de la vitesse de la machine (atelier d'import, voile du guide pendant le
   défilement) ou disent où en était l'application quand elles échouent (recherche dans les PDF). Aucun seuil changé.
-
-## [5.86.0] — 2026-11-04
-Importer une page Notion (A562, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Le .zip d'un export Notion (« Markdown & CSV ») s'importe tel quel** par « Importer un fichier » ou en le
-  déposant : chaque page devient une **référence en brouillon**, avec ses images (retrouvées dans le dossier de la
-  page, réduites comme une photo prise dans l'éditeur). L'atelier d'import la montre avant d'écrire.
-- Le titre de la page devient celui de la référence ; les propriétés Notion (« Statut », « Date »…) sont retirées ;
-  le souligné passe en gras, les encadrés Notion deviennent des encadrés (« Attention » quand ils commencent
-  par ⚠️).
-- Un **.md seul** s'importe aussi ; ses images, restées à côté, sont signalées absentes — le .zip est conseillé.
-- Rien ne se perd en silence : une image introuvable est nommée dans le texte, et ce qui n'a pas pu entrer est dit
-  avant l'import.
