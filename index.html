@@ -328,7 +328,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4SN83vbd4irQDNmRuDd0VYsT8er2U8L1bAo4rdrV0zE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UmBvnAfvywrYWfAGcdoyTXm/Wqb0Qx37tikE3TRf8lc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -18365,7 +18365,10 @@ function mdsBind(ta){const g=document.getElementById('etabGrid');if(!g||!ta)retu
   /* La tête de l'aperçu prend la hauteur de ce qui précède le champ dans la carte du texte (intitulé, rangée, barre —
      qui passent sur deux lignes quand le volet est étroit) : le champ et le rendu commencent à la même hauteur. */
   const L=g.querySelector('.etab-l'),R=pv&&pv.parentElement;
-  const fit=()=>{paint(r);if(!rh||!L||!R)return;const cs=getComputedStyle(R);
+  /* L'établi prend la hauteur RESTANTE sous son bord haut (page en haut) : sinon son pied passait sous l'écran et deux
+     défilements s'empilaient (signalé : « le Plan reste collé ? »). `offsetTop` est en px de mise en page (règle 10). */
+  const fit=()=>{paint(r);{let y=0;for(let e=g;e;e=e.offsetParent)y+=e.offsetTop;g.style.height=`max(420px, calc(100dvh / var(--zf,1) - ${Math.round(y)+16}px))`;}
+    if(!rh||!L||!R)return;const cs=getComputedStyle(R);
     rh.style.height=Math.max(0,(ta.getBoundingClientRect().top-L.getBoundingClientRect().top)/(zoomF()||1)-parseFloat(cs.borderTopWidth)-parseFloat(cs.paddingTop))+'px';};
   fit();new ResizeObserver(fit).observe(g);new ResizeObserver(fit).observe(L);
   sep.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();sep.setPointerCapture(e.pointerId);sep.classList.add('drag');
