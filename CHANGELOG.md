@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.101.0] — 2026-11-08
+Premier pas de la nouvelle architecture (A601, lot 1 d'A600) : un catalogue des bibliothèques, ajouté sans rien
+retirer à l'accueil. Rien à rejouer côté serveur.
+- **Un onglet « Bibliothèques »** au téléphone (une rangée « Bibliothèques » dans la colonne sur tablette et
+  ordinateur). Il montre vos bibliothèques, puis, dans chacune, SES catégories — plus de « Pédiatrie » de trois
+  équipes mêlées — puis les aides et protocoles d'une catégorie.
+- **« Tout »**, en tête : aides et protocoles de toutes les bibliothèques, à filtrer (type, bibliothèque, catégorie),
+  trier et sélectionner.
+- **Le dock se glisse** : faire glisser le doigt d'un onglet à l'autre change d'onglet au relâchement, comme les
+  sélecteurs de Moi.
+- L'accueil ne change pas : ses filtres, ses collections et sa liste restent tels quels.
+
 ## [5.100.0] — 2026-11-08
 La barre de sélection change de dessin (A599) ; la nouvelle architecture de l'accueil est décidée (A600, à venir par
 lots). Rien à rejouer côté serveur.
@@ -215,21 +227,3 @@ Correctif d'affichage du rail du bureau (A573). Rien à rejouer côté serveur.
 Correctif de la v5.89.0 (A571). Rien à rejouer côté serveur.
 - À 320 px, la capsule dit de nouveau combien de minuteurs elle cache (« 1 minuteur ») : le nouveau chevron lui prenait
   la place, et le mot disparaissait quand le texte est rendu un peu plus large (constaté sur la CI Linux).
-
-## [5.89.0] — 2026-11-06
-La session, deuxième passe « Natif » : ce qui entoure les étapes se rapproche d'iOS et de Material 3 (A571, doctrine
-`docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Le titre de l'aide n'est plus coupé** en session : il passe sur deux lignes, et « · adulte » le suit.
-- **L'historique redevient discret** : une ligne de texte gris, sans pastille, jamais coupée. Elle dit
-  « Historique · diagnostic confirmé », puis « Historique · 2 blocs ». Le mot « Parcours » a disparu ; le compte des
-  étapes reste à droite. Ouvert, il montre une boîte grise en retrait : la confirmation et ses critères, puis les blocs faits.
-- **Les boutons « Vérifier » et « Cochez les n restantes »** tiennent sur une ligne, en pilules.
-- **Le quai du bas est aligné et plus compact** : plus de séparateurs, une barre en pilule. Au téléphone, toutes les
-  icônes sur une même ligne et chaque mot sur la sienne ; sur tablette et au bureau, l'icône à gauche du mot. Avec plusieurs complications, la touche dit « Complications » et le nombre s'affiche dans une
-  pastille sur l'éclair.
-- **Sous le bloc, une seule liste « Pendant toute l'aide »** remplace les six cartes (Ne pas oublier, revue,
-  À vérifier, diagnostics, repères, références) ; chaque section se déplie sur place. La note locale s'intitule
-  « Contexte local ».
-- **Au bureau, la colonne de droite passe en listes** : chaque minuteur a son bouton « Démarrer » visible, chaque
-  compteur une pilule « − n + », « Ajouter un minuteur » et « Ajouter un compteur » sont au pied de leur liste, le son
-  et la veille deviennent des interrupteurs.

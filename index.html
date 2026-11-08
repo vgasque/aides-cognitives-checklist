@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-famAmS/gbWaWcs46B08gp+W+AbctwJh+n0pJti0KnhE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-LUvDi/6XfX5oAqo6HAQcVW+CHIHqr8wodpBkPxGO/ck='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3001,6 +3001,43 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hc-row[aria-expanded="true"]{font-weight:700}
   .hc-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .hc-row.hc-all{color:var(--act)}
+  /* ══ A601 — LE CATALOGUE (lot 1 d'A600) : des rangées de navigation groupées en cartes (le dessin des rangées de
+     collection, A587), un retour, et les filtres de « Tout » en puces qui ouvrent leur feuille. ══ */
+  .ctg-book{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work);overflow:hidden}
+  .ctg-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:0;padding:8px 14px 8px 16px;border:0;
+    background:none;background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-position:right bottom;background-size:calc(100% - 16px) 1px;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+  .ctg-book>.ctg-row:last-child{background-image:none}
+  .ctg-row:hover{background-color:var(--amb-2)}
+  .ctg-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .ctg-ic{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;color:var(--act)}
+  .ctg-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .ctg-l{font-size:var(--t-item);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ctg-s{font-size:var(--t-meta);color:var(--ink-2)}
+  .ctg-w{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--warn)}   /* △ + mot : le registre ambre de « à relire » (règle 8) */
+  .ctg-n{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ctg-h{margin:8px 4px 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .ctg-eye{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .ctg-bk{transform:rotate(180deg)}
+  .ctg-th{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .ctg-th .hv-title{margin:0}
+  .ctg-sub{font-size:var(--t-body);color:var(--ink-2)}
+  .ctg-sp{flex:1}
+  .ctg-page .pg-sub{margin-bottom:12px}
+  .ctg-fs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .ctg-f{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:999px;
+    background:var(--work);font:inherit;font-size:var(--t-body);font-weight:600;color:var(--ink);cursor:pointer}
+  .ctg-f.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
+  .ctg-f svg{transform:rotate(90deg)}
+  .ctg-f:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .ctg-raz{min-height:36px}
+  /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
+  .tb-tabs{touch-action:none}
+  .tb-tabs.drag .tb-tab.on:not(.pre){background:none;color:var(--ink)}
+  /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
+     de la largeur de son mot, le reste se partage. */
+  .tb-tab{flex:1 1 auto;padding:0 8px}
+  .tb-tab.pre{background:var(--act);color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
   .hc-ic{flex:none;display:inline-flex;color:var(--act)}
   .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -9498,6 +9535,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
     <nav class="tab-bar" id="tabNav" hidden aria-label="Sections"><div class="tb-tabs">
       <button type="button" class="tb-tab" data-tab="aides"><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="biblio"><span>Bibliothèques</span></button>
       <button type="button" class="tb-tab" data-tab="sessions"><span>Sessions</span></button>
       <button type="button" class="tb-tab" data-tab="me"><span>Moi</span></button>
     </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"></button></nav>
@@ -10076,7 +10114,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.100.0';
+const APP_VERSION='5.101.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12118,7 +12156,7 @@ const catName=f=>{const c=catOf(f);return c?c.name:'';};
    seules les homonymes la portent (l'intertitre dit déjà le reste). */
 /* A589 : la TUILE d'Accès direct dit toujours sa bibliothèque (elle vit hors de tout rangement) ; une rangée dépliée
    dans une collection aussi (la collection mêle les bibliothèques, A475). */
-function searchLibTag(x){if(!myLibraries.length||state.homeLib!=null)return '';   // A595 : une bibliothèque choisie, le titre la dit — la rangée ne la redit pas
+function searchLibTag(x){if(!myLibraries.length||state.homeLib!=null||_rowCtx.ctgLib)return '';   // A601 : dans une bibliothèque du catalogue, le titre la dit   // A595 : une bibliothèque choisie, le titre la dit — la rangée ne la redit pas
   if(!_rowCtx.tile&&!_rowCtx.coll&&!txNorm(state.q)&&homeGroupKey()==='bib'&&!_homeDup.has(txNorm(x.title||'')))return '';
   const shared=!!x.library;const name=shared?(libName(x.library)||'Partagée'):'Perso';
   return `<span class="tag libtag" title="Bibliothèque : ${esc(name)}">${uiIcon(shared?'book':'user',11)}${esc(name)}</span>`;}
@@ -16047,6 +16085,7 @@ function homeSideHtml(){
       <div class="hs-brand"><span class="brand-logo" aria-hidden="true"></span><span class="hs-brand-t">Aides cognitives</span></div>
       <nav class="hs-nav" aria-label="Sections">
         ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),tail:`<span class="hs-n">${homeVis().length}</span>`,attrs:'data-navaides'+cur('aides')})}${''/* A534 : les sections disent leur compte (maquette) */}
+        ${hsRow({on:tab==='biblio',cls:'hs-navrow',label:'Bibliothèques',mark:uiIcon('book',16),tail:`<span class="hs-n">${bibGroups(homeVis(),true).filter(g=>g.key!=null).length}</span>`,attrs:'data-navbiblio'+cur('biblio')})}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot+(sessions.length?`<span class="hs-n">${sessions.length}</span>`:''),attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
@@ -16250,6 +16289,7 @@ function bindHomeChrome(rerender){
   // Historique GLOBAL des sessions (v4.56.0, demande utilisateur) : la fenêtre existante en mode
   // « toutes les fiches » — l'entrée par fiche du menu ⋯ est inchangée.
   qsa('[data-navaides]').forEach(b=>b.onclick=()=>setHomeTab('aides'));
+  qsa('[data-navbiblio]').forEach(b=>b.onclick=()=>{if(homeTab()==='biblio'){state.cnav={};render();}else setHomeTab('biblio');});   // A601
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
   qsa('[data-navme]').forEach(b=>b.onclick=()=>openAuth());
   qsa('[data-libmgr]').forEach(b=>b.onclick=openLibMgr);
@@ -16719,10 +16759,14 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
   if(n.hidden)return;
   if(!n.dataset.built){n.dataset.built='1';
     n.querySelector('[data-tab="aides"]').insertAdjacentHTML('afterbegin',uiIcon('list',22,{sw:2}));
+    n.querySelector('[data-tab="biblio"]').insertAdjacentHTML('afterbegin',uiIcon('book',22,{sw:2}));
     n.querySelector('[data-tab="sessions"]').insertAdjacentHTML('afterbegin',uiIcon('history',22,{sw:2}));
+    tbDragBind(n.querySelector('.tb-tabs'));
     n.querySelector('#tbSrch').innerHTML=uiIcon('search',22,{sw:2.2});
     n.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
-      if(homeTab()===t||(t==='me'&&homeTab()==='admin')){const s=main.querySelector('.home-main');window.scrollTo(0,0);if(s)s.scrollTop=0;if(homeTab()==='admin')setHomeTab('me');return;}
+      if(homeTab()===t||(t==='me'&&homeTab()==='admin')){const s=main.querySelector('.home-main');window.scrollTo(0,0);if(s)s.scrollTop=0;if(homeTab()==='admin')setHomeTab('me');
+        if(t==='biblio'&&state.cnav&&Object.keys(state.cnav).length){state.cnav={};render();}   // A601 : retaper l'onglet remonte à la racine du catalogue
+        return;}
       setHomeTab(t);window.scrollTo(0,0);});
     n.querySelector('#tbSrch').onclick=tbSearchOpen;}
   /* « Moi » porte les initiales et la pastille du compte, comme la colonne (A500). */
@@ -17028,6 +17072,7 @@ function bindSelLongPress(cfg){
 /* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
 function renderHomeTab(cfg){const t=homeTab();
+  if(t==='biblio'){renderCatalogue(cfg);return;}   // A601 : le catalogue
   const tn=tabNavOn();
   main.innerHTML=(tn?'':homeSideHtml())+`<div class="home-main"><section class="hv-page${t==='admin'?' adm-page':''}">`
     +(tn&&t!=='admin'?pgHeadHtml(t==='sessions'?'Sessions':'Moi'):'')
@@ -17040,6 +17085,118 @@ function renderHomeTab(cfg){const t=homeTab();
   else if(t==='admin'){main.querySelector('[data-admmoi]').onclick=()=>setHomeTab('me');renderAdm();if(!_admD)admRefresh();}
   else renderAuth();
   bindHomeChrome(cfg.rerender);bindPgHead(cfg.rerender);placeFooter();}
+/* ===== CATALOGUE (A600-A601, lot 1) =====
+   L'arborescence de l'équipe : Bibliothèques › une bibliothèque (SES catégories) › une catégorie (ses éléments), et
+   « Tout » en tête — aides et protocoles de toutes les bibliothèques, filtrables, triables, sélectionnables. AJOUTÉ sans
+   rien retirer à l'accueil (lot 1 d'A600). Son état est À LUI (`state.cnav` = où l'on est, `state.ctf` = les filtres de
+   « Tout ») : l'accueil garde ses filtres, et passer d'un onglet à l'autre ne les mélange jamais. Les rangées
+   d'éléments sont celles de l'accueil (`cfg.row`), la sélection est celle de l'accueil (A599). */
+const CTG_TYPES=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles'],['rev','À relire']];
+const ctgRelire=x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt);
+const ctgLibKey=x=>(typeof x.library==='string')?x.library:'';
+function ctgCatId(x){const c=catOf(x);return c?c.id:'';}
+function ctgRowHtml(attrs,label,o){o=o||{};
+  return `<button type="button" class="ctg-row" ${attrs}>`
+    +(o.dot?`<span class="ctg-ic">${o.dot}</span>`:o.ic?`<span class="ctg-ic" aria-hidden="true">${o.ic}</span>`:'')
+    +`<span class="ctg-tx"><span class="ctg-l">${esc(label)}</span>${o.sub?`<span class="ctg-s">${esc(o.sub)}</span>`:''}</span>`
+    +(o.warn?`<span class="ctg-w">△ ${esc(o.warn)}</span>`:'')
+    +`<span class="ctg-n">${o.n!=null?o.n:''}</span><span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button>`;}
+function ctgItems(){const N=state.cnav||{},F=state.ctf||{};let a=homeVis();
+  if(N.tout){
+    if(F.type==='fiches')a=a.filter(x=>fiches.indexOf(x)>=0);else if(F.type==='protocols')a=a.filter(x=>protocols.indexOf(x)>=0);else if(F.type==='rev')a=a.filter(ctgRelire);
+    if(F.lib!=null)a=a.filter(x=>ctgLibKey(x)===F.lib);
+    if(F.cat)a=a.filter(x=>txNorm(catName(x))===F.cat);}
+  else a=a.filter(x=>ctgLibKey(x)===N.lib&&ctgCatId(x)===N.cat);
+  const srt=(N.tout&&F.sort==='recent')?((p,q)=>String(q.validatedAt||'').localeCompare(String(p.validatedAt||''))||byTitle(p,q)):byTitle;
+  return a.slice().sort(srt);}
+function renderCatalogue(cfg){
+  const tn=tabNavOn(),N=state.cnav=state.cnav||{},F=state.ctf=state.ctf||{type:'all',lib:null,cat:'',sort:'az'};
+  const vis=homeVis(),bibs=bibGroups(vis,true).filter(g=>g.key!=null);
+  const libG=N.lib!=null?bibs.find(g=>g.key===N.lib):null;
+  if(N.lib!=null&&!libG){state.cnav={};return renderCatalogue(cfg);}   // bibliothèque disparue (déconnexion, retrait) : racine
+  let ttl='Bibliothèques',eye='',sub='',back=null,body='',liste=false;
+  const libSub=g=>[g.lib?libWho(g):'vous seul',nb(g.items.length,'élément')].join(' · ');
+  if(N.tout){liste=true;ttl='Tout';back='Bibliothèques';
+    const it=ctgItems();sub=nb(it.length,'élément')+' · '+(F.lib!=null?homeLibLblOf(F.lib):nb(bibs.length,'bibliothèque'));
+    const lbl=(k,v,on)=>`<button type="button" class="ctg-f${(on==null?v:on)?' on':''}" data-ctgf="${k}" aria-haspopup="listbox">${esc(v||({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k])}${uiIcon('chev',11,{sw:2.4})}</button>`;
+    body=`<div class="ctg-fs" role="group" aria-label="Filtres de « Tout »">`
+      +lbl('type',F.type!=='all'?(CTG_TYPES.find(t=>t[0]===F.type)||[])[1]:'')
+      +lbl('lib',F.lib!=null?homeLibLblOf(F.lib):'')
+      +lbl('cat',F.cat?(catsUtilesAll().find(c=>txNorm(c.name)===F.cat)||{name:F.cat}).name:'')
+      +lbl('sort',F.sort==='recent'?'Plus récentes':'A → Z',F.sort==='recent')
+      +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')+`</div>`
+      +ctgListHtml(cfg,it,'Aucun élément ne correspond à ces filtres.');}
+  else if(libG&&N.cat!=null){liste=true;const c=N.cat?categories.find(k=>k.id===N.cat):null;
+    ttl=c?c.name:'Sans catégorie';back=libG.L;eye=libG.L;
+    const it=ctgItems();sub=nb(it.length,'élément')+(it.filter(ctgRelire).length?' · '+it.filter(ctgRelire).length+' à relire':'');
+    body=ctgListHtml(cfg,it,'Cette catégorie est vide.',true);}
+  else if(libG){ttl=libG.L;back='Bibliothèques';eye='Bibliothèque · '+(libG.lib?libWho(libG):'vous seul');
+    const it=libG.items,rel=it.filter(ctgRelire).length;sub=nb(it.length,'élément')+(rel?' · '+rel+' à relire':'');
+    const par=new Map();categories.filter(c=>(catScope(c)||'')===libG.key).sort(byCatName).forEach(c=>par.set(c.id,{c,items:[]}));
+    const sans=[];it.forEach(x=>{const id=ctgCatId(x);if(id&&par.has(id))par.get(id).items.push(x);else sans.push(x);});
+    const rows=[...par.values()].map(g=>ctgRowHtml(`data-ctgcat="${esc(g.c.id)}"`,g.c.name,{dot:catDotHtml([safeColor(g.c.color)].filter(Boolean),'cat-dot'),n:g.items.length,warn:g.items.filter(ctgRelire).length?g.items.filter(ctgRelire).length+' à relire':''})).join('')
+      +(sans.length?ctgRowHtml('data-ctgcat=""','Sans catégorie',{ic:uiIcon('list',16),n:sans.length}):'');
+    body=rows?`<div class="ctg-book">${rows}</div>`:emptyLine('Cette bibliothèque est vide.');}
+  else{sub=nb(bibs.length,'bibliothèque')+' · '+nb(vis.length,'élément');
+    body=`<div class="ctg-book">${ctgRowHtml('data-ctgtout','Tout',{ic:uiIcon('list',18),sub:'Aides et protocoles de toutes les bibliothèques · filtrer, trier, sélectionner',n:vis.length})}</div>`
+      +`<h2 class="ctg-h">Vos bibliothèques</h2><div class="ctg-book">`
+      +bibs.map(g=>{const rel=g.items.filter(ctgRelire).length;return ctgRowHtml(`data-ctglib="${esc(g.key)}"`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:libSub(g),n:g.items.length,warn:rel?rel+' à relire':''});}).join('')+`</div>`;}
+  const selPossible=liste&&ctgItems().some(x=>canEditFiche(x));
+  const right=liste&&!state.selOn&&selPossible?`<button type="button" class="pg-btn" id="selTog">Sélectionner</button>`:'';
+  const head=tn
+    ?(state.selOn?selTopHtml():`<div class="pg-top"><span class="pg-l">${back?`<button type="button" class="pg-btn" data-ctgback>${uiIcon('chev',14,{sw:2.6,cls:'tic ctg-bk'})}${esc(back)}</button>`:''}</span><span class="pg-tt" aria-hidden="true">${esc(ttl)}</span><span class="pg-r">${right}</span></div>`)
+      +`${eye?`<span class="ctg-eye">${esc(eye)}</span>`:''}<h1 class="pg-ttl">${esc(ttl)}</h1>${sub?`<span class="pg-sub">${esc(sub)}</span>`:''}`
+    :`${back?`<button type="button" class="adm-back" data-ctgback>${uiIcon('chev',18,{cls:'tic ctg-bk'})}${esc(back)}</button>`:''}${eye?`<span class="ctg-eye">${esc(eye)}</span>`:''}`
+      +`<div class="ctg-th"><h2 class="hv-title">${esc(ttl)}</h2>${sub?`<span class="ctg-sub">${esc(sub)}</span>`:''}<span class="ctg-sp"></span>${state.selOn?'':right.replace('class="pg-btn"','class="rang-btn"')}</div>`;
+  main.innerHTML=(tn?'':homeSideHtml())+`<div class="home-main"><section class="hv-page ctg-page">${head}${liste?selBarHtml():''}${body}</section></div>`;
+  const redo=cfg.rerender,go=n=>{state.cnav=n;if(state.selOn)selEnd();redo();window.scrollTo(0,0);const m=main.querySelector('.home-main');if(m)m.scrollTop=0;};
+  main.querySelectorAll('[data-ctgback]').forEach(b=>b.onclick=()=>go(N.tout||N.cat==null?{}:{lib:N.lib}));
+  main.querySelectorAll('[data-ctgtout]').forEach(b=>b.onclick=()=>go({tout:true}));
+  main.querySelectorAll('[data-ctglib]').forEach(b=>b.onclick=()=>go({lib:b.dataset.ctglib}));
+  main.querySelectorAll('[data-ctgcat]').forEach(b=>b.onclick=()=>go({lib:N.lib,cat:b.dataset.ctgcat}));
+  main.querySelectorAll('[data-ctgraz]').forEach(b=>b.onclick=()=>{state.ctf={type:'all',lib:null,cat:'',sort:F.sort};redo();});
+  main.querySelectorAll('[data-ctgf]').forEach(b=>b.onclick=()=>ctgFilterPick(b,redo));
+  if(liste){
+    main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>{const id=el.dataset.open;
+      if(Date.now()-_lpEat<600)return;
+      if(state.selOn){const x=vis.find(y=>y.id===id);if(x&&canEditFiche(x)){selToggle(id);redo();return;}}
+      cfg.open(id);};});
+    main.querySelectorAll('[data-selid]').forEach(b=>b.onclick=e=>{e.stopPropagation();selToggle(b.dataset.selid);redo();});
+    bindSelBar(cfg);}
+  else syncTabBar();
+  bindHomeChrome(redo);bindPgHead(redo);placeFooter();}
+const homeLibLblOf=k=>k===''?'Perso':(libName(k)||'Bibliothèque partagée');
+/* `dedans` : la liste d'UNE catégorie d'UNE bibliothèque — la rangée ne redit ni l'une (`ctgLib`) ni l'autre (`by-cat`,
+   le patron d'A589 §3). */
+function ctgListHtml(cfg,it,vide,dedans){
+  if(!it.length)return `<div class="empty"><b>Aucun résultat</b>${esc(vide)}</div>`;
+  let h;_rowCtx={coll:null,tile:false,live:false,ctgLib:!!dedans};try{h=it.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false,live:false};}
+  return `<div class="dir-wrap"><div class="dir-book${state.homeCompact?' compact':''}${dedans?' by-cat':''}"><div class="dir-g"><div class="dir-grid">${h}</div></div></div></div>`;}
+function ctgFilterPick(b,redo){const F=state.ctf,k=b.dataset.ctgf,vis=homeVis();
+  const set=v=>{if(k==='lib')F.lib=v==='*'?null:v;else if(k==='cat')F.cat=v==='*'?'':v;else F[k]=v;redo();};
+  const opts=k==='type'?CTG_TYPES.map(([v,n])=>({val:v,name:n,cnt:v==='all'?vis.length:v==='fiches'?vis.filter(x=>fiches.indexOf(x)>=0).length:v==='protocols'?vis.filter(x=>protocols.indexOf(x)>=0).length:vis.filter(ctgRelire).length,dot:false}))
+    :k==='lib'?[{val:'*',name:'Toutes',cnt:vis.length,dot:false}].concat(bibGroups(vis,true).filter(g=>g.key!=null).map(g=>({val:g.key,name:g.L,sub:g.lib?libWho(g):'vous seul',cnt:g.items.length,dot:false})))
+    :k==='cat'?[{val:'*',name:'Toutes les catégories',dot:false}].concat((()=>{const m=new Map();vis.forEach(x=>{const c=catOf(x);if(!c)return;const n=txNorm(c.name);const g=m.get(n)||{n,c,k:0};g.k++;m.set(n,g);});
+        return [...m.values()].sort((a,c)=>byCatName(a.c,c.c)).map(g=>({val:g.n,name:g.c.name,col:safeColor(g.c.color),cnt:g.k}));})())
+    :[{val:'az',name:'A → Z',dot:false},{val:'recent',name:'Plus récentes',dot:false}];
+  const cur=k==='lib'?(F.lib==null?'*':F.lib):k==='cat'?(F.cat||'*'):F[k];
+  openPickMenu(document.body,{aria:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],sheet:tabNavOn(),trigger:b,value:cur,title:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],
+    seuilFiltre:12,filtreAuToucher:true,options:opts,onPick:set});}
+/* A601 — LE DOCK SE GLISSE COMME UN SÉLECTEUR SEGMENTÉ (demande de l'auteur : « comme les autres sélecteurs, glisser le
+   curseur pour passer d'une sélection à l'autre ») : le doigt posé sur un onglet et tiré de côté promène la pastille ;
+   l'onglet sous le doigt au relâchement s'ouvre. Un tap reste un tap (seuil 8 px) ; le clic qui suit un glissé est
+   absorbé (garde isTrusted, patron de `.seg`), l'ouverture passe par un clic SYNTHÉTIQUE sur l'onglet visé. */
+function tbDragBind(tabs){if(!tabs)return;let st=null,just=false;
+  const under=x=>{const r=tabs.getBoundingClientRect();const e=document.elementFromPoint(Math.max(r.left+2,Math.min(r.right-2,x)),r.top+r.height/2);return e&&e.closest('.tb-tab');};
+  tabs.addEventListener('pointerdown',e=>{const b=e.target.closest('.tb-tab');if(!b||e.button)return;st={x0:e.clientX,pid:e.pointerId,drag:false,to:null};});
+  tabs.addEventListener('pointermove',e=>{if(!st||st.pid!==e.pointerId)return;
+    if(!st.drag){if(Math.abs(e.clientX-st.x0)<8)return;st.drag=true;tabs.classList.add('drag');try{tabs.setPointerCapture(st.pid);}catch(_){}}
+    const t=under(e.clientX);if(t&&t!==st.to){st.to=t;tabs.querySelectorAll('.tb-tab').forEach(x=>x.classList.toggle('pre',x===t));}});
+  const end=e=>{if(!st||st.pid!==e.pointerId)return;const s=st;st=null;if(!s.drag)return;
+    tabs.classList.remove('drag');tabs.querySelectorAll('.tb-tab.pre').forEach(x=>x.classList.remove('pre'));
+    just=true;setTimeout(()=>{just=false;},120);if(s.to&&!s.to.classList.contains('on'))s.to.click();};
+  tabs.addEventListener('pointerup',end);tabs.addEventListener('pointercancel',end);
+  tabs.addEventListener('click',e=>{if(just&&e.isTrusted){e.stopPropagation();e.preventDefault();}},true);}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
   /* v5.18 — la liste est l'UNION des bibliothèques accessibles : le RANGEMENT en fait des
