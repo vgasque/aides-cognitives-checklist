@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Xe01CqBR100EnZ+heRFeMJKtHTIlSM30Yw3ki3+xbew='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-IEuYXNKqJ+zlPtBdgT1OEvX64tQ9z9LHIzoSmEVlKZI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10259,7 +10259,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.3';
+const APP_VERSION='5.109.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10710,7 +10710,7 @@ let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:n
      ids cochés. JAMAIS persisté, et quitter l'accueil le referme (`render`) — c'est un mode de
      GESTE, pas un état de l'application : le retrouver ouvert au retour d'une fiche serait un
      piège, l'écran d'accueil étant aussi celui qu'on ouvre en urgence. */
-  selOn:false,sel:null,
+  selOn:false,sel:null,selRepos:false,
   section:'all',           // FILTRE DE TYPE (lot T9) : 'all' (défaut) | 'fiches' | 'protocols' — mémorisé par espace
   protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
   // Coches ÉPHÉMÈRES des listes cochables de la vue protocole (v4.5.4) : {index -> bool}, remises
@@ -16903,10 +16903,13 @@ const selEnt=()=>{const out=[];
    pas — c'est la règle du bouton « Tout »), et une bibliothèque en LECTURE SEULE n'a même pas de
    quoi ouvrir le mode. (Le `_selScope` qui devait retenir la bibliothèque de départ n'a jamais
    eu de lecteur — écrit, jamais lu : purgé, assainissement v5.20.x.) */
-function selStart(id){state.selOn=true;selSet().clear();if(id)selSet().add(id);}
+/* A619 — `repos` : la sélection est née d'un APPUI LONG sur l'accueil AU REPOS (lanceur, « Vos collections », « Ouvertes
+   récemment », Accès direct) : l'écran reste celui qu'on regardait, ses rangées prennent leur case. Sans lui, l'appui
+   long remplaçait le lanceur par le répertoire entier — la rangée pressée partait ailleurs, la page sautait. */
+function selStart(id,repos){state.selOn=true;state.selRepos=!!repos;selSet().clear();if(id)selSet().add(id);}
 // `redo` : le re-rendu de la vue COURANTE (jamais `renderFiches` en dur — la vue « Tout »
 // réutilise ce binder, cf. le commentaire de `renderHomeList`).
-function selEnd(redo){state.selOn=false;state.sel=null;if(redo)redo();}
+function selEnd(redo){state.selOn=false;state.selRepos=false;state.sel=null;if(redo)redo();}
 function selToggle(id){const s=selSet();if(s.has(id))s.delete(id);else s.add(id);}
 /* Case d'une rangée. Le garde `canEditFiche` est une CEINTURE, pas un cas d'usage : la liste
    d'accueil ne montre JAMAIS qu'une bibliothèque à la fois — y compris en recherche, où `cran()`
@@ -17359,7 +17362,7 @@ function selExport(){const ent=selEnt();if(!ent.length)return;
     · le clic qui SUIT l'appui long est absorbé (sinon la fiche s'ouvrirait par-dessus) ;
     · seulement sur ce qu'on peut modifier, et jamais quand le mode est déjà ouvert (il n'y
       apporterait rien, la rangée entière cochant déjà). */
-let _lpT=null,_lpEat=0;
+let _lpT=null,_lpEat=0,_accueilRepos=false;   // A619 : l'accueil affiché est-il au repos (lanceur, sections) ?
 function bindSelLongPress(cfg){
   const redo=(cfg&&cfg.rerender)||renderFiches;
   const stop=()=>{if(_lpT){clearTimeout(_lpT);_lpT=null;}};
@@ -17374,7 +17377,7 @@ function bindSelLongPress(cfg){
       row.onpointermove=m=>{if(Math.abs(m.clientX-x0)>10||Math.abs(m.clientY-y0)>10)stop();};
       _lpT=setTimeout(()=>{_lpT=null;_lpEat=Date.now();
         if(navigator.vibrate)try{navigator.vibrate(12);}catch(_){}
-        selStart(id);redo();},500);};
+        selStart(id,_accueilRepos);redo();},500);};
     row.onpointerup=stop;row.onpointercancel=stop;row.onpointerleave=stop;});}
 /* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
@@ -17588,7 +17591,9 @@ function renderHomeList(cfg){
      EN DEÇÀ DE `LANCEUR_SEUIL` ÉLÉMENTS, L'ACCUEIL RESTE LA LISTE : tout tient sur un écran ou deux, un lanceur n'y
      ajouterait qu'un tap — et un premier lancement (deux aides d'exemple, rien d'épinglé ni d'ouvert) ne montrerait
      qu'une porte. */
-  const lanceur=!q&&!state.selOn&&!filtersList().length&&homeVis().length>LANCEUR_SEUIL;
+  const selR=state.selOn&&state.selRepos&&!filtersList().length;   // A619 : sélection sur l'accueil au repos
+  const lanceur=!q&&(!state.selOn||selR)&&!filtersList().length&&homeVis().length>LANCEUR_SEUIL;
+  if(!state.selOn)_accueilRepos=!q&&!filtersList().length;
   /* v5.18 — la liste est l'UNION des bibliothèques accessibles : le RANGEMENT en fait des
      sections, il ne filtre jamais (`state.scope` ne borne plus l'accueil ; les brouillons se
      décident par fiche, canEditFiche). */
@@ -17695,7 +17700,7 @@ function renderHomeList(cfg){
        la section est un SOMMAIRE ; une rangée se déplie sur place (aucun niveau de retour, A545) et se termine par
        « Ouvrir la collection » (la vue d'A475 : en-tête, Ajouter, ⋯). Les rangées dépliées sont celles du
        répertoire ; une aide rangée paraît aussi dans « Tout » — la même aide, jamais une copie. */
-    const auRepos=!state.selOn&&!filtersList().length;
+    const auRepos=(!state.selOn||selR)&&!filtersList().length;
     const avecColls=auRepos&&(lanceur||state.homeColls!==false)&&colls.length>0;   // A606 : dans le lanceur, toujours
     const collSec=avecColls?(()=>{const ids=new Map(listR.map(x=>[x.id,x]));
       /* A597 — DES DIZAINES DE COLLECTIONS : la section garde les COLL_HEAD vues le plus récemment (et toute collection
@@ -17744,7 +17749,7 @@ function renderHomeList(cfg){
           return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » est au bout de la ligne du titre (A545) */
       +(state.selOn?'':filtersBarHtml())
       +enCours
-      +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${rowsIn(tiles,{tile:true})}</div></div></div></div>`:'')
+      +(tiles.length&&(!state.selOn||selR)&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${rowsIn(tiles,{tile:true})}</div></div></div></div>`:'')
       +collSec+toutHead
       +(lanceur?lanceurBasHtml(list,listR,rowsIn):
        (!wide&&!state.selOn&&!tabNavOn()?collRailHtml():'')+(state.selOn?'':collHeadHtml())

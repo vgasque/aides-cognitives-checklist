@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.109.4] — 2026-11-08
+Sélection depuis l'accueil (A619). Rien à rejouer côté serveur.
+- **Un appui long sur une aide de l'accueil sélectionne sur place** : depuis une collection, « Ouvertes récemment » ou
+  l'Accès direct, l'accueil ne bascule plus sur la liste complète des aides (la rangée pressée partait ailleurs et la
+  page sautait). Chaque rangée prend sa case ; une aide présente à deux endroits est cochée aux deux ; « Annuler »
+  rend l'accueil tel qu'il était.
+
 ## [5.109.3] — 2026-11-08
 Barre de sélection en bas sur tablette et ordinateur (A618). Rien à rejouer côté serveur.
 - **La barre sombre de la sélection descend aussi en large** : sur tablette et ordinateur, quand on coche des éléments
@@ -210,18 +217,3 @@ Rien à rejouer côté serveur.
   mettait une coche même quand aucun bloc n'était fait.
 - **Correctif** : en thème sombre, sur ordinateur, survoler « Terminer… » dans la bande « En cours » noircissait le
   bouton ; il s'éclaircit désormais comme les autres boutons de la bande.
-
-## [5.96.0] — 2026-11-07
-La session en cours se reconnaît de nouveau à l'accueil, et « Reprendre » et « Terminer » y reviennent (A590, amende
-A523). Rien à rejouer côté serveur.
-- **Plus d'étoile dans « En cours »** : elle se confondait avec Accès direct, où paraît la même aide. L'aide reste
-  épinglable dans Accès direct et dans la liste.
-- **La rangée « En cours » reprend la bande sombre** de la carte « Session en cours » d'avant la v5.67, sans revenir
-  à une carte en double : c'est la rangée de l'aide, sur fond sombre, avec le chrono en vert. Elle a désormais le
-  même dessin que la carte d'une session partagée.
-- **« Reprendre » et « Terminer… » sont de retour à l'accueil** (ils avaient disparu en v5.67.0), sous la rangée au
-  téléphone, à droite sur grand écran. « Terminer… » demande la même confirmation maintenue que « Fin » en session ;
-  il n'est pas rouge. Toucher la rangée reprend toujours la session.
-- **La rangée dit où l'on en est** : le bloc courant sous la ligne d'état (« 1 · Reconnaissance & alerte »).
-- **En thème sombre**, la bande et la carte d'une session partagée prennent un contour vert : sans lui, le fond
-  sombre ne se détachait plus.
