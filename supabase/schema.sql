@@ -346,6 +346,7 @@ begin
   end if;
   delete from public.cognitive_aids        where owner = uid and library_id is null;
   delete from public.category_sets where owner = uid and library_id is null;
+  delete from public.aid_followups where owner = uid and library_id is null;   -- A613 : le suivi perso part avec le compte
   delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
 end; $$;
 grant execute on function public.delete_my_account() to authenticated;
@@ -507,6 +508,48 @@ grant select, insert, update, delete on public.aid_notes to authenticated;
 -- Même anti-postdatage que fiches/category_sets (last-write-wins non trichable).
 drop trigger if exists notes_clamp_updated on public.aid_notes;
 create trigger notes_clamp_updated before insert or update on public.aid_notes
+  for each row execute function public.clamp_updated_at();
+
+-- ---------- A613 : SUIVI — notes et tâches sur une aide ou une référence -------------------------
+-- Une ligne = UNE note ou UNE tâche, attachée à une entité (`entity_id`). Deux portées :
+--   • library_id NULL  = « pour moi » : seul son auteur la lit et l'écrit (comme aid_notes) ;
+--   • library_id posé  = « pour l'équipe » : lue par les membres de la bibliothèque, écrite par ses
+--     éditeurs et administrateurs — TOUS, pas seulement l'auteur (décision de l'auteur, A613).
+-- Une ligne par objet (et non un document par bibliothèque, comme category_sets) : deux éditeurs qui
+-- notent en même temps ne s'écrasent pas — le dernier-écrit-gagne vaut PAR NOTE, pas pour toutes.
+-- L'HISTORIQUE est gardé : une tâche faite reste (done_at, done_by) ; une suppression est un drapeau
+-- (`deleted`), pour que la synchro incrémentale la propage. Aucun texte libre ne sert de clé.
+-- `owner` = l'auteur ; ON DELETE SET NULL : supprimer son compte n'efface pas une note d'ÉQUIPE
+-- (elle appartient à l'équipe), ses notes PERSO sont effacées par delete_my_account.
+create table if not exists public.aid_followups (
+  id          text primary key check (char_length(id) between 1 and 64 and id !~ '[^A-Za-z0-9_-]'),
+  owner       uuid default auth.uid() references auth.users on delete set null,
+  library_id  text references public.libraries on delete cascade,      -- NULL = pour moi
+  entity_id   text not null check (char_length(entity_id) between 1 and 64 and entity_id !~ '[^A-Za-z0-9_-]'),
+  kind        text not null check (kind in ('note','task')),
+  body        text not null default '' check (char_length(body) <= 2000),
+  task        jsonb check (task is null or octet_length(task::text) <= 2000),
+  author      text not null default '' check (char_length(author) <= 160),
+  deleted     boolean not null default false,
+  updated_at  timestamptz not null default now()
+);
+create index if not exists followups_updated_idx on public.aid_followups (updated_at);
+create index if not exists followups_library_idx on public.aid_followups (library_id);
+alter table public.aid_followups enable row level security;
+drop policy if exists fu_perso on public.aid_followups;
+create policy fu_perso on public.aid_followups for all
+  using      (library_id is null and owner = auth.uid() and public.is_approved())
+  with check (library_id is null and owner = auth.uid() and public.is_approved());
+drop policy if exists fu_shared_read on public.aid_followups;
+create policy fu_shared_read on public.aid_followups for select
+  using (library_id is not null and public.is_member(library_id));
+drop policy if exists fu_shared_write on public.aid_followups;
+create policy fu_shared_write on public.aid_followups for all
+  using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
+  with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
+grant select, insert, update, delete on public.aid_followups to authenticated;
+drop trigger if exists followups_clamp_updated on public.aid_followups;
+create trigger followups_clamp_updated before insert or update on public.aid_followups
   for each row execute function public.clamp_updated_at();
 
 -- Statut du compte courant (le client l'appelle juste après la vérification OTP, puis à chaque

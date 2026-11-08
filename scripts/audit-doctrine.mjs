@@ -10650,6 +10650,63 @@ await sec('A607-A608 · Markdown imbriqué, image « Pleine », Plan en arbre, p
   await page.close();
 });
 
+await sec('A613 · le suivi : notes et tâches, pour moi ou pour l’équipe, « À faire », jamais en session', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const o={},q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
+    myLibraries=[{id:'lib1',name:'CHU Angers',role:'editor'},{id:'lib2',name:'CH Cholet',role:'viewer'}];
+    const f=fiches[0],g=fiches[1];f.library='lib1';g.library='lib2';LANCEUR_SEUIL=1e9;
+    openRead(f.id);await __acCalme(400);
+    o.bloc=!!q('.su-blk[data-suent="'+f.id+'"]');o.vieuxBouton=!q('#noteEditBtn');
+    // Une note d'ÉQUIPE par la feuille.
+    q('.su-blk [data-sunew="note"]').click();await __acCalme(250);
+    o.equipeParDefaut=!!q('#suiviEdModal [data-sulib="lib1"].on');
+    q('#svBody').value='Appel du trauma leader au 4 22 31 dès le grade B.';q('#suiviEdModal [data-suedx="ok"]').click();await __acCalme(250);
+    o.note=suivi.some(x=>x.k==='note'&&x.lib==='lib1'&&x.ent===f.id&&x.dirty&&/4 22 31/.test(x.body));
+    // Une tâche « À fusionner avec » g, D'abord, pour moi.
+    q('.su-blk [data-sunew="task"]').click();await __acCalme(250);
+    q('[data-suty="fusion"]').click();await __acCalme(150);const sel=q('#svRef');sel.value=g.id;
+    q('[data-suprio="1"]').click();await __acCalme(150);q('#svRef').value=g.id;q('[data-sulib=""]').click();await __acCalme(150);q('#svRef').value=g.id;
+    q('#suiviEdModal [data-suedx="ok"]').click();await __acCalme(250);
+    const t=suivi.find(x=>x.k==='task'&&x.ent===f.id);o.tache=!!t&&t.lib===null&&t.t.type==='fusion'&&t.t.ref===g.id&&t.t.prio===1;
+    o.ligne=(q('.su-blk .su-l')||{}).textContent||'';
+    // Une tâche d'équipe sur g (bibliothèque en LECTURE) : visible, mais ni cochable ni modifiable.
+    suiviPut({id:'tg',ent:g.id,k:'task',lib:'lib2',body:'doses',t:{type:'revoir',prio:2}});
+    // Session en cours : les notes, repliées ; aucune tâche, aucun bouton.
+    q('.su-blk [data-sudone]').click();await __acCalme(200);o.fait=!!suivi.find(x=>x.id===t.id).t.done;
+    q('.su-blk [data-sudone]').click();await __acCalme(200);o.rouvert=!suivi.find(x=>x.id===t.id).t.done;
+    // « À faire » par priorité puis par élément ; Moi · Équipe.
+    suiviOpenView();await __acCalme(300);
+    o.prio=qa('#suiviView .su-gh').map(x=>x.textContent).join('|');
+    q('[data-suby="ent"]').click();await __acCalme(200);o.parEl=qa('#suiviView .su-card-h b').map(x=>x.textContent).length;
+    o.lecteur=(()=>{const c=qa('#suiviView [data-sudone]').find(b=>b.getAttribute('aria-label').includes('doses'));return !!c&&c.disabled;})();
+    q('[data-suwho="me"]').click();await __acCalme(200);o.moi=qa('#suiviView .su-row').length;
+    suiviModal.querySelector('.ai-x').click();await __acCalme(200);
+    // Le catalogue « Tout » : la pastille, le filtre « Avec des tâches ».
+    state.view='library';state.homeTab='biblio';state.cnav={tout:true};state.ctf={type:'todo',lib:null,cat:'',sort:'todo'};render();await __acCalme(300);
+    o.cat=qa('.su-cnt').map(x=>x.textContent).join('|');o.catN=qa('#main [data-open]').length;
+    // Conversion d'une collection « À revoir ».
+    collNew('À revoir',[fiches[0].id,fiches[1].id]);const c=colls.find(x=>x.name==='À revoir');const n0=suivi.length;
+    o.conv=suiviConvert(c);o.convType=suivi.slice(n0).every(x=>x.t.type==='revoir'&&!x.lib);o.collReste=!!colls.find(x=>x.name==='À revoir');
+    o.convDeux=suiviConvert(c);
+    return o;});
+  t('A613 · la lecture porte un bloc « Suivi » ; le bouton « Ajouter une note personnelle » ne fait plus doublon',r.bloc&&r.vieuxBouton,JSON.stringify(r));
+  t('A613 · une note d’ÉQUIPE par la feuille (équipe proposée par défaut sur une aide partagée), marquée à envoyer',r.equipeParDefaut&&r.note,JSON.stringify(r));
+  t('A613 · une tâche « À fusionner avec », D’abord, pour moi ; sa ligne la nomme',r.tache&&/^À fusionner avec « /.test(r.ligne),JSON.stringify(r));
+  t('A613 · cocher range la tâche dans « Faites » (historique) ; décocher la rouvre',r.fait&&r.rouvert,JSON.stringify(r));
+  t('A613 · « À faire » : par priorité (D’abord, Ensuite), par élément (une carte par aide) ; Moi seulement',r.prio==='D’abord · 1|Ensuite · 1'&&r.parEl===2&&r.moi===1,JSON.stringify(r));
+  t('A613 · une tâche d’une bibliothèque où l’on n’est que lecteur se lit, ne se coche pas',r.lecteur,JSON.stringify(r));
+  t('A613 · le catalogue « Tout » : filtre « Avec des tâches », pastille « n · priorité »',r.catN===2&&/1 · D’abord/.test(r.cat)&&/1 · Ensuite/.test(r.cat),JSON.stringify(r));
+  t('A613 · convertir « À revoir » : une tâche « À revoir » par élément, la collection reste, pas de doublon au 2ᵉ geste',r.conv===2&&r.convType&&r.collReste&&r.convDeux===0,JSON.stringify(r));
+  // Session : notes repliées, aucune tâche.
+  const s=await page.evaluate(async()=>{const f=fiches[0];openRead(f.id);await __acCalme(300);
+    const b=[...document.querySelectorAll('button')].find(x=>/démarrer la session/i.test(x.textContent));if(b)b.click();await __acCalme(500);
+    return {bloc:!!document.querySelector('.su-blk'),crise:!!document.querySelector('details.su-crise'),taches:!!document.querySelector('#main [data-sudone],#main [data-sunew]')};});
+  t('A613 · en session : les notes repliées, ni tâche ni bouton (règle 11)',!s.bloc&&s.crise&&!s.taches,JSON.stringify(s));
+  await page.close();
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

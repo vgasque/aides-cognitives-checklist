@@ -699,6 +699,19 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('bibliothèque -> l/<lib>/<id>.pdf', A.attStoragePath('lib-team','11111111-1111-1111-1111-111111111111','att1'), 'l/lib-team/att1.pdf');
   eq('libraryId vide = perso', A.attStoragePath('','u-1','att1'), 'u/u-1/att1.pdf');
 
+  group('A613 — suivi : notes et tâches');
+  {const S=A.sanitizeSuivi([{id:'s1',ent:'f1',k:'task',lib:null,body:'doses',t:{type:'revoir',prio:1}},
+      {id:'s1',ent:'f1',k:'note',body:'doublon'},{id:'__proto__',ent:'f1',k:'note'},{id:'s2',ent:'f1',k:'bof'},
+      {id:'s3',ent:'f1',k:'task',t:{type:'inconnu',prio:9,due:'15/11',done:-1}},{id:'s4',ent:'f1',k:'note',lib:'__proto__',body:'x'}]);
+    eq('sanitizeSuivi : ids uniques et sûrs, kind fermé', S.map(x=>x.id).join(','), 's1,s3,s4');
+    eq('sanitizeSuivi : type et priorité fermés, échéance AAAA-MM-JJ seulement, done positif', JSON.stringify(S[1].t), JSON.stringify({type:'autre',ref:'',refTxt:'',prio:2,due:'',done:0,by:''}));
+    eq('sanitizeSuivi : une bibliothèque hors jeu SAFE_ID devient « pour moi »', S[2].lib, null);}
+  {const L=[{id:'a',at:100,body:'loc'},{id:'b',at:100,dirty:true,body:'loc'}],R=[{id:'a',at:200,body:'rem'},{id:'b',at:300,body:'rem'},{id:'c',at:50,body:'neuf'}];
+    const m=A.suiviMerge(L,R),g=id=>m.list.find(x=>x.id===id).body;
+    eq('suiviMerge : le distant plus récent gagne ; une modification en attente ici gagne toujours ; un neuf entre', [g('a'),g('b'),g('c'),m.changed].join('|'), 'rem|loc|neuf|true');
+    eq('suiviMerge : rien de plus récent → inchangé', A.suiviMerge([{id:'a',at:500}],[{id:'a',at:100}]).changed, false);}
+  eq('suiviTaskLabel : « À confronter à » + reco tapée + précision', A.suiviTaskLabel({k:'task',body:'transfusion',t:{type:'confronter',ref:'',refTxt:'RFE SFAR 2025'}}), 'À confronter à RFE SFAR 2025 — transfusion');
+  eq('suiviTaskLabel : « Autre » prend la précision après deux-points', A.suiviTaskLabel({k:'task',body:'schéma du circuit',t:{type:'autre',ref:'',refTxt:''}}), 'Autre : schéma du circuit');
   group('mini-Markdown — mdInline() : XSS et balisage');
   ok('esc() d\'abord : balise HTML neutralisée', A.mdInline('<img onerror=alert(1)>').indexOf('<img')<0);
   eq('gras', A.mdInline('a **b** c'), 'a <b>b</b> c');

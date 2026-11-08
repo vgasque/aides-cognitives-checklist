@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A612** à la v5.106 (lot v6.0 compris) (et ça continue — la
-prochaine est A613), attribués dans
+Les décisions de conception portent des numéros **A1 → A613** à la v5.107 (lot v6.0 compris) (et ça continue — la
+prochaine est A614), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -236,6 +236,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A610 | `lot-v5-104.md` | Blocs : « ＋ » au-dessus/au-dessous du seul bloc survolé (amende A550), « Bloc avant » au doigt ; sélection multiple (Maj/⌘-clic, sélection glissée, « Sélectionner » au doigt) → Copier · Supprimer ; bloc vidé → choisir un type |
 | A611 | `lot-v5-104.md` | Import : « Renommer » par rangée ; « Dans : … » verse une page dans une référence existante (remplit un contenu vide, s'ajoute à la suite sinon, images comprises) |
 | A612 | `lot-v5-104.md` | « ⠿ Déplacer » dans la barre de sélection : les blocs sélectionnés (même non contigus) se déplacent ensemble par « Prendre / Poser », restent sélectionnés à l'arrivée (`mdBlkMoveSet`) |
+| A613 | `lot-v5-107.md` | Le SUIVI : notes et tâches sur une aide ou une référence, « pour moi » ou « pour l'équipe » (écrites par tous les éditeurs) ; table `aid_followups` (une ligne par objet, RLS) ; bloc « Suivi » en lecture (notes seules et repliées en session) ; « À faire » par priorité / par élément, historique ; catalogue « Avec des tâches » ; collections converties à la demande |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
