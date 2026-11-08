@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.111.1] — 2026-11-08
+Aucun mot de passe sur les comptes, et des jetons de 15 min (A648). **Côté serveur : rejouer `supabase/schema.sql`.**
+- **Aucun compte ne peut porter de mot de passe** : un déclencheur sur `auth.users` le refuse, à l'inscription comme à
+  la modification. L'app ne se connecte que par code e-mail et par le téléphone ; sans ce refus, une session (celle
+  d'un poste partagé comprise) pouvait se définir un mot de passe durable, qui survivait à la déconnexion à distance.
+  Remplace le « Password Verification Attempt hook », réservé aux plans payants. Vérification après le rejeu :
+  `select count(*) from auth.users where encrypted_password <> '';` doit rendre 0.
+- **Jeton d'accès de 900 s** sur l'instance (réglage du tableau de bord, consigné au § 1.2 du guide de déploiement) :
+  un poste révoqué garde l'accès à l'API 15 min au plus, au lieu d'1 h. Aucun effet visible dans l'app.
+- `rls-tests.sql` 16.14 garde le refus des mots de passe.
+
 ## [5.111.0] — 2026-11-08
 Connecter un ordinateur de service avec son téléphone (A643-A647). **Côté serveur : rejouer `supabase/schema.sql`, puis déployer la fonction `link-claim`** (`supabase functions deploy link-claim --no-verify-jwt`, cf. `docs/deploiement-et-conformite.md` § 1.2).
 - **Sur l'ordinateur** (Moi › « Se connecter avec le téléphone ») : un QR et un nombre de contrôle, ni e-mail ni code
@@ -221,14 +232,3 @@ Correctifs de l'éditeur de référence et du dock (A604-A605). Rien à rejouer 
   restante et la page défile ; replié, il reprend sa hauteur. Avant, son bas passait sous l'écran.
 - **La pastille du dock est fluide** : elle glisse et change de largeur d'un seul mouvement, et les mots des onglets
   changent de couleur à son rythme (A605) — elle sautait.
-
-## [5.102.0] — 2026-11-08
-Le catalogue des bibliothèques gagne le geste « retour » et des volets sur grand écran (A602). Rien à rejouer côté
-serveur.
-- **Le geste « retour » remonte d'un niveau** dans le catalogue : d'une catégorie à sa bibliothèque, puis à la liste
-  des bibliothèques — au téléphone comme sur ordinateur.
-- **Des volets sur tablette et ordinateur** : les bibliothèques à gauche, les catégories de celle choisie au milieu
-  (sur un écran assez large ; sinon elles se déplient sous la bibliothèque), et les aides à droite. « Tout » s'affiche
-  d'office.
-- **La pastille du dock glisse** d'un onglet à l'autre, comme celle des sélecteurs de Moi — au tap comme en faisant
-  glisser le doigt (A603).

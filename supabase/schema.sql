@@ -2274,6 +2274,29 @@ grant execute on function public.link_list()                          to authent
 grant execute on function public.link_extend(uuid,timestamptz)        to authenticated;
 grant execute on function public.link_revoke(uuid)                    to authenticated;
 
+-- ---------- 10bis. AUCUN MOT DE PASSE (v5.111.1, A648) ---------------------------------------
+-- L'app ne se connecte QUE par code e-mail (et, depuis v5.111, par le téléphone). Or GoTrue laisse
+-- toute session valide se DÉFINIR un mot de passe (`PUT /auth/v1/user`) : une session de poste
+-- partagé — ou toute session volée — pourrait ainsi s'ouvrir un accès DURABLE, qui survivrait à la
+-- déconnexion à distance et à l'heure de fin (revue de sécurité A643). Le « Password Verification
+-- Attempt hook » qui refuserait ces connexions est réservé aux plans payants ; ce déclencheur fait
+-- mieux, et partout : un compte ne peut tout simplement PAS porter de mot de passe. Les comptes
+-- créés par code e-mail en ont un vide (GoTrue pose ''), que le déclencheur laisse passer.
+-- Ne touche PAS la connexion au tableau de bord Supabase (compte supabase.com, séparé).
+-- Le projet crée déjà un déclencheur sur `auth.users` (`on_auth_user_created`) : même régime.
+create or replace function public.forbid_passwords()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if new.encrypted_password is not null and new.encrypted_password <> ''
+     and (tg_op = 'INSERT' or new.encrypted_password is distinct from old.encrypted_password) then
+    raise exception 'passwords are disabled for this application';
+  end if;
+  return new;
+end; $$;
+drop trigger if exists forbid_passwords on auth.users;
+create trigger forbid_passwords before insert or update of encrypted_password on auth.users
+  for each row execute function public.forbid_passwords();
+
 -- ---------- 5quater. LA PROHIBITION anon NE PORTAIT PAS SUR PUBLIC (correctif) --------------
 -- Le bloc « GRANTS » plus haut annonce une « INTERDICTION EXPLICITE POUR anon ». Elle ne faisait
 -- pas ce qu'elle disait, et l'écart est structurel, pas un oubli :
@@ -2355,6 +2378,7 @@ revoke execute on function public.link_row(uuid,text)           from public, ano
 revoke execute on function public.link_row_key(uuid,text)       from public, anon, authenticated;
 revoke execute on function public.link_is_poste()               from public, anon, authenticated;
 revoke execute on function public.link_purge()                  from public, anon, authenticated;
+revoke execute on function public.forbid_passwords()            from public, anon, authenticated;   -- A648 : fonction de déclencheur
 grant  execute on function public.link_claim_srv(uuid,text)     to service_role;
 grant  execute on function public.link_bind_srv(uuid,text,uuid) to service_role;
 

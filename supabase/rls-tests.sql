@@ -1443,6 +1443,22 @@ begin
   reset role;
   select count(*) into v_cnt from auth.sessions where id = v_asid;
   if v_cnt <> 0 then raise exception 'ÉCHEC 16.13 : la session du poste survit à l''heure de fin'; end if;
+  -- 16.14 (A648) Aucun compte ne porte de mot de passe : ni le définir, ni s'inscrire avec. Un mot de
+  --       passe VIDE (compte créé par code e-mail) passe.
+  update auth.users set email = 'kim2@test.local' where id = kim;   -- toute autre mise à jour passe
+  begin
+    update auth.users set encrypted_password = 'empreinte-de-mot-de-passe-non-vide' where id = kim;
+    raise exception 'ÉCHEC 16.14 : un compte peut se définir un mot de passe';
+  exception when others then
+    if sqlerrm not like '%passwords are disabled%' then raise exception 'ÉCHEC 16.14 : refus inattendu (%)', sqlerrm; end if;
+  end;
+  begin
+    insert into auth.users (id, email, encrypted_password)
+      values ('cdcdcdcd-0000-0000-0000-cdcdcdcdcdcd', 'mdp@test.local', 'empreinte-de-mot-de-passe-non-vide');
+    raise exception 'ÉCHEC 16.14 : une inscription avec mot de passe passe';
+  exception when others then
+    if sqlerrm not like '%passwords are disabled%' then raise exception 'ÉCHEC 16.14 : refus inattendu (%)', sqlerrm; end if;
+  end;
 
 
   ------------------------------------------------------------------ FIN
