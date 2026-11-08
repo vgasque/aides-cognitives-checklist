@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-LQWOfHMtXmmhn8+7RdpskzNWOWOj99fr8e2LbGiybvM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-wCx0XUeOzWvA2rfwlZTacqdiXwCAzzzsZjy1meKF6a8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3296,6 +3296,56 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .h-notes{color:var(--ink-soft)}
   .notes-block{margin:24px 0 6px;border:1.5px dashed var(--line-strong);border-radius:var(--r-3);padding:12px 14px;background:var(--work)}
   .notes-block .block-h{margin-bottom:8px}
+  /* ══ A613 — LE SUIVI ══ Aucune couleur nouvelle : « D'abord » en gras (pas en rouge, règle 8), l'équipe au bleu
+     de l'action (elle nomme une bibliothèque), le perso en gris ; l'échéance garde son △. */
+  .su-blk{margin:24px 0 6px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--work)}
+  .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .su-h .btn{margin-left:4px}
+  .su-sub{margin:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .su-row{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+  .su-card .su-row:first-child,.su-card-h+.su-row{border-top:0}
+  .su-ck{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;border:0;background:none;color:transparent;cursor:pointer}
+  .su-ck::before{content:'';position:absolute;top:6px;left:6px;width:20px;height:20px;border:2px solid var(--line-strong);border-radius:50%;box-sizing:border-box}
+  .su-ck{position:relative}
+  .su-ck.on{color:var(--on-primary)}.su-ck.on::before{border-color:var(--act);background:var(--act)}
+  .su-ck svg{position:relative}
+  .su-ck:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:50%}
+  .su-ck:disabled{cursor:default}
+  .su-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;margin:0;padding:6px 0;border:0;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  span.su-tx{cursor:default}
+  .su-l{font-size:var(--t-item);font-weight:600;line-height:1.3}.su-l.p1{font-weight:800}
+  .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
+  .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
+  .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .su-note{padding:8px 0;border-top:1px solid var(--line)}
+  .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .su-who>span:not(.su-s){white-space:nowrap}
+  .su-who.eq{color:var(--act)}
+  .su-mod{margin-left:auto;font-size:var(--t-meta)}
+  .su-body{margin-top:4px;font-size:var(--t-item);line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+  .su-done summary,.su-crise summary{cursor:pointer;margin-top:10px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .su-crise{margin:16px 0 6px;padding:8px 12px;border:1px dashed var(--line-strong);border-radius:var(--r-2)}
+  .su-cnt{display:inline-flex;align-items:center;gap:4px;margin-left:10px;font-size:var(--t-meta);font-weight:700;color:var(--act);white-space:nowrap}
+  .su-f{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+  .su-fl{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .su-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .su-sur{margin:0 0 12px}
+  #suiviEdModal textarea,#suiviEdModal select,#suiviEdModal input{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item)}
+  @media (pointer:coarse){#suiviEdModal textarea,#suiviEdModal select,#suiviEdModal input{font-size:16px}}
+  #suiviEdModal textarea{resize:vertical;line-height:1.45}
+  .su-meta{margin:0 0 12px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .su-bar{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 16px}
+  .su-gh{margin:16px 4px 6px;font-size:var(--t-body);font-weight:700;color:var(--ink-2)}.su-gh.p1{font-weight:800;color:var(--ink)}
+  .su-card{margin:0 0 12px;padding:4px 14px;border-radius:var(--r-3);background:var(--work)}
+  .su-card-h{display:flex;align-items:flex-start;gap:12px;padding:10px 0 6px}
+  .su-card-h>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .su-hist{margin-top:16px}
+  .su-conv{margin:24px 0 8px;padding:12px 14px;border:1px dashed var(--line-strong);border-radius:var(--r-3)}
+  .su-conv-r{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;font-weight:600}
+  .su-door{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:0 0 16px;padding:8px 16px;border:0;border-radius:var(--r-3);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:700;text-align:left;cursor:pointer}
+  .su-door-t{flex:1;display:flex;flex-direction:column;gap:2px}
+  .su-dn{font-weight:800;color:var(--act)}
+  .su-door:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .note-txt{font-size:13.5px;line-height:1.55;color:var(--ink);white-space:pre-wrap;overflow-wrap:break-word}
   .note-add{display:inline-flex;align-items:center;gap:6px;margin:24px 0 6px;background:none;border:1.5px dashed var(--line-strong);color:var(--ink-soft);border-radius:var(--r-3);padding:10px 14px;font-size:13.5px;font-weight:600;min-height:38px;cursor:pointer;transition:background .12s,color .12s}
   .note-add:hover{background:var(--amb-2);color:var(--ink)}
@@ -9945,6 +9995,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="newLibBody" class="ai-body"></div>
 </div></div>
+<!-- A613 : le SUIVI — une note ou une tâche (feuille), et « À faire » (page). Corps peints à l'ouverture. -->
+<div class="ai-modal" id="suiviEdModal" role="dialog" aria-modal="true" aria-labelledby="suiviEdTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="suiviEdTitle">Nouvelle note</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-body" id="suiviEdBody"></div>
+  <div class="mdw-foot" id="suiviEdFoot"></div>
+</div></div>
+<div class="ai-modal page" id="suiviModal" role="dialog" aria-modal="true" aria-labelledby="suiviModalTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="suiviModalTitle">À faire</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-body" id="suiviView"></div>
+</div></div>
 <div class="ai-modal page" id="admModal" role="dialog" aria-modal="true" aria-labelledby="admModalTitle"><div class="ai-card">
   <div class="ai-top"><div class="adm-ttl"><button type="button" class="adm-back" id="admBack" hidden></button><h3 id="admModalTitle">Administration</h3></div><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="admBody" class="ai-body"></div>
@@ -10174,7 +10234,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.106.0';
+const APP_VERSION='5.107.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10504,7 +10564,8 @@ async function moveLocalDataTo(space){
   }
   // Épingles + marqueur « catégories à pousser » suivent dans l'espace cible (poussés au 1er sync).
   try{localStorage.setItem(spaceKeyFor('ac-pins',space,owner),JSON.stringify(pins));
-      localStorage.setItem(spaceKeyFor('ac-colls',space,owner),JSON.stringify(colls));}catch(e){}
+      localStorage.setItem(spaceKeyFor('ac-colls',space,owner),JSON.stringify(colls));
+      localStorage.setItem(spaceKeyFor('ac-suivi',space,owner),JSON.stringify(suivi.filter(x=>!x.lib).map(x=>Object.assign({},x,{dirty:true}))));}catch(e){}   // A613 : le suivi perso déménage (et repartira au premier envoi)
   try{localStorage.setItem(spaceKeyFor('ac-cats-dirty:',space,owner),'1');
       localStorage.setItem(spaceKeyFor('ac-cats-updated:',space,owner),String(Date.now()));}catch(e){}
   // Vide l'espace source : ces données n'existent plus « hors compte ».
@@ -10515,7 +10576,7 @@ async function moveLocalDataTo(space){
   for(const p of prots){try{await Data.delProtocol(p.id);}catch(e){}}
   try{await Data.setNotes({});}catch(e){}
   try{await Data.setCats(null);}catch(e){}
-  try{localStorage.removeItem(spaceKey('ac-pins'));localStorage.removeItem(spaceKey('ac-colls'));}catch(e){}
+  try{localStorage.removeItem(spaceKey('ac-pins'));localStorage.removeItem(spaceKey('ac-colls'));localStorage.removeItem(spaceKey('ac-suivi'));localStorage.removeItem(spaceKey('ac-suivi-cursor'));}catch(e){}
 }
 // Éligibilité au transfert INVERSE « compte -> hors compte » — PURE (testée via ?__actest).
 // Réservé à un compte NON APPROUVÉ (pending/rejected) que CET appareil n'a JAMAIS synchronisé
@@ -12019,6 +12080,172 @@ const sanitizeColls=a=>{const seen=new Set();
     return o;}).filter(Boolean).sort(collCmp);};
 let colls=[];try{colls=sanitizeColls(JSON.parse(localStorage.getItem(spaceKey('ac-colls'))||'[]'));}catch(e){}
 function collsSave(){try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringify(colls));}catch(e){}schedulePrefsPush();}
+/* ═══ A613 — LE SUIVI : NOTES ET TÂCHES SUR UNE AIDE OU UNE RÉFÉRENCE ═══════════════════════════════
+   Un objet = une NOTE (un texte) ou une TÂCHE (« À revoir », « À fusionner avec… », « À confronter à… »,
+   « À compléter », « Autre », une priorité, une échéance facultative), attaché à une entité (`ent`).
+   Deux portées : `lib` null = « pour moi » (privé), `lib` = une bibliothèque = « pour l'équipe » (lu par ses
+   membres, écrit par TOUS ses éditeurs — décision de l'auteur). L'HISTORIQUE est gardé : une tâche faite reste
+   (`t.done`, `t.by`), une suppression est un drapeau (`del`), pour que la synchro la propage.
+   Jamais dans le mode crise : les tâches n'y paraissent pas, les notes y restent repliées (règle 11).
+   Stockage : localStorage PAR ESPACE (`ac-suivi`, comme les collections) ; synchro par `aid_followups`, une
+   ligne par objet (dernier-écrit-gagne PAR objet, jamais par document). Entrée unique : `sanitizeSuivi`. */
+const SUIVI_TYPES={revoir:'À revoir',fusion:'À fusionner avec',confronter:'À confronter à',completer:'À compléter',autre:'Autre'};
+const SUIVI_PRIO={1:'D’abord',2:'Ensuite',3:'Plus tard'};
+const SUIVI_MAX=3000;
+function sanitizeSuiviItem(x){if(!x||typeof x!=='object')return null;
+  const id=safeMetaId(x.id),ent=safeMetaId(x.ent);if(!id||!ent)return null;
+  const k=x.k==='task'?'task':(x.k==='note'?'note':null);if(!k)return null;
+  const lib=(typeof x.lib==='string'&&safeMetaId(x.lib))?x.lib:null;
+  const o={id,ent,k,lib,body:sstr(x.body,2000),author:sstr(x.author,160),at:(typeof x.at==='number'&&isFinite(x.at))?x.at:0};
+  if(k==='task'){const t=(x.t&&typeof x.t==='object')?x.t:{};
+    o.t={type:SUIVI_TYPES[t.type]?t.type:'autre',ref:(typeof t.ref==='string'&&safeMetaId(t.ref))?t.ref:'',refTxt:sstr(t.refTxt,200),
+      prio:[1,2,3].indexOf(+t.prio)>=0?+t.prio:2,due:(typeof t.due==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(t.due))?t.due:'',
+      done:(typeof t.done==='number'&&isFinite(t.done)&&t.done>0)?t.done:0,by:sstr(t.by,160)};}
+  if(x.del===true)o.del=true;
+  if(x.dirty===true)o.dirty=true;
+  return o;}
+function sanitizeSuivi(a){const seen=new Set(),out=[];
+  (Array.isArray(a)?a:[]).slice(0,SUIVI_MAX).forEach(x=>{const o=sanitizeSuiviItem(x);if(o&&!seen.has(o.id)){seen.add(o.id);out.push(o);}});return out;}
+let suivi=[];try{suivi=sanitizeSuivi(JSON.parse(localStorage.getItem(spaceKey('ac-suivi'))||'[]'));}catch(e){}
+function suiviSave(){try{localStorage.setItem(spaceKey('ac-suivi'),JSON.stringify(suivi));}catch(e){toast('⚠ Stockage saturé : suivi non enregistré.',6000,true);}
+  if(Auth.signedIn())Sync.schedule();}
+// Visible ici : le perso, et l'équipe des seules bibliothèques dont on est membre (accès retiré → plus rien).
+const suiviVisible=x=>!x.del&&(!x.lib||myLibraries.some(l=>l.id===x.lib));
+const suiviCanEdit=x=>!x.lib||canEditScope(x.lib);
+const suiviOf=ent=>suivi.filter(x=>x.ent===ent&&suiviVisible(x));
+const suiviOpen=x=>x.k==='task'&&!x.t.done;
+const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at);
+const suiviEnt=id=>fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||null;
+const suiviAuthor=()=>{if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)return u.email;}return '';};
+// Le libellé d'une tâche : « À fusionner avec « Polytrauma — accueil » », « À confronter à RFE 2025 », « À revoir : doses ».
+function suiviTaskLabel(x){const t=x.t,ty=SUIVI_TYPES[t.type]||'Autre',r=t.ref&&suiviEnt(t.ref),cible=r?'« '+(String(r.title||'').trim()||'Sans titre')+' »':t.refTxt;
+  const tete=(t.type==='fusion'||t.type==='confronter')?ty+(cible?' '+cible:'…'):ty;
+  return x.body?tete+(t.type==='autre'?' : ':' — ')+x.body:tete;}
+const suiviWho=x=>x.lib?'Équipe · '+(libName(x.lib)||'Bibliothèque'):'Moi';
+/* Écrire : chaque geste pose `at` et `dirty` (la synchro pousse), garde l'historique. PURE quant au tableau. */
+function suiviPut(o){o=sanitizeSuiviItem(Object.assign({},o,{at:Date.now(),dirty:true}));if(!o)return null;
+  const i=suivi.findIndex(x=>x.id===o.id);if(i>=0)suivi[i]=o;else suivi.push(o);suiviSave();return o;}
+function suiviDone(x,on){const o=JSON.parse(JSON.stringify(x));o.t.done=on?Date.now():0;o.t.by=on?(suiviAuthor()||'moi'):'';return suiviPut(o);}
+function suiviDel(x){const o=JSON.parse(JSON.stringify(x));o.del=true;return suiviPut(o);}
+/* LWW par objet (PURE, testée) : le distant s'applique s'il est plus récent ET que le local n'attend pas d'envoi. */
+function suiviMerge(loc,rem){const by=new Map(loc.map(x=>[x.id,x]));let ch=false;
+  (rem||[]).forEach(r=>{const l=by.get(r.id);if(!l||(!l.dirty&&r.at>(l.at||0))){by.set(r.id,r);ch=true;}});
+  return {list:[...by.values()],changed:ch};}
+/* ── A613 · LE RENDU DU SUIVI ── */
+const suiviDay=ms=>{const d=new Date(ms);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');};
+const suiviDue=s=>{const m=String(s||'').match(/^\d{4}-(\d{2})-(\d{2})$/);return m?m[2]+'/'+m[1]:'';};
+const suiviEntTitle=id=>{const e=suiviEnt(id);return e?(String(e.title||'').trim()||'Sans titre'):'Élément supprimé';};
+function suiviTaskRowHtml(x,o){o=o||{};const can=suiviCanEdit(x),t=x.t,d=t.done;
+  const sub=[d?'Fait'+(t.by?' par '+t.by:'')+' le '+suiviDay(t.done):SUIVI_PRIO[t.prio],suiviWho(x),!d&&t.due?'△ avant le '+suiviDue(t.due):''].filter(Boolean).join(' · ');
+  const tx=`<span class="su-l${t.prio===1&&!d?' p1':''}">${esc(suiviTaskLabel(x))}</span>${o.ent?`<span class="su-e">${esc(suiviEntTitle(x.ent))}</span>`:''}<span class="su-s">${esc(sub)}</span>`;
+  return `<div class="su-row${d?' done':''}"><button type="button" class="su-ck${d?' on':''}" data-sudone="${esc(x.id)}" aria-pressed="${d?'true':'false'}" aria-label="${d?'Rouvrir':'Marquer fait'} : ${esc(suiviTaskLabel(x))}"${can?'':' disabled'}>${uiIcon('check',13,{sw:3})}</button>`
+    +(can?`<button type="button" class="su-tx" data-suedit="${esc(x.id)}">${tx}</button>`:`<span class="su-tx">${tx}</span>`)+`</div>`;}
+function suiviNoteHtml(x){const can=suiviCanEdit(x);
+  return `<div class="su-note"><div class="su-who${x.lib?' eq':''}">${uiIcon(x.lib?'users':'user',13)}<span>${esc(suiviWho(x)+(x.lib?'':' · privée'))}</span>${x.author&&x.lib?`<span class="su-s">· ${esc(x.author)}, ${suiviDay(x.at)}</span>`:''}${can?`<button type="button" class="linkbtn su-mod" data-suedit="${esc(x.id)}">Modifier</button>`:''}</div><div class="su-body">${esc(x.body)}</div></div>`;}
+/* Le bloc « Suivi » d'une aide ou d'une référence, en lecture. `crise` (session en cours) : les notes seules, repliées
+   (« spécificités du centre » utiles au chevet) ; aucune tâche, aucun bouton (règle 11). */
+function suiviBlockHtml(ent,crise){if(!ent||!ent.id)return '';const all=suiviOf(ent.id),nts=all.filter(x=>x.k==='note').sort((a,b)=>b.at-a.at);
+  if(crise)return nts.length?`<details class="su-crise"><summary>Notes (${nts.length})</summary>${nts.map(suiviNoteHtml).join('')}</details>`:'';
+  const open=suiviOpenOf(ent.id),done=all.filter(x=>x.k==='task'&&x.t.done).sort((a,b)=>b.t.done-a.t.done);
+  return `<section class="block su-blk" data-suent="${esc(ent.id)}"><div role="heading" aria-level="2" class="block-h su-h">${uiIcon('task',16)}Suivi<span class="spc"></span>`
+    +`<button type="button" class="btn sm" data-sunew="note">${uiIcon('plus',14,{sw:2.4})}Note</button><button type="button" class="btn sm" data-sunew="task">${uiIcon('plus',14,{sw:2.4})}Tâche</button></div>`
+    +(open.length?`<div class="su-sub">Tâches · ${open.length}</div>`+open.map(x=>suiviTaskRowHtml(x)).join(''):'')
+    +(done.length?`<details class="su-done"><summary>Faites (${done.length})</summary>${done.map(x=>suiviTaskRowHtml(x)).join('')}</details>`:'')
+    +(nts.length?`<div class="su-sub">Notes · ${nts.length}</div>`+nts.map(suiviNoteHtml).join(''):'')
+    +(all.length?'':`<p class="hint">Notes et tâches de travail sur cet élément — pour vous, ou pour l’équipe de sa bibliothèque. Jamais en session.</p>`)+`</section>`;}
+// La pastille d'une rangée du CATALOGUE : combien restent, et la priorité de la plus urgente. Muette sans tâche.
+function suiviRowHtml(id){if(!_rowCtx.ctg)return '';const o=suiviOpenOf(id);if(!o.length)return '';
+  return `<span class="su-cnt" title="${esc(o.map(suiviTaskLabel).join(' · '))}">${uiIcon('task',12)}${o.length} · ${esc(SUIVI_PRIO[o[0].t.prio])}</span>`;}
+/* La feuille : une note ou une tâche, neuve (`x` absent) ou à modifier. La portée « équipe » est la bibliothèque
+   de l'élément, offerte si l'on peut y écrire. */
+let _svEd=null;
+function suiviEdOpen(o){const ent=suiviEnt(o.ent);if(!ent)return;const x=o.x||null,k=x?x.k:o.k;
+  const lib=ent.library&&canEditScope(ent.library)?ent.library:null;
+  _svEd={ent:ent.id,k,id:x?x.id:uid('s'),lib:x?x.lib:(lib&&o.k==='note'?lib:null),libOk:lib||(x&&x.lib)||null,
+    type:x&&x.t?x.t.type:'revoir',ref:x&&x.t?x.t.ref:'',refTxt:x&&x.t?x.t.refTxt:'',prio:x&&x.t?x.t.prio:2,due:x&&x.t?x.t.due:'',body:x?x.body:'',author:x?x.author:'',old:x};
+  document.getElementById('suiviEdTitle').textContent=(x?'Modifier ':'Nouvelle ')+(k==='task'?'tâche':'note');
+  suiviEdPaint();suiviEdModal.classList.add('on');
+  const t=document.getElementById('svBody');if(t&&!x&&k==='note')t.focus({preventScroll:true});}
+function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>`<button type="button" class="mdb-chip${on?' on':''}" ${attr}="${esc(v)}" aria-pressed="${on?'true':'false'}">${lbl}</button>`;
+  const ents=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==e.ent).sort(byTitle);
+  let h=`<p class="hint su-sur">Sur « ${esc(String(ent.title||'').trim()||'Sans titre')} »</p>`;
+  if(e.k==='task'){h+=`<div class="su-f"><div class="su-fl">Quoi</div><div class="su-chips">${Object.keys(SUIVI_TYPES).map(v=>chip('data-suty',v,esc(SUIVI_TYPES[v]+(v==='fusion'||v==='confronter'?'…':'')),e.type===v)).join('')}</div>`;
+    if(e.type==='fusion'||e.type==='confronter')h+=`<label class="su-fl" for="svRef">${e.type==='fusion'?'Avec':'À'}</label><select id="svRef"><option value="">${e.type==='confronter'?'— une aide, une référence… ou une reco ci-dessous':'— choisir une aide ou une référence'}</option>${ents.map(y=>`<option value="${esc(y.id)}"${y.id===e.ref?' selected':''}>${esc(String(y.title||'').trim()||'Sans titre')}</option>`).join('')}</select>`
+      +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');
+    h+=`</div>`;}
+  h+=`<div class="su-f"><label class="su-fl" for="svBody">${e.k==='task'?'Précision <span class="su-s">(facultatif)</span>':'Note'}</label><textarea id="svBody" rows="${e.k==='task'?2:5}" maxlength="2000">${esc(e.body)}</textarea></div>`;
+  if(e.k==='task')h+=`<div class="su-f"><div class="su-fl">Priorité</div><div class="su-chips">${[1,2,3].map(v=>chip('data-suprio',v,SUIVI_PRIO[v],e.prio===v)).join('')}</div>`
+    +`<label class="su-fl" for="svDue">Échéance <span class="su-s">(facultatif)</span></label><input type="date" id="svDue" value="${esc(e.due)}"></div>`;
+  h+=e.libOk?`<div class="su-f"><div class="su-fl">${e.k==='task'?'Pour':'Qui la lit ?'}</div><div class="su-chips">${chip('data-sulib','',e.k==='task'?'Moi':'Moi seulement',!e.lib)}${chip('data-sulib',e.libOk,'L’équipe · '+esc(libName(e.libOk)||'Bibliothèque'),!!e.lib)}</div>`
+      +(e.lib?`<p class="hint">Visible des membres de « ${esc(libName(e.libOk)||'la bibliothèque')} », modifiable par ses éditeurs ; synchronisée, signée de votre adresse. Elle ne change pas le contenu validé.</p>`:`<p class="hint">Privée : visible par vous seulement${Auth.signedIn()?', sur vos appareils':''}.</p>`)+`</div>`
+    :`<p class="hint">Privée : visible par vous seulement${Auth.signedIn()?', sur vos appareils':''}.</p>`;
+  h+=`<p class="hint">N’inscrivez aucune information sur un patient : le suivi parle de l’aide, pas d’une prise en charge.</p>`;   // A613 : registre RGPD § 3
+  document.getElementById('suiviEdBody').innerHTML=h;
+  document.getElementById('suiviEdFoot').innerHTML=(e.old&&suiviCanEdit(e.old)?`<button type="button" class="btn danger" data-suedx="del">Supprimer</button>`:'')
+    +`<button type="button" class="btn" data-suedx="x">Annuler</button><button type="button" class="btn primary" data-suedx="ok" data-dlgdef>${e.old?'Enregistrer':'Ajouter'}</button>`;}
+function suiviEdRead(){const e=_svEd,v=id=>{const el=document.getElementById(id);return el?el.value:null;};
+  const b=v('svBody');if(b!=null)e.body=b;const r=v('svRef');if(r!=null)e.ref=r;const rt=v('svRefTxt');if(rt!=null)e.refTxt=rt;const d=v('svDue');if(d!=null)e.due=d;}
+function suiviEdSave(){suiviEdRead();const e=_svEd;
+  if(e.k==='note'&&!e.body.trim()){toast('Écrivez la note, ou annulez.',3000,true);return;}
+  if(e.k==='task'&&e.type==='fusion'&&!e.ref){toast('Choisissez l’aide ou la référence avec laquelle fusionner.',3500,true);return;}
+  const o={id:e.id,ent:e.ent,k:e.k,lib:e.lib||null,body:e.body.trim(),author:e.author||suiviAuthor()};
+  if(e.k==='task')o.t={type:e.type,ref:(e.type==='fusion'||e.type==='confronter')?e.ref:'',refTxt:e.type==='confronter'&&!e.ref?e.refTxt.trim():'',prio:e.prio,due:e.due,done:e.old?e.old.t.done:0,by:e.old?e.old.t.by:''};
+  suiviPut(o);suiviEdClose();suiviRepaint();toast(e.old?'Enregistré.':(e.k==='task'?'Tâche ajoutée':'Note ajoutée')+(o.lib?' pour l’équipe.':' — visible par vous seulement.'),3000,true);}
+function suiviEdClose(){_svEd=null;suiviEdModal.classList.remove('on');}
+const suiviEdModal=document.getElementById('suiviEdModal'),suiviModal=document.getElementById('suiviModal');
+bindModalDismiss(suiviEdModal,suiviEdClose);
+suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||!_svEd)return;const E=_svEd;
+  if(b.dataset.suty){suiviEdRead();E.type=b.dataset.suty;suiviEdPaint();return;}
+  if(b.dataset.suprio){suiviEdRead();E.prio=+b.dataset.suprio;suiviEdPaint();return;}
+  if(b.dataset.sulib!=null){suiviEdRead();E.lib=b.dataset.sulib||null;suiviEdPaint();return;}
+  const k=b.dataset.suedx;if(!k)return;
+  if(k==='x')return suiviEdClose();
+  if(k==='ok')return suiviEdSave();
+  if(k==='del'&&E.old&&await confirmDlg(E.k==='task'?'La tâche disparaît'+(E.old.lib?' pour toute l’équipe':'')+'.':'La note disparaît'+(E.old.lib?' pour toute l’équipe':'')+'.',{title:E.k==='task'?'Supprimer la tâche ?':'Supprimer la note ?',yes:'Supprimer',danger:true})){
+    suiviDel(E.old);suiviEdClose();suiviRepaint();toast('Supprimé.',2500,true);}});
+/* « À FAIRE » : toutes les tâches, PAR PRIORITÉ (que faire maintenant) ou PAR ÉLÉMENT (où en est chaque aide),
+   filtrées Moi · Équipe · Tout ; l'HISTORIQUE « Fait » replié en bas ; les collections qui ressemblent à une liste de
+   travail se convertissent en tâches (A613 §4 — la collection reste). */
+let _svv={by:'prio',who:'all'};
+const SUIVI_CONV_RX=/revoir|relire|fusion|compl[eé]t|priorit|à faire|a faire|todo|bosser|finir|travail/i;
+function suiviConvType(n){return /fusion/i.test(n)?'fusion':/compl[eé]t/i.test(n)?'completer':/revoir|relire/i.test(n)?'revoir':'autre';}
+function suiviConvert(c){const ty=suiviConvType(c.name),prio=/priorit|d.abord|urgent|premier/i.test(c.name)?1:2,ids=collItems(c).map(x=>x.id);let n=0;
+  ids.forEach(id=>{if(suivi.some(x=>x.ent===id&&!x.lib&&suiviVisible(x)&&suiviOpen(x)&&x.t.type===ty&&(ty!=='autre'||x.body===c.name)))return;
+    suivi.push(sanitizeSuiviItem({id:uid('s'),ent:id,k:'task',lib:null,body:ty==='autre'?c.name:'',author:suiviAuthor(),t:{type:ty,prio},at:Date.now(),dirty:true}));n++;});
+  suiviSave();return n;}
+function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!suiviEnt(x.ent)&&(W.who==='all'||(W.who==='me'?!x.lib:!!x.lib));
+  const all=suivi.filter(keep),open=all.filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at),done=all.filter(x=>x.t.done).sort((a,b)=>b.t.done-a.t.done);
+  const seg=(attr,cur,opts)=>`<div class="su-chips" role="group">${opts.map(([v,l])=>`<button type="button" class="mdb-chip${cur===v?' on':''}" ${attr}="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
+  const nMe=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&!x.lib&&suiviEnt(x.ent)).length,nEq=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.lib&&suiviEnt(x.ent)).length;
+  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord':'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
+    +`<div class="su-bar">${seg('data-suby',W.by,[['prio','Par priorité'],['ent','Par élément']])}${seg('data-suwho',W.who,[['me','Moi · '+nMe],['team','Équipe · '+nEq],['all','Tout']])}</div>`;
+  if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou une référence : « Suivi » › « ＋ Tâche ».</div>`;
+  else if(W.by==='prio')[1,2,3].forEach(p=>{const g=open.filter(x=>x.t.prio===p);if(g.length)h+=`<div class="su-gh${p===1?' p1':''}">${SUIVI_PRIO[p]} · ${g.length}</div><div class="su-card">${g.map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div>`;});
+  else{const by=new Map();open.forEach(x=>{if(!by.has(x.ent))by.set(x.ent,[]);by.get(x.ent).push(x);});
+    h+=[...by.entries()].map(([id,g])=>{const e=suiviEnt(id);
+      return `<div class="su-card"><div class="su-card-h"><span><b>${esc(suiviEntTitle(id))}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Référence'} · ${esc(e&&e.library?(libName(e.library)||'Partagée'):'Perso')} · ${nb(g.length,'tâche')}</span></span><button type="button" class="linkbtn" data-sugo="${esc(id)}">Ouvrir ›</button></div>${g.map(x=>suiviTaskRowHtml(x)).join('')}</div>`;}).join('');}
+  if(done.length)h+=`<details class="su-done su-hist"><summary>Fait · ${done.length}</summary><div class="su-card">${done.slice(0,200).map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div></details>`;
+  const conv=colls.filter(c=>SUIVI_CONV_RX.test(c.name)&&collItems(c).length);
+  if(conv.length)h+=`<div class="su-conv"><div class="su-fl">Des collections qui ressemblent à une liste de travail</div>${conv.map(c=>`<div class="su-conv-r"><span>« ${esc(c.name)} » · ${nb(collItems(c).length,'élément')}</span><button type="button" class="btn sm" data-suconv="${esc(c.id)}">Convertir en tâches</button></div>`).join('')}<p class="hint">Chaque élément reçoit une tâche « ${'À revoir'} », « À fusionner », « À compléter »… selon le nom ; la collection reste — supprimez-la ensuite si elle ne sert plus.</p></div>`;
+  return h;}
+function suiviOpenView(){document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');}
+function suiviRepaint(){
+  if(suiviModal.classList.contains('on')){const v=document.getElementById('suiviView'),y=v.scrollTop;v.innerHTML=suiviViewHtml();v.scrollTop=y;}
+  document.querySelectorAll('#main .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false);if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
+  document.querySelectorAll('[data-sudoor]').forEach(b=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;const c=b.querySelector('.hs-n,.su-dn');if(c)c.textContent=n?String(n):'';});
+  if(state.view==='library'&&homeTab()==='biblio')render();}
+bindModalDismiss(suiviModal,()=>suiviModal.classList.remove('on'));
+// UN écouteur délégué pour tout le suivi (bloc de lecture, « À faire », portes) : les vues se re-rendent, lui reste.
+document.addEventListener('click',async e=>{const t=e.target&&e.target.closest?e.target:null;if(!t)return;
+  const nw=t.closest('[data-sunew]');if(nw){const b=nw.closest('[data-suent]');if(b)suiviEdOpen({ent:b.dataset.suent,k:nw.dataset.sunew});return;}
+  const dn=t.closest('[data-sudone]');if(dn&&!dn.disabled){const x=suivi.find(y=>y.id===dn.dataset.sudone);if(x&&suiviCanEdit(x)){suiviDone(x,!x.t.done);suiviRepaint();toast(x.t.done?'Rouverte.':'Fait'+(x.lib?' — pour toute l’équipe.':'.'),2500,true);}return;}
+  const ed=t.closest('[data-suedit]');if(ed){const x=suivi.find(y=>y.id===ed.dataset.suedit);if(x&&suiviCanEdit(x))suiviEdOpen({ent:x.ent,x});return;}
+  if(t.closest('[data-sudoor]')){e.preventDefault();suiviOpenView();return;}
+  const by=t.closest('[data-suby]');if(by){_svv.by=by.dataset.suby;suiviRepaint();return;}
+  const wh=t.closest('[data-suwho]');if(wh){_svv.who=wh.dataset.suwho;suiviRepaint();return;}
+  const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
+  const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;const n=suiviConvert(c);suiviRepaint();
+    toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);}});
 const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
 const collHas=(cid,id)=>{const c=collById(cid);return !!c&&c.ids.indexOf(id)>=0;};
 // Filtre de l'accueil : `state.coll` vide = tout ; sinon les seuls éléments rangés dans la collection.
@@ -16066,11 +16293,13 @@ function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_P
       c.top?{val:'top',name:'Ne plus garder en tête',sub:'elle suit l’ordre des plus récentes',ic:uiIcon('bookmark',18)}
         :{val:'top',name:'Garder en tête de l’accueil',sub:'toujours dans « Vos collections »',ic:uiIcon('bookmark',18,{cls:'tic coll-top'})}]
       .concat(perdus?[{val:'clean',name:'Retirer les indisponibles',sub:nb(perdus,'élément')+' supprimé'+(perdus>1?'s':'')+' ou dont l’accès a été retiré',ic:uiIcon('undo',18)}]:[])
+      .concat(collItems(c).length?[{val:'conv',name:'Convertir en tâches',sub:'une tâche par élément, la collection reste',ic:uiIcon('task',18)}]:[])   // A613 §4
       .concat([{val:'del',name:'Supprimer la collection…',sub:'les aides restent où elles sont',ic:uiIcon('trash',18),danger:true}]),
     onPick:async v=>{
       if(v==='top'){if(c.top)delete c.top;else c.top=true;collsSave();render();toast(c.top?'« '+c.name+' » reste en tête de l’accueil.':'« '+c.name+' » suit l’ordre des plus récentes.');}
       else if(v==='ren'){const name=await collAsk('Renommer',c.name);if(name){c.name=sstr(name,60).trim()||c.name;colls.sort(collCmp);collsSave();render();}/* A592 : renommer re-range */}
       else if(v==='clean'){const ok=new Set(collItems(c).map(x=>x.id));c.ids=c.ids.filter(id=>ok.has(id));collsSave();render();}
+      else if(v==='conv'){const n=suiviConvert(c);toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' — retrouvez-les dans « À faire ».':'Ces éléments ont déjà leur tâche.',4500,true);}
       else if(v==='del'&&await confirmDlg('La collection « '+c.name+' » disparaît ; ses '+nb(collItems(c).length,'élément')+' restent dans leurs bibliothèques.',{title:'Supprimer la collection ?',yes:'Supprimer',danger:true})){
         colls=colls.filter(x=>x!==c);collsSave();state.coll=null;render();toast('Collection supprimée — aucune aide n’a été touchée.');}}});}
 /* Au téléphone : une RANGÉE de collections sous l'Accès direct (même dessin que les puces de catégorie), et
@@ -16120,6 +16349,7 @@ function homeSideHtml(){
       <nav class="hs-nav" aria-label="Sections">
         ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Accueil',mark:uiIcon('home',16),attrs:'data-navaides'+cur('aides')})}${''/* A606 : l'accueil est un lanceur, il n'a plus de compte */}${''/* A534 : les sections disent leur compte (maquette) */}
         ${hsRow({on:tab==='biblio',cls:'hs-navrow',label:'Bibliothèques',mark:uiIcon('book',16),tail:`<span class="hs-n">${bibGroups(homeVis(),true).filter(g=>g.key!=null).length}</span>`,attrs:'data-navbiblio'+cur('biblio')})}
+        ${(()=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;return hsRow({on:false,cls:'hs-navrow',label:'À faire',mark:uiIcon('task',16),tail:`<span class="hs-n">${n||''}</span>`,attrs:'data-sudoor'});})()}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot+(sessions.length?`<span class="hs-n">${sessions.length}</span>`:''),attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
@@ -17103,12 +17333,16 @@ function bindSelLongPress(cfg){
     row.onpointerup=stop;row.onpointercancel=stop;row.onpointerleave=stop;});}
 /* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
+// A613 : la porte « À faire » de l'onglet Moi (au téléphone ; au bureau, la rangée de la colonne).
+function suiviDoorHtml(){const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;
+  return `<button type="button" class="su-door" data-sudoor>${uiIcon('task',20)}<span class="su-door-t">À faire<span class="su-s">${n?'les tâches de vos aides et références':'notes et tâches de travail'}</span></span><span class="su-dn">${n||''}</span>${uiIcon('chev',16)}</button>`;}
 function renderHomeTab(cfg){const t=homeTab();
   rescueFooter();   // A606 : le pied vit dans la colonne — le mettre à l'abri AVANT d'écraser `main` (cf. rescueFooter)
   if(t==='biblio'){renderCatalogue(cfg);return;}   // A601 : le catalogue
   const tn=tabNavOn();
   main.innerHTML=(tn?'':homeSideHtml())+`<div class="home-main"><section class="hv-page${t==='admin'?' adm-page':''}">`
     +(tn&&t!=='admin'?pgHeadHtml(t==='sessions'?'Sessions':'Moi'):'')
+    +(tn&&t==='me'?suiviDoorHtml():'')
     +(tn&&t!=='admin'?(t==='sessions'?'<div id="sessView"></div>':'<div id="meView"></div>'):
      t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
       :t==='admin'?`<button type="button" class="adm-back" data-admmoi>${uiIcon('chev',18)}Moi</button><h2 class="hv-title">Administration</h2><div id="admView"></div>`   // A494 : une page ouverte depuis Moi, pas une entrée de la colonne
@@ -17124,7 +17358,7 @@ function renderHomeTab(cfg){const t=homeTab();
    rien retirer à l'accueil (lot 1 d'A600). Son état est À LUI (`state.cnav` = où l'on est, `state.ctf` = les filtres de
    « Tout ») : l'accueil garde ses filtres, et passer d'un onglet à l'autre ne les mélange jamais. Les rangées
    d'éléments sont celles de l'accueil (`cfg.row`), la sélection est celle de l'accueil (A599). */
-const CTG_TYPES=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles'],['rev','À relire']];
+const CTG_TYPES=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles'],['rev','À relire'],['todo','Avec des tâches']];   // A613 : « Avec des tâches »
 const ctgRelire=x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt);
 const ctgLibKey=x=>(typeof x.library==='string')?x.library:'';
 function ctgCatId(x){const c=catOf(x);return c?c.id:'';}
@@ -17136,10 +17370,11 @@ function ctgRowHtml(attrs,label,o){o=o||{};
     +`<span class="ctg-n">${o.n!=null?o.n:''}</span><span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button>`;}
 function ctgItems(){const N=state.cnav||{},F=state.ctf||{};let a=homeVis();
   if(N.tout){
-    if(F.type==='fiches')a=a.filter(x=>fiches.indexOf(x)>=0);else if(F.type==='protocols')a=a.filter(x=>protocols.indexOf(x)>=0);else if(F.type==='rev')a=a.filter(ctgRelire);
+    if(F.type==='fiches')a=a.filter(x=>fiches.indexOf(x)>=0);else if(F.type==='protocols')a=a.filter(x=>protocols.indexOf(x)>=0);else if(F.type==='rev')a=a.filter(ctgRelire);else if(F.type==='todo')a=a.filter(x=>suiviOpenOf(x.id).length);
     if(F.lib!=null)a=a.filter(x=>ctgLibKey(x)===F.lib);
     if(F.cat)a=a.filter(x=>txNorm(catName(x))===F.cat);}
   else a=a.filter(x=>ctgLibKey(x)===N.lib&&ctgCatId(x)===N.cat);
+  if(N.tout&&F.sort==='todo'){const k=x=>{const o=suiviOpenOf(x.id);return o.length?o[0].t.prio*1000-o.length:9999;};return a.slice().sort((p,q)=>k(p)-k(q)||byTitle(p,q));}
   const srt=(N.tout&&F.sort==='recent')?((p,q)=>String(q.validatedAt||'').localeCompare(String(p.validatedAt||''))||byTitle(p,q)):byTitle;
   return a.slice().sort(srt);}
 function renderCatalogue(cfg){
@@ -17242,7 +17477,7 @@ function ctgFiltresHtml(){const F=state.ctf;
     +lbl('type',F.type!=='all'?(CTG_TYPES.find(t=>t[0]===F.type)||[])[1]:'')
     +lbl('lib',F.lib!=null?homeLibLblOf(F.lib):'')
     +lbl('cat',F.cat?(catsUtilesAll().find(c=>txNorm(c.name)===F.cat)||{name:F.cat}).name:'')
-    +lbl('sort',F.sort==='recent'?'Plus récentes':'A → Z',F.sort==='recent')
+    +lbl('sort',F.sort==='recent'?'Plus récentes':F.sort==='todo'?'Tâches d’abord':'A → Z',F.sort==='recent'||F.sort==='todo')
     +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')+`</div>`;}
 /* Le câblage d'une liste d'éléments du catalogue : ouvrir (ou cocher en sélection), cases, barre, filtres. */
 function ctgBindListe(cfg,vis,F){const redo=cfg.rerender;
@@ -17260,15 +17495,15 @@ const homeLibLblOf=k=>k===''?'Perso':(libName(k)||'Bibliothèque partagée');
 function ctgListHtml(cfg,it,vide,dedans){
   if(!it.length)return `<div class="empty"><b>Aucun résultat</b>${esc(vide)}</div>`;
   // `dedans` vaut 'lib' pour une bibliothèque seule : la bibliothèque ne se redit pas, la catégorie, si.
-  let h;_rowCtx={coll:null,tile:false,live:false,ctgLib:!!dedans};try{h=it.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false,live:false};}
+  let h;_rowCtx={coll:null,tile:false,live:false,ctgLib:!!dedans,ctg:true};try{h=it.map(cfg.row).join('');}finally{_rowCtx={coll:null,tile:false,live:false};}
   return `<div class="dir-wrap"><div class="dir-book${state.homeCompact?' compact':''}${dedans===true?' by-cat':''}"><div class="dir-g"><div class="dir-grid">${h}</div></div></div></div>`;}
 function ctgFilterPick(b,redo){const F=state.ctf,k=b.dataset.ctgf,vis=homeVis();
   const set=v=>{if(k==='lib')F.lib=v==='*'?null:v;else if(k==='cat')F.cat=v==='*'?'':v;else F[k]=v;redo();};
-  const opts=k==='type'?CTG_TYPES.map(([v,n])=>({val:v,name:n,cnt:v==='all'?vis.length:v==='fiches'?vis.filter(x=>fiches.indexOf(x)>=0).length:v==='protocols'?vis.filter(x=>protocols.indexOf(x)>=0).length:vis.filter(ctgRelire).length,dot:false}))
+  const opts=k==='type'?CTG_TYPES.map(([v,n])=>({val:v,name:n,cnt:v==='all'?vis.length:v==='fiches'?vis.filter(x=>fiches.indexOf(x)>=0).length:v==='protocols'?vis.filter(x=>protocols.indexOf(x)>=0).length:v==='todo'?vis.filter(x=>suiviOpenOf(x.id).length).length:vis.filter(ctgRelire).length,dot:false}))
     :k==='lib'?[{val:'*',name:'Toutes',cnt:vis.length,dot:false}].concat(bibGroups(vis,true).filter(g=>g.key!=null).map(g=>({val:g.key,name:g.L,sub:g.lib?libWho(g):'vous seul',cnt:g.items.length,dot:false})))
     :k==='cat'?[{val:'*',name:'Toutes les catégories',dot:false}].concat((()=>{const m=new Map();vis.forEach(x=>{const c=catOf(x);if(!c)return;const n=txNorm(c.name);const g=m.get(n)||{n,c,k:0};g.k++;m.set(n,g);});
         return [...m.values()].sort((a,c)=>byCatName(a.c,c.c)).map(g=>({val:g.n,name:g.c.name,col:safeColor(g.c.color),cnt:g.k}));})())
-    :[{val:'az',name:'A → Z',dot:false},{val:'recent',name:'Plus récentes',dot:false}];
+    :[{val:'az',name:'A → Z',dot:false},{val:'recent',name:'Plus récentes',dot:false},{val:'todo',name:'Tâches d’abord',dot:false}];
   const cur=k==='lib'?(F.lib==null?'*':F.lib):k==='cat'?(F.cat||'*'):F[k];
   openPickMenu(document.body,{aria:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],sheet:tabNavOn(),trigger:b,value:cur,title:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],
     seuilFiltre:12,filtreAuToucher:true,options:opts,onPick:set});}
@@ -17636,7 +17871,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         ${selCkHtml(f)||dirAvHtml(cc)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
-          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}${suiviRowHtml(f.id)}</span>
           ${where?`<span class="lv-w">${esc(where)}</span>`:''}
           ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
         </div>
@@ -17724,7 +17959,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
         ${selCkHtml(p)||dirAvHtml(cc)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(p.id)}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
-          <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}${collAlsoHtml(p.id)}</span>${dirStateHtml(p,false,false)}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}${collAlsoHtml(p.id)}</span>${dirStateHtml(p,false,false)}${suiviRowHtml(p.id)}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q)+docSnipHtml(p):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${esc(p.id)}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
@@ -18183,6 +18418,7 @@ function renderProtocolRead(){
     ${rel.length?`<div class="links"><b>Voir aussi (${rel.length})</b>${relRowHtml(rel)}</div>`:''}
     ${(()=>{const refs=clean(p.sources||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
+    ${preview?'':suiviBlockHtml(p,false)}
     </div></div>`;
   /* M5 (v5.0.0, maquettes proto-r4) — LE SOMMAIRE D'UNE RÉFÉRENCE. CONSTRUIT APRÈS LE RENDU,
      jamais dans `mdRender` — le parseur reste PUR et NON interactif ; les ancres sont posées ici,
@@ -22805,7 +23041,8 @@ function renderRead(){
     ${(useSv||fsAvantBouton||agirDabord)?'':forgetStrip}
     ${pathH}
     ${avantSession?'<div class="pre-tail">'+localH:''}
-    ${preview?'':noteBlockHtml(f.id,started)}
+    ${preview||!((notes[f.id]&&notes[f.id].t)||state.noteEdit)?'':noteBlockHtml(f.id,started)}${''/* A613 : une note s'ajoute par « Suivi » ; la note personnelle d'avant reste lisible et modifiable */}
+    ${preview?'':suiviBlockHtml(f,started)}
     ${avantSession?'</div>':''}
     ${gridClose}`;
   if(_railY){const s=document.querySelector('.read-side');if(s)s.scrollTop=_railY;}
@@ -30973,7 +31210,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold'];
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -32927,6 +33164,7 @@ const Sync={
       await this._reconcileShared();
       await this._syncCats();
       await this._syncNotes();
+      try{await this._syncSuivi();}catch(e){}   // A613 : un échec du suivi ne prive pas le reste de la synchro
       // Documents PDF (bucket Storage) : suppressions distantes en attente, upload des blobs
       // modifiés, puis téléchargement en arrière-plan des documents manquants. Un échec Storage
       // ne prive pas le reste de la synchro (re-levé à la fin -> pastille + retry).
@@ -33315,6 +33553,27 @@ const Sync={
     // Re-rendu UNIQUEMENT si la note de la fiche ouverte a changé À DISTANCE, en lecture seule
     // (en édition, on ne touche à rien : pas de vol de focus, la version tapée ici gagnera).
     if(openChanged&&state.view==='read'&&!state.noteEdit)render();},
+  /* A613 — SUIVI : une ligne par note ou tâche (`aid_followups`). PULL incrémental (curseur `updated_at`, marge
+     d'une minute : deux écritures à la même seconde ne se perdent pas), fusion LWW par objet (`suiviMerge` —
+     une modification en attente ici gagne toujours), puis PUSH des objets marqués. Le `dirty` n'est effacé qu'aux
+     objets restés identiques pendant l'envoi. Les objets d'une bibliothèque quittée ne sont plus montrés
+     (`suiviVisible`) et sont oubliés ici ; le serveur reste l'autorité (RLS). */
+  async _syncSuivi(){
+    const cur=localStorage.getItem(spaceKey('ac-suivi-cursor'))||'';
+    let rows=null;try{rows=await rest('GET','/rest/v1/aid_followups?select=id,library_id,entity_id,kind,body,task,author,deleted,updated_at&order=updated_at.asc&limit=1000'+(cur?'&updated_at=gte.'+encodeURIComponent(cur):''))||[];}catch(e){rows=null;}
+    let changed=false;
+    if(rows){const rem=sanitizeSuivi(rows.map(r=>({id:r.id,lib:r.library_id||null,ent:r.entity_id,k:r.kind,body:r.body,t:r.task,author:r.author,del:r.deleted===true,at:Date.parse(r.updated_at)||0})));
+      const m=suiviMerge(suivi,rem);if(m.changed){suivi=m.list;changed=true;}
+      const last=rows.length?rows[rows.length-1].updated_at:null;
+      if(last){const d=new Date((Date.parse(last)||0)-60000).toISOString();try{localStorage.setItem(spaceKey('ac-suivi-cursor'),d);}catch(e){}}}
+    const libs=new Set(myLibraries.map(l=>l.id)),n0=suivi.length;suivi=suivi.filter(x=>!x.lib||libs.has(x.lib));if(suivi.length!==n0)changed=true;
+    const snap=suivi.filter(x=>x.dirty&&(!x.lib||canEditScope(x.lib))).map(x=>({id:x.id,at:x.at}));
+    if(snap.length){const by=new Map(suivi.map(x=>[x.id,x]));
+      const up=snap.map(z=>{const x=by.get(z.id);return {id:x.id,library_id:x.lib,entity_id:x.ent,kind:x.k,body:x.body,task:x.k==='task'?x.t:null,author:x.author||'',deleted:!!x.del,updated_at:new Date(x.at||Date.now()).toISOString()};});
+      await rest('POST','/rest/v1/aid_followups',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      snap.forEach(z=>{const x=suivi.find(y=>y.id===z.id);if(x&&x.dirty&&x.at===z.at)delete x.dirty;});changed=true;}
+    if(changed){try{localStorage.setItem(spaceKey('ac-suivi'),JSON.stringify(suivi));}catch(e){}
+      if(state.view==='library'||((state.view==='read'||state.view==='protocolRead')&&!suiviModal.classList.contains('on')))suiviRepaint();}},
   /* ===== Sync · réconciliation des partagés + profil (_reconcileShared/loadProfile) ===== */
   // Réconciliation des fiches PARTAGÉES : retire localement celles devenues inaccessibles (fiche
   // déplacée hors de la biblio, membre retiré, biblio supprimée). Les fiches Perso ne sont jamais
@@ -35945,7 +36204,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={sinceTxt,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
-    txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
+    txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,

@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.107.0] — 2026-11-08
+Le suivi : des notes et des tâches sur chaque aide et chaque référence, pour vous ou pour l'équipe (A613).
+**Schéma serveur à rejouer** (`supabase/schema.sql` : nouvelle table `aid_followups`, puis `supabase/rls-tests.sql`).
+- **« Suivi »** en bas d'une aide ou d'une référence : « ＋ Note », « ＋ Tâche ». Une note peut être **pour vous**
+  (privée) ou **pour l'équipe** de sa bibliothèque — les spécificités de votre centre, lues par tous les membres et
+  modifiables par tous les éditeurs. Une tâche : à revoir, à fusionner avec une autre aide, à confronter à une
+  référence ou à une reco, à compléter, autre ; une priorité (D'abord · Ensuite · Plus tard) et une échéance.
+- **« À faire »** (onglet Moi au téléphone, colonne de gauche sur ordinateur) : toutes vos tâches **par priorité**,
+  ou **par élément** pour voir ce qu'il reste sur chaque aide ; Moi · Équipe · Tout ; l'historique « Fait » est gardé.
+- **Catalogue « Tout »** : filtre « Avec des tâches », tri « Tâches d'abord », et sur chaque rangée le nombre de tâches
+  et la plus urgente.
+- **Vos collections « À revoir », « À fusionner »…** se convertissent en tâches d'un geste (menu ⋯ de la collection,
+  ou « À faire ») ; la collection reste.
+- **Pendant une session**, seules les notes restent, repliées ; aucune tâche ne s'affiche.
+- Une note s'ajoute désormais par « Suivi » ; votre note personnelle existante reste lisible et modifiable.
+
 ## [5.106.0] — 2026-11-08
 Déplacer plusieurs blocs d'un coup (A612). Rien à rejouer côté serveur.
 - **« ⠿ Déplacer » dans la barre de sélection des blocs** : les blocs sélectionnés, même non voisins, se déplacent
@@ -240,9 +256,3 @@ Les images d'une référence en grille, chacune avec sa feuille (A583). Rien à 
 - **« Image » entre dans le bouton « Ajouter »** de la référence. Déposer une image n'importe où dans l'éditeur et
   l'outil image de la barre marchent toujours.
 - Les documents PDF restent au-dessus du texte : c'est là qu'ils s'affichent en lecture.
-
-## [5.90.2] — 2026-11-06
-Un correctif de la Page en session (A582). Rien à rejouer côté serveur.
-- **En session, zoomer la Page « Tout voir » ne dérange plus la barre d'échelle** : quand la feuille dépasse, « la
-  feuille dépasse à droite » s'affiche sous la barre, à droite, et « + » et « 1:1 » restent à leur place — comme dans
-  la fenêtre « Page » depuis la 5.90.1.

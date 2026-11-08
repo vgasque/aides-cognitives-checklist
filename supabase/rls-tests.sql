@@ -284,6 +284,40 @@ begin
   select count(*) into v_cnt from public.cognitive_aids where id='f-other';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un membre de lib-team voit une fiche de lib-other'; end if;
 
+  -- 8.4bis A613 — SUIVI : une note d'ÉQUIPE se lit par les membres, s'écrit par TOUS les éditeurs (pas
+  -- seulement son auteur), jamais par un lecteur ni un non-membre ; une note PERSO reste à son auteur.
+  -- (Erin est éditrice de lib-team, Frank lecteur, Gina non-membre ; Alice n'est pas membre de lib-team.)
+  insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-team','lib-team','f-team','note','Appel trauma leader','erin');
+  insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-perso',null,'f-team','task','À revoir','erin');
+  perform set_config('request.jwt.claims', json_build_object('sub',frank,'role','authenticated')::text, true);
+  select count(*) into v_cnt from public.aid_followups where id='fu-team';
+  if v_cnt <> 1 then raise exception 'ÉCHEC : un lecteur ne voit pas une note d''équipe de sa bibliothèque'; end if;
+  select count(*) into v_cnt from public.aid_followups where id='fu-perso';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un membre voit le suivi PERSO d''un autre'; end if;
+  update public.aid_followups set body='hack' where id='fu-team';   -- lecteur : RLS -> 0 ligne
+  begin
+    insert into public.aid_followups(id,library_id,entity_id,kind,body) values ('fu-frank','lib-team','f-team','note','x');
+    raise exception 'ÉCHEC : un lecteur a pu écrire une note d''équipe';
+  exception when insufficient_privilege then null; end;
+  perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);
+  select count(*) into v_cnt from public.aid_followups where id='fu-team';
+  if v_cnt <> 0 then raise exception 'ÉCHEC : un non-membre voit une note d''équipe'; end if;
+  reset role;
+  select body into v_hack from public.aid_followups where id='fu-team';
+  if v_hack <> 'Appel trauma leader' then raise exception 'ÉCHEC : un lecteur a pu modifier une note d''équipe'; end if;
+  -- Un AUTRE éditeur (Alice, ajoutée éditrice) modifie la note d'Erin : voulu (A613, « modifiable par tous les éditeurs »).
+  insert into public.memberships(user_id,library_id,role) values (alice,'lib-team','editor')
+    on conflict (user_id,library_id) do update set role='editor';
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  update public.aid_followups set body='Appel trauma leader au 4 22 31' where id='fu-team';
+  reset role;
+  select body into v_hack from public.aid_followups where id='fu-team';
+  if v_hack <> 'Appel trauma leader au 4 22 31' then raise exception 'ÉCHEC : un éditeur ne peut pas modifier la note d''équipe d''un autre'; end if;
+  delete from public.memberships where user_id=alice and library_id='lib-team';
+  perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
+  set local role authenticated;
+
   -- 8.5 invite_member : réservé à un admin de la bibliothèque (un editor est refusé).
   begin
     perform public.invite_member('lib-team','frank@test.local','editor');
