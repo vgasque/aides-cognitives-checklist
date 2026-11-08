@@ -2606,6 +2606,43 @@
   .hc-row[aria-expanded="true"]{font-weight:700}
   .hc-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .hc-row.hc-all{color:var(--act)}
+  /* ══ A601 — LE CATALOGUE (lot 1 d'A600) : des rangées de navigation groupées en cartes (le dessin des rangées de
+     collection, A587), un retour, et les filtres de « Tout » en puces qui ouvrent leur feuille. ══ */
+  .ctg-book{margin:0 0 16px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--work);box-shadow:var(--shadow-work);overflow:hidden}
+  .ctg-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:0;padding:8px 14px 8px 16px;border:0;
+    background:none;background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
+    background-position:right bottom;background-size:calc(100% - 16px) 1px;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+  .ctg-book>.ctg-row:last-child{background-image:none}
+  .ctg-row:hover{background-color:var(--amb-2)}
+  .ctg-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .ctg-ic{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;color:var(--act)}
+  .ctg-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .ctg-l{font-size:var(--t-item);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ctg-s{font-size:var(--t-meta);color:var(--ink-2)}
+  .ctg-w{flex:none;font-size:var(--t-meta);font-weight:700;color:var(--warn)}   /* △ + mot : le registre ambre de « à relire » (règle 8) */
+  .ctg-n{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .ctg-h{margin:8px 4px 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .ctg-eye{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .ctg-bk{transform:rotate(180deg)}
+  .ctg-th{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .ctg-th .hv-title{margin:0}
+  .ctg-sub{font-size:var(--t-body);color:var(--ink-2)}
+  .ctg-sp{flex:1}
+  .ctg-page .pg-sub{margin-bottom:12px}
+  .ctg-fs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .ctg-f{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:999px;
+    background:var(--work);font:inherit;font-size:var(--t-body);font-weight:600;color:var(--ink);cursor:pointer}
+  .ctg-f.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
+  .ctg-f svg{transform:rotate(90deg)}
+  .ctg-f:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .ctg-raz{min-height:36px}
+  /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
+  .tb-tabs{touch-action:none}
+  .tb-tabs.drag .tb-tab.on:not(.pre){background:none;color:var(--ink)}
+  /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
+     de la largeur de son mot, le reste se partage. */
+  .tb-tab{flex:1 1 auto;padding:0 8px}
+  .tb-tab.pre{background:var(--act);color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
   .hc-ic{flex:none;display:inline-flex;color:var(--act)}
   .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -9327,6 +9327,64 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
    Au téléphone elle remplace la barre d'onglets (en bas), « Annuler » et « Tout cocher » en haut ; « Collection… » et
    « Exporter… » sur la ligne, ⋯ porte le reste (dont Supprimer) ; si le compte ne tient pas entier, « Actions ▾ » porte
    les cinq. En large, en tête, matière système aussi. Le fond est la matière système dans les deux thèmes. */
+/* ══ A601 — LE CATALOGUE (lot 1 d'A600) ET LE DOCK QU'ON GLISSE ═══════════════════════════════════════════════════════
+   Onglet « Bibliothèques » (téléphone) / rangée de la colonne (large) : racine (« Tout » + les bibliothèques), une
+   bibliothèque (SES catégories), une catégorie (ses éléments, sans redire bibliothèque ni catégorie), « Tout » filtrable
+   et sélectionnable ; l'état de l'accueil n'est pas touché ; le dock se glisse d'un onglet à l'autre. */
+await sec('Accueil · A601 catalogue et dock glissé', async () => {
+  const decor=async()=>{myLibraries=[{id:'smur',name:'SMUR 75',role:'editor'},{id:'bloc',name:'Bloc central',role:'viewer'}];
+    categories.push({id:'kc',name:'Cardio',color:'#c2410c',library:'smur'},{id:'kp',name:'Pédiatrie',color:'#7c3aed',library:'smur'},{id:'ka',name:'Anesthésie',color:'#1d4ed8',library:'bloc'});
+    const base=JSON.parse(JSON.stringify(fiches[0]));
+    [['Arrêt cardiaque adulte','smur','kc'],['Bradycardie','smur','kc'],['ACR pédiatrique','smur','kp'],['Induction','bloc','ka'],['Intubation difficile','bloc','ka']]
+      .forEach(([t,l,c],i)=>{const n=JSON.parse(JSON.stringify(base));n.id='c601-'+i;n.title=t;n.library=l;n.category=c;n.status='validated';n.validatedAt=new Date().toISOString();fiches.push(migrate(n));});
+    state.homeLib=null;state.cat='';render();await __acCalme(300);};
+  for(const W of [390,1280]){
+    const ctx=await br.newContext({viewport:{width:W,height:W<780?844:860},hasTouch:W<780,isMobile:W<780});const page=await ctx.newPage();
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await page.evaluate(decor);
+    const r=await page.evaluate(async W=>{const qa=s=>[...document.querySelectorAll(s)],o={};const q=s=>{const e=document.querySelector(s);if(!e)o.manque=(o.manque||'')+s+' ';return e||{click(){},textContent:'',dataset:{}};};
+      const porte=W<780?q('.tb-tab[data-tab="biblio"]'):q('[data-navbiblio]');o.porte=!!porte;
+      if(W<780){const sp=porte.querySelector('span');o.motEntier=sp.scrollWidth<=sp.clientWidth+1;}
+      porte.click();await __acCalme(300);
+      o.racine={tout:!!q('[data-ctgtout]'),libs:qa('[data-ctglib]').map(b=>b.dataset.ctglib).sort().join()};
+      q('[data-ctglib="smur"]').click();await __acCalme(250);
+      o.smur={titre:(q('.pg-ttl,.ctg-th .hv-title')||{}).textContent,cats:qa('[data-ctgcat]').map(b=>b.dataset.ctgcat).join()};
+      q('[data-ctgcat="kc"]').click();await __acCalme(250);
+      o.cardio={rangs:qa('[data-open]').length,libtag:qa('.dir-book .libtag').length,parCat:!!q('.dir-book.by-cat')};
+      q('[data-ctgback]').click();await __acCalme(200);o.retour1=(q('.pg-ttl,.ctg-th .hv-title')||{}).textContent;
+      q('[data-ctgback]').click();await __acCalme(200);q('[data-ctgtout]').click();await __acCalme(250);
+      o.tout={n:qa('[data-open]').length,filtres:qa('[data-ctgf]').map(b=>b.dataset.ctgf).join()};
+      q('[data-ctgf="lib"]').click();await __acCalme(300);q('.popmenu [data-pickopt="bloc"]').click();await __acCalme(300);
+      o.toutBloc=qa('[data-open]').length;o.lectureSansSel=!document.getElementById('selTog');   // « Bloc central » en lecture : rien à sélectionner
+      q('[data-ctgf="lib"]').click();await __acCalme(300);q('.popmenu [data-pickopt="smur"]').click();await __acCalme(300);
+      q('#selTog').click();await __acCalme(250);qa('.dir-ck[data-selid]')[0]?.click();await __acCalme(200);
+      o.sel={barre:!!document.querySelector('.sel-bar'),compte:(document.getElementById('selN')||{}).textContent};
+      document.getElementById('selCancel')?.click();await __acCalme(200);
+      o.accueil={lib:state.homeLib,cat:state.cat,coll:state.coll};
+      return o;},W);
+    const k=`${W} px`;
+    t(`${k} : A601 — la porte du catalogue existe${W<780?', son mot n’est pas rogné':''}`,r.porte&&(W>=780||r.motEntier),JSON.stringify(r));
+    t(`${k} : A601 — racine : « Tout » puis les bibliothèques`,r.racine.tout&&r.racine.libs===',bloc,smur',JSON.stringify(r.racine));
+    t(`${k} : A601 — une bibliothèque montre SES catégories`,r.smur.titre==='SMUR 75'&&r.smur.cats==='kc,kp',JSON.stringify(r.smur));
+    t(`${k} : A601 — une catégorie montre ses éléments, sans redire bibliothèque ni catégorie`,r.cardio.rangs===2&&r.cardio.libtag===0&&r.cardio.parCat,JSON.stringify(r.cardio));
+    t(`${k} : A601 — le retour remonte d'un niveau`,r.retour1==='SMUR 75',String(r.retour1));
+    t(`${k} : A601 — « Tout » : tous les éléments, filtres Type · Bibliothèque · Catégorie · Trier ; le filtre agit`,r.tout.n>=7&&r.tout.filtres==='type,lib,cat,sort'&&r.toutBloc===2&&r.lectureSansSel&&!r.manque,JSON.stringify({t:r.tout,b:r.toutBloc,l:r.lectureSansSel,m:r.manque}));
+    t(`${k} : A601 — la sélection marche dans « Tout »`,r.sel.barre&&r.sel.compte==='1 coché',JSON.stringify(r.sel));
+    t(`${k} : A601 — l'accueil garde ses filtres (aucun mélange d'état)`,r.accueil.lib==null&&!r.accueil.cat&&!r.accueil.coll,JSON.stringify(r.accueil));
+    if(W<780){
+      // Le dock glissé : du doigt posé sur « Aides » jusqu'à « Moi », relâché → l'onglet Moi.
+      await page.evaluate(async()=>{setHomeTab('aides');await __acCalme(300);});
+      const a=await (await page.$('.tb-tab[data-tab="aides"]')).boundingBox(),m=await (await page.$('.tb-tab[data-tab="me"]')).boundingBox();
+      const cdp=await ctx.newCDPSession(page),y=a.y+a.height/2;
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:a.x+a.width/2,y}]});
+      for(const f of [0.25,0.5,0.75,1]){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a.x+a.width/2+(m.x+m.width/2-a.x-a.width/2)*f,y}]});await calme(page,40);}
+      const pendant=await page.evaluate(()=>document.querySelector('.tb-tab.pre')?.dataset.tab||'');
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await calme(page,400);
+      const apres=await page.evaluate(()=>homeTab());
+      t(`${k} : A601 — le dock se glisse : la pastille suit le doigt, l'onglet sous le doigt s'ouvre au relâchement`,pendant==='me'&&apres==='me',JSON.stringify({pendant,apres}));}
+    await ctx.close();}
+});
+
 await sec('Accueil · A599 barre de sélection', async () => {
   const mesure=async(page)=>page.evaluate(async()=>{const q=s=>document.querySelector(s);
     document.getElementById('selTog')?.click();await __acCalme(300);
