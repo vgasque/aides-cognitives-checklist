@@ -10995,6 +10995,31 @@ await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se ver
     await page.close();}
 });
 
+await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier » n’attend pas le réseau', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const p=migrateProtocol({id:'p634',title:'Lasso',body:'Premier paragraphe assez long.\n\nDeuxième paragraphe.\n\nTroisième paragraphe.\n\nQuatrième.',status:'draft'});protocols.push(p);await openProtocolEdit('p634');await __acCalme(600);});
+  const g=await page.evaluate(()=>{const c=document.getElementById('mdDoc').closest('.md-ed').getBoundingClientRect();return {c:{l:c.left},b:[...document.querySelectorAll('#mdDoc .mdb[data-mdb]')].map(b=>{const r=b.getBoundingClientRect();return {l:r.left,t:r.top,b:r.bottom};})};});
+  const n=async()=>page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb.sel').length);
+  await page.mouse.move(g.c.l+4,g.b[0].t+5);await page.mouse.down();await page.mouse.move(g.b[1].l+30,g.b[1].t+5,{steps:5});await page.mouse.up();await calme(page,200);
+  const cadre=await n(),porte=await page.evaluate(()=>{const d=document.getElementById('edAddOpenP');return d?getComputedStyle(d).visibility:'';});
+  await page.mouse.click(5,450);await calme(page,200);const dehors=await n();
+  await page.mouse.move(g.b[0].l+20,g.b[0].t+12);await page.mouse.down();await page.mouse.move(g.b[1].l+60,g.b[1].t+12,{steps:5});await page.mouse.up();await calme(page,300);
+  const texte=await page.evaluate(()=>({sel:document.querySelectorAll('#mdDoc .mdb.sel').length,txt:String(getSelection()).length}));
+  t('A634 · un glisser parti de la marge trace un cadre et prend les blocs touchés ; « Ajouter » s’efface pendant la sélection',cadre===2&&porte==='hidden',JSON.stringify({cadre,porte}));
+  t('A634 · un clic hors du document vide la sélection ; un glisser parti du TEXTE reste une sélection de texte',dehors===0&&texte.sel===0&&texte.txt>0,JSON.stringify({dehors,texte}));
+  // A635 : profil lent (1,5 s) — l'éditeur s'ouvre sans l'attendre ; un rôle retiré le referme sur la lecture.
+  const r=await page.evaluate(async()=>{myLibraries=[{id:'b9',name:'Équipe',role:'editor'}];const f=JSON.parse(JSON.stringify(fiches[0]));f.id='f635';f.library='b9';fiches.push(migrate(f));
+    const S={i:Auth.signedIn,o:Sync.online,l:Sync.loadProfile};Auth.signedIn=()=>true;Sync.online=()=>true;
+    Sync.loadProfile=()=>new Promise(ok=>setTimeout(()=>{myLibraries=[{id:'b9',name:'Équipe',role:'viewer'}];ok();},1500));   // horloge : le réseau lent est le témoin
+    const t0=performance.now();await openEdit('f635');const dt=performance.now()-t0,ouvert=state.view==='edit';
+    await new Promise(x=>setTimeout(x,1900));   // horloge : au-delà de la réponse du « serveur »
+    const o={dt:Math.round(dt),ouvert,ferme:state.view==='read'&&!state.draft};Auth.signedIn=S.i;Sync.online=S.o;Sync.loadProfile=S.l;return o;});
+  t('A635 · « Modifier » s’ouvre sans attendre le serveur (profil lent : < 500 ms) ; le rôle retiré entre-temps referme sur la lecture',r.ouvert&&r.dt<500&&r.ferme,JSON.stringify(r));
+  await page.close();
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
