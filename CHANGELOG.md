@@ -1,11 +1,12 @@
 # Journal des modifications
 
 ## [5.109.8] — 2026-11-08
-Éditeur de protocole : le suivi ne disparaît plus (A636). Rien à rejouer côté serveur.
+Éditeur de protocole : le suivi ne disparaît plus (A636) ; mise en garde des images (A637). Rien à rejouer côté serveur.
 - **Le volet « Suivi » de l'éditeur de protocole reste visible** : il disparaissait de la colonne de droite dès qu'on
   tapait dans le texte, et après un aller-retour « Mise en forme en direct ».
 - **Texte et aperçu côte à côte** : le suivi reste en bas de page, et la pastille « n tâches » paraît dans l'en-tête
   dès qu'il y a une note ou une tâche (elle l'ouvre sans quitter sa place), comme en lecture.
+- **« Une image hors texte sera retirée… »** ne s'affiche plus que s'il y a vraiment une image retirée du texte.
 
 ## [5.109.7] — 2026-11-08
 Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626), « À faire » et menus au bureau (A627-A631), « Créer » aux Bibliothèques (A632), page Notion dans l'éditeur (A633), sélection de blocs et « Modifier » (A634-A635). Rien à rejouer côté serveur.

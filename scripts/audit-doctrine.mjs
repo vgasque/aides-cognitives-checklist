@@ -7167,7 +7167,10 @@ for (const H of [844, 667]) {
         ['interval','.tmedit[data-ti]'],['counter','.tmedit[data-ci]'],['cx','.cx-edit-row']]){
       const n0=document.querySelectorAll(sel).length;
       if(!await ouvrir(kind)){out.cas[kind]={absent:true};continue;}
-      const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];
+      /* L'objet créé paraît au rendu suivant : on l'ATTEND (au plus 2 s) au lieu de supposer 400 ms — sous charge, la
+         passe complète le lisait avant qu'il existe (deux rouges, « undefined.getBoundingClientRect »). */
+      for(let k=0;k<20&&document.querySelectorAll(sel).length<=n0;k++)await __acCalme(100);
+      const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];if(!c){out.cas[kind]={absent:true,attendu:sel};continue;}
       const bb=c.getBoundingClientRect();
       out.cas[kind]={cree:l.length>n0,haut:Math.round(bb.top),
         focusDedans:c.contains(document.activeElement)};}
@@ -11035,6 +11038,19 @@ await sec('A636 · le volet « Suivi » de l’éditeur de protocole survit à l
     t(`${W} px · A636 : le suivi reste dans la colonne après une frappe et revient après un aller-retour « Mise en forme en direct »`,r.debut&&r.frappe&&r.retour,JSON.stringify(r));
     t(`${W} px · A636 : dans l’établi, le bloc reste visible en bas, et la pastille « n tâches » paraît dans l’en-tête dès qu’il y a du suivi`,r.etab&&r.pastille==='1 tâche',JSON.stringify(r));
     await page.close();}
+});
+await sec('A637 · « Une image △ hors texte sera retirée… » ne paraît que s’il y en a une', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const data='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    protocols.push(migrateProtocol({id:'p637',title:'Img',body:'Texte.\n\n![](img:i_a)',images:[{id:'i_a',data,w:1,h:1,caption:'',scale:100}],status:'draft'}));
+    try{localStorage.setItem('ac-mdlive','0');}catch(e){}await openProtocolEdit('p637');await __acCalme(600);
+    const vis=()=>{const m=document.querySelector('.mi-outmsg');return m?!m.hidden:null;};const o={dedans:vis()};
+    const ta=document.getElementById('p-body');ta.value='Texte.';ta.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(500);o.hors=vis();
+    try{localStorage.removeItem('ac-mdlive');}catch(e){}return o;});
+  t('A637 · image utilisée : pas de mise en garde ; retirée du texte : la mise en garde paraît, sur place',r.dedans===false&&r.hors===true,JSON.stringify(r));
+  await page.close();
 });
 
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
