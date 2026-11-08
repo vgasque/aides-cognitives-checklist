@@ -9603,6 +9603,40 @@ await sec('Accueil · A618 la barre de sélection reste en bas au défilement, m
     await page.close();}
 });
 
+await sec('Accueil · A619 un appui long sur l’accueil au repos sélectionne SUR PLACE (collection, ouvertes récemment)', async () => {
+  for(const W of [390,1180]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async()=>{LANCEUR_SEUIL=0;const c=collNew('Garde',[fiches[0].id,fiches[1].id]);fiches.forEach(f=>bumpUsage(f.id));
+      _homeFold.open.add(colls[0].id);render();await __acCalme(400);});
+    const appui=async sel=>{const b=await (await page.$(sel)).boundingBox();await page.mouse.move(b.x+b.width/2,b.y+b.height/2);
+      await page.mouse.down();await page.waitForTimeout(700);await page.mouse.up();await calme(page,400);};   // horloge : l'appui long dure 500 ms
+    const etat=()=>page.evaluate(()=>({sel:state.selOn,n:selEnt().length,lanceur:!!document.querySelector('.recents'),
+      coll:!!document.querySelector('.hc-sec [data-selid]'),rec:!!document.querySelector('.recents [data-selid]'),barre:!!document.querySelector('.sel-bar')}));
+    await appui('.hc-sec .dir-row');const a=await etat();
+    const b=await page.evaluate(async()=>{document.querySelector('.recents .dir-row:not(.selon) [data-selid]').click();await __acCalme(300);
+      const n=selEnt().length,cases=[...document.querySelectorAll('[data-selid]')].filter(c=>c.getAttribute('aria-checked')==='true').length;
+      document.getElementById('selCancel').click();await __acCalme(300);
+      return {n,cases,apres:{sel:state.selOn,lanceur:!!document.querySelector('.recents'),cases:document.querySelectorAll('[data-selid]').length}};});
+    await appui('.recents .dir-row');const c=await etat();
+    t(`${W} px · A619 : appui long dans une collection — le lanceur RESTE, ses rangées prennent leur case, la barre paraît`,a.sel&&a.n===1&&a.lanceur&&a.coll&&a.rec&&a.barre,JSON.stringify(a));
+    t(`${W} px · A619 : cocher dans « Ouvertes récemment » ; la même aide est cochée partout ; « Annuler » rend le lanceur sans case`,b.n===2&&b.cases===4&&!b.apres.sel&&b.apres.lanceur&&b.apres.cases===0,JSON.stringify(b));
+    t(`${W} px · A619 : appui long dans « Ouvertes récemment » — même chose`,c.sel&&c.n===1&&c.lanceur&&c.rec,JSON.stringify(c));
+    await page.close();}
+});
+
+await sec('Accueil · A620 une rangée sans catégorie s’aligne sur ses voisines', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{LANCEUR_SEUIL=0;const n=JSON.parse(JSON.stringify(fiches[0]));n.id='a620';n.title='Sans catégorie';n.category=null;fiches.push(migrate(n));
+    fiches.forEach(f=>bumpUsage(f.id));render();await __acCalme(400);
+    return [...document.querySelectorAll('.recents .dir-row')].map(r=>({av:!!r.querySelector('.dir-av'),x:Math.round(r.querySelector('.dir-t').getBoundingClientRect().left)}));});
+  t('A620 · « Ouvertes récemment » : la rangée sans point garde l’emplacement vide, les titres partent du même x',r.some(x=>!x.av)&&r.some(x=>x.av)&&new Set(r.map(x=>x.x)).size===1,JSON.stringify(r));
+  await page.close();
+});
+
 await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreuses', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

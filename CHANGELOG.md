@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.109.5] — 2026-11-08
+Alignement des rangées sans catégorie (A620). Rien à rejouer côté serveur.
+- **Une aide ou une référence sans catégorie ne décale plus son texte** : dans une liste où les autres rangées ont un
+  point de couleur (« Ouvertes récemment », une collection…), elle garde la place du point, vide, et son titre
+  s'aligne sur celui des voisines. Une liste sans aucune catégorie reste inchangée.
+
+## [5.109.4] — 2026-11-08
+Sélection depuis l'accueil (A619). Rien à rejouer côté serveur.
+- **Un appui long sur une aide de l'accueil sélectionne sur place** : depuis une collection, « Ouvertes récemment » ou
+  l'Accès direct, l'accueil ne bascule plus sur la liste complète des aides (la rangée pressée partait ailleurs et la
+  page sautait). Chaque rangée prend sa case ; une aide présente à deux endroits est cochée aux deux ; « Annuler »
+  rend l'accueil tel qu'il était.
+
 ## [5.109.3] — 2026-11-08
 Barre de sélection en bas sur tablette et ordinateur (A618). Rien à rejouer côté serveur.
 - **La barre sombre de la sélection descend aussi en large** : sur tablette et ordinateur, quand on coche des éléments
@@ -173,55 +186,3 @@ des dizaines de collections (A594-A597). Rien à rejouer côté serveur.
   alphabétique), puis « Toutes les collections », qui ouvre « Afficher ». Un champ « Filtrer » y paraît dès qu'il y a
   beaucoup de rangées, sans faire monter le clavier au doigt.
 - Corrigé : un long nom de bibliothèque ou de collection poussait « Créer » hors de l'écran une fois la page défilée.
-
-## [5.97.0] — 2026-11-07
-L'éditeur de référence aligne enfin le texte et son aperçu, et une poignée règle leur largeur (A593, amende
-A546). Rien à rejouer côté serveur.
-- **Le texte et l'aperçu partent de la même ligne.** Sur ordinateur et tablette (à partir de 780 px de large), avec
-  « Mise en forme en direct » coupée, le texte Markdown et son rendu sont deux cartes côte à côte, de même hauteur ;
-  la ligne en haut du texte a son bloc en haut de l'aperçu. Avant, l'aperçu commençait une centaine de pixels plus
-  haut, et l'écart changeait selon le volet « Relecture ».
-- **Le défilement est lié dans les deux sens** : faire défiler l'aperçu ramène le texte au même endroit, et
-  inversement.
-- **Une poignée ⋮ entre les deux règle leur part** : la tirer (elle s'aimante au tiers, à la moitié, aux deux
-  tiers), double-clic ou Entrée pour revenir à moitié-moitié, flèches au clavier (5 %, 1 % avec Maj). Le réglage est
-  retenu sur l'appareil.
-- **« Relecture » devient un badge** dans la tête de l'aperçu ; il s'ouvre par-dessus le rendu sans le pousser.
-- **Identité tient sur une ligne** (titre, code, catégorie, « Modifier ») ; « Contenu rédigé », Plan et
-  l'interrupteur forment une bande au-dessus des deux cartes ; l'aide-mémoire de syntaxe passe dessous.
-- **L'éditeur tient dans l'écran** et s'arrête au-dessus du bouton « Ajouter », qui ne couvre plus la fin du texte.
-- Inchangé : au téléphone, « Écrire | Aperçu » ; en « Mise en forme en direct » (le réglage par défaut), le document
-  par blocs ; sur un écran pliable ouvert, la charnière sépare toujours texte et aperçu.
-
-## [5.96.2] — 2026-11-07
-Correctif : les collections restent dans l'ordre alphabétique (A592). Rien à rejouer côté serveur.
-- **Renommer une collection la remet à sa place** : une collection renommée restait à son ancien rang, alors que la
-  liste est promise par ordre alphabétique (A475, A587).
-- **L'ordre se rétablit au chargement**, y compris pour les collections reçues d'un autre appareil par la synchro :
-  une liste déjà dérangée par un ancien renommage se remet en ordre d'elle-même, sans rien faire.
-
-## [5.96.1] — 2026-11-07
-La carte « Session terminée » suit le nouveau dessin de l'accueil, et un défaut de la 5.96.0 est corrigé (A591).
-Rien à rejouer côté serveur.
-- **La carte « Session terminée » perd son trait vert à gauche** : la coche et le mot disent déjà que c'est fait.
-- **Elle a une seule place**, sous le titre « Aides », juste avant « En cours », au téléphone comme sur grand écran
-  (sur grand écran, elle passait au-dessus du titre).
-- **Le nombre de blocs se dit en mots** : « 2 blocs terminés sur 3 » au lieu de « 2/3 blocs ✓ » — l'ancienne forme
-  mettait une coche même quand aucun bloc n'était fait.
-- **Correctif** : en thème sombre, sur ordinateur, survoler « Terminer… » dans la bande « En cours » noircissait le
-  bouton ; il s'éclaircit désormais comme les autres boutons de la bande.
-
-## [5.96.0] — 2026-11-07
-La session en cours se reconnaît de nouveau à l'accueil, et « Reprendre » et « Terminer » y reviennent (A590, amende
-A523). Rien à rejouer côté serveur.
-- **Plus d'étoile dans « En cours »** : elle se confondait avec Accès direct, où paraît la même aide. L'aide reste
-  épinglable dans Accès direct et dans la liste.
-- **La rangée « En cours » reprend la bande sombre** de la carte « Session en cours » d'avant la v5.67, sans revenir
-  à une carte en double : c'est la rangée de l'aide, sur fond sombre, avec le chrono en vert. Elle a désormais le
-  même dessin que la carte d'une session partagée.
-- **« Reprendre » et « Terminer… » sont de retour à l'accueil** (ils avaient disparu en v5.67.0), sous la rangée au
-  téléphone, à droite sur grand écran. « Terminer… » demande la même confirmation maintenue que « Fin » en session ;
-  il n'est pas rouge. Toucher la rangée reprend toujours la session.
-- **La rangée dit où l'on en est** : le bloc courant sous la ligne d'état (« 1 · Reconnaissance & alerte »).
-- **En thème sombre**, la bande et la carte d'une session partagée prennent un contour vert : sans lui, le fond
-  sombre ne se détachait plus.

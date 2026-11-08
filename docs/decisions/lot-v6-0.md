@@ -293,7 +293,7 @@ intertitres en capitales espacées. A506 disait autre chose.
 **Ce qui change (maquette « trois directions », A · Natif, accueil téléphone et tablette)** :
 - **Point de catégorie de 10 px EN TÊTE de rangée** (emplacement « avant » d'A506), son nom dans la sous-ligne ;
   en sélection, la case prend l'avant et le point revient devant le nom (A515 §3). Sans catégorie, pas
-  d'emplacement : la rangée garde deux pistes (`has-av`, piège relevé en maquette).
+  d'emplacement : la rangée garde deux pistes (`has-av`, piège relevé en maquette). *(Amendé par A620, v5.109.5 : mêlée à des rangées qui ont un point, elle garde l'emplacement vide.)*
 - **Sous-ligne en texte séparé par des points**, 13,5 : « Aide · SMUR · adulte · △ À relire » — nature,
   catégorie, discriminant, puis l'état en mots, à la suite (plus calé à droite, plus de pastille d'aplat). Titre
   15/600 (A510 §4).
