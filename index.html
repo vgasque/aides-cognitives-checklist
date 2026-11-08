@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QEWi2l/34YIVKCnxm9pKryefiMHgv5P+eUqeATI7f8M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-uB5uL1KX3Rq+KRl3cs4fY44QPzxS7SvXd5WtaguTuuA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10135,7 +10135,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.102.0';
+const APP_VERSION='5.102.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18733,6 +18733,11 @@ function mdsBind(ta){const g=document.getElementById('etabGrid');if(!g||!ta)retu
     if(!rh||!L||!R)return;const cs=getComputedStyle(R);
     rh.style.height=Math.max(0,(ta.getBoundingClientRect().top-L.getBoundingClientRect().top)/(zoomF()||1)-parseFloat(cs.borderTopWidth)-parseFloat(cs.paddingTop))+'px';};
   fit();new ResizeObserver(fit).observe(g);new ResizeObserver(fit).observe(L);
+  /* A604 — CE QUI EST AU-DESSUS DÉPLACE L'ÉTABLI SANS LE REDIMENSIONNER : déplier « Identité » le poussait vers le bas,
+     sa hauteur (calculée sur son ancien bord haut) restait, et son pied passait sous l'écran (signalé depuis v5.97).
+     On observe donc aussi tout ce qui le PRÉCÈDE dans la page (frères aînés de chaque ancêtre jusqu'à la page). */
+  {const ro=new ResizeObserver(fit);for(let e=g;e&&e!==main&&!e.classList.contains('etab-page');e=e.parentElement)
+     for(let s=e.previousElementSibling;s;s=s.previousElementSibling)ro.observe(s);}
   sep.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();sep.setPointerCapture(e.pointerId);sep.classList.add('drag');
     const q=g.getBoundingClientRect(),gw=sep.getBoundingClientRect().width;let v=r;
     const mv=ev=>{v=r=paint(mdsSnap((ev.clientX-q.left-gw/2)/Math.max(1,q.width-gw)*100,avail(),!ev.altKey));};

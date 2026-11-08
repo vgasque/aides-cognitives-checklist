@@ -8684,6 +8684,11 @@ await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', 
   t('A593 · poignée tirée : part affichée pendant le geste, aimantée à ⅔, retenue sur l’appareil',
     pendant==='visible'&&Math.abs(parseFloat(tire.v)-66.7)<0.1&&Math.abs(tire.cols[0]/(tire.cols[0]+tire.cols[2])-2/3)<0.01,JSON.stringify({pendant,tire}));
   t('A593 · au clavier : Entrée = moitié-moitié, → +5 % ; la part survit au rendu',clav.v==='55'&&clav.now==='55'&&clav.txt==='Texte 55 %'&&apres==='55',JSON.stringify({clav,apres}));
+  /* A604 — déplier « Identité » pousse l'établi vers le bas : sa hauteur se recalcule (plancher 420), et revient au
+     repli (avant : 566 px gardés, le pied passait sous l'écran). */
+  {const h=()=>page.evaluate(()=>{scrollTo(0,0);return Math.round(document.getElementById('etabGrid').getBoundingClientRect().height);});
+   const h0=await h();await page.click('[data-identtgl]');await calme(page,400);const h1=await h();await page.click('[data-identtgl]');await calme(page,400);const h2=await h();
+   t('A604 · déplier « Identité » rapetisse l’établi à la place restante (plancher 420), le replier le rend',h1<h0&&h1>=419&&h1<=421&&Math.abs(h2-h0)<=1,JSON.stringify({h0,h1,h2}));}
   // 880 : l'établi vaut dès 780 (il remplace la colonne de 280 d'A468).
   await page.setViewportSize({width:880,height:800});await calme(page,300);
   await page.evaluate(()=>{localStorage.removeItem('ac-mdsplit');renderProtocolEdit();});await calme(page,300);

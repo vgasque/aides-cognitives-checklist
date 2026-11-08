@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.102.1] — 2026-11-08
+Correctif de l'éditeur de référence (A604). Rien à rejouer côté serveur.
+- **Déplier « Identité » ne fait plus déborder l'éditeur** (texte et aperçu côte à côte) : il se réajuste à la place
+  restante et la page défile ; replié, il reprend sa hauteur. Avant, son bas passait sous l'écran.
+
 ## [5.102.0] — 2026-11-08
 Le catalogue des bibliothèques gagne le geste « retour » et des volets sur grand écran (A602). Rien à rejouer côté
 serveur.
@@ -226,10 +231,3 @@ Deux correctifs de la session (A574, A575). Rien à rejouer côté serveur.
   accrochée sous le quai de session, à toute échelle et à tout défilement.
 - **La barre verte de retour au bloc** (« ↩ le bloc en cours ») reprend le même vert que le reste de la session en
   thème clair, avec un texte blanc — elle gardait le vert clair du thème sombre.
-
-## [5.89.2] — 2026-11-06
-Correctif d'affichage du rail du bureau (A573). Rien à rejouer côté serveur.
-- **Un minuteur en marche, en pause ou échu** n'est plus coupé (« Cycle de… », « arrêté depuis… », « MAINTEN… ») :
-  le nom et le temps sur la première ligne, puis la barre, l'état, et « Relancer » / « ↺ maintenir » sur leur ligne.
-- **La consignation d'un compteur** (« consigné T+00:42 · il y a 23:20 ») passe sous le nom du compteur, en petit,
-  au lieu d'être collée sous les boutons − / +.
