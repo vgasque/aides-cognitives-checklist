@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.109.3] — 2026-11-08
+Barre de sélection en bas sur tablette et ordinateur (A618). Rien à rejouer côté serveur.
+- **La barre sombre de la sélection descend aussi en large** : sur tablette et ordinateur, quand on coche des éléments
+  dans la liste (accueil ou catalogue « Tout »), elle ne reste plus collée en haut de la liste ; elle flotte en bas
+  de la colonne principale, comme le dock du téléphone (même hauteur, même pilule, 24 px du bas). La case « Tout
+  cocher » et la croix restent sur la ligne ; la liste garde de la place en bas pour que la dernière rangée reste
+  atteignable.
+
 ## [5.109.2] — 2026-11-08
 Retour depuis une collection (A617). Rien à rejouer côté serveur.
 - **Une collection ouverte depuis l'accueil a son bouton « ‹ Accueil »**, en haut à gauche (un simple « ‹ » sur les
@@ -217,24 +225,3 @@ A523). Rien à rejouer côté serveur.
 - **La rangée dit où l'on en est** : le bloc courant sous la ligne d'état (« 1 · Reconnaissance & alerte »).
 - **En thème sombre**, la bande et la carte d'une session partagée prennent un contour vert : sans lui, le fond
   sombre ne se détachait plus.
-
-## [5.95.0] — 2026-11-06
-L'accueil tient à cent aides et protocoles : vos collections en tête, des groupes qui se plient, la provenance mieux
-dite (A587-A589). Rien à rejouer côté serveur.
-- **« Vos collections » en tête de l'accueil**, repliées : un sommaire de vos collections, chacune avec son compte.
-  Toucher une collection la déplie sur place — ses aides, « aussi dans … », puis « Ouvrir » pour la vue de la
-  collection (Ajouter, ⋯). Absente sous une recherche, un filtre ou une sélection, et tant qu'aucune collection
-  n'existe.
-- **« Tout » dessous** : le répertoire complet, inchangé, rangé par « Regrouper ». Une aide sans collection y reste à
-  sa place ; une aide rangée y paraît aussi — c'est la même aide, pas une copie.
-- **L'accueil d'avant reste disponible** : « Trier et présenter » (« Affichage » sur grand écran) › « Vos
-  collections : Non ». Regrouper par catégorie, par bibliothèque, par type ou de A à Z ne change pas. Le réglage suit
-  votre compte sur vos appareils.
-- **Chaque groupe se plie** en touchant son intertitre (le compte reste visible) ; le pli est retenu sur l'appareil,
-  pour le regroupement en cours. « Tout replier » et « Tout déplier » dans « Trier et présenter ».
-- **En défilant, on sait où l'on est** : au téléphone, la barre du haut nomme le groupe affiché (« Trauma ») ; sur
-  grand écran, l'intertitre du groupe reste en tête pendant qu'il défile.
-- **Provenance** : une tuile d'Accès direct dit sa bibliothèque au-dessus de sa catégorie (deux « Arrêt cardiaque »
-  de deux bibliothèques se distinguent) ; le « · » ne tombe plus dans la pastille de bibliothèque ; rangée par
-  catégorie, une aide ne redit plus sa catégorie ; dans la colonne de gauche, le nom d'une bibliothèque n'est plus
-  coupé pour « partagée ».

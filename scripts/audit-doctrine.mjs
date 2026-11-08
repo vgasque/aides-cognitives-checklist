@@ -7220,7 +7220,7 @@ for (const H of [844, 667]) {
    ⚠ LE PALIER SE FRANCHIT RÉELLEMENT : sans la vérification « déplié à 1280, replié en dessous »,
    un vert ne dirait que « la barre tient », y compris si elle tenait en n'affichant jamais ses
    actes. On mesure donc AUSSI ce qui est sur la ligne de part et d'autre de 1200 px. */
-await sec('SÉLECTION · une ligne, 56 px (62 au téléphone, A599), à tout écran et dans tout état (planche 20)', async () => {
+await sec('SÉLECTION · une ligne, 62 px (A599, A618), à tout écran et dans tout état (planche 20)', async () => {
 for (const W of [320, 390, 560, 744, 1200, 1280]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -7249,8 +7249,8 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
     return out;});
   const P=`${W}px`;
   for (const [etat,m] of [['0 coché',r.zero],[r.n+' cochés',r.plein]]) {
-    // A599 : au téléphone (barre d'onglets), la barre prend la place des onglets — leur hauteur, 62 ; en large, 56.
-    t(`${P} · ${etat} : la barre mesure exactement ${W<780?62:56} px`, m.h===(W<780?62:56), `offsetHeight = ${m.h}`);
+    // A599 : au téléphone, la barre prend la place des onglets — leur hauteur, 62 ; A618 : en large aussi, elle flotte en bas.
+    t(`${P} · ${etat} : la barre mesure exactement 62 px`, m.h===62, `offsetHeight = ${m.h}`);
     t(`${P} · ${etat} : aucun débordement horizontal`, m.over<=0, `scrollWidth - clientWidth = ${m.over}`);
     // Les objets n'ont pas la même hauteur (le compte est un span) : on compare leurs CENTRES.
     t(`${P} · ${etat} : un seul rang`, m.rangs<=1, `écart des centres = ${m.rangs} px — ${m.ids}`);
@@ -9561,7 +9561,7 @@ await sec('Accueil · A599 barre de sélection', async () => {
     const cks=[...document.querySelectorAll('.dir-ck[data-selid]')];cks[0]?.click();await __acCalme(150);
     const bar=q('.sel-bar'),r=bar.getBoundingClientRect(),c=q('#selN');
     const probe=v=>{const i=document.createElement('i');i.style.background=v;bar.appendChild(i);const x=getComputedStyle(i).backgroundColor;i.remove();return x;};
-    const o={fond:getComputedStyle(bar).backgroundColor===probe('var(--sys)'),bas:Math.round(innerHeight-r.bottom),haut:Math.round(r.top),
+    const o={fond:getComputedStyle(bar).backgroundColor===probe('var(--sys)'),bas:Math.round(innerHeight-r.bottom),haut:Math.round(r.top),gauche:Math.round(r.left),
       onglets:!!q('#tabNav')&&!q('#tabNav').hidden,direct:selDirect(),court:bar.classList.contains('sel-court'),
       compte:c.scrollWidth<=c.clientWidth+1,annuler:(q('.sel-top #selCancel')||{}).textContent||'',tout:(q('.sel-top #selAll')||{}).textContent||'',
       case:!!q('.sel-bar #selAll'),croix:!!q('.sel-bar #selCancel')};
@@ -9581,7 +9581,7 @@ await sec('Accueil · A599 barre de sélection', async () => {
       t(`${k} : A599 — en bas, à la place de la barre d'onglets ; « Annuler » et « Tout cocher » en haut`,r.bas>=0&&r.bas<=40&&!r.onglets&&r.annuler==='Annuler'&&/^Tout (dé)?cocher$/.test(r.tout)&&!r.case&&!r.croix,JSON.stringify(r));
       if(W>=390)t(`${k} : A599 — « Collection… » et « Exporter… » directs ; ⋯ porte le reste, Supprimer compris`,r.direct&&!r.court&&r.feuille.join()==='selLib,selCat,selDel',JSON.stringify(r));
       else t(`${k} : A599 — trop étroit pour le compte entier : « Actions » porte les cinq actes`,!r.direct&&r.court&&r.feuille.join()==='selCol,selLib,selCat,selExp,selDel',JSON.stringify(r));
-    }else t(`${k} : A599 — en large, en tête avec sa case et sa croix ; deux actes directs`,r.haut<300&&r.case&&r.croix&&r.direct&&r.feuille.join()==='selLib,selCat,selDel',JSON.stringify(r));
+    }else t(`${k} : A618 — en large, EN BAS (24 px, comme le dock) avec sa case et sa croix, à droite de la colonne gauche ; deux actes directs`,r.bas===24&&r.gauche>=250&&r.case&&r.croix&&r.direct&&r.feuille.join()==='selLib,selCat,selDel',JSON.stringify(r));
     await page.close();}
 });
 

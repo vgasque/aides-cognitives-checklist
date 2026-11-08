@@ -7901,6 +7901,15 @@
        v5.30 (maquette v5) : l'en-tête blanc a disparu — la barre est une CARTE entière (quatre
        coins, bord haut), collée au bord du défileur. */
     .home-main>.sel-bar{top:0;margin:0 auto 12px;padding:0 10px}
+    /* A618 (amende A599 §5) — EN LARGE AUSSI, LA BARRE DESCEND : signalé par l'auteur (« le dock sombre ne descend
+       pas ! »). Collée en tête de la liste, elle était le seul objet sombre du haut de l'écran, loin du pouce sur une
+       tablette, et elle coiffait les premières rangées. Elle flotte en bas de la COLONNE PRINCIPALE, sur l'axe de la
+       liste (`--home-g`, A425 : les 960 px centrés à droite de la colonne gauche), même assise et même pilule que le
+       dock du téléphone (62 px, 24 px du bas) ; la case maîtresse et la croix restent sur la ligne. La liste gagne
+       en pied de quoi faire passer sa dernière rangée au-dessus. */
+    .home-main .sel-bar.sel-flot{position:fixed;z-index:20;top:auto;bottom:calc(24px + var(--sab,0px));left:calc(var(--side-w) + var(--home-g,24px));
+      right:var(--home-g,24px);max-width:none;height:62px;margin:0;padding:0 8px 0 12px;border-radius:999px}
+    .home-main:has(.sel-flot){padding-bottom:calc(112px + var(--sab,0px))}
     /* A425 : la colonne de l'accueil (960, A389) se CENTRE dans l'espace qui reste — sur un écran très large elle
        collait à gauche, un vide à droite. Tout ce qui la précède (sélection, session en cours, notices) suit le même axe. */
     .home-main>*{max-width:960px;margin-inline:auto}
