@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-wCx0XUeOzWvA2rfwlZTacqdiXwCAzzzsZjy1meKF6a8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WQ+qQAJSK52UGNz2GF1h6gs2ufS/8wdPxSZtXuT+20A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3299,6 +3299,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ══ A613 — LE SUIVI ══ Aucune couleur nouvelle : « D'abord » en gras (pas en rouge, règle 8), l'équipe au bleu
      de l'action (elle nomme une bibliothèque), le perso en gris ; l'échéance garde son △. */
   .su-blk{margin:24px 0 6px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--work)}
+  #editSide .su-blk{margin:16px 0}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
+  #editSide .su-h{flex-wrap:wrap}
   .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .su-h .btn{margin-left:4px}
   .su-sub{margin:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
@@ -10234,7 +10236,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.107.0';
+const APP_VERSION='5.108.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12115,7 +12117,8 @@ const suiviCanEdit=x=>!x.lib||canEditScope(x.lib);
 const suiviOf=ent=>suivi.filter(x=>x.ent===ent&&suiviVisible(x));
 const suiviOpen=x=>x.k==='task'&&!x.t.done;
 const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at);
-const suiviEnt=id=>fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||null;
+// (le brouillon ouvert dans un éditeur compte aussi : le suivi se pose dès la création, comme la note personnelle)
+const suiviEnt=id=>fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||[state.draft,state.pdraft].find(x=>x&&x.id===id)||null;
 const suiviAuthor=()=>{if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)return u.email;}return '';};
 // Le libellé d'une tâche : « À fusionner avec « Polytrauma — accueil » », « À confronter à RFE 2025 », « À revoir : doses ».
 function suiviTaskLabel(x){const t=x.t,ty=SUIVI_TYPES[t.type]||'Autre',r=t.ref&&suiviEnt(t.ref),cible=r?'« '+(String(r.title||'').trim()||'Sans titre')+' »':t.refTxt;
@@ -19539,8 +19542,11 @@ function renderProtocolEdit(){
     fermant, et un geste destructeur ne se met jamais avant une porte de création. */}
     <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à cette référence</span></span> <span class="edd-c">document · référence…</span></span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
+    ${''/* A614 : le VOLET « SUIVI » de l'éditeur — à côté du contenu, jamais dedans : dans la colonne de droite au
+       bureau (sous la relecture), en pied du formulaire ailleurs. Le même bloc que la lecture (`suiviBlockHtml`). */}
+    ${!wideEdit||mds?suiviBlockHtml(p,false):''}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
-    ${wideEdit?(mds?'</div></div>':`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`):''}`;
+    ${wideEdit?(mds?'</div></div>':`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${suiviBlockHtml(p,false)}${editPreviewHtml('proto')}</aside></div>`):''}`;
   bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},
     /* Ménage de SORTIE : une image que plus aucune ligne du corps ne référence est du poids
        mort. Destructif, donc jamais pendant la frappe — retirer une référence pour la
@@ -28044,7 +28050,8 @@ function renderEditor(){_renderN++;
     ${(f.docs||[]).length?attFieldsetHtml(f):''}
     ${(f.sources||[]).length?listEditor('Références','sources de l’aide','sources',f.sources,false,{shell:'ed-card'}):''}
     ${relFieldsetHtml(f)}
-    ${noteBlockHtml(f.id)}
+    ${(notes[f.id]&&notes[f.id].t)||state.noteEdit?noteBlockHtml(f.id):''}${''/* A614 : une note s'ajoute par « Suivi », ici comme en lecture */}
+    ${wideEdit?'':suiviBlockHtml(f,false)}
     ${''/* LA PORTE VIT ICI, à la fin du formulaire et COLLANTE sur toute sa hauteur : elle
     n'appartient pas à « Prise en charge », elle appartient à la fiche (cf. ED_PALETTE). Le volet de
     relecture et le bouton de suppression restent APRÈS elle — un bilan se lit en fermant, et un
@@ -28061,7 +28068,7 @@ function renderEditor(){_renderN++;
     inchangé : il n'y a alors pas de seconde colonne où le mettre. */}
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(f)}</div>`}
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette aide</button></div>':''}
-    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(f)}</div>${editPreviewHtml('fiche')}</aside></div>`:''}`;
+    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(f)}</div>${suiviBlockHtml(f,false)}${editPreviewHtml('fiche')}</aside></div>`:''}`;
   bindEditorEvents(f);
   bindRevPanel();   // K2 : ancrage des remarques de relecture
   /* K11 : taper une ligne de STRUCTURE amène son bloc au centre et le fait clignoter — jamais de
