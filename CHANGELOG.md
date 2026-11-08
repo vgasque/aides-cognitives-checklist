@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.110.0] — 2026-11-08
+Une image dans une liste reste dans son élément (A642). Rien à rejouer côté serveur.
+- **Image dans un élément de liste** (import Notion surtout) : l'image indentée sous un élément s'affiche sous son
+  texte, à sa largeur (300 px au plus), et la liste continue — la numérotation ne repart plus à 1 après l'image.
+- **L'import Notion garde la place de l'image** sous l'élément qu'elle illustre.
+- **Éditeur de protocole** : sur une liste qui porte une image, « Sortir l'image de la liste » la remet en bloc
+  pleine largeur après la liste.
+- L'image d'un élément compte comme utilisée : elle n'est plus retirée en quittant l'éditeur.
+- À savoir : un appareil resté sur une version antérieure affiche cette ligne image en texte brut tant qu'il ne
+  s'est pas mis à jour.
+
 ## [5.109.9] — 2026-11-08
 Plus aucune fenêtre centrée pour choisir une aide, un protocole ou un document (A641). Rien à rejouer côté serveur.
 - **« Voir aussi », la cible d'une complication et « Joindre un document existant »** s'ouvrent comme les autres
@@ -203,20 +214,4 @@ retirer à l'accueil. Rien à rejouer côté serveur.
 - **Le dock se glisse** : faire glisser le doigt d'un onglet à l'autre change d'onglet au relâchement, comme les
   sélecteurs de Moi.
 - L'accueil ne change pas : ses filtres, ses collections et sa liste restent tels quels.
-
-## [5.100.0] — 2026-11-08
-La barre de sélection change de dessin (A599) ; la nouvelle architecture de l'accueil est décidée (A600, à venir par
-lots). Rien à rejouer côté serveur.
-- **La barre de sélection est sombre**, dans la matière des objets « système » (carte de session, notifications) : on
-  voit d'un coup d'œil qu'on est en sélection — un tap coche au lieu d'ouvrir. La nuit, elle s'éclaircit pour rester
-  visible.
-- **« Collection… » et « Exporter… » directement sur la barre**, le reste derrière **⋯** (déplacer vers une
-  bibliothèque, ranger dans une catégorie, supprimer — qui garde ainsi une étape de plus).
-- **Au téléphone, la barre prend la place des onglets, en bas** ; « Annuler » et « Tout cocher » sont en haut.
-- Quand la place manque (petit écran, grand texte), la barre revient à « Actions ▾ » plutôt que de couper le nombre
-  d'éléments cochés.
-- Corrigé : la barre d'onglets restait affichée pendant une sélection au téléphone.
-- Décidé (A600) : l'accueil deviendra un **lanceur** (session en cours, Accès direct, collections, récentes) et un
-  **catalogue** portera bibliothèques, catégories et la liste complète « Tout » (filtrer, trier, sélectionner) —
-  ajouté d'abord sans rien retirer.
 

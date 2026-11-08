@@ -731,6 +731,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('A639 : deux gras voisins restent deux gras', A.mdInline('**a** et **b**'), '<b>a</b> et <b>b</b>');
   ok('A640 : après une image qui coupe une liste, l’élément indenté suivant repart en liste (pas en texte « - … »)', (()=>{const bl=A.mdBlocks('- a\n\n![](img:x)\n\n        - suite');return bl.length===3&&bl[2].t==='ul'&&bl[2].items[0].text==='suite';})());
   ok('A640 : une ligne indentée « - » DANS un paragraphe y reste', (()=>{const bl=A.mdBlocks('Texte\n    - pas une liste');return bl.length===1&&bl[0].t==='p';})());
+  // A642 — l'image vit dans l'élément de liste qu'elle illustre.
+  ok('A642 : une image indentée sous un élément lui appartient ; la liste continue (une seule liste, 3 éléments)', (()=>{const bl=A.mdBlocks('1. a\n2. b\n\n    ![Cap](img:x)\n\n3. c');return bl.length===1&&bl[0].t==='ol'&&bl[0].items.length===3&&bl[0].items[1].imgs&&bl[0].items[1].imgs[0].id==='x'&&bl[0].items[1].imgs[0].caption==='Cap';})());
+  ok('A642 : rendu — la figure md-lfig est DANS le 2ᵉ <li>, un seul <ol>', (()=>{const h=A.mdRender('1. a\n2. b\n    ![](img:x)\n3. c',{images:[{id:'x',data:'data:image/png;base64,iVBORw0KGgo=',caption:''}]});return (h.match(/<ol/g)||[]).length===1&&/<li>b<figure class="md-fig md-lfig">/.test(h);})());
+  ok('A642 : une image d’un sous-élément s’attache au sous-élément', (()=>{const bl=A.mdBlocks('- a\n  - b\n    ![](img:y)');const s=bl[0].items[0].sub;return bl.length===1&&s&&s.items[0].imgs&&s.items[0].imgs[0].id==='y';})());
+  ok('A642 : une image NON indentée reste un bloc et ferme la liste (inchangé)', (()=>{const bl=A.mdBlocks('- a\n\n![](img:x)\n\n- b');return bl.length===3&&bl[1].t==='img';})());
+  ok('A642 : deux listes séparées par une ligne vide restent deux listes', (()=>{const bl=A.mdBlocks('- a\n\n- b');return bl.length===2;})());
+  ok('A642 : miUses compte l’image d’un élément (sinon le ménage de sortie la retirerait)', (()=>{const u=A.miUses('1. a\n    ![](img:x)\n\n![](img:z)');return u.x===1&&u.z===1;})());
+  ok('A642 : « Sortir l’image de la liste » — l’image repasse en bloc après la liste, la liste se recolle', (()=>{const v=A.mdUnlistImgs('1. a\n2. b\n\n    ![](img:x)\n\n3. c');const bl=A.mdBlocks(v);return v==='1. a\n2. b\n3. c\n\n![](img:x)'&&bl.length===2&&bl[0].items.length===3&&bl[1].t==='img';})());
   eq('A607 : gras contenant un italique', A.mdInline('**indications *systématiques* en AVP**'), '<b>indications <i>systématiques</i> en AVP</b>');
   eq('A607 : italique contenant un gras', A.mdInline('*a **b** c*'), '<i>a <b>b</b> c</i>');
   eq('A607 : ~~barré~~', A.mdInline('a ~~b~~ c'), 'a <s>b</s> c');
@@ -2413,6 +2421,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('sans « # » en tête : pas de titre, rien de mangé',A.notionMd('Texte: seul\n\nSuite','',{}).body,'Texte: seul\n\nSuite');
     const rb=A.mdBlocks(r.body);
     ok('… et le mini-Markdown y lit bien les images et l’encadré',rb.filter(b=>b.t==='img').length===2&&rb.some(b=>b.t==='q'&&b.kind==='vig'),JSON.stringify(rb.map(b=>b.t+(b.kind||''))));
+  }
+  {
+    // A642 : la forme exacte de l'export Notion — l'image indentée sous l'élément qu'elle illustre.
+    const ids=Object.create(null);ids['P/ecg.png']='i9';
+    const r=A.notionMd('1. Surveiller\n    \n    ![ecg](P/ecg.png)\n    \n2. Insuline\n- texte ![ecg](P/ecg.png)','',ids);
+    ok('A642 : Notion — l’image garde son retrait sous l’élément',r.body.includes('\n    ![ecg](img:i9)\n'),JSON.stringify(r.body));
+    const bl=A.mdBlocks(r.body);
+    ok('A642 : … et le mini-Markdown la range dans l’élément 1, la liste numérotée continue à 2',bl[0].t==='ol'&&bl[0].items.length===2&&bl[0].items[0].imgs&&bl[0].items[0].imgs[0].id==='i9',JSON.stringify(bl));
+    ok('A642 : une image sur la ligne d’un élément prend le retrait du texte de l’élément',/- texte\n\n?  !\[ecg\]\(img:i9\)/.test(r.body)&&bl[1]&&bl[1].t==='ul'&&bl[1].items[0].imgs,JSON.stringify(r.body));
   }
   group('Synchro — table REST ≠ store local (v5.0.4)');
   {
