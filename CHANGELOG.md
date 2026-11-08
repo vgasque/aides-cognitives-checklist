@@ -1,9 +1,11 @@
 # Journal des modifications
 
 ## [5.102.1] — 2026-11-08
-Correctif de l'éditeur de référence (A604). Rien à rejouer côté serveur.
+Correctifs de l'éditeur de référence et du dock (A604-A605). Rien à rejouer côté serveur.
 - **Déplier « Identité » ne fait plus déborder l'éditeur** (texte et aperçu côte à côte) : il se réajuste à la place
   restante et la page défile ; replié, il reprend sa hauteur. Avant, son bas passait sous l'écran.
+- **La pastille du dock est fluide** : elle glisse et change de largeur d'un seul mouvement, et les mots des onglets
+  changent de couleur à son rythme (A605) — elle sautait.
 
 ## [5.102.0] — 2026-11-08
 Le catalogue des bibliothèques gagne le geste « retour » et des volets sur grand écran (A602). Rien à rejouer côté
