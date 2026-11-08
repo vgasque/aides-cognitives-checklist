@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A601** à la v5.101 (lot v6.0 compris) (et ça continue — la
-prochaine est A602), attribués dans
+Les décisions de conception portent des numéros **A1 → A602** à la v5.102 (lot v6.0 compris) (et ça continue — la
+prochaine est A603), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -225,6 +225,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A599 | `lot-v5-100.md` | La barre de sélection en matière système : « Collection… » et « Exporter… » directs, ⋯ pour le reste (Supprimer à une étape) ; au téléphone en bas à la place des onglets, « Annuler » et « Tout cocher » en haut ; « Actions ▾ » quand le compte ne tient pas (mesuré) — amende A476, A451 |
 | A600 | `lot-v5-100.md` | Architecture CIBLE : l'accueil devient un LANCEUR (session, Accès direct, collections, récentes), un CATALOGUE porte bibliothèque › catégorie › éléments et « Tout » (filtrer, trier, sélectionner) ; par lots (catalogue ajouté, accueil allégé, nettoyage) — rouvre A545 (« Parcourir ») et A588, renoue avec T9 |
 | A601 | `lot-v5-100.md` | Lot 1 d'A600 : onglet / rangée « Bibliothèques » → catalogue (racine « Tout » + bibliothèques, une bibliothèque et SES catégories, une catégorie sans redites, « Tout » filtrable et sélectionnable), état propre (`state.cnav`, `state.ctf`) ; le dock se glisse comme un sélecteur segmenté |
+| A602 | `lot-v5-100.md` | Catalogue : le geste « retour » remonte d'un niveau (`ctgDepth`/`ctgUp`, A430) ; volets en large (bibliothèques · catégories ≥ 1200 · éléments ; catégories dépliées dans le volet 1 en deçà) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
