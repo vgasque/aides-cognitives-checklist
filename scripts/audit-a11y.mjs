@@ -310,7 +310,7 @@ const SURFACES = [
       await __acCalme(200);document.querySelector('#admBody [data-admap]').click(); } },
   { nom:'erreur de synchro',   w:390,  scope:'#syncErrModal', fn: async()=>{
       if(typeof openSyncErr==='function')openSyncErr('La synchronisation a échoué : réseau indisponible.'); } },
-  { nom:'joindre un document', w:390,  scope:'#attPickModal', fn: async()=>{
+  { nom:'joindre un document', w:390,  scope:'.popmenu.sheet', must:'.popmenu.sheet [data-pickopt]', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       const by=new TextEncoder().encode('%PDF-1.4\ntrailer<</Root 1 0 R>>');
       await IDB.putAtt({id:'att-y',buf:by.buffer,size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
@@ -339,7 +339,7 @@ const SURFACES = [
       openEdit(f.id);await __acCalme(500);
       const li=[...document.querySelectorAll('.blk .li')].find(l=>/Adrénaline/.test(l.querySelector('input[data-sf]').value));
       li.querySelector('.li-set').click();await __acCalme(300); } },
-  { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
+  { nom:'lier une aide',       w:390,  scope:'.popmenu.sheet', must:'.popmenu.sheet [data-pickopt]', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       openEdit(f.id);await __acCalme(500);
       openRelPicker(state.draft,()=>{}); } },
