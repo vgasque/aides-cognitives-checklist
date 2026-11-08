@@ -1,4 +1,4 @@
-# Lot v5.98 — la poignée au doigt ; l'accueil dit ses bibliothèques ; des dizaines de collections (A594-A597)
+# Lot v5.98 — la poignée au doigt ; l'accueil dit ses bibliothèques ; des dizaines de collections (A594-A598)
 
 > Fichier normatif. Les numéros A sont des adresses : ne jamais renuméroter. Décidé en discussion avec l'auteur sur la
 > planche Claude Design « Accueil téléphone — quelles bibliothèques ? » (08/11/2026) ; **implémenté en v5.98.0**.
@@ -87,3 +87,32 @@ bibliothèques, 14 collections : sous-ligne, cinq de tête et « Toutes les coll
 dans l'ordre alphabétique, feuille ouverte sans focus au doigt, liste repliée puis dépliée, mots de partage, coche sans
 fermer, titre et œil, ni puce ni provenance redites, « Créer » à l'écran malgré un long nom, « Tout afficher » ; rouge sur
 la v5.97.0).
+
+## A598 — « Garder en tête de l'accueil » : une collection reste dans « Vos collections » (v5.99.0)
+
+*Étend A597 ; reprend la piste « étoile en tête » mise de côté plus haut. Demande de l'auteur : « ou alors possibilité de
+mettre des collections ou bibliothèques en Accès direct ? » — puis, après discussion, « oui, fais l'étoile ».*
+
+1. **Dans le ⋯ d'une collection** : « Garder en tête de l'accueil » (sous-ligne « toujours dans « Vos collections » ») ;
+   l'inverse, « Ne plus garder en tête » (« elle suit l'ordre des plus récentes »). Un toast confirme.
+2. **Sur l'accueil**, au-delà de 6 collections : les collections gardées en tête prennent leur place parmi les
+   `COLL_HEAD` (toutes, même si elles sont plus nombreuses), les plus récentes prennent les places restantes ; l'ordre
+   d'affichage reste alphabétique (A597).
+3. **Le signe est un signet PLEIN** (`collIc`, classe `coll-top`), partout où la collection paraît (accueil, feuille
+   « Afficher », en-tête, colonne). **Pas une étoile** : l'étoile dit déjà l'Accès direct sur chaque aide — deux sens
+   pour un glyphe, c'est ce que la règle 8 refuse aux couleurs.
+4. **Modèle** : champ `top` (booléen, absent = non) sur la collection ; `sanitizeColls` ne laisse passer que `true`
+   (règle 5) ; synchronisé avec les collections dans le document perso ; le registre RGPD (§ 3) le nomme.
+
+**Formes écartées** :
+- **Une collection ou une bibliothèque comme tuile de l'Accès direct** (demande d'origine) : l'Accès direct promet UN tap
+  pour ouvrir une AIDE, le geste de l'urgence ; une tuile qui ouvre une liste ajoute une étape et mêle deux natures de
+  tuile. L'Accès direct est déjà une collection (A515) : y ranger des collections, c'est une collection de collections.
+  Une bibliothèque en tuile revient à ouvrir l'app filtrée, écarté en A587.
+- **Une étoile** comme signe : prise par l'Accès direct (ci-dessus).
+- **Le geste depuis la rangée de la feuille « Afficher »** : une rangée y est une destination (un tap ouvre) ; lui
+  greffer un second bouton aurait fait deux cibles dans 44 px. Le ⋯ de la collection suffit.
+
+Témoins : `tests.html` (`sanitizeColls` : seul `true` passe) ; `audit-doctrine` « Accueil · A595-A597 » (le ⋯ pose le
+signet, retenu dans `ac-colls`, la collection garde sa place parmi cinq quand cinq autres sont plus récentes ; rouge sur
+la v5.98.0).

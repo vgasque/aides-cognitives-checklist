@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.99.0] — 2026-11-08
+Une collection peut rester en tête de l'accueil (A598). Rien à rejouer côté serveur.
+- **« Garder en tête de l'accueil »**, dans le menu ⋯ d'une collection : elle reste dans « Vos collections » sur
+  l'accueil, même quand d'autres ont été ouvertes plus récemment ; les places restantes vont aux plus récentes.
+  « Ne plus garder en tête » la rend à l'ordre des plus récentes.
+- **Un signet plein** la signale partout où elle paraît. Pas une étoile : l'étoile reste le signe de l'Accès direct
+  sur chaque aide.
+- Le choix voyage avec vos collections sur vos autres appareils.
+
 ## [5.98.0] — 2026-11-08
 La poignée de l'éditeur suit enfin le doigt ; l'accueil du téléphone dit quelles bibliothèques il affiche, et tient
 des dizaines de collections (A594-A597). Rien à rejouer côté serveur.
@@ -218,30 +227,3 @@ l'exercice guidé l'enseigne (A570 §10, doctrine `docs/decisions/lot-v6-0.md`).
   que fera la coche (« ◷ 04:00 Adrén. dose ») ; sinon, il n'y a pas de ligne.
 - **L'exercice guidé** montre une étape qui attend son moment et la question de sa case ; « Prendre en main » gagne le
   geste « Une étape qui attend son moment », et le glossaire le terme « Moment d'une étape ».
-
-## [5.88.0] — 2026-11-06
-Les étapes « complexes » en session (registre, compteur ou minuteur liés, étapes qui attendent leur moment) sont
-redessinées sur une seule grammaire, plus légère (A570, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté
-serveur.
-- **Une place pour chaque chose.** Au-dessus du libellé, en petits mots : quand et quel risque (CRITIQUE, VIGILANCE,
-  DOUBLE CONTRÔLE, « CHOCS DÉLIVRÉS ≥ 3 ●○○ », « À L'ÉCHÉANCE ◯ 03:57 », ✓✓ CONSTATÉ). Dessous : ce que fait
-  la coche.
-- **Une liste, sans cadres.** Les étapes sont séparées par un simple filet. Plus de cadre pointillé autour des étapes
-  qui attendent, plus de fond vert sous les étapes faites : la case et la couleur du texte disent l'état, et seule
-  l'étape à faire maintenant reste en noir.
-- **Une seule taille de libellé**, revue des causes réversibles comprise.
-- **Des mots plus courts** : « +1 Chocs délivrés » au lieu de « 3 → 4 à la coche · Chocs délivrés », « annulable 9 s »
-  au lieu de « décocher annule · 9 s », « relance à 05:00 ».
-- Le minuteur qu'attend une étape « à l'échéance » s'affiche à côté de sa condition ; quand il arrive au bout, l'étape
-  dit **« ✓ À L'ÉCHÉANCE »** en vert, comme un seuil atteint (au lieu de « Échu », qui disait l'état du minuteur).
-- Une étape à faire une seule fois, déjà faite à un passage précédent, dit **« ✓ DÉJÀ FAITE »**.
-- **Une seule coche** : l'icône de la case, reprise en petit dans les mots du dessus ; le « ✓ » devant la réponse d'une
-  étape cochée disparaît (il doublait la case verte).
-- Une étape garde sa hauteur quand son moment arrive (rien ne bouge sans geste).
-- La trace de vérification (« ✓✓ constaté », « △ écart ») rejoint les autres mots au-dessus du libellé.
-- **Une seule police dans l'étape** : la réponse attendue et les valeurs quittent la police à chasse fixe ; la réponse
-  reste distincte du libellé par sa taille et sa couleur.
-- **Plus de bouton « Faire maintenant ».** Pour cocher une étape avant son moment, on touche sa case : la ligne du
-  dessous dit « Pas encore le moment. » et propose « Cocher quand même » ou « Annuler ». Une coche par erreur (qui
-  lancerait un minuteur) est ainsi rattrapée, et rien n'encombre la rangée au repos.
-- Audit : un témoin mesure la nouvelle grammaire, dont l'écart entre le mot de registre et son libellé.

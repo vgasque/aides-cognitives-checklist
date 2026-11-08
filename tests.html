@@ -417,6 +417,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('non-tableau → []', A.sanitizePins('x'), []);
   group('sanitizeColls() — collections personnelles (A475)');
   eq('garde id, nom borné, ids sûrs et dédoublonnés', A.sanitizeColls([{id:'k1',name:' Garde ',ids:['a','a','bad id','__proto__','b']}]), [{id:'k1',name:'Garde',ids:['a','b']}]);
+  eq('A598 : « en tête » ne passe que s’il vaut true', A.sanitizeColls([{id:'k1',name:'A',top:true},{id:'k2',name:'B',top:'oui'},{id:'k3',name:'C',top:1}]), [{id:'k1',name:'A',ids:[],top:true},{id:'k2',name:'B',ids:[]},{id:'k3',name:'C',ids:[]}]);
   eq('rejette sans nom, id invalide ou en double', A.sanitizeColls([{id:'k1',name:''},{id:'__proto__',name:'x'},{id:'k2',name:'A'},{id:'k2',name:'B'},null,'x']), [{id:'k2',name:'A',ids:[]}]);
   eq('nom non-chaîne ignoré, ids absents → []', A.sanitizeColls([{id:'k3',name:{x:1}},{id:'k4',name:'Ok',ids:'x'}]), [{id:'k4',name:'Ok',ids:[]}]);
   eq('non-tableau → []', A.sanitizeColls({}), []);

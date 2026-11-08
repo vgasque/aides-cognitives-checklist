@@ -220,10 +220,11 @@
                règles que migrate()). ⚠ Ce bloc décrivait encore jusqu'en v5.57 l'ancien modèle
                (validation, attachments, libraryId) et une « section séparée » de l'accueil :
                la bibliothèque est UNIQUE depuis v5.0.0, le type n'est qu'un filtre.
-  Collection : { id, name, ids[ ids d'aides/protocoles ] } — rangement PERSONNEL qui ne
+  Collection : { id, name, ids[ ids d'aides/protocoles ], top? } — rangement PERSONNEL qui ne
                déplace rien (A475), clé locale 'ac-colls' par espace, synchronisée dans le
                document perso comme les épingles ; assainie par sanitizeColls ; l'Accès direct
-               en est la première (COLL_PIN).
+               en est la première (COLL_PIN). `top` (A598, booléen, absent = non) : gardée
+               en tête de « Vos collections » sur l'accueil, quelle que soit la récence.
   Note perso : { ficheId: { t(texte), at(ms), dirty? } } — carte unique sous la clé 'notes'
                du store 'meta' (KV : 'notes_v1'). TOUJOURS personnelle : hors de la fiche
                (un éditeur qui modifie une fiche partagée n'y touche pas), jamais exportée,
@@ -328,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GI6McuVgXoBhw/Se3Ow7mirqkq/bXFlWqMk4mZRTvsU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-RwXtXA+h6MeXKj2Y81KovhXBL83sbpKkJNzrKHMMYEw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2968,7 +2969,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hc-row:hover,.hc-row[aria-expanded="true"]{background-color:var(--amb-2)}
   .hc-row[aria-expanded="true"]{font-weight:700}
   .hc-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
-  .hc-row.hc-all{color:var(--act)}   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
+  .hc-row.hc-all{color:var(--act)}
+  svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
   .hc-ic{flex:none;display:inline-flex;color:var(--act)}
   .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hc-cnt{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
@@ -10043,7 +10045,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.98.0';
+const APP_VERSION='5.99.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11866,7 +11868,9 @@ const collCmp=(a,b)=>a.name.localeCompare(b.name,'fr',{sensitivity:'base'});
 const sanitizeColls=a=>{const seen=new Set();
   return (Array.isArray(a)?a:[]).slice(0,50).map(c=>{if(!c||typeof c!=='object')return null;
     const id=safeMetaId(c.id),name=sstr(typeof c.name==='string'?c.name:'',60).trim();if(!id||!name||seen.has(id))return null;seen.add(id);
-    return {id,name,ids:[...new Set((Array.isArray(c.ids)?c.ids:[]).slice(0,500).filter(x=>safeMetaId(x)))].slice(0,300)};}).filter(Boolean).sort(collCmp);};
+    const o={id,name,ids:[...new Set((Array.isArray(c.ids)?c.ids:[]).slice(0,500).filter(x=>safeMetaId(x)))].slice(0,300)};
+    if(c.top===true)o.top=true;   // A598 : gardée en tête de l'accueil (seule la valeur true passe)
+    return o;}).filter(Boolean).sort(collCmp);};
 let colls=[];try{colls=sanitizeColls(JSON.parse(localStorage.getItem(spaceKey('ac-colls'))||'[]'));}catch(e){}
 function collsSave(){try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringify(colls));}catch(e){}schedulePrefsPush();}
 const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
@@ -15847,7 +15851,9 @@ function hsRow(o){
 const HS_RING='<span class="hs-ring"></span>';
 /* ══ COLLECTIONS À L'ACCUEIL (A475) ══ « Ajouter à une collection… » : des CASES (une aide peut être dans
    plusieurs), effet immédiat, rien n'est déplacé — la notice le dit. Tiret = sélection rangée en partie. */
-const collIc=c=>c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',14,{sw:2.2});
+/* A598 : une collection gardée en tête porte un signet PLEIN, partout où elle paraît — pas une étoile, qui dit déjà
+   l'Accès direct sur chaque aide. */
+const collIc=c=>c.id===COLL_PIN?pinIcon(true):uiIcon('bookmark',14,{sw:2.2,cls:c.top?'tic coll-top':'tic'});
 /* « aussi dans … » sous une rangée, dans une collection ouverte : la même aide vit ailleurs, sans copie. */
 /* A587 : la rangée se dessine aussi DANS une collection dépliée de l'accueil — `_rowCtx.coll` la nomme le temps du
    dessin (la collection elle-même est exclue, comme dans la vue ouverte). */
@@ -15905,11 +15911,16 @@ function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
 function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_PIN)return;
   const perdus=c.ids.length-collItems(c).length;
   openPickMenu(trigger.parentNode,{aria:'Gérer la collection',trigger,
-    options:[{val:'ren',name:'Renommer…',ic:uiIcon('pen',18)}]
+    options:[{val:'ren',name:'Renommer…',ic:uiIcon('pen',18)},
+      /* A598 — GARDER EN TÊTE (demande de l'auteur, plutôt qu'une collection dans l'Accès direct) : la collection reste
+         dans « Vos collections » sur l'accueil, quelle que soit la récence (A597). */
+      c.top?{val:'top',name:'Ne plus garder en tête',sub:'elle suit l’ordre des plus récentes',ic:uiIcon('bookmark',18)}
+        :{val:'top',name:'Garder en tête de l’accueil',sub:'toujours dans « Vos collections »',ic:uiIcon('bookmark',18,{cls:'tic coll-top'})}]
       .concat(perdus?[{val:'clean',name:'Retirer les indisponibles',sub:nb(perdus,'élément')+' supprimé'+(perdus>1?'s':'')+' ou dont l’accès a été retiré',ic:uiIcon('undo',18)}]:[])
       .concat([{val:'del',name:'Supprimer la collection…',sub:'les aides restent où elles sont',ic:uiIcon('trash',18),danger:true}]),
     onPick:async v=>{
-      if(v==='ren'){const name=await collAsk('Renommer',c.name);if(name){c.name=sstr(name,60).trim()||c.name;colls.sort(collCmp);collsSave();render();}/* A592 : renommer re-range */}
+      if(v==='top'){if(c.top)delete c.top;else c.top=true;collsSave();render();toast(c.top?'« '+c.name+' » reste en tête de l’accueil.':'« '+c.name+' » suit l’ordre des plus récentes.');}
+      else if(v==='ren'){const name=await collAsk('Renommer',c.name);if(name){c.name=sstr(name,60).trim()||c.name;colls.sort(collCmp);collsSave();render();}/* A592 : renommer re-range */}
       else if(v==='clean'){const ok=new Set(collItems(c).map(x=>x.id));c.ids=c.ids.filter(id=>ok.has(id));collsSave();render();}
       else if(v==='del'&&await confirmDlg('La collection « '+c.name+' » disparaît ; ses '+nb(collItems(c).length,'élément')+' restent dans leurs bibliothèques.',{title:'Supprimer la collection ?',yes:'Supprimer',danger:true})){
         colls=colls.filter(x=>x!==c);collsSave();state.coll=null;render();toast('Collection supprimée — aucune aide n’a été touchée.');}}});}
@@ -17095,7 +17106,9 @@ function renderHomeList(cfg){
          collections · n », qui ouvre la feuille « Afficher » (au téléphone) ou la vue de la colonne. Jusqu'à
          COLL_HEAD + 1, rien ne change : replier une seule rangée n'économise rien. */
       const trop=colls.length>COLL_HEAD+1,vu=_homeFold.vu;
-      const tete=trop?new Set(colls.slice().sort((a,b)=>(vu[b.id]||0)-(vu[a.id]||0)||colls.indexOf(a)-colls.indexOf(b)).slice(0,COLL_HEAD).map(c=>c.id)):null;
+      /* A598 : les collections gardées en tête d'abord (toutes, même au-delà de COLL_HEAD), puis les plus récentes. */
+      const tete=trop?new Set(colls.filter(c=>c.top).concat(colls.filter(c=>!c.top).sort((a,b)=>(vu[b.id]||0)-(vu[a.id]||0)||colls.indexOf(a)-colls.indexOf(b)))
+        .slice(0,Math.max(COLL_HEAD,colls.filter(c=>c.top).length)).map(c=>c.id)):null;
       const montrees=trop?colls.filter(c=>tete.has(c.id)||_homeFold.open.has(c.id)):colls;
       const rowsC=montrees.map(c=>{const it=c.ids.map(id=>ids.get(id)).filter(Boolean).sort(srt),open=_homeFold.open.has(c.id);
         return `<button type="button" class="hc-row" data-hcoll="${esc(c.id)}" data-grptt="${esc(c.name)}" aria-expanded="${open?'true':'false'}">`

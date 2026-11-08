@@ -9349,6 +9349,14 @@ await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreu
     {const n=q('#pgNew'),w=innerWidth;const b=n&&n.getBoundingClientRect();o.creer=!!b&&b.right<=w&&b.left>=0;}
     o.toutAff=!!q('.pg-acts [data-pgall]');q('.pg-acts [data-pgall]')?.click();await __acCalme(300);
     o.apres=(q('.pg-tbt')||{}).textContent||'';o.libApres=state.homeLib;
+    // A598 — « Garder en tête » depuis le ⋯ de la collection : elle reste en tête même quand cinq autres sont plus récentes.
+    const c13=colls.find(c=>c.name==='Rangement 13');state.coll=c13.id;render();await __acCalme(300);
+    q('[data-collmenu]').click();await __acCalme(250);q('.popmenu [data-pickopt="top"]').click();await __acCalme(300);
+    o.top=c13.top===true;o.signet=!!q('.coll-head svg.coll-top')||!!q('.pg-eye svg.coll-top');
+    for(const n of ['00','01','02','03','04']){state.coll=colls.find(c=>c.name==='Rangement '+n).id;render();await __acCalme(150);}
+    state.coll=null;render();await __acCalme(300);
+    o.teteTop=qa('[data-hcoll] .hc-n').map(e=>e.textContent);o.signetAccueil=!!q('[data-hcoll="'+c13.id+'"] svg.coll-top');
+    o.stocke=JSON.parse(localStorage.getItem(spaceKey('ac-colls'))||'[]').some(c=>c.id===c13.id&&c.top===true);
     return o;});
   t('A595 · au repos, la sous-ligne compte les bibliothèques mêlées',/^Tout · 10 bibliothèques · \d+$/.test(r.sous),r.sous);
   t('A597 · 14 collections : l’accueil en garde 5, puis « Toutes les collections »',r.collsAvant===5&&r.toutes,JSON.stringify(r));
@@ -9359,6 +9367,9 @@ await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreu
   t('A595 · choisie, la bibliothèque prend le grand titre (œil « Bibliothèque · … ») sans puce redite',/^Bibliothèque numéro 3 au nom/.test(r.titre)&&/^Bibliothèque · /.test(r.oeil.trim())&&!r.puceLib,JSON.stringify({t:r.titre,e:r.oeil,p:r.puceLib}));
   t('A595 · la rangée ne redit pas la bibliothèque ; « Créer » reste à l’écran malgré le long nom',r.provenance===0&&r.creer,JSON.stringify({p:r.provenance,c:r.creer}));
   t('A595 · « Tout afficher » rend « Aides » et retire la bibliothèque',r.toutAff&&r.apres==='Aides'&&r.libApres==null,JSON.stringify({a:r.toutAff,t:r.apres,l:r.libApres}));
+  t('A598 · « Garder en tête » : signet plein, retenu, et elle garde sa place parmi les cinq, les récentes prennent les autres',
+    r.top&&r.signet&&r.signetAccueil&&r.stocke&&r.teteTop.length===5&&r.teteTop.includes('Rangement 13')&&r.teteTop.includes('Rangement 04')&&!r.teteTop.includes('Rangement 00')&&r.teteTop.join()===r.teteTop.slice().sort().join(),
+    JSON.stringify({top:r.top,s:r.signet,sa:r.signetAccueil,st:r.stocke,t:r.teteTop}));
   await page.close();
 });
 

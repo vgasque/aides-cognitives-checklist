@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A597 au lot v5.98 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A597 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A598 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -257,7 +257,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-95.md`](docs/decisions/lot-v5-95.md) | A587-A589 | Accueil à l'échelle (v5.95.0) : vos collections en tête, répertoire « Tout » qui se plie, réglage « comme avant », provenance sur la tuile |
 | [`lot-v5-96.md`](docs/decisions/lot-v5-96.md) | A590-A592 | La rangée « En cours » redevient la bande de session : sans étoile, Reprendre et Terminer… de retour, contour vert en sombre ; la carte « Session terminée » suit (sans liseré, avant « En cours ») |
 | [`lot-v5-97.md`](docs/decisions/lot-v5-97.md) | A593 | L'établi de l'éditeur de référence : texte et aperçu alignés en deux cartes, liés dans les deux sens, poignée de largeur (amende A546) |
-| [`lot-v5-98.md`](docs/decisions/lot-v5-98.md) | A594-A597 | La poignée suit le doigt ; l'accueil du téléphone dit ses bibliothèques (titre, liste dans « Afficher ») ; des dizaines de collections (les 5 récentes, « Toutes les collections ») |
+| [`lot-v5-98.md`](docs/decisions/lot-v5-98.md) | A594-A598 | La poignée suit le doigt ; l'accueil du téléphone dit ses bibliothèques (titre, liste dans « Afficher ») ; des dizaines de collections (les 5 récentes, « Toutes les collections », « Garder en tête ») |
 
 ### Carte par sujet
 
@@ -275,7 +275,7 @@ plages A renvoient au tableau ci-dessus.
 | **Parcours, Se repérer, Page, Schéma** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE | A133-A138, A339, A343-A344, A376, A388-A395, A448, A450, A522, A529, A534, A554, A558-A559, A580-A582 |
 | **Complications, revue « à tout moment », bande des repères** | COMPLICATIONS · PORTÉE D'UNE ACTION DE REPRISE · REPÈRES POSOLOGIQUES | A333-A335, A396-A399, A449 |
 | **Écran d'entrée d'une aide, exercice, guide** | MODE EXERCICE | A330, A347, A358, A366, A460, A463-A467, A520, A577 |
-| **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506, A515-A517, A523-A524, A527-A528, A537-A539, A544, A545, A556, A586, A587-A592, A595-A597 |
+| **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506, A515-A517, A523-A524, A527-A528, A537-A539, A544, A545, A556, A586, A587-A592, A595-A598 |
 | **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499, A522, A586 |
 | **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496, A520-A521, A546-A553, A560-A561, A583-A585, A593-A594 |
 | **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459, A554-A555, A557 |
