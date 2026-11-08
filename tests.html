@@ -834,6 +834,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('mdTableAt : une ligne plus longue élargit l\'en-tête (rien n\'est tronqué)', (()=>{const t=A.mdTableAt('| a |\n|---|\n| 1 | 2 |',0);return t.head.length===2&&t.rows[0][1]==='2';})());
   eq('mdTableMd : colonnes alignées, alignement écrit, « | » protégé', A.mdTableMd({head:['Dose','Voie'],align:['c',''],rows:[['0,5 mg','IM | IV']]}),
     '| Dose   | Voie     |\n|:------:|----------|\n| 0,5 mg | IM \\| IV |');
+  ok('A609 : sans ligne d\'en-tête — en-tête VIDE écrit, relu hh=false, pas de thead au rendu', (()=>{const md=A.mdTableMd({head:['a','b'],rows:[['1','2']],align:[],hh:false});const t=A.mdTableAt(md,0);
+    return /^\|\s+\|\s+\|/.test(md)&&t.hh===false&&t.rows[0][0]==='1'&&!A.mdRender(md).includes('<thead>');})());
+  ok('A609 : colonne d\'en-tête — 1re case en gras écrit, relu hc=true sans les **, rendu th scope=row', (()=>{const md=A.mdTableMd({head:['','Dose'],rows:[['Adulte','1 mg'],['Enfant','0,01 mg/kg']],align:[],hc:true});const t=A.mdTableAt(md,0);
+    const h=A.mdRender(md);return md.includes('**Adulte**')&&t.hc===true&&t.rows[1][0]==='Enfant'&&h.includes('<th scope="row">Adulte</th>');})());
+  ok('A609 : une colonne seulement EN PARTIE en gras n\'est pas une colonne d\'en-tête', !A.mdRender('| a | b |\n|---|---|\n| **x** | 1 |\n| y | 2 |').includes('scope="row"'));
+  ok('A609 : retour à la ligne dans une case — <br> écrit, relu en \\n, rendu <br>', (()=>{const md=A.mdTableMd({head:['a'],rows:[['l1\nl2']],align:[]});const t=A.mdTableAt(md,0);
+    return md.includes('l1<br>l2')&&t.rows[0][0]==='l1\nl2'&&A.mdRender(md).includes('l1<br>l2');})());
+  ok('A609 : aucun autre HTML n\'est lu dans une case', (()=>{const h=A.mdRender('| a |\n|---|\n| <b>x</b><br><img src=x onerror=1> |');return h.includes('&lt;b&gt;')&&!h.includes('<img')&&h.includes('<br>');})());
+  eq('A609 : recherche — <br> devient une espace', A.mdStrip('| a |\n|---|\n| l1<br>l2 |').trim(), 'a  l1 l2');
   ok('aller-retour grille → texte → grille', (()=>{const md=A.mdTableMd({head:['a','b'],align:['','r'],rows:[['x|y','2']]});const t=A.mdTableAt(md,0);return t.rows[0][0]==='x|y'&&t.align[1]==='r';})());
   ok('collage Word : puces « · » et intertitre en gras', (()=>{const r=A.mdFromHtml('<p class="MsoNormal"><b>Conduite à tenir</b></p><p style="mso-list:l0 level1 lfo1">·&nbsp;&nbsp; Allonger</p><p style="mso-list:l0 level2 lfo1">o&nbsp;&nbsp; jambes</p>');
     return r.md==='## Conduite à tenir\n\n- Allonger\n  - jambes'&&r.N.h===1&&r.N.li===2;})());

@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.105.0] — 2026-11-08
+Tableaux, blocs et import de l'éditeur de référence (A609-A611). Rien à rejouer côté serveur.
+- **Un tableau se rouvre en grille** : ouvrez-le dans le document, « Modifier en grille ».
+- **En-têtes au choix** dans la grille : 1ʳᵉ ligne, 1ʳᵉ colonne, les deux ou aucun. **Entrée passe à la ligne dans une
+  case**, et la grille a son propre ↶ / ↷.
+- **La fenêtre du tableau ne se ferme plus** quand une sélection de texte se termine hors de la carte (vaut pour toutes
+  les fenêtres).
+- **« ＋ » au-dessus et au-dessous du bloc survolé** à la souris ; au doigt, « Bloc avant » rejoint « Bloc après ».
+- **Sélectionner plusieurs blocs** pour les copier ou les supprimer : Maj-clic, ⌘/Ctrl-clic ou sélection glissée à la
+  souris, « Sélectionner » au doigt ; Suppr supprime, ↶ rend tout.
+- **Un bloc vidé propose de redevenir** paragraphe, titre, encadré, liste, cases, tableau, image ou séparateur.
+- **Import** : « Renommer » chaque élément avant de l'importer ; une page (Notion…) peut être **versée dans une référence
+  déjà créée** — elle remplit son contenu vide ou s'ajoute à la suite, jamais d'écrasement ; la référence garde son titre,
+  sa catégorie et sa bibliothèque.
+
 ## [5.104.0] — 2026-11-08
 Le Markdown copié depuis Notion se lit tel quel, et quatre défauts de lecture corrigés (A607-A608). Rien à rejouer côté
 serveur.
@@ -234,18 +249,3 @@ Trois correctifs d'affichage (A579-A581). Rien à rejouer côté serveur.
   sur un écran large.
 - **Dans la fenêtre « Page », zoomer ne dérange plus la barre** : quand la feuille dépasse, « la feuille dépasse à
   droite » s'affiche sous la barre, à droite, sans déplacer le titre ni les boutons de zoom.
-
-## [5.90.0] — 2026-11-06
-L'alarme d'un minuteur et l'écran de démarrage d'une aide au design actuel ; en session, les sections reprennent le même dessin (A577, A578). Rien à rejouer côté serveur.
-- **La banderole d'un minuteur échu** (quand la session n'est pas à l'écran) reprend le dessin de l'échu dans la
-  capsule : fond et bord ambre, pastille réveil, « △ ÉCHU · nom de l'aide » puis le nom du minuteur en grand. Elle se
-  voit aussi bien en thème sombre. « — terminé » devient « Échu », le mot de la capsule.
-- **Elle ne se pose plus sur la session** : dès que la session qu'elle annonce revient à l'écran (retour dans l'app,
-  ou en y allant), elle disparaît — la capsule porte déjà l'alarme. Celle d'une autre aide reste.
-- **Avant la session, « Quand l'utiliser » et « Ne pas oublier »** sont des cartes comme celles du dessous (pastille,
-  titre, nombre), toujours ouvertes.
-- **Au bureau, « Prêts pour la session »** est une liste, comme les minuteurs de la session : nom, valeur de départ,
-  « au démarrage » ou « à lancer ».
-- **En session, les sections sous le bloc redeviennent des cartes** (Ne pas oublier, revue, À vérifier,
-  diagnostics, repères, références), comme sur l'écran de démarrage et comme avant la v5.89.0 — la liste
-  « Pendant toute l'aide » disparaît (A578).

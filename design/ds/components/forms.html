@@ -7482,6 +7482,10 @@
   .imp-row input{flex:none;width:24px;height:24px;accent-color:var(--act)}
   .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
   .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* A611 : le titre se renomme sur place ; « Dans … » dit où va le contenu et ce qu'il fera. */
+  .imp-tin{width:100%;min-height:32px;box-sizing:border-box;padding:4px 8px;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
+  @media (pointer:coarse){.imp-tin{font-size:16px}}
+  .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
   .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
   .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
   /* Registre ATTENTION pour « il reste n choses à relire » — la paire --warn/--warn-soft des
@@ -8225,7 +8229,10 @@
   .md-tbl{border-collapse:collapse;width:100%;min-width:440px;font-size:13.5px}
   .md-tbl th,.md-tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
   .md-tbl thead th{background:var(--amb-2);font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
-  .md-tbl tbody tr:last-child td{border-bottom:0}
+  .md-tbl tbody tr:last-child td,.md-tbl tbody tr:last-child th{border-bottom:0}
+  /* A609 : la colonne d'en-tête — même fond que la ligne d'en-tête, mais en casse normale (un intitulé de ligne se lit
+     comme un mot, pas comme une étiquette) ; un filet la sépare des données. */
+  .md-tbl tbody th{background:var(--amb-2);font-weight:700;color:var(--ink);border-right:1px solid var(--line)}
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
@@ -8292,6 +8299,23 @@
   .mdb:hover .mdb-ed,.mdb-ed:focus-visible{opacity:1}
   .mdb-ed:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-raw{font-family:var(--f-mono);color:var(--ink-2)}
+  /* A610 — « ＋ » au-dessus / au-dessous du SEUL bloc survolé, centrés sur son cadre (pointeur fin ; au doigt, « Bloc
+     avant / après » du bloc ouvert). Cachés pendant une sélection de blocs. */
+  .mdb-ins{position:absolute;left:50%;z-index:2;display:none;align-items:center;justify-content:center;width:32px;height:32px;margin:0 0 0 -16px;padding:0;
+    border:1px solid var(--line-strong);border-radius:50%;background:var(--work);color:var(--act);box-shadow:var(--shadow-float);cursor:pointer}
+  .mdb-ins-a{top:-24px}.mdb-ins-b{bottom:-24px}
+  @media (hover:hover) and (pointer:fine){.md-doc:not(.mdb-selon) .mdb:not(.on):hover>.mdb-ins,.mdb-ins:focus-visible{display:inline-flex}}
+  .mdb-ins:hover{border-color:var(--act);background:var(--primary-soft)}
+  .mdb-ins:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A610 — blocs sélectionnés : le fond et le cadre du « bloc courant » (bleu, règle 8), la barre en matière système. */
+  .mdb.sel{outline:2px solid var(--act);outline-offset:6px;background:var(--primary-soft);box-shadow:0 0 0 6px var(--primary-soft)}
+  .md-doc.mdb-selon .mdb:not(.on){cursor:pointer;-webkit-user-select:none;user-select:none}
+  .md-doc.mdb-selon .mdb-ed,.md-doc.mdb-selon .mdb-grab{display:none}
+  .mdb-selbar{position:sticky;bottom:12px;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding:8px 8px 8px 16px;
+    border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float)}
+  .mdb-sb-n{flex:1 1 auto;min-width:0;font-weight:700}
+  .mdb-sb-x{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:none;color:inherit;font:inherit;font-size:var(--t-item);cursor:pointer}
+  .mdb-sb-x:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
   .mdb-add{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:10px 12px;min-height:44px;border:1px dashed var(--line-strong);border-radius:var(--r-2);
     background:transparent;font:inherit;font-size:var(--t-item);font-weight:600;color:var(--act);cursor:pointer}
   .mdb-add:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -8442,8 +8466,9 @@
   .mdg-tpl{margin-left:auto}
   .mdg-scroll{overflow-x:auto;border:1px solid var(--line-strong);border-radius:var(--r-2)}
   .mdg{display:grid;grid-template-columns:repeat(var(--mdg-n),minmax(112px,1fr))}
-  .mdg-in{min-width:0;height:44px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:var(--work);color:var(--ink);padding:0 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
+  .mdg-in{min-width:0;min-height:44px;resize:none;overflow:hidden;line-height:1.35;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:var(--work);color:var(--ink);padding:12px 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
   .mdg-in.mdg-h{background:var(--amb);font-weight:800}
+  .mdg-hx.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
   .mdg-in.ta-c{text-align:center}.mdg-in.ta-r{text-align:right}
   .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}
   .mdg-src{margin-top:12px;background:var(--amb-2);border-radius:var(--r-2);padding:8px 12px}

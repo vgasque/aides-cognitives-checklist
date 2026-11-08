@@ -1055,6 +1055,8 @@ texte garde l'alignement du formulaire (plus de gouttière de 40 px à gauche). 
 fond de carte, UNE bordure `--act` et l'anneau doux `--primary-soft`, police d'interface (`--f-ui`, 16 px au toucher).
 *Forme écartée* : garder les « ＋ » au survol d'un seul interstice (une cible de 20 px entre deux blocs, introuvable au
 doigt et bruyante à la souris).
+*Amendé par A610 (v5.105.0, `lot-v5-104.md`) : « ＋ » au-dessus et au-dessous du SEUL bloc survolé, sur son cadre, 32 px ;
+la forme écartée ici (chaque interstice) le reste.*
 
 ## A551 — Toute modification pose son point de reprise : ↶ paraît, quel que soit le geste (v5.78.2)
 
