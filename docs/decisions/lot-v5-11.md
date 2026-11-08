@@ -75,7 +75,7 @@ DIT PAS.** Un menu `absolute` se pose par rapport au premier ancêtre POSITIONN�
 d'atelier n'en a aucun : à 1194×834, ouvert sur la dernière rangée, il atterrissait à 494→834, soit
 une centaine de pixels SOUS le bas de la liste (394), détaché de la pastille qui l'ouvre. Positionner
 la rangée ne répare pas davantage (même géométrie mesurée) et exposerait au contraire le menu à
-l'`overflow` du corps de fenêtre. Les menus de l'atelier sont donc des FEUILLES à toute largeur —
+l'`overflow` du corps de fenêtre. *(Amendé par A638, v5.109.8 : au bureau, un déroulant FLOTTANT monté sur <body>.)* Les menus de l'atelier sont donc des FEUILLES à toute largeur —
 la forme que le téléphone recevait déjà —, et le palier 780 passe de la feuille de style au JS pour
 que la règle n'ait qu'UNE écriture (`openPickMenu` pose `.sheet` si l'appelant l'exige ou sous
 780 px). Ce que ça change, et c'est dit : le menu ne se reforme plus si l'on pivote l'appareil menu

@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-q9g2Jl+hN/j4sUpEWKZeQs8GnMNgZUcdX1Xht0gx7+c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eqPOorDbzWzXDFN0wMq0eYSwCiVCyTYrY1IcqqmzZow='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8038,6 +8038,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
      ne coche pas la rangée. */
   .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  /* A638 : le déroulant FLOTTANT (fenêtres, au bureau) — au-dessus des fenêtres (55), sous les feuilles (70). */
+  .popmenu.flot{position:fixed;z-index:66;top:auto;left:auto;min-width:260px;max-width:min(380px,calc(100vw - 16px))}
   .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--work);color:var(--ink);cursor:pointer}
   .imp-pick:hover{background:var(--amb-2);border-color:var(--ink-soft)}
   .imp-pick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -10324,7 +10326,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.7';
+const APP_VERSION='5.109.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11003,6 +11005,9 @@ function mdCells(line){const s=String(line==null?'':line).trim().replace(/^\|/,'
    (« **indications *systématiques* en AVP** ») et « ~~barré~~ ». Ordre : *** d'abord, puis le gras (qui admet des *
    isolés), puis l'italique — qui ne traverse JAMAIS une balise déjà posée (sauf un <b>…</b> entier) : un balisage
    mal imbriqué reste visible au lieu de produire des balises croisées. BOLD_RX (textes de fiche) ne change pas. */
+const MD_B4_RX=/\*{4,}([^*\n]+?)\*{4,}/g;   // A639 : ****gras**** (export Notion : un gras dans un gras) — rendu en gras
+// A639 : un gras qui OUVRE ou FERME un gras (« ****titre** : suite** », « **suite **titre**** ») — le tout en gras.
+const MD_B4O_RX=/\*{4}([^*\n]+?)\*\*([^*\n]*?)\*\*(?!\*)/g,MD_B4F_RX=/(^|[^*])\*\*([^*\n]*?)\*\*([^*\n]+?)\*{4}/g;
 const MD_BI_RX=/\*\*\*([^*\n]+)\*\*\*/g;                    // ***gras italique***
 const MD_BOLD_RX=/\*\*((?:[^*\n]|\*[^*\n]+\*)+?)\*\*/g;      // **gras**, un *italique* ENTIER admis dedans
 const MD_ITAL_RX=/(^|[^*])\*((?:[^*\n<]|<b>[^<]*<\/b>)+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
@@ -11024,6 +11029,7 @@ function mdInline(s){const h=esc(sstr(s,4000));
       const am=href.match(/^att:([A-Za-z0-9_-]{1,64})(?:#p(\d{1,4}))?$/);
       if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+txt+'</a>';
       return m;});
+    x=x.replace(MD_B4_RX,'<b>$1</b>').replace(MD_B4O_RX,'<b>$1$2</b>').replace(MD_B4F_RX,'$1<b>$2$3</b>');
     x=x.replace(MD_BI_RX,'<b><i>$1</i></b>');
     x=x.replace(MD_BOLD_RX,'<b>$1</b>');
     x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
@@ -11078,7 +11084,11 @@ function mdBlocks(src){
        (une tabulation), l'éditeur de 2. Une pile {ind, liste} : plus indenté que le niveau courant → sous-liste du
        dernier élément ; moins → on remonte. Au-delà de la profondeur, l'élément reste au dernier niveau (rien ne se
        perd). Un sous-niveau garde le type de son premier élément (un 1. au milieu de - ne vide plus la sous-liste). */
-    if((m=l.match(/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/))&&(m[1].length===0||list)){flushPara();flushQuote();
+    /* A640 — UN ÉLÉMENT INDENTÉ SANS LISTE OUVERTE OUVRE UNE LISTE (signalé : une image insérée dans une liste par
+       l'import Notion « casse la liste ») : l'image est un bloc à elle (une ligne seule) et ferme la liste ; ce qui la
+       suit, indenté (« ········- Bicarbonates… »), s'affichait en TEXTE avec son tiret. Il repart en liste, au niveau de
+       sa propre indentation (la profondeur d'avant l'image n'est pas rejouée : il n'y a plus de parent). */
+    if((m=l.match(/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/))&&(m[1].length===0||list||!para.length)){flushPara();flushQuote();
       const ind=m[1].length,st=m[2]?'ol':'ul';
       if(!list||(ind===0&&list.t!==st)){flushList();list={t:st,items:[],ln:i};lstk=[{ind,lst:list}];}
       let top=lstk[lstk.length-1];
@@ -11261,7 +11271,7 @@ function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'').replace(MD_TASK_RX,'')
     .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
     .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
-  .join(' ').replace(MD_BI_RX,'$1').replace(MD_BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_STRIKE_RX,'$1').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
+  .join(' ').replace(MD_B4_RX,'$1').replace(MD_B4O_RX,'$1$2').replace(MD_B4F_RX,'$1$2$3').replace(MD_BI_RX,'$1').replace(MD_BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_STRIKE_RX,'$1').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
 const main=document.getElementById('main');
 /* Pied de page NOMADE : sur l'accueil large son contenu (version, synchro, stockage, input
    d'import) vit en bas de la sidebar ; ailleurs il reprend sa place en bas de .app. On DÉPLACE
@@ -12184,6 +12194,8 @@ function collsSave(){try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringif
    bibliothèque grandit ; un champ qui n'apparaît qu'à 8 ou 9 éléments change la fenêtre sous le doigt d'un jour à
    l'autre. Mêmes mots partout. Au doigt, le champ n'est pas focalisé d'office (A597 : le clavier ne monte qu'au toucher). */
 const CHOIX_AP_RECH='Rechercher une aide, un protocole…';
+/* A638 : au bureau (≥ 780 px), un choix est un déroulant FLOTTANT sous son déclencheur ; au téléphone, la feuille du bas. */
+const deskFlot=()=>window.innerWidth>=780?{sheet:false,fixed:true}:{sheet:true,fixed:false};
 const SUIVI_TYPES={revoir:'À revoir',fusion:'À fusionner avec',confronter:'À confronter à',completer:'À compléter',autre:'Autre'};
 const SUIVI_PRIO={1:'D’abord',2:'Ensuite',3:'Plus tard'};
 const SUIVI_MAX=3000;
@@ -12275,6 +12287,11 @@ function suiviBlockHtml(ent,crise,feuille){if(!ent||!ent.id)return '';const all=
 function suiviPillHtml(ent){if(!ent||!ent.id)return '';const o=suiviOpenOf(ent.id).length,n=suiviOf(ent.id).filter(x=>x.k==='note').length;if(!o&&!n)return '';
   const lbl=o?nb(o,'tâche'):nb(n,'note'),aria='Suivi : '+[o?nb(o,'tâche')+' à faire':'',n?nb(n,'note'):''].filter(Boolean).join(', ');
   return `<button type="button" class="su-pill" data-sublk="${esc(ent.id)}" aria-label="${esc(aria)}">${uiIcon('task',13)}${esc(lbl)}</button>`;}
+/* A636 — dans l'ÉTABLI de l'éditeur de protocole (texte et aperçu côte à côte, A593 : plus de colonne de droite), le
+   suivi garde son bloc en bas de page, et dès qu'il y a une note ou une tâche, une pastille dans l'en-tête « Identité »
+   l'ouvre en feuille sans quitter sa place — exactement la lecture (A615 ; options B puis « en bas aussi s'il n'y a
+   rien », choix de l'auteur). */
+const suiviEdPillHtml=ent=>suiviPillHtml(ent);
 function suiviBlkOpen(id){const e=suiviEnt(id);if(!e)return;
   document.getElementById('suiviBlkTitle').textContent='Suivi · '+(String(e.title||'').trim()||'Sans titre');
   document.getElementById('suiviBlkBody').innerHTML=suiviBlockHtml(e,false,true);suiviBlkModal.classList.add('on');}
@@ -12331,7 +12348,7 @@ suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button
   if(b.id==='svRefBtn'){suiviEdRead();const lib=x=>x.library?(libName(x.library)||'Partagée'):'Perso',sub=x=>{const c=catOf(x);return [c?c.name:'',lib(x)].filter(Boolean).join(' · ');};
     const pool=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==E.ent).sort(byTitle),A=pool.filter(y=>fiches.indexOf(y)>=0),P=pool.filter(y=>fiches.indexOf(y)<0);
     const opt=(y,ic)=>({val:y.id,name:String(y.title||'').trim()||'Sans titre',sub:sub(y),ic:uiIcon(ic,16)});
-    openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+    openPickMenu(b.parentNode,{fixed:window.innerWidth>=780,matchWidth:true,aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
       options:(E.ref&&E.type==='confronter'?[{val:'',name:'Aucun élément',sub:'une reco écrite ci-dessous',ic:uiIcon('pen',16)}]:[])
         .concat(A.length?[{head:'Aides · '+A.length}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles · '+P.length}]:[],P.map(y=>opt(y,'doc'))),
       onPick:v=>{E.ref=v||'';suiviEdPaint();}});return;}
@@ -12380,6 +12397,8 @@ function suiviRepaint(){
   document.querySelectorAll('#main .su-blk[data-suent],#suiviBlkBody .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false,b.classList.contains('su-feuille'));if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
   document.querySelectorAll('#main .read-meta').forEach(m=>{const id=state.view==='read'&&state.fiche?state.fiche.id:(state.view==='protocolRead'&&state.protocol?state.protocol.id:null);if(!id||document.querySelector('#main details.su-crise'))return;
     const old=m.querySelector('.su-pill'),h=suiviPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)m.insertAdjacentHTML('beforeend',h);});   // A615 : la pastille suit
+  {const r=document.querySelector('#main .etab-page .ed-sech-row'),id=state.view==='protocolEdit'&&state.pdraft?state.pdraft.id:null;   // A636 : la pastille de l'établi suit
+   if(r&&id){const old=r.querySelector('.su-pill'),h=suiviEdPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)r.insertAdjacentHTML('beforeend',h);}}
   document.querySelectorAll('[data-sudoor]').forEach(b=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;const c=b.querySelector('.hs-n,.su-dn');if(c)c.textContent=n?String(n):'';});
   if(state.view==='library'&&homeTab()==='biblio')render();}
 bindModalDismiss(suiviModal,()=>suiviModal.classList.remove('on'));
@@ -16396,7 +16415,7 @@ async function collAsk(title,value){return confirmDlg('Nom de la collection',{ti
 /* La rangée du menu ⋯ : active même en lecture seule (« Modifier » grisé juste au-dessus) — la preuve par le geste. */
 const collMenuRow=x=>({label:'Ajouter à une collection…',ic:uiIcon('bookmark',16),
   get sub(){const a=collsOf(x.id);return a.length?'dans '+collsLbl(a):'votre rangement, à vous seul';},   // lue à l'ouverture du menu
-  act:()=>openCollPick([x.id],{trigger:document.getElementById('hdrMore'),redo:()=>{}})});
+  act:()=>openCollPick([x.id],{trigger:document.getElementById('hdrMore'),redo:()=>{},...deskFlot()})});   // A638
 function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   const all=(fiches||[]).concat(protocols||[]);
   const ents=o.ents||ids.map(id=>all.find(x=>x&&x.id===id)).filter(Boolean),n=ids.length;   // `o.ents` (A496) : un brouillon pas encore dans la liste
@@ -16408,7 +16427,7 @@ function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   /* `compact` (A496) : ancré sous la rangée Collections de l'éditeur, dans la coque large (`wide`) — titre, contexte et
      notice RESTENT (décision de l'auteur : la définition « à vous seul, rien n'est déplacé » se lit au moment du geste),
      resserrés d'un cran par le CSS de `.catmenu.wide` ; la feuille de l'accueil est inchangée. */
-  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:o.sheet==null?true:o.sheet,up:!!o.up,wide:!!o.compact,multi:true,trigger:o.trigger,back:o.back,seuilFiltre:4,
+  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:o.sheet==null?true:o.sheet,up:!!o.up,fixed:!!o.fixed,wide:!!o.compact,multi:true,trigger:o.trigger,back:o.back,seuilFiltre:4,
     options:[{val:COLL_PIN,name:'Accès direct',sub:ids.length>pinOk.length?nb(ids.length-pinOk.length,'brouillon')+' ne s’épingle'+(ids.length-pinOk.length>1?'nt':'')+' pas':'les tuiles en tête de l’accueil',on:st(COLL_PIN),ic:collIc(collById(COLL_PIN))}]
       .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id),ic:collIc(c)}))),
     title:'Ajouter à une collection',ctx:(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))+' · '+(libs.length===1?libs[0]:selLibsMot(libs.length)),
@@ -19649,12 +19668,13 @@ function miCardHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);if(!ims.
     <div class="mi-grid">${vis.map((im,i)=>`<button type="button" class="mi-tile" data-mitile="${esc(im.id)}" data-miname="${esc(miName(im,i))}" aria-label="${esc(miName(im,i))}"><img src="${im.data}" alt="" loading="lazy" decoding="async"><span class="mi-use" hidden></span><span class="mi-out" hidden>△ hors texte</span></button>`).join('')}
     ${fold?`<button type="button" class="mi-more" data-mimore>${ims.length-vis.length} de plus<span aria-hidden="true">⌄</span></button>`
       :(ims.length>MI_FOLD?'<button type="button" class="mi-more" data-mimore>Replier<span aria-hidden="true">⌃</span></button>':'')}</div>
-    <p class="hint mi-hint">Toucher une image : insérer, taille, remplacer, retirer. Une image <b class="mi-w">△ hors texte</b> sera retirée en quittant l'éditeur.</p></fieldset>`;}
+    <p class="hint mi-hint">Toucher une image : insérer, taille, remplacer, retirer.<span class="mi-outmsg"${ims.some(im=>!miUses(p.body)[im.id])?'':' hidden'}> Une image <b class="mi-w">△ hors texte</b> sera retirée en quittant l'éditeur.</span></p></fieldset>`;}   // A637 : la mise en garde ne paraît que s'il y a une image hors texte
 // Peint sur place l'usage de chaque vignette (le rendu n'est pas rejoué à la frappe) et la feuille ouverte.
 function miPaintUse(p){const n=miUses(p.body);
   main.querySelectorAll('[data-mitile]').forEach(t=>{const k=n[t.dataset.mitile]||0,u=t.querySelector('.mi-use'),o=t.querySelector('.mi-out');
     u.hidden=k<2;u.textContent='×'+k;o.hidden=k>0;
     t.setAttribute('aria-label',t.dataset.miname+(k>1?', '+k+' passages':k?'':', absente du texte'));});
+  {const m=main.querySelector('.mi-outmsg');if(m)m.hidden=!(p.images||[]).some(im=>im&&im.data&&!n[im.id]);}   // A637 : toutes les images comptent, repliées comprises
   if(_miId&&miEl().classList.contains('on'))miPaint();}
 function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%Math.max(k,1);
   return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">Taille sur grand écran</h4>')}
@@ -19745,7 +19765,7 @@ function renderProtocolEdit(){
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${''/* A614 : le VOLET « SUIVI » de l'éditeur — à côté du contenu, jamais dedans : dans la colonne de droite au
        bureau (sous la relecture), en pied du formulaire ailleurs. Le même bloc que la lecture (`suiviBlockHtml`). */}
-    ${!wideEdit||mds?suiviBlockHtml(p,false):''}
+    ${!wideEdit||mds?suiviBlockHtml(p,false):''}${''/* A636 : dans l'établi, en bas ET la pastille de l'en-tête s'il y a du suivi (comme en lecture, A615) */}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?(mds?'</div></div>':`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${suiviBlockHtml(p,false)}${editPreviewHtml('proto')}</aside></div>`):''}`;
   bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},
@@ -19807,6 +19827,7 @@ function renderProtocolEdit(){
     b.onclick=()=>{const x=d();if(x)mdLinkDoc(act,x);};
     b.ondragstart=e=>{const x=d();if(x)e.dataTransfer.setData('text/plain',mdDocLink(x,''));};});
   {const sw=main.querySelector('[data-mdlive]');if(sw)sw.onchange=()=>{try{localStorage.setItem('ac-mdlive',sw.checked?'1':'0');}catch(e){}renderProtocolEdit();};}
+  if(mds){const r=main.querySelector('.ed-sech-row');if(r)r.insertAdjacentHTML('beforeend',suiviEdPillHtml(p));}   // A636
   if(live)mdDocBind(p,ta,bindField,f=>{act=f||ta;});
   // Plan, curseur suivi par l'aperçu, aperçu qui ramène au texte, bascule Écrire / Aperçu (v5.44).
   const sync=()=>requestAnimationFrame(()=>mdCaretSync(ta,p));
@@ -20083,15 +20104,34 @@ function openPickMenu(host,opts){
      Une feuille étant `position:fixed`, son hôte ne lui sert PAS à se placer : on la monte à la
      racine, où son z-index se compare enfin à ceux des autres couches. Le menu ANCRÉ, lui, garde
      son hôte — c'est de lui qu'il tire sa position. */
-  const mount=sheet?document.body:host;
+  const flot=!sheet&&!opts.up&&!!opts.fixed&&!!trigger;   // A638 : déroulant FLOTTANT (dans une fenêtre)
+  const mount=sheet||flot?document.body:host;
+  if(flot)menu.classList.add('flot');
   mount.appendChild(veil);mount.appendChild(menu);
+  /* A638 — `fixed` : DANS UNE FENÊTRE, le déroulant ne peut ni vivre dans une rangée (A167 : il y tombe mal) ni dans un
+     défileur (il y est coupé, mesuré dans l'atelier d'import) : il FLOTTE, monté sur <body>, posé sous son déclencheur
+     (au-dessus s'il manque de place), au-dessus des fenêtres ; il se referme si la fenêtre défile. */
+  if(flot){const z=zoomF(),vv=window.visualViewport,H=((vv&&vv.height)||innerHeight),W=innerWidth,tr=trigger.getBoundingClientRect(),mr=menu.getBoundingClientRect();
+    const bas=H-tr.bottom-12,haut=tr.top-12,dessous=bas>=Math.min(mr.height,240)||bas>=haut,dispo=(dessous?bas:haut)-6;
+    menu.style.maxHeight=Math.round(Math.max(160,dispo)/z)+"px";
+    if(opts.matchWidth){menu.style.width=Math.round(tr.width/z)+'px';menu.style.maxWidth='none';}
+    const mw=opts.matchWidth?tr.width:mr.width;let l=tr.left;if(l+mw>W-8)l=Math.max(8,W-8-mw);
+    menu.style.left=Math.round(l/z)+'px';menu.style.top=Math.round((tr.bottom+6)/z)+'px';
+    if(!dessous){const h2=menu.getBoundingClientRect().height;menu.style.top=Math.round((tr.top-6-h2)/z)+'px';}   // hauteur RELUE après bornage et largeur posées
+    const fin=()=>{if(_pickClose)_pickClose(false);};const sc=e=>{if(!menu.isConnected){removeEventListener('scroll',sc,true);return;}if(!menu.contains(e.target)){removeEventListener('scroll',sc,true);fin();}};
+    addEventListener('scroll',sc,true);}
+  /* A638 — `alignTo` : le menu ancré se pose SOUS ce déclencheur-là, pas au bord gauche de l'hôte (l'hôte, positionné,
+     peut porter plusieurs pastilles — l'atelier d'import). Il ne sort pas de l'hôte à droite. */
+  if(!sheet&&!opts.up&&opts.alignTo){const z=zoomF(),hr=host.getBoundingClientRect(),tr=opts.alignTo.getBoundingClientRect(),mw=menu.getBoundingClientRect().width;
+    let l=(tr.left-hr.left)/z;if(l*z+mw>hr.width)l=Math.max(0,(hr.width-mw)/z);
+    menu.style.left=Math.round(l)+'px';menu.style.right='auto';menu.style.top=Math.round((tr.bottom-hr.top)/z+6)+'px';}
   /* UN MENU ANCRÉ TIENT SOUS SON ANCRE (A496, mesuré à 1280×900 : sept collections sous la rangée de l'éditeur, le menu
      sortait de l'écran). Même mesure que `fitMoreMenu` (J203) : hauteur VISUELLE, px CSS (÷ zoom), plancher 180. */
   /* A629 — …ET SOUS LE BAS DE CE QUI L'ÉCRÊTE : ancré dans une fenêtre (choix de l'élément lié d'une tâche, A624), le menu
      était coupé par le corps défilant de la fenêtre — à 1280×600, les rangées sous la coupe n'étaient pas touchables
      (A167, mesuré par `elementFromPoint`). On borne aussi par le bas du premier ancêtre qui écrête (overflow ≠ visible) :
      le menu garde sa propre barre de défilement, tout ce qu'il montre se touche. */
-  if(!sheet&&!opts.up){const vv=window.visualViewport;let bas=(vv&&vv.height)?vv.height:window.innerHeight;const r=menu.getBoundingClientRect();
+  if(!sheet&&!opts.up&&!flot){const vv=window.visualViewport;let bas=(vv&&vv.height)?vv.height:window.innerHeight;const r=menu.getBoundingClientRect();
     for(let a=host;a&&a!==document.body;a=a.parentElement){const ov=getComputedStyle(a).overflowY;if(ov!=='visible'){bas=Math.min(bas,a.getBoundingClientRect().bottom);break;}}
     const dispo=(bas-r.top)/zoomF()-10;if(r.height>dispo)menu.style.maxHeight=Math.round(Math.max(180,dispo))+'px';}
   /* CE QUI EST « DÉPLIÉ », C'EST LE DÉCLENCHEUR TOUCHÉ — pas tous ceux de l'hôte. La marque était
@@ -28112,7 +28152,10 @@ function bindEditSide(kind){if(!document.getElementById('editSide'))return;
   _editSideOn=()=>{clearTimeout(_editSideT);_editSideT=setTimeout(()=>{const s=document.getElementById('editSide');if(!s)return;
     const p=state.pdraft;
     const dt=s.querySelector('#revPanel details.rev-panel');const open=dt?dt.open:null;
-    s.innerHTML=`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`+editPreviewHtml(kind);
+    /* A636 — LE VOLET « SUIVI » (A614) VIT AUSSI DANS CETTE COLONNE : la reconstruire sans lui le faisait DISPARAÎTRE
+       300 ms après la première frappe — et au basculement « Mise en forme en direct », dont l'interrupteur émet lui
+       aussi un `input` (signalé : « quand on switche, il ne devient visible ni sur le côté ni en bas »). */
+    s.innerHTML=`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`+suiviBlockHtml(p,false)+editPreviewHtml(kind);
     const d2=s.querySelector('#revPanel details.rev-panel');if(d2&&open!=null)d2.open=open;
     bindRevPanel();wire();const ta=document.getElementById('p-body');if(ta)mdCaretSync(ta,p);},300);};
   main.addEventListener('input',_editSideOn);}
@@ -30935,21 +30978,23 @@ function impPoseLib(rows,lib){rows.forEach(r=>{if(r.lib===lib)return;r.lib=lib;
   if(r.cat!==IMP_KEEP&&r.cat)r.cat=IMP_KEEP;});
   impPaintDest(rows.map(r=>r.key));}
 function impPoseCat(rows,cat){rows.forEach(r=>{r.cat=cat;});impPaintDest(rows.map(r=>r.key));}
-// Les deux menus de l'atelier. `sheet:true` — cf. le CSS : un menu ancré serait coupé par le
-// corps défilant de la fenêtre. L'hôte est le bandeau, qui vit HORS de ce défileur.
+/* Les deux menus de l'atelier. A638 (demande de l'auteur : « des petites fenêtres même sur ordinateur ») : AU BUREAU, un
+   déroulant SOUS la pastille touchée — sa rangée (`.imp-drow`) ou le bandeau, positionnés, en sont l'hôte ; il est
+   borné par le bas du corps défilant de la fenêtre (A629), ce qui lève la raison d'A167. Au téléphone, la feuille. */
+const impMenuHost=trigger=>window.innerWidth<780||!trigger?{host:document.getElementById('impDest'),sheet:true}:{host:document.getElementById('impDest'),sheet:false,fixed:true};
 function openImpLibMenu(rows,trigger){
-  const host=document.getElementById('impDest');
-  openPickMenu(host,{aria:'Bibliothèque',sheet:true,trigger,options:impLibOptions(),
+  const H=impMenuHost(trigger),host=H.host;
+  openPickMenu(host,{aria:'Bibliothèque',sheet:H.sheet,fixed:H.fixed,trigger,options:impLibOptions(),
     value:(impCommun2(rows,r=>r.lib)||''),
     onPick:v=>impPoseLib(rows,v||null)});}
 function openImpCatMenu(rows,trigger){
-  const host=document.getElementById('impDest');
+  const H=impMenuHost(trigger),host=H.host;
   // Les catégories offertes sont celles de la DESTINATION. Si les rangées visées ne partagent pas
   // la même bibliothèque, il n'existe pas de jeu commun : on ne propose alors que les deux choix
   // qui ont un sens partout (garder / aucune) plutôt qu'une liste qui mentirait sur la moitié.
   const lib=impCommun2(rows,r=>r.lib);
   const cats=lib===undefined?[]:catsSorted(lib);
-  openPickMenu(host,{aria:'Catégorie',sheet:true,trigger,
+  openPickMenu(host,{aria:'Catégorie',sheet:H.sheet,fixed:H.fixed,trigger,
     options:[{val:IMP_KEEP,name:'Garder la catégorie du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'}]
       .concat(catOpts(cats)),
     value:(rows.length===1?rows[0].cat:impCommun2(rows,r=>r.cat)),
@@ -31004,10 +31049,10 @@ document.getElementById('impNone').onclick=()=>impSetAll(false);
 document.getElementById('impList').addEventListener('click',e=>{
   const ib=e.target&&e.target.closest?e.target.closest('[data-impinto]'):null;
   if(ib){e.preventDefault();const r=_impRows.find(x=>x.key===ib.dataset.impinto);if(!r)return;
-    openPickMenu(ib.parentNode,{aria:'Où va ce contenu',title:'Où va ce contenu',trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
+    {const H=impMenuHost(ib);openPickMenu(H.host,{aria:'Où va ce contenu',title:H.sheet?'Où va ce contenu':'',sheet:H.sheet,fixed:H.fixed,trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
       options:[{val:'',name:'Nouveau protocole',sub:'créé à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
         .concat(impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli',ic:uiIcon('book',16)}))),
-      onPick:v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();}});return;}
+      onPick:v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();}});}return;}
   const rb=e.target&&e.target.closest?e.target.closest('[data-impren]'):null;
   if(rb){e.preventDefault();const r=_impRows.find(x=>x.key===rb.dataset.impren),it=rb.closest('.imp-item'),bt=rb;if(!r||!it)return;
     /* A622 §3 : un TEXTAREA qui grandit avec le titre (un champ d'une ligne cachait la fin d'un long titre) ; Entrée
@@ -31820,7 +31865,7 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
     if(t.dataset.admact!=null){admAct(t.dataset.admact);return;}
     if(t.dataset.admcreate!=null){const u=admUser();if(!u)return;try{await rpc('set_library_creator',{p_user:u.user_id,p_on:!u.can_create});}catch(x){err(x);}admAfter();return;}
     if(t.dataset.admaddlib!=null){const u=admUser();if(!u)return;const mem=_adm.mem[u.user_id]||[];
-      openPickMenu(t.parentNode,{aria:'Ajouter à une bibliothèque',sheet:true,trigger:t,
+      openPickMenu(t.parentNode,{aria:'Ajouter à une bibliothèque',...deskFlot(),trigger:t,
         options:(_admD.libs||[]).filter(l=>!mem.some(m=>m.library_id===l.id)).map(l=>({val:l.id,name:l.name||'Bibliothèque partagée',ic:uiIcon('book',18)})),
         onPick:async v=>{let r;try{r=await rpc('invite_member',{p_library:v,p_email:u.email,p_role:'viewer'});}catch(x){err(x);return;}
           if(r!=='ok'){toast(r==='not_approved'?'⚠ Ce compte n’est pas approuvé : il ne peut pas être ajouté.':'⚠ Ajout impossible ('+r+').',5000,true);return;}
@@ -31839,7 +31884,7 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       try{await rpc('set_library_creation',{p_mode:k});}catch(x){err(x);renderAdm();return;}
       admAfter('Création de bibliothèques : '+LIB_MODES.find(m=>m[0]===k)[1].toLowerCase()+'.');return;}
     if(t.dataset.libcr!=null){try{await rpc('set_library_creator',{p_user:t.dataset.libcr,p_on:false});}catch(x){err(x);}admAfter();return;}
-    if(t.dataset.libcradd!=null){openPickMenu(t.parentNode,{aria:'Autoriser une personne',sheet:true,trigger:t,
+    if(t.dataset.libcradd!=null){openPickMenu(t.parentNode,{aria:'Autoriser une personne',...deskFlot(),trigger:t,
       options:(_admD.users||[]).filter(u=>!u.can_create&&!u.is_admin).map(u=>({val:u.user_id,name:u.email,ic:uiIcon('user',18)})),
       onPick:async v=>{try{await rpc('set_library_creator',{p_user:v,p_on:true});}catch(x){err(x);}admAfter();}});}});
   /* La recherche ne repeint QUE la liste : le champ garde son focus et son curseur. */

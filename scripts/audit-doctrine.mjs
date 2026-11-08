@@ -7167,7 +7167,10 @@ for (const H of [844, 667]) {
         ['interval','.tmedit[data-ti]'],['counter','.tmedit[data-ci]'],['cx','.cx-edit-row']]){
       const n0=document.querySelectorAll(sel).length;
       if(!await ouvrir(kind)){out.cas[kind]={absent:true};continue;}
-      const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];
+      /* L'objet créé paraît au rendu suivant : on l'ATTEND (au plus 2 s) au lieu de supposer 400 ms — sous charge, la
+         passe complète le lisait avant qu'il existe (deux rouges, « undefined.getBoundingClientRect »). */
+      for(let k=0;k<20&&document.querySelectorAll(sel).length<=n0;k++)await __acCalme(100);
+      const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];if(!c){out.cas[kind]={absent:true,attendu:sel};continue;}
       const bb=c.getBoundingClientRect();
       out.cas[kind]={cree:l.length>n0,haut:Math.round(bb.top),
         focusDedans:c.contains(document.activeElement)};}
@@ -11018,6 +11021,55 @@ await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier
     const o={dt:Math.round(dt),ouvert,ferme:state.view==='read'&&!state.draft};Auth.signedIn=S.i;Sync.online=S.o;Sync.loadProfile=S.l;return o;});
   t('A635 · « Modifier » s’ouvre sans attendre le serveur (profil lent : < 500 ms) ; le rôle retiré entre-temps referme sur la lecture',r.ouvert&&r.dt<500&&r.ferme,JSON.stringify(r));
   await page.close();
+});
+
+await sec('A636 · le volet « Suivi » de l’éditeur de protocole survit à la frappe et au basculement « Mise en forme en direct »', async () => {
+  for(const W of [1280,900]){
+    const page=await br.newPage({viewport:{width:W,height:900}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const p=migrateProtocol({id:'p636',title:'Témoin',body:'Un.\n\nDeux.',status:'draft'});protocols.push(p);await openProtocolEdit('p636');await __acCalme(600);
+      const vis=()=>[...document.querySelectorAll('#main .su-blk')].some(b=>b.getClientRects().length&&b.getBoundingClientRect().height>0),side=()=>!!document.querySelector('#editSide .su-blk');
+      const o={debut:side()};const ta=document.getElementById('p-body');ta.value+='\nTrois.';ta.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(700);o.frappe=side();
+      document.querySelector('[data-mdlive]').click();await __acCalme(700);o.etab=vis();
+      document.querySelector('#main .su-blk [data-sunew="task"]').click();await __acCalme(300);document.querySelector('#suiviEdFoot [data-suedx="ok"]').click();await __acCalme(300);
+      o.pastille=((document.querySelector('.etab-page .ed-sech-row .su-pill')||{}).textContent||'');
+      document.querySelector('[data-mdlive]').click();await __acCalme(700);o.retour=side();return o;});
+    t(`${W} px · A636 : le suivi reste dans la colonne après une frappe et revient après un aller-retour « Mise en forme en direct »`,r.debut&&r.frappe&&r.retour,JSON.stringify(r));
+    t(`${W} px · A636 : dans l’établi, le bloc reste visible en bas, et la pastille « n tâches » paraît dans l’en-tête dès qu’il y a du suivi`,r.etab&&r.pastille==='1 tâche',JSON.stringify(r));
+    await page.close();}
+});
+await sec('A637 · « Une image △ hors texte sera retirée… » ne paraît que s’il y en a une', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const data='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    protocols.push(migrateProtocol({id:'p637',title:'Img',body:'Texte.\n\n![](img:i_a)',images:[{id:'i_a',data,w:1,h:1,caption:'',scale:100}],status:'draft'}));
+    try{localStorage.setItem('ac-mdlive','0');}catch(e){}await openProtocolEdit('p637');await __acCalme(600);
+    const vis=()=>{const m=document.querySelector('.mi-outmsg');return m?!m.hidden:null;};const o={dedans:vis()};
+    const ta=document.getElementById('p-body');ta.value='Texte.';ta.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(500);o.hors=vis();
+    try{localStorage.removeItem('ac-mdlive');}catch(e){}return o;});
+  t('A637 · image utilisée : pas de mise en garde ; retirée du texte : la mise en garde paraît, sur place',r.dedans===false&&r.hors===true,JSON.stringify(r));
+  await page.close();
+});
+
+await sec('A638 · au bureau, les choix de l’atelier d’import sont des déroulants flottants, touchables, jamais coupés', async () => {
+  for(const H of [900,600]){
+    const page=await br.newPage({viewport:{width:1280,height:H}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>{protocols.push(migrateProtocol({id:'p638',title:'Existant',body:'',status:'draft'}));const T=s=>new TextEncoder().encode(s);readImportFile(new File([T('# Page\n\nTexte.')],'Page.md'));});
+    await page.waitForSelector('#impList .imp-row');await calme(page,300);
+    const r=await page.evaluate(async()=>{const o={};const mes=async sel=>{const b=document.querySelector(sel);if(!b)return null;b.click();await __acCalme(300);
+      const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('.mm-row'));if(!m)return {aucun:true};
+      const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect(),rows=[...m.querySelectorAll('.mm-row')].filter(x=>{const r=x.getBoundingClientRect();return r.top>=mr.top&&r.bottom<=mr.bottom;});
+      const res={feuille:m.classList.contains('sheet'),colle:Math.abs(mr.left-br.left)<=2&&(Math.abs(mr.top-br.bottom-6)<=2||Math.abs(br.top-6-mr.bottom)<=2),
+        touche:rows.length>0&&rows.every(x=>{const r=x.getBoundingClientRect(),h=document.elementFromPoint(r.left+15,r.top+r.height/2);return !!h&&m.contains(h);})};
+      if(_pickClose)_pickClose(false);await __acCalme(200);return res;};
+      o.cat=await mes('#impList [data-impcat]');o.dans=await mes('#impList [data-impinto]');o.bandeau=await mes('#impDestCat');return o;});
+    t(`1280×${H} · A638 : « Catégorie », « Dans » et le bandeau : un déroulant sous (ou sur) sa pastille, pas une feuille, chaque rangée visible touchable`,
+      ['cat','dans','bandeau'].every(k=>r[k]&&!r[k].feuille&&r[k].colle&&r[k].touche),JSON.stringify(r));
+    await page.close();}
 });
 
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
