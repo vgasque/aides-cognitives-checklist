@@ -9585,6 +9585,24 @@ await sec('Accueil · A599 barre de sélection', async () => {
     await page.close();}
 });
 
+await sec('Accueil · A618 la barre de sélection reste en bas au défilement, même sous html.kbd', async () => {
+  for(const W of [390,1180]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{LANCEUR_SEUIL=1e9;const f=fiches[0];
+      for(let i=0;i<40;i++){const n=JSON.parse(JSON.stringify(f));n.id='k618-'+i;n.title='Témoin '+i;fiches.push(migrate(n));}
+      render();await __acCalme(400);document.getElementById('selTog').click();await __acCalme(300);
+      document.querySelector('.dir-ck[data-selid]').click();await __acCalme(200);
+      const sc=mqHomeWide.matches?document.querySelector('.home-main'):document.scrollingElement;
+      const m=()=>{const b=document.querySelector('.sel-bar'),q=b.getBoundingClientRect();return {bas:Math.round(innerHeight-q.bottom),pos:getComputedStyle(b).position,vis:getComputedStyle(b).visibility};};
+      const o={avant:m()};document.documentElement.classList.add('kbd');   // ce que pose le prédicat de --vvt quand Safari varie au défilement
+      sc.scrollTop=1200;await __acCalme(300);o.kbd=m();o.y=Math.round(sc.scrollTop);
+      document.documentElement.classList.remove('kbd');sc.scrollTop=600;await __acCalme(300);o.sans=m();return o;});
+    t(`${W} px · A618 : on défile — la barre reste FIXÉE en bas, au même endroit, avec ou sans html.kbd`,r.y>200&&r.avant.pos==='fixed'&&r.avant.bas<=40&&[r.kbd,r.sans].every(x=>x.pos==='fixed'&&x.bas===r.avant.bas&&x.vis==='visible'),JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreuses', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
