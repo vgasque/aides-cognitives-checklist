@@ -1160,6 +1160,22 @@ Une absence qui ne s'annonce pas se lirait « aucune vérification n'a été fai
 Les sessions d'**exercice** restent strictement ségrégées (colonne dédiée) : la propriété
 « zéro contamination clinique » était jusque-là DÉRIVÉE de la localité des sessions.
 
+## Le poste partagé — connecté par le téléphone (A643-A646, lot v5.111)
+
+- **Le poste** (ordinateur de service) : Moi › « Se connecter avec le téléphone » — en tête au pointeur fin, après
+  l'e-mail au doigt. La fenêtre `#linkModal` montre le QR, le **nombre de contrôle** (mono, cran `--t-val`, cadré),
+  le compte à rebours de 120 s et trois étapes. Une fois connecté : une **bande** sur l'ACCUEIL SEULEMENT
+  (`#linkBand`, notice d'information ; ambre `pp-soon` 30 min avant l'heure de fin, règle 8) avec « Se déconnecter et
+  effacer ». Jamais en lecture d'une aide, jamais pendant le soin (règle 11).
+- **Le téléphone** : Moi › Appareils (« Connecter un ordinateur », « Appareils connectés »). La feuille d'approbation :
+  le poste nommé, trois nombres (cibles de 48 px, le choix dit par le bleu de l'action ET `aria-pressed`), des heures
+  de FIN de garde (pas des durées, A644), un avertissement ambre « un écran que vous avez devant vous » ; « Connecter »
+  fermé tant que le bon nombre n'est pas touché.
+- **Le verrou après réouverture** : consulter et reprendre restent libres ; créer, modifier, gérer passent par la
+  fenêtre de déverrouillage. Moi verrouillé = identité + carte du poste.
+- Une session SAUVEGARDÉE et jamais terminée se dit dans l'historique : « △ Interrompue · sauvegarde de HH:MM »
+  (ambre `sess-ckpt`), et son compte rendu se dit PARTIEL (A645).
+
 ## Mouvement & ancrage (doctrine ECAM)
 
 Le mouvement est un signal, pas une décoration. En situation de soin :

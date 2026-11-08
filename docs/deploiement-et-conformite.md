@@ -185,6 +185,12 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
 3. SQL Editor → coller le contenu de [`supabase/schema.sql`](../supabase/schema.sql) → **Run**.
 4. (Recommandé) SQL Editor → exécuter [`supabase/rls-tests.sql`](../supabase/rls-tests.sql) :
    il doit afficher « ✅ TOUS LES TESTS RLS PASSENT » (il n'écrit rien de définitif).
+5. (Pour la connexion d'un ordinateur par le téléphone, v5.111) Déployer la fonction serveur
+   [`supabase/functions/link-claim`](../supabase/functions/link-claim/index.ts), avec la CLI
+   Supabase : `supabase functions deploy link-claim --no-verify-jwt`. `--no-verify-jwt` est
+   nécessaire (le poste n'a pas encore de compte) et sans risque : la capacité est le secret du QR,
+   vérifié en SQL. C'est la SEULE pièce qui utilise la clé de service. Sans elle, la connexion par
+   le téléphone échoue proprement et l'e-mail reste disponible (§ 3.3).
 
 ### 1.3 Configurer l'envoi d'e-mails (Brevo)
 1. Compte gratuit sur brevo.com, **vérifier une adresse expéditrice**, générer une **clé SMTP**.
@@ -441,14 +447,14 @@ logiciel déclencherait de lui-même (« causes non revues depuis n minutes ») 
 | **Finalité** | Mise à disposition et partage d'aides cognitives (checklists) rédigées par les professionnels ; synchronisation multi-appareils optionnelle |
 | **Base légale** | Intérêt légitime de l'établissement (organisation des soins) / mission d'intérêt public |
 | **Catégories de personnes** | Professionnels de santé utilisateurs (comptes) ; **participants d'une session partagée, avec ou sans compte** (cf. § 3.1). **Aucun patient.** |
-| **Catégories de données** | Adresse e-mail professionnelle (compte) ; contenu des fiches rédigées ; préférences (thème, épingles, collections personnelles — noms, identifiants des aides rangées et choix « gardée en tête » —, vocabulaire personnel du journal) ; **suivi** (A613, v5.107) : notes et tâches de travail attachées à une aide ou à une référence — texte rédigé par l'utilisateur, type, priorité, échéance, date et adresse e-mail de qui l'a faite, adresse e-mail de l'auteur ; « pour moi » (synchronisé dans l'espace personnel) ou « pour l'équipe » (partagé avec les membres de la bibliothèque) ; **demandes de bibliothèque** (nom proposé, adresses e-mail des personnes à inviter et leur rôle — conservées jusqu'à la décision de l'administrateur : supprimées à l'acceptation, effacées au refus) ; droit de créer une bibliothèque accordé par l'administrateur (l'administrateur de l'instance voit la liste des comptes — e-mail, statut, bibliothèques et rôles — pour les administrer) ; horodatages de sessions. **Si l'option d'historique synchronisé est activée** : le compte rendu des sessions **terminées** (étapes cochées, minuteurs, compteurs, repères horodatés, libellés que l'utilisateur a lui-même écrits) — **sauf la trace de vérification**, qui reste sur l'appareil d'origine, et jamais une session en cours. **Pour une session partagée** : identifiant opaque de participant, rôle déclaré, horodatages des gestes, références d'étapes / minuteurs / compteurs, projection de la fiche (cf. § 3.1). **Aucune donnée identifiante de patient.** |
+| **Catégories de données** | Adresse e-mail professionnelle (compte) ; contenu des fiches rédigées ; préférences (thème, épingles, collections personnelles — noms, identifiants des aides rangées et choix « gardée en tête » —, vocabulaire personnel du journal) ; **suivi** (A613, v5.107) : notes et tâches de travail attachées à une aide ou à une référence — texte rédigé par l'utilisateur, type, priorité, échéance, date et adresse e-mail de qui l'a faite, adresse e-mail de l'auteur ; « pour moi » (synchronisé dans l'espace personnel) ou « pour l'équipe » (partagé avec les membres de la bibliothèque) ; **demandes de bibliothèque** (nom proposé, adresses e-mail des personnes à inviter et leur rôle — conservées jusqu'à la décision de l'administrateur : supprimées à l'acceptation, effacées au refus) ; droit de créer une bibliothèque accordé par l'administrateur (l'administrateur de l'instance voit la liste des comptes — e-mail, statut, bibliothèques et rôles — pour les administrer) ; horodatages de sessions. **Si l'option d'historique synchronisé est activée** : le compte rendu des sessions **terminées** (étapes cochées, minuteurs, compteurs, repères horodatés, libellés que l'utilisateur a lui-même écrits) — **sauf la trace de vérification**, qui reste sur l'appareil d'origine, et jamais une session en cours. **Pour une session partagée** : identifiant opaque de participant, rôle déclaré, horodatages des gestes, références d'étapes / minuteurs / compteurs, projection de la fiche (cf. § 3.1). **Poste partagé connecté par le téléphone** (v5.111, § 3.3) : navigateur et système du poste (« Chrome · Windows »), heures de la demande, de l'approbation et de fin choisie, identifiant de la session de compte du poste ; les sessions faites sur ce poste rejoignent **toujours** l'historique du compte (terminées, et sauvegardes partielles d'une session en cours). **Aucune donnée identifiante de patient.** |
 | **Données sensibles** | Aucune donnée identifiante de patient n'est saisie ni transmise. Nuance à porter au DPO plutôt qu'à taire : le déroulé d'une session décrit des **actes de soin** et peut être rapproché d'une prise en charge par ceux qui y étaient. C'est précisément pourquoi (a) aucun texte libre ne circule, (b) la notice affichée à tout participant demande de n'inscrire aucune information identifiante, (c) le serveur ne conserve rien (§ 3.1). **Suivi (notes et tâches)** : c'est un TEXTE LIBRE, rédigé à froid, sur l'aide et non sur un patient — la feuille de saisie rappelle de n'y inscrire aucune information sur un patient ; il n'apparaît jamais pendant une session. |
 | **Destinataires** | Membres des bibliothèques partagées (contenu d'équipe, **notes et tâches « pour l'équipe »** et l'adresse de leur auteur) ; **les autres participants d'une session partagée, pour la durée de cette session** ; sous-traitants techniques (ci-dessous) |
 | **Sous-traitants** | Supabase (hébergement base + auth, **et relais des sessions partagées**) ; Brevo (envoi des e-mails de code) ; hébergeur statique [GitHub/Netlify/Cloudflare/intranet] |
 | **Transferts hors UE** | À éviter : choisir la région UE (Francfort) pour Supabase. Vérifier la localisation de l'hébergeur statique. |
-| **Durée de conservation** | Comptes : tant qu'actif ; suppression à la demande (fonction intégrée « Supprimer mon compte »). Fiches partagées : durée d'exploitation de la bibliothèque. **Suivi** : « pour moi », jusqu'à suppression par l'utilisateur ou du compte ; « pour l'équipe », durée d'exploitation de la bibliothèque — l'historique est gardé (une tâche faite reste, avec qui l'a faite) et une suppression est conservée comme marque (pour être propagée aux autres appareils) jusqu'à la suppression de la bibliothèque. **Sessions : sur l'appareil, sans durée fixée par l'application** (l'utilisateur les supprime depuis l'historique) — et, **si l'utilisateur active l'option** (défaut fermé), les sessions **terminées** sont aussi conservées sur le serveur de synchronisation, sans durée fixée, jusqu'à suppression par l'utilisateur ou du compte. **Session partagée sur le serveur : purgée automatiquement 30 min après son expiration** (§ 3.1) — c'est un relais, pas un entrepôt. |
+| **Durée de conservation** | Comptes : tant qu'actif ; suppression à la demande (fonction intégrée « Supprimer mon compte »). Fiches partagées : durée d'exploitation de la bibliothèque. **Suivi** : « pour moi », jusqu'à suppression par l'utilisateur ou du compte ; « pour l'équipe », durée d'exploitation de la bibliothèque — l'historique est gardé (une tâche faite reste, avec qui l'a faite) et une suppression est conservée comme marque (pour être propagée aux autres appareils) jusqu'à la suppression de la bibliothèque. **Sessions : sur l'appareil, sans durée fixée par l'application** (l'utilisateur les supprime depuis l'historique) — et, **si l'utilisateur active l'option** (défaut fermé), les sessions **terminées** sont aussi conservées sur le serveur de synchronisation, sans durée fixée, jusqu'à suppression par l'utilisateur ou du compte. **Session partagée sur le serveur : purgée automatiquement 30 min après son expiration** (§ 3.1) — c'est un relais, pas un entrepôt. **Connexion d'un poste partagé** (§ 3.3) : demande non aboutie purgée 30 min après ses 120 s ; connexion conservée jusqu'à **7 jours après l'heure de fin** (droit de dépôt des sessions), puis purgée ; la session de compte du poste est supprimée à l'heure de fin ou à la déconnexion à distance. Sur le poste lui-même : les données du compte sont **effacées à l'heure de fin** (jamais pendant une session en cours, jamais avant que les sessions faites dessus aient rejoint l'historique). |
 | **Droits des personnes** | Accès/rectification : via l'app. Effacement : « Supprimer mon compte » (efface fiches, catégories personnelles, **suivi « pour moi »** — le suivi « pour l'équipe » reste à l'équipe, sans lien vers le compte supprimé hormis l'adresse e-mail écrite comme auteur —, **partages ouverts et leurs évènements**, puis le compte). Contact DPO pour les autres droits. |
-| **Mesures de sécurité** | HTTPS ; isolation des données par politiques RLS (serveur) ; authentification par code e-mail à usage unique ; CSP par hashs et en-têtes de sécurité ; aucune dépendance tierce chargée ; pas de traceur/analytics. **Partage** : secret propre à chaque participant tiré côté serveur (seul son SHA-256 est stocké), code d'appariement consommé à la première jointure, fenêtre d'admission de 120 s, liste blanche serveur des champs de fiche, plafonds de taille et de nombre, purge auto-exécutoire. |
+| **Mesures de sécurité** | HTTPS ; isolation des données par politiques RLS (serveur) ; authentification par code e-mail à usage unique ; CSP par hashs et en-têtes de sécurité ; aucune dépendance tierce chargée ; pas de traceur/analytics. **Partage** : secret propre à chaque participant tiré côté serveur (seul son SHA-256 est stocké), code d'appariement consommé à la première jointure, fenêtre d'admission de 120 s, liste blanche serveur des champs de fiche, plafonds de taille et de nombre, purge auto-exécutoire. **Connexion par le téléphone** (§ 3.3) : secret de 128 bits tiré par le poste (seule son empreinte SHA-256 est stockée), demande de 120 s à usage unique, nombre de contrôle à toucher sur le téléphone, session propre au poste créée côté serveur (la clé de service ne quitte pas la fonction serveur), révocable à distance, heure de fin ≤ 28 h. |
 | **Analyse d'impact (AIPD)** | A priori non requise (pas de donnée identifiante de patient, pas de traitement à grande échelle de données sensibles). **À reconfirmer avec le DPO depuis l'ajout du partage de session**, qui fait sortir de l'appareil des données décrivant des actes de soin. |
 
 **Notes.** Le point déterminant pour le RGPD : **l'application ne traite pas de données de
@@ -595,6 +601,50 @@ tout le reste de l'application.
    maintient l'écran éveillé pendant le partage, et une coupure se répare par ré-appariement.
 4. « Par l'écran » n'est pas du direct : c'est une synchro par geste, à refaire pour
    rafraîchir (ordre de grandeur mesuré : 20 Kio ≈ 4 s d'écran à caméra).
+
+### 3.3 Poste partagé connecté par le téléphone (v5.111) — ce qui sort de l'appareil
+
+> Vérifiable dans [`supabase/schema.sql`](../supabase/schema.sql) (section « 10. CONNEXION PAR LE
+> TÉLÉPHONE »), [`supabase/functions/link-claim`](../supabase/functions/link-claim/index.ts) et le
+> module `Link` d'`index.html`. Doctrine : `docs/decisions/lot-v5-111.md` (A643-A646).
+
+**Rappel de ce que c'est.** Un soignant connecte un ordinateur de service à SON compte en visant,
+avec l'application de son téléphone (déjà connectée), un QR affiché par l'ordinateur. L'ordinateur
+devient un « poste partagé » jusqu'à l'heure de fin de garde choisie sur le téléphone, puis
+s'efface.
+
+**Ce qui part vers le serveur.**
+- **Du poste, avant connexion (sans compte)** : l'empreinte SHA-256 d'un secret tiré au hasard
+  (jamais le secret lui-même), et le libellé « navigateur · système » du poste (au plus 60
+  caractères, tiré de l'identification du navigateur — pas de nom de machine, pas d'adresse).
+- **Du téléphone** : l'approbation (compte authentifié) et l'heure de fin choisie.
+- **Du poste connecté** : l'identifiant de sa session de compte (pour pouvoir la supprimer à
+  l'heure de fin ou à la déconnexion à distance) ; les **sessions** faites sur le poste — toujours,
+  quel que soit le réglage « historique synchronisé » du compte, puisque le poste s'efface : les
+  sessions terminées, et, pour une session en cours, une **sauvegarde** toutes les 2 minutes s'il y
+  a eu un geste (compte rendu partiel, marqué comme tel, remplacé par la session terminée). Même
+  contenu que l'historique synchronisé (§ 3) : sans la trace de vérification.
+
+**Ce qui ne part jamais.** Le secret du QR (il ne quitte le poste que dans le QR, à l'écran, et
+dans les appels qui le vérifient) ; l'adresse e-mail du compte vers le poste (elle reste dans la
+fonction serveur) ; l'historique du compte vers le poste (un poste partagé ne le télécharge pas).
+
+**Ce qui reste sur le poste, et combien de temps.** Les aides, protocoles, réglages et sessions du
+compte, sur le disque du navigateur, jusqu'à l'heure de fin : c'est voulu (une fermeture, une
+coupure ou un redémarrage ne font rien perdre, une session de crise se reprend). À l'heure de fin,
+ou à la déconnexion à distance, ou au bouton « Se déconnecter et effacer » : tout est effacé, sauf
+pendant une session en cours (l'effacement attend sa fin) et tant qu'une session n'a pas rejoint
+l'historique. **Limite à porter au DPO** : si le navigateur n'est jamais rouvert (autre profil
+Windows, poste éteint), ces données restent sur le disque jusqu'à la prochaine ouverture de ce
+navigateur — ce sont des aides et des protocoles, jamais des données de patient, et la session de
+compte, elle, est supprimée côté serveur. Un collègue qui rouvre le navigateur sur un compte
+Windows commun peut consulter et reprendre une session en cours ; modifier ou gérer le compte lui
+redemande le téléphone du titulaire.
+
+**Durées serveur.** Demande : 120 s, purgée 30 min après si elle n'aboutit pas. Connexion :
+jusqu'à l'heure de fin (≤ 28 h, prolongeable d'heure en heure depuis le téléphone dans cette
+limite), puis conservée 7 jours (droit de dépôt des sessions), puis purgée 30 min après. Purge
+auto-exécutoire en tête de chaque appel, comme le partage de session.
 
 
 ## 4. Modèle — conditions d'utilisation

@@ -1884,6 +1884,325 @@ language sql stable security definer set search_path = public, pg_temp as $$
 $$;
 grant execute on function public.list_all_libraries() to authenticated;
 
+-- ============================================================================================
+-- ---------- 10. CONNEXION PAR LE TÉLÉPHONE (v5.111, A643) -----------------------------------
+-- ============================================================================================
+-- Un POSTE PARTAGÉ (l'ordinateur d'un service) se connecte au compte d'un soignant SANS e-mail :
+-- il affiche un QR, le téléphone déjà connecté le vise, l'utilisateur touche le nombre de contrôle
+-- affiché par le poste et choisit l'heure de fin de sa garde. Le poste reçoit alors SA PROPRE
+-- session — jamais celle du téléphone : GoTrue fait tourner le jeton de rafraîchissement, deux
+-- appareils sur le même se déconnecteraient l'un l'autre, et l'on ne pourrait plus révoquer le
+-- poste seul. Cette session est créée par la fonction serveur `link-claim`
+-- (supabase/functions/link-claim), SEULE pièce qui tient la clé de service : GoTrue ne crée pas
+-- de session depuis SQL.
+-- LE SECRET EST LA CAPACITÉ, comme pour le partage de session : tiré par le poste
+-- (crypto.getRandomValues, 128 bits), il ne voyage que dans le QR ; le serveur n'en garde que
+-- l'empreinte SHA-256. Aucune fonction ne prend d'identité en paramètre.
+-- DURÉES : la DEMANDE vit 120 s ; la CONNEXION jusqu'à l'heure de fin choisie sur le téléphone
+-- (28 h au plus : une garde de 24 h connectée un peu avant son début, et qui déborde) ; le DROIT
+-- DE DÉPÔT 7 jours après l'heure de fin (une session terminée hors ligne, ou après l'heure de fin,
+-- doit encore pouvoir rejoindre l'historique) ; purge 30 min après chacune de ces échéances.
+-- Les deux types : `connect` (le poste devient connecté) et `unlock` (le poste, déjà connecté
+-- mais rouvert, redemande le téléphone avant de laisser modifier quoi que ce soit — A643 § verrou).
+create table if not exists public.device_links (
+  id           uuid primary key default gen_random_uuid(),
+  kind         text not null default 'connect' check (kind in ('connect','unlock')),
+  secret_hash  text not null check (length(secret_hash) = 64),
+  label        text not null default '' check (length(label) <= 60),
+  created_at   timestamptz not null default now(),
+  open_until   timestamptz not null,
+  user_id      uuid references auth.users on delete cascade,
+  status       text not null default 'pending'
+               check (status in ('pending','approved','claimed','revoked','ended')),
+  ends_at      timestamptz,
+  approved_at  timestamptz,
+  claimed_at   timestamptz,
+  auth_session uuid
+);
+create index if not exists device_links_user_idx on public.device_links (user_id, status);
+alter table public.device_links enable row level security;
+-- AUCUNE politique, AUCUN grant : la table ne se lit et ne s'écrit QUE par les fonctions
+-- SECURITY DEFINER ci-dessous (même posture que les tables du partage de session).
+revoke all on public.device_links from anon, authenticated;
+
+-- Purge — AUTO-EXÉCUTOIRE, jamais planifiée (même doctrine que `share_purge` : l'hébergement est
+-- statique, personne ne lancerait une tâche de ménage). Elle tourne en tête de chaque appel.
+-- 1. HEURE DE FIN PASSÉE : la session de compte du poste est SUPPRIMÉE (ses jetons de
+--    rafraîchissement partent avec elle). Le poste la ferme déjà lui-même à l'heure dite ; ceci
+--    couvre le poste éteint, ou le navigateur jamais rouvert. LIMITE DITE : la suppression a lieu
+--    au premier appel `link_*` qui suit l'heure de fin, de n'importe quel poste du serveur — pas
+--    à la seconde près.
+-- 2. MÉNAGE : demandes jamais abouties, et connexions dont le droit de dépôt a expiré.
+-- Un échec sur `auth.sessions` (droits retirés par l'hébergeur) ne bloque JAMAIS l'appel en cours.
+create or replace function public.link_purge()
+returns void language plpgsql volatile security definer
+set search_path = public, auth, pg_temp as $$
+declare r record;
+begin
+  for r in select id, auth_session from public.device_links
+            where kind = 'connect' and status = 'claimed' and ends_at < now() limit 50 loop
+    if r.auth_session is not null then
+      begin delete from auth.sessions where id = r.auth_session;
+      exception when others then null; end;
+    end if;
+    update public.device_links set status = 'ended' where id = r.id;
+  end loop;
+  delete from public.device_links where id in (
+    select id from public.device_links
+     where (status in ('pending','approved') and open_until < now() - interval '30 minutes')
+        or (kind = 'unlock' and created_at < now() - interval '30 minutes')
+        or (kind = 'connect' and ends_at is not null
+            and ends_at < now() - interval '7 days 30 minutes')
+     limit 100);
+end; $$;
+
+-- Lecture d'une demande par son secret. Aucun grant : seules les fonctions de cette section
+-- l'appellent. Rend la ligne si — et seulement si — le secret correspond.
+create or replace function public.link_row(p_id uuid, p_secret text)
+returns public.device_links language plpgsql stable security definer
+set search_path = public, extensions, pg_temp as $$
+declare v public.device_links%rowtype;
+begin
+  if p_id is null or p_secret is null or length(p_secret) not between 16 and 128 then return null; end if;
+  select * into v from public.device_links where id = p_id;
+  if not found or encode(digest(p_secret, 'sha256'), 'hex') <> v.secret_hash then return null; end if;
+  return v;
+end; $$;
+
+-- OUVERTURE (le poste, sans compte pour `connect`, connecté pour `unlock`). Le poste tire le
+-- secret et n'envoie que son empreinte. PLAFOND GLOBAL de demandes ouvertes : la fonction est
+-- appelable sans compte (un poste ne l'est pas encore) ; sans borne, une boucle remplirait la
+-- table. Une demande vit 120 s, donc le plafond borne le débit d'un abus sans gêner l'usage.
+create or replace function public.link_open(p_hash text, p_label text, p_kind text)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v_id uuid; v_kind text := coalesce(p_kind, 'connect');
+        v_open timestamptz := now() + interval '120 seconds';
+begin
+  perform public.link_purge();
+  if p_hash is null or length(p_hash) <> 64 or p_hash ~ '[^0-9a-f]'
+     or v_kind not in ('connect','unlock') then
+    return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  if v_kind = 'unlock' and (auth.uid() is null or not public.is_approved()) then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  if (select count(*) from public.device_links where status = 'pending' and open_until > now()) >= 500 then
+    return jsonb_build_object('ok', false, 'err', 'busy'); end if;
+  insert into public.device_links(kind, secret_hash, label, open_until, user_id)
+    values (v_kind, p_hash,
+            left(regexp_replace(coalesce(p_label, ''), '[[:cntrl:]]', '', 'g'), 60), v_open,
+            case when v_kind = 'unlock' then auth.uid() end)
+    returning id into v_id;
+  return jsonb_build_object('ok', true, 'id', v_id, 'open_until', v_open, 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- LE TÉLÉPHONE LIT LA DEMANDE avant d'approuver (le navigateur du poste, l'âge du code). Un
+-- `unlock` ne se lit que par SON compte : un téléphone d'un autre compte n'a rien à y faire.
+create or replace function public.link_peek(p_id uuid, p_secret text)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v public.device_links%rowtype;
+begin
+  perform public.link_purge();
+  if auth.uid() is null or not public.is_approved() then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v := public.link_row(p_id, p_secret);
+  if v.id is null then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  if v.status <> 'pending' or v.open_until < now() then
+    return jsonb_build_object('ok', false, 'err', 'expired'); end if;
+  if v.kind = 'unlock' and v.user_id <> auth.uid() then
+    return jsonb_build_object('ok', false, 'err', 'other_account'); end if;
+  return jsonb_build_object('ok', true, 'kind', v.kind, 'label', v.label,
+    'age_s', floor(extract(epoch from now() - v.created_at)), 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- APPROBATION (le téléphone, connecté et approuvé). Heure de fin bornée : 30 min à 28 h.
+-- PLAFOND : cinq postes connectés à la fois par compte — on ne tient pas cinq gardes ensemble.
+create or replace function public.link_approve(p_id uuid, p_secret text, p_ends_at timestamptz)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v public.device_links%rowtype; v_n int;
+begin
+  perform public.link_purge();
+  if auth.uid() is null or not public.is_approved() then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v := public.link_row(p_id, p_secret);
+  if v.id is null then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  if v.status <> 'pending' or v.open_until < now() then
+    return jsonb_build_object('ok', false, 'err', 'expired'); end if;
+  if v.kind = 'unlock' then
+    if v.user_id <> auth.uid() then return jsonb_build_object('ok', false, 'err', 'other_account'); end if;
+    update public.device_links set status = 'approved', approved_at = now()
+     where id = v.id and status = 'pending';
+    return jsonb_build_object('ok', true, 'kind', 'unlock');
+  end if;
+  if p_ends_at is null or p_ends_at < now() + interval '30 minutes'
+     or p_ends_at > now() + interval '28 hours' then
+    return jsonb_build_object('ok', false, 'err', 'bad_ends'); end if;
+  select count(*) into v_n from public.device_links
+   where user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed') and ends_at > now();
+  if v_n >= 5 then return jsonb_build_object('ok', false, 'err', 'too_many'); end if;
+  update public.device_links set status = 'approved', approved_at = now(),
+         user_id = auth.uid(), ends_at = p_ends_at
+   where id = v.id and status = 'pending';
+  return jsonb_build_object('ok', true, 'kind', 'connect', 'ends_at', p_ends_at);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- SONDAGE (le poste). Rend l'état seul — jamais un jeton : le jeton ne sort que de `link-claim`.
+-- Sert aussi, une fois connecté, à apprendre une PROLONGATION ou une RÉVOCATION décidée sur le
+-- téléphone.
+create or replace function public.link_poll(p_id uuid, p_secret text)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v public.device_links%rowtype; v_st text;
+begin
+  perform public.link_purge();
+  v := public.link_row(p_id, p_secret);
+  if v.id is null then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  v_st := case when v.status = 'pending' and v.open_until < now() then 'expired'
+               when v.status = 'claimed' and v.ends_at < now() then 'ended'
+               else v.status end;
+  return jsonb_build_object('ok', true, 'status', v_st, 'ends_at', v.ends_at, 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- RÉCLAMATION — appelée par la fonction serveur `link-claim` SEULE (clé de service ; aucun grant
+-- à anon ni à authenticated, révoqué explicitement plus bas). Rend l'e-mail du compte, que la
+-- fonction transforme en lien de connexion à usage unique. Une réclamation récente sans session
+-- liée peut être REJOUÉE pendant 2 min : un réseau qui coupe entre la réclamation et la
+-- vérification ne doit pas laisser le poste dans une impasse.
+create or replace function public.link_claim_srv(p_id uuid, p_secret text)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, auth, pg_temp as $$
+declare v public.device_links%rowtype; v_mail text;
+begin
+  perform public.link_purge();
+  v := public.link_row(p_id, p_secret);
+  if v.id is null or v.kind <> 'connect' then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  if not ((v.status = 'approved' and v.approved_at > now() - interval '5 minutes')
+       or (v.status = 'claimed' and v.claimed_at > now() - interval '2 minutes' and v.auth_session is null)) then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  select email into v_mail from auth.users where id = v.user_id;
+  if v_mail is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  update public.device_links set status = 'claimed', claimed_at = coalesce(claimed_at, now())
+   where id = v.id;
+  return jsonb_build_object('ok', true, 'email', v_mail, 'ends_at', v.ends_at);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- LIAISON (le poste, juste après sa connexion) : retient l'identifiant de SA session de compte,
+-- pour que l'heure de fin et la révocation puissent la supprimer — elle seule.
+create or replace function public.link_bind(p_id uuid, p_secret text)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v public.device_links%rowtype; v_sid uuid;
+begin
+  if auth.uid() is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v := public.link_row(p_id, p_secret);
+  if v.id is null or v.status <> 'claimed' or v.user_id <> auth.uid() then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  v_sid := nullif(auth.jwt() ->> 'session_id', '')::uuid;
+  update public.device_links set auth_session = coalesce(auth_session, v_sid) where id = v.id;
+  return jsonb_build_object('ok', true, 'ends_at', v.ends_at);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- « APPAREILS CONNECTÉS » (le téléphone) : les postes partagés de CE compte, encore valides.
+create or replace function public.link_list()
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+begin
+  perform public.link_purge();
+  if auth.uid() is null then return '[]'::jsonb; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('id', id, 'label', label,
+            'since', coalesce(claimed_at, approved_at), 'ends_at', ends_at) order by ends_at)
+     from public.device_links
+    where user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed')
+      and ends_at > now()), '[]'::jsonb);
+end; $$;
+
+-- PROLONGER (le téléphone, jamais le poste : un collègue prolongerait la connexion d'un autre).
+-- Une heure de plus, toujours 28 h au plus après l'approbation.
+create or replace function public.link_extend(p_id uuid, p_ends_at timestamptz)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v public.device_links%rowtype;
+begin
+  perform public.link_purge();
+  if auth.uid() is null or not public.is_approved() then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  select * into v from public.device_links
+   where id = p_id and user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed');
+  if not found or v.ends_at < now() then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  if p_ends_at is null or p_ends_at <= v.ends_at or p_ends_at > v.approved_at + interval '28 hours' then
+    return jsonb_build_object('ok', false, 'err', 'bad_ends'); end if;
+  update public.device_links set ends_at = p_ends_at where id = v.id;
+  return jsonb_build_object('ok', true, 'ends_at', p_ends_at);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- DÉCONNECTER À DISTANCE (le téléphone). La session de compte du poste est supprimée ; le poste
+-- l'apprend à son sondage suivant et s'efface — sauf session de crise en cours (règle 11), dont
+-- la fin est attendue. Un poste révoqué perd aussi son droit de dépôt.
+create or replace function public.link_revoke(p_id uuid)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, auth, pg_temp as $$
+declare v public.device_links%rowtype;
+begin
+  if auth.uid() is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  select * into v from public.device_links where id = p_id and user_id = auth.uid() and kind = 'connect';
+  if not found then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  update public.device_links set status = 'revoked' where id = v.id;
+  if v.auth_session is not null then
+    begin delete from auth.sessions where id = v.auth_session and user_id = auth.uid();
+    exception when others then null; end;
+  end if;
+  return jsonb_build_object('ok', true);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+-- DÉPÔT (le poste, avec ou sans session de compte valide) : ajoute UNE session à l'historique du
+-- compte qui a connecté le poste — sans rien lire, ni modifier d'autre. C'est ce qui permet à une
+-- session terminée APRÈS l'heure de fin, ou hors ligne, de rejoindre l'historique (A643 § dépôt),
+-- et aux SAUVEGARDES PÉRIODIQUES d'une session en cours d'y arriver (A643 § sauvegarde).
+-- Jamais une session marquée `live` : une sauvegarde porte `live:false` et `checkpoint` (l'heure
+-- de la sauvegarde) — c'est un compte rendu partiel, pas un second canal de partage.
+-- Une ligne existante n'est remplacée que si elle appartient au MÊME compte.
+create or replace function public.link_deposit(p_id uuid, p_secret text, p_row jsonb)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v public.device_links%rowtype; v_sid text;
+begin
+  perform public.link_purge();
+  v := public.link_row(p_id, p_secret);
+  if v.id is null or v.kind <> 'connect' or v.status not in ('claimed','ended')
+     or v.ends_at is null or now() > v.ends_at + interval '7 days' then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  if p_row is null or jsonb_typeof(p_row) <> 'object' or jsonb_typeof(p_row->'data') <> 'object' then
+    return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  v_sid := p_row->>'id';
+  if v_sid is null or length(v_sid) not between 1 and 64 or v_sid ~ '[^A-Za-z0-9_-]'
+     or coalesce(p_row->'data'->>'live', 'false') <> 'false' then
+    return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  insert into public.sessions(id, owner, data, exercise, updated_at)
+    values (v_sid, v.user_id, p_row->'data', coalesce(p_row->>'exercise', 'false') = 'true', now())
+  on conflict (id) do update
+    set data = excluded.data, exercise = excluded.exercise,
+        updated_at = excluded.updated_at, deleted_at = null
+    where public.sessions.owner = v.user_id;
+  return jsonb_build_object('ok', true);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
+grant execute on function public.link_peek(uuid,text)                 to authenticated;
+grant execute on function public.link_approve(uuid,text,timestamptz)  to authenticated;
+grant execute on function public.link_bind(uuid,text)                 to authenticated;
+grant execute on function public.link_list()                          to authenticated;
+grant execute on function public.link_extend(uuid,timestamptz)        to authenticated;
+grant execute on function public.link_revoke(uuid)                    to authenticated;
+
 -- ---------- 5quater. LA PROHIBITION anon NE PORTAIT PAS SUR PUBLIC (correctif) --------------
 -- Le bloc « GRANTS » plus haut annonce une « INTERDICTION EXPLICITE POUR anon ». Elle ne faisait
 -- pas ce qu'elle disait, et l'écart est structurel, pas un oubli :
@@ -1929,10 +2248,14 @@ revoke all on all tables    in schema public from anon;
 alter default privileges in schema public revoke execute on functions from public;
 
 -- ---------- 5quinquies. LA SEULE SURFACE NON AUTHENTIFIÉE DU PROJET --------------------------
--- TROIS fonctions, nommées une par une, et rien d'autre — jamais une table, jamais un
--- `on all functions`. C'est la contrepartie assumée d'un besoin clinique précis : qu'un collègue
--- présent dans la pièce puisse suivre et remplir une session sur SON téléphone, sans compte,
--- sans installer l'app, pour cette session-là uniquement.
+-- SIX fonctions, nommées une par une, et rien d'autre — jamais une table, jamais un
+-- `on all functions`. Les trois premières sont la contrepartie assumée d'un besoin clinique
+-- précis : qu'un collègue présent dans la pièce puisse suivre et remplir une session sur SON
+-- téléphone, sans compte, sans installer l'app, pour cette session-là uniquement. Les trois
+-- suivantes (v5.111, A643) servent le POSTE PARTAGÉ, qui n'a pas encore de compte quand il
+-- demande à être connecté (`link_open`, `link_poll`), et peut ne plus en avoir quand il dépose
+-- une session après l'heure de fin (`link_deposit`) — chacune ne désigne que la demande dont on
+-- présente le SECRET.
 -- CES LIGNES DOIVENT RESTER APRÈS LE BLOC CI-DESSUS : la révocation à PUBLIC porte sur « toutes
 -- les fonctions du schéma », donc sur celles-ci aussi. Placées avant, elles seraient effacées
 -- quelques lignes plus bas — en silence, et le partage cesserait de fonctionner sans qu'aucun
@@ -1947,6 +2270,18 @@ grant usage on schema public to anon;   -- sans USAGE, aucun `grant execute` n'e
 grant execute on function public.share_join(text,text)         to anon, authenticated;
 grant execute on function public.share_pull(text,text,bigint)  to anon, authenticated;
 grant execute on function public.share_push(text,text,jsonb)   to anon, authenticated;
+grant execute on function public.link_open(text,text,text)      to anon, authenticated;
+grant execute on function public.link_poll(uuid,text)           to anon, authenticated;
+grant execute on function public.link_deposit(uuid,text,jsonb)  to anon, authenticated;
+-- A643 : les trois aides INTERNES de la connexion par le téléphone ne sont appelables par AUCUN
+-- client. Révocation NOMINATIVE et pas seulement « from public » : Supabase pose à la création du
+-- projet un `alter default privileges ... grant all on functions to ... authenticated` (cf.
+-- 5quater) — sans ces lignes, tout compte connecté pourrait appeler `link_claim_srv` et obtenir
+-- l'e-mail du compte d'un poste dont il aurait photographié le QR.
+revoke execute on function public.link_claim_srv(uuid,text) from public, anon, authenticated;
+revoke execute on function public.link_row(uuid,text)       from public, anon, authenticated;
+revoke execute on function public.link_purge()              from public, anon, authenticated;
+grant  execute on function public.link_claim_srv(uuid,text) to service_role;
 
 -- ---------- 6. Recharge du cache PostgREST ----------------------------------
 notify pgrst, 'reload schema';

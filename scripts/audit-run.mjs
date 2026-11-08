@@ -127,6 +127,7 @@ const HARNAIS = [
   { nom: 'audit-consulter',     poids: 5 },
   { nom: 'audit-pliables',      poids: 6 },
   { nom: 'audit-historique',    poids: 5 },
+  { nom: 'audit-lier',          poids: 20 },   // A643 : connexion par le téléphone, poste partagé (serveur bouchonné)
   { nom: 'audit-zoom-scroll',   poids: 4 },
   // `deps` porte sw.js : c'est le SUJET de ce harnais, et il n'est lu par aucun autre. Sans cette
   // déclaration, corriger le worker n'invaliderait pas son vert en cache — le seul contrôle

@@ -7160,6 +7160,53 @@
   #shareModal .sh-when.closed{color:var(--warn)}
   #shareModal .sh-when.soon{color:var(--warn);font-weight:700}
   .sh-qr{display:flex;justify-content:center;margin:4px 0 0}
+  /* ═══ A643 — CONNEXION PAR LE TÉLÉPHONE (#linkModal) ET BANDE DU POSTE PARTAGÉ ═══
+     Le NOMBRE DE CONTRÔLE se lit de loin (mono, cran --t-val) ; les choix du téléphone sont des
+     cibles de 48 px ; le choix retenu se dit par le bleu de l'action ET par aria-pressed. L'ambre :
+     l'avertissement « un écran que vous avez devant vous » et l'échéance de la bande (règle 8). */
+  .pp-msg{margin:0;font-size:var(--t-body);line-height:1.5;color:var(--ink)}
+  .pp-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+  .pp-pc{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+  .pp-qrcard{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto;margin:0 auto}
+  .pp-qr .qr{width:min(220px,60vw);height:auto;display:block}
+  .pp-ctrl{display:flex;align-items:center;gap:10px}
+  .pp-ctrl-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);max-width:9em;line-height:1.3}
+  .pp-num{font-family:var(--f-mono);font-size:var(--t-val);font-weight:700;font-variant-numeric:tabular-nums;border:2px solid var(--ink);border-radius:var(--r-2);padding:4px 12px}
+  .pp-exp{margin:0;font-size:var(--t-meta);color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .pp-steps{flex:1 1 240px;min-width:0}
+  .pp-steps ol{margin:0 0 12px;padding-left:20px;display:grid;gap:8px;font-size:var(--t-item);line-height:1.4}
+  .pp-note{margin:0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
+  .pp-note b{color:var(--ink)}
+  .pp-dev{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb)}
+  .pp-dev b,.pp-rtx b{display:block;font-size:var(--t-body)}
+  .pp-sub{display:block;font-size:var(--t-meta);color:var(--ink-2);line-height:1.4}
+  .pp-q{margin:16px 0 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .pp-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .pp-n{min-height:48px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:var(--t-step-l);font-weight:600;cursor:pointer}
+  .pp-n.on,.pp-end.on{border:2px solid var(--act);background:var(--primary-soft);color:var(--act)}
+  .pp-ends{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+  .pp-end{min-height:48px;padding:6px 8px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .pp-end b{font-size:var(--t-body)}
+  .pp-end span{font-size:var(--t-cap);color:var(--ink-2)}
+  .pp-ends+.pp-note{margin-top:12px}
+  .ai-body .pp-warn{margin:12px 0 0;font-size:var(--t-meta);line-height:1.4;color:var(--warn)}
+  .ai-body .pp-warn.on{font-weight:700}
+  .pp-list{display:grid;gap:4px}
+  .pp-row{display:flex;gap:10px;align-items:center;padding:8px 0 0}
+  .pp-rtx{min-width:0}
+  .pp-racts{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;border-bottom:1px solid var(--line)}
+  .pp-fins{margin-top:16px}
+  .pp-fins .pp-q{margin-top:0}
+  .pp-frow{display:flex;gap:8px;margin-top:8px}
+  input.pp-time{font-size:16px;min-height:44px;padding:6px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:var(--f-mono)}
+  .pp-login{display:grid;gap:12px}
+  .pp-lh{display:flex;gap:10px;align-items:flex-start}
+  .pp-lh b{display:block;font-size:var(--t-item)}
+  .notice.pp-band{align-items:center;flex-wrap:wrap;padding-right:14px}
+  .notice.pp-band .pp-bt{flex:1 1 200px;min-width:0}
+  .notice.pp-soon{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+  .notice.pp-soon svg{color:var(--warn)}
+  .sess-ckpt{color:var(--warn);font-weight:700}
   /* QR PLAFONNÉ (240 px / 56 vw) ; le palier < 360 px ne bouge PAS (mesuré à 320×568). ⚠ Portée
      `#shareModal` obligatoire : la règle « 260 px » de #shareBody (id) battrait ce plafond. */
   #shareModal .sh-qr .qr{width:min(240px,56vw);height:auto}

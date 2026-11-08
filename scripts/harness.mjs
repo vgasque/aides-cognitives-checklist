@@ -61,6 +61,9 @@ export function moteur() {
   }
   const eng = pw[nom];
   return { ...eng, name: () => eng.name(), launch: async (o) => {
+    /* AC_CHROMIUM (v5.111) : le même repli que `run-tests.mjs` — un Chromium déjà présent quand la
+       révision attendue par Playwright n'est pas téléchargée (session distante, CI). */
+    if (nom === 'chromium' && process.env.AC_CHROMIUM) o = { ...(o || {}), executablePath: process.env.AC_CHROMIUM };
     const br = await eng.launch(o);
     const nP = br.newPage.bind(br), nC = br.newContext.bind(br);
     br.newContext = async (...a) => { const c = await nC(...a); await c.addInitScript(installeCalme); return c; };
