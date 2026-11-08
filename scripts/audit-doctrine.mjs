@@ -10924,8 +10924,8 @@ await sec('A626 · tout choix d’une aide ou d’un protocole a son champ de re
     // 2) « Ajouter » d'une collection : deux aides.
     const c=collNew('Garde',[]);state.coll=c.id;state.view='library';render();await __acCalme(400);
     const ad=q('[data-colladd]');if(ad){ad.click();await __acCalme(300);o.coll=vu();if(_pickClose)_pickClose(false);}
-    // 3) le sélecteur « Voir aussi » (fenêtre filtrable de l'éditeur) dit la même chose.
-    o.voir=(q('#relPickQ')||{}).placeholder||'';
+    // 3) le sélecteur « Voir aussi » (un choix d'openPickMenu depuis A641) dit la même chose.
+    openEdit(fiches[0].id);await __acCalme(500);openRelPicker(state.draft,()=>{});await __acCalme(300);o.voir=vu();if(_pickClose)_pickClose(false);
     return o;});
   const P='Rechercher une aide, un protocole…';
   t('A626 · tâche liée, « Ajouter » d’une collection, « Voir aussi » : le même champ « Rechercher une aide, un protocole… », même avec 1 ou 2 éléments',r.tache===P&&r.coll===P&&r.voir===P,JSON.stringify(r));
@@ -11069,6 +11069,35 @@ await sec('A638 · au bureau, les choix de l’atelier d’import sont des déro
       o.cat=await mes('#impList [data-impcat]');o.dans=await mes('#impList [data-impinto]');o.bandeau=await mes('#impDestCat');return o;});
     t(`1280×${H} · A638 : « Catégorie », « Dans » et le bandeau : un déroulant sous (ou sur) sa pastille, pas une feuille, chaque rangée visible touchable`,
       ['cat','dans','bandeau'].every(k=>r[k]&&!r[k].feuille&&r[k].colle&&r[k].touche),JSON.stringify(r));
+    await page.close();}
+});
+
+await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
+  for(const W of [1280,390]){
+    const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{const o={};
+      const by=new TextEncoder().encode('%PDF-1.4\ntrailer<</Root 1 0 R>>');
+      await IDB.putAtt({id:'att-641',buf:by.buffer,size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
+      const g=fiches.find(x=>x.id!==fiches[0].id&&(x.library||null)===(fiches[0].library||null));g.docs=[{id:'att-641',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);
+      // le volet « Documents » de l'éditeur ne paraît que si l'aide en porte déjà un
+      await IDB.putAtt({id:'att-641b',buf:by.buffer.slice(0),size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});fiches[0].docs=[{id:'att-641b',name:'Propre.pdf',size:by.byteLength}];await Data.put(fiches[0]);
+      openEdit(fiches[0].id);await __acCalme(500);
+      const mes=async b=>{if(!b)return null;b.scrollIntoView({block:'center'});await __acCalme(150);b.click();await __acCalme(300);
+        const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('[data-pickopt]'));
+        const res={modale:!!document.querySelector('.ai-modal.on'),aucun:!m};
+        if(m){const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect();Object.assign(res,{feuille:m.classList.contains('sheet'),filtre:!!m.querySelector('.catmenu-filter'),
+          colle:Math.abs(mr.top-br.bottom-6)<=2||Math.abs(br.top-6-mr.bottom)<=2,titre:(m.querySelector('.mm-title')||{}).textContent||''});}
+        if(_pickClose)_pickClose(false);await __acCalme(200);return res;};
+      o.rel=await mes(document.getElementById('relAddBtn'));
+      o.att=await mes(document.getElementById('attAddBtn'));
+      document.getElementById('edAddOpen').click();await __acCalme(300);document.querySelector('#edAddBody [data-edadd="cx"]').click();await __acCalme(400);
+      o.cx=await mes(document.querySelector('.cx-edit-row [data-cxpicker]'));
+      return o;});
+    const bureau=W>500;
+    t(`${W} px · A641 : les trois s’ouvrent sans fenêtre centrée, avec recherche — ${bureau?'déroulant collé à son bouton':'feuille du bas'}`,
+      ['rel','att','cx'].every(k=>r[k]&&!r[k].aucun&&!r[k].modale&&r[k].filtre&&(bureau?!r[k].feuille&&r[k].colle:r[k].feuille)),JSON.stringify(r));
     await page.close();}
 });
 

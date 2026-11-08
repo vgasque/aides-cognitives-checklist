@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A640 au lot v5.107 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A641 au lot v5.107 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A640 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A641 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -260,7 +260,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-98.md`](docs/decisions/lot-v5-98.md) | A594-A598 | La poignée suit le doigt ; l'accueil du téléphone dit ses bibliothèques (titre, liste dans « Afficher ») ; des dizaines de collections (les 5 récentes, « Toutes les collections », « Garder en tête ») |
 | [`lot-v5-100.md`](docs/decisions/lot-v5-100.md) | A599-A606 | La barre de sélection en matière système ; L'ARCHITECTURE CIBLE « lanceur + catalogue » (par lots) ; lot 1 : le catalogue ajouté, le dock glissé ; retour système et volets ; la pastille du dock glisse ; lots 2-3 : l'accueil lanceur, la colonne ne filtre plus |
 | [`lot-v5-104.md`](docs/decisions/lot-v5-104.md) | A607-A612 | Le Markdown de Notion (emphase imbriquée, barré, listes sur 6 niveaux) ; image « Pleine », Plan en arbre, pastille de provenance, sélection sans voile ; tableau (grille rouverte, en-têtes, `<br>`) ; blocs (« ＋ », sélection multiple, déplacer plusieurs blocs, bloc vidé) ; import (renommer, verser dans une référence) |
-| [`lot-v5-107.md`](docs/decisions/lot-v5-107.md) | A613-A640 | Le suivi : notes et tâches, pour moi ou pour l'équipe ; « À faire » (par priorité, par élément) ; table `aid_followups` ; volet « Suivi » des éditeurs ; pastille sous le titre ; « ‹ Accueil » d'une collection ; barre de sélection en bas en large ; sélection sur place depuis l'accueil ; rangée sans catégorie alignée ; « · » jamais en tête de ligne ; renommer à l'import en touchant le titre ; cases natives rondes, « protocole » partout ; tâche liée visible des deux côtés ; échéance passée ; recherche dans tout choix d'aide ; « À faire » en page ; menus ancrés au bureau ; « Créer » aux Bibliothèques ; page Notion dans l'éditeur ; sélection de blocs au cadre ; « Modifier » sans attente ; suivi de l'éditeur stable ; déroulants flottants au bureau ; ****gras**** |
+| [`lot-v5-107.md`](docs/decisions/lot-v5-107.md) | A613-A641 | Le suivi : notes et tâches, pour moi ou pour l'équipe ; « À faire » (par priorité, par élément) ; table `aid_followups` ; volet « Suivi » des éditeurs ; pastille sous le titre ; « ‹ Accueil » d'une collection ; barre de sélection en bas en large ; sélection sur place depuis l'accueil ; rangée sans catégorie alignée ; « · » jamais en tête de ligne ; renommer à l'import en touchant le titre ; cases natives rondes, « protocole » partout ; tâche liée visible des deux côtés ; échéance passée ; recherche dans tout choix d'aide ; « À faire » en page ; menus ancrés au bureau ; « Créer » aux Bibliothèques ; page Notion dans l'éditeur ; sélection de blocs au cadre ; « Modifier » sans attente ; suivi de l'éditeur stable ; déroulants flottants au bureau ; ****gras**** ; plus aucune fenêtre centrée de choix |
 
 ### Carte par sujet
 
@@ -280,7 +280,7 @@ plages A renvoient au tableau ci-dessus.
 | **Écran d'entrée d'une aide, exercice, guide** | MODE EXERCICE | A330, A347, A358, A366, A460, A463-A467, A520, A577 |
 | **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506, A515-A517, A523-A524, A527-A528, A537-A539, A544, A545, A556, A586, A587-A592, A595-A603, A617-A621 |
 | **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499, A522, A586, A613-A631 (suivi : notes et tâches) |
-| **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496, A520-A521, A546-A553, A560-A561, A583-A585, A593-A594, A604, A607-A612, A614, A633-A637 |
+| **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496, A520-A521, A546-A553, A560-A561, A583-A585, A593-A594, A604, A607-A612, A614, A633-A637, A641 |
 | **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459, A554-A555, A557 |
 | **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392, A562, A611, A622, A633, A638 |
 | **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387 |

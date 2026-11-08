@@ -186,17 +186,17 @@ const d10=await p.evaluate(async()=>{
  document.querySelector('#edAddBody [data-edadd="cx"]').click();await new Promise(r=>setTimeout(r,400));
  const row=document.querySelector('.cx-edit-row');if(!row)return {row:false};
  row.querySelector('[data-cxpicker]').click();await new Promise(r=>setTimeout(r,350));
- const heads=[...document.querySelectorAll('#relPickList .pick-h')].map(x=>x.textContent);
- const titre=document.getElementById('relPickTitle').textContent;
- // filtrer puis choisir le premier bloc
- const inp=document.getElementById('relPickQ');inp.value='';inp.dispatchEvent(new Event('input'));
- await new Promise(r=>setTimeout(r,200));
- const first=document.querySelector('#relPickList [data-pick]');const pickId=first.dataset.pick;first.click();
+ // A641 : le sélecteur est un choix d'openPickMenu (feuille au téléphone), plus une fenêtre centrée.
+ const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('[data-pickopt]'));
+ const heads=m?[...m.querySelectorAll('.mm-head')].map(x=>x.textContent):[];
+ const titre=m?(m.querySelector('.mm-title')||{}).textContent||'':'';
+ const filtre=!!(m&&m.querySelector('.catmenu-filter'));
+ const first=m&&m.querySelector('[data-pickopt]');const pickId=first?first.dataset.pickopt:'';if(first)first.click();
  await new Promise(r=>setTimeout(r,350));
  const btn=document.querySelector('.cx-edit-row .cx-tgt');
- return {row:true,heads,titre,cible:state.draft.excursions[0].target===pickId,
-  nom:btn?btn.textContent.trim():null,modalFermee:!document.getElementById('relPickModal').classList.contains('on')};});
-t('le sélecteur filtrable s’ouvre, titré pour la complication', d10.row&&/Cible de la complication/.test(d10.titre), JSON.stringify({titre:d10.titre}));
+ return {row:true,heads,titre,filtre,cible:state.draft.excursions[0].target===pickId,
+  nom:btn?btn.textContent.trim():null,modalFermee:![...document.querySelectorAll('.popmenu')].some(x=>x.getClientRects().length&&x.querySelector('[data-pickopt]'))};});
+t('le sélecteur filtrable s’ouvre, titré pour la complication', d10.row&&d10.filtre&&/Cible de la complication/.test(d10.titre), JSON.stringify({titre:d10.titre,filtre:d10.filtre}));
 t('deux groupes : blocs de la fiche PUIS aides & protocoles', d10.heads&&d10.heads.length===2&&/Blocs/.test(d10.heads[0]), JSON.stringify(d10.heads));
 t('choisir pose la cible et referme ; le bouton affiche le nom', d10.cible&&d10.modalFermee&&!!d10.nom&&!/Choisir/.test(d10.nom), JSON.stringify({nom:d10.nom}));
 await p.close();await br.close();srv.close();

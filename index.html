@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eqPOorDbzWzXDFN0wMq0eYSwCiVCyTYrY1IcqqmzZow='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xd9PHqYRk7Rqq8T0KAgUeP71AunIpvIjay9ADwHk/2s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4833,7 +4833,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
   .cx-edit-row input[type=text]{min-height:40px;padding-block:8px;font-size:15px}
   .cx-edit-row .btn.cx-tgt{justify-content:flex-start;height:40px;min-height:40px;padding:0 14px;border:1.5px solid var(--line-strong);border-radius:var(--r-3);background:var(--amb-2);box-shadow:none;color:var(--ink);font-size:15px;font-weight:400}
-  .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   /* ⚠ `.cx-btn`, `.cx-n`, `.cx-chev`, `.cx-item*` ET `.cx-list` SONT PURGÉS (v5.6, règle 14) :
      l'index des complications a quitté la carte pour le VOLET DU DOCK (`.ds-row`), qui le rend
      avec la même doctrine — rangées ≥ 56 px, nom en toutes lettres, condition d'entrée,
@@ -9178,10 +9177,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
   .att-cloud{flex:none;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  /* Sélecteur de document existant : liste défilable, origine du document en 2e ligne. */
-  .attpick-list{max-height:min(calc(52vh / var(--zf,1)),440px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:12px}
-  .attpick-list .att-row{margin-bottom:8px}
-  .att-from{display:block;font-size:11px;font-weight:400;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
   /* Étroit (v5.44) : le nom garde toute la ligne, index · taille · outils passent dessous, à droite. */
   html.zw430 .att-erow{flex-wrap:wrap;row-gap:4px}
@@ -10223,22 +10218,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div id="reportBody" class="report-preview ai-body"></div>
   <div class="rp-acts"><button class="btn" id="reportDownload">Fichier .html</button><button class="btn primary" id="reportPrint">Enregistrer en PDF</button></div>
 </div></div>
-<!-- Sélecteur de document existant (éditeurs de fiche ET de protocole) : liste FILTRABLE — un
-     menu déroulant ne passe pas à l'échelle à 50+ documents. Accessibilité .ai-modal standard. -->
-<div class="ai-modal" id="attPickModal" role="dialog" aria-modal="true" aria-labelledby="attPickTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="attPickTitle">Joindre un document existant</h3><button class="ai-x" aria-label="Fermer">×</button></div>
-  <p>Le document sera <b>partagé</b> : le remplacer le mettra à jour sur toutes les aides et tous les protocoles qui l'utilisent.</p>
-  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="attPickQ" placeholder="Filtrer par nom ou origine…"></div>
-  <div id="attPickList" class="att-list attpick-list ai-body"></div>
-</div></div>
-<!-- Sélecteur « Voir aussi » (éditeurs de fiche ET de protocole) : lier une AIDE ou un PROTOCOLE
-     du même périmètre — même design que « Joindre un document existant » (liste filtrable). -->
-<div class="ai-modal" id="relPickModal" role="dialog" aria-modal="true" aria-labelledby="relPickTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" aria-label="Fermer">×</button></div>
-  <p>Le lien apparaît en lecture, dans la section <b>« Voir aussi »</b> — un raccourci, pas une copie.</p>
-  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" type="search" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher une aide, un protocole (titre ou code)"></div>
-  <div id="relPickList" class="att-list attpick-list ai-body"></div>
-</div></div>
+<!-- A641 : « Joindre un document existant », « Voir aussi » et la cible d'une complication ne sont plus des fenêtres
+     centrées : ce sont des choix d'`openPickMenu` (déroulant flottant au bureau, feuille au téléphone, recherche). -->
 <!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
      événement — le modèle QRH/Stanford (un manuel, des onglets), pas un bouton par urgence.
      Rangées larges (crise), fermeture voile/✕/Échap par le gestionnaire central de modales. -->
@@ -10326,7 +10307,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.8';
+const APP_VERSION='5.109.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20232,7 +20213,7 @@ function bindEditorMetaFields(d,prefix,o){
   {const pv=document.getElementById('hdrPreview');if(pv)pv.onclick=o.preview;}
   // « Voir aussi » : ajout via le sélecteur filtrable (même design que « Joindre un document
   // existant »), retrait via la croix des chips (mise à jour immédiate de l'aperçu).
-  {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender);}
+  {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender,rb);}
   main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.links=(d.links||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
   // Catégorie : chip courant ET « Autre… » ouvrent le même menu ancré (SPEC crise §2) ;
   // « ＋ Nouvelle catégorie » y ouvre le gestionnaire (même fenêtre que l'accueil).
@@ -27387,81 +27368,47 @@ function bindAttEditor(entity,rerender){
   upTarget('pdf',take);
   main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.docs||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
   main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.docs.splice(+b.dataset.attrm,1);rerender();});
-  {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>openAttPicker(entity,rerender);}}
+  {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>openAttPicker(entity,rerender,ab);}}
 /* Sélecteur de document existant : fenêtre FILTRABLE (nom + fiche/protocole d'origine). Rempli à
    l'ouverture, re-filtré à la frappe ; choisir un document ajoute la même référence {id,name,size}
    au brouillon (document partagé, cf. attachablePdfs). */
-const attPickModal=document.getElementById('attPickModal');
-let _attPickCtx=null;   // {entity, rerender} de l'éditeur appelant
-function closeAttPicker(){_attPickCtx=null;attPickModal.classList.remove('on');}
-bindModalDismiss(attPickModal,closeAttPicker);
-function renderAttPickList(){
-  const box=document.getElementById('attPickList');if(!box||!_attPickCtx)return;
-  const q=txNorm(document.getElementById('attPickQ').value);
-  const opts=attachablePdfs(_attPickCtx.entity).filter(o=>!q||txNorm(o.name+' '+o.from).includes(q));
-  box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(o.name)}<span class="att-from">${esc(o.from)}</span></span><span class="att-size">${fmtBytes(o.size)}</span></button>`).join('')
-    :emptyLine('Aucun document '+(q?'ne correspond au filtre.':'disponible.'));
-  box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
-    const ctx=_attPickCtx;const o=attachablePdfs(ctx.entity).find(x=>x.id===b.dataset.pick);
-    closeAttPicker();
-    if(ctx&&o){ctx.entity.docs=ctx.entity.docs||[];ctx.entity.docs.push({id:o.id,name:o.name,size:o.size});ctx.rerender();}});}
-document.getElementById('attPickQ').addEventListener('input',renderAttPickList);
-function openAttPicker(entity,rerender){
+/* A641 — LES TROIS DERNIÈRES FENÊTRES DE CHOIX DEVIENNENT DES CHOIX (demande de l'auteur : « ok pour les 3 restants ») :
+   « Joindre un document existant », « Voir aussi » et la cible d'une complication passent par `openPickMenu` — au bureau
+   un déroulant FLOTTANT sous leur bouton (A638), au téléphone la feuille du bas ; champ de recherche dès le premier
+   élément (A626) ; la phrase d'explication des anciennes fenêtres devient la ligne de contexte (`ctx`). Le filtre porte
+   sur le texte de la rangée : nom ET sous-ligne (le code d'une aide, la provenance d'un PDF). `trigger` : le bouton qui
+   ouvre (sinon la porte « Ajouter » de l'éditeur, ou le centre de la feuille au téléphone). */
+const pickTrig=t=>t||document.getElementById('edAddOpenP')||document.getElementById('edAddOpen')||null;
+const pickMode=t=>{const tr=pickTrig(t);return window.innerWidth>=780&&tr?{host:document.body,sheet:false,fixed:true,trigger:tr}:{host:document.body,sheet:true,fixed:false,trigger:tr};};
+function openAttPicker(entity,rerender,trigger){
   if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
-  _attPickCtx={entity:entity,rerender:rerender};
-  document.getElementById('attPickQ').value='';
-  attPickModal.classList.add('on');renderAttPickList();}
-/* Sélecteur « Voir aussi » : MÊME patron que le sélecteur de document ci-dessus (fenêtre
-   filtrable, lignes .att-row) — icône doc = aide, livre = protocole ; code en colonne droite. */
-const relPickModal=document.getElementById('relPickModal');
-let _relPickCtx=null;   // {entity, rerender} de l'éditeur appelant
-let _cxPickCtx=null;
-function closeRelPicker(){_relPickCtx=null;_cxPickCtx=null;
-  document.getElementById('relPickTitle').textContent='Lier une aide ou un protocole';
-  relPickModal.classList.remove('on');}
-bindModalDismiss(relPickModal,closeRelPicker);
-function renderRelPickList(){
-  const box=document.getElementById('relPickList');if(!box||(!_relPickCtx&&!_cxPickCtx))return;
-  const q=txNorm(document.getElementById('relPickQ').value);
-  /* Mode CIBLE DE COMPLICATION (v4.26.1) : deux groupes — les blocs de CETTE fiche d'abord (le
-     cas nominal : un bloc dédié type laryngospasme), puis toutes les aides & protocoles. Le filtre
-     porte sur les deux. Contrairement à « Voir aussi », une aide DÉJÀ liée reste sélectionnable. */
-  if(_cxPickCtx){const f=_cxPickCtx.f;
-    /* UN BLOC SANS TITRE SE NOMME, IL NE S'IDENTIFIE PAS (v4.78.0, signalé à l'usage : « le
-       sélecteur montre les blocs sans titre mais les appelle par leur ID »). Un `b_lz8q3` ne dit
-       rien à personne, et surtout pas lequel des deux blocs sans titre on choisit. On donne le RANG
-       — « Bloc sans titre (2) » —, seule information qui distingue effectivement deux blocs vides,
-       et c'est la position que l'auteur voit à l'écran. Même règle que `targetSelect`, qui écrivait
-       « (bloc sans titre) » sans rang : il la reçoit aussi. */
-    const nom=b=>String(stripBold(b.title||'')).trim()
-      ||('Bloc sans titre ('+(((f.blocks||[]).indexOf(b))+1)+')');
-    const bl=(f.blocks||[]).filter(b=>b.kind!=='review'&&(!q||txNorm(nom(b)).includes(q)));
-    const oth=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle)
-      .filter(x=>!q||txNorm((x.title||'')+' '+(x.code||'')).includes(q));
-    box.innerHTML=(bl.length?`<p class="pick-h">Blocs de cette aide</p>`+bl.map(b=>`<button class="att-row" data-pick="${esc(b.id)}"><span class="att-ico">${boltIcon(14)}</span><span class="att-name">${esc(nom(b))}</span></button>`).join(''):'')
-      +(oth.length?`<p class="pick-h">Aides & protocoles</p>`+oth.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(protocols.some(x=>x.id===o.id)?'book':'doc',16)}</span><span class="att-name">${esc(o.title||'Sans titre')}</span></button>`).join(''):'')
-      ||('<p class="ai-note">Rien ne correspond au filtre.</p>');
-    box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
-      const ctx=_cxPickCtx;closeRelPicker();
-      if(ctx&&ctx.f.excursions&&ctx.f.excursions[ctx.i]){ctx.f.excursions[ctx.i].target=b.dataset.pick;ctx.rerender();}});
-    return;}
-  const opts=relCandidates(_relPickCtx.entity).filter(o=>!q||txNorm(o.title+' '+o.code).includes(q));
-  box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(o.kind==='p'?'book':'doc',16)}</span><span class="att-name">${esc(o.title)}<span class="att-from">${o.kind==='p'?'Protocole':'Aide cognitive'}</span></span>${o.code?`<span class="att-size" style="font-family:var(--f-mono)">${esc(o.code)}</span>`:''}</button>`).join('')
-    :emptyLine('Aucune aide '+(q?'ne correspond au filtre.':'disponible.'));
-  box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
-    const ctx=_relPickCtx;closeRelPicker();
-    if(ctx){ctx.entity.links=ctx.entity.links||[];if(ctx.entity.links.indexOf(b.dataset.pick)<0)ctx.entity.links.push(b.dataset.pick);ctx.rerender();}});}
-document.getElementById('relPickQ').addEventListener('input',renderRelPickList);
-function openRelPicker(entity,rerender){
+  const opts=attachablePdfs(entity),M=pickMode(trigger);
+  if(!opts.length){toast('Aucun document à joindre : déposez un PDF, ou « Ajouter › Document (PDF) ».',4000,true);return;}
+  openPickMenu(M.host,{aria:'Joindre un document existant',title:'Joindre un document existant',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un document…',filtreAuToucher:true,
+    ctx:'Le document sera partagé : le remplacer le mettra à jour partout où il sert.',
+    options:opts.map(o=>({val:o.id,name:o.name,sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',16)})),
+    onPick:v=>{const o=attachablePdfs(entity).find(x=>x.id===v);if(!o)return;entity.docs=entity.docs||[];entity.docs.push({id:o.id,name:o.name,size:o.size});rerender();}});}
+function openRelPicker(entity,rerender,trigger){
   if((entity.links||[]).length>=20){toast('⚠ 20 liens maximum.');return;}   // même plafond que migrate()
-  _relPickCtx={entity:entity,rerender:rerender};_cxPickCtx=null;
-  document.getElementById('relPickQ').value='';
-  relPickModal.classList.add('on');renderRelPickList();}
-function openCxTargetPicker(f,i,rerender){
-  _cxPickCtx={f:f,i:i,rerender:rerender};_relPickCtx=null;
-  document.getElementById('relPickTitle').textContent='Cible de la complication';
-  document.getElementById('relPickQ').value='';
-  relPickModal.classList.add('on');renderRelPickList();}
+  const c=relCandidates(entity),M=pickMode(trigger);
+  if(!c.length){toast('Aucune autre aide ni aucun protocole à lier.',3500,true);return;}
+  const A=c.filter(o=>o.kind!=='p'),P=c.filter(o=>o.kind==='p'),opt=o=>({val:o.id,name:o.title,sub:o.code||'',ic:uiIcon(o.kind==='p'?'book':'doc',16)});
+  openPickMenu(M.host,{aria:'Lier une aide ou un protocole',title:'Voir aussi',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+    ctx:'Le lien paraît en lecture, dans « Voir aussi » — un raccourci, pas une copie.',
+    options:(A.length?[{head:'Aides · '+A.length}]:[]).concat(A.map(opt),P.length?[{head:'Protocoles · '+P.length}]:[],P.map(opt)),
+    onPick:v=>{entity.links=entity.links||[];if(v&&entity.links.indexOf(v)<0)entity.links.push(v);rerender();}});}
+/* Mode CIBLE DE COMPLICATION (v4.26.1) : les blocs de CETTE aide d'abord (le cas nominal : un bloc dédié type
+   laryngospasme), puis toutes les aides et protocoles ; une aide déjà liée reste sélectionnable. Un bloc sans titre se
+   NOMME par son rang (v4.78.0), jamais par son identifiant. */
+function openCxTargetPicker(f,i,rerender,trigger){
+  const nom=b=>String(stripBold(b.title||'')).trim()||('Bloc sans titre ('+(((f.blocks||[]).indexOf(b))+1)+')');
+  const bl=(f.blocks||[]).filter(b=>b.kind!=='review');
+  const oth=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle);
+  const M=pickMode(trigger),cur=f.excursions&&f.excursions[i]?f.excursions[i].target:'';
+  openPickMenu(M.host,{aria:'Cible de la complication',title:'Cible de la complication',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un bloc, une aide, un protocole…',filtreAuToucher:true,value:cur||'',
+    options:(bl.length?[{head:'Blocs de cette aide · '+bl.length}]:[]).concat(bl.map(b=>({val:b.id,name:nom(b),ic:boltIcon(14)})),
+      oth.length?[{head:'Aides et protocoles · '+oth.length}]:[],oth.map(o=>({val:o.id,name:String(o.title||'').trim()||'Sans titre',sub:o.code||'',ic:uiIcon(protocols.some(x=>x.id===o.id)?'book':'doc',16)}))),
+    onPick:v=>{if(v&&f.excursions&&f.excursions[i]){f.excursions[i].target=v;rerender();}}});}
 // Blobs PDF ajoutés pendant l'édition COURANTE : purgés si on quitte sans enregistrer (le blob est
 // écrit immédiatement dans IndexedDB à l'ajout, AVANT l'enregistrement de la fiche).
 let draftNewAtts=[];
@@ -28366,7 +28313,7 @@ function bindEditorEvents(f){
   // suppression re-rendent, la liste est courte). migrate() rejettera les rangées incomplètes.
   main.querySelectorAll('[data-cxlab]').forEach(inp=>inp.addEventListener('input',e=>{const i=+e.target.dataset.cxlab;if(f.excursions&&f.excursions[i]){f.excursions[i].label=e.target.value;const sh=main.querySelector('[data-cxshort="'+i+'"]');if(sh)sh.placeholder=cxShort({label:e.target.value});}}));
   main.querySelectorAll('[data-cxshort]').forEach(inp=>inp.addEventListener('input',e=>{const c=(f.excursions||[])[+e.target.dataset.cxshort];if(!c)return;const v=e.target.value.trim();if(v)c.short=v;else delete c.short;}));
-  main.querySelectorAll('[data-cxpicker]').forEach(b=>b.onclick=()=>openCxTargetPicker(f,+b.dataset.cxpicker,renderEditor));
+  main.querySelectorAll('[data-cxpicker]').forEach(b=>b.onclick=()=>openCxTargetPicker(f,+b.dataset.cxpicker,renderEditor,b));
   main.querySelectorAll('[data-cxdel]').forEach(b=>b.onclick=()=>{f.excursions.splice(+b.dataset.cxdel,1);renderEditor();});
 
   bindEditSide('fiche');

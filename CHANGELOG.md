@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.109.9] — 2026-11-08
+Plus aucune fenêtre centrée pour choisir une aide, un protocole ou un document (A641). Rien à rejouer côté serveur.
+- **« Voir aussi », la cible d'une complication et « Joindre un document existant »** s'ouvrent comme les autres
+  choix de l'app : au bureau, une liste qui se déroule sous le bouton touché ; au téléphone, la feuille du bas.
+- **Recherche dans les trois, dès le premier élément** (nom, code d'une aide, provenance d'un document) ; les groupes
+  restent (« Aides » / « Protocoles », « Blocs de cette aide » d'abord pour une complication, la cible actuelle cochée).
+- Rien à choisir : une notice le dit, au lieu d'ouvrir une fenêtre vide.
+
 ## [5.109.8] — 2026-11-08
 Éditeur de protocole : le suivi ne disparaît plus (A636) ; mise en garde des images (A637), déroulants au bureau (A638), gras de Notion (A639), listes coupées par une image (A640). Rien à rejouer côté serveur.
 - **Le volet « Suivi » de l'éditeur de protocole reste visible** : il disparaissait de la colonne de droite dès qu'on
@@ -212,11 +220,3 @@ lots). Rien à rejouer côté serveur.
   **catalogue** portera bibliothèques, catégories et la liste complète « Tout » (filtrer, trier, sélectionner) —
   ajouté d'abord sans rien retirer.
 
-## [5.99.0] — 2026-11-08
-Une collection peut rester en tête de l'accueil (A598). Rien à rejouer côté serveur.
-- **« Garder en tête de l'accueil »**, dans le menu ⋯ d'une collection : elle reste dans « Vos collections » sur
-  l'accueil, même quand d'autres ont été ouvertes plus récemment ; les places restantes vont aux plus récentes.
-  « Ne plus garder en tête » la rend à l'ordre des plus récentes.
-- **Un signet plein** la signale partout où elle paraît. Pas une étoile : l'étoile reste le signe de l'Accès direct
-  sur chaque aide.
-- Le choix voyage avec vos collections sur vos autres appareils.
