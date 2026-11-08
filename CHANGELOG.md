@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.109.1] — 2026-11-08
+Correctif du suivi (A616). Rien à rejouer côté serveur.
+- **Ouverte depuis la feuille « Suivi » ou depuis « À faire », la fenêtre d'une note ou d'une tâche s'affiche
+  désormais par-dessus** : elle se ferme normalement et se rouvre. Avant, elle restait cachée dessous, et « ＋ Tâche »
+  ne rouvrait plus rien.
+
 ## [5.109.0] — 2026-11-08
 Le suivi s'atteint d'un toucher, sans rien ajouter à la barre du haut (A615). Rien à rejouer côté serveur.
 - **Une pastille « 2 tâches »** (ou « 1 note ») apparaît sous le titre d'une aide ou d'une référence qui a du suivi,
@@ -241,10 +247,3 @@ Des liens pour ouvrir l'application à un endroit précis, depuis une autre app 
   signalée par une notice.
 - **Limite d'iPhone et d'iPad** : un lien ouvert depuis une autre app s'ouvre souvent dans Safari, qui n'a pas les
   données de l'app installée. Essayez le raccourci une fois avant d'en dépendre.
-
-## [5.93.0] — 2026-11-06
-Les images d'une aide en grille, chacune avec sa feuille (A585). Rien à rejouer côté serveur.
-- **Dans l'éditeur d'une aide, « Schémas & captures » devient une grille** de vignettes repliée à deux rangs, la
-  légende sous chaque vignette et « ▣ Bloc n » sur celle qu'un bloc affiche. Elle remplace une grande carte par image.
-- **Toucher une image ouvre sa feuille**, la même que pour les références : la légende, « Affichée dans » (aucun bloc
-  ou un bloc), remplacer (le bloc qui l'affiche suit), retirer de l'aide (avec ↶ pour annuler).
