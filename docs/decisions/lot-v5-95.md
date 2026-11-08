@@ -122,7 +122,7 @@ par défaut ; un rail de catégories (A243 : des mots, pas des lettres) ; une se
    sur une ligne ; mesurée à 390 px, la ligne coupait les deux noms (« Bloc centr… · Obstétri… ») : deux lignes. Sans
    bibliothèque partagée, rien ne change. C'est le régime d'A242 (hors rangement par bibliothèque, toute rangée dit sa
    bibliothèque), que la tuile n'appliquait pas — et une tuile vit hors de tout rangement.
-2. **Le séparateur « · » se pose hors de la pastille de provenance** (défaut de dessin mesuré sur captures).
+2. **Le séparateur « · » se pose hors de la pastille de provenance** (défaut de dessin mesuré sur captures). *(Amendé par A621, v5.109.6 : il devient l'`::after` de l'élément d'avant, collé par une espace insécable.)*
 3. **Pas de redite dans la méta détaillée** : sous un intertitre de catégorie, la rangée ne redit pas la catégorie
    (la compacte le fait déjà, A537) ; sous un intertitre de bibliothèque, la provenance ne paraît que pour un homonyme
    (A242, déjà écrit). La méta tient alors sur une ligne au téléphone dans la plupart des cas.

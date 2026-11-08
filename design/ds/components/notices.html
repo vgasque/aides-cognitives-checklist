@@ -2538,8 +2538,14 @@
     font-size:var(--t-body);line-height:1.35;color:var(--ink-2)}
   .dir-book :is(.dir-id,.dir-id>*,.dir-sub>.dir-st){display:inline;min-width:0;margin:0;padding:0;
     overflow:visible;white-space:normal;font-size:inherit}
-  .dir-book .dir-id>*+*::before,.dir-book .dir-id:not(:empty)+.dir-st::before{
-    content:"·";margin:0 6px;font-weight:400;color:var(--ink-2)}
+  /* A621 — LE « · » NE COMMENCE JAMAIS UNE LIGNE (signalé à 390 px : « · △ À relire », « · Cours DESMU » en tête de la
+     seconde ligne, décalés). Le point se colle à ce qui le PRÉCÈDE par une espace insécable (UAX 14 : pas de coupure
+     avant U+00A0) et la coupure possible est l'espace ordinaire qui le SUIT. Devant un atome (pastille de provenance,
+     état insécable), le point ne peut pas vivre dans son `::before` — il partirait avec lui à la ligne : il devient
+     l'`::after` de l'élément d'avant. */
+  .dir-book .dir-id>*+*:not(.libtag)::before,
+  .dir-book:not(.pinned) .dir-id>*:has(+.libtag)::after,.dir-book .dir-id:not(:empty):has(+.dir-st)::after{
+    content:"\a0· ";margin:0 2px;font-weight:400;color:var(--ink-2)}
   .dir-book .dir-disc{order:0;font-weight:400;color:inherit}
   .dir-book .dir-kind{font-size:inherit;font-weight:400;letter-spacing:0;text-transform:none}
   html .dir-book .dir-row .dir-sub>.dir-st{margin:0;padding:0}
@@ -2566,7 +2572,7 @@
      point de la rangée et l'intertitre la disent. */
   .dir-book.by-cat .dir-cat{display:none}
   .dir-book.by-cat .dir-id>.dir-cat:first-child+*::before,
-  .dir-book.by-cat .dir-id:has(>.dir-cat:only-child)+.dir-st::before{content:none}
+  .dir-book.by-cat .dir-id:has(>.dir-cat:only-child)::after{content:none}
   .dir-book.by-cat .dir-id>.dir-cat:first-child+.libtag{margin-left:0}
   /* A537 (renverse A515 §4, demande de l'auteur) : l'ACCÈS DIRECT en tuiles, plusieurs par ligne, quelle que soit la
      densité. Une tuile dit le titre (trois lignes au plus), la catégorie avec son point, puis l'état — ni nature ni
@@ -2579,7 +2585,7 @@
   .dir-book.pinned .dir-sub{margin-top:6px;font-size:var(--t-meta);white-space:nowrap}
   .dir-book.pinned .dir-id>:not(.dir-cat,.libtag){display:none}
   .dir-book.pinned .dir-id>.dir-cat{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-sub>.dir-id+.dir-st::before{content:none}
+  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-id::after{content:none}
   .dir-book.pinned .dir-row.has-av .dir-cat .cat-dot{display:inline-block;margin-right:6px;vertical-align:1px}
   .dir-book.pinned .dir-sub>.dir-st{display:block}
   .dir-book.pinned .pinbtn{margin-top:-8px}
@@ -2594,9 +2600,8 @@
     color:inherit;font-weight:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:static}
   .dir-book.pinned .dir-id>.libtag svg{display:none}
   .dir-book.pinned .dir-id>.libtag::before{content:none}
-  /* A589 §2 — LE « · » NE TOMBE PLUS DANS LA PASTILLE de provenance : il se pose dans la marge, hors du fond. */
-  .dir-book .dir-id>*+.libtag{position:relative;margin-left:16px}
-  .dir-book .dir-id>*+.libtag::before{position:absolute;left:-11px;margin:0}
+  /* A589 §2 — LE « · » NE TOMBE PLUS DANS LA PASTILLE de provenance : depuis A621, il est l'`::after` de l'élément
+     d'avant (ci-dessus), donc hors du fond ET collé à ce qui le précède. */
   /* A608 — LA PASTILLE DE PROVENANCE GARDE SA FORME DANS LA RANGÉE : la remise à plat des items de méta (`display:inline;
      padding:0` ci-dessus) la touchait aussi — l'icône tombait sur la ligne de base, sous le texte, et le fond s'arrêtait
      au ras de la dernière lettre (capture de l'auteur, « Cours DESMU »). En ligne, mais flex : icône centrée sur le texte. */
