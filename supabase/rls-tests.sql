@@ -1328,8 +1328,9 @@ begin
   v_j := public.link_claim_srv(v_lid, v_key);
   if v_j->>'email' <> 'kim@test.local' then raise exception 'ÉCHEC 16.6 : réclamation inattendue (%)', v_j; end if;
   -- 16.7 La liaison (par le serveur) ne prend qu'UNE fois ; ensuite, plus de réclamation.
-  insert into auth.sessions(user_id) values (kim) returning id into v_asid;
-  insert into auth.sessions(user_id) values (kim) returning id into v_asid2;
+  -- `auth.sessions.id` n'a PAS de valeur par défaut chez Supabase (GoTrue la pose) : on la fournit.
+  v_asid := gen_random_uuid(); v_asid2 := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid, kim), (v_asid2, kim);
   v_j := public.link_bind_srv(v_lid, v_key, v_asid);
   if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.7 : liaison refusée (%)', v_j; end if;
   v_j := public.link_bind_srv(v_lid, v_key, v_asid2);
@@ -1426,7 +1427,8 @@ begin
   if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.12 : un poste déconnecté dépose encore'; end if;
   reset role;
   -- 16.13 L'heure de fin passée, la purge (en tête de tout appel) supprime la session du poste ; le dépôt reste ouvert.
-  insert into auth.sessions(user_id) values (kim) returning id into v_asid;
+  v_asid := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid, kim);
   insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
     values ('connect', encode(extensions.digest('qr-fini-0123456789abcdef', 'sha256'), 'hex'),
             encode(extensions.digest('cle-fini-0123456789abcdef', 'sha256'), 'hex'), now() - interval '1 day',
