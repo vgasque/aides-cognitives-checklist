@@ -33,6 +33,7 @@ declare
   -- depuis le §11. Réutiliser Alice faisait échouer le test sur « super-admin account cannot
   -- be self-deleted » — un refus légitime, mais qui ne testait plus ce qu'on voulait tester.
   ivan  uuid := '99999999-9999-9999-9999-999999999999';
+  kim   uuid := 'abababab-abab-abab-abab-abababababab';   -- §16, compte dédié (A643)
   v_hack text;
   v_cnt  int;
   v_leak int;
@@ -42,11 +43,18 @@ declare
   -- Liste blanche des fonctions du schéma `public` que le rôle anon a le droit d'exécuter.
   -- VIDE aujourd'hui, et c'est la posture du projet. À n'étendre qu'avec une justification
   -- écrite dans schema.sql, jamais « pour faire passer le test ».
-  v_anon_fns_ok text[] := array['share_join','share_pull','share_push'];
+  -- v5.111 (A643) : les trois fonctions du POSTE PARTAGÉ, justifiées dans schema.sql § 5quinquies.
+  v_anon_fns_ok text[] := array['share_join','share_pull','share_push','link_open','link_poll','link_deposit'];
   v_j    jsonb;
   v_j2   jsonb;
   v_code text;
   v_sec  text;
+  v_lid  uuid;   -- §16 : une demande de connexion par le téléphone
+  v_lid2 uuid;
+  v_hash text;
+  v_asid uuid;
+  v_key  text;   -- §16 : la CLÉ DU POSTE (jamais dans le QR)
+  v_asid2 uuid;
 begin
   ------------------------------------------------------------------ SEED (propriétaire)
   reset role;
@@ -1250,6 +1258,191 @@ begin
   if v_cnt = 0 then raise exception 'ÉCHEC 15.7 : l''administrateur ne voit aucune bibliothèque'; end if;
   select count(*) into v_cnt from public.list_user_memberships(frank);
   if v_cnt = 0 then raise exception 'ÉCHEC 15.7 : l''administrateur ne voit pas les adhésions de frank'; end if;
+
+
+  ------------------------------------------------------------------ 16. CONNEXION PAR LE TÉLÉPHONE (v5.111, A643)
+  -- DEUX SECRETS : celui du QR (le téléphone lit et approuve) et la CLÉ DU POSTE (jamais affichée :
+  -- sonder, réclamer, déposer). Chaque attaque démontrée par la revue de sécurité a son contrôle.
+  -- 16.1 Un poste SANS compte ouvre une demande. Le serveur ne reçoit que des EMPREINTES.
+  -- Compte DÉDIÉ (Kim) : les sections précédentes suppriment ou rétrogradent des comptes, et ce
+  -- bloc ne doit pas dépendre de leur ordre.
+  reset role;
+  insert into auth.users (id, email) values (kim,'kim@test.local') on conflict (id) do nothing;
+  insert into public.user_status(user_id,email,status) values (kim,'kim@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  v_sec  := 'secret-du-qr-0123456789abcdef';
+  v_key  := 'cle-du-poste-0123456789abcdef';
+  v_hash := encode(extensions.digest(v_sec, 'sha256'), 'hex');
+  v_code := encode(extensions.digest(v_key, 'sha256'), 'hex');
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.link_open(v_hash, v_hash, 'Chrome · Windows', 'connect');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.1 : clé du poste = secret du QR accepté'; end if;
+  v_j := public.link_open(v_hash, v_code, 'Poste IDE Urgences', 'connect');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.1 : un poste sans compte n''ouvre pas de demande (%)', v_j; end if;
+  v_lid := (v_j->>'id')::uuid;
+  v_j := public.link_open(v_hash, v_code, 'x', 'unlock');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.1 : un anonyme ouvre une demande de DÉVERROUILLAGE'; end if;
+  -- 16.2 Le sondage n'ouvre qu'à la CLÉ DU POSTE (pas au secret du QR), et ne rend jamais de jeton.
+  v_j := public.link_poll(v_lid, v_sec);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.2 : le secret du QR suffit à sonder'; end if;
+  v_j := public.link_poll(v_lid, v_key);
+  if v_j->>'status' <> 'pending' or v_j ? 'token_hash' or v_j ? 'email' then
+    raise exception 'ÉCHEC 16.2 : sondage inattendu (%)', v_j; end if;
+  -- 16.3 Un anonyme n'approuve rien : la fonction ne lui est même pas exécutable.
+  begin
+    perform public.link_approve(v_lid, v_sec, now() + interval '12 hours');
+    raise exception 'ÉCHEC 16.3 : un anonyme peut appeler link_approve';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  -- 16.4 Le téléphone de Kim lit la demande (libellé libre ramené à la grammaire fermée), l'approuve dans les bornes.
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.link_peek(v_lid, v_key);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.4 : la clé du poste ouvre la lecture réservée au téléphone'; end if;
+  v_j := public.link_peek(v_lid, v_sec);
+  if v_j->>'label' <> 'Navigateur' then raise exception 'ÉCHEC 16.4 : libellé libre non ramené à la grammaire (%)', v_j; end if;
+  v_j := public.link_approve(v_lid, v_sec, now() + interval '30 hours');
+  if v_j->>'err' <> 'bad_ends' then raise exception 'ÉCHEC 16.4 : heure de fin à 30 h acceptée (%)', v_j; end if;
+  v_j := public.link_approve(v_lid, v_sec, now() + interval '15 hours');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.4 : approbation refusée (%)', v_j; end if;
+  v_j := public.link_approve(v_lid, v_sec, now() + interval '20 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.4 : une seconde approbation « réussit » sans avoir pris'; end if;
+  -- 16.5 Aucun client n'appelle les fonctions internes.
+  begin
+    perform public.link_claim_srv(v_lid, v_key);
+    raise exception 'ÉCHEC 16.5 : un compte connecté peut appeler link_claim_srv (e-mail du compte exposé)';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform public.link_bind_srv(v_lid, v_key, gen_random_uuid());
+    raise exception 'ÉCHEC 16.5 : link_bind_srv est appelable par un client';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform public.link_row_key(v_lid, v_key);
+    raise exception 'ÉCHEC 16.5 : link_row_key est appelable par un client';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  -- 16.6 La réclamation (clé de service) : le SECRET DU QR ne réclame pas ; la clé, UNE fois.
+  v_j := public.link_claim_srv(v_lid, v_sec);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.6 : le secret du QR suffit à réclamer la session'; end if;
+  v_j := public.link_claim_srv(v_lid, v_key);
+  if v_j->>'email' <> 'kim@test.local' then raise exception 'ÉCHEC 16.6 : réclamation inattendue (%)', v_j; end if;
+  -- 16.7 La liaison (par le serveur) ne prend qu'UNE fois ; ensuite, plus de réclamation.
+  -- `auth.sessions.id` n'a PAS de valeur par défaut chez Supabase (GoTrue la pose) : on la fournit.
+  v_asid := gen_random_uuid(); v_asid2 := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid, kim), (v_asid2, kim);
+  v_j := public.link_bind_srv(v_lid, v_key, v_asid);
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.7 : liaison refusée (%)', v_j; end if;
+  v_j := public.link_bind_srv(v_lid, v_key, v_asid2);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.7 : une seconde session se lie au même poste'; end if;
+  v_j := public.link_claim_srv(v_lid, v_key);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.7 : réclamation après liaison'; end if;
+  -- 16.8 La SESSION DU POSTE n'a pas les pouvoirs du téléphone : ni approuver un autre poste (s'enchaîner
+  --      sans téléphone), ni prolonger, ni lister, ni déconnecter, ni supprimer le compte.
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, label)
+    values ('connect', encode(extensions.digest('autre-qr-0123456789abcdef','sha256'),'hex'),
+            encode(extensions.digest('autre-cle-0123456789abcdef','sha256'),'hex'), now() + interval '2 minutes', 'Chrome')
+    returning id into v_lid2;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid,
+    'amr', json_build_array(json_build_object('method','magiclink','timestamp', extract(epoch from now()))))::text, true);
+  set local role authenticated;
+  v_j := public.link_approve(v_lid2, 'autre-qr-0123456789abcdef', now() + interval '27 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.8 : un poste approuve un autre poste'; end if;
+  v_j := public.link_extend(v_lid, now() + interval '16 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.8 : un poste prolonge sa propre connexion'; end if;
+  if jsonb_array_length(public.link_list()) <> 0 then raise exception 'ÉCHEC 16.8 : un poste liste les postes'; end if;
+  v_j := public.link_revoke(v_lid);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.8 : un poste déconnecte un poste'; end if;
+  begin
+    perform public.delete_my_account();
+    raise exception 'ÉCHEC 16.8 : un poste supprime le compte';
+  exception when others then
+    if sqlerrm not like '%shared device%' then raise exception 'ÉCHEC 16.8 : refus inattendu (%)', sqlerrm; end if;
+  end;
+  reset role;
+  -- 16.9 Le dépôt (sans compte, par la CLÉ) : jamais une session vive, ni « "false" » en chaîne ; jamais
+  --      par-dessus une session terminée, supprimée, ou d'un autre compte ; une sauvegarde se remplace.
+  insert into public.sessions(id, owner, data) values ('s-alice-dep', alice, '{"live":false,"name":"alice"}');
+  insert into public.sessions(id, owner, data) values ('s-kim-fini', kim, '{"live":false,"name":"vrai"}');
+  insert into public.sessions(id, owner, data, deleted_at) values ('s-kim-suppr', kim, '{"live":false}', now());
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.link_deposit(v_lid, v_sec, '{"id":"s-poste-1","data":{"live":false}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.9 : le secret du QR suffit à déposer'; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-poste-1","data":{"live":true}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.9 : une session VIVE est déposée'; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-poste-1","data":{"live":"false"}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.9 : « "false" » en chaîne accepté (vive chez le client)'; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-poste-1","data":{"live":false,"checkpoint":1}}');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.9 : dépôt d''une sauvegarde refusé (%)', v_j; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-poste-1","data":{"live":false,"name":"terminee"}}');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.9 : la session terminée ne remplace pas sa sauvegarde (%)', v_j; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-kim-fini","data":{"live":false,"name":"FALSIFIÉ"}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.9 : une session TERMINÉE de l''historique est écrasée'; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-kim-suppr","data":{"live":false}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.9 : une session SUPPRIMÉE est ressuscitée'; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-alice-dep","data":{"live":false,"name":"pirate"}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.9 : un dépôt sur la ligne d''un autre compte répond « ok »'; end if;
+  reset role;
+  select count(*) into v_cnt from public.sessions where id = 's-poste-1' and owner = kim and data->>'name' = 'terminee';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 16.9 : la session déposée n''est pas dans l''historique de Kim'; end if;
+  select count(*) into v_cnt from public.sessions
+   where (id = 's-alice-dep' and data->>'name' = 'alice') or (id = 's-kim-fini' and data->>'name' = 'vrai')
+      or (id = 's-kim-suppr' and deleted_at is not null);
+  if v_cnt <> 3 then raise exception 'ÉCHEC 16.9 : un dépôt a modifié une ligne protégée'; end if;
+  -- 16.10 « Appareils connectés » (le téléphone, session ordinaire) : chacun ne voit, ne prolonge et ne
+  --       déconnecte que SES postes.
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  set local role authenticated;
+  if jsonb_array_length(public.link_list()) <> 0 then raise exception 'ÉCHEC 16.10 : Alice voit le poste de Kim'; end if;
+  v_j := public.link_revoke(v_lid);
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.10 : Alice déconnecte le poste de Kim'; end if;
+  v_j := public.link_extend(v_lid, now() + interval '16 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.10 : Alice prolonge le poste de Kim'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  if jsonb_array_length(public.link_list()) <> 1 then raise exception 'ÉCHEC 16.10 : Kim ne voit pas son poste'; end if;
+  v_j := public.link_extend(v_lid, now() + interval '16 hours');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.10 : prolongation refusée (%)', v_j; end if;
+  v_j := public.link_extend(v_lid, now() + interval '29 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.10 : prolongation au-delà de 28 h acceptée'; end if;
+  -- 16.11 Déverrouiller : seul le compte du poste approuve.
+  v_j := public.link_open(encode(extensions.digest(v_sec || '-u', 'sha256'), 'hex'), encode(extensions.digest(v_key || '-u', 'sha256'), 'hex'), 'Chrome · Windows', 'unlock');
+  v_lid2 := (v_j->>'id')::uuid;
+  perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
+  v_j := public.link_approve(v_lid2, v_sec || '-u', null);
+  if v_j->>'err' <> 'other_account' then raise exception 'ÉCHEC 16.11 : un autre compte déverrouille (%)', v_j; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  v_j := public.link_approve(v_lid2, v_sec || '-u', null);
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.11 : déverrouillage refusé (%)', v_j; end if;
+  -- 16.12 Kim déconnecte le poste : SA session (celle liée par le serveur) disparaît, le dépôt se ferme.
+  v_j := public.link_revoke(v_lid);
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.12 : déconnexion refusée (%)', v_j; end if;
+  reset role;
+  select count(*) into v_cnt from auth.sessions where id = v_asid;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 16.12 : la session de compte du poste survit à la déconnexion'; end if;
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  if public.link_poll(v_lid, v_key)->>'status' <> 'revoked' then raise exception 'ÉCHEC 16.12 : le poste n''apprend pas sa déconnexion'; end if;
+  v_j := public.link_deposit(v_lid, v_key, '{"id":"s-poste-3","data":{"live":false}}');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.12 : un poste déconnecté dépose encore'; end if;
+  reset role;
+  -- 16.13 L'heure de fin passée, la purge (en tête de tout appel) supprime la session du poste ; le dépôt reste ouvert.
+  v_asid := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid, kim);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', encode(extensions.digest('qr-fini-0123456789abcdef', 'sha256'), 'hex'),
+            encode(extensions.digest('cle-fini-0123456789abcdef', 'sha256'), 'hex'), now() - interval '1 day',
+            kim, 'claimed', now() - interval '1 minute', now() - interval '1 day', now() - interval '1 day', v_asid)
+    returning id into v_lid2;
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  if public.link_poll(v_lid2, 'cle-fini-0123456789abcdef')->>'status' <> 'ended' then
+    raise exception 'ÉCHEC 16.13 : un poste à l''heure de fin passée ne l''apprend pas'; end if;
+  v_j := public.link_deposit(v_lid2, 'cle-fini-0123456789abcdef', '{"id":"s-poste-4","data":{"live":false}}');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.13 : le dépôt se ferme à l''heure de fin (%)', v_j; end if;
+  reset role;
+  select count(*) into v_cnt from auth.sessions where id = v_asid;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 16.13 : la session du poste survit à l''heure de fin'; end if;
 
 
   ------------------------------------------------------------------ FIN

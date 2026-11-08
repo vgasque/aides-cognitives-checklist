@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sFrSuZLuO5JnQCqP4Hu7hP2akmPbmDMZ3WVO+z5lMI0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ElAJOTHT1yINs1SxSATKxWrZAbcbZprTnIY30JgJYfU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7555,6 +7555,53 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareModal .sh-when.closed{color:var(--warn)}
   #shareModal .sh-when.soon{color:var(--warn);font-weight:700}
   .sh-qr{display:flex;justify-content:center;margin:4px 0 0}
+  /* ═══ A643 — CONNEXION PAR LE TÉLÉPHONE (#linkModal) ET BANDE DU POSTE PARTAGÉ ═══
+     Le NOMBRE DE CONTRÔLE se lit de loin (mono, cran --t-val) ; les choix du téléphone sont des
+     cibles de 48 px ; le choix retenu se dit par le bleu de l'action ET par aria-pressed. L'ambre :
+     l'avertissement « un écran que vous avez devant vous » et l'échéance de la bande (règle 8). */
+  .pp-msg{margin:0;font-size:var(--t-body);line-height:1.5;color:var(--ink)}
+  .pp-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+  .pp-pc{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+  .pp-qrcard{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto;margin:0 auto}
+  .pp-qr .qr{width:min(220px,60vw);height:auto;display:block}
+  .pp-ctrl{display:flex;align-items:center;gap:10px}
+  .pp-ctrl-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);max-width:9em;line-height:1.3}
+  .pp-num{font-family:var(--f-mono);font-size:var(--t-val);font-weight:700;font-variant-numeric:tabular-nums;border:2px solid var(--ink);border-radius:var(--r-2);padding:4px 12px}
+  .pp-exp{margin:0;font-size:var(--t-meta);color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .pp-steps{flex:1 1 240px;min-width:0}
+  .pp-steps ol{margin:0 0 12px;padding-left:20px;display:grid;gap:8px;font-size:var(--t-item);line-height:1.4}
+  .pp-note{margin:0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
+  .pp-note b{color:var(--ink)}
+  .pp-dev{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb)}
+  .pp-dev b,.pp-rtx b{display:block;font-size:var(--t-body)}
+  .pp-sub{display:block;font-size:var(--t-meta);color:var(--ink-2);line-height:1.4}
+  .pp-q{margin:16px 0 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .pp-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .pp-n{min-height:48px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:var(--f-mono);font-size:var(--t-step-l);font-weight:600;cursor:pointer}
+  .pp-n.on,.pp-end.on{border:2px solid var(--act);background:var(--primary-soft);color:var(--act)}
+  .pp-ends{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+  .pp-end{min-height:48px;padding:6px 8px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .pp-end b{font-size:var(--t-body)}
+  .pp-end span{font-size:var(--t-cap);color:var(--ink-2)}
+  .pp-ends+.pp-note{margin-top:12px}
+  .ai-body .pp-warn{margin:12px 0 0;font-size:var(--t-meta);line-height:1.4;color:var(--warn)}
+  .ai-body .pp-warn.on{font-weight:700}
+  .pp-list{display:grid;gap:4px}
+  .pp-row{display:flex;gap:10px;align-items:center;padding:8px 0 0}
+  .pp-rtx{min-width:0}
+  .pp-racts{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px;border-bottom:1px solid var(--line)}
+  .pp-fins{margin-top:16px}
+  .pp-fins .pp-q{margin-top:0}
+  .pp-frow{display:flex;gap:8px;margin-top:8px}
+  input.pp-time{font-size:16px;min-height:44px;padding:6px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:var(--f-mono)}
+  .pp-login{display:grid;gap:12px}
+  .pp-lh{display:flex;gap:10px;align-items:flex-start}
+  .pp-lh b{display:block;font-size:var(--t-item)}
+  .notice.pp-band{align-items:center;flex-wrap:wrap;padding-right:14px}
+  .notice.pp-band .pp-bt{flex:1 1 200px;min-width:0}
+  .notice.pp-soon{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+  .notice.pp-soon svg{color:var(--warn)}
+  .sess-ckpt{color:var(--warn);font-weight:700}
   /* QR PLAFONNÉ (240 px / 56 vw) ; le palier < 360 px ne bouge PAS (mesuré à 320×568). ⚠ Portée
      `#shareModal` obligatoire : la règle « 260 px » de #shareBody (id) battrait ce plafond. */
   #shareModal .sh-qr .qr{width:min(240px,56vw);height:auto}
@@ -10079,6 +10126,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="newLibBody" class="ai-body"></div>
 </div></div>
+<!-- A643 : connexion par le téléphone — poste (QR, déverrouillage) et téléphone (approbation, appareils connectés). Corps peint par `Link`. -->
+<div class="ai-modal" id="linkModal" role="dialog" aria-modal="true" aria-labelledby="linkModalTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="linkModalTitle">Connecter un ordinateur</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div id="linkBody" class="ai-body"></div>
+</div></div>
 <!-- A613 : le SUIVI — une note ou une tâche (feuille), et « À faire » (page). Corps peints à l'ouverture. -->
 <!-- A616 : la feuille « Suivi » et la page « À faire » AVANT la feuille d'une note / tâche — celle-ci s'ouvre DEPUIS elle et doit passer
      au-dessus (ordre du document = ordre d'empilement des .ai-modal) ; à l'envers, ✕ fermait la feuille du dessous. -->
@@ -10310,7 +10362,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.110.0';
+const APP_VERSION='5.111.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14120,6 +14172,7 @@ async function load(){
   // Les modifications faites pendant une déconnexion sont d'abord soumises à confirmation
   // (appareil partagé) — le push les retient de toute façon tant que ce n'est pas tranché.
   if(Auth.signedIn())confirmHeldEdits().then(()=>Sync.full()).catch(()=>{});
+  Link.boot();   // A643 : la veille du poste partagé (inerte ailleurs)
 }
 /* Fermeture standard d'une fenêtre (.ai-modal), câblée UNE fois par fenêtre : le bouton ✕ (.ai-x)
    et le clic sur le fond déclenchent la même fonction de fermeture (Échap est géré globalement,
@@ -14454,7 +14507,7 @@ function exportSessionReport(sessionId){
     `<div class="kpi"><span class="kpi-v">${esc(String((s.counters||{})[c.id]||0))}</span><span class="kpi-k">${esc(c.label||'compteur')}</span></div>`).join('');
   const inner=`<h1>Compte-rendu de session</h1>
 <div class="meta"><b>${title}</b>${f&&f.validatedAt?' · '+esc(fmtDate(f.validatedAt)):''}</div>
-${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice — répétition sans patient, aucune trace clinique</div>':''}
+${s.exercise?'<div class="wm">EXERCICE</div><div class="meta exo">▲ Exercice — répétition sans patient, aucune trace clinique</div>':''}${s.checkpoint&&!s.live?'<div class="meta">△ Compte rendu PARTIEL — dernière sauvegarde automatique à '+esc(fmtHM(s.checkpoint))+' : la session n’a pas été terminée sur le poste partagé où elle se déroulait.</div>':''}${s.autoClosed?'<div class="meta">Clôturée automatiquement sur un poste partagé, à '+esc(fmtHM(s.autoClosed))+' (aucun geste depuis 6 h, heure de fin passée).</div>':''}
 <div class="meta">${s.exercise?'Exercice':'Session'} « ${esc(s.name||'sans nom')} » · début ${esc(new Date(start).toLocaleString('fr-FR'))}</div>
 ${(()=>{
   /* LA RÉVISION LUE PENDANT LE SOIN (v5.0.0). Un compte rendu qui nomme les bons gestes (lot T1)
@@ -15459,7 +15512,7 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
      la session effacée ici REVIENT au prochain pull depuis l'appareil qui ne sait pas encore
      qu'elle est morte. C'est le même mécanisme que pour les fiches. Hors synchro, on supprime
      franchement — garder des tombes sur un appareil qui ne parle à personne ne servirait rien. */
-  if(sessSyncOn()){const s0=sessions.find(x=>x.id===id);
+  if(sessSyncOn()||linkShared()){const s0=sessions.find(x=>x.id===id);
     /* PAR LE POINT D'ÉTRANGLEMENT, comme tout le reste. Cette ligne posait `dirty` et `updatedAt`
        À LA MAIN : elle fonctionnait, mais elle rendait FAUSSE la doctrine écrite deux cents lignes
        plus haut (« ici, et nulle part ailleurs »). Une doctrine qui décrit un invariant qu'elle
@@ -17434,6 +17487,7 @@ async function selSetCat(name,redo){
    historique renvoyant à une aide qui n'existe plus. */
 async function selDelete(redo){
   const ent=selEnt();if(!ent.length)return;
+  if(linkStepGate(()=>selDelete(redo)))return;   // A643 : supprimer sur un poste partagé = le téléphone, à chaque fois
   const noms=ent.map(e=>String(e.o.title||'').trim()||'Sans titre');
   const N=10,liste=noms.slice(0,N).map(t=>' · '+t).join('\n')+(noms.length>N?'\n · … et '+(noms.length-N)+' autre'+(noms.length-N>1?'s':''):'');
   const part=ent.filter(e=>e.o.library).length;
@@ -17935,12 +17989,14 @@ function renderHomeList(cfg){
     ${selBarHtml()}
     ${state.selOn?'':homeJoinHtml()}
     <div class="notice" id="syncErrNotice" hidden></div>
+    <div class="notice pp-band" id="linkBand" hidden></div>
     ${state.selOn?'':(cfg.notices?cfg.notices():'')}
     ${listHtml}
     </div>${railHtml}`;
   const _repose=(sel,y)=>{if(!y)return;const s=main.querySelector(sel);
     if(s)s.scrollTop=Math.min(y,Math.max(0,s.scrollHeight-s.clientHeight));};
   _repose('.home-main',_homeY);_repose('.hs-scroll',_sideY);
+  linkPaintBand();   // A643 : la bande du poste partagé (masquée hors poste partagé)
   // (`azr-on` est PURGÉE avec la condition qu'elle servait : la gouttière est désormais réservée
   //  sans regarder si le rail existe — règle 14, plus aucun lecteur.)
   bindHomeChrome(cfg.rerender);   // sélecteur de section, bibliothèques, catégories
@@ -20344,6 +20400,7 @@ async function redirtyAttsOnLibChange(d,orig){
   if(orig&&(orig.library||null)!==(d.library||null)&&supportsAttachments()){
     for(const a of (d.docs||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await attPut(rec);}}catch(e){}}}}
 async function deleteProtocolDraft(){
+  if(linkStepGate(deleteProtocolDraft))return;   // A643
   const msg=state.pdraft&&state.pdraft.library
     ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
     :'Supprimer ce protocole définitivement ?';
@@ -20354,7 +20411,8 @@ async function deleteProtocolDraft(){
 function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;bumpUsage(id);state.protocol=p;
   state.protoTasks={};state.protoTasksSrc=null;   // coches éphémères : chaque ouverture repart de l'état écrit
   state.view='protocolRead';render();}
-async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
+async function openProtocolEdit(id){if(linkGate(()=>openProtocolEdit(id)))return;   // A643
+  const p=protocols.find(x=>x.id===id);if(!p)return;
   // Même revérification de rôle que openEdit (protocole partagé, en ligne).
   if(!canEditFiche(p)){toast(RO_EDIT_TOAST);return openProtocolRead(id);}
   setTimeout(()=>editRoleCheck(p,'p'),0);   // A635
@@ -20365,7 +20423,8 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='protocolEdit';render();}
-async function newProtocol(){const lib=crtScope(),cl=crtColl();
+async function newProtocol(){if(linkGate(newProtocol))return;   // A643
+  const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
   const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
@@ -21209,6 +21268,7 @@ function deepLinkFromHash(h){
   if(m&&BAD_KEYS.indexOf(m[1])<0)return {open:m[1]};
   const w=/^#([a-z-]{1,24})$/.exec(h);
   if(w&&Object.prototype.hasOwnProperty.call(APP_LINKS,w[1]))return {go:APP_LINKS[w[1]]};
+  {const L=linkParse(h);if(L)return {lier:L};}   // A643 : le QR d'un poste, ouvert par l'appareil photo du système
   const k=/^#(bibliotheque|collection)=([A-Za-z0-9_-]{1,64})$/.exec(h);
   if(k&&BAD_KEYS.indexOf(k[2])<0)return k[1]==='collection'?{go:'coll',id:k[2]}:{go:'lib',id:k[2]};
   return null;}
@@ -21222,6 +21282,7 @@ function applyDeepLink(){
   const d=deepLinkFromHash(location.hash);if(!d)return false;
   if(state.view==='read'&&Runtime.started&&!Runtime.exercise)return false;
   try{history.replaceState((history.state&&history.state.ac)?history.state:{ac:_H_ID,d:0},'',location.pathname+location.search);}catch(e){}
+  if(d.lier){Link.approve(d.lier);return true;}   // A643 : la feuille de confirmation, sur le téléphone
   if(d.open){
     if(fiches.some(f=>f.id===d.open))openRead(d.open);
     else if(protocols.some(p=>p.id===d.open))openProtocolRead(d.open);
@@ -28744,6 +28805,7 @@ function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const
     const done=d=>res(d?{data:d,w:cw,h:ch}:null);
     try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);done(out);}catch(e){try{done(c.toDataURL('image/jpeg',quality));}catch(_){done(null);}}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
 async function deleteDraft(){
+  if(linkStepGate(deleteDraft))return;   // A643
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
   const msg=state.draft&&state.draft.library
@@ -29127,7 +29189,8 @@ function editRoleCheck(ent,kind){if(!(ent.library&&Auth.signedIn()&&Sync.online(
   Sync.loadProfile().then(()=>{if(canEditFiche(ent))return;
     const d=kind==='p'?state.pdraft:state.draft;if(!d||d.id!==ent.id||state.view!==(kind==='p'?'protocolEdit':'edit'))return;
     if(kind==='p'){state.pdraft=null;toast(RO_EDIT_TOAST);openProtocolRead(ent.id);}else{state.draft=null;toast(RO_EDIT_TOAST);openRead(ent.id);}}).catch(()=>{});}
-async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
+async function openEdit(id){if(linkGate(()=>openEdit(id)))return;   // A643 : verrou du poste partagé rouvert
+  const f=fiches.find(x=>x.id===id);if(!f)return;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
   // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
@@ -29156,7 +29219,8 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.draft=migrate(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='edit';render();}
-async function newFiche(){const lib=crtScope(),cl=crtColl();
+async function newFiche(){if(linkGate(newFiche))return;   // A643
+  const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
   /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
@@ -30105,7 +30169,8 @@ createSeg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.pr
 // Le champ actif (souvent la RECHERCHE de l'en-tête) est délibérément défocalisé À L'OUVERTURE :
 // sur iOS, un clavier encore ouvert à cet instant se referme de façon asynchrone et re-décale
 // la page APRÈS le scrollTo(0,0) de l'éditeur qui suit (v4.4.7 — cf. garde-fou de render()).
-async function openCreateDlg(){try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
+async function openCreateDlg(){if(linkGate(openCreateDlg))return;   // A643
+  try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
   /* Ouvert depuis l'en-tête : on part du type que la recherche filtre, s'il en filtre un — c'est
      l'intention la plus probable — mais on ne le MODIFIE jamais. */
   if(state.section==='protocols'||state.section==='fiches')_crtKind=state.section;
@@ -30528,6 +30593,8 @@ async function zipParse(u8){
 // silencieuse ; toute autre erreur retombe sur l'ancre (mieux qu'aucune issue).
 function dlAnchor(blob,filename){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 async function dlBlob(blob,filename){
+  // A643 : sur un poste partagé, le fichier reste dans les Téléchargements après l'effacement du poste.
+  if(linkShared())toast('⚠ Fichier enregistré sur cet ordinateur : il y restera après l’effacement du poste partagé.',8000);
   const standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
   if(standalone&&navigator.canShare&&navigator.share){
     try{
@@ -31232,6 +31299,8 @@ async function _importRead(buf,lbl){
     // « par les n éléments COCHÉS », et non « par le contenu du fichier » : depuis l'atelier, les
     // deux ne sont plus la même chose — annoncer le fichier ferait croire qu'on récupère ce qu'on
     // vient d'écarter, sur la seule question destructive du parcours.
+    // A643 : REMPLACER vide une bibliothèque entière — jamais depuis un poste partagé.
+    if(!merge&&linkDeny('Remplacer le contenu d’une bibliothèque')){pendingOpenImport=false;return;}
     if(!merge){if(!await confirmDlg('Toutes les aides'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par les '+nSel+' éléments cochés. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
       for(const f of fiches.filter(x=>(x.library||null)===uneSeule))await softDelete(f);
       fiches=fiches.filter(x=>(x.library||null)!==uneSeule);
@@ -31413,6 +31482,376 @@ const Auth={
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
+/* ===== POSTE PARTAGÉ — CONNEXION PAR LE TÉLÉPHONE (v5.111, A643) =====
+   Un ordinateur de service se connecte au compte d'un soignant SANS e-mail : il affiche un QR et
+   un NOMBRE DE CONTRÔLE ; le téléphone déjà connecté vise le QR (viseur de l'app, ou appareil photo
+   du système qui ouvre le lien `#lier=`), touche le nombre que montre l'écran et choisit l'HEURE DE
+   FIN de sa garde. Le poste reçoit SA PROPRE session (fonction serveur `link-claim`, jamais la
+   session du téléphone) et devient un POSTE PARTAGÉ :
+   - ses données vivent dans l'espace local du compte, SUR LE DISQUE, jusqu'à l'heure de fin —
+     fermer le navigateur, perdre le réseau ou redémarrer ne fait rien perdre, et une session de
+     crise se reprend toujours (la forme « mémoire de l'onglet » a été refusée, A643) ;
+   - à l'heure de fin (ou à la déconnexion à distance), il s'efface, mais JAMAIS pendant une
+     session en cours (règle 11) et JAMAIS avant que les sessions terminées aient rejoint
+     l'historique (droit de DÉPÔT : 7 jours après l'heure de fin, par le secret du lien) ;
+   - une session en cours y est SAUVEGARDÉE en ligne toutes les 2 min (s'il y a eu des gestes) :
+     si l'ordinateur ou le réseau lâche, la dernière sauvegarde est dans l'historique, marquée
+     interrompue ; la version terminée la remplace ;
+   - après une RÉOUVERTURE (nouvel onglet, redémarrage), consulter et reprendre une session restent
+     libres ; modifier, gérer les bibliothèques ou ouvrir le compte redemandent le téléphone.
+   État : `LINK_KEY` (localStorage, hors espace — un navigateur n'est le poste partagé que d'un
+   compte à la fois) ; l'ouverture de CET onglet par le téléphone : `LINK_OPEN_KEY` (sessionStorage).
+   DEUX SECRETS (revue de sécurité, avant publication) : le SECRET DU QR (ce que voit l'écran — il
+   ne sert qu'au téléphone pour lire et approuver) et la CLÉ DU POSTE (jamais affichée — elle seule
+   sonde, réclame et dépose). Photographier le QR ne donne donc pas la session : c'était possible
+   avec un seul secret (démontré sur banc). Seule la clé est gardée après la connexion. */
+const LINK_KEY='ac-shared',LINK_OPEN_KEY='ac-shared-open';
+const LINK_POLL_MS=2000,LINK_WATCH_MS=60000,LINK_CKPT_MS=120000,LINK_SOON_MS=30*60000;
+const LINK_IDLE_MS=6*3600000,LINK_DEP_MS=7*86400000,LINK_MAX_MS=28*3600000;
+const LINK_FINS_DEF=['10:00','19:30'],LINK_RELOCK_MS=15*60000;
+/* ── Fonctions PURES (testées) ── */
+// Le nombre de contrôle : déduit du SECRET, donc identique sur le poste (qui l'a tiré) et sur le
+// téléphone (qui l'a lu dans le QR) — et différent pour l'écran voisin. FNV-1a : un chiffre de
+// contrôle, pas une cryptographie (la sûreté vient du secret, vérifié par le serveur).
+function linkFnv(s){let h=0x811c9dc5;s=String(s==null?'':s);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h;}
+function linkCheckNum(secret){return 10+(linkFnv(secret)%90);}
+// Trois choix triés (la position ne trahit rien) : le vrai et deux leurres, tous distincts.
+function linkDecoys(secret){const n=linkCheckNum(secret),out=[n];let i=0;
+  while(out.length<3&&i<50){const d=10+(linkFnv(secret+'·'+i)%90);if(out.indexOf(d)<0)out.push(d);i++;}
+  return out.sort((a,b)=>a-b);}
+// Le lien du QR, et sa lecture. Le secret : 16 octets en base64url (22 caractères).
+const LINK_RX=/#lier=([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.([A-Za-z0-9_-]{22,64})(?![A-Za-z0-9_-])/;
+function linkParse(text){const m=LINK_RX.exec(String(text||''));return m?{id:m[1],secret:m[2]}:null;}
+function linkB64u(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+// « Mes fins de garde » : deux heures « HH:MM », sinon les repères par défaut (10:00 et 19:30).
+function linkFinsNorm(a){const ok=x=>typeof x==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(x);
+  const v=Array.isArray(a)?a.filter(ok).slice(0,2):[];
+  return v.length===2&&v[0]!==v[1]?v.slice().sort():LINK_FINS_DEF.slice();}
+function linkInLbl(ms){const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/60),r=m%60;
+  return 'dans '+(h?h+' h'+(r?' '+String(r).padStart(2,'0'):''):r+' min');}
+/* LES HEURES DE FIN PROPOSÉES (A643) : on ne demande pas une DURÉE — on connecte rarement le poste à
+   la prise de garde, et « 12 h » choisi à 13:00 finirait à 01:00 — mais l'heure où la garde se
+   TERMINE. Les prochaines occurrences des deux repères entre 1 h et 28 h, dans l'ordre, trois au
+   plus ; présélection : la première à 6 h ou plus. */
+function linkEndChoices(now,fins){fins=linkFinsNorm(fins);const out=[],d0=new Date(now);
+  for(let k=0;k<3;k++)for(const f of fins){const [h,m]=f.split(':').map(Number);
+    const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+k,h,m,0,0),dt=d.getTime()-now;
+    if(dt>=3600000&&dt<=LINK_MAX_MS)out.push({at:d.getTime(),k});}
+  out.sort((a,b)=>a.at-b.at);const v=out.slice(0,3);
+  const di=v.findIndex(x=>x.at-now>=6*3600000);
+  return v.map((x,i)=>({at:x.at,lbl:(x.k===0?'':x.k===1?'Demain ':'Après-demain ')+fmtHM(x.at),sub:linkInLbl(x.at-now),def:i===(di<0?v.length-1:di)}));}
+// « Chrome · Windows » — le seul mot que le téléphone lit du poste avant d'approuver.
+function linkUaLabel(ua){ua=String(ua||'');
+  const b=/Edg\//.test(ua)?'Edge':/Firefox\//.test(ua)?'Firefox':/(Chrome|CriOS)\//.test(ua)?'Chrome':/Safari\//.test(ua)?'Safari':'Navigateur';
+  const o=/Windows/.test(ua)?'Windows':/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/CrOS/.test(ua)?'ChromeOS':/Mac OS X/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':'';
+  return o?b+' · '+o:b;}
+/* LA DÉCISION DU POSTE — une seule table, PURE : `st` = {live, unsent, revoked}.
+   keep : avant l'heure de fin · wait : heure passée mais session en cours (règle 11) ·
+   deposit : sessions terminées encore à déposer, droit de dépôt ouvert · wipe : s'effacer ·
+   ask : des sessions n'ont pas pu partir et ne le pourront plus — on demande avant d'effacer. */
+function linkDecide(sp,now,st){if(!sp)return null;st=st||{};
+  if(!st.revoked&&now<sp.endsAt)return 'keep';
+  if(st.live)return 'wait';
+  if(st.unsent>0)return (!st.revoked&&now<sp.endsAt+LINK_DEP_MS)?'deposit':'ask';
+  return 'wipe';}
+// Une session oubliée se clôt seule : heure de fin passée ET aucun geste depuis 6 h.
+function linkIdleDue(lastAt,now,endsAt){return now>=endsAt&&now-(lastAt||0)>=LINK_IDLE_MS;}
+// Sauvegarde périodique : au plus toutes les 2 min, et seulement s'il y a eu un geste depuis.
+function linkCkptDue(ckptAt,lastAt,now){return (lastAt||0)>(ckptAt||0)&&now-(ckptAt||0)>=LINK_CKPT_MS;}
+/* ── État ── */
+function linkShared(){try{const o=JSON.parse(localStorage.getItem(LINK_KEY)||'null');
+  if(!o||typeof o!=='object'||!linkParse('#lier='+o.id+'.'+o.key)||typeof o.uid!=='string'||!(+o.endsAt>0))return null;
+  return {id:o.id,key:o.key,uid:o.uid,endsAt:+o.endsAt,label:sstr(o.label,60),email:sstr(o.email,120)};}catch(e){return null;}}
+function linkSharedSet(o){try{localStorage.setItem(LINK_KEY,JSON.stringify(o));}catch(e){}}
+let _linkOpenMem=false;   // repli si sessionStorage refuse (navigation privée stricte)
+function linkLocked(){if(!linkShared())return false;if(_linkOpenMem)return false;
+  try{return sessionStorage.getItem(LINK_OPEN_KEY)!=='1';}catch(e){return true;}}
+function linkMarkOpen(){_linkOpenMem=true;try{sessionStorage.setItem(LINK_OPEN_KEY,'1');}catch(e){}}
+/* REVERROUILLAGE APRÈS 15 MIN SANS GESTE (A643, décision de l'auteur) : le vrai risque d'un poste
+   partagé est l'onglet resté ouvert pendant qu'on s'éloigne. Ce n'est PAS une déconnexion (règle
+   11 : consulter et reprendre une session restent libres) — seuls créer, modifier et supprimer
+   redemandent le téléphone. Le geste qui SUIT l'inactivité reverrouille AVANT d'agir : mesurer au
+   moment du clic serait trop tard, ce clic ayant déjà remis l'horloge à zéro. */
+let _linkGestAt=Date.now();
+['pointerdown','keydown'].forEach(t=>document.addEventListener(t,()=>{const now=Date.now();
+  if(now-_linkGestAt>LINK_RELOCK_MS&&linkShared()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}
+  _linkGestAt=now;},true));
+function linkFins(){try{return linkFinsNorm(JSON.parse(localStorage.getItem(spaceKey('ac-link-fins'))||'null'));}catch(e){return LINK_FINS_DEF.slice();}}
+function linkFinsSet(a){try{localStorage.setItem(spaceKey('ac-link-fins'),JSON.stringify(linkFinsNorm(a)));}catch(e){}}
+function linkPrefsKeep(pr){if(!linkShared())return;try{localStorage.setItem(spaceKey('ac-prefs-remote'),JSON.stringify(pr));}catch(e){}}
+function linkPrefsKept(){try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-prefs-remote'))||'null');return o&&typeof o==='object'&&!Array.isArray(o)?o:null;}catch(e){return null;}}
+// Sessions terminées pas encore reçues par le serveur (marquées `dirty` à chaque écriture).
+async function linkUnsent(){try{return (await Data.getSessions()).filter(x=>!x.live&&x.dirty&&!x.deletedAt);}catch(e){return [];}}
+const linkLive=()=>Object.values(liveSessions||{}).filter(R=>R&&R.started&&R.fiche&&!R.essai);
+/* ── Le module : poste (connexion, veille, sauvegardes, effacement) et téléphone (approbation,
+   appareils connectés). Une seule fenêtre `#linkModal`, peinte par mode. ── */
+const Link={
+  _poll:null,_tick:null,_watch:null,_run:0,_cur:null,_devs:null,
+  close(){this._run++;clearInterval(this._poll);clearInterval(this._tick);this._poll=this._tick=null;
+    try{slScanStop();}catch(e){}
+    const m=document.getElementById('linkModal');if(m)m.classList.remove('on');this._cur=null;},
+  _open(title){const m=document.getElementById('linkModal');
+    document.getElementById('linkModalTitle').textContent=title;m.classList.add('on');
+    return document.getElementById('linkBody');},
+  _msg(body,html){body.innerHTML=`<div class="pp-msg">${html}</div><div class="pp-acts"><button type="button" class="btn" data-lkclose>Fermer</button></div>`;
+    body.querySelector('[data-lkclose]').onclick=()=>this.close();},
+  /* LE POSTE — `kind` : 'connect' (se connecter) ou 'unlock' (déverrouiller après réouverture). */
+  async start(kind,onDone,step){this.close();const run=++this._run;kind=kind==='unlock'?'unlock':'connect';
+    const titre=step?'Confirmer avec le téléphone':kind==='unlock'?'Déverrouiller avec le téléphone':'Se connecter avec le téléphone';
+    const body=this._open(titre);
+    body.innerHTML='<p class="pp-msg">Préparation du code…</p>';
+    if(!Sync.online())return this._msg(body,'Hors ligne : il faut une connexion Internet, sur cet ordinateur et sur le téléphone, le temps de le connecter.');
+    if(!(window.crypto&&crypto.subtle&&crypto.getRandomValues))return this._msg(body,'Ce navigateur ne permet pas la connexion par le téléphone (page non sécurisée). Utilisez le code par e-mail.');
+    const secret=linkB64u(crypto.getRandomValues(new Uint8Array(16))),key=linkB64u(crypto.getRandomValues(new Uint8Array(16)));
+    const h=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+    let j;try{j=await rpc('link_open',{p_hash:await h(secret),p_key_hash:await h(key),p_label:linkUaLabel(navigator.userAgent),p_kind:kind});}catch(e){j=null;}
+    if(run!==this._run)return;
+    if(!j||!j.ok)return this._msg(body,(j&&j.err==='busy')?'Le service est très sollicité : réessayez dans une minute, ou utilisez le code par e-mail.':'Impossible de préparer le code. Vérifiez la connexion, ou utilisez le code par e-mail.');
+    const id=j.id,skew=Date.parse(j.server_time)-Date.now(),until=Date.parse(j.open_until)-skew;
+    const url=location.origin+location.pathname+'#lier='+id+'.'+secret;
+    body.innerHTML=`<div class="pp-pc"><div class="pp-qrcard"><div class="pp-qr">${qrSvg(url,'Code de connexion')}</div>
+        <div class="pp-ctrl"><span class="pp-ctrl-l">Nombre de contrôle</span><span class="pp-num">${linkCheckNum(secret)}</span></div>
+        <p class="pp-exp" id="lkExp" aria-live="off"></p></div>
+      <div class="pp-steps"><ol>
+        <li>Sur votre téléphone, ouvrez <b>Aides cognitives</b>.</li>
+        <li>Touchez <b>Moi</b> › <b>${kind==='unlock'?'Connecter un ordinateur':'Connecter un ordinateur'}</b>, puis visez ce code.</li>
+        <li>Touchez le nombre <b>${linkCheckNum(secret)}</b>${kind==='unlock'?'.':', puis l’heure de fin de votre garde.'}</li></ol>
+        ${step?'<p class="pp-note">Sur un poste partagé, une suppression se confirme sur le téléphone, à chaque fois : elle est irréversible et touche aussi l’équipe.</p>'
+          :kind==='unlock'?'<p class="pp-note">Consulter et reprendre une session restent possibles sans téléphone. Créer, modifier et supprimer le redemandent après une réouverture du navigateur, et après 15 minutes sans geste.</p>'
+          :'<p class="pp-note"><b>Poste partagé.</b> Vos aides restent sur cet ordinateur jusqu’à l’heure de fin choisie, puis s’effacent. Fermer le navigateur ne les perd pas, et une session en cours est sauvegardée en ligne toutes les 2 minutes.</p>'}
+      </div></div><p class="pp-msg" id="lkSt" role="status"></p>`;
+    const exp=body.querySelector('#lkExp'),st=body.querySelector('#lkSt');
+    const tick=()=>{const r=until-Date.now();if(r<=0){exp.textContent='Code expiré';return;}
+      const s=Math.ceil(r/1000);exp.textContent='Expire dans '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+' · un seul usage';};
+    tick();this._tick=setInterval(tick,1000);
+    const expired=()=>{this.close();const b=this._open(titre);
+      b.innerHTML=`<p class="pp-msg">Le code a expiré sans être utilisé.</p><div class="pp-acts"><button type="button" class="btn" data-lkclose>Fermer</button><button type="button" class="btn primary" data-lkagain>Nouveau code</button></div>`;
+      b.querySelector('[data-lkclose]').onclick=()=>this.close();b.querySelector('[data-lkagain]').onclick=()=>this.start(kind,onDone,step);};
+    let busy=false;
+    this._poll=setInterval(async()=>{if(busy||run!==this._run)return;busy=true;
+      try{const p=await rpc('link_poll',{p_id:id,p_key:key});if(run!==this._run)return;
+        if(p&&p.status==='approved'){clearInterval(this._poll);this._poll=null;st.textContent='Téléphone confirmé — connexion…';
+          if(kind==='unlock'){linkMarkOpen();this.close();toast(step?'✓ Confirmé par le téléphone.':'✓ Ordinateur déverrouillé pour cet onglet.');if(onDone)onDone();return;}
+          await this._claim(id,key,body);return;}
+        if(!p||!p.ok||p.status==='expired'||Date.now()>until+5000)expired();
+      }catch(e){/* réseau : on réessaie au tour suivant, jusqu'à l'expiration */if(Date.now()>until+5000)expired();}
+      finally{busy=false;}},LINK_POLL_MS);},
+  // Échange l'approbation contre une session NEUVE (fonction serveur), puis bascule sur l'espace du compte.
+  async _claim(id,key,body){const fail=t=>this._msg(body,t);
+    /* La fonction serveur fait TOUT : réclamation atomique par la clé du poste, création de la
+       session, liaison (une fois). Le poste reçoit la session prête — il ne la lie plus lui-même :
+       une liaison côté client échouait en silence et laissait une session hors d'atteinte de la
+       révocation (revue de sécurité). */
+    let c;try{const r=await acFetch(SUPA.url+'/functions/v1/link-claim',{method:'POST',
+        headers:{'apikey':SUPA.key,'Authorization':'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify({id,key})});
+      c=await r.json().catch(()=>null);}catch(e){c=null;}
+    const sess=c&&c.ok&&c.session;
+    if(!sess||!sess.access_token||!sess.user)return fail('Le téléphone a confirmé, mais la connexion n’a pas abouti. Réessayez, ou utilisez le code par e-mail.');
+    Auth._setSession(sess);
+    const u=Auth.user()||{};
+    linkSharedSet({id,key,uid:u.id||'',email:u.email||'',endsAt:Date.parse(c.ends_at)||Date.now()+12*3600000,label:linkUaLabel(navigator.userAgent),at:Date.now()});
+    linkMarkOpen();
+    /* BASCULE D'ESPACE, comme une connexion par e-mail — mais JAMAIS le « Les emporter dans ce
+       compte ? » : sur un poste partagé, le contenu local hors compte n'appartient pas à celui qui
+       se connecte. ⚠ LA FENÊTRE NE SE FERME PAS AVANT LE RECHARGEMENT : la fermer fait reculer la
+       pile de retour (`_histSync` → `history.go`), et cette traversée ANNULE `location.reload()` —
+       mesuré : l'app restait sur l'espace sans compte, le compte connecté par-dessus. */
+    clearInterval(this._tick);
+    if((u.id||'')!==currentSpace()){persistAllLive();registerSpace(u.id);try{localStorage.setItem('ac-space',u.id);}catch(e){}location.reload();return;}
+    this.close();
+    await refreshAccountStatus();renderAuth();setSyncChip();Sync.full();linkPaintBand();},
+  /* LE TÉLÉPHONE — viseur, puis feuille de confirmation. */
+  async scan(){if(!Auth.signedIn())return openAuth();this.close();const run=++this._run;
+    try{await slScanOverlay({hint:'Visez le code affiché sur l’ordinateur que vous avez devant vous',
+      onText:(txt,bin,ui)=>{const L=linkParse(txt);if(!L){ui.hint('Ce n’est pas un code de connexion d’ordinateur');return;}
+        ui.flash();ui.close();if(run===this._run)this.approve(L,true);},onCancel:()=>{}});}
+    catch(e){const b=this._open('Connecter un ordinateur');
+      slCamRefused(b,()=>this.scan(),()=>this.close(),'Fermer');}},
+  async approve(L,vise){this.close();const run=++this._run;
+    const body=this._open('Connecter cet ordinateur ?');body.innerHTML='<p class="pp-msg">Lecture du code…</p>';
+    /* UN LIEN N'EST PAS UN ÉCRAN (revue de sécurité) : `#lier=` ouvert hors du viseur — appareil
+       photo du système, mais aussi un lien reçu par SMS ou e-mail (« touchez 47 ») — ne mène pas à
+       la feuille d'approbation. Il mène au viseur : approuver exige d'avoir visé un écran. */
+    if(!vise&&Auth.signedIn()&&!linkShared()){body.innerHTML=`<p class="pp-msg">Pour connecter un ordinateur, visez le code affiché sur l’écran <b>que vous avez devant vous</b>, avec le viseur de l’app. Un lien reçu par message ne suffit pas.</p>
+        <div class="pp-acts"><button type="button" class="btn" data-lkclose>Fermer</button><button type="button" class="btn primary" data-lkscan>Ouvrir le viseur</button></div>`;
+      body.querySelector('[data-lkclose]').onclick=()=>this.close();body.querySelector('[data-lkscan]').onclick=()=>this.scan();return;}
+    if(!Auth.signedIn())return this._msg(body,'Ouvrez Aides cognitives là où vous êtes connecté (l’app installée), puis <b>Moi</b> › <b>Connecter un ordinateur</b>, et visez le code à nouveau.');
+    if(linkShared())return this._msg(body,'Cet appareil est lui-même un poste partagé : approuvez depuis votre téléphone.');
+    let p;try{p=await rpc('link_peek',{p_id:L.id,p_secret:L.secret});}catch(e){p=null;}
+    if(run!==this._run)return;
+    if(!p||!p.ok){const E={expired:'Ce code a expiré ou a déjà servi. Sur l’ordinateur, touchez « Nouveau code ».',
+        other_account:'Cet ordinateur est connecté à un autre compte : seul ce compte peut le déverrouiller.',
+        refused:'Votre compte ne peut pas connecter d’ordinateur (compte en attente de validation, ou hors ligne).'};
+      return this._msg(body,esc(E[p&&p.err]||'Code introuvable. Vérifiez la connexion, puis visez le code à nouveau.'));}
+    const unlock=p.kind==='unlock';
+    document.getElementById('linkModalTitle').textContent=unlock?'Déverrouiller cet ordinateur ?':'Connecter cet ordinateur ?';
+    const ch=unlock?[]:linkEndChoices(Date.now(),linkFins());let pick=null,end=(ch.find(x=>x.def)||{}).at||null,miss=0;
+    const paint=()=>{body.innerHTML=`<div class="pp-dev">${uiIcon('monitor',20)}<span><b>${esc(p.label||'Ordinateur')}</b><span class="pp-sub">Code affiché il y a ${Math.max(0,+p.age_s||0)} s</span></span></div>
+      <p class="pp-q" id="lkQn">Quel nombre l’ordinateur affiche-t-il ?</p>
+      <div class="pp-pick" role="group" aria-labelledby="lkQn">${linkDecoys(L.secret).map(n=>`<button type="button" class="pp-n${pick===n?' on':''}" data-lkn="${n}" aria-pressed="${pick===n}">${n}</button>`).join('')}</div>
+      ${unlock?'':`<p class="pp-q" id="lkQe">Jusqu’à quelle heure ?</p>
+      <div class="pp-ends" role="group" aria-labelledby="lkQe">${ch.map(c=>`<button type="button" class="pp-end${end===c.at?' on':''}" data-lkend="${c.at}" aria-pressed="${end===c.at}"><b>${esc(c.lbl)}</b><span>${esc(c.sub)}</span></button>`).join('')}</div>
+      <p class="pp-note">${uiIcon('monitor',14)} <b>Poste partagé</b> : tout s’efface de l’ordinateur à l’heure choisie (après la session en cours, s’il y en a une). Les sessions faites dessus rejoignent votre historique.</p>`}
+      <p class="pp-warn" id="lkWarn">△ Ne confirmez que pour un écran <b>que vous avez devant vous</b>.</p>
+      <div class="pp-acts"><button type="button" class="btn" data-lkclose>Annuler</button><button type="button" class="btn primary" data-lkok${pick===null||(!unlock&&!end)?' disabled':''}>${unlock?'Déverrouiller':'Connecter'}</button></div>`;
+      body.querySelectorAll('[data-lkn]').forEach(b=>b.onclick=()=>{const n=+b.dataset.lkn;
+        if(n!==linkCheckNum(L.secret)){miss++;pick=null;paint();const w=body.querySelector('#lkWarn');
+          w.innerHTML=miss>=2?'△ Ce n’est toujours pas le nombre de l’écran. Annulez : ce code ne vient peut-être pas de l’ordinateur que vous avez devant vous.':'△ Ce n’est pas le nombre affiché. Regardez l’écran que vous avez devant vous.';
+          w.classList.add('on');return;}
+        pick=n;paint();});
+      body.querySelectorAll('[data-lkend]').forEach(b=>b.onclick=()=>{end=+b.dataset.lkend;paint();});
+      body.querySelector('[data-lkclose]').onclick=()=>this.close();
+      const ok=body.querySelector('[data-lkok]');
+      ok.onclick=async()=>{if(ok.disabled)return;ok.disabled=true;ok.textContent='Envoi…';
+        let r;try{r=await rpc('link_approve',{p_id:L.id,p_secret:L.secret,p_ends_at:unlock?null:new Date(end).toISOString()});}catch(e){r=null;}
+        if(run!==this._run)return;
+        if(!r||!r.ok){const E={expired:'Ce code a expiré pendant la confirmation. Sur l’ordinateur, touchez « Nouveau code ».',too_many:'Cinq postes sont déjà connectés à votre compte. Déconnectez-en un dans « Appareils connectés ».',
+            bad_ends:'Cette heure de fin n’est plus valable. Rouvrez le code.'};
+          return this._msg(body,esc(E[r&&r.err]||'La confirmation n’a pas abouti. Vérifiez la connexion, puis réessayez.'));}
+        if(unlock)return this._msg(body,'✓ Confirmé. L’ordinateur se met à jour dans quelques secondes.');
+        /* Le dernier mot reste au téléphone : si ce n'est pas l'écran devant soi (code relayé par un
+           faux site), un geste le déconnecte aussitôt (revue de sécurité). */
+        body.innerHTML=`<p class="pp-msg">✓ Ordinateur connecté jusqu’à <b>${esc(ch.find(c=>c.at===end).lbl)}</b>. Il s’ouvre dans quelques secondes, et affiche votre adresse.</p>
+          <p class="pp-note">Vous pouvez le prolonger ou le déconnecter dans <b>Moi</b> › <b>Appareils connectés</b>.</p>
+          <p class="pp-warn">△ Rien ne s’ouvre sur l’écran devant vous ? Déconnectez-le maintenant.</p>
+          <div class="pp-acts"><button type="button" class="btn" data-lkrevnow>Déconnecter</button><button type="button" class="btn primary" data-lkclose>Fermer</button></div>`;
+        body.querySelector('[data-lkclose]').onclick=()=>this.close();
+        body.querySelector('[data-lkrevnow]').onclick=async()=>{let r;try{r=await rpc('link_revoke',{p_id:L.id});}catch(e){r=null;}
+          this._msg(body,r&&r.ok?'Ordinateur déconnecté.':'Déconnexion impossible (hors ligne ?) : réessayez dans <b>Moi</b> › <b>Appareils connectés</b>.');};};};
+    paint();},
+  /* « Appareils connectés » + « Mes fins de garde » (le téléphone). */
+  async devices(){this.close();const run=++this._run;const body=this._open('Appareils connectés');
+    body.innerHTML='<p class="pp-msg">Chargement…</p>';
+    let L;try{L=await rpc('link_list',{});}catch(e){L=null;}
+    if(run!==this._run)return;
+    const fins=linkFins();
+    const rows=Array.isArray(L)?L.map(d=>{const e=Date.parse(d.ends_at),s=Date.parse(d.since);
+      const day=t=>new Date(t).toDateString()===new Date().toDateString()?'':'demain ';
+      return `<div class="pp-row">${uiIcon('monitor',20)}<span class="pp-rtx"><b>${esc(d.label||'Ordinateur')}</b><span class="pp-sub">${s?'Depuis '+fmtHM(s)+' · ':''}se déconnecte ${day(e)}à ${fmtHM(e)}</span></span></div>
+        <div class="pp-racts"><button type="button" class="btn sm" data-lkext="${esc(d.id)}" data-lkat="${e}">Prolonger d’1 h</button><button type="button" class="btn sm" data-lkrev="${esc(d.id)}">Déconnecter</button></div>`;}).join(''):'';
+    body.innerHTML=(L===null?'<p class="pp-msg">Liste indisponible hors ligne.</p>'
+        :rows?`<div class="pp-list">${rows}</div>`:'<p class="pp-msg">Aucun poste partagé n’est connecté à votre compte.</p>')
+      +`<div class="pp-fins"><p class="pp-q">Mes fins de garde</p><p class="pp-sub">Les deux heures proposées quand vous connectez un ordinateur (avec la marge : 10:00 pour une fin à 9h30).</p>
+        <div class="pp-frow"><label class="sr-only" for="lkF1">Première heure</label><input type="time" class="pp-time" id="lkF1" value="${esc(fins[0])}"><label class="sr-only" for="lkF2">Seconde heure</label><input type="time" class="pp-time" id="lkF2" value="${esc(fins[1])}"></div></div>
+      <div class="pp-acts"><button type="button" class="btn" data-lkclose>Fermer</button></div>`;
+    body.querySelector('[data-lkclose]').onclick=()=>this.close();
+    const saveF=()=>{linkFinsSet([body.querySelector('#lkF1').value,body.querySelector('#lkF2').value]);schedulePrefsPush();};
+    body.querySelector('#lkF1').onchange=saveF;body.querySelector('#lkF2').onchange=saveF;
+    body.querySelectorAll('[data-lkext]').forEach(b=>b.onclick=async()=>{b.disabled=true;
+      let r;try{r=await rpc('link_extend',{p_id:b.dataset.lkext,p_ends_at:new Date(+b.dataset.lkat+3600000).toISOString()});}catch(e){r=null;}
+      if(!r||!r.ok)toast(r&&r.err==='bad_ends'?'⚠ Pas au-delà de 28 h après la connexion du poste.':'⚠ Prolongation impossible (hors ligne ?).',6000,true);
+      this.devices();});
+    body.querySelectorAll('[data-lkrev]').forEach(b=>b.onclick=async()=>{
+      const ok=await confirmDlg('L’ordinateur s’efface dès qu’il l’apprend (en quelques secondes s’il est en ligne). Une session en cours dessus n’est pas coupée : il s’effacera à sa fin.',{title:'Déconnecter ce poste ?',yes:'Déconnecter'});
+      if(!ok)return;let r;try{r=await rpc('link_revoke',{p_id:b.dataset.lkrev});}catch(e){r=null;}
+      if(!r||!r.ok)toast('⚠ Déconnexion impossible (hors ligne ?).',6000,true);
+      this.devices();});},
+  /* LA VEILLE DU POSTE — toutes les minutes, au retour au premier plan et au retour du réseau. */
+  boot(){if(!linkShared())return;
+    if(!this._watch){this._watch=setInterval(()=>this.watch(),LINK_WATCH_MS);
+      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')this.watch();});
+      window.addEventListener('online',()=>this.watch());}
+    this.watch();},
+  _wBusy:false,_revoked:false,
+  async watch(){const sp=linkShared();if(!sp||this._wBusy)return;this._wBusy=true;
+    try{const now=Date.now();
+      if(Sync.online()){try{const p=await rpc('link_poll',{p_id:sp.id,p_key:sp.key});
+        if(p&&p.ok){if(p.status==='revoked')this._revoked=true;
+          const e=Date.parse(p.ends_at);if(e&&e!==sp.endsAt){sp.endsAt=e;linkSharedSet(Object.assign({},sp,{at:Date.now()}));}}
+        else if(p&&p.err==='not_found')this._revoked=true;}catch(e){}}
+      // Une session oubliée se clôt seule (heure de fin passée, 6 h sans geste) — puis se dépose.
+      for(const R of linkLive()){const s=sessions.find(x=>x.id===R.sessionId);
+        const last=Math.max(R.lastActAt||0,(s&&s.savedAt)||0,R.startedAt||0);
+        if(linkIdleDue(last,now,sp.endsAt)){const sid=R.sessionId;endSession(R);
+          const a=sessions.find(x=>x.id===sid);if(a){a.autoClosed=now;sessUpsert(a);}}}
+      // Sauvegarde périodique d'une session en cours.
+      for(const R of linkLive())if(linkCkptDue(R._lkCkpt,R.lastActAt,now))await this.checkpoint(R,sp);
+      // Sessions terminées : par la synchro si le compte est encore là, sinon par le dépôt.
+      if(Auth.signedIn()&&!this._revoked)Sync.schedule();else if(!this._revoked)await this.depositAll(sp);
+      const st={live:linkLive().length>0,unsent:(await linkUnsent()).length,revoked:this._revoked};
+      const d=linkDecide(sp,Date.now(),st);
+      if(d==='wipe')return this.wipe(true);
+      if(d==='ask')this._ask=true;
+      linkPaintBand();
+    }finally{this._wBusy=false;}},
+  async checkpoint(R,sp){R._lkCkpt=Date.now();
+    try{const snap=snapshotSession(R,false);snap.checkpoint=Date.now();
+      const row=sessionToRow(snap,sp.uid);
+      if(Auth.signedIn())await rest('POST','/rest/v1/sessions',[row],{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      else await rpc('link_deposit',{p_id:sp.id,p_key:sp.key,p_row:{id:row.id,data:row.data,exercise:row.exercise}});
+    }catch(e){R._lkCkpt=0;}},   // réseau : on retentera au tour suivant
+  async depositAll(sp){for(const s of await linkUnsent()){
+      try{const row=sessionToRow(s,sp.uid);
+        const r=await rpc('link_deposit',{p_id:sp.id,p_key:sp.key,p_row:{id:row.id,data:row.data,exercise:row.exercise}});
+        if(r&&r.ok){s.dirty=false;await Data.putSession(s);}}catch(e){return;}}},
+  /* L'EFFACEMENT DU POSTE. `auto` : décidé par la veille (rien à demander) ; sinon le bouton
+     « Se déconnecter et effacer », qui ne coupe jamais une session et prévient d'une perte. */
+  async wipe(auto){
+    if(linkLive().length){toast('⚠ Une session est en cours sur ce poste : terminez-la d’abord.',7000,true);return;}
+    if(!auto){const sp=linkShared();
+      if(sp){if(Auth.signedIn())await Sync.full();else await this.depositAll(sp);}
+      const n=(await linkUnsent()).length;
+      const ok=await confirmDlg(n?nb(n,'session')+' de ce poste n’'+(n>1?'ont':'a')+' pas encore rejoint votre historique (hors ligne). Effacées maintenant, elles seraient perdues : enregistrez d’abord leur compte rendu en PDF depuis « Sessions », ou attendez le réseau.'
+          :'Vos aides, sessions et réglages sont effacés de cet ordinateur. Tout reste dans votre compte.',
+        {title:'Se déconnecter et effacer ce poste ?',yes:n?'Effacer quand même':'Effacer ce poste',danger:!!n});
+      if(!ok)return;}
+    const uidv=currentSpace();
+    /* Le jeton se RELIT sur le disque : la mémoire peut l'avoir perdu (session refusée par le serveur
+       après l'heure de fin) alors que `ac-auth` y est encore — et au rechargement, le garde-fou de
+       `load()` (« reprise d'une bascule interrompue ») ramènerait le poste sur l'espace du compte. */
+    try{Auth._load();if(Auth.signedIn())await Auth.signOut();else{Auth.session=null;Auth._save();}}catch(e){}   // scope=local : la session de CE poste seulement
+    try{localStorage.removeItem('ac-auth');}catch(e){}
+    await wipeCurrentSpace();
+    try{localStorage.removeItem(LINK_KEY);sessionStorage.removeItem(LINK_OPEN_KEY);
+      // Rien du compte ne reste : ni son espace dans le registre, ni la propriété de la base historique.
+      const r=JSON.parse(localStorage.getItem('ac-spaces')||'[]').filter(s=>s!==uidv);localStorage.setItem('ac-spaces',JSON.stringify(r));
+      if(localStorage.getItem('ac-db-owner')===uidv)localStorage.removeItem('ac-db-owner');
+      localStorage.setItem('ac-space','');}catch(e){}
+    location.reload();},
+  _ask:false};
+/* Le VERROU après réouverture : vrai = l'action est retenue (la fenêtre de déverrouillage s'ouvre,
+   et l'action reprend une fois le téléphone d'accord). */
+function linkGate(fn){if(!linkLocked())return false;Link.start('unlock',fn);return true;}
+/* SUPPRIMER sur un poste partagé : le téléphone à CHAQUE fois (A643, décision de l'auteur) — c'est
+   irréversible (aucune corbeille à l'écran) et, dans une bibliothèque, cela touche toute l'équipe.
+   Vrai = l'action est retenue ; elle reprend, une fois confirmée, sans redemander. */
+let _linkStep=false;
+function linkStepGate(fn){if(!linkShared()||_linkStep)return false;
+  Link.start('unlock',async()=>{_linkStep=true;try{await fn();}finally{_linkStep=false;}},true);return true;}
+/* INTERDIT sur un poste partagé : l'administration (instance, membres et rôles, créer ou demander
+   une bibliothèque) — rare, jamais urgent, à fort impact ; elle se fait depuis un appareil à soi. */
+function linkDeny(quoi){if(!linkShared())return false;
+  const b=Link._open('Pas sur un poste partagé');
+  Link._msg(b,esc(quoi)+' ne se fait pas sur un poste partagé : utilisez votre téléphone ou votre ordinateur personnel.');return true;}
+/* LA BANDE DU POSTE PARTAGÉ (accueil seulement — jamais en lecture d'une aide, jamais pendant le
+   soin). Information par défaut ; AMBRE 30 min avant l'heure de fin (l'échéance, règle 8). */
+function linkPaintBand(){const el=document.getElementById('linkBand');if(!el)return;const sp=linkShared();
+  if(!sp){el.hidden=true;return;}
+  const now=Date.now(),soon=sp.endsAt-now<=LINK_SOON_MS,past=now>=sp.endsAt;
+  const day=new Date(sp.endsAt).toDateString()===new Date(now).toDateString()?'':'demain ';
+  const quand=past?(linkLive().length?'s’efface après la session en cours':'s’efface dès que les sessions sont envoyées')
+    :(soon?'△ s’efface à ':'jusqu’à '+day)+fmtHM(sp.endsAt);
+  el.hidden=false;el.className='notice pp-band'+(soon||past?' pp-soon':'');
+  // Le COMPTE est nommé : un poste approuvé par un autre compte (code relayé) se voit au premier coup d'œil.
+  el.innerHTML=`${uiIcon('monitor',16)}<div class="pp-bt"><b>Poste partagé</b>${sp.email?' · '+esc(sp.email):''} · ${esc(quand)}${Link._ask?' · des sessions n’ont pas pu rejoindre l’historique : voir « Sessions »':''}${linkLocked()?' · modifier redemande votre téléphone':''}</div><button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
+  el.querySelector('[data-lkwipe]').onclick=()=>Link.wipe(false);}
+bindModalDismiss(document.getElementById('linkModal'),()=>Link.close());
+/* Moi — la carte du POSTE PARTAGÉ (sur le poste) et la zone « Appareils » (sur le téléphone). */
+function linkSharedCardHtml(locked){const sp=linkShared();if(!sp)return '';
+  const past=Date.now()>=sp.endsAt,day=new Date(sp.endsAt).toDateString()===new Date().toDateString()?'':'demain ';
+  return `<div class="acct-zone"><div class="auth-stats-h">Poste partagé <span class="acct-hs">connecté par votre téléphone</span></div><div class="acct-card pp-login">
+    <p class="pp-msg">${past?'L’heure de fin est passée : ce poste s’efface dès que les sessions faites dessus ont rejoint votre historique.'
+      :'Connecté jusqu’à <b>'+esc(day+fmtHM(sp.endsAt))+'</b>, puis tout s’efface de cet ordinateur. Pour prolonger : sur le téléphone, <b>Moi</b> › <b>Appareils connectés</b>.'}</p>
+    ${locked?'<p class="pp-note">Navigateur rouvert depuis la connexion : modifier une aide, gérer les bibliothèques et le compte redemandent votre téléphone. Consulter et reprendre une session restent libres.</p><button type="button" class="btn primary auth-full" data-lkunlock>Déverrouiller avec le téléphone</button>':''}
+    <button type="button" class="btn auth-full" data-lkwipe>Se déconnecter et effacer ce poste</button></div></div>`;}
+function linkDevsHtml(){const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
+  return `<div class="acct-zone"><div class="auth-stats-h">Appareils <span class="acct-hs">les ordinateurs de service connectés par ce téléphone</span></div><div class="acct-card acct-list">`
+    +menuRowHtml({label:'Connecter un ordinateur',sub:'viser le code affiché sur l’écran',ic:uiIcon('camera',20),attrs:'data-lkscan',tail:chev})
+    +menuRowHtml({label:'Appareils connectés',sub:'prolonger, déconnecter, mes fins de garde',ic:uiIcon('monitor',20),attrs:'data-lkdevs',tail:chev})+`</div></div>`;}
+function linkBindCard(body){const on=(sel,f)=>{const b=body.querySelector(sel);if(b)b.onclick=f;};
+  on('[data-lkunlock]',()=>Link.start('unlock',()=>renderAuth()));on('[data-lkwipe]',()=>Link.wipe(false));
+  on('[data-lkscan]',()=>Link.scan());on('[data-lkdevs]',()=>Link.devices());}
 // État de synchro COURANT — SOURCE UNIQUE, posée par setSyncChip() : la pastille du pied de
 // page, le bandeau d'accueil ET la ligne d'état de la fenêtre Compte affichent tous cet état
 // (jamais deux états contradictoires à l'écran).
@@ -31504,7 +31943,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote'];
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -31516,7 +31955,7 @@ async function wipeLocal(){
   const names=new Set(['ac-db']);
   spaces.concat([currentSpace()]).forEach(s=>{names.add(dbNameFor(s,owner));names.add('ac-db-'+(s||'anon'));});
   for(const n of names){try{await new Promise(res=>{const r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}}
-  try{WIPE_SPACE_KEYS.concat(['ac-cats-dirty:','ac-cats-updated:','ac-notice-hidden','ac-auth','ac-onboarded','ac-space','ac-db-owner','ac-spaces']).forEach(k=>localStorage.removeItem(k));
+  try{WIPE_SPACE_KEYS.concat(['ac-cats-dirty:','ac-cats-updated:','ac-notice-hidden','ac-auth','ac-onboarded','ac-space','ac-db-owner','ac-spaces',LINK_KEY]).forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
       if(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0
         ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
@@ -31591,7 +32030,8 @@ function admRefresh(force){if(_admBusy)return _admBusy;if(!force&&_admD&&Date.no
 const admAfter=msg=>{if(msg)toast(msg,4000,true);return admRefresh(true);};
 const admView=()=>document.getElementById('admView');
 function admRoot(){return admView()||(admModal.classList.contains('on')?document.getElementById('admBody'):null);}
-function openAdmin(sec){_adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;
+function openAdmin(sec){if(linkDeny('L’administration'))return;   // A643 : interdit sur un poste partagé
+  _adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;
   /* A517 : au téléphone, Administration reste une page-fenêtre (un NIVEAU ouvert depuis Moi, A494) — pas un onglet. */
   if(homeTabsOn()&&!tabNavOn()){if(homeTab()==='admin')renderAdm({top:true});else setHomeTab('admin');}
   else{admModal.classList.add('on');renderAdm({top:true});}
@@ -32052,6 +32492,10 @@ function renderAuthPending(body,u,doOut){
 // Écran « compte connecté (approuvé) » : synchro manuelle, déconnexion, panneaux admin, suppression.
 function renderAuthAccount(body,u,doOut){
     const ini=((u.email||'?').trim().slice(0,2)||'?').toUpperCase();   // 2 lettres, comme l'avatar d'en-tête
+    /* A643 : POSTE PARTAGÉ rouvert sans le téléphone (verrou) — le compte se réduit à l'identité et à
+       la carte du poste ; consulter et reprendre une session restent libres, ailleurs. */
+    if(linkLocked()){body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div></div>${linkSharedCardHtml(true)}`;
+      linkBindCard(body);return;}
     // Structure (audit v4.5) : identité + état -> contours jumeaux demi-largeur -> zone « Cet
     // appareil » -> zone « Administration » (admin) -> zone sensible, toujours dernière.
     /* M5 (audit design, v4.71.0) — L'IDENTITÉ EST UNE CARTE, PLUS D'ACTION PRIMAIRE : les trois
@@ -32061,10 +32505,11 @@ function renderAuthAccount(body,u,doOut){
     body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
         <div class="acct-acts"><button class="btn" id="authSync">Synchroniser</button><button class="btn" id="authExport">Exporter</button><button class="btn acct-out" id="authOut">Se déconnecter</button></div></div>
       <p class="st-hint acct-promise">Votre bibliothèque personnelle suit ce compte sur <b>tous vos appareils connectés</b>.</p>
-      ${myIsAppAdmin?admDoorHtml():''}
+      ${myIsAppAdmin&&!linkShared()?admDoorHtml():''}
+      ${linkShared()?linkSharedCardHtml(false):linkDevsHtml()}
       ${acctLibsHtml()}
       ${accountPrefsHtml()}
-      ${myIsAppAdmin?'':`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+      ${myIsAppAdmin||linkShared()?'':`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
         <p class="danger-caption">Supprime le compte, les données synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
@@ -32080,7 +32525,9 @@ function renderAuthAccount(body,u,doOut){
     // maintenant » — sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug).
     // La fenêtre de confirmation porte aussi l'option « effacer les fiches locales »
     // (case décochée par défaut, cf. confirmLeave).
-    body.querySelector('#authOut').onclick=doOut;
+    // A643 : sur un poste partagé, « Se déconnecter » EFFACE le poste (rien du compte n'y reste).
+    body.querySelector('#authOut').onclick=linkShared()?()=>Link.wipe(false):doOut;
+    linkBindCard(body);
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     /* A494 : Administration est une PAGE ; Moi n'en porte que la porte, dont le compte « à traiter » se relit en asynchrone. */
     if(myIsAppAdmin){const d=body.querySelector('#admDoor');if(d)d.onclick=()=>openAdmin();admPaintDoor();admRefresh();}
@@ -32279,16 +32726,23 @@ function bindAccountPrefs(body){
 // Écran de connexion (déconnecté) : saisie de l'e-mail puis du code OTP reçu.
 function renderAuthLogin(body){
   if(_authStep.mode==='email'){
-    body.innerHTML=`<div class="acct-card"><div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
+    /* A643 : « Se connecter avec le téléphone » — en TÊTE au pointeur fin (l'ordinateur de service,
+       où l'on n'a ni sa messagerie ni envie de taper), après l'e-mail au doigt (un téléphone se
+       connecte par e-mail). Un poste partagé dont la connexion est finie montre sa carte à la place. */
+    const lkFirst=(()=>{try{return matchMedia('(pointer:fine)').matches;}catch(e){return false;}})();
+    const lkCard=linkShared()?linkSharedCardHtml(false):`<div class="acct-card pp-login"><div class="pp-lh">${uiIcon('phone',20)}<span><b>Se connecter avec le téléphone</b><span class="pp-sub">Sur un ordinateur de service : un code à viser avec l’app de votre téléphone, déjà connectée. Ni e-mail, ni code à recopier.</span></span></div><button type="button" class="btn${lkFirst?' primary':''} auth-full" id="authLink">Afficher le code</button></div>`;
+    body.innerHTML=`${lkFirst?lkCard:''}<div class="acct-card"><div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
       <label class="auth-label" for="authEmail">Adresse e-mail</label>
       <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
       <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
       <p class="auth-privacy">Vos aides et protocoles restent votre contenu — n’y stockez jamais de données patient. Synchronisation hébergée sur Supabase (connexion chiffrée).</p>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
       <div style="text-align:center;margin-top:2px"><button class="tlink" id="authAnon" hidden></button></div></div>
+      ${lkFirst?'':lkCard}
       <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>
       ${accountPrefsHtml('<button class="btn" id="authExport">Exporter mes données</button>')}`;
     bindAccountPrefs(body);
+    {const b=body.querySelector('#authLink');if(b)b.onclick=()=>Link.start('connect');}linkBindCard(body);
     // Fiches « hors compte » présentes sur l'appareil : lien de consultation SANS se connecter
     // (cf. switchToAnonSpace). Compté en asynchrone ; le lien reste masqué s'il n'y a rien.
     (async()=>{try{const n=await anonFicheCount();const b=body.querySelector('#authAnon');if(!n||!b)return;
@@ -33120,7 +33574,10 @@ function sanitizeSession(d){
   const out={};for(const k of Object.keys(d)){if(BAD_KEYS.indexOf(k)>=0)continue;out[k]=d[k];}
   out.ficheId=safeId(out.ficheId,'f');out.ficheTitle=sstr(out.ficheTitle,300);out.name=sstr(out.name,160);
   out.startedAt=+out.startedAt||0;out.savedAt=+out.savedAt||0;out.aidRev=+out.aidRev||0;
-  out.live=!!out.live;out.exercise=!!out.exercise;
+  out.live=out.live===true;out.exercise=!!out.exercise;   // A643 : « "false" » (chaîne) n'est pas une session vive
+  // A643 : sauvegarde d'une session en cours (heure) et clôture automatique d'une session oubliée (heure).
+  if(out.checkpoint!==undefined)out.checkpoint=+out.checkpoint||0;
+  if(out.autoClosed!==undefined)out.autoClosed=+out.autoClosed||0;
   ['checked','verified','vgaps','stepTexts'].forEach(k=>{
     const src=(out[k]&&typeof out[k]==='object')?out[k]:{};const m=Object.create(null);let n=0;
     for(const key of Object.keys(src)){if(n>=4000)break;if(!SHARE_KEY_RX.test(key))continue;m[key]=src[key];n++;}
@@ -33591,11 +34048,15 @@ const Sync={
      ici, en tête des DEUX fonctions, et non dans l'orchestrateur : un chemin d'appel ajouté demain
      hériterait du garde au lieu de l'oublier. */
   async _pullSessions(){
-    if(!sessSyncOn())return false;
+    // A643 : un POSTE PARTAGÉ ne tire pas l'historique du compte — il n'a pas à le garder sur son disque.
+    if(!sessSyncOn()||linkShared())return false;
     return this._pullTable({table:'sessions',cursorKey:'ac-sync-cursor-sess',
       getAllLocal:()=>Data.getSessions(),fromRow:sessionFromRow,...memOps(sessions)});},
   async _pushSessions(){
-    if(!sessSyncOn())return false;
+    /* A643 : sur un POSTE PARTAGÉ, l'historique MONTE TOUJOURS (il s'effacera : une session non
+       envoyée serait perdue) — sans toucher au RÉGLAGE, qui voyage dans les préférences du compte :
+       forcer `sessSyncOn()` l'aurait activé sur tous les appareils de l'utilisateur. */
+    if(!sessSyncOn()&&!linkShared())return false;
     return this._pushTable({table:'sessions',
       // SEULES LES ARCHIVÉES. `live` marque une session EN COURS : la pousser reviendrait à
       // ouvrir un second canal de partage, sans code, sans rôle et sans péremption.
@@ -33769,6 +34230,7 @@ const Sync={
         if(!s.library&&remote.data&&remote.data.usage){_frecency=mergeUsage(_frecency,sanitizeUsage(remote.data.usage));
           try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}}
         if(!s.library&&remote.data&&remote.data.prefs&&typeof remote.data.prefs==='object'){const pr=remote.data.prefs;
+          linkPrefsKeep(pr);   // A643 : ce que le compte porte, pour qu'un poste partagé le renvoie tel quel
           const th=(pr.theme==='light'||pr.theme==='dark'||pr.theme==='auto')?pr.theme:null;
           const z=ZOOM_STEPS.indexOf(+pr.zoom)>=0?+pr.zoom:null;
           if(th&&th!==(localStorage.getItem(spaceKey('ac-theme'))||'auto'))applyTheme(th);
@@ -33785,6 +34247,7 @@ const Sync={
              et le vocabulaire est une liste qu'on TIENT, pas un compteur qu'on additionne. */
           if(Array.isArray(pr.tags))_tagsWrite(pr.tags);
           if(typeof pr.syncSessions==='boolean')_sessSyncWrite(pr.syncSessions);
+          if(Array.isArray(pr.linkFins))linkFinsSet(pr.linkFins);   // A643 : « Mes fins de garde » suit le compte
           /* Rangement de l'accueil (v5.18) : préférence ÉCRITE, jamais appliquée à l'écran
              ouvert — la liste ne se re-range pas sous les yeux ; l'état suit si l'accueil
              n'est pas la vue courante, sinon au prochain lancement. */
@@ -33812,8 +34275,13 @@ const Sync={
              l'expliquer. C'est une préférence par UTILISATEUR, au même titre que le thème : elle
              suit le compte, pas la machine. */
           syncSessions:sessSyncOn(),
+          linkFins:linkFins(),   // A643 : « Mes fins de garde », comme le thème
           homeGroup:homeGroupKey(),   // rangement de l'accueil (v5.18) — suit le compte
           homeColls:state.homeColls!==false};   // A587 : « Vos collections » en tête, suit le compte comme le rangement
+        /* A643 : sur un POSTE PARTAGÉ, les réglages valent pour CE poste seulement — un thème choisi
+           sur l'ordinateur d'un service ne doit pas changer les autres appareils du compte. Le
+           document part avec les préférences REÇUES du compte, inchangées. */
+        if(!s.library&&linkShared()){const rp=linkPrefsKept();if(rp)data.prefs=rp;else delete data.prefs;}
         try{await rest('POST','/rest/v1/category_sets',[{scope_key:s.scopeKey,owner:uidv,library_id:s.library,data:data,updated_at:new Date(now).toISOString()}],{'Prefer':'resolution=merge-duplicates,return=minimal'});
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }
@@ -36017,7 +36485,11 @@ function renderSessHist(){const body=document.getElementById('sessView')||docume
   const row=x=>{const f=fiches.find(z=>z.id===x.ficheId),cc=f?catOf(f):null,op=_sessOpen===x.id;
     const t=x.savedAt||0,proche=t>=j0-6*DAY;
     const nm=glob&&x.ficheTitle?x.ficheTitle:(x.name||'Session');
-    const sub=[x.live?'<span class="sess-livetag">● En cours</span>':'',esc(proche?fmtHM(x.startedAt||t):sessStamp(t)),esc(det(x))].filter(Boolean).join(' · ');
+    const sub=[x.live?'<span class="sess-livetag">● En cours</span>':'',
+      // A643 : une SAUVEGARDE d'une session jamais terminée (poste perdu, réseau coupé) le dit.
+      !x.live&&x.checkpoint?'<span class="sess-ckpt">△ Interrompue · sauvegarde de '+esc(fmtHM(x.checkpoint))+'</span>':'',
+      x.autoClosed?'clôturée automatiquement':'',
+      esc(proche?fmtHM(x.startedAt||t):sessStamp(t)),esc(det(x))].filter(Boolean).join(' · ');
     const acts=x.live?`<button class="btn sm primary" data-resume="${esc(x.id)}">Reprendre</button>`
       :`<button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="btn sm sess-del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session « ${esc(x.name)} »" title="Supprimer la session (confirmation demandée)">Supprimer</button>`;
     return `<div class="sess-row${op?' open':''}${x.live?' live':''}"><button type="button" class="sess-main" data-sessopen="${esc(x.id)}" aria-expanded="${op||x.live?'true':'false'}">`
@@ -36041,7 +36513,8 @@ const membersModal=document.getElementById('membersModal');let _memLib=null;
 const ROLE_FR={viewer:'Lecteur',editor:'Éditeur',admin:'Admin'};
 function roleOptions(role){return ['viewer','editor','admin'].map(r=>`<option value="${r}" ${role===r?'selected':''}>${ROLE_FR[r]}</option>`).join('');}
 let _libNameOrig='';
-async function openMembers(libId){_memLib=libId;document.getElementById('membersModalTitle').textContent='Modifier la bibliothèque';membersModal.classList.add('on');await renderMembers();}
+async function openMembers(libId){if(linkDeny('Gérer les membres d’une bibliothèque'))return;   // A643 : interdit sur un poste partagé
+  _memLib=libId;document.getElementById('membersModalTitle').textContent='Modifier la bibliothèque';membersModal.classList.add('on');await renderMembers();}
 // Fermeture SANS perte silencieuse (règle §8.3) : nom modifié non enregistré -> confirmation.
 function closeMembers(force){
   const inp=document.getElementById('libNameField');
@@ -36185,7 +36658,8 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
 async function inviteAll(lib,emails,role){const ko=[];
   for(const em of emails){try{const r=await rpc('invite_member',{p_library:lib,p_email:em,p_role:role});if(r!=='ok')ko.push(em);}catch(e){ko.push(em);}}
   return ko.length?' · non invité'+(ko.length>1?'s':'')+' (compte absent ou en attente) : '+ko.join(', '):'';}
-function openNewLib(){
+function openNewLib(){if(linkDeny('Créer ou demander une bibliothèque'))return;   // A643 : interdit sur un poste partagé
+  
   if(!libNewOn()){toast('Connectez-vous avec un compte validé pour créer ou demander une bibliothèque.');return;}
   document.getElementById('newLibModalTitle').textContent=myCanCreateLib?'Nouvelle bibliothèque':'Demander une bibliothèque';
   renderNewLib();newLibModal.classList.add('on');}
@@ -36497,7 +36971,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

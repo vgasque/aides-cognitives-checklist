@@ -75,7 +75,9 @@ for (const rel of FICHIERS) {
 
   /* 3. SURFACE NON AUTHENTIFIÉE — LISTE BLANCHE.
         Le rôle `anon` est utilisable par n'importe qui : la clé publishable est en clair dans
-        index.html. Le projet lui ouvre TROIS fonctions nommées, et rien d'autre.
+        index.html. Le projet lui ouvre SIX fonctions nommées, et rien d'autre : les trois du
+        partage de session, et (v5.111, A643) les trois du POSTE PARTAGÉ, qui demande sa connexion
+        avant d'avoir un compte et peut déposer une session après l'avoir perdu.
         Le scénario redouté n'est pas la malveillance, c'est le dépannage : PostgREST accompagne
         un refus 42501 d'un `hint` qui nomme le grant manquant, et la réponse la plus répandue en
         ligne est la forme GLOBALE. À trois heures du matin, devant un partage qui ne marche pas,
@@ -111,7 +113,7 @@ for (const rel of FICHIERS) {
     }
   }
 
-  const ANON_FN_OK = ['share_join', 'share_pull', 'share_push'];
+  const ANON_FN_OK = ['share_join', 'share_pull', 'share_push', 'link_open', 'link_poll', 'link_deposit'];
   lignes.forEach((l, i) => {
     const code = l.replace(/--.*$/, '').trim();
     if (!/^grant\b/i.test(code)) return;

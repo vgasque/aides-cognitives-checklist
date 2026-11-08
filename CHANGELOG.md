@@ -1,5 +1,35 @@
 # Journal des modifications
 
+## [5.111.0] — 2026-11-08
+Connecter un ordinateur de service avec son téléphone (A643-A647). **Côté serveur : rejouer `supabase/schema.sql`, puis déployer la fonction `link-claim`** (`supabase functions deploy link-claim --no-verify-jwt`, cf. `docs/deploiement-et-conformite.md` § 1.2).
+- **Sur l'ordinateur** (Moi › « Se connecter avec le téléphone ») : un QR et un nombre de contrôle, ni e-mail ni code
+  à recopier. **Sur le téléphone** (Moi › Appareils › « Connecter un ordinateur ») : viser le QR (ou l'ouvrir avec
+  l'appareil photo), toucher le nombre que montre l'écran, choisir l'heure de fin de garde, « Connecter ». L'ordinateur
+  reçoit sa propre session, jamais celle du téléphone.
+- **Des heures de fin de garde, pas des durées** : deux repères, 10:00 et 19:30 par défaut, réglables dans « Mes fins
+  de garde » ; trois choix au plus, entre 1 h et 28 h (une garde de 24 h qui déborde passe).
+- **Le poste partagé ne perd rien** : fermer le navigateur, perdre le réseau ou redémarrer ne fait rien perdre, et une
+  session en cours se reprend. À l'heure de fin, il s'efface — jamais pendant une session, jamais avant que les
+  sessions faites dessus aient rejoint l'historique (jusqu'à 7 jours après, même sans connexion au compte).
+- **Une session en cours sur un poste partagé est sauvegardée en ligne toutes les 2 minutes** (s'il y a eu un geste) :
+  si l'ordinateur ou le réseau lâche, l'historique la montre « △ Interrompue », compte rendu partiel ; la session
+  terminée la remplace.
+- **Appareils connectés** (téléphone) : voir les postes, les prolonger d'une heure, les déconnecter à distance.
+- **Navigateur rouvert sur le poste** : consulter et reprendre restent libres ; créer, modifier et gérer redemandent
+  le téléphone.
+- **Caméra** : `_headers` passe à `camera=(self)` — le viseur (partage de session, connexion) marche aussi sous Chrome
+  (Android, ordinateur), qui appliquait l'interdiction.
+- **Ce qu'un poste partagé ne fait pas** (A647) : supprimer demande le téléphone à chaque fois ; l'administration
+  (instance, membres, bibliothèques) et « Remplacer » à l'import y sont refusés ; « Supprimer mon compte » n'y apparaît
+  pas ; les réglages valent pour ce poste seulement ; 15 minutes sans geste reverrouillent la modification
+  (jamais une session) ; un fichier exporté y est signalé comme restant sur l'ordinateur.
+- **Sécurité, revue avant publication** : deux secrets (le QR ne sert qu'au téléphone, une clé jamais affichée sert au
+  poste), session du poste créée et liée par le serveur, une session de poste ne peut ni approuver ni prolonger un
+  poste ni supprimer le compte, dépôt de sessions durci, plafond de demandes par machine. Un lien de connexion reçu par
+  message mène au viseur, jamais droit à l'approbation ; après l'approbation, « Rien ne s'ouvre devant vous ?
+  Déconnecter ». Recommandé : `APP_ORIGIN` sur la fonction, un « Password Verification Hook », des jetons plus courts.
+- À savoir : sans la fonction serveur déployée, la connexion par le téléphone échoue proprement et l'e-mail reste là.
+
 ## [5.110.0] — 2026-11-08
 Une image dans une liste reste dans son élément (A642). Rien à rejouer côté serveur.
 - **Image dans un élément de liste** (import Notion surtout) : l'image indentée sous un élément s'affiche sous son
@@ -202,16 +232,3 @@ serveur.
   d'office.
 - **La pastille du dock glisse** d'un onglet à l'autre, comme celle des sélecteurs de Moi — au tap comme en faisant
   glisser le doigt (A603).
-
-## [5.101.0] — 2026-11-08
-Premier pas de la nouvelle architecture (A601, lot 1 d'A600) : un catalogue des bibliothèques, ajouté sans rien
-retirer à l'accueil. Rien à rejouer côté serveur.
-- **Un onglet « Bibliothèques »** au téléphone (une rangée « Bibliothèques » dans la colonne sur tablette et
-  ordinateur). Il montre vos bibliothèques, puis, dans chacune, SES catégories — plus de « Pédiatrie » de trois
-  équipes mêlées — puis les aides et protocoles d'une catégorie.
-- **« Tout »**, en tête : aides et protocoles de toutes les bibliothèques, à filtrer (type, bibliothèque, catégorie),
-  trier et sélectionner.
-- **Le dock se glisse** : faire glisser le doigt d'un onglet à l'autre change d'onglet au relâchement, comme les
-  sélecteurs de Moi.
-- L'accueil ne change pas : ses filtres, ses collections et sa liste restent tels quels.
-

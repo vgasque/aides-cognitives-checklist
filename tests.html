@@ -2358,6 +2358,41 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('lien d’app : #collection=<id>',JSON.stringify(A.deepLinkFromHash('#collection=c_k3x')),JSON.stringify({go:'coll',id:'c_k3x'}));
   ok('lien d’app : mot hors table refusé',A.deepLinkFromHash('#toString')===null&&A.deepLinkFromHash('#constructor')===null&&A.deepLinkFromHash('#creerx')===null);
   ok('lien d’app : identifiant interdit refusé',A.deepLinkFromHash('#collection=__proto__')===null&&A.deepLinkFromHash('#bibliotheque=a/b')===null);
+  /* A643 — CONNEXION PAR LE TÉLÉPHONE : nombre de contrôle, lien du QR, heures de fin de garde, décision du poste partagé. */
+  {const S='Q2xLk9_aZ0b-Xy7Pq3RsTu',id='0b6f3a2e-9c1d-4e5f-8a7b-1c2d3e4f5a6b';
+   const n=A.linkCheckNum(S);
+   ok('A643 : nombre de contrôle entre 10 et 99, le même des deux côtés',n>=10&&n<=99&&n===A.linkCheckNum(S));
+   ok('A643 : un autre secret donne presque toujours un autre nombre',[...Array(20)].map((_,i)=>A.linkCheckNum(S+i)).filter(x=>x!==n).length>=15);
+   {const d=A.linkDecoys(S);ok('A643 : trois choix distincts, triés, dont le vrai',d.length===3&&new Set(d).size===3&&d.includes(n)&&d[0]<d[1]&&d[1]<d[2]);}
+   eq('A643 : le lien du QR se relit',A.linkParse('https://aides.gasque.fr/#lier='+id+'.'+S),{id,secret:S});
+   eq('A643 : #lier= est un lien direct (appareil photo du système)',A.deepLinkFromHash('#lier='+id+'.'+S),{lier:{id,secret:S}});
+   ok('A643 : lien mutilé refusé',A.linkParse('#lier='+id+'.court')===null&&A.linkParse('#lier=pas-un-id.'+S)===null&&A.linkParse('#a=x')===null&&A.linkParse(null)===null);
+   eq('A643 : secret en base64url, sans remplissage',A.linkB64u(new Uint8Array([251,255,191])),'-_-_');
+   eq('A643 : fins de garde par défaut',A.linkFinsNorm(null),['10:00','19:30']);
+   eq('A643 : fins de garde réglées, triées',A.linkFinsNorm(['23:30','15:30']),['15:30','23:30']);
+   eq('A643 : fins de garde invalides ou en double : défaut',[A.linkFinsNorm(['25:00','10:00']),A.linkFinsNorm(['10:00','10:00'])],[['10:00','19:30'],['10:00','19:30']]);
+   eq('A643 : temps restant lisible',[A.linkInLbl(80*60000),A.linkInLbl(45*60000),A.linkInLbl(120*60000)],['dans 1 h 20','dans 45 min','dans 2 h']);
+   const at=(d,h,m)=>new Date(2026,10,9+d,h,m).getTime();
+   const lb=c=>c.map(x=>x.lbl),df=c=>c.findIndex(x=>x.def);
+   {const c=A.linkEndChoices(at(0,7,45));eq('A643 : connexion à 07:45 (journée de 12 h ou garde de 24 h)',[lb(c),df(c)],[['10:00','19:30','Demain 10:00'],1]);}
+   {const c=A.linkEndChoices(at(0,8,15));eq('A643 : connexion à 08:15 (journée 8h15 → 18h30/19h)',[lb(c),df(c)],[['10:00','19:30','Demain 10:00'],1]);}
+   {const c=A.linkEndChoices(at(0,13,0));eq('A643 : connexion à 13:00 — deux choix, « demain 19:30 » passerait les 28 h',[lb(c),df(c)],[['19:30','Demain 10:00'],0]);}
+   {const c=A.linkEndChoices(at(0,18,10));eq('A643 : connexion à 18:10 (nuit 18h → 9h/9h30)',[lb(c),df(c)],[['19:30','Demain 10:00','Demain 19:30'],1]);}
+   {const c=A.linkEndChoices(at(0,2,0));eq('A643 : connexion à 02:00 (en pleine nuit)',[lb(c),df(c)],[['10:00','19:30'],0]);}
+   {const c=A.linkEndChoices(at(0,13,0),['15:30','23:30']);eq('A643 : repères réglés (garde de 10 h, 13h → 23h)',[lb(c),df(c)],[['15:30','23:30','Demain 15:30'],1]);}
+   ok('A643 : toute heure proposée entre 1 h et 28 h',[0,3,7,9,12,17,20,23].every(h=>A.linkEndChoices(at(0,h,25)).every(x=>x.at-at(0,h,25)>=3600000&&x.at-at(0,h,25)<=28*3600000)));
+   eq('A643 : navigateur et système du poste',[A.linkUaLabel('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'),
+       A.linkUaLabel('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Edg/130.0'),
+       A.linkUaLabel('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'),
+       A.linkUaLabel('Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0'),A.linkUaLabel('')],
+     ['Chrome · Windows','Edge · Windows','Safari · iPhone','Firefox · Linux','Navigateur']);
+   const sp={endsAt:1e9},D7=7*86400000;
+   eq('A643 : décision du poste partagé',[A.linkDecide(null,0,{}),A.linkDecide(sp,1e9-1,{live:true,unsent:3}),A.linkDecide(sp,1e9,{live:true,unsent:3}),
+       A.linkDecide(sp,1e9,{unsent:2}),A.linkDecide(sp,1e9+D7+1,{unsent:2}),A.linkDecide(sp,1e9-1,{revoked:true,unsent:1}),A.linkDecide(sp,1e9-1,{revoked:true}),A.linkDecide(sp,1e9,{})],
+     [null,'keep','wait','deposit','ask','ask','wipe','wipe']);
+   const H=3600000;
+   eq('A643 : session oubliée close après 6 h sans geste, heure de fin passée',[A.linkIdleDue(0,6*H,H),A.linkIdleDue(0,6*H,7*H),A.linkIdleDue(H,6*H,H)],[true,false,false]);
+   eq('A643 : sauvegarde toutes les 2 min, seulement après un geste',[A.linkCkptDue(0,10,200000),A.linkCkptDue(1000,500,200000),A.linkCkptDue(1000,1500,200000),A.linkCkptDue(1000,1500,60000)],[true,false,true,false]);}
   ok('lien d’app : l’écriture relit sa lecture',['search','sessions','create','pins','libs'].every(g=>A.deepLinkFromHash(A.appLinkFrag(g)).go===g)
     &&A.deepLinkFromHash(A.appLinkFrag('lib','')).id==='perso'&&A.deepLinkFromHash(A.appLinkFrag('coll','c_1')).id==='c_1');
   ok('un code invalide dans le fragment est rejeté, pas corrigé',
