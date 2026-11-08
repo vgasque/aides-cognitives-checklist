@@ -2636,13 +2636,34 @@
   .ctg-f svg{transform:rotate(90deg)}
   .ctg-f:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .ctg-raz{min-height:36px}
+  /* A602 — LES VOLETS (large). La page s'affranchit de sa largeur de dialogue ; trois colonnes ≥ 1200 px effectifs
+     (bibliothèques · catégories · éléments), deux en deçà (les catégories se déplient sous leur bibliothèque). */
+  .home-main>.hv-page.ctg-volets{max-width:none;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
+  .home-main>.hv-page.ctg-volets.a-v2{grid-template-columns:280px 240px minmax(0,1fr)}
+  html.zw1200 .home-main>.hv-page.ctg-volets.a-v2{grid-template-columns:280px minmax(0,1fr)}   /* (0,4,0) contre (0,3,0) : la spécificité tranche, pas l'ordre */
+  .ctg-v1,.ctg-v2{position:sticky;top:0}
+  .ctg-v2t{margin:2px 4px 12px;font-size:var(--t-step);font-weight:800}
+  .ctg-nest{display:none;padding-left:16px;background:var(--amb)}
+  html.zw1200 .ctg-nest{display:block}
+  html.zw1200 .ctg-v2{display:none}
+  .ctg-row[aria-current="true"]{background-color:var(--primary-soft)}
+  .ctg-row[aria-current="true"] .ctg-l{color:var(--act)}
+  .ctg-main{min-width:0}
+  .ctg-volets .ctg-row{min-height:48px}
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
-  .tb-tabs{touch-action:none}
-  .tb-tabs.drag .tb-tab.on:not(.pre){background:none;color:var(--ink)}
+  .tb-tabs{position:relative;touch-action:none}
+  /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
+  .tb-pill{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:var(--act);
+    transition:transform .3s cubic-bezier(.3,1.2,.4,1)}   /* la largeur se pose d'un coup (check-anim : jamais de layout animé), le glissé est un transform */
+  .tb-tabs.drag .tb-pill{transition:none}
+  html.tabnav .tb-tab.on{background:none}
+  .tb-tabs.drag .tb-tab.on:not(.pre){color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){.tb-pill{transition:none}}
   /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
      de la largeur de son mot, le reste se partage. */
   .tb-tab{flex:1 1 auto;padding:0 8px}
-  .tb-tab.pre{background:var(--act);color:var(--on-primary)}
+  .tb-tab{z-index:1}
+  .tb-tab.pre{color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
   .hc-ic{flex:none;display:inline-flex;color:var(--act)}
   .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

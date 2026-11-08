@@ -8994,7 +8994,9 @@ await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async (
       const s=document.querySelector('[data-tab="sessions"]');s.classList.add('live');
       const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--act)';document.body.appendChild(sonde);const act=getComputedStyle(sonde).backgroundColor;sonde.remove();
       const on=document.querySelector('.tb-tab.on'),av=document.querySelector('.tb-av');
-      return {plein:getComputedStyle(on).backgroundColor===act,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
+      /* A603 : la pastille pleine est un objet à part (`.tb-pill`), posé sous l'onglet actif — c'est elle qui porte --act. */
+      const pl=document.querySelector('.tb-pill'),pr=pl&&pl.getBoundingClientRect(),orr=on.getBoundingClientRect();
+      return {plein:!!pl&&getComputedStyle(pl).backgroundColor===act&&Math.abs(pr.left-orr.left)<=2&&Math.abs(pr.width-orr.width)<=2,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
     t(`A539 · ${th} : l'onglet actif est une pastille pleine (--act)`,r.plein,JSON.stringify(r));
     t(`A539 · ${th} : connecté, le disque de l'avatar est bordé ; le point vivant a son anneau`,/inset/.test(r.av)&&r.point!=='none',JSON.stringify(r));
     await page.close();
@@ -9331,7 +9333,7 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
    Onglet « Bibliothèques » (téléphone) / rangée de la colonne (large) : racine (« Tout » + les bibliothèques), une
    bibliothèque (SES catégories), une catégorie (ses éléments, sans redire bibliothèque ni catégorie), « Tout » filtrable
    et sélectionnable ; l'état de l'accueil n'est pas touché ; le dock se glisse d'un onglet à l'autre. */
-await sec('Accueil · A601 catalogue et dock glissé', async () => {
+await sec('Accueil · A601-A603 catalogue, volets, retour, dock glissé', async () => {
   const decor=async()=>{myLibraries=[{id:'smur',name:'SMUR 75',role:'editor'},{id:'bloc',name:'Bloc central',role:'viewer'}];
     categories.push({id:'kc',name:'Cardio',color:'#c2410c',library:'smur'},{id:'kp',name:'Pédiatrie',color:'#7c3aed',library:'smur'},{id:'ka',name:'Anesthésie',color:'#1d4ed8',library:'bloc'});
     const base=JSON.parse(JSON.stringify(fiches[0]));
@@ -9346,13 +9348,16 @@ await sec('Accueil · A601 catalogue et dock glissé', async () => {
       const porte=W<780?q('.tb-tab[data-tab="biblio"]'):q('[data-navbiblio]');o.porte=!!porte;
       if(W<780){const sp=porte.querySelector('span');o.motEntier=sp.scrollWidth<=sp.clientWidth+1;}
       porte.click();await __acCalme(300);
-      o.racine={tout:!!q('[data-ctgtout]'),libs:qa('[data-ctglib]').map(b=>b.dataset.ctglib).sort().join()};
-      q('[data-ctglib="smur"]').click();await __acCalme(250);
-      o.smur={titre:(q('.pg-ttl,.ctg-th .hv-title')||{}).textContent,cats:qa('[data-ctgcat]').map(b=>b.dataset.ctgcat).join()};
-      q('[data-ctgcat="kc"]').click();await __acCalme(250);
+      const vq=s=>[...document.querySelectorAll(s)].find(e=>e.getClientRects().length)||q(s);   // l'élément VISIBLE (en large, les catégories existent deux fois)
+      o.racine={tout:!!vq('[data-ctgtout]'),libs:qa('[data-ctglib]').map(b=>b.dataset.ctglib).sort().join()};
+      vq('[data-ctglib="smur"]').click();await __acCalme(250);
+      o.smur={titre:(vq('.pg-ttl,.ctg-v2t')||{}).textContent,cats:[...new Set(qa('[data-ctgcat]').filter(b=>b.getClientRects().length).map(b=>b.dataset.ctgcat))].join(),volets:W>=780?getComputedStyle(q('.ctg-volets')).gridTemplateColumns.split(' ').length:0};
+      vq('[data-ctgcat="kc"]').click();await __acCalme(250);
       o.cardio={rangs:qa('[data-open]').length,libtag:qa('.dir-book .libtag').length,parCat:!!q('.dir-book.by-cat')};
-      q('[data-ctgback]').click();await __acCalme(200);o.retour1=(q('.pg-ttl,.ctg-th .hv-title')||{}).textContent;
-      q('[data-ctgback]').click();await __acCalme(200);q('[data-ctgtout]').click();await __acCalme(250);
+      // A602 : le geste « retour » du système remonte d'un niveau (catégorie → bibliothèque)
+      history.back();await new Promise(r=>setTimeout(r,1300));o.retour1=JSON.stringify(state.cnav);
+      if(W<780){vq('[data-ctgback]').click();await __acCalme(200);}
+      vq('[data-ctgtout]').click();await __acCalme(250);
       o.tout={n:qa('[data-open]').length,filtres:qa('[data-ctgf]').map(b=>b.dataset.ctgf).join()};
       q('[data-ctgf="lib"]').click();await __acCalme(300);q('.popmenu [data-pickopt="bloc"]').click();await __acCalme(300);
       o.toutBloc=qa('[data-open]').length;o.lectureSansSel=!document.getElementById('selTog');   // « Bloc central » en lecture : rien à sélectionner
@@ -9365,9 +9370,9 @@ await sec('Accueil · A601 catalogue et dock glissé', async () => {
     const k=`${W} px`;
     t(`${k} : A601 — la porte du catalogue existe${W<780?', son mot n’est pas rogné':''}`,r.porte&&(W>=780||r.motEntier),JSON.stringify(r));
     t(`${k} : A601 — racine : « Tout » puis les bibliothèques`,r.racine.tout&&r.racine.libs===',bloc,smur',JSON.stringify(r.racine));
-    t(`${k} : A601 — une bibliothèque montre SES catégories`,r.smur.titre==='SMUR 75'&&r.smur.cats==='kc,kp',JSON.stringify(r.smur));
+    t(`${k} : A601 — une bibliothèque montre SES catégories${W>=780?' (A602 : trois volets à 1280)':''}`,r.smur.titre==='SMUR 75'&&r.smur.cats==='kc,kp'&&(W<780||r.smur.volets===3),JSON.stringify(r.smur));
     t(`${k} : A601 — une catégorie montre ses éléments, sans redire bibliothèque ni catégorie`,r.cardio.rangs===2&&r.cardio.libtag===0&&r.cardio.parCat,JSON.stringify(r.cardio));
-    t(`${k} : A601 — le retour remonte d'un niveau`,r.retour1==='SMUR 75',String(r.retour1));
+    t(`${k} : A602 — le geste « retour » du système remonte d'un niveau (catégorie → bibliothèque)`,r.retour1==='{"lib":"smur"}',String(r.retour1));
     t(`${k} : A601 — « Tout » : tous les éléments, filtres Type · Bibliothèque · Catégorie · Trier ; le filtre agit`,r.tout.n>=7&&r.tout.filtres==='type,lib,cat,sort'&&r.toutBloc===2&&r.lectureSansSel&&!r.manque,JSON.stringify({t:r.tout,b:r.toutBloc,l:r.lectureSansSel,m:r.manque}));
     t(`${k} : A601 — la sélection marche dans « Tout »`,r.sel.barre&&r.sel.compte==='1 coché',JSON.stringify(r.sel));
     t(`${k} : A601 — l'accueil garde ses filtres (aucun mélange d'état)`,r.accueil.lib==null&&!r.accueil.cat&&!r.accueil.coll,JSON.stringify(r.accueil));
@@ -9381,7 +9386,17 @@ await sec('Accueil · A601 catalogue et dock glissé', async () => {
       const pendant=await page.evaluate(()=>document.querySelector('.tb-tab.pre')?.dataset.tab||'');
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await calme(page,400);
       const apres=await page.evaluate(()=>homeTab());
-      t(`${k} : A601 — le dock se glisse : la pastille suit le doigt, l'onglet sous le doigt s'ouvre au relâchement`,pendant==='me'&&apres==='me',JSON.stringify({pendant,apres}));}
+      t(`${k} : A601 — le dock se glisse : la pastille suit le doigt, l'onglet sous le doigt s'ouvre au relâchement`,pendant==='me'&&apres==='me',JSON.stringify({pendant,apres}));
+      // A603 : la pastille est un objet qui GLISSE (transition sur transform) et se pose sous l'onglet courant.
+      const pil=await page.evaluate(async()=>{const p=document.querySelector('.tb-pill');if(!p)return null;
+        const pos=()=>{const r=p.getBoundingClientRect(),t=document.querySelector('.tb-tab.on').getBoundingClientRect();return {dx:Math.round(Math.abs(r.left-t.left)),dw:Math.round(Math.abs(r.width-t.width))};};
+        const repos=pos();document.querySelector('.tb-tab[data-tab="aides"]').click();
+        await new Promise(r=>setTimeout(r,60));   // horloge : 60 ms dans la transition de 300 ms — la pastille doit être EN ROUTE
+        const encours=pos();
+        await new Promise(r=>setTimeout(r,600));   // horloge : au-delà de la transition — la pastille doit être POSÉE
+        return {repos,encours,pose:pos(),trans:getComputedStyle(p).transitionProperty};},);
+      t(`${k} : A603 — la pastille du dock glisse d'un onglet à l'autre et se pose sous l'onglet courant`,
+        !!pil&&pil.repos.dx<=2&&pil.encours.dx>8&&pil.pose.dx<=2&&pil.pose.dw<=2&&/transform/.test(pil.trans),JSON.stringify(pil));}
     await ctx.close();}
 });
 

@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.102.0] — 2026-11-08
+Le catalogue des bibliothèques gagne le geste « retour » et des volets sur grand écran (A602). Rien à rejouer côté
+serveur.
+- **Le geste « retour » remonte d'un niveau** dans le catalogue : d'une catégorie à sa bibliothèque, puis à la liste
+  des bibliothèques — au téléphone comme sur ordinateur.
+- **Des volets sur tablette et ordinateur** : les bibliothèques à gauche, les catégories de celle choisie au milieu
+  (sur un écran assez large ; sinon elles se déplient sous la bibliothèque), et les aides à droite. « Tout » s'affiche
+  d'office.
+- **La pastille du dock glisse** d'un onglet à l'autre, comme celle des sélecteurs de Moi — au tap comme en faisant
+  glisser le doigt (A603).
+
 ## [5.101.0] — 2026-11-08
 Premier pas de la nouvelle architecture (A601, lot 1 d'A600) : un catalogue des bibliothèques, ajouté sans rien
 retirer à l'accueil. Rien à rejouer côté serveur.
@@ -222,8 +233,3 @@ Correctif d'affichage du rail du bureau (A573). Rien à rejouer côté serveur.
   le nom et le temps sur la première ligne, puis la barre, l'état, et « Relancer » / « ↺ maintenir » sur leur ligne.
 - **La consignation d'un compteur** (« consigné T+00:42 · il y a 23:20 ») passe sous le nom du compteur, en petit,
   au lieu d'être collée sous les boutons − / +.
-
-## [5.89.1] — 2026-11-06
-Correctif de la v5.89.0 (A571). Rien à rejouer côté serveur.
-- À 320 px, la capsule dit de nouveau combien de minuteurs elle cache (« 1 minuteur ») : le nouveau chevron lui prenait
-  la place, et le mot disparaissait quand le texte est rendu un peu plus large (constaté sur la CI Linux).
