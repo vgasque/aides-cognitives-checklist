@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xd9PHqYRk7Rqq8T0KAgUeP71AunIpvIjay9ADwHk/2s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sFrSuZLuO5JnQCqP4Hu7hP2akmPbmDMZ3WVO+z5lMI0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8765,6 +8765,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sa largeur propre (une capture de 500 px restait à 500 px : tirée au-delà de ¾, elle RÉTRÉCISSAIT). */
   .md-fig img{width:100%;max-width:100%;height:auto;border-radius:var(--r-1);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  /* A642 : l'image d'un élément de liste — sous le texte de l'élément, à sa largeur, plafonnée (300 px) : elle illustre
+     une étape, elle ne coupe pas la liste. Aucune taille réglable ici (« Pleine » n'a pas de sens dans une liste). */
+  .md-fig.md-lfig{margin:8px 0 12px;max-width:300px}
   /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
      téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
   @media (min-width:560px){
@@ -10307,7 +10310,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.9';
+const APP_VERSION='5.110.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11027,19 +11030,31 @@ function mdInline(s){const h=esc(sstr(s,4000));
 function mdBlocks(src){
   const lines=sstr(src,MD_MAX_CHARS).split('\n').slice(0,MD_MAX_LINES);
   // `ln` (v5.44) : ligne source du bloc — l'aperçu de l'éditeur relie chaque bloc à son texte.
-  const out=[];let list=null,lstk=[],para=[],paraLn=0,quote=null,code=null;
+  const out=[];let list=null,lstk=[],para=[],paraLn=0,quote=null,code=null,blank=false,lastImg=false;
   const flushPara=()=>{if(para.length){out.push({t:'p',lines:para,ln:paraLn});para=[];}};
   const flushList=()=>{if(list){out.push(list);list=null;}};
   const flushQuote=()=>{if(quote){out.push(quote);quote=null;}};
   const flushAll=()=>{flushPara();flushList();flushQuote();};
   // Item de liste : la sémantique « [ ] »/« [x] » vit dans mdTask (une seule source, v4.5.4).
   const listItem=t=>{const tk=mdTask(t);return tk?{text:tk.text,sub:null,task:{done:tk.done}}:{text:t,sub:null,task:null};};
+  /* A642 — UNE IMAGE VIT DANS L'ÉLÉMENT DE LISTE QU'ELLE ILLUSTRE (planche « Images dans les listes », forme A retenue
+     par l'auteur). Une ligne image SEULE et INDENTÉE, sous une liste ouverte, appartient au dernier élément dont le
+     retrait est inférieur au sien (`it.imgs`, champ ADDITIF) : la liste ne se ferme pas, la numérotation continue. Une
+     ligne vide dans une liste ne la ferme plus d'office : elle ne la ferme que si ce qui suit n'est ni une image
+     indentée, ni — juste après une image d'élément — un nouvel élément (c'est la forme exacte de l'export Notion).
+     Une image NON indentée reste un bloc pleine colonne (inchangé). */
+  const IMG_RX=/^(\s*)!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/,LI_RX=/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/;
   for(let i=0;i<lines.length;i++){const l=lines[i];let m;
     // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
     // (Branche EN PREMIER : un « | » dans du code ne doit jamais devenir un tableau.)
     if(code){if(/^```/.test(l)){out.push(code);code=null;}else code.lines.push(l);continue;}
+    if(/^\s*$/.test(l)){if(list&&!para.length&&!quote){blank=true;continue;}flushAll();continue;}
+    if(blank){blank=false;const im=l.match(IMG_RX);if(!((im&&im[1].length>0)||(lastImg&&LI_RX.test(l))))flushList();}
+    if(list&&(m=l.match(IMG_RX))&&m[1].length>0){const ind=m[1].length;
+      let k=lstk.length-1;while(k>0&&lstk[k].ind>=ind)k--;
+      const its=lstk[k].lst.items,it=its[its.length-1];
+      if(it){lstk.length=k+1;(it.imgs=it.imgs||[]).push({caption:m[2],id:m[3],ln:i});lastImg=true;continue;}}
     if(/^```/.test(l)){flushAll();code={t:'code',lines:[],ln:i};continue;}
-    if(/^\s*$/.test(l)){flushAll();continue;}
     // TABLEAU (v4.4.2) : ligne de cellules SUIVIE d'une ligne de séparation. Le nombre de colonnes
     // est normalisé sur l'en-tête (lignes trop courtes complétées, trop longues tronquées) : jamais
     // de tableau déformé. L'alignement vient d'un jeu FERMÉ ('' | 'l' | 'c' | 'r'), jamais du texte.
@@ -11053,7 +11068,7 @@ function mdBlocks(src){
       i=j-1;continue;}
     if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2],ln:i});continue;}
     if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr',ln:i});continue;}
-    if((m=l.match(/^!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/))){flushAll();out.push({t:'img',caption:m[1],id:m[2],ln:i});continue;}
+    if((m=l.match(IMG_RX))){flushAll();out.push({t:'img',caption:m[2],id:m[3],ln:i});continue;}
     // Citation, éventuellement TYPÉE : le marqueur de registre n'est lu que sur la PREMIÈRE ligne
     // du bloc (les suivantes appartiennent au même encadré, comme les alerts de GitHub).
     if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();
@@ -11076,7 +11091,7 @@ function mdBlocks(src){
       if(ind>top.ind&&top.lst.items.length&&lstk.length<MD_MAX_DEPTH){const last=top.lst.items[top.lst.items.length-1];
         if(!last.sub)last.sub={t:st,items:[]};lstk.push(top={ind,lst:last.sub});}
       else while(lstk.length>1&&ind<top.ind){lstk.pop();top=lstk[lstk.length-1];}
-      top.lst.items.push(listItem(m[3]));continue;}
+      top.lst.items.push(listItem(m[3]));lastImg=false;continue;}
     flushList();flushQuote();if(!para.length)paraLn=i;para.push(l);}
   if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
   flushAll();return out;}
@@ -11100,10 +11115,22 @@ function mdRender(src,ctx){ctx=ctx||{};
   // (bindProtoTasks). La coche SVG est toujours émise (masquée hors .done par le CSS) : le toggle
   // ne manipule que des classes, jamais d'innerHTML.
   let tk=0;
+  /* Figure d'une image : le bloc pleine colonne ET l'image d'un élément de liste (A642, `md-lfig` : à la largeur du
+     texte de l'élément, plafonnée — la taille « Pleine » n'a pas de sens dans une liste). */
+  const figHtml=(id,caption,cls)=>{const im=imgs[id];if(!im)return '';const cap=caption||im.caption||'';
+    // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
+    // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
+    const data=safeImg(im.data);if(!data)return '';
+    const dim=(im.w&&im.h)?' width="'+im.w+'" height="'+im.h+'"':'';
+    // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
+    // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
+    // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
+    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+  const imgsHtml=it=>it.imgs?it.imgs.map(x=>figHtml(x.id,x.caption,' md-lfig')).join(''):'';
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
-    ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+subHtml(it)+'</span></li>'
-    :'<li>'+mdInline(it.text)+subHtml(it)+'</li>';
+    ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
+    :'<li>'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</li>';
   // Alignement des cellules : TABLE BLANCHE fermée au point d'insertion (défense en profondeur —
   // même idiome que la revalidation safeImg plus bas). Aucune valeur issue du texte utilisateur
   // n'atteint jamais un attribut ; le CONTENU des cellules passe par mdInline (donc esc() d'abord),
@@ -11134,15 +11161,7 @@ function mdRender(src,ctx){ctx=ctx||{};
       return '<blockquote class="md-q md-call '+k+'"><span class="mc-k">'+calloutIcon(k)+MD_CALL_LBL[k]+'</span>'+body+'</blockquote>';}
     if(b.t==='code')return '<pre class="md-code"><code>'+esc(b.lines.join('\n'))+'</code></pre>';
     if(b.t==='hr')return '<hr class="md-hr">';
-    if(b.t==='img'){const im=imgs[b.id];if(!im)return '';const cap=b.caption||im.caption||'';
-      // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
-      // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
-      const data=safeImg(im.data);if(!data)return '';
-      const dim=(im.w&&im.h)?' width="'+im.w+'" height="'+im.h+'"':'';
-      // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
-      // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
-      // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
-      return '<figure class="md-fig'+(MD_SC[im.scale]||'')+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
+    if(b.t==='img')return figHtml(b.id,b.caption);
     return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';})(),b)).join('');}
 /* ═══ A171 — LES TITRES D'UNE RÉFÉRENCE SE REPLIENT ═══════════════════════════════════════════
    ⚠ Construit APRÈS le rendu, jamais dans `mdRender` (le parseur reste PUR et NON interactif —
@@ -11250,7 +11269,7 @@ function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     // Marqueur de liste D'ABORD, puis marqueur de tâche : « - [x] Fait » -> « Fait » (un « [x] »
     // ne doit jamais faire matcher une recherche « x »).
     .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'').replace(MD_TASK_RX,'')
-    .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
+    .replace(/^\s*!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
     .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
   .join(' ').replace(MD_B4_RX,'$1').replace(MD_B4O_RX,'$1$2').replace(MD_B4F_RX,'$1$2$3').replace(MD_BI_RX,'$1').replace(MD_BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_STRIKE_RX,'$1').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
 const main=document.getElementById('main');
@@ -18965,7 +18984,16 @@ function mdBlkToolsHtml(src,p){
   const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
   if(data)return `<div class="mdb-imgv">${mdSizeHtml(im,'data-mdbscale')}</div><div class="mdb-tools">`
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
+  // A642 : une liste qui porte des images d'élément — les rendre à un bloc pleine colonne, d'un toucher.
+  {const n=mdUnlistN(src);if(n)return `<div class="mdb-tools"><button type="button" class="mdb-chip" data-mdbunlist>${uiIcon('camera',14)}${n>1?'Sortir les '+n+' images de la liste':'Sortir l’image de la liste'}</button></div>`;}
   return '';}
+/* A642 — « SORTIR L'IMAGE DE LA LISTE » : les lignes image INDENTÉES d'une liste (images d'élément) passent après la
+   liste, chacune en bloc pleine colonne (la forme d'avant). Fonction PURE (?__actest). */
+const MD_LIMG_RX=/^\s+!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/;
+const mdUnlistN=src=>{const L=String(src||'').split('\n');return /^\s*(?:[-*]|\d{1,3}[.)])\s/.test(L[0]||'')?L.filter(l=>MD_LIMG_RX.test(l)).length:0;};
+function mdUnlistImgs(src){const L=String(src||'').split('\n'),im=L.filter(l=>MD_LIMG_RX.test(l)).map(l=>l.trim());if(!im.length)return String(src||'');
+  const rest=L.filter(l=>!MD_LIMG_RX.test(l)).join('\n').replace(/\n[ \t]*\n(?:[ \t]*\n)+/g,'\n\n').replace(/\n\s*\n(?=\s*(?:[-*]|\d{1,3}[.)])\s)/g,'\n').replace(/\s+$/,'');
+  return rest+'\n\n'+im.join('\n\n');}
 /* A549 — DÉPLACER UN BLOC = « PRENDRE / POSER », LE GESTE DE L'ÉDITEUR D'AIDE (MK5-b, v4.75.0-v4.79.0) : la poignée ⠿
    soulève le bloc (« ⠿ en déplacement », bandeau qui le nomme, ✕), la page se réécrit en cibles « Poser ici » pleine
    largeur, un toucher le pose ; Échap, ✕ ou le bloc lui-même l'annulent ; commencer à glisser la poignée AMORCE le mode.
@@ -19098,6 +19126,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       mdSplice(t,0,t.value.length,T[3]);
       if(v==='hr'){open=-1;paint(false);return;}
       const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],at=ph?T[3].lastIndexOf(ph):-1;if(at>=0)t.setSelectionRange(at,at+ph.length);return;}
+    if(e.target.closest('[data-mdbunlist]')){const t=doc.querySelector('.mdb-ta');if(!t)return;t.focus({preventScroll:true});mdSplice(t,0,t.value.length,mdUnlistImgs(t.value));open=-1;paint(false);return;}
     if(e.target.closest('[data-mdbgrid]')){const t=doc.querySelector('.mdb-ta');if(t){t.focus({preventScroll:true});t.setSelectionRange(0,0);mdTblOpen(t);}return;}
     const rp=e.target.closest('[data-mdbrepl]');if(rp){const im=(p.images||[]).find(x=>x.id===rp.dataset.mdbrepl);if(!im)return;
       pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
@@ -19595,7 +19624,7 @@ function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.le
      ni laquelle ni à quelle taille. Posée en absolu : elle ne prend aucune place dans la ligne (métriques du champ). */
   const IM=Object.create(null);(imgs||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)IM[im.id]=im;});const brk=new Map();
   let o=0,code=false,qk=0;
-  v.split('\n').forEach(l=>{{const mi=!code&&l.match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/),im=mi&&IM[mi[1]],src=im&&safeImg(im.data);
+  v.split('\n').forEach(l=>{{const mi=!code&&l.match(/^\s*!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/),im=mi&&IM[mi[1]],src=im&&safeImg(im.data);
       if(src)brk.set(o+l.replace(/\s+$/,'').length,`<span class="hl-imc" data-s="${esc((im.scale||100)+' %')}"><img src="${src}" alt=""></span>`);}const set=(i,n,b)=>{for(let k=o+i,e=Math.min(o+i+n,C.length);k<e;k++)C[k]|=b;};let m;
     if(/^```/.test(l)){code=!code;set(0,l.length,1);}
     else if(!code){
@@ -19639,7 +19668,11 @@ const MI_FOLD=8;
 let _miAll=null,_miCtx=null,_miId=null;
 const _miGo=Object.create(null);   // passage visé ensuite, par image (« Aller au passage » fait le tour)
 // Usages d'une image dans le corps — MÊME critère que le ménage de sortie (`leaveGC`) : une ligne `![…](img:ID)` seule.
-function miUses(body){const n=Object.create(null);mdBlocks(body||'').forEach(b=>{if(b.t==='img')n[b.id]=(n[b.id]||0)+1;});return n;}
+/* A642 : les images d'un élément de liste (`it.imgs`, à toute profondeur) comptent comme les autres — sans quoi le
+   ménage de sortie retirerait une image importée de Notion. Une seule source pour les deux lecteurs. */
+function mdImgIds(blocks){const out=[];const walk=items=>(items||[]).forEach(it=>{if(!it||typeof it!=='object')return;(it.imgs||[]).forEach(x=>out.push(x.id));if(it.sub)walk(it.sub.items);});
+  (blocks||[]).forEach(b=>{if(b.t==='img')out.push(b.id);else if(b.t==='ul'||b.t==='ol')walk(b.items);});return out;}
+function miUses(body){const n=Object.create(null);mdImgIds(mdBlocks(body||'')).forEach(id=>{n[id]=(n[id]||0)+1;});return n;}
 const miLineRx=id=>new RegExp('^\\s*!\\[[^\\]]*\\]\\(img:'+String(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\)\\s*$');
 const miName=(im,i)=>im.caption||('Image '+(i+1));
 function miCardHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
@@ -19753,7 +19786,7 @@ function renderProtocolEdit(){
     /* Ménage de SORTIE : une image que plus aucune ligne du corps ne référence est du poids
        mort. Destructif, donc jamais pendant la frappe — retirer une référence pour la
        remettre trois mots plus loin ne doit pas coûter l'image. */
-    leaveGC:d=>{const used=new Set();mdBlocks(d.body||'').forEach(b=>{if(b.t==='img')used.add(b.id);});
+    leaveGC:d=>{const used=new Set(mdImgIds(mdBlocks(d.body||'')));
       const gardees=(d.images||[]).filter(im=>used.has(im.id));
       if(gardees.length!==(d.images||[]).length){d.images=gardees;const i=protocols.findIndex(x=>x.id===d.id);
         if(i>=0){const c=edSnapshot('p');if(c){c.images=gardees;persistProtocol(c);protocols[i]=c;}}}},
@@ -30618,8 +30651,11 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
     // Lien vers une autre page de l'export (`…%20abc123.md`) : la page n'est pas là — on garde le texte.
     l=l.replace(/(^|[^!])\[([^\]]*)\]\(([^)]+\.md)\)/gi,(_,a,t)=>a+t);
     // Une image se pose seule sur sa ligne (le mini-Markdown ne reconnaît qu'une image par ligne, en tête).
+    /* A642 : l'image GARDE son retrait — sous un élément de liste, elle appartient à cet élément (mdBlocks). Une image
+       sur la ligne même d'un élément (« - texte ![](…) ») prend le retrait du texte de l'élément. */
     if(l.includes('![')){const parts=[];let last=0,m;NOTION_IMG.lastIndex=0;
-      while((m=NOTION_IMG.exec(l))){const av=l.slice(last,m.index);if(av.trim())parts.push(av.replace(/\s+$/,''));const r=img(m[1],m[2]);if(r)parts.push('\n'+r+'\n');last=m.index+m[0].length;}
+      const lm=l.match(/^(\s*)(?:[-*]|\d{1,3}[.)])\s+/),indent=lm?' '.repeat(lm[0].length):(l.match(/^\s*/)[0]);
+      while((m=NOTION_IMG.exec(l))){const av=l.slice(last,m.index);if(av.trim())parts.push(av.replace(/\s+$/,''));const r=img(m[1],m[2]);if(r)parts.push('\n'+(/^!\[/.test(r)?indent:'')+r+'\n');last=m.index+m[0].length;}
       const ap=l.slice(last);if(ap.trim())parts.push(ap.trim());
       l=parts.join('\n').replace(/^\n+|\n+$/g,'');
       if(!l)continue;}
@@ -36461,7 +36497,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

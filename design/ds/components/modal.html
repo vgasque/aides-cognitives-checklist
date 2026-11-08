@@ -8370,6 +8370,9 @@
      sa largeur propre (une capture de 500 px restait à 500 px : tirée au-delà de ¾, elle RÉTRÉCISSAIT). */
   .md-fig img{width:100%;max-width:100%;height:auto;border-radius:var(--r-1);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  /* A642 : l'image d'un élément de liste — sous le texte de l'élément, à sa largeur, plafonnée (300 px) : elle illustre
+     une étape, elle ne coupe pas la liste. Aucune taille réglable ici (« Pleine » n'a pas de sens dans une liste). */
+  .md-fig.md-lfig{margin:8px 0 12px;max-width:300px}
   /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
      téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
   @media (min-width:560px){
