@@ -8620,35 +8620,73 @@ await sec('Accueil · A545 le titre choisit', async () => {
   await page.close();
 });
 
-/* ══ A546 — L'ÉDITEUR DE RÉFÉRENCE EN MARKDOWN : RENDU À PARTS ÉGALES, SECTIONS PAR LE PLAN ════════════════════════
-   Mode Markdown (interrupteur « Mise en forme en direct » coupé, A547) : à partir de 1000, source et rendu à parts égales,
-   le rendu suit le défilement du champ ; le Plan déplace la section courante. (La bande au-dessus du clavier d'A546 est
-   RETIRÉE, A547 : refusée par l'auteur.) */
-await sec('Éditeur · A546 Markdown à parts égales, sections par le Plan', async () => {
+/* ══ A593 (amende A546) — L'ÉTABLI DE L'ÉDITEUR DE RÉFÉRENCE : ALIGNÉ, LIÉ, LA POIGNÉE RÈGLE LA PART ══════════════════
+   Mode Markdown (interrupteur « Mise en forme en direct » coupé, A547), dès 780 : texte | poignée | aperçu partent de la
+   même ligne, à la même hauteur ; le défilement est lié dans les DEUX sens (une ligne et son bloc à la même hauteur) ; la
+   poignée se tire (aimantée), se règle au clavier, et sa part est retenue sur l'appareil ; la relecture est un badge
+   replié dans la tête de l'aperçu. Le Plan déplace la section courante (A546, inchangé). (La bande au-dessus du clavier
+   d'A546 reste RETIRÉE, A547 : refusée par l'auteur.) */
+await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', async () => {
   const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d'abord : **0,5 mg**\n\n## Posologie\n\n| Âge | Dose |\n|---|---|\n| Adulte | 0,5 mg |\n\n"
     +Array.from({length:6},(_,i)=>`## Section ${i+1}\n\nTexte de la section ${i+1}, assez long pour remplir une ligne ou deux.\n\n- a\n- b\n`).join('\n');
   const page=await br.newPage({viewport:{width:1280,height:860}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
-  await page.evaluate(async c=>{try{localStorage.setItem('ac-mdlive','0');}catch(e){}const pr=migrateProtocol({title:'Témoin A546',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+  await page.evaluate(async c=>{try{localStorage.setItem('ac-mdlive','0');localStorage.removeItem('ac-mdsplit');}catch(e){}const pr=migrateProtocol({title:'Témoin A593',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
   await calme(page, 500);
-  const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),out={ecart2:null,actes:[],peek:!!document.querySelector('.md-peek,[data-mdpeek]')};
-    const g=getComputedStyle(document.querySelector('.read-grid')).gridTemplateColumns.split(' ').map(parseFloat);out.cols=g;
-    const t=document.getElementById('p-body'),s=document.getElementById('editSide');out.s0=s.scrollTop;
-    const L=t.value.split('\n').findIndex(l=>l==='## Section 3');t.scrollTop=mdLineTop(t,L);t.dispatchEvent(new Event('scroll'));await __acCalme(150);
-    const e=s.querySelector('.ep-md [data-ln="'+L+'"]');out.ecart=e?Math.round(e.getBoundingClientRect().top-s.getBoundingClientRect().top):null;out.s1=s.scrollTop;out.butee=s.scrollTop>=s.scrollHeight-s.clientHeight-1;
-    const L2=t.value.split('\n').findIndex(l=>l==='## Posologie');t.scrollTop=mdLineTop(t,L2);t.dispatchEvent(new Event('scroll'));await __acCalme(150);
-    const e2=s.querySelector('.ep-md [data-ln="'+L2+'"]');out.ecart2=e2?Math.round(e2.getBoundingClientRect().top-s.getBoundingClientRect().top):null;
+  const r=await page.evaluate(async()=>{const out={ecart:null,ecart2:null,actes:[],peek:!!document.querySelector('.md-peek,[data-mdpeek]')};
+    const g=document.getElementById('etabGrid');out.etabli=!!g&&!document.getElementById('editSide');if(!g)return out;
+    out.cols=getComputedStyle(g).gridTemplateColumns.split(' ').map(parseFloat);
+    const t=document.getElementById('p-body'),pv=document.getElementById('mdPreview'),top=e=>e.getBoundingClientRect().top;
+    out.memeLigne=Math.abs(top(t)-top(pv));out.hauteurs=Math.abs(t.getBoundingClientRect().height-pv.getBoundingClientRect().height);
+    out.badge=(()=>{const d=document.querySelector('.etab-rh #revPanel details');return d?!d.open:null;})();
+    {const d=document.getElementById('edAddOpenP');scrollTo(0,0);out.pied=d?Math.round(d.getBoundingClientRect().top-g.getBoundingClientRect().bottom):null;}
+    // la ligne L, posée en haut du champ, et son bloc dans l'aperçu : même hauteur à l'écran
+    const cs=getComputedStyle(t),pad=parseFloat(cs.borderTopWidth)+parseFloat(cs.paddingTop);
+    const ecart=L=>{const y=mdLineTops(t,[L])[0],e=pv.querySelector('[data-ln="'+L+'"]');return e?Math.round(top(e)-(top(t)+pad+y-t.scrollTop)):null;};
+    const L=t.value.split('\n').findIndex(l=>l==='## Section 3');
+    t.dispatchEvent(new Event('wheel'));t.scrollTop=mdLineTops(t,[L])[0];t.dispatchEvent(new Event('scroll'));await __acCalme(200);
+    out.s1=pv.scrollTop;out.ecart=ecart(L);out.butee=pv.scrollTop>=pv.scrollHeight-pv.clientHeight-1;
+    // sens inverse : défiler l'aperçu jusqu'à « Posologie » ramène le champ sur sa ligne
+    const L2=t.value.split('\n').findIndex(l=>l==='## Posologie'),e2=pv.querySelector('[data-ln="'+L2+'"]');
+    pv.dispatchEvent(new Event('wheel'));pv.scrollTop+=top(e2)-top(pv)-(parseFloat(getComputedStyle(pv).borderTopWidth)+parseFloat(getComputedStyle(pv).paddingTop));
+    pv.dispatchEvent(new Event('scroll'));await __acCalme(200);out.ecart2=ecart(L2);out.t2=t.scrollTop;
+    // Plan d'A546
     const i=t.value.indexOf('## Section 3');t.focus();t.setSelectionRange(i+3,i+3);t.dispatchEvent(new Event('keyup'));await __acCalme(100);
     document.querySelector('[data-mdplan]').click();await __acCalme(250);out.actes=[...document.querySelectorAll('.popmenu [data-pickopt^="act:"]')].map(b=>b.dataset.pickopt);
     const dn=document.querySelector('.popmenu [data-pickopt="act:down"]');if(!dn)return out;dn.click();await __acCalme(250);
     const v=t.value;out.ordre=v.indexOf('## Section 4')<v.indexOf('## Section 3');out.curseur=t.value.split('\n')[mdCaretLine(t)];
-    try{localStorage.removeItem('ac-mdlive');}catch(e){}
     return out;});
-  t('A546 · Markdown (≥ 1000) : source et rendu à parts égales',r.cols.length===2&&Math.abs(r.cols[0]-r.cols[1])<=1,JSON.stringify(r.cols));
-  t('A546 · le rendu suit le défilement du champ',r.s1>r.s0&&r.ecart!=null&&(Math.abs(r.ecart)<=40||r.butee)&&r.ecart2!=null&&Math.abs(r.ecart2)<=40,JSON.stringify(r));
+  t('A593 · l’établi remplace la colonne : texte | poignée | aperçu, moitié-moitié par défaut',r.etabli&&r.cols.length===3&&r.cols[1]===32&&Math.abs(r.cols[0]-r.cols[2])<=1,JSON.stringify(r.cols));
+  t('A593 · texte et aperçu partent de la même ligne, à la même hauteur',r.memeLigne<=1&&r.hauteurs<=1,JSON.stringify(r));
+  t('A593 · la relecture est un badge replié dans la tête de l’aperçu',r.badge===true,String(r.badge));
+  t('A593 · l’établi s’arrête au-dessus de la porte « Ajouter » (rien ne couvre la fin du texte ni du rendu)',r.pied!=null&&r.pied>=8,String(r.pied));
+  t('A593 · le rendu suit le champ : la ligne en haut et son bloc à la même hauteur',r.s1>0&&r.ecart!=null&&(Math.abs(r.ecart)<=4||r.butee),JSON.stringify(r));
+  t('A593 · et l’inverse : défiler l’aperçu ramène le champ sur la ligne du bloc',r.t2>0&&r.ecart2!=null&&Math.abs(r.ecart2)<=4,JSON.stringify(r));
   t('A546 · Plan : la section courante se déplace, le curseur la suit',r.actes.join(',')==='act:up,act:down,act:dup,act:del'&&r.ordre&&r.curseur==='## Section 3',JSON.stringify(r));
   t('A547 · la bande au-dessus du clavier est retirée (refusée)',!r.peek,String(r.peek));
+  // La poignée : tirée (aimantée à ⅔), au clavier, retenue sur l'appareil — et elle survit au rendu suivant.
+  const bb=await (await page.$('.etab-sep')).boundingBox();
+  const g=await (await page.$('#etabGrid')).boundingBox();
+  await page.mouse.move(bb.x+16,bb.y+bb.height/2);await page.mouse.down();
+  await page.mouse.move(g.x+16+(g.width-32)*0.66+5,bb.y+bb.height/2,{steps:6});
+  const pendant=await page.evaluate(()=>getComputedStyle(document.querySelector('.etab-pct')).visibility);
+  await page.mouse.up();
+  const tire=await page.evaluate(()=>({v:localStorage.getItem('ac-mdsplit'),cols:getComputedStyle(document.getElementById('etabGrid')).gridTemplateColumns.split(' ').map(parseFloat)}));
+  await page.focus('.etab-sep');await page.keyboard.press('Enter');await page.keyboard.press('ArrowRight');
+  const clav=await page.evaluate(()=>({v:localStorage.getItem('ac-mdsplit'),now:document.querySelector('.etab-sep').getAttribute('aria-valuenow'),txt:document.querySelector('.etab-sep').getAttribute('aria-valuetext')}));
+  await page.evaluate(()=>renderProtocolEdit());await calme(page,200);
+  const apres=await page.evaluate(()=>document.querySelector('.etab-sep').getAttribute('aria-valuenow'));
+  t('A593 · poignée tirée : part affichée pendant le geste, aimantée à ⅔, retenue sur l’appareil',
+    pendant==='visible'&&Math.abs(parseFloat(tire.v)-66.7)<0.1&&Math.abs(tire.cols[0]/(tire.cols[0]+tire.cols[2])-2/3)<0.01,JSON.stringify({pendant,tire}));
+  t('A593 · au clavier : Entrée = moitié-moitié, → +5 % ; la part survit au rendu',clav.v==='55'&&clav.now==='55'&&clav.txt==='Texte 55 %'&&apres==='55',JSON.stringify({clav,apres}));
+  // 880 : l'établi vaut dès 780 (il remplace la colonne de 280 d'A468).
+  await page.setViewportSize({width:880,height:800});await calme(page,300);
+  await page.evaluate(()=>{localStorage.removeItem('ac-mdsplit');renderProtocolEdit();});await calme(page,300);
+  const m=await page.evaluate(()=>{const g=document.getElementById('etabGrid');if(!g)return null;const t=document.getElementById('p-body'),pv=document.getElementById('mdPreview');
+    return {cols:getComputedStyle(g).gridTemplateColumns.split(' ').map(parseFloat),ligne:Math.abs(t.getBoundingClientRect().top-pv.getBoundingClientRect().top)};});
+  t('A593 · 880 px : l’établi aussi, aligné',!!m&&m.cols.length===3&&Math.abs(m.cols[0]-m.cols[2])<=1&&m.ligne<=1,JSON.stringify(m));
+  await page.evaluate(()=>{try{localStorage.removeItem('ac-mdlive');localStorage.removeItem('ac-mdsplit');}catch(e){}});
   await page.close();
 });
 

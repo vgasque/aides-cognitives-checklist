@@ -850,6 +850,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       &&A.mdSecMove(B,2,-1)===null&&A.mdSecMove(B,11,1)===null&&A.mdSecMove(B,5,-1)===null&&A.mdSecMove(B,0,1)===null
       &&dup.v==='Intro\n\n## A\na1\n\n### A.1\nx\n\n## B\nb1\n\n## B\nb1\n\n## C\nc1'&&dup.at===11
       &&del.v==='Intro\n\n## B\nb1\n\n## C\nc1'&&last.v.endsWith('## C\nc1\n\n## B\nb1');})());
+  /* A593 — l'établi : part du texte bornée (texte ≥ 360, aperçu ≥ 320 ; en deçà, 40 % / 35 % de la place) et aimantée à ⅓ ½ ⅔ à moins de 12 px. */
+  ok('A593 établi : bornes de la part du texte', (()=>{const [lo,hi]=A.mdsBounds(1200),[l2,h2]=A.mdsBounds(500);
+    return Math.abs(lo-30)<1e-9&&Math.abs(hi-100+320/12)<1e-9&&Math.abs(l2-40)<1e-9&&Math.abs(h2-65)<1e-9;})());
+  ok('A593 établi : aimantation et bornage', (()=>{const W=1200;
+    return Math.abs(A.mdsSnap(50.9,W,true)-50)<1e-9&&A.mdsSnap(50.9,W,false)===50.9&&A.mdsSnap(52,W,true)===52
+      &&Math.abs(A.mdsSnap(66,W,true)-200/3)<1e-9&&Math.abs(A.mdsSnap(5,W,true)-30)<1e-9&&Math.abs(A.mdsSnap(99,W,true)-(100-320/12))<1e-9
+      &&A.mdsSnap('x',W,false)===50;})());
   /* A547 — document par blocs : bornes, déplacer, dupliquer, supprimer, insérer ; jamais deux paragraphes fusionnés. */
   ok('A547 blocs : bornes en lignes, blancs de fin exclus', (()=>{const B='## T\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n\n| a |\n|---|\n| 1 |\n';
     const R=A.mdBlockRanges(B);return JSON.stringify(R.map(r=>[r.a,r.e]))==='[[0,1],[1,2],[3,5],[7,10]]'&&A.mdBlockRanges('').length===0;})());

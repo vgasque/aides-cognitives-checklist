@@ -945,6 +945,8 @@ demande un historique d'annulation propre ; à reprendre si le besoin de modifie
 source entière à un tap pour les longs copier-coller. Le WYSIWYG `contenteditable` reste écarté (A452-A459).
 Témoins : `tests.html` (calque et vignette, sections, bloc au curseur) ; `audit-doctrine` « Éditeur · A546 » (clavier
 émulé par `visualViewport.height` ; vérifié capable d'échouer : 5 rouges sur l'avant).
+*Amendé par A593 (v5.97.0, `lot-v5-97.md`) : en Markdown dès 780, « l'établi » — texte et rendu en deux cartes
+partant de la même ligne, liés dans les deux sens ; « à parts égales » devient la valeur par défaut d'une poignée.*
 
 ## A547 — Mise en forme en direct : le document s'édite par blocs (v5.76.0)
 
