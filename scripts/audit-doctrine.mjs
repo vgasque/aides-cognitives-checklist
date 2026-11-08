@@ -11053,6 +11053,25 @@ await sec('A637 · « Une image △ hors texte sera retirée… » ne paraît qu
   await page.close();
 });
 
+await sec('A638 · au bureau, les choix de l’atelier d’import sont des déroulants flottants, touchables, jamais coupés', async () => {
+  for(const H of [900,600]){
+    const page=await br.newPage({viewport:{width:1280,height:H}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>{protocols.push(migrateProtocol({id:'p638',title:'Existant',body:'',status:'draft'}));const T=s=>new TextEncoder().encode(s);readImportFile(new File([T('# Page\n\nTexte.')],'Page.md'));});
+    await page.waitForSelector('#impList .imp-row');await calme(page,300);
+    const r=await page.evaluate(async()=>{const o={};const mes=async sel=>{const b=document.querySelector(sel);if(!b)return null;b.click();await __acCalme(300);
+      const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('.mm-row'));if(!m)return {aucun:true};
+      const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect(),rows=[...m.querySelectorAll('.mm-row')].filter(x=>{const r=x.getBoundingClientRect();return r.top>=mr.top&&r.bottom<=mr.bottom;});
+      const res={feuille:m.classList.contains('sheet'),colle:Math.abs(mr.left-br.left)<=2&&(Math.abs(mr.top-br.bottom-6)<=2||Math.abs(br.top-6-mr.bottom)<=2),
+        touche:rows.length>0&&rows.every(x=>{const r=x.getBoundingClientRect(),h=document.elementFromPoint(r.left+15,r.top+r.height/2);return !!h&&m.contains(h);})};
+      if(_pickClose)_pickClose(false);await __acCalme(200);return res;};
+      o.cat=await mes('#impList [data-impcat]');o.dans=await mes('#impList [data-impinto]');o.bandeau=await mes('#impDestCat');return o;});
+    t(`1280×${H} · A638 : « Catégorie », « Dans » et le bandeau : un déroulant sous (ou sur) sa pastille, pas une feuille, chaque rangée visible touchable`,
+      ['cat','dans','bandeau'].every(k=>r[k]&&!r[k].feuille&&r[k].colle&&r[k].touche),JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

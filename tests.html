@@ -724,6 +724,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('att:__proto__ refusé', A.mdInline('[doc](att:__proto__)').indexOf('data-mdatt')<0);
   eq('balisage non apparié laissé visible', A.mdInline('a **b'), 'a **b');
   eq('A607 : ***gras italique***', A.mdInline('***x***'), '<b><i>x</i></b>');
+  eq('A639 : ****gras**** (Notion)', A.mdInline('1. ****Définir mode de stimulation :****'.replace(/^1\. /,'')), '<b>Définir mode de stimulation :</b>');
+  eq('A639 : *****x***** reste du gras', A.mdInline('*****x*****'), '<b>x</b>');
+  eq('A639 : gras qui ouvre un gras (Notion)', A.mdInline('****Fréquences cardiaques extrêmes** : > 150/min, < 40/min**'), '<b>Fréquences cardiaques extrêmes : &gt; 150/min, &lt; 40/min</b>');
+  eq('A639 : gras qui ferme un gras', A.mdInline('**a : **b****'), '<b>a : b</b>');
+  eq('A639 : deux gras voisins restent deux gras', A.mdInline('**a** et **b**'), '<b>a</b> et <b>b</b>');
+  ok('A640 : après une image qui coupe une liste, l’élément indenté suivant repart en liste (pas en texte « - … »)', (()=>{const bl=A.mdBlocks('- a\n\n![](img:x)\n\n        - suite');return bl.length===3&&bl[2].t==='ul'&&bl[2].items[0].text==='suite';})());
+  ok('A640 : une ligne indentée « - » DANS un paragraphe y reste', (()=>{const bl=A.mdBlocks('Texte\n    - pas une liste');return bl.length===1&&bl[0].t==='p';})());
   eq('A607 : gras contenant un italique', A.mdInline('**indications *systématiques* en AVP**'), '<b>indications <i>systématiques</i> en AVP</b>');
   eq('A607 : italique contenant un gras', A.mdInline('*a **b** c*'), '<i>a <b>b</b> c</i>');
   eq('A607 : ~~barré~~', A.mdInline('a ~~b~~ c'), 'a <s>b</s> c');
