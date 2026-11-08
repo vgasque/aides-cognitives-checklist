@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A616** à la v5.109 (lot v6.0 compris) (et ça continue — la
-prochaine est A617), attribués dans
+Les décisions de conception portent des numéros **A1 → A617** à la v5.109 (lot v6.0 compris) (et ça continue — la
+prochaine est A618), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -240,6 +240,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A614 | `lot-v5-107.md` | Le volet « Suivi » des deux éditeurs (colonne de droite au bureau, pied ailleurs), brouillon neuf compris ; « Ajouter une note personnelle » quitte aussi l'éditeur |
 | A615 | `lot-v5-107.md` | La pastille « n tâches » dans la ligne d'état sous le titre (option B, discrète) ouvre le suivi en feuille ; jamais en session ni dans la barre du haut |
 | A616 | `lot-v5-107.md` | La fenêtre d'une note / tâche passe au-dessus de la feuille « Suivi » et de « À faire » (ordre du document = ordre d'empilement) — elle ne se rouvrait plus |
+| A617 | `lot-v5-107.md` | Une collection ouverte depuis l'accueil a son « ‹ Accueil » (chevron seul sous 360 px) et devient un niveau du retour système (`collUp`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -10756,6 +10756,27 @@ await sec('A615 · la pastille « n tâches » sous le titre ouvre le suivi en f
   await page.close();
 });
 
+await sec('A617 · une collection ouverte depuis l’accueil a son « ‹ Accueil » et son geste retour', async () => {
+  for(const W of [390,320]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const ouvrir=()=>page.evaluate(async()=>{LANCEUR_SEUIL=0;if(!colls.some(c=>c.name==='Garde'))collNew('Garde',[fiches[0].id]);state.coll=null;render();await __acCalme(300);
+      if(!document.querySelector('[data-hcopen]')){document.querySelector('[data-hcoll]').click();await __acCalme(250);}document.querySelector('[data-hcopen]').click();await __acCalme(400);
+      const b=document.querySelector('.pg-top [data-collback]'),top=document.querySelector('.pg-top');
+      return {coll:!!state.coll,bouton:!!b,tient:!!b&&!!top&&[...top.querySelectorAll('button')].every(x=>{const r=x.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+0.5;})&&top.scrollWidth<=top.clientWidth+1};});
+    const a=await ouvrir();
+    const b=await page.evaluate(async()=>{document.querySelector('[data-collback]').click();await __acCalme(300);return {coll:state.coll,view:state.view};});
+    await ouvrir();await calme(page,600);
+    const d=await page.evaluate(()=>history.state&&history.state.d);
+    await page.goBack();await calme(page,600);
+    const c=await page.evaluate(()=>({coll:state.coll,view:state.view}));
+    t(`${W} px · A617 : collection ouverte → « ‹ Accueil » en haut à gauche, la rangée tient`,a.coll&&a.bouton&&a.tient,JSON.stringify(a));
+    t(`${W} px · A617 : « ‹ Accueil » referme la collection`,b.coll===null&&b.view==='library',JSON.stringify(b));
+    t(`${W} px · A617 : le geste retour du système aussi (une entrée d’historique), sans quitter l’app`,d>=1&&c.coll===null&&c.view==='library',JSON.stringify({d,c}));
+    await page.close();}
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
