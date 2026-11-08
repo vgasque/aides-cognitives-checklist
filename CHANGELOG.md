@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.109.7] — 2026-11-08
-Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625). Rien à rejouer côté serveur.
+Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
   rangée disparaît : le titre se présente comme un champ de texte (encadré gris léger, comme sur iOS), lisible en entier. Toucher le titre
   ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
@@ -15,6 +15,8 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A62
   maintenant AUSSI dans le suivi de l'élément visé (« Liées depuis d'autres éléments »), où l'on peut la cocher.
 - **Échéance passée** : une tâche en retard le dit (« △ en retard depuis le 15/11 », en ambre) et remonte en tête de sa
   priorité ; « À faire » et le catalogue le signalent aussi. Pas de notification ni d'alerte.
+- **Toute fenêtre où l'on choisit une aide ou un protocole a son champ « Rechercher… »**, même avec peu d'éléments :
+  tâche liée, « Ajouter » d'une collection, « Voir aussi », « Dans » de l'atelier d'import.
 
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.

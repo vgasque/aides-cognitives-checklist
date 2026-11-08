@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-tTlKRNu8C8wOilBdja+cXuBUJhgYzTTxwpXAIQrrgkA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0qmxjSrvgr4xybWqC2qDd1Nu3Lxb4gO73pqzks1Q7cQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10218,7 +10218,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal" id="relPickModal" role="dialog" aria-modal="true" aria-labelledby="relPickTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p>Le lien apparaît en lecture, dans la section <b>« Voir aussi »</b> — un raccourci, pas une copie.</p>
-  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" placeholder="Filtrer par titre ou code…"></div>
+  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" type="search" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher une aide, un protocole (titre ou code)"></div>
   <div id="relPickList" class="att-list attpick-list ai-body"></div>
 </div></div>
 <!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
@@ -12163,6 +12163,11 @@ function collsSave(){try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringif
    Jamais dans le mode crise : les tâches n'y paraissent pas, les notes y restent repliées (règle 11).
    Stockage : localStorage PAR ESPACE (`ac-suivi`, comme les collections) ; synchro par `aid_followups`, une
    ligne par objet (dernier-écrit-gagne PAR objet, jamais par document). Entrée unique : `sanitizeSuivi`. */
+/* A626 — TOUT CHOIX D'UNE AIDE OU D'UN PROTOCOLE A SON CHAMP DE RECHERCHE, dès le premier élément (demande de l'auteur :
+   « toutes ces fenêtres de sélection d'aides / protocoles, y compris ailleurs, avec un champ de recherche »). Une
+   bibliothèque grandit ; un champ qui n'apparaît qu'à 8 ou 9 éléments change la fenêtre sous le doigt d'un jour à
+   l'autre. Mêmes mots partout. Au doigt, le champ n'est pas focalisé d'office (A597 : le clavier ne monte qu'au toucher). */
+const CHOIX_AP_RECH='Rechercher une aide, un protocole…';
 const SUIVI_TYPES={revoir:'À revoir',fusion:'À fusionner avec',confronter:'À confronter à',completer:'À compléter',autre:'Autre'};
 const SUIVI_PRIO={1:'D’abord',2:'Ensuite',3:'Plus tard'};
 const SUIVI_MAX=3000;
@@ -12306,7 +12311,7 @@ suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button
   if(b.id==='svRefBtn'){suiviEdRead();const lib=x=>x.library?(libName(x.library)||'Partagée'):'Perso',sub=x=>{const c=catOf(x);return [c?c.name:'',lib(x)].filter(Boolean).join(' · ');};
     const pool=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==E.ent).sort(byTitle),A=pool.filter(y=>fiches.indexOf(y)>=0),P=pool.filter(y=>fiches.indexOf(y)<0);
     const opt=(y,ic)=>({val:y.id,name:String(y.title||'').trim()||'Sans titre',sub:sub(y),ic:uiIcon(ic,16)});
-    openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:8,filtreAuToucher:true,
+    openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
       options:(E.ref&&E.type==='confronter'?[{val:'',name:'Aucun élément',sub:'une reco écrite ci-dessous',ic:uiIcon('pen',16)}]:[])
         .concat(A.length?[{head:'Aides',n:String(A.length)}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles',n:String(P.length)}]:[],P.map(y=>opt(y,'doc'))),
       onPick:v=>{E.ref=v||'';suiviEdPaint();}});return;}
@@ -16395,7 +16400,7 @@ function collHeadHtml(){const c=collById(state.coll);if(!c)return '';collSeen(c.
    nature · catégorie (sa pastille) · bibliothèque — A488. */
 function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
   const vis=homeVis().slice().sort(byTitle);
-  openPickMenu(document.body,{aria:'Ajouter à '+c.name,sheet:true,multi:true,trigger,
+  openPickMenu(document.body,{aria:'Ajouter à '+c.name,sheet:true,multi:true,trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
     options:vis.map(x=>{const k=catOf(x);return {val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),
       ic:k?catDotHtml([safeColor(k.color)],'cat-dot'):'',sub:[protocols.indexOf(x)>=0?'Protocole':'Aide',k?k.name:'',impLibName(x.library||null)].filter(Boolean).join(' · '),
       on:collHas(c.id,x.id)?'true':'false'};}),
@@ -19992,7 +19997,7 @@ function openPickMenu(host,opts){
   const sheet=!opts.up&&(!!opts.sheet||window.innerWidth<780);
   const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'')+(opts.wide&&!sheet?' wide':'');menu.setAttribute('role',opts.multi?'menu':'listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
   /* Tête (A480) : « ‹ Actions » en LIEN de retour, puis le TITRE = le geste, puis UNE ligne de contexte ; `head` garde les notices. */
-  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre??8)?`<input class="catmenu-filter" type="text" placeholder="${esc(opts.placeholder||'Filtrer…')}" aria-label="${esc(opts.placeholder?opts.placeholder.replace(/…$/,''):'Filtrer '+(opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
     +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
@@ -30912,7 +30917,7 @@ document.getElementById('impNone').onclick=()=>impSetAll(false);
 document.getElementById('impList').addEventListener('click',e=>{
   const ib=e.target&&e.target.closest?e.target.closest('[data-impinto]'):null;
   if(ib){e.preventDefault();const r=_impRows.find(x=>x.key===ib.dataset.impinto);if(!r)return;
-    openPickMenu(ib.parentNode,{aria:'Où va ce contenu',title:'Où va ce contenu',trigger:ib,value:r.into||'',seuilFiltre:8,filtreAuToucher:true,
+    openPickMenu(ib.parentNode,{aria:'Où va ce contenu',title:'Où va ce contenu',trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
       options:[{val:'',name:'Nouveau protocole',sub:'créé à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
         .concat(impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli',ic:uiIcon('book',16)}))),
       onPick:v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();}});return;}

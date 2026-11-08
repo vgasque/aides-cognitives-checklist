@@ -10909,6 +10909,26 @@ await sec('A625 · une échéance passée : « △ en retard depuis le… », en
   await page.close();
 });
 
+await sec('A626 · tout choix d’une aide ou d’un protocole a son champ de recherche, dès le premier élément', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={};const vu=()=>{const f=[...document.querySelectorAll('.popmenu .catmenu-filter')].find(x=>x.getClientRects().length);return f?f.placeholder:'';};
+    // 1) tâche « À fusionner avec » : une seule autre aide, et le champ est là.
+    openRead(fiches[0].id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);q('#svRefBtn').click();await __acCalme(300);
+    o.tache=vu();if(_pickClose)_pickClose(false);q('#suiviEdFoot [data-suedx="x"]').click();await __acCalme(200);
+    // 2) « Ajouter » d'une collection : deux aides.
+    const c=collNew('Garde',[]);state.coll=c.id;state.view='library';render();await __acCalme(400);
+    const ad=q('[data-colladd]');if(ad){ad.click();await __acCalme(300);o.coll=vu();if(_pickClose)_pickClose(false);}
+    // 3) le sélecteur « Voir aussi » (fenêtre filtrable de l'éditeur) dit la même chose.
+    o.voir=(q('#relPickQ')||{}).placeholder||'';
+    return o;});
+  const P='Rechercher une aide, un protocole…';
+  t('A626 · tâche liée, « Ajouter » d’une collection, « Voir aussi » : le même champ « Rechercher une aide, un protocole… », même avec 1 ou 2 éléments',r.tache===P&&r.coll===P&&r.voir===P,JSON.stringify(r));
+  await page.close();
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
