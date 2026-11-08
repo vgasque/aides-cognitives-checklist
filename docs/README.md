@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A626** à la v5.109 (lot v6.0 compris) (et ça continue — la
-prochaine est A627), attribués dans
+Les décisions de conception portent des numéros **A1 → A631** à la v5.109 (lot v6.0 compris) (et ça continue — la
+prochaine est A632), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -250,6 +250,11 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A624 | `lot-v5-107.md` | L'élément lié d'une tâche se choisit dans la feuille de l'app ; la tâche paraît aussi chez l'élément visé (« Liées depuis d'autres éléments ») |
 | A625 | `lot-v5-107.md` | Une échéance passée se dit (« △ en retard depuis le… », ambre) et remonte en tête de sa priorité — ni notification ni alerte |
 | A626 | `lot-v5-107.md` | Tout choix d'une aide ou d'un protocole a son champ « Rechercher une aide, un protocole… », dès le premier élément |
+| A627 | `lot-v5-107.md` | Catalogue : « à relire » sous le nom d'une catégorie (plus de chevauchement dans le volet) |
+| A628 | `lot-v5-107.md` | Au bureau, « À faire » est une page de la colonne (onglet `todo`), pas une fenêtre |
+| A629 | `lot-v5-107.md` | Un menu ancré est borné par le bas de ce qui l'écrête (fenêtre défilante) : tout ce qu'il montre se touche |
+| A630 | `lot-v5-107.md` | Une tâche qui nomme son élément porte « Ouvrir › » vers lui |
+| A631 | `lot-v5-107.md` | Au bureau, les menus de la barre de sélection se déroulent au-dessus d'elle ; « Ajouter » d'une collection sous son bouton |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

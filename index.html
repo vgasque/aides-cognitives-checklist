@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-66kfzRJvKSHYlXHaxHT/f+BkhfRYEfJSWDxbbXlchuw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VJaxhJQGxo72TgQA0YVjRQyJUbsH8NLWgk1OBhwyr58='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3073,7 +3073,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
      79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
      plutôt que de se rogner — A589 §4. */
-  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+  /* A627 — signalé sur capture (sombre, volet de 240 px) : « Pneumologie » et « Réanimation » passaient SOUS « △ 1 à
+     relire » — un mot seul ne se replie pas, et `overflow:visible` le laissait déborder sur la colonne voisine. Les
+     catégories prennent `warnBas` comme les bibliothèques (« à relire » sous le nom), et un mot trop long se coupe
+     plutôt que de chevaucher. */
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -3355,7 +3359,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
   .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
   .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
-  .su-late{color:var(--warn);font-weight:700}   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
+  .su-late{color:var(--warn);font-weight:700}
+  /* A631 : les menus de la barre de sélection, au bureau, au-dessus d'elle (bord droit) ; la barre est sombre (--sys-ink) :
+     le menu reprend l'encre et la matière de travail. */
+  .sel-bar>.popmenu.up{top:auto;bottom:calc(100% + 8px);left:auto;right:0;width:min(380px,100%);min-width:0;max-width:none;
+    max-height:calc(100dvh / var(--zf,1) - 160px);color:var(--ink)}
+  .sel-bar>.popmenu.up :focus-visible{outline-color:var(--act)}
+  .su-go{flex:none;align-self:center;min-height:32px;padding:0 4px;white-space:nowrap}   /* A630 */   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
   .su-note{padding:8px 0;border-top:1px solid var(--line)}
   .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .su-who>span:not(.su-s){white-space:nowrap}
@@ -12228,7 +12238,11 @@ function suiviTaskRowHtml(x,o){o=o||{};const can=suiviCanEdit(x),t=x.t,d=t.done;
   const ech=!d&&t.due?(late?`<span class="su-late">△ en retard depuis le ${esc(suiviDue(t.due))}</span>`:esc('△ avant le '+suiviDue(t.due))):'';
   const tx=`<span class="su-l${t.prio===1&&!d?' p1':''}">${esc(suiviTaskLabel(x))}</span>${o.ent?`<span class="su-e">${esc(suiviEntTitle(x.ent))}</span>`:''}<span class="su-s">${esc(sub)}${ech?' · '+ech:''}</span>`;
   return `<div class="su-row${d?' done':''}"><button type="button" class="su-ck${d?' on':''}" data-sudone="${esc(x.id)}" aria-pressed="${d?'true':'false'}" aria-label="${d?'Rouvrir':'Marquer fait'} : ${esc(suiviTaskLabel(x))}"${can?'':' disabled'}>${uiIcon('check',13,{sw:3})}</button>`
-    +(can?`<button type="button" class="su-tx" data-suedit="${esc(x.id)}">${tx}</button>`:`<span class="su-tx">${tx}</span>`)+`</div>`;}
+    +(can?`<button type="button" class="su-tx" data-suedit="${esc(x.id)}">${tx}</button>`:`<span class="su-tx">${tx}</span>`)
+    /* A630 — UNE TÂCHE MÈNE À SON ÉLÉMENT (signalé : dans « À faire », toucher une tâche n'ouvrait que sa fenêtre — aucun
+       moyen d'aller à l'aide ou au protocole). Là où la ligne nomme l'élément (`o.ent` : « À faire » par priorité, tâches
+       liées), un « Ouvrir › » à droite y mène ; la ligne elle-même garde la modification. */
+    +(o.ent&&suiviEnt(x.ent)?`<button type="button" class="linkbtn su-go" data-sugo="${esc(x.ent)}" aria-label="${esc('Ouvrir « '+suiviEntTitle(x.ent)+' »')}">Ouvrir<span aria-hidden="true"> ›</span></button>`:'')+`</div>`;}
 function suiviNoteHtml(x){const can=suiviCanEdit(x);
   return `<div class="su-note"><div class="su-who${x.lib?' eq':''}">${uiIcon(x.lib?'users':'user',13)}<span>${esc(suiviWho(x)+(x.lib?'':' · privée'))}</span>${x.author&&x.lib?`<span class="su-s">· ${esc(x.author)}, ${suiviDay(x.at)}</span>`:''}${can?`<button type="button" class="linkbtn su-mod" data-suedit="${esc(x.id)}">Modifier</button>`:''}</div><div class="su-body">${esc(x.body)}</div></div>`;}
 /* Le bloc « Suivi » d'une aide ou d'une référence, en lecture. `crise` (session en cours) : les notes seules, repliées
@@ -12348,9 +12362,15 @@ function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!s
   const conv=colls.filter(c=>SUIVI_CONV_RX.test(c.name)&&collItems(c).length);
   if(conv.length)h+=`<div class="su-conv"><div class="su-fl">Des collections qui ressemblent à une liste de travail</div>${conv.map(c=>`<div class="su-conv-r"><span>« ${esc(c.name)} » · ${nb(collItems(c).length,'élément')}</span><button type="button" class="btn sm" data-suconv="${esc(c.id)}">Convertir en tâches</button></div>`).join('')}<p class="hint">Chaque élément reçoit une tâche « ${'À revoir'} », « À fusionner », « À compléter »… selon le nom ; la collection reste — supprimez-la ensuite si elle ne sert plus.</p></div>`;
   return h;}
-function suiviOpenView(){document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');}
+/* A628 — « À FAIRE » EST UNE VUE DE LA COLONNE AU BUREAU (question de l'auteur : « pourquoi “À faire” ouvre une fenêtre
+   par-dessus au lieu d'une page à part entière ? ») : comme Sessions et Moi (A365), l'onglet `todo` remplit la colonne
+   principale, la rangée de la colonne gauche est marquée, le retour système revient à l'Accueil. Au téléphone (porte de
+   l'onglet Moi) et hors de l'accueil, la fenêtre-page reste. */
+function suiviOpenView(){if(homeTabsOn()&&mqHomeWide.matches){setHomeTab('todo');return;}
+  document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');}
 function suiviRepaint(){
   if(suiviModal.classList.contains('on')){const v=document.getElementById('suiviView'),y=v.scrollTop;v.innerHTML=suiviViewHtml();v.scrollTop=y;}
+  {const v=document.getElementById('suiviPage');if(v)v.innerHTML=suiviViewHtml();}   // A628 : la vue de la colonne (son défileur est la colonne, il ne bouge pas)
   document.querySelectorAll('#main .su-blk[data-suent],#suiviBlkBody .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false,b.classList.contains('su-feuille'));if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
   document.querySelectorAll('#main .read-meta').forEach(m=>{const id=state.view==='read'&&state.fiche?state.fiche.id:(state.view==='protocolRead'&&state.protocol?state.protocol.id:null);if(!id||document.querySelector('#main details.su-crise'))return;
     const old=m.querySelector('.su-pill'),h=suiviPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)m.insertAdjacentHTML('beforeend',h);});   // A615 : la pastille suit
@@ -12366,7 +12386,7 @@ document.addEventListener('click',async e=>{const t=e.target&&e.target.closest?e
   const pl=t.closest('[data-sublk]');if(pl){suiviBlkOpen(pl.dataset.sublk);return;}
   const by=t.closest('[data-suby]');if(by){_svv.by=by.dataset.suby;suiviRepaint();return;}
   const wh=t.closest('[data-suwho]');if(wh){_svv.who=wh.dataset.suwho;suiviRepaint();return;}
-  const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
+  const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');suiviBlkModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
   const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;const n=suiviConvert(c);suiviRepaint();
     toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);}});
 const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
@@ -16050,12 +16070,14 @@ function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
   const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
 function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
   if(tabNavOn()&&t==='admin'){state.homeTab='me';render();admModal.classList.add('on');renderAdm();return;}   // A517
+  if(!mqHomeWide.matches&&t==='todo'){state.homeTab=tabNavOn()?'me':'aides';render();document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');return;}   // A628 : au téléphone, la fenêtre-page
   if(!mqHomeWide.matches&&!tabNavOn()){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();
     if(t==='admin'){admModal.classList.add('on');renderAdm();}return;}
   let t2=null;
   if(sessModal.classList.contains('on')&&_sessFiche==='*'){closeSessHist();t2='sessions';}
   if(authModal.classList.contains('on')){closeAuth();t2='me';}
   if(admModal.classList.contains('on')){admModal.classList.remove('on');t2='admin';}   // A494 : la section ouverte survit
+  if(suiviModal.classList.contains('on')){suiviModal.classList.remove('on');t2='todo';}   // A628
   if(t2)setHomeTab(t2);}
 const _onHomeBp=()=>{if(state.view!=='library')return;syncHomeTabs();render();};
 if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);else if(mqHomeWide.addListener)mqHomeWide.addListener(_onHomeBp);
@@ -16374,7 +16396,7 @@ function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   /* `compact` (A496) : ancré sous la rangée Collections de l'éditeur, dans la coque large (`wide`) — titre, contexte et
      notice RESTENT (décision de l'auteur : la définition « à vous seul, rien n'est déplacé » se lit au moment du geste),
      resserrés d'un cran par le CSS de `.catmenu.wide` ; la feuille de l'accueil est inchangée. */
-  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:o.sheet==null?true:o.sheet,wide:!!o.compact,multi:true,trigger:o.trigger,back:o.back,seuilFiltre:4,
+  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:o.sheet==null?true:o.sheet,up:!!o.up,wide:!!o.compact,multi:true,trigger:o.trigger,back:o.back,seuilFiltre:4,
     options:[{val:COLL_PIN,name:'Accès direct',sub:ids.length>pinOk.length?nb(ids.length-pinOk.length,'brouillon')+' ne s’épingle'+(ids.length-pinOk.length>1?'nt':'')+' pas':'les tuiles en tête de l’accueil',on:st(COLL_PIN),ic:collIc(collById(COLL_PIN))}]
       .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id),ic:collIc(c)}))),
     title:'Ajouter à une collection',ctx:(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))+' · '+(libs.length===1?libs[0]:selLibsMot(libs.length)),
@@ -16400,7 +16422,9 @@ function collHeadHtml(){const c=collById(state.coll);if(!c)return '';collSeen(c.
    nature · catégorie (sa pastille) · bibliothèque — A488. */
 function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
   const vis=homeVis().slice().sort(byTitle);
-  openPickMenu(document.body,{aria:'Ajouter à '+c.name,sheet:true,multi:true,trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+  // A631 : au bureau, la liste se déroule sous « Ajouter » (`.coll-acts`, positionné) ; au téléphone, la feuille du bas.
+  const tn=tabNavOn(),hote=!tn&&trigger&&trigger.closest('.coll-acts');
+  openPickMenu(hote||document.body,{aria:'Ajouter à '+c.name,sheet:!hote,wide:!!hote,multi:true,trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
     options:vis.map(x=>{const k=catOf(x);return {val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),
       ic:k?catDotHtml([safeColor(k.color)],'cat-dot'):'',sub:[protocols.indexOf(x)>=0?'Protocole':'Aide',k?k.name:'',impLibName(x.library||null)].filter(Boolean).join(' · '),
       on:collHas(c.id,x.id)?'true':'false'};}),
@@ -16472,7 +16496,7 @@ function homeSideHtml(){
       <nav class="hs-nav" aria-label="Sections">
         ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Accueil',mark:uiIcon('home',16),attrs:'data-navaides'+cur('aides')})}${''/* A606 : l'accueil est un lanceur, il n'a plus de compte */}${''/* A534 : les sections disent leur compte (maquette) */}
         ${hsRow({on:tab==='biblio',cls:'hs-navrow',label:'Bibliothèques',mark:uiIcon('book',16),tail:`<span class="hs-n">${bibGroups(homeVis(),true).filter(g=>g.key!=null).length}</span>`,attrs:'data-navbiblio'+cur('biblio')})}
-        ${(()=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;return hsRow({on:false,cls:'hs-navrow',label:'À faire',mark:uiIcon('task',16),tail:`<span class="hs-n">${n||''}</span>`,attrs:'data-sudoor'});})()}
+        ${(()=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;return hsRow({on:tab==='todo',cls:'hs-navrow',label:'À faire',mark:uiIcon('task',16),tail:`<span class="hs-n">${n||''}</span>`,attrs:'data-sudoor'+cur('todo')});})()}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot+(sessions.length?`<span class="hs-n">${sessions.length}</span>`:''),attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
@@ -17252,10 +17276,17 @@ function openSelActs(trigger){
   opts.push({val:'selExp',name:SEL_ACTES.exp,ic:uiIcon('download',20),sub:'un seul fichier, réimportable (.json ou .zip)'});   // A392
   opts.push({val:'selDel',name:selDelLabel(n),ic:uiIcon('trash',20),sub:'confirmation demandée',danger:true});
   const dir=selDirect();   // A599 : les actes déjà sur la ligne ne se redisent pas dans la feuille
-  openPickMenu(trigger.parentNode,{aria:dir?'Autres actions':'Actions sur la sélection',sheet:true,trigger,options:dir?opts.filter(o=>o.val!=='selCol'&&o.val!=='selExp'):opts,
+  const SM=selMenu(trigger.parentNode);
+  openPickMenu(SM.host,{aria:dir?'Autres actions':'Actions sur la sélection',sheet:SM.sheet,up:SM.up,trigger,options:dir?opts.filter(o=>o.val!=='selCol'&&o.val!=='selExp'):opts,
     title:dir?'Autres actions':'Actions',ctx:selCtx(),
     onPick:v=>{const b=document.getElementById(v);if(b){_selFromSheet=true;try{b.click();}finally{_selFromSheet=false;}}}});}
-let _selFromSheet=false;   // la sous-feuille ouverte DEPUIS la feuille Actions y propose le retour
+let _selFromSheet=false;
+/* A631 — AU BUREAU, LES MENUS DE LA BARRE DE SÉLECTION SE DÉROULENT AU-DESSUS D'ELLE (demande de l'auteur : plus de
+   feuille du bas imposée au bureau). Depuis A618 la barre flotte en bas de la colonne : ses menus (Actions, Catégorie,
+   Bibliothèque, Collection) s'ouvrent AU-DESSUS, ancrés à son bord droit (`up`, hôte = la barre — `fixed`, donc ancêtre
+   positionné). Au téléphone, la feuille du bas reste (`tabNavOn`). */
+const selHost=()=>tabNavOn()?null:document.querySelector('#main .sel-bar');
+const selMenu=fallback=>{const h=selHost();return h?{host:h,sheet:false,up:true}:{host:fallback,sheet:true,up:false};};   // la sous-feuille ouverte DEPUIS la feuille Actions y propose le retour
 const selBack=()=>_selFromSheet?{label:'Actions',fn:()=>openSelActs(document.getElementById('selDo'))}:null;
 /* La ligne de contexte d'une feuille de sélection : « 2 éléments · Bloc CHU » (ou « … · deux bibliothèques »). */
 function selCtx(){const ent=selEnt(),libs=[...new Set(ent.map(e=>e.o.library||null))];
@@ -17336,7 +17367,8 @@ function openSelCat(b,redo){
         n:k?nb(som(p.ok),'rangé')+' · '+nb(som(p.manque),'inchangé'):p.ok.map(x=>x.n+' dans '+x.nom).join(' · ')});
       options=options.concat(rows);});}
   const noms=libs.map(impLibName);
-  openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),back:selBack(),options,
+  const SM=selMenu(b.parentNode);
+  openPickMenu(SM.host,{aria:'Catégorie',sheet:SM.sheet,up:SM.up,trigger:selTrig(b),back:selBack(),options,
     title:'Ranger dans une catégorie',ctx:selCtx(),
     head:multi?`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
     value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
@@ -17423,12 +17455,12 @@ function bindSelBar(cfg){
    if(bar&&c){bar.classList.remove('sel-court');if(c.scrollWidth>c.clientWidth+1)bar.classList.add('sel-court');}}
   {const b=document.getElementById('selDo');if(b){b.onclick=()=>openSelActs(b);b.setAttribute('aria-label',selDirect()?'Autres actions':'Actions');}}
   syncTabBar();   // A599 : la barre d'onglets cède la place à la barre de sélection (et revient à la sortie)
-  {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(b.parentNode,
-     {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),back:selBack(),title:'Déplacer vers une bibliothèque',ctx:selCtx(),
+  {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(selMenu(b.parentNode).host,
+     {aria:'Bibliothèque',sheet:selMenu(null).sheet,up:selMenu(null).up,trigger:selTrig(b),options:impLibOptions(),back:selBack(),title:'Déplacer vers une bibliothèque',ctx:selCtx(),
       value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'-';})(),   // mêlée : aucune rangée cochée
       onPick:v=>selMoveLib(v||null,redo)});}
   {const b=document.getElementById('selCat');if(b)b.onclick=()=>openSelCat(b,redo);}
-  {const b=document.getElementById('selCol');if(b)b.onclick=()=>openCollPick(selEnt().map(e=>e.o.id),{trigger:selTrig(b),back:selBack(),redo});}
+  {const b=document.getElementById('selCol');if(b)b.onclick=()=>openCollPick(selEnt().map(e=>e.o.id),{trigger:selTrig(b),back:selBack(),redo,...(selHost()?{host:selHost(),sheet:false,up:true}:{})});}
   {const b=document.getElementById('selDel');if(b)b.onclick=()=>selDelete(redo);}
   {const b=document.getElementById('selExp');if(b)b.onclick=selExport;}
   bindSelLongPress(cfg);}
@@ -17476,11 +17508,13 @@ function renderHomeTab(cfg){const t=homeTab();
     +(tn&&t!=='admin'?pgHeadHtml(t==='sessions'?'Sessions':'Moi'):'')
     +(tn&&t==='me'?suiviDoorHtml():'')
     +(tn&&t!=='admin'?(t==='sessions'?'<div id="sessView"></div>':'<div id="meView"></div>'):
-     t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
+     t==='todo'?`<h2 class="hv-title">À faire</h2><div id="suiviPage"></div>`   // A628
+      :t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
       :t==='admin'?`<button type="button" class="adm-back" data-admmoi>${uiIcon('chev',18)}Moi</button><h2 class="hv-title">Administration</h2><div id="admView"></div>`   // A494 : une page ouverte depuis Moi, pas une entrée de la colonne
       :`<h2 class="hv-title">Moi</h2><div id="meView"></div>`)
     +`</section></div>`;
-  if(t==='sessions'){_sessFiche='*';renderSessHist();}
+  if(t==='todo'){const v=document.getElementById('suiviPage');if(v)v.innerHTML=suiviViewHtml();}
+  else if(t==='sessions'){_sessFiche='*';renderSessHist();}
   else if(t==='admin'){main.querySelector('[data-admmoi]').onclick=()=>setHomeTab('me');renderAdm();if(!_admD)admRefresh();}
   else renderAuth();
   bindHomeChrome(cfg.rerender);bindPgHead(cfg.rerender);placeFooter();}
@@ -17600,7 +17634,7 @@ function ctgCatRows(g,cur){
   /* Une catégorie VIDE ne mène nulle part (règle de la colonne, v5.19, reprise par A606) — sauf la COURANTE : un
      emplacement posé ne devient jamais invisible (GARDE, A132). */
   return [...par.values()].filter(k=>k.items.length||cur===k.c.id).map(k=>{const rel=k.items.filter(ctgRelire).length;
-      return ctgRowHtml(`data-ctgcat="${esc(k.c.id)}"${on(k.c.id)}`,k.c.name,{dot:catDotHtml([safeColor(k.c.color)].filter(Boolean),'cat-dot'),n:k.items.length,warn:rel?rel+' à relire':''});}).join('')
+      return ctgRowHtml(`data-ctgcat="${esc(k.c.id)}"${on(k.c.id)}`,k.c.name,{dot:catDotHtml([safeColor(k.c.color)].filter(Boolean),'cat-dot'),n:k.items.length,warn:rel?rel+' à relire':'',warnBas:true});}).join('')   // A627 : sous le nom, comme une bibliothèque (A589 §4)
     +(sans.length?ctgRowHtml('data-ctgcat=""'+on(''),'Sans catégorie',{ic:uiIcon('list',16),n:sans.length}):'');}
 /* Les puces de filtre de « Tout » (Type, Bibliothèque, Catégorie, Trier) — partagées par les deux dessins. */
 function ctgFiltresHtml(){const F=state.ctf;
@@ -20016,7 +20050,12 @@ function openPickMenu(host,opts){
   mount.appendChild(veil);mount.appendChild(menu);
   /* UN MENU ANCRÉ TIENT SOUS SON ANCRE (A496, mesuré à 1280×900 : sept collections sous la rangée de l'éditeur, le menu
      sortait de l'écran). Même mesure que `fitMoreMenu` (J203) : hauteur VISUELLE, px CSS (÷ zoom), plancher 180. */
-  if(!sheet&&!opts.up){const vv=window.visualViewport,bas=(vv&&vv.height)?vv.height:window.innerHeight,r=menu.getBoundingClientRect();
+  /* A629 — …ET SOUS LE BAS DE CE QUI L'ÉCRÊTE : ancré dans une fenêtre (choix de l'élément lié d'une tâche, A624), le menu
+     était coupé par le corps défilant de la fenêtre — à 1280×600, les rangées sous la coupe n'étaient pas touchables
+     (A167, mesuré par `elementFromPoint`). On borne aussi par le bas du premier ancêtre qui écrête (overflow ≠ visible) :
+     le menu garde sa propre barre de défilement, tout ce qu'il montre se touche. */
+  if(!sheet&&!opts.up){const vv=window.visualViewport;let bas=(vv&&vv.height)?vv.height:window.innerHeight;const r=menu.getBoundingClientRect();
+    for(let a=host;a&&a!==document.body;a=a.parentElement){const ov=getComputedStyle(a).overflowY;if(ov!=='visible'){bas=Math.min(bas,a.getBoundingClientRect().bottom);break;}}
     const dispo=(bas-r.top)/zoomF()-10;if(r.height>dispo)menu.style.maxHeight=Math.round(Math.max(180,dispo))+'px';}
   /* CE QUI EST « DÉPLIÉ », C'EST LE DÉCLENCHEUR TOUCHÉ — pas tous ceux de l'hôte. La marque était
      posée sur `host [data-catmenu]`, ce qui suffisait dans l'éditeur (les deux déclencheurs y

@@ -10929,6 +10929,50 @@ await sec('A626 · tout choix d’une aide ou d’un protocole a son champ de re
   await page.close();
 });
 
+await sec('A627-A631 · catalogue sans chevauchement, « À faire » en page, menus ancrés au bureau', async () => {
+  // A627 : volet des catégories (sombre, 1280 et 1100) — « à relire » sous le nom, jamais par-dessus.
+  for(const W of [1280,1100]){
+    const page=await br.newPage({viewport:{width:W,height:844}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{applyTheme('dark');
+      categories.push(...sanitizeCats([{id:'cpn',name:'Pneumologie',color:'#8a5a3c'},{id:'crx',name:'Réanimation CHM pédiatrique',color:'#3c6a8a'}]));
+      fiches[0].category='cpn';fiches[0].status='draft';fiches[1].category='crx';fiches[1].status='draft';
+      state.homeTab='biblio';state.cnav={lib:''};render();await __acCalme(400);
+      /* On mesure le TEXTE (Range), pas la boîte : `overflow:visible` laissait le mot déborder de sa boîte, sur « à relire ». */
+      return [...document.querySelectorAll('[data-ctgcat]')].filter(b=>b.getClientRects().length&&b.querySelector('.ctg-w')).map(b=>{const rg=document.createRange();rg.selectNodeContents(b.querySelector('.ctg-l'));const a=rg.getBoundingClientRect(),c=b.querySelector('.ctg-w').getBoundingClientRect();
+        return {nom:b.querySelector('.ctg-l').textContent,libre:a.right<=c.left||c.right<=a.left||a.bottom<=c.top||c.bottom<=a.top};});});
+    t(`${W} px · A627 : dans le volet, « △ n à relire » ne chevauche jamais le nom d’une catégorie`,r.length>=2&&r.every(x=>x.libre),JSON.stringify(r));
+    await page.close();}
+  // A628, A630, A631 : au bureau.
+  const page=await br.newPage({viewport:{width:1280,height:600}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={};const vis=()=>[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('.mm-row'));
+    const touche=m=>{const rows=[...m.querySelectorAll('.mm-row')],mr=m.getBoundingClientRect(),v=rows.filter(b=>{const x=b.getBoundingClientRect();return x.top>=mr.top&&x.bottom<=mr.bottom;});
+      return v.length>0&&v.every(b=>{const x=b.getBoundingClientRect(),h=document.elementFromPoint(x.left+20,x.top+x.height/2);return !!h&&m.contains(h);});};
+    suiviPut({id:'a628',ent:fiches[1].id,k:'task',lib:null,body:'',t:{type:'revoir',prio:1}});render();await __acCalme(300);
+    q('.home-side [data-sudoor]').click();await __acCalme(400);
+    o.page=homeTab()==='todo'&&!suiviModal.classList.contains('on')&&!!q('.home-main #suiviPage .su-row')&&q('.home-side [data-sudoor]').getAttribute('aria-current')==='page';
+    q('#suiviPage [data-sugo]').click();await __acCalme(500);o.ouvre=state.view==='read'&&state.fiche&&state.fiche.id===fiches[1].id;
+    // A629 : 30 aides, fenêtre basse — le choix de l'élément lié reste touchable jusqu'en bas.
+    for(let i=0;i<30;i++){const n=JSON.parse(JSON.stringify(fiches[1]));n.id='a629-'+i;n.title='Aide témoin '+i;fiches.push(migrate(n));}
+    openRead(fiches[0].id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);q('#svRefBtn').click();await __acCalme(300);
+    const m=vis();o.rogne=!!m&&touche(m);if(_pickClose)_pickClose(false);q('#suiviEdFoot [data-suedx="x"]').click();await __acCalme(200);
+    // A631 : barre de sélection — ses menus au-dessus d'elle, touchables, à l'encre de travail.
+    LANCEUR_SEUIL=1e9;state.view='library';state.homeTab='aides';render();await __acCalme(400);q('#selTog').click();await __acCalme(300);q('.dir-ck[data-selid]').click();await __acCalme(200);
+    q('#selDo').click();await __acCalme(300);const s=vis(),bar=q('.sel-bar').getBoundingClientRect();
+    o.sel=!!s&&!s.classList.contains('sheet')&&s.getBoundingClientRect().bottom<=bar.top&&touche(s);if(_pickClose)_pickClose(false);
+    return o;});
+  await page.goBack().catch(()=>{});
+  t('A628 · au bureau, « À faire » est une page de la colonne (rangée marquée), pas une fenêtre',r.page,JSON.stringify(r));
+  t('A630 · une tâche de « À faire » mène à son aide (« Ouvrir › »)',r.ouvre,JSON.stringify(r));
+  t('A629 · ancré dans une fenêtre basse (1280×600), le menu ne passe pas sous le bas de la fenêtre : tout ce qu’il montre se touche',r.rogne,JSON.stringify(r));
+  t('A631 · au bureau, le menu de la barre de sélection se déroule au-dessus d’elle (plus de feuille du bas)',r.sel,JSON.stringify(r));
+  await page.close();
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

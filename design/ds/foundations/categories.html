@@ -2678,7 +2678,11 @@
   /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
      79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
      plutôt que de se rogner — A589 §4. */
-  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+  /* A627 — signalé sur capture (sombre, volet de 240 px) : « Pneumologie » et « Réanimation » passaient SOUS « △ 1 à
+     relire » — un mot seul ne se replie pas, et `overflow:visible` le laissait déborder sur la colonne voisine. Les
+     catégories prennent `warnBas` comme les bibliothèques (« à relire » sous le nom), et un mot trop long se coupe
+     plutôt que de chevaucher. */
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -2960,7 +2964,13 @@
   .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
   .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
   .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
-  .su-late{color:var(--warn);font-weight:700}   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
+  .su-late{color:var(--warn);font-weight:700}
+  /* A631 : les menus de la barre de sélection, au bureau, au-dessus d'elle (bord droit) ; la barre est sombre (--sys-ink) :
+     le menu reprend l'encre et la matière de travail. */
+  .sel-bar>.popmenu.up{top:auto;bottom:calc(100% + 8px);left:auto;right:0;width:min(380px,100%);min-width:0;max-width:none;
+    max-height:calc(100dvh / var(--zf,1) - 160px);color:var(--ink)}
+  .sel-bar>.popmenu.up :focus-visible{outline-color:var(--act)}
+  .su-go{flex:none;align-self:center;min-height:32px;padding:0 4px;white-space:nowrap}   /* A630 */   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
   .su-note{padding:8px 0;border-top:1px solid var(--line)}
   .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .su-who>span:not(.su-s){white-space:nowrap}

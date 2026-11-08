@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.109.7] — 2026-11-08
-Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626). Rien à rejouer côté serveur.
+Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626), « À faire » et menus au bureau (A627-A631). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
   rangée disparaît : le titre se présente comme un champ de texte (encadré gris léger, comme sur iOS), lisible en entier. Toucher le titre
   ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
@@ -17,6 +17,12 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A62
   priorité ; « À faire » et le catalogue le signalent aussi. Pas de notification ni d'alerte.
 - **Toute fenêtre où l'on choisit une aide ou un protocole a son champ « Rechercher… »**, même avec peu d'éléments :
   tâche liée, « Ajouter » d'une collection, « Voir aussi », « Dans » de l'atelier d'import.
+- **« À faire » s'ouvre en page** sur tablette et ordinateur (comme Sessions et Moi), et chaque tâche a un
+  « Ouvrir › » qui mène à son aide ou à son protocole.
+- **Au bureau, les menus de la barre de sélection s'ouvrent au-dessus d'elle**, et « Ajouter » d'une collection sous
+  son bouton, au lieu d'un panneau en bas de l'écran. Au téléphone, rien ne change.
+- **Catalogue** : « △ n à relire » ne passe plus sur le nom d'une catégorie ; une liste qui s'ouvre dans une fenêtre
+  n'est plus coupée sur un écran peu haut.
 
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.
