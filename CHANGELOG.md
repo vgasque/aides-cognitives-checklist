@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.109.0] — 2026-11-08
+Le suivi s'atteint d'un toucher, sans rien ajouter à la barre du haut (A615). Rien à rejouer côté serveur.
+- **Une pastille « 2 tâches »** (ou « 1 note ») apparaît sous le titre d'une aide ou d'une référence qui a du suivi,
+  à côté de « À relire ». Elle ouvre le suivi en feuille : cocher, ajouter, modifier sans perdre sa place.
+- Pas de pastille sans suivi, ni pendant une session.
+
 ## [5.108.0] — 2026-11-08
 Le volet « Suivi » dans l'éditeur (A614). Rien de nouveau à rejouer côté serveur (le schéma de la 5.107.0 suffit).
 - **En modifiant une aide ou une référence**, le suivi est là : dans la colonne de droite sur ordinateur, sous la
@@ -242,12 +248,3 @@ Les images d'une aide en grille, chacune avec sa feuille (A585). Rien à rejouer
   légende sous chaque vignette et « ▣ Bloc n » sur celle qu'un bloc affiche. Elle remplace une grande carte par image.
 - **Toucher une image ouvre sa feuille**, la même que pour les références : la légende, « Affichée dans » (aucun bloc
   ou un bloc), remplacer (le bloc qui l'affiche suit), retirer de l'aide (avec ↶ pour annuler).
-
-## [5.92.0] — 2026-11-06
-La taille d'une image se voit et se tire (A584). Rien à rejouer côté serveur.
-- **Plus de pourcentages** : la taille d'une image se choisit parmi six pictogrammes, une colonne et la part qu'occupe
-  l'image (¼ · ⅓ · ½ · ⅔ · ¾ · Pleine), sur le bloc image ouvert comme dans la feuille de l'image.
-- **On voit le résultat** : l'image s'affiche dans un cadre qui représente la page lue sur grand écran, à la taille
-  choisie, même au téléphone. Une phrase rappelle qu'au téléphone l'image prend toujours toute la largeur.
-- **On peut tirer le bord** : la poignée bleue au bord de l'image se tire au doigt ou à la souris ; l'image s'aimante
-  à la taille la plus proche, affichée pendant le geste (« ½ · 50 % »).

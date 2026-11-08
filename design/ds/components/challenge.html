@@ -2904,7 +2904,14 @@
   /* ══ A613 — LE SUIVI ══ Aucune couleur nouvelle : « D'abord » en gras (pas en rouge, règle 8), l'équipe au bleu
      de l'action (elle nomme une bibliothèque), le perso en gris ; l'échéance garde son △. */
   .su-blk{margin:24px 0 6px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--work)}
-  #editSide .su-blk{margin:16px 0}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
+  #editSide .su-blk{margin:16px 0}
+  /* A615 : la pastille de la ligne d'état — contour bleu (l'action), discrète, 32 px ; la feuille sans second titre. */
+  .su-pill{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin-left:8px;padding:0 10px;border:1px solid var(--act);border-radius:999px;background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;line-height:1;vertical-align:middle;cursor:pointer}
+  .su-pill:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  body.view-read .read-meta>.su-pill::before{content:none}
+  body.view-read .read-meta .su-pill svg{display:inline}
+  .su-feuille{margin:0;padding:0;border:0}
+  .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
   .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .su-h .btn{margin-left:4px}

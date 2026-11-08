@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WQ+qQAJSK52UGNz2GF1h6gs2ufS/8wdPxSZtXuT+20A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-vHa8HdXbhFvclGAmu1yz4k9/xNB6GXBdxtAuam7Ne4Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3299,7 +3299,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ══ A613 — LE SUIVI ══ Aucune couleur nouvelle : « D'abord » en gras (pas en rouge, règle 8), l'équipe au bleu
      de l'action (elle nomme une bibliothèque), le perso en gris ; l'échéance garde son △. */
   .su-blk{margin:24px 0 6px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--work)}
-  #editSide .su-blk{margin:16px 0}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
+  #editSide .su-blk{margin:16px 0}
+  /* A615 : la pastille de la ligne d'état — contour bleu (l'action), discrète, 32 px ; la feuille sans second titre. */
+  .su-pill{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin-left:8px;padding:0 10px;border:1px solid var(--act);border-radius:999px;background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;line-height:1;vertical-align:middle;cursor:pointer}
+  .su-pill:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  body.view-read .read-meta>.su-pill::before{content:none}
+  body.view-read .read-meta .su-pill svg{display:inline}
+  .su-feuille{margin:0;padding:0;border:0}
+  .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
   .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .su-h .btn{margin-left:4px}
@@ -10003,6 +10010,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-body" id="suiviEdBody"></div>
   <div class="mdw-foot" id="suiviEdFoot"></div>
 </div></div>
+<div class="ai-modal" id="suiviBlkModal" role="dialog" aria-modal="true" aria-labelledby="suiviBlkTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="suiviBlkTitle">Suivi</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-body" id="suiviBlkBody"></div>
+</div></div>
 <div class="ai-modal page" id="suiviModal" role="dialog" aria-modal="true" aria-labelledby="suiviModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="suiviModalTitle">À faire</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div class="ai-body" id="suiviView"></div>
@@ -10236,7 +10247,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.108.0';
+const APP_VERSION='5.109.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12147,15 +12158,24 @@ function suiviNoteHtml(x){const can=suiviCanEdit(x);
   return `<div class="su-note"><div class="su-who${x.lib?' eq':''}">${uiIcon(x.lib?'users':'user',13)}<span>${esc(suiviWho(x)+(x.lib?'':' · privée'))}</span>${x.author&&x.lib?`<span class="su-s">· ${esc(x.author)}, ${suiviDay(x.at)}</span>`:''}${can?`<button type="button" class="linkbtn su-mod" data-suedit="${esc(x.id)}">Modifier</button>`:''}</div><div class="su-body">${esc(x.body)}</div></div>`;}
 /* Le bloc « Suivi » d'une aide ou d'une référence, en lecture. `crise` (session en cours) : les notes seules, repliées
    (« spécificités du centre » utiles au chevet) ; aucune tâche, aucun bouton (règle 11). */
-function suiviBlockHtml(ent,crise){if(!ent||!ent.id)return '';const all=suiviOf(ent.id),nts=all.filter(x=>x.k==='note').sort((a,b)=>b.at-a.at);
+function suiviBlockHtml(ent,crise,feuille){if(!ent||!ent.id)return '';const all=suiviOf(ent.id),nts=all.filter(x=>x.k==='note').sort((a,b)=>b.at-a.at);
   if(crise)return nts.length?`<details class="su-crise"><summary>Notes (${nts.length})</summary>${nts.map(suiviNoteHtml).join('')}</details>`:'';
   const open=suiviOpenOf(ent.id),done=all.filter(x=>x.k==='task'&&x.t.done).sort((a,b)=>b.t.done-a.t.done);
-  return `<section class="block su-blk" data-suent="${esc(ent.id)}"><div role="heading" aria-level="2" class="block-h su-h">${uiIcon('task',16)}Suivi<span class="spc"></span>`
+  return `<section class="block su-blk${feuille?' su-feuille':''}" data-suent="${esc(ent.id)}">`+(feuille?`<div class="su-h">`:`<div role="heading" aria-level="2" class="block-h su-h">${uiIcon('task',16)}Suivi<span class="spc"></span>`)
     +`<button type="button" class="btn sm" data-sunew="note">${uiIcon('plus',14,{sw:2.4})}Note</button><button type="button" class="btn sm" data-sunew="task">${uiIcon('plus',14,{sw:2.4})}Tâche</button></div>`
     +(open.length?`<div class="su-sub">Tâches · ${open.length}</div>`+open.map(x=>suiviTaskRowHtml(x)).join(''):'')
     +(done.length?`<details class="su-done"><summary>Faites (${done.length})</summary>${done.map(x=>suiviTaskRowHtml(x)).join('')}</details>`:'')
     +(nts.length?`<div class="su-sub">Notes · ${nts.length}</div>`+nts.map(suiviNoteHtml).join(''):'')
     +(all.length?'':`<p class="hint">Notes et tâches de travail sur cet élément — pour vous, ou pour l’équipe de sa bibliothèque. Jamais en session.</p>`)+`</section>`;}
+/* A615 — LA PASTILLE « 2 tâches » DANS LA LIGNE D'ÉTAT, sous le titre (option B de la planche, choisie par l'auteur :
+   « plutôt discret » — la barre du haut est déjà chargée). Elle n'existe que s'il y a du suivi ; elle ouvre le suivi en
+   FEUILLE (`#suiviBlkModal`), sans perdre sa place. Jamais en session (le bloc lui-même y est replié, notes seules). */
+function suiviPillHtml(ent){if(!ent||!ent.id)return '';const o=suiviOpenOf(ent.id).length,n=suiviOf(ent.id).filter(x=>x.k==='note').length;if(!o&&!n)return '';
+  const lbl=o?nb(o,'tâche'):nb(n,'note'),aria='Suivi : '+[o?nb(o,'tâche')+' à faire':'',n?nb(n,'note'):''].filter(Boolean).join(', ');
+  return `<button type="button" class="su-pill" data-sublk="${esc(ent.id)}" aria-label="${esc(aria)}">${uiIcon('task',13)}${esc(lbl)}</button>`;}
+function suiviBlkOpen(id){const e=suiviEnt(id);if(!e)return;
+  document.getElementById('suiviBlkTitle').textContent='Suivi · '+(String(e.title||'').trim()||'Sans titre');
+  document.getElementById('suiviBlkBody').innerHTML=suiviBlockHtml(e,false,true);suiviBlkModal.classList.add('on');}
 // La pastille d'une rangée du CATALOGUE : combien restent, et la priorité de la plus urgente. Muette sans tâche.
 function suiviRowHtml(id){if(!_rowCtx.ctg)return '';const o=suiviOpenOf(id);if(!o.length)return '';
   return `<span class="su-cnt" title="${esc(o.map(suiviTaskLabel).join(' · '))}">${uiIcon('task',12)}${o.length} · ${esc(SUIVI_PRIO[o[0].t.prio])}</span>`;}
@@ -12195,7 +12215,8 @@ function suiviEdSave(){suiviEdRead();const e=_svEd;
   if(e.k==='task')o.t={type:e.type,ref:(e.type==='fusion'||e.type==='confronter')?e.ref:'',refTxt:e.type==='confronter'&&!e.ref?e.refTxt.trim():'',prio:e.prio,due:e.due,done:e.old?e.old.t.done:0,by:e.old?e.old.t.by:''};
   suiviPut(o);suiviEdClose();suiviRepaint();toast(e.old?'Enregistré.':(e.k==='task'?'Tâche ajoutée':'Note ajoutée')+(o.lib?' pour l’équipe.':' — visible par vous seulement.'),3000,true);}
 function suiviEdClose(){_svEd=null;suiviEdModal.classList.remove('on');}
-const suiviEdModal=document.getElementById('suiviEdModal'),suiviModal=document.getElementById('suiviModal');
+const suiviEdModal=document.getElementById('suiviEdModal'),suiviModal=document.getElementById('suiviModal'),suiviBlkModal=document.getElementById('suiviBlkModal');
+bindModalDismiss(suiviBlkModal,()=>suiviBlkModal.classList.remove('on'));
 bindModalDismiss(suiviEdModal,suiviEdClose);
 suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||!_svEd)return;const E=_svEd;
   if(b.dataset.suty){suiviEdRead();E.type=b.dataset.suty;suiviEdPaint();return;}
@@ -12234,7 +12255,9 @@ function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!s
 function suiviOpenView(){document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');}
 function suiviRepaint(){
   if(suiviModal.classList.contains('on')){const v=document.getElementById('suiviView'),y=v.scrollTop;v.innerHTML=suiviViewHtml();v.scrollTop=y;}
-  document.querySelectorAll('#main .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false);if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
+  document.querySelectorAll('#main .su-blk[data-suent],#suiviBlkBody .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false,b.classList.contains('su-feuille'));if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
+  document.querySelectorAll('#main .read-meta').forEach(m=>{const id=state.view==='read'&&state.fiche?state.fiche.id:(state.view==='protocolRead'&&state.protocol?state.protocol.id:null);if(!id||document.querySelector('#main details.su-crise'))return;
+    const old=m.querySelector('.su-pill'),h=suiviPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)m.insertAdjacentHTML('beforeend',h);});   // A615 : la pastille suit
   document.querySelectorAll('[data-sudoor]').forEach(b=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;const c=b.querySelector('.hs-n,.su-dn');if(c)c.textContent=n?String(n):'';});
   if(state.view==='library'&&homeTab()==='biblio')render();}
 bindModalDismiss(suiviModal,()=>suiviModal.classList.remove('on'));
@@ -12244,6 +12267,7 @@ document.addEventListener('click',async e=>{const t=e.target&&e.target.closest?e
   const dn=t.closest('[data-sudone]');if(dn&&!dn.disabled){const x=suivi.find(y=>y.id===dn.dataset.sudone);if(x&&suiviCanEdit(x)){suiviDone(x,!x.t.done);suiviRepaint();toast(x.t.done?'Rouverte.':'Fait'+(x.lib?' — pour toute l’équipe.':'.'),2500,true);}return;}
   const ed=t.closest('[data-suedit]');if(ed){const x=suivi.find(y=>y.id===ed.dataset.suedit);if(x&&suiviCanEdit(x))suiviEdOpen({ent:x.ent,x});return;}
   if(t.closest('[data-sudoor]')){e.preventDefault();suiviOpenView();return;}
+  const pl=t.closest('[data-sublk]');if(pl){suiviBlkOpen(pl.dataset.sublk);return;}
   const by=t.closest('[data-suby]');if(by){_svv.by=by.dataset.suby;suiviRepaint();return;}
   const wh=t.closest('[data-suwho]');if(wh){_svv.who=wh.dataset.suwho;suiviRepaint();return;}
   const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
@@ -18412,7 +18436,7 @@ function renderProtocolRead(){
   main.innerHTML=`<div class="ref-grid">
     <div class="ref-main">
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validatedAt)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validatedAt)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}${preview?'':suiviPillHtml(p)}</div>
     <div class="ref-tocwrap"></div>
     ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
@@ -23036,7 +23060,7 @@ function renderRead(){
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
     ${''/* A520 : UNE sous-ligne, dans l'ordre de la maquette — « ● SMUR · adulte · ACR · validée 01/2025 », puis les
        états en pastilles (« △ À relire », « △ À compléter ») ; le discriminant y entre, le bandeau « À relire » part. */}
-    <div class="read-meta">${catTag(f,true)}${f.discriminant?`<span class="read-disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}</div>
+    <div class="read-meta">${catTag(f,true)}${f.discriminant?`<span class="read-disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}${started?'':suiviPillHtml(f)}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette aide n’a pas encore été validée pour l’usage clinique.</div></div>`:''}
     ${''/* A460 : « À relire » est un signal de MAINTENANCE — il se lit avant la session, pas pendant : en
        session il n'appelle aucun geste et repoussait la 1ʳᵉ étape sous le pli (budget, 320 px à 130 %).

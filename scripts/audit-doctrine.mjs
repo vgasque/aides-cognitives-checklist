@@ -10729,6 +10729,26 @@ await sec('A614 · le volet « Suivi » de l’éditeur (colonne au bureau, pied
     await page.close();}
 });
 
+await sec('A615 · la pastille « n tâches » sous le titre ouvre le suivi en feuille', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const o={},q=s=>document.querySelector(s),f=fiches[0],g=fiches[1];
+    openRead(g.id);await __acCalme(300);o.sansSuivi=!q('#main .su-pill');
+    suiviPut({id:'p1',ent:f.id,k:'task',lib:null,body:'a',t:{type:'revoir',prio:1}});suiviPut({id:'p2',ent:f.id,k:'task',lib:null,body:'b',t:{type:'revoir',prio:2}});
+    openRead(f.id);await __acCalme(400);const p=q('#main .read-meta .su-pill');o.pastille=p?p.textContent:'';
+    p.click();await __acCalme(250);o.feuille=suiviBlkModal.classList.contains('on')&&q('#suiviBlkBody .su-row')!=null;
+    q('#suiviBlkBody [data-sudone="p1"]').click();await __acCalme(250);o.suit=(q('#main .su-pill')||{}).textContent;
+    o.feuilleSuit=document.querySelectorAll('#suiviBlkBody .su-done .su-row').length===1;
+    suiviBlkModal.querySelector('.ai-x').click();await __acCalme(200);
+    const b=[...document.querySelectorAll('button')].find(x=>/démarrer la session/i.test(x.textContent));if(b)b.click();await __acCalme(500);
+    o.session=!q('#main .su-pill');return o;});
+  t('A615 · sans suivi, pas de pastille ; avec, « 2 tâches » dans la ligne d’état',r.sansSuivi&&r.pastille==='2 tâches',JSON.stringify(r));
+  t('A615 · la pastille ouvre la feuille ; cocher dans la feuille met à jour la feuille et la pastille',r.feuille&&r.suit==='1 tâche'&&r.feuilleSuit,JSON.stringify(r));
+  t('A615 · en session, pas de pastille (règle 11)',r.session,JSON.stringify(r));
+  await page.close();
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
