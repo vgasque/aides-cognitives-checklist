@@ -9626,6 +9626,17 @@ await sec('Accueil · A619 un appui long sur l’accueil au repos sélectionne S
     await page.close();}
 });
 
+await sec('Accueil · A620 une rangée sans catégorie s’aligne sur ses voisines', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{LANCEUR_SEUIL=0;const n=JSON.parse(JSON.stringify(fiches[0]));n.id='a620';n.title='Sans catégorie';n.category=null;fiches.push(migrate(n));
+    fiches.forEach(f=>bumpUsage(f.id));render();await __acCalme(400);
+    return [...document.querySelectorAll('.recents .dir-row')].map(r=>({av:!!r.querySelector('.dir-av'),x:Math.round(r.querySelector('.dir-t').getBoundingClientRect().left)}));});
+  t('A620 · « Ouvertes récemment » : la rangée sans point garde l’emplacement vide, les titres partent du même x',r.some(x=>!x.av)&&r.some(x=>x.av)&&new Set(r.map(x=>x.x)).size===1,JSON.stringify(r));
+  await page.close();
+});
+
 await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreuses', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

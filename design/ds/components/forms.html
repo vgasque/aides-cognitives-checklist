@@ -2527,6 +2527,11 @@
     background-image:linear-gradient(var(--line),var(--line));background-repeat:no-repeat;
     background-position:right bottom;background-size:calc(100% - 16px) 1px}
   .dir-book .dir-row.has-av:not(.selm){background-size:calc(100% - 40px) 1px}
+  /* A620 (amende A516) — SANS CATÉGORIE, LE TEXTE S'ALIGNE QUAND MÊME (signalé à 390 px : « Ressources - lecture »
+     partait 24 px plus à gauche que ses voisines, dans « Ouvertes récemment »). Dans un groupe où une rangée porte un
+     point, la rangée sans point garde son emplacement VIDE (16 + 10 + 14 = 40) ; un groupe sans aucune catégorie reste
+     sur deux pistes, comme le voulait A516. */
+  .dir-book .dir-grid:has(.dir-av) .dir-row:not(.has-av){padding-left:40px;background-size:calc(100% - 40px) 1px}
   .dir-book .dir-grid>.dir-row:last-child{background-image:none}
   .dir-book .dir-row .card-open{font-weight:600}
   .dir-book .dir-sub{display:block;margin-top:2px;white-space:normal;overflow:visible;
