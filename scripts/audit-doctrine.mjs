@@ -8688,6 +8688,25 @@ await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', 
   t('A593 · 880 px : l’établi aussi, aligné',!!m&&m.cols.length===3&&Math.abs(m.cols[0]-m.cols[2])<=1&&m.ligne<=1,JSON.stringify(m));
   await page.evaluate(()=>{try{localStorage.removeItem('ac-mdlive');localStorage.removeItem('ac-mdsplit');}catch(e){}});
   await page.close();
+  /* A594 — AU DOIGT, LA POIGNÉE SUIT : signalé (iPad, « ça saute entre les 3 tailles ») — la carte du texte change de
+     largeur pendant le geste, son ResizeObserver relançait fit(), qui repeignait avec la part ENREGISTRÉE : la grille
+     oscillait entre le doigt et l'ancienne valeur. Le témoin lit la part PENDANT le geste (la souris ne le voyait pas :
+     la valeur finale était juste). Et à cette largeur, la plage va de 30 à 70 %. */
+  {const ctx=await br.newContext({viewport:{width:880,height:900},hasTouch:true});const p2=await ctx.newPage();
+    p2.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await p2.goto(`http://localhost:${port}/index.html`);await amorce(p2);
+    await p2.evaluate(async c=>{try{localStorage.setItem('ac-mdlive','0');localStorage.removeItem('ac-mdsplit');}catch(e){}const pr=migrateProtocol({title:'Témoin A594',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+    await calme(p2,500);
+    const sb=await (await p2.$('.etab-sep')).boundingBox(),cdp=await ctx.newCDPSession(p2),y=sb.y+sb.height/2,x0=sb.x+sb.width/2,lus=[];
+    const lire=()=>p2.evaluate(()=>+document.querySelector('.etab-sep').getAttribute('aria-valuenow'));
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x0,y}]});
+    for(const d of [-300,-90,-40,40,90,300]){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x0+d,y}]});await calme(p2,80);lus.push(await lire());}
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    const bornes=await p2.evaluate(()=>{const s=document.querySelector('.etab-sep');return [+s.getAttribute('aria-valuemin'),+s.getAttribute('aria-valuemax')];});
+    const monte=lus.every((v,i)=>!i||v>lus[i-1]);
+    t('A594 · au doigt, la part suit le geste (sans retour à l’ancienne valeur) ; plage 30-70 % à 880',monte&&lus[0]===30&&lus[5]===70&&bornes[0]===30&&bornes[1]===70,JSON.stringify({lus,bornes}));
+    await p2.evaluate(()=>{try{localStorage.removeItem('ac-mdlive');localStorage.removeItem('ac-mdsplit');}catch(e){}});
+    await ctx.close();}
 });
 
 /* ══ A547 — MISE EN FORME EN DIRECT : LE DOCUMENT S'ÉDITE PAR BLOCS ═════════════════════════════════════════════════════

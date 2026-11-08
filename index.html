@@ -328,7 +328,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-puO94KUFK0xjWW9NhBZO/n6vZ0Cl5gD61ndjB8NVBoI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-cfQVadOetjHCFPt1IM0QtPeKw0QnrcdE3rpW7jqcEZ8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -18347,7 +18347,7 @@ function mdScrollBack(ta,sc,pv,lns,tops,off){if(!pv||!lns.length)return;
    espace de compte) ; bornée pour que la barre tienne (texte ≥ 360) et que l'aperçu reste lisible (≥ 320), et
    aimantée à ⅓, ½, ⅔. Fonctions PURES (?__actest) : `mdsBounds`, `mdsSnap`. */
 const MDS_SNAPS=[100/3,50,200/3];
-function mdsBounds(avail){const a=Math.max(1,+avail||0),l=Math.min(360,a*.4),r=Math.min(320,a*.35);return [l/a*100,100-r/a*100];}
+function mdsBounds(avail){const a=Math.max(1,+avail||0),l=Math.min(360,a*.3),r=Math.min(320,a*.3);return [l/a*100,100-r/a*100];}
 function mdsSnap(pct,avail,snap){const [lo,hi]=mdsBounds(avail);let v=Math.max(lo,Math.min(hi,+pct||50));
   if(snap)for(const s of MDS_SNAPS)if(s>=lo&&s<=hi&&Math.abs(v-s)*avail/100<12){v=s;break;}
   return v;}
@@ -18377,7 +18377,7 @@ function mdsBind(ta){const g=document.getElementById('etabGrid');if(!g||!ta)retu
   fit();new ResizeObserver(fit).observe(g);new ResizeObserver(fit).observe(L);
   sep.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();sep.setPointerCapture(e.pointerId);sep.classList.add('drag');
     const q=g.getBoundingClientRect(),gw=sep.getBoundingClientRect().width;let v=r;
-    const mv=ev=>{v=paint(mdsSnap((ev.clientX-q.left-gw/2)/Math.max(1,q.width-gw)*100,avail(),!ev.altKey));};
+    const mv=ev=>{v=r=paint(mdsSnap((ev.clientX-q.left-gw/2)/Math.max(1,q.width-gw)*100,avail(),!ev.altKey));};
     const up=()=>{sep.classList.remove('drag');sep.removeEventListener('pointermove',mv);sep.removeEventListener('pointerup',up);sep.removeEventListener('pointercancel',up);save(v);};
     sep.addEventListener('pointermove',mv);sep.addEventListener('pointerup',up);sep.addEventListener('pointercancel',up);});
   sep.addEventListener('dblclick',()=>save(50));
