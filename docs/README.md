@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A608** à la v5.104 (lot v6.0 compris) (et ça continue — la
-prochaine est A609), attribués dans
+Les décisions de conception portent des numéros **A1 → A611** à la v5.105 (lot v6.0 compris) (et ça continue — la
+prochaine est A612), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -232,6 +232,9 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A606 | `lot-v5-100.md` | Lots 2-3 d'A600 : au-delà de 20 éléments l'accueil est un LANCEUR (récentes, porte « Toutes les aides et protocoles ») ; « Aides » → « Accueil » ; la colonne ne filtre plus (purge) ; portes de gestion au catalogue ; liens `#bibliotheques` → catalogue ; pied de page protégé |
 | A607 | `lot-v5-104.md` | Le Markdown de Notion : `***gras italique***`, gras contenant un italique, `~~barré~~`, listes sur 6 niveaux par l'indentation, calque qui grise tout marqueur |
 | A608 | `lot-v5-104.md` | Image « Pleine » = toute la colonne ; Plan en arbre (retrait par niveau) ; pastille de provenance alignée dans la rangée ; en sélection, ni voile gris d'iOS ni sélection de texte |
+| A609 | `lot-v5-104.md` | Tableau : « Modifier en grille » sur un tableau ouvert ; en-têtes au choix (ligne vide = sans en-tête, 1ʳᵉ case en gras = colonne d'en-tête) ; `<br>` dans une case ; ↶ ↷ de la grille ; le voile ne ferme que si le geste y commence |
+| A610 | `lot-v5-104.md` | Blocs : « ＋ » au-dessus/au-dessous du seul bloc survolé (amende A550), « Bloc avant » au doigt ; sélection multiple (Maj/⌘-clic, sélection glissée, « Sélectionner » au doigt) → Copier · Supprimer ; bloc vidé → choisir un type |
+| A611 | `lot-v5-104.md` | Import : « Renommer » par rangée ; « Dans : … » verse une page dans une référence existante (remplit un contenu vide, s'ajoute à la suite sinon, images comprises) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

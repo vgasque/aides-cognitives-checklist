@@ -8734,6 +8734,87 @@ await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', 
    Par défaut, le contenu rédigé s'affiche RENDU ; toucher un bloc l'ouvre en Markdown dans son propre champ, le reste reste
    rendu ; la frappe écrit le corps ; ↑ ↓ Dupliquer Supprimer ; « Ajouter un bloc » ; copier plusieurs blocs copie leur
    Markdown ; l'interrupteur rend le champ entier. Téléphone (clavier émulé) et bureau (relecture seule à côté). */
+await sec('Éditeur · A609 tableau : la grille se rouvre, en-têtes au choix, case sur plusieurs lignes, ↶ ↷, voile', async () => {
+  const corps="## Grades\n\n| Grade A | Grade B |\n|---|---|\n| SpO2 < 90 % | SpO2 > 90 % |";
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A609',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+  await calme(page,500);
+  const r=await page.evaluate(async()=>{const o={},d=document.getElementById('mdDoc'),m=document.getElementById('mdToolModal');
+    d.querySelector('table').closest('.mdb').click();await __acCalme(250);
+    const gb=d.querySelector('[data-mdbgrid]');o.puce=!!gb;if(!gb)return o;gb.click();await __acCalme(250);
+    o.ouverte=m.classList.contains('on')&&m.querySelectorAll('.mdg-in').length===4;
+    o.relu=[...m.querySelectorAll('.mdg-in')].map(x=>x.value).join('|');
+    const B=k=>m.querySelector('[data-mdtw="'+k+'"]');
+    // Case sur deux lignes : la case grandit, sa voisine de rangée aussi (grille étirée).
+    const c=m.querySelector('.mdg-in[data-r="1"][data-c="0"]'),v=m.querySelector('.mdg-in[data-r="1"][data-c="1"]');const h0=c.getBoundingClientRect().height;
+    c.focus();c.value='SpO2 < 90 %\nsous O2';c.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(100);
+    o.grandit=c.getBoundingClientRect().height>h0+8&&Math.abs(v.getBoundingClientRect().height-c.getBoundingClientRect().height)<1.5;
+    B('hc').click();await __acCalme(150);o.hc=B('hc').getAttribute('aria-pressed')==='true'&&m.querySelector('.mdg-in[data-r="1"][data-c="0"]').classList.contains('mdg-h');
+    B('undo').click();await __acCalme(150);o.annule=B('hc').getAttribute('aria-pressed')==='false';
+    B('redo').click();await __acCalme(150);o.retabli=B('hc').getAttribute('aria-pressed')==='true';
+    B('undo').click();await __acCalme(100);B('undo').click();await __acCalme(150);o.saisieAnnulee=m.querySelector('.mdg-in[data-r="1"][data-c="0"]').value==='SpO2 < 90 %';
+    B('redo').click();await __acCalme(100);B('redo').click();await __acCalme(150);
+    // Sélectionner du texte en glissant jusqu'au voile : la fenêtre reste ouverte. Un toucher sur le voile la ferme.
+    const cell=m.querySelector('.mdg-in');cell.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));m.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+    o.resteOuverte=m.classList.contains('on');
+    B('ok').click();await __acCalme(300);
+    {const dn=document.querySelector('#mdDoc [data-mdbact="done"]');if(dn){dn.click();await __acCalme(250);}}
+    o.ecrit=state.pdraft.body;o.rendu=(document.querySelector('#mdDoc table')||{}).outerHTML||'';
+    return o;});
+  t('A609 · le tableau ouvert offre « Modifier en grille », qui relit ses cases',r.puce&&r.ouverte&&r.relu==='Grade A|Grade B|SpO2 < 90 %|SpO2 > 90 %',JSON.stringify(r));
+  t('A609 · Entrée passe à la ligne DANS la case ; la rangée prend la hauteur de sa plus haute case',r.grandit,JSON.stringify(r));
+  t('A609 · « 1ʳᵉ colonne » en en-tête, ↶ puis ↷ de la grille (réglage et saisie)',r.hc&&r.annule&&r.retabli&&r.saisieAnnulee,JSON.stringify(r));
+  t('A609 · une sélection qui finit sur le voile ne ferme pas la fenêtre',r.resteOuverte,JSON.stringify(r));
+  t('A609 · écrit : 1ʳᵉ case en gras, <br> ; rendu : th scope=row et retour à la ligne',/\*\*SpO2 < 90 %<br>sous O2\*\*/.test(r.ecrit||'')&&/<th scope="row">SpO2 &lt; 90 %<br>sous O2<\/th>/.test(r.rendu||''),JSON.stringify({e:r.ecrit,h:r.rendu}));
+  await page.close();
+});
+
+await sec('Éditeur · A610 blocs : « ＋ » du bloc survolé, sélection multiple, bloc vidé qui change de type', async () => {
+  const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n## Posologie\n\nFin.";
+  // Souris : « ＋ » au survol d'UN bloc, Maj-clic pour une plage, Suppr, ↶.
+  {const page=await br.newPage({viewport:{width:1280,height:900}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A610',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+    await calme(page,500);
+    const bl=await page.$$('#mdDoc .mdb');const bb=await bl[1].boundingBox();await page.mouse.move(bb.x+40,bb.y+bb.height/2);await calme(page,150);
+    const h=await page.evaluate(()=>[...document.querySelectorAll('#mdDoc .mdb-ins')].filter(x=>getComputedStyle(x).display!=='none').map(x=>x.dataset.mdbadd).join(','));
+    const b3=await bl[3].boundingBox();await page.keyboard.down('Shift');await page.mouse.click(bb.x+40,bb.y+bb.height/2);await page.mouse.click(b3.x+40,b3.y+b3.height/2);await page.keyboard.up('Shift');await calme(page,150);
+    const s=await page.evaluate(()=>({n:document.querySelectorAll('#mdDoc .mdb.sel').length,ouvert:!!document.querySelector('#mdDoc .mdb-ta'),bar:(document.querySelector('.mdb-selbar .mdb-sb-n')||{}).textContent}));
+    await page.keyboard.press('Delete');await calme(page,250);
+    const d=await page.evaluate(()=>state.pdraft.body);
+    await page.evaluate(async()=>{const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);u.click();});await calme(page,300);
+    const u=await page.evaluate(()=>state.pdraft.body);
+    t('A610 · souris : seuls les « ＋ » du bloc survolé paraissent (au-dessus, au-dessous)',h==='0,1',h);
+    t('A610 · Maj-clic sélectionne une plage de blocs sans en ouvrir ; la barre dit combien',s.n===3&&!s.ouvert&&s.bar==='3 blocs sélectionnés',JSON.stringify(s));
+    t('A610 · Suppr retire les blocs sélectionnés d’un coup, ↶ les rend',d==='## Indications\n\nFin.'&&u==="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n## Posologie\n\nFin.",JSON.stringify({d,u}));
+    await page.close();}
+  // Doigt : « Sélectionner » du bloc ouvert, toucher coche ; bloc vidé → choisir un type.
+  {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A610 doigt',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+    await calme(page,500);
+    const r=await page.evaluate(async()=>{const o={},d=document.getElementById('mdDoc');
+      d.querySelectorAll('.mdb')[1].click();await __acCalme(200);
+      o.avant=!!d.querySelector('.mdb-acts [data-mdbadd="0"]')&&/Bloc avant/.test(d.querySelector('.mdb-acts').textContent);
+      d.querySelector('[data-mdbact="sel"]').click();await __acCalme(200);
+      d.querySelectorAll('.mdb')[2].click();await __acCalme(150);
+      o.sel=d.querySelectorAll('.mdb.sel').length;o.ferme=!d.querySelector('.mdb-ta');
+      d.querySelector('[data-mdbsel="x"]').click();await __acCalme(150);o.annule=!d.querySelector('.mdb.sel')&&!d.querySelector('.mdb-selbar');
+      // Bloc vidé : les types s'offrent ; « Titre » pose « ## Titre ».
+      d.querySelectorAll('.mdb')[1].click();await __acCalme(200);const t=d.querySelector('.mdb-ta');t.setSelectionRange(0,t.value.length);document.execCommand('delete');await __acCalme(150);
+      o.types=d.querySelectorAll('[data-mdbtype]').length;
+      d.querySelector('[data-mdbtype="h"]').click();await __acCalme(150);
+      const t2=d.querySelector('.mdb-ta');o.titre=!!t2&&t2.value==='## Titre'&&t2.value.slice(t2.selectionStart,t2.selectionEnd)==='Titre'&&!d.querySelector('[data-mdbtype]');
+      return o;});
+    t('A610 · doigt : « Bloc avant » et « Sélectionner » au bloc ouvert ; toucher coche ; ✕ annule',r.avant&&r.sel===2&&r.ferme&&r.annule,JSON.stringify(r));
+    t('A610 · un bloc vidé propose les huit types ; « Titre » pose « ## Titre », mot sélectionné',r.types===8&&r.titre,JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
   const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM d'abord : **0,5 mg**\n\n## Posologie\n\n| Âge | Dose |\n|---|---|\n| Adulte | 0,5 mg |";
   {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
@@ -8939,6 +9020,38 @@ await sec('Import · A562 export Notion (.md + images)', async () => {
   t('A562 · le .zip Notion ouvre l\'atelier sur UNE référence',a.rangs===1&&/Référence/i.test(a.kind),JSON.stringify(a));
   t('A562 · importée : titre sans le hash, image rangée et liée (img:<id>), absente nommée, propriétés retirées, en brouillon',
     r.n===1&&r.titre==='Page témoin'&&r.lie&&r.absente&&!r.prop&&r.statut==='draft',JSON.stringify(r));
+  await page.close();
+});
+
+/* ══ A611 — L'IMPORT RENOMME, ET VERSE UNE PAGE DANS UNE RÉFÉRENCE DÉJÀ CRÉÉE ══ */
+await sec('Import · A611 renommer, verser dans une référence existante', async () => {
+  const page=await br.newPage({viewport:{width:1100,height:850}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const lancer=async md=>{await page.evaluate(m=>{const T=s=>new TextEncoder().encode(s);
+    window.__n0=protocols.length;window.__fin=readImportFile(new File([T(m)],'Page.md'));},md);
+    return page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);};
+  // 1) Renommer : « Renommer », taper, Entrée → la référence importée porte le nouveau titre.
+  let vu=await lancer('# Untitled\n\nUn texte.');
+  if(vu){await page.click('[data-impren]');await page.fill('.imp-tin','Polytraumatisé grave');await page.keyboard.press('Enter');await calme(page,150);}
+  const t1=await page.evaluate(()=>(document.querySelector('#impList .imp-t')||{}).textContent||'');
+  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  const r1=await page.evaluate(()=>({n:protocols.length-window.__n0,titre:(protocols[protocols.length-1]||{}).title}));
+  t('A611 · renommer à l’import : la rangée puis la référence portent le titre tapé',vu&&t1==='Polytraumatisé grave'&&r1.n===1&&r1.titre==='Polytraumatisé grave',JSON.stringify({t1,r1}));
+  // 2) Verser dans une référence existante (titre, catégorie posés ; contenu vide), puis dans une qui a déjà du texte.
+  await page.evaluate(()=>{const a=migrateProtocol({id:'p611a',title:'Grades de gravité',body:'',status:'draft'});a.category='';protocols.push(a);
+    protocols.push(migrateProtocol({id:'p611b',title:'Déjà écrite',body:'Premier paragraphe.',status:'draft'}));});
+  vu=await lancer('# Page Notion\n\n- **indications *systématiques***');
+  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('.popmenu [data-pickopt="p611a"]');await calme(page,200);}
+  const vu2=await page.evaluate(()=>({into:(document.querySelector('[data-impinto]')||{}).textContent||'',ren:!!document.querySelector('[data-impren]'),dest:!!document.querySelector('#impList [data-impcat]')}));
+  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  const r2=await page.evaluate(()=>{const a=protocols.find(x=>x.id==='p611a');return {n:protocols.length-window.__n0,titre:a.title,body:a.body};});
+  t('A611 · « Dans « … » » : la rangée nomme la référence visée, sans « Renommer » ni pastilles de destination',/Dans « Grades de gravité »/.test(vu2.into)&&!vu2.ren&&!vu2.dest,JSON.stringify(vu2));
+  t('A611 · versée : aucune référence de plus, le contenu vide est rempli, le titre gardé',r2.n===0&&r2.titre==='Grades de gravité'&&r2.body==='- **indications *systématiques***',JSON.stringify(r2));
+  vu=await lancer('# Autre page\n\nSuite.');
+  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('.popmenu [data-pickopt="p611b"]');await calme(page,200);await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  const r3=await page.evaluate(()=>protocols.find(x=>x.id==='p611b').body);
+  t('A611 · un contenu existant n’est jamais écrasé : la page s’ajoute à la suite',r3==='Premier paragraphe.\n\nSuite.',JSON.stringify(r3));
   await page.close();
 });
 
