@@ -2650,6 +2650,10 @@
   .ctg-row[aria-current="true"] .ctg-l{color:var(--act)}
   .ctg-main{min-width:0}
   .ctg-volets .ctg-row{min-height:48px}
+  /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
+     79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
+     plutôt que de se rogner — A589 §4. */
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -7710,9 +7714,6 @@
      étages fixes. Les étages fixes réservent LA MÊME gouttière (une boîte `overflow:hidden` la
      reçoit aussi) : un seul bord droit pour les trois, quelle que soit la barre du système. */
   .hs-top,.hs-foot{overflow-y:hidden;scrollbar-gutter:stable}
-  /* L'intertitre du seul défileur COLLE : une liste longue ne doit pas perdre son étiquette.
-     Marges négatives = il reprend le rembourrage de la colonne pour peindre bord à bord. */
-  .hs-h-stick{position:sticky;top:0;background:var(--work);margin:0 -12px 8px;padding:12px 24px 0;z-index:1}
   /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
      queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
      porte » ici (le nombre de l'historique reste, mais devant le chevron). */
@@ -7772,11 +7773,7 @@
      Détail : doctrine-css.md C123. */
   .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
   [data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
-  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}
-  /* A589 §4 : le mot de partage CÈDE le premier — le nom d'une bibliothèque n'est plus tronqué pour lui. Le mot prend
-     la place qui RESTE (base 0, calé à droite contre le compte) ; le nom ne rétrécit qu'une fois le mot à zéro. */
-  .hs-row .hs-name:has(+.hs-who){flex:0 1 auto}
-  .hs-row .hs-who{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* A489 : le partage d'une bibliothèque, en un mot */
+  /* (.hs-who purgé A606 : les bibliothèques ont quitté la colonne pour le catalogue.) */
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
   .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
@@ -9179,8 +9176,9 @@
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
     <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
-    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
-      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs"><span class="tb-pill" aria-hidden="true" style="opacity: 1; clip-path: inset(0px 218px 0px 4px round 999px);"></span>
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg><span>Accueil</span></button>
+      <button type="button" class="tb-tab" data-tab="biblio"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"></path><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"></path></svg><span>Bibliothèques</span></button>
       <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
       <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
     </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
@@ -9260,7 +9258,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw7lolp6o3ph6mmv">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw7lolp6mhmofnee">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw7rwrbr1f6srgs1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw7rwrbr1y6lra61">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">
@@ -9296,8 +9294,9 @@
          pas) ; en voie large il est la barre du haut de la maquette : recherche au centre,
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
     <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
-    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs">
-      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg><span>Aides</span></button>
+    <nav class="tab-bar" id="tabNav" aria-label="Sections" data-built="1"><div class="tb-tabs"><span class="tb-pill" aria-hidden="true" style="opacity: 1; clip-path: inset(0px 218px 0px 4px round 999px);"></span>
+      <button type="button" class="tb-tab on" data-tab="aides" aria-current="page"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg><span>Accueil</span></button>
+      <button type="button" class="tb-tab" data-tab="biblio"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"></path><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"></path></svg><span>Bibliothèques</span></button>
       <button type="button" class="tb-tab" data-tab="sessions"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg><span>Sessions</span></button>
       <button type="button" class="tb-tab" data-tab="me" data-k="u"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"></circle><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"></path></svg><span>Moi</span></button>
     </div><button type="button" class="tb-srch" id="tbSrch" aria-label="Rechercher"><svg class="tic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></button></nav>
@@ -9377,7 +9376,7 @@
     <div class="more-menu popmenu" id="moreMenu" hidden="" role="menu"></div></header></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone : marque, puis Sessions · Créer · Moi en pastilles de 40 px portant leur MOT dessous (A461) ; « Moi » porte les initiales du compte une fois connecté (ici déconnecté : l’icône). Au bureau ces portes vivent dans la colonne gauche et l’en-tête ne porte que la recherche et « Créer ».</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px"><div id="crisisDock"><div class="dock-in">
-    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw7lolp6o3ph6mmv">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw7lolp6mhmofnee">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
+    <button id="cbTimers" aria-label="Minuteurs en cours — afficher le panneau"><span class="seg glb"><span class="seg-l seg-sess">● Session</span><span class="seg-t">00:00</span></span><span class="seg cnt"><span class="seg-l" title="Chocs délivrés">Chocs délivrés</span><span class="seg-t" data-cntval="nmw7rwrbr1f6srgs1">0</span></span><span class="seg cnt"><span class="seg-l" title="Adrénaline (mg)">Adrénaline (mg)</span><span class="seg-t" data-cntval="nmw7rwrbr1y6lra61">0</span></span><span class="cbt-n"><span class="cbt-cv" aria-hidden="true"><span class="cbt-chev" aria-hidden="true"><svg class="tic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></span></span></button>
   </div><div id="linkBar" class="lk-bar" role="status" hidden=""></div></div></div>
 <p class="ds-cap">Capture réelle, la CAPSULE d’état (matière système, en haut, jamais occultée) : chrono de session puis minuteurs et compteurs en tuiles, ordre FIXE, constants d’abord (A347, A462). Au bureau large (≥ 1440 px) elle monte dans l’en-tête.</p>
 <div class="ds-capt ds-fix" style="max-width:420px;margin-top:16px;position:relative"><div id="sessionDock" class="" style="--sd-sx: 0.9378; --sd-sy: 0.7004;">

@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rPdvWRdg2HMdeQt5K3KmluQreajDC/TcCc85aX2x1BM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-19ripZjAI9xCfbKRdo24bXlvotkvlC/l3JhjerZF1yg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3045,6 +3045,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-row[aria-current="true"] .ctg-l{color:var(--act)}
   .ctg-main{min-width:0}
   .ctg-volets .ctg-row{min-height:48px}
+  /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
+     79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
+     plutôt que de se rogner — A589 §4. */
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -8105,9 +8109,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      étages fixes. Les étages fixes réservent LA MÊME gouttière (une boîte `overflow:hidden` la
      reçoit aussi) : un seul bord droit pour les trois, quelle que soit la barre du système. */
   .hs-top,.hs-foot{overflow-y:hidden;scrollbar-gutter:stable}
-  /* L'intertitre du seul défileur COLLE : une liste longue ne doit pas perdre son étiquette.
-     Marges négatives = il reprend le rembourrage de la colonne pour peindre bord à bord. */
-  .hs-h-stick{position:sticky;top:0;background:var(--work);margin:0 -12px 8px;padding:12px 24px 0;z-index:1}
   /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
      queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
      porte » ici (le nombre de l'historique reste, mais devant le chevron). */
@@ -8167,11 +8168,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Détail : doctrine-css.md C123. */
   .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
   html[data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
-  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}
-  /* A589 §4 : le mot de partage CÈDE le premier — le nom d'une bibliothèque n'est plus tronqué pour lui. Le mot prend
-     la place qui RESTE (base 0, calé à droite contre le compte) ; le nom ne rétrécit qu'une fois le mot à zéro. */
-  .hs-row .hs-name:has(+.hs-who){flex:0 1 auto}
-  .hs-row .hs-who{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* A489 : le partage d'une bibliothèque, en un mot */
+  /* (.hs-who purgé A606 : les bibliothèques ont quitté la colonne pour le catalogue.) */
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
   .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
@@ -9556,7 +9553,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          Créer et Compte à droite. STATIQUE : le focus de #q survit aux re-rendus (v4.56.0). -->
     <!-- A517 : barre d'onglets du téléphone (Aides · Sessions · Moi + recherche) — peinte par syncTabBar. -->
     <nav class="tab-bar" id="tabNav" hidden aria-label="Sections"><div class="tb-tabs">
-      <button type="button" class="tb-tab" data-tab="aides"><span>Aides</span></button>
+      <button type="button" class="tb-tab" data-tab="aides"><span>Accueil</span></button>
       <button type="button" class="tb-tab" data-tab="biblio"><span>Bibliothèques</span></button>
       <button type="button" class="tb-tab" data-tab="sessions"><span>Sessions</span></button>
       <button type="button" class="tb-tab" data-tab="me"><span>Moi</span></button>
@@ -10136,7 +10133,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.102.1';
+const APP_VERSION='5.103.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16045,55 +16042,9 @@ function homeCatGroups(cnt){const catNom=state.cat||null;
 /* Ce que l'accueil peut montrer (brouillons d'autrui exclus) — la colonne gauche et la feuille « Affichage » comptent ici. */
 const homeVis=()=>(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
 function homeSideHtml(){
-  /* v5.18 (décision utilisateur) — LA SIDEBAR FILTRE, À UNE SEULE GRAMMAIRE ; « Rangé par »
-     LIT. Bibliothèques : « Toutes » (défaut, l'union) ou une seule — un filtre de VUE, patron
-     Finder. Catégories : celles du PÉRIMÈTRE choisi (fin du mélange inter-bibliothèques), même
-     cran que la feuille (state.cat). Comptes STABLES : la visibilité seule (brouillons d'autrui
-     exclus), pas les filtres courants — un compte qui bouge sous le geste se lit comme une
-     erreur. Le clic ne touche JAMAIS au rangement (un verbe par commande). */
-  const visAll=homeVis();
-  const bibs=bibGroups(visAll,true);   // A490 : une bibliothèque qu'on vient de créer s'y voit, vide
-  const scope=visAll.filter(homeLibOn);
-  /* Compte PAR OBJET de catégorie (Map), jamais par id : deux bibliothèques peuvent porter le
-     même id (A298), et `catOf` résout déjà le couple id + bibliothèque. */
-  const cnt=new Map();
-  scope.forEach(x=>{const c=catOf(x);if(c)cnt.set(c,(cnt.get(c)||0)+1);});
-  const num=n=>`<span class="hs-n">${n}</span>`;
-  /* A489 (option 1 du canevas) — UNE BIBLIOTHÈQUE DIT TOUJOURS AVEC QUI : personnes (`user`/`users`) et un mot
-     (vous seul · partagée · lecture), là où une collection porte le signet. Une seule bibliothèque : une rangée,
-     active, sans « Toutes » ni « Gérer » — et la porte « Partager avec une équipe… » (créer ou demander, A477/A479). */
-  const libs1=bibs.filter(g=>g.key!=null),seule=libs1.length<2;
-  const bibIdx=(seule?'':hsRow({on:state.homeLib==null,mark:HS_RING,label:'Toutes',tail:num(visAll.length),
-      attrs:`data-libsel="*" aria-pressed="${state.homeLib==null?'true':'false'}"`}))
-    +libs1.map(g=>{
-    const on=seule||state.homeLib===g.key,who=libWho(g);
-    return hsRow({on,label:esc(g.L),mark:uiIcon(g.lib?'users':'user',16),tail:`<span class="hs-who">${who}</span>`+num(g.items.length),
-      attrs:`data-libsel="${seule?'*':esc(g.key)}" aria-pressed="${on?'true':'false'}"`});}).join('')   // seule : elle EST « Toutes »
-    +(seule&&libNewOn()?hsRow({cls:'quiet',label:'Partager avec une équipe…',mark:uiIcon('plus',14),attrs:'data-newlib'}):'');
-  /* ⚠ UNE RANGÉE PAR NOM (signalé à l'usage). Le filtre de catégorie compare par NOM à travers
-     l'union (v5.18) : deux homonymes de bibliothèques différentes produisaient DEUX rangées qui
-     filtraient exactement la même chose, ne différant que par la couleur de leur pastille. On
-     fusionne — compte cumulé, cran lu sur le NOM comme le filtre —, et quand les couleurs
-     divergent la pastille les montre TOUTES : aucune n'est reniée, et le réglage par bibliothèque
-     reste au gestionnaire, seul endroit où l'on agit sur une catégorie précise.
-     ⚠ TOUTES CELLES QUI COMPTENT, PAS TOUTES CELLES QUI EXISTENT (A306, signalé : « la pastille
-     bicolore ne se met pas à jour ») : les couleurs venaient de `categories` BRUT — une homonyme
-     d'une bibliothèque hors du filtre, ou sans aucun élément dans le périmètre, teintait la
-     pastille d'une rangée qui ne la comptait pas, et le filtre de bibliothèque ne changeait rien.
-     Une couleur ne contribue que si sa catégorie est DU PÉRIMÈTRE AFFICHÉ (`homeLibOn`) et y
-     compte au moins un élément — ou porte le filtre actif, seule rangée qui reste à zéro. */
-  const catNom=state.cat||null;
-  const catIdx=(()=>{
-    return homeCatGroups(cnt).map(g=>{
-      const on=catNom===g.n;
-      return hsRow({on,label:esc(g.c.name),tail:num(g.nb),mark:catDotHtml(g.cols,'cat-dot'),
-        attrs:`data-cat="${esc(g.n)}" aria-pressed="${on?'true':'false'}"`});}).join('');})();
-  /* LA REMISE À ZÉRO DES CATÉGORIES MANQUAIT (v5.19). « Toutes » existait pour les bibliothèques,
-     rien pour les catégories : on ne pouvait revenir à l'union qu'en re-tapant la rangée active —
-     un geste que rien n'annonce. Une seule grammaire des deux côtés, et le compte est celui du
-     PÉRIMÈTRE (bibliothèque choisie), pas de l'application entière. */
-  const catAll=hsRow({on:!state.cat,mark:HS_RING,label:'Toutes les catégories',tail:num(scope.length),
-    attrs:`data-catall aria-pressed="${state.cat?'false':'true'}"`});
+  /* A606 (lot 2 d'A600) — LA COLONNE NE FILTRE PLUS : elle porte la marque, la navigation Accueil · Bibliothèques ·
+     Sessions · Moi, et vos collections. Les bibliothèques et leurs catégories vivent dans le catalogue (A601-A602) ;
+     les filtres de « Toutes » / bibliothèque / catégorie (v5.18, A489, A306) sont purgés avec leurs rangées (règle 14). */
   const chev=`<span class="hs-chev">${uiIcon('chev',14,{sw:2.2,cls:''})}</span>`;
   /* v5.30 (planche large) : la colonne porte la MARQUE, la navigation Aides · Sessions · Moi, les deux
      listes, et le COMPTE à son pied — l'en-tête n'a plus qu'à porter la recherche et « Créer ». */
@@ -16106,17 +16057,16 @@ function homeSideHtml(){
     <div class="hs-top">
       <div class="hs-brand"><span class="brand-logo" aria-hidden="true"></span><span class="hs-brand-t">Aides cognitives</span></div>
       <nav class="hs-nav" aria-label="Sections">
-        ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),tail:`<span class="hs-n">${homeVis().length}</span>`,attrs:'data-navaides'+cur('aides')})}${''/* A534 : les sections disent leur compte (maquette) */}
+        ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Accueil',mark:uiIcon('home',16),attrs:'data-navaides'+cur('aides')})}${''/* A606 : l'accueil est un lanceur, il n'a plus de compte */}${''/* A534 : les sections disent leur compte (maquette) */}
         ${hsRow({on:tab==='biblio',cls:'hs-navrow',label:'Bibliothèques',mark:uiIcon('book',16),tail:`<span class="hs-n">${bibGroups(homeVis(),true).filter(g=>g.key!=null).length}</span>`,attrs:'data-navbiblio'+cur('biblio')})}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot+(sessions.length?`<span class="hs-n">${sessions.length}</span>`:''),attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
-      <div class="hs-h">${seule?'Bibliothèque':'Bibliothèques'}<span class="hs-hs">avec qui</span>${!seule&&mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
       <div class="hs-sep"></div>
     </div>
     <div class="hs-scroll">
       ${collSideHtml()}
-      <div class="hs-h hs-h-stick">Catégories${catMgrOn()?'<button type="button" class="hs-lnk" data-catmgr aria-haspopup="dialog" aria-label="Gérer les catégories">Gérer</button>':''}</div>${catAll}${catIdx}
+      ${''/* A606 : bibliothèques et catégories vivent dans le catalogue (« Bibliothèques ») — la colonne ne filtre plus */}
     </div>
     <div class="hs-foot"><div class="hs-sep"></div></div>
   </aside>`;}
@@ -16291,23 +16241,9 @@ function bindHomeChrome(rerender){
   qsa('[data-newlib]').forEach(b=>b.onclick=openNewLib);
   // Crayon ✎ d'une bibliothèque administrée (intertitre de section, colonne large) : Membres.
   qsa('[data-libedit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openMembers(b.dataset.libedit);});
-  /* Une BIBLIOTHÈQUE de la colonne gauche FILTRE la vue (v5.18, décision utilisateur) :
-     « Toutes » ou re-tap = retour à l'union. Le RANGEMENT n'est jamais touché — un verbe par
-     commande (le mélange des deux était l'incohérence signalée). */
-  // Un filtre de la colonne s'applique à la LISTE : depuis Sessions ou Moi il y ramène (A365).
+  /* (A606, lot 3 d'A600 : les filtres de la colonne — bibliothèque, catégorie, « Toutes les catégories » — sont purgés avec
+     leurs rangées ; le catalogue les remplace. Un choix de COLLECTION ramène toujours à l'accueil, A365.) */
   const rr=()=>{if(homeTab()!=='aides')state.homeTab='aides';rerender();};
-  main.querySelectorAll('.home-side [data-libsel]').forEach(b=>b.onclick=()=>{
-    const v=b.dataset.libsel;
-    state.homeLib=(v==='*'||state.homeLib===v)?null:v;
-    rr();});
-  /* Une CATÉGORIE de la colonne gauche FILTRE — même cran que la feuille du pouce (state.cat),
-     re-tap = retirer. C'est elle qui remplace le déclencheur de filtre en voie large. */
-  main.querySelectorAll('.home-side [data-cat]').forEach(b=>b.onclick=()=>{
-    state.cat=(state.cat===b.dataset.cat)?null:b.dataset.cat;rr();});
-  // « Toutes les catégories » : retour à l'union, sans toucher à la bibliothèque (un verbe par
-  // commande). Idempotent — re-taper la rangée déjà active ne fait rien.
-  main.querySelectorAll('.home-side [data-catall]').forEach(b=>b.onclick=()=>{
-    if(state.cat===null)return;state.cat=null;rr();});
   // Historique GLOBAL des sessions (v4.56.0, demande utilisateur) : la fenêtre existante en mode
   // « toutes les fiches » — l'entrée par fiche du menu ⋯ est inchangée.
   qsa('[data-navaides]').forEach(b=>b.onclick=()=>setHomeTab('aides'));
@@ -16780,7 +16716,7 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
   n.hidden=!on||state.selOn||_tbSrch;
   if(n.hidden)return;
   if(!n.dataset.built){n.dataset.built='1';
-    n.querySelector('[data-tab="aides"]').insertAdjacentHTML('afterbegin',uiIcon('list',22,{sw:2}));
+    n.querySelector('[data-tab="aides"]').insertAdjacentHTML('afterbegin',uiIcon('home',22,{sw:2}));
     n.querySelector('[data-tab="biblio"]').insertAdjacentHTML('afterbegin',uiIcon('book',22,{sw:2}));
     n.querySelector('[data-tab="sessions"]').insertAdjacentHTML('afterbegin',uiIcon('history',22,{sw:2}));
     n.querySelector('.tb-tabs').insertAdjacentHTML('afterbegin','<span class="tb-pill" aria-hidden="true"></span>');
@@ -17107,6 +17043,7 @@ function bindSelLongPress(cfg){
 /* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
 function renderHomeTab(cfg){const t=homeTab();
+  rescueFooter();   // A606 : le pied vit dans la colonne — le mettre à l'abri AVANT d'écraser `main` (cf. rescueFooter)
   if(t==='biblio'){renderCatalogue(cfg);return;}   // A601 : le catalogue
   const tn=tabNavOn();
   main.innerHTML=(tn?'':homeSideHtml())+`<div class="home-main"><section class="hv-page${t==='admin'?' adm-page':''}">`
@@ -17133,8 +17070,8 @@ function ctgCatId(x){const c=catOf(x);return c?c.id:'';}
 function ctgRowHtml(attrs,label,o){o=o||{};
   return `<button type="button" class="ctg-row" ${attrs}>`
     +(o.dot?`<span class="ctg-ic">${o.dot}</span>`:o.ic?`<span class="ctg-ic" aria-hidden="true">${o.ic}</span>`:'')
-    +`<span class="ctg-tx"><span class="ctg-l">${esc(label)}</span>${o.sub?`<span class="ctg-s">${esc(o.sub)}</span>`:''}</span>`
-    +(o.warn?`<span class="ctg-w">△ ${esc(o.warn)}</span>`:'')
+    +`<span class="ctg-tx"><span class="ctg-l">${esc(label)}</span>${o.sub||(o.warn&&o.warnBas)?`<span class="ctg-s">${esc(o.sub||'')}${o.warn&&o.warnBas?`${o.sub?' · ':''}<span class="ctg-w">△ ${esc(o.warn)}</span>`:''}</span>`:''}</span>`
+    +(o.warn&&!o.warnBas?`<span class="ctg-w">△ ${esc(o.warn)}</span>`:'')
     +`<span class="ctg-n">${o.n!=null?o.n:''}</span><span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button>`;}
 function ctgItems(){const N=state.cnav||{},F=state.ctf||{};let a=homeVis();
   if(N.tout){
@@ -17162,11 +17099,11 @@ function renderCatalogue(cfg){
   else if(libG){ttl=libG.L;back='Bibliothèques';eye='Bibliothèque · '+(libG.lib?libWho(libG):'vous seul');
     const it=libG.items,rel=it.filter(ctgRelire).length;sub=nb(it.length,'élément')+(rel?' · '+rel+' à relire':'');
     const rows=ctgCatRows(libG,null);
-    body=rows?`<div class="ctg-book">${rows}</div>`:emptyLine('Cette bibliothèque est vide.');}
+    body=(rows?`<div class="ctg-book">${rows}</div>`:emptyLine('Cette bibliothèque est vide.'))+ctgMgrHtml(libG);}
   else{sub=nb(bibs.length,'bibliothèque')+' · '+nb(vis.length,'élément');
     body=`<div class="ctg-book">${ctgRowHtml('data-ctgtout','Tout',{ic:uiIcon('list',18),sub:'Aides et protocoles de toutes les bibliothèques · filtrer, trier, sélectionner',n:vis.length})}</div>`
       +`<h2 class="ctg-h">Vos bibliothèques</h2><div class="ctg-book">`
-      +bibs.map(g=>{const rel=g.items.filter(ctgRelire).length;return ctgRowHtml(`data-ctglib="${esc(g.key)}"`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:libSub(g),n:g.items.length,warn:rel?rel+' à relire':''});}).join('')+`</div>`;}
+      +bibs.map(g=>{const rel=g.items.filter(ctgRelire).length;return ctgRowHtml(`data-ctglib="${esc(g.key)}"`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:libSub(g),n:g.items.length,warn:rel?rel+' à relire':''});}).join('')+`</div>`+ctgRacineGestion();}
   const selPossible=liste&&ctgItems().some(x=>canEditFiche(x));
   const right=liste&&!state.selOn&&selPossible?`<button type="button" class="pg-btn" id="selTog">Sélectionner</button>`:'';
   const head=tn
@@ -17180,6 +17117,7 @@ function renderCatalogue(cfg){
   main.querySelectorAll('[data-ctgtout]').forEach(b=>b.onclick=()=>go({tout:true}));
   main.querySelectorAll('[data-ctglib]').forEach(b=>b.onclick=()=>go({lib:b.dataset.ctglib}));
   main.querySelectorAll('[data-ctgcat]').forEach(b=>b.onclick=()=>go({lib:N.lib,cat:b.dataset.ctgcat}));
+  main.querySelectorAll('[data-ctgmgr]').forEach(b=>b.onclick=()=>openCatMgr(b.dataset.ctgmgr||null));
   if(liste)ctgBindListe(cfg,vis,F);
   else syncTabBar();
   bindHomeChrome(redo);bindPgHead(redo);placeFooter();_histSync();}
@@ -17195,12 +17133,12 @@ function ctgUp(){const N=state.cnav||{};state.cnav=N.tout||N.cat==null?{}:{lib:N
 function renderCatalogueVolets(cfg,vis,bibs,libG){
   const N=state.cnav,F=state.ctf,redo=cfg.rerender;
   const libRows=bibs.map(g=>{const on=libG&&libG.key===g.key,rel=g.items.filter(ctgRelire).length;
-    return ctgRowHtml(`data-ctglib="${esc(g.key)}"${on?' aria-current="true"':''}`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:g.lib?libWho(g):'vous seul',n:g.items.length,warn:rel?rel+' à relire':''})
-      +(on?`<div class="ctg-nest">${ctgCatRows(g,N.cat)}</div>`:'');}).join('');
+    return ctgRowHtml(`data-ctglib="${esc(g.key)}"${on?' aria-current="true"':''}`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:g.lib?libWho(g):'vous seul',n:g.items.length,warn:rel?rel+' à relire':'',warnBas:true})
+      +(on?`<div class="ctg-nest">${ctgCatRows(g,N.cat)}${canEditScope(g.key||null)?ctgRowHtml(`data-ctgmgr="${esc(g.key)}"`,'Gérer les catégories',{ic:uiIcon('gear',16)}):''}</div>`:'');}).join('');
   const toutOn=!libG;
   const v1=`<div class="ctg-v1"><div class="ctg-book">${ctgRowHtml('data-ctgtout'+(toutOn?' aria-current="true"':''),'Tout',{ic:uiIcon('list',18),n:vis.length})}</div>`
-    +`<h2 class="ctg-h">Vos bibliothèques</h2><div class="ctg-book">${libRows}</div></div>`;
-  const v2=libG?`<div class="ctg-v2"><span class="ctg-eye">Bibliothèque · ${esc(libG.lib?libWho(libG):'vous seul')}</span><h2 class="ctg-v2t">${esc(libG.L)}</h2><div class="ctg-book">${ctgCatRows(libG,N.cat)}</div></div>`:'';
+    +`<h2 class="ctg-h">Vos bibliothèques</h2><div class="ctg-book">${libRows}</div>${ctgRacineGestion()}</div>`;
+  const v2=libG?`<div class="ctg-v2"><span class="ctg-eye">Bibliothèque · ${esc(libG.lib?libWho(libG):'vous seul')}</span><h2 class="ctg-v2t">${esc(libG.L)}</h2><div class="ctg-book">${ctgCatRows(libG,N.cat)}</div>${ctgMgrHtml(libG)}</div>`:'';
   let ttl,sub,it,filtres='',vide;
   if(toutOn){state.cnav=N.tout?N:{};
     const save=state.cnav;state.cnav={tout:true};it=ctgItems();state.cnav=save;
@@ -17216,14 +17154,24 @@ function renderCatalogueVolets(cfg,vis,bibs,libG){
   main.querySelectorAll('[data-ctgtout]').forEach(b=>b.onclick=()=>go({tout:true}));
   main.querySelectorAll('[data-ctglib]').forEach(b=>b.onclick=()=>go({lib:b.dataset.ctglib}));
   main.querySelectorAll('[data-ctgcat]').forEach(b=>b.onclick=()=>go({lib:N.lib,cat:b.dataset.ctgcat}));
+  main.querySelectorAll('[data-ctgmgr]').forEach(b=>b.onclick=()=>openCatMgr(b.dataset.ctgmgr||null));
   ctgBindListe(cfg,vis,F);
   bindHomeChrome(redo);bindPgHead(redo);placeFooter();_histSync();}
+/* A606 — LES PORTES DE GESTION VIVENT DANS LE CATALOGUE (elles étaient dans la colonne, qui ne filtre plus) : « Gérer les
+   catégories » dans une bibliothèque qu'on peut modifier ; « Gérer les bibliothèques » et « Partager avec une équipe… »
+   à la racine. Câblées par `bindHomeChrome` (`data-libmgr`, `data-newlib`) et ici (`data-ctgmgr`). */
+const ctgMgrHtml=g=>canEditScope(g.key||null)?`<div class="ctg-book">${ctgRowHtml(`data-ctgmgr="${esc(g.key)}"`,'Gérer les catégories',{ic:uiIcon('gear',16)})}</div>`:'';
+const ctgRacineGestion=()=>{const r=(catMgrOn()?ctgRowHtml('data-catmgr aria-haspopup="dialog"','Gérer les catégories',{ic:uiIcon('tag',16)}):'')
+  +(mgrDeux()?ctgRowHtml('data-libmgr','Gérer les bibliothèques',{ic:uiIcon('gear',16)}):'')
+  +(libNewOn()?ctgRowHtml('data-newlib','Partager avec une équipe…',{ic:uiIcon('plus',16)}):'');return r?`<div class="ctg-book">${r}</div>`:'';};
 /* Les catégories d'une bibliothèque (rangées) — partagé par la vue téléphone et les volets. */
 function ctgCatRows(g,cur){
   const par=new Map();categories.filter(c=>(catScope(c)||'')===g.key).sort(byCatName).forEach(c=>par.set(c.id,{c,items:[]}));
   const sans=[];g.items.forEach(x=>{const id=ctgCatId(x);if(id&&par.has(id))par.get(id).items.push(x);else sans.push(x);});
   const on=id=>cur!=null&&cur===id?' aria-current="true"':'';
-  return [...par.values()].map(k=>{const rel=k.items.filter(ctgRelire).length;
+  /* Une catégorie VIDE ne mène nulle part (règle de la colonne, v5.19, reprise par A606) — sauf la COURANTE : un
+     emplacement posé ne devient jamais invisible (GARDE, A132). */
+  return [...par.values()].filter(k=>k.items.length||cur===k.c.id).map(k=>{const rel=k.items.filter(ctgRelire).length;
       return ctgRowHtml(`data-ctgcat="${esc(k.c.id)}"${on(k.c.id)}`,k.c.name,{dot:catDotHtml([safeColor(k.c.color)].filter(Boolean),'cat-dot'),n:k.items.length,warn:rel?rel+' à relire':''});}).join('')
     +(sans.length?ctgRowHtml('data-ctgcat=""'+on(''),'Sans catégorie',{ic:uiIcon('list',16),n:sans.length}):'');}
 /* Les puces de filtre de « Tout » (Type, Bibliothèque, Catégorie, Trier) — partagées par les deux dessins. */
@@ -17281,8 +17229,25 @@ function tbDragBind(tabs){if(!tabs)return;let st=null,just=false;
     if(s.to&&!s.to.classList.contains('on'))s.to.click();else tbPillPlace(tabs);};   // relâché sur l'onglet courant : elle y revient
   tabs.addEventListener('pointerup',end);tabs.addEventListener('pointercancel',end);
   tabs.addEventListener('click',e=>{if(just&&e.isTrusted){e.stopPropagation();e.preventDefault();}},true);}
+/* A606 — le bas du lanceur : les éléments ouverts le plus récemment (`_frecency`, déjà tenu par `bumpUsage` à chaque
+   ouverture — aucune donnée nouvelle), puis la porte vers « Tout » du catalogue. */
+let LANCEUR_SEUIL=20;   // `let` : un harnais qui mesure le RÉPERTOIRE sur un grand jeu le relève (le répertoire ne dépend pas de la taille)
+function lanceurBasHtml(list,listR,rowsIn){
+  const byId=new Map(listR.map(x=>[x.id,x]));
+  const rec=Object.keys(_frecency).filter(id=>(_frecency[id].t||0)>0&&byId.has(id)).sort((a,b)=>_frecency[b].t-_frecency[a].t).slice(0,5).map(id=>byId.get(id));
+  return (rec.length?`<div class="qa-sec"><div class="dir-book recents${state.homeCompact?' compact':''}"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Ouvertes récemment</span><span class="dir-lr"></span><span class="dir-ln">${rec.length}</span></div><div class="dir-grid">${rowsIn(rec)}</div></div></div></div>`:'')
+    +`<div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row hc-all" data-gotout>`
+    +`<span class="hc-ic" aria-hidden="true">${uiIcon('book',16)}</span><span class="hc-n">Toutes les aides et protocoles</span><span class="hc-cnt">${list.length}</span>`
+    +`<span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button></div></div></div>`;}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
+  /* A606 — LOT 2 D'A600 : AU REPOS (ni recherche, ni filtre, ni collection ouverte, ni sélection), L'ACCUEIL EST UN
+     LANCEUR — En cours, Accès direct, Vos collections, Ouvertes récemment, et une porte « Toutes les aides et
+     protocoles » vers le catalogue. Le répertoire (liste complète, rangement, filtres) a déménagé dans « Tout » (A601).
+     EN DEÇÀ DE `LANCEUR_SEUIL` ÉLÉMENTS, L'ACCUEIL RESTE LA LISTE : tout tient sur un écran ou deux, un lanceur n'y
+     ajouterait qu'un tap — et un premier lancement (deux aides d'exemple, rien d'épinglé ni d'ouvert) ne montrerait
+     qu'une porte. */
+  const lanceur=!q&&!state.selOn&&!filtersList().length&&homeVis().length>LANCEUR_SEUIL;
   /* v5.18 — la liste est l'UNION des bibliothèques accessibles : le RANGEMENT en fait des
      sections, il ne filtre jamais (`state.scope` ne borne plus l'accueil ; les brouillons se
      décident par fiche, canEditFiche). */
@@ -17390,7 +17355,7 @@ function renderHomeList(cfg){
        « Ouvrir la collection » (la vue d'A475 : en-tête, Ajouter, ⋯). Les rangées dépliées sont celles du
        répertoire ; une aide rangée paraît aussi dans « Tout » — la même aide, jamais une copie. */
     const auRepos=!state.selOn&&!filtersList().length;
-    const avecColls=auRepos&&state.homeColls!==false&&colls.length>0;
+    const avecColls=auRepos&&(lanceur||state.homeColls!==false)&&colls.length>0;   // A606 : dans le lanceur, toujours
     const collSec=avecColls?(()=>{const ids=new Map(listR.map(x=>[x.id,x]));
       /* A597 — DES DIZAINES DE COLLECTIONS : la section garde les COLL_HEAD vues le plus récemment (et toute collection
          dépliée), dans l'ordre alphabétique — une rangée qui change de place sous le doigt se perd —, puis « Toutes les
@@ -17415,7 +17380,7 @@ function renderHomeList(cfg){
     /* « TOUT » — le répertoire d'avant, inchangé, sous son intertitre de section quand les collections le précèdent ;
        la sous-ligne nomme le regroupement (A493 : « Tout » dit « aucun tri par collection »). */
     const GK_SUB={none:'',kind:'par type',bib:'par bibliothèque',cat:'par catégorie',az:'de A à Z'};
-    const toutHead=avecColls?`<h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">${esc(GK_SUB[gk]||'')}</span><span class="hc-shn">${listR.length}</span></h2>`:'';
+    const toutHead=avecColls&&!lanceur?`<h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">${esc(GK_SUB[gk]||'')}</span><span class="hc-shn">${listR.length}</span></h2>`:'';
     /* v5.18 (A262, direction A « liste éditoriale » retenue sur canvas — remplace le TABLEAU
        d'A244) : UN SEUL dessin de rangée à toutes les largeurs — titre + ligne de méta. (Le drapeau
        `desk` qui gouvernait la composition ≥ 1200 était devenu sans lecteur : purgé en A515, règle 14.) */
@@ -17434,21 +17399,22 @@ function renderHomeList(cfg){
       /* v5.30 (maquette v5) : plus d'intertitre « Répertoire » — la ligne dit le compte et porte
          « Affichage » (rangement, catégories). */
       /* A517 : le TITRE d'abord (maquette Natif) — la ligne du compte précède désormais l'Accès direct. */
-      (tabNavOn()?'':`<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
+      (tabNavOn()?'':lanceur?`<div class="dir-h dir-sum"><h1 class="pg-ttl">Accueil</h1></div>`:`<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
           return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » est au bout de la ligne du titre (A545) */
       +(state.selOn?'':filtersBarHtml())
       +enCours
       +(tiles.length&&!state.selOn&&!state.coll?`<div class="qa-sec"><div class="dir-book pinned"><div class="dir-g"><div class="dir-l"><span class="dir-ll">Accès direct</span><span class="dir-lr"></span><span class="dir-ln">${tiles.length}</span></div><div class="dir-grid">${rowsIn(tiles,{tile:true})}</div></div></div></div>`:'')
       +collSec+toutHead
-      +(!wide&&!state.selOn&&!tabNavOn()?collRailHtml():'')+(state.selOn?'':collHeadHtml())
+      +(lanceur?lanceurBasHtml(list,listR,rowsIn):
+       (!wide&&!state.selOn&&!tabNavOn()?collRailHtml():'')+(state.selOn?'':collHeadHtml())
       +`<div class="dir-book tout${state.homeCompact?' compact':''}${homeGroupKey()==='cat'?' by-cat':''}">`
       +az.map(g=>{const plie=!!g.L&&_homeFold.fold.has(foldKey(g));
         return `<div class="dir-g${plie?' plie':''}" data-azg="${esc(g.L)}">${secHead(g)}${plie?'':`<div class="dir-grid">${g.items.map(rowFor).join('')}</div>`}</div>`;}).join('')
-      +`</div>`
+      +`</div>`)
       :((!wide&&!state.selOn?collRailHtml():'')+(state.selOn?'':collHeadHtml()+filtersBarHtml())+enCours+emptyHtml)}</div>`;   /* A429 : « aucun résultat » est justement là où l'on retire un filtre */
     /* Le rail n'indexe que l'ALPHABET (v5.18) : en rangement bibliothèque ou catégories, les
        intertitres collants orientent déjà — et en voie large c'est la colonne gauche qui indexe. */
-    if(gk==='az'&&list.length&&az.length>=2)railHtml=`<nav class="azrail" id="azRail" aria-label="Aller à la lettre">${az.map(g=>`<button type="button" data-azl="${esc(g.L)}" aria-label="Aller à ${esc(g.L)}" title="${esc(g.L)}">${esc(g.L)}</button>`).join('')}</nav>`;
+    if(!lanceur&&gk==='az'&&list.length&&az.length>=2)railHtml=`<nav class="azrail" id="azRail" aria-label="Aller à la lettre">${az.map(g=>`<button type="button" data-azl="${esc(g.L)}" aria-label="Aller à ${esc(g.L)}" title="${esc(g.L)}">${esc(g.L)}</button>`).join('')}</nav>`;
   }
   /* ⚠ EN VOIE LARGE, LES DÉFILEURS DE L'ACCUEIL SONT RECONSTRUITS — DONC REMIS À ZÉRO (v5.20.1,
      signalé à l'usage : « on ne revient pas au scroll initial, on revient en haut de la page »,
@@ -17468,7 +17434,7 @@ function renderHomeList(cfg){
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
-    ${tabNavOn()&&!state.selOn?pgHeadHtml('Aides',{sel:true,create:true,chips:true}):''}${tabNavOn()?selTopHtml():''}
+    ${tabNavOn()&&!state.selOn?(lanceur?pgHeadHtml('Accueil',{create:true}):pgHeadHtml('Aides',{sel:true,create:true,chips:true})):''}${tabNavOn()?selTopHtml():''}
     ${selBarHtml()}
     ${state.selOn?'':homeJoinHtml()}
     <div class="notice" id="syncErrNotice" hidden></div>
@@ -17503,6 +17469,7 @@ function renderHomeList(cfg){
      large, la colonne la montre déjà : on y porte le focus. */
   main.querySelectorAll('[data-hcall]').forEach(b=>b.onclick=()=>{if(tabNavOn())openHomePick(b,cfg.rerender);
     else{const r=document.querySelector('.hs-row[data-collsel]:not([data-collsel=""])');if(r){r.scrollIntoView({block:'nearest'});r.focus({preventScroll:true});}}});
+  main.querySelectorAll('[data-gotout]').forEach(b=>b.onclick=()=>{state.cnav={tout:true};setHomeTab('biblio');window.scrollTo(0,0);});   // A606
   main.querySelectorAll('[data-hcopen]').forEach(b=>b.onclick=()=>{state.coll=b.dataset.hcopen;state.cat='';state.libLimit=LIB_PAGE;
     cfg.rerender();window.scrollTo(0,0);const m=main.querySelector('.home-main');if(m)m.scrollTop=0;});
   bindGroupTitle();
@@ -19733,6 +19700,7 @@ function pinIcon(on){return '<svg width="18" height="18" viewBox="0 0 24 24" fil
 // pour aucune, ou 'chev' pour les chevrons de cartes stylés à part). TOUTE icône répétée dans
 // les gabarits doit venir d'ICI — un doublon inline finit par diverger (taille, graisse, dessin).
 function uiIcon(name,size,opts){opts=opts||{};const P={
+  home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',   // A606 : l'onglet « Accueil »
   tune:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
   bell:'<path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
@@ -20581,17 +20549,14 @@ function applyDeepLink(){
     home();state.coll=id;state.cat='';render();window.scrollTo(0,0);return true;}
   if(d.go==='lib'){const id=d.id==='perso'?'':d.id;
     if(id&&!myLibraries.some(l=>l.id===id)){toast('Ce lien vise une bibliothèque dont vous n’êtes pas membre sur cet appareil (connectez-vous, ou demandez l’accès).',7000,true);return true;}
-    home();state.homeLib=id;state.coll=null;state.cat='';render();window.scrollTo(0,0);return true;}
+    home();state.homeTab='biblio';state.cnav={lib:id};render();window.scrollTo(0,0);return true;}   // A606 : une bibliothèque s'ouvre dans le catalogue
   if(state.view!=='library'){state.view='library';render();}
   if(d.go==='sessions')openSessHist();
   else if(d.go==='create')openCreateDlg();
   else if(d.go==='libs'){
-    /* La liste des bibliothèques : la colonne gauche en large (son rang actif prend le focus) ; au téléphone, la
-       feuille « Afficher » du grand titre, qui les porte en tête (A556). */
-    if(state.homeTab&&state.homeTab!=='aides'){state.homeTab='aides';render();}
-    const r=main.querySelector('.home-side [data-libsel][aria-pressed="true"]')||main.querySelector('.home-side [data-libsel]');
-    const p=main.querySelector('#pgPick');
-    if(r&&r.offsetParent)r.focus();else if(p)p.click();}
+    /* A606 : la liste des bibliothèques EST le catalogue — on l'ouvre à sa racine, le focus sur la première. */
+    state.homeTab='biblio';state.cnav={};render();
+    const r=main.querySelector('[data-ctglib]');if(r)r.focus({preventScroll:true});}
   else{const q=document.getElementById('q');if(q)q.focus();}
   return true;}
 /* Donner un lien : la feuille de partage native d'abord (elle porte « Copier », et sur iPhone l'app
@@ -35436,7 +35401,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
     try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
       const r=await inviteAll(id,emailsIn(who.value),$('newLibRole').value);
       await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
-      closeNewLib(true);state.homeLib=id;renderLibrary();toast('Bibliothèque « '+name+' » créée'+r+'.',r?7000:4000,!!r);
+      closeNewLib(true);state.homeTab='biblio';state.cnav={lib:id};renderLibrary();toast('Bibliothèque « '+name+' » créée'+r+'.',r?7000:4000,!!r);
     }catch(e){ok.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
   ok.onclick=submit;
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}

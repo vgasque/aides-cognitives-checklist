@@ -1587,6 +1587,7 @@ await sec('Accueil large · le défilement survit au re-rendu', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r = await page.evaluate(async()=>{
+    LANCEUR_SEUIL=1e9;   // A606 : on mesure le RÉPERTOIRE
     const f=JSON.parse(JSON.stringify(fiches[0]));
     myLibraries=[{id:'lib1',name:'Équipe déchocage',role:'admin'}];
     for(let i=0;i<14;i++){
@@ -1598,14 +1599,15 @@ await sec('Accueil large · le défilement survit au re-rendu', async () => {
     render();await __acCalme(400);
     /* ⚠ On RE-INTERROGE à chaque fois : le nœud d'avant le rendu est détaché (cf. en-tête). */
     const q=s=>document.querySelector(s);
-    const liste=()=>q('.home-main'),cote=()=>q('.hs-scroll');
+    const liste=()=>q('.home-main');
     const marge=e=>Math.max(0,e.scrollHeight-e.clientHeight);
-    const peutL=marge(liste()),peutC=marge(cote());
-    liste().scrollTop=600;cote().scrollTop=80;
+    /* A606 : la colonne ne porte plus les catégories — son défileur n'a plus de quoi défiler ; seule la LISTE compte. */
+    const peutL=marge(liste());
+    liste().scrollTop=600;
     await __acCalme(150);
-    const avant={l:liste().scrollTop,c:cote().scrollTop};
+    const avant={l:liste().scrollTop};
     render();await __acCalme(300);
-    const rendu={l:liste().scrollTop,c:cote().scrollTop};
+    const rendu={l:liste().scrollTop};
     /* Le geste SIGNALÉ, par son vrai chemin : le ✎ d'une bibliothèque pris dans la LISTE, puis la
        fermeture qui suit un enregistrement de nom (`closeMembers(true)` + `renderLibrary()`). */
     liste().scrollTop=600;await __acCalme(150);
@@ -1613,13 +1615,11 @@ await sec('Accueil large · le défilement survit au re-rendu', async () => {
     openMembers('lib1');await __acCalme(350);
     const ouverte=document.getElementById('membersModal').classList.contains('on');
     closeMembers(true);renderLibrary();await __acCalme(350);
-    return {peutL,peutC,avant,rendu,crayon,ouverte,ferme:{l:liste().scrollTop,c:cote().scrollTop}};});
-  t('témoin : les deux défileurs ont de la marge, et le ✎ est bien dans la liste',
-    r.peutL>600&&r.peutC>80&&r.crayon===true&&r.ouverte===true, JSON.stringify(r));
+    return {peutL,avant,rendu,crayon,ouverte,ferme:{l:liste().scrollTop}};});
+  t('témoin : la liste a de la marge, et le ✎ est bien dans la liste',
+    r.peutL>600&&r.crayon===true&&r.ouverte===true, JSON.stringify(r));
   t('la LISTE garde sa position à travers un re-rendu',
     r.avant.l===600&&r.rendu.l===600, JSON.stringify(r));
-  t('la colonne de CATÉGORIES aussi',
-    r.avant.c===80&&r.rendu.c===80, JSON.stringify(r));
   t('… et fermer la fenêtre d\'une bibliothèque ne remonte pas en haut',
     r.ferme.l===600, JSON.stringify(r));
   await page.close();
@@ -1646,7 +1646,8 @@ await sec('Accueil · le rail A→Z pose sous ce qui coiffe', async () => {
     await page.waitForFunction(()=>!document.querySelector('.boot-load'));
     await amorce(page);
     if(cas==='encoche')await page.addStyleTag({content:'@media (max-width:779.98px){body.view-home::before{height:47px}body.view-home .dir-l{top:47px}body.view-home .sel-bar{top:47px}}'});
-    await page.evaluate(async(TT)=>{const f=JSON.parse(JSON.stringify(fiches[0]));
+    await page.evaluate(async(TT)=>{LANCEUR_SEUIL=1e9;   // A606 : on mesure le RÉPERTOIRE (au-delà de 20, l'accueil serait le lanceur)
+      const f=JSON.parse(JSON.stringify(fiches[0]));
       for(const ti of TT){for(let k=0;k<3;k++){
         const n=JSON.parse(JSON.stringify(f));n.id='x'+ti.slice(0,4)+k;n.title=ti+' '+k;fiches.push(migrate(n));}}
       state.homeGroup='az';render();await __acCalme(400);},TT);
@@ -4376,6 +4377,7 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    LANCEUR_SEUIL=1e9;   // A606 : on mesure le RÉPERTOIRE
     for(const l of 'ABCDEFGHIJKLMNOPQRSTUVWX'.split('')){
       const f=blankFiche();f.title=l+' — démo';fiches.push(migrate(f));}
     /* v5.18 : le rail n'existe qu'en rangement A–Z. */
@@ -6129,6 +6131,7 @@ await sec('v5.6 · l\'index A→Z s\'éclaircit pour rester centré', async () =
     await page.goto(`http://localhost:${port}/index.html`);
     await amorce(page);
     await page.evaluate(async(k)=>{const w=m=>new Promise(r=>setTimeout(r,m));
+      LANCEUR_SEUIL=1e9;   // A606 : l'index A→Z vit dans le RÉPERTOIRE
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0,k)
         .forEach(x=>fiches.push(migrate({id:uid('f'),title:x+'zz test',blocks:[]})));
       state.homeGroup='az';   /* v5.18 : le rail n'existe qu'en rangement A–Z */
@@ -6953,37 +6956,32 @@ await sec('EXCURSION · « Tout voir » revient où l’on était', async () => 
    chemin d'interface (basculer le type remet `state.cat` à null), mais il mesure la PROPRIÉTÉ qui
    compte : un filtre posé ne devient jamais invisible, quelle que soit la façon dont son compte
    tombe à zéro (suppression de la dernière fiche, pull de synchro). */
-await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => {
+await sec('ACCUEIL · les catégories vides ne mènent nulle part (catalogue, A606)', async () => {
+  /* A606 : la colonne ne filtre plus ; la propriété vit dans le CATALOGUE — une bibliothèque n'offre pas ses catégories
+     vides, sauf la courante (GARDE). */
   const page = await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
-  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    /* v5.19.1 : le compte et l'état sélectionné vivent sur l'ENVELOPPE (`.hs-wrap`), pas sur le
-       bouton — le crayon doit passer avant le nombre pour aligner les deux colonnes de comptes. */
-    const lire=()=>[...document.querySelectorAll('.home-side .hs-row[data-cat]')].map(b=>({
-      id:b.dataset.cat,n:b.querySelector('.hs-name').textContent,
-      c:(b.parentNode.querySelector('.hs-n')||{textContent:''}).textContent,
-      on:b.parentNode.classList.contains('on')}));
-    state.view='library';state.cat=null;render();await __acCalme(400);
-    const nominal=lire();
-    const tous=categories.length;
-    const vides=categories.filter(c=>!fiches.concat(protocols).some(x=>x.category===c.id));
-    /* LE CAS DU GARDE : une catégorie SÉLECTIONNÉE dont le compte est à zéro. */
-    state.cat=vides.length?catKey(vides[0]):null;render();await __acCalme(400);   // A419 : clé de nom
+  const r=await page.evaluate(async()=>{
+    const lire=()=>[...document.querySelectorAll('.ctg-v2 .ctg-row[data-ctgcat]')].map(b=>({
+      id:b.dataset.ctgcat,n:(b.querySelector('.ctg-l')||{}).textContent,c:(b.querySelector('.ctg-n')||{textContent:''}).textContent.trim(),
+      on:b.getAttribute('aria-current')==='true'}));
+    state.view='library';state.cnav={lib:''};setHomeTab('biblio');render();await __acCalme(400);
+    const nominal=lire().filter(x=>x.id);
+    const perso=categories.filter(c=>!catScope(c));
+    const vides=perso.filter(c=>!fiches.concat(protocols).some(x=>x.category===c.id&&!x.library));
+    state.cnav={lib:'',cat:vides.length?vides[0].id:'x'};render();await __acCalme(400);
     const selVide=lire();
-    state.cat=null;render();await __acCalme(200);
-    return {tous,nVides:vides.length,nominal,selVide,videId:vides.length?catKey(vides[0]):null};});
-  // ON RENCONTRE SON CAS : sans catégorie vide au départ, l'absence de rangée ne prouverait rien.
+    return {tous:perso.length,nVides:vides.length,nominal,selVide,videId:vides.length?vides[0].id:null};});
   t('le cas est rencontré : des catégories sont vides sur une installation neuve',
     r.nVides>=1, `${r.nVides} vide(s) sur ${r.tous}`);
-  t('aucune catégorie à zéro dans le rail',
-    r.nominal.filter(x=>x.id&&x.c==='0').length===0, JSON.stringify(r.nominal.map(x=>x.n+':'+x.c)));
+  t('aucune catégorie à zéro dans la bibliothèque',
+    r.nominal.filter(x=>x.c==='0').length===0, JSON.stringify(r.nominal.map(x=>x.n+':'+x.c)));
   t('… et les non vides sont TOUTES là',
-    r.nominal.filter(x=>x.id).length===r.tous-r.nVides, `${r.nominal.filter(x=>x.id).length} sur ${r.tous-r.nVides}`);
-  // GARDE (A132) : il ne discrimine pas aujourd'hui, il tient la propriété.
-  t('GARDE · une catégorie SÉLECTIONNÉE reste visible même à zéro',
+    r.nominal.length===r.tous-r.nVides, `${r.nominal.length} sur ${r.tous-r.nVides}`);
+  t('GARDE · la catégorie COURANTE reste visible même à zéro',
     !!r.videId&&r.selVide.some(x=>x.id===r.videId&&x.on&&x.c==='0'),
     JSON.stringify(r.selVide.filter(x=>x.on)));
   await page.close();
@@ -7007,11 +7005,13 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
     state.homeLib=null;render();await __acCalme(300);
     const ids=()=>[...main.querySelectorAll('.dir-row')].map(x=>x.textContent).join('|');
     const out={};
+    /* A606 : la colonne ne filtre plus — le filtre de catégorie (par NOM) se pose par la feuille « Affichage ». */
     for(const [k,nom] of [['bib','Urgences'],['perso','Urgences adultes']]){
-      [...document.querySelectorAll('.home-side [data-cat]')].find(x=>x.querySelector('.hs-name').textContent===nom).click();await __acCalme(300);
+      main.querySelector('#rangBtn').click();await __acCalme(300);
+      [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()===nom).click();await __acCalme(300);
       out[k]={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
-        on:[...document.querySelectorAll('.home-side [data-cat][aria-pressed="true"]')].map(x=>x.querySelector('.hs-name').textContent)};
-      document.querySelector('.home-side [data-catall]').click();await __acCalme(300);}
+        on:[...document.querySelectorAll('#viewSheetBody .catchip[data-cat].on')].map(x=>x.textContent.trim())};
+      closeViewSheet();state.cat='';render();await __acCalme(300);}
     /* Même filtre depuis la feuille « Affichage » : la pastille « Urgences » ne s'allume qu'elle, et filtre juste. */
     main.querySelector('#rangBtn').click();await __acCalme(300);   // A556 : en large, la porte de la feuille est « Affichage »
     [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()==='Urgences').click();await __acCalme(300);
@@ -7392,10 +7392,14 @@ for (const W of [390, 1280]) {
   await amorce(page);
   const r = await page.evaluate(async (W) => {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
+    LANCEUR_SEUIL=1e9;   // A606 : A491 mesure la position dans le RÉPERTOIRE
     for(let i=0;i<30;i++){const f=JSON.parse(JSON.stringify(fiches[0]));f.id='fs'+i;f.title='Aide '+String(i).padStart(2,'0');f.status='validated';fiches.push(migrate(f));}
     myLibraries.length=0;myLibraries.push({id:'lib-vide',name:'Équipe neuve',role:'admin'});
     const c=collNew('Garde SMUR',[fiches[0].id]);render();await __acCalme(300);
-    if(W>=780){out.vide=[...document.querySelectorAll('.home-side [data-libsel]')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).find(t=>/^Équipe neuve/.test(t))||'';
+    /* A606 : une bibliothèque (même vide) se voit à la racine du CATALOGUE, plus dans la colonne. */
+    if(W>=780){state.cnav={};setHomeTab('biblio');await __acCalme(250);
+      out.vide=[...document.querySelectorAll('.ctg-row[data-ctglib]')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).find(t=>/^Équipe neuve/.test(t))||'';
+      setHomeTab('aides');await __acCalme(250);
       const tout=()=>{const b=document.querySelector('.home-side [data-collsel=""]');return b?b.closest('.hs-wrap').classList.contains('on'):null;};
       out.tout=[tout()];document.querySelector('.home-side [data-collsel="'+c.id+'"]').click();await __acCalme(200);out.tout.push(tout(),state.coll===c.id);
       document.querySelector('.home-side [data-collsel=""]').click();await __acCalme(200);out.tout.push(tout(),state.coll);}
@@ -7414,7 +7418,7 @@ for (const W of [390, 1280]) {
     return out;},W);
   const P=W+' px';
   if(W>=780){
-    t(`${P} · A490 : une bibliothèque vide se voit dans la colonne, avec son compte 0`, /^Équipe neuve\s*partagée\s*0$/.test(r.vide), r.vide);
+    t(`${P} · A490 (catalogue, A606) : une bibliothèque vide se voit, avec son compte 0`, /^Équipe neuve\s*partagée(\s*·\s*0 élément)?\s*0$/.test(r.vide), r.vide);
     t(`${P} · A493 : « Tout » allumé par défaut, éteint sous une collection, la retire`, JSON.stringify(r.tout)==='[true,false,true,true,null]', JSON.stringify(r.tout));
   }
   t(`${P} · A491 : le retour d'une aide repose la liste là où on l'avait laissée`, r.retour[0]>=800&&Math.abs(r.retour[1]-r.retour[0])<=2, JSON.stringify(r.retour));
@@ -7437,7 +7441,10 @@ for (const W of [390, 1280]) {
     const w=ms=>new Promise(r=>setTimeout(r,ms)),out={};
     // une colonne à Perso seule d'abord (bureau)
     render();await __acCalme(250);
-    if(W>=780){out.seule=[...document.querySelectorAll('.home-side .hs-row')].map(b=>b.textContent.trim()).filter(t=>/Perso|Toutes$|Partager/.test(t));}
+    /* A606 : les bibliothèques ont quitté la colonne pour le CATALOGUE — c'est sa racine qui dit « avec qui ». */
+    const racine=async()=>{state.cnav={};setHomeTab('biblio');await __acCalme(250);
+      const t=[...document.querySelectorAll('.ctg-row')].map(b=>b.textContent.trim().replace(/\s+/g,' '));setHomeTab('aides');await __acCalme(200);return t;};
+    if(W>=780){out.seule=(await racine()).filter(t=>/^Perso|^Partager/.test(t));}
     myLibraries.length=0;myLibraries.push({id:'lib-x',name:'Bloc',role:'viewer'});
     const urg=categories.find(c=>!c.library&&c.name==='Urgences');
     categories.push({id:'c-urg-x',name:'Urgences',color:'#2f6b3a',library:'lib-x'});
@@ -7448,7 +7455,7 @@ for (const W of [390, 1280]) {
     out.dotBloc=dot();state.homeLib=null;render();await __acCalme(250);
     out.dotToutes=(()=>{const l=[...document.querySelectorAll('.home-main .dir-l')].find(x=>/Urgences/.test(x.textContent));const d=l&&l.querySelector('.dir-dot');return d?getComputedStyle(d).backgroundImage:'';})();
     out.urgPerso=urg&&urg.color;
-    if(W>=780)out.colonne=[...document.querySelectorAll('.home-side .hs-row')].map(b=>b.textContent.trim().replace(/\s+/g,' ')).filter(t=>/^(Toutes|Perso|Bloc)/.test(t));
+    if(W>=780)out.colonne=(await racine()).filter(t=>/^(Tout|Perso|Bloc)/.test(t));
     // case « Accès direct » sur une sélection avec brouillon
     const ids=fiches.map(f=>f.id);state.selOn=true;state.sel=new Set(ids);render();await __acCalme(200);
     openCollPick(ids,{});await __acCalme(300);
@@ -7485,9 +7492,9 @@ for (const W of [390, 1280]) {
   t(`${P} · A488 : « Ajouter à « Garde SMUR » », la catégorie dans chaque rangée`, r.ajTitre==='Ajouter à « Garde SMUR »'&&/^Aide · Urgences · (Perso|Bloc)$/.test(r.ajSub), r.ajTitre+' | '+r.ajSub);
   t(`${P} · le menu ⋯ d'une collection s'ouvre sous son bouton (feuille au téléphone)`, r.menuSous===true, String(r.menuSous));
   if (W>=780) {
-    t(`${P} · A489 : Perso seule = une rangée « vous seul » et la porte « Partager avec une équipe… », sans « Toutes »`,
+    t(`${P} · A489 (catalogue, A606) : Perso seule = une rangée « vous seul »`,
       r.seule.length===1&&/Perso\s*vous seul/.test(r.seule[0]), JSON.stringify(r.seule));
-    t(`${P} · A489 : chaque bibliothèque dit avec qui (vous seul · lecture)`, r.colonne.some(x=>/^Perso\s*vous seul/.test(x))&&r.colonne.some(x=>/^Bloc\s*lecture/.test(x))&&r.colonne.some(x=>/^Toutes/.test(x)), JSON.stringify(r.colonne));
+    t(`${P} · A489 (catalogue, A606) : chaque bibliothèque dit avec qui (vous seul · lecture), « Tout » en tête`, r.colonne.some(x=>/^Perso\s*vous seul/.test(x))&&r.colonne.some(x=>/^Bloc\s*lecture/.test(x))&&r.colonne.some(x=>/^Tout\d/.test(x)), JSON.stringify(r.colonne));
   }
   await page.close();
 }
@@ -7806,7 +7813,7 @@ await page.close();
    deux divergeaient du nombre exact de protocoles rangés là. Et le défaut ne s'arrêtait pas à
    l'affichage — la suppression d'une catégorie ne déplaçait que les fiches, laissant la
    `category` des protocoles pointer sur une catégorie disparue. On mesure donc les DEUX. */
-await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout', async () => {
+await sec('ACCUEIL · le gestionnaire compte comme le catalogue, et déplace tout', async () => {
 {
   const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
   page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
@@ -7823,12 +7830,11 @@ await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout'
     const out = {};
     out.reel = fiches.concat(protocols).filter(x => x.category === 'c-urgences' && !x.library).length;
     out.protos = protocols.filter(p => p.category === 'c-urgences' && !p.library).length;
-    /* ⚠ `hsRow` pose le compte À CÔTÉ du bouton, dans `.hs-wrap` : le chercher DANS `[data-cat]`
-       rend toujours « absent » et ferait passer un rouge pour un vert. */
-    const wrap = [...document.querySelectorAll('.home-side .hs-wrap')]
-      .find(x => { const b = x.querySelector('[data-cat]'); return b && /Urgences/.test(b.textContent); });
-    out.colonne = wrap ? (wrap.querySelector('.hs-n') || {}).textContent : '(absente)';
-    document.querySelector('.home-side [data-catmgr]').click(); await __acCalme(300);
+    /* A606 : les catégories et leur porte de gestion vivent dans le CATALOGUE (Perso › ses catégories). */
+    state.cnav = { lib: '' }; setHomeTab('biblio'); await __acCalme(300);
+    const rangee = document.querySelector('.ctg-v2 [data-ctgcat="c-urgences"]');
+    out.colonne = rangee ? (rangee.querySelector('.ctg-n') || {}).textContent.trim() : '(absente)';
+    document.querySelector('.ctg-v2 [data-ctgmgr]').click(); await __acCalme(300);
     const ligne = () => [...document.getElementById('catMgrBody').querySelectorAll('.cm-row')]
       .find(x => x.dataset.cid === 'c-urgences');
     out.gestionnaire = ligne().querySelector('.cm-count').textContent;
@@ -7843,7 +7849,7 @@ await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout'
     return out;
   });
   t('témoin : la catégorie contient bien des protocoles', r.protos === 2, String(r.protos));
-  t('la colonne annonce le compte réel', r.colonne === String(r.reel), `${r.colonne} vs ${r.reel}`);
+  t('le catalogue annonce le compte réel', r.colonne === String(r.reel), `${r.colonne} vs ${r.reel}`);
   t('le gestionnaire annonce LE MÊME', r.gestionnaire.startsWith(String(r.reel)),
     `${r.gestionnaire} vs ${r.reel}`);
   t('… et la confirmation de suppression aussi',
@@ -7866,7 +7872,9 @@ await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout'
    somme et non un double. ⚠ Le compte vit À CÔTÉ du bouton, dans `.hs-wrap` (piège d'A305). */
 await sec('ACCUEIL · la pastille d\'un homonyme suit le périmètre affiché', async () => {
 {
-  const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
+  /* A606 : la colonne ne filtre plus — la pastille des catégories (`homeCatGroups`) et le périmètre se lisent dans la
+     feuille « Afficher » du téléphone (catégories en rangées, bibliothèques en liste, A596). */
+  const page = await br.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
@@ -7886,30 +7894,29 @@ await sec('ACCUEIL · la pastille d\'un homonyme suit le périmètre affiché', 
     for (let i = 0; i < 3; i++) { mk('p' + i, '', 'rea'); mk('l' + i, 'lib1', 'rea2'); }
     mk('t1', '', 'dup'); mk('t2', '', 'dup'); mk('t3', 'lib1', 'dup');
     state.homeLib = null; render(); await __acCalme(300);
+    const ouvrir = async () => { if (typeof _pickClose === 'function' && _pickClose) _pickClose(false); await __acCalme(150);
+      document.getElementById('pgPick').click(); await __acCalme(300); };
     const rangee = nom => {
-      const b = [...document.querySelectorAll('.home-side [data-cat]')].find(x => x.textContent.includes(nom));
+      const b = [...document.querySelectorAll('.popmenu .mm-row[data-pickopt^="k:"]')].find(x => x.textContent.includes(nom));
       if (!b) return null;
       const d = b.querySelector('.cat-dot'), st = d.getAttribute('style') || '';
       const cols = d.classList.contains('cat-multi')
         ? [...st.matchAll(/#[0-9a-f]{6}/gi)].map(m => m[0].toLowerCase())
         : [(st.match(/#[0-9a-f]{6}/i) || [''])[0].toLowerCase()];
-      return { multi: d.classList.contains('cat-multi'), cols, n: +b.parentElement.querySelector('.hs-n').textContent }; };
-    const aller = async k => {
-      if (state.homeLib != null) { const t = [...document.querySelectorAll('.home-side [data-libsel]')]
-          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await __acCalme(200); }
-      if (k != null) { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
-          .find(y => y.dataset.libsel === k); if (x) x.click(); }
-      await __acCalme(300); };
-    const toutes = rangee('Réanimation'), trauma = rangee('Trauma');
+      return { multi: d.classList.contains('cat-multi'), cols, n: +b.querySelector('.mm-cnt').textContent }; };
+    const aller = async k => { await ouvrir();
+      const x = document.querySelector(`.pk-libs [data-pklib="${k == null ? '*' : k}"]`); if (x) x.click(); await __acCalme(300);
+      await ouvrir(); };   // la feuille compte ses catégories À L'OUVERTURE : on la rouvre sur le nouveau périmètre
+    await ouvrir(); const toutes = rangee('Réanimation'), trauma = rangee('Trauma');
     await aller('lib1'); const lib1 = rangee('Réanimation');
     await aller(''); const perso = rangee('Réanimation');
     await aller(null); const retour = rangee('Réanimation');
     // Le chemin du gestionnaire : une homonyme qui compte apparaît, puis disparaît (re-rendu).
     categories.push({ id: 'rea3', name: 'Réanimation', color: '#dd2200', library: 'lib1' });
-    mk('x1', 'lib1', 'rea3'); renderLibrary(); await __acCalme(300);
+    mk('x1', 'lib1', 'rea3'); renderLibrary(); await __acCalme(300); await ouvrir();
     const avec = rangee('Réanimation');
     categories = categories.filter(c => c.id !== 'rea3'); fiches = fiches.filter(f => f.id !== 'x1');
-    renderLibrary(); await __acCalme(300);
+    renderLibrary(); await __acCalme(300); await ouvrir();
     const sans = rangee('Réanimation');
     return { toutes, trauma, lib1, perso, retour, avec, sans }; });
   const memes = (a, b) => JSON.stringify((a || []).slice().sort()) === JSON.stringify(b.slice().sort());
@@ -7957,13 +7964,11 @@ await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélec
     render(); await __acCalme(300);
     const etat = () => ({ lib: state.homeLib, selTog: !!document.getElementById('selTog'),
       creer: !document.getElementById('hdrNew').hidden, imp: impLibDefaut() });
-    // On repasse par « Toutes » avant chaque cible : la rangée est une BASCULE (re-tap = null).
+    /* A606 : la colonne ne filtre plus — le périmètre se pose par la feuille « Affichage » (puces Bibliothèque). */
     const aller = async k => {
-      if (state.homeLib != null) { const t = [...document.querySelectorAll('.home-side [data-libsel]')]
-          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await __acCalme(200); }
-      if (k) { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
-          .find(y => y.dataset.libsel === k); if (x) x.click(); }
-      await __acCalme(300); };
+      document.getElementById('rangBtn').click(); await __acCalme(250);
+      const x = document.querySelector(`#viewSheetBody [data-vslib="${k || '*'}"]`); if (x) x.click(); await __acCalme(200);
+      closeViewSheet(); await __acCalme(300); };
     const out = {};
     // 1 — « TOUTES » : tout est ouvert, et `newFiche()` reste SYNCHRONE (contrat de trois harnais).
     await aller(null); out.toutes = etat();
@@ -7977,7 +7982,10 @@ await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélec
     /* Le GESTIONNAIRE DE CATÉGORIES en fait partie : sur une lecture seule il offrait champ,
        palette, Supprimer et « ＋ Ajouter », et le renommage s'appliquait LOCALEMENT avant d'être
        refusé par la RLS — « croire contribuer », pire qu'une commande morte. */
-    out.ro.gerer = !!document.querySelector('.home-side [data-catmgr]');
+    /* A606 : la porte « Gérer les catégories » vit dans le catalogue — absente d'une bibliothèque en lecture. */
+    state.cnav = { lib: 'lib-ro' }; setHomeTab('biblio'); await __acCalme(250);
+    out.ro.gerer = !!document.querySelector('[data-ctgmgr]');
+    setHomeTab('aides'); await __acCalme(250);
     out.ro.scopesGeres = catMgrScopes().length;
     openCatMgr(); await __acCalme(250);                       // forcé : la fenêtre doit DIRE pourquoi
     { const bd = document.getElementById('catMgrBody');
@@ -8056,8 +8064,12 @@ await sec('SÉLECTION · ce qu\'on déplace ne disparaît pas de l\'écran', asy
     mk('a1', 'Alpha un', 'lib-a'); mk('a2', 'Alpha deux', 'lib-a'); mk('b1', 'Beta un', 'lib-b');
     render(); await __acCalme(300);
     const titres = () => [...document.querySelectorAll('.card-open')].map(x => x.textContent.trim());
-    const filtre = k => { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
-        .find(y => y.dataset.libsel === k); if (x) x.click(); };
+    /* A606 : la colonne ne filtre plus — le périmètre se pose par la feuille « Affichage » (puces Bibliothèque) ; la
+       rangée d'antan était une BASCULE (re-tap = « Toutes ») : on rejoue cette sémantique. */
+    const filtre = async k => { const v = state.homeLib === k ? '*' : k;
+      document.getElementById('rangBtn').click(); await __acCalme(250);
+      const x = document.querySelector(`#viewSheetBody [data-vslib="${v}"]`); if (x) x.click(); await __acCalme(150);
+      closeViewSheet(); };
     // Le trajet RÉEL : « Sélectionner » → cocher → « Bibliothèque… » → destination → confirmer.
     const bouger = async (ids, dest) => {
       document.getElementById('selTog').click(); await __acCalme(250);
@@ -8071,7 +8083,7 @@ await sec('SÉLECTION · ce qu\'on déplace ne disparaît pas de l\'écran', asy
     };
     const out = {};
     // 1 — FILTRE POSÉ sur A, destination B : la vue suit, les déplacés restent à l'écran.
-    filtre('lib-a'); await __acCalme(300);
+    await filtre('lib-a'); await __acCalme(300);
     out.avant = { lib: state.homeLib, n: titres().length };
     await bouger(['a1', 'a2'], 'lib-b');
     out.versB = { lib: state.homeLib, n: titres().length, vus: titres().includes('Alpha un') };
@@ -8079,12 +8091,12 @@ await sec('SÉLECTION · ce qu\'on déplace ne disparaît pas de l\'écran', asy
        l'ancienne ligne écrivait `null` — l'assertion serait restée verte sur le défaut. */
     out.scope = state.scope;
     // 2 — SUR « TOUTES » : aucun filtre n'est posé par le déplacement.
-    filtre('lib-b'); await __acCalme(200);            // re-tap : retour à « Toutes »
+    await filtre('lib-b'); await __acCalme(200);            // re-tap : retour à « Toutes »
     out.toutes = state.homeLib;
     await bouger(['a1'], 'lib-a');
     out.apresToutes = { lib: state.homeLib, vus: titres().includes('Alpha un') };
     // 3 — DESTINATION PERSO : le filtre suit vers Perso (''), jamais vers « Toutes » (null).
-    filtre('lib-a'); await __acCalme(300);
+    await filtre('lib-a'); await __acCalme(300);
     await bouger(['a1'], '');
     out.versPerso = { lib: state.homeLib, vus: titres().includes('Alpha un') };
     return out;
@@ -8973,6 +8985,7 @@ await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   await page.evaluate(()=>{document.documentElement.style.setProperty('--sat','calc(59px + 16px)');
+    LANCEUR_SEUIL=1e9;   // A606 : il faut une page qui défile sous la barre (le répertoire)
     for(let i=0;i<20;i++)protocols.push(migrateProtocol({title:'Protocole '+i}));render();});
   await calme(page, 400);
   const lire=()=>page.evaluate(()=>{const t=document.querySelector('.pg-ttl').getBoundingClientRect(),top=document.querySelector('.pg-top');
@@ -9243,7 +9256,8 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
     await amorce(page);
     /* Décor (en mémoire, rejoué après le rechargement) : une bibliothèque partagée, vingt aides de plus — assez pour
        défiler au téléphone —, deux collections, une épingle. Les collections et l'épingle sont écrites (localStorage). */
-    const decor=async()=>{myLibraries=[{id:'lib1',name:'Réanimation CHU',role:'editor'}];
+    const decor=async()=>{LANCEUR_SEUIL=1e9;   // A606 : A587-A589 mesurent l'accueil-RÉPERTOIRE (≤ 20 éléments en vrai)
+      myLibraries=[{id:'lib1',name:'Réanimation CHU',role:'editor'}];
       if(!categories.some(c=>c.id==='c587'))categories.push({id:'c587',name:'Sepsis',color:'#1f6f96',library:'lib1'});
       const base=JSON.parse(JSON.stringify(fiches.find(f=>!/^a587/.test(f.id))));
       for(let i=0;i<20;i++){if(fiches.some(f=>f.id==='a587-'+i))continue;const n=JSON.parse(JSON.stringify(base));n.id='a587-'+i;n.title='Aide '+String.fromCharCode(65+i);
@@ -9318,9 +9332,11 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
         await __acCalme(500);return {attendu:h.dataset.grptt,lu:top.querySelector('.pg-tt').textContent};});
       t('390 px · A588 : défilé, le petit titre collé nomme le groupe sous le pouce',!!tt.attendu&&tt.lu===tt.attendu,JSON.stringify(tt));
     }else{
-      const col=await page.evaluate(()=>{const n=[...document.querySelectorAll('.hs-name')].find(x=>x.textContent.trim()==='Réanimation CHU');
-        return n?{sw:n.scrollWidth,cw:n.clientWidth}:null;});
-      t('1280 px · A589 : le nom d\'une bibliothèque de la colonne n\'est pas tronqué pour son mot de partage',!!col&&col.sw<=col.cw,JSON.stringify(col));
+      /* A606 : les bibliothèques ont quitté la colonne — le nom entier se vérifie dans le volet du catalogue. */
+      const col=await page.evaluate(async()=>{state.cnav={};setHomeTab('biblio');await __acCalme(250);
+        const n=[...document.querySelectorAll('.ctg-v1 .ctg-l')].find(x=>x.textContent.trim()==='Réanimation CHU');
+        const o=n?{sw:n.scrollWidth,cw:n.clientWidth}:null;setHomeTab('aides');await __acCalme(200);return o;});
+      t('1280 px · A589 (catalogue, A606) : le nom d\'une bibliothèque n\'est pas tronqué pour son mot de partage',!!col&&col.sw<=col.cw,JSON.stringify(col));
     }
     await page.close();
   }
@@ -9443,6 +9459,7 @@ await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreu
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)],o={};
+    LANCEUR_SEUIL=1e9;   // A606 : A595-A597 mesurent l'accueil-RÉPERTOIRE (sous-ligne, titre, feuille « Afficher »)
     myLibraries=Array.from({length:9},(_,i)=>({id:'b'+i,name:'Bibliothèque numéro '+(i+1)+(i===2?' au nom vraiment très long':''),role:i%2?'viewer':'editor'}));
     const base=JSON.parse(JSON.stringify(fiches[0]));
     for(let i=0;i<30;i++){const n=JSON.parse(JSON.stringify(base));n.id='x595-'+i;n.title='Témoin '+i;n.library=i%10?'b'+(i%9):null;n.status='validated';fiches.push(migrate(n));}
@@ -9896,7 +9913,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const out={};
-    document.querySelector('.home-side [data-catmgr]').click();await __acCalme(300);
+    /* A606 : la porte « Gérer les catégories » vit dans le catalogue (Perso) */state.cnav={lib:''};setHomeTab('biblio');await __acCalme(300);[...document.querySelectorAll('[data-ctgmgr]')].find(b=>b.getClientRects().length).click();await __acCalme(300);
     const bd=document.getElementById('catMgrBody');
     out.pastillesFermees=bd.querySelectorAll('[data-setcol]').length;
     const add=bd.querySelector('.cm-add'),list=bd.querySelector('.cm-list');
@@ -10025,7 +10042,7 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
     myLibraries.length=0;myLibraries.push({id:'lib-a',name:'SMUR 31',role:'admin'},{id:'lib-b',name:'Urgences CHU',role:'editor'});
     categories.push({id:'ca1',name:'Trauma',color:'#8d5c39',library:'lib-a'},{id:'cb1',name:'Pédiatrie',color:'#096e50',library:'lib-b'});
     render();await __acCalme(300);
-    document.querySelector('.home-side [data-catmgr]').click();await __acCalme(300);
+    /* A606 : la porte de TOUTES les catégories vit à la racine du catalogue */state.cnav={};setHomeTab('biblio');await __acCalme(300);[...document.querySelectorAll('[data-catmgr]')].find(b=>b.getClientRects().length).click();await __acCalme(300);
     const bd=document.getElementById('catMgrBody'),secs=[...bd.querySelectorAll('.cm-sec')],out={};
     out.sections=secs.length;
     out.bandes=secs.map(s=>{const l=s.querySelector('.cm-l');return l?l.textContent.replace(/\s+/g,' ').trim():null;});
@@ -10480,16 +10497,15 @@ await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques�
   t('#creer : la fenêtre « Créer » s’ouvre',c.on,JSON.stringify(c));
   await page.evaluate(()=>closeCreateDlg());await calme(page,200);
   await vers('#bibliotheques');
-  const b=await page.evaluate(()=>({pick:(document.getElementById('pgPick')||{}).getAttribute&&document.getElementById('pgPick').getAttribute('aria-expanded'),
-    opts:document.querySelectorAll('[data-pickopt]').length}));
-  t('#bibliotheques (téléphone) : la feuille « Afficher » s’ouvre (elle porte les bibliothèques en tête)',b.pick==='true'&&b.opts>0,JSON.stringify(b));
-  await page.keyboard.press('Escape');await calme(page,300);
+  const b=await page.evaluate(()=>({tab:homeTab(),cnav:JSON.stringify(state.cnav),libs:document.querySelectorAll('[data-ctglib]').length}));
+  t('#bibliotheques (téléphone, A606) : le catalogue s’ouvre à sa racine',b.tab==='biblio'&&b.cnav==='{}'&&b.libs>0,JSON.stringify(b));
+  await page.evaluate(()=>setHomeTab('aides'));await calme(page,300);
   await vers('#collection=zz_absente');
   const x=await page.evaluate(()=>({coll:state.coll,toast:(document.querySelector('.toast')||{}).textContent||''}));
   t('#collection=<absente> : rien ne change (l’Accès direct reste posé), une notice le dit',x.coll==='*'&&/collection absente/.test(x.toast),JSON.stringify(x));
   await vers('#bibliotheque=perso');
-  const l=await page.evaluate(()=>({lib:state.homeLib}));
-  t('#bibliotheque=perso : l’accueil se restreint à Perso',l.lib==='',JSON.stringify(l));
+  const l=await page.evaluate(()=>({tab:homeTab(),cnav:JSON.stringify(state.cnav)}));
+  t('#bibliotheque=perso (A606) : le catalogue s’ouvre sur Perso',l.tab==='biblio'&&l.cnav==='{"lib":""}',JSON.stringify(l));
   /* Moi les donne : une rangée par destination stable, le toucher copie le lien (presse-papiers, sans feuille native). */
   const m=await page.evaluate(async()=>{let got=null;
     try{Object.defineProperty(navigator,'share',{value:undefined,configurable:true});}catch(e){}
@@ -10501,7 +10517,7 @@ await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques�
   t('Moi · Liens et raccourcis : cinq destinations, toucher « Créer une aide » copie son URL',
     m.n>=5&&['#acces-direct','#chercher','#creer','#bibliotheques','#sessions'].every(f=>m.frags.includes(f))&&/\/index\.html#creer$/.test(m.got||''),JSON.stringify(m));
   /* Règle 11 : un lien qui arrive pendant une session réelle ne change pas l'écran. */
-  await page.evaluate(()=>setHomeTab('aides'));await calme(page,300);
+  await page.evaluate(()=>{state.coll=null;setHomeTab('aides');render();});await calme(page,300);
   await ouvrirFiche(page,/cardiaque/i);await demarrerSession(page);
   await vers('#acces-direct');
   const r=await page.evaluate(()=>({view:state.view,started:!!Runtime.started}));
@@ -10510,8 +10526,8 @@ await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques�
   const w=await br.newPage({viewport:{width:1280,height:820}});
   await w.goto(`http://localhost:${port}/index.html`);await amorce(w);
   await w.evaluate(()=>{location.hash='#bibliotheques';});await calme(w,400);
-  const g=await w.evaluate(()=>({f:!!(document.activeElement&&document.activeElement.closest('.home-side')&&document.activeElement.dataset.libsel!=null)}));
-  t('#bibliotheques (large) : le focus va à la liste des bibliothèques de la colonne',g.f,JSON.stringify(g));
+  const g=await w.evaluate(()=>({tab:homeTab(),f:!!(document.activeElement&&document.activeElement.dataset.ctglib!=null)}));
+  t('#bibliotheques (large, A606) : le catalogue s’ouvre, le focus sur sa première bibliothèque',g.tab==='biblio'&&g.f,JSON.stringify(g));
   await w.close();
 });
 

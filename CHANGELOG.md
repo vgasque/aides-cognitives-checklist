@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.103.0] — 2026-11-08
+La nouvelle architecture est en place (A606, lots 2 et 3 d'A600) : l'accueil lance, le catalogue range. Rien à rejouer
+côté serveur.
+- **L'accueil devient un lanceur** dès que vous avez plus de vingt aides et protocoles : session en cours, Accès
+  direct, vos collections, **les aides ouvertes récemment**, et « Toutes les aides et protocoles », qui mène au
+  catalogue. En dessous de vingt, l'accueil reste la liste complète : tout y tient.
+- **L'onglet « Aides » s'appelle « Accueil »** (icône maison), au téléphone comme sur ordinateur.
+- **La colonne de gauche ne filtre plus** (ordinateur, tablette) : navigation et collections seulement. Les
+  bibliothèques et leurs catégories sont dans « Bibliothèques », avec « Gérer les catégories », « Gérer les
+  bibliothèques » et « Partager avec une équipe… ».
+- **Le catalogue** ne montre plus les catégories vides d'une bibliothèque ; sur ordinateur, un nom long n'est plus
+  coupé par « à relire ».
+- **Les liens** « Bibliothèques » (Moi › Liens et raccourcis, raccourcis de l'app) ouvrent le catalogue.
+- Corrigé : sur ordinateur, revenir dans le catalogue pouvait faire disparaître le pied de page et bloquer l'écran
+  suivant.
+
 ## [5.102.1] — 2026-11-08
 Correctifs de l'éditeur de référence et du dock (A604-A605). Rien à rejouer côté serveur.
 - **Déplier « Identité » ne fait plus déborder l'éditeur** (texte et aperçu côte à côte) : il se réajuste à la place
@@ -225,11 +241,3 @@ Deux correctifs des étapes qui attendent leur moment (A576). Rien à rejouer c�
   referme pas.
 - **Un sigle garde ses capitales** dans la question : « Prévue dans 2 CEE. » au lieu de « 2 cEE. » (les mots
   ordinaires restent en minuscule : « 2 chocs délivrés »).
-
-## [5.89.3] — 2026-11-06
-Deux correctifs de la session (A574, A575). Rien à rejouer côté serveur.
-- **La Page garde sa barre d'échelle en session** : en agrandissant beaucoup (pincer ou « + »), la barre « Plein écran ·
-  ⤢ Ajusté · − 300 % + · 1:1 » passait sous l'en-tête et l'on ne pouvait plus dézoomer. Elle reste maintenant
-  accrochée sous le quai de session, à toute échelle et à tout défilement.
-- **La barre verte de retour au bloc** (« ↩ le bloc en cours ») reprend le même vert que le reste de la session en
-  thème clair, avec un texte blanc — elle gardait le vert clair du thème sombre.

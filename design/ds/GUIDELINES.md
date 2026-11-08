@@ -37,6 +37,12 @@ touche une surface — c'est la seule protection dont il dispose.
 > - **ranger** : la collection se choisit à la création (A496), « Nouvelle catégorie… » crée ET
 >   range (A486), « Ajouter à « … » » (A488), le menu des catégories dit ce qu'est une catégorie
 >   (A498), un brouillon ne s'épingle pas et une seule étoile s'anime (A487) — § Ranger.
+> - **l'architecture « lanceur + catalogue »** (A600-A606, v5.100-v5.103) : au-delà de 20 éléments l'accueil est un
+>   LANCEUR (En cours, Accès direct, Vos collections, Ouvertes récemment, porte « Toutes les aides et protocoles ») ; le
+>   CATALOGUE (onglet / rangée « Bibliothèques ») porte bibliothèque › SES catégories › éléments, « Tout » filtrable et
+>   les portes de gestion ; la colonne ne filtre plus (navigation + collections) ; la barre de sélection est en
+>   matière système (A599) ; la pastille du dock se découpe (`clip-path`, A605). Ces paragraphes PRIMENT sur les
+>   mentions plus bas de la « colonne qui filtre » et de la « sidebar-filtres ».
 > Tout nom cité ci-dessous comme vivant (classe, token, fonction) a été vérifié dans le code.
 
 > **RELECTURE v5.51.0 (07/10/2026).** Vingt-deux lots depuis la précédente (v5.30 à v5.51,
