@@ -10876,6 +10876,37 @@ await sec('A624 · la tâche « À fusionner avec » choisit dans la feuille de 
   t('A624 · « Avec » : plus de <select> natif — la feuille de choix de l’app, l’élément lui-même exclu',!r.natif&&r.feuille.length===1&&r.choix,JSON.stringify(r));
   t('A624 · la tâche paraît aussi chez l’élément visé (« Liées depuis d’autres éléments »), avec sa source ; la cocher là coche la même tâche',r.lie&&r.source&&r.memeTache,JSON.stringify(r));
   await page.close();
+  // Sur ordinateur, un vrai déroulant SOUS le champ (mesuré : sans hôte positionné, il tombait en bas à gauche de l'écran).
+  const pd=await br.newPage({viewport:{width:1280,height:844}});
+  pd.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await pd.goto(`http://localhost:${port}/index.html`);await amorce(pd);
+  const g=await pd.evaluate(async()=>{const q=s=>document.querySelector(s);openRead(fiches[0].id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);q('#svRefBtn').click();await __acCalme(300);
+    const mm=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('[data-pickopt]')),b=q('#svRefBtn').getBoundingClientRect(),m=mm.getBoundingClientRect();
+    return {dessous:Math.round(m.top-b.bottom),gauche:Math.round(m.left-b.left),largeur:Math.round(m.width-b.width),feuille:mm.classList.contains('sheet')};});
+  t('A624 · sur ordinateur, la liste se déroule SOUS le champ, à sa largeur',!g.feuille&&g.dessous>=0&&g.dessous<=16&&Math.abs(g.gauche)<=1&&Math.abs(g.largeur)<=2,JSON.stringify(g));
+  await pd.close();
+});
+
+await sec('A625 · une échéance passée : « △ en retard depuis le… », en tête de sa priorité, rien d’autre', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={},f=fiches[0];
+    suiviPut({id:'l1',ent:f.id,k:'task',lib:null,body:'à l’heure',t:{type:'revoir',prio:2,due:'2999-01-01'}});
+    suiviPut({id:'l2',ent:f.id,k:'task',lib:null,body:'en retard',t:{type:'revoir',prio:2,due:'2020-01-15'}});
+    suiviPut({id:'l3',ent:f.id,k:'task',lib:null,body:'faite',t:{type:'revoir',prio:2,due:'2020-01-15',done:Date.now(),by:'moi'}});
+    openRead(f.id);await __acCalme(400);
+    const rows=[...document.querySelectorAll('#main .su-blk > .su-row')].map(x=>x.textContent);
+    o.premiere=/en retard/.test(rows[0]||'')&&/en retard depuis le 15\/01/.test(rows[0]||'');
+    o.autre=/avant le 01\/01/.test(rows[1]||'');
+    const late=q('#main .su-blk .su-late');o.ambre=!!late&&getComputedStyle(late).color===(()=>{const i=document.createElement('i');i.style.color='var(--warn)';document.body.appendChild(i);const c=getComputedStyle(i).color;i.remove();return c;})();
+    o.faite=![...document.querySelectorAll('#main .su-done .su-row')].some(x=>/en retard/.test(x.textContent));
+    o.prio=suivi.find(x=>x.id==='l2').t.prio===2;
+    return o;});
+  t('A625 · la tâche en retard le dit (« △ en retard depuis le 15/01 », ambre) et passe en tête de sa priorité ; l’autre garde « avant le »',r.premiere&&r.autre&&r.ambre,JSON.stringify(r));
+  t('A625 · une tâche faite n’est jamais « en retard » ; la priorité n’est pas changée',r.faite&&r.prio,JSON.stringify(r));
+  await page.close();
 });
 
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {

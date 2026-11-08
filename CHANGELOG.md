@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.109.7] — 2026-11-08
-Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624). Rien à rejouer côté serveur.
+Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
   rangée disparaît : le titre se présente comme un champ de texte (encadré gris léger, comme sur iOS), lisible en entier. Toucher le titre
   ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
@@ -10,8 +10,11 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A62
 - **« Protocole » partout** : les derniers « référence » qui désignaient un protocole (suivi, import, relecture, images)
   sont renommés ; « Références » ne désigne plus que la bibliographie.
 - **Tâches « À fusionner avec » / « À confronter à »** : l'aide ou le protocole lié se choisit dans la feuille de choix
-  de l'app (aides et protocoles séparés, recherche dès 8 éléments) au lieu d'une liste déroulante ; et la tâche paraît
+  de l'app (au téléphone, la feuille du bas ; sur ordinateur, une liste qui se déroule sous le champ ; aides et
+  protocoles séparés, recherche dès 8 éléments) ; et la tâche paraît
   maintenant AUSSI dans le suivi de l'élément visé (« Liées depuis d'autres éléments »), où l'on peut la cocher.
+- **Échéance passée** : une tâche en retard le dit (« △ en retard depuis le 15/11 », en ambre) et remonte en tête de sa
+  priorité ; « À faire » et le catalogue le signalent aussi. Pas de notification ni d'alerte.
 
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.

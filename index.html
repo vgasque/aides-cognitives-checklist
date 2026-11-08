@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xqxP6exrDDowVnte4BQ3K5xFpPl/PhWZdR4oYkwyM3s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-tTlKRNu8C8wOilBdja+cXuBUJhgYzTTxwpXAIQrrgkA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3325,6 +3325,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-meta .su-pill svg{display:inline}
   .su-feuille{margin:0;padding:0;border:0}
   /* A624 : la pastille de choix de l'élément lié — un champ de choix pleine largeur, qui ouvre la feuille. */
+  /* L'HÔTE du menu ancré (≥ 780 px, un vrai déroulant sous le champ) : sans lui, `top:100%` se prenait sur la section
+     entière et le menu tombait en bas à gauche de l'écran (mesuré à 1280). Pleine largeur du champ. */
+  .su-refw{position:relative}
+  .su-refw>.popmenu{left:0;right:0;max-width:none}
   .su-refpick{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
   .su-refpick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .su-refpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3351,6 +3355,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
   .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
   .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .su-late{color:var(--warn);font-weight:700}   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
   .su-note{padding:8px 0;border-top:1px solid var(--line)}
   .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .su-who>span:not(.su-s){white-space:nowrap}
@@ -12183,7 +12188,8 @@ const suiviVisible=x=>!x.del&&(!x.lib||myLibraries.some(l=>l.id===x.lib));
 const suiviCanEdit=x=>!x.lib||canEditScope(x.lib);
 const suiviOf=ent=>suivi.filter(x=>x.ent===ent&&suiviVisible(x));
 const suiviOpen=x=>x.k==='task'&&!x.t.done;
-const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at);
+const suiviOrd=(a,b)=>a.t.prio-b.t.prio||(suiviLate(b)-suiviLate(a))||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at;   // A625 : en retard d'abord, dans sa priorité
+const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort(suiviOrd);
 // (le brouillon ouvert dans un éditeur compte aussi : le suivi se pose dès la création, comme la note personnelle)
 const suiviEnt=id=>fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||[state.draft,state.pdraft].find(x=>x&&x.id===id)||null;
 const suiviAuthor=()=>{if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)return u.email;}return '';};
@@ -12204,10 +12210,18 @@ function suiviMerge(loc,rem){const by=new Map(loc.map(x=>[x.id,x]));let ch=false
 /* ── A613 · LE RENDU DU SUIVI ── */
 const suiviDay=ms=>{const d=new Date(ms);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');};
 const suiviDue=s=>{const m=String(s||'').match(/^\d{4}-(\d{2})-(\d{2})$/);return m?m[2]+'/'+m[1]:'';};
+/* A625 — L'ÉCHÉANCE PASSÉE (question de l'auteur : « que se passe-t-il à la fin de l'échéance ? » — rien, jusqu'ici : la
+   ligne disait « △ avant le 15/11 » le lendemain comme la veille). Une tâche OUVERTE dont la date est passée (jour local)
+   dit « △ en retard depuis le 15/11 » au registre de l'échéance (ambre, règle 8 — jamais rouge : rien ne tue), et elle
+   remonte EN TÊTE de sa priorité. Rien d'autre : ni notification, ni alerte, ni changement de priorité — le suivi ne
+   décide rien à la place de l'auteur. */
+const suiviToday=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const suiviLate=x=>x.k==='task'&&!x.t.done&&!!x.t.due&&x.t.due<suiviToday();
 const suiviEntTitle=id=>{const e=suiviEnt(id);return e?(String(e.title||'').trim()||'Sans titre'):'Élément supprimé';};
 function suiviTaskRowHtml(x,o){o=o||{};const can=suiviCanEdit(x),t=x.t,d=t.done;
-  const sub=[d?'Fait'+(t.by?' par '+t.by:'')+' le '+suiviDay(t.done):SUIVI_PRIO[t.prio],suiviWho(x),!d&&t.due?'△ avant le '+suiviDue(t.due):''].filter(Boolean).join(' · ');
-  const tx=`<span class="su-l${t.prio===1&&!d?' p1':''}">${esc(suiviTaskLabel(x))}</span>${o.ent?`<span class="su-e">${esc(suiviEntTitle(x.ent))}</span>`:''}<span class="su-s">${esc(sub)}</span>`;
+  const late=suiviLate(x),sub=[d?'Fait'+(t.by?' par '+t.by:'')+' le '+suiviDay(t.done):SUIVI_PRIO[t.prio],suiviWho(x)].filter(Boolean).join(' · ');
+  const ech=!d&&t.due?(late?`<span class="su-late">△ en retard depuis le ${esc(suiviDue(t.due))}</span>`:esc('△ avant le '+suiviDue(t.due))):'';
+  const tx=`<span class="su-l${t.prio===1&&!d?' p1':''}">${esc(suiviTaskLabel(x))}</span>${o.ent?`<span class="su-e">${esc(suiviEntTitle(x.ent))}</span>`:''}<span class="su-s">${esc(sub)}${ech?' · '+ech:''}</span>`;
   return `<div class="su-row${d?' done':''}"><button type="button" class="su-ck${d?' on':''}" data-sudone="${esc(x.id)}" aria-pressed="${d?'true':'false'}" aria-label="${d?'Rouvrir':'Marquer fait'} : ${esc(suiviTaskLabel(x))}"${can?'':' disabled'}>${uiIcon('check',13,{sw:3})}</button>`
     +(can?`<button type="button" class="su-tx" data-suedit="${esc(x.id)}">${tx}</button>`:`<span class="su-tx">${tx}</span>`)+`</div>`;}
 function suiviNoteHtml(x){const can=suiviCanEdit(x);
@@ -12241,7 +12255,7 @@ function suiviBlkOpen(id){const e=suiviEnt(id);if(!e)return;
   document.getElementById('suiviBlkBody').innerHTML=suiviBlockHtml(e,false,true);suiviBlkModal.classList.add('on');}
 // La pastille d'une rangée du CATALOGUE : combien restent, et la priorité de la plus urgente. Muette sans tâche.
 function suiviRowHtml(id){if(!_rowCtx.ctg)return '';const o=suiviOpenOf(id);if(!o.length)return '';
-  return `<span class="su-cnt" title="${esc(o.map(suiviTaskLabel).join(' · '))}">${uiIcon('task',12)}${o.length} · ${esc(SUIVI_PRIO[o[0].t.prio])}</span>`;}
+  return `<span class="su-cnt" title="${esc(o.map(suiviTaskLabel).join(' · '))}">${uiIcon('task',12)}${o.length} · ${esc(SUIVI_PRIO[o[0].t.prio])}${o.some(suiviLate)?' · <span class="su-late">△ en retard</span>':''}</span>`;}
 /* La feuille : une note ou une tâche, neuve (`x` absent) ou à modifier. La portée « équipe » est la bibliothèque
    de l'élément, offerte si l'on peut y écrire. */
 let _svEd=null;
@@ -12260,9 +12274,9 @@ function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>
        pastille qui ouvre la feuille de choix (`openPickMenu`) — filtrable dès 8 éléments, aides puis protocoles sous
        leur intertitre, catégorie et bibliothèque en sous-ligne. */
     if(e.type==='fusion'||e.type==='confronter'){const cur=e.ref&&suiviEnt(e.ref);
-      h+=`<div class="su-fl" id="svRefL">${e.type==='fusion'?'Avec':'À'}</div><button type="button" class="su-refpick${cur?'':' vide'}" id="svRefBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="svRefL svRefBtn">`
+      h+=`<div class="su-fl" id="svRefL">${e.type==='fusion'?'Avec':'À'}</div><div class="su-refw"><button type="button" class="su-refpick${cur?'':' vide'}" id="svRefBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="svRefL svRefBtn">`
         +(cur?uiIcon(fiches.indexOf(cur)>=0?'list':'doc',15)+`<span>${esc(String(cur.title||'').trim()||'Sans titre')}</span>`:`<span>${e.type==='confronter'?'Une aide, un protocole… ou une reco ci-dessous':'Choisir une aide ou un protocole'}</span>`)
-        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button>`;}
+        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button></div>`;}
       +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');
     h+=`</div>`;}
   h+=`<div class="su-f"><label class="su-fl" for="svBody">${e.k==='task'?'Précision <span class="su-s">(facultatif)</span>':'Note'}</label><textarea id="svBody" rows="${e.k==='task'?2:5}" maxlength="2000">${esc(e.body)}</textarea></div>`;
@@ -12292,7 +12306,7 @@ suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button
   if(b.id==='svRefBtn'){suiviEdRead();const lib=x=>x.library?(libName(x.library)||'Partagée'):'Perso',sub=x=>{const c=catOf(x);return [c?c.name:'',lib(x)].filter(Boolean).join(' · ');};
     const pool=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==E.ent).sort(byTitle),A=pool.filter(y=>fiches.indexOf(y)>=0),P=pool.filter(y=>fiches.indexOf(y)<0);
     const opt=(y,ic)=>({val:y.id,name:String(y.title||'').trim()||'Sans titre',sub:sub(y),ic:uiIcon(ic,16)});
-    openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:E.type==='fusion'?'Fusionner avec…':'Confronter à…',trigger:b,value:E.ref||'',seuilFiltre:8,filtreAuToucher:true,
+    openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:8,filtreAuToucher:true,
       options:(E.ref&&E.type==='confronter'?[{val:'',name:'Aucun élément',sub:'une reco écrite ci-dessous',ic:uiIcon('pen',16)}]:[])
         .concat(A.length?[{head:'Aides',n:String(A.length)}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles',n:String(P.length)}]:[],P.map(y=>opt(y,'doc'))),
       onPick:v=>{E.ref=v||'';suiviEdPaint();}});return;}
@@ -12314,10 +12328,11 @@ function suiviConvert(c){const ty=suiviConvType(c.name),prio=/priorit|d.abord|ur
     suivi.push(sanitizeSuiviItem({id:uid('s'),ent:id,k:'task',lib:null,body:ty==='autre'?c.name:'',author:suiviAuthor(),t:{type:ty,prio},at:Date.now(),dirty:true}));n++;});
   suiviSave();return n;}
 function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!suiviEnt(x.ent)&&(W.who==='all'||(W.who==='me'?!x.lib:!!x.lib));
-  const all=suivi.filter(keep),open=all.filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at),done=all.filter(x=>x.t.done).sort((a,b)=>b.t.done-a.t.done);
+  const all=suivi.filter(keep),open=all.filter(suiviOpen).sort(suiviOrd),done=all.filter(x=>x.t.done).sort((a,b)=>b.t.done-a.t.done);
   const seg=(attr,cur,opts)=>`<div class="su-chips" role="group">${opts.map(([v,l])=>`<button type="button" class="mdb-chip${cur===v?' on':''}" ${attr}="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
   const nMe=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&!x.lib&&suiviEnt(x.ent)).length,nEq=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.lib&&suiviEnt(x.ent)).length;
-  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord':'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
+  const nLate=open.filter(suiviLate).length;
+  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord'+(nLate?` · <span class="su-late">△ ${nLate} en retard</span>`:''):'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
     +`<div class="su-bar">${seg('data-suby',W.by,[['prio','Par priorité'],['ent','Par élément']])}${seg('data-suwho',W.who,[['me','Moi · '+nMe],['team','Équipe · '+nEq],['all','Tout']])}</div>`;
   if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou un protocole : « Suivi » › « ＋ Tâche ».</div>`;
   else if(W.by==='prio')[1,2,3].forEach(p=>{const g=open.filter(x=>x.t.prio===p);if(g.length)h+=`<div class="su-gh${p===1?' p1':''}">${SUIVI_PRIO[p]} · ${g.length}</div><div class="su-card">${g.map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div>`;});

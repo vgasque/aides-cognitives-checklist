@@ -2930,6 +2930,10 @@
   body.view-read .read-meta .su-pill svg{display:inline}
   .su-feuille{margin:0;padding:0;border:0}
   /* A624 : la pastille de choix de l'élément lié — un champ de choix pleine largeur, qui ouvre la feuille. */
+  /* L'HÔTE du menu ancré (≥ 780 px, un vrai déroulant sous le champ) : sans lui, `top:100%` se prenait sur la section
+     entière et le menu tombait en bas à gauche de l'écran (mesuré à 1280). Pleine largeur du champ. */
+  .su-refw{position:relative}
+  .su-refw>.popmenu{left:0;right:0;max-width:none}
   .su-refpick{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
   .su-refpick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .su-refpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2956,6 +2960,7 @@
   .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
   .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
   .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .su-late{color:var(--warn);font-weight:700}   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
   .su-note{padding:8px 0;border-top:1px solid var(--line)}
   .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .su-who>span:not(.su-s){white-space:nowrap}
