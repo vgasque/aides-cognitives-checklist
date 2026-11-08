@@ -9051,7 +9051,12 @@ await sec('Import · A611 renommer, verser dans une référence existante', asyn
     return page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);};
   // 1) Renommer : « Renommer », taper, Entrée → la référence importée porte le nouveau titre.
   let vu=await lancer('# Untitled\n\nUn texte.');
-  if(vu){await page.click('[data-impren]');await page.fill('.imp-tin','Polytraumatisé grave');await page.keyboard.press('Enter');await calme(page,150);}
+  // A622 : c'est le TITRE qu'on touche (plus de bouton « Renommer ») ; toucher le titre ne coche ni ne décoche la rangée.
+  const a622=vu?await page.evaluate(()=>{const ck=document.querySelector('#impList [data-impsel]');return {avant:ck.checked,titre:!!document.querySelector('#impList .imp-t[data-impren]'),
+    bouton:[...document.querySelectorAll('#impList button')].some(b=>/^Renommer$/.test(b.textContent.trim()))};}):null;
+  if(vu){await page.click('#impList .imp-t[data-impren]');await calme(page,100);a622.apres=await page.evaluate(()=>document.querySelector('#impList [data-impsel]').checked);a622.champ=await page.evaluate(()=>!!document.querySelector('.imp-tin'));}
+  t('A622 · le titre de la rangée est la commande « Renommer » (aucun bouton à part) ; le toucher ne coche ni ne décoche',!!a622&&a622.titre&&!a622.bouton&&a622.apres===a622.avant&&a622.champ,JSON.stringify(a622));
+  if(vu){await page.fill('.imp-tin','Polytraumatisé grave');await page.keyboard.press('Enter');await calme(page,150);}
   const t1=await page.evaluate(()=>(document.querySelector('#impList .imp-t')||{}).textContent||'');
   if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
   const r1=await page.evaluate(()=>({n:protocols.length-window.__n0,titre:(protocols[protocols.length-1]||{}).title}));
