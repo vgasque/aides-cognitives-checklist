@@ -8684,6 +8684,11 @@ await sec('Éditeur · A593 établi aligné et lié, poignée ; Plan d’A546', 
   t('A593 · poignée tirée : part affichée pendant le geste, aimantée à ⅔, retenue sur l’appareil',
     pendant==='visible'&&Math.abs(parseFloat(tire.v)-66.7)<0.1&&Math.abs(tire.cols[0]/(tire.cols[0]+tire.cols[2])-2/3)<0.01,JSON.stringify({pendant,tire}));
   t('A593 · au clavier : Entrée = moitié-moitié, → +5 % ; la part survit au rendu',clav.v==='55'&&clav.now==='55'&&clav.txt==='Texte 55 %'&&apres==='55',JSON.stringify({clav,apres}));
+  /* A604 — déplier « Identité » pousse l'établi vers le bas : sa hauteur se recalcule (plancher 420), et revient au
+     repli (avant : 566 px gardés, le pied passait sous l'écran). */
+  {const h=()=>page.evaluate(()=>{scrollTo(0,0);return Math.round(document.getElementById('etabGrid').getBoundingClientRect().height);});
+   const h0=await h();await page.click('[data-identtgl]');await calme(page,400);const h1=await h();await page.click('[data-identtgl]');await calme(page,400);const h2=await h();
+   t('A604 · déplier « Identité » rapetisse l’établi à la place restante (plancher 420), le replier le rend',h1<h0&&h1>=419&&h1<=421&&Math.abs(h2-h0)<=1,JSON.stringify({h0,h1,h2}));}
   // 880 : l'établi vaut dès 780 (il remplace la colonne de 280 d'A468).
   await page.setViewportSize({width:880,height:800});await calme(page,300);
   await page.evaluate(()=>{localStorage.removeItem('ac-mdsplit');renderProtocolEdit();});await calme(page,300);
@@ -8995,8 +9000,10 @@ await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async (
       const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--act)';document.body.appendChild(sonde);const act=getComputedStyle(sonde).backgroundColor;sonde.remove();
       const on=document.querySelector('.tb-tab.on'),av=document.querySelector('.tb-av');
       /* A603 : la pastille pleine est un objet à part (`.tb-pill`), posé sous l'onglet actif — c'est elle qui porte --act. */
-      const pl=document.querySelector('.tb-pill'),pr=pl&&pl.getBoundingClientRect(),orr=on.getBoundingClientRect();
-      return {plein:!!pl&&getComputedStyle(pl).backgroundColor===act&&Math.abs(pr.left-orr.left)<=2&&Math.abs(pr.width-orr.width)<=2,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
+      /* A605 : la pastille couvre la barre et se DÉCOUPE (clip-path inset) — sa boîte visible se lit dans la découpe. */
+      const pl=document.querySelector('.tb-pill'),tabs=pl&&pl.parentElement,cp=pl?(getComputedStyle(pl).clipPath.match(/[\d.]+px/g)||[]).map(parseFloat):[];
+      const vis=pl&&cp.length>=4?{left:tabs.getBoundingClientRect().left+cp[3],width:tabs.clientWidth-cp[1]-cp[3]}:null,orr=on.getBoundingClientRect();
+      return {plein:!!vis&&getComputedStyle(pl).backgroundColor===act&&Math.abs(vis.left-orr.left)<=2&&Math.abs(vis.width-orr.width)<=2,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
     t(`A539 · ${th} : l'onglet actif est une pastille pleine (--act)`,r.plein,JSON.stringify(r));
     t(`A539 · ${th} : connecté, le disque de l'avatar est bordé ; le point vivant a son anneau`,/inset/.test(r.av)&&r.point!=='none',JSON.stringify(r));
     await page.close();
@@ -9389,14 +9396,15 @@ await sec('Accueil · A601-A603 catalogue, volets, retour, dock glissé', async 
       t(`${k} : A601 — le dock se glisse : la pastille suit le doigt, l'onglet sous le doigt s'ouvre au relâchement`,pendant==='me'&&apres==='me',JSON.stringify({pendant,apres}));
       // A603 : la pastille est un objet qui GLISSE (transition sur transform) et se pose sous l'onglet courant.
       const pil=await page.evaluate(async()=>{const p=document.querySelector('.tb-pill');if(!p)return null;
-        const pos=()=>{const r=p.getBoundingClientRect(),t=document.querySelector('.tb-tab.on').getBoundingClientRect();return {dx:Math.round(Math.abs(r.left-t.left)),dw:Math.round(Math.abs(r.width-t.width))};};
+        const pos=()=>{const tabs=p.parentElement,cp=(getComputedStyle(p).clipPath.match(/-?[\d.]+px/g)||[]).map(parseFloat),t=document.querySelector('.tb-tab.on').getBoundingClientRect();
+          const l=tabs.getBoundingClientRect().left+cp[3],w=tabs.clientWidth-cp[1]-cp[3];return {dx:Math.round(Math.abs(l-t.left)),dw:Math.round(Math.abs(w-t.width))};};
         const repos=pos();document.querySelector('.tb-tab[data-tab="aides"]').click();
         await new Promise(r=>setTimeout(r,60));   // horloge : 60 ms dans la transition de 300 ms — la pastille doit être EN ROUTE
         const encours=pos();
         await new Promise(r=>setTimeout(r,600));   // horloge : au-delà de la transition — la pastille doit être POSÉE
         return {repos,encours,pose:pos(),trans:getComputedStyle(p).transitionProperty};},);
-      t(`${k} : A603 — la pastille du dock glisse d'un onglet à l'autre et se pose sous l'onglet courant`,
-        !!pil&&pil.repos.dx<=2&&pil.encours.dx>8&&pil.pose.dx<=2&&pil.pose.dw<=2&&/transform/.test(pil.trans),JSON.stringify(pil));}
+      t(`${k} : A603/A605 — la pastille du dock glisse ET s'élargit d'un seul mouvement (découpe), et se pose sous l'onglet courant`,
+        !!pil&&pil.repos.dx<=2&&pil.encours.dx>8&&pil.pose.dx<=2&&pil.pose.dw<=2&&/clip-path/.test(pil.trans),JSON.stringify(pil));}
     await ctx.close();}
 });
 

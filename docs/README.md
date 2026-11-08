@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A603** à la v5.102 (lot v6.0 compris) (et ça continue — la
-prochaine est A604), attribués dans
+Les décisions de conception portent des numéros **A1 → A605** à la v5.102 (lot v6.0 compris) (et ça continue — la
+prochaine est A606), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -227,6 +227,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A601 | `lot-v5-100.md` | Lot 1 d'A600 : onglet / rangée « Bibliothèques » → catalogue (racine « Tout » + bibliothèques, une bibliothèque et SES catégories, une catégorie sans redites, « Tout » filtrable et sélectionnable), état propre (`state.cnav`, `state.ctf`) ; le dock se glisse comme un sélecteur segmenté |
 | A602 | `lot-v5-100.md` | Catalogue : le geste « retour » remonte d'un niveau (`ctgDepth`/`ctgUp`, A430) ; volets en large (bibliothèques · catégories ≥ 1200 · éléments ; catégories dépliées dans le volet 1 en deçà) |
 | A603 | `lot-v5-100.md` | La pastille du dock est un objet qui GLISSE (courbe de `.seg-pill`), suit le doigt au glissé, prend la largeur de l'onglet ; seul `transform` est animé |
+| A604 | `lot-v5-100.md` | L'établi se réajuste quand ce qui le précède change de hauteur (« Identité » dépliée : plancher 420, la page défile) — corrige A593 §4 |
+| A605 | `lot-v5-100.md` | La pastille du dock se DÉCOUPE (`clip-path` animé) : glisse et s'élargit d'un seul mouvement ; les mots changent de couleur à son rythme (amende A603) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

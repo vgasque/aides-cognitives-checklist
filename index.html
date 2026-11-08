@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QEWi2l/34YIVKCnxm9pKryefiMHgv5P+eUqeATI7f8M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rPdvWRdg2HMdeQt5K3KmluQreajDC/TcCc85aX2x1BM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3048,12 +3048,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
-  .tb-pill{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:var(--act);
-    transition:transform .3s cubic-bezier(.3,1.2,.4,1)}   /* la largeur se pose d'un coup (check-anim : jamais de layout animé), le glissé est un transform */
+  .tb-pill{position:absolute;top:4px;bottom:4px;left:0;right:0;background:var(--act);clip-path:inset(0 100% 0 0 round 999px);
+    transition:clip-path .3s cubic-bezier(.3,1.2,.4,1)}   /* A605 : la DÉCOUPE glisse et s'élargit d'un seul mouvement (peinture, jamais layout) */
+  .tb-tab{transition:color .3s ease}   /* le mot et son icône changent de couleur au rythme de la pastille */
   .tb-tabs.drag .tb-pill{transition:none}
   html.tabnav .tb-tab.on{background:none}
   .tb-tabs.drag .tb-tab.on:not(.pre){color:var(--ink)}
-  @media (prefers-reduced-motion:reduce){.tb-pill{transition:none}}
+  @media (prefers-reduced-motion:reduce){.tb-pill,.tb-tab{transition:none}}
   /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
      de la largeur de son mot, le reste se partage. */
   .tb-tab{flex:1 1 auto;padding:0 8px}
@@ -10135,7 +10136,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.102.0';
+const APP_VERSION='5.102.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16806,9 +16807,12 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
    courbe de `.seg-pill`), suit le doigt pendant le glissé, et reste immobile sous prefers-reduced-motion. Les onglets
    n'ont pas la même largeur (A601) : la pastille prend aussi celle de l'onglet visé. Mesures en px de mise en page
    (`offsetLeft`/`offsetWidth`), donc justes sous le zoom (règle 10). */
+/* A605 — LA PASTILLE COUVRE TOUTE LA BARRE ET SE DÉCOUPE : seule sa découpe (`clip-path:inset(… round 999px)`) bouge, ce
+   qui glisse ET élargit d'un même mouvement, sans layout (check-anim) — la largeur posée d'un coup « sautait » (signalé). */
+function tbPillClip(tabs,x,w){const W=tabs.clientWidth;return 'inset(0 '+Math.max(0,W-x-w)+'px 0 '+Math.max(0,x)+'px round 999px)';}
 function tbPillPlace(tabs,cible){if(!tabs)return;const p=tabs.querySelector('.tb-pill'),t=cible||tabs.querySelector('.tb-tab.on');if(!p)return;
   if(!t){p.style.opacity='0';return;}
-  p.style.opacity='1';p.style.width=t.offsetWidth+'px';p.style.transform='translateX('+t.offsetLeft+'px)';}
+  p.style.opacity='1';p.style.clipPath=tbPillClip(tabs,t.offsetLeft,t.offsetWidth);}
 function tbSearchOpen(){if(homeTab()!=='aides'){state.homeTab='aides';render();}
   _tbSrch=true;syncTabBar();const q=document.getElementById('q');if(q)q.focus({preventScroll:true});}
 /* On quitte la recherche quand le champ est vide ET que le focus a quitté le dock (pas au tap du filtre). */
@@ -17270,7 +17274,7 @@ function tbDragBind(tabs){if(!tabs)return;let st=null,just=false;
     if(!st.drag){if(Math.abs(e.clientX-st.x0)<8)return;st.drag=true;tabs.classList.add('drag');try{tabs.setPointerCapture(st.pid);}catch(_){}}
     const t=under(e.clientX);if(t&&t!==st.to){st.to=t;tabs.querySelectorAll('.tb-tab').forEach(x=>x.classList.toggle('pre',x===t));}
     const p=tabs.querySelector('.tb-pill');if(p&&st.to){const r=tabs.getBoundingClientRect(),w=st.to.offsetWidth,x=(e.clientX-r.left)/zoomF()-w/2;
-      p.style.width=w+'px';p.style.transform='translateX('+Math.max(4,Math.min(tabs.clientWidth-w-4,x))+'px)';}});
+      p.style.clipPath=tbPillClip(tabs,Math.max(4,Math.min(tabs.clientWidth-w-4,x)),w);}});
   const end=e=>{if(!st||st.pid!==e.pointerId)return;const s=st;st=null;if(!s.drag)return;
     tabs.classList.remove('drag');tabs.querySelectorAll('.tb-tab.pre').forEach(x=>x.classList.remove('pre'));
     just=true;setTimeout(()=>{just=false;},120);
@@ -18733,6 +18737,11 @@ function mdsBind(ta){const g=document.getElementById('etabGrid');if(!g||!ta)retu
     if(!rh||!L||!R)return;const cs=getComputedStyle(R);
     rh.style.height=Math.max(0,(ta.getBoundingClientRect().top-L.getBoundingClientRect().top)/(zoomF()||1)-parseFloat(cs.borderTopWidth)-parseFloat(cs.paddingTop))+'px';};
   fit();new ResizeObserver(fit).observe(g);new ResizeObserver(fit).observe(L);
+  /* A604 — CE QUI EST AU-DESSUS DÉPLACE L'ÉTABLI SANS LE REDIMENSIONNER : déplier « Identité » le poussait vers le bas,
+     sa hauteur (calculée sur son ancien bord haut) restait, et son pied passait sous l'écran (signalé depuis v5.97).
+     On observe donc aussi tout ce qui le PRÉCÈDE dans la page (frères aînés de chaque ancêtre jusqu'à la page). */
+  {const ro=new ResizeObserver(fit);for(let e=g;e&&e!==main&&!e.classList.contains('etab-page');e=e.parentElement)
+     for(let s=e.previousElementSibling;s;s=s.previousElementSibling)ro.observe(s);}
   sep.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();sep.setPointerCapture(e.pointerId);sep.classList.add('drag');
     const q=g.getBoundingClientRect(),gw=sep.getBoundingClientRect().width;let v=r;
     const mv=ev=>{v=r=paint(mdsSnap((ev.clientX-q.left-gw/2)/Math.max(1,q.width-gw)*100,avail(),!ev.altKey));};
