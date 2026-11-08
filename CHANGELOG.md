@@ -3,8 +3,7 @@
 ## [5.109.7] — 2026-11-08
 Atelier d'import (A622). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
-  rangée disparaît ; un petit crayon à côté du titre dit qu'il se modifie. Toucher le titre ne coche ni ne décoche la
-  rangée ; Entrée valide, Échap annule.
+  rangée disparaît. Toucher le titre ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
 
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.

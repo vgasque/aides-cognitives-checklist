@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-lCwUQLZa1jEUTy97ZdyoXDQgin6epSFCbfljsCTLUB8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GzbHJOlMKDqGKgt/fi2W7lzyS1V+Yf1oQPv0nHVs/jI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7958,10 +7958,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .imp-tin{width:100%;min-height:32px;box-sizing:border-box;padding:4px 8px;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
   @media (pointer:coarse){.imp-tin{font-size:16px}}
   /* A622 : le titre-bouton garde le dessin du titre ; cible de 32 px par son rembourrage (rendu en marge négative : la
-     rangée ne bouge pas) ; le crayon, en encre secondaire, dit qu'il se renomme ; souligné pointillé au survol. */
+     rangée ne bouge pas) ; souligné pointillé au survol (le crayon a été retiré à la demande de l'auteur). */
   .imp-ren{display:inline-flex;align-items:center;gap:6px;max-width:100%;align-self:flex-start;margin:-6px 0;padding:6px 0;border:0;background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:text}
   .imp-ren .imp-tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .imp-ren>svg{flex:none;color:var(--ink-2)}
   .imp-ren:hover .imp-tt{text-decoration:underline dotted;text-underline-offset:3px}
   .imp-ren:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
@@ -30650,10 +30649,11 @@ function impRowHtml(r){
   // Le dépliant vit HORS du <label> : dedans, chaque clic dans le diff cocherait la rangée.
   return `<div class="imp-item"><label class="imp-row"><input type="checkbox" data-impsel="${esc(r.key)}"${_impSel.has(r.key)?' checked':''}>`
     /* A622 (amende A611) : le TITRE est la commande « Renommer » (demande de l'auteur : « au lieu d'un bouton, cliquer
-       directement sur le titre ») — un bouton DANS le <label> ne coche pas la rangée ; le crayon dit qu'il s'édite. Versée
-       dans une référence existante, la rangée garde le titre de celle-ci : texte simple. */
+       directement sur le titre ») — un bouton DANS le <label> ne coche pas la rangée. Versée
+       dans une référence existante, la rangée garde le titre de celle-ci : texte simple. Sans crayon (« un peu moche ») : le
+       pointillé du survol et le nom accessible « Renommer « … » » suffisent. */
     +`<span class="imp-tx">`+(r.into?`<b class="imp-t" title="${esc(titre+(o.discriminant?' — '+o.discriminant:''))}">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</b>`
-      :`<button type="button" class="imp-t imp-ren" data-impren="${esc(r.key)}" aria-label="${esc('Renommer « '+titre+' »')}" title="${esc(titre+(o.discriminant?' — '+o.discriminant:'')+' — toucher pour renommer')}"><span class="imp-tt">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</span>${uiIcon('pen',12)}</button>`)
+      :`<button type="button" class="imp-t imp-ren" data-impren="${esc(r.key)}" aria-label="${esc('Renommer « '+titre+' »')}" title="${esc(titre+(o.discriminant?' — '+o.discriminant:'')+' — toucher pour renommer')}"><span class="imp-tt">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</span></button>`)
     +`<span class="imp-sub"><span class="imp-kind">${r.kind}</span>`
     +statusChip(o.status,r.fem,{always:true})
     +(r.dup?`<span class="imp-dup" title="Une entité de même identifiant est déjà dans votre bibliothèque — la question « Doublons » qui suit décide de son sort, pour toutes celles-ci à la fois">⟳ déjà présent<span class="sr-only">e dans votre bibliothèque</span></span>`:'')
