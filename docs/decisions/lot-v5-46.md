@@ -19,7 +19,7 @@
 
 Restent à leur sens propre :
 - **« parcours »** : l'arbre des blocs d'une aide (« Parcours · 4 blocs », « Recommencer le parcours ») ;
-- **« Références »** : la bibliographie d'une aide.
+- **« Références »** : la bibliographie d'une aide. *(A623, v5.109.7 : « référence » au sens du type est refusé par `check-lexique`.)*
 
 « Doses & seuils », dans la palette de l'éditeur, devient « Repères posologiques », le nom de la section en
 lecture.

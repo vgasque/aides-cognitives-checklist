@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UFpxb9Z7eyHt7mM+4Zuj5P1V6/6hD3E4aobof//BQLI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-e7metwaFYEuCP4cnNNnODdtZ6GUgYDxw/NTv4W/bh1o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7420,6 +7420,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l app (confirmation, suppression locale, validation des comptes, boucle d un minuteur) :
      les styler une par une aurait recréé l incohérence. */
   input[type="checkbox"]{width:20px;height:20px;accent-color:var(--act);flex:none;cursor:pointer}
+  /* A623 (applique A515 aux cases NATIVES — signalé : « pourquoi la case est carrée ? ça contraste avec le reste ») : la
+     case native (atelier d'import, confirmations, suppression locale) prend le dessin de `.dir-ck` — un rond de 2 px,
+     plein du bleu de l'action quand elle est cochée, la coche en matière de travail. L'interrupteur (`role="switch"`)
+     garde le sien. */
+  input[type="checkbox"]:not([role="switch"]){-webkit-appearance:none;appearance:none;position:relative;display:inline-grid;place-items:center;margin:0;
+    border:2px solid var(--line-strong);border-radius:50%;background:var(--work)}
+  input[type="checkbox"]:not([role="switch"]):checked{border-color:var(--act);background:var(--act)}
+  input[type="checkbox"]:not([role="switch"]):checked::after{content:"";width:28%;height:52%;margin-top:-12%;border:solid var(--work);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  input[type="checkbox"]:not([role="switch"]):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .auth-check input{margin-top:1px;flex:none}
   /* .auth-check pose display:flex -> l'attribut [hidden] (UA : display:none) est moins spécifique
      et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
@@ -12233,7 +12242,7 @@ function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>
   const ents=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==e.ent).sort(byTitle);
   let h=`<p class="hint su-sur">Sur « ${esc(String(ent.title||'').trim()||'Sans titre')} »</p>`;
   if(e.k==='task'){h+=`<div class="su-f"><div class="su-fl">Quoi</div><div class="su-chips">${Object.keys(SUIVI_TYPES).map(v=>chip('data-suty',v,esc(SUIVI_TYPES[v]+(v==='fusion'||v==='confronter'?'…':'')),e.type===v)).join('')}</div>`;
-    if(e.type==='fusion'||e.type==='confronter')h+=`<label class="su-fl" for="svRef">${e.type==='fusion'?'Avec':'À'}</label><select id="svRef"><option value="">${e.type==='confronter'?'— une aide, une référence… ou une reco ci-dessous':'— choisir une aide ou une référence'}</option>${ents.map(y=>`<option value="${esc(y.id)}"${y.id===e.ref?' selected':''}>${esc(String(y.title||'').trim()||'Sans titre')}</option>`).join('')}</select>`
+    if(e.type==='fusion'||e.type==='confronter')h+=`<label class="su-fl" for="svRef">${e.type==='fusion'?'Avec':'À'}</label><select id="svRef"><option value="">${e.type==='confronter'?'— une aide, un protocole… ou une reco ci-dessous':'— choisir une aide ou un protocole'}</option>${ents.map(y=>`<option value="${esc(y.id)}"${y.id===e.ref?' selected':''}>${esc(String(y.title||'').trim()||'Sans titre')}</option>`).join('')}</select>`
       +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');
     h+=`</div>`;}
   h+=`<div class="su-f"><label class="su-fl" for="svBody">${e.k==='task'?'Précision <span class="su-s">(facultatif)</span>':'Note'}</label><textarea id="svBody" rows="${e.k==='task'?2:5}" maxlength="2000">${esc(e.body)}</textarea></div>`;
@@ -12250,7 +12259,7 @@ function suiviEdRead(){const e=_svEd,v=id=>{const el=document.getElementById(id)
   const b=v('svBody');if(b!=null)e.body=b;const r=v('svRef');if(r!=null)e.ref=r;const rt=v('svRefTxt');if(rt!=null)e.refTxt=rt;const d=v('svDue');if(d!=null)e.due=d;}
 function suiviEdSave(){suiviEdRead();const e=_svEd;
   if(e.k==='note'&&!e.body.trim()){toast('Écrivez la note, ou annulez.',3000,true);return;}
-  if(e.k==='task'&&e.type==='fusion'&&!e.ref){toast('Choisissez l’aide ou la référence avec laquelle fusionner.',3500,true);return;}
+  if(e.k==='task'&&e.type==='fusion'&&!e.ref){toast('Choisissez l’aide ou le protocole avec lequel fusionner.',3500,true);return;}
   const o={id:e.id,ent:e.ent,k:e.k,lib:e.lib||null,body:e.body.trim(),author:e.author||suiviAuthor()};
   if(e.k==='task')o.t={type:e.type,ref:(e.type==='fusion'||e.type==='confronter')?e.ref:'',refTxt:e.type==='confronter'&&!e.ref?e.refTxt.trim():'',prio:e.prio,due:e.due,done:e.old?e.old.t.done:0,by:e.old?e.old.t.by:''};
   suiviPut(o);suiviEdClose();suiviRepaint();toast(e.old?'Enregistré.':(e.k==='task'?'Tâche ajoutée':'Note ajoutée')+(o.lib?' pour l’équipe.':' — visible par vous seulement.'),3000,true);}
@@ -12283,11 +12292,11 @@ function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!s
   const nMe=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&!x.lib&&suiviEnt(x.ent)).length,nEq=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.lib&&suiviEnt(x.ent)).length;
   let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord':'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
     +`<div class="su-bar">${seg('data-suby',W.by,[['prio','Par priorité'],['ent','Par élément']])}${seg('data-suwho',W.who,[['me','Moi · '+nMe],['team','Équipe · '+nEq],['all','Tout']])}</div>`;
-  if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou une référence : « Suivi » › « ＋ Tâche ».</div>`;
+  if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou un protocole : « Suivi » › « ＋ Tâche ».</div>`;
   else if(W.by==='prio')[1,2,3].forEach(p=>{const g=open.filter(x=>x.t.prio===p);if(g.length)h+=`<div class="su-gh${p===1?' p1':''}">${SUIVI_PRIO[p]} · ${g.length}</div><div class="su-card">${g.map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div>`;});
   else{const by=new Map();open.forEach(x=>{if(!by.has(x.ent))by.set(x.ent,[]);by.get(x.ent).push(x);});
     h+=[...by.entries()].map(([id,g])=>{const e=suiviEnt(id);
-      return `<div class="su-card"><div class="su-card-h"><span><b>${esc(suiviEntTitle(id))}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Référence'} · ${esc(e&&e.library?(libName(e.library)||'Partagée'):'Perso')} · ${nb(g.length,'tâche')}</span></span><button type="button" class="linkbtn" data-sugo="${esc(id)}">Ouvrir ›</button></div>${g.map(x=>suiviTaskRowHtml(x)).join('')}</div>`;}).join('');}
+      return `<div class="su-card"><div class="su-card-h"><span><b>${esc(suiviEntTitle(id))}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Protocole'} · ${esc(e&&e.library?(libName(e.library)||'Partagée'):'Perso')} · ${nb(g.length,'tâche')}</span></span><button type="button" class="linkbtn" data-sugo="${esc(id)}">Ouvrir ›</button></div>${g.map(x=>suiviTaskRowHtml(x)).join('')}</div>`;}).join('');}
   if(done.length)h+=`<details class="su-done su-hist"><summary>Fait · ${done.length}</summary><div class="su-card">${done.slice(0,200).map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div></details>`;
   const conv=colls.filter(c=>SUIVI_CONV_RX.test(c.name)&&collItems(c).length);
   if(conv.length)h+=`<div class="su-conv"><div class="su-fl">Des collections qui ressemblent à une liste de travail</div>${conv.map(c=>`<div class="su-conv-r"><span>« ${esc(c.name)} » · ${nb(collItems(c).length,'élément')}</span><button type="button" class="btn sm" data-suconv="${esc(c.id)}">Convertir en tâches</button></div>`).join('')}<p class="hint">Chaque élément reçoit une tâche « ${'À revoir'} », « À fusionner », « À compléter »… selon le nom ; la collection reste — supprimez-la ensuite si elle ne sert plus.</p></div>`;
@@ -16875,8 +16884,8 @@ const EMPTY_INTRO={
       {ic:'warn',ton:'vig',t:'Ambre',d:'— là où l\'on risque de se tromper.'},
       {ic:'stopwatch',t:'Minuteurs et compteurs',d:'qui tournent pendant la session.'}]},
   protocols:{titre:'Aucun protocole',
-    lede:'Un protocole <strong>se lit</strong> : une référence, une procédure, un PDF.',
-    dlg:'Il <strong>se lit</strong> : une référence, une procédure, un PDF — sans session ni minuteur.',
+    lede:'Un protocole <strong>se lit</strong> : un texte de référence, une procédure, un PDF.',
+    dlg:'Il <strong>se lit</strong> : un texte de référence, une procédure, un PDF — sans session ni minuteur.',
     lignes:[
       {ic:'doc',t:'Un texte qu\'on parcourt',d:'— titres, listes, tableaux, encadrés, et les PDF joints.'},
       {ic:'check',t:'Des cases pour ne pas perdre sa place',d:'— elles s\'effacent en sortant : rien ne s\'y enregistre.'},
@@ -17411,7 +17420,7 @@ function bindSelLongPress(cfg){
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
 // A613 : la porte « À faire » de l'onglet Moi (au téléphone ; au bureau, la rangée de la colonne).
 function suiviDoorHtml(){const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;
-  return `<button type="button" class="su-door" data-sudoor>${uiIcon('task',20)}<span class="su-door-t">À faire<span class="su-s">${n?'les tâches de vos aides et références':'notes et tâches de travail'}</span></span><span class="su-dn">${n||''}</span>${uiIcon('chev',16)}</button>`;}
+  return `<button type="button" class="su-door" data-sudoor>${uiIcon('task',20)}<span class="su-door-t">À faire<span class="su-s">${n?'les tâches de vos aides et protocoles':'notes et tâches de travail'}</span></span><span class="su-dn">${n||''}</span>${uiIcon('chev',16)}</button>`;}
 function renderHomeTab(cfg){const t=homeTab();
   rescueFooter();   // A606 : le pied vit dans la colonne — le mettre à l'abri AVANT d'écraser `main` (cf. rescueFooter)
   if(t==='biblio'){renderCatalogue(cfg);return;}   // A601 : le catalogue
@@ -19534,7 +19543,7 @@ function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%
   return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">Taille sur grand écran</h4>')}
   <p class="mi-st ${k?'ok':'w'}">${k?'✓ Dans le texte · '+k+' passage'+(k>1?'s':''):'△ Absente du texte — sera retirée en quittant l’éditeur'}</p>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
-  <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer de la référence</button></div>`;}
+  <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer du protocole</button></div>`;}
 const miEl=()=>document.getElementById('miModal');
 /* A585 : la feuille sert les DEUX éditeurs. Chacun pose son contexte `_miCtx` au rendu — `list` (ses images), `sheet`
    (le corps), `onClick`, `onInput` facultatif — et la feuille ne sait rien d'autre. */
@@ -19615,7 +19624,7 @@ function renderProtocolEdit(){
     du formulaire, collante, et l'unique bouton REMPLI de l'écran (l'action primaire d'un éditeur
     est d'écrire). Le volet de relecture et la suppression restent APRÈS elle : un bilan se lit en
     fermant, et un geste destructeur ne se met jamais avant une porte de création. */}
-    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à cette référence</span></span> <span class="edd-c">document · référence…</span></span></button>
+    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à ce protocole</span></span> <span class="edd-c">document · référence…</span></span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${''/* A614 : le VOLET « SUIVI » de l'éditeur — à côté du contenu, jamais dedans : dans la colonne de droite au
        bureau (sous la relecture), en pied du formulaire ailleurs. Le même bloc que la lecture (`suiviBlockHtml`). */}
@@ -27078,13 +27087,13 @@ function reviewNotesProto(p){
   const corps=String(p.body||'').trim();
   const docs=(p.docs||[]).length;
   if(!corps&&!docs)out.push({at:'p-body',cible:'Contenu',
-    txt:'△ Cette référence est vide — ni texte rédigé, ni document joint : elle ne servira à rien telle quelle'});
+    txt:'△ Ce protocole est vide — ni texte rédigé, ni document joint : il ne servira à rien tel quel'});
   if(TODO_RX.test(corps))out.push({at:'p-body',cible:'Contenu rédigé',txt:'△ Un « à compléter » reste dans le texte'});
   {const n=mdLint(corps,p.docs).length;if(n)out.push({at:'mdLint',cible:'Écriture',txt:'△ '+n+' point'+(n>1?'s':'')+' d’écriture à relire — doses, liens, tableaux'});}
   clean(p.sources||[]).forEach(()=>{});
   if(TODO_RX.test(String((p.sources||[]).join(' '))))out.push({at:'p-sources',cible:'Références',txt:'△ Un « à compléter » reste dans les sources'});
   if(corps&&!clean(p.sources||[]).length)out.push({at:'p-sources',cible:'Références',
-    txt:'△ Aucune source citée — la traçabilité d’une référence est ce qui permet de la revalider'});
+    txt:'△ Aucune source citée — la traçabilité d’un protocole est ce qui permet de le revalider'});
   if(!String(p.title||'').trim())out.push({at:'p-title',cible:'Titre',
     txt:'△ Sans titre, rien n’entre dans la bibliothèque'});
   return out;}
@@ -27199,7 +27208,7 @@ function pImgTaker(p,ta){
   return async files=>{
     let n=0;
     for(const file of files){
-      if((p.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par référence.',6000,true);break;}
+      if((p.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole.',6000,true);break;}
       const r=await downscale(file);
       if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
       const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});
@@ -30608,7 +30617,7 @@ function impRowsOf(imp,sameSpace){
   imp.protocols.forEach((d,i)=>{
     const av=brut(d);
     const o=imp.protocols[i]=migrateProtocol(d),m=jum(protocols,o.id);
-    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:!!m,
+    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Protocole',notes:reviewNotesProto(o).length,dup:!!m,
       rel:m?impDupRel(av,m.updatedAt):''},o));});
   return rows;}
 /* ═══ A132 — SAVOIR LEQUEL EST LE PLUS RÉCENT NE DIT PAS CE QU'ON PERDRAIT ════════════════════
@@ -30704,7 +30713,7 @@ const impLibChoix=()=>impLibOptions().length>1;
    images suivent. La référence garde son titre, sa catégorie, sa bibliothèque : les pastilles de destination s'effacent. */
 const impIntoOptions=()=>protocols.filter(x=>canEditFiche(x)).sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'fr'));
 function impIntoLabel(r){const t=r.into&&protocols.find(x=>x.id===r.into);
-  return t?{txt:'Dans « '+(String(t.title||'').trim()||'Sans titre')+' »',sub:String(t.body||'').trim()?'ajouté à la suite de son contenu':'remplit son contenu vide'}:{txt:'Dans : nouvelle référence',sub:''};}
+  return t?{txt:'Dans « '+(String(t.title||'').trim()||'Sans titre')+' »',sub:String(t.body||'').trim()?'ajouté à la suite de son contenu':'remplit son contenu vide'}:{txt:'Dans : nouveau protocole',sub:''};}
 function impDestHtml(r){
   if(r.kind!=='Aide'&&impIntoOptions().length){const I=impIntoLabel(r);
     const into=`<button type="button" class="imp-pick${r.into?' keep':''}" data-impinto="${esc(r.key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Où va ce contenu — toucher pour changer">`
@@ -30862,7 +30871,7 @@ document.getElementById('impList').addEventListener('click',e=>{
   const ib=e.target&&e.target.closest?e.target.closest('[data-impinto]'):null;
   if(ib){e.preventDefault();const r=_impRows.find(x=>x.key===ib.dataset.impinto);if(!r)return;
     openPickMenu(ib.parentNode,{aria:'Où va ce contenu',title:'Où va ce contenu',trigger:ib,value:r.into||'',seuilFiltre:8,filtreAuToucher:true,
-      options:[{val:'',name:'Nouvelle référence',sub:'créée à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
+      options:[{val:'',name:'Nouveau protocole',sub:'créé à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
         .concat(impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli',ic:uiIcon('book',16)}))),
       onPick:v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();}});return;}
   const rb=e.target&&e.target.closest?e.target.closest('[data-impren]'):null;
@@ -30972,7 +30981,7 @@ async function _importRead(buf,lbl){
     if(notion&&(notion.manque||notion.trop||notion.long)){
       const m=[];
       if(notion.manque)m.push(notion.manque+' image'+(notion.manque>1?'s':'')+' introuvable'+(notion.manque>1?'s':'')+(notion.seul?' — importez plutôt le .zip de l’export Notion, qui les contient':' dans l’archive')+' (nommée'+(notion.manque>1?'s':'')+' dans le texte)');
-      if(notion.trop)m.push(notion.trop+' image'+(notion.trop>1?'s':'')+' au-delà de '+MAX_IMG_PER_ENTITY+' par référence, non importée'+(notion.trop>1?'s':''));
+      if(notion.trop)m.push(notion.trop+' image'+(notion.trop>1?'s':'')+' au-delà de '+MAX_IMG_PER_ENTITY+' par protocole, non importée'+(notion.trop>1?'s':''));
       if(notion.long)m.push('texte au-delà de '+MD_MAX_CHARS.toLocaleString('fr-FR')+' caractères, tronqué');
       toast('△ '+m.join(' · ')+'.',10000,true);}
     const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());

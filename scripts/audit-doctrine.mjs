@@ -6666,7 +6666,7 @@ await sec('A129 · l\'atelier d\'import', async () => {
   t('RIEN n\'est écrit tant qu\'on n\'a pas validé',vu.f===avant.f&&vu.p===avant.p,
     `avant ${avant.f}/${avant.p} · pendant ${vu.f}/${vu.p}`);
   t('une rangée par entité — les DEUX natures, nommées',
-    vu.rows.filter(r=>/Aide/.test(r.kind)).length===2&&vu.rows.filter(r=>/Référence/.test(r.kind)).length===1,
+    vu.rows.filter(r=>/Aide/.test(r.kind)).length===2&&vu.rows.filter(r=>/Protocole/.test(r.kind)).length===1,   // A623 : le type se dit « protocole »
     JSON.stringify(vu.rows.map(r=>r.kind)));
   t('la rangée dit l\'ÉTAT DÉCLARÉ PAR LE FICHIER, jamais un état forcé',
     /Validée/.test(vu.rows[0].st)&&/Brouillon/.test(vu.rows[1].st),
@@ -9035,7 +9035,7 @@ await sec('Import · A562 export Notion (.md + images)', async () => {
   if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page, 300);
   const r=await page.evaluate(()=>{const x=protocols[protocols.length-1]||{};return {n:protocols.length-window.__n0,titre:x.title,imgs:(x.images||[]).length,
     lie:(x.images||[]).length===1&&(x.body||'').includes('img:'+x.images[0].id),absente:/Image absente de l’archive : absente\.png/.test(x.body||''),prop:/Statut/.test(x.body||''),statut:x.status};});
-  t('A562 · le .zip Notion ouvre l\'atelier sur UNE référence',a.rangs===1&&/Référence/i.test(a.kind),JSON.stringify(a));
+  t('A562 · le .zip Notion ouvre l\'atelier sur UN protocole',a.rangs===1&&/Protocole/i.test(a.kind),JSON.stringify(a));
   t('A562 · importée : titre sans le hash, image rangée et liée (img:<id>), absente nommée, propriétés retirées, en brouillon',
     r.n===1&&r.titre==='Page témoin'&&r.lie&&r.absente&&!r.prop&&r.statut==='draft',JSON.stringify(r));
   await page.close();
