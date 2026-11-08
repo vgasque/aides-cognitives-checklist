@@ -19,6 +19,9 @@ remplir et l'aperçu quand ils sont côte à côte ? Et ce n'est pas franchement
 
 ## A593 — L'établi : texte et aperçu partent de la même ligne ; une poignée règle leur part (v5.97.0)
 
+> **Corrigé par A594 (v5.98.0, `lot-v5-98.md`)** : au doigt, la poignée sautait entre trois valeurs (la part enregistrée
+> était repeinte pendant le geste) ; en deçà des planchers, les bornes passent à 30 % / 70 % (au lieu de 40 % / 35 %).
+
 *Amende A546 (« à parts égales » devient la valeur par défaut) et la colonne de 280 px d'A468 entre 780 et 999.
 Garde A547 (mise en forme en direct, par défaut, inchangée) et le Plan d'A546.*
 

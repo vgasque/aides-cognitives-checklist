@@ -32,6 +32,9 @@ Les collections, mesurées sur le même jeu : 71 aides rangées quelque part, 22
 
 ## A587 — « Vos collections » en tête de l'accueil, « Tout » dessous ; un réglage rend l'accueil d'avant
 
+> **Amendé par A597 (v5.98.0, `lot-v5-98.md`)** : au-delà de 6 collections, la section garde les 5 vues le plus
+> récemment (en ordre alphabétique), puis « Toutes les collections · n ».
+
 *Amende A489 (forme écartée « mes rangements d'abord, le catalogue ensuite », option 3) sur l'ACCUEIL seulement : la
 colonne gauche garde son ordre. Étend A475 ; garde A515, A523, A537, A545, A556.*
 
