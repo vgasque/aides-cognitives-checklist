@@ -10738,6 +10738,12 @@ await sec('A615 · la pastille « n tâches » sous le titre ouvre le suivi en f
     suiviPut({id:'p1',ent:f.id,k:'task',lib:null,body:'a',t:{type:'revoir',prio:1}});suiviPut({id:'p2',ent:f.id,k:'task',lib:null,body:'b',t:{type:'revoir',prio:2}});
     openRead(f.id);await __acCalme(400);const p=q('#main .read-meta .su-pill');o.pastille=p?p.textContent:'';
     p.click();await __acCalme(250);o.feuille=suiviBlkModal.classList.contains('on')&&q('#suiviBlkBody .su-row')!=null;
+    // A616 : « ＋ Tâche » DEPUIS la feuille ouvre la fenêtre PAR-DESSUS (le ✕ sous le doigt est le sien), et elle se rouvre.
+    {const top=sel=>{const r=q(sel).getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);};
+      q('#suiviBlkBody [data-sunew="task"]').click();await __acCalme(250);const x=top('#suiviEdModal .ai-x');o.dessus=!!x&&!!x.closest('#suiviEdModal');
+      if(x)x.click();await __acCalme(250);o.fermee=!suiviEdModal.classList.contains('on')&&suiviBlkModal.classList.contains('on');
+      q('#suiviBlkBody [data-sunew="task"]').click();await __acCalme(250);o.rouverte=suiviEdModal.classList.contains('on');
+      q('#suiviEdModal [data-suedx="x"]').click();await __acCalme(200);}
     q('#suiviBlkBody [data-sudone="p1"]').click();await __acCalme(250);o.suit=(q('#main .su-pill')||{}).textContent;
     o.feuilleSuit=document.querySelectorAll('#suiviBlkBody .su-done .su-row').length===1;
     suiviBlkModal.querySelector('.ai-x').click();await __acCalme(200);
@@ -10746,6 +10752,7 @@ await sec('A615 · la pastille « n tâches » sous le titre ouvre le suivi en f
   t('A615 · sans suivi, pas de pastille ; avec, « 2 tâches » dans la ligne d’état',r.sansSuivi&&r.pastille==='2 tâches',JSON.stringify(r));
   t('A615 · la pastille ouvre la feuille ; cocher dans la feuille met à jour la feuille et la pastille',r.feuille&&r.suit==='1 tâche'&&r.feuilleSuit,JSON.stringify(r));
   t('A615 · en session, pas de pastille (règle 11)',r.session,JSON.stringify(r));
+  t('A616 · « ＋ Tâche » depuis la feuille : la fenêtre passe par-dessus, ✕ la ferme elle, et elle se rouvre',r.dessus&&r.fermee&&r.rouverte,JSON.stringify(r));
   await page.close();
 });
 
