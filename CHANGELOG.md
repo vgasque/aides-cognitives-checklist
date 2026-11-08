@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.109.6] — 2026-11-08
+Sous-ligne des rangées (A621). Rien à rejouer côté serveur.
+- **Le « · » ne commence plus une ligne** : quand la ligne de détails d'une aide passe à la ligne (« △ À relire »,
+  pastille « Cours DESMU »…), le point reste au bout de la ligne précédente et la suivante commence au mot, sans
+  décalage.
+
 ## [5.109.5] — 2026-11-08
 Alignement des rangées sans catégorie (A620). Rien à rejouer côté serveur.
 - **Une aide ou une référence sans catégorie ne décale plus son texte** : dans une liste où les autres rangées ont un

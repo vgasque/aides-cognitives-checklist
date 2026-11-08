@@ -9425,7 +9425,7 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
       const lt=tr&&tr.querySelector('.libtag'),ct=tr&&tr.querySelector('.dir-cat');
       o.tuile=!!lt&&getComputedStyle(lt).display!=='none'&&lt.textContent.trim()==='Réanimation CHU'&&!!ct&&lt.getBoundingClientRect().bottom<=ct.getBoundingClientRect().top+1;
       const rl=q('.dir-book.tout .dir-id>*+.libtag');
-      o.point=rl?getComputedStyle(rl,'::before').position:'';
+      o.point=rl?getComputedStyle(rl,'::before').content:'';   // A621 : le point n'est plus DANS la pastille (::after de l'élément d'avant)
       const rc=q('.dir-book.tout .dir-cat');o.catCachee=rc?getComputedStyle(rc).display:'';
       return o;});
     t(`${W} px · A587 : au repos, « Vos collections » repliées (2) puis « Tout » (intertitre qui nomme le regroupement)`,r.sec&&r.lignes===2&&r.repliees&&r.ordre&&r.toutH==='Tout|par catégorie',JSON.stringify(r));
@@ -9433,7 +9433,7 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
     t(`${W} px · A587 : absente sous un type, une catégorie, une sélection, une recherche`,r.sousType&&r.sousCat&&r.sousSel&&r.sousQ,JSON.stringify(r));
     t(`${W} px · A587 : réglage « Non » = l'accueil d'avant (ni section ni « Tout », même répertoire)`,r.off,JSON.stringify(r));
     t(`${W} px · A589 : la tuile dit sa bibliothèque au-dessus de sa catégorie`,r.tuile,JSON.stringify(r));
-    t(`${W} px · A589 : le « · » de la provenance est posé hors de la pastille ; rangé par catégorie, la rangée ne la redit pas`,r.point==='absolute'&&r.catCachee==='none',JSON.stringify(r));
+    t(`${W} px · A589 : le « · » de la provenance est posé hors de la pastille ; rangé par catégorie, la rangée ne la redit pas`,r.point==='none'&&r.catCachee==='none',JSON.stringify(r));
     // A587 : le pli d'une collection est retenu au rechargement.
     await page.reload();await page.waitForFunction(()=>!!document.querySelector('[data-hcoll]'));await calme(page,400);
     await page.evaluate(decor);
@@ -9635,6 +9635,26 @@ await sec('Accueil · A620 une rangée sans catégorie s’aligne sur ses voisin
     return [...document.querySelectorAll('.recents .dir-row')].map(r=>({av:!!r.querySelector('.dir-av'),x:Math.round(r.querySelector('.dir-t').getBoundingClientRect().left)}));});
   t('A620 · « Ouvertes récemment » : la rangée sans point garde l’emplacement vide, les titres partent du même x',r.some(x=>!x.av)&&r.some(x=>x.av)&&new Set(r.map(x=>x.x)).size===1,JSON.stringify(r));
   await page.close();
+});
+
+await sec('Accueil · A621 le « · » ne commence jamais une ligne de la sous-ligne', async () => {
+  for(const W of [390,320]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{LANCEUR_SEUIL=0;myLibraries=[{id:'b1',name:'Cours DESMU',role:'editor'}];
+      const n=JSON.parse(JSON.stringify(fiches[0]));n.id='a621';n.title='Gestes d’urgence : dégagement et immobilisation';n.library='b1';fiches.push(migrate(n));
+      fiches.forEach(f=>bumpUsage(f.id));render();await __acCalme(400);
+      /* Un atome (pastille de provenance, état) renvoyé à la ligne doit y commencer : son TEXTE part du bord gauche de la
+         sous-ligne (au rembourrage de la pastille près) — un « · » devant lui le décalerait de 10 px au moins. */
+      const out=[];
+      for(const s of document.querySelectorAll('.recents .dir-sub')){const L=s.getBoundingClientRect().left,t0=s.getClientRects()[0].top;
+        for(const a of s.querySelectorAll('.libtag,.dir-st')){const b=a.getBoundingClientRect();if(b.top<=t0+4||b.left-L>30)continue;   // en tête d’une ligne suivante seulement
+          const tn=[...a.childNodes].find(x=>x.nodeType===3&&x.textContent.trim());const rg=document.createRange();rg.selectNodeContents(tn||a);
+          out.push({el:a.className,dx:Math.round(rg.getBoundingClientRect().left-L),boite:Math.round(b.left-L)});}}
+      return out;});
+    t(`${W} px · A621 : ce qui passe à la ligne y commence, sans « · » devant (au moins un cas mesuré)`,r.length>0&&r.every(x=>x.boite<=1&&(/libtag/.test(x.el)?x.dx<=22:x.dx<=1)),JSON.stringify(r));
+    await page.close();}
 });
 
 await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreuses', async () => {
