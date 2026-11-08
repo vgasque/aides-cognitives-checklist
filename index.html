@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0qmxjSrvgr4xybWqC2qDd1Nu3Lxb4gO73pqzks1Q7cQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-66kfzRJvKSHYlXHaxHT/f+BkhfRYEfJSWDxbbXlchuw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -12313,7 +12313,7 @@ suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button
     const opt=(y,ic)=>({val:y.id,name:String(y.title||'').trim()||'Sans titre',sub:sub(y),ic:uiIcon(ic,16)});
     openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
       options:(E.ref&&E.type==='confronter'?[{val:'',name:'Aucun élément',sub:'une reco écrite ci-dessous',ic:uiIcon('pen',16)}]:[])
-        .concat(A.length?[{head:'Aides',n:String(A.length)}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles',n:String(P.length)}]:[],P.map(y=>opt(y,'doc'))),
+        .concat(A.length?[{head:'Aides · '+A.length}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles · '+P.length}]:[],P.map(y=>opt(y,'doc'))),
       onPick:v=>{E.ref=v||'';suiviEdPaint();}});return;}
   if(b.dataset.suprio){suiviEdRead();E.prio=+b.dataset.suprio;suiviEdPaint();return;}
   if(b.dataset.sulib!=null){suiviEdRead();E.lib=b.dataset.sulib||null;suiviEdPaint();return;}
