@@ -2546,6 +2546,13 @@
   .dir-book .dir-id>*+*:not(.libtag)::before,
   .dir-book:not(.pinned) .dir-id>*:has(+.libtag)::after,.dir-book .dir-id:not(:empty):has(+.dir-st)::after{
     content:"\a0· ";margin:0 2px;font-weight:400;color:var(--ink-2)}
+  /* Après la pastille (un atome), l'espace insécable ne suffit pas : certains moteurs coupent entre un atome et le
+     texte qui le suit (mesuré en CI à 320 px — « · △ À relire » revenait). Le point qui la SUIT vit donc DANS la pastille,
+     posé hors de son fond dans une marge réservée : il ne peut plus la quitter. */
+  .dir-book:not(.pinned) .dir-id>.libtag:not(:last-child),.dir-book:not(.pinned) .dir-id:has(+.dir-st)>.libtag:last-child{position:relative;margin-right:14px}
+  .dir-book:not(.pinned) .dir-id>.libtag:not(:last-child)::after,.dir-book:not(.pinned) .dir-id:has(+.dir-st)>.libtag:last-child::after{
+    content:"·";position:absolute;right:-10px;font-weight:400;color:var(--ink-2)}
+  .dir-book .dir-id>.libtag+*::before,.dir-book .dir-id:has(>.libtag:last-child)::after{content:none}
   .dir-book .dir-disc{order:0;font-weight:400;color:inherit}
   .dir-book .dir-kind{font-size:inherit;font-weight:400;letter-spacing:0;text-transform:none}
   html .dir-book .dir-row .dir-sub>.dir-st{margin:0;padding:0}
