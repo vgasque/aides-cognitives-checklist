@@ -30,8 +30,19 @@ lignes.forEach((l, i) => {
     hits.push(`    index.html:${i + 1}  …${src[i].slice(Math.max(0, m.index - 40), m.index + 40).trim()}…`);
   }
 });
+/* A623 — « RÉFÉRENCE » AU SENS DU TYPE (signalé par l'auteur : « il reste des mentions “Références” ? on avait dit
+   qu'on renommait tout “Protocole” »). A461 réserve « Références » à la BIBLIOGRAPHIE d'une aide ou d'un protocole ; le
+   type se dit « protocole ». On refuse donc « référence » après un déterminant de désignation (une, la, cette, nouvelle,
+   chaque, aucune, par, d’une…) et « aides et références ». Restent libres : « Références » (la section), « de
+   référence », « Référence » seul (l'entrée « source citée » de la palette), « référence courte » (le code). */
+const DET2 = "une|la|cette|chaque|aucune|nouvelle|par|toute|d[’']une";
+const RE2 = new RegExp(`(?:(?<=(?:^|[^\\p{L}])(?:${DET2})\\s)|(?<=aides et\\s)|(?<=d[’']une\\s))[Rr]éférences?(?![\\p{L}])`, 'gu');
+lignes.forEach((l, i) => {
+  for (const m of l.matchAll(RE2))
+    hits.push(`    index.html:${i + 1}  …${src[i].slice(Math.max(0, m.index - 40), m.index + 40).trim()}… (« référence » au sens du type)`);
+});
 if (hits.length) {
-  console.error(`✗ check-lexique : ${hits.length} « fiche » dans du texte affiché :`);
+  console.error(`✗ check-lexique : ${hits.length} « fiche » ou « référence » (le type) dans du texte affiché :`);
   hits.forEach(h => console.error(h));
   console.error('  -> écrire « aide » (parcours à cocher), « protocole » (texte à lire), ou « données »');
   console.error('     quand le texte vise les deux (compte, synchro, stockage). Cf. A461.');

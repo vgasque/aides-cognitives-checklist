@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-uyXZQXBCDFzEjpfiKuOHAPkVjoRO02VNJgi3R640izE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-q9g2Jl+hN/j4sUpEWKZeQs8GnMNgZUcdX1Xht0gx7+c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3043,7 +3043,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-h{margin:8px 4px 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-eye{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-bk{transform:rotate(180deg)}
-  html.zw360 .pg-bk-t{display:none}   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
+  html.zw360 .pg-bk-t{display:none}
+  html.zw400 .ctg-page .pg-new-t{display:none}   /* A632 : à côté de « ‹ Bibliothèques » et « Sélectionner », « Créer » se réduit à son ＋ */   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
   .ctg-th{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
   .ctg-th .hv-title{margin:0}
   .ctg-sub{font-size:var(--t-body);color:var(--ink-2)}
@@ -3073,7 +3074,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
      79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
      plutôt que de se rogner — A589 §4. */
-  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+  /* A627 — signalé sur capture (sombre, volet de 240 px) : « Pneumologie » et « Réanimation » passaient SOUS « △ 1 à
+     relire » — un mot seul ne se replie pas, et `overflow:visible` le laissait déborder sur la colonne voisine. Les
+     catégories prennent `warnBas` comme les bibliothèques (« à relire » sous le nom), et un mot trop long se coupe
+     plutôt que de chevaucher. */
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -3324,6 +3329,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-meta>.su-pill::before{content:none}
   body.view-read .read-meta .su-pill svg{display:inline}
   .su-feuille{margin:0;padding:0;border:0}
+  /* A624 : la pastille de choix de l'élément lié — un champ de choix pleine largeur, qui ouvre la feuille. */
+  /* L'HÔTE du menu ancré (≥ 780 px, un vrai déroulant sous le champ) : sans lui, `top:100%` se prenait sur la section
+     entière et le menu tombait en bas à gauche de l'écran (mesuré à 1280). Pleine largeur du champ. */
+  .su-refw{position:relative}
+  .su-refw>.popmenu{left:0;right:0;max-width:none}
+  .su-refpick{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
+  .su-refpick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .su-refpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .su-refpick.vide>span{color:var(--ink-2)}
+  .su-refpick>svg{flex:none}
+  .su-refchev{transform:rotate(90deg);color:var(--ink-2)}
   .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
   .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
@@ -3344,6 +3360,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
   .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
   .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .su-late{color:var(--warn);font-weight:700}
+  /* A631 : les menus de la barre de sélection, au bureau, au-dessus d'elle (bord droit) ; la barre est sombre (--sys-ink) :
+     le menu reprend l'encre et la matière de travail. */
+  .sel-bar>.popmenu.up{top:auto;bottom:calc(100% + 8px);left:auto;right:0;width:min(380px,100%);min-width:0;max-width:none;
+    max-height:calc(100dvh / var(--zf,1) - 160px);color:var(--ink)}
+  .sel-bar>.popmenu.up :focus-visible{outline-color:var(--act)}
+  .su-go{flex:none;align-self:center;min-height:32px;padding:0 4px;white-space:nowrap}   /* A630 */   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
   .su-note{padding:8px 0;border-top:1px solid var(--line)}
   .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .su-who>span:not(.su-s){white-space:nowrap}
@@ -7420,6 +7443,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l app (confirmation, suppression locale, validation des comptes, boucle d un minuteur) :
      les styler une par une aurait recréé l incohérence. */
   input[type="checkbox"]{width:20px;height:20px;accent-color:var(--act);flex:none;cursor:pointer}
+  /* A623 (applique A515 aux cases NATIVES — signalé : « pourquoi la case est carrée ? ça contraste avec le reste ») : la
+     case native (atelier d'import, confirmations, suppression locale) prend le dessin de `.dir-ck` — un rond de 2 px,
+     plein du bleu de l'action quand elle est cochée, la coche en matière de travail. L'interrupteur (`role="switch"`)
+     garde le sien. */
+  input[type="checkbox"]:not([role="switch"]){-webkit-appearance:none;appearance:none;position:relative;display:inline-grid;place-items:center;margin:0;
+    border:2px solid var(--line-strong);border-radius:50%;background:var(--work)}
+  input[type="checkbox"]:not([role="switch"]):checked{border-color:var(--act);background:var(--act)}
+  input[type="checkbox"]:not([role="switch"]):checked::after{content:"";width:28%;height:52%;margin-top:-12%;border:solid var(--work);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  input[type="checkbox"]:not([role="switch"]):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .auth-check input{margin-top:1px;flex:none}
   /* .auth-check pose display:flex -> l'attribut [hidden] (UA : display:none) est moins spécifique
      et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
@@ -7955,8 +7987,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
   .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* A611 : le titre se renomme sur place ; « Dans … » dit où va le contenu et ce qu'il fera. */
-  .imp-tin{width:100%;min-height:32px;box-sizing:border-box;padding:4px 8px;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
+  .imp-tin{display:block;width:100%;min-height:32px;box-sizing:border-box;padding:6px 10px;resize:none;overflow:hidden;line-height:1.3;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
   @media (pointer:coarse){.imp-tin{font-size:16px}}
+  /* A622 : le titre-bouton garde le dessin du titre ; cible de 32 px par son rembourrage (rendu en marge négative : la
+     rangée ne bouge pas) ; souligné pointillé au survol (le crayon a été retiré à la demande de l'auteur). */
+  /* A622 §2 — L'ENCADRÉ D'UN CHAMP, comme iOS (demande de l'auteur, à la place du crayon) : un fond gris léger arrondi
+     dit « ce titre se modifie » sans icône ; il prend la LARGEUR de la rangée, comme un champ (étroit, il se lisait comme
+     un bouton — essayé). */
+  .imp-ren{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;min-height:32px;margin:0 0 2px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb);color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:text}
+  /* A622 §3 : dans son encadré, le titre se lit ENTIER (« ça ne montre pas tout le titre ») — il passe à la ligne, l'encadré
+     grandit ; plus d'ellipse ici (la rangée simple d'une référence visée la garde). */
+  .imp-ren .imp-tt{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+  .imp-ren:hover{border-color:var(--ctl-line)}
+  .imp-ren:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
   .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
   .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
@@ -8792,6 +8835,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb.sel{outline:2px solid var(--act);outline-offset:6px;background:var(--primary-soft);box-shadow:0 0 0 6px var(--primary-soft)}
   .md-doc.mdb-selon .mdb:not(.on){cursor:pointer;-webkit-user-select:none;user-select:none}
   .md-doc.mdb-selon .mdb-ed,.md-doc.mdb-selon .mdb-grab{display:none}
+  /* A634 : le cadre de sélection (souris) — le bleu de l'action, en voile léger (les écouteurs sont sur le document : il peut se trouver sous le pointeur). */
+  .mdb-lasso{position:fixed;z-index:60;border:1px solid var(--act);background:color-mix(in srgb,var(--act) 12%,transparent);border-radius:3px}
+  /* A634 : pendant une sélection de blocs, la barre de sélection EST l'action de l'écran (comme la barre d'onglets cède
+     la place à celle de l'accueil, A599) : la porte « Ajouter » s'efface — elle passait SOUS la barre (signalé sur capture). */
+  main:has(.md-doc.mdb-selon) .ed-door{visibility:hidden}
   .mdb-selbar{position:sticky;bottom:12px;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding:8px 8px 8px 16px;
     border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float)}
   .mdb-sb-n{flex:1 1 auto;min-width:0;font-weight:700}
@@ -10186,7 +10234,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal" id="relPickModal" role="dialog" aria-modal="true" aria-labelledby="relPickTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p>Le lien apparaît en lecture, dans la section <b>« Voir aussi »</b> — un raccourci, pas une copie.</p>
-  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" placeholder="Filtrer par titre ou code…"></div>
+  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" type="search" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher une aide, un protocole (titre ou code)"></div>
   <div id="relPickList" class="att-list attpick-list ai-body"></div>
 </div></div>
 <!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
@@ -10276,7 +10324,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.6';
+const APP_VERSION='5.109.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12131,6 +12179,11 @@ function collsSave(){try{localStorage.setItem(spaceKey('ac-colls'),JSON.stringif
    Jamais dans le mode crise : les tâches n'y paraissent pas, les notes y restent repliées (règle 11).
    Stockage : localStorage PAR ESPACE (`ac-suivi`, comme les collections) ; synchro par `aid_followups`, une
    ligne par objet (dernier-écrit-gagne PAR objet, jamais par document). Entrée unique : `sanitizeSuivi`. */
+/* A626 — TOUT CHOIX D'UNE AIDE OU D'UN PROTOCOLE A SON CHAMP DE RECHERCHE, dès le premier élément (demande de l'auteur :
+   « toutes ces fenêtres de sélection d'aides / protocoles, y compris ailleurs, avec un champ de recherche »). Une
+   bibliothèque grandit ; un champ qui n'apparaît qu'à 8 ou 9 éléments change la fenêtre sous le doigt d'un jour à
+   l'autre. Mêmes mots partout. Au doigt, le champ n'est pas focalisé d'office (A597 : le clavier ne monte qu'au toucher). */
+const CHOIX_AP_RECH='Rechercher une aide, un protocole…';
 const SUIVI_TYPES={revoir:'À revoir',fusion:'À fusionner avec',confronter:'À confronter à',completer:'À compléter',autre:'Autre'};
 const SUIVI_PRIO={1:'D’abord',2:'Ensuite',3:'Plus tard'};
 const SUIVI_MAX=3000;
@@ -12156,7 +12209,8 @@ const suiviVisible=x=>!x.del&&(!x.lib||myLibraries.some(l=>l.id===x.lib));
 const suiviCanEdit=x=>!x.lib||canEditScope(x.lib);
 const suiviOf=ent=>suivi.filter(x=>x.ent===ent&&suiviVisible(x));
 const suiviOpen=x=>x.k==='task'&&!x.t.done;
-const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at);
+const suiviOrd=(a,b)=>a.t.prio-b.t.prio||(suiviLate(b)-suiviLate(a))||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at;   // A625 : en retard d'abord, dans sa priorité
+const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort(suiviOrd);
 // (le brouillon ouvert dans un éditeur compte aussi : le suivi se pose dès la création, comme la note personnelle)
 const suiviEnt=id=>fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||[state.draft,state.pdraft].find(x=>x&&x.id===id)||null;
 const suiviAuthor=()=>{if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)return u.email;}return '';};
@@ -12177,12 +12231,24 @@ function suiviMerge(loc,rem){const by=new Map(loc.map(x=>[x.id,x]));let ch=false
 /* ── A613 · LE RENDU DU SUIVI ── */
 const suiviDay=ms=>{const d=new Date(ms);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');};
 const suiviDue=s=>{const m=String(s||'').match(/^\d{4}-(\d{2})-(\d{2})$/);return m?m[2]+'/'+m[1]:'';};
+/* A625 — L'ÉCHÉANCE PASSÉE (question de l'auteur : « que se passe-t-il à la fin de l'échéance ? » — rien, jusqu'ici : la
+   ligne disait « △ avant le 15/11 » le lendemain comme la veille). Une tâche OUVERTE dont la date est passée (jour local)
+   dit « △ en retard depuis le 15/11 » au registre de l'échéance (ambre, règle 8 — jamais rouge : rien ne tue), et elle
+   remonte EN TÊTE de sa priorité. Rien d'autre : ni notification, ni alerte, ni changement de priorité — le suivi ne
+   décide rien à la place de l'auteur. */
+const suiviToday=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const suiviLate=x=>x.k==='task'&&!x.t.done&&!!x.t.due&&x.t.due<suiviToday();
 const suiviEntTitle=id=>{const e=suiviEnt(id);return e?(String(e.title||'').trim()||'Sans titre'):'Élément supprimé';};
 function suiviTaskRowHtml(x,o){o=o||{};const can=suiviCanEdit(x),t=x.t,d=t.done;
-  const sub=[d?'Fait'+(t.by?' par '+t.by:'')+' le '+suiviDay(t.done):SUIVI_PRIO[t.prio],suiviWho(x),!d&&t.due?'△ avant le '+suiviDue(t.due):''].filter(Boolean).join(' · ');
-  const tx=`<span class="su-l${t.prio===1&&!d?' p1':''}">${esc(suiviTaskLabel(x))}</span>${o.ent?`<span class="su-e">${esc(suiviEntTitle(x.ent))}</span>`:''}<span class="su-s">${esc(sub)}</span>`;
+  const late=suiviLate(x),sub=[d?'Fait'+(t.by?' par '+t.by:'')+' le '+suiviDay(t.done):SUIVI_PRIO[t.prio],suiviWho(x)].filter(Boolean).join(' · ');
+  const ech=!d&&t.due?(late?`<span class="su-late">△ en retard depuis le ${esc(suiviDue(t.due))}</span>`:esc('△ avant le '+suiviDue(t.due))):'';
+  const tx=`<span class="su-l${t.prio===1&&!d?' p1':''}">${esc(suiviTaskLabel(x))}</span>${o.ent?`<span class="su-e">${esc(suiviEntTitle(x.ent))}</span>`:''}<span class="su-s">${esc(sub)}${ech?' · '+ech:''}</span>`;
   return `<div class="su-row${d?' done':''}"><button type="button" class="su-ck${d?' on':''}" data-sudone="${esc(x.id)}" aria-pressed="${d?'true':'false'}" aria-label="${d?'Rouvrir':'Marquer fait'} : ${esc(suiviTaskLabel(x))}"${can?'':' disabled'}>${uiIcon('check',13,{sw:3})}</button>`
-    +(can?`<button type="button" class="su-tx" data-suedit="${esc(x.id)}">${tx}</button>`:`<span class="su-tx">${tx}</span>`)+`</div>`;}
+    +(can?`<button type="button" class="su-tx" data-suedit="${esc(x.id)}">${tx}</button>`:`<span class="su-tx">${tx}</span>`)
+    /* A630 — UNE TÂCHE MÈNE À SON ÉLÉMENT (signalé : dans « À faire », toucher une tâche n'ouvrait que sa fenêtre — aucun
+       moyen d'aller à l'aide ou au protocole). Là où la ligne nomme l'élément (`o.ent` : « À faire » par priorité, tâches
+       liées), un « Ouvrir › » à droite y mène ; la ligne elle-même garde la modification. */
+    +(o.ent&&suiviEnt(x.ent)?`<button type="button" class="linkbtn su-go" data-sugo="${esc(x.ent)}" aria-label="${esc('Ouvrir « '+suiviEntTitle(x.ent)+' »')}">Ouvrir<span aria-hidden="true"> ›</span></button>`:'')+`</div>`;}
 function suiviNoteHtml(x){const can=suiviCanEdit(x);
   return `<div class="su-note"><div class="su-who${x.lib?' eq':''}">${uiIcon(x.lib?'users':'user',13)}<span>${esc(suiviWho(x)+(x.lib?'':' · privée'))}</span>${x.author&&x.lib?`<span class="su-s">· ${esc(x.author)}, ${suiviDay(x.at)}</span>`:''}${can?`<button type="button" class="linkbtn su-mod" data-suedit="${esc(x.id)}">Modifier</button>`:''}</div><div class="su-body">${esc(x.body)}</div></div>`;}
 /* Le bloc « Suivi » d'une aide ou d'une référence, en lecture. `crise` (session en cours) : les notes seules, repliées
@@ -12190,12 +12256,19 @@ function suiviNoteHtml(x){const can=suiviCanEdit(x);
 function suiviBlockHtml(ent,crise,feuille){if(!ent||!ent.id)return '';const all=suiviOf(ent.id),nts=all.filter(x=>x.k==='note').sort((a,b)=>b.at-a.at);
   if(crise)return nts.length?`<details class="su-crise"><summary>Notes (${nts.length})</summary>${nts.map(suiviNoteHtml).join('')}</details>`:'';
   const open=suiviOpenOf(ent.id),done=all.filter(x=>x.k==='task'&&x.t.done).sort((a,b)=>b.t.done-a.t.done);
+  /* A624 §2 — LE LIEN SE VOIT DES DEUX CÔTÉS (question de l'auteur : « à quoi sert de relier à une autre aide ? ça
+     l'affiche dans l'autre ? » — non, jusqu'ici). Une tâche « À fusionner avec / À confronter à » posée sur A paraît
+     aussi dans le suivi de B, sous « Liées depuis d'autres éléments », avec le titre de A : c'est la MÊME tâche (la
+     cocher ici la coche là-bas), pas une copie. */
+  const lies=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.t.ref===ent.id&&x.ent!==ent.id&&suiviEnt(x.ent))
+    .sort((a,b)=>a.t.prio-b.t.prio||b.at-a.at);
   return `<section class="block su-blk${feuille?' su-feuille':''}" data-suent="${esc(ent.id)}">`+(feuille?`<div class="su-h">`:`<div role="heading" aria-level="2" class="block-h su-h">${uiIcon('task',16)}Suivi<span class="spc"></span>`)
     +`<button type="button" class="btn sm" data-sunew="note">${uiIcon('plus',14,{sw:2.4})}Note</button><button type="button" class="btn sm" data-sunew="task">${uiIcon('plus',14,{sw:2.4})}Tâche</button></div>`
     +(open.length?`<div class="su-sub">Tâches · ${open.length}</div>`+open.map(x=>suiviTaskRowHtml(x)).join(''):'')
+    +(lies.length?`<div class="su-sub">Liées depuis d’autres éléments · ${lies.length}</div>`+lies.map(x=>suiviTaskRowHtml(x,{ent:true})).join(''):'')
     +(done.length?`<details class="su-done"><summary>Faites (${done.length})</summary>${done.map(x=>suiviTaskRowHtml(x)).join('')}</details>`:'')
     +(nts.length?`<div class="su-sub">Notes · ${nts.length}</div>`+nts.map(suiviNoteHtml).join(''):'')
-    +(all.length?'':`<p class="hint">Notes et tâches de travail sur cet élément — pour vous, ou pour l’équipe de sa bibliothèque. Jamais en session.</p>`)+`</section>`;}
+    +(all.length||lies.length?'':`<p class="hint">Notes et tâches de travail sur cet élément — pour vous, ou pour l’équipe de sa bibliothèque. Jamais en session.</p>`)+`</section>`;}
 /* A615 — LA PASTILLE « 2 tâches » DANS LA LIGNE D'ÉTAT, sous le titre (option B de la planche, choisie par l'auteur :
    « plutôt discret » — la barre du haut est déjà chargée). Elle n'existe que s'il y a du suivi ; elle ouvre le suivi en
    FEUILLE (`#suiviBlkModal`), sans perdre sa place. Jamais en session (le bloc lui-même y est replié, notes seules). */
@@ -12207,7 +12280,7 @@ function suiviBlkOpen(id){const e=suiviEnt(id);if(!e)return;
   document.getElementById('suiviBlkBody').innerHTML=suiviBlockHtml(e,false,true);suiviBlkModal.classList.add('on');}
 // La pastille d'une rangée du CATALOGUE : combien restent, et la priorité de la plus urgente. Muette sans tâche.
 function suiviRowHtml(id){if(!_rowCtx.ctg)return '';const o=suiviOpenOf(id);if(!o.length)return '';
-  return `<span class="su-cnt" title="${esc(o.map(suiviTaskLabel).join(' · '))}">${uiIcon('task',12)}${o.length} · ${esc(SUIVI_PRIO[o[0].t.prio])}</span>`;}
+  return `<span class="su-cnt" title="${esc(o.map(suiviTaskLabel).join(' · '))}">${uiIcon('task',12)}${o.length} · ${esc(SUIVI_PRIO[o[0].t.prio])}${o.some(suiviLate)?' · <span class="su-late">△ en retard</span>':''}</span>`;}
 /* La feuille : une note ou une tâche, neuve (`x` absent) ou à modifier. La portée « équipe » est la bibliothèque
    de l'élément, offerte si l'on peut y écrire. */
 let _svEd=null;
@@ -12222,7 +12295,13 @@ function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>
   const ents=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==e.ent).sort(byTitle);
   let h=`<p class="hint su-sur">Sur « ${esc(String(ent.title||'').trim()||'Sans titre')} »</p>`;
   if(e.k==='task'){h+=`<div class="su-f"><div class="su-fl">Quoi</div><div class="su-chips">${Object.keys(SUIVI_TYPES).map(v=>chip('data-suty',v,esc(SUIVI_TYPES[v]+(v==='fusion'||v==='confronter'?'…':'')),e.type===v)).join('')}</div>`;
-    if(e.type==='fusion'||e.type==='confronter')h+=`<label class="su-fl" for="svRef">${e.type==='fusion'?'Avec':'À'}</label><select id="svRef"><option value="">${e.type==='confronter'?'— une aide, une référence… ou une reco ci-dessous':'— choisir une aide ou une référence'}</option>${ents.map(y=>`<option value="${esc(y.id)}"${y.id===e.ref?' selected':''}>${esc(String(y.title||'').trim()||'Sans titre')}</option>`).join('')}</select>`
+    /* A624 — LE SÉLECTEUR DE L'APP, pas le <select> natif (signalé : « il existe de meilleurs sélecteurs intégrés ») : une
+       pastille qui ouvre la feuille de choix (`openPickMenu`) — filtrable dès 8 éléments, aides puis protocoles sous
+       leur intertitre, catégorie et bibliothèque en sous-ligne. */
+    if(e.type==='fusion'||e.type==='confronter'){const cur=e.ref&&suiviEnt(e.ref);
+      h+=`<div class="su-fl" id="svRefL">${e.type==='fusion'?'Avec':'À'}</div><div class="su-refw"><button type="button" class="su-refpick${cur?'':' vide'}" id="svRefBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="svRefL svRefBtn">`
+        +(cur?uiIcon(fiches.indexOf(cur)>=0?'list':'doc',15)+`<span>${esc(String(cur.title||'').trim()||'Sans titre')}</span>`:`<span>${e.type==='confronter'?'Une aide, un protocole… ou une reco ci-dessous':'Choisir une aide ou un protocole'}</span>`)
+        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button></div>`;}
       +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');
     h+=`</div>`;}
   h+=`<div class="su-f"><label class="su-fl" for="svBody">${e.k==='task'?'Précision <span class="su-s">(facultatif)</span>':'Note'}</label><textarea id="svBody" rows="${e.k==='task'?2:5}" maxlength="2000">${esc(e.body)}</textarea></div>`;
@@ -12236,10 +12315,10 @@ function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>
   document.getElementById('suiviEdFoot').innerHTML=(e.old&&suiviCanEdit(e.old)?`<button type="button" class="btn danger" data-suedx="del">Supprimer</button>`:'')
     +`<button type="button" class="btn" data-suedx="x">Annuler</button><button type="button" class="btn primary" data-suedx="ok" data-dlgdef>${e.old?'Enregistrer':'Ajouter'}</button>`;}
 function suiviEdRead(){const e=_svEd,v=id=>{const el=document.getElementById(id);return el?el.value:null;};
-  const b=v('svBody');if(b!=null)e.body=b;const r=v('svRef');if(r!=null)e.ref=r;const rt=v('svRefTxt');if(rt!=null)e.refTxt=rt;const d=v('svDue');if(d!=null)e.due=d;}
+  const b=v('svBody');if(b!=null)e.body=b;const rt=v('svRefTxt');if(rt!=null)e.refTxt=rt;const d=v('svDue');if(d!=null)e.due=d;}
 function suiviEdSave(){suiviEdRead();const e=_svEd;
   if(e.k==='note'&&!e.body.trim()){toast('Écrivez la note, ou annulez.',3000,true);return;}
-  if(e.k==='task'&&e.type==='fusion'&&!e.ref){toast('Choisissez l’aide ou la référence avec laquelle fusionner.',3500,true);return;}
+  if(e.k==='task'&&e.type==='fusion'&&!e.ref){toast('Choisissez l’aide ou le protocole avec lequel fusionner.',3500,true);return;}
   const o={id:e.id,ent:e.ent,k:e.k,lib:e.lib||null,body:e.body.trim(),author:e.author||suiviAuthor()};
   if(e.k==='task')o.t={type:e.type,ref:(e.type==='fusion'||e.type==='confronter')?e.ref:'',refTxt:e.type==='confronter'&&!e.ref?e.refTxt.trim():'',prio:e.prio,due:e.due,done:e.old?e.old.t.done:0,by:e.old?e.old.t.by:''};
   suiviPut(o);suiviEdClose();suiviRepaint();toast(e.old?'Enregistré.':(e.k==='task'?'Tâche ajoutée':'Note ajoutée')+(o.lib?' pour l’équipe.':' — visible par vous seulement.'),3000,true);}
@@ -12249,6 +12328,13 @@ bindModalDismiss(suiviBlkModal,()=>suiviBlkModal.classList.remove('on'));
 bindModalDismiss(suiviEdModal,suiviEdClose);
 suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||!_svEd)return;const E=_svEd;
   if(b.dataset.suty){suiviEdRead();E.type=b.dataset.suty;suiviEdPaint();return;}
+  if(b.id==='svRefBtn'){suiviEdRead();const lib=x=>x.library?(libName(x.library)||'Partagée'):'Perso',sub=x=>{const c=catOf(x);return [c?c.name:'',lib(x)].filter(Boolean).join(' · ');};
+    const pool=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==E.ent).sort(byTitle),A=pool.filter(y=>fiches.indexOf(y)>=0),P=pool.filter(y=>fiches.indexOf(y)<0);
+    const opt=(y,ic)=>({val:y.id,name:String(y.title||'').trim()||'Sans titre',sub:sub(y),ic:uiIcon(ic,16)});
+    openPickMenu(b.parentNode,{aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+      options:(E.ref&&E.type==='confronter'?[{val:'',name:'Aucun élément',sub:'une reco écrite ci-dessous',ic:uiIcon('pen',16)}]:[])
+        .concat(A.length?[{head:'Aides · '+A.length}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles · '+P.length}]:[],P.map(y=>opt(y,'doc'))),
+      onPick:v=>{E.ref=v||'';suiviEdPaint();}});return;}
   if(b.dataset.suprio){suiviEdRead();E.prio=+b.dataset.suprio;suiviEdPaint();return;}
   if(b.dataset.sulib!=null){suiviEdRead();E.lib=b.dataset.sulib||null;suiviEdPaint();return;}
   const k=b.dataset.suedx;if(!k)return;
@@ -12267,23 +12353,30 @@ function suiviConvert(c){const ty=suiviConvType(c.name),prio=/priorit|d.abord|ur
     suivi.push(sanitizeSuiviItem({id:uid('s'),ent:id,k:'task',lib:null,body:ty==='autre'?c.name:'',author:suiviAuthor(),t:{type:ty,prio},at:Date.now(),dirty:true}));n++;});
   suiviSave();return n;}
 function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!suiviEnt(x.ent)&&(W.who==='all'||(W.who==='me'?!x.lib:!!x.lib));
-  const all=suivi.filter(keep),open=all.filter(suiviOpen).sort((a,b)=>a.t.prio-b.t.prio||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at),done=all.filter(x=>x.t.done).sort((a,b)=>b.t.done-a.t.done);
+  const all=suivi.filter(keep),open=all.filter(suiviOpen).sort(suiviOrd),done=all.filter(x=>x.t.done).sort((a,b)=>b.t.done-a.t.done);
   const seg=(attr,cur,opts)=>`<div class="su-chips" role="group">${opts.map(([v,l])=>`<button type="button" class="mdb-chip${cur===v?' on':''}" ${attr}="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
   const nMe=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&!x.lib&&suiviEnt(x.ent)).length,nEq=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.lib&&suiviEnt(x.ent)).length;
-  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord':'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
+  const nLate=open.filter(suiviLate).length;
+  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord'+(nLate?` · <span class="su-late">△ ${nLate} en retard</span>`:''):'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
     +`<div class="su-bar">${seg('data-suby',W.by,[['prio','Par priorité'],['ent','Par élément']])}${seg('data-suwho',W.who,[['me','Moi · '+nMe],['team','Équipe · '+nEq],['all','Tout']])}</div>`;
-  if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou une référence : « Suivi » › « ＋ Tâche ».</div>`;
+  if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou un protocole : « Suivi » › « ＋ Tâche ».</div>`;
   else if(W.by==='prio')[1,2,3].forEach(p=>{const g=open.filter(x=>x.t.prio===p);if(g.length)h+=`<div class="su-gh${p===1?' p1':''}">${SUIVI_PRIO[p]} · ${g.length}</div><div class="su-card">${g.map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div>`;});
   else{const by=new Map();open.forEach(x=>{if(!by.has(x.ent))by.set(x.ent,[]);by.get(x.ent).push(x);});
     h+=[...by.entries()].map(([id,g])=>{const e=suiviEnt(id);
-      return `<div class="su-card"><div class="su-card-h"><span><b>${esc(suiviEntTitle(id))}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Référence'} · ${esc(e&&e.library?(libName(e.library)||'Partagée'):'Perso')} · ${nb(g.length,'tâche')}</span></span><button type="button" class="linkbtn" data-sugo="${esc(id)}">Ouvrir ›</button></div>${g.map(x=>suiviTaskRowHtml(x)).join('')}</div>`;}).join('');}
+      return `<div class="su-card"><div class="su-card-h"><span><b>${esc(suiviEntTitle(id))}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Protocole'} · ${esc(e&&e.library?(libName(e.library)||'Partagée'):'Perso')} · ${nb(g.length,'tâche')}</span></span><button type="button" class="linkbtn" data-sugo="${esc(id)}">Ouvrir ›</button></div>${g.map(x=>suiviTaskRowHtml(x)).join('')}</div>`;}).join('');}
   if(done.length)h+=`<details class="su-done su-hist"><summary>Fait · ${done.length}</summary><div class="su-card">${done.slice(0,200).map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div></details>`;
   const conv=colls.filter(c=>SUIVI_CONV_RX.test(c.name)&&collItems(c).length);
   if(conv.length)h+=`<div class="su-conv"><div class="su-fl">Des collections qui ressemblent à une liste de travail</div>${conv.map(c=>`<div class="su-conv-r"><span>« ${esc(c.name)} » · ${nb(collItems(c).length,'élément')}</span><button type="button" class="btn sm" data-suconv="${esc(c.id)}">Convertir en tâches</button></div>`).join('')}<p class="hint">Chaque élément reçoit une tâche « ${'À revoir'} », « À fusionner », « À compléter »… selon le nom ; la collection reste — supprimez-la ensuite si elle ne sert plus.</p></div>`;
   return h;}
-function suiviOpenView(){document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');}
+/* A628 — « À FAIRE » EST UNE VUE DE LA COLONNE AU BUREAU (question de l'auteur : « pourquoi “À faire” ouvre une fenêtre
+   par-dessus au lieu d'une page à part entière ? ») : comme Sessions et Moi (A365), l'onglet `todo` remplit la colonne
+   principale, la rangée de la colonne gauche est marquée, le retour système revient à l'Accueil. Au téléphone (porte de
+   l'onglet Moi) et hors de l'accueil, la fenêtre-page reste. */
+function suiviOpenView(){if(homeTabsOn()&&mqHomeWide.matches){setHomeTab('todo');return;}
+  document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');}
 function suiviRepaint(){
   if(suiviModal.classList.contains('on')){const v=document.getElementById('suiviView'),y=v.scrollTop;v.innerHTML=suiviViewHtml();v.scrollTop=y;}
+  {const v=document.getElementById('suiviPage');if(v)v.innerHTML=suiviViewHtml();}   // A628 : la vue de la colonne (son défileur est la colonne, il ne bouge pas)
   document.querySelectorAll('#main .su-blk[data-suent],#suiviBlkBody .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false,b.classList.contains('su-feuille'));if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
   document.querySelectorAll('#main .read-meta').forEach(m=>{const id=state.view==='read'&&state.fiche?state.fiche.id:(state.view==='protocolRead'&&state.protocol?state.protocol.id:null);if(!id||document.querySelector('#main details.su-crise'))return;
     const old=m.querySelector('.su-pill'),h=suiviPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)m.insertAdjacentHTML('beforeend',h);});   // A615 : la pastille suit
@@ -12299,7 +12392,7 @@ document.addEventListener('click',async e=>{const t=e.target&&e.target.closest?e
   const pl=t.closest('[data-sublk]');if(pl){suiviBlkOpen(pl.dataset.sublk);return;}
   const by=t.closest('[data-suby]');if(by){_svv.by=by.dataset.suby;suiviRepaint();return;}
   const wh=t.closest('[data-suwho]');if(wh){_svv.who=wh.dataset.suwho;suiviRepaint();return;}
-  const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
+  const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');suiviBlkModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
   const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;const n=suiviConvert(c);suiviRepaint();
     toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);}});
 const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
@@ -12471,6 +12564,12 @@ const CAT_ALL='*';
 /* PÉRIMÈTRE AFFICHÉ À L'ACCUEIL — source UNIQUE. `state.homeLib` : null = « Toutes » (l'union),
    '' = Perso, sinon un id. Les lecteurs restés sur `state.scope` y voyaient toujours `null`. */
 const homeScope=()=>state.homeLib||null;
+/* A632 — OÙ NAÎT CE QU'ON CRÉE. Depuis l'onglet « Bibliothèques » (signalé : « on n'a pas de bouton “Créer” depuis
+   l'onglet Bibliothèques »), dans une bibliothèque ou une de ses catégories, l'élément naît DANS cette bibliothèque ; à
+   la racine du catalogue ou dans « Tout », comme à l'accueil (`homeScope`). La collection affichée (A496) ne vaut qu'à
+   l'accueil. */
+const crtScope=()=>{const N=state.cnav||{};return state.view==='library'&&homeTab()==='biblio'&&N.lib!=null&&!N.tout?(N.lib||null):homeScope();};
+const crtColl=()=>state.view==='library'&&homeTab()==='biblio'?null:state.coll;
 function activeCatScope(){if(_catScopeForce!==undefined)return _catScopeForce;   // surcharge explicite (atelier d'import, A159)
   if(state.view==='edit')return state.draft?(state.draft.library||null):null;
   if(state.view==='protocolEdit')return state.pdraft?(state.pdraft.library||null):null;
@@ -15983,12 +16082,14 @@ function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
   const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
 function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
   if(tabNavOn()&&t==='admin'){state.homeTab='me';render();admModal.classList.add('on');renderAdm();return;}   // A517
+  if(!mqHomeWide.matches&&t==='todo'){state.homeTab=tabNavOn()?'me':'aides';render();document.getElementById('suiviView').innerHTML=suiviViewHtml();suiviModal.classList.add('on');return;}   // A628 : au téléphone, la fenêtre-page
   if(!mqHomeWide.matches&&!tabNavOn()){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();
     if(t==='admin'){admModal.classList.add('on');renderAdm();}return;}
   let t2=null;
   if(sessModal.classList.contains('on')&&_sessFiche==='*'){closeSessHist();t2='sessions';}
   if(authModal.classList.contains('on')){closeAuth();t2='me';}
   if(admModal.classList.contains('on')){admModal.classList.remove('on');t2='admin';}   // A494 : la section ouverte survit
+  if(suiviModal.classList.contains('on')){suiviModal.classList.remove('on');t2='todo';}   // A628
   if(t2)setHomeTab(t2);}
 const _onHomeBp=()=>{if(state.view!=='library')return;syncHomeTabs();render();};
 if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);else if(mqHomeWide.addListener)mqHomeWide.addListener(_onHomeBp);
@@ -16307,7 +16408,7 @@ function openCollPick(ids,o){o=o||{};if(!ids.length)return;
   /* `compact` (A496) : ancré sous la rangée Collections de l'éditeur, dans la coque large (`wide`) — titre, contexte et
      notice RESTENT (décision de l'auteur : la définition « à vous seul, rien n'est déplacé » se lit au moment du geste),
      resserrés d'un cran par le CSS de `.catmenu.wide` ; la feuille de l'accueil est inchangée. */
-  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:o.sheet==null?true:o.sheet,wide:!!o.compact,multi:true,trigger:o.trigger,back:o.back,seuilFiltre:4,
+  openPickMenu(o.host||document.body,{aria:'Ajouter à une collection',sheet:o.sheet==null?true:o.sheet,up:!!o.up,wide:!!o.compact,multi:true,trigger:o.trigger,back:o.back,seuilFiltre:4,
     options:[{val:COLL_PIN,name:'Accès direct',sub:ids.length>pinOk.length?nb(ids.length-pinOk.length,'brouillon')+' ne s’épingle'+(ids.length-pinOk.length>1?'nt':'')+' pas':'les tuiles en tête de l’accueil',on:st(COLL_PIN),ic:collIc(collById(COLL_PIN))}]
       .concat(colls.map(c=>({val:c.id,name:c.name,sub:nb(collItems(c).length,'élément'),on:st(c.id),ic:collIc(c)}))),
     title:'Ajouter à une collection',ctx:(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))+' · '+(libs.length===1?libs[0]:selLibsMot(libs.length)),
@@ -16333,7 +16434,9 @@ function collHeadHtml(){const c=collById(state.coll);if(!c)return '';collSeen(c.
    nature · catégorie (sa pastille) · bibliothèque — A488. */
 function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
   const vis=homeVis().slice().sort(byTitle);
-  openPickMenu(document.body,{aria:'Ajouter à '+c.name,sheet:true,multi:true,trigger,
+  // A631 : au bureau, la liste se déroule sous « Ajouter » (`.coll-acts`, positionné) ; au téléphone, la feuille du bas.
+  const tn=tabNavOn(),hote=!tn&&trigger&&trigger.closest('.coll-acts');
+  openPickMenu(hote||document.body,{aria:'Ajouter à '+c.name,sheet:!hote,wide:!!hote,multi:true,trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
     options:vis.map(x=>{const k=catOf(x);return {val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),
       ic:k?catDotHtml([safeColor(k.color)],'cat-dot'):'',sub:[protocols.indexOf(x)>=0?'Protocole':'Aide',k?k.name:'',impLibName(x.library||null)].filter(Boolean).join(' · '),
       on:collHas(c.id,x.id)?'true':'false'};}),
@@ -16405,7 +16508,7 @@ function homeSideHtml(){
       <nav class="hs-nav" aria-label="Sections">
         ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Accueil',mark:uiIcon('home',16),attrs:'data-navaides'+cur('aides')})}${''/* A606 : l'accueil est un lanceur, il n'a plus de compte */}${''/* A534 : les sections disent leur compte (maquette) */}
         ${hsRow({on:tab==='biblio',cls:'hs-navrow',label:'Bibliothèques',mark:uiIcon('book',16),tail:`<span class="hs-n">${bibGroups(homeVis(),true).filter(g=>g.key!=null).length}</span>`,attrs:'data-navbiblio'+cur('biblio')})}
-        ${(()=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;return hsRow({on:false,cls:'hs-navrow',label:'À faire',mark:uiIcon('task',16),tail:`<span class="hs-n">${n||''}</span>`,attrs:'data-sudoor'});})()}
+        ${(()=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;return hsRow({on:tab==='todo',cls:'hs-navrow',label:'À faire',mark:uiIcon('task',16),tail:`<span class="hs-n">${n||''}</span>`,attrs:'data-sudoor'+cur('todo')});})()}
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot+(sessions.length?`<span class="hs-n">${sessions.length}</span>`:''),attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me'||tab==='admin',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}<span class="acct-dot ${esc(_syncUi.state||'ok')}"></span></span>`:uiIcon('user',16),/* A500 : la pastille suit l'avatar, repeinte par setSyncChip */attrs:'data-navme'+cur(tab==='admin'?'admin':'me')})}
       </nav>
@@ -16441,7 +16544,7 @@ function syncNewBtn(){const hn=document.getElementById('hdrNew');if(!hn)return;
   /* v5.30 (maquette v5) : « Sessions » (horloge) voisine de « Créer » à l'accueil. */
   {const hh=document.getElementById('hdrHist');if(hh){hh.hidden=state.view!=='library';
     if(!hh.hidden&&!hh.querySelector('svg')){hh.innerHTML=uiIcon('history',16,{sw:2.2})+'<span class="hb-lbl" aria-hidden="true">Sessions</span>';hh.onclick=()=>openSessHist();}}}
-  if(state.view!=='library'||homeTab()!=='aides'||!canEditScope(homeScope())){hn.hidden=true;return;}
+  if(state.view!=='library'||(homeTab()!=='aides'&&homeTab()!=='biblio')||!canEditScope(crtScope())){hn.hidden=true;return;}   // A632 : aussi aux Bibliothèques
   hn.hidden=false;
   hn.title=state.section==='protocols'?'Créer un protocole':'Créer une aide cognitive';
   hn.onclick=()=>openCreateDlg();}   // dialogue « Créer » (SPEC §2.1) : 3 méthodes
@@ -16864,8 +16967,8 @@ const EMPTY_INTRO={
       {ic:'warn',ton:'vig',t:'Ambre',d:'— là où l\'on risque de se tromper.'},
       {ic:'stopwatch',t:'Minuteurs et compteurs',d:'qui tournent pendant la session.'}]},
   protocols:{titre:'Aucun protocole',
-    lede:'Un protocole <strong>se lit</strong> : une référence, une procédure, un PDF.',
-    dlg:'Il <strong>se lit</strong> : une référence, une procédure, un PDF — sans session ni minuteur.',
+    lede:'Un protocole <strong>se lit</strong> : un texte de référence, une procédure, un PDF.',
+    dlg:'Il <strong>se lit</strong> : un texte de référence, une procédure, un PDF — sans session ni minuteur.',
     lignes:[
       {ic:'doc',t:'Un texte qu\'on parcourt',d:'— titres, listes, tableaux, encadrés, et les PDF joints.'},
       {ic:'check',t:'Des cases pour ne pas perdre sa place',d:'— elles s\'effacent en sortant : rien ne s\'y enregistre.'},
@@ -16949,7 +17052,7 @@ const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
    défilement, A510 : la rangée garde sa hauteur) ; A545 : ce titre est le sélecteur (feuille « Afficher »), les
    pastilles de filtre sont purgées. */
 function pgHeadHtml(title,opts){opts=opts||{};
-  const nw=opts.create&&canEditScope(homeScope())
+  const nw=opts.create&&canEditScope(crtScope())
     ?`<button type="button" class="pg-btn" id="pgNew">${uiIcon('plus',16,{sw:2.4})}Créer</button>`:'';
   const pk=opts.chips?pgPickInfo():null;
   /* A617 : une COLLECTION ouverte depuis l'accueil a son « ‹ Accueil » (le patron du catalogue, `data-ctgback`) — il
@@ -17185,10 +17288,17 @@ function openSelActs(trigger){
   opts.push({val:'selExp',name:SEL_ACTES.exp,ic:uiIcon('download',20),sub:'un seul fichier, réimportable (.json ou .zip)'});   // A392
   opts.push({val:'selDel',name:selDelLabel(n),ic:uiIcon('trash',20),sub:'confirmation demandée',danger:true});
   const dir=selDirect();   // A599 : les actes déjà sur la ligne ne se redisent pas dans la feuille
-  openPickMenu(trigger.parentNode,{aria:dir?'Autres actions':'Actions sur la sélection',sheet:true,trigger,options:dir?opts.filter(o=>o.val!=='selCol'&&o.val!=='selExp'):opts,
+  const SM=selMenu(trigger.parentNode);
+  openPickMenu(SM.host,{aria:dir?'Autres actions':'Actions sur la sélection',sheet:SM.sheet,up:SM.up,trigger,options:dir?opts.filter(o=>o.val!=='selCol'&&o.val!=='selExp'):opts,
     title:dir?'Autres actions':'Actions',ctx:selCtx(),
     onPick:v=>{const b=document.getElementById(v);if(b){_selFromSheet=true;try{b.click();}finally{_selFromSheet=false;}}}});}
-let _selFromSheet=false;   // la sous-feuille ouverte DEPUIS la feuille Actions y propose le retour
+let _selFromSheet=false;
+/* A631 — AU BUREAU, LES MENUS DE LA BARRE DE SÉLECTION SE DÉROULENT AU-DESSUS D'ELLE (demande de l'auteur : plus de
+   feuille du bas imposée au bureau). Depuis A618 la barre flotte en bas de la colonne : ses menus (Actions, Catégorie,
+   Bibliothèque, Collection) s'ouvrent AU-DESSUS, ancrés à son bord droit (`up`, hôte = la barre — `fixed`, donc ancêtre
+   positionné). Au téléphone, la feuille du bas reste (`tabNavOn`). */
+const selHost=()=>tabNavOn()?null:document.querySelector('#main .sel-bar');
+const selMenu=fallback=>{const h=selHost();return h?{host:h,sheet:false,up:true}:{host:fallback,sheet:true,up:false};};   // la sous-feuille ouverte DEPUIS la feuille Actions y propose le retour
 const selBack=()=>_selFromSheet?{label:'Actions',fn:()=>openSelActs(document.getElementById('selDo'))}:null;
 /* La ligne de contexte d'une feuille de sélection : « 2 éléments · Bloc CHU » (ou « … · deux bibliothèques »). */
 function selCtx(){const ent=selEnt(),libs=[...new Set(ent.map(e=>e.o.library||null))];
@@ -17269,7 +17379,8 @@ function openSelCat(b,redo){
         n:k?nb(som(p.ok),'rangé')+' · '+nb(som(p.manque),'inchangé'):p.ok.map(x=>x.n+' dans '+x.nom).join(' · ')});
       options=options.concat(rows);});}
   const noms=libs.map(impLibName);
-  openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),back:selBack(),options,
+  const SM=selMenu(b.parentNode);
+  openPickMenu(SM.host,{aria:'Catégorie',sheet:SM.sheet,up:SM.up,trigger:selTrig(b),back:selBack(),options,
     title:'Ranger dans une catégorie',ctx:selCtx(),
     head:multi?`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
     value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
@@ -17356,12 +17467,12 @@ function bindSelBar(cfg){
    if(bar&&c){bar.classList.remove('sel-court');if(c.scrollWidth>c.clientWidth+1)bar.classList.add('sel-court');}}
   {const b=document.getElementById('selDo');if(b){b.onclick=()=>openSelActs(b);b.setAttribute('aria-label',selDirect()?'Autres actions':'Actions');}}
   syncTabBar();   // A599 : la barre d'onglets cède la place à la barre de sélection (et revient à la sortie)
-  {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(b.parentNode,
-     {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),back:selBack(),title:'Déplacer vers une bibliothèque',ctx:selCtx(),
+  {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(selMenu(b.parentNode).host,
+     {aria:'Bibliothèque',sheet:selMenu(null).sheet,up:selMenu(null).up,trigger:selTrig(b),options:impLibOptions(),back:selBack(),title:'Déplacer vers une bibliothèque',ctx:selCtx(),
       value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'-';})(),   // mêlée : aucune rangée cochée
       onPick:v=>selMoveLib(v||null,redo)});}
   {const b=document.getElementById('selCat');if(b)b.onclick=()=>openSelCat(b,redo);}
-  {const b=document.getElementById('selCol');if(b)b.onclick=()=>openCollPick(selEnt().map(e=>e.o.id),{trigger:selTrig(b),back:selBack(),redo});}
+  {const b=document.getElementById('selCol');if(b)b.onclick=()=>openCollPick(selEnt().map(e=>e.o.id),{trigger:selTrig(b),back:selBack(),redo,...(selHost()?{host:selHost(),sheet:false,up:true}:{})});}
   {const b=document.getElementById('selDel');if(b)b.onclick=()=>selDelete(redo);}
   {const b=document.getElementById('selExp');if(b)b.onclick=selExport;}
   bindSelLongPress(cfg);}
@@ -17400,7 +17511,7 @@ function bindSelLongPress(cfg){
    titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
 // A613 : la porte « À faire » de l'onglet Moi (au téléphone ; au bureau, la rangée de la colonne).
 function suiviDoorHtml(){const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;
-  return `<button type="button" class="su-door" data-sudoor>${uiIcon('task',20)}<span class="su-door-t">À faire<span class="su-s">${n?'les tâches de vos aides et références':'notes et tâches de travail'}</span></span><span class="su-dn">${n||''}</span>${uiIcon('chev',16)}</button>`;}
+  return `<button type="button" class="su-door" data-sudoor>${uiIcon('task',20)}<span class="su-door-t">À faire<span class="su-s">${n?'les tâches de vos aides et protocoles':'notes et tâches de travail'}</span></span><span class="su-dn">${n||''}</span>${uiIcon('chev',16)}</button>`;}
 function renderHomeTab(cfg){const t=homeTab();
   rescueFooter();   // A606 : le pied vit dans la colonne — le mettre à l'abri AVANT d'écraser `main` (cf. rescueFooter)
   if(t==='biblio'){renderCatalogue(cfg);return;}   // A601 : le catalogue
@@ -17409,11 +17520,13 @@ function renderHomeTab(cfg){const t=homeTab();
     +(tn&&t!=='admin'?pgHeadHtml(t==='sessions'?'Sessions':'Moi'):'')
     +(tn&&t==='me'?suiviDoorHtml():'')
     +(tn&&t!=='admin'?(t==='sessions'?'<div id="sessView"></div>':'<div id="meView"></div>'):
-     t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
+     t==='todo'?`<h2 class="hv-title">À faire</h2><div id="suiviPage"></div>`   // A628
+      :t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`
       :t==='admin'?`<button type="button" class="adm-back" data-admmoi>${uiIcon('chev',18)}Moi</button><h2 class="hv-title">Administration</h2><div id="admView"></div>`   // A494 : une page ouverte depuis Moi, pas une entrée de la colonne
       :`<h2 class="hv-title">Moi</h2><div id="meView"></div>`)
     +`</section></div>`;
-  if(t==='sessions'){_sessFiche='*';renderSessHist();}
+  if(t==='todo'){const v=document.getElementById('suiviPage');if(v)v.innerHTML=suiviViewHtml();}
+  else if(t==='sessions'){_sessFiche='*';renderSessHist();}
   else if(t==='admin'){main.querySelector('[data-admmoi]').onclick=()=>setHomeTab('me');renderAdm();if(!_admD)admRefresh();}
   else renderAuth();
   bindHomeChrome(cfg.rerender);bindPgHead(cfg.rerender);placeFooter();}
@@ -17467,8 +17580,10 @@ function renderCatalogue(cfg){
       +bibs.map(g=>{const rel=g.items.filter(ctgRelire).length;return ctgRowHtml(`data-ctglib="${esc(g.key)}"`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:libSub(g),n:g.items.length,warn:rel?rel+' à relire':''});}).join('')+`</div>`+ctgRacineGestion();}
   const selPossible=liste&&ctgItems().some(x=>canEditFiche(x));
   const right=liste&&!state.selOn&&selPossible?`<button type="button" class="pg-btn" id="selTog">Sélectionner</button>`:'';
+  // A632 : « Créer » aussi aux Bibliothèques (au téléphone, dans la rangée du haut ; au bureau, `#hdrNew` de l'en-tête).
+  const nouv=tn&&!state.selOn&&canEditScope(crtScope())?`<button type="button" class="pg-btn" id="pgNew" aria-label="Créer">${uiIcon('plus',16,{sw:2.4})}<span class="pg-new-t">Créer</span></button>`:'';
   const head=tn
-    ?(state.selOn?selTopHtml():`<div class="pg-top"><span class="pg-l">${back?`<button type="button" class="pg-btn" data-ctgback>${uiIcon('chev',14,{sw:2.6,cls:'tic ctg-bk'})}${esc(back)}</button>`:''}</span><span class="pg-tt" aria-hidden="true">${esc(ttl)}</span><span class="pg-r">${right}</span></div>`)
+    ?(state.selOn?selTopHtml():`<div class="pg-top"><span class="pg-l">${back?`<button type="button" class="pg-btn" data-ctgback aria-label="${esc(back)}">${uiIcon('chev',14,{sw:2.6,cls:'tic ctg-bk'})}<span class="pg-bk-t">${esc(back)}</span></button>`:''}</span><span class="pg-tt" aria-hidden="true">${esc(ttl)}</span><span class="pg-r">${right}${nouv}</span></div>`)
       +`${eye?`<span class="ctg-eye">${esc(eye)}</span>`:''}<h1 class="pg-ttl">${esc(ttl)}</h1>${sub?`<span class="pg-sub">${esc(sub)}</span>`:''}`
     :`${back?`<button type="button" class="adm-back" data-ctgback>${uiIcon('chev',18,{cls:'tic ctg-bk'})}${esc(back)}</button>`:''}${eye?`<span class="ctg-eye">${esc(eye)}</span>`:''}`
       +`<div class="ctg-th"><h2 class="hv-title">${esc(ttl)}</h2>${sub?`<span class="ctg-sub">${esc(sub)}</span>`:''}<span class="ctg-sp"></span>${state.selOn?'':right.replace('class="pg-btn"','class="rang-btn"')}</div>`;
@@ -17533,7 +17648,7 @@ function ctgCatRows(g,cur){
   /* Une catégorie VIDE ne mène nulle part (règle de la colonne, v5.19, reprise par A606) — sauf la COURANTE : un
      emplacement posé ne devient jamais invisible (GARDE, A132). */
   return [...par.values()].filter(k=>k.items.length||cur===k.c.id).map(k=>{const rel=k.items.filter(ctgRelire).length;
-      return ctgRowHtml(`data-ctgcat="${esc(k.c.id)}"${on(k.c.id)}`,k.c.name,{dot:catDotHtml([safeColor(k.c.color)].filter(Boolean),'cat-dot'),n:k.items.length,warn:rel?rel+' à relire':''});}).join('')
+      return ctgRowHtml(`data-ctgcat="${esc(k.c.id)}"${on(k.c.id)}`,k.c.name,{dot:catDotHtml([safeColor(k.c.color)].filter(Boolean),'cat-dot'),n:k.items.length,warn:rel?rel+' à relire':'',warnBas:true});}).join('')   // A627 : sous le nom, comme une bibliothèque (A589 §4)
     +(sans.length?ctgRowHtml('data-ctgcat=""'+on(''),'Sans catégorie',{ic:uiIcon('list',16),n:sans.length}):'');}
 /* Les puces de filtre de « Tout » (Type, Bibliothèque, Catégorie, Trier) — partagées par les deux dessins. */
 function ctgFiltresHtml(){const F=state.ctf;
@@ -18963,7 +19078,9 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
         else{if(sel.has(i))sel.delete(i);else sel.add(i);anchor=i;}
         try{getSelection().removeAllRanges();}catch(x){}return selPaint();}
       if(b&&sel.size&&!e.target.closest('button'))selClear();}
-    const gb=e.target.closest('[data-mdbgrab]');if(gb){e.stopPropagation();return take(+gb.dataset.mdbgrab);}
+    const gb=e.target.closest('[data-mdbgrab]');if(gb){e.stopPropagation();const i=+gb.dataset.mdbgrab;
+      if(e.shiftKey||e.metaKey||e.ctrlKey){if(e.shiftKey&&anchor>=0){const [a,z]=[Math.min(anchor,i),Math.max(anchor,i)];for(let k=a;k<=z;k++)sel.add(k);}else{if(sel.has(i))sel.delete(i);else sel.add(i);anchor=i;}return selPaint();}   // A634
+      return take(i);}
     const x=e.target.closest('[data-mdbact]');if(x){const k=x.dataset.mdbact,i=open;
       if(k==='done')return close();
       if(k==='grab')return take(i);
@@ -19010,10 +19127,30 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     else if((e.metaKey||e.ctrlKey)&&(e.key==='c'||e.key==='C')&&sel.size){e.preventDefault();selCopy();}};
   /* Une sélection de TEXTE glissée à travers deux blocs ou plus devient une sélection de BLOCS (le geste de Notion) ;
      le clic qui suit le relâchement n'ouvre rien. */
-  doc.addEventListener('mouseup',()=>{if(open>=0||grab>=0)return;setTimeout(()=>{const s=getSelection();if(!s||s.isCollapsed)return;
-    const bs=[...doc.querySelectorAll('.mdb[data-mdb]')].filter(b=>s.containsNode(b,true));if(bs.length<2)return;
-    sel=new Set(bs.map(b=>+b.dataset.mdb));anchor=+bs[0].dataset.mdb;skipClick=true;setTimeout(()=>{skipClick=false;},400);
-    try{s.removeAllRanges();}catch(x){}selPaint();},0);});
+  /* A634 (amende A610, proposition acceptée par l'auteur) — LE POINT DE DÉPART DU GESTE DÉCIDE. Un glisser qui part du
+     TEXTE sélectionne du texte, toujours (il ne devient plus une sélection de blocs : un même geste avait deux sens selon
+     où il finissait). Un glisser qui part de la MARGE ou d'un INTERSTICE (hors d'un bloc, dans la carte du document)
+     trace un cadre léger : chaque bloc qu'il touche est pris (Maj : ajoutés à la sélection). Un simple clic hors des
+     blocs, n'importe où, VIDE la sélection (#16, signalé). ⌘/Ctrl ou Maj sur la poignée ⠿ prend le bloc au lieu de le
+     déplacer (le clic simple garde le « Prendre / Poser » d'A549). Souris seulement : au doigt, rien ne change. */
+  const LZ_HORS='.mdb,button,a,input,textarea,select,label,.md-toolbar,.mdb-selbar,.popmenu,[contenteditable]';
+  card.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0||grab>=0||open>=0)return;
+    const t=e.target;if(!t||!t.closest||t.closest(LZ_HORS)||!card.contains(t))return;
+    const x0=e.clientX,y0=e.clientY,base=e.shiftKey?new Set(sel):new Set();let box=null,bouge=false;e.preventDefault();
+    const mv=m=>{const dx=Math.abs(m.clientX-x0),dy=Math.abs(m.clientY-y0);if(!bouge&&dx<4&&dy<4)return;bouge=true;
+      if(!box){box=document.createElement('div');box.className='mdb-lasso';document.body.appendChild(box);}
+      const L=Math.min(x0,m.clientX),T=Math.min(y0,m.clientY),R=Math.max(x0,m.clientX),B=Math.max(y0,m.clientY),z=zoomF();
+      box.style.left=L/z+'px';box.style.top=T/z+'px';box.style.width=(R-L)/z+'px';box.style.height=(B-T)/z+'px';
+      const n=new Set(base);doc.querySelectorAll('.mdb[data-mdb]').forEach(b=>{const r=b.getBoundingClientRect();if(r.right>=L&&r.left<=R&&r.bottom>=T&&r.top<=B)n.add(+b.dataset.mdb);});
+      sel=n;if(sel.size)anchor=Math.min(...sel);selPaint();};
+    const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(box)box.remove();
+      if(!bouge&&!e.shiftKey&&(sel.size||selMode))selClear();
+      else if(bouge){skipClick=true;setTimeout(()=>{skipClick=false;},300);}};
+    document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});
+  // #16 : un clic HORS de la carte du document (ailleurs dans l'éditeur, la colonne…) vide aussi la sélection.
+  const horsCarte=e=>{if(!document.contains(doc)){document.removeEventListener('pointerdown',horsCarte,true);return;}
+    if(!sel.size&&!selMode)return;const t=e.target;if(!t||!t.closest||card.contains(t)||t.closest('.popmenu,.ai-modal.on,.toast'))return;selClear();};
+  document.addEventListener('pointerdown',horsCarte,true);
   document.addEventListener('keydown',esc_,true);
   /* A552 — UN TOUCHER EN DEHORS REFERME LE BLOC (donc le découpe : un collage de plusieurs styles devient ses blocs).
      Toucher = appuyer et relâcher sans glisser (un défilement au doigt ne ferme rien) ; par `pointer*` et non `click` :
@@ -19523,7 +19660,7 @@ function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%
   return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">Taille sur grand écran</h4>')}
   <p class="mi-st ${k?'ok':'w'}">${k?'✓ Dans le texte · '+k+' passage'+(k>1?'s':''):'△ Absente du texte — sera retirée en quittant l’éditeur'}</p>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
-  <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer de la référence</button></div>`;}
+  <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer du protocole</button></div>`;}
 const miEl=()=>document.getElementById('miModal');
 /* A585 : la feuille sert les DEUX éditeurs. Chacun pose son contexte `_miCtx` au rendu — `list` (ses images), `sheet`
    (le corps), `onClick`, `onInput` facultatif — et la feuille ne sait rien d'autre. */
@@ -19604,7 +19741,7 @@ function renderProtocolEdit(){
     du formulaire, collante, et l'unique bouton REMPLI de l'écran (l'action primaire d'un éditeur
     est d'écrire). Le volet de relecture et la suppression restent APRÈS elle : un bilan se lit en
     fermant, et un geste destructeur ne se met jamais avant une porte de création. */}
-    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à cette référence</span></span> <span class="edd-c">document · référence…</span></span></button>
+    <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-t"><span class="edd-l">Ajouter<span class="sr-only"> à ce protocole</span></span> <span class="edd-c">document · référence…</span></span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${''/* A614 : le VOLET « SUIVI » de l'éditeur — à côté du contenu, jamais dedans : dans la colonne de droite au
        bureau (sous la relecture), en pied du formulaire ailleurs. Le même bloc que la lecture (`suiviBlockHtml`). */}
@@ -19696,6 +19833,7 @@ function renderProtocolEdit(){
     new ResizeObserver(hs).observe(ta);hs();}
   // Le dépôt d'une image n'importe où dans l'éditeur (la zone permanente est partie avec la liste, A583).
   upTarget('image',takeImg);
+  upTarget('data',files=>notionVerse(p,files,renderProtocolEdit));   // A633 : une page Notion déposée s'ajoute au protocole
   /* A583 : la grille des images. La feuille agit par `_miCtx` — le champ ACTIF (A547), le rafraîchissement d'une taille
      (aperçu, document par blocs, auto-enregistrement : le texte ne change pas), et le passage à montrer. */
   _miCtx={p,field:()=>act,list:()=>(p.images||[]).filter(im=>im&&im.data),sheet:im=>miSheetHtml(p,im),
@@ -19930,7 +20068,7 @@ function openPickMenu(host,opts){
   const sheet=!opts.up&&(!!opts.sheet||window.innerWidth<780);
   const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'')+(opts.up?' up':'')+(opts.wide&&!sheet?' wide':'');menu.setAttribute('role',opts.multi?'menu':'listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
   /* Tête (A480) : « ‹ Actions » en LIEN de retour, puis le TITRE = le geste, puis UNE ligne de contexte ; `head` garde les notices. */
-  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre??8)?`<input class="catmenu-filter" type="text" placeholder="${esc(opts.placeholder||'Filtrer…')}" aria-label="${esc(opts.placeholder?opts.placeholder.replace(/…$/,''):'Filtrer '+(opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
     +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
@@ -19949,7 +20087,12 @@ function openPickMenu(host,opts){
   mount.appendChild(veil);mount.appendChild(menu);
   /* UN MENU ANCRÉ TIENT SOUS SON ANCRE (A496, mesuré à 1280×900 : sept collections sous la rangée de l'éditeur, le menu
      sortait de l'écran). Même mesure que `fitMoreMenu` (J203) : hauteur VISUELLE, px CSS (÷ zoom), plancher 180. */
-  if(!sheet&&!opts.up){const vv=window.visualViewport,bas=(vv&&vv.height)?vv.height:window.innerHeight,r=menu.getBoundingClientRect();
+  /* A629 — …ET SOUS LE BAS DE CE QUI L'ÉCRÊTE : ancré dans une fenêtre (choix de l'élément lié d'une tâche, A624), le menu
+     était coupé par le corps défilant de la fenêtre — à 1280×600, les rangées sous la coupe n'étaient pas touchables
+     (A167, mesuré par `elementFromPoint`). On borne aussi par le bas du premier ancêtre qui écrête (overflow ≠ visible) :
+     le menu garde sa propre barre de défilement, tout ce qu'il montre se touche. */
+  if(!sheet&&!opts.up){const vv=window.visualViewport;let bas=(vv&&vv.height)?vv.height:window.innerHeight;const r=menu.getBoundingClientRect();
+    for(let a=host;a&&a!==document.body;a=a.parentElement){const ov=getComputedStyle(a).overflowY;if(ov!=='visible'){bas=Math.min(bas,a.getBoundingClientRect().bottom);break;}}
     const dispo=(bas-r.top)/zoomF()-10;if(r.height>dispo)menu.style.maxHeight=Math.round(Math.max(180,dispo))+'px';}
   /* CE QUI EST « DÉPLIÉ », C'EST LE DÉCLENCHEUR TOUCHÉ — pas tous ceux de l'hôte. La marque était
      posée sur `host [data-catmenu]`, ce qui suffisait dans l'éditeur (les deux déclencheurs y
@@ -20159,8 +20302,8 @@ function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   state.view='protocolRead';render();}
 async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   // Même revérification de rôle que openEdit (protocole partagé, en ligne).
-  if(p.library&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
   if(!canEditFiche(p)){toast(RO_EDIT_TOAST);return openProtocolRead(id);}
+  setTimeout(()=>editRoleCheck(p,'p'),0);   // A635
   state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(p)));draftNewAtts=[];state.draftRestored=null;
   draftBase=JSON.stringify(state.pdraft);_lastParked=null;
   // Brouillon auto-enregistré de CE protocole ? Restauré, avec porte de sortie (cf. openEdit).
@@ -20168,10 +20311,10 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='protocolEdit';render();}
-async function newProtocol(){const lib=homeScope();
+async function newProtocol(){const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
-  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -27067,13 +27210,13 @@ function reviewNotesProto(p){
   const corps=String(p.body||'').trim();
   const docs=(p.docs||[]).length;
   if(!corps&&!docs)out.push({at:'p-body',cible:'Contenu',
-    txt:'△ Cette référence est vide — ni texte rédigé, ni document joint : elle ne servira à rien telle quelle'});
+    txt:'△ Ce protocole est vide — ni texte rédigé, ni document joint : il ne servira à rien tel quel'});
   if(TODO_RX.test(corps))out.push({at:'p-body',cible:'Contenu rédigé',txt:'△ Un « à compléter » reste dans le texte'});
   {const n=mdLint(corps,p.docs).length;if(n)out.push({at:'mdLint',cible:'Écriture',txt:'△ '+n+' point'+(n>1?'s':'')+' d’écriture à relire — doses, liens, tableaux'});}
   clean(p.sources||[]).forEach(()=>{});
   if(TODO_RX.test(String((p.sources||[]).join(' '))))out.push({at:'p-sources',cible:'Références',txt:'△ Un « à compléter » reste dans les sources'});
   if(corps&&!clean(p.sources||[]).length)out.push({at:'p-sources',cible:'Références',
-    txt:'△ Aucune source citée — la traçabilité d’une référence est ce qui permet de la revalider'});
+    txt:'△ Aucune source citée — la traçabilité d’un protocole est ce qui permet de le revalider'});
   if(!String(p.title||'').trim())out.push({at:'p-title',cible:'Titre',
     txt:'△ Sans titre, rien n’entre dans la bibliothèque'});
   return out;}
@@ -27188,7 +27331,7 @@ function pImgTaker(p,ta){
   return async files=>{
     let n=0;
     for(const file of files){
-      if((p.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par référence.',6000,true);break;}
+      if((p.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole.',6000,true);break;}
       const r=await downscale(file);
       if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
       const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});
@@ -27417,6 +27560,7 @@ function edAdd(f,kind,pre){
 const ED_PALETTE_P=[
   {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'titres, listes, tableaux'},
   {g:'Contenu',    k:'img',  ic:'img',  n:'Image',           d:'dans le texte'},   // A583
+  {g:'Contenu',    k:'notion',ic:'download',n:'Page Notion',   d:'.md ou .zip, à la suite'},   // A633
   {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'lisible hors ligne'},
   {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre aide'},
   {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée'}];
@@ -27442,6 +27586,7 @@ function edAddProto(p,kind){
   if(kind==='att'){pickFile('pdf',upPdfTaker(p,renderProtocolEdit),true);return;}
   // A583 : l'image, au curseur du texte (le champ Markdown porte la position même masqué, A547).
   if(kind==='img'){pickFile('image',pImgTaker(p,document.getElementById('p-body')),true);return;}
+  if(kind==='notion'){pickFile('data',files=>notionVerse(p,files,renderProtocolEdit),true);return;}   // A633
   if(kind==='rel'){openRelPicker(p,renderProtocolEdit);return;}
   if(kind==='ref'){p.sources=(Array.isArray(p.sources)?p.sources:[]).concat('');}
   if(kind==='body'&&!String(p.body||'').trim())p.body=' ';
@@ -28950,12 +29095,21 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;
   state.view='read';render();}
+/* A635 — « MODIFIER » N'ATTEND PLUS LE RÉSEAU (signalé : « plusieurs secondes de délai — ma connexion, ou ça prend
+   vraiment ce temps ? » — les deux : sur une aide PARTAGÉE, l'éditeur attendait `Sync.loadProfile()`, deux allers-retours
+   au serveur, avant de s'ouvrir). L'éditeur s'ouvre sur le rôle EN CACHE (restauré au démarrage) ; la revérification
+   part en arrière-plan et, si le rôle a été retiré entre-temps, referme l'éditeur sur la lecture en le disant — rien
+   n'aurait été écrit de toute façon (le serveur refuse, `_reclaimBlocked`). Hors ligne, rien ne change. */
+function editRoleCheck(ent,kind){if(!(ent.library&&Auth.signedIn()&&Sync.online()))return;
+  Sync.loadProfile().then(()=>{if(canEditFiche(ent))return;
+    const d=kind==='p'?state.pdraft:state.draft;if(!d||d.id!==ent.id||state.view!==(kind==='p'?'protocolEdit':'edit'))return;
+    if(kind==='p'){state.pdraft=null;toast(RO_EDIT_TOAST);openProtocolRead(ent.id);}else{state.draft=null;toast(RO_EDIT_TOAST);openRead(ent.id);}}).catch(()=>{});}
 async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
   // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
-  if(f.library&&Auth.signedIn()&&Sync.online()){try{await Sync.loadProfile();}catch(e){}}
   if(!canEditFiche(f)){toast(RO_EDIT_TOAST);return openRead(id);}
+  setTimeout(()=>editRoleCheck(f,'f'),0);   // A635 : en arrière-plan, après l'ouverture
   /* K5 — UNE SESSION VIVE SE TERMINE AVANT, PAS PENDANT. Tant qu'il fallait appuyer sur
      « Enregistrer », la session était close à ce moment-là, une fois, sciemment. Avec l'écriture
      continue, le premier caractère tapé la tuerait — en silence, et peut-être pendant que
@@ -28979,11 +29133,11 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.draft=migrate(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='edit';render();}
-async function newFiche(){const lib=homeScope();
+async function newFiche(){const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
   /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
-  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -30597,7 +30751,7 @@ function impRowsOf(imp,sameSpace){
   imp.protocols.forEach((d,i)=>{
     const av=brut(d);
     const o=imp.protocols[i]=migrateProtocol(d),m=jum(protocols,o.id);
-    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:!!m,
+    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Protocole',notes:reviewNotesProto(o).length,dup:!!m,
       rel:m?impDupRel(av,m.updatedAt):''},o));});
   return rows;}
 /* ═══ A132 — SAVOIR LEQUEL EST LE PLUS RÉCENT NE DIT PAS CE QU'ON PERDRAIT ════════════════════
@@ -30642,7 +30796,12 @@ function impRowHtml(r){
   // libellé entier, discriminant compris, comme la rangée du répertoire.
   // Le dépliant vit HORS du <label> : dedans, chaque clic dans le diff cocherait la rangée.
   return `<div class="imp-item"><label class="imp-row"><input type="checkbox" data-impsel="${esc(r.key)}"${_impSel.has(r.key)?' checked':''}>`
-    +`<span class="imp-tx"><b class="imp-t" title="${esc(titre+(o.discriminant?' — '+o.discriminant:''))}">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</b>`
+    /* A622 (amende A611) : le TITRE est la commande « Renommer » (demande de l'auteur : « au lieu d'un bouton, cliquer
+       directement sur le titre ») — un bouton DANS le <label> ne coche pas la rangée. Versée
+       dans une référence existante, la rangée garde le titre de celle-ci : texte simple. Sans crayon (« un peu moche ») : le
+       nom accessible « Renommer « … » » le disent ; A622 §2 : il prend l'encadré d'un champ, comme iOS. */
+    +`<span class="imp-tx">`+(r.into?`<b class="imp-t" title="${esc(titre+(o.discriminant?' — '+o.discriminant:''))}">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</b>`
+      :`<button type="button" class="imp-t imp-ren" data-impren="${esc(r.key)}" aria-label="${esc('Renommer « '+titre+' »')}" title="${esc(titre+(o.discriminant?' — '+o.discriminant:'')+' — toucher pour renommer')}"><span class="imp-tt">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</span></button>`)
     +`<span class="imp-sub"><span class="imp-kind">${r.kind}</span>`
     +statusChip(o.status,r.fem,{always:true})
     +(r.dup?`<span class="imp-dup" title="Une entité de même identifiant est déjà dans votre bibliothèque — la question « Doublons » qui suit décide de son sort, pour toutes celles-ci à la fois">⟳ déjà présent<span class="sr-only">e dans votre bibliothèque</span></span>`:'')
@@ -30653,9 +30812,6 @@ function impRowHtml(r){
     // A132 — sur une entité déjà présente seulement : ailleurs il n'y a rien à comparer, et un
     // bouton qui n'ouvrirait rien serait un bouton mort.
     +(r.dup?`<button type="button" class="imp-cmp" data-impcmp="${esc(r.key)}" aria-expanded="false">Comparer</button>`:'')
-    // A611 : renommer ici (une page Notion arrive avec le titre de la page, parfois « Untitled ») — sauf versée dans une
-    // référence existante, qui garde le sien.
-    +(r.into?'':`<button type="button" class="imp-cmp" data-impren="${esc(r.key)}">Renommer</button>`)
     +`</span>`
     +`<span class="imp-drow" data-impdrow="${esc(r.key)}">${impDestHtml(r)}</span>`
     +`</span></label>`
@@ -30691,7 +30847,7 @@ const impLibChoix=()=>impLibOptions().length>1;
    images suivent. La référence garde son titre, sa catégorie, sa bibliothèque : les pastilles de destination s'effacent. */
 const impIntoOptions=()=>protocols.filter(x=>canEditFiche(x)).sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'fr'));
 function impIntoLabel(r){const t=r.into&&protocols.find(x=>x.id===r.into);
-  return t?{txt:'Dans « '+(String(t.title||'').trim()||'Sans titre')+' »',sub:String(t.body||'').trim()?'ajouté à la suite de son contenu':'remplit son contenu vide'}:{txt:'Dans : nouvelle référence',sub:''};}
+  return t?{txt:'Dans « '+(String(t.title||'').trim()||'Sans titre')+' »',sub:String(t.body||'').trim()?'ajouté à la suite de son contenu':'remplit son contenu vide'}:{txt:'Dans : nouveau protocole',sub:''};}
 function impDestHtml(r){
   if(r.kind!=='Aide'&&impIntoOptions().length){const I=impIntoLabel(r);
     const into=`<button type="button" class="imp-pick${r.into?' keep':''}" data-impinto="${esc(r.key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Où va ce contenu — toucher pour changer">`
@@ -30848,14 +31004,17 @@ document.getElementById('impNone').onclick=()=>impSetAll(false);
 document.getElementById('impList').addEventListener('click',e=>{
   const ib=e.target&&e.target.closest?e.target.closest('[data-impinto]'):null;
   if(ib){e.preventDefault();const r=_impRows.find(x=>x.key===ib.dataset.impinto);if(!r)return;
-    openPickMenu(ib.parentNode,{aria:'Où va ce contenu',title:'Où va ce contenu',trigger:ib,value:r.into||'',seuilFiltre:8,filtreAuToucher:true,
-      options:[{val:'',name:'Nouvelle référence',sub:'créée à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
+    openPickMenu(ib.parentNode,{aria:'Où va ce contenu',title:'Où va ce contenu',trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
+      options:[{val:'',name:'Nouveau protocole',sub:'créé à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
         .concat(impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli',ic:uiIcon('book',16)}))),
       onPick:v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();}});return;}
   const rb=e.target&&e.target.closest?e.target.closest('[data-impren]'):null;
-  if(rb){e.preventDefault();const r=_impRows.find(x=>x.key===rb.dataset.impren),it=rb.closest('.imp-item'),bt=it&&it.querySelector('.imp-t');if(!r||!bt)return;
-    const inp=document.createElement('input');inp.type='text';inp.className='imp-tin';inp.value=String(r.o.title||'');inp.maxLength=200;inp.setAttribute('aria-label','Titre à l’import');
-    bt.replaceWith(inp);inp.focus();inp.select();
+  if(rb){e.preventDefault();const r=_impRows.find(x=>x.key===rb.dataset.impren),it=rb.closest('.imp-item'),bt=rb;if(!r||!it)return;
+    /* A622 §3 : un TEXTAREA qui grandit avec le titre (un champ d'une ligne cachait la fin d'un long titre) ; Entrée
+       valide toujours — aucun retour à la ligne n'entre dans un titre. */
+    const inp=document.createElement('textarea');inp.rows=1;inp.className='imp-tin';inp.value=String(r.o.title||'');inp.maxLength=200;inp.setAttribute('aria-label','Titre à l’import');
+    const haut=()=>{inp.style.height='auto';inp.style.height=inp.scrollHeight+'px';};
+    bt.replaceWith(inp);haut();inp.addEventListener('input',haut);inp.focus();inp.select();
     let fait=false;const fin=ok=>{if(fait||!inp.isConnected)return;fait=true;if(ok){const v=inp.value.replace(/\s+/g,' ').trim();if(v)r.o.title=v;}it.outerHTML=impRowHtml(r);};
     inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true);}else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();fin(false);}});
     inp.addEventListener('blur',()=>fin(true));
@@ -30889,6 +31048,42 @@ bindModalDismiss(impModal,()=>_impEnd(null));
    plusieurs fichiers déposés d'un geste SANS jamais superposer deux ateliers. `pos` ({i,n},
    facultatif) fait NOMMER le fichier par l'atelier et par les refus : trois ateliers muets
    d'affilée ne diraient pas lequel montre quoi. */
+/* A633 — LIRE UNE PAGE NOTION (export .zip ou .md seul) SANS PASSER PAR L'ATELIER : le parseur de l'import (A562) en une
+   fonction, pour verser une page DANS LE PROTOCOLE OUVERT. Rend {protocols,manque,trop,long} ou null (pas du Notion :
+   un .json d'export, par exemple, n'a rien à faire dans un protocole). */
+async function notionParse(u8){
+  const isZip=b=>b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4;
+  if(isZip(u8)){let entries=await zipParse(u8);
+    if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[];for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data));if(inn.length)entries=inn;}
+    if(!entries.some(x=>/\.md$/i.test(x.name))||entries.some(x=>/(^|\/)donnees\.json$/.test(x.name)))return null;
+    return notionRefs(entries);}
+  if(dataKind(u8)==='md'){const c=notionMd(new TextDecoder().decode(u8),'',null);
+    return {protocols:[{title:c.title||'Sans titre',body:c.body,images:[]}],manque:c.manque,trop:0,long:c.body.length>MD_MAX_CHARS?1:0};}
+  return null;}
+/* A633 — VERSER dans le protocole ouvert (`p`, le brouillon de l'éditeur) : le texte s'ajoute À LA SUITE (jamais
+   d'écrasement — même règle que « Dans » de l'atelier, A611), les images rejoignent celles du protocole sous son
+   plafond, le titre n'est posé que s'il était vide. Plusieurs pages : chacune sous son titre (« # … »), dans l'ordre. */
+async function notionVerse(p,files,rerender){
+  let n=0,img=0,trop=0,manque=0,refus=[];
+  for(const f of files){let u8;try{u8=new Uint8Array(await f.arrayBuffer());}catch(e){refus.push(upShortName(f.name));continue;}
+    let r=null;try{r=await notionParse(u8);}catch(e){r=null;}
+    if(!r||!r.protocols.length){refus.push(upShortName(f.name));continue;}
+    const plus=r.protocols.length>1||files.length>1;manque+=r.manque||0;trop+=r.trop||0;
+    for(const q of r.protocols){const t=String(q.title||'').trim();
+      if(!String(p.title||'').trim()&&t)p.title=t;
+      const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
+      p.images=Array.isArray(p.images)?p.images:[];let txt=bloc;
+      for(const im of (q.images||[])){if(p.images.length>=MAX_IMG_PER_ENTITY){trop++;txt=txt.split('![](img:'+im.id+')').join('');continue;}p.images.push(im);img++;}
+      /* Par le champ Markdown quand il est là : l'ajout entre dans son historique (↶ le retire d'un geste). */
+      const ta=document.getElementById('p-body');
+      if(ta&&state.pdraft===p){ta.selectionStart=ta.selectionEnd=ta.value.length;mdInsertAt(ta,(ta.value.trim()?(/\n\n$/.test(ta.value)?'':/\n$/.test(ta.value)?'\n':'\n\n'):'')+txt+'\n');}
+      else{const cur=String(p.body||'').trim();p.body=cur?cur+'\n\n'+txt:txt;}
+      n++;}}
+  if(n)rerender();
+  const m=(n?nb(n,'page')+' Notion ajoutée'+(n>1?'s':'')+' à la suite'+(img?' · '+nb(img,'image'):''):'')
+    +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
+    +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, ou .zip d’export Notion)':'');
+  if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
 function readImportFile(file,pos){
   const lbl=pos?'« '+upShortName(file&&file.name)+' » (fichier '+pos.i+'/'+pos.n+')':null;
   return new Promise(fin=>{const r=new FileReader();
@@ -30956,7 +31151,7 @@ async function _importRead(buf,lbl){
     if(notion&&(notion.manque||notion.trop||notion.long)){
       const m=[];
       if(notion.manque)m.push(notion.manque+' image'+(notion.manque>1?'s':'')+' introuvable'+(notion.manque>1?'s':'')+(notion.seul?' — importez plutôt le .zip de l’export Notion, qui les contient':' dans l’archive')+' (nommée'+(notion.manque>1?'s':'')+' dans le texte)');
-      if(notion.trop)m.push(notion.trop+' image'+(notion.trop>1?'s':'')+' au-delà de '+MAX_IMG_PER_ENTITY+' par référence, non importée'+(notion.trop>1?'s':''));
+      if(notion.trop)m.push(notion.trop+' image'+(notion.trop>1?'s':'')+' au-delà de '+MAX_IMG_PER_ENTITY+' par protocole, non importée'+(notion.trop>1?'s':''));
       if(notion.long)m.push('texte au-delà de '+MD_MAX_CHARS.toLocaleString('fr-FR')+' caractères, tronqué');
       toast('△ '+m.join(' · ')+'.',10000,true);}
     const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());

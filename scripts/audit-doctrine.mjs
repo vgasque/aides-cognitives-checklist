@@ -6666,7 +6666,7 @@ await sec('A129 · l\'atelier d\'import', async () => {
   t('RIEN n\'est écrit tant qu\'on n\'a pas validé',vu.f===avant.f&&vu.p===avant.p,
     `avant ${avant.f}/${avant.p} · pendant ${vu.f}/${vu.p}`);
   t('une rangée par entité — les DEUX natures, nommées',
-    vu.rows.filter(r=>/Aide/.test(r.kind)).length===2&&vu.rows.filter(r=>/Référence/.test(r.kind)).length===1,
+    vu.rows.filter(r=>/Aide/.test(r.kind)).length===2&&vu.rows.filter(r=>/Protocole/.test(r.kind)).length===1,   // A623 : le type se dit « protocole »
     JSON.stringify(vu.rows.map(r=>r.kind)));
   t('la rangée dit l\'ÉTAT DÉCLARÉ PAR LE FICHIER, jamais un état forcé',
     /Validée/.test(vu.rows[0].st)&&/Brouillon/.test(vu.rows[1].st),
@@ -9035,7 +9035,7 @@ await sec('Import · A562 export Notion (.md + images)', async () => {
   if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page, 300);
   const r=await page.evaluate(()=>{const x=protocols[protocols.length-1]||{};return {n:protocols.length-window.__n0,titre:x.title,imgs:(x.images||[]).length,
     lie:(x.images||[]).length===1&&(x.body||'').includes('img:'+x.images[0].id),absente:/Image absente de l’archive : absente\.png/.test(x.body||''),prop:/Statut/.test(x.body||''),statut:x.status};});
-  t('A562 · le .zip Notion ouvre l\'atelier sur UNE référence',a.rangs===1&&/Référence/i.test(a.kind),JSON.stringify(a));
+  t('A562 · le .zip Notion ouvre l\'atelier sur UN protocole',a.rangs===1&&/Protocole/i.test(a.kind),JSON.stringify(a));
   t('A562 · importée : titre sans le hash, image rangée et liée (img:<id>), absente nommée, propriétés retirées, en brouillon',
     r.n===1&&r.titre==='Page témoin'&&r.lie&&r.absente&&!r.prop&&r.statut==='draft',JSON.stringify(r));
   await page.close();
@@ -9051,7 +9051,12 @@ await sec('Import · A611 renommer, verser dans une référence existante', asyn
     return page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);};
   // 1) Renommer : « Renommer », taper, Entrée → la référence importée porte le nouveau titre.
   let vu=await lancer('# Untitled\n\nUn texte.');
-  if(vu){await page.click('[data-impren]');await page.fill('.imp-tin','Polytraumatisé grave');await page.keyboard.press('Enter');await calme(page,150);}
+  // A622 : c'est le TITRE qu'on touche (plus de bouton « Renommer ») ; toucher le titre ne coche ni ne décoche la rangée.
+  const a622=vu?await page.evaluate(()=>{const ck=document.querySelector('#impList [data-impsel]');return {avant:ck.checked,titre:!!document.querySelector('#impList .imp-t[data-impren]'),
+    bouton:[...document.querySelectorAll('#impList button')].some(b=>/^Renommer$/.test(b.textContent.trim()))};}):null;
+  if(vu){await page.click('#impList .imp-t[data-impren]');await calme(page,100);a622.apres=await page.evaluate(()=>document.querySelector('#impList [data-impsel]').checked);a622.champ=await page.evaluate(()=>!!document.querySelector('.imp-tin'));}
+  t('A622 · le titre de la rangée est la commande « Renommer » (aucun bouton à part) ; le toucher ne coche ni ne décoche',!!a622&&a622.titre&&!a622.bouton&&a622.apres===a622.avant&&a622.champ,JSON.stringify(a622));
+  if(vu){await page.fill('.imp-tin','Polytraumatisé grave');await page.keyboard.press('Enter');await calme(page,150);}
   const t1=await page.evaluate(()=>(document.querySelector('#impList .imp-t')||{}).textContent||'');
   if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
   const r1=await page.evaluate(()=>({n:protocols.length-window.__n0,titre:(protocols[protocols.length-1]||{}).title}));
@@ -10738,8 +10743,9 @@ await sec('A613 · le suivi : notes et tâches, pour moi ou pour l’équipe, «
     o.note=suivi.some(x=>x.k==='note'&&x.lib==='lib1'&&x.ent===f.id&&x.dirty&&/4 22 31/.test(x.body));
     // Une tâche « À fusionner avec » g, D'abord, pour moi.
     q('.su-blk [data-sunew="task"]').click();await __acCalme(250);
-    q('[data-suty="fusion"]').click();await __acCalme(150);const sel=q('#svRef');sel.value=g.id;
-    q('[data-suprio="1"]').click();await __acCalme(150);q('#svRef').value=g.id;q('[data-sulib=""]').click();await __acCalme(150);q('#svRef').value=g.id;
+    // A624 : l'élément lié se choisit dans la feuille de l'app (plus de <select>) ; il survit aux autres choix.
+    q('[data-suty="fusion"]').click();await __acCalme(150);q('#svRefBtn').click();await __acCalme(250);q(`.popmenu [data-pickopt="${g.id}"]`).click();await __acCalme(200);
+    q('[data-suprio="1"]').click();await __acCalme(150);q('[data-sulib=""]').click();await __acCalme(150);
     q('#suiviEdModal [data-suedx="ok"]').click();await __acCalme(250);
     const t=suivi.find(x=>x.k==='task'&&x.ent===f.id);o.tache=!!t&&t.lib===null&&t.t.type==='fusion'&&t.t.ref===g.id&&t.t.prio===1;
     o.ligne=(q('.su-blk .su-l')||{}).textContent||'';
@@ -10847,6 +10853,171 @@ await sec('A617 · une collection ouverte depuis l’accueil a son « ‹ Accuei
     t(`${W} px · A617 : « ‹ Accueil » referme la collection`,b.coll===null&&b.view==='library',JSON.stringify(b));
     t(`${W} px · A617 : le geste retour du système aussi (une entrée d’historique), sans quitter l’app`,d>=1&&c.coll===null&&c.view==='library',JSON.stringify({d,c}));
     await page.close();}
+});
+
+await sec('A624 · la tâche « À fusionner avec » choisit dans la feuille de l’app, et se voit des deux côtés', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={};const A=fiches[0],B=fiches[1];
+    openRead(A.id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);
+    o.natif=!!q('#suiviEdBody select');q('#svRefBtn').click();await __acCalme(300);
+    o.feuille=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(b=>b.dataset.pickopt);
+    q(`.popmenu [data-pickopt="${B.id}"]`).click();await __acCalme(300);
+    o.choix=((q('#svRefBtn')||{}).textContent||'').trim()===String(B.title).trim();
+    q('#suiviEdFoot [data-suedx="ok"]').click();await __acCalme(300);
+    openRead(B.id);await __acCalme(400);
+    o.lie=[...document.querySelectorAll('#main .su-blk .su-sub')].some(x=>/Liées depuis/.test(x.textContent));
+    o.source=/Anaphylaxie|Arrêt/.test(((q('#main .su-blk .su-row .su-e'))||{}).textContent||'');
+    q('#main .su-blk [data-sudone]').click();await __acCalme(300);
+    o.memeTache=suivi.filter(x=>x.k==='task').length===1&&suivi.filter(x=>x.k==='task'&&x.t.done).length===1;
+    return o;});
+  t('A624 · « Avec » : plus de <select> natif — la feuille de choix de l’app, l’élément lui-même exclu',!r.natif&&r.feuille.length===1&&r.choix,JSON.stringify(r));
+  t('A624 · la tâche paraît aussi chez l’élément visé (« Liées depuis d’autres éléments »), avec sa source ; la cocher là coche la même tâche',r.lie&&r.source&&r.memeTache,JSON.stringify(r));
+  await page.close();
+  // Sur ordinateur, un vrai déroulant SOUS le champ (mesuré : sans hôte positionné, il tombait en bas à gauche de l'écran).
+  const pd=await br.newPage({viewport:{width:1280,height:844}});
+  pd.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await pd.goto(`http://localhost:${port}/index.html`);await amorce(pd);
+  const g=await pd.evaluate(async()=>{const q=s=>document.querySelector(s);openRead(fiches[0].id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);q('#svRefBtn').click();await __acCalme(300);
+    const mm=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('[data-pickopt]')),b=q('#svRefBtn').getBoundingClientRect(),m=mm.getBoundingClientRect();
+    return {dessous:Math.round(m.top-b.bottom),gauche:Math.round(m.left-b.left),largeur:Math.round(m.width-b.width),feuille:mm.classList.contains('sheet')};});
+  t('A624 · sur ordinateur, la liste se déroule SOUS le champ, à sa largeur',!g.feuille&&g.dessous>=0&&g.dessous<=16&&Math.abs(g.gauche)<=1&&Math.abs(g.largeur)<=2,JSON.stringify(g));
+  await pd.close();
+});
+
+await sec('A625 · une échéance passée : « △ en retard depuis le… », en tête de sa priorité, rien d’autre', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={},f=fiches[0];
+    suiviPut({id:'l1',ent:f.id,k:'task',lib:null,body:'à l’heure',t:{type:'revoir',prio:2,due:'2999-01-01'}});
+    suiviPut({id:'l2',ent:f.id,k:'task',lib:null,body:'en retard',t:{type:'revoir',prio:2,due:'2020-01-15'}});
+    suiviPut({id:'l3',ent:f.id,k:'task',lib:null,body:'faite',t:{type:'revoir',prio:2,due:'2020-01-15',done:Date.now(),by:'moi'}});
+    openRead(f.id);await __acCalme(400);
+    const rows=[...document.querySelectorAll('#main .su-blk > .su-row')].map(x=>x.textContent);
+    o.premiere=/en retard/.test(rows[0]||'')&&/en retard depuis le 15\/01/.test(rows[0]||'');
+    o.autre=/avant le 01\/01/.test(rows[1]||'');
+    const late=q('#main .su-blk .su-late');o.ambre=!!late&&getComputedStyle(late).color===(()=>{const i=document.createElement('i');i.style.color='var(--warn)';document.body.appendChild(i);const c=getComputedStyle(i).color;i.remove();return c;})();
+    o.faite=![...document.querySelectorAll('#main .su-done .su-row')].some(x=>/en retard/.test(x.textContent));
+    o.prio=suivi.find(x=>x.id==='l2').t.prio===2;
+    return o;});
+  t('A625 · la tâche en retard le dit (« △ en retard depuis le 15/01 », ambre) et passe en tête de sa priorité ; l’autre garde « avant le »',r.premiere&&r.autre&&r.ambre,JSON.stringify(r));
+  t('A625 · une tâche faite n’est jamais « en retard » ; la priorité n’est pas changée',r.faite&&r.prio,JSON.stringify(r));
+  await page.close();
+});
+
+await sec('A626 · tout choix d’une aide ou d’un protocole a son champ de recherche, dès le premier élément', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={};const vu=()=>{const f=[...document.querySelectorAll('.popmenu .catmenu-filter')].find(x=>x.getClientRects().length);return f?f.placeholder:'';};
+    // 1) tâche « À fusionner avec » : une seule autre aide, et le champ est là.
+    openRead(fiches[0].id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);q('#svRefBtn').click();await __acCalme(300);
+    o.tache=vu();if(_pickClose)_pickClose(false);q('#suiviEdFoot [data-suedx="x"]').click();await __acCalme(200);
+    // 2) « Ajouter » d'une collection : deux aides.
+    const c=collNew('Garde',[]);state.coll=c.id;state.view='library';render();await __acCalme(400);
+    const ad=q('[data-colladd]');if(ad){ad.click();await __acCalme(300);o.coll=vu();if(_pickClose)_pickClose(false);}
+    // 3) le sélecteur « Voir aussi » (fenêtre filtrable de l'éditeur) dit la même chose.
+    o.voir=(q('#relPickQ')||{}).placeholder||'';
+    return o;});
+  const P='Rechercher une aide, un protocole…';
+  t('A626 · tâche liée, « Ajouter » d’une collection, « Voir aussi » : le même champ « Rechercher une aide, un protocole… », même avec 1 ou 2 éléments',r.tache===P&&r.coll===P&&r.voir===P,JSON.stringify(r));
+  await page.close();
+});
+
+await sec('A627-A631 · catalogue sans chevauchement, « À faire » en page, menus ancrés au bureau', async () => {
+  // A627 : volet des catégories (sombre, 1280 et 1100) — « à relire » sous le nom, jamais par-dessus.
+  for(const W of [1280,1100]){
+    const page=await br.newPage({viewport:{width:W,height:844}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{applyTheme('dark');
+      categories.push(...sanitizeCats([{id:'cpn',name:'Pneumologie',color:'#8a5a3c'},{id:'crx',name:'Réanimation CHM pédiatrique',color:'#3c6a8a'}]));
+      fiches[0].category='cpn';fiches[0].status='draft';fiches[1].category='crx';fiches[1].status='draft';
+      state.homeTab='biblio';state.cnav={lib:''};render();await __acCalme(400);
+      /* On mesure le TEXTE (Range), pas la boîte : `overflow:visible` laissait le mot déborder de sa boîte, sur « à relire ». */
+      return [...document.querySelectorAll('[data-ctgcat]')].filter(b=>b.getClientRects().length&&b.querySelector('.ctg-w')).map(b=>{const rg=document.createRange();rg.selectNodeContents(b.querySelector('.ctg-l'));const a=rg.getBoundingClientRect(),c=b.querySelector('.ctg-w').getBoundingClientRect();
+        return {nom:b.querySelector('.ctg-l').textContent,libre:a.right<=c.left||c.right<=a.left||a.bottom<=c.top||c.bottom<=a.top};});});
+    t(`${W} px · A627 : dans le volet, « △ n à relire » ne chevauche jamais le nom d’une catégorie`,r.length>=2&&r.every(x=>x.libre),JSON.stringify(r));
+    await page.close();}
+  // A628, A630, A631 : au bureau.
+  const page=await br.newPage({viewport:{width:1280,height:600}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={};const vis=()=>[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('.mm-row'));
+    const touche=m=>{const rows=[...m.querySelectorAll('.mm-row')],mr=m.getBoundingClientRect(),v=rows.filter(b=>{const x=b.getBoundingClientRect();return x.top>=mr.top&&x.bottom<=mr.bottom;});
+      return v.length>0&&v.every(b=>{const x=b.getBoundingClientRect(),h=document.elementFromPoint(x.left+20,x.top+x.height/2);return !!h&&m.contains(h);});};
+    suiviPut({id:'a628',ent:fiches[1].id,k:'task',lib:null,body:'',t:{type:'revoir',prio:1}});render();await __acCalme(300);
+    q('.home-side [data-sudoor]').click();await __acCalme(400);
+    o.page=homeTab()==='todo'&&!suiviModal.classList.contains('on')&&!!q('.home-main #suiviPage .su-row')&&q('.home-side [data-sudoor]').getAttribute('aria-current')==='page';
+    q('#suiviPage [data-sugo]').click();await __acCalme(500);o.ouvre=state.view==='read'&&state.fiche&&state.fiche.id===fiches[1].id;
+    // A629 : 30 aides, fenêtre basse — le choix de l'élément lié reste touchable jusqu'en bas.
+    for(let i=0;i<30;i++){const n=JSON.parse(JSON.stringify(fiches[1]));n.id='a629-'+i;n.title='Aide témoin '+i;fiches.push(migrate(n));}
+    openRead(fiches[0].id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);q('#svRefBtn').click();await __acCalme(300);
+    const m=vis();o.rogne=!!m&&touche(m);if(_pickClose)_pickClose(false);q('#suiviEdFoot [data-suedx="x"]').click();await __acCalme(200);
+    // A631 : barre de sélection — ses menus au-dessus d'elle, touchables, à l'encre de travail.
+    LANCEUR_SEUIL=1e9;state.view='library';state.homeTab='aides';render();await __acCalme(400);q('#selTog').click();await __acCalme(300);q('.dir-ck[data-selid]').click();await __acCalme(200);
+    q('#selDo').click();await __acCalme(300);const s=vis(),bar=q('.sel-bar').getBoundingClientRect();
+    o.sel=!!s&&!s.classList.contains('sheet')&&s.getBoundingClientRect().bottom<=bar.top&&touche(s);if(_pickClose)_pickClose(false);
+    return o;});
+  await page.goBack().catch(()=>{});
+  t('A628 · au bureau, « À faire » est une page de la colonne (rangée marquée), pas une fenêtre',r.page,JSON.stringify(r));
+  t('A630 · une tâche de « À faire » mène à son aide (« Ouvrir › »)',r.ouvre,JSON.stringify(r));
+  t('A629 · ancré dans une fenêtre basse (1280×600), le menu ne passe pas sous le bas de la fenêtre : tout ce qu’il montre se touche',r.rogne,JSON.stringify(r));
+  t('A631 · au bureau, le menu de la barre de sélection se déroule au-dessus d’elle (plus de feuille du bas)',r.sel,JSON.stringify(r));
+  await page.close();
+});
+
+await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se verse dans le protocole ouvert', async () => {
+  for(const W of [390,320,1280]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{const o={};myLibraries=[{id:'b1',name:'Cours DESMU',role:'editor'}];
+      for(const [k,c] of [['racine',{}],['b1',{lib:'b1'}],['tout',{tout:true}]]){state.homeTab='biblio';state.cnav=c;render();await __acCalme(300);
+        const b=[...document.querySelectorAll('#pgNew,#hdrNew')].find(x=>x.getClientRects().length&&!x.hidden),top=document.querySelector('.pg-top');
+        o[k]={btn:!!b,tient:!top||top.scrollWidth<=top.clientWidth+1};}
+      state.cnav={lib:'b1'};render();await __acCalme(200);confirmNewInLib=async()=>true;await newProtocol();await __acCalme(400);o.nee=state.pdraft&&state.pdraft.library;
+      const T=s=>new TextEncoder().encode(s);o.cible=upKindsIci().indexOf('data')>=0;
+      await notionVerse(state.pdraft,[new File([T('# Polytraumatisé grave\n\nPremier paragraphe.')],'Page.md')],renderProtocolEdit);await __acCalme(400);
+      o.titre=state.pdraft.title;o.corps=/Premier paragraphe/.test(state.pdraft.body);
+      await notionVerse(state.pdraft,[new File([T('# Deux\n\nSuite.')],'Deux.md')],renderProtocolEdit);await __acCalme(400);
+      o.suite=/Premier paragraphe[\s\S]*Suite\./.test(state.pdraft.body)&&state.pdraft.title==='Polytraumatisé grave';
+      return o;});
+    t(`${W} px · A632 : « Créer » aux Bibliothèques (racine, une bibliothèque, « Tout »), la rangée tient`,['racine','b1','tout'].every(k=>r[k].btn&&r[k].tient),JSON.stringify(r));
+    t(`${W} px · A632 : créé dans une bibliothèque du catalogue, l'élément naît DANS cette bibliothèque`,r.nee==='b1',JSON.stringify(r));
+    t(`${W} px · A633 : l'éditeur de protocole accepte une page Notion (.md) — titre posé s'il était vide, texte versé, une 2ᵉ page s'ajoute À LA SUITE`,r.cible&&r.titre==='Polytraumatisé grave'&&r.corps&&r.suite,JSON.stringify(r));
+    await page.close();}
+});
+
+await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier » n’attend pas le réseau', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const p=migrateProtocol({id:'p634',title:'Lasso',body:'Premier paragraphe assez long.\n\nDeuxième paragraphe.\n\nTroisième paragraphe.\n\nQuatrième.',status:'draft'});protocols.push(p);await openProtocolEdit('p634');await __acCalme(600);});
+  const g=await page.evaluate(()=>{const c=document.getElementById('mdDoc').closest('.md-ed').getBoundingClientRect();return {c:{l:c.left},b:[...document.querySelectorAll('#mdDoc .mdb[data-mdb]')].map(b=>{const r=b.getBoundingClientRect();return {l:r.left,t:r.top,b:r.bottom};})};});
+  const n=async()=>page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb.sel').length);
+  await page.mouse.move(g.c.l+4,g.b[0].t+5);await page.mouse.down();await page.mouse.move(g.b[1].l+30,g.b[1].t+5,{steps:5});await page.mouse.up();await calme(page,200);
+  const cadre=await n(),porte=await page.evaluate(()=>{const d=document.getElementById('edAddOpenP');return d?getComputedStyle(d).visibility:'';});
+  await page.mouse.click(5,450);await calme(page,200);const dehors=await n();
+  await page.mouse.move(g.b[0].l+20,g.b[0].t+12);await page.mouse.down();await page.mouse.move(g.b[1].l+60,g.b[1].t+12,{steps:5});await page.mouse.up();await calme(page,300);
+  const texte=await page.evaluate(()=>({sel:document.querySelectorAll('#mdDoc .mdb.sel').length,txt:String(getSelection()).length}));
+  t('A634 · un glisser parti de la marge trace un cadre et prend les blocs touchés ; « Ajouter » s’efface pendant la sélection',cadre===2&&porte==='hidden',JSON.stringify({cadre,porte}));
+  t('A634 · un clic hors du document vide la sélection ; un glisser parti du TEXTE reste une sélection de texte',dehors===0&&texte.sel===0&&texte.txt>0,JSON.stringify({dehors,texte}));
+  // A635 : profil lent (1,5 s) — l'éditeur s'ouvre sans l'attendre ; un rôle retiré le referme sur la lecture.
+  const r=await page.evaluate(async()=>{myLibraries=[{id:'b9',name:'Équipe',role:'editor'}];const f=JSON.parse(JSON.stringify(fiches[0]));f.id='f635';f.library='b9';fiches.push(migrate(f));
+    const S={i:Auth.signedIn,o:Sync.online,l:Sync.loadProfile};Auth.signedIn=()=>true;Sync.online=()=>true;
+    Sync.loadProfile=()=>new Promise(ok=>setTimeout(()=>{myLibraries=[{id:'b9',name:'Équipe',role:'viewer'}];ok();},1500));   // horloge : le réseau lent est le témoin
+    const t0=performance.now();await openEdit('f635');const dt=performance.now()-t0,ouvert=state.view==='edit';
+    await new Promise(x=>setTimeout(x,1900));   // horloge : au-delà de la réponse du « serveur »
+    const o={dt:Math.round(dt),ouvert,ferme:state.view==='read'&&!state.draft};Auth.signedIn=S.i;Sync.online=S.o;Sync.loadProfile=S.l;return o;});
+  t('A635 · « Modifier » s’ouvre sans attendre le serveur (profil lent : < 500 ms) ; le rôle retiré entre-temps referme sur la lecture',r.ouvert&&r.dt<500&&r.ferme,JSON.stringify(r));
+  await page.close();
 });
 
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {

@@ -1,5 +1,35 @@
 # Journal des modifications
 
+## [5.109.7] — 2026-11-08
+Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626), « À faire » et menus au bureau (A627-A631), « Créer » aux Bibliothèques (A632), page Notion dans l'éditeur (A633), sélection de blocs et « Modifier » (A634-A635). Rien à rejouer côté serveur.
+- **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
+  rangée disparaît : le titre se présente comme un champ de texte (encadré gris léger, comme sur iOS), lisible en entier. Toucher le titre
+  ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
+- **Les cases à cocher sont rondes partout** : celles de l'atelier d'import et des fenêtres de confirmation étaient
+  restées carrées.
+- **« Protocole » partout** : les derniers « référence » qui désignaient un protocole (suivi, import, relecture, images)
+  sont renommés ; « Références » ne désigne plus que la bibliographie.
+- **Tâches « À fusionner avec » / « À confronter à »** : l'aide ou le protocole lié se choisit dans la feuille de choix
+  de l'app (au téléphone, la feuille du bas ; sur ordinateur, une liste qui se déroule sous le champ ; aides et
+  protocoles séparés, recherche dès 8 éléments) ; et la tâche paraît
+  maintenant AUSSI dans le suivi de l'élément visé (« Liées depuis d'autres éléments »), où l'on peut la cocher.
+- **Échéance passée** : une tâche en retard le dit (« △ en retard depuis le 15/11 », en ambre) et remonte en tête de sa
+  priorité ; « À faire » et le catalogue le signalent aussi. Pas de notification ni d'alerte.
+- **Toute fenêtre où l'on choisit une aide ou un protocole a son champ « Rechercher… »**, même avec peu d'éléments :
+  tâche liée, « Ajouter » d'une collection, « Voir aussi », « Dans » de l'atelier d'import.
+- **« À faire » s'ouvre en page** sur tablette et ordinateur (comme Sessions et Moi), et chaque tâche a un
+  « Ouvrir › » qui mène à son aide ou à son protocole.
+- **Au bureau, les menus de la barre de sélection s'ouvrent au-dessus d'elle**, et « Ajouter » d'une collection sous
+  son bouton, au lieu d'un panneau en bas de l'écran. Au téléphone, rien ne change.
+- **Catalogue** : « △ n à relire » ne passe plus sur le nom d'une catégorie ; une liste qui s'ouvre dans une fenêtre
+  n'est plus coupée sur un écran peu haut.
+- **« Créer » dans l'onglet Bibliothèques** ; créé depuis une bibliothèque, l'élément y est rangé d'office.
+- **Une page Notion (.md ou .zip) s'ajoute au protocole ouvert** : déposez-la dans l'éditeur, ou « Ajouter › Page
+  Notion ». Le texte va à la suite (↶ l'annule), les images suivent, le titre est repris s'il était vide.
+- **Sélection de blocs à la souris** : un glisser parti du texte sélectionne du texte ; un glisser parti de la marge
+  trace un cadre qui prend les blocs ; un clic ailleurs désélectionne ; « Ajouter » s'efface pendant la sélection.
+- **« Modifier » s'ouvre tout de suite**, sans attendre le serveur (la vérification des droits se fait en arrière-plan).
+
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.
 - **Le « · » ne commence plus une ligne** : quand la ligne de détails d'une aide passe à la ligne (« △ À relire »,

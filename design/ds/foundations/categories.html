@@ -2648,7 +2648,8 @@
   .ctg-h{margin:8px 4px 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-eye{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-bk{transform:rotate(180deg)}
-  html.zw360 .pg-bk-t{display:none}   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
+  html.zw360 .pg-bk-t{display:none}
+  html.zw400 .ctg-page .pg-new-t{display:none}   /* A632 : à côté de « ‹ Bibliothèques » et « Sélectionner », « Créer » se réduit à son ＋ */   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
   .ctg-th{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
   .ctg-th .hv-title{margin:0}
   .ctg-sub{font-size:var(--t-body);color:var(--ink-2)}
@@ -2678,7 +2679,11 @@
   /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
      79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
      plutôt que de se rogner — A589 §4. */
-  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+  /* A627 — signalé sur capture (sombre, volet de 240 px) : « Pneumologie » et « Réanimation » passaient SOUS « △ 1 à
+     relire » — un mot seul ne se replie pas, et `overflow:visible` le laissait déborder sur la colonne voisine. Les
+     catégories prennent `warnBas` comme les bibliothèques (« à relire » sous le nom), et un mot trop long se coupe
+     plutôt que de chevaucher. */
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -2929,6 +2934,17 @@
   body.view-read .read-meta>.su-pill::before{content:none}
   body.view-read .read-meta .su-pill svg{display:inline}
   .su-feuille{margin:0;padding:0;border:0}
+  /* A624 : la pastille de choix de l'élément lié — un champ de choix pleine largeur, qui ouvre la feuille. */
+  /* L'HÔTE du menu ancré (≥ 780 px, un vrai déroulant sous le champ) : sans lui, `top:100%` se prenait sur la section
+     entière et le menu tombait en bas à gauche de l'écran (mesuré à 1280). Pleine largeur du champ. */
+  .su-refw{position:relative}
+  .su-refw>.popmenu{left:0;right:0;max-width:none}
+  .su-refpick{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
+  .su-refpick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .su-refpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .su-refpick.vide>span{color:var(--ink-2)}
+  .su-refpick>svg{flex:none}
+  .su-refchev{transform:rotate(90deg);color:var(--ink-2)}
   .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
   .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
@@ -2949,6 +2965,13 @@
   .su-row.done .su-l{color:var(--ink-2);text-decoration:line-through}
   .su-e{font-size:var(--t-meta);font-weight:700;color:var(--ink)}
   .su-s{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .su-late{color:var(--warn);font-weight:700}
+  /* A631 : les menus de la barre de sélection, au bureau, au-dessus d'elle (bord droit) ; la barre est sombre (--sys-ink) :
+     le menu reprend l'encre et la matière de travail. */
+  .sel-bar>.popmenu.up{top:auto;bottom:calc(100% + 8px);left:auto;right:0;width:min(380px,100%);min-width:0;max-width:none;
+    max-height:calc(100dvh / var(--zf,1) - 160px);color:var(--ink)}
+  .sel-bar>.popmenu.up :focus-visible{outline-color:var(--act)}
+  .su-go{flex:none;align-self:center;min-height:32px;padding:0 4px;white-space:nowrap}   /* A630 */   /* A625 : échéance passée — l'ambre de l'échéance (règle 8), le △ et les mots */
   .su-note{padding:8px 0;border-top:1px solid var(--line)}
   .su-who{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .su-who>span:not(.su-s){white-space:nowrap}
@@ -7025,6 +7048,15 @@
      l app (confirmation, suppression locale, validation des comptes, boucle d un minuteur) :
      les styler une par une aurait recréé l incohérence. */
   input[type="checkbox"]{width:20px;height:20px;accent-color:var(--act);flex:none;cursor:pointer}
+  /* A623 (applique A515 aux cases NATIVES — signalé : « pourquoi la case est carrée ? ça contraste avec le reste ») : la
+     case native (atelier d'import, confirmations, suppression locale) prend le dessin de `.dir-ck` — un rond de 2 px,
+     plein du bleu de l'action quand elle est cochée, la coche en matière de travail. L'interrupteur (`role="switch"`)
+     garde le sien. */
+  input[type="checkbox"]:not([role="switch"]){-webkit-appearance:none;appearance:none;position:relative;display:inline-grid;place-items:center;margin:0;
+    border:2px solid var(--line-strong);border-radius:50%;background:var(--work)}
+  input[type="checkbox"]:not([role="switch"]):checked{border-color:var(--act);background:var(--act)}
+  input[type="checkbox"]:not([role="switch"]):checked::after{content:"";width:28%;height:52%;margin-top:-12%;border:solid var(--work);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  input[type="checkbox"]:not([role="switch"]):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .auth-check input{margin-top:1px;flex:none}
   /* .auth-check pose display:flex -> l'attribut [hidden] (UA : display:none) est moins spécifique
      et ne masquerait pas la case ; règle explicite pour la case optionnelle de confirmDlg. */
@@ -7560,8 +7592,19 @@
   .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
   .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* A611 : le titre se renomme sur place ; « Dans … » dit où va le contenu et ce qu'il fera. */
-  .imp-tin{width:100%;min-height:32px;box-sizing:border-box;padding:4px 8px;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
+  .imp-tin{display:block;width:100%;min-height:32px;box-sizing:border-box;padding:6px 10px;resize:none;overflow:hidden;line-height:1.3;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
   @media (pointer:coarse){.imp-tin{font-size:16px}}
+  /* A622 : le titre-bouton garde le dessin du titre ; cible de 32 px par son rembourrage (rendu en marge négative : la
+     rangée ne bouge pas) ; souligné pointillé au survol (le crayon a été retiré à la demande de l'auteur). */
+  /* A622 §2 — L'ENCADRÉ D'UN CHAMP, comme iOS (demande de l'auteur, à la place du crayon) : un fond gris léger arrondi
+     dit « ce titre se modifie » sans icône ; il prend la LARGEUR de la rangée, comme un champ (étroit, il se lisait comme
+     un bouton — essayé). */
+  .imp-ren{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;min-height:32px;margin:0 0 2px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb);color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:text}
+  /* A622 §3 : dans son encadré, le titre se lit ENTIER (« ça ne montre pas tout le titre ») — il passe à la ligne, l'encadré
+     grandit ; plus d'ellipse ici (la rangée simple d'une référence visée la garde). */
+  .imp-ren .imp-tt{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+  .imp-ren:hover{border-color:var(--ctl-line)}
+  .imp-ren:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
   .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
   .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
@@ -8397,6 +8440,11 @@
   .mdb.sel{outline:2px solid var(--act);outline-offset:6px;background:var(--primary-soft);box-shadow:0 0 0 6px var(--primary-soft)}
   .md-doc.mdb-selon .mdb:not(.on){cursor:pointer;-webkit-user-select:none;user-select:none}
   .md-doc.mdb-selon .mdb-ed,.md-doc.mdb-selon .mdb-grab{display:none}
+  /* A634 : le cadre de sélection (souris) — le bleu de l'action, en voile léger (les écouteurs sont sur le document : il peut se trouver sous le pointeur). */
+  .mdb-lasso{position:fixed;z-index:60;border:1px solid var(--act);background:color-mix(in srgb,var(--act) 12%,transparent);border-radius:3px}
+  /* A634 : pendant une sélection de blocs, la barre de sélection EST l'action de l'écran (comme la barre d'onglets cède
+     la place à celle de l'accueil, A599) : la porte « Ajouter » s'efface — elle passait SOUS la barre (signalé sur capture). */
+  main:has(.md-doc.mdb-selon) .ed-door{visibility:hidden}
   .mdb-selbar{position:sticky;bottom:12px;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding:8px 8px 8px 16px;
     border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float)}
   .mdb-sb-n{flex:1 1 auto;min-width:0;font-weight:700}
