@@ -1171,8 +1171,12 @@ Les sessions d'**exercice** restent strictement ségrégées (colonne dédiée) 
   le poste nommé, trois nombres (cibles de 48 px, le choix dit par le bleu de l'action ET `aria-pressed`), des heures
   de FIN de garde (pas des durées, A644), un avertissement ambre « un écran que vous avez devant vous » ; « Connecter »
   fermé tant que le bon nombre n'est pas touché.
-- **Le verrou après réouverture** : consulter et reprendre restent libres ; créer, modifier, gérer passent par la
-  fenêtre de déverrouillage. Moi verrouillé = identité + carte du poste.
+- **Le verrou après réouverture ou 15 min sans geste** : consulter et reprendre restent libres ; créer et modifier
+  passent par la fenêtre de déverrouillage ; SUPPRIMER demande le téléphone à chaque fois (« Confirmer avec le
+  téléphone ») ; l'administration affiche « Pas sur un poste partagé » (A647). Moi verrouillé = identité + carte du
+  poste. La bande nomme le compte.
+- **Un lien `#lier=`** (appareil photo, message) mène au viseur, jamais droit à la feuille d'approbation ; après
+  l'approbation, « Rien ne s'ouvre sur l'écran devant vous ? Déconnecter ».
 - Une session SAUVEGARDÉE et jamais terminée se dit dans l'historique : « △ Interrompue · sauvegarde de HH:MM »
   (ambre `sess-ckpt`), et son compte rendu se dit PARTIEL (A645).
 

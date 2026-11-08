@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.111.0] — 2026-11-08
-Connecter un ordinateur de service avec son téléphone (A643-A646). **Côté serveur : rejouer `supabase/schema.sql`, puis déployer la fonction `link-claim`** (`supabase functions deploy link-claim --no-verify-jwt`, cf. `docs/deploiement-et-conformite.md` § 1.2).
+Connecter un ordinateur de service avec son téléphone (A643-A647). **Côté serveur : rejouer `supabase/schema.sql`, puis déployer la fonction `link-claim`** (`supabase functions deploy link-claim --no-verify-jwt`, cf. `docs/deploiement-et-conformite.md` § 1.2).
 - **Sur l'ordinateur** (Moi › « Se connecter avec le téléphone ») : un QR et un nombre de contrôle, ni e-mail ni code
   à recopier. **Sur le téléphone** (Moi › Appareils › « Connecter un ordinateur ») : viser le QR (ou l'ouvrir avec
   l'appareil photo), toucher le nombre que montre l'écran, choisir l'heure de fin de garde, « Connecter ». L'ordinateur
@@ -19,6 +19,15 @@ Connecter un ordinateur de service avec son téléphone (A643-A646). **Côté se
   le téléphone.
 - **Caméra** : `_headers` passe à `camera=(self)` — le viseur (partage de session, connexion) marche aussi sous Chrome
   (Android, ordinateur), qui appliquait l'interdiction.
+- **Ce qu'un poste partagé ne fait pas** (A647) : supprimer demande le téléphone à chaque fois ; l'administration
+  (instance, membres, bibliothèques) et « Remplacer » à l'import y sont refusés ; « Supprimer mon compte » n'y apparaît
+  pas ; les réglages valent pour ce poste seulement ; 15 minutes sans geste reverrouillent la modification
+  (jamais une session) ; un fichier exporté y est signalé comme restant sur l'ordinateur.
+- **Sécurité, revue avant publication** : deux secrets (le QR ne sert qu'au téléphone, une clé jamais affichée sert au
+  poste), session du poste créée et liée par le serveur, une session de poste ne peut ni approuver ni prolonger un
+  poste ni supprimer le compte, dépôt de sessions durci, plafond de demandes par machine. Un lien de connexion reçu par
+  message mène au viseur, jamais droit à l'approbation ; après l'approbation, « Rien ne s'ouvre devant vous ?
+  Déconnecter ». Recommandé : `APP_ORIGIN` sur la fonction, un « Password Verification Hook », des jetons plus courts.
 - À savoir : sans la fonction serveur déployée, la connexion par le téléphone échoue proprement et l'e-mail reste là.
 
 ## [5.110.0] — 2026-11-08

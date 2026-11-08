@@ -187,10 +187,17 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    il doit afficher « ✅ TOUS LES TESTS RLS PASSENT » (il n'écrit rien de définitif).
 5. (Pour la connexion d'un ordinateur par le téléphone, v5.111) Déployer la fonction serveur
    [`supabase/functions/link-claim`](../supabase/functions/link-claim/index.ts), avec la CLI
-   Supabase : `supabase functions deploy link-claim --no-verify-jwt`. `--no-verify-jwt` est
-   nécessaire (le poste n'a pas encore de compte) et sans risque : la capacité est le secret du QR,
-   vérifié en SQL. C'est la SEULE pièce qui utilise la clé de service. Sans elle, la connexion par
-   le téléphone échoue proprement et l'e-mail reste disponible (§ 3.3).
+   Supabase : `supabase functions deploy link-claim --no-verify-jwt`, puis
+   `supabase secrets set APP_ORIGIN=https://<adresse de l'app>` (CORS restreint à l'app).
+   `--no-verify-jwt` est nécessaire (le poste n'a pas encore de compte) et sans risque : la
+   capacité est la clé du poste, vérifiée en SQL. C'est la SEULE pièce qui utilise la clé de
+   service. Sans elle, la connexion par le téléphone échoue proprement et l'e-mail reste disponible
+   (§ 3.3).
+6. (Recommandé, durcissement) *Authentication → Hooks* : un **Password Verification Hook** qui
+   refuse toute tentative — l'app ne se connecte que par code e-mail, et sans ce refus toute session
+   valide (celle d'un poste partagé comprise) pourrait se définir un mot de passe durable.
+   *Authentication → Sessions / JWT* : une durée de jeton d'accès plus courte (par ex. 15 min au
+   lieu d'1 h) raccourcit la fenêtre pendant laquelle un poste révoqué garde l'accès à l'API.
 
 ### 1.3 Configurer l'envoi d'e-mails (Brevo)
 1. Compte gratuit sur brevo.com, **vérifier une adresse expéditrice**, générer une **clé SMTP**.
@@ -454,7 +461,7 @@ logiciel déclencherait de lui-même (« causes non revues depuis n minutes ») 
 | **Transferts hors UE** | À éviter : choisir la région UE (Francfort) pour Supabase. Vérifier la localisation de l'hébergeur statique. |
 | **Durée de conservation** | Comptes : tant qu'actif ; suppression à la demande (fonction intégrée « Supprimer mon compte »). Fiches partagées : durée d'exploitation de la bibliothèque. **Suivi** : « pour moi », jusqu'à suppression par l'utilisateur ou du compte ; « pour l'équipe », durée d'exploitation de la bibliothèque — l'historique est gardé (une tâche faite reste, avec qui l'a faite) et une suppression est conservée comme marque (pour être propagée aux autres appareils) jusqu'à la suppression de la bibliothèque. **Sessions : sur l'appareil, sans durée fixée par l'application** (l'utilisateur les supprime depuis l'historique) — et, **si l'utilisateur active l'option** (défaut fermé), les sessions **terminées** sont aussi conservées sur le serveur de synchronisation, sans durée fixée, jusqu'à suppression par l'utilisateur ou du compte. **Session partagée sur le serveur : purgée automatiquement 30 min après son expiration** (§ 3.1) — c'est un relais, pas un entrepôt. **Connexion d'un poste partagé** (§ 3.3) : demande non aboutie purgée 30 min après ses 120 s ; connexion conservée jusqu'à **7 jours après l'heure de fin** (droit de dépôt des sessions), puis purgée ; la session de compte du poste est supprimée à l'heure de fin ou à la déconnexion à distance. Sur le poste lui-même : les données du compte sont **effacées à l'heure de fin** (jamais pendant une session en cours, jamais avant que les sessions faites dessus aient rejoint l'historique). |
 | **Droits des personnes** | Accès/rectification : via l'app. Effacement : « Supprimer mon compte » (efface fiches, catégories personnelles, **suivi « pour moi »** — le suivi « pour l'équipe » reste à l'équipe, sans lien vers le compte supprimé hormis l'adresse e-mail écrite comme auteur —, **partages ouverts et leurs évènements**, puis le compte). Contact DPO pour les autres droits. |
-| **Mesures de sécurité** | HTTPS ; isolation des données par politiques RLS (serveur) ; authentification par code e-mail à usage unique ; CSP par hashs et en-têtes de sécurité ; aucune dépendance tierce chargée ; pas de traceur/analytics. **Partage** : secret propre à chaque participant tiré côté serveur (seul son SHA-256 est stocké), code d'appariement consommé à la première jointure, fenêtre d'admission de 120 s, liste blanche serveur des champs de fiche, plafonds de taille et de nombre, purge auto-exécutoire. **Connexion par le téléphone** (§ 3.3) : secret de 128 bits tiré par le poste (seule son empreinte SHA-256 est stockée), demande de 120 s à usage unique, nombre de contrôle à toucher sur le téléphone, session propre au poste créée côté serveur (la clé de service ne quitte pas la fonction serveur), révocable à distance, heure de fin ≤ 28 h. |
+| **Mesures de sécurité** | HTTPS ; isolation des données par politiques RLS (serveur) ; authentification par code e-mail à usage unique ; CSP par hashs et en-têtes de sécurité ; aucune dépendance tierce chargée ; pas de traceur/analytics. **Partage** : secret propre à chaque participant tiré côté serveur (seul son SHA-256 est stocké), code d'appariement consommé à la première jointure, fenêtre d'admission de 120 s, liste blanche serveur des champs de fiche, plafonds de taille et de nombre, purge auto-exécutoire. **Connexion par le téléphone** (§ 3.3) : deux secrets de 128 bits tirés par le poste (seules leurs empreintes SHA-256 sont stockées) — celui du QR ne sert qu'au téléphone, la clé du poste n'est jamais affichée ; demande de 120 s à réclamation unique ; nombre de contrôle à toucher sur le téléphone ; session propre au poste créée et liée côté serveur (la clé de service ne quitte pas la fonction serveur) ; ce qu'une session de poste ne peut pas faire (approuver ou prolonger un poste, supprimer le compte) est refusé au serveur ; révocable à distance ; heure de fin ≤ 28 h ; revue de sécurité avant publication (`docs/decisions/lot-v5-111.md`). |
 | **Analyse d'impact (AIPD)** | A priori non requise (pas de donnée identifiante de patient, pas de traitement à grande échelle de données sensibles). **À reconfirmer avec le DPO depuis l'ajout du partage de session**, qui fait sortir de l'appareil des données décrivant des actes de soin. |
 
 **Notes.** Le point déterminant pour le RGPD : **l'application ne traite pas de données de
@@ -614,9 +621,11 @@ devient un « poste partagé » jusqu'à l'heure de fin de garde choisie sur le 
 s'efface.
 
 **Ce qui part vers le serveur.**
-- **Du poste, avant connexion (sans compte)** : l'empreinte SHA-256 d'un secret tiré au hasard
-  (jamais le secret lui-même), et le libellé « navigateur · système » du poste (au plus 60
-  caractères, tiré de l'identification du navigateur — pas de nom de machine, pas d'adresse).
+- **Du poste, avant connexion (sans compte)** : les empreintes SHA-256 de deux secrets tirés au
+  hasard — celui du QR et la clé du poste — (jamais les secrets eux-mêmes) ; le libellé
+  « navigateur · système » du poste, pris dans une liste FERMÉE (« Chrome · Windows »… — pas de nom
+  de machine) ; et une **empreinte** de l'adresse IP de la requête (jamais l'adresse elle-même),
+  qui sert seulement à limiter le nombre de demandes par machine et part avec la demande.
 - **Du téléphone** : l'approbation (compte authentifié) et l'heure de fin choisie.
 - **Du poste connecté** : l'identifiant de sa session de compte (pour pouvoir la supprimer à
   l'heure de fin ou à la déconnexion à distance) ; les **sessions** faites sur le poste — toujours,
@@ -625,8 +634,8 @@ s'efface.
   a eu un geste (compte rendu partiel, marqué comme tel, remplacé par la session terminée). Même
   contenu que l'historique synchronisé (§ 3) : sans la trace de vérification.
 
-**Ce qui ne part jamais.** Le secret du QR (il ne quitte le poste que dans le QR, à l'écran, et
-dans les appels qui le vérifient) ; l'adresse e-mail du compte vers le poste (elle reste dans la
+**Ce qui ne part jamais.** Les secrets eux-mêmes (le secret du QR ne quitte le poste que dans le
+QR, à l'écran ; la clé du poste, que dans les appels qui la vérifient) ; l'adresse e-mail du compte vers le poste (elle reste dans la
 fonction serveur) ; l'historique du compte vers le poste (un poste partagé ne le télécharge pas).
 
 **Ce qui reste sur le poste, et combien de temps.** Les aides, protocoles, réglages et sessions du

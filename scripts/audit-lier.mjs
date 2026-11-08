@@ -48,15 +48,14 @@ function bouchon(srvst, vu) {
       const fn = p.slice(13); (vu[fn] = vu[fn] || []).push(body);
       if (fn === 'link_open') return J({ ok: true, id: LID, open_until: new Date(Date.now() + 120e3).toISOString(), server_time: new Date().toISOString() });
       if (fn === 'link_poll') return J(srvst.poll || { ok: true, status: 'pending' });
-      if (fn === 'link_bind' || fn === 'link_approve' || fn === 'link_deposit') return J({ ok: true });
+      if (fn === 'link_approve' || fn === 'link_deposit' || fn === 'link_revoke') return J({ ok: true });
       if (fn === 'link_peek') return J({ ok: true, kind: 'connect', label: 'Chrome · Windows', age_s: 4 });
       if (fn === 'my_status') return J('approved');
       return J(null);
     }
     if (p === '/functions/v1/link-claim') { (vu.claim = vu.claim || []).push(body);
-      return J({ ok: true, token_hash: 'th-123', ends_at: srvst.ends }); }
-    if (p === '/auth/v1/verify') { (vu.verify = vu.verify || []).push(body);
-      return J({ access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: UID, email: 'kim@test.local' } }); }
+      return J({ ok: true, ends_at: srvst.ends, session: { access_token: 'at', refresh_token: 'rt', expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: UID, email: 'kim@test.local' } } }); }
+    if (p === '/auth/v1/verify') { (vu.verify = vu.verify || []).push(body); return J({}); }
     if (p === '/auth/v1/token') return J({ access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: UID, email: 'kim@test.local' } });
     if (p.startsWith('/auth/v1/logout')) { vu.logout = (vu.logout || 0) + 1; return route.fulfill({ status: 204, body: '' }); }
     if (p === '/rest/v1/sessions' && m === 'POST') { (vu.sessions = vu.sessions || []).push(...(body || [])); return route.fulfill({ status: 201, body: '' }); }
@@ -86,25 +85,26 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   t('le poste montre un QR et un nombre de contrôle', /^\d{2}$/.test(r1.num || ''), JSON.stringify(r1));
   t('… avec son compte à rebours', /Expire dans \d:\d\d/.test(r1.exp || ''), r1.exp);
   const op = (vu.link_open || [])[0] || {};
-  t('le serveur ne reçoit que l’EMPREINTE du secret', /^[0-9a-f]{64}$/.test(op.p_hash || '') && op.p_kind === 'connect' && /·/.test(op.p_label || ''), JSON.stringify(op));
+  t('le serveur ne reçoit que des EMPREINTES : secret du QR et clé du poste, distincts', /^[0-9a-f]{64}$/.test(op.p_hash || '') && /^[0-9a-f]{64}$/.test(op.p_key_hash || '') && op.p_hash !== op.p_key_hash && op.p_kind === 'connect' && /·/.test(op.p_label || ''), JSON.stringify(op));
   // Le téléphone approuve : le poste réclame, se connecte, et RECHARGE sur l'espace du compte.
   srvst.poll = { ok: true, status: 'approved', ends_at: srvst.ends };
   // La bascule d'espace RECHARGE la page : on attend l'espace du compte, application démarrée.
   await apres(page, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function'
     && !document.querySelector('.boot-load') && typeof fiches !== 'undefined' && fiches.length === 0, UID);
-  const claim = (vu.claim || [])[0] || {}, ver = (vu.verify || [])[0] || {};
-  t('la réclamation porte l’identifiant et le secret (jamais par une URL)', claim.id === LID && typeof claim.secret === 'string' && claim.secret.length >= 22, JSON.stringify(claim));
-  t('la session du poste vient du lien à usage unique', ver.type === 'magiclink' && ver.token_hash === 'th-123', JSON.stringify(ver));
+  const claim = (vu.claim || [])[0] || {}, polls = vu.link_poll || [];
+  t('la réclamation porte la CLÉ DU POSTE, jamais le secret du QR', claim.id === LID && typeof claim.key === 'string' && claim.key.length >= 22 && !('secret' in claim), JSON.stringify(claim));
+  t('… la même clé que le sondage (p_key)', polls.length && polls.every(x => x && x.p_key === claim.key && !('p_secret' in x)), JSON.stringify(polls[0]));
+  t('la session arrive PRÊTE de la fonction serveur (le poste ne lie rien lui-même)', !(vu.verify || []).length && !(vu.link_bind || []).length);
   const r2 = await page.evaluate(() => ({ space: localStorage.getItem('ac-space'), sp: linkShared(), open: sessionStorage.getItem('ac-shared-open'),
     signed: Auth.signedIn(), fiches: fiches.length, confirm: document.getElementById('confirmModal').classList.contains('on') }));
   t('bascule sur l’espace du compte', r2.space === UID && r2.signed, JSON.stringify(r2));
   t('… sans emporter le contenu hors compte du poste', r2.fiches === 0 && !r2.confirm && avant >= 2, `avant ${avant}, après ${r2.fiches}`);
   t('l’heure de fin choisie sur le téléphone est retenue', r2.sp && Math.abs(r2.sp.endsAt - Date.parse(srvst.ends)) < 1000, JSON.stringify(r2.sp));
   t('cet onglet est ouvert par le téléphone (pas de verrou)', r2.open === '1');
-  t('le poste lie SA session de compte (révocable seule)', (vu.link_bind || []).length >= 1);
+  t('le poste garde la clé, jamais le secret du QR', await page.evaluate(() => { const o = JSON.parse(localStorage.getItem('ac-shared') || '{}'); return !!o.key && !('secret' in o); }));
   await page.waitForFunction(() => { const b = document.getElementById('linkBand'); return b && !b.hidden; });
   const band = await page.evaluate(() => document.getElementById('linkBand').textContent);
-  t('la bande de l’accueil dit « Poste partagé » et l’heure de fin', /Poste partagé/.test(band) && /jusqu’à/.test(band), band);
+  t('la bande de l’accueil dit « Poste partagé », le compte et l’heure de fin', /Poste partagé/.test(band) && /kim@test\.local/.test(band) && /jusqu’à/.test(band), band);
   // L'historique MONTE sur un poste partagé — sans que le réglage du compte ne bascule.
   const r3 = await page.evaluate(async () => {
     const f = { id: 's-poste-a', ficheId: 'x', ficheTitle: 'x', savedAt: Date.now(), startedAt: Date.now() - 6e4, live: false, checked: {}, verified: {}, vgaps: {}, counters: {}, timers: {}, nav: [], navSeq: [], events: [] };
@@ -135,6 +135,31 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   t('le téléphone d’accord, l’action retenue reprend (éditeur ouvert)', await p2.evaluate(() => state.view === 'edit' && !linkLocked()));
   t('… le verrou est passé par une demande de DÉVERROUILLAGE', (vu.link_open || []).some(x => x && x.p_kind === 'unlock'));
   await p2.close();
+  srvst.poll = { ok: true, status: 'claimed', ends_at: srvst.ends };
+  // Les PALIERS (décision de l'auteur) : l'administration est refusée, supprimer demande le téléphone à
+  // chaque fois, et 15 min sans geste reverrouillent l'édition.
+  await page.bringToFront();
+  const adm = await page.evaluate(() => { openAdmin(); const r = { on: document.getElementById('linkModal').classList.contains('on'),
+    titre: document.getElementById('linkModalTitle').textContent, adm: !!document.querySelector('#admModal.on') }; Link.close(); return r; });
+  t('poste partagé : l’Administration est refusée, et dit pourquoi', adm.on && /Pas sur un poste partagé/.test(adm.titre) && !adm.adm, JSON.stringify(adm));
+  await page.evaluate(() => { _linkGestAt = Date.now() - 16 * 60000; document.dispatchEvent(new PointerEvent('pointerdown')); });
+  t('15 min sans geste : l’édition se reverrouille (consultation libre)', await page.evaluate(() => linkLocked()));
+  // Le geste d'après reverrouille AVANT d'agir ; on déverrouille par le téléphone pour la suite.
+  srvst.poll = { ok: true, status: 'approved', ends_at: srvst.ends };
+  await page.evaluate(() => Link.start('unlock', null));
+  await page.waitForFunction(() => !linkLocked(), null, { timeout: 8000 });
+  // Supprimer : le téléphone à CHAQUE fois, même onglet déverrouillé ; confirmé, la suppression reprend.
+  srvst.poll = { ok: true, status: 'pending', ends_at: srvst.ends };
+  await page.evaluate(() => newFiche());
+  await page.waitForFunction(() => state.view === 'edit');
+  const del = await page.evaluate(() => { deleteDraft(); return { titre: document.getElementById('linkModalTitle').textContent,
+    on: document.getElementById('linkModal').classList.contains('on'), conf: document.getElementById('confirmModal').classList.contains('on') }; });
+  t('poste partagé : supprimer demande le TÉLÉPHONE, même déverrouillé', del.on && /Confirmer avec le téléphone/.test(del.titre) && !del.conf, JSON.stringify(del));
+  srvst.poll = { ok: true, status: 'approved', ends_at: srvst.ends };
+  await page.waitForFunction(() => document.getElementById('confirmModal').classList.contains('on'), null, { timeout: 8000 });
+  t('… confirmé par le téléphone, la suppression reprend (sa propre confirmation)', true);
+  await page.evaluate(() => document.getElementById('confirmNo').click());
+  await page.evaluate(() => { state.view = 'library'; render(); });
   srvst.poll = { ok: true, status: 'claimed', ends_at: srvst.ends };
   // Une session en cours, sauvegardée en ligne : par la synchro tant que le compte est là…
   await page.bringToFront();
@@ -185,6 +210,11 @@ await ctx.close();
   const S = 'Q2xLk9_aZ0b-Xy7Pq3RsTu';
   // Le lien du QR ouvert par l'appareil photo du système (le vrai point d'entrée : le fragment).
   await ph.evaluate(([id, s]) => { location.hash = '#lier=' + id + '.' + s; }, [LID, S]);
+  await ph.waitForSelector('#linkModal.on [data-lkscan]');
+  const lien = await ph.evaluate(() => ({ feuille: !!document.querySelector('[data-lkn]'), txt: document.getElementById('linkBody').textContent }));
+  t('un LIEN (appareil photo, SMS, e-mail) mène au viseur, jamais droit à l’approbation', !lien.feuille && /viseur/.test(lien.txt) && !(vu2.link_peek || []).length, JSON.stringify(lien));
+  // Le viseur de l'app rend le code lu à `Link.approve(L, true)` : c'est son vrai point de sortie.
+  await ph.evaluate(([id, s]) => Link.approve({ id, secret: s }, true), [LID, S]);
   await ph.waitForSelector('#linkModal.on [data-lkn]');
   const r = await ph.evaluate(s => ({ nums: [...document.querySelectorAll('[data-lkn]')].map(b => +b.dataset.lkn), vrai: linkCheckNum(s),
     ends: [...document.querySelectorAll('[data-lkend]')].map(b => b.textContent), on: !!document.querySelector('[data-lkend].on'),
@@ -202,6 +232,9 @@ await ctx.close();
   const ap = (vu2.link_approve || [])[0] || {};
   const dt = Date.parse(ap.p_ends_at) - Date.now();
   t('approbation envoyée avec le secret et une heure de fin entre 1 h et 28 h', ap.p_id === LID && ap.p_secret === S && dt > 3600e3 - 60e3 && dt <= 28 * 3600e3, JSON.stringify(ap));
+  await ph.click('[data-lkrevnow]');
+  await ph.waitForFunction(() => /déconnecté/.test(document.getElementById('linkBody').textContent));
+  t('« Rien ne s’ouvre devant vous ? Déconnecter » : un geste, et le poste est déconnecté', (vu2.link_revoke || []).some(x => x && x.p_id === LID));
   t('le fragment du lien est effacé de l’adresse', await ph.evaluate(() => !/lier=/.test(location.href)));
   await c2.close();
 }
