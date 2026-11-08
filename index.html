@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fXWlkOURf2G6tz/wgvhL2AT6DR6OgKUmvWsfwwegXdU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-nbiLXTXJejluGclYLpWqiMrqLlzeShFC/o9gSuQi640='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3026,6 +3026,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-h{margin:8px 4px 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-eye{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-bk{transform:rotate(180deg)}
+  html.zw360 .pg-bk-t{display:none}   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
   .ctg-th{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
   .ctg-th .hv-title{margin:0}
   .ctg-sub{font-size:var(--t-body);color:var(--ink-2)}
@@ -10249,7 +10250,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.1';
+const APP_VERSION='5.109.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16922,7 +16923,11 @@ function pgHeadHtml(title,opts){opts=opts||{};
   const nw=opts.create&&canEditScope(homeScope())
     ?`<button type="button" class="pg-btn" id="pgNew">${uiIcon('plus',16,{sw:2.4})}Créer</button>`:'';
   const pk=opts.chips?pgPickInfo():null;
-  return `<div class="pg-top"><span class="pg-l">${opts.sel?selTogHtml():''}</span>`
+  /* A617 : une COLLECTION ouverte depuis l'accueil a son « ‹ Accueil » (le patron du catalogue, `data-ctgback`) — il
+     n'y avait que « Tout afficher », DANS la carte de la collection, pour en sortir ; le geste retour du système y
+     mène aussi (`_hViewLevels`). */
+  const bk=opts.sel&&state.coll?`<button type="button" class="pg-btn" data-collback aria-label="Accueil">${uiIcon('chev',14,{sw:2.6,cls:'tic ctg-bk'})}<span class="pg-bk-t">Accueil</span></button>`:'';
+  return `<div class="pg-top"><span class="pg-l">${bk}${opts.sel?selTogHtml():''}</span>`
     +`<span class="pg-tt" aria-hidden="true">${esc(pk?pk.t:title)}</span><span class="pg-r">${nw}</span></div>`
     +(pk?pgPickHtml(pk):`<h1 class="pg-ttl">${esc(title)}</h1>`);}
 /* A545 — LE TITRE CHOISIT (remplace la rangée de pastilles d'A517/A528, mesurée : 15 pastilles sur 1 741 px à 390,
@@ -17000,7 +17005,9 @@ function openHomePick(trigger,rerender){
       libs(false);},
     action:{label:'＋ Nouvelle collection…',fn:()=>collCreateShow()}});}
 function bindPgHead(rerender){
+  _histSync();   // A617 : ouvrir / fermer une collection re-rend la liste SANS `render()` — l'historique doit suivre (idempotent)
   const n=main.querySelector('#pgNew');if(n)n.onclick=()=>openCreateDlg();
+  main.querySelectorAll('[data-collback]').forEach(b=>b.onclick=collUp);
   main.querySelectorAll('[data-pgall]').forEach(b=>b.onclick=()=>{state.coll=null;state.cat='';state.homeLib=null;state.libLimit=LIB_PAGE;rerender();});
   {const p=main.querySelector('#pgPick');if(p)p.onclick=()=>openHomePick(p,rerender);}
   /* Le grand titre sorti par le haut, la rangée du haut prend le petit (patron `.titled` de la lecture). */
@@ -36149,10 +36156,12 @@ const _hEl=id=>document.getElementById(id);
 const _hOn=id=>{const e=_hEl(id);return !!e&&e.classList.contains('on');};
 // Niveaux de la VUE : accueil 0 (1 sur Sessions/Moi), lecture 1 + pile d'origine, éditeur =
 // sa page de lecture + 1 (1 s'il crée : il sort à l'accueil), aperçu = son éditeur + 1.
+// A617 : une collection ouverte à l'accueil est un niveau du retour ; « ‹ Accueil » et le geste retour la referment.
+function collUp(){state.coll=null;if(state.selOn)selEnd();render();const s=main.querySelector('.home-main');window.scrollTo(0,0);if(s)s.scrollTop=0;}
 function _hViewLevels(){const v=state.view,rs=(state.readStack||[]).length;
-  if(v==='library'){const t=homeTab(),c=t==='biblio'?ctgDepth():0;   // A602 : un niveau du catalogue est un niveau du retour
+  if(v==='library'){const t=homeTab(),c=t==='biblio'?ctgDepth():(t==='aides'&&state.coll?1:0);   // A602 : un niveau du catalogue est un niveau du retour ; A617 : une collection ouverte aussi
     if(tabNavOn())return c;   // A517 (A510 §2) : un onglet n'est pas un niveau (Administration y est une fenêtre)
-    return t==='admin'?2:t!=='aides'?1+c:0;}   // A494 : Administration s'ouvre depuis Moi
+    return t==='admin'?2:t!=='aides'?1+c:c;}   // A494 : Administration s'ouvre depuis Moi
   const ed=w=>{const d=w==='edit'?state.draft:state.pdraft;return d&&(w==='edit'?fiches:protocols).some(x=>x.id===d.id)?2+rs:1;};
   if(v==='edit'||v==='protocolEdit')return ed(v);
   return state.previewFrom?ed(state.previewFrom)+1:1+rs;}
@@ -36172,7 +36181,7 @@ const _H_LAYERS=[
   [()=>_hOn('flowFull')?1:0,()=>closeFlowFull],
   [()=>_hOn('lightbox')?1:0,()=>closeLightbox],
   [()=>edFocusOn()?1:0,()=>()=>edFocusSet(null)],   // A521 : la page d'un bloc est un niveau
-  [_hViewLevels,()=>state.view==='library'?(homeTab()==='biblio'&&ctgDepth()?ctgUp:()=>setHomeTab(homeTab()==='admin'?'me':'aides')):()=>_hEl('hdrBack').click()]];
+  [_hViewLevels,()=>state.view==='library'?(homeTab()==='biblio'&&ctgDepth()?ctgUp:homeTab()==='aides'&&state.coll?collUp:()=>setHomeTab(homeTab()==='admin'?'me':'aides')):()=>_hEl('hdrBack').click()]];
 const _histLevels=()=>_H_LAYERS.reduce((t,[n])=>t+n(),0);
 function _histBackAction(){const l=_H_LAYERS.find(([n])=>n()>0);return l?l[1]():null;}
 const _hDepth=()=>{const s=history.state;return s&&s.ac===_H_ID?s.d:-1;};
