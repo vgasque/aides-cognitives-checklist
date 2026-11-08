@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-19ripZjAI9xCfbKRdo24bXlvotkvlC/l3JhjerZF1yg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-tBhS/rOrWgcVVk3Bpe6UNnBj3k4HOfkz0YdzIrIgnMM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2710,6 +2710,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      coûte que sa cible (32 px, règle 9) et pas un renfoncement. */
   .dir-row.selm{grid-template-columns:auto minmax(0,1fr) auto;padding-left:2px;gap:2px}
   .dir-row.selm .card-open{cursor:pointer}
+  /* A608 : en sélection, toucher une rangée COCHE — la case le dit. Le voile gris d'iOS sur le titre (le surlignage
+     d'un lien touché) et la sélection de texte d'un appui long n'ont rien à dire ici : ils laissaient croire à un lien. */
+  .dir-row.selm,.dir-row.selm *{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
   .dir-row.selon{border-color:var(--act);background:var(--primary-soft)}
   /* En sélection, l'épingle se retire : c'est un geste d'ACCÈS au milieu d'un écran de GESTION,
      et sa cible est à 8 px de la case — un tap manqué changerait l'accès direct de crise. */
@@ -2984,6 +2987,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A589 §2 — LE « · » NE TOMBE PLUS DANS LA PASTILLE de provenance : il se pose dans la marge, hors du fond. */
   .dir-book .dir-id>*+.libtag{position:relative;margin-left:16px}
   .dir-book .dir-id>*+.libtag::before{position:absolute;left:-11px;margin:0}
+  /* A608 — LA PASTILLE DE PROVENANCE GARDE SA FORME DANS LA RANGÉE : la remise à plat des items de méta (`display:inline;
+     padding:0` ci-dessus) la touchait aussi — l'icône tombait sur la ligne de base, sous le texte, et le fond s'arrêtait
+     au ras de la dernière lettre (capture de l'auteur, « Cours DESMU »). En ligne, mais flex : icône centrée sur le texte. */
+  .dir-book .dir-id>.libtag{display:inline-flex;align-items:center;gap:4px;padding:0 6px}
   /* ══ A587 — « VOS COLLECTIONS » EN TÊTE, « TOUT » DESSOUS ══ Deux intertitres de SECTION (h2, 17,5/700) au-dessus
      des intertitres de groupe : la collection est un sommaire replié, chaque rangée se déplie sur place. */
   .hc-sec{margin:0 0 24px}
@@ -8617,7 +8624,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
-  .md-fig img{max-width:100%;height:auto;border-radius:var(--r-1);border:1px solid var(--line);cursor:zoom-in}
+  /* A608 : « Pleine » = TOUTE la colonne, comme le promet le cadre de la poignée (A584) — l'image n'est plus affichée à
+     sa largeur propre (une capture de 500 px restait à 500 px : tirée au-delà de ¾, elle RÉTRÉCISSAIT). */
+  .md-fig img{width:100%;max-width:100%;height:auto;border-radius:var(--r-1);border:1px solid var(--line);cursor:zoom-in}
   .md-fig figcaption{font-size:12px;color:var(--ink-soft);margin-top:4px}
   /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
      téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
@@ -8727,6 +8736,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw430 .md-head .md-grid>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* icône seule, mot lu */
   html.zw430 .md-head .md-grid{width:40px;padding:0;justify-content:center}
   .md-lv2{padding-left:4px}.md-lv3{padding-left:8px;font-weight:700}
+  /* A608 : le Plan en arbre — H1 en vedette, H2 et H3 en retrait de 20 px par niveau (28 · 48), un filet vertical les rattache. */
+  .mm-row.mm-lv1 .mm-lb{font-weight:800}
+  .mm-row.mm-lv2,.mm-row.mm-lv3{position:relative}
+  .mm-row.mm-lv2{padding-left:28px}.mm-row.mm-lv3{padding-left:48px}
+  .mm-row.mm-lv2::before,.mm-row.mm-lv3::before{content:'';position:absolute;top:0;bottom:0;border-left:1px solid var(--line-strong)}
+  .mm-row.mm-lv2::before{left:18px}.mm-row.mm-lv3::before{left:38px}
+  .mm-row.mm-lv3 .mm-lb{font-weight:500}
   /* Le bloc où l'on écrit, dans l'aperçu : registre « bloc courant » (bleu doux, sans aplat fort). */
   .md-here{background:color-mix(in srgb,var(--act) 8%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--act) 8%,transparent);border-radius:3px}
   .md-preview [data-ln],#editSide .ep-md [data-ln]{cursor:pointer}
@@ -10133,7 +10149,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.103.0';
+const APP_VERSION='5.104.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10761,7 +10777,7 @@ const stripBold=s=>String(s==null?'':s).replace(BOLD_RX,'$1');
    images img:ID, liens https/att:ID. Balisage non reconnu laissé VISIBLE (dégradation lisible,
    export v3 inchangé). Fonctions PURES (?__actest) ; plafonds anti-DoS 20 000 car. /
    2 000 lignes. Détail : doctrine-js.md J8. */
-const MD_MAX_CHARS=20000,MD_MAX_LINES=2000;
+const MD_MAX_CHARS=20000,MD_MAX_LINES=2000,MD_MAX_DEPTH=6;
 // Tableaux : pipes ouvrant ET fermant EXIGÉS (plus stricts que GFM) -> aucune collision possible
 // avec les autres blocs (hr, listes, citation, titre, image commencent par un autre caractère),
 // et une phrase clinique contenant un « | » ne devient jamais un tableau par accident.
@@ -10807,7 +10823,14 @@ function mdCells(line){const s=String(line==null?'':line).trim().replace(/^\|/,'
     if(c==='|'){out.push(cur.trim());cur='';continue;}
     cur+=c;}
   out.push(cur.trim());return out.slice(0,MD_MAX_TCOLS);}
-const MD_ITAL_RX=/(^|[^*])\*([^*\n]+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
+/* A607 — L'EMPHASE IMBRIQUÉE (Notion, Obsidian) : « ***gras italique*** », un gras qui CONTIENT un italique
+   (« **indications *systématiques* en AVP** ») et « ~~barré~~ ». Ordre : *** d'abord, puis le gras (qui admet des *
+   isolés), puis l'italique — qui ne traverse JAMAIS une balise déjà posée (sauf un <b>…</b> entier) : un balisage
+   mal imbriqué reste visible au lieu de produire des balises croisées. BOLD_RX (textes de fiche) ne change pas. */
+const MD_BI_RX=/\*\*\*([^*\n]+)\*\*\*/g;                    // ***gras italique***
+const MD_BOLD_RX=/\*\*((?:[^*\n]|\*[^*\n]+\*)+?)\*\*/g;      // **gras**, un *italique* ENTIER admis dedans
+const MD_ITAL_RX=/(^|[^*])\*((?:[^*\n<]|<b>[^<]*<\/b>)+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
+const MD_STRIKE_RX=/~~([^~\n]+)~~/g;                          // ~~barré~~ (Notion, GFM)
 const MD_MARK_RX=/==([^=\n]+)==/g;                 // ==surligné== (achromatique, registre MEMO)
 const MD_CODE_RX=/(`[^`\n]+`)/;                    // `code` en ligne (segment préservé tel quel)
 function mdInline(s){const h=esc(sstr(s,4000));
@@ -10825,21 +10848,23 @@ function mdInline(s){const h=esc(sstr(s,4000));
       const am=href.match(/^att:([A-Za-z0-9_-]{1,64})(?:#p(\d{1,4}))?$/);
       if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+txt+'</a>';
       return m;});
-    x=x.replace(BOLD_RX,'<b>$1</b>');
+    x=x.replace(MD_BI_RX,'<b><i>$1</i></b>');
+    x=x.replace(MD_BOLD_RX,'<b>$1</b>');
     x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
+    x=x.replace(MD_STRIKE_RX,'<s>$1</s>');
     // ==surligné== : surligneur ACHROMATIQUE (registre MEMO, --amb-2) — il fait ressortir un mot
     // sans mentir sur le code couleur (dans cette app, rouge et ambre ont un sens vital). Syntaxe
     // répandue (Obsidian, Typora, pandoc) ; un lecteur qui l'ignore affiche « ==texte== » en clair.
     x=x.replace(MD_MARK_RX,'<mark class="md-mk">$1</mark>');
     return x;}).join('');}
 // Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub,task}]}
-// (sub = sous-liste {t,items:[textes]} d'UN niveau ; task = {done} si l'item est une tâche « [ ] »,
-// null sinon — champ ADDITIF v4.5.4, les sous-items restent des chaînes) | {t:'q', lines[]} (citation) |
+// (sub = sous-liste {t,items:[{text,sub,task}]}, récursive jusqu'à MD_MAX_DEPTH niveaux — A607 ; task = {done} si
+// l'item est une tâche « [ ] », à tout niveau, null sinon — champ ADDITIF v4.5.4) | {t:'q', lines[]} (citation) |
 // {t:'code', lines[]} (bloc ```) | {t:'hr'} | {t:'img', caption, id} | {t:'p', lines[]}.
 function mdBlocks(src){
   const lines=sstr(src,MD_MAX_CHARS).split('\n').slice(0,MD_MAX_LINES);
   // `ln` (v5.44) : ligne source du bloc — l'aperçu de l'éditeur relie chaque bloc à son texte.
-  const out=[];let list=null,para=[],paraLn=0,quote=null,code=null;
+  const out=[];let list=null,lstk=[],para=[],paraLn=0,quote=null,code=null;
   const flushPara=()=>{if(para.length){out.push({t:'p',lines:para,ln:paraLn});para=[];}};
   const flushList=()=>{if(list){out.push(list);list=null;}};
   const flushQuote=()=>{if(quote){out.push(quote);quote=null;}};
@@ -10873,14 +10898,18 @@ function mdBlocks(src){
         if(c.kind){if(c.text)quote.lines.push(c.text);}else quote.lines.push(m[1]);}
       else quote.lines.push(m[1]);
       continue;}
-    // SOUS-LISTE (2 espaces ou plus) : rattachée au dernier élément de la liste en cours.
-    if(list&&list.items.length&&(m=l.match(/^\s{2,}(?:[-*]\s+|(\d{1,3})[.)]\s+)(.*)$/))){
-      const last=list.items[list.items.length-1],st=m[1]?'ol':'ul';
-      if(!last.sub||last.sub.t!==st)last.sub={t:st,items:[]};
-      last.sub.items.push(m[2]);continue;}
-    // Item de liste (ul/ol) : détection de tâche « [ ] »/« [x] » partagée entre les deux branches.
-    if((m=l.match(/^[-*]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ul'){flushList();list={t:'ul',items:[],ln:i};}list.items.push(listItem(m[1]));continue;}
-    if((m=l.match(/^\d{1,3}[.)]\s+(.*)$/))){flushPara();flushQuote();if(!list||list.t!=='ol'){flushList();list={t:'ol',items:[],ln:i};}list.items.push(listItem(m[1]));continue;}
+    /* LISTES IMBRIQUÉES (A607) : l'INDENTATION fait le niveau, sur MD_MAX_DEPTH niveaux — Notion indente de 4 espaces
+       (une tabulation), l'éditeur de 2. Une pile {ind, liste} : plus indenté que le niveau courant → sous-liste du
+       dernier élément ; moins → on remonte. Au-delà de la profondeur, l'élément reste au dernier niveau (rien ne se
+       perd). Un sous-niveau garde le type de son premier élément (un 1. au milieu de - ne vide plus la sous-liste). */
+    if((m=l.match(/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/))&&(m[1].length===0||list)){flushPara();flushQuote();
+      const ind=m[1].length,st=m[2]?'ol':'ul';
+      if(!list||(ind===0&&list.t!==st)){flushList();list={t:st,items:[],ln:i};lstk=[{ind,lst:list}];}
+      let top=lstk[lstk.length-1];
+      if(ind>top.ind&&top.lst.items.length&&lstk.length<MD_MAX_DEPTH){const last=top.lst.items[top.lst.items.length-1];
+        if(!last.sub)last.sub={t:st,items:[]};lstk.push(top={ind,lst:last.sub});}
+      else while(lstk.length>1&&ind<top.ind){lstk.pop();top=lstk[lstk.length-1];}
+      top.lst.items.push(listItem(m[3]));continue;}
     flushList();flushQuote();if(!para.length)paraLn=i;para.push(l);}
   if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
   flushAll();return out;}
@@ -10904,8 +10933,8 @@ function mdRender(src,ctx){ctx=ctx||{};
   // (bindProtoTasks). La coche SVG est toujours émise (masquée hors .done par le CSS) : le toggle
   // ne manipule que des classes, jamais d'innerHTML.
   let tk=0;
-  const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>'<li>'+mdInline(x)+'</li>').join('')+'</'+it.sub.t+'>':'';
-  const li=it=>it.task
+  const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
+  const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+subHtml(it)+'</span></li>'
     :'<li>'+mdInline(it.text)+subHtml(it)+'</li>';
   // Alignement des cellules : TABLE BLANCHE fermée au point d'insertion (défense en profondeur —
@@ -11052,7 +11081,7 @@ function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'').replace(MD_TASK_RX,'')
     .replace(/^!\[([^\]]*)\]\([^()]*\)\s*$/,'$1')
     .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
-  .join(' ').replace(BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
+  .join(' ').replace(MD_BI_RX,'$1').replace(MD_BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_STRIKE_RX,'$1').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
 const main=document.getElementById('main');
 /* Pied de page NOMADE : sur l'accueil large son contenu (version, synchro, stockage, input
    d'import) vit en bas de la sidebar ; ailleurs il reprend sa place en bas de .app. On DÉPLACE
@@ -18318,12 +18347,12 @@ function mdListEnter(inp){const [a,b,v]=selBounds(inp);if(a!==b)return false;
   const ls=v.lastIndexOf('\n',a-1)+1,c=mdListCont(v.slice(ls,a));if(!c)return false;
   if(c.end){if(v.slice(a,(v.indexOf('\n',a)+1||v.length+1)-1).trim())return false;mdSplice(inp,ls,a,'');return true;}
   mdSplice(inp,a,a,'\n'+c.next);return true;}
-// Tab / Maj+Tab sur des lignes de liste : un niveau de sous-liste (le seul que lit mdBlocks).
+// Tab / Maj+Tab sur des lignes de liste : un niveau de plus ou de moins (A607 : mdBlocks lit MD_MAX_DEPTH niveaux).
 // Rien à changer -> false, et Tab garde son rôle (sortir du champ).
 function mdListIndent(inp,out){const [a,b,v]=selBounds(inp);
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
   const ls2=v.slice(ls,end).split('\n');if(!ls2.every(l=>MD_LIST_RX.test(l)))return false;
-  const seg=ls2.map(l=>out?l.replace(/^ {1,2}/,''):(/^ {2}/.test(l)?l:'  '+l)).join('\n');
+  const seg=ls2.map(l=>out?l.replace(/^ {1,2}/,''):(l.match(/^ */)[0].length>=2*(MD_MAX_DEPTH-1)?l:'  '+l)).join('\n');
   if(seg===v.slice(ls,end))return false;
   // Curseur seul : il suit sa ligne ; sélection : elle couvre les lignes retouchées.
   const d=seg.split('\n')[0].length-ls2[0].length,c=Math.max(ls,a+d);
@@ -18334,7 +18363,7 @@ function mdListIndent(inp,out){const [a,b,v]=selBounds(inp);
 function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g}</span>`;
   return {
     h:{aria:'Titre',o:[['h1','Grand titre','# Titre','<b class="mdt-hx">H1</b>'],['h2','Titre','## Titre','<b class="mdt-hx">H2</b>'],['h3','Sous-titre','### Sous-titre','<b class="mdt-hx">H3</b>']]},
-    list:{aria:'Liste',o:[['ul','Liste à puces','- élément · Tab : sous-liste',uiIcon('ul',18)],['ol','Liste numérotée','1. élément',uiIcon('ol',18)],
+    list:{aria:'Liste',o:[['ul','Liste à puces','- élément · Tab : niveau suivant',uiIcon('ul',18)],['ol','Liste numérotée','1. élément',uiIcon('ol',18)],
       ['task','Liste cochable','- [ ] tâche · remise à zéro à chaque ouverture',uiIcon('task',18)],['q','Citation','> texte',uiIcon('quote',18)]]},
     box:{aria:'Encadré',o:[['c-caution','Alerte','ce qui tue si on l’oublie',C('mdc-crit',uiIcon('warn',18))],['c-warning','Attention','là où l’on risque de se tromper',C('mdc-vig','△')],
       ['c-note','Information','à savoir',C('mdc-info',uiIcon('info',18))],['c-tip','Confirmation','critère atteint, bon signe',C('mdc-ok',uiIcon('check',18,{sw:3}))]]},
@@ -18750,7 +18779,9 @@ function mdPlanOpen(btn,ta,p){const L=mdCaretLine(ta),H=mdHeads(p.body),cur=H.fi
     .concat([{val:'act:dup',name:'Dupliquer',sub:'la copie suit la section',ic:uiIcon('copy',16)},
       {val:'act:del',name:'Supprimer la section',sub:'⌘Z ou ↶ pour annuler',ic:uiIcon('trash',16),danger:true}]):[];
   openPickMenu(btn.parentNode,{aria:'Plan du contenu',trigger:btn,value:cur?String(cur.ln):'',
-    options:H.map(h=>({val:String(h.ln),name:h.text,sub:'ligne '+(h.ln+1),ic:`<b class="mdt-hx ${['','','md-lv2','md-lv3'][h.n]}">H${h.n}</b>`})).concat(act),
+    // A608 : le Plan dit sa STRUCTURE — chaque titre en retrait de son niveau, un filet le rattache à son parent (« juste
+    // H1/H2/H3, difficile à lire ») ; le niveau est porté par une classe d'un jeu fermé, jamais un nombre en style.
+    options:H.map(h=>({val:String(h.ln),name:h.text,sub:'ligne '+(h.ln+1),cls:['','mm-lv1','mm-lv2','mm-lv3'][h.n],ic:`<b class="mdt-hx ${['','','md-lv2','md-lv3'][h.n]}">H${h.n}</b>`})).concat(act),
     onPick:v=>{if(!/^act:/.test(v))return mdGoLine(ta,+v);
       const k=v.slice(4),r=k==='up'?mdSecMove(ta.value,cur.ln,-1):k==='down'?mdSecMove(ta.value,cur.ln,1):k==='dup'?mdSecDup(ta.value,cur.ln):mdSecDel(ta.value,cur.ln);
       if(!r)return;mdReplaceBody(ta,r.v,r.at);
@@ -18984,7 +19015,9 @@ function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.le
         else if(MD_TSEP.test(l)||/^(---+|\*\*\*+)\s*$/.test(l))set(0,l.length,1);
         else if((m=l.match(MD_LIST_RX)))set(0,m[0].length,1);
         if(MD_TROW.test(l))for(let i=0;i<l.length;i++)if(l[i]==='|'&&l[i-1]!=='\\')set(i,1,1);}
-      for(const x of l.matchAll(/\*\*|==|`|!?\[(?=[^\]\n]*\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);}
+      // A607 : TOUT marqueur d'emphase se grise — « * », « *** », « ~~ » — pas seulement « ** » (le 3ᵉ astérisque de
+      // « *** » restait à l'encre du texte : « il y en a un qui devient blanc »).
+      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]*\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);}
     else set(0,l.length,1);
     o+=l.length+1;});
   (lint||[]).forEach(x=>{for(let k=x.from;k<x.to&&k<C.length;k++)C[k]|=64;});
@@ -19103,7 +19136,7 @@ function renderProtocolEdit(){
       <div class="md-wpane">
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <div class="md-lint-box"></div>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
       <div class="md-ppane">${mds?`<div class="etab-rh"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div id="revPanel">${revProtoHtml(p)}</div></div>`:'<p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p>'}<div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mds?'</div>':''}
@@ -19405,7 +19438,7 @@ let _pickClose=null;
    slot gardé pour l'alignement) OU pastille de catégorie (`dot`), libellé, sous-ligne, queue
    (`tail` : coche, chevron). `attrs` vient de l'appelant, déjà échappé. */
 function menuRowHtml(o){const tag=o.inert?'div':'button';   // `inert` : une rangée qui INFORME sans répondre au tap (jamais un bouton mort)
-  return `<${tag}${o.inert?'':' type="button"'} class="mm-row${o.danger?' danger':''}${o.inert?' inert':''}"${o.attrs?' '+o.attrs:''}${o.disabled?' disabled':''}>`
+  return `<${tag}${o.inert?'':' type="button"'} class="mm-row${o.danger?' danger':''}${o.inert?' inert':''}${o.cls?' '+o.cls:''}"${o.attrs?' '+o.attrs:''}${o.disabled?' disabled':''}>`
     +(o.ic!=null?`<span class="mm-ic" aria-hidden="true">${o.ic}</span>`:o.dot?`<span class="cat-dot" style="--catcol:${o.col||'var(--line-strong)'}"></span>`:'')
     +(o.ic2?`<span class="mm-ic mm-ic2" aria-hidden="true">${o.ic2}</span>`:'')
     +`<span class="mm-tx"><span class="mm-lb">${esc(o.label)}</span>${o.sub?`<span class="mm-sub">${esc(o.sub)}</span>`:''}</span>${o.tail||''}</${tag}>`;}
@@ -19431,7 +19464,7 @@ function openPickMenu(host,opts){
     // `multi` (A475) : des CASES — plusieurs choix, la feuille reste ouverte ; `o.on` = 'true' · 'false' · 'mixed'.
     if(opts.multi)return menuRowHtml({label:o.name,sub:o.sub,ic:`<span class="mm-box">${uiIcon('check',14,{sw:3})}</span>`,ic2:o.ic,
       attrs:`role="menuitemcheckbox" aria-checked="${esc(o.on||'false')}" data-pickopt="${esc(v)}"`});
-    return menuRowHtml({label:o.name,sub:o.sub,ic:o.ic,dot:!o.ic&&o.dot!==false,col:o.col,danger:o.danger,
+    return menuRowHtml({label:o.name,sub:o.sub,ic:o.ic,dot:!o.ic&&o.dot!==false,col:o.col,danger:o.danger,cls:o.cls,
       attrs:`role="option" aria-selected="${sel?'true':'false'}" data-pickopt="${esc(v)}"${o.tt?` title="${esc(o.tt)}"`:''}`,
       tail:(o.cnt!=null?`<span class="mm-cnt">${esc(String(o.cnt))}</span>`:'')+(sel?`<span class="mm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:'')+(o.chev?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:'')});};
   // Feuille imposée par l'appelant (atelier d'import : le corps de fenêtre couperait un menu

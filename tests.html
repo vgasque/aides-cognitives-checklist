@@ -710,6 +710,21 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('att:ID sûr accepté', A.mdInline('[doc](att:a1-X)').indexOf('data-mdatt="a1-X"')>=0);
   ok('att:__proto__ refusé', A.mdInline('[doc](att:__proto__)').indexOf('data-mdatt')<0);
   eq('balisage non apparié laissé visible', A.mdInline('a **b'), 'a **b');
+  eq('A607 : ***gras italique***', A.mdInline('***x***'), '<b><i>x</i></b>');
+  eq('A607 : gras contenant un italique', A.mdInline('**indications *systématiques* en AVP**'), '<b>indications <i>systématiques</i> en AVP</b>');
+  eq('A607 : italique contenant un gras', A.mdInline('*a **b** c*'), '<i>a <b>b</b> c</i>');
+  eq('A607 : ~~barré~~', A.mdInline('a ~~b~~ c'), 'a <s>b</s> c');
+  eq('A607 : imbrication croisée laissée visible (aucune balise croisée)', A.mdInline('**a *b** c*'), '**a *b** c*');
+  eq('A607 : deux gras sur la ligne restent deux', A.mdInline('**a** et **b**'), '<b>a</b> et <b>b</b>');
+  ok('A607 : listes sur 4 niveaux (indentation Notion, 4 espaces)', (()=>{const b=A.mdBlocks('- a\n    - b\n        - c\n            - d\n- e')[0];
+    return b.items.length===2&&b.items[0].sub.items[0].sub.items[0].sub.items[0].text==='d'&&b.items[1].text==='e';})());
+  ok('A607 : on remonte d\'un niveau', (()=>{const b=A.mdBlocks('- a\n  - b\n    - c\n  - d')[0];
+    return b.items[0].sub.items.length===2&&b.items[0].sub.items[1].text==='d'&&b.items[0].sub.items[0].sub.items[0].text==='c';})());
+  ok('A607 : au-delà de 6 niveaux, rien ne se perd', (()=>{let src='',i;for(i=0;i<9;i++)src+=' '.repeat(2*i)+'- n'+i+'\n';
+    const h=A.mdRender(src);return [0,1,2,3,4,5,6,7,8].every(k=>h.includes('n'+k));})());
+  ok('A607 : un sous-niveau ne se vide plus quand le type change', (()=>{const b=A.mdBlocks('- a\n  - b\n  1. c')[0];return b.items[0].sub.items.length===2;})());
+  ok('A607 : rendu imbriqué', A.mdRender('- a\n    - **b *c***').includes('<ul class="md-ul"><li><b>b <i>c</i></b></li></ul>'));
+  eq('A607 : recherche sans marqueurs', A.mdStrip('***a*** ~~b~~ **c *d***'), 'a b c d');
 
   group('mini-Markdown — mdBlocks() / mdRender()');
   eq('titres et listes découpés', A.mdBlocks('## T\n- a\n- b\n1. c').map(b=>b.t), ['h2','ul','ol']);
@@ -886,7 +901,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     return b[0].items[0].task&&b[0].items[0].task.done===false&&b[0].items[0].text==='a'
         &&b[1].items[0].task&&b[1].items[0].task.done===true&&b[1].items[0].text==='b';})());
   ok('item normal : task null, texte intact', (()=>{const it=A.mdBlocks('- [] a')[0].items[0];return it.task===null&&it.text==='[] a';})());
-  ok('sous-item : jamais une tâche (contrat chaînes)', (()=>{const it=A.mdBlocks('- a\n  - [ ] s')[0].items[0];return typeof it.sub.items[0]==='string'&&it.sub.items[0]==='[ ] s';})());
+  ok('A607 : sous-item tâche (Notion imbrique ses cases)', (()=>{const it=A.mdBlocks('- a\n  - [ ] s')[0].items[0];return it.sub.items[0].text==='s'&&it.sub.items[0].task&&!it.sub.items[0].task.done;})());
   ok('-[ ] sans espace → paragraphe (coquille visible)', A.mdBlocks('-[ ] a')[0].t==='p');
   ok('rendu : data-task en ordre de document, done initial', (()=>{const h=A.mdRender('- [ ] a\n\n1. [x] b');
     return h.indexOf('data-task="0"')>=0&&h.indexOf('data-task="1"')>=0&&/md-task done"[^>]*data-task="1"/.test(h);})());

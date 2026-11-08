@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.104.0] — 2026-11-08
+Le Markdown copié depuis Notion se lit tel quel, et quatre défauts de lecture corrigés (A607-A608). Rien à rejouer côté
+serveur.
+- **Gras et italique imbriqués** : `***gras italique***`, un gras qui contient un italique
+  (`**indications *systématiques* en AVP**`) et un italique qui contient un gras sont rendus ; un balisage croisé reste
+  visible plutôt que de casser la ligne. **`~~barré~~`** est rendu.
+- **Listes sur six niveaux** : l'indentation fait le niveau (celle de Notion comprise, 4 espaces) ; Tab / Maj+Tab
+  changent d'un niveau dans l'éditeur ; les cases `- [ ]` sont lues à tout niveau. Avant, tout au-delà du 2ᵉ niveau
+  était aplati.
+- **Dans l'éditeur, tout marqueur d'emphase se grise** (le 3ᵉ astérisque de `***` restait à l'encre du texte).
+- **Image « Pleine »** : elle prend toute la largeur de la colonne, même petite — tirer la poignée au-delà de ¾ ne la
+  fait plus rétrécir.
+- **Le Plan** d'une référence se lit comme un arbre : chaque titre en retrait de son niveau, rattaché à son parent.
+- **La pastille de bibliothèque d'une rangée** : icône alignée sur le texte, marge intérieure rétablie.
+- **En sélection**, toucher le titre d'une aide ne le surligne plus en gris comme un lien.
+
 ## [5.103.0] — 2026-11-08
 La nouvelle architecture est en place (A606, lots 2 et 3 d'A600) : l'accueil lance, le catalogue range. Rien à rejouer
 côté serveur.
@@ -233,11 +249,3 @@ L'alarme d'un minuteur et l'écran de démarrage d'une aide au design actuel ; e
 - **En session, les sections sous le bloc redeviennent des cartes** (Ne pas oublier, revue, À vérifier,
   diagnostics, repères, références), comme sur l'écran de démarrage et comme avant la v5.89.0 — la liste
   « Pendant toute l'aide » disparaît (A578).
-
-## [5.89.4] — 2026-11-06
-Deux correctifs des étapes qui attendent leur moment (A576). Rien à rejouer côté serveur.
-- **Une étape pas encore cochable se touche comme les autres** : toucher son texte (et plus seulement sa case) affiche
-  « Prévue dans … » avec « Cocher » / « Annuler ». Toucher de nouveau referme la question ; relire la question ne la
-  referme pas.
-- **Un sigle garde ses capitales** dans la question : « Prévue dans 2 CEE. » au lieu de « 2 cEE. » (les mots
-  ordinaires restent en minuscule : « 2 chocs délivrés »).
