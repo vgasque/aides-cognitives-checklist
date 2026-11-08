@@ -117,7 +117,7 @@ console.log('=== retour SYSTÈME : un parcours d’historique EN RETARD ne fait 
  for(const retard of [1200,2500]){
    await q.evaluate(async r=>{const g=window.__acGo||(window.__acGo=history.go.bind(history));window.__goN=0;
      history.go=n=>{window.__goN++;setTimeout(()=>g(n),r);};
-     document.querySelector('.home-side [data-catmgr]').click();await new Promise(x=>setTimeout(x,400));
+     openCatMgr();await new Promise(x=>setTimeout(x,400));   // A606 : la porte de la colonne a déménagé au catalogue ; c'est la fenêtre qui compte
      window.__ouvert=_histLevels();_topModal().querySelector('.ai-x').click();},retard);
    await q.waitForTimeout(retard+1500);
    const h=await q.evaluate(()=>({ouvert:window.__ouvert,d:history.state&&history.state.d,L:_histLevels(),go:window.__goN,app:typeof fiches!=='undefined'})).catch(()=>({app:false}));

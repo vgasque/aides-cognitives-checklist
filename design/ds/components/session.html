@@ -2650,6 +2650,10 @@
   .ctg-row[aria-current="true"] .ctg-l{color:var(--act)}
   .ctg-main{min-width:0}
   .ctg-volets .ctg-row{min-height:48px}
+  /* Dans le volet de 280 px, le nom d'une bibliothèque garde la largeur de la rangée (mesuré : « Réanimation CHU » à
+     79 px sur 128 à côté de « △ 2 à relire ») : « à relire » passe SOUS le nom (`warnBas`), et un nom long se replie
+     plutôt que de se rogner — A589 §4. */
+  .ctg-volets .ctg-l{white-space:normal;overflow:visible}
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
   .tb-tabs{position:relative;touch-action:none}
   /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
@@ -7710,9 +7714,6 @@
      étages fixes. Les étages fixes réservent LA MÊME gouttière (une boîte `overflow:hidden` la
      reçoit aussi) : un seul bord droit pour les trois, quelle que soit la barre du système. */
   .hs-top,.hs-foot{overflow-y:hidden;scrollbar-gutter:stable}
-  /* L'intertitre du seul défileur COLLE : une liste longue ne doit pas perdre son étiquette.
-     Marges négatives = il reprend le rembourrage de la colonne pour peindre bord à bord. */
-  .hs-h-stick{position:sticky;top:0;background:var(--work);margin:0 -12px 8px;padding:12px 24px 0;z-index:1}
   /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
      queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
      porte » ici (le nombre de l'historique reste, mais devant le chevron). */
@@ -7772,11 +7773,7 @@
      Détail : doctrine-css.md C123. */
   .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
   [data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
-  .hs-who{flex:none;font-size:var(--t-meta);font-weight:500;color:var(--ink-2);margin-right:8px}
-  /* A589 §4 : le mot de partage CÈDE le premier — le nom d'une bibliothèque n'est plus tronqué pour lui. Le mot prend
-     la place qui RESTE (base 0, calé à droite contre le compte) ; le nom ne rétrécit qu'une fois le mot à zéro. */
-  .hs-row .hs-name:has(+.hs-who){flex:0 1 auto}
-  .hs-row .hs-who{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* A489 : le partage d'une bibliothèque, en un mot */
+  /* (.hs-who purgé A606 : les bibliothèques ont quitté la colonne pour le catalogue.) */
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
   .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
   .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
