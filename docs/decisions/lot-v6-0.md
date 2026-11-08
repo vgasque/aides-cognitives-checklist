@@ -866,6 +866,9 @@ Témoin : `audit-doctrine` « Accueil · A544 » (vérifié capable d'échouer).
 
 ## A545 — Au téléphone, le titre choisit : collections et catégories dans une feuille « Afficher » (v5.74.0)
 
+> **Forme écartée rouverte par A600 (`lot-v5-100.md`)** : l'arborescence « Parcourir » devient le CATALOGUE — le
+> niveau de retour qu'elle coûte vit hors du chemin de l'urgence (l'accueil devient un lanceur).
+
 *Renverse A517 (« filtres en pastilles ») et A528 (« Affichage » en première pastille) ; amende A475 (porte des
 collections au téléphone). Signalé par l'auteur (« le choix de catégories/collection sur téléphone est limité et pas
 pratique ») ; option B retenue sur planche Claude Design « Filtres de l'accueil au téléphone », 02/11/2026.*

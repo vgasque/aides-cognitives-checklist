@@ -44,6 +44,9 @@ Affichage).
 
 ## A476 — la barre de sélection : le tiroir à toute largeur (v5.50.0, applique A228)
 
+> **Amendé par A599 (v5.100.0, `lot-v5-100.md`)** : « Collection… » et « Exporter… » reviennent sur la ligne, ⋯ porte
+> le reste ; « Actions ▾ » redevient la règle quand le compte ne tient pas entier (mesuré). Matière système.
+
 **Mesuré** : dépliée, la barre utilisait 962 px pour 960 disponibles (la liste est bornée à 960, A389) avec quatre
 actes ; « Collection… » en demande ≈ 140 de plus. **Décision de l'auteur** : A228 appliquée strictement — le palier est
 celui où les libellés entiers tiennent, il n'existe plus ; « Actions ▾ » ouvre la feuille à toutes les largeurs,

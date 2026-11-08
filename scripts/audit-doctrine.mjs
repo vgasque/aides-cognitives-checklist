@@ -7220,7 +7220,7 @@ for (const H of [844, 667]) {
    ⚠ LE PALIER SE FRANCHIT RÉELLEMENT : sans la vérification « déplié à 1280, replié en dessous »,
    un vert ne dirait que « la barre tient », y compris si elle tenait en n'affichant jamais ses
    actes. On mesure donc AUSSI ce qui est sur la ligne de part et d'autre de 1200 px. */
-await sec('SÉLECTION · une ligne, 56 px, à tout écran et dans tout état (planche 20)', async () => {
+await sec('SÉLECTION · une ligne, 56 px (62 au téléphone, A599), à tout écran et dans tout état (planche 20)', async () => {
 for (const W of [320, 390, 560, 744, 1200, 1280]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -7249,7 +7249,8 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
     return out;});
   const P=`${W}px`;
   for (const [etat,m] of [['0 coché',r.zero],[r.n+' cochés',r.plein]]) {
-    t(`${P} · ${etat} : la barre mesure exactement 56 px`, m.h===56, `offsetHeight = ${m.h}`);
+    // A599 : au téléphone (barre d'onglets), la barre prend la place des onglets — leur hauteur, 62 ; en large, 56.
+    t(`${P} · ${etat} : la barre mesure exactement ${W<780?62:56} px`, m.h===(W<780?62:56), `offsetHeight = ${m.h}`);
     t(`${P} · ${etat} : aucun débordement horizontal`, m.over<=0, `scrollWidth - clientWidth = ${m.over}`);
     // Les objets n'ont pas la même hauteur (le compte est un span) : on compare leurs CENTRES.
     t(`${P} · ${etat} : un seul rang`, m.rangs<=1, `écart des centres = ${m.rangs} px — ${m.ids}`);
@@ -7259,9 +7260,11 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
   }
   // À zéro coché, RIEN DE MORT : la touche d'actes n'existe pas, elle n'est pas grisée.
   t(`${P} · 0 coché : la touche d'actes n'est pas rendue`, !/selDo/.test(r.zero.ids), r.zero.ids);
-  // A476 : le tiroir à TOUTE largeur — cinq actes en libellés entiers ne tiennent jamais sur la ligne.
-  const deplie=/selCol|selLib|selCat|selExp|selDel/.test(r.plein.ids);
-  t(`${P} · une touche d'actes, aucun acte sur la ligne (A476)`, /selDo/.test(r.plein.ids)&&!deplie, r.plein.ids);
+  /* A599 (amende A476) : « Collection… » et « Exporter… » sur la ligne quand le compte y tient entier, sinon la seule
+     touche « Actions » ; jamais « Bibliothèque… », « Catégorie… » ni « Supprimer… » sur la ligne. */
+  const directs=/selCol/.test(r.plein.ids)&&/selExp/.test(r.plein.ids),autres=/selLib|selCat|selDel/.test(r.plein.ids);
+  t(`${P} · deux actes directs, ou la seule touche d'actes quand le compte ne tiendrait pas (A599)`,
+    /selDo/.test(r.plein.ids)&&!autres&&(directs||!/selCol|selExp/.test(r.plein.ids)), r.plein.ids);
   await page.close();
 }
 });
@@ -7303,8 +7306,9 @@ for (const W of [390, 1200]) {
   t(`${P} · la case coche TOUT ce que la liste montre, et annonce « Tout décocher »`,
     r.tout.aria==='true'&&r.tout.nom==='Tout décocher'&&r.tout.coches===r.tout.total, JSON.stringify(r.tout));
   t(`${P} · … puis décoche tout`, r.rien.aria==='false'&&r.rien.coches===0&&r.rien.cpt==='0 coché', JSON.stringify(r.rien));
-  t(`${P} · la feuille Actions : Collection, Bibliothèque, Catégorie, Exporter, Supprimer — glyphe chacun`,
-    r.feuille.join()==='selCol,selLib,selCat,selExp,selDel', r.feuille.join());
+  // A599 : la feuille ne redit pas les actes déjà sur la ligne ; sinon elle porte les cinq. Un glyphe chacun.
+  t(`${P} · la feuille : les actes absents de la ligne (Supprimer toujours) — glyphe chacun`,
+    ['selLib,selCat,selDel','selCol,selLib,selCat,selExp,selDel'].includes(r.feuille.join()), r.feuille.join());
   await page.close();
 }
 });
@@ -9319,6 +9323,40 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
    « Afficher », les bibliothèques en LISTE (mot de partage, compte, coche), repliées au-delà de 6. A597 : l'accueil garde
    les 5 collections vues le plus récemment + « Toutes les collections · n » (qui ouvre « Afficher ») ; le champ
    « Filtrer » paraît au-delà de 12 rangées, sans voler le focus au doigt. */
+/* ══ A599 — LA BARRE DE SÉLECTION : MATIÈRE SYSTÈME, DEUX ACTES DIRECTS, EN BAS AU TÉLÉPHONE ═════════════════════════
+   Au téléphone elle remplace la barre d'onglets (en bas), « Annuler » et « Tout cocher » en haut ; « Collection… » et
+   « Exporter… » sur la ligne, ⋯ porte le reste (dont Supprimer) ; si le compte ne tient pas entier, « Actions ▾ » porte
+   les cinq. En large, en tête, matière système aussi. Le fond est la matière système dans les deux thèmes. */
+await sec('Accueil · A599 barre de sélection', async () => {
+  const mesure=async(page)=>page.evaluate(async()=>{const q=s=>document.querySelector(s);
+    document.getElementById('selTog')?.click();await __acCalme(300);
+    const cks=[...document.querySelectorAll('.dir-ck[data-selid]')];cks[0]?.click();await __acCalme(150);
+    const bar=q('.sel-bar'),r=bar.getBoundingClientRect(),c=q('#selN');
+    const probe=v=>{const i=document.createElement('i');i.style.background=v;bar.appendChild(i);const x=getComputedStyle(i).backgroundColor;i.remove();return x;};
+    const o={fond:getComputedStyle(bar).backgroundColor===probe('var(--sys)'),bas:Math.round(innerHeight-r.bottom),haut:Math.round(r.top),
+      onglets:!!q('#tabNav')&&!q('#tabNav').hidden,direct:selDirect(),court:bar.classList.contains('sel-court'),
+      compte:c.scrollWidth<=c.clientWidth+1,annuler:(q('.sel-top #selCancel')||{}).textContent||'',tout:(q('.sel-top #selAll')||{}).textContent||'',
+      case:!!q('.sel-bar #selAll'),croix:!!q('.sel-bar #selCancel')};
+    q('#selDo').click();await __acCalme(300);
+    o.feuille=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(b=>b.dataset.pickopt);
+    document.querySelector('.popmenu [data-pickback],.catmenu-voile,.sheet-voile')?.click();
+    return o;});
+  for(const [W,Z,TH] of [[390,100,'light'],[390,100,'dark'],[360,100,'light'],[1280,100,'light']]){
+    const page=await br.newPage({viewport:{width:W,height:W<780?844:860},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async t=>{applyTheme(t);render();await __acCalme(300);},TH);
+    const r=await mesure(page);const k=`${W} px ${TH==='dark'?'sombre':'clair'}`;
+    t(`${k} : A599 — la barre est en matière système`,r.fond,JSON.stringify(r));
+    t(`${k} : A599 — le compte n'est jamais rogné`,r.compte,JSON.stringify(r));
+    if(W<780){
+      t(`${k} : A599 — en bas, à la place de la barre d'onglets ; « Annuler » et « Tout cocher » en haut`,r.bas>=0&&r.bas<=40&&!r.onglets&&r.annuler==='Annuler'&&/^Tout (dé)?cocher$/.test(r.tout)&&!r.case&&!r.croix,JSON.stringify(r));
+      if(W>=390)t(`${k} : A599 — « Collection… » et « Exporter… » directs ; ⋯ porte le reste, Supprimer compris`,r.direct&&!r.court&&r.feuille.join()==='selLib,selCat,selDel',JSON.stringify(r));
+      else t(`${k} : A599 — trop étroit pour le compte entier : « Actions » porte les cinq actes`,!r.direct&&r.court&&r.feuille.join()==='selCol,selLib,selCat,selExp,selDel',JSON.stringify(r));
+    }else t(`${k} : A599 — en large, en tête avec sa case et sa croix ; deux actes directs`,r.haut<300&&r.case&&r.croix&&r.direct&&r.feuille.join()==='selLib,selCat,selDel',JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreuses', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

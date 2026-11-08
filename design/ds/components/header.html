@@ -2255,8 +2255,39 @@
   /* A476 (v5.50) : LE TIROIR À TOUTES LES LARGEURS — avec « Collection… », cinq actes en libellés entiers ne
      tiennent jamais dans une barre plafonnée à 960 px (mesuré 962/960 avec quatre) : A228 appliquée, la feuille
      « Actions » est le régime normal, « Annuler » en croix. Le dépliage sur la ligne (C41) a vécu. */
-  .sel-acts{display:none}
+  /* A599 — LA MATIÈRE SYSTÈME ET DEUX ACTES DIRECTS. La barre est un MODE (un tap coche au lieu d'ouvrir) : elle prend
+     la matière système (`--sys`, A222 — la plus sombre le jour, la plus claire la nuit, bordée de `--sys-edge`).
+     « Collection… » et « Exporter… » sur la ligne (ordre 1), ⋯ ensuite (ordre 2), la sortie au bout (ordre 3) ;
+     « Bibliothèque… », « Catégorie… » et « Supprimer… » restent dans la feuille — Supprimer à une étape de plus. */
+  .sel-bar{border-color:var(--sys-edge);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float)}
+  .sel-bar .sel-n{color:var(--sys-ink)}
+  .sel-bar[data-n="0"] .sel-n{color:var(--sys-ink-2)}
+  .sel-bar .btn,.sel-bar .btn.sm{border-color:transparent;background:var(--sys-key);color:var(--sys-ink)}
+  .sel-bar .btn:hover,.sel-bar .btn.sm:hover{border-color:transparent;background:var(--sys-hi)}
+  .sel-bar :focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
+  .sel-acts{display:contents}
+  .sel-acts>*{order:1}
+  .sel-acts>:is(#selLib,#selCat,#selDel){display:none}
+  .sel-bar .sel-do{order:2}
+  .sel-bar .sel-x{order:3}
+  .sel-do-w{display:none;align-items:center;gap:4px}
+  .sel-do-p{font-size:var(--t-step);line-height:1}
   .sel-bar .sel-x{width:40px;height:40px;padding:0}
+  .sel-bar .sel-x,.sel-bar .sel-x:hover{color:var(--sys-ink-2)}
+  /* `.sel-court` (posée par `bindSelBar` À LA MESURE) : la ligne ne tient pas le compte ENTIER à côté de deux libellés
+     entiers — la touche redevient « Actions ▾ » et la feuille porte les cinq actes (A476). Pas un palier de largeur :
+     le compte varie (« 2 cochés », « 12 cochés · deux bibliothèques »), le zoom aussi ; seule la mesure les suit. */
+  .sel-bar.sel-court .sel-acts{display:none}
+  .sel-bar.sel-court .sel-do-w{display:inline-flex}
+  .sel-bar.sel-court .sel-do-p{display:none}
+  /* Au téléphone, la barre prend la place de la barre d'onglets : même assise, même hauteur, même rayon. */
+  html.tabnav body.view-home .sel-bar.sel-bas{position:fixed;z-index:20;top:auto;left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));
+    bottom:var(--tb-bot);height:62px;margin:0;padding:0 8px 0 20px;border-radius:999px}
+  /* Mesuré à 390 : avec leurs icônes, les deux actes ne laissaient que 18 px au compte (« 2… ») ; au téléphone ils
+     gardent leur MOT seul, comme sur la planche — le compte, lui, ne se rogne jamais. */
+  .sel-bas .sel-acts>.btn>svg{display:none}
+  .sel-top .pg-btn{white-space:nowrap}   /* « Tout décocher » passait sur deux lignes à 360 px */
+  .sel-bas .btn:not(.sel-x){padding:0 12px}
   /* ══ SOUS 430 px EFFECTIFS — COMPRESSION, PUIS DÉPART DU SEGMENT ═════════════════════════════
      Le compte est le seul élément élastique : tout ce qui manque à la ligne se prend SUR LUI, et
      il s'ellipse. Mesuré à 390 px, avant correctif : le compte réduit à 47 px pour 58 nécessaires
