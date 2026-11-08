@@ -10743,8 +10743,9 @@ await sec('A613 · le suivi : notes et tâches, pour moi ou pour l’équipe, «
     o.note=suivi.some(x=>x.k==='note'&&x.lib==='lib1'&&x.ent===f.id&&x.dirty&&/4 22 31/.test(x.body));
     // Une tâche « À fusionner avec » g, D'abord, pour moi.
     q('.su-blk [data-sunew="task"]').click();await __acCalme(250);
-    q('[data-suty="fusion"]').click();await __acCalme(150);const sel=q('#svRef');sel.value=g.id;
-    q('[data-suprio="1"]').click();await __acCalme(150);q('#svRef').value=g.id;q('[data-sulib=""]').click();await __acCalme(150);q('#svRef').value=g.id;
+    // A624 : l'élément lié se choisit dans la feuille de l'app (plus de <select>) ; il survit aux autres choix.
+    q('[data-suty="fusion"]').click();await __acCalme(150);q('#svRefBtn').click();await __acCalme(250);q(`.popmenu [data-pickopt="${g.id}"]`).click();await __acCalme(200);
+    q('[data-suprio="1"]').click();await __acCalme(150);q('[data-sulib=""]').click();await __acCalme(150);
     q('#suiviEdModal [data-suedx="ok"]').click();await __acCalme(250);
     const t=suivi.find(x=>x.k==='task'&&x.ent===f.id);o.tache=!!t&&t.lib===null&&t.t.type==='fusion'&&t.t.ref===g.id&&t.t.prio===1;
     o.ligne=(q('.su-blk .su-l')||{}).textContent||'';
@@ -10852,6 +10853,29 @@ await sec('A617 · une collection ouverte depuis l’accueil a son « ‹ Accuei
     t(`${W} px · A617 : « ‹ Accueil » referme la collection`,b.coll===null&&b.view==='library',JSON.stringify(b));
     t(`${W} px · A617 : le geste retour du système aussi (une entrée d’historique), sans quitter l’app`,d>=1&&c.coll===null&&c.view==='library',JSON.stringify({d,c}));
     await page.close();}
+});
+
+await sec('A624 · la tâche « À fusionner avec » choisit dans la feuille de l’app, et se voit des deux côtés', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),o={};const A=fiches[0],B=fiches[1];
+    openRead(A.id);await __acCalme(400);q('#main [data-sunew="task"]').click();await __acCalme(300);
+    q('#suiviEdBody [data-suty="fusion"]').click();await __acCalme(200);
+    o.natif=!!q('#suiviEdBody select');q('#svRefBtn').click();await __acCalme(300);
+    o.feuille=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(b=>b.dataset.pickopt);
+    q(`.popmenu [data-pickopt="${B.id}"]`).click();await __acCalme(300);
+    o.choix=((q('#svRefBtn')||{}).textContent||'').trim()===String(B.title).trim();
+    q('#suiviEdFoot [data-suedx="ok"]').click();await __acCalme(300);
+    openRead(B.id);await __acCalme(400);
+    o.lie=[...document.querySelectorAll('#main .su-blk .su-sub')].some(x=>/Liées depuis/.test(x.textContent));
+    o.source=/Anaphylaxie|Arrêt/.test(((q('#main .su-blk .su-row .su-e'))||{}).textContent||'');
+    q('#main .su-blk [data-sudone]').click();await __acCalme(300);
+    o.memeTache=suivi.filter(x=>x.k==='task').length===1&&suivi.filter(x=>x.k==='task'&&x.t.done).length===1;
+    return o;});
+  t('A624 · « Avec » : plus de <select> natif — la feuille de choix de l’app, l’élément lui-même exclu',!r.natif&&r.feuille.length===1&&r.choix,JSON.stringify(r));
+  t('A624 · la tâche paraît aussi chez l’élément visé (« Liées depuis d’autres éléments »), avec sa source ; la cocher là coche la même tâche',r.lie&&r.source&&r.memeTache,JSON.stringify(r));
+  await page.close();
 });
 
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {

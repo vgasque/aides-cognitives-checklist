@@ -2929,6 +2929,13 @@
   body.view-read .read-meta>.su-pill::before{content:none}
   body.view-read .read-meta .su-pill svg{display:inline}
   .su-feuille{margin:0;padding:0;border:0}
+  /* A624 : la pastille de choix de l'élément lié — un champ de choix pleine largeur, qui ouvre la feuille. */
+  .su-refpick{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-item);font-weight:600;text-align:left;cursor:pointer}
+  .su-refpick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .su-refpick>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .su-refpick.vide>span{color:var(--ink-2)}
+  .su-refpick>svg{flex:none}
+  .su-refchev{transform:rotate(90deg);color:var(--ink-2)}
   .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
   .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}

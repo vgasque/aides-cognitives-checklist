@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.109.7] — 2026-11-08
-Atelier d'import (A622), cases rondes et vocabulaire (A623). Rien à rejouer côté serveur.
+Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
   rangée disparaît : le titre se présente comme un champ de texte (encadré gris léger, comme sur iOS), lisible en entier. Toucher le titre
   ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
@@ -9,6 +9,9 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623). Rien à rejouer cô
   restées carrées.
 - **« Protocole » partout** : les derniers « référence » qui désignaient un protocole (suivi, import, relecture, images)
   sont renommés ; « Références » ne désigne plus que la bibliographie.
+- **Tâches « À fusionner avec » / « À confronter à »** : l'aide ou le protocole lié se choisit dans la feuille de choix
+  de l'app (aides et protocoles séparés, recherche dès 8 éléments) au lieu d'une liste déroulante ; et la tâche paraît
+  maintenant AUSSI dans le suivi de l'élément visé (« Liées depuis d'autres éléments »), où l'on peut la cocher.
 
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.
