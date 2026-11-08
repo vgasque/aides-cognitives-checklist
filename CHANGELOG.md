@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.108.0] — 2026-11-08
+Le volet « Suivi » dans l'éditeur (A614). Rien de nouveau à rejouer côté serveur (le schéma de la 5.107.0 suffit).
+- **En modifiant une aide ou une référence**, le suivi est là : dans la colonne de droite sur ordinateur, sous la
+  relecture ; en bas du formulaire au téléphone. Notes et tâches s'ajoutent, se cochent et se modifient sans quitter
+  l'éditeur — même sur une aide ou une référence que vous êtes en train de créer.
+- Le suivi reste à côté du contenu : il ne change pas la version validée.
+- « Ajouter une note personnelle » disparaît aussi de l'éditeur (« ＋ Note » le remplace).
+
 ## [5.107.0] — 2026-11-08
 Le suivi : des notes et des tâches sur chaque aide et chaque référence, pour vous ou pour l'équipe (A613).
 **Schéma serveur à rejouer** (`supabase/schema.sql` : nouvelle table `aid_followups`, puis `supabase/rls-tests.sql`).
@@ -243,16 +251,3 @@ La taille d'une image se voit et se tire (A584). Rien à rejouer côté serveur.
   choisie, même au téléphone. Une phrase rappelle qu'au téléphone l'image prend toujours toute la largeur.
 - **On peut tirer le bord** : la poignée bleue au bord de l'image se tire au doigt ou à la souris ; l'image s'aimante
   à la taille la plus proche, affichée pendant le geste (« ½ · 50 % »).
-
-## [5.91.0] — 2026-11-06
-Les images d'une référence en grille, chacune avec sa feuille (A583). Rien à rejouer côté serveur.
-- **Dans l'éditeur d'une référence, les images forment une carte « Images du texte »** sous le contenu rédigé : une
-  grille de vignettes, repliée à deux rangs (« n de plus » pour déplier). Elle remplace la liste d'une rangée par
-  image, qui pouvait occuper plusieurs écrans.
-- **Chaque vignette dit son usage** : « ×2 » quand l'image sert à deux passages, « △ hors texte » quand plus aucun
-  passage ne l'affiche (elle sera retirée en quittant l'éditeur, comme avant).
-- **Toucher une image ouvre sa feuille** : insérer au curseur, aller au passage (un toucher de plus passe au suivant),
-  taille d'affichage, remplacer (tous les passages suivent), retirer de la référence (avec ↶ pour annuler).
-- **« Image » entre dans le bouton « Ajouter »** de la référence. Déposer une image n'importe où dans l'éditeur et
-  l'outil image de la barre marchent toujours.
-- Les documents PDF restent au-dessus du texte : c'est là qu'ils s'affichent en lecture.

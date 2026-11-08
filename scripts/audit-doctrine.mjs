@@ -10707,6 +10707,28 @@ await sec('A613 · le suivi : notes et tâches, pour moi ou pour l’équipe, «
   await page.close();
 });
 
+await sec('A614 · le volet « Suivi » de l’éditeur (colonne au bureau, pied au téléphone, brouillon neuf compris)', async () => {
+  for(const W of [1280,390]){
+    const page=await br.newPage({viewport:{width:W,height:W<780?844:900},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async W=>{const o={},q=s=>document.querySelector(s);
+      const pr=migrateProtocol({title:'Témoin A614',body:'Texte'});protocols.push(pr);
+      suiviPut({id:'t614',ent:pr.id,k:'task',lib:null,body:'',t:{type:'revoir',prio:1}});
+      await openProtocolEdit(pr.id);await __acCalme(400);
+      o.bloc=!!q('#main .su-blk[data-suent="'+pr.id+'"]');o.colonne=!!q('#editSide .su-blk');o.tache=!!q('#main .su-blk [data-sudone="t614"]');
+      // Aide : pas de doublon « Ajouter une note personnelle » ; un BROUILLON NEUF reçoit une note.
+      await openEdit(fiches[0].id);await __acCalme(300);o.doublon=!!q('#noteEditBtn');
+      newProtocol();await __acCalme(400);const id=state.pdraft.id;
+      const nb=q('#main .su-blk [data-sunew="note"]');o.neuf=!!nb;
+      if(nb){nb.click();await __acCalme(250);q('#svBody').value='Note sur un brouillon';q('#suiviEdModal [data-suedx="ok"]').click();await __acCalme(250);}
+      o.noteNeuf=suivi.some(x=>x.ent===id&&x.k==='note'&&x.body==='Note sur un brouillon')&&!!q('#main .su-blk .su-note');
+      return o;},W);
+    t(`${W} px · A614 : l’éditeur de référence porte le volet « Suivi »${W>=1000?' dans la colonne de droite':' en pied du formulaire'}`,r.bloc&&r.tache&&(W>=1000?r.colonne:!r.colonne),JSON.stringify(r));
+    t(`${W} px · A614 : l’éditeur d’aide sans doublon « Ajouter une note personnelle » ; un brouillon neuf reçoit une note`,!r.doublon&&r.neuf&&r.noteNeuf,JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
