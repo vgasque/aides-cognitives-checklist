@@ -1204,6 +1204,9 @@ Témoin : `audit-doctrine` « A555 » — ouverture ajustée, `pan-x pan-y`, pin
 
 ## A556 — Au téléphone, un bouton pour QUOI, un pour COMMENT ; le filtre du dock est purgé (v5.82.0)
 
+> **Amendé par A596 (v5.98.0, `lot-v5-98.md`)** : la Bibliothèque de « Afficher » est une liste, plus des puces ; et
+> A595 : une bibliothèque choisie prend le grand titre.
+
 *Amende A545 (« Affichage » = ranger, densité, nature, au bout de la ligne du titre) et A353 (la porte de la feuille au
 téléphone est le bouton rond du dock) ; renverse A423/A538 sur le bouton filtre. Signalé par l'auteur (« que penses-tu
 du bouton à côté de “Aides”, du bouton Trier/Affichage et du bouton filtrer à côté du champ de recherche ? ») ;

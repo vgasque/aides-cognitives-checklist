@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.98.0] — 2026-11-08
+La poignée de l'éditeur suit enfin le doigt ; l'accueil du téléphone dit quelles bibliothèques il affiche, et tient
+des dizaines de collections (A594-A597). Rien à rejouer côté serveur.
+- **La poignée entre le texte et l'aperçu suit le doigt.** Sur tablette, elle sautait entre trois positions (40, 50,
+  65 %) : pendant le geste, l'ancienne valeur était repeinte. Elle glisse maintenant en continu, et aux largeurs
+  étroites la plage va de 30 à 70 %.
+- **L'accueil dit ses bibliothèques.** Sous « Aides », la sous-ligne compte les bibliothèques affichées (« Tout ·
+  5 bibliothèques · 112 »). Une bibliothèque choisie prend le grand titre (« SMUR 75 », avec « Bibliothèque ·
+  partagée » au-dessus) et « Tout afficher » revient à toutes ; les aides n'y répètent plus le nom de la bibliothèque.
+- **Dans « Afficher », les bibliothèques sont une liste** : partage, nombre d'aides, coche sur la courante ; au-delà
+  de six, « Voir les n autres ».
+- **Des dizaines de collections** : au-delà de six, l'accueil garde les cinq ouvertes le plus récemment (dans l'ordre
+  alphabétique), puis « Toutes les collections », qui ouvre « Afficher ». Un champ « Filtrer » y paraît dès qu'il y a
+  beaucoup de rangées, sans faire monter le clavier au doigt.
+- Corrigé : un long nom de bibliothèque ou de collection poussait « Créer » hors de l'écran une fois la page défilée.
+
 ## [5.97.0] — 2026-11-07
 L'éditeur de référence aligne enfin le texte et son aperçu, et une poignée règle leur largeur (A593, amende
 A546). Rien à rejouer côté serveur.
@@ -229,20 +245,3 @@ serveur.
   dessous dit « Pas encore le moment. » et propose « Cocher quand même » ou « Annuler ». Une coche par erreur (qui
   lancerait un minuteur) est ainsi rattrapée, et rien n'encombre la rangée au repos.
 - Audit : un témoin mesure la nouvelle grammaire, dont l'écart entre le mot de registre et son libellé.
-
-## [5.87.0] — 2026-11-05
-Les étapes « complexes » en session — celles qui attendent leur moment, comptent, lancent un minuteur — retrouvent
-leurs couleurs et s'allègent (A569, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- **Correctif : trois étiquettes d'étape avaient perdu leur couleur** depuis la v5.61. Au 3ᵉ choc, l'étiquette
-  « ✓ Chocs délivrés ≥ 3 » de l'étape qui devient faisable redevient **verte** ; « Échu » (l'échéance du minuteur
-  de l'étape) redevient **ambre** ; « Faite » (une étape à faire une seule fois, déjà faite) redevient verte. Elles
-  sortaient toutes grises, comme une règle encore en attente.
-- **Correctif : l'étape qui s'ouvre au seuil ne vire plus au gris.** Son éclairage vert finissait sur l'ancien fond
-  gris des étapes, puis disparaissait d'un coup ; il s'éteint maintenant en douceur vers la rangée nue.
-- L'étape « faite une fois » vit à plat, comme les autres étapes : son cadre gris disparaît. Seule l'étape qui
-  attend son moment garde un cadre, en pointillé.
-- Les règles de moment s'écrivent en phrase (« Chocs délivrés ≥ 3 », « À l'échéance », « Au besoin ») au lieu de
-  capitales espacées ; les mots d'état (« Échu », « Faite »), comme CRITIQUE et VIGILANCE, restent en capitales —
-  la règle et l'état se distinguent d'un coup d'œil.
-- « passage 4/4 » ne se coupe plus entre le mot et le compte au téléphone.
-- Audit : un témoin lit désormais la couleur et la casse de ces étiquettes (aucun ne le faisait).

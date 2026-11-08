@@ -9313,6 +9313,55 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
   }
 });
 
+/* ══ A595-A597 — L'ACCUEIL DU TÉLÉPHONE DIT SES BIBLIOTHÈQUES ; DES DIZAINES DE COLLECTIONS ═════════════════════════
+   A595 : au repos la sous-ligne compte les bibliothèques ; une bibliothèque choisie prend le grand titre (œil « Bibliothèque
+   · … »), « Tout afficher » la retire, la rangée ne redit plus sa bibliothèque, « Créer » reste à l'écran. A596 : dans
+   « Afficher », les bibliothèques en LISTE (mot de partage, compte, coche), repliées au-delà de 6. A597 : l'accueil garde
+   les 5 collections vues le plus récemment + « Toutes les collections · n » (qui ouvre « Afficher ») ; le champ
+   « Filtrer » paraît au-delà de 12 rangées, sans voler le focus au doigt. */
+await sec('Accueil · A595-A597 bibliothèques dites, liste, collections nombreuses', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)],o={};
+    myLibraries=Array.from({length:9},(_,i)=>({id:'b'+i,name:'Bibliothèque numéro '+(i+1)+(i===2?' au nom vraiment très long':''),role:i%2?'viewer':'editor'}));
+    const base=JSON.parse(JSON.stringify(fiches[0]));
+    for(let i=0;i<30;i++){const n=JSON.parse(JSON.stringify(base));n.id='x595-'+i;n.title='Témoin '+i;n.library=i%10?'b'+(i%9):null;n.status='validated';fiches.push(migrate(n));}
+    for(let i=0;i<14;i++)collNew('Rangement '+String(i).padStart(2,'0'),['x595-'+i]);
+    setHomeColls(true);render();await __acCalme(400);
+    o.sous=(q('.pg-sub')||{}).textContent||'';
+    o.collsAvant=qa('[data-hcoll]').length;o.toutes=!!q('[data-hcall]');
+    // Ouvrir « Rangement 11 » (sa vue) : elle entre dans les cinq de tête, dans l'ordre alphabétique.
+    const c11=colls.find(c=>c.name==='Rangement 11');state.coll=c11.id;render();await __acCalme(300);state.coll=null;render();await __acCalme(300);
+    o.tete=qa('[data-hcoll] .hc-n').map(e=>e.textContent);
+    // « Toutes les collections » ouvre « Afficher », champ « Filtrer » présent mais pas focalisé au doigt.
+    q('[data-hcall]').click();await __acCalme(300);
+    o.feuille=!!q('.popmenu.sheet');const fl=q('.popmenu .catmenu-filter');o.filtre=!!fl;o.filtreFocus=!!fl&&document.activeElement===fl;
+    o.puces=!!q('.pk-top .chiprow');o.libs=qa('.pk-libs [data-pklib]').length;o.libsVisibles=qa('.pk-libs [data-pklib]:not([hidden])').length;
+    o.plus=(q('[data-pklibmore]')||{}).textContent||'';
+    o.mots=qa('.pk-libs .pk-who').map(e=>e.textContent);
+    q('[data-pklibmore]')?.click();await __acCalme(200);o.libsOuvertes=qa('.pk-libs [data-pklib]:not([hidden])').length;
+    q('.pk-libs [data-pklib="b2"]').click();await __acCalme(300);
+    o.coche=(q('.pk-libs [aria-pressed="true"]')||{}).dataset?.pklib;o.resteOuverte=!!q('.popmenu.sheet');
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(300);
+    o.titre=(q('.pg-tbt')||{}).textContent||'';o.oeil=(q('.pg-eye')||{}).textContent||'';o.puceLib=qa('.af-chip').some(c=>/Bibliothèque/.test(c.textContent));
+    o.provenance=qa('.dir-book .libtag').length;
+    {const n=q('#pgNew'),w=innerWidth;const b=n&&n.getBoundingClientRect();o.creer=!!b&&b.right<=w&&b.left>=0;}
+    o.toutAff=!!q('.pg-acts [data-pgall]');q('.pg-acts [data-pgall]')?.click();await __acCalme(300);
+    o.apres=(q('.pg-tbt')||{}).textContent||'';o.libApres=state.homeLib;
+    return o;});
+  t('A595 · au repos, la sous-ligne compte les bibliothèques mêlées',/^Tout · 10 bibliothèques · \d+$/.test(r.sous),r.sous);
+  t('A597 · 14 collections : l’accueil en garde 5, puis « Toutes les collections »',r.collsAvant===5&&r.toutes,JSON.stringify(r));
+  t('A597 · une collection ouverte entre dans la tête, l’ordre reste alphabétique',r.tete.includes('Rangement 11')&&r.tete.join()===r.tete.slice().sort().join(),r.tete.join(' | '));
+  t('A597 · « Toutes les collections » ouvre « Afficher » ; « Filtrer » présent, pas focalisé au doigt',r.feuille&&r.filtre&&!r.filtreFocus,JSON.stringify({f:r.feuille,fl:r.filtre,foc:r.filtreFocus}));
+  t('A596 · bibliothèques en liste (plus de puces) : « Toutes » + 6, puis « Voir les n autres »',!r.puces&&r.libs===11&&r.libsVisibles===7&&/^Voir les 4 autres$/.test(r.plus.trim())&&r.libsOuvertes===11,JSON.stringify({p:r.puces,l:r.libs,v:r.libsVisibles,plus:r.plus,o:r.libsOuvertes}));
+  t('A596 · chaque bibliothèque dit son partage ; choisir coche et la feuille reste ouverte',r.mots.includes('vous seul')&&r.mots.includes('lecture')&&r.mots.includes('partagée')&&r.coche==='b2'&&r.resteOuverte,JSON.stringify({m:r.mots,c:r.coche,o:r.resteOuverte}));
+  t('A595 · choisie, la bibliothèque prend le grand titre (œil « Bibliothèque · … ») sans puce redite',/^Bibliothèque numéro 3 au nom/.test(r.titre)&&/^Bibliothèque · /.test(r.oeil.trim())&&!r.puceLib,JSON.stringify({t:r.titre,e:r.oeil,p:r.puceLib}));
+  t('A595 · la rangée ne redit pas la bibliothèque ; « Créer » reste à l’écran malgré le long nom',r.provenance===0&&r.creer,JSON.stringify({p:r.provenance,c:r.creer}));
+  t('A595 · « Tout afficher » rend « Aides » et retire la bibliothèque',r.toutAff&&r.apres==='Aides'&&r.libApres==null,JSON.stringify({a:r.toutAff,t:r.apres,l:r.libApres}));
+  await page.close();
+});
+
 /* ══ A390 — LA STRUCTURE DE L'ÉDITEUR SOUS 1200 px ; L'APERÇU SUIT LA VRAIE PAGE ═══════════════════════
    (1) Sous 1200 px la colonne Structure n'existait pas : elle devient le dépliant collant du sommaire des
    protocoles, fermé d'office, qui se referme au saut. (2) « Essayer » rendait la page d'avant la v5.30 — ni
