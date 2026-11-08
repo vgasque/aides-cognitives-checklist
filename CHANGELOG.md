@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.100.0] — 2026-11-08
+La barre de sélection change de dessin (A599) ; la nouvelle architecture de l'accueil est décidée (A600, à venir par
+lots). Rien à rejouer côté serveur.
+- **La barre de sélection est sombre**, dans la matière des objets « système » (carte de session, notifications) : on
+  voit d'un coup d'œil qu'on est en sélection — un tap coche au lieu d'ouvrir. La nuit, elle s'éclaircit pour rester
+  visible.
+- **« Collection… » et « Exporter… » directement sur la barre**, le reste derrière **⋯** (déplacer vers une
+  bibliothèque, ranger dans une catégorie, supprimer — qui garde ainsi une étape de plus).
+- **Au téléphone, la barre prend la place des onglets, en bas** ; « Annuler » et « Tout cocher » sont en haut.
+- Quand la place manque (petit écran, grand texte), la barre revient à « Actions ▾ » plutôt que de couper le nombre
+  d'éléments cochés.
+- Corrigé : la barre d'onglets restait affichée pendant une sélection au téléphone.
+- Décidé (A600) : l'accueil deviendra un **lanceur** (session en cours, Accès direct, collections, récentes) et un
+  **catalogue** portera bibliothèques, catégories et la liste complète « Tout » (filtrer, trier, sélectionner) —
+  ajouté d'abord sans rien retirer.
+
 ## [5.99.0] — 2026-11-08
 Une collection peut rester en tête de l'accueil (A598). Rien à rejouer côté serveur.
 - **« Garder en tête de l'accueil »**, dans le menu ⋯ d'une collection : elle reste dans « Vos collections » sur
@@ -217,13 +233,3 @@ La session, deuxième passe « Natif » : ce qui entoure les étapes se rapproch
 - **Au bureau, la colonne de droite passe en listes** : chaque minuteur a son bouton « Démarrer » visible, chaque
   compteur une pilule « − n + », « Ajouter un minuteur » et « Ajouter un compteur » sont au pied de leur liste, le son
   et la veille deviennent des interrupteurs.
-
-## [5.88.1] — 2026-11-06
-Retours sur la v5.88.0 : la confirmation d'une étape qui attend son moment dit ce qui reste, plus de lignes vides, et
-l'exercice guidé l'enseigne (A570 §10, doctrine `docs/decisions/lot-v6-0.md`). Rien à rejouer côté serveur.
-- Toucher la case d'une étape en attente affiche maintenant **ce qui reste** : « Prévue dans 2 chocs délivrés. »,
-  « Prévue dans 1 choc délivré. », ou « Prévue dans 03:56. » (le temps défile), puis **« Cocher »** ou **« Annuler »**.
-- **Plus de ligne vide** sous une étape en attente : sous une étape qui lance un minuteur ou compte, la ligne dit ce
-  que fera la coche (« ◷ 04:00 Adrén. dose ») ; sinon, il n'y a pas de ligne.
-- **L'exercice guidé** montre une étape qui attend son moment et la question de sa case ; « Prendre en main » gagne le
-  geste « Une étape qui attend son moment », et le glossaire le terme « Moment d'une étape ».
