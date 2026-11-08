@@ -7564,9 +7564,12 @@
   @media (pointer:coarse){.imp-tin{font-size:16px}}
   /* A622 : le titre-bouton garde le dessin du titre ; cible de 32 px par son rembourrage (rendu en marge négative : la
      rangée ne bouge pas) ; souligné pointillé au survol (le crayon a été retiré à la demande de l'auteur). */
-  .imp-ren{display:inline-flex;align-items:center;gap:6px;max-width:100%;align-self:flex-start;margin:-6px 0;padding:6px 0;border:0;background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:text}
+  /* A622 §2 — L'ENCADRÉ D'UN CHAMP, comme iOS (demande de l'auteur, à la place du crayon) : un fond gris léger arrondi
+     dit « ce titre se modifie » sans icône ; il prend la LARGEUR de la rangée, comme un champ (étroit, il se lisait comme
+     un bouton — essayé). */
+  .imp-ren{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;min-height:32px;margin:0 0 2px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--amb);color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:text}
   .imp-ren .imp-tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .imp-ren:hover .imp-tt{text-decoration:underline dotted;text-underline-offset:3px}
+  .imp-ren:hover{border-color:var(--ctl-line)}
   .imp-ren:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
   .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
