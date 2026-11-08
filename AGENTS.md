@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A614 au lot v5.107 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A615 au lot v5.107 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A614 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A615 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -260,7 +260,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-98.md`](docs/decisions/lot-v5-98.md) | A594-A598 | La poignée suit le doigt ; l'accueil du téléphone dit ses bibliothèques (titre, liste dans « Afficher ») ; des dizaines de collections (les 5 récentes, « Toutes les collections », « Garder en tête ») |
 | [`lot-v5-100.md`](docs/decisions/lot-v5-100.md) | A599-A606 | La barre de sélection en matière système ; L'ARCHITECTURE CIBLE « lanceur + catalogue » (par lots) ; lot 1 : le catalogue ajouté, le dock glissé ; retour système et volets ; la pastille du dock glisse ; lots 2-3 : l'accueil lanceur, la colonne ne filtre plus |
 | [`lot-v5-104.md`](docs/decisions/lot-v5-104.md) | A607-A612 | Le Markdown de Notion (emphase imbriquée, barré, listes sur 6 niveaux) ; image « Pleine », Plan en arbre, pastille de provenance, sélection sans voile ; tableau (grille rouverte, en-têtes, `<br>`) ; blocs (« ＋ », sélection multiple, déplacer plusieurs blocs, bloc vidé) ; import (renommer, verser dans une référence) |
-| [`lot-v5-107.md`](docs/decisions/lot-v5-107.md) | A613-A614 | Le suivi : notes et tâches, pour moi ou pour l'équipe ; « À faire » (par priorité, par élément) ; table `aid_followups` ; volet « Suivi » des éditeurs |
+| [`lot-v5-107.md`](docs/decisions/lot-v5-107.md) | A613-A615 | Le suivi : notes et tâches, pour moi ou pour l'équipe ; « À faire » (par priorité, par élément) ; table `aid_followups` ; volet « Suivi » des éditeurs ; pastille sous le titre |
 
 ### Carte par sujet
 
