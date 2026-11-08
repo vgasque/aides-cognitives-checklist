@@ -8994,7 +8994,9 @@ await sec('Accueil · A539 onglet actif plein, avatar et point bordés', async (
       const s=document.querySelector('[data-tab="sessions"]');s.classList.add('live');
       const sonde=document.createElement('i');sonde.style.cssText='position:absolute;background:var(--act)';document.body.appendChild(sonde);const act=getComputedStyle(sonde).backgroundColor;sonde.remove();
       const on=document.querySelector('.tb-tab.on'),av=document.querySelector('.tb-av');
-      return {plein:getComputedStyle(on).backgroundColor===act,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
+      /* A603 : la pastille pleine est un objet à part (`.tb-pill`), posé sous l'onglet actif — c'est elle qui porte --act. */
+      const pl=document.querySelector('.tb-pill'),pr=pl&&pl.getBoundingClientRect(),orr=on.getBoundingClientRect();
+      return {plein:!!pl&&getComputedStyle(pl).backgroundColor===act&&Math.abs(pr.left-orr.left)<=2&&Math.abs(pr.width-orr.width)<=2,av:av?getComputedStyle(av).boxShadow:'∅',point:getComputedStyle(s,'::after').boxShadow};});
     t(`A539 · ${th} : l'onglet actif est une pastille pleine (--act)`,r.plein,JSON.stringify(r));
     t(`A539 · ${th} : connecté, le disque de l'avatar est bordé ; le point vivant a son anneau`,/inset/.test(r.av)&&r.point!=='none',JSON.stringify(r));
     await page.close();
@@ -9331,7 +9333,7 @@ await sec('Accueil · A587-A589 collections en tête, groupes pliables, provenan
    Onglet « Bibliothèques » (téléphone) / rangée de la colonne (large) : racine (« Tout » + les bibliothèques), une
    bibliothèque (SES catégories), une catégorie (ses éléments, sans redire bibliothèque ni catégorie), « Tout » filtrable
    et sélectionnable ; l'état de l'accueil n'est pas touché ; le dock se glisse d'un onglet à l'autre. */
-await sec('Accueil · A601-A602 catalogue, volets, retour, dock glissé', async () => {
+await sec('Accueil · A601-A603 catalogue, volets, retour, dock glissé', async () => {
   const decor=async()=>{myLibraries=[{id:'smur',name:'SMUR 75',role:'editor'},{id:'bloc',name:'Bloc central',role:'viewer'}];
     categories.push({id:'kc',name:'Cardio',color:'#c2410c',library:'smur'},{id:'kp',name:'Pédiatrie',color:'#7c3aed',library:'smur'},{id:'ka',name:'Anesthésie',color:'#1d4ed8',library:'bloc'});
     const base=JSON.parse(JSON.stringify(fiches[0]));
@@ -9384,7 +9386,17 @@ await sec('Accueil · A601-A602 catalogue, volets, retour, dock glissé', async 
       const pendant=await page.evaluate(()=>document.querySelector('.tb-tab.pre')?.dataset.tab||'');
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await calme(page,400);
       const apres=await page.evaluate(()=>homeTab());
-      t(`${k} : A601 — le dock se glisse : la pastille suit le doigt, l'onglet sous le doigt s'ouvre au relâchement`,pendant==='me'&&apres==='me',JSON.stringify({pendant,apres}));}
+      t(`${k} : A601 — le dock se glisse : la pastille suit le doigt, l'onglet sous le doigt s'ouvre au relâchement`,pendant==='me'&&apres==='me',JSON.stringify({pendant,apres}));
+      // A603 : la pastille est un objet qui GLISSE (transition sur transform) et se pose sous l'onglet courant.
+      const pil=await page.evaluate(async()=>{const p=document.querySelector('.tb-pill');if(!p)return null;
+        const pos=()=>{const r=p.getBoundingClientRect(),t=document.querySelector('.tb-tab.on').getBoundingClientRect();return {dx:Math.round(Math.abs(r.left-t.left)),dw:Math.round(Math.abs(r.width-t.width))};};
+        const repos=pos();document.querySelector('.tb-tab[data-tab="aides"]').click();
+        await new Promise(r=>setTimeout(r,60));   // horloge : 60 ms dans la transition de 300 ms — la pastille doit être EN ROUTE
+        const encours=pos();
+        await new Promise(r=>setTimeout(r,600));   // horloge : au-delà de la transition — la pastille doit être POSÉE
+        return {repos,encours,pose:pos(),trans:getComputedStyle(p).transitionProperty};},);
+      t(`${k} : A603 — la pastille du dock glisse d'un onglet à l'autre et se pose sous l'onglet courant`,
+        !!pil&&pil.repos.dx<=2&&pil.encours.dx>8&&pil.pose.dx<=2&&pil.pose.dw<=2&&/transform/.test(pil.trans),JSON.stringify(pil));}
     await ctx.close();}
 });
 

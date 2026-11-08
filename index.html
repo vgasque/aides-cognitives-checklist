@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0lJrP8TU2ud9QVB0FlKvI3Dwy6ocjHTB1mYrjCCb1AA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QEWi2l/34YIVKCnxm9pKryefiMHgv5P+eUqeATI7f8M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3046,12 +3046,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-main{min-width:0}
   .ctg-volets .ctg-row{min-height:48px}
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
-  .tb-tabs{touch-action:none}
-  .tb-tabs.drag .tb-tab.on:not(.pre){background:none;color:var(--ink)}
+  .tb-tabs{position:relative;touch-action:none}
+  /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
+  .tb-pill{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:var(--act);
+    transition:transform .3s cubic-bezier(.3,1.2,.4,1)}   /* la largeur se pose d'un coup (check-anim : jamais de layout animé), le glissé est un transform */
+  .tb-tabs.drag .tb-pill{transition:none}
+  html.tabnav .tb-tab.on{background:none}
+  .tb-tabs.drag .tb-tab.on:not(.pre){color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){.tb-pill{transition:none}}
   /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
      de la largeur de son mot, le reste se partage. */
   .tb-tab{flex:1 1 auto;padding:0 8px}
-  .tb-tab.pre{background:var(--act);color:var(--on-primary)}
+  .tb-tab{z-index:1}
+  .tb-tab.pre{color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
   .hc-ic{flex:none;display:inline-flex;color:var(--act)}
   .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -16775,6 +16782,7 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
     n.querySelector('[data-tab="aides"]').insertAdjacentHTML('afterbegin',uiIcon('list',22,{sw:2}));
     n.querySelector('[data-tab="biblio"]').insertAdjacentHTML('afterbegin',uiIcon('book',22,{sw:2}));
     n.querySelector('[data-tab="sessions"]').insertAdjacentHTML('afterbegin',uiIcon('history',22,{sw:2}));
+    n.querySelector('.tb-tabs').insertAdjacentHTML('afterbegin','<span class="tb-pill" aria-hidden="true"></span>');
     tbDragBind(n.querySelector('.tb-tabs'));
     n.querySelector('#tbSrch').innerHTML=uiIcon('search',22,{sw:2.2});
     n.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
@@ -16791,7 +16799,16 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
   const t=homeTab();
   n.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===t||(b.dataset.tab==='me'&&t==='admin');
     b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  {const s=n.querySelector('[data-tab="sessions"]');s.classList.toggle('live',!!Object.keys(liveSessions).length);}}
+  {const s=n.querySelector('[data-tab="sessions"]');s.classList.toggle('live',!!Object.keys(liveSessions).length);}
+  tbPillPlace(n.querySelector('.tb-tabs'));}
+/* A603 — LA PASTILLE DU DOCK GLISSE (demande de l'auteur : « pourquoi on n'a pas l'animation de glissement comme pour
+   les autres ? ») : un objet à part (`.tb-pill`), posé sous l'onglet courant ; elle glisse d'un onglet à l'autre (la
+   courbe de `.seg-pill`), suit le doigt pendant le glissé, et reste immobile sous prefers-reduced-motion. Les onglets
+   n'ont pas la même largeur (A601) : la pastille prend aussi celle de l'onglet visé. Mesures en px de mise en page
+   (`offsetLeft`/`offsetWidth`), donc justes sous le zoom (règle 10). */
+function tbPillPlace(tabs,cible){if(!tabs)return;const p=tabs.querySelector('.tb-pill'),t=cible||tabs.querySelector('.tb-tab.on');if(!p)return;
+  if(!t){p.style.opacity='0';return;}
+  p.style.opacity='1';p.style.width=t.offsetWidth+'px';p.style.transform='translateX('+t.offsetLeft+'px)';}
 function tbSearchOpen(){if(homeTab()!=='aides'){state.homeTab='aides';render();}
   _tbSrch=true;syncTabBar();const q=document.getElementById('q');if(q)q.focus({preventScroll:true});}
 /* On quitte la recherche quand le champ est vide ET que le focus a quitté le dock (pas au tap du filtre). */
@@ -17251,10 +17268,13 @@ function tbDragBind(tabs){if(!tabs)return;let st=null,just=false;
   tabs.addEventListener('pointerdown',e=>{const b=e.target.closest('.tb-tab');if(!b||e.button)return;st={x0:e.clientX,pid:e.pointerId,drag:false,to:null};});
   tabs.addEventListener('pointermove',e=>{if(!st||st.pid!==e.pointerId)return;
     if(!st.drag){if(Math.abs(e.clientX-st.x0)<8)return;st.drag=true;tabs.classList.add('drag');try{tabs.setPointerCapture(st.pid);}catch(_){}}
-    const t=under(e.clientX);if(t&&t!==st.to){st.to=t;tabs.querySelectorAll('.tb-tab').forEach(x=>x.classList.toggle('pre',x===t));}});
+    const t=under(e.clientX);if(t&&t!==st.to){st.to=t;tabs.querySelectorAll('.tb-tab').forEach(x=>x.classList.toggle('pre',x===t));}
+    const p=tabs.querySelector('.tb-pill');if(p&&st.to){const r=tabs.getBoundingClientRect(),w=st.to.offsetWidth,x=(e.clientX-r.left)/zoomF()-w/2;
+      p.style.width=w+'px';p.style.transform='translateX('+Math.max(4,Math.min(tabs.clientWidth-w-4,x))+'px)';}});
   const end=e=>{if(!st||st.pid!==e.pointerId)return;const s=st;st=null;if(!s.drag)return;
     tabs.classList.remove('drag');tabs.querySelectorAll('.tb-tab.pre').forEach(x=>x.classList.remove('pre'));
-    just=true;setTimeout(()=>{just=false;},120);if(s.to&&!s.to.classList.contains('on'))s.to.click();};
+    just=true;setTimeout(()=>{just=false;},120);
+    if(s.to&&!s.to.classList.contains('on'))s.to.click();else tbPillPlace(tabs);};   // relâché sur l'onglet courant : elle y revient
   tabs.addEventListener('pointerup',end);tabs.addEventListener('pointercancel',end);
   tabs.addEventListener('click',e=>{if(just&&e.isTrusted){e.stopPropagation();e.preventDefault();}},true);}
 function renderHomeList(cfg){
