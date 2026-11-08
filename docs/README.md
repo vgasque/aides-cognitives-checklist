@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A606** à la v5.103 (lot v6.0 compris) (et ça continue — la
-prochaine est A607), attribués dans
+Les décisions de conception portent des numéros **A1 → A608** à la v5.104 (lot v6.0 compris) (et ça continue — la
+prochaine est A609), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -230,6 +230,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A604 | `lot-v5-100.md` | L'établi se réajuste quand ce qui le précède change de hauteur (« Identité » dépliée : plancher 420, la page défile) — corrige A593 §4 |
 | A605 | `lot-v5-100.md` | La pastille du dock se DÉCOUPE (`clip-path` animé) : glisse et s'élargit d'un seul mouvement ; les mots changent de couleur à son rythme (amende A603) |
 | A606 | `lot-v5-100.md` | Lots 2-3 d'A600 : au-delà de 20 éléments l'accueil est un LANCEUR (récentes, porte « Toutes les aides et protocoles ») ; « Aides » → « Accueil » ; la colonne ne filtre plus (purge) ; portes de gestion au catalogue ; liens `#bibliotheques` → catalogue ; pied de page protégé |
+| A607 | `lot-v5-104.md` | Le Markdown de Notion : `***gras italique***`, gras contenant un italique, `~~barré~~`, listes sur 6 niveaux par l'indentation, calque qui grise tout marqueur |
+| A608 | `lot-v5-104.md` | Image « Pleine » = toute la colonne ; Plan en arbre (retrait par niveau) ; pastille de provenance alignée dans la rangée ; en sélection, ni voile gris d'iOS ni sélection de texte |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

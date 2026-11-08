@@ -10481,6 +10481,44 @@ await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en 
 /* A586 — LES LIENS D'APPLICATION ouvrent leur destination par le VRAI point d'entrée (le fragment, donc `hashchange`) :
    l'Accès direct filtré, « Créer », la liste des bibliothèques (feuille « Afficher » au téléphone, colonne en large),
    une collection inconnue le DIT ; jamais par-dessus une session (règle 11) ; Moi les donne à emporter. */
+await sec('A607-A608 · Markdown imbriqué, image « Pleine », Plan en arbre, pastille de provenance, sélection sans voile', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const o={},q=s=>document.querySelector(s);
+    // Une image de 120 px de large, sans taille choisie (« Pleine ») : elle doit prendre toute la colonne.
+    const cv=document.createElement('canvas');cv.width=120;cv.height=60;cv.getContext('2d').fillRect(0,0,120,60);
+    const p=blankProtocol();p.id='p607';p.title='Polytraumatisé';p.status='validated';
+    p.images=[{id:'im1',data:cv.toDataURL('image/png'),caption:'',w:120,h:60}];
+    p.body='# Grades\n## Grade A\n### Critères\n- **indications *systématiques* en AVP**\n    - niveau 2\n        - niveau 3\n            - ~~niveau 4~~\n\n![](img:im1)\n';
+    protocols.push(migrateProtocol(p));openProtocolRead('p607');await __acCalme(400);
+    const li4=[...document.querySelectorAll('.md-body li')].find(x=>x.textContent.trim()==='niveau 4');
+    o.prof=li4?(()=>{let n=0,e=li4;while((e=e.parentElement.closest('li')))n++;return n;})():-1;
+    o.gras=!!q('.md-body b i');o.barre=!!(li4&&li4.querySelector('s'));
+    const im=q('.md-fig img'),fg=q('.md-fig');o.pleine=im&&fg?Math.round(im.getBoundingClientRect().width)===Math.round(fg.getBoundingClientRect().width):false;
+    // Plan : H2 et H3 en retrait de leur niveau.
+    await openProtocolEdit('p607');await __acCalme(400);
+    const pb=q('[data-mdplan]');if(pb)pb.click();await __acCalme(300);
+    const row=c=>{const e=q('.mm-row.'+c);return e?parseFloat(getComputedStyle(e).paddingLeft):-1;};
+    o.plan=[row('mm-lv1'),row('mm-lv2'),row('mm-lv3')];
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(200);
+    // Pastille de provenance dans une rangée : flex, l'icône centrée sur le texte, un rembourrage.
+    state.pdraft=null;state.view='home';LANCEUR_SEUIL=1e9;myLibraries=[{id:'lib1',name:'Cours DESMU',role:'editor'}];
+    fiches[0].library='lib1';setHomeGroup('cat');render();await __acCalme(400);
+    const t=q('.dir-book .dir-id>.libtag');
+    if(t){const sv=t.querySelector('svg').getBoundingClientRect(),r=t.getBoundingClientRect(),cs=getComputedStyle(t);
+      o.tag={disp:cs.display,pad:cs.paddingRight,centre:Math.abs((sv.top+sv.bottom)/2-(r.top+r.bottom)/2)<=1.5};}
+    state.selOn=true;render();await __acCalme(300);
+    const sr=q('.dir-row.selm .card-open');o.voile=sr?getComputedStyle(sr).webkitTapHighlightColor:'';o.us=sr?getComputedStyle(sr).userSelect:'';
+    state.selOn=false;render();return o;});
+  t('A607 · listes sur 4 niveaux, gras contenant un italique, barré',r.prof===3&&r.gras&&r.barre,JSON.stringify(r));
+  t('A608 · image sans taille (« Pleine ») : toute la largeur de la colonne, même petite',r.pleine,JSON.stringify(r));
+  t('A608 · le Plan en arbre : H2 puis H3 en retrait croissant',r.plan[0]>=0&&r.plan[1]>r.plan[0]&&r.plan[2]>r.plan[1],JSON.stringify(r.plan));
+  t('A608 · la pastille de provenance d’une rangée : flex, icône centrée, rembourrage',!!r.tag&&r.tag.disp==='inline-flex'&&r.tag.pad==='6px'&&r.tag.centre,JSON.stringify(r.tag));
+  t('A608 · en sélection, ni voile gris d’iOS ni sélection de texte sur le titre',/rgba\(0, 0, 0, 0\)|transparent/.test(r.voile)&&r.us==='none',JSON.stringify({v:r.voile,us:r.us}));
+  await page.close();
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
