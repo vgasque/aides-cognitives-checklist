@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.109.8] — 2026-11-08
+Éditeur de protocole : le suivi ne disparaît plus (A636). Rien à rejouer côté serveur.
+- **Le volet « Suivi » de l'éditeur de protocole reste visible** : il disparaissait de la colonne de droite dès qu'on
+  tapait dans le texte, et après un aller-retour « Mise en forme en direct ».
+- **Texte et aperçu côte à côte** : le suivi reste en bas de page, et la pastille « n tâches » paraît dans l'en-tête
+  dès qu'il y a une note ou une tâche (elle l'ouvre sans quitter sa place), comme en lecture.
+
 ## [5.109.7] — 2026-11-08
 Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626), « À faire » et menus au bureau (A627-A631), « Créer » aux Bibliothèques (A632), page Notion dans l'éditeur (A633), sélection de blocs et « Modifier » (A634-A635). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
@@ -206,19 +213,3 @@ Une collection peut rester en tête de l'accueil (A598). Rien à rejouer côté 
 - **Un signet plein** la signale partout où elle paraît. Pas une étoile : l'étoile reste le signe de l'Accès direct
   sur chaque aide.
 - Le choix voyage avec vos collections sur vos autres appareils.
-
-## [5.98.0] — 2026-11-08
-La poignée de l'éditeur suit enfin le doigt ; l'accueil du téléphone dit quelles bibliothèques il affiche, et tient
-des dizaines de collections (A594-A597). Rien à rejouer côté serveur.
-- **La poignée entre le texte et l'aperçu suit le doigt.** Sur tablette, elle sautait entre trois positions (40, 50,
-  65 %) : pendant le geste, l'ancienne valeur était repeinte. Elle glisse maintenant en continu, et aux largeurs
-  étroites la plage va de 30 à 70 %.
-- **L'accueil dit ses bibliothèques.** Sous « Aides », la sous-ligne compte les bibliothèques affichées (« Tout ·
-  5 bibliothèques · 112 »). Une bibliothèque choisie prend le grand titre (« SMUR 75 », avec « Bibliothèque ·
-  partagée » au-dessus) et « Tout afficher » revient à toutes ; les aides n'y répètent plus le nom de la bibliothèque.
-- **Dans « Afficher », les bibliothèques sont une liste** : partage, nombre d'aides, coche sur la courante ; au-delà
-  de six, « Voir les n autres ».
-- **Des dizaines de collections** : au-delà de six, l'accueil garde les cinq ouvertes le plus récemment (dans l'ordre
-  alphabétique), puis « Toutes les collections », qui ouvre « Afficher ». Un champ « Filtrer » y paraît dès qu'il y a
-  beaucoup de rangées, sans faire monter le clavier au doigt.
-- Corrigé : un long nom de bibliothèque ou de collection poussait « Créer » hors de l'écran une fois la page défilée.

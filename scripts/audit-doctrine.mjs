@@ -11020,6 +11020,23 @@ await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier
   await page.close();
 });
 
+await sec('A636 · le volet « Suivi » de l’éditeur de protocole survit à la frappe et au basculement « Mise en forme en direct »', async () => {
+  for(const W of [1280,900]){
+    const page=await br.newPage({viewport:{width:W,height:900}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const p=migrateProtocol({id:'p636',title:'Témoin',body:'Un.\n\nDeux.',status:'draft'});protocols.push(p);await openProtocolEdit('p636');await __acCalme(600);
+      const vis=()=>[...document.querySelectorAll('#main .su-blk')].some(b=>b.getClientRects().length&&b.getBoundingClientRect().height>0),side=()=>!!document.querySelector('#editSide .su-blk');
+      const o={debut:side()};const ta=document.getElementById('p-body');ta.value+='\nTrois.';ta.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(700);o.frappe=side();
+      document.querySelector('[data-mdlive]').click();await __acCalme(700);o.etab=vis();
+      document.querySelector('#main .su-blk [data-sunew="task"]').click();await __acCalme(300);document.querySelector('#suiviEdFoot [data-suedx="ok"]').click();await __acCalme(300);
+      o.pastille=((document.querySelector('.etab-page .ed-sech-row .su-pill')||{}).textContent||'');
+      document.querySelector('[data-mdlive]').click();await __acCalme(700);o.retour=side();return o;});
+    t(`${W} px · A636 : le suivi reste dans la colonne après une frappe et revient après un aller-retour « Mise en forme en direct »`,r.debut&&r.frappe&&r.retour,JSON.stringify(r));
+    t(`${W} px · A636 : dans l’établi, le bloc reste visible en bas, et la pastille « n tâches » paraît dans l’en-tête dès qu’il y a du suivi`,r.etab&&r.pastille==='1 tâche',JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

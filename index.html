@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-q9g2Jl+hN/j4sUpEWKZeQs8GnMNgZUcdX1Xht0gx7+c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-m5NzcczIBFG15jTj98bML2Y9cAKT82ecYMaFjEFqsZU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10324,7 +10324,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.109.7';
+const APP_VERSION='5.109.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12275,6 +12275,11 @@ function suiviBlockHtml(ent,crise,feuille){if(!ent||!ent.id)return '';const all=
 function suiviPillHtml(ent){if(!ent||!ent.id)return '';const o=suiviOpenOf(ent.id).length,n=suiviOf(ent.id).filter(x=>x.k==='note').length;if(!o&&!n)return '';
   const lbl=o?nb(o,'tâche'):nb(n,'note'),aria='Suivi : '+[o?nb(o,'tâche')+' à faire':'',n?nb(n,'note'):''].filter(Boolean).join(', ');
   return `<button type="button" class="su-pill" data-sublk="${esc(ent.id)}" aria-label="${esc(aria)}">${uiIcon('task',13)}${esc(lbl)}</button>`;}
+/* A636 — dans l'ÉTABLI de l'éditeur de protocole (texte et aperçu côte à côte, A593 : plus de colonne de droite), le
+   suivi garde son bloc en bas de page, et dès qu'il y a une note ou une tâche, une pastille dans l'en-tête « Identité »
+   l'ouvre en feuille sans quitter sa place — exactement la lecture (A615 ; options B puis « en bas aussi s'il n'y a
+   rien », choix de l'auteur). */
+const suiviEdPillHtml=ent=>suiviPillHtml(ent);
 function suiviBlkOpen(id){const e=suiviEnt(id);if(!e)return;
   document.getElementById('suiviBlkTitle').textContent='Suivi · '+(String(e.title||'').trim()||'Sans titre');
   document.getElementById('suiviBlkBody').innerHTML=suiviBlockHtml(e,false,true);suiviBlkModal.classList.add('on');}
@@ -12380,6 +12385,8 @@ function suiviRepaint(){
   document.querySelectorAll('#main .su-blk[data-suent],#suiviBlkBody .su-blk[data-suent]').forEach(b=>{const e=suiviEnt(b.dataset.suent);if(!e)return;const d=document.createElement('div');d.innerHTML=suiviBlockHtml(e,false,b.classList.contains('su-feuille'));if(d.firstElementChild)b.replaceWith(d.firstElementChild);});
   document.querySelectorAll('#main .read-meta').forEach(m=>{const id=state.view==='read'&&state.fiche?state.fiche.id:(state.view==='protocolRead'&&state.protocol?state.protocol.id:null);if(!id||document.querySelector('#main details.su-crise'))return;
     const old=m.querySelector('.su-pill'),h=suiviPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)m.insertAdjacentHTML('beforeend',h);});   // A615 : la pastille suit
+  {const r=document.querySelector('#main .etab-page .ed-sech-row'),id=state.view==='protocolEdit'&&state.pdraft?state.pdraft.id:null;   // A636 : la pastille de l'établi suit
+   if(r&&id){const old=r.querySelector('.su-pill'),h=suiviEdPillHtml(suiviEnt(id));if(old){if(h)old.outerHTML=h;else old.remove();}else if(h)r.insertAdjacentHTML('beforeend',h);}}
   document.querySelectorAll('[data-sudoor]').forEach(b=>{const n=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&suiviEnt(x.ent)).length;const c=b.querySelector('.hs-n,.su-dn');if(c)c.textContent=n?String(n):'';});
   if(state.view==='library'&&homeTab()==='biblio')render();}
 bindModalDismiss(suiviModal,()=>suiviModal.classList.remove('on'));
@@ -19745,7 +19752,7 @@ function renderProtocolEdit(){
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${''/* A614 : le VOLET « SUIVI » de l'éditeur — à côté du contenu, jamais dedans : dans la colonne de droite au
        bureau (sous la relecture), en pied du formulaire ailleurs. Le même bloc que la lecture (`suiviBlockHtml`). */}
-    ${!wideEdit||mds?suiviBlockHtml(p,false):''}
+    ${!wideEdit||mds?suiviBlockHtml(p,false):''}${''/* A636 : dans l'établi, en bas ET la pastille de l'en-tête s'il y a du suivi (comme en lecture, A615) */}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
     ${wideEdit?(mds?'</div></div>':`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${suiviBlockHtml(p,false)}${editPreviewHtml('proto')}</aside></div>`):''}`;
   bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},
@@ -19807,6 +19814,7 @@ function renderProtocolEdit(){
     b.onclick=()=>{const x=d();if(x)mdLinkDoc(act,x);};
     b.ondragstart=e=>{const x=d();if(x)e.dataTransfer.setData('text/plain',mdDocLink(x,''));};});
   {const sw=main.querySelector('[data-mdlive]');if(sw)sw.onchange=()=>{try{localStorage.setItem('ac-mdlive',sw.checked?'1':'0');}catch(e){}renderProtocolEdit();};}
+  if(mds){const r=main.querySelector('.ed-sech-row');if(r)r.insertAdjacentHTML('beforeend',suiviEdPillHtml(p));}   // A636
   if(live)mdDocBind(p,ta,bindField,f=>{act=f||ta;});
   // Plan, curseur suivi par l'aperçu, aperçu qui ramène au texte, bascule Écrire / Aperçu (v5.44).
   const sync=()=>requestAnimationFrame(()=>mdCaretSync(ta,p));
@@ -28112,7 +28120,10 @@ function bindEditSide(kind){if(!document.getElementById('editSide'))return;
   _editSideOn=()=>{clearTimeout(_editSideT);_editSideT=setTimeout(()=>{const s=document.getElementById('editSide');if(!s)return;
     const p=state.pdraft;
     const dt=s.querySelector('#revPanel details.rev-panel');const open=dt?dt.open:null;
-    s.innerHTML=`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`+editPreviewHtml(kind);
+    /* A636 — LE VOLET « SUIVI » (A614) VIT AUSSI DANS CETTE COLONNE : la reconstruire sans lui le faisait DISPARAÎTRE
+       300 ms après la première frappe — et au basculement « Mise en forme en direct », dont l'interrupteur émet lui
+       aussi un `input` (signalé : « quand on switche, il ne devient visible ni sur le côté ni en bas »). */
+    s.innerHTML=`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`+suiviBlockHtml(p,false)+editPreviewHtml(kind);
     const d2=s.querySelector('#revPanel details.rev-panel');if(d2&&open!=null)d2.open=open;
     bindRevPanel();wire();const ta=document.getElementById('p-body');if(ta)mdCaretSync(ta,p);},300);};
   main.addEventListener('input',_editSideOn);}
