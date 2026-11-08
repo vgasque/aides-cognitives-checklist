@@ -2651,12 +2651,19 @@
   .ctg-main{min-width:0}
   .ctg-volets .ctg-row{min-height:48px}
   /* A601 — le dock glissé : la pastille suit le doigt (classe `.pre` sur l'onglet visé), l'onglet courant s'efface. */
-  .tb-tabs{touch-action:none}
-  .tb-tabs.drag .tb-tab.on:not(.pre){background:none;color:var(--ink)}
+  .tb-tabs{position:relative;touch-action:none}
+  /* A603 : la pastille est un objet à part, sous l'onglet ; elle glisse (courbe de `.seg-pill`), suit le doigt au glissé. */
+  .tb-pill{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:var(--act);
+    transition:transform .3s cubic-bezier(.3,1.2,.4,1)}   /* la largeur se pose d'un coup (check-anim : jamais de layout animé), le glissé est un transform */
+  .tb-tabs.drag .tb-pill{transition:none}
+  html.tabnav .tb-tab.on{background:none}
+  .tb-tabs.drag .tb-tab.on:not(.pre){color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){.tb-pill{transition:none}}
   /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
      de la largeur de son mot, le reste se partage. */
   .tb-tab{flex:1 1 auto;padding:0 8px}
-  .tb-tab.pre{background:var(--act);color:var(--on-primary)}
+  .tb-tab{z-index:1}
+  .tb-tab.pre{color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
   .hc-ic{flex:none;display:inline-flex;color:var(--act)}
   .hc-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
