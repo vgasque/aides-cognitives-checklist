@@ -8771,7 +8771,7 @@ await sec('Éditeur · A609 tableau : la grille se rouvre, en-têtes au choix, c
   await page.close();
 });
 
-await sec('Éditeur · A610 blocs : « ＋ » du bloc survolé, sélection multiple, bloc vidé qui change de type', async () => {
+await sec('Éditeur · A610-A612 blocs : « ＋ » du bloc survolé, sélection multiple, déplacer plusieurs blocs, bloc vidé', async () => {
   const corps="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n## Posologie\n\nFin.";
   // Souris : « ＋ » au survol d'UN bloc, Maj-clic pour une plage, Suppr, ↶.
   {const page=await br.newPage({viewport:{width:1280,height:900}});
@@ -8790,6 +8790,24 @@ await sec('Éditeur · A610 blocs : « ＋ » du bloc survolé, sélection multi
     t('A610 · souris : seuls les « ＋ » du bloc survolé paraissent (au-dessus, au-dessous)',h==='0,1',h);
     t('A610 · Maj-clic sélectionne une plage de blocs sans en ouvrir ; la barre dit combien',s.n===3&&!s.ouvert&&s.bar==='3 blocs sélectionnés',JSON.stringify(s));
     t('A610 · Suppr retire les blocs sélectionnés d’un coup, ↶ les rend',d==='## Indications\n\nFin.'&&u==="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n## Posologie\n\nFin.",JSON.stringify({d,u}));
+    await page.close();}
+  // A612 : déplacer deux blocs NON contigus d'un coup (⌘-clic, « Déplacer », « Poser en fin »), au doigt aussi bien.
+  {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A612',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},"# T\n\nA\n\nB\n\nC\n\nD");
+    await calme(page,500);
+    const r=await page.evaluate(async()=>{const o={},d=document.getElementById('mdDoc');
+      d.querySelectorAll('.mdb')[1].click();await __acCalme(200);d.querySelector('[data-mdbact="sel"]').click();await __acCalme(200);
+      d.querySelectorAll('.mdb')[3].click();await __acCalme(150);
+      const mv=d.querySelector('[data-mdbsel="move"]');o.bouton=!!mv;if(!mv)return o;mv.click();await __acCalme(200);
+      o.pris=d.querySelectorAll('.mdb.grabbed').length;o.bandeau=((d.querySelector('.ed-grab .eg-l')||{}).textContent||'');
+      const fin=[...d.querySelectorAll('[data-mdbdrop]')].pop();fin.click();await __acCalme(250);
+      o.body=state.pdraft.body;o.sel=[...d.querySelectorAll('.mdb.sel')].map(b=>(b.querySelector('.md-p')||b).textContent.trim()).join(',');
+      const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);u.click();await __acCalme(300);o.undo=state.pdraft.body;
+      return o;});
+    t('A612 · « Déplacer » prend les blocs sélectionnés ensemble (bandeau « 2 blocs »)',r.bouton&&r.pris===2&&/2 blocs/.test(r.bandeau),JSON.stringify(r));
+    t('A612 · posés en fin, dans leur ordre, toujours sélectionnés ; ↶ rend l’ordre d’avant',r.body==='# T\n\nB\n\nD\n\nA\n\nC'&&r.sel==='A,C'&&r.undo==='# T\n\nA\n\nB\n\nC\n\nD',JSON.stringify(r));
     await page.close();}
   // Doigt : « Sélectionner » du bloc ouvert, toucher coche ; bloc vidé → choisir un type.
   {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});

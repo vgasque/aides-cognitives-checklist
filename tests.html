@@ -843,6 +843,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     return md.includes('l1<br>l2')&&t.rows[0][0]==='l1\nl2'&&A.mdRender(md).includes('l1<br>l2');})());
   ok('A609 : aucun autre HTML n\'est lu dans une case', (()=>{const h=A.mdRender('| a |\n|---|\n| <b>x</b><br><img src=x onerror=1> |');return h.includes('&lt;b&gt;')&&!h.includes('<img')&&h.includes('<br>');})());
   eq('A609 : recherche — <br> devient une espace', A.mdStrip('| a |\n|---|\n| l1<br>l2 |').trim(), 'a  l1 l2');
+  {const B='# T\n\nA\n\nB\n\nC\n\nD';
+    eq('A612 : deux blocs non contigus posés ensemble en fin', A.mdBlkMoveSet(B,[1,3],5).v, '# T\n\nB\n\nD\n\nA\n\nC');
+    eq('A612 : posés en tête, dans leur ordre du document', A.mdBlkMoveSet(B,[4,2],0).v, 'B\n\nD\n\n# T\n\nA\n\nC');
+    eq('A612 : indice du premier bloc posé', A.mdBlkMoveSet(B,[3,4],1).i, 1);
+    eq('A612 : rien ne bouge → null', A.mdBlkMoveSet(B,[1,2],1), null);}
   ok('aller-retour grille → texte → grille', (()=>{const md=A.mdTableMd({head:['a','b'],align:['','r'],rows:[['x|y','2']]});const t=A.mdTableAt(md,0);return t.rows[0][0]==='x|y'&&t.align[1]==='r';})());
   ok('collage Word : puces « · » et intertitre en gras', (()=>{const r=A.mdFromHtml('<p class="MsoNormal"><b>Conduite à tenir</b></p><p style="mso-list:l0 level1 lfo1">·&nbsp;&nbsp; Allonger</p><p style="mso-list:l0 level2 lfo1">o&nbsp;&nbsp; jambes</p>');
     return r.md==='## Conduite à tenir\n\n- Allonger\n  - jambes'&&r.N.h===1&&r.N.li===2;})());

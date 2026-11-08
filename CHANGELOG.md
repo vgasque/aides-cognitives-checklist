@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.106.0] — 2026-11-08
+Déplacer plusieurs blocs d'un coup (A612). Rien à rejouer côté serveur.
+- **« ⠿ Déplacer » dans la barre de sélection des blocs** : les blocs sélectionnés, même non voisins, se déplacent
+  ensemble — touchez « Poser ici », « en tête » ou « en fin ». Ils gardent leur ordre et restent sélectionnés à
+  l'arrivée ; ✕ ou Échap annule, ↶ rend l'ordre d'avant.
+
 ## [5.105.0] — 2026-11-08
 Tableaux, blocs et import de l'éditeur de référence (A609-A611). Rien à rejouer côté serveur.
 - **Un tableau se rouvre en grille** : ouvrez-le dans le document, « Modifier en grille ».
@@ -240,12 +246,3 @@ Un correctif de la Page en session (A582). Rien à rejouer côté serveur.
 - **En session, zoomer la Page « Tout voir » ne dérange plus la barre d'échelle** : quand la feuille dépasse, « la
   feuille dépasse à droite » s'affiche sous la barre, à droite, et « + » et « 1:1 » restent à leur place — comme dans
   la fenêtre « Page » depuis la 5.90.1.
-
-## [5.90.1] — 2026-11-06
-Trois correctifs d'affichage (A579-A581). Rien à rejouer côté serveur.
-- **À l'accueil, les titres ne perdent plus le bas de leurs lettres** (g, q, y, p, ç) ni le haut des accents des
-  capitales, en vue détaillée comme compacte. La hauteur des rangées ne change pas.
-- **La Page « Tout voir » est centrée** dans sa colonne, en session comme hors session, au lieu d'être collée à gauche
-  sur un écran large.
-- **Dans la fenêtre « Page », zoomer ne dérange plus la barre** : quand la feuille dépasse, « la feuille dépasse à
-  droite » s'affiche sous la barre, à droite, sans déplacer le titre ni les boutons de zoom.

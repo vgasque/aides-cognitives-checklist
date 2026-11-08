@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-DOknfDxkCCZ/C2y+G8CkEEaO/VPZO4zfhRisZXD5Wso='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-LQWOfHMtXmmhn8+7RdpskzNWOWOj99fr8e2LbGiybvM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10174,7 +10174,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.105.0';
+const APP_VERSION='5.106.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18489,6 +18489,17 @@ function mdBlkIns(body,i,text){const R=mdBlockRanges(body),L=String(body||'').sp
   return {v:mdGlue(L.slice(0,at),[''],T,L.slice(at)).join('\n').replace(/^\n+/,''),i:i<0?0:Math.min(i,R.length-1)+1};}
 // Déplace le bloc `from` pour qu'il précède le bloc `to` (to = nombre de blocs : à la fin) — par échanges successifs,
 // chacun ne touche que la paire échangée (A548, glisser à la souris).
+/* A612 — DÉPLACER PLUSIEURS BLOCS : `ids` (indices de blocs, dans n'importe quel ordre) se posent ENSEMBLE, dans leur
+   ordre du document, avant le bloc `to` (to = nombre de blocs : à la fin). Les blocs restants gardent leur ordre ; deux
+   blocs recollés sont séparés d'une ligne vide (`mdGlue`). Rend {v, i: indice du premier bloc posé} ou null (rien ne bouge). */
+function mdBlkMoveSet(body,ids,to){const v0=String(body||''),R=mdBlockRanges(v0),L=v0.split('\n'),n=R.length;
+  const S=[...new Set(ids)].filter(i=>i>=0&&i<n).sort((a,b)=>a-b);if(!S.length||to<0||to>n)return null;
+  const src=i=>L.slice(R[i].a,R[i].e),inS=new Set(S),rest=R.map((r,i)=>i).filter(i=>!inS.has(i));
+  const pos=to-S.filter(i=>i<to).length,order=rest.slice(0,pos).concat(S,rest.slice(pos));
+  if(order.every((x,k)=>x===k))return null;
+  const head=L.slice(0,R[0].a),tail=L.slice(R[n-1].e);
+  const v=mdGlue(head.some(x=>x.trim())?head:[],...order.map(src),tail.some(x=>x.trim())?tail:[]).join('\n');
+  return {v,i:pos};}
 function mdBlkMoveTo(body,from,to){const n=mdBlockRanges(body).length;if(from<0||from>=n||to<0||to>n||to===from||to===from+1)return null;
   let v=String(body),i=from;const t=to>from?to-1:to;while(i!==t){const r=mdBlkMove(v,i,t>i?1:-1);if(!r)return null;v=r.v;i=r.i;}return {v,i};}
 /* A548 — LE BLOC OUVERT SE RÈGLE SUR PLACE. Un encadré : son registre en pastilles (glyphe + mot, jamais la couleur
@@ -18542,11 +18553,12 @@ function mdBlkToolsHtml(src,p){
    largeur, un toucher le pose ; Échap, ✕ ou le bloc lui-même l'annulent ; commencer à glisser la poignée AMORCE le mode.
    Mêmes classes (`.ed-grab`, `.ed-drop`, `.grabbed`) : un seul dessin du déplacement dans l'application. */
 const mdBlkLabel=src=>{const t=mdStrip(String(src||'').replace(/^>\s*\[![^\]]*\]\s*/,'')).replace(/\s+/g,' ').trim();return t?'« '+(t.length>60?t.slice(0,59)+'…':t)+' »':'ce bloc';};
-function mdGrabHtml(p,grab){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n'),src=r=>L.slice(r.a,r.e).join('\n');
+function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n'),src=r=>L.slice(r.a,r.e).join('\n');
+  const G=new Set(many&&many.length>1?many:[grab]),lbl=G.size>1?G.size+' blocs':mdBlkLabel(src(R[grab]));
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
-  return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(mdBlkLabel(src(R[grab])))}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
-    +R.map((r,i)=>drop(i)+`<div class="mdb${i===grab?' grabbed':''}" data-mdb="${i}"${i===grab?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
-function mdDocHtml(p,open,grab){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab);
+  return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(lbl)}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
+    +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
+function mdDocHtml(p,open,grab,many){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
   const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
   if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1">${uiIcon('plus',16,{sw:2.4})}Écrire le contenu…</button>`;
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
@@ -18576,7 +18588,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      (un de plus), ou une sélection de texte glissée à travers plusieurs blocs ; au doigt, « Sélectionner » du bloc ouvert,
      puis chaque toucher coche ou décoche. Une barre (matière système, comme la barre de sélection de l'accueil, A599) dit
      combien et propose Copier · Supprimer ; Suppr / Retour arrière suppriment, Échap annule. Une seule écriture : ↶ rend tout. */
-  let sel=new Set(),selMode=false,anchor=-1,skipClick=false;
+  let sel=new Set(),selMode=false,anchor=-1,skipClick=false,grabMany=null;
   const lines=()=>String(p.body||'').split('\n'),l2c=n=>n?lines().slice(0,n).join('\n').length+1:0;
   // Toute écriture passe par le champ entier (masqué) : enregistrement, relecture, Plan et ↶ voient le même texte.
   /* A551 : le geste d'un bloc (supprimer, déplacer, dupliquer, ajouter, registre, taille) n'est pas une frappe — l'événement
@@ -18587,6 +18599,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     doc.classList.toggle('mdb-selon',selMode||sel.size>0);
     let bar=doc.querySelector('.mdb-selbar');if(!sel.size&&!selMode){if(bar)bar.remove();return;}
     const n=sel.size,h=`<span class="mdb-sb-n" role="status">${n?n+' bloc'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Touchez les blocs à sélectionner'}</span>`
+      +`<button type="button" class="btn sm" data-mdbsel="move"${n?'':' disabled'}><span aria-hidden="true">⠿</span> Déplacer</button>`
       +`<button type="button" class="btn sm" data-mdbsel="copy"${n?'':' disabled'}>${uiIcon('copy',14)}Copier</button>`
       +`<button type="button" class="btn sm danger" data-mdbsel="del"${n?'':' disabled'}>${uiIcon('trash',14)}Supprimer</button>`
       +`<button type="button" class="mdb-sb-x" data-mdbsel="x" aria-label="Annuler la sélection">✕</button>`;
@@ -18597,7 +18610,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const selDel=()=>{const ix=[...sel].sort((a,b)=>b-a),n=ix.length;if(!n)return;let v=p.body;ix.forEach(i=>{const r=mdBlkDel(v,i);if(r)v=r.v;});
     sel=new Set();selMode=false;anchor=-1;push(v);open=-1;paint(false);toast(n+' bloc'+(n>1?'s':'')+' supprimé'+(n>1?'s':'')+' — ↶ pour annuler.',4000,true);};
   const selCopy=()=>{const t=selSrc();if(!t)return;try{navigator.clipboard.writeText(t).then(()=>toast('Copié : '+sel.size+' bloc'+(sel.size>1?'s':'')+', en Markdown.',3000,true),()=>{});}catch(e){}};
-  const paint=(sel_)=>{const sel=sel_;doc.innerHTML=mdDocHtml(p,open,grab);card.classList.toggle('mdl-open',open>=0);selPaint();
+  const paint=(sel_)=>{const sel=sel_;doc.innerHTML=mdDocHtml(p,open,grab,grabMany);card.classList.toggle('mdl-open',open>=0);selPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
     const t=doc.querySelector('.mdb-ta');setAct(t||null);if(!t){blk=null;return;}
@@ -18630,13 +18643,16 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t);}}}});
   const take=i=>{open=-1;sel=new Set();selMode=false;grab=i;_mdGrabCancel=cancel;grabOutBind();paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});
     const g=doc.querySelector('.grabbed');if(g)g.scrollIntoView({block:'nearest'});};
-  const drop=k=>{const i=grab;grab=-1;_mdGrabCancel=null;const r=mdBlkMoveTo(p.body,i,k);if(r)push(r.v);paint(false);
+  const drop=k=>{const i=grab,M=grabMany;grab=-1;grabMany=null;_mdGrabCancel=null;const r=M?mdBlkMoveSet(p.body,M,k):mdBlkMoveTo(p.body,i,k);if(r)push(r.v);paint(false);
+    // A612 : les blocs posés restent SÉLECTIONNÉS — on voit où ils sont arrivés, et l'on peut les reprendre.
+    if(r&&M){sel=new Set(M.map((x,j)=>r.i+j));anchor=r.i;selPaint();}
     const b=doc.querySelector('[data-mdb="'+(r?r.i:i)+'"]');if(b){b.scrollIntoView({block:'nearest'});const h=b.querySelector('.mdb-grab');if(h)h.focus({preventScroll:true});}};
-  const cancel=()=>{const i=grab;grab=-1;_mdGrabCancel=null;paint(false);const h=doc.querySelector('[data-mdbgrab="'+i+'"]');if(h)h.focus({preventScroll:true});};
+  const cancel=()=>{const i=grab,M=grabMany;grab=-1;grabMany=null;_mdGrabCancel=null;paint(false);if(M){sel=new Set(M);selPaint();}const h=doc.querySelector('[data-mdbgrab="'+i+'"]');if(h)h.focus({preventScroll:true});};
   doc.addEventListener('click',e=>{
     if(grab>=0){const d=e.target.closest('[data-mdbdrop]');if(d)return drop(+d.dataset.mdbdrop);
       if(e.target.closest('[data-mdbgrabx]'))return cancel();e.preventDefault();return;}
-    const sb=e.target.closest('[data-mdbsel]');if(sb){const k=sb.dataset.mdbsel;if(k==='x')return selClear();if(k==='del')return selDel();if(k==='copy')return selCopy();return;}
+    const sb=e.target.closest('[data-mdbsel]');if(sb){const k=sb.dataset.mdbsel;if(k==='x')return selClear();if(k==='del')return selDel();if(k==='copy')return selCopy();
+      if(k==='move'&&sel.size){const M=[...sel].sort((a,b)=>a-b);take(M[0]);grabMany=M.length>1?M:null;paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});}return;}
     if(skipClick){skipClick=false;e.preventDefault();return;}
     {const b=e.target.closest('.mdb:not(.on)');const mod=e.shiftKey||e.metaKey||e.ctrlKey;
       if(b&&(mod||selMode)&&!e.target.closest('button:not(.mdb-ed)')){e.preventDefault();e.stopPropagation();const i=+b.dataset.mdb;
@@ -35926,7 +35942,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
