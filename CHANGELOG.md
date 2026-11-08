@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.109.7] — 2026-11-08
-Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626), « À faire » et menus au bureau (A627-A631). Rien à rejouer côté serveur.
+Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A624), échéances (A625), recherche (A626), « À faire » et menus au bureau (A627-A631), « Créer » aux Bibliothèques (A632), page Notion dans l'éditeur (A633). Rien à rejouer côté serveur.
 - **Renommer à l'import : on touche le titre** (export ZIP ou page .md de Notion). Le bouton « Renommer » de chaque
   rangée disparaît : le titre se présente comme un champ de texte (encadré gris léger, comme sur iOS), lisible en entier. Toucher le titre
   ne coche ni ne décoche la rangée ; Entrée valide, Échap annule.
@@ -23,6 +23,9 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A62
   son bouton, au lieu d'un panneau en bas de l'écran. Au téléphone, rien ne change.
 - **Catalogue** : « △ n à relire » ne passe plus sur le nom d'une catégorie ; une liste qui s'ouvre dans une fenêtre
   n'est plus coupée sur un écran peu haut.
+- **« Créer » dans l'onglet Bibliothèques** ; créé depuis une bibliothèque, l'élément y est rangé d'office.
+- **Une page Notion (.md ou .zip) s'ajoute au protocole ouvert** : déposez-la dans l'éditeur, ou « Ajouter › Page
+  Notion ». Le texte va à la suite (↶ l'annule), les images suivent, le titre est repris s'il était vide.
 
 ## [5.109.6] — 2026-11-08
 Sous-ligne des rangées (A621). Rien à rejouer côté serveur.

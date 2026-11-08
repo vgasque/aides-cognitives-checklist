@@ -10973,6 +10973,28 @@ await sec('A627-A631 · catalogue sans chevauchement, « À faire » en page, me
   await page.close();
 });
 
+await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se verse dans le protocole ouvert', async () => {
+  for(const W of [390,320,1280]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{const o={};myLibraries=[{id:'b1',name:'Cours DESMU',role:'editor'}];
+      for(const [k,c] of [['racine',{}],['b1',{lib:'b1'}],['tout',{tout:true}]]){state.homeTab='biblio';state.cnav=c;render();await __acCalme(300);
+        const b=[...document.querySelectorAll('#pgNew,#hdrNew')].find(x=>x.getClientRects().length&&!x.hidden),top=document.querySelector('.pg-top');
+        o[k]={btn:!!b,tient:!top||top.scrollWidth<=top.clientWidth+1};}
+      state.cnav={lib:'b1'};render();await __acCalme(200);confirmNewInLib=async()=>true;await newProtocol();await __acCalme(400);o.nee=state.pdraft&&state.pdraft.library;
+      const T=s=>new TextEncoder().encode(s);o.cible=upKindsIci().indexOf('data')>=0;
+      await notionVerse(state.pdraft,[new File([T('# Polytraumatisé grave\n\nPremier paragraphe.')],'Page.md')],renderProtocolEdit);await __acCalme(400);
+      o.titre=state.pdraft.title;o.corps=/Premier paragraphe/.test(state.pdraft.body);
+      await notionVerse(state.pdraft,[new File([T('# Deux\n\nSuite.')],'Deux.md')],renderProtocolEdit);await __acCalme(400);
+      o.suite=/Premier paragraphe[\s\S]*Suite\./.test(state.pdraft.body)&&state.pdraft.title==='Polytraumatisé grave';
+      return o;});
+    t(`${W} px · A632 : « Créer » aux Bibliothèques (racine, une bibliothèque, « Tout »), la rangée tient`,['racine','b1','tout'].every(k=>r[k].btn&&r[k].tient),JSON.stringify(r));
+    t(`${W} px · A632 : créé dans une bibliothèque du catalogue, l'élément naît DANS cette bibliothèque`,r.nee==='b1',JSON.stringify(r));
+    t(`${W} px · A633 : l'éditeur de protocole accepte une page Notion (.md) — titre posé s'il était vide, texte versé, une 2ᵉ page s'ajoute À LA SUITE`,r.cible&&r.titre==='Polytraumatisé grave'&&r.corps&&r.suite,JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques…)', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

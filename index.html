@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VJaxhJQGxo72TgQA0YVjRQyJUbsH8NLWgk1OBhwyr58='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ogMp4wkpLoCASXfwaBnW8F2dzrsRtLVOA1hKrxWQ2xs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3043,7 +3043,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-h{margin:8px 4px 8px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-eye{display:block;margin:4px 4px 0;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .ctg-bk{transform:rotate(180deg)}
-  html.zw360 .pg-bk-t{display:none}   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
+  html.zw360 .pg-bk-t{display:none}
+  html.zw400 .ctg-page .pg-new-t{display:none}   /* A632 : à côté de « ‹ Bibliothèques » et « Sélectionner », « Créer » se réduit à son ＋ */   /* A617 : sous 360 px effectifs, « ‹ Accueil » se réduit à son chevron (nom accessible gardé) */
   .ctg-th{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
   .ctg-th .hv-title{margin:0}
   .ctg-sub{font-size:var(--t-body);color:var(--ink-2)}
@@ -12558,6 +12559,12 @@ const CAT_ALL='*';
 /* PÉRIMÈTRE AFFICHÉ À L'ACCUEIL — source UNIQUE. `state.homeLib` : null = « Toutes » (l'union),
    '' = Perso, sinon un id. Les lecteurs restés sur `state.scope` y voyaient toujours `null`. */
 const homeScope=()=>state.homeLib||null;
+/* A632 — OÙ NAÎT CE QU'ON CRÉE. Depuis l'onglet « Bibliothèques » (signalé : « on n'a pas de bouton “Créer” depuis
+   l'onglet Bibliothèques »), dans une bibliothèque ou une de ses catégories, l'élément naît DANS cette bibliothèque ; à
+   la racine du catalogue ou dans « Tout », comme à l'accueil (`homeScope`). La collection affichée (A496) ne vaut qu'à
+   l'accueil. */
+const crtScope=()=>{const N=state.cnav||{};return state.view==='library'&&homeTab()==='biblio'&&N.lib!=null&&!N.tout?(N.lib||null):homeScope();};
+const crtColl=()=>state.view==='library'&&homeTab()==='biblio'?null:state.coll;
 function activeCatScope(){if(_catScopeForce!==undefined)return _catScopeForce;   // surcharge explicite (atelier d'import, A159)
   if(state.view==='edit')return state.draft?(state.draft.library||null):null;
   if(state.view==='protocolEdit')return state.pdraft?(state.pdraft.library||null):null;
@@ -16532,7 +16539,7 @@ function syncNewBtn(){const hn=document.getElementById('hdrNew');if(!hn)return;
   /* v5.30 (maquette v5) : « Sessions » (horloge) voisine de « Créer » à l'accueil. */
   {const hh=document.getElementById('hdrHist');if(hh){hh.hidden=state.view!=='library';
     if(!hh.hidden&&!hh.querySelector('svg')){hh.innerHTML=uiIcon('history',16,{sw:2.2})+'<span class="hb-lbl" aria-hidden="true">Sessions</span>';hh.onclick=()=>openSessHist();}}}
-  if(state.view!=='library'||homeTab()!=='aides'||!canEditScope(homeScope())){hn.hidden=true;return;}
+  if(state.view!=='library'||(homeTab()!=='aides'&&homeTab()!=='biblio')||!canEditScope(crtScope())){hn.hidden=true;return;}   // A632 : aussi aux Bibliothèques
   hn.hidden=false;
   hn.title=state.section==='protocols'?'Créer un protocole':'Créer une aide cognitive';
   hn.onclick=()=>openCreateDlg();}   // dialogue « Créer » (SPEC §2.1) : 3 méthodes
@@ -17040,7 +17047,7 @@ const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
    défilement, A510 : la rangée garde sa hauteur) ; A545 : ce titre est le sélecteur (feuille « Afficher »), les
    pastilles de filtre sont purgées. */
 function pgHeadHtml(title,opts){opts=opts||{};
-  const nw=opts.create&&canEditScope(homeScope())
+  const nw=opts.create&&canEditScope(crtScope())
     ?`<button type="button" class="pg-btn" id="pgNew">${uiIcon('plus',16,{sw:2.4})}Créer</button>`:'';
   const pk=opts.chips?pgPickInfo():null;
   /* A617 : une COLLECTION ouverte depuis l'accueil a son « ‹ Accueil » (le patron du catalogue, `data-ctgback`) — il
@@ -17568,8 +17575,10 @@ function renderCatalogue(cfg){
       +bibs.map(g=>{const rel=g.items.filter(ctgRelire).length;return ctgRowHtml(`data-ctglib="${esc(g.key)}"`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:libSub(g),n:g.items.length,warn:rel?rel+' à relire':''});}).join('')+`</div>`+ctgRacineGestion();}
   const selPossible=liste&&ctgItems().some(x=>canEditFiche(x));
   const right=liste&&!state.selOn&&selPossible?`<button type="button" class="pg-btn" id="selTog">Sélectionner</button>`:'';
+  // A632 : « Créer » aussi aux Bibliothèques (au téléphone, dans la rangée du haut ; au bureau, `#hdrNew` de l'en-tête).
+  const nouv=tn&&!state.selOn&&canEditScope(crtScope())?`<button type="button" class="pg-btn" id="pgNew" aria-label="Créer">${uiIcon('plus',16,{sw:2.4})}<span class="pg-new-t">Créer</span></button>`:'';
   const head=tn
-    ?(state.selOn?selTopHtml():`<div class="pg-top"><span class="pg-l">${back?`<button type="button" class="pg-btn" data-ctgback>${uiIcon('chev',14,{sw:2.6,cls:'tic ctg-bk'})}${esc(back)}</button>`:''}</span><span class="pg-tt" aria-hidden="true">${esc(ttl)}</span><span class="pg-r">${right}</span></div>`)
+    ?(state.selOn?selTopHtml():`<div class="pg-top"><span class="pg-l">${back?`<button type="button" class="pg-btn" data-ctgback aria-label="${esc(back)}">${uiIcon('chev',14,{sw:2.6,cls:'tic ctg-bk'})}<span class="pg-bk-t">${esc(back)}</span></button>`:''}</span><span class="pg-tt" aria-hidden="true">${esc(ttl)}</span><span class="pg-r">${right}${nouv}</span></div>`)
       +`${eye?`<span class="ctg-eye">${esc(eye)}</span>`:''}<h1 class="pg-ttl">${esc(ttl)}</h1>${sub?`<span class="pg-sub">${esc(sub)}</span>`:''}`
     :`${back?`<button type="button" class="adm-back" data-ctgback>${uiIcon('chev',18,{cls:'tic ctg-bk'})}${esc(back)}</button>`:''}${eye?`<span class="ctg-eye">${esc(eye)}</span>`:''}`
       +`<div class="ctg-th"><h2 class="hv-title">${esc(ttl)}</h2>${sub?`<span class="ctg-sub">${esc(sub)}</span>`:''}<span class="ctg-sp"></span>${state.selOn?'':right.replace('class="pg-btn"','class="rang-btn"')}</div>`;
@@ -19797,6 +19806,7 @@ function renderProtocolEdit(){
     new ResizeObserver(hs).observe(ta);hs();}
   // Le dépôt d'une image n'importe où dans l'éditeur (la zone permanente est partie avec la liste, A583).
   upTarget('image',takeImg);
+  upTarget('data',files=>notionVerse(p,files,renderProtocolEdit));   // A633 : une page Notion déposée s'ajoute au protocole
   /* A583 : la grille des images. La feuille agit par `_miCtx` — le champ ACTIF (A547), le rafraîchissement d'une taille
      (aperçu, document par blocs, auto-enregistrement : le texte ne change pas), et le passage à montrer. */
   _miCtx={p,field:()=>act,list:()=>(p.images||[]).filter(im=>im&&im.data),sheet:im=>miSheetHtml(p,im),
@@ -20274,10 +20284,10 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='protocolEdit';render();}
-async function newProtocol(){const lib=homeScope();
+async function newProtocol(){const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
-  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -27523,6 +27533,7 @@ function edAdd(f,kind,pre){
 const ED_PALETTE_P=[
   {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'titres, listes, tableaux'},
   {g:'Contenu',    k:'img',  ic:'img',  n:'Image',           d:'dans le texte'},   // A583
+  {g:'Contenu',    k:'notion',ic:'download',n:'Page Notion',   d:'.md ou .zip, à la suite'},   // A633
   {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'lisible hors ligne'},
   {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre aide'},
   {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée'}];
@@ -27548,6 +27559,7 @@ function edAddProto(p,kind){
   if(kind==='att'){pickFile('pdf',upPdfTaker(p,renderProtocolEdit),true);return;}
   // A583 : l'image, au curseur du texte (le champ Markdown porte la position même masqué, A547).
   if(kind==='img'){pickFile('image',pImgTaker(p,document.getElementById('p-body')),true);return;}
+  if(kind==='notion'){pickFile('data',files=>notionVerse(p,files,renderProtocolEdit),true);return;}   // A633
   if(kind==='rel'){openRelPicker(p,renderProtocolEdit);return;}
   if(kind==='ref'){p.sources=(Array.isArray(p.sources)?p.sources:[]).concat('');}
   if(kind==='body'&&!String(p.body||'').trim())p.body=' ';
@@ -29085,11 +29097,11 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.draft=migrate(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='edit';render();}
-async function newFiche(){const lib=homeScope();
+async function newFiche(){const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
   /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
-  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;if(state.coll&&state.coll!==COLL_PIN)collSet(state.coll,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -31000,6 +31012,42 @@ bindModalDismiss(impModal,()=>_impEnd(null));
    plusieurs fichiers déposés d'un geste SANS jamais superposer deux ateliers. `pos` ({i,n},
    facultatif) fait NOMMER le fichier par l'atelier et par les refus : trois ateliers muets
    d'affilée ne diraient pas lequel montre quoi. */
+/* A633 — LIRE UNE PAGE NOTION (export .zip ou .md seul) SANS PASSER PAR L'ATELIER : le parseur de l'import (A562) en une
+   fonction, pour verser une page DANS LE PROTOCOLE OUVERT. Rend {protocols,manque,trop,long} ou null (pas du Notion :
+   un .json d'export, par exemple, n'a rien à faire dans un protocole). */
+async function notionParse(u8){
+  const isZip=b=>b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4;
+  if(isZip(u8)){let entries=await zipParse(u8);
+    if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[];for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data));if(inn.length)entries=inn;}
+    if(!entries.some(x=>/\.md$/i.test(x.name))||entries.some(x=>/(^|\/)donnees\.json$/.test(x.name)))return null;
+    return notionRefs(entries);}
+  if(dataKind(u8)==='md'){const c=notionMd(new TextDecoder().decode(u8),'',null);
+    return {protocols:[{title:c.title||'Sans titre',body:c.body,images:[]}],manque:c.manque,trop:0,long:c.body.length>MD_MAX_CHARS?1:0};}
+  return null;}
+/* A633 — VERSER dans le protocole ouvert (`p`, le brouillon de l'éditeur) : le texte s'ajoute À LA SUITE (jamais
+   d'écrasement — même règle que « Dans » de l'atelier, A611), les images rejoignent celles du protocole sous son
+   plafond, le titre n'est posé que s'il était vide. Plusieurs pages : chacune sous son titre (« # … »), dans l'ordre. */
+async function notionVerse(p,files,rerender){
+  let n=0,img=0,trop=0,manque=0,refus=[];
+  for(const f of files){let u8;try{u8=new Uint8Array(await f.arrayBuffer());}catch(e){refus.push(upShortName(f.name));continue;}
+    let r=null;try{r=await notionParse(u8);}catch(e){r=null;}
+    if(!r||!r.protocols.length){refus.push(upShortName(f.name));continue;}
+    const plus=r.protocols.length>1||files.length>1;manque+=r.manque||0;trop+=r.trop||0;
+    for(const q of r.protocols){const t=String(q.title||'').trim();
+      if(!String(p.title||'').trim()&&t)p.title=t;
+      const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
+      p.images=Array.isArray(p.images)?p.images:[];let txt=bloc;
+      for(const im of (q.images||[])){if(p.images.length>=MAX_IMG_PER_ENTITY){trop++;txt=txt.split('![](img:'+im.id+')').join('');continue;}p.images.push(im);img++;}
+      /* Par le champ Markdown quand il est là : l'ajout entre dans son historique (↶ le retire d'un geste). */
+      const ta=document.getElementById('p-body');
+      if(ta&&state.pdraft===p){ta.selectionStart=ta.selectionEnd=ta.value.length;mdInsertAt(ta,(ta.value.trim()?(/\n\n$/.test(ta.value)?'':/\n$/.test(ta.value)?'\n':'\n\n'):'')+txt+'\n');}
+      else{const cur=String(p.body||'').trim();p.body=cur?cur+'\n\n'+txt:txt;}
+      n++;}}
+  if(n)rerender();
+  const m=(n?nb(n,'page')+' Notion ajoutée'+(n>1?'s':'')+' à la suite'+(img?' · '+nb(img,'image'):''):'')
+    +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
+    +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, ou .zip d’export Notion)':'');
+  if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
 function readImportFile(file,pos){
   const lbl=pos?'« '+upShortName(file&&file.name)+' » (fichier '+pos.i+'/'+pos.n+')':null;
   return new Promise(fin=>{const r=new FileReader();
