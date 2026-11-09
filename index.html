@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-CmYs6vgKzJqb80HZsMOwRpiaLsqKhyiEYzLrqPxayVc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-bJaY/wFJ6ChcvbWHrR0FtRjQb7O26r6u5Wj+140nLJE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7484,8 +7484,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Toast non bloquant (notifications de synchro/conflit) : n'interrompt jamais l'usage. */
   /* Snackbar V5 : ardoise bleu nuit FIXE dans les deux thèmes (tokens --rt-*), 4-6 s, une seule
      à la fois ; JAMAIS pendant une session de crise (mise en attente, cf. toast()). */
-  .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,16px);max-width:min(560px,92vw);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-line);font-size:13.5px;line-height:1.5;padding:12px 14px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
-  .toast.on{opacity:1;transform:translate(-50%,0)}
+  /* A649 (signalé : « la notification de mise à jour ne s'affiche plus très bien depuis la 5.100 ») — DEUX défauts.
+     (1) `left:50%` + `translate(-50%)` : un élément fixé ainsi n'a pour largeur disponible que la MOITIÉ de l'écran —
+     195 px au téléphone, le message tombait sur trois lignes. Centré par `left:0;right:0;margin:auto` et
+     `width:max-content`, il prend sa largeur jusqu'au plafond. (2) Depuis la barre d'onglets (A600, v5.100), il se posait
+     SUR elle : au-dessus d'elle désormais (et au-dessus du dock de session). */
+  .toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(16px);max-width:min(560px,92vw);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-line);font-size:13.5px;line-height:1.5;padding:12px 14px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
+  .toast.on{opacity:1;transform:none}
+  html.tabnav body.view-home .toast{bottom:calc(var(--tb-bot) + 62px + 12px)}
+  body.dock-on .toast{bottom:calc(var(--dock-h,64px) + 12px)}
   /* Barre de vie des toasts (durée via animation-duration inline) : indique quand le toast va
      disparaître. `currentColor` -> contraste garanti sur les deux fonds (toast sombre, alerte ambre). */
   .t-life{position:absolute;left:0;bottom:0;height:3px;width:100%;background:currentColor;opacity:.45;transform-origin:left;animation:tLife linear forwards;pointer-events:none}
@@ -10362,7 +10369,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.111.1';
+const APP_VERSION='5.111.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17758,7 +17765,9 @@ function ctgFilterPick(b,redo){const F=state.ctf,k=b.dataset.ctgf,vis=homeVis();
         return [...m.values()].sort((a,c)=>byCatName(a.c,c.c)).map(g=>({val:g.n,name:g.c.name,col:safeColor(g.c.color),cnt:g.k}));})())
     :[{val:'az',name:'A → Z',dot:false},{val:'recent',name:'Plus récentes',dot:false},{val:'todo',name:'Tâches d’abord',dot:false}];
   const cur=k==='lib'?(F.lib==null?'*':F.lib):k==='cat'?(F.cat||'*'):F[k];
-  openPickMenu(document.body,{aria:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],sheet:tabNavOn(),trigger:b,value:cur,title:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],
+  /* A649 (signalé : « un bout de fenêtre s'affiche en bas à gauche » au bureau) : hôte = <body> sans `fixed`, le menu
+     ANCRÉ se montait en fin de page. Au bureau, il FLOTTE sous son bouton (A638). */
+  openPickMenu(document.body,{aria:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],sheet:tabNavOn(),fixed:!tabNavOn(),trigger:b,value:cur,title:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],
     seuilFiltre:12,filtreAuToucher:true,options:opts,onPick:set});}
 /* A601 — LE DOCK SE GLISSE COMME UN SÉLECTEUR SEGMENTÉ (demande de l'auteur : « comme les autres sélecteurs, glisser le
    curseur pour passer d'une sélection à l'autre ») : le doigt posé sur un onglet et tiré de côté promène la pastille ;
@@ -31721,7 +31730,7 @@ const Link={
           this._msg(body,r&&r.ok?'Ordinateur déconnecté.':'Déconnexion impossible (hors ligne ?) : réessayez dans <b>Moi</b> › <b>Appareils connectés</b>.');};};};
     paint();},
   /* « Appareils connectés » + « Mes fins de garde » (le téléphone). */
-  async devices(){this.close();const run=++this._run;const body=this._open('Appareils connectés');
+  async devices(){this.close();const run=++this._run;const body=this._open('Appareils connectés');this._cur='devices';
     body.innerHTML='<p class="pp-msg">Chargement…</p>';
     let L;try{L=await rpc('link_list',{});}catch(e){L=null;}
     if(run!==this._run)return;
@@ -31800,7 +31809,10 @@ const Link={
     /* Le jeton se RELIT sur le disque : la mémoire peut l'avoir perdu (session refusée par le serveur
        après l'heure de fin) alors que `ac-auth` y est encore — et au rechargement, le garde-fou de
        `load()` (« reprise d'une bascule interrompue ») ramènerait le poste sur l'espace du compte. */
-    try{Auth._load();if(Auth.signedIn())await Auth.signOut();else{Auth.session=null;Auth._save();}}catch(e){}   // scope=local : la session de CE poste seulement
+    /* A649 : AVANT de se déconnecter, le poste se déclare TERMINÉ au serveur (`link_end`) — sinon il restait dans les
+       « Appareils connectés » du téléphone jusqu'à son heure de fin (signalé). Sans réseau, l'appel échoue en silence
+       et la purge l'y retirera à l'heure de fin. */
+    try{Auth._load();if(Auth.signedIn()){try{await rpc('link_end',{});}catch(e){}await Auth.signOut();}else{Auth.session=null;Auth._save();}}catch(e){}   // scope=local : la session de CE poste seulement
     try{localStorage.removeItem('ac-auth');}catch(e){}
     await wipeCurrentSpace();
     try{localStorage.removeItem(LINK_KEY);sessionStorage.removeItem(LINK_OPEN_KEY);
@@ -31837,6 +31849,10 @@ function linkPaintBand(){const el=document.getElementById('linkBand');if(!el)ret
   el.innerHTML=`${uiIcon('monitor',16)}<div class="pp-bt"><b>Poste partagé</b>${sp.email?' · '+esc(sp.email):''} · ${esc(quand)}${Link._ask?' · des sessions n’ont pas pu rejoindre l’historique : voir « Sessions »':''}${linkLocked()?' · modifier redemande votre téléphone':''}</div><button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
   el.querySelector('[data-lkwipe]').onclick=()=>Link.wipe(false);}
 bindModalDismiss(document.getElementById('linkModal'),()=>Link.close());
+/* A649 : « Appareils connectés » ouvert sur le téléphone se RELIT au retour au premier plan — on va déconnecter le poste,
+   on revient : la liste dit ce qui est, sans fermer ni rouvrir. */
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Link._cur==='devices'
+  &&document.getElementById('linkModal').classList.contains('on'))Link.devices();});
 /* Moi — la carte du POSTE PARTAGÉ (sur le poste) et la zone « Appareils » (sur le téléphone). */
 function linkSharedCardHtml(locked){const sp=linkShared();if(!sp)return '';
   const past=Date.now()>=sp.endsAt,day=new Date(sp.endsAt).toDateString()===new Date().toDateString()?'':'demain ';

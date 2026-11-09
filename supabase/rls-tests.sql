@@ -1443,6 +1443,27 @@ begin
   reset role;
   select count(*) into v_cnt from auth.sessions where id = v_asid;
   if v_cnt <> 0 then raise exception 'ÉCHEC 16.13 : la session du poste survit à l''heure de fin'; end if;
+  -- 16.15 (A649) Le poste se termine lui-même (« Se déconnecter et effacer ») : il disparaît des « Appareils
+  --       connectés ». Seule SA session le peut ; une session qui n'est pas un poste ne termine rien.
+  v_asid2 := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid2, kim);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session, label)
+    values ('connect', encode(extensions.digest('qr-fin2-0123456789abcdef', 'sha256'), 'hex'),
+            encode(extensions.digest('cle-fin2-0123456789abcdef', 'sha256'), 'hex'), now(),
+            kim, 'claimed', now() + interval '5 hours', now(), now(), v_asid2, 'Chrome')
+    returning id into v_lid2;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_cnt := jsonb_array_length(public.link_list());
+  if v_cnt < 1 then raise exception 'ÉCHEC 16.15 : le poste n''apparaît pas dans « Appareils connectés »'; end if;
+  if (public.link_end()->>'ok')::boolean then raise exception 'ÉCHEC 16.15 : une session qui n''est pas un poste en termine un'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid2)::text, true);
+  v_j := public.link_end();
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.15 : le poste ne peut pas se terminer (%)', v_j; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  if jsonb_array_length(public.link_list()) <> v_cnt - 1 then
+    raise exception 'ÉCHEC 16.15 : le poste terminé reste dans « Appareils connectés »'; end if;
+  reset role;
   -- 16.14 (A648) Aucun compte ne porte de mot de passe : ni le définir, ni s'inscrire avec. Un mot de
   --       passe VIDE (compte créé par code e-mail) passe.
   update auth.users set email = 'kim2@test.local' where id = kim;   -- toute autre mise à jour passe

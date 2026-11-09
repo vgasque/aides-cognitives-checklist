@@ -48,7 +48,7 @@ function bouchon(srvst, vu) {
       const fn = p.slice(13); (vu[fn] = vu[fn] || []).push(body);
       if (fn === 'link_open') return J({ ok: true, id: LID, open_until: new Date(Date.now() + 120e3).toISOString(), server_time: new Date().toISOString() });
       if (fn === 'link_poll') return J(srvst.poll || { ok: true, status: 'pending' });
-      if (fn === 'link_approve' || fn === 'link_deposit' || fn === 'link_revoke') return J({ ok: true });
+      if (fn === 'link_approve' || fn === 'link_deposit' || fn === 'link_revoke' || fn === 'link_end') return J({ ok: true });
       if (fn === 'link_peek') return J({ ok: true, kind: 'connect', label: 'Chrome · Windows', age_s: 4 });
       if (fn === 'my_status') return J('approved');
       return J(null);
@@ -193,6 +193,7 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   const fin = await page.evaluate(() => ({ space: localStorage.getItem('ac-space'), spaces: localStorage.getItem('ac-spaces') || '', auth: localStorage.getItem('ac-auth'), open: sessionStorage.getItem('ac-shared-open') }));
   t('heure de fin passée, rien en attente : le poste s’EFFACE', fin.space === '' && !fin.auth && !fin.open, JSON.stringify(fin));
   t('… sans garder l’identifiant du compte dans le registre des espaces', fin.spaces.indexOf(UID) < 0, fin.spaces);
+  t('… et en se déclarant TERMINÉ au serveur avant de se déconnecter (il quitte « Appareils connectés », A649)', (vu.link_end || []).length >= 1 && (vu.logout || 0) >= 1, JSON.stringify({ end: (vu.link_end || []).length, logout: vu.logout }));
 }
 await ctx.close();
 {
