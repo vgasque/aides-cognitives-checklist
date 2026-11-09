@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A649 au lot v5.111 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A649 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A650 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -261,7 +261,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-100.md`](docs/decisions/lot-v5-100.md) | A599-A606 | La barre de sélection en matière système ; L'ARCHITECTURE CIBLE « lanceur + catalogue » (par lots) ; lot 1 : le catalogue ajouté, le dock glissé ; retour système et volets ; la pastille du dock glisse ; lots 2-3 : l'accueil lanceur, la colonne ne filtre plus |
 | [`lot-v5-104.md`](docs/decisions/lot-v5-104.md) | A607-A612 | Le Markdown de Notion (emphase imbriquée, barré, listes sur 6 niveaux) ; image « Pleine », Plan en arbre, pastille de provenance, sélection sans voile ; tableau (grille rouverte, en-têtes, `<br>`) ; blocs (« ＋ », sélection multiple, déplacer plusieurs blocs, bloc vidé) ; import (renommer, verser dans une référence) |
 | [`lot-v5-107.md`](docs/decisions/lot-v5-107.md) | A613-A642 | Le suivi : notes et tâches, pour moi ou pour l'équipe ; « À faire » (par priorité, par élément) ; table `aid_followups` ; volet « Suivi » des éditeurs ; pastille sous le titre ; « ‹ Accueil » d'une collection ; barre de sélection en bas en large ; sélection sur place depuis l'accueil ; rangée sans catégorie alignée ; « · » jamais en tête de ligne ; renommer à l'import en touchant le titre ; cases natives rondes, « protocole » partout ; tâche liée visible des deux côtés ; échéance passée ; recherche dans tout choix d'aide ; « À faire » en page ; menus ancrés au bureau ; « Créer » aux Bibliothèques ; page Notion dans l'éditeur ; sélection de blocs au cadre ; « Modifier » sans attente ; suivi de l'éditeur stable ; déroulants flottants au bureau ; ****gras**** ; plus aucune fenêtre centrée de choix ; image dans un élément de liste |
-| [`lot-v5-111.md`](docs/decisions/lot-v5-111.md) | A643-A649 | Le POSTE PARTAGÉ se connecte par le téléphone (QR, nombre de contrôle, deux secrets, session propre au poste créée et liée par la fonction `link-claim`, revue de sécurité) ; ce qu'un poste partagé ne fait pas (A647) ; aucun mot de passe, jeton de 900 s (A648) ; notification au-dessus de la barre d'onglets, filtres de « Tout » ancrés, poste qui se déclare terminé (A649) ; heures de fin de garde ; effacement jamais pendant une session ni avant le dépôt des sessions ; sauvegarde en ligne d'une session en cours ; verrou après réouverture ; « Appareils connectés » ; `camera=(self)` |
+| [`lot-v5-111.md`](docs/decisions/lot-v5-111.md) | A643-A650 | Le POSTE PARTAGÉ se connecte par le téléphone (QR, nombre de contrôle, deux secrets, session propre au poste créée et liée par la fonction `link-claim`, revue de sécurité) ; ce qu'un poste partagé ne fait pas (A647) ; aucun mot de passe, jeton de 900 s (A648) ; notification au-dessus de la barre d'onglets, filtres de « Tout » ancrés, poste qui se déclare terminé (A649) ; heures de fin de garde ; effacement jamais pendant une session ni avant le dépôt des sessions ; sauvegarde en ligne d'une session en cours ; verrou après réouverture ; « Appareils connectés » ; `camera=(self)` |
 
 ### Carte par sujet
 
@@ -286,7 +286,7 @@ plages A renvoient au tableau ci-dessus.
 | **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392, A562, A611, A622, A633, A638 |
 | **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387 |
 | **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501, A502-A504, A508, A511-A512, A517, A525-A526, A536, A540-A543, A563, A575, A649 (notification au-dessus de la barre d'onglets, menus de filtres flottants) |
-| **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483, A613 (`aid_followups`), A643 (`device_links`, `link-claim`, droit de dépôt), A645 (sauvegarde d'une session en cours), A646 (`camera=(self)`), A648 (aucun mot de passe : `forbid_passwords`), A649 (`link_end`) |
+| **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483, A613 (`aid_followups`), A643 (`device_links`, `link-claim`, droit de dépôt), A645 (sauvegarde d'une session en cours), A646 (`camera=(self)`), A648 (aucun mot de passe : `forbid_passwords`), A649 (`link_end`), A650 (`APP_ORIGIN` en liste) |
 | **Outillage, garde-fous, audits** | Collision de noms de classe · Hygiène de suppression | A154-A158, A278-A283, A289, A292-A293, A329, A420, A439, A451, A482, A514, A563-A567, A572 ; `garde-fous-et-audits.md` |
 
 ## Règle de publication (IMPÉRATIF)

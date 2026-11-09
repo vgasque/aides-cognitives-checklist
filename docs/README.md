@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A649** à la v5.111 (lot v6.0 compris) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A650** à la v5.111 (lot v6.0 compris) (et ça continue — la
 prochaine est A650), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -273,6 +273,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A647 | `lot-v5-111.md` | Ce qu'un poste partagé ne fait pas : supprimer = le téléphone à chaque fois, administration et « Remplacer » interdits, réglages pour ce poste seulement, reverrouillage après 15 min sans geste |
 | A648 | `lot-v5-111.md` | Aucun compte ne porte de mot de passe (déclencheur `forbid_passwords` sur `auth.users`) ; jeton d'accès de 900 s sur l'instance (v5.111.1) |
 | A649 | `lot-v5-111.md` | Trois défauts signalés : la notification (`.toast`) au-dessus de la barre d'onglets et à sa largeur ; les filtres de « Tout » ouvrent leur menu sous leur bouton au bureau ; le poste partagé se déclare terminé (`link_end`) et quitte « Appareils connectés » (v5.111.2) |
+| A650 | `lot-v5-111.md` | `link-claim` sert plusieurs adresses de l'app : `APP_ORIGIN` en liste séparée par des virgules (le domaine ET le miroir GitHub Pages), l'origine listée est renvoyée ; écartés : `*`, origine reflétée, motif `*.github.io` |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
