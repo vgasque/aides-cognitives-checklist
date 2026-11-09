@@ -201,6 +201,20 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    tentatives de connexion) et exige un plan Team ou Enterprise.* Vérification après le rejeu :
    `select count(*) from auth.users where encrypted_password <> '';` doit rendre **0**. Ne touche
    pas la connexion au tableau de bord Supabase (compte supabase.com, séparé).
+   **Si elle ne rend pas 0** : des comptes ont reçu un mot de passe AVANT le déclencheur (le plus
+   souvent créés depuis le tableau de bord, *Add user*). Le déclencheur empêche d'en définir un
+   nouveau, il ne retire pas ceux qui existent — ces comptes peuvent encore se connecter par mot de
+   passe. Trois requêtes, dans l'ordre :
+   - les identifier : `select email, created_at, last_sign_in_at from auth.users where encrypted_password <> '';`
+     — si l'un d'eux sert à autre chose que l'app (script, autre outil sur ce projet avec e-mail et
+     mot de passe), l'exclure de la troisième requête ;
+   - vérifier qu'aucune session n'a été ouverte par mot de passe :
+     `select u.email, c.created_at from auth.mfa_amr_claims c join auth.sessions s on s.id = c.session_id join auth.users u on u.id = s.user_id where c.authentication_method = 'password' order by c.created_at desc;`
+     — une ligne inattendue se signale avant d'aller plus loin ;
+   - retirer les mots de passe (le déclencheur laisse passer un mot de passe VIDE) :
+     `update auth.users set encrypted_password = '' where encrypted_password <> '';`
+     — ces comptes se connectent ensuite par code e-mail, comme les autres. Relancer la
+     vérification : **0**. (Fait sur l'instance de production le 09/11/2026 : deux comptes.)
 7. **Durée du jeton d'accès : 900 s** (15 min, au lieu de 3600 par défaut) — *Project Settings →
    JWT Keys* (selon la version du tableau de bord : *Authentication → Sessions*), champ « Access
    token expiry time ». **Réglé sur l'instance de production le 08/11/2026.** C'est la fenêtre
