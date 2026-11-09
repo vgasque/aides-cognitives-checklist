@@ -42,8 +42,15 @@ const r5=await p.evaluate(async()=>{
  openRel(window.__oid);await new Promise(r=>setTimeout(r,400));
  const lbl=document.getElementById('hdrBackLbl').textContent;
  const hb=document.getElementById('hdrBack');
- hb.click();await new Promise(r=>setTimeout(r,150));hb.click();hb.click();await new Promise(r=>setTimeout(r,400));
- const apres={vue:state.view,surOrigine:!!(state.fiche&&state.fiche.id===window.__fid),guard:hb.classList.contains('guarded')};
+ /* LA GARDE SE LIT AU MOMENT DES TAPS (v5.111.2, deux rouges en CI, PR #83 et #84) : `.guarded` vit 700 ms à partir du
+    premier tap. Lue 400 ms APRÈS le troisième, elle tombait au-delà des 700 ms sur un runner lent — la marque était
+    partie, à bon droit, et le témoin rougissait sur une horloge, pas sur l'application. Elle se lit donc juste après les
+    taps ; si même ce moment dépasse 700 ms (machine saturée), son absence est le comportement attendu. */
+ const t0=performance.now();
+ hb.click();await new Promise(r=>setTimeout(r,150));hb.click();hb.click();   // horloge : 150 ms, le rythme d'un double tap nerveux
+ const garde=document.getElementById('hdrBack').classList.contains('guarded'),tg=Math.round(performance.now()-t0);
+ await new Promise(r=>setTimeout(r,400));
+ const apres={vue:state.view,surOrigine:!!(state.fiche&&state.fiche.id===window.__fid),guard:garde||tg>=700,tg};
  await new Promise(r=>setTimeout(r,800));
  document.getElementById('hdrBack').click();await new Promise(r=>setTimeout(r,400));
  return {lblA:A.title,lbl,apres,fin:state.view};});
