@@ -2227,6 +2227,26 @@ begin
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
 end; $$;
 
+-- LE POSTE SE TERMINE LUI-MÊME (« Se déconnecter et effacer », v5.111.2, A649). Signalé : « Appareils
+-- connectés ne se met pas à jour même si on clique sur se déconnecter » — la déconnexion du poste
+-- (`logout`, scope=local) supprimait bien SA session de compte, mais rien ne disait au serveur que le
+-- poste avait fini : il restait listé jusqu'à son heure de fin. Appelée par la SESSION DU POSTE
+-- (reconnue par son `session_id`, liée par le serveur — cf. `link_is_poste`), elle ne vise que SON
+-- lien ; aucun paramètre, donc rien à falsifier. Le droit de dépôt reste ouvert 7 jours (heure de fin
+-- ramenée à maintenant) : une session non encore envoyée pourrait encore arriver.
+create or replace function public.link_end()
+returns jsonb language plpgsql volatile security definer
+set search_path = public, pg_temp as $$
+declare v_sid uuid := nullif(auth.jwt() ->> 'session_id', '')::uuid;
+begin
+  if auth.uid() is null or v_sid is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  update public.device_links set status = 'ended', ends_at = least(ends_at, now())
+   where auth_session = v_sid and user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed');
+  if not found then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  return jsonb_build_object('ok', true);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
 -- DÉPÔT (le poste, par SA clé, avec ou sans session de compte valide) : ajoute UNE session à
 -- l'historique du compte qui a connecté le poste — sans rien lire. C'est ce qui permet à une
 -- session terminée APRÈS l'heure de fin, ou hors ligne, de rejoindre l'historique (A643 § dépôt),
@@ -2273,6 +2293,7 @@ grant execute on function public.link_approve(uuid,text,timestamptz)  to authent
 grant execute on function public.link_list()                          to authenticated;
 grant execute on function public.link_extend(uuid,timestamptz)        to authenticated;
 grant execute on function public.link_revoke(uuid)                    to authenticated;
+grant execute on function public.link_end()                           to authenticated;
 
 -- ---------- 10bis. AUCUN MOT DE PASSE (v5.111.1, A648) ---------------------------------------
 -- L'app ne se connecte QUE par code e-mail (et, depuis v5.111, par le téléphone). Or GoTrue laisse

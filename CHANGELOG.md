@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.111.2] — 2026-11-09
+Trois défauts signalés (A649). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle fonction `link_end`).
+- **La notification de mise à jour** (« Application mise à jour… ») se posait sur la barre d'onglets du téléphone
+  depuis la 5.100, et sur un tiers de la largeur (trois lignes) : elle passe au-dessus de la barre, centrée, à sa
+  largeur. Le bandeau « Nouvelle version disponible » n'avait pas de défaut.
+- **Bibliothèques › Tout, au bureau** : les filtres Type, Bibliothèque, Catégorie et A → Z ouvraient leur menu en bas à
+  gauche de l'écran ; il s'ouvre sous le bouton touché.
+- **Appareils connectés** : « Se déconnecter et effacer » sur un poste partagé le retire aussitôt de la liste du
+  téléphone (il y restait jusqu'à son heure de fin). La liste ouverte se met à jour au retour dans l'app.
+- Garde-fous : nouveau harnais `audit-flottants.mjs`, `rls-tests.sql` 16.15.
+
 ## [5.111.1] — 2026-11-08
 Aucun mot de passe sur les comptes, et des jetons de 15 min (A648). **Côté serveur : rejouer `supabase/schema.sql`.**
 - **Aucun compte ne peut porter de mot de passe** : un déclencheur sur `auth.users` le refuse, à l'inscription comme à
@@ -225,10 +236,3 @@ côté serveur.
 - **Les liens** « Bibliothèques » (Moi › Liens et raccourcis, raccourcis de l'app) ouvrent le catalogue.
 - Corrigé : sur ordinateur, revenir dans le catalogue pouvait faire disparaître le pied de page et bloquer l'écran
   suivant.
-
-## [5.102.1] — 2026-11-08
-Correctifs de l'éditeur de référence et du dock (A604-A605). Rien à rejouer côté serveur.
-- **Déplier « Identité » ne fait plus déborder l'éditeur** (texte et aperçu côte à côte) : il se réajuste à la place
-  restante et la page défile ; replié, il reprend sa hauteur. Avant, son bas passait sous l'écran.
-- **La pastille du dock est fluide** : elle glisse et change de largeur d'un seul mouvement, et les mots des onglets
-  changent de couleur à son rythme (A605) — elle sautait.

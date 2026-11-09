@@ -1177,6 +1177,9 @@ Les sessions d'**exercice** restent strictement ségrégées (colonne dédiée) 
   poste. La bande nomme le compte.
 - **Un lien `#lier=`** (appareil photo, message) mène au viseur, jamais droit à la feuille d'approbation ; après
   l'approbation, « Rien ne s'ouvre sur l'écran devant vous ? Déconnecter ».
+- **La notification** (`.toast`) se centre à sa largeur (plafond 560 px / 92 vw — jamais `left:50%` +
+  `translate(-50%)`, qui borne la largeur à la moitié de l'écran) et se pose AU-DESSUS de la barre d'onglets et du dock
+  de session ; au bureau, les filtres de « Tout » ouvrent un menu qui FLOTTE sous leur bouton (A649).
 - Une session SAUVEGARDÉE et jamais terminée se dit dans l'historique : « △ Interrompue · sauvegarde de HH:MM »
   (ambre `sess-ckpt`), et son compte rendu se dit PARTIEL (A645).
 
