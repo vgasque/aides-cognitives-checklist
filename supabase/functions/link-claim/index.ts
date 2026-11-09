@@ -19,23 +19,36 @@
 // DÉPLOIEMENT (une fois, puis à chaque modification de ce fichier) :
 //     supabase functions deploy link-claim --no-verify-jwt
 //     supabase secrets set APP_ORIGIN=https://<adresse de l'app>     (recommandé : CORS restreint)
+// PLUSIEURS ADRESSES (A650) : l'app peut être servie sur plus d'une origine (le domaine, et un miroir
+// GitHub Pages). `APP_ORIGIN` accepte une LISTE séparée par des virgules — une ORIGINE par entrée,
+// schéma + hôte, sans chemin (`https://<compte>.github.io`, pas `…/<dépôt>/`) :
+//     supabase secrets set APP_ORIGIN="https://aides.example.fr,https://compte.github.io"
+// La réponse renvoie l'origine de la requête SI elle figure dans la liste, sinon la première : un
+// navigateur sur une autre adresse voit sa réponse bloquée. Ce n'est pas l'autorisation (la clé du
+// poste l'est) mais une ceinture : une page tierce ne peut pas lire la session rendue.
 // `--no-verify-jwt` est NÉCESSAIRE et sans risque : le poste n'a pas encore de compte, et la clé
 // publishable n'est pas un JWT. La capacité, c'est la CLÉ DU POSTE, vérifiée en SQL.
 // SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY et SUPABASE_ANON_KEY sont fournies par la plateforme.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
-const ORIGIN = Deno.env.get('APP_ORIGIN') ?? '*';
-const CORS = {
-  'Access-Control-Allow-Origin': ORIGIN, 'Vary': 'Origin',
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+const ORIGINS = (Deno.env.get('APP_ORIGIN') ?? '*').split(',')
+  .map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean);
+const corsFor = (req: Request) => {
+  const o = req.headers.get('origin') ?? '';
+  const allow = ORIGINS.includes('*') ? '*' : ORIGINS.includes(o) ? o : (ORIGINS[0] ?? 'null');
+  return {
+    'Access-Control-Allow-Origin': allow, 'Vary': 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 };
-const json = (o: unknown, status = 200) =>
-  new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json' } });
 const OPTS = { auth: { persistSession: false, autoRefreshToken: false } };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 Deno.serve(async (req: Request) => {
+  const CORS = corsFor(req);
+  const json = (o: unknown, status = 200) =>
+    new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json' } });
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ ok: false, err: 'method' }, 405);
   let body: { id?: unknown; key?: unknown };

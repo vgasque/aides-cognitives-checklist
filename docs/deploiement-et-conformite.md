@@ -189,6 +189,11 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    [`supabase/functions/link-claim`](../supabase/functions/link-claim/index.ts), avec la CLI
    Supabase : `supabase functions deploy link-claim --no-verify-jwt`, puis
    `supabase secrets set APP_ORIGIN=https://<adresse de l'app>` (CORS restreint à l'app).
+   **Servie sur plusieurs adresses** (le domaine ET un miroir GitHub Pages, A650) : lister CHAQUE
+   origine, séparées par des virgules — schéma + hôte, sans chemin :
+   `supabase secrets set APP_ORIGIN="https://<domaine>,https://<compte>.github.io"`, puis
+   redéployer la fonction. Une origine absente de la liste voit la connexion par le téléphone
+   échouer (« Impossible… ») : le navigateur bloque la réponse. Le code e-mail, lui, marche partout.
    `--no-verify-jwt` est nécessaire (le poste n'a pas encore de compte) et sans risque : la
    capacité est la clé du poste, vérifiée en SQL. C'est la SEULE pièce qui utilise la clé de
    service. Sans elle, la connexion par le téléphone échoue proprement et l'e-mail reste disponible
