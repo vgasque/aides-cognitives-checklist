@@ -1,5 +1,51 @@
 # Journal des modifications
 
+## [5.119.0] — 2026-11-10
+Le volet des minuteurs et compteurs du téléphone, redessiné (A701). Rien à faire côté serveur.
+- **Des tuiles pleines.** Dans le volet de la capsule, au téléphone, chaque minuteur est une tuile sans cadre : son nom,
+  le temps en grand, le nombre de cycles à côté, et une seule ligne d'action. Chaque compteur tient sur une ligne :
+  « − », la valeur, « ＋ 1 ».
+- **Toucher une tuile à l'arrêt la lance**, où qu'on touche. Un minuteur en marche ne répond qu'à son bouton « Pause » :
+  un tap à côté ne fait rien.
+- **Maintenir une tuile la réarme ou la remet à zéro** (un peu moins d'une seconde, une jauge se remplit). Les boutons
+  « ↺ maintenir » et « Remettre à zéro » ne sont plus affichés dans ce volet ; la consigne est écrite une fois, sous les
+  tuiles. Un minuteur en marche ne se réarme pas : « Pause » d'abord.
+- **Au clavier**, le bouton de remise à zéro existe toujours : il paraît quand la tabulation l'atteint, et Entrée agit.
+- **« ＋ Minuteur » et « ＋ Compteur »** sont sur une seule ligne, sous les tuiles.
+- **Le volet s'arrête après ses instruments** : les jalons, le journal et les réglages du son sont juste en dessous, en
+  faisant défiler le volet. Le bas de l'étape en cours reste visible.
+- **Prendre en main** : le geste « Lire le chrono et les minuteurs » et l'étape du parcours guidé sur la capsule
+  décrivent les tuiles, le toucher et le maintien.
+- Le bureau ne change pas.
+
+## [5.118.0] — 2026-11-10
+La frise du compte-rendu (A700). Rien à faire côté serveur.
+- **Compte-rendu de session : une frise avant la chronologie.** Sur un axe de temps qui va du début à la fin de la
+  session, une ligne par compteur montre un point à chaque repère (un choc, une dose), une ligne « Repères » montre
+  les autres heures notées, et une ligne « Complications » marque d'un carré ambre l'entrée dans une complication.
+  Le tableau des heures reste en dessous, inchangé.
+- La frise figure dans l'aperçu, dans le fichier .html et dans le PDF, y compris imprimé sans arrière-plans.
+- **Elle ne montre que ce qui a été horodaté.** Les blocs et les cycles de minuteurs n'y figurent pas : une session
+  n'enregistre pas leurs heures. Un repère annulé n'a pas de point (il reste barré dans le tableau). Diminuer un
+  compteur ne retire pas de point : la ligne compte les repères, la tête du compte-rendu donne la valeur finale.
+- Aucun calcul n'est ajouté : ni intervalle, ni moyenne, ni couleur selon un délai.
+
+## [5.117.0] — 2026-11-10
+Le délai de revérification se règle, et le volet des minuteurs du téléphone se resserre (A698-A699). Rien à faire côté
+serveur.
+- **À revérifier — un délai par aide et par protocole.** Jusqu'ici, une validation de plus de deux ans s'affichait
+  « À revérifier » pour tout le monde. Dans l'éditeur, sous la date de validation, on choisit maintenant « tous les
+  ans », « tous les 2 ans » ou « tous les 3 ans ». Rien ne change pour l'existant : le délai reste de deux ans tant
+  qu'on n'y touche pas.
+- **Sur une rangée validée**, l'info-bulle dit à partir de quand l'élément sera à revérifier.
+- **« À faire » liste les validations échues** de ce que vous pouvez modifier, dans une section « À revérifier —
+  validation échue », avec « Ouvrir ». Ce n'est pas une tâche : la liste est calculée à l'affichage, rien n'est
+  enregistré ni envoyé, et elle disparaît dès que la date de validation est mise à jour.
+- **Minuteurs et compteurs au téléphone** : dans le volet de la capsule, chaque minuteur tient en une tuile plus
+  basse — « ↺ maintenir » à côté du temps, une seule commande en dessous. Toucher n'importe où sur un minuteur à
+  l'arrêt le lance ; un minuteur en marche ne répond qu'à son bouton « Pause ». Un compteur se lit « − n + » sur une
+  ligne, avec un « + » large. Le bureau ne change pas.
+
 ## [5.116.1] — 2026-11-10
 Les sept points restés ouverts de l'audit de sécurité (A689-A693, A695-A697).
 **À faire côté serveur : rejouer `supabase/schema.sql`, puis redéployer la fonction `link-claim`** (dans cet ordre ;
@@ -315,22 +361,3 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A62
 - **Sélection de blocs à la souris** : un glisser parti du texte sélectionne du texte ; un glisser parti de la marge
   trace un cadre qui prend les blocs ; un clic ailleurs désélectionne ; « Ajouter » s'efface pendant la sélection.
 - **« Modifier » s'ouvre tout de suite**, sans attendre le serveur (la vérification des droits se fait en arrière-plan).
-
-## [5.109.6] — 2026-11-08
-Sous-ligne des rangées (A621). Rien à rejouer côté serveur.
-- **Le « · » ne commence plus une ligne** : quand la ligne de détails d'une aide passe à la ligne (« △ À relire »,
-  pastille « Cours DESMU »…), le point reste au bout de la ligne précédente et la suivante commence au mot, sans
-  décalage.
-
-## [5.109.5] — 2026-11-08
-Alignement des rangées sans catégorie (A620). Rien à rejouer côté serveur.
-- **Une aide ou une référence sans catégorie ne décale plus son texte** : dans une liste où les autres rangées ont un
-  point de couleur (« Ouvertes récemment », une collection…), elle garde la place du point, vide, et son titre
-  s'aligne sur celui des voisines. Une liste sans aucune catégorie reste inchangée.
-
-## [5.109.4] — 2026-11-08
-Sélection depuis l'accueil (A619). Rien à rejouer côté serveur.
-- **Un appui long sur une aide de l'accueil sélectionne sur place** : depuis une collection, « Ouvertes récemment » ou
-  l'Accès direct, l'accueil ne bascule plus sur la liste complète des aides (la rangée pressée partait ailleurs et la
-  page sautait). Chaque rangée prend sa case ; une aide présente à deux endroits est cochée aux deux ; « Annuler »
-  rend l'accueil tel qu'il était.

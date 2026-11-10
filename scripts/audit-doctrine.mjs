@@ -10274,13 +10274,17 @@ await sec('RAIL · chaque ajout au pied de sa liste (A571, ex-A309)', async () =
   t('… rangées de 44 px au moins',r.hTm>=44&&r.hCn>=44,JSON.stringify([r.hTm,r.hCn]));
   t('le dock flottant s\'arrête au bord de la colonne d\'action (A310)',r.dockEcart!==null&&Math.abs(r.dockEcart)<=3,`écart ${r.dockEcart} px (2 px de rembourrage attendus ; −42 avant A310)`);
   t('le choix de durée s\'ouvre sous la liste des minuteurs',r.choixSousLaRangee===true&&r.durees===4,JSON.stringify([r.choixSousLaRangee,r.durees]));
-  // ÉTROIT : le volet garde l'ordre par famille (« ＋ Minuteur » avant les compteurs).
+  // ÉTROIT (A701, renverse « le volet garde l'ordre par famille ») : les deux ajouts partagent UNE rangée, sous les tuiles.
   await page.setViewportSize({width:430,height:900});await calme(page, 500);
   const e=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
     const b=document.getElementById('cbTimers');if(b)b.click();await __acCalme(400);
     const tm=document.querySelector('.rt-dock [data-rtadd]'),cnt=document.querySelector('.rt-dock .rt-counters, .rt-dock [data-cnadd]');
-    return {tm:!!tm,avant:!!tm&&!!cnt&&!!(tm.compareDocumentPosition(cnt)&Node.DOCUMENT_POSITION_FOLLOWING),rangee:!!document.querySelector('.rt-dock .rt-adds')};});
-  t('volet étroit : inchangé, « ＋ Minuteur » reste dans sa famille',e.tm&&e.avant&&!e.rangee,JSON.stringify(e));
+    const rg=document.querySelector('.rt-dock .rt-adds'),tuiles=document.querySelector('.rt-dock .rt-counters')||document.querySelector('.rt-dock .rt-grid');
+    return {tm:!!tm,rangee:!!rg&&!!rg.querySelector('[data-rtadd]')&&!!rg.querySelector('[data-cnadd]'),
+      apres:!!rg&&!!tuiles&&!!(tuiles.compareDocumentPosition(rg)&Node.DOCUMENT_POSITION_FOLLOWING),
+      consigne:/Maintenir une tuile/.test((document.querySelector('.rt-dock .rt-hold')||{}).textContent||'')};});
+  t('volet étroit (A701) : « ＋ Minuteur » et « ＋ Compteur » partagent une rangée, sous les tuiles',e.tm&&e.rangee&&e.apres,JSON.stringify(e));
+  t('… et la consigne du maintien est écrite sous les tuiles',e.consigne,JSON.stringify(e));
   await page.close();
 }
 });

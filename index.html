@@ -143,7 +143,7 @@
     id, title, discriminant(60 c. — « adulte », « pédiatrique » : ce que la troncature
               mange en premier, donc JAMAIS dans la chaîne du titre), code,
     category(=id de catégorie ou ''), status('validated'|'review'|'draft'),
-    validatedAt('AAAA-MM'), local, order(tri),
+    validatedAt('AAAA-MM'), reviewEvery(délai de revérification en mois : 12|24|36, A698), local, order(tri),
 
     items:    [{ id, role:'entry'|'do'|'watch'|'dose'|'ddx', do, expect, level:1|2|3,
                  memory(bool), dual(bool), note,
@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fvniAwL+EDIyv1NpIFc698XKVYJdxb0KxDc6EyJFT0M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GrI5kN80hz4N2NVvMN2ET9WWcebru0cFXISWZPPT2R0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6228,15 +6228,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-side .tm-ctrl:has(.tm-ack){flex-wrap:wrap}
   body.view-read .read-side .tm-ctrl:has(.tm-ack) .tm-main{flex:1 1 100%}
   body.view-read .read-side .tm-ctrl .tm-ack{flex:1 1 auto;padding-inline:8px}
-  .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset{flex:1 1 62px}
-  /* ⚠ ET LA REMISE À ZÉRO PERD SON INDICE TANT QUE « ✓ VU » EST LÀ (v5.6, signalé à l'usage :
-     « le texte est un petit peu tronqué »). Elle porte DEUX lignes — « ↺ 05:00 » et l'indice
-     « maintenir » — pour ~118 px de texte ; dans une colonne de volet à 160 px, une fois « ✓ Vu »
-     posé à côté, il lui en reste 75 et l'indice sortait en « MAINTEN… ». Un mot COUPÉ est moins
-     lisible qu'un mot absent, et le geste ne se perd pas : le maintien reste, son `title` et son
-     nom accessible le disent, et l'indice revient dès l'alarme acquittée. La HAUTEUR ne bouge pas
-     (min-height 44 px sur le bouton) — mesuré, A9 tient. */
-  .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset .tmr-hint{display:none}
+  /* Deux règles purgées (A699, règle 14) : dans le volet, « ↺ maintenir » vit désormais à côté du temps — « ✓ Vu »
+     ne lui prend plus de place, son indice n'a donc plus à s'effacer. */
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ✎ · ↺ · ✕.
      ⚠ LES GLYPHES VIENNENT DE `uiIcon`, JAMAIS ÉCRITS EN CLAIR (v5.6, signalé à l'usage : « il y a
@@ -8102,6 +8095,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .report-preview .kpi{min-width:74px;background:var(--work);border:1px solid var(--line);border-radius:8px;padding:8px 12px;text-align:center}
   .report-preview .kpi-v{display:block;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:21px;font-weight:700;line-height:1.1;color:var(--ink)}
   .report-preview .kpi-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
+  /* A700 — la frise : des couloirs de points sur un axe de temps. Encre neutre (des données, pas des états) ; seule
+     l'entrée en complication porte l'ambre de l'éclair, ET une autre forme (carré) — jamais la teinte seule. */
+  .report-preview .frise{margin:4px 0 2px}
+  .report-preview .fz-r{display:flex;align-items:center;gap:10px;min-height:26px}
+  .report-preview .fz-n{flex:0 0 34%;max-width:200px;font-size:var(--t-meta);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .report-preview .fz-s{flex:1;min-width:0;overflow:visible}
+  .report-preview .fz-b{stroke:var(--line-strong);stroke-width:1}
+  .report-preview .fz-p{fill:var(--ink)}
+  .report-preview .fz-cx{fill:var(--bolt);stroke:var(--bolt-edge);stroke-width:1.5}
+  .report-preview .fz-t{flex:1;display:flex;justify-content:space-between;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-cap);color:var(--ink-soft)}
+  .report-preview .fz-leg{font-size:var(--t-cap);margin:6px 0 0}
   .ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
   /* ⚠ UN SEUL DESSIN D'ÉTAT VIDE (v5.0.0, audit design, action 10). Il y en avait DEUX grammaires :
@@ -9639,6 +9643,63 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border:1px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink)}
   .rt-dock .cn-nm{color:var(--sys-ink-2)}
   .rt-dock .cn-nm:hover{background:var(--sys-2)}
+  /* A701 — LE VOLET DU TÉLÉPHONE, AU DESSIN DE LA MAQUETTE (remplace la mise en page d'A699, jugée à l'écran « pas du tout »
+     la maquette). Le DOM des cartes ne change pas (celui du rail, qui ne bouge pas) ; tout ceci vit sous `.rt-dock`.
+     · TUILE PLEINE, sans cadre : le nom, le temps en grand (les cycles à sa droite), UNE ligne d'action. « ▸ Démarrer »
+       en encre d'action ; en marche, « Pause » en encre neutre (ce qui tourne n'a pas de couleur, A407). La précision
+       entre parenthèses du nom (« 2 min ») ne paraît pas ici : à l'arrêt, le temps la dit déjà.
+     · À L'ARRÊT ou en pause, la tuile ENTIÈRE lance (la cible de la commande s'étend à la tuile par son `::after` : un
+       seul bouton, A576) ; EN MARCHE ou ÉCHUE, seul le bouton répond — un tap égaré ne touche à rien.
+     · RÉARMER / REMETTRE À ZÉRO = MAINTENIR LA TUILE (décision de l'auteur, sur captures : AMENDE A460 pour ce volet).
+       Le bouton « ↺ » reste dans le DOM pour le clavier et le lecteur d'écran — masqué à l'œil, il reparaît au focus ;
+       la consigne est écrite UNE fois, sous les tuiles (`.rt-hold`). La jauge du maintien se peint sur la tuile.
+     · ÉCHU : « ✓ Vu » à côté de la commande, même rangée — aucune hauteur ne change (A9) ; le nom réserve deux lignes.
+     · COMPTEUR : « − n ＋ 1 » sur une rangée, la valeur au milieu (A506), le « ＋ 1 » large en masse tonale (C134) ;
+       la ligne « consigné… » réserve SA ligne (un incrément ne déplace rien) et tient sur une.
+     · « ＋ Minuteur » et « ＋ Compteur » partagent UNE rangée, sous les tuiles. */
+  .rt-dock :is(.tmcard,.cncard){position:relative;min-height:0;padding:12px;border-color:transparent;border-radius:var(--r-4)}
+  .rt-dock .tmcard{--tbd:transparent;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:baseline;align-content:start}
+  .rt-dock .tmcard>:is(.tm-label,.tm-bar-wrap,.tm-kind,.tm-stop,.tm-ctrl){grid-column:1/-1}
+  .rt-dock .tmcard>.tm-meta{display:none}
+  .rt-dock .tmcard>.tm-val{order:1}
+  .rt-dock .tmcard>.tm-cyc{order:2;margin:0}
+  .rt-dock .tmcard>:is(.tm-bar-wrap,.tm-kind){order:3}
+  .rt-dock .tmcard>.tm-stop{order:4}
+  .rt-dock .tmcard>.tm-ctrl{order:5}
+  /* Le nom garde son corps de 11 px (`--t-cap`) : à 12, un nom tenant sur une ligne en prenait deux en colonne étroite,
+     et le témoin A9 (« une ligne au nominal, deux en échéant ») ne prouvait plus rien. */
+  .rt-dock .tmcard .tm-label{margin-bottom:2px}
+  .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-val);font-weight:600}
+  .rt-dock .tmcard .tm-bar-wrap{margin-top:4px}
+  .rt-dock .tmcard:not(.run,.paused,.due) .tm-bar-wrap{visibility:hidden}
+  .rt-dock .tmcard .tm-ctrl{flex-direction:row;flex-wrap:nowrap;gap:8px;margin-top:4px}
+  .rt-dock .tmcard .tm-main{flex:1 1 0;min-width:0;justify-content:flex-start;padding-inline:0;border-color:transparent;background:none;font-size:var(--t-body);font-weight:700;color:var(--act)}
+  .rt-dock .tmcard.run .tm-main{color:var(--sys-ink)}
+  /* La nuit, `--act` sur la tuile ne tient que 3,8:1 (mesuré, `audit-a11y`) : la commande y passe en encre système — le
+     glyphe ▸ et le mot disent l'action. */
+  html[data-theme="dark"] .rt-dock .tmcard .tm-main{color:var(--sys-ink)}
+  .rt-dock .tmcard:not(.run,.due) .tm-main{position:static}
+  .rt-dock .tmcard:not(.run,.due) .tm-main::after{inset:0}
+  /* Le « ↺ » : hors de l'œil, pas hors du clavier (WCAG 2.5.1 : jamais un geste obligatoire). */
+  .rt-dock :is(.tmcard,.cncard) .tm-reset{position:absolute;top:6px;right:6px;z-index:2;width:auto;margin:0;background:var(--work)}
+  /* Hors focus : une boîte de taille NULLE (ni cible ni texte à l'écran), mais toujours dans l'ordre de tabulation.
+     Ni `pointer-events:none` (A68/4 : rien n'est inerte au pointeur) ni `opacity:0` (ses textes se mesureraient 1:1). */
+  .rt-dock :is(.tmcard,.cncard) .tm-reset:not(:focus-visible){width:0;height:0;min-width:0;min-height:0;padding:0;border:0;overflow:hidden}
+  /* La jauge du maintien, sur la tuile : le même remplissage que le bouton « maintenir » (`holdfill`). */
+  .rt-dock :is(.tmcard,.cncard).tile-hold{background-image:linear-gradient(color-mix(in srgb,var(--crit-line) 45%,transparent),color-mix(in srgb,var(--crit-line) 45%,transparent));background-repeat:no-repeat;background-size:0 100%;animation:holdfill 800ms linear forwards}
+  .rt-dock .cncard{display:grid;grid-template-columns:44px minmax(32px,auto) minmax(0,1fr);column-gap:8px;align-items:center;text-align:left}
+  .rt-dock .cncard>:is(.tm-label,.cn-log,.cn-note){grid-column:1/-1}
+  .rt-dock .cncard>.tm-label{justify-content:flex-start;margin-bottom:6px}
+  .rt-dock .cncard .cn-ctrl{display:contents}
+  .rt-dock .cncard .cn-btn{grid-row:2;flex:none;min-width:0}
+  .rt-dock .cncard .cn-btn[data-cndec]{grid-column:1;border-color:transparent;background:none;font-size:var(--t-step-l)}
+  .rt-dock .cncard .cn-btn[data-cninc]{grid-column:3;border-color:transparent;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);font-weight:800}
+  .rt-dock .cncard .cn-btn[data-cninc]::after{content:" 1";white-space:pre}
+  .rt-dock .cncard .cn-val{grid-row:2;grid-column:2;text-align:center}
+  .rt-dock .cncard .cn-log{min-height:1lh;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--f-ui);font-weight:600}
+  .rt-hold{margin:10px 4px 0;font-size:var(--t-meta);font-weight:600;color:var(--sys-ink-2)}
+  .rt-adds{display:flex;gap:8px;margin-top:4px}
+  .rt-adds .rt-add{flex:1 1 0;margin-top:0;border-color:transparent;justify-content:flex-start;color:var(--act);font-size:var(--t-body)}
   .cn-btn[data-cninc]{flex:1.4;background:var(--primary-soft);border:0;color:var(--act);font-weight:800}
   .cn-btn[data-cninc]:hover{background:var(--primary-100)}
   .cn-btn[data-cndec]{width:44px}
@@ -10551,7 +10612,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.116.1';
+const APP_VERSION='5.119.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12665,13 +12726,19 @@ function suiviViewHtml(){const W=_svv,keep=x=>x.k==='task'&&suiviVisible(x)&&!!s
   const seg=(attr,cur,opts)=>`<div class="su-chips" role="group">${opts.map(([v,l])=>`<button type="button" class="mdb-chip${cur===v?' on':''}" ${attr}="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
   const nMe=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&!x.lib&&suiviEnt(x.ent)).length,nEq=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.lib&&suiviEnt(x.ent)).length;
   const nLate=open.filter(suiviLate).length;
-  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord'+(nLate?` · <span class="su-late">△ ${nLate} en retard</span>`:''):'Rien à faire'}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
+  const nDue=fiches.concat(protocols).filter(e=>!e.deletedAt&&reviewDue(e)&&canEditFiche(e)&&(W.who==='all'||(W.who==='me'?!e.library:!!e.library))).length;   // A698
+  let h=`<p class="su-meta">${open.length?nb(open.length,'tâche')+' · '+open.filter(x=>x.t.prio===1).length+' d’abord'+(nLate?` · <span class="su-late">△ ${nLate} en retard</span>`:''):nDue?'Aucune tâche':'Rien à faire'}${nDue?` · <span class="su-late">△ ${nDue} à revérifier</span>`:''}${done.length?' · '+done.length+' faite'+(done.length>1?'s':''):''}</p>`
     +`<div class="su-bar">${seg('data-suby',W.by,[['prio','Par priorité'],['ent','Par élément']])}${seg('data-suwho',W.who,[['me','Moi · '+nMe],['team','Équipe · '+nEq],['all','Tout']])}</div>`;
-  if(!open.length)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou un protocole : « Suivi » › « ＋ Tâche ».</div>`;
+  if(!open.length&&!nDue)h+=`<div class="empty"><b>Rien à faire</b>Une tâche s’ajoute depuis une aide ou un protocole : « Suivi » › « ＋ Tâche ».</div>`;
+  else if(!open.length){}
   else if(W.by==='prio')[1,2,3].forEach(p=>{const g=open.filter(x=>x.t.prio===p);if(g.length)h+=`<div class="su-gh${p===1?' p1':''}">${SUIVI_PRIO[p]} · ${g.length}</div><div class="su-card">${g.map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div>`;});
   else{const by=new Map();open.forEach(x=>{if(!by.has(x.ent))by.set(x.ent,[]);by.get(x.ent).push(x);});
     h+=[...by.entries()].map(([id,g])=>{const e=suiviEnt(id);
       return `<div class="su-card"><div class="su-card-h"><span><b>${esc(suiviEntTitle(id))}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Protocole'} · ${esc(e&&e.library?(libName(e.library)||'Partagée'):'Perso')} · ${nb(g.length,'tâche')}</span></span><button type="button" class="linkbtn" data-sugo="${esc(id)}">Ouvrir ›</button></div>${g.map(x=>suiviTaskRowHtml(x)).join('')}</div>`;}).join('');}
+  /* A698 : les validations ÉCHUES se lisent ici, CALCULÉES à l'affichage — jamais stockées ni synchronisées (une
+     tâche créée d'office naîtrait une fois par appareil). Seulement ce que l'on peut modifier. */
+  {const due=fiches.concat(protocols).filter(e=>!e.deletedAt&&reviewDue(e)&&canEditFiche(e)&&(W.who==='all'||(W.who==='me'?!e.library:!!e.library))).sort((a,b)=>String(a.validatedAt).localeCompare(String(b.validatedAt)));
+   if(due.length)h+=`<div class="su-gh"><span class="su-late">△ À revérifier</span> — validation échue · ${due.length}</div><div class="su-card">${due.slice(0,200).map(e=>`<div class="su-card-h"><span><b>${esc(String(e.title||'').trim()||'Sans titre')}</b><span class="su-s">${fiches.indexOf(e)>=0?'Aide':'Protocole'} · ${esc(e.library?(libName(e.library)||'Partagée'):'Perso')} · ${esc(fmtDate(e.validatedAt))} · délai ${reviewSpan(e.reviewEvery)}</span></span><button type="button" class="linkbtn" data-sugo="${esc(e.id)}">Ouvrir ›</button></div>`).join('')}</div>`;}
   if(done.length)h+=`<details class="su-done su-hist"><summary>Fait · ${done.length}</summary><div class="su-card">${done.slice(0,200).map(x=>suiviTaskRowHtml(x,{ent:true})).join('')}</div></details>`;
   const conv=colls.filter(c=>SUIVI_CONV_RX.test(c.name)&&collItems(c).length);
   if(conv.length)h+=`<div class="su-conv"><div class="su-fl">Des collections qui ressemblent à une liste de travail</div>${conv.map(c=>`<div class="su-conv-r"><span>« ${esc(c.name)} » · ${nb(collItems(c).length,'élément')}</span><button type="button" class="btn sm" data-suconv="${esc(c.id)}">Convertir en tâches</button></div>`).join('')}<p class="hint">Chaque élément reçoit une tâche « ${'À revoir'} », « À fusionner », « À compléter »… selon le nom ; la collection reste — supprimez-la ensuite si elle ne sert plus.</p></div>`;
@@ -12997,7 +13064,7 @@ function blankFiche(){const b={id:uid('b'),kind:'do',title:'Prise en charge',ite
   // localInfo pré-rempli avec les invites de renfort des DEUX contextes d'exercice (structure /
   // SMUR) : une fiche déployée avec un « ☎ : … » vide entraîne à ignorer la ligne — on incite à
   // les renseigner (badge « À compléter » tant qu'une invite reste).
-  return migrate({id:uid(),title:'',code:'',category:'',validatedAt:'',local:'Tél renfort : à compléter\nTél régulation : à compléter',excursions:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],sources:[''],images:[],docs:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()});}
+  return migrate({id:uid(),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,local:'Tél renfort : à compléter\nTél régulation : à compléter',excursions:[],confirmation:[''],verify:[''],posology:[''],notForget:[''],differentials:[''],sources:[''],images:[],docs:[],timers:[],counters:[],blocks:[b],start:b.id,order:Date.now()});}
 // Invites laissées en suspens : où la fiche contient-elle encore le texte « à compléter »
 // (gabarit local non renseigné, manque « ⚠ À COMPLÉTER : … » signalé par la génération IA) ?
 // completionSpots(f) renvoie la liste des EMPLACEMENTS (libellés des sections / blocs), affichée
@@ -13418,10 +13485,12 @@ const _dim=v=>Math.max(0,Math.min(20000,Math.round(Number(v))||0));
 // Taille d'affichage d'une image, PAR IMAGE (v4.4.3) : jeu FERMÉ, défaut 100 % posé ici (donc un
 // export ancien — sans `scale` — s'affiche à 100 %, et un ancien client ignore simplement le champ).
 const _scale=v=>{const n=Math.round(Number(v));return MD_SCALES.indexOf(n)>=0?n:100;};
+const REVIEW_MONTHS=[12,24,36];   // A698 : jeu FERMÉ des délais de revérification (mois)
 function sanitizeEntityCommon(x,idPrefix,imgMax){
   x.id=safeId(x.id,idPrefix);
   x.title=sstr(x.title,300);
   x.validatedAt=parseValidation(x.validatedAt)||sstr(x.validatedAt,16);
+  {const m=Math.round(Number(x.reviewEvery));x.reviewEvery=REVIEW_MONTHS.indexOf(m)>=0?m:24;}   // A698
   x.category=safeCatRef(x.category);
   if(typeof x.order!=='number'||!isFinite(x.order))x.order=Date.now();
   let _imgBudget=24000000;
@@ -13661,7 +13730,7 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    'attachments' partagé), links, sources, order, status, updatedBy, updatedAt, deletedAt,
    ownerId, library }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
-function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',body:'',images:[],docs:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
+function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,body:'',images:[],docs:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   sanitizeEntityCommon(p,'p',60);
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
@@ -14125,7 +14194,14 @@ function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[]
     return {id,n:i+1,title:b.title||'',dec,off:off.has(id),cur:id===curId,visited:!!lp,seq,done,
       tot:steps.length,complete:dec?!!taken:(steps.length>0&&done>=steps.length),taken,
       pass:lp?lp.pass:0,total:lp?lp.total:0};});}
-const staleDate=v=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>730*864e5;};
+/* A698 — LE DÉLAI DE REVÉRIFICATION SE RÈGLE PAR ÉLÉMENT (`reviewEvery`, en mois : 12 · 24 · 36 ; 24 par défaut, le
+   seuil de toujours — 730 jours). `reviewDue(x)` est la SOURCE UNIQUE de « À revérifier » (rangée, compte « à relire »,
+   en-têtes, « À faire »). Il porte sur le CONTENU, jamais sur un patient. Pas de valeur « jamais » : le signal ne se tait pas. */
+const staleDate=(v,m)=>{if(!v)return false;const d=new Date(v.length===7?v+'-01':v);if(isNaN(d))return false;return (Date.now()-d.getTime())>Math.round((REVIEW_MONTHS.indexOf(m)>=0?m:24)*365/12)*864e5;};
+const reviewDue=x=>!!x&&staleDate(x.validatedAt,x.reviewEvery);
+const reviewSpan=m=>m===12?'1 an':m===36?'3 ans':'2 ans';
+// Le mois à partir duquel l'élément est à revérifier (« MM/AAAA »), '' si la date ne se lit pas.
+const reviewFrom=x=>{const m=String(x&&x.validatedAt||'').match(/^(\d{4})-(\d{2})/);if(!m)return '';const k=(+m[1])*12+(+m[2])-1+(REVIEW_MONTHS.indexOf(x.reviewEvery)>=0?x.reviewEvery:24);return String(k%12+1).padStart(2,'0')+'/'+Math.floor(k/12);};
 // Affichage de la date de validation : "AAAA-MM" -> "MM/AAAA" ; "AAAA-MM-JJ" -> "JJ/MM/AAAA".
 // « Validation : … » (neutre) et non « Validée … » : le même libellé sert aux fiches (féminin)
 // ET aux protocoles (masculin) — l'accord unique était faux pour l'un des deux.
@@ -14719,6 +14795,29 @@ function buildRuntime(f,session){
    LOGICIEL, à ne jamais calculer (§ 2 de docs/deploiement-et-conformite.md). Par OBJET seulement ;
    un repère annulé ne compte pas et ne coupe pas la série. PURE, évènements supposés triés.
    Détail : doctrine-js.md J35. */
+/* A700 — LA FRISE DU COMPTE-RENDU : les heures déjà consignées, DESSINÉES. Fonction PURE (géométrie en %, aucun DOM).
+   · Un couloir par COMPTEUR (repères `ref.type==='counter'`), un couloir « Repères » pour tous les autres, un couloir
+     « Complications » (heures d'entrée, `cxBack`). Un repère ANNULÉ n'est pas tracé (il reste, barré, au tableau).
+   · Rien n'est DÉDUIT (J35, § 2) : ni durée de bloc ni cycle de minuteur — le modèle ne les date pas, on ne les
+     invente pas ; ni intervalle cible, ni moyenne, ni couleur d'évaluation.
+   · Sans rien à tracer ou sans durée : `null` — une frise vide se lirait comme « rien n'a été fait ».
+   `nameOf(id)` rend le nom d'un compteur ; `cx` = heures d'entrée en complication. */
+function sessFrise(evs,start,end,nameOf,cx){
+  const span=end-start;if(!(span>0))return null;
+  const pct=t=>Math.round(Math.min(100,Math.max(0,(t-start)/span*100))*100)/100;
+  const byC=new Map(),autres=[];
+  (evs||[]).forEach(e=>{if(!e||e.voidAt||!(e.t>=0))return;
+    if(e.ref&&e.ref.type==='counter'&&e.ref.id!=null){const k=String(e.ref.id);if(!byC.has(k))byC.set(k,[]);byC.get(k).push(pct(e.t));}
+    else autres.push(pct(e.t));});
+  const lanes=[...byC.entries()].map(([id,pts])=>({k:'cn',name:String((nameOf&&nameOf(id))||'Compteur'),pts}));
+  if(autres.length)lanes.push({k:'ev',name:'Repères',pts:autres});
+  const cxp=(cx||[]).filter(t=>t>0).map(pct);
+  if(cxp.length)lanes.push({k:'cx',name:'Complications',pts:cxp});
+  if(!lanes.length)return null;
+  return {lanes,ticks:[0,1,2,3].map(i=>({pct:Math.round(i/3*1e4)/100,ms:Math.round(span*i/3)}))};}
+function sessFriseHtml(F){if(!F)return '';
+  const lane=l=>`<div class="fz-r"><span class="fz-n">${esc(l.name)} <span class="muted">· ${l.pts.length}</span></span><svg class="fz-s" width="100%" height="22" aria-hidden="true" focusable="false"><line class="fz-b" x1="0" y1="11" x2="100%" y2="11"/>${l.pts.map(p=>l.k==='cx'?`<rect class="fz-p fz-cx" x="${p}%" y="6" width="10" height="10" transform="translate(-5 0)"/>`:`<circle class="fz-p" cx="${p}%" cy="11" r="5"/>`).join('')}</svg></div>`;
+  return `<h2>Frise de la session</h2><div class="frise">${F.lanes.map(lane).join('')}<div class="fz-r fz-ax"><span class="fz-n"></span><span class="fz-t">${F.ticks.map(t=>`<span>${esc(fmtMs(t.ms))}</span>`).join('')}</span></div><p class="muted fz-leg">Chaque point est un repère horodaté${F.lanes.some(l=>l.k==='cx')?' ; un carré, l’entrée dans une complication':''}. Le détail est dans la chronologie ci-dessous.</p></div>`;}
 function evDeltas(evs){
   const prev=Object.create(null),out=[];
   (evs||[]).forEach(e=>{
@@ -14842,6 +14941,7 @@ ${(()=>{
     +(rv?('<b>'+esc(new Date(rv).toLocaleString('fr-FR'))+'</b>')
         :'<i>non enregistrée (session antérieure à la v5)</i>')+'</div>';})()}
 <div class="bilan"><div class="bilan-dur"><span class="bd-v">${esc(dur)}</span><span class="bd-k">durée totale</span></div>${kpi?`<div class="kpis">${kpi}</div>`:''}</div>
+${sessFriseHtml(sessFrise(evs,start,s.savedAt||Date.now(),id=>{const c=(f&&f.counters||[]).concat(Array.isArray(s.extraCounters)?s.extraCounters:[]).find(x=>String(x.id)===id);return c&&c.label;},cxRows.map(x=>x.t)))}
 <h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Écart</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
 ${cxRows.length?`<h2>${boltIcon(16)} Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
@@ -14880,6 +14980,11 @@ td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas
 .kpi-k{display:block;font-size:11px;color:#5b6570;margin-top:2px}
 .wm{position:fixed;right:-34px;top:24px;transform:rotate(24deg);font-size:13px;font-weight:800;letter-spacing:3px;color:#17477f;background:#e3ecf7;border:1px dashed #1f5fa6;padding:4px 44px;z-index:2}
 .meta.exo{color:#17477f;font-weight:700}
+.frise{break-inside:avoid;margin:4px 0 2px}.fz-r{display:flex;align-items:center;gap:10px;min-height:26px}
+.fz-n{flex:0 0 34%;max-width:200px;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fz-s{flex:1;min-width:0;overflow:visible}.fz-b{stroke:#aab3bf;stroke-width:1}.fz-p{fill:#101b28}.fz-cx{fill:#f5b800;stroke:#8a5200;stroke-width:1.5}
+.fz-t{flex:1;display:flex;justify-content:space-between;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:11px;color:#5b6570}
+.fz-leg{font-size:11px;margin:6px 0 0}
 @media print{body{margin:0}}`;
   /* ⚠ SEUL ENDROIT DU FICHIER OÙ UNE CHAÎNE DEVIENT UN DOCUMENT ENTIER (srcdoc + téléchargement).
      Un iframe srcdoc hérite de l'ORIGINE ET de la CSP du parent : une injection ici serait une
@@ -15778,6 +15883,34 @@ function holdToReset(btn,doAction,ms){if(!btn)return;let to=null;const lbl=btn.i
   btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();cancel();doAction();}});
   // Un clic SYNTHÉTIQUE (script, isTrusted=false) confirme : l'appui prolongé ne borne que le geste réel.
   btn.onclick=e=>{e.preventDefault();e.stopPropagation();if(!e.isTrusted){cancel();doAction();}};}
+/* A701 — MAINTENIR UNE TUILE DU VOLET (téléphone) = le geste de son bouton « ↺ ». Un écouteur délégué, posé une fois :
+   · il ne répond que si le « ↺ » de la tuile existe et n'est pas désactivé (un minuteur EN MARCHE ne se réarme pas,
+     un invité bridé non plus) — la règle reste celle du bouton, on ne la recopie pas ;
+   · 800 ms, jauge peinte sur la tuile (`.tile-hold`) ; lâcher, glisser de plus de 12 px ou perdre le pointeur annule ;
+   · au terme, l'action passe par le CLIC SYNTHÉTIQUE du « ↺ » (`holdToReset` l'accepte) : une seule définition de ce
+     que « remettre à zéro » veut dire ;
+   · le clic que le navigateur émet au relâcher est AVALÉ — sans cela, relâcher sur une tuile à l'arrêt la relancerait
+     aussitôt (sa commande couvre toute la tuile). */
+(function(){let to=null,tile=null,x0=0,y0=0,avale=false;
+  const SEL='.rt-dock .tmcard,.rt-dock .cncard',RZ='[data-tmreset],[data-cnreset]';
+  const stop=()=>{if(to){clearTimeout(to);to=null;}if(tile){tile.classList.remove('tile-hold');tile=null;document.body.classList.remove('hold-noselect');}};
+  document.addEventListener('pointerdown',e=>{avale=false;const el=e.target&&e.target.closest?e.target:null,t=el&&el.closest(SEL);
+    if(!t||el.closest('[data-cninc],[data-cndec],[data-tmack],'+RZ+',.cn-nm,input'))return;
+    const rz=t.querySelector(RZ);if(!rz||rz.disabled)return;
+    stop();tile=t;x0=e.clientX;y0=e.clientY;document.body.classList.add('hold-noselect');void t.offsetWidth;t.classList.add('tile-hold');
+    to=setTimeout(()=>{to=null;const b=tile&&tile.querySelector(RZ);stop();avale=true;if(b&&!b.disabled)b.click();},800);},true);
+  document.addEventListener('pointermove',e=>{if(tile&&Math.hypot(e.clientX-x0,e.clientY-y0)>12)stop();},true);
+  ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,stop,true));
+  document.addEventListener('click',e=>{if(!avale||!e.isTrusted)return;avale=false;
+    if(e.target&&e.target.closest&&e.target.closest(SEL)){e.preventDefault();e.stopPropagation();}},true);
+  document.addEventListener('contextmenu',e=>{if(tile)e.preventDefault();},true);})();
+/* A701 — LE VOLET S'ARRÊTE APRÈS SES INSTRUMENTS, et laisse voir l'étape en cours. Ce qui suit les deux ajouts (jalons,
+   journal, son) reste dans le volet, sous le pli : sa tête dépasse de 40 px pour dire qu'il y a une suite, et le volet
+   défile comme avant. Mesuré après chaque rendu, ramené au zoom (règle 10) ; jamais plus haut que le plafond CSS. */
+function dockFold(){const d=document.querySelector('.rt-dock');if(!d)return;d.style.maxHeight='';
+  const a=d.querySelector('.rt-adds');if(!a)return;const nx=(d.querySelector('.tm-add-d')||a).nextElementSibling;if(!nx)return;
+  const cut=(nx.getBoundingClientRect().top-d.getBoundingClientRect().top+d.scrollTop)/zoomF()+40;
+  if(cut<d.clientHeight)d.style.maxHeight=Math.round(cut)+'px';}
 // Terminer : archive la session (historique, reprenable plus tard), arrête les minuteurs, puis
 // repart d'une fiche vierge (cochages, compteurs, minuteurs remis à zéro).
 /* Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) — SEULE porte de sortie d'une
@@ -17354,8 +17487,8 @@ function dirStateHtml(x,fem,isLive){
   if(sp.length)return `<span class="dir-st b" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`;
   if(!x.validatedAt)return '<span class="dir-st b">△ Sans date</span>';
   const d=esc(fmtDateShort(x.validatedAt)),full=esc(fmtDate(x.validatedAt));
-  if(staleDate(x.validatedAt))return `<span class="dir-st w" title="${full} — plus de 2 ans : à revérifier">À revérifier <span class="d">${d}</span></span>`;
-  return `<span class="dir-st" title="${full}">Validé${fem?'e':''} <span class="d">${d}</span></span>`;}
+  if(reviewDue(x))return `<span class="dir-st w" title="${full} — plus de ${reviewSpan(x.reviewEvery)} : à revérifier">À revérifier <span class="d">${d}</span></span>`;
+  return `<span class="dir-st" title="${full} — à revérifier à partir de ${esc(reviewFrom(x))}">Validé${fem?'e':''} <span class="d">${d}</span></span>`;}
 function paintDirLive(){
   document.querySelectorAll('[data-dirlive]').forEach(e=>{
     const v=fmtMs(dirLiveMs(e.dataset.dirlive));
@@ -17948,7 +18081,7 @@ function renderHomeTab(cfg){const t=homeTab();
    « Tout ») : l'accueil garde ses filtres, et passer d'un onglet à l'autre ne les mélange jamais. Les rangées
    d'éléments sont celles de l'accueil (`cfg.row`), la sélection est celle de l'accueil (A599). */
 const CTG_TYPES=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles'],['rev','À relire'],['todo','Avec des tâches']];   // A613 : « Avec des tâches »
-const ctgRelire=x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt);
+const ctgRelire=x=>x.status==='draft'||x.status==='review'||reviewDue(x);
 const ctgLibKey=x=>(typeof x.library==='string')?x.library:'';
 function ctgCatId(x){const c=catOf(x);return c?c.id:'';}
 function ctgRowHtml(attrs,label,o){o=o||{};
@@ -18144,7 +18277,7 @@ function renderHomeList(cfg){
      décident par fiche, canEditFiche). */
   const canEdit=true;
   let list=cfg.list(q,canEdit);
-  if(state.homeRev)list=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt));   // « Afficher : à relire »
+  if(state.homeRev)list=list.filter(x=>x.status==='draft'||x.status==='review'||reviewDue(x));   // « Afficher : à relire »
   /* PROVENANCE : un même titre dans PLUSIEURS bibliothèques est un risque de confusion
      clinique — ces rangées-là disent leur bibliothèque même en rangement « bibliothèque ». */
   {const m=Object.create(null);
@@ -18290,7 +18423,7 @@ function renderHomeList(cfg){
       /* v5.30 (maquette v5) : plus d'intertitre « Répertoire » — la ligne dit le compte et porte
          « Affichage » (rangement, catégories). */
       /* A517 : le TITRE d'abord (maquette Natif) — la ligne du compte précède désormais l'Accès direct. */
-      (tabNavOn()?'':lanceur?`<div class="dir-h dir-sum"><h1 class="pg-ttl">Accueil</h1></div>`:`<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
+      (tabNavOn()?'':lanceur?`<div class="dir-h dir-sum"><h1 class="pg-ttl">Accueil</h1></div>`:`<div class="dir-h dir-sum">${tabNavOn()?'':'<h1 class="pg-ttl">Aides</h1>'}<span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||reviewDue(x)).length;
           return [pp?`${pp} aide${pp>1?'s':''}`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${tabNavOn()?'':selTogHtml()}</div>`)   /* A528 : au téléphone, plus de ligne du compte — « Affichage » est au bout de la ligne du titre (A545) */
       +(state.selOn?'':filtersBarHtml())
       +enCours
@@ -19026,7 +19159,7 @@ function renderProtocolRead(){
   main.innerHTML=`<div class="ref-grid">
     <div class="ref-main">
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(p.code)}</span>`:''}<span class="card-date${staleDate(p.validatedAt)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}${preview?'':suiviPillHtml(p)}</div>
+    <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(p.code)}</span>`:''}<span class="card-date${reviewDue(p)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}${preview?'':suiviPillHtml(p)}</div>
     <div class="ref-tocwrap"></div>
     ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
@@ -20445,6 +20578,8 @@ function editorMetaFieldsHtml(d,prefix,L){
     <div class="field"><label>Collections <span class="hint">votre rangement, à vous seul — rien n’est déplacé</span></label><div class="cat-picker" id="collPicker">${collPickerHtml(d)}</div></div>
     <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--f-mono)" maxlength="40"></div>
       <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validatedAt))}" placeholder="MM/AAAA"></div></div>
+    <div class="field"><label for="${prefix}-review">À revérifier <span class="hint">passé ce délai après la validation, l’accueil affiche « À revérifier »</span></label>
+      <select id="${prefix}-review">${REVIEW_MONTHS.map(m=>`<option value="${m}" ${d.reviewEvery===m?'selected':''}>${m===12?'tous les ans':'tous les '+(m/12)+' ans'}</option>`).join('')}</select></div>
     <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.library)}</div></details>`;}
 /* Sélecteur de catégorie « une sélectionnée + Autre… » (SPEC crise §2, v4.3.0).
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
@@ -20645,6 +20780,7 @@ function bindEditorMetaFields(d,prefix,o){
   // réécrite au propre « MM/AAAA » ; entrée non comprise -> bordure rouge, valeur non retenue.
   {const fv=document.getElementById(prefix+'-validation');
    if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');fv.removeAttribute('aria-invalid');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');fv.removeAttribute('aria-invalid');}else{fv.classList.add('val-bad');fv.setAttribute('aria-invalid','true');}});}   // A660 : aria-invalid
+  {const rv=document.getElementById(prefix+'-review');if(rv)rv.addEventListener('change',()=>{const m=Number(rv.value);d.reviewEvery=REVIEW_MONTHS.indexOf(m)>=0?m:24;});}   // A698
   // État SEGMENTÉ 3 états : la pastille GLISSE (peinte sur place, sans re-rendu) ; phrase d'aide
   // et badge d'en-tête suivent.
   main.querySelectorAll('.st-seg').forEach((b,i)=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;
@@ -20733,7 +20869,8 @@ function bindEditorExit(cfg){
 function draftReadStatusFields(d,prefix){
   const stEl=document.getElementById(prefix+'-status');if(stEl)d.status=stEl.value==='draft'?'draft':'';
   const fvEl=document.getElementById(prefix+'-validation');if(fvEl)d.validatedAt=parseValidation(fvEl.value)||d.validatedAt||'';
-  d.validatedAt=parseValidation(d.validatedAt)||'';}
+  d.validatedAt=parseValidation(d.validatedAt)||'';
+  {const rv=document.getElementById(prefix+'-review'),m=rv?Number(rv.value):d.reviewEvery;d.reviewEvery=REVIEW_MONTHS.indexOf(m)>=0?m:24;}}   // A698
 /* CRÉER DANS LA BIBLIOTHÈQUE AFFICHÉE — et le DIRE. Une entité neuve naît `validated` (migrate
    ne laisse pas la chaîne vide), donc visible de tous les membres aussitôt : « publier à l'équipe
    jamais silencieux » (A166) vaut ici comme à l'import. Rien à demander pour le Perso ni pour
@@ -21552,7 +21689,7 @@ const SHARE_KEEP = ['id','title','discriminant','code','status','validatedAt','b
 /* `v` et `kind` sont des MÉTADONNÉES DE FORMAT : elles ne servent qu'au stockage et à l'import,
    et l'invité reçoit un instantané déjà normalisé. Elles n'ont donc rien à faire sur le fil. */
 const SHARE_DROP = ['v','kind','category','local','excursions','sources','images','docs',
-  'links','order','updatedBy','updatedAt','deletedAt','ownerId','library'];
+  'links','order','updatedBy','updatedAt','deletedAt','ownerId','library','reviewEvery'];   // A698 : le délai de revérification ne sert pas à l'invité
 /* `complications` est DÉLIBÉRÉMENT écarté, et ce n'est pas un oubli : entrer en complication est
    une capacité du seul `lead` (le scribe ne navigue pas), et les cibles peuvent désigner d'AUTRES
    aides que l'invité ne possède pas. Le transmettre n'offrirait rien d'utilisable et ferait fuiter
@@ -22872,7 +23009,7 @@ function setCounterVal(id){paintJalons();
 const TM_DUREES=[60,120,180,300];
 /* `tmAddName` et `TM_GENERIQUE` sont PURGÉS avec la devinette qu'ils servaient (règle 14) : ils
    ne filtraient que les libellés de repli d'une source qui, elle, était fausse. */
-function tmAddHtml(){
+/* (`tmAddHtml` est PURGÉE, A701 : le volet compose lui-même `tmAddBtn()` puis `tmAddDur()` ; ses notes restent.) */
   /* ⚠ PLUS DE « PA » PAR DÉFAUT (v5.6, demande de l'auteur) : le bouton ne dit que sa NATURE.
      ⚠ ET IL NE DEVINE PLUS DU TOUT (v5.6, signalé) : deviner depuis une source sans rapport avec
      le geste, c'est fabriquer un mot (A85) — le nom se pose APRÈS, « — nommer » sur la carte
@@ -22880,7 +23017,6 @@ function tmAddHtml(){
   /* ⚠ PLUS DE « 5:00 » DANS LE LIBELLÉ : la durée n'est plus décidée d'avance, elle se choisit au
      tap suivant. Un bouton qui annonce une valeur qu'il ne pose pas est de la mode confusion
      (A38) — il dit maintenant ce qu'il fait : ouvrir le choix. */
-  return tmAddBtn()+tmAddDur();}
 const tmAddBtn=rang=>`<button class="add-line rt-add" data-rtadd aria-expanded="${state.tmAddOpen?'true':'false'}" title="Ajouter un minuteur pour cette session — la durée se choisit ensuite">${rang?uiIcon('plus',16,{sw:2.4})+'Ajouter un minuteur':'＋ Minuteur'}</button>`;
 function tmAddDur(){const ouvert=!!state.tmAddOpen;
   return (ouvert?`<div class="tm-add-d" role="group" aria-label="Durée du nouveau minuteur"><span class="tm-add-h">Choisir la durée</span>${
@@ -23002,7 +23138,6 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
       +pips+`<span class="rt-jlp" aria-label="${j.cur} sur un seuil de ${j.goal}">${j.cur}/${j.goal}</span></div>`;}).join('')
     :'';
   const timersC=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}`;
-  const timersB=timersC+tmAddHtml();
   /* (A336 amendée en A354/A356 : la rangée « Terminer la session… » du rail puis du volet est partie — « Fin » au quai
      est la seule porte, à toute largeur ; la fenêtre « Terminer la session ? » reste la confirmation.) */
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
@@ -23018,9 +23153,13 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
      nomment la même chose, AC 120-71B §5.5 ; mesuré 81 → 44 px). Le ✕ vit dans SA rangée (48 px
      de cible via halo, cf. `.rt-x`) ; la fermeture reste TRIPLE (V1) : ✕, re-tap du quai, Échap,
      tap hors volet. Détail : doctrine-js.md J117. */
-  const cards=timersB
+  /* A701 : les tuiles d'abord, puis la consigne du maintien (écrite UNE fois, là où sont les tuiles) et les deux
+     ajouts sur UNE rangée ; le choix de durée d'un minuteur neuf se déplie dessous. */
+  const cards=timersC
     +`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div>`
-    +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
+    +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')
+    +((tl.length||cl.length)?`<p class="rt-hold">Maintenir une tuile : réarmer ou remettre à zéro</p>`:'')
+    +`<div class="rt-adds">${tmAddBtn()}${cnAddHtml()}</div>${tmAddDur()}`
     +(jalonsB?`<div class="tk-head rt-famh fam-sep"><b>Jalons${famN(jalons.length)}</b></div>${jalonsB}`:'');
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
@@ -23779,7 +23918,7 @@ function renderRead(){
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
     ${''/* A520 : UNE sous-ligne, dans l'ordre de la maquette — « ● SMUR · adulte · ACR · validée 01/2025 », puis les
        états en pastilles (« △ À relire », « △ À compléter ») ; le discriminant y entre, le bandeau « À relire » part. */}
-    <div class="read-meta">${catTag(f,true)}${f.discriminant?`<span class="read-disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}${started?'':suiviPillHtml(f)}</div>
+    <div class="read-meta">${catTag(f,true)}${f.discriminant?`<span class="read-disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${reviewDue(f)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}${started?'':suiviPillHtml(f)}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette aide n’a pas encore été validée pour l’usage clinique.</div></div>`:''}
     ${''/* A460 : « À relire » est un signal de MAINTENANCE — il se lit avant la session, pas pendant : en
        session il n'appelle aucun geste et repoussait la 1ʳᵉ étape sous le pli (budget, 320 px à 130 %).
@@ -23795,6 +23934,7 @@ function renderRead(){
     ${avantSession?'</div>':''}
     ${gridClose}`;
   if(_railY){const s=document.querySelector('.read-side');if(s)s.scrollTop=_railY;}
+  dockFold();
   if(_dockY){const d=document.querySelector('.rt-dock');if(d)d.scrollTop=_dockY;}
   bindReadEvents(f,blk,cur);
 }
@@ -31490,7 +31630,7 @@ function impRowsOf(imp,sameSpace){
    PAS le diff clinique refusé en A119 (geste d'AUTEUR, à froid, surface de « Versions ») ;
    REPLIÉ par défaut. Détail : doctrine-js.md J196. */
 function flattenProto(p){if(!p)return[];const L=[],add=(s,v)=>{v=String(v==null?'':v).trim();if(v)L.push(s+' · '+v);};
-  add('Titre',p.title);add('Validation',p.validatedAt);add('État',p.status==='draft'?'brouillon':'validée');
+  add('Titre',p.title);add('Validation',p.validatedAt);add('À revérifier',p.reviewEvery&&p.reviewEvery!==24?reviewSpan(p.reviewEvery):'');add('État',p.status==='draft'?'brouillon':'validée');
   String(p.body||'').split('\n').forEach(l=>add('Corps',l));
   (p.sources||[]).forEach(v=>add('Références',v));
   return L;}
@@ -33968,7 +34108,7 @@ const GUIDE_GESTES=[
   ['play','Démarrer une session','Sur l’écran d’entrée, relisez « Quand l’utiliser », puis « Démarrer la session » : le chrono part, les minuteurs sont prêts. « Exercice » fait la même chose sans patient.'],
   ['check','Cocher une étape','Touchez la case quand le geste est fait : l’heure part au journal. Toucher de nouveau décoche. « Continuer » passe au bloc suivant quand les étapes sont faites.'],
   ['history','Une étape qui attend son moment','Sa condition est écrite au-dessus, en petit (un compte et sa jauge, ou une échéance et son minuteur), et elle ne retient pas « Continuer ». Pour la cocher avant, touchez-la : l’app dit ce qui reste ; « Cocher » confirme, « Annuler » renonce.'],
-  ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet : minuteurs, compteurs, « ＋ Minuteur ».'],
+  ['stopwatch','Lire le chrono et les minuteurs','La capsule, en haut, montre le chrono et le premier compteur. Touchez-la pour ouvrir le volet. Au téléphone, chaque minuteur et chaque compteur est une tuile : touchez-la pour lancer, « ＋ 1 » pour compter, maintenez-la pour réarmer ou remettre à zéro.'],
   ['bolt','Ouvrir une complication','La touche à l’éclair du quai ouvre la complication à tout moment. « Reprendre » vous ramène au bloc où vous étiez.'],
   ['alarm','Horodater','Note l’heure d’un geste imprévu, que vous pouvez nommer ensuite. Tout part au journal et au compte rendu.'],
   ['doc','Tout voir','Montre l’aide entière. « Un bloc » revient au bloc en cours. « Se repérer » (menu ⋯) liste les blocs ; « Schéma » dessine l’arbre.'],
@@ -34036,7 +34176,7 @@ const GUIDE_ETAPES=[
       const cx='La capsule, en haut, montre le chrono'+(c?' et '+_gdQ(c.textContent):'')+'. ';
       if(mqRail.matches)return {tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:cx+'Minuteurs, compteurs et jalons sont dans la colonne de droite.',act:0};
       return state.rtOpen==='dock'
-        ?{tgt:'#cbTimers',avec:'.rt-dock',t:'Les minuteurs et les compteurs',x:'Ils sont ici, prêts à lancer. Touchez de nouveau la capsule pour refermer le volet.',act:1}
+        ?{tgt:'#cbTimers',avec:'.rt-dock',t:'Les minuteurs et les compteurs',x:'Ils sont ici, une tuile chacun : touchez-la pour lancer, maintenez-la pour réarmer ou remettre à zéro. Touchez de nouveau la capsule pour refermer le volet.',act:1}
         :{tgt:'#cbTimers',t:'Le chrono et les minuteurs',x:cx+'Touchez-la : les minuteurs et les compteurs s’ouvrent.',act:1};}},
   {id:'decision',nom:'Répondre',ok:f=>(f.blocks||[]).some(b=>b.kind==='decision'),
     done:(g,f)=>(state.nav||[]).slice(0,-1).some(id=>{const b=_gdBlk(f,id);return b&&b.kind==='decision';}),
@@ -37632,7 +37772,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // Aplatit une fiche en lignes lisibles « Section · contenu » -> le diff de versions devient une
 // simple comparaison d'ensembles (ajouté / retiré), suffisante pour juger avant de restaurer.
 function flattenFiche(f){if(!f)return[];const L=[];const add=(sec,v)=>{v=String(v==null?'':v).trim();if(v)L.push(sec+' · '+v);};
-  add('Titre',f.title);add('Validation',f.validatedAt);add('Contexte',f.local);add('État',f.status==='draft'?'brouillon':'validée');
+  add('Titre',f.title);add('Validation',f.validatedAt);add('À revérifier',f.reviewEvery&&f.reviewEvery!==24?reviewSpan(f.reviewEvery):'');add('Contexte',f.local);add('État',f.status==='draft'?'brouillon':'validée');
   // Les cinq listes sont des VUES sur le pool d'items (v5.0.0, étape B) : `migrate` SUPPRIME les
   // champs de premier niveau — un accès `f[k]` direct rend `undefined` et le diff de versions
   // devenait aveugle sur cinq listes sur six (défaut v5.10.2 : « on restaure à l'aveugle »).
@@ -37659,7 +37799,7 @@ function diffFiches(cur,old,flat){if(!old)return '<p class="auth-msg err">Versio
    passe par `migrateProtocol` (règle 5), la comparaison par le texte rédigé. */
 const versKey=(id,kind)=>kind==='p'?'p:'+id:id;
 function flattenProtocol(p){if(!p)return[];const L=[];const add=(sec,v)=>{v=String(v==null?'':v).trim();if(v)L.push(sec+' · '+v);};
-  add('Titre',p.title);add('Validation',p.validatedAt);add('État',p.status==='draft'?'brouillon':'validé');
+  add('Titre',p.title);add('Validation',p.validatedAt);add('À revérifier',p.reviewEvery&&p.reviewEvery!==24?reviewSpan(p.reviewEvery):'');add('État',p.status==='draft'?'brouillon':'validé');
   String(p.body||'').split('\n').forEach(l=>add('Texte',l));(p.sources||[]).forEach(v=>add('Références',v));return L;}
 const versModal=document.getElementById('versModal');let _versFiche=null,_versKind='';
 async function openVersions(ficheId,kind){_versFiche=ficheId;_versKind=kind==='p'?'p':'';
@@ -38238,7 +38378,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

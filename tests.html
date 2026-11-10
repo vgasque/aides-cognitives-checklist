@@ -119,6 +119,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('date ancienne (>2 ans) = périmée', A.staleDate('2000-01')===true);
   ok('mois courant ≠ périmé', A.staleDate(new Date().toISOString().slice(0,7))===false);
   ok('vide ≠ périmé', A.staleDate('')===false);
+  // A698 — le délai de revérification se règle par élément (12 · 24 · 36 mois ; 24 par défaut).
+  {const il=(n)=>{const d=new Date();d.setMonth(d.getMonth()-n);return d.toISOString().slice(0,7);};
+   ok('A698 · 18 mois : échu à 12, pas à 24', A.staleDate(il(18),12)===true&&A.staleDate(il(18),24)===false);
+   ok('A698 · 30 mois : échu à 24, pas à 36', A.staleDate(il(30),24)===true&&A.staleDate(il(30),36)===false);
+   ok('A698 · délai hors du jeu fermé = 24 mois', A.staleDate(il(30),7)===true&&A.staleDate(il(18),0)===false);
+   ok('A698 · reviewDue lit le champ de l’élément', A.reviewDue({validatedAt:il(18),reviewEvery:12})===true&&A.reviewDue({validatedAt:il(18),reviewEvery:36})===false&&A.reviewDue(null)===false);
+   ok('A698 · reviewFrom : validation + délai', A.reviewFrom({validatedAt:'2025-01',reviewEvery:24})==='01/2027'&&A.reviewFrom({validatedAt:'2024-11',reviewEvery:12})==='11/2025'&&A.reviewFrom({validatedAt:''})==='');
+   const f=A.migrate({title:'x',reviewEvery:36}),g=A.migrate({title:'y',reviewEvery:'jamais'}),p=A.migrateProtocol({title:'z',reviewEvery:12});
+   ok('A698 · migrate garde un délai du jeu, ramène le reste à 24', f.reviewEvery===36&&g.reviewEvery===24&&p.reviewEvery===12);}
 
   group('migrate() — fiche hostile neutralisée');
   const before=Object.prototype.polluted;
@@ -970,7 +979,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('statut par défaut', mp.status, 'validated');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','sources','links','status','title','updatedAt','updatedBy','validatedAt'].sort());
+     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','reviewEvery','sources','links','status','title','updatedAt','updatedBy','validatedAt'].sort());
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
@@ -3280,6 +3289,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   /* ══ P8 (v5.7) — l'écart entre deux gestes du MÊME objet, NU ═══════════════════════════
      Aucune moyenne, aucun seuil, aucune couleur : un fait, ou rien. */
+  group('A700 — la frise du compte rendu (sessFrise)');
+  {const E=(t,ty,id,v)=>({t,ref:ty?{type:ty,id}:undefined,voidAt:v||0});
+   const F=A.sessFrise([E(1000,'counter','c1'),E(5000,'counter','c1'),E(3000),E(4000,'counter','c2',9),E(9000,'timer','t1')],0,10000,id=>id==='c1'?'Chocs':'',[2500,0]);
+   eq('un couloir par compteur, puis Repères, puis Complications', F.lanes.map(l=>l.k+':'+l.name), ['cn:Chocs','ev:Repères','cx:Complications']);
+   eq('les points sont des positions en % de la durée', F.lanes[0].pts, [10,50]);
+   eq('un repère annulé n’est pas tracé ; un repère non-compteur va aux Repères', F.lanes[1].pts, [30,90]);
+   eq('une complication sans heure n’est pas tracée', F.lanes[2].pts, [25]);
+   eq('quatre graduations, de 0 à la durée', F.ticks.map(x=>x.ms), [0,3333,6667,10000]);
+   ok('hors bornes : ramené dans [0,100]', A.sessFrise([E(-5),E(99999)],0,1000).lanes[0].pts.join()==='100');
+   ok('rien à tracer ou durée nulle : pas de frise', A.sessFrise([],0,1000)===null&&A.sessFrise([E(5)],100,100)===null&&A.sessFriseHtml(null)==='');
+   const h=A.sessFriseHtml(A.sessFrise([E(500,'counter','x')],0,1000,()=>'<b>&"'));
+   ok('le nom d’un couloir est échappé, aucun attribut fill', h.indexOf('<b>')<0&&h.indexOf('&lt;b&gt;')>0&&h.indexOf('fill=')<0);}
   group('P8 — l’écart au compte rendu (evDeltas)');
   const _ev=(t,type,id,voidAt)=>({t,ref:type?{type,id}:null,voidAt:voidAt||0});
   eq('le premier d’une série n’a pas d’écart',

@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A697** à la v5.116.1 (lot v6.0 compris ; A694 non attribué) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A701** à la v5.119.0 (lot v6.0 compris ; A694 non attribué) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -320,6 +320,10 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A695 | `lot-v5-116-1.md` | `migrate` : champs inconnus bornés sans liste blanche (`borneInconnus`), bloc de décision assaini, pool dédoublonné |
 | A696 | `lot-v5-116-1.md` | Actions de la CI épinglées par empreinte de commit |
 | A697 | `lot-v5-116-1.md` | Indexation des PDF : 5 000 pages et deux millions de mots, essais interrompus retenus, jamais pendant un soin (amende « indexation intégrale ») |
+| A698 | `lot-v5-117.md` | Délai de revérification réglable par élément (`reviewEvery` : 12 · 24 · 36 mois, `reviewDue`) ; section calculée « À revérifier » dans « À faire » (amende le seuil fixe de 2 ans) |
+| A699 | `lot-v5-117.md` | Volet des minuteurs et compteurs du téléphone en tuiles : « ↺ maintenir » à côté du temps, la tuile à l'arrêt lance, « − n + » sur une rangée |
+| A700 | `lot-v5-118.md` | Frise du compte-rendu : un couloir par compteur, Repères, Complications (`sessFrise`, SVG en ligne) ; ni blocs ni minuteurs, que le modèle ne date pas |
+| A701 | `lot-v5-119.md` | Volet du téléphone au dessin de la maquette : tuiles pleines, maintenir la tuile pour réarmer ou remettre à zéro (amende A460 pour ce volet, remplace la mise en page d'A699), `dockFold` |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
