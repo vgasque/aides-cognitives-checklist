@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4DBOt41sD1CG55BPaFOgufxPzrCObR6EWIbxOAVPbBY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-5cHxgIKQQUZeFXQUB3shtiM3j6BM+DcLhtUqFQoxJZ8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5474,6 +5474,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .field input[type=text],.field textarea,.field select{width:100%;min-height:44px;padding:8px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
   .field .ed-title-in{min-height:52px;font-size:17.5px;font-weight:700}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--act);border-color:transparent}
+  .field input[type=text].val-bad,.field input[type=text].val-bad:focus{border-color:var(--crit)}   /* A660 : date de validation non comprise — la classe était posée sans règle */
   .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
   /* ═══ MK-flux ÉTENDU AUX LISTES (v5.0.0, demande utilisateur : « harmoniser avec les étapes
      dans les blocs ») : même cycle que `.blk .li` — au REPOS la ligne est du TEXTE (aucun chrome,
@@ -11028,8 +11029,6 @@ function canEditFiche(f){return (f&&f.library)?canEditScope(f.library):true;}
 // liste de navigation doit être PRÉVISIBLE : on apprend où se trouve chaque entrée. (libUsage/
 // bumpLibUsage supprimés avec le tri par usage — plus aucun lecteur.)
 function sortedLibraries(){return myLibraries.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));}
-// Déplace l'élément i d'un tableau d'un cran (dir -1 = haut, +1 = bas). Réutilisé pour minuteurs/compteurs.
-function moveItem(arr,i,dir){const j=i+dir;if(!arr||j<0||j>=arr.length)return;const t=arr[i];arr[i]=arr[j];arr[j]=t;}
 // Plusieurs sessions VIVES en parallèle : un runtime par fiche dont la session a démarré. Leurs
 // minuteurs continuent de tourner en arrière-plan (tickAll les fait tous avancer, même fiche non
 // visible). `Runtime` pointe vers le runtime de la fiche actuellement ouverte ; `liveSessions` est
@@ -12331,9 +12330,10 @@ function ixSearch(h,terms){
 // SYNCHRONISÉE entre ses appareils en voyageant dans le document de catégories PERSO
 // (category_sets, scope 'personal:<uid>' -> data.pins). Par-utilisateur : n'impose jamais
 // son ordre au reste de l'équipe d'une bibliothèque partagée.
-let pins=[];try{pins=JSON.parse(localStorage.getItem(spaceKey('ac-pins')))||[];}catch(e){}
+let pins=[];
 const isPinned=id=>pins.indexOf(id)>=0;
 const sanitizePins=a=>(Array.isArray(a)?a:[]).slice(0,50).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
+try{pins=sanitizePins(JSON.parse(localStorage.getItem(spaceKey('ac-pins'))));}catch(e){}   // A660 : assaini au chargement aussi (règle 5), APRÈS la déclaration de l'assainisseur
 /* K5 (v4.72.0) — ON N'ÉPINGLE PAS UN BROUILLON. Depuis que toute fiche titrée entre dans la
    bibliothèque dès la première frappe, un brouillon en cours d'écriture est joignable — et la
    rangée de tuiles épinglées est l'ACCÈS DE CRISE. Le répertoire les montre (avec « ○ Brouillon »),
@@ -12397,7 +12397,7 @@ function sanitizeSuiviItem(x){if(!x||typeof x!=='object')return null;
   if(x.dirty===true)o.dirty=true;
   return o;}
 function sanitizeSuivi(a){const seen=new Set(),out=[];
-  (Array.isArray(a)?a:[]).slice(0,SUIVI_MAX).forEach(x=>{const o=sanitizeSuiviItem(x);if(o&&!seen.has(o.id)){seen.add(o.id);out.push(o);}});return out;}
+  (Array.isArray(a)?a:[]).slice(-SUIVI_MAX).forEach(x=>{const o=sanitizeSuiviItem(x);if(o&&!seen.has(o.id)){seen.add(o.id);out.push(o);}});return out;}
 let suivi=[];try{suivi=sanitizeSuivi(JSON.parse(localStorage.getItem(spaceKey('ac-suivi'))||'[]'));}catch(e){}
 function suiviSave(){try{localStorage.setItem(spaceKey('ac-suivi'),JSON.stringify(suivi));}catch(e){toast('⚠ Stockage saturé : suivi non enregistré.',6000,true);}
   if(Auth.signedIn())Sync.schedule();}
@@ -12490,7 +12490,7 @@ function suiviEdOpen(o){const ent=suiviEnt(o.ent);if(!ent)return;const x=o.x||nu
   const lib=ent.library&&canEditScope(ent.library)?ent.library:null;
   _svEd={ent:ent.id,k,id:x?x.id:uid('s'),lib:x?x.lib:(lib&&o.k==='note'?lib:null),libOk:lib||(x&&x.lib)||null,
     type:x&&x.t?x.t.type:'revoir',ref:x&&x.t?x.t.ref:'',refTxt:x&&x.t?x.t.refTxt:'',prio:x&&x.t?x.t.prio:2,due:x&&x.t?x.t.due:'',body:x?x.body:'',author:x?x.author:'',old:x};
-  document.getElementById('suiviEdTitle').textContent=(x?'Modifier ':'Nouvelle ')+(k==='task'?'tâche':'note');
+  document.getElementById('suiviEdTitle').textContent=(x?'Modifier la ':'Nouvelle ')+(k==='task'?'tâche':'note');
   suiviEdPaint();suiviEdModal.classList.add('on');
   const t=document.getElementById('svBody');if(t&&!x&&k==='note')t.focus({preventScroll:true});}
 function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>`<button type="button" class="mdb-chip${on?' on':''}" ${attr}="${esc(v)}" aria-pressed="${on?'true':'false'}">${lbl}</button>`;
@@ -12503,8 +12503,8 @@ function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>
     if(e.type==='fusion'||e.type==='confronter'){const cur=e.ref&&suiviEnt(e.ref);
       h+=`<div class="su-fl" id="svRefL">${e.type==='fusion'?'Avec':'À'}</div><div class="su-refw"><button type="button" class="su-refpick${cur?'':' vide'}" id="svRefBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="svRefL svRefBtn">`
         +(cur?uiIcon(fiches.indexOf(cur)>=0?'list':'doc',15)+`<span>${esc(String(cur.title||'').trim()||'Sans titre')}</span>`:`<span>${e.type==='confronter'?'Une aide, un protocole… ou une reco ci-dessous':'Choisir une aide ou un protocole'}</span>`)
-        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button></div>`;}
-      +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');
+        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button></div>`
+      +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');}   // A660 : dans le `h+=` — après « ;} » l'expression était orpheline, le champ jamais rendu
     h+=`</div>`;}
   h+=`<div class="su-f"><label class="su-fl" for="svBody">${e.k==='task'?'Précision <span class="su-s">(facultatif)</span>':'Note'}</label><textarea id="svBody" rows="${e.k==='task'?2:5}" maxlength="2000">${esc(e.body)}</textarea></div>`;
   if(e.k==='task')h+=`<div class="su-f"><div class="su-fl">Priorité</div><div class="su-chips">${[1,2,3].map(v=>chip('data-suprio',v,SUIVI_PRIO[v],e.prio===v)).join('')}</div>`
@@ -12615,6 +12615,10 @@ function collSet(cid,ids,on){
    direct, sans rien écrire s'il n'y était pas — sinon la collection compterait « 1 indisponible » pour toujours. */
 function collForget(id){let ch=false;colls.forEach(c=>{const k=c.ids.indexOf(id);if(k>=0){c.ids.splice(k,1);ch=true;}});if(ch)collsSave();
   if(isPinned(id))togglePin(id);}
+/* A660 : au plafond de `sanitizeColls`, on REFUSE — la 51ᵉ se créait, puis disparaissait au rechargement. */
+const COLL_MAX=50;
+function collFull(){if(colls.length<COLL_MAX)return false;
+  toast('⚠ '+COLL_MAX+' collections au plus : supprimez-en une avant d’en créer une autre.',7000,true);return true;}
 function collNew(name,ids){const c={id:uid('k'),name:sstr(name,60).trim()||'Collection',ids:[...new Set(ids||[])].slice(0,300)};
   colls.push(c);colls.sort(collCmp);collsSave();return c;}
 // Les éléments d'une collection qui existent sur l'appareil — les autres sont « indisponibles » (accès perdu, supprimés).
@@ -15644,7 +15648,7 @@ async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmE
   render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Aide introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();
     /* REPRENDRE ne re-lit PAS la révision : le soin a été conduit sur celle qui est archivée. */
@@ -15667,6 +15671,14 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
       Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});
       Sync.schedule();render();return;}}
   try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
+/* A660 : les sessions d'une aide SUPPRIMÉE partent par le même chemin — pierre tombale dès que l'historique est
+   synchronisé (sinon elles reviennent au prochain pull). Sans question ni rendu : l'appelant tient les deux. */
+async function sessDropOf(ficheId){
+  const rel=sessions.filter(s=>s.ficheId===ficheId),sync=sessSyncOn()||linkShared();
+  for(const s of rel){if(sync)_putSessionSafe(Object.assign({},s,{deletedAt:Date.now()}));
+    else{try{await Data.delSession(s.id);}catch(e){}}}
+  sessions=sessions.filter(s=>s.ficheId!==ficheId);
+  if(sync&&rel.length)Sync.schedule();}
 
 /* ===== Render =====
    render() : aiguilleur unique. Met à jour l'en-tête et délègue à la vue active
@@ -16631,11 +16643,11 @@ function openCollPick(ids,o){o=o||{};if(!ids.length)return;
     head:`<div class="notice">${uiIcon('bookmark',15)}<div>${esc('Vos collections sont à vous seul. '+(libs.length===1?(n===1?'L’élément reste':'Les éléments restent')+' dans '+libs[0]:'Chaque élément reste dans sa bibliothèque')+' : seul votre rangement change.')}</div></div>`,
     onToggle:(cid,cur)=>{collSet(cid,pool(cid),cur!=='true');return st(cid);},
     done:'Terminé',onClose:redo,
-    action:{label:'＋ Nouvelle collection…',fn:async()=>{const name=await collAsk('Nouvelle collection');if(!name)return;
+    action:{label:'＋ Nouvelle collection…',fn:async()=>{if(collFull())return;const name=await collAsk('Nouvelle collection');if(!name)return;
       const c=collNew(name,ids);toast('Collection « '+c.name+' » créée avec '+nb(ids.length,'élément')+'.');redo();}}});}
 /* Choisir une collection = poser le filtre (re-tap = le retirer) ; « + » la crée vide et la montre. */
 function collSel(id){state.coll=(id&&state.coll!==id)?id:null;state.libLimit=LIB_PAGE;if(homeTab()!=='aides')state.homeTab='aides';}
-async function collCreateShow(){const name=await collAsk('Nouvelle collection');if(!name)return;
+async function collCreateShow(){if(collFull())return;const name=await collAsk('Nouvelle collection');if(!name)return;
   const c=collNew(name,[]);collSel(c.id);render();toast('Collection « '+c.name+' » créée — ajoutez-y aides et protocoles par « Ajouter ».');}
 /* L'en-tête d'une collection ouverte : ce qu'elle est (à vous seul), d'où vient son contenu, et ses gestes. */
 const COLL_HEAD=5;   // A597 : les collections récentes que l'accueil garde en tête
@@ -17644,9 +17656,7 @@ async function selDelete(redo){
   if(!r||!r.checked)return;
   for(const e of ent){
     if(e.kind==='f'){await softDelete(e.o);
-      const rel=sessions.filter(s=>s.ficheId===e.o.id);
-      for(const s of rel)await Data.delSession(s.id);
-      sessions=sessions.filter(s=>s.ficheId!==e.o.id);
+      await sessDropOf(e.o.id);   // A660
       if(liveSessions[e.o.id])delete liveSessions[e.o.id];
       if(Runtime.ficheId===e.o.id)resetRuntime();
       fiches=fiches.filter(x=>x.id!==e.o.id);}
@@ -17984,7 +17994,7 @@ function renderHomeList(cfg){
      filtre sans résultat ou lecture seule = `.empty` ordinaire sans bouton (« Aucun résultat »).
      `empty.anon`/`empty.libEdit`/`empty.cta` PURGÉS avec `#emptyNew` (règle 14).
      Détail : doctrine-js.md J87. */
-  const dansFiltre=!!(state.q||state.cat||state.coll);
+  const dansFiltre=!!(state.q||state.cat||state.coll||state.homeRev);   // A660 : « À relire » est un filtre — vidée par lui, la liste n'est pas une bibliothèque vide
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
   const emptyHtml=(!dansFiltre&&accLoading())?accLoadingHtml():introK.length
     ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
@@ -18216,7 +18226,6 @@ function renderHomeList(cfg){
 /* Configuration EXTRAITE (lot T9) : les deux vues filtrées et la vue unifiée lisent la
    MÊME description — trois rendus qui divergeraient seraient trois endroits à corriger. */
 function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:openCreateDlg,open:openRead,
-    pinnedLbl:n=>n>1?'Épinglées':'Épinglée',
     // (l'état tonal du bouton « Créer » est posé par applyViewChrome — un champ newTonal a vécu
     // ici sans consommateur, retiré v4.56.0)
     listTitle:()=>txNorm(state.q)?homeResTitle():'Toutes les bibliothèques',
@@ -18324,7 +18333,6 @@ function renderAll(){
   const est=x=>P.has(x.id)?'p':'f';
   renderHomeList({rerender:renderAll,crossKind:null,create:openCreateDlg,
     open:id=>{P.has(id)?openProtocolRead(id):openRead(id);},
-    pinnedLbl:n=>n>1?'Épinglés':'Épinglé',
     listTitle:()=>txNorm(state.q)?homeResTitle():'Toutes les bibliothèques',
     countLbl:n=>'élément'+(n>1?'s':''),
     remainLbl:n=>'élément'+(n>1?'s':''),
@@ -18343,7 +18351,6 @@ function renderAll(){
 /* Configuration EXTRAITE (lot T9) : les deux vues filtrées et la vue unifiée lisent la
    MÊME description — trois rendus qui divergeraient seraient trois endroits à corriger. */
 function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:openCreateDlg,open:openProtocolRead,
-    pinnedLbl:n=>n>1?'Épinglés':'Épinglé',
     listTitle:()=>txNorm(state.q)?homeResTitle():'Protocoles — toutes les bibliothèques',
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
@@ -19806,7 +19813,7 @@ function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=S
 // La liste sous le champ (rien quand il n'y a rien à dire : un panneau vide est du bruit).
 function mdLintHtml(list){if(!list.length)return '';
   return `<details class="md-lint" id="mdLint"${state.mdLintShut?'':' open'}><summary><span class="md-lint-g" aria-hidden="true">△</span>${list.length} point${list.length>1?'s':''} d’écriture à relire</summary>
-    ${list.map((x,i)=>`<div class="md-lint-r"><span class="md-lint-g" aria-hidden="true">△</span><span class="md-lint-t"><b>${x.k==='dose'?`<span class="md-lint-c">${esc(x.was)}</span> → <span class="md-lint-c">${esc(x.fix)}</span>`:esc(x.cible)}</b><span>ligne ${x.ln+1} · ${esc(x.k==='dose'?x.sub:x.sub)}</span></span>
+    ${list.map((x,i)=>`<div class="md-lint-r"><span class="md-lint-g" aria-hidden="true">△</span><span class="md-lint-t"><b>${x.k==='dose'?`<span class="md-lint-c">${esc(x.was)}</span> → <span class="md-lint-c">${esc(x.fix)}</span>`:esc(x.cible)}</b><span>ligne ${x.ln+1} · ${esc(x.sub)}</span></span>
       <button type="button" class="btn sm" data-mdlint="${i}">${x.fix!=null?'Corriger':x.k==='tbl'?'En grille':'Aller'}</button></div>`).join('')}
     <p class="hint">La relecture vérifie la façon d’écrire, jamais le contenu clinique. Chaque correction se fait une par une, sous vos yeux.</p></details>`;}
 function mdLintPaint(p){const box=main.querySelector('.md-lint-box');if(!box)return;
@@ -20223,7 +20230,7 @@ function editorMetaFieldsHtml(d,prefix,L){
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
     <div class="ed-sech-row"><p class="ed-sech">Identité</p><button type="button" class="id-tgl" data-identtgl aria-expanded="${ouvert?'true':'false'}"><span class="id-tgl-l">${ouvert?'Replier':'Modifier'}</span>${chevHtml(ouvert)}</button></div><details class="ed-ident"${ouvert?' open':''}><summary tabindex="-1">${resume}</summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" class="ed-title-in" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
-    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue cette aide d’une voisine — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
+    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue ${L.fem?'cette aide d’une voisine':'ce protocole d’un voisin'} — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.library?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.library===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.library&&!myLibraries.some(l=>l.id===d.library)?`<option value="${esc(d.library)}" selected>${esc(libName(d.library)||'Bibliothèque')}</option>`:''}</select></div>`:''}
@@ -20429,7 +20436,7 @@ function bindEditorMetaFields(d,prefix,o){
   // Date de validation : champ tolérant — interprétée au blur (« janv 2026 », « 01/2026 »…) puis
   // réécrite au propre « MM/AAAA » ; entrée non comprise -> bordure rouge, valeur non retenue.
   {const fv=document.getElementById(prefix+'-validation');
-   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');fv.removeAttribute('aria-invalid');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');fv.removeAttribute('aria-invalid');}else{fv.classList.add('val-bad');fv.setAttribute('aria-invalid','true');}});}   // A660 : aria-invalid
   // État SEGMENTÉ 3 états : la pastille GLISSE (peinte sur place, sans re-rendu) ; phrase d'aide
   // et badge d'en-tête suivent.
   main.querySelectorAll('.st-seg').forEach((b,i)=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;
@@ -20645,7 +20652,6 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   code:'<path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5"/>',
   link:'<path d="M10 13.5a4.5 4.5 0 006.8.5l2.7-2.7a4.5 4.5 0 00-6.4-6.4l-1.5 1.5"/><path d="M14 10.5a4.5 4.5 0 00-6.8-.5l-2.7 2.7a4.5 4.5 0 006.4 6.4l1.5-1.5"/>',
   hr:'<path d="M4 12h16"/>',
-  phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   /* « VOUS » — le pendant de `book` sur la pastille de provenance (`searchLibTag` : « 🕮 Partagée »
      contre « Perso »). Il MANQUAIT, et `uiIcon` rend alors un <svg> de la bonne taille SANS aucun
@@ -27474,6 +27480,8 @@ function bindRevPanel(){
     // Une référence vise un champ par son id (p-body, mdLint…) : ses rangées étaient inertes.
     const el=at==='nf'?document.getElementById('nfGuard')
       :at==='mdLint'?document.getElementById('mdLint')
+      :/^t:/.test(at)?main.querySelector('.tmedit[data-ti="'+CSS.escape(at.slice(2))+'"]')   // A660 : minuteur, complication
+      :/^x:/.test(at)?main.querySelectorAll('.cx-edit-row')[+at.slice(2)]
       :(/^p-/.test(at)&&document.getElementById(at))||main.querySelector('.blk[data-bid="'+CSS.escape(at.slice(2))+'"]');
     if(!el)return;
     /* PAS de `behavior:'smooth'` : mesuré, il ne défilait pas du tout ici (6 400 px d'écart, le
@@ -27496,7 +27504,6 @@ function reviewNotesProto(p){
     txt:'△ Ce protocole est vide — ni texte rédigé, ni document joint : il ne servira à rien tel quel'});
   if(TODO_RX.test(corps))out.push({at:'p-body',cible:'Contenu rédigé',txt:'△ Un « à compléter » reste dans le texte'});
   {const n=mdLint(corps,p.docs).length;if(n)out.push({at:'mdLint',cible:'Écriture',txt:'△ '+n+' point'+(n>1?'s':'')+' d’écriture à relire — doses, liens, tableaux'});}
-  clean(p.sources||[]).forEach(()=>{});
   if(TODO_RX.test(String((p.sources||[]).join(' '))))out.push({at:'p-sources',cible:'Références',txt:'△ Un « à compléter » reste dans les sources'});
   if(corps&&!clean(p.sources||[]).length)out.push({at:'p-sources',cible:'Références',
     txt:'△ Aucune source citée — la traçabilité d’un protocole est ce qui permet de le revalider'});
@@ -27551,6 +27558,15 @@ function reviewNotes(f){
     if(!b||b.kind==='decision')return;
     const t=stepGuardTxt(stepsOf(b));
     if(t)out.push({at:'b:'+b.id,cible:(b.title||'').trim()||'Bloc d’étapes',txt:t});});
+  /* A660 : quatre oublis de STRUCTURE, au même registre (jamais bloquants) — ils se taisaient jusqu'à la session. */
+  ((f&&f.blocks)||[]).forEach((b,bi)=>{if(!b)return;
+    if(b.kind==='decision'){const n=(b.options||[]).filter(o=>o&&String(o.label||'').trim()&&!o.target).length;
+      if(n)out.push({at:'b:'+b.id,cible:String(b.question||'').trim()||'Décision',txt:'△ '+(n>1?n+' réponses ne mènent':'Une réponse ne mène')+' nulle part — choisissez le bloc suivant'});}
+    else if(!String(b.title||'').trim())out.push({at:'b:'+b.id,cible:'Bloc '+(bi+1),txt:'△ Bloc sans titre — c’est son nom dans le parcours et le compte rendu'});});
+  ((f&&f.timers)||[]).forEach((t,i)=>{if(t&&t.type==='interval'&&!(parseInt(t.seconds||0)>0))
+    out.push({at:'t:'+i,cible:String(t.label||'').trim()||'Minuteur',txt:'△ Minuteur à cycle sans durée — il sonnerait aussitôt lancé'});});
+  ((f&&f.excursions)||[]).forEach((c,i)=>{if(c&&String(c.label||'').trim()&&!c.target)
+    out.push({at:'x:'+i,cible:String(c.label||'').trim(),txt:'△ Complication sans bloc cible — elle ne sera pas enregistrée'});});
   return out;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
 function boldBtnHtml(){return '<button type="button" class="ed-ic" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
@@ -27740,7 +27756,7 @@ const ED_PALETTE=[
   {g:'Contenu clinique',k:'verify', ic:'△', n:'À vérifier',      c:'surveillances, pièges'},
   {g:'Contenu clinique',k:'diff',   ic:'≠', n:'Diagnostic différentiel',c:'si le tableau ne colle pas'},
   {g:'Annexes',     k:'img',     ic:'▣', n:'Schéma ou capture',c:'associable à un bloc'},
-  {g:'Annexes',     k:'att',     ic:uiIcon('doc',17),n:'Document PDF',c:'rangé dans « Consulter »'},
+  {g:'Annexes',     k:'att',     ic:uiIcon('doc',17),n:'Document PDF',c:'rangé dans la carte « Références »'},
   {g:'Annexes',     k:'ref',     ic:'❞', n:'Référence',        c:'source de l’aide'}
 ];
 /* Les clés de la porte qui ne font qu'AJOUTER UNE LIGNE à une liste du modèle. Une table plutôt
@@ -27750,6 +27766,7 @@ const ED_ADD_LIST={poso:'posology',verify:'verify',diff:'differentials',ref:'sou
 const edAddModal=()=>document.getElementById('edAddModal');
 function edAddOpen(f){
   const m=edAddModal();const body=document.getElementById('edAddBody');
+  document.getElementById('edAddTitle').textContent='Ajouter à l’aide';   // A660 : la fenêtre sert les deux éditeurs
   body.innerHTML=edPaletteHtml();
   body.querySelectorAll('[data-edadd]').forEach(b=>b.onclick=()=>{edAdd(f,b.dataset.edadd);});
   m.classList.add('on');
@@ -27823,6 +27840,7 @@ function edPaletteProtoHtml(p){
   return h;}
 function edAddOpenProto(p){
   const m=edAddModal();const body=document.getElementById('edAddBody');
+  document.getElementById('edAddTitle').textContent='Ajouter au protocole';   // A660
   body.innerHTML=edPaletteProtoHtml(p);
   body.querySelectorAll('[data-edaddp]').forEach(b=>b.onclick=()=>{edAddProto(p,b.dataset.edaddp);});
   m.classList.add('on');
@@ -28142,7 +28160,7 @@ function stepSetApply(focus,lk){const k=_sst;keepAnchor(stepRowSel(k.bid,k.i),re
     else if(d.ssn&&it.from){it.from.n=Math.max(1,Math.min(99,it.from.n+(+d.ssn.split(':')[1])));stepSetApply('[data-ssn="'+d.ssn+'"]');}
     else if(d.ssrp!=null){if(d.ssrp)it.repeat=d.ssrp;else delete it.repeat;stepSetApply('[data-ssrp="'+d.ssrp+'"]');}
     else if(t.hasAttribute('data-rmstep')){bItemDel(b,i);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));
-      _sst=null;modalHandoffClose(stepSetEl());keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
+      _sst=null;modalHandoffClose(stepSetEl());keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);toast('Étape supprimée — ↶ pour annuler.');   // A660 : accusé, comme pour une image
       const n=main.querySelector(stepRowSel(b.id,Math.min(i,bItems(b).length-1))+' input[data-sf]');if(n)n.focus({preventScroll:true});}});
   bd.addEventListener('change',e=>{const t=e.target,c=stepSetCtx();if(!c)return;const {it}=c,v=String(t.value||'');
     if(t.matches('[data-lk]')){delete it.starts;delete it.counts;if(v.slice(0,2)==='t:')it.starts=v.slice(2);else if(v.slice(0,2)==='n:')it.counts=v.slice(2);stepSetApply('[data-lk]',true);}
@@ -28464,7 +28482,7 @@ function renderEditor(){_renderN++;
     les critères, eux, restent une INVITATION visible même vide (exception nommée, v4.76.0). */}
     <fieldset class="field ed-card ed-entry"><label>Condition d’entrée <span class="hint">quand déclencher cette procédure</span></label>
     ${listEditor('Critères','ce qui confirme le tableau','confirmation',listOf(f,'confirmation'),false,{shell:'bare'})}
-    ${listOf(f,'differentials').length?listEditor('Diagnostics à éliminer','« le tableau ne colle pas » — premier motif d’ouverture de « Consulter »','differentials',listOf(f,'differentials'),false,{shell:'bare'}):''}
+    ${listOf(f,'differentials').length?listEditor('Diagnostics à éliminer','« le tableau ne colle pas » — carte « Diagnostics différentiels », sous le bloc','differentials',listOf(f,'differentials'),false,{shell:'bare'}):''}
     </fieldset>
     <fieldset class="field ed-pec"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${critGuideHtml()}${f.blocks.map((b,bi)=>b.kind==='review'?'':((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin d’aide'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
@@ -28497,7 +28515,7 @@ function renderEditor(){_renderN++;
     « présent dans la porte ⇔ masqué quand vide »). Le chapeau et la confirmation diagnostique, eux,
     RESTENT : ce ne sont pas des extras, ce sont la condition d'entrée et les memory items. */}
     ${listOf(f,'posology').length?listEditor('Repères posologiques','classés automatiquement en lecture selon le bloc en cours (aucun n’est jamais masqué) · bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible · le détail sous la ligne reste derrière un second geste','posology',listOf(f,'posology'),false,{crit:true,shell:'ed-card',note:true}):''}
-    ${listOf(f,'verify').length?listEditor('À vérifier','surveillances et pièges — affichés en ③','verify',listOf(f,'verify'),false,{shell:'ed-card'}):''}
+    ${listOf(f,'verify').length?listEditor('À vérifier','surveillances et pièges — carte « À vérifier », sous le bloc','verify',listOf(f,'verify'),false,{shell:'ed-card'}):''}
     ${''/* L'IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (demande utilisateur). On ne pouvait
     joindre une image QUE depuis un bloc : partir de l'image était impossible, alors que c'est
     l'ordre naturel quand on vient d'en importer trois d'un coup. Le sélecteur liste les blocs de la
@@ -28600,11 +28618,11 @@ function bindEditorEvents(f){
     const mn=row.querySelector('[data-tmin]'),sc=row.querySelector('[data-tsec]');const upd=()=>{t.seconds=(parseInt(mn.value||0)||0)*60+(parseInt(sc.value||0)||0);};if(mn)mn.addEventListener('input',upd);if(sc)sc.addEventListener('input',upd);
     const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>{t.autoloop=e.target.checked;edRowRedo('.tmedit[data-ti="'+row.dataset.ti+'"]','[data-tloop]');});
     const du=row.querySelector('[data-tdue]');if(du)du.addEventListener('input',e=>t.onDue=e.target.value);   // K7
-    const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();};});
+    const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();toast('Minuteur supprimé — ↶ pour annuler.');};});
   main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]'),sh=row.querySelector('[data-cshort]');if(lab)lab.addEventListener('input',e=>{c.label=e.target.value;if(sh)sh.placeholder=c.label;});
     if(sh)sh.addEventListener('input',e=>{const v=e.target.value.trim();if(v)c.short=v;else delete c.short;});
     const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
-    const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();};
+    const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();toast('Compteur supprimé — ↶ pour annuler.');};
     const lk=row.querySelector('[data-clink]');if(lk)lk.onchange=()=>{f.counters[+row.dataset.ci].timerId=lk.value;edRowRedo('.tmedit[data-ci="'+row.dataset.ci+'"]','[data-clink]');};
     row.querySelectorAll('[data-cuse]').forEach(x=>x.onclick=()=>{const v=x.dataset.cuse,j=v.lastIndexOf('|');stepSetOpen(v.slice(0,j),+v.slice(j+1));});});
   // blocs
@@ -28786,7 +28804,17 @@ function bindEditorEvents(f){
     /* POSER. Un objet retiré puis réinséré : l'index de destination est corrigé quand la source
        précède la cible DANS LA MÊME liste — sans quoi tout dépôt « vers le bas » atterrirait une
        place trop loin (le classique du splice). */
-    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
+    /* A660 : un bloc supprimé EMPORTE ses étapes du pool — sans cela ses ★ devenaient des rappels
+       de portée fiche (« Ne pas oublier ») que l'auteur n'avait jamais écrits — et ce qui le
+       visait se vide : complication, renvoi de jalon, étape-revue. */
+    const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{
+      const pris=new Set((Array.isArray(b.items)?b.items:[]).map(x=>(x&&typeof x==='object')?x.id:x)),nEt=clean(stepsOf(b)).length;
+      if(pris.size)f.items=poolOf(f).filter(it=>!pris.has(it.id));
+      (f.excursions||[]).forEach(c=>{if(c&&c.target===bid)c.target='';});
+      poolOf(f).forEach(it=>{if(it.review===bid)delete it.review;});
+      f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;(x.milestones||[]).forEach(j=>{if(j&&j.go===bid)j.go='';});if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});
+      toast('Bloc supprimé'+(nEt?' avec '+nEt+' étape'+(nEt>1?'s':''):'')+' — ↶ pour annuler.');
+      if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
     /* ⚠ SIGNALÉ À L'USAGE : « il n'est plus possible de déplacer un bloc ». Diagnostic : ce
        binder tourne PAR CARTE (`main.querySelectorAll('.blk').forEach(card=>…)`), or les
        interstices de niveau BLOC (`data-drop="B:n"`) sont émis ENTRE les cartes — donc frères,
@@ -28883,8 +28911,6 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     if(ins.length)ins[ins.length-1].focus();});
   main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const k=b.dataset.rm;
     const a=edList(d,k).slice();a.splice(+b.dataset.idx,1);if(!a.length)a.push('');edPut(d,k,a);rerender();});
-  main.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const k=b.dataset.key;
-    const a=edList(d,k).slice();moveItem(a,+b.dataset.idx,b.dataset.mv==='up'?-1:1);edPut(d,k,a);rerender();});
   /* PRENDRE / POSER dans une liste (lot 2, v4.75.0). Un seul binder pour les huit listes, posé ici
      avec les autres écouteurs de liste — les interstices des minuteurs et des compteurs vivent hors
      de `.list-edit`, d'où la portée `main` (déjà celle de tout ce bloc).
@@ -28979,7 +29005,9 @@ async function deleteDraft(){
   const msg=state.draft&&state.draft.library
     ?'Supprimer cette aide définitivement ?\nElle disparaîtra pour tous les membres de la bibliothèque, et les notes personnelles que certains y ont peut-être attachées seront effacées — prévenez-les avant si besoin.'
     :'Supprimer cette aide définitivement ?';
-  if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);await clearDraftParkIf('f',id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
+  // A660 : ce qui part avec elle se dit avant.
+  const nSes=state.draft?sessions.filter(s=>s.ficheId===state.draft.id).length:0;
+  if(!await confirmDlg(msg+(nSes?'\n'+(nSes>1?'Ses '+nSes+' comptes rendus de session seront supprimés':'Son compte rendu de session sera supprimé')+' avec elle.':''),{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);await clearDraftParkIf('f',id);await sessDropOf(id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
 
 /* ===== Auto-enregistrement des brouillons (SPEC gestion §2.2) =====
    Toutes les 2,5 s, le brouillon ouvert (fiche OU protocole) est « parqué » dans le store meta
@@ -29047,8 +29075,8 @@ function edSnapshot(kind){
        if(jetes.length)d.items=poolOf(d).filter(it=>jetes.indexOf(it.id)<0);
        if(!b.items.length)bItemAdd(b,0,newStepItem(''));}b.nextLbl=(b.nextLbl||'').trim();}
     else{b.question=(b.question||'').trim();b.options=(b.options||[]).filter(o=>(o.label||'').trim());}});
-  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
-  d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
+  d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim(),...shortField(t)}));   // A660 : le nom court se publie
+  d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:'',...shortField(c)}));
   d.excursions=(d.excursions||[]).filter(c=>c&&(c.label||'').trim()&&c.target);
   // A377 : un minuteur ou un compteur supprimé emporte ses liens.
   {const tm=new Set(d.timers.map(t=>t.id)),cn=new Set(d.counters.map(c=>c.id));
@@ -29378,7 +29406,11 @@ async function openEdit(id){if(linkGate(()=>openEdit(id)))return;   // A643 : ve
      L'auto-enregistrement retire le « Annuler » : sans cet instantané, il n'y aurait plus AUCUN
      état antérieur vers lequel revenir. Un point par ÉCRITURE, en revanche, noierait l'historique
      des versions sous le bruit de la frappe — ce qui reviendrait au même. */
-  try{await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});}catch(e){}
+  /* A660 : … et aucun si le dernier point EST déjà ce contenu — ouvrir cinq fois sans rien changer
+     chassait les cinq vraies versions (`BACKUP_MAX`). `dirty` ne compte pas : la synchro le bascule seule. */
+  try{const sig=o=>JSON.stringify(o,(k,v)=>k==='dirty'?undefined:v),
+      der=(await Data.getBackups(f.id)).sort((x,y)=>(y.at||0)-(x.at||0))[0];
+    if(!der||sig(der.data)!==sig(f))await Data.putBackup({bid:uid('bk'),ficheId:f.id,at:Date.now(),data:JSON.parse(JSON.stringify(f))});}catch(e){}
   state.draft=JSON.parse(JSON.stringify(f));draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;
   draftBase=JSON.stringify(state.draft);_lastParked=null;
   // Un brouillon auto-enregistré de CETTE fiche attend ? On le restaure (rien ne se perd) —
@@ -29853,8 +29885,8 @@ STRUCTURE
 - SECTIONS — CE QUI EST SOUS LES YEUX vs CE QUI EST APPELÉ. L'application sépare
   matériellement les deux, comme une check-list abrégée et son manuel : dans le fil de la
   prise en charge vivent en permanence les BLOCS et notForget ; verify, differentials,
-  sources et les documents sont regroupés dans une feuille « Consulter » ouverte À LA
-  DEMANDE. CONSÉQUENCE DE RÉDACTION : ne mets JAMAIS dans verify ou differentials ce qui
+  sources et les documents sont rangés dans des cartes REPLIÉES sous le bloc (« À vérifier »,
+  « Diagnostics différentiels », « Références »), ouvertes À LA DEMANDE. CONSÉQUENCE DE RÉDACTION : ne mets JAMAIS dans verify ou differentials ce qui
   doit sauter aux yeux sans être demandé — cela appartient à une étape « ⚠ »/« △ » du bloc
   concerné, ou à notForget (4 max). Inversement, tout ce qui n'est utile QUE si l'on se pose
   la question descend dans ces sections : elles ne coûtent plus de place au fil.
@@ -30252,6 +30284,9 @@ VALEURS AUTORISÉES
   sur un ITEM écrit en objet, facultatifs.
 - type d'un timer : "stopwatch" (chronomètre) ou "interval" (minuteur à cycle ;
   "seconds" = durée du cycle, "autoloop" = true pour reboucler).
+- "short" (facultatif, sur un timer, un counter ou une excursion) : NOM COURT, 24
+  caractères au plus, affiché à la place du "label" là où la place manque (tuile, quai).
+  Ne le pose que si le "label" dépasse une quinzaine de caractères ; sinon omets-le.
 - LES "label" DE "timers" ET "counters" SONT À LA FOIS TITRE ET LIGNE DE JOURNAL :
   ils nomment le contrôle à l'écran, les repères du JOURNAL DES ACTIONS et les
   compteurs du COMPTE-RENDU, relus APRÈS le soin, hors contexte, par quelqu'un qui
@@ -30296,7 +30331,7 @@ AVANT DE RÉPONDRE, VÉRIFIE
     au-delà, remets en action normale ce qui ne prime pas VRAIMENT.
 12. Les "label" de timers/counters : 1 à 3 mots, relus seuls ; un compteur se lit suivi
     d'un numéro (« Choc n° 3 »).
-13. references : source datée + ligne « Fiche générée par IA le … ».
+13. sources : source datée + ligne « Fiche générée par IA le … ».
 14. Tout manque résiduel marqué « ⚠ À COMPLÉTER » (aucun manque silencieux).
 15. Gras (**…**) rare, jamais une ligne entière.
 16. "status" vaut "draft", "validatedAt" est vide, et tu n'as renvoyé QUE le JSON.
@@ -30318,6 +30353,9 @@ AVANT DE RÉPONDRE, VÉRIFIE
    justifiait — l'état vient du fichier et se lit rangée par rangée avant écriture (règle 14). */
 const createModal=document.getElementById('createModal');
 let pendingOpenImport=false;   // ouvrir directement la fiche importée (méthode IA)
+/* A660 : par la méthode IA, un élément dont le fichier ne DIT PAS son état entre en Brouillon (la notice du
+   sous-écran le promet, et `migrate` lit « validée » dans une absence). Ailleurs l'état reste celui du fichier (A129). */
+let importAiDraft=false;
 /* Sélecteur de TYPE du dialogue « Créer » (v4.4.2) : aide cognitive <-> protocole, au même
    composant segmenté que la tab bar (.seg, pastille glissante). Il pilote `state.section` —
    source unique du type dans tout le dialogue (brouillon parqué, carte IA, aiguillage
@@ -30363,7 +30401,7 @@ function bindCreateDrop(el,openAfter){
   bindUpDrop(el,'data',async files=>{
     closeCreateDlg();
     for(let i=0;i<files.length;i++){
-      pendingOpenImport=openAfter&&i===files.length-1;
+      pendingOpenImport=openAfter&&i===files.length-1;importAiDraft=!!openAfter;
       await readImportFile(files[i],files.length>1?{i:i+1,n:files.length}:null);}},true);}
 function renderCreateDlg(screen,park){
   const proto=_crtKind==='protocols';
@@ -30380,7 +30418,7 @@ function renderCreateDlg(screen,park){
       <div class="ai-actions"><button class="crt-copy" id="crtCopy">Copier le prompt</button></div>
       <div class="crt-step">2 · Importez le fichier</div>
       ${upDropHtml('data','crtDrop','Importer le fichier généré')}
-      <p class="crt-note">L'aide arrive en <strong>○ Brouillon</strong> : relisez et validez chaque posologie avant publication. Vous restez responsable du contenu.</p>`;
+      <p class="crt-note">Sans état dans le fichier, l'aide arrive en <strong>○ Brouillon</strong> : relisez et validez chaque posologie avant publication. Vous restez responsable du contenu.</p>`;
     document.getElementById('crtPrompt').textContent=AI_PROMPT;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
     document.getElementById('crtCopy').onclick=async()=>{const btn=document.getElementById('crtCopy');
@@ -30394,7 +30432,7 @@ function renderCreateDlg(screen,park){
     body.innerHTML=`
       <button class="crt-back" id="crtBack">‹ Autres méthodes</button>
       ${upDropHtml('data','crtDrop','Importer un fichier',' pad-lg mt')}
-      <p class="crt-note">Un export de l'app (.json, ou .zip avec les documents PDF) ou une génération IA (.json). Tout le contenu importé arrive en <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
+      <p class="crt-note">Un export de l'app (.json, ou .zip avec les documents PDF) ou une génération IA (.json). L'état de chaque élément est celui du fichier, affiché avant l'import ; pour un fichier d'IA, passez par « Rédiger avec l'IA » : sans état, il entre en <strong>○ Brouillon</strong>.</p>`;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
     bindCreateDrop(document.getElementById('crtDrop'),false);
     return;
@@ -30416,7 +30454,7 @@ function renderCreateDlg(screen,park){
     <div class="crt-sep" role="separator"></div>
     <button type="button" class="crt-row" id="crtIA"><span class="crt-ic" aria-hidden="true">${uiIcon('sparkles',20)}</span><span><span class="crt-t">Rédiger avec l\'IA à partir d\'un document</span><br><span class="crt-d">PDF ou texte → brouillon à relire avant usage.</span></span></button>
     <button type="button" class="crt-row" id="crtImport"><span class="crt-ic" aria-hidden="true">${uiIcon('download',20)}</span><span><span class="crt-t">Importer un fichier (.json ou .zip)</span></span></button>
-    <p class="crt-note">Tout import arrive en état <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>
+    <p class="crt-note">Un import garde l'état de son fichier ; rédigé avec l'IA, un fichier sans état entre en <strong>○ Brouillon</strong>.</p>
 `;
   {const rs=document.getElementById('crtResume');if(rs)rs.onclick=()=>{closeCreateDlg();
     if(proto){state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(resume.draft)));state.view='protocolEdit';}
@@ -30644,6 +30682,7 @@ function renderCatMgr(){
        if(state.cat&&state.cat===k0&&!categories.some(x=>catKey(x)===k0))state.cat=t?catKey(t):'';}   // A419 : clé de nom
       // Brouillon en cours d'édition : il pointe peut-être sur la catégorie supprimée (copie de la fiche).
       if(state.draft&&state.draft.category===cid)state.draft.category=target||'';
+      if(state.pdraft&&state.pdraft.category===cid)state.pdraft.category=target||'';   // A660 : le protocole en édition aussi
       await saveCats(scp);catDelId=null;renderCatMgr();};});
   body.querySelectorAll('[data-cadd]').forEach(b=>b.onclick=async()=>{
     const scp=b.dataset.cadd||null;
@@ -31350,11 +31389,12 @@ async function notionVerse(p,files,rerender){
   if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
 function readImportFile(file,pos){
   const lbl=pos?'« '+upShortName(file&&file.name)+' » (fichier '+pos.i+'/'+pos.n+')':null;
+  const ia=importAiDraft;importAiDraft=false;   // A660 : lu une fois, à l'entrée — jamais hérité par l'import suivant
   return new Promise(fin=>{const r=new FileReader();
     r.onerror=()=>{pendingOpenImport=false;toast('⚠ '+(lbl||'Fichier')+' illisible.');fin();};
-    r.onload=()=>_importRead(r.result,lbl).then(fin,fin);
+    r.onload=()=>_importRead(r.result,lbl,ia).then(fin,fin);
     r.readAsArrayBuffer(file);});}   // ArrayBuffer : nécessaire au .zip ; le .json est décodé en UTF-8
-async function _importRead(buf,lbl){
+async function _importRead(buf,lbl,ia){
     // PARSE séparé du reste : « Fichier illisible » ne doit être dit QUE si le fichier est
     // illisible — pas quand une étape ultérieure (stockage saturé en milieu d'import…) échoue.
     // Deux formats acceptés (v4.5.0) : .json (historique) et .zip « avec documents » — détecté
@@ -31404,6 +31444,8 @@ async function _importRead(buf,lbl){
        interrompu », pour un fichier parfaitement valide. */
     imp.fiches=Array.isArray(imp.fiches)?imp.fiches:[];
     imp.protocols=Array.isArray(imp.protocols)?imp.protocols:[];
+    // A660 : AVANT l'atelier — la rangée montre donc l'état qui sera écrit.
+    if(ia)[imp.fiches,imp.protocols].forEach(l=>l.forEach(x=>{if(x&&typeof x==='object'&&typeof x.status!=='string')x.status='draft';}));
     if(!imp.fiches.length&&!imp.protocols.length){
       pendingOpenImport=false;
       toast((lbl||'Ce fichier')+' ne contient aucune aide ni protocole — rien à importer.',7000,true);return;}
@@ -31514,7 +31556,7 @@ async function _importRead(buf,lbl){
     // remplacés en silence, contrairement à la promesse « mêmes règles que les fiches ».
     const existingP0=new Set(protocols.map(x=>x.id));
     const clashesP=(merge&&hasProtos)?imp.protocols.filter(d=>d&&d.id&&existingP0.has(d.id)).length:0;
-    let replace=(clashes+clashesP)?await confirmDlg([clashes?clashes+' fiche(s)':'',clashesP?clashesP+' protocole(s)':''].filter(Boolean).join(' et ')+' déjà présent(e)(s) (même identifiant).',{title:'Doublons détectés',yes:'Remplacer les existants',no:'Garder les deux'}):false;
+    let replace=(clashes+clashesP)?await confirmDlg([clashes?clashes+' aide(s)':'',clashesP?clashesP+' protocole(s)':''].filter(Boolean).join(' et ')+' déjà présent(e)(s) (même identifiant).',{title:'Doublons détectés',yes:'Remplacer les existants',no:'Garder les deux'}):false;
     if(replace===null){pendingOpenImport=false;return;}
     const added=[];
     /* L'ÉTAT ENTRANT EST PRÉSERVÉ (A129) — il était FORCÉ à « Brouillon » par tous les chemins.
@@ -31535,13 +31577,18 @@ async function _importRead(buf,lbl){
       // vide plutôt que de laisser migrateCategories() la transformer en catégorie fantôme (elle
       // traiterait l'id brut comme un nom lisible).
       if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===d.library))d.category='';};
+    /* A660 : le rapport final DIT ce qui n'est pas entré — élément non écrit (`persist` faux), document écarté
+       par `importAtts` (binaire absent du fichier, illisible ou trop lourd). */
+    let ratees=0,docsEc=0;
+    const pOk=async d=>{const ok=await persist(d);if(!ok)ratees++;return ok;},pPOk=async d=>{const ok=await persistProtocol(d);if(!ok)ratees++;return ok;};
+    const atts=async d=>{const n0=(d.docs||[]).length;await importAtts(d,zipAtts,sameSpace);docsEc+=n0-(d.docs||[]).length;};
     for(let i=0;i<imp.fiches.length;i++){const d=migrate(imp.fiches[i]);
       poserDest(d,F.dst[i]);
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
-      await importAtts(d,zipAtts,sameSpace);
-      if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const j=fiches.findIndex(x=>x.id===d.id);if(j>=0)fiches[j]=d;else fiches.push(d);added.push(d.id);}}
-      else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
+      await atts(d);
+      if(d.id&&existing.has(d.id)&&replace){if(await pOk(d)){const j=fiches.findIndex(x=>x.id===d.id);if(j>=0)fiches[j]=d;else fiches.push(d);added.push(d.id);}}
+      else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await pOk(d)){fiches.push(d);added.push(d.id);}}}
     // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
     // règles que les fiches (assainissement migrateProtocol, ids conservés si même espace,
     // documents PDF restaurés/filtrés par importAtts).
@@ -31553,12 +31600,12 @@ async function _importRead(buf,lbl){
           if(tg&&canEditFiche(tg)){const n=migrateProtocol(JSON.parse(JSON.stringify(tg))),b0=String(n.body||'').replace(/\s+$/,''),b1=String(d.body||'').trim();
             n.body=b0?(b1?b0+'\n\n'+b1:b0):b1;
             const ims=(n.images||[]).slice();(d.images||[]).forEach(im=>{if(im&&im.id&&ims.length<MAX_IMG_PER_ENTITY&&!ims.some(x=>x.id===im.id))ims.push(im);});n.images=ims;
-            const m=migrateProtocol(n);if(await persistProtocol(m)){const j=protocols.findIndex(x=>x.id===m.id);if(j>=0)protocols[j]=m;versees.push(m.title||'Sans titre');}
+            const m=migrateProtocol(n);if(await pPOk(m)){const j=protocols.findIndex(x=>x.id===m.id);if(j>=0)protocols[j]=m;versees.push(m.title||'Sans titre');}
             continue;}}
         poserDest(d,P.dst[i]);   // même règle que les fiches, même code
-        await importAtts(d,zipAtts,sameSpace);
-        if(d.id&&existingP.has(d.id)&&replace){if(await persistProtocol(d)){const j=protocols.findIndex(x=>x.id===d.id);if(j>=0)protocols[j]=d;else protocols.push(d);addedP++;}}
-        else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
+        await atts(d);
+        if(d.id&&existingP.has(d.id)&&replace){if(await pPOk(d)){const j=protocols.findIndex(x=>x.id===d.id);if(j>=0)protocols[j]=d;else protocols.push(d);addedP++;}}
+        else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await pPOk(d)){protocols.push(d);addedP++;}}}}
     /* Les catégories s'enregistrent APRÈS les deux boucles : c'est là seulement qu'on sait
        lesquelles ont réellement été créées, la résolution étant paresseuse. Une par bibliothèque
        TOUCHÉE — `saveCats` horodate et marque « à pousser » PAR bibliothèque, et en marquer une
@@ -31571,11 +31618,16 @@ async function _importRead(buf,lbl){
     /* On AFFICHE la destination — mais laquelle, quand il y en a plusieurs ? Celle du DERNIER
        élément écrit : c'est le fil du geste, et l'alternative (rester où l'on était) donnerait
        l'écran le plus trompeur de tous, une bibliothèque inchangée après un import réussi. */
-    state.scope=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||null;
+    /* A660 : via `homeLib` (`state.scope` est mort depuis A297). Sur « Toutes » (null) rien ne
+       disparaît : on ne pose pas un filtre non demandé — même règle que le déplacement. */
+    if(state.homeLib!=null)state.homeLib=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||'';
     state.cat='';
+    const manques=(ratees?' '+nb(ratees,'élément')+' non enregistré'+(ratees>1?'s':'')+' (stockage).':'')
+      +(docsEc?' '+nb(docsEc,'document')+' PDF non importé'+(docsEc>1?'s':'')+' (absent'+(docsEc>1?'s':'')+' du fichier ou illisible'+(docsEc>1?'s':'')+').':'');   // A660
     if(openId)openRead(openId);else{state.view='library';render();}
-    if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.'+(versees.length?' Contenu versé dans « '+versees.join(' », « ')+' ».':''));
-    else if(versees.length)toast('Contenu versé dans « '+versees.join(' », « ')+' ».');}
+    if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.'+(versees.length?' Contenu versé dans « '+versees.join(' », « ')+' ».':'')+manques,manques?10000:0);
+    else if(versees.length)toast('Contenu versé dans « '+versees.join(' », « ')+' ».'+manques,manques?10000:0);
+    else if(manques)toast('⚠ Rien n’a été importé.'+manques,10000);}
     // Le fichier était lisible (parse passé plus haut) : un échec ICI est un problème de stockage
     // ou d'exécution, pas de fichier — message honnête, et ce qui a déjà été importé est conservé.
     catch(err){pendingOpenImport=false;toast('⚠ Import interrompu ('+(sstr((err&&err.message)||'',120)||'erreur inattendue')+') — les éléments déjà importés sont conservés.',9000);}}
@@ -32269,7 +32321,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact'];   // A660 : quatre clés lues par `spaceKey`, oubliées
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -37038,6 +37090,7 @@ bindModalDismiss(membersModal,closeMembers);
    sélection) et forment une collection du même nom. On ne supprime RIEN ici : la bibliothèque vide reste,
    sa suppression garde sa propre fenêtre (zone sensible). */
 async function libToColl(lib){const nom=libName(lib)||'Collection';
+  if(collFull())return;   // A660 : avant tout déplacement
   const ent=fiches.filter(f=>f.library===lib&&!f.deletedAt).map(o=>({kind:'f',o})).concat(protocols.filter(x=>x.library===lib&&!x.deletedAt).map(o=>({kind:'p',o})));
   if(!ent.length||!await confirmDlg(nb(ent.length,'élément')+(ent.length>1?' passent':' passe')+' dans Perso et forment la collection « '+nom+' ». Les catégories suivent par leur nom.'
     +(myIsAppAdmin?' La bibliothèque, vide, pourra ensuite être supprimée depuis cette fenêtre.':''),{title:'Convertir en collection',yes:'Convertir'}))return;
@@ -37074,6 +37127,7 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
   inp.addEventListener('input',sync);who.addEventListener('input',sync);sync();inp.focus();
   const setMsg=(t,c)=>{const e=$('newLibMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
   cb.onclick=()=>{const name=(inp.value||'').trim();if(!name){setMsg('Donnez un nom à la collection.','err');return;}
+    if(collFull())return;
     const c=collNew(name,[]);closeNewLib(true);if(authModal.classList.contains('on'))closeAuth();
     state.coll=c.id;state.homeTab='aides';if(state.view==='library')render();toast('Collection « '+c.name+' » créée — ajoutez-y aides et protocoles par « Ajouter ».');};
   const submit=async()=>{
