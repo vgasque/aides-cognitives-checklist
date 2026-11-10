@@ -18,11 +18,15 @@
 //
 // DÉPLOIEMENT (une fois, puis à chaque modification de ce fichier) :
 //     supabase functions deploy link-claim --no-verify-jwt
-//     supabase secrets set APP_ORIGIN=https://<adresse de l'app>     (recommandé : CORS restreint)
+//     supabase secrets set APP_ORIGIN=https://<adresse de l'app>     (OBLIGATOIRE depuis A663)
+// SANS `APP_ORIGIN`, LA FONCTION REFUSE (A663, amende A650) : elle répondait alors `*`, c'est-à-dire
+// que n'importe quelle page pouvait lire la session rendue — la forme qu'A650 écarte « en production »,
+// servie par défaut à qui oubliait le secret. Le refus précède la réclamation : rien n'est consommé.
 // PLUSIEURS ADRESSES (A650) : l'app peut être servie sur plus d'une origine (le domaine, et un miroir
 // GitHub Pages). `APP_ORIGIN` accepte une LISTE séparée par des virgules — une ORIGINE par entrée,
 // schéma + hôte, sans chemin (`https://<compte>.github.io`, pas `…/<dépôt>/`) :
 //     supabase secrets set APP_ORIGIN="https://aides.example.fr,https://compte.github.io"
+// (`*` n'est plus une entrée : une liste qui n'en contient pas d'autre vaut « absente ».)
 // La réponse renvoie l'origine de la requête SI elle figure dans la liste, sinon la première : un
 // navigateur sur une autre adresse voit sa réponse bloquée. Ce n'est pas l'autorisation (la clé du
 // poste l'est) mais une ceinture : une page tierce ne peut pas lire la session rendue.
@@ -31,13 +35,14 @@
 // SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY et SUPABASE_ANON_KEY sont fournies par la plateforme.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
-const ORIGINS = (Deno.env.get('APP_ORIGIN') ?? '*').split(',')
-  .map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean);
+const ORIGINS = (Deno.env.get('APP_ORIGIN') ?? '').split(',')
+  .map((o) => o.trim().replace(/\/+$/, '')).filter((o) => o && o !== '*');
 const corsFor = (req: Request) => {
   const o = req.headers.get('origin') ?? '';
-  const allow = ORIGINS.includes('*') ? '*' : ORIGINS.includes(o) ? o : (ORIGINS[0] ?? 'null');
+  // A663 : jamais `*`. Sans origine configurée, AUCUN en-tête d'autorisation — le navigateur bloque.
+  const allow = ORIGINS.includes(o) ? o : ORIGINS[0];
   return {
-    'Access-Control-Allow-Origin': allow, 'Vary': 'Origin',
+    ...(allow ? { 'Access-Control-Allow-Origin': allow } : {}), 'Vary': 'Origin',
     'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
@@ -51,6 +56,16 @@ Deno.serve(async (req: Request) => {
     new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json' } });
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ ok: false, err: 'method' }, 405);
+  // A663 — CONFIGURATION INCOMPLÈTE : refus EXPLICITE, avant toute réclamation (elle ne prend qu'une
+  // fois : la consommer pour une réponse que le poste ne lira pas le laisserait en impasse).
+  //   · `APP_ORIGIN` absent : plus de repli sur `*` (cf. en-tête) ;
+  //   · `SUPABASE_ANON_KEY` absente : plus de repli sur la CLÉ DE SERVICE pour l'échange — un client
+  //     censé être PUBLIC aurait porté tous les droits, à un `verifyOtp` près.
+  const anon = Deno.env.get('SUPABASE_ANON_KEY');
+  if (!ORIGINS.length || !anon) {
+    console.error('link-claim : configuration incomplète —', !ORIGINS.length ? 'APP_ORIGIN manquant' : 'SUPABASE_ANON_KEY manquante');
+    return json({ ok: false, err: 'config' }, 503);
+  }
   let body: { id?: unknown; key?: unknown };
   try { body = await req.json(); } catch { return json({ ok: false, err: 'bad_request' }, 400); }
   const id = String(body?.id ?? ''), key = String(body?.key ?? '');
@@ -69,7 +84,7 @@ Deno.serve(async (req: Request) => {
 
   // Un client DISTINCT pour l'échange : après `verifyOtp`, un client porte la session de
   // l'utilisateur — le client d'administration doit garder la clé de service pour la liaison.
-  const pub = createClient(url, Deno.env.get('SUPABASE_ANON_KEY') ?? svc, OPTS);
+  const pub = createClient(url, anon, OPTS);
   const v = await pub.auth.verifyOtp({ type: 'magiclink', token_hash: tokenHash });
   const s = v.data?.session;
   if (v.error || !s) return json({ ok: false, err: 'link' }, 502);
