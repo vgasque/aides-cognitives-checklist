@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.114.1] — 2026-11-10
+Le retour système ne recule plus deux fois (A657) ; un appareil déconnecté pendant une synchro n'efface plus ses aides
+(A658). Rien à rejouer côté serveur.
+- **Correctif** : fermer une feuille (Se repérer, une fenêtre, l'écran de démarrage) environ une seconde après une
+  autre fermeture pouvait faire reculer DEUX fois quand le navigateur était lent à parcourir son historique : l'aide
+  ouverte se refermait et l'on revenait à l'accueil, en pleine session. Le filet de secours d'une fermeture réagissait
+  à la fermeture suivante, encore en route, et relançait un recul. Chaque filet ne veille plus que sa propre fermeture.
+- C'était la cause des deux témoins d'audit qui rougissaient « de temps en temps » sous charge : `audit-doctrine`
+  « aucun rognage dans les feuilles ni le panneau » (vu en CI, 390 px) et `audit-partage` « l'hôte coupe, le
+  CONDUCTEUR poursuit » (passe parallèle). Aucun des deux n'est modifié.
+- Garde-fou : `audit-retour.mjs` « le filet d'un parcours déjà arrivé ne relance pas le suivant (A657) », reproduction
+  déterministe (rouge sur le code d'avant : trois reculs, retour à l'accueil).
+- **Correctif** : un appareil connecté temporairement, déconnecté depuis un autre appareil PENDANT une synchro, pouvait
+  perdre les aides de ses bibliothèques — celle d'une session en cours comprise : la synchro continuait contre un serveur
+  qui ne lui répondait plus que du vide, et en concluait que les aides avaient disparu. Elle s'arrête désormais dès que
+  la déconnexion est connue, et n'efface jamais rien sur la foi d'une réponse reçue après.
+- Garde-fou : `audit-lier.mjs` section « 6 bis » (rouge sur le code d'avant : aide effacée) ; le contrôle « la synchro ne
+  tourne plus » attend que la synchro de la connexion soit retombée.
+
 ## [5.114.0] — 2026-11-10
 Un appareil déconnecté s'arrête aussitôt (A655) ; « Connecter un appareil » refait (A656). **Côté serveur : rejouer
 `supabase/schema.sql`** (fonction `link_dead`, politiques `*_link_dead`), puis `supabase/rls-tests.sql`.
@@ -229,19 +248,3 @@ Le volet « Suivi » dans l'éditeur (A614). Rien de nouveau à rejouer côté s
   l'éditeur — même sur une aide ou une référence que vous êtes en train de créer.
 - Le suivi reste à côté du contenu : il ne change pas la version validée.
 - « Ajouter une note personnelle » disparaît aussi de l'éditeur (« ＋ Note » le remplace).
-
-## [5.107.0] — 2026-11-08
-Le suivi : des notes et des tâches sur chaque aide et chaque référence, pour vous ou pour l'équipe (A613).
-**Schéma serveur à rejouer** (`supabase/schema.sql` : nouvelle table `aid_followups`, puis `supabase/rls-tests.sql`).
-- **« Suivi »** en bas d'une aide ou d'une référence : « ＋ Note », « ＋ Tâche ». Une note peut être **pour vous**
-  (privée) ou **pour l'équipe** de sa bibliothèque — les spécificités de votre centre, lues par tous les membres et
-  modifiables par tous les éditeurs. Une tâche : à revoir, à fusionner avec une autre aide, à confronter à une
-  référence ou à une reco, à compléter, autre ; une priorité (D'abord · Ensuite · Plus tard) et une échéance.
-- **« À faire »** (onglet Moi au téléphone, colonne de gauche sur ordinateur) : toutes vos tâches **par priorité**,
-  ou **par élément** pour voir ce qu'il reste sur chaque aide ; Moi · Équipe · Tout ; l'historique « Fait » est gardé.
-- **Catalogue « Tout »** : filtre « Avec des tâches », tri « Tâches d'abord », et sur chaque rangée le nombre de tâches
-  et la plus urgente.
-- **Vos collections « À revoir », « À fusionner »…** se convertissent en tâches d'un geste (menu ⋯ de la collection,
-  ou « À faire ») ; la collection reste.
-- **Pendant une session**, seules les notes restent, repliées ; aucune tâche ne s'affiche.
-- Une note s'ajoute désormais par « Suivi » ; votre note personnelle existante reste lisible et modifiable.

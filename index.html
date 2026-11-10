@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-/xAaqU9RyhlcCXYIxVdTq9u3RZQMYvhEqRWMt0Y6GL0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VKs2CN1cwld93+7QS8hVWbOEUqmrE//PnzQ0w2UunBk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10490,7 +10490,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.114.0';
+const APP_VERSION='5.114.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -34284,8 +34284,12 @@ const Sync={
     if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
     clearTimeout(this._retryTimer);
     this.running=true;setSyncChip('busy','Synchro en cours');
+    /* A658 : la porte d'entrée ne suffit pas — une synchro DÉJÀ EN VOL quand la veille apprend la déconnexion
+       continuait ses étapes contre des tables qui répondent du vide, et la réconciliation effaçait alors les aides
+       de bibliothèque de l'appareil (session en cours comprise). On s'arrête entre deux étapes (`fin`). */
+    const fin=()=>{if(!linkOver())return false;setSyncChip('off','Appareil déconnecté');return true;};
     try{await Auth.ensureFresh();
-      await refreshAccountStatus();
+      await refreshAccountStatus();if(fin())return;
       // Compte pas encore approuvé : on n'attaque même pas les autres appels (la RLS les
       // refuserait de toute façon). Pas de relance automatique ici -> seul un admin ou un nouveau
       // passage au premier plan (visibilitychange -> schedule()) redéclenchera une vérification.
@@ -34293,22 +34297,27 @@ const Sync={
       if(myAccountStatus==='rejected'){setSyncChip('rejected','Compte refusé');return;}
       await this.loadProfile();
       await linkRulesFetch();   // A654
-      await this._initIfNeeded();
-      const conflicts=(await this._pull()).concat(await this._pullProtocols());
+      if(fin())return;
+      await this._initIfNeeded();if(fin())return;
+      const conflicts=await this._pull();if(fin())return;
+      conflicts.push(...await this._pullProtocols());if(fin())return;
       // L'historique ne connaît pas de conflit à arbitrer : une session archivée ne se modifie
       // plus (seuls son nom et sa suppression bougent), et le dernier écrivain gagne sans qu'un
       // choix humain ait de sens. Rien à concaténer, donc.
       try{await this._pullSessions();}catch(e){}
+      if(fin())return;
       // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
       // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
       // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
       let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
       try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
       try{await this._pushSessions();}catch(e){if(!pushErr)pushErr=e;}
-      await this._reconcileShared();
-      await this._syncCats();
-      await this._syncNotes();
-      try{await this._syncSuivi();}catch(e){}   // A613 : un échec du suivi ne prive pas le reste de la synchro
+      if(fin())return;
+      await this._reconcileShared();if(fin())return;
+      await this._syncCats();if(fin())return;
+      await this._syncNotes();if(fin())return;
+      try{await this._syncSuivi();}catch(e){}
+      if(fin())return;   // A613 : un échec du suivi ne prive pas le reste de la synchro
       // Documents PDF (bucket Storage) : suppressions distantes en attente, upload des blobs
       // modifiés, puis téléchargement en arrière-plan des documents manquants. Un échec Storage
       // ne prive pas le reste de la synchro (re-levé à la fin -> pastille + retry).
@@ -34742,6 +34751,7 @@ const Sync={
     await this._reconcileTable('protocols',()=>Data.getProtocols(),id=>Data.delProtocol(id),protocols);},
   async _reconcileTable(table,getAllLocal,dataDel,mem){
     let ids;try{const rows=await rest('GET','/rest/v1/'+table+'?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
+    if(linkOver())return;   // A658 : la lecture a pu partir AVANT la déconnexion et revenir vide APRÈS — n'effacer sur la foi de rien
     const all=await getAllLocal();let changed=false;
     for(const f of all){if(f.library&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
     if(changed)render();},
@@ -37308,7 +37318,7 @@ const _H_LAYERS=[
 const _histLevels=()=>_H_LAYERS.reduce((t,[n])=>t+n(),0);
 function _histBackAction(){const l=_H_LAYERS.find(([n])=>n()>0);return l?l[1]():null;}
 const _hDepth=()=>{const s=history.state;return s&&s.ac===_H_ID?s.d:-1;};
-let _hSkip=0,_hHold=0,_hQ=false;
+let _hSkip=0,_hHold=0,_hQ=false,_hGen=0;   // A657 : `_hGen` = le `history.go` en cours — un filet ne veille que le sien
 /* Aligne l'historique sur l'écran, une fois par tâche (microtâche, donc AVANT la peinture : la
    capture que Safari ou le retour prédictif font glisser est celle de l'écran QU'ON QUITTE).
    Monte en poussant ; descend par `history.go`, dont le popstate est ignoré (`_hSkip`). */
@@ -37317,16 +37327,20 @@ function _histSync(){if(_hQ)return;_hQ=true;queueMicrotask(()=>{_hQ=false;
   const w=_hHold-Date.now();if(w>0){setTimeout(_histSync,w+10);return;}
   const L=_histLevels(),d=_hDepth();
   if(L>d&&(d>=0||L)){try{for(let i=d+1;i<=L;i++)history.pushState({ac:_H_ID,d:i},'');}catch(e){}}
-  else if(L<d){_hSkip++;history.go(L-d);_hWatch(d,0);}});}
+  else if(L<d){_hSkip++;history.go(L-d);_hWatch(d,0,++_hGen);}});}
 /* A563 — POPSTATE PERDU OU ENCORE EN ROUTE ? `history.go` est asynchrone : sous charge, son parcours
    peut arriver après 1 s. Le filet d'origine le croyait alors perdu et relançait `history.go`
    sur une profondeur pas encore bougée : DOUBLE recul, sorti sous la base, l'app quittait son
    document (mesuré : parcours différé de 1,2 s → `about:blank`). Profondeur inchangée = parcours
    en route : on attend (5 s au plus) et on ne recule JAMAIS une seconde fois ; au-delà, on rend
    la main sans rien relancer (un parcours tardif tombe alors sur d = L, sans effet ; un parcours
-   réellement perdu laisse des entrées au-dessus, que le popstate « d > L » redescend). */
-function _hWatch(d0,n){setTimeout(()=>{if(!_hSkip)return;
-  if(_hDepth()===d0){if(n<4)_hWatch(d0,n+1);else _hSkip=0;return;}
+   réellement perdu laisse des entrées au-dessus, que le popstate « d > L » redescend).
+   A657 — UN FILET NE VEILLE QUE SON PROPRE PARCOURS. `_hSkip` ne dit pas À QUEL `history.go` il
+   appartient : le filet d'un parcours déjà arrivé, échu pendant le parcours SUIVANT encore en route,
+   lisait une profondeur « changée », se recalait et relançait `history.go` — double recul, sortie de
+   l'aide (mesuré : fermer une feuille moins d'1 s après une autre fermeture, parcours lent). */
+function _hWatch(d0,n,g){setTimeout(()=>{if(!_hSkip||g!==_hGen)return;
+  if(_hDepth()===d0){if(n<4)_hWatch(d0,n+1,g);else _hSkip=0;return;}
   _hSkip=0;_histSync();},1000);}   // l'historique a bougé sans popstate : on se recale
 window.addEventListener('popstate',()=>{
   if(deepLinkFromHash(location.hash))return;   // A464 : un lien direct n'est pas un retour — `hashchange` l'ouvre
