@@ -7695,6 +7695,17 @@
   .report-preview .kpi{min-width:74px;background:var(--work);border:1px solid var(--line);border-radius:8px;padding:8px 12px;text-align:center}
   .report-preview .kpi-v{display:block;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:21px;font-weight:700;line-height:1.1;color:var(--ink)}
   .report-preview .kpi-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
+  /* A700 — la frise : des couloirs de points sur un axe de temps. Encre neutre (des données, pas des états) ; seule
+     l'entrée en complication porte l'ambre de l'éclair, ET une autre forme (carré) — jamais la teinte seule. */
+  .report-preview .frise{margin:4px 0 2px}
+  .report-preview .fz-r{display:flex;align-items:center;gap:10px;min-height:26px}
+  .report-preview .fz-n{flex:0 0 34%;max-width:200px;font-size:var(--t-meta);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .report-preview .fz-s{flex:1;min-width:0;overflow:visible}
+  .report-preview .fz-b{stroke:var(--line-strong);stroke-width:1}
+  .report-preview .fz-p{fill:var(--ink)}
+  .report-preview .fz-cx{fill:var(--bolt);stroke:var(--bolt-edge);stroke-width:1.5}
+  .report-preview .fz-t{flex:1;display:flex;justify-content:space-between;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:var(--t-cap);color:var(--ink-soft)}
+  .report-preview .fz-leg{font-size:var(--t-cap);margin:6px 0 0}
   .ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
   /* ⚠ UN SEUL DESSIN D'ÉTAT VIDE (v5.0.0, audit design, action 10). Il y en avait DEUX grammaires :

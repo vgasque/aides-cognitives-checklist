@@ -3289,6 +3289,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   /* ══ P8 (v5.7) — l'écart entre deux gestes du MÊME objet, NU ═══════════════════════════
      Aucune moyenne, aucun seuil, aucune couleur : un fait, ou rien. */
+  group('A700 — la frise du compte rendu (sessFrise)');
+  {const E=(t,ty,id,v)=>({t,ref:ty?{type:ty,id}:undefined,voidAt:v||0});
+   const F=A.sessFrise([E(1000,'counter','c1'),E(5000,'counter','c1'),E(3000),E(4000,'counter','c2',9),E(9000,'timer','t1')],0,10000,id=>id==='c1'?'Chocs':'',[2500,0]);
+   eq('un couloir par compteur, puis Repères, puis Complications', F.lanes.map(l=>l.k+':'+l.name), ['cn:Chocs','ev:Repères','cx:Complications']);
+   eq('les points sont des positions en % de la durée', F.lanes[0].pts, [10,50]);
+   eq('un repère annulé n’est pas tracé ; un repère non-compteur va aux Repères', F.lanes[1].pts, [30,90]);
+   eq('une complication sans heure n’est pas tracée', F.lanes[2].pts, [25]);
+   eq('quatre graduations, de 0 à la durée', F.ticks.map(x=>x.ms), [0,3333,6667,10000]);
+   ok('hors bornes : ramené dans [0,100]', A.sessFrise([E(-5),E(99999)],0,1000).lanes[0].pts.join()==='100');
+   ok('rien à tracer ou durée nulle : pas de frise', A.sessFrise([],0,1000)===null&&A.sessFrise([E(5)],100,100)===null&&A.sessFriseHtml(null)==='');
+   const h=A.sessFriseHtml(A.sessFrise([E(500,'counter','x')],0,1000,()=>'<b>&"'));
+   ok('le nom d’un couloir est échappé, aucun attribut fill', h.indexOf('<b>')<0&&h.indexOf('&lt;b&gt;')>0&&h.indexOf('fill=')<0);}
   group('P8 — l’écart au compte rendu (evDeltas)');
   const _ev=(t,type,id,voidAt)=>({t,ref:type?{type,id}:null,voidAt:voidAt||0});
   eq('le premier d’une série n’a pas d’écart',
