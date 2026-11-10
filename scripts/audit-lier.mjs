@@ -413,6 +413,10 @@ await ctx.close();
   t('connecté : l’appareil n’est pas « fini » (règle libre : rien de verrouillé)', !avant.over && !avant.locked, JSON.stringify(avant));
   st8.poll = { ok: true, status: 'revoked', ends_at: new Date(Date.now() + 9 * 3600e3).toISOString() };
   const lus = (vu8.link_poll || []).length;
+  /* Une veille déjà EN VOL rendrait `Link.watch()` sans rien faire (elle est à vol unique, `_wBusy`) : si elle a sondé
+     AVANT que la réponse ne passe à « revoked », la déconnexion n'est apprise qu'à la veille suivante, après les 8 s
+     — rouge en CI sur #98 (runner lent), vert ici. On attend qu'elle ait fini, comme pour la synchro en section 10. */
+  await pg.waitForFunction(() => !Link._wBusy, null, { timeout: 15000 });
   await pg.evaluate(() => Link.watch());
   await pg.waitForFunction(() => document.getElementById('linkModal').classList.contains('on'), null, { timeout: 8000 });
   const r = await pg.evaluate(() => ({ rev: linkShared() && linkShared().revoked, titre: document.getElementById('linkModalTitle').textContent,
