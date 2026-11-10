@@ -22,13 +22,14 @@ const server = createServer(async (req, res) => {
   try {
     let p = decodeURIComponent(req.url.split('?')[0]);
     if (p === '/') p = '/index.html';
+    if (p.split(/[\\/]/).includes('..')) throw new Error('hors dépôt');   // A675 : jamais hors du dépôt
     const buf = await readFile(ROOT + p.replace(/^\/+/, ''));
     res.writeHead(200, { 'content-type': TYPES[extname(p)] || 'application/octet-stream' });
     res.end(buf);
   } catch { res.writeHead(404); res.end('not found'); }
 });
 
-const port = await new Promise(r => server.listen(0, () => r(server.address().port)));
+const port = await new Promise(r => server.listen(0, '127.0.0.1', () => r(server.address().port)));   // A675 : boucle locale seule
 
 let pw;
 try { pw = await import('playwright'); }

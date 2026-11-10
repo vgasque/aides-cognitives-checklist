@@ -50,12 +50,13 @@ async function serveur(redirigeIndex) {
     }
     if (p === '/') p = '/index.html';
     try {
+      if (p.split(/[\\/]/).includes('..')) throw new Error('hors dépôt');   // A675 : jamais hors du dépôt
       const b = await readFile(ROOT + p.replace(/^\/+/, ''));
       r.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream' });
       r.end(b);
     } catch { r.writeHead(404); r.end('nf'); }
   });
-  const port = await new Promise(res => srv.listen(0, () => res(srv.address().port)));
+  const port = await new Promise(res => srv.listen(0, '127.0.0.1', () => res(srv.address().port)));   // A675 : boucle locale seule
   return { port, srv };
 }
 

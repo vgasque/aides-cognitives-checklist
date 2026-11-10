@@ -32,7 +32,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v5.115.0';
+const CACHE = 'aides-cognitives-v5.115.1';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -114,6 +114,12 @@ async function putDoc(cache, key, resp) {
   const h = new Headers();
   const ct = resp.headers.get('content-type');
   if (ct) h.set('content-type', ct);
+  /* A674 : les en-têtes de SÉCURITÉ suivent aussi (liste fermée — jamais `content-encoding`, cf. ci-dessus).
+     Sans eux, la page servie depuis le cache perdait CSP d'en-tête, `frame-ancestors` et consorts. */
+  for (const k of ['content-security-policy', 'x-frame-options', 'x-content-type-options', 'referrer-policy',
+    'cross-origin-opener-policy', 'cross-origin-resource-policy', 'permissions-policy']) {
+    const v = resp.headers.get(k); if (v) h.set(k, v);
+  }
   return cache.put(key, new Response(body, { status: 200, statusText: 'OK', headers: h }));
 }
 

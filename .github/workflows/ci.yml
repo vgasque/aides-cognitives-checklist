@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# A675 : le jeton de la CI ne fait que LIRE le dépôt (aucun job n'écrit). Sans ce bloc, il hérite du
+# réglage par défaut du dépôt — possiblement en écriture sur `main`, d'où part le déploiement.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

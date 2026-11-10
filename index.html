@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Ie6joasLGKDQFRFI6tDie1LR2RwJZ11HBC7QTNjIYtk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-dsAXlLjx5+1l8CwFkYCk3+UV2qVKNTKmwNgbNLMtD50='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -346,6 +346,11 @@
      ⚠ IL EST EN TÊTE, avant tout autre script : un garde qui s'exécuterait après le premier rendu
      laisserait une fenêtre d'interaction, si courte soit-elle. -->
 <script>try{if(window.top!==window.self){document.documentElement.setAttribute('data-framed','1');
+  /* A674 : le voile CSS (`pointer-events:none` sur les enfants de body) se LÈVE sur tout descendant qui pose
+     `pointer-events:auto` (quai de session, barre d'onglets…) et n'arrête pas le clavier. Les gestes RÉELS
+     (`isTrusted`) sont donc arrêtés ici, à la capture ; les évènements synthétiques du banc de tests passent. */
+  ['click','dblclick','auxclick','contextmenu','pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','keydown','keypress','keyup','beforeinput','submit','dragstart','drop'].forEach(function(t){
+    window.addEventListener(t,function(e){if(e.isTrusted){e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();}},{capture:true,passive:false});});
   document.addEventListener('DOMContentLoaded',function(){
     var d=document.createElement('div');d.id='framedWarn';
     d.textContent='Cette application ne peut pas être affichée à l’intérieur d’un autre site. Ouvrez-la directement.';
@@ -10545,7 +10550,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.115.0';
+const APP_VERSION='5.115.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11105,7 +11110,7 @@ const RO_EDIT_TOAST='Lecture seule : vous n\'avez pas les droits d\'édition sur
    devient local (v5.10.2, audit sécurité). Détail : doctrine-js.md J5. */
 function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,aidRev:0,exercise:false,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:Object.create(null),timers:Object.create(null),events:[]};}
 let Runtime=makeRuntime();
-const liveSessions={};
+const liveSessions=Object.create(null);   // A664 : indexée par id d'aide — jamais de prototype
 let soundOn=true;
 let _rollOnce=false;   // le volet du quai se déroule au tap qui l'ouvre — pas à chaque rendu (A68/1)
 /* ══ L'ÉCRAN NE S'ÉTEINT PAS PENDANT UNE SESSION (v5.6, planche 11k) ═══════════════════════════
@@ -11273,7 +11278,7 @@ function mdInline(s){const h=esc(sstr(s,4000)).replace(/\u0000/g,'');const L=[];
       if(MD_TEL_RX.test(href)||MD_MAILTO_RX.test(href))return jeton('<a href="'+href+'">'+mdEmph(txt)+'</a>');
       // `#p12` (v5.44) : ouvre le document à cette page (un client antérieur laisse le lien en clair).
       const am=href.match(/^att:([A-Za-z0-9_-]{1,64})(?:#p(\d{1,4}))?$/);
-      if(am&&BAD_KEYS.indexOf(am[1])<0)return jeton('<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+mdEmph(txt)+'</a>');
+      if(am&&!badKey(am[1]))return jeton('<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+mdEmph(txt)+'</a>');
       return m;});
     return mdEmph(x).replace(/\u0000(\d+)\u0000/g,(m,i)=>L[+i]||'');}).join('');}
 // Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub,task}]}
@@ -11360,7 +11365,7 @@ const MD_SC_SR={25:'un quart de la largeur',33:'un tiers de la largeur',50:'la m
 // Référence d'image morte -> rien (pas d'image cassée à l'écran).
 function mdRender(src,ctx){ctx=ctx||{};
   // Défense propre à mdRender (indépendante de migrateProtocol) : clés BAD_KEYS jamais admises.
-  const imgs=Object.create(null);(ctx.images||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)imgs[im.id]=im;});
+  const imgs=Object.create(null);(ctx.images||[]).forEach(im=>{if(im&&im.id&&!badKey(im.id))imgs[im.id]=im;});
   // Élément de liste (+ éventuelle sous-liste d'un niveau, balise ul/ol sûre par construction).
   // Item TÂCHE (v4.5.4) : data-task = index en ordre de document (compteur local -> stable pour un
   // body donné, y compris entre deux rendus). Le rendu n'émet RIEN d'interactif (ni role ni
@@ -11374,7 +11379,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
     // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
     const data=safeImg(im.data);if(!data)return '';
-    const dim=(im.w&&im.h)?' width="'+im.w+'" height="'+im.h+'"':'';
+    const dim=((im.w|0)>0&&(im.h|0)>0)?' width="'+(im.w|0)+'" height="'+(im.h|0)+'"':'';   // A664 : entiers, même sans migrate
     // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
     // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
@@ -11582,11 +11587,17 @@ const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filte
    pollution de prototype ni d'échappement d'attribut), couleurs validées, images limitées aux
    data-URI d'image reconnues. Les tailles sont plafonnées pour éviter un blocage (DoS). */
 const SAFE_ID=/^[A-Za-z0-9_-]{1,64}$/;const BAD_KEYS=['__proto__','constructor','prototype'];
-const safeId=(id,p)=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0)?id:uid(p);
-const safeCatRef=id=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0)?id:'';
+/* A664 — UNE CLÉ INTERDITE EST TOUT NOM HÉRITÉ D'`Object.prototype`, pas seulement les trois de
+   BAD_KEYS. `toString`, `valueOf`, `hasOwnProperty`… passaient SAFE_ID et servaient ensuite de clé
+   dans des tables `{}` : `liveSessions['toString']` est une FONCTION (vraie), donc une aide ainsi
+   nommée ne s'ouvrait plus, et un bloc ainsi nommé faisait planter le Schéma. Refusé à la source,
+   le défaut ne dépend plus de chaque table écrite après coup. */
+const badKey=k=>BAD_KEYS.includes(k)||(k in Object.prototype);
+const safeId=(id,p)=>(typeof id==='string'&&SAFE_ID.test(id)&&!badKey(id))?id:uid(p);
+const safeCatRef=id=>(typeof id==='string'&&SAFE_ID.test(id)&&!badKey(id))?id:'';
 // Identifiants de SYNCHRONISATION (ownerId, libraryId) : on n'invente JAMAIS de valeur (contrairement à
 // safeId qui régénère) -> une valeur non sûre devient null. Couvre les uuid Supabase (36 car. avec tirets).
-const safeMetaId=v=>(typeof v==='string'&&SAFE_ID.test(v)&&BAD_KEYS.indexOf(v)<0)?v:null;
+const safeMetaId=v=>(typeof v==='string'&&SAFE_ID.test(v)&&!badKey(v))?v:null;
 const safeColor=c=>(typeof c==='string'&&/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(c))?c:'#45556b';   // A661 : 5 et 7 chiffres ne sont pas des couleurs (déclaration ignorée par le navigateur)
 /* ⚠ DEUX BARRIÈRES, PAS UNE (v5.10.2, audit sécurité) : la doctrine disait « esc() sur toute
    donnée affichée » — le code réel en a DEUX : validation à l'ENTRÉE (migrate → safeId/safeImg/
@@ -11615,7 +11626,7 @@ const isPdfBytes=u8=>!!u8&&u8.length>=5&&u8[0]===0x25&&u8[1]===0x50&&u8[2]===0x4
 // Métadonnée de pièce jointe — PURE (testée). L'id n'est JAMAIS régénéré (contrairement à safeId) :
 // un id inventé ne pointerait sur aucun blob -> entrée invalide REJETÉE (null, filtrée par migrate).
 function safeAttachment(a){if(!a||typeof a!=='object')return null;
-  const id=(typeof a.id==='string'&&SAFE_ID.test(a.id)&&BAD_KEYS.indexOf(a.id)<0)?a.id:null;
+  const id=(typeof a.id==='string'&&SAFE_ID.test(a.id)&&!badKey(a.id))?a.id:null;
   if(!id)return null;
   // Le nom n'est qu'un LIBELLÉ d'affichage (le chemin cloud utilise l'id, jamais le nom), mais on
   // garantit l'extension .pdf : un renommage ne peut pas faire croire à un autre type de fichier.
@@ -12415,7 +12426,7 @@ function ixSearch(h,terms){
 // son ordre au reste de l'équipe d'une bibliothèque partagée.
 let pins=[];
 const isPinned=id=>pins.indexOf(id)>=0;
-const sanitizePins=a=>(Array.isArray(a)?a:[]).slice(0,50).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
+const sanitizePins=a=>(Array.isArray(a)?a:[]).slice(0,50).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&!badKey(id));
 try{pins=sanitizePins(JSON.parse(localStorage.getItem(spaceKey('ac-pins'))));}catch(e){}   // A660 : assaini au chargement aussi (règle 5), APRÈS la déclaration de l'assainisseur
 /* K5 (v4.72.0) — ON N'ÉPINGLE PAS UN BROUILLON. Depuis que toute fiche titrée entre dans la
    bibliothèque dès la première frappe, un brouillon en cours d'écriture est joignable — et la
@@ -12473,7 +12484,7 @@ function sanitizeSuiviItem(x){if(!x||typeof x!=='object')return null;
   const lib=(typeof x.lib==='string'&&safeMetaId(x.lib))?x.lib:null;
   const o={id,ent,k,lib,body:sstr(x.body,2000),author:sstr(x.author,160),at:(typeof x.at==='number'&&isFinite(x.at))?x.at:0};
   if(k==='task'){const t=(x.t&&typeof x.t==='object')?x.t:{};
-    o.t={type:SUIVI_TYPES[t.type]?t.type:'autre',ref:(typeof t.ref==='string'&&safeMetaId(t.ref))?t.ref:'',refTxt:sstr(t.refTxt,200),
+    o.t={type:(typeof t.type==='string'&&Object.prototype.hasOwnProperty.call(SUIVI_TYPES,t.type))?t.type:'autre',ref:(typeof t.ref==='string'&&safeMetaId(t.ref))?t.ref:'',refTxt:sstr(t.refTxt,200),
       prio:[1,2,3].indexOf(+t.prio)>=0?+t.prio:2,due:(typeof t.due==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(t.due))?t.due:'',
       done:(typeof t.done==='number'&&isFinite(t.done)&&t.done>0)?t.done:0,by:sstr(t.by,160)};}
   if(x.del===true)o.del=true;
@@ -12487,7 +12498,12 @@ function suiviSave(){try{localStorage.setItem(spaceKey('ac-suivi'),JSON.stringif
 // Visible ici : le perso, et l'équipe des seules bibliothèques dont on est membre (accès retiré → plus rien).
 const suiviVisible=x=>!x.del&&(!x.lib||myLibraries.some(l=>l.id===x.lib));
 const suiviCanEdit=x=>!x.lib||canEditScope(x.lib);
-const suiviOf=ent=>suivi.filter(x=>x.ent===ent&&suiviVisible(x));
+/* A673 — UNE NOTE D'ÉQUIPE NE S'AFFICHE QUE SUR UN ÉLÉMENT DE SA BIBLIOTHÈQUE. Le serveur ne lie pas
+   `entity_id` à `library_id` : un éditeur de L attachait une note à une aide d'une AUTRE bibliothèque (où il
+   n'est que lecteur), et elle s'affichait sur cette aide — jusque dans « Notes » en session — chez tout membre
+   commun. Le texte était échappé ; le risque est un contenu trompeur posé sur une aide validée ailleurs. */
+const suiviSurSaLib=x=>!x.lib||(((suiviEnt(x.ent)||{}).library||null)===x.lib);
+const suiviOf=ent=>suivi.filter(x=>x.ent===ent&&suiviVisible(x)&&suiviSurSaLib(x));
 const suiviOpen=x=>x.k==='task'&&!x.t.done;
 const suiviOrd=(a,b)=>a.t.prio-b.t.prio||(suiviLate(b)-suiviLate(a))||(a.t.due||'9').localeCompare(b.t.due||'9')||b.at-a.at;   // A625 : en retard d'abord, dans sa priorité
 const suiviOpenOf=ent=>suiviOf(ent).filter(suiviOpen).sort(suiviOrd);
@@ -12540,7 +12556,7 @@ function suiviBlockHtml(ent,crise,feuille){if(!ent||!ent.id)return '';const all=
      l'affiche dans l'autre ? » — non, jusqu'ici). Une tâche « À fusionner avec / À confronter à » posée sur A paraît
      aussi dans le suivi de B, sous « Liées depuis d'autres éléments », avec le titre de A : c'est la MÊME tâche (la
      cocher ici la coche là-bas), pas une copie. */
-  const lies=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.t.ref===ent.id&&x.ent!==ent.id&&suiviEnt(x.ent))
+  const lies=suivi.filter(x=>x.k==='task'&&suiviVisible(x)&&suiviOpen(x)&&x.t.ref===ent.id&&x.ent!==ent.id&&suiviEnt(x.ent)&&(!x.lib||(ent.library||null)===x.lib))
     .sort((a,b)=>a.t.prio-b.t.prio||b.at-a.at);
   return `<section class="block su-blk${feuille?' su-feuille':''}" data-suent="${esc(ent.id)}">`+(feuille?`<div class="su-h">`:`<div role="heading" aria-level="2" class="block-h su-h">${uiIcon('task',16)}Suivi<span class="spc"></span>`)
     +`<button type="button" class="btn sm" data-sunew="note">${uiIcon('plus',14,{sw:2.4})}Note</button><button type="button" class="btn sm" data-sunew="task">${uiIcon('plus',14,{sw:2.4})}Tâche</button></div>`
@@ -12717,7 +12733,7 @@ let _frecency={};try{_frecency=JSON.parse(localStorage.getItem(spaceKey('ac-usag
 // (les plus récentes). Fonction PURE (testée via ?__actest).
 function sanitizeUsage(o){
   const out={};if(!o||typeof o!=='object'||Array.isArray(o))return out;
-  Object.keys(o).forEach(id=>{if(!SAFE_ID.test(id)||BAD_KEYS.indexOf(id)>=0)return;
+  Object.keys(o).forEach(id=>{if(!SAFE_ID.test(id)||badKey(id))return;
     const u=o[id];if(!u||typeof u!=='object')return;
     const n=Math.min(9999,Math.max(0,Math.floor(+u.n||0)));const t=Math.max(0,Math.floor(+u.t||0));
     if(n>0)out[id]={n,t};});
@@ -13414,7 +13430,7 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
      d'un auteur pour en extraire un discriminant supposé, ce serait réécrire son texte. Un ancien
      client ignore le champ, l'export v3 reste lisible. */
   x.discriminant=sstr(x.discriminant,60);
-  x.links=(Array.isArray(x.links)?x.links:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(id)<0);
+  x.links=(Array.isArray(x.links)?x.links:[]).slice(0,20).filter(id=>typeof id==='string'&&SAFE_ID.test(id)&&!badKey(id));
   x.updatedBy=sstr(x.updatedBy,160);
   if(typeof x.updatedAt!=='number'||!isFinite(x.updatedAt))x.updatedAt=(typeof x.order==='number'&&isFinite(x.order))?x.order:Date.now();
   x.deletedAt=(typeof x.deletedAt==='number'&&isFinite(x.deletedAt))?x.deletedAt:null;
@@ -13431,6 +13447,7 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
    plus nulle part — sa reprise passe par `docs/conversion-v3-vers-v4.md`. */
 const V5_RENOMMAGES=[['localInfo','local'],['related','links'],['attachments','docs'],['complications','excursions'],
   ['references','sources'],['validation','validatedAt'],['libraryId','library']];
+const V4_POOL_MAX=5000,V4_BLOCK_ITEMS_MAX=500;   // A668
 function migrate(f){if(!f||typeof f!=='object')f={};
   V5_RENOMMAGES.forEach(([a,b])=>{if(f[a]!==undefined&&f[b]===undefined)f[b]=f[a];delete f[a];});
   /* Le BLOC : `type` 'steps'/'decision' devient `kind` 'do'/'decision'. Et l'aide se DÉCLARE —
@@ -13457,7 +13474,11 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   const _pool=[];
   if(Array.isArray(f.items)&&f.items.length){
     // Déjà v4 : le pool fait foi, on le borne et on n'en dérive rien.
-    f.items.forEach(x=>_pool.push(v4SanItem(x)));
+    /* A668 — ET IL EST RÉELLEMENT BORNÉ. Blocs (400), listes (500), minuteurs (40) l'étaient ; le
+       pool et les items d'un bloc, non : une aide de 200 000 items (≈ 600 Ko, loin sous les limites
+       d'import et de ligne serveur) figeait `migrate` — donc `load()`, AVANT le premier rendu, chez
+       chaque membre de la bibliothèque et à chaque lancement. */
+    f.items.slice(0,V4_POOL_MAX).forEach(x=>_pool.push(v4SanItem(x)));
     ['confirmation','verify','notForget','differentials','posology'].forEach(k=>{delete f[k];});
   }else{
     [['confirmation','entry',false],['notForget','do',true],['verify','watch',false],
@@ -13474,7 +13495,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
      pas (défaut []), un ancien client l'ignore. La cible est une RÉFÉRENCE — jamais régénérée
      (même règle que les documents) : id invalide => rangée rejetée, pas de cible inventée. */
   f.excursions=(Array.isArray(f.excursions)?f.excursions:[]).slice(0,8)
-    .map(c=>(c&&typeof c==='object')?{label:sstr(c.label,120),target:(typeof c.target==='string'&&SAFE_ID.test(c.target)&&BAD_KEYS.indexOf(c.target)<0)?c.target:'',...shortField(c)}:null)
+    .map(c=>(c&&typeof c==='object')?{label:sstr(c.label,120),target:(typeof c.target==='string'&&SAFE_ID.test(c.target)&&!badKey(c.target))?c.target:'',...shortField(c)}:null)
     .filter(c=>c&&c.label&&c.target);
   // Ancienne fiche "steps" plate -> un bloc d'étapes.
   if(!Array.isArray(f.blocks)){const b={id:uid('b'),kind:'do',title:sstr(f.title||'Prise en charge',300),items:[],image:null,next:null};f.blocks=[b];f.start=b.id;}
@@ -13496,11 +13517,12 @@ function migrate(f){if(!f||typeof f!=='object')f={};
          qui ne résout pas ne sort jamais vivante de migrate (règle 5). Détail : doctrine-js.md J28. */
       {const _ids=Object.create(null);_pool.forEach(it=>{_ids[it.id]=1;});
        (Array.isArray(f.items)?f.items:[]).forEach(it=>{if(it&&it.id)_ids[it.id]=1;});
-       b.items=(Array.isArray(b.items)?b.items:[])
-        .map(x=>{if(x&&typeof x==='object'){const it=v4SanItem(x);_pool.push(it);return it.id;}
+       b.items=(Array.isArray(b.items)?b.items:[]).slice(0,V4_BLOCK_ITEMS_MAX)
+        .map(x=>{if(x&&typeof x==='object'){if(_pool.length>=V4_POOL_MAX)return '';const it=v4SanItem(x);_pool.push(it);return it.id;}
                  const t=String(x||'');
                  if(_ids[t])return t;                       // référence légitime au pool
                  if(!t.trim())return '';                    // ligne vide : rien à créer
+                 if(_pool.length>=V4_POOL_MAX)return '';    // A668 : pool plein, plus rien ne se crée
                  const it=v4MakeItem(uid('i'),'do',t);_pool.push(it);_ids[it.id]=1;return it.id;})
         .filter(Boolean);}
       delete b.steps;   // reste d'un format intermédiaire : on nettoie
@@ -13579,7 +13601,7 @@ function sanitizeCats(cats){return (Array.isArray(cats)?cats:[]).slice(0,400).ma
 // Notes personnelles chargées : clés = ids de fiche au format sûr uniquement, texte borné,
 // horodatage numérique. `dirty` (marqueur local « à pousser ») survit au rechargement.
 function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return out;
-  for(const k of Object.keys(obj).slice(0,2000)){if(!SAFE_ID.test(k)||BAD_KEYS.indexOf(k)>=0)continue;
+  for(const k of Object.keys(obj).slice(0,2000)){if(!SAFE_ID.test(k)||badKey(k))continue;
     const v=obj[k];if(!v||typeof v!=='object')continue;
     out[k]={t:sstr(v.t,10000),at:(typeof v.at==='number'&&isFinite(v.at))?v.at:0};
     if(v.dirty===true)out[k].dirty=true;}
@@ -14339,6 +14361,12 @@ async function load(){
   // 'ac-db' lui est attribuée (aucune copie de données, aucune question).
   try{if(Auth.signedIn()&&localStorage.getItem('ac-space')===null&&localStorage.getItem('ac-db-owner')===null){
     const uidv=Auth.user().id;localStorage.setItem('ac-space',uidv);localStorage.setItem('ac-db-owner',uidv);registerSpace(uidv);}}catch(e){}
+  /* A672 : une connexion « Temporaire par e-mail » interrompue avant d'être déclarée au serveur ne reste
+     pas ouverte — c'était une session ordinaire, sur un appareil qu'on avait dit partagé. */
+  try{if(localStorage.getItem(TEMP_PENDING_KEY)){
+    if(!localStorage.getItem(LINK_KEY)){try{if(Auth.signedIn())await Auth.signOut();}catch(e){}
+      try{Auth.session=null;localStorage.removeItem('ac-auth');}catch(e){}}
+    localStorage.removeItem(TEMP_PENDING_KEY);}}catch(e){}
   // REPRISE d'une bascule interrompue (app fermée entre la vérification du code et le reload) :
   // connecté sur l'espace d'un AUTRE profil -> bascule immédiate, sans dialogue (sécurité
   // d'abord : ne jamais afficher l'espace d'un autre compte ; la synchro est de toute façon
@@ -14601,7 +14629,7 @@ function buildRuntime(f,session){
   if(session&&session.shared&&navMismatch){R.navSeq=session.navSeq.slice();R.navBad=true;}
   else R.navSeq=(session&&session.navSeq&&session.navSeq.length===R.nav.length)?session.navSeq.slice():R.nav.map((_,i)=>i+1);
   R.seq=R.navSeq.reduce((m,v)=>Math.max(m,v),0);
-  R.counters={};(f.counters||[]).forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
+  R.counters=Object.create(null);(f.counters||[]).forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
   /* ══ COMPTEURS AD HOC — l'asymétrie que la planche 11i a mesurée (v5.6) ═══════════════════════
      Les compteurs ne venaient que de `f.counters` : rien n'en créait en session, alors que les
      MINUTEURS, eux, ont `[data-rtadd]` depuis toujours. Or un compteur ne sonne pas, n'échoit pas,
@@ -14617,12 +14645,14 @@ function buildRuntime(f,session){
   R.adhocCounters.forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:0;});
   // Minuteurs reconstruits EN PAUSE (running=false) : on restaure le temps écoulé/cycles mais on ne
   // fait pas « rattraper » le temps passé app fermée. Une session vive rechargée reprend en pause.
-  R.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];R.timers[t.id]={id:t.id,label:t.label,short:t.short||'',type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,...tmStopFrom(sv,session)};});
+  /* A664 : tables SANS prototype (comme `makeRuntime`). En `{}`, `R.timers['__proto__']` rendait
+     `Object.prototype` — qu'un évènement de partage `timer_arm` écrivait alors chez tous les pairs. */
+  R.timers=Object.create(null);(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];R.timers[t.id]={id:t.id,label:t.label,short:t.short||'',type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,...tmStopFrom(sv,session)};});
   // Minuteurs AD HOC de la session (« ＋ Minuteur PA 5:00 », SPEC §7) : définitions embarquées
   // dans la session (extraTimers) — restaurés en pause, comme les autres.
-  (session&&Array.isArray(session.extraTimers)?session.extraTimers:[]).forEach(x=>{if(!x||!x.id||R.timers[x.id])return;
+  (session&&Array.isArray(session.extraTimers)?session.extraTimers:[]).forEach(x=>{if(!x||typeof x.id!=='string'||!SAFE_ID.test(x.id)||badKey(x.id)||R.timers[x.id])return;   // A664 : la clé EST l'id assaini
     const sv=session.timers&&session.timers[x.id];
-    R.timers[x.id]={id:safeId(x.id,'t'),label:sstr(x.label,120),type:'interval',seconds:Math.max(0,Math.min(86400,Math.round(+x.seconds)||300)),autoloop:!!x.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,adhoc:true,...tmStopFrom(sv,session)};});
+    R.timers[x.id]={id:x.id,label:sstr(x.label,120),type:'interval',seconds:Math.max(0,Math.min(86400,Math.round(+x.seconds)||300)),autoloop:!!x.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,adhoc:true,...tmStopFrom(sv,session)};});
   R.events=(session&&Array.isArray(session.events))?session.events.map(e=>({...e})):[];
   R.linkArm=linkArmSnap(session&&session.linkArm);R.linkGrace={};   // A377 : la grâce de 10 s ne survit pas à un rechargement
   return R;
@@ -14680,7 +14710,7 @@ function snapshotSession(R,live){const now=Date.now();const tsnap={};
 // A377 : {idMinuteur:{b:idBloc|'', x:arrêt de sortie}}, bornée — instantané et assainisseur.
 function linkArmSnap(src){const m=Object.create(null);let n=0;
   if(src&&typeof src==='object')for(const k of Object.keys(src)){if(n>=200)break;
-    if(!SAFE_ID.test(k)||BAD_KEYS.indexOf(k)>=0)continue;const a=src[k];if(!a||typeof a!=='object')continue;
+    if(!SAFE_ID.test(k)||badKey(k))continue;const a=src[k];if(!a||typeof a!=='object')continue;
     m[k]={b:safeCatRef(a.b),x:+a.x||0};n++;}
   return m;}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
@@ -19890,7 +19920,7 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
 const MD_UNIT='(?:mg|µg|mcg|ng|g|kg|mL|ml|L|UI|mmol|µmol|mEq)';
 const MD_LINT_DOSE=[
   [new RegExp('(^|[^\\d.,])([.,]\\d+)(?=\\s?'+MD_UNIT+'(?![A-Za-zµ]))','g'),m=>'0,'+m[2].slice(1),'Zéro manquant devant la virgule','« .5 » se lit « 5 »'],
-  [new RegExp('(^|[^\\d.,])(\\d+[.,]\\d*?0+)(?=\\s?'+MD_UNIT+'(?![A-Za-zµ]))','g'),m=>m[2].replace(/[.,]?0+$/,''),'Zéro superflu après la virgule','« 5,0 » peut se lire « 50 »'],
+  [new RegExp('(^|[^\\d.,])(\\d{1,12}[.,]\\d{0,12}?0{1,12})(?=\\s?'+MD_UNIT+'(?![A-Za-zµ]))','g'),m=>m[2].replace(/[.,]?0+$/,''),'Zéro superflu après la virgule','« 5,0 » peut se lire « 50 »'],
   [/(\d\s?)(ug)(?![A-Za-zµ])/g,()=>'µg','« ug » à écrire « µg »','se confond avec « mg »'],
   [/(\d\s?)(U)(?![A-Za-zÀ-ÿ0-9µ])/g,()=>'unités','« U » à écrire en toutes lettres','« U » se lit « 0 » ou « 4 »'],
   [/(\d\s?)(cc)(?![A-Za-z])/g,()=>'mL','« cc » à écrire « mL »','« cc » se lit « 00 »']];
@@ -19932,7 +19962,7 @@ const MD_HL=[[1,'hl-m'],[2,'hl-h'],[4,'hl-crit'],[8,'hl-vig'],[16,'hl-info'],[32
 function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.length);
   /* A546 : au bout d'une ligne « ![…](img:ID) », la VIGNETTE de l'image et sa taille — l'identifiant seul ne disait
      ni laquelle ni à quelle taille. Posée en absolu : elle ne prend aucune place dans la ligne (métriques du champ). */
-  const IM=Object.create(null);(imgs||[]).forEach(im=>{if(im&&im.id&&BAD_KEYS.indexOf(im.id)<0)IM[im.id]=im;});const brk=new Map();
+  const IM=Object.create(null);(imgs||[]).forEach(im=>{if(im&&im.id&&!badKey(im.id))IM[im.id]=im;});const brk=new Map();
   let o=0,code=false,qk=0;
   v.split('\n').forEach(l=>{{const mi=!code&&l.match(/^\s*!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/),im=mi&&IM[mi[1]],src=im&&safeImg(im.data);
       if(src)brk.set(o+l.replace(/\s+$/,'').length,`<span class="hl-imc" data-s="${esc((im.scale||100)+' %')}"><img src="${src}" alt=""></span>`);}const set=(i,n,b)=>{for(let k=o+i,e=Math.min(o+i+n,C.length);k<e;k++)C[k]|=b;};let m;
@@ -19947,7 +19977,7 @@ function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.le
         if(MD_TROW.test(l))for(let i=0;i<l.length;i++)if(l[i]==='|'&&l[i-1]!=='\\')set(i,1,1);}
       // A607 : TOUT marqueur d'emphase se grise — « * », « *** », « ~~ » — pas seulement « ** » (le 3ᵉ astérisque de
       // « *** » restait à l'encre du texte : « il y en a un qui devient blanc »).
-      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]*\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);}
+      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]{0,400}\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);}
     else set(0,l.length,1);
     o+=l.length+1;});
   (lint||[]).forEach(x=>{for(let k=x.from;k<x.to&&k<C.length;k++)C[k]|=64;});
@@ -21523,12 +21553,12 @@ function shareCodeFromHash(h){
 const APP_LINKS={chercher:'search',sessions:'sessions',creer:'create','acces-direct':'pins',bibliotheques:'libs'};
 function deepLinkFromHash(h){
   h=String(h||'');const m=/[#&]a=([A-Za-z0-9_-]{1,64})/.exec(h);
-  if(m&&BAD_KEYS.indexOf(m[1])<0)return {open:m[1]};
+  if(m&&!badKey(m[1]))return {open:m[1]};
   const w=/^#([a-z-]{1,24})$/.exec(h);
   if(w&&Object.prototype.hasOwnProperty.call(APP_LINKS,w[1]))return {go:APP_LINKS[w[1]]};
   {const L=linkParse(h);if(L)return {lier:L};}   // A643 : le QR d'un poste, ouvert par l'appareil photo du système
   const k=/^#(bibliotheque|collection)=([A-Za-z0-9_-]{1,64})$/.exec(h);
-  if(k&&BAD_KEYS.indexOf(k[2])<0)return k[1]==='collection'?{go:'coll',id:k[2]}:{go:'lib',id:k[2]};
+  if(k&&!badKey(k[2]))return k[1]==='collection'?{go:'coll',id:k[2]}:{go:'lib',id:k[2]};
   return null;}
 /* Le fragment d'une destination — l'écriture inverse de `deepLinkFromHash`, seule source des liens affichés. */
 function appLinkFrag(go,id){
@@ -21930,9 +21960,9 @@ function shareFold(events,base){
       // l'évènement reste dans le journal — la trace de qui a décoché, et quand, ne s'efface pas.
       case 'uncheck': {const k=_fkey(p.k);if(k){delete s.checked[k];delete s.verified[k];}break;}   // A659 : décocher retire la constatation
       case 'verify':  {const k=_fkey(p.k);
-        if(k){s.verified[k]={a:e.actor,t:_fnum(p.t,e.ts)};delete s.vgaps[k];}break;}
+        if(k){s.verified[k]={a:e.actor,t:_fnum(p.t,_ets(e))};delete s.vgaps[k];}break;}
       case 'gap':     {const k=_fkey(p.k);
-        if(k){s.vgaps[k]={a:e.actor,t:_fnum(p.t,e.ts)};delete s.verified[k];}break;}
+        if(k){s.vgaps[k]={a:e.actor,t:_fnum(p.t,_ets(e))};delete s.verified[k];}break;}
       case 'counter': if(p.id!=null)s.counters[_fid(p.id,'c')]=_fnum(p.v,0); break;
       /* A332 : la DATE D'ARRÊT ne voyage pas dans la charge (liste blanche serveur inchangée, A216) —
          c'est l'heure de l'évènement lui-même ; l'armement la remet à zéro. */
@@ -21951,20 +21981,20 @@ function shareFold(events,base){
          arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 voyait son chrono partir de zéro et
          son compte rendu dater le début du soin à son arrivée — les deux documents d'un même soin
          devenaient alors impossibles à recouper au débrief. */
-      case 'session_start': if(+p.t)s.startedAt=+p.t; s.exercise=!!p.exo;
+      case 'session_start': if(_fnum(p.t,0)>0)s.startedAt=_fnum(p.t,0); s.exercise=!!p.exo;
         if(p.id)s.sessId=String(p.id); break;
       case 'mark':    {const id=_fid(p.id,'e'),ex=s.events.find(x=>x.id===id);
         if(ex){ex.t=_fnum(p.t,ex.t);ex.ref=tkRefNorm(p.ref);if(e.actor)ex.a=e.actor;}
-        else s.events.push({id:id,t:_fnum(p.t,e.ts),ref:tkRefNorm(p.ref),a:e.actor});
+        else s.events.push({id:id,t:_fnum(p.t,_ets(e)),ref:tkRefNorm(p.ref),a:e.actor});
         break;}
       // Annulation RÉVERSIBLE : le repère n'est jamais retiré du pli — il porte l'heure de son
       // annulation, ou repasse à null si l'on se ravise. Le journal reste append-only.
       case 'mark_void':{const m=s.events.find(x=>x.id===_fid(p.id,'e'));
-        if(m)m.voidAt=p.on?(_fnum(p.t,e.ts)||1):null;break;}
+        if(m)m.voidAt=p.on?(_fnum(p.t,_ets(e))||1):null;break;}
       // ANNEXE — le relevé d'un participant qui a poursuivi seul. Il rejoint le journal et le
       // compte-rendu, il ne touche JAMAIS l'état : fusionner deux états divergents produirait un
       // état que personne ne peut attribuer.
-      case 'offline_mark': s.annex.push({t:_fnum(p.t,e.ts),ref:tkRefNorm(p.ref),a:e.actor}); break;
+      case 'offline_mark': s.annex.push({t:_fnum(p.t,_ets(e)),ref:tkRefNorm(p.ref),a:e.actor}); break;
     }
   }
   return s;}
@@ -22149,13 +22179,25 @@ function slSdpExtract(sdp){
       .map(m=>m[1]+'~'+m[2]).filter((v,i,a)=>a.indexOf(v)===i)};}
 function slSdpRebuild(o){
   if(!o||!o.u||!o.p||!o.f||!o.s||!Array.isArray(o.c))return null;
+  /* A667 — RIEN DE LA CHARGE D'APPARIEMENT N'ENTRE BRUT DANS LE SDP. `u`, `p` et les adresses sont
+     décodés d'octets lus sur un QR ou reçus d'un pair : un retour chariot y ajoutait des lignes SDP,
+     donc des candidats au choix de l'émetteur (l'appareil qui scanne sondait alors l'hôte:port
+     nommé). Jeu de caractères ICE (RFC 8839), rôle fermé, IPv4 ou nom mDNS, port borné — sinon nul. */
+  if(!/^[A-Za-z0-9+\/]{4,256}$/.test(String(o.u))||!/^[A-Za-z0-9+\/]{22,256}$/.test(String(o.p)))return null;
+  if(!/^(?:[0-9A-Fa-f]{2}){1,64}$/.test(String(o.f)))return null;   // hex pur (la longueur, c'est `slPairUnpack` qui l'exige)
+  if(o.s!=='actpass'&&o.s!=='active'&&o.s!=='passive')return null;
+  // Un candidat mal formé est ÉCARTÉ, pas l'offre entière (IPv4, IPv6 littérale ou nom mDNS).
+  const cands=o.c.slice(0,8).filter(cd=>{const k=String(cd).split('~');
+    if(k.length!==2||!/^[0-9]{1,5}$/.test(k[1])||+k[1]<1||+k[1]>65535)return false;
+    const ip=/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(k[0]);
+    return ip?ip.slice(1).every(x=>+x<=255):(/^[0-9A-Fa-f:]{2,45}$/.test(k[0])||/^[A-Za-z0-9-]{1,64}\.local$/.test(k[0]));});
   const L=['v=0','o=- 4262 2 IN IP4 127.0.0.1','s=-','t=0 0','a=group:BUNDLE 0',
     'a=msid-semantic: WMS','m=application 9 UDP/DTLS/SCTP webrtc-datachannel',
     'c=IN IP4 0.0.0.0','a=ice-ufrag:'+o.u,'a=ice-pwd:'+o.p,
     'a=fingerprint:sha-256 '+String(o.f).replace(/(..)(?=.)/g,'$1:'),
     'a=setup:'+o.s,'a=mid:0','a=sctp-port:5000',
     'a=max-message-size:262144'];
-  o.c.forEach((cd,i)=>{const k=String(cd).split('~');
+  cands.forEach((cd,i)=>{const k=String(cd).split('~');
     L.push('a=candidate:'+(i+1)+' 1 udp '+(2113937151-i)+' '+k[0]+' '+k[1]+' typ host generation 0');});
   L.push('a=end-of-candidates');
   return L.join('\r\n')+'\r\n';}
@@ -22176,8 +22218,9 @@ function slRpcUnpack(txt){
 async function hexDigest(str){
   const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const SL_HUB_MAX_EVENTS=40000,SL_HUB_MAX_PER_PART=5000;   // A665 — le second est le plafond du serveur (`share_push`)
 function slHub(o){
-  const H={seq:0,events:[],parts:[],status:'active',fiche:o.fiche||null};
+  const H={seq:0,events:[],ids:new Set(),parts:[],status:'active',fiche:o.fiche||null};
   const now=()=>new Date(o.now()).toISOString();
   const findBySecret=s=>H.parts.find(p=>p.secret===s&&!p.revoked);
   const pub=p=>({id:p.id,label:p.label,role:p.role,owner:!!p.owner,seen:p.seen,
@@ -22188,8 +22231,15 @@ function slHub(o){
   return {
     st:H,
     hostSecret(){return H.parts[0].secret;},
-    join(label){
+    /* A665 — `pid` : le participant DÉJÀ lié à ce canal (`slServe`). Rejoindre deux fois par le même
+       canal rend les MÊMES identifiants (une relance après délai ne crée plus un double), et un
+       participant coupé n'en obtient pas de neufs : revenir exige un geste de l'hôte. */
+    join(label,pid){
       if(H.status!=='active')return {ok:false,err:'ended'};
+      if(pid){const q=H.parts.find(x=>x.id===pid);
+        if(!q||q.revoked)return {ok:false,err:'revoked'};
+        return {ok:true,share:o.shareId,me:q.id,secret:q.secret,role:q.role,
+          fiche:H.fiche,since:H.seq,server_time:now()};}
       if(H.parts.filter(p=>!p.revoked).length>=8)return {ok:false,err:'full'};
       const p={id:o.uid(),secret:o.secret(),label:sstr(label,24)||'Invité',
         role:o.guestRole||'scribe',owner:false,seen:o.now(),revoked:false,detached:false};
@@ -22215,18 +22265,25 @@ function slHub(o){
       p.seen=o.now();
       let accepted=0,rejected=0;
       for(const e of (events||[]).slice(0,50)){
-        if(!e||!e.event_id||!e.kind){rejected++;continue;}
-        if(H.events.some(x=>x.id===e.event_id)){rejected++;continue;}
+        /* A665 — BORNES DU HUB (le serveur a les siennes : 4096 o par charge, 5000 évènements par
+           participant). Sans elles, un invité apparié gonflait le fil jusqu'à ralentir l'appareil qui
+           CONDUIT le soin : id non typé, charge jusqu'à la taille d'une trame, fil sans plafond. */
+        if(!e||typeof e.event_id!=='string'||!e.event_id||e.event_id.length>80||typeof e.kind!=='string'||!e.kind){rejected++;continue;}
+        if(H.ids.has(e.event_id)){rejected++;continue;}
         if(!p.owner&&!shareCan(p.role,e.kind)){rejected++;continue;}
-        H.seq++;
+        if(H.events.length>=SL_HUB_MAX_EVENTS||(!p.owner&&(p.n||0)>=SL_HUB_MAX_PER_PART)){rejected++;continue;}
         /* L'AMPUTATION DU SERVEUR, REPRODUITE : seules les clés de la liste blanche survivent
            (share_push fait exactement cela) — le hub est un double, pas un serveur plus gentil. */
         const pl=Object.create(null);
         if(e.payload&&typeof e.payload==='object')
           for(const kk of Object.keys(e.payload))
             if(SHARE_PAYLOAD_KEYS.indexOf(kk)>=0)pl[kk]=e.payload[kk];
+        let _sz=0;try{_sz=JSON.stringify(pl).length;}catch(_){_sz=1e9;}
+        if(_sz>4096){rejected++;continue;}
+        H.seq++;H.ids.add(e.event_id);p.n=(p.n||0)+1;
+        const _ts=(typeof e.ts==='number'&&Number.isFinite(e.ts))||(typeof e.ts==='string'&&e.ts.length<=40)?e.ts:now();
         H.events.push({seq:H.seq,id:e.event_id,actor:p.id,kind:sstr(e.kind,24),
-          payload:Object.assign({},pl),ts:e.ts||now(),at:now()});
+          payload:Object.assign({},pl),ts:_ts,at:now()});
         accepted++;}
       return {ok:true,accepted,rejected,seq:H.seq,status:H.status,server_time:now()};},
     revoke(pid){const p=H.parts.find(x=>x.id===pid&&!x.owner);
@@ -22246,13 +22303,21 @@ function slWirePair(){ // paire locale en mémoire — tests et harnais uniqueme
     if(p&&p.onmessage)Promise.resolve().then(()=>p.onmessage(t));}});
   const a=mk(),b=mk();a.peer=b;b.peer=a;return [a,b];}
 function slServe(hub,wire){ // côté HÔTE : trame reçue → verbe du hub → réponse, jamais d'exception
+  /* A665 — UN CANAL = UN PARTICIPANT. `join` était ouvert à tout canal apparié, sans lien avec lui :
+     un invité COUPÉ renvoyait `join` sur le même canal (jamais fermé) et revenait scribe avec un
+     secret neuf ; le même canal pouvait aussi prendre les huit places. Le canal retient qui il a
+     admis ; lire et écrire exigent SON secret. */
+  let mine=null;
   wire.onmessage=async txt=>{
     const m=slRpcUnpack(txt);if(!m||!m.n)return;
     let r=null;
     try{
-      if(m.n==='join')r=hub.join(m.p&&m.p.label);
-      else if(m.n==='pull')r=await hub.pull(m.p.secret,m.p.since);
-      else if(m.n==='push')r=hub.push(m.p.secret,m.p.events);
+      if(m.n==='join'){r=hub.join(m.p&&m.p.label,mine);
+        if(r&&r.ok&&!mine)mine=r.me;}
+      else if(m.n==='pull'||m.n==='push'){
+        const moi=mine&&hub.st.parts.find(x=>x.id===mine);
+        if(!moi||!m.p||m.p.secret!==moi.secret)r={ok:false,err:'auth'};
+        else r=m.n==='pull'?await hub.pull(m.p.secret,m.p.since):hub.push(m.p.secret,m.p.events);}
       /* A661 — COUPER, CHANGER UN RÔLE, TERMINER SONT LES GESTES DU PROPRIÉTAIRE (A221 point 3 : écrire exige un
          secret). Le hub les exécutait pour TOUT canal apparié : un invité au client modifié pouvait se promouvoir,
          couper les autres ou clore le partage. L'hôte ne passe jamais par le fil (`slHostIo`) ; par le fil, seul le
@@ -25257,7 +25322,7 @@ function shareNavState(R,p){
   return {nn,avant};}
 function shareVfState(R,e){
   const p=e.payload||{},k=_fkey(p.k);if(!k)return false;
-  const v={a:e.actor,t:_fnum(p.t,e.ts)};
+  const v={a:e.actor,t:_fnum(p.t,_ets(e))};
   R.verified=R.verified||{};R.vgaps=R.vgaps||{};
   if(e.kind==='verify'){R.verified[k]=v;delete R.vgaps[k];}
   else{R.vgaps[k]=v;delete R.verified[k];}
@@ -25345,7 +25410,11 @@ function shareApplyAnchored(f,evs,muet){
 function shareStateLive(R,e){
   const p=e.payload||{};
   if(e.kind==='check'||e.kind==='uncheck'){
-    const k=p.k;if(!k)return false;
+    /* A664 — LE CHEMIN VIVANT NETTOIE COMME LE PLI. `shareFold` passait déjà par `_fkey`/`_fid`/
+       `_fnum` ; ici la charge du fil était lue BRUTE (clé de coche quelconque, id de minuteur
+       `__proto__`, valeur `Infinity`). Un pair au client modifié écrivait ainsi sur
+       `Object.prototype` de tous les autres. Mêmes trois fonctions, aux deux endroits. */
+    const k=_fkey(p.k);if(!k)return false;
     const on=e.kind==='check';
     R.verified=R.verified||{};R.vgaps=R.vgaps||{};
     if(on){R.checked[k]=true;delete R.vgaps[k];}
@@ -25359,9 +25428,9 @@ function shareStateLive(R,e){
      Le relevé, lui, remonte : une heure reste une heure. */
   if(e.kind==='offline_mark'){
     R.events=R.events||[];
-    const id=safeId('ax-'+(p.t||0)+'-'+(e.seq||0),'e');
+    const id=safeId('ax-'+_fnum(p.t,0)+'-'+_fnum(e.seq,0),'e');
     if(R.events.some(x=>x.id===id))return false;      // le fil peut rejouer un lot
-    R.events.push({id:id,t:+p.t||Share.now(),a:e.actor||null,annex:true,
+    R.events.push({id:id,t:_fnum(p.t,0)||Share.now(),a:e.actor||null,annex:true,
       /* AUCUN LIBELLÉ N'EST LU DU RÉSEAU. Cette ligne lisait `p.label` — vestige inoffensif entre
          deux clients de cette version (aucun émetteur n'en met), mais c'était une PORTE : un
          client modifié aurait pu pousser un mot arbitraire, qui se serait affiché sur l'écran
@@ -25370,18 +25439,20 @@ function shareStateLive(R,e){
       ref:tkRefNorm(p.ref)});
     R.events.sort((a,b)=>a.t-b.t);return true;}
   if(e.kind==='session_start'){
-    if(!(+p.t))return false;
-    R.startedAt=+p.t;return true;}
+    const t0=_fnum(p.t,0);if(!(t0>0))return false;
+    R.startedAt=t0;return true;}
+  const _own=(o,id)=>typeof id==='string'&&SAFE_ID.test(id)&&!badKey(id)&&Object.prototype.hasOwnProperty.call(o,id);
   if(e.kind==='counter'){
-    if(p.id==null||!(p.id in R.counters))return false;
-    R.counters[p.id]=+p.v||0;return true;}
+    if(!_own(R.counters,p.id))return false;
+    R.counters[p.id]=_fnum(p.v,0);return true;}
   if(e.kind==='timer_arm'||e.kind==='timer_stop'||e.kind==='timer_reset'){
-    const t=R.timers[p.id];if(!t)return false;
+    if(!_own(R.timers,p.id))return false;
+    const t=R.timers[p.id];if(!t||typeof t!=='object')return false;
     // L'ANCRE ABSOLUE voyage : c'est elle qui fait que les deux appareils affichent la même valeur
     // sans échanger quoi que ce soit ensuite. Convertie en heure LOCALE via le décalage mesuré —
     // sinon un téléphone à l'horloge décalée afficherait un cycle de RCP faux.
-    t.running=!!p.running;t.elapsedMs=+p.elapsedMs||0;t.cycles=+p.cycles||0;
-    t.lastStart=p.running?((+p.anchor||Share.now())-Share.offset):0;
+    t.running=!!p.running;t.elapsedMs=Math.max(0,_fnum(p.elapsedMs,0));t.cycles=Math.max(0,_fnum(p.cycles,0));
+    t.lastStart=p.running?((_fnum(p.anchor,0)||Share.now())-Share.offset):0;
     /* A332 : « arrêté depuis » chez l'AUTRE écran — l'arrêt reçu est daté de l'heure de l'évènement
        (jamais un champ de charge), en heure locale ; sans cela le récepteur n'avait rien, ou
        gardait la date de SON propre arrêt précédent. */
@@ -25399,14 +25470,14 @@ function shareStateLive(R,e){
       /* MISE À JOUR EN PLACE. Le repère existe déjà : on ne repose pas une seconde ligne pour le
          même geste. Le libellé MANUEL local n'est pas touché — il est souverain (`tkLabels`), et
          l'écraser reviendrait à faire dicter par le réseau un mot que quelqu'un a tapé ici. */
-      _ex.t=+p.t||_ex.t;_ex.ref=tkRefNorm(p.ref);if(e.actor)_ex.a=e.actor;
+      _ex.t=_fnum(p.t,0)||_ex.t;_ex.ref=tkRefNorm(p.ref);if(e.actor)_ex.a=e.actor;
       R.events.sort((x,y)=>x.t-y.t);return true;}
-    R.events.push({id:_id,t:+p.t||Share.now(),a:e.actor||null,
+    R.events.push({id:_id,t:_fnum(p.t,0)||Share.now(),a:e.actor||null,
       ref:tkRefNorm(p.ref)});   // aucun libellé lu du réseau (règle 15, cf. l'annexe ci-dessus)
     R.events.sort((a,b)=>a.t-b.t);return true;}
   if(e.kind==='mark_void'){
     const m=(R.events||[]).find(x=>x.id===p.id);if(!m)return false;
-    m.voidAt=p.on?(+p.t||Share.now()):null;return true;}
+    m.voidAt=p.on?(_fnum(p.t,0)||Share.now()):null;return true;}
   return false;}
 function sharePaintLive(f,e){
   const r=shareStateLive(Runtime,e);if(!r)return false;
@@ -30870,7 +30941,9 @@ async function inflateBounded(data,limit){
     parts.push(r.value);}
   const out=new Uint8Array(len);let p=0;for(const b of parts){out.set(b,p);p+=b.length;}
   return out;}
-async function zipParse(u8){
+/* A670 — `bud` : budget d'octets PARTAGÉ entre plusieurs archives. Le plafond `ZIP_MAX_TOTAL` était local à
+   chaque appel : une archive de 1000 zips internes offrait à chacun ses 256 Mo (onglet tué, mémoire épuisée). */
+async function zipParse(u8,bud){
   if(!u8||u8.length<22)throw new Error('zip: archive vide');
   const rd16=o=>u8[o]|(u8[o+1]<<8),rd32=o=>((u8[o]|(u8[o+1]<<8)|(u8[o+2]<<16))+u8[o+3]*0x1000000);
   let e=-1;for(let i=u8.length-22,min=Math.max(0,u8.length-22-65535);i>=min;i--){if(u8[i]===0x50&&u8[i+1]===0x4B&&u8[i+2]===5&&u8[i+3]===6){e=i;break;}}
@@ -30881,7 +30954,7 @@ async function zipParse(u8){
     if(!(u8[o]===0x50&&u8[o+1]===0x4B&&u8[o+2]===1&&u8[o+3]===2))throw new Error('zip: entrée corrompue');
     const method=rd16(o+10),crc=rd32(o+16),csize=rd32(o+20),usize=rd32(o+24),nl=rd16(o+28),xl=rd16(o+30),cl=rd16(o+32),lo=rd32(o+42);
     if(csize>ZIP_MAX_ENTRY||usize>ZIP_MAX_ENTRY)throw new Error('zip: entrée trop volumineuse');
-    if(total+usize>ZIP_MAX_TOTAL)throw new Error('zip: archive trop volumineuse');
+    if(total+usize>ZIP_MAX_TOTAL||(bud&&usize>bud.left))throw new Error('zip: archive trop volumineuse');
     const name=dec.decode(u8.subarray(o+46,o+46+nl));
     if(!(u8[lo]===0x50&&u8[lo+1]===0x4B&&u8[lo+2]===3&&u8[lo+3]===4))throw new Error('zip: entrée corrompue');
     if(seenLo.has(lo))throw new Error('zip: entrée dupliquée');
@@ -30892,7 +30965,7 @@ async function zipParse(u8){
     if(method===8)data=await inflateBounded(data,usize);
     else if(method!==0)throw new Error('zip: méthode non prise en charge');
     if(data.length!==usize||crc32(data)!==crc)throw new Error('zip: contenu endommagé');
-    total+=data.length;
+    total+=data.length;if(bud)bud.left-=data.length;
     out.push({name,data});o+=46+nl+xl+cl;}
   return out;}
 // Téléchargement d'un fichier généré — UNIQUE (exports JSON/ZIP, compte-rendu de session,
@@ -30962,16 +31035,45 @@ function exportAll(){exportData(fiches,'aides-cognitives',categories,protocols);
 // Tolère une réponse d'IA enrobée de clôtures Markdown ("```json ... ```") malgré la consigne du
 // prompt, et un éventuel BOM : on retire l'enrobage avant JSON.parse au lieu d'échouer
 // « Fichier illisible ». Fonction pure (testée dans tests.html via ?__actest).
-function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();const m=s.match(/^```[a-zA-Z0-9-]*\s*([\s\S]*?)\s*```$/);return m?m[1]:s;}
+/* A670 : sans expression régulière — l'ancienne (`\s*([\s\S]*?)\s*`) était CUBIQUE sur « ``` + n espaces »
+   (10 s pour 4 000 espaces), sur le texte BRUT d'un fichier que la porte d'entrée accepte. */
+function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();
+  if(s.length<6||s.slice(0,3)!=='```'||s.slice(-3)!=='```')return s;
+  let i=3;while(i<s.length&&/[a-zA-Z0-9-]/.test(s[i]))i++;
+  if(s.length-3<i)return s;
+  return s.slice(i,s.length-3).trim();}
 // Références PDF d'une entité importée — RÈGLE : un import n'ÉCRASE JAMAIS un binaire existant
 // (même id -> le document déjà présent fait foi ; c'est la garantie « importer ne peut pas
 // modifier les PDF des autres fiches »). Un binaire du .zip n'est posé que s'il MANQUE, signé
 // %PDF- et sous le plafond. Référence gardée si le binaire est là — ou si le fichier vient du
 // même espace (le document peut suivre par la synchronisation) ; sinon retirée, comme avant :
 // jamais de bouton « Document indisponible ».
-async function importAtts(d,zipAtts,sameSpace){
+/* A669 — UN FICHIER VENU D'AILLEURS NE CHOISIT PAS L'IDENTIFIANT DE SES DOCUMENTS. Les ids d'aide
+   et de protocole étaient régénérés hors du même espace, ceux des documents JAMAIS : la garantie
+   ci-dessus ne testait que « le binaire est-il sur CET appareil ». Sur un appareil où il n'était pas
+   encore téléchargé (poste neuf, « △ à télécharger »), un .zip posait SON PDF sous l'id d'un document
+   existant — l'aide légitime ouvrait alors le PDF du fichier, et la synchro d'un éditeur le poussait
+   à toute la bibliothèque. Hors du même espace : le binaire du .zip entre sous un id NEUF (`remap`,
+   partagé par tout l'import ; les liens `att:` du contenu suivent), et une référence sans binaire
+   dans le fichier est retirée — elle ne peut plus s'accrocher à un document local. */
+async function importAtts(d,zipAtts,sameSpace,remap){
   if(!(d.docs||[]).length)return;
   if(!supportsAttachments()){d.docs=[];return;}
+  if(!sameSpace){
+    remap=remap||new Map();const kept=[],chg=[];
+    for(const a of d.docs){
+      const old=a.id;
+      if(remap.has(old)){const n=remap.get(old);if(n){kept.push(Object.assign({},a,{id:n.id,size:n.size}));chg.push([old,n.id]);}continue;}
+      const z=zipAtts?zipAtts.get(old):null;let n=null;
+      if(z&&z.length<=MAX_PDF_BYTES&&isPdfBytes(z)){
+        const buf=z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength),id=uid('a');
+        try{await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});
+          n={id:id,size:buf.byteLength};}catch(err){}}
+      remap.set(old,n);
+      if(n){kept.push(Object.assign({},a,{id:n.id,size:n.size}));chg.push([old,n.id]);}}
+    d.docs=kept;
+    if(typeof d.body==='string'&&chg.length)chg.forEach(([o,n])=>{d.body=d.body.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#');});
+    return;}
   const kept=[];
   for(const a of d.docs){
     let have=null;try{have=await attBuf(await IDB.getAtt(a.id));}catch(err){}
@@ -30996,7 +31098,8 @@ function notionPath(dir,href){let h=String(href||'').trim().replace(/^<|>$/g,'')
   const out=dir?String(dir).split('/').filter(Boolean):[];
   h.split('/').forEach(s=>{if(!s||s==='.')return;if(s==='..')out.pop();else out.push(s);});
   return out.join('/').normalize('NFC');}
-const NOTION_IMG=/!\[([^\]]{0,300})\]\(([^)\s]+(?:\s[^)"]+)*)(?:\s+"[^"]*")?\)/g;
+// A670 : segments SANS espace (`[^)\s"]+`) et bornés — `(?:\s[^)"]+)*` était ambigu, donc exponentiel.
+const NOTION_IMG=/!\[([^\]]{0,300})\]\(([^)\s]+(?:[ \t]+[^)\s"]+){0,40})(?:\s+"[^"\n]{0,300}")?\)/g;
 function notionImgPaths(src,dir){const o=[],vus=new Set();let m;NOTION_IMG.lastIndex=0;
   while((m=NOTION_IMG.exec(String(src||''))))  {const p=notionPath(dir,m[2]);if(p&&!vus.has(p)){vus.add(p);o.push(p);}}
   return o;}
@@ -31029,7 +31132,7 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
       .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi,'==$1==').replace(/<br\s*\/?>/gi,MD_TROW.test(l)?'<br>':' ')   /* A609 : dans un tableau, le retour à la ligne d'une case se garde */
       .replace(/<\/?(?:span|div|p|details|summary|aside|figure|figcaption|sup|sub|del|s)\b[^>]*>/gi,'');
     // Lien vers une autre page de l'export (`…%20abc123.md`) : la page n'est pas là — on garde le texte.
-    l=l.replace(/(^|[^!])\[([^\]]*)\]\(([^)]+\.md)\)/gi,(_,a,t)=>a+t);
+    l=l.replace(/(^|[^!])\[([^\]]{0,500})\]\(([^)]{1,1000}\.md)\)/gi,(_,a,t)=>a+t);   // A670 : bornée
     // Une image se pose seule sur sa ligne (le mini-Markdown ne reconnaît qu'une image par ligne, en tête).
     /* A642 : l'image GARDE son retrait — sous un élément de liste, elle appartient à cet élément (mdBlocks). Une image
        sur la ligne même d'un élément (« - texte ![](…) ») prend le retrait du texte de l'élément. */
@@ -31462,7 +31565,7 @@ bindModalDismiss(impModal,()=>_impEnd(null));
 async function notionParse(u8){
   const isZip=b=>b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4;
   if(isZip(u8)){let entries=await zipParse(u8);
-    if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[];for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data));if(inn.length)entries=inn;}
+    if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[],bud={left:ZIP_MAX_TOTAL};for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data,bud));if(inn.length)entries=inn;}
     if(!entries.some(x=>/\.md$/i.test(x.name))||entries.some(x=>/(^|\/)donnees\.json$/.test(x.name)))return null;
     return notionRefs(entries);}
   if(dataKind(u8)==='md'){const c=notionMd(new TextDecoder().decode(u8),'',null);
@@ -31510,8 +31613,8 @@ async function _importRead(buf,lbl,ia){
       if(isZip(u8)){
         let entries=await zipParse(u8);
         /* A562 : Notion emballe parfois l'export dans un second .zip (« …-Part-1.zip ») — un niveau, pas plus. */
-        if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[];
-          for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data));
+        if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[],bud={left:ZIP_MAX_TOTAL};
+          for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data,bud));
           if(inn.length)entries=inn;}
         const j=entries.find(x=>/(^|\/)donnees\.json$/.test(x.name))||entries.find(x=>/\.json$/i.test(x.name));
         if(j){
@@ -31686,8 +31789,10 @@ async function _importRead(buf,lbl,ia){
        par `importAtts` (binaire absent du fichier, illisible ou trop lourd). */
     let ratees=0,docsEc=0;
     const pOk=async d=>{const ok=await persist(d);if(!ok)ratees++;return ok;},pPOk=async d=>{const ok=await persistProtocol(d);if(!ok)ratees++;return ok;};
-    const atts=async d=>{const n0=(d.docs||[]).length;await importAtts(d,zipAtts,sameSpace);docsEc+=n0-(d.docs||[]).length;};
+    const _attRemap=new Map();   // A669 : un même document du fichier, cité par plusieurs éléments, entre UNE fois
+    const atts=async d=>{const n0=(d.docs||[]).length;await importAtts(d,zipAtts,sameSpace,_attRemap);docsEc+=n0-(d.docs||[]).length;};
     for(let i=0;i<imp.fiches.length;i++){const d=migrate(imp.fiches[i]);
+      d.deletedAt=null;   // A669 : un fichier n'apporte jamais une suppression (seuls le stockage et le serveur portent des tombes)
       poserDest(d,F.dst[i]);
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
@@ -31699,7 +31804,7 @@ async function _importRead(buf,lbl,ia){
     // documents PDF restaurés/filtrés par importAtts).
     let addedP=0;const versees=[];
     if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
-      for(let i=0;i<imp.protocols.length;i++){const d=migrateProtocol(imp.protocols[i]);
+      for(let i=0;i<imp.protocols.length;i++){const d=migrateProtocol(imp.protocols[i]);d.deletedAt=null;   // A669
         // A611 : versée dans une référence existante — son contenu (et ses images) s'y ajoute ; rien d'autre ne change.
         {const tg=P.dst[i].into&&protocols.find(x=>x.id===P.dst[i].into);
           if(tg&&canEditFiche(tg)){const n=migrateProtocol(JSON.parse(JSON.stringify(tg))),b0=String(n.body||'').replace(/\s+$/,''),b1=String(d.body||'').trim();
@@ -32453,7 +32558,9 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact'];   // A660 : quatre clés lues par `spaceKey`, oubliées
+const TEMP_PENDING_KEY='ac-temp-pending';   // A672
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
+  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -32492,6 +32599,9 @@ async function wipeCurrentSpace(){
       for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
     }
     localStorage.removeItem('ac-sync-init-'+space);
+    /* A671 : le cache de profil (noms des bibliothèques, rôles, drapeau d'administration) est indexé par
+       COMPTE, pas par `spaceKey` — il survivait à « Se déconnecter et effacer », lisible par le suivant. */
+    if(space)localStorage.removeItem('ac-profile-'+space);
     // Clés suffixées PAR CET ESPACE uniquement (spaceKeyFor place toujours le suffixe en toute
     // fin de clé) : n'affecte aucune donnée d'un AUTRE compte déjà utilisé sur cet appareil.
     const suffix='@'+(space||'anon');
@@ -33329,6 +33439,7 @@ async function linkBecomeTemp(endAt){
   if(!r||!r.ok)return (r&&r.err)||'network';
   const u=Auth.user()||{};
   linkSharedSet({id:r.id,key,uid:u.id||'',email:u.email||'',endsAt:Date.parse(r.ends_at)||endAt,label:linkUaLabel(navigator.userAgent),at:Date.now()});
+  try{localStorage.removeItem(TEMP_PENDING_KEY);}catch(_){}   // A672 : le poste est écrit, la session est bien temporaire
   linkMarkOpen();return null;}
 function renderAuthLogin(body){
   if(_authStep.mode==='email'){
@@ -33402,8 +33513,14 @@ function renderAuthLogin(body){
       if(!Sync.online()){_authStep.msg='Hors ligne : une connexion Internet est nécessaire pour vérifier le code.';_authStep.msgcls='err';return renderAuth();}
       v.disabled=true;v.textContent='Vérification…';
       _authStep.msg='';_authStep.msgcls='';
+      /* A672 — LE DRAPEAU AVANT LA SESSION. `verifyCode` écrit sur le disque une session ORDINAIRE ; elle ne
+         devient temporaire que deux allers-retours plus tard (`link_self`). Onglet fermé ou appareil endormi
+         dans l'intervalle : le poste partagé gardait une connexion PERMANENTE, sans heure de fin ni effacement.
+         Le drapeau dit « cette session devait être temporaire » ; `load()` la ferme s'il le trouve sans poste. */
+      if(_authStep.temp)try{localStorage.setItem(TEMP_PENDING_KEY,'1');}catch(_){}
       try{await Auth.verifyCode(_authStep.email,code);}
-      catch(e){_authStep.msg=authErrMsg(e,'code');_authStep.msgcls='err';   // A661 ; le code tapé reste dans le champ
+      catch(e){try{localStorage.removeItem(TEMP_PENDING_KEY);}catch(_){}
+        _authStep.msg=authErrMsg(e,'code');_authStep.msgcls='err';   // A661 ; le code tapé reste dans le champ
         renderAuth();const ci=document.getElementById('authCode');if(ci)ci.value=code;return;}
       /* A651 : CONNEXION TEMPORAIRE PAR E-MAIL — la session toute fraîche se déclare poste (`link_self`). Refusée, elle
          ne RESTE PAS ouverte : on avait choisi « Temporaire », une connexion durable ici serait l'inverse de ce choix. */
@@ -33414,6 +33531,7 @@ function renderAuthLogin(body){
         if(fin!==voulu)toast('Durée maximale fixée par votre administration : '+linkRules().dur+' h. Connecté jusqu’à '+fmtHM(fin)+'.',8000);
         const err=await linkBecomeTemp(fin);
         if(err){try{await Auth.signOut();}catch(_){}
+          try{localStorage.removeItem('ac-auth');localStorage.removeItem(TEMP_PENDING_KEY);}catch(_){}
           _authStep.mode='email';_authStep.msgcls='err';
           _authStep.msg={refused:'Connexion temporaire impossible : votre compte doit d’abord être validé.',too_many:'Cinq appareils temporaires sont déjà connectés à votre compte : déconnectez-en un dans Moi › Connexions temporaires, sur un appareil à vous.'}[err]||'La connexion temporaire n’a pas abouti. Vérifiez la connexion, puis réessayez.';
           return renderAuth();}
@@ -34219,7 +34337,7 @@ function sessionToRow(o,uidv){
    client plus récent (LWW). Grammaires existantes : SHARE_KEY_RX, shareNavNorm, tkRefNorm
    (§ 5.5). Détail : doctrine-js.md J210. */
 function sanitizeSession(d){
-  const out={};for(const k of Object.keys(d)){if(BAD_KEYS.indexOf(k)>=0)continue;out[k]=d[k];}
+  const out={};for(const k of Object.keys(d)){if(badKey(k))continue;out[k]=d[k];}
   out.ficheId=safeId(out.ficheId,'f');out.ficheTitle=sstr(out.ficheTitle,300);out.name=sstr(out.name,160);
   out.startedAt=+out.startedAt||0;out.savedAt=+out.savedAt||0;out.aidRev=+out.aidRev||0;
   out.live=out.live===true;out.exercise=!!out.exercise;   // A643 : « "false" » (chaîne) n'est pas une session vive
@@ -34251,7 +34369,7 @@ function sanitizeSession(d){
   out.linkArm=linkArmSnap(out.linkArm);   // A377
   out.events=rawArr(out.events).slice(0,5000).map(e=>{
     if(!e||typeof e!=='object')return null;
-    const ev={};for(const k of Object.keys(e)){if(BAD_KEYS.indexOf(k)>=0)continue;ev[k]=e[k];}
+    const ev={};for(const k of Object.keys(e)){if(badKey(k))continue;ev[k]=e[k];}
     ev.t=+ev.t||0;if(ev.voidAt!==undefined)ev.voidAt=+ev.voidAt||0;
     if(ev.label!==undefined)ev.label=sstr(ev.label,200);
     const r=tkRefNorm(ev.ref);if(r)ev.ref=r;else delete ev.ref;
@@ -34671,6 +34789,9 @@ const Sync={
     // Application d'UNE ligne distante (LWW, idempotente) — partagée entre le pull incrémental et
     // le repêchage de complétude ci-dessous ; alimente les tampons puts/dels de la page en cours.
     const applyRow=async(row,puts,dels)=>{
+      /* A664 : une ligne dont l'id n'est pas un id sûr est ignorée (comme `pullMissedIds`). `migrate` lui en
+         frappait un NEUF à chaque tirage, que la réconciliation supprimait aussitôt — un cycle par synchro. */
+      if(!row||typeof row.id!=='string'||!SAFE_ID.test(row.id)||badKey(row.id))return;
       const local=byId[row.id];
       if(row.deleted_at){
         /* A661 — UNE SUPPRESSION DISTANTE N'ÉCRASE PLUS EN SILENCE : une modification locale pas encore envoyée
@@ -35001,7 +35122,7 @@ const Sync={
     let rows;try{rows=await rest('GET','/rest/v1/aid_notes?select=fiche_id,note,updated_at')||[];}catch(e){rows=null;}
     let changed=false,openChanged=false;   // openChanged = la note de la fiche AFFICHÉE a changé
     if(rows){for(const r of rows){const id=String(r.fiche_id||'');
-      if(!SAFE_ID.test(id)||BAD_KEYS.indexOf(id)>=0)continue;
+      if(!SAFE_ID.test(id)||badKey(id))continue;
       const rts=Date.parse(r.updated_at)||0;const loc=notes[id];
       // LWW : le distant ne s'applique que s'il est plus récent ET que le local n'a pas de
       // modification en attente (dirty) — une note en cours d'édition ici gagne toujours.
@@ -36603,11 +36724,31 @@ async function slSbGuestKick(){
   }catch(e){slSb.pc=null;}}
 async function slSbOnSig(ev){
   const p=ev.payload||{};
+  /* A666 — LA PLOMBERIE N'OBÉIT QU'À L'HÔTE. `sig` est ouvert aux scribes (un invité PROPOSE son
+     canal de secours : `o`), et tout le monde reçoit tout le fil. Or `a`, `go`, `gc`, `rc` étaient
+     exécutés quel que soit l'auteur : un invité au client modifié envoyait `gc` avec le code de SON
+     partage — l'écran d'un autre invité quittait le soin pour afficher l'aide de l'attaquant, sans
+     un geste — ou `go`, qui figeait chacun une demi-minute. Ces quatre ordres ne valent que signés
+     de l'hôte (`owner`, dit par le serveur ou le hub, jamais par la charge). */
+  const _hote=(Share.participants||[]).find(x=>x&&x.owner);
+  const deLHote=!!(_hote&&ev.actor&&ev.actor===_hote.id);
+  if(Share.mode==='guest'&&!deLHote)return;
   try{
     if(Share.mode==='host'&&p.t==='o'&&p.o&&!(SL&&SL.live)){
+      /* A666 — UNE OFFRE À LA FOIS PAR PARTICIPANT, et aucune d'un participant coupé. Chaque offre
+         créait une connexion jamais fermée et faisait ÉMETTRE l'hôte : en les répétant, un invité
+         épuisait le quota d'évènements de l'hôte, et le miroir s'éteignait pour tous. */
+      const _qui=(Share.participants||[]).find(x=>x&&x.id===ev.actor);
+      if(!_qui||_qui.revoked||_qui.detached)return;
+      const _t=Date.now();slSb.offAt=slSb.offAt||Object.create(null);
+      if(_t-(slSb.offAt[ev.actor]||0)<3000)return;   // un invité sain ne re-propose qu'après sa montre de 30 s
+      slSb.offAt[ev.actor]=_t;
       const o=slPairUnpack(String(p.o));if(!o)return;
-      const h=await slPcGuest(o);
-      h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});
+      slSb.pend=slSb.pend||Object.create(null);
+      {const vx=slSb.pend[ev.actor];if(vx&&!slSb.dcs.some(d=>d.pc===vx))try{vx.close();}catch(_){}}   // l'offre neuve remplace la précédente restée en attente
+      const h=await slPcGuest(o);slSb.pend[ev.actor]=h.pc;
+      setTimeout(()=>{try{if(!slSb.dcs.some(d=>d.pc===h.pc)&&h.pc)h.pc.close();}catch(_){}},30000);
+      h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc,pc:h.pc});
           dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slModePaint();}catch(_){}};
           try{slModePaint();}catch(_){}slSbReadySay();};
         dc.readyState==='open'?go():dc.onopen=go;});
@@ -36675,7 +36816,8 @@ async function slSbHostSwitch(say){
   if(_slSwitching)return;_slSwitching=true;
   try{
     const f=Runtime.fiche;if(!f)return;
-    const dcs=slSb.dcs.slice();slSb.dcs=[];slSb.pc=null;slSb.dc=null;
+    const _coupe=id=>(Share.participants||[]).some(x=>x&&x.id===id&&(x.revoked||x.detached));
+    const coupes=slSb.dcs.filter(d=>_coupe(d.actor)),dcs=slSb.dcs.filter(d=>!_coupe(d.actor));slSb.dcs=[];slSb.pc=null;slSb.dc=null;
     if(slSb.auto)slSb.cloud={share:Share.share,code:Share.code,joinUntil:Share.joinUntil,expiresAt:Share.expiresAt,cursor:Share.cursor};
     const hub=slNewHub(f);
     Share.stop();Share._io=slHostIo(hub);
@@ -36685,6 +36827,7 @@ async function slSbHostSwitch(say){
       for(const d of dcs){const w=slChanWire(d.dc);slServe(hub,w);SL.wires.push(w);}
       // La bouée (A332) : chaque invité apparié en silence suit, que SON relais réponde ou non.
       for(const d of dcs)try{d.dc.send(SL_BOUEE);}catch(e){}
+      for(const d of coupes)try{d.dc.close();}catch(e){}   // A665 : un coupé ne suit pas la bascule
       slSay('Passe en direct',say||'Le réseau a lâché — le partage continue en direct.');
       if(slSb.auto){slSb.since=Date.now();slSb.okRun=0;slNetWatch();}}
     else SL=null;
@@ -37729,7 +37872,7 @@ if(location.search.indexOf('__actest')>=0){
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,
