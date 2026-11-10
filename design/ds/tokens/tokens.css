@@ -46,7 +46,9 @@
   /* ✓/● sur matière SYSTÈME : --ok du thème clair (#1d7a38) ne tient que 2,8:1 sur --sys. La
      capsule et le dock sont sombres dans les DEUX thèmes — cette valeur n'a donc pas d'override. */
   --ok-sys:#4ade80;
-  /* Le BLEU DE L'ACTION sur matière SYSTÈME (v5.15.0, planche 18/2a) : --act ne tient que 1,68:1
+  /* (HISTORIQUE — `--act-sys` est PURGÉ depuis la v5.30 : hors session le quai n'a plus de matière système, le token
+     n'avait plus de lecteur. Ce qui suit décrit un token qui n'existe plus ; la leçon de contraste reste. A662.)
+     Le BLEU DE L'ACTION sur matière SYSTÈME (v5.15.0, planche 18/2a) : --act ne tient que 1,68:1
      sur le quai — le texte du geste d'entrée était lisible (8,6:1) mais la FORME du bouton se
      confondait avec sa propre barre, le défaut nommé par l'audit v5.10.0 sur « Reprendre » et
      jamais rejoué sur le geste d'entrée. Même motif que --ok-sys/--warn-sys/--crit-sys : un
