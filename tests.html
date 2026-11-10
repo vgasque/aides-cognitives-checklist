@@ -1773,6 +1773,51 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A670 : stripJsonFences reste linéaire sur « ``` + espaces »',Date.now()-t0<500);
    eq('A670 : clôtures retirées comme avant',A.stripJsonFences('```json\n{"a":1}\n```'),'{"a":1}');}
 
+  // ── A689-A690 — un document appartient à un seul espace : les décisions PURES ──
+  {const me='u1',P=(lib,edit,del)=>({lib:lib||null,edit:edit!==false,del:!!del});
+   eq('A689 : chemin → espace (mon Perso)',A.attPathSpace('u/u1/a1.pdf',me),null);
+   eq('A689 : chemin → espace (bibliothèque)',A.attPathSpace('l/libA/a1.pdf',me),'libA');
+   ok('A689 : le Perso d’un AUTRE, ou un chemin mal formé, n’est aucun de mes espaces',
+     A.attPathSpace('u/u2/a1.pdf',me)===undefined&&A.attPathSpace('l/../x.pdf',me)===undefined&&A.attPathSpace('',me)===undefined);
+   ok('A689 : `scope` prime sur le chemin ; un scope piégé est inconnu',
+     A.attRecSpace({scope:'',remotePath:'l/libA/a.pdf'},me)===null&&A.attRecSpace({scope:'libB',remotePath:'u/u1/a.pdf'},me)==='libB'
+     &&A.attRecSpace({scope:'__proto__'},me)===undefined&&A.attRecSpace({remotePath:'l/libA/a.pdf'},me)==='libA'&&A.attRecSpace({},me)===undefined);
+   eq('A689 : ordre déterministe des espaces citants — Perso d’abord, puis les bibliothèques par id',
+     A.attRefSpaces([P('libZ'),P('libA'),P(null),P('libA')]).spaces,[null,'libA','libZ']);
+   eq('A689 : les vivants priment sur les tombes',A.attRefSpaces([P('libA',true,true),P('libB')]).spaces,['libB']);
+   // LE CAS DE L'AUDIT : mon PDF personnel, cité par une ligne de bibliothèque que je peux éditer.
+   const perso={id:'a1',dirty:0,remotePath:'u/u1/a1.pdf'};
+   eq('A689 : cité par mon Perso ET par une bibliothèque → il reste chez moi, rien ne part',
+     A.attPlan(perso,[P(null),P('libA')],me).act,'none');
+   const seul=A.attPlan(perso,[P('libA')],me);
+   ok('A689 : cité SEULEMENT par une bibliothèque → réétiqueté, JAMAIS téléversé',seul.act==='relabel'&&seul.space==='libA'&&seul.path==='l/libA/a1.pdf');
+   eq('A689 : modifié ici et cité seulement ailleurs → il ne part nulle part',
+     A.attPlan({id:'a1',dirty:1,remotePath:'u/u1/a1.pdf'},[P('libA')],me).act,'none');
+   // Le déplacement fait par MOI (attClaim a posé scope + dirty) : téléversement, puis retrait de l'ancien chemin.
+   const dep=A.attPlan({id:'a1',dirty:1,scope:'libA',remotePath:'u/u1/a1.pdf'},[P('libA')],me);
+   ok('A689 : mon déplacement Perso → bibliothèque téléverse au nouveau chemin et désigne l’ancien',
+     dep.act==='upload'&&dep.path==='l/libA/a1.pdf'&&dep.del==='u/u1/a1.pdf');
+   eq('A689 : simple lecteur de la bibliothèque → aucun téléversement',
+     A.attPlan({id:'a1',dirty:1,scope:'libA'},[P('libA',false)],me).act,'none');
+   eq('A689 : deux bibliothèques citent le même document → il reste où il est (pas de va-et-vient)',
+     A.attPlan({id:'a1',dirty:0,remotePath:'l/libZ/a1.pdf'},[P('libA'),P('libZ')],me).act,'none');
+   const neuf=A.attPlan({id:'a1',dirty:1,remotePath:null},[P('libB')],me);
+   ok('A689 : binaire tout neuf, jamais envoyé → adopté par l’espace qui le cite',neuf.act==='upload'&&neuf.path==='l/libB/a1.pdf'&&neuf.del===null);
+   eq('A689 : plus personne ne le cite → purge',A.attPlan(perso,[],me).act,'purge');
+   eq('A689 : en règle (même chemin, pas modifié) → rien',A.attPlan({id:'a1',dirty:0,remotePath:'l/libA/a1.pdf'},[P('libA')],me).act,'none');
+   eq('A689 : binaire absent — les bibliothèques d’abord, puis mon Perso',
+     A.attFetchPaths('a1',[P(null),P('libB'),P('libA')],me),['l/libA/a1.pdf','l/libB/a1.pdf','u/u1/a1.pdf']);
+   const peux=l=>l==='libA';
+   ok('A689 : un ancien chemin ne se retire que chez moi ou dans une bibliothèque que je peux éditer',
+     A.attMayDelete('u/u1/a1.pdf',me,peux)&&A.attMayDelete('l/libA/a1.pdf',me,peux)&&!A.attMayDelete('l/libB/a1.pdf',me,peux)&&!A.attMayDelete('u/u2/a1.pdf',me,peux)&&!A.attMayDelete('n’importe',me,peux));
+   eq('A689 : les liens att: du contenu suivent (avec et sans page), les autres restent',
+     A.attRelink('[a](att:x1) [b](att:x1#p3) [c](att:x10) [d](att:y)',[['x1','n1']]),'[a](att:n1) [b](att:n1#p3) [c](att:x10) [d](att:y)');
+   const ents=[{id:'L1',library:'libA',docs:[{id:'d1'},{id:'d2'}]},{id:'P1',library:null,docs:[{id:'d1'},{id:'d9'}]},
+     {id:'P2',docs:[{id:'d2'}],deletedAt:5},{id:'L2',library:'libB',docs:[{id:'d1'}]},{id:'P3',docs:[{id:'toString'},{id:'d2'}]}];
+   eq('A690 : seuls les éléments PERSO vivants sont ré-identifiés ; jamais un élément de bibliothèque',
+     A.attSplitPlan(ents),[{ent:'P1',doc:'d1',lib:'libA'},{ent:'P3',doc:'d2',lib:'libA'}]);
+   eq('A690 : rien de partagé → plan vide',A.attSplitPlan([{id:'a',library:'libA',docs:[{id:'d1'}]},{id:'b',docs:[{id:'d2'}]}]),[]);}
+
   // ── Étape 3a : le décodeur VENDORISÉ relit ce que l'encodeur MAISON écrit (chargement
   // paresseux compris — c'est le témoin qui resservira au test d'une mise à jour de jsQR) ──
   ok('encode → décode : charge courte (v1-v4)',await A.qrSelftest('AC-714208'));
