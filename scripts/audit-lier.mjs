@@ -52,6 +52,8 @@ function bouchon(srvst, vu) {
       if (fn === 'link_peek') return J({ ok: true, kind: 'connect', label: 'Chrome · Windows', age_s: 4 });
       if (fn === 'my_status') return J('approved');
       if (fn === 'link_self') return J(srvst.self || { ok: true, id: LID, ends_at: body && body.p_ends_at });
+      if (fn === 'get_temp_rules') return J(srvst.rules || { edit: 'v15', del: 'tel', repl: 'non', exp: 'oui', dur: 28 });
+      if (fn === 'set_temp_rules') return J(null);
       return J(null);
     }
     if (p === '/functions/v1/link-claim') { (vu.claim = vu.claim || []).push(body);
@@ -289,6 +291,67 @@ await ctx.close();
   const r4 = await pg4.evaluate(() => ({ signed: Auth.signedIn(), shared: !!linkShared(), msg: /Connexion temporaire impossible/.test((document.querySelector('#meView .auth-msg, #authBody .auth-msg') || {}).textContent || '') }));
   t('refusée, la connexion temporaire ne laisse PAS une connexion durable ouverte', !r4.signed && !r4.shared && r4.msg && (vu4.logout || 0) >= 1, JSON.stringify(r4));
   await c4.close();
+}
+{
+  console.log('\n── 5. Les règles de la connexion temporaire (Administration, A654)');
+  // Sur un appareil temporaire : les règles lues au serveur s'appliquent.
+  const c5 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st5 = { verifyOk: true, rules: { edit: 'non', del: 'non', repl: 'non', exp: 'non', dur: 12 } }, vu5 = {};
+  await c5.route('**/*.supabase.co/**', bouchon(st5, vu5));
+  const pg = await c5.newPage();
+  await pg.goto(URL0);
+  await amorce(pg);
+  await pg.evaluate(() => openAuth());
+  await pg.click('[data-authk="temp"]'); await pg.click('[data-autht="email"]');
+  await pg.fill('#authEmail', 'kim@test.local'); await pg.click('#authSend');
+  await pg.waitForSelector('#authCode'); await pg.fill('#authCode', '48207312'); await pg.click('#authVerify');
+  await apres(pg, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'), UID);
+  const self = (vu5.link_self || [])[0] || {};
+  t('la durée maximale (12 h) borne l’heure de fin, même choisie avant la connexion', Date.parse(self.p_ends_at) - Date.now() <= 12 * 3600e3 + 60e3, JSON.stringify(self));
+  await pg.evaluate(() => linkRulesFetch());
+  const r = await pg.evaluate(async () => {
+    const o = {}; const titre = () => { const m = document.getElementById('linkModal'); const x = m.classList.contains('on') ? document.getElementById('linkModalTitle').textContent : ''; Link.close(); return x; };
+    await newFiche(); o.creer = titre(); o.vue = state.view;
+    const dl = []; const ori = window.dlAnchor; window.dlAnchor = () => dl.push(1);
+    await dlBlob(new Blob(['x']), 'x.txt'); o.exporter = titre(); o.dl = dl.length; window.dlAnchor = ori;
+    return o; });
+  t('« Créer » interdit par la règle : refusé, et dit pourquoi', /Pas sur un appareil temporaire/.test(r.creer) && r.vue !== 'edit', JSON.stringify(r));
+  t('« Exporter » interdit par la règle : rien ne se télécharge', /Pas sur un appareil temporaire/.test(r.exporter) && r.dl === 0, JSON.stringify(r));
+  await c5.close();
+  // L'appareil qui approuve ne propose que des heures dans la durée maximale.
+  const c6 = await br.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const st6 = { rules: { dur: 12 } }, vu6 = {};
+  await c6.route('**/*.supabase.co/**', bouchon(st6, vu6));
+  const ph = await c6.newPage();
+  await ph.goto(URL0); await amorce(ph);
+  await ph.evaluate(() => { Auth._setSession({ access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: 'cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd', email: 'ana@test.local' } });
+    localStorage.setItem('ac-space', 'cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd'); });
+  await ph.reload();
+  await ph.waitForFunction(() => typeof Auth !== 'undefined' && Auth.signedIn() && !document.querySelector('.boot-load'));
+  await ph.evaluate(() => linkRulesFetch());
+  await ph.evaluate(([id, sct]) => Link.approve({ id, secret: sct }, true), [LID, 'Q2xLk9_aZ0b-Xy7Pq3RsTu']);
+  await ph.waitForSelector('#linkModal.on [data-lkend]');
+  const ends = await ph.evaluate(() => [...document.querySelectorAll('[data-lkend]')].map(b => +b.dataset.lkend - Date.now()));
+  t('l’appareil qui approuve ne propose aucune heure au-delà de la durée maximale', ends.length >= 1 && ends.every(x => x <= 12 * 3600e3), JSON.stringify(ends.map(x => Math.round(x / 36e5))));
+  await c6.close();
+  // Administration › Règles : la section se lit et chaque choix part au serveur.
+  const c7 = await br.newContext({ viewport: { width: 1280, height: 900 } });
+  const st7 = {}, vu7 = {};
+  await c7.route('**/*.supabase.co/**', bouchon(st7, vu7));
+  const pa = await c7.newPage();
+  await pa.goto(URL0); await amorce(pa);
+  const adm = await pa.evaluate(async () => {
+    myIsAppAdmin = true; _admD = null;
+    await openAdmin('regles'); await __acCalme(800);
+    const rows = [...document.querySelectorAll('.adm-trow')].length;
+    const b = document.querySelector('[data-trk="edit"][data-trv="non"]'); if (b) b.click();
+    await __acCalme(800);
+    return { rows, bouton: !!b };
+  });
+  const set = (vu7.set_temp_rules || [])[0] || {};
+  t('Administration › Règles : la section « Connexion temporaire » (5 règles + 2 interdits fixes)', adm.rows === 7 && adm.bouton, JSON.stringify(adm));
+  t('… un choix part au serveur (set_temp_rules)', set.p_rules && set.p_rules.edit === 'non', JSON.stringify(set));
+  await c7.close();
 }
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles connexion par le téléphone OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));

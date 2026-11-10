@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-65UsLy9LXdoszJXh8rlXbtvGA/nQkoHEvt6/BeRFIB0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Kb3RolUu4Lh/dFloWNhN2Q+wHVSY179pH4b6C+PKZ1A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7657,6 +7657,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pp-lock b{display:block;font-size:var(--t-item)}
   .pp-card .pp-wipe{margin-top:14px}
   /* La BANDE de l'accueil : neutre (rien ne tourne mal), AMBRE à l'approche de la fin (l'échéance, règle 8). */
+  /* A654 : les règles de la connexion temporaire (Administration › Règles) — un choix fermé par ligne. */
+  .adm-trow{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
+  .adm-trow:first-child{border-top:0}
+  .adm-trow .adm-tx{flex:1 1 220px;min-width:0}
+  .adm-tseg{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:var(--r-2);background:var(--amb-2)}
+  .adm-topt{min-height:36px;padding:0 12px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+  .adm-topt.on{background:var(--work);color:var(--ink);box-shadow:var(--shadow-float)}
+  .adm-tfix{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-body);font-weight:700;color:var(--ink-2)}
   .pp-band{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:8px 10px 8px 14px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);font-size:var(--t-body);color:var(--ink)}
   .pp-band svg{flex:none;color:var(--ink-2)}
   .pp-band .pp-bt{flex:1 1 200px;min-width:0}
@@ -10425,7 +10433,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.112.1';
+const APP_VERSION='5.113.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17550,7 +17558,7 @@ async function selSetCat(name,redo){
    historique renvoyant à une aide qui n'existe plus. */
 async function selDelete(redo){
   const ent=selEnt();if(!ent.length)return;
-  if(linkStepGate(()=>selDelete(redo)))return;   // A643 : supprimer sur un poste partagé = le téléphone, à chaque fois
+  if(linkDelGate(()=>selDelete(redo)))return;   // A643, A654 : supprimer sur un poste partagé = le téléphone, à chaque fois
   const noms=ent.map(e=>String(e.o.title||'').trim()||'Sans titre');
   const N=10,liste=noms.slice(0,N).map(t=>' · '+t).join('\n')+(noms.length>N?'\n · … et '+(noms.length-N)+' autre'+(noms.length-N>1?'s':''):'');
   const part=ent.filter(e=>e.o.library).length;
@@ -20465,7 +20473,7 @@ async function redirtyAttsOnLibChange(d,orig){
   if(orig&&(orig.library||null)!==(d.library||null)&&supportsAttachments()){
     for(const a of (d.docs||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await attPut(rec);}}catch(e){}}}}
 async function deleteProtocolDraft(){
-  if(linkStepGate(deleteProtocolDraft))return;   // A643
+  if(linkDelGate(deleteProtocolDraft))return;   // A643, A654
   const msg=state.pdraft&&state.pdraft.library
     ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
     :'Supprimer ce protocole définitivement ?';
@@ -28873,7 +28881,7 @@ function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const
     const done=d=>res(d?{data:d,w:cw,h:ch}:null);
     try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);done(out);}catch(e){try{done(c.toDataURL('image/jpeg',quality));}catch(_){done(null);}}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
 async function deleteDraft(){
-  if(linkStepGate(deleteDraft))return;   // A643
+  if(linkDelGate(deleteDraft))return;   // A643, A654
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
   // personnelle qu'il a pu attacher à cette fiche -> on le dit à l'éditeur/admin avant.
   const msg=state.draft&&state.draft.library
@@ -30662,7 +30670,8 @@ async function zipParse(u8){
 function dlAnchor(blob,filename){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 async function dlBlob(blob,filename){
   // A643 : sur un poste partagé, le fichier reste dans les Téléchargements après l'effacement du poste.
-  if(linkShared())toast('⚠ Fichier enregistré sur cet ordinateur : il y restera après l’effacement du poste partagé.',8000);
+  if(linkShared()&&linkRules().exp==='non'){linkDeny('Exporter ou télécharger');return;}   // A654
+  if(linkShared())toast('⚠ Fichier enregistré sur cet appareil : il y restera après la fin de la connexion temporaire.',8000);
   const standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
   if(standalone&&navigator.canShare&&navigator.share){
     try{
@@ -31368,7 +31377,9 @@ async function _importRead(buf,lbl){
     // deux ne sont plus la même chose — annoncer le fichier ferait croire qu'on récupère ce qu'on
     // vient d'écarter, sur la seule question destructive du parcours.
     // A643 : REMPLACER vide une bibliothèque entière — jamais depuis un poste partagé.
-    if(!merge&&linkDeny('Remplacer le contenu d’une bibliothèque')){pendingOpenImport=false;return;}
+    if(!merge&&linkShared()){   // A654 : sa règle — interdit (défaut) ou confirmé sur un appareil connecté
+      if(linkRules().repl==='non'){linkDeny('Remplacer le contenu d’une bibliothèque');pendingOpenImport=false;return;}
+      if(!await linkStepAsk()){pendingOpenImport=false;return;}}
     if(!merge){if(!await confirmDlg('Toutes les aides'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par les '+nSel+' éléments cochés. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
       for(const f of fiches.filter(x=>(x.library||null)===uneSeule))await softDelete(f);
       fiches=fiches.filter(x=>(x.library||null)!==uneSeule);
@@ -31577,6 +31588,25 @@ const LINK_KEY='ac-shared',LINK_OPEN_KEY='ac-shared-open';
 const LINK_POLL_MS=2000,LINK_WATCH_MS=60000,LINK_CKPT_MS=120000,LINK_SOON_MS=30*60000;
 const LINK_IDLE_MS=6*3600000,LINK_DEP_MS=7*86400000,LINK_MAX_MS=28*3600000;
 const LINK_FINS_DEF=['10:00','19:30'],LINK_RELOCK_MS=15*60000;
+/* v5.113 (A654) — LES RÈGLES DE LA CONNEXION TEMPORAIRE, réglées dans Administration › Règles pour toute
+   l'application (`get_temp_rules`, schema.sql § 10ter). Grammaire FERMÉE, défauts = les paliers d'A647. Le
+   serveur rend opposables les INTERDITS et la durée ; l'app applique en plus les confirmations et le verrou. */
+const LINK_RULES_DEF={edit:'v15',del:'tel',repl:'non',exp:'oui',dur:28};
+function linkRulesNorm(o){o=(o&&typeof o==='object')?o:{};const r=Object.assign({},LINK_RULES_DEF);
+  if(['libre','v5','v15','tel','non'].includes(o.edit))r.edit=o.edit;
+  if(['tel','non'].includes(o.del))r.del=o.del;
+  if(['tel','non'].includes(o.repl))r.repl=o.repl;
+  if(['oui','non'].includes(o.exp))r.exp=o.exp;
+  if([12,24,28].includes(+o.dur))r.dur=+o.dur;
+  return r;}
+let _linkRules=null;
+function linkRules(){if(_linkRules)return _linkRules;let o=null;
+  try{o=JSON.parse(localStorage.getItem(spaceKey('ac-temp-rules'))||'null');}catch(e){}
+  return _linkRules=linkRulesNorm(o);}
+async function linkRulesFetch(){let r=null;try{r=await rpc('get_temp_rules',{});}catch(e){return;}
+  if(!r||typeof r!=='object')return;_linkRules=linkRulesNorm(r);
+  try{localStorage.setItem(spaceKey('ac-temp-rules'),JSON.stringify(_linkRules));}catch(e){}}
+function linkRelockMs(){return linkRules().edit==='v5'?5*60000:LINK_RELOCK_MS;}
 /* ── Fonctions PURES (testées) ── */
 // Le nombre de contrôle : déduit du SECRET, donc identique sur le poste (qui l'a tiré) et sur le
 // téléphone (qui l'a lu dans le QR) — et différent pour l'écran voisin. FNV-1a : un chiffre de
@@ -31602,10 +31632,11 @@ function linkInLbl(ms){const m=Math.max(0,Math.round(ms/60000)),h=Math.floor(m/6
    la prise de garde, et « 12 h » choisi à 13:00 finirait à 01:00 — mais l'heure où la garde se
    TERMINE. Les prochaines occurrences des deux repères entre 1 h et 28 h, dans l'ordre, trois au
    plus ; présélection : la première à 6 h ou plus. */
-function linkEndChoices(now,fins){fins=linkFinsNorm(fins);const out=[],d0=new Date(now);
+function linkEndChoices(now,fins,maxH){fins=linkFinsNorm(fins);const out=[],d0=new Date(now);
+  const lim=Math.min(LINK_MAX_MS,(+maxH>0?+maxH:28)*3600000);   // A654 : la durée maximale réglée dans Administration
   for(let k=0;k<3;k++)for(const f of fins){const [h,m]=f.split(':').map(Number);
     const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+k,h,m,0,0),dt=d.getTime()-now;
-    if(dt>=3600000&&dt<=LINK_MAX_MS)out.push({at:d.getTime(),k});}
+    if(dt>=3600000&&dt<=lim)out.push({at:d.getTime(),k});}
   out.sort((a,b)=>a.at-b.at);const v=out.slice(0,3);
   const di=v.findIndex(x=>x.at-now>=6*3600000);
   return v.map((x,i)=>({at:x.at,lbl:(x.k===0?'':x.k===1?'Demain ':'Après-demain ')+fmtHM(x.at),sub:linkInLbl(x.at-now),def:i===(di<0?v.length-1:di)}));}
@@ -31633,7 +31664,7 @@ function linkShared(){try{const o=JSON.parse(localStorage.getItem(LINK_KEY)||'nu
   return {id:o.id,key:o.key,uid:o.uid,endsAt:+o.endsAt,label:sstr(o.label,60),email:sstr(o.email,120)};}catch(e){return null;}}
 function linkSharedSet(o){try{localStorage.setItem(LINK_KEY,JSON.stringify(o));}catch(e){}}
 let _linkOpenMem=false;   // repli si sessionStorage refuse (navigation privée stricte)
-function linkLocked(){if(!linkShared())return false;if(_linkOpenMem)return false;
+function linkLocked(){if(!linkShared()||linkRules().edit==='libre')return false;if(_linkOpenMem)return false;
   try{return sessionStorage.getItem(LINK_OPEN_KEY)!=='1';}catch(e){return true;}}
 function linkMarkOpen(){_linkOpenMem=true;try{sessionStorage.setItem(LINK_OPEN_KEY,'1');}catch(e){}}
 /* REVERROUILLAGE APRÈS 15 MIN SANS GESTE (A643, décision de l'auteur) : le vrai risque d'un poste
@@ -31643,7 +31674,7 @@ function linkMarkOpen(){_linkOpenMem=true;try{sessionStorage.setItem(LINK_OPEN_K
    moment du clic serait trop tard, ce clic ayant déjà remis l'horloge à zéro. */
 let _linkGestAt=Date.now();
 ['pointerdown','keydown'].forEach(t=>document.addEventListener(t,()=>{const now=Date.now();
-  if(now-_linkGestAt>LINK_RELOCK_MS&&linkShared()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}
+  if(now-_linkGestAt>linkRelockMs()&&linkShared()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}
   _linkGestAt=now;},true));
 function linkFins(){try{return linkFinsNorm(JSON.parse(localStorage.getItem(spaceKey('ac-link-fins'))||'null'));}catch(e){return LINK_FINS_DEF.slice();}}
 function linkFinsSet(a){try{localStorage.setItem(spaceKey('ac-link-fins'),JSON.stringify(linkFinsNorm(a)));}catch(e){}}
@@ -31685,7 +31716,7 @@ const Link={
         <li>Sur un appareil où vous êtes connecté, ouvrez <b>Aides cognitives</b>.</li>
         <li>Touchez <b>Moi</b> › <b>Connecter un appareil</b>, puis visez ce code.</li>
         <li>Touchez le nombre <b>${linkCheckNum(secret)}</b>${kind==='unlock'?'.':', puis l’heure de fin de votre garde.'}</li></ol>
-        ${step?'<p class="pp-note">Sur un appareil temporaire, une suppression se confirme sur un appareil connecté, à chaque fois : elle est irréversible et touche aussi l’équipe.</p>'
+        ${step?'<p class="pp-note">Sur un appareil temporaire, ce geste se confirme sur un appareil connecté, à chaque fois (règle de votre administration).</p>'
           :kind==='unlock'?'<p class="pp-note">Consulter et reprendre une session restent libres. Créer, modifier et supprimer redemandent un appareil connecté après une réouverture du navigateur, et après 15 minutes sans geste.</p>'
           :'<p class="pp-note"><b>Connexion temporaire.</b> Vos aides restent sur cet appareil jusqu’à l’heure de fin choisie, puis s’effacent. Fermer le navigateur ne les perd pas, et une session en cours est sauvegardée en ligne toutes les 2 minutes.</p>'}
       </div></div><p class="pp-msg" id="lkSt" role="status"></p>`;
@@ -31792,7 +31823,7 @@ const Link={
       return this._msg(body,esc(E[p&&p.err]||'Code introuvable. Vérifiez la connexion, puis visez le code à nouveau.'));}
     const unlock=p.kind==='unlock';
     document.getElementById('linkModalTitle').textContent=unlock?'Déverrouiller cet appareil ?':'Connecter cet appareil ?';
-    const ch=unlock?[]:linkEndChoices(Date.now(),linkFins());let pick=null,end=(ch.find(x=>x.def)||{}).at||null,miss=0;
+    const ch=unlock?[]:linkEndChoices(Date.now(),linkFins(),linkRules().dur);let pick=null,end=(ch.find(x=>x.def)||{}).at||null,miss=0;
     const paint=()=>{body.innerHTML=`<div class="pp-dev">${uiIcon('monitor',20)}<span><b>${esc(p.label||'Appareil')}</b><span class="pp-sub">Code affiché il y a ${Math.max(0,+p.age_s||0)} s</span></span></div>
       <p class="pp-q" id="lkQn">1 · Le nombre affiché sur l’appareil</p>
       <div class="pp-pick" role="group" aria-labelledby="lkQn">${linkDecoys(L.secret).map(n=>`<button type="button" class="pp-n${pick===n?' on':''}" data-lkn="${n}" aria-pressed="${pick===n}">${n}</button>`).join('')}</div>
@@ -31921,7 +31952,19 @@ const Link={
   _ask:false};
 /* Le VERROU après réouverture : vrai = l'action est retenue (la fenêtre de déverrouillage s'ouvre,
    et l'action reprend une fois le téléphone d'accord). */
-function linkGate(fn){if(!linkLocked())return false;Link.start('unlock',fn);return true;}
+function linkGate(fn){if(!linkShared())return false;const e=linkRules().edit;
+  if(e==='non')return linkDeny('Créer ou modifier une aide ou un protocole');   // A654
+  if(e==='tel')return linkStepGate(fn);                                         // A654 : à chaque fois
+  if(!linkLocked())return false;Link.start('unlock',fn);return true;}
+/* A654 : SUPPRIMER suit sa règle — confirmer à chaque fois (défaut, A643) ou interdit. */
+function linkDelGate(fn){if(!linkShared())return false;if(linkRules().del==='non')return linkDeny('Supprimer');return linkStepGate(fn);}
+/* A654 : la confirmation ATTENDUE au milieu d'un geste (« Remplacer » à l'import) — vrai une fois l'appareil connecté
+   d'accord, faux si la fenêtre se ferme sans. */
+function linkStepAsk(){return new Promise(res=>{let done=false;
+  Link.start('unlock',()=>{done=true;res(true);},true);
+  const m=document.getElementById('linkModal');
+  const ob=new MutationObserver(()=>{if(!m.classList.contains('on')){ob.disconnect();if(!done)res(false);}});
+  ob.observe(m,{attributes:true,attributeFilter:['class']});});}
 /* SUPPRIMER sur un poste partagé : le téléphone à CHAQUE fois (A643, décision de l'auteur) — c'est
    irréversible (aucune corbeille à l'écran) et, dans une bibliothèque, cela touche toute l'équipe.
    Vrai = l'action est retenue ; elle reprend, une fois confirmée, sans redemander. */
@@ -32066,7 +32109,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules'];
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -32142,10 +32185,11 @@ let _admD=null,_admBusy=null;
 let _adm={sec:'home',from:'home',user:null,f:'all',q:'',lim:ADM_PAGE,sort:'todo',lf:'all',lq:'',llim:ADM_PAGE,lsort:'todo',sel:null,apAsk:null,modeAsk:null,mem:Object.create(null)};
 const admArr=v=>Array.isArray(v)?v.filter(x=>x&&typeof x==='object'):[];
 async function admLoad(){const T=p=>p.then(v=>({v}),e=>({e}));
-  const [st,acc,libs,reqs,mode,users,ap]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required'].map(n=>T(rpc(n))));
+  const [st,acc,libs,reqs,mode,users,ap,tr]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required','get_temp_rules'].map(n=>T(rpc(n))));
   let un=null;if(acc.e){const r=await T(rpc('list_unapproved_users'));un=r.e?null:admArr(r.v);}   // serveur d'avant v5.52 : la file seule
   _admD={t:Date.now(),stats:st.e?null:st.v,acc:acc.e?null:admArr(acc.v),un,libs:libs.e?null:admArr(libs.v),reqs:reqs.e?null:admArr(reqs.v),
-    mode:mode.e?null:mode.v,users:users.e?null:admArr(users.v),approval:ap.e?true:ap.v!==false};
+    mode:mode.e?null:mode.v,users:users.e?null:admArr(users.v),approval:ap.e?true:ap.v!==false,
+    temp:tr.e||!tr.v||typeof tr.v!=='object'?null:linkRulesNorm(tr.v)};
   (_admD.libs||[]).forEach(l=>{if(l.id)_admLibs[l.id]=l;});
   return _admD;}
 function admRefresh(force){if(_admBusy)return _admBusy;if(!force&&_admD&&Date.now()-_admD.t<30000){admPaintDoor();return Promise.resolve(_admD);}
@@ -32335,6 +32379,12 @@ function admLibsHtml(view){const D=_admD;
       .filter(x=>x[0]==='all'||x[2]||_adm.lf===x[0]).map(([k,l,n])=>`<button type="button" class="catchip${_adm.lf===k?' on':''}${k==='noadm'?' warn':''}" aria-pressed="${_adm.lf===k}" data-admlf="${k}" data-admk="lf-${k}">${esc(l)} <span class="adm-cn">${n}</span></button>`).join('')+'</div>';
   return h+`<div id="admList">${admLibListHtml()}</div><p class="adm-hint">Une rangée ouvre la bibliothèque : inviter, changer un rôle, retirer, renommer — même sans en être membre.</p>`;}
 /* ── Règles de l'instance ────────────────────────────────────────────────────────────────────── */
+const ADM_TEMP_ROWS=[
+  ['edit','Créer, modifier','une aide ou un protocole',[['libre','Libre'],['v5','Verrou 5 min'],['v15','Verrou 15 min'],['tel','Confirmer'],['non','Interdit']]],
+  ['del','Supprimer','une aide, un protocole, une sélection',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
+  ['repl','Remplacer une bibliothèque','à l’import',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
+  ['exp','Exporter, télécharger','le fichier reste dans les Téléchargements',[['oui','Permis'],['non','Interdit']]],
+  ['dur','Durée maximale','d’une connexion temporaire',[[12,'12 h'],[24,'24 h'],[28,'28 h']]]];
 function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.status==='pending'&&!u.is_admin).length;
   let h=admSubHead(view,'Règles de l’instance','Elles valent pour tous les comptes ; chaque changement se confirme.');
   /* NOUVEAUX COMPTES — l'interrupteur de l'ancienne fenêtre « Comptes en attente ». Couper agit AUSSI sur
@@ -32354,6 +32404,15 @@ function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.st
       h+=admSh('Personnes autorisées',pers.length,false,na?'+ '+na+' admin'+(na>1?'s':'')+', toujours':'')+`<div class="acct-card acct-list">`
         +pers.map(u=>menuRowHtml({label:u.email,ic:uiIcon('user',20),inert:true,tail:`<button type="button" class="btn sm" data-libcr="${esc(u.user_id)}" data-admk="cr-${esc(u.user_id)}">Retirer</button>`})).join('')
         +`<button type="button" class="catmenu-new" data-libcradd data-admk="cradd">＋ Autoriser une personne…</button></div>`;}}
+  /* v5.113 (A654) — LA CONNEXION TEMPORAIRE : ce qu'on peut faire sur un appareil du service, pour toute l'application.
+     Appliqué tout de suite (le serveur relit la règle à chaque écriture) ; l'administration et la suppression du compte
+     restent interdites, sans réglage. Ce réglage ne se modifie jamais depuis une connexion temporaire. */
+  h+=admSh('Connexion temporaire')+'<p class="adm-hint">Ce qu’on peut faire sur un appareil du service. Appliqué par le serveur, tout de suite, aux appareils déjà connectés ; jamais plus que le rôle du compte.</p>';
+  if(D.temp==null)h+=admSchema('v5.113','régler la connexion temporaire');
+  else h+='<div class="acct-card acct-list">'+ADM_TEMP_ROWS.map(([k,l,sub,opts])=>`<div class="adm-trow"><span class="adm-tx"><span class="adm-lb">${esc(l)}</span><span class="adm-sub">${esc(sub)}</span></span>
+      <span class="adm-tseg" role="radiogroup" aria-label="${esc(l)}">${opts.map(([v,t])=>`<button type="button" class="adm-topt${String(D.temp[k])===String(v)?' on':''}" role="radio" aria-checked="${String(D.temp[k])===String(v)}" data-trk="${k}" data-trv="${v}" data-admk="tr-${k}-${v}">${esc(t)}</button>`).join('')}</span></div>`).join('')
+    +`<div class="adm-trow"><span class="adm-tx"><span class="adm-lb">Administration, membres et rôles</span><span class="adm-sub">sinon, un appareil resté ouvert pourrait desserrer ces règles</span></span><span class="adm-tfix">${uiIcon('lock',14)}Toujours interdit</span></div>
+      <div class="adm-trow"><span class="adm-tx"><span class="adm-lb">Supprimer mon compte</span><span class="adm-sub">refusé aussi par le serveur</span></span><span class="adm-tfix">${uiIcon('lock',14)}Toujours interdit</span></div></div>`;
   if((D.reqs||[]).length)h+=admSh('Les autres demandent')+`<div class="acct-card acct-list">`+menuRowHtml({label:D.reqs.length+' demande'+(D.reqs.length>1?'s':'')+' de bibliothèque en attente',ic:uiIcon('book',20),attrs:'data-admgo="home" data-admk="go-req"',tail:admChev()})+'</div>';
   return h;}
 /* ── Rendu, onglets (vue large), gestes ──────────────────────────────────────────────────────── */
@@ -32421,6 +32480,10 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(x){err(x);}
       delete _adm.mem[u.user_id];admAfter();return;}
     if(t.dataset.admap!=null){_adm.apAsk=_adm.apAsk!=null?null:!_admD.approval;renderAdm();admFocusYes('ap');return;}
+    if(t.dataset.trk!=null){const k=t.dataset.trk,v=t.dataset.trv;if(_admD.temp&&String(_admD.temp[k])===v)return;   // A654
+      try{await rpc('set_temp_rules',{p_rules:{[k]:k==='dur'?+v:v}});}catch(x){err(x);renderAdm();return;}
+      _admD.temp=Object.assign({},_admD.temp,{[k]:k==='dur'?+v:v});_linkRules=null;await linkRulesFetch();
+      renderAdm();toast('✓ Règle enregistrée — elle s’applique aux appareils temporaires.');return;}
     if(t.dataset.libmode!=null){_adm.modeAsk=t.dataset.libmode===_admD.mode?null:t.dataset.libmode;renderAdm();admFocusYes('mode');return;}
     if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else _adm.modeAsk=null;renderAdm();return;}
     if(t.dataset.admyes==='ap'){const v=_adm.apAsk;_adm.apAsk=null;
@@ -32869,7 +32932,7 @@ function authCardHtml(){const k=_authStep.kind||null,m=_authStep.meth||'app';
     <div class="pp-tiles" role="radiogroup" aria-labelledby="authScT">${tile('temp',uiIcon('clock',16),'Temporaire','jusqu’à la fin de la garde, puis tout s’efface')}${tile('perm',uiIcon('infinity',16),'Permanente','vous restez connecté')}</div></div>
     ${body}
     <div class="pp-sc-foot"><span><b>Pas encore de compte ?</b> Créez-le sur votre propre appareil, avec votre adresse e-mail.</span><button type="button" class="btn sm" data-authnew>Créer un compte</button></div></div>`;}
-function authEndChoices(){return linkEndChoices(Date.now(),linkFins());}
+function authEndChoices(){return linkEndChoices(Date.now(),linkFins(),linkRules().dur);}
 function authEndAt(){const ch=authEndChoices();const c=ch.find(x=>x.at===_authStep.end)||ch.find(x=>x.def)||ch[0];return c?c.at:Date.now()+8*3600000;}
 function authEndLbl(){const at=authEndAt(),c=authEndChoices().find(x=>x.at===at);return c?c.lbl:fmtHM(at);}
 function authEndsHtml(){const at=authEndAt();
@@ -32952,7 +33015,12 @@ function renderAuthLogin(body){
       catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';return renderAuth();}
       /* A651 : CONNEXION TEMPORAIRE PAR E-MAIL — la session toute fraîche se déclare poste (`link_self`). Refusée, elle
          ne RESTE PAS ouverte : on avait choisi « Temporaire », une connexion durable ici serait l'inverse de ce choix. */
-      if(_authStep.temp){const err=await linkBecomeTemp(authEndAt());
+      if(_authStep.temp){
+        /* A654 : connecté, on lit enfin les règles ; une heure de fin au-delà de la durée maximale se ramène à la
+           dernière heure permise, et l'écran le dit. */
+        const voulu=authEndAt();await linkRulesFetch();const fin=authEndAt();
+        if(fin!==voulu)toast('Durée maximale fixée par votre administration : '+linkRules().dur+' h. Connecté jusqu’à '+fmtHM(fin)+'.',8000);
+        const err=await linkBecomeTemp(fin);
         if(err){try{await Auth.signOut();}catch(_){}
           _authStep.mode='email';_authStep.msgcls='err';
           _authStep.msg={refused:'Connexion temporaire impossible : votre compte doit d’abord être validé.',too_many:'Cinq appareils temporaires sont déjà connectés à votre compte : déconnectez-en un dans « Appareils connectés ».'}[err]||'La connexion temporaire n’a pas abouti. Vérifiez la connexion, puis réessayez.';
@@ -34089,6 +34157,7 @@ const Sync={
       if(myAccountStatus==='pending'){setSyncChip('pending','En attente de validation');return;}
       if(myAccountStatus==='rejected'){setSyncChip('rejected','Compte refusé');return;}
       await this.loadProfile();
+      await linkRulesFetch();   // A654
       await this._initIfNeeded();
       const conflicts=(await this._pull()).concat(await this._pullProtocols());
       // L'historique ne connaît pas de conflit à arbitrer : une session archivée ne se modifie
@@ -37162,7 +37231,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
