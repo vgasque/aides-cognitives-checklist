@@ -9243,41 +9243,63 @@
     border:1px solid var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink)}
   .rt-dock .cn-nm{color:var(--sys-ink-2)}
   .rt-dock .cn-nm:hover{background:var(--sys-2)}
-  /* A699 — LE VOLET DU TÉLÉPHONE EN TUILES (maquette validée, puis recadrée par la doctrine). Seize cibles empilées
-     occupaient les deux tiers de l'écran ; le DOM ne change pas (celui du rail), seule sa mise en page ici.
-     · MINUTEUR : « ↺ maintenir » monte à côté du temps et garde son mot écrit dans le bouton (A460) ; la commande
-       principale prend toute la rangée du bas. À L'ARRÊT ou en pause, la tuile ENTIÈRE lance (la cible de la commande principale
-       s'étend à la tuile : un seul bouton, pas de bouton dans un bouton, A576) ; EN MARCHE, seule « Pause » répond —
-       un tap égaré sur la tuile ne touche à rien. Relancer depuis zéro reste « ↺ maintenir » (A377).
-     · ÉCHU : « ✓ Vu » se pose à côté de la commande principale, dans la même rangée — aucune hauteur ne change (A9),
-       les trois sorties restent (A34). Une tuile échue ne s'étend pas : « Relancer » se vise.
-     · COMPTEUR : « − n + » sur une rangée, la valeur au milieu comme au rail (A506), le « + » large ; « Remettre à
-       zéro · maintenir » en bouton bas, cible portée à 44 px par son halo (règle 9). */
-  .rt-dock :is(.tmcard,.cncard){min-height:0;padding:8px}
-  .rt-dock .tmcard{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:6px}
-  .rt-dock .tmcard>*{flex:0 0 100%;min-width:0}
-  .rt-dock .tmcard .tm-ctrl{display:contents}
-  .rt-dock .tmcard>:is(.tm-label,.tm-meta){order:-3}
-  .rt-dock .tmcard>.tm-val{order:-2;flex:1 1 0}
-  .rt-dock .tmcard .tm-reset{order:-2;flex:0 0 auto;width:auto;padding-inline:6px}
-  .rt-dock .tmcard .tm-reset .tmr-hint{text-transform:none;letter-spacing:0}
-  .rt-dock .tmcard .tm-main{flex:1 1 100%;min-width:0;margin-top:8px}
-  .rt-dock .tmcard:has(.tm-ack) .tm-main{flex:1 1 0}
-  .rt-dock .tmcard .tm-ack{margin-top:8px}
-  .rt-dock .tmcard:not(.run,.due){position:relative}
+  /* A701 — LE VOLET DU TÉLÉPHONE, AU DESSIN DE LA MAQUETTE (remplace la mise en page d'A699, jugée à l'écran « pas du tout »
+     la maquette). Le DOM des cartes ne change pas (celui du rail, qui ne bouge pas) ; tout ceci vit sous `.rt-dock`.
+     · TUILE PLEINE, sans cadre : le nom, le temps en grand (les cycles à sa droite), UNE ligne d'action. « ▸ Démarrer »
+       en encre d'action ; en marche, « Pause » en encre neutre (ce qui tourne n'a pas de couleur, A407). La précision
+       entre parenthèses du nom (« 2 min ») ne paraît pas ici : à l'arrêt, le temps la dit déjà.
+     · À L'ARRÊT ou en pause, la tuile ENTIÈRE lance (la cible de la commande s'étend à la tuile par son `::after` : un
+       seul bouton, A576) ; EN MARCHE ou ÉCHUE, seul le bouton répond — un tap égaré ne touche à rien.
+     · RÉARMER / REMETTRE À ZÉRO = MAINTENIR LA TUILE (décision de l'auteur, sur captures : AMENDE A460 pour ce volet).
+       Le bouton « ↺ » reste dans le DOM pour le clavier et le lecteur d'écran — masqué à l'œil, il reparaît au focus ;
+       la consigne est écrite UNE fois, sous les tuiles (`.rt-hold`). La jauge du maintien se peint sur la tuile.
+     · ÉCHU : « ✓ Vu » à côté de la commande, même rangée — aucune hauteur ne change (A9) ; le nom réserve deux lignes.
+     · COMPTEUR : « − n ＋ 1 » sur une rangée, la valeur au milieu (A506), le « ＋ 1 » large en masse tonale (C134) ;
+       la ligne « consigné… » réserve SA ligne (un incrément ne déplace rien) et tient sur une.
+     · « ＋ Minuteur » et « ＋ Compteur » partagent UNE rangée, sous les tuiles. */
+  .rt-dock :is(.tmcard,.cncard){position:relative;min-height:0;padding:12px;border-color:transparent;border-radius:var(--r-4)}
+  .rt-dock .tmcard{--tbd:transparent;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:baseline;align-content:start}
+  .rt-dock .tmcard>:is(.tm-label,.tm-bar-wrap,.tm-kind,.tm-stop,.tm-ctrl){grid-column:1/-1}
+  .rt-dock .tmcard>.tm-meta{display:none}
+  .rt-dock .tmcard>.tm-val{order:1}
+  .rt-dock .tmcard>.tm-cyc{order:2;margin:0}
+  .rt-dock .tmcard>:is(.tm-bar-wrap,.tm-kind){order:3}
+  .rt-dock .tmcard>.tm-stop{order:4}
+  .rt-dock .tmcard>.tm-ctrl{order:5}
+  /* Le nom garde son corps de 11 px (`--t-cap`) : à 12, un nom tenant sur une ligne en prenait deux en colonne étroite,
+     et le témoin A9 (« une ligne au nominal, deux en échéant ») ne prouvait plus rien. */
+  .rt-dock .tmcard .tm-label{margin-bottom:2px}
+  .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-val);font-weight:600}
+  .rt-dock .tmcard .tm-bar-wrap{margin-top:4px}
+  .rt-dock .tmcard:not(.run,.paused,.due) .tm-bar-wrap{visibility:hidden}
+  .rt-dock .tmcard .tm-ctrl{flex-direction:row;flex-wrap:nowrap;gap:8px;margin-top:4px}
+  .rt-dock .tmcard .tm-main{flex:1 1 0;min-width:0;justify-content:flex-start;padding-inline:0;border-color:transparent;background:none;font-size:var(--t-body);font-weight:700;color:var(--act)}
+  .rt-dock .tmcard.run .tm-main{color:var(--sys-ink)}
+  /* La nuit, `--act` sur la tuile ne tient que 3,8:1 (mesuré, `audit-a11y`) : la commande y passe en encre système — le
+     glyphe ▸ et le mot disent l'action. */
+  [data-theme="dark"] .rt-dock .tmcard .tm-main{color:var(--sys-ink)}
   .rt-dock .tmcard:not(.run,.due) .tm-main{position:static}
   .rt-dock .tmcard:not(.run,.due) .tm-main::after{inset:0}
-  .rt-dock .tmcard:not(.run,.due) .tm-reset{z-index:1}
-  .rt-dock .cncard{display:grid;grid-template-columns:44px minmax(28px,auto) minmax(0,1fr);column-gap:6px;align-items:center;text-align:left}
-  .rt-dock .cncard>:is(.tm-label,.cn-log,.cn-note,.cn-reset){grid-column:1/-1}
-  .rt-dock .cncard>.tm-label{justify-content:flex-start}
+  /* Le « ↺ » : hors de l'œil, pas hors du clavier (WCAG 2.5.1 : jamais un geste obligatoire). */
+  .rt-dock :is(.tmcard,.cncard) .tm-reset{position:absolute;top:6px;right:6px;z-index:2;width:auto;margin:0;background:var(--work)}
+  /* Hors focus : une boîte de taille NULLE (ni cible ni texte à l'écran), mais toujours dans l'ordre de tabulation.
+     Ni `pointer-events:none` (A68/4 : rien n'est inerte au pointeur) ni `opacity:0` (ses textes se mesureraient 1:1). */
+  .rt-dock :is(.tmcard,.cncard) .tm-reset:not(:focus-visible){width:0;height:0;min-width:0;min-height:0;padding:0;border:0;overflow:hidden}
+  /* La jauge du maintien, sur la tuile : le même remplissage que le bouton « maintenir » (`holdfill`). */
+  .rt-dock :is(.tmcard,.cncard).tile-hold{background-image:linear-gradient(color-mix(in srgb,var(--crit-line) 45%,transparent),color-mix(in srgb,var(--crit-line) 45%,transparent));background-repeat:no-repeat;background-size:0 100%;animation:holdfill 800ms linear forwards}
+  .rt-dock .cncard{display:grid;grid-template-columns:44px minmax(32px,auto) minmax(0,1fr);column-gap:8px;align-items:center;text-align:left}
+  .rt-dock .cncard>:is(.tm-label,.cn-log,.cn-note){grid-column:1/-1}
+  .rt-dock .cncard>.tm-label{justify-content:flex-start;margin-bottom:6px}
   .rt-dock .cncard .cn-ctrl{display:contents}
   .rt-dock .cncard .cn-btn{grid-row:2;flex:none;min-width:0}
-  .rt-dock .cncard .cn-btn[data-cndec]{grid-column:1}
-  .rt-dock .cncard .cn-btn[data-cninc]{grid-column:3}
+  .rt-dock .cncard .cn-btn[data-cndec]{grid-column:1;border-color:transparent;background:none;font-size:var(--t-step-l)}
+  .rt-dock .cncard .cn-btn[data-cninc]{grid-column:3;border-color:transparent;border-radius:var(--r-2);background:var(--primary-soft);color:var(--act);font-weight:800}
+  .rt-dock .cncard .cn-btn[data-cninc]::after{content:" 1";white-space:pre}
   .rt-dock .cncard .cn-val{grid-row:2;grid-column:2;text-align:center}
-  .rt-dock .cncard .cn-reset{position:relative;width:100%;min-width:0;min-height:34px;margin:12px 0 0;padding-block:2px}
-  .rt-dock .cncard .cn-reset::after{content:"";position:absolute;inset:-5px 0}
+  .rt-dock .cncard .cn-log{min-height:1lh;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--f-ui);font-weight:600}
+  .rt-hold{margin:10px 4px 0;font-size:var(--t-meta);font-weight:600;color:var(--sys-ink-2)}
+  .rt-adds{display:flex;gap:8px;margin-top:4px}
+  .rt-adds .rt-add{flex:1 1 0;margin-top:0;border-color:transparent;justify-content:flex-start;color:var(--act);font-size:var(--t-body)}
   .cn-btn[data-cninc]{flex:1.4;background:var(--primary-soft);border:0;color:var(--act);font-weight:800}
   .cn-btn[data-cninc]:hover{background:var(--primary-100)}
   .cn-btn[data-cndec]{width:44px}
@@ -9614,34 +9636,34 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmwb0fu691t64dgp1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmwb70ljs1lflbm8j"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
           
         </div>
-        <button class="pinbtn on" data-pin="fmwb0fu691t64dgp1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmwb70ljs1lflbm8j" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
         
-      </div></div></div></div></div><section class="hc-sec" aria-labelledby="hcT"><h2 class="hc-sh" data-grptt="Vos collections">Vos collections<span class="hc-hint">pour vous</span><span class="hc-shn">2</span></h2><div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row" data-hcoll="kmwb0fufo9jnls6o6" data-grptt="Bloc pédia" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Bloc pédia</span><span class="hc-cnt">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><button type="button" class="hc-row" data-hcoll="kmwb0fufo17pzdmqd" data-grptt="Garde SMUR" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Garde SMUR</span><span class="hc-cnt">2</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div></div></div></section><h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">par catégorie</span><span class="hc-shn">2</span></h2><div class="dir-book tout by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l" data-grptt="SMUR"><button type="button" class="dir-lt" data-gfold="cat:SMUR" aria-expanded="true"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="dir-grid">
+      </div></div></div></div></div><section class="hc-sec" aria-labelledby="hcT"><h2 class="hc-sh" data-grptt="Vos collections">Vos collections<span class="hc-hint">pour vous</span><span class="hc-shn">2</span></h2><div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row" data-hcoll="kmwb70ltd156prck1" data-grptt="Bloc pédia" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Bloc pédia</span><span class="hc-cnt">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><button type="button" class="hc-row" data-hcoll="kmwb70ltd1h82v1vu" data-grptt="Garde SMUR" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Garde SMUR</span><span class="hc-cnt">2</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div></div></div></section><h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">par catégorie</span><span class="hc-shn">2</span></h2><div class="dir-book tout by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l" data-grptt="SMUR"><button type="button" class="dir-lt" data-gfold="cat:SMUR" aria-expanded="true"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmwb0fu691t64dgp1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmwb70ljs1lflbm8j"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
           
         </div>
-        <button class="pinbtn on" data-pin="fmwb0fu691t64dgp1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmwb70ljs1lflbm8j" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
         
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l" data-grptt="Urgences"><button type="button" class="dir-lt" data-gfold="cat:Urgences" aria-expanded="true"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmwb0fu601fol9r84"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmwb70ljo18208nca"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
           
         </div>
-        <button class="pinbtn" data-pin="fmwb0fu601fol9r84" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmwb70ljo18208nca" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
         
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>
@@ -9651,34 +9673,34 @@
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmwb0fu691t64dgp1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmwb70ljs1lflbm8j"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
           
         </div>
-        <button class="pinbtn on" data-pin="fmwb0fu691t64dgp1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmwb70ljs1lflbm8j" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
         
-      </div></div></div></div></div><section class="hc-sec" aria-labelledby="hcT"><h2 class="hc-sh" data-grptt="Vos collections">Vos collections<span class="hc-hint">pour vous</span><span class="hc-shn">2</span></h2><div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row" data-hcoll="kmwb0fufo9jnls6o6" data-grptt="Bloc pédia" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Bloc pédia</span><span class="hc-cnt">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><button type="button" class="hc-row" data-hcoll="kmwb0fufo17pzdmqd" data-grptt="Garde SMUR" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Garde SMUR</span><span class="hc-cnt">2</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div></div></div></section><h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">par catégorie</span><span class="hc-shn">2</span></h2><div class="dir-book tout by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l" data-grptt="SMUR"><button type="button" class="dir-lt" data-gfold="cat:SMUR" aria-expanded="true"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="dir-grid">
+      </div></div></div></div></div><section class="hc-sec" aria-labelledby="hcT"><h2 class="hc-sh" data-grptt="Vos collections">Vos collections<span class="hc-hint">pour vous</span><span class="hc-shn">2</span></h2><div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row" data-hcoll="kmwb70ltd156prck1" data-grptt="Bloc pédia" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Bloc pédia</span><span class="hc-cnt">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button><button type="button" class="hc-row" data-hcoll="kmwb70ltd1h82v1vu" data-grptt="Garde SMUR" aria-expanded="false"><span class="hc-ic" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"></path></svg></span><span class="hc-n">Garde SMUR</span><span class="hc-cnt">2</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div></div></div></section><h2 class="hc-sh hc-tout" data-grptt="Tout">Tout<span class="hc-hint">par catégorie</span><span class="hc-shn">2</span></h2><div class="dir-book tout by-cat"><div class="dir-g" data-azg="SMUR"><div class="dir-l" data-grptt="SMUR"><button type="button" class="dir-lt" data-gfold="cat:SMUR" aria-expanded="true"><span class="dir-dot" style="--catcol:#905a39" aria-hidden="true"></span><span class="dir-ll">SMUR</span><span class="dir-lr"></span><span class="dir-ln">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#905a39">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmwb0fu691t64dgp1"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
+          <button class="card-open" data-open="fmwb70ljs1lflbm8j"><span class="dir-t">Arrêt cardiaque (ACR) — algorithme</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat m-dur"><span class="cat-dot" style="--catcol:#905a39"></span>SMUR</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
           
         </div>
-        <button class="pinbtn on" data-pin="fmwb0fu691t64dgp1" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn on" data-pin="fmwb70ljs1lflbm8j" aria-label="Désépingler" title="Désépingler"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
         
       </div></div></div><div class="dir-g" data-azg="Urgences"><div class="dir-l" data-grptt="Urgences"><button type="button" class="dir-lt" data-gfold="cat:Urgences" aria-expanded="true"><span class="dir-dot" style="--catcol:#7a2f6b" aria-hidden="true"></span><span class="dir-ll">Urgences</span><span class="dir-lr"></span><span class="dir-ln">1</span><span class="dir-chev" aria-hidden="true"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button></div><div class="dir-grid">
       <div class="dir-row has-av" style="--catcol:#7a2f6b">
         <span class="dir-av" aria-hidden="true"></span>
         <div class="dir-main">
-          <button class="card-open" data-open="fmwb0fu601fol9r84"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
+          <button class="card-open" data-open="fmwb70ljo18208nca"><span class="dir-t">Anaphylaxie (choc anaphylactique)</span></button>
           <span class="dir-sub"><span class="dir-id"><span class="dir-cat"><span class="cat-dot" style="--catcol:#7a2f6b"></span>Urgences</span><b class="dir-disc">adulte</b></span><span class="dir-st b">△ À relire</span></span>
           
           
         </div>
-        <button class="pinbtn" data-pin="fmwb0fu601fol9r84" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
+        <button class="pinbtn" data-pin="fmwb70ljo18208nca" aria-label="Épingler en accès direct" title="Épingler en accès direct"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.8 6.3.6-4.7 4.2 1.3 6.2L12 16.6 6.4 19.8l1.3-6.2L3 9.4l6.3-.6L12 3z"></path></svg></button>
         
       </div></div></div></div></div></div>
 <p class="ds-cap">Capture réelle, accueil au téléphone (A347, A389, A475) : tuiles d’Accès direct (liseré de catégorie 6 px), rangée « Mes collections · à vous seul », ligne de COMPTE qui porte « Sélectionner », puis les cartes rangées par catégorie — identité à gauche (nature · discriminant · ● catégorie · bibliothèque), UN état en mots à droite (A338, A422), étoile d’épinglage. La couleur de catégorie ne vit que dans le liseré et la pastille.</p></div>

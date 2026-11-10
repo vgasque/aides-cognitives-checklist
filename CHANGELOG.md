@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.119.0] — 2026-11-10
+Le volet des minuteurs et compteurs du téléphone, redessiné (A701). Rien à faire côté serveur.
+- **Des tuiles pleines.** Dans le volet de la capsule, au téléphone, chaque minuteur est une tuile sans cadre : son nom,
+  le temps en grand, le nombre de cycles à côté, et une seule ligne d'action. Chaque compteur tient sur une ligne :
+  « − », la valeur, « ＋ 1 ».
+- **Toucher une tuile à l'arrêt la lance**, où qu'on touche. Un minuteur en marche ne répond qu'à son bouton « Pause » :
+  un tap à côté ne fait rien.
+- **Maintenir une tuile la réarme ou la remet à zéro** (un peu moins d'une seconde, une jauge se remplit). Les boutons
+  « ↺ maintenir » et « Remettre à zéro » ne sont plus affichés dans ce volet ; la consigne est écrite une fois, sous les
+  tuiles. Un minuteur en marche ne se réarme pas : « Pause » d'abord.
+- **Au clavier**, le bouton de remise à zéro existe toujours : il paraît quand la tabulation l'atteint, et Entrée agit.
+- **« ＋ Minuteur » et « ＋ Compteur »** sont sur une seule ligne, sous les tuiles.
+- **Le volet s'arrête après ses instruments** : les jalons, le journal et les réglages du son sont juste en dessous, en
+  faisant défiler le volet. Le bas de l'étape en cours reste visible.
+- **Prendre en main** : le geste « Lire le chrono et les minuteurs » et l'étape du parcours guidé sur la capsule
+  décrivent les tuiles, le toucher et le maintien.
+- Le bureau ne change pas.
+
 ## [5.118.0] — 2026-11-10
 La frise du compte-rendu (A700). Rien à faire côté serveur.
 - **Compte-rendu de session : une frise avant la chronologie.** Sur un axe de temps qui va du début à la fin de la
@@ -343,9 +361,3 @@ Atelier d'import (A622), cases rondes et vocabulaire (A623), tâches liées (A62
 - **Sélection de blocs à la souris** : un glisser parti du texte sélectionne du texte ; un glisser parti de la marge
   trace un cadre qui prend les blocs ; un clic ailleurs désélectionne ; « Ajouter » s'efface pendant la sélection.
 - **« Modifier » s'ouvre tout de suite**, sans attendre le serveur (la vérification des droits se fait en arrière-plan).
-
-## [5.109.6] — 2026-11-08
-Sous-ligne des rangées (A621). Rien à rejouer côté serveur.
-- **Le « · » ne commence plus une ligne** : quand la ligne de détails d'une aide passe à la ligne (« △ À relire »,
-  pastille « Cours DESMU »…), le point reste au bout de la ligne précédente et la suivante commence au mot, sans
-  décalage.

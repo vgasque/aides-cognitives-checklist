@@ -271,8 +271,9 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   rien recevoir — c'est ce qui rendait deux survols inertes pendant des versions.
 - Action destructrice en crise = geste **« maintenir »** (jauge qui se remplit ; « Terminer »
   se maintient 1,2 s, et le dit DANS le bouton — A346, A460), jamais un simple tap ; la réinitialisation d'un minuteur ANNONCE ce qu'elle
-  redonnera (« ↺ 05:00 »). Dans le volet du téléphone (A699), « ↺ maintenir » se tient à côté du temps ; une
-  tuile de minuteur à l'arrêt lance au toucher, une tuile en marche ne répond que par « Pause ».
+  redonnera (« ↺ 05:00 »). EXCEPTION, par décision de l'auteur (A701) : dans le volet du téléphone, on maintient
+  la TUILE — la consigne est écrite une fois sous les tuiles, le « ↺ » ne paraît qu'au focus clavier. Une tuile de
+  minuteur à l'arrêt lance au toucher ; en marche, seul « Pause » répond.
 - **Garde temporelle 700 ms** (`.guarded`, opacité réduite) entre deux boutons
   « retour » empilés — un double-tap ne doit jamais franchir deux niveaux (ECAM). La
   même garde couvre le retour SYSTÈME (geste Android), qui emprunte le chemin de
