@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.116.1] — 2026-11-10
+Les sept points restés ouverts de l'audit de sécurité (A689-A693, A695-A697).
+**À faire côté serveur : rejouer `supabase/schema.sql`, puis redéployer la fonction `link-claim`** (dans cet ordre ;
+aucun ordre n'est bloquant). `supabase/rls-tests.sql` pour vérifier.
+- **Documents PDF** : un document appartient à un seul espace. Dupliquer une aide ou un protocole d'une bibliothèque
+  vers Perso lui donne ses propres PDF — deux exemplaires, comptés deux fois au quota, qui vivent ensuite séparément.
+  Un élément écrit par quelqu'un d'autre ne peut plus faire partir un de vos PDF personnels vers une bibliothèque. Au
+  premier lancement, les copies issues d'anciennes duplications reçoivent leur exemplaire. Si un PDF n'est pas sur
+  l'appareil au moment de dupliquer, la copie ne le cite pas, et le message le dit.
+- **Appareil connecté temporairement** : la règle « créer, modifier » couvre aussi les catégories d'une bibliothèque,
+  les notes et le suivi ; une suppression ne peut plus modifier le contenu au passage. La confirmation est désormais
+  exigée par le serveur, plus seulement par l'app : passé 5 ou 15 minutes après le dernier accord, un envoi attend un
+  nouvel accord (« Confirmer pour envoyer »). En usage normal, le nombre de gestes ne change pas.
+- **Connexion d'un appareil** : la fonction serveur ne rend plus que l'identifiant et l'adresse du compte, et un même
+  lien ne se réclame que cinq fois.
+- **Aides et protocoles reçus** : un champ que l'application ne connaît pas est gardé s'il est petit, retiré s'il est
+  lourd — un appareil pas encore à jour n'efface donc pas les champs d'une version plus récente.
+- **Recherche dans les PDF** : l'indexation s'arrête à 5 000 pages par document, retient un document qui l'a fait
+  échouer trois fois (il est alors dit illisible ; « Réindexer » le rouvre), et n'indexe jamais pendant une session.
+- **Outillage** : les actions de la CI sont épinglées par empreinte.
+
 ## [5.116.0] — 2026-11-10
 Invitation avec acceptation, et quotas réglables (A685-A688) — les deux derniers points de l'audit de sécurité.
 **À faire côté serveur : rejouer `supabase/schema.sql`**, puis `supabase/rls-tests.sql` pour vérifier.
@@ -313,11 +334,3 @@ Sélection depuis l'accueil (A619). Rien à rejouer côté serveur.
   l'Accès direct, l'accueil ne bascule plus sur la liste complète des aides (la rangée pressée partait ailleurs et la
   page sautait). Chaque rangée prend sa case ; une aide présente à deux endroits est cochée aux deux ; « Annuler »
   rend l'accueil tel qu'il était.
-
-## [5.109.3] — 2026-11-08
-Barre de sélection en bas sur tablette et ordinateur (A618). Rien à rejouer côté serveur.
-- **La barre sombre de la sélection descend aussi en large** : sur tablette et ordinateur, quand on coche des éléments
-  dans la liste (accueil ou catalogue « Tout »), elle ne reste plus collée en haut de la liste ; elle flotte en bas
-  de la colonne principale, comme le dock du téléphone (même hauteur, même pilule, 24 px du bas). La case « Tout
-  cocher » et la croix restent sur la ligne ; la liste garde de la place en bas pour que la dernière rangée reste
-  atteignable.
