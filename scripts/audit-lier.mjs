@@ -572,6 +572,10 @@ await ctx.close();
   // Fenêtre FERMÉE au serveur : l'aide est retenue — rien ne part, rien ne crie, l'onglet se reverrouille.
   st10.touch = { ok: true, rule: 'v15', open: false, del_open: false };
   const n0 = aTable();
+  /* Une synchro déjà EN VOL rendrait `Sync.full()` sans rien faire (elle est à vol unique) : l'aide posée juste
+     après ne serait pas vue, donc pas retenue, et l'onglet ne se reverrouillerait pas — rouge en CI (runner lent),
+     vert ici. On attend qu'elle ait fini, comme en section 9. */
+  await pg.waitForFunction(() => !Sync.running, null, { timeout: 15000 });
   await pg.evaluate(async () => { const f = blankFiche(); f.title = 'Aide du poste B'; f.dirty = true; fiches.push(f); await Data.put(f); window.__fB = f.id;
     Sync.lastError = null; await Sync.full(); await Link.watch(); });
   const idB = await pg.evaluate(() => __fB);
