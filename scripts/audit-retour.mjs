@@ -132,5 +132,27 @@ console.log('=== retour SYSTÈME : un parcours d’historique EN RETARD ne fait 
      h.app&&h.ouvert===1&&charges===c0&&h.go===1&&h.d===0&&h.L===0, JSON.stringify({...h,url:q.url(),charges:charges-c0}));
    if(!h.app)break;}
  await q.close();}
+console.log('=== retour SYSTÈME : le filet d’un parcours déjà arrivé ne relance pas le suivant (A657) ===');
+/* Vu en CI (doctrine « aucun rognage », 390 px) : la fermeture de l'écran d'accueil lance un premier
+   `history.go` ; son filet échoit 1 s plus tard, PENDANT le parcours de la fermeture du Plan, encore
+   en route. Il lisait `_hSkip` (celui du second parcours) et une profondeur « changée », se recalait
+   et relançait `history.go` : double recul, l'aide se refermait (`state.fiche` nul). Reproduit en
+   calant la seconde fermeture ~900 ms après le premier parcours, et en différant la seconde seule. */
+{const q=await br.newPage({viewport:{width:1000,height:950}});
+ q.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await q.goto(`http://localhost:${port}/index.html`);await amorce(q);
+ const h=await q.evaluate(async()=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+   const g=window.__acGo||(window.__acGo=history.go.bind(history));let n=0,t1=0;
+   history.go=k=>{n++;if(n===1){t1=performance.now();g(k);}else setTimeout(()=>g(k),400);};
+   openCatMgr();await __acCalme(400);_topModal().querySelector('.ai-x').click();await __acCalme(100);   // 1er parcours, immédiat
+   if(!t1)return {err:'aucun history.go à la fermeture de la fenêtre'};
+   openRead(fiches[0].id);await __acCalme(150);openPlanSheet();await __acCalme(150);
+   const due=t1+900-performance.now();if(due>0)await wt(due);
+   document.getElementById('planX').click();                                              // 2ᵈ parcours, en route quand le filet du 1er échoit
+   await wt(2000);   // horloge : laisser échoir le filet du 1er parcours (1 s) puis arriver le 2ᵈ (+ 0,4 s)
+   return {go:n,view:state.view,fiche:!!state.fiche,d:history.state&&history.state.d,L:_histLevels(),tard:Math.round(performance.now()-t1)};});
+ t('fermer une feuille ~0,9 s après une autre fermeture, parcours lent : UN seul recul, l’aide reste ouverte, pile alignée',
+   !h.err&&h.go===2&&h.view==='read'&&h.fiche&&h.d===h.L&&h.L===1, JSON.stringify(h));
+ await q.close();}
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);process.exit(ko?1:0);

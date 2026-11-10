@@ -424,6 +424,10 @@ await ctx.close();
   t('« Créer » refusé : « Appareil déconnecté », l’éditeur ne s’ouvre pas', /Appareil déconnecté/.test(g.creer) && g.vueCreer !== 'edit', JSON.stringify(g));
   t('… aucune NOUVELLE session ne démarre', g.demarre === false && !g.started && /Appareil déconnecté/.test(g.sess), JSON.stringify(g));
   t('… la bande de l’accueil le dit', /Déconnecté depuis un autre appareil/.test(g.band), g.band);
+  /* Une synchro lancée AVANT la déconnexion (celle de la connexion) peut encore être en vol sous charge : on attend
+     qu'elle soit retombée — ce contrôle-ci mesure qu'une synchro NOUVELLE ne part pas ; celle qui était en vol a son
+     propre témoin (section 6 bis, A658). */
+  await pg.waitForFunction(() => !Sync.running, null, { timeout: 15000 });
   const tables = [];
   pg.on('request', q => { if (/\/rest\/v1\/(?!rpc)/.test(q.url())) tables.push(q.url()); });
   await pg.evaluate(() => Sync.full());
@@ -437,6 +441,50 @@ await ctx.close();
     const m = document.getElementById('linkModal').classList.contains('on'); return { over, m, vue: state.view }; });
   t('rechargé : toujours fini, « Créer » toujours refusé', rl.over && rl.m && rl.vue !== 'edit', JSON.stringify(rl));
   await c8.close();
+}
+{
+  console.log('\n── 6 bis. Déconnecté PENDANT une synchro : elle s’arrête, et n’efface rien sur la foi des tables fermées (A658)');
+  /* Trouvé par la passe complète : le contrôle « la synchro ne tourne plus » rougissait sous charge — la synchro de la
+     connexion était encore en vol. Ce n'était pas un faux rouge : `Sync.full` ne regardait `linkOver()` qu'à l'entrée, et
+     ses étapes suivantes partaient contre des tables qui, déconnecté, répondent du VIDE (`link_dead`) — la réconciliation
+     effaçait alors les aides de bibliothèque de l'appareil. Reproduit à coup sûr : tables ralenties (300 ms), une synchro
+     lancée, la déconnexion apprise pendant qu'elle tourne. Rouge sur le code d'avant : 9 requêtes après, aide effacée. */
+  const c9 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st9 = { verifyOk: true, rules: { edit: 'libre', del: 'tel', repl: 'non', exp: 'oui', dur: 28 } }, vu9 = {};
+  const b9 = bouchon(st9, vu9);
+  await c9.route('**/*.supabase.co/**', async route => {
+    if (st9.lent && /\/rest\/v1\/(?!rpc)/.test(route.request().url())) await new Promise(r => setTimeout(r, 300));   // horloge : une table lente, pour que la synchro soit EN VOL
+    return b9(route); });
+  const pg = await c9.newPage();
+  await pg.goto(URL0); await amorce(pg);
+  await pg.evaluate(() => openAuth());
+  await pg.click('[data-authk="temp"]'); await pg.click('[data-autht="email"]');
+  await pg.fill('#authEmail', 'kim@test.local'); await pg.click('#authSend');
+  await pg.waitForSelector('#authCode'); await pg.fill('#authCode', '48207312'); await pg.click('#authVerify');
+  await apres(pg, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'), UID);
+  await pg.evaluate(async () => { await linkRulesFetch(); Link.close(); });
+  await pg.waitForFunction(() => !Sync.running, null, { timeout: 15000 });
+  await pg.evaluate(async () => {
+    const f = blankFiche(); f.title = 'Aide de la bibliothèque'; f.library = 'lib1'; f.dirty = false; fiches.push(f); await Data.put(f);
+    window.__fid = f.id;
+    // Une session terminée pas encore envoyée retient l'effacement de l'appareil (comme en 6) : on observe la synchro, pas l'effacement.
+    await Data.putSession({ id: 's-poste-y', ficheId: f.id, ficheTitle: 'x', savedAt: Date.now(), startedAt: Date.now() - 6e4, live: false, dirty: true,
+      checked: {}, verified: {}, vgaps: {}, counters: {}, timers: {}, nav: [], navSeq: [], events: [] }); });
+  st9.lent = true;
+  const tables = []; let apres9 = false;
+  pg.on('request', q => { if (/\/rest\/v1\/(?!rpc)/.test(q.url())) tables.push({ u: q.url().replace(/^.*\/rest\/v1\//, ''), apres: apres9 }); });
+  const enVol = await pg.evaluate(() => { Sync.full(); return Sync.running; });
+  st9.poll = { ok: true, status: 'revoked', ends_at: new Date(Date.now() + 9 * 3600e3).toISOString() };
+  await pg.evaluate(() => Link.watch());
+  await pg.waitForFunction(() => linkOver(), null, { timeout: 8000 });
+  apres9 = true;
+  await pg.waitForFunction(() => !Sync.running, null, { timeout: 15000 });
+  const r = await pg.evaluate(async () => ({ mem: fiches.some(x => x.id === __fid), disque: !!(await Data.getAll()).find(x => x.id === __fid) }));
+  const lus = tables.filter(x => x.apres).map(x => x.u);
+  t('témoin : la synchro était EN VOL quand la déconnexion est apprise', enVol === true && tables.some(x => !x.apres), JSON.stringify(tables.slice(0, 3)));
+  t('… elle n’enchaîne plus d’étape : aucune réconciliation après (`?select=id`)', !lus.some(u => /select=id$/.test(u)), JSON.stringify(lus));
+  t('… et l’aide de la bibliothèque est toujours là (mémoire ET disque)', r.mem && r.disque, JSON.stringify(r));
+  await c9.close();
 }
 {
   console.log('\n── 7. L’heure de fin passe EN PLEINE SESSION : la session continue jusqu’au bout (règle 11, A655)');
