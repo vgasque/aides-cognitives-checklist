@@ -21,8 +21,10 @@
 //     Précaché à l'installation (chargé paresseusement par la page, un premier usage hors ligne
 //     échouerait sinon) ; les fichiers déjà présents ne sont pas re-téléchargés.
 //   - skipWaiting + clients.claim : le nouveau worker prend la main tout de suite.
-//     La page, elle, affiche un toast « application mise à jour » quand un nouveau worker
-//     s'active (voir l'enregistrement du SW en fin d'index.html) — jamais de reload forcé.
+//     La page, elle, affiche le BANDEAU « Nouvelle version disponible — rechargez la page »
+//     (#sysBanner) quand un nouveau worker s'active ; le toast « Application mise à jour » ne
+//     sort que si elle tourne déjà la nouvelle version (voir l'enregistrement du SW en fin
+//     d'index.html) — jamais de reload forcé.
 //   - À l'activation : on supprime les anciens caches (sauf le cache pdf.js courant).
 //
 //  IMPORTANT : ce worker ne touche JAMAIS à IndexedDB ('ac-db') ni au
@@ -30,7 +32,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v5.114.1';
+const CACHE = 'aides-cognitives-v5.115.0';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -188,6 +190,20 @@ self.addEventListener('activate', e => {
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'sw-version' && e.source)
     e.source.postMessage({ type: 'sw-version', version: CACHE });
+});
+
+/* A659 — CLIC SUR UNE NOTIFICATION D'ALARME. La page les émet par `registration.showNotification`
+   (Chrome Android refuse `new Notification()` hors worker) ; le clic revient donc ICI. On ramène une
+   fenêtre de l'app au premier plan et on lui dit quelle aide ouvrir ; sans fenêtre, on en ouvre une
+   sur le lien direct `#a=<id>` (A463). Aucun push serveur : ces notifications naissent dans la page. */
+self.addEventListener('notificationclick', e => {
+  const fid = String((e.notification.data || {}).fid || '');
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+    const c = cs[0];
+    if (c) { c.postMessage({ type: 'notif-open', fid }); return c.focus(); }
+    return self.clients.openWindow('./' + (fid ? '#a=' + encodeURIComponent(fid) : ''));
+  }));
 });
 
 self.addEventListener('fetch', e => {

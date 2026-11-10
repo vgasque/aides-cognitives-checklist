@@ -13,7 +13,7 @@ planches publiées (artefacts privés de l'auteur) :
 - les deux options de chaque question binaire, côte à côte ;
 - la rangée groupée éprouvée contre la sélection, une liste cochable, des compteurs, des minuteurs, un réglage.
 
-**Rien n'est encore implémenté.** Ces entrées fixent la cible ; chaque lot d'implémentation les amendera de ses
+**Implémenté depuis, par lots (v5.58.0 à v5.66.0, A515-A522).** Ces entrées fixaient la cible ; chaque lot d'implémentation les a amendées de ses
 mesures (règle : mesurer l'app, pas lire le CSS).
 
 ## A502 — La direction « Natif » est retenue

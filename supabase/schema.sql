@@ -196,6 +196,8 @@ create policy lib_delete on public.libraries for delete
 drop policy if exists mem_select on public.memberships;
 create policy mem_select on public.memberships for select
   using (user_id = auth.uid() or public.member_role(library_id) = 'admin' or public.is_app_admin());
+-- A663 : la politique reste « for all », mais le GRANT (§ 5) ne laisse plus que DELETE et UPDATE(role) en
+-- direct — l'ajout d'un membre passe par `invite_member`, qui vérifie l'e-mail et l'approbation.
 drop policy if exists mem_write on public.memberships;
 create policy mem_write on public.memberships for all
   using      (public.member_role(library_id) = 'admin' or public.is_app_admin())
@@ -221,7 +223,13 @@ grant usage on schema public to authenticated;
 grant select, insert, update, delete on public.cognitive_aids        to authenticated;
 grant select, insert, update, delete on public.category_sets to authenticated;
 grant select, insert, update, delete on public.libraries     to authenticated;
-grant select, insert, update, delete on public.memberships   to authenticated;
+-- A663 — memberships : plus d'INSERT ni d'UPDATE libre en direct. Un administrateur de bibliothèque
+-- pouvait y inscrire N'IMPORTE QUEL compte (jamais confirmé, en attente, refusé) par un POST, ou en
+-- réécrivant `user_id` d'une ligne par un PATCH : le contrôle `not_approved` d'`invite_member` (§ 5bis)
+-- ne tenait que si l'on passait par elle. Le client ne fait que DELETE (retirer) et PATCH {role}.
+-- `revoke` d'abord : un `grant` rejoué ne retire pas un droit déjà accordé.
+revoke insert, update on public.memberships from authenticated;
+grant select, delete, update (role) on public.memberships to authenticated;
 grant execute on function public.is_app_admin()   to authenticated;
 grant execute on function public.is_member(text)  to authenticated;
 grant execute on function public.member_role(text) to authenticated;
@@ -261,6 +269,9 @@ begin
   if not (public.member_role(p_library) = 'admin' or public.is_app_admin()) then
     raise exception 'not allowed';
   end if;
+  -- A663 : jamais depuis un poste partagé (A647, « membres et rôles : toujours interdit »). La politique
+  -- restrictive `memberships_temp_ins` ne couvre pas cette fonction, qui écrit en SECURITY DEFINER.
+  if public.link_is_poste() then raise exception 'not allowed'; end if;
   if p_role not in ('viewer','editor','admin') then p_role := 'viewer'; end if;
   -- E-MAIL VÉRIFIÉ EXIGÉ : sans cette condition, on pouvait inviter un compte créé par la simple
   -- DEMANDE d'un code (create_user:true) mais jamais confirmé. Il n'a pas encore de ligne
@@ -325,35 +336,8 @@ create trigger catsets_clamp_updated before insert or update on public.category_
 -- refresh conserve l'amr et son horodatage d'origine) : il faut avoir saisi un code reçu sur
 -- la boîte mail du compte juste avant. C'est le pendant serveur du parcours de l'app
 -- (SUPPRIMER -> code OTP -> suppression) ; toute anomalie de claim bloque (fail-closed).
-create or replace function public.delete_my_account()
-returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
-declare
-  uid    uuid  := auth.uid();
-  claims jsonb := coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
-begin
-  if uid is null then raise exception 'not authenticated'; end if;
-  -- A643 (revue de sécurité) : JAMAIS depuis un poste partagé. Sa session vient d'un lien de
-  -- connexion (amr « magiclink » récent) : sans ce refus, elle passait la garde « code e-mail
-  -- saisi il y a moins de 10 min » sans que personne n'ait reçu de code.
-  if public.link_is_poste() then raise exception 'not from a shared device'; end if;
-  if not exists (
-    select 1
-    from jsonb_array_elements(coalesce(claims->'amr', '[]'::jsonb)) e
-    where e->>'method' in ('otp','magiclink')
-      and to_timestamp((e->>'timestamp')::numeric) > now() - interval '10 minutes'
-  ) then
-    raise exception 'recent otp verification required';
-  end if;
-  -- GARDE-FOU : un super-admin (app_admin) ne peut PAS s'auto-supprimer (gestion via dashboard).
-  if exists (select 1 from public.app_admins where user_id = uid) then
-    raise exception 'super-admin account cannot be self-deleted';
-  end if;
-  delete from public.cognitive_aids        where owner = uid and library_id is null;
-  delete from public.category_sets where owner = uid and library_id is null;
-  delete from public.aid_followups where owner = uid and library_id is null;   -- A613 : le suivi perso part avec le compte
-  delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
-end; $$;
-grant execute on function public.delete_my_account() to authenticated;
+-- A663 : la fonction est définie UNE fois, plus bas (après la table `sessions`). Elle l'était DEUX fois,
+-- et la seconde — celle qui gagne — avait perdu l'effacement du suivi personnel (A613).
 
 -- ---------- 6bis. Validation des comptes par un super-admin (Lot 4) ---------
 -- Un compte reste "pending" (créé, e-mail vérifié par code OTP, mais pas encore
@@ -366,8 +350,14 @@ create table if not exists public.user_status (
   status     text not null default 'pending' check (status in ('pending','approved','rejected')),
   created_at timestamptz not null default now(),
   decided_at timestamptz,
-  decided_by uuid references auth.users
+  decided_by uuid references auth.users on delete set null
 );
+-- A663 : `decided_by` n'avait aucun `on delete` — supprimer le compte d'un administrateur qui avait
+-- approuvé ou refusé quelqu'un levait une violation de clé étrangère. Rejouable : la contrainte est
+-- reposée à chaque passage (sur une instance en place, `create table if not exists` ne la changerait pas).
+alter table public.user_status drop constraint if exists user_status_decided_by_fkey;
+alter table public.user_status add constraint user_status_decided_by_fkey
+  foreign key (decided_by) references auth.users on delete set null;
 
 -- Peuplé automatiquement à chaque création de compte (1ère vérification OTP réussie
 -- -> insertion dans auth.users, capturée ici). SECURITY DEFINER : nécessaire pour
@@ -418,12 +408,13 @@ alter table public.user_status enable row level security;
 drop policy if exists user_status_select on public.user_status;
 create policy user_status_select on public.user_status for select
   using (user_id = auth.uid() or public.is_app_admin());
--- Seul un app-admin peut changer le statut de quelqu'un (approuver/refuser).
+-- Seul un app-admin peut changer le statut de quelqu'un (approuver/refuser) — et SEULEMENT par
+-- `set_user_status` (A663). La politique d'UPDATE et son grant sont retirés : un PATCH direct contournait
+-- les gardes de la fonction (statut d'un autre administrateur, appel depuis un poste partagé, `decided_by`
+-- au choix). Le client n'a jamais écrit cette table en direct.
 drop policy if exists user_status_write on public.user_status;
-create policy user_status_write on public.user_status for update
-  using (public.is_app_admin())
-  with check (public.is_app_admin());
-grant select, update on public.user_status to authenticated;
+revoke insert, update, delete on public.user_status from authenticated;
+grant select on public.user_status to authenticated;
 
 -- Interrupteur global (app-admin) : permet d'activer l'exigence de validation des nouveaux comptes.
 -- DÉSACTIVÉ PAR DÉFAUT : sur une instance fraîche, app_admins est encore vide (on ne peut s'y
@@ -509,6 +500,16 @@ create policy notes_own on public.aid_notes for all
   using      (user_id = auth.uid() and public.is_approved())
   with check (user_id = auth.uid() and public.is_approved());
 grant select, insert, update, delete on public.aid_notes to authenticated;
+-- A663 : bornes de taille, comme `aid_followups` — la table n'en avait aucune (un POST direct y posait
+-- une note de n'importe quelle taille, sous n'importe quelle clé). Ce sont celles du client : 10 000
+-- caractères (`sstr(…,10000)`) et un identifiant d'aide (`SAFE_ID`). NOT VALID : la règle vaut pour toute
+-- écriture à venir sans relire l'existant — un rejeu ne peut pas échouer sur une ligne ancienne.
+alter table public.aid_notes drop constraint if exists aid_notes_note_len_chk;
+alter table public.aid_notes add constraint aid_notes_note_len_chk
+  check (char_length(note) <= 10000) not valid;
+alter table public.aid_notes drop constraint if exists aid_notes_fiche_id_chk;
+alter table public.aid_notes add constraint aid_notes_fiche_id_chk
+  check (char_length(fiche_id) between 1 and 64 and fiche_id !~ '[^A-Za-z0-9_-]') not valid;
 -- Même anti-postdatage que fiches/category_sets (last-write-wins non trichable).
 drop trigger if exists notes_clamp_updated on public.aid_notes;
 create trigger notes_clamp_updated before insert or update on public.aid_notes
@@ -608,8 +609,8 @@ grant execute on function public.list_unapproved_users() to authenticated;
 -- par erreur (protège contre un clic malheureux sur son propre compte).
 -- NB : la révocation des accès PARTAGÉS d'un compte qui quitte 'approved' n'est pas faite
 -- ici mais par le trigger user_status_revoke_memberships (ci-dessous) : il se déclenche sur
--- l'UPDATE exécuté par cette fonction, mais AUSSI sur un UPDATE direct de user_status
--- (app-admin via l'API REST, politique user_status_write) ou une édition au dashboard.
+-- l'UPDATE exécuté par cette fonction, mais AUSSI sur une édition au dashboard (l'UPDATE direct
+-- par l'API REST n'existe plus, A663).
 create or replace function public.set_user_status(p_user uuid, p_status text)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
@@ -629,8 +630,8 @@ grant execute on function public.set_user_status(uuid, text) to authenticated;
 -- à chaque requête — elles ne testent que le membership. Sans purge, un compte APPROUVÉ PUIS
 -- REJETÉ conservait donc, via l'API REST, la lecture ET l'écriture de toutes ses bibliothèques
 -- partagées. On supprime ici toutes ses lignes de memberships dès que son statut quitte
--- 'approved', quel que soit le chemin d'écriture (RPC set_user_status ci-dessus, UPDATE direct
--- de user_status par un app-admin, édition au dashboard). Le trigger couvre aussi l'INSERT
+-- 'approved', quel que soit le chemin d'écriture (RPC set_user_status ci-dessus, édition au
+-- dashboard). Le trigger couvre aussi l'INSERT
 -- (ligne recréée directement en pending/rejected : purge par cohérence, normalement sans effet).
 -- EFFET DE BORD ASSUMÉ : si le compte est RÉ-approuvé plus tard, ses memberships ne sont PAS
 -- restaurés — il devra être ré-invité (invite_member) dans chacune de ses bibliothèques. C'est
@@ -665,6 +666,10 @@ begin
   if not exists(select 1 from public.user_status where user_id = p_user and status = 'rejected') then
     raise exception 'user is not in rejected status';
   end if;
+  -- A663 : ses données partent avec lui. Sans cela, aides, protocoles, catégories, suivi, sessions et
+  -- partages de l'`owner` restaient en base, orphelins et illisibles par quiconque (`owner` n'est pas
+  -- une clé étrangère) — un compte « supprimé définitivement » dont rien n'était effacé.
+  perform public.purge_user_data(p_user);
   delete from auth.users where id = p_user;   -- cascade -> user_status, memberships
 end;$$;
 grant execute on function public.delete_rejected_user(uuid) to authenticated;
@@ -695,23 +700,8 @@ exception when duplicate_object then null; end $$;
 -- bibliothèques, fiches perso/partagées vivantes, et octets de stockage consommés (data des fiches
 -- + des jeux de catégories). Réservé aux app-admins (renvoie NULL sinon). SECURITY DEFINER car il
 -- agrège des tables/comptes que l'appelant ne peut pas lire ligne à ligne.
-create or replace function public.get_instance_stats()
-returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
-  select case when not public.is_app_admin() then null else jsonb_build_object(
-    'users',        (select count(*) from auth.users),
-    'pending',      (select count(*) from public.user_status where status = 'pending'),
-    'rejected',     (select count(*) from public.user_status where status = 'rejected'),
-    'libraries',    (select count(*) from public.libraries),
-    'fiches_perso', (select count(*) from public.cognitive_aids where library_id is null and deleted_at is null),
-    'fiches_shared',(select count(*) from public.cognitive_aids where library_id is not null and deleted_at is null),
-    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.cognitive_aids where deleted_at is null)
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets),
-    -- Octets du bucket de documents PDF (métadonnées storage ; 0 si le bucket n'existe pas encore).
-    'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
-                         from storage.objects o where o.bucket_id = 'attachments')
-  ) end;
-$$;
-grant execute on function public.get_instance_stats() to authenticated;
+-- A663 : définie UNE fois, au § 8 (après les tables du partage, qu'elle compte) — elle l'était trois fois,
+-- les deux premières n'existant que pour être remplacées plus bas.
 
 -- ---------- 6quinquies. Protocoles (4.0.0) : clone de `fiches` -------------------------------
 -- Section « Protocoles » de l'app : documents de service (PDF joints) et/ou contenu rédigé
@@ -805,7 +795,39 @@ exception when duplicate_object then null; end $$;
 
 grant select, insert, update, delete on public.sessions to authenticated;
 
--- La suppression de compte (RGPD) emporte aussi les protocoles perso.
+-- ---------- SUPPRESSION D'UN COMPTE : ce qui part avec lui (A663) ----------------------------------
+-- UNE liste, tenue à UN endroit, appelée par les deux fonctions qui suppriment un compte
+-- (`delete_my_account` ci-dessous, `delete_rejected_user` au § 6bis). Elles en avaient chacune une, et
+-- elles divergeaient : la première avait perdu le suivi personnel (A613), la seconde n'effaçait rien.
+-- Les contenus versés dans une bibliothèque PARTAGÉE restent (contenu collectif de l'équipe), comme
+-- les notes de suivi d'équipe (`owner` y passe à NULL). AUCUN grant : appelée par les seules fonctions
+-- SECURITY DEFINER — elle prend une identité en paramètre, aucun client ne doit l'atteindre.
+create or replace function public.purge_user_data(p_uid uuid)
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if p_uid is null then return; end if;
+  delete from public.cognitive_aids where owner = p_uid and library_id is null;
+  delete from public.protocols      where owner = p_uid and library_id is null;
+  delete from public.category_sets  where owner = p_uid and library_id is null;
+  delete from public.aid_followups  where owner = p_uid and library_id is null;   -- A613 : le suivi perso
+  delete from public.aid_notes      where user_id = p_uid;
+  -- PARTAGES DE SESSION — suppression EXPLICITE, et non « par cascade ». Deux raisons, chacune
+  -- suffisante : (1) `session_participants.user_id` référence `auth.users`, donc sans cette ligne
+  -- la cascade partirait de l'utilisateur et pourrait laisser des partages orphelins dont
+  -- l'`owner` n'existe plus ; (2) surtout, une contrainte non satisfaite lèverait ici une
+  -- `foreign_key_violation` — et comme tout ce corps plpgsql est UNE SEULE transaction, la
+  -- fonction entière serait annulée : le droit à l'effacement disparaîtrait purement et
+  -- simplement pour quiconque a partagé une session ne serait-ce qu'une fois.
+  delete from public.shared_sessions where owner = p_uid;   -- cascade -> participants, events
+  -- L'historique synchronisé s'efface avec le compte, explicitement : `owner` n'est pas une clé
+  -- étrangère, les lignes survivraient au compte.
+  delete from public.sessions where owner = p_uid;
+  -- Documents PDF perso du bucket : rendus inaccessibles par la RLS dès la suppression du compte ;
+  -- leurs objets orphelins remontent dans list_orphan_attachments() (purge manuelle app-admin).
+end; $$;
+revoke execute on function public.purge_user_data(uuid) from public, anon, authenticated;
+
+-- Suppression de son propre compte (RGPD) — la SEULE définition (en-tête et gardes : § 5quinquies).
 create or replace function public.delete_my_account()
 returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
 declare
@@ -825,56 +847,14 @@ begin
   ) then
     raise exception 'recent otp verification required';
   end if;
+  -- GARDE-FOU : un super-admin (app_admin) ne peut PAS s'auto-supprimer (gestion via dashboard).
   if exists (select 1 from public.app_admins where user_id = uid) then
     raise exception 'super-admin account cannot be self-deleted';
   end if;
-  delete from public.cognitive_aids        where owner = uid and library_id is null;
-  delete from public.protocols     where owner = uid and library_id is null;
-  delete from public.category_sets where owner = uid and library_id is null;
-  -- PARTAGES DE SESSION — suppression EXPLICITE, et non « par cascade ». Deux raisons, chacune
-  -- suffisante : (1) `session_participants.user_id` référence `auth.users`, donc sans cette ligne
-  -- la cascade partirait de l'utilisateur et pourrait laisser des partages orphelins dont
-  -- l'`owner` n'existe plus ; (2) surtout, une contrainte non satisfaite lèverait ici une
-  -- `foreign_key_violation` — et comme tout ce corps plpgsql est UNE SEULE transaction, la
-  -- fonction entière serait annulée : le droit à l'effacement disparaîtrait purement et
-  -- simplement pour quiconque a partagé une session ne serait-ce qu'une fois. Le commentaire de
-  -- la ligne `delete from auth.users` affirme déjà une cascade ; c'est exactement ce genre
-  -- d'affirmation non vérifiée que le projet a payé cher en v4.44.1.
-  delete from public.shared_sessions where owner = uid;   -- cascade -> participants, events
-  -- L'historique synchronisé s'efface avec le compte. Explicitement, et AVANT la suppression de la
-  -- ligne `auth.users` : sans cela, soit les lignes survivent au compte, soit la violation de clé
-  -- étrangère annule TOUTE la fonction plpgsql — et le droit à l'effacement disparaît pour
-  -- quiconque a synchronisé une seule session.
-  delete from public.sessions where owner = uid;
-  -- Documents PDF perso du bucket : rendus inaccessibles par la RLS dès la suppression du compte ;
-  -- leurs objets orphelins remontent dans list_orphan_attachments() (purge manuelle app-admin).
-  delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, sessions…
+  perform public.purge_user_data(uid);     -- AVANT la ligne `auth.users` (A663 : une seule liste)
+  delete from auth.users where id = uid;   -- cascade -> memberships, app_admins, user_status…
 end; $$;
-
--- État de l'instance : RE-CRÉÉE ici (après la table protocols, qu'une fonction SQL ne peut
--- référencer avant sa création) avec les compteurs de protocoles et le poids du bucket.
-create or replace function public.get_instance_stats()
-returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
-  select case when not public.is_app_admin() then null else jsonb_build_object(
-    'users',        (select count(*) from auth.users),
-    'pending',      (select count(*) from public.user_status where status = 'pending'),
-    'rejected',     (select count(*) from public.user_status where status = 'rejected'),
-    'libraries',    (select count(*) from public.libraries),
-    'fiches_perso', (select count(*) from public.cognitive_aids where library_id is null and deleted_at is null),
-    'fiches_shared',(select count(*) from public.cognitive_aids where library_id is not null and deleted_at is null),
-    'protocols',    (select count(*) from public.protocols where deleted_at is null),
-    'sessions',     (select count(*) from public.sessions where deleted_at is null),
-    'storage_bytes',(select coalesce(sum(octet_length(data::text)),0) from public.cognitive_aids where deleted_at is null)
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.category_sets)
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.protocols where deleted_at is null)
-                    -- Historique synchronisé : un poste qui croît avec l'usage, et qu'un exploitant
-                    -- aveugle ne pourrait pas anticiper (leçon v4.49.0, où le serveur comptait les
-                    -- octets du partage sans que l'écran ne les montre).
-                    + (select coalesce(sum(octet_length(data::text)),0) from public.sessions where deleted_at is null),
-    'attachments_bytes',(select coalesce(sum((o.metadata->>'size')::bigint),0)
-                         from storage.objects o where o.bucket_id = 'attachments')
-  ) end;
-$$;
+grant execute on function public.delete_my_account() to authenticated;
 
 -- ---------- 6sexies. Durcissement : updatedBy signé par le serveur (audit de sécurité) ------
 -- Le client pose data->>'updatedBy' (e-mail du dernier modificateur, affiché « dernière
@@ -1120,12 +1100,31 @@ alter table public.session_events       enable row level security;
 
 -- RLS : le PROPRIÉTAIRE seul touche ces tables en direct (lister ses partages, couper, terminer).
 -- Les invités n'ont AUCUN accès de table — ils passent exclusivement par les trois fonctions.
+-- A663 — CE QUE L'HÔTE ÉCRIT EN DIRECT EST BORNÉ À SES TROIS GESTES. Les politiques étaient « for all »
+-- et le grant complet : un hôte pouvait donc, par un appel REST, contourner tout ce que `share_open`
+-- garantit — INSERT d'un partage sans liste blanche (`fiche_snap` entier), sans plafond ni durée
+-- bornée, avec un `code_hash` de son choix ; UPDATE de `label` (texte libre affiché chez tous, règle 15)
+-- ou de `secret_hash` d'un participant. Le client ne fait que trois PATCH : couper un invité
+-- (`revoked_at`), poser un rôle (`role`), terminer (`status`, `expires_at`). Donc : lecture, et UPDATE
+-- de ces QUATRE colonnes seulement (grant par colonne, plus bas) ; ni INSERT ni DELETE. Et terminer ne
+-- peut que CLORE : jamais rouvrir (`status <> 'active'`), jamais repousser l'expiration au-delà des
+-- 12 h de `share_open` — la purge, donc la durée écrite au registre RGPD, en dépend. La borne est
+-- large à dessein : l'heure vient de l'horloge du CLIENT, un refus pour dix minutes d'avance
+-- laisserait un partage ouvert.
 drop policy if exists shared_own on public.shared_sessions;
-create policy shared_own on public.shared_sessions for all
+create policy shared_own on public.shared_sessions for select
+  using (owner = auth.uid() and public.is_approved());
+drop policy if exists shared_own_upd on public.shared_sessions;
+create policy shared_own_upd on public.shared_sessions for update
   using      (owner = auth.uid() and public.is_approved())
-  with check (owner = auth.uid() and public.is_approved());
+  with check (owner = auth.uid() and public.is_approved()
+              and status <> 'active' and expires_at <= now() + interval '12 hours');
 drop policy if exists sparts_own on public.session_participants;
-create policy sparts_own on public.session_participants for all
+create policy sparts_own on public.session_participants for select
+  using (exists (select 1 from public.shared_sessions s
+                  where s.id = share_id and s.owner = auth.uid() and public.is_approved()));
+drop policy if exists sparts_own_upd on public.session_participants;
+create policy sparts_own_upd on public.session_participants for update
   using      (exists (select 1 from public.shared_sessions s
                        where s.id = share_id and s.owner = auth.uid() and public.is_approved()))
   with check (exists (select 1 from public.shared_sessions s
@@ -1135,9 +1134,13 @@ create policy sevents_own on public.session_events for select
   using (exists (select 1 from public.shared_sessions s
                   where s.id = share_id and s.owner = auth.uid() and public.is_approved()));
 
-grant select, insert, update, delete on public.shared_sessions      to authenticated;
-grant select,               update, delete on public.session_participants to authenticated;
-grant select                                on public.session_events       to authenticated;
+-- `revoke` d'abord (A663) : un `grant` rejoué ne retire pas un droit déjà accordé — et un `revoke
+-- update` de table emporte aussi les droits par colonne, d'où le `grant` qui suit.
+revoke insert, update, delete on public.shared_sessions      from authenticated;
+revoke insert, update, delete on public.session_participants from authenticated;
+grant select, update (status, expires_at) on public.shared_sessions      to authenticated;
+grant select, update (revoked_at, role)   on public.session_participants to authenticated;
+grant select                              on public.session_events       to authenticated;
 
 -- ---------- 8bis. Vocabulaire fermé et capacités ---------------------------------------------
 -- Le rôle borne ce qu'un participant a le DROIT d'écrire, et le contrôle est ICI, pas dans le
@@ -1165,7 +1168,7 @@ returns boolean language sql immutable set search_path = public, pg_temp as $$
     -- `handoff` est ouvert aux DEUX rôles, et c'est un raisonnement, pas un relâchement : il ne
     -- change AUCUN état côté serveur. Il porte une OFFRE (« je vous propose de conduire ») ou une
     -- PRISE (« je prends la main ») ; le changement de rôle lui-même est un UPDATE de
-    -- `session_participants`, que la politique `sparts_own` réserve déjà au propriétaire du
+    -- `session_participants`, que la politique `sparts_own_upd` réserve déjà au propriétaire du
     -- partage. La frontière de sécurité est donc là où elle doit être — sur l'écriture du rôle,
     -- pas sur l'annonce. Réserver l'offre au lead ici aurait interdit à l'invité d'ACCEPTER,
     -- c'est-à-dire d'accomplir le geste que la doctrine exige de LUI (AC 61-115 : la passation se
@@ -1268,7 +1271,11 @@ set search_path = public, extensions, pg_temp as $$
 declare v_code text; v_ttl int; v_win int := 120; v_snap jsonb; v_live int;
 begin
   perform public.share_purge();
-  if auth.uid() is null or not public.is_approved() then
+  -- A663 : `link_dead()` — un poste DÉCONNECTÉ (ou à l'heure de fin passée) n'ouvre plus de partage. Son
+  -- jeton vit encore jusqu'à 900 s (A655) et les politiques `*_link_dead` ne couvrent que les tables.
+  -- La garde est ICI et dans `share_admit`, pas dans `is_approved()` : les politiques `shared_own*`
+  -- l'appellent, et ce même poste doit pouvoir TERMINER le partage de sa session en cours (règle 11).
+  if auth.uid() is null or not public.is_approved() or public.link_dead() then
     return jsonb_build_object('ok', false, 'err', 'refused'); end if;
   -- Validation SANS ancre de regex (« longueur » + « aucun caractère interdit ») : plus lisible,
   -- et cela évite un « $ » isolé dans le fichier, que le garde-fou check-sql.mjs doit pouvoir
@@ -1278,6 +1285,8 @@ begin
   if p_id is null or length(p_id) not between 1 and 64 or p_id ~ '[^A-Za-z0-9_-]'
      or p_session_id is null or length(p_session_id) not between 1 and 64
      or p_session_id ~ '[^A-Za-z0-9_-]'
+     -- A663 : `p_fiche_id` aussi (l'identifiant d'une aide, `SAFE_ID` côté client) — il restait sans borne.
+     or p_fiche_id is null or length(p_fiche_id) not between 1 and 64 or p_fiche_id ~ '[^A-Za-z0-9_-]'
      or p_fiche_snap is null or jsonb_typeof(p_fiche_snap) <> 'object' then
     return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
   /* LISTE BLANCHE DES CHAMPS, CÔTÉ SERVEUR (v4.49.0). La projection de fiche était filtrée
@@ -1336,7 +1345,8 @@ set search_path = public, extensions, pg_temp as $$
 declare v_code text; v_sec int; v_s public.shared_sessions%rowtype; v_n int;
 begin
   perform public.share_purge();
-  if auth.uid() is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  if auth.uid() is null or public.link_dead() then   -- A663 : ni un poste déconnecté (cf. share_open)
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
   /* DEUX BOUCLES INFINIES FERMÉES ICI (v4.49.0). `share_admit` ne vérifiait NI l'expiration NI le
      quota : sur un partage expiré ou déjà plein, il rendait un code NEUF — que l'hôte lisait à voix
      haute et que `share_join` refusait aussitôt, sans que personne, des deux côtés, ne puisse
@@ -1636,12 +1646,12 @@ grant execute on function public.share_admit(text,int)                     to au
 -- s'exécutent avec les droits du définisseur. Les exposer n'apporterait rien et donnerait à
 -- `share_resolve` — qui prend un secret — une surface d'appel directe.
 
--- État de l'instance : RE-CRÉÉE une TROISIÈME fois, ici, pour la même raison qu'après la table
--- `protocols` — une fonction `language sql` est intégralement résolue À SA CRÉATION, elle ne peut
--- donc pas référencer une table déclarée plus bas dans le fichier (`42P01: relation … does not
--- exist`). Les fonctions `language plpgsql` échappent à cette contrainte : leur corps n'est
--- analysé qu'à la première exécution — c'est pourquoi `delete_my_account`, qui supprime pourtant
--- la même table, n'a pas eu besoin d'être déplacée.
+-- ---------- État de l'instance (app-admin) : tableau de bord léger ---------------------------
+-- Définie ICI et nulle part ailleurs (A663 : elle l'était trois fois) : une fonction `language sql`
+-- est intégralement résolue À SA CRÉATION, elle ne peut donc pas référencer une table déclarée plus
+-- bas dans le fichier (`42P01: relation … does not exist`) — or elle compte les tables du partage.
+-- Les fonctions `language plpgsql` échappent à cette contrainte : leur corps n'est analysé qu'à la
+-- première exécution — c'est pourquoi `purge_user_data` peut citer ces tables depuis plus haut.
 create or replace function public.get_instance_stats()
 returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
   select case when not public.is_app_admin() then null else jsonb_build_object(
@@ -1782,6 +1792,7 @@ returns uuid language plpgsql security definer set search_path = public, pg_temp
 declare v_id uuid; v_inv jsonb;
 begin
   if auth.uid() is null or not public.is_approved() then raise exception 'not allowed'; end if;
+  if public.link_is_poste() then raise exception 'not allowed'; end if;   -- A663 : ni demander, depuis un poste (A647)
   if public.can_create_library() then raise exception 'can_create'; end if;
   if char_length(btrim(coalesce(p_name, ''))) not between 1 and 60 then raise exception 'invalid name'; end if;
   if (select count(*) from public.library_requests where user_id = auth.uid() and status = 'pending') >= 3 then
@@ -1891,6 +1902,76 @@ language sql stable security definer set search_path = public, pg_temp as $$
   order by lower(l.name);
 $$;
 grant execute on function public.list_all_libraries() to authenticated;
+
+-- ---------- 9quater. AU MOINS UN ADMINISTRATEUR PAR BIBLIOTHÈQUE, ET LA QUITTER (A663) -----------
+-- Rien n'empêchait de rétrograder ou de retirer le DERNIER administrateur d'une bibliothèque (un PATCH
+-- sur son propre rôle suffisait) : elle restait utilisable, mais plus personne — hors administrateur de
+-- l'instance — ne pouvait en gérer les membres. Ce déclencheur refuse ce geste (`last_admin`), quel que
+-- soit le chemin : PATCH ou DELETE direct, `invite_member` qui réécrit un rôle, `leave_library`.
+-- CE QU'IL NE BLOQUE PAS, et chaque cas est voulu :
+--   · la suppression de la BIBLIOTHÈQUE (cascade : la ligne `libraries` n'existe déjà plus) ;
+--   · la suppression du COMPTE (cascade depuis `auth.users` : le compte n'existe déjà plus) — le droit à
+--     l'effacement ne se négocie pas ; le client avertit avant (« Vous êtes le seul administrateur de… ») ;
+--   · un compte qui cesse d'être approuvé (`user_status_revoke_memberships`) : la sécurité l'emporte ;
+--   · la maintenance sans jeton (éditeur SQL, clé de service) : même régime que `stamp_updated_by`.
+-- Dans ces cas la bibliothèque peut rester sans administrateur ; l'administrateur de l'instance en nomme
+-- un (`invite_member`). La ligne `libraries` est verrouillée le temps du contrôle : deux administrateurs
+-- qui se rétrogradent l'un l'autre au même instant ne passent pas tous les deux.
+create or replace function public.memberships_keep_admin()
+returns trigger language plpgsql security definer set search_path = public, auth, pg_temp as $$
+begin
+  if old.role = 'admin' and auth.uid() is not null
+     and (tg_op = 'DELETE' or new.role <> 'admin'
+          or new.library_id <> old.library_id or new.user_id <> old.user_id) then
+    perform 1 from public.libraries where id = old.library_id for update;
+    if found
+       and exists (select 1 from auth.users where id = old.user_id)
+       and coalesce((select status from public.user_status where user_id = old.user_id), 'approved') = 'approved'
+       and not exists (select 1 from public.memberships
+                        where library_id = old.library_id and role = 'admin' and user_id <> old.user_id) then
+      raise exception 'last_admin';
+    end if;
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;$$;
+drop trigger if exists memberships_keep_admin on public.memberships;
+create trigger memberships_keep_admin before update or delete on public.memberships
+  for each row execute function public.memberships_keep_admin();
+revoke execute on function public.memberships_keep_admin() from public, anon, authenticated;   -- fonction de déclencheur
+
+-- QUITTER une bibliothèque : SA propre adhésion, et elle seule (aucune identité en paramètre). Il n'y
+-- avait aucun chemin : `mem_write` réserve le retrait aux administrateurs, un lecteur ou un éditeur ne
+-- pouvait donc pas partir. Rend 'ok', 'not_member' ou 'last_admin' (nommer d'abord un autre
+-- administrateur) ; refusée depuis un poste partagé (A647 : membres et rôles). Ce qu'il a versé dans la
+-- bibliothèque y reste (contenu collectif de l'équipe).
+create or replace function public.leave_library(p_library text)
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if auth.uid() is null or public.link_is_poste() then raise exception 'not allowed'; end if;
+  perform 1 from public.libraries where id = p_library for update;
+  if not exists (select 1 from public.memberships where user_id = auth.uid() and library_id = p_library) then
+    return 'not_member';
+  end if;
+  if public.member_role(p_library) = 'admin'
+     and not exists (select 1 from public.memberships
+                      where library_id = p_library and role = 'admin' and user_id <> auth.uid()) then
+    return 'last_admin';
+  end if;
+  delete from public.memberships where user_id = auth.uid() and library_id = p_library;
+  return 'ok';
+end;$$;
+grant execute on function public.leave_library(text) to authenticated;
+
+-- ---------- 9quinquies. INDEX (A663) -------------------------------------------------------------
+-- `memberships` n'était indexée que par sa clé (user_id, library_id) : lister ou compter les membres
+-- d'une bibliothèque (`list_members`, `list_all_libraries`, le contrôle ci-dessus) la parcourait en
+-- entier. Et `owner` n'était indexé nulle part alors que TOUTE politique d'espace personnel filtre
+-- dessus (`library_id is null and owner = auth.uid()`), comme la suppression d'un compte.
+create index if not exists memberships_library_idx on public.memberships (library_id);
+create index if not exists cognitive_aids_owner_idx on public.cognitive_aids (owner);
+create index if not exists protocols_owner_idx      on public.protocols (owner);
+create index if not exists followups_owner_idx      on public.aid_followups (owner);
 
 -- ============================================================================================
 -- ---------- 10. CONNEXION PAR LE TÉLÉPHONE (v5.111, A643) -----------------------------------
@@ -2436,6 +2517,31 @@ create policy protocols_temp_upd on public.protocols as restrictive for update t
 drop policy if exists protocols_temp_del on public.protocols;
 create policy protocols_temp_del on public.protocols as restrictive for delete to authenticated
   using (public.temp_del_ok());
+-- A663 — LES DOCUMENTS D'UNE AIDE SUIVENT LA RÈGLE DE L'AIDE. Sous `edit = non`, un poste ne modifiait
+-- plus une aide ni un protocole… mais pouvait encore REMPLACER leur PDF dans le bucket, par l'API Storage
+-- (`att_perso`, `att_lib_write` ne connaissent que le rôle). Dépôt et remplacement suivent donc `edit`.
+-- La SUPPRESSION d'un objet n'est refusée que si `edit` ET `del` sont interdits : le serveur ne sait pas
+-- distinguer le document retiré d'une aide que l'on modifie de celui qui part avec une aide supprimée,
+-- et chacun de ces deux gestes reste permis par sa propre règle. Bornées au bucket de l'application.
+-- NON ÉTENDU, à dessein, à `category_sets` ni à `aid_followups` : la règle `edit` d'A654 nomme « une aide
+-- ou un protocole » ; le document personnel de `category_sets` porte les préférences et les collections
+-- du compte, qu'un poste réécrit légitimement (A647), et le suivi n'est pas verrouillé par l'app sur un
+-- poste — le fermer ici ferait perdre en silence ce qu'elle laisse saisir. C'est une règle à DÉCIDER.
+create or replace function public.temp_att_del_ok()
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select not public.link_is_poste()
+      or public.temp_rules() ->> 'edit' <> 'non' or public.temp_rules() ->> 'del' <> 'non';
+$$;
+grant execute on function public.temp_att_del_ok() to authenticated;
+drop policy if exists att_temp_ins on storage.objects;
+create policy att_temp_ins on storage.objects as restrictive for insert to authenticated
+  with check (bucket_id <> 'attachments' or public.temp_write_ok(null));
+drop policy if exists att_temp_upd on storage.objects;
+create policy att_temp_upd on storage.objects as restrictive for update to authenticated
+  using (true) with check (bucket_id <> 'attachments' or public.temp_write_ok(null));
+drop policy if exists att_temp_del on storage.objects;
+create policy att_temp_del on storage.objects as restrictive for delete to authenticated
+  using (bucket_id <> 'attachments' or public.temp_att_del_ok());
 -- Bibliothèques, membres et rôles : jamais depuis un poste (A647, « toujours interdit »).
 drop policy if exists libraries_temp_ins on public.libraries;
 create policy libraries_temp_ins on public.libraries as restrictive for insert to authenticated
@@ -2529,11 +2635,13 @@ create trigger forbid_passwords before insert or update of encrypted_password on
 -- schéma sur une instance existante, un revoke placé en amont laisserait intactes toutes celles
 -- redéfinies ensuite. Placé en fin de fichier, il les couvre TOUTES, à chaque rejeu.
 --
--- INNOCUITÉ VÉRIFIÉE avant écriture (inventaire fonction par fonction) : les 15 fonctions
--- appelables par l'app portent chacune leur `grant execute ... to authenticated` explicite ; les
--- 5 restantes (clamp_updated_at, stamp_updated_by, handle_new_user, lib_add_creator,
--- revoke_memberships) sont des fonctions de TRIGGER, invoquées par le moteur — le privilège
--- EXECUTE n'y est contrôlé qu'à la CRÉATION du trigger, jamais à son déclenchement.
+-- INNOCUITÉ VÉRIFIÉE avant écriture (inventaire fonction par fonction) : chaque fonction appelable
+-- par l'app porte son `grant execute ... to authenticated` explicite (elles étaient 15 à l'époque ;
+-- le compte a grandi depuis, la règle non — A663) ; les fonctions de TRIGGER (clamp_updated_at,
+-- stamp_updated_by, handle_new_user, lib_add_creator, revoke_memberships, memberships_keep_admin,
+-- forbid_passwords) sont invoquées par le moteur — le privilège EXECUTE n'y est contrôlé qu'à la
+-- CRÉATION du trigger, jamais à son déclenchement — et les aides internes (share_purge, share_resolve,
+-- link_row…, purge_user_data) ne sont appelées que depuis des fonctions SECURITY DEFINER.
 -- USAGE sur le schéma n'est délibérément PAS retiré à PUBLIC : sans EXECUTE il n'ouvre rien
 -- (les tables n'ont aucun grant PUBLIC), et le retirer toucherait des rôles internes de
 -- l'instance pour un gain nul.
