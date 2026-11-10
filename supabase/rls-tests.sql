@@ -2166,7 +2166,10 @@ begin
   if not public.quota_att_ok('l/lib-19/d1.pdf') then raise exception 'ÉCHEC 19.5 : le quota d''un dossier ferme un autre dossier'; end if;
   if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='att_quota_ins' and permissive='RESTRICTIVE') then
     raise exception 'ÉCHEC 19.5 : la politique restrictive des documents est absente'; end if;
-  delete from storage.objects where bucket_id='attachments' and name like 'u/'||tom||'/d%';
+  -- (Pas de ménage ici : Supabase BLOQUE tout DELETE direct sur storage.objects — cf. le NB du § 9 —, et le
+  --  ROLLBACK final emporte ces lignes. Un `delete` écrit ici arrêtait le script sur une instance réelle, alors
+  --  qu'il passait sur un PostgreSQL local sans le trigger `storage.protect_delete`. Rien, plus bas, ne dépend
+  --  de ce dossier vidé.)
 
   -- 19.5b L'usage réel : l'administrateur lit le compte de l'espace le plus rempli ; personne d'autre.
   insert into storage.objects(bucket_id,name) select 'attachments', 'l/lib-19/u'||g||'.pdf' from generate_series(1,7) g;
@@ -2190,7 +2193,7 @@ begin
   if public.quota_usage() is not null then raise exception 'ÉCHEC 19.5b : une session de poste lit l''usage de l''instance'; end if;
   reset role;
   delete from public.device_links where auth_session = v_s19;
-  delete from storage.objects where bucket_id='attachments' and name like 'l/lib-19/u%';
+  -- (Même raison : pas de `delete` sur storage.objects, le ROLLBACK final suffit.)
 
   -- 19.6 Une écriture sans compte (dépôt d'un poste par sa clé) n'est pas comptée ; les aides internes sont fermées.
   perform set_config('request.jwt.claims', '', true);
