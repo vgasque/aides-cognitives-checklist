@@ -472,7 +472,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ✓/● sur matière SYSTÈME : --ok du thème clair (#1d7a38) ne tient que 2,8:1 sur --sys. La
      capsule et le dock sont sombres dans les DEUX thèmes — cette valeur n'a donc pas d'override. */
   --ok-sys:#4ade80;
-  /* Le BLEU DE L'ACTION sur matière SYSTÈME (v5.15.0, planche 18/2a) : --act ne tient que 1,68:1
+  /* (HISTORIQUE — `--act-sys` est PURGÉ depuis la v5.30 : hors session le quai n'a plus de matière système, le token
+     n'avait plus de lecteur. Ce qui suit décrit un token qui n'existe plus ; la leçon de contraste reste. A662.)
+     Le BLEU DE L'ACTION sur matière SYSTÈME (v5.15.0, planche 18/2a) : --act ne tient que 1,68:1
      sur le quai — le texte du geste d'entrée était lisible (8,6:1) mais la FORME du bouton se
      confondait avec sa propre barre, le défaut nommé par l'audit v5.10.0 sur « Reprendre » et
      jamais rejoué sur le geste d'entrée. Même motif que --ok-sys/--warn-sys/--crit-sys : un
@@ -1235,7 +1237,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home:has(.pg-top.stuck)::before{background:color-mix(in srgb,var(--work) 90%,var(--amb))}
     /* z 90 : AU-DESSUS des fenêtres (55) et des feuilles (70) — c'est le contenu d'une page-fenêtre qui
        défile sous l'heure (Moi, Sessions) que le verre floute ; sous l'écran d'entrée de l'invité (96) et
-       les alertes (80). ⚠ CE SOL NE SUPPRIME PAS LE VERRE, IL LE REND INVISIBLE (A370, sonde rouge au
+       les alertes (98, A662 — elles étaient à 80, donc DESSOUS, quoi qu'en ait dit ce commentaire). ⚠ CE SOL NE SUPPRIME PAS LE VERRE, IL LE REND INVISIBLE (A370, sonde rouge au
        simulateur iOS 27) : le système peint SA couche PAR-DESSUS la page — voile blanc ≈ 50 % + flou sur
        l'inset (62 pt) et ~16 pt au-delà — quel que soit ce que la page fixe dessous (pseudo-élément
        OU vrai <div> fixé, testable au toucher ou non : mêmes mesures ; la sonde fixedContainerEdges
@@ -1297,6 +1299,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
   /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
+  /* A662 : `#q` est un `type=search` (clavier « rechercher », pas de correction) — sans l'habit natif : ni champ arrondi
+     de WebKit, ni SA croix d'effacement, qui doublerait `#qClear`. */
+  .hdr-search input{-webkit-appearance:none;appearance:none}
+  .hdr-search input::-webkit-search-cancel-button,.hdr-search input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* A429 (P4) : les filtres posés en PUCES sous la ligne de compte — bleu : un état actif, jamais un registre de
      danger (règle 8). Cibles de 32 px (règle 9) ; la croix a sa propre cible. */
@@ -1623,11 +1629,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.chrome-hdr #cbTimers .seg-t{color:var(--ink)}
   body.chrome-hdr #cbTimers .seg-l{color:var(--ink-2)}
   body.chrome-hdr #cbTimers .seg-l.seg-sess{color:var(--ok)}
-  body.chrome-hdr #cbTimers .seg-l.seg-sess.off{color:var(--ink-3)}
+  body.chrome-hdr #cbTimers .seg-l.seg-sess.off{color:var(--ink-2)}   /* A662 : un mot LU (« EN PAUSE ») — --ink-3 n'y tenait que 2,1:1 */
   /* L'alarme reprend les registres du thème, puisqu'elle vit désormais sur la matière du thème. */
   body.chrome-hdr #cbTimers .seg.due{background:var(--warn-soft);border-color:var(--warn-line);padding:0 10px;border-radius:var(--r-1)}
   body.chrome-hdr #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--warn)}
-  body.chrome-hdr #cbTimers .cbt-n{color:var(--ink-3)}
+  body.chrome-hdr #cbTimers .cbt-n{color:var(--ink-2)}   /* A662 : « +3 » se lit, --ink-3 est réservé au décor */
   /* ⚠ LE DOCK N'EST PAS CONCERNÉ PAR `chrome-hdr` : seule la CAPSULE monte dans l'en-tête, le
      dock reste en bas et garde ses touches de 50 px. Cette compaction était un reste de la v5.4.1,
      où les DEUX rangées déménageaient — elle rabotait les touches à 36 px sans raison, et le
@@ -1879,9 +1885,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ══ HORS SESSION (maquette 1b/1c) : Exercice au CONTOUR, Démarrer REMPLI et large.
      Un seul bouton rempli à l'écran (v4.0.3) — et c'est celui-là, la seule action qui compte
      avant le premier geste. Le remplissage est le bleu de l'ACTION : sur la matière système, un
-     aplat vert dirait « c'est fait » et un ambre « attention » — mais à sa valeur de REGISTRE
-     --act-sys (v5.15.0, planche 18/2a : --act ne tenait que 1,68:1 contre le quai, la forme du
-     bouton se confondait avec sa propre barre). Le libellé prend le corps de l'ACTE (A6 :
+     aplat vert dirait « c'est fait » et un ambre « attention ». Depuis la v5.30 les deux boutons
+     sont posés sur la PAGE, plus sur le quai : le remplissage est --act tout court (--act-sys,
+     la valeur de registre v5.15.0 pour la matière système, est purgé — A662). Le libellé prend le corps de l'ACTE (A6 :
      « le grand corps appartient à l'acte » — --t-step), sans changer le gabarit de 50 px. */
   .sd-key.sd-exo{flex:0 0 auto;min-height:56px;padding:0 14px;border-radius:var(--r-4);background:var(--work);border:1.5px dashed var(--act);color:var(--act);box-shadow:var(--shadow-work)}
   .sd-key.sd-exo:hover{background:var(--work);filter:brightness(.98)}
@@ -2406,7 +2412,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Chips de catégorie (SPEC crise §1a, v4.3.0) : la couleur de catégorie ne vit qu'en PASTILLE
      .cat-dot (anneau de séparation) — jamais en aplat ; la SÉLECTION est le bleu système
      (encodage unique, jamais la couleur de la catégorie — un chip plein rouge se lirait comme
-     une alarme). Pilule 36px min, bordure --line-strong (3:1) au repos. */
+     une alarme). Pilule 32 px min (44 actifs par le halo), bordure --line-strong au repos — un FILET
+     (≈ 1,6:1), pas une limite de composant : le 3:1 est le rôle de --ctl-line (A662). */
   /* `.scopebtn` (chips TYPE de la feuille de filtres) partage la grammaire : son habillage
      propre est parti avec la purge de `.scopebar` (v5.18) — même famille, même recette. */
   .catchip,.scopebtn{display:inline-flex;align-items:center;gap:6px;min-height:32px;border:1px solid var(--line-strong);background:var(--work);padding:0 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s;color:var(--ink)}
@@ -2484,7 +2491,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (prefers-reduced-motion:reduce){.spin,.acct-dot.busy{animation-duration:2s}}
   /* Placeholder de DÉMARRAGE (HTML statique dans <main>, remplacé par le tout premier render()) :
      l'app dit « Chargement… » au lieu d'une page vide pendant la lecture IndexedDB initiale. */
-  .boot-load{display:flex;align-items:center;justify-content:center;padding:56px 16px;color:var(--ink-soft);font-size:13.5px}
+  .boot-load{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;padding:56px 16px;color:var(--ink-soft);font-size:13.5px}
+  /* A662 — LE REPLI SI LE SCRIPT NE DÉMARRE PAS (bloqué, tronqué, CSP désaccordée — règle 3) : « Chargement… » tournait
+     sans fin. Aucun script ne peut le dire, puisque c'est lui qui manque : le message est STATIQUE, dans le placeholder,
+     et une animation CSS le révèle après 8 s. Le démarrage normal retire `.boot-load` — le message part avec, jamais vu. */
+  .boot-late,.boot-nojs{flex:0 0 100%;margin:14px 0 0;text-align:center;font-size:var(--t-item);font-weight:600;line-height:1.5;color:var(--ink)}
+  .boot-late{visibility:hidden;animation:bootLate 1ms linear 8s forwards}
+  .boot-late a{display:inline-block;margin-left:6px;padding:10px 6px;color:var(--act);font-weight:700}
+  @keyframes bootLate{to{visibility:visible}}
   /* SPEC gestion §3 : Annuler / CTA demi-largeur ; ZONE SENSIBLE sous séparateur, bouton
      CONTOUR rouge (jamais plein, jamais côte à côte avec le CTA principal). */
   /* Jumeaux demi-largeur : `min-width:0` neutralise le plancher min-content (sans lui, le
@@ -2726,7 +2740,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* « Rangé par <clé> ⌄ » (maquette v5.18) — la phrase remplace le segmenté ; le menu est
      openPickMenu (.catmenu), monté dans .rang-wrap au pointeur fin. */
   .rang-wrap{position:relative;display:inline-flex;flex:none}
-  /* v5.30 (maquette v5) : « Affichage » — bouton texte au registre de l'action, cible 44 px. */
+  /* v5.30 (maquette v5) : « Affichage » — bouton tonal NEUTRE (--amb-2, encre pleine), 40 px : le dessin est porté
+     par `.sel-tog,.rang-btn` plus haut (ni registre de l'action ni 44 px, quoi qu'en ait dit ce commentaire — A662). */
   .rang-btn b{color:var(--ink);font-weight:800}
   .rang-btn:hover{background:var(--amb-2)}
   .rang-btn:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -3192,17 +3207,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html[data-theme="dark"] .dir-book.live-grp .dir-grid{border:2px solid var(--ok-sys)}
   html[data-theme="dark"] .dir-book.live-grp .lv-act .btn:not(.primary):hover{background:var(--sys-2);border-color:var(--ctl-sys)}   /* A591 : la règle de survol du thème sombre (--hover-dk) noircissait le bouton sur la bande */
   .dir-row .pinbtn{position:relative;z-index:1}
-  /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
-  /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
-     avec 4 px de rembourrage à droite il en dépassait de 5, donc était rogné (`overflow:hidden`),
-     et la cible se retrouvait amputée du côté du pouce. Le rembourrage droit passe à 9 px : 26 + 9
-     + 9 = 44, exactement la cible, et plus rien ne sort. */
+  /* Épingle : étoile SVG pleine ambrée quand active ; 32 px dessinés dans une rangée (40 ailleurs, cf. `.pinbtn`). */
   .dir-row .pinbtn{min-width:32px;min-height:32px;position:relative}
-  .dir-row .pinbtn::after{content:"";position:absolute;inset:-6px}   /* 32 dessinés, 44 actifs (N6) */
-  /* ⚠ Le halo de l'épingle mordait de 4 px sur la cible du bouton-titre (mesuré au balayage) :
-     dans cette bande on épinglait au lieu d'ouvrir. Il reste GÉNÉREUX en hauteur (la rangée fait
-     71 px) et se borne en largeur à l'écart réel — cible 26 + 12 = 38 px, au-dessus du plancher
-     de 32 px hors crise, et plus aucun recouvrement. */
+  /* ⚠ UN SEUL HALO, BORNÉ EN LARGEUR (A662). Il y en avait deux : `::after{inset:-6px}` (v. N6) débordait de 6 px de
+     chaque côté et ANNULAIT le correctif du `::before` ci-dessous, écrit justement parce que le halo mordait sur la
+     cible du bouton-titre (dans cette bande on épinglait au lieu d'ouvrir). Il reste GÉNÉREUX en hauteur (32 + 16 = 48)
+     et se borne en largeur à l'écart réel : 32 + 8 = 40 px, au-dessus du plancher de 32 px hors crise. */
   .dir-row .pinbtn::before{content:"";position:absolute;inset:-8px -4px}
   .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--r-1);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .pinbtn:hover{background:var(--primary-soft);color:var(--act)}
@@ -3280,17 +3290,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (.catchip.colored/.catpill.colored supprimés v4.3.0 : les chips portent la pastille.) */
   .tag.cat{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb, var(--c,var(--act)) 15%, transparent);color:var(--c,var(--act))}
   html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--act)) 26%, transparent);color:color-mix(in srgb, var(--c,var(--act)) 60%, white)}
-  .tag.flow{background:var(--warn-soft);color:var(--warn)}
   /* Validation périmée (> 2 ans) sur les CARTES (v4.3.2) : la date a quitté les cartes (elle
      doublait le badge « ✓ Validée » — elle reste en vue lecture) ; seul le DÉPASSEMENT est
      signalé, au registre ATTENTION. L'info-bulle porte la date exacte. */
-  .tag.stale{background:var(--warn-soft);color:var(--warn)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
   /* K6 — le DISCRIMINANT : pilule à CONTOUR, distincte des statuts (pleins) et des catégories
      (qui portent une pastille). Ce n'est ni un état ni un classement : c'est une partie du NOM,
      celle qui doit survivre à la troncature. */
-  .tag.disc{background:transparent;border:1px solid var(--line-strong);color:var(--ink);font-weight:700}
   .tag.cat.neutral{background:var(--amb-2);color:var(--ink-2)}
   /* Statuts ACHROMATIQUES (V5) : glyphe + texte sur fond neutre — la couleur reste réservée
      au danger (rouge/ambre des registres) et aux catégories (liserés). */
@@ -3354,6 +3361,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .su-ck svg{position:relative}
   .su-ck:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:50%}
   .su-ck:disabled{cursor:default}
+  .su-ck:disabled::before{border-color:var(--line)}.su-ck.on:disabled::before{border-color:var(--ink-2);background:var(--ink-2)}   /* A662 : la case d'un autre ne se coche pas ici — elle quitte le bleu de l'action */
   .su-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;margin:0;padding:6px 0;border:0;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
   span.su-tx{cursor:default}
   .su-l{font-size:var(--t-item);font-weight:600;line-height:1.3}.su-l.p1{font-weight:800}
@@ -3405,8 +3413,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .note-meta{font-size:11px;color:var(--ink-soft);margin-top:4px;min-height:14px}
   .rel-edit{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .rel-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--act);border-radius:14px;padding:4px 6px 4px 10px;font-size:12px;font-weight:600}
-  .rel-x{background:none;border:0;color:var(--act);font-size:15px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
-  .rel-x:hover{background:rgba(0,0,0,.08)}
+  .rel-x{position:relative;background:none;border:0;color:var(--act);font-size:15px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
+  .rel-x::after{content:"";position:absolute;inset:-4px}   /* A662 : 24 dessinés, 32 actifs (plancher hors crise) */
+  .rel-x:hover{background:var(--primary-100)}   /* A662 : le pas de survol sur --primary-soft (A417) — le noir à 8 % était hors token, invisible la nuit */
   /* Date à revoir : registre ATTENTION (le rouge reste réservé au danger vital, V5). */
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--warn);font-weight:700}
   /* (.chev supprimé v4.56.0 avec les cartes d'accueil, son seul émetteur — règle 14.) */
@@ -4208,9 +4217,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:1000px){.cp-h{margin-top:10px}}
   /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
   .atyp-link{display:flex;align-items:center;width:100%;min-height:44px;background:none;border:0;border-top:1px solid var(--line);padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;color:var(--act);cursor:pointer;text-align:left}
-  .atyp-link:focus-visible{outline:2px solid var(--act);outline-offset:-3px;border-radius:8px}
   .atyp-link:hover{background:var(--amb-2)}
-  .atyp-link:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .atyp-link:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:8px}
   /* Garde-fou éditeur « Ne pas oublier » (> 4 rappels) : registre ATTENTION, texte seulement. */
   .nf-guard{font-size:12px;line-height:1.5;color:var(--warn);margin:-8px 0 18px}
   .nf-guard:empty{display:none}
@@ -4249,9 +4257,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .esl-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:14px;width:100%;min-height:60px;
     padding:8px 12px 8px 16px;background:none;border:0;border-top:1px solid var(--line);text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
   .esl-grp>:first-child{border-top:0}
-  .esl-row:hover{background:var(--amb-2)}
+  .esl-row:not(:disabled):hover{background:var(--amb-2)}
   .esl-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
-  .esl-row:disabled{cursor:default}
+  .esl-row:disabled{cursor:default;color:var(--ink-2)}   /* A662 : une rangée qui ne mène nulle part le DIT (encre douce, plus de survol) */
   .esl-n{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--amb-2);color:var(--ink-2);
     font-size:var(--t-body);font-weight:600;font-variant-numeric:tabular-nums}
   .esl-row.dec .esl-n{background:var(--warn-soft);color:var(--warn)}
@@ -4514,16 +4522,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pb-n{font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2)}
   .pb-sum{justify-self:end;text-align:right;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   html.zw430 .pband.closed .pb-head{row-gap:2px;padding:6px 8px}
-  html.zw430 .pband.closed .pb-sum{grid-row:2;grid-column:2/4;justify-self:start;text-align:left}
-  html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:4}
+  /* A662 : placement réécrit pour la grille à TROIS pistes d'A519 (libellé · résumé · chevron) — il visait encore les
+     quatre d'A398 : le chevron ouvrait une 4ᵉ piste implicite et le résumé, parti de la 2ᵉ, se rangeait à droite. */
+  html.zw430 .pband.closed .pb-sum{grid-row:2;grid-column:1/3;justify-self:start;text-align:left}
+  html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:3}
   .pband.closed .pb-body{display:none}
   .pb-row{grid-template-columns:20px minmax(0,1fr) auto auto;align-items:start;row-gap:2px;padding:6px 8px}
   .pb-nm{align-self:center;font-size:var(--t-body);font-weight:800;line-height:1.3;text-transform:uppercase;letter-spacing:.02em}
   .pb-bd{grid-column:2/-1;font-family:var(--f-mono);font-size:var(--t-body);font-weight:600;line-height:1.45;overflow-wrap:break-word}
   .pb-bd.solo{grid-column:2;align-self:center}
-  html.zw430 .pb-row .pb-stt{grid-row:2;grid-column:2;justify-self:start}
-  html.zw430 .pb-row .pb-chev{grid-row:1;grid-column:4}
-  html.zw430 .pb-row .pb-nm{grid-column:2/4}
   .pb-stt{white-space:nowrap;margin-top:2px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;line-height:1;text-transform:uppercase;background:var(--amb-2);color:var(--ink-2)}
   .pb-stt.on{background:var(--primary-soft);color:var(--act)}
   .pb-stt.ok{background:var(--ok-soft);color:var(--ok)}
@@ -4910,7 +4917,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
      Sélecteur .btn.sm (spécificité supérieure) pour l'emporter sur la règle .btn.sm générique. */
   .flow-ctrl .btn.sm,.flow-ctrl .btn{min-height:44px}
-  /* Fin de branche/d'algorithme : registre CONFIRMATION (vert, taxonomie V5). */
+  /* (Fin de branche/d'algorithme, registre CONFIRMATION : la règle est `.flow-end`, plus bas — rien ici. A662) */
   .mini.bld{font-weight:800;font-size:13.5px}
   .node-img{width:100%;height:auto;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;cursor:zoom-in;display:block}
   .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
@@ -5226,8 +5233,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-time-chips button{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:999px;background:var(--work);color:var(--ink);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
   .tk-time-chips button:hover{background:var(--primary-soft);border-color:var(--act)}
   .tk-time-chips button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 8px;display:flex;align-items:center;gap:6px}
-  .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 2px;display:flex;align-items:center;gap:6px}
+  /* A662 : « ↺ revenir » se tape en session — 14 px de haut n'étaient pas une cible. 32 dessinés + halo VERTICAL seul
+     (cf. `:is(.sv-jump,.tk-time,.rt-lnk)`) = 44 ; la rangée rend 6 px de rembourrage bas en échange. */
+  .tk-orig{position:relative;display:inline-flex;align-items:center;gap:4px;min-height:32px;background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .tk-orig::after{content:"";position:absolute;inset:-6px 0}
+  .tk-orig:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
   .tk-orig:hover{color:var(--act)}
   .tk-el{font-family:var(--f-mono);font-size:11px;color:var(--ink-soft);white-space:nowrap;min-width:46px}
   /* PROPOSITIONS DE VOCABULAIRE (v4.52.0). Registre NEUTRE : ce n'est ni une alerte, ni une
@@ -5441,7 +5452,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :is(.ls-card .btn,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--act);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
-  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
+  /* A662 : z 98 — une alarme passe AU-DESSUS de tout ce qui couvre l'écran (schéma plein écran 90, moniteur 92,
+     partage 94, confirmation 95, écran d'entrée 96, viseur 97) et sous le seul flash (99). À 80, elle sonnait
+     derrière le schéma ou le moniteur : entendue, jamais vue. Le conteneur reste `pointer-events:none`. */
+  #alerts{position:fixed;left:0;right:0;top:0;z-index:98;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
   /* Banderole d'alarme : AMBRE, jamais le vert de l'en-tête (les deux bandeaux se confondraient).
      ⚠ 520 n'est PAS une quatrième largeur de fenêtre (audit 9b) : elle mesure une PHRASE, ne pas
      la rattacher à un gabarit. Et elle n'apparaît JAMAIS session sous les yeux (`onTimerFired`,
@@ -5626,8 +5640,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-x::after{content:"";position:absolute;inset:-4px 0;border-radius:8px}   /* A511 : 36 + 2 × 4 = 44 en hauteur ; la largeur, elle, est RÉELLE (min-width 44) — un halo latéral débordait du bandeau de 4 px */
   .rt-find input{min-height:44px}
   /* `.st-seg` est le segmenté de STATUT des ÉDITEURS — hors surface de crise, donc hors du seuil
-     de 44 px (vérifié : aucune émission en lecture). 38 px tient largement les 24×24 de
-     WCAG 2.2 § 2.5.8. Nommé ici pour que la question ne se repose pas. */
+     de 44 px (vérifié : aucune émission en lecture). Il le tient pourtant : 44 px, pas les 38 que
+     ce commentaire annonçait (A662). Nommé ici pour que la question ne se repose pas. */
   .st-seg{min-height:44px}   /* segment du `.seg` de statut : dessin porté par .seg-btn */
   .st-hint{font-size:var(--t-meta);color:var(--ink-soft);margin-top:4px}
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
@@ -5658,7 +5672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Entrebâillé, les commandes de zoom n'ont rien à régler : on ne manipule pas une vignette. */
   .flow-prev:not(.on) .flow-zoom{display:none}
   .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
-  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1));touch-action:pan-x pan-y}   /* A559 : glisser natif, pincer maison */
+  .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75dvh / var(--zf,1));touch-action:pan-x pan-y}   /* A559 : glisser natif, pincer maison */
   /* ⚠ Tactile : le plan INLINE ne défile plus verticalement en interne — axe FERMÉ par
      `overflow-y:clip` (un axe auto rebondit sur iOS même vide) ; l'horizontal est conservé. Vaut
      pour `.flow-scroll` (portée `main` : #flowFull a SON défileur, `.ff-scroll`) ET `.sv-scroll`
@@ -5768,8 +5782,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 
   /* Porte « + bloc » : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px ; `sticky` JAMAIS
      `fixed` (SPEC §5 : une seule zone fixe, en haut ; aucun pied d'éditeur) — dernier enfant du
-     fieldset, se décroche seule en fin de section. Fond TONAL `--primary-soft` + pastille ronde +
-     filet haut ; jamais l'action primaire (un seul bouton rempli par écran, v4.0.3). Détail : doctrine-css.md C88. */
+     fieldset, se décroche seule en fin de section. ⚠ Le dessin a changé depuis : la porte est REMPLIE
+     (`--act`, sans bord, ombre montante) — plus le fond tonal `--primary-soft` à filet haut que ce commentaire
+     décrivait (A662 ; l'histoire : doctrine-css.md C88). */
   .ed-door{display:flex;align-items:center;gap:10px;min-height:52px;font-size:13.5px;text-align:left;
     position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:6;
     background:var(--act);border:0;box-shadow:var(--shadow-up);
@@ -6269,7 +6284,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      reste des étapes, une surface d'ambiance (« Cochez les étapes restantes (n) »). */
   .btn.cont{flex:1 1 auto;width:100%;min-height:56px;font-weight:800;font-size:var(--t-step);border-radius:var(--r-4);border:1px solid var(--work-line);background:var(--act);color:var(--on-primary);box-shadow:var(--shadow-work);display:flex;align-items:center;justify-content:center;gap:6px}
   .btn.cont.idle{background:var(--amb-2);border-color:transparent;box-shadow:none;color:var(--ink-2);cursor:default}
-  .btn.cont.idle:hover{background:transparent}
+  /* A662 : `.btn.okay` puis `.btn.cont`, de MÊME poids (0,2,0) — le second gagnait au repos (bleu),
+     `.btn.okay:hover` (0,3,0) au survol (vert) : un bouton qui change de REGISTRE sous le pointeur.
+     v5.30 fait foi : « Continuer » prêt est l'ACTION (--act, règle 8), repos comme survol. */
+  .btn.cont.okay{background:var(--act);border-color:var(--work-line);color:var(--on-primary)}
+  @media (hover:hover){.btn.cont.okay:hover{background:var(--act);border-color:var(--work-line);filter:brightness(1.06)}}
+  .btn.cont.idle:hover{background:var(--amb-2);border-color:transparent}   /* A662 : `transparent` effaçait l'aplat du repos */
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
@@ -6302,7 +6322,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A519 (A513 §1, renverse la carte « AMBRE DOUX » d'A345) : la décision est une carte de TRAVAIL comme les autres —
      contour bleu quand elle est le bloc courant ; seul « ◆ Décision » reste ambre. */
   .ov-block.dec{background:var(--work);border-color:var(--work-line)}
-  /* Un bloc de DÉCISION garde son ambre même courant (v4.24.0, décision utilisateur) : le REGISTRE
+  /* (HISTORIQUE, renversé par A519 — la seconde règle ci-dessous gagne : contour BLEU du bloc courant, seul
+     « ◆ Décision » reste ambre. A662.) Un bloc de DÉCISION garde son ambre même courant (v4.24.0, décision utilisateur) : le REGISTRE
      n'est jamais masqué par un état transitoire (ECAM) — un canal par signification. La pilule
      `.ov-here` est PURGÉE depuis A12 (v5.6, zéro émission) : ne pas la réintroduire — purger une
      classe (règle 14), c'est aussi purger les commentaires qui la citent.
@@ -6401,7 +6422,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw360 #cbTimers{min-height:56px}
   html.zw360 #cbTimers .seg{min-height:44px}
   /* Le journal relu dans la feuille « Repère posé ». */
-  .ds-jl{list-style:none;margin:8px 0 0;padding:0;max-height:calc(30vh / var(--zf,1));overflow-y:auto}
+  .ds-jl{list-style:none;margin:8px 0 0;padding:0;max-height:calc(30dvh / var(--zf,1));overflow-y:auto}
   .ds-jl li{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--sys-line);font-size:var(--t-body);line-height:1.35}
   .ds-jl li.cur{font-weight:700}
   .ds-jt{flex:none;font-family:var(--f-mono);color:var(--ok-sys);font-variant-numeric:tabular-nums}
@@ -6515,7 +6536,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ovh-ok{flex:none;color:var(--ok);font-weight:800}
   .ovh-conf{cursor:default}   /* A571 : la tête « ✓ Diagnostic confirmé · n critères » du dépliant, inerte */
   .ovh-t{flex:1;min-width:0}
-  .ovh-x{color:var(--ink-3);font-weight:600}
+  .ovh-x{color:var(--ink-2);font-weight:600}   /* A662 : « · passage 2/3 » est du texte lu (2,1:1 en --ink-3) */
   .ovh-n{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}   /* A369 : même écriture que le compte des cartes */
   .ovh-row .conf-chev{margin-left:0}
   .ovh-a{flex:none;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -6579,7 +6600,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-rt.mute{color:var(--ink-2)}
   .pre-rv{grid-column:2;grid-row:1/3;font-size:var(--t-body);font-weight:600;color:var(--ink-2);text-align:right}   /* A511 : --ink-2, une information, pas un décor */
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
-  .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
+  .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-2)}   /* A662 : texte lu → --ink-2 */
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
   /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail
      sans avoir démarré — le bouton paraîtrait ne rien faire (on retomberait sur cette page). Le
@@ -7009,14 +7030,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mb-lead{position:absolute;width:1px;background:var(--ink-soft)}
   .mb-rep{position:absolute;height:16px;padding-left:4px;display:inline-flex;align-items:center;gap:6px;
     font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap}
-  .mb-rep i{font-family:var(--f-mono);font-style:normal;font-weight:600;color:var(--ink-3)}
+  .mb-rep i{font-family:var(--f-mono);font-style:normal;font-weight:600;color:var(--ink-2)}   /* A662 : une heure se lit */
   .mb-back{position:absolute;top:0;left:0;height:16px;display:inline-flex;align-items:center;
     font-size:12px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
   /* HORS DE L'AXE : demi-point au bord, chevron, et l'âge — on ne place pas ce qu'on ne peut situer. */
   .mb-old{position:absolute;inset:0;display:flex;align-items:center;gap:6px;font-size:12px;
     font-weight:700;color:var(--ink);white-space:nowrap}
   .mb-oh{flex:none;width:4px;height:8px;border-radius:0 8px 8px 0;background:var(--ink)}
-  .mb-oa{font-family:var(--f-mono);font-weight:600;color:var(--ink-3)}
+  .mb-oa{font-family:var(--f-mono);font-weight:600;color:var(--ink-2)}   /* A662 : idem */
   /* La bande GRANDIT AVEC SES ÉCHÉANCES (v5.17.1) : une rangée chacune, sur le même axe. Le
      `min-height` garde son corps quand rien n'est daté — l'axe au-dessus doit rester posé sur
      quelque chose. */
@@ -7109,7 +7130,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* (SPEC §6 : plus de pied d'éditeur — les actions vivent dans l'en-tête sticky, Supprimer en
      fin de formulaire, cf. .ed-del. Le mécanisme kb-open, qui masquait l'ancienne barre basse au
      clavier virtuel, est PURGÉ avec elle — règle 14.) */
-  .back{background:var(--work);border:1px solid var(--line);color:var(--act);font-size:13.5px;font-weight:600;padding:8px 14px 8px 10px;margin-bottom:14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--act)}
   /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.)
      Pied v5.19 : une COLONNE de rangées, plus une coulée qui enjambe — un seul bord de texte à
      19 px (marque 14 + 6), interligne unique 4 px ; les lignes d'état sont des COMMANDES : même
@@ -7771,6 +7791,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background-position:calc(100% - 18px) calc(50% + 2px),calc(100% - 13px) calc(50% + 2px);
     background-size:5px 5px,5px 5px;background-repeat:no-repeat;
     color:var(--ink);background-color:var(--work);border:1px solid var(--line-strong);border-radius:8px}
+  /* A662 : l'ÉTAT du scan (« Montrez ce code à l'hôte… ») portait l'habit d'ERREUR de `.join-err` — registre neutre.
+     Déclaré AVANT `.join-err` : un message d'échec qui reçoit les deux classes garde le rouge. */
+  #joinScreen .join-stat{margin:0 0 12px;padding:8px 10px;font-size:13.5px;line-height:1.4;color:var(--ink);background:var(--amb-2);border-radius:8px}
+  #joinScreen .join-stat[hidden]{display:none}
   #joinScreen .join-err{margin:0 0 12px;padding:8px 10px;font-size:13.5px;line-height:1.4;color:var(--crit);
     background:var(--crit-soft);border-left:4px solid var(--crit-line);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}
@@ -7983,8 +8007,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        2. `--shadow-work`    = surfaces VIVES, qui apparaissent et disparaissent : carte de session en
           cours, carte-bilan de fin, panneau minuteurs, bande-question épinglée du statique.
        3. `--shadow-work` = OVERLAYS (fenêtres modales, écran d'échec de démarrage, skiplink).
-     Une modale est un niveau 3 : elle était en `--shadow-work` (niveau 2), donc au même plan qu'une
-     carte de session — corrigé ici. Toute surface ajoutée doit se ranger dans l'un des trois. */
+     ⚠ Les niveaux 2 et 3 portent aujourd'hui LE MÊME token : la purge des alias (A416) a ramené leurs deux
+     noms d'origine à `--shadow-work` — la distinction ci-dessus est de RÔLE, plus de valeur, et la phrase
+     « une modale était au niveau 2, corrigé ici » ne décrit plus rien de mesurable (A662).
+     Toute surface ajoutée doit se ranger dans l'un des trois. */
   .ai-card{background:var(--work);border-radius:14px;max-width:var(--dlg-atelier);width:100%;margin:auto;padding:20px;box-shadow:var(--shadow-work)}
   /* ══ TROIS GABARITS DE FENÊTRE, ET PAS UN DE PLUS (v5.6, planches 7e/8d) ═══════════════════
      CONFIRMATION 420 (`.dlg-confirm`, centrée) · DIALOGUE 480 (`.dlg-480`) · ATELIER 720 (le
@@ -8281,7 +8307,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      hors zone du pouce (v4.30.0, audit externe — HIG et Material convergent : sur une feuille
      plein écran mobile, les actions s'ancrent en BAS). La carte devient une colonne flex et
      l'action descend au bord bas ; sur ordinateur (dialogue centré), rien ne change. */
-  .wl-act{display:flex;justify-content:flex-end;margin-top:14px}
   /* DIRECTION A, lot 2 — LE VIDE DE LA FEUILLE DE BIENVENUE EST COMPOSÉ, PAS SUBI. Mesuré à
      390×844 : ~430 px de vide entre le texte et « Commencer » (la feuille pleine hauteur est une
      règle, le bouton en bas est en zone de pouce — c'est le MILIEU qui était un désert). Le
@@ -8355,11 +8380,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .seg-btn{min-width:0;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:var(--r-2);border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-2);cursor:pointer;transition:color .3s}
   .seg-btn.on{color:var(--ink)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  /* TAILLE DU TEXTE — le sélecteur segmenté de l'app, à quatre paliers (maquette M5, demande
-     utilisateur : « comme Statique/Dynamique »). Les quatre « A » SONT l'échantillon de
-     l'échelle : leur écart de corps est l'information, c'est la seule exemption de l'échelle
-     typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 4 × 44 + 3 × 8 = 200 px,
-     la cible de 44 px étant tenue même au palier le plus étroit servi. */
+  /* TAILLE DU TEXTE — le sélecteur segmenté de l'app, à TROIS crans (100 · 115 · 130 — v5.30 a retiré
+     le 90 % ; maquette M5, demande utilisateur : « comme Statique/Dynamique »). Les trois « A » SONT
+     l'échantillon de l'échelle : leur écart de corps est l'information, c'est la seule exemption de l'échelle
+     typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 3 × 44 + 2 × 2 + 2 × 4 = 144 px,
+     la cible de 44 px étant tenue même au palier le plus étroit servi (A662 : le commentaire disait quatre et 200). */
   #zoomSeg{flex:none;width:144px}   /* 3 × 44 + 2 × 2 + 2 × 4 */
   #zoomSeg .seg-btn{gap:0;font-weight:800}
   #zoomSeg .ts-100{font-size:12px}#zoomSeg .ts-115{font-size:15px}#zoomSeg .ts-130{font-size:17.5px}
@@ -8660,7 +8685,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        passaient 64 px dessous, et une colonne collante plus haute que l'espace sous elle bute contre
        le bas de sa rangée de grille : colonne principale courte, elles SUIVAIENT toute croissance
        (mesuré : +50 px à l'ouverture de l'historique, page défilée). */
-    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
+    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
     /* v5.33.2 — PAYSAGE DE TÉLÉPHONE (`zh500`, hauteur effective < 500 : classe JS, règle 10) : un
        rail collant de hauteur fixe n'y laissait que 110 px pour 1 058 de contenu (844 × 340). Il
@@ -8756,7 +8781,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        traversent la structure pour atteindre les champs. Elle n'apparaît qu'à 1200 px, comme le
        cockpit de lecture : à 1000, les trois colonnes laisseraient trop peu à l'écriture. */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:none}
-    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
+    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
     /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
        `ovPlanLadderHtml` désaturé que dans le rail — seul le logement change. */
@@ -8773,7 +8798,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* A547 : en mise en forme en direct, le document EST le rendu — la colonne ne garde que la relecture (320). */
     body.view-pedit .read-grid.mdl-grid{grid-template-columns:minmax(0,1fr) 320px}
     .mdl-grid #editSide :is(.ep-h,.ep-card,.ep-full){display:none}
-    :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
+    :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100dvh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
   }
@@ -8796,7 +8821,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     body.view-edit .ed-slist{display:none}   /* A521 (amende A390) : la colonne Structure prend le relais de la liste */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
-      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
   }
   /* Colonne droite de l'éditeur (>= 1000px). Côté FICHE elle porte l'algorithme (cf.
@@ -9493,7 +9518,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li,.rv-head):focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,ol.steps li,.rv-head):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -9573,8 +9598,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Le multicol donne deux colonnes de flux INDÉPENDANTES : remplissage compact, ordre DOM
      (donc de lecture et d'annonce) inchangé, et break-inside garantit qu'un rappel n'est
      jamais coupé entre deux colonnes. */
-  @media (min-width:780px){
-  }
   /* Panneau minuteurs replié tant que rien ne tourne ; `.rt-collapsed` purgée (v5.4.2, règle 14).
      « Recommencer » = bouton à MAINTENIR ; « + » fréquent = masse tonale --primary-soft (jamais un
      REMPLI, réservé au CTA), « − » = contour ≥ 44 px (P2-5) ; liens d'objet 32 px hors registre
@@ -9667,7 +9690,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door{transition:border-color .12s,background-color .15s}
     :is(.dir-row,.hs-row,.hs-wrap,.ep-row,.rev-row,.att-row,.vers-row,.ed-door):is(:hover,:active){transform:none}
   }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.hs-live,.rev-flash,.alert-toast{animation:none}.tmcard.flash{animation:none}#crisisBand{animation:none}header.bar.titled.ttl-on #brandTitle{animation:none}.sess-dot::after{animation:none;opacity:0}.ai-modal.on,.ai-modal.on:not(.pdf-modal) .ai-card,.more-menu:not([hidden]),.sys-banner:not([hidden]){animation:none}}
   /* ===== ÉCRANS TACTILES : 16px sur TOUS les champs de saisie (source de vérité UNIQUE) =====
      Sous 16px, Safari iOS ZOOME la page au focus : le contenu saute sous le doigt (barre de
      recherche, éditeur de protocole, menu de catégories…) et les taps voisins se perdent.
@@ -9724,7 +9747,31 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:21px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local{box-shadow:none}
+  /* A662 — IMPRIMER DEPUIS LE THÈME SOMBRE : le papier est blanc (--paper, fixe), les encres restaient celles de la nuit —
+     gris clair sur blanc. Sur le papier, les tokens d'encre, de filet, de fond et de registre reprennent leurs valeurs du
+     thème CLAIR (recopie de `:root` : à tenir avec lui). La matière système ne s'imprime pas : elle n'est pas redéclarée.
+     Le schéma, peint pour fond clair puis contre-inversé la nuit, ne s'inverse plus. */
+  @media print{
+    html[data-theme="dark"]{color-scheme:light;
+      --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+      --line:#e3e6ea;--line-strong:#c3ccd6;--ctl-line:#828c98;
+      --ink:#14181d;--ink-2:#5b6472;--ink-3:#a3abb6;
+      --ok-rgb:29,122,56;--ok-soft:#e8f2ea;
+      --warn:#7a5900;--warn-soft:#fbf3dc;--warn-line:#b45309;
+      --bolt:#f5b800;--bolt-edge:#8a5200;
+      --crit:#a32e1f;--crit-line:#c43d34;--crit-soft:#fbf0ee;
+      --act:#17477f;
+      --primary-soft:#e3ecf7;--primary-100:#cddbf0;--primary-200:#b9cde6;
+      --critical-line:#ecc4bc;--verify-line:#eddfb6;--done-line:#bfd8c6;--on-primary:#ffffff}
+    html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg,
+    html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll) svg :is(image,.flow-hl,.fn-bd,.fn-badge){filter:none!important}
+    html[data-theme="dark"] :is(.flow-scroll,#flowFull .ff-scroll){background:var(--paper)}
+    html[data-theme="dark"] .tag.cat{background:color-mix(in srgb, var(--c,var(--act)) 15%, transparent);color:var(--c,var(--act))}
+  }
+  /* A662 : `.back` retirée de la liste — la classe nue n'est plus émise, mais `<span class="to back">` (retour de boucle
+     de la Page) l'est : la règle masquait cette mention sur le papier. Entrent : le suivi d'équipe (`.su-blk`, `.su-pill` —
+     des tâches internes n'ont rien à faire sur une référence affichée au mur) et les couches fixes d'écran. */
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.su-blk,.su-pill,#alerts,.toast,#dockSheet,#sysBanner,.gd-tip,#gdVeil,.ed-door,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local{box-shadow:none}
     /* A171 — UN REPLI EST UNE COMMODITÉ D'ÉCRAN : sur papier, tout se déploie. Imprimer un
        document amputé des sections qu'on avait refermées pour lire serait la pire des surprises,
        et c'est exactement le genre de défaut qu'on ne découvre qu'après l'impression. Le chevron,
@@ -9827,6 +9874,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'étendre. */
   @media (forced-colors:active){
     .acct-dot,.cat-dot,.seg-pill{forced-color-adjust:none}
+    /* A662 — même filet, étendu aux états que seul un FOND ou une OMBRE portait (supprimés ici) : la pastille de
+       catégorie d'une rangée et le point « en cours » gardent leur couleur ; l'onglet actif, l'accent choisi, le radio
+       et l'interrupteur prennent un trait ou un aplat en couleurs SYSTÈME. Non testé sous Windows réel, comme le reste. */
+    .dir-av,.dl-dot,.acc-sw{forced-color-adjust:none}
+    .tb-tab.on{outline:2px solid Highlight;outline-offset:-2px}
+    .acc-sw.on{outline:3px solid Highlight;outline-offset:2px}
+    .sl-opt.on .sl-rad{border-color:Highlight}
+    .md-live input{border:1px solid ButtonText;background:Canvas}
+    .md-live input::after{background:ButtonText}
+    .md-live input:checked{background:Highlight}
+    .md-live input:checked::after{background:HighlightText}
   }
   /* ===== prefers-contrast: more (v4.31.0, audit externe) =====
      L'utilisateur demande explicitement PLUS de contraste : le texte secondaire passe à l'encre
@@ -9913,7 +9971,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          au-dessus d'elle : crans de type (A556 : le déclencheur de la feuille est purgé). Chips
          peintes par syncDockFilt (état), rangée statique (écouteurs délégués). -->
     <div class="dock-filt" id="dockFilt" hidden><span class="df-chips" id="dockFiltChips"></span></div>
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div></div></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><kbd class="dock-kbd" aria-hidden="true">⌘K</kbd><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div></div></div>
 
     <!-- Étiquette d'état CONDENSÉE du mode crise (v4.23.0) : n'apparaît qu'une fois le bandeau
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
@@ -9976,7 +10034,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
          dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
          constante partagée — si l'un change, changer l'autre. -->
-    <button class="bar-acct" id="acctTop" aria-label="Compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span><span class="hb-lbl" aria-hidden="true">Moi</span></button></div></div>
+    <button class="bar-acct" id="acctTop" aria-label="Moi — compte et synchronisation" title="Compte"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg><svg class="ic-filled" width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.7" r="3.7"/><path d="M4.6 20a7.4 7.4 0 0114.8 0 1 1 0 01-1 1.1H5.6a1 1 0 01-1-1.1z"/></svg><span class="acct-ini" id="acctIni" hidden></span><span class="acct-dot" id="acctDot" hidden></span><span class="hb-lbl" aria-hidden="true">Moi</span></button></div></div>
     <datalist id="phaseList"></datalist>
     <!-- Menu ⋯ (SPEC gestion §4) : actions de GESTION ancrées à droite de l'en-tête — remplace
          toute barre d'actions en bas de page. Jamais d'action destructive ici. -->
@@ -10077,7 +10135,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <!-- Bandeau système (registre INFORMATION persistant, ex. nouvelle version du service worker) :
        sous l'en-tête, rejetable ; visible seulement sur l'accueil (body.view-home, v4.20.0). -->
   <div id="sysBanner" class="sys-banner" role="status" hidden><span class="sb-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg></span><span class="sb-txt"></span><button class="sb-act" id="sbReload">Recharger</button><button class="sb-x" id="sbX" aria-label="Masquer">×</button></div>
-  <main id="main" tabindex="-1"><div class="boot-load" role="status"><span class="spin" aria-hidden="true"></span>Chargement…</div></main>
+  <!-- A662 : `.boot-late` est le repli SANS script (révélé par CSS après 8 s) — il vit DANS `.boot-load` pour partir avec lui. -->
+  <main id="main" tabindex="-1"><div class="boot-load" role="status"><span class="spin" aria-hidden="true"></span>Chargement…<noscript><p class="boot-nojs">Cette application a besoin de JavaScript : activez-le dans les réglages du navigateur, puis rechargez la page.</p></noscript><p class="boot-late">L'application n'a pas démarré. <a href="./">Recharger</a></p></div></main>
   <!-- Pied de page : ACTIONS d'abord (interactives, les plus utilisées), puis l'ÉTAT passif
        (nb de fiches · version + pastille de synchro), puis le message de stockage (explicatif,
        le plus long). Hiérarchie action > statut > métadonnées. -->
@@ -10126,8 +10185,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <p class="up-drag-t" id="upDragT"></p>
   <p class="up-drag-d" id="upDragD"></p></div></div>
 <div id="alerts"></div>
-<!-- MODE LECTEUR (v4.11.0) : challenge-response en binôme (AC 120-71B) — un challenge à la
-     fois, plein écran, piloté sur le BOUT du journal (mêmes clés de cochage, mêmes chemins
 <!-- MODE MONITEUR (v4.60.0, audit design D3) : le téléphone POSÉ devient un afficheur. Sur un
      chariot ou un tableau de bord d'ambulance, personne ne tient l'appareil — c'est l'ECAM au
      sens propre : un écran d'état qu'on lit sans le toucher, à 2 m. AUCUN contrôle : un tap
@@ -10332,7 +10389,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
       code. <b>Rien n'est installé sur cet appareil</b>, et l'accès s'arrête avec la session.</p>
     <label class="join-lab" for="joinCode">Code affiché sur son écran</label>
     <input id="joinCode" class="join-code" inputmode="text" autocapitalize="characters"
-      autocomplete="off" spellcheck="false" maxlength="9" aria-describedby="joinErr" placeholder="XXXX-XXXX">
+      autocomplete="off" spellcheck="false" maxlength="24" aria-describedby="joinErr" placeholder="XXXX-XXXX">
     <label class="join-lab" for="joinRole">Votre rôle, tel qu'il apparaîtra à l'équipe</label>
     <select id="joinRole" class="join-sel">
       <option>Médecin</option><option>Interne</option><option>IADE</option><option>IDE</option>
@@ -10341,10 +10398,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     </select>
     <p class="join-err" id="joinErr" role="alert" hidden></p>
     <button class="btn primary join-go" id="joinGo">Rejoindre</button>
-    <label class="join-lab">Sans internet — l'hôte affiche un code d'appariement</label>
+    <div class="join-lab">Sans internet — l'hôte affiche un code d'appariement</div>
     <button class="btn join-go" id="joinScanAll">Scanner un code</button>
     <div id="jsAnswer" hidden></div>
-    <p class="join-err" id="jsStat" role="status" hidden></p>
+    <p class="join-stat" id="jsStat" role="status" hidden></p>
     <details class="join-info">
       <summary>Ce qui est enregistré, et par qui</summary>
       <p><b>Qui est responsable.</b> La session appartient au soignant qui vous a montré le code —
@@ -10378,7 +10435,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <h3 id="welcomeModalTitle" class="wl-t">Les bons gestes, cochés au bon moment.</h3>
   <p class="wl-p">Parcours de crise à cocher, protocoles à relire : vos aides se déroulent avec le chrono et les minuteurs sous les yeux. Hors ligne, sur cet appareil.</p>
   <!-- Ce qui ne se déduit pas de l'usage (J0-D5) : la responsabilité du contenu (§ 2) et la promesse de confidentialité. -->
-  <p class="wl-p wl-p2"><strong>Vous rédigez, vous validez.</strong> L'app ne contient aucun protocole imposé : vous restez responsable du contenu clinique. <strong>Sans compte, rien ne quitte votre téléphone.</strong></p>
+  <p class="wl-p wl-p2"><strong>Vous rédigez, vous validez.</strong> L'app ne contient aucun protocole imposé : vous restez responsable du contenu clinique. <strong>Sans compte, rien ne quitte cet appareil.</strong></p>
   <div class="wl-act">
     <button class="btn primary wl-btn" id="welcomeSeed">Découvrir avec 2 exemples</button>
     <button class="btn wl-btn wl-sec" id="welcomeGo">Créer une aide…</button>
@@ -10407,7 +10464,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
      événement — le modèle QRH/Stanford (un manuel, des onglets), pas un bouton par urgence.
      Rangées larges (crise), fermeture voile/✕/Échap par le gestionnaire central de modales. -->
-</div></div>
 <!-- Visionneuse PDF (documents joints) : plein écran, rendu pdf.js page par page (virtualisé).
      Même gestion d'accessibilité que les autres fenêtres (.ai-modal : focus, Échap, piège Tab). -->
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
@@ -10450,8 +10506,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Accès en PULL uniquement (rangée en fin d'action, bouton du quai, menu ⋯) — jamais d'ouverture
      automatique : seule l'alarme pousse. La NOTE personnelle reste dans le flux (seul bloc à état
      éditable : l'y déplacer casserait la restauration de défilement de son éditeur). -->
-  </div>
-</div>
 <!-- Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) : TOUJOURS cette confirmation,
      jamais d'arrêt direct — contexte (fiche + durée) puis CONSÉQUENCES annoncées AVANT le choix
      (QRS : annoncer l'effet, pas demander la confiance), puis Poursuivre (sûr, contour, focus

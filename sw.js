@@ -21,8 +21,10 @@
 //     Précaché à l'installation (chargé paresseusement par la page, un premier usage hors ligne
 //     échouerait sinon) ; les fichiers déjà présents ne sont pas re-téléchargés.
 //   - skipWaiting + clients.claim : le nouveau worker prend la main tout de suite.
-//     La page, elle, affiche un toast « application mise à jour » quand un nouveau worker
-//     s'active (voir l'enregistrement du SW en fin d'index.html) — jamais de reload forcé.
+//     La page, elle, affiche le BANDEAU « Nouvelle version disponible — rechargez la page »
+//     (#sysBanner) quand un nouveau worker s'active ; le toast « Application mise à jour » ne
+//     sort que si elle tourne déjà la nouvelle version (voir l'enregistrement du SW en fin
+//     d'index.html) — jamais de reload forcé.
 //   - À l'activation : on supprime les anciens caches (sauf le cache pdf.js courant).
 //
 //  IMPORTANT : ce worker ne touche JAMAIS à IndexedDB ('ac-db') ni au
