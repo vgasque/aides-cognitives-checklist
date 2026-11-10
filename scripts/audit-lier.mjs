@@ -376,10 +376,15 @@ await ctx.close();
     const rows = [...document.querySelectorAll('.adm-trow')].length;
     const b = document.querySelector('[data-trk="edit"][data-trv="non"]'); if (b) b.click();
     await __acCalme(800);
-    return { rows, bouton: !!b };
+    // A661 : le tap DEMANDE (rien ne part), « Confirmer » applique.
+    const avant = !!document.querySelector('[data-admyes="tr"]');
+    const y = document.querySelector('[data-admyes="tr"]'); if (y) y.click();
+    await __acCalme(800);
+    return { rows, bouton: !!b, demande: avant };
   });
   const set = (vu7.set_temp_rules || [])[0] || {};
   t('Administration › Règles : la section « Connexion temporaire » (5 règles + 2 interdits fixes)', adm.rows === 7 && adm.bouton, JSON.stringify(adm));
+  t('… un choix se confirme sur place avant de partir (A661)', adm.demande === true, JSON.stringify(adm));
   t('… un choix part au serveur (set_temp_rules)', set.p_rules && set.p_rules.edit === 'non', JSON.stringify(set));
   await c7.close();
 }

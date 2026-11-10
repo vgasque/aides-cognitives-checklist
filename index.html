@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VKs2CN1cwld93+7QS8hVWbOEUqmrE//PnzQ0w2UunBk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-5/MsOhktDC+Wb5rQ1L38SWj/44ZXwpKhSvc3sc204No='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5474,6 +5474,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .field input[type=text],.field textarea,.field select{width:100%;min-height:44px;padding:8px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
   .field .ed-title-in{min-height:52px;font-size:17.5px;font-weight:700}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--act);border-color:transparent}
+  .field input.val-bad,.field input.val-bad:focus{border-color:var(--crit)}   /* A660 : date de validation non comprise — la classe était posée sans règle */
   .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
   /* ═══ MK-flux ÉTENDU AUX LISTES (v5.0.0, demande utilisateur : « harmoniser avec les étapes
      dans les blocs ») : même cycle que `.blk .li` — au REPOS la ligne est du TEXTE (aucun chrome,
@@ -10666,7 +10667,11 @@ function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexe
 // Promisification d'une requête IndexedDB : motif unique de TOUTES les méthodes simples d'IDB
 // ci-dessous (une requête = une transaction implicite). dflt = valeur rendue si le résultat est
 // vide (getAll -> [], get -> null/{}) ; les écritures (put/delete) ignorent la valeur résolue.
-const req2p=(r,dflt)=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result||dflt);r.onerror=()=>rej(r.error);});
+/* A661 : une transaction AVORTÉE (quota au commit, base fermée par un autre onglet) n'émet pas toujours `error` sur
+   la requête — la promesse restait pendante, et avec elle l'enregistrement qui l'attendait. Un rejet après
+   résolution est sans effet : seul le cas pendant change. */
+const req2p=(r,dflt)=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result||dflt);r.onerror=()=>rej(r.error);
+  try{const tx=r.transaction;if(tx)tx.addEventListener('abort',()=>rej(tx.error||r.error||new DOMException('transaction avortée','AbortError')));}catch(e){}});
 // UNE CONNEXION FERMÉE N'EST PAS UNE PANNE, C'EST UN ÉTAT À RECONNAÎTRE (v5.0.10, signalé à
 // l'usage : « The database connection is closing » remonté jusqu'à la fenêtre de synchro en
 // « Erreur inattendue · Détail technique »). Une connexion IndexedDB se ferme SANS que
@@ -10722,14 +10727,14 @@ const IDB={
   applyRows(store,puts,dels){return new Promise((res,rej)=>{if(!puts.length&&!dels.length)return res();
     const tx=this._tx(store,'readwrite');const st=tx.objectStore(store);
     puts.forEach(o=>st.put(o));dels.forEach(id=>st.delete(id));
-    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
+    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new DOMException('transaction avortée','AbortError'));});},   // A661
   getSessions(){return req2p(this._s('sessions','readonly').getAll(),[]);},
   putSession(s){return req2p(this._s('sessions','readwrite').put(s));},
   delSession(id){return req2p(this._s('sessions','readwrite').delete(id));},
   getBackups(ficheId){const st=this._s('backups','readonly');return req2p((ficheId&&st.indexNames.contains('byFiche'))?st.index('byFiche').getAll(ficheId):st.getAll(),[]);},
   putBackup(b){return new Promise((res,rej)=>{const tx=this._tx('backups','readwrite');const st=tx.objectStore('backups');st.put(b);
     const q=st.index('byFiche').getAll(b.ficheId);q.onsuccess=()=>{const arr=(q.result||[]).sort((x,y)=>(x.at||0)-(y.at||0));for(let i=0;i<arr.length-BACKUP_MAX;i++)st.delete(arr[i].bid);};
-    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
+    tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new DOMException('transaction avortée','AbortError'));});},   // A661
   delBackup(bid){return req2p(this._s('backups','readwrite').delete(bid));},
   // Documents PDF joints, hors du modèle fiche. Enregistrement : {id, buf:ArrayBuffer, size,
   // type:'application/pdf', createdAt, dirty:0|1, remotePath:null|string} — dirty/remotePath
@@ -10812,10 +10817,12 @@ async function moveLocalDataTo(space){
       atts.forEach(a=>tx.objectStore('attachments').put(a));
       attix.forEach(x=>tx.objectStore('attidx').put(x));
       prots.forEach(p=>tx.objectStore('protocols').put(p));
-      tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
+      tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new DOMException('transaction avortée','AbortError'));});   // A661 : sinon la source était vidée sur une copie jamais écrite
     db.close();
   }else{
-    const w=(base,v)=>{try{localStorage.setItem(spaceKeyFor(base,space,owner),JSON.stringify(v));}catch(e){}};
+    /* A661 : PLUS DE `catch` ICI — un quota dépassé était avalé, puis la source VIDÉE plus bas : le déménagement
+       détruisait ce qu'il n'avait pas copié. L'exception remonte (les appelants gardent alors l'espace d'origine). */
+    const w=(base,v)=>{localStorage.setItem(spaceKeyFor(base,space,owner),JSON.stringify(v));};
     w('fiches_v1',fs);if(cats)w('cats_v1',cats);w('notes_v1',nts||{});w('sessions_v1',ss);w('backups_v1',bks);w('protocols_v1',prots);
   }
   // Épingles + marqueur « catégories à pousser » suivent dans l'espace cible (poussés au 1er sync).
@@ -11027,7 +11034,7 @@ function canEditFiche(f){return (f&&f.library)?canEditScope(f.library):true;}
 // « changeait d'ordre » de façon intermittente, sur ordi comme sur téléphone (retour d'usage). Une
 // liste de navigation doit être PRÉVISIBLE : on apprend où se trouve chaque entrée. (libUsage/
 // bumpLibUsage supprimés avec le tri par usage — plus aucun lecteur.)
-function sortedLibraries(){return myLibraries.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));}
+function sortedLibraries(){return myLibraries.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'fr',{sensitivity:'base'}));}   // A661 : « Équipe » ne part plus après « Z »
 // Déplace l'élément i d'un tableau d'un cran (dir -1 = haut, +1 = bas). Réutilisé pour minuteurs/compteurs.
 function moveItem(arr,i,dir){const j=i+dir;if(!arr||j<0||j>=arr.length)return;const t=arr[i];arr[i]=arr[j];arr[j]=t;}
 // Plusieurs sessions VIVES en parallèle : un runtime par fiche dont la session a démarré. Leurs
@@ -11178,7 +11185,24 @@ const MD_ITAL_RX=/(^|[^*])\*((?:[^*\n<]|<b>[^<]*<\/b>)+)\*(?!\*)/g;   // *italiq
 const MD_STRIKE_RX=/~~([^~\n]+)~~/g;                          // ~~barré~~ (Notion, GFM)
 const MD_MARK_RX=/==([^=\n]+)==/g;                 // ==surligné== (achromatique, registre MEMO)
 const MD_CODE_RX=/(`[^`\n]+`)/;                    // `code` en ligne (segment préservé tel quel)
-function mdInline(s){const h=esc(sstr(s,4000));
+/* A661 — LES LIENS SORTENT EN JETONS AVANT L'EMPHASE, comme les segments `code` : une URL portant « == », « * » ou
+   « ~~ » recevait <mark>/<i>/<s> DANS son `href` et le lien cassait. Le libellé garde son emphase (posée à part), le
+   jeton est un NUL encadrant un rang — le NUL est retiré de l'entrée, il ne peut donc venir que d'ici. `tel:` et
+   `mailto:` admis (formes strictes ; l'export PDF les admettait déjà, `PDF_URL_OK`) ; tout autre protocole reste du
+   texte. Toujours `esc()` d'abord. */
+const MD_TEL_RX=/^tel:\+?[0-9][0-9.\-]{1,24}$/i,MD_MAILTO_RX=/^mailto:[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}$/i;
+function mdEmph(x){
+  x=x.replace(MD_B4_RX,'<b>$1</b>').replace(MD_B4O_RX,'<b>$1$2</b>').replace(MD_B4F_RX,'$1<b>$2$3</b>');
+  x=x.replace(MD_BI_RX,'<b><i>$1</i></b>');
+  x=x.replace(MD_BOLD_RX,'<b>$1</b>');
+  x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
+  x=x.replace(MD_STRIKE_RX,'<s>$1</s>');
+  // ==surligné== : surligneur ACHROMATIQUE (registre MEMO, --amb-2) — il fait ressortir un mot
+  // sans mentir sur le code couleur (dans cette app, rouge et ambre ont un sens vital). Syntaxe
+  // répandue (Obsidian, Typora, pandoc) ; un lecteur qui l'ignore affiche « ==texte== » en clair.
+  return x.replace(MD_MARK_RX,'<mark class="md-mk">$1</mark>');}
+function mdInline(s){const h=esc(sstr(s,4000)).replace(/\u0000/g,'');const L=[];
+  const jeton=html=>'\u0000'+(L.push(html)-1)+'\u0000';
   // Le texte (déjà échappé) est découpé autour des segments `code` : AUCUN balisage n'est
   // interprété à l'intérieur (un lien ou ** dans du code reste littéral, comme en Markdown).
   return h.split(MD_CODE_RX).map(seg=>{
@@ -11188,21 +11212,13 @@ function mdInline(s){const h=esc(sstr(s,4000));
     let x=seg.replace(/\[([^\]\n]{1,200})\]\(([^()\s]{1,500})\)/g,(m,txt,href)=>{
       // Défense en profondeur : href nettoyé AU POINT D'INSERTION (guillemets/chevrons bruts
       // retirés) — la sûreté de l'attribut ne dépend plus du seul esc() d'entrée de mdInline.
-      if(/^https?:\/\/\S+$/i.test(href))return '<a href="'+href.replace(/["'<>`]/g,'')+'" target="_blank" rel="noopener noreferrer">'+txt+'</a>';
+      if(/^https?:\/\/\S+$/i.test(href))return jeton('<a href="'+href.replace(/["'<>`]/g,'')+'" target="_blank" rel="noopener noreferrer">'+mdEmph(txt)+'</a>');
+      if(MD_TEL_RX.test(href)||MD_MAILTO_RX.test(href))return jeton('<a href="'+href+'">'+mdEmph(txt)+'</a>');
       // `#p12` (v5.44) : ouvre le document à cette page (un client antérieur laisse le lien en clair).
       const am=href.match(/^att:([A-Za-z0-9_-]{1,64})(?:#p(\d{1,4}))?$/);
-      if(am&&BAD_KEYS.indexOf(am[1])<0)return '<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+txt+'</a>';
+      if(am&&BAD_KEYS.indexOf(am[1])<0)return jeton('<a href="#" data-mdatt="'+am[1]+'"'+(am[2]?' data-mdpage="'+am[2]+'"':'')+'>'+mdEmph(txt)+'</a>');
       return m;});
-    x=x.replace(MD_B4_RX,'<b>$1</b>').replace(MD_B4O_RX,'<b>$1$2</b>').replace(MD_B4F_RX,'$1<b>$2$3</b>');
-    x=x.replace(MD_BI_RX,'<b><i>$1</i></b>');
-    x=x.replace(MD_BOLD_RX,'<b>$1</b>');
-    x=x.replace(MD_ITAL_RX,'$1<i>$2</i>');
-    x=x.replace(MD_STRIKE_RX,'<s>$1</s>');
-    // ==surligné== : surligneur ACHROMATIQUE (registre MEMO, --amb-2) — il fait ressortir un mot
-    // sans mentir sur le code couleur (dans cette app, rouge et ambre ont un sens vital). Syntaxe
-    // répandue (Obsidian, Typora, pandoc) ; un lecteur qui l'ignore affiche « ==texte== » en clair.
-    x=x.replace(MD_MARK_RX,'<mark class="md-mk">$1</mark>');
-    return x;}).join('');}
+    return mdEmph(x).replace(/\u0000(\d+)\u0000/g,(m,i)=>L[+i]||'');}).join('');}
 // Découpe en blocs (ligne à ligne) : {t:'h1'|'h2'|'h3', text} | {t:'ul'|'ol', items:[{text,sub,task}]}
 // (sub = sous-liste {t,items:[{text,sub,task}]}, récursive jusqu'à MD_MAX_DEPTH niveaux — A607 ; task = {done} si
 // l'item est une tâche « [ ] », à tout niveau, null sinon — champ ADDITIF v4.5.4) | {t:'q', lines[]} (citation) |
@@ -11511,7 +11527,7 @@ const safeCatRef=id=>(typeof id==='string'&&SAFE_ID.test(id)&&BAD_KEYS.indexOf(i
 // Identifiants de SYNCHRONISATION (ownerId, libraryId) : on n'invente JAMAIS de valeur (contrairement à
 // safeId qui régénère) -> une valeur non sûre devient null. Couvre les uuid Supabase (36 car. avec tirets).
 const safeMetaId=v=>(typeof v==='string'&&SAFE_ID.test(v)&&BAD_KEYS.indexOf(v)<0)?v:null;
-const safeColor=c=>(typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c))?c:'#45556b';
+const safeColor=c=>(typeof c==='string'&&/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(c))?c:'#45556b';   // A661 : 5 et 7 chiffres ne sont pas des couleurs (déclaration ignorée par le navigateur)
 /* ⚠ DEUX BARRIÈRES, PAS UNE (v5.10.2, audit sécurité) : la doctrine disait « esc() sur toute
    donnée affichée » — le code réel en a DEUX : validation à l'ENTRÉE (migrate → safeId/safeImg/
    safeColor) PLUS échappement à la SORTIE (esc). Depuis v5.10.2 les IDENTIFIANTS interpolés dans
@@ -11589,6 +11605,8 @@ function dataKind(u8){
   while(i<u8.length&&u8[i]<=0x20)i++;
   const c=u8[i];
   if(c===0x23&&(u8[i+1]===0x20||u8[i+1]===0x23))return 'md';   // A562 : « # Titre » — une page Notion exportée, un .md
+  // A661 : un .md qui s'ouvre sur un FRONT-MATTER (« --- » seul sur sa ligne : Obsidian, Hugo) — jamais du JSON.
+  if(c===0x2D&&u8[i+1]===0x2D&&u8[i+2]===0x2D&&(u8[i+3]===0x0A||u8[i+3]===0x0D))return 'md';
   return (c===0x7B||c===0x5B||c===0x60)?'json':null;}
 /* LA TABLE. `accept` = ce que le sélecteur de fichier PROPOSE ; `sniff` = ce que la porte
    VÉRIFIE ; `max` = le plafond. Les trois sur la même ligne, donc indissociables.
@@ -12071,7 +12089,16 @@ const decTaken=(b,idx)=>{const nx=state.nav[navNextIdx(state.nav,state.navSeq,id
   return (b.options||[]).find(o=>o&&o.target&&o.target===nx)||null;};
 // Recherche PLEIN TEXTE, insensible aux accents : la requête « adrenaline » doit trouver une fiche
 // où le mot n'apparaît que dans une étape (« Adrénaline titrée… »), pas seulement dans le titre.
-const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+/* A661 — LES LIGATURES ET L'APOSTROPHE SE REPLIENT : « oedeme » ne trouvait pas « œdème », « coeur » pas « cœur »,
+   et « l'adrénaline » tapé au clavier pas « l’adrénaline » rédigé. ⚠ `txNorm` N'EST DONC PLUS 1:1 avec sa source
+   (œ → oe) : qui RAPPORTE un index dans le texte d'origine passe par `txNormMap` ; ce qui est STOCKÉ ou dérivé en
+   clé (index des PDF `ixTokens`, clé d'étiquette) reste sur `txNorm1`, la forme d'avant, pour ne rien invalider. */
+const txNorm1=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const txNorm=s=>txNorm1(s).replace(/œ/g,'oe').replace(/æ/g,'ae').replace(/[’‘ʼ]/g,"'");
+// {n, map} : la forme `txNorm` et, pour chacun de ses caractères, l'index du caractère d'origine (+ la fin).
+function txNormMap(s){s=String(s||'');let n='';const map=[];
+  for(let i=0;i<s.length;i++){const c=txNorm(s[i]);for(let k=0;k<c.length;k++)map.push(i);n+=c;}
+  map.push(s.length);return {n,map};}
 // Le haystack d'une fiche est mis en CACHE par objet (WeakMap) pour ne pas re-parcourir toutes les
 // fiches \u00e0 chaque frappe dans la recherche. S\u00fbr car toute modification de CONTENU remplace l'objet
 // fiche (\u00e9diteur, import, synchro, restauration) ; seule `category` est parfois mut\u00e9e en place
@@ -12158,8 +12185,8 @@ function spellFix(q,vocab){
 // chevauchent), correspondance insensible aux accents. Repose sur l'alignement 1:1 des index
 // entre la chaîne NFC et sa forme txNorm (chaque caractère composé donne un caractère nu).
 function markQTerms(s,terms){
-  const n=txNorm(s);const iv=[];
-  terms.forEach(t=>{let i=0;while(t&&(i=n.indexOf(t,i))>=0){iv.push([i,i+t.length]);i+=t.length;}});
+  const {n,map}=txNormMap(s);const iv=[];   // A661 : intervalles rapportés au texte d'origine
+  terms.forEach(t=>{let i=0;while(t&&(i=n.indexOf(t,i))>=0){iv.push([map[i],map[i+t.length-1]+1]);i+=t.length;}});
   if(!iv.length)return esc(s);
   iv.sort((a,b)=>a[0]-b[0]);
   const m=[];iv.forEach(([a,b])=>{const l=m[m.length-1];if(l&&a<=l[1])l[1]=Math.max(l[1],b);else m.push([a,b]);});
@@ -12197,7 +12224,7 @@ const IX_V=1;
    qu'un accent tapé ou non trouve la même chose des deux côtés. Un mot d'une lettre ne
    discrimine rien ; au-delà de 24 caractères on est dans une référence ou un identifiant, qui
    gonflerait le dictionnaire sans jamais être cherché entier. */
-const ixTokens=s=>txNorm(String(s||'')).split(/[^a-z0-9]+/).filter(t=>t.length>=2&&t.length<=24);
+const ixTokens=s=>txNorm1(String(s||'')).split(/[^a-z0-9]+/).filter(t=>t.length>=2&&t.length<=24);
 /* ixBuild(pages) : `pages` = un tableau de tableaux de mots (un par page). PURE et testée.
    Rend l'enregistrement à ranger : {v, pages, terms, dict:ArrayBuffer, post:ArrayBuffer}. */
 function ixBuild(pageTokens){
@@ -12498,8 +12525,8 @@ function suiviEdPaint(){const e=_svEd,ent=suiviEnt(e.ent),chip=(attr,v,lbl,on)=>
     if(e.type==='fusion'||e.type==='confronter'){const cur=e.ref&&suiviEnt(e.ref);
       h+=`<div class="su-fl" id="svRefL">${e.type==='fusion'?'Avec':'À'}</div><div class="su-refw"><button type="button" class="su-refpick${cur?'':' vide'}" id="svRefBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="svRefL svRefBtn">`
         +(cur?uiIcon(fiches.indexOf(cur)>=0?'list':'doc',15)+`<span>${esc(String(cur.title||'').trim()||'Sans titre')}</span>`:`<span>${e.type==='confronter'?'Une aide, un protocole… ou une reco ci-dessous':'Choisir une aide ou un protocole'}</span>`)
-        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button></div>`;}
-      +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');
+        +uiIcon('chev',11,{sw:2.4,cls:'su-refchev'})+`</button></div>`
+      +(e.type==='confronter'?`<input type="text" id="svRefTxt" maxlength="200" placeholder="ou une reco : RFE SFAR 2025" value="${esc(e.refTxt)}">`:'');}   // A660 : dans le `h+=` — après « ;} » l'expression était orpheline, le champ jamais rendu
     h+=`</div>`;}
   h+=`<div class="su-f"><label class="su-fl" for="svBody">${e.k==='task'?'Précision <span class="su-s">(facultatif)</span>':'Note'}</label><textarea id="svBody" rows="${e.k==='task'?2:5}" maxlength="2000">${esc(e.body)}</textarea></div>`;
   if(e.k==='task')h+=`<div class="su-f"><div class="su-fl">Priorité</div><div class="su-chips">${[1,2,3].map(v=>chip('data-suprio',v,SUIVI_PRIO[v],e.prio===v)).join('')}</div>`
@@ -12660,7 +12687,7 @@ function frecencyScore(u,now){if(!u||!u.n)return 0;
    Object.create(null) — la clé vient d'un titre saisi, règle 6) ; qaPick : les ÉPINGLÉES SEULES
    (décision utilisateur — la frecency reste un tri de RECHERCHE, jamais de mise en avant), PAS de
    plafond, sans épingle la section disparaît. Détail : doctrine-js.md J19. */
-function azLetter(t){const c=String(t||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').charAt(0).toUpperCase();
+function azLetter(t){const c=String(t||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/^[œŒ]/,'O').replace(/^[æÆ]/,'A').charAt(0).toUpperCase();   // A661 : « Œdème » se range à O, plus à « # »
   return /[A-Z]/.test(c)?c:'#';}
 function azGroups(list,titleOf){const gm=Object.create(null);
   list.forEach(x=>{const L=azLetter(titleOf(x));(gm[L]=gm[L]||[]).push(x);});
@@ -13981,7 +14008,18 @@ const fmtDateShort=v=>fmtDate(v).replace(/^Validation : /,'');
    persist(f)      : enregistre une fiche ; alerte si le stockage est saturé. */
 // Renvoie les fiches déjà lues (le test « base vide ? » a coûté un getAll complet : load() le
 // RÉUTILISE au lieu de relire) — ou null si une migration KV->IDB vient d'écrire (relire) ou en repli KV.
-async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);const op=await KV.getProtocols();if(op&&op.length){for(const p of op)await IDB.putProtocol(migrateProtocol(p));}return null;}return ex;}catch(e){Data=KV;return null;}}
+async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.getAll();if(!ex.length){const old=await KV.getAll();if(old.length){for(const f of old)await IDB.put(migrate(f));}const oc=await KV.getCats();if(oc)await IDB.setCats(oc);const os=await KV.getSessions();if(os&&os.length){for(const s of os)await IDB.putSession(s);}const on=await KV.getNotes();if(on&&Object.keys(on).length)await IDB.setNotes(on);const op=await KV.getProtocols();if(op&&op.length){for(const p of op)await IDB.putProtocol(migrateProtocol(p));}return null;}return ex;}catch(e){Data=KV;sbKvFallback();return null;}}
+/* A661 — LE REPLI DE STOCKAGE SE DIT. IndexedDB indisponible (navigation privée, base corrompue), l'app passait en
+   silence sur le stockage de secours : ~5 Mo, aucun document PDF, et une bibliothèque qui semble VIDE alors qu'elle
+   est intacte dans la base principale. Une ligne dans `#sysBanner` (registre ambre : le glyphe et le mot), posée
+   seulement si le créneau est libre — les écrivains plus prioritaires (nouvelle version, code de session, aides
+   d'exemple) réécrivent texte ET action, et la remplacent. */
+function sbKvFallback(){try{const b=document.getElementById('sysBanner');if(!b||!b.hidden)return;
+  const t=b.querySelector('.sb-txt');t.textContent='';
+  const k=document.createElement('b');k.style.color='var(--warn)';k.textContent='△ Stockage de secours';t.appendChild(k);
+  t.appendChild(document.createTextNode(' — le stockage principal de ce navigateur est indisponible : place réduite, documents PDF non enregistrés. Rechargez ; si le message revient, exportez vos données.'));
+  const a=document.getElementById('sbReload');a.textContent='Recharger';a.onclick=()=>location.reload();
+  b.hidden=false;}catch(e){}}
 /* SOURCE UNIQUE du libellé d'état de stockage (v4.4.2) — consommée par DEUX pieds de page :
    celui de la barre latérale (variante LONGUE + info-bulle) et celui des vues de lecture
    (variante COURTE : « ● Local — hors ligne OK », chaîne morte qui MENTAIT — elle affichait
@@ -14001,7 +14039,7 @@ function storageState(o){
     mark=uiIcon('cloud',14);
     main='<b>Cloud</b> · '+used+' sur l\'appareil';
     short=uiIcon('cloud',12)+' Cloud · '+used+' sur l\'appareil';
-    tip='Vos données sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
+    tip='Vos données sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
   }else if(o.pers===true){
     mark=uiIcon('phone',14);
     main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
@@ -14396,10 +14434,15 @@ async function confirmHeldEdits(){
     setHeldEdits([]);render();Sync.schedule();
     toast('Modifications écartées : les versions de votre espace en ligne seront rétablies à la prochaine synchronisation.');}
 }
+/* A661 : toute erreur d'écriture se disait « Stockage saturé » — une base fermée par un autre onglet envoyait
+   l'utilisateur alléger des images pour rien. Le quota a un nom ; le reste se dit autrement. */
+const isQuotaErr=e=>!!e&&(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'||e.code===22||e.code===1014);
+const saveErrMsg=e=>isQuotaErr(e)?'⚠ Stockage saturé. Exportez vos données puis allégez les images.'
+  :'⚠ Enregistrement impossible : le stockage de cet appareil ne répond pas. Rechargez la page (fermez les autres onglets de l’application), puis réessayez.';
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
-  await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos données puis allégez les images.',9000);return false;}}
+  await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast(saveErrMsg(e),9000);return false;}}
 // Enregistre la note personnelle d'une fiche (débouncé par l'appelant). t vide = effacement :
 // l'entrée est conservée (t:'') pour propager l'effacement aux autres appareils (last-write-wins).
 async function saveNote(ficheId,text){
@@ -14433,7 +14476,7 @@ async function softDelete(f){if(!f)return;
 async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
   await Data.putProtocol(p);updateStorageInfo();Sync.schedule();return true;}
-  catch(e){toast('⚠ Stockage saturé. Exportez vos données puis allégez les images.',9000);return false;}}
+  catch(e){toast(saveErrMsg(e),9000);return false;}}
 async function softDeleteProtocol(p){if(!p)return;
   const anonSpace=(currentSpace()==='');
   if(anonSpace&&(!Auth.signedIn())){try{await Data.delProtocol(p.id);}catch(e){warnDeleteFailed();}return;}
@@ -15652,6 +15695,14 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
       Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});
       Sync.schedule();render();return;}}
   try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
+/* A660 : les sessions d'une aide SUPPRIMÉE partent par le même chemin — pierre tombale dès que l'historique est
+   synchronisé (sinon elles reviennent au prochain pull). Sans question ni rendu : l'appelant tient les deux. */
+async function sessDropOf(ficheId){
+  const rel=sessions.filter(s=>s.ficheId===ficheId),sync=sessSyncOn()||linkShared();
+  for(const s of rel){if(sync)_putSessionSafe(Object.assign({},s,{deletedAt:Date.now()}));
+    else{try{await Data.delSession(s.id);}catch(e){}}}
+  sessions=sessions.filter(s=>s.ficheId!==ficheId);
+  if(sync&&rel.length)Sync.schedule();}
 
 /* ===== Render =====
    render() : aiguilleur unique. Met à jour l'en-tête et délègue à la vue active
@@ -17629,9 +17680,7 @@ async function selDelete(redo){
   if(!r||!r.checked)return;
   for(const e of ent){
     if(e.kind==='f'){await softDelete(e.o);
-      const rel=sessions.filter(s=>s.ficheId===e.o.id);
-      for(const s of rel)await Data.delSession(s.id);
-      sessions=sessions.filter(s=>s.ficheId!==e.o.id);
+      await sessDropOf(e.o.id);   // A660
       if(liveSessions[e.o.id])delete liveSessions[e.o.id];
       if(Runtime.ficheId===e.o.id)resetRuntime();
       fiches=fiches.filter(x=>x.id!==e.o.id);}
@@ -17969,7 +18018,7 @@ function renderHomeList(cfg){
      filtre sans résultat ou lecture seule = `.empty` ordinaire sans bouton (« Aucun résultat »).
      `empty.anon`/`empty.libEdit`/`empty.cta` PURGÉS avec `#emptyNew` (règle 14).
      Détail : doctrine-js.md J87. */
-  const dansFiltre=!!(state.q||state.cat||state.coll);
+  const dansFiltre=!!(state.q||state.cat||state.coll||state.homeRev);   // A660 : « À relire » est un filtre — vidée par lui, la liste n'est pas une bibliothèque vide
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
   const emptyHtml=(!dansFiltre&&accLoading())?accLoadingHtml():introK.length
     ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
@@ -18683,19 +18732,18 @@ function pfRun(q){
       ?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
   const cibles=[];let n0;while((n0=w.nextNode()))cibles.push(n0);
   cibles.forEach(nd=>{
-    const brut=nd.nodeValue,norm=txNorm(brut);
-    let i=norm.indexOf(s);if(i<0)return;
-    let cur=nd;let dec=0;
+    let M=txNormMap(nd.nodeValue);   // A661 : `txNorm` n'est plus 1:1 (œ → oe) — l'index se rapporte au texte d'origine
+    let i=M.n.indexOf(s);if(i<0)return;
+    let cur=nd;
     while(i>=0){
-      const dans=i-dec;
+      const dans=M.map[i];
       const apres=cur.splitText(dans);
-      const reste=apres.splitText(s.length);
+      const reste=apres.splitText(M.map[i+s.length-1]+1-dans);
       const m=document.createElement('mark');m.className='pf-h';
       m.appendChild(document.createTextNode(apres.nodeValue));
       apres.replaceWith(m);_pfHits.push(m);
-      cur=reste;dec=i+s.length;
-      i=txNorm(cur.nodeValue).indexOf(s);
-      if(i>=0)dec=0;}});
+      cur=reste;M=txNormMap(cur.nodeValue);
+      i=M.n.indexOf(s);}});
   if(nav){nav.hidden=!_pfHits.length;}
   pfSyncFind();
   pfGo(0,true);}   // frappe : on ne déplace la page que si la 1re occurrence n'est pas visible
@@ -18906,6 +18954,7 @@ function renderProtocolRead(){
   if(!preview)setMoreMenu([
     {label:'Modifier',ic:uiIcon('pen',16),sub:canEditFiche(p)?'hors urgence':'lecture seule',disabled:!canEditFiche(p),act:()=>openProtocolEdit(p.id)},
     collMenuRow(p),
+    ...(canEditFiche(p)?[{label:p.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),act:()=>openVersions(p.id,'p')}]:[]),   // A661 : comme une aide
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',p)},
     {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(p)},
@@ -20414,7 +20463,7 @@ function bindEditorMetaFields(d,prefix,o){
   // Date de validation : champ tolérant — interprétée au blur (« janv 2026 », « 01/2026 »…) puis
   // réécrite au propre « MM/AAAA » ; entrée non comprise -> bordure rouge, valeur non retenue.
   {const fv=document.getElementById(prefix+'-validation');
-   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
+   if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');fv.removeAttribute('aria-invalid');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');fv.removeAttribute('aria-invalid');}else{fv.classList.add('val-bad');fv.setAttribute('aria-invalid','true');}});}   // A660 : aria-invalid
   // État SEGMENTÉ 3 états : la pastille GLISSE (peinte sur place, sans re-rendu) ; phrase d'aide
   // et badge d'en-tête suivent.
   main.querySelectorAll('.st-seg').forEach((b,i)=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;
@@ -22098,7 +22147,7 @@ function slHub(o){
     revoke(pid){const p=H.parts.find(x=>x.id===pid&&!x.owner);
       if(!p)return {ok:false};p.revoked=true;return {ok:true};},
     setRole(pid,role){const p=H.parts.find(x=>x.id===pid);
-      if(!p)return {ok:false};p.role=sstr(role,24);return {ok:true};},
+      if(!p||(role!=='lead'&&role!=='scribe'))return {ok:false};p.role=role;return {ok:true};},   // A661 : jeu fermé, comme le serveur
     end(){H.status='ended';return {ok:true};}};}
 /* ── Étape 2b : servir et consommer les verbes sur un CANAL INJECTABLE ─────────────────────
    Un canal est {send(txt), onmessage} : RTCDataChannel en production (la colle WebRTC
@@ -22119,9 +22168,13 @@ function slServe(hub,wire){ // côté HÔTE : trame reçue → verbe du hub → 
       if(m.n==='join')r=hub.join(m.p&&m.p.label);
       else if(m.n==='pull')r=await hub.pull(m.p.secret,m.p.since);
       else if(m.n==='push')r=hub.push(m.p.secret,m.p.events);
-      else if(m.n==='revoke')r=hub.revoke(m.p.pid);
-      else if(m.n==='setRole')r=hub.setRole(m.p.pid,m.p.role);
-      else if(m.n==='end')r=hub.end();
+      /* A661 — COUPER, CHANGER UN RÔLE, TERMINER SONT LES GESTES DU PROPRIÉTAIRE (A221 point 3 : écrire exige un
+         secret). Le hub les exécutait pour TOUT canal apparié : un invité au client modifié pouvait se promouvoir,
+         couper les autres ou clore le partage. L'hôte ne passe jamais par le fil (`slHostIo`) ; par le fil, seul le
+         secret d'hôte ouvre ces trois verbes — aucun client ne l'envoie aujourd'hui, donc : refusés. */
+      else if(m.n==='revoke'||m.n==='setRole'||m.n==='end'){
+        if(!m.p||!m.p.secret||m.p.secret!==hub.hostSecret())r={ok:false,err:'auth'};
+        else r=m.n==='revoke'?hub.revoke(m.p.pid):m.n==='setRole'?hub.setRole(m.p.pid,m.p.role):hub.end();}
       else return wire.send(slRpcReply(m.i,null,'verbe'));
     }catch(e){return wire.send(slRpcReply(m.i,null,'hub'));}
     wire.send(slRpcReply(m.i,r));};}
@@ -22135,7 +22188,7 @@ function slClient(wire,opts){ // côté INVITÉ : la couture _io ENTIÈRE, servi
     const id=++n;
     pend[id]={res,rej,t:setTimeout(()=>{delete pend[id];rej(new Error('timeout'));},tmo)};
     try{wire.send(slRpcPack(id,name,params));}
-    catch(e){delete pend[id];clearTimeout(pend[id]&&pend[id].t);rej(e);}});
+    catch(e){clearTimeout(pend[id]&&pend[id].t);delete pend[id];rej(e);}});   // A661 : la garde d'abord — supprimée avant, elle partait 8 s plus tard
   return {call,io:{
     open:()=>Promise.reject(new Error('local : open est le geste de l’hôte')),
     admit:async()=>({ok:true}), // la porte d'admission, c'est le canal apparié (jeton QR)
@@ -22772,7 +22825,7 @@ function sanitizeTags(v){
   (Array.isArray(v)?v:[]).slice(0,TAG_MAX).forEach(t=>{
     if(!t||typeof t!=='object')return;
     const l=sstr(t.l!=null?t.l:t.label,40).trim();if(!l)return;
-    const k=safeId(t.k||('t-'+txNorm(l).replace(/[^a-z0-9]+/g,'-').slice(0,24)),'t');
+    const k=safeId(t.k||('t-'+txNorm1(l).replace(/[^a-z0-9]+/g,'-').slice(0,24)),'t');
     if(seen[k])return;seen[k]=1;
     const a=sarr(t.a!=null?t.a:t.alias,TAG_ALIAS_MAX).map(x=>sstr(x,24).trim()).filter(Boolean);
     out.push({k:k,l:l,a:a});});
@@ -23089,7 +23142,7 @@ function bindTk(){
       if(e&&e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.tk-time-chips'))return;
       const p=tkParseTime(inp.value);
       if(!p){announce('Heure non reconnue — repère inchangé');renderTkOnly();return;}
-      const base=new Date(ev.t);base.setHours(p.h,p.m,p.s,0);applyT(base.getTime());};
+      applyT(tkNearDay(ev.t,p));};
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
         if(!tkParseTime(inp.value)){bad();return;}
         inp.blur();}
@@ -28951,7 +29004,9 @@ async function deleteDraft(){
   const msg=state.draft&&state.draft.library
     ?'Supprimer cette aide définitivement ?\nElle disparaîtra pour tous les membres de la bibliothèque, et les notes personnelles que certains y ont peut-être attachées seront effacées — prévenez-les avant si besoin.'
     :'Supprimer cette aide définitivement ?';
-  if(!await confirmDlg(msg,{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);await clearDraftParkIf('f',id);const rel=sessions.filter(s=>s.ficheId===id);for(const s of rel)await Data.delSession(s.id);sessions=sessions.filter(s=>s.ficheId!==id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
+  // A660 : ce qui part avec elle se dit avant.
+  const nSes=state.draft?sessions.filter(s=>s.ficheId===state.draft.id).length:0;
+  if(!await confirmDlg(msg+(nSes?'\n'+(nSes>1?'Ses '+nSes+' comptes rendus de session seront supprimés':'Son compte rendu de session sera supprimé')+' avec elle.':''),{yes:'Supprimer',danger:true}))return;const id=state.draft.id;const f=fiches.find(x=>x.id===id)||state.draft;await softDelete(f);await clearDraftParkIf('f',id);await sessDropOf(id);if(liveSessions[id])delete liveSessions[id];fiches=fiches.filter(x=>x.id!==id);state.draft=null;resetRuntime();state.view='library';render();}
 
 /* ===== Auto-enregistrement des brouillons (SPEC gestion §2.2) =====
    Toutes les 2,5 s, le brouillon ouvert (fiche OU protocole) est « parqué » dans le store meta
@@ -30290,6 +30345,9 @@ AVANT DE RÉPONDRE, VÉRIFIE
    justifiait — l'état vient du fichier et se lit rangée par rangée avant écriture (règle 14). */
 const createModal=document.getElementById('createModal');
 let pendingOpenImport=false;   // ouvrir directement la fiche importée (méthode IA)
+/* A660 : par la méthode IA, un élément dont le fichier ne DIT PAS son état entre en Brouillon (la notice du
+   sous-écran le promet, et `migrate` lit « validée » dans une absence). Ailleurs l'état reste celui du fichier (A129). */
+let importAiDraft=false;
 /* Sélecteur de TYPE du dialogue « Créer » (v4.4.2) : aide cognitive <-> protocole, au même
    composant segmenté que la tab bar (.seg, pastille glissante). Il pilote `state.section` —
    source unique du type dans tout le dialogue (brouillon parqué, carte IA, aiguillage
@@ -30335,7 +30393,7 @@ function bindCreateDrop(el,openAfter){
   bindUpDrop(el,'data',async files=>{
     closeCreateDlg();
     for(let i=0;i<files.length;i++){
-      pendingOpenImport=openAfter&&i===files.length-1;
+      pendingOpenImport=openAfter&&i===files.length-1;importAiDraft=!!openAfter;
       await readImportFile(files[i],files.length>1?{i:i+1,n:files.length}:null);}},true);}
 function renderCreateDlg(screen,park){
   const proto=_crtKind==='protocols';
@@ -30352,7 +30410,7 @@ function renderCreateDlg(screen,park){
       <div class="ai-actions"><button class="crt-copy" id="crtCopy">Copier le prompt</button></div>
       <div class="crt-step">2 · Importez le fichier</div>
       ${upDropHtml('data','crtDrop','Importer le fichier généré')}
-      <p class="crt-note">L'aide arrive en <strong>○ Brouillon</strong> : relisez et validez chaque posologie avant publication. Vous restez responsable du contenu.</p>`;
+      <p class="crt-note">Sans état dans le fichier, l'aide arrive en <strong>○ Brouillon</strong> : relisez et validez chaque posologie avant publication. Vous restez responsable du contenu.</p>`;
     document.getElementById('crtPrompt').textContent=AI_PROMPT;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
     document.getElementById('crtCopy').onclick=async()=>{const btn=document.getElementById('crtCopy');
@@ -30366,7 +30424,7 @@ function renderCreateDlg(screen,park){
     body.innerHTML=`
       <button class="crt-back" id="crtBack">‹ Autres méthodes</button>
       ${upDropHtml('data','crtDrop','Importer un fichier',' pad-lg mt')}
-      <p class="crt-note">Un export de l'app (.json, ou .zip avec les documents PDF) ou une génération IA (.json). Tout le contenu importé arrive en <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
+      <p class="crt-note">Un export de l'app (.json, ou .zip avec les documents PDF) ou une génération IA (.json). L'état de chaque élément est celui du fichier, affiché avant l'import ; pour un fichier d'IA, passez par « Rédiger avec l'IA » : sans état, il entre en <strong>○ Brouillon</strong>.</p>`;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
     bindCreateDrop(document.getElementById('crtDrop'),false);
     return;
@@ -30388,7 +30446,7 @@ function renderCreateDlg(screen,park){
     <div class="crt-sep" role="separator"></div>
     <button type="button" class="crt-row" id="crtIA"><span class="crt-ic" aria-hidden="true">${uiIcon('sparkles',20)}</span><span><span class="crt-t">Rédiger avec l\'IA à partir d\'un document</span><br><span class="crt-d">PDF ou texte → brouillon à relire avant usage.</span></span></button>
     <button type="button" class="crt-row" id="crtImport"><span class="crt-ic" aria-hidden="true">${uiIcon('download',20)}</span><span><span class="crt-t">Importer un fichier (.json ou .zip)</span></span></button>
-    <p class="crt-note">Tout import arrive en état <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>
+    <p class="crt-note">Un import garde l'état de son fichier ; rédigé avec l'IA, un fichier sans état entre en <strong>○ Brouillon</strong>.</p>
 `;
   {const rs=document.getElementById('crtResume');if(rs)rs.onclick=()=>{closeCreateDlg();
     if(proto){state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(resume.draft)));state.view='protocolEdit';}
@@ -31322,11 +31380,12 @@ async function notionVerse(p,files,rerender){
   if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
 function readImportFile(file,pos){
   const lbl=pos?'« '+upShortName(file&&file.name)+' » (fichier '+pos.i+'/'+pos.n+')':null;
+  const ia=importAiDraft;importAiDraft=false;   // A660 : lu une fois, à l'entrée — jamais hérité par l'import suivant
   return new Promise(fin=>{const r=new FileReader();
     r.onerror=()=>{pendingOpenImport=false;toast('⚠ '+(lbl||'Fichier')+' illisible.');fin();};
-    r.onload=()=>_importRead(r.result,lbl).then(fin,fin);
+    r.onload=()=>_importRead(r.result,lbl,ia).then(fin,fin);
     r.readAsArrayBuffer(file);});}   // ArrayBuffer : nécessaire au .zip ; le .json est décodé en UTF-8
-async function _importRead(buf,lbl){
+async function _importRead(buf,lbl,ia){
     // PARSE séparé du reste : « Fichier illisible » ne doit être dit QUE si le fichier est
     // illisible — pas quand une étape ultérieure (stockage saturé en milieu d'import…) échoue.
     // Deux formats acceptés (v4.5.0) : .json (historique) et .zip « avec documents » — détecté
@@ -31376,6 +31435,8 @@ async function _importRead(buf,lbl){
        interrompu », pour un fichier parfaitement valide. */
     imp.fiches=Array.isArray(imp.fiches)?imp.fiches:[];
     imp.protocols=Array.isArray(imp.protocols)?imp.protocols:[];
+    // A660 : AVANT l'atelier — la rangée montre donc l'état qui sera écrit.
+    if(ia)[imp.fiches,imp.protocols].forEach(l=>l.forEach(x=>{if(x&&typeof x==='object'&&typeof x.status!=='string')x.status='draft';}));
     if(!imp.fiches.length&&!imp.protocols.length){
       pendingOpenImport=false;
       toast((lbl||'Ce fichier')+' ne contient aucune aide ni protocole — rien à importer.',7000,true);return;}
@@ -31543,7 +31604,9 @@ async function _importRead(buf,lbl){
     /* On AFFICHE la destination — mais laquelle, quand il y en a plusieurs ? Celle du DERNIER
        élément écrit : c'est le fil du geste, et l'alternative (rester où l'on était) donnerait
        l'écran le plus trompeur de tous, une bibliothèque inchangée après un import réussi. */
-    state.scope=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||null;
+    /* A660 : via `homeLib` (`state.scope` est mort depuis A297). Sur « Toutes » (null) rien ne
+       disparaît : on ne pose pas un filtre non demandé — même règle que le déplacement. */
+    if(state.homeLib!=null)state.homeLib=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||'';
     state.cat='';
     if(openId)openRead(openId);else{state.view='library';render();}
     if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.'+(versees.length?' Contenu versé dans « '+versees.join(' », « ')+' ».':''));
@@ -31590,7 +31653,7 @@ const Auth={
   token(){return (this.session&&this.session.access_token)||SUPA.key;},
   // apikey = clé publishable (toujours) ; Authorization = jeton utilisateur si connecté, sinon la clé (rôle anon).
   headers(extra){return Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+this.token(),'Content-Type':'application/json'},extra||{});},
-  async _post(path,body){const r=await acFetch(SUPA.url+path,{method:'POST',headers:this.headers(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||('HTTP '+r.status));return j;},
+  async _post(path,body){const r=await acFetch(SUPA.url+path,{method:'POST',headers:this.headers(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.msg||j.message||j.error_description||j.error||('HTTP '+r.status));e.status=r.status;throw e;}return j;},   // A661 : le statut voyage (`authErrMsg`)
   _setSession(j){if(!j||!j.access_token)return;this.session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:j.expires_at||(Math.floor(Date.now()/1000)+(j.expires_in||3600)),user:j.user};this._save();},
   async sendCode(email){await this._post('/auth/v1/otp',{email:email,create_user:true});},
   async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
@@ -31626,6 +31689,14 @@ const Auth={
   // Suppression RGPD : efface compte + données perso côté serveur (RPC SECURITY DEFINER).
   async deleteAccount(){await this._post('/rest/v1/rpc/delete_my_account',{});}
 };
+/* A661 — L'ERREUR D'UN CODE SE DIT POUR CE QU'ELLE EST. « Code invalide ou expiré » répondait aussi à une panne de
+   réseau, à un 429 et à un 5xx : on retapait un code JUSTE, pour rien ; et l'envoi affichait le message brut de
+   GoTrue, en anglais. `quoi` : 'code' (vérification) ou 'envoi'. Sans statut, la requête n'a pas atteint le serveur. */
+function authErrMsg(e,quoi){const s=e&&e.status;
+  if(!s)return 'Serveur injoignable : vérifiez la connexion Internet, puis réessayez.'+(quoi==='code'?' Votre code reste valable.':'');
+  if(s===429)return quoi==='code'?'Trop de tentatives : patientez une minute, puis réessayez.':'Trop de demandes de code : patientez une minute avant d’en redemander un.';
+  if(s>=500)return 'Le service de connexion est momentanément indisponible. Réessayez dans un instant.'+(quoi==='code'?' Votre code reste valable.':'');
+  return quoi==='code'?'Code invalide ou expiré.':'L’envoi du code n’a pas abouti. Vérifiez l’adresse e-mail, puis réessayez.';}
 /* ===== POSTE PARTAGÉ — CONNEXION PAR LE TÉLÉPHONE (v5.111, A643) =====
    Un ordinateur de service se connecte au compte d'un soignant SANS e-mail : il affiche un QR et
    un NOMBRE DE CONTRÔLE ; le téléphone déjà connecté vise le QR (viseur de l'app, ou appareil photo
@@ -31703,8 +31774,27 @@ function linkEndChoices(now,fins,maxH){fins=linkFinsNorm(fins);const out=[],d0=n
     const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+k,h,m,0,0),dt=d.getTime()-now;
     if(dt>=3600000&&dt<=lim)out.push({at:d.getTime(),k});}
   out.sort((a,b)=>a.at-b.at);const v=out.slice(0,3);
+  /* A661 — JAMAIS DE LISTE VIDE : durée maximale 12 h et repères 10:00/19:30, aucune fin ne tombait dans la fenêtre
+     de 18 h 30 à 22 h — la garde de NUIT n'avait aucune heure à toucher, et l'approbation partait avec `end=null`
+     (1970, refusée par le serveur). On propose alors « la durée maximale » : maintenant + max, cinq minutes de marge
+     (le serveur compare à SON horloge), à la minute. */
+  if(!v.length){const at=Math.floor((now+lim-5*60000)/60000)*60000,d=new Date(at);
+    v.push({at,k:Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()))/86400000)});}
   const di=v.findIndex(x=>x.at-now>=6*3600000);
   return v.map((x,i)=>({at:x.at,lbl:(x.k===0?'':x.k===1?'Demain ':'Après-demain ')+fmtHM(x.at),sub:linkInLbl(x.at-now),def:i===(di<0?v.length-1:di)}));}
+/* A661 — LE JOUR D'UNE HEURE DE FIN, UN SEUL DISEUR : « Jusqu'à 10:00 ce soir » s'affichait le matin, et une fin
+   d'après-demain se disait « demain ». Aujourd'hui avant 17 h, Ce soir ensuite, Demain, Après-demain. */
+/* A661 — CORRIGER UNE HEURE AUTOUR DE MINUIT : un repère posé à 00:03 et corrigé en « 23:58 » partait à 23:58 le
+   MÊME jour, soit presque 24 h dans le futur. L'heure saisie se place sur le jour (veille, jour même, lendemain) qui
+   la met au plus près de l'heure d'origine. PURE. */
+function tkNearDay(t0,p){let best=null;
+  for(const d of [0,-1,1]){const c=new Date(t0);c.setDate(c.getDate()+d);c.setHours(p.h,p.m,p.s||0,0);
+    if(best===null||Math.abs(c.getTime()-t0)<Math.abs(best-t0))best=c.getTime();}
+  return best;}
+function linkDayLbl(t,now){const d=new Date(t),n=new Date(now==null?Date.now():now);
+  const k=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/86400000);
+  return k<=0?(d.getHours()>=17?'Ce soir':'Aujourd’hui'):k===1?'Demain':'Après-demain';}
+function linkDayPfx(t,now){const l=linkDayLbl(t,now);return l==='Demain'?'demain ':l==='Après-demain'?'après-demain ':'';}
 // « Chrome · Windows » — le seul mot que le téléphone lit du poste avant d'approuver.
 function linkUaLabel(ua){ua=String(ua||'');
   const b=/Edg\//.test(ua)?'Edge':/Firefox\//.test(ua)?'Firefox':/(Chrome|CriOS)\//.test(ua)?'Chrome':/Safari\//.test(ua)?'Safari':'Navigateur';
@@ -31792,7 +31882,7 @@ const Link={
         <li>Touchez <b>Moi</b> › <b>Connecter un appareil</b>, puis visez ce code.</li>
         <li>Touchez le nombre <b>${linkCheckNum(secret)}</b>${kind==='unlock'?'.':', puis l’heure de fin de votre garde.'}</li></ol>
         ${step?'<p class="pp-note">Sur un appareil temporaire, ce geste se confirme sur un appareil connecté, à chaque fois (règle de votre administration).</p>'
-          :kind==='unlock'?'<p class="pp-note">Consulter et reprendre une session restent libres. Créer, modifier et supprimer redemandent un appareil connecté après une réouverture du navigateur, et après 15 minutes sans geste.</p>'
+          :kind==='unlock'?'<p class="pp-note">Consulter et reprendre une session restent libres. Créer, modifier et supprimer redemandent un appareil connecté après une réouverture du navigateur, et après '+(linkRules().edit==='v5'?5:15)+' minutes sans geste.</p>'
           :'<p class="pp-note"><b>Connexion temporaire.</b> Vos aides restent sur cet appareil jusqu’à l’heure de fin choisie, puis s’effacent. Fermer le navigateur ne les perd pas, et une session en cours est sauvegardée en ligne toutes les 2 minutes.</p>'}
       </div></div><p class="pp-msg" id="lkSt" role="status"></p>`;
     const exp=body.querySelector('#lkExp'),st=body.querySelector('#lkSt');
@@ -31905,8 +31995,8 @@ const Link={
     const lbl=p.label||'cet appareil';
     document.getElementById('linkModalTitle').textContent=(unlock?'Déverrouiller ':'Connecter ')+lbl+' ?';
     const ch=unlock?[]:linkEndChoices(Date.now(),linkFins(),linkRules().dur);let ok=false,end=(ch.find(x=>x.def)||{}).at||null,miss=0,bad=null;
-    const day=t=>{const d=new Date(t),n=new Date();return d.toDateString()===n.toDateString()?(d.getHours()>=17?'Ce soir':'Aujourd’hui'):'Demain';};
-    const endLbl=t=>(day(t)==='Demain'?'demain ':'')+fmtHM(t);
+    const day=t=>linkDayLbl(t);
+    const endLbl=t=>linkDayPfx(t)+fmtHM(t);
     const paint=()=>{const nums=linkDecoys(L.secret),vrai=linkCheckNum(L.secret);
       body.innerHTML=`<p class="pp-sub pp-ameta">${uiIcon(linkDevIcon(lbl),16)}<span>Code visé il y a ${Math.max(0,+p.age_s||0)} s${unlock?'':' · connexion temporaire'}</span></p>
       ${ok?`<p class="pp-okl">${uiIcon('check',18)}<span><span class="pp-mono">${esc(String(vrai))}</span> — c’est bien l’écran devant vous</span></p>`
@@ -31960,7 +32050,7 @@ const Link={
     const e=Date.parse(d.ends_at),s0=Date.parse(d.since)||Date.now(),now=Date.now(),max=s0+linkRules().dur*3600000;
     const left=Math.max(0,e-now),pct=Math.max(0,Math.min(100,Math.round(100*(now-s0)/Math.max(1,e-s0))));
     const next=linkEndChoices(now,linkFins(),linkRules().dur).map(c=>c.at).find(t=>t>e+15*60000&&t<=max);
-    const dd=t=>new Date(t).toDateString()===new Date().toDateString()?'':'demain ';
+    const dd=t=>linkDayPfx(t);   // A661
     body.innerHTML=`<p class="pp-sub pp-ameta">${uiIcon(linkDevIcon(d.label),16)}<span>Connecté temporairement depuis ${esc(fmtHM(s0))}</span></p>
       <div class="pp-endc"><div class="pp-endh"><span>Se déconnecte à</span><span>reste ${esc(linkLeftTxt(left))}</span></div>
         <p class="pp-endt">${esc(dd(e))}<b>${esc(fmtHM(e))}</b></p>
@@ -32098,7 +32188,7 @@ function linkDeny(quoi){if(!linkShared())return false;
 function linkPaintBand(){const el=document.getElementById('linkBand');if(!el)return;const sp=linkShared();
   if(!sp){el.hidden=true;return;}
   const now=Date.now(),soon=sp.endsAt-now<=LINK_SOON_MS,past=now>=sp.endsAt||sp.revoked,locked=linkLocked();
-  const day=new Date(sp.endsAt).toDateString()===new Date(now).toDateString()?'':'demain ';
+  const day=linkDayPfx(sp.endsAt,now);   // A661
   const left=Math.max(0,sp.endsAt-now),reste=linkLeftTxt(left);   // A656 : « 8 h 60 » n'existe plus (arrondi des minutes)
   /* v5.112 (A651) : NEUTRE (rien ne tourne mal, règle 8), AMBRE à 30 min de la fin et après — l'échéance. Le COMPTE
      est nommé : un appareil approuvé par un autre compte (code relayé) se voit au premier coup d'œil. */
@@ -32118,7 +32208,7 @@ bindModalDismiss(document.getElementById('linkModal'),()=>Link.close());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&document.getElementById('lkDevs'))Link.loadDevs(true);});
 /* Moi — la carte du POSTE PARTAGÉ (sur le poste) et la zone « Appareils » (sur le téléphone). */
 function linkSharedCardHtml(locked){const sp=linkShared();if(!sp)return '';
-  const now=Date.now(),past=now>=sp.endsAt,day=new Date(sp.endsAt).toDateString()===new Date(now).toDateString()?'ce soir':'demain';
+  const now=Date.now(),past=now>=sp.endsAt,day=linkDayLbl(sp.endsAt,now).toLowerCase();   // A661 : « ce soir » ne se dit pas à 8 h du matin
   const ini=((sp.email||'?').trim().slice(0,2)||'?').toUpperCase();
   return `<div class="acct-card pp-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(sp.email||'')}</div><div class="pp-tmp">${uiIcon('clock',14)}Connexion temporaire</div></div></div>
     ${sp.revoked?'<p class="pp-msg" style="margin-top:14px">Déconnecté depuis un autre appareil : cet appareil ne modifie plus rien et s’efface dès que la session en cours est finie.</p>'
@@ -32136,7 +32226,7 @@ function linkDevIcon(lbl){lbl=String(lbl||'');return /iPad/.test(lbl)?'tablet':/
 function linkLeftTxt(ms){const t=Math.round(ms/60000),h=Math.floor(t/60),m=t%60;return h?h+' h'+(m?' '+String(m).padStart(2,'0'):''):m+' min';}
 function linkDevsHtml(){const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`,L=_linkDevs,now=Date.now();
   const rows=Array.isArray(L)?L.map(d=>{const e=Date.parse(d.ends_at),soon=e-now<=3600000;
-      const dd=new Date(e).toDateString()===new Date(now).toDateString()?'':'demain ';
+      const dd=linkDayPfx(e,now);   // A661
       return menuRowHtml({label:d.label||'Appareil',sub:(soon?'△ ':'')+'jusqu’à '+dd+fmtHM(e)+' · '+(soon?'dans ':'reste ')+linkLeftTxt(Math.max(0,e-now)),
         ic:uiIcon(linkDevIcon(d.label),20),cls:'pp-devrow'+(soon?' soon':''),attrs:`data-lkdev="${esc(d.id)}"`,tail:chev});}).join('')
     :`<div class="mm-row inert pp-devwait"><span class="mm-tx"><span class="mm-sub">${L===false?'Liste indisponible hors ligne.':'Chargement…'}</span></span></div>`;
@@ -32241,7 +32331,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
-const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules'];
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact'];   // A660 : quatre clés lues par `spaceKey`, oubliées
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -32330,12 +32420,12 @@ const admAfter=msg=>{if(msg)toast(msg,4000,true);return admRefresh(true);};
 const admView=()=>document.getElementById('admView');
 function admRoot(){return admView()||(admModal.classList.contains('on')?document.getElementById('admBody'):null);}
 function openAdmin(sec){if(linkDeny('L’administration'))return;   // A643 : interdit sur un poste partagé
-  _adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;
+  _adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=_adm.trAsk=null;
   /* A517 : au téléphone, Administration reste une page-fenêtre (un NIVEAU ouvert depuis Moi, A494) — pas un onglet. */
   if(homeTabsOn()&&!tabNavOn()){if(homeTab()==='admin')renderAdm({top:true});else setHomeTab('admin');}
   else{admModal.classList.add('on');renderAdm({top:true});}
   admRefresh(true);}
-function closeAdmin(){admModal.classList.remove('on');_adm.sec='home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=null;admPaintDoor();}
+function closeAdmin(){admModal.classList.remove('on');_adm.sec='home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=_adm.trAsk=null;admPaintDoor();}
 bindModalDismiss(admModal,closeAdmin);
 /* Profondeur DANS la page (retour système, A430) : un compte ouvert depuis Comptes = 2, toute section = 1. */
 function admDepth(){const s=_adm.sec;return s==='home'?0:s==='compte'&&_adm.from==='comptes'?2:1;}
@@ -32344,7 +32434,7 @@ function admGo(sec,o){o=o||{};
   if(sec==='compte'){if(_adm.sec!=='compte')_adm.from=_adm.sec==='comptes'?'comptes':'home';_adm.user=o.user||_adm.user;}else _adm.user=null;
   if(sec==='comptes'&&o.f){_adm.f=o.f;_adm.lim=ADM_PAGE;}
   if(sec!=='comptes'&&sec!=='compte')_adm.sel=null;
-  _adm.sec=sec;_adm.apAsk=_adm.modeAsk=null;renderAdm({top:sec!=='compte'||!admSplit()});_histSync();}
+  _adm.sec=sec;_adm.apAsk=_adm.modeAsk=_adm.trAsk=null;renderAdm({top:sec!=='compte'||!admSplit()});_histSync();}
 const admUser=()=>_admD&&(_admD.acc||[]).find(u=>u.user_id===_adm.user)||null;
 /* Catégorie d'un compte : validation coupée, un « en attente » a déjà accès (`my_status`) — il se lit approuvé. */
 function admCat(u){if(u.is_admin)return 'admin';if(u.status==='pending'&&_admD&&!_admD.approval)return 'approved';return ACC_ST[u.status]?u.status:'approved';}
@@ -32542,9 +32632,13 @@ function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.st
   h+=admSh('Connexion temporaire')+'<p class="adm-hint">Ce qu’on peut faire sur un appareil du service. Appliqué par le serveur, tout de suite, aux appareils déjà connectés ; jamais plus que le rôle du compte.</p>';
   if(D.temp==null)h+=admSchema('v5.113','régler la connexion temporaire');
   else h+='<div class="acct-card acct-list">'+ADM_TEMP_ROWS.map(([k,l,sub,opts])=>`<div class="adm-trow"><span class="adm-tx"><span class="adm-lb">${esc(l)}</span><span class="adm-sub">${esc(sub)}</span></span>
-      <span class="adm-tseg" role="radiogroup" aria-label="${esc(l)}">${opts.map(([v,t])=>`<button type="button" class="adm-topt${String(D.temp[k])===String(v)?' on':''}" role="radio" aria-checked="${String(D.temp[k])===String(v)}" data-trk="${k}" data-trv="${v}" data-admk="tr-${k}-${v}">${esc(t)}</button>`).join('')}</span></div>`).join('')
+      <span class="adm-tseg" role="radiogroup" aria-label="${esc(l)}">${opts.map(([v,t])=>{const on=String(_adm.trAsk&&_adm.trAsk.k===k?_adm.trAsk.v:D.temp[k])===String(v);return `<button type="button" class="adm-topt${on?' on':''}" role="radio" aria-checked="${on}" data-trk="${k}" data-trv="${v}" data-admk="tr-${k}-${v}">${esc(t)}</button>`;}).join('')}</span></div>`).join('')
     +`<div class="adm-trow"><span class="adm-tx"><span class="adm-lb">Administration, membres et rôles</span><span class="adm-sub">sinon, un appareil resté ouvert pourrait desserrer ces règles</span></span><span class="adm-tfix">${uiIcon('lock',14)}Toujours interdit</span></div>
       <div class="adm-trow"><span class="adm-tx"><span class="adm-lb">Supprimer mon compte</span><span class="adm-sub">refusé aussi par le serveur</span></span><span class="adm-tfix">${uiIcon('lock',14)}Toujours interdit</span></div></div>`;
+  /* A661 : l'écran dit « chaque changement se confirme » et ces règles partaient au tap, appliquées aussitôt aux
+     appareils connectés — même confirmation sur place que les deux autres réglages. */
+  if(D.temp!=null&&_adm.trAsk){const r=ADM_TEMP_ROWS.find(x=>x[0]===_adm.trAsk.k),o=r&&r[3].find(x=>String(x[0])===String(_adm.trAsk.v));
+    if(r&&o)h+=admAskHtml('tr','« '+r[1]+' » passe à « '+o[1]+' » : appliqué tout de suite, aussi aux appareils temporaires déjà connectés.','Confirmer');}
   if((D.reqs||[]).length)h+=admSh('Les autres demandent')+`<div class="acct-card acct-list">`+menuRowHtml({label:D.reqs.length+' demande'+(D.reqs.length>1?'s':'')+' de bibliothèque en attente',ic:uiIcon('book',20),attrs:'data-admgo="home" data-admk="go-req"',tail:admChev()})+'</div>';
   return h;}
 /* ── Rendu, onglets (vue large), gestes ──────────────────────────────────────────────────────── */
@@ -32612,12 +32706,14 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(x){err(x);}
       delete _adm.mem[u.user_id];admAfter();return;}
     if(t.dataset.admap!=null){_adm.apAsk=_adm.apAsk!=null?null:!_admD.approval;renderAdm();admFocusYes('ap');return;}
-    if(t.dataset.trk!=null){const k=t.dataset.trk,v=t.dataset.trv;if(_admD.temp&&String(_admD.temp[k])===v)return;   // A654
+    if(t.dataset.trk!=null){const k=t.dataset.trk,v=t.dataset.trv;   // A654 ; A661 : le tap DEMANDE, « Confirmer » applique
+      _adm.trAsk=(_admD.temp&&String(_admD.temp[k])===v)?null:{k,v};renderAdm();if(_adm.trAsk)admFocusYes('tr');return;}
+    if(t.dataset.admyes==='tr'){const a=_adm.trAsk;_adm.trAsk=null;if(!a){renderAdm();return;}const k=a.k,v=a.v;
       try{await rpc('set_temp_rules',{p_rules:{[k]:k==='dur'?+v:v}});}catch(x){err(x);renderAdm();return;}
       _admD.temp=Object.assign({},_admD.temp,{[k]:k==='dur'?+v:v});_linkRules=null;await linkRulesFetch();
       renderAdm();toast('✓ Règle enregistrée — elle s’applique aux appareils temporaires.');return;}
     if(t.dataset.libmode!=null){_adm.modeAsk=t.dataset.libmode===_admD.mode?null:t.dataset.libmode;renderAdm();admFocusYes('mode');return;}
-    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else _adm.modeAsk=null;renderAdm();return;}
+    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else if(t.dataset.admno==='tr')_adm.trAsk=null;else _adm.modeAsk=null;renderAdm();return;}
     if(t.dataset.admyes==='ap'){const v=_adm.apAsk;_adm.apAsk=null;
       try{await rpc('set_approval_required',{p_value:v});}catch(x){err(x);renderAdm();return;}
       admAfter(v?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes sont approuvés automatiquement.');return;}
@@ -32638,6 +32734,24 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrole)+'&user_id=eq.'+encodeURIComponent(u.user_id),{role:t.value},{'Prefer':'return=minimal'});toast('Rôle modifié.',3000,true);}catch(x){toast('⚠ Échec : '+x.message,5000,true);}
       delete _adm.mem[u.user_id];admAfter();}});}
 function admFocusYes(k){const r=admRoot(),b=r&&r.querySelector('[data-admyes="'+k+'"]');if(b)b.focus();}
+/* A661 — EFFACER CET APPAREIL NE PERD PLUS RIEN SANS LE DIRE. La case promettait « elles restent disponibles dans
+   votre espace en ligne » et le code effaçait sans rien vérifier : une session en cours était coupée, une
+   modification pas encore envoyée (hors ligne, synchro en erreur) disparaissait. Même garde que `Link.wipe` :
+   jamais pendant une session ; une synchro d'abord ; et ce qui n'a pas pu partir se DIT, avec une confirmation
+   explicite. Vrai = on peut effacer. */
+async function wipeGuard(){
+  if(linkLive().length){toast('⚠ Une session est en cours sur cet appareil : terminez-la d’abord.',7000,true);return false;}
+  const on=Sync.online();
+  if(on&&Auth.signedIn()){for(let i=0;i<100&&Sync.running;i++)await new Promise(r=>setTimeout(r,200));
+    try{await Sync.full();}catch(e){}}
+  let n=0,ns=0;
+  try{n=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[])).filter(x=>x.dirty&&!x.deletedAt).length;ns=(await linkUnsent()).length;}catch(e){}
+  if(linkLive().length){toast('⚠ Une session est en cours sur cet appareil : terminez-la d’abord.',7000,true);return false;}
+  if(on&&!n&&!ns)return true;
+  const quoi=[n?nb(n,'élément')+' modifié'+(n>1?'s':'')+' ici':'',ns?nb(ns,'session')+' terminée'+(ns>1?'s':''):''].filter(Boolean).join(' et ');
+  return !!(await confirmDlg((quoi?quoi+' n’'+(n+ns>1?'ont':'a')+' pas rejoint votre espace en ligne'+(on?' (synchronisation incomplète)':' (hors ligne)')+'. Effacé'+(n+ns>1?'s':'')+' maintenant, '+(n+ns>1?'ils seraient perdus':'il serait perdu')+' : exportez d’abord vos données, ou attendez le réseau.'
+      :'Hors ligne : impossible de vérifier que tout a rejoint votre espace en ligne. Rien n’est marqué en attente sur cet appareil.'),
+    {title:'Effacer quand même cet appareil ?',yes:'Effacer quand même',danger:true}));}
 function renderAuth(){const body=document.getElementById('meView')||document.getElementById('authBody');if(!body)return;
   /* A372 : le champ ACTIF se relâche AVANT que le DOM ne soit remplacé — un champ retiré sous le
      clavier ne fait pas de blur, donc pas de focusout, donc pas de recollage (`unpan`) : sur iOS 27
@@ -32649,7 +32763,9 @@ function renderAuth(){const body=document.getElementById('meView')||document.get
     // (appareil partagé) — les fiches restent dans le cloud, seule la copie locale du compte
     // disparaît. Reload (comme la suppression de compte) : plus simple et plus sûr que de
     // retricoter l'état en mémoire après avoir supprimé les données qu'il référence.
-    const doSignOut=async(wipe)=>{await Auth.signOut();
+    const doSignOut=async(wipe)=>{
+      if(wipe&&!await wipeGuard())return;   // A661 : AVANT de se déconnecter — la synchro a besoin du compte
+      await Auth.signOut();
       // Avec effacement : reload obligatoire (l'état en mémoire pointe sur des données supprimées).
       // Le reload ferme la fenêtre Compte -> le drapeau 'ac-reopen-auth' la rouvre après, pour
       // arriver au même écran de connexion qu'une déconnexion sans effacement : l'option
@@ -32668,7 +32784,7 @@ function renderAuth(){const body=document.getElementById('meView')||document.get
     // sans ce retour, les fiches emportées à la connexion seraient échouées là).
     const offerReturn=!offerWipe&&canReturnToAnon(myAccountStatus,accountEverSynced(),fiches.length);
     const confirmLeave=async(title,msg,yes)=>{
-      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les données de ce compte sur cet appareil (elles restent disponibles dans votre espace en ligne)'}
+      const opts=offerWipe?{title:title,yes:yes,check:'Effacer aussi les données de ce compte sur cet appareil (ce qui est synchronisé reste disponible dans votre espace en ligne ; le reste vous est signalé avant)'}
         :offerReturn?{title:title,yes:yes,checkSafe:true,check:'Ramener d\'abord les données de ce compte « hors compte » sur cet appareil (recommandé : ce compte n\'étant pas validé, elles n\'existent nulle part ailleurs)'}
         :{title:title,yes:yes};
       const r=await confirmDlg(msg,opts);
@@ -32702,7 +32818,7 @@ function renderAuthDelete(body,u){
         dResend.onclick=async()=>{if(dResend.disabled)return;
           if(!Sync.online()){setM('Hors ligne : une connexion Internet est nécessaire pour recevoir le code.','err');return;}
           dResend.disabled=true;setM('Envoi du code…','');
-          try{await Auth.sendCode(delEmail);setM('Code renvoyé.','ok');}catch(e){setM('Échec de l\'envoi : '+e.message,'err');}
+          try{await Auth.sendCode(delEmail);setM('Code renvoyé.','ok');}catch(e){setM(authErrMsg(e,'envoi'),'err');}
           dResend.disabled=false;};
         const dGo=body.querySelector('#delGo');
         dGo.onclick=async()=>{if(dGo.disabled)return;
@@ -32712,7 +32828,9 @@ function renderAuthDelete(body,u){
           const reset=()=>{dGo.disabled=false;dGo.textContent='Supprimer définitivement';};
           // La vérification OTP renouvelle la session (preuve serveur) ; en cas d'échec, la
           // session actuelle reste intacte et RIEN n'est supprimé (bouton réactivé pour réessayer).
-          try{await Auth.verifyCode(delEmail,code);}catch(e){setM('Code invalide ou expiré.','err');reset();return;}
+          // A661 : l'effacement de l'appareil ne coupe jamais une session (elle a pu démarrer depuis l'étape 1).
+          if(_authDelete.wipe&&linkLive().length){setM('Une session est en cours sur cet appareil : terminez-la d’abord.','err');reset();return;}
+          try{await Auth.verifyCode(delEmail,code);}catch(e){setM(authErrMsg(e,'code'),'err');reset();return;}
           setM('Suppression…','');dGo.textContent='Suppression…';
           try{const wipe=!!_authDelete.wipe;
             // Compte non approuvé jamais synchronisé : une fois supprimé, plus aucune connexion
@@ -32772,10 +32890,11 @@ function renderAuthDelete(body,u){
       delConf.addEventListener('input',()=>{delGo.disabled=delBusy||(delConf.value||'').trim().toUpperCase()!=='SUPPRIMER';});
       delGo.onclick=async()=>{if(delGo.disabled||delBusy)return;const wipe=body.querySelector('#delLocal').checked;
         if(!Sync.online()){setM('Hors ligne : une connexion Internet est nécessaire pour recevoir le code.','err');return;}
+        if(wipe&&!await wipeGuard())return;   // A661 : jamais pendant une session ; ce qui n'est pas parti (bibliothèques partagées) se dit
         if(!await confirmDlg('Supprimer DÉFINITIVEMENT votre compte'+(wipe?' et les données de cet appareil':'')+' ? Un code de confirmation va vous être envoyé par e-mail.',{title:'Supprimer le compte',yes:'Recevoir le code',danger:true}))return;
         delBusy=true;delGo.disabled=true;delGo.textContent='Envoi du code…';setM('','');
         try{await Auth.sendCode(delEmail);_authDelete={step:2,wipe:wipe};renderAuth();}
-        catch(e){setM('Échec de l\'envoi du code : '+e.message,'err');delBusy=false;delGo.disabled=false;delGo.textContent='Recevoir le code de confirmation';}};
+        catch(e){setM(authErrMsg(e,'envoi'),'err');delBusy=false;delGo.disabled=false;delGo.textContent='Recevoir le code de confirmation';}};
 }
 // Écran « compte en attente / refusé » : e-mail vérifié (code OTP passé) mais synchro bloquée
 // côté serveur (RLS) tant qu'un app-admin n'a pas tranché. Voir aussi updateSyncBanner()/setSyncChip
@@ -32830,11 +32949,11 @@ function renderAuthAccount(body,u,doOut){
     body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
         <div class="acct-acts"><button class="btn" id="authSync">Synchroniser</button><button class="btn" id="authExport">Exporter</button><button class="btn acct-out" id="authOut">Se déconnecter</button></div></div>
       <p class="st-hint acct-promise">Votre bibliothèque personnelle suit ce compte sur <b>tous vos appareils connectés</b>.</p>
-      ${myIsAppAdmin&&!linkShared()?admDoorHtml():''}
-      ${linkShared()?linkSharedCardHtml(false):linkDevsHtml()}
+      ${myIsAppAdmin?admDoorHtml():''}
+      ${linkDevsHtml()}
       ${acctLibsHtml()}
       ${accountPrefsHtml()}
-      ${myIsAppAdmin||linkShared()?'':`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+      ${myIsAppAdmin?'':`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
         <p class="danger-caption">Supprime le compte, les données synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
@@ -32850,8 +32969,8 @@ function renderAuthAccount(body,u,doOut){
     // maintenant » — sans elle, un tap imprécis déconnectait sans prévenir (vécu comme un bug).
     // La fenêtre de confirmation porte aussi l'option « effacer les fiches locales »
     // (case décochée par défaut, cf. confirmLeave).
-    // A643 : sur un poste partagé, « Se déconnecter » EFFACE le poste (rien du compte n'y reste).
-    body.querySelector('#authOut').onclick=linkShared()?()=>Link.wipe(false):doOut;
+    // A661 : un appareil temporaire est sorti plus haut (A651, sa carte n'a qu'une sortie) — les branches `linkShared()` d'ici étaient mortes.
+    body.querySelector('#authOut').onclick=doOut;
     linkBindCard(body);
     {const ad=body.querySelector('#authDelete');if(ad)ad.onclick=()=>{_authDelete=true;renderAuth();};}
     /* A494 : Administration est une PAGE ; Moi n'en porte que la porte, dont le compte « à traiter » se relit en asynchrone. */
@@ -32898,7 +33017,7 @@ function accountPrefsHtml(slot){
   // état des données -> [action sur ces données, si fournie] -> préférence d'affichage.
   const z=currentZoom();
   const nl=myLibraries.length+1; // + Perso
-  const HINT={90:'S · 90 %',100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
+  const HINT={100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
   return `${acctCollsHtml()}${acctLinksHtml()}<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <div class="acct-card"><p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${''/* Un SEUL conteneur pour les trois boutons : deux `.auth-actions` collés donnaient 0 px entre « Exporter
@@ -32914,7 +33033,7 @@ function accountPrefsHtml(slot){
     <div class="seg" id="themeSeg" role="radiogroup" aria-labelledby="thLbl" style="--seg-n:3;--seg-i:${['auto','light','dark'].indexOf(_themeMode())}"><span class="seg-pill" aria-hidden="true"></span>${['auto','light','dark'].map((k,i)=>`<button type="button" class="seg-btn${_themeMode()===k?' on':''}" role="radio" aria-checked="${_themeMode()===k?'true':'false'}" data-theme="${k}">${['Auto','Clair','Sombre'][i]}</button>`).join('')}</div></div>
     <div class="set-row" style="margin-top:12px"><span class="set-l" id="tsLbl">Taille du texte</span>
     <div class="seg" id="zoomSeg" role="radiogroup" aria-labelledby="tsLbl" style="--seg-n:${ZOOM_STEPS.length};--seg-i:${Math.max(0,ZOOM_STEPS.indexOf(z))}"><span class="seg-pill" aria-hidden="true"></span>${ZOOM_STEPS.map(s=>`<button type="button" class="seg-btn ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div></div>
-    <div class="st-hint" style="margin-bottom:4px">S'applique à <b>toute l'application</b>.<details class="acct-more"><summary>En savoir plus</summary>Enregistrée pour votre compte, comme le thème (bouton de l'en-tête) : vous la retrouvez sur vos autres appareils connectés.</details></div>
+    <div class="st-hint" style="margin-bottom:4px">S'applique à <b>toute l'application</b>.<details class="acct-more"><summary>En savoir plus</summary>Enregistrée pour votre compte, comme le thème : vous la retrouvez sur vos autres appareils connectés.</details></div>
     ${''/* ⚠ LE FORMAT D'OUVERTURE SE RÈGLE À FROID, ET NULLE PART AILLEURS (v5.0.0, lot A). C'est
       une PRÉFÉRENCE de personne — « moi je lis mieux la fiche entière » —, pas un geste de soin :
       elle a donc sa place ici, à côté du thème et de la taille du texte, c'est-à-dire au seul
@@ -32987,7 +33106,7 @@ function bindTagsPref(body){
     /* Clé mintée ICI et jamais dérivée du libellé : on renomme une étiquette sans casser les
        repères déjà posés — la référence pointe la CLÉ, pas le mot. */
     setMyTags(lire().concat([{k:uid('t'),l:'Nouvelle étiquette',a:[]}]));schedulePrefsPush();maj();
-    setTimeout(()=>{const ins=document.querySelectorAll('#authModal [data-tgl]');
+    setTimeout(()=>{const ins=document.querySelectorAll('#authModal [data-tgl], #meView [data-tgl]');   // A661 : en vue large, Moi est `#meView`
       const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
   body.querySelectorAll('[data-collgo]').forEach(b=>b.onclick=()=>{if(authModal.classList.contains('on'))closeAuth();
@@ -33121,7 +33240,7 @@ function renderAuthLogin(body){
       _authStep.email=email;_authStep.msg='';_authStep.msgcls='';
       _authStep.temp=_authStep.kind==='temp';   // A651 : le code e-mail ouvre alors une connexion TEMPORAIRE
       try{await Auth.sendCode(email);_authStep.mode='code';renderAuth();}
-      catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
+      catch(e){_authStep.msg=authErrMsg(e,'envoi');_authStep.msgcls='err';renderAuth();}};
     // Entrée (ou « Envoyer » du clavier iOS) envoie le code, comme le champ du code valide (signalé : rien ne partait)
     body.querySelector('#authEmail').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();send.click();}});
   }else{
@@ -33129,9 +33248,17 @@ function renderAuthLogin(body){
       <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="done" placeholder="••••••••">
       ${_authStep.temp?authEndsHtml():''}
       <button class="btn primary auth-full" id="authVerify">${_authStep.temp?esc('Se connecter jusqu’à '+authEndLbl()):'Valider'}</button>
-      <div style="text-align:center;margin-top:10px"><button class="tlink" id="authBack">← Changer d'e-mail</button></div>
-      <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
+      <div style="text-align:center;margin-top:10px"><button class="tlink" id="authBack">← Changer d'e-mail</button> · <button class="tlink" id="authResend">Renvoyer le code</button></div>
+      <p class="auth-msg ${_authStep.msgcls}" id="authCodeMsg">${esc(_authStep.msg)}</p>`;
     body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};
+    /* A661 : « Renvoyer le code » — il n'existait qu'à la suppression du compte (`delResend`, même forme) ; un e-mail
+       perdu obligeait à revenir à l'adresse. Le message se pose sur place : le champ du code n'est pas repeint. */
+    {const rs=body.querySelector('#authResend'),setM=(t,c)=>{const e=body.querySelector('#authCodeMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
+      rs.onclick=async()=>{if(rs.disabled)return;
+        if(!Sync.online()){setM('Hors ligne : une connexion Internet est nécessaire pour recevoir le code.','err');return;}
+        rs.disabled=true;setM('Envoi du code…','');
+        try{await Auth.sendCode(_authStep.email);setM('Code renvoyé : seul le dernier code reçu est valable.','ok');}catch(e){setM(authErrMsg(e,'envoi'),'err');}
+        rs.disabled=false;};}
     body.querySelectorAll('[data-authend]').forEach(b=>b.onclick=()=>{_authStep.end=+b.dataset.authend;
       const c=(body.querySelector('#authCode')||{}).value||'';renderAuth();const ci=document.getElementById('authCode');if(ci)ci.value=c;});
     {const ci=body.querySelector('#authCode');   // A373 : un code collé depuis Mail arrive avec espaces ou texte autour — on ne garde que les chiffres
@@ -33144,7 +33271,8 @@ function renderAuthLogin(body){
       v.disabled=true;v.textContent='Vérification…';
       _authStep.msg='';_authStep.msgcls='';
       try{await Auth.verifyCode(_authStep.email,code);}
-      catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';return renderAuth();}
+      catch(e){_authStep.msg=authErrMsg(e,'code');_authStep.msgcls='err';   // A661 ; le code tapé reste dans le champ
+        renderAuth();const ci=document.getElementById('authCode');if(ci)ci.value=code;return;}
       /* A651 : CONNEXION TEMPORAIRE PAR E-MAIL — la session toute fraîche se déclare poste (`link_self`). Refusée, elle
          ne RESTE PAS ouverte : on avait choisi « Temporaire », une connexion durable ici serait l'inverse de ce choix. */
       if(_authStep.temp){
@@ -33210,7 +33338,7 @@ const storageModal=document.getElementById('storageModal');
 // Bloc explicatif RÉUTILISÉ (fenêtre « Où sont mes fiches ? » ET écran Compte déconnecté) : on le
 // définit UNE fois pour éviter toute divergence. Langage volontairement simple (soignant non informaticien).
 function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">Vos données peuvent être enregistrées de deux façons :</p>
-    <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">${uiIcon('phone',19)}</span><b>Sur cet appareil (hors-ligne)</b></div>
+    <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">${uiIcon('phone',19)}</span><b>Sur cet appareil (hors ligne)</b></div>
       <p>Gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes sur un seul carnet.</p>
       <p class="stg-warn">${uiIcon('warn',14)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos données sont perdues</b> — aucune autre copie.</p>
       <p class="stg-tip">${uiIcon('bulb',13)} Sans compte, pensez à <b>exporter</b> régulièrement (bouton Compte → « Exporter mes données ») : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin (dialogue Créer → « Importer un fichier (.json ou .zip) »).</p></div>
@@ -33232,13 +33360,19 @@ async function repairApp(){
   // s'apprête à détruire répondait à la question « ai-je du réseau ? ». Une clé de cache inédite
   // à chaque appel ne peut jamais correspondre (sw.js refuse en outre de se cacher lui-même).
   try{await acFetch('./sw.js?_probe='+Date.now(),{cache:'no-store'},4000);}
-  catch(e){toast('⚠ Réparation impossible sans connexion : elle retirerait la copie hors-ligne de l\'application. Réessayez avec du réseau.',9000);return false;}
+  catch(e){toast('⚠ Réparation impossible sans connexion : elle retirerait la copie hors ligne de l\'application. Réessayez avec du réseau.',9000);return false;}
   try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs)await r.unregister();}}catch(e){}
   try{if(window.caches){const keys=await caches.keys();for(const k of keys)await caches.delete(k);}}catch(e){}
   location.reload();}
 function renderStorageInfo(){const body=document.getElementById('storageBody');if(!body)return;
   body.innerHTML=storageExplainHtml()+(Auth.signedIn()
-    ?`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos données sont sauvegardées en ligne.</p>`
+    /* A661 : « sauvegardées en ligne » ne se dit que si c'est VRAI — compte en attente ou refusé (rien ne monte,
+       RLS), synchro en erreur ou hors ligne affichaient la même coche verte. */
+    ?(myAccountStatus==='pending'?`<p class="auth-msg" style="text-align:center">△ Compte en attente de validation : vos données restent sur cet appareil tant qu’il n’est pas validé.</p>`
+      :myAccountStatus==='rejected'?`<p class="auth-msg" style="text-align:center">△ Compte refusé : vos données ne sont pas sauvegardées en ligne.</p>`
+      :_syncUi.state==='err'?`<p class="auth-msg" style="text-align:center">△ La dernière synchronisation a échoué : vos modifications récentes ne sont pas encore en ligne.</p>`
+      :_syncUi.state==='off'?`<p class="auth-msg" style="text-align:center">Hors ligne : la sauvegarde en ligne reprendra au retour du réseau.</p>`
+      :`<p class="auth-msg ok" style="text-align:center">✓ Vous êtes connecté : vos données sont sauvegardées en ligne.</p>`)
     :`<button class="btn primary auth-full" id="stgConnect">Créer un compte / se connecter</button>`)
     +`<div class="stg-repair"><button class="btn sm" id="repairAppBtn">Réparer l'application</button>
       <p class="stg-repair-hint">Recharge une copie neuve de l'application — utile si elle semble bloquée sur une ancienne version. Vos fiches, notes et sessions ne sont pas touchées.</p></div>`;
@@ -33736,6 +33870,7 @@ document.addEventListener('keydown',e=>{
 // « Dupliquer dans Perso » (SPEC §4) : copie -> espace privé, état Brouillon, snackbar — on
 // RESTE sur la vue courante (pas d'ouverture d'éditeur). kind 'f' = fiche, 'p' = protocole.
 async function dupToPerso(kind,src){
+  if(linkGate(()=>dupToPerso(kind,src)))return;   // A661 : dupliquer CRÉE — même verrou que `newFiche` sur un appareil temporaire (A643)
   const c=kind==='p'?migrateProtocol(JSON.parse(JSON.stringify(src))):migrate(JSON.parse(JSON.stringify(src)));
   c.id=kind==='p'?uid('p'):uid();c.title=(src.title||(kind==='p'?'Protocole':'Aide'))+' (copie)';
   c.library=null;c.status='draft';c.order=Date.now();
@@ -34170,7 +34305,9 @@ function lifeBar(ms){const b=document.createElement('div');b.className='t-life';
 // session de crise les snackbars sont mis EN ATTENTE et rejoués un par un à la fin de la session
 // (les banderoles d'alarme de minuteurs, elles, restent immédiates : sécurité avant confort).
 let _heldToasts=[];
-function flushHeldToasts(){if(!_heldToasts.length||document.body.classList.contains('crisis-live'))return;
+function flushHeldToasts(){if(document.body.classList.contains('crisis-live'))return;
+  syncFlushLater();   // A661 : thème, taille et accent reçus pendant le soin s'appliquent à la sortie de crise
+  if(!_heldToasts.length)return;
   const [m,s]=_heldToasts.shift();toast(m,s);
   if(_heldToasts.length)setTimeout(flushHeldToasts,(s||4500)+400);}
 /* RÉPONDRE À UN GESTE N'EST PAS INTERROMPRE (v4.55.4, retour d'usage).
@@ -34197,8 +34334,21 @@ function toast(msg,ms,direct){
   if(direct){document.querySelectorAll('.toast[data-g]').forEach(x=>x.remove());t.dataset.g='1';}
   document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('on'));setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},ms||4500);}
+/* A661 — LA SYNCHRO NE TOUCHE PAS L'ÉCRAN D'UN SOIN (règle 11, J214) : seul `_pullTable` portait la garde. Les
+   préférences reçues du compte (thème, taille du texte, accent) changeaient la géométrie sous le doigt ; elles sont
+   RETENUES (`Sync._later`) et posées à la sortie de crise, par le même passage que les notifications en attente
+   (`flushHeldToasts`, appelé par tout rendu hors crise). Un réglage changé ICI entre-temps gagne (document marqué). */
+const syncLive=()=>document.body.classList.contains('crisis-live');
+function syncFlushLater(){const d=Sync._later;if(!d)return;Sync._later=null;
+  try{if(localStorage.getItem(spaceKey('ac-cats-dirty:'))==='1')return;}catch(e){}
+  if(d.th&&d.th!==(localStorage.getItem(spaceKey('ac-theme'))||'auto'))applyTheme(d.th);
+  if(d.z!=null&&d.z!==currentZoom())applyZoom(d.z);
+  if(d.ac!=null&&d.ac!==currentAccent())applyAccent(d.ac);}
 function notifyConflicts(list){if(!list.length)return;
-  toast('⚠ '+list.length+' élément'+(list.length>1?'s':'')+' modifié'+(list.length>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (« Versions », dans le menu ⋯ de l’aide).',9000);}
+  // A661 : deux avis — une modification écrasée se retrouve dans « Versions » ; une suppression, non (plus de menu).
+  const gone=list.filter(x=>x&&x.del),n=list.length-gone.length;
+  if(n)toast('⚠ '+n+' élément'+(n>1?'s':'')+' modifié'+(n>1?'s':'')+' sur un autre appareil. Version la plus récente appliquée ; votre version précédente est conservée (« Versions », dans le menu ⋯ de l’aide ou du protocole).',9000);
+  if(gone.length)toast('⚠ « '+gone[0].t+' »'+(gone.length>1?' et '+(gone.length-1)+' autre'+(gone.length>2?'s':''):'')+' : supprimé'+(gone.length>1?'s':'')+' sur un autre appareil. Votre modification non envoyée n’a pas pu être appliquée.',9000);}
 // Traduit l'erreur brute d'une synchro échouée en message compréhensible pour un soignant non
 // informaticien (fenêtre ouverte au clic sur la pastille « Erreur de synchro »). Un statut HTTP
 // absent (ex. TypeError "Failed to fetch") = la requête n'a même pas atteint le serveur -> réseau.
@@ -34269,7 +34419,7 @@ function accLoading(){if(_syncDoneOnce||!Auth.signedIn()||!Sync.online()||perfor
   return true;}
 function accLoadingHtml(){return `<div class="acc-load" role="status"><p class="acc-load-t"><span class="acc-spin" aria-hidden="true"></span>Chargement de votre compte…</p><div class="acc-sk" aria-hidden="true"><span></span><span></span><span></span></div></div>`;}
 const Sync={
-  running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
+  running:false,_again:false,_againN:0,_later:null,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
   /* ===== Sync · cadence — porte d'entrée et reprise (online/schedule/full/_scheduleRetry) ===== */
   online(){return navigator.onLine!==false;},
   // Débounce : regroupe les écritures rapprochées en une seule synchro.
@@ -34281,7 +34431,12 @@ const Sync={
     /* A655 : un appareil temporaire FINI (déconnecté à distance, ou heure de fin passée) ne synchronise plus — le
        serveur lui ferme déjà les tables (schema.sql § 10quater) : une lecture lui rendrait du VIDE, pas une erreur. */
     if(linkOver())return;
-    if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors-ligne');return;}
+    /* A661 — UNE DEMANDE ARRIVÉE PENDANT UNE SYNCHRO N'EST PLUS PERDUE : la modification enregistrée pendant le
+       pull d'une grosse bibliothèque attendait le prochain geste (ou le retour au premier plan) pour partir. On la
+       retient (`_again`) et le `finally` la rejoue — trois fois de suite au plus, pour qu'un appel émis PAR la
+       synchro elle-même ne tourne jamais en boucle. */
+    if(Auth.signedIn()&&this.online()&&this.running){this._again=true;return;}
+    if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors ligne');return;}
     clearTimeout(this._retryTimer);
     this.running=true;setSyncChip('busy','Synchro en cours');
     /* A658 : la porte d'entrée ne suffit pas — une synchro DÉJÀ EN VOL quand la veille apprend la déconnexion
@@ -34300,7 +34455,11 @@ const Sync={
       if(fin())return;
       await this._initIfNeeded();if(fin())return;
       const conflicts=await this._pull();if(fin())return;
-      conflicts.push(...await this._pullProtocols());if(fin())return;
+      conflicts.push(...await this._pullProtocols());
+      /* A661 : le conflit se dit DÈS QU'IL EST CONNU — placé après le `throw pushErr`, l'avis était perdu chaque fois
+         que le push (ou un document PDF) échouait, c'est-à-dire précisément quand le réseau va mal. */
+      notifyConflicts(conflicts);
+      if(fin())return;
       // L'historique ne connaît pas de conflit à arbitrer : une session archivée ne se modifie
       // plus (seuls son nom et sa suppression bougent), et le dernier écrivain gagne sans qu'un
       // choix humain ait de sens. Rien à concaténer, donc.
@@ -34326,11 +34485,12 @@ const Sync={
       if(attErr)throw attErr;
       this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
-      notifyConflicts(conflicts);
     }catch(e){this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}
     finally{this.running=false;
       // A653 : la première synchro de la page a fini (bien ou mal) — l'accueil quitte l'état « chargement ».
-      if(!_syncDoneOnce){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}}
+      if(!_syncDoneOnce){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}
+      // A661 : la demande retenue pendant ce passage est rejouée (bornée).
+      if(this._again){this._again=false;this._againN=(this._againN||0)+1;if(this._againN<=3)this.schedule();}else this._againN=0;}
   },
   // Nouvelle tentative après échec (backoff : 5s, 10s, 20s... plafonné à 2 min). Annulée si une
   // synchro réussit ou redémarre entretemps (schedule()/full()) ; sans effet si repassé hors-ligne
@@ -34380,7 +34540,13 @@ const Sync={
     // le repêchage de complétude ci-dessous ; alimente les tampons puts/dels de la page en cours.
     const applyRow=async(row,puts,dels)=>{
       const local=byId[row.id];
-      if(row.deleted_at){if(local){dels.push(row.id);delete byId[row.id];cfg.dropMem(row.id);}
+      if(row.deleted_at){
+        /* A661 — UNE SUPPRESSION DISTANTE N'ÉCRASE PLUS EN SILENCE : une modification locale pas encore envoyée
+           disparaissait sans trace ni avis. Même circuit que le conflit d'édition — archive quand la table en a
+           une, puis avis (`del` : le message ne promet pas « Versions », l'élément n'a plus de menu). */
+        if(local&&local.dirty&&!local.deletedAt){if(cfg.backup)try{await cfg.backup(local);}catch(e){}
+          conflicts.push({del:true,t:local.title||local.id});}
+        if(local){dels.push(row.id);delete byId[row.id];cfg.dropMem(row.id);}
         if(cfg.onRemoteDelete)await cfg.onRemoteDelete(row.id);
         return;}
       if(!local){const nf=cfg.fromRow(row);puts.push(nf);byId[row.id]=nf;if(!nf.deletedAt)cfg.addMem(nf);return;}
@@ -34468,6 +34634,9 @@ const Sync={
       dataPut:x=>Data.putSession(x),dataDel:id=>Data.delSession(id),toRow:sessionToRow,
       clone:x=>JSON.parse(JSON.stringify(x)),idPrefix:'s',fromRow:sessionFromRow,...memOps(sessions)});},
   async _pullProtocols(){return this._pullTable({table:'protocols',cursorKey:'ac-sync-cursor-prot',
+    /* A661 : l'avis de conflit promettait une version conservée, et un protocole n'en gardait aucune. Même store
+       que les aides (`backups`, borné à BACKUP_MAX par élément), sous une clé DISTINCTE (`versKey`). */
+    backup:local=>Data.putBackup({bid:uid('bk'),ficheId:versKey(local.id,'p'),at:Date.now(),data:JSON.parse(JSON.stringify(local))}),
     getAllLocal:()=>Data.getProtocols(),fromRow:protocolFromRow,...memOps(protocols)});},
   /* ===== Sync · PUSH — le local-first vers le cloud (_reclaimBlocked/_pushTable/_push…) ===== */
   // PUSH GÉNÉRIQUE (patron _pullTable, spécificités par cfg{table,getAllLocal,dataPut,dataDel,
@@ -34528,7 +34697,7 @@ const Sync={
           try{await cfg.repair(o);repaired=true;await send([o]);}
           catch(e){if(!firstErr)firstErr=e;}
         }
-        if(repaired)render();
+        if(repaired&&!syncLive())render();   // A661
       }else if(!firstErr)firstErr=new Error('REST 403 (espace personnel indisponible en écriture)');
     }
     if(firstErr)throw firstErr;},
@@ -34637,10 +34806,11 @@ const Sync={
           linkPrefsKeep(pr);   // A643 : ce que le compte porte, pour qu'un poste partagé le renvoie tel quel
           const th=(pr.theme==='light'||pr.theme==='dark'||pr.theme==='auto')?pr.theme:null;
           const z=ZOOM_STEPS.indexOf(+pr.zoom)>=0?+pr.zoom:null;
-          if(th&&th!==(localStorage.getItem(spaceKey('ac-theme'))||'auto'))applyTheme(th);
-          if(z!==null&&z!==currentZoom())applyZoom(z);
           const ac=(typeof pr.accent==='string'&&ACCENT_IDS.indexOf(pr.accent)>=0)?pr.accent:null;
-          if(ac!==null&&ac!==currentAccent())applyAccent(ac);
+          if(syncLive())this._later={th,z,ac};   // A661 : posés à la sortie de crise (`syncFlushLater`)
+          else{if(th&&th!==(localStorage.getItem(spaceKey('ac-theme'))||'auto'))applyTheme(th);
+            if(z!==null&&z!==currentZoom())applyZoom(z);
+            if(ac!==null&&ac!==currentAccent())applyAccent(ac);}
           // Mode de lecture (v4.6.0) : on n'écrit QUE la préférence locale — jamais de bascule
           // de la vue ouverte depuis la synchro (l'écran ne change pas pendant un soin) ;
           // la préférence s'applique à la prochaine ouverture de fiche.
@@ -34690,7 +34860,7 @@ const Sync={
           try{localStorage.removeItem(spaceKey('ac-cats-dirty:'+s.key));}catch(e){}}catch(e){}
       }
     }
-    if(changed){await Data.setCats(categories);render();}},
+    if(changed){await Data.setCats(categories);if(!syncLive())render();}},   // A661 : jamais pendant un soin (J214)
   // NOTES PERSONNELLES par fiche : table aid_notes, ex-fiche_notes (RLS : chacun ne voit que les siennes).
   // Volume minuscule (du texte) -> PULL complet à chaque synchro (pas de curseur), LWW par fiche
   // via `at`/updated_at, puis PUSH des entrées `dirty` (upsert ; t vide = note effacée).
@@ -34718,7 +34888,7 @@ const Sync={
     if(changed){try{await Data.setNotes(notes);}catch(e){}}
     // Re-rendu UNIQUEMENT si la note de la fiche ouverte a changé À DISTANCE, en lecture seule
     // (en édition, on ne touche à rien : pas de vol de focus, la version tapée ici gagnera).
-    if(openChanged&&state.view==='read'&&!state.noteEdit)render();},
+    if(openChanged&&state.view==='read'&&!state.noteEdit&&!syncLive())render();},   // A661
   /* A613 — SUIVI : une ligne par note ou tâche (`aid_followups`). PULL incrémental (curseur `updated_at`, marge
      d'une minute : deux écritures à la même seconde ne se perdent pas), fusion LWW par objet (`suiviMerge` —
      une modification en attente ici gagne toujours), puis PUSH des objets marqués. Le `dirty` n'est effacé qu'aux
@@ -34754,7 +34924,7 @@ const Sync={
     if(linkOver())return;   // A658 : la lecture a pu partir AVANT la déconnexion et revenir vide APRÈS — n'effacer sur la foi de rien
     const all=await getAllLocal();let changed=false;
     for(const f of all){if(f.library&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
-    if(changed)render();},
+    if(changed&&!syncLive())render();},   // A661 : la mémoire est à jour, la sortie de crise repeint (J214)
   // Profil : bibliothèques partagées dont je suis membre (avec rôle) + statut app-admin.
   // En cas d'ÉCHEC réseau, on GARDE la dernière valeur connue (jamais de « disparition » des
   // bibliothèques hors-ligne) ; en cas de succès, le profil est mis en cache (loadProfileCache
@@ -35908,7 +36078,7 @@ async function slRetTx(fin){
       const z=await ltRetPack(sess,snap.events);
       /* Marqués « renvoyés » dès l'émission — optimiste : si l'hôte n'a pas filmé, ils restent
          dans SA fontaine suivante de toute façon (le retour renvoie TOUT le journal). */
-      _slMirror.sent=(snap.events||[]).map(e=>e.id);
+      if(_slMirror)_slMirror.sent=(snap.events||[]).map(e=>e.id);   // A661 : `sess` peut venir de `Share.fold` seul — `_slMirror` est alors nul
       const tx=ltTx(z,1);
       tx.setH4(new Uint8Array(await crypto.subtle.digest('SHA-256',z)).slice(0,4));
       const body=document.getElementById('shareBody');if(!body)return;
@@ -36796,7 +36966,7 @@ window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');paintStor
   /* Reprise IMMÉDIATE du partage en ligne au retour du réseau (v5.14.20) : le sondage retente
      de lui-même, mais à sa cadence — ici on ne fait pas attendre l'écran d'un invité figé. */
   try{if(Share.mode!=='off'&&Share.status==='active')Share._kick(0);}catch(e){}});
-window.addEventListener('offline',()=>{setSyncChip('off','Hors-ligne');paintStorage();});   // D7 : la ligne « Hors ligne » du pied suit l'évènement
+window.addEventListener('offline',()=>{setSyncChip('off','Hors ligne');paintStorage();});   // D7 : la ligne « Hors ligne » du pied suit l'évènement
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Sync.schedule();});
 
 /* ===== Versions précédentes (réversibilité) ===== */
@@ -36817,19 +36987,26 @@ function flattenFiche(f){if(!f)return[];const L=[];const add=(sec,v)=>{v=String(
   (f.timers||[]).forEach(t=>add('Minuteur',(t.label||'')+(t.type==='interval'?' ('+(t.seconds||0)+' s)':' (chrono)')));
   (f.counters||[]).forEach(c=>add('Compteur',c.label));
   return L;}
-function diffFicheLines(cur,old){const a=flattenFiche(cur),b=flattenFiche(old);const sa=new Set(a),sb=new Set(b);
+function diffFicheLines(cur,old,flat){flat=flat||flattenFiche;const a=flat(cur),b=flat(old);const sa=new Set(a),sb=new Set(b);
   return {removed:a.filter(x=>!sb.has(x)),added:b.filter(x=>!sa.has(x))};}
-function diffFiches(cur,old){if(!old)return '<p class="auth-msg err">Version illisible.</p>';
-  const d=diffFicheLines(cur,old);
+function diffFiches(cur,old,flat){if(!old)return '<p class="auth-msg err">Version illisible.</p>';
+  const d=diffFicheLines(cur,old,flat);
   if(!d.added.length&&!d.removed.length)return emptyLine('Aucune différence de contenu (les images ne sont pas comparées).');
   return (d.added.length?'<p class="diff-h">Restaurer rétablirait :</p>'+d.added.map(x=>`<div class="diff-line add">+ ${esc(x)}</div>`).join(''):'')+
          (d.removed.length?'<p class="diff-h">Restaurer supprimerait :</p>'+d.removed.map(x=>`<div class="diff-line del">− ${esc(x)}</div>`).join(''):'')+
          '<p class="diff-note">Images non comparées. La version actuelle est sauvegardée avant toute restauration.</p>';}
-const versModal=document.getElementById('versModal');let _versFiche=null;
-async function openVersions(ficheId){_versFiche=ficheId;
+/* A661 — LES PROTOCOLES ONT LEURS VERSIONS : même fenêtre, même store ; `kind` 'p' = protocole. La clé d'archive
+   d'un protocole est préfixée (`p:` — jamais un identifiant d'aide, `safeId` refuse le deux-points), la relecture
+   passe par `migrateProtocol` (règle 5), la comparaison par le texte rédigé. */
+const versKey=(id,kind)=>kind==='p'?'p:'+id:id;
+function flattenProtocol(p){if(!p)return[];const L=[];const add=(sec,v)=>{v=String(v==null?'':v).trim();if(v)L.push(sec+' · '+v);};
+  add('Titre',p.title);add('Validation',p.validatedAt);add('État',p.status==='draft'?'brouillon':'validé');
+  String(p.body||'').split('\n').forEach(l=>add('Texte',l));(p.sources||[]).forEach(v=>add('Références',v));return L;}
+const versModal=document.getElementById('versModal');let _versFiche=null,_versKind='';
+async function openVersions(ficheId,kind){_versFiche=ficheId;_versKind=kind==='p'?'p':'';
   // Titre/note adaptés : en bibliothèque partagée, ces sauvegardes ne sont QUE vos propres versions
   // écrasées par une modification d'un coéquipier (locales à cet appareil), pas un historique d'équipe.
-  const f=fiches.find(x=>x.id===ficheId);const shared=!!(f&&f.library);
+  const f=(_versKind==='p'?protocols:fiches).find(x=>x.id===ficheId);const shared=!!(f&&f.library);
   const t=document.getElementById('versModalTitle');if(t)t.textContent=shared?'Récupérer ma version écrasée':'Versions précédentes';
   const n=document.getElementById('versNote');if(n)n.textContent=shared
     ? 'Vos versions écrasées par une modification d’un coéquipier (dernière écriture appliquée). Sauvegardes locales à cet appareil — ce n’est pas l’historique partagé de l’équipe. Restaurer remplace la version actuelle par la version choisie.'
@@ -36837,7 +37014,8 @@ async function openVersions(ficheId){_versFiche=ficheId;
   versModal.classList.add('on');await renderVersions();}
 function closeVersions(){versModal.classList.remove('on');}
 async function renderVersions(){const body=document.getElementById('versBody');if(!body)return;
-  let list=[];try{list=await Data.getBackups(_versFiche);}catch(e){}
+  const P=_versKind==='p',mem=P?protocols:fiches,mig=d=>P?migrateProtocol(Object.assign({},d,{id:_versFiche})):migrate(Object.assign({},d,{id:_versFiche}));
+  let list=[];try{list=await Data.getBackups(versKey(_versFiche,_versKind));}catch(e){}
   list=(list||[]).sort((a,b)=>(b.at||0)-(a.at||0));
   if(!list.length){body.innerHTML=emptyLine('Aucune version précédente conservée.');return;}
   body.innerHTML=list.map(b=>`<div class="vers-row"><span class="vt">${esc(new Date(b.at).toLocaleString('fr-FR'))}</span><span class="vers-acts"><button class="btn sm" data-diff="${esc(b.bid)}">Comparer</button><button class="btn sm" data-restore="${esc(b.bid)}">Restaurer</button></span></div><div class="vers-diff" id="diff-${esc(b.bid)}" hidden></div>`).join('');
@@ -36845,15 +37023,18 @@ async function renderVersions(){const body=document.getElementById('versBody');i
   body.querySelectorAll('[data-diff]').forEach(btn=>btn.onclick=()=>{
     const box=document.getElementById('diff-'+btn.dataset.diff);if(!box)return;
     if(!box.hidden){box.hidden=true;btn.textContent='Comparer';return;}
-    const b=list.find(x=>x.bid===btn.dataset.diff);const cur=fiches.find(x=>x.id===_versFiche);
-    box.innerHTML=diffFiches(cur,b&&b.data?migrate(Object.assign({},b.data,{id:_versFiche})):null);box.hidden=false;btn.textContent='Masquer';});
+    const b=list.find(x=>x.bid===btn.dataset.diff);const cur=mem.find(x=>x.id===_versFiche);
+    box.innerHTML=diffFiches(cur,b&&b.data?mig(b.data):null,P?flattenProtocol:null);box.hidden=false;btn.textContent='Masquer';});
   body.querySelectorAll('[data-restore]').forEach(btn=>btn.onclick=async()=>{
     const b=list.find(x=>x.bid===btn.dataset.restore);if(!b||!b.data)return;
     if(!await confirmDlg('Restaurer cette version ? La version actuelle sera remplacée (et sauvegardée à son tour).',{yes:'Restaurer'}))return;
-    const cur=fiches.find(x=>x.id===_versFiche);if(cur){try{await Data.putBackup({bid:uid('bk'),ficheId:_versFiche,at:Date.now(),data:JSON.parse(JSON.stringify(cur))});}catch(e){}}
-    const restored=migrate(Object.assign({},b.data,{id:_versFiche}));
-    if(await persist(restored)){const i=fiches.findIndex(x=>x.id===_versFiche);if(i>=0)fiches[i]=restored;else fiches.push(restored);}
-    closeVersions();if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;render();});}
+    const cur=mem.find(x=>x.id===_versFiche);if(cur){try{await Data.putBackup({bid:uid('bk'),ficheId:versKey(_versFiche,_versKind),at:Date.now(),data:JSON.parse(JSON.stringify(cur))});}catch(e){}}
+    const restored=mig(b.data);
+    if(await (P?persistProtocol(restored):persist(restored))){const i=mem.findIndex(x=>x.id===_versFiche);if(i>=0)mem[i]=restored;else mem.push(restored);}
+    closeVersions();
+    if(P){if(state.protocol&&state.protocol.id===_versFiche)state.protocol=restored;}
+    else if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;
+    render();});}
 bindModalDismiss(versModal,closeVersions);
 
 /* ===== Historique des sessions (fenêtre) =====
