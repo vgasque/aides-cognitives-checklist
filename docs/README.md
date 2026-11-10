@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A663** à la v5.115.0 (lot v6.0 compris) (et ça continue — la
-prochaine est A664), attribués dans
+Les décisions de conception portent des numéros **A1 → A675** à la v5.115.1 (lot v6.0 compris) (et ça continue — la
+prochaine est A676), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -287,6 +287,18 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A661 | `lot-v5-115.md` | Compte, stockage, synchro : garde de nuit toujours proposée, effacement gardé, versions des protocoles, aucun re-rendu de synchro en soin, stockage de secours annoncé, œ/æ repliés (amende l'invariant 1:1 de `txNorm` : `txNormMap`/`txNorm1`), liens `tel:`/`mailto:` |
 | A662 | `lot-v5-115.md` | Feuille de style et coque : encres de session lisibles, « Continuer » bleu au survol, alarme au-dessus des couches plein écran, impression depuis le sombre, message si l'app ne démarre pas, lien d'évitement sans hash |
 | A663 | `lot-v5-115.md` | Serveur (à rejouer) : suppression de compte complète (`purge_user_data`), partage non inscriptible en direct, gardes du poste partagé, au moins un administrateur par bibliothèque, `leave_library`, `link-claim` exige `APP_ORIGIN` (amende A650) |
+| A664 | `lot-v5-115-1.md` | Audit de sécurité : un id sûr n'est jamais un nom hérité d'`Object.prototype` (`badKey`), tables de session sans prototype, chemin vivant du partage nettoyé comme le pli, ligne tirée à id mal formé ignorée |
+| A665 | `lot-v5-115-1.md` | Partage sans serveur : un canal = un participant (`slServe`), un coupé ne revient pas, bornes du hub |
+| A666 | `lot-v5-115-1.md` | La signalisation (`sig`) n'obéit qu'à l'hôte ; une offre de canal par participant |
+| A667 | `lot-v5-115-1.md` | Rien de la charge d'appariement n'entre brut dans le SDP (`slSdpRebuild`) |
+| A668 | `lot-v5-115-1.md` | Le pool d'items et les items d'un bloc sont bornés dans `migrate` |
+| A669 | `lot-v5-115-1.md` | Import : un document venu d'ailleurs entre sous un id neuf ; un fichier n'apporte jamais une suppression |
+| A670 | `lot-v5-115-1.md` | Entrées de fichier : expressions régulières bornées, budget partagé des archives imbriquées |
+| A671 | `lot-v5-115-1.md` | « Se déconnecter et effacer » retire le cache de profil et dix clés oubliées |
+| A672 | `lot-v5-115-1.md` | Une connexion temporaire par e-mail interrompue ne reste pas ouverte (`ac-temp-pending`) |
+| A673 | `lot-v5-115-1.md` | Une note d'équipe ne s'affiche que sur un élément de sa bibliothèque |
+| A674 | `lot-v5-115-1.md` | Garde anti-iframe aux gestes réels ; en-têtes de sécurité du document en cache |
+| A675 | `lot-v5-115-1.md` | Outillage : serveurs de test en boucle locale, sans `..` ; jeton de CI en lecture |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

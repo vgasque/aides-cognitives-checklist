@@ -6635,7 +6635,8 @@ await sec('A129 · l\'atelier d\'import', async () => {
   const page=await br.newPage({viewport:{width:390,height:900}});
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
-  const avant=await page.evaluate(()=>({f:fiches.length,p:protocols.length}));
+  const avant=await page.evaluate(async()=>({f:fiches.length,p:protocols.length,
+    nBin:await new Promise(r=>{const q=IDB._s('attachments','readonly').count();q.onsuccess=()=>r(q.result);q.onerror=()=>r(-1);})}));
   await page.evaluate(()=>{
     const pdf=new TextEncoder().encode('%PDF-1.4\ntrailer<</Root 1 0 R>>');
     const doc={version:3,categories:[],fiches:[
@@ -6688,11 +6689,15 @@ await sec('A129 · l\'atelier d\'import', async () => {
     return {a:!!A,statutA:A?A.status:null,
       b:fiches.some(f=>/ATELIER — aide brouillon/.test(f.title)),
       c:protocols.some(p=>/ATELIER — référence/.test(p.title)),
-      binA:!!(await IDB.getAtt('attimpa')),binB:!!(await IDB.getAtt('attimpb'))};});
+      /* A669 : hors du même espace, le binaire entre sous un id NEUF — on le retrouve par l'aide qui le
+         cite, et l'on COMPTE les binaires du store (aucun ne doit rester pour l'entité décochée). */
+      binA:!!(A&&(A.docs||[]).length===1&&A.docs[0].id!=='attimpa'&&await IDB.getAtt(A.docs[0].id)),
+      vieuxIds:!!(await IDB.getAtt('attimpa'))||!!(await IDB.getAtt('attimpb')),
+      nBin:(await new Promise(r=>{const q=IDB._s('attachments','readonly').count();q.onsuccess=()=>r(q.result);q.onerror=()=>r(-1);}))};});
   t('la sélection seule est écrite — l\'entité décochée n\'entre nulle part',
     apres.a&&apres.c&&!apres.b,JSON.stringify(apres));
   t('le FILTRAGE PRÉCÈDE `importAtts` : aucun binaire pour l\'entité décochée',
-    apres.binA===true&&apres.binB===false,`coché ${apres.binA} · décoché ${apres.binB}`);
+    apres.binA===true&&apres.vieuxIds===false&&apres.nBin-avant.nBin===1,`coché ${apres.binA} · anciens ids ${apres.vieuxIds} · binaires ajoutés ${apres.nBin-avant.nBin}`);
   t('l\'état entrant est PRÉSERVÉ (plus de forçage en brouillon)',apres.statutA==='validated',
     String(apres.statutA));
   await page.close();

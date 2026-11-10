@@ -42,12 +42,13 @@ export async function serveApp() {
     try {
       let p = decodeURIComponent(q.url.split('?')[0]);
       if (p === '/') p = '/index.html';
+      if (p.split(/[\\/]/).includes('..')) throw new Error('hors dépôt');   // A675 : jamais hors du dépôt
       const b = await readFile(ROOT + p.replace(/^\/+/, ''));
       r.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream' });
       r.end(b);
     } catch { r.writeHead(404); r.end('nf'); }
   });
-  const port = await new Promise(r => srv.listen(0, () => r(srv.address().port)));
+  const port = await new Promise(r => srv.listen(0, '127.0.0.1', () => r(srv.address().port))   /* A675 : boucle locale SEULE — sans hôte, Node écoute sur toutes les interfaces, et le serveur de test était joignable du réseau */);
   return { port, srv };
 }
 

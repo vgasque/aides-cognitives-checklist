@@ -1698,6 +1698,51 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    let to='';try{await mort.io.pull('x','sh2',0);}catch(e){to=e.message;}
    eq('personne en face : le verbe échoue en TIMEOUT borné, il ne pend jamais',to,'timeout');}
 
+  // ── A664-A670 — les corrections de l'audit de sécurité, chacune avec son témoin ──
+  {ok('A664 : un nom hérité d’Object.prototype n’est pas un id sûr (toString, valueOf, hasOwnProperty)',
+     ['toString','valueOf','hasOwnProperty','__proto__','constructor'].every(k=>A.safeId(k,'x')!==k)&&A.safeId('b1','x')==='b1');
+   const f=A.migrate({id:'fz',title:'t',blocks:[{id:'toString',kind:'do',items:[]},{id:'b2',kind:'do',items:[]}],
+     timers:[{id:'t1',label:'T',type:'interval',seconds:60}],counters:[{id:'c1',label:'C'}]});
+   ok('A664 : migrate renomme un bloc nommé « toString »',f.blocks.every(b=>b.id!=='toString'));
+   const R=A.buildRuntime(f,null);
+   ok('A664 : R.timers et R.counters n’ont pas de prototype',Object.getPrototypeOf(R.timers)===null&&Object.getPrototypeOf(R.counters)===null);
+   const avant=Object.keys(Object.prototype).length;
+   const r1=A.shareStateLive(R,{kind:'timer_arm',payload:{id:'__proto__',running:true,elapsedMs:5,cycles:2,anchor:1}});
+   const r2=A.shareStateLive(R,{kind:'counter',payload:{id:'toString',v:3}});
+   const r3=A.shareStateLive(R,{kind:'check',payload:{k:'<img src=x>'}});
+   ok('A664 : un évènement vivant à id piégé est refusé, Object.prototype intact',
+     r1===false&&r2===false&&r3===false&&Object.keys(Object.prototype).length===avant&&({}).running===undefined);
+   A.shareStateLive(R,{kind:'counter',payload:{id:'c1',v:1e999}});
+   eq('A664 : une valeur de compteur non finie devient 0 (comme le pli)',R.counters.c1,0);
+   ok('A664 : le minuteur légitime reste pilotable',!!A.shareStateLive(R,{kind:'timer_arm',payload:{id:'t1',running:true,elapsedMs:10,cycles:0,anchor:1}})&&R.timers.t1.running===true);}
+  {let t=3000,n=0;
+   const hub=A.slHub({now:()=>t,uid:()=>'z'+(++n),secret:()=>'s'+n,shareId:'sh3',fiche:{id:'f3'},guestRole:'scribe'});
+   const [wa,wb]=A.slWirePair();A.slServe(hub,wa);
+   const cli=A.slClient(wb,{timeoutMs:200});
+   const j1=await cli.io.join(null,'IADE'),j2=await cli.io.join(null,'Autre');
+   ok('A665 : rejoindre deux fois par le même canal rend le MÊME participant',j1.ok&&j2.ok&&j1.me===j2.me&&j1.secret===j2.secret&&hub.st.parts.length===2);
+   const [wc,wd]=A.slWirePair();A.slServe(hub,wc);
+   const autre=A.slClient(wd,{timeoutMs:200});
+   ok('A665 : un canal ne lit ni n’écrit avec le secret d’un autre (ni sans avoir rejoint)',
+     (await autre.io.pull(j1.secret,'sh3',0)).ok===false&&(await autre.io.push(hub.hostSecret(),'sh3',[{event_id:'h1',kind:'check'}])).ok===false);
+   hub.revoke(j1.me);
+   const j3=await cli.io.join(null,'Retour');
+   ok('A665 : coupé, le même canal ne redonne ni place ni secret',j3.ok===false&&hub.st.parts.filter(p=>!p.revoked).length===1);
+   const j4=await autre.io.join(null,'B');
+   const gros=await autre.io.push(j4.secret,'sh3',[{event_id:'g1',kind:'check',payload:{k:'x'.repeat(5000)}},{event_id:{a:1},kind:'check'},{event_id:'g2',kind:'check',payload:{k:'1:b1:0'}}]);
+   ok('A665 : charge trop lourde et id non typé refusés, le reste passe',gros.accepted===1&&gros.rejected===2);}
+  {const base={u:'wXyZ',p:'nLp3qTncIC1wOTaHc2jB39Q8',f:'841B86E02F11',s:'actpass',c:['192.168.1.10~54321']};
+   ok('A667 : un retour chariot dans ufrag/pwd annule l’offre',
+     A.slSdpRebuild(Object.assign({},base,{u:'ab\r\na=candidate:1 1 udp 1 10.0.0.1 22 typ host'}))===null&&A.slSdpRebuild(Object.assign({},base,{p:'x y'}))===null&&A.slSdpRebuild(Object.assign({},base,{s:'actpass\r\nx'}))===null);
+   const sdp=A.slSdpRebuild(Object.assign({},base,{c:['192.168.1.10~54321','10.0.0.1 9 typ host\r\na=x~1','999.1.1.1~80','a.local~70000']}));
+   ok('A667 : un candidat mal formé est écarté, pas l’offre',!!sdp&&(sdp.match(/a=candidate:/g)||[]).length===1);}
+  {const its=[];for(let i=0;i<9000;i++)its.push({});
+   const t0=Date.now(),g=A.migrate({id:'fp',title:'t',items:its,blocks:[{id:'b1',kind:'do',items:its.slice(0,2000)}]});
+   ok('A668 : le pool d’items et les items d’un bloc sont bornés',g.items.length<=5000&&g.blocks[0].items.length<=500&&Date.now()-t0<4000);}
+  {const t0=Date.now();A.stripJsonFences('```'+' '.repeat(20000)+'x');
+   ok('A670 : stripJsonFences reste linéaire sur « ``` + espaces »',Date.now()-t0<500);
+   eq('A670 : clôtures retirées comme avant',A.stripJsonFences('```json\n{"a":1}\n```'),'{"a":1}');}
+
   // ── Étape 3a : le décodeur VENDORISÉ relit ce que l'encodeur MAISON écrit (chargement
   // paresseux compris — c'est le témoin qui resservira au test d'une mise à jour de jsQR) ──
   ok('encode → décode : charge courte (v1-v4)',await A.qrSelftest('AC-714208'));

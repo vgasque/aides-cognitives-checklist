@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.115.1] — 2026-11-10
+Les corrections de l'audit de sécurité (A664-A675), côté application et outillage. L'audit n'a trouvé ni injection de
+code (XSS), ni secret dans le dépôt, ni fuite entre bibliothèques. **Rien à rejouer côté serveur pour cette version** ;
+les constats qui touchent `supabase/schema.sql` sont listés dans `docs/decisions/lot-v5-115-1.md`, en attente de décision.
+- **Partage de session** : un participant au logiciel modifié ne peut plus dérégler la session des autres (minuteurs et
+  coches fantômes), ni envoyer l'écran d'un autre invité vers une autre aide, ni le figer ; un participant coupé ne
+  revient plus par le même canal en partage direct ; le partage direct a les mêmes plafonds que le partage en ligne.
+- **Aides et protocoles reçus** (import, bibliothèque partagée) : un identifiant piégé ne rend plus une aide inouvrable
+  ni son Schéma inutilisable ; une aide démesurée ne fige plus l'application au lancement.
+- **Import** : un document PDF venu d'un fichier d'ailleurs ne peut plus prendre la place d'un document existant ; un
+  fichier ne peut plus faire disparaître ce qu'il importe ; un fichier mal formé ne gèle plus l'onglet.
+- **Poste partagé** : « Se déconnecter et effacer » retire aussi le nom de vos bibliothèques et vos rôles ; une
+  connexion temporaire par e-mail interrompue avant d'être enregistrée se ferme au lieu de rester ouverte.
+- **Suivi** : une note d'équipe ne s'affiche que sur un élément de sa propre bibliothèque. Une aide déplacée d'une
+  bibliothèque à une autre ne montre donc plus les notes d'équipe de l'ancienne (elles restent dans « À faire »).
+- **Page affichée dans un autre site** : les gestes y sont tous arrêtés, clavier compris.
+- **Outillage** : les serveurs de test n'écoutent plus que sur la machine elle-même ; le jeton de la CI ne fait que lire.
+
 ## [5.115.0] — 2026-11-10
 Les corrections de l'audit complet (A659-A663) : des filets de session qui ne se déclenchaient pas, des gestes qui
 promettaient plus que le code, et quelques portes du serveur refermées.
@@ -274,9 +292,3 @@ Correctif du suivi (A616). Rien à rejouer côté serveur.
 - **Ouverte depuis la feuille « Suivi » ou depuis « À faire », la fenêtre d'une note ou d'une tâche s'affiche
   désormais par-dessus** : elle se ferme normalement et se rouvre. Avant, elle restait cachée dessous, et « ＋ Tâche »
   ne rouvrait plus rien.
-
-## [5.109.0] — 2026-11-08
-Le suivi s'atteint d'un toucher, sans rien ajouter à la barre du haut (A615). Rien à rejouer côté serveur.
-- **Une pastille « 2 tâches »** (ou « 1 note ») apparaît sous le titre d'une aide ou d'une référence qui a du suivi,
-  à côté de « À relire ». Elle ouvre le suivi en feuille : cocher, ajouter, modifier sans perdre sa place.
-- Pas de pastille sans suivi, ni pendant une session.
