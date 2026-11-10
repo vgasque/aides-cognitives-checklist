@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-38Zca7pj3c2DpOw2jVd2y7VDdch2SxK9FKge9Aqsfls='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VH6YGCNwqdhcvTwB/V8GZ5JLeKezOVGiVtxtNCpVMIA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2475,6 +2475,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mem-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary-soft);color:var(--act);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
   .mem-info{flex:1;min-width:0}
   .mem-email{font-size:13.5px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
+  .inv-act{display:flex;gap:8px;flex:0 0 auto}   /* A685 : Refuser · Rejoindre, sur la rangée d'une invitation */
   .mem-act{display:flex;gap:8px;align-items:center;flex:none}
   .mem-act select{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-size:12px;font-weight:600}
   .mem-act .mini.del{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;position:relative}
@@ -10982,9 +10983,14 @@ let notes={};
 let myLibraries=[],myIsAppAdmin=false,myAccountStatus=null,myPendingCount=0;
 // v5.51 (A478-A479) : le droit de CRÉER une bibliothèque (règle d'instance, `can_create_library`) et mes demandes.
 let myCanCreateLib=false,myLibReqs=[];
+/* A685 — MES INVITATIONS : bibliothèques où l'on m'a invité et que je n'ai pas encore rejointes. Tant que je
+   n'ai pas accepté, le serveur ne m'en donne RIEN (ni contenu, ni membres) ; seuls son nom, le rôle proposé
+   et l'adresse de qui invite arrivent, par `my_invitations`. */
+let myInvites=[];
+const sanitizeInvites=a=>(Array.isArray(a)?a:[]).slice(0,50).map(r=>({id:safeMetaId(r&&(r.library_id||r.id)),name:sstr(r&&r.name,120),role:LIB_ROLES.indexOf(r&&r.role)>=0?r.role:'viewer',by:sstr(r&&(r.invited_by||r.by),160),at:Date.parse(r&&(r.invited_at||r.at))||+(r&&r.at)||0})).filter(r=>r.id);
 // Remet à zéro tout l'état lié au compte cloud (déconnexion, suppression de compte) : jamais partiel,
 // pour ne pas laisser un rôle/statut périmé traîner après un changement de compte.
-function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myCanCreateLib=false;myLibReqs=[];myAccountStatus=null;myPendingCount=0;state.homeLib=null;
+function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myCanCreateLib=false;myLibReqs=[];myInvites=[];myAccountStatus=null;myPendingCount=0;state.homeLib=null;
   try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.indexOf('ac-profile-')===0)localStorage.removeItem(k);}}catch(e){}}
 // ----- Profil (bibliothèques partagées) : cache LOCAL, par utilisateur -----
 // Sans cache, myLibraries/myIsAppAdmin ne viendraient que du réseau (Sync.loadProfile) et les
@@ -10995,9 +11001,9 @@ function resetAuthState(){myLibraries=[];myIsAppAdmin=false;myCanCreateLib=false
 const LIB_ROLES=['viewer','editor','admin'];
 const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaId(l&&l.id),name:sstr(l&&l.name,120),role:LIB_ROLES.indexOf(l&&l.role)>=0?l.role:'viewer'})).filter(l=>l.id);
 function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
-function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin,canCreate:myCanCreateLib,libReqs:myLibReqs}));}catch(e){}}
+function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin,canCreate:myCanCreateLib,libReqs:myLibReqs,invites:myInvites}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;myCanCreateLib=p.canCreate===true||myIsAppAdmin;
-  myLibReqs=sanitizeLibReqs(p.libReqs);}catch(e){}}
+  myLibReqs=sanitizeLibReqs(p.libReqs);myInvites=sanitizeInvites(p.invites);}catch(e){}}
 // Mes demandes de bibliothèque (cache et réseau passent ici) : id, nom, état, nombre d'invités, dates.
 const sanitizeLibReqs=a=>(Array.isArray(a)?a:[]).slice(0,20).filter(r=>r&&typeof r.id==='string'&&/^[0-9a-f-]{36}$/.test(r.id))
   .map(r=>({id:r.id,name:sstr(r.name,60),status:r.status==='rejected'?'rejected':'pending',invitees:Math.max(0,Math.min(20,+r.invitees||0)),created_at:sstr(r.created_at,40),decided_at:r.decided_at?sstr(r.decided_at,40):null}));
@@ -32608,6 +32614,19 @@ async function wipeCurrentSpace(){
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.endsWith(suffix))localStorage.removeItem(k);}
   }catch(e){}
 }
+/* A685 — Moi › Bibliothèques : MES INVITATIONS, en tête. Deux gestes, sur place : Rejoindre (j'en deviens membre,
+   son contenu arrive à la synchro) ou Refuser (l'invitation disparaît, rien n'a jamais été reçu). */
+function inviteRowsHtml(){return (myInvites||[]).map(r=>menuRowHtml({label:r.name||'Bibliothèque partagée',ic:uiIcon('book',20),inert:true,
+  sub:'invitation'+(r.by?' de '+r.by:'')+' · '+(ROLE_FR[r.role]||'Lecteur'),
+  tail:`<span class="inv-act"><button type="button" class="btn sm" data-invno="${esc(r.id)}" aria-label="Refuser l’invitation à « ${esc(r.name)} »">Refuser</button><button type="button" class="btn sm primary" data-invok="${esc(r.id)}" aria-label="Rejoindre « ${esc(r.name)} »">Rejoindre</button></span>`})).join('');}
+async function inviteAnswer(id,ok){
+  if(linkShared()){toast('⚠ Sur un appareil connecté temporairement, on ne répond pas à une invitation : faites-le sur un appareil à vous.',7000,true);return;}
+  const inv=(myInvites||[]).find(r=>r.id===id);if(!inv)return;
+  if(!ok&&!await confirmDlg('Vous ne recevrez rien de cette bibliothèque. Un de ses administrateurs pourra vous réinviter.',{title:'Refuser l’invitation à « '+(inv.name||'cette bibliothèque')+' » ?',yes:'Refuser'}))return;
+  let r;try{r=await rpc('answer_invitation',{p_library:id,p_accept:!!ok});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
+  if(r==='refused'){toast('⚠ Réponse refusée par le serveur — réessayez sur un appareil à vous.',6000,true);return;}
+  myInvites=(myInvites||[]).filter(x=>x.id!==id);saveProfileCache();renderAuth();
+  if(ok){toast('Vous avez rejoint « '+(inv.name||'la bibliothèque')+' ». Son contenu arrive.',6000);await Sync.loadProfile();try{Sync.full();}catch(e){}renderAuth();}}
 // Moi : mes demandes (en attente ou refusées) — une rangée chacune, annulable ou effaçable.
 function libReqRowsHtml(){return (myLibReqs||[]).map(r=>{const ko=r.status==='rejected';
   return menuRowHtml({label:'« '+r.name+' »',ic:uiIcon(ko?'warn':'history',20),inert:true,
@@ -32931,8 +32950,8 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       openPickMenu(t.parentNode,{aria:'Ajouter à une bibliothèque',...deskFlot(),trigger:t,
         options:(_admD.libs||[]).filter(l=>!mem.some(m=>m.library_id===l.id)).map(l=>({val:l.id,name:l.name||'Bibliothèque partagée',ic:uiIcon('book',18)})),
         onPick:async v=>{let r;try{r=await rpc('invite_member',{p_library:v,p_email:u.email,p_role:'viewer'});}catch(x){err(x);return;}
-          if(r!=='ok'){toast(r==='not_approved'?'⚠ Ce compte n’est pas approuvé : il ne peut pas être ajouté.':'⚠ Ajout impossible ('+r+').',5000,true);return;}
-          delete _adm.mem[u.user_id];admAfter('Ajouté comme Lecteur — le rôle se change sur place.');}});return;}
+          if(r!=='ok'){toast(r==='not_approved'||r==='not_found'?'⚠ Ce compte n’est pas validé : il ne peut pas être invité.':'⚠ Invitation impossible ('+r+').',5000,true);return;}
+          delete _adm.mem[u.user_id];admAfter('Invité comme Lecteur — la personne rejoint en acceptant, dans Moi.');}});return;}
     if(t.dataset.admrm!=null){const u=admUser();if(!u)return;
       if(!await confirmDlg('Retirer '+u.email+' de « '+(libName(t.dataset.admrm)||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
       try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(x){err(x);}
@@ -33170,7 +33189,7 @@ function renderAuthAccount(body,u,doOut){
       bindAccountPrefs(body);linkBindCard(body);
       body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
       {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
-      body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));
+      body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));body.querySelectorAll('[data-invok]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invok,true));body.querySelectorAll('[data-invno]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invno,false));
       return;}
     // Structure (audit v4.5) : identité + état -> contours jumeaux demi-largeur -> zone « Cet
     // appareil » -> zone « Administration » (admin) -> zone sensible, toujours dernière.
@@ -33191,7 +33210,7 @@ function renderAuthAccount(body,u,doOut){
     bindAccountPrefs(body);
     body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
     {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
-    body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));
+    body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));body.querySelectorAll('[data-invok]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invok,true));body.querySelectorAll('[data-invno]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invno,false));
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
     // direct par setSyncChip) montre « Synchro en cours » puis le résultat -> vrai retour visuel,
     // là où fermer la fenêtre laissait l'utilisateur sans aucune confirmation.
@@ -33222,7 +33241,7 @@ function acctLibsHtml(){
     .concat(sortedLibraries().map(l=>{const admin=l.role==='admin'||myIsAppAdmin;
       return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),inert:!admin,
         attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:'',tail:admin?chev:''});}));
-  return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques <span class="acct-hs">où vivent les aides, et qui y a accès</span></div><div class="acct-card acct-list">${rows.join('')}${libReqRowsHtml()}${libNewOn()?`<button type="button" class="catmenu-new" data-newlib>＋ ${esc(libNewLbl())}</button>`:''}</div></div>`;}
+  return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques <span class="acct-hs">où vivent les aides, et qui y a accès</span></div><div class="acct-card acct-list">${inviteRowsHtml()}${rows.join('')}${libReqRowsHtml()}${libNewOn()?`<button type="button" class="catmenu-new" data-newlib>＋ ${esc(libNewLbl())}</button>`:''}</div></div>`;}
 /* A475 : MES COLLECTIONS dans Moi, connecté ou non (elles vivent sur l'appareil, et suivent le compte s'il y en a un).
    Une rangée mène à la collection depuis l'accueil ; ailleurs elle informe (on ne quitte pas une aide ouverte par Moi). */
 function acctCollsHtml(){const go=state.view==='library';
@@ -35188,14 +35207,22 @@ const Sync={
     // plan) et le cache de profil est déjà restauré au démarrage : le render() inconditionnel
     // d'ici remplaçait l'accueil ~1 s après l'ouverture SANS RIEN Y CHANGER — le tap en cours
     // tombait sur un élément détruit (« l'app ne répond pas »). Profil inchangé = zéro re-rendu.
-    const prev=JSON.stringify([myLibraries,myIsAppAdmin,myPendingCount,myCanCreateLib,myLibReqs]);
+    const prev=JSON.stringify([myLibraries,myIsAppAdmin,myPendingCount,myCanCreateLib,myLibReqs,myInvites]);
     let ok=true;
+    /* A685 : les invitations D'ABORD — une bibliothèque où je ne suis qu'invité n'est pas une des miennes. Pour un
+       compte ordinaire le serveur la cache déjà (son nom ne remonte pas) ; un administrateur de l'instance, lui,
+       voit toutes les bibliothèques : on l'écarte donc ici, par son id. Serveur antérieur (schéma pas rejoué) :
+       l'appel échoue, aucune invitation, rien ne change. */
+    const nInv0=myInvites.length;let inv=null;
+    try{inv=sanitizeInvites(await rpc('my_invitations'));}catch(e){inv=null;}
+    if(inv)myInvites=inv;
+    const enAttente=new Set(myInvites.map(x=>x.id));
     // ⚠ FILTRÉ sur SOI (A483) : la politique mem_select rend à l'administrateur TOUTES les adhésions — sans filtre,
     // les bibliothèques des autres entraient dans « mes bibliothèques », vides et avec le rôle d'un autre.
     try{const rows=await rest('GET','/rest/v1/memberships?select=role,library_id,libraries(id,name)&user_id=eq.'+encodeURIComponent((Auth.user()||{}).id||''))||[];
       // Déduplication par id (robustesse) : si une biblio remonte plusieurs fois, on garde le rôle le plus élevé.
       const rank={viewer:1,editor:2,admin:3},by={};
-      rows.filter(r=>r.libraries).forEach(r=>{const id=r.library_id,cur=by[id];if(!cur||rank[r.role]>rank[cur.role])by[id]={id,name:r.libraries.name,role:r.role};});
+      rows.filter(r=>r.libraries&&!enAttente.has(r.library_id)).forEach(r=>{const id=r.library_id,cur=by[id];if(!cur||rank[r.role]>rank[cur.role])by[id]={id,name:r.libraries.name,role:r.role};});
       myLibraries=Object.values(by).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
     }catch(e){ok=false;}
     try{myIsAppAdmin=(await rpc('is_app_admin'))===true;}catch(e){ok=false;}
@@ -35206,7 +35233,9 @@ const Sync={
     if(myIsAppAdmin){try{myPendingCount=(await rpc('list_unapproved_users')||[]).filter(u=>u.status==='pending').length;}catch(e){myPendingCount=0;}}
     else myPendingCount=0;
     if(ok)saveProfileCache();
-    if(JSON.stringify([myLibraries,myIsAppAdmin,myPendingCount,myCanCreateLib,myLibReqs])!==prev&&state.view==='library')render();}   // render() aiguille selon la section (fiches/protocoles)
+    // A685 : une invitation NOUVELLE se dit une fois (retenue pendant un soin, comme tout message : `toast`).
+    if(inv&&myInvites.length>nInv0)toast(myInvites.length>1?nb(myInvites.length,'invitation')+' à rejoindre une bibliothèque — à voir dans Moi.':'Vous êtes invité à rejoindre « '+(myInvites[0].name||'une bibliothèque')+' » — à voir dans Moi.',8000);
+    if(JSON.stringify([myLibraries,myIsAppAdmin,myPendingCount,myCanCreateLib,myLibReqs,myInvites])!==prev&&state.view==='library')render();}   // render() aiguille selon la section (fiches/protocoles)
 };
 /* ===== PARTAGE DE SESSION — transport =====
    Miroir ADDITIF d'une session de crise vers un second appareil. Rien de ce qui suit n'est jamais
@@ -37419,9 +37448,9 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${canRename?`<div class="dlg-actions"><button class="btn" id="libCancel">Annuler</button><button class="btn primary" id="libSave">Enregistrer</button></div>`:''}
     <div class="share-note" style="margin-top:10px">Bibliothèque partagée : les droits d'accès sont appliqués <strong>côté serveur</strong> ; elle reste consultable hors ligne une fois synchronisée.</div>
     <div class="field-label">Membres <span class="fl-n">· ${n}</span></div>
-    <div class="mem-list">${n?list.map(m=>`<div class="mem-row"><div class="mem-avatar">${esc(emailIni(m.email))}</div><div class="mem-info"><span class="mem-email">${esc(m.email)}${m.user_id===me?' <span class="mem-you">(vous)</span>':''}</span></div><div class="mem-act">${m.user_id===me?`<span class="ro-badge">${ROLE_FR[m.role]||esc(m.role)}</span>`:`<select data-role="${esc(m.user_id)}" aria-label="Rôle de ${esc(m.email)}">${roleOptions(m.role)}</select><button class="mini del" data-remove="${esc(m.user_id)}" title="Retirer de la bibliothèque" aria-label="Retirer ${esc(m.email)}">×</button>`}</div></div>`).join(''):emptyLine('Aucun membre pour le moment.')}</div>
+    <div class="mem-list">${n?list.map(m=>`<div class="mem-row"><div class="mem-avatar">${esc(emailIni(m.email))}</div><div class="mem-info"><span class="mem-email">${esc(m.email)}${m.user_id===me?' <span class="mem-you">(vous)</span>':''}${m.pending?' <span class="mem-you">· invitation en attente</span>':''}</span></div><div class="mem-act">${m.user_id===me?`<span class="ro-badge">${ROLE_FR[m.role]||esc(m.role)}</span>`:`<select data-role="${esc(m.user_id)}" aria-label="Rôle de ${esc(m.email)}">${roleOptions(m.role)}</select><button class="mini del" data-remove="${esc(m.user_id)}" title="Retirer de la bibliothèque" aria-label="Retirer ${esc(m.email)}">×</button>`}</div></div>`).join(''):emptyLine('Aucun membre pour le moment.')}</div>
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
-    <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app. Ajouts, rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
+    <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app ; elle rejoint la bibliothèque en <b>acceptant l'invitation</b>, dans Moi. Rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>
     ${roleOf(_memLib)?`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`:''}
     ${isAdmin&&!horsAdh&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
@@ -37448,9 +37477,9 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   {const iv=document.getElementById('memInvite');if(iv)iv.onclick=async()=>{const email=(document.getElementById('memEmail').value||'').trim();const role=document.getElementById('memNewRole').value;
     if(!email||email.indexOf('@')<1){setMsg('Saisissez un e-mail valide.','err');return;}setMsg('Invitation…','');
     try{const r=await rpc('invite_member',{p_library:_memLib,p_email:email,p_role:role});
-      if(r==='not_found')setMsg('Aucun compte avec cet e-mail. La personne doit d\'abord se connecter une fois à l\'application.','err');
-      else if(r==='not_approved')setMsg('Ce compte est en attente de validation (ou a été refusé) : il ne peut pas être ajouté à une bibliothèque tant qu\'un administrateur ne l\'a pas approuvé.','err');
-      else{await renderMembers();await Sync.loadProfile();}}
+      // A685 : une seule réponse du serveur pour « pas de compte » et « compte non validé » (`not_approved` : serveur antérieur).
+      if(r==='not_found'||r==='not_approved')setMsg('Aucun compte validé à cette adresse. La personne doit s\'être connectée une fois à l\'application, et son compte avoir été validé.','err');
+      else{await renderMembers();await Sync.loadProfile();if(email.toLowerCase()!==String((Auth.user()||{}).email||'').toLowerCase())setMsg('Invitation envoyée : elle rejoindra la bibliothèque en l\'acceptant, dans Moi.','ok');}}
     catch(e){setMsg('Échec : '+memErr(e),'err');}};}
   body.querySelectorAll('[data-role]').forEach(sel=>sel.onchange=async()=>{
     try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(sel.dataset.role),{role:sel.value},{'Prefer':'return=minimal'});await Sync.loadProfile();}

@@ -364,7 +364,8 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
   set local role authenticated;
   select public.invite_member('lib-team','gina@test.local','viewer') into v_hack;
-  if v_hack <> 'not_approved' then raise exception 'ÉCHEC : invite_member a accepté un compte non approuvé (résultat : %)', v_hack; end if;
+  -- A685 : une seule réponse pour « pas de compte » et « compte non validé » (plus d'oracle).
+  if v_hack <> 'not_found' then raise exception 'ÉCHEC : invite_member a accepté un compte non approuvé (résultat : %)', v_hack; end if;
   reset role;
   select count(*) into v_cnt from public.memberships where user_id=gina and library_id='lib-team';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un compte non approuvé a quand même été ajouté comme membre'; end if;
@@ -1723,7 +1724,7 @@ begin
     update public.memberships set user_id = pia where library_id='lib-a663' and user_id = noe;
     raise exception 'ÉCHEC 17.3 : une adhésion est réattribuée en direct à un compte en attente';
   exception when insufficient_privilege then null; end;
-  if public.invite_member('lib-a663','pia@test.local','editor') <> 'not_approved' then
+  if public.invite_member('lib-a663','pia@test.local','editor') <> 'not_found' then   -- A685 : réponse unique
     raise exception 'ÉCHEC 17.3 : invite_member ne refuse plus un compte en attente'; end if;
   update public.memberships set role = 'editor' where library_id='lib-a663' and user_id = noe;
   get diagnostics v_cnt = row_count;
@@ -1829,6 +1830,11 @@ begin
   if public.is_member('lib-a663') then raise exception 'ÉCHEC 17.6 : parti, le lecteur est encore membre'; end if;
   perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
   if public.invite_member('lib-a663','noe@test.local','admin') <> 'ok' then raise exception 'ÉCHEC 17.6 : nommer une seconde administratrice'; end if;
+  -- A685 : une administratrice seulement INVITÉE ne compte pas — la première ne peut pas encore partir.
+  if public.leave_library('lib-a663') <> 'last_admin' then raise exception 'ÉCHEC 17.6 : une invitation en attente compte comme une seconde administratrice'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',noe,'role','authenticated')::text, true);
+  if public.answer_invitation('lib-a663', true) <> 'ok' then raise exception 'ÉCHEC 17.6 : la seconde administratrice ne peut pas accepter'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
   if public.leave_library('lib-a663') <> 'ok' then raise exception 'ÉCHEC 17.6 : avec une seconde administratrice, la première ne peut pas partir'; end if;
   --      CE QUE LA RÈGLE NE BLOQUE PAS : le compte qui s'efface (droit à l'effacement), le compte refusé,
   --      la bibliothèque supprimée. noe est maintenant la SEULE administratrice.
@@ -2048,6 +2054,77 @@ begin
     raise exception 'ÉCHEC 18.9 : un nom de bibliothèque de 121 caractères est accepté';
   exception when check_violation then null; end;
   reset role;
+
+  ------------------------------------------------------------------ 20. Invitation avec acceptation (A685)
+  reset role;
+  insert into public.libraries(id,name,created_by) values ('lib-20','Vingt',quin) on conflict (id) do nothing;
+  delete from public.memberships where library_id = 'lib-20' and user_id = rui;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-20',quin,'lib-20','{"title":"secret"}');
+  -- 20.1 L'invitation naît EN ATTENTE : elle ne donne rien — ni contenu, ni bibliothèque, ni membres.
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  if public.invite_member('lib-20','rui@test.local','editor') <> 'ok' then raise exception 'ÉCHEC 20.1 : invitation refusée'; end if;
+  if not exists (select 1 from public.list_members('lib-20') where user_id = rui and pending) then
+    raise exception 'ÉCHEC 20.1 : l''administrateur ne voit pas l''invitation en attente'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  if public.is_member('lib-20') or public.member_role('lib-20') is not null then raise exception 'ÉCHEC 20.1 : une invitation en attente vaut adhésion'; end if;
+  select (select count(*) from public.cognitive_aids where library_id='lib-20') + (select count(*) from public.libraries where id='lib-20')
+       + (select count(*) from public.memberships where library_id='lib-20' and user_id <> rui) into v_cnt;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 20.1 : un invité non accepté lit % ligne(s) de la bibliothèque', v_cnt; end if;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-20x',rui,'lib-20','{}');
+    raise exception 'ÉCHEC 20.1 : un invité non accepté écrit dans la bibliothèque';
+  exception when insufficient_privilege then null; end;
+  -- … et il ne peut pas s'activer lui-même en direct.
+  begin
+    update public.memberships set pending = false where user_id = rui and library_id = 'lib-20';
+    if not exists (select 1 from public.memberships where user_id = rui and library_id = 'lib-20' and pending) then
+      raise exception 'ÉCHEC 20.1 : un invité s''active sans passer par answer_invitation'; end if;
+  exception when insufficient_privilege then null; end;
+  -- 20.2 Il voit SON invitation (nom, rôle, qui invite), et personne d'autre ne la voit à sa place.
+  if not exists (select 1 from public.my_invitations() where library_id='lib-20' and name='Vingt' and role='editor' and invited_by='quin@test.local') then
+    raise exception 'ÉCHEC 20.2 : l''invité ne voit pas son invitation'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  if exists (select 1 from public.my_invitations() where library_id='lib-20') then raise exception 'ÉCHEC 20.2 : un tiers voit l''invitation d''un autre'; end if;
+  if public.answer_invitation('lib-20', true) <> 'not_found' then raise exception 'ÉCHEC 20.2 : un tiers répond à l''invitation d''un autre'; end if;
+  -- 20.3 Refuser retire la ligne ; réinvité puis accepté, il devient membre et lit le contenu.
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  if public.answer_invitation('lib-20', false) <> 'ok' then raise exception 'ÉCHEC 20.3 : refus impossible'; end if;
+  reset role;
+  if exists (select 1 from public.memberships where user_id = rui and library_id = 'lib-20') then raise exception 'ÉCHEC 20.3 : l''invitation refusée reste'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  perform public.invite_member('lib-20','rui@test.local','viewer');
+  -- Depuis un poste partagé, on ne répond pas à une invitation.
+  reset role;
+  delete from public.device_links where user_id = rui; delete from auth.sessions where id = v_s18a;
+  insert into auth.sessions(id, user_id) values (v_s18a, rui);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('3',64), repeat('4',64), now(), rui, 'claimed', now() + interval '2 hours', now(), now(), v_s18a);
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated','session_id',v_s18a)::text, true);
+  set local role authenticated;
+  if public.answer_invitation('lib-20', true) <> 'refused' then raise exception 'ÉCHEC 20.3 : un poste partagé accepte une invitation'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  if public.answer_invitation('lib-20', true) <> 'ok' then raise exception 'ÉCHEC 20.3 : acceptation impossible'; end if;
+  if not public.is_member('lib-20') or (select count(*) from public.cognitive_aids where library_id='lib-20') <> 1 then
+    raise exception 'ÉCHEC 20.3 : accepté, le membre ne lit pas la bibliothèque'; end if;
+  if exists (select 1 from public.my_invitations()) then raise exception 'ÉCHEC 20.3 : l''invitation acceptée reste en attente'; end if;
+  -- 20.4 Ré-inviter un membre déjà accepté ne le remet pas en attente (seul le rôle change).
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  perform public.invite_member('lib-20','rui@test.local','editor');
+  reset role;
+  if (select role || '|' || pending::text from public.memberships where user_id = rui and library_id = 'lib-20') is distinct from 'editor|false' then
+    raise exception 'ÉCHEC 20.4 : ré-inviter un membre le remet en attente'; end if;
+  -- 20.5 S'inviter soi-même (l'administrateur de l'instance qui s'ajoute) rend membre aussitôt.
+  insert into public.libraries(id,name,created_by) values ('lib-20b','Vingt bis',quin) on conflict (id) do nothing;
+  insert into public.app_admins(user_id) values (rui) on conflict do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_hack := public.invite_member('lib-20b', 'rui@test.local', 'viewer');
+  if v_hack <> 'ok' or not public.is_member('lib-20b') then
+    raise exception 'ÉCHEC 20.5 : l''administrateur de l''instance qui s''ajoute n''est pas membre aussitôt (%)', v_hack; end if;
+  reset role;
+  delete from public.app_admins where user_id = rui;
 
   ------------------------------------------------------------------ FIN
   reset role;

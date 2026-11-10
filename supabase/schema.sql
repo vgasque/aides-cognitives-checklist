@@ -119,16 +119,26 @@ create or replace function public.admin_reads()
 returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
 begin return public.is_app_admin() and not public.link_is_poste(); end; $$;
 
+-- A685 — UNE INVITATION N'EST PAS UNE ADHÉSION. `invite_member` inscrivait d'office : la personne
+-- recevait à sa synchro suivante tout le contenu d'une bibliothèque qu'elle n'avait pas choisie (un
+-- canal pour glisser chez un collègue des aides ressemblant aux siennes). La ligne naît désormais
+-- `pending` et ne devient une adhésion que par `answer_invitation`. Les DEUX aides ci-dessous ignorent
+-- une ligne en attente — et comme toutes les politiques de contenu passent par elles, une invitation
+-- non acceptée ne donne RIEN : ni lecture, ni écriture, ni le nom des autres membres.
+alter table public.memberships add column if not exists pending    boolean not null default false;
+alter table public.memberships add column if not exists invited_by uuid references auth.users on delete set null;
+alter table public.memberships add column if not exists invited_at timestamptz;
+
 create or replace function public.is_member(lib text)
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select exists (select 1 from public.memberships
-                 where user_id = auth.uid() and library_id = lib);
+                 where user_id = auth.uid() and library_id = lib and not pending);
 $$;
 
 create or replace function public.member_role(lib text)
 returns text language sql stable security definer set search_path = public, pg_temp as $$
   select role from public.memberships
-  where user_id = auth.uid() and library_id = lib;
+  where user_id = auth.uid() and library_id = lib and not pending;
 $$;
 
 -- ---------- 3. RLS (explicite, même si auto-RLS est ON) ---------------------
@@ -300,10 +310,16 @@ begin
     select status into v_status from public.user_status where user_id = v_uid;
     if coalesce(v_status,'approved') <> 'approved'
        and coalesce((select require_approval from public.app_settings limit 1), true) then
-      return 'not_approved';
+      -- A685 : UNE seule réponse pour « pas de compte » et « compte non validé ». Les distinguer disait à
+      -- tout administrateur de bibliothèque si une adresse a un compte, et où en est sa validation.
+      return 'not_found';
     end if;
   end if;
-  insert into public.memberships(user_id, library_id, role) values (v_uid, p_library, p_role)
+  -- A685 : EN ATTENTE jusqu'à l'accord de l'invité (`answer_invitation`). Deux exceptions : on ne
+  -- s'invite pas soi-même (l'administrateur de l'instance qui s'ajoute devient membre aussitôt), et
+  -- une adhésion DÉJÀ acquise garde son état — seul le rôle change.
+  insert into public.memberships(user_id, library_id, role, pending, invited_by, invited_at)
+    values (v_uid, p_library, p_role, v_uid is distinct from auth.uid(), auth.uid(), now())
     on conflict (user_id, library_id) do update set role = excluded.role;
   return 'ok';
 end;$$;
@@ -312,16 +328,49 @@ grant execute on function public.invite_member(text,text,text) to authenticated;
 -- ---------- 5ter. Liste des membres d'une bibliothèque (Lot 3, étape 4) ------
 -- Renvoie e-mail + rôle des membres. Réservé aux admins de la bibliothèque (sinon vide) :
 -- nécessaire car auth.users n'est pas accessible via l'API publique.
+-- A685 : rend aussi `pending` (invitation pas encore acceptée) — le type de retour change, d'où le `drop`.
+drop function if exists public.list_members(text);
 create or replace function public.list_members(p_library text)
-returns table(user_id uuid, email text, role text)
+returns table(user_id uuid, email text, role text, pending boolean)
 language sql security definer set search_path = public, pg_temp as $$
-  select m.user_id, u.email::text, m.role
+  select m.user_id, u.email::text, m.role, m.pending
   from public.memberships m join auth.users u on u.id = m.user_id
   where m.library_id = p_library
     and (public.member_role(p_library) = 'admin' or public.is_app_admin())
-  order by m.role, u.email;
+  order by m.pending, m.role, u.email;
 $$;
 grant execute on function public.list_members(text) to authenticated;
+
+-- A685 — MES INVITATIONS, ET MA RÉPONSE. La bibliothèque d'une invitation en attente est INVISIBLE de
+-- l'invité (`lib_select` passe par `is_member`) : son nom et l'adresse de qui invite ne sortent que par
+-- cette fonction, pour ses propres lignes. Répondre est un geste de compte : jamais depuis un poste partagé.
+create or replace function public.my_invitations()   -- PL/pgSQL : `is_approved` est définie plus bas (liaison à l'exécution)
+returns table(library_id text, name text, role text, invited_by text, invited_at timestamptz)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  return query
+  select m.library_id, l.name, m.role, coalesce(u.email::text, ''), m.invited_at
+  from public.memberships m join public.libraries l on l.id = m.library_id
+  left join auth.users u on u.id = m.invited_by
+  where m.user_id = auth.uid() and m.pending and public.is_approved()
+  order by m.invited_at desc nulls last;
+end;$$;
+grant execute on function public.my_invitations() to authenticated;
+
+create or replace function public.answer_invitation(p_library text, p_accept boolean)
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if auth.uid() is null or not public.is_approved() or public.link_is_poste() then return 'refused'; end if;
+  if coalesce(p_accept, false) then
+    update public.memberships set pending = false
+     where user_id = auth.uid() and library_id = p_library and pending;
+  else
+    delete from public.memberships where user_id = auth.uid() and library_id = p_library and pending;
+  end if;
+  if not found then return 'not_found'; end if;
+  return 'ok';
+end;$$;
+grant execute on function public.answer_invitation(text, boolean) to authenticated;
 
 -- ---------- 5quater. Durcissement : updated_at non postdatable ---------------
 -- Empêche un client de postdater updated_at pour « gagner » indûment un conflit (last-write-wins).
@@ -1984,8 +2033,8 @@ create or replace function public.list_all_libraries()
 returns table(id text, name text, creator text, created_at timestamptz, members int, admins int, aids int, protocols int)
 language sql stable security definer set search_path = public, pg_temp as $$
   select l.id, l.name, u.email::text, l.created_at,
-         (select count(*)::int from public.memberships m where m.library_id = l.id),
-         (select count(*)::int from public.memberships m where m.library_id = l.id and m.role = 'admin'),
+         (select count(*)::int from public.memberships m where m.library_id = l.id and not m.pending),
+         (select count(*)::int from public.memberships m where m.library_id = l.id and m.role = 'admin' and not m.pending),
          (select count(*)::int from public.cognitive_aids f where f.library_id = l.id and f.deleted_at is null),
          (select count(*)::int from public.protocols p where p.library_id = l.id and p.deleted_at is null)
   from public.libraries l left join auth.users u on u.id = l.created_by
@@ -2018,8 +2067,9 @@ begin
     if found
        and exists (select 1 from auth.users where id = old.user_id)
        and coalesce((select status from public.user_status where user_id = old.user_id), 'approved') = 'approved'
+       and not old.pending   -- A685 : une invitation refusée ou retirée n'est pas un administrateur qui part
        and not exists (select 1 from public.memberships
-                        where library_id = old.library_id and role = 'admin' and user_id <> old.user_id) then
+                        where library_id = old.library_id and role = 'admin' and not pending and user_id <> old.user_id) then
       raise exception 'last_admin';
     end if;
   end if;
@@ -2046,7 +2096,7 @@ begin
   end if;
   if public.member_role(p_library) = 'admin'
      and not exists (select 1 from public.memberships
-                      where library_id = p_library and role = 'admin' and user_id <> auth.uid()) then
+                      where library_id = p_library and role = 'admin' and not pending and user_id <> auth.uid()) then
     return 'last_admin';
   end if;
   delete from public.memberships where user_id = auth.uid() and library_id = p_library;
