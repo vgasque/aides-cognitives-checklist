@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.117.0] — 2026-11-10
+Le délai de revérification se règle, et le volet des minuteurs du téléphone se resserre (A698-A699). Rien à faire côté
+serveur.
+- **À revérifier — un délai par aide et par protocole.** Jusqu'ici, une validation de plus de deux ans s'affichait
+  « À revérifier » pour tout le monde. Dans l'éditeur, sous la date de validation, on choisit maintenant « tous les
+  ans », « tous les 2 ans » ou « tous les 3 ans ». Rien ne change pour l'existant : le délai reste de deux ans tant
+  qu'on n'y touche pas.
+- **Sur une rangée validée**, l'info-bulle dit à partir de quand l'élément sera à revérifier.
+- **« À faire » liste les validations échues** de ce que vous pouvez modifier, dans une section « À revérifier —
+  validation échue », avec « Ouvrir ». Ce n'est pas une tâche : la liste est calculée à l'affichage, rien n'est
+  enregistré ni envoyé, et elle disparaît dès que la date de validation est mise à jour.
+- **Minuteurs et compteurs au téléphone** : dans le volet de la capsule, chaque minuteur tient en une tuile plus
+  basse — « ↺ maintenir » à côté du temps, une seule commande en dessous. Toucher n'importe où sur un minuteur à
+  l'arrêt le lance ; un minuteur en marche ne répond qu'à son bouton « Pause ». Un compteur se lit « − n + » sur une
+  ligne, avec un « + » large. Le bureau ne change pas.
+
 ## [5.116.1] — 2026-11-10
 Les sept points restés ouverts de l'audit de sécurité (A689-A693, A695-A697).
 **À faire côté serveur : rejouer `supabase/schema.sql`, puis redéployer la fonction `link-claim`** (dans cet ordre ;
@@ -327,10 +343,3 @@ Alignement des rangées sans catégorie (A620). Rien à rejouer côté serveur.
 - **Une aide ou une référence sans catégorie ne décale plus son texte** : dans une liste où les autres rangées ont un
   point de couleur (« Ouvertes récemment », une collection…), elle garde la place du point, vide, et son titre
   s'aligne sur celui des voisines. Une liste sans aucune catégorie reste inchangée.
-
-## [5.109.4] — 2026-11-08
-Sélection depuis l'accueil (A619). Rien à rejouer côté serveur.
-- **Un appui long sur une aide de l'accueil sélectionne sur place** : depuis une collection, « Ouvertes récemment » ou
-  l'Accès direct, l'accueil ne bascule plus sur la liste complète des aides (la rangée pressée partait ailleurs et la
-  page sautait). Chaque rangée prend sa case ; une aide présente à deux endroits est cochée aux deux ; « Annuler »
-  rend l'accueil tel qu'il était.
