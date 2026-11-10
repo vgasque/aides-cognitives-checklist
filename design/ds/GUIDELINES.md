@@ -1180,10 +1180,21 @@ Les sessions d'**exercice** restent strictement ségrégées (colonne dédiée) 
   grand (`--t-val`), « puis tout s'efface de cet appareil », UNE sortie « Se déconnecter et effacer » ; la **bande** de
   l'ACCUEIL SEULEMENT (`#linkBand`, `.pp-band`) est NEUTRE (rien ne tourne mal), AMBRE `pp-soon` 30 min avant la fin et
   après (règle 8). Jamais en lecture d'une aide, jamais pendant le soin (règle 11).
-- **L'appareil connecté** : Moi › Appareils (« Connecter un appareil », « Appareils connectés »). La feuille « Connecter
-  cet appareil ? » : l'appareil nommé, « 1 · Le nombre affiché sur l'appareil » (trois nombres, 48 px), « 2 · Connexion
-  temporaire : jusqu'à quelle heure ? », l'avertissement ambre « un écran que vous avez devant vous », et
-  « ⏱ Connecter jusqu'à 19:30 », fermé tant que le bon nombre n'est pas touché.
+- **L'appareil connecté** (A656) : Moi › **Connexions temporaires**, sur place — une rangée par appareil (icône
+  ordinateur, tablette ou téléphone d'après son libellé, « jusqu'à 18:09 · reste 9 h », AMBRE avec △ à moins d'une
+  heure), puis « Connecter un appareil » (en `--act`) et la rangée « Mes fins de garde » (les deux heures en chiffres
+  mono). Le **viseur** porte un titre, la consigne en grand (« Visez le code de l'écran que vous avez devant vous ») et
+  une carte « Le code n'est pas affiché ? » avec le chemin sur l'autre appareil. La feuille « Connecter Chrome ·
+  Windows ? » va **une étape à la fois** : ① « Touchez le nombre affiché sur cet écran » (trois nombres de 72 px ; un
+  faux nombre en ambre, et au 2ᵉ « Annuler » devient le bouton fort), puis « ✓ 17 — c'est bien l'écran devant vous »
+  en vert et ② « Jusqu'à quelle heure ? » (« Ce soir 19:30 · dans 9 h »). **Aucun bouton grisé** : avant le bon
+  nombre, seul « Annuler ». Boutons pleine largeur, le principal au-dessus. « Appareil connecté » : une carte verte,
+  « Rien ne s'ouvre devant vous ? » à côté d'un « Déconnecter » en `.btn.danger`, « Terminé ». Toucher un appareil
+  ouvre **« gérer »** : l'heure de fin en grand, le temps restant et sa barre, « ＋ 1 h » ou « Jusqu'à » la prochaine
+  fin de garde, « Déconnecter et effacer cet appareil ».
+- **Un appareil temporaire FINI** (déconnecté à distance ou heure passée, A655) : la bande et la carte de Moi le
+  disent (« Déconnecté depuis un autre appareil ») ; créer, modifier, supprimer, importer et démarrer une session
+  ouvrent la feuille « Appareil déconnecté » ; la session en cours continue (règle 11).
 - **Le verrou après réouverture ou 15 min sans geste** : consulter et reprendre restent libres ; créer et modifier
   passent par « Déverrouiller avec un appareil connecté » ; SUPPRIMER le demande à chaque fois (« Confirmer avec un
   appareil connecté ») ; l'administration affiche « Pas sur un appareil temporaire » (A647). La bande verrouillée porte

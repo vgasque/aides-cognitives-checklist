@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A654** à la v5.113 (lot v6.0 compris) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A656** à la v5.114 (lot v6.0 compris) (et ça continue — la
 prochaine est A650), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -278,6 +278,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A652 | `lot-v5-112.md` | La carte « Se connecter » : Temporaire · Permanente, rien d'office ; le code à viser DANS la page (5 renouvellements) ; « un appareil connecté », jamais « le téléphone » ; carte du poste à une sortie ; bande neutre (amende A643) |
 | A653 | `lot-v5-112.md` | Le compte se charge : « Chargement de votre compte… » et trois rangées qui respirent pendant le premier tirage, au lieu de « vide » ; 20 s au plus ; mouvement réduit respecté |
 | A654 | `lot-v5-113.md` | Les règles de la connexion temporaire, réglées dans Administration › Règles pour toute l'application (créer/modifier, supprimer, remplacer, exporter, durée max) ; le serveur applique interdits et durée (RLS restrictives, `temp_rules`), le client confirmations et verrou ; Administration et suppression du compte toujours interdites (amende A647) |
+| A655 | `lot-v5-114.md` | Déconnecté depuis un autre appareil : l'appareil s'arrête aussitôt (veille 15 s, état retenu, plus d'édition ni de nouvelle session, session en cours préservée) et le serveur lui ferme les tables dès la requête suivante (`link_dead`, politiques `*_link_dead`) — le jeton restait valable 15 min |
+| A656 | `lot-v5-114.md` | « Connecter un appareil » : Moi › Connexions temporaires sur place (icône par type, ambre à < 1 h), viseur titré avec « Le code n'est pas affiché ? », confirmation une étape à la fois sans bouton grisé, « Connecté » en vert, feuille « gérer » (＋ 1 h, jusqu'à la prochaine fin de garde) (amende A652) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -2456,6 +2456,36 @@ drop policy if exists memberships_temp_del on public.memberships;
 create policy memberships_temp_del on public.memberships as restrictive for delete to authenticated
   using (not public.temp_is_poste());
 
+-- ---------- 10quater. UN APPAREIL DÉCONNECTÉ NE LIT NI N'ÉCRIT PLUS, TOUT DE SUITE (v5.114, A655) --------
+-- Signalé : « quand je déconnecte un appareil depuis mon téléphone, je peux continuer à modifier mes fiches et
+-- lancer des sessions jusqu'à ce que je recharge la page ». `link_revoke` supprime la session de compte du poste,
+-- mais son JETON D'ACCÈS reste valable jusqu'à son expiration (900 s, A648) : PostgREST vérifie la signature du
+-- jeton, jamais l'existence de la session. Ces politiques RESTRICTIVES ferment les tables à une session de poste
+-- DÉCONNECTÉE (révoquée, ou terminée par `link_end`) ou dont l'HEURE DE FIN est passée, dès la requête suivante.
+-- Ce que le poste doit encore pouvoir faire passe par des fonctions SECURITY DEFINER qui ne lisent pas ces
+-- politiques : `link_poll` (apprendre qu'il est déconnecté) et `link_deposit` (déposer ses sessions après l'heure de
+-- fin — refusé, lui, à un poste révoqué). Index : `device_links_sess_idx`. `(select …)` : évaluée une fois par
+-- requête, pas une fois par ligne.
+create or replace function public.link_dead()
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select exists (select 1 from public.device_links
+                  where auth_session = nullif(auth.jwt() ->> 'session_id', '')::uuid
+                    and (status <> 'claimed' or ends_at is null or ends_at < now()));
+$$;
+revoke execute on function public.link_dead() from public, anon;
+grant execute on function public.link_dead() to authenticated;
+do $$ declare t text; begin
+  foreach t in array array['libraries','memberships','cognitive_aids','category_sets','aid_notes','aid_followups',
+                           'protocols','sessions','library_requests','user_status'] loop
+    execute format('drop policy if exists %I on public.%I', t || '_link_dead', t);
+    execute format('create policy %I on public.%I as restrictive for all to authenticated '
+                   'using (not (select public.link_dead())) with check (not (select public.link_dead()))', t || '_link_dead', t);
+  end loop;
+end $$;
+drop policy if exists att_link_dead on storage.objects;
+create policy att_link_dead on storage.objects as restrictive for all to authenticated
+  using (not (select public.link_dead())) with check (not (select public.link_dead()));
+
 -- ---------- 10bis. AUCUN MOT DE PASSE (v5.111.1, A648) ---------------------------------------
 -- L'app ne se connecte QUE par code e-mail (et, depuis v5.111, par le téléphone). Or GoTrue laisse
 -- toute session valide se DÉFINIR un mot de passe (`PUT /auth/v1/user`) : une session de poste

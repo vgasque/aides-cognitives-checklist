@@ -93,6 +93,10 @@ jobs:
           name: audit-lot-${{ matrix.lot }}
           path: audit-lot-${{ matrix.lot }}.json
           if-no-files-found: ignore
+          # Un lot RELANCÉ (« Re-run failed jobs ») doit REMPLACER le rapport de la tentative précédente : sans
+          # `overwrite`, le bilan relisait le rapport rouge d'origine et restait rouge alors que le lot venait de
+          # passer (constaté sur la PR #89).
+          overwrite: true
 
   audit-bilan:
     needs: audit

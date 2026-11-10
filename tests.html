@@ -2381,6 +2381,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('A654 : règles par défaut (les paliers d’A647)',A.linkRulesNorm(null),{edit:'v15',del:'tel',repl:'non',exp:'oui',dur:28});
    eq('A654 : règles réglées, valeurs hors grammaire ignorées',A.linkRulesNorm({edit:'non',del:'x',repl:'tel',exp:'non',dur:'24',autre:1}),{edit:'non',del:'tel',repl:'tel',exp:'non',dur:24});
    eq('A654 : une durée hors des trois paliers est ignorée',A.linkRulesNorm({dur:48}).dur,28);
+   eq('A656 : temps restant — jamais « 8 h 60 »',[A.linkLeftTxt(8*3600e3+59.7*60e3),A.linkLeftTxt(2*3600e3+5*60e3),A.linkLeftTxt(40*60e3),A.linkLeftTxt(3600e3)],['9 h','2 h 05','40 min','1 h']);
+   eq('A656 : le type d’appareil vient de son libellé',[A.linkDevIcon('Safari · iPad'),A.linkDevIcon('Safari · iPhone'),A.linkDevIcon('Chrome · Android'),A.linkDevIcon('Chrome · Windows'),A.linkDevIcon('')],['tablet','phone','phone','monitor','monitor']);
    {const c=A.linkEndChoices(at(0,18,10));eq('A643 : connexion à 18:10 (nuit 18h → 9h/9h30)',[lb(c),df(c)],[['19:30','Demain 10:00','Demain 19:30'],1]);}
    {const c=A.linkEndChoices(at(0,2,0));eq('A643 : connexion à 02:00 (en pleine nuit)',[lb(c),df(c)],[['10:00','19:30'],0]);}
    {const c=A.linkEndChoices(at(0,13,0),['15:30','23:30']);eq('A643 : repères réglés (garde de 10 h, 13h → 23h)',[lb(c),df(c)],[['15:30','23:30','Demain 15:30'],1]);}
