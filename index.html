@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rmUhlb+3cRB3J5F7vagyY1xtbi1ib2c9t+25Hu+dLeQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-HoN2HIf9iL0XezfEmnmWRlqU7EanBHaXY62QHh+ZSSY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -14958,7 +14958,9 @@ function endSession(R){if(!R||!R.fiche)return;
      dépendre du réseau. Si le PATCH échoue, la ligne expirera d'elle-même et sera purgée — c'est
      précisément à cela que sert un relais transitoire. */
   try{if(Share.mode==='host')Share.endShare();else if(Share.mode!=='off')Share.stop();}catch(e){}}
-function requestNotifyPermission(){try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
+function requestNotifyPermission(){try{if('Notification'in window&&Notification.permission==='default')return Notification.requestPermission();}catch(e){}}
+function alNotifTxt(){if(!('Notification'in window))return 'Notifications : non disponibles dans ce navigateur.';
+  const p=Notification.permission;return p==='granted'?'Notifications : autorisées.':(p==='denied'?'Notifications : refusées — à rétablir dans les réglages du navigateur.':'Notifications : pas encore autorisées.');}
 // Vibration. NB : iOS (Safari/PWA iPhone) n'expose PAS l'API Vibration -> aucune
 // vibration possible depuis le web sur iPhone (le flash d'écran sert d'alerte de secours).
 // Sur Android, la vibration exige une activation utilisateur préalable : on l'amorce dans
@@ -33143,6 +33145,13 @@ function accountPrefsHtml(slot){
     ${''/* Un SEUL conteneur pour les trois boutons : deux `.auth-actions` collés donnaient 0 px entre « Exporter
        mes données » et « Prendre en main », 12 entre les deux suivants (signalé). */}
     <div class="auth-actions">${slot||''}<button type="button" class="btn" id="acctGuide">Prendre en main</button><button type="button" class="btn" id="acctTrouble">Un problème ?</button></div></div>   ${''/* A373 : réparer l'application (fenêtre de stockage) — demande de l'auteur : dans Moi, pas au pied */}
+    ${''/* A659 — LES ALARMES SE RÈGLENT AU CALME. La permission de notification se demandait à la première
+      coche d'une session (une boîte du navigateur sur la check-list : règle 11) ; elle se donne ici, sur un
+      geste. « Tester » fait entendre et voir l'alarme AVANT d'en dépendre (son, vibration, flash). */}
+    <div class="auth-stats-h">Alarmes</div>
+    <div class="acct-card"><p class="dev-line" id="alNotifLine">${alNotifTxt()}</p>
+    <div class="auth-actions"><button type="button" class="btn" id="alTest">Tester l’alarme</button>${('Notification'in window&&Notification.permission==='default')?'<button type="button" class="btn" id="alNotif">Autoriser les notifications</button>':''}</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Un minuteur échu sonne, vibre et fait clignoter l’écran. La notification prévient quand l’application est en arrière-plan.</div>
     <div class="auth-stats-h">Affichage</div>
     ${''/* ⚠ LE THÈME REJOINT LES RÉGLAGES (7a, « Points ouverts ») : il vivait dans l'en-tête de
       l'accueil, où il occupait une des quatre rangées collantes les plus disputées du produit
@@ -33235,6 +33244,9 @@ function bindAccountPrefs(body){
     if(state.view==='library')state.homeTab='aides';await collCreateShow();});
   body.querySelectorAll('#acctLinks [data-applink]').forEach(b=>b.onclick=()=>copyAppLink(b.dataset.applinkn,b.dataset.applink));   // A586
   {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}
+  {const t=body.querySelector('#alTest');if(t)t.onclick=()=>{ensureAudio();beep();flashScreen();};
+   const n=body.querySelector('#alNotif');if(n)n.onclick=async()=>{try{await requestNotifyPermission();}catch(e){}
+     const l=body.querySelector('#alNotifLine');if(l)l.textContent=alNotifTxt();if(Notification.permission!=='default')n.remove();};}
   {const w=body.querySelector('#acctGuide');if(w)w.onclick=openGuide;}   // A466 : gestes, glossaire, et « Revoir l'accueil » (A460)   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
      la pastille SAUTERAIT à sa nouvelle place — c'est exactement le défaut qu'un rejeu de
