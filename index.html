@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VKs2CN1cwld93+7QS8hVWbOEUqmrE//PnzQ0w2UunBk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4DBOt41sD1CG55BPaFOgufxPzrCObR6EWIbxOAVPbBY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11062,16 +11062,19 @@ let _wakeSentinel=null,_wakeBusy=false;
 function wakeActive(){return !!_wakeSentinel;}   // surface de HARNAIS (audit-doctrine) seule (Q3, v5.19.4)
 async function wakeApply(){
   if(!WAKE_OK||_wakeBusy)return;
-  const veut=wakeWanted&&crisisOnScreen()&&document.visibilityState==='visible';
+  /* A659 : aussi tant qu'un minuteur d'une session VIVE tourne, quelle que soit la vue — en lisant un
+     PDF ou à l'accueil, la veille gelait `tickAll` et l'alarme ne sonnait plus. Toujours « pendant une
+     session vive » (règle 1), et un relâchement par le système n'est pas redemandé en boucle (`_wakeStop`). */
+  const veut=wakeWanted&&document.visibilityState==='visible'&&(crisisOnScreen()||liveTimerRuns());
   if(veut===!!_wakeSentinel)return;                     // rien à faire : pas de demande en boucle
   _wakeBusy=true;
   try{
     if(veut){_wakeSentinel=await navigator.wakeLock.request('screen');
       /* Le système peut relâcher de lui-même (batterie, réglage) : on l'apprend, on ne le
          redemande pas — sinon c'est la boucle que la planche interdit. */
-      _wakeSentinel.addEventListener('release',()=>{_wakeSentinel=null;syncWakeBtn();});}
+      _wakeSentinel.addEventListener('release',()=>{if(_wakeSentinel)_wakeStop=true;_wakeSentinel=null;syncWakeBtn();});}   // relâché par le SYSTÈME seulement (le nôtre annule la sentinelle avant)
     else{const s=_wakeSentinel;_wakeSentinel=null;if(s)await s.release();}
-  }catch(e){_wakeSentinel=null;}                        // refus : silence, l'écran reprend sa règle
+  }catch(e){_wakeSentinel=null;_wakeStop=true;}         // refus : silence, l'écran reprend sa règle
   _wakeBusy=false;syncWakeBtn();}
 function syncWakeBtn(){
   const b=document.getElementById('wakeToggle');if(!b)return;
@@ -11087,7 +11090,9 @@ function syncWakeBtn(){
   b.innerHTML=uiIcon(on?'sun':'moon',13)+(on?' Veille coupée':' Veille active');
   b.title=on?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale'
             :'La veille du système s’applique — appuyer pour maintenir l’écran allumé';}
-document.addEventListener('visibilitychange',()=>{wakeApply();});
+document.addEventListener('visibilitychange',()=>{_wakeStop=false;wakeApply();});
+let _wakeStop=false;
+function liveTimerRuns(){try{for(const k in liveSessions){const R=liveSessions[k];if(R&&R.started&&!R.essai)for(const t in (R.timers||{}))if(R.timers[t].running)return true;}}catch(e){}return false;}
 let AC=null;
 // La clé primaire du cloud est GLOBALE (tous comptes confondus) : une collision d'ids entre deux
 // comptes rend la fiche du second impossible à pousser (refus RLS 403) -> 8+ caractères tirés
@@ -14621,8 +14626,10 @@ function exportSessionReport(sessionId){
     return st?{t:ts||0,h:`${ts?esc(fmtHMS(ts)):'—'} — △ écart : ${fmt(st.step)} <span class="muted">(${esc(st.block)})</span>`}:null;})
     .filter(Boolean).sort((a,b)=>a.t-b.t);
   const stepRows=steps.length?steps.map(x=>`<li><span class="muted">${esc(x.block)} —</span> ${fmt(x.step)}</li>`).join(''):'<li class="muted">Aucune étape cochée.</li>';
-  const counters=(f&&f.counters||[]).map(c=>`<tr><td>${esc(c.label||'Compteur')}</td><td>${esc(String((s.counters||{})[c.id]||0))}</td></tr>`).join('');
-  const timers=(f&&f.timers||[]).map(t=>{const ts=(s.timers||{})[t.id]||{};const v=t.type==='interval'?(esc(fmtMs(ts.elapsedMs||0))+' · '+esc(String(ts.cycles||0))+' cycle(s)'):esc(fmtMs(ts.elapsedMs||0));return `<tr><td>${esc(t.label||(t.type==='interval'?'Minuteur':'Chronomètre'))}</td><td>${v}</td></tr>`;}).join('');
+  /* A659 : les compteurs et minuteurs AJOUTÉS en session (`extraCounters`/`extraTimers`) étaient archivés
+     mais jamais restitués — le compte rendu n'itérait que sur ceux de l'aide. Ils suivent, à la suite. */
+  const counters=(f&&f.counters||[]).concat(Array.isArray(s.extraCounters)?s.extraCounters:[]).map(c=>`<tr><td>${esc(c.label||'Compteur')}</td><td>${esc(String((s.counters||{})[c.id]||0))}</td></tr>`).join('');
+  const timers=(f&&f.timers||[]).concat((Array.isArray(s.extraTimers)?s.extraTimers:[]).map(x=>({id:x.id,label:x.label,type:'interval'}))).map(t=>{const ts=(s.timers||{})[t.id]||{};const v=t.type==='interval'?(esc(fmtMs(ts.elapsedMs||0))+' · '+esc(String(ts.cycles||0))+' cycle(s)'):esc(fmtMs(ts.elapsedMs||0));return `<tr><td>${esc(t.label||(t.type==='interval'?'Minuteur':'Chronomètre'))}</td><td>${v}</td></tr>`;}).join('');
   // Contenu commun (aperçu app + document imprimable/téléchargeable).
   /* F6 (audit design v4.56) — LA TÊTE DE BILAN. Le compte rendu commençait par la liste : les
      totaux se reconstituaient de tête, au moment précis (le débriefing d'équipe) où l'on veut
@@ -14812,7 +14819,7 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
   liveSessions[Runtime.ficheId]=Runtime;
   // A377 : le minuteur du bloc de départ part avec la session (amende A330).
   linkEnter(Runtime.fiche,Runtime.nav[Runtime.nav.length-1],{noExit:true});
-  requestNotifyPermission();persistLive(Runtime,true);return true;}
+  persistLive(Runtime,true);return true;}   // A659 : plus de demande de permission ICI (règle 11) — elle se donne au calme, dans Moi › Alarmes
 // Terminer : fige en historique (live=false), arrête les minuteurs, sort du registre vif.
 // Bilan ÉPHÉMÈRE de la dernière session terminée (v4.16.3) : nourrit la carte-bilan de
 // l'accueil — en mémoire seulement (jamais persisté : la vérité archivée est la session).
@@ -14883,7 +14890,14 @@ function flash(id){const el=document.getElementById('tmcard-'+id);if(el){el.clas
 // Annonce un évènement aux lecteurs d'écran via la zone aria-live (sans rien afficher).
 function announce(msg){const z=document.getElementById('srLive');if(!z)return;z.textContent='';setTimeout(()=>{z.textContent=msg;},30);}
 // Notification SYSTÈME (si autorisée) — fonctionne même app en arrière-plan.
-function osNotify(title,body,ficheId){try{if('Notification'in window&&Notification.permission==='granted'){const n=new Notification(title,{body,tag:'ac-'+(ficheId||'t'),renotify:true});n.onclick=()=>{try{window.focus();}catch(e){}if(ficheId)openRead(ficheId);n.close();};}}catch(e){}}
+/* A659 : par le SERVICE WORKER d'abord (`showNotification`) — Chrome Android refuse `new Notification()`
+   dans une page, et l'erreur était avalée : aucune notification ne partait. Le clic revient par
+   `notificationclick` (sw.js) → message `notif-open`. Le constructeur reste le repli (bureau sans SW). */
+function osNotify(title,body,ficheId){try{if(!('Notification'in window)||Notification.permission!=='granted')return;
+  const opt={body,tag:'ac-'+(ficheId||'t'),renotify:true,data:{fid:ficheId||''}};
+  const direct=()=>{try{const n=new Notification(title,opt);n.onclick=()=>{try{window.focus();}catch(e){}if(ficheId)openRead(ficheId);n.close();};}catch(e){}};
+  if('serviceWorker'in navigator&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(r=>r.showNotification(title,opt)).catch(direct);
+  else direct();}catch(e){}}
 // Banderole in-app (toast) cliquable -> ouvre la fiche concernée. Empilable, auto-disparition.
 function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('alerts');if(!host)return;
   const el=document.createElement('div');el.className='alert-toast';el.dataset.fid=ficheId||'';
@@ -15100,6 +15114,7 @@ function timerDisplay(t,now){
 let _tickWasActive=false;
 function tickAll(){
   if(window._vvhSync)_vvhSync();   // resynchro --vvh (v4.29.7) — avant le garde d'activité
+  if(!_wakeStop)wakeApply();       // A659 : l'écran suit les minuteurs vifs hors de la vue de crise (sans effet si rien ne change)
   /* R6 (v5.10.3) — LE TICK EST GATÉ, PAS RALENTI (mesuré avant de toucher, Phase 3). Condition :
      « une session AFFICHE du temps » — vives (hôte, exercice), essai K5, invité (miroir Share).
      ⚠ LA CADENCE NE BOUGE PAS : 300 ms borne le retard d'affichage ; un réveil « aligné sur la
@@ -21593,7 +21608,14 @@ let _linkLast=null;
 function paintCkLi(li,k,on){
   li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
   const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
-  paintStepTrace(li,k);}
+  paintStepTrace(li,k);paintOvProg();}
+/* A659 : « x/y étapes » (toutes les étapes de l'aide, v5.30) n'était écrit qu'au rendu complet — le
+   cochage étant chirurgical, il restait à « 0/12 » après deux coches (mesuré). UNE source pour le
+   texte (`ovProgTxt`), repeinte sur place à chaque coche, locale ou reçue du partage. */
+function ovProgTxt(f){const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
+  const d=md.reduce((a,m)=>a+(m.done||0),0),t=md.reduce((a,m)=>a+(m.tot||0),0);
+  return t?d+'/'+t+' étapes':'';}
+function paintOvProg(){try{const el=main.querySelector('.ovp-n');if(el&&state.fiche){const t=ovProgTxt(state.fiche);if(t&&el.textContent!==t)el.textContent=t;}}catch(e){}}
 // Re-rendu ANCRÉ sur une étape + refocus clavier : l'étape tapée ne bouge pas d'un pixel (ECAM).
 function rerenderCkAnchored(k,kb){
   renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');
@@ -21796,10 +21818,10 @@ function shareFold(events,base){
   for(const e of (events||[])){
     const p=e.payload||{};
     switch(e.kind){
-      case 'check':   {const k=_fkey(p.k);if(k)s.checked[k]=true;break;}
+      case 'check':   {const k=_fkey(p.k);if(k){s.checked[k]=true;delete s.vgaps[k];}break;}   // A659 : comme le direct (shareStateLive) — cocher lève l'écart
       // Décochage : réservé au lead côté serveur. Il RETIRE la clé (l'absence = non coché), mais
       // l'évènement reste dans le journal — la trace de qui a décoché, et quand, ne s'efface pas.
-      case 'uncheck': {const k=_fkey(p.k);if(k)delete s.checked[k];break;}
+      case 'uncheck': {const k=_fkey(p.k);if(k){delete s.checked[k];delete s.verified[k];}break;}   // A659 : décocher retire la constatation
       case 'verify':  {const k=_fkey(p.k);
         if(k){s.verified[k]={a:e.actor,t:_fnum(p.t,e.ts)};delete s.vgaps[k];}break;}
       case 'gap':     {const k=_fkey(p.k);
@@ -21957,7 +21979,12 @@ function shareEmitDiff(R){
     if(!_shareBase){_shareBase=now;return 0;}
     const evs=shareDiff(_shareBase,now);
     _shareBase=now;
-    for(const e of evs)Share.emit(e.kind,e.payload);
+    /* A659 : L'ANCRE PART EN HEURE SERVEUR. Le récepteur fait `anchor − son décalage` (shareStateLive) :
+       il attend donc l'heure du serveur, or `shareSnap` porte `lastStart`, heure LOCALE de l'émetteur —
+       son écart d'horloge se retrouvait tel quel dans le minuteur de l'autre écran. Converti ICI, à
+       l'émission : `shareSnap`/`shareDiff` restent purs, et la base de diff reste locale. */
+    for(const e of evs){if(e.payload&&+e.payload.anchor>0)e.payload={...e.payload,anchor:+e.payload.anchor+(+Share.offset||0)};
+      Share.emit(e.kind,e.payload);}
     return evs.length;
   }catch(e){return 0;}}
 function shareRebase(){try{if(Share.mode!=='off')_shareBase=shareSnap(Runtime,!!state.flowEnded);}catch(e){}}
@@ -24001,9 +24028,8 @@ function overviewSection(f){
   // mesure que le journal grandissait : il fallait dérouler tout le parcours pour l'atteindre.
   /* v5.30 (maquette v5) : « Parcours · x/y étapes » coiffe le journal en session — le compte de
      TOUTES les étapes de l'aide, pas seulement du bloc courant. */
-  const prog=(()=>{if(!Runtime.started)return '';const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
-    const d=md.reduce((a,m)=>a+(m.done||0),0),t=md.reduce((a,m)=>a+(m.tot||0),0);
-    return t?`<div class="ov-prog">${histPill}<span class="ovp-n">${d}/${t} étapes</span></div>`:'';})();   // A571 : le mot « Parcours » part, l'historique dit ce qu'il est
+  const prog=(()=>{if(!Runtime.started)return '';const pt=ovProgTxt(f);
+    return pt?`<div class="ov-prog">${histPill}<span class="ovp-n">${pt}</span></div>`:'';})();   // A571 : le mot « Parcours » part, l'historique dit ce qu'il est
   if(!prog&&histPill)insts=histPill+insts;   // sans ligne « Parcours » (aucune étape comptée), la bulle reprend la tête du fil
   const inner=controls+secH+prog+`<div class="ov-journal">${histRows}${insts}${endH}</div>`;
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
@@ -24645,7 +24671,9 @@ function dockSheetWarn(){
   const id=state.nav[state.navPos];if(!id)return '';
   const b=(f.blocks||[]).find(x=>x.id===id);if(!b)return '';
   const seq=state.navSeq[state.navPos];
-  const rest=stepsOf(b).filter((st,i)=>stepIsCrit(stepText(st))&&!state.checked[seq+':'+b.id+':'+i]).length;
+  /* A659 : le test portait sur `stepText(st)`, qui RETIRE le marqueur ⚠ que `stepIsCrit` cherche — le
+     rappel ne pouvait donc jamais s'afficher. L'index est celui de `clean(stepsOf(b))`, comme la clé de coche. */
+  const rest=clean(stepsOf(b)).filter((st,i)=>stepIsCrit(st)&&!state.checked[seq+':'+b.id+':'+i]).length;
   return rest?`<div class="ds-warn">⚠ ${rest} étape critique${rest>1?'s':''} en attente dans « ${esc(stripBold(b.title||'ce bloc'))} »</div>`:'';}
 function renderDockSheet(){
   const sh=document.getElementById('dockSheet');const f=state.fiche;if(!sh||!f)return;
@@ -34983,6 +35011,9 @@ const Share={
     this._inflight=true;
     const t0=Date.now();
     try{
+      const stAv0=this.status;   // A659 : lu AVANT le push — un refus motivé y pose déjà le statut, et la transition était manquée
+      if(this._detachEv){let rd=null;try{rd=await this._io.push(this.secret,this.share,[this._detachEv]);}catch(_){}
+        if(rd&&(rd.ok||rd.status))this._detachEv=null;else return;}   // pas remis : ni annexes ni pull (un « active » distant déferait le détachement)
       // POUSSER D'ABORD : ce que le soignant vient de faire prime sur ce qu'il reçoit.
       if(this._q.length){
         const lot=this._q.slice(0,SHARE_MAX_BATCH);
@@ -34996,7 +35027,7 @@ const Share={
       if(!p||!p.ok){this._fails++;try{slSbFail();}catch(_){}}
       else{
         this._fails=0;this.lastOk=Date.now();
-        const stAv=this.status;
+        const stAv=stAv0;
         const roleAv=this.role;
         this.status=p.status;this.role=p.role||this.role;this.me=p.me||this.me;
         // Symétrique de takeLead : perdre la main se dit, sinon les gestes réservés se ferment sans cause.
@@ -35091,7 +35122,7 @@ const Share={
       /* UN DÉTACHÉ CONTINUE DE SONDER, lentement : sa file d'annexes doit encore ATTEINDRE l'hôte.
          Cesser tout de suite reviendrait à garder la trace pour soi au moment précis où elle n'a
          plus qu'un seul chemin. Les autres statuts terminaux, eux, arrêtent bien la boucle. */
-      if(this.mode!=='off'&&(this.status==='active'||(this.status==='detached'&&this._q.length)))
+      if(this.mode!=='off'&&(this.status==='active'||(this.status==='detached'&&(this._q.length||this._detachEv))))
         this._kick(this.status==='detached'?10000:undefined);}},
 
   // Reprise TOTALE : on ne rattrape pas un miroir dont on sait qu'il est faux, on le refait.
@@ -35291,11 +35322,13 @@ const Share={
      code qui s'aligne sur la promesse, pas l'inverse. La purge passe 30 min plus tard. */
   async endShare(){slHostTkClear();
     if(this.mode!=='host'||!this.share)return false;
-    let ok=false;
-    try{await this._io.end(this.share);ok=true;}catch(e){}
+    /* A659 (règle 15) : arrêter n'ATTEND plus le serveur — réseau mort, la feuille restait ouverte
+       jusqu'à 25 s. L'appel part, l'état local s'arrête aussitôt ; un échec est rejoué deux fois. */
+    const io=this._io,sh=this.share;
+    (async()=>{for(let i=0;i<3;i++){try{await io.end(sh);return;}catch(e){await new Promise(r=>setTimeout(r,4000*(i+1)));}}})();
     try{slSbReset();}catch(e){}
     this.stop();_shareBase=null;
-    return ok;},
+    return true;},
   /* ===== Share · gestes de l'INVITÉ (joinByCode/billet de reprise/resume) ===== */
   // État « pli neuf » de l'invité — IDENTIQUE sur les deux portes (joinByCode, resume) : un champ
   // ajouté à l'une et pas à l'autre ferait diverger deux reprises du même partage.
@@ -35409,14 +35442,16 @@ const Share={
      de l'état, seulement des repères. */
   async detach(){
     if(this.mode!=='guest'||this.status!=='active')return false;
-    const e={event_id:this._uuid(),kind:'detach',payload:{},ts:new Date(this.now()).toISOString()};
-    try{await this._io.push(this.secret,this.share,[e]);}catch(err){}
-    this.freeze('detached');
+    /* A659 (règle 15) : le geste n'ATTEND plus le réseau. L'écran se détache tout de suite ; le `detach`
+       est gardé (`_detachEv`) et part SEUL en tête du cycle, rejoué tant qu'il n'est pas remis — hors
+       réseau il était perdu, et le sondage suivant remettait l'invité « actif ». */
+    this._detachEv={event_id:this._uuid(),kind:'detach',payload:{},ts:new Date(this.now()).toISOString()};
+    this.freeze('detached');this._kick(0);
     return true;},
   stop(){this._ticketClear();
     this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
     this._q=[];this._saveQ();this.share=this.secret=this.me=this.role=null;
-    this.soloLead=false;
+    this.soloLead=false;this._detachEv=null;
     this.participants=[];this.fiche=this.fold=null;this._left={};}
 };
 /* ═══ ÉCRAN D'ENTRÉE DE L'INVITÉ ═══════════════════════════════════════════════════════════════
@@ -36551,7 +36586,7 @@ async function continueAlone(){
     +'pouvez continuer. Ce que vous avez relevé sera reporté au compte rendu du soignant, en '
     +'annexe, dès que le réseau reviendra — vos coches, elles, ne remonteront pas.',
     {title:'Continuer seul ?',yes:'Continuer seul'}))return;
-  await Share.detach();
+  Share.detach();   // A659 : sans attente — le détachement est local, l'envoi suit
   announce('Vous poursuivez seul.');
   render();}
 /* QUITTER LE PARTAGE — `Share.stop()`, JAMAIS `emit('detach')` : `detach` DATE un « je poursuis
@@ -37444,6 +37479,7 @@ if(location.search.indexOf('__actest')>=0){
          jour activée app FERMÉE n'a prévenu personne, le guichet la rattrape au chargement et à
          chaque retour au premier plan. */
       if(d.type==='sw-version'){if(v&&v!==APP_VERSION)sbNewVersion(v);return;}
+      if(d.type==='notif-open'){const fid=safeId(d.fid);if(fid&&fiches.some(x=>x.id===fid))openRead(fid);return;}   // A659 : clic sur une notification d'alarme
       if(d.type!=='sw-activated'||!hadController)return;
       // Version déjà servie -> simple confirmation transitoire (snackbar). Version en attente ->
       // bandeau système PERSISTANT (registre INFORMATION, taxonomie V5) : visible jusqu'à action

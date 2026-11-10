@@ -190,6 +190,20 @@ self.addEventListener('message', e => {
     e.source.postMessage({ type: 'sw-version', version: CACHE });
 });
 
+/* A659 — CLIC SUR UNE NOTIFICATION D'ALARME. La page les émet par `registration.showNotification`
+   (Chrome Android refuse `new Notification()` hors worker) ; le clic revient donc ICI. On ramène une
+   fenêtre de l'app au premier plan et on lui dit quelle aide ouvrir ; sans fenêtre, on en ouvre une
+   sur le lien direct `#a=<id>` (A463). Aucun push serveur : ces notifications naissent dans la page. */
+self.addEventListener('notificationclick', e => {
+  const fid = String((e.notification.data || {}).fid || '');
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+    const c = cs[0];
+    if (c) { c.postMessage({ type: 'notif-open', fid }); return c.focus(); }
+    return self.clients.openWindow('./' + (fid ? '#a=' + encodeURIComponent(fid) : ''));
+  }));
+});
+
 self.addEventListener('fetch', e => {
   const req = e.request;
   // Requêtes CROSS-ORIGIN (ex. API Supabase : auth, REST de synchro) : on ne les intercepte
