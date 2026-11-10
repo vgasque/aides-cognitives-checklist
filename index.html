@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-BkGM40VswbYrjkecOa1o6MZIXQPIStofMgRzXVMT7Ag='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MHdQqJ6Kpxm3asJtJQxChPoDkCWPyIXRVOAonOGYftE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -13454,6 +13454,37 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
 const V5_RENOMMAGES=[['localInfo','local'],['related','links'],['attachments','docs'],['complications','excursions'],
   ['references','sources'],['validation','validatedAt'],['libraryId','library']];
 const V4_POOL_MAX=5000,V4_BLOCK_ITEMS_MAX=500;   // A668
+/* A695 — LES CLÉS INCONNUES PASSENT, MAIS BORNÉES. `migrate` normalise les champs qu'il connaît et laissait
+   TOUT le reste traverser : stocké, puis renvoyé au serveur tel quel — un canal de charge sans plafond (jusqu'aux
+   20 Mo d'une ligne), sur une aide, un bloc, un protocole.
+   ⚠ PAS UNE LISTE BLANCHE, et c'est délibéré : un appareil pas encore à jour qui EFFACERAIT les champs d'une
+   version plus récente les ferait disparaître pour tous à sa prochaine écriture. Un champ inconnu survit donc,
+   s'il est petit : clé de forme sûre, valeur d'au plus 2 000 caractères une fois sérialisée, seize au plus par
+   objet. Au-delà, il est retiré.
+   Les champs « connus » ne s'écrivent pas à la main (la liste dériverait) : ce sont ceux que `migrate` POSE
+   lui-même sur une aide vierge et sur les deux aides d'exemple, relevés une fois, au premier appel. */
+const UNK_MAX_KEYS=16,UNK_MAX_CHARS=2000;
+let _connus=null,_connusEnCours=false;
+function clesConnues(){
+  if(_connus||_connusEnCours)return _connus;
+  _connusEnCours=true;
+  const K={f:Object.create(null),b:Object.create(null),p:Object.create(null)};
+  try{[blankFiche(),seed(),seed2()].forEach(x=>{const m=migrate(x);Object.keys(m).forEach(k=>{K.f[k]=1;});
+      (m.blocks||[]).forEach(b=>Object.keys(b).forEach(k=>{K.b[k]=1;}));});
+    Object.keys(migrateProtocol(blankProtocol())).forEach(k=>{K.p[k]=1;});
+    // Champs facultatifs que ces trois exemples ne portent pas tous : nommés ici pour ne jamais être bornés.
+    ['items','nextLbl','options','question','next','timer','milestones','image','imageW','imageH','phase','steps'].forEach(k=>{K.b[k]=1;});
+    ['local','sources','excursions','timers','counters','items','blocks','images','docs','links','body'].forEach(k=>{K.f[k]=1;K.p[k]=1;});
+    _connus=K;
+  }catch(e){_connus=null;}
+  _connusEnCours=false;return _connus;}
+function borneInconnus(o,nature){
+  const K=clesConnues();if(!K||!o||typeof o!=='object')return o;
+  const connu=K[nature];let n=0;
+  for(const k of Object.keys(o)){if(connu[k])continue;
+    let taille=0;try{const j=JSON.stringify(o[k]);taille=j===undefined?0:j.length;}catch(e){taille=Infinity;}
+    if(!SAFE_ID.test(k)||badKey(k)||taille>UNK_MAX_CHARS||++n>UNK_MAX_KEYS)delete o[k];}
+  return o;}
 function migrate(f){if(!f||typeof f!=='object')f={};
   V5_RENOMMAGES.forEach(([a,b])=>{if(f[a]!==undefined&&f[b]===undefined)f[b]=f[a];delete f[a];});
   /* Le BLOC : `type` 'steps'/'decision' devient `kind` 'do'/'decision'. Et l'aide se DÉCLARE —
@@ -13512,7 +13543,13 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   const mapId=x=>{const v=idMap[String(x==null?'':x)];return v===undefined?null:v;};
   f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.phase=sstr(b.phase,40);b.image=safeImg(b.image);b.imageW=_dim(b.imageW);b.imageH=_dim(b.imageH);
     {const t=safeCatRef(b.timer);if(t)b.timer=t;else delete b.timer;}   // A377 : résolu après les minuteurs
-    if(b.kind==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
+    if(b.kind==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;
+      /* A695 : un bloc de décision ne montre pas d'étapes, mais peut en GARDER (changer de nature dans
+         l'éditeur, puis revenir). Elles n'étaient pas assainies : repassé en « à faire », le bloc rendait
+         vivants des objets bruts. Seules des RÉFÉRENCES au pool survivent. */
+      if('items' in b){const ok=Object.create(null);_pool.forEach(it=>{ok[it.id]=1;});
+        b.items=(Array.isArray(b.items)?b.items:[]).slice(0,V4_BLOCK_ITEMS_MAX).filter(x=>typeof x==='string'&&ok[x]);}
+      if('nextLbl' in b)b.nextLbl=sstr(b.nextLbl,120);}
     else{b.kind=b.kind==='review'?'review':'do';   // A396 : une revue est un bloc hors tronc, cochable à tout moment
       /* L'ITEM EST LA SOURCE (lot T6) : le bloc ne porte plus que des IDENTIFIANTS, les objets
          vivent dans `_pool` (monté juste après — il doit exister AVANT `bItems`). ÉTAPE D : plus
@@ -13540,7 +13577,10 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   /* LE POOL EST MONTÉ ICI, une fois les blocs normalisés — seul point où l'aide entière est
      cohérente. `poolOwn` inscrit chaque bloc dans la WeakMap : sans elle, `bItems` devrait
      balayer les fiches pour résoudre un id (le repli existe, mais il n'est pas un chemin). */
-  f.items=_pool;poolOwn(f);
+  /* A695 : UN id, UN item. Blocs, minuteurs et compteurs étaient dédoublonnés ; le pool, non — deux items
+     de même id y vivaient, et `bItems` rendait le dernier. Même règle ici, écrite : le DERNIER gagne. */
+  {const vu=Object.create(null),uniq=[];for(let i=_pool.length-1;i>=0;i--){const it=_pool[i];if(!it||vu[it.id])continue;vu[it.id]=1;uniq.unshift(it);}
+   f.items=uniq;}poolOwn(f);
   // IDS UNIQUES, comme pour les blocs ci-dessus (v4.42.0). `Runtime.timers` et `Runtime.counters`
   // sont des objets INDEXÉS PAR ID : deux entrées de même id et la seconde ÉCRASE la première —
   // une fiche déclarant trois minuteurs n'en arme qu'UN, le dernier, sans le moindre signal ; et
@@ -13600,6 +13640,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   //   code = référence courte (mono, recherchée) ; related = ids liés « Voir aussi » (fiches
   //   OU protocoles depuis v4.2.0 — un ancien client ignore les ids qu'il ne résout pas) ;
   //   timerId d'un compteur : le « ＋ » RELANCE ce minuteur (référence jamais régénérée).
+  borneInconnus(f,'f');(f.blocks||[]).forEach(b=>borneInconnus(b,'b'));
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
 // conservés -> les fiches qui les référencent restent associées).
@@ -13625,6 +13666,7 @@ function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
   // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
   p.sources=sarr(p.sources,500);   // traçabilité (v4.2.2) — même section que les fiches
+  borneInconnus(p,'p');
   return p;}
 /* LES DEUX FICHES D'EXEMPLE SONT LE SEUL MATÉRIEL PÉDAGOGIQUE DU PRODUIT (lot T13, constat 3 de
    l'audit J0), et elles n'exerçaient qu'un tiers de ses mécanismes : zéro repère posologique, zéro
@@ -18593,6 +18635,12 @@ let _ixQ=[],_ixBusy=false;
    indexer » — un état visible, avec un geste pour en sortir. */
 function ixAdopt(rec){
   if(!rec||!rec.id)return false;
+  /* A697 : un témoin d'essai (posé AVANT l'extraction, effacé par elle) qui a survécu, c'est une extraction
+     qui n'a pas fini — onglet tué, mémoire épuisée. Trois fois de suite : le document est déclaré illisible,
+     de façon DURABLE (« Réindexer » le rouvre). Sinon il reste « à indexer », et l'on retient son compte. */
+  if(rec.none==='essai'){const n=rec.n|0;
+    if(n>=IX_TRY_MAX){attIx.set(rec.id,{none:'illisible',pages:0});return true;}
+    _ixCrash.set(rec.id,n);return false;}
   if(rec.none){attIx.set(rec.id,{none:rec.none,pages:rec.pages|0});return true;}
   const h=ixOpen(rec);
   if(!h){attIx.delete(rec.id);try{IDB.delIx(rec.id);}catch(e){}return false;}
@@ -18619,12 +18667,13 @@ async function ixLoadAll(){
 async function ixReset(id){
   attIx.delete(id);
   _ixTry.delete(id);        // ICI, jamais chez l'appelant : un second appelant l'oublierait
+  _ixCrash.delete(id);
   try{await IDB.delIx(id);}catch(e){}
   ixQueue(id);}
 async function ixResetAll(){
   let ids=[];try{ids=(await IDB.getIxAll()).map(r=>r.id);}catch(e){}
   for(const id of ids){attIx.delete(id);try{await IDB.delIx(id);}catch(e){}}
-  attIx.clear();_ixTry.clear();
+  attIx.clear();_ixTry.clear();_ixCrash.clear();
   for(const id of await ixPending())ixQueue(id);
   refreshAttIdx();}
 /* EXTRACTION — une passe par page, on ne garde que les MOTS ; le texte complet n'est jamais
@@ -18647,11 +18696,16 @@ async function ixExtract(id){
     try{await IDB.putIx(bad);}catch(e){}
     return bad;}
   try{
-    const pages=[];
-    for(let i=1;i<=doc.numPages;i++){
+    /* A697 — DEUX PLAFONDS, pour qu'un document ne puisse pas épuiser la mémoire : 5 000 pages lues (un PDF
+       de 15 Mo n'en porte pas davantage sans être fabriqué pour cela — au-delà, les pages suivantes ne sont
+       pas cherchables), et deux millions de mots retenus. Les mots d'une page sont dédoublonnés AVANT d'être
+       gardés : « pic mémoire = une page » n'était vrai que du texte, pas de la liste. */
+    const pages=[];let total=0;
+    for(let i=1;i<=Math.min(doc.numPages,IX_PAGES_MAX);i++){
       const pg=await doc.getPage(i);
       let tc=null;try{tc=await pg.getTextContent();}catch(e){}
-      pages.push(tc?ixTokens(tc.items.map(x=>x.str).join(' ')):[]);
+      const mots=(tc&&total<IX_TOKENS_MAX)?[...new Set(ixTokens(tc.items.map(x=>x.str).join(' ')))]:[];
+      total+=mots.length;pages.push(mots);
       try{pg.cleanup();}catch(e){}}
     const out=pages.some(a=>a.length)
       ?Object.assign({id},ixBuild(pages))
@@ -18669,6 +18723,8 @@ async function ixExtract(id){
    persisté : un rechargement, ou un « Réindexer » explicite, redonne trois essais. */
 const _ixTry=new Map();
 const IX_TRY_MAX=3;
+const _ixCrash=new Map();   // A697 : extractions interrompues, relues du disque (id → nombre)
+const IX_PAGES_MAX=5000,IX_TOKENS_MAX=2000000;
 function ixQueue(id){
   if(!supportsAttachments()||!id||attIx.has(id)||_ixQ.indexOf(id)>=0)return;
   if((_ixTry.get(id)|0)>=IX_TRY_MAX)return;
@@ -18680,7 +18736,13 @@ async function ixRun(){
       const id=_ixQ.shift();
       _ixTry.set(id,(_ixTry.get(id)|0)+1);
       await new Promise(r=>_idle(r));
+      /* A697 : JAMAIS pendant un soin (règle 11) — l'indexation attend la fin de la session à l'écran. */
+      while(document.body.classList.contains('crisis-live'))await new Promise(r=>setTimeout(r,5000));
+      const n=(_ixCrash.get(id)|0)+1;_ixCrash.set(id,n);
+      try{await IDB.putIx({id,v:IX_V,pages:0,terms:0,none:'essai',n,at:Date.now()});}catch(e){}
       let r=null;try{r=await ixExtract(id);}catch(e){r=null;}
+      // Fini (réussi ou non) : le témoin part. Un résultat l'a déjà remplacé ; un échec transitoire l'efface.
+      _ixCrash.delete(id);if(!r)try{await IDB.delIx(id);}catch(e){}
       if(r)ixAdopt(r);
       refreshAttIdx();}
   }finally{_ixBusy=false;}}
