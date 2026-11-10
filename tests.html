@@ -2280,6 +2280,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('aller-retour · le compteur',plie.counters.c1,2);
     eq('aller-retour · le minuteur',[plie.timers.t1.running,plie.timers.t1.cycles,plie.timers.t1.anchor],[true,2,900]);
     eq('aller-retour · la navigation',[plie.nav,plie.navSeq],[['b1','b2'],[1,2]]);
+    // A659 : le PLI lève la trace de vérification comme le direct — sinon un invité qui rejoint reconstruit un écart sur une étape cochée depuis.
+    {const pg=A_.shareFold([{kind:'gap',actor:'x',ts:'2026-09-06T10:00:00.000Z',payload:{k:'1:b1:0',t:5}},{kind:'check',actor:'x',payload:{k:'1:b1:0'}}]);
+     eq('pli · cocher lève l’écart',[!!pg.checked['1:b1:0'],!!pg.vgaps['1:b1:0']],[true,false]);
+     const pv=A_.shareFold([{kind:'check',actor:'x',payload:{k:'1:b1:1'}},{kind:'verify',actor:'x',ts:'2026-09-06T10:00:00.000Z',payload:{k:'1:b1:1',t:6}},{kind:'uncheck',actor:'x',payload:{k:'1:b1:1'}}]);
+     eq('pli · décocher retire la constatation',[!!pv.checked['1:b1:1'],!!pv.verified['1:b1:1']],[false,false]);}
     eq('aller-retour · la fin d’algorithme',plie.flowEnded,true);
     eq('aller-retour · les repères',plie.events.map(x=>x.id),['e1','e2']);
     ok('aller-retour · l’annulation est conservée',!!plie.events[1].voidAt&&!plie.events[0].voidAt);
