@@ -656,6 +656,10 @@ s'efface.
   de machine) ; et une **empreinte** de l'adresse IP de la requête (jamais l'adresse elle-même),
   qui sert seulement à limiter le nombre de demandes par machine et part avec la demande.
 - **Du téléphone** : l'approbation (compte authentifié) et l'heure de fin choisie.
+- **Connexion temporaire PAR E-MAIL (v5.112, A651)** — sans appareil connecté sous la main : le code
+  e-mail habituel, puis la session toute neuve se déclare poste (`link_self`) avec l'**empreinte**
+  de la clé du poste, le même libellé fermé et l'heure de fin choisie à l'écran. Rien d'autre ne
+  part : c'est exactement ce que le poste aurait reçu par le code à viser.
 - **Du poste connecté** : l'identifiant de sa session de compte (pour pouvoir la supprimer à
   l'heure de fin ou à la déconnexion à distance) ; les **sessions** faites sur le poste — toujours,
   quel que soit le réglage « historique synchronisé » du compte, puisque le poste s'efface : les

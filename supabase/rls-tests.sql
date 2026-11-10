@@ -55,6 +55,7 @@ declare
   v_asid uuid;
   v_key  text;   -- §16 : la CLÉ DU POSTE (jamais dans le QR)
   v_asid2 uuid;
+  v_asid3 uuid;
 begin
   ------------------------------------------------------------------ SEED (propriétaire)
   reset role;
@@ -1463,6 +1464,28 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
   if jsonb_array_length(public.link_list()) <> v_cnt - 1 then
     raise exception 'ÉCHEC 16.15 : le poste terminé reste dans « Appareils connectés »'; end if;
+  reset role;
+  -- 16.16 (A651) Connexion temporaire PAR E-MAIL : la session courante se déclare poste, une seule fois ;
+  --       ensuite elle a les limites d'un poste (n'approuve rien) et apparaît dans « Appareils connectés ».
+  v_asid3 := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid3, kim);
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
+  set local role authenticated;
+  v_j := public.link_self(encode(extensions.digest('cle-mail-0123456789abcdef', 'sha256'), 'hex'), 'Firefox · Windows', now() + interval '40 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.16 : une heure de fin au-delà de 28 h est acceptée'; end if;
+  v_j := public.link_self('pas-une-empreinte', 'Firefox · Windows', now() + interval '5 hours');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 16.16 : une clé qui n''est pas une empreinte est acceptée'; end if;
+  v_j := public.link_self(encode(extensions.digest('cle-mail-0123456789abcdef', 'sha256'), 'hex'), 'Poste IDE Urgences', now() + interval '5 hours');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 16.16 : la session ne peut pas se déclarer temporaire (%)', v_j; end if;
+  v_lid2 := (v_j->>'id')::uuid;
+  if jsonb_array_length(public.link_list()) <> 0 then raise exception 'ÉCHEC 16.16 : la session déclarée n''a pas les limites d''un poste'; end if;
+  if (public.link_self(encode(extensions.digest('cle-mail-0123456789abcdef', 'sha256'), 'hex'), 'Chrome', now() + interval '5 hours')->>'ok')::boolean then
+    raise exception 'ÉCHEC 16.16 : une session se déclare poste deux fois'; end if;
+  if (public.link_approve(v_lid, 'peu-importe', now() + interval '5 hours')->>'ok')::boolean then
+    raise exception 'ÉCHEC 16.16 : une session temporaire par e-mail approuve un poste'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  if not exists (select 1 from jsonb_array_elements(public.link_list()) e where e->>'id' = v_lid2::text and e->>'label' = 'Navigateur') then
+    raise exception 'ÉCHEC 16.16 : la connexion temporaire par e-mail n''apparaît pas (libellé fermé)'; end if;
   reset role;
   -- 16.14 (A648) Aucun compte ne porte de mot de passe : ni le définir, ni s'inscrire avec. Un mot de
   --       passe VIDE (compte créé par code e-mail) passe.

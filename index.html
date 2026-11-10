@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-bJaY/wFJ6ChcvbWHrR0FtRjQb7O26r6u5Wj+140nLJE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sNm+j/jZ7c6MJ2uEqvd8HErXOobP1QJWBH4NtAN0gBc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7601,13 +7601,55 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pp-fins .pp-q{margin-top:0}
   .pp-frow{display:flex;gap:8px;margin-top:8px}
   input.pp-time{font-size:16px;min-height:44px;padding:6px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:var(--f-mono)}
-  .pp-login{display:grid;gap:12px}
-  .pp-lh{display:flex;gap:10px;align-items:flex-start}
-  .pp-lh b{display:block;font-size:var(--t-item)}
-  .notice.pp-band{align-items:center;flex-wrap:wrap;padding-right:14px}
-  .notice.pp-band .pp-bt{flex:1 1 200px;min-width:0}
-  .notice.pp-soon{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
-  .notice.pp-soon svg{color:var(--warn)}
+  /* v5.112 (A651) — LA CARTE « SE CONNECTER » : deux choix explicites, Temporaire ou Permanente, RIEN N'EST DEVINÉ
+     (aucun choix d'office, ni au bureau ni au téléphone). Les choix sont des cartes blanches à bord net : un sélecteur
+     segmenté sans valeur choisie paraissait désactivé (maquette, signalé). */
+  .pp-sc{padding:0;overflow:hidden}
+  .pp-sc-in{padding:24px 24px 18px}
+  .pp-sc-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .pp-sc-h h3{margin:0;font-size:var(--t-step-l);font-weight:800}
+  .pp-opt{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .pp-sc-lead{margin:4px 0 16px;font-size:var(--t-body);line-height:1.5;color:var(--ink-2)}
+  .pp-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  html.zw430 .pp-tiles{grid-template-columns:minmax(0,1fr)}
+  .pp-tile{display:flex;gap:12px;align-items:flex-start;min-height:64px;padding:14px 16px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--work);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  .pp-tile.on{border:2px solid var(--act);background:var(--primary-soft);color:var(--act)}
+  .pp-dot{flex:none;margin-top:1px;width:18px;height:18px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ctl-line);background:var(--work)}
+  .pp-tile.on .pp-dot{border-color:var(--act);background:var(--act);box-shadow:inset 0 0 0 3px var(--primary-soft)}
+  .pp-tt{display:flex;align-items:center;gap:6px;font-size:var(--t-item);font-weight:800}
+  .pp-ts{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;line-height:1.4;color:var(--ink-2)}
+  .pp-sc-body{display:flex;flex-direction:column;gap:16px;padding:0 24px 24px;border-top:1px solid var(--line)}
+  .pp-sc-body.pad{padding-top:18px}
+  .pp-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line)}
+  .pp-tab{min-height:48px;padding:0;border:0;border-bottom:3px solid transparent;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .pp-tab.on{border-bottom-color:var(--act);color:var(--act);font-weight:800}
+  .pp-inl{display:flex;flex-wrap:wrap;gap:24px;align-items:center}
+  .pp-inl .pp-qr{margin:0 auto}
+  .pp-inl .pp-qr .qr{width:172px}
+  .pp-ol{flex:1 1 240px;min-width:0;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px}
+  .pp-ol li{display:flex;gap:12px;align-items:center;font-size:var(--t-item);line-height:1.4}
+  .pp-k{flex:none;width:26px;height:26px;box-sizing:border-box;border:1.5px solid var(--ctl-line);border-radius:var(--r-1);display:flex;align-items:center;justify-content:center;font-size:var(--t-body);font-weight:800}
+  .pp-ol .pp-num{font-size:var(--t-step);padding:1px 8px;border-radius:var(--r-1)}
+  .pp-erow{display:flex;flex-wrap:wrap;gap:8px}
+  .pp-erow .auth-field{flex:1 1 220px;min-width:0;margin:0}
+  .pp-sc-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 24px;border-top:1px solid var(--line);background:var(--amb)}
+  .pp-sc-foot span{flex:1 1 240px;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  .pp-sc-foot b{color:var(--ink)}
+  /* La carte du POSTE (connexion temporaire) : l'heure de fin en grand, une seule sortie. */
+  .pp-tmp{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pp-until{margin:16px 0 2px;font-size:var(--t-val);font-weight:800;font-variant-numeric:tabular-nums}
+  .pp-until span{font-size:var(--t-item);font-weight:600;color:var(--ink-2)}
+  .pp-lock{display:flex;gap:12px;align-items:flex-start;margin:14px 0 12px;padding:12px 14px;border:1px solid var(--line-strong);border-radius:var(--r-3)}
+  .pp-lock b{display:block;font-size:var(--t-item)}
+  .pp-card .pp-wipe{margin-top:14px}
+  /* La BANDE de l'accueil : neutre (rien ne tourne mal), AMBRE à l'approche de la fin (l'échéance, règle 8). */
+  .pp-band{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:8px 10px 8px 14px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);font-size:var(--t-body);color:var(--ink)}
+  .pp-band svg{flex:none;color:var(--ink-2)}
+  .pp-band .pp-bt{flex:1 1 200px;min-width:0}
+  .pp-band .pp-bt span{color:var(--ink-2)}
+  .pp-band.pp-soon{background:var(--warn-soft);border-color:var(--warn-line)}
+  .pp-band.pp-soon svg,.pp-band.pp-soon b,.pp-band.pp-soon>span{color:var(--warn)}
+  .pp-band>span{font-weight:800}
   .sess-ckpt{color:var(--warn);font-weight:700}
   /* QR PLAFONNÉ (240 px / 56 vw) ; le palier < 360 px ne bouge PAS (mesuré à 320×568). ⚠ Portée
      `#shareModal` obligatoire : la règle « 260 px » de #shareBody (id) battrait ce plafond. */
@@ -10135,7 +10177,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 </div></div>
 <!-- A643 : connexion par le téléphone — poste (QR, déverrouillage) et téléphone (approbation, appareils connectés). Corps peint par `Link`. -->
 <div class="ai-modal" id="linkModal" role="dialog" aria-modal="true" aria-labelledby="linkModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="linkModalTitle">Connecter un ordinateur</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="linkModalTitle">Connecter un appareil</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="linkBody" class="ai-body"></div>
 </div></div>
 <!-- A613 : le SUIVI — une note ou une tâche (feuille), et « À faire » (page). Corps peints à l'ouverture. -->
@@ -10369,7 +10411,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.111.2';
+const APP_VERSION='5.112.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17998,7 +18040,7 @@ function renderHomeList(cfg){
     ${selBarHtml()}
     ${state.selOn?'':homeJoinHtml()}
     <div class="notice" id="syncErrNotice" hidden></div>
-    <div class="notice pp-band" id="linkBand" hidden></div>
+    <div class="pp-band" id="linkBand" hidden></div>
     ${state.selOn?'':(cfg.notices?cfg.notices():'')}
     ${listHtml}
     </div>${railHtml}`;
@@ -20542,6 +20584,9 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   back:'<path d="M15 6l-6 6 6 6"/>',
   camera:'<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',
   monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  /* v5.112 (A651) : les deux durées de connexion — l'horloge (temporaire) et l'infini (permanente). */
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  infinity:'<path d="M7 8.5a3.5 3.5 0 1 0 0 7c2.5 0 3.5-2 5-3.5s2.5-3.5 5-3.5a3.5 3.5 0 1 1 0 7c-2.5 0-3.5-2-5-3.5S9.5 8.5 7 8.5z"/>',
   share:'<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/>',
   /* E6 (audit design v4.57.0) : le ⤢ Unicode était le dernier glyphe de graisse étrangère au
      jeu d'icônes — même dessin (deux coins opposés qui s'écartent), mais au trait de la famille.
@@ -31607,11 +31652,11 @@ const Link={
     body.querySelector('[data-lkclose]').onclick=()=>this.close();},
   /* LE POSTE — `kind` : 'connect' (se connecter) ou 'unlock' (déverrouiller après réouverture). */
   async start(kind,onDone,step){this.close();const run=++this._run;kind=kind==='unlock'?'unlock':'connect';
-    const titre=step?'Confirmer avec le téléphone':kind==='unlock'?'Déverrouiller avec le téléphone':'Se connecter avec le téléphone';
+    const titre=step?'Confirmer avec un appareil connecté':kind==='unlock'?'Déverrouiller avec un appareil connecté':'Se connecter avec un appareil connecté';
     const body=this._open(titre);
     body.innerHTML='<p class="pp-msg">Préparation du code…</p>';
-    if(!Sync.online())return this._msg(body,'Hors ligne : il faut une connexion Internet, sur cet ordinateur et sur le téléphone, le temps de le connecter.');
-    if(!(window.crypto&&crypto.subtle&&crypto.getRandomValues))return this._msg(body,'Ce navigateur ne permet pas la connexion par le téléphone (page non sécurisée). Utilisez le code par e-mail.');
+    if(!Sync.online())return this._msg(body,'Hors ligne : il faut une connexion Internet, ici et sur l’appareil connecté, le temps de confirmer.');
+    if(!(window.crypto&&crypto.subtle&&crypto.getRandomValues))return this._msg(body,'Ce navigateur ne permet pas le code à viser (page non sécurisée). Utilisez le code par e-mail.');
     const secret=linkB64u(crypto.getRandomValues(new Uint8Array(16))),key=linkB64u(crypto.getRandomValues(new Uint8Array(16)));
     const h=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
     let j;try{j=await rpc('link_open',{p_hash:await h(secret),p_key_hash:await h(key),p_label:linkUaLabel(navigator.userAgent),p_kind:kind});}catch(e){j=null;}
@@ -31623,12 +31668,12 @@ const Link={
         <div class="pp-ctrl"><span class="pp-ctrl-l">Nombre de contrôle</span><span class="pp-num">${linkCheckNum(secret)}</span></div>
         <p class="pp-exp" id="lkExp" aria-live="off"></p></div>
       <div class="pp-steps"><ol>
-        <li>Sur votre téléphone, ouvrez <b>Aides cognitives</b>.</li>
-        <li>Touchez <b>Moi</b> › <b>${kind==='unlock'?'Connecter un ordinateur':'Connecter un ordinateur'}</b>, puis visez ce code.</li>
+        <li>Sur un appareil où vous êtes connecté, ouvrez <b>Aides cognitives</b>.</li>
+        <li>Touchez <b>Moi</b> › <b>Connecter un appareil</b>, puis visez ce code.</li>
         <li>Touchez le nombre <b>${linkCheckNum(secret)}</b>${kind==='unlock'?'.':', puis l’heure de fin de votre garde.'}</li></ol>
-        ${step?'<p class="pp-note">Sur un poste partagé, une suppression se confirme sur le téléphone, à chaque fois : elle est irréversible et touche aussi l’équipe.</p>'
-          :kind==='unlock'?'<p class="pp-note">Consulter et reprendre une session restent possibles sans téléphone. Créer, modifier et supprimer le redemandent après une réouverture du navigateur, et après 15 minutes sans geste.</p>'
-          :'<p class="pp-note"><b>Poste partagé.</b> Vos aides restent sur cet ordinateur jusqu’à l’heure de fin choisie, puis s’effacent. Fermer le navigateur ne les perd pas, et une session en cours est sauvegardée en ligne toutes les 2 minutes.</p>'}
+        ${step?'<p class="pp-note">Sur un appareil temporaire, une suppression se confirme sur un appareil connecté, à chaque fois : elle est irréversible et touche aussi l’équipe.</p>'
+          :kind==='unlock'?'<p class="pp-note">Consulter et reprendre une session restent libres. Créer, modifier et supprimer redemandent un appareil connecté après une réouverture du navigateur, et après 15 minutes sans geste.</p>'
+          :'<p class="pp-note"><b>Connexion temporaire.</b> Vos aides restent sur cet appareil jusqu’à l’heure de fin choisie, puis s’effacent. Fermer le navigateur ne les perd pas, et une session en cours est sauvegardée en ligne toutes les 2 minutes.</p>'}
       </div></div><p class="pp-msg" id="lkSt" role="status"></p>`;
     const exp=body.querySelector('#lkExp'),st=body.querySelector('#lkSt');
     const tick=()=>{const r=until-Date.now();if(r<=0){exp.textContent='Code expiré';return;}
@@ -31641,11 +31686,49 @@ const Link={
     this._poll=setInterval(async()=>{if(busy||run!==this._run)return;busy=true;
       try{const p=await rpc('link_poll',{p_id:id,p_key:key});if(run!==this._run)return;
         if(p&&p.status==='approved'){clearInterval(this._poll);this._poll=null;st.textContent='Téléphone confirmé — connexion…';
-          if(kind==='unlock'){linkMarkOpen();this.close();toast(step?'✓ Confirmé par le téléphone.':'✓ Ordinateur déverrouillé pour cet onglet.');if(onDone)onDone();return;}
+          if(kind==='unlock'){linkMarkOpen();this.close();toast(step?'✓ Confirmé par l’appareil connecté.':'✓ Appareil déverrouillé pour cet onglet.');if(onDone)onDone();return;}
           await this._claim(id,key,body);return;}
         if(!p||!p.ok||p.status==='expired'||Date.now()>until+5000)expired();
       }catch(e){/* réseau : on réessaie au tour suivant, jusqu'à l'expiration */if(Date.now()>until+5000)expired();}
       finally{busy=false;}},LINK_POLL_MS);},
+  /* v5.112 (A651) — LE CODE DANS LA PAGE (carte « Se connecter » › Temporaire › « Avec un appareil connecté ») : plus
+     de fenêtre par-dessus. Il se RENOUVELLE seul à son expiration, 5 fois au plus, puis attend un geste (« Afficher un
+     nouveau code ») : une page oubliée ouverte ne crée pas de demandes indéfiniment. Il ne se renouvelle ni ne sonde
+     quand l'onglet est caché, et s'arrête dès que sa carte quitte l'écran. */
+  stopInline(){if(this._cur==='inline'){this._run++;clearInterval(this._poll);clearInterval(this._tick);this._poll=this._tick=null;this._cur=null;}},
+  async inline(box,n){n=n||0;this.close();const run=++this._run;this._cur='inline';
+    const gone=()=>run!==this._run||!box.isConnected;
+    const stopped=t=>{clearInterval(this._poll);clearInterval(this._tick);this._poll=this._tick=null;
+      box.innerHTML=`<p class="pp-msg">${t}</p><div class="pp-acts"><button type="button" class="btn primary" data-lkagain>Afficher un nouveau code</button></div>`;
+      box.querySelector('[data-lkagain]').onclick=()=>this.inline(box,0);};
+    box.innerHTML='<p class="pp-msg">Préparation du code…</p>';
+    if(!Sync.online())return stopped('Hors ligne : il faut une connexion Internet, ici et sur l’appareil connecté. Sinon, passez par « Par e-mail ».');
+    if(!(window.crypto&&crypto.subtle&&crypto.getRandomValues)){box.innerHTML='<p class="pp-msg">Ce navigateur ne permet pas le code à viser (page non sécurisée). Passez par « Par e-mail ».</p>';return;}
+    const secret=linkB64u(crypto.getRandomValues(new Uint8Array(16))),key=linkB64u(crypto.getRandomValues(new Uint8Array(16)));
+    const h=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+    let j;try{j=await rpc('link_open',{p_hash:await h(secret),p_key_hash:await h(key),p_label:linkUaLabel(navigator.userAgent),p_kind:'connect'});}catch(e){j=null;}
+    if(gone())return;
+    if(!j||!j.ok)return stopped((j&&j.err==='busy')?'Le service est très sollicité : réessayez dans une minute, ou passez par « Par e-mail ».':'Impossible de préparer le code. Vérifiez la connexion, ou passez par « Par e-mail ».');
+    const id=j.id,skew=Date.parse(j.server_time)-Date.now(),until=Date.parse(j.open_until)-skew;
+    const url=location.origin+location.pathname+'#lier='+id+'.'+secret,num=linkCheckNum(secret);
+    box.innerHTML=`<div class="pp-inl"><div class="pp-qr">${qrSvg(url,'Code de connexion')}</div>
+      <ol class="pp-ol"><li><span class="pp-k">1</span><span>Sur un appareil où vous êtes connecté : <b>Moi › Connecter un appareil</b></span></li>
+        <li><span class="pp-k">2</span><span>Visez ce code</span></li>
+        <li><span class="pp-k">3</span><span>Touchez <span class="pp-num">${num}</span>, puis l’heure de fin</span></li></ol></div>
+      <p class="pp-exp" id="lkExp" aria-live="off"></p><p class="pp-msg" id="lkSt" role="status"></p>`;
+    const exp=box.querySelector('#lkExp'),st=box.querySelector('#lkSt');
+    const renew=()=>{if(gone())return;if(n<4&&document.visibilityState==='visible')this.inline(box,n+1);
+      else stopped('Le code s’est arrêté. Il se renouvelle 5 fois, puis attend.');};
+    const tick=()=>{if(gone()){clearInterval(this._tick);return;}const r=until-Date.now();if(r<=0){renew();return;}
+      const sc=Math.ceil(r/1000);exp.textContent='Nouveau code dans '+Math.floor(sc/60)+':'+String(sc%60).padStart(2,'0')+' · un seul usage';};
+    tick();this._tick=setInterval(tick,1000);
+    let busy=false;
+    this._poll=setInterval(async()=>{if(busy||gone()||document.visibilityState!=='visible')return;busy=true;
+      try{const p=await rpc('link_poll',{p_id:id,p_key:key});if(gone())return;
+        if(p&&p.status==='approved'){clearInterval(this._poll);clearInterval(this._tick);this._poll=this._tick=null;
+          st.textContent='Appareil connecté confirmé — connexion…';await this._claim(id,key,box);return;}
+        if(!p||!p.ok||p.status==='expired')renew();
+      }catch(e){/* réseau : on réessaie au tour suivant */}finally{busy=false;}},LINK_POLL_MS);},
   // Échange l'approbation contre une session NEUVE (fonction serveur), puis bascule sur l'espace du compte.
   async _claim(id,key,body){const fail=t=>this._msg(body,t);
     /* La fonction serveur fait TOUT : réclamation atomique par la clé du poste, création de la
@@ -31656,7 +31739,7 @@ const Link={
         headers:{'apikey':SUPA.key,'Authorization':'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify({id,key})});
       c=await r.json().catch(()=>null);}catch(e){c=null;}
     const sess=c&&c.ok&&c.session;
-    if(!sess||!sess.access_token||!sess.user)return fail('Le téléphone a confirmé, mais la connexion n’a pas abouti. Réessayez, ou utilisez le code par e-mail.');
+    if(!sess||!sess.access_token||!sess.user)return fail('L’appareil connecté a confirmé, mais la connexion n’a pas abouti. Réessayez, ou passez par « Par e-mail ».');
     Auth._setSession(sess);
     const u=Auth.user()||{};
     linkSharedSet({id,key,uid:u.id||'',email:u.email||'',endsAt:Date.parse(c.ends_at)||Date.now()+12*3600000,label:linkUaLabel(navigator.userAgent),at:Date.now()});
@@ -31672,41 +31755,41 @@ const Link={
     await refreshAccountStatus();renderAuth();setSyncChip();Sync.full();linkPaintBand();},
   /* LE TÉLÉPHONE — viseur, puis feuille de confirmation. */
   async scan(){if(!Auth.signedIn())return openAuth();this.close();const run=++this._run;
-    try{await slScanOverlay({hint:'Visez le code affiché sur l’ordinateur que vous avez devant vous',
-      onText:(txt,bin,ui)=>{const L=linkParse(txt);if(!L){ui.hint('Ce n’est pas un code de connexion d’ordinateur');return;}
+    try{await slScanOverlay({hint:'Visez le code affiché sur l’appareil que vous avez devant vous',
+      onText:(txt,bin,ui)=>{const L=linkParse(txt);if(!L){ui.hint('Ce n’est pas un code de connexion d’appareil');return;}
         ui.flash();ui.close();if(run===this._run)this.approve(L,true);},onCancel:()=>{}});}
-    catch(e){const b=this._open('Connecter un ordinateur');
+    catch(e){const b=this._open('Connecter un appareil');
       slCamRefused(b,()=>this.scan(),()=>this.close(),'Fermer');}},
   async approve(L,vise){this.close();const run=++this._run;
-    const body=this._open('Connecter cet ordinateur ?');body.innerHTML='<p class="pp-msg">Lecture du code…</p>';
+    const body=this._open('Connecter cet appareil ?');body.innerHTML='<p class="pp-msg">Lecture du code…</p>';
     /* UN LIEN N'EST PAS UN ÉCRAN (revue de sécurité) : `#lier=` ouvert hors du viseur — appareil
        photo du système, mais aussi un lien reçu par SMS ou e-mail (« touchez 47 ») — ne mène pas à
        la feuille d'approbation. Il mène au viseur : approuver exige d'avoir visé un écran. */
-    if(!vise&&Auth.signedIn()&&!linkShared()){body.innerHTML=`<p class="pp-msg">Pour connecter un ordinateur, visez le code affiché sur l’écran <b>que vous avez devant vous</b>, avec le viseur de l’app. Un lien reçu par message ne suffit pas.</p>
+    if(!vise&&Auth.signedIn()&&!linkShared()){body.innerHTML=`<p class="pp-msg">Pour connecter un appareil, visez le code affiché sur l’écran <b>que vous avez devant vous</b>, avec le viseur de l’app. Un lien reçu par message ne suffit pas.</p>
         <div class="pp-acts"><button type="button" class="btn" data-lkclose>Fermer</button><button type="button" class="btn primary" data-lkscan>Ouvrir le viseur</button></div>`;
       body.querySelector('[data-lkclose]').onclick=()=>this.close();body.querySelector('[data-lkscan]').onclick=()=>this.scan();return;}
-    if(!Auth.signedIn())return this._msg(body,'Ouvrez Aides cognitives là où vous êtes connecté (l’app installée), puis <b>Moi</b> › <b>Connecter un ordinateur</b>, et visez le code à nouveau.');
-    if(linkShared())return this._msg(body,'Cet appareil est lui-même un poste partagé : approuvez depuis votre téléphone.');
+    if(!Auth.signedIn())return this._msg(body,'Ouvrez Aides cognitives là où vous êtes connecté (l’app installée), puis <b>Moi</b> › <b>Connecter un appareil</b>, et visez le code à nouveau.');
+    if(linkShared())return this._msg(body,'Cet appareil est lui-même connecté temporairement : confirmez depuis un appareil où vous êtes connecté en permanence.');
     let p;try{p=await rpc('link_peek',{p_id:L.id,p_secret:L.secret});}catch(e){p=null;}
     if(run!==this._run)return;
-    if(!p||!p.ok){const E={expired:'Ce code a expiré ou a déjà servi. Sur l’ordinateur, touchez « Nouveau code ».',
-        other_account:'Cet ordinateur est connecté à un autre compte : seul ce compte peut le déverrouiller.',
-        refused:'Votre compte ne peut pas connecter d’ordinateur (compte en attente de validation, ou hors ligne).'};
+    if(!p||!p.ok){const E={expired:'Ce code a expiré ou a déjà servi. Sur l’appareil à connecter, affichez un nouveau code.',
+        other_account:'Cet appareil est connecté à un autre compte : seul ce compte peut le déverrouiller.',
+        refused:'Votre compte ne peut pas connecter d’appareil (compte en attente de validation, ou hors ligne).'};
       return this._msg(body,esc(E[p&&p.err]||'Code introuvable. Vérifiez la connexion, puis visez le code à nouveau.'));}
     const unlock=p.kind==='unlock';
-    document.getElementById('linkModalTitle').textContent=unlock?'Déverrouiller cet ordinateur ?':'Connecter cet ordinateur ?';
+    document.getElementById('linkModalTitle').textContent=unlock?'Déverrouiller cet appareil ?':'Connecter cet appareil ?';
     const ch=unlock?[]:linkEndChoices(Date.now(),linkFins());let pick=null,end=(ch.find(x=>x.def)||{}).at||null,miss=0;
-    const paint=()=>{body.innerHTML=`<div class="pp-dev">${uiIcon('monitor',20)}<span><b>${esc(p.label||'Ordinateur')}</b><span class="pp-sub">Code affiché il y a ${Math.max(0,+p.age_s||0)} s</span></span></div>
-      <p class="pp-q" id="lkQn">Quel nombre l’ordinateur affiche-t-il ?</p>
+    const paint=()=>{body.innerHTML=`<div class="pp-dev">${uiIcon('monitor',20)}<span><b>${esc(p.label||'Appareil')}</b><span class="pp-sub">Code affiché il y a ${Math.max(0,+p.age_s||0)} s</span></span></div>
+      <p class="pp-q" id="lkQn">1 · Le nombre affiché sur l’appareil</p>
       <div class="pp-pick" role="group" aria-labelledby="lkQn">${linkDecoys(L.secret).map(n=>`<button type="button" class="pp-n${pick===n?' on':''}" data-lkn="${n}" aria-pressed="${pick===n}">${n}</button>`).join('')}</div>
-      ${unlock?'':`<p class="pp-q" id="lkQe">Jusqu’à quelle heure ?</p>
-      <div class="pp-ends" role="group" aria-labelledby="lkQe">${ch.map(c=>`<button type="button" class="pp-end${end===c.at?' on':''}" data-lkend="${c.at}" aria-pressed="${end===c.at}"><b>${esc(c.lbl)}</b><span>${esc(c.sub)}</span></button>`).join('')}</div>
-      <p class="pp-note">${uiIcon('monitor',14)} <b>Poste partagé</b> : tout s’efface de l’ordinateur à l’heure choisie (après la session en cours, s’il y en a une). Les sessions faites dessus rejoignent votre historique.</p>`}
+      ${unlock?'':`<p class="pp-q" id="lkQe">2 · Connexion temporaire : jusqu’à quelle heure ?</p>
+      <p class="pp-note">Ensuite, tout s’efface de l’appareil — après la session en cours, s’il y en a une. Les sessions faites dessus rejoignent votre historique.</p>
+      <div class="pp-ends" role="group" aria-labelledby="lkQe">${ch.map(c=>`<button type="button" class="pp-end${end===c.at?' on':''}" data-lkend="${c.at}" aria-pressed="${end===c.at}"><b>${esc(c.lbl)}</b><span>${esc(c.sub)}</span></button>`).join('')}</div>`}
       <p class="pp-warn" id="lkWarn">△ Ne confirmez que pour un écran <b>que vous avez devant vous</b>.</p>
-      <div class="pp-acts"><button type="button" class="btn" data-lkclose>Annuler</button><button type="button" class="btn primary" data-lkok${pick===null||(!unlock&&!end)?' disabled':''}>${unlock?'Déverrouiller':'Connecter'}</button></div>`;
+      <div class="pp-acts"><button type="button" class="btn" data-lkclose>Annuler</button><button type="button" class="btn primary" data-lkok${pick===null||(!unlock&&!end)?' disabled':''}>${unlock?'Déverrouiller':uiIcon('clock',16)+' '+esc('Connecter jusqu’à '+((ch.find(c=>c.at===end)||{}).lbl||''))}</button></div>`;
       body.querySelectorAll('[data-lkn]').forEach(b=>b.onclick=()=>{const n=+b.dataset.lkn;
         if(n!==linkCheckNum(L.secret)){miss++;pick=null;paint();const w=body.querySelector('#lkWarn');
-          w.innerHTML=miss>=2?'△ Ce n’est toujours pas le nombre de l’écran. Annulez : ce code ne vient peut-être pas de l’ordinateur que vous avez devant vous.':'△ Ce n’est pas le nombre affiché. Regardez l’écran que vous avez devant vous.';
+          w.innerHTML=miss>=2?'△ Ce n’est toujours pas le nombre de l’écran. Annulez : ce code ne vient peut-être pas de l’appareil que vous avez devant vous.':'△ Ce n’est pas le nombre affiché. Regardez l’écran que vous avez devant vous.';
           w.classList.add('on');return;}
         pick=n;paint();});
       body.querySelectorAll('[data-lkend]').forEach(b=>b.onclick=()=>{end=+b.dataset.lkend;paint();});
@@ -31715,19 +31798,19 @@ const Link={
       ok.onclick=async()=>{if(ok.disabled)return;ok.disabled=true;ok.textContent='Envoi…';
         let r;try{r=await rpc('link_approve',{p_id:L.id,p_secret:L.secret,p_ends_at:unlock?null:new Date(end).toISOString()});}catch(e){r=null;}
         if(run!==this._run)return;
-        if(!r||!r.ok){const E={expired:'Ce code a expiré pendant la confirmation. Sur l’ordinateur, touchez « Nouveau code ».',too_many:'Cinq postes sont déjà connectés à votre compte. Déconnectez-en un dans « Appareils connectés ».',
+        if(!r||!r.ok){const E={expired:'Ce code a expiré pendant la confirmation. Sur l’appareil à connecter, affichez un nouveau code.',too_many:'Cinq appareils temporaires sont déjà connectés à votre compte. Déconnectez-en un dans « Appareils connectés ».',
             bad_ends:'Cette heure de fin n’est plus valable. Rouvrez le code.'};
           return this._msg(body,esc(E[r&&r.err]||'La confirmation n’a pas abouti. Vérifiez la connexion, puis réessayez.'));}
-        if(unlock)return this._msg(body,'✓ Confirmé. L’ordinateur se met à jour dans quelques secondes.');
+        if(unlock)return this._msg(body,'✓ Confirmé. L’appareil se met à jour dans quelques secondes.');
         /* Le dernier mot reste au téléphone : si ce n'est pas l'écran devant soi (code relayé par un
            faux site), un geste le déconnecte aussitôt (revue de sécurité). */
-        body.innerHTML=`<p class="pp-msg">✓ Ordinateur connecté jusqu’à <b>${esc(ch.find(c=>c.at===end).lbl)}</b>. Il s’ouvre dans quelques secondes, et affiche votre adresse.</p>
+        body.innerHTML=`<p class="pp-msg">✓ Appareil connecté, temporairement : jusqu’à <b>${esc(ch.find(c=>c.at===end).lbl)}</b>. Il s’ouvre dans quelques secondes, et affiche votre adresse.</p>
           <p class="pp-note">Vous pouvez le prolonger ou le déconnecter dans <b>Moi</b> › <b>Appareils connectés</b>.</p>
           <p class="pp-warn">△ Rien ne s’ouvre sur l’écran devant vous ? Déconnectez-le maintenant.</p>
-          <div class="pp-acts"><button type="button" class="btn" data-lkrevnow>Déconnecter</button><button type="button" class="btn primary" data-lkclose>Fermer</button></div>`;
+          <div class="pp-acts"><button type="button" class="btn" data-lkrevnow>Déconnecter cet appareil</button><button type="button" class="btn primary" data-lkclose>Fermer</button></div>`;
         body.querySelector('[data-lkclose]').onclick=()=>this.close();
         body.querySelector('[data-lkrevnow]').onclick=async()=>{let r;try{r=await rpc('link_revoke',{p_id:L.id});}catch(e){r=null;}
-          this._msg(body,r&&r.ok?'Ordinateur déconnecté.':'Déconnexion impossible (hors ligne ?) : réessayez dans <b>Moi</b> › <b>Appareils connectés</b>.');};};};
+          this._msg(body,r&&r.ok?'Appareil déconnecté.':'Déconnexion impossible (hors ligne ?) : réessayez dans <b>Moi</b> › <b>Appareils connectés</b>.');};};};
     paint();},
   /* « Appareils connectés » + « Mes fins de garde » (le téléphone). */
   async devices(){this.close();const run=++this._run;const body=this._open('Appareils connectés');this._cur='devices';
@@ -31737,11 +31820,11 @@ const Link={
     const fins=linkFins();
     const rows=Array.isArray(L)?L.map(d=>{const e=Date.parse(d.ends_at),s=Date.parse(d.since);
       const day=t=>new Date(t).toDateString()===new Date().toDateString()?'':'demain ';
-      return `<div class="pp-row">${uiIcon('monitor',20)}<span class="pp-rtx"><b>${esc(d.label||'Ordinateur')}</b><span class="pp-sub">${s?'Depuis '+fmtHM(s)+' · ':''}se déconnecte ${day(e)}à ${fmtHM(e)}</span></span></div>
+      return `<div class="pp-row">${uiIcon('monitor',20)}<span class="pp-rtx"><b>${esc(d.label||'Appareil')}</b><span class="pp-sub">${s?'Depuis '+fmtHM(s)+' · ':''}se déconnecte ${day(e)}à ${fmtHM(e)}</span></span></div>
         <div class="pp-racts"><button type="button" class="btn sm" data-lkext="${esc(d.id)}" data-lkat="${e}">Prolonger d’1 h</button><button type="button" class="btn sm" data-lkrev="${esc(d.id)}">Déconnecter</button></div>`;}).join(''):'';
     body.innerHTML=(L===null?'<p class="pp-msg">Liste indisponible hors ligne.</p>'
-        :rows?`<div class="pp-list">${rows}</div>`:'<p class="pp-msg">Aucun poste partagé n’est connecté à votre compte.</p>')
-      +`<div class="pp-fins"><p class="pp-q">Mes fins de garde</p><p class="pp-sub">Les deux heures proposées quand vous connectez un ordinateur (avec la marge : 10:00 pour une fin à 9h30).</p>
+        :rows?`<div class="pp-list">${rows}</div>`:'<p class="pp-msg">Aucun appareil temporaire n’est connecté à votre compte.</p>')
+      +`<div class="pp-fins"><p class="pp-q">Mes fins de garde</p><p class="pp-sub">Les deux heures proposées quand vous connectez un appareil (avec la marge : 10:00 pour une fin à 9h30).</p>
         <div class="pp-frow"><label class="sr-only" for="lkF1">Première heure</label><input type="time" class="pp-time" id="lkF1" value="${esc(fins[0])}"><label class="sr-only" for="lkF2">Seconde heure</label><input type="time" class="pp-time" id="lkF2" value="${esc(fins[1])}"></div></div>
       <div class="pp-acts"><button type="button" class="btn" data-lkclose>Fermer</button></div>`;
     body.querySelector('[data-lkclose]').onclick=()=>this.close();
@@ -31749,10 +31832,10 @@ const Link={
     body.querySelector('#lkF1').onchange=saveF;body.querySelector('#lkF2').onchange=saveF;
     body.querySelectorAll('[data-lkext]').forEach(b=>b.onclick=async()=>{b.disabled=true;
       let r;try{r=await rpc('link_extend',{p_id:b.dataset.lkext,p_ends_at:new Date(+b.dataset.lkat+3600000).toISOString()});}catch(e){r=null;}
-      if(!r||!r.ok)toast(r&&r.err==='bad_ends'?'⚠ Pas au-delà de 28 h après la connexion du poste.':'⚠ Prolongation impossible (hors ligne ?).',6000,true);
+      if(!r||!r.ok)toast(r&&r.err==='bad_ends'?'⚠ Pas au-delà de 28 h après la connexion de l’appareil.':'⚠ Prolongation impossible (hors ligne ?).',6000,true);
       this.devices();});
     body.querySelectorAll('[data-lkrev]').forEach(b=>b.onclick=async()=>{
-      const ok=await confirmDlg('L’ordinateur s’efface dès qu’il l’apprend (en quelques secondes s’il est en ligne). Une session en cours dessus n’est pas coupée : il s’effacera à sa fin.',{title:'Déconnecter ce poste ?',yes:'Déconnecter'});
+      const ok=await confirmDlg('L’appareil s’efface dès qu’il l’apprend (en quelques secondes s’il est en ligne). Une session en cours dessus n’est pas coupée : il s’effacera à sa fin.',{title:'Déconnecter cet appareil ?',yes:'Déconnecter'});
       if(!ok)return;let r;try{r=await rpc('link_revoke',{p_id:b.dataset.lkrev});}catch(e){r=null;}
       if(!r||!r.ok)toast('⚠ Déconnexion impossible (hors ligne ?).',6000,true);
       this.devices();});},
@@ -31797,13 +31880,13 @@ const Link={
   /* L'EFFACEMENT DU POSTE. `auto` : décidé par la veille (rien à demander) ; sinon le bouton
      « Se déconnecter et effacer », qui ne coupe jamais une session et prévient d'une perte. */
   async wipe(auto){
-    if(linkLive().length){toast('⚠ Une session est en cours sur ce poste : terminez-la d’abord.',7000,true);return;}
+    if(linkLive().length){toast('⚠ Une session est en cours sur cet appareil : terminez-la d’abord.',7000,true);return;}
     if(!auto){const sp=linkShared();
       if(sp){if(Auth.signedIn())await Sync.full();else await this.depositAll(sp);}
       const n=(await linkUnsent()).length;
-      const ok=await confirmDlg(n?nb(n,'session')+' de ce poste n’'+(n>1?'ont':'a')+' pas encore rejoint votre historique (hors ligne). Effacées maintenant, elles seraient perdues : enregistrez d’abord leur compte rendu en PDF depuis « Sessions », ou attendez le réseau.'
-          :'Vos aides, sessions et réglages sont effacés de cet ordinateur. Tout reste dans votre compte.',
-        {title:'Se déconnecter et effacer ce poste ?',yes:n?'Effacer quand même':'Effacer ce poste',danger:!!n});
+      const ok=await confirmDlg(n?nb(n,'session')+' de cet appareil n’'+(n>1?'ont':'a')+' pas encore rejoint votre historique (hors ligne). Effacées maintenant, elles seraient perdues : enregistrez d’abord leur compte rendu en PDF depuis « Sessions », ou attendez le réseau.'
+          :'Vos aides, sessions et réglages sont effacés de cet appareil. Tout reste dans votre compte.',
+        {title:'Se déconnecter et effacer cet appareil ?',yes:n?'Effacer quand même':'Effacer cet appareil',danger:!!n});
       if(!ok)return;}
     const uidv=currentSpace();
     /* Le jeton se RELIT sur le disque : la mémoire peut l'avoir perdu (session refusée par le serveur
@@ -31834,20 +31917,27 @@ function linkStepGate(fn){if(!linkShared()||_linkStep)return false;
 /* INTERDIT sur un poste partagé : l'administration (instance, membres et rôles, créer ou demander
    une bibliothèque) — rare, jamais urgent, à fort impact ; elle se fait depuis un appareil à soi. */
 function linkDeny(quoi){if(!linkShared())return false;
-  const b=Link._open('Pas sur un poste partagé');
-  Link._msg(b,esc(quoi)+' ne se fait pas sur un poste partagé : utilisez votre téléphone ou votre ordinateur personnel.');return true;}
+  const b=Link._open('Pas sur un appareil temporaire');
+  Link._msg(b,esc(quoi)+' ne se fait pas sur un appareil connecté temporairement : faites-le depuis un appareil à vous.');return true;}
 /* LA BANDE DU POSTE PARTAGÉ (accueil seulement — jamais en lecture d'une aide, jamais pendant le
    soin). Information par défaut ; AMBRE 30 min avant l'heure de fin (l'échéance, règle 8). */
 function linkPaintBand(){const el=document.getElementById('linkBand');if(!el)return;const sp=linkShared();
   if(!sp){el.hidden=true;return;}
-  const now=Date.now(),soon=sp.endsAt-now<=LINK_SOON_MS,past=now>=sp.endsAt;
+  const now=Date.now(),soon=sp.endsAt-now<=LINK_SOON_MS,past=now>=sp.endsAt,locked=linkLocked();
   const day=new Date(sp.endsAt).toDateString()===new Date(now).toDateString()?'':'demain ';
-  const quand=past?(linkLive().length?'s’efface après la session en cours':'s’efface dès que les sessions sont envoyées')
-    :(soon?'△ s’efface à ':'jusqu’à '+day)+fmtHM(sp.endsAt);
-  el.hidden=false;el.className='notice pp-band'+(soon||past?' pp-soon':'');
-  // Le COMPTE est nommé : un poste approuvé par un autre compte (code relayé) se voit au premier coup d'œil.
-  el.innerHTML=`${uiIcon('monitor',16)}<div class="pp-bt"><b>Poste partagé</b>${sp.email?' · '+esc(sp.email):''} · ${esc(quand)}${Link._ask?' · des sessions n’ont pas pu rejoindre l’historique : voir « Sessions »':''}${linkLocked()?' · modifier redemande votre téléphone':''}</div><button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
-  el.querySelector('[data-lkwipe]').onclick=()=>Link.wipe(false);}
+  const left=Math.max(0,sp.endsAt-now),lh=Math.floor(left/3600000),lm=Math.round((left%3600000)/60000);
+  const reste=lh?lh+' h '+String(lm).padStart(2,'0'):lm+' min';
+  /* v5.112 (A651) : NEUTRE (rien ne tourne mal, règle 8), AMBRE à 30 min de la fin et après — l'échéance. Le COMPTE
+     est nommé : un appareil approuvé par un autre compte (code relayé) se voit au premier coup d'œil. */
+  let txt;
+  if(past)txt=`<b>Heure de fin passée.</b> Cet appareil s’efface ${linkLive().length?'dès la fin de la session en cours':'dès que les sessions sont envoyées'}.`;
+  else if(soon)txt=`<b>S’efface à ${esc(fmtHM(sp.endsAt))} — dans ${esc(reste)}.</b> Pour prolonger : depuis un autre appareil connecté, Moi › Appareils connectés.`;
+  else txt=`<b>Connexion temporaire</b> · ${esc(sp.email||'')} · jusqu’à ${esc(day+fmtHM(sp.endsAt))} <span>${locked?'· créer, modifier et supprimer attendent un appareil connecté':'· encore '+esc(reste)}</span>`;
+  if(Link._ask)txt+=' <span>· des sessions n’ont pas pu rejoindre l’historique : voir « Sessions »</span>';
+  el.hidden=false;el.className='pp-band'+(soon||past?' pp-soon':'');
+  el.innerHTML=`${past||soon?`<span aria-hidden="true">△</span>`:uiIcon(locked?'lock':'clock',18)}<div class="pp-bt">${txt}</div>${locked&&!past&&!soon?'<button type="button" class="btn sm" data-lkunlock>Déverrouiller</button>':''}<button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
+  el.querySelector('[data-lkwipe]').onclick=()=>Link.wipe(false);
+  {const u=el.querySelector('[data-lkunlock]');if(u)u.onclick=()=>Link.start('unlock',()=>{linkPaintBand();render();});}}
 bindModalDismiss(document.getElementById('linkModal'),()=>Link.close());
 /* A649 : « Appareils connectés » ouvert sur le téléphone se RELIT au retour au premier plan — on va déconnecter le poste,
    on revient : la liste dit ce qui est, sans fermer ni rouvrir. */
@@ -31855,15 +31945,18 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
   &&document.getElementById('linkModal').classList.contains('on'))Link.devices();});
 /* Moi — la carte du POSTE PARTAGÉ (sur le poste) et la zone « Appareils » (sur le téléphone). */
 function linkSharedCardHtml(locked){const sp=linkShared();if(!sp)return '';
-  const past=Date.now()>=sp.endsAt,day=new Date(sp.endsAt).toDateString()===new Date().toDateString()?'':'demain ';
-  return `<div class="acct-zone"><div class="auth-stats-h">Poste partagé <span class="acct-hs">connecté par votre téléphone</span></div><div class="acct-card pp-login">
-    <p class="pp-msg">${past?'L’heure de fin est passée : ce poste s’efface dès que les sessions faites dessus ont rejoint votre historique.'
-      :'Connecté jusqu’à <b>'+esc(day+fmtHM(sp.endsAt))+'</b>, puis tout s’efface de cet ordinateur. Pour prolonger : sur le téléphone, <b>Moi</b> › <b>Appareils connectés</b>.'}</p>
-    ${locked?'<p class="pp-note">Navigateur rouvert depuis la connexion : modifier une aide, gérer les bibliothèques et le compte redemandent votre téléphone. Consulter et reprendre une session restent libres.</p><button type="button" class="btn primary auth-full" data-lkunlock>Déverrouiller avec le téléphone</button>':''}
-    <button type="button" class="btn auth-full" data-lkwipe>Se déconnecter et effacer ce poste</button></div></div>`;}
+  const now=Date.now(),past=now>=sp.endsAt,day=new Date(sp.endsAt).toDateString()===new Date(now).toDateString()?'ce soir':'demain';
+  const ini=((sp.email||'?').trim().slice(0,2)||'?').toUpperCase();
+  return `<div class="acct-card pp-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(sp.email||'')}</div><div class="pp-tmp">${uiIcon('clock',14)}Connexion temporaire</div></div></div>
+    ${past?'<p class="pp-msg" style="margin-top:14px">L’heure de fin est passée : cet appareil s’efface dès que les sessions faites dessus ont rejoint votre historique.</p>'
+      :`<p class="pp-until">Jusqu’à ${esc(fmtHM(sp.endsAt))} <span>${day}</span></p><p class="pp-note">puis tout s’efface de cet appareil.</p>`}
+    ${locked?`<div class="pp-lock">${uiIcon('lock',20)}<span><b>Créer, modifier et supprimer attendent un appareil connecté</b><span class="pp-sub">Le navigateur a été rouvert, ou rien ne s’est passé depuis 15 min. Consulter une aide et reprendre une session restent libres.</span></span></div>
+      <button type="button" class="btn primary auth-full" data-lkunlock>Déverrouiller avec un appareil connecté</button>`:''}
+    <button type="button" class="btn auth-full pp-wipe" data-lkwipe>Se déconnecter et effacer</button></div>
+    <p class="st-hint acct-promise">Prolonger : depuis un autre appareil connecté, <b>Moi</b> › <b>Appareils connectés</b>.</p>`;}
 function linkDevsHtml(){const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
-  return `<div class="acct-zone"><div class="auth-stats-h">Appareils <span class="acct-hs">les ordinateurs de service connectés par ce téléphone</span></div><div class="acct-card acct-list">`
-    +menuRowHtml({label:'Connecter un ordinateur',sub:'viser le code affiché sur l’écran',ic:uiIcon('camera',20),attrs:'data-lkscan',tail:chev})
+  return `<div class="acct-zone"><div class="auth-stats-h">Appareils <span class="acct-hs">les appareils temporaires connectés depuis celui-ci</span></div><div class="acct-card acct-list">`
+    +menuRowHtml({label:'Connecter un appareil',sub:'viser le code affiché sur un appareil temporaire',ic:uiIcon('camera',20),attrs:'data-lkscan',tail:chev})
     +menuRowHtml({label:'Appareils connectés',sub:'prolonger, déconnecter, mes fins de garde',ic:uiIcon('monitor',20),attrs:'data-lkdevs',tail:chev})+`</div></div>`;}
 function linkBindCard(body){const on=(sel,f)=>{const b=body.querySelector(sel);if(b)b.onclick=f;};
   on('[data-lkunlock]',()=>Link.start('unlock',()=>renderAuth()));on('[data-lkwipe]',()=>Link.wipe(false));
@@ -32510,8 +32603,15 @@ function renderAuthAccount(body,u,doOut){
     const ini=((u.email||'?').trim().slice(0,2)||'?').toUpperCase();   // 2 lettres, comme l'avatar d'en-tête
     /* A643 : POSTE PARTAGÉ rouvert sans le téléphone (verrou) — le compte se réduit à l'identité et à
        la carte du poste ; consulter et reprendre une session restent libres, ailleurs. */
-    if(linkLocked()){body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div></div>${linkSharedCardHtml(true)}`;
-      linkBindCard(body);return;}
+    if(linkLocked()){body.innerHTML=linkSharedCardHtml(true);linkBindCard(body);return;}
+    /* v5.112 (A651) : sur un appareil TEMPORAIRE, la carte du compte EST la carte du poste — une seule sortie
+       (« Se déconnecter et effacer »), plus de « Se déconnecter » simple à côté (deux sorties pour un geste). */
+    if(linkShared()){body.innerHTML=`${linkSharedCardHtml(false)}${acctLibsHtml()}${accountPrefsHtml()}`;
+      bindAccountPrefs(body);linkBindCard(body);
+      body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
+      {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
+      body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));
+      return;}
     // Structure (audit v4.5) : identité + état -> contours jumeaux demi-largeur -> zone « Cet
     // appareil » -> zone « Administration » (admin) -> zone sensible, toujours dernière.
     /* M5 (audit design, v4.71.0) — L'IDENTITÉ EST UNE CARTE, PLUS D'ACTION PRIMAIRE : les trois
@@ -32740,25 +32840,59 @@ function bindAccountPrefs(body){
   bindTagsPref(body);
   {const ex=body.querySelector('#authExport');if(ex)ex.onclick=exportAll;}}
 // Écran de connexion (déconnecté) : saisie de l'e-mail puis du code OTP reçu.
+/* v5.112 (A651) — la carte « Se connecter » (déconnecté). `_authStep.kind` : null | 'temp' | 'perm' (rien d'office) ;
+   `_authStep.meth` : 'app' (le code à viser) | 'email' ; `_authStep.temp` : le code e-mail ouvrira une connexion temporaire. */
+function authCardHtml(){const k=_authStep.kind||null,m=_authStep.meth||'app';
+  const tile=(id,ic,t,sub)=>`<button type="button" class="pp-tile${k===id?' on':''}" role="radio" aria-checked="${k===id}" data-authk="${id}"><span class="pp-dot" aria-hidden="true"></span><span><span class="pp-tt">${ic}${t}</span><span class="pp-ts">${sub}</span></span></button>`;
+  const mail=`<div><label class="auth-label" for="authEmail">Adresse e-mail</label><div class="pp-erow"><input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}"><button class="btn primary" id="authSend">Recevoir le code</button></div></div>`;
+  const msg=`<p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
+  let body='';
+  if(k==='temp')body=`<div class="pp-sc-body"><div class="pp-tabs" role="tablist" aria-label="Comment se connecter">${[['app','Avec un appareil connecté'],['email','Par e-mail']].map(([x,l])=>`<button type="button" class="pp-tab${m===x?' on':''}" role="tab" aria-selected="${m===x}" data-autht="${x}">${l}</button>`).join('')}</div>
+    ${m==='app'?'<div id="lkInline"></div>':mail+'<p class="pp-note">Lisez l’e-mail sur un appareil à vous, pas sur celui-ci.</p>'}${msg}</div>`;
+  else if(k==='perm')body=`<div class="pp-sc-body pad">${mail}${msg}</div>`;
+  return `<div class="acct-card pp-sc"><div class="pp-sc-in"><div class="pp-sc-h"><h3 id="authScT">Se connecter</h3><span class="pp-opt">facultatif</span></div>
+    <p class="pp-sc-lead">Sans compte, l’app fonctionne sur cet appareil. Un compte retrouve vos aides partout et ouvre les bibliothèques partagées.</p>
+    <div class="pp-tiles" role="radiogroup" aria-labelledby="authScT">${tile('temp',uiIcon('clock',16),'Temporaire','jusqu’à la fin de la garde, puis tout s’efface')}${tile('perm',uiIcon('infinity',16),'Permanente','vous restez connecté')}</div></div>
+    ${body}
+    <div class="pp-sc-foot"><span><b>Pas encore de compte ?</b> Créez-le sur votre propre appareil, avec votre adresse e-mail.</span><button type="button" class="btn sm" data-authnew>Créer un compte</button></div></div>`;}
+function authEndChoices(){return linkEndChoices(Date.now(),linkFins());}
+function authEndAt(){const ch=authEndChoices();const c=ch.find(x=>x.at===_authStep.end)||ch.find(x=>x.def)||ch[0];return c?c.at:Date.now()+8*3600000;}
+function authEndLbl(){const at=authEndAt(),c=authEndChoices().find(x=>x.at===at);return c?c.lbl:fmtHM(at);}
+function authEndsHtml(){const at=authEndAt();
+  return `<p class="pp-q" id="authEndQ">Jusqu’à quelle heure ?</p><div class="pp-ends" role="group" aria-labelledby="authEndQ">${authEndChoices().map(c=>`<button type="button" class="pp-end${c.at===at?' on':''}" data-authend="${c.at}" aria-pressed="${c.at===at}"><b>${esc(c.lbl)}</b><span>${esc(c.sub)}</span></button>`).join('')}</div>
+    <p class="pp-note">Ensuite, tout s’efface de cet appareil — après la session en cours, s’il y en a une.</p>`;}
+/* A651 : la session (fraîche, venue du code e-mail) se déclare APPAREIL TEMPORAIRE. Rend null, ou le motif du refus. */
+async function linkBecomeTemp(endAt){
+  const key=linkB64u(crypto.getRandomValues(new Uint8Array(16)));
+  const kh=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+  let r;try{r=await rpc('link_self',{p_key_hash:kh,p_label:linkUaLabel(navigator.userAgent),p_ends_at:new Date(endAt).toISOString()});}catch(e){r=null;}
+  if(!r||!r.ok)return (r&&r.err)||'network';
+  const u=Auth.user()||{};
+  linkSharedSet({id:r.id,key,uid:u.id||'',email:u.email||'',endsAt:Date.parse(r.ends_at)||endAt,label:linkUaLabel(navigator.userAgent),at:Date.now()});
+  linkMarkOpen();return null;}
 function renderAuthLogin(body){
   if(_authStep.mode==='email'){
-    /* A643 : « Se connecter avec le téléphone » — en TÊTE au pointeur fin (l'ordinateur de service,
-       où l'on n'a ni sa messagerie ni envie de taper), après l'e-mail au doigt (un téléphone se
-       connecte par e-mail). Un poste partagé dont la connexion est finie montre sa carte à la place. */
-    const lkFirst=(()=>{try{return matchMedia('(pointer:fine)').matches;}catch(e){return false;}})();
-    const lkCard=linkShared()?linkSharedCardHtml(false):`<div class="acct-card pp-login"><div class="pp-lh">${uiIcon('phone',20)}<span><b>Se connecter avec le téléphone</b><span class="pp-sub">Sur un ordinateur de service : un code à viser avec l’app de votre téléphone, déjà connectée. Ni e-mail, ni code à recopier.</span></span></div><button type="button" class="btn${lkFirst?' primary':''} auth-full" id="authLink">Afficher le code</button></div>`;
-    body.innerHTML=`${lkFirst?lkCard:''}<div class="acct-card"><div class="auth-hero"><div class="auth-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg></div><p class="auth-sub">Recevez un code par e-mail pour vous connecter ou créer votre compte.</p></div>
-      <label class="auth-label" for="authEmail">Adresse e-mail</label>
-      <input class="auth-field" id="authEmail" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" placeholder="vous@exemple.fr" value="${esc(_authStep.email)}">
-      <button class="btn primary auth-full" id="authSend">Recevoir le code</button>
+    /* v5.112 (A651) — UNE CARTE « SE CONNECTER », DEUX CHOIX EXPLICITES : Temporaire (le temps d'une garde, puis
+       tout s'efface — par le code à viser avec un appareil où l'on est connecté, ou par e-mail) et Permanente (le code
+       e-mail, comme avant). RIEN N'EST CHOISI D'OFFICE, ni au bureau ni au téléphone (décision de l'auteur : « y a le
+       choix, n'essaie pas de deviner »). Créer un compte a sa propre entrée, en pied de carte. Un poste dont la
+       connexion temporaire est finie montre sa carte à la place. */
+    if(linkShared()){body.innerHTML=linkSharedCardHtml(false)+`<details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>${accountPrefsHtml('<button class="btn" id="authExport">Exporter mes données</button>')}`;
+      bindAccountPrefs(body);linkBindCard(body);return;}
+    body.innerHTML=`${authCardHtml()}
       <p class="auth-privacy">Vos aides et protocoles restent votre contenu — n’y stockez jamais de données patient. Synchronisation hébergée sur Supabase (connexion chiffrée).</p>
-      <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>
-      <div style="text-align:center;margin-top:2px"><button class="tlink" id="authAnon" hidden></button></div></div>
-      ${lkFirst?'':lkCard}
+      <div style="text-align:center;margin-top:2px"><button class="tlink" id="authAnon" hidden></button></div>
       <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>
       ${accountPrefsHtml('<button class="btn" id="authExport">Exporter mes données</button>')}`;
     bindAccountPrefs(body);
-    {const b=body.querySelector('#authLink');if(b)b.onclick=()=>Link.start('connect');}linkBindCard(body);
+    body.querySelectorAll('[data-authk]').forEach(b=>b.onclick=()=>{_authStep.kind=b.dataset.authk;_authStep.msg='';
+      if(_authStep.kind==='temp'&&!_authStep.meth)_authStep.meth='app';renderAuth();
+      if(_authStep.kind==='perm'){const e=document.getElementById('authEmail');if(e)try{e.focus({preventScroll:true});}catch(_){}}});
+    body.querySelectorAll('[data-autht]').forEach(b=>b.onclick=()=>{_authStep.meth=b.dataset.autht;_authStep.msg='';renderAuth();});
+    {const nb=body.querySelector('[data-authnew]');if(nb)nb.onclick=()=>{_authStep.kind='perm';_authStep.msg='';renderAuth();
+      const e=document.getElementById('authEmail');if(e)try{e.focus();}catch(_){}};}
+    {const box=body.querySelector('#lkInline');if(box)Link.inline(box);else Link.stopInline();}
+    if(!body.querySelector('#authSend'))return;
     // Fiches « hors compte » présentes sur l'appareil : lien de consultation SANS se connecter
     // (cf. switchToAnonSpace). Compté en asynchrone ; le lien reste masqué s'il n'y a rien.
     (async()=>{try{const n=await anonFicheCount();const b=body.querySelector('#authAnon');if(!n||!b)return;
@@ -32776,6 +32910,7 @@ function renderAuthLogin(body){
       if(!Sync.online()){_authStep.msg='Hors ligne : une connexion Internet est nécessaire pour recevoir le code.';_authStep.msgcls='err';return renderAuth();}
       send.disabled=true;send.textContent='Envoi du code…';
       _authStep.email=email;_authStep.msg='';_authStep.msgcls='';
+      _authStep.temp=_authStep.kind==='temp';   // A651 : le code e-mail ouvre alors une connexion TEMPORAIRE
       try{await Auth.sendCode(email);_authStep.mode='code';renderAuth();}
       catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
     // Entrée (ou « Envoyer » du clavier iOS) envoie le code, comme le champ du code valide (signalé : rien ne partait)
@@ -32783,10 +32918,13 @@ function renderAuthLogin(body){
   }else{
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic">${uiIcon('lock',26)}</div><h4>Saisissez le code</h4><p class="auth-sub">Un code a été envoyé à <b>${esc(_authStep.email)}</b>.</p></div>
       <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="done" placeholder="••••••••">
-      <button class="btn primary auth-full" id="authVerify">Valider</button>
+      ${_authStep.temp?authEndsHtml():''}
+      <button class="btn primary auth-full" id="authVerify">${_authStep.temp?esc('Se connecter jusqu’à '+authEndLbl()):'Valider'}</button>
       <div style="text-align:center;margin-top:10px"><button class="tlink" id="authBack">← Changer d'e-mail</button></div>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
     body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};
+    body.querySelectorAll('[data-authend]').forEach(b=>b.onclick=()=>{_authStep.end=+b.dataset.authend;
+      const c=(body.querySelector('#authCode')||{}).value||'';renderAuth();const ci=document.getElementById('authCode');if(ci)ci.value=c;});
     {const ci=body.querySelector('#authCode');   // A373 : un code collé depuis Mail arrive avec espaces ou texte autour — on ne garde que les chiffres
       ci.addEventListener('paste',e=>{const t=(e.clipboardData||window.clipboardData);const txt=t?t.getData('text'):'';if(!txt)return;e.preventDefault();ci.value=(ci.value+txt).replace(/\D/g,'').slice(0,12);});
       ci.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();v.click();}});}
@@ -32798,6 +32936,19 @@ function renderAuthLogin(body){
       _authStep.msg='';_authStep.msgcls='';
       try{await Auth.verifyCode(_authStep.email,code);}
       catch(e){_authStep.msg='Code invalide ou expiré.';_authStep.msgcls='err';return renderAuth();}
+      /* A651 : CONNEXION TEMPORAIRE PAR E-MAIL — la session toute fraîche se déclare poste (`link_self`). Refusée, elle
+         ne RESTE PAS ouverte : on avait choisi « Temporaire », une connexion durable ici serait l'inverse de ce choix. */
+      if(_authStep.temp){const err=await linkBecomeTemp(authEndAt());
+        if(err){try{await Auth.signOut();}catch(_){}
+          _authStep.mode='email';_authStep.msgcls='err';
+          _authStep.msg={refused:'Connexion temporaire impossible : votre compte doit d’abord être validé.',too_many:'Cinq appareils temporaires sont déjà connectés à votre compte : déconnectez-en un dans « Appareils connectés ».'}[err]||'La connexion temporaire n’a pas abouti. Vérifiez la connexion, puis réessayez.';
+          return renderAuth();}
+        _authStep={mode:'email',email:'',msg:'',msgcls:''};
+        const ut=(Auth.user()||{}).id||'';
+        /* Comme la connexion par le code à viser : JAMAIS « Les emporter dans ce compte ? » — sur un appareil
+           temporaire, le contenu local hors compte n'appartient pas à qui se connecte. */
+        if(ut&&ut!==currentSpace()){persistAllLive();registerSpace(ut);try{localStorage.setItem('ac-space',ut);}catch(e){}location.reload();return;}
+        await refreshAccountStatus();renderAuth();setSyncChip();Sync.full();linkPaintBand();Link.boot();return;}
       // BASCULE D'ESPACE (multi-profils) : un AUTRE compte que l'espace courant se connecte ->
       // l'app se recharge sur SON espace local (bascule atomique, aucun mélange de bibliothèques).
       // « uidv » et pas « uid » : ce nom ombragerait le générateur d'ids uid() (portée module).

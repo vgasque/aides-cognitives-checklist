@@ -2247,6 +2247,46 @@ begin
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
 end; $$;
 
+-- CONNEXION TEMPORAIRE PAR E-MAIL (v5.112, A651) : sans appareil connecté sous la main, on se
+-- connecte par le code e-mail en choisissant « Temporaire ». La session TOUTE FRAÎCHE se déclare
+-- alors poste partagé : elle reçoit les mêmes limites qu'un poste connecté par le code à viser
+-- (`link_is_poste`), apparaît dans « Appareils connectés », se déconnecte à distance et s'arrête à
+-- l'heure de fin (purge). Elle ne peut que SE RESTREINDRE : aucun droit n'est gagné ici.
+--   · la session courante seulement (`session_id` du jeton), jamais une autre ; une seule fois ;
+--   · compte validé, heure de fin entre 30 min et 28 h, 5 connexions actives au plus (comme l'approbation) ;
+--   · la clé du poste (dépôts des sessions) n'arrive qu'en EMPREINTE, comme pour `link_open`.
+create or replace function public.link_self(p_key_hash text, p_label text, p_ends_at timestamptz)
+returns jsonb language plpgsql volatile security definer
+set search_path = public, extensions, pg_temp as $$
+declare v_sid uuid := nullif(auth.jwt() ->> 'session_id', '')::uuid; v_id uuid; v_n int; v_label text;
+begin
+  perform public.link_purge();
+  if auth.uid() is null or v_sid is null or not public.is_approved() then
+    return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  if public.link_is_poste() then return jsonb_build_object('ok', false, 'err', 'already'); end if;
+  if p_key_hash is null or length(p_key_hash) <> 64 or p_key_hash ~ '[^0-9a-f]' then
+    return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
+  if p_ends_at is null or p_ends_at < now() + interval '30 minutes' or p_ends_at > now() + interval '28 hours' then
+    return jsonb_build_object('ok', false, 'err', 'bad_ends'); end if;
+  v_label := coalesce(p_label, '');
+  if cardinality(string_to_array(v_label, ' · ')) > 2
+     or split_part(v_label, ' · ', 1) not in ('Edge','Firefox','Chrome','Safari','Navigateur')
+     or split_part(v_label, ' · ', 2) not in ('','Windows','iPhone','iPad','Android','ChromeOS','macOS','Linux') then
+    v_label := 'Navigateur'; end if;
+  perform pg_advisory_xact_lock(hashtext('link:' || auth.uid()::text));
+  select count(*) into v_n from public.device_links
+   where user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed') and ends_at > now();
+  if v_n >= 5 then return jsonb_build_object('ok', false, 'err', 'too_many'); end if;
+  -- Aucun QR : le secret est une empreinte aléatoire que personne ne connaît (la colonne l'exige).
+  insert into public.device_links(kind, secret_hash, key_hash, label, open_until, user_id, status,
+                                  ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', encode(digest(gen_random_uuid()::text || clock_timestamp()::text, 'sha256'), 'hex'),
+            p_key_hash, v_label, now(), auth.uid(), 'claimed', p_ends_at, now(), now(), v_sid)
+    returning id into v_id;
+  return jsonb_build_object('ok', true, 'id', v_id, 'ends_at', p_ends_at);
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+
 -- DÉPÔT (le poste, par SA clé, avec ou sans session de compte valide) : ajoute UNE session à
 -- l'historique du compte qui a connecté le poste — sans rien lire. C'est ce qui permet à une
 -- session terminée APRÈS l'heure de fin, ou hors ligne, de rejoindre l'historique (A643 § dépôt),
@@ -2294,6 +2334,7 @@ grant execute on function public.link_list()                          to authent
 grant execute on function public.link_extend(uuid,timestamptz)        to authenticated;
 grant execute on function public.link_revoke(uuid)                    to authenticated;
 grant execute on function public.link_end()                           to authenticated;
+grant execute on function public.link_self(text,text,timestamptz)     to authenticated;
 
 -- ---------- 10bis. AUCUN MOT DE PASSE (v5.111.1, A648) ---------------------------------------
 -- L'app ne se connecte QUE par code e-mail (et, depuis v5.111, par le téléphone). Or GoTrue laisse

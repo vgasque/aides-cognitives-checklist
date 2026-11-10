@@ -7206,13 +7206,55 @@
   .pp-fins .pp-q{margin-top:0}
   .pp-frow{display:flex;gap:8px;margin-top:8px}
   input.pp-time{font-size:16px;min-height:44px;padding:6px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:var(--f-mono)}
-  .pp-login{display:grid;gap:12px}
-  .pp-lh{display:flex;gap:10px;align-items:flex-start}
-  .pp-lh b{display:block;font-size:var(--t-item)}
-  .notice.pp-band{align-items:center;flex-wrap:wrap;padding-right:14px}
-  .notice.pp-band .pp-bt{flex:1 1 200px;min-width:0}
-  .notice.pp-soon{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
-  .notice.pp-soon svg{color:var(--warn)}
+  /* v5.112 (A651) — LA CARTE « SE CONNECTER » : deux choix explicites, Temporaire ou Permanente, RIEN N'EST DEVINÉ
+     (aucun choix d'office, ni au bureau ni au téléphone). Les choix sont des cartes blanches à bord net : un sélecteur
+     segmenté sans valeur choisie paraissait désactivé (maquette, signalé). */
+  .pp-sc{padding:0;overflow:hidden}
+  .pp-sc-in{padding:24px 24px 18px}
+  .pp-sc-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .pp-sc-h h3{margin:0;font-size:var(--t-step-l);font-weight:800}
+  .pp-opt{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .pp-sc-lead{margin:4px 0 16px;font-size:var(--t-body);line-height:1.5;color:var(--ink-2)}
+  .pp-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  html.zw430 .pp-tiles{grid-template-columns:minmax(0,1fr)}
+  .pp-tile{display:flex;gap:12px;align-items:flex-start;min-height:64px;padding:14px 16px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--work);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  .pp-tile.on{border:2px solid var(--act);background:var(--primary-soft);color:var(--act)}
+  .pp-dot{flex:none;margin-top:1px;width:18px;height:18px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ctl-line);background:var(--work)}
+  .pp-tile.on .pp-dot{border-color:var(--act);background:var(--act);box-shadow:inset 0 0 0 3px var(--primary-soft)}
+  .pp-tt{display:flex;align-items:center;gap:6px;font-size:var(--t-item);font-weight:800}
+  .pp-ts{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;line-height:1.4;color:var(--ink-2)}
+  .pp-sc-body{display:flex;flex-direction:column;gap:16px;padding:0 24px 24px;border-top:1px solid var(--line)}
+  .pp-sc-body.pad{padding-top:18px}
+  .pp-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line)}
+  .pp-tab{min-height:48px;padding:0;border:0;border-bottom:3px solid transparent;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .pp-tab.on{border-bottom-color:var(--act);color:var(--act);font-weight:800}
+  .pp-inl{display:flex;flex-wrap:wrap;gap:24px;align-items:center}
+  .pp-inl .pp-qr{margin:0 auto}
+  .pp-inl .pp-qr .qr{width:172px}
+  .pp-ol{flex:1 1 240px;min-width:0;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px}
+  .pp-ol li{display:flex;gap:12px;align-items:center;font-size:var(--t-item);line-height:1.4}
+  .pp-k{flex:none;width:26px;height:26px;box-sizing:border-box;border:1.5px solid var(--ctl-line);border-radius:var(--r-1);display:flex;align-items:center;justify-content:center;font-size:var(--t-body);font-weight:800}
+  .pp-ol .pp-num{font-size:var(--t-step);padding:1px 8px;border-radius:var(--r-1)}
+  .pp-erow{display:flex;flex-wrap:wrap;gap:8px}
+  .pp-erow .auth-field{flex:1 1 220px;min-width:0;margin:0}
+  .pp-sc-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 24px;border-top:1px solid var(--line);background:var(--amb)}
+  .pp-sc-foot span{flex:1 1 240px;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  .pp-sc-foot b{color:var(--ink)}
+  /* La carte du POSTE (connexion temporaire) : l'heure de fin en grand, une seule sortie. */
+  .pp-tmp{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pp-until{margin:16px 0 2px;font-size:var(--t-val);font-weight:800;font-variant-numeric:tabular-nums}
+  .pp-until span{font-size:var(--t-item);font-weight:600;color:var(--ink-2)}
+  .pp-lock{display:flex;gap:12px;align-items:flex-start;margin:14px 0 12px;padding:12px 14px;border:1px solid var(--line-strong);border-radius:var(--r-3)}
+  .pp-lock b{display:block;font-size:var(--t-item)}
+  .pp-card .pp-wipe{margin-top:14px}
+  /* La BANDE de l'accueil : neutre (rien ne tourne mal), AMBRE à l'approche de la fin (l'échéance, règle 8). */
+  .pp-band{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:8px 10px 8px 14px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);font-size:var(--t-body);color:var(--ink)}
+  .pp-band svg{flex:none;color:var(--ink-2)}
+  .pp-band .pp-bt{flex:1 1 200px;min-width:0}
+  .pp-band .pp-bt span{color:var(--ink-2)}
+  .pp-band.pp-soon{background:var(--warn-soft);border-color:var(--warn-line)}
+  .pp-band.pp-soon svg,.pp-band.pp-soon b,.pp-band.pp-soon>span{color:var(--warn)}
+  .pp-band>span{font-weight:800}
   .sess-ckpt{color:var(--warn);font-weight:700}
   /* QR PLAFONNÉ (240 px / 56 vw) ; le palier < 360 px ne bouge PAS (mesuré à 320×568). ⚠ Portée
      `#shareModal` obligatoire : la règle « 260 px » de #shareBody (id) battrait ce plafond. */

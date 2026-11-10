@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.112.0] — 2026-11-10
+Se connecter : temporaire ou permanente (A651-A652). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle
+fonction `link_self`), puis `supabase/rls-tests.sql`.
+- **Une carte « Se connecter »** dans Moi : ⏱ Temporaire (« jusqu'à la fin de la garde, puis tout s'efface ») ou
+  ∞ Permanente (« vous restez connecté »). Rien n'est choisi d'office, au bureau comme au téléphone. « Pas encore de
+  compte ? Créer un compte » a sa propre entrée.
+- **Temporaire › Avec un appareil connecté** : le code à viser s'affiche dans la page (plus de fenêtre), avec trois
+  étapes ; il se renouvelle seul 5 fois, puis « Afficher un nouveau code ».
+- **Temporaire › Par e-mail** (nouveau) : sans appareil connecté sous la main, le code e-mail puis l'heure de fin de
+  garde ouvrent une connexion temporaire — mêmes limites, même effacement, même « Appareils connectés » que par le code
+  à viser. Refusée (compte non validé), elle ne reste pas ouverte.
+- **« Un appareil connecté »** remplace « le téléphone » partout : on peut confirmer depuis un téléphone, une tablette
+  ou un ordinateur, et connecter n'importe quel appareil temporairement (« Connecter un appareil », « Connecter
+  jusqu'à 19:30 »).
+- **Une fois connecté temporairement** : une seule carte dans Moi (l'heure de fin en grand, une seule sortie « Se
+  déconnecter et effacer ») ; la bande de l'accueil devient neutre, ambre à l'approche de la fin, et porte
+  « Déverrouiller » quand l'édition est verrouillée.
+- Garde-fous : `rls-tests.sql` 16.16, `audit-lier.mjs` (46 contrôles, dont le parcours par e-mail).
+
 ## [5.111.2] — 2026-11-09
 Trois défauts signalés (A649). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle fonction `link_end`).
 - **La notification de mise à jour** (« Application mise à jour… ») se posait sur la barre d'onglets du téléphone
@@ -220,19 +239,3 @@ serveur.
 - **Le Plan** d'une référence se lit comme un arbre : chaque titre en retrait de son niveau, rattaché à son parent.
 - **La pastille de bibliothèque d'une rangée** : icône alignée sur le texte, marge intérieure rétablie.
 - **En sélection**, toucher le titre d'une aide ne le surligne plus en gris comme un lien.
-
-## [5.103.0] — 2026-11-08
-La nouvelle architecture est en place (A606, lots 2 et 3 d'A600) : l'accueil lance, le catalogue range. Rien à rejouer
-côté serveur.
-- **L'accueil devient un lanceur** dès que vous avez plus de vingt aides et protocoles : session en cours, Accès
-  direct, vos collections, **les aides ouvertes récemment**, et « Toutes les aides et protocoles », qui mène au
-  catalogue. En dessous de vingt, l'accueil reste la liste complète : tout y tient.
-- **L'onglet « Aides » s'appelle « Accueil »** (icône maison), au téléphone comme sur ordinateur.
-- **La colonne de gauche ne filtre plus** (ordinateur, tablette) : navigation et collections seulement. Les
-  bibliothèques et leurs catégories sont dans « Bibliothèques », avec « Gérer les catégories », « Gérer les
-  bibliothèques » et « Partager avec une équipe… ».
-- **Le catalogue** ne montre plus les catégories vides d'une bibliothèque ; sur ordinateur, un nom long n'est plus
-  coupé par « à relire ».
-- **Les liens** « Bibliothèques » (Moi › Liens et raccourcis, raccourcis de l'app) ouvrent le catalogue.
-- Corrigé : sur ordinateur, revenir dans le catalogue pouvait faire disparaître le pied de page et bloquer l'écran
-  suivant.

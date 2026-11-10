@@ -1160,21 +1160,30 @@ Une absence qui ne s'annonce pas se lirait « aucune vérification n'a été fai
 Les sessions d'**exercice** restent strictement ségrégées (colonne dédiée) : la propriété
 « zéro contamination clinique » était jusque-là DÉRIVÉE de la localité des sessions.
 
-## Le poste partagé — connecté par le téléphone (A643-A646, lot v5.111)
+## La connexion temporaire — l'appareil du service (A643-A646, lot v5.111 ; A651-A652, lot v5.112)
 
-- **Le poste** (ordinateur de service) : Moi › « Se connecter avec le téléphone » — en tête au pointeur fin, après
-  l'e-mail au doigt. La fenêtre `#linkModal` montre le QR, le **nombre de contrôle** (mono, cran `--t-val`, cadré),
-  le compte à rebours de 120 s et trois étapes. Une fois connecté : une **bande** sur l'ACCUEIL SEULEMENT
-  (`#linkBand`, notice d'information ; ambre `pp-soon` 30 min avant l'heure de fin, règle 8) avec « Se déconnecter et
-  effacer ». Jamais en lecture d'une aide, jamais pendant le soin (règle 11).
-- **Le téléphone** : Moi › Appareils (« Connecter un ordinateur », « Appareils connectés »). La feuille d'approbation :
-  le poste nommé, trois nombres (cibles de 48 px, le choix dit par le bleu de l'action ET `aria-pressed`), des heures
-  de FIN de garde (pas des durées, A644), un avertissement ambre « un écran que vous avez devant vous » ; « Connecter »
-  fermé tant que le bon nombre n'est pas touché.
+- **Moi, déconnecté : une carte « Se connecter »** (`facultatif`, une ligne d'explication) et DEUX CHOIX en cartes
+  blanches à bord net (`.pp-tile`, rond de sélection `.pp-dot`) : **⏱ Temporaire** « jusqu'à la fin de la garde, puis tout
+  s'efface » · **∞ Permanente** « vous restez connecté ». **Rien n'est choisi d'office**, au bureau comme au téléphone
+  (A652) : un sélecteur segmenté sans valeur paraissait désactivé. Temporaire ouvre deux onglets fins (`.pp-tab`) :
+  « Avec un appareil connecté » (le QR DANS la page, le **nombre de contrôle** cadré, trois étapes numérotées,
+  « Nouveau code dans m:ss » — renouvelé 5 fois puis « Afficher un nouveau code ») · « Par e-mail » (l'adresse, le
+  code, puis l'heure de fin de garde : « Se connecter jusqu'à 19:30 »). Permanente : l'e-mail seul. En pied de carte :
+  « Pas encore de compte ? » › Créer un compte.
+- **Vocabulaire** : « un appareil où vous êtes connecté » (téléphone, tablette, ordinateur) connecte un « appareil
+  temporaire » — jamais « le téléphone » comme rôle (A652).
+- **Une fois connecté** : la carte du compte EST la carte du poste — « ⏱ Connexion temporaire », l'heure de fin en
+  grand (`--t-val`), « puis tout s'efface de cet appareil », UNE sortie « Se déconnecter et effacer » ; la **bande** de
+  l'ACCUEIL SEULEMENT (`#linkBand`, `.pp-band`) est NEUTRE (rien ne tourne mal), AMBRE `pp-soon` 30 min avant la fin et
+  après (règle 8). Jamais en lecture d'une aide, jamais pendant le soin (règle 11).
+- **L'appareil connecté** : Moi › Appareils (« Connecter un appareil », « Appareils connectés »). La feuille « Connecter
+  cet appareil ? » : l'appareil nommé, « 1 · Le nombre affiché sur l'appareil » (trois nombres, 48 px), « 2 · Connexion
+  temporaire : jusqu'à quelle heure ? », l'avertissement ambre « un écran que vous avez devant vous », et
+  « ⏱ Connecter jusqu'à 19:30 », fermé tant que le bon nombre n'est pas touché.
 - **Le verrou après réouverture ou 15 min sans geste** : consulter et reprendre restent libres ; créer et modifier
-  passent par la fenêtre de déverrouillage ; SUPPRIMER demande le téléphone à chaque fois (« Confirmer avec le
-  téléphone ») ; l'administration affiche « Pas sur un poste partagé » (A647). Moi verrouillé = identité + carte du
-  poste. La bande nomme le compte.
+  passent par « Déverrouiller avec un appareil connecté » ; SUPPRIMER le demande à chaque fois (« Confirmer avec un
+  appareil connecté ») ; l'administration affiche « Pas sur un appareil temporaire » (A647). La bande verrouillée porte
+  « Déverrouiller ».
 - **Un lien `#lier=`** (appareil photo, message) mène au viseur, jamais droit à la feuille d'approbation ; après
   l'approbation, « Rien ne s'ouvre sur l'écran devant vous ? Déconnecter ».
 - **La notification** (`.toast`) se centre à sa largeur (plafond 560 px / 92 vw — jamais `left:50%` +
