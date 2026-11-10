@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-BkGM40VswbYrjkecOa1o6MZIXQPIStofMgRzXVMT7Ag='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QD3SDagzLhKy3f5jns4yKy+TgeZnccUZ5aJXDWuXPyQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -12591,7 +12591,8 @@ function suiviRowHtml(id){if(!_rowCtx.ctg)return '';const o=suiviOpenOf(id);if(!
 /* La feuille : une note ou une tâche, neuve (`x` absent) ou à modifier. La portée « équipe » est la bibliothèque
    de l'élément, offerte si l'on peut y écrire. */
 let _svEd=null;
-function suiviEdOpen(o){const ent=suiviEnt(o.ent);if(!ent)return;const x=o.x||null,k=x?x.k:o.k;
+function suiviEdOpen(o){if(linkGate(()=>suiviEdOpen(o),'Écrire une note ou une tâche de suivi'))return;   // A692 : sur un appareil temporaire, le suivi suit la règle « créer, modifier »
+  const ent=suiviEnt(o.ent);if(!ent)return;const x=o.x||null,k=x?x.k:o.k;
   const lib=ent.library&&canEditScope(ent.library)?ent.library:null;
   _svEd={ent:ent.id,k,id:x?x.id:uid('s'),lib:x?x.lib:(lib&&o.k==='note'?lib:null),libOk:lib||(x&&x.lib)||null,
     type:x&&x.t?x.t.type:'revoir',ref:x&&x.t?x.t.ref:'',refTxt:x&&x.t?x.t.refTxt:'',prio:x&&x.t?x.t.prio:2,due:x&&x.t?x.t.due:'',body:x?x.body:'',author:x?x.author:'',old:x};
@@ -12695,15 +12696,15 @@ bindModalDismiss(suiviModal,()=>suiviModal.classList.remove('on'));
 // UN écouteur délégué pour tout le suivi (bloc de lecture, « À faire », portes) : les vues se re-rendent, lui reste.
 document.addEventListener('click',async e=>{const t=e.target&&e.target.closest?e.target:null;if(!t)return;
   const nw=t.closest('[data-sunew]');if(nw){const b=nw.closest('[data-suent]');if(b)suiviEdOpen({ent:b.dataset.suent,k:nw.dataset.sunew});return;}
-  const dn=t.closest('[data-sudone]');if(dn&&!dn.disabled){const x=suivi.find(y=>y.id===dn.dataset.sudone);if(x&&suiviCanEdit(x)){suiviDone(x,!x.t.done);suiviRepaint();toast(x.t.done?'Rouverte.':'Fait'+(x.lib?' — pour toute l’équipe.':'.'),2500,true);}return;}
+  const dn=t.closest('[data-sudone]');if(dn&&!dn.disabled){const x=suivi.find(y=>y.id===dn.dataset.sudone);if(x&&suiviCanEdit(x))linkThen(()=>{suiviDone(x,!x.t.done);suiviRepaint();toast(x.t.done?'Rouverte.':'Fait'+(x.lib?' — pour toute l’équipe.':'.'),2500,true);},'Modifier le suivi');return;}   // A692
   const ed=t.closest('[data-suedit]');if(ed){const x=suivi.find(y=>y.id===ed.dataset.suedit);if(x&&suiviCanEdit(x))suiviEdOpen({ent:x.ent,x});return;}
   if(t.closest('[data-sudoor]')){e.preventDefault();suiviOpenView();return;}
   const pl=t.closest('[data-sublk]');if(pl){suiviBlkOpen(pl.dataset.sublk);return;}
   const by=t.closest('[data-suby]');if(by){_svv.by=by.dataset.suby;suiviRepaint();return;}
   const wh=t.closest('[data-suwho]');if(wh){_svv.who=wh.dataset.suwho;suiviRepaint();return;}
   const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');suiviBlkModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
-  const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;const n=suiviConvert(c);suiviRepaint();
-    toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);}});
+  const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;linkThen(()=>{const n=suiviConvert(c);suiviRepaint();   // A692
+    toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);},'Créer des tâches de suivi');}});
 const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
 const collHas=(cid,id)=>{const c=collById(cid);return !!c&&c.ids.indexOf(id)>=0;};
 // Filtre de l'accueil : `state.coll` vide = tout ; sinon les seuls éléments rangés dans la collection.
@@ -16823,7 +16824,7 @@ function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_P
       if(v==='top'){if(c.top)delete c.top;else c.top=true;collsSave();render();toast(c.top?'« '+c.name+' » reste en tête de l’accueil.':'« '+c.name+' » suit l’ordre des plus récentes.');}
       else if(v==='ren'){const name=await collAsk('Renommer',c.name);if(name){c.name=sstr(name,60).trim()||c.name;colls.sort(collCmp);collsSave();render();}/* A592 : renommer re-range */}
       else if(v==='clean'){const ok=new Set(collItems(c).map(x=>x.id));c.ids=c.ids.filter(id=>ok.has(id));collsSave();render();}
-      else if(v==='conv'){const n=suiviConvert(c);toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' — retrouvez-les dans « À faire ».':'Ces éléments ont déjà leur tâche.',4500,true);}
+      else if(v==='conv')linkThen(()=>{const n=suiviConvert(c);toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' — retrouvez-les dans « À faire ».':'Ces éléments ont déjà leur tâche.',4500,true);},'Créer des tâches de suivi');   // A692
       else if(v==='del'&&await confirmDlg('La collection « '+c.name+' » disparaît ; ses '+nb(collItems(c).length,'élément')+' restent dans leurs bibliothèques.',{title:'Supprimer la collection ?',yes:'Supprimer',danger:true})){
         colls=colls.filter(x=>x!==c);collsSave();state.coll=null;render();toast('Collection supprimée — aucune aide n’a été touchée.');}}});}
 /* Au téléphone : une RANGÉE de collections sous l'Accès direct (même dessin que les puces de catégorie), et
@@ -20888,7 +20889,8 @@ function bindNoteBlock(id,rerender){
     // zone de saisie est pris sans défilement (preventScroll) pour la même raison.
     const y=window.scrollY;
     if(state.noteEdit){const ta=document.getElementById('noteTa');if(ta)await saveNote(id,ta.value);state.noteEdit=false;rerender();window.scrollTo(0,y);}
-    else{state.noteEdit=true;rerender();window.scrollTo(0,y);const ta=document.getElementById('noteTa');if(ta){try{ta.focus({preventScroll:true});}catch(e){ta.focus();}ta.setSelectionRange(ta.value.length,ta.value.length);}}};
+    else{if(linkGate(()=>{const b=document.getElementById('noteEditBtn');if(b)b.click();},'Écrire une note personnelle'))return;   // A692
+      state.noteEdit=true;rerender();window.scrollTo(0,y);const ta=document.getElementById('noteTa');if(ta){try{ta.focus({preventScroll:true});}catch(e){ta.focus();}ta.setSelectionRange(ta.value.length,ta.value.length);}}};
   const ta=document.getElementById('noteTa');
   if(ta){let nt=null;
     const save=async()=>{nt=null;await saveNote(id,ta.value);const m=document.getElementById('noteMeta');if(m)m.textContent=(notes[id]&&notes[id].t)?'Enregistrée à l’instant':'';};
@@ -30778,6 +30780,9 @@ const catCount=(id,scope)=>catItems(id,scope).length;
    fermeture : le contexte reprend la main. */
 function openCatMgr(lib){catDelId=null;catPickKey=null;catPickOrig=null;catHueOpen=null;_catHost='catMgrBody';
   _catScopeForce=(lib===undefined)?undefined:(lib||null);
+  /* A692 : les catégories d'une BIBLIOTHÈQUE suivent la règle « créer, modifier » d'un appareil temporaire (le serveur
+     les refuse hors accord). Les catégories personnelles vivent dans le document du compte, qui reste ouvert. */
+  if(linkShared()&&catMgrScopes().some(x=>x)&&linkGate(()=>openCatMgr(lib),'Modifier les catégories d’une bibliothèque')){_catScopeForce=undefined;return;}
   catModal.classList.add('on');renderCatMgr();}
 function closeCatMgr(){catModal.classList.remove('on');_catScopeForce=undefined;
   // L'atelier d'import est une fenêtre OUVERTE DERRIÈRE celle-ci : elle se repeint sur place
@@ -32074,6 +32079,47 @@ let _linkGestAt=Date.now();
 ['pointerdown','keydown'].forEach(t=>document.addEventListener(t,()=>{const now=Date.now();
   if(now-_linkGestAt>linkRelockMs()&&linkShared()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}
   _linkGestAt=now;},true));
+/* v5.116.1 (A693) — LA FENÊTRE D'ÉCRITURE DU POSTE, TENUE PAR LE SERVEUR. Le verrou ci-dessus et « confirmer sur un
+   appareil connecté » n'existaient que dans l'app ; le serveur refuse désormais, hors d'une fenêtre ouverte par l'accord
+   d'un appareil connecté, ce que la règle soumet à confirmation (schema.sql § 10ter-bis). L'app fait trois choses :
+   · elle PROLONGE la fenêtre pendant qu'on se sert du poste (`link_touch`, au plus toutes les 30 s) — sans geste depuis
+     le délai de la règle, elle cesse, et la fenêtre se referme seule côté serveur comme le verrou ici ;
+   · avant d'envoyer, elle LIT l'état (`linkHold`) et RETIENT ce qui serait refusé (`linkSkip`) : rien ne part, rien ne
+     se perd, aucune erreur — et l'écran dit quoi faire (la bande de l'accueil) ;
+   · sous un verrou (v5, v15), une fenêtre trouvée fermée REVERROUILLE l'onglet : le serveur et l'écran disent la même chose.
+   Serveur antérieur (schéma pas rejoué) : `link_touch` n'existe pas, l'état reste inconnu, rien ne change. */
+let _linkSrv=null,_linkTouchAt=0,_linkHoldE=false,_linkHoldD=false,_linkHeldSeen=false;
+const linkWinMs=()=>linkRules().edit==='v15'?LINK_RELOCK_MS:5*60000;
+// PUR (testé) : une erreur du serveur dit-elle « poste verrouillé » ou « interdit sur un poste » ?
+function linkErrInfo(message){const m=String(message||'');return /poste_locked/.test(m)?'locked':/poste_forbidden/.test(m)?'forbidden':null;}
+// Se sert-on du poste, là, maintenant ? (un geste récent ; sous un verrou : l'onglet déverrouillé ; sous « confirmer » :
+// un éditeur ouvert par un accord). C'est la SEULE condition qui prolonge la fenêtre.
+function linkWorking(){const e=linkRules().edit;if(e!=='v5'&&e!=='v15'&&e!=='tel')return false;
+  if(Date.now()-_linkGestAt>linkWinMs())return false;
+  return e==='tel'?(state.view==='edit'||state.view==='protocolEdit'):!linkLocked();}
+async function linkTouch(lire){const sp=linkShared();
+  if(!sp||linkOver()||!Auth.signedIn()||!Sync.online())return _linkSrv;
+  const keep=linkWorking();
+  if(!lire&&(!keep||Date.now()-_linkTouchAt<30000))return _linkSrv;
+  if(keep)_linkTouchAt=Date.now();
+  let r=null;try{r=await rpc('link_touch',{p_keep:keep});}catch(e){return _linkSrv;}
+  if(r&&r.ok)_linkSrv={open:r.open===true,del:r.del_open===true};
+  return _linkSrv;}
+/* Avant chaque envoi : ce que le serveur refuserait MAINTENANT. `_linkHoldE` (créer, modifier), `_linkHoldD` (supprimer). */
+async function linkHold(){_linkHoldE=_linkHoldD=false;_linkHeldSeen=false;
+  if(!linkShared()||linkOver())return;
+  const R=linkRules(),st=await linkTouch(true);
+  _linkHoldE=R.edit==='non'||(!!st&&!st.open&&R.edit!=='libre');
+  _linkHoldD=R.del==='non'||(!!st&&!st.del);
+  // Sous un verrou, une fenêtre fermée au serveur reverrouille l'onglet (l'écran propose alors « Déverrouiller »).
+  if(st&&!st.open&&(R.edit==='v5'||R.edit==='v15')&&!linkLocked()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}}
+// Un élément à envoyer est-il RETENU ? (une suppression suit sa règle, le reste « créer, modifier »).
+function linkSkip(o){const h=!!o&&(o.deletedAt?_linkHoldD:_linkHoldE);if(h)_linkHeldSeen=true;return h;}
+// Une erreur de synchro qui n'en est pas une : le poste attend un accord (jamais une pastille rouge pour cela).
+function linkHeldErr(e){if(!linkShared())return false;const m=String((e&&e.message)||e||'');
+  return linkErrInfo(m)==='locked'||(restErrStatus(m)===403&&(_linkHoldE||_linkHoldD));}
+/* Ce qui se fait tout de suite hors poste, et après l'accord sur un poste (un geste court : cocher une tâche, convertir). */
+function linkThen(fn,quoi){if(!linkGate(fn,quoi))fn();}
 function linkFins(){try{return linkFinsNorm(JSON.parse(localStorage.getItem(spaceKey('ac-link-fins'))||'null'));}catch(e){return LINK_FINS_DEF.slice();}}
 function linkFinsSet(a){try{localStorage.setItem(spaceKey('ac-link-fins'),JSON.stringify(linkFinsNorm(a)));}catch(e){}}
 function linkPrefsKeep(pr){if(!linkShared())return;try{localStorage.setItem(spaceKey('ac-prefs-remote'),JSON.stringify(pr));}catch(e){}}
@@ -32129,7 +32175,9 @@ const Link={
     this._poll=setInterval(async()=>{if(busy||run!==this._run)return;busy=true;
       try{const p=await rpc('link_poll',{p_id:id,p_key:key});if(run!==this._run)return;
         if(p&&p.status==='approved'){clearInterval(this._poll);this._poll=null;st.textContent='Téléphone confirmé — connexion…';
-          if(kind==='unlock'){linkMarkOpen();this.close();toast(step?'✓ Confirmé par l’appareil connecté.':'✓ Appareil déverrouillé pour cet onglet.');if(onDone)onDone();return;}
+          if(kind==='unlock'){linkMarkOpen();_linkSrv={open:true,del:true};_linkTouchAt=0;_linkGestAt=Date.now();   // A693 : le serveur vient d'ouvrir la fenêtre
+            this.close();toast(step?'✓ Confirmé par l’appareil connecté.':'✓ Appareil déverrouillé pour cet onglet.');if(onDone)onDone();
+            Sync.schedule();return;}   // ce qui attendait un accord part maintenant
           await this._claim(id,key,body);return;}
         if(!p||!p.ok||p.status==='expired'||Date.now()>until+5000)expired();
       }catch(e){/* réseau : on réessaie au tour suivant, jusqu'à l'expiration */if(Date.now()>until+5000)expired();}
@@ -32327,6 +32375,7 @@ const Link={
         else if(p&&p.err==='not_found')this._revoked=true;}catch(e){}}
       if(sp.revoked)this._revoked=true;
       else if(this._revoked){linkSharedSet(Object.assign({},sp,{revoked:true,at:Date.now()}));render();}   // A655 : retenu, et l'écran suit
+      if(!this._revoked)linkTouch();   // A693 : la fenêtre d'écriture suit l'usage du poste — sans l'attendre : la sauvegarde d'une session ne patiente derrière rien
       // Une session oubliée se clôt seule (heure de fin passée, 6 h sans geste) — puis se dépose.
       for(const R of linkLive()){const s=sessions.find(x=>x.id===R.sessionId);
         const last=Math.max(R.lastActAt||0,(s&&s.savedAt)||0,R.startedAt||0);
@@ -32392,8 +32441,8 @@ const Link={
     b.querySelector('[data-lkwipe2]').onclick=()=>{this.close();this.wipe(false);};}};
 /* Le VERROU après réouverture : vrai = l'action est retenue (la fenêtre de déverrouillage s'ouvre,
    et l'action reprend une fois le téléphone d'accord). */
-function linkGate(fn){if(!linkShared())return false;if(linkOverDeny())return true;const e=linkRules().edit;
-  if(e==='non')return linkDeny('Créer ou modifier une aide ou un protocole');   // A654
+function linkGate(fn,quoi){if(!linkShared())return false;if(linkOverDeny())return true;const e=linkRules().edit;
+  if(e==='non')return linkDeny(quoi||'Créer ou modifier une aide ou un protocole');   // A654 ; A692 : `quoi` nomme le geste (note, suivi, catégories)
   if(e==='tel')return linkStepGate(fn);                                         // A654 : à chaque fois
   if(!linkLocked())return false;Link.start('unlock',fn);return true;}
 /* A654 : SUPPRIMER suit sa règle — confirmer à chaque fois (défaut, A643) ou interdit. */
@@ -32431,9 +32480,15 @@ function linkPaintBand(){const el=document.getElementById('linkBand');if(!el)ret
   else if(soon)txt=`<b>S’efface à ${esc(fmtHM(sp.endsAt))} — dans ${esc(reste)}.</b> Pour prolonger : depuis un autre appareil connecté, Moi › Connexions temporaires.`;
   else txt=`<b>Connexion temporaire</b> · ${esc(sp.email||'')} · jusqu’à ${esc(day+fmtHM(sp.endsAt))} <span>${locked?'· créer, modifier et supprimer attendent un appareil connecté':'· encore '+esc(reste)}</span>`;
   if(Link._ask&&!sp.revoked)txt+=' <span>· des sessions n’ont pas pu rejoindre l’historique : voir « Sessions »</span>';
+  /* A693 : des modifications RETENUES à la dernière synchro — dit ici, jamais par une erreur. Sous « interdit », elles
+     ne partiront pas de cet appareil ; sinon un accord les envoie (sous un verrou, c'est « Déverrouiller »). */
+  const tenu=_linkHeldSeen&&!past&&!sp.revoked,tenuNon=tenu&&linkRules().edit==='non'&&!_linkHoldD;
+  if(tenu)txt+=tenuNon?' <span>· des modifications faites ici ne sont pas envoyées : la règle de votre administration les interdit sur un appareil temporaire</span>'
+    :locked?'':' <span>· des modifications attendent l’accord d’un appareil connecté pour partir</span>';
   el.hidden=false;el.className='pp-band'+(soon||past?' pp-soon':'');
-  el.innerHTML=`${past||soon?`<span aria-hidden="true">△</span>`:uiIcon(locked?'lock':'clock',18)}<div class="pp-bt">${txt}</div>${locked&&!past&&!soon?'<button type="button" class="btn sm" data-lkunlock>Déverrouiller</button>':''}<button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
+  el.innerHTML=`${past||soon?`<span aria-hidden="true">△</span>`:uiIcon(locked?'lock':'clock',18)}<div class="pp-bt">${txt}</div>${locked&&!past&&!soon?'<button type="button" class="btn sm" data-lkunlock>Déverrouiller</button>':''}${tenu&&!tenuNon&&!locked&&!soon?'<button type="button" class="btn sm" data-lksend>Confirmer pour envoyer</button>':''}<button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
   el.querySelector('[data-lkwipe]').onclick=()=>Link.wipe(false);
+  {const sd=el.querySelector('[data-lksend]');if(sd)sd.onclick=()=>Link.start('unlock',()=>{_linkHeldSeen=false;linkPaintBand();},true);}
   {const u=el.querySelector('[data-lkunlock]');if(u)u.onclick=()=>Link.start('unlock',()=>{linkPaintBand();render();});}}
 bindModalDismiss(document.getElementById('linkModal'),()=>Link.close());
 /* A649, A656 : la liste des connexions temporaires (Moi) se RELIT au retour au premier plan — on va déconnecter le poste,
@@ -32855,7 +32910,7 @@ function admLibsHtml(view){const D=_admD;
   return h+`<div id="admList">${admLibListHtml()}</div><p class="adm-hint">Une rangée ouvre la bibliothèque : inviter, changer un rôle, retirer, renommer — même sans en être membre.</p>`;}
 /* ── Règles de l'instance ────────────────────────────────────────────────────────────────────── */
 const ADM_TEMP_ROWS=[
-  ['edit','Créer, modifier','une aide ou un protocole',[['libre','Libre'],['v5','Verrou 5 min'],['v15','Verrou 15 min'],['tel','Confirmer'],['non','Interdit']]],
+  ['edit','Créer, modifier','aides, protocoles, catégories partagées, notes et suivi',[['libre','Libre'],['v5','Verrou 5 min'],['v15','Verrou 15 min'],['tel','Confirmer'],['non','Interdit']]],
   ['del','Supprimer','une aide, un protocole, une sélection',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['repl','Remplacer une bibliothèque','à l’import',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['exp','Exporter, télécharger','le fichier reste dans les Téléchargements',[['oui','Permis'],['non','Interdit']]],
@@ -34685,6 +34740,10 @@ function restErrStatus(message){const m=String(message||'').match(/^REST (\d+)/)
 // extrait de la boucle de retry de _push pour rester testable via ?__actest (AGENTS.md).
 function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus(message)===403;}
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
+  /* A692-A693 : les deux refus NOMMÉS d'un appareil temporaire (schema.sql § 10ter-bis). Rien n'est perdu dans les deux cas. */
+  {const pl=linkErrInfo(msg);
+    if(pl==='locked')return{icon:SYNC_ERR_ICONS.lock,title:'Confirmation attendue',detail:'Sur cet appareil connecté temporairement, vos modifications partent après l’accord d’un appareil connecté. Elles restent ici en attendant : depuis l’accueil, touchez « Déverrouiller » ou « Confirmer pour envoyer » dans la bande de la connexion temporaire.'};
+    if(pl==='forbidden')return{icon:SYNC_ERR_ICONS.forbidden,title:'Modification non permise ici',detail:'La règle de votre administration interdit de modifier depuis un appareil connecté temporairement : ce qui a été saisi ici reste sur cet appareil et ne sera pas publié. Refaites-le depuis un appareil à vous.'};}
   /* A688 — QUOTA ATTEINT : un message VRAI, sur la surface d'erreur existante (jamais une fenêtre, règle 11). Le
      refus ne touche que les AJOUTS : `_pushTable` rejoue le lot ligne à ligne, le reste part, et ce qui est refusé
      reste « à envoyer » sur l'appareil — rien n'est perdu. */
@@ -34789,6 +34848,9 @@ const Sync={
       // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
       // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
       // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
+      /* A693 : JUSTE AVANT D'ENVOYER (l'état le plus frais, et aucune requête de plus avant les tirages) — ce que le
+         serveur refuserait maintenant à ce poste est RETENU, pas envoyé. Sans effet hors d'un appareil temporaire. */
+      await linkHold();if(fin())return;
       let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
       try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
       try{await this._pushSessions();}catch(e){if(!pushErr)pushErr=e;}
@@ -34806,7 +34868,12 @@ const Sync={
       if(attErr)throw attErr;
       this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
-    }catch(e){this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}
+    }catch(e){
+      /* A693 : un refus « poste verrouillé » (ou le 403 d'un document pendant que le poste est retenu) n'est pas une
+         panne — tout le reste est à jour, et l'accord d'un appareil connecté relancera l'envoi. Ni pastille rouge, ni
+         nouvelle tentative en boucle : la bande de l'accueil le dit. */
+      if(linkHeldErr(e)){_linkHeldSeen=true;this._retryDelay=0;setSyncChip('ok','Synchronisé');try{linkPaintBand();}catch(_){}}
+      else{this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}}
     finally{this.running=false;
       // A653 : la première synchro de la page a fini (bien ou mal) — l'accueil quitte l'état « chargement ».
       if(!_syncDoneOnce){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}
@@ -35030,13 +35097,14 @@ const Sync={
     // titulaire du compte n'a pas tranché (confirmHeldEdits) — appareil partagé.
     const held=new Set(heldEdits());
     return this._pushTable({table:'cognitive_aids',getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),toRow:ficheToRow,
-      skip:f=>held.has(f.id),
+      skip:f=>held.has(f.id)||linkSkip(f),   // A693
       repair:f=>reassignFicheId(f),
       // Réconciliation « droits perdus » (cf. _reclaimBlocked) : clonage via migrate + accès
       // au tableau mémoire, mêmes briques que le pull.
       clone:f=>migrate(JSON.parse(JSON.stringify(f))),idPrefix:'f',fromRow:ficheFromRow,...memOps(fiches)});},
   async _pushProtocols(){
     return this._pushTable({table:'protocols',getAllLocal:()=>Data.getProtocols(),dataPut:p=>Data.putProtocol(p),dataDel:id=>Data.delProtocol(id),toRow:protocolToRow,
+      skip:linkSkip,   // A693
       // Réparation 403 : contrairement aux fiches (reassignFicheId), aucun rattachement local à
       // déplacer (pas de sessions/notes/épingles sur un protocole), les documents PDF étant
       // référencés par des ids indépendants de celui du protocole.
@@ -35204,7 +35272,8 @@ const Sync={
     // entrées restées identiques (si l'utilisateur retape pendant la requête, sa nouvelle
     // version garde son marqueur et partira à la synchro suivante — rien n'est perdu).
     const snap=Object.keys(notes).filter(id=>notes[id].dirty).map(id=>({id,at:notes[id].at}));
-    if(snap.length){
+    if(snap.length&&_linkHoldE)_linkHeldSeen=true;   // A692-A693 : sur un poste, une note suit la règle « créer, modifier » — retenue, pas refusée
+    else if(snap.length){
       const up=snap.map(s=>({user_id:uidv,fiche_id:s.id,note:notes[s.id].t,updated_at:new Date(s.at||Date.now()).toISOString()}));
       await rest('POST','/rest/v1/aid_notes',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
       snap.forEach(s=>{const n=notes[s.id];if(n&&n.dirty&&n.at===s.at)delete n.dirty;});changed=true;
@@ -35228,7 +35297,8 @@ const Sync={
       if(last){const d=new Date((Date.parse(last)||0)-60000).toISOString();try{localStorage.setItem(spaceKey('ac-suivi-cursor'),d);}catch(e){}}}
     const libs=new Set(myLibraries.map(l=>l.id)),n0=suivi.length;suivi=suivi.filter(x=>!x.lib||libs.has(x.lib));if(suivi.length!==n0)changed=true;
     const snap=suivi.filter(x=>x.dirty&&(!x.lib||canEditScope(x.lib))).map(x=>({id:x.id,at:x.at}));
-    if(snap.length){const by=new Map(suivi.map(x=>[x.id,x]));
+    if(snap.length&&_linkHoldE)_linkHeldSeen=true;   // A692-A693 : le suivi aussi
+    else if(snap.length){const by=new Map(suivi.map(x=>[x.id,x]));
       const up=snap.map(z=>{const x=by.get(z.id);return {id:x.id,library_id:x.lib,entity_id:x.ent,kind:x.k,body:x.body,task:x.k==='task'?x.t:null,author:x.author||'',deleted:!!x.del,updated_at:new Date(x.at||Date.now()).toISOString()};});
       await rest('POST','/rest/v1/aid_followups',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
       snap.forEach(z=>{const x=suivi.find(y=>y.id===z.id);if(x&&x.dirty&&x.at===z.at)delete x.dirty;});changed=true;}
@@ -37944,7 +38014,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

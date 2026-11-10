@@ -1756,6 +1756,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const t0=Date.now();A.stripJsonFences('```'+' '.repeat(20000)+'x');
    ok('A670 : stripJsonFences reste linéaire sur « ``` + espaces »',Date.now()-t0<500);
    eq('A670 : clôtures retirées comme avant',A.stripJsonFences('```json\n{"a":1}\n```'),'{"a":1}');}
+  // ── A693 — les deux refus NOMMÉS d'un appareil temporaire se reconnaissent (jamais pris pour un 403 à réparer) ──
+  {eq('A693 : « poste_locked » reconnu dans une erreur REST',A.linkErrInfo('REST 400 {"code":"P0001","details":"edit","message":"poste_locked"}'),'locked');
+   eq('A692 : « poste_forbidden » reconnu',A.linkErrInfo('REST 400 {"code":"P0001","message":"poste_forbidden"}'),'forbidden');
+   eq('A693 : une autre erreur n’est pas un verrou de poste',A.linkErrInfo('REST 403 {"code":"42501","message":"new row violates row-level security policy"}'),null);
+   eq('A693 : vide ou absent',A.linkErrInfo(null),null);
+   ok('A693 : un refus de verrou n’est PAS un candidat à la réparation d’identifiant (HTTP 400, pas 403)',
+     A.isPersoRepairCandidate('REST 400 {"code":"P0001","message":"poste_locked"}',true)===false);}
 
   // ── Étape 3a : le décodeur VENDORISÉ relit ce que l'encodeur MAISON écrit (chargement
   // paresseux compris — c'est le témoin qui resservira au test d'une mise à jour de jsQR) ──
