@@ -7048,7 +7048,7 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
      document.querySelector('#viewSheetBody [data-vs="filt:all"]').click();await __acCalme(200);closeViewSheet();await __acCalme(150);}
     /* Connexion : Entrée dans le champ e-mail déclenche l'envoi (l'appel réseau est remplacé). */
     let envoye='';Auth.sendCode=async e=>{envoye=e;};
-    _authStep.mode='email';_authStep.msg='';openAuth();await __acCalme(300);
+    _authStep.mode='email';_authStep.msg='';_authStep.kind='perm';openAuth();await __acCalme(300);   // A652 : rien n'est choisi d'office — « Permanente » ouvre le champ
     const em=document.getElementById('authEmail');em.value='test@example.org';
     em.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await __acCalme(300);
     out.auth={envoye,msg:(document.querySelector('.auth-msg')||{}).textContent||'',code:!!document.getElementById('authCode')};
