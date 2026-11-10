@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112, A654 au lot v5.113, A655-A656 au lot v5.114, A657-A658 au lot v5.114.1 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112, A654 au lot v5.113, A655-A656 au lot v5.114, A657-A658 au lot v5.114.1, A659-A663 au lot v5.115 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A658 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A663 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -252,7 +252,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-55.md`](docs/decisions/lot-v5-55.md) | A494-A495 | Administration devient une page à sections |
 | [`lot-v5-56.md`](docs/decisions/lot-v5-56.md) | A496-A498 | La collection se choisit à la création ; le voile d'une feuille absorbe le tap ; tête du menu des catégories |
 | [`lot-v5-57.md`](docs/decisions/lot-v5-57.md) | A499-A501, A511-A512 | « Tout est prêt » ; pastille du compte sur l'avatar « Moi » ; colonne gauche sous la barre d'état iPad ; A511 : paysage bas, quai à mots entiers, correctifs de mesure ; A512 : zones sûres latérales |
-| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513-A585 | REFONTE « Natif » (cible décidée, implémentation à venir) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
+| [`lot-v6-0.md`](docs/decisions/lot-v6-0.md) | A502-A510, A513-A585 | REFONTE « Natif » (cible décidée ; implémentée par lots, v5.58 à v5.66) : verre clair, onglets au téléphone, grand titre, listes groupées, cases rondes, feuilles du bas, moniteur ; arbitrages après mesure (A510) |
 | [`lot-v5-94.md`](docs/decisions/lot-v5-94.md) | A586 | Liens d'application (`#creer`, `#acces-direct`, `#bibliotheques`…), Moi › « Liens et raccourcis », raccourcis du manifeste, limite d'iOS |
 | [`lot-v5-95.md`](docs/decisions/lot-v5-95.md) | A587-A589 | Accueil à l'échelle (v5.95.0) : vos collections en tête, répertoire « Tout » qui se plie, réglage « comme avant », provenance sur la tuile |
 | [`lot-v5-96.md`](docs/decisions/lot-v5-96.md) | A590-A592 | La rangée « En cours » redevient la bande de session : sans étoile, Reprendre et Terminer… de retour, contour vert en sombre ; la carte « Session terminée » suit (sans liseré, avant « En cours ») |
@@ -265,6 +265,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-112.md`](docs/decisions/lot-v5-112.md) | A651-A653 | Se connecter : Temporaire ou Permanente (rien d'office), le code à viser dans la page, la connexion temporaire par e-mail (`link_self`), « un appareil connecté » au lieu du téléphone, carte du poste à une sortie, bande neutre ; l'accueil « Chargement de votre compte… » au premier tirage (A653) |
 | [`lot-v5-113.md`](docs/decisions/lot-v5-113.md) | A654 | Les règles de la connexion temporaire réglables dans Administration › Règles (pour toute l'application), appliquées par le serveur (`temp_rules`, RLS restrictives, durée max) ; Administration et suppression du compte toujours interdites |
 | [`lot-v5-114.md`](docs/decisions/lot-v5-114.md) | A655-A658 | L'appareil déconnecté à distance s'arrête aussitôt, et le serveur lui ferme les tables (`link_dead`) ; « Connecter un appareil » refait : liste dans Moi, viseur titré, une étape à la fois, « gérer » ; A657 : le filet d'un parcours d'historique ne veille que le sien ; A658 : déconnecté pendant une synchro |
+| [`lot-v5-115.md`](docs/decisions/lot-v5-115.md) | A659-A663 | Les corrections de l'audit complet : filets de session qui ne se déclenchaient pas (rappel critique, compte d'étapes, ancre des minuteurs, « Continuer seul » sans attente), Moi › Alarmes, éditeur et import (bloc supprimé, fichier d'IA sans état en Brouillon — amende A129), synchro sans re-rendu en soin, versions des protocoles, œ/æ repliés (`txNormMap`), impression depuis le sombre, message si l'app ne démarre pas ; A663 : serveur à rejouer, `link-claim` exige `APP_ORIGIN` (amende A650) |
 
 ### Carte par sujet
 
@@ -277,19 +278,19 @@ plages A renvoient au tableau ci-dessus.
 | **Couleur, registres, accents, catégories** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories | A222-A224, A308-A316, A400, A406-A408, A416-A417, A435, A485, A503, A506, A574 |
 | **Typographie, espacement, contrôles** | Largeurs & échelles fermées | A345 (échelle A6 normative), A350, A374-A375, A403-A404, A505-A506, A531, A579 |
 | **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » | A345, A381, A388, A401-A402, A411, A463, A515, A519, A569-A570 |
-| **Mode crise : session, quai, capsule, volet** | Mode statique · Challenge-response · Alarme de minuteur · Dialogue « Terminer la session ? » · ZONE HAUTE DE CRISE | A1-A112, A331, A336-A337, A346, A349, A354-A357, A363, A403, A409-A415, A462, A473, A503, A507-A509, A518, A568, A577-A578 |
+| **Mode crise : session, quai, capsule, volet** | Mode statique · Challenge-response · Alarme de minuteur · Dialogue « Terminer la session ? » · ZONE HAUTE DE CRISE | A1-A112, A331, A336-A337, A346, A349, A354-A357, A363, A403, A409-A415, A462, A473, A503, A507-A509, A518, A568, A577-A578, A659 (rappel critique, compte d'étapes, alarmes au calme) |
 | **Minuteurs et compteurs liés, moment d'une étape, moniteur** | JALONS DE BOUCLE | A231-A232, A341-A342, A377-A382, A440, A474, A518, A535, A569-A571, A573, A576 |
 | **Parcours, Se repérer, Page, Schéma** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE | A133-A138, A339, A343-A344, A376, A388-A395, A448, A450, A522, A529, A534, A554, A558-A559, A580-A582 |
 | **Complications, revue « à tout moment », bande des repères** | COMPLICATIONS · PORTÉE D'UNE ACTION DE REPRISE · REPÈRES POSOLOGIQUES | A333-A335, A396-A399, A449 |
 | **Écran d'entrée d'une aide, exercice, guide** | MODE EXERCICE | A330, A347, A358, A366, A460, A463-A467, A520, A577 |
 | **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506, A515-A517, A523-A524, A527-A528, A537-A539, A544, A545, A556, A586, A587-A592, A595-A603, A617-A621 |
 | **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499, A522, A586, A613-A631 (suivi : notes et tâches), A643-A644, A647 (poste partagé, connexion par le téléphone, ce qu'il ne fait pas), A651-A652 (se connecter : temporaire ou permanente), A654 (règles de la connexion temporaire), A655-A656 (appareil déconnecté, « Connecter un appareil ») |
-| **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496, A520-A521, A546-A553, A560-A561, A583-A585, A593-A594, A604, A607-A612, A614, A633-A637, A641-A642 |
+| **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496, A520-A521, A546-A553, A560-A561, A583-A585, A593-A594, A604, A607-A612, A614, A633-A637, A641-A642, A660 |
 | **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459, A554-A555, A557 |
-| **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392, A562, A611, A622, A633, A638 |
-| **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387 |
-| **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501, A502-A504, A508, A511-A512, A517, A525-A526, A536, A540-A543, A563, A575, A649 (notification au-dessus de la barre d'onglets, menus de filtres flottants), A657 (le filet d'un retour ne veille que le sien) |
-| **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483, A613 (`aid_followups`), A643 (`device_links`, `link-claim`, droit de dépôt), A645 (sauvegarde d'une session en cours), A646 (`camera=(self)`), A648 (aucun mot de passe : `forbid_passwords`), A649 (`link_end`), A650 (`APP_ORIGIN` en liste), A651 (`link_self`), A654 (`temp_rules`, `set_temp_rules`, politiques restrictives `*_temp_*`), A655 (`link_dead`, politiques `*_link_dead`), A658 (une synchro en vol s'arrête à la déconnexion) |
+| **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392, A562, A611, A622, A633, A638, A660 (fichier d'IA sans état en Brouillon) |
+| **Partage de session** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ | A198-A221, A302, A317-A329, A332, A385, A387, A659 (ancre en heure serveur, détachement sans attente), A661 (hub local) |
+| **Chrome, fenêtres, clavier, zoom, iOS, retour système** | ON ANIME LA COMPOSITION · En-têtes V5 · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · LOGO DE MARQUE · Pieds de page · Interactif | A192-A197, A237, A284, A313, A335, A340, A352, A361, A368-A373, A386, A405, A427, A430, A480, A492, A497, A501, A502-A504, A508, A511-A512, A517, A525-A526, A536, A540-A543, A563, A575, A649 (notification au-dessus de la barre d'onglets, menus de filtres flottants), A657 (le filet d'un retour ne veille que le sien), A662 (impression depuis le sombre, repli si l'app ne démarre pas) |
+| **Données, stockage, synchro, sécurité** | Nommage SQL (et règles 4 à 6) | A290, A305, A475, A478-A479, A483, A613 (`aid_followups`), A643 (`device_links`, `link-claim`, droit de dépôt), A645 (sauvegarde d'une session en cours), A646 (`camera=(self)`), A648 (aucun mot de passe : `forbid_passwords`), A649 (`link_end`), A650 (`APP_ORIGIN` en liste), A651 (`link_self`), A654 (`temp_rules`, `set_temp_rules`, politiques restrictives `*_temp_*`), A655 (`link_dead`, politiques `*_link_dead`), A658 (une synchro en vol s'arrête à la déconnexion), A661 (versions des protocoles, synchro sans re-rendu en soin, `txNormMap`), A663 (serveur : `purge_user_data`, partage non inscriptible, `leave_library`, `APP_ORIGIN` obligatoire) |
 | **Outillage, garde-fous, audits** | Collision de noms de classe · Hygiène de suppression | A154-A158, A278-A283, A289, A292-A293, A329, A420, A439, A451, A482, A514, A563-A567, A572 ; `garde-fous-et-audits.md` |
 
 ## Règle de publication (IMPÉRATIF)
@@ -392,7 +393,7 @@ par défaut borné à 12 h, purge 30 min après expiration) et ce qui ne sort ja
 cohérent avec la notice affichée à l'invité** (`#joinScreen`) : les deux évoluent ensemble, ou
 aucun.
 
-## Se repérer dans `index.html` (monofichier, ~33 400 lignes à la v5.57)
+## Se repérer dans `index.html` (monofichier, ~37 900 lignes à la v5.115)
 Le fichier s'ouvre sur un **grand commentaire d'architecture** (objectif, règles de conception,
 modèle de données, règles de sécurité) : le lire en premier. Ensuite, dans l'ordre.
 

@@ -209,6 +209,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
+  eq('A661 : ligatures et apostrophe typographique repliées', A.txNorm('Œdème du cœur, l’adrénaline'), "oedeme du coeur, l'adrenaline");
+  eq('A661 : « Œdème » se range à O, plus sous #', A.azLetter('Œdème aigu'), 'O');
+  eq('A661 : une URL portant == ne casse plus le lien', /<a [^>]*href="https:\/\/ex\.org\/a\?x==abc==&amp;y=1"/.test(A.mdInline('[doc](https://ex.org/a?x==abc==&y=1)')), true);
+  eq('A661 : lien tel: admis, javascript: refusé', [/href="tel:\+33123456789"/.test(A.mdInline('[SAMU](tel:+33123456789)')), /href/.test(A.mdInline('[x](javascript:alert(1))'))], [true,false]);
+  eq('A661 : couleur hex à 5 chiffres refusée', A.safeColor('#12345')==='#12345', false);
   // ⚠ Fixture MIGRÉE : les listes (confirmation, différentiels…) sont des vues sur le pool depuis
   // l'étape B — sur un objet brut, listOf() rend [] et le témoin ne rencontre pas son cas. C'est
   // ainsi que « les différentiels sont introuvables à la recherche » (corrigé v5.10.2) est resté
@@ -2381,6 +2386,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const lb=c=>c.map(x=>x.lbl),df=c=>c.findIndex(x=>x.def);
    {const c=A.linkEndChoices(at(0,7,45));eq('A643 : connexion à 07:45 (journée de 12 h ou garde de 24 h)',[lb(c),df(c)],[['10:00','19:30','Demain 10:00'],1]);}
    {const c=A.linkEndChoices(at(0,8,15));eq('A643 : connexion à 08:15 (journée 8h15 → 18h30/19h)',[lb(c),df(c)],[['10:00','19:30','Demain 10:00'],1]);}
+   // A661 : garde de nuit, durée maximale 12 h — de 18 h 30 à 22 h aucune fin par défaut ne tombait dans la fenêtre : la liste était VIDE.
+   {let vide=0;for(let h=0;h<24;h++)for(const m of [0,15,30,45]){const c=A.linkEndChoices(at(0,h,m),null,12);if(!c.length||c.findIndex(x=>x.def)<0)vide++;}
+    eq('A661 : une heure de fin est toujours proposée (durée max 12 h, chaque quart d’heure)',vide,0);}
    {const c=A.linkEndChoices(at(0,13,0));eq('A643 : connexion à 13:00 — deux choix, « demain 19:30 » passerait les 28 h',[lb(c),df(c)],[['19:30','Demain 10:00'],0]);}
    {const c=A.linkEndChoices(at(0,7,45),null,12);eq('A654 : durée maximale réglée à 12 h — « demain 10:00 » disparaît',lb(c),['10:00','19:30']);}
    eq('A654 : règles par défaut (les paliers d’A647)',A.linkRulesNorm(null),{edit:'v15',del:'tel',repl:'non',exp:'oui',dur:28});

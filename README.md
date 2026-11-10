@@ -129,7 +129,7 @@ inaudible : le flash d'écran sert d'alerte de secours.
   (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` enchaîne
   les **28 garde-fous statiques** (syntaxe, couleurs, classes, échelles typographique et
   d'espacement, service worker, SQL, CHANGELOG, lexique, guide, hashs CSP…) ; `npm run audit`
-  rejoue les **25 harnais** de mesure (accessibilité, doctrine, partage, surfaces).
+  rejoue les **27 harnais** de mesure (accessibilité, doctrine, partage, surfaces).
 - **Contribuer avec une IA** : `AGENTS.md` donne les quinze règles, la méthode de recherche
   dans la doctrine (`docs/decisions/`) à suivre avant toute modification, et la procédure de
   commit. L'intégration continue
