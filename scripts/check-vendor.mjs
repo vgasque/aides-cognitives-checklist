@@ -96,9 +96,28 @@ for (const f of surDisque) {
   if (!annonces.some(m => m[1] === f)) fautes.push(`${f} : sur le disque, absente de vendor/fonts/README.txt`);
 }
 
+/* ---- A683 : EMPREINTES. La version (pdf.js) et la taille (jsQR) ne disent pas que le fichier est CELUI
+   de l'amont : un fichier modifié de même version, ou de même taille, passait ce contrôle. Chaque note
+   porte désormais « <fichier> sha256 <64 hex> », comparé au disque ; un fichier de code vendorisé sans
+   empreinte dans sa note est une faute. Mettre à jour un actif = mettre à jour son empreinte. ---- */
+{ const { createHash } = await import('node:crypto');
+  let nEmp = 0;
+  for (const [dir, readme, fichiers] of [['vendor/pdfjs/', pdfReadme, ['pdf.min.js', 'pdf.worker.min.js']], ['vendor/jsqr/', jsqrReadme, ['jsQR.js']]]) {
+    for (const f of fichiers) {
+      const m = readme.match(new RegExp(f.replace(/\./g, '\\.') + '\\s+sha256\\s+([0-9a-f]{64})'));
+      if (!m) { fautes.push(`${dir}${f} : aucune empreinte « ${f} sha256 … » dans README.txt`); continue; }
+      let reel = null;
+      try { reel = createHash('sha256').update(await readFile(ROOT + dir + f)).digest('hex'); }
+      catch { fautes.push(`${dir}${f} : annoncé dans README.txt, absent du disque`); continue; }
+      if (reel !== m[1]) fautes.push(`${dir}${f} : empreinte ${reel.slice(0, 12)}… sur le disque, ${m[1].slice(0, 12)}… dans README.txt`);
+      else nEmp++;
+    }
+  }
+  globalThis.__nEmp = nEmp; }
+
 if (fautes.length) {
   console.error('✗ check-vendor : un actif vendorisé et sa note ne disent pas la même chose.');
   fautes.forEach(f => console.error('    ' + f));
   process.exit(1);
 }
-console.log(`✓ check-vendor : pdf.js ${mDecl[1]} et jsQR ${jDecl ? jDecl[1] : '?'} — clés de cache alignées ; ${annonces.length} police(s) conformes à leur note.`);
+console.log(`✓ check-vendor : pdf.js ${mDecl[1]} et jsQR ${jDecl ? jDecl[1] : '?'} — clés de cache alignées ; ${annonces.length} police(s) conformes à leur note ; ${globalThis.__nEmp} empreinte(s) SHA-256 vérifiées.`);

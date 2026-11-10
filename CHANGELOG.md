@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.115.2] — 2026-11-10
+Audit de sécurité, suite : le serveur (A676-A683).
+**À faire côté serveur : rejouer `supabase/schema.sql`**, puis `supabase/rls-tests.sql` pour vérifier. La fonction
+`link-claim` n'a pas changé.
+- **Partage en direct — régression de la v5.115.1 corrigée** : après une bascule en direct, le canal pouvait se fermer
+  au bout de trente secondes ; l'invité perdait alors le lien et ne suivait plus le retour en ligne.
+- **Poste partagé** : « Se déconnecter et effacer » ferme réellement la session du compte sur le serveur. Avant, un
+  jeton copié sur le poste pouvait redevenir, une semaine plus tard, un accès complet au compte.
+- **Aides partagées** : une modification ne peut plus être antidatée — tous les appareils la reçoivent.
+- **Connexion d'un poste** : la limite de demandes ne se contourne plus, et un afflux de demandes ne bloque plus le
+  déverrouillage d'un poste déjà connecté.
+- **Administration** : les listes (comptes, bibliothèques, demandes) ne se lisent plus depuis un poste partagé.
+- **Partage de session** : le serveur refuse toute valeur qui n'a pas la forme attendue (plus de texte libre glissé
+  dans un évènement) ; un envoi refusé pour débit ne compte plus dans le quota.
+- **Suivi** : l'auteur d'une note d'équipe est posé par le serveur — on ne signe plus à la place d'un collègue.
+- **Identifiants** : le serveur refuse une aide ou un protocole dont l'identifiant n'a pas la forme attendue, et un nom
+  de bibliothèque de plus de 120 caractères.
+- **Lien `?__actest`** : sans effet sur le site publié (il donnait une application qui ne démarrait pas).
+- **Outillage** : `check-vendor` compare l'empreinte de pdf.js et de jsQR à celle notée dans leur notice.
+- Restent à décider : l'invitation avec acceptation et les quotas par compte (`docs/decisions/lot-v5-115-2.md`).
+
 ## [5.115.1] — 2026-11-10
 Les corrections de l'audit de sécurité (A664-A675), côté application et outillage. L'audit n'a trouvé ni injection de
 code (XSS), ni secret dans le dépôt, ni fuite entre bibliothèques. **Rien à rejouer côté serveur pour cette version** ;
@@ -286,9 +307,3 @@ Retour depuis une collection (A617). Rien à rejouer côté serveur.
 - **Une collection ouverte depuis l'accueil a son bouton « ‹ Accueil »**, en haut à gauche (un simple « ‹ » sur les
   petits écrans).
 - **Le geste retour du téléphone y ramène aussi à l'accueil** — il faisait quitter l'application.
-
-## [5.109.1] — 2026-11-08
-Correctif du suivi (A616). Rien à rejouer côté serveur.
-- **Ouverte depuis la feuille « Suivi » ou depuis « À faire », la fenêtre d'une note ou d'une tâche s'affiche
-  désormais par-dessus** : elle se ferme normalement et se rouvre. Avant, elle restait cachée dessous, et « ＋ Tâche »
-  ne rouvrait plus rien.

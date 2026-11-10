@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-dsAXlLjx5+1l8CwFkYCk3+UV2qVKNTKmwNgbNLMtD50='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-38Zca7pj3c2DpOw2jVd2y7VDdch2SxK9FKge9Aqsfls='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10550,7 +10550,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.115.1';
+const APP_VERSION='5.115.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -36741,14 +36741,18 @@ async function slSbOnSig(ev){
       const _qui=(Share.participants||[]).find(x=>x&&x.id===ev.actor);
       if(!_qui||_qui.revoked||_qui.detached)return;
       const _t=Date.now();slSb.offAt=slSb.offAt||Object.create(null);
-      if(_t-(slSb.offAt[ev.actor]||0)<3000)return;   // un invité sain ne re-propose qu'après sa montre de 30 s
-      slSb.offAt[ev.actor]=_t;
+      // Plafond en NOMBRE (8 par minute et par participant), pas en délai : au retour en ligne le fil rejoue
+      // parfois une offre ancienne juste avant la neuve — un délai entre deux offres écartait alors la bonne.
+      {const h=(slSb.offAt[ev.actor]||[]).filter(x=>_t-x<60000);if(h.length>=8){slSb.offAt[ev.actor]=h;return;}h.push(_t);slSb.offAt[ev.actor]=h;}
       const o=slPairUnpack(String(p.o));if(!o)return;
       slSb.pend=slSb.pend||Object.create(null);
-      {const vx=slSb.pend[ev.actor];if(vx&&!slSb.dcs.some(d=>d.pc===vx))try{vx.close();}catch(_){}}   // l'offre neuve remplace la précédente restée en attente
+      {const vx=slSb.pend[ev.actor];if(vx&&!vx.__acOpen)try{vx.close();}catch(_){}}   // l'offre neuve remplace la précédente restée EN ATTENTE (jamais un canal ouvert)
       const h=await slPcGuest(o);slSb.pend[ev.actor]=h.pc;
-      setTimeout(()=>{try{if(!slSb.dcs.some(d=>d.pc===h.pc)&&h.pc)h.pc.close();}catch(_){}},30000);
-      h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc,pc:h.pc});
+      /* ⚠ « Ouvert » se lit SUR la connexion (`__acOpen`), pas dans `slSb.dcs` : à la bascule, les canaux vivants
+         quittent cette liste pour `SL.wires` — s'y fier fermait le canal direct EN SERVICE trente secondes après
+         l'offre (régression de la v5.115.1, trouvée au harnais : retour en ligne sans billet « gc »). */
+      setTimeout(()=>{try{if(h.pc&&!h.pc.__acOpen)h.pc.close();}catch(_){}},30000);
+      h.channel.then(dc=>{const go=()=>{try{h.pc.__acOpen=true;}catch(_){}slSb.dcs.push({actor:ev.actor,dc,pc:h.pc});
           dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slModePaint();}catch(_){}};
           try{slModePaint();}catch(_){}slSbReadySay();};
         dc.readyState==='open'?go():dc.onopen=go;});
@@ -37854,7 +37858,11 @@ if(location.search.indexOf('__acdebug')>=0){
    Si l'URL contient ?__actest (utilisé uniquement par tests.html, chargé en iframe), on n'amorce
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
-if(location.search.indexOf('__actest')>=0){
+/* A683 — LE MODE TEST NE S'OUVRE PLUS PAR UN SIMPLE LIEN. `?__actest` suffisait, y compris sur le site
+   publié : un lien ainsi terminé donnait une application qui ne démarre pas (écran inerte), en apparence
+   « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
+   locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
+if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,

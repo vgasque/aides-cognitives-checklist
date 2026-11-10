@@ -107,6 +107,18 @@ returns boolean language sql stable security definer set search_path = public, p
   select exists (select 1 from public.app_admins where user_id = auth.uid());
 $$;
 
+-- A679 — LES LECTURES D'ADMINISTRATION AUSSI SE FERMENT AU POSTE PARTAGÉ. Les gestes d'administration
+-- refusaient déjà une session de poste (`is_app_admin() and not link_is_poste()`) ; les six LISTES, non :
+-- le poste d'un administrateur — ou son jeton encore valide après déconnexion — lisait toutes les
+-- adresses, les demandes et les appartenances. `session_is_poste` est en PL/pgSQL pour se lier à
+-- l'exécution (`link_is_poste` est définie plus bas dans ce fichier). Aucun grant client.
+create or replace function public.session_is_poste()
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin return public.link_is_poste(); end; $$;
+create or replace function public.admin_reads()
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin return public.is_app_admin() and not public.link_is_poste(); end; $$;
+
 create or replace function public.is_member(lib text)
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select exists (select 1 from public.memberships
@@ -319,7 +331,18 @@ create or replace function public.clamp_updated_at()
 -- category_sets. Elle n'est PAS security definer — elle s'exécute avec les droits de l'appelant,
 -- donc l'enjeu n'est pas une élévation mais l'indépendance vis-à-vis du search_path du client.
 returns trigger language plpgsql set search_path = public, pg_temp as $$
-begin if new.updated_at is null or new.updated_at > now() then new.updated_at = now(); end if; return new; end;
+begin
+  if new.updated_at is null or new.updated_at > now() then new.updated_at = now(); end if;
+  /* A677 — ET IL N'EST PLUS ANTIDATABLE. Seul le futur était borné : un éditeur réécrivait une aide
+     partagée en gardant (ou en reculant) `updated_at`. Les appareils déjà synchronisés ne la tiraient
+     jamais (curseur `updated_at > …`), tout appareil neuf la recevait — deux versions de la même aide
+     selon l'écran. Toute modification AVANCE désormais l'horodatage, d'une milliseconde au moins. */
+  if tg_op = 'UPDATE' and old.updated_at is not null and new.updated_at <= old.updated_at then
+    new.updated_at = least(now(), old.updated_at + interval '1 millisecond');
+    if new.updated_at <= old.updated_at then new.updated_at = old.updated_at + interval '1 millisecond'; end if;
+  end if;
+  return new;
+end;
 $$;
 drop trigger if exists fiches_clamp_updated   on public.cognitive_aids;
 drop trigger if exists catsets_clamp_updated  on public.category_sets;
@@ -557,6 +580,25 @@ drop trigger if exists followups_clamp_updated on public.aid_followups;
 create trigger followups_clamp_updated before insert or update on public.aid_followups
   for each row execute function public.clamp_updated_at();
 
+-- A681 — L'AUTEUR D'UNE NOTE D'ÉQUIPE EST CELUI QUE LE SERVEUR A VU L'ÉCRIRE. `author` était une
+-- valeur libre du client, alors que l'écran promet « signée de votre adresse » : un éditeur signait du
+-- nom d'un collègue. À la création d'une ligne d'équipe, l'auteur devient l'adresse du jeton ; à la
+-- modification, il ne change plus (réécrire la note d'un collègue reste permis, A613 — la signer à sa
+-- place, non). Les lignes « pour moi » ne sont lues que par leur propriétaire : inchangées.
+create or replace function public.followups_stamp_author()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if tg_op = 'UPDATE' then
+    if old.library_id is not null then new.author = old.author; end if;
+  elsif new.library_id is not null then
+    new.author = left(coalesce(nullif(auth.jwt() ->> 'email', ''), new.author, ''), 160);
+  end if;
+  return new;
+end; $$;
+drop trigger if exists followups_stamp_author on public.aid_followups;
+create trigger followups_stamp_author before insert or update on public.aid_followups
+  for each row execute function public.followups_stamp_author();
+
 -- Statut du compte courant (le client l'appelle juste après la vérification OTP, puis à chaque
 -- synchro) : reflète EXACTEMENT is_approved() (si la validation est désactivée globalement, ou si
 -- aucune ligne n'existe -> 'approved', pour ne jamais afficher "en attente" à quelqu'un dont la
@@ -600,7 +642,7 @@ create or replace function public.list_unapproved_users()
 returns table(user_id uuid, email text, status text, created_at timestamptz)
 language sql security definer set search_path = public, pg_temp as $$
   select s.user_id, s.email, s.status, s.created_at from public.user_status s
-  where s.status in ('pending','rejected') and public.is_app_admin()
+  where s.status in ('pending','rejected') and public.admin_reads()
   order by s.created_at;
 $$;
 grant execute on function public.list_unapproved_users() to authenticated;
@@ -742,6 +784,21 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 grant select, insert, update, delete on public.protocols to authenticated;
+
+-- A682 — LES IDENTIFIANTS ONT UNE FORME, AU SERVEUR AUSSI. `id` d'aide et de protocole était un `text`
+-- libre : le jeu sûr du client (`SAFE_ID`) était la SEULE barrière, et une ligne à id quelconque, écrite
+-- par un éditeur, provoquait chez chaque membre un cycle création-suppression à chaque synchro. Même
+-- grammaire que `aid_notes`/`aid_followups` (A663), en classe NIÉE. `not valid` : les lignes existantes
+-- ne sont pas relues ; toute écriture nouvelle l'est. Nom de bibliothèque borné comme le client (120).
+alter table public.cognitive_aids drop constraint if exists cognitive_aids_id_chk;
+alter table public.cognitive_aids add constraint cognitive_aids_id_chk
+  check (char_length(id) between 1 and 64 and id !~ '[^A-Za-z0-9_-]') not valid;
+alter table public.protocols drop constraint if exists protocols_id_chk;
+alter table public.protocols add constraint protocols_id_chk
+  check (char_length(id) between 1 and 64 and id !~ '[^A-Za-z0-9_-]') not valid;
+alter table public.libraries drop constraint if exists libraries_name_len_chk;
+alter table public.libraries add constraint libraries_name_len_chk
+  check (char_length(name) <= 120) not valid;
 
 -- ═══════════════════════════════════════════════════════════════════════════════════════════════
 -- HISTORIQUE DE SESSIONS SYNCHRONISÉ (v4.54.0) — ET L'INVARIANT QU'IL LÈVE
@@ -950,7 +1007,7 @@ language sql stable security definer set search_path = public, storage, pg_temp 
   select o.name, coalesce((o.metadata->>'size')::bigint, 0), o.created_at
   from storage.objects o
   where o.bucket_id = 'attachments'
-    and public.is_app_admin()
+    and public.admin_reads()   -- A679
     and substring(o.name from '([A-Za-z0-9_-]{1,64})\.pdf$') not in (
       select a->>'id'
       from public.cognitive_aids f, jsonb_array_elements(coalesce(f.data->'attachments','[]'::jsonb)) a
@@ -1345,7 +1402,7 @@ set search_path = public, extensions, pg_temp as $$
 declare v_code text; v_sec int; v_s public.shared_sessions%rowtype; v_n int;
 begin
   perform public.share_purge();
-  if auth.uid() is null or public.link_dead() then   -- A663 : ni un poste déconnecté (cf. share_open)
+  if auth.uid() is null or public.link_dead() or not public.is_approved() then   -- A663 : ni un poste déconnecté (cf. share_open) ; A679 : ni un compte qui n'est plus validé
     return jsonb_build_object('ok', false, 'err', 'refused'); end if;
   /* DEUX BOUCLES INFINIES FERMÉES ICI (v4.49.0). `share_admit` ne vérifiait NI l'expiration NI le
      quota : sur un partage expiré ou déjà plein, il rendait un code NEUF — que l'hôte lisait à voix
@@ -1511,6 +1568,29 @@ begin
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
 end; $$;
 
+-- A680 — LA VALEUR A LE TYPE DE SA CLÉ. La liste blanche de `share_push` ne filtrait que les NOMS : sous
+-- `id` ou `v`, un client modifié rangeait un texte libre, un objet, un tableau — la règle 15 (« aucun
+-- texte libre ne traverse le réseau ») ne tenait donc, au serveur, que pour les noms, et les autres écrans
+-- recevaient des valeurs de forme quelconque. Une clé au type inattendu est RETIRÉE (comme une clé hors
+-- liste), jamais corrigée. Chaînes : jeu fermé sans espace, écrit en classe NIÉE (aucune ancre, cf.
+-- check-sql). Aucun grant client.
+create or replace function public.share_val_ok(k text, v jsonb)
+returns boolean language sql immutable set search_path = public, pg_temp as $$
+  select case
+    when k in ('v','elapsedMs','cycles','anchor') then jsonb_typeof(v) = 'number'
+    when k in ('running','on','exo','take')        then jsonb_typeof(v) = 'boolean'
+    when k in ('nav','navSeq')                     then jsonb_typeof(v) = 'array'
+    when k = 'ref'                                 then jsonb_typeof(v) in ('object','null')
+    when k = 't' then jsonb_typeof(v) = 'number'
+      or (jsonb_typeof(v) = 'string' and length(v #>> '{}') <= 8 and (v #>> '{}') !~ '[^A-Za-z0-9_-]')
+    when k = 'k' then jsonb_typeof(v) = 'string' and length(v #>> '{}') <= 140
+      and (v #>> '{}') !~ '[^A-Za-z0-9_:-]'
+    when k in ('o','a') then jsonb_typeof(v) = 'string' and (v #>> '{}') !~ '[^A-Za-z0-9_-]'
+    else jsonb_typeof(v) = 'string' and length(v #>> '{}') <= 80
+      and (v #>> '{}') !~ '[^A-Za-z0-9_-]'   -- id, to, was, code
+  end;
+$$;
+
 -- ---------- 8octies. ÉCRITURE ----------------------------------------------------------------
 -- Un participant n'écrit QUE des lignes d'évènement, jamais un état. Le numéro de séquence est
 -- pris sous verrou de la ligne du partage, dans la transaction : c'est ce qui sérialise les
@@ -1560,6 +1640,12 @@ begin
    returning window_count into v_win;
   if v_win > 120 or (select events_count from public.session_participants
                       where share_id = a.share_id and participant = a.participant) > 5000 then
+    /* A680 : un lot REFUSÉ ne consomme pas le quota. Les deux compteurs étaient augmentés avant le refus :
+       un client qui réessayait sa file pendant la limite s'excluait lui-même du partage, pour de bon —
+       hôte compris, en plein soin. */
+    update public.session_participants
+       set window_count = greatest(0, window_count - v_n), events_count = greatest(0, events_count - v_n)
+     where share_id = a.share_id and participant = a.participant;
     return jsonb_build_object('ok', false, 'err', 'rate'); end if;
   -- UN LOT QUI PORTE UN « detach » NE PORTE QUE LUI. L'invité qui a choisi de poursuivre seul a
   -- devant lui une file d'actions relevées PENDANT qu'il était déjà désynchronisé : les rejouer
@@ -1589,7 +1675,8 @@ begin
               projet, § 3.1 du registre RGPD) — elle ne dépend plus d'une discipline de client. */
            case when jsonb_typeof(e->'payload') = 'object' then
                   coalesce((select jsonb_object_agg(k, v)
-                              from jsonb_each(e->'payload') as kv(k, v)
+                              from (select k0 as k, v0 as v from jsonb_each(e->'payload') as kv0(k0, v0)
+                                     where public.share_val_ok(k0, v0)) as kv   -- A680 : la valeur a le type de sa clé
                              where k in ('k','t','id','v','running','elapsedMs','cycles','anchor',
                                          'nav','navSeq','on','exo','ref','was','to','take',
                                          /* v5.14.14 — clés du secours chaud (A216) : la v5.14.5
@@ -1608,7 +1695,11 @@ begin
   ins as (
     insert into public.session_events(share_id, seq, event_id, actor, kind, payload, client_ts)
     select a.share_id, v_base + src.ord, src.event_id, a.participant, src.kind,
-           src.payload, coalesce(src.client_ts, now())
+           src.payload,
+           -- A680 : l'heure déclarée par le client reste dans une fenêtre plausible (12 h, la durée
+           -- maximale d'un partage, à 5 min près dans le futur) — sinon c'est celle du serveur.
+           case when src.client_ts between now() - interval '12 hours' and now() + interval '5 minutes'
+                then src.client_ts else now() end
       from src
      where src.event_id is not null
        and public.share_kind_allowed(a.role, src.kind)
@@ -1654,7 +1745,7 @@ grant execute on function public.share_admit(text,int)                     to au
 -- première exécution — c'est pourquoi `purge_user_data` peut citer ces tables depuis plus haut.
 create or replace function public.get_instance_stats()
 returns jsonb language sql stable security definer set search_path = public, auth, pg_temp as $$
-  select case when not public.is_app_admin() then null else jsonb_build_object(
+  select case when not public.admin_reads() then null else jsonb_build_object(
     'users',        (select count(*) from auth.users),
     'pending',      (select count(*) from public.user_status where status = 'pending'),
     'rejected',     (select count(*) from public.user_status where status = 'rejected'),
@@ -1750,7 +1841,7 @@ language sql stable security definer set search_path = public, pg_temp as $$
          exists (select 1 from public.app_admins a where a.user_id = s.user_id),
          exists (select 1 from public.library_creators c where c.user_id = s.user_id)
   from public.user_status s
-  where s.status = 'approved' and public.is_app_admin()
+  where s.status = 'approved' and public.admin_reads()
   order by lower(s.email);
 $$;
 grant execute on function public.list_users() to authenticated;
@@ -1823,7 +1914,7 @@ grant execute on function public.my_library_requests() to authenticated;
 -- Annuler une demande en attente, ou effacer une demande refusée : les siennes seulement.
 create or replace function public.cancel_library_request(p_id uuid)
 returns void language sql security definer set search_path = public, pg_temp as $$
-  delete from public.library_requests where id = p_id and user_id = auth.uid();
+  delete from public.library_requests where id = p_id and user_id = auth.uid() and not public.session_is_poste();   -- A679
 $$;
 grant execute on function public.cancel_library_request(uuid) to authenticated;
 
@@ -1832,7 +1923,7 @@ returns table(id uuid, user_id uuid, email text, name text, invitees jsonb, role
 language sql stable security definer set search_path = public, pg_temp as $$
   select r.id, r.user_id, u.email::text, r.name, r.invitees, r.role, r.created_at
   from public.library_requests r join auth.users u on u.id = r.user_id
-  where r.status = 'pending' and public.is_app_admin()
+  where r.status = 'pending' and public.admin_reads()
   order by r.created_at;
 $$;
 grant execute on function public.list_library_requests() to authenticated;
@@ -1874,7 +1965,7 @@ language sql stable security definer set search_path = public, pg_temp as $$
          (select count(*)::int from public.memberships m where m.user_id = s.user_id),
          s.created_at
   from public.user_status s
-  where public.is_app_admin()
+  where public.admin_reads()
   order by lower(s.email);
 $$;
 grant execute on function public.list_accounts() to authenticated;
@@ -1884,7 +1975,7 @@ returns table(library_id text, name text, role text)
 language sql stable security definer set search_path = public, pg_temp as $$
   select m.library_id, l.name, m.role
   from public.memberships m join public.libraries l on l.id = m.library_id
-  where m.user_id = p_user and public.is_app_admin()
+  where m.user_id = p_user and public.admin_reads()
   order by lower(l.name);
 $$;
 grant execute on function public.list_user_memberships(uuid) to authenticated;
@@ -1898,7 +1989,7 @@ language sql stable security definer set search_path = public, pg_temp as $$
          (select count(*)::int from public.cognitive_aids f where f.library_id = l.id and f.deleted_at is null),
          (select count(*)::int from public.protocols p where p.library_id = l.id and p.deleted_at is null)
   from public.libraries l left join auth.users u on u.id = l.created_by
-  where public.is_app_admin()
+  where public.admin_reads()
   order by lower(l.name);
 $$;
 grant execute on function public.list_all_libraries() to authenticated;
@@ -2056,12 +2147,33 @@ begin
     end if;
     update public.device_links set status = 'ended' where id = r.id;
   end loop;
+  /* A676 — AUCUNE SESSION DE POSTE NE SURVIT À SA LIGNE. Trois chemins laissaient la session de compte
+     en vie : `link_end` ne la supprimait pas (et la boucle ci-dessus ne voit que `claimed`) ; un échec de
+     suppression était avalé, ici et dans `link_revoke`. Sept jours et trente minutes plus tard la ligne
+     partait, et plus rien ne disait « poste » ni « morte » : un jeton de rafraîchissement copié sur le
+     poste redevenait une session ENTIÈRE du compte. On resupprime donc la session de tout lien terminé,
+     révoqué ou échu, et l'on ne retire JAMAIS une ligne dont la session existe encore — si la table des
+     sessions est illisible, les lignes de connexion restent (la restriction tient, le ménage attend). */
+  begin
+    for r in select d.id, d.auth_session from public.device_links d
+              where d.kind = 'connect' and d.auth_session is not null
+                and (d.status in ('ended','revoked') or d.ends_at < now())
+                and exists (select 1 from auth.sessions s where s.id = d.auth_session) limit 50 loop
+      begin delete from auth.sessions where id = r.auth_session;
+      exception when others then null; end;
+    end loop;
+    delete from public.device_links where id in (
+      select d.id from public.device_links d
+       where d.kind = 'connect' and d.ends_at is not null
+         and d.ends_at < now() - interval '7 days 30 minutes'
+         and (d.auth_session is null
+              or not exists (select 1 from auth.sessions s where s.id = d.auth_session))
+       limit 100);
+  exception when others then null; end;
   delete from public.device_links where id in (
     select id from public.device_links
      where (status in ('pending','approved') and open_until < now() - interval '30 minutes')
         or (kind = 'unlock' and created_at < now() - interval '30 minutes')
-        or (kind = 'connect' and ends_at is not null
-            and ends_at < now() - interval '7 days 30 minutes')
      limit 100);
 end; $$;
 
@@ -2116,12 +2228,22 @@ begin
     return jsonb_build_object('ok', false, 'err', 'refused'); end if;
   -- PLAFOND PAR ADRESSE (empreinte, jamais l'adresse) : un abus depuis une machine ne bloque plus
   -- l'instance entière. Le plafond GLOBAL reste en dernier recours.
-  v_ip := split_part(coalesce(current_setting('request.headers', true)::json ->> 'x-forwarded-for', ''), ',', 1);
+  /* A678 : l'adresse se lit d'abord dans l'en-tête posé par la passerelle (`cf-connecting-ip`, puis
+     `x-real-ip`), que le client ne choisit pas ; le PREMIER élément de `x-forwarded-for`, lui, est fourni
+     par l'appelant — en le changeant à chaque requête on contournait ce plafond et l'on saturait le
+     plafond global, qui bloquait alors toute connexion de poste. Il ne sert plus que de dernier recours. */
+  v_ip := coalesce(
+    nullif(btrim(current_setting('request.headers', true)::json ->> 'cf-connecting-ip'), ''),
+    nullif(btrim(current_setting('request.headers', true)::json ->> 'x-real-ip'), ''),
+    split_part(coalesce(current_setting('request.headers', true)::json ->> 'x-forwarded-for', ''), ',', 1));
   v_ip := case when btrim(v_ip) = '' then null else encode(digest('ac-link:' || btrim(v_ip), 'sha256'), 'hex') end;
   if v_ip is not null and (select count(*) from public.device_links
         where ip_hash = v_ip and created_at > now() - interval '10 minutes') >= 20 then
     return jsonb_build_object('ok', false, 'err', 'busy'); end if;
-  if (select count(*) from public.device_links where status = 'pending' and open_until > now()) >= 500 then
+  -- A678 : le plafond global se compte PAR NATURE — un afflux de demandes anonymes (`connect`) ne
+  -- ferme plus le déverrouillage (`unlock`) d'un poste déjà connecté.
+  if (select count(*) from public.device_links
+       where status = 'pending' and open_until > now() and kind = v_kind) >= 500 then
     return jsonb_build_object('ok', false, 'err', 'busy'); end if;
   -- LE LIBELLÉ EST UNE GRAMMAIRE FERMÉE (celle de `linkUaLabel`) : le téléphone l'affiche comme
   -- l'identité du poste, un texte libre fourni sans compte (« Poste IDE Urgences ») le tromperait.
@@ -2226,9 +2348,11 @@ returns jsonb language plpgsql volatile security definer
 set search_path = public, auth, pg_temp as $$
 declare v public.device_links%rowtype; v_mail text; v_uid uuid; v_ends timestamptz;
 begin
-  perform public.link_purge();
+  -- A679 : la clé D'ABORD. L'appel vient d'une fonction sans compte ni limite de débit : chaque requête
+  -- mal formée déclenchait le ménage complet sous la clé de service.
   v := public.link_row_key(p_id, p_key);
   if v.id is null or v.kind <> 'connect' then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  perform public.link_purge();
   update public.device_links set status = 'claimed', claimed_at = coalesce(claimed_at, now())
    where id = v.id and ((status = 'approved' and approved_at > now() - interval '5 minutes')
                      or (status = 'claimed' and claimed_at > now() - interval '2 minutes' and auth_session is null))
@@ -2317,13 +2441,16 @@ end; $$;
 -- ramenée à maintenant) : une session non encore envoyée pourrait encore arriver.
 create or replace function public.link_end()
 returns jsonb language plpgsql volatile security definer
-set search_path = public, pg_temp as $$
+set search_path = public, auth, pg_temp as $$
 declare v_sid uuid := nullif(auth.jwt() ->> 'session_id', '')::uuid;
 begin
   if auth.uid() is null or v_sid is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
   update public.device_links set status = 'ended', ends_at = least(ends_at, now())
    where auth_session = v_sid and user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed');
   if not found then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  -- A676 : la session de compte du poste part AVEC sa déclaration de fin (elle restait vivante ; cf. `link_purge`).
+  begin delete from auth.sessions where id = v_sid and user_id = auth.uid();
+  exception when others then null; end;
   return jsonb_build_object('ok', true);
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
 end; $$;
@@ -2698,6 +2825,15 @@ revoke execute on function public.link_row(uuid,text)           from public, ano
 revoke execute on function public.link_row_key(uuid,text)       from public, anon, authenticated;
 revoke execute on function public.link_is_poste()               from public, anon, authenticated;
 revoke execute on function public.link_purge()                  from public, anon, authenticated;
+-- A679 : même révocation NOMINATIVE pour les aides internes annoncées « aucun grant » — le privilège par
+-- défaut de Supabase les ouvrait à tout compte connecté (`share_resolve` rendait l'`owner` d'un partage).
+revoke execute on function public.share_resolve(text,text)      from public, anon, authenticated;
+revoke execute on function public.share_purge()                 from public, anon, authenticated;
+revoke execute on function public.share_new_code()              from public, anon, authenticated;
+revoke execute on function public.share_kind_allowed(text,text) from public, anon, authenticated;
+revoke execute on function public.share_val_ok(text,jsonb)      from public, anon, authenticated;
+revoke execute on function public.session_is_poste()            from public, anon, authenticated;
+revoke execute on function public.admin_reads()                 from public, anon, authenticated;
 revoke execute on function public.forbid_passwords()            from public, anon, authenticated;   -- A648 : fonction de déclencheur
 grant  execute on function public.link_claim_srv(uuid,text)     to service_role;
 grant  execute on function public.link_bind_srv(uuid,text,uuid) to service_role;
