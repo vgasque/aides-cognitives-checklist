@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.113.0] — 2026-11-10
+Régler la connexion temporaire dans Administration (A654). **Côté serveur : rejouer `supabase/schema.sql`**
+(colonne `app_settings.temp_rules`, fonctions `get_temp_rules`/`set_temp_rules`, politiques restrictives), puis
+`supabase/rls-tests.sql`.
+- **Administration › Règles › Connexion temporaire** : ce qu'on peut faire sur un appareil connecté temporairement,
+  pour toute l'application — créer ou modifier (libre, verrou 5 min, verrou 15 min, confirmer, interdit), supprimer et
+  remplacer une bibliothèque (confirmer à chaque fois, interdit), exporter (permis, interdit), durée maximale (12, 24
+  ou 28 h). Les défauts sont les règles d'avant : rien ne change tant qu'on n'y touche pas. L'administration et la
+  suppression du compte restent toujours interdites.
+- **Le serveur applique les interdits et la durée**, tout de suite, aux appareils déjà connectés : une écriture
+  interdite est refusée même hors de l'application. Les confirmations et le verrou restent faits par l'app.
+- Une connexion temporaire par e-mail au-delà de la durée maximale se ramène à la dernière heure permise, et l'écran
+  le dit ; la feuille « Connecter un appareil » ne propose plus d'heure au-delà.
+- Garde-fous : `rls-tests.sql` 16.17, `tests.html` (règles et heures bornées), `audit-lier.mjs` section 5 (52 contrôles).
+
 ## [5.112.1] — 2026-11-10
 L'accueil pendant le chargement du compte (A653). Rien à rejouer côté serveur.
 - À la connexion d'un compte sur un appareil neuf, l'accueil disait « Votre bibliothèque est vide » et proposait les
@@ -216,18 +231,3 @@ Déplacer plusieurs blocs d'un coup (A612). Rien à rejouer côté serveur.
 - **« ⠿ Déplacer » dans la barre de sélection des blocs** : les blocs sélectionnés, même non voisins, se déplacent
   ensemble — touchez « Poser ici », « en tête » ou « en fin ». Ils gardent leur ordre et restent sélectionnés à
   l'arrivée ; ✕ ou Échap annule, ↶ rend l'ordre d'avant.
-
-## [5.105.0] — 2026-11-08
-Tableaux, blocs et import de l'éditeur de référence (A609-A611). Rien à rejouer côté serveur.
-- **Un tableau se rouvre en grille** : ouvrez-le dans le document, « Modifier en grille ».
-- **En-têtes au choix** dans la grille : 1ʳᵉ ligne, 1ʳᵉ colonne, les deux ou aucun. **Entrée passe à la ligne dans une
-  case**, et la grille a son propre ↶ / ↷.
-- **La fenêtre du tableau ne se ferme plus** quand une sélection de texte se termine hors de la carte (vaut pour toutes
-  les fenêtres).
-- **« ＋ » au-dessus et au-dessous du bloc survolé** à la souris ; au doigt, « Bloc avant » rejoint « Bloc après ».
-- **Sélectionner plusieurs blocs** pour les copier ou les supprimer : Maj-clic, ⌘/Ctrl-clic ou sélection glissée à la
-  souris, « Sélectionner » au doigt ; Suppr supprime, ↶ rend tout.
-- **Un bloc vidé propose de redevenir** paragraphe, titre, encadré, liste, cases, tableau, image ou séparateur.
-- **Import** : « Renommer » chaque élément avant de l'importer ; une page (Notion…) peut être **versée dans une référence
-  déjà créée** — elle remplit son contenu vide ou s'ajoute à la suite, jamais d'écrasement ; la référence garde son titre,
-  sa catégorie et sa bibliothèque.

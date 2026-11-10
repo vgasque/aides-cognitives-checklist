@@ -954,6 +954,10 @@ telle quelle — chaque écran le dit à sa façon :
   téléphone ; approuver ou refuser PAR LOT par « Sélectionner ». Une bibliothèque ouvre la fenêtre Membres, qui
   gère aussi celle dont l'administrateur n'est pas membre et le dit en tête (A484). Les règles (validation des
   nouveaux comptes, création de bibliothèques) se changent par un bandeau de confirmation qui dit l'effet réel.
+  Les règles de la **connexion temporaire** (A654) sont des rangées à sélecteur segmenté (un choix fermé,
+  l'option retenue en tuile blanche sur fond `--amb-2`) qui s'appliquent au toucher — chacune se défait d'un
+  toucher, un toast dit l'effet ; les deux interdits sans réglage (Administration, Supprimer mon compte)
+  portent un cadenas et « Toujours interdit », sans couleur.
   « En attente » et « △ sans administrateur » en ambre ; les autres statuts sans couleur.
   Le retour se pose AU-DESSUS du titre à toute largeur (« ‹ Moi » sur « Administration », « ‹ Administration »
   sur « Comptes ») ; au téléphone la barre de la fenêtre porte le titre de la section (A495).

@@ -589,7 +589,7 @@ grant execute on function public.get_approval_required() to authenticated;
 create or replace function public.set_approval_required(p_value boolean)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
-  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
   update public.app_settings set require_approval = p_value where id = true;
 end;$$;
 grant execute on function public.set_approval_required(boolean) to authenticated;
@@ -613,7 +613,7 @@ grant execute on function public.list_unapproved_users() to authenticated;
 create or replace function public.set_user_status(p_user uuid, p_status text)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
-  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
   if p_status not in ('pending','approved','rejected') then raise exception 'invalid status'; end if;
   if p_status <> 'approved' and exists(select 1 from public.app_admins where user_id = p_user) then
     raise exception 'cannot demote an app-admin';
@@ -661,7 +661,7 @@ create trigger user_status_revoke_memberships
 create or replace function public.delete_rejected_user(p_user uuid)
 returns void language plpgsql security definer set search_path = public, auth, pg_temp as $$
 begin
-  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
   if not exists(select 1 from public.user_status where user_id = p_user and status = 'rejected') then
     raise exception 'user is not in rejected status';
   end if;
@@ -1726,7 +1726,7 @@ grant execute on function public.get_library_creation() to authenticated;
 create or replace function public.set_library_creation(p_mode text)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
-  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
   if p_mode not in ('admins','creators','approved') then raise exception 'invalid mode'; end if;
   update public.app_settings set library_creation = p_mode where id = true;
 end;$$;
@@ -1748,7 +1748,7 @@ grant execute on function public.list_users() to authenticated;
 create or replace function public.set_library_creator(p_user uuid, p_on boolean)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
-  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
   if p_on then
     insert into public.library_creators(user_id, granted_by) values (p_user, auth.uid())
       on conflict (user_id) do nothing;
@@ -1830,7 +1830,7 @@ create or replace function public.decide_library_request(p_id uuid, p_ok boolean
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
 declare r public.library_requests; v_lib text; v_em text; v_me text; v_ok int := 0; v_ko int := 0;
 begin
-  if not public.is_app_admin() then raise exception 'not allowed'; end if;
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
   select * into r from public.library_requests where id = p_id and status = 'pending' for update;
   if not found then return jsonb_build_object('status', 'gone'); end if;
   if not p_ok then
@@ -2101,7 +2101,7 @@ begin
     if not found then return jsonb_build_object('ok', false, 'err', 'expired'); end if;
     return jsonb_build_object('ok', true, 'kind', 'unlock');
   end if;
-  if p_ends_at is null or p_ends_at < now() + interval '30 minutes' or p_ends_at > now() + interval '28 hours' then
+  if p_ends_at is null or p_ends_at < now() + interval '30 minutes' or p_ends_at > now() + public.temp_max_interval() then
     return jsonb_build_object('ok', false, 'err', 'bad_ends'); end if;
   perform pg_advisory_xact_lock(hashtext('link:' || auth.uid()::text));
   select count(*) into v_n from public.device_links
@@ -2200,7 +2200,7 @@ begin
   select * into v from public.device_links
    where id = p_id and user_id = auth.uid() and kind = 'connect' and status in ('approved','claimed');
   if not found or v.ends_at < now() then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
-  if p_ends_at is null or p_ends_at <= v.ends_at or p_ends_at > v.approved_at + interval '28 hours' then
+  if p_ends_at is null or p_ends_at <= v.ends_at or p_ends_at > v.approved_at + public.temp_max_interval() then
     return jsonb_build_object('ok', false, 'err', 'bad_ends'); end if;
   update public.device_links set ends_at = p_ends_at where id = v.id;
   return jsonb_build_object('ok', true, 'ends_at', p_ends_at);
@@ -2266,7 +2266,7 @@ begin
   if public.link_is_poste() then return jsonb_build_object('ok', false, 'err', 'already'); end if;
   if p_key_hash is null or length(p_key_hash) <> 64 or p_key_hash ~ '[^0-9a-f]' then
     return jsonb_build_object('ok', false, 'err', 'bad_request'); end if;
-  if p_ends_at is null or p_ends_at < now() + interval '30 minutes' or p_ends_at > now() + interval '28 hours' then
+  if p_ends_at is null or p_ends_at < now() + interval '30 minutes' or p_ends_at > now() + public.temp_max_interval() then
     return jsonb_build_object('ok', false, 'err', 'bad_ends'); end if;
   v_label := coalesce(p_label, '');
   if cardinality(string_to_array(v_label, ' · ')) > 2
@@ -2335,6 +2335,126 @@ grant execute on function public.link_extend(uuid,timestamptz)        to authent
 grant execute on function public.link_revoke(uuid)                    to authenticated;
 grant execute on function public.link_end()                           to authenticated;
 grant execute on function public.link_self(text,text,timestamptz)     to authenticated;
+
+-- ---------- 10ter. LES RÈGLES DE LA CONNEXION TEMPORAIRE (v5.113, A654) ---------------------------
+-- Réglées dans Administration › Règles, POUR TOUTE L'APPLICATION (décision de l'auteur). Une grammaire
+-- FERMÉE, valeurs par défaut = les paliers d'A647 :
+--   edit : 'libre' | 'v5' | 'v15' | 'tel' | 'non'   (créer, modifier une aide ou un protocole)
+--   del  : 'tel' | 'non'                            (supprimer)
+--   repl : 'tel' | 'non'                            (remplacer une bibliothèque à l'import)
+--   exp  : 'oui' | 'non'                            (exporter, télécharger)
+--   dur  : 12 | 24 | 28                             (durée maximale d'une connexion, en heures)
+-- CE QUE LE SERVEUR GARANTIT, et ce qu'il ne peut pas : les INTERDITS (`non`) et la DURÉE sont opposables —
+-- une session de poste ne peut pas écrire ce que la règle interdit, même par la console du navigateur. Les
+-- CONFIRMATIONS (« confirmer à chaque fois », verrou après N minutes) restent du ressort de l'app : la
+-- synchro pousse les modifications plus tard (hors ligne, en lot), le serveur ne sait pas dater le geste.
+alter table public.app_settings add column if not exists temp_rules jsonb not null
+  default '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb;
+
+create or replace function public.temp_rules()
+returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
+  select '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb
+         || coalesce((select temp_rules from public.app_settings limit 1), '{}'::jsonb);
+$$;
+create or replace function public.temp_max_interval()
+returns interval language sql stable security definer set search_path = public, pg_temp as $$
+  select make_interval(hours => least(28, greatest(1, coalesce((public.temp_rules() ->> 'dur')::int, 28))));
+$$;
+
+-- Lecture : tout compte connecté (l'app applique les règles sur un poste, et l'appareil qui approuve
+-- borne les heures proposées). Rien de sensible.
+create or replace function public.get_temp_rules()
+returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
+  select case when auth.uid() is null then null else public.temp_rules() end;
+$$;
+grant execute on function public.get_temp_rules() to authenticated;
+
+-- Écriture : l'administrateur, JAMAIS depuis une connexion temporaire (un poste resté ouvert pourrait
+-- desserrer les règles puis s'en servir).
+create or replace function public.set_temp_rules(p_rules jsonb)
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare v jsonb := '{}'::jsonb;
+begin
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
+  if p_rules is null or jsonb_typeof(p_rules) <> 'object' then raise exception 'invalid rules'; end if;
+  if p_rules ? 'edit' then
+    if p_rules->>'edit' not in ('libre','v5','v15','tel','non') then raise exception 'invalid rules'; end if;
+    v := v || jsonb_build_object('edit', p_rules->>'edit'); end if;
+  if p_rules ? 'del' then
+    if p_rules->>'del' not in ('tel','non') then raise exception 'invalid rules'; end if;
+    v := v || jsonb_build_object('del', p_rules->>'del'); end if;
+  if p_rules ? 'repl' then
+    if p_rules->>'repl' not in ('tel','non') then raise exception 'invalid rules'; end if;
+    v := v || jsonb_build_object('repl', p_rules->>'repl'); end if;
+  if p_rules ? 'exp' then
+    if p_rules->>'exp' not in ('oui','non') then raise exception 'invalid rules'; end if;
+    v := v || jsonb_build_object('exp', p_rules->>'exp'); end if;
+  if p_rules ? 'dur' then
+    if p_rules->>'dur' not in ('12','24','28') then raise exception 'invalid rules'; end if;
+    v := v || jsonb_build_object('dur', (p_rules->>'dur')::int); end if;
+  update public.app_settings set temp_rules = temp_rules || v where id = true;
+end;$$;
+grant execute on function public.set_temp_rules(jsonb) to authenticated;
+
+-- Le poste vu depuis une POLITIQUE : elle s'exécute avec les droits de l'appelant, à qui `link_is_poste`
+-- est fermé ; ces relais en definer ne rendent qu'un booléen sur SA propre session.
+create or replace function public.temp_is_poste()
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select public.link_is_poste();
+$$;
+grant execute on function public.temp_is_poste() to authenticated;
+-- Une écriture d'aide ou de protocole depuis un poste : permise sauf INTERDIT. `p_deleted` non nul = une
+-- suppression (douce) : la règle `del` s'applique ; sinon la règle `edit`.
+create or replace function public.temp_write_ok(p_deleted timestamptz)
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select not public.link_is_poste()
+      or (case when p_deleted is not null then public.temp_rules() ->> 'del' else public.temp_rules() ->> 'edit' end) <> 'non';
+$$;
+grant execute on function public.temp_write_ok(timestamptz) to authenticated;
+create or replace function public.temp_del_ok()
+returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select not public.link_is_poste() or public.temp_rules() ->> 'del' <> 'non';
+$$;
+grant execute on function public.temp_del_ok() to authenticated;
+
+-- POLITIQUES RESTRICTIVES : elles s'AJOUTENT aux politiques existantes (ET logique) sans les réécrire.
+drop policy if exists cognitive_aids_temp_ins on public.cognitive_aids;
+create policy cognitive_aids_temp_ins on public.cognitive_aids as restrictive for insert to authenticated
+  with check (public.temp_write_ok(deleted_at));
+drop policy if exists cognitive_aids_temp_upd on public.cognitive_aids;
+create policy cognitive_aids_temp_upd on public.cognitive_aids as restrictive for update to authenticated
+  using (true) with check (public.temp_write_ok(deleted_at));
+drop policy if exists cognitive_aids_temp_del on public.cognitive_aids;
+create policy cognitive_aids_temp_del on public.cognitive_aids as restrictive for delete to authenticated
+  using (public.temp_del_ok());
+drop policy if exists protocols_temp_ins on public.protocols;
+create policy protocols_temp_ins on public.protocols as restrictive for insert to authenticated
+  with check (public.temp_write_ok(deleted_at));
+drop policy if exists protocols_temp_upd on public.protocols;
+create policy protocols_temp_upd on public.protocols as restrictive for update to authenticated
+  using (true) with check (public.temp_write_ok(deleted_at));
+drop policy if exists protocols_temp_del on public.protocols;
+create policy protocols_temp_del on public.protocols as restrictive for delete to authenticated
+  using (public.temp_del_ok());
+-- Bibliothèques, membres et rôles : jamais depuis un poste (A647, « toujours interdit »).
+drop policy if exists libraries_temp_ins on public.libraries;
+create policy libraries_temp_ins on public.libraries as restrictive for insert to authenticated
+  with check (not public.temp_is_poste());
+drop policy if exists libraries_temp_upd on public.libraries;
+create policy libraries_temp_upd on public.libraries as restrictive for update to authenticated
+  using (not public.temp_is_poste());
+drop policy if exists libraries_temp_del on public.libraries;
+create policy libraries_temp_del on public.libraries as restrictive for delete to authenticated
+  using (not public.temp_is_poste());
+drop policy if exists memberships_temp_ins on public.memberships;
+create policy memberships_temp_ins on public.memberships as restrictive for insert to authenticated
+  with check (not public.temp_is_poste());
+drop policy if exists memberships_temp_upd on public.memberships;
+create policy memberships_temp_upd on public.memberships as restrictive for update to authenticated
+  using (not public.temp_is_poste());
+drop policy if exists memberships_temp_del on public.memberships;
+create policy memberships_temp_del on public.memberships as restrictive for delete to authenticated
+  using (not public.temp_is_poste());
 
 -- ---------- 10bis. AUCUN MOT DE PASSE (v5.111.1, A648) ---------------------------------------
 -- L'app ne se connecte QUE par code e-mail (et, depuis v5.111, par le téléphone). Or GoTrue laisse

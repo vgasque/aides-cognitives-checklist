@@ -1487,6 +1487,43 @@ begin
   if not exists (select 1 from jsonb_array_elements(public.link_list()) e where e->>'id' = v_lid2::text and e->>'label' = 'Navigateur') then
     raise exception 'ÉCHEC 16.16 : la connexion temporaire par e-mail n''apparaît pas (libellé fermé)'; end if;
   reset role;
+  -- 16.17 (A654) Les RÈGLES de la connexion temporaire sont opposables : un INTERDIT s'applique à la session de poste
+  --       (v_asid3, déclarée en 16.16) et à elle seule ; une suppression suit la règle « del » ; la durée maximale borne
+  --       les connexions ; le réglage ne se modifie jamais depuis un poste.
+  update public.app_settings set temp_rules = '{"edit":"non","del":"non","dur":12}'::jsonb where id = true;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
+  set local role authenticated;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-poste-1',kim,null,'{"t":1}');
+    raise exception 'ÉCHEC 16.17 : un poste crée une aide alors que la règle l''interdit';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform public.set_temp_rules('{"edit":"libre"}'::jsonb);
+    raise exception 'ÉCHEC 16.17 : le réglage se modifie depuis un poste';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-perm-1',kim,null,'{"t":1}');   -- hors poste : permis
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
+  begin
+    update public.cognitive_aids set deleted_at = now() where id = 'f-perm-1';
+    raise exception 'ÉCHEC 16.17 : un poste supprime alors que la règle l''interdit';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"libre","del":"tel","dur":12}'::jsonb where id = true;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-poste-2',kim,null,'{"t":1}');   -- permis : la règle le permet
+  update public.cognitive_aids set deleted_at = now() where id = 'f-poste-2';
+  reset role;
+  v_asid := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid, kim);
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid)::text, true);
+  set local role authenticated;
+  if (public.link_self(encode(extensions.digest('cle-dur-0123456789abcdef', 'sha256'), 'hex'), 'Chrome', now() + interval '20 hours')->>'ok')::boolean then
+    raise exception 'ÉCHEC 16.17 : la durée maximale réglée (12 h) ne borne pas la connexion'; end if;
+  if (public.get_temp_rules()->>'dur')::int <> 12 then raise exception 'ÉCHEC 16.17 : les règles ne se lisent pas'; end if;
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb where id = true;
   -- 16.14 (A648) Aucun compte ne porte de mot de passe : ni le définir, ni s'inscrire avec. Un mot de
   --       passe VIDE (compte créé par code e-mail) passe.
   update auth.users set email = 'kim2@test.local' where id = kim;   -- toute autre mise à jour passe
