@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-BkGM40VswbYrjkecOa1o6MZIXQPIStofMgRzXVMT7Ag='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-YAZVRFNacNBj7qg/uXvoPaQRPq4dFUtUQpilgU408rc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -14423,6 +14423,8 @@ async function load(){
      store 'attidx' (quelques dizaines de Ko). Tant qu'il n'est pas là, la recherche se comporte
      exactement comme avant, sans groupe « documents ». */
   ixLoadAll();
+  // A690 : la réparation des documents partagés entre deux espaces — hors du chemin de démarrage, jamais en soin.
+  setTimeout(()=>{attRepairShared().catch(()=>{});},4000);
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
@@ -14541,6 +14543,7 @@ const saveErrMsg=e=>isQuotaErr(e)?'⚠ Stockage saturé. Exportez vos données p
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
+  try{await attClaim(f);}catch(e){}   // A689 : ses documents suivent l'élément dans SON espace (jamais bloquant)
   await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast(saveErrMsg(e),9000);return false;}}
 // Enregistre la note personnelle d'une fiche (débouncé par l'appelant). t vide = effacement :
 // l'entrée est conservée (t:'') pour propager l'effacement aux autres appareils (last-write-wins).
@@ -14574,6 +14577,7 @@ async function softDelete(f){if(!f)return;
 // synchronisation des protocoles.)
 async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
+  try{await attClaim(p);}catch(e){}   // A689, comme `persist`
   await Data.putProtocol(p);updateStorageInfo();Sync.schedule();return true;}
   catch(e){toast(saveErrMsg(e),9000);return false;}}
 async function softDeleteProtocol(p){if(!p)return;
@@ -31054,6 +31058,145 @@ function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();
 // %PDF- et sous le plafond. Référence gardée si le binaire est là — ou si le fichier vient du
 // même espace (le document peut suivre par la synchronisation) ; sinon retirée, comme avant :
 // jamais de bouton « Document indisponible ».
+/* ═══ A689 — UN DOCUMENT APPARTIENT À UN SEUL ESPACE ══════════════════════════════════════════════════════════
+   Un espace = « Perso » (null) ou une bibliothèque. L'identité d'un document était GLOBALE : à la synchro, le
+   chemin distant d'un PDF se déduisait de « la dernière entité vivante qui le cite ». Deux conséquences :
+   · « Dupliquer dans Perso » copiait l'aide avec les MÊMES ids de documents — l'original et la copie citaient un
+     fichier qui ne peut vivre qu'à un endroit ; selon l'ordre de parcours, l'un des deux le perdait ;
+   · une ligne de bibliothèque écrite par QUELQU'UN D'AUTRE, citant l'id d'un de mes PDF personnels, faisait
+     téléverser ce fichier dans la bibliothèque par MON appareil (audit de sécurité, lot v5.115.1).
+   La règle, en trois temps :
+   1. l'enregistrement local du binaire PORTE son espace (`scope` : '' = Perso, sinon l'id de la bibliothèque ;
+      absent sur un enregistrement ancien → déduit de `remotePath`) ;
+   2. seul un GESTE LOCAL le change — `attClaim`, appelé par `persist`/`persistProtocol` : l'élément que
+      J'enregistre emporte ses documents dans son espace (déplacement), ou en reçoit un exemplaire s'ils restent
+      cités là d'où il part (copie) ;
+   3. la synchro ne déduit JAMAIS un téléversement d'une ligne tirée : `attPlan` ne téléverse que vers l'espace
+      de l'enregistrement ; cité seulement ailleurs, un binaire non modifié est RÉÉTIQUETÉ sans rien envoyer
+      (celui qui a déplacé l'élément a déjà téléversé).
+   Partager un document entre éléments du MÊME espace reste voulu (`attachablePdfs`). */
+// Espace désigné par un chemin distant — PURE (testée) : null = mon Perso, id = bibliothèque, undefined = ni l'un ni l'autre.
+function attPathSpace(path,me){const m=/^([ul])\/([A-Za-z0-9_-]{1,64})\/[A-Za-z0-9_-]{1,64}\.pdf$/.exec(String(path||''));
+  if(!m)return undefined;return m[1]==='u'?(m[2]===me?null:undefined):m[2];}
+// Espace d'un enregistrement de binaire — PURE (testée) : `scope` d'abord, sinon le chemin distant ; undefined = inconnu.
+function attRecSpace(rec,me){if(!rec)return undefined;
+  if(typeof rec.scope==='string')return rec.scope===''?null:((SAFE_ID.test(rec.scope)&&!badKey(rec.scope))?rec.scope:undefined);
+  return attPathSpace(rec.remotePath,me);}
+/* Les espaces qui citent un document — PURE (testée). `refs` : [{lib,del,edit}] (une entrée par élément citant).
+   Les vivants priment sur les tombes (comme avant). Ordre DÉTERMINISTE : Perso d'abord, puis les bibliothèques
+   par id — jamais « le dernier parcouru ». */
+function attRefSpaces(refs){const liv=(refs||[]).filter(r=>r&&!r.del),use=liv.length?liv:(refs||[]).filter(Boolean);
+  const set=new Set(use.map(r=>r.lib||null)),out=[];if(set.has(null))out.push(null);
+  [...set].filter(x=>x!==null).sort().forEach(x=>out.push(x));return {use,spaces:out};}
+/* QUE FAIRE D'UN BINAIRE À LA SYNCHRO — PURE (testée). Rend {act,space,path,del} :
+   'purge'   plus personne ne le cite ;
+   'none'    rien à faire (ou rien que j'aie le droit de faire) ;
+   'relabel' cité seulement dans un AUTRE espace, binaire non modifié : on note le nouvel espace, on n'envoie rien ;
+   'upload'  vers l'espace DE L'ENREGISTREMENT, si un élément vivant de cet espace l'y cite et que je peux l'éditer ;
+             `del` = l'ancien chemin à retirer APRÈS le téléversement (déplacement fait par moi). */
+function attPlan(rec,refs,me){const id=rec&&rec.id,R=attRefSpaces(refs);
+  if(!R.use.length)return {act:'purge'};
+  let cur=attRecSpace(rec,me);
+  if(cur===undefined)cur=R.spaces[0];                       // enregistrement ancien, jamais envoyé : adopté par qui le cite (Perso d'abord)
+  const chemin=sp=>attStoragePath(sp,me,id);
+  if(R.spaces.some(x=>x===cur)){const path=chemin(cur);
+    if(!rec.dirty&&rec.remotePath===path)return {act:'none',space:cur,path};
+    if(!R.use.some(r=>(r.lib||null)===cur&&r.edit))return {act:'none',space:cur,path};   // lecteur : jamais de téléversement
+    return {act:'upload',space:cur,path,del:(rec.remotePath&&rec.remotePath!==path)?rec.remotePath:null};}
+  if(rec.dirty)return {act:'none',space:cur,path:chemin(cur)};   // modifié ici, cité seulement ailleurs : il ne part nulle part
+  return {act:'relabel',space:R.spaces[0],path:chemin(R.spaces[0])};}
+// Les chemins où chercher un binaire ABSENT — PURE (testée) : chaque espace citant, bibliothèques d'abord (un Perso
+// qui cite l'id d'un document de bibliothèque n'a rien sous `u/…`), sans doublon.
+function attFetchPaths(id,refs,me){const R=attRefSpaces(refs);
+  return R.spaces.filter(x=>x!==null).concat(R.spaces.filter(x=>x===null)).map(sp=>attStoragePath(sp,me,id));}
+// Un ancien chemin ne se supprime que chez moi, ou dans une bibliothèque que je peux éditer — PURE (testée).
+function attMayDelete(path,me,canEdit){const sp=attPathSpace(path,me);return sp===null||(typeof sp==='string'&&!!canEdit(sp));}
+// Les liens `](att:ID)` / `](att:ID#p3)` du contenu suivent un changement d'id — PURE (testée ; extraite d'`importAtts`, A669).
+function attRelink(body,chg){let b=String(body==null?'':body);
+  (chg||[]).forEach(([o,n])=>{b=b.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#');});return b;}
+const attMe=()=>((Auth.user()||{}).id||'');
+const attCites=(x,id)=>(x.docs||[]).some(a=>a&&a.id===id);
+/* L'élément reçoit SON exemplaire de chaque document (copie d'un espace vers un autre). Binaire absent de l'appareil :
+   on tente de le prendre là où il vit (`from`), sinon la référence est RETIRÉE — jamais un id partagé entre deux
+   espaces, jamais un bouton « Document indisponible ». Rend le nombre de documents non copiés. */
+async function attCopyDocs(c,from){
+  if(!(c.docs||[]).length)return 0;
+  if(!supportsAttachments()){const n=c.docs.length;c.docs=[];return n;}
+  const me=attMe(),out=[],chg=[];let perdus=0;
+  for(const a of c.docs){
+    let rec=null,buf=null;try{rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}
+    if(!buf&&Auth.signedIn()&&Sync.online()){
+      try{await attFetchOne(a.id,attStoragePath(from||null,me,a.id));rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}}
+    if(!buf){perdus++;continue;}
+    const id=uid('a');
+    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:c.library||''});}
+    catch(e){perdus++;continue;}
+    out.push(Object.assign({},a,{id:id,size:buf.byteLength}));chg.push([a.id,id]);}
+  c.docs=out;if(typeof c.body==='string'&&chg.length)c.body=attRelink(c.body,chg);
+  return perdus;}
+/* LE GESTE LOCAL (A689) — appelé par `persist` et `persistProtocol`, donc par tout enregistrement fait ICI
+   (publier, déplacer une sélection, convertir en collection, dupliquer, réparer). Pour chaque document de l'élément :
+   · espace inconnu (binaire tout juste ajouté) → il prend celui de l'élément ;
+   · même espace → rien ;
+   · autre espace, et plus personne ne le cite là-bas → DÉPLACEMENT : le binaire change d'espace, la synchro le
+     téléverse au nouveau chemin puis retire l'ancien ;
+   · autre espace, et un élément vivant le cite encore là-bas → COPIE : cet élément reçoit son exemplaire.
+   Binaire absent de l'appareil : rien ne bouge ici (la réparation A690 reprendra quand il sera là). */
+async function attClaim(ent){
+  if(!ent||ent.deletedAt||!(ent.docs||[]).length||!supportsAttachments())return;
+  const me=attMe(),sp=ent.library||null,chg=[];
+  for(const a of ent.docs){if(!a||!a.id)continue;
+    let rec=null;try{rec=await IDB.getAtt(a.id);}catch(e){}
+    if(!rec)continue;
+    const cur=attRecSpace(rec,me);
+    if(cur===sp)continue;
+    if(cur===undefined){rec.scope=sp||'';try{await attPut(rec);}catch(e){}continue;}
+    const reste=fiches.concat(protocols).some(x=>x&&x.id!==ent.id&&!x.deletedAt&&(x.library||null)===cur&&attCites(x,a.id));
+    if(!reste){rec.scope=sp||'';rec.dirty=1;try{await attPut(rec);}catch(e){}continue;}
+    let buf=null;try{buf=await attBuf(rec);}catch(e){}
+    if(!buf)continue;
+    const id=uid('a');
+    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:sp||''});}
+    catch(e){continue;}
+    chg.push([a.id,id]);a.id=id;a.size=buf.byteLength;}
+  if(chg.length&&typeof ent.body==='string')ent.body=attRelink(ent.body,chg);}
+/* ═══ A690 — RÉPARER L'EXISTANT, UNE FOIS PAR ESPACE, SANS RIEN PERDRE ═════════════════════════════════════════
+   Les duplications d'avant A689 ont laissé des documents cités à la fois par un élément de Perso et par un élément
+   de bibliothèque. Le plan (PUR, testé) : pour chaque tel document, l'élément PERSO reçoit son exemplaire.
+   ⚠ SEUL UN ÉLÉMENT PERSO EST RÉ-IDENTIFIÉ, jamais un élément de bibliothèque : copier d'office un binaire dans
+   une bibliothèque, c'est exactement la fuite qu'A689 ferme (la ligne peut avoir été écrite par un autre). Et un
+   binaire dont le foyer est déjà MON Perso ne se copie pas : il y reste, la citation de la bibliothèque ne le
+   déplace plus. Ordre : copier le binaire → réécrire les références → enregistrer. Aucune suppression distante.
+   Binaire absent de l'appareil : on passe, et le drapeau n'est PAS posé — on réessaiera au lancement suivant. */
+function attSplitPlan(ents){const libs=Object.create(null),out=[];
+  (ents||[]).forEach(x=>{if(!x||x.deletedAt||!x.library)return;(x.docs||[]).forEach(a=>{if(a&&a.id&&!badKey(a.id)&&!libs[a.id])libs[a.id]=x.library;});});
+  (ents||[]).forEach(x=>{if(!x||x.deletedAt||x.library)return;(x.docs||[]).forEach(a=>{if(a&&a.id&&!badKey(a.id)&&libs[a.id])out.push({ent:x.id,doc:a.id,lib:libs[a.id]});});});
+  return out;}
+const ATT_SPLIT_KEY='ac-att-split';
+async function attRepairShared(){
+  if(!supportsAttachments()||linkShared()||document.body.classList.contains('crisis-live'))return false;
+  try{if(localStorage.getItem(spaceKey(ATT_SPLIT_KEY)))return true;}catch(e){return false;}
+  const me=attMe(),plan=attSplitPlan(fiches.concat(protocols));let reste=false;
+  const parEnt=Object.create(null);plan.forEach(p=>{(parEnt[p.ent]=parEnt[p.ent]||[]).push(p);});
+  for(const eid of Object.keys(parEnt)){
+    const isP=protocols.some(x=>x.id===eid),ent=(isP?protocols:fiches).find(x=>x.id===eid);if(!ent)continue;
+    const chg=[];
+    for(const p of parEnt[eid]){
+      let rec=null,buf=null;try{rec=await IDB.getAtt(p.doc);buf=rec?await attBuf(rec):null;}catch(e){}
+      if(!rec||!buf){reste=true;continue;}                         // pas encore sur l'appareil : plus tard
+      if(attRecSpace(rec,me)===null)continue;                      // foyer = mon Perso : il y reste
+      const id=uid('a');
+      try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:''});}
+      catch(e){reste=true;continue;}
+      if(typeof rec.scope!=='string'){rec.scope=p.lib;try{await attPut(rec);}catch(e){}}   // l'original reste à la bibliothèque
+      chg.push([p.doc,id]);}
+    if(!chg.length)continue;
+    const m=new Map(chg);
+    ent.docs=(ent.docs||[]).map(a=>(a&&m.has(a.id))?Object.assign({},a,{id:m.get(a.id)}):a);
+    if(typeof ent.body==='string')ent.body=attRelink(ent.body,chg);
+    if(!(isP?await persistProtocol(ent):await persist(ent)))reste=true;}
+  if(!reste)try{localStorage.setItem(spaceKey(ATT_SPLIT_KEY),'1');}catch(e){}
+  return !reste;}
 /* A669 — UN FICHIER VENU D'AILLEURS NE CHOISIT PAS L'IDENTIFIANT DE SES DOCUMENTS. Les ids d'aide
    et de protocole étaient régénérés hors du même espace, ceux des documents JAMAIS : la garantie
    ci-dessus ne testait que « le binaire est-il sur CET appareil ». Sur un appareil où il n'était pas
@@ -31078,7 +31221,7 @@ async function importAtts(d,zipAtts,sameSpace,remap){
       remap.set(old,n);
       if(n){kept.push(Object.assign({},a,{id:n.id,size:n.size}));chg.push([old,n.id]);}}
     d.docs=kept;
-    if(typeof d.body==='string'&&chg.length)chg.forEach(([o,n])=>{d.body=d.body.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#');});
+    if(typeof d.body==='string'&&chg.length)d.body=attRelink(d.body,chg);
     return;}
   const kept=[];
   for(const a of d.docs){
@@ -32566,7 +32709,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
 const TEMP_PENDING_KEY='ac-temp-pending';   // A672
 const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
-  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
+  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -34189,8 +34332,13 @@ async function dupToPerso(kind,src){
   const c=kind==='p'?migrateProtocol(JSON.parse(JSON.stringify(src))):migrate(JSON.parse(JSON.stringify(src)));
   c.id=kind==='p'?uid('p'):uid();c.title=(src.title||(kind==='p'?'Protocole':'Aide'))+' (copie)';
   c.library=null;c.status='draft';c.order=Date.now();
+  /* A689 : venue d'une BIBLIOTHÈQUE, la copie emporte SON exemplaire de chaque document (id neuf) — sinon l'original
+     et la copie citaient le même fichier, qui ne vit qu'à un endroit. Copie d'un élément de Perso : même espace,
+     le document reste partagé (comme « joindre un PDF déjà présent »). */
+  const perdus=(src.library||null)?await attCopyDocs(c,src.library):0;
   const ok=kind==='p'?await persistProtocol(c):await persist(c);
-  if(ok){(kind==='p'?protocols:fiches).push(c);toast('✓ Copie créée dans « Perso » — état Brouillon',3500);}
+  if(ok){(kind==='p'?protocols:fiches).push(c);
+    toast('✓ Copie créée dans « Perso » — état Brouillon'+(perdus?' · '+nb(perdus,'document')+' non copié'+(perdus>1?'s':'')+' (absent'+(perdus>1?'s':'')+' de cet appareil)':''),perdus?7000:3500);}
 }
 // « Exporter en PDF » : impression navigateur (les styles @media print masquent barres et
 // panneaux) — sur iOS/macOS/Android le dialogue propose « Enregistrer en PDF ».
@@ -34979,6 +35127,7 @@ const Sync={
         if(!o.deletedAt){
           const c=cfg.clone(o);c.id=uid(cfg.idPrefix);c.library=null;c.ownerId=null;
           c.updatedBy='';c.updatedAt=Date.now();c.dirty=true;
+          try{await attCopyDocs(c,o.library);}catch(e){}   // A689 : la copie de secours a ses propres documents
           await cfg.dataPut(c);cfg.addMem(c);copies.push(c);
         }else restoredDel=true;
         const rows=await rest('GET','/rest/v1/'+cfg.table+'?id=eq.'+encodeURIComponent(o.id)+'&select=*')||[];
@@ -35068,36 +35217,43 @@ const Sync={
     // 2. Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
     // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
     const all=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[]));
-    const paths=Object.create(null),editable=Object.create(null);
-    all.forEach(f=>{(f.docs||[]).forEach(a=>{if(!a||!a.id)return;
-      if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.library||null,uidv,a.id);
-      if(canEditFiche(f))editable[a.id]=true;});});
+    /* A689 : on ne retient plus « le chemin de la dernière entité vivante », mais QUI cite chaque document
+       (`refs`). La décision est dans `attPlan` (pure) : un téléversement ne va qu'à l'espace de l'enregistrement,
+       jamais là où une ligne tirée le voudrait. */
+    const refs=Object.create(null);
+    all.forEach(f=>{(f.docs||[]).forEach(a=>{if(!a||!a.id||typeof a.id!=='string'||badKey(a.id))return;
+      (refs[a.id]=refs[a.id]||[]).push({lib:f.library||null,del:!!f.deletedAt,edit:canEditFiche(f)});});});
     // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
     // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
     const draftIds=new Set(draftNewAtts
       .concat(((state.draft&&state.draft.docs)||[]).map(a=>a.id))
       .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id)));
     for(const rec of await IDB.getAtts()){
-      const want=paths[rec.id];
-      if(!want){if(draftIds.has(rec.id))continue;             // brouillon : on ne touche à rien
-        if(rec.remotePath)queueAttDelete(rec.remotePath);      // copie cloud -> file de suppression
+      const pl=attPlan(rec,refs[rec.id]||[],uidv);
+      if(pl.act==='purge'){if(draftIds.has(rec.id))continue;  // brouillon : on ne touche à rien
+        // copie cloud -> file de suppression — chez moi, ou dans une bibliothèque que je peux éditer (A689)
+        if(rec.remotePath&&attMayDelete(rec.remotePath,uidv,canEditScope))queueAttDelete(rec.remotePath);
         try{await IDB.delAtt(rec.id);}catch(e){}
         continue;}
-      if(!editable[rec.id])continue;
-      if(rec.dirty||rec.remotePath!==want){
-        try{const body=await attBuf(rec);if(!body)continue;   // enregistrement vide : rien à pousser
-          await storageReq('POST',want,body,'application/pdf',{'x-upsert':'true'});
-          if(rec.remotePath&&rec.remotePath!==want)queueAttDelete(rec.remotePath);   // déplacement de périmètre
-          rec.dirty=0;rec.remotePath=want;await attPut(rec);
-        }catch(e){if(!firstErr)firstErr=e;}}
+      if(pl.act==='relabel'){   // déplacé par un autre (ou par moi, ailleurs) : il a déjà téléversé — on note, on n'envoie rien
+        try{rec.scope=pl.space||'';rec.remotePath=pl.path;await attPut(rec);}catch(e){}
+        continue;}
+      if(pl.act!=='upload')continue;
+      try{const body=await attBuf(rec);if(!body)continue;     // enregistrement vide : rien à pousser
+        await storageReq('POST',pl.path,body,'application/pdf',{'x-upsert':'true'});
+        // déplacement de périmètre : l'ancien chemin part APRÈS le téléversement réussi, et seulement là où j'en ai le droit
+        if(pl.del&&attMayDelete(pl.del,uidv,canEditScope))queueAttDelete(pl.del);
+        rec.dirty=0;rec.remotePath=pl.path;rec.scope=pl.space||'';await attPut(rec);
+      }catch(e){if(!firstErr)firstErr=e;}
     }
     // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
     // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
     const have=new Set(await IDB.getAttIds());
-    const missing=Object.keys(paths).filter(id=>!have.has(id));
+    const missing=Object.keys(refs).filter(id=>!have.has(id));
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
-          try{await attFetchOne(id,paths[id]);}catch(e){}}
+          // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
+          for(const pth of attFetchPaths(id,refs[id],uidv)){try{await attFetchOne(id,pth);break;}catch(e){}}}
       }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
@@ -37961,7 +38117,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,
