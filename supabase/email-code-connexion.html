@@ -14,8 +14,14 @@
      RÈGLES QUI ONT DICTÉ CE FICHIER, et qui ne s'apprennent pas en le lisant :
      · AUCUNE RESSOURCE EXTERNE — pas d'image, pas de police web, pas de suivi. Un e-mail qui
        charge un logo distant se fait bloquer par la moitié des clients (et pose un traceur).
-       La marque est donc TYPOGRAPHIQUE : serif du titre (Source Serif 4 → Georgia en secours),
-       exactement la chaîne de `--f-title` de l'app.
+       La marque est donc TYPOGRAPHIQUE : le NOM en serif (Source Serif 4 → Georgia en secours),
+       exactement la chaîne de `--f-title` de l'app — et lui seul, comme dans l'en-tête de l'app.
+     · TYPOGRAPHIE DU DESIGN ACTUEL (v5.114, revue sur maquette) : le TITRE dans la police de
+       l'interface, 800, serré (A505 — plus en serif) ; le texte dans la pile système (SF, Segoe,
+       Roboto), la plus proche de Manrope qu'un e-mail ne peut charger ; étiquettes EN PHRASE
+       (A531 — l'eyebrow « CONNEXION » reste en capitales, comme celui de l'en-tête) ; l'ambre
+       dit par △, jamais ⚠ (emoji jaune sur iPhone). Le logo n'y est PAS : il faudrait une image
+       (bloquée par défaut) ou un SVG intégré (retiré par Gmail).
      · COULEURS = LES TOKENS DE L'APP, en littéral (un e-mail n'a pas de `var()` utilisable) :
        ambiance #f4f5f7, travail #ffffff, filet #e3e6ea, encres #14181d et #5b6472 (jamais
        --ink-3 en TEXTE : 2,3:1 sur blanc, la doctrine d'accessibilité l'interdit),
@@ -44,6 +50,13 @@
        installée). Un e-mail de code sans lien est aussi la meilleure défense anti-hameçonnage.
      · `{{ .Token }}` = le code à 6 chiffres ; `{{ .Email }}` = le destinataire. Rien d'autre
        n'est interpolé, et surtout aucun texte libre.
+     · TEMPORAIRE OU PERMANENTE (v5.114, demande de l'auteur) : l'e-mail le DIT, mais d'une phrase
+       FIXE — il ne sait pas lequel des deux a été choisi, et c'est délibéré. Le modèle est le même
+       pour toute l'instance ; le faire varier exigerait de passer à chaque demande une adresse de
+       retour distincte (`{{ .RedirectTo }}`), une par site et par mode, toutes déclarées dans la
+       liste autorisée de Supabase : une seule oubliée et l'e-mail annoncerait le mauvais mode. Le
+       choix vit à l'écran (Moi › Se connecter, A651-A652) ; l'e-mail rappelle les deux, et la
+       consigne qui compte sur un appareil du service.
      ================================================================================== -->
 <style>
   /* Thème sombre : Apple Mail, Mail iOS, Outlook macOS. Les styles EN LIGNE gagnent sur une
@@ -58,6 +71,7 @@
     .m-warn  { background-color:#2b2005 !important; border-color:#b45309 !important; }
     .m-warn-ink { color:#fbbf24 !important; }
     .m-act   { color:#8fb8e8 !important; }
+    .m-rowb  { border-color:#2c313a !important; }
   }
   /* OUTLOOK.COM / HOTMAIL — LE CROCHET `data-ogsc`. Ce client ignore `prefers-color-scheme` : en
      mode sombre il INVERSE lui-même les couleurs qu'il trouve, et signe chaque élément retouché
@@ -75,6 +89,7 @@
   [data-ogsc].m-warn, [data-ogsc] .m-warn  { background-color:#2b2005 !important; border-color:#b45309 !important; }
   [data-ogsc].m-warn-ink, [data-ogsc] .m-warn-ink { color:#fbbf24 !important; }
   [data-ogsc].m-act,  [data-ogsc] .m-act   { color:#8fb8e8 !important; }
+  [data-ogsc].m-rowb, [data-ogsc] .m-rowb  { border-color:#2c313a !important; }
   @media only screen and (max-width:600px) {
     .m-pad   { padding:24px 20px !important; }
     .m-digits{ font-size:30px !important; letter-spacing:7px !important; text-indent:7px !important; }
@@ -99,9 +114,9 @@
 
         <!-- ── Marque : nom en serif + sur-titre capitales espacées (l'en-tête de l'app) ── -->
         <tr>
-          <td class="m-pad" style="padding:30px 34px 0 34px;font-family:Georgia,'Times New Roman',serif;">
+          <td class="m-pad" style="padding:30px 34px 0 34px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
             <div class="m-ink" style="font-family:'Source Serif 4',Georgia,'Times New Roman',serif;font-size:17.5px;font-weight:600;letter-spacing:-.2px;line-height:1.2;color:#14181d;">Aides cognitives</div>
-            <div class="m-ink2" style="font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#5b6472;padding-top:4px;">Connexion</div>
+            <div class="m-ink2" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#5b6472;padding-top:4px;">Connexion</div>
           </td>
         </tr>
 
@@ -113,9 +128,9 @@
 
         <!-- ── Titre + phrase d'action ── -->
         <tr>
-          <td class="m-pad" style="padding:22px 34px 0 34px;font-family:Helvetica,Arial,sans-serif;">
-            <h1 class="m-ink" style="margin:0;font-family:'Source Serif 4',Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;line-height:1.25;color:#14181d;">Votre code de connexion</h1>
-            <p class="m-ink2" style="margin:8px 0 0 0;font-size:15px;line-height:1.5;color:#5b6472;">Saisissez-le dans l’application, écran <strong class="m-ink" style="color:#14181d;font-weight:700;">Compte</strong>.</p>
+          <td class="m-pad" style="padding:22px 34px 0 34px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <h1 class="m-ink" style="margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;letter-spacing:-.3px;line-height:1.2;color:#14181d;">Votre code de connexion</h1>
+            <p class="m-ink2" style="margin:8px 0 0 0;font-size:15px;line-height:1.5;color:#5b6472;">Saisissez-le dans l’application, là où vous l’avez demandé : <strong class="m-ink" style="color:#14181d;font-weight:700;">Moi › Se connecter</strong>.</p>
           </td>
         </tr>
 
@@ -124,8 +139,8 @@
           <td class="m-pad" style="padding:20px 34px 0 34px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#1d232b;border:1px solid #1d232b;border-radius:12px;" class="m-code">
               <tr>
-                <td align="center" style="padding:22px 16px 20px 16px;font-family:Helvetica,Arial,sans-serif;">
-                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:#9aa5b3;">Code à usage unique</div>
+                <td align="center" style="padding:22px 16px 20px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                  <div style="font-size:13px;font-weight:600;color:#9aa5b3;">Code à usage unique</div>
                   <div class="m-digits" style="font-family:'IBM Plex Mono',Menlo,Consolas,'Courier New',monospace;font-size:34px;font-weight:700;line-height:1.25;letter-spacing:9px;text-indent:9px;color:#ffffff;padding-top:10px;white-space:nowrap;mso-line-height-rule:exactly;">{{ .Token }}</div>
                 </td>
               </tr>
@@ -135,8 +150,33 @@
 
         <!-- ── Durée de vie : une ligne, à sa place, sans emphase ── -->
         <tr>
-          <td class="m-pad" style="padding:12px 34px 0 34px;font-family:Helvetica,Arial,sans-serif;">
+          <td class="m-pad" style="padding:12px 34px 0 34px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
             <p class="m-ink2" style="margin:0;font-size:13px;line-height:1.5;color:#5b6472;">Valable <strong class="m-ink" style="color:#14181d;font-weight:700;">une heure</strong>, une seule fois. Passé ce délai, redemandez-en un depuis l’application.</p>
+          </td>
+        </tr>
+
+        <!-- ── Temporaire ou permanente : une phrase FIXE (cf. en tête), en LISTE GROUPÉE comme la carte « Se connecter »
+             de l'app (mêmes mots, mêmes glyphes : ◷ n'est pas un emoji, ∞ non plus) ; sans couleur — rien ne tourne mal ── -->
+        <tr>
+          <td class="m-pad" style="padding:20px 34px 0 34px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <p class="m-ink2" style="margin:0 0 8px 0;font-size:13px;line-height:1.5;color:#5b6472;">Ce code ouvre la connexion choisie à l’écran :</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e3e6ea;border-radius:12px;border-collapse:separate;" class="m-rowb">
+                <tr>
+                  <td width="28" valign="top" style="padding:12px 0 12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;line-height:1.4;color:#14181d;border-bottom:1px solid #e3e6ea;" class="m-ink m-rowb">◷</td>
+                  <td valign="top" style="padding:12px 14px 12px 8px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;border-bottom:1px solid #e3e6ea;" class="m-rowb">
+                    <div class="m-ink" style="font-size:15px;font-weight:700;line-height:1.4;color:#14181d;">Temporaire</div>
+                    <div class="m-ink2" style="font-size:13px;line-height:1.45;color:#5b6472;">jusqu’à la fin de la garde, puis tout s’efface de l’appareil</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td width="28" valign="top" style="padding:12px 0 12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;line-height:1.4;color:#14181d;" class="m-ink m-rowb">∞</td>
+                  <td valign="top" style="padding:12px 14px 12px 8px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;" class="m-rowb">
+                    <div class="m-ink" style="font-size:15px;font-weight:700;line-height:1.4;color:#14181d;">Permanente</div>
+                    <div class="m-ink2" style="font-size:13px;line-height:1.45;color:#5b6472;">vous restez connecté</div>
+                  </td>
+                </tr>
+            </table>
+            <p class="m-ink2" style="margin:8px 0 0 0;font-size:13px;line-height:1.5;color:#5b6472;">Sur un appareil du service, choisissez <strong class="m-ink" style="color:#14181d;font-weight:700;">Temporaire</strong> — et lisez cet e-mail sur un appareil à vous.</p>
           </td>
         </tr>
 
@@ -145,8 +185,8 @@
           <td class="m-pad" style="padding:20px 34px 0 34px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#fbf3dc;border:1px solid #eddfb6;border-radius:10px;" class="m-warn">
               <tr>
-                <td style="padding:12px 14px;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#7a5900;" class="m-warn-ink">
-                  <strong style="font-weight:700;">⚠ Ne communiquez ce code à personne.</strong> Il ouvre votre compte : ni l’équipe de l’application ni un collègue n’a de raison de vous le demander.
+                <td style="padding:12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#7a5900;" class="m-warn-ink">
+                  <strong style="font-weight:700;">△ Ne communiquez ce code à personne.</strong> Il ouvre votre compte : ni l’équipe de l’application ni un collègue n’a de raison de vous le demander.
                 </td>
               </tr>
             </table>
@@ -160,7 +200,7 @@
           </td>
         </tr>
         <tr>
-          <td class="m-pad" style="padding:16px 34px 28px 34px;font-family:Helvetica,Arial,sans-serif;">
+          <td class="m-pad" style="padding:16px 34px 28px 34px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
             <p class="m-ink2" style="margin:0;font-size:12px;line-height:1.6;color:#5b6472;">Demande de connexion émise pour <span class="m-act" style="color:#17477f;font-weight:700;">{{ .Email }}</span>. Si elle ne vient pas de vous, ignorez ce message : sans ce code, aucun accès n’est ouvert.</p>
             <p class="m-ink2" style="margin:10px 0 0 0;font-size:12px;line-height:1.6;color:#5b6472;">Aides cognitives — aide-mémoire clinique hors ligne. Message automatique, envoyé sans suivi ni pièce jointe. Ne pas répondre à ce mail.</p>
           </td>

@@ -239,7 +239,11 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    **aucune ressource externe** — ni image, ni police, ni traceur — et n'interpole que
    `{{ .Token }}` et `{{ .Email }}`. Il ne contient **volontairement aucun lien** : l'app se
    connecte par SAISIE du code, et un e-mail de code sans lien est aussi la meilleure défense
-   anti-hameçonnage. Version minimale de secours si l'éditeur refuse le HTML complet :
+   anti-hameçonnage. Il rappelle d'une phrase FIXE les deux connexions, **temporaire** ou
+   **permanente** (v5.114) : il ne sait pas laquelle a été choisie — faire varier le modèle exigerait
+   une adresse de retour par site et par mode, déclarée dans Supabase, trop fragile (cf. l'en-tête du
+   fichier). **À recoller** dans les deux modèles après toute modification du fichier.
+   Version minimale de secours si l'éditeur refuse le HTML complet :
    `<p>Votre code : {{ .Token }}</p>`.
    ⚠ Le modèle annonce « valable **une heure** » : c'est le réglage *Authentication → Sessions →
    **OTP expiry** = 3600 s*. Les deux se changent ENSEMBLE — un délai annoncé faux se paie en
