@@ -54,6 +54,8 @@ function bouchon(srvst, vu) {
       if (fn === 'link_self') return J(srvst.self || { ok: true, id: LID, ends_at: body && body.p_ends_at });
       if (fn === 'get_temp_rules') return J(srvst.rules || { edit: 'v15', del: 'tel', repl: 'non', exp: 'oui', dur: 28 });
       if (fn === 'set_temp_rules') return J(null);
+      if (fn === 'link_list') return J(srvst.devs || []);
+      if (fn === 'link_extend') return J({ ok: true });
       return J(null);
     }
     if (p === '/functions/v1/link-claim') { (vu.claim = vu.claim || []).push(body);
@@ -227,18 +229,24 @@ await ctx.close();
   await ph.evaluate(([id, s]) => Link.approve({ id, secret: s }, true), [LID, S]);
   await ph.waitForSelector('#linkModal.on [data-lkn]');
   const r = await ph.evaluate(s => ({ nums: [...document.querySelectorAll('[data-lkn]')].map(b => +b.dataset.lkn), vrai: linkCheckNum(s),
-    ends: [...document.querySelectorAll('[data-lkend]')].map(b => b.textContent), on: !!document.querySelector('[data-lkend].on'),
-    dis: document.querySelector('[data-lkok]').disabled, label: document.querySelector('.pp-dev').textContent }), S);
-  t('feuille : le poste nommé, trois nombres dont le vrai', r.nums.length === 3 && r.nums.includes(r.vrai) && /Chrome · Windows/.test(r.label), JSON.stringify(r));
-  t('… des heures de fin, une présélectionnée', r.ends.length >= 2 && r.on, JSON.stringify(r.ends));
-  t('… « Connecter » fermé tant que le nombre n’est pas choisi', r.dis === true);
-  const faux = r.nums.find(n => n !== r.vrai);
-  await ph.click(`[data-lkn="${faux}"]`);
-  const w = await ph.evaluate(() => ({ txt: document.getElementById('lkWarn').textContent, dis: document.querySelector('[data-lkok]').disabled }));
-  t('mauvais nombre : refusé, dit, et rien ne part', /pas le nombre/.test(w.txt) && w.dis && !(vu2.link_approve || []).length, JSON.stringify(w));
+    ends: document.querySelectorAll('[data-lkend]').length, ok: !!document.querySelector('[data-lkok]'),
+    titre: document.getElementById('linkModalTitle').textContent }), S);
+  t('feuille : le poste nommé dans le titre, trois nombres dont le vrai', r.nums.length === 3 && r.nums.includes(r.vrai) && /Connecter Chrome · Windows/.test(r.titre), JSON.stringify(r));
+  t('… une étape à la fois : ni heure ni « Connecter » avant le bon nombre (aucun bouton grisé, A656)', r.ends === 0 && !r.ok, JSON.stringify(r));
+  const faux = r.nums.filter(n => n !== r.vrai);
+  await ph.click(`[data-lkn="${faux[0]}"]`);
+  const w = await ph.evaluate(() => ({ txt: document.getElementById('lkWarn').textContent, ok: !!document.querySelector('[data-lkok]'),
+    fort: document.querySelector('[data-lkclose]').classList.contains('primary') }));
+  t('mauvais nombre : refusé, dit, et rien ne part', /pas le nombre/.test(w.txt) && !w.ok && !w.fort && !(vu2.link_approve || []).length, JSON.stringify(w));
+  await ph.click(`[data-lkn="${faux[1]}"]`);
+  const w2 = await ph.evaluate(() => ({ txt: document.getElementById('lkWarn').textContent, fort: document.querySelector('[data-lkclose]').classList.contains('primary') }));
+  t('… au 2ᵉ faux nombre : « Annulez », et « Annuler » devient le bouton fort', /Annulez/.test(w2.txt) && w2.fort, JSON.stringify(w2));
   await ph.click(`[data-lkn="${r.vrai}"]`);
+  const r2 = await ph.evaluate(() => ({ ends: [...document.querySelectorAll('[data-lkend]')].map(b => b.textContent), on: !!document.querySelector('[data-lkend].on'),
+    okl: (document.querySelector('.pp-okl') || {}).textContent || '', lbl: (document.querySelector('[data-lkok]') || {}).textContent || '' }));
+  t('bon nombre : il est dit, puis l’heure de fin paraît (une présélectionnée) et « Connecter jusqu’à … »', /bien l’écran/.test(r2.okl) && r2.ends.length >= 1 && r2.on && /Connecter jusqu’à \S/.test(r2.lbl), JSON.stringify(r2));
   await ph.click('[data-lkok]');
-  await ph.waitForFunction(() => /Appareil connecté, temporairement/.test(document.getElementById('linkBody').textContent));
+  await ph.waitForFunction(() => /Appareil connecté/.test(document.getElementById('linkBody').textContent) && !!document.querySelector('[data-lkrevnow]'));
   const ap = (vu2.link_approve || [])[0] || {};
   const dt = Date.parse(ap.p_ends_at) - Date.now();
   t('approbation envoyée avec le secret et une heure de fin entre 1 h et 28 h', ap.p_id === LID && ap.p_secret === S && dt > 3600e3 - 60e3 && dt <= 28 * 3600e3, JSON.stringify(ap));
@@ -246,6 +254,26 @@ await ctx.close();
   await ph.waitForFunction(() => /Appareil déconnecté/.test(document.getElementById('linkBody').textContent));
   t('« Rien ne s’ouvre devant vous ? Déconnecter » : un geste, et le poste est déconnecté', (vu2.link_revoke || []).some(x => x && x.p_id === LID));
   t('le fragment du lien est effacé de l’adresse', await ph.evaluate(() => !/lier=/.test(location.href)));
+  // A656 : les connexions temporaires vivent DANS Moi — une rangée par appareil, l'échéance proche en ambre ; toucher
+  // une rangée ouvre « gérer » (heure de fin, prolonger, déconnecter).
+  const D1 = '1b6f3a2e-9c1d-4e5f-8a7b-1c2d3e4f5a6b';
+  st2.devs = [{ id: LID, label: 'Chrome · Windows', since: new Date(Date.now() - 3600e3).toISOString(), ends_at: new Date(Date.now() + 9 * 3600e3).toISOString() },
+    { id: D1, label: 'Safari · iPad', since: new Date(Date.now() - 7200e3).toISOString(), ends_at: new Date(Date.now() + 30 * 60e3).toISOString() }];
+  await ph.evaluate(() => { Link.close(); Link._devAt = 0; openAuth(); });
+  await ph.waitForSelector('#lkDevs [data-lkdev]');
+  const m = await ph.evaluate(() => ({ rows: [...document.querySelectorAll('#lkDevs [data-lkdev]')].map(b => ({ t: b.textContent, soon: b.classList.contains('soon') })),
+    scan: !!document.querySelector('#lkDevs [data-lkscan]'), fins: !!document.querySelector('#lkDevs [data-lkfins]'), menu2: !!document.querySelector('[data-lkdevs]') }));
+  t('Moi : les appareils connectés sur place (plus de second menu), « Connecter un appareil » et « Mes fins de garde »', m.rows.length === 2 && m.scan && m.fins && !m.menu2, JSON.stringify(m));
+  t('… l’échéance à moins d’une heure en ambre, dite par un glyphe et un mot', !m.rows[0].soon && m.rows[1].soon && /△ jusqu’à .* dans 30 min/.test(m.rows[1].t), JSON.stringify(m.rows));
+  await ph.click(`[data-lkdev="${LID}"]`);
+  await ph.waitForSelector('#linkModal.on [data-lkext]');
+  const g = await ph.evaluate(() => ({ titre: document.getElementById('linkModalTitle').textContent, endt: document.querySelector('.pp-endt').textContent,
+    ext: [...document.querySelectorAll('[data-lkext]')].map(b => +b.dataset.lkext) }));
+  t('« gérer » : l’appareil nommé, son heure de fin en grand, ＋ 1 h', /Chrome · Windows/.test(g.titre) && /\d\d:\d\d/.test(g.endt) && g.ext.length >= 1, JSON.stringify(g));
+  await ph.click('[data-lkext]');
+  await ph.waitForFunction(() => (document.querySelector('.pp-endt') || {}).textContent);
+  const ex = (vu2.link_extend || [])[0] || {};
+  t('… ＋ 1 h part au serveur : une heure de plus que l’heure de fin', ex.p_id === LID && Math.abs(Date.parse(ex.p_ends_at) - Date.parse(st2.devs[0].ends_at) - 3600e3) < 2000, JSON.stringify(ex));
   await c2.close();
 }
 
@@ -330,6 +358,8 @@ await ctx.close();
   await ph.waitForFunction(() => typeof Auth !== 'undefined' && Auth.signedIn() && !document.querySelector('.boot-load'));
   await ph.evaluate(() => linkRulesFetch());
   await ph.evaluate(([id, sct]) => Link.approve({ id, secret: sct }, true), [LID, 'Q2xLk9_aZ0b-Xy7Pq3RsTu']);
+  await ph.waitForSelector('#linkModal.on [data-lkn]');
+  await ph.evaluate(sct => document.querySelector(`[data-lkn="${linkCheckNum(sct)}"]`).click(), 'Q2xLk9_aZ0b-Xy7Pq3RsTu');   // A656 : l'heure suit le bon nombre
   await ph.waitForSelector('#linkModal.on [data-lkend]');
   const ends = await ph.evaluate(() => [...document.querySelectorAll('[data-lkend]')].map(b => +b.dataset.lkend - Date.now()));
   t('l’appareil qui approuve ne propose aucune heure au-delà de la durée maximale', ends.length >= 1 && ends.every(x => x <= 12 * 3600e3), JSON.stringify(ends.map(x => Math.round(x / 36e5))));
@@ -352,6 +382,61 @@ await ctx.close();
   t('Administration › Règles : la section « Connexion temporaire » (5 règles + 2 interdits fixes)', adm.rows === 7 && adm.bouton, JSON.stringify(adm));
   t('… un choix part au serveur (set_temp_rules)', set.p_rules && set.p_rules.edit === 'non', JSON.stringify(set));
   await c7.close();
+}
+{
+  console.log('\n── 6. Déconnecté depuis un autre appareil : l’appareil s’arrête aussitôt (A655)');
+  // Signalé : « je peux continuer à modifier mes fiches et lancer des sessions jusqu'à ce que je recharge la page ».
+  // Une session terminée pas encore envoyée retient l'effacement (rien ne se perd en silence) : c'est le cas signalé.
+  const c8 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st8 = { verifyOk: true, rules: { edit: 'libre', del: 'tel', repl: 'non', exp: 'oui', dur: 28 } }, vu8 = {};
+  await c8.route('**/*.supabase.co/**', bouchon(st8, vu8));
+  const pg = await c8.newPage();
+  await pg.goto(URL0);
+  await amorce(pg);
+  await pg.evaluate(() => openAuth());
+  await pg.click('[data-authk="temp"]'); await pg.click('[data-autht="email"]');
+  await pg.fill('#authEmail', 'kim@test.local'); await pg.click('#authSend');
+  await pg.waitForSelector('#authCode'); await pg.fill('#authCode', '48207312'); await pg.click('#authVerify');
+  await apres(pg, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'), UID);
+  await pg.evaluate(async () => { await linkRulesFetch(); Link.close();
+    const f = blankFiche(); f.title = 'Aide du poste'; fiches.push(f);
+    await Data.putSession({ id: 's-poste-z', ficheId: f.id, ficheTitle: 'x', savedAt: Date.now(), startedAt: Date.now() - 6e4, live: false, dirty: true,
+      checked: {}, verified: {}, vgaps: {}, counters: {}, timers: {}, nav: [], navSeq: [], events: [] }); });
+  const avant = await pg.evaluate(() => ({ over: linkOver(), locked: linkLocked() }));
+  t('connecté : l’appareil n’est pas « fini » (règle libre : rien de verrouillé)', !avant.over && !avant.locked, JSON.stringify(avant));
+  st8.poll = { ok: true, status: 'revoked', ends_at: new Date(Date.now() + 9 * 3600e3).toISOString() };
+  const lus = (vu8.link_poll || []).length;
+  await pg.evaluate(() => Link.watch());
+  await pg.waitForFunction(() => document.getElementById('linkModal').classList.contains('on'), null, { timeout: 8000 });
+  const r = await pg.evaluate(() => ({ rev: linkShared() && linkShared().revoked, titre: document.getElementById('linkModalTitle').textContent,
+    corps: document.getElementById('linkBody').textContent, fiches: fiches.length, ask: Link._ask }));
+  t('la veille apprend la déconnexion : retenue sur le disque, et dit une fois', r.rev === true && /Appareil déconnecté/.test(r.titre) && (vu8.link_poll || []).length > lus, JSON.stringify(r));
+  t('… la session pas encore envoyée est NOMMÉE (PDF depuis « Sessions »), l’appareil pas effacé en silence', /pas rejoint votre historique/.test(r.corps) && r.fiches === 1 && r.ask, JSON.stringify(r));
+  await pg.evaluate(() => Link.close());
+  const g = await pg.evaluate(async () => { const o = {}; const titre = () => { const m = document.getElementById('linkModal');
+      const x = m.classList.contains('on') ? document.getElementById('linkModalTitle').textContent : ''; Link.close(); return x; };
+    await newFiche(); o.creer = titre(); o.vueCreer = state.view;
+    const f = fiches[0]; openRead(f.id); await __acCalme(300);
+    o.demarre = startSessionGesture(); o.sess = titre(); o.started = !!(Runtime && Runtime.started);
+    state.view = 'library'; render();
+    o.band = (document.getElementById('linkBand') || {}).textContent || '';
+    return o; });
+  t('« Créer » refusé : « Appareil déconnecté », l’éditeur ne s’ouvre pas', /Appareil déconnecté/.test(g.creer) && g.vueCreer !== 'edit', JSON.stringify(g));
+  t('… aucune NOUVELLE session ne démarre', g.demarre === false && !g.started && /Appareil déconnecté/.test(g.sess), JSON.stringify(g));
+  t('… la bande de l’accueil le dit', /Déconnecté depuis un autre appareil/.test(g.band), g.band);
+  const tables = [];
+  pg.on('request', q => { if (/\/rest\/v1\/(?!rpc)/.test(q.url())) tables.push(q.url()); });
+  await pg.evaluate(() => Sync.full());
+  await pg.waitForTimeout(400);   // horloge : témoin négatif (aucune requête ne doit partir)
+  t('… la synchro ne tourne plus (le serveur lui ferme les tables, A655)', tables.length === 0, JSON.stringify(tables.slice(0, 3)));
+  // Un rechargement ne rouvre RIEN avant la veille : l'état est sur le disque.
+  st8.poll = { ok: true, status: 'pending' };   // même si la veille ne répondait pas comme il faut
+  await pg.reload();
+  await pg.waitForFunction(() => typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'));
+  const rl = await pg.evaluate(async () => { const over = linkOver(); await newFiche();
+    const m = document.getElementById('linkModal').classList.contains('on'); return { over, m, vue: state.view }; });
+  t('rechargé : toujours fini, « Créer » toujours refusé', rl.over && rl.m && rl.vue !== 'edit', JSON.stringify(rl));
+  await c8.close();
 }
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles connexion par le téléphone OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));

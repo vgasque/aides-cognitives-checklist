@@ -56,6 +56,7 @@ declare
   v_key  text;   -- §16 : la CLÉ DU POSTE (jamais dans le QR)
   v_asid2 uuid;
   v_asid3 uuid;
+  v_lid3 uuid;   -- 16.18 : le lien du poste de 16.16
 begin
   ------------------------------------------------------------------ SEED (propriétaire)
   reset role;
@@ -1522,6 +1523,40 @@ begin
   if (public.link_self(encode(extensions.digest('cle-dur-0123456789abcdef', 'sha256'), 'hex'), 'Chrome', now() + interval '20 hours')->>'ok')::boolean then
     raise exception 'ÉCHEC 16.17 : la durée maximale réglée (12 h) ne borne pas la connexion'; end if;
   if (public.get_temp_rules()->>'dur')::int <> 12 then raise exception 'ÉCHEC 16.17 : les règles ne se lisent pas'; end if;
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb where id = true;
+  -- 16.18 (A655) Un poste DÉCONNECTÉ à distance ne lit ni n'écrit plus, dès la requête suivante — son jeton
+  --       (v_asid3) reste valable jusqu'à 900 s : c'est la base, pas le jeton, qui ferme. Une session de
+  --       confiance du même compte n'est pas touchée.
+  update public.app_settings set temp_rules = '{"edit":"libre"}'::jsonb where id = true;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-poste-3',kim,null,'{"t":1}');   -- avant : permis
+  if not exists (select 1 from public.cognitive_aids where id = 'f-poste-3') then
+    raise exception 'ÉCHEC 16.18 : un poste encore connecté ne lit pas ses aides'; end if;
+  reset role;
+  select id into v_lid3 from public.device_links where auth_session = v_asid3;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  set local role authenticated;
+  if not coalesce((public.link_revoke(v_lid3)->>'ok')::boolean, false) then
+    raise exception 'ÉCHEC 16.18 : la déconnexion à distance échoue'; end if;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
+  set local role authenticated;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-poste-4',kim,null,'{"t":1}');
+    raise exception 'ÉCHEC 16.18 : un poste déconnecté crée encore une aide';
+  exception when insufficient_privilege then null; end;
+  update public.cognitive_aids set data = '{"t":2}' where id = 'f-poste-3';
+  if exists (select 1 from public.cognitive_aids where id = 'f-poste-3') then
+    raise exception 'ÉCHEC 16.18 : un poste déconnecté lit encore les aides du compte'; end if;
+  if (public.link_poll(v_lid3, 'x')->>'ok') is null then
+    raise exception 'ÉCHEC 16.18 : link_poll n''est plus appelable'; end if;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated')::text, true);
+  set local role authenticated;
+  if (select data->>'t' from public.cognitive_aids where id = 'f-poste-3') <> '1' then
+    raise exception 'ÉCHEC 16.18 : un poste déconnecté a modifié une aide'; end if;
   reset role;
   update public.app_settings set temp_rules = '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb where id = true;
   -- 16.14 (A648) Aucun compte ne porte de mot de passe : ni le définir, ni s'inscrire avec. Un mot de

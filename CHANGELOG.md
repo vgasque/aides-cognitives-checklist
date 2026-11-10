@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.114.0] — 2026-11-10
+Un appareil déconnecté s'arrête aussitôt (A655) ; « Connecter un appareil » refait (A656). **Côté serveur : rejouer
+`supabase/schema.sql`** (fonction `link_dead`, politiques `*_link_dead`), puis `supabase/rls-tests.sql`.
+- **Correctif (signalé)** : un appareil déconnecté depuis un autre appareil restait utilisable — modifier, lancer des
+  sessions — jusqu'au rechargement, et son accès au serveur durait jusqu'à 15 min. Désormais il l'apprend en 15 s au
+  plus, le retient même rechargé, et ne fait plus que finir la session en cours puis s'effacer : créer, modifier,
+  supprimer, importer et démarrer une session sont refusés, la synchro s'arrête. Le serveur lui ferme lecture et
+  écriture dès la requête suivante. Des sessions qui ne peuvent plus rejoindre l'historique sont nommées (comptes
+  rendus en PDF depuis « Sessions ») avant tout effacement.
+- **Moi › Connexions temporaires** : les appareils connectés sont listés sur place (ordinateur, tablette, téléphone),
+  avec leur heure de fin, en ambre à moins d'une heure ; toucher un appareil ouvre son heure de fin en grand,
+  « ＋ 1 h », « Jusqu'à » la prochaine fin de garde, et « Déconnecter et effacer ». « Mes fins de garde » y a sa rangée.
+- **Le viseur** dit quoi viser et où trouver le code (« Le code n'est pas affiché ? »).
+- **Confirmer, une étape à la fois** : le nombre, puis l'heure ; plus de bouton grisé ; au 2ᵉ faux nombre, « Annuler »
+  devient le bouton principal. « Appareil connecté » s'affiche en vert avec « Rien ne s'ouvre devant vous ? Déconnecter ».
+- Le temps restant ne dit plus « 8 h 60 ».
+- Garde-fous : `rls-tests.sql` 16.18, `audit-lier.mjs` (65 contrôles, sections 3 et 6), `tests.html`.
+
 ## [5.113.0] — 2026-11-10
 Régler la connexion temporaire dans Administration (A654). **Côté serveur : rejouer `supabase/schema.sql`**
 (colonne `app_settings.temp_rules`, fonctions `get_temp_rules`/`set_temp_rules`, politiques restrictives), puis
@@ -225,9 +243,3 @@ Le suivi : des notes et des tâches sur chaque aide et chaque référence, pour 
   ou « À faire ») ; la collection reste.
 - **Pendant une session**, seules les notes restent, repliées ; aucune tâche ne s'affiche.
 - Une note s'ajoute désormais par « Suivi » ; votre note personnelle existante reste lisible et modifiable.
-
-## [5.106.0] — 2026-11-08
-Déplacer plusieurs blocs d'un coup (A612). Rien à rejouer côté serveur.
-- **« ⠿ Déplacer » dans la barre de sélection des blocs** : les blocs sélectionnés, même non voisins, se déplacent
-  ensemble — touchez « Poser ici », « en tête » ou « en fin ». Ils gardent leur ordre et restent sélectionnés à
-  l'arrivée ; ✕ ou Échap annule, ↶ rend l'ordre d'avant.
