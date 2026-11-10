@@ -1739,6 +1739,20 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const its=[];for(let i=0;i<9000;i++)its.push({});
    const t0=Date.now(),g=A.migrate({id:'fp',title:'t',items:its,blocks:[{id:'b1',kind:'do',items:its.slice(0,2000)}]});
    ok('A668 : le pool d’items et les items d’un bloc sont bornés',g.items.length<=5000&&g.blocks[0].items.length<=500&&Date.now()-t0<4000);}
+  // ── A688 — quotas : la normalisation des limites et la lecture du refus du serveur ──
+  {eq('A688 : quotasNorm borne, arrondit et complète par les défauts du serveur',
+     JSON.stringify(A.quotasNorm({aids:3,protocols:'250',sessions:9e9,docs:'x',__proto__:{aids:1},autre:5})),
+     JSON.stringify({aids:10,protocols:250,sessions:1000000,docs:1000}));
+   eq('A688 : quotasNorm d’un non-objet rend les défauts',JSON.stringify(A.quotasNorm(null)),JSON.stringify({aids:2000,protocols:2000,sessions:5000,docs:1000}));
+   const r=A.quotaErrInfo('REST 400 {"code":"P0001","details":"protocols","hint":"2000","message":"quota_exceeded"}');
+   ok('A688 : le refus du serveur se lit (limite et valeur)',!!r&&r.k==='protocols'&&r.lim===2000);
+   ok('A688 : un autre refus n’est pas un quota',A.quotaErrInfo('REST 403 {"message":"new row violates row-level security policy"}')===null);
+   const r2=A.quotaErrInfo('REST 400 {"details":"<img src=x>","hint":"abc","message":"quota_exceeded"}');
+   ok('A688 : une limite inconnue ou une valeur non numérique ne sont pas lues',!!r2&&r2.k===null&&r2.lim===null);}
+  {eq('A688 : quotaUsageNorm ne garde que quatre entiers positifs',JSON.stringify(A.quotaUsageNorm({aids:'312',protocols:-4,sessions:'x',docs:7.6,autre:1})),JSON.stringify({aids:312,protocols:0,sessions:0,docs:8}));
+   const rp=A.quotaRepere('aids',{aids:1312,protocols:0,sessions:0,docs:0});
+   ok('A688 : le repère d’un champ dit l’usage réel, le défaut et la plage',/Le plus rempli aujourd’hui : 1\u202f312\./.test(rp)&&/Par défaut : 2\u202f000\./.test(rp)&&/De 10 à 1\u202f000\u202f000\./.test(rp));
+   ok('A688 : sans usage connu, le repère ne l’invente pas',!/plus rempli/.test(A.quotaRepere('docs',null))&&/Par défaut : 1\u202f000\./.test(A.quotaRepere('docs',null)));}
   {const t0=Date.now();A.stripJsonFences('```'+' '.repeat(20000)+'x');
    ok('A670 : stripJsonFences reste linéaire sur « ``` + espaces »',Date.now()-t0<500);
    eq('A670 : clôtures retirées comme avant',A.stripJsonFences('```json\n{"a":1}\n```'),'{"a":1}');}

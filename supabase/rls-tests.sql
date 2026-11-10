@@ -48,6 +48,11 @@ declare
   v_s18c uuid := 'a6760000-0000-0000-0000-0000000000a3';
   v_t0   timestamptz;
   v_t1   timestamptz;
+  -- §19 (A687), comptes dédiés
+  sam   uuid := 'a6870000-0000-0000-0000-000000000001';
+  tom   uuid := 'a6870000-0000-0000-0000-000000000002';
+  v_s19 uuid := 'a6870000-0000-0000-0000-0000000000a1';
+  v_q0  jsonb;
   v_hack text;
   v_cnt  int;
   v_leak int;
@@ -2048,6 +2053,140 @@ begin
     raise exception 'ÉCHEC 18.9 : un nom de bibliothèque de 121 caractères est accepté';
   exception when check_violation then null; end;
   reset role;
+
+  ------------------------------------------------------------------ 19. Quotas (A687)
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (sam,'sam@test.local',now()),(tom,'tom@test.local',now());
+  insert into public.user_status(user_id,email,status) values (sam,'sam@test.local','approved'),(tom,'tom@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.app_admins(user_id) values (sam) on conflict do nothing;
+  select quotas into v_q0 from public.app_settings where id;
+
+  -- 19.1 Lecture : tout compte validé lit les limites ; les défauts sont ceux annoncés.
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.get_quotas();
+  if (v_j->>'aids')::int <> coalesce((v_q0->>'aids')::int, 2000) or (v_j->>'docs') is null or (v_j->>'sessions') is null or (v_j->>'protocols') is null then
+    raise exception 'ÉCHEC 19.1 : get_quotas ne rend pas les quatre limites (%)', v_j; end if;
+
+  -- 19.2 Écriture : ni un compte ordinaire, ni une session de poste d'administrateur ; grammaire fermée.
+  begin perform public.set_quotas('{"aids":10}'::jsonb);
+    raise exception 'ÉCHEC 19.2 : un compte ordinaire règle les quotas';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+  insert into auth.sessions(id, user_id) values (v_s19, sam);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('7',64), repeat('8',64), now(), sam, 'claimed', now() + interval '2 hours', now(), now(), v_s19);
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated','session_id',v_s19)::text, true);
+  set local role authenticated;
+  begin perform public.set_quotas('{"aids":10}'::jsonb);
+    raise exception 'ÉCHEC 19.2 : une session de poste règle les quotas';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+  delete from public.device_links where auth_session = v_s19;
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated')::text, true);
+  set local role authenticated;
+  foreach v_tbl in array array['{"aids":9}','{"aids":1000001}','{"aids":"12"}','{"aids":12.5}','{"autre":50}','{}','[]','{"aids":-20}'] loop
+    begin perform public.set_quotas(v_tbl::jsonb);
+      raise exception 'ÉCHEC 19.2 : set_quotas accepte %', v_tbl;
+    exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  end loop;
+  perform public.set_quotas('{"aids":10,"protocols":10,"sessions":10,"docs":10}'::jsonb);
+  if public.get_quotas() is distinct from '{"aids":10,"protocols":10,"sessions":10,"docs":10}'::jsonb then
+    raise exception 'ÉCHEC 19.2 : les quotas réglés ne se relisent pas (%)', public.get_quotas(); end if;
+  reset role;
+
+  -- 19.3 Espace personnel : la 11e aide vivante est refusée, avec le nom et la valeur de la limite ;
+  -- réécrire une aide existante (l'upsert de la synchro) passe ; une tombe ne compte pas.
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) select 'q19-'||g, tom, null, '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('q19-11',tom,null,'{}');
+    raise exception 'ÉCHEC 19.3 : une aide au-delà du quota est acceptée';
+  exception when others then
+    if sqlerrm like 'ÉCHEC%' then raise; end if;
+    get stacked diagnostics v_list = pg_exception_detail, v_hack = pg_exception_hint;
+    if sqlerrm <> 'quota_exceeded' or v_list is distinct from 'aids' or v_hack is distinct from '10' then
+      raise exception 'ÉCHEC 19.3 : refus mal formé (% / % / %)', sqlerrm, v_list, v_hack; end if;
+  end;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('q19-3',tom,null,'{"title":"réécrite"}')
+    on conflict (id) do update set data = excluded.data;
+  if (select data->>'title' from public.cognitive_aids where id='q19-3') is distinct from 'réécrite' then
+    raise exception 'ÉCHEC 19.3 : au quota, réécrire une aide existante est refusé'; end if;
+  update public.cognitive_aids set deleted_at = now() where id = 'q19-1';
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('q19-11',tom,null,'{}');   -- une place s'est libérée
+  insert into public.cognitive_aids(id,owner,library_id,data,deleted_at) values ('q19-tombe',tom,null,'{}',now());   -- une tombe passe toujours
+  -- Les protocoles et les sessions ont leur propre compte.
+  insert into public.protocols(id,owner,library_id,data) select 'q19p-'||g, tom, null, '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values ('q19p-11',tom,null,'{}');
+    raise exception 'ÉCHEC 19.3 : un protocole au-delà du quota est accepté';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  insert into public.sessions(id,owner,data) select 'q19s-'||g, tom, '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.sessions(id,owner,data) values ('q19s-11',tom,'{}');
+    raise exception 'ÉCHEC 19.3 : une session au-delà du quota est acceptée';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+
+  -- 19.4 Le quota est PAR ESPACE : une bibliothèque a le sien, plein ou non indépendamment du personnel.
+  insert into public.libraries(id,name,created_by) values ('lib-19','Dix-neuf',sam) on conflict (id) do nothing;
+  insert into public.memberships(user_id,library_id,role) values (tom,'lib-19','editor')
+    on conflict (user_id,library_id) do update set role = excluded.role;
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) select 'q19l-'||g, tom, 'lib-19', '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('q19l-11',tom,'lib-19','{}');
+    raise exception 'ÉCHEC 19.4 : une bibliothèque dépasse son quota';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+
+  -- 19.5 Documents : la politique restrictive borne un dossier du bucket ; remplacer un objet existant passe.
+  insert into storage.buckets(id,name) values ('attachments','attachments') on conflict (id) do nothing;
+  insert into storage.objects(bucket_id,name) select 'attachments', 'u/'||tom||'/d'||g||'.pdf' from generate_series(1,10) g;
+  if public.quota_att_ok('u/'||tom||'/d11.pdf') then raise exception 'ÉCHEC 19.5 : un 11e document passe le quota'; end if;
+  if not public.quota_att_ok('u/'||tom||'/d3.pdf') then raise exception 'ÉCHEC 19.5 : remplacer un document existant est refusé'; end if;
+  if not public.quota_att_ok('l/lib-19/d1.pdf') then raise exception 'ÉCHEC 19.5 : le quota d''un dossier ferme un autre dossier'; end if;
+  if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='att_quota_ins' and permissive='RESTRICTIVE') then
+    raise exception 'ÉCHEC 19.5 : la politique restrictive des documents est absente'; end if;
+  delete from storage.objects where bucket_id='attachments' and name like 'u/'||tom||'/d%';
+
+  -- 19.5b L'usage réel : l'administrateur lit le compte de l'espace le plus rempli ; personne d'autre.
+  insert into storage.objects(bucket_id,name) select 'attachments', 'l/lib-19/u'||g||'.pdf' from generate_series(1,7) g;
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.quota_usage();
+  reset role;
+  if (v_j->>'aids')::int < 10 or (v_j->>'protocols')::int < 10 or (v_j->>'sessions')::int < 10 or (v_j->>'docs')::int < 7 then
+    raise exception 'ÉCHEC 19.5b : usage réel mal compté (%)', v_j; end if;
+  if (v_j->>'aids')::int > (select count(*) from public.cognitive_aids where deleted_at is null) then
+    raise exception 'ÉCHEC 19.5b : usage supérieur au total des aides (%)', v_j; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  if public.quota_usage() is not null then raise exception 'ÉCHEC 19.5b : un compte ordinaire lit l''usage de l''instance'; end if;
+  reset role;
+  insert into auth.sessions(id, user_id) values (v_s19, sam) on conflict (id) do nothing;
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('5',64), repeat('6',64), now(), sam, 'claimed', now() + interval '2 hours', now(), now(), v_s19);
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated','session_id',v_s19)::text, true);
+  set local role authenticated;
+  if public.quota_usage() is not null then raise exception 'ÉCHEC 19.5b : une session de poste lit l''usage de l''instance'; end if;
+  reset role;
+  delete from public.device_links where auth_session = v_s19;
+  delete from storage.objects where bucket_id='attachments' and name like 'l/lib-19/u%';
+
+  -- 19.6 Une écriture sans compte (dépôt d'un poste par sa clé) n'est pas comptée ; les aides internes sont fermées.
+  perform set_config('request.jwt.claims', '', true);
+  insert into public.sessions(id,owner,data) values ('q19s-depot',tom,'{}');
+  select string_agg(f, ', ') into v_list from unnest(array['public.quotas()','public.quota_check()']) f
+   where has_function_privilege('authenticated', f, 'execute') or has_function_privilege('anon', f, 'execute');
+  if v_list is not null then raise exception 'ÉCHEC 19.6 : aide interne des quotas appelable par un client : %', v_list; end if;
+
+  -- Restauration (le tout est de toute façon annulé par le ROLLBACK final).
+  update public.app_settings set quotas = v_q0 where id;
+  delete from public.app_admins where user_id = sam;
 
   ------------------------------------------------------------------ FIN
   reset role;
