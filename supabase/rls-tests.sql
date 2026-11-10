@@ -34,6 +34,12 @@ declare
   -- be self-deleted » — un refus légitime, mais qui ne testait plus ce qu'on voulait tester.
   ivan  uuid := '99999999-9999-9999-9999-999999999999';
   kim   uuid := 'abababab-abab-abab-abab-abababababab';   -- §16, compte dédié (A643)
+  -- §17 (A663), comptes dédiés
+  lea   uuid := 'a6630000-0000-0000-0000-000000000001';
+  max   uuid := 'a6630000-0000-0000-0000-000000000002';
+  noe   uuid := 'a6630000-0000-0000-0000-000000000003';
+  oda   uuid := 'a6630000-0000-0000-0000-000000000004';
+  pia   uuid := 'a6630000-0000-0000-0000-000000000005';
   v_hack text;
   v_cnt  int;
   v_leak int;
@@ -316,6 +322,10 @@ begin
   select body into v_hack from public.aid_followups where id='fu-team';
   if v_hack <> 'Appel trauma leader' then raise exception 'ÉCHEC : un lecteur a pu modifier une note d''équipe'; end if;
   -- Un AUTRE éditeur (Alice, ajoutée éditrice) modifie la note d'Erin : voulu (A613, « modifiable par tous les éditeurs »).
+  -- A663 : Alice est la SEULE administratrice de lib-team (sa créatrice) — la rétrograder n'est permis
+  -- qu'à la maintenance, c'est-à-dire SANS jeton (cf. memberships_keep_admin) : on l'efface donc ici,
+  -- comme dans l'éditeur SQL. `reset role` seul laissait traîner le jeton du test précédent.
+  perform set_config('request.jwt.claims', '', true);
   insert into public.memberships(user_id,library_id,role) values (alice,'lib-team','editor')
     on conflict (user_id,library_id) do update set role='editor';
   perform set_config('request.jwt.claims', json_build_object('sub',alice,'role','authenticated')::text, true);
@@ -1575,6 +1585,303 @@ begin
   exception when others then
     if sqlerrm not like '%passwords are disabled%' then raise exception 'ÉCHEC 16.14 : refus inattendu (%)', sqlerrm; end if;
   end;
+
+
+  ------------------------------------------------------------------ 17. Lot v5.115 (A663) : droits resserrés
+  -- Comptes dédiés (lea : administratrice de sa bibliothèque ; max, noe : membres ; oda : administratrice
+  -- de l'instance), pour ne dépendre d'aucun état laissé par les sections précédentes.
+  reset role;
+  perform set_config('request.jwt.claims', '', true);
+  insert into auth.users (id, email, email_confirmed_at) values
+    (lea,'lea@test.local',now()),(max,'max@test.local',now()),(noe,'noe@test.local',now()),(oda,'oda@test.local',now());
+  insert into public.user_status(user_id,email,status) values
+    (lea,'lea@test.local','approved'),(max,'max@test.local','approved'),(noe,'noe@test.local','approved'),(oda,'oda@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.app_admins(user_id) values (oda) on conflict do nothing;
+  insert into public.libraries(id,name,created_by) values ('lib-a663','A663',lea);   -- lea en devient admin (trigger)
+  insert into public.memberships(user_id,library_id,role) values (max,'lib-a663','editor'),(noe,'lib-a663','viewer');
+
+  -- 17.1 delete_my_account n'a plus qu'UNE définition, et elle emporte TOUT l'espace personnel — le suivi
+  --      perso compris (A613 : la seconde définition, celle qui gagnait, l'avait perdu). Une note d'ÉQUIPE
+  --      reste, sans auteur.
+  perform set_config('request.jwt.claims', json_build_object('sub',max,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-max',max,null,'{"t":1}');
+  insert into public.protocols(id,owner,library_id,data) values ('p-max',max,null,'{"t":1}');
+  insert into public.sessions(id,owner,data) values ('s-max',max,'{"t":1}');
+  insert into public.aid_notes(user_id,fiche_id,note) values (max,'f-max','note');
+  insert into public.aid_followups(id,library_id,entity_id,kind,body) values ('fu-max-perso',null,'f-max','note','pour moi');
+  insert into public.aid_followups(id,library_id,entity_id,kind,body) values ('fu-max-team','lib-a663','f-max','note','pour l''équipe');
+  perform set_config('request.jwt.claims', json_build_object('sub',max,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  perform public.delete_my_account();
+  reset role;
+  select (select count(*) from public.cognitive_aids where owner=max) + (select count(*) from public.protocols where owner=max)
+       + (select count(*) from public.sessions where owner=max) + (select count(*) from public.aid_notes where user_id=max)
+       + (select count(*) from public.aid_followups where id='fu-max-perso') + (select count(*) from auth.users where id=max) into v_cnt;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 17.1 : la suppression du compte laisse % ligne(s) personnelle(s) (suivi perso, A613 ?)', v_cnt; end if;
+  if not exists (select 1 from public.aid_followups where id='fu-max-team' and owner is null) then
+    raise exception 'ÉCHEC 17.1 : la note d''équipe n''a pas survécu, sans auteur, au départ de son auteur'; end if;
+  select count(*) into v_cnt from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public' and p.proname in ('delete_my_account','get_instance_stats','purge_user_data');
+  if v_cnt <> 3 then raise exception 'ÉCHEC 17.1 : % définition(s) au catalogue pour trois fonctions', v_cnt; end if;
+  if has_function_privilege('authenticated','public.purge_user_data(uuid)','execute') then
+    raise exception 'ÉCHEC 17.1 : purge_user_data (identité en paramètre) est appelable par un client'; end if;
+
+  -- 17.2 Tables du PARTAGE : l'hôte ne les écrit plus que par ses trois gestes (couper, rôle, terminer).
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-a663','sess-a663','fic-a663','{"title":"A663","status":"validated"}'::jsonb,'scribe',60);
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 17.2 : ouverture nominale refusée (%)', v_j; end if;
+  v_j2 := public.share_join(v_j->>'code','Infirmier');
+  if (v_j2->>'ok')::boolean is not true then raise exception 'ÉCHEC 17.2 : jointure refusée (%)', v_j2; end if;
+  begin
+    insert into public.shared_sessions(id,owner,session_id,fiche_id,fiche_snap,expires_at)
+      values ('sh-direct',lea,'s','f','{"localInfo":"Tél régulation"}'::jsonb, now() + interval '10 years');
+    raise exception 'ÉCHEC 17.2 : INSERT direct d''un partage (sans liste blanche, sans durée bornée)';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into public.session_participants(share_id,label,role) values ('sh-a663','Faux','lead');
+    raise exception 'ÉCHEC 17.2 : INSERT direct d''un participant';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.shared_sessions set fiche_snap = '{"localInfo":"x"}'::jsonb where id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : UPDATE direct de fiche_snap';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.shared_sessions set code_hash = repeat('0',64), join_open_until = now() + interval '1 day' where id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : UPDATE direct du code d''appariement';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.session_participants set label = '<b>texte libre</b>' where share_id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : UPDATE direct du libellé d''un participant (règle 15)';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.session_participants set secret_hash = repeat('0',64) where share_id='sh-a663' and not is_owner;
+    raise exception 'ÉCHEC 17.2 : UPDATE direct du secret d''un participant';
+  exception when insufficient_privilege then null; end;
+  begin
+    delete from public.shared_sessions where id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : DELETE direct d''un partage';
+  exception when insufficient_privilege then null; end;
+  begin   -- les colonnes permises ne servent qu'à CLORE : ni repousser l'expiration, ni rester « active »
+    update public.shared_sessions set expires_at = now() + interval '10 years' where id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : un PATCH direct repousse l''expiration d''un partage actif';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.shared_sessions set status = 'ended', expires_at = now() + interval '10 years' where id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : un partage terminé garde une expiration à dix ans (jamais purgé)';
+  exception when insufficient_privilege then null; end;
+  -- les trois PATCH du client, tels qu'il les envoie
+  update public.session_participants set role = 'lead' where share_id='sh-a663' and participant = (v_j2->>'me')::uuid;
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.2 : l''hôte ne peut plus poser un rôle'; end if;
+  update public.session_participants set revoked_at = now() where share_id='sh-a663' and participant = (v_j2->>'me')::uuid;
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.2 : l''hôte ne peut plus couper un invité'; end if;
+  update public.shared_sessions set status = 'ended', expires_at = now() where id='sh-a663';
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.2 : l''hôte ne peut plus terminer son partage'; end if;
+  begin   -- terminé ne se rouvre pas
+    update public.shared_sessions set status = 'active', expires_at = now() + interval '1 hour' where id='sh-a663';
+    raise exception 'ÉCHEC 17.2 : un partage terminé se rouvre par un PATCH direct';
+  exception when insufficient_privilege then null; end;
+  -- le partage d'AUTRUI reste hors d'atteinte (0 ligne, sans erreur)
+  perform set_config('request.jwt.claims', json_build_object('sub',noe,'role','authenticated')::text, true);
+  update public.shared_sessions set status = 'ended', expires_at = now() where id='sh-a663';
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 17.2 : un tiers termine le partage d''autrui'; end if;
+  -- share_open borne aussi l'identifiant de l'aide
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  if (public.share_open('sh-a663b','sess','<script>','{"title":"x"}'::jsonb,'scribe',60)->>'err') is distinct from 'bad_request' then
+    raise exception 'ÉCHEC 17.2 : share_open accepte un identifiant d''aide hors format'; end if;
+  if (public.share_open('sh-a663c','sess',repeat('a',65),'{"title":"x"}'::jsonb,'scribe',60)->>'err') is distinct from 'bad_request' then
+    raise exception 'ÉCHEC 17.2 : share_open accepte un identifiant d''aide de 65 caractères'; end if;
+
+  -- 17.3 MEMBRES : ni INSERT ni réécriture de `user_id` en direct (le contrôle d'approbation est dans
+  --      invite_member) ; le PATCH {role} et le DELETE du client passent toujours.
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (pia,'pia@test.local',now());
+  update public.app_settings set require_approval = true where id = true;
+  insert into public.user_status(user_id,email,status) values (pia,'pia@test.local','pending')
+    on conflict (user_id) do update set status='pending';
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    insert into public.memberships(user_id,library_id,role) values (pia,'lib-a663','editor');
+    raise exception 'ÉCHEC 17.3 : une administratrice inscrit en direct un compte en attente';
+  exception when insufficient_privilege then null; end;
+  begin
+    update public.memberships set user_id = pia where library_id='lib-a663' and user_id = noe;
+    raise exception 'ÉCHEC 17.3 : une adhésion est réattribuée en direct à un compte en attente';
+  exception when insufficient_privilege then null; end;
+  if public.invite_member('lib-a663','pia@test.local','editor') <> 'not_approved' then
+    raise exception 'ÉCHEC 17.3 : invite_member ne refuse plus un compte en attente'; end if;
+  update public.memberships set role = 'editor' where library_id='lib-a663' and user_id = noe;
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.3 : le PATCH {role} du client ne passe plus'; end if;
+  delete from public.memberships where library_id='lib-a663' and user_id = noe;
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.3 : le retrait d''un membre par le client ne passe plus'; end if;
+  if public.invite_member('lib-a663','noe@test.local','viewer') <> 'ok' then
+    raise exception 'ÉCHEC 17.3 : invite_member ne ré-invite plus'; end if;
+  reset role;
+  update public.app_settings set require_approval = false where id = true;
+
+  -- 17.4 user_status ne s'écrit plus en direct, même par une administratrice de l'instance : la RPC seule.
+  perform set_config('request.jwt.claims', json_build_object('sub',oda,'role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    update public.user_status set status = 'rejected' where user_id = noe;
+    raise exception 'ÉCHEC 17.4 : PATCH direct de user_status par une administratrice (contourne set_user_status)';
+  exception when insufficient_privilege then null; end;
+  perform public.set_user_status(pia, 'approved');
+  reset role;
+  if (select status from public.user_status where user_id = pia) <> 'approved'
+     or (select decided_by from public.user_status where user_id = pia) <> oda then
+    raise exception 'ÉCHEC 17.4 : set_user_status n''écrit plus le statut'; end if;
+
+  -- 17.5 POSTE PARTAGÉ : ni inviter, ni demander une bibliothèque, ni quitter (A647) ; ses documents suivent
+  --      la règle `edit` (A654) ; déconnecté, il n'ouvre ni ne ré-arme un partage — mais TERMINE le sien.
+  v_asid := gen_random_uuid();
+  insert into auth.sessions(id, user_id) values (v_asid, lea);
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated','session_id',v_asid)::text, true);
+  set local role authenticated;
+  v_j := public.link_self(encode(extensions.digest('cle-a663-0123456789abcdef', 'sha256'), 'hex'), 'Chrome', now() + interval '5 hours');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 17.5 : la session ne se déclare pas poste (%)', v_j; end if;
+  v_lid := (v_j->>'id')::uuid;
+  begin
+    perform public.invite_member('lib-a663','pia@test.local','viewer');
+    raise exception 'ÉCHEC 17.5 : un poste partagé invite un membre';
+  exception when others then if sqlerrm <> 'not allowed' then raise; end if; end;
+  begin
+    perform public.request_library('Depuis un poste');
+    raise exception 'ÉCHEC 17.5 : un poste partagé demande une bibliothèque';
+  exception when others then if sqlerrm <> 'not allowed' then raise; end if; end;
+  begin
+    perform public.leave_library('lib-a663');
+    raise exception 'ÉCHEC 17.5 : un poste partagé quitte une bibliothèque';
+  exception when others then if sqlerrm <> 'not allowed' then raise; end if; end;
+  insert into storage.objects(bucket_id,name,metadata) values ('attachments','l/lib-a663/att-p1.pdf','{"v":1}');   -- règle par défaut : permis
+  v_j := public.share_open('sh-poste','sess-poste','fic-poste','{"title":"Poste","status":"validated"}'::jsonb,'scribe',60);
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 17.5 : un poste CONNECTÉ ne partage plus sa session (%)', v_j; end if;
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"non","del":"tel"}'::jsonb where id = true;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated','session_id',v_asid)::text, true);
+  set local role authenticated;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','l/lib-a663/att-p2.pdf');
+    raise exception 'ÉCHEC 17.5 : un poste dépose un document alors que la règle interdit de modifier';
+  exception when insufficient_privilege then null; end;
+  begin
+    update storage.objects set metadata='{"v":2}' where bucket_id='attachments' and name='l/lib-a663/att-p1.pdf';
+    raise exception 'ÉCHEC 17.5 : un poste remplace un document alors que la règle interdit de modifier';
+  exception when insufficient_privilege then null; end;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  update storage.objects set metadata='{"v":3}' where bucket_id='attachments' and name='l/lib-a663/att-p1.pdf';   -- hors poste : permis
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.5 : la règle des postes touche une session de confiance'; end if;
+  if not coalesce((public.link_revoke(v_lid)->>'ok')::boolean, false) then raise exception 'ÉCHEC 17.5 : déconnexion à distance'; end if;
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb where id = true;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated','session_id',v_asid)::text, true);
+  set local role authenticated;
+  if (public.share_open('sh-mort','sess-mort','fic-mort','{"title":"x"}'::jsonb,'scribe',60)->>'ok')::boolean then
+    raise exception 'ÉCHEC 17.5 : un poste déconnecté ouvre un partage'; end if;
+  if (public.share_admit('sh-poste',60)->>'ok')::boolean then
+    raise exception 'ÉCHEC 17.5 : un poste déconnecté ré-arme un code d''appariement'; end if;
+  update public.shared_sessions set status = 'ended', expires_at = now() where id='sh-poste';
+  get diagnostics v_cnt = row_count;
+  if v_cnt <> 1 then raise exception 'ÉCHEC 17.5 : un poste déconnecté ne peut plus TERMINER le partage de sa session en cours'; end if;
+
+  -- 17.6 AU MOINS UN ADMINISTRATEUR : le dernier ne se rétrograde pas, ne se retire pas, ne quitte pas ;
+  --      un membre ordinaire quitte ; avec une seconde administratrice, la première peut partir.
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  begin
+    update public.memberships set role = 'viewer' where library_id='lib-a663' and user_id = lea;
+    raise exception 'ÉCHEC 17.6 : la dernière administratrice se rétrograde';
+  exception when others then if sqlerrm <> 'last_admin' then raise; end if; end;
+  begin
+    delete from public.memberships where library_id='lib-a663' and user_id = lea;
+    raise exception 'ÉCHEC 17.6 : la dernière administratrice se retire';
+  exception when others then if sqlerrm <> 'last_admin' then raise; end if; end;
+  begin
+    delete from public.memberships where library_id='lib-a663';
+    raise exception 'ÉCHEC 17.6 : toutes les adhésions partent en une requête, administratrice comprise';
+  exception when others then if sqlerrm <> 'last_admin' then raise; end if; end;
+  if public.leave_library('lib-a663') <> 'last_admin' then raise exception 'ÉCHEC 17.6 : la dernière administratrice quitte la bibliothèque'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',oda,'role','authenticated')::text, true);
+  begin   -- pas même par l'administratrice de l'instance, ni par invite_member qui réécrit un rôle
+    perform public.invite_member('lib-a663','lea@test.local','viewer');
+    raise exception 'ÉCHEC 17.6 : invite_member rétrograde la dernière administratrice';
+  exception when others then if sqlerrm <> 'last_admin' then raise; end if; end;
+  perform set_config('request.jwt.claims', json_build_object('sub',noe,'role','authenticated')::text, true);
+  if public.leave_library('lib-inexistante') <> 'not_member' then raise exception 'ÉCHEC 17.6 : quitter une bibliothèque dont on n''est pas membre'; end if;
+  if public.leave_library('lib-a663') <> 'ok' then raise exception 'ÉCHEC 17.6 : un lecteur ne peut pas quitter sa bibliothèque'; end if;
+  if public.is_member('lib-a663') then raise exception 'ÉCHEC 17.6 : parti, le lecteur est encore membre'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  if public.invite_member('lib-a663','noe@test.local','admin') <> 'ok' then raise exception 'ÉCHEC 17.6 : nommer une seconde administratrice'; end if;
+  if public.leave_library('lib-a663') <> 'ok' then raise exception 'ÉCHEC 17.6 : avec une seconde administratrice, la première ne peut pas partir'; end if;
+  --      CE QUE LA RÈGLE NE BLOQUE PAS : le compte qui s'efface (droit à l'effacement), le compte refusé,
+  --      la bibliothèque supprimée. noe est maintenant la SEULE administratrice.
+  perform set_config('request.jwt.claims', json_build_object('sub',oda,'role','authenticated')::text, true);
+  perform public.set_user_status(noe, 'rejected');
+  reset role;
+  if exists (select 1 from public.memberships where user_id = noe) then
+    raise exception 'ÉCHEC 17.6 : un compte refusé garde son adhésion (la règle du dernier administrateur bloque la révocation)'; end if;
+  insert into public.memberships(user_id,library_id,role) values (pia,'lib-a663','admin');
+  perform set_config('request.jwt.claims', json_build_object('sub',pia,'role','authenticated',
+    'amr',json_build_array(json_build_object('method','otp','timestamp',extract(epoch from now())::bigint)))::text, true);
+  set local role authenticated;
+  perform public.delete_my_account();   -- seule administratrice : le départ n'est pas bloqué
+  reset role;
+  if exists (select 1 from auth.users where id = pia) or exists (select 1 from public.memberships where user_id = pia) then
+    raise exception 'ÉCHEC 17.6 : la seule administratrice d''une bibliothèque ne peut plus supprimer son compte'; end if;
+  insert into public.memberships(user_id,library_id,role) values (lea,'lib-a663','admin');
+  perform set_config('request.jwt.claims', json_build_object('sub',oda,'role','authenticated')::text, true);
+  set local role authenticated;
+  delete from public.libraries where id = 'lib-a663';
+  reset role;
+  if exists (select 1 from public.libraries where id = 'lib-a663') or exists (select 1 from public.memberships where library_id = 'lib-a663') then
+    raise exception 'ÉCHEC 17.6 : la bibliothèque ne se supprime plus (la règle bloque la cascade)'; end if;
+
+  -- 17.7 delete_rejected_user emporte les données du compte (il ne supprimait que la ligne auth.users), et
+  --      supprimer le compte d'une administratrice qui a DÉCIDÉ d'un statut ne casse plus (`decided_by`).
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-noe',noe,null,'{"t":1}');
+  insert into public.sessions(id,owner,data) values ('s-noe',noe,'{"t":1}');
+  insert into public.aid_followups(id,owner,library_id,entity_id,kind,body) values ('fu-noe',noe,null,'f-noe','note','x');
+  perform set_config('request.jwt.claims', json_build_object('sub',oda,'role','authenticated')::text, true);
+  set local role authenticated;
+  perform public.delete_rejected_user(noe);
+  reset role;
+  select (select count(*) from public.cognitive_aids where owner=noe) + (select count(*) from public.sessions where owner=noe)
+       + (select count(*) from public.aid_followups where id='fu-noe') + (select count(*) from auth.users where id=noe) into v_cnt;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 17.7 : un compte refusé supprimé laisse % ligne(s)', v_cnt; end if;
+  insert into auth.users (id, email, email_confirmed_at) values (pia,'pia@test.local',now());
+  insert into public.user_status(user_id,email,status,decided_by) values (pia,'pia@test.local','approved',oda)
+    on conflict (user_id) do update set decided_by = oda;
+  delete from public.app_admins where user_id = oda;
+  delete from auth.users where id = oda;   -- avant A663 : violation de clé étrangère sur user_status.decided_by
+  if (select decided_by from public.user_status where user_id = pia) is not null then
+    raise exception 'ÉCHEC 17.7 : decided_by ne passe pas à NULL'; end if;
+
+  -- 17.8 Notes personnelles bornées (taille et clé), comme le suivi.
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.aid_notes(user_id,fiche_id,note) values (lea,'f-ok_1',repeat('é',10000));   -- la borne du client passe
+  begin
+    insert into public.aid_notes(user_id,fiche_id,note) values (lea,'f-long',repeat('a',10001));
+    raise exception 'ÉCHEC 17.8 : une note de plus de 10 000 caractères est acceptée';
+  exception when check_violation then null; end;
+  begin
+    insert into public.aid_notes(user_id,fiche_id,note) values (lea,'<img src=x>','x');
+    raise exception 'ÉCHEC 17.8 : une note sous une clé hors format est acceptée';
+  exception when check_violation then null; end;
+  begin
+    update public.aid_notes set note = repeat('a',10001) where user_id = lea and fiche_id = 'f-ok_1';
+    raise exception 'ÉCHEC 17.8 : une note dépasse la borne par une mise à jour';
+  exception when check_violation then null; end;
+  reset role;
 
 
   ------------------------------------------------------------------ FIN
