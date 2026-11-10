@@ -51,11 +51,14 @@ function bouchon(srvst, vu) {
       if (fn === 'link_approve' || fn === 'link_deposit' || fn === 'link_revoke' || fn === 'link_end') return J({ ok: true });
       if (fn === 'link_peek') return J({ ok: true, kind: 'connect', label: 'Chrome · Windows', age_s: 4 });
       if (fn === 'my_status') return J('approved');
+      if (fn === 'link_self') return J(srvst.self || { ok: true, id: LID, ends_at: body && body.p_ends_at });
       return J(null);
     }
     if (p === '/functions/v1/link-claim') { (vu.claim = vu.claim || []).push(body);
       return J({ ok: true, ends_at: srvst.ends, session: { access_token: 'at', refresh_token: 'rt', expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: UID, email: 'kim@test.local' } } }); }
-    if (p === '/auth/v1/verify') { (vu.verify = vu.verify || []).push(body); return J({}); }
+    if (p === '/auth/v1/otp') { (vu.otp = vu.otp || []).push(body); return J({}); }
+    if (p === '/auth/v1/verify') { (vu.verify = vu.verify || []).push(body);
+      return J(srvst.verifyOk ? { access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: UID, email: 'kim@test.local' } } : {}); }
     if (p === '/auth/v1/token') return J({ access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: UID, email: 'kim@test.local' } });
     if (p.startsWith('/auth/v1/logout')) { vu.logout = (vu.logout || 0) + 1; return route.fulfill({ status: 204, body: '' }); }
     if (p === '/rest/v1/sessions' && m === 'POST') { (vu.sessions = vu.sessions || []).push(...(body || [])); return route.fulfill({ status: 201, body: '' }); }
@@ -77,13 +80,16 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   await amorce(page);   // l'espace SANS compte du poste a du contenu (deux exemples) : il ne doit pas suivre
   const avant = await page.evaluate(() => fiches.length);
   await page.evaluate(() => openAuth());
-  await page.waitForSelector('#authLink');
-  await page.click('#authLink');
-  await page.waitForSelector('#linkModal.on .pp-qr svg');
-  const r1 = await page.evaluate(() => ({ num: (document.querySelector('.pp-num') || {}).textContent,
-    exp: (document.getElementById('lkExp') || {}).textContent, titre: document.getElementById('linkModalTitle').textContent }));
-  t('le poste montre un QR et un nombre de contrôle', /^\d{2}$/.test(r1.num || ''), JSON.stringify(r1));
-  t('… avec son compte à rebours', /Expire dans \d:\d\d/.test(r1.exp || ''), r1.exp);
+  // A651 : la carte « Se connecter » ne choisit RIEN d'office ; le code s'affiche DANS la page (Temporaire › appareil connecté).
+  await page.waitForSelector('[data-authk="temp"]');
+  const r0 = await page.evaluate(() => ({ on: document.querySelectorAll('.pp-tile.on').length, qr: !!document.querySelector('#lkInline') }));
+  t('rien n’est choisi d’office : ni Temporaire ni Permanente, aucun code demandé', r0.on === 0 && !r0.qr && !(vu.link_open || []).length, JSON.stringify(r0));
+  await page.click('[data-authk="temp"]');
+  await page.waitForSelector('#lkInline .pp-qr svg');
+  const r1 = await page.evaluate(() => ({ num: (document.querySelector('#lkInline .pp-num') || {}).textContent,
+    exp: (document.getElementById('lkExp') || {}).textContent, modal: document.getElementById('linkModal').classList.contains('on') }));
+  t('Temporaire : le code et son nombre de contrôle s’affichent dans la page, sans fenêtre', /^\d{2}$/.test(r1.num || '') && !r1.modal, JSON.stringify(r1));
+  t('… avec son compte à rebours de renouvellement', /Nouveau code dans \d:\d\d/.test(r1.exp || ''), r1.exp);
   const op = (vu.link_open || [])[0] || {};
   t('le serveur ne reçoit que des EMPREINTES : secret du QR et clé du poste, distincts', /^[0-9a-f]{64}$/.test(op.p_hash || '') && /^[0-9a-f]{64}$/.test(op.p_key_hash || '') && op.p_hash !== op.p_key_hash && op.p_kind === 'connect' && /·/.test(op.p_label || ''), JSON.stringify(op));
   // Le téléphone approuve : le poste réclame, se connecte, et RECHARGE sur l'espace du compte.
@@ -104,7 +110,8 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   t('le poste garde la clé, jamais le secret du QR', await page.evaluate(() => { const o = JSON.parse(localStorage.getItem('ac-shared') || '{}'); return !!o.key && !('secret' in o); }));
   await page.waitForFunction(() => { const b = document.getElementById('linkBand'); return b && !b.hidden; });
   const band = await page.evaluate(() => document.getElementById('linkBand').textContent);
-  t('la bande de l’accueil dit « Poste partagé », le compte et l’heure de fin', /Poste partagé/.test(band) && /kim@test\.local/.test(band) && /jusqu’à/.test(band), band);
+  t('la bande de l’accueil dit « Connexion temporaire », le compte et l’heure de fin', /Connexion temporaire/.test(band) && /kim@test\.local/.test(band) && /jusqu’à/.test(band), band);
+  t('… sans couleur tant que rien ne presse (règle 8 : rien ne tourne mal)', await page.evaluate(() => { const b = document.getElementById('linkBand'); return b.className === 'pp-band'; }));
   // L'historique MONTE sur un poste partagé — sans que le réglage du compte ne bascule.
   const r3 = await page.evaluate(async () => {
     const f = { id: 's-poste-a', ficheId: 'x', ficheTitle: 'x', savedAt: Date.now(), startedAt: Date.now() - 6e4, live: false, checked: {}, verified: {}, vgaps: {}, counters: {}, timers: {}, nav: [], navSeq: [], events: [] };
@@ -141,7 +148,7 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   await page.bringToFront();
   const adm = await page.evaluate(() => { openAdmin(); const r = { on: document.getElementById('linkModal').classList.contains('on'),
     titre: document.getElementById('linkModalTitle').textContent, adm: !!document.querySelector('#admModal.on') }; Link.close(); return r; });
-  t('poste partagé : l’Administration est refusée, et dit pourquoi', adm.on && /Pas sur un poste partagé/.test(adm.titre) && !adm.adm, JSON.stringify(adm));
+  t('poste partagé : l’Administration est refusée, et dit pourquoi', adm.on && /Pas sur un appareil temporaire/.test(adm.titre) && !adm.adm, JSON.stringify(adm));
   await page.evaluate(() => { _linkGestAt = Date.now() - 16 * 60000; document.dispatchEvent(new PointerEvent('pointerdown')); });
   t('15 min sans geste : l’édition se reverrouille (consultation libre)', await page.evaluate(() => linkLocked()));
   // Le geste d'après reverrouille AVANT d'agir ; on déverrouille par le téléphone pour la suite.
@@ -154,7 +161,7 @@ await page.exposeFunction('__lkToast', s => toasts.push(s));
   await page.waitForFunction(() => state.view === 'edit');
   const del = await page.evaluate(() => { deleteDraft(); return { titre: document.getElementById('linkModalTitle').textContent,
     on: document.getElementById('linkModal').classList.contains('on'), conf: document.getElementById('confirmModal').classList.contains('on') }; });
-  t('poste partagé : supprimer demande le TÉLÉPHONE, même déverrouillé', del.on && /Confirmer avec le téléphone/.test(del.titre) && !del.conf, JSON.stringify(del));
+  t('poste partagé : supprimer demande le TÉLÉPHONE, même déverrouillé', del.on && /Confirmer avec un appareil connecté/.test(del.titre) && !del.conf, JSON.stringify(del));
   srvst.poll = { ok: true, status: 'approved', ends_at: srvst.ends };
   await page.waitForFunction(() => document.getElementById('confirmModal').classList.contains('on'), null, { timeout: 8000 });
   t('… confirmé par le téléphone, la suppression reprend (sa propre confirmation)', true);
@@ -229,17 +236,60 @@ await ctx.close();
   t('mauvais nombre : refusé, dit, et rien ne part', /pas le nombre/.test(w.txt) && w.dis && !(vu2.link_approve || []).length, JSON.stringify(w));
   await ph.click(`[data-lkn="${r.vrai}"]`);
   await ph.click('[data-lkok]');
-  await ph.waitForFunction(() => /Ordinateur connecté/.test(document.getElementById('linkBody').textContent));
+  await ph.waitForFunction(() => /Appareil connecté, temporairement/.test(document.getElementById('linkBody').textContent));
   const ap = (vu2.link_approve || [])[0] || {};
   const dt = Date.parse(ap.p_ends_at) - Date.now();
   t('approbation envoyée avec le secret et une heure de fin entre 1 h et 28 h', ap.p_id === LID && ap.p_secret === S && dt > 3600e3 - 60e3 && dt <= 28 * 3600e3, JSON.stringify(ap));
   await ph.click('[data-lkrevnow]');
-  await ph.waitForFunction(() => /déconnecté/.test(document.getElementById('linkBody').textContent));
+  await ph.waitForFunction(() => /Appareil déconnecté/.test(document.getElementById('linkBody').textContent));
   t('« Rien ne s’ouvre devant vous ? Déconnecter » : un geste, et le poste est déconnecté', (vu2.link_revoke || []).some(x => x && x.p_id === LID));
   t('le fragment du lien est effacé de l’adresse', await ph.evaluate(() => !/lier=/.test(location.href)));
   await c2.close();
 }
 
+{
+  console.log('\n── 4. Temporaire, par e-mail (sans appareil connecté sous la main, A651)');
+  const c3 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st3 = { verifyOk: true }, vu3 = {};
+  await c3.route('**/*.supabase.co/**', bouchon(st3, vu3));
+  const pg = await c3.newPage();
+  await pg.goto(URL0);
+  await amorce(pg);
+  await pg.evaluate(() => openAuth());
+  await pg.click('[data-authk="temp"]');
+  await pg.click('[data-autht="email"]');
+  await pg.waitForSelector('#authEmail');
+  t('l’onglet « Par e-mail » arrête le code à viser (plus de demande ouverte en fond)', await pg.evaluate(() => !document.querySelector('#lkInline') && Link._cur !== 'inline'));
+  await pg.fill('#authEmail', 'kim@test.local');
+  await pg.click('#authSend');
+  await pg.waitForSelector('#authCode');
+  const r = await pg.evaluate(() => ({ ends: [...document.querySelectorAll('[data-authend]')].length, on: !!document.querySelector('[data-authend].on'), btn: document.getElementById('authVerify').textContent }));
+  t('le code e-mail, puis l’heure de fin : le bouton dit jusqu’à quand', r.ends >= 2 && r.on && /Se connecter jusqu’à/.test(r.btn), JSON.stringify(r));
+  await pg.fill('#authCode', '48207312');
+  await pg.click('#authVerify');
+  const okp = await apres(pg, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'), UID);
+  const self = (vu3.link_self || [])[0] || {};
+  t('la session se déclare appareil temporaire (link_self : empreinte de clé, libellé fermé, heure de fin)', okp && /^[0-9a-f]{64}$/.test(self.p_key_hash || '') && /·/.test(self.p_label || '') && Date.parse(self.p_ends_at) > Date.now(), JSON.stringify(self));
+  const sp = await pg.evaluate(() => { const o = linkShared(); return o && { key: typeof o.key === 'string' && o.key.length >= 22, open: sessionStorage.getItem('ac-shared-open') }; });
+  t('… et devient un poste partagé comme par le code à viser (clé gardée, onglet ouvert)', sp && sp.key && sp.open === '1', JSON.stringify(sp));
+  await c3.close();
+  // Refus du serveur (compte non validé) : la connexion NE RESTE PAS ouverte — on avait choisi « Temporaire ».
+  const c4 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st4 = { verifyOk: true, self: { ok: false, err: 'refused' } }, vu4 = {};
+  await c4.route('**/*.supabase.co/**', bouchon(st4, vu4));
+  const pg4 = await c4.newPage();
+  await pg4.goto(URL0);
+  await amorce(pg4);
+  await pg4.evaluate(() => openAuth());
+  await pg4.click('[data-authk="temp"]'); await pg4.click('[data-autht="email"]');
+  await pg4.fill('#authEmail', 'kim@test.local'); await pg4.click('#authSend');
+  await pg4.waitForSelector('#authCode'); await pg4.fill('#authCode', '48207312'); await pg4.click('#authVerify');
+  // ⚠ Pas `document.body.textContent` : il inclut le texte du <script> inline, où ce message est écrit — témoin toujours vrai.
+  await pg4.waitForFunction(() => /Connexion temporaire impossible/.test(_authStep.msg), null, { timeout: 8000 }).catch(() => {});
+  const r4 = await pg4.evaluate(() => ({ signed: Auth.signedIn(), shared: !!linkShared(), msg: /Connexion temporaire impossible/.test((document.querySelector('#meView .auth-msg, #authBody .auth-msg') || {}).textContent || '') }));
+  t('refusée, la connexion temporaire ne laisse PAS une connexion durable ouverte', !r4.signed && !r4.shared && r4.msg && (vu4.logout || 0) >= 1, JSON.stringify(r4));
+  await c4.close();
+}
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles connexion par le téléphone OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);
