@@ -48,6 +48,12 @@ declare
   v_s18c uuid := 'a6760000-0000-0000-0000-0000000000a3';
   v_t0   timestamptz;
   v_t1   timestamptz;
+  -- §21 (A691-A693), comptes et sessions dédiés
+  uma    uuid := 'a6910000-0000-0000-0000-000000000001';
+  v_s21  uuid := 'a6910000-0000-0000-0000-0000000000a1';
+  v_l21  uuid;
+  v_u21  uuid;
+  v_c21  uuid;
   -- §19 (A687), comptes dédiés
   sam   uuid := 'a6870000-0000-0000-0000-000000000001';
   tom   uuid := 'a6870000-0000-0000-0000-000000000002';
@@ -1535,6 +1541,9 @@ begin
   exception when insufficient_privilege then null; end;
   reset role;
   update public.app_settings set temp_rules = '{"edit":"libre","del":"tel","dur":12}'::jsonb where id = true;
+  -- A693 : « supprimer : confirmer » exige l'accord d'un appareil connecté — posé ici comme le ferait `link_approve`
+  -- sur une demande `unlock` (le parcours entier est testé en § 21).
+  update public.device_links set del_until = now() + interval '5 minutes' where auth_session = v_asid3;
   perform set_config('request.jwt.claims', json_build_object('sub',kim,'role','authenticated','session_id',v_asid3)::text, true);
   set local role authenticated;
   insert into public.cognitive_aids(id,owner,library_id,data) values ('f-poste-2',kim,null,'{"t":1}');   -- permis : la règle le permet
@@ -2263,6 +2272,252 @@ begin
     raise exception 'ÉCHEC 20.5 : l''administrateur de l''instance qui s''ajoute n''est pas membre aussitôt (%)', v_hack; end if;
   reset role;
   delete from public.app_admins where user_id = rui;
+
+  ------------------------------------------------------------------ 21. Poste partagé, suite (A691-A693)
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb where id = true;
+  insert into auth.users (id, email, email_confirmed_at) values (uma,'uma@test.local',now());
+  insert into public.user_status(user_id,email,status) values (uma,'uma@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.libraries(id,name,created_by) values ('lib-21','Vingt et un',uma) on conflict (id) do nothing;
+  insert into auth.sessions(id, user_id) values (v_s21, uma);
+  -- Avant d'être un poste : le compte écrit une aide, une note et un suivi (ils serviront de cibles).
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-21',uma,null,'{"t":1}'),('f-21b',uma,null,'{"t":1}');
+  insert into public.aid_notes(user_id,fiche_id,note) values (uma,'f-21','avant');
+  insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-21',null,'f-21','note','avant','');
+  -- 21.1 (A693) La session se déclare poste : sa fenêtre d'écriture s'ouvre avec elle (15 min sous « v15 »).
+  v_j := public.link_self(encode(extensions.digest('cle-21-0123456789abcdef', 'sha256'), 'hex'), 'Chrome · Windows', now() + interval '5 hours');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 21.1 : la session ne se déclare pas poste (%)', v_j; end if;
+  v_l21 := (v_j->>'id')::uuid;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-21c',uma,null,'{"t":1}');   -- fenêtre ouverte : permis
+  v_j := public.link_touch();
+  if (v_j->>'open')::boolean is not true or (v_j->>'until')::timestamptz < now() + interval '14 minutes' then
+    raise exception 'ÉCHEC 21.1 : la fenêtre du poste n''est pas ouverte à la connexion (%)', v_j; end if;
+  reset role;
+
+  -- 21.2 (A693) Fenêtre refermée : le poste n'écrit plus rien de ce que la règle soumet à confirmation —
+  --      erreur NOMMÉE (jamais un 403, que l'app prendrait pour un identifiant à réparer) — et ne peut pas
+  --      la rouvrir lui-même. Les SESSIONS et le dépôt, eux, passent toujours.
+  update public.device_links set unlocked_until = now() - interval '1 second' where id = v_l21;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-21x',uma,null,'{"t":1}');
+    raise exception 'ÉCHEC 21.2 : hors fenêtre, un poste crée une aide';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    update public.cognitive_aids set data = '{"t":2}' where id = 'f-21';
+    raise exception 'ÉCHEC 21.2 : hors fenêtre, un poste modifie une aide';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values ('p-21x',uma,null,'{"t":1}');
+    raise exception 'ÉCHEC 21.2 : hors fenêtre, un poste crée un protocole';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    update public.cognitive_aids set deleted_at = now() where id = 'f-21b';
+    raise exception 'ÉCHEC 21.2 : sans accord, un poste supprime une aide';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/' || uma::text || '/att-21.pdf');
+    raise exception 'ÉCHEC 21.2 : hors fenêtre, un poste dépose un document';
+  exception when insufficient_privilege then null; end;
+  v_j := public.link_touch();
+  if (v_j->>'open')::boolean is not false then raise exception 'ÉCHEC 21.2 : link_touch rouvre une fenêtre fermée (%)', v_j; end if;
+  if (v_j->>'del_open')::boolean is not false then raise exception 'ÉCHEC 21.2 : le droit de supprimer est annoncé ouvert sans accord (%)', v_j; end if;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-21y',uma,null,'{"t":1}');
+    raise exception 'ÉCHEC 21.2 : le poste a rouvert sa fenêtre seul';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  -- Jamais concernés : la sauvegarde d'une session en cours (A645), une session terminée, le document personnel.
+  insert into public.sessions(id,data,exercise) values ('sess-21','{"live":true,"checkpoint":1}'::jsonb,false);
+  update public.sessions set data = '{"live":false}'::jsonb where id = 'sess-21';
+  insert into public.category_sets(scope_key,owner,library_id,data) values ('personal:' || uma::text, uma, null, '{"usage":{}}'::jsonb)
+    on conflict (scope_key) do update set data = excluded.data;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.link_deposit(v_l21, 'cle-21-0123456789abcdef', '{"id":"sess-21-dep","data":{"live":false}}');
+  reset role;
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 21.2 : le dépôt d''une session est retenu par le verrou (%)', v_j; end if;
+  if (select count(*) from public.sessions where owner = uma and id in ('sess-21','sess-21-dep')) <> 2 then
+    raise exception 'ÉCHEC 21.2 : une session du poste n''est pas arrivée'; end if;
+
+  -- 21.3 (A692) Notes, suivi et catégories d'une bibliothèque suivent la règle — fenêtre fermée : retenus.
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  begin
+    update public.aid_notes set note = 'hors fenêtre' where user_id = uma and fiche_id = 'f-21';
+    raise exception 'ÉCHEC 21.3 : hors fenêtre, un poste modifie une note';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-21x','lib-21','f-21','note','x','');
+    raise exception 'ÉCHEC 21.3 : hors fenêtre, un poste écrit un suivi d''équipe';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    update public.aid_followups set body = 'hors fenêtre' where id = 'fu-21';
+    raise exception 'ÉCHEC 21.3 : hors fenêtre, un poste modifie un suivi personnel';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  begin
+    insert into public.category_sets(scope_key,owner,library_id,data) values ('lib:lib-21', uma, 'lib-21', '{"categories":[]}'::jsonb);
+    raise exception 'ÉCHEC 21.3 : hors fenêtre, un poste écrit les catégories d''une bibliothèque';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  reset role;
+
+  -- 21.4 (A693) L'ACCORD D'UN APPAREIL CONNECTÉ rouvre la fenêtre : le poste pose une demande `unlock`, le
+  --      compte l'approuve depuis une session qui n'est pas un poste — et alors seulement il écrit.
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  v_j := public.link_open(encode(extensions.digest('secret-21-0123456789abcd', 'sha256'), 'hex'),
+                          encode(extensions.digest('cleunl-21-0123456789abcd', 'sha256'), 'hex'), 'Chrome · Windows', 'unlock');
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 21.4 : demande de déverrouillage refusée (%)', v_j; end if;
+  v_u21 := (v_j->>'id')::uuid;
+  if (public.link_approve(v_u21, 'secret-21-0123456789abcd', null)->>'ok')::boolean then
+    raise exception 'ÉCHEC 21.4 : le poste approuve sa propre demande'; end if;
+  reset role;
+  if (select target from public.device_links where id = v_u21) is distinct from v_l21 then
+    raise exception 'ÉCHEC 21.4 : la demande ne retient pas le poste qui la pose'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.link_approve(v_u21, 'secret-21-0123456789abcd', null);
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 21.4 : accord refusé (%)', v_j; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-21x',uma,null,'{"t":1}');
+  update public.aid_notes set note = 'après accord' where user_id = uma and fiche_id = 'f-21';
+  update public.aid_followups set body = 'après accord' where id = 'fu-21';
+  insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-21x','lib-21','f-21','note','x','');
+  insert into public.category_sets(scope_key,owner,library_id,data) values ('lib:lib-21', uma, 'lib-21', '{"categories":[]}'::jsonb);
+  insert into storage.objects(bucket_id,name) values ('attachments','u/' || uma::text || '/att-21.pdf');
+  v_j := public.link_touch();
+  if (v_j->>'open')::boolean is not true or (v_j->>'del_open')::boolean is not true then raise exception 'ÉCHEC 21.4 : après l''accord, la fenêtre n''est pas ouverte (%)', v_j; end if;
+  -- Lire sans prolonger (`p_keep` faux) : une synchro automatique ne tient pas le poste ouvert.
+  v_t0 := (public.link_touch(false)->>'until')::timestamptz;
+  if v_t0 is distinct from (v_j->>'until')::timestamptz then raise exception 'ÉCHEC 21.4 : lire la fenêtre la prolonge'; end if;
+  -- Supprimer : dans les 5 minutes de l'accord — et le contenu d'une suppression ne change pas (A692).
+  update public.cognitive_aids set deleted_at = now(), data = '{"hack":1}' where id = 'f-21b';
+  reset role;
+  if (select deleted_at is not null and data = '{"t":1}'::jsonb from public.cognitive_aids where id = 'f-21b') is not true then
+    raise exception 'ÉCHEC 21.4 : une suppression depuis un poste a modifié le contenu (%)', (select data from public.cognitive_aids where id = 'f-21b'); end if;
+  -- La fenêtre de suppression ne se prolonge pas : passée, il faut un nouvel accord — modifier reste ouvert.
+  update public.device_links set del_until = now() - interval '1 second' where id = v_l21;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  perform public.link_touch();
+  begin
+    update public.cognitive_aids set deleted_at = now() where id = 'f-21c';
+    raise exception 'ÉCHEC 21.4 : link_touch prolonge le droit de supprimer';
+  exception when others then if sqlerrm <> 'poste_locked' then raise; end if; end;
+  update public.cognitive_aids set data = '{"t":3}' where id = 'f-21';   -- modifier : la fenêtre tient
+  reset role;
+
+  -- 21.5 (A693) Sous « confirmer » (tel), la fenêtre est de 5 minutes ; sous « libre », aucune n'est exigée.
+  update public.app_settings set temp_rules = '{"edit":"tel","del":"tel"}'::jsonb where id = true;
+  update public.device_links set unlocked_until = now() + interval '1 minute' where id = v_l21;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  v_j := public.link_touch();
+  if (v_j->>'until')::timestamptz > now() + interval '5 minutes 5 seconds' or (v_j->>'until')::timestamptz < now() + interval '4 minutes' then
+    raise exception 'ÉCHEC 21.5 : sous « confirmer », la fenêtre ne vaut pas 5 minutes (%)', v_j; end if;
+  reset role;
+  update public.app_settings set temp_rules = '{"edit":"libre","del":"tel"}'::jsonb where id = true;
+  update public.device_links set unlocked_until = null where id = v_l21;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  update public.cognitive_aids set data = '{"t":4}' where id = 'f-21';
+  update public.aid_notes set note = 'libre' where user_id = uma and fiche_id = 'f-21';
+  reset role;
+
+  -- 21.6 (A692) Sous « interdit » : notes, suivi et catégories d'une bibliothèque sont fermés au poste (erreur
+  --      nommée), le document personnel reste ouvert, et une session de confiance du compte n'est pas touchée.
+  update public.app_settings set temp_rules = '{"edit":"non","del":"tel"}'::jsonb where id = true;
+  update public.device_links set unlocked_until = now() + interval '10 minutes', del_until = now() + interval '5 minutes' where id = v_l21;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated','session_id',v_s21)::text, true);
+  set local role authenticated;
+  begin
+    update public.aid_notes set note = 'interdit' where user_id = uma and fiche_id = 'f-21';
+    raise exception 'ÉCHEC 21.6 : sous « interdit », un poste modifie une note';
+  exception when others then if sqlerrm <> 'poste_forbidden' then raise; end if; end;
+  begin
+    update public.aid_followups set body = 'interdit' where id = 'fu-21x';
+    raise exception 'ÉCHEC 21.6 : sous « interdit », un poste modifie un suivi d''équipe';
+  exception when others then if sqlerrm <> 'poste_forbidden' then raise; end if; end;
+  begin
+    delete from public.aid_followups where id = 'fu-21';
+    raise exception 'ÉCHEC 21.6 : sous « interdit », un poste retire un suivi';
+  exception when others then if sqlerrm <> 'poste_forbidden' then raise; end if; end;
+  begin
+    update public.category_sets set data = '{"categories":[{"id":"c1"}]}'::jsonb where scope_key = 'lib:lib-21';
+    raise exception 'ÉCHEC 21.6 : sous « interdit », un poste modifie les catégories d''une bibliothèque';
+  exception when others then if sqlerrm <> 'poste_forbidden' then raise; end if; end;
+  update public.category_sets set data = '{"usage":{"f-21":1}}'::jsonb where scope_key = 'personal:' || uma::text;   -- document personnel : ouvert
+  -- « modifier : interdit », « supprimer : confirmer » : la suppression passe, SANS changer le contenu.
+  update public.cognitive_aids set deleted_at = now(), data = '{"hack":2}', library_id = 'lib-21' where id = 'f-21c';
+  reset role;
+  if (select deleted_at is not null and library_id is null and data = '{"t":1}'::jsonb from public.cognitive_aids where id = 'f-21c') is not true then
+    raise exception 'ÉCHEC 21.6 : sous « modifier : interdit », une suppression a modifié l''aide'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated')::text, true);
+  set local role authenticated;
+  update public.aid_notes set note = 'appareil de confiance' where user_id = uma and fiche_id = 'f-21';
+  update public.aid_followups set body = 'appareil de confiance' where id = 'fu-21';
+  update public.category_sets set data = '{"categories":[{"id":"c2"}]}'::jsonb where scope_key = 'lib:lib-21';
+  update public.cognitive_aids set data = '{"t":5}' where id = 'f-21';
+  reset role;
+  if (select note from public.aid_notes where user_id = uma and fiche_id = 'f-21') <> 'appareil de confiance' then
+    raise exception 'ÉCHEC 21.6 : la règle des postes touche une session de confiance'; end if;
+  update public.app_settings set temp_rules = '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb where id = true;
+
+  -- 21.7 (A693) Une demande `unlock` posée par un appareil qui n'est PAS un poste ne vise rien : l'approuver
+  --      n'ouvre aucune fenêtre. Et `link_touch` ne répond qu'à un poste.
+  update public.device_links set unlocked_until = null, del_until = null where id = v_l21;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.link_open(encode(extensions.digest('secret-21b-0123456789abc', 'sha256'), 'hex'),
+                          encode(extensions.digest('cleunl-21b-0123456789abc', 'sha256'), 'hex'), 'Chrome · Windows', 'unlock');
+  v_u21 := (v_j->>'id')::uuid;
+  perform public.link_approve(v_u21, 'secret-21b-0123456789abc', null);
+  if (public.link_touch()->>'ok')::boolean is not false then raise exception 'ÉCHEC 21.7 : link_touch répond à un appareil qui n''est pas un poste'; end if;
+  reset role;
+  if (select unlocked_until is null and del_until is null from public.device_links where id = v_l21) is not true then
+    raise exception 'ÉCHEC 21.7 : une demande sans poste a ouvert la fenêtre d''un poste'; end if;
+  select string_agg(f, ', ') into v_list from unnest(array['public.temp_need(boolean)','public.temp_unlock_interval()',
+      'public.temp_guard_doc()','public.temp_guard_row()']) f
+   where has_function_privilege('authenticated', f, 'execute') or has_function_privilege('anon', f, 'execute');
+  if v_list is not null then raise exception 'ÉCHEC 21.7 : aide interne appelable par un client : %', v_list; end if;
+  if has_function_privilege('anon', 'public.link_touch(boolean)', 'execute') then
+    raise exception 'ÉCHEC 21.7 : link_touch est appelable sans compte'; end if;
+
+  -- 21.8 (A691) CINQ réclamations au plus par lien, comptées APRÈS la clé : une clé fausse ne consomme rien
+  --      (personne ne peut épuiser le compteur d'un poste à sa place), la sixième bonne est refusée.
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.link_open(encode(extensions.digest('secret-21c-0123456789abc', 'sha256'), 'hex'),
+                          encode(extensions.digest('cle-21c-0123456789abcdef', 'sha256'), 'hex'), 'Chrome · Windows', 'connect');
+  reset role;
+  v_c21 := (v_j->>'id')::uuid;
+  perform set_config('request.jwt.claims', json_build_object('sub',uma,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.link_approve(v_c21, 'secret-21c-0123456789abc', now() + interval '2 hours');
+  reset role;
+  if (v_j->>'ok')::boolean is not true then raise exception 'ÉCHEC 21.8 : approbation refusée (%)', v_j; end if;
+  for v_cnt in 1..8 loop
+    if (public.link_claim_srv(v_c21, 'mauvaise-cle-0123456789ab')->>'ok')::boolean then
+      raise exception 'ÉCHEC 21.8 : une clé fausse réclame'; end if;
+  end loop;
+  if (select claims from public.device_links where id = v_c21) <> 0 then
+    raise exception 'ÉCHEC 21.8 : une clé fausse consomme le compteur du poste'; end if;
+  for v_cnt in 1..5 loop
+    v_j := public.link_claim_srv(v_c21, 'cle-21c-0123456789abcdef');
+    if v_j->>'email' is distinct from 'uma@test.local' then
+      raise exception 'ÉCHEC 21.8 : la réclamation % est refusée (%)', v_cnt, v_j; end if;
+  end loop;
+  v_j := public.link_claim_srv(v_c21, 'cle-21c-0123456789abcdef');
+  if (v_j->>'ok')::boolean then raise exception 'ÉCHEC 21.8 : une sixième réclamation passe (%)', v_j; end if;
+  -- La liaison ouvre la fenêtre du poste connecté par le code à viser, comme `link_self`.
+  insert into auth.sessions(id, user_id) values (v_s18c, uma) on conflict (id) do nothing;
+  v_j := public.link_bind_srv(v_c21, 'cle-21c-0123456789abcdef', v_s18c);
+  if (v_j->>'ok')::boolean is not true or (select unlocked_until from public.device_links where id = v_c21) < now() + interval '14 minutes' then
+    raise exception 'ÉCHEC 21.8 : la liaison n''ouvre pas la fenêtre du poste (%)', v_j; end if;
 
   ------------------------------------------------------------------ FIN
   reset role;

@@ -200,6 +200,12 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    capacité est la clé du poste, vérifiée en SQL. C'est la SEULE pièce qui utilise la clé de
    service. Sans elle, la connexion par le téléphone échoue proprement et l'e-mail reste disponible
    (§ 3.3).
+   **v5.116.1 (A691) — à redéployer, APRÈS avoir rejoué `schema.sql`** : la fonction ne rend plus de
+   l'utilisateur que son identifiant et son adresse, et borne le corps de la requête ; le plafond de
+   cinq réclamations par lien est dans le schéma. L'ordre n'est pas critique (ancienne fonction et
+   nouveau schéma s'entendent, et l'inverse aussi) : schéma d'abord, fonction ensuite. La fonction ne
+   peut pas limiter le NOMBRE d'appels qu'elle reçoit — une limite par adresse se règle, si besoin, à
+   la passerelle du projet Supabase.
 6. **Aucun mot de passe** (v5.111.1, A648) — rien à faire : c'est dans `schema.sql`. L'app ne se
    connecte que par code e-mail (et par le téléphone) ; le déclencheur `forbid_passwords` sur
    `auth.users` interdit qu'un compte porte un mot de passe — sans lui, toute session valide (celle
@@ -719,6 +725,10 @@ s'efface.
   sessions terminées, et, pour une session en cours, une **sauvegarde** toutes les 2 minutes s'il y
   a eu un geste (compte rendu partiel, marqué comme tel, remplacé par la session terminée). Même
   contenu que l'historique synchronisé (§ 3) : sans la trace de vérification.
+- **Du poste connecté, pendant qu'on s'en sert (v5.116.1, A693)** : un appel sans contenu
+  (`link_touch`, au plus toutes les 30 s) qui dit seulement « ce poste est utilisé » — il prolonge la
+  fenêtre pendant laquelle le serveur accepte ses modifications. Le serveur n'en garde qu'une heure
+  d'échéance sur la ligne du poste (`unlocked_until`), effacée avec elle.
 
 **Les règles de la connexion temporaire (v5.113, A654).** L'administrateur de l'instance règle,
 pour toute l'application, ce qu'un appareil temporaire peut faire : créer ou modifier (libre, sous
@@ -728,9 +738,31 @@ Stockées dans `app_settings.temp_rules` (un choix fermé par règle, aucune don
 les interdits et la durée sont appliqués par le serveur, à chaque écriture. L'administration et la
 suppression du compte restent interdites sans réglage.
 
+**Ce que le serveur applique depuis la v5.116.1 (A692-A693).**
+- La règle « créer, modifier » couvre aussi les **catégories d'une bibliothèque**, les **notes
+  personnelles** et le **suivi** (elle ne nommait que les aides et les protocoles). Le document
+  personnel du compte (préférences, usage récent, épingles, collections, catégories personnelles)
+  reste ouvert à un poste : l'application l'écrit seule, sans geste.
+- Les **confirmations** ne sont plus seulement à l'écran. Hors d'une **fenêtre d'écriture** ouverte
+  par l'accord d'un appareil connecté (à la connexion du poste, puis à chaque déverrouillage ou
+  confirmation), le serveur refuse ce que la règle soumet à confirmation : 15 min sous « verrou
+  15 min », 5 min sous « verrou 5 min » et « confirmer », prolongées tant qu'on se sert du poste ;
+  5 min, jamais prolongées, pour supprimer.
+- **Jamais retenus** : les sessions (sauvegarde d'une session en cours, session terminée) et leur
+  dépôt. Un compte rendu de soin ne dépend d'aucun verrou.
+- **Ce qui reste à l'application seule** : le verrou d'un onglet ROUVERT pendant que la fenêtre du
+  serveur est encore ouverte (le serveur ne sait pas qu'un onglet a été rouvert), et le « à chaque
+  fois » de « confirmer », que le serveur traduit par « dans les 5 minutes d'un accord ».
+- **Hors ligne** : une modification faite sur un poste sans réseau part à son retour — si la fenêtre
+  s'est refermée entre-temps, l'application la garde et demande un accord pour l'envoyer.
+
 **Ce qui ne part jamais.** Les secrets eux-mêmes (le secret du QR ne quitte le poste que dans le
-QR, à l'écran ; la clé du poste, que dans les appels qui la vérifient) ; l'adresse e-mail du compte vers le poste (elle reste dans la
-fonction serveur) ; l'historique du compte vers le poste (un poste partagé ne le télécharge pas).
+QR, à l'écran ; la clé du poste, que dans les appels qui la vérifient) ; l'historique du compte vers le poste (un
+poste partagé ne le télécharge pas). **Rectifié en v5.116.1 (A691)** : ce paragraphe disait que
+l'adresse e-mail du compte ne partait pas vers le poste — c'était inexact. Le poste la reçoit avec
+sa session (il l'affiche : « connexion temporaire · ‹adresse› », et signe de cette adresse les
+modifications qu'on y fait). Depuis la v5.116.1 la fonction serveur ne rend plus de l'utilisateur
+que son identifiant et cette adresse, au lieu de l'objet de compte entier.
 
 **Ce qui reste sur le poste, et combien de temps.** Les aides, protocoles, réglages et sessions du
 compte, sur le disque du navigateur, jusqu'à l'heure de fin : c'est voulu (une fermeture, une

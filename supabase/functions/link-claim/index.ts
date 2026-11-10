@@ -14,7 +14,22 @@
 //      n'est envoyé), que la fonction échange ELLE-MÊME contre la session (`verifyOtp`) ;
 //   3. `link_bind_srv` lie l'identifiant de CETTE session à la demande — une seule fois. Si la
 //      demande est déjà liée, la session tout juste créée est détruite et rien ne sort ;
-//   4. elle rend la session au poste. L'e-mail ne sort jamais d'ici.
+//   4. elle rend la session au poste, avec de l'utilisateur son identifiant et son adresse — ce que
+//      l'app lit, et rien d'autre (A691). Cet en-tête disait « l'e-mail ne sort jamais d'ici » : c'était
+//      faux, la réponse portait l'objet utilisateur ENTIER de GoTrue (adresse, identités, métadonnées,
+//      dates). L'adresse sort, vers le poste que son titulaire vient d'approuver : il l'affiche (« connecté
+//      temporairement — ‹adresse› »), et tout rafraîchissement de jeton la lui rendrait de toute façon.
+//
+// BORNES (A691) — la fonction est appelable sans compte et tient la clé de service :
+//   · une requête à clé FAUSSE ne coûte au serveur qu'une lecture par clé primaire et une empreinte, et
+//     n'écrit rien (`link_claim_srv` vérifie la clé avant tout, A679) ;
+//   · une clé JUSTE ne réclame que CINQ fois par lien (`device_links.claims`, compté en SQL — la fonction
+//     n'a pas d'état, le compteur tient d'une instance à l'autre). Chaque réclamation fait fabriquer une
+//     session par GoTrue : c'est ce travail-là qui est borné. Seul le porteur de la clé fait avancer le
+//     compteur — personne ne peut bloquer le poste d'un autre ;
+//   · le corps est borné à 1 Kio (un identifiant et une clé en tiennent 200 octets).
+// CE QUE LA FONCTION NE PEUT PAS BORNER : le nombre d'INVOCATIONS. Une limite par adresse devrait vivre
+// à la passerelle de l'hébergeur (réglage du projet), pas ici.
 //
 // DÉPLOIEMENT (une fois, puis à chaque modification de ce fichier) :
 //     supabase functions deploy link-claim --no-verify-jwt
@@ -66,8 +81,14 @@ Deno.serve(async (req: Request) => {
     console.error('link-claim : configuration incomplète —', !ORIGINS.length ? 'APP_ORIGIN manquant' : 'SUPABASE_ANON_KEY manquante');
     return json({ ok: false, err: 'config' }, 503);
   }
+  // A691 : corps borné AVANT lecture complète quand la taille est annoncée, et après dans tous les cas.
+  if (Number(req.headers.get('content-length') ?? '0') > 1024) return json({ ok: false, err: 'bad_request' }, 400);
   let body: { id?: unknown; key?: unknown };
-  try { body = await req.json(); } catch { return json({ ok: false, err: 'bad_request' }, 400); }
+  try {
+    const raw = await req.text();
+    if (raw.length > 1024) return json({ ok: false, err: 'bad_request' }, 400);
+    body = JSON.parse(raw);
+  } catch { return json({ ok: false, err: 'bad_request' }, 400); }
   const id = String(body?.id ?? ''), key = String(body?.key ?? '');
   if (!UUID.test(id) || key.length < 16 || key.length > 128) return json({ ok: false, err: 'bad_request' }, 400);
 
@@ -98,6 +119,9 @@ Deno.serve(async (req: Request) => {
     await admin.auth.admin.signOut(s.access_token, 'local').catch(() => {});
     return json({ ok: false, err: 'refused' }, 403);
   }
+  // A691 : de l'utilisateur, ce que l'app lit — `id` (l'espace local du compte) et `email` (affichée sur le
+  // poste, et signature de ses modifications). Jamais l'objet GoTrue entier.
   return json({ ok: true, ends_at: data.ends_at, session: {
-    access_token: s.access_token, refresh_token: s.refresh_token, expires_at: s.expires_at, user: s.user } });
+    access_token: s.access_token, refresh_token: s.refresh_token, expires_at: s.expires_at,
+    user: { id: s.user?.id ?? null, email: s.user?.email ?? null } } });
 });
