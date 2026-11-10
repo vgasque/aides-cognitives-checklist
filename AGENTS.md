@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A652 au lot v5.112 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A652 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A653 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -262,7 +262,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-104.md`](docs/decisions/lot-v5-104.md) | A607-A612 | Le Markdown de Notion (emphase imbriquée, barré, listes sur 6 niveaux) ; image « Pleine », Plan en arbre, pastille de provenance, sélection sans voile ; tableau (grille rouverte, en-têtes, `<br>`) ; blocs (« ＋ », sélection multiple, déplacer plusieurs blocs, bloc vidé) ; import (renommer, verser dans une référence) |
 | [`lot-v5-107.md`](docs/decisions/lot-v5-107.md) | A613-A642 | Le suivi : notes et tâches, pour moi ou pour l'équipe ; « À faire » (par priorité, par élément) ; table `aid_followups` ; volet « Suivi » des éditeurs ; pastille sous le titre ; « ‹ Accueil » d'une collection ; barre de sélection en bas en large ; sélection sur place depuis l'accueil ; rangée sans catégorie alignée ; « · » jamais en tête de ligne ; renommer à l'import en touchant le titre ; cases natives rondes, « protocole » partout ; tâche liée visible des deux côtés ; échéance passée ; recherche dans tout choix d'aide ; « À faire » en page ; menus ancrés au bureau ; « Créer » aux Bibliothèques ; page Notion dans l'éditeur ; sélection de blocs au cadre ; « Modifier » sans attente ; suivi de l'éditeur stable ; déroulants flottants au bureau ; ****gras**** ; plus aucune fenêtre centrée de choix ; image dans un élément de liste |
 | [`lot-v5-111.md`](docs/decisions/lot-v5-111.md) | A643-A650 | Le POSTE PARTAGÉ se connecte par le téléphone (QR, nombre de contrôle, deux secrets, session propre au poste créée et liée par la fonction `link-claim`, revue de sécurité) ; ce qu'un poste partagé ne fait pas (A647) ; aucun mot de passe, jeton de 900 s (A648) ; notification au-dessus de la barre d'onglets, filtres de « Tout » ancrés, poste qui se déclare terminé (A649) ; heures de fin de garde ; effacement jamais pendant une session ni avant le dépôt des sessions ; sauvegarde en ligne d'une session en cours ; verrou après réouverture ; « Appareils connectés » ; `camera=(self)` |
-| [`lot-v5-112.md`](docs/decisions/lot-v5-112.md) | A651-A652 | Se connecter : Temporaire ou Permanente (rien d'office), le code à viser dans la page, la connexion temporaire par e-mail (`link_self`), « un appareil connecté » au lieu du téléphone, carte du poste à une sortie, bande neutre |
+| [`lot-v5-112.md`](docs/decisions/lot-v5-112.md) | A651-A653 | Se connecter : Temporaire ou Permanente (rien d'office), le code à viser dans la page, la connexion temporaire par e-mail (`link_self`), « un appareil connecté » au lieu du téléphone, carte du poste à une sortie, bande neutre ; l'accueil « Chargement de votre compte… » au premier tirage (A653) |
 
 ### Carte par sujet
 

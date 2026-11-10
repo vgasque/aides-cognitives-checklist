@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.112.1] — 2026-11-10
+L'accueil pendant le chargement du compte (A653). Rien à rejouer côté serveur.
+- À la connexion d'un compte sur un appareil neuf, l'accueil disait « Votre bibliothèque est vide » et proposait les
+  aides d'exemple le temps que les aides arrivent. Il montre maintenant « Chargement de votre compte… » et trois
+  rangées qui respirent, puis le vrai contenu. Rien ne bouge si le système demande moins de mouvement ; un compte
+  déjà synchronisé, ou hors ligne, s'affiche aussitôt.
+- Garde-fou : `audit-doctrine.mjs`, section « Accueil · A653 ».
+
 ## [5.112.0] — 2026-11-10
 Se connecter : temporaire ou permanente (A651-A652). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle
 fonction `link_self`), puis `supabase/rls-tests.sql`.
@@ -223,19 +231,3 @@ Tableaux, blocs et import de l'éditeur de référence (A609-A611). Rien à rejo
 - **Import** : « Renommer » chaque élément avant de l'importer ; une page (Notion…) peut être **versée dans une référence
   déjà créée** — elle remplit son contenu vide ou s'ajoute à la suite, jamais d'écrasement ; la référence garde son titre,
   sa catégorie et sa bibliothèque.
-
-## [5.104.0] — 2026-11-08
-Le Markdown copié depuis Notion se lit tel quel, et quatre défauts de lecture corrigés (A607-A608). Rien à rejouer côté
-serveur.
-- **Gras et italique imbriqués** : `***gras italique***`, un gras qui contient un italique
-  (`**indications *systématiques* en AVP**`) et un italique qui contient un gras sont rendus ; un balisage croisé reste
-  visible plutôt que de casser la ligne. **`~~barré~~`** est rendu.
-- **Listes sur six niveaux** : l'indentation fait le niveau (celle de Notion comprise, 4 espaces) ; Tab / Maj+Tab
-  changent d'un niveau dans l'éditeur ; les cases `- [ ]` sont lues à tout niveau. Avant, tout au-delà du 2ᵉ niveau
-  était aplati.
-- **Dans l'éditeur, tout marqueur d'emphase se grise** (le 3ᵉ astérisque de `***` restait à l'encre du texte).
-- **Image « Pleine »** : elle prend toute la largeur de la colonne, même petite — tirer la poignée au-delà de ¾ ne la
-  fait plus rétrécir.
-- **Le Plan** d'une référence se lit comme un arbre : chaque titre en retrait de son niveau, rattaché à son parent.
-- **La pastille de bibliothèque d'une rangée** : icône alignée sur le texte, marge intérieure rétablie.
-- **En sélection**, toucher le titre d'une aide ne le surligne plus en gris comme un lien.

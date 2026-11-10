@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sNm+j/jZ7c6MJ2uEqvd8HErXOobP1QJWBH4NtAN0gBc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-65UsLy9LXdoszJXh8rlXbtvGA/nQkoHEvt6/BeRFIB0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3418,6 +3418,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .emp-intro{text-align:left;padding:24px 20px;max-width:780px;margin-left:auto;margin-right:auto}
   .emp-intro>b{text-align:center;font-size:17.5px;color:var(--ink)}
   .emp-intro+.emp-intro{margin-top:12px}
+  /* v5.112.1 (A653) — LE COMPTE SE CHARGE : à la PREMIÈRE synchro d'un compte sur cet appareil, l'accueil est vide le
+     temps que les aides arrivent. Au lieu de « Votre bibliothèque est vide » (faux, et alarmant), trois rangées qui
+     respirent et une ligne qui dit ce qui se passe. On anime l'OPACITÉ et le transform seuls (check-anim) ; rien ne
+     bouge si le système demande moins de mouvement. Jamais en mode crise : l'accueil seul. */
+  .acc-load{max-width:780px;margin:0 auto;padding:8px 0}
+  .acc-load-t{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .acc-spin{flex:none;width:16px;height:16px;box-sizing:border-box;border-radius:50%;border:2px solid var(--line-strong);border-top-color:var(--act);animation:accSpin .9s linear infinite}
+  .acc-sk{display:flex;flex-direction:column;gap:8px}
+  .acc-sk span{display:block;height:56px;border-radius:var(--r-3);background:var(--work);border:1px solid var(--line);animation:accPulse 1.4s ease-in-out infinite}
+  .acc-sk span:nth-child(2){animation-delay:.18s}
+  .acc-sk span:nth-child(3){animation-delay:.36s}
+  @keyframes accSpin{to{transform:rotate(360deg)}}
+  @keyframes accPulse{0%,100%{opacity:1}50%{opacity:.45}}
+  @media (prefers-reduced-motion:reduce){.acc-spin,.acc-sk span{animation:none}}
   /* Bandeau des DEUX natures : côte à côte dès qu'il y a la place, empilées sinon. */
   .emp-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:20px}
   .emp-nat-t{display:block;font-size:13.5px;margin-bottom:4px}
@@ -10411,7 +10425,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.112.0';
+const APP_VERSION='5.112.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17891,7 +17905,7 @@ function renderHomeList(cfg){
      Détail : doctrine-js.md J87. */
   const dansFiltre=!!(state.q||state.cat||state.coll);
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
-  const emptyHtml=introK.length
+  const emptyHtml=(!dansFiltre&&accLoading())?accLoadingHtml():introK.length
     ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
       +(introK.length>1?emptyIntroBothHtml():introK.map(emptyIntroHtml).join(''))
     :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
@@ -18165,7 +18179,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       return recapH+shH;},   // A523 : les sessions vives sont le groupe « En cours » de la liste
     notices:()=>`
       ${(!homeScope()&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque aide et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
-      ${(!homeScope()&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux aides d’exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les aides d’exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
+      ${(!homeScope()&&!fiches.some(f=>!f.library)&&!seedsHidden()&&!accLoading())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux aides d’exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les aides d’exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
     /* RANGÉE du répertoire (v4.56.0 — remplace la carte ; décisions utilisateur : épingle,
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
        global de la sidebar prend le relais). Pastille + NOM de catégorie en toutes lettres dans
@@ -34046,6 +34060,14 @@ const memOps=arr=>({
   addMem:x=>arr.push(x),
   dropMem:id=>{const i=arr.findIndex(y=>y.id===id);if(i>=0)arr.splice(i,1);},
   replaceMem:x=>{const i=arr.findIndex(y=>y.id===x.id);if(i>=0)arr[i]=x;else if(!x.deletedAt)arr.push(x);}});
+/* v5.112.1 (A653) — LE PREMIER CHARGEMENT D'UN COMPTE SUR CET APPAREIL. Vrai tant que la première synchro de la page
+   n'a pas fini ET que ce compte n'a jamais rien tiré ici (aucun curseur) : un compte déjà synchronisé, ou hors ligne,
+   montre sa vraie liste (ou le vrai « vide ») tout de suite. */
+let _syncDoneOnce=false;
+function accLoading(){if(_syncDoneOnce||!Auth.signedIn()||!Sync.online()||performance.now()>20000)return false;   // 20 s au plus : jamais un chargement sans fin
+  try{if(localStorage.getItem(spaceKey(Sync._cursorKey))||localStorage.getItem(spaceKey('ac-sync-cursor-prot')))return false;}catch(e){}
+  return true;}
+function accLoadingHtml(){return `<div class="acc-load" role="status"><p class="acc-load-t"><span class="acc-spin" aria-hidden="true"></span>Chargement de votre compte…</p><div class="acc-sk" aria-hidden="true"><span></span><span></span><span></span></div></div>`;}
 const Sync={
   running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
   /* ===== Sync · cadence — porte d'entrée et reprise (online/schedule/full/_scheduleRetry) ===== */
@@ -34093,7 +34115,9 @@ const Sync={
       setSyncChip('ok','Synchronisé');
       notifyConflicts(conflicts);
     }catch(e){this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}
-    finally{this.running=false;}
+    finally{this.running=false;
+      // A653 : la première synchro de la page a fini (bien ou mal) — l'accueil quitte l'état « chargement ».
+      if(!_syncDoneOnce){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}}
   },
   // Nouvelle tentative après échec (backoff : 5s, 10s, 20s... plafonné à 2 min). Annulée si une
   // synchro réussit ou redémarre entretemps (schedule()/full()) ; sans effet si repassé hors-ligne

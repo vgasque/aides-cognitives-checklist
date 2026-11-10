@@ -7068,6 +7068,44 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
   await page.close();
 });
 
+/* ══ A653 — LE COMPTE SE CHARGE : l'accueil ne se dit pas « vide » pendant la première synchro ═══════════
+   À la connexion d'un compte sur un appareil neuf, l'accueil restait vide le temps du premier tirage, avec
+   « Votre bibliothèque est vide » et l'invitation aux exemples — faux, et alarmant (signalé). Le tirage est
+   RETENU au réseau (page.route) : on voit l'état pendant, puis après. */
+await sec('Accueil · A653 le compte se charge (premier tirage)', async () => {
+  const UIDc='acacacac-acac-acac-acac-acacacacacac';let lacher;const porte=new Promise(r=>lacher=r);
+  const page=await br.newPage({viewport:{width:1280,height:820}});
+  await page.route('**/*.supabase.co/**',async route=>{const u=new URL(route.request().url());
+    const J=o=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(o)});
+    if(u.pathname.endsWith('my_status'))return J('approved');
+    if(u.pathname.includes('cognitive_aids')){await porte;return J([]);}
+    return route.request().method()==='GET'?J([]):J(null);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(u=>{Auth._setSession({access_token:'at',refresh_token:'rt',expires_in:3600,user:{id:u,email:'k@t.l'}});localStorage.setItem('ac-space',u);},UIDc);
+  await page.reload();
+  await page.waitForFunction(()=>typeof state!=='undefined'&&!document.querySelector('.boot-load')&&state.view==='library');
+  await calme(page,600);
+  const lire=()=>page.evaluate(()=>{const m=document.querySelector('.acc-load');
+    return {load:!!m,role:m&&m.getAttribute('role'),vide:/Votre bibliothèque est vide/.test(document.body.innerText),
+      exemples:/Besoin d.exemples/.test(document.body.innerText)};});
+  const a=await lire();
+  t('A653 : pendant le premier tirage, l’accueil dit « Chargement de votre compte… » (role=status)',a.load&&a.role==='status',JSON.stringify(a));
+  t('A653 : … et ne se dit ni « vide » ni n’invite aux exemples',!a.vide&&!a.exemples,JSON.stringify(a));
+  lacher();
+  await page.waitForFunction(()=>!document.querySelector('.acc-load'),null,{timeout:8000}).catch(()=>{});
+  const b=await lire();
+  t('A653 : le tirage fini, le vrai état revient (ici : vide)',!b.load&&b.vide,JSON.stringify(b));
+  await page.close();
+  const pr=await br.newPage({viewport:{width:1280,height:820},reducedMotion:'reduce'});
+  await pr.goto(`http://localhost:${port}/index.html`);
+  await amorce(pr);
+  const an=await pr.evaluate(()=>{const d=document.createElement('div');d.innerHTML=accLoadingHtml();document.body.appendChild(d);
+    const r=[d.querySelector('.acc-spin'),d.querySelector('.acc-sk span')].map(e=>getComputedStyle(e).animationName);d.remove();return r;});
+  t('A653 : rien ne bouge si le système demande moins de mouvement',an.every(x=>x==='none'),JSON.stringify(an));
+  await pr.close();
+});
+
 /* ══ A424 — RANGER UNE SÉLECTION ÉPARPILLÉE : PAR NOM, DANS LA BIBLIOTHÈQUE DE CHACUN ══════════════════
    « Catégorie… » disparaissait dès que la sélection mêlait deux bibliothèques — le cas courant depuis que
    l'accueil est leur union (v5.18). Le sélecteur dit maintenant où va chacun AVANT le geste. */
