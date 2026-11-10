@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112, A654 au lot v5.113, A655-A656 au lot v5.114, A657-A658 au lot v5.114.1, A659-A663 au lot v5.115, A664-A675 au lot v5.115.1, A676-A684 au lot v5.115.2, A685-A688 au lot v5.116, A689-A693 et A695-A697 au lot v5.116.1, A698-A699 au lot v5.117, A700 au lot v5.118, A701 au lot v5.119 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112, A654 au lot v5.113, A655-A656 au lot v5.114, A657-A658 au lot v5.114.1, A659-A663 au lot v5.115, A664-A675 au lot v5.115.1, A676-A684 au lot v5.115.2, A685-A688 au lot v5.116, A689-A693 et A695-A697 au lot v5.116.1, A698-A699 au lot v5.117, A700 au lot v5.118, A701-A702 au lot v5.119 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A701 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A702 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -272,7 +272,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-116-1.md`](docs/decisions/lot-v5-116-1.md) | A689-A693, A695-A697 | Les sept points restés ouverts de l'audit de sécurité : un document PDF appartient à un seul espace (`attClaim`, `attPlan`, réparation `attRepairShared`) ; `link-claim` borné (à redéployer) ; appareil temporaire — règles étendues et confirmation appliquée par le serveur (`link_touch`, `poste_locked`) ; `migrate` borne les champs inconnus (`borneInconnus`) ; CI épinglée par empreinte ; indexation des PDF bornée — serveur à rejouer |
 | [`lot-v5-117.md`](docs/decisions/lot-v5-117.md) | A698-A699 | Le délai de revérification se règle par élément (`reviewEvery`, `reviewDue`, section calculée dans « À faire ») ; le volet des minuteurs et compteurs du téléphone en tuiles |
 | [`lot-v5-118.md`](docs/decisions/lot-v5-118.md) | A700 | La frise du compte-rendu : repères, compteurs et complications dessinés sur un axe de temps (`sessFrise`) ; ce que le modèle ne date pas n'est pas tracé |
-| [`lot-v5-119.md`](docs/decisions/lot-v5-119.md) | A701 | Le volet des minuteurs du téléphone au dessin de la maquette : tuiles pleines, maintenir la tuile (amende A460 pour ce volet), le volet s'arrête après ses instruments |
+| [`lot-v5-119.md`](docs/decisions/lot-v5-119.md) | A701-A702 | Le volet des minuteurs du téléphone au dessin de la maquette : tuiles pleines, maintenir la tuile (amende A460 pour ce volet), le volet s'arrête après ses instruments ; « △ À revérifier » retrouve son glyphe (amende A347) |
 
 ### Carte par sujet
 
@@ -284,7 +284,7 @@ plages A renvoient au tableau ci-dessus.
 |---|---|---|
 | **Couleur, registres, accents, catégories** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories | A222-A224, A308-A316, A400, A406-A408, A416-A417, A435, A485, A503, A506, A574 |
 | **Typographie, espacement, contrôles** | Largeurs & échelles fermées | A345 (échelle A6 normative), A350, A374-A375, A403-A404, A505-A506, A531, A579 |
-| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » | A345, A381, A388, A401-A402, A411, A463, A515, A519, A569-A570, A698 (délai de revérification) |
+| **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » | A345, A381, A388, A401-A402, A411, A463, A515, A519, A569-A570, A698 (délai de revérification), A702 (« △ À revérifier ») |
 | **Mode crise : session, quai, capsule, volet** | Mode statique · Challenge-response · Alarme de minuteur · Dialogue « Terminer la session ? » · ZONE HAUTE DE CRISE | A1-A112, A331, A336-A337, A346, A349, A354-A357, A363, A403, A409-A415, A462, A473, A503, A507-A509, A518, A568, A577-A578, A659 (rappel critique, compte d'étapes, alarmes au calme) |
 | **Minuteurs et compteurs liés, moment d'une étape, moniteur** | JALONS DE BOUCLE | A231-A232, A341-A342, A377-A382, A440, A474, A518, A535, A569-A571, A573, A576, A699 et A701 (volet du téléphone en tuiles ; maintenir la tuile) |
 | **Parcours, Se repérer, Page, Schéma** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE | A133-A138, A339, A343-A344, A376, A388-A395, A448, A450, A522, A529, A534, A554, A558-A559, A580-A582 |
