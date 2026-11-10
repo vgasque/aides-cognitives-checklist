@@ -438,6 +438,53 @@ await ctx.close();
   t('rechargé : toujours fini, « Créer » toujours refusé', rl.over && rl.m && rl.vue !== 'edit', JSON.stringify(rl));
   await c8.close();
 }
+{
+  console.log('\n── 7. L’heure de fin passe EN PLEINE SESSION : la session continue jusqu’au bout (règle 11, A655)');
+  // Question de l'auteur : « tout en permettant une session en cours dans le cas où la connexion expire ? ». Fin passée,
+  // l'appareil est « fini » — mais la session en cours garde ses gestes, se sauvegarde par le DÉPÔT (le serveur ferme
+  // les tables à la session du poste), puis rejoint l'historique ; l'effacement n'a lieu qu'après.
+  const c9 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st9 = { verifyOk: true }, vu9 = {};
+  await c9.route('**/*.supabase.co/**', bouchon(st9, vu9));
+  const pg = await c9.newPage();
+  await pg.goto(URL0);
+  await amorce(pg);
+  await pg.evaluate(() => openAuth());
+  await pg.click('[data-authk="temp"]'); await pg.click('[data-autht="email"]');
+  await pg.fill('#authEmail', 'kim@test.local'); await pg.click('#authSend');
+  await pg.waitForSelector('#authCode'); await pg.fill('#authCode', '48207312'); await pg.click('#authVerify');
+  await apres(pg, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'), UID);
+  await pg.evaluate(() => Link.close());
+  await amorce(pg);
+  await ouvrirFiche(pg, /arr[êe]t|anaphyl|./);
+  await demarrerSession(pg);
+  // L'heure de fin passe : le serveur dit « ended », l'appareil le sait.
+  st9.poll = { ok: true, status: 'ended', ends_at: new Date(Date.now() - 60e3).toISOString() };
+  await pg.evaluate(() => { const sp = linkShared(); linkSharedSet(Object.assign({}, sp, { endsAt: Date.now() - 60e3 })); });
+  vu9.link_deposit = []; vu9.sessions = [];
+  await pg.evaluate(async () => { Runtime._lkCkpt = 0; Runtime.lastActAt = Date.now(); await Link.watch(); });
+  const a = await pg.evaluate(() => ({ over: linkOver(), sp: !!linkShared(), started: !!Runtime.started, modal: document.getElementById('linkModal').classList.contains('on') }));
+  t('fin passée pendant la session : rien n’est effacé, la session reste ouverte, aucune fenêtre', a.over && a.sp && a.started && !a.modal, JSON.stringify(a));
+  const g = await pg.evaluate(async () => { const n0 = Object.values(Runtime.checked || {}).filter(Boolean).length;
+    const li = document.querySelector('ol.steps li[data-ck]'); if (li) li.click(); await __acCalme(300);
+    return { li: !!li, n0, n1: Object.values(Runtime.checked || {}).filter(Boolean).length,
+      modal: document.getElementById('linkModal').classList.contains('on') }; });
+  t('… et ses gestes répondent (une étape se coche, sans « Appareil déconnecté »)', g.li && g.n1 > g.n0 && !g.modal, JSON.stringify(g));
+  const d = (vu9.link_deposit || []).find(x => x && x.p_row && x.p_row.data && x.p_row.data.checkpoint);
+  t('… sa sauvegarde part par le DÉPÔT, pas par les tables (fermées au poste après l’heure)', !!d && !(vu9.sessions || []).length, JSON.stringify({ dep: (vu9.link_deposit || []).length, rest: (vu9.sessions || []).length }));
+  await pg.evaluate(() => { const ob = window.toast; window.__lkT = []; window.toast = (m, ...x) => { window.__lkT.push(String(m)); return ob(m, ...x); }; });
+  await pg.evaluate(() => Link.wipe(false));
+  t('… et l’effacement attend la fin de la session', await pg.evaluate(() => !!linkShared() && window.__lkT.some(s => /session est en cours/.test(s))));
+  vu9.link_deposit = [];
+  await pg.evaluate(async () => { const id = Runtime.sessionId; window.__lkSid = id; endSession(Runtime);
+    await new Promise(r => setTimeout(r, 300));   // horloge : écriture IndexedDB de l'archive
+    Link.watch().catch(() => {}); });
+  const sid = await pg.evaluate(() => window.__lkSid);
+  await apres(pg, () => localStorage.getItem('ac-space') === '' && typeof linkShared === 'function' && !document.querySelector('.boot-load') && !linkShared());
+  t('session terminée : elle est DÉPOSÉE dans l’historique, puis l’appareil s’efface', (vu9.link_deposit || []).some(x => x && x.p_row && x.p_row.id === sid && !x.p_row.data.checkpoint)
+    && await pg.evaluate(() => !linkShared()), JSON.stringify((vu9.link_deposit || []).map(x => x && x.p_row && x.p_row.id)));
+  await c9.close();
+}
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles connexion par le téléphone OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
 process.exit(ko ? 1 : 0);
