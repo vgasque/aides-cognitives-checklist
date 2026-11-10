@@ -56,6 +56,7 @@ function bouchon(srvst, vu) {
       if (fn === 'set_temp_rules') return J(null);
       if (fn === 'link_list') return J(srvst.devs || []);
       if (fn === 'link_extend') return J({ ok: true });
+      if (fn === 'link_touch') return J(srvst.touch || null);   // A693 : null = serveur antérieur (l'app ne change rien)
       return J(null);
     }
     if (p === '/functions/v1/link-claim') { (vu.claim = vu.claim || []).push(body);
@@ -67,6 +68,7 @@ function bouchon(srvst, vu) {
     if (p.startsWith('/auth/v1/logout')) { vu.logout = (vu.logout || 0) + 1; return route.fulfill({ status: 204, body: '' }); }
     if (p === '/rest/v1/sessions' && m === 'POST') { (vu.sessions = vu.sessions || []).push(...(body || [])); return route.fulfill({ status: 201, body: '' }); }
     if (m === 'GET') return J([]);
+    (vu.ecrit = vu.ecrit || []).push(m + ' ' + p);   // A693 : ce qui est ÉCRIT dans les tables (hors sessions)
     return route.fulfill({ status: 201, body: '' });
   };
 }
@@ -537,6 +539,74 @@ await ctx.close();
   t('session terminée : elle est DÉPOSÉE dans l’historique, puis l’appareil s’efface', (vu9.link_deposit || []).some(x => x && x.p_row && x.p_row.id === sid && !x.p_row.data.checkpoint)
     && await pg.evaluate(() => !linkShared()), JSON.stringify((vu9.link_deposit || []).map(x => x && x.p_row && x.p_row.id)));
   await c9.close();
+}
+{
+  console.log('\n── 10. La fenêtre d’écriture tenue par le serveur (A692-A693)');
+  const c10 = await br.newContext({ viewport: { width: 1200, height: 900 } });
+  const st10 = { verifyOk: true, rules: { edit: 'v15', del: 'tel', repl: 'non', exp: 'oui', dur: 28 } }, vu10 = {};
+  await c10.route('**/*.supabase.co/**', bouchon(st10, vu10));
+  const pg = await c10.newPage();
+  await pg.goto(URL0);
+  await amorce(pg);
+  await pg.evaluate(() => openAuth());
+  await pg.click('[data-authk="temp"]'); await pg.click('[data-autht="email"]');
+  await pg.fill('#authEmail', 'kim@test.local'); await pg.click('#authSend');
+  await pg.waitForSelector('#authCode'); await pg.fill('#authCode', '48207312'); await pg.click('#authVerify');
+  await apres(pg, u => localStorage.getItem('ac-space') === u && typeof linkShared === 'function' && !!linkShared() && !document.querySelector('.boot-load'), UID);
+  await pg.evaluate(async () => { await linkRulesFetch(); Link.close(); });
+  await pg.waitForFunction(() => !Sync.running, null, { timeout: 15000 });
+  const aTable = () => (vu10.ecrit || []).filter(x => /cognitive_aids/.test(x)).length;
+  // « à envoyer » se lit SUR LE DISQUE : c'est là que `_pushTable` le lève (la copie en mémoire ne fait pas foi).
+  const aEnvoyer = id => pg.evaluate(async i => !!((await Data.getAll()).find(x => x.id === i) || {}).dirty, id);
+  // Serveur ANTÉRIEUR (link_touch ne répond rien) : rien n'est retenu, l'aide part comme avant.
+  await pg.evaluate(async () => { const f = blankFiche(); f.title = 'Aide du poste A'; f.dirty = true; fiches.push(f); await Data.put(f); window.__fA = f.id; await Sync.full(); });
+  t('serveur pas encore rejoué : rien n’est retenu, l’aide part comme avant', aTable() === 1 && !(await aEnvoyer(await pg.evaluate(() => __fA))) && await pg.evaluate(() => !linkLocked()), JSON.stringify(vu10.ecrit));
+  // La prolongation : seulement pendant qu'on se sert du poste.
+  st10.touch = { ok: true, rule: 'v15', open: true, del_open: false };
+  vu10.link_touch = [];
+  await pg.evaluate(async () => { _linkGestAt = Date.now(); _linkTouchAt = 0; await linkTouch(); });
+  const k1 = (vu10.link_touch || []).slice(-1)[0];
+  await pg.evaluate(async () => { _linkGestAt = Date.now() - 16 * 60000; await linkTouch(true); _linkGestAt = Date.now(); });
+  const k2 = (vu10.link_touch || []).slice(-1)[0];
+  t('la fenêtre se prolonge pendant qu’on se sert du poste (p_keep), jamais sans geste depuis le délai', !!k1 && k1.p_keep === true && !!k2 && k2.p_keep === false, JSON.stringify([k1, k2]));
+  // Fenêtre FERMÉE au serveur : l'aide est retenue — rien ne part, rien ne crie, l'onglet se reverrouille.
+  st10.touch = { ok: true, rule: 'v15', open: false, del_open: false };
+  const n0 = aTable();
+  await pg.evaluate(async () => { const f = blankFiche(); f.title = 'Aide du poste B'; f.dirty = true; fiches.push(f); await Data.put(f); window.__fB = f.id;
+    Sync.lastError = null; await Sync.full(); await Link.watch(); });
+  const idB = await pg.evaluate(() => __fB);
+  const h = await pg.evaluate(() => ({ err: !!Sync.lastError, locked: linkLocked(),
+    unlock: !!document.querySelector('#linkBand [data-lkunlock]'), chip: (document.querySelector('.acct-dot') || {}).className || '' }));
+  t('fenêtre fermée au serveur : l’aide est RETENUE (rien ne part), sans erreur de synchro', aTable() === n0 && (await aEnvoyer(idB)) && !h.err, JSON.stringify(h));
+  t('… et l’onglet se reverrouille : la bande propose « Déverrouiller »', h.locked && h.unlock, JSON.stringify(h));
+  // L'accord d'un appareil connecté : la fenêtre rouvre, ce qui attendait part SEUL.
+  st10.touch = { ok: true, rule: 'v15', open: true, del_open: true }; st10.poll = { ok: true, status: 'approved' };
+  await pg.click('#linkBand [data-lkunlock]');
+  for (let i = 0; i < 60 && (aTable() === n0 || await aEnvoyer(idB) || await pg.evaluate(() => linkLocked())); i++) await pg.waitForTimeout(250);   // horloge : sondage de l'accord (2 s) puis synchro différée (0,9 s)
+  t('accord reçu : l’aide retenue part seule, sans autre geste', aTable() > n0 && !(await aEnvoyer(idB)) && await pg.evaluate(() => !linkLocked()), JSON.stringify(vu10.ecrit));
+  st10.poll = null;
+  // Sous « confirmer » (tel), pas de verrou d'onglet : la bande dit ce qui attend et offre le geste.
+  st10.rules = { edit: 'tel', del: 'tel', repl: 'non', exp: 'oui', dur: 28 }; st10.touch = { ok: true, rule: 'tel', open: false, del_open: false };
+  const n1 = aTable();
+  await pg.evaluate(async () => { Link.close(); const f = blankFiche(); f.title = 'Aide du poste C'; f.dirty = true; fiches.push(f); await Data.put(f); window.__fC = f.id;
+    Sync.lastError = null; await Sync.full(); await Link.watch(); });
+  const b = await pg.evaluate(() => { const el = document.getElementById('linkBand'); return { txt: el.textContent, send: !!el.querySelector('[data-lksend]'), err: !!Sync.lastError }; });
+  t('sous « confirmer » : retenue dite dans la bande, avec « Confirmer pour envoyer »', aTable() === n1 && (await aEnvoyer(await pg.evaluate(() => __fC))) && !b.err && b.send && /attendent l’accord d’un appareil connecté/.test(b.txt), JSON.stringify(b));
+  // Un refus NOMMÉ du serveur (course, autre onglet) : jamais une erreur rouge, jamais une réparation d'identifiant.
+  const er = await pg.evaluate(() => ({ held: linkHeldErr(new Error('REST 400 {"code":"P0001","details":"edit","message":"poste_locked"}')),
+    titre: explainSyncError(new Error('REST 400 {"code":"P0001","message":"poste_locked"}')).title,
+    non: explainSyncError(new Error('REST 400 {"code":"P0001","message":"poste_forbidden"}')).title }));
+  t('un refus « poste_locked » n’est pas une panne ; son message dit quoi faire', er.held === true && er.titre === 'Confirmation attendue' && er.non === 'Modification non permise ici', JSON.stringify(er));
+  // A692 : sous « interdit », notes, suivi et catégories d'une bibliothèque se refusent à l'écran — comme le serveur.
+  st10.rules = { edit: 'non', del: 'tel', repl: 'non', exp: 'oui', dur: 28 };
+  const g = await pg.evaluate(async () => { await linkRulesFetch();
+    const titre = () => { const m = document.getElementById('linkModal'); const x = m.classList.contains('on') ? document.getElementById('linkBody').textContent : ''; Link.close(); return x; };
+    const o = {}; suiviEdOpen({ ent: __fA, k: 'note' }); o.suivi = titre(); o.ed = document.getElementById('suiviEdModal').classList.contains('on');
+    let fait = 0; linkThen(() => { fait++; }, 'Modifier le suivi'); o.then = titre(); o.fait = fait;
+    return o; });
+  t('sous « interdit » : écrire un suivi est refusé à l’écran, et dit pourquoi', /Écrire une note ou une tâche de suivi ne se fait pas/.test(g.suivi) && !g.ed, JSON.stringify(g));
+  t('… un geste court (cocher une tâche) aussi, sans s’exécuter', /Modifier le suivi ne se fait pas/.test(g.then) && g.fait === 0, JSON.stringify(g));
+  await c10.close();
 }
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles connexion par le téléphone OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));

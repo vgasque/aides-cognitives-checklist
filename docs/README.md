@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A688** à la v5.116.0 (lot v6.0 compris) (et ça continue — la
-prochaine est A689), attribués dans
+Les décisions de conception portent des numéros **A1 → A697** à la v5.116.1 (lot v6.0 compris ; A694 non attribué) (et ça continue — la
+prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -312,6 +312,14 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A686 | `lot-v5-116.md` | Moi › Bibliothèques : mes invitations, Refuser · Rejoindre ; « invitation en attente » dans la fenêtre des membres |
 | A687 | `lot-v5-116.md` | Serveur (à rejouer) : quotas par espace (aides, protocoles, sessions, documents) — `app_settings.quotas`, `quota_check`, `get_quotas`/`set_quotas`, `quota_usage` |
 | A688 | `lot-v5-116.md` | Administration › Règles › Quotas, avec leur guide ; « Quota atteint » à la synchro ; `docs/deploiement-et-conformite.md` § 1.8 |
+| A689 | `lot-v5-116-1.md` | Un document PDF appartient à un seul espace : exemplaire neuf à la duplication, la synchro ne téléverse plus à cause d'une ligne tirée (`attClaim`, `attPlan`, `attMayDelete`) |
+| A690 | `lot-v5-116-1.md` | Réparation de l'existant, une fois par espace (`attRepairShared`, `ac-att-split`) |
+| A691 | `lot-v5-116-1.md` | `link-claim` (à redéployer) : rend `{id, email}` seulement, cinq réclamations par lien |
+| A692 | `lot-v5-116-1.md` | Appareil temporaire : la règle « créer, modifier » couvre catégories partagées, notes et suivi ; une suppression ne modifie pas |
+| A693 | `lot-v5-116-1.md` | La confirmation d'un appareil temporaire est appliquée par le serveur (fenêtre d'écriture, `link_touch`, `poste_locked`) ; le verrou de réouverture reste côté app |
+| A695 | `lot-v5-116-1.md` | `migrate` : champs inconnus bornés sans liste blanche (`borneInconnus`), bloc de décision assaini, pool dédoublonné |
+| A696 | `lot-v5-116-1.md` | Actions de la CI épinglées par empreinte de commit |
+| A697 | `lot-v5-116-1.md` | Indexation des PDF : 5 000 pages et deux millions de mots, essais interrompus retenus, jamais pendant un soin (amende « indexation intégrale ») |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

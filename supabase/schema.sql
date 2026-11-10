@@ -2163,6 +2163,16 @@ create table if not exists public.device_links (
   auth_session uuid,
   deposits     int not null default 0
 );
+-- A691, A693 (v5.116.1) : quatre colonnes ajoutées à une table déjà créée (`create table if not exists` ne
+-- la modifie pas).
+--   · `claims`         — réclamations comptées PAR LIEN, après vérification de la clé (`link_claim_srv`) ;
+--   · `target`         — sur une demande `unlock` : le lien `connect` du poste qui la pose ;
+--   · `unlocked_until` — sur un lien `connect` : jusqu'à quand le poste peut créer et modifier ;
+--   · `del_until`      — idem pour SUPPRIMER (jamais prolongée sans un nouvel accord).
+alter table public.device_links add column if not exists claims         int not null default 0;
+alter table public.device_links add column if not exists target         uuid;
+alter table public.device_links add column if not exists unlocked_until timestamptz;
+alter table public.device_links add column if not exists del_until      timestamptz;
 create index if not exists device_links_user_idx on public.device_links (user_id, status);
 create index if not exists device_links_sess_idx on public.device_links (auth_session) where auth_session is not null;
 create index if not exists device_links_ip_idx on public.device_links (ip_hash, created_at) where ip_hash is not null;
@@ -2303,9 +2313,16 @@ begin
      or split_part(v_label, ' · ', 1) not in ('Edge','Firefox','Chrome','Safari','Navigateur')
      or split_part(v_label, ' · ', 2) not in ('','Windows','iPhone','iPad','Android','ChromeOS','macOS','Linux') then
     v_label := 'Navigateur'; end if;
-  insert into public.device_links(kind, secret_hash, key_hash, ip_hash, label, open_until, user_id)
+  -- A693 : une demande `unlock` retient LE POSTE qui la pose (sa session, liée par le serveur) — c'est
+  -- sur ce lien que l'accord du téléphone ouvrira la fenêtre d'écriture. Posée par un appareil qui
+  -- n'est pas un poste, elle ne vise rien et n'ouvre rien.
+  insert into public.device_links(kind, secret_hash, key_hash, ip_hash, label, open_until, user_id, target)
     values (v_kind, p_hash, p_key_hash, v_ip, v_label, v_open,
-            case when v_kind = 'unlock' then auth.uid() end)
+            case when v_kind = 'unlock' then auth.uid() end,
+            case when v_kind = 'unlock' then
+              (select d.id from public.device_links d
+                where d.auth_session = nullif(auth.jwt() ->> 'session_id', '')::uuid
+                  and d.kind = 'connect' and d.status = 'claimed' and d.user_id = auth.uid() limit 1) end)
     returning id into v_id;
   return jsonb_build_object('ok', true, 'id', v_id, 'open_until', v_open, 'server_time', now());
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
@@ -2352,6 +2369,13 @@ begin
     if v.user_id <> auth.uid() then return jsonb_build_object('ok', false, 'err', 'other_account'); end if;
     update public.device_links set status = 'approved', approved_at = now() where id = v.id and status = 'pending';
     if not found then return jsonb_build_object('ok', false, 'err', 'expired'); end if;
+    -- A693 : L'ACCORD OUVRE LA FENÊTRE D'ÉCRITURE DU POSTE, côté serveur (cf. § 10ter). Supprimer a la
+    -- sienne, courte et jamais prolongée : un accord, une suppression.
+    if v.target is not null then
+      update public.device_links
+         set unlocked_until = now() + public.temp_unlock_interval(), del_until = now() + interval '5 minutes'
+       where id = v.target and user_id = auth.uid() and kind = 'connect' and status = 'claimed' and ends_at > now();
+    end if;
     return jsonb_build_object('ok', true, 'kind', 'unlock');
   end if;
   if p_ends_at is null or p_ends_at < now() + interval '30 minutes' or p_ends_at > now() + public.temp_max_interval() then
@@ -2402,6 +2426,13 @@ begin
   -- mal formée déclenchait le ménage complet sous la clé de service.
   v := public.link_row_key(p_id, p_key);
   if v.id is null or v.kind <> 'connect' then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  /* A691 — CINQ RÉCLAMATIONS AU PLUS PAR LIEN, comptées APRÈS la clé. Chaque réclamation réussie fait
+     fabriquer une session par GoTrue (lien de connexion + échange) ; rejouable deux minutes, elle
+     l'était sans borne. Le compteur ne bouge que pour qui tient la clé du poste : personne d'autre ne
+     peut l'épuiser, donc aucun poste légitime ne se trouve bloqué par les échecs d'autrui. Une requête
+     à clé fausse, elle, ne coûte qu'une lecture par clé primaire et une empreinte — et n'écrit rien. */
+  update public.device_links set claims = claims + 1 where id = v.id and claims < 5;
+  if not found then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
   perform public.link_purge();
   update public.device_links set status = 'claimed', claimed_at = coalesce(claimed_at, now())
    where id = v.id and ((status = 'approved' and approved_at > now() - interval '5 minutes')
@@ -2423,7 +2454,9 @@ declare v public.device_links%rowtype;
 begin
   v := public.link_row_key(p_id, p_key);
   if v.id is null or v.status <> 'claimed' or p_session is null then return jsonb_build_object('ok', false); end if;
-  update public.device_links set auth_session = p_session where id = v.id and auth_session is null;
+  -- A693 : le poste vient d'être approuvé par un appareil connecté — sa fenêtre d'écriture s'ouvre avec lui.
+  update public.device_links set auth_session = p_session, unlocked_until = now() + public.temp_unlock_interval()
+   where id = v.id and auth_session is null;
   return jsonb_build_object('ok', found);
 exception when others then return jsonb_build_object('ok', false);
 end; $$;
@@ -2537,9 +2570,10 @@ begin
   if v_n >= 5 then return jsonb_build_object('ok', false, 'err', 'too_many'); end if;
   -- Aucun QR : le secret est une empreinte aléatoire que personne ne connaît (la colonne l'exige).
   insert into public.device_links(kind, secret_hash, key_hash, label, open_until, user_id, status,
-                                  ends_at, approved_at, claimed_at, auth_session)
+                                  ends_at, approved_at, claimed_at, auth_session, unlocked_until)
     values ('connect', encode(digest(gen_random_uuid()::text || clock_timestamp()::text, 'sha256'), 'hex'),
-            p_key_hash, v_label, now(), auth.uid(), 'claimed', p_ends_at, now(), now(), v_sid)
+            p_key_hash, v_label, now(), auth.uid(), 'claimed', p_ends_at, now(), now(), v_sid,
+            now() + public.temp_unlock_interval())   -- A693 : le code e-mail vient d'être saisi
     returning id into v_id;
   return jsonb_build_object('ok', true, 'id', v_id, 'ends_at', p_ends_at);
 exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
@@ -2602,10 +2636,14 @@ grant execute on function public.link_self(text,text,timestamptz)     to authent
 --   repl : 'tel' | 'non'                            (remplacer une bibliothèque à l'import)
 --   exp  : 'oui' | 'non'                            (exporter, télécharger)
 --   dur  : 12 | 24 | 28                             (durée maximale d'une connexion, en heures)
--- CE QUE LE SERVEUR GARANTIT, et ce qu'il ne peut pas : les INTERDITS (`non`) et la DURÉE sont opposables —
--- une session de poste ne peut pas écrire ce que la règle interdit, même par la console du navigateur. Les
--- CONFIRMATIONS (« confirmer à chaque fois », verrou après N minutes) restent du ressort de l'app : la
--- synchro pousse les modifications plus tard (hors ligne, en lot), le serveur ne sait pas dater le geste.
+-- CE QUE LE SERVEUR GARANTIT (étendu en v5.116.1, A692-A693) : les INTERDITS (`non`) et la DURÉE sont
+-- opposables — une session de poste ne peut pas écrire ce que la règle interdit, même par la console du
+-- navigateur. Les CONFIRMATIONS le sont aussi désormais, sous la forme que le serveur peut dater : une
+-- FENÊTRE D'ÉCRITURE par poste, ouverte par l'accord d'un appareil connecté (à la connexion, puis à chaque
+-- `unlock` approuvé), et hors de laquelle le poste n'écrit rien de ce que la règle soumet à confirmation.
+-- CE QU'IL NE PEUT PAS, et qui reste à l'app : savoir qu'un onglet a été ROUVERT (le verrou de réouverture),
+-- et rattacher un accord à UN geste précis (« à chaque fois » devient, ici, « dans les minutes qui suivent
+-- un accord »). Détail et limites : § 10ter-bis ci-dessous.
 alter table public.app_settings add column if not exists temp_rules jsonb not null
   default '{"edit":"v15","del":"tel","repl":"non","exp":"oui","dur":28}'::jsonb;
 
@@ -2700,25 +2738,167 @@ create policy protocols_temp_del on public.protocols as restrictive for delete t
 -- La SUPPRESSION d'un objet n'est refusée que si `edit` ET `del` sont interdits : le serveur ne sait pas
 -- distinguer le document retiré d'une aide que l'on modifie de celui qui part avec une aide supprimée,
 -- et chacun de ces deux gestes reste permis par sa propre règle. Bornées au bucket de l'application.
--- NON ÉTENDU, à dessein, à `category_sets` ni à `aid_followups` : la règle `edit` d'A654 nomme « une aide
--- ou un protocole » ; le document personnel de `category_sets` porte les préférences et les collections
--- du compte, qu'un poste réécrit légitimement (A647), et le suivi n'est pas verrouillé par l'app sur un
--- poste — le fermer ici ferait perdre en silence ce qu'elle laisse saisir. C'est une règle à DÉCIDER.
+-- (La règle « à DÉCIDER » notée ici jusqu'en v5.116 — catégories, notes, suivi — est tranchée : § 10ter-bis.)
 create or replace function public.temp_att_del_ok()
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select not public.link_is_poste()
       or public.temp_rules() ->> 'edit' <> 'non' or public.temp_rules() ->> 'del' <> 'non';
 $$;
 grant execute on function public.temp_att_del_ok() to authenticated;
+-- A693 : déposer ou remplacer un document exige aussi la FENÊTRE D'ÉCRITURE quand la règle demande une
+-- confirmation (`temp_att_write_ok`, § 10ter-bis, créée plus bas : les politiques se lient à l'exécution).
+-- Retirer un objet reste jugé sur les règles seules : un retrait refusé laisserait un fichier orphelin.
 drop policy if exists att_temp_ins on storage.objects;
-create policy att_temp_ins on storage.objects as restrictive for insert to authenticated
-  with check (bucket_id <> 'attachments' or public.temp_write_ok(null));
 drop policy if exists att_temp_upd on storage.objects;
-create policy att_temp_upd on storage.objects as restrictive for update to authenticated
-  using (true) with check (bucket_id <> 'attachments' or public.temp_write_ok(null));
 drop policy if exists att_temp_del on storage.objects;
 create policy att_temp_del on storage.objects as restrictive for delete to authenticated
   using (bucket_id <> 'attachments' or public.temp_att_del_ok());
+-- ---------- 10ter-bis. LE POSTE PARTAGÉ, SUITE (v5.116.1, A692-A693) -------------------------------
+-- A693 — LA CONFIRMATION, APPLIQUÉE PAR LE SERVEUR. Le verrou d'un poste rouvert et « confirmer sur un
+-- appareil connecté » n'existaient que dans l'app (un drapeau `sessionStorage`) : avec la console du
+-- navigateur, ou le jeton du poste en main, on écrivait sans téléphone tout ce que la règle ne faisait
+-- que soumettre à confirmation. Le serveur tient désormais une FENÊTRE D'ÉCRITURE par poste :
+--   · `unlocked_until` (créer, modifier) — ouverte à la connexion du poste et à chaque `unlock` approuvé,
+--     pour 15 min sous `v15`, 5 min sous `v5` et `tel` : les durées que l'app applique déjà. Elle se
+--     PROLONGE tant que le poste travaille (`link_touch`, appelée par l'app pendant qu'on s'en sert) et
+--     seulement tant qu'elle est encore ouverte : laissée sans geste, elle se referme d'elle-même, et
+--     seul un nouvel accord la rouvre. C'est l'équivalent serveur du « verrou après N minutes sans geste ».
+--   · `del_until` (supprimer) — 5 min après un accord, JAMAIS prolongée : un accord, une suppression.
+-- Hors fenêtre, l'écriture est refusée par une ERREUR NOMMÉE (`poste_locked`, P0001 → HTTP 400), pas par
+-- une politique (403) : l'app traite un 403 sur l'espace personnel comme « identifiant pris par un autre
+-- compte » et RENOMME l'élément pour réparer — un refus de verrou aurait renommé à chaque synchro.
+-- LIMITES DITES : (1) le serveur ne sait pas qu'un onglet a été rouvert — ce verrou-là reste à l'app ;
+-- (2) sous `tel`, « à chaque fois » vaut ici « dans les 5 minutes d'un accord, prolongées tant qu'on
+-- travaille » — le serveur ne rattache pas un accord à un geste ; (3) qui tient le poste PENDANT la
+-- fenêtre peut la prolonger : c'est exactement ce que permet déjà un onglet resté déverrouillé.
+-- JAMAIS CONCERNÉS : les SESSIONS (table `sessions` — sauvegarde en ligne d'une session en cours, A645, et
+-- sessions terminées) et le DÉPÔT par la clé du poste (`link_deposit`). Un compte rendu de soin ne se
+-- perd pas pour un verrou.
+create or replace function public.temp_unlock_interval()
+returns interval language sql stable security definer set search_path = public, pg_temp as $$
+  select case when public.temp_rules() ->> 'edit' = 'v15' then interval '15 minutes' else interval '5 minutes' end;
+$$;
+-- Le verdict pour la session appelante : 'ok', 'forbidden' (la règle l'interdit) ou 'locked' (la règle
+-- demande une confirmation et la fenêtre du poste est fermée). `p_del` : une suppression.
+create or replace function public.temp_need(p_del boolean)
+returns text language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare v_sid uuid := nullif(auth.jwt() ->> 'session_id', '')::uuid; v_rule text;
+begin
+  if v_sid is null or not public.link_is_poste() then return 'ok'; end if;
+  v_rule := public.temp_rules() ->> (case when p_del then 'del' else 'edit' end);
+  if v_rule = 'non' then return 'forbidden'; end if;
+  if v_rule = 'libre' then return 'ok'; end if;
+  if exists (select 1 from public.device_links d
+              where d.auth_session = v_sid and d.kind = 'connect' and d.status = 'claimed'
+                and (case when p_del then d.del_until else d.unlocked_until end) > now()) then
+    return 'ok';
+  end if;
+  return 'locked';
+end; $$;
+create or replace function public.temp_att_write_ok()
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin return public.temp_need(false) = 'ok'; end; $$;
+grant execute on function public.temp_att_write_ok() to authenticated;
+create policy att_temp_ins on storage.objects as restrictive for insert to authenticated
+  with check (bucket_id <> 'attachments' or public.temp_att_write_ok());
+create policy att_temp_upd on storage.objects as restrictive for update to authenticated
+  using (true) with check (bucket_id <> 'attachments' or public.temp_att_write_ok());
+
+-- LE POSTE LIT ET PROLONGE SA FENÊTRE (l'app). Aucune identité en paramètre : la session appelante seule.
+-- `p_keep` vrai — l'app l'envoie pendant qu'on se sert du poste — prolonge la fenêtre, et seulement si
+-- elle est ENCORE ouverte ; faux, l'appel ne fait que lire (une synchro automatique ne tient pas un poste
+-- ouvert). Rend l'état : l'app s'en sert pour RETENIR ce qui serait refusé, au lieu d'une erreur.
+create or replace function public.link_touch(p_keep boolean default true)
+returns jsonb language plpgsql volatile security definer set search_path = public, pg_temp as $$
+declare v_sid uuid := nullif(auth.jwt() ->> 'session_id', '')::uuid;
+        v_id uuid; v_until timestamptz; v_del timestamptz;
+        v_rule text := public.temp_rules() ->> 'edit'; v_rdel text := public.temp_rules() ->> 'del';
+begin
+  if auth.uid() is null or v_sid is null then return jsonb_build_object('ok', false, 'err', 'refused'); end if;
+  select d.id, d.unlocked_until, d.del_until into v_id, v_until, v_del from public.device_links d
+   where d.auth_session = v_sid and d.user_id = auth.uid() and d.kind = 'connect'
+     and d.status = 'claimed' and d.ends_at > now();
+  if v_id is null then return jsonb_build_object('ok', false, 'err', 'not_found'); end if;
+  if coalesce(p_keep, false) and v_rule in ('v5','v15','tel') and v_until > now() then
+    v_until := now() + public.temp_unlock_interval();
+    update public.device_links set unlocked_until = v_until where id = v_id;
+  end if;
+  return jsonb_build_object('ok', true, 'rule', v_rule,
+    'open', v_rule = 'libre' or (v_rule <> 'non' and coalesce(v_until > now(), false)),
+    'del_open', v_rdel <> 'non' and coalesce(v_del > now(), false),
+    'until', v_until, 'server_time', now());
+exception when others then return jsonb_build_object('ok', false, 'err', 'refused');
+end; $$;
+grant execute on function public.link_touch(boolean) to authenticated;
+
+-- AIDES ET PROTOCOLES : la fenêtre, et le contenu d'une suppression.
+-- A692 — UNE SUPPRESSION NE MODIFIE PAS. Sous « modifier : interdit » et « supprimer : permis », un poste
+-- changeait `data` dans le MÊME `UPDATE` qui posait `deleted_at` : la politique ne voit que la ligne
+-- nouvelle, donc ne juge que la suppression. Depuis un poste, une suppression (douce) garde désormais le
+-- contenu, la bibliothèque et le propriétaire d'AVANT — quelle que soit la règle.
+create or replace function public.temp_guard_doc()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_del boolean; v text;
+begin
+  if not public.link_is_poste() then
+    if tg_op = 'DELETE' then return old; end if;
+    return new;
+  end if;
+  if tg_op = 'DELETE' then v_del := true; else v_del := new.deleted_at is not null; end if;
+  v := public.temp_need(v_del);
+  if v = 'locked' then
+    raise exception 'poste_locked' using errcode = 'P0001', detail = case when v_del then 'del' else 'edit' end;
+  end if;
+  -- 'forbidden' : la politique restrictive `*_temp_*` le refuse déjà (403, inchangé depuis A654).
+  if tg_op = 'DELETE' then return old; end if;
+  if tg_op = 'UPDATE' and new.deleted_at is not null and old.deleted_at is null then
+    new.data := old.data; new.library_id := old.library_id; new.owner := old.owner;
+  end if;
+  return new;
+end; $$;
+drop trigger if exists cognitive_aids_temp_guard on public.cognitive_aids;
+create trigger cognitive_aids_temp_guard before insert or update or delete on public.cognitive_aids
+  for each row execute function public.temp_guard_doc();
+drop trigger if exists protocols_temp_guard on public.protocols;
+create trigger protocols_temp_guard before insert or update or delete on public.protocols
+  for each row execute function public.temp_guard_doc();
+
+-- A692 — CATÉGORIES PARTAGÉES, NOTES ET SUIVI SUIVENT LA RÈGLE « CRÉER, MODIFIER ». Sous « interdit », un
+-- poste réécrivait encore les catégories d'une bibliothèque, les notes personnelles et le suivi (noté
+-- « à décider » en A663). Décidé :
+--   · catégories d'une BIBLIOTHÈQUE, suivi (pour moi comme pour l'équipe), notes personnelles : même règle
+--     que les aides — interdit sous `non` (`poste_forbidden`), fenêtre exigée sous `v5`/`v15`/`tel`. La
+--     règle dit « cet appareil ne modifie pas le compte », pas « pas les aides » ;
+--   · le document PERSONNEL de `category_sets` RESTE OUVERT : l'app y écrit SEULE, sans geste (l'usage
+--     récent des aides, à chaque ouverture ; les préférences reçues, recopiées telles quelles — A647). Le
+--     fermer casserait la synchro d'un poste en silence. Les catégories personnelles, les épingles et les
+--     collections vivent dans ce même document : c'est l'app qui les garde sur un poste, pas le serveur.
+-- Le suivi supprimé (`deleted`) est une modification comme une autre : ce n'est pas la suppression
+-- irréversible d'une aide que vise la règle « supprimer ».
+create or replace function public.temp_guard_row()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare v text;
+begin
+  if public.link_is_poste() then
+    v := public.temp_need(false);
+    if v = 'forbidden' then raise exception 'poste_forbidden' using errcode = 'P0001', detail = 'edit'; end if;
+    if v = 'locked'    then raise exception 'poste_locked'    using errcode = 'P0001', detail = 'edit'; end if;
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end; $$;
+drop trigger if exists category_sets_temp_guard on public.category_sets;
+create trigger category_sets_temp_guard before insert or update on public.category_sets
+  for each row when (new.library_id is not null) execute function public.temp_guard_row();
+drop trigger if exists category_sets_temp_guard_del on public.category_sets;
+create trigger category_sets_temp_guard_del before delete on public.category_sets
+  for each row when (old.library_id is not null) execute function public.temp_guard_row();
+drop trigger if exists aid_followups_temp_guard on public.aid_followups;
+create trigger aid_followups_temp_guard before insert or update or delete on public.aid_followups
+  for each row execute function public.temp_guard_row();
+drop trigger if exists aid_notes_temp_guard on public.aid_notes;
+create trigger aid_notes_temp_guard before insert or update or delete on public.aid_notes
+  for each row execute function public.temp_guard_row();
 -- ============================================================================================
 --  A687 — QUOTAS PAR ESPACE, réglables par l'administrateur (v5.116)
 -- ============================================================================================
@@ -3023,6 +3203,11 @@ revoke execute on function public.share_val_ok(text,jsonb)      from public, ano
 -- A687 : aides internes des quotas (le déclencheur et la lecture brute) — aucun client.
 revoke execute on function public.quotas()                      from public, anon, authenticated;
 revoke execute on function public.quota_check()                 from public, anon, authenticated;
+-- A692-A693 : aides internes du poste partagé — appelées par des déclencheurs et des fonctions definer seulement.
+revoke execute on function public.temp_need(boolean)            from public, anon, authenticated;
+revoke execute on function public.temp_unlock_interval()        from public, anon, authenticated;
+revoke execute on function public.temp_guard_doc()              from public, anon, authenticated;
+revoke execute on function public.temp_guard_row()              from public, anon, authenticated;
 revoke execute on function public.session_is_poste()            from public, anon, authenticated;
 revoke execute on function public.admin_reads()                 from public, anon, authenticated;
 revoke execute on function public.forbid_passwords()            from public, anon, authenticated;   -- A648 : fonction de déclencheur

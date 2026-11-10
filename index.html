@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-BkGM40VswbYrjkecOa1o6MZIXQPIStofMgRzXVMT7Ag='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fvniAwL+EDIyv1NpIFc698XKVYJdxb0KxDc6EyJFT0M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10551,7 +10551,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.116.0';
+const APP_VERSION='5.116.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12591,7 +12591,8 @@ function suiviRowHtml(id){if(!_rowCtx.ctg)return '';const o=suiviOpenOf(id);if(!
 /* La feuille : une note ou une tâche, neuve (`x` absent) ou à modifier. La portée « équipe » est la bibliothèque
    de l'élément, offerte si l'on peut y écrire. */
 let _svEd=null;
-function suiviEdOpen(o){const ent=suiviEnt(o.ent);if(!ent)return;const x=o.x||null,k=x?x.k:o.k;
+function suiviEdOpen(o){if(linkGate(()=>suiviEdOpen(o),'Écrire une note ou une tâche de suivi'))return;   // A692 : sur un appareil temporaire, le suivi suit la règle « créer, modifier »
+  const ent=suiviEnt(o.ent);if(!ent)return;const x=o.x||null,k=x?x.k:o.k;
   const lib=ent.library&&canEditScope(ent.library)?ent.library:null;
   _svEd={ent:ent.id,k,id:x?x.id:uid('s'),lib:x?x.lib:(lib&&o.k==='note'?lib:null),libOk:lib||(x&&x.lib)||null,
     type:x&&x.t?x.t.type:'revoir',ref:x&&x.t?x.t.ref:'',refTxt:x&&x.t?x.t.refTxt:'',prio:x&&x.t?x.t.prio:2,due:x&&x.t?x.t.due:'',body:x?x.body:'',author:x?x.author:'',old:x};
@@ -12695,15 +12696,15 @@ bindModalDismiss(suiviModal,()=>suiviModal.classList.remove('on'));
 // UN écouteur délégué pour tout le suivi (bloc de lecture, « À faire », portes) : les vues se re-rendent, lui reste.
 document.addEventListener('click',async e=>{const t=e.target&&e.target.closest?e.target:null;if(!t)return;
   const nw=t.closest('[data-sunew]');if(nw){const b=nw.closest('[data-suent]');if(b)suiviEdOpen({ent:b.dataset.suent,k:nw.dataset.sunew});return;}
-  const dn=t.closest('[data-sudone]');if(dn&&!dn.disabled){const x=suivi.find(y=>y.id===dn.dataset.sudone);if(x&&suiviCanEdit(x)){suiviDone(x,!x.t.done);suiviRepaint();toast(x.t.done?'Rouverte.':'Fait'+(x.lib?' — pour toute l’équipe.':'.'),2500,true);}return;}
+  const dn=t.closest('[data-sudone]');if(dn&&!dn.disabled){const x=suivi.find(y=>y.id===dn.dataset.sudone);if(x&&suiviCanEdit(x))linkThen(()=>{suiviDone(x,!x.t.done);suiviRepaint();toast(x.t.done?'Rouverte.':'Fait'+(x.lib?' — pour toute l’équipe.':'.'),2500,true);},'Modifier le suivi');return;}   // A692
   const ed=t.closest('[data-suedit]');if(ed){const x=suivi.find(y=>y.id===ed.dataset.suedit);if(x&&suiviCanEdit(x))suiviEdOpen({ent:x.ent,x});return;}
   if(t.closest('[data-sudoor]')){e.preventDefault();suiviOpenView();return;}
   const pl=t.closest('[data-sublk]');if(pl){suiviBlkOpen(pl.dataset.sublk);return;}
   const by=t.closest('[data-suby]');if(by){_svv.by=by.dataset.suby;suiviRepaint();return;}
   const wh=t.closest('[data-suwho]');if(wh){_svv.who=wh.dataset.suwho;suiviRepaint();return;}
   const go=t.closest('[data-sugo]');if(go){const id=go.dataset.sugo;suiviModal.classList.remove('on');suiviBlkModal.classList.remove('on');if(fiches.some(x=>x.id===id))openRead(id);else openProtocolRead(id);return;}
-  const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;const n=suiviConvert(c);suiviRepaint();
-    toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);}});
+  const cv=t.closest('[data-suconv]');if(cv){const c=colls.find(x=>x.id===cv.dataset.suconv);if(!c)return;linkThen(()=>{const n=suiviConvert(c);suiviRepaint();   // A692
+    toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' depuis « '+c.name+' » — la collection reste.':'Ces éléments ont déjà leur tâche.',4500,true);},'Créer des tâches de suivi');}});
 const collById=id=>id===COLL_PIN?{id:COLL_PIN,name:'Accès direct',ids:pins}:(colls.find(c=>c.id===id)||null);
 const collHas=(cid,id)=>{const c=collById(cid);return !!c&&c.ids.indexOf(id)>=0;};
 // Filtre de l'accueil : `state.coll` vide = tout ; sinon les seuls éléments rangés dans la collection.
@@ -13454,6 +13455,37 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
 const V5_RENOMMAGES=[['localInfo','local'],['related','links'],['attachments','docs'],['complications','excursions'],
   ['references','sources'],['validation','validatedAt'],['libraryId','library']];
 const V4_POOL_MAX=5000,V4_BLOCK_ITEMS_MAX=500;   // A668
+/* A695 — LES CLÉS INCONNUES PASSENT, MAIS BORNÉES. `migrate` normalise les champs qu'il connaît et laissait
+   TOUT le reste traverser : stocké, puis renvoyé au serveur tel quel — un canal de charge sans plafond (jusqu'aux
+   20 Mo d'une ligne), sur une aide, un bloc, un protocole.
+   ⚠ PAS UNE LISTE BLANCHE, et c'est délibéré : un appareil pas encore à jour qui EFFACERAIT les champs d'une
+   version plus récente les ferait disparaître pour tous à sa prochaine écriture. Un champ inconnu survit donc,
+   s'il est petit : clé de forme sûre, valeur d'au plus 2 000 caractères une fois sérialisée, seize au plus par
+   objet. Au-delà, il est retiré.
+   Les champs « connus » ne s'écrivent pas à la main (la liste dériverait) : ce sont ceux que `migrate` POSE
+   lui-même sur une aide vierge et sur les deux aides d'exemple, relevés une fois, au premier appel. */
+const UNK_MAX_KEYS=16,UNK_MAX_CHARS=2000;
+let _connus=null,_connusEnCours=false;
+function clesConnues(){
+  if(_connus||_connusEnCours)return _connus;
+  _connusEnCours=true;
+  const K={f:Object.create(null),b:Object.create(null),p:Object.create(null)};
+  try{[blankFiche(),seed(),seed2()].forEach(x=>{const m=migrate(x);Object.keys(m).forEach(k=>{K.f[k]=1;});
+      (m.blocks||[]).forEach(b=>Object.keys(b).forEach(k=>{K.b[k]=1;}));});
+    Object.keys(migrateProtocol(blankProtocol())).forEach(k=>{K.p[k]=1;});
+    // Champs facultatifs que ces trois exemples ne portent pas tous : nommés ici pour ne jamais être bornés.
+    ['items','nextLbl','options','question','next','timer','milestones','image','imageW','imageH','phase','steps'].forEach(k=>{K.b[k]=1;});
+    ['local','sources','excursions','timers','counters','items','blocks','images','docs','links','body'].forEach(k=>{K.f[k]=1;K.p[k]=1;});
+    _connus=K;
+  }catch(e){_connus=null;}
+  _connusEnCours=false;return _connus;}
+function borneInconnus(o,nature){
+  const K=clesConnues();if(!K||!o||typeof o!=='object')return o;
+  const connu=K[nature];let n=0;
+  for(const k of Object.keys(o)){if(connu[k])continue;
+    let taille=0;try{const j=JSON.stringify(o[k]);taille=j===undefined?0:j.length;}catch(e){taille=Infinity;}
+    if(!SAFE_ID.test(k)||badKey(k)||taille>UNK_MAX_CHARS||++n>UNK_MAX_KEYS)delete o[k];}
+  return o;}
 function migrate(f){if(!f||typeof f!=='object')f={};
   V5_RENOMMAGES.forEach(([a,b])=>{if(f[a]!==undefined&&f[b]===undefined)f[b]=f[a];delete f[a];});
   /* Le BLOC : `type` 'steps'/'decision' devient `kind` 'do'/'decision'. Et l'aide se DÉCLARE —
@@ -13512,7 +13544,13 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   const mapId=x=>{const v=idMap[String(x==null?'':x)];return v===undefined?null:v;};
   f.blocks=f.blocks.map(b=>{b.title=sstr(b.title,300);b.phase=sstr(b.phase,40);b.image=safeImg(b.image);b.imageW=_dim(b.imageW);b.imageH=_dim(b.imageH);
     {const t=safeCatRef(b.timer);if(t)b.timer=t;else delete b.timer;}   // A377 : résolu après les minuteurs
-    if(b.kind==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;}
+    if(b.kind==='decision'){b.question=sstr(b.question,1000);b.options=(Array.isArray(b.options)?b.options:[]).slice(0,40).map(o=>({label:sstr(o&&o.label,300),target:mapId(o&&o.target)}));delete b.steps;delete b.next;
+      /* A695 : un bloc de décision ne montre pas d'étapes, mais peut en GARDER (changer de nature dans
+         l'éditeur, puis revenir). Elles n'étaient pas assainies : repassé en « à faire », le bloc rendait
+         vivants des objets bruts. Seules des RÉFÉRENCES au pool survivent. */
+      if('items' in b){const ok=Object.create(null);_pool.forEach(it=>{ok[it.id]=1;});
+        b.items=(Array.isArray(b.items)?b.items:[]).slice(0,V4_BLOCK_ITEMS_MAX).filter(x=>typeof x==='string'&&ok[x]);}
+      if('nextLbl' in b)b.nextLbl=sstr(b.nextLbl,120);}
     else{b.kind=b.kind==='review'?'review':'do';   // A396 : une revue est un bloc hors tronc, cochable à tout moment
       /* L'ITEM EST LA SOURCE (lot T6) : le bloc ne porte plus que des IDENTIFIANTS, les objets
          vivent dans `_pool` (monté juste après — il doit exister AVANT `bItems`). ÉTAPE D : plus
@@ -13540,7 +13578,10 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   /* LE POOL EST MONTÉ ICI, une fois les blocs normalisés — seul point où l'aide entière est
      cohérente. `poolOwn` inscrit chaque bloc dans la WeakMap : sans elle, `bItems` devrait
      balayer les fiches pour résoudre un id (le repli existe, mais il n'est pas un chemin). */
-  f.items=_pool;poolOwn(f);
+  /* A695 : UN id, UN item. Blocs, minuteurs et compteurs étaient dédoublonnés ; le pool, non — deux items
+     de même id y vivaient, et `bItems` rendait le dernier. Même règle ici, écrite : le DERNIER gagne. */
+  {const vu=Object.create(null),uniq=[];for(let i=_pool.length-1;i>=0;i--){const it=_pool[i];if(!it||vu[it.id])continue;vu[it.id]=1;uniq.unshift(it);}
+   f.items=uniq;}poolOwn(f);
   // IDS UNIQUES, comme pour les blocs ci-dessus (v4.42.0). `Runtime.timers` et `Runtime.counters`
   // sont des objets INDEXÉS PAR ID : deux entrées de même id et la seconde ÉCRASE la première —
   // une fiche déclarant trois minuteurs n'en arme qu'UN, le dernier, sans le moindre signal ; et
@@ -13600,6 +13641,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   //   code = référence courte (mono, recherchée) ; related = ids liés « Voir aussi » (fiches
   //   OU protocoles depuis v4.2.0 — un ancien client ignore les ids qu'il ne résout pas) ;
   //   timerId d'un compteur : le « ＋ » RELANCE ce minuteur (référence jamais régénérée).
+  borneInconnus(f,'f');(f.blocks||[]).forEach(b=>borneInconnus(b,'b'));
   return f;}
 // Catégories importées/chargées : nom coercé, couleur validée, id restreint (les ids sûrs sont
 // conservés -> les fiches qui les référencent restent associées).
@@ -13625,6 +13667,7 @@ function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
   // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
   p.sources=sarr(p.sources,500);   // traçabilité (v4.2.2) — même section que les fiches
+  borneInconnus(p,'p');
   return p;}
 /* LES DEUX FICHES D'EXEMPLE SONT LE SEUL MATÉRIEL PÉDAGOGIQUE DU PRODUIT (lot T13, constat 3 de
    l'audit J0), et elles n'exerçaient qu'un tiers de ses mécanismes : zéro repère posologique, zéro
@@ -14423,6 +14466,8 @@ async function load(){
      store 'attidx' (quelques dizaines de Ko). Tant qu'il n'est pas là, la recherche se comporte
      exactement comme avant, sans groupe « documents ». */
   ixLoadAll();
+  // A690 : la réparation des documents partagés entre deux espaces — hors du chemin de démarrage, jamais en soin.
+  setTimeout(()=>{attRepairShared().catch(()=>{});},4000);
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
@@ -14541,6 +14586,7 @@ const saveErrMsg=e=>isQuotaErr(e)?'⚠ Stockage saturé. Exportez vos données p
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
+  try{await attClaim(f);}catch(e){}   // A689 : ses documents suivent l'élément dans SON espace (jamais bloquant)
   await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast(saveErrMsg(e),9000);return false;}}
 // Enregistre la note personnelle d'une fiche (débouncé par l'appelant). t vide = effacement :
 // l'entrée est conservée (t:'') pour propager l'effacement aux autres appareils (last-write-wins).
@@ -14574,6 +14620,7 @@ async function softDelete(f){if(!f)return;
 // synchronisation des protocoles.)
 async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
+  try{await attClaim(p);}catch(e){}   // A689, comme `persist`
   await Data.putProtocol(p);updateStorageInfo();Sync.schedule();return true;}
   catch(e){toast(saveErrMsg(e),9000);return false;}}
 async function softDeleteProtocol(p){if(!p)return;
@@ -16823,7 +16870,7 @@ function openCollMenu(trigger){const c=collById(state.coll);if(!c||c.id===COLL_P
       if(v==='top'){if(c.top)delete c.top;else c.top=true;collsSave();render();toast(c.top?'« '+c.name+' » reste en tête de l’accueil.':'« '+c.name+' » suit l’ordre des plus récentes.');}
       else if(v==='ren'){const name=await collAsk('Renommer',c.name);if(name){c.name=sstr(name,60).trim()||c.name;colls.sort(collCmp);collsSave();render();}/* A592 : renommer re-range */}
       else if(v==='clean'){const ok=new Set(collItems(c).map(x=>x.id));c.ids=c.ids.filter(id=>ok.has(id));collsSave();render();}
-      else if(v==='conv'){const n=suiviConvert(c);toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' — retrouvez-les dans « À faire ».':'Ces éléments ont déjà leur tâche.',4500,true);}
+      else if(v==='conv')linkThen(()=>{const n=suiviConvert(c);toast(n?nb(n,'tâche')+' créée'+(n>1?'s':'')+' — retrouvez-les dans « À faire ».':'Ces éléments ont déjà leur tâche.',4500,true);},'Créer des tâches de suivi');   // A692
       else if(v==='del'&&await confirmDlg('La collection « '+c.name+' » disparaît ; ses '+nb(collItems(c).length,'élément')+' restent dans leurs bibliothèques.',{title:'Supprimer la collection ?',yes:'Supprimer',danger:true})){
         colls=colls.filter(x=>x!==c);collsSave();state.coll=null;render();toast('Collection supprimée — aucune aide n’a été touchée.');}}});}
 /* Au téléphone : une RANGÉE de collections sous l'Accès direct (même dessin que les puces de catégorie), et
@@ -18593,6 +18640,12 @@ let _ixQ=[],_ixBusy=false;
    indexer » — un état visible, avec un geste pour en sortir. */
 function ixAdopt(rec){
   if(!rec||!rec.id)return false;
+  /* A697 : un témoin d'essai (posé AVANT l'extraction, effacé par elle) qui a survécu, c'est une extraction
+     qui n'a pas fini — onglet tué, mémoire épuisée. Trois fois de suite : le document est déclaré illisible,
+     de façon DURABLE (« Réindexer » le rouvre). Sinon il reste « à indexer », et l'on retient son compte. */
+  if(rec.none==='essai'){const n=rec.n|0;
+    if(n>=IX_TRY_MAX){attIx.set(rec.id,{none:'illisible',pages:0});return true;}
+    _ixCrash.set(rec.id,n);return false;}
   if(rec.none){attIx.set(rec.id,{none:rec.none,pages:rec.pages|0});return true;}
   const h=ixOpen(rec);
   if(!h){attIx.delete(rec.id);try{IDB.delIx(rec.id);}catch(e){}return false;}
@@ -18619,12 +18672,13 @@ async function ixLoadAll(){
 async function ixReset(id){
   attIx.delete(id);
   _ixTry.delete(id);        // ICI, jamais chez l'appelant : un second appelant l'oublierait
+  _ixCrash.delete(id);
   try{await IDB.delIx(id);}catch(e){}
   ixQueue(id);}
 async function ixResetAll(){
   let ids=[];try{ids=(await IDB.getIxAll()).map(r=>r.id);}catch(e){}
   for(const id of ids){attIx.delete(id);try{await IDB.delIx(id);}catch(e){}}
-  attIx.clear();_ixTry.clear();
+  attIx.clear();_ixTry.clear();_ixCrash.clear();
   for(const id of await ixPending())ixQueue(id);
   refreshAttIdx();}
 /* EXTRACTION — une passe par page, on ne garde que les MOTS ; le texte complet n'est jamais
@@ -18647,11 +18701,16 @@ async function ixExtract(id){
     try{await IDB.putIx(bad);}catch(e){}
     return bad;}
   try{
-    const pages=[];
-    for(let i=1;i<=doc.numPages;i++){
+    /* A697 — DEUX PLAFONDS, pour qu'un document ne puisse pas épuiser la mémoire : 5 000 pages lues (un PDF
+       de 15 Mo n'en porte pas davantage sans être fabriqué pour cela — au-delà, les pages suivantes ne sont
+       pas cherchables), et deux millions de mots retenus. Les mots d'une page sont dédoublonnés AVANT d'être
+       gardés : « pic mémoire = une page » n'était vrai que du texte, pas de la liste. */
+    const pages=[];let total=0;
+    for(let i=1;i<=Math.min(doc.numPages,IX_PAGES_MAX);i++){
       const pg=await doc.getPage(i);
       let tc=null;try{tc=await pg.getTextContent();}catch(e){}
-      pages.push(tc?ixTokens(tc.items.map(x=>x.str).join(' ')):[]);
+      const mots=(tc&&total<IX_TOKENS_MAX)?[...new Set(ixTokens(tc.items.map(x=>x.str).join(' ')))]:[];
+      total+=mots.length;pages.push(mots);
       try{pg.cleanup();}catch(e){}}
     const out=pages.some(a=>a.length)
       ?Object.assign({id},ixBuild(pages))
@@ -18669,8 +18728,11 @@ async function ixExtract(id){
    persisté : un rechargement, ou un « Réindexer » explicite, redonne trois essais. */
 const _ixTry=new Map();
 const IX_TRY_MAX=3;
+const _ixCrash=new Map();   // A697 : extractions interrompues, relues du disque (id → nombre)
+let _ixEnCours=null;            // A697 : le document en cours d'extraction
+const IX_PAGES_MAX=5000,IX_TOKENS_MAX=2000000;
 function ixQueue(id){
-  if(!supportsAttachments()||!id||attIx.has(id)||_ixQ.indexOf(id)>=0)return;
+  if(!supportsAttachments()||!id||attIx.has(id)||_ixQ.indexOf(id)>=0||id===_ixEnCours)return;   // A697 : ni celui qu'on extrait EN CE MOMENT (un second `attPut` le remettait en file, et le document était extrait deux fois)
   if((_ixTry.get(id)|0)>=IX_TRY_MAX)return;
   _ixQ.push(id);ixRun();}
 async function ixRun(){
@@ -18678,12 +18740,21 @@ async function ixRun(){
   try{
     while(_ixQ.length){
       const id=_ixQ.shift();
+      if(attIx.has(id))continue;   // A697 : indexé entre-temps — le témoin d'essai n'écrase jamais un index fait
+      _ixEnCours=id;
       _ixTry.set(id,(_ixTry.get(id)|0)+1);
       await new Promise(r=>_idle(r));
+      /* A697 : JAMAIS pendant un soin (règle 11) — l'indexation attend la fin de la session à l'écran. */
+      while(document.body.classList.contains('crisis-live'))await new Promise(r=>setTimeout(r,5000));
+      const n=(_ixCrash.get(id)|0)+1;_ixCrash.set(id,n);
+      try{await IDB.putIx({id,v:IX_V,pages:0,terms:0,none:'essai',n,at:Date.now()});}catch(e){}
       let r=null;try{r=await ixExtract(id);}catch(e){r=null;}
+      // Fini (réussi ou non) : le témoin part. Un résultat l'a déjà remplacé ; un échec transitoire l'efface.
+      _ixCrash.delete(id);if(!r)try{await IDB.delIx(id);}catch(e){}
       if(r)ixAdopt(r);
+      _ixEnCours=null;
       refreshAttIdx();}
-  }finally{_ixBusy=false;}}
+  }finally{_ixBusy=false;_ixEnCours=null;}}
 /* Documents joints par une entité VIVANTE, et qui les porte — source unique de `ixPending` et de
    `docHits`, qui recopiaient la même boucle. `visible` ajoute la règle des brouillons : un
    brouillon caché ne doit pas révéler l'existence de son annexe dans les résultats. */
@@ -20888,7 +20959,8 @@ function bindNoteBlock(id,rerender){
     // zone de saisie est pris sans défilement (preventScroll) pour la même raison.
     const y=window.scrollY;
     if(state.noteEdit){const ta=document.getElementById('noteTa');if(ta)await saveNote(id,ta.value);state.noteEdit=false;rerender();window.scrollTo(0,y);}
-    else{state.noteEdit=true;rerender();window.scrollTo(0,y);const ta=document.getElementById('noteTa');if(ta){try{ta.focus({preventScroll:true});}catch(e){ta.focus();}ta.setSelectionRange(ta.value.length,ta.value.length);}}};
+    else{if(linkGate(()=>{const b=document.getElementById('noteEditBtn');if(b)b.click();},'Écrire une note personnelle'))return;   // A692
+      state.noteEdit=true;rerender();window.scrollTo(0,y);const ta=document.getElementById('noteTa');if(ta){try{ta.focus({preventScroll:true});}catch(e){ta.focus();}ta.setSelectionRange(ta.value.length,ta.value.length);}}};
   const ta=document.getElementById('noteTa');
   if(ta){let nt=null;
     const save=async()=>{nt=null;await saveNote(id,ta.value);const m=document.getElementById('noteMeta');if(m)m.textContent=(notes[id]&&notes[id].t)?'Enregistrée à l’instant':'';};
@@ -30778,6 +30850,9 @@ const catCount=(id,scope)=>catItems(id,scope).length;
    fermeture : le contexte reprend la main. */
 function openCatMgr(lib){catDelId=null;catPickKey=null;catPickOrig=null;catHueOpen=null;_catHost='catMgrBody';
   _catScopeForce=(lib===undefined)?undefined:(lib||null);
+  /* A692 : les catégories d'une BIBLIOTHÈQUE suivent la règle « créer, modifier » d'un appareil temporaire (le serveur
+     les refuse hors accord). Les catégories personnelles vivent dans le document du compte, qui reste ouvert. */
+  if(linkShared()&&catMgrScopes().some(x=>x)&&linkGate(()=>openCatMgr(lib),'Modifier les catégories d’une bibliothèque')){_catScopeForce=undefined;return;}
   catModal.classList.add('on');renderCatMgr();}
 function closeCatMgr(){catModal.classList.remove('on');_catScopeForce=undefined;
   // L'atelier d'import est une fenêtre OUVERTE DERRIÈRE celle-ci : elle se repeint sur place
@@ -31054,6 +31129,145 @@ function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();
 // %PDF- et sous le plafond. Référence gardée si le binaire est là — ou si le fichier vient du
 // même espace (le document peut suivre par la synchronisation) ; sinon retirée, comme avant :
 // jamais de bouton « Document indisponible ».
+/* ═══ A689 — UN DOCUMENT APPARTIENT À UN SEUL ESPACE ══════════════════════════════════════════════════════════
+   Un espace = « Perso » (null) ou une bibliothèque. L'identité d'un document était GLOBALE : à la synchro, le
+   chemin distant d'un PDF se déduisait de « la dernière entité vivante qui le cite ». Deux conséquences :
+   · « Dupliquer dans Perso » copiait l'aide avec les MÊMES ids de documents — l'original et la copie citaient un
+     fichier qui ne peut vivre qu'à un endroit ; selon l'ordre de parcours, l'un des deux le perdait ;
+   · une ligne de bibliothèque écrite par QUELQU'UN D'AUTRE, citant l'id d'un de mes PDF personnels, faisait
+     téléverser ce fichier dans la bibliothèque par MON appareil (audit de sécurité, lot v5.115.1).
+   La règle, en trois temps :
+   1. l'enregistrement local du binaire PORTE son espace (`scope` : '' = Perso, sinon l'id de la bibliothèque ;
+      absent sur un enregistrement ancien → déduit de `remotePath`) ;
+   2. seul un GESTE LOCAL le change — `attClaim`, appelé par `persist`/`persistProtocol` : l'élément que
+      J'enregistre emporte ses documents dans son espace (déplacement), ou en reçoit un exemplaire s'ils restent
+      cités là d'où il part (copie) ;
+   3. la synchro ne déduit JAMAIS un téléversement d'une ligne tirée : `attPlan` ne téléverse que vers l'espace
+      de l'enregistrement ; cité seulement ailleurs, un binaire non modifié est RÉÉTIQUETÉ sans rien envoyer
+      (celui qui a déplacé l'élément a déjà téléversé).
+   Partager un document entre éléments du MÊME espace reste voulu (`attachablePdfs`). */
+// Espace désigné par un chemin distant — PURE (testée) : null = mon Perso, id = bibliothèque, undefined = ni l'un ni l'autre.
+function attPathSpace(path,me){const m=/^([ul])\/([A-Za-z0-9_-]{1,64})\/[A-Za-z0-9_-]{1,64}\.pdf$/.exec(String(path||''));
+  if(!m)return undefined;return m[1]==='u'?(m[2]===me?null:undefined):m[2];}
+// Espace d'un enregistrement de binaire — PURE (testée) : `scope` d'abord, sinon le chemin distant ; undefined = inconnu.
+function attRecSpace(rec,me){if(!rec)return undefined;
+  if(typeof rec.scope==='string')return rec.scope===''?null:((SAFE_ID.test(rec.scope)&&!badKey(rec.scope))?rec.scope:undefined);
+  return attPathSpace(rec.remotePath,me);}
+/* Les espaces qui citent un document — PURE (testée). `refs` : [{lib,del,edit}] (une entrée par élément citant).
+   Les vivants priment sur les tombes (comme avant). Ordre DÉTERMINISTE : Perso d'abord, puis les bibliothèques
+   par id — jamais « le dernier parcouru ». */
+function attRefSpaces(refs){const liv=(refs||[]).filter(r=>r&&!r.del),use=liv.length?liv:(refs||[]).filter(Boolean);
+  const set=new Set(use.map(r=>r.lib||null)),out=[];if(set.has(null))out.push(null);
+  [...set].filter(x=>x!==null).sort().forEach(x=>out.push(x));return {use,spaces:out};}
+/* QUE FAIRE D'UN BINAIRE À LA SYNCHRO — PURE (testée). Rend {act,space,path,del} :
+   'purge'   plus personne ne le cite ;
+   'none'    rien à faire (ou rien que j'aie le droit de faire) ;
+   'relabel' cité seulement dans un AUTRE espace, binaire non modifié : on note le nouvel espace, on n'envoie rien ;
+   'upload'  vers l'espace DE L'ENREGISTREMENT, si un élément vivant de cet espace l'y cite et que je peux l'éditer ;
+             `del` = l'ancien chemin à retirer APRÈS le téléversement (déplacement fait par moi). */
+function attPlan(rec,refs,me){const id=rec&&rec.id,R=attRefSpaces(refs);
+  if(!R.use.length)return {act:'purge'};
+  let cur=attRecSpace(rec,me);
+  if(cur===undefined)cur=R.spaces[0];                       // enregistrement ancien, jamais envoyé : adopté par qui le cite (Perso d'abord)
+  const chemin=sp=>attStoragePath(sp,me,id);
+  if(R.spaces.some(x=>x===cur)){const path=chemin(cur);
+    if(!rec.dirty&&rec.remotePath===path)return {act:'none',space:cur,path};
+    if(!R.use.some(r=>(r.lib||null)===cur&&r.edit))return {act:'none',space:cur,path};   // lecteur : jamais de téléversement
+    return {act:'upload',space:cur,path,del:(rec.remotePath&&rec.remotePath!==path)?rec.remotePath:null};}
+  if(rec.dirty)return {act:'none',space:cur,path:chemin(cur)};   // modifié ici, cité seulement ailleurs : il ne part nulle part
+  return {act:'relabel',space:R.spaces[0],path:chemin(R.spaces[0])};}
+// Les chemins où chercher un binaire ABSENT — PURE (testée) : chaque espace citant, bibliothèques d'abord (un Perso
+// qui cite l'id d'un document de bibliothèque n'a rien sous `u/…`), sans doublon.
+function attFetchPaths(id,refs,me){const R=attRefSpaces(refs);
+  return R.spaces.filter(x=>x!==null).concat(R.spaces.filter(x=>x===null)).map(sp=>attStoragePath(sp,me,id));}
+// Un ancien chemin ne se supprime que chez moi, ou dans une bibliothèque que je peux éditer — PURE (testée).
+function attMayDelete(path,me,canEdit){const sp=attPathSpace(path,me);return sp===null||(typeof sp==='string'&&!!canEdit(sp));}
+// Les liens `](att:ID)` / `](att:ID#p3)` du contenu suivent un changement d'id — PURE (testée ; extraite d'`importAtts`, A669).
+function attRelink(body,chg){let b=String(body==null?'':body);
+  (chg||[]).forEach(([o,n])=>{b=b.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#');});return b;}
+const attMe=()=>((Auth.user()||{}).id||'');
+const attCites=(x,id)=>(x.docs||[]).some(a=>a&&a.id===id);
+/* L'élément reçoit SON exemplaire de chaque document (copie d'un espace vers un autre). Binaire absent de l'appareil :
+   on tente de le prendre là où il vit (`from`), sinon la référence est RETIRÉE — jamais un id partagé entre deux
+   espaces, jamais un bouton « Document indisponible ». Rend le nombre de documents non copiés. */
+async function attCopyDocs(c,from){
+  if(!(c.docs||[]).length)return 0;
+  if(!supportsAttachments()){const n=c.docs.length;c.docs=[];return n;}
+  const me=attMe(),out=[],chg=[];let perdus=0;
+  for(const a of c.docs){
+    let rec=null,buf=null;try{rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}
+    if(!buf&&Auth.signedIn()&&Sync.online()){
+      try{await attFetchOne(a.id,attStoragePath(from||null,me,a.id));rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}}
+    if(!buf){perdus++;continue;}
+    const id=uid('a');
+    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:c.library||''});}
+    catch(e){perdus++;continue;}
+    out.push(Object.assign({},a,{id:id,size:buf.byteLength}));chg.push([a.id,id]);}
+  c.docs=out;if(typeof c.body==='string'&&chg.length)c.body=attRelink(c.body,chg);
+  return perdus;}
+/* LE GESTE LOCAL (A689) — appelé par `persist` et `persistProtocol`, donc par tout enregistrement fait ICI
+   (publier, déplacer une sélection, convertir en collection, dupliquer, réparer). Pour chaque document de l'élément :
+   · espace inconnu (binaire tout juste ajouté) → il prend celui de l'élément ;
+   · même espace → rien ;
+   · autre espace, et plus personne ne le cite là-bas → DÉPLACEMENT : le binaire change d'espace, la synchro le
+     téléverse au nouveau chemin puis retire l'ancien ;
+   · autre espace, et un élément vivant le cite encore là-bas → COPIE : cet élément reçoit son exemplaire.
+   Binaire absent de l'appareil : rien ne bouge ici (la réparation A690 reprendra quand il sera là). */
+async function attClaim(ent){
+  if(!ent||ent.deletedAt||!(ent.docs||[]).length||!supportsAttachments())return;
+  const me=attMe(),sp=ent.library||null,chg=[];
+  for(const a of ent.docs){if(!a||!a.id)continue;
+    let rec=null;try{rec=await IDB.getAtt(a.id);}catch(e){}
+    if(!rec)continue;
+    const cur=attRecSpace(rec,me);
+    if(cur===sp)continue;
+    if(cur===undefined){rec.scope=sp||'';try{await attPut(rec);}catch(e){}continue;}
+    const reste=fiches.concat(protocols).some(x=>x&&x.id!==ent.id&&!x.deletedAt&&(x.library||null)===cur&&attCites(x,a.id));
+    if(!reste){rec.scope=sp||'';rec.dirty=1;try{await attPut(rec);}catch(e){}continue;}
+    let buf=null;try{buf=await attBuf(rec);}catch(e){}
+    if(!buf)continue;
+    const id=uid('a');
+    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:sp||''});}
+    catch(e){continue;}
+    chg.push([a.id,id]);a.id=id;a.size=buf.byteLength;}
+  if(chg.length&&typeof ent.body==='string')ent.body=attRelink(ent.body,chg);}
+/* ═══ A690 — RÉPARER L'EXISTANT, UNE FOIS PAR ESPACE, SANS RIEN PERDRE ═════════════════════════════════════════
+   Les duplications d'avant A689 ont laissé des documents cités à la fois par un élément de Perso et par un élément
+   de bibliothèque. Le plan (PUR, testé) : pour chaque tel document, l'élément PERSO reçoit son exemplaire.
+   ⚠ SEUL UN ÉLÉMENT PERSO EST RÉ-IDENTIFIÉ, jamais un élément de bibliothèque : copier d'office un binaire dans
+   une bibliothèque, c'est exactement la fuite qu'A689 ferme (la ligne peut avoir été écrite par un autre). Et un
+   binaire dont le foyer est déjà MON Perso ne se copie pas : il y reste, la citation de la bibliothèque ne le
+   déplace plus. Ordre : copier le binaire → réécrire les références → enregistrer. Aucune suppression distante.
+   Binaire absent de l'appareil : on passe, et le drapeau n'est PAS posé — on réessaiera au lancement suivant. */
+function attSplitPlan(ents){const libs=Object.create(null),out=[];
+  (ents||[]).forEach(x=>{if(!x||x.deletedAt||!x.library)return;(x.docs||[]).forEach(a=>{if(a&&a.id&&!badKey(a.id)&&!libs[a.id])libs[a.id]=x.library;});});
+  (ents||[]).forEach(x=>{if(!x||x.deletedAt||x.library)return;(x.docs||[]).forEach(a=>{if(a&&a.id&&!badKey(a.id)&&libs[a.id])out.push({ent:x.id,doc:a.id,lib:libs[a.id]});});});
+  return out;}
+const ATT_SPLIT_KEY='ac-att-split';
+async function attRepairShared(){
+  if(!supportsAttachments()||linkShared()||document.body.classList.contains('crisis-live'))return false;
+  try{if(localStorage.getItem(spaceKey(ATT_SPLIT_KEY)))return true;}catch(e){return false;}
+  const me=attMe(),plan=attSplitPlan(fiches.concat(protocols));let reste=false;
+  const parEnt=Object.create(null);plan.forEach(p=>{(parEnt[p.ent]=parEnt[p.ent]||[]).push(p);});
+  for(const eid of Object.keys(parEnt)){
+    const isP=protocols.some(x=>x.id===eid),ent=(isP?protocols:fiches).find(x=>x.id===eid);if(!ent)continue;
+    const chg=[];
+    for(const p of parEnt[eid]){
+      let rec=null,buf=null;try{rec=await IDB.getAtt(p.doc);buf=rec?await attBuf(rec):null;}catch(e){}
+      if(!rec||!buf){reste=true;continue;}                         // pas encore sur l'appareil : plus tard
+      if(attRecSpace(rec,me)===null)continue;                      // foyer = mon Perso : il y reste
+      const id=uid('a');
+      try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:''});}
+      catch(e){reste=true;continue;}
+      if(typeof rec.scope!=='string'){rec.scope=p.lib;try{await attPut(rec);}catch(e){}}   // l'original reste à la bibliothèque
+      chg.push([p.doc,id]);}
+    if(!chg.length)continue;
+    const m=new Map(chg);
+    ent.docs=(ent.docs||[]).map(a=>(a&&m.has(a.id))?Object.assign({},a,{id:m.get(a.id)}):a);
+    if(typeof ent.body==='string')ent.body=attRelink(ent.body,chg);
+    if(!(isP?await persistProtocol(ent):await persist(ent)))reste=true;}
+  if(!reste)try{localStorage.setItem(spaceKey(ATT_SPLIT_KEY),'1');}catch(e){}
+  return !reste;}
 /* A669 — UN FICHIER VENU D'AILLEURS NE CHOISIT PAS L'IDENTIFIANT DE SES DOCUMENTS. Les ids d'aide
    et de protocole étaient régénérés hors du même espace, ceux des documents JAMAIS : la garantie
    ci-dessus ne testait que « le binaire est-il sur CET appareil ». Sur un appareil où il n'était pas
@@ -31078,7 +31292,7 @@ async function importAtts(d,zipAtts,sameSpace,remap){
       remap.set(old,n);
       if(n){kept.push(Object.assign({},a,{id:n.id,size:n.size}));chg.push([old,n.id]);}}
     d.docs=kept;
-    if(typeof d.body==='string'&&chg.length)chg.forEach(([o,n])=>{d.body=d.body.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#');});
+    if(typeof d.body==='string'&&chg.length)d.body=attRelink(d.body,chg);
     return;}
   const kept=[];
   for(const a of d.docs){
@@ -32074,6 +32288,47 @@ let _linkGestAt=Date.now();
 ['pointerdown','keydown'].forEach(t=>document.addEventListener(t,()=>{const now=Date.now();
   if(now-_linkGestAt>linkRelockMs()&&linkShared()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}
   _linkGestAt=now;},true));
+/* v5.116.1 (A693) — LA FENÊTRE D'ÉCRITURE DU POSTE, TENUE PAR LE SERVEUR. Le verrou ci-dessus et « confirmer sur un
+   appareil connecté » n'existaient que dans l'app ; le serveur refuse désormais, hors d'une fenêtre ouverte par l'accord
+   d'un appareil connecté, ce que la règle soumet à confirmation (schema.sql § 10ter-bis). L'app fait trois choses :
+   · elle PROLONGE la fenêtre pendant qu'on se sert du poste (`link_touch`, au plus toutes les 30 s) — sans geste depuis
+     le délai de la règle, elle cesse, et la fenêtre se referme seule côté serveur comme le verrou ici ;
+   · avant d'envoyer, elle LIT l'état (`linkHold`) et RETIENT ce qui serait refusé (`linkSkip`) : rien ne part, rien ne
+     se perd, aucune erreur — et l'écran dit quoi faire (la bande de l'accueil) ;
+   · sous un verrou (v5, v15), une fenêtre trouvée fermée REVERROUILLE l'onglet : le serveur et l'écran disent la même chose.
+   Serveur antérieur (schéma pas rejoué) : `link_touch` n'existe pas, l'état reste inconnu, rien ne change. */
+let _linkSrv=null,_linkTouchAt=0,_linkHoldE=false,_linkHoldD=false,_linkHeldSeen=false;
+const linkWinMs=()=>linkRules().edit==='v15'?LINK_RELOCK_MS:5*60000;
+// PUR (testé) : une erreur du serveur dit-elle « poste verrouillé » ou « interdit sur un poste » ?
+function linkErrInfo(message){const m=String(message||'');return /poste_locked/.test(m)?'locked':/poste_forbidden/.test(m)?'forbidden':null;}
+// Se sert-on du poste, là, maintenant ? (un geste récent ; sous un verrou : l'onglet déverrouillé ; sous « confirmer » :
+// un éditeur ouvert par un accord). C'est la SEULE condition qui prolonge la fenêtre.
+function linkWorking(){const e=linkRules().edit;if(e!=='v5'&&e!=='v15'&&e!=='tel')return false;
+  if(Date.now()-_linkGestAt>linkWinMs())return false;
+  return e==='tel'?(state.view==='edit'||state.view==='protocolEdit'):!linkLocked();}
+async function linkTouch(lire){const sp=linkShared();
+  if(!sp||linkOver()||!Auth.signedIn()||!Sync.online())return _linkSrv;
+  const keep=linkWorking();
+  if(!lire&&(!keep||Date.now()-_linkTouchAt<30000))return _linkSrv;
+  if(keep)_linkTouchAt=Date.now();
+  let r=null;try{r=await rpc('link_touch',{p_keep:keep});}catch(e){return _linkSrv;}
+  if(r&&r.ok)_linkSrv={open:r.open===true,del:r.del_open===true};
+  return _linkSrv;}
+/* Avant chaque envoi : ce que le serveur refuserait MAINTENANT. `_linkHoldE` (créer, modifier), `_linkHoldD` (supprimer). */
+async function linkHold(){_linkHoldE=_linkHoldD=false;_linkHeldSeen=false;
+  if(!linkShared()||linkOver())return;
+  const R=linkRules(),st=await linkTouch(true);
+  _linkHoldE=R.edit==='non'||(!!st&&!st.open&&R.edit!=='libre');
+  _linkHoldD=R.del==='non'||(!!st&&!st.del);
+  // Sous un verrou, une fenêtre fermée au serveur reverrouille l'onglet (l'écran propose alors « Déverrouiller »).
+  if(st&&!st.open&&(R.edit==='v5'||R.edit==='v15')&&!linkLocked()){_linkOpenMem=false;try{sessionStorage.removeItem(LINK_OPEN_KEY);}catch(e){}}}
+// Un élément à envoyer est-il RETENU ? (une suppression suit sa règle, le reste « créer, modifier »).
+function linkSkip(o){const h=!!o&&(o.deletedAt?_linkHoldD:_linkHoldE);if(h)_linkHeldSeen=true;return h;}
+// Une erreur de synchro qui n'en est pas une : le poste attend un accord (jamais une pastille rouge pour cela).
+function linkHeldErr(e){if(!linkShared())return false;const m=String((e&&e.message)||e||'');
+  return linkErrInfo(m)==='locked'||(restErrStatus(m)===403&&(_linkHoldE||_linkHoldD));}
+/* Ce qui se fait tout de suite hors poste, et après l'accord sur un poste (un geste court : cocher une tâche, convertir). */
+function linkThen(fn,quoi){if(!linkGate(fn,quoi))fn();}
 function linkFins(){try{return linkFinsNorm(JSON.parse(localStorage.getItem(spaceKey('ac-link-fins'))||'null'));}catch(e){return LINK_FINS_DEF.slice();}}
 function linkFinsSet(a){try{localStorage.setItem(spaceKey('ac-link-fins'),JSON.stringify(linkFinsNorm(a)));}catch(e){}}
 function linkPrefsKeep(pr){if(!linkShared())return;try{localStorage.setItem(spaceKey('ac-prefs-remote'),JSON.stringify(pr));}catch(e){}}
@@ -32129,7 +32384,9 @@ const Link={
     this._poll=setInterval(async()=>{if(busy||run!==this._run)return;busy=true;
       try{const p=await rpc('link_poll',{p_id:id,p_key:key});if(run!==this._run)return;
         if(p&&p.status==='approved'){clearInterval(this._poll);this._poll=null;st.textContent='Téléphone confirmé — connexion…';
-          if(kind==='unlock'){linkMarkOpen();this.close();toast(step?'✓ Confirmé par l’appareil connecté.':'✓ Appareil déverrouillé pour cet onglet.');if(onDone)onDone();return;}
+          if(kind==='unlock'){linkMarkOpen();_linkSrv={open:true,del:true};_linkTouchAt=0;_linkGestAt=Date.now();   // A693 : le serveur vient d'ouvrir la fenêtre
+            this.close();toast(step?'✓ Confirmé par l’appareil connecté.':'✓ Appareil déverrouillé pour cet onglet.');if(onDone)onDone();
+            Sync.schedule();return;}   // ce qui attendait un accord part maintenant
           await this._claim(id,key,body);return;}
         if(!p||!p.ok||p.status==='expired'||Date.now()>until+5000)expired();
       }catch(e){/* réseau : on réessaie au tour suivant, jusqu'à l'expiration */if(Date.now()>until+5000)expired();}
@@ -32327,6 +32584,7 @@ const Link={
         else if(p&&p.err==='not_found')this._revoked=true;}catch(e){}}
       if(sp.revoked)this._revoked=true;
       else if(this._revoked){linkSharedSet(Object.assign({},sp,{revoked:true,at:Date.now()}));render();}   // A655 : retenu, et l'écran suit
+      if(!this._revoked)linkTouch();   // A693 : la fenêtre d'écriture suit l'usage du poste — sans l'attendre : la sauvegarde d'une session ne patiente derrière rien
       // Une session oubliée se clôt seule (heure de fin passée, 6 h sans geste) — puis se dépose.
       for(const R of linkLive()){const s=sessions.find(x=>x.id===R.sessionId);
         const last=Math.max(R.lastActAt||0,(s&&s.savedAt)||0,R.startedAt||0);
@@ -32392,8 +32650,8 @@ const Link={
     b.querySelector('[data-lkwipe2]').onclick=()=>{this.close();this.wipe(false);};}};
 /* Le VERROU après réouverture : vrai = l'action est retenue (la fenêtre de déverrouillage s'ouvre,
    et l'action reprend une fois le téléphone d'accord). */
-function linkGate(fn){if(!linkShared())return false;if(linkOverDeny())return true;const e=linkRules().edit;
-  if(e==='non')return linkDeny('Créer ou modifier une aide ou un protocole');   // A654
+function linkGate(fn,quoi){if(!linkShared())return false;if(linkOverDeny())return true;const e=linkRules().edit;
+  if(e==='non')return linkDeny(quoi||'Créer ou modifier une aide ou un protocole');   // A654 ; A692 : `quoi` nomme le geste (note, suivi, catégories)
   if(e==='tel')return linkStepGate(fn);                                         // A654 : à chaque fois
   if(!linkLocked())return false;Link.start('unlock',fn);return true;}
 /* A654 : SUPPRIMER suit sa règle — confirmer à chaque fois (défaut, A643) ou interdit. */
@@ -32431,9 +32689,15 @@ function linkPaintBand(){const el=document.getElementById('linkBand');if(!el)ret
   else if(soon)txt=`<b>S’efface à ${esc(fmtHM(sp.endsAt))} — dans ${esc(reste)}.</b> Pour prolonger : depuis un autre appareil connecté, Moi › Connexions temporaires.`;
   else txt=`<b>Connexion temporaire</b> · ${esc(sp.email||'')} · jusqu’à ${esc(day+fmtHM(sp.endsAt))} <span>${locked?'· créer, modifier et supprimer attendent un appareil connecté':'· encore '+esc(reste)}</span>`;
   if(Link._ask&&!sp.revoked)txt+=' <span>· des sessions n’ont pas pu rejoindre l’historique : voir « Sessions »</span>';
+  /* A693 : des modifications RETENUES à la dernière synchro — dit ici, jamais par une erreur. Sous « interdit », elles
+     ne partiront pas de cet appareil ; sinon un accord les envoie (sous un verrou, c'est « Déverrouiller »). */
+  const tenu=_linkHeldSeen&&!past&&!sp.revoked,tenuNon=tenu&&linkRules().edit==='non'&&!_linkHoldD;
+  if(tenu)txt+=tenuNon?' <span>· des modifications faites ici ne sont pas envoyées : la règle de votre administration les interdit sur un appareil temporaire</span>'
+    :locked?'':' <span>· des modifications attendent l’accord d’un appareil connecté pour partir</span>';
   el.hidden=false;el.className='pp-band'+(soon||past?' pp-soon':'');
-  el.innerHTML=`${past||soon?`<span aria-hidden="true">△</span>`:uiIcon(locked?'lock':'clock',18)}<div class="pp-bt">${txt}</div>${locked&&!past&&!soon?'<button type="button" class="btn sm" data-lkunlock>Déverrouiller</button>':''}<button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
+  el.innerHTML=`${past||soon?`<span aria-hidden="true">△</span>`:uiIcon(locked?'lock':'clock',18)}<div class="pp-bt">${txt}</div>${locked&&!past&&!soon?'<button type="button" class="btn sm" data-lkunlock>Déverrouiller</button>':''}${tenu&&!tenuNon&&!locked&&!soon?'<button type="button" class="btn sm" data-lksend>Confirmer pour envoyer</button>':''}<button type="button" class="btn sm" data-lkwipe>Se déconnecter et effacer</button>`;
   el.querySelector('[data-lkwipe]').onclick=()=>Link.wipe(false);
+  {const sd=el.querySelector('[data-lksend]');if(sd)sd.onclick=()=>Link.start('unlock',()=>{_linkHeldSeen=false;linkPaintBand();},true);}
   {const u=el.querySelector('[data-lkunlock]');if(u)u.onclick=()=>Link.start('unlock',()=>{linkPaintBand();render();});}}
 bindModalDismiss(document.getElementById('linkModal'),()=>Link.close());
 /* A649, A656 : la liste des connexions temporaires (Moi) se RELIT au retour au premier plan — on va déconnecter le poste,
@@ -32566,7 +32830,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
 const TEMP_PENDING_KEY='ac-temp-pending';   // A672
 const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
-  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
+  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -32855,7 +33119,7 @@ function admLibsHtml(view){const D=_admD;
   return h+`<div id="admList">${admLibListHtml()}</div><p class="adm-hint">Une rangée ouvre la bibliothèque : inviter, changer un rôle, retirer, renommer — même sans en être membre.</p>`;}
 /* ── Règles de l'instance ────────────────────────────────────────────────────────────────────── */
 const ADM_TEMP_ROWS=[
-  ['edit','Créer, modifier','une aide ou un protocole',[['libre','Libre'],['v5','Verrou 5 min'],['v15','Verrou 15 min'],['tel','Confirmer'],['non','Interdit']]],
+  ['edit','Créer, modifier','aides, protocoles, catégories partagées, notes et suivi',[['libre','Libre'],['v5','Verrou 5 min'],['v15','Verrou 15 min'],['tel','Confirmer'],['non','Interdit']]],
   ['del','Supprimer','une aide, un protocole, une sélection',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['repl','Remplacer une bibliothèque','à l’import',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['exp','Exporter, télécharger','le fichier reste dans les Téléchargements',[['oui','Permis'],['non','Interdit']]],
@@ -34189,8 +34453,13 @@ async function dupToPerso(kind,src){
   const c=kind==='p'?migrateProtocol(JSON.parse(JSON.stringify(src))):migrate(JSON.parse(JSON.stringify(src)));
   c.id=kind==='p'?uid('p'):uid();c.title=(src.title||(kind==='p'?'Protocole':'Aide'))+' (copie)';
   c.library=null;c.status='draft';c.order=Date.now();
+  /* A689 : venue d'une BIBLIOTHÈQUE, la copie emporte SON exemplaire de chaque document (id neuf) — sinon l'original
+     et la copie citaient le même fichier, qui ne vit qu'à un endroit. Copie d'un élément de Perso : même espace,
+     le document reste partagé (comme « joindre un PDF déjà présent »). */
+  const perdus=(src.library||null)?await attCopyDocs(c,src.library):0;
   const ok=kind==='p'?await persistProtocol(c):await persist(c);
-  if(ok){(kind==='p'?protocols:fiches).push(c);toast('✓ Copie créée dans « Perso » — état Brouillon',3500);}
+  if(ok){(kind==='p'?protocols:fiches).push(c);
+    toast('✓ Copie créée dans « Perso » — état Brouillon'+(perdus?' · '+nb(perdus,'document')+' non copié'+(perdus>1?'s':'')+' (absent'+(perdus>1?'s':'')+' de cet appareil)':''),perdus?7000:3500);}
 }
 // « Exporter en PDF » : impression navigateur (les styles @media print masquent barres et
 // panneaux) — sur iOS/macOS/Android le dialogue propose « Enregistrer en PDF ».
@@ -34685,6 +34954,10 @@ function restErrStatus(message){const m=String(message||'').match(/^REST (\d+)/)
 // extrait de la boucle de retry de _push pour rester testable via ?__actest (AGENTS.md).
 function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus(message)===403;}
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
+  /* A692-A693 : les deux refus NOMMÉS d'un appareil temporaire (schema.sql § 10ter-bis). Rien n'est perdu dans les deux cas. */
+  {const pl=linkErrInfo(msg);
+    if(pl==='locked')return{icon:SYNC_ERR_ICONS.lock,title:'Confirmation attendue',detail:'Sur cet appareil connecté temporairement, vos modifications partent après l’accord d’un appareil connecté. Elles restent ici en attendant : depuis l’accueil, touchez « Déverrouiller » ou « Confirmer pour envoyer » dans la bande de la connexion temporaire.'};
+    if(pl==='forbidden')return{icon:SYNC_ERR_ICONS.forbidden,title:'Modification non permise ici',detail:'La règle de votre administration interdit de modifier depuis un appareil connecté temporairement : ce qui a été saisi ici reste sur cet appareil et ne sera pas publié. Refaites-le depuis un appareil à vous.'};}
   /* A688 — QUOTA ATTEINT : un message VRAI, sur la surface d'erreur existante (jamais une fenêtre, règle 11). Le
      refus ne touche que les AJOUTS : `_pushTable` rejoue le lot ligne à ligne, le reste part, et ce qui est refusé
      reste « à envoyer » sur l'appareil — rien n'est perdu. */
@@ -34789,6 +35062,9 @@ const Sync={
       // Un échec (même partiel) du push ne prive plus le reste de la synchro : réconciliation,
       // catégories et notes tournent quand même ; l'erreur est re-levée à la fin (pastille
       // « Erreur de synchro » + nouvelle tentative automatique), tout le reste étant à jour.
+      /* A693 : JUSTE AVANT D'ENVOYER (l'état le plus frais, et aucune requête de plus avant les tirages) — ce que le
+         serveur refuserait maintenant à ce poste est RETENU, pas envoyé. Sans effet hors d'un appareil temporaire. */
+      await linkHold();if(fin())return;
       let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
       try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
       try{await this._pushSessions();}catch(e){if(!pushErr)pushErr=e;}
@@ -34806,7 +35082,12 @@ const Sync={
       if(attErr)throw attErr;
       this._retryDelay=0;
       setSyncChip('ok','Synchronisé');
-    }catch(e){this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}
+    }catch(e){
+      /* A693 : un refus « poste verrouillé » (ou le 403 d'un document pendant que le poste est retenu) n'est pas une
+         panne — tout le reste est à jour, et l'accord d'un appareil connecté relancera l'envoi. Ni pastille rouge, ni
+         nouvelle tentative en boucle : la bande de l'accueil le dit. */
+      if(linkHeldErr(e)){_linkHeldSeen=true;this._retryDelay=0;setSyncChip('ok','Synchronisé');try{linkPaintBand();}catch(_){}}
+      else{this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}}
     finally{this.running=false;
       // A653 : la première synchro de la page a fini (bien ou mal) — l'accueil quitte l'état « chargement ».
       if(!_syncDoneOnce){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}
@@ -34979,6 +35260,7 @@ const Sync={
         if(!o.deletedAt){
           const c=cfg.clone(o);c.id=uid(cfg.idPrefix);c.library=null;c.ownerId=null;
           c.updatedBy='';c.updatedAt=Date.now();c.dirty=true;
+          try{await attCopyDocs(c,o.library);}catch(e){}   // A689 : la copie de secours a ses propres documents
           await cfg.dataPut(c);cfg.addMem(c);copies.push(c);
         }else restoredDel=true;
         const rows=await rest('GET','/rest/v1/'+cfg.table+'?id=eq.'+encodeURIComponent(o.id)+'&select=*')||[];
@@ -35030,13 +35312,14 @@ const Sync={
     // titulaire du compte n'a pas tranché (confirmHeldEdits) — appareil partagé.
     const held=new Set(heldEdits());
     return this._pushTable({table:'cognitive_aids',getAllLocal:()=>Data.getAll(),dataPut:f=>Data.put(f),dataDel:id=>Data.del(id),toRow:ficheToRow,
-      skip:f=>held.has(f.id),
+      skip:f=>held.has(f.id)||linkSkip(f),   // A693
       repair:f=>reassignFicheId(f),
       // Réconciliation « droits perdus » (cf. _reclaimBlocked) : clonage via migrate + accès
       // au tableau mémoire, mêmes briques que le pull.
       clone:f=>migrate(JSON.parse(JSON.stringify(f))),idPrefix:'f',fromRow:ficheFromRow,...memOps(fiches)});},
   async _pushProtocols(){
     return this._pushTable({table:'protocols',getAllLocal:()=>Data.getProtocols(),dataPut:p=>Data.putProtocol(p),dataDel:id=>Data.delProtocol(id),toRow:protocolToRow,
+      skip:linkSkip,   // A693
       // Réparation 403 : contrairement aux fiches (reassignFicheId), aucun rattachement local à
       // déplacer (pas de sessions/notes/épingles sur un protocole), les documents PDF étant
       // référencés par des ids indépendants de celui du protocole.
@@ -35068,36 +35351,43 @@ const Sync={
     // 2. Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
     // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
     const all=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[]));
-    const paths=Object.create(null),editable=Object.create(null);
-    all.forEach(f=>{(f.docs||[]).forEach(a=>{if(!a||!a.id)return;
-      if(!paths[a.id]||!f.deletedAt)paths[a.id]=attStoragePath(f.library||null,uidv,a.id);
-      if(canEditFiche(f))editable[a.id]=true;});});
+    /* A689 : on ne retient plus « le chemin de la dernière entité vivante », mais QUI cite chaque document
+       (`refs`). La décision est dans `attPlan` (pure) : un téléversement ne va qu'à l'espace de l'enregistrement,
+       jamais là où une ligne tirée le voudrait. */
+    const refs=Object.create(null);
+    all.forEach(f=>{(f.docs||[]).forEach(a=>{if(!a||!a.id||typeof a.id!=='string'||badKey(a.id))return;
+      (refs[a.id]=refs[a.id]||[]).push({lib:f.library||null,del:!!f.deletedAt,edit:canEditFiche(f)});});});
     // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
     // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
     const draftIds=new Set(draftNewAtts
       .concat(((state.draft&&state.draft.docs)||[]).map(a=>a.id))
       .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id)));
     for(const rec of await IDB.getAtts()){
-      const want=paths[rec.id];
-      if(!want){if(draftIds.has(rec.id))continue;             // brouillon : on ne touche à rien
-        if(rec.remotePath)queueAttDelete(rec.remotePath);      // copie cloud -> file de suppression
+      const pl=attPlan(rec,refs[rec.id]||[],uidv);
+      if(pl.act==='purge'){if(draftIds.has(rec.id))continue;  // brouillon : on ne touche à rien
+        // copie cloud -> file de suppression — chez moi, ou dans une bibliothèque que je peux éditer (A689)
+        if(rec.remotePath&&attMayDelete(rec.remotePath,uidv,canEditScope))queueAttDelete(rec.remotePath);
         try{await IDB.delAtt(rec.id);}catch(e){}
         continue;}
-      if(!editable[rec.id])continue;
-      if(rec.dirty||rec.remotePath!==want){
-        try{const body=await attBuf(rec);if(!body)continue;   // enregistrement vide : rien à pousser
-          await storageReq('POST',want,body,'application/pdf',{'x-upsert':'true'});
-          if(rec.remotePath&&rec.remotePath!==want)queueAttDelete(rec.remotePath);   // déplacement de périmètre
-          rec.dirty=0;rec.remotePath=want;await attPut(rec);
-        }catch(e){if(!firstErr)firstErr=e;}}
+      if(pl.act==='relabel'){   // déplacé par un autre (ou par moi, ailleurs) : il a déjà téléversé — on note, on n'envoie rien
+        try{rec.scope=pl.space||'';rec.remotePath=pl.path;await attPut(rec);}catch(e){}
+        continue;}
+      if(pl.act!=='upload')continue;
+      try{const body=await attBuf(rec);if(!body)continue;     // enregistrement vide : rien à pousser
+        await storageReq('POST',pl.path,body,'application/pdf',{'x-upsert':'true'});
+        // déplacement de périmètre : l'ancien chemin part APRÈS le téléversement réussi, et seulement là où j'en ai le droit
+        if(pl.del&&attMayDelete(pl.del,uidv,canEditScope))queueAttDelete(pl.del);
+        rec.dirty=0;rec.remotePath=pl.path;rec.scope=pl.space||'';await attPut(rec);
+      }catch(e){if(!firstErr)firstErr=e;}
     }
     // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
     // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
     const have=new Set(await IDB.getAttIds());
-    const missing=Object.keys(paths).filter(id=>!have.has(id));
+    const missing=Object.keys(refs).filter(id=>!have.has(id));
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
-          try{await attFetchOne(id,paths[id]);}catch(e){}}
+          // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
+          for(const pth of attFetchPaths(id,refs[id],uidv)){try{await attFetchOne(id,pth);break;}catch(e){}}}
       }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
@@ -35204,7 +35494,8 @@ const Sync={
     // entrées restées identiques (si l'utilisateur retape pendant la requête, sa nouvelle
     // version garde son marqueur et partira à la synchro suivante — rien n'est perdu).
     const snap=Object.keys(notes).filter(id=>notes[id].dirty).map(id=>({id,at:notes[id].at}));
-    if(snap.length){
+    if(snap.length&&_linkHoldE)_linkHeldSeen=true;   // A692-A693 : sur un poste, une note suit la règle « créer, modifier » — retenue, pas refusée
+    else if(snap.length){
       const up=snap.map(s=>({user_id:uidv,fiche_id:s.id,note:notes[s.id].t,updated_at:new Date(s.at||Date.now()).toISOString()}));
       await rest('POST','/rest/v1/aid_notes',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
       snap.forEach(s=>{const n=notes[s.id];if(n&&n.dirty&&n.at===s.at)delete n.dirty;});changed=true;
@@ -35228,7 +35519,8 @@ const Sync={
       if(last){const d=new Date((Date.parse(last)||0)-60000).toISOString();try{localStorage.setItem(spaceKey('ac-suivi-cursor'),d);}catch(e){}}}
     const libs=new Set(myLibraries.map(l=>l.id)),n0=suivi.length;suivi=suivi.filter(x=>!x.lib||libs.has(x.lib));if(suivi.length!==n0)changed=true;
     const snap=suivi.filter(x=>x.dirty&&(!x.lib||canEditScope(x.lib))).map(x=>({id:x.id,at:x.at}));
-    if(snap.length){const by=new Map(suivi.map(x=>[x.id,x]));
+    if(snap.length&&_linkHoldE)_linkHeldSeen=true;   // A692-A693 : le suivi aussi
+    else if(snap.length){const by=new Map(suivi.map(x=>[x.id,x]));
       const up=snap.map(z=>{const x=by.get(z.id);return {id:x.id,library_id:x.lib,entity_id:x.ent,kind:x.k,body:x.body,task:x.k==='task'?x.t:null,author:x.author||'',deleted:!!x.del,updated_at:new Date(x.at||Date.now()).toISOString()};});
       await rest('POST','/rest/v1/aid_followups',up,{'Prefer':'resolution=merge-duplicates,return=minimal'});
       snap.forEach(z=>{const x=suivi.find(y=>y.id===z.id);if(x&&x.dirty&&x.at===z.at)delete x.dirty;});changed=true;}
@@ -37944,7 +38236,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
@@ -37961,7 +38253,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,

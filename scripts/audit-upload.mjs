@@ -291,6 +291,101 @@ const poignee = await p.evaluate(async () => {
 t('glisser une poignée ⠿ n’ouvre pas la fenêtre de dépôt',
   poignee.absente || poignee.overlayOuvert === false, JSON.stringify(poignee));
 
+// ════ A689-A690 · un document appartient à un seul espace (aller-retour IndexedDB réel) ════
+/* Le réseau est BOUCHÉ dans la page (`storageReq`, `Sync.schedule`) : pas d'instance Supabase ici, et ce
+   qu'on prouve est la DÉCISION — quel chemin est téléversé, lequel est mis en file de suppression — sur de
+   vrais enregistrements IndexedDB. Aucune pause : chaque étape attend sa propre promesse. */
+console.log('\n══ A689-A690 · un document appartient à un seul espace ══');
+{
+  const q = await br.newPage({ viewport: { width: 390, height: 900 } });
+  await q.goto(`http://localhost:${port}/index.html`);
+  await amorce(q);
+  const r = await q.evaluate(async () => {
+    if (typeof attPlan !== 'function' || !supportsAttachments()) return { absente: true };
+    const pdf = n => { const u = new Uint8Array(64 + n); u.set([0x25, 0x50, 0x44, 0x46, 0x2d]); return u.buffer; };
+    Auth.session = { access_token: 'x', refresh_token: 'y', expires_at: Date.now() / 1000 + 3600, user: { id: 'u1', email: 'moi@test.local' } };
+    myLibraries = [{ id: 'libA', name: 'A', role: 'editor' }, { id: 'libR', name: 'R', role: 'viewer' }];
+    const envois = [], suppr = [];
+    storageReq = async (m, path) => { if (m === 'POST') { envois.push(path); return {}; } if (m === 'DELETE') { suppr.push(path); return {}; } throw Object.assign(new Error('404'), { status: 404 }); };
+    Sync.schedule = () => {}; Sync.full = async () => {};
+    setAttDelQueue([]);
+    const aide = async (id, lib, docs) => { const f = blankFiche(); f.id = id; f.title = id; f.library = lib; f.docs = docs.map(d => ({ id: d, name: d + '.pdf', size: 69 })); f.dirty = false; fiches.push(f); await Data.put(f); return f; };
+    const bin = (id, path, extra) => IDB.putAtt(Object.assign({ id, buf: pdf(5), size: 69, type: 'application/pdf', createdAt: 1, dirty: 0, remotePath: path }, extra || {}));
+    const o = {};
+    // 1. Dupliquer dans Perso, depuis une bibliothèque.
+    const L1 = await aide('L1', 'libA', ['d1']); await bin('d1', 'l/libA/d1.pdf');
+    await dupToPerso('f', L1);
+    const cp = fiches.find(x => /\(copie\)/.test(x.title) && !x.library);
+    const cid = cp && cp.docs[0] && cp.docs[0].id, crec = cid ? await IDB.getAtt(cid) : null, orec = await IDB.getAtt('d1');
+    o.dup = { idNeuf: !!cid && cid !== 'd1', copie: !!crec && crec.scope === '' && crec.dirty === 1 && crec.remotePath === null && (await attBuf(crec)).byteLength === 69,
+      origine: !!orec && orec.remotePath === 'l/libA/d1.pdf' && orec.dirty === 0, citeOrig: L1.docs[0].id === 'd1' };
+    await Sync._syncAttachments();
+    o.dupSync = { envois: envois.slice(), file: attDelQueue().slice() };
+    // 2. L'attaque de l'audit : une ligne de bibliothèque (que je peux éditer) cite mon PDF personnel.
+    const P = await aide('P', null, ['p1']); await bin('p1', 'u/u1/p1.pdf');
+    await aide('X', 'libA', ['p1']);
+    envois.length = 0;
+    await Sync._syncAttachments();
+    o.att1 = { envois: envois.slice(), file: attDelQueue().slice(), rec: (await IDB.getAtt('p1')).remotePath };
+    P.deletedAt = Date.now(); await Data.put(P);          // mon aide personnelle supprimée : seule la ligne étrangère le cite
+    await Sync._syncAttachments();
+    const p1 = await IDB.getAtt('p1');
+    o.att2 = { envois: envois.slice(), file: attDelQueue().slice(), etiq: p1.remotePath, binaire: !!(await attBuf(p1)) };
+    // 3. MON déplacement Perso → bibliothèque : le binaire suit, l'ancien chemin part après.
+    const M = await aide('M', null, ['m1']); await bin('m1', 'u/u1/m1.pdf');
+    await entsMoveLib([{ kind: 'f', o: M }], 'libA');
+    const m1 = await IDB.getAtt('m1'); o.dep = { scope: m1.scope, dirty: m1.dirty, id: M.docs[0].id };
+    envois.length = 0; await Sync._syncAttachments();
+    o.depSync = { envois: envois.slice(), file: attDelQueue().slice(), rec: (await IDB.getAtt('m1')).remotePath };
+    // 4. Déplacer UN des deux éléments qui citent le même document : il emporte un exemplaire.
+    const N1 = await aide('N1', null, ['n1']); await aide('N2', null, ['n1']); await bin('n1', 'u/u1/n1.pdf');
+    await entsMoveLib([{ kind: 'f', o: N1 }], 'libA');
+    const nid = N1.docs[0].id, nrec = await IDB.getAtt(nid), n1 = await IDB.getAtt('n1');
+    o.cop = { idNeuf: nid !== 'n1', scope: nrec && nrec.scope, reste: n1.remotePath === 'u/u1/n1.pdf' && n1.dirty === 0 && typeof n1.scope !== 'string' };
+    // 5. Simple lecteur d'une bibliothèque : jamais de téléversement, jamais de suppression chez elle.
+    await aide('R', 'libR', ['r1']); await bin('r1', null, { dirty: 1 });
+    envois.length = 0; await Sync._syncAttachments();
+    o.lect = { envois: envois.filter(x => /libR/.test(x)), file: attDelQueue().filter(x => /libR/.test(x)) };
+    // 6. Réparation de l'existant : binaire absent → on attend ; présent → l'élément Perso reçoit le sien.
+    const Q1 = await aide('Q1', 'libA', ['q1']), Q2 = await aide('Q2', null, ['q1']);
+    try { localStorage.removeItem(spaceKey('ac-att-split')); } catch (e) {}
+    const r0 = await attRepairShared();
+    o.rep0 = { ok: r0, drapeau: localStorage.getItem(spaceKey('ac-att-split')), cite: Q2.docs[0].id };
+    await bin('q1', 'l/libA/q1.pdf');
+    const r1 = await attRepairShared();
+    const qid = Q2.docs[0].id, qrec = await IDB.getAtt(qid), q1 = await IDB.getAtt('q1');
+    const disque = (await Data.getAll()).find(x => x.id === 'Q2');
+    o.rep1 = { ok: r1, drapeau: localStorage.getItem(spaceKey('ac-att-split')), idNeuf: qid !== 'q1', copie: !!qrec && qrec.scope === '' && qrec.dirty === 1,
+      origine: Q1.docs[0].id === 'q1' && !!q1 && q1.remotePath === 'l/libA/q1.pdf', disque: !!disque && disque.docs[0].id === qid && disque.dirty === true,
+      perso: (await IDB.getAtt('p1')).remotePath };
+    o.suppr = suppr.slice();
+    return o;
+  });
+  if (r.absente) t('A689 : les fonctions existent et le stockage de documents est disponible', false, 'absent');
+  else {
+    t('A689 · « Dupliquer dans Perso » : la copie cite un document d’id NEUF, l’original garde le sien', r.dup.idNeuf && r.dup.citeOrig, JSON.stringify(r.dup));
+    t('A689 · … le binaire est recopié (espace Perso, à envoyer), celui de la bibliothèque n’est pas touché', r.dup.copie && r.dup.origine, JSON.stringify(r.dup));
+    t('A689 · … la synchro n’envoie QUE la copie, dans mon Perso, et ne supprime rien',
+      r.dupSync.envois.length === 1 && /^u\/u1\//.test(r.dupSync.envois[0]) && r.dupSync.file.length === 0, JSON.stringify(r.dupSync));
+    t('A689 · une ligne de bibliothèque qui cite mon PDF personnel : RIEN n’est téléversé, rien n’est supprimé, il reste chez moi',
+      r.att1.envois.length === 0 && r.att1.file.length === 0 && r.att1.rec === 'u/u1/p1.pdf', JSON.stringify(r.att1));
+    t('A689 · … même mon aide personnelle supprimée : réétiqueté, JAMAIS téléversé ; le binaire local est gardé',
+      r.att2.envois.length === 0 && r.att2.file.length === 0 && r.att2.etiq === 'l/libA/p1.pdf' && r.att2.binaire, JSON.stringify(r.att2));
+    t('A689 · MON déplacement Perso → bibliothèque : le binaire change d’espace, l’id est gardé', r.dep.scope === 'libA' && r.dep.dirty === 1 && r.dep.id === 'm1', JSON.stringify(r.dep));
+    t('A689 · … téléversé au nouveau chemin, PUIS l’ancien mis en file de suppression',
+      r.depSync.envois.includes('l/libA/m1.pdf') && r.depSync.file.includes('u/u1/m1.pdf') && r.depSync.rec === 'l/libA/m1.pdf', JSON.stringify(r.depSync));
+    t('A689 · déplacer un élément dont le document reste cité là d’où il part : il emporte SON exemplaire', r.cop.idNeuf && r.cop.scope === 'libA' && r.cop.reste, JSON.stringify(r.cop));
+    t('A689 · simple lecteur : aucun téléversement ni suppression dans la bibliothèque', r.lect.envois.length === 0 && r.lect.file.length === 0, JSON.stringify(r.lect));
+    t('A690 · binaire absent de l’appareil : la réparation attend, le drapeau n’est pas posé', r.rep0.ok === false && !r.rep0.drapeau && r.rep0.cite === 'q1', JSON.stringify(r.rep0));
+    t('A690 · binaire présent : l’élément Perso reçoit son exemplaire, l’original reste à la bibliothèque, drapeau posé',
+      r.rep1.ok === true && r.rep1.drapeau === '1' && r.rep1.idNeuf && r.rep1.copie && r.rep1.origine, JSON.stringify(r.rep1));
+    t('A690 · … l’élément réparé est enregistré « à envoyer » ; un binaire dont le foyer est mon Perso n’est pas copié', r.rep1.disque && r.rep1.perso === 'l/libA/p1.pdf', JSON.stringify(r.rep1));
+    t('A690 · aucune suppression distante n’a été émise par la réparation', Array.isArray(r.suppr) && r.suppr.every(x => !/q1/.test(x)), JSON.stringify(r.suppr));
+  }
+  await q.close();
+}
+
+
 await p.close(); await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} OK${ko ? ` — ${ko} ÉCHEC(S)` : ''}`);
 process.exit(ko ? 1 : 0);
