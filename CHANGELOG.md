@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.119.2] — 2026-11-10
+Correctif : la fenêtre d'une bibliothèque s'ouvre de nouveau depuis Administration (A703). Rien à faire côté serveur.
+- **Au téléphone, dans Administration › Bibliothèques, toucher une bibliothèque n'ouvrait rien en apparence** : sa
+  fenêtre (nom, membres, rôles, suppression) s'ouvrait derrière Administration, invisible. Elle s'ouvre maintenant
+  au-dessus. Échap et le retour la referment, et vous ramènent à Administration.
+- Au bureau, où Administration est une page de la colonne, rien ne change.
+
 ## [5.119.1] — 2026-11-10
 « À revérifier » retrouve son glyphe (A702).
 - Sur l'accueil, une aide ou un protocole dont la validation est échue affichait « À revérifier » en ambre, sans
@@ -323,17 +330,3 @@ Plus aucune fenêtre centrée pour choisir une aide, un protocole ou un document
 - **Recherche dans les trois, dès le premier élément** (nom, code d'une aide, provenance d'un document) ; les groupes
   restent (« Aides » / « Protocoles », « Blocs de cette aide » d'abord pour une complication, la cible actuelle cochée).
 - Rien à choisir : une notice le dit, au lieu d'ouvrir une fenêtre vide.
-
-## [5.109.8] — 2026-11-08
-Éditeur de protocole : le suivi ne disparaît plus (A636) ; mise en garde des images (A637), déroulants au bureau (A638), gras de Notion (A639), listes coupées par une image (A640). Rien à rejouer côté serveur.
-- **Le volet « Suivi » de l'éditeur de protocole reste visible** : il disparaissait de la colonne de droite dès qu'on
-  tapait dans le texte, et après un aller-retour « Mise en forme en direct ».
-- **Texte et aperçu côte à côte** : le suivi reste en bas de page, et la pastille « n tâches » paraît dans l'en-tête
-  dès qu'il y a une note ou une tâche (elle l'ouvre sans quitter sa place), comme en lecture.
-- **« Une image hors texte sera retirée… »** ne s'affiche plus que s'il y a vraiment une image retirée du texte.
-- **Au bureau, plus de petites fenêtres pour choisir** dans l'atelier d'import (catégorie, bibliothèque, « Dans »),
-  pour l'élément lié d'une tâche, « Ajouter à une collection… » et l'Administration : une liste se déroule sous le
-  bouton touché. Au téléphone, rien ne change.
-- **Gras de Notion** : `****texte****` et `****titre** : suite**` s'affichent en gras.
-- **Image dans une liste (import Notion)** : l'image reste un bloc à elle et ferme la liste, mais ce qui la suit
-  redevient une liste au lieu de s'afficher en texte « - … ».

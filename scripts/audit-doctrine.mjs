@@ -7834,6 +7834,11 @@ const r = await page.evaluate(async () => {
   out.retour=_adm.sec;
   admGo('libs');await __acCalme(200);
   out.libs=[B().querySelectorAll('[data-admlib]').length,B().querySelectorAll('.adm-chips [data-admlf]').length,!!B().querySelector('[data-admlib="lib-4"] .adm-warn')];
+  /* A703 : la bibliothèque s'ouvre AU-DESSUS de la fenêtre d'Administration — on lit ce qui est
+     RÉELLEMENT sous le doigt au centre de l'écran, pas la seule classe `on`. */
+  B().querySelector('[data-admlib="lib-1"]').click();await __acCalme(500);
+  {const el=document.elementFromPoint(innerWidth/2,innerHeight/2);out.gerer=[document.getElementById('membersModal').classList.contains('on'),!!(el&&el.closest('#membersModal')),!!(el&&el.closest('#admModal')),_topModal()===document.getElementById('membersModal')];}
+  closeMembers(true);await __acCalme(300);out.gererFin=document.getElementById('admModal').classList.contains('on');
   return out;});
 t('390 : la porte de Moi ouvre une page-fenêtre, sans onglets', r.fenetre&&!r.onglets, JSON.stringify([r.fenetre,r.onglets]));
 t('v5.55.1 : retour AU-DESSUS du titre, titre = la section (Administration ‹ Moi · Comptes ‹ Administration · Compte ‹ Comptes), rien dans le corps',
@@ -7847,6 +7852,7 @@ t('… 40 rangées à la fois, puis « Afficher 20 de plus »', r.page1===40&&/A
 t('… chercher ne repeint que la liste : le champ garde le focus', r.cherche[0]===1&&r.cherche[1], JSON.stringify(r.cherche));
 t('… un compte ouvert depuis la liste = deux niveaux de retour, le retour système remonte à la liste', r.compte[0]==='compte'&&r.compte[1]===2&&r.retour==='comptes', JSON.stringify([r.compte,r.retour]));
 t('… Bibliothèques : recherche et filtres de santé (sans administrateur, vides)', r.libs[0]===20&&r.libs[1]>=3&&r.libs[2], JSON.stringify(r.libs));
+t('A703 : une bibliothèque touchée dans la fenêtre d’Administration s’ouvre AU-DESSUS d’elle, pour l’œil comme pour Échap et le retour (elle s’ouvrait derrière, invisible) ; la refermer y ramène', r.gerer&&r.gerer[0]&&r.gerer[1]&&!r.gerer[2]&&r.gerer[3]&&r.gererFin, JSON.stringify([r.gerer,r.gererFin]));
 await page.setViewportSize({width:1280,height:900});await calme(page, 500);
 const v=await page.evaluate(()=>({tab:state.homeTab,vue:!!document.getElementById('admView'),fenetre:document.getElementById('admModal').classList.contains('on'),sec:_adm.sec}));
 t('… franchir 780 : la fenêtre devient la vue de la colonne, section gardée', v.tab==='admin'&&v.vue&&!v.fenetre&&v.sec==='libs', JSON.stringify(v));
