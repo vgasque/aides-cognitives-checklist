@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-CJQ9xu+gK8nXASFWpfEICPkVNSRs2XtbE9oXPVX7gHY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-W61m4ttm2CLEMuM4u7MUFzIKtq1bXbS725KFQRND4fk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -37100,6 +37100,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
     <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app. Ajouts, rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>
+    ${roleOf(_memLib)?`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`:''}
     ${isAdmin&&!horsAdh&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
     ${myIsAppAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
       <button class="btn outline-danger" id="libDelete">Supprimer la bibliothèque…</button>
@@ -37112,19 +37113,28 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   // d'ajout) — chaque retour s'affiche au contact de ce qu'il concerne.
   const setMsg=(t,c)=>{const e=document.getElementById('memMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
   const setNameMsg=(t,c)=>{const e=document.getElementById('libMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
+  /* A663 : le serveur refuse de retirer ou rétrograder le DERNIER administrateur (`last_admin`) — dit en
+     clair, et un membre peut désormais QUITTER de lui-même (`leave_library`). */
+  const memErr=e=>/last_admin/.test(String(e&&e.message||e))?'il faut au moins un administrateur dans la bibliothèque — nommez-en un autre d’abord.':String(e&&e.message||e);
+  {const lv=document.getElementById('libLeave');if(lv)lv.onclick=async()=>{
+    if(!await confirmDlg('Vous ne verrez plus ses aides ni ses protocoles sur vos appareils. Un administrateur pourra vous y rajouter.',{title:'Quitter « '+(libName(_memLib)||'cette bibliothèque')+' » ?',yes:'Quitter',danger:true}))return;
+    try{const r=await rpc('leave_library',{p_library:_memLib});
+      if(r==='last_admin'){setMsg('Vous êtes le seul administrateur : '+memErr('last_admin'),'err');return;}
+      closeMembers(true);await Sync.loadProfile();Sync.schedule&&Sync.schedule();render();}
+    catch(e){setMsg('Échec : '+memErr(e),'err');}};}
   {const iv=document.getElementById('memInvite');if(iv)iv.onclick=async()=>{const email=(document.getElementById('memEmail').value||'').trim();const role=document.getElementById('memNewRole').value;
     if(!email||email.indexOf('@')<1){setMsg('Saisissez un e-mail valide.','err');return;}setMsg('Invitation…','');
     try{const r=await rpc('invite_member',{p_library:_memLib,p_email:email,p_role:role});
       if(r==='not_found')setMsg('Aucun compte avec cet e-mail. La personne doit d\'abord se connecter une fois à l\'application.','err');
       else if(r==='not_approved')setMsg('Ce compte est en attente de validation (ou a été refusé) : il ne peut pas être ajouté à une bibliothèque tant qu\'un administrateur ne l\'a pas approuvé.','err');
       else{await renderMembers();await Sync.loadProfile();}}
-    catch(e){setMsg('Échec : '+e.message,'err');}};}
+    catch(e){setMsg('Échec : '+memErr(e),'err');}};}
   body.querySelectorAll('[data-role]').forEach(sel=>sel.onchange=async()=>{
     try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(sel.dataset.role),{role:sel.value},{'Prefer':'return=minimal'});await Sync.loadProfile();}
-    catch(e){toast('⚠ Modification du rôle impossible : '+e.message);renderMembers();}});
+    catch(e){toast('⚠ Modification du rôle impossible : '+memErr(e));renderMembers();}});
   body.querySelectorAll('[data-remove]').forEach(b=>b.onclick=async()=>{if(!await confirmDlg('Retirer ce membre de la bibliothèque ?',{yes:'Retirer',danger:true}))return;
     try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(_memLib)+'&user_id=eq.'+encodeURIComponent(b.dataset.remove),null,{'Prefer':'return=minimal'});await renderMembers();}
-    catch(e){toast('⚠ Retrait impossible : '+e.message);}});
+    catch(e){toast('⚠ Retrait impossible : '+memErr(e));}});
   // SPEC §3 : Annuler ferme sans toucher ; Enregistrer applique le renommage (si changé) puis
   // ferme. Suppression (app-admin, cf. RLS lib_delete) : bouton contour rouge de la ZONE SENSIBLE.
   {const cn=body.querySelector('#libCancel');if(cn)cn.onclick=closeMembers;}
