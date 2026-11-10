@@ -8,8 +8,8 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A675** à la v5.115.1 (lot v6.0 compris) (et ça continue — la
-prochaine est A676), attribués dans
+Les décisions de conception portent des numéros **A1 → A684** à la v5.115.2 (lot v6.0 compris) (et ça continue — la
+prochaine est A685), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -299,6 +299,15 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A673 | `lot-v5-115-1.md` | Une note d'équipe ne s'affiche que sur un élément de sa bibliothèque |
 | A674 | `lot-v5-115-1.md` | Garde anti-iframe aux gestes réels ; en-têtes de sécurité du document en cache |
 | A675 | `lot-v5-115-1.md` | Outillage : serveurs de test en boucle locale, sans `..` ; jeton de CI en lecture |
+| A676 | `lot-v5-115-2.md` | Serveur (à rejouer) : aucune session de poste partagé ne survit à sa ligne (`link_end`, `link_purge`) |
+| A677 | `lot-v5-115-2.md` | `updated_at` n'est plus antidatable (`clamp_updated_at`) |
+| A678 | `lot-v5-115-2.md` | `link_open` : adresse lue dans l'en-tête de la passerelle, plafond global par nature |
+| A679 | `lot-v5-115-2.md` | Listes d'administration fermées au poste (`admin_reads`), aides internes révoquées, `share_admit` et compte validé |
+| A680 | `lot-v5-115-2.md` | `share_push` : la valeur a le type de sa clé (`share_val_ok`), quota non consommé par un refus, heure cliente bornée |
+| A681 | `lot-v5-115-2.md` | L'auteur d'une note d'équipe est posé par le serveur (`followups_stamp_author`) |
+| A682 | `lot-v5-115-2.md` | Forme des identifiants d'aide et de protocole, nom de bibliothèque borné (contraintes `not valid`) |
+| A683 | `lot-v5-115-2.md` | `?__actest` réservé au cadre de test et à la machine locale ; empreintes SHA-256 des actifs vendorisés (`check-vendor`) |
+| A684 | `lot-v5-115-2.md` | Régression de la v5.115.1 corrigée : le canal direct en service n'est plus fermé par le minuteur des offres (`__acOpen`) ; plafond d'offres en nombre |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

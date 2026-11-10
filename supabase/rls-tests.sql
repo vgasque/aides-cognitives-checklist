@@ -40,6 +40,14 @@ declare
   noe   uuid := 'a6630000-0000-0000-0000-000000000003';
   oda   uuid := 'a6630000-0000-0000-0000-000000000004';
   pia   uuid := 'a6630000-0000-0000-0000-000000000005';
+  -- §18 (A676-A680), comptes dédiés
+  quin  uuid := 'a6760000-0000-0000-0000-000000000001';
+  rui   uuid := 'a6760000-0000-0000-0000-000000000002';
+  v_s18a uuid := 'a6760000-0000-0000-0000-0000000000a1';
+  v_s18b uuid := 'a6760000-0000-0000-0000-0000000000a2';
+  v_s18c uuid := 'a6760000-0000-0000-0000-0000000000a3';
+  v_t0   timestamptz;
+  v_t1   timestamptz;
   v_hack text;
   v_cnt  int;
   v_leak int;
@@ -1883,6 +1891,163 @@ begin
   exception when check_violation then null; end;
   reset role;
 
+
+  ------------------------------------------------------------------ 18. Audit de sécurité (A676-A680)
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (quin,'quin@test.local',now()),(rui,'rui@test.local',now());
+  insert into public.user_status(user_id,email,status) values (quin,'quin@test.local','approved'),(rui,'rui@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+
+  -- 18.1 (A677) `updated_at` n'est plus antidatable : toute modification l'avance.
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-18',quin,null,'{"title":"v1"}');
+  select updated_at into v_t0 from public.cognitive_aids where id='f-18';
+  update public.cognitive_aids set data='{"title":"v2"}', updated_at = v_t0 - interval '1 hour' where id='f-18';
+  select updated_at into v_t1 from public.cognitive_aids where id='f-18';
+  if v_t1 <= v_t0 then raise exception 'ÉCHEC 18.1 : une modification antidatée garde updated_at (% -> %)', v_t0, v_t1; end if;
+  update public.cognitive_aids set data='{"title":"v3"}', updated_at = v_t1 where id='f-18';
+  select updated_at into v_t0 from public.cognitive_aids where id='f-18';
+  if v_t0 <= v_t1 then raise exception 'ÉCHEC 18.1 : une modification à updated_at inchangé ne l''avance pas'; end if;
+  update public.cognitive_aids set data='{"title":"v4"}', updated_at = now() + interval '1 day' where id='f-18';
+  if (select updated_at from public.cognitive_aids where id='f-18') > now() + interval '1 minute' then
+    raise exception 'ÉCHEC 18.1 : updated_at postdatable'; end if;
+  reset role;
+
+  -- 18.2 (A676) `link_end` supprime la session de compte du poste, en plus de clore le lien.
+  insert into auth.sessions(id, user_id) values (v_s18a, quin), (v_s18b, quin), (v_s18c, quin);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('a',64), repeat('b',64), now(), quin, 'claimed', now() + interval '2 hours', now(), now(), v_s18a);
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated','session_id',v_s18a)::text, true);
+  set local role authenticated;
+  v_j := public.link_end();
+  reset role;
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 18.2 : link_end refusé (%)', v_j->>'err'; end if;
+  if exists (select 1 from auth.sessions where id = v_s18a) then
+    raise exception 'ÉCHEC 18.2 : la session de compte du poste survit à link_end'; end if;
+  if (select status from public.device_links where auth_session = v_s18a) is distinct from 'ended' then
+    raise exception 'ÉCHEC 18.2 : le lien n''est pas clos'; end if;
+
+  -- 18.3 (A676) la purge resupprime la session d'un lien terminé ou révoqué dont la suppression avait
+  -- échoué, et ne retire la ligne (7 j 30 min) qu'une fois la session partie.
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('c',64), repeat('d',64), now(), quin, 'ended',   now() - interval '8 days', now(), now(), v_s18b),
+           ('connect', repeat('e',64), repeat('f',64), now(), quin, 'revoked', now() + interval '1 hour', now(), now(), v_s18c);
+  perform public.link_purge();
+  if exists (select 1 from auth.sessions where id in (v_s18b, v_s18c)) then
+    raise exception 'ÉCHEC 18.3 : la purge laisse vivre la session d''un lien terminé ou révoqué'; end if;
+  if exists (select 1 from public.device_links where auth_session = v_s18b) then
+    raise exception 'ÉCHEC 18.3 : la ligne échue depuis 8 jours n''est pas retirée une fois sa session partie'; end if;
+  if not exists (select 1 from public.device_links where auth_session = v_s18c) then
+    raise exception 'ÉCHEC 18.3 : une ligne révoquée non échue est retirée (la restriction tomberait)'; end if;
+
+  -- 18.4 (A679) les LISTES d'administration sont fermées à une session de poste partagé.
+  insert into public.app_admins(user_id) values (rui) on conflict do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.list_accounts();
+  if v_cnt = 0 then raise exception 'ÉCHEC 18.4 : un administrateur ne lit plus ses comptes'; end if;
+  if public.get_instance_stats() is null then raise exception 'ÉCHEC 18.4 : un administrateur ne lit plus les statistiques'; end if;
+  reset role;
+  insert into auth.sessions(id, user_id) values (v_s18a, rui);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('1',64), repeat('2',64), now(), rui, 'claimed', now() + interval '2 hours', now(), now(), v_s18a);
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated','session_id',v_s18a)::text, true);
+  set local role authenticated;
+  select (select count(*) from public.list_accounts()) + (select count(*) from public.list_users())
+       + (select count(*) from public.list_all_libraries()) + (select count(*) from public.list_library_requests())
+       + (select count(*) from public.list_user_memberships(alice)) into v_cnt;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 18.4 : une session de poste lit % ligne(s) d''administration', v_cnt; end if;
+  if public.get_instance_stats() is not null then raise exception 'ÉCHEC 18.4 : une session de poste lit les statistiques'; end if;
+  reset role;
+  delete from public.app_admins where user_id = rui;
+
+  -- 18.5 (A679) les aides internes « aucun grant » ne sont appelables par aucun client.
+  select string_agg(f, ', ') into v_list from unnest(array['public.share_resolve(text,text)','public.share_purge()',
+      'public.share_new_code()','public.share_kind_allowed(text,text)','public.share_val_ok(text,jsonb)',
+      'public.session_is_poste()','public.admin_reads()']) f
+   where has_function_privilege('authenticated', f, 'execute') or has_function_privilege('anon', f, 'execute');
+  if v_list is not null then raise exception 'ÉCHEC 18.5 : aide interne appelable par un client : %', v_list; end if;
+
+  -- 18.6 (A680) `share_push` : la valeur a le type de sa clé ; l'heure déclarée reste plausible.
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.share_open('sh-18','sess-18','fic-18','{"title":"T"}'::jsonb,'scribe',60);
+  reset role;
+  if not (v_j->>'ok')::boolean then raise exception 'ÉCHEC 18.6 : ouverture refusée (%)', v_j->>'err'; end if;
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.share_join(v_j->>'code', 'IDE');
+  v_sec := v_j->>'secret';
+  v_j := public.share_push(v_sec, null, jsonb_build_array(
+    jsonb_build_object('event_id','a6800000-0000-0000-0000-00000000000a','kind','counter','ts','2001-01-01T00:00:00Z',
+      'payload', jsonb_build_object('id','__proto__ texte libre','v','douze','k','1:b1:0','running',1,'nav','x','ref','x','t','un mot')),
+    jsonb_build_object('event_id','a6800000-0000-0000-0000-00000000000b','kind','timer_arm',
+      'payload', jsonb_build_object('id','t1','running',true,'elapsedMs',1200,'cycles',2,'anchor',1700000000000,'t',1700000000000)),
+    jsonb_build_object('event_id','a6800000-0000-0000-0000-00000000000c','kind','sig',
+      'payload', jsonb_build_object('t','o','o','AbC-_123','to','p-1'))));
+  reset role;
+  if not (v_j->>'ok')::boolean or (v_j->>'accepted')::int <> 3 then
+    raise exception 'ÉCHEC 18.6 : push refusé (%)', v_j; end if;
+  if (select payload from public.session_events where share_id='sh-18' and event_id='a6800000-0000-0000-0000-00000000000a') is distinct from '{"k":"1:b1:0"}'::jsonb then
+    raise exception 'ÉCHEC 18.6 : une valeur au type inattendu est conservée (%)',
+      (select payload from public.session_events where share_id='sh-18' and event_id='a6800000-0000-0000-0000-00000000000a'); end if;
+  if (select count(*) from jsonb_object_keys((select payload from public.session_events where share_id='sh-18' and event_id='a6800000-0000-0000-0000-00000000000b'))) <> 6 then
+    raise exception 'ÉCHEC 18.6 : un évènement de minuteur légitime est amputé (%)',
+      (select payload from public.session_events where share_id='sh-18' and event_id='a6800000-0000-0000-0000-00000000000b'); end if;
+  if (select payload from public.session_events where share_id='sh-18' and event_id='a6800000-0000-0000-0000-00000000000c') is distinct from '{"t":"o","o":"AbC-_123","to":"p-1"}'::jsonb then
+    raise exception 'ÉCHEC 18.6 : un évènement de signalisation légitime est amputé'; end if;
+  if (select client_ts from public.session_events where share_id='sh-18' and event_id='a6800000-0000-0000-0000-00000000000a') < now() - interval '1 hour' then
+    raise exception 'ÉCHEC 18.6 : une heure cliente de 2001 est conservée'; end if;
+
+  -- 18.7 (A680) un lot refusé pour débit ne consomme pas le quota.
+  update public.session_participants set window_count = 119, window_start = now(), events_count = 10
+   where share_id='sh-18' and not is_owner;
+  perform set_config('request.jwt.claims', json_build_object('role','anon')::text, true);
+  set local role anon;
+  v_j := public.share_push(v_sec, null, jsonb_build_array(
+    jsonb_build_object('event_id','a6800000-0000-0000-0000-00000000000d','kind','check','payload','{}'::jsonb),
+    jsonb_build_object('event_id','a6800000-0000-0000-0000-00000000000e','kind','check','payload','{}'::jsonb)));
+  reset role;
+  if v_j->>'err' is distinct from 'rate' then raise exception 'ÉCHEC 18.7 : limite de débit non appliquée (%)', v_j; end if;
+  if (select events_count from public.session_participants where share_id='sh-18' and not is_owner) <> 10
+     or (select window_count from public.session_participants where share_id='sh-18' and not is_owner) <> 119 then
+    raise exception 'ÉCHEC 18.7 : un lot refusé a consommé le quota'; end if;
+
+  -- 18.8 (A681) l'auteur d'une note d'équipe est l'adresse du jeton, et ne change plus ensuite.
+  insert into public.libraries(id,name,created_by) values ('lib-18','Dix-huit',quin) on conflict (id) do nothing;
+  insert into public.memberships(user_id,library_id,role) values (quin,'lib-18','admin'),(rui,'lib-18','editor')
+    on conflict (user_id,library_id) do update set role = excluded.role;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated','email','rui@test.local')::text, true);
+  set local role authenticated;
+  insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-18','lib-18','f-18','note','n','quin@test.local');
+  reset role;
+  if (select author from public.aid_followups where id='fu-18') is distinct from 'rui@test.local' then
+    raise exception 'ÉCHEC 18.8 : une note d''équipe est signée d''un autre (%)', (select author from public.aid_followups where id='fu-18'); end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated','email','quin@test.local')::text, true);
+  set local role authenticated;
+  insert into public.aid_followups(id,library_id,entity_id,kind,body,author) values ('fu-18','lib-18','f-18','note','réécrite','quin@test.local')
+    on conflict (id) do update set body = excluded.body, author = excluded.author;
+  reset role;
+  if (select author || '|' || body from public.aid_followups where id='fu-18') is distinct from 'rui@test.local|réécrite' then
+    raise exception 'ÉCHEC 18.8 : l''auteur d''une note change à la modification (%)', (select author from public.aid_followups where id='fu-18'); end if;
+
+  -- 18.9 (A682) un id d'aide ou de protocole hors format est refusé ; un nom de bibliothèque démesuré aussi.
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('a b<x>',quin,null,'{}');
+    raise exception 'ÉCHEC 18.9 : une aide à id hors format est acceptée';
+  exception when check_violation then null; end;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values (repeat('a',65),quin,null,'{}');
+    raise exception 'ÉCHEC 18.9 : un protocole à id de 65 caractères est accepté';
+  exception when check_violation then null; end;
+  begin
+    update public.libraries set name = repeat('n',121) where id = 'lib-18';
+    raise exception 'ÉCHEC 18.9 : un nom de bibliothèque de 121 caractères est accepté';
+  exception when check_violation then null; end;
+  reset role;
 
   ------------------------------------------------------------------ FIN
   reset role;

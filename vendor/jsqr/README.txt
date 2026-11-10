@@ -17,3 +17,5 @@ Mise à jour = décision explicite (AGENTS.md § « Mettre à jour un actif vend
 vérifier l'amont et ses avis de sécurité, remplacer le fichier, METTRE À JOUR la taille
 ci-dessus (check-vendor compare l'octet), rejouer le témoin encode→décode et le test
 hors-ligne complet sur appareil DÉJÀ INSTALLÉ.
+SHA-256 (identique au paquet npm jsqr 1.4.0, verifie le 10/11/2026 ; compare par check-vendor) :
+  jsQR.js sha256 bc40c8a15196236b2314db0856f72ca0b49980cd5413b8c852a7349f5fee0859
