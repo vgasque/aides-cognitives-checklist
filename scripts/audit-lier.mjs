@@ -484,7 +484,13 @@ await ctx.close();
   st9.lent = true;
   const tables = []; let apres9 = false;
   pg.on('request', q => { if (/\/rest\/v1\/(?!rpc)/.test(q.url())) tables.push({ u: q.url().replace(/^.*\/rest\/v1\//, ''), apres: apres9 }); });
+  /* Le témoin exige une requête de table partie AVANT la déconnexion. Sur un runner lent, la synchro n'avait pas encore
+     émis sa première requête quand la veille (non ralentie) avait déjà fini : le décor n'était pas dressé, et le témoin
+     rougissait sans que rien ne soit prouvé (rouge en CI sur #98, vu aussi ici sous charge). On attend cette première
+     requête — elle est ralentie de 300 ms, la synchro est donc bien en vol quand la déconnexion est apprise. */
+  const premiere = pg.waitForRequest(q => /\/rest\/v1\/(?!rpc)/.test(q.url()), { timeout: 15000 });
   const enVol = await pg.evaluate(() => { Sync.full(); return Sync.running; });
+  await premiere;
   st9.poll = { ok: true, status: 'revoked', ends_at: new Date(Date.now() + 9 * 3600e3).toISOString() };
   await pg.evaluate(() => Link.watch());
   await pg.waitForFunction(() => linkOver(), null, { timeout: 8000 });
