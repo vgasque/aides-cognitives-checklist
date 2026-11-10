@@ -119,16 +119,26 @@ create or replace function public.admin_reads()
 returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
 begin return public.is_app_admin() and not public.link_is_poste(); end; $$;
 
+-- A685 — UNE INVITATION N'EST PAS UNE ADHÉSION. `invite_member` inscrivait d'office : la personne
+-- recevait à sa synchro suivante tout le contenu d'une bibliothèque qu'elle n'avait pas choisie (un
+-- canal pour glisser chez un collègue des aides ressemblant aux siennes). La ligne naît désormais
+-- `pending` et ne devient une adhésion que par `answer_invitation`. Les DEUX aides ci-dessous ignorent
+-- une ligne en attente — et comme toutes les politiques de contenu passent par elles, une invitation
+-- non acceptée ne donne RIEN : ni lecture, ni écriture, ni le nom des autres membres.
+alter table public.memberships add column if not exists pending    boolean not null default false;
+alter table public.memberships add column if not exists invited_by uuid references auth.users on delete set null;
+alter table public.memberships add column if not exists invited_at timestamptz;
+
 create or replace function public.is_member(lib text)
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
   select exists (select 1 from public.memberships
-                 where user_id = auth.uid() and library_id = lib);
+                 where user_id = auth.uid() and library_id = lib and not pending);
 $$;
 
 create or replace function public.member_role(lib text)
 returns text language sql stable security definer set search_path = public, pg_temp as $$
   select role from public.memberships
-  where user_id = auth.uid() and library_id = lib;
+  where user_id = auth.uid() and library_id = lib and not pending;
 $$;
 
 -- ---------- 3. RLS (explicite, même si auto-RLS est ON) ---------------------
@@ -300,10 +310,16 @@ begin
     select status into v_status from public.user_status where user_id = v_uid;
     if coalesce(v_status,'approved') <> 'approved'
        and coalesce((select require_approval from public.app_settings limit 1), true) then
-      return 'not_approved';
+      -- A685 : UNE seule réponse pour « pas de compte » et « compte non validé ». Les distinguer disait à
+      -- tout administrateur de bibliothèque si une adresse a un compte, et où en est sa validation.
+      return 'not_found';
     end if;
   end if;
-  insert into public.memberships(user_id, library_id, role) values (v_uid, p_library, p_role)
+  -- A685 : EN ATTENTE jusqu'à l'accord de l'invité (`answer_invitation`). Deux exceptions : on ne
+  -- s'invite pas soi-même (l'administrateur de l'instance qui s'ajoute devient membre aussitôt), et
+  -- une adhésion DÉJÀ acquise garde son état — seul le rôle change.
+  insert into public.memberships(user_id, library_id, role, pending, invited_by, invited_at)
+    values (v_uid, p_library, p_role, v_uid is distinct from auth.uid(), auth.uid(), now())
     on conflict (user_id, library_id) do update set role = excluded.role;
   return 'ok';
 end;$$;
@@ -312,16 +328,49 @@ grant execute on function public.invite_member(text,text,text) to authenticated;
 -- ---------- 5ter. Liste des membres d'une bibliothèque (Lot 3, étape 4) ------
 -- Renvoie e-mail + rôle des membres. Réservé aux admins de la bibliothèque (sinon vide) :
 -- nécessaire car auth.users n'est pas accessible via l'API publique.
+-- A685 : rend aussi `pending` (invitation pas encore acceptée) — le type de retour change, d'où le `drop`.
+drop function if exists public.list_members(text);
 create or replace function public.list_members(p_library text)
-returns table(user_id uuid, email text, role text)
+returns table(user_id uuid, email text, role text, pending boolean)
 language sql security definer set search_path = public, pg_temp as $$
-  select m.user_id, u.email::text, m.role
+  select m.user_id, u.email::text, m.role, m.pending
   from public.memberships m join auth.users u on u.id = m.user_id
   where m.library_id = p_library
     and (public.member_role(p_library) = 'admin' or public.is_app_admin())
-  order by m.role, u.email;
+  order by m.pending, m.role, u.email;
 $$;
 grant execute on function public.list_members(text) to authenticated;
+
+-- A685 — MES INVITATIONS, ET MA RÉPONSE. La bibliothèque d'une invitation en attente est INVISIBLE de
+-- l'invité (`lib_select` passe par `is_member`) : son nom et l'adresse de qui invite ne sortent que par
+-- cette fonction, pour ses propres lignes. Répondre est un geste de compte : jamais depuis un poste partagé.
+create or replace function public.my_invitations()   -- PL/pgSQL : `is_approved` est définie plus bas (liaison à l'exécution)
+returns table(library_id text, name text, role text, invited_by text, invited_at timestamptz)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  return query
+  select m.library_id, l.name, m.role, coalesce(u.email::text, ''), m.invited_at
+  from public.memberships m join public.libraries l on l.id = m.library_id
+  left join auth.users u on u.id = m.invited_by
+  where m.user_id = auth.uid() and m.pending and public.is_approved()
+  order by m.invited_at desc nulls last;
+end;$$;
+grant execute on function public.my_invitations() to authenticated;
+
+create or replace function public.answer_invitation(p_library text, p_accept boolean)
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if auth.uid() is null or not public.is_approved() or public.link_is_poste() then return 'refused'; end if;
+  if coalesce(p_accept, false) then
+    update public.memberships set pending = false
+     where user_id = auth.uid() and library_id = p_library and pending;
+  else
+    delete from public.memberships where user_id = auth.uid() and library_id = p_library and pending;
+  end if;
+  if not found then return 'not_found'; end if;
+  return 'ok';
+end;$$;
+grant execute on function public.answer_invitation(text, boolean) to authenticated;
 
 -- ---------- 5quater. Durcissement : updated_at non postdatable ---------------
 -- Empêche un client de postdater updated_at pour « gagner » indûment un conflit (last-write-wins).
@@ -1984,8 +2033,8 @@ create or replace function public.list_all_libraries()
 returns table(id text, name text, creator text, created_at timestamptz, members int, admins int, aids int, protocols int)
 language sql stable security definer set search_path = public, pg_temp as $$
   select l.id, l.name, u.email::text, l.created_at,
-         (select count(*)::int from public.memberships m where m.library_id = l.id),
-         (select count(*)::int from public.memberships m where m.library_id = l.id and m.role = 'admin'),
+         (select count(*)::int from public.memberships m where m.library_id = l.id and not m.pending),
+         (select count(*)::int from public.memberships m where m.library_id = l.id and m.role = 'admin' and not m.pending),
          (select count(*)::int from public.cognitive_aids f where f.library_id = l.id and f.deleted_at is null),
          (select count(*)::int from public.protocols p where p.library_id = l.id and p.deleted_at is null)
   from public.libraries l left join auth.users u on u.id = l.created_by
@@ -2018,8 +2067,9 @@ begin
     if found
        and exists (select 1 from auth.users where id = old.user_id)
        and coalesce((select status from public.user_status where user_id = old.user_id), 'approved') = 'approved'
+       and not old.pending   -- A685 : une invitation refusée ou retirée n'est pas un administrateur qui part
        and not exists (select 1 from public.memberships
-                        where library_id = old.library_id and role = 'admin' and user_id <> old.user_id) then
+                        where library_id = old.library_id and role = 'admin' and not pending and user_id <> old.user_id) then
       raise exception 'last_admin';
     end if;
   end if;
@@ -2046,7 +2096,7 @@ begin
   end if;
   if public.member_role(p_library) = 'admin'
      and not exists (select 1 from public.memberships
-                      where library_id = p_library and role = 'admin' and user_id <> auth.uid()) then
+                      where library_id = p_library and role = 'admin' and not pending and user_id <> auth.uid()) then
     return 'last_admin';
   end if;
   delete from public.memberships where user_id = auth.uid() and library_id = p_library;
@@ -2669,6 +2719,144 @@ create policy att_temp_upd on storage.objects as restrictive for update to authe
 drop policy if exists att_temp_del on storage.objects;
 create policy att_temp_del on storage.objects as restrictive for delete to authenticated
   using (bucket_id <> 'attachments' or public.temp_att_del_ok());
+-- ============================================================================================
+--  A687 — QUOTAS PAR ESPACE, réglables par l'administrateur (v5.116)
+-- ============================================================================================
+-- Rien ne bornait le NOMBRE de lignes ni d'objets : seule la taille de chacun l'était. Un seul compte —
+-- malveillant, ou un client en boucle — pouvait remplir le quota de l'instance et arrêter la synchro
+-- de tous. Un quota vaut PAR ESPACE : l'espace personnel d'un compte (`library_id is null`, compté par
+-- `owner`) et chaque bibliothèque (`library_id`). Les sessions se comptent par compte.
+--   aids      : aides vivantes par espace            (défaut 2000)
+--   protocols : protocoles vivants par espace        (défaut 2000)
+--   sessions  : sessions vivantes par compte         (défaut 5000)
+--   docs      : documents PDF par espace (stockage)  (défaut 1000)
+-- CE QUI COMPTE : les lignes VIVANTES (`deleted_at is null`). Une tombe ne compte pas, et la pousser
+-- n'est jamais refusé. CE QUI N'EST JAMAIS REFUSÉ : réécrire une ligne qui existe (l'upsert de la synchro
+-- passe par BEFORE INSERT même quand l'id existe) — un quota abaissé sous l'usage courant ne bloque que
+-- les AJOUTS, il ne supprime ni ne fige rien. Les écritures sans compte (`link_deposit`, par la clé d'un
+-- poste) ne sont pas comptées ici : un compte rendu de soin ne se perd pas pour un quota.
+-- Le compte est pris sans verrou : deux ajouts simultanés peuvent dépasser d'une ligne — c'est une borne
+-- d'abus, pas une comptabilité.
+alter table public.app_settings add column if not exists quotas jsonb not null default '{}'::jsonb;
+
+create or replace function public.quotas()
+returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
+  select '{"aids":2000,"protocols":2000,"sessions":5000,"docs":1000}'::jsonb
+         || coalesce((select quotas from public.app_settings limit 1), '{}'::jsonb);
+$$;
+
+-- Lecture : tout compte validé (l'app dit la limite dans son message ; l'administration l'affiche).
+create or replace function public.get_quotas()
+returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
+  select case when auth.uid() is null or not public.is_approved() then null else public.quotas() end;
+$$;
+grant execute on function public.get_quotas() to authenticated;
+
+-- Écriture : l'administrateur, jamais depuis une connexion temporaire. Grammaire FERMÉE : quatre clés,
+-- des entiers, de 10 à 1 000 000 (une limite à 0 fermerait l'application à tous d'un seul geste).
+create or replace function public.set_quotas(p jsonb)
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare v jsonb := '{}'::jsonb; k text;
+begin
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
+  if p is null or jsonb_typeof(p) <> 'object' or p = '{}'::jsonb then raise exception 'invalid quotas'; end if;
+  for k in select jsonb_object_keys(p) loop
+    if k not in ('aids','protocols','sessions','docs') then raise exception 'invalid quotas'; end if;
+    if jsonb_typeof(p -> k) <> 'number' or (p ->> k) ~ '[^0-9]' or length(p ->> k) > 7
+       or (p ->> k)::int < 10 or (p ->> k)::int > 1000000 then raise exception 'invalid quotas'; end if;
+    v := v || jsonb_build_object(k, (p ->> k)::int);
+  end loop;
+  update public.app_settings set quotas = quotas || v where id = true;
+end;$$;
+grant execute on function public.set_quotas(jsonb) to authenticated;
+
+-- L'USAGE RÉEL, pour l'administrateur (A688) : pour chaque limite, le compte de l'espace LE PLUS REMPLI de
+-- l'instance — le nombre auquel comparer ce qu'on s'apprête à saisir. Des nombres seulement : ni nom de
+-- compte, ni nom de bibliothèque. Administrateur, jamais depuis un poste partagé (`admin_reads`) ; nul sinon.
+create or replace function public.quota_usage()
+returns jsonb language sql stable security definer set search_path = public, storage, pg_temp as $$
+  select case when not public.admin_reads() then null else jsonb_build_object(
+    'aids', greatest(
+      coalesce((select max(n) from (select count(*) n from public.cognitive_aids
+                 where deleted_at is null and library_id is null group by owner) x), 0),
+      coalesce((select max(n) from (select count(*) n from public.cognitive_aids
+                 where deleted_at is null and library_id is not null group by library_id) x), 0)),
+    'protocols', greatest(
+      coalesce((select max(n) from (select count(*) n from public.protocols
+                 where deleted_at is null and library_id is null group by owner) x), 0),
+      coalesce((select max(n) from (select count(*) n from public.protocols
+                 where deleted_at is null and library_id is not null group by library_id) x), 0)),
+    'sessions', coalesce((select max(n) from (select count(*) n from public.sessions
+                 where deleted_at is null group by owner) x), 0),
+    'docs', coalesce((select max(n) from (select count(*) n from storage.objects o
+                 where o.bucket_id = 'attachments'
+                 group by (storage.foldername(o.name))[1], (storage.foldername(o.name))[2]) x), 0)) end;
+$$;
+grant execute on function public.quota_usage() to authenticated;
+
+-- Le déclencheur. L'erreur porte le NOM de la limite (`detail`) et sa VALEUR (`hint`) : PostgREST les
+-- rend dans le corps de la réponse (`message`, `details`, `hint`), et l'app en fait un message vrai.
+create or replace function public.quota_check()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_key text; v_lim int; v_n int;
+begin
+  if new.deleted_at is not null or auth.uid() is null then return new; end if;
+  if tg_table_name = 'cognitive_aids' then
+    if exists (select 1 from public.cognitive_aids where id = new.id) then return new; end if;
+    v_key := 'aids';
+    select count(*) into v_n from public.cognitive_aids
+     where deleted_at is null
+       and ((new.library_id is null and library_id is null and owner = new.owner) or library_id = new.library_id);
+  elsif tg_table_name = 'protocols' then
+    if exists (select 1 from public.protocols where id = new.id) then return new; end if;
+    v_key := 'protocols';
+    select count(*) into v_n from public.protocols
+     where deleted_at is null
+       and ((new.library_id is null and library_id is null and owner = new.owner) or library_id = new.library_id);
+  elsif tg_table_name = 'sessions' then
+    if exists (select 1 from public.sessions where id = new.id) then return new; end if;
+    v_key := 'sessions';
+    select count(*) into v_n from public.sessions where deleted_at is null and owner = new.owner;
+  else
+    return new;
+  end if;
+  v_lim := (public.quotas() ->> v_key)::int;
+  if v_n >= v_lim then
+    raise exception 'quota_exceeded' using errcode = 'P0001', detail = v_key, hint = v_lim::text;
+  end if;
+  return new;
+end; $$;
+-- Le compte d'un espace personnel se fait par `owner` : index partiels, pour qu'un lot poussé ne relise pas la table.
+create index if not exists fiches_perso_owner_idx    on public.cognitive_aids (owner) where library_id is null;
+create index if not exists protocols_perso_owner_idx on public.protocols (owner)      where library_id is null;
+drop trigger if exists fiches_quota on public.cognitive_aids;
+create trigger fiches_quota before insert on public.cognitive_aids
+  for each row execute function public.quota_check();
+drop trigger if exists protocols_quota on public.protocols;
+create trigger protocols_quota before insert on public.protocols
+  for each row execute function public.quota_check();
+drop trigger if exists sessions_quota on public.sessions;
+create trigger sessions_quota before insert on public.sessions
+  for each row execute function public.quota_check();
+
+-- Documents : même borne, par DOSSIER du bucket (`u/<compte>/…` ou `l/<bibliothèque>/…`). Vue depuis une
+-- POLITIQUE (droits de l'appelant) : relais en definer qui ne rend qu'un booléen, comme `temp_att_del_ok`.
+-- Remplacer un objet qui existe (x-upsert) passe toujours. Le stockage répond alors 403 comme pour tout
+-- refus de politique : l'app ne peut pas y lire « quota » — elle le dit dans le texte de ce refus.
+create or replace function public.quota_att_ok(p_name text)
+returns boolean language sql stable security definer set search_path = public, storage, pg_temp as $$
+  select exists (select 1 from storage.objects o where o.bucket_id = 'attachments' and o.name = p_name)
+      or (select count(*) from storage.objects o
+           where o.bucket_id = 'attachments'
+             and (storage.foldername(o.name))[1] = (storage.foldername(p_name))[1]
+             and (storage.foldername(o.name))[2] = (storage.foldername(p_name))[2])
+         < (public.quotas() ->> 'docs')::int;
+$$;
+grant execute on function public.quota_att_ok(text) to authenticated;
+drop policy if exists att_quota_ins on storage.objects;
+create policy att_quota_ins on storage.objects as restrictive for insert to authenticated
+  with check (bucket_id <> 'attachments' or public.quota_att_ok(name));
+
 -- Bibliothèques, membres et rôles : jamais depuis un poste (A647, « toujours interdit »).
 drop policy if exists libraries_temp_ins on public.libraries;
 create policy libraries_temp_ins on public.libraries as restrictive for insert to authenticated
@@ -2832,6 +3020,9 @@ revoke execute on function public.share_purge()                 from public, ano
 revoke execute on function public.share_new_code()              from public, anon, authenticated;
 revoke execute on function public.share_kind_allowed(text,text) from public, anon, authenticated;
 revoke execute on function public.share_val_ok(text,jsonb)      from public, anon, authenticated;
+-- A687 : aides internes des quotas (le déclencheur et la lecture brute) — aucun client.
+revoke execute on function public.quotas()                      from public, anon, authenticated;
+revoke execute on function public.quota_check()                 from public, anon, authenticated;
 revoke execute on function public.session_is_poste()            from public, anon, authenticated;
 revoke execute on function public.admin_reads()                 from public, anon, authenticated;
 revoke execute on function public.forbid_passwords()            from public, anon, authenticated;   -- A648 : fonction de déclencheur

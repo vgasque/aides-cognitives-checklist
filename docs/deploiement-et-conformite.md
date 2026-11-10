@@ -290,6 +290,53 @@ politiques RLS, pas du secret de cette clé).
 - **« en attente » inattendu** : la validation des comptes est active ; approuver le compte.
 - **Le service worker ne s'installe pas** : l'hébergement doit être en HTTPS (ni `file://` ni HTTP).
 
+### 1.8 Quotas (v5.116)
+Quatre limites bornent le NOMBRE d'éléments qu'un espace peut contenir. Elles se règlent dans
+*Moi → Administration → Règles → Quotas*, par un administrateur de l'instance, jamais depuis une
+connexion temporaire. Le serveur les applique ; l'application ne fait que les afficher et les régler.
+
+**Ce qu'est un espace.** L'espace personnel d'un compte, ou une bibliothèque. Chacun a sa propre
+limite : une bibliothèque pleine ne ferme pas l'espace personnel de ses membres, ni l'inverse. Ce
+qui est supprimé ne compte pas.
+
+| Limite | Ce qui est compté | Par défaut | Plage |
+|---|---|---|---|
+| Aides | les aides non supprimées d'un même espace | 2 000 | 10 à 1 000 000 |
+| Protocoles | les protocoles non supprimés d'un même espace | 2 000 | 10 à 1 000 000 |
+| Sessions enregistrées | les sessions enregistrées et non supprimées d'un même compte | 5 000 | 10 à 1 000 000 |
+| Documents PDF | les documents PDF joints aux aides et aux protocoles d'un même espace | 1 000 | 10 à 1 000 000 |
+
+**Quand une limite est atteinte.** Les nouveaux éléments sont refusés à la synchronisation. Ils
+restent sur l'appareil de la personne, qui voit « Quota atteint » dans l'état de la synchronisation ;
+rien n'est perdu, et rien de ce qui est déjà enregistré n'est supprimé ni bloqué (modifier ou
+supprimer un élément existant reste possible). L'envoi reprend seul dès qu'une place se libère ou
+que la limite est relevée. Baisser une limite sous l'usage actuel ne supprime rien non plus : cela
+arrête seulement les ajouts dans les espaces concernés — l'écran le signale sous le champ, sans
+l'empêcher.
+
+**Comment choisir.** Sous chaque champ, l'écran donne « le plus rempli aujourd'hui » : le nombre
+d'éléments de l'espace le plus chargé de l'instance. Partez de ce nombre et laissez une large marge.
+Ces limites arrêtent un compte qui s'emballe (import en boucle, client défaillant, abus) ; **elles ne
+réservent pas de place**. Le vrai plafond est la taille de base de données et de stockage de votre
+offre Supabase : une aide ou un protocole peut peser jusqu'à 20 Mo, une session 1 Mo, un document
+PDF 15 Mo. Deux mille aides au maximum de leur taille dépasseraient n'importe quelle offre : c'est
+l'espace disque de l'offre qu'il faut surveiller (tableau de bord Supabase), pas ces quatre nombres.
+
+**Sans l'application** (SQL Editor de Supabase) :
+
+```sql
+-- Les limites en vigueur (défauts compris)
+select public.quotas();
+-- L'espace le plus rempli, pour chaque limite (aides)
+select coalesce(library_id, 'perso:' || owner::text) as espace, count(*) as aides
+  from public.cognitive_aids where deleted_at is null group by 1 order by 2 desc limit 5;
+-- Relever une limite (les quatre clés : aids, protocols, sessions, docs)
+update public.app_settings set quotas = quotas || '{"aids": 5000}'::jsonb where id;
+```
+
+`select public.quota_usage();` rend le même résumé que l'écran, mais seulement pour un administrateur
+connecté par l'application : dans le SQL Editor (sans compte), utilisez les requêtes ci-dessus.
+
 ---
 
 ## 2. Statut réglementaire — pourquoi l'application n'est pas un dispositif médical
@@ -489,7 +536,7 @@ logiciel déclencherait de lui-même (« causes non revues depuis n minutes ») 
 | **Finalité** | Mise à disposition et partage d'aides cognitives (checklists) rédigées par les professionnels ; synchronisation multi-appareils optionnelle |
 | **Base légale** | Intérêt légitime de l'établissement (organisation des soins) / mission d'intérêt public |
 | **Catégories de personnes** | Professionnels de santé utilisateurs (comptes) ; **participants d'une session partagée, avec ou sans compte** (cf. § 3.1). **Aucun patient.** |
-| **Catégories de données** | Adresse e-mail professionnelle (compte) ; contenu des fiches rédigées ; préférences (thème, épingles, collections personnelles — noms, identifiants des aides rangées et choix « gardée en tête » —, vocabulaire personnel du journal) ; **suivi** (A613, v5.107) : notes et tâches de travail attachées à une aide ou à une référence — texte rédigé par l'utilisateur, type, priorité, échéance, date et adresse e-mail de qui l'a faite, adresse e-mail de l'auteur ; « pour moi » (synchronisé dans l'espace personnel) ou « pour l'équipe » (partagé avec les membres de la bibliothèque) ; **demandes de bibliothèque** (nom proposé, adresses e-mail des personnes à inviter et leur rôle — conservées jusqu'à la décision de l'administrateur : supprimées à l'acceptation, effacées au refus) ; droit de créer une bibliothèque accordé par l'administrateur (l'administrateur de l'instance voit la liste des comptes — e-mail, statut, bibliothèques et rôles — pour les administrer) ; horodatages de sessions. **Si l'option d'historique synchronisé est activée** : le compte rendu des sessions **terminées** (étapes cochées, minuteurs, compteurs, repères horodatés, libellés que l'utilisateur a lui-même écrits) — **sauf la trace de vérification**, qui reste sur l'appareil d'origine, et jamais une session en cours. **Pour une session partagée** : identifiant opaque de participant, rôle déclaré, horodatages des gestes, références d'étapes / minuteurs / compteurs, projection de la fiche (cf. § 3.1). **Poste partagé connecté par le téléphone** (v5.111, § 3.3) : navigateur et système du poste (« Chrome · Windows »), heures de la demande, de l'approbation et de fin choisie, identifiant de la session de compte du poste ; les sessions faites sur ce poste rejoignent **toujours** l'historique du compte (terminées, et sauvegardes partielles d'une session en cours). **Aucune donnée identifiante de patient.** |
+| **Catégories de données** | Adresse e-mail professionnelle (compte) ; contenu des fiches rédigées ; préférences (thème, épingles, collections personnelles — noms, identifiants des aides rangées et choix « gardée en tête » —, vocabulaire personnel du journal) ; **suivi** (A613, v5.107) : notes et tâches de travail attachées à une aide ou à une référence — texte rédigé par l'utilisateur, type, priorité, échéance, date et adresse e-mail de qui l'a faite, adresse e-mail de l'auteur ; « pour moi » (synchronisé dans l'espace personnel) ou « pour l'équipe » (partagé avec les membres de la bibliothèque) ; **demandes de bibliothèque** (nom proposé, adresses e-mail des personnes à inviter et leur rôle — conservées jusqu'à la décision de l'administrateur : supprimées à l'acceptation, effacées au refus) ; droit de créer une bibliothèque accordé par l'administrateur (l'administrateur de l'instance voit la liste des comptes — e-mail, statut, bibliothèques et rôles — pour les administrer) ; horodatages de sessions. **Si l'option d'historique synchronisé est activée** : le compte rendu des sessions **terminées** (étapes cochées, minuteurs, compteurs, repères horodatés, libellés que l'utilisateur a lui-même écrits) — **sauf la trace de vérification**, qui reste sur l'appareil d'origine, et jamais une session en cours. **Pour une session partagée** : identifiant opaque de participant, rôle déclaré, horodatages des gestes, références d'étapes / minuteurs / compteurs, projection de la fiche (cf. § 3.1). **Poste partagé connecté par le téléphone** (v5.111, § 3.3) : navigateur et système du poste (« Chrome · Windows »), heures de la demande, de l'approbation et de fin choisie, identifiant de la session de compte du poste ; les sessions faites sur ce poste rejoignent **toujours** l'historique du compte (terminées, et sauvegardes partielles d'une session en cours). **Aucune donnée identifiante de patient.** ; **invitation à une bibliothèque** (v5.116, A685) : tant qu'elle n'est pas acceptée, l'invité ne reçoit que le nom de la bibliothèque, le rôle proposé, la date et l'**adresse e-mail de la personne qui l'invite** — rien de son contenu ni de ses membres ; les administrateurs de la bibliothèque voient l'adresse de l'invité avec la mention « invitation en attente » |
 | **Données sensibles** | Aucune donnée identifiante de patient n'est saisie ni transmise. Nuance à porter au DPO plutôt qu'à taire : le déroulé d'une session décrit des **actes de soin** et peut être rapproché d'une prise en charge par ceux qui y étaient. C'est précisément pourquoi (a) aucun texte libre ne circule, (b) la notice affichée à tout participant demande de n'inscrire aucune information identifiante, (c) le serveur ne conserve rien (§ 3.1). **Suivi (notes et tâches)** : c'est un TEXTE LIBRE, rédigé à froid, sur l'aide et non sur un patient — la feuille de saisie rappelle de n'y inscrire aucune information sur un patient ; il n'apparaît jamais pendant une session. |
 | **Destinataires** | Membres des bibliothèques partagées (contenu d'équipe, **notes et tâches « pour l'équipe »** et l'adresse de leur auteur) ; **les autres participants d'une session partagée, pour la durée de cette session** ; sous-traitants techniques (ci-dessous) |
 | **Sous-traitants** | Supabase (hébergement base + auth, **et relais des sessions partagées**) ; Brevo (envoi des e-mails de code) ; hébergeur statique [GitHub/Netlify/Cloudflare/intranet] |

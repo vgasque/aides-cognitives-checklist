@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.116.0] — 2026-11-10
+Invitation avec acceptation, et quotas réglables (A685-A688) — les deux derniers points de l'audit de sécurité.
+**À faire côté serveur : rejouer `supabase/schema.sql`**, puis `supabase/rls-tests.sql` pour vérifier.
+- **Être invité dans une bibliothèque n'y inscrit plus d'office.** L'invitation paraît dans **Moi › Bibliothèques**,
+  avec le nom de la bibliothèque, le rôle proposé et l'adresse de qui invite : **Rejoindre** ou **Refuser**. Tant
+  qu'elle n'est pas acceptée, rien de la bibliothèque n'arrive sur vos appareils. Une invitation nouvelle s'annonce une
+  fois (jamais pendant une session).
+- **Pour qui invite** : la personne paraît dans la liste des membres avec « invitation en attente » ; elle devient
+  membre en acceptant. Un administrateur seulement invité ne compte pas encore comme administrateur. Le message est le
+  même, qu'aucun compte n'existe à cette adresse ou qu'il ne soit pas validé.
+- **Quotas** : chaque espace — l'espace personnel d'un compte, ou une bibliothèque — a une limite d'aides (2 000 par
+  défaut), de protocoles (2 000) et de documents PDF (1 000) ; chaque compte, une limite de sessions enregistrées
+  (5 000). Ce qui est supprimé ne compte pas.
+- **Administration › Règles › Quotas** : les quatre limites se règlent là, avec leur guide — ce qui est compté, l'usage
+  de l'espace le plus rempli aujourd'hui, la valeur par défaut, la plage permise, et ce qui se passe quand la limite est
+  atteinte. Baisser une limite sous l'usage ne supprime rien : cela arrête les ajouts.
+- **Limite atteinte** : l'élément refusé reste sur l'appareil et repartira dès qu'une place se libère ou que la limite
+  est relevée ; la synchro le dit (« Quota atteint »), sans rien interrompre.
+- Guide d'exploitation : `docs/deploiement-et-conformite.md` § 1.8 (lire et relever les quotas sans l'app).
+
 ## [5.115.2] — 2026-11-10
 Audit de sécurité, suite : le serveur (A676-A683).
 **À faire côté serveur : rejouer `supabase/schema.sql`**, puis `supabase/rls-tests.sql` pour vérifier. La fonction
@@ -301,9 +321,3 @@ Barre de sélection en bas sur tablette et ordinateur (A618). Rien à rejouer c�
   de la colonne principale, comme le dock du téléphone (même hauteur, même pilule, 24 px du bas). La case « Tout
   cocher » et la croix restent sur la ligne ; la liste garde de la place en bas pour que la dernière rangée reste
   atteignable.
-
-## [5.109.2] — 2026-11-08
-Retour depuis une collection (A617). Rien à rejouer côté serveur.
-- **Une collection ouverte depuis l'accueil a son bouton « ‹ Accueil »**, en haut à gauche (un simple « ‹ » sur les
-  petits écrans).
-- **Le geste retour du téléphone y ramène aussi à l'accueil** — il faisait quitter l'application.

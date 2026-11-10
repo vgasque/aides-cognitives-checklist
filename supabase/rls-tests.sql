@@ -48,6 +48,11 @@ declare
   v_s18c uuid := 'a6760000-0000-0000-0000-0000000000a3';
   v_t0   timestamptz;
   v_t1   timestamptz;
+  -- §19 (A687), comptes dédiés
+  sam   uuid := 'a6870000-0000-0000-0000-000000000001';
+  tom   uuid := 'a6870000-0000-0000-0000-000000000002';
+  v_s19 uuid := 'a6870000-0000-0000-0000-0000000000a1';
+  v_q0  jsonb;
   v_hack text;
   v_cnt  int;
   v_leak int;
@@ -364,7 +369,8 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub',erin,'role','authenticated')::text, true);
   set local role authenticated;
   select public.invite_member('lib-team','gina@test.local','viewer') into v_hack;
-  if v_hack <> 'not_approved' then raise exception 'ÉCHEC : invite_member a accepté un compte non approuvé (résultat : %)', v_hack; end if;
+  -- A685 : une seule réponse pour « pas de compte » et « compte non validé » (plus d'oracle).
+  if v_hack <> 'not_found' then raise exception 'ÉCHEC : invite_member a accepté un compte non approuvé (résultat : %)', v_hack; end if;
   reset role;
   select count(*) into v_cnt from public.memberships where user_id=gina and library_id='lib-team';
   if v_cnt <> 0 then raise exception 'ÉCHEC : un compte non approuvé a quand même été ajouté comme membre'; end if;
@@ -1723,7 +1729,7 @@ begin
     update public.memberships set user_id = pia where library_id='lib-a663' and user_id = noe;
     raise exception 'ÉCHEC 17.3 : une adhésion est réattribuée en direct à un compte en attente';
   exception when insufficient_privilege then null; end;
-  if public.invite_member('lib-a663','pia@test.local','editor') <> 'not_approved' then
+  if public.invite_member('lib-a663','pia@test.local','editor') <> 'not_found' then   -- A685 : réponse unique
     raise exception 'ÉCHEC 17.3 : invite_member ne refuse plus un compte en attente'; end if;
   update public.memberships set role = 'editor' where library_id='lib-a663' and user_id = noe;
   get diagnostics v_cnt = row_count;
@@ -1829,6 +1835,11 @@ begin
   if public.is_member('lib-a663') then raise exception 'ÉCHEC 17.6 : parti, le lecteur est encore membre'; end if;
   perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
   if public.invite_member('lib-a663','noe@test.local','admin') <> 'ok' then raise exception 'ÉCHEC 17.6 : nommer une seconde administratrice'; end if;
+  -- A685 : une administratrice seulement INVITÉE ne compte pas — la première ne peut pas encore partir.
+  if public.leave_library('lib-a663') <> 'last_admin' then raise exception 'ÉCHEC 17.6 : une invitation en attente compte comme une seconde administratrice'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',noe,'role','authenticated')::text, true);
+  if public.answer_invitation('lib-a663', true) <> 'ok' then raise exception 'ÉCHEC 17.6 : la seconde administratrice ne peut pas accepter'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
   if public.leave_library('lib-a663') <> 'ok' then raise exception 'ÉCHEC 17.6 : avec une seconde administratrice, la première ne peut pas partir'; end if;
   --      CE QUE LA RÈGLE NE BLOQUE PAS : le compte qui s'efface (droit à l'effacement), le compte refusé,
   --      la bibliothèque supprimée. noe est maintenant la SEULE administratrice.
@@ -2048,6 +2059,210 @@ begin
     raise exception 'ÉCHEC 18.9 : un nom de bibliothèque de 121 caractères est accepté';
   exception when check_violation then null; end;
   reset role;
+
+  ------------------------------------------------------------------ 19. Quotas (A687)
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (sam,'sam@test.local',now()),(tom,'tom@test.local',now());
+  insert into public.user_status(user_id,email,status) values (sam,'sam@test.local','approved'),(tom,'tom@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.app_admins(user_id) values (sam) on conflict do nothing;
+  select quotas into v_q0 from public.app_settings where id;
+
+  -- 19.1 Lecture : tout compte validé lit les limites ; les défauts sont ceux annoncés.
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.get_quotas();
+  if (v_j->>'aids')::int <> coalesce((v_q0->>'aids')::int, 2000) or (v_j->>'docs') is null or (v_j->>'sessions') is null or (v_j->>'protocols') is null then
+    raise exception 'ÉCHEC 19.1 : get_quotas ne rend pas les quatre limites (%)', v_j; end if;
+
+  -- 19.2 Écriture : ni un compte ordinaire, ni une session de poste d'administrateur ; grammaire fermée.
+  begin perform public.set_quotas('{"aids":10}'::jsonb);
+    raise exception 'ÉCHEC 19.2 : un compte ordinaire règle les quotas';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+  insert into auth.sessions(id, user_id) values (v_s19, sam);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('7',64), repeat('8',64), now(), sam, 'claimed', now() + interval '2 hours', now(), now(), v_s19);
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated','session_id',v_s19)::text, true);
+  set local role authenticated;
+  begin perform public.set_quotas('{"aids":10}'::jsonb);
+    raise exception 'ÉCHEC 19.2 : une session de poste règle les quotas';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+  delete from public.device_links where auth_session = v_s19;
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated')::text, true);
+  set local role authenticated;
+  foreach v_tbl in array array['{"aids":9}','{"aids":1000001}','{"aids":"12"}','{"aids":12.5}','{"autre":50}','{}','[]','{"aids":-20}'] loop
+    begin perform public.set_quotas(v_tbl::jsonb);
+      raise exception 'ÉCHEC 19.2 : set_quotas accepte %', v_tbl;
+    exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  end loop;
+  perform public.set_quotas('{"aids":10,"protocols":10,"sessions":10,"docs":10}'::jsonb);
+  if public.get_quotas() is distinct from '{"aids":10,"protocols":10,"sessions":10,"docs":10}'::jsonb then
+    raise exception 'ÉCHEC 19.2 : les quotas réglés ne se relisent pas (%)', public.get_quotas(); end if;
+  reset role;
+
+  -- 19.3 Espace personnel : la 11e aide vivante est refusée, avec le nom et la valeur de la limite ;
+  -- réécrire une aide existante (l'upsert de la synchro) passe ; une tombe ne compte pas.
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) select 'q19-'||g, tom, null, '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('q19-11',tom,null,'{}');
+    raise exception 'ÉCHEC 19.3 : une aide au-delà du quota est acceptée';
+  exception when others then
+    if sqlerrm like 'ÉCHEC%' then raise; end if;
+    get stacked diagnostics v_list = pg_exception_detail, v_hack = pg_exception_hint;
+    if sqlerrm <> 'quota_exceeded' or v_list is distinct from 'aids' or v_hack is distinct from '10' then
+      raise exception 'ÉCHEC 19.3 : refus mal formé (% / % / %)', sqlerrm, v_list, v_hack; end if;
+  end;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('q19-3',tom,null,'{"title":"réécrite"}')
+    on conflict (id) do update set data = excluded.data;
+  if (select data->>'title' from public.cognitive_aids where id='q19-3') is distinct from 'réécrite' then
+    raise exception 'ÉCHEC 19.3 : au quota, réécrire une aide existante est refusé'; end if;
+  update public.cognitive_aids set deleted_at = now() where id = 'q19-1';
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('q19-11',tom,null,'{}');   -- une place s'est libérée
+  insert into public.cognitive_aids(id,owner,library_id,data,deleted_at) values ('q19-tombe',tom,null,'{}',now());   -- une tombe passe toujours
+  -- Les protocoles et les sessions ont leur propre compte.
+  insert into public.protocols(id,owner,library_id,data) select 'q19p-'||g, tom, null, '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.protocols(id,owner,library_id,data) values ('q19p-11',tom,null,'{}');
+    raise exception 'ÉCHEC 19.3 : un protocole au-delà du quota est accepté';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  insert into public.sessions(id,owner,data) select 'q19s-'||g, tom, '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.sessions(id,owner,data) values ('q19s-11',tom,'{}');
+    raise exception 'ÉCHEC 19.3 : une session au-delà du quota est acceptée';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+
+  -- 19.4 Le quota est PAR ESPACE : une bibliothèque a le sien, plein ou non indépendamment du personnel.
+  insert into public.libraries(id,name,created_by) values ('lib-19','Dix-neuf',sam) on conflict (id) do nothing;
+  insert into public.memberships(user_id,library_id,role) values (tom,'lib-19','editor')
+    on conflict (user_id,library_id) do update set role = excluded.role;
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  insert into public.cognitive_aids(id,owner,library_id,data) select 'q19l-'||g, tom, 'lib-19', '{}'::jsonb from generate_series(1,10) g;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('q19l-11',tom,'lib-19','{}');
+    raise exception 'ÉCHEC 19.4 : une bibliothèque dépasse son quota';
+  exception when others then if sqlerrm like 'ÉCHEC%' then raise; end if; end;
+  reset role;
+
+  -- 19.5 Documents : la politique restrictive borne un dossier du bucket ; remplacer un objet existant passe.
+  insert into storage.buckets(id,name) values ('attachments','attachments') on conflict (id) do nothing;
+  insert into storage.objects(bucket_id,name) select 'attachments', 'u/'||tom||'/d'||g||'.pdf' from generate_series(1,10) g;
+  if public.quota_att_ok('u/'||tom||'/d11.pdf') then raise exception 'ÉCHEC 19.5 : un 11e document passe le quota'; end if;
+  if not public.quota_att_ok('u/'||tom||'/d3.pdf') then raise exception 'ÉCHEC 19.5 : remplacer un document existant est refusé'; end if;
+  if not public.quota_att_ok('l/lib-19/d1.pdf') then raise exception 'ÉCHEC 19.5 : le quota d''un dossier ferme un autre dossier'; end if;
+  if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='att_quota_ins' and permissive='RESTRICTIVE') then
+    raise exception 'ÉCHEC 19.5 : la politique restrictive des documents est absente'; end if;
+  delete from storage.objects where bucket_id='attachments' and name like 'u/'||tom||'/d%';
+
+  -- 19.5b L'usage réel : l'administrateur lit le compte de l'espace le plus rempli ; personne d'autre.
+  insert into storage.objects(bucket_id,name) select 'attachments', 'l/lib-19/u'||g||'.pdf' from generate_series(1,7) g;
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_j := public.quota_usage();
+  reset role;
+  if (v_j->>'aids')::int < 10 or (v_j->>'protocols')::int < 10 or (v_j->>'sessions')::int < 10 or (v_j->>'docs')::int < 7 then
+    raise exception 'ÉCHEC 19.5b : usage réel mal compté (%)', v_j; end if;
+  if (v_j->>'aids')::int > (select count(*) from public.cognitive_aids where deleted_at is null) then
+    raise exception 'ÉCHEC 19.5b : usage supérieur au total des aides (%)', v_j; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  if public.quota_usage() is not null then raise exception 'ÉCHEC 19.5b : un compte ordinaire lit l''usage de l''instance'; end if;
+  reset role;
+  insert into auth.sessions(id, user_id) values (v_s19, sam) on conflict (id) do nothing;
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('5',64), repeat('6',64), now(), sam, 'claimed', now() + interval '2 hours', now(), now(), v_s19);
+  perform set_config('request.jwt.claims', json_build_object('sub',sam,'role','authenticated','session_id',v_s19)::text, true);
+  set local role authenticated;
+  if public.quota_usage() is not null then raise exception 'ÉCHEC 19.5b : une session de poste lit l''usage de l''instance'; end if;
+  reset role;
+  delete from public.device_links where auth_session = v_s19;
+  delete from storage.objects where bucket_id='attachments' and name like 'l/lib-19/u%';
+
+  -- 19.6 Une écriture sans compte (dépôt d'un poste par sa clé) n'est pas comptée ; les aides internes sont fermées.
+  perform set_config('request.jwt.claims', '', true);
+  insert into public.sessions(id,owner,data) values ('q19s-depot',tom,'{}');
+  select string_agg(f, ', ') into v_list from unnest(array['public.quotas()','public.quota_check()']) f
+   where has_function_privilege('authenticated', f, 'execute') or has_function_privilege('anon', f, 'execute');
+  if v_list is not null then raise exception 'ÉCHEC 19.6 : aide interne des quotas appelable par un client : %', v_list; end if;
+
+  -- Restauration (le tout est de toute façon annulé par le ROLLBACK final).
+  update public.app_settings set quotas = v_q0 where id;
+  delete from public.app_admins where user_id = sam;
+  ------------------------------------------------------------------ 20. Invitation avec acceptation (A685)
+  reset role;
+  insert into public.libraries(id,name,created_by) values ('lib-20','Vingt',quin) on conflict (id) do nothing;
+  delete from public.memberships where library_id = 'lib-20' and user_id = rui;
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-20',quin,'lib-20','{"title":"secret"}');
+  -- 20.1 L'invitation naît EN ATTENTE : elle ne donne rien — ni contenu, ni bibliothèque, ni membres.
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  if public.invite_member('lib-20','rui@test.local','editor') <> 'ok' then raise exception 'ÉCHEC 20.1 : invitation refusée'; end if;
+  if not exists (select 1 from public.list_members('lib-20') where user_id = rui and pending) then
+    raise exception 'ÉCHEC 20.1 : l''administrateur ne voit pas l''invitation en attente'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  if public.is_member('lib-20') or public.member_role('lib-20') is not null then raise exception 'ÉCHEC 20.1 : une invitation en attente vaut adhésion'; end if;
+  select (select count(*) from public.cognitive_aids where library_id='lib-20') + (select count(*) from public.libraries where id='lib-20')
+       + (select count(*) from public.memberships where library_id='lib-20' and user_id <> rui) into v_cnt;
+  if v_cnt <> 0 then raise exception 'ÉCHEC 20.1 : un invité non accepté lit % ligne(s) de la bibliothèque', v_cnt; end if;
+  begin
+    insert into public.cognitive_aids(id,owner,library_id,data) values ('f-20x',rui,'lib-20','{}');
+    raise exception 'ÉCHEC 20.1 : un invité non accepté écrit dans la bibliothèque';
+  exception when insufficient_privilege then null; end;
+  -- … et il ne peut pas s'activer lui-même en direct.
+  begin
+    update public.memberships set pending = false where user_id = rui and library_id = 'lib-20';
+    if not exists (select 1 from public.memberships where user_id = rui and library_id = 'lib-20' and pending) then
+      raise exception 'ÉCHEC 20.1 : un invité s''active sans passer par answer_invitation'; end if;
+  exception when insufficient_privilege then null; end;
+  -- 20.2 Il voit SON invitation (nom, rôle, qui invite), et personne d'autre ne la voit à sa place.
+  if not exists (select 1 from public.my_invitations() where library_id='lib-20' and name='Vingt' and role='editor' and invited_by='quin@test.local') then
+    raise exception 'ÉCHEC 20.2 : l''invité ne voit pas son invitation'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  if exists (select 1 from public.my_invitations() where library_id='lib-20') then raise exception 'ÉCHEC 20.2 : un tiers voit l''invitation d''un autre'; end if;
+  if public.answer_invitation('lib-20', true) <> 'not_found' then raise exception 'ÉCHEC 20.2 : un tiers répond à l''invitation d''un autre'; end if;
+  -- 20.3 Refuser retire la ligne ; réinvité puis accepté, il devient membre et lit le contenu.
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  if public.answer_invitation('lib-20', false) <> 'ok' then raise exception 'ÉCHEC 20.3 : refus impossible'; end if;
+  reset role;
+  if exists (select 1 from public.memberships where user_id = rui and library_id = 'lib-20') then raise exception 'ÉCHEC 20.3 : l''invitation refusée reste'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  set local role authenticated;
+  perform public.invite_member('lib-20','rui@test.local','viewer');
+  -- Depuis un poste partagé, on ne répond pas à une invitation.
+  reset role;
+  delete from public.device_links where user_id = rui; delete from auth.sessions where id = v_s18a;
+  insert into auth.sessions(id, user_id) values (v_s18a, rui);
+  insert into public.device_links(kind, secret_hash, key_hash, open_until, user_id, status, ends_at, approved_at, claimed_at, auth_session)
+    values ('connect', repeat('3',64), repeat('4',64), now(), rui, 'claimed', now() + interval '2 hours', now(), now(), v_s18a);
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated','session_id',v_s18a)::text, true);
+  set local role authenticated;
+  if public.answer_invitation('lib-20', true) <> 'refused' then raise exception 'ÉCHEC 20.3 : un poste partagé accepte une invitation'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  if public.answer_invitation('lib-20', true) <> 'ok' then raise exception 'ÉCHEC 20.3 : acceptation impossible'; end if;
+  if not public.is_member('lib-20') or (select count(*) from public.cognitive_aids where library_id='lib-20') <> 1 then
+    raise exception 'ÉCHEC 20.3 : accepté, le membre ne lit pas la bibliothèque'; end if;
+  if exists (select 1 from public.my_invitations()) then raise exception 'ÉCHEC 20.3 : l''invitation acceptée reste en attente'; end if;
+  -- 20.4 Ré-inviter un membre déjà accepté ne le remet pas en attente (seul le rôle change).
+  perform set_config('request.jwt.claims', json_build_object('sub',quin,'role','authenticated')::text, true);
+  perform public.invite_member('lib-20','rui@test.local','editor');
+  reset role;
+  if (select role || '|' || pending::text from public.memberships where user_id = rui and library_id = 'lib-20') is distinct from 'editor|false' then
+    raise exception 'ÉCHEC 20.4 : ré-inviter un membre le remet en attente'; end if;
+  -- 20.5 S'inviter soi-même (l'administrateur de l'instance qui s'ajoute) rend membre aussitôt.
+  insert into public.libraries(id,name,created_by) values ('lib-20b','Vingt bis',quin) on conflict (id) do nothing;
+  insert into public.app_admins(user_id) values (rui) on conflict do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub',rui,'role','authenticated')::text, true);
+  set local role authenticated;
+  v_hack := public.invite_member('lib-20b', 'rui@test.local', 'viewer');
+  if v_hack <> 'ok' or not public.is_member('lib-20b') then
+    raise exception 'ÉCHEC 20.5 : l''administrateur de l''instance qui s''ajoute n''est pas membre aussitôt (%)', v_hack; end if;
+  reset role;
+  delete from public.app_admins where user_id = rui;
 
   ------------------------------------------------------------------ FIN
   reset role;
