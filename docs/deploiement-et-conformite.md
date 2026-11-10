@@ -290,6 +290,53 @@ politiques RLS, pas du secret de cette clé).
 - **« en attente » inattendu** : la validation des comptes est active ; approuver le compte.
 - **Le service worker ne s'installe pas** : l'hébergement doit être en HTTPS (ni `file://` ni HTTP).
 
+### 1.8 Quotas (v5.116)
+Quatre limites bornent le NOMBRE d'éléments qu'un espace peut contenir. Elles se règlent dans
+*Moi → Administration → Règles → Quotas*, par un administrateur de l'instance, jamais depuis une
+connexion temporaire. Le serveur les applique ; l'application ne fait que les afficher et les régler.
+
+**Ce qu'est un espace.** L'espace personnel d'un compte, ou une bibliothèque. Chacun a sa propre
+limite : une bibliothèque pleine ne ferme pas l'espace personnel de ses membres, ni l'inverse. Ce
+qui est supprimé ne compte pas.
+
+| Limite | Ce qui est compté | Par défaut | Plage |
+|---|---|---|---|
+| Aides | les aides non supprimées d'un même espace | 2 000 | 10 à 1 000 000 |
+| Protocoles | les protocoles non supprimés d'un même espace | 2 000 | 10 à 1 000 000 |
+| Sessions enregistrées | les sessions enregistrées et non supprimées d'un même compte | 5 000 | 10 à 1 000 000 |
+| Documents PDF | les documents PDF joints aux aides et aux protocoles d'un même espace | 1 000 | 10 à 1 000 000 |
+
+**Quand une limite est atteinte.** Les nouveaux éléments sont refusés à la synchronisation. Ils
+restent sur l'appareil de la personne, qui voit « Quota atteint » dans l'état de la synchronisation ;
+rien n'est perdu, et rien de ce qui est déjà enregistré n'est supprimé ni bloqué (modifier ou
+supprimer un élément existant reste possible). L'envoi reprend seul dès qu'une place se libère ou
+que la limite est relevée. Baisser une limite sous l'usage actuel ne supprime rien non plus : cela
+arrête seulement les ajouts dans les espaces concernés — l'écran le signale sous le champ, sans
+l'empêcher.
+
+**Comment choisir.** Sous chaque champ, l'écran donne « le plus rempli aujourd'hui » : le nombre
+d'éléments de l'espace le plus chargé de l'instance. Partez de ce nombre et laissez une large marge.
+Ces limites arrêtent un compte qui s'emballe (import en boucle, client défaillant, abus) ; **elles ne
+réservent pas de place**. Le vrai plafond est la taille de base de données et de stockage de votre
+offre Supabase : une aide ou un protocole peut peser jusqu'à 20 Mo, une session 1 Mo, un document
+PDF 15 Mo. Deux mille aides au maximum de leur taille dépasseraient n'importe quelle offre : c'est
+l'espace disque de l'offre qu'il faut surveiller (tableau de bord Supabase), pas ces quatre nombres.
+
+**Sans l'application** (SQL Editor de Supabase) :
+
+```sql
+-- Les limites en vigueur (défauts compris)
+select public.quotas();
+-- L'espace le plus rempli, pour chaque limite (aides)
+select coalesce(library_id, 'perso:' || owner::text) as espace, count(*) as aides
+  from public.cognitive_aids where deleted_at is null group by 1 order by 2 desc limit 5;
+-- Relever une limite (les quatre clés : aids, protocols, sessions, docs)
+update public.app_settings set quotas = quotas || '{"aids": 5000}'::jsonb where id;
+```
+
+`select public.quota_usage();` rend le même résumé que l'écran, mais seulement pour un administrateur
+connecté par l'application : dans le SQL Editor (sans compte), utilisez les requêtes ci-dessus.
+
 ---
 
 ## 2. Statut réglementaire — pourquoi l'application n'est pas un dispositif médical

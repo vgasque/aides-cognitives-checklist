@@ -2719,6 +2719,144 @@ create policy att_temp_upd on storage.objects as restrictive for update to authe
 drop policy if exists att_temp_del on storage.objects;
 create policy att_temp_del on storage.objects as restrictive for delete to authenticated
   using (bucket_id <> 'attachments' or public.temp_att_del_ok());
+-- ============================================================================================
+--  A687 — QUOTAS PAR ESPACE, réglables par l'administrateur (v5.116)
+-- ============================================================================================
+-- Rien ne bornait le NOMBRE de lignes ni d'objets : seule la taille de chacun l'était. Un seul compte —
+-- malveillant, ou un client en boucle — pouvait remplir le quota de l'instance et arrêter la synchro
+-- de tous. Un quota vaut PAR ESPACE : l'espace personnel d'un compte (`library_id is null`, compté par
+-- `owner`) et chaque bibliothèque (`library_id`). Les sessions se comptent par compte.
+--   aids      : aides vivantes par espace            (défaut 2000)
+--   protocols : protocoles vivants par espace        (défaut 2000)
+--   sessions  : sessions vivantes par compte         (défaut 5000)
+--   docs      : documents PDF par espace (stockage)  (défaut 1000)
+-- CE QUI COMPTE : les lignes VIVANTES (`deleted_at is null`). Une tombe ne compte pas, et la pousser
+-- n'est jamais refusé. CE QUI N'EST JAMAIS REFUSÉ : réécrire une ligne qui existe (l'upsert de la synchro
+-- passe par BEFORE INSERT même quand l'id existe) — un quota abaissé sous l'usage courant ne bloque que
+-- les AJOUTS, il ne supprime ni ne fige rien. Les écritures sans compte (`link_deposit`, par la clé d'un
+-- poste) ne sont pas comptées ici : un compte rendu de soin ne se perd pas pour un quota.
+-- Le compte est pris sans verrou : deux ajouts simultanés peuvent dépasser d'une ligne — c'est une borne
+-- d'abus, pas une comptabilité.
+alter table public.app_settings add column if not exists quotas jsonb not null default '{}'::jsonb;
+
+create or replace function public.quotas()
+returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
+  select '{"aids":2000,"protocols":2000,"sessions":5000,"docs":1000}'::jsonb
+         || coalesce((select quotas from public.app_settings limit 1), '{}'::jsonb);
+$$;
+
+-- Lecture : tout compte validé (l'app dit la limite dans son message ; l'administration l'affiche).
+create or replace function public.get_quotas()
+returns jsonb language sql stable security definer set search_path = public, pg_temp as $$
+  select case when auth.uid() is null or not public.is_approved() then null else public.quotas() end;
+$$;
+grant execute on function public.get_quotas() to authenticated;
+
+-- Écriture : l'administrateur, jamais depuis une connexion temporaire. Grammaire FERMÉE : quatre clés,
+-- des entiers, de 10 à 1 000 000 (une limite à 0 fermerait l'application à tous d'un seul geste).
+create or replace function public.set_quotas(p jsonb)
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare v jsonb := '{}'::jsonb; k text;
+begin
+  if not public.is_app_admin() or public.link_is_poste() then raise exception 'not allowed'; end if;
+  if p is null or jsonb_typeof(p) <> 'object' or p = '{}'::jsonb then raise exception 'invalid quotas'; end if;
+  for k in select jsonb_object_keys(p) loop
+    if k not in ('aids','protocols','sessions','docs') then raise exception 'invalid quotas'; end if;
+    if jsonb_typeof(p -> k) <> 'number' or (p ->> k) ~ '[^0-9]' or length(p ->> k) > 7
+       or (p ->> k)::int < 10 or (p ->> k)::int > 1000000 then raise exception 'invalid quotas'; end if;
+    v := v || jsonb_build_object(k, (p ->> k)::int);
+  end loop;
+  update public.app_settings set quotas = quotas || v where id = true;
+end;$$;
+grant execute on function public.set_quotas(jsonb) to authenticated;
+
+-- L'USAGE RÉEL, pour l'administrateur (A688) : pour chaque limite, le compte de l'espace LE PLUS REMPLI de
+-- l'instance — le nombre auquel comparer ce qu'on s'apprête à saisir. Des nombres seulement : ni nom de
+-- compte, ni nom de bibliothèque. Administrateur, jamais depuis un poste partagé (`admin_reads`) ; nul sinon.
+create or replace function public.quota_usage()
+returns jsonb language sql stable security definer set search_path = public, storage, pg_temp as $$
+  select case when not public.admin_reads() then null else jsonb_build_object(
+    'aids', greatest(
+      coalesce((select max(n) from (select count(*) n from public.cognitive_aids
+                 where deleted_at is null and library_id is null group by owner) x), 0),
+      coalesce((select max(n) from (select count(*) n from public.cognitive_aids
+                 where deleted_at is null and library_id is not null group by library_id) x), 0)),
+    'protocols', greatest(
+      coalesce((select max(n) from (select count(*) n from public.protocols
+                 where deleted_at is null and library_id is null group by owner) x), 0),
+      coalesce((select max(n) from (select count(*) n from public.protocols
+                 where deleted_at is null and library_id is not null group by library_id) x), 0)),
+    'sessions', coalesce((select max(n) from (select count(*) n from public.sessions
+                 where deleted_at is null group by owner) x), 0),
+    'docs', coalesce((select max(n) from (select count(*) n from storage.objects o
+                 where o.bucket_id = 'attachments'
+                 group by (storage.foldername(o.name))[1], (storage.foldername(o.name))[2]) x), 0)) end;
+$$;
+grant execute on function public.quota_usage() to authenticated;
+
+-- Le déclencheur. L'erreur porte le NOM de la limite (`detail`) et sa VALEUR (`hint`) : PostgREST les
+-- rend dans le corps de la réponse (`message`, `details`, `hint`), et l'app en fait un message vrai.
+create or replace function public.quota_check()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_key text; v_lim int; v_n int;
+begin
+  if new.deleted_at is not null or auth.uid() is null then return new; end if;
+  if tg_table_name = 'cognitive_aids' then
+    if exists (select 1 from public.cognitive_aids where id = new.id) then return new; end if;
+    v_key := 'aids';
+    select count(*) into v_n from public.cognitive_aids
+     where deleted_at is null
+       and ((new.library_id is null and library_id is null and owner = new.owner) or library_id = new.library_id);
+  elsif tg_table_name = 'protocols' then
+    if exists (select 1 from public.protocols where id = new.id) then return new; end if;
+    v_key := 'protocols';
+    select count(*) into v_n from public.protocols
+     where deleted_at is null
+       and ((new.library_id is null and library_id is null and owner = new.owner) or library_id = new.library_id);
+  elsif tg_table_name = 'sessions' then
+    if exists (select 1 from public.sessions where id = new.id) then return new; end if;
+    v_key := 'sessions';
+    select count(*) into v_n from public.sessions where deleted_at is null and owner = new.owner;
+  else
+    return new;
+  end if;
+  v_lim := (public.quotas() ->> v_key)::int;
+  if v_n >= v_lim then
+    raise exception 'quota_exceeded' using errcode = 'P0001', detail = v_key, hint = v_lim::text;
+  end if;
+  return new;
+end; $$;
+-- Le compte d'un espace personnel se fait par `owner` : index partiels, pour qu'un lot poussé ne relise pas la table.
+create index if not exists fiches_perso_owner_idx    on public.cognitive_aids (owner) where library_id is null;
+create index if not exists protocols_perso_owner_idx on public.protocols (owner)      where library_id is null;
+drop trigger if exists fiches_quota on public.cognitive_aids;
+create trigger fiches_quota before insert on public.cognitive_aids
+  for each row execute function public.quota_check();
+drop trigger if exists protocols_quota on public.protocols;
+create trigger protocols_quota before insert on public.protocols
+  for each row execute function public.quota_check();
+drop trigger if exists sessions_quota on public.sessions;
+create trigger sessions_quota before insert on public.sessions
+  for each row execute function public.quota_check();
+
+-- Documents : même borne, par DOSSIER du bucket (`u/<compte>/…` ou `l/<bibliothèque>/…`). Vue depuis une
+-- POLITIQUE (droits de l'appelant) : relais en definer qui ne rend qu'un booléen, comme `temp_att_del_ok`.
+-- Remplacer un objet qui existe (x-upsert) passe toujours. Le stockage répond alors 403 comme pour tout
+-- refus de politique : l'app ne peut pas y lire « quota » — elle le dit dans le texte de ce refus.
+create or replace function public.quota_att_ok(p_name text)
+returns boolean language sql stable security definer set search_path = public, storage, pg_temp as $$
+  select exists (select 1 from storage.objects o where o.bucket_id = 'attachments' and o.name = p_name)
+      or (select count(*) from storage.objects o
+           where o.bucket_id = 'attachments'
+             and (storage.foldername(o.name))[1] = (storage.foldername(p_name))[1]
+             and (storage.foldername(o.name))[2] = (storage.foldername(p_name))[2])
+         < (public.quotas() ->> 'docs')::int;
+$$;
+grant execute on function public.quota_att_ok(text) to authenticated;
+drop policy if exists att_quota_ins on storage.objects;
+create policy att_quota_ins on storage.objects as restrictive for insert to authenticated
+  with check (bucket_id <> 'attachments' or public.quota_att_ok(name));
+
 -- Bibliothèques, membres et rôles : jamais depuis un poste (A647, « toujours interdit »).
 drop policy if exists libraries_temp_ins on public.libraries;
 create policy libraries_temp_ins on public.libraries as restrictive for insert to authenticated
@@ -2882,6 +3020,9 @@ revoke execute on function public.share_purge()                 from public, ano
 revoke execute on function public.share_new_code()              from public, anon, authenticated;
 revoke execute on function public.share_kind_allowed(text,text) from public, anon, authenticated;
 revoke execute on function public.share_val_ok(text,jsonb)      from public, anon, authenticated;
+-- A687 : aides internes des quotas (le déclencheur et la lecture brute) — aucun client.
+revoke execute on function public.quotas()                      from public, anon, authenticated;
+revoke execute on function public.quota_check()                 from public, anon, authenticated;
 revoke execute on function public.session_is_poste()            from public, anon, authenticated;
 revoke execute on function public.admin_reads()                 from public, anon, authenticated;
 revoke execute on function public.forbid_passwords()            from public, anon, authenticated;   -- A648 : fonction de déclencheur

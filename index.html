@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-VH6YGCNwqdhcvTwB/V8GZ5JLeKezOVGiVtxtNCpVMIA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rCybqR95XZUnjjxOrFHrecg7rU7ltKnHybdxK1l/4kU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -32655,14 +32655,16 @@ const ADM_GRP={pending:'À examiner',approved:'Approuvés',admin:'Administrateur
 const ADM_PAGE=40,ADM_INLINE=8;
 const admModal=document.getElementById('admModal');
 let _admD=null,_admBusy=null;
-let _adm={sec:'home',from:'home',user:null,f:'all',q:'',lim:ADM_PAGE,sort:'todo',lf:'all',lq:'',llim:ADM_PAGE,lsort:'todo',sel:null,apAsk:null,modeAsk:null,mem:Object.create(null)};
+let _adm={sec:'home',from:'home',user:null,f:'all',q:'',lim:ADM_PAGE,sort:'todo',lf:'all',lq:'',llim:ADM_PAGE,lsort:'todo',sel:null,apAsk:null,modeAsk:null,qtAsk:null,mem:Object.create(null)};
 const admArr=v=>Array.isArray(v)?v.filter(x=>x&&typeof x==='object'):[];
 async function admLoad(){const T=p=>p.then(v=>({v}),e=>({e}));
-  const [st,acc,libs,reqs,mode,users,ap,tr]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required','get_temp_rules'].map(n=>T(rpc(n))));
+  const [st,acc,libs,reqs,mode,users,ap,tr,qt,qu]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required','get_temp_rules','get_quotas','quota_usage'].map(n=>T(rpc(n))));
   let un=null;if(acc.e){const r=await T(rpc('list_unapproved_users'));un=r.e?null:admArr(r.v);}   // serveur d'avant v5.52 : la file seule
   _admD={t:Date.now(),stats:st.e?null:st.v,acc:acc.e?null:admArr(acc.v),un,libs:libs.e?null:admArr(libs.v),reqs:reqs.e?null:admArr(reqs.v),
     mode:mode.e?null:mode.v,users:users.e?null:admArr(users.v),approval:ap.e?true:ap.v!==false,
-    temp:tr.e||!tr.v||typeof tr.v!=='object'?null:linkRulesNorm(tr.v)};
+    temp:tr.e||!tr.v||typeof tr.v!=='object'?null:linkRulesNorm(tr.v),
+    quotas:qt.e||!qt.v||typeof qt.v!=='object'?null:quotasNorm(qt.v),   // A688 ; serveur d'avant v5.116 : nul, l'écran le dit
+    usage:qu.e||!qu.v||typeof qu.v!=='object'?null:quotaUsageNorm(qu.v)};
   (_admD.libs||[]).forEach(l=>{if(l.id)_admLibs[l.id]=l;});
   return _admD;}
 function admRefresh(force){if(_admBusy)return _admBusy;if(!force&&_admD&&Date.now()-_admD.t<30000){admPaintDoor();return Promise.resolve(_admD);}
@@ -32858,6 +32860,33 @@ const ADM_TEMP_ROWS=[
   ['repl','Remplacer une bibliothèque','à l’import',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['exp','Exporter, télécharger','le fichier reste dans les Téléchargements',[['oui','Permis'],['non','Interdit']]],
   ['dur','Durée maximale','d’une connexion temporaire',[[12,'12 h'],[24,'24 h'],[28,'28 h']]]];
+/* A688 — LES QUOTAS, réglables ici (décision de l'auteur : « avec option pour modifier, depuis le panneau d'admin »).
+   Le serveur les applique (A687) ; l'écran ne fait que lire et régler. `quotasNorm` : PURE (testée) — quatre entiers,
+   bornés comme le serveur (10 à 1 000 000), défauts du serveur pour une clé absente ou illisible. */
+const QUOTA_DEF={aids:2000,protocols:2000,sessions:5000,docs:1000},QUOTA_MIN=10,QUOTA_MAX=1000000;
+const quotaClamp=v=>{const n=Math.round(+v);return Number.isFinite(n)?Math.max(QUOTA_MIN,Math.min(QUOTA_MAX,n)):null;};
+function quotasNorm(o){const out={};o=(o&&typeof o==='object')?o:{};
+  Object.keys(QUOTA_DEF).forEach(k=>{const n=quotaClamp(Object.prototype.hasOwnProperty.call(o,k)?o[k]:NaN);out[k]=n==null?QUOTA_DEF[k]:n;});return out;}
+/* L'usage réel rendu par `quota_usage` — PURE (testée) : quatre entiers ≥ 0, rien d'autre. */
+function quotaUsageNorm(o){const out={};o=(o&&typeof o==='object')?o:{};
+  Object.keys(QUOTA_DEF).forEach(k=>{const n=Math.round(+(Object.prototype.hasOwnProperty.call(o,k)?o[k]:0));out[k]=Number.isFinite(n)&&n>0?n:0;});return out;}
+const nbFr=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f');   // 1 000 000, espace fine insécable
+/* [clé, libellé, CE QUI EST COMPTÉ (une phrase), le nom court de la portée]. Le guide de l'écran et celui de
+   `docs/deploiement-et-conformite.md` § 1.8 disent la même chose : les changer ensemble. */
+const ADM_QUOTA_ROWS=[
+  ['aids','Aides','Les aides non supprimées d’un même espace.','par espace'],
+  ['protocols','Protocoles','Les protocoles non supprimés d’un même espace.','par espace'],
+  ['sessions','Sessions enregistrées','Les sessions enregistrées et non supprimées d’un même compte.','par compte'],
+  ['docs','Documents PDF','Les documents PDF joints aux aides et aux protocoles d’un même espace.','par espace']];
+/* La ligne de repère d'un champ — PURE (testée) : l'usage réel de l'espace le plus rempli, le défaut, la plage. */
+function quotaRepere(k,usage){const u=usage&&Number.isFinite(usage[k])?usage[k]:null;
+  return (u==null?'':'Le plus rempli aujourd’hui : '+nbFr(u)+'. ')+'Par défaut : '+nbFr(QUOTA_DEF[k])+'. De '+nbFr(QUOTA_MIN)+' à '+nbFr(QUOTA_MAX)+'.';}
+/* Le refus du serveur — PURE (testée). Le corps de PostgREST porte `message` (« quota_exceeded »), `details` (la
+   limite : aids · protocols · sessions) et `hint` (sa valeur). Rend {k,lim} ou null ; rien d'autre n'est lu du texte. */
+function quotaErrInfo(msg){msg=String(msg||'');if(msg.indexOf('quota_exceeded')<0)return null;
+  const k=/"details"\s*:\s*"(aids|protocols|sessions|docs)"/.exec(msg),l=/"hint"\s*:\s*"(\d{1,7})"/.exec(msg);
+  return {k:k?k[1]:null,lim:l?+l[1]:null};}
+const QUOTA_MOT={aids:['aide','aides'],protocols:['protocole','protocoles'],sessions:['session enregistrée','sessions enregistrées'],docs:['document','documents']};
 function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.status==='pending'&&!u.is_admin).length;
   let h=admSubHead(view,'Règles de l’instance','Elles valent pour tous les comptes ; chaque changement se confirme.');
   /* NOUVEAUX COMPTES — l'interrupteur de l'ancienne fenêtre « Comptes en attente ». Couper agit AUSSI sur
@@ -32890,6 +32919,16 @@ function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.st
      appareils connectés — même confirmation sur place que les deux autres réglages. */
   if(D.temp!=null&&_adm.trAsk){const r=ADM_TEMP_ROWS.find(x=>x[0]===_adm.trAsk.k),o=r&&r[3].find(x=>String(x[0])===String(_adm.trAsk.v));
     if(r&&o)h+=admAskHtml('tr','« '+r[1]+' » passe à « '+o[1]+' » : appliqué tout de suite, aussi aux appareils temporaires déjà connectés.','Confirmer');}
+  /* A688 — QUOTAS. Même confirmation sur place que les autres réglages (A661) : la saisie DEMANDE, « Confirmer »
+     applique. Abaisser une limite sous l'usage courant ne supprime rien : seuls les AJOUTS sont refusés. */
+  h+=admSh('Quotas')+'<p class="adm-hint">Le nombre d’éléments qu’un espace peut contenir. Un espace, c’est l’espace personnel d’un compte, ou une bibliothèque : chacun a sa propre limite. Ce qui est supprimé ne compte pas.</p>';
+  if(D.quotas==null)h+=admSchema('v5.116','régler les quotas');
+  else{h+='<div class="acct-card acct-list">'+ADM_QUOTA_ROWS.map(([k,l,quoi,portee])=>{const v=(_adm.qtAsk&&_adm.qtAsk.k===k?_adm.qtAsk.v:D.quotas[k])|0,u=D.usage?D.usage[k]:null;
+      return `<div class="adm-urow"><span>${esc(l)}<small>${esc(quoi)}</small><small>${esc(quotaRepere(k,D.usage))}</small>${u!=null&&v<u?`<small>${esc('△ En dessous de l’usage actuel ('+nbFr(u)+') : plus aucun ajout dans les espaces concernés. Rien n’est supprimé.')}</small>`:''}</span><input class="auth-field" type="number" inputmode="numeric" min="${QUOTA_MIN}" max="${QUOTA_MAX}" step="1" style="flex:0 0 132px;width:132px" data-admqt="${k}" data-admk="qt-${k}" aria-label="${esc(l+' — limite '+portee)}" value="${v}"></div>`;}).join('')+'</div>';
+    h+='<p class="adm-hint"><b>Quand une limite est atteinte</b> : les nouveaux éléments sont refusés à la synchronisation. Ils restent sur l’appareil de la personne, rien n’est perdu, et rien de ce qui est déjà enregistré n’est supprimé ni bloqué. Baisser une limite sous l’usage actuel ne supprime rien non plus : cela arrête seulement les ajouts.</p>'
+      +'<p class="adm-hint"><b>Comment choisir</b> : partez du nombre « le plus rempli aujourd’hui » et laissez une large marge. Ces limites arrêtent un compte qui s’emballe ; elles ne réservent pas de place. Le vrai plafond est la taille de base de données et de stockage de votre offre Supabase : une aide ou un protocole peut peser jusqu’à 20 Mo, une session 1 Mo, un document PDF 15 Mo.</p>';}
+  if(D.quotas!=null&&_adm.qtAsk){const r=ADM_QUOTA_ROWS.find(x=>x[0]===_adm.qtAsk.k),u=D.usage&&r?D.usage[r[0]]:null;
+    if(r)h+=admAskHtml('qt','« '+r[1]+' » : la limite passe de '+nbFr(D.quotas[r[0]])+' à '+nbFr(_adm.qtAsk.v)+' '+r[3]+'. Appliqué tout de suite, pour tous.'+(u!=null&&_adm.qtAsk.v<u?' C’est en dessous de l’usage actuel ('+nbFr(u)+') : plus aucun ajout dans les espaces concernés, rien n’est supprimé.':''),'Confirmer');}
   if((D.reqs||[]).length)h+=admSh('Les autres demandent')+`<div class="acct-card acct-list">`+menuRowHtml({label:D.reqs.length+' demande'+(D.reqs.length>1?'s':'')+' de bibliothèque en attente',ic:uiIcon('book',20),attrs:'data-admgo="home" data-admk="go-req"',tail:admChev()})+'</div>';
   return h;}
 /* ── Rendu, onglets (vue large), gestes ──────────────────────────────────────────────────────── */
@@ -32964,7 +33003,11 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       _admD.temp=Object.assign({},_admD.temp,{[k]:k==='dur'?+v:v});_linkRules=null;await linkRulesFetch();
       renderAdm();toast('✓ Règle enregistrée — elle s’applique aux appareils temporaires.');return;}
     if(t.dataset.libmode!=null){_adm.modeAsk=t.dataset.libmode===_admD.mode?null:t.dataset.libmode;renderAdm();admFocusYes('mode');return;}
-    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else if(t.dataset.admno==='tr')_adm.trAsk=null;else _adm.modeAsk=null;renderAdm();return;}
+    if(t.dataset.admyes==='qt'){const a=_adm.qtAsk;_adm.qtAsk=null;if(!a||!_admD.quotas){renderAdm();return;}   // A688
+      try{await rpc('set_quotas',{p:{[a.k]:a.v}});}catch(x){err(x);renderAdm();return;}
+      _admD.quotas=Object.assign({},_admD.quotas,{[a.k]:a.v});
+      renderAdm();toast('✓ Quota enregistré — appliqué par le serveur.');return;}
+    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else if(t.dataset.admno==='tr')_adm.trAsk=null;else if(t.dataset.admno==='qt')_adm.qtAsk=null;else _adm.modeAsk=null;renderAdm();return;}
     if(t.dataset.admyes==='ap'){const v=_adm.apAsk;_adm.apAsk=null;
       try{await rpc('set_approval_required',{p_value:v});}catch(x){err(x);renderAdm();return;}
       admAfter(v?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes sont approuvés automatiquement.');return;}
@@ -32981,6 +33024,9 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
     const l=box.querySelector('#admList');if(l)l.innerHTML=t.dataset.admq==='acc'?admAccListHtml():admLibListHtml();});
   box.addEventListener('change',async e=>{const t=e.target;if(!t.dataset)return;
     if(t.dataset.admsort!=null){if(t.dataset.admsort==='acc')_adm.sort=t.value;else _adm.lsort=t.value;renderAdm();return;}
+    if(t.dataset.admqt!=null){const k=t.dataset.admqt,v=quotaClamp(t.value);   // A688 : la saisie demande, « Confirmer » applique
+      if(!_admD.quotas||!Object.prototype.hasOwnProperty.call(QUOTA_DEF,k))return;
+      _adm.qtAsk=(v==null||v===_admD.quotas[k])?null:{k,v};renderAdm();if(_adm.qtAsk)admFocusYes('qt');return;}
     if(t.dataset.admrole!=null){const u=admUser();if(!u)return;
       try{await rest('PATCH','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrole)+'&user_id=eq.'+encodeURIComponent(u.user_id),{role:t.value},{'Prefer':'return=minimal'});toast('Rôle modifié.',3000,true);}catch(x){toast('⚠ Échec : '+x.message,5000,true);}
       delete _adm.mem[u.user_id];admAfter();}});}
@@ -34639,8 +34685,14 @@ function restErrStatus(message){const m=String(message||'').match(/^REST (\d+)/)
 // extrait de la boucle de retry de _push pour rester testable via ?__actest (AGENTS.md).
 function isPersoRepairCandidate(message,isPerso){return !!isPerso&&restErrStatus(message)===403;}
 function explainSyncError(e){const msg=String((e&&e.message)||e||'');const status=restErrStatus(msg);
+  /* A688 — QUOTA ATTEINT : un message VRAI, sur la surface d'erreur existante (jamais une fenêtre, règle 11). Le
+     refus ne touche que les AJOUTS : `_pushTable` rejoue le lot ligne à ligne, le reste part, et ce qui est refusé
+     reste « à envoyer » sur l'appareil — rien n'est perdu. */
+  {const q=quotaErrInfo(msg);if(q){const m=QUOTA_MOT[q.k]||['élément','éléments'];
+    return{icon:SYNC_ERR_ICONS.warning,title:'Quota atteint',detail:'Le serveur a refusé un ajout : la limite'+(q.lim?' de '+q.lim+' '+(q.lim>1?m[1]:m[0]):'')
+      +(q.k==='sessions'?' par compte':' par espace (vos éléments personnels, ou une bibliothèque)')+' est atteinte. Rien n’est perdu : ce qui n’a pas pu partir reste sur cet appareil et repartira dès qu’une place se libère (en supprimant des éléments) ou qu’un administrateur relève la limite (Administration › Règles › Quotas).'};}}
   if(status===401)return{icon:SYNC_ERR_ICONS.lock,title:'Session expirée',detail:'Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation.'};
-  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines données. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces données restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : un élément venu d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."};
+  if(status===403)return{icon:SYNC_ERR_ICONS.forbidden,title:'Écriture refusée',detail:"Le serveur a refusé d'enregistrer certaines données. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces données restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : un élément venu d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser. Pour un document PDF, ce peut aussi être le quota de documents de l'espace (Administration › Règles › Quotas)."};
   if(status===413)return{icon:SYNC_ERR_ICONS.image,title:'Contenu trop volumineux',detail:"Une aide ou un protocole contient des images trop lourdes, ou un document PDF dépasse la taille maximale autorisée (15 Mo). Réduisez ou supprimez des images, ou allégez le document, puis réessayez."};
   if(status===409)return{icon:SYNC_ERR_ICONS.warning,title:'Conflit de données',detail:"Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos données par sécurité (fenêtre Compte → « Exporter mes données »)."};
   if(status>=500)return{icon:SYNC_ERR_ICONS.server,title:'Service indisponible',detail:"Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."};
@@ -37909,7 +37961,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,
