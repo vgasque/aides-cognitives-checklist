@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-2KUjgJtbsQca+AlWhIiYCM6GOF29q4ptP99CiqG04xY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-956uOD/NWE+Hwfuu5ddHk4FrPOakRPiVivKY6IyR3W4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8262,6 +8262,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
      ne coche pas la rangée. */
   .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-ecart{flex:0 0 100%;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A725 : l'écart avec la catégorie du fichier, sur sa ligne (jamais tronqué) */
   /* A638 : le déroulant FLOTTANT (fenêtres, au bureau) — au-dessus des fenêtres (55), sous les feuilles (70). */
   .popmenu.flot{position:fixed;z-index:66;top:auto;left:auto;min-width:260px;max-width:min(380px,calc(100vw - 16px))}
   .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--work);color:var(--ink);cursor:pointer}
@@ -31917,9 +31918,12 @@ function impRowHtml(r){
    une abréviation est exactement ce qu'on ne relit pas sous fatigue. */
 function impCatLabel(r){
   if(r.cat===IMP_KEEP)return {txt:'Catégorie du fichier : '+(r.srcCat||'aucune'),col:'',keep:true};
-  if(!r.cat)return {txt:'Sans catégorie',col:'',keep:false};
-  const c=categories.find(x=>x.id===r.cat&&catScope(x)===(r.lib||null));
-  return c?{txt:'Catégorie : '+c.name,col:safeColor(c.color),keep:false}:{txt:'Sans catégorie',col:'',keep:false};}
+  /* A725 : une catégorie POSÉE (pré-remplie depuis le catalogue, ou choisie) qui n'est pas celle que le fichier déclare
+     le DIT, en toutes lettres SOUS les pastilles (`.imp-ecart` : une pastille tronque au téléphone, mesuré) — on ne range
+     pas ailleurs sans le montrer. */
+  const c=r.cat?categories.find(x=>x.id===r.cat&&catScope(x)===(r.lib||null)):null;
+  const ecart=r.srcCat&&txNorm(r.srcCat)!==txNorm(c?c.name:'')?'Le fichier la rangeait dans « '+r.srcCat+' ».':'';
+  return c?{txt:'Catégorie : '+c.name,col:safeColor(c.color),keep:false,ecart}:{txt:'Sans catégorie',col:'',keep:false,ecart};}
 function impPickHtml(kind,key,txt,col,cls,aria){
   return `<button type="button" class="imp-pick${cls||''}" data-${kind}="${esc(key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(aria)}" title="${esc(aria)}">`
     +(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')
@@ -31949,7 +31953,8 @@ function impDestHtml0(r){
   // … », le titre dit ce que le geste fera (« destination », « toucher pour changer »). Un
   // « Catégorie de destination : Catégorie du fichier : X » serait du bégaiement au survol.
   return (impLibChoix()?impPickHtml('implib',r.key,impLibName(r.lib),'',' ','Bibliothèque de destination : '+impLibName(r.lib)+' — toucher pour changer'):'')
-    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'',L.txt+(L.keep?' — la catégorie n\'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée':'')+' — toucher pour changer');}
+    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'',L.txt+(L.keep?' — la catégorie n\'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée':'')+' — toucher pour changer')
+    +(L.ecart?`<span class="imp-ecart">${esc(L.ecart)}</span>`:'');}
 // Repeint la SEULE ligne de destination touchée : reconstruire la liste sous le doigt lui ferait
 // perdre le focus et remonterait le défilement (leçon v4.78.0, déjà tenue par `impSetAll`).
 function impPaintDest(keys){

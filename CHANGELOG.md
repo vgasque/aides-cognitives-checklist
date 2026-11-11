@@ -8,6 +8,8 @@ Aux Bibliothèques, ce qu'on crée ou importe arrive là où l'on se trouve (A72
   Notion (`.md`) ou une archive (`.zip`) importés depuis les Bibliothèques proposent d'emblée la bibliothèque ouverte, et
   la catégorie ouverte s'il y en a une. Jusqu'ici l'import proposait la bibliothèque filtrée à l'Accueil, et jamais de
   catégorie. Chaque ligne de l'import reste modifiable avant de valider.
+- **Si le fichier déclarait une autre catégorie, l'import le dit.** Sous la catégorie proposée, une ligne l'écrit :
+  « Le fichier la rangeait dans « Cardio ». » Rien n'est rangé ailleurs sans que ce soit écrit.
 - **Dans « Tout », les filtres comptent.** Avec le filtre Bibliothèque posé (sur une bibliothèque où vous pouvez
   écrire), ce qu'on crée ou importe y arrive ; avec le filtre Catégorie, dans la catégorie de ce nom si la bibliothèque
   d'arrivée en a une.
