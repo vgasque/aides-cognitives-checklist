@@ -2683,6 +2683,9 @@
   .ctg-f svg{transform:rotate(90deg)}
   .ctg-f:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .ctg-raz{min-height:36px}
+  /* A719 : « Gérer la bibliothèque » à droite ; « Tout effacer » reste collé aux filtres qu'il efface. */
+  .ctg-lmgr{min-height:36px}
+  .ctg-fs>.ctg-raz:has(~.ctg-lmgr){margin-left:4px}
   /* A602 — LES VOLETS (large). La page s'affranchit de sa largeur de dialogue ; trois colonnes ≥ 1200 px effectifs
      (bibliothèques · catégories · éléments), deux en deçà (les catégories se déplient sous leur bibliothèque). */
   .home-main>.hv-page.ctg-volets{max-width:none;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}

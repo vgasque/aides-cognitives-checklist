@@ -1873,6 +1873,22 @@ begin
   if exists (select 1 from public.libraries where id = 'lib-a663') or exists (select 1 from public.memberships where library_id = 'lib-a663') then
     raise exception 'ÉCHEC 17.6 : la bibliothèque ne se supprime plus (la règle bloque la cascade)'; end if;
 
+  -- 17.6b A718 — JAMAIS SANS PERSONNE : le SEUL membre (ici un éditeur) ne quitte pas, et l'administratrice de
+  --      l'instance ne le retire pas ; supprimer la bibliothèque reste possible.
+  insert into public.libraries(id,name) values ('lib-a718','A718');
+  insert into public.memberships(user_id,library_id,role) values (lea,'lib-a718','editor');
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  set local role authenticated;
+  if public.leave_library('lib-a718') <> 'last_member' then raise exception 'ÉCHEC 17.6b : le seul membre quitte sa bibliothèque'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',oda,'role','authenticated')::text, true);
+  begin
+    delete from public.memberships where library_id='lib-a718' and user_id = lea;
+    raise exception 'ÉCHEC 17.6b : l''administratrice de l''instance retire le seul membre';
+  exception when others then if sqlerrm <> 'last_member' then raise; end if; end;
+  delete from public.libraries where id = 'lib-a718';
+  reset role;
+  if exists (select 1 from public.libraries where id = 'lib-a718') then raise exception 'ÉCHEC 17.6b : la bibliothèque à un seul membre ne se supprime plus'; end if;
+
   -- 17.7 delete_rejected_user emporte les données du compte (il ne supprimait que la ligne auth.users), et
   --      supprimer le compte d'une administratrice qui a DÉCIDÉ d'un statut ne casse plus (`decided_by`).
   insert into public.cognitive_aids(id,owner,library_id,data) values ('f-noe',noe,null,'{"t":1}');

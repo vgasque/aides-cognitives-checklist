@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-cwpPm69sYGejuJkTKxjwa+De9GRbjI8dGxaSf0CZ1eE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-RuglP4xdpP7wiD3IAymKehRUk/j21lzLCLziRvibpX4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3083,6 +3083,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-f svg{transform:rotate(90deg)}
   .ctg-f:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .ctg-raz{min-height:36px}
+  /* A719 : « Gérer la bibliothèque » à droite ; « Tout effacer » reste collé aux filtres qu'il efface. */
+  .ctg-lmgr{min-height:36px}
+  .ctg-fs>.ctg-raz:has(~.ctg-lmgr){margin-left:4px}
   /* A602 — LES VOLETS (large). La page s'affranchit de sa largeur de dialogue ; trois colonnes ≥ 1200 px effectifs
      (bibliothèques · catégories · éléments), deux en deçà (les catégories se déplient sous leur bibliothèque). */
   .home-main>.hv-page.ctg-volets{max-width:none;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
@@ -18295,11 +18298,15 @@ function ctgFiltresHtml(){const F=state.ctf;
     +lbl('lib',F.lib!=null?homeLibLblOf(F.lib):'')
     +lbl('cat',F.cat?(catsUtilesAll().find(c=>txNorm(c.name)===F.cat)||(categories||[]).find(c=>c&&txNorm(c.name||'')===F.cat)||{name:F.cat}).name:'')   // A708 : jamais la clé normalisée à l'écran
     +lbl('sort',F.sort==='recent'?'Plus récentes':F.sort==='todo'?'Tâches d’abord':'A → Z',F.sort==='recent'||F.sort==='todo')
-    +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')+`</div>`;}
+    +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')
+    /* A719 (demande de l'auteur) : la bibliothèque filtrée se gère d'ici — la même fenêtre que le crayon des têtes de
+       groupe (« Modifier la bibliothèque »), aux mêmes personnes (son administrateur, celui de l'application). */
+    +((F.lib&&(roleOf(F.lib)==='admin'||myIsAppAdmin))?`<button type="button" class="linkbtn ctg-lmgr" data-libedit="${esc(F.lib)}" aria-haspopup="dialog" aria-label="${esc('Gérer la bibliothèque « '+homeLibLblOf(F.lib)+' »')}">${uiIcon('gear',14)} Gérer la bibliothèque</button>`:'')+`</div>`;}
 /* Le câblage d'une liste d'éléments du catalogue : ouvrir (ou cocher en sélection), cases, barre, filtres. */
 function ctgBindListe(cfg,vis,F){const redo=cfg.rerender;
   main.querySelectorAll('[data-ctgraz]').forEach(b=>b.onclick=()=>{state.ctf={type:'all',lib:null,cat:'',sort:F.sort};redo();});
   main.querySelectorAll('[data-ctgf]').forEach(b=>b.onclick=()=>ctgFilterPick(b,redo));
+  main.querySelectorAll('.ctg-fs [data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));   // A719
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>{const id=el.dataset.open;
     if(Date.now()-_lpEat<600)return;
     if(state.selOn){const x=vis.find(y=>y.id===id);if(x&&canEditFiche(x)){selToggle(id);redo();return;}}
@@ -33609,8 +33616,14 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
           if(r!=='ok'){toast(r==='not_approved'||r==='not_found'?'⚠ Ce compte n’est pas validé : il ne peut pas être invité.':'⚠ Invitation impossible ('+r+').',5000,true);return;}
           delete _adm.mem[u.user_id];admAfter('Invité comme Lecteur — la personne rejoint en acceptant, dans Moi.');}});return;}
     if(t.dataset.admrm!=null){const u=admUser();if(!u)return;
+      /* A718 : le SEUL membre ne se retire pas, ni par lui-même ni par l'administrateur de l'instance — la bibliothèque
+         resterait sans personne. Le serveur le refuse (`last_member`) ; ici on le dit avant de demander. */
+      {const L=(_admD.libs||[]).find(l=>l.id===t.dataset.admrm);
+       if(L&&(+L.members||0)<=1){toast('⚠ '+u.email+' est le seul membre de « '+(L.name||'cette bibliothèque')+' » : une bibliothèque ne reste jamais sans personne. Supprimez-la plutôt, depuis Administration › Bibliothèques.',8000,true);return;}}
       if(!await confirmDlg('Retirer '+u.email+' de « '+(libName(t.dataset.admrm)||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
-      try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(x){err(x);}
+      try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}
+      catch(x){const m=String(x&&x.message||x);
+        toast(/last_member/.test(m)?'⚠ C’est le seul membre de cette bibliothèque : supprimez-la plutôt.':/last_admin/.test(m)?'⚠ C’est le seul administrateur de cette bibliothèque : nommez-en un autre d’abord.':'⚠ Échec : '+m,7000,true);return;}   // A718 : un refus n'est plus suivi d'un « fait »
       delete _adm.mem[u.user_id];admAfter();return;}
     if(t.dataset.admap!=null){_adm.apAsk=_adm.apAsk!=null?null:!_admD.approval;renderAdm();admFocusYes('ap');return;}
     if(t.dataset.trk!=null){const k=t.dataset.trk,v=t.dataset.trv;   // A654 ; A661 : le tap DEMANDE, « Confirmer » applique
@@ -38189,6 +38202,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   body.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement des membres…</p>';
   let list=[];try{list=await rpc('list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
   const me=Auth.user()&&Auth.user().id;const isAdmin=(roleOf(_memLib)==='admin')||myIsAppAdmin;const n=list.length;
+  const seulMembre=!list.some(m=>m&&!m.pending&&m.user_id!==me);   // A718 : personne d'autre n'a accepté d'en être
   const canRename=(roleOf(_memLib)==='admin'||myIsAppAdmin);
   // Dialogue au gabarit SPEC gestion §3 : NOM (champ pré-rempli) -> Annuler / Enregistrer
   // (IMMÉDIATEMENT sous le champ : ils ne portent QUE sur le nom — placés sous les membres,
@@ -38214,7 +38228,11 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
     <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app ; elle rejoint la bibliothèque en <b>acceptant l'invitation</b>, dans Moi. Rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>
-    ${roleOf(_memLib)?`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`:''}
+    ${roleOf(_memLib)?(seulMembre
+      /* A718 : le SEUL membre ne quitte pas — la bibliothèque resterait sans personne, ses aides visibles du seul
+         administrateur de l'instance. On dit ce qui reste possible, sur place. */
+      ?`<p class="roles-caption">Vous êtes le seul membre de cette bibliothèque : la quitter la laisserait sans personne. ${myIsAppAdmin?'Supprimez-la plutôt (ci-dessous)':(isAdmin&&(nFi+nPr)?'Convertissez-la plutôt en collection (ci-dessous)':'Pour vous en séparer, demandez sa suppression à l’administrateur de l’application')}, ou invitez d’abord quelqu’un.</p>`
+      :`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`):''}
     ${isAdmin&&!horsAdh&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
     ${myIsAppAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
       <button class="btn outline-danger" id="libDelete">Supprimer la bibliothèque…</button>
@@ -38229,11 +38247,13 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   const setNameMsg=(t,c)=>{const e=document.getElementById('libMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
   /* A663 : le serveur refuse de retirer ou rétrograder le DERNIER administrateur (`last_admin`) — dit en
      clair, et un membre peut désormais QUITTER de lui-même (`leave_library`). */
-  const memErr=e=>/last_admin/.test(String(e&&e.message||e))?'il faut au moins un administrateur dans la bibliothèque — nommez-en un autre d’abord.':String(e&&e.message||e);
+  const memErr=e=>/last_admin/.test(String(e&&e.message||e))?'il faut au moins un administrateur dans la bibliothèque — nommez-en un autre d’abord.'
+    :/last_member/.test(String(e&&e.message||e))?'c’est son seul membre — une bibliothèque ne reste jamais sans personne. Supprimez-la plutôt.':String(e&&e.message||e);   // A718
   {const lv=document.getElementById('libLeave');if(lv)lv.onclick=async()=>{
     if(!await confirmDlg('Vous ne verrez plus ses aides ni ses protocoles sur vos appareils. Un administrateur pourra vous y rajouter.',{title:'Quitter « '+(libName(_memLib)||'cette bibliothèque')+' » ?',yes:'Quitter',danger:true}))return;
     try{const r=await rpc('leave_library',{p_library:_memLib});
       if(r==='last_admin'){setMsg('Vous êtes le seul administrateur : '+memErr('last_admin'),'err');return;}
+      if(r==='last_member'){setMsg('Vous êtes le seul membre : '+memErr('last_member'),'err');return;}   // A718
       closeMembers(true);await Sync.loadProfile();Sync.schedule&&Sync.schedule();render();}
     catch(e){setMsg('Échec : '+memErr(e),'err');}};}
   {const iv=document.getElementById('memInvite');if(iv)iv.onclick=async()=>{const email=(document.getElementById('memEmail').value||'').trim();const role=document.getElementById('memNewRole').value;
