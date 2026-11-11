@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A704** à la v5.119.3 (lot v6.0 compris ; A694 non attribué) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A712** à la v5.119.4 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -327,6 +327,13 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A702 | `lot-v5-119.md` | « △ À revérifier » : le glyphe revient sur la rangée d'accueil (amende A347 ; règle 8) |
 | A703 | `lot-v5-119-2.md` | La fenêtre d'une bibliothèque (`#membersModal`) déclarée après `#admModal` : elle s'ouvrait derrière Administration au téléphone (ordre du document = empilement, A616) |
 | A704 | `lot-v5-119-3.md` | Règles de la connexion temporaire au sélecteur segmenté de l'app (`.seg`, pastille qui glisse au tap et au doigt) ; le tap peint sur place (`admTrPaint`, `#admTrAsk`), `.adm-topt` purgé |
+| A706 | `lot-v5-119-4.md` | Partage : celui qui poursuit seul coche ; `rehost` et rejeu sans régression (`SHARE_REPLAY_OWN`, `_floor`) ; lien mort sans resynchronisation ; minuteurs du pli en marche ; `cxb` en liste blanche (serveur à rejouer) ; hub direct (détaché, coupé, silence) ; « parti » |
+| A707 | `lot-v5-119-4.md` | Sessions : une vive par aide ; orpheline rangée ; texte archivé des étapes (`stepArch`) ; `aidRev` ; `persistLive` auto ; essai qui sonne ; minuteur sans durée ; « Versions » depuis l'éditeur ; `*` et `==` collés au texte |
+| A708 | `lot-v5-119-4.md` | Accueil et catalogue : filtre de type non hérité, recherche du téléphone, `syncHomeTabs` à la rotation, `ctgDepth`, `_homeN`, plafond de l'Accès direct |
+| A709 | `lot-v5-119-4.md` | Éditeurs et import : `mdBlkDel`, brouillon sans titre gardé et reprise des deux types, `edKeepCx`, doublons du même espace, entrées non-objets, nom de catégorie vide |
+| A710 | `lot-v5-119-4.md` | Compte et synchro : `_reconcileTable` paginée, `_adoptDisk` (deux onglets), 401 rattrapé, bibliothèque créée depuis une aide ouverte, invitation retirée, adhésions en échec |
+| A711 | `lot-v5-119-4.md` | Mode crise : `ckNoLink` (« Constaté ✓ » puis décocher), `syncBlkReturn` sous feuille plein écran, `monClose` sans défilement, Échap de `inlineRename`, `renderTkOnly` et champ d'heure |
+| A712 | `lot-v5-119-4.md` | Affichage : toast sous zoom, champs à 16 px, `.cm-top` sous zw360, `.cx-tgt` empilé, « · » des tuiles épinglées, `.pp-tiles`, titre borné en session au bureau |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

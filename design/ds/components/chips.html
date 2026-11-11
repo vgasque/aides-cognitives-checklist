@@ -1204,6 +1204,9 @@
      sacrifie plus rien tant que la place existe (588 px à 1280). Le contenu y est centré : la
      capsule reste optiquement au milieu de la barre quel que soit son nombre de segments. */
   body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;width:46%;justify-content:center}
+  /* A712 : le titre s'arrête où commence la capsule centrée (46 % de large, donc à 27 % du bord) — rien ne le bornait,
+     et un titre long filait SOUS la capsule, masqué en son milieu. Il passe à la ligne (jamais de coupe, K6). */
+  html:not(.zh500) body.chrome-hdr header.bar.crisis .brand{max-width:calc(27% - 8px)}
   /* ⚠ `flex:1` DANS UN CONTENEUR EN AJUSTEMENT AU CONTENU EFFONDRE LA BOÎTE — et la boucle
      d'ajustement, qui MESURE, en concluait que plus rien ne tenait : elle sacrifiait le segment
      ÉCHU et n'affichait que « +1 ». Le créneau est en position ABSOLUE (A14), donc dimensionné
@@ -1413,7 +1416,7 @@
      un point de vigilance, c'est l'acte ordinaire du soin. */
   .ds-chip.ds-cnt{display:inline-flex;align-items:center;gap:8px;background:var(--sys-2)}
   .ds-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:800;
-    font-size:var(--t-cap);color:var(--sys-ink-2)}
+    font-size:var(--t-cap);color:var(--sys-ink)}   /* A712 : 3,1:1 en sombre avec l'encre secondaire */
   .ds-chip:hover{background:var(--sys-2)}
   .ds-chip:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
   /* L'ombre du quai est LE TOKEN --shadow-up (v5.15.0, planche 18/P) : elle vivait ici en rgba()
@@ -2608,7 +2611,7 @@
   .dir-book.pinned .dir-sub{margin-top:6px;font-size:var(--t-meta);white-space:nowrap}
   .dir-book.pinned .dir-id>:not(.dir-cat,.libtag){display:none}
   .dir-book.pinned .dir-id>.dir-cat{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-id::after{content:none}
+  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-id::after,.dir-book.pinned .dir-id:not(:empty):has(+.dir-st)::after{content:none}   /* A712 : à la spécificité de la règle qu'elle lève — sinon un « · » seul sur sa ligne (A621) */
   .dir-book.pinned .dir-row.has-av .dir-cat .cat-dot{display:inline-block;margin-right:6px;vertical-align:1px}
   .dir-book.pinned .dir-sub>.dir-st{display:block}
   .dir-book.pinned .pinbtn{margin-top:-8px}
@@ -2955,7 +2958,7 @@
   .su-refchev{transform:rotate(90deg);color:var(--ink-2)}
   .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
-  .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .su-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
   .su-h .btn{margin-left:4px}
   .su-sub{margin:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
   .su-row{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
@@ -4450,7 +4453,8 @@
   .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
     position:relative;padding-right:48px}   /* place de la croix : 40 + 8 (elle chevauchait la cible) */
   .cx-edit-row .ed-ic.del{position:absolute;right:0;top:0}
-  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
+  .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}   /* A712 : APRÈS la règle de base — placée avant, à spécificité égale, elle était morte et la cible ne s'empilait pas */
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--crit);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
@@ -7123,7 +7127,7 @@
      195 px au téléphone, le message tombait sur trois lignes. Centré par `left:0;right:0;margin:auto` et
      `width:max-content`, il prend sa largeur jusqu'au plafond. (2) Depuis la barre d'onglets (A600, v5.100), il se posait
      SUR elle : au-dessus d'elle désormais (et au-dessus du dock de session). */
-  .toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(16px);max-width:min(560px,92vw);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-line);font-size:13.5px;line-height:1.5;padding:12px 14px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
+  .toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(16px);max-width:min(560px,calc(92vw / var(--zf,1)));background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-line);font-size:13.5px;line-height:1.5;padding:12px 14px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
   .toast.on{opacity:1;transform:none}
   html.tabnav body.view-home .toast{bottom:calc(var(--tb-bot) + 62px + 12px)}
   body.dock-on .toast{bottom:calc(var(--dock-h,64px) + 12px)}
@@ -7285,7 +7289,7 @@
   .pp-sc-h h3{margin:0;font-size:var(--t-step-l);font-weight:800}
   .pp-opt{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .pp-sc-lead{margin:4px 0 16px;font-size:var(--t-body);line-height:1.5;color:var(--ink-2)}
-  .pp-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .pp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px}   /* A712 : selon la place RÉELLE de la colonne — à 130 % sur tablette, deux tuiles de 137 px débordaient */
   html.zw430 .pp-tiles{grid-template-columns:minmax(0,1fr)}
   .pp-tile{display:flex;gap:12px;align-items:flex-start;min-height:64px;padding:14px 16px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--work);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
   .pp-tile.on{border:2px solid var(--act);background:var(--primary-soft);color:var(--act)}
@@ -9076,6 +9080,10 @@
   .cm-row.open .cm-dot{box-shadow:0 0 0 2px var(--act)}
   .cm-name{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);font-size:13.5px}
   .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;overflow:hidden;text-overflow:ellipsis}
+  /* A712 : sous 360 px effectifs (téléphone, texte agrandi), le compte passe SOUS le nom — 166 px de colonnes fixes ne
+     laissaient que 23 à 65 px au champ, le nom ne se lisait plus ni ne se corrigeait. */
+  html.zw360 .cm-top{grid-template-columns:32px minmax(0,1fr) 34px}
+  html.zw360 .cm-count{grid-column:2;grid-row:2;text-align:left}
   .cm-pick{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
   .cm-sw{display:flex;gap:8px;flex-wrap:wrap}   /* A316 : 8 px, la pastille choisie déborde de ~6 px */
   .cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
@@ -9374,7 +9382,7 @@
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,.ds-in,.tg-row .tg-a,
     .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}

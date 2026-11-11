@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PlvFIZLHFWN6mI7PyxvzZk6cJfOJOEs8YnyYNAvlYJk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NOoRzV9zQ1volhhz6uf1UFGgFNOV0fla8zj3JjYIw5o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1604,6 +1604,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sacrifie plus rien tant que la place existe (588 px à 1280). Le contenu y est centré : la
      capsule reste optiquement au milieu de la barre quel que soit son nombre de segments. */
   body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;width:46%;justify-content:center}
+  /* A712 : le titre s'arrête où commence la capsule centrée (46 % de large, donc à 27 % du bord) — rien ne le bornait,
+     et un titre long filait SOUS la capsule, masqué en son milieu. Il passe à la ligne (jamais de coupe, K6). */
+  html:not(.zh500) body.chrome-hdr header.bar.crisis .brand{max-width:calc(27% - 8px)}
   /* ⚠ `flex:1` DANS UN CONTENEUR EN AJUSTEMENT AU CONTENU EFFONDRE LA BOÎTE — et la boucle
      d'ajustement, qui MESURE, en concluait que plus rien ne tenait : elle sacrifiait le segment
      ÉCHU et n'affichait que « +1 ». Le créneau est en position ABSOLUE (A14), donc dimensionné
@@ -1813,7 +1816,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      un point de vigilance, c'est l'acte ordinaire du soin. */
   .ds-chip.ds-cnt{display:inline-flex;align-items:center;gap:8px;background:var(--sys-2)}
   .ds-cn{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:800;
-    font-size:var(--t-cap);color:var(--sys-ink-2)}
+    font-size:var(--t-cap);color:var(--sys-ink)}   /* A712 : 3,1:1 en sombre avec l'encre secondaire */
   .ds-chip:hover{background:var(--sys-2)}
   .ds-chip:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
   /* L'ombre du quai est LE TOKEN --shadow-up (v5.15.0, planche 18/P) : elle vivait ici en rgba()
@@ -3008,7 +3011,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-book.pinned .dir-sub{margin-top:6px;font-size:var(--t-meta);white-space:nowrap}
   .dir-book.pinned .dir-id>:not(.dir-cat,.libtag){display:none}
   .dir-book.pinned .dir-id>.dir-cat{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-id::after{content:none}
+  .dir-book.pinned .dir-id>.dir-cat::before,.dir-book.pinned .dir-id::after,.dir-book.pinned .dir-id:not(:empty):has(+.dir-st)::after{content:none}   /* A712 : à la spécificité de la règle qu'elle lève — sinon un « · » seul sur sa ligne (A621) */
   .dir-book.pinned .dir-row.has-av .dir-cat .cat-dot{display:inline-block;margin-right:6px;vertical-align:1px}
   .dir-book.pinned .dir-sub>.dir-st{display:block}
   .dir-book.pinned .pinbtn{margin-top:-8px}
@@ -3355,7 +3358,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .su-refchev{transform:rotate(90deg);color:var(--ink-2)}
   .su-feuille .su-h{display:flex;gap:8px;margin:0 0 4px}   /* A614 : dans la colonne de l'éditeur, sous la relecture */
   #editSide .su-h{flex-wrap:wrap}
-  .su-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .su-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
   .su-h .btn{margin-left:4px}
   .su-sub{margin:12px 0 4px;font-size:var(--t-meta);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
   .su-row{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
@@ -4850,7 +4853,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
     position:relative;padding-right:48px}   /* place de la croix : 40 + 8 (elle chevauchait la cible) */
   .cx-edit-row .ed-ic.del{position:absolute;right:0;top:0}
-  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
+  .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}   /* A712 : APRÈS la règle de base — placée avant, à spécificité égale, elle était morte et la cible ne s'empilait pas */
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--crit);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
@@ -7523,7 +7527,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      195 px au téléphone, le message tombait sur trois lignes. Centré par `left:0;right:0;margin:auto` et
      `width:max-content`, il prend sa largeur jusqu'au plafond. (2) Depuis la barre d'onglets (A600, v5.100), il se posait
      SUR elle : au-dessus d'elle désormais (et au-dessus du dock de session). */
-  .toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(16px);max-width:min(560px,92vw);background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-line);font-size:13.5px;line-height:1.5;padding:12px 14px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
+  .toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(16px);max-width:min(560px,calc(92vw / var(--zf,1)));background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-line);font-size:13.5px;line-height:1.5;padding:12px 14px;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.28);z-index:120;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;overflow:hidden}
   .toast.on{opacity:1;transform:none}
   html.tabnav body.view-home .toast{bottom:calc(var(--tb-bot) + 62px + 12px)}
   body.dock-on .toast{bottom:calc(var(--dock-h,64px) + 12px)}
@@ -7685,7 +7689,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pp-sc-h h3{margin:0;font-size:var(--t-step-l);font-weight:800}
   .pp-opt{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .pp-sc-lead{margin:4px 0 16px;font-size:var(--t-body);line-height:1.5;color:var(--ink-2)}
-  .pp-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .pp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px}   /* A712 : selon la place RÉELLE de la colonne — à 130 % sur tablette, deux tuiles de 137 px débordaient */
   html.zw430 .pp-tiles{grid-template-columns:minmax(0,1fr)}
   .pp-tile{display:flex;gap:12px;align-items:flex-start;min-height:64px;padding:14px 16px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--work);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
   .pp-tile.on{border:2px solid var(--act);background:var(--primary-soft);color:var(--act)}
@@ -9476,6 +9480,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cm-row.open .cm-dot{box-shadow:0 0 0 2px var(--act)}
   .cm-name{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);font-size:13.5px}
   .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;overflow:hidden;text-overflow:ellipsis}
+  /* A712 : sous 360 px effectifs (téléphone, texte agrandi), le compte passe SOUS le nom — 166 px de colonnes fixes ne
+     laissaient que 23 à 65 px au champ, le nom ne se lisait plus ni ne se corrigeait. */
+  html.zw360 .cm-top{grid-template-columns:32px minmax(0,1fr) 34px}
+  html.zw360 .cm-count{grid-column:2;grid-row:2;text-align:left}
   .cm-pick{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
   .cm-sw{display:flex;gap:8px;flex-wrap:wrap}   /* A316 : 8 px, la pastille choisie déborde de ~6 px */
   .cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
@@ -9774,7 +9782,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,.ds-in,.tg-row .tg-a,
     .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
@@ -10616,7 +10624,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.119.3';
+const APP_VERSION='5.119.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11314,9 +11322,11 @@ const MD_B4_RX=/\*{4,}([^*\n]+?)\*{4,}/g;   // A639 : ****gras**** (export Notio
 const MD_B4O_RX=/\*{4}([^*\n]+?)\*\*([^*\n]*?)\*\*(?!\*)/g,MD_B4F_RX=/(^|[^*])\*\*([^*\n]*?)\*\*([^*\n]+?)\*{4}/g;
 const MD_BI_RX=/\*\*\*([^*\n]+)\*\*\*/g;                    // ***gras italique***
 const MD_BOLD_RX=/\*\*((?:[^*\n]|\*[^*\n]+\*)+?)\*\*/g;      // **gras**, un *italique* ENTIER admis dedans
-const MD_ITAL_RX=/(^|[^*])\*((?:[^*\n<]|<b>[^<]*<\/b>)+)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
+/* A707 : l'ouvrant est suivi d'un non-blanc et le fermant en est précédé (CommonMark) — « 5 * 3 = 15 et 2 * 2 » perdait
+   ses signes de multiplication, « PaO2 == 60 ou SpO2 == 90 » ses égalités. Sans assertion arrière (Safari < 16.4). */
+const MD_ITAL_RX=/(^|[^*])\*((?:[^*\n<\s]|<b>[^<]*<\/b>)(?:(?:[^*\n<]|<b>[^<]*<\/b>)*(?:[^*\n<\s]|<b>[^<]*<\/b>))?)\*(?!\*)/g;   // *italique* (sans manger les ** du gras)
 const MD_STRIKE_RX=/~~([^~\n]+)~~/g;                          // ~~barré~~ (Notion, GFM)
-const MD_MARK_RX=/==([^=\n]+)==/g;                 // ==surligné== (achromatique, registre MEMO)
+const MD_MARK_RX=/==([^=\n\s](?:[^=\n]*[^=\n\s])?)==/g;                 // ==surligné== (achromatique, registre MEMO)
 const MD_CODE_RX=/(`[^`\n]+`)/;                    // `code` en ligne (segment préservé tel quel)
 /* A661 — LES LIENS SORTENT EN JETONS AVANT L'EMPHASE, comme les segments `code` : une URL portant « == », « * » ou
    « ~~ » recevait <mark>/<i>/<s> DANS son `href` et le lien cassait. Le libellé garde son emphase (posée à part), le
@@ -12508,6 +12518,8 @@ try{pins=sanitizePins(JSON.parse(localStorage.getItem(spaceKey('ac-pins'))));}ca
 function pinBlocked(id){const x=fiches.concat(protocols).find(e=>e.id===id)||[state.draft,state.pdraft].find(e=>e&&e.id===id);return !!x&&x.status==='draft';}   // A496 : le brouillon de l'éditeur aussi, avant même d'entrer dans la liste
 function togglePin(id){const i=pins.indexOf(id);
   if(i<0&&pinBlocked(id)){toast('Un brouillon ne s’épingle pas en accès direct — passez-le à « À relire » ou « Validée ».',5000,true);return;}
+  /* A708 : au plafond on REFUSE (comme les collections, A660) — la 51ᵉ épingle chassait la plus ancienne sans un mot. */
+  if(i<0&&pins.length>=50){toast('⚠ 50 éléments au plus en accès direct : retirez-en un d’abord.',6000,true);return;}
   if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
   try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
   schedulePrefsPush();}   // marque le document perso « à pousser » et programme une synchro
@@ -14362,8 +14374,7 @@ async function _attOfflineBody(){
   el.innerHTML=stgRow('<span class="pers-warn">'+uiIcon('warn',14)+'</span>',
     '<span class="pers-warn">'+n+' document'+(n>1?'s':'')+' à télécharger</span>',
     Object.keys(info.paths).length?stgAct('attOffDl','Télécharger'):'');
-  if(!Object.keys(info.paths).length)el.title='Connectez-vous avec du réseau pour les récupérer.';
-  el.title='Ces documents ne seraient pas consultables sans réseau. Téléchargez-les avant de partir en intervention.';
+  el.title=Object.keys(info.paths).length?'Ces documents ne seraient pas consultables sans réseau. Téléchargez-les avant de partir en intervention.':'Connectez-vous avec du réseau pour les récupérer.';
   const b=document.getElementById('attOffDl');if(b)b.onclick=()=>dlMissingAtts();
 }
 /* ÉTAT DE L'INDEXATION — trois choses à dire, et une seule à la fois : ce qui reste à indexer
@@ -14603,7 +14614,9 @@ function openWelcome(){closeAuth();
  document.getElementById('welcomeJoin').onclick=()=>{done();openJoinScreen();};}
 // Au chargement, on reconstruit les sessions VIVES (live=true) en runtimes (minuteurs en pause :
 // le temps app fermée n'est pas rattrapé). Elles réapparaissent dans « Sessions en cours ».
-function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fiches.find(x=>x.id===s.ficheId);if(!f)return;const R=buildRuntime(f,s);R.started=true;R.startedAt=s.startedAt||s.savedAt||Date.now();liveSessions[f.id]=R;});}
+function restoreLiveSessions(){sessions.filter(s=>s.live).forEach(s=>{const f=fiches.find(x=>x.id===s.ficheId);if(!f)return;const R=buildRuntime(f,s);R.started=true;R.startedAt=s.startedAt||s.savedAt||Date.now();
+  R.lastActAt=s.savedAt||0;   // A707 : la fraîcheur (F5) part du dernier enregistrement, pas du début de la session — tout soin de plus de 10 min retombait sur l'accueil
+  liveSessions[f.id]=R;});}
 // Auto-enregistrement des sessions vives quand l'app passe en arrière-plan ou se ferme.
 window.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistAllLive();else{try{if(AC&&AC.state!=='running')AC.resume();}catch(e){}}});
 window.addEventListener('pagehide',persistAllLive);
@@ -14741,6 +14754,10 @@ function buildRuntime(f,session){
   R.fiche=f;R.ficheId=f.id;R.sessionId=session?session.id:null;R.name=session?(session.name||''):'';
   R.started=!!session;R.startedAt=session&&session.startedAt?session.startedAt:0;
   R.checked=revKeysLift(f,session&&session.checked?{...session.checked}:{});
+  /* A707 : la révision lue pendant le soin survit au rechargement (elle retombait à 0 au premier geste, et le
+     compte-rendu d'une session du jour disait « antérieure à la v5 ») ; le texte archivé des étapes aussi. */
+  R.aidRev=session?(+session.aidRev||0):0;
+  R.stepArch={};if(session&&session.stepTexts&&typeof session.stepTexts==='object')for(const k of Object.keys(session.stepTexts)){const a=session.stepTexts[k];if(a&&typeof a==='object'&&!badKey(k))R.stepArch[k]={b:sstr(a.b,200),s:sstr(a.s,600)};}
   // Trace do-verify normalisée À LA LECTURE, comme cxBack : un enregistrement antérieur portait un
   // horodatage nu, il porte désormais {a,t} (qui, quand). Aucune migration de données.
   R.verified=vfMapNorm(session&&session.verified);
@@ -14850,7 +14867,11 @@ function stepTextsFor(R){
   const out={};const f=R.fiche;if(!f)return out;
   const keys=new Set([...Object.keys(R.checked||{}).filter(k=>R.checked[k]),
                       ...Object.keys(R.verified||{}),...Object.keys(R.vgaps||{})]);
-  keys.forEach(k=>{const st=stepTextFromKey(f,k);if(st)out[k]={b:st.block,s:st.step};});
+  /* A707 : une session ROUVERTE garde le texte ARCHIVÉ de ses étapes déjà touchées — le recalculer contre l'aide
+     d'aujourd'hui nommait une étape jamais faite si l'aide avait changé entre-temps (le défaut même que cette
+     archive existe pour empêcher). Une clé décochée quitte l'archive : recochée, elle prend le texte du jour. */
+  const arch=R.stepArch=R.stepArch||{};for(const k in arch)if(!keys.has(k))delete arch[k];
+  keys.forEach(k=>{const a=arch[k];if(a&&a.s){out[k]={b:a.b,s:a.s};return;}const st=stepTextFromKey(f,k);if(st)arch[k]=out[k]={b:st.block,s:st.step};});
   return out;}
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
   /* `running` et `stoppedAt` voyagent avec l'instantané (planche 11j) : au rechargement, un
@@ -15049,11 +15070,14 @@ function sessUpsert(s){_putSessionSafe(s);const i=sessions.findIndex(x=>x.id===s
    Il n'entre PAS dans l'instantané : après un rechargement il n'y a plus d'interruption à
    annoncer (les minuteurs disent déjà « arrêté depuis », A81) — c'est une donnée de la session
    VIVE, pas de son archive, donc rien ne change au format ni à ce qui voyage. */
-function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
-  R.lastActAt=Date.now();
+function persistLive(R,immediate,auto){if(!R||!R.started||!R.fiche)return;
+  /* A707 — `auto` : un enregistrement que PERSONNE n'a fait (échéance d'un minuteur, mise en arrière-plan)
+     n'est pas un geste. Il datait pourtant « le dernier geste » et effaçait la ligne de reprise : avec un cycle
+     de RCP en marche, elle ne s'affichait jamais. */
+  if(!auto){R.lastActAt=Date.now();
   /* Le fait annoncé cesse d'être vrai dès qu'on agit : la ligne s'efface au geste suivant,
      jamais après un délai — c'est le geste qui la périme, pas une horloge. */
-  if(state.resumeSince){state.resumeSince=null;paintResume();}
+  if(state.resumeSince){state.resumeSince=null;paintResume();}}
   /* K5 — L'ESSAI N'ÉCRIT RIEN ET N'ÉMET RIEN. La garde est EN TÊTE, avant `shareEmitDiff` :
      placée après, un auteur qui essaie son brouillon pendant qu'il partage une session enverrait
      ses coches d'essai sur l'écran d'en face. */
@@ -15071,9 +15095,10 @@ function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
      Ce qui lui est refusé n'est donc pas la session, c'est l'ENREGISTREMENT : aucune écriture dans
      son stockage, aucune entrée dans son historique. Le dossier appartient à l'hôte. */
   if(Share.mode==='guest')return;
-  const doIt=()=>{R._pt=null;sessUpsert(snapshotSession(R,true));};
+  const doIt=()=>{R._pt=null;if(!R.started||!R.sessionId)return;   // A707 : la session s'est terminée pendant les 700 ms — sinon une session fantôme `id:null` et un faux « stockage saturé »
+    sessUpsert(snapshotSession(R,true));};
   if(immediate){if(R._pt){clearTimeout(R._pt);R._pt=null;}doIt();}else{if(R._pt)return;R._pt=setTimeout(doIt,700);}}
-function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,true));}
+function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,true,true));}
 // Démarre la session de la fiche active DÈS la 1ʳᵉ action (cocher / minuteur / compteur /
 // horodatage) ; renvoie true si elle vient de démarrer (le caller re-rend le bandeau).
 /* `aidRev` — LA RÉVISION DE L'AIDE RÉELLEMENT LUE PENDANT LE SOIN (v5.0.0). ON N'INVENTE PAS UN
@@ -15128,6 +15153,7 @@ function endSession(R){if(!R||!R.fiche)return;
   try{if(R===Runtime&&Share.mode==='host'&&Share.status==='active'){
     Share.endShare();SL=null;slSbReset();}}catch(e){}
   Object.values(R.timers).forEach(t=>{if(t.running)toggleTimer(t);});
+  if(R._pt){clearTimeout(R._pt);R._pt=null;}   // A707 : aucun enregistrement différé ne survit à la fin
   setTimeout(wakeApply,0);   // la session finit : l'écran reprend la veille du système (11k)
   /* K5 — UN ESSAI NE S'ARCHIVE PAS. On arrête les minuteurs (ils tournent vraiment) et on s'en
      va : ni instantané, ni entrée d'historique, ni carte-bilan sur l'accueil. Il n'y a rien à
@@ -15427,9 +15453,14 @@ function tickAll(){
   if(!active){if(_tickWasActive){_tickWasActive=false;updateRtStrip();}return;}
   _tickWasActive=true;
   const now=Date.now();let fired=null;
-  Object.values(liveSessions).forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
+  /* A707 : l'ESSAI d'un brouillon (K5) n'entre pas dans `liveSessions` — ses minuteurs ne sonnaient ni ne bouclaient,
+     alors qu'il existe pour vérifier qu'un cycle sonne au bon moment. Et un minuteur d'intervalle SANS durée
+     (champ vidé dans l'éditeur) ne sonne pas : il « échéait » 3,3 fois par seconde, sans fin. */
+  const vifs=Object.values(liveSessions);
+  if(Runtime&&Runtime.started&&Runtime.essai&&Runtime.fiche&&vifs.indexOf(Runtime)<0)vifs.push(Runtime);
+  vifs.forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running&&t.seconds>0){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
     if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}onTimerFired(R,t);fired=R;}}});});
-  if(fired)persistLive(fired,true);
+  if(fired)persistLive(fired,true,true);
   if(state.view==='read'&&Runtime.fiche){refreshTimersDOM(now);paintCnAgo(now);tmReflow(now);paintWitness();if(Runtime.started)momWatch();
     if(state.resumeSince)paintResume();}
   updateRtStrip(now);
@@ -15484,6 +15515,10 @@ document.addEventListener('visibilitychange',()=>{
 let _bkrIo=null,_bkrCard=null,_bkrKey='';
 function syncBlkReturn(){
   const host=document.getElementById('blkReturn');if(!host)return;
+  /* A711 : sous une feuille PLEIN ÉCRAN la page est couverte et son en-tête collant est parti avec elle — la base
+     mesurée devenait négative, `rootMargin` illisible (« --549px »), et l'exception sautait le reste du tick puis
+     laissait la barre figée. On attend la fermeture : le tick suivant resynchronise. */
+  if(document.body.classList.contains('modal-full'))return;
   const card=(state.view==='read'&&crisisOnScreen())?document.querySelector('.ov-block.cur,.sv-cell.cur'):null;
   if(!card||!('IntersectionObserver' in window)){
     if(card===_bkrCard&&!_bkrKey)return;
@@ -15527,7 +15562,7 @@ function majBkrCnt(host,cnt){
    et `render`/`renderOvOnly` repointent l'observateur au lieu d'attendre le tick — aucun délai,
    aucun seuil ; deux explications plausibles écartées par la mesure. Détail : doctrine-js.md J46. */
 function obsBkr(host,card){
-  const top=Math.round((stickBase()));
+  const top=Math.max(0,Math.round((stickBase())));
   const dh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h'))||64;
   const bas=Math.round(dh+16);
   const io=new IntersectionObserver(es=>{es.forEach(e=>{
@@ -15969,7 +16004,14 @@ async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmE
   render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
-function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Aide introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
+function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);
+  /* A707 : une session « en cours » dont l'aide a disparu (aide écartée, supprimée ailleurs) n'offrait que
+     « Reprendre », qui échouait : ni reprenable, ni terminable, ni supprimable. Le geste la RANGE dans l'historique. */
+  if(!f){if(s.live){s.live=false;_putSessionSafe(s);Sync.schedule();render();toast('⚠ Aide introuvable : la session est rangée dans l’historique.',6000,true);}else toast('⚠ Aide introuvable.');return;}
+  /* A707 : UNE session vive par aide. Rouvrir une archive écrasait la vive de la même aide — sortie du registre,
+     ses minuteurs ne sonnaient plus, et elle ressuscitait au rechargement. On refuse, et on dit pourquoi. */
+  if(liveSessions[f.id]&&liveSessions[f.id].sessionId!==id){toast('⚠ Une session est déjà en cours sur cette aide : terminez-la avant d’en rouvrir une autre.',7000,true);return;}
+  flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[f.id]&&liveSessions[f.id].sessionId===id){Runtime=liveSessions[f.id];}
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();
     /* REPRENDRE ne re-lit PAS la révision : le soin a été conduit sur celle qui est archivée. */
@@ -16476,7 +16518,9 @@ function renderLibrary(){
      l'autre — jamais en parallèle, les questions de destination/fusion restent posées PAR import. */
   upTarget('data',async files=>{for(let i=0;i<files.length;i++)
     await readImportFile(files[i],files.length>1?{i:i+1,n:files.length}:null);});
-  state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
+  /* A708 : le CATALOGUE ne prend pas le filtre de type de l'Accueil (A601 : « les filtres ne se mélangent jamais ») —
+     avec « Protocoles » choisi à l'accueil, chaque aide du catalogue se dessinait en protocole et ne s'ouvrait plus. */
+  homeTab()==='biblio'?renderAll():state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
 // Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
 // écouteur de scroll ci-dessous) : en haut de page, le corps porte déjà le titre — jamais deux
@@ -16587,7 +16631,7 @@ function paintSeg(root,attr,idx){
     if(!document.documentElement.classList.contains('kbd'))return;
     if(Math.abs(e.touches[0].clientY-_ty)>10)qi.blur();},{passive:true});}
  qi.addEventListener('input',e=>{syncQClear();if(state.view!=='library')return;
-   if(homeTab()!=='aides')state.homeTab='aides';   // chercher, c'est chercher une aide (A365)
+   if(homeTab()!=='aides'){state.homeTab='aides';if(state.selOn)selEnd();}   // chercher, c'est chercher une aide (A365) ; A708 : la sélection du catalogue ne suit pas
    state.q=e.target.value;state.libLimit=LIB_PAGE;
    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});
  /* ENTRÉE OUVRE LE PREMIER RÉSULTAT (v5.45.0, A460 — audit d'apprentissage : le geste attendu de
@@ -16637,8 +16681,10 @@ function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
   let t2=null;
   if(sessModal.classList.contains('on')&&_sessFiche==='*'){closeSessHist();t2='sessions';}
   if(authModal.classList.contains('on')){closeAuth();t2='me';}
-  if(admModal.classList.contains('on')){admModal.classList.remove('on');t2='admin';}   // A494 : la section ouverte survit
-  if(suiviModal.classList.contains('on')){suiviModal.classList.remove('on');t2='todo';}   // A628
+  /* A708 : une fenêtre ne redevient un onglet que là où cet onglet EXISTE — une rotation appelle cette fonction deux
+     fois, et le second passage rouvrait en onglet (inexistant au téléphone) la fenêtre que le premier venait d'ouvrir. */
+  if(!tabNavOn()&&admModal.classList.contains('on')){admModal.classList.remove('on');t2='admin';}   // A494 : la section ouverte survit
+  if(mqHomeWide.matches&&suiviModal.classList.contains('on')){suiviModal.classList.remove('on');t2='todo';}   // A628
   if(t2)setHomeTab(t2);}
 const _onHomeBp=()=>{if(state.view!=='library')return;syncHomeTabs();render();};
 if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);else if(mqHomeWide.addListener)mqHomeWide.addListener(_onHomeBp);
@@ -16963,7 +17009,8 @@ function openCollPick(ids,o){o=o||{};if(!ids.length)return;
     title:'Ajouter à une collection',ctx:(n===1&&ents[0]?(ents[0].title||'Sans titre'):nb(n,'élément'))+' · '+(libs.length===1?libs[0]:selLibsMot(libs.length)),
     head:`<div class="notice">${uiIcon('bookmark',15)}<div>${esc('Vos collections sont à vous seul. '+(libs.length===1?(n===1?'L’élément reste':'Les éléments restent')+' dans '+libs[0]:'Chaque élément reste dans sa bibliothèque')+' : seul votre rangement change.')}</div></div>`,
     onToggle:(cid,cur)=>{collSet(cid,pool(cid),cur!=='true');return st(cid);},
-    done:'Terminé',onClose:redo,
+    done:'Terminé',onClose:()=>{redo();   // A708 : `redo` re-rend et détruit le déclencheur — le focus retombait sur <body>
+      const t=o.trigger&&o.trigger.id&&document.getElementById(o.trigger.id);if(t&&t.offsetParent)t.focus({preventScroll:true});},
     action:{label:'＋ Nouvelle collection…',fn:async()=>{if(collFull())return;const name=await collAsk('Nouvelle collection');if(!name)return;
       const c=collNew(name,ids);toast('Collection « '+c.name+' » créée avec '+nb(ids.length,'élément')+'.');redo();}}});}
 /* Choisir une collection = poser le filtre (re-tap = le retirer) ; « + » la crée vide et la montre. */
@@ -17242,7 +17289,7 @@ function bindHomeChrome(rerender){
   qsa('[data-libedit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openMembers(b.dataset.libedit);});
   /* (A606, lot 3 d'A600 : les filtres de la colonne — bibliothèque, catégorie, « Toutes les catégories » — sont purgés avec
      leurs rangées ; le catalogue les remplace. Un choix de COLLECTION ramène toujours à l'accueil, A365.) */
-  const rr=()=>{if(homeTab()!=='aides')state.homeTab='aides';rerender();};
+  const rr=()=>{if(homeTab()!=='aides'){state.homeTab='aides';if(state.selOn)selEnd();}rerender();};
   // Historique GLOBAL des sessions (v4.56.0, demande utilisateur) : la fenêtre existante en mode
   // « toutes les fiches » — l'entrée par fiche du menu ⋯ est inchangée.
   qsa('[data-navaides]').forEach(b=>b.onclick=()=>setHomeTab('aides'));
@@ -17718,7 +17765,9 @@ function bindGroupTitle(){if(_grpIo){_grpIo.disconnect();_grpIo=null;}
 let _tbSrch=false;
 function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
   const on=tabNavOn();
-  if(!on||(!_tbSrch&&!txNorm(String(state.q||''))))_tbSrch=on&&!!txNorm(String(state.q||''));
+  /* A708 : de retour sur l'accueil avec une requête (résultat ouvert puis « retour », rotation), le champ REVIENT —
+     la liste restait filtrée sans champ ni moyen visible d'effacer. */
+  if(!on)_tbSrch=false;else if(txNorm(String(state.q||'')))_tbSrch=true;
   document.documentElement.classList.toggle('tabnav',on);
   document.documentElement.classList.toggle('tb-q',on&&_tbSrch);
   n.hidden=!on||state.selOn||_tbSrch;
@@ -18147,7 +18196,7 @@ function renderCatalogue(cfg){
   bindHomeChrome(redo);bindPgHead(redo);placeFooter();_histSync();}
 /* A602 — LE CATALOGUE DANS LA PILE DE RETOUR (A430) : racine 0, une bibliothèque ou « Tout » 1, une catégorie 2. Le
    geste « retour » du système remonte d'un niveau, par le même chemin que « ‹ » (`ctgUp`). */
-const ctgDepth=()=>{const N=state.cnav||{};return N.tout?1:N.lib!=null?(N.cat!=null?2:1):0;};
+const ctgDepth=()=>{const N=state.cnav||{};return N.tout?(tabNavOn()?1:0):N.lib!=null?(N.cat!=null?2:1):0;};   // A708 : en volets, la racine AFFICHE déjà « Tout » — le cliquer n'empile pas un retour sans effet
 function ctgUp(){const N=state.cnav||{};state.cnav=N.tout||N.cat==null?{}:{lib:N.lib};if(state.selOn)selEnd();render();}
 /* A602 — LE CATALOGUE EN VOLETS (planche « Architecture de l'accueil », B tablette et ordinateur). Volet 1 : « Tout » et
    les bibliothèques ; volet 2 (≥ 1200 px effectifs) : les catégories de la bibliothèque choisie ; sous 1200, ces
@@ -18204,7 +18253,7 @@ function ctgFiltresHtml(){const F=state.ctf;
   return `<div class="ctg-fs" role="group" aria-label="Filtres de « Tout »">`
     +lbl('type',F.type!=='all'?(CTG_TYPES.find(t=>t[0]===F.type)||[])[1]:'')
     +lbl('lib',F.lib!=null?homeLibLblOf(F.lib):'')
-    +lbl('cat',F.cat?(catsUtilesAll().find(c=>txNorm(c.name)===F.cat)||{name:F.cat}).name:'')
+    +lbl('cat',F.cat?(catsUtilesAll().find(c=>txNorm(c.name)===F.cat)||(categories||[]).find(c=>c&&txNorm(c.name||'')===F.cat)||{name:F.cat}).name:'')   // A708 : jamais la clé normalisée à l'écran
     +lbl('sort',F.sort==='recent'?'Plus récentes':F.sort==='todo'?'Tâches d’abord':'A → Z',F.sort==='recent'||F.sort==='todo')
     +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')+`</div>`;}
 /* Le câblage d'une liste d'éléments du catalogue : ouvrir (ou cocher en sélection), cases, barre, filtres. */
@@ -18265,6 +18314,7 @@ function lanceurBasHtml(list,listR,rowsIn){
     +`<div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row hc-all" data-gotout>`
     +`<span class="hc-ic" aria-hidden="true">${uiIcon('book',16)}</span><span class="hc-n">Toutes les aides et protocoles</span><span class="hc-cnt">${list.length}</span>`
     +`<span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button></div></div></div>`;}
+let _homeN=0;   // A708 : nombre d'éléments de la liste rendue (lu par `paintViewFoot`)
 function renderHomeList(cfg){
   const q=txNorm(state.q);
   /* A606 — LOT 2 D'A600 : AU REPOS (ni recherche, ni filtre, ni collection ouverte, ni sélection), L'ACCUEIL EST UN
@@ -18296,6 +18346,7 @@ function renderHomeList(cfg){
     const fx=spellFix(q,libVocab(cfg.list('',canEdit),(categories||[]).map(c=>c&&c.name)));
     if(fx&&fx!==q){const l2=cfg.list(fx,canEdit);
       if(l2.length){corrige={saisi:String(state.q||'').trim(),montre:fx};list=l2;}}}
+  _homeN=list.length;
   // La STRUCTURE dépend de la largeur (colonne gauche en large) : mqHomeWide re-rend au seuil.
   const wide=mqHomeWide.matches;
   if((wide||tabNavOn())&&homeTab()!=='aides'){renderHomeTab(cfg);return;}   // A517 : les onglets du téléphone aussi
@@ -19473,6 +19524,9 @@ function mdBlkDup(body,i){const R=mdBlockRanges(body);if(!R[i])return null;const
   return {v:mdGlue(L.slice(0,r.e),[''],L.slice(r.a,r.e),L.slice(r.e)).join('\n'),i:i+1};}
 function mdBlkDel(body,i){const R=mdBlockRanges(body);if(!R[i])return null;const L=String(body).split('\n'),r=R[i];
   let pre=L.slice(0,r.a),post=L.slice(r.e);if(pre.length&&!pre[pre.length-1].trim()&&post.length&&!post[0].trim())post=post.slice(1);
+  /* A709 : deux voisins COLLÉS au bloc retiré restent deux blocs — sans ligne vide ils fusionnaient, et la suppression
+     suivante d'une sélection (indices décroissants) emportait avec eux un bloc qui n'était pas coché. */
+  else if(pre.length&&pre[pre.length-1].trim()&&post.length&&post[0].trim())pre=pre.concat(['']);
   if(!pre.some(x=>x.trim()))pre=[];return {v:pre.concat(post).join('\n'),i:Math.min(i,R.length-2)};}
 // Insère `text` comme bloc après le bloc i (i = -1 : en tête). Rend le corps et l'indice du bloc posé.
 function mdBlkIns(body,i,text){const R=mdBlockRanges(body),L=String(body||'').split('\n'),T=String(text).split('\n');
@@ -20859,7 +20913,12 @@ function bindEditorExit(cfg){
     await edFlush();
     if(cfg.leaveGC)cfg.leaveGC(d);
     const exists=cfg.list().some(x=>x.id===d.id);
-    if(!exists){await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();collForget(d.id);if(cfg.onCleanNew)cfg.onCleanNew(d);}   // A496 : ses collections aussi
+    /* A709 : un brouillon NEUF resté sans titre mais REMPLI n'est pas jeté — il reste au parc, repris par « Créer ».
+       « Retour » le détruisait sans un mot, à l'inverse de ce que promet l'auto-enregistrement ; seul le brouillon
+       vierge est nettoyé. */
+    if(!exists){
+      if(draftBase==null||JSON.stringify(d)!==draftBase){await parkDraftNow(cfg.kind);toast('Brouillon sans titre gardé : retrouvez-le par « Créer » › « Reprendre le brouillon en cours ».',7000,true);}
+      else{await clearDraftParkIf(cfg.kind,d.id);purgeDraftAtts();collForget(d.id);if(cfg.onCleanNew)cfg.onCleanNew(d);}}   // A496 : ses collections aussi
     cfg.clearDraft();state.draftRestored=null;
     if(exists)cfg.openExisting(d.id);else{state.view='library';render();}};
   {const gd=document.getElementById('ghostDrop');if(gd)gd.onclick=async()=>{
@@ -21721,8 +21780,9 @@ const SHARE_KINDS_ANY=['sig','check','verify','gap','counter','timer_arm','timer
    mourait en silence, pendant que le hub du harnais, qui ne filtrait rien, restait VERT. Un
    double du serveur qui ne reproduit pas ses amputations est un banc qui ment. */
 const SHARE_PAYLOAD_KEYS=['k','t','id','v','running','elapsedMs','cycles','anchor',
-  'nav','navSeq','on','exo','ref','was','to','take','o','a','code'];
+  'nav','navSeq','on','exo','ref','was','to','take','o','a','code','cxb'];   // A706 : `cxb` (ancres de complication) voyage avec `nav` — amputé, l'invité perdait « Reprendre »
 const SHARE_KINDS_LEAD=['uncheck','timer_reset','end','session_start'];
+const SHARE_REPLAY_OWN=['check','uncheck','counter','timer_arm','timer_stop','timer_reset','nav','flow_end','mark_void','session_start'];   // A706 : ses propres évènements rejoués lors d'une resynchronisation
 function shareCan(role,kind){
   if(SHARE_KINDS_ANY.indexOf(kind)>=0)return role==='scribe'||role==='lead';
   if(SHARE_KINDS_LEAD.indexOf(kind)>=0)return role==='lead';
@@ -21812,6 +21872,7 @@ function applyDeepLink(){
     /* A606 : la liste des bibliothèques EST le catalogue — on l'ouvre à sa racine, le focus sur la première. */
     state.homeTab='biblio';state.cnav={};render();
     const r=main.querySelector('[data-ctglib]');if(r)r.focus({preventScroll:true});}
+  else if(tabNavOn())tbSearchOpen();   // A708 : au téléphone le champ vit dans la barre d'onglets — `#q` masqué ne prenait pas le focus
   else{const q=document.getElementById('q');if(q)q.focus();}
   return true;}
 /* Donner un lien : la feuille de partage native d'abord (elle porte « Copier », et sur iPhone l'app
@@ -21950,7 +22011,8 @@ function applyCheck(k,on){
      été CONSTATÉ, jamais un souvenir périmé. */
   if(on){delete state.vgaps[k];}else{delete state.verified[k];}
   if(!on)state.flowEnded=false;
-  _linkLast=linkOnCheck(k,on);   // A377 : l'effet d'une coche liée, dans le geste local seulement
+  {const nl=Runtime.ckNoLink&&Runtime.ckNoLink[k];if(nl)delete Runtime.ckNoLink[k];
+    _linkLast=(!on&&nl)?null:linkOnCheck(k,on);}   // A377 : l'effet d'une coche liée, dans le geste local seulement ; A711 : rien à défaire d'une coche qui n'a rien compté
   return true;}
 let _linkLast=null;
 /* C3 (v5.10.2) — LE CŒUR DE PEINTURE DU COCHAGE, UNE SEULE FOIS. L'ÉTAT est unique depuis I4
@@ -21984,6 +22046,9 @@ function paintCheckRow(li,k,on,kb){
 function canToggleStep(on){
   try{
     if(Share.mode!=='guest')return true;
+    /* A706 : celui qui poursuit SEUL (détaché, ou conducteur dont le lien est mort) coche et décoche sur SON
+       écran — `canWrite` exige un lien actif et lui refusait tout, alors que le bandeau lui dit de continuer. */
+    if(Share.status==='detached'||Share.soloLead)return true;
     // Cocher = `check` (tout rôle) ; décocher = `uncheck` (lead seulement, côté serveur aussi).
     return Share.canWrite(on?'check':'uncheck');
   }catch(e){return true;}}
@@ -22441,7 +22506,10 @@ const SL_HUB_MAX_EVENTS=40000,SL_HUB_MAX_PER_PART=5000;   // A665 — le second 
 function slHub(o){
   const H={seq:0,events:[],ids:new Set(),parts:[],status:'active',fiche:o.fiche||null};
   const now=()=>new Date(o.now()).toISOString();
-  const findBySecret=s=>H.parts.find(p=>p.secret===s&&!p.revoked);
+  const findBySecret=s=>H.parts.find(p=>p.secret===s);   // A706 : coupés compris — il faut qu'il SACHE (cf. share_pull)
+  /* A706 — LA RÉPONSE DU SERVEUR À UN COUPÉ OU UN DÉTACHÉ, reproduite (`share_pull`) : le statut, et plus rien du fil. */
+  const dehors=p=>({ok:true,status:p.revoked?'revoked':'detached',role:p.role,me:p.id,events:[],
+    seq:0,n_events:0,participants:[],server_time:now()});
   const pub=p=>({id:p.id,label:p.label,role:p.role,owner:!!p.owner,seen:p.seen,
     revoked:!!p.revoked,detached:!!p.detached});
   H.parts.push({id:o.uid(),secret:o.secret(),label:o.hostLabel||'Hôte',role:'lead',
@@ -22468,6 +22536,7 @@ function slHub(o){
     async pull(secret,since){
       const p=findBySecret(secret);
       if(!p)return {ok:false,err:'auth'};
+      if(p.revoked||p.detached)return dehors(p);
       if(H.status!=='active')return {ok:true,status:H.status,events:[],seq:H.seq,
         n_events:H.events.length,participants:H.parts.map(pub),server_time:now()};
       p.seen=o.now();
@@ -22479,11 +22548,16 @@ function slHub(o){
     push(secret,events){
       const p=findBySecret(secret);
       if(!p)return {ok:false,err:'auth'};
+      if(p.revoked)return {ok:false,err:'revoked',status:'revoked'};
       if(H.status!=='active')return {ok:false,err:'ended'};
-      if(p.detached)return {ok:false,err:'detached'};
       p.seen=o.now();
+      /* A706 — LES TROIS RÉGIMES DE `share_push` : détaché → seules les annexes ; lot portant un `detach` → lui
+         seul, et le participant devient détaché (il n'était jamais posé : le sondage suivant le remettait
+         « actif ») ; sinon le rôle fait foi. */
+      const _det=!p.owner&&(events||[]).some(e=>e&&e.kind==='detach'),_etaitDet=!!p.detached;
       let accepted=0,rejected=0;
       for(const e of (events||[]).slice(0,50)){
+        if(e&&(_etaitDet?e.kind!=='offline_mark':(_det&&e.kind!=='detach'))){rejected++;continue;}
         /* A665 — BORNES DU HUB (le serveur a les siennes : 4096 o par charge, 5000 évènements par
            participant). Sans elles, un invité apparié gonflait le fil jusqu'à ralentir l'appareil qui
            CONDUIT le soin : id non typé, charge jusqu'à la taille d'une trame, fil sans plafond. */
@@ -22504,6 +22578,7 @@ function slHub(o){
         H.events.push({seq:H.seq,id:e.event_id,actor:p.id,kind:sstr(e.kind,24),
           payload:Object.assign({},pl),ts:_ts,at:now()});
         accepted++;}
+      if(_det)p.detached=true;
       return {ok:true,accepted,rejected,seq:H.seq,status:H.status,server_time:now()};},
     revoke(pid){const p=H.parts.find(x=>x.id===pid&&!x.owner);
       if(!p)return {ok:false};p.revoked=true;return {ok:true};},
@@ -23517,7 +23592,7 @@ function bindTk(){
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
         if(!tkParseTime(inp.value)){bad();return;}
         inp.blur();}
-      else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);renderTkOnly();}});
+      else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();inp.removeEventListener('blur',commit);renderTkOnly();}});   // A711 : Échap referme le champ, pas le volet
     inp.addEventListener('blur',commit);};});
   document.querySelectorAll('.tk-panel [data-tkrevert]').forEach(b=>b.onclick=()=>{
     const ev=(Runtime.events||[]).find(x=>x.id===b.dataset.tkrevert);if(!ev||typeof ev.origT!=='number')return;
@@ -23610,6 +23685,10 @@ function renderTkOnly(){
   // v5.4.2 : volet fermé en étroit -> le journal n'est nulle part dans le DOM (la rangée repliée
   // qui annonçait son compte a été supprimée avec son logement) — rien à repeindre.
   if(!old)return false;
+  /* A711 : un repère reçu du partage pendant qu'on corrige une heure — retirer le champ focalisé émettait son `blur`,
+     dont le rendu imbriqué remplaçait déjà le panneau, et l'appel externe levait (`NotFoundError`), interrompant
+     l'application du lot. On valide d'abord la saisie : son `blur` re-rend, données reçues comprises. */
+  {const a=document.activeElement;if(a&&a.classList&&a.classList.contains('tk-time-edit')&&old.contains(a)){a.blur();if(!old.isConnected)return true;}}   // le `blur` a re-rendu : rien à refaire ; sinon (Échap, écouteur retiré) on rend ici
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
   old.replaceWith(tmp.firstElementChild);
   // v5.4.2-r : le résumé du dépliant du rail annonce le compte — il suit chaque repère.
@@ -24226,10 +24305,13 @@ function bindReadEvents(f,blk,cur){
     const box=btn.parentElement;if(!box||box.querySelector('.cn-input'))return;
     const i=document.createElement('input');i.type='text';i.className='cn-input';i.maxLength=40;
     i.value=obj.label||'';i.setAttribute('aria-label',aria);
-    const fin=(ok)=>{if(!i.isConnected)return;
+    /* A711 : Échap ANNULE vraiment — le rendu retirait le champ, son `blur` validait la saisie pendant le retrait ;
+       et la touche remontait à l'écouteur global, qui fermait le volet. Une seule issue (`clos`), touche arrêtée. */
+    let clos=false;
+    const fin=(ok)=>{if(clos||!i.isConnected)return;clos=true;
       if(ok)obj.label=sstr(i.value,40).trim();
       persistLive(Runtime,true);render();};
-    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){e.preventDefault();fin(false);}};
+    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();fin(false);}};
     i.onblur=()=>fin(true);
     box.appendChild(i);i.focus();i.select();};
   main.querySelectorAll('[data-tmname]').forEach(b=>b.onclick=()=>{
@@ -26077,6 +26159,11 @@ function bindOverviewEvents(f){
     const vok=t.closest('[data-ovvok]');
     if(vok){const vf=state.ovVerify;if(!vf)return;const sec2=vok.closest('.ov-block');const id2=sec2.dataset.ovb;const seq2=state.navSeq[vf.idx]||1;
       const k2=seq2+':'+id2+':'+vf.i;
+      /* A711 : « Constaté ✓ » coche SANS effet de lien (décision, lot v5.115). Le décochage, lui, défaisait un effet
+         qui n'avait pas eu lieu : il retirait une dose RÉELLE du compteur lié et barrait son repère. La coche
+         retient donc qu'elle n'a rien compté (`ckNoLink`, mémoire vive : au pire, après rechargement, l'ancien
+         comportement). */
+      if(!state.checked[k2])(Runtime.ckNoLink=Runtime.ckNoLink||Object.create(null))[k2]=1;
       state.checked[k2]=true;state.verified[k2]={a:vfMe(),t:vfNow()};delete state.vgaps[k2];vf.i++;
       const js2=ensureStarted();persistLive(Runtime);
       if(js2){renderKeepAnchor('.ov-block[data-ovi="'+vf.idx+'"]');return;}
@@ -27429,7 +27516,7 @@ function monOpen(){const R=Runtime;if(!R||!R.fiche)return;
   el.tabIndex=-1;el.focus();}
 function monClose(){const el=monMode();if(!el||!el.classList.contains('on'))return;
   el.classList.remove('on');el.onclick=null;el.onkeydown=null;
-  const b=document.getElementById('hdrMore');if(b&&!b.hidden)b.focus();}
+  const b=document.getElementById('hdrMore');if(b&&!b.hidden)b.focus({preventScroll:true});}   // A711 : fermer le moniteur ne fait pas défiler la page (règle 11)
 /* ═══ F2 (v5.7, volet 3) — LE PLAN DE VOL, DANS LE MONITEUR ET NULLE PART AILLEURS ═══════
    Bande REFUSÉE sur le chrome de crise après mesure (budget de chrome tenu à 30 % par harnais) ;
    ici l'écran entier est un afficheur. ⚠ TROIS REGISTRES DE TRAIT : point derrière = ARRIVÉ,
@@ -28587,7 +28674,7 @@ function cxEditorRow(c,i,f,n){
      avec les blocs de CETTE fiche en premier groupe, puis les aides & protocoles. */
   const blk=(f.blocks||[]).find(b=>b.id===c.target);
   const ext=blk?null:relTarget(c.target);
-  const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
+  const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||('Bloc sans titre ('+((f.blocks||[]).indexOf(blk)+1)+')'))):   /* A709 : par son rang, jamais par son identifiant (v4.78.0) */(ext?(ext.title||'Sans titre'):'');
   return `<div class="cx-edit-row${edGrabClsL('excursions',i)}">${edGrabHandleL('excursions',i,n||0,'la complication')}<span class="cx-edit-ic" aria-hidden="true">${boltIcon(14)}</span><input type="text" data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><label class="cx-short"><span>Nom court</span><input type="text" data-cxshort="${i}" value="${esc(c.short||'')}" maxlength="24" placeholder="${esc(cxShort({label:c.label}))}" aria-label="Nom court sur le quai (facultatif — abrégé d’office sinon)"></label><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="ed-ic del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
 /* K7 (v4.70.0, maquette MK3) — LE MINUTEUR SE RÈGLE DANS SA CARTE DE LECTURE. C'était une rangée
    de champs alignés ; c'est maintenant la carte telle qu'elle apparaîtra dans le rail : nom en
@@ -29450,7 +29537,7 @@ let _lastParked=null;    // dernier instantané parqué (évite les écritures r
    v4.3.0 : inventer une seconde notion de « pas encore enregistré » à côté de « pas encore
    validé » ferait deux vocabulaires pour une idée — ce qu'AC 120-71B proscrit. */
 const ED_SAVE_MS=420;    // frappe : on écrit à la pause, pas à chaque caractère
-let _edSaveT=null,_edSaveAt=0,_edSaveState='';
+let _edSaveT=null,_edSaveAt=0,_edSaveState='',_edPubFor=null;
 function edKind(){return _editKind();}
 /* Copie NORMALISÉE prête à publier. `draftReadStatusFields` lit d'abord le DOM dans le brouillon
    vivant (l'état éditorial n'est pas dans le modèle tant qu'on ne l'a pas relu). */
@@ -29567,6 +29654,15 @@ function edUndoPaint(){
   const r=document.getElementById('hdrRedo');if(!r)return;
   const ron=!!edKind()&&_edRedo.length>0;r.hidden=!ron;
   if(ron){r.innerHTML=uiIcon('redo',17);r.title='Rétablir le geste annulé ('+_edRedo.length+' en mémoire) — Cmd/Ctrl-Maj-Z';}}
+/* A709 — UNE COMPLICATION EN COURS DE SAISIE SURVIT À ↶/↷ ET À LA REPRISE D'UN BROUILLON. `migrate` retire toute
+   complication sans cible (une aide PUBLIÉE n'en garde pas), mais un brouillon en porte une le temps de la remplir :
+   repasser l'instantané par `migrate` la faisait disparaître avec le geste annulé, sans retour. Mêmes bornes et mêmes
+   assainisseurs que `migrate`, moins le filtre. */
+function edKeepCx(raw,d){
+  if(!d||!raw||!Array.isArray(raw.excursions))return d;
+  d.excursions=raw.excursions.slice(0,8).filter(c=>c&&typeof c==='object')
+    .map(c=>({label:sstr(c.label,120),target:(typeof c.target==='string'&&SAFE_ID.test(c.target)&&!badKey(c.target))?c.target:'',...shortField(c)}));
+  return d;}
 function edUndoDo(){
   const k=edKind();if(!k||!_edUndo.length)return;
   const snap=_edUndo.pop();
@@ -29574,7 +29670,7 @@ function edUndoDo(){
   /* Une donnée qui rentre repasse par son point d'entrée, même si elle vient de nous : règle 5.
      Le brouillon a déjà été migré à l'ouverture, donc c'est gratuit — mais un jour où `migrate`
      posera un défaut de plus, on ne veut pas d'un chemin qui l'ait contourné. */
-  if(k==='f')state.draft=migrate(JSON.parse(snap));
+  if(k==='f'){const raw=JSON.parse(snap);state.draft=edKeepCx(raw,migrate(raw));}
   else state.pdraft=migrateProtocol(JSON.parse(snap));
   state.edGrab=null;                 // un objet « en main » n'a plus de sens après un retour arrière
   _edPrev=null;                      // le rendu qui suit ré-amorce sans empiler l'annulation elle-même
@@ -29594,7 +29690,7 @@ function edRedoDo(){
   const k=edKind();if(!k||!_edRedo.length)return;
   const snap=_edRedo.pop();
   _edUndo.push(JSON.stringify(k==='f'?state.draft:state.pdraft));if(_edUndo.length>ED_UNDO_MAX)_edUndo.shift();
-  if(k==='f')state.draft=migrate(JSON.parse(snap));
+  if(k==='f'){const raw=JSON.parse(snap);state.draft=edKeepCx(raw,migrate(raw));}
   else state.pdraft=migrateProtocol(JSON.parse(snap));
   state.edGrab=null;_edPrev=null;
   (k==='f'?renderEditor:renderProtocolEdit)();
@@ -29614,6 +29710,7 @@ async function edCommit(kind){
   draftNewAtts=[];                                // les blobs sont désormais référencés par du PUBLIÉ
   await clearDraftParkIf(kind,d.id);_lastParked=null;   // le parc n'a plus rien à protéger
   _edSaveAt=Date.now();edSaySave('saved');
+  {const cur=kind==='f'?state.draft:state.pdraft;_edPubFor=(cur&&JSON.stringify(cur)!==draftBase)?draftBase:null;}   // A707 : ce qui est publié diffère-t-il de l'état d'ouverture ?
   return true;}
 /* Appelé par TOUT ce qui touche au brouillon. `now` pour les gestes STRUCTURELS (ajout,
    suppression, déplacement, changement d'état) : eux n'ont pas de pause de frappe à attendre. */
@@ -29633,7 +29730,9 @@ function edTouch(now){
   if(!d)return;
   const snap=JSON.stringify(d);
   if(edUntitled(k)){clearTimeout(_edSaveT);edSaySave('untitled');return;}
-  if(snap===draftBase)return;
+  /* A707 : revenu à l'état d'ouverture APRÈS une publication (un « Z » ajouté puis effacé), il faut republier —
+     sinon la bibliothèque gardait l'état abandonné sous un badge « ✓ Enregistré ». */
+  if(snap===draftBase&&_edPubFor!==draftBase)return;
   clearTimeout(_edSaveT);
   if(now){edCommit(k);return;}
   edSaySave('saving');
@@ -29757,7 +29856,8 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   /* GARER LE MIROIR (v5.14.17) : la session reçue « par l'écran » ne vit que dans `Runtime` —
      la remplacer sans la garer la détruisait. L'invité en ligne/direct n'en a pas besoin :
      son pli la reconstruit (`backToShared` → `openSharedFiche`). */
-  if(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId&&_slMirror
+  if(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId
+    &&(_slMirror||(Share.mode==='guest'&&(Share.status==='detached'||Share.soloLead)))   // A706 : la session poursuivie seul se gare aussi
     &&Runtime.ficheId!==id)_shParked=Runtime;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   /* ⚠ LE RUNTIME CONSERVÉ GARDAIT UNE FICHE PÉRIMÉE (trouvé à la sonde, lot T7). Quand on rouvre
@@ -30774,7 +30874,7 @@ createSeg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.pr
 // sur iOS, un clavier encore ouvert à cet instant se referme de façon asynchrone et re-décale
 // la page APRÈS le scrollTo(0,0) de l'éditeur qui suit (v4.4.7 — cf. garde-fou de render()).
 async function openCreateDlg(){if(linkGate(openCreateDlg))return;   // A643
-  try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
+  try{const a=document.activeElement;if(a&&a.blur&&a.matches&&a.matches('input,textarea,select'))a.blur();}catch(e){}   // A712 : seuls les champs — défocaliser le BOUTON empêchait de lui rendre le focus à la fermeture
   /* Ouvert depuis l'en-tête : on part du type que la recherche filtre, s'il en filtre un — c'est
      l'intention la plus probable — mais on ne le MODIFIE jamais. */
   if(state.section==='protocols'||state.section==='fiches')_crtKind=state.section;
@@ -30836,7 +30936,10 @@ function renderCreateDlg(screen,park){
     return;
   }
   // Brouillon de CRÉATION auto-enregistré en attente (jamais publié) : proposé en tête.
-  const slot=park&&park[proto?'p':'f'];const resume=(slot&&slot.isNew)?slot:null;
+  /* A709 : les DEUX emplacements — la carte ne lisait que celui du type courant (`_crtKind`, que plus rien ne règle
+     depuis la v5.30) : un protocole parqué n'était jamais proposé, et sa première frappe suivante l'écrasait. */
+  const resF=(park&&park.f&&park.f.isNew)?park.f:null,resP=(park&&park.p&&park.p.isNew)?park.p:null;
+  const resLine=(r,mot)=>mot+' — '+esc(r.draft.title||'Sans titre')+' — auto-enregistré à '+fmtHMS(r.ts);
   /* v5.19.1 (demande de l'auteur) : le dialogue DIT ce qu'on s'apprête à créer. Une phrase, pas
      un cours — l'anatomie complète vit dans le bandeau de bibliothèque vide, d'où vient ce texte
      (source unique : `EMPTY_INTRO`, jamais recopiée). */
@@ -30845,7 +30948,8 @@ function renderCreateDlg(screen,park){
   body.innerHTML=`
     <p class="crt-what">Choisissez le type. Vous pourrez tout modifier ensuite.</p>
     <div class="crt-list">
-    ${resume?crtCard('crtResume',uiIcon('undo',26),'Reprendre le brouillon en cours',esc(resume.draft.title||'Sans titre')+' — auto-enregistré à '+fmtHMS(resume.ts)):''}
+    ${resF?crtCard('crtResume',uiIcon('undo',26),'Reprendre le brouillon en cours',resLine(resF,'Aide')):''}
+    ${resP?crtCard('crtResumeP',uiIcon('undo',26),'Reprendre le brouillon en cours',resLine(resP,'Protocole')):''}
     ${crtCard('crtManual','<span class="crt-badge act">✓</span>','Aide cognitive','Un parcours à cocher en situation : blocs d\'étapes, décisions, minuteurs et compteurs.')}
     ${crtCard('crtProto','<span class="crt-badge">≡</span>','Protocole','Un texte de référence à lire, sans chrono : posologies, procédures, consignes de service.')}
     </div>
@@ -30854,11 +30958,11 @@ function renderCreateDlg(screen,park){
     <button type="button" class="crt-row" id="crtImport"><span class="crt-ic" aria-hidden="true">${uiIcon('download',20)}</span><span><span class="crt-t">Importer un fichier (.json ou .zip)</span></span></button>
     <p class="crt-note">Un import garde l'état de son fichier ; rédigé avec l'IA, un fichier sans état entre en <strong>○ Brouillon</strong>.</p>
 `;
-  {const rs=document.getElementById('crtResume');if(rs)rs.onclick=()=>{closeCreateDlg();
-    if(proto){state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(resume.draft)));state.view='protocolEdit';}
-    else{state.draft=migrate(JSON.parse(JSON.stringify(resume.draft)));state.view='edit';}
+  [['crtResume',resF,false],['crtResumeP',resP,true]].forEach(([rid,resume,isP])=>{const rs=document.getElementById(rid);if(rs)rs.onclick=()=>{closeCreateDlg();
+    if(isP){state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(resume.draft)));state.view='protocolEdit';}
+    else{state.draft=edKeepCx(resume.draft,migrate(JSON.parse(JSON.stringify(resume.draft))));state.view='edit';}
     draftNewAtts=(resume.newAtts||[]).slice();state.noteEdit=false;
-    draftBase=null;_lastParked=null;state.draftRestored=resume.ts;render();};}
+    draftBase=null;_lastParked=null;state.draftRestored=resume.ts;render();};});
   document.getElementById('crtManual').onclick=()=>{_crtKind='fiches';closeCreateDlg();newFiche();};
   document.getElementById('crtProto').onclick=()=>{_crtKind='protocols';closeCreateDlg();newProtocol();};
   {const ia=document.getElementById('crtIA');if(ia)ia.onclick=()=>{_crtKind='fiches';renderCreateDlg('ia');};}
@@ -30967,7 +31071,7 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
 function paintViewFoot(){
   const go=document.getElementById('viewSheetGo'),cl=document.getElementById('viewSheetClear');
   if(!go)return;
-  const n=main.querySelectorAll('.dir-row').length;
+  const n=_homeN;   // A708 : le compte de la LISTE — les rangées dessinées comptaient deux fois une aide épinglée et zéro un groupe replié
   /* A556 : une feuille qui ne filtre pas n'annonce pas de résultats — elle se ferme. */
   go.textContent=tabNavOn()?'Terminé':n?`Voir ${n===1?'le résultat':'les '+n+' résultats'}`:'Aucun résultat';
   const k=filtersCount(),nn=document.getElementById('vsN');
@@ -31055,7 +31159,11 @@ function renderCatMgr(){
   body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid,scp=row.dataset.cscope||null;
     const c=categories.find(x=>x.id===cid&&catScope(x)===scp);if(!c)return;
     const cle=scp===null?'|'+cid:scp+'|'+cid;
-    const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{const k0=catKey(c);c.name=e.target.value;saveCats(scp);
+    /* A709 : un nom VIDE ne s'enregistre pas (la catégorie restait sans nom, ses aides rangées dessous) ; le champ
+       reprend le dernier nom en le quittant. */
+    const nm=row.querySelector('[data-cname]');
+    if(nm)nm.addEventListener('blur',()=>{if(!nm.value.trim())nm.value=c.name;});
+    if(nm)nm.addEventListener('input',e=>{if(!e.target.value.trim())return;const k0=catKey(c);c.name=e.target.value;saveCats(scp);
       if(state.cat&&state.cat===k0&&!categories.some(x=>catKey(x)===k0))state.cat=catKey(c)||'';   // A419 : le filtre suit le nom
       const pv=row.querySelector('[data-prev]');if(pv)pv.innerHTML=catPrevHtml(safeColor(c.color),c,scp);});   // A316 : l'aperçu suit le nom
     // Ouvre/ferme la palette de la rangée ; le focus revient sur la pastille après re-rendu (A236).
@@ -31553,9 +31661,13 @@ function normalizeImport(imp){
   const out=Object.assign({},imp);
   if(!Array.isArray(out.fiches)&&Array.isArray(out.aids))out.fiches=out.aids;
   delete out.aids;
+  /* A709 : une entrée qui n'est pas un objet (null, nombre, texte) ou qui est vide n'est pas une aide — elle
+     entrait en « Sans titre » validée, une par entrée. */
+  const plein=x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).length>0;
+  if(Array.isArray(out.protocols))out.protocols=out.protocols.filter(plein);
   if(!Array.isArray(out.fiches))return out;
   const refs=[],aides=[];
-  out.fiches.forEach(x=>{((x&&typeof x==='object'&&x.kind==='reference')?refs:aides).push(x);});
+  out.fiches.filter(plein).forEach(x=>{((x&&typeof x==='object'&&x.kind==='reference')?refs:aides).push(x);});
   out.fiches=aides;
   if(refs.length)out.protocols=(Array.isArray(out.protocols)?out.protocols:[]).concat(refs);
   return out;}
@@ -31948,7 +32060,7 @@ async function notionVerse(p,files,rerender){
       if(!String(p.title||'').trim()&&t)p.title=t;
       const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
       p.images=Array.isArray(p.images)?p.images:[];let txt=bloc;
-      for(const im of (q.images||[])){if(p.images.length>=MAX_IMG_PER_ENTITY){trop++;txt=txt.split('![](img:'+im.id+')').join('');continue;}p.images.push(im);img++;}
+      for(const im of (q.images||[])){if(p.images.length>=MAX_IMG_PER_ENTITY){trop++;txt=txt.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(im.id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g'),'');continue;}   /* A709 : image LÉGENDÉE comprise */p.images.push(im);img++;}
       /* Par le champ Markdown quand il est là : l'ajout entre dans son historique (↶ le retire d'un geste). */
       const ta=document.getElementById('p-body');
       if(ta&&state.pdraft===p){ta.selectionStart=ta.selectionEnd=ta.value.length;mdInsertAt(ta,(ta.value.trim()?(/\n\n$/.test(ta.value)?'':/\n$/.test(ta.value)?'\n':'\n\n'):'')+txt+'\n');}
@@ -32123,11 +32235,13 @@ async function _importRead(buf,lbl,ia){
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
     // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
     const existing=new Set(fiches.map(x=>x.id));
-    const clashes=merge?imp.fiches.filter(d=>d&&d.id&&existing.has(d.id)).length:0;
+    /* A709 : un doublon n'existe que pour un fichier de CE MÊME espace (J191, J194) — venu d'ailleurs, l'id est
+       régénéré ; la question était pourtant posée, et « Remplacer » écrasait une aide locale sans rapport. */
+    const clashes=(merge&&sameSpace)?imp.fiches.filter(d=>d&&d.id&&existing.has(d.id)).length:0;
     // Les doublons de PROTOCOLES sont soumis à la MÊME question (une seule, groupée) : ils étaient
     // remplacés en silence, contrairement à la promesse « mêmes règles que les fiches ».
     const existingP0=new Set(protocols.map(x=>x.id));
-    const clashesP=(merge&&hasProtos)?imp.protocols.filter(d=>d&&d.id&&existingP0.has(d.id)).length:0;
+    const clashesP=(merge&&sameSpace&&hasProtos)?imp.protocols.filter(d=>d&&d.id&&existingP0.has(d.id)).length:0;
     let replace=(clashes+clashesP)?await confirmDlg([clashes?clashes+' aide(s)':'',clashesP?clashesP+' protocole(s)':''].filter(Boolean).join(' et ')+' déjà présent(e)(s) (même identifiant).',{title:'Doublons détectés',yes:'Remplacer les existants',no:'Garder les deux'}):false;
     if(replace===null){pendingOpenImport=false;return;}
     const added=[];
@@ -32245,7 +32359,15 @@ const Auth={
   // apikey = clé publishable (toujours) ; Authorization = jeton utilisateur si connecté, sinon la clé (rôle anon).
   headers(extra){return Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+this.token(),'Content-Type':'application/json'},extra||{});},
   async _post(path,body){const r=await acFetch(SUPA.url+path,{method:'POST',headers:this.headers(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.msg||j.message||j.error_description||j.error||('HTTP '+r.status));e.status=r.status;throw e;}return j;},   // A661 : le statut voyage (`authErrMsg`)
-  _setSession(j){if(!j||!j.access_token)return;this.session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:j.expires_at||(Math.floor(Date.now()/1000)+(j.expires_in||3600)),user:j.user};this._save();},
+  /* A710 : l'échéance se compte sur l'horloge de CET appareil (`expires_in`), jamais sur l'heure absolue du serveur —
+     une horloge locale en retard croyait le jeton encore bon et la synchro échouait en 401 jusqu'à l'heure suivante. */
+  _setSession(j){if(!j||!j.access_token)return;this.session={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:j.expires_in?(Math.floor(Date.now()/1000)+j.expires_in):(j.expires_at||(Math.floor(Date.now()/1000)+3600)),user:j.user};this._save();},
+  /* A710 — UN AUTRE ONGLET A PEUT-ÊTRE DÉJÀ TOURNÉ LE JETON. Le vol unique ne vaut que dans un onglet : le second
+     rejouait l'ancien jeton de rafraîchissement, recevait 400, et déconnectait TOUS les onglets. On relit donc ce
+     que l'autre a écrit — même compte seulement — avant de rafraîchir, et avant de conclure à un refus. */
+  _adoptDisk(){try{const d=JSON.parse(localStorage.getItem('ac-auth')||'null'),s=this.session;
+    if(d&&s&&d.access_token&&d.refresh_token&&d.refresh_token!==s.refresh_token&&d.user&&s.user&&d.user.id===s.user.id){this.session=d;return true;}}catch(e){}
+    return false;},
   async sendCode(email){await this._post('/auth/v1/otp',{email:email,create_user:true});},
   async verifyCode(email,code){const j=await this._post('/auth/v1/verify',{type:'email',email:email,token:code});this._setSession(j);return j;},
   // Rafraîchissement du jeton. IMPORTANT (hors-ligne) : un échec RÉSEAU (fetch qui lève : mode
@@ -32259,11 +32381,12 @@ const Auth={
     if(this._refreshP)return this._refreshP;
     this._refreshP=(async()=>{
       if(!this.session||!this.session.refresh_token)return false;
+      if(this._adoptDisk()&&this.session.expires_at-Math.floor(Date.now()/1000)>=60)return true;   // A710 : l'autre onglet a déjà rafraîchi
       // Un délai dépassé passe par ce même `catch` : on renvoie false (« pas rafraîchi »), donc
       // AUCUNE déconnexion — exactement le traitement voulu pour une panne réseau.
       let r;try{r=await acFetch(SUPA.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:this.headers(),body:JSON.stringify({refresh_token:this.session.refresh_token})});}catch(e){return false;}
       const j=await r.json().catch(()=>({}));
-      if(!r.ok){if(r.status===400||r.status===401||r.status===403)await this.signOut();return false;}
+      if(!r.ok){if(r.status===400||r.status===401||r.status===403){if(this._adoptDisk())return true;await this.signOut();}return false;}   // A710 : refusé parce qu'un autre onglet l'a tourné entre-temps
       this._setSession(j);return true;
     })();
     try{return await this._refreshP;}finally{this._refreshP=null;}},
@@ -33033,6 +33156,9 @@ async function inviteAnswer(id,ok){
   if(!ok&&!await confirmDlg('Vous ne recevrez rien de cette bibliothèque. Un de ses administrateurs pourra vous réinviter.',{title:'Refuser l’invitation à « '+(inv.name||'cette bibliothèque')+' » ?',yes:'Refuser'}))return;
   let r;try{r=await rpc('answer_invitation',{p_library:id,p_accept:!!ok});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
   if(r==='refused'){toast('⚠ Réponse refusée par le serveur — réessayez sur un appareil à vous.',6000,true);return;}
+  /* A710 : toute autre réponse que « ok » (invitation retirée entre-temps : `not_found`) n'est pas un succès —
+     l'écran annonçait « Vous avez rejoint… Son contenu arrive. » et rien n'arrivait. */
+  if(r!=='ok'){myInvites=(myInvites||[]).filter(x=>x.id!==id);saveProfileCache();renderAuth();toast('⚠ Cette invitation n’existe plus.',6000,true);return;}
   myInvites=(myInvites||[]).filter(x=>x.id!==id);saveProfileCache();renderAuth();
   if(ok){toast('Vous avez rejoint « '+(inv.name||'la bibliothèque')+' ». Son contenu arrive.',6000);await Sync.loadProfile();try{Sync.full();}catch(e){}renderAuth();}}
 // Moi : mes demandes (en attente ou refusées) — une rangée chacune, annulable ou effaçable.
@@ -33040,7 +33166,9 @@ function libReqRowsHtml(){return (myLibReqs||[]).map(r=>{const ko=r.status==='re
   return menuRowHtml({label:'« '+r.name+' »',ic:uiIcon(ko?'warn':'history',20),inert:true,
     sub:(ko?'demande refusée':'demande en attente, envoyée')+' le '+new Date(r.decided_at||r.created_at).toLocaleDateString('fr-FR')+(r.invitees?' · '+nb(r.invitees,'invité'):''),
     tail:`<button type="button" class="btn sm" data-libreqx="${esc(r.id)}">${ko?'Effacer':'Annuler'}</button>`});}).join('');}
-async function libReqCancel(id){try{await rpc('cancel_library_request',{p_id:id});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
+async function libReqCancel(id){
+  if(linkDeny('Annuler une demande de bibliothèque'))return;   // A710 : le serveur l'ignore sur un appareil temporaire (A679) — la rangée disparaissait puis revenait
+  try{await rpc('cancel_library_request',{p_id:id});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
   myLibReqs=(myLibReqs||[]).filter(r=>r.id!==id);saveProfileCache();renderAuth();}
 /* ══ ADMINISTRATION — UNE PAGE À SECTIONS (v5.55, A494 ; maquette validée, canevas « Administration —
    refonte ») ══ Moi ne porte plus qu'une PORTE (carte « Administration · n à traiter ») ; la page s'ouvre
@@ -33081,12 +33209,12 @@ const admAfter=msg=>{if(msg)toast(msg,4000,true);return admRefresh(true);};
 const admView=()=>document.getElementById('admView');
 function admRoot(){return admView()||(admModal.classList.contains('on')?document.getElementById('admBody'):null);}
 function openAdmin(sec){if(linkDeny('L’administration'))return;   // A643 : interdit sur un poste partagé
-  _adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=_adm.trAsk=null;
+  _adm.sec=sec||'home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=_adm.trAsk=_adm.qtAsk=_adm.memErr=null;
   /* A517 : au téléphone, Administration reste une page-fenêtre (un NIVEAU ouvert depuis Moi, A494) — pas un onglet. */
   if(homeTabsOn()&&!tabNavOn()){if(homeTab()==='admin')renderAdm({top:true});else setHomeTab('admin');}
   else{admModal.classList.add('on');renderAdm({top:true});}
   admRefresh(true);}
-function closeAdmin(){admModal.classList.remove('on');_adm.sec='home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=_adm.trAsk=null;admPaintDoor();}
+function closeAdmin(){admModal.classList.remove('on');_adm.sec='home';_adm.user=null;_adm.sel=null;_adm.apAsk=_adm.modeAsk=_adm.trAsk=_adm.qtAsk=_adm.memErr=null;admPaintDoor();}
 bindModalDismiss(admModal,closeAdmin);
 /* Profondeur DANS la page (retour système, A430) : un compte ouvert depuis Comptes = 2, toute section = 1. */
 function admDepth(){const s=_adm.sec;return s==='home'?0:s==='compte'&&_adm.from==='comptes'?2:1;}
@@ -33095,7 +33223,7 @@ function admGo(sec,o){o=o||{};
   if(sec==='compte'){if(_adm.sec!=='compte')_adm.from=_adm.sec==='comptes'?'comptes':'home';_adm.user=o.user||_adm.user;}else _adm.user=null;
   if(sec==='comptes'&&o.f){_adm.f=o.f;_adm.lim=ADM_PAGE;}
   if(sec!=='comptes'&&sec!=='compte')_adm.sel=null;
-  _adm.sec=sec;_adm.apAsk=_adm.modeAsk=_adm.trAsk=null;renderAdm({top:sec!=='compte'||!admSplit()});_histSync();}
+  _adm.sec=sec;_adm.apAsk=_adm.modeAsk=_adm.trAsk=_adm.qtAsk=_adm.memErr=null;renderAdm({top:sec!=='compte'||!admSplit()});_histSync();}
 const admUser=()=>_admD&&(_admD.acc||[]).find(u=>u.user_id===_adm.user)||null;
 /* Catégorie d'un compte : validation coupée, un « en attente » a déjà accès (`my_status`) — il se lit approuvé. */
 function admCat(u){if(u.is_admin)return 'admin';if(u.status==='pending'&&_admD&&!_admD.approval)return 'approved';return ACC_ST[u.status]?u.status:'approved';}
@@ -33231,7 +33359,7 @@ function admCompteBody(u){const D=_admD,mem=_adm.mem[u.user_id],c=admCat(u),moi=
     +`<div class="adm-urow"><span id="admCrLbl">Peut créer des bibliothèques<small>${esc(crSub)}</small></span>${u.is_admin?'':swHtml(u.can_create,'data-admcreate data-admk="cr" aria-labelledby="admCrLbl"')}</div></div>`;
   const libsFree=(D.libs||[]).filter(l=>!(mem||[]).some(m=>m.library_id===l.id));
   h+=admSh('Bibliothèques',mem&&mem.length,false,mem&&mem.length?'rôle modifiable sur place':'')+'<div class="acct-card acct-list">'
-    +(!mem?'<p class="adm-hint">Chargement…</p>':mem.length?mem.map(m=>`<div class="mem-row"><div class="mem-info"><span class="mem-email">${esc(m.name||'')}</span></div><div class="mem-act"><select data-admrole="${esc(m.library_id)}" data-admk="role-${esc(m.library_id)}" aria-label="${esc('Rôle dans '+(m.name||''))}">${roleOptions(m.role)}</select><button type="button" class="mini del" data-admrm="${esc(m.library_id)}" data-admk="rm-${esc(m.library_id)}" aria-label="${esc('Retirer de '+(m.name||''))}">×</button></div></div>`).join('')
+    +(!mem?`<p class="adm-hint">${_adm.memErr===u.user_id?'Adhésions indisponibles pour le moment — rouvrez ce compte pour réessayer.':'Chargement…'}</p>`:mem.length?mem.map(m=>`<div class="mem-row"><div class="mem-info"><span class="mem-email">${esc(m.name||'')}</span></div><div class="mem-act"><select data-admrole="${esc(m.library_id)}" data-admk="role-${esc(m.library_id)}" aria-label="${esc('Rôle dans '+(m.name||''))}">${roleOptions(m.role)}</select><button type="button" class="mini del" data-admrm="${esc(m.library_id)}" data-admk="rm-${esc(m.library_id)}" aria-label="${esc('Retirer de '+(m.name||''))}">×</button></div></div>`).join('')
       :'<p class="adm-hint">Membre d’aucune bibliothèque partagée.</p>')
     +(mem&&c!=='pending'&&c!=='rejected'&&libsFree.length?`<button type="button" class="catmenu-new" data-admaddlib data-admk="addlib">＋ Ajouter à une bibliothèque…</button>`:'')+'</div>';
   const crees=(D.libs||[]).filter(l=>l.creator&&l.creator===u.email);
@@ -33240,9 +33368,10 @@ function admCompteBody(u){const D=_admD,mem=_adm.mem[u.user_id],c=admCat(u),moi=
     +(c==='approved'?`<button type="button" class="btn outline-danger" data-admact="suspend" data-admk="a-suspend">Suspendre l’accès…</button><p class="danger-caption">Retire ${mem?nb(mem.length,'adhésion'):'ses adhésions'}. Si le compte est réapprouvé, il faudra réinviter la personne dans chaque bibliothèque. Confirmation demandée.</p>`
       :`<button type="button" class="btn outline-danger" data-admact="delete" data-admk="a-delete">Supprimer le compte…</button><p class="danger-caption">La personne pourra recréer un compte avec cette adresse (nouvelle demande à valider). Confirmation demandée.</p>`)+'</div>';
   return h;}
-async function admMemLoad(id){if(!id||_adm.mem[id]||_adm.memBusy===id)return;_adm.memBusy=id;
-  let m=[];try{m=admArr(await rpc('list_user_memberships',{p_user:id}));}catch(e){}
-  _adm.memBusy=null;_adm.mem[id]=m;if(_adm.user===id)renderAdm();}
+/* A710 : une lecture EN ÉCHEC n'est pas « membre d'aucune bibliothèque » — elle ne se met pas en cache et se dit. */
+async function admMemLoad(id){if(!id||_adm.mem[id]||_adm.memBusy===id||_adm.memErr===id)return;_adm.memBusy=id;
+  let m=null;try{m=admArr(await rpc('list_user_memberships',{p_user:id}));}catch(e){}
+  _adm.memBusy=null;if(m)_adm.mem[id]=m;else _adm.memErr=id;if(_adm.user===id)renderAdm();}
 /* ── Bibliothèques ───────────────────────────────────────────────────────────────────────────── */
 function admLibList(){const q=txNorm(_adm.lq),f=_adm.lf,S=_adm.lsort,nm=l=>String(l.name||'');
   return (_admD.libs||[]).filter(l=>(f==='all'||(f==='noadm'&&!+l.admins)||(f==='empty'&&!admEl(l))||(f==='mine'&&roleOf(l.id)))&&(!q||txNorm(nm(l)+' '+(l.creator||'')).includes(q)))
@@ -33602,7 +33731,7 @@ function renderAuthDelete(body,u){
         const mine=myLibraries.filter(l=>l.role==='admin');if(!mine.length)return;
         const orphans=[];
         for(const l of mine){const rows=await rpc('list_members',{p_library:l.id})||[];
-          if(!rows.some(m=>m.role==='admin'&&m.user_id!==u.id))orphans.push(l.name||l.id);}
+          if(!rows.some(m=>m.role==='admin'&&!m.pending&&m.user_id!==u.id))orphans.push(l.name||l.id);}   // A710 : un invité qui n'a pas accepté n'administre rien (A685)
         if(!orphans.length)return;
         const el=document.getElementById('delOrphanWarn');if(!el)return;
         el.hidden=false;
@@ -33949,11 +34078,13 @@ function renderAuthLogin(body){
       <details class="auth-why"><summary>Pourquoi créer un compte ?</summary><div class="auth-why-body">${storageExplainHtml()}</div></details>
       ${accountPrefsHtml('<button class="btn" id="authExport">Exporter mes données</button>')}`;
     bindAccountPrefs(body);
-    body.querySelectorAll('[data-authk]').forEach(b=>b.onclick=()=>{_authStep.kind=b.dataset.authk;_authStep.msg='';
+    /* A710 : l'adresse déjà tapée survit au changement de tuile (elle se perdait au re-rendu). */
+    const gardeMail=()=>{const e=body.querySelector('#authEmail');if(e&&e.value.trim())_authStep.email=e.value.trim();};
+    body.querySelectorAll('[data-authk]').forEach(b=>b.onclick=()=>{gardeMail();_authStep.kind=b.dataset.authk;_authStep.msg='';
       if(_authStep.kind==='temp'&&!_authStep.meth)_authStep.meth='app';renderAuth();
       if(_authStep.kind==='perm'){const e=document.getElementById('authEmail');if(e)try{e.focus({preventScroll:true});}catch(_){}}});
-    body.querySelectorAll('[data-autht]').forEach(b=>b.onclick=()=>{_authStep.meth=b.dataset.autht;_authStep.msg='';renderAuth();});
-    {const nb=body.querySelector('[data-authnew]');if(nb)nb.onclick=()=>{_authStep.kind='perm';_authStep.msg='';renderAuth();
+    body.querySelectorAll('[data-autht]').forEach(b=>b.onclick=()=>{gardeMail();_authStep.meth=b.dataset.autht;_authStep.msg='';renderAuth();});
+    {const nb=body.querySelector('[data-authnew]');if(nb)nb.onclick=()=>{gardeMail();_authStep.kind='perm';_authStep.msg='';renderAuth();
       const e=document.getElementById('authEmail');if(e)try{e.focus();}catch(_){}};}
     {const box=body.querySelector('#lkInline');if(box)Link.inline(box);else Link.stopInline();}
     if(!body.querySelector('#authSend'))return;
@@ -34784,8 +34915,11 @@ applyTheme(localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-
    (la RLS borne l'accès côté serveur ; on ne pousse que là où l'on peut éditer). Tout échec est
    silencieux côté usage (l'app reste pleinement utilisable hors-ligne). */
 // Appel REST générique vers PostgREST. Rafraîchit le jeton au besoin. Lève en cas d'erreur HTTP.
-async function rest(method,path,body,extra){await Auth.ensureFresh();
+async function rest(method,path,body,extra,_rejeu){await Auth.ensureFresh();
   const r=await acFetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
+  /* A710 : un 401 (jeton expiré malgré l'échéance locale) se rattrape UNE fois par un rafraîchissement — il laissait
+     « Erreur de synchro » jusqu'à l'échéance, avec un message qui renvoyait à une fenêtre sans champ de connexion. */
+  if(r.status===401&&!_rejeu&&Auth.signedIn()&&Auth.session.refresh_token&&await Auth.refresh())return rest(method,path,body,extra,true);
   if(!r.ok){const t=await r.text().catch(()=>'');throw new Error('REST '+r.status+' '+String(t).slice(0,200));}
   const ct=r.headers.get('content-type')||'';return ct.indexOf('application/json')>=0?r.json():null;}
 // Appel d'une fonction Postgres exposée par PostgREST (toujours en POST). Raccourci de rest() pour
@@ -35697,10 +35831,21 @@ const Sync={
   // Retire localement les enregistrements PARTAGÉS devenus inaccessibles (droits retirés,
   // bibliothèque supprimée). Générique fiches/protocoles — même comportement qu'avant.
   async _reconcileShared(){
-    await this._reconcileTable('fiches',()=>Data.getAll(),id=>Data.del(id),fiches);
+    await this._reconcileTable('cognitive_aids',()=>Data.getAll(),id=>Data.del(id),fiches);   // A710 : la table, plus la vue de compatibilité 4.x (`fiches`, vouée à disparaître)
     await this._reconcileTable('protocols',()=>Data.getProtocols(),id=>Data.delProtocol(id),protocols);},
   async _reconcileTable(table,getAllLocal,dataDel,mem){
-    let ids;try{const rows=await rest('GET','/rest/v1/'+table+'?select=id')||[];ids=new Set(rows.map(r=>r.id));}catch(e){return;}
+    /* A710 — LA LISTE DES IDS SE LIT EN ENTIER, PAGE PAR PAGE. PostgREST plafonne une réponse (1000 lignes par défaut,
+       le tirage voisin le sait et pagine) : au-delà, la liste était TRONQUÉE et toute aide de bibliothèque absente
+       de la première page était supprimée de l'appareil, re-téléchargée à la synchro suivante, puis re-supprimée.
+       Une page en échec, ou une lecture qui ne finit pas : on n'efface sur la foi de rien. */
+    const ids=new Set();
+    try{let after='',fini=false;
+      for(let p=0;p<200&&!fini;p++){
+        const rows=await rest('GET','/rest/v1/'+table+'?select=id&order=id.asc'+(after?'&id=gt.'+encodeURIComponent(after):'')+'&limit=1000')||[];
+        rows.forEach(r=>ids.add(r.id));
+        if(rows.length<1000)fini=true;else after=String(rows[rows.length-1].id);}
+      if(!fini)return;
+    }catch(e){return;}
     if(linkOver())return;   // A658 : la lecture a pu partir AVANT la déconnexion et revenir vide APRÈS — n'effacer sur la foi de rien
     const all=await getAllLocal();let changed=false;
     for(const f of all){if(f.library&&!f.dirty&&!ids.has(f.id)){await dataDel(f.id);const i=mem.findIndex(x=>x.id===f.id);if(i>=0)mem.splice(i,1);changed=true;}}
@@ -35780,7 +35925,8 @@ const SHARE_NOMINAL_MS=2000, SHARE_STALE_MS=4000, SHARE_MAX_BATCH=50;
 const SHARE_SEEN_QUIET_MS=45000, SHARE_SEEN_LOST_MS=180000;
 function shareSeenSilenceMs(p){
   try{if(!p||p.owner)return 0;
-    const t=Date.parse(p.seen||'');if(!Number.isFinite(t))return 0;
+    // A706 : ISO côté serveur, NOMBRE côté hub local — `Date.parse(nombre)` valait NaN, et en direct le silence d'un invité n'était jamais vu.
+    const v=p.seen,t=typeof v==='number'?v:Date.parse(v||'');if(!Number.isFinite(t))return 0;
     return Math.max(0,Share.now()-t);}catch(e){return 0;}}
 function shareSeenLost(p){return shareSeenSilenceMs(p)>SHARE_SEEN_LOST_MS;}
 /* A332 (v5.26.3) : le silence de l'HÔTE, vu de l'invité — même source (`seen` de la rangée
@@ -36024,7 +36170,9 @@ const Share={
              avancé : l'écran restait figé sur un parcours amputé que plus rien ne rejouait. On
              resynchronise l'écran sur l'état réellement en mémoire, ce qui est toujours mieux
              qu'un DOM qui ment, et l'on garde une trace en console pour le diagnostic. */
-          try{this.onEvents(ev.filter(e=>e.kind!=='sig'));}
+          /* A706 : sous le plancher du billet d'hôte (`rehost` interrompu en cours de relecture), un évènement
+             est DÉJÀ dans la session — hors resynchronisation, on ne le repeint pas. */
+          try{this.onEvents(ev.filter(e=>e.kind!=='sig'&&(this._resync||!(e.seq<=(this._floor||0)))));}
           catch(e){try{console.error('partage : lot non appliqué en entier',e);
             if(state.view==='read'&&state.fiche===Runtime.fiche)render();}catch(_){}}}
         /* AVANCER JUSQU'À LA BORNE HAUTE DU SERVEUR — sinon le curseur se bloque sur un TROU (les
@@ -36034,6 +36182,8 @@ const Share={
            SAUF lot TRONQUÉ (500 max) : sauter perdrait des évènements réels.
            Détail : doctrine-js.md J219. */
         if(ev.length<500)this.cursor=Math.max(this.cursor,this.seq);
+        // A706 : le billet de l'hôte suit le curseur (il restait à 0, celui de l'ouverture) — `rehost` sait ainsi ce qui a déjà été vu.
+        if(this.mode==='host'&&this._tkCur!==this.cursor){this._tkCur=this.cursor;try{slHostTkSave();}catch(_){}}
         /* DÉTECTION DE DIVERGENCE, EN DEUX ÉTAGES : le mode dangereux produit des mises à jour à
            l'heure et FAUSSES (ECRI n°2). 1. LE COMPTE, symétrique (manque OU trop) ; 2. L'EMPREINTE
            DU FLUX : SHA-256 des couples (numéro, identifiant), comparée à celle du serveur sur les
@@ -36061,6 +36211,9 @@ const Share={
   // La garde `_resync` évite d'enchaîner les resynchronisations pendant le rattrapage lui-même.
   _desync(raison){
     if(this._resync)return;
+    /* A706 : un lien MORT ne se resynchronise pas — le serveur ne rend plus rien à un détaché (`n_events: 0`),
+       le compte divergeait donc à coup sûr et le pli, seul état de l'invité, était jeté. */
+    if(this.status!=='active')return;
     this._resync=true;this.cursor=0;this.applied=0;this._ids=[];this.fold=null;
     try{this.onDesync(raison);}catch(e){}},
 
@@ -36072,7 +36225,14 @@ const Share={
      Détail : doctrine-js.md J221. */
   /* ===== Share · application des lots reçus (onEvents → SHARE_APPLY) et crochets d'état ===== */
   _defer:[],
-  onEvents(ev){
+  onEvents(ev,rejeu){
+    /* A706 — UN REJEU DEPUIS ZÉRO REJOUE TOUT LE FIL, LES SIENS COMPRIS. « Jamais ses propres évènements » vaut
+       en direct (ils sont déjà à l'écran). Mais une resynchronisation repart du début du journal : sans les
+       siens, chaque clé reprenait la dernière valeur écrite par UN AUTRE, même plus ancienne (compteur qui
+       recule, minuteur arrêté qui repart). Rejoués dans l'ordre, les appliqueurs étant idempotents, l'écran
+       converge vers le journal. Les repères, eux, sont tenus par leur id : les siens ne se rejouent pas. */
+    const rj=!!(rejeu||this._resync);
+    const soi=e=>!!(e.actor&&e.actor===this.me)&&!(rj&&SHARE_REPLAY_OWN.indexOf(e.kind)>=0);
     /* ⚠ L'ÉTAT S'APPLIQUE TOUJOURS ; SEULE LA PEINTURE DÉPEND DE LA VUE (v5.6) : l'ancien
        `if(state.view!=='read')return` était un ABANDON définitif (curseur avancé AVANT l'appel,
        lot jamais relu) — chez l'hôte la session locale fait autorité, rien ne la rattrapait.
@@ -36102,7 +36262,7 @@ const Share={
       /* DÉPART EXPLICITE (v5.10.5) : « Quitter le partage » émet `presence{state:'quit'}` — on
          l'affiche « parti » sans attendre le seuil de silence. Aucun état de session n'est
          touché : c'est une information de fenêtre, pas un évènement de soin. */
-      if(e.kind==='presence'&&e.actor&&e.actor!==this.me&&(e.payload||{}).state==='quit'){
+      if(e.kind==='presence'&&e.actor&&e.actor!==this.me&&(e.payload||{}).t==='quit'){
         this._left[e.actor]=1;try{shareMenuRefresh();}catch(_){}anno=true;continue;}
       if(e.kind!=='handoff'||e.actor===this.me)continue;
       const p=e.payload||{};
@@ -36124,12 +36284,12 @@ const Share={
        renverrait à l'invité ce qu'il vient d'envoyer). Aucune annonce : l'écran parle d'autre chose. */
     const Hr=this.hostedRt();
     if(Hr&&Hr!==Runtime){
-      const n=shareApplyAway(Hr,ev.filter(e=>!(e.actor&&e.actor===this.me)&&shareApplyMode(e.kind)!=='none'));
+      const n=shareApplyAway(Hr,ev.filter(e=>!soi(e)&&shareApplyMode(e.kind)!=='none'));
       if(n){_shareBase=shareSnap(Hr,!!(_shareBase&&_shareBase.flowEnded));persistLive(Hr);}
       if(_hoTake){const who=_hoTake;_hoTake=null;this.grantLead(who).then(ok=>{if(ok)announce('Vous avez passé la main.');});}
       return;}
     for(const e of ev){
-      if(e.actor&&e.actor===this.me)continue;           // (3) jamais ses propres évènements
+      if(soi(e))continue;           // (3) jamais ses propres évènements — sauf rejeu depuis zéro (A706)
       const mode=shareApplyMode(e.kind);
       if(mode==='none')continue;
       /* LA FILE ÉTAIT REMPLIE ET JAMAIS VIDÉE (le miroir se figeait au changement de bloc) :
@@ -36141,7 +36301,7 @@ const Share={
          l'action), et la bannière le dit. Détail : doctrine-js.md J223. */
       if(mode==='anchored'){anc.push(e);continue;}
       if(mode!=='live'){this._defer.push(e);continue;}
-      if(sharePaintLive(f,e))peint++;
+      if(sharePaintLive(f,e)&&!(e.actor&&e.actor===this.me))peint++;
     }
     if(anc.length)peint+=shareApplyAnchored(f,anc,muet);
     // Une seule annonce pour le lot : le lecteur d'écran ne doit pas être noyé, et c'est le SEUL
@@ -36187,7 +36347,7 @@ const Share={
     this.me=null;this.role='lead';this.fiche=snap;this.fold=null;
     this.code=r.code;this.joinUntil=Date.parse(r.join_open_until)||0;
     this.expiresAt=Date.parse(r.expires_at)||0;
-    this.participants=[];this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];
+    this.participants=[];this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];this._floor=0;this._tkCur=0;
     this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._q=[];
     this._samples=[];this._sample(t0,r.server_time);
     _shareBase=shareSnap(null,false);shareEmitDiff(R);slHostTkSave();
@@ -36198,12 +36358,27 @@ const Share={
   async rehost(tk){
     const R=Runtime,f=R&&R.fiche;if(!tk||!f)return false;
     const t0=Date.now();
-    let r=null;try{r=await this._io.pull(null,tk.share,tk.cursor||0);}catch(e){}
+    /* A706 — ON RELIT LE FIL DEPUIS ZÉRO, ET ON N'APPLIQUE QUE CE QU'ON N'A PAS VU. Repartir de `applied=0`
+       sur le curseur du billet se croyait divergent au premier cycle, retirait tout le journal et le rejouait
+       SANS les évènements de l'hôte (jamais les siens) : chaque clé où il avait agi après un invité revenait
+       à la valeur de l'invité. Le compte et l'empreinte se reconstruisent ici ; seuls les évènements au-delà
+       du billet (gestes d'invités pendant la panne) entrent dans la session. */
+    let r=null;try{r=await this._io.pull(null,tk.share,0);}catch(e){}
     if(!r||!r.ok||r.status!=='active')return false;
     this.mode='host';this.status='active';this.share=tk.share;this.secret=null;this.me=null;this.role='lead';
     this.fiche=sharePayload(f);this.fold=null;this.code=tk.code;this.joinUntil=tk.joinUntil||0;this.expiresAt=tk.expiresAt||0;
-    this.participants=r.participants||[];this.cursor=tk.cursor||0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];
+    this.participants=r.participants||[];this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];
     this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._q=[];this._samples=[];this._sample(t0,r.server_time);
+    this._resync=false;this._floor=tk.cursor||0;
+    {const neufs=[];let pg=r;
+      for(let i=0;i<40&&pg&&pg.ok;i++){
+        const ev=pg.events||[];
+        for(const e of ev){this._ids.push(e.seq+':'+e.id);if(e.seq>this._floor&&e.kind!=='sig')neufs.push(e);}
+        this.applied+=ev.length;if(ev.length)this.cursor=ev[ev.length-1].seq;
+        this.seq=pg.seq||0;this.nEvents=pg.n_events||0;
+        if(ev.length<500){this.cursor=Math.max(this.cursor,this.seq);break;}
+        pg=null;try{pg=await this._io.pull(null,tk.share,this.cursor);}catch(e){}}
+      if(neufs.length)try{this.onEvents(neufs);}catch(e){}}
     _shareBase=shareSnap(null,false);shareEmitDiff(R);slHostTkSave();
     return true;},
   // Ré-ouvrir la porte : code NEUF, l'ancien meurt. C'est ce qui rend une coupure effective —
@@ -36266,7 +36441,7 @@ const Share={
   // ajouté à l'une et pas à l'autre ferait diverger deux reprises du même partage.
   _guestReset(fiche,status,t0,serverTime){
     this.status=status;this.soloLead=false;this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
-    this.fiche=fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
+    this.fiche=fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];this._floor=0;
     this._samples=[];this._sample(t0,serverTime);},
   async joinByCode(code,label){
     const t0=Date.now();slSb.expired=false;
@@ -36302,6 +36477,7 @@ const Share={
     this.mode='guest';this.share=tk.s;this.secret=tk.k;this.me=r.me||tk.m;this.role=r.role||tk.r;
     this._guestReset(r.fiche,r.status||'active',t0,r.server_time);
     if(Array.isArray(r.events)&&r.events.length){this.fold=shareFold(r.events);
+      this.applied=r.events.length;   // A706 : compté — à 0, le premier cycle se croyait divergent et rejouait tout le fil
       this.cursor=r.events[r.events.length-1].seq||0;for(const e of r.events)this._ids.push(e.seq+':'+e.id);}
     this.participants=r.participants||[];
     /* A332 : si la session partagée est DÉJÀ à l'écran (reprise après une panne, pas un
@@ -36309,7 +36485,7 @@ const Share={
        coupure, pour toujours. On rejoue le journal par la voie vivante, idempotente (celle de
        `_desync`) ; au démarrage, `openSharedFiche` reconstruit et ce rejeu ne trouve aucun écran. */
     if(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId)
-      try{this.onEvents((r.events||[]).filter(e=>e.kind!=='sig'));}catch(e){}
+      try{this.onEvents((r.events||[]).filter(e=>e.kind!=='sig'),true);}catch(e){}
     this._kick(0);
     return true;},
 
@@ -36383,7 +36559,7 @@ const Share={
   stop(){this._ticketClear();
     this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
     this._q=[];this._saveQ();this.share=this.secret=this.me=this.role=null;
-    this.soloLead=false;this._detachEv=null;
+    this.soloLead=false;this._detachEv=null;this._floor=0;
     this.participants=[];this.fiche=this.fold=null;this._left={};}
 };
 /* ═══ ÉCRAN D'ENTRÉE DE L'INVITÉ ═══════════════════════════════════════════════════════════════
@@ -36411,8 +36587,11 @@ function sharedTitle(){
   if(Share.mode==='guest'&&Share.fiche)return Share.fiche.title||'';
   const R=sharedRt();return (R&&R.fiche&&R.fiche.title)||'';}
 function backToShared(){
-  if(Share.mode==='guest'&&Share.fiche){openSharedFiche();return;}
-  const R=sharedRt();if(!R)return;
+  /* A706 : celui qui poursuit SEUL retrouve SON Runtime garé (son travail d'après le détachement), jamais une
+     reconstruction du pli, qui s'est arrêté au détachement. */
+  const seul=Share.mode==='guest'&&(Share.status==='detached'||Share.soloLead)&&_shParked&&_shParked.started?_shParked:null;
+  if(!seul&&Share.mode==='guest'&&Share.fiche){openSharedFiche();return;}
+  const R=seul||sharedRt();if(!R)return;
   Runtime=R;_shParked=null;
   bindStateToRuntime();
   state.fiche=Runtime.fiche;state.view='read';state.readStack=[];
@@ -36427,7 +36606,11 @@ function openSharedFiche(){
   Runtime.cxBack=cxbForFiche(fold.cxb,f);
   // A332 : la date d'arrêt d'un minuteur du pli (heure serveur, ou de l'hôte par l'écran) → locale.
   for(const id in Runtime.timers){const sv=fold.timers&&fold.timers[id];
-    if(sv&&!sv.running&&sv.stoppedAt){Runtime.timers[id].stoppedAt=sv.stoppedAt-Share.offset;Runtime.timers[id].stopClosed=false;}}
+    if(sv&&!sv.running&&sv.stoppedAt){Runtime.timers[id].stoppedAt=sv.stoppedAt-Share.offset;Runtime.timers[id].stopClosed=false;}
+    /* A706 : un minuteur EN MARCHE du pli repart en marche — `buildRuntime` restaure tout minuteur à l'arrêt,
+       et l'invité de retour voyait le cycle arrêté alors qu'il tourne chez l'hôte (même conversion que le direct). */
+    else if(sv&&sv.running){const t=Runtime.timers[id];t.running=true;
+      t.lastStart=(_fnum(sv.anchor,0)||Share.now())-Share.offset;t.stoppedAt=0;t.stopClosed=false;}}
   /* `started` VRAI, et c'est le correctif central. Il valait faux pour empêcher l'enregistrement
      local — mais une trentaine de sites de mutation sont gardés par `if(Runtime.started)`, si bien
      que l'invité ne parvenait même pas jusqu'à l'émission : ses coches ne quittaient jamais son
@@ -37592,7 +37775,7 @@ async function quitShare(){
      filet ; on n'attend pas la réponse pour rendre la main à l'utilisateur. */
   try{if(Share.mode==='guest'&&Share.status==='active'&&Share.secret)
     Share._io.push(Share.secret,Share.share,[{event_id:Share._uuid(),kind:'presence',
-      ts:new Date(Share.now()).toISOString(),payload:{state:'quit'}}]).catch(()=>{});}catch(e){}
+      ts:new Date(Share.now()).toISOString(),payload:{t:'quit'}}]).catch(()=>{});}catch(e){}   // A706 : `t`, clé de la liste blanche — `state` était amputée en route, l'hôte ne voyait jamais « parti »
   Share.stop();
   slSbReset();   // le canal dormant meurt avec la participation — sinon il MENT au rôle suivant
   _shParked=null;_slMirror=null;
@@ -37857,6 +38040,12 @@ async function renderVersions(){const body=document.getElementById('versBody');i
     closeVersions();
     if(P){if(state.protocol&&state.protocol.id===_versFiche)state.protocol=restored;}
     else if(state.fiche&&state.fiche.id===_versFiche)state.fiche=restored;
+    /* A707 : restaurée DEPUIS L'ÉDITEUR, la version remplace aussi le brouillon ouvert — sinon le rendu suivant
+       republiait le brouillon périmé par-dessus, et la restauration n'avait duré qu'une seconde, sans un mot. */
+    {const ek=edKind(),dr=ek==='f'?state.draft:(ek==='p'?state.pdraft:null);
+      if(dr&&dr.id===_versFiche&&(ek==='p')===P){clearTimeout(_edSaveT);
+        if(P)state.pdraft=JSON.parse(JSON.stringify(restored));else state.draft=JSON.parse(JSON.stringify(restored));
+        draftBase=JSON.stringify(P?state.pdraft:state.draft);_edPrev=null;_edPubFor=null;}}
     render();});}
 bindModalDismiss(versModal,closeVersions);
 
@@ -38010,7 +38199,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUT son contenu partagé ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
     try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
-      closeMembers();state.homeLib=null;await Sync.loadProfile();Sync.full();renderLibrary();toast('Bibliothèque supprimée.');}
+      closeMembers();state.homeLib=null;await Sync.loadProfile();Sync.full();if(state.view==='library')renderLibrary();else if(authModal.classList.contains('on'))renderAuth();toast('Bibliothèque supprimée.');}   // A710
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);
 /* A477 — CONVERTIR une bibliothèque de rangement : ses éléments passent dans Perso (cœur du déplacement de la
@@ -38071,7 +38260,9 @@ function renderNewLib(){const body=document.getElementById('newLibBody');if(!bod
     try{await rest('POST','/rest/v1/libraries',[{id:id,name:name}],{'Prefer':'return=minimal'});
       const r=await inviteAll(id,emailsIn(who.value),$('newLibRole').value);
       await Sync.loadProfile();           // le trigger m'a ajouté comme admin -> apparaît dans la liste
-      closeNewLib(true);state.homeTab='biblio';state.cnav={lib:id};renderLibrary();toast('Bibliothèque « '+name+' » créée'+r+'.',r?7000:4000,!!r);
+      /* A710 : créée depuis une aide OUVERTE (Moi est dans l'en-tête en lecture), la bibliothèque ne remplace pas
+         l'aide par l'accueil sous un état « lecture » — comme le renommage, le rendu n'a lieu que sur l'accueil. */
+      closeNewLib(true);if(state.view==='library'){state.homeTab='biblio';state.cnav={lib:id};renderLibrary();}else if(authModal.classList.contains('on'))renderAuth();toast('Bibliothèque « '+name+' » créée'+r+'.',r?7000:4000,!!r);
     }catch(e){ok.disabled=false;setMsg('Création impossible : '+e.message,'err');}};
   ok.onclick=submit;
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit();}};}
