@@ -1757,7 +1757,10 @@ begin
                 then src.client_ts else now() end
       from src
      where src.event_id is not null
-       and public.share_kind_allowed(a.role, src.kind)
+       -- A714 (amende A302 § 4) : le PROPRIÉTAIRE écrit tous les genres, même après avoir donné la main —
+       -- sa session locale s'applique chez lui quoi qu'il arrive ; refusés ici, ses décochages et ses
+       -- remises à zéro laissaient les écrans des invités faux, sans rien pour le dire.
+       and (a.is_owner or public.share_kind_allowed(a.role, src.kind))
        -- Trois régimes, dans l'ordre de spécificité :
        --   détaché  -> SEULES les annexes remontent (son état a divergé, il ne l'impose pas) ;
        --   lot avec `detach` -> seul le detach passe (le reste de la file appartient déjà à sa

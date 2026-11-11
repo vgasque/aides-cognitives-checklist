@@ -120,6 +120,9 @@ est transparent et où le volet garde son élévation.
 
 ## A302 — l'hôte qui coupe ne gèle plus celui qui CONDUIT (v5.21.0)
 
+> **Amendée par A714 (v5.119.4)** : le point 4 ci-dessous ne vaut plus — les gestes de l'hôte partent toujours, même
+> après une passation. Cf. `lot-v5-119-4.md`.
+
 Signalé : « si j'ai donné la main et que l'hôte qui a créé la session coupe le partage, la session
 est aussi coupée pour celui à qui on a proposé la main… ». L'auteur a demandé, avant tout
 correctif, ce que « donner la main » fait RÉELLEMENT. La réponse, mesurée, est la clé du lot :

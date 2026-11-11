@@ -1967,6 +1967,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('… et naviguer, qui n’efface rien',S.canWrite('nav'));
    ok('mais jamais remettre un minuteur à zéro',!S.canWrite('timer_reset'));
    ok('… ni décocher',!S.canWrite('uncheck'));
+   /* A714 : l'hôte qui a donné la main (rôle « scribe ») garde l'écriture de TOUS les genres. */
+   {const m0=S.mode,r0=S.role;S.mode='host';S.role='scribe';
+    ok('A714 · l’hôte qui a donné la main décoche et remet à zéro : ses gestes partent',S.canWrite('uncheck')&&S.canWrite('timer_reset'));
+    S.mode=m0;S.role=r0;}
+   ok('A714 · … l’invité scribe, lui, reste bridé',!S.canWrite('uncheck'));
    S.status='revoked';
    ok('coupé : plus aucune écriture',!S.canWrite('check'));
    S.status='detached';

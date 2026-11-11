@@ -1,8 +1,8 @@
 # Journal des modifications
 
 ## [5.119.4] — 2026-11-11
-Audit de bugs de toute l'application : 67 défauts corrigés (A706-A713). **Serveur à rejouer** (`supabase/schema.sql`) :
-une clé de plus dans le partage de session.
+Audit de bugs de toute l'application : 68 défauts corrigés (A706-A714). **Serveur à rejouer** (`supabase/schema.sql`) :
+une clé de plus dans le partage de session, et les gestes de l'hôte admis après une passation.
 
 **Partage de session**
 - **« Continuer seul »** (ou l'hôte qui arrête alors que vous conduisez) : vous pouvez de nouveau cocher et décocher.
@@ -70,8 +70,10 @@ une clé de plus dans le partage de session.
 - **Cibles tactiles à 32 px au moins hors session** : interrupteurs des réglages, « Gérer », « En savoir plus »,
   « Pourquoi créer un compte ? », titre de l'accueil au téléphone. Le dessin ne change pas.
 
-**Non corrigé, à décider** : onglets du téléphone qui se touchent à 130 %, décochage de l'hôte après avoir donné la
-main. Détail : `docs/decisions/lot-v5-119-4.md`.
+- **Partage : l'hôte qui a donné la main** voit ses décochages et ses remises à zéro de minuteur arriver chez les
+  invités (A714). Ils restaient sur son écran, et les deux écrans divergeaient sans rien dire.
+
+**Non corrigé, à décider** : onglets du téléphone qui se touchent à 130 %. Détail : `docs/decisions/lot-v5-119-4.md`.
 - Vérifié sur Chromium seulement : WebKit n'était pas installé sur la machine d'audit.
 
 ## [5.119.3] — 2026-11-11
