@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.119.4] — 2026-11-11
-Audit de bugs de toute l'application : 65 défauts corrigés (A706-A712). **Serveur à rejouer** (`supabase/schema.sql`) :
+Audit de bugs de toute l'application : 67 défauts corrigés (A706-A713). **Serveur à rejouer** (`supabase/schema.sql`) :
 une clé de plus dans le partage de session.
 
 **Partage de session**
@@ -64,9 +64,14 @@ une clé de plus dans le partage de session.
 - Au téléphone, « Nommer le repère » ne fait plus zoomer la page. Éditeur : la cible d'une complication passe sous
   son nom. Accès direct : plus de « · » seul sur sa ligne.
 
-**Non corrigé, à décider** : cibles tactiles de 24 à 31 px hors session, onglets du téléphone qui se touchent à 130 %,
-décochage de l'hôte après avoir donné la main, « Créer » aux Bibliothèques sous un filtre en lecture seule. Détail :
-`docs/decisions/lot-v5-119-4.md`.
+**Décidé par l'auteur après la recette (A713)**
+- **« Créer » reste visible aux Bibliothèques** quand l'accueil filtre une bibliothèque en lecture seule : l'élément
+  naît alors dans Perso.
+- **Cibles tactiles à 32 px au moins hors session** : interrupteurs des réglages, « Gérer », « En savoir plus »,
+  « Pourquoi créer un compte ? », titre de l'accueil au téléphone. Le dessin ne change pas.
+
+**Non corrigé, à décider** : onglets du téléphone qui se touchent à 130 %, décochage de l'hôte après avoir donné la
+main. Détail : `docs/decisions/lot-v5-119-4.md`.
 - Vérifié sur Chromium seulement : WebKit n'était pas installé sur la machine d'audit.
 
 ## [5.119.3] — 2026-11-11

@@ -1043,7 +1043,7 @@
   .pg-eye svg{width:14px;height:14px}
   .pg-eye .cat-dot{width:8px;height:8px;margin:0;box-shadow:none}
   .pg-tb{display:inline-flex;align-items:center;gap:8px;max-width:100%;margin:0;padding:0 4px;border:0;border-radius:12px;background:none;
-    font:inherit;color:inherit;text-align:left;cursor:pointer}
+    font:inherit;color:inherit;text-align:left;cursor:pointer;min-height:32px}   /* A713 : 32 px (règle 9) */
   .pg-tbt{min-width:0;overflow-wrap:anywhere}
   .pg-chev{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
     background:var(--primary-soft);color:var(--act)}
@@ -5608,9 +5608,11 @@
   input.bo-pill::placeholder{color:var(--ink-soft);font-weight:600}
   .bo-pill:focus-visible,.bo-row .blk-phase :is(input,select):focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .bo-row .imgrow{gap:8px}
-  .tg-sw{flex:none;position:relative;width:44px;height:26px;padding:0;border:0;border-radius:999px;background:var(--ctl-line);cursor:pointer}
+  /* A713 : cible de 32 px de haut (règle 9) sans changer le dessin — 3 px de bord transparent, le fond s'arrête à la
+     boîte de remplissage : la piste reste 44 × 26 et le curseur ne bouge pas. */
+  .tg-sw{flex:none;position:relative;box-sizing:border-box;width:50px;height:32px;padding:0;border:3px solid transparent;background-clip:padding-box;border-radius:999px;background-color:var(--ctl-line);cursor:pointer}
   .tg-sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--work);box-shadow:var(--shadow-work);transition:transform .2s cubic-bezier(.3,1.2,.4,1)}
-  .tg-sw.on{background:var(--ok)}
+  .tg-sw.on{background-color:var(--ok)}
   .tg-sw.on::after{transform:translateX(18px)}
   .tg-sw[aria-disabled="true"]{cursor:default}
   .tg-sw:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -6893,7 +6895,7 @@
      le reste du texte est CONSERVÉ sous un dépliant (rien n'est supprimé, la dose change de
      place). La fenêtre se scanne au lieu de se lire. */
   .acct-more{margin-top:2px}
-  .acct-more>summary{cursor:pointer;color:var(--act);font-weight:700;list-style:none;display:inline-flex;align-items:center;gap:4px;min-height:28px}
+  .acct-more>summary{cursor:pointer;color:var(--act);font-weight:700;list-style:none;display:inline-flex;align-items:center;gap:4px;min-height:32px}   /* A713 : 32 px (règle 9) */
   .acct-more>summary::-webkit-details-marker{display:none}
   .acct-more>summary::after{content:"▾";font-size:11px}
   .acct-more[open]>summary::after{content:"▴"}
@@ -7111,7 +7113,7 @@
   [data-theme="dark"] .stg-tip{background:rgba(255,255,255,.05)}
   .stg-ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;line-height:1.55;color:var(--ink)}.stg-ul li{margin:2px 0}
   .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
-  .auth-why>summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--act);list-style:none;display:flex;align-items:center;gap:6px;padding:4px 0}
+  .auth-why>summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--act);list-style:none;display:flex;align-items:center;gap:6px;padding:4px 0;min-height:32px}   /* A713 */
   .auth-why>summary::-webkit-details-marker{display:none}
   /* v5.18.5 : ce dépliant n'avait AUCUNE règle de focus — il rendait l'anneau PAR DÉFAUT du
      navigateur (couleur hors palette, épaisseur non maîtrisée), seul de sa famille dans ce cas
@@ -8227,8 +8229,9 @@
     .hs-live{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;animation:pulse 2s infinite}
     .hs-h{display:flex;align-items:center;gap:8px}
     .hs-h{white-space:nowrap}.hs-h>.hs-hs{margin-left:0;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* A489 : une ligne ; l'indice cède le premier */
-    .hs-lnk{margin-left:auto;padding:0;min-height:24px;border:0;background:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act);cursor:pointer}
+    .hs-lnk{margin-left:auto;padding:0;min-height:24px;position:relative;border:0;background:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act);cursor:pointer}
     .hs-lnk:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
+    .hs-lnk::after{content:"";position:absolute;inset:-4px -6px}   /* A713 : halo — 32 px au doigt, le dessin ne bouge pas */
     .hs-n{font-family:var(--f-mono)}
     .home-side .cat-dot{border-radius:3px}
     .hs-avatar{position:relative;width:22px;height:22px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
