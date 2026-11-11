@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.120.0] — 2026-11-11
+Les titres d'un protocole se lisent enfin comme des titres, et un correctif de l'éditeur (A723-A724).
+- **Protocole, en lecture : trois niveaux de titre qui se distinguent.** `#` et `##` avaient exactement le même dessin,
+  et `###` la taille du texte : on écrivait trois niveaux, on en lisait un et demi. `#` est maintenant le plus grand
+  (21), précédé d'un trait épais et d'un grand blanc ; `##` vient ensuite (17,5), sans trait ; `###` reste à la taille
+  du texte (15), en gras. Le texte lui-même ne change pas.
+- **Éditeur de protocole : les mêmes titres qu'en lecture.** L'éditeur affichait les titres en petites capitales, plus
+  petits que le texte qu'ils coiffaient : la structure d'un texte long ne se voyait plus. « Mise en forme en direct » et
+  l'aperçu montrent désormais les titres de la lecture, et le texte y passe à la même taille qu'en lecture (15 au lieu
+  de 16). Le champ où l'on écrit garde sa taille.
+- **Éditeur de protocole, sur ordinateur : « Ajouter un bloc » ne fait plus remonter la page.** En bas d'un long
+  protocole, le clic renvoyait la page plus haut et le choix du bloc s'ouvrait loin du bouton. Le choix s'ouvre
+  maintenant contre le bouton, et la page ne bouge pas. Le téléphone n'était pas touché.
+- Vérifié sur un protocole chargé (images, tableaux, encadrés, listes, titres de trois lignes), au téléphone, à 320 px,
+  sur grand écran, en thème sombre et sections repliées. À savoir : un `###` suivi d'un paragraphe qui commence par du
+  gras lui ressemble encore.
+
 ## [5.119.5] — 2026-11-11
 Sept correctifs signalés, un raccourci et une règle changée (A716-A722). **Serveur à rejouer** (`supabase/schema.sql`) :
 une bibliothèque ne reste plus jamais sans membre, et son administrateur peut la supprimer.
@@ -386,14 +403,3 @@ Trois défauts signalés (A649). **Côté serveur : rejouer `supabase/schema.sql
 - **Appareils connectés** : « Se déconnecter et effacer » sur un poste partagé le retire aussitôt de la liste du
   téléphone (il y restait jusqu'à son heure de fin). La liste ouverte se met à jour au retour dans l'app.
 - Garde-fous : nouveau harnais `audit-flottants.mjs`, `rls-tests.sql` 16.15.
-
-## [5.111.1] — 2026-11-08
-Aucun mot de passe sur les comptes, et des jetons de 15 min (A648). **Côté serveur : rejouer `supabase/schema.sql`.**
-- **Aucun compte ne peut porter de mot de passe** : un déclencheur sur `auth.users` le refuse, à l'inscription comme à
-  la modification. L'app ne se connecte que par code e-mail et par le téléphone ; sans ce refus, une session (celle
-  d'un poste partagé comprise) pouvait se définir un mot de passe durable, qui survivait à la déconnexion à distance.
-  Remplace le « Password Verification Attempt hook », réservé aux plans payants. Vérification après le rejeu :
-  `select count(*) from auth.users where encrypted_password <> '';` doit rendre 0.
-- **Jeton d'accès de 900 s** sur l'instance (réglage du tableau de bord, consigné au § 1.2 du guide de déploiement) :
-  un poste révoqué garde l'accès à l'API 15 min au plus, au lieu d'1 h. Aucun effet visible dans l'app.
-- `rls-tests.sql` 16.14 garde le refus des mots de passe.

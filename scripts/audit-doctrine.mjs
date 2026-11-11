@@ -8911,6 +8911,19 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     t('A547 · la frappe écrit le corps ; Terminé ; « Ajouter un bloc » pose un titre, mot à remplacer sélectionné',
       r.doc&&r.ecrit&&r.ferme&&r.menu&&r.ajout,JSON.stringify(r));
     await page.close();}
+  /* A724 — au bureau, « Ajouter un bloc » en pied d'un LONG document : la page ne bouge pas, le menu s'ouvre contre le bouton. */
+  {const page=await br.newPage({viewport:{width:1280,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A724',body:Array(60).fill(c).join('\n\n')});protocols.push(pr);await openProtocolEdit(pr.id);},'Un paragraphe de remplissage pour allonger le document.');
+    await calme(page, 500);
+    const r=await page.evaluate(async()=>{const b=document.querySelector('#mdDoc .mdb-add:not(.mdb-first)');if(!b)return {btn:false};
+      b.scrollIntoView({block:'center'});await __acCalme(300);const y0=window.scrollY;b.click();await __acCalme(400);
+      const m=document.querySelector('.catmenu.popmenu'),mr=m&&m.getBoundingClientRect(),br=b.getBoundingClientRect();
+      return {btn:true,y0,y1:window.scrollY,menu:!!m,ecart:m?Math.round(Math.min(Math.abs(mr.top-br.bottom),Math.abs(br.top-mr.bottom))):-1,vu:!!m&&mr.top>=0&&mr.bottom<=innerHeight};});
+    t('A724 · bureau : « Ajouter un bloc » en pied ne déplace pas la page, le menu s\'ouvre contre le bouton, entier à l\'écran',
+      r.btn&&r.y0>500&&r.y1===r.y0&&r.menu&&r.ecart<=12&&r.vu,JSON.stringify(r));
+    await page.close();}
   {const page=await br.newPage({viewport:{width:1280,height:860}});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
