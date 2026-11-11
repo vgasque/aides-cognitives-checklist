@@ -192,7 +192,7 @@ non négociable :
    - une surface capturée (crise, accueil, quai, menu ⋯) : `node design/capture.mjs` puis
      `npm run design:build` ; une surface décrite : `design/ds/GUIDELINES.md` (rédigé à la main,
      rien ne signale sa péremption).
-6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112, A654 au lot v5.113, A655-A656 au lot v5.114, A657-A658 au lot v5.114.1, A659-A663 au lot v5.115, A664-A675 au lot v5.115.1, A676-A684 au lot v5.115.2, A685-A688 au lot v5.116, A689-A693 et A695-A697 au lot v5.116.1, A698-A699 au lot v5.117, A700 au lot v5.118, A701-A702 au lot v5.119, A703 au lot v5.119.2 ;
+6. **Écrire la décision.** Toute décision nouvelle prend le numéro A suivant (A512 au lot v5.57, A502-A510 et A513-A585 au lot v6.0, A586 au lot v5.94, A587-A589 au lot v5.95, A590-A592 au lot v5.96, A593 au lot v5.97, A594-A598 au lot v5.98, A599-A606 au lot v5.100, A607-A612 au lot v5.104, A613-A642 au lot v5.107, A643-A650 au lot v5.111, A651-A653 au lot v5.112, A654 au lot v5.113, A655-A656 au lot v5.114, A657-A658 au lot v5.114.1, A659-A663 au lot v5.115, A664-A675 au lot v5.115.1, A676-A684 au lot v5.115.2, A685-A688 au lot v5.116, A689-A693 et A695-A697 au lot v5.116.1, A698-A699 au lot v5.117, A700 au lot v5.118, A701-A702 au lot v5.119, A703 au lot v5.119.2, A704 au lot v5.119.3 ;
    le plus haut : `grep -rhoE '^#+ A[0-9]+' docs/decisions | grep -oE '[0-9]+' | sort -n | tail -1`)
    dans le fichier de SON lot (`docs/decisions/lot-vX-Y.md`, créé au besoin), avec ses
    formes refusées s'il y en a ; puis une ligne dans la carte ci-dessous ET dans
@@ -204,7 +204,7 @@ non négociable :
 atteint 797 Ko et était tronqué EN SILENCE par tout outil IA). Ces fichiers sont **normatifs** ;
 on les consulte À LA DEMANDE avant de toucher leur sujet (méthode ci-dessus). Le numéro A est
 l'adresse (« cf. A140 ») : le classement est CHRONOLOGIQUE, par lot, jamais par thème.
-**L'index fin — une ligne par décision, A1 → A703 — est `docs/README.md`.** Ci-dessous : la liste
+**L'index fin — une ligne par décision, A1 → A704 — est `docs/README.md`.** Ci-dessous : la liste
 des fichiers, puis la carte par sujet.
 
 ### Les fichiers
@@ -274,6 +274,7 @@ des fichiers, puis la carte par sujet.
 | [`lot-v5-118.md`](docs/decisions/lot-v5-118.md) | A700 | La frise du compte-rendu : repères, compteurs et complications dessinés sur un axe de temps (`sessFrise`) ; ce que le modèle ne date pas n'est pas tracé |
 | [`lot-v5-119.md`](docs/decisions/lot-v5-119.md) | A701-A702 | Le volet des minuteurs du téléphone au dessin de la maquette : tuiles pleines, maintenir la tuile (amende A460 pour ce volet), le volet s'arrête après ses instruments ; « △ À revérifier » retrouve son glyphe (amende A347) |
 | [`lot-v5-119-2.md`](docs/decisions/lot-v5-119-2.md) | A703 | La fenêtre d'une bibliothèque s'ouvre au-dessus d'Administration (ordre du document = ordre d'empilement des fenêtres, A616) |
+| [`lot-v5-119-3.md`](docs/decisions/lot-v5-119-3.md) | A704 | Les règles de la connexion temporaire au sélecteur segmenté de l'app : la pastille glisse au tap et au doigt, peinte sur place |
 
 ### Carte par sujet
 
@@ -292,7 +293,7 @@ plages A renvoient au tableau ci-dessus.
 | **Complications, revue « à tout moment », bande des repères** | COMPLICATIONS · PORTÉE D'UNE ACTION DE REPRISE · REPÈRES POSOLOGIQUES | A333-A335, A396-A399, A449 |
 | **Écran d'entrée d'une aide, exercice, guide** | MODE EXERCICE | A330, A347, A358, A366, A460, A463-A467, A520, A577 |
 | **Accueil, colonne gauche, sélection, filtres, collections** | ACCUEIL « POSTE ACCÈS DIRECT » (historique) | A170-A191, A227-A230, A238-A307, A338, A347-A353, A365, A389, A419-A431, A443, A447, A451, A475-A477, A485-A493, A496-A500, A504, A506, A515-A517, A523-A524, A527-A528, A537-A539, A544, A545, A556, A586, A587-A592, A595-A603, A617-A621 |
-| **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499, A522, A586, A613-A631 (suivi : notes et tâches), A643-A644, A647 (poste partagé, connexion par le téléphone, ce qu'il ne fait pas), A651-A652 (se connecter : temporaire ou permanente), A654 (règles de la connexion temporaire), A655-A656 (appareil déconnecté, « Connecter un appareil »), A685-A686 (invitation avec acceptation), A687-A688 (quotas par espace, Administration › Règles), A692-A693 (appareil temporaire : règles étendues, confirmation par le serveur), A703 (la fenêtre d'une bibliothèque au-dessus d'Administration) |
+| **Bibliothèques, comptes, Moi, Administration** | — | A364-A365, A389, A438, A473, A477-A484, A489, A494-A495, A499, A522, A586, A613-A631 (suivi : notes et tâches), A643-A644, A647 (poste partagé, connexion par le téléphone, ce qu'il ne fait pas), A651-A652 (se connecter : temporaire ou permanente), A654 (règles de la connexion temporaire), A655-A656 (appareil déconnecté, « Connecter un appareil »), A685-A686 (invitation avec acceptation), A687-A688 (quotas par espace, Administration › Règles), A692-A693 (appareil temporaire : règles étendues, confirmation par le serveur), A703 (la fenêtre d'une bibliothèque au-dessus d'Administration), A704 (règles de la connexion temporaire au segmenté à pastille) |
 | **Éditeurs (aide et référence)** | Indicateur de mode des éditeurs | A383-A384, A390, A441-A446, A452-A459, A468-A472, A496, A520-A521, A546-A553, A560-A561, A583-A585, A593-A594, A604, A607-A612, A614, A633-A637, A641-A642, A660 |
 | **Consultation, références, PDF** | FEUILLE « CONSULTER » (purgée A367) · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF · Documents PDF · CHERCHER DANS LES DOCUMENTS PDF | A367, A392-A393, A418, A452-A459, A554-A555, A557, A689-A690 (un document appartient à un seul espace), A697 (indexation bornée), A700 (frise du compte-rendu) |
 | **Import, export, entrées de fichier** | Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE | A113-A132, A159-A169, A225, A392, A562, A611, A622, A633, A638, A660 (fichier d'IA sans état en Brouillon), A669-A670 (document sous id neuf, pas de suppression importée, regex et archives bornées) |

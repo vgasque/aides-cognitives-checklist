@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.119.3] — 2026-11-11
+Correctif : les règles de la connexion temporaire prennent le sélecteur de l'app (A704). Rien à faire côté serveur.
+- **Administration › Règles › Connexion temporaire** : les cinq réglages (Créer, modifier · Supprimer · Remplacer une
+  bibliothèque · Exporter · Durée maximale) utilisent maintenant le même sélecteur que le reste de l'app. La pastille
+  glisse jusqu'au choix touché, et on peut la faire glisser au doigt.
+- Rien ne change dans le fonctionnement : un choix se confirme toujours avant de partir. « Annuler » ramène la pastille
+  sur la règle en vigueur.
+- Au téléphone, les libellés passent sur deux lignes s'il le faut ; plus rien ne déborde, même sur un écran de 320 px.
+
 ## [5.119.2] — 2026-11-10
 Correctif : la fenêtre d'une bibliothèque s'ouvre de nouveau depuis Administration (A703). Rien à faire côté serveur.
 - **Au téléphone, dans Administration › Bibliothèques, toucher une bibliothèque n'ouvrait rien en apparence** : sa
@@ -322,11 +331,3 @@ Une image dans une liste reste dans son élément (A642). Rien à rejouer côté
 - L'image d'un élément compte comme utilisée : elle n'est plus retirée en quittant l'éditeur.
 - À savoir : un appareil resté sur une version antérieure affiche cette ligne image en texte brut tant qu'il ne
   s'est pas mis à jour.
-
-## [5.109.9] — 2026-11-08
-Plus aucune fenêtre centrée pour choisir une aide, un protocole ou un document (A641). Rien à rejouer côté serveur.
-- **« Voir aussi », la cible d'une complication et « Joindre un document existant »** s'ouvrent comme les autres
-  choix de l'app : au bureau, une liste qui se déroule sous le bouton touché ; au téléphone, la feuille du bas.
-- **Recherche dans les trois, dès le premier élément** (nom, code d'une aide, provenance d'un document) ; les groupes
-  restent (« Aides » / « Protocoles », « Blocs de cette aide » d'abord pour une complication, la cible actuelle cochée).
-- Rien à choisir : une notice le dit, au lieu d'ouvrir une fenêtre vide.

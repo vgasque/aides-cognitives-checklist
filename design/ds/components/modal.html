@@ -7322,9 +7322,10 @@
   .adm-trow{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
   .adm-trow:first-child{border-top:0}
   .adm-trow .adm-tx{flex:1 1 220px;min-width:0}
-  .adm-tseg{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:var(--r-2);background:var(--amb-2)}
-  .adm-topt{min-height:36px;padding:0 12px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
-  .adm-topt.on{background:var(--work);color:var(--ink);box-shadow:var(--shadow-float)}
+  /* A704 : le sélecteur segmenté de l'app (`.seg`, pastille glissante) ; libellés sur deux lignes dans la hauteur 44 (cf. `.vs-wrap`). */
+  .adm-tseg{flex:1 1 300px;min-width:0}
+  .adm-tseg .seg-btn{padding:0 4px;font-size:var(--t-body);line-height:1.15;text-align:center}
+  html.zw430 .adm-tseg:has(>.seg-btn:nth-child(6)) .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* cinq crans au téléphone : « Confirmer » et « Interdit » se touchaient à 13,5 (mesuré à 390) */
   .adm-tfix{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-body);font-weight:700;color:var(--ink-2)}
   .pp-band{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:8px 10px 8px 14px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);font-size:var(--t-body);color:var(--ink)}
   .pp-band svg{flex:none;color:var(--ink-2)}
