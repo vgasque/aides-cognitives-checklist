@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.119.3] — 2026-11-11
+Correctif : les règles de la connexion temporaire prennent le sélecteur de l'app (A704). Rien à faire côté serveur.
+- **Administration › Règles › Connexion temporaire** : les cinq réglages (Créer, modifier · Supprimer · Remplacer une
+  bibliothèque · Exporter · Durée maximale) utilisent maintenant le même sélecteur que le reste de l'app. La pastille
+  glisse jusqu'au choix touché, et on peut la faire glisser au doigt.
+- Rien ne change dans le fonctionnement : un choix se confirme toujours avant de partir. « Annuler » ramène la pastille
+  sur la règle en vigueur.
+- Au téléphone, les libellés passent sur deux lignes s'il le faut ; plus rien ne déborde, même sur un écran de 320 px.
+
+## [5.119.2] — 2026-11-10
+Correctif : la fenêtre d'une bibliothèque s'ouvre de nouveau depuis Administration (A703). Rien à faire côté serveur.
+- **Au téléphone, dans Administration › Bibliothèques, toucher une bibliothèque n'ouvrait rien en apparence** : sa
+  fenêtre (nom, membres, rôles, suppression) s'ouvrait derrière Administration, invisible. Elle s'ouvre maintenant
+  au-dessus. Échap et le retour la referment, et vous ramènent à Administration.
+- Au bureau, où Administration est une page de la colonne, rien ne change.
+
 ## [5.119.1] — 2026-11-10
 « À revérifier » retrouve son glyphe (A702).
 - Sur l'accueil, une aide ou un protocole dont la validation est échue affichait « À revérifier » en ambre, sans
@@ -315,25 +331,3 @@ Une image dans une liste reste dans son élément (A642). Rien à rejouer côté
 - L'image d'un élément compte comme utilisée : elle n'est plus retirée en quittant l'éditeur.
 - À savoir : un appareil resté sur une version antérieure affiche cette ligne image en texte brut tant qu'il ne
   s'est pas mis à jour.
-
-## [5.109.9] — 2026-11-08
-Plus aucune fenêtre centrée pour choisir une aide, un protocole ou un document (A641). Rien à rejouer côté serveur.
-- **« Voir aussi », la cible d'une complication et « Joindre un document existant »** s'ouvrent comme les autres
-  choix de l'app : au bureau, une liste qui se déroule sous le bouton touché ; au téléphone, la feuille du bas.
-- **Recherche dans les trois, dès le premier élément** (nom, code d'une aide, provenance d'un document) ; les groupes
-  restent (« Aides » / « Protocoles », « Blocs de cette aide » d'abord pour une complication, la cible actuelle cochée).
-- Rien à choisir : une notice le dit, au lieu d'ouvrir une fenêtre vide.
-
-## [5.109.8] — 2026-11-08
-Éditeur de protocole : le suivi ne disparaît plus (A636) ; mise en garde des images (A637), déroulants au bureau (A638), gras de Notion (A639), listes coupées par une image (A640). Rien à rejouer côté serveur.
-- **Le volet « Suivi » de l'éditeur de protocole reste visible** : il disparaissait de la colonne de droite dès qu'on
-  tapait dans le texte, et après un aller-retour « Mise en forme en direct ».
-- **Texte et aperçu côte à côte** : le suivi reste en bas de page, et la pastille « n tâches » paraît dans l'en-tête
-  dès qu'il y a une note ou une tâche (elle l'ouvre sans quitter sa place), comme en lecture.
-- **« Une image hors texte sera retirée… »** ne s'affiche plus que s'il y a vraiment une image retirée du texte.
-- **Au bureau, plus de petites fenêtres pour choisir** dans l'atelier d'import (catégorie, bibliothèque, « Dans »),
-  pour l'élément lié d'une tâche, « Ajouter à une collection… » et l'Administration : une liste se déroule sous le
-  bouton touché. Au téléphone, rien ne change.
-- **Gras de Notion** : `****texte****` et `****titre** : suite**` s'affichent en gras.
-- **Image dans une liste (import Notion)** : l'image reste un bloc à elle et ferme la liste, mais ce qui la suit
-  redevient une liste au lieu de s'afficher en texte « - … ».

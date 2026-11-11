@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-SFF4ieqwk5UywwJ5pyEwclpK1wM/1HQUzIjdjYaHSLY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-PlvFIZLHFWN6mI7PyxvzZk6cJfOJOEs8YnyYNAvlYJk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7722,9 +7722,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .adm-trow{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
   .adm-trow:first-child{border-top:0}
   .adm-trow .adm-tx{flex:1 1 220px;min-width:0}
-  .adm-tseg{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:var(--r-2);background:var(--amb-2)}
-  .adm-topt{min-height:36px;padding:0 12px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
-  .adm-topt.on{background:var(--work);color:var(--ink);box-shadow:var(--shadow-float)}
+  /* A704 : le sélecteur segmenté de l'app (`.seg`, pastille glissante) ; libellés sur deux lignes dans la hauteur 44 (cf. `.vs-wrap`). */
+  .adm-tseg{flex:1 1 300px;min-width:0}
+  .adm-tseg .seg-btn{padding:0 4px;font-size:var(--t-body);line-height:1.15;text-align:center}
+  html.zw430 .adm-tseg:has(>.seg-btn:nth-child(6)) .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* cinq crans au téléphone : « Confirmer » et « Interdit » se touchaient à 13,5 (mesuré à 390) */
   .adm-tfix{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-body);font-weight:700;color:var(--ink-2)}
   .pp-band{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:8px 10px 8px 14px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);font-size:var(--t-body);color:var(--ink)}
   .pp-band svg{flex:none;color:var(--ink-2)}
@@ -10369,10 +10370,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="syncErrBody" class="ai-body"></div>
 </div></div>
-<div class="ai-modal page" id="membersModal" role="dialog" aria-modal="true" aria-labelledby="membersModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="membersModalTitle">Gérer la bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
-  <div id="membersBody" class="ai-body"></div>
-</div></div>
 <div class="ai-modal" id="newLibModal" role="dialog" aria-modal="true" aria-labelledby="newLibModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="newLibBody" class="ai-body"></div>
@@ -10401,6 +10398,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal page" id="admModal" role="dialog" aria-modal="true" aria-labelledby="admModalTitle"><div class="ai-card">
   <div class="ai-top"><div class="adm-ttl"><button type="button" class="adm-back" id="admBack" hidden></button><h3 id="admModalTitle">Administration</h3></div><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="admBody" class="ai-body"></div>
+</div></div>
+<!-- A703 : la fenêtre d'une bibliothèque APRÈS Administration — elle s'ouvre DEPUIS elle (`data-admlib`) et doit passer
+     au-dessus (ordre du document = ordre d'empilement des .ai-modal, cf. A616) ; déclarée avant, elle s'ouvrait DERRIÈRE,
+     invisible, et Échap, le piège Tab et le retour système visaient Administration. -->
+<div class="ai-modal page" id="membersModal" role="dialog" aria-modal="true" aria-labelledby="membersModalTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="membersModalTitle">Gérer la bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div id="membersBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal page" id="sessModal" role="dialog" aria-modal="true" aria-labelledby="sessModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="sessModalTitle">Sessions</h3><button class="ai-x" aria-label="Fermer">×</button></div>
@@ -10612,7 +10616,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.119.1';
+const APP_VERSION='5.119.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -33259,7 +33263,7 @@ function admLibsHtml(view){const D=_admD;
   return h+`<div id="admList">${admLibListHtml()}</div><p class="adm-hint">Une rangée ouvre la bibliothèque : inviter, changer un rôle, retirer, renommer — même sans en être membre.</p>`;}
 /* ── Règles de l'instance ────────────────────────────────────────────────────────────────────── */
 const ADM_TEMP_ROWS=[
-  ['edit','Créer, modifier','aides, protocoles, catégories partagées, notes et suivi',[['libre','Libre'],['v5','Verrou 5 min'],['v15','Verrou 15 min'],['tel','Confirmer'],['non','Interdit']]],
+  ['edit','Créer, modifier','aides, protocoles, catégories partagées, notes et suivi',[['libre','Libre'],['v5','Verrou 5\u00a0min'],['v15','Verrou 15\u00a0min'],['tel','Confir\u00admer'],['non','Interdit']]],   // A704 : césure conditionnelle — à 320 px, la colonne (49 px) est plus étroite que le mot
   ['del','Supprimer','une aide, un protocole, une sélection',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['repl','Remplacer une bibliothèque','à l’import',[['tel','Confirmer à chaque fois'],['non','Interdit']]],
   ['exp','Exporter, télécharger','le fichier reste dans les Téléchargements',[['oui','Permis'],['non','Interdit']]],
@@ -33291,6 +33295,26 @@ function quotaErrInfo(msg){msg=String(msg||'');if(msg.indexOf('quota_exceeded')<
   const k=/"details"\s*:\s*"(aids|protocols|sessions|docs)"/.exec(msg),l=/"hint"\s*:\s*"(\d{1,7})"/.exec(msg);
   return {k:k?k[1]:null,lim:l?+l[1]:null};}
 const QUOTA_MOT={aids:['aide','aides'],protocols:['protocole','protocoles'],sessions:['session enregistrée','sessions enregistrées'],docs:['document','documents']};
+/* A704 — LES RÈGLES DE LA CONNEXION TEMPORAIRE AU SÉLECTEUR SEGMENTÉ DE L'APP (`.seg`, pastille glissante). Elles avaient
+   un segmenté fait main (`.adm-tseg` à boutons `.adm-topt`) : pas de pastille, donc rien ne glissait au tap ni au doigt.
+   Le glissé vient seul (délégué au document pour tout `.seg` à `.seg-pill`) ; le GLISSEMENT exige que la racine ne soit
+   jamais reconstruite (conventions : sélecteur segmenté) — le tap PEINT donc sur place (`admTrPaint`) et ne repeint que la
+   confirmation (`#admTrAsk`), au lieu de `renderAdm()`. Cinq crans au plus : les libellés passent sur deux lignes dans
+   la hauteur 44 (comme `.vs-wrap`, A461). La valeur courante : la demande en attente, sinon celle du serveur. */
+const admTrCur=k=>String(_adm.trAsk&&_adm.trAsk.k===k?_adm.trAsk.v:(_admD.temp||{})[k]);
+function admTrSegHtml(k,l,opts){const cur=admTrCur(k),i=opts.findIndex(([v])=>String(v)===cur);
+  return `<div class="seg adm-tseg" role="radiogroup" aria-label="${esc(l)}" data-trseg="${k}" style="--seg-n:${opts.length};--seg-i:${Math.max(0,i)}"><span class="seg-pill" aria-hidden="true"${i<0?' hidden':''}></span>`
+    +opts.map(([v,t],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i}" data-trk="${k}" data-trv="${v}" data-admk="tr-${k}-${v}">${esc(t)}</button>`).join('')+'</div>';}
+function admTrAskHtml(){const a=_adm.trAsk;if(!a)return '';const r=ADM_TEMP_ROWS.find(x=>x[0]===a.k),o=r&&r[3].find(x=>String(x[0])===String(a.v));
+  return r&&o?admAskHtml('tr','« '+r[1]+' » passe à « '+o[1]+' » : appliqué tout de suite, aussi aux appareils temporaires déjà connectés.','Confirmer'):'';}
+/* Peint SUR PLACE : classe `on`, `aria-checked` et `--seg-i` (la pastille glisse par sa transition). Pas de `tabIndex`
+   itinérant (`paintSeg`) : aucun segmenté de l'app ne lit les flèches, chaque cran reste atteignable par Tab. */
+function admTrPaint(box){if(!box||!_admD||!_admD.temp)return;
+  box.querySelectorAll('[data-trseg]').forEach(r=>{const cur=admTrCur(r.dataset.trseg),bs=[...r.querySelectorAll('[data-trk]')],i=bs.findIndex(b=>b.dataset.trv===cur);
+    bs.forEach((b,j)=>{b.classList.toggle('on',j===i);b.setAttribute('aria-checked',String(j===i));});
+    const p=r.querySelector(':scope>.seg-pill');if(p)p.hidden=i<0;if(i>=0)r.style.setProperty('--seg-i',i);});
+  const z=box.querySelector('#admTrAsk');if(z)z.innerHTML=admTrAskHtml();}
+const admTrFocus=(box,k)=>{const b=box&&box.querySelector('[data-trseg="'+CSS.escape(k)+'"] .seg-btn.on');if(b)b.focus({preventScroll:true});};
 function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.status==='pending'&&!u.is_admin).length;
   let h=admSubHead(view,'Règles de l’instance','Elles valent pour tous les comptes ; chaque changement se confirme.');
   /* NOUVEAUX COMPTES — l'interrupteur de l'ancienne fenêtre « Comptes en attente ». Couper agit AUSSI sur
@@ -33316,13 +33340,12 @@ function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.st
   h+=admSh('Connexion temporaire')+'<p class="adm-hint">Ce qu’on peut faire sur un appareil du service. Appliqué par le serveur, tout de suite, aux appareils déjà connectés ; jamais plus que le rôle du compte.</p>';
   if(D.temp==null)h+=admSchema('v5.113','régler la connexion temporaire');
   else h+='<div class="acct-card acct-list">'+ADM_TEMP_ROWS.map(([k,l,sub,opts])=>`<div class="adm-trow"><span class="adm-tx"><span class="adm-lb">${esc(l)}</span><span class="adm-sub">${esc(sub)}</span></span>
-      <span class="adm-tseg" role="radiogroup" aria-label="${esc(l)}">${opts.map(([v,t])=>{const on=String(_adm.trAsk&&_adm.trAsk.k===k?_adm.trAsk.v:D.temp[k])===String(v);return `<button type="button" class="adm-topt${on?' on':''}" role="radio" aria-checked="${on}" data-trk="${k}" data-trv="${v}" data-admk="tr-${k}-${v}">${esc(t)}</button>`;}).join('')}</span></div>`).join('')
+      ${admTrSegHtml(k,l,opts)}</div>`).join('')
     +`<div class="adm-trow"><span class="adm-tx"><span class="adm-lb">Administration, membres et rôles</span><span class="adm-sub">sinon, un appareil resté ouvert pourrait desserrer ces règles</span></span><span class="adm-tfix">${uiIcon('lock',14)}Toujours interdit</span></div>
       <div class="adm-trow"><span class="adm-tx"><span class="adm-lb">Supprimer mon compte</span><span class="adm-sub">refusé aussi par le serveur</span></span><span class="adm-tfix">${uiIcon('lock',14)}Toujours interdit</span></div></div>`;
   /* A661 : l'écran dit « chaque changement se confirme » et ces règles partaient au tap, appliquées aussitôt aux
      appareils connectés — même confirmation sur place que les deux autres réglages. */
-  if(D.temp!=null&&_adm.trAsk){const r=ADM_TEMP_ROWS.find(x=>x[0]===_adm.trAsk.k),o=r&&r[3].find(x=>String(x[0])===String(_adm.trAsk.v));
-    if(r&&o)h+=admAskHtml('tr','« '+r[1]+' » passe à « '+o[1]+' » : appliqué tout de suite, aussi aux appareils temporaires déjà connectés.','Confirmer');}
+  if(D.temp!=null)h+='<div id="admTrAsk">'+admTrAskHtml()+'</div>';   // A704 : repeinte SEULE, le sélecteur au-dessus ne se reconstruit pas
   /* A688 — QUOTAS. Même confirmation sur place que les autres réglages (A661) : la saisie DEMANDE, « Confirmer »
      applique. Abaisser une limite sous l'usage courant ne supprime rien : seuls les AJOUTS sont refusés. */
   h+=admSh('Quotas')+'<p class="adm-hint">Le nombre d’éléments qu’un espace peut contenir. Un espace, c’est l’espace personnel d’un compte, ou une bibliothèque : chacun a sa propre limite. Ce qui est supprimé ne compte pas.</p>';
@@ -33401,17 +33424,18 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
       delete _adm.mem[u.user_id];admAfter();return;}
     if(t.dataset.admap!=null){_adm.apAsk=_adm.apAsk!=null?null:!_admD.approval;renderAdm();admFocusYes('ap');return;}
     if(t.dataset.trk!=null){const k=t.dataset.trk,v=t.dataset.trv;   // A654 ; A661 : le tap DEMANDE, « Confirmer » applique
-      _adm.trAsk=(_admD.temp&&String(_admD.temp[k])===v)?null:{k,v};renderAdm();if(_adm.trAsk)admFocusYes('tr');return;}
-    if(t.dataset.admyes==='tr'){const a=_adm.trAsk;_adm.trAsk=null;if(!a){renderAdm();return;}const k=a.k,v=a.v;
-      try{await rpc('set_temp_rules',{p_rules:{[k]:k==='dur'?+v:v}});}catch(x){err(x);renderAdm();return;}
+      _adm.trAsk=(_admD.temp&&String(_admD.temp[k])===v)?null:{k,v};admTrPaint(box);if(_adm.trAsk)admFocusYes('tr');return;}   // A704 : sur place, la pastille glisse
+    if(t.dataset.admyes==='tr'){const a=_adm.trAsk;_adm.trAsk=null;if(!a){admTrPaint(box);return;}const k=a.k,v=a.v;
+      try{await rpc('set_temp_rules',{p_rules:{[k]:k==='dur'?+v:v}});}catch(x){err(x);admTrPaint(box);admTrFocus(box,k);return;}   // refusé : la pastille revient
       _admD.temp=Object.assign({},_admD.temp,{[k]:k==='dur'?+v:v});_linkRules=null;await linkRulesFetch();
-      renderAdm();toast('✓ Règle enregistrée — elle s’applique aux appareils temporaires.');return;}
+      admTrPaint(box);admTrFocus(box,k);toast('✓ Règle enregistrée — elle s’applique aux appareils temporaires.');return;}
     if(t.dataset.libmode!=null){_adm.modeAsk=t.dataset.libmode===_admD.mode?null:t.dataset.libmode;renderAdm();admFocusYes('mode');return;}
     if(t.dataset.admyes==='qt'){const a=_adm.qtAsk;_adm.qtAsk=null;if(!a||!_admD.quotas){renderAdm();return;}   // A688
       try{await rpc('set_quotas',{p:{[a.k]:a.v}});}catch(x){err(x);renderAdm();return;}
       _admD.quotas=Object.assign({},_admD.quotas,{[a.k]:a.v});
       renderAdm();toast('✓ Quota enregistré — appliqué par le serveur.');return;}
-    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else if(t.dataset.admno==='tr')_adm.trAsk=null;else if(t.dataset.admno==='qt')_adm.qtAsk=null;else _adm.modeAsk=null;renderAdm();return;}
+    if(t.dataset.admno==='tr'){const k=_adm.trAsk&&_adm.trAsk.k;_adm.trAsk=null;admTrPaint(box);if(k)admTrFocus(box,k);return;}   // A704 : la pastille revient en glissant
+    if(t.dataset.admno!=null){if(t.dataset.admno==='ap')_adm.apAsk=null;else if(t.dataset.admno==='qt')_adm.qtAsk=null;else _adm.modeAsk=null;renderAdm();return;}
     if(t.dataset.admyes==='ap'){const v=_adm.apAsk;_adm.apAsk=null;
       try{await rpc('set_approval_required',{p_value:v});}catch(x){err(x);renderAdm();return;}
       admAfter(v?'Validation des nouveaux comptes réactivée.':'Validation désactivée : les nouveaux comptes sont approuvés automatiquement.');return;}

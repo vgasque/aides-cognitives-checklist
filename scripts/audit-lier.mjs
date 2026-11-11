@@ -17,7 +17,7 @@
  *  3. LE TÉLÉPHONE approuve : lien `#lier=` ouvert par l'appareil photo, mauvais nombre refusé, heure
  *     de fin dans les bornes, et rien ne part avant le bon nombre.
  */
-import { serveApp, moteur, NOM_MOTEUR, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce, ouvrirFiche, demarrerSession, calme } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
@@ -388,6 +388,34 @@ await ctx.close();
   t('Administration › Règles : la section « Connexion temporaire » (5 règles + 2 interdits fixes)', adm.rows === 7 && adm.bouton, JSON.stringify(adm));
   t('… un choix se confirme sur place avant de partir (A661)', adm.demande === true, JSON.stringify(adm));
   t('… un choix part au serveur (set_temp_rules)', set.p_rules && set.p_rules.edit === 'non', JSON.stringify(set));
+  /* A704 : le sélecteur est le segmenté de l'app — une pastille qui GLISSE au tap (la racine n'est pas reconstruite :
+     sinon elle saute) et au doigt (glissé délégué au document) ; l'annulation la ramène ; rien ne déborde au téléphone. */
+  const seg = await pa.evaluate(async () => {
+    const R = k => document.querySelector(`[data-trseg="${k}"]`), I = k => R(k) && R(k).style.getPropertyValue('--seg-i');
+    const r0 = R('edit'), out = { pastille: !!(r0 && r0.querySelector(':scope>.seg-pill')), avant: I('edit') };
+    if (!out.pastille) return { ...out, tap: [], annule: [], glisse: null };   // l'ancien segmenté fait main : rouge, pas plantage
+    r0.querySelector('[data-trv="libre"]').click(); await __acCalme(100);
+    out.tap = [R('edit') === r0, I('edit'), !!document.querySelector('#admTrAsk [data-admyes="tr"]'), (r0.querySelector('.seg-btn.on') || {}).dataset?.trv];
+    document.querySelector('[data-admno="tr"]').click(); await __acCalme(100);
+    out.annule = [R('edit') === r0, I('edit'), !document.querySelector('#admTrAsk [data-admyes]'), document.activeElement && document.activeElement.dataset.trv];
+    const d = R('dur'), bs = [...d.querySelectorAll('.seg-btn')], i = bs.findIndex(b => b.classList.contains('on')), j = i === 0 ? bs.length - 1 : 0;
+    const box = b => { const q = b.getBoundingClientRect(); return [q.left + q.width / 2, q.top + q.height / 2]; };
+    out.glisse = { de: box(bs[i]), a: box(bs[j]), vise: bs[j].dataset.trv };
+    return out; });
+  let glisse = [];
+  if (seg.glisse) {
+    await pa.mouse.move(...seg.glisse.de); await pa.mouse.down();
+    for (let s = 1; s <= 8; s++) await pa.mouse.move(seg.glisse.de[0] + (seg.glisse.a[0] - seg.glisse.de[0]) * s / 8, seg.glisse.de[1]);
+    await pa.mouse.up(); await calme(pa, 400);
+    glisse = await pa.evaluate(() => [_adm.trAsk && _adm.trAsk.k, _adm.trAsk && String(_adm.trAsk.v)]);
+  }
+  await pa.setViewportSize({ width: 390, height: 844 }); await calme(pa, 400);
+  const deb = await pa.evaluate(() => [...document.querySelectorAll('[data-trseg]')].filter(r => r.offsetParent).map(r => [r.dataset.trseg, r.scrollWidth - r.clientWidth, Math.round(r.querySelector('.seg-btn').getBoundingClientRect().height)]));
+  t('A704 : le sélecteur des règles est le segmenté de l’app, avec sa pastille', seg.pastille, JSON.stringify(seg));
+  t('… un tap fait GLISSER la pastille (même racine, cran suivi) et ouvre la confirmation', seg.tap[0] && seg.tap[1] === '0' && seg.tap[2] && seg.tap[3] === 'libre' && seg.avant === '4', JSON.stringify([seg.avant, seg.tap]));
+  t('… « Annuler » la ramène en glissant, le focus revient sur le cran en vigueur', seg.annule[0] && seg.annule[1] === '4' && seg.annule[2] && seg.annule[3] === 'non', JSON.stringify(seg.annule));
+  t('… la pastille se GLISSE au doigt : relâchée sur un autre cran, elle le demande', !!seg.glisse && glisse[0] === 'dur' && glisse[1] === seg.glisse.vise, JSON.stringify([glisse, seg.glisse && seg.glisse.vise]));
+  t('… 390 px : aucun sélecteur ne déborde, cible de 44 px', deb.length === 5 && deb.every(([, o, h]) => o <= 0 && h >= 44), JSON.stringify(deb));
   await c7.close();
 }
 {
