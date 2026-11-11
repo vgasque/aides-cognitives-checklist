@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.121.0] — 2026-11-11
+Aux Bibliothèques, ce qu'on crée ou importe arrive là où l'on se trouve (A725).
+- **Créer depuis une catégorie : la catégorie est déjà choisie.** Dans une bibliothèque, l'aide ou le protocole créé y
+  naissait déjà ; ouvert dans une de ses catégories, il naît maintenant aussi dans cette catégorie.
+- **Importer depuis une bibliothèque ou une catégorie : la destination est déjà posée.** Un fichier d'export, une page
+  Notion (`.md`) ou une archive (`.zip`) importés depuis les Bibliothèques proposent d'emblée la bibliothèque ouverte, et
+  la catégorie ouverte s'il y en a une. Jusqu'ici l'import proposait la bibliothèque filtrée à l'Accueil, et jamais de
+  catégorie. Chaque ligne de l'import reste modifiable avant de valider.
+- **Dans « Tout », les filtres comptent.** Avec le filtre Bibliothèque posé (sur une bibliothèque où vous pouvez
+  écrire), ce qu'on crée ou importe y arrive ; avec le filtre Catégorie, dans la catégorie de ce nom si la bibliothèque
+  d'arrivée en a une.
+- À l'Accueil, rien ne change : un import garde la catégorie que le fichier déclare.
+
 ## [5.120.0] — 2026-11-11
 Les titres d'un protocole se lisent enfin comme des titres, et un correctif de l'éditeur (A723-A724).
 - **Protocole, en lecture : trois niveaux de titre qui se distinguent.** `#` et `##` avaient exactement le même dessin,
@@ -373,33 +386,3 @@ L'accueil pendant le chargement du compte (A653). Rien à rejouer côté serveur
   rangées qui respirent, puis le vrai contenu. Rien ne bouge si le système demande moins de mouvement ; un compte
   déjà synchronisé, ou hors ligne, s'affiche aussitôt.
 - Garde-fou : `audit-doctrine.mjs`, section « Accueil · A653 ».
-
-## [5.112.0] — 2026-11-10
-Se connecter : temporaire ou permanente (A651-A652). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle
-fonction `link_self`), puis `supabase/rls-tests.sql`.
-- **Une carte « Se connecter »** dans Moi : ⏱ Temporaire (« jusqu'à la fin de la garde, puis tout s'efface ») ou
-  ∞ Permanente (« vous restez connecté »). Rien n'est choisi d'office, au bureau comme au téléphone. « Pas encore de
-  compte ? Créer un compte » a sa propre entrée.
-- **Temporaire › Avec un appareil connecté** : le code à viser s'affiche dans la page (plus de fenêtre), avec trois
-  étapes ; il se renouvelle seul 5 fois, puis « Afficher un nouveau code ».
-- **Temporaire › Par e-mail** (nouveau) : sans appareil connecté sous la main, le code e-mail puis l'heure de fin de
-  garde ouvrent une connexion temporaire — mêmes limites, même effacement, même « Appareils connectés » que par le code
-  à viser. Refusée (compte non validé), elle ne reste pas ouverte.
-- **« Un appareil connecté »** remplace « le téléphone » partout : on peut confirmer depuis un téléphone, une tablette
-  ou un ordinateur, et connecter n'importe quel appareil temporairement (« Connecter un appareil », « Connecter
-  jusqu'à 19:30 »).
-- **Une fois connecté temporairement** : une seule carte dans Moi (l'heure de fin en grand, une seule sortie « Se
-  déconnecter et effacer ») ; la bande de l'accueil devient neutre, ambre à l'approche de la fin, et porte
-  « Déverrouiller » quand l'édition est verrouillée.
-- Garde-fous : `rls-tests.sql` 16.16, `audit-lier.mjs` (46 contrôles, dont le parcours par e-mail).
-
-## [5.111.2] — 2026-11-09
-Trois défauts signalés (A649). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle fonction `link_end`).
-- **La notification de mise à jour** (« Application mise à jour… ») se posait sur la barre d'onglets du téléphone
-  depuis la 5.100, et sur un tiers de la largeur (trois lignes) : elle passe au-dessus de la barre, centrée, à sa
-  largeur. Le bandeau « Nouvelle version disponible » n'avait pas de défaut.
-- **Bibliothèques › Tout, au bureau** : les filtres Type, Bibliothèque, Catégorie et A → Z ouvraient leur menu en bas à
-  gauche de l'écran ; il s'ouvre sous le bouton touché.
-- **Appareils connectés** : « Se déconnecter et effacer » sur un poste partagé le retire aussitôt de la liste du
-  téléphone (il y restait jusqu'à son heure de fin). La liste ouverte se met à jour au retour dans l'app.
-- Garde-fous : nouveau harnais `audit-flottants.mjs`, `rls-tests.sql` 16.15.

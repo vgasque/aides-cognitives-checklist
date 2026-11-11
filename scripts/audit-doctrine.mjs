@@ -11054,7 +11054,12 @@ await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se ver
       for(const [k,c] of [['racine',{}],['b1',{lib:'b1'}],['tout',{tout:true}]]){state.homeTab='biblio';state.cnav=c;render();await __acCalme(300);
         const b=[...document.querySelectorAll('#pgNew,#hdrNew')].find(x=>x.getClientRects().length&&!x.hidden),top=document.querySelector('.pg-top');
         o[k]={btn:!!b,tient:!top||top.scrollWidth<=top.clientWidth+1};}
-      state.cnav={lib:'b1'};render();await __acCalme(200);confirmNewInLib=async()=>true;await newProtocol();await __acCalme(400);o.nee=state.pdraft&&state.pdraft.library;
+      /* A725 : la catégorie ouverte, ou les filtres de « Tout », pré-remplissent bibliothèque ET catégorie — création et import. */
+      categories.push(...sanitizeCats([{id:'kA725',name:'Trauma',color:'#888888',library:'b1'}]));const imp=()=>impRowsOf({fiches:[{title:'Importée'}],protocols:[{title:'Page Notion'}],categories:[]},false).map(x=>[x.lib,x.cat]);
+      state.cnav={lib:'b1',cat:'kA725'};render();await __acCalme(200);o.a725={cat:[crtScope(),crtCat(crtScope())],impCat:imp()};
+      state.cnav={tout:true};state.ctf={type:'all',lib:'b1',cat:txNorm('Trauma'),sort:'az'};render();await __acCalme(200);o.a725.tout=[crtScope(),crtCat(crtScope())];o.a725.impTout=imp();
+      state.ctf={type:'all',lib:null,cat:'',sort:'az'};state.homeTab='aides';render();await __acCalme(200);o.a725.accueil=[crtScope(),crtCat(crtScope())];o.a725.impAccueil=imp().map(x=>x[1]);state.homeTab='biblio';
+      state.cnav={lib:'b1',cat:'kA725'};render();await __acCalme(200);confirmNewInLib=async()=>true;await newProtocol();await __acCalme(400);o.nee=state.pdraft&&state.pdraft.library;o.a725.nee=state.pdraft&&state.pdraft.category;
       const T=s=>new TextEncoder().encode(s);o.cible=upKindsIci().indexOf('data')>=0;
       await notionVerse(state.pdraft,[new File([T('# Polytraumatisé grave\n\nPremier paragraphe.')],'Page.md')],renderProtocolEdit);await __acCalme(400);
       o.titre=state.pdraft.title;o.corps=/Premier paragraphe/.test(state.pdraft.body);
@@ -11063,6 +11068,9 @@ await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se ver
       return o;});
     t(`${W} px · A632 : « Créer » aux Bibliothèques (racine, une bibliothèque, « Tout »), la rangée tient`,['racine','b1','tout'].every(k=>r[k].btn&&r[k].tient),JSON.stringify(r));
     t(`${W} px · A632 : créé dans une bibliothèque du catalogue, l'élément naît DANS cette bibliothèque`,r.nee==='b1',JSON.stringify(r));
+    {const a=r.a725||{},ok2=x=>x&&x[0]==='b1'&&x[1]==='kA725';
+    t(`${W} px · A725 : dans une catégorie du catalogue, ce qu'on crée ou importe arrive dans cette bibliothèque ET cette catégorie`,ok2(a.cat)&&a.nee==='kA725'&&(a.impCat||[]).length===2&&a.impCat.every(ok2),JSON.stringify(a));
+    t(`${W} px · A725 : dans « Tout », les filtres Bibliothèque et Catégorie valent contexte ; à l'Accueil, la catégorie reste celle du fichier`,ok2(a.tout)&&(a.impTout||[]).every(ok2)&&a.accueil&&a.accueil[1]===''&&(a.impAccueil||[]).every(c=>c==='~garder'),JSON.stringify(a));}
     t(`${W} px · A633 : l'éditeur de protocole accepte une page Notion (.md) — titre posé s'il était vide, texte versé, une 2ᵉ page s'ajoute À LA SUITE`,r.cible&&r.titre==='Polytraumatisé grave'&&r.corps&&r.suite,JSON.stringify(r));
     await page.close();}
 });
