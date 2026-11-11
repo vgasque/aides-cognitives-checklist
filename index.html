@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-RuglP4xdpP7wiD3IAymKehRUk/j21lzLCLziRvibpX4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NgYiQEiJ9d45BH1urXqOPN8+PRZj08lFZ8Ox8UfvgYE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -33234,6 +33234,19 @@ function libReqRowsHtml(){return (myLibReqs||[]).map(r=>{const ko=r.status==='re
   return menuRowHtml({label:'« '+r.name+' »',ic:uiIcon(ko?'warn':'history',20),inert:true,
     sub:(ko?'demande refusée':'demande en attente, envoyée')+' le '+new Date(r.decided_at||r.created_at).toLocaleDateString('fr-FR')+(r.invitees?' · '+nb(r.invitees,'invité'):''),
     tail:`<button type="button" class="btn sm" data-libreqx="${esc(r.id)}">${ko?'Effacer':'Annuler'}</button>`});}).join('');}
+/* A721 — QUITTER UNE BIBLIOTHÈQUE QU'ON N'ADMINISTRE PAS, depuis Moi. Le serveur seul sait s'il reste quelqu'un (la liste
+   des membres n'est montrée qu'aux administrateurs) : il refuse le dernier membre (`last_member`, A718) et on le dit. */
+async function libLeaveAsk(id){
+  if(linkDeny('Quitter une bibliothèque'))return;
+  const nom=libName(id)||'cette bibliothèque';
+  if(!await confirmDlg('Vous ne verrez plus ses aides ni ses protocoles sur vos appareils. Un administrateur pourra vous y rajouter.',{title:'Quitter « '+nom+' » ?',yes:'Quitter',danger:true}))return;
+  let r;try{r=await rpc('leave_library',{p_library:id});}catch(e){toast('⚠ Impossible de quitter « '+nom+' » : '+e.message,6000,true);return;}
+  if(r==='last_member'){toast('⚠ Vous êtes le seul membre de « '+nom+' » : une bibliothèque ne reste jamais sans personne. Demandez sa suppression à son administrateur, ou à celui de l’application.',9000,true);return;}
+  if(r==='last_admin'){toast('⚠ Vous êtes le seul administrateur de « '+nom+' » : nommez-en un autre d’abord.',7000,true);return;}
+  if(r!=='ok'){toast('⚠ Impossible de quitter « '+nom+' » ('+sstr(String(r||''),40)+').',6000,true);return;}
+  await Sync.loadProfile();try{Sync.full();}catch(e){}
+  if(state.view==='library')render();else renderAuth();
+  toast('Vous avez quitté « '+nom+' ».',5000,true);}
 async function libReqCancel(id){
   if(linkDeny('Annuler une demande de bibliothèque'))return;   // A710 : le serveur l'ignore sur un appareil temporaire (A679) — la rangée disparaissait puis revenait
   try{await rpc('cancel_library_request',{p_id:id});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
@@ -33865,6 +33878,7 @@ function renderAuthAccount(body,u,doOut){
     if(linkShared()){body.innerHTML=`${linkSharedCardHtml(false)}${acctLibsHtml()}${accountPrefsHtml()}`;
       bindAccountPrefs(body);linkBindCard(body);
       body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
+      body.querySelectorAll('[data-libleave]').forEach(b=>b.onclick=()=>libLeaveAsk(b.dataset.libleave));   // A721 : sur un poste, le refus se dit (linkDeny)
       {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
       body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));body.querySelectorAll('[data-invok]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invok,true));body.querySelectorAll('[data-invno]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invno,false));
       return;}
@@ -33886,6 +33900,7 @@ function renderAuthAccount(body,u,doOut){
         <p class="danger-caption">Supprime le compte, les données synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
     body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
+    body.querySelectorAll('[data-libleave]').forEach(b=>b.onclick=()=>libLeaveAsk(b.dataset.libleave));   // A721
     {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
     body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));body.querySelectorAll('[data-invok]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invok,true));body.querySelectorAll('[data-invno]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invno,false));
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
@@ -33916,8 +33931,11 @@ function acctLibsHtml(){
   const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
   const rows=[menuRowHtml({label:'Perso',sub:'vous seul · '+n(cnt(null)),ic:uiIcon('user',20),inert:true})]
     .concat(sortedLibraries().map(l=>{const admin=l.role==='admin'||myIsAppAdmin;
-      return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),inert:!admin,
-        attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:'',tail:admin?chev:''});}));
+      /* A721 (amende A364) : la rangée d'une bibliothèque qu'on N'ADMINISTRE PAS n'est plus inerte — elle mène à
+         « Quitter ». A663 permet à tout membre de partir (`leave_library`), mais seule la fenêtre d'administration en
+         portait le bouton : un lecteur ou un éditeur n'avait aucune porte. */
+      return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),
+        attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:`data-libleave="${esc(l.id)}" aria-haspopup="dialog" aria-label="Quitter la bibliothèque « ${esc(l.name||'')} »…"`,tail:chev});}));
   return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques <span class="acct-hs">où vivent les aides, et qui y a accès</span></div><div class="acct-card acct-list">${inviteRowsHtml()}${rows.join('')}${libReqRowsHtml()}${libNewOn()?`<button type="button" class="catmenu-new" data-newlib>＋ ${esc(libNewLbl())}</button>`:''}</div></div>`;}
 /* A475 : MES COLLECTIONS dans Moi, connecté ou non (elles vivent sur l'appareil, et suivent le compte s'il y en a un).
    Une rangée mène à la collection depuis l'accueil ; ailleurs elle informe (on ne quitte pas une aide ouverte par Moi). */
@@ -38231,10 +38249,10 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${roleOf(_memLib)?(seulMembre
       /* A718 : le SEUL membre ne quitte pas — la bibliothèque resterait sans personne, ses aides visibles du seul
          administrateur de l'instance. On dit ce qui reste possible, sur place. */
-      ?`<p class="roles-caption">Vous êtes le seul membre de cette bibliothèque : la quitter la laisserait sans personne. ${myIsAppAdmin?'Supprimez-la plutôt (ci-dessous)':(isAdmin&&(nFi+nPr)?'Convertissez-la plutôt en collection (ci-dessous)':'Pour vous en séparer, demandez sa suppression à l’administrateur de l’application')}, ou invitez d’abord quelqu’un.</p>`
+      ?`<p class="roles-caption">Vous êtes le seul membre de cette bibliothèque : la quitter la laisserait sans personne. ${isAdmin?'Supprimez-la plutôt (ci-dessous)':'Pour vous en séparer, demandez sa suppression à l’administrateur de l’application'}, ou invitez d’abord quelqu’un.</p>`
       :`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`):''}
     ${isAdmin&&!horsAdh&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
-    ${myIsAppAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+    ${isAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>${''/* A720 : l'administrateur de la bibliothèque la supprime aussi (il pouvait déjà en retirer tous les membres) */}
       <button class="btn outline-danger" id="libDelete">Supprimer la bibliothèque…</button>
       <p class="danger-caption">${(nFi||nPr)?`Supprime ${nFi} aide${nFi>1?'s':''} et ${nPr} protocole${nPr>1?'s':''} pour tous les membres. `:''}Action irréversible — confirmation demandée.</p></div>`:''}`;
   // CTA verrouillé (jamais muet) tant que le nom est vide ; garde d'abandon armée par _libNameOrig.
@@ -38283,7 +38301,10 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   {const cv=body.querySelector('#libToColl');if(cv)cv.onclick=()=>libToColl(_memLib);}
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUT son contenu partagé ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
-    try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
+    try{/* A720 : un DELETE que la RLS écarte ne lève rien — 200 et zéro ligne. Sans relire ce qui est parti, l'écran
+         annonçait « Bibliothèque supprimée » pour une bibliothèque intacte (serveur antérieur, droits retirés entre-temps). */
+      const gone=await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=representation'});
+      if(!Array.isArray(gone)||!gone.length){toast('⚠ Le serveur a refusé la suppression : la bibliothèque et son contenu sont intacts.',8000,true);return;}
       closeMembers();state.homeLib=null;await Sync.loadProfile();Sync.full();if(state.view==='library')renderLibrary();else if(authModal.classList.contains('on'))renderAuth();toast('Bibliothèque supprimée.');}   // A710
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);

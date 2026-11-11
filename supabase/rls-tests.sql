@@ -1889,6 +1889,21 @@ begin
   reset role;
   if exists (select 1 from public.libraries where id = 'lib-a718') then raise exception 'ÉCHEC 17.6b : la bibliothèque à un seul membre ne se supprime plus'; end if;
 
+  -- 17.6c A720 — L'ADMINISTRATRICE D'UNE BIBLIOTHÈQUE LA SUPPRIME (plus seulement celle de l'instance) ; un éditeur,
+  --      non (13.3 le garde aussi).
+  insert into public.libraries(id,name) values ('lib-a720','A720');
+  insert into public.memberships(user_id,library_id,role) values (lea,'lib-a720','admin'),(max,'lib-a720','editor');   -- max : noe vient d'être refusée (17.6)
+  perform set_config('request.jwt.claims', json_build_object('sub',max,'role','authenticated')::text, true);
+  set local role authenticated;
+  delete from public.libraries where id = 'lib-a720';
+  reset role;
+  if not exists (select 1 from public.libraries where id = 'lib-a720') then raise exception 'ÉCHEC 17.6c : un éditeur supprime la bibliothèque'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
+  set local role authenticated;
+  delete from public.libraries where id = 'lib-a720';
+  reset role;
+  if exists (select 1 from public.libraries where id = 'lib-a720') then raise exception 'ÉCHEC 17.6c : l''administratrice de la bibliothèque ne peut pas la supprimer'; end if;
+
   -- 17.7 delete_rejected_user emporte les données du compte (il ne supprimait que la ligne auth.users), et
   --      supprimer le compte d'une administratrice qui a DÉCIDÉ d'un statut ne casse plus (`decided_by`).
   insert into public.cognitive_aids(id,owner,library_id,data) values ('f-noe',noe,null,'{"t":1}');

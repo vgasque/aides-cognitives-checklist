@@ -198,7 +198,8 @@ create policy cats_shared_write on public.category_sets for all
   with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
 
 -- libraries : lecture = membre ou app-admin ; création = app-admin (réécrite au § 9 : règle d'instance, v5.51) ;
---             renommage = app-admin ou library-admin ; suppression = app-admin
+--             renommage = app-admin ou library-admin ; suppression = app-admin ou library-admin (A720 : il pouvait
+--             déjà en retirer tous les membres, la règle ne protégeait rien et ne faisait qu'allonger le chemin)
 drop policy if exists lib_select on public.libraries;
 create policy lib_select on public.libraries for select
   using (public.is_member(id) or public.is_app_admin());
@@ -211,7 +212,7 @@ create policy lib_update on public.libraries for update
   with check (public.is_app_admin() or public.member_role(id) = 'admin');
 drop policy if exists lib_delete on public.libraries;
 create policy lib_delete on public.libraries for delete
-  using (public.is_app_admin());
+  using (public.is_app_admin() or public.member_role(id) = 'admin');   -- A720 ; un poste partagé reste refusé (libraries_temp_del)
 
 -- memberships : on voit ses propres lignes (et l'admin voit celles de sa biblio) ;
 --               seul un library-admin (ou app-admin) ajoute/retire des membres

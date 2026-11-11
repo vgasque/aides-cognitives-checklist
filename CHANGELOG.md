@@ -1,8 +1,8 @@
 # Journal des modifications
 
 ## [5.119.5] — 2026-11-11
-Cinq correctifs signalés et un raccourci (A716-A719). **Serveur à rejouer** (`supabase/schema.sql`) : une bibliothèque ne reste
-plus jamais sans membre.
+Six correctifs signalés, un raccourci et une règle changée (A716-A721). **Serveur à rejouer** (`supabase/schema.sql`) :
+une bibliothèque ne reste plus jamais sans membre, et son administrateur peut la supprimer.
 - **Session : le compte de « Horodater », en bas de l'écran, suit les coches.** Cocher une étape qui compte (un choc,
   une dose) pose un repère au journal, mais la touche gardait l'ancien nombre jusqu'au rendu suivant. Elle se met à
   jour aussitôt, volet ouvert ou fermé.
@@ -19,6 +19,12 @@ plus jamais sans membre.
   inviter quelqu'un d'abord) ; Administration le refuse en le disant. Le serveur le refuse aussi, par tous les chemins.
 - **Bibliothèques › Tout : « Gérer la bibliothèque ».** Quand le filtre Bibliothèque est posé, un bouton ouvre la
   fenêtre de cette bibliothèque (nom, membres, rôles), pour son administrateur et celui de l'application.
+- **L'administrateur d'une bibliothèque peut la supprimer.** C'était réservé à l'administrateur de l'application, alors
+  qu'il pouvait déjà en retirer tous les membres. « Supprimer la bibliothèque… » est dans sa fenêtre, avec la même
+  confirmation. Si le serveur refuse, l'app le dit au lieu d'annoncer « Bibliothèque supprimée ».
+- **Moi › Bibliothèques : un lecteur ou un éditeur peut quitter une bibliothèque.** Seules les bibliothèques qu'on
+  administre répondaient au toucher ; les autres étaient inertes, et rien ne permettait d'en partir. Toucher la rangée
+  propose maintenant « Quitter », avec confirmation.
 
 ## [5.119.4] — 2026-11-11
 Audit de bugs de toute l'application : 69 défauts corrigés (A706-A715). **Serveur à rejouer** (`supabase/schema.sql`) :
