@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NgYiQEiJ9d45BH1urXqOPN8+PRZj08lFZ8Ox8UfvgYE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-alQ1hkEtEGVFv+UdDhSCLHuEOrb5W7VJuzz+UAdOU6I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9037,7 +9037,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-doc{display:block;margin:4px 0 8px}
   .mdb{position:relative;border-radius:var(--r-1);cursor:text}
   .md-doc>.mdb:first-child>:first-child,.md-doc>.ed-grab+.ed-drop+.mdb>:first-child{margin-top:0}
-  @media (hover:hover){.mdb:not(.on):not(.grabbed):hover{outline:1px solid var(--line-strong);outline-offset:6px}}
+  @media (hover:hover){.mdb:not(.on):not(.grabbed):not(.sel):hover{outline:1px solid var(--line-strong);outline-offset:6px}}   /* A722 : le survol ne redessine pas un bloc déjà dans le cadre de sélection */
   .mdb.on{margin:12px 0}
   .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:10px 12px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
     background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
@@ -9059,7 +9059,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-ins:hover{border-color:var(--act);background:var(--primary-soft)}
   .mdb-ins:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* A610 — blocs sélectionnés : le fond et le cadre du « bloc courant » (bleu, règle 8), la barre en matière système. */
-  .mdb.sel{outline:2px solid var(--act);outline-offset:6px;background:var(--primary-soft);box-shadow:0 0 0 6px var(--primary-soft)}
+  /* A722 — UNE SUITE DE BLOCS SÉLECTIONNÉS SE DESSINE EN UN SEUL CADRE (signalé sur capture : « certains overlap et d'autres
+     non »). Chaque bloc portait son cadre à 6 px de lui : deux blocs à moins de 12 px (un titre et sa liste) voyaient
+     leurs cadres se chevaucher, deux blocs plus espacés en gardaient deux. Le cadre est un `::after` : un bloc suivi
+     d'un bloc sélectionné ouvre son bas et descend jusqu'au suivant (`--selgap`, mesuré par `selPaint`), le suivant
+     ouvre son haut. Le fond et le cadre restent ceux du « bloc courant » (A610, bleu, règle 8). */
+  .mdb.sel{z-index:0}
+  .mdb.sel::after{content:"";position:absolute;inset:-6px;z-index:-1;border:2px solid var(--act);border-radius:var(--r-1);background:var(--primary-soft)}   /* pseudo-élément : un toucher sur lui EST un toucher sur le bloc */
+  .mdb.sel.sel-b::after{bottom:calc(-1 * var(--selgap,0px));border-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .mdb.sel.sel-t::after{top:0;border-top:0;border-top-left-radius:0;border-top-right-radius:0}
+  /* A722 (demande de l'auteur : « c'est bien aussi de savoir combien de blocs il y a ») : dans le cadre commun, un fin
+     séparateur au milieu de l'écart entre deux blocs pris — on compte les blocs sans reperdre l'objet unique. */
+  .mdb.sel.sel-b:not(.grabbed)::before{content:"";position:absolute;left:4px;right:4px;bottom:calc(-.5 * var(--selgap,0px));height:1px;
+    background:color-mix(in srgb,var(--act) 40%,transparent)}
   .md-doc.mdb-selon .mdb:not(.on){cursor:pointer;-webkit-user-select:none;user-select:none}
   .md-doc.mdb-selon .mdb-ed,.md-doc.mdb-selon .mdb-grab{display:none}
   /* A634 : le cadre de sélection (souris) — le bleu de l'action, en voile léger (les écouteurs sont sur le document : il peut se trouver sous le pointeur). */
@@ -19696,7 +19708,12 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      du champ masqué ne remonte pas à l'éditeur ; `edTouch` pose donc lui-même l'enregistrement et le point de reprise (↶). */
   const push=v=>{self=true;ta.value=v;ta.dispatchEvent(new Event('input'));self=false;edTouch();};
   const fit=t=>{t.style.height='auto';t.style.height=Math.ceil(t.scrollHeight/zoomF()+2)+'px';};
-  const selPaint=()=>{doc.querySelectorAll('.mdb[data-mdb]').forEach(b=>{const on=sel.has(+b.dataset.mdb);b.classList.toggle('sel',on);});
+  const selPaint=()=>{const bs=[...doc.querySelectorAll('.mdb[data-mdb]')],z=zoomF();
+    bs.forEach((b,i)=>{const on=sel.has(+b.dataset.mdb),nx=bs[i+1],pv=bs[i-1];
+      const suit=on&&!!nx&&sel.has(+nx.dataset.mdb),pre=on&&!!pv&&sel.has(+pv.dataset.mdb);
+      b.classList.toggle('sel',on);b.classList.toggle('sel-b',suit);b.classList.toggle('sel-t',pre);   // A722 : un seul cadre par suite
+      if(suit)b.style.setProperty('--selgap',Math.max(0,(nx.getBoundingClientRect().top-b.getBoundingClientRect().bottom)/z)+'px');
+      else b.style.removeProperty('--selgap');});
     doc.classList.toggle('mdb-selon',selMode||sel.size>0);
     let bar=doc.querySelector('.mdb-selbar');if(!sel.size&&!selMode){if(bar)bar.remove();return;}
     const n=sel.size,h=`<span class="mdb-sb-n" role="status">${n?n+' bloc'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Touchez les blocs à sélectionner'}</span>`

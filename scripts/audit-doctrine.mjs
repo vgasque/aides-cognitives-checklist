@@ -10551,7 +10551,10 @@ await sec('A555 · pincer pour zoomer une image ouverte, le point reste sous les
     t('le pincer agrandit l\'image (×3)',Math.abs(a1.z-3)<0.02&&a1.w>a0.w*2.9,JSON.stringify([a0,a1]));
     t('le point pincé reste sous les doigts (écart < 1 %)',Math.abs(a1.fx-a0.fx)<0.01&&Math.abs(a1.fy-a0.fy)<0.01,JSON.stringify([a0,a1]));
     t('au lâcher, aucune transformation résiduelle (taille posée en ligne)',!a1.tr,a1.tr);}
-  await calme(page, 400);
+  /* Après un pincer, l'app IGNORE les taps 350 ms (`pinchBind` : lever les doigts ne tape rien). `calme` rend la main
+     dès que l'écran est posé — parfois avant ces 350 ms, et le tap de fermeture tombait dans la fenêtre : rouge
+     intermittent (1 sur 6 reproduit, 6 passes en parallèle), l'app ayant raison. On attend la fenêtre, pas l'écran. */
+  await page.waitForTimeout(450);   // horloge : la fenêtre de 350 ms qui suit un pincer
   const ferme=await page.evaluate(async()=>{const sc=document.getElementById('lbScroll');
     sc.dispatchEvent(new MouseEvent('click',{bubbles:true}));await __acCalme(200);
     return !document.getElementById('lightbox').classList.contains('on');});
