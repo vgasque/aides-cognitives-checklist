@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hjVZ64mg7jxUhWJ3+On8/zpF0d3/G13PSdumEpKniKk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rbRnennwR0lvM+jNFsKDW9XIpqtsi36/ngIQbmhz60Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3118,6 +3118,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
      de la largeur de son mot, le reste se partage. */
   .tb-tab{flex:1 1 auto;padding:0 8px}
+  .tb-tabs.tb-compact .tb-tab:not(.on):not(.pre)>span:not(.tb-av){display:none}   /* A715 : les mots ne tiennent plus — seul l'onglet courant garde le sien */
   .tb-tab{z-index:1}
   .tb-tab.pre{color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
@@ -17814,7 +17815,17 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
   n.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===t||(b.dataset.tab==='me'&&t==='admin');
     b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   {const s=n.querySelector('[data-tab="sessions"]');s.classList.toggle('live',!!Object.keys(liveSessions).length);}
+  tbFit(n.querySelector('.tb-tabs'));
   tbPillPlace(n.querySelector('.tb-tabs'));}
+/* A715 — QUAND LES QUATRE MOTS NE TIENNENT PLUS, SEUL L'ONGLET COURANT GARDE LE SIEN (décision de l'auteur). Téléphone
+   étroit, texte à 130 % : « Accueil », « Bibliothèques » et « Sessions » se chevauchaient de 4 à 10 px. La barre se MESURE
+   (un mot qui déborde de son onglet), sans palier de largeur : rien ne change tant que les mots tiennent. Le nom reste
+   au lecteur d'écran (`aria-label`), la cible garde sa hauteur. */
+function tbFit(tabs){if(!tabs||!tabs.offsetParent)return;
+  const bs=[...tabs.querySelectorAll('.tb-tab')];
+  bs.forEach(b=>{const s=b.querySelector('span:not(.tb-av)');if(s&&!b.hasAttribute('aria-label'))b.setAttribute('aria-label',s.textContent.trim());});
+  tabs.classList.remove('tb-compact');
+  if(bs.some(b=>b.scrollWidth>b.clientWidth+1))tabs.classList.add('tb-compact');}
 /* A603 — LA PASTILLE DU DOCK GLISSE (demande de l'auteur : « pourquoi on n'a pas l'animation de glissement comme pour
    les autres ? ») : un objet à part (`.tb-pill`), posé sous l'onglet courant ; elle glisse d'un onglet à l'autre (la
    courbe de `.seg-pill`), suit le doigt pendant le glissé, et reste immobile sous prefers-reduced-motion. Les onglets

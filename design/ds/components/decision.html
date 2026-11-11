@@ -2718,6 +2718,7 @@
   /* Quatre onglets : « Bibliothèques » ne tenait pas dans un quart (mesuré, « ibliothèque » à 390) — chaque onglet part
      de la largeur de son mot, le reste se partage. */
   .tb-tab{flex:1 1 auto;padding:0 8px}
+  .tb-tabs.tb-compact .tb-tab:not(.on):not(.pre)>span:not(.tb-av){display:none}   /* A715 : les mots ne tiennent plus — seul l'onglet courant garde le sien */
   .tb-tab{z-index:1}
   .tb-tab.pre{color:var(--on-primary)}
   svg.coll-top{fill:currentColor}   /* A598 : signet plein = gardée en tête de l'accueil */   /* A597 : « Toutes les collections » — une porte, en bleu d'action (règle 8) */
