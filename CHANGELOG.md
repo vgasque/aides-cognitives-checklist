@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.122.0] — 2026-11-11
+Deux défauts de lecture des protocoles, signalés sur capture (A726-A727).
+- **Une liste dans un encadré s'affiche comme une liste.** Dans un encadré (« Information », « Attention »…), une ligne
+  « - … » restait écrite avec son tiret, sous un vide. Elle s'affiche maintenant en puce, avec ses sous-éléments. Les
+  encadrés importés de Notion en profitent sans rien refaire.
+- **En lecture, une grande image tient à l'écran.** Sur ordinateur, une image « Pleine » prenait toute la colonne et
+  pouvait dépasser la hauteur de la fenêtre. Elle est maintenant limitée aux deux tiers de la hauteur, sans être
+  déformée ; un toucher l'agrandit toujours. Dans l'éditeur, « Pleine » reste toute la colonne. Au téléphone, seules les
+  images très hautes changent. L'image d'un élément de liste garde sa petite taille.
+- À savoir : une case à cocher écrite dans un encadré s'y lit (« [ ] ») mais ne s'y coche pas.
+
 ## [5.121.0] — 2026-11-11
 Aux Bibliothèques, ce qu'on crée ou importe arrive là où l'on se trouve (A725).
 - **Créer depuis une catégorie : la catégorie est déjà choisie.** Dans une bibliothèque, l'aide ou le protocole créé y

@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-956uOD/NWE+Hwfuu5ddHk4FrPOakRPiVivKY6IyR3W4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-cdRtn0W6XwUguIh/335YFMxt0qK1gId9ydJ7KYvRpF4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8953,6 +8953,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   li.md-task[role="checkbox"]:hover{background:var(--amb-2)}
   li.md-task[role="checkbox"]:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  /* A726 : paragraphes et listes DANS une citation ou un encadré — l'encre de leur hôte, pas de marge en trop au pied. */
+  .md-q .md-p{color:inherit}
+  .md-q>:is(.md-p,.md-ul,.md-ol):last-child{margin-bottom:0}
   /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
      registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
      Aucune couleur nouvelle : ce sont les 4 registres de l'app. */
@@ -8996,6 +8999,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A642 : l'image d'un élément de liste — sous le texte de l'élément, à sa largeur, plafonnée (300 px) : elle illustre
      une étape, elle ne coupe pas la liste. Aucune taille réglable ici (« Pleine » n'a pas de sens dans une liste). */
   .md-fig.md-lfig{margin:8px 0 12px;max-width:300px}
+  /* A727 — EN LECTURE, UNE IMAGE TIENT À L'ÉCRAN (signalé sur capture : une radio « Pleine » de 1 000 px de large
+     dépassait la fenêtre). La figure est plafonnée en LARGEUR selon sa proportion (`fh1..6`, `mdFigAr`), ce qui borne sa
+     hauteur aux deux tiers de la fenêtre sans jamais déformer ; le toucher l'agrandit (A555). Amende A608 EN LECTURE
+     SEULEMENT : dans l'éditeur, « Pleine » reste toute la colonne (le cadre de la poignée, A584). Sans effet là où la
+     colonne est plus étroite que le plafond (téléphone, sauf image très haute). Hauteur de fenêtre : règle 10. */
+  .ref-main .md-body .md-fig.fh1:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .45)}
+  .ref-main .md-body .md-fig.fh2:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .6)}
+  .ref-main .md-body .md-fig.fh3:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .8)}
+  .ref-main .md-body .md-fig.fh4:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.05)}
+  .ref-main .md-body .md-fig.fh5:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.4)}
+  .ref-main .md-body .md-fig.fh6:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.9)}
   /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
      téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
   @media (min-width:560px){
@@ -10650,7 +10664,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.121.0';
+const APP_VERSION='5.122.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11464,6 +11478,10 @@ function mdBlocks(src){
 const calloutIcon=k=>k==='crit'?uiIcon('warn',14):(k==='vig'?'<span class="mc-g" aria-hidden="true">△</span>':(k==='ok'?uiIcon('check',13,{sw:3}):uiIcon('info',13)));
 // Échelles d'image : jeu FERMÉ (une classe, jamais un nombre interpolé dans un style).
 const MD_SCALES=[25,33,50,66,75,100];
+const MD_QLI_RX=/^\s*(?:[-*]|\d{1,3}[.)])\s+\S/;   // A726 : une ligne d'encadré qui ouvre un élément de liste
+/* A727 — classe de PROPORTION d'une image (largeur ÷ hauteur), jeu FERMÉ : la lecture y plafonne la largeur pour que
+   l'image tienne en hauteur à l'écran. Jamais un nombre en style (même règle que `MD_SC`). */
+const mdFigAr=(w,h)=>{const r=(w|0)>0&&(h|0)>0?(w|0)/(h|0):0;return !r?'':r<.6?' fh1':r<.8?' fh2':r<1.05?' fh3':r<1.4?' fh4':r<1.9?' fh5':r<2.6?' fh6':'';};
 const MD_SC={25:' w25',33:' w33',50:' w50',66:' w66',75:' w75'};
 // A584 : la part de la colonne, dite en fraction (pictogramme) et en mots (nom accessible, qui CONTIENT le mot visible).
 const MD_SC_LBL={25:'¼',33:'⅓',50:'½',66:'⅔',75:'¾',100:'Pleine'};
@@ -11490,7 +11508,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
     // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
-    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+mdFigAr(im.w,im.h)+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const imgsHtml=it=>it.imgs?it.imgs.map(x=>figHtml(x.id,x.caption,' md-lfig')).join(''):'';
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
@@ -11501,6 +11519,19 @@ function mdRender(src,ctx){ctx=ctx||{};
   // n'atteint jamais un attribut ; le CONTENU des cellules passe par mdInline (donc esc() d'abord),
   // ce qui leur donne gratuitement gras/italique/`code`/liens, sans nouvelle surface XSS.
   const TA={l:' class="ta-l"',c:' class="ta-c"',r:' class="ta-r"'},ta=a=>TA[a]||'';
+  /* A726 — UNE LISTE DANS UN ENCADRÉ EST UNE LISTE (signalé sur capture : « - Ulna… » affiché avec son tiret, sous un
+     vide). Le corps d'une citation n'était lu qu'EN LIGNE (`mdInline` par ligne, jointes par <br>). Dès qu'il porte un
+     élément de liste, il repasse par `mdBlocks` et se rend en paragraphes et listes — rien d'autre : s'il contient un
+     autre bloc (titre, tableau, code, image seule, filet, citation), il garde le rendu en ligne d'avant, à l'octet.
+     Une tâche n'y est PAS cochable (le compteur `data-task` suit l'ordre du document) : son marqueur reste écrit. */
+  const qLi=it=>'<li>'+mdInline((it.task?(it.task.done?'[x] ':'[ ] '):'')+it.text)+imgsHtml(it)
+    +(it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(qLi).join('')+'</'+it.sub.t+'>':'')+'</li>';
+  const qBody=L=>{const plat=()=>L.map(mdInline).join('<br>');
+    if(!L.some(l=>MD_QLI_RX.test(l)))return plat();
+    const B=mdBlocks(L.join('\n'));
+    if(!B.length||B.some(x=>x.t!=='p'&&x.t!=='ul'&&x.t!=='ol'))return plat();
+    return B.map(x=>x.t==='p'?'<p class="md-p">'+x.lines.map(mdInline).join('<br>')+'</p>'
+      :'<'+x.t+' class="md-'+x.t+'">'+x.items.map(qLi).join('')+'</'+x.t+'>').join('');};
   // ctx.ln (aperçus de l'éditeur) : chaque bloc dit sa ligne source (`data-ln`, entier).
   const lnAt=(h,b)=>ctx.ln&&h?h.replace(/^<([a-z0-9]+)/,'<$1 data-ln="'+(b.ln|0)+'"'):h;
   return mdBlocks(src).map(b=>lnAt((()=>{
@@ -11520,7 +11551,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     if(b.t==='ul')return '<ul class="md-ul">'+b.items.map(li).join('')+'</ul>';
     if(b.t==='ol')return '<ol class="md-ol">'+b.items.map(li).join('')+'</ol>';
     if(b.t==='q'){const k=MD_CALL_LBL[b.kind]?b.kind:'';   // registre = jeu FERMÉ (jamais du texte libre)
-      const body=b.lines.map(mdInline).join('<br>');
+      const body=qBody(b.lines);
       if(!k)return '<blockquote class="md-q">'+body+'</blockquote>';
       // La couleur n'est jamais seule : icône + LIBELLÉ du registre en toutes lettres (WCAG 1.4.1).
       return '<blockquote class="md-q md-call '+k+'"><span class="mc-k">'+calloutIcon(k)+MD_CALL_LBL[k]+'</span>'+body+'</blockquote>';}

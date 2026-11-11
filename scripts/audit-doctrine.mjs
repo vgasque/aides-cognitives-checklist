@@ -11077,6 +11077,29 @@ await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se ver
     await page.close();}
 });
 
+await sec('A726-A727 · une liste dans un encadré ; en lecture, une image tient à l’écran', async () => {
+  for(const [W,H] of [[1280,800],[390,844]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{
+      const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').fillRect(0,0,w,h);return c.toDataURL('image/png');};
+      const D=[[800,600],[600,820],[1400,460]];
+      const pr=migrateProtocol({id:'p726',title:'Témoin A726',body:'> [!info] **Radiographie :**\n>\n> - Ulna aligné avec le lunatum\n\n'+D.map((d,i)=>'![](img:i'+i+')').join('\n\n')+'\n\n- puce\n    ![](img:i0)',
+        images:D.map((d,i)=>({id:'i'+i,data:mk(d[0],d[1]),w:d[0],h:d[1],caption:'',scale:100}))});
+      protocols.push(pr);openProtocolRead('p726');await __acCalme(600);
+      for(const im of document.querySelectorAll('.md-body img')){im.loading='eager';try{await im.decode();}catch(e){}}
+      const q=document.querySelector('.md-body .md-call'),li=q&&q.querySelector('ul.md-ul>li');
+      const figs=[...document.querySelectorAll('.md-body .md-fig')].map(f=>{const i=f.querySelector('img').getBoundingClientRect();return {l:f.classList.contains('md-lfig'),w:Math.round(i.width),h:Math.round(i.height),r:i.width/i.height};});
+      return {puce:!!li&&!/^\s*-/.test(li.textContent),brut:q?/(^|\n)\s*- Ulna/.test(q.innerText):true,col:document.querySelector('.md-body').clientWidth,figs,ih:innerHeight};});
+    const seul=(r.figs||[]).filter(f=>!f.l),lf=(r.figs||[]).find(f=>f.l);
+    t(`${W} px · A726 : dans un encadré, « - … » se rend en puce, plus en tiret brut`,r.puce&&!r.brut,JSON.stringify({puce:r.puce,brut:r.brut}));
+    t(`${W} px · A727 : en lecture, aucune image seule ne dépasse les deux tiers de la fenêtre, sans déformation ; l'image d'une liste garde son plafond`,
+      seul.length===3&&seul.every(f=>f.h<=r.ih*.66+3)&&Math.abs(seul[0].r-800/600)<.02&&Math.abs(seul[1].r-600/820)<.02&&!!lf&&lf.w<=300,JSON.stringify(r));
+    if(W>=780)t(`${W} px · A727 : le plafond agit (une image 4:3 « Pleine » n'occupe plus toute la colonne), une image panoramique reste à la colonne`,seul[0].w<r.col-40&&seul[2].w>=r.col-45,JSON.stringify({col:r.col,seul}));
+    await page.close();}
+});
+
 await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier » n’attend pas le réseau', async () => {
   const page=await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

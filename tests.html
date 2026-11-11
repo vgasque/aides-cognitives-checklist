@@ -772,6 +772,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('titres et listes découpés', A.mdBlocks('## T\n- a\n- b\n1. c').map(b=>b.t), ['h2','ul','ol']);
   ok('paragraphes séparés par ligne vide', A.mdBlocks('a\n\nb').length===2);
   ok('rendu titre', A.mdRender('## Titre').indexOf('<h2 class="md-h2">Titre</h2>')>=0);
+  // A726 : une liste dans un encadré est une liste ; sans liste, le rendu en ligne d'avant, à l'octet.
+  ok('encadré : liste rendue', (h=>h.indexOf('<p class="md-p"><b>Radio :</b></p><ul class="md-ul"><li>Ulna aligné</li><li>sinon luxation</li></ul>')>=0&&h.indexOf('- Ulna')<0)(A.mdRender('> [!info] **Radio :**\n>\n> - Ulna aligné\n> - sinon luxation')));
+  ok('encadré : sans liste, inchangé', A.mdRender('> [!info] un\n> deux').indexOf('</span>un<br>deux</blockquote>')>=0);
+  ok('encadré : liste + autre bloc, rendu en ligne gardé', A.mdRender('> - a\n> # t').indexOf('- a<br># t')>=0);
+  ok('encadré : tâche non cochable, marqueur écrit', (h=>h.indexOf('<li>[ ] à faire</li>')>=0&&h.indexOf('data-task')<0)(A.mdRender('> - [ ] à faire')));
+  // A727 : classe de proportion d'une image, jeu fermé.
+  ok('image : proportion en classe', (h=>h.indexOf('class="md-fig fh4"')>=0)(A.mdRender('![](img:i1)',{images:[{id:'i1',data:'data:image/png;base64,iVBORw0KGgo=',w:800,h:600}]})));
   ok('rendu liste', A.mdRender('- a\n- b').indexOf('<li>a</li><li>b</li>')>=0);
   eq('# -> h1', A.mdBlocks('# Grand titre')[0].t, 'h1');
   ok('sous-liste (2 espaces) rattachée à l\'élément précédent', (()=>{const b=A.mdBlocks('- a\n  - a1\n  - a2\n- b')[0];return b.t==='ul'&&b.items.length===2&&b.items[0].sub&&b.items[0].sub.items.length===2&&!b.items[1].sub;})());
