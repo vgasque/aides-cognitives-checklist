@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A722** à la v5.119.5 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A728** à la v5.123.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -344,6 +344,12 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A720 | `lot-v5-119-5.md` | L'administrateur d'une bibliothèque la supprime (`lib_delete` : `member_role(id) = 'admin'`, serveur à rejouer) ; la suppression se vérifie (`return=representation`) |
 | A721 | `lot-v5-119-5.md` | Moi : la rangée d'une bibliothèque non administrée mène à « Quitter » (`libLeaveAsk`, refus dits) — amende A364 |
 | A722 | `lot-v5-119-5.md` | Blocs sélectionnés de l'éditeur de protocole : cadre en `::after`, une suite contiguë en un seul cadre (`sel-t`/`sel-b`, `--selgap`) ; pas de contour de survol sur un bloc pris (précise A610) |
+| A723 | `lot-v5-120.md` | Titres du texte rédigé à trois crans (`.md-h1` 21 + filet 2 px, `.md-h2` 17,5, `.md-h3` 15), en lecture, dans `.md-doc` et `.md-preview` ; corps de l'éditeur à 15 ; amende la ligne « Protocole » du lot v5.30 |
+| A724 | `lot-v5-120.md` | Éditeur de protocole au bureau : « Ajouter un bloc » en pied ouvre un déroulant flottant (`addMenu` → `deskFlot`) — la page ne saute plus vers un menu mal ancré |
+| A725 | `lot-v5-121.md` | Aux Bibliothèques, créer ou importer pré-remplit bibliothèque ET catégorie (`crtScope`, `crtCat`, `crtToutOn` ; `impLibDefaut`/`impRowsOf`) ; dans « Tout », les filtres valent contexte ; étend A632 |
+| A726 | `lot-v5-122.md` | Le corps d'un encadré se rend en paragraphes et listes dès qu'il porte un élément de liste (`qBody`, `qLi`, `MD_QLI_RX`) ; sinon rendu en ligne inchangé ; tâche non cochable dans un encadré |
+| A727 | `lot-v5-122.md` | En lecture, une image seule est plafonnée aux deux tiers de la fenêtre par sa largeur (`mdFigAr`, classes `fh1..6`) ; éditeur inchangé ; amende A608 en lecture |
+| A728 | `lot-v5-123.md` | Le sommaire d'un protocole dit où l'on est : carte collante du téléphone (`#` puis `##`), lien courant marqué (`aria-current`, grammaire A418), `refTocSpy` ; lit le défilement sans le provoquer |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -4131,6 +4131,8 @@
   cf. `.btn-new.tonal` : « Créer » s'efface quand « Reprendre » est affiché). **Un seul registre
   de titres de section** (petites capitales grasses, cf. `.block-h`), repris par les titres du
   contenu rédigé des protocoles (`.md-h1`/`.md-h2`) — pas de nouveau style de titre.
+  **Amendé par A723 (v5.120)** : les titres du contenu rédigé quittent ce registre — trois crans de taille
+  (21 / 17,5 / 15), le registre de `.block-h` ne vaut plus que pour les aides.
 - **Couleur d'accent par utilisateur (v4.5)** : 5 accents prédéfinis AA (sarcelle, violet,
   indigo, framboise, ardoise) + bleu clinique par défaut ; **connecté seulement** (l'accent
   tombe à la déconnexion). Portée : l'accueil ENTIER (`body.view-home`) + l'EN-TÊTE de toutes

@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-alQ1hkEtEGVFv+UdDhSCLHuEOrb5W7VJuzz+UAdOU6I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QANXk+OfTX7Qj2jXFB27n7hUNvqxlErxeydF210YIu8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3812,14 +3812,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-sum::before{content:"≡";flex:none;width:26px;height:26px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
   .rt-sum .rt-h{font-size:var(--t-item);font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink)}
   .rt-sum .rt-n{margin-left:auto;font-size:var(--t-body);color:var(--ink-2)}
-  /* Le corps rédigé : titres 17,5/800 en bas de casse, chevron à GAUCHE, un filet entre sections. */
-  .ref-main .md-body :is(.md-h1,.md-h2,.md-h3){font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;text-transform:none;color:var(--ink);margin:0;padding:10px 0 4px;border:0;border-top:1px solid var(--line)}
-  .ref-main .md-body>:is(.md-h1,.md-h2,.md-h3):first-child{border-top:0}
-  .ref-main .md-body .md-h3{font-size:var(--t-item)}
+  /* Le corps rédigé, en lecture : les trois crans d'A723, posés en PADDING (le titre est un bouton
+     repliable de 32 px, A171) ; le filet n'appartient qu'au niveau 1. */
+  .ref-main .md-body :is(.md-h1,.md-h2,.md-h3){font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;text-transform:none;color:var(--ink);margin:0;padding:12px 0 4px;border:0}
+  .ref-main .md-body .md-h1{font-size:var(--t-step-l);line-height:1.25;margin-top:16px;padding:14px 0 6px;border-top:2px solid var(--line-strong)}
+  .ref-main .md-body>.md-h1:first-child{margin-top:0;padding-top:4px;border-top:0}
+  .ref-main .md-body .md-h3{font-size:var(--t-item);padding:8px 0 2px}
   .ref-main .md-body .md-sect{padding:0 0 8px}
   .ref-main .md-body .md-fch{color:var(--ink-3)}
   .ref-main .md-body{font-size:var(--t-item);line-height:1.7}
   .ref-main .md-body li::marker{color:var(--line-strong)}
+  /* A728 : la carte dit la section courante — « # » sur la ligne du titre, « ## » dessous, chacun sur UNE ligne. */
+  .rt-sum.rt-ici{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0 12px;align-content:center}
+  .rt-sum.rt-ici::before{grid-row:1 / span 2;align-self:center}
+  .rt-sum.rt-ici::after{grid-column:3;grid-row:1 / span 2;align-self:center}
+  .rt-sum.rt-ici :is(.rt-h,.rt-n){grid-column:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+  .rt-sum.rt-ici .rt-n{margin:0;font-size:var(--t-meta);font-weight:600}
+  .rt-sum.rt-ici .rt-n:empty{display:none}
+  .ref-toc .rt-lnk[aria-current]{background:var(--primary-soft);color:var(--act);font-weight:700}
   .rt-sum::-webkit-details-marker{display:none}
   .rt-sum::after{content:"▾";flex:none;color:var(--ink-3);font-size:var(--g-cmd)}
   details.ref-toc[open] .rt-sum::after{content:"▴"}
@@ -8260,6 +8270,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
      ne coche pas la rangée. */
   .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-ecart{flex:0 0 100%;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A725 : l'écart avec la catégorie du fichier, sur sa ligne (jamais tronqué) */
   /* A638 : le déroulant FLOTTANT (fenêtres, au bureau) — au-dessus des fenêtres (55), sous les feuilles (70). */
   .popmenu.flot{position:fixed;z-index:66;top:auto;left:auto;min-width:260px;max-width:min(380px,calc(100vw - 16px))}
   .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--work);color:var(--ink);cursor:pointer}
@@ -8879,18 +8890,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on.pop svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
-  /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
-     section des fiches (.block-h : petites capitales grasses, espacées) -> UNE seule grammaire
-     de titres dans toute l'app (audit v4.0.3). Sans pip ni badge (contenu libre, pas de
-     sémantique fixe à encoder). Le CONTENU (15px) reste plus grand que ses titres, comme dans
-     les fiches : c'est VOULU (le texte prime, le titre ne fait que jalonner).
-     HIÉRARCHIE CORRIGÉE (v4.4.2) : elle était INVERSÉE (h3 14px > h1 13px > h2 12.5px — un ###
-     paraissait plus important qu'un #). La saillance passe désormais par le POIDS, l'ENCRE et
-     un FILET, jamais par la seule taille : h1 = capitales encre pleine + filet ; h2 = capitales
-     encre douce ; h3 = casse normale. Ordre non ambigu, registre unique préservé. */
-  .md-h1{font-size:13.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
-  .md-h2{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
-  .md-h3{font-size:12px;font-weight:700;margin:14px 0 4px;color:var(--ink)}
+  /* Titres du contenu rédigé — TROIS CRANS de l'échelle A6, partout où le texte se rend (lecture,
+     document de l'éditeur, aperçu) : # 21 + filet épais + grand blanc ; ## 17,5 ; ### 15, la taille
+     du corps. Jusqu'ici l'éditeur titrait en petites capitales 13,5/12/12 SOUS un corps plus grand
+     (« le texte prime ») et la lecture donnait le même dessin à # et ## : la structure d'un texte
+     long ne se lisait plus (signalé par l'auteur). Le filet n'appartient qu'au niveau 1. A723. */
+  .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:28px 0 8px;padding-top:14px;border-top:2px solid var(--line-strong);color:var(--ink)}
+  .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:20px 0 6px;color:var(--ink)}
+  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:14px 0 4px;color:var(--ink)}
+  /* Le document de l'éditeur et son aperçu se lisent au corps de la LECTURE (15) : sans cela ## ne
+     dépasse plus le texte. L'aperçu réduit de la colonne (corps 12) descend d'autant. */
+  .md-doc,.md-preview{font-size:var(--t-item)}
+  .ep-md .md-h1{font-size:var(--t-body);margin:16px 0 6px;padding-top:8px}
+  .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta)}
+  .md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
      Le bouton n'ajoute AUCUN corps ni aucune couleur : il hérite entièrement de son titre, et ne
@@ -8948,6 +8961,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   li.md-task[role="checkbox"]:hover{background:var(--amb-2)}
   li.md-task[role="checkbox"]:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  /* A726 : paragraphes et listes DANS une citation ou un encadré — l'encre de leur hôte, pas de marge en trop au pied. */
+  .md-q .md-p{color:inherit}
+  .md-q>:is(.md-p,.md-ul,.md-ol):last-child{margin-bottom:0}
   /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
      registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
      Aucune couleur nouvelle : ce sont les 4 registres de l'app. */
@@ -8991,6 +9007,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A642 : l'image d'un élément de liste — sous le texte de l'élément, à sa largeur, plafonnée (300 px) : elle illustre
      une étape, elle ne coupe pas la liste. Aucune taille réglable ici (« Pleine » n'a pas de sens dans une liste). */
   .md-fig.md-lfig{margin:8px 0 12px;max-width:300px}
+  /* A727 — EN LECTURE, UNE IMAGE TIENT À L'ÉCRAN (signalé sur capture : une radio « Pleine » de 1 000 px de large
+     dépassait la fenêtre). La figure est plafonnée en LARGEUR selon sa proportion (`fh1..6`, `mdFigAr`), ce qui borne sa
+     hauteur aux deux tiers de la fenêtre sans jamais déformer ; le toucher l'agrandit (A555). Amende A608 EN LECTURE
+     SEULEMENT : dans l'éditeur, « Pleine » reste toute la colonne (le cadre de la poignée, A584). Sans effet là où la
+     colonne est plus étroite que le plafond (téléphone, sauf image très haute). Hauteur de fenêtre : règle 10. */
+  .ref-main .md-body .md-fig.fh1:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .45)}
+  .ref-main .md-body .md-fig.fh2:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .6)}
+  .ref-main .md-body .md-fig.fh3:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .8)}
+  .ref-main .md-body .md-fig.fh4:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.05)}
+  .ref-main .md-body .md-fig.fh5:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.4)}
+  .ref-main .md-body .md-fig.fh6:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.9)}
   /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
      téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
   @media (min-width:560px){
@@ -10645,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.119.5';
+const APP_VERSION='5.123.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11459,6 +11486,10 @@ function mdBlocks(src){
 const calloutIcon=k=>k==='crit'?uiIcon('warn',14):(k==='vig'?'<span class="mc-g" aria-hidden="true">△</span>':(k==='ok'?uiIcon('check',13,{sw:3}):uiIcon('info',13)));
 // Échelles d'image : jeu FERMÉ (une classe, jamais un nombre interpolé dans un style).
 const MD_SCALES=[25,33,50,66,75,100];
+const MD_QLI_RX=/^\s*(?:[-*]|\d{1,3}[.)])\s+\S/;   // A726 : une ligne d'encadré qui ouvre un élément de liste
+/* A727 — classe de PROPORTION d'une image (largeur ÷ hauteur), jeu FERMÉ : la lecture y plafonne la largeur pour que
+   l'image tienne en hauteur à l'écran. Jamais un nombre en style (même règle que `MD_SC`). */
+const mdFigAr=(w,h)=>{const r=(w|0)>0&&(h|0)>0?(w|0)/(h|0):0;return !r?'':r<.6?' fh1':r<.8?' fh2':r<1.05?' fh3':r<1.4?' fh4':r<1.9?' fh5':r<2.6?' fh6':'';};
 const MD_SC={25:' w25',33:' w33',50:' w50',66:' w66',75:' w75'};
 // A584 : la part de la colonne, dite en fraction (pictogramme) et en mots (nom accessible, qui CONTIENT le mot visible).
 const MD_SC_LBL={25:'¼',33:'⅓',50:'½',66:'⅔',75:'¾',100:'Pleine'};
@@ -11485,7 +11516,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
     // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
-    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+mdFigAr(im.w,im.h)+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const imgsHtml=it=>it.imgs?it.imgs.map(x=>figHtml(x.id,x.caption,' md-lfig')).join(''):'';
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
@@ -11496,6 +11527,19 @@ function mdRender(src,ctx){ctx=ctx||{};
   // n'atteint jamais un attribut ; le CONTENU des cellules passe par mdInline (donc esc() d'abord),
   // ce qui leur donne gratuitement gras/italique/`code`/liens, sans nouvelle surface XSS.
   const TA={l:' class="ta-l"',c:' class="ta-c"',r:' class="ta-r"'},ta=a=>TA[a]||'';
+  /* A726 — UNE LISTE DANS UN ENCADRÉ EST UNE LISTE (signalé sur capture : « - Ulna… » affiché avec son tiret, sous un
+     vide). Le corps d'une citation n'était lu qu'EN LIGNE (`mdInline` par ligne, jointes par <br>). Dès qu'il porte un
+     élément de liste, il repasse par `mdBlocks` et se rend en paragraphes et listes — rien d'autre : s'il contient un
+     autre bloc (titre, tableau, code, image seule, filet, citation), il garde le rendu en ligne d'avant, à l'octet.
+     Une tâche n'y est PAS cochable (le compteur `data-task` suit l'ordre du document) : son marqueur reste écrit. */
+  const qLi=it=>'<li>'+mdInline((it.task?(it.task.done?'[x] ':'[ ] '):'')+it.text)+imgsHtml(it)
+    +(it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(qLi).join('')+'</'+it.sub.t+'>':'')+'</li>';
+  const qBody=L=>{const plat=()=>L.map(mdInline).join('<br>');
+    if(!L.some(l=>MD_QLI_RX.test(l)))return plat();
+    const B=mdBlocks(L.join('\n'));
+    if(!B.length||B.some(x=>x.t!=='p'&&x.t!=='ul'&&x.t!=='ol'))return plat();
+    return B.map(x=>x.t==='p'?'<p class="md-p">'+x.lines.map(mdInline).join('<br>')+'</p>'
+      :'<'+x.t+' class="md-'+x.t+'">'+x.items.map(qLi).join('')+'</'+x.t+'>').join('');};
   // ctx.ln (aperçus de l'éditeur) : chaque bloc dit sa ligne source (`data-ln`, entier).
   const lnAt=(h,b)=>ctx.ln&&h?h.replace(/^<([a-z0-9]+)/,'<$1 data-ln="'+(b.ln|0)+'"'):h;
   return mdBlocks(src).map(b=>lnAt((()=>{
@@ -11515,7 +11559,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     if(b.t==='ul')return '<ul class="md-ul">'+b.items.map(li).join('')+'</ul>';
     if(b.t==='ol')return '<ol class="md-ol">'+b.items.map(li).join('')+'</ol>';
     if(b.t==='q'){const k=MD_CALL_LBL[b.kind]?b.kind:'';   // registre = jeu FERMÉ (jamais du texte libre)
-      const body=b.lines.map(mdInline).join('<br>');
+      const body=qBody(b.lines);
       if(!k)return '<blockquote class="md-q">'+body+'</blockquote>';
       // La couleur n'est jamais seule : icône + LIBELLÉ du registre en toutes lettres (WCAG 1.4.1).
       return '<blockquote class="md-q md-call '+k+'"><span class="mc-k">'+calloutIcon(k)+MD_CALL_LBL[k]+'</span>'+body+'</blockquote>';}
@@ -11581,6 +11625,41 @@ function mdFoldApply(root,id){
     h.appendChild(b);h.classList.add('md-fold');
     b.onclick=()=>mdFoldToggle(h,id);
     mdFoldPaint(h,!replies.has(k));});}
+/* A728 — LE SOMMAIRE DIT OÙ L'ON EST. Dans un protocole long, coupé de grandes images, le titre de la section n'est
+   plus à l'écran. Le sommaire suit la lecture : la carte collante du téléphone écrit la section courante (« # » puis
+   « ## » dessous) à la place de « Sommaire · n sections », et le lien courant est marqué (`aria-current`, la grammaire
+   du sommaire des PDF, A418) — dans la colonne du bureau comme dans le dépliant ouvert. Il LIT le défilement, il ne
+   le provoque jamais : seule la colonne se recale sur son lien. Un seul écouteur, retiré dès que le sommaire n'est
+   plus dans la page. */
+let _rtSpy=null;
+function refTocSpy(hs){
+  if(_rtSpy){removeEventListener('scroll',_rtSpy);_rtSpy=null;}
+  const nav=main.querySelector('.ref-toc');if(!nav||!hs||!hs.length)return;
+  const sum=nav.querySelector('.rt-sum'),h0=sum&&sum.querySelector('.rt-h'),n0=sum&&sum.querySelector('.rt-n');
+  const base=h0&&n0?[h0.textContent,n0.textContent]:null;let vu=null,raf=0;
+  const lire=()=>{raf=0;
+    if(!nav.isConnected){removeEventListener('scroll',_rtSpy);_rtSpy=null;return;}
+    const wrap=main.querySelector('.ref-tocwrap'),hdr=document.querySelector('header.bar');
+    /* Le QUART HAUT de la zone lue : un titre arrivé là est « où l'on est » — au ras des couches collantes, le
+       sommaire désignerait encore une section dont plus rien n'est à l'écran (mesuré à 1280 px). */
+    const haut=((wrap&&wrap.firstChild?wrap:hdr)||nav).getBoundingClientRect().bottom,seuil=haut+Math.max(16*zoomF(),(innerHeight-haut)/4);
+    let cur=null,c1=null;
+    for(const h of hs){if(!h.offsetParent)continue;if(h.getBoundingClientRect().top>seuil)break;cur=h;if(h.classList.contains('md-h1'))c1=h;}
+    /* La carte ne parle de la section qu'une fois COLLÉE sous l'en-tête : à sa place d'origine, en tête du protocole,
+       elle reste « Sommaire · n sections » — c'est là qu'on apprend qu'il y en a un. */
+    const colle=!!(base&&wrap&&hdr&&wrap.getBoundingClientRect().top<=hdr.getBoundingClientRect().bottom+1);
+    const k=(cur?cur.id:'')+(colle?'|c':'');if(k===vu)return;vu=k;
+    nav.querySelectorAll('.rt-lnk[aria-current]').forEach(l=>l.removeAttribute('aria-current'));
+    const l=cur?nav.querySelector('.rt-lnk[data-rtgo="'+CSS.escape(cur.id)+'"]'):null;
+    if(l){l.setAttribute('aria-current','location');
+      if(nav.tagName==='ASIDE'){const a=nav.getBoundingClientRect(),r=l.getBoundingClientRect();
+        if(r.top<a.top||r.bottom>a.bottom)nav.scrollTop+=(r.top-a.top-a.height/2)/zoomF();}}
+    if(base){const t1=cur&&colle?(c1||cur):null,t2=t1&&c1&&cur!==c1?cur:null;
+      h0.textContent=t1?t1.textContent:base[0];n0.textContent=t2?t2.textContent:(t1?'':base[1]);
+      sum.classList.toggle('rt-ici',!!t1);
+      if(t1)sum.setAttribute('aria-label','Sommaire — section en cours : '+t1.textContent+(t2?', '+t2.textContent:''));else sum.removeAttribute('aria-label');}};
+  _rtSpy=()=>{if(!raf)raf=requestAnimationFrame(lire);};
+  addEventListener('scroll',_rtSpy,{passive:true});lire();}
 function mdFoldPaint(h,ouvert){
   if(!h._sec)return;
   h._sec.hidden=!ouvert;h.classList.toggle('closed',!ouvert);
@@ -11589,7 +11668,7 @@ function mdFoldToggle(h,id){
   const ouvert=!!(h._sec&&h._sec.hidden);
   mdFoldPaint(h,ouvert);
   const s=mdFoldGet(id);if(ouvert)s.delete(h._fkey);else s.add(h._fkey);mdFoldSet(id,s);
-  mdFoldSyncBtn();}
+  mdFoldSyncBtn();if(_rtSpy)_rtSpy();}   // A728 : replier déplace les titres sans défiler
 /* Les titres repliables de la LECTURE (jamais ceux d'un aperçu d'éditeur : le bouton global vit
    dans le sommaire, qui n'existe qu'en lecture). */
 const mdFoldHs=()=>[...(main?main.querySelectorAll('.md-body .md-fold'):[])];
@@ -13000,9 +13079,20 @@ const homeScope=()=>state.homeLib||null;
    l'accueil. */
 /* A713 (décision de l'auteur : « garder Créer ») : au catalogue, hors d'une bibliothèque, un filtre d'accueil posé sur une
    bibliothèque en LECTURE SEULE ne cache plus « Créer » — ce filtre n'est pas à l'écran ici. L'élément naît alors en Perso. */
-const crtScope=()=>{const N=state.cnav||{},cat=state.view==='library'&&homeTab()==='biblio';
+/* A725 — …ET DANS QUELLE CATÉGORIE (demande de l'auteur : « pré-remplir la catégorie et la bibliothèque », création ET
+   import). Dans une catégorie du catalogue, l'élément y naît ; dans « Tout », les FILTRES posés valent contexte : le
+   filtre Bibliothèque (si l'on peut y écrire) et le filtre Catégorie (la catégorie de ce nom dans la bibliothèque
+   d'arrivée, s'il y en a une). `crtToutOn` : « Tout » est à l'écran — choisi au téléphone, ou par défaut en volets. */
+const crtBib=()=>state.view==='library'&&homeTab()==='biblio';
+const crtToutOn=()=>{const N=state.cnav||{};return crtBib()&&(!!N.tout||(!tabNavOn()&&N.lib==null));};
+const crtScope=()=>{const N=state.cnav||{},F=state.ctf||{},cat=crtBib();
   if(cat&&N.lib!=null&&!N.tout)return N.lib||null;
+  if(crtToutOn()&&F.lib!=null&&canEditScope(F.lib||null))return F.lib||null;
   const h=homeScope();return cat&&!canEditScope(h)?null:h;};
+const crtCat=lib=>{if(!crtBib())return '';const N=state.cnav||{},F=state.ctf||{};
+  if(N.lib!=null&&!N.tout){const c=N.cat?categories.find(k=>k.id===N.cat&&catScope(k)===(lib||null)):null;return c?c.id:'';}
+  if(crtToutOn()&&F.cat){const c=catsForScope(lib).find(k=>txNorm(k.name||'')===F.cat);return c?c.id:'';}
+  return '';};
 const crtColl=()=>state.view==='library'&&homeTab()==='biblio'?null:state.coll;
 function activeCatScope(){if(_catScopeForce!==undefined)return _catScopeForce;   // surcharge explicite (atelier d'import, A159)
   if(state.view==='edit')return state.draft?(state.draft.library||null):null;
@@ -19366,7 +19456,8 @@ function renderProtocolRead(){
       dépliant — deux composants qui se lisent l'un l'autre finissent par se casser l'un l'autre. */
    if(bd)mdFoldApply(bd,p.id);
    {const fb=document.getElementById('rtFold');if(fb)fb.onclick=()=>mdFoldToggleAll(p.id);}
-   mdFoldSyncBtn();}
+   mdFoldSyncBtn();
+   refTocSpy(hs);}
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
   if(preview){
@@ -19749,7 +19840,9 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const close=()=>{said();const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
   const openAt=(i,sel_)=>{if(open>=0)said();pasted=false;sel=new Set();selMode=false;open=i;paint(sel_);};
   const apply=(r,o)=>{if(!r)return;push(r.v);open=o==null?r.i:o;paint(open>=0?undefined:false);};
-  const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,
+  /* A724 — FLOTTANT au bureau (`deskFlot`, A638) : « Ajouter un bloc » en pied a pour parent `.md-doc`, qui n'est pas
+     positionné — le menu ancré tombait sous un ancêtre lointain, et le focus de sa première rangée y emmenait la page. */
+  const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...deskFlot(),
     options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:v==='c'?'<span class="mdc-crit">'+uiIcon('warn',16)+'</span>':uiIcon({p:'pen',h:'list',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',16)})),
     onPick:v=>{const T=MD_BLK_NEW.find(x=>x[0]===v);
       if(v==='img'){const R=mdBlockRanges(p.body),c=i<0||!R.length?0:l2c(R[Math.min(i,R.length-1)].e);ta.setSelectionRange(c,c);
@@ -21052,7 +21145,7 @@ async function newProtocol(){if(linkGate(newProtocol))return;   // A643
   const lib=crtScope(),cl=crtColl();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,false))return;
-  const d=blankProtocol();d.status='draft';d.library=lib;state.pdraft=d;/* A463, comme une aide */if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+  const d=blankProtocol();d.status='draft';d.library=lib;d.category=crtCat(lib);/* A725 */state.pdraft=d;/* A463, comme une aide */if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : né dans la collection affichée, annoncé dans l'identité */draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -30007,7 +30100,7 @@ async function newFiche(){if(linkGate(newFiche))return;   // A643
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer d’aide dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
   /* A463 : une aide neuve naît en Brouillon (amende A304) — elle était « Validée · utilisable en situation » vide. */
-  const d=blankFiche();d.status='draft';d.library=lib;state.draft=d;if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  const d=blankFiche();d.status='draft';d.library=lib;d.category=crtCat(lib);/* A725 */state.draft=d;if(cl&&cl!==COLL_PIN)collSet(cl,[d.id],true);/* A496 : née dans la collection affichée (patron A304), annoncée dans l'identité */draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -31791,7 +31884,7 @@ const IMP_KEEP='~garder';
 // Destination initiale d'une rangée : la bibliothèque affichée à l'accueil si l'on peut y écrire
 // (c'est le contexte du geste), le Perso sinon — exactement la valeur que l'ancienne question
 // oui/non proposait par défaut.
-function impLibDefaut(){const l=homeScope();return (l&&canEditScope(l))?l:null;}
+function impLibDefaut(){const l=crtScope();return (l&&canEditScope(l))?l:null;}   // A725 : le contexte du geste, catalogue compris
 // Bibliothèques OFFERTES : le Perso, plus celles où l'on peut écrire. Un lecteur n'y voit pas
 // celles qu'il ne peut que consulter — proposer une destination interdite serait un bouton mort.
 function impLibOptions(){
@@ -31812,7 +31905,8 @@ function impRowsOf(imp,sameSpace){
   const src=Object.create(null);
   sanitizeCats(imp.categories).forEach(c=>{if(c.id)src[c.id]=c.name;});
   const lib0=impLibDefaut();
-  const pose=(r,o)=>{r.lib=lib0;r.cat=IMP_KEEP;r.srcCat=(o.category&&src[o.category])||'';return r;};
+  const cat0=crtCat(lib0);   // A725 : la catégorie ouverte (ou filtrée) au catalogue ; sinon, celle du fichier
+  const pose=(r,o)=>{r.lib=lib0;r.cat=cat0||IMP_KEEP;r.srcCat=(o.category&&src[o.category])||'';return r;};
   imp.fiches.forEach((d,i)=>{
     const av=brut(d);                                  // ⚠ AVANT migrate, qui en poserait un
     const o=imp.fiches[i]=migrate(d),m=jum(fiches,o.id);
@@ -31899,9 +31993,12 @@ function impRowHtml(r){
    une abréviation est exactement ce qu'on ne relit pas sous fatigue. */
 function impCatLabel(r){
   if(r.cat===IMP_KEEP)return {txt:'Catégorie du fichier : '+(r.srcCat||'aucune'),col:'',keep:true};
-  if(!r.cat)return {txt:'Sans catégorie',col:'',keep:false};
-  const c=categories.find(x=>x.id===r.cat&&catScope(x)===(r.lib||null));
-  return c?{txt:'Catégorie : '+c.name,col:safeColor(c.color),keep:false}:{txt:'Sans catégorie',col:'',keep:false};}
+  /* A725 : une catégorie POSÉE (pré-remplie depuis le catalogue, ou choisie) qui n'est pas celle que le fichier déclare
+     le DIT, en toutes lettres SOUS les pastilles (`.imp-ecart` : une pastille tronque au téléphone, mesuré) — on ne range
+     pas ailleurs sans le montrer. */
+  const c=r.cat?categories.find(x=>x.id===r.cat&&catScope(x)===(r.lib||null)):null;
+  const ecart=r.srcCat&&txNorm(r.srcCat)!==txNorm(c?c.name:'')?'Le fichier la rangeait dans « '+r.srcCat+' ».':'';
+  return c?{txt:'Catégorie : '+c.name,col:safeColor(c.color),keep:false,ecart}:{txt:'Sans catégorie',col:'',keep:false,ecart};}
 function impPickHtml(kind,key,txt,col,cls,aria){
   return `<button type="button" class="imp-pick${cls||''}" data-${kind}="${esc(key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(aria)}" title="${esc(aria)}">`
     +(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')
@@ -31931,7 +32028,8 @@ function impDestHtml0(r){
   // … », le titre dit ce que le geste fera (« destination », « toucher pour changer »). Un
   // « Catégorie de destination : Catégorie du fichier : X » serait du bégaiement au survol.
   return (impLibChoix()?impPickHtml('implib',r.key,impLibName(r.lib),'',' ','Bibliothèque de destination : '+impLibName(r.lib)+' — toucher pour changer'):'')
-    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'',L.txt+(L.keep?' — la catégorie n\'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée':'')+' — toucher pour changer');}
+    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'',L.txt+(L.keep?' — la catégorie n\'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée':'')+' — toucher pour changer')
+    +(L.ecart?`<span class="imp-ecart">${esc(L.ecart)}</span>`:'');}
 // Repeint la SEULE ligne de destination touchée : reconstruire la liste sous le doigt lui ferait
 // perdre le focus et remonterait le défilement (leçon v4.78.0, déjà tenue par `impSetAll`).
 function impPaintDest(keys){

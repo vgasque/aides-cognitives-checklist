@@ -8911,6 +8911,19 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     t('A547 · la frappe écrit le corps ; Terminé ; « Ajouter un bloc » pose un titre, mot à remplacer sélectionné',
       r.doc&&r.ecrit&&r.ferme&&r.menu&&r.ajout,JSON.stringify(r));
     await page.close();}
+  /* A724 — au bureau, « Ajouter un bloc » en pied d'un LONG document : la page ne bouge pas, le menu s'ouvre contre le bouton. */
+  {const page=await br.newPage({viewport:{width:1280,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A724',body:Array(60).fill(c).join('\n\n')});protocols.push(pr);await openProtocolEdit(pr.id);},'Un paragraphe de remplissage pour allonger le document.');
+    await calme(page, 500);
+    const r=await page.evaluate(async()=>{const b=document.querySelector('#mdDoc .mdb-add:not(.mdb-first)');if(!b)return {btn:false};
+      b.scrollIntoView({block:'center'});await __acCalme(300);const y0=window.scrollY;b.click();await __acCalme(400);
+      const m=document.querySelector('.catmenu.popmenu'),mr=m&&m.getBoundingClientRect(),br=b.getBoundingClientRect();
+      return {btn:true,y0,y1:window.scrollY,menu:!!m,ecart:m?Math.round(Math.min(Math.abs(mr.top-br.bottom),Math.abs(br.top-mr.bottom))):-1,vu:!!m&&mr.top>=0&&mr.bottom<=innerHeight};});
+    t('A724 · bureau : « Ajouter un bloc » en pied ne déplace pas la page, le menu s\'ouvre contre le bouton, entier à l\'écran',
+      r.btn&&r.y0>500&&r.y1===r.y0&&r.menu&&r.ecart<=12&&r.vu,JSON.stringify(r));
+    await page.close();}
   {const page=await br.newPage({viewport:{width:1280,height:860}});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
@@ -11041,7 +11054,13 @@ await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se ver
       for(const [k,c] of [['racine',{}],['b1',{lib:'b1'}],['tout',{tout:true}]]){state.homeTab='biblio';state.cnav=c;render();await __acCalme(300);
         const b=[...document.querySelectorAll('#pgNew,#hdrNew')].find(x=>x.getClientRects().length&&!x.hidden),top=document.querySelector('.pg-top');
         o[k]={btn:!!b,tient:!top||top.scrollWidth<=top.clientWidth+1};}
-      state.cnav={lib:'b1'};render();await __acCalme(200);confirmNewInLib=async()=>true;await newProtocol();await __acCalme(400);o.nee=state.pdraft&&state.pdraft.library;
+      /* A725 : la catégorie ouverte, ou les filtres de « Tout », pré-remplissent bibliothèque ET catégorie — création et import. */
+      categories.push(...sanitizeCats([{id:'kA725',name:'Trauma',color:'#888888',library:'b1'}]));const imp=()=>impRowsOf({fiches:[{title:'Importée'}],protocols:[{title:'Page Notion'}],categories:[]},false).map(x=>[x.lib,x.cat]);
+      state.cnav={lib:'b1',cat:'kA725'};render();await __acCalme(200);o.a725={cat:[crtScope(),crtCat(crtScope())],impCat:imp()};
+      {const R=impRowsOf({fiches:[{title:'Autre',category:'kz'},{title:'Même',category:'kt'},{title:'Sans'}],protocols:[],categories:[{id:'kz',name:'Cardio'},{id:'kt',name:'trauma'}]},false);o.a725.ecart=R.map(x=>impCatLabel(x).txt+'|'+(impCatLabel(x).ecart||''));o.a725.ligne=(impDestHtml(R[0]).match(/class="imp-ecart"/g)||[]).length+'/'+(impDestHtml(R[1]).match(/class="imp-ecart"/g)||[]).length;}
+      state.cnav={tout:true};state.ctf={type:'all',lib:'b1',cat:txNorm('Trauma'),sort:'az'};render();await __acCalme(200);o.a725.tout=[crtScope(),crtCat(crtScope())];o.a725.impTout=imp();
+      state.ctf={type:'all',lib:null,cat:'',sort:'az'};state.homeTab='aides';render();await __acCalme(200);o.a725.accueil=[crtScope(),crtCat(crtScope())];o.a725.impAccueil=imp().map(x=>x[1]);state.homeTab='biblio';
+      state.cnav={lib:'b1',cat:'kA725'};render();await __acCalme(200);confirmNewInLib=async()=>true;await newProtocol();await __acCalme(400);o.nee=state.pdraft&&state.pdraft.library;o.a725.nee=state.pdraft&&state.pdraft.category;
       const T=s=>new TextEncoder().encode(s);o.cible=upKindsIci().indexOf('data')>=0;
       await notionVerse(state.pdraft,[new File([T('# Polytraumatisé grave\n\nPremier paragraphe.')],'Page.md')],renderProtocolEdit);await __acCalme(400);
       o.titre=state.pdraft.title;o.corps=/Premier paragraphe/.test(state.pdraft.body);
@@ -11050,7 +11069,58 @@ await sec('A632-A633 · « Créer » aux Bibliothèques ; une page Notion se ver
       return o;});
     t(`${W} px · A632 : « Créer » aux Bibliothèques (racine, une bibliothèque, « Tout »), la rangée tient`,['racine','b1','tout'].every(k=>r[k].btn&&r[k].tient),JSON.stringify(r));
     t(`${W} px · A632 : créé dans une bibliothèque du catalogue, l'élément naît DANS cette bibliothèque`,r.nee==='b1',JSON.stringify(r));
+    {const a=r.a725||{},ok2=x=>x&&x[0]==='b1'&&x[1]==='kA725';
+    t(`${W} px · A725 : dans une catégorie du catalogue, ce qu'on crée ou importe arrive dans cette bibliothèque ET cette catégorie`,ok2(a.cat)&&a.nee==='kA725'&&(a.impCat||[]).length===2&&a.impCat.every(ok2),JSON.stringify(a));
+    t(`${W} px · A725 : une catégorie pré-remplie qui diffère de celle du fichier le dit sur sa ligne, sous les pastilles ; la même, ou aucune, ne dit rien`,(a.ecart||[]).length===3&&a.ecart[0]==='Catégorie : Trauma|Le fichier la rangeait dans « Cardio ».'&&a.ecart[1]==='Catégorie : Trauma|'&&a.ecart[2]==='Catégorie : Trauma|'&&a.ligne==='1/0',JSON.stringify([a.ecart,a.ligne]));
+    t(`${W} px · A725 : dans « Tout », les filtres Bibliothèque et Catégorie valent contexte ; à l'Accueil, la catégorie reste celle du fichier`,ok2(a.tout)&&(a.impTout||[]).every(ok2)&&a.accueil&&a.accueil[1]===''&&(a.impAccueil||[]).every(c=>c==='~garder'),JSON.stringify(a));}
     t(`${W} px · A633 : l'éditeur de protocole accepte une page Notion (.md) — titre posé s'il était vide, texte versé, une 2ᵉ page s'ajoute À LA SUITE`,r.cible&&r.titre==='Polytraumatisé grave'&&r.corps&&r.suite,JSON.stringify(r));
+    await page.close();}
+});
+
+await sec('A726-A727 · une liste dans un encadré ; en lecture, une image tient à l’écran', async () => {
+  for(const [W,H] of [[1280,800],[390,844]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{
+      const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').fillRect(0,0,w,h);return c.toDataURL('image/png');};
+      const D=[[800,600],[600,820],[1400,460]];
+      const pr=migrateProtocol({id:'p726',title:'Témoin A726',body:'> [!info] **Radiographie :**\n>\n> - Ulna aligné avec le lunatum\n\n'+D.map((d,i)=>'![](img:i'+i+')').join('\n\n')+'\n\n- puce\n    ![](img:i0)',
+        images:D.map((d,i)=>({id:'i'+i,data:mk(d[0],d[1]),w:d[0],h:d[1],caption:'',scale:100}))});
+      protocols.push(pr);openProtocolRead('p726');await __acCalme(600);
+      for(const im of document.querySelectorAll('.md-body img')){im.loading='eager';try{await im.decode();}catch(e){}}
+      const q=document.querySelector('.md-body .md-call'),li=q&&q.querySelector('ul.md-ul>li');
+      const figs=[...document.querySelectorAll('.md-body .md-fig')].map(f=>{const i=f.querySelector('img').getBoundingClientRect();return {l:f.classList.contains('md-lfig'),w:Math.round(i.width),h:Math.round(i.height),r:i.width/i.height};});
+      return {puce:!!li&&!/^\s*-/.test(li.textContent),brut:q?/(^|\n)\s*- Ulna/.test(q.innerText):true,col:document.querySelector('.md-body').clientWidth,figs,ih:innerHeight};});
+    const seul=(r.figs||[]).filter(f=>!f.l),lf=(r.figs||[]).find(f=>f.l);
+    t(`${W} px · A726 : dans un encadré, « - … » se rend en puce, plus en tiret brut`,r.puce&&!r.brut,JSON.stringify({puce:r.puce,brut:r.brut}));
+    t(`${W} px · A727 : en lecture, aucune image seule ne dépasse les deux tiers de la fenêtre, sans déformation ; l'image d'une liste garde son plafond`,
+      seul.length===3&&seul.every(f=>f.h<=r.ih*.66+3)&&Math.abs(seul[0].r-800/600)<.02&&Math.abs(seul[1].r-600/820)<.02&&!!lf&&lf.w<=300,JSON.stringify(r));
+    if(W>=780)t(`${W} px · A727 : le plafond agit (une image 4:3 « Pleine » n'occupe plus toute la colonne), une image panoramique reste à la colonne`,seul[0].w<r.col-40&&seul[2].w>=r.col-45,JSON.stringify({col:r.col,seul}));
+    await page.close();}
+});
+
+await sec('A728 · le sommaire d’un protocole dit où l’on est', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:800},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{const para=Array(14).fill('Un paragraphe de remplissage pour allonger la section.').join('\n\n');
+      const pr=migrateProtocol({id:'p728',title:'Témoin A728',body:['# Clavicule','## Fracture du tiers moyen',para,'## Fracture de Monteggia',para,'# Poignet','## Entorse scapho-lunaire',para,'# Main',para].join('\n\n')});
+      protocols.push(pr);openProtocolRead('p728');await __acCalme(600);
+      const tic=()=>new Promise(x=>requestAnimationFrame(()=>requestAnimationFrame(x)));
+      const lu=()=>{const s=document.querySelector('.rt-sum');return {sum:s?[s.querySelector('.rt-h').textContent,s.querySelector('.rt-n').textContent]:null,ici:!!(s&&s.classList.contains('rt-ici')),
+        cur:[...document.querySelectorAll('.ref-toc .rt-lnk[aria-current]')].map(l=>l.textContent)};};
+      const va=async re=>{const h=[...document.querySelectorAll('.md-body .md-h1,.md-body .md-h2')].find(x=>re.test(x.textContent));window.scrollTo(0,h.getBoundingClientRect().top+scrollY-120);await tic();await __acCalme(200);};
+      const o={haut:lu()};
+      await va(/Entorse/);const y=scrollY;o.h2=lu();await tic();o.fixe=scrollY===y;
+      await va(/^Main/);o.h1=lu();
+      window.scrollTo(0,0);await tic();await __acCalme(200);o.retour=lu();
+      return o;});
+    if(W<780){
+      t(`${W} px · A728 : en haut du protocole, la carte à sa place dit « Sommaire · n sections », à l'arrivée comme au retour`,r.haut.sum&&r.haut.sum[0]==='Sommaire'&&/sections$/.test(r.haut.sum[1])&&!r.haut.ici&&r.retour.sum[0]==='Sommaire'&&/sections$/.test(r.retour.sum[1])&&!r.retour.ici,JSON.stringify([r.haut,r.retour]));
+      t(`${W} px · A728 : dans une sous-section, la carte écrit « # » puis « ## » ; dans une section sans sous-titre, « # » seul`,r.h2.ici&&r.h2.sum[0]==='Poignet'&&r.h2.sum[1]==='Entorse scapho-lunaire'&&r.h1.sum[0]==='Main'&&r.h1.sum[1]==='',JSON.stringify([r.h2,r.h1]));}
+    t(`${W} px · A728 : le lien de la section courante est marqué, un seul à la fois ; le sommaire ne déplace pas la page`,r.h2.cur.length===1&&r.h2.cur[0]==='Entorse scapho-lunaire'&&r.h1.cur.length===1&&r.h1.cur[0]==='Main'&&r.fixe,JSON.stringify({h2:r.h2.cur,h1:r.h1.cur,fixe:r.fixe}));
     await page.close();}
 });
 

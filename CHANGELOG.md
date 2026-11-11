@@ -1,5 +1,59 @@
 # Journal des modifications
 
+## [5.123.0] — 2026-11-11
+Le sommaire d'un protocole dit où l'on se trouve (A728).
+- **Au téléphone, la carte « Sommaire » suit la lecture.** Dans un long protocole, coupé de grandes images, le titre
+  de la section n'est plus à l'écran. Une fois qu'on a commencé à descendre, la carte collée en haut écrit la section
+  en cours sur deux lignes — par exemple « Poignet », puis « Entorse scapho-lunaire ». En tête du protocole elle dit
+  toujours « Sommaire · 6 sections ». La toucher l'ouvre comme avant.
+- **Sur ordinateur, la section en cours est surlignée dans le sommaire de gauche**, comme dans le sommaire d'un PDF.
+  Si le sommaire est long, il se recale seul pour garder cette ligne visible.
+- La page ne bouge jamais d'elle-même : le sommaire suit le défilement, il ne le provoque pas. Seuls les titres `#` et
+  `##` sont suivis, comme dans le sommaire.
+
+## [5.122.0] — 2026-11-11
+Deux défauts de lecture des protocoles, signalés sur capture (A726-A727).
+- **Une liste dans un encadré s'affiche comme une liste.** Dans un encadré (« Information », « Attention »…), une ligne
+  « - … » restait écrite avec son tiret, sous un vide. Elle s'affiche maintenant en puce, avec ses sous-éléments. Les
+  encadrés importés de Notion en profitent sans rien refaire.
+- **En lecture, une grande image tient à l'écran.** Sur ordinateur, une image « Pleine » prenait toute la colonne et
+  pouvait dépasser la hauteur de la fenêtre. Elle est maintenant limitée aux deux tiers de la hauteur, sans être
+  déformée ; un toucher l'agrandit toujours. Dans l'éditeur, « Pleine » reste toute la colonne. Au téléphone, seules les
+  images très hautes changent. L'image d'un élément de liste garde sa petite taille.
+- À savoir : une case à cocher écrite dans un encadré s'y lit (« [ ] ») mais ne s'y coche pas.
+
+## [5.121.0] — 2026-11-11
+Aux Bibliothèques, ce qu'on crée ou importe arrive là où l'on se trouve (A725).
+- **Créer depuis une catégorie : la catégorie est déjà choisie.** Dans une bibliothèque, l'aide ou le protocole créé y
+  naissait déjà ; ouvert dans une de ses catégories, il naît maintenant aussi dans cette catégorie.
+- **Importer depuis une bibliothèque ou une catégorie : la destination est déjà posée.** Un fichier d'export, une page
+  Notion (`.md`) ou une archive (`.zip`) importés depuis les Bibliothèques proposent d'emblée la bibliothèque ouverte, et
+  la catégorie ouverte s'il y en a une. Jusqu'ici l'import proposait la bibliothèque filtrée à l'Accueil, et jamais de
+  catégorie. Chaque ligne de l'import reste modifiable avant de valider.
+- **Si le fichier déclarait une autre catégorie, l'import le dit.** Sous la catégorie proposée, une ligne l'écrit :
+  « Le fichier la rangeait dans « Cardio ». » Rien n'est rangé ailleurs sans que ce soit écrit.
+- **Dans « Tout », les filtres comptent.** Avec le filtre Bibliothèque posé (sur une bibliothèque où vous pouvez
+  écrire), ce qu'on crée ou importe y arrive ; avec le filtre Catégorie, dans la catégorie de ce nom si la bibliothèque
+  d'arrivée en a une.
+- À l'Accueil, rien ne change : un import garde la catégorie que le fichier déclare.
+
+## [5.120.0] — 2026-11-11
+Les titres d'un protocole se lisent enfin comme des titres, et un correctif de l'éditeur (A723-A724).
+- **Protocole, en lecture : trois niveaux de titre qui se distinguent.** `#` et `##` avaient exactement le même dessin,
+  et `###` la taille du texte : on écrivait trois niveaux, on en lisait un et demi. `#` est maintenant le plus grand
+  (21), précédé d'un trait épais et d'un grand blanc ; `##` vient ensuite (17,5), sans trait ; `###` reste à la taille
+  du texte (15), en gras. Le texte lui-même ne change pas.
+- **Éditeur de protocole : les mêmes titres qu'en lecture.** L'éditeur affichait les titres en petites capitales, plus
+  petits que le texte qu'ils coiffaient : la structure d'un texte long ne se voyait plus. « Mise en forme en direct » et
+  l'aperçu montrent désormais les titres de la lecture, et le texte y passe à la même taille qu'en lecture (15 au lieu
+  de 16). Le champ où l'on écrit garde sa taille.
+- **Éditeur de protocole, sur ordinateur : « Ajouter un bloc » ne fait plus remonter la page.** En bas d'un long
+  protocole, le clic renvoyait la page plus haut et le choix du bloc s'ouvrait loin du bouton. Le choix s'ouvre
+  maintenant contre le bouton, et la page ne bouge pas. Le téléphone n'était pas touché.
+- Vérifié sur un protocole chargé (images, tableaux, encadrés, listes, titres de trois lignes), au téléphone, à 320 px,
+  sur grand écran, en thème sombre et sections repliées. À savoir : un `###` suivi d'un paragraphe qui commence par du
+  gras lui ressemble encore.
+
 ## [5.119.5] — 2026-11-11
 Sept correctifs signalés, un raccourci et une règle changée (A716-A722). **Serveur à rejouer** (`supabase/schema.sql`) :
 une bibliothèque ne reste plus jamais sans membre, et son administrateur peut la supprimer.
@@ -348,52 +402,3 @@ Régler la connexion temporaire dans Administration (A654). **Côté serveur : r
 - Une connexion temporaire par e-mail au-delà de la durée maximale se ramène à la dernière heure permise, et l'écran
   le dit ; la feuille « Connecter un appareil » ne propose plus d'heure au-delà.
 - Garde-fous : `rls-tests.sql` 16.17, `tests.html` (règles et heures bornées), `audit-lier.mjs` section 5 (52 contrôles).
-
-## [5.112.1] — 2026-11-10
-L'accueil pendant le chargement du compte (A653). Rien à rejouer côté serveur.
-- À la connexion d'un compte sur un appareil neuf, l'accueil disait « Votre bibliothèque est vide » et proposait les
-  aides d'exemple le temps que les aides arrivent. Il montre maintenant « Chargement de votre compte… » et trois
-  rangées qui respirent, puis le vrai contenu. Rien ne bouge si le système demande moins de mouvement ; un compte
-  déjà synchronisé, ou hors ligne, s'affiche aussitôt.
-- Garde-fou : `audit-doctrine.mjs`, section « Accueil · A653 ».
-
-## [5.112.0] — 2026-11-10
-Se connecter : temporaire ou permanente (A651-A652). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle
-fonction `link_self`), puis `supabase/rls-tests.sql`.
-- **Une carte « Se connecter »** dans Moi : ⏱ Temporaire (« jusqu'à la fin de la garde, puis tout s'efface ») ou
-  ∞ Permanente (« vous restez connecté »). Rien n'est choisi d'office, au bureau comme au téléphone. « Pas encore de
-  compte ? Créer un compte » a sa propre entrée.
-- **Temporaire › Avec un appareil connecté** : le code à viser s'affiche dans la page (plus de fenêtre), avec trois
-  étapes ; il se renouvelle seul 5 fois, puis « Afficher un nouveau code ».
-- **Temporaire › Par e-mail** (nouveau) : sans appareil connecté sous la main, le code e-mail puis l'heure de fin de
-  garde ouvrent une connexion temporaire — mêmes limites, même effacement, même « Appareils connectés » que par le code
-  à viser. Refusée (compte non validé), elle ne reste pas ouverte.
-- **« Un appareil connecté »** remplace « le téléphone » partout : on peut confirmer depuis un téléphone, une tablette
-  ou un ordinateur, et connecter n'importe quel appareil temporairement (« Connecter un appareil », « Connecter
-  jusqu'à 19:30 »).
-- **Une fois connecté temporairement** : une seule carte dans Moi (l'heure de fin en grand, une seule sortie « Se
-  déconnecter et effacer ») ; la bande de l'accueil devient neutre, ambre à l'approche de la fin, et porte
-  « Déverrouiller » quand l'édition est verrouillée.
-- Garde-fous : `rls-tests.sql` 16.16, `audit-lier.mjs` (46 contrôles, dont le parcours par e-mail).
-
-## [5.111.2] — 2026-11-09
-Trois défauts signalés (A649). **Côté serveur : rejouer `supabase/schema.sql`** (nouvelle fonction `link_end`).
-- **La notification de mise à jour** (« Application mise à jour… ») se posait sur la barre d'onglets du téléphone
-  depuis la 5.100, et sur un tiers de la largeur (trois lignes) : elle passe au-dessus de la barre, centrée, à sa
-  largeur. Le bandeau « Nouvelle version disponible » n'avait pas de défaut.
-- **Bibliothèques › Tout, au bureau** : les filtres Type, Bibliothèque, Catégorie et A → Z ouvraient leur menu en bas à
-  gauche de l'écran ; il s'ouvre sous le bouton touché.
-- **Appareils connectés** : « Se déconnecter et effacer » sur un poste partagé le retire aussitôt de la liste du
-  téléphone (il y restait jusqu'à son heure de fin). La liste ouverte se met à jour au retour dans l'app.
-- Garde-fous : nouveau harnais `audit-flottants.mjs`, `rls-tests.sql` 16.15.
-
-## [5.111.1] — 2026-11-08
-Aucun mot de passe sur les comptes, et des jetons de 15 min (A648). **Côté serveur : rejouer `supabase/schema.sql`.**
-- **Aucun compte ne peut porter de mot de passe** : un déclencheur sur `auth.users` le refuse, à l'inscription comme à
-  la modification. L'app ne se connecte que par code e-mail et par le téléphone ; sans ce refus, une session (celle
-  d'un poste partagé comprise) pouvait se définir un mot de passe durable, qui survivait à la déconnexion à distance.
-  Remplace le « Password Verification Attempt hook », réservé aux plans payants. Vérification après le rejeu :
-  `select count(*) from auth.users where encrypted_password <> '';` doit rendre 0.
-- **Jeton d'accès de 900 s** sur l'instance (réglage du tableau de bord, consigné au § 1.2 du guide de déploiement) :
-  un poste révoqué garde l'accès à l'API 15 min au plus, au lieu d'1 h. Aucun effet visible dans l'app.
-- `rls-tests.sql` 16.14 garde le refus des mots de passe.

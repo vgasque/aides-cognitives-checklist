@@ -3412,14 +3412,24 @@
   .rt-sum::before{content:"≡";flex:none;width:26px;height:26px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
   .rt-sum .rt-h{font-size:var(--t-item);font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink)}
   .rt-sum .rt-n{margin-left:auto;font-size:var(--t-body);color:var(--ink-2)}
-  /* Le corps rédigé : titres 17,5/800 en bas de casse, chevron à GAUCHE, un filet entre sections. */
-  .ref-main .md-body :is(.md-h1,.md-h2,.md-h3){font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;text-transform:none;color:var(--ink);margin:0;padding:10px 0 4px;border:0;border-top:1px solid var(--line)}
-  .ref-main .md-body>:is(.md-h1,.md-h2,.md-h3):first-child{border-top:0}
-  .ref-main .md-body .md-h3{font-size:var(--t-item)}
+  /* Le corps rédigé, en lecture : les trois crans d'A723, posés en PADDING (le titre est un bouton
+     repliable de 32 px, A171) ; le filet n'appartient qu'au niveau 1. */
+  .ref-main .md-body :is(.md-h1,.md-h2,.md-h3){font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;text-transform:none;color:var(--ink);margin:0;padding:12px 0 4px;border:0}
+  .ref-main .md-body .md-h1{font-size:var(--t-step-l);line-height:1.25;margin-top:16px;padding:14px 0 6px;border-top:2px solid var(--line-strong)}
+  .ref-main .md-body>.md-h1:first-child{margin-top:0;padding-top:4px;border-top:0}
+  .ref-main .md-body .md-h3{font-size:var(--t-item);padding:8px 0 2px}
   .ref-main .md-body .md-sect{padding:0 0 8px}
   .ref-main .md-body .md-fch{color:var(--ink-3)}
   .ref-main .md-body{font-size:var(--t-item);line-height:1.7}
   .ref-main .md-body li::marker{color:var(--line-strong)}
+  /* A728 : la carte dit la section courante — « # » sur la ligne du titre, « ## » dessous, chacun sur UNE ligne. */
+  .rt-sum.rt-ici{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0 12px;align-content:center}
+  .rt-sum.rt-ici::before{grid-row:1 / span 2;align-self:center}
+  .rt-sum.rt-ici::after{grid-column:3;grid-row:1 / span 2;align-self:center}
+  .rt-sum.rt-ici :is(.rt-h,.rt-n){grid-column:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+  .rt-sum.rt-ici .rt-n{margin:0;font-size:var(--t-meta);font-weight:600}
+  .rt-sum.rt-ici .rt-n:empty{display:none}
+  .ref-toc .rt-lnk[aria-current]{background:var(--primary-soft);color:var(--act);font-weight:700}
   .rt-sum::-webkit-details-marker{display:none}
   .rt-sum::after{content:"▾";flex:none;color:var(--ink-3);font-size:var(--g-cmd)}
   details.ref-toc[open] .rt-sum::after{content:"▴"}
@@ -7860,6 +7870,7 @@
      Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
      ne coche pas la rangée. */
   .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-ecart{flex:0 0 100%;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A725 : l'écart avec la catégorie du fichier, sur sa ligne (jamais tronqué) */
   /* A638 : le déroulant FLOTTANT (fenêtres, au bureau) — au-dessus des fenêtres (55), sous les feuilles (70). */
   .popmenu.flot{position:fixed;z-index:66;top:auto;left:auto;min-width:260px;max-width:min(380px,calc(100vw - 16px))}
   .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--work);color:var(--ink);cursor:pointer}
@@ -8479,18 +8490,20 @@
   @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on.pop svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
-  /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
-     section des fiches (.block-h : petites capitales grasses, espacées) -> UNE seule grammaire
-     de titres dans toute l'app (audit v4.0.3). Sans pip ni badge (contenu libre, pas de
-     sémantique fixe à encoder). Le CONTENU (15px) reste plus grand que ses titres, comme dans
-     les fiches : c'est VOULU (le texte prime, le titre ne fait que jalonner).
-     HIÉRARCHIE CORRIGÉE (v4.4.2) : elle était INVERSÉE (h3 14px > h1 13px > h2 12.5px — un ###
-     paraissait plus important qu'un #). La saillance passe désormais par le POIDS, l'ENCRE et
-     un FILET, jamais par la seule taille : h1 = capitales encre pleine + filet ; h2 = capitales
-     encre douce ; h3 = casse normale. Ordre non ambigu, registre unique préservé. */
-  .md-h1{font-size:13.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
-  .md-h2{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
-  .md-h3{font-size:12px;font-weight:700;margin:14px 0 4px;color:var(--ink)}
+  /* Titres du contenu rédigé — TROIS CRANS de l'échelle A6, partout où le texte se rend (lecture,
+     document de l'éditeur, aperçu) : # 21 + filet épais + grand blanc ; ## 17,5 ; ### 15, la taille
+     du corps. Jusqu'ici l'éditeur titrait en petites capitales 13,5/12/12 SOUS un corps plus grand
+     (« le texte prime ») et la lecture donnait le même dessin à # et ## : la structure d'un texte
+     long ne se lisait plus (signalé par l'auteur). Le filet n'appartient qu'au niveau 1. A723. */
+  .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:28px 0 8px;padding-top:14px;border-top:2px solid var(--line-strong);color:var(--ink)}
+  .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:20px 0 6px;color:var(--ink)}
+  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:14px 0 4px;color:var(--ink)}
+  /* Le document de l'éditeur et son aperçu se lisent au corps de la LECTURE (15) : sans cela ## ne
+     dépasse plus le texte. L'aperçu réduit de la colonne (corps 12) descend d'autant. */
+  .md-doc,.md-preview{font-size:var(--t-item)}
+  .ep-md .md-h1{font-size:var(--t-body);margin:16px 0 6px;padding-top:8px}
+  .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta)}
+  .md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
      Le bouton n'ajoute AUCUN corps ni aucune couleur : il hérite entièrement de son titre, et ne
@@ -8548,6 +8561,9 @@
   li.md-task[role="checkbox"]:hover{background:var(--amb-2)}
   li.md-task[role="checkbox"]:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .md-q{margin:0 0 10px;padding:6px 0 6px 12px;border-left:3px solid var(--line-strong);color:var(--ink-soft)}
+  /* A726 : paragraphes et listes DANS une citation ou un encadré — l'encre de leur hôte, pas de marge en trop au pied. */
+  .md-q .md-p{color:inherit}
+  .md-q>:is(.md-p,.md-ul,.md-ol):last-child{margin-bottom:0}
   /* ENCADRÉS TYPÉS (v4.4.3) : grammaire des notices V5 — bord gauche 4px + bordure + teinte du
      registre, icône ET libellé en toutes lettres (la couleur n'est jamais seule, WCAG 1.4.1).
      Aucune couleur nouvelle : ce sont les 4 registres de l'app. */
@@ -8591,6 +8607,17 @@
   /* A642 : l'image d'un élément de liste — sous le texte de l'élément, à sa largeur, plafonnée (300 px) : elle illustre
      une étape, elle ne coupe pas la liste. Aucune taille réglable ici (« Pleine » n'a pas de sens dans une liste). */
   .md-fig.md-lfig{margin:8px 0 12px;max-width:300px}
+  /* A727 — EN LECTURE, UNE IMAGE TIENT À L'ÉCRAN (signalé sur capture : une radio « Pleine » de 1 000 px de large
+     dépassait la fenêtre). La figure est plafonnée en LARGEUR selon sa proportion (`fh1..6`, `mdFigAr`), ce qui borne sa
+     hauteur aux deux tiers de la fenêtre sans jamais déformer ; le toucher l'agrandit (A555). Amende A608 EN LECTURE
+     SEULEMENT : dans l'éditeur, « Pleine » reste toute la colonne (le cadre de la poignée, A584). Sans effet là où la
+     colonne est plus étroite que le plafond (téléphone, sauf image très haute). Hauteur de fenêtre : règle 10. */
+  .ref-main .md-body .md-fig.fh1:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .45)}
+  .ref-main .md-body .md-fig.fh2:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .6)}
+  .ref-main .md-body .md-fig.fh3:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * .8)}
+  .ref-main .md-body .md-fig.fh4:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.05)}
+  .ref-main .md-body .md-fig.fh5:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.4)}
+  .ref-main .md-body .md-fig.fh6:not(.md-lfig){max-width:calc(66dvh / var(--zf,1) * 1.9)}
   /* Taille d'image PAR IMAGE (v4.4.3) : la réduction ne s'applique qu'AU-DESSUS de 560px — sur un
      téléphone, une image à 25 % ferait ~90px de large, illisible sous stress (règle QRH). */
   @media (min-width:560px){
