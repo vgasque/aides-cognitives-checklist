@@ -1630,6 +1630,7 @@ returns boolean language sql immutable set search_path = public, pg_temp as $$
     when k in ('running','on','exo','take')        then jsonb_typeof(v) = 'boolean'
     when k in ('nav','navSeq')                     then jsonb_typeof(v) = 'array'
     when k = 'ref'                                 then jsonb_typeof(v) in ('object','null')
+    when k = 'cxb'                                 then jsonb_typeof(v) = 'object'   -- A706 : ancres de complication (ids de bloc et heures)
     when k = 't' then jsonb_typeof(v) = 'number'
       or (jsonb_typeof(v) = 'string' and length(v #>> '{}') <= 8 and (v #>> '{}') !~ '[^A-Za-z0-9_-]')
     when k = 'k' then jsonb_typeof(v) = 'string' and length(v #>> '{}') <= 140
@@ -1735,7 +1736,12 @@ begin
                                             ne voyage que sur le hub local (billet gc), listé ici
                                             pour la PARITÉ stricte avec SHARE_PAYLOAD_KEYS,
                                             gardée par check-sql. */
-                                         'o','a','code')),
+                                         'o','a','code',
+                                         /* A706 — `cxb` : les ancres de complication, que le client met
+                                            dans la charge `nav` depuis la v5.27 (A333) et que cette
+                                            liste amputait : l'invité perdait « ↩ Reprendre ». Des ids
+                                            de bloc et des heures, aucun texte libre. */
+                                         'cxb')),
                            '{}'::jsonb)
                 else '{}'::jsonb end                           as payload,
            nullif(e->>'ts','')::timestamptz                     as client_ts,
@@ -1751,7 +1757,10 @@ begin
                 then src.client_ts else now() end
       from src
      where src.event_id is not null
-       and public.share_kind_allowed(a.role, src.kind)
+       -- A714 (amende A302 § 4) : le PROPRIÉTAIRE écrit tous les genres, même après avoir donné la main —
+       -- sa session locale s'applique chez lui quoi qu'il arrive ; refusés ici, ses décochages et ses
+       -- remises à zéro laissaient les écrans des invités faux, sans rien pour le dire.
+       and (a.is_owner or public.share_kind_allowed(a.role, src.kind))
        -- Trois régimes, dans l'ordre de spécificité :
        --   détaché  -> SEULES les annexes remontent (son état a divergé, il ne l'impose pas) ;
        --   lot avec `detach` -> seul le detach passe (le reste de la file appartient déjà à sa

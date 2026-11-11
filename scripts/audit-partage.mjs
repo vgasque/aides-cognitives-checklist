@@ -2450,6 +2450,10 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active',
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   t('« En ligne » : l\'hôte repasse par le serveur', revH, '');
+  /* Le mot est posé par l'hôte APRÈS l'entrée du dernier invité (fin de `slGoCloud`) et ne tient que 8 s : on attend
+     qu'il soit posé avant de le lire — lu à l'instant où l'invité se dit rentré, le témoin dépendait de l'ordre de
+     deux sondages (rouge sous charge, code inchangé). */
+  await H.waitForFunction(() => slSb.say && /Repasse en ligne/.test(slSb.say.txt), null, { timeout: 10000 }).catch(() => {});
   const motC = await H.evaluate(() => { updateRtStrip(Date.now()); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
   t('… « ● Repasse en ligne » pendant le retour (A318)', /^● Repasse en ligne/.test(motC || ''), String(motC));
   const lblC = await H.evaluate(() => { slSb.say = null; render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });

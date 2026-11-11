@@ -1967,6 +1967,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('… et naviguer, qui n’efface rien',S.canWrite('nav'));
    ok('mais jamais remettre un minuteur à zéro',!S.canWrite('timer_reset'));
    ok('… ni décocher',!S.canWrite('uncheck'));
+   /* A714 : l'hôte qui a donné la main (rôle « scribe ») garde l'écriture de TOUS les genres. */
+   {const m0=S.mode,r0=S.role;S.mode='host';S.role='scribe';
+    ok('A714 · l’hôte qui a donné la main décoche et remet à zéro : ses gestes partent',S.canWrite('uncheck')&&S.canWrite('timer_reset'));
+    S.mode=m0;S.role=r0;}
+   ok('A714 · … l’invité scribe, lui, reste bridé',!S.canWrite('uncheck'));
    S.status='revoked';
    ok('coupé : plus aucune écriture',!S.canWrite('check'));
    S.status='detached';
@@ -3514,6 +3519,42 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('la syntaxe de saisie ne s’affiche plus (ni « :: » ni « ⚠ »)', !/::|⚠/.test(h), h);
    ok('le registre est dit en mot, la réponse suit en gris', /fs-mk[^>]*>Critique</.test(h)&&/fs-r[^>]*> · 30:2/.test(h), h);}
   ok('un rappel sans registre ni réponse reste le texte seul', A.forgetItemHtml('Minimiser les interruptions')==='Minimiser les interruptions', A.forgetItemHtml('Minimiser les interruptions'));
+
+/* ═══ Audit de bugs v5.119.4 (A706-A712) — témoins des fonctions pures corrigées ═══ */
+{
+  // A707 — un signe entouré d'espaces n'est pas une emphase
+  const m1=A.mdRender('5 * 3 = 15 et 2 * 2 = 4'),m2=A.mdRender('PaO2 == 60 ou SpO2 == 90'),m3=A.mdRender('un *mot* et ==surligné== fin');
+  ok('A707 · « 5 * 3 = 15 et 2 * 2 » garde ses signes de multiplication', !/<i>/.test(m1)&&(m1.match(/\*/g)||[]).length===2, m1);
+  ok('A707 · « PaO2 == 60 ou SpO2 == 90 » garde ses égalités', !/<mark/.test(m2)&&(m2.match(/==/g)||[]).length===2, m2);
+  ok('A707 · *italique* et ==surligné== collés au texte restent reconnus', /<i>mot<\/i>/.test(m3)&&/<mark[^>]*>surligné<\/mark>/.test(m3), m3);
+  // A709 — supprimer un bloc collé à ses voisins ne les fusionne pas
+  const B='# Titre\n\nIntro : la dose est\n- 1 mg adulte\nPuis surveiller 15 min\n\nFin',n0=A.mdBlockRanges(B).length,d=A.mdBlkDel(B,2);
+  ok('A709 · un bloc supprimé entre deux voisins collés en retire UN (les voisins ne fusionnent pas)', A.mdBlockRanges(d.v).length===n0-1, JSON.stringify(d.v));
+  // A709 — une entrée d'import qui n'est pas un objet n'est pas une aide
+  const imp=A.normalizeImport({fiches:[null,5,'x',{},{title:'ok'}],protocols:[null,'x',{title:'p'}]});
+  ok('A709 · import : null, nombre, texte et objet vide sont écartés', imp.fiches.length===1&&imp.protocols.length===1, JSON.stringify([imp.fiches.length,imp.protocols.length]));
+}
+// A706 — le hub local tient la sémantique du serveur pour un détaché et un coupé
+{
+  let t=1000,n=0;
+  const hub=A.slHub({now:()=>t,uid:()=>'z'+(++n),secret:()=>'s'+n,shareId:'local',fiche:null,guestRole:'scribe',hostLabel:'Hôte'});
+  const g=hub.join('Invité');
+  const ev=(k,pl)=>({event_id:'e'+(++n),kind:k,payload:pl||{},ts:t});
+  const r1=hub.push(g.secret,[ev('check',{k:'1:b:0'}),ev('detach')]);
+  const pl=await hub.pull(g.secret,0);
+  ok('A706 · un lot portant « detach » ne porte que lui, et le participant devient détaché', r1.accepted===1&&hub.st.parts[1].detached===true&&!hub.st.events.some(e=>e.kind==='check'), JSON.stringify(r1));
+  ok('A706 · un détaché reçoit son statut et plus rien du fil', pl.ok===true&&pl.status==='detached'&&pl.events.length===0, JSON.stringify(pl));
+  const r2=hub.push(g.secret,[ev('check',{k:'1:b:1'}),ev('offline_mark',{t:5})]);
+  ok('A706 · un détaché ne pousse plus que des annexes', r2.accepted===1&&hub.st.events.filter(e=>e.kind==='offline_mark').length===1&&!hub.st.events.some(e=>e.kind==='check'), JSON.stringify(r2));
+  const g2=hub.join('Autre');hub.revoke(g2.me);
+  const p2=await hub.pull(g2.secret,0),q2=hub.push(g2.secret,[ev('check',{k:'1:b:2'})]);
+  ok('A706 · un participant coupé l’apprend (statut « revoked »), au lieu d’une erreur prise pour une panne', p2.ok===true&&p2.status==='revoked'&&q2.ok===false&&q2.status==='revoked', JSON.stringify([p2.status,q2]));
+  const hp=await hub.pull(hub.hostSecret(),0);
+  const nav=hub.push(hub.hostSecret(),[ev('nav',{nav:['a'],navSeq:[1],cxb:{1:{id:'a',t:1}},label:'x'})]);
+  const last=hub.st.events[hub.st.events.length-1];
+  ok('A706 · « cxb » traverse la liste blanche avec « nav », un libellé jamais', nav.accepted===1&&!!last.payload.cxb&&!('label' in last.payload), JSON.stringify(last.payload));
+  ok('A706 · l’hôte, lui, lit toujours le fil entier', hp.ok===true&&hp.status==='active', hp.status);
+}
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

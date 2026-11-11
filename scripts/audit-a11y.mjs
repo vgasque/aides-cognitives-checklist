@@ -147,9 +147,14 @@ const AUDIT = `(() => {
         const hasHalo=ha&&ha.content&&ha.content!=='none'&&ha.position==='absolute';
         const haloY=hasHalo?neg(ha.top)+neg(ha.bottom):0;
         const haloX=hasHalo?neg(ha.left)+neg(ha.right):0;
-        const h=Math.round(r.height+haloY),w=Math.round(r.width+haloX);
+        /* A713 : UN LIEN ETIRE (son ::after en inset 0 couvre son conteneur positionne, pas lui : la rangee entiere
+           accepte le tap) se mesure sur ce conteneur. Releve du seuil a 32 px (regle 9) : sans cela le titre
+           d une rangee d accueil, 25 px de haut dans une rangee de 60, rougissait a tort. */
+        const etire=hasHalo&&cs2.position==='static'&&!haloY&&!haloX&&parseFloat(ha.top)===0&&parseFloat(ha.left)===0&&el.offsetParent;
+        const rz=etire?el.offsetParent.getBoundingClientRect():r;
+        const h=Math.round(rz.height+haloY),w=Math.round(rz.width+haloX);
         const crisis=document.body.classList.contains('view-read');
-        const need=crisis?44:24;
+        const need=crisis?44:32;   /* regle 9 : 32 px hors session (le seuil etait 24) */
         if(h<need||w<24) out.targets.push({sel:el.className||el.tagName,w,h,need,txt:(el.textContent||'').trim().slice(0,24)});
         /* ⚠ LE HALO SE VÉRIFIE EN CAPTURE, PAS SEULEMENT EN GÉOMÉTRIE (audit design v5.19).
            La sonde lisait les insets du ::after et créditait la surface — sans jamais vérifier
