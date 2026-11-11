@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A704** à la v5.119.3 (lot v6.0 compris ; A694 non attribué) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A705** à la v5.119.3 (lot v6.0 compris ; A694 non attribué) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -327,6 +327,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A702 | `lot-v5-119.md` | « △ À revérifier » : le glyphe revient sur la rangée d'accueil (amende A347 ; règle 8) |
 | A703 | `lot-v5-119-2.md` | La fenêtre d'une bibliothèque (`#membersModal`) déclarée après `#admModal` : elle s'ouvrait derrière Administration au téléphone (ordre du document = empilement, A616) |
 | A704 | `lot-v5-119-3.md` | Règles de la connexion temporaire au sélecteur segmenté de l'app (`.seg`, pastille qui glisse au tap et au doigt) ; le tap peint sur place (`admTrPaint`, `#admTrAsk`), `.adm-topt` purgé |
+| A705 | `lot-v5-119-3.md` | Légendes d'étape : ni bulles, ni capsules, ni fusion sur une ligne — planche à quatre formes, hauteurs mesurées, « on laisse comme ça » (aucun changement de code ; confirme A377, A570) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
