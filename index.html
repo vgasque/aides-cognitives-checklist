@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NOoRzV9zQ1volhhz6uf1UFGgFNOV0fla8zj3JjYIw5o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fbh2/cNhDyFZxdCL2uC6fo5l147A1S3bpfgWIjiQyvU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1604,9 +1604,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sacrifie plus rien tant que la place existe (588 px à 1280). Le contenu y est centré : la
      capsule reste optiquement au milieu de la barre quel que soit son nombre de segments. */
   body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;width:46%;justify-content:center}
-  /* A712 : le titre s'arrête où commence la capsule centrée (46 % de large, donc à 27 % du bord) — rien ne le bornait,
-     et un titre long filait SOUS la capsule, masqué en son milieu. Il passe à la ligne (jamais de coupe, K6). */
-  html:not(.zh500) body.chrome-hdr header.bar.crisis .brand{max-width:calc(27% - 8px)}
+  /* A712 : le titre s'arrête où commence la capsule centrée — rien ne le bornait, et un titre long filait SOUS la
+     capsule, masqué en son milieu. Il passe à la ligne (jamais de coupe, K6). La borne est MESURÉE (`syncBrandCap`
+     pose `--brand-max` : la capsule change de largeur avec ses minuteurs) ; sans mesure, aucune borne — un titre
+     qui tient ne bouge pas d'un pixel. */
+  html:not(.zh500) body.chrome-hdr header.bar.crisis .brand{max-width:var(--brand-max,none)}
   /* ⚠ `flex:1` DANS UN CONTENEUR EN AJUSTEMENT AU CONTENU EFFONDRE LA BOÎTE — et la boucle
      d'ajustement, qui MESURE, en concluait que plus rien ne tenait : elle sacrifiait le segment
      ÉCHU et n'affichait que « +1 ». Le créneau est en position ABSOLUE (A14), donc dimensionné
@@ -4853,13 +4855,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
     position:relative;padding-right:48px}   /* place de la croix : 40 + 8 (elle chevauchait la cible) */
   .cx-edit-row .ed-ic.del{position:absolute;right:0;top:0}
-  .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
-  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}   /* A712 : APRÈS la règle de base — placée avant, à spécificité égale, elle était morte et la cible ne s'empilait pas */
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--crit);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
   .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A531 : même étiquette que .tme-l */
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}   /* A712 : APRÈS la règle de base — placée avant, à spécificité égale, elle était morte et la cible ne s'empilait pas */
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
   /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
   .cx-edit-row input[type=text]{min-height:40px;padding-block:8px;font-size:15px}
@@ -11645,6 +11646,18 @@ function rescueCrisisChrome(){
    porte ce seuil, mesuré et déclaré). Détail : doctrine-js.md J11. */
 /* A511 — PAYSAGE BAS : hauteur effective < 500 (`zh500`, règle 10) ET plus large que haut. Un téléphone
    tourné ; une tablette n'y descend pas (> 670 en paysage), donc A354 tient pour elle. */
+/* A712 — LA BORNE DU TITRE SOUS LA CAPSULE D'EN-TÊTE : l'espace réel entre le titre et la capsule centrée, mesuré au
+   tick (elle s'élargit avec ses minuteurs), réinjecté divisé par le zoom (règle 10), écrit seulement s'il change. */
+let _brandMax='';
+function syncBrandCap(){
+  const h=document.querySelector('header.bar');if(!h)return;
+  let v='';
+  if(document.body.classList.contains('chrome-hdr')&&h.classList.contains('crisis')&&!document.documentElement.classList.contains('zh500')){
+    const dk=document.getElementById('crisisDock'),b=h.querySelector('.brand');
+    const r=dk&&dk.getBoundingClientRect(),rb=b&&b.getBoundingClientRect();
+    if(r&&rb&&r.width>0&&r.left>rb.left)v=Math.max(160,Math.floor((r.left-rb.left-16)/zoomF()))+'px';}
+  if(v===_brandMax)return;_brandMax=v;
+  if(v)h.style.setProperty('--brand-max',v);else h.style.removeProperty('--brand-max');}
 function paysageBas(){return document.documentElement.classList.contains('zh500')&&window.innerWidth>window.innerHeight;}
 function placeCrisisChrome(){
   const dk=document.getElementById('crisisDock');
@@ -15463,7 +15476,7 @@ function tickAll(){
   if(fired)persistLive(fired,true,true);
   if(state.view==='read'&&Runtime.fiche){refreshTimersDOM(now);paintCnAgo(now);tmReflow(now);paintWitness();if(Runtime.started)momWatch();
     if(state.resumeSince)paintResume();}
-  updateRtStrip(now);
+  updateRtStrip(now);syncBrandCap();
   syncBlkReturn();   // P1 — idempotent : ne réinstalle rien tant que la carte courante ne change pas
   monRender();}   // D3 : l'afficheur suit le même tick que le quai — aucune horloge en plus
 /* Rappel MINUTEURS dans l'en-tête sticky : le chrono compact #cbTimers du bandeau de crise reprend

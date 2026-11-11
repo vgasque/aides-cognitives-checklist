@@ -1204,9 +1204,11 @@
      sacrifie plus rien tant que la place existe (588 px à 1280). Le contenu y est centré : la
      capsule reste optiquement au milieu de la barre quel que soit son nombre de segments. */
   body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;width:46%;justify-content:center}
-  /* A712 : le titre s'arrête où commence la capsule centrée (46 % de large, donc à 27 % du bord) — rien ne le bornait,
-     et un titre long filait SOUS la capsule, masqué en son milieu. Il passe à la ligne (jamais de coupe, K6). */
-  html:not(.zh500) body.chrome-hdr header.bar.crisis .brand{max-width:calc(27% - 8px)}
+  /* A712 : le titre s'arrête où commence la capsule centrée — rien ne le bornait, et un titre long filait SOUS la
+     capsule, masqué en son milieu. Il passe à la ligne (jamais de coupe, K6). La borne est MESURÉE (`syncBrandCap`
+     pose `--brand-max` : la capsule change de largeur avec ses minuteurs) ; sans mesure, aucune borne — un titre
+     qui tient ne bouge pas d'un pixel. */
+  html:not(.zh500) body.chrome-hdr header.bar.crisis .brand{max-width:var(--brand-max,none)}
   /* ⚠ `flex:1` DANS UN CONTENEUR EN AJUSTEMENT AU CONTENU EFFONDRE LA BOÎTE — et la boucle
      d'ajustement, qui MESURE, en concluait que plus rien ne tenait : elle sacrifiait le segment
      ÉCHU et n'affichait que « +1 ». Le créneau est en position ABSOLUE (A14), donc dimensionné
@@ -4453,13 +4455,12 @@
   .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
     position:relative;padding-right:48px}   /* place de la croix : 40 + 8 (elle chevauchait la cible) */
   .cx-edit-row .ed-ic.del{position:absolute;right:0;top:0}
-  .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
-  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}   /* A712 : APRÈS la règle de base — placée avant, à spécificité égale, elle était morte et la cible ne s'empilait pas */
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--crit);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
   .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A531 : même étiquette que .tme-l */
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+  @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}   /* A712 : APRÈS la règle de base — placée avant, à spécificité égale, elle était morte et la cible ne s'empilait pas */
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
   /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
   .cx-edit-row input[type=text]{min-height:40px;padding-block:8px;font-size:15px}
