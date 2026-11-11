@@ -1,13 +1,17 @@
 # Journal des modifications
 
 ## [5.119.5] — 2026-11-11
-Deux correctifs signalés (A716). Rien à faire côté serveur.
+Quatre correctifs signalés (A716-A717). Rien à faire côté serveur.
 - **Session : le compte de « Horodater », en bas de l'écran, suit les coches.** Cocher une étape qui compte (un choc,
   une dose) pose un repère au journal, mais la touche gardait l'ancien nombre jusqu'au rendu suivant. Elle se met à
   jour aussitôt, volet ouvert ou fermé.
 - **Éditeur : renommer un minuteur ou un compteur met à jour les blocs qui l'utilisent.** Les étapes liées, les
   réglages d'étape et les jalons gardaient l'ancien nom tant qu'on ne rouvrait pas l'aide. Le nouveau nom s'affiche
   partout dès qu'on quitte le champ, et le champ suivant (Tab ou toucher) garde le focus.
+- **Barre d'onglets du téléphone : elle suit la fenêtre redimensionnée.** En réduisant la fenêtre depuis le bureau, la
+  pastille bleue de l'onglet courant restait à sa taille d'avant, et le mot « Accueil » disparaissait. La pastille et les
+  mots se recalent maintenant à chaque largeur.
+- **Colonne de gauche : un seul trait sous les collections.** Il y en avait deux, sans rien entre.
 
 ## [5.119.4] — 2026-11-11
 Audit de bugs de toute l'application : 69 défauts corrigés (A706-A715). **Serveur à rejouer** (`supabase/schema.sql`) :

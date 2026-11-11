@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-On7Ng/2zguC3IVAagNjqLEM/A0h0K7CdR8Rs+nQDOJU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-cwpPm69sYGejuJkTKxjwa+De9GRbjI8dGxaSf0CZ1eE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3112,6 +3112,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     transition:clip-path .3s cubic-bezier(.3,1.2,.4,1)}   /* A605 : la DÉCOUPE glisse et s'élargit d'un seul mouvement (peinture, jamais layout) */
   .tb-tab{transition:color .3s ease}   /* le mot et son icône changent de couleur au rythme de la pastille */
   .tb-tabs.drag .tb-pill{transition:none}
+  .tb-tabs.tb-still :is(.tb-pill,.tb-tab){transition:none}   /* A717 : recalée au redimensionnement, sans glisser */
   html.tabnav .tb-tab.on{background:none}
   .tb-tabs.drag .tb-tab.on:not(.pre){color:var(--ink)}
   @media (prefers-reduced-motion:reduce){.tb-pill,.tb-tab{transition:none}}
@@ -17092,7 +17093,7 @@ function collSideHtml(){const num=n=>`<span class="hs-n">${n}</span>`;
     +hsRow({on:!state.coll,mark:HS_RING,label:'Tout',tail:num(homeVis().length),attrs:`data-collsel="" aria-pressed="${state.coll?'false':'true'}"`})
     +[collById(COLL_PIN)].concat(colls).map(c=>hsRow({on:state.coll===c.id,label:esc(c.name),tail:num(collItems(c).length),
       mark:collIc(c),attrs:`data-collsel="${esc(c.id)}" aria-pressed="${state.coll===c.id?'true':'false'}"`})).join('')
-    +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'})+`<div class="hs-sep"></div>`;}
+    +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'});}   // A717 : plus de filet de fin — il séparait des bibliothèques (purgées de la colonne, A606) ; celui du pied suffit (A366 : jamais deux traits et rien entre)
 /* Les catégories du périmètre affiché, UNE PAR NOM (cf. homeSideHtml) — la colonne gauche et les pastilles du
    téléphone (A517) lisent la même liste. `cnt` : Map catégorie → compte ; sans lui, compté ici. */
 function homeCatGroups(cnt){const catNom=state.cat||null;
@@ -17799,6 +17800,14 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
     n.querySelector('[data-tab="sessions"]').insertAdjacentHTML('afterbegin',uiIcon('history',22,{sw:2}));
     n.querySelector('.tb-tabs').insertAdjacentHTML('afterbegin','<span class="tb-pill" aria-hidden="true"></span>');
     tbDragBind(n.querySelector('.tb-tabs'));
+    /* A717 — LA BARRE SE RECALE QUAND ELLE CHANGE DE LARGEUR (signalé : fenêtre redimensionnée au bureau). La pastille
+       garde la découpe mesurée à son dernier placement : plus large ou plus étroite, elle tombait à côté de l'onglet
+       courant, dont le mot blanc disparaissait sur la barre blanche. À chaque changement de largeur : mots (A715) et
+       pastille remesurés, SANS glissement (`tb-still`) — la pastille suit la fenêtre, elle ne la poursuit pas. */
+    {const tabs=n.querySelector('.tb-tabs');let w0=-1,raf=0;
+     if('ResizeObserver' in window)new ResizeObserver(()=>{const w=tabs.clientWidth;if(w===w0)return;w0=w;
+       tabs.classList.add('tb-still');tbFit(tabs);tbPillPlace(tabs);
+       cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>requestAnimationFrame(()=>tabs.classList.remove('tb-still')));}).observe(tabs);}
     n.querySelector('#tbSrch').innerHTML=uiIcon('search',22,{sw:2.2});
     n.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
       if(homeTab()===t||(t==='me'&&homeTab()==='admin')){const s=main.querySelector('.home-main');window.scrollTo(0,0);if(s)s.scrollTop=0;if(homeTab()==='admin')setHomeTab('me');
