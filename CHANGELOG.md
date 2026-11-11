@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.123.0] — 2026-11-11
+Le sommaire d'un protocole dit où l'on se trouve (A728).
+- **Au téléphone, la carte « Sommaire » suit la lecture.** Dans un long protocole, coupé de grandes images, le titre
+  de la section n'est plus à l'écran. Une fois qu'on a commencé à descendre, la carte collée en haut écrit la section
+  en cours sur deux lignes — par exemple « Poignet », puis « Entorse scapho-lunaire ». En tête du protocole elle dit
+  toujours « Sommaire · 6 sections ». La toucher l'ouvre comme avant.
+- **Sur ordinateur, la section en cours est surlignée dans le sommaire de gauche**, comme dans le sommaire d'un PDF.
+  Si le sommaire est long, il se recale seul pour garder cette ligne visible.
+- La page ne bouge jamais d'elle-même : le sommaire suit le défilement, il ne le provoque pas. Seuls les titres `#` et
+  `##` sont suivis, comme dans le sommaire.
+
 ## [5.122.0] — 2026-11-11
 Deux défauts de lecture des protocoles, signalés sur capture (A726-A727).
 - **Une liste dans un encadré s'affiche comme une liste.** Dans un encadré (« Information », « Attention »…), une ligne
@@ -391,11 +402,3 @@ Régler la connexion temporaire dans Administration (A654). **Côté serveur : r
 - Une connexion temporaire par e-mail au-delà de la durée maximale se ramène à la dernière heure permise, et l'écran
   le dit ; la feuille « Connecter un appareil » ne propose plus d'heure au-delà.
 - Garde-fous : `rls-tests.sql` 16.17, `tests.html` (règles et heures bornées), `audit-lier.mjs` section 5 (52 contrôles).
-
-## [5.112.1] — 2026-11-10
-L'accueil pendant le chargement du compte (A653). Rien à rejouer côté serveur.
-- À la connexion d'un compte sur un appareil neuf, l'accueil disait « Votre bibliothèque est vide » et proposait les
-  aides d'exemple le temps que les aides arrivent. Il montre maintenant « Chargement de votre compte… » et trois
-  rangées qui respirent, puis le vrai contenu. Rien ne bouge si le système demande moins de mouvement ; un compte
-  déjà synchronisé, ou hors ligne, s'affiche aussitôt.
-- Garde-fou : `audit-doctrine.mjs`, section « Accueil · A653 ».

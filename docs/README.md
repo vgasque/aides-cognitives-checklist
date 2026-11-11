@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A727** à la v5.122.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A728** à la v5.123.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -349,6 +349,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A725 | `lot-v5-121.md` | Aux Bibliothèques, créer ou importer pré-remplit bibliothèque ET catégorie (`crtScope`, `crtCat`, `crtToutOn` ; `impLibDefaut`/`impRowsOf`) ; dans « Tout », les filtres valent contexte ; étend A632 |
 | A726 | `lot-v5-122.md` | Le corps d'un encadré se rend en paragraphes et listes dès qu'il porte un élément de liste (`qBody`, `qLi`, `MD_QLI_RX`) ; sinon rendu en ligne inchangé ; tâche non cochable dans un encadré |
 | A727 | `lot-v5-122.md` | En lecture, une image seule est plafonnée aux deux tiers de la fenêtre par sa largeur (`mdFigAr`, classes `fh1..6`) ; éditeur inchangé ; amende A608 en lecture |
+| A728 | `lot-v5-123.md` | Le sommaire d'un protocole dit où l'on est : carte collante du téléphone (`#` puis `##`), lien courant marqué (`aria-current`, grammaire A418), `refTocSpy` ; lit le défilement sans le provoquer |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-cdRtn0W6XwUguIh/335YFMxt0qK1gId9ydJ7KYvRpF4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QANXk+OfTX7Qj2jXFB27n7hUNvqxlErxeydF210YIu8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3822,6 +3822,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ref-main .md-body .md-fch{color:var(--ink-3)}
   .ref-main .md-body{font-size:var(--t-item);line-height:1.7}
   .ref-main .md-body li::marker{color:var(--line-strong)}
+  /* A728 : la carte dit la section courante — « # » sur la ligne du titre, « ## » dessous, chacun sur UNE ligne. */
+  .rt-sum.rt-ici{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0 12px;align-content:center}
+  .rt-sum.rt-ici::before{grid-row:1 / span 2;align-self:center}
+  .rt-sum.rt-ici::after{grid-column:3;grid-row:1 / span 2;align-self:center}
+  .rt-sum.rt-ici :is(.rt-h,.rt-n){grid-column:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+  .rt-sum.rt-ici .rt-n{margin:0;font-size:var(--t-meta);font-weight:600}
+  .rt-sum.rt-ici .rt-n:empty{display:none}
+  .ref-toc .rt-lnk[aria-current]{background:var(--primary-soft);color:var(--act);font-weight:700}
   .rt-sum::-webkit-details-marker{display:none}
   .rt-sum::after{content:"▾";flex:none;color:var(--ink-3);font-size:var(--g-cmd)}
   details.ref-toc[open] .rt-sum::after{content:"▴"}
@@ -10664,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.122.0';
+const APP_VERSION='5.123.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11617,6 +11625,41 @@ function mdFoldApply(root,id){
     h.appendChild(b);h.classList.add('md-fold');
     b.onclick=()=>mdFoldToggle(h,id);
     mdFoldPaint(h,!replies.has(k));});}
+/* A728 — LE SOMMAIRE DIT OÙ L'ON EST. Dans un protocole long, coupé de grandes images, le titre de la section n'est
+   plus à l'écran. Le sommaire suit la lecture : la carte collante du téléphone écrit la section courante (« # » puis
+   « ## » dessous) à la place de « Sommaire · n sections », et le lien courant est marqué (`aria-current`, la grammaire
+   du sommaire des PDF, A418) — dans la colonne du bureau comme dans le dépliant ouvert. Il LIT le défilement, il ne
+   le provoque jamais : seule la colonne se recale sur son lien. Un seul écouteur, retiré dès que le sommaire n'est
+   plus dans la page. */
+let _rtSpy=null;
+function refTocSpy(hs){
+  if(_rtSpy){removeEventListener('scroll',_rtSpy);_rtSpy=null;}
+  const nav=main.querySelector('.ref-toc');if(!nav||!hs||!hs.length)return;
+  const sum=nav.querySelector('.rt-sum'),h0=sum&&sum.querySelector('.rt-h'),n0=sum&&sum.querySelector('.rt-n');
+  const base=h0&&n0?[h0.textContent,n0.textContent]:null;let vu=null,raf=0;
+  const lire=()=>{raf=0;
+    if(!nav.isConnected){removeEventListener('scroll',_rtSpy);_rtSpy=null;return;}
+    const wrap=main.querySelector('.ref-tocwrap'),hdr=document.querySelector('header.bar');
+    /* Le QUART HAUT de la zone lue : un titre arrivé là est « où l'on est » — au ras des couches collantes, le
+       sommaire désignerait encore une section dont plus rien n'est à l'écran (mesuré à 1280 px). */
+    const haut=((wrap&&wrap.firstChild?wrap:hdr)||nav).getBoundingClientRect().bottom,seuil=haut+Math.max(16*zoomF(),(innerHeight-haut)/4);
+    let cur=null,c1=null;
+    for(const h of hs){if(!h.offsetParent)continue;if(h.getBoundingClientRect().top>seuil)break;cur=h;if(h.classList.contains('md-h1'))c1=h;}
+    /* La carte ne parle de la section qu'une fois COLLÉE sous l'en-tête : à sa place d'origine, en tête du protocole,
+       elle reste « Sommaire · n sections » — c'est là qu'on apprend qu'il y en a un. */
+    const colle=!!(base&&wrap&&hdr&&wrap.getBoundingClientRect().top<=hdr.getBoundingClientRect().bottom+1);
+    const k=(cur?cur.id:'')+(colle?'|c':'');if(k===vu)return;vu=k;
+    nav.querySelectorAll('.rt-lnk[aria-current]').forEach(l=>l.removeAttribute('aria-current'));
+    const l=cur?nav.querySelector('.rt-lnk[data-rtgo="'+CSS.escape(cur.id)+'"]'):null;
+    if(l){l.setAttribute('aria-current','location');
+      if(nav.tagName==='ASIDE'){const a=nav.getBoundingClientRect(),r=l.getBoundingClientRect();
+        if(r.top<a.top||r.bottom>a.bottom)nav.scrollTop+=(r.top-a.top-a.height/2)/zoomF();}}
+    if(base){const t1=cur&&colle?(c1||cur):null,t2=t1&&c1&&cur!==c1?cur:null;
+      h0.textContent=t1?t1.textContent:base[0];n0.textContent=t2?t2.textContent:(t1?'':base[1]);
+      sum.classList.toggle('rt-ici',!!t1);
+      if(t1)sum.setAttribute('aria-label','Sommaire — section en cours : '+t1.textContent+(t2?', '+t2.textContent:''));else sum.removeAttribute('aria-label');}};
+  _rtSpy=()=>{if(!raf)raf=requestAnimationFrame(lire);};
+  addEventListener('scroll',_rtSpy,{passive:true});lire();}
 function mdFoldPaint(h,ouvert){
   if(!h._sec)return;
   h._sec.hidden=!ouvert;h.classList.toggle('closed',!ouvert);
@@ -11625,7 +11668,7 @@ function mdFoldToggle(h,id){
   const ouvert=!!(h._sec&&h._sec.hidden);
   mdFoldPaint(h,ouvert);
   const s=mdFoldGet(id);if(ouvert)s.delete(h._fkey);else s.add(h._fkey);mdFoldSet(id,s);
-  mdFoldSyncBtn();}
+  mdFoldSyncBtn();if(_rtSpy)_rtSpy();}   // A728 : replier déplace les titres sans défiler
 /* Les titres repliables de la LECTURE (jamais ceux d'un aperçu d'éditeur : le bouton global vit
    dans le sommaire, qui n'existe qu'en lecture). */
 const mdFoldHs=()=>[...(main?main.querySelectorAll('.md-body .md-fold'):[])];
@@ -19413,7 +19456,8 @@ function renderProtocolRead(){
       dépliant — deux composants qui se lisent l'un l'autre finissent par se casser l'un l'autre. */
    if(bd)mdFoldApply(bd,p.id);
    {const fb=document.getElementById('rtFold');if(fb)fb.onclick=()=>mdFoldToggleAll(p.id);}
-   mdFoldSyncBtn();}
+   mdFoldSyncBtn();
+   refTocSpy(hs);}
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
   if(preview){

@@ -11100,6 +11100,30 @@ await sec('A726-A727 · une liste dans un encadré ; en lecture, une image tient
     await page.close();}
 });
 
+await sec('A728 · le sommaire d’un protocole dit où l’on est', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:800},hasTouch:W<780,isMobile:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{const para=Array(14).fill('Un paragraphe de remplissage pour allonger la section.').join('\n\n');
+      const pr=migrateProtocol({id:'p728',title:'Témoin A728',body:['# Clavicule','## Fracture du tiers moyen',para,'## Fracture de Monteggia',para,'# Poignet','## Entorse scapho-lunaire',para,'# Main',para].join('\n\n')});
+      protocols.push(pr);openProtocolRead('p728');await __acCalme(600);
+      const tic=()=>new Promise(x=>requestAnimationFrame(()=>requestAnimationFrame(x)));
+      const lu=()=>{const s=document.querySelector('.rt-sum');return {sum:s?[s.querySelector('.rt-h').textContent,s.querySelector('.rt-n').textContent]:null,ici:!!(s&&s.classList.contains('rt-ici')),
+        cur:[...document.querySelectorAll('.ref-toc .rt-lnk[aria-current]')].map(l=>l.textContent)};};
+      const va=async re=>{const h=[...document.querySelectorAll('.md-body .md-h1,.md-body .md-h2')].find(x=>re.test(x.textContent));window.scrollTo(0,h.getBoundingClientRect().top+scrollY-120);await tic();await __acCalme(200);};
+      const o={haut:lu()};
+      await va(/Entorse/);const y=scrollY;o.h2=lu();await tic();o.fixe=scrollY===y;
+      await va(/^Main/);o.h1=lu();
+      window.scrollTo(0,0);await tic();await __acCalme(200);o.retour=lu();
+      return o;});
+    if(W<780){
+      t(`${W} px · A728 : en haut du protocole, la carte à sa place dit « Sommaire · n sections », à l'arrivée comme au retour`,r.haut.sum&&r.haut.sum[0]==='Sommaire'&&/sections$/.test(r.haut.sum[1])&&!r.haut.ici&&r.retour.sum[0]==='Sommaire'&&/sections$/.test(r.retour.sum[1])&&!r.retour.ici,JSON.stringify([r.haut,r.retour]));
+      t(`${W} px · A728 : dans une sous-section, la carte écrit « # » puis « ## » ; dans une section sans sous-titre, « # » seul`,r.h2.ici&&r.h2.sum[0]==='Poignet'&&r.h2.sum[1]==='Entorse scapho-lunaire'&&r.h1.sum[0]==='Main'&&r.h1.sum[1]==='',JSON.stringify([r.h2,r.h1]));}
+    t(`${W} px · A728 : le lien de la section courante est marqué, un seul à la fois ; le sommaire ne déplace pas la page`,r.h2.cur.length===1&&r.h2.cur[0]==='Entorse scapho-lunaire'&&r.h1.cur.length===1&&r.h1.cur[0]==='Main'&&r.fixe,JSON.stringify({h2:r.h2.cur,h1:r.h1.cur,fixe:r.fixe}));
+    await page.close();}
+});
+
 await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier » n’attend pas le réseau', async () => {
   const page=await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
