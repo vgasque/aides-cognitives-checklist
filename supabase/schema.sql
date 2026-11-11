@@ -198,7 +198,8 @@ create policy cats_shared_write on public.category_sets for all
   with check (library_id is not null and public.member_role(library_id) in ('editor','admin'));
 
 -- libraries : lecture = membre ou app-admin ; création = app-admin (réécrite au § 9 : règle d'instance, v5.51) ;
---             renommage = app-admin ou library-admin ; suppression = app-admin
+--             renommage = app-admin ou library-admin ; suppression = app-admin ou library-admin (A720 : il pouvait
+--             déjà en retirer tous les membres, la règle ne protégeait rien et ne faisait qu'allonger le chemin)
 drop policy if exists lib_select on public.libraries;
 create policy lib_select on public.libraries for select
   using (public.is_member(id) or public.is_app_admin());
@@ -211,7 +212,7 @@ create policy lib_update on public.libraries for update
   with check (public.is_app_admin() or public.member_role(id) = 'admin');
 drop policy if exists lib_delete on public.libraries;
 create policy lib_delete on public.libraries for delete
-  using (public.is_app_admin());
+  using (public.is_app_admin() or public.member_role(id) = 'admin');   -- A720 ; un poste partagé reste refusé (libraries_temp_del)
 
 -- memberships : on voit ses propres lignes (et l'admin voit celles de sa biblio) ;
 --               seul un library-admin (ou app-admin) ajoute/retire des membres
@@ -2082,6 +2083,20 @@ begin
       raise exception 'last_admin';
     end if;
   end if;
+  -- A718 — ET JAMAIS SANS PERSONNE : le DERNIER membre accepté ne se retire pas (ni par `leave_library`, ni par un
+  -- DELETE d'administrateur de l'instance). La bibliothèque resterait sans membre, son contenu visible du seul
+  -- administrateur de l'instance. Mêmes exceptions que ci-dessus (suppression de la bibliothèque ou du compte,
+  -- compte qui cesse d'être approuvé, maintenance sans jeton) : on la supprime, on ne la vide pas.
+  if tg_op = 'DELETE' and auth.uid() is not null and not old.pending then
+    perform 1 from public.libraries where id = old.library_id for update;
+    if found
+       and exists (select 1 from auth.users where id = old.user_id)
+       and coalesce((select status from public.user_status where user_id = old.user_id), 'approved') = 'approved'
+       and not exists (select 1 from public.memberships
+                        where library_id = old.library_id and not pending and user_id <> old.user_id) then
+      raise exception 'last_member';
+    end if;
+  end if;
   if tg_op = 'DELETE' then return old; end if;
   return new;
 end;$$;
@@ -2092,7 +2107,7 @@ revoke execute on function public.memberships_keep_admin() from public, anon, au
 
 -- QUITTER une bibliothèque : SA propre adhésion, et elle seule (aucune identité en paramètre). Il n'y
 -- avait aucun chemin : `mem_write` réserve le retrait aux administrateurs, un lecteur ou un éditeur ne
--- pouvait donc pas partir. Rend 'ok', 'not_member' ou 'last_admin' (nommer d'abord un autre
+-- pouvait donc pas partir. Rend 'ok', 'not_member', 'last_member' (A718) ou 'last_admin' (nommer d'abord un autre
 -- administrateur) ; refusée depuis un poste partagé (A647 : membres et rôles). Ce qu'il a versé dans la
 -- bibliothèque y reste (contenu collectif de l'équipe).
 create or replace function public.leave_library(p_library text)
@@ -2107,6 +2122,11 @@ begin
      and not exists (select 1 from public.memberships
                       where library_id = p_library and role = 'admin' and not pending and user_id <> auth.uid()) then
     return 'last_admin';
+  end if;
+  -- A718 : le seul membre ne quitte pas — on supprime la bibliothèque, on ne la laisse pas sans personne.
+  if not exists (select 1 from public.memberships
+                  where library_id = p_library and not pending and user_id <> auth.uid()) then
+    return 'last_member';
   end if;
   delete from public.memberships where user_id = auth.uid() and library_id = p_library;
   return 'ok';

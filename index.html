@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rbRnennwR0lvM+jNFsKDW9XIpqtsi36/ngIQbmhz60Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-alQ1hkEtEGVFv+UdDhSCLHuEOrb5W7VJuzz+UAdOU6I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3083,6 +3083,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ctg-f svg{transform:rotate(90deg)}
   .ctg-f:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .ctg-raz{min-height:36px}
+  /* A719 : « Gérer la bibliothèque » à droite ; « Tout effacer » reste collé aux filtres qu'il efface. */
+  .ctg-lmgr{min-height:36px}
+  .ctg-fs>.ctg-raz:has(~.ctg-lmgr){margin-left:4px}
   /* A602 — LES VOLETS (large). La page s'affranchit de sa largeur de dialogue ; trois colonnes ≥ 1200 px effectifs
      (bibliothèques · catégories · éléments), deux en deçà (les catégories se déplient sous leur bibliothèque). */
   .home-main>.hv-page.ctg-volets{max-width:none;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
@@ -3112,6 +3115,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     transition:clip-path .3s cubic-bezier(.3,1.2,.4,1)}   /* A605 : la DÉCOUPE glisse et s'élargit d'un seul mouvement (peinture, jamais layout) */
   .tb-tab{transition:color .3s ease}   /* le mot et son icône changent de couleur au rythme de la pastille */
   .tb-tabs.drag .tb-pill{transition:none}
+  .tb-tabs.tb-still :is(.tb-pill,.tb-tab){transition:none}   /* A717 : recalée au redimensionnement, sans glisser */
   html.tabnav .tb-tab.on{background:none}
   .tb-tabs.drag .tb-tab.on:not(.pre){color:var(--ink)}
   @media (prefers-reduced-motion:reduce){.tb-pill,.tb-tab{transition:none}}
@@ -9033,7 +9037,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-doc{display:block;margin:4px 0 8px}
   .mdb{position:relative;border-radius:var(--r-1);cursor:text}
   .md-doc>.mdb:first-child>:first-child,.md-doc>.ed-grab+.ed-drop+.mdb>:first-child{margin-top:0}
-  @media (hover:hover){.mdb:not(.on):not(.grabbed):hover{outline:1px solid var(--line-strong);outline-offset:6px}}
+  @media (hover:hover){.mdb:not(.on):not(.grabbed):not(.sel):hover{outline:1px solid var(--line-strong);outline-offset:6px}}   /* A722 : le survol ne redessine pas un bloc déjà dans le cadre de sélection */
   .mdb.on{margin:12px 0}
   .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:10px 12px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
     background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
@@ -9055,7 +9059,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-ins:hover{border-color:var(--act);background:var(--primary-soft)}
   .mdb-ins:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* A610 — blocs sélectionnés : le fond et le cadre du « bloc courant » (bleu, règle 8), la barre en matière système. */
-  .mdb.sel{outline:2px solid var(--act);outline-offset:6px;background:var(--primary-soft);box-shadow:0 0 0 6px var(--primary-soft)}
+  /* A722 — UNE SUITE DE BLOCS SÉLECTIONNÉS SE DESSINE EN UN SEUL CADRE (signalé sur capture : « certains overlap et d'autres
+     non »). Chaque bloc portait son cadre à 6 px de lui : deux blocs à moins de 12 px (un titre et sa liste) voyaient
+     leurs cadres se chevaucher, deux blocs plus espacés en gardaient deux. Le cadre est un `::after` : un bloc suivi
+     d'un bloc sélectionné ouvre son bas et descend jusqu'au suivant (`--selgap`, mesuré par `selPaint`), le suivant
+     ouvre son haut. Le fond et le cadre restent ceux du « bloc courant » (A610, bleu, règle 8). */
+  .mdb.sel{z-index:0}
+  .mdb.sel::after{content:"";position:absolute;inset:-6px;z-index:-1;border:2px solid var(--act);border-radius:var(--r-1);background:var(--primary-soft)}   /* pseudo-élément : un toucher sur lui EST un toucher sur le bloc */
+  .mdb.sel.sel-b::after{bottom:calc(-1 * var(--selgap,0px));border-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .mdb.sel.sel-t::after{top:0;border-top:0;border-top-left-radius:0;border-top-right-radius:0}
+  /* A722 (demande de l'auteur : « c'est bien aussi de savoir combien de blocs il y a ») : dans le cadre commun, un fin
+     séparateur au milieu de l'écart entre deux blocs pris — on compte les blocs sans reperdre l'objet unique. */
+  .mdb.sel.sel-b:not(.grabbed)::before{content:"";position:absolute;left:4px;right:4px;bottom:calc(-.5 * var(--selgap,0px));height:1px;
+    background:color-mix(in srgb,var(--act) 40%,transparent)}
   .md-doc.mdb-selon .mdb:not(.on){cursor:pointer;-webkit-user-select:none;user-select:none}
   .md-doc.mdb-selon .mdb-ed,.md-doc.mdb-selon .mdb-grab{display:none}
   /* A634 : le cadre de sélection (souris) — le bleu de l'action, en voile léger (les écouteurs sont sur le document : il peut se trouver sous le pointeur). */
@@ -10629,7 +10645,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.119.4';
+const APP_VERSION='5.119.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16302,7 +16318,7 @@ function applyViewChrome(){
     if(!tk.hidden&&!tk.querySelector('svg'))tk.querySelector('.dp-ic').innerHTML=uiIcon('stopwatch',13,{sw:2.2});
     /* v5.30 (maquette v5) : la touche dit « Journal · n » — le tap pose l'heure (ECAM : l'heure
        prime) et ouvre la feuille, qui nomme le repère ET relit le journal. */
-    if(!tk.hidden){const nEv=(Runtime.events||[]).length;const lb=tk.querySelector('.dp-lbl');const txt='Horodater'+(nEv?' · '+nEv:'');if(lb.textContent!==txt)lb.textContent=txt;}
+    paintTkKey();
     if(tk.hidden&&state.tkSheet)dockSheetClose();}
    /* ══ HORS SESSION : EXERCICE + DÉMARRER, ET RIEN D'AUTRE (v5.6, maquettes 1b/1c) ═════════
       Le geste d'entrée rejoint le dock (décision de l'auteur) : position CONSTANTE au pouce —
@@ -17092,7 +17108,7 @@ function collSideHtml(){const num=n=>`<span class="hs-n">${n}</span>`;
     +hsRow({on:!state.coll,mark:HS_RING,label:'Tout',tail:num(homeVis().length),attrs:`data-collsel="" aria-pressed="${state.coll?'false':'true'}"`})
     +[collById(COLL_PIN)].concat(colls).map(c=>hsRow({on:state.coll===c.id,label:esc(c.name),tail:num(collItems(c).length),
       mark:collIc(c),attrs:`data-collsel="${esc(c.id)}" aria-pressed="${state.coll===c.id?'true':'false'}"`})).join('')
-    +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'})+`<div class="hs-sep"></div>`;}
+    +hsRow({cls:'quiet',label:'Nouvelle collection',mark:uiIcon('plus',14),attrs:'data-collnew'});}   // A717 : plus de filet de fin — il séparait des bibliothèques (purgées de la colonne, A606) ; celui du pied suffit (A366 : jamais deux traits et rien entre)
 /* Les catégories du périmètre affiché, UNE PAR NOM (cf. homeSideHtml) — la colonne gauche et les pastilles du
    téléphone (A517) lisent la même liste. `cnt` : Map catégorie → compte ; sans lui, compté ici. */
 function homeCatGroups(cnt){const catNom=state.cat||null;
@@ -17799,6 +17815,14 @@ function syncTabBar(){const n=document.getElementById('tabNav');if(!n)return;
     n.querySelector('[data-tab="sessions"]').insertAdjacentHTML('afterbegin',uiIcon('history',22,{sw:2}));
     n.querySelector('.tb-tabs').insertAdjacentHTML('afterbegin','<span class="tb-pill" aria-hidden="true"></span>');
     tbDragBind(n.querySelector('.tb-tabs'));
+    /* A717 — LA BARRE SE RECALE QUAND ELLE CHANGE DE LARGEUR (signalé : fenêtre redimensionnée au bureau). La pastille
+       garde la découpe mesurée à son dernier placement : plus large ou plus étroite, elle tombait à côté de l'onglet
+       courant, dont le mot blanc disparaissait sur la barre blanche. À chaque changement de largeur : mots (A715) et
+       pastille remesurés, SANS glissement (`tb-still`) — la pastille suit la fenêtre, elle ne la poursuit pas. */
+    {const tabs=n.querySelector('.tb-tabs');let w0=-1,raf=0;
+     if('ResizeObserver' in window)new ResizeObserver(()=>{const w=tabs.clientWidth;if(w===w0)return;w0=w;
+       tabs.classList.add('tb-still');tbFit(tabs);tbPillPlace(tabs);
+       cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>requestAnimationFrame(()=>tabs.classList.remove('tb-still')));}).observe(tabs);}
     n.querySelector('#tbSrch').innerHTML=uiIcon('search',22,{sw:2.2});
     n.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
       if(homeTab()===t||(t==='me'&&homeTab()==='admin')){const s=main.querySelector('.home-main');window.scrollTo(0,0);if(s)s.scrollTop=0;if(homeTab()==='admin')setHomeTab('me');
@@ -18286,11 +18310,15 @@ function ctgFiltresHtml(){const F=state.ctf;
     +lbl('lib',F.lib!=null?homeLibLblOf(F.lib):'')
     +lbl('cat',F.cat?(catsUtilesAll().find(c=>txNorm(c.name)===F.cat)||(categories||[]).find(c=>c&&txNorm(c.name||'')===F.cat)||{name:F.cat}).name:'')   // A708 : jamais la clé normalisée à l'écran
     +lbl('sort',F.sort==='recent'?'Plus récentes':F.sort==='todo'?'Tâches d’abord':'A → Z',F.sort==='recent'||F.sort==='todo')
-    +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')+`</div>`;}
+    +((F.type!=='all'||F.lib!=null||F.cat)?`<button type="button" class="linkbtn ctg-raz" data-ctgraz>Tout effacer</button>`:'')
+    /* A719 (demande de l'auteur) : la bibliothèque filtrée se gère d'ici — la même fenêtre que le crayon des têtes de
+       groupe (« Modifier la bibliothèque »), aux mêmes personnes (son administrateur, celui de l'application). */
+    +((F.lib&&(roleOf(F.lib)==='admin'||myIsAppAdmin))?`<button type="button" class="linkbtn ctg-lmgr" data-libedit="${esc(F.lib)}" aria-haspopup="dialog" aria-label="${esc('Gérer la bibliothèque « '+homeLibLblOf(F.lib)+' »')}">${uiIcon('gear',14)} Gérer la bibliothèque</button>`:'')+`</div>`;}
 /* Le câblage d'une liste d'éléments du catalogue : ouvrir (ou cocher en sélection), cases, barre, filtres. */
 function ctgBindListe(cfg,vis,F){const redo=cfg.rerender;
   main.querySelectorAll('[data-ctgraz]').forEach(b=>b.onclick=()=>{state.ctf={type:'all',lib:null,cat:'',sort:F.sort};redo();});
   main.querySelectorAll('[data-ctgf]').forEach(b=>b.onclick=()=>ctgFilterPick(b,redo));
+  main.querySelectorAll('.ctg-fs [data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));   // A719
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>{const id=el.dataset.open;
     if(Date.now()-_lpEat<600)return;
     if(state.selOn){const x=vis.find(y=>y.id===id);if(x&&canEditFiche(x)){selToggle(id);redo();return;}}
@@ -19680,7 +19708,12 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      du champ masqué ne remonte pas à l'éditeur ; `edTouch` pose donc lui-même l'enregistrement et le point de reprise (↶). */
   const push=v=>{self=true;ta.value=v;ta.dispatchEvent(new Event('input'));self=false;edTouch();};
   const fit=t=>{t.style.height='auto';t.style.height=Math.ceil(t.scrollHeight/zoomF()+2)+'px';};
-  const selPaint=()=>{doc.querySelectorAll('.mdb[data-mdb]').forEach(b=>{const on=sel.has(+b.dataset.mdb);b.classList.toggle('sel',on);});
+  const selPaint=()=>{const bs=[...doc.querySelectorAll('.mdb[data-mdb]')],z=zoomF();
+    bs.forEach((b,i)=>{const on=sel.has(+b.dataset.mdb),nx=bs[i+1],pv=bs[i-1];
+      const suit=on&&!!nx&&sel.has(+nx.dataset.mdb),pre=on&&!!pv&&sel.has(+pv.dataset.mdb);
+      b.classList.toggle('sel',on);b.classList.toggle('sel-b',suit);b.classList.toggle('sel-t',pre);   // A722 : un seul cadre par suite
+      if(suit)b.style.setProperty('--selgap',Math.max(0,(nx.getBoundingClientRect().top-b.getBoundingClientRect().bottom)/z)+'px');
+      else b.style.removeProperty('--selgap');});
     doc.classList.toggle('mdb-selon',selMode||sel.size>0);
     let bar=doc.querySelector('.mdb-selbar');if(!sel.size&&!selMode){if(bar)bar.remove();return;}
     const n=sel.size,h=`<span class="mdb-sb-n" role="status">${n?n+' bloc'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Touchez les blocs à sélectionner'}</span>`
@@ -23711,7 +23744,15 @@ function tkNoteNow(fromBlock){
      fil d'Ariane change la hauteur, le PIED bouge). Détail : doctrine-js.md J127. */
   if(started)keepAnchor('.ov-block.cur',render);
   else if(!renderTkOnly())render();}
+/* A716 — LE COMPTE DE « HORODATER » SUIT CHAQUE REPÈRE, OÙ QU'IL NAISSE. Il n'était écrit que par `syncDock` (rendu
+   complet) : une coche liée à un compteur pose un repère par le chemin chirurgical, et le dock gardait l'ancien
+   nombre. Peint ici, depuis `renderTkOnly` — par où passe tout changement du journal (coche liée, ＋ d'un compteur,
+   repère reçu du partage, annulation) —, AVANT sa sortie « volet fermé », qui est justement le cas du téléphone. */
+function paintTkKey(){const tk=document.getElementById('tkKey');if(!tk||tk.hidden)return;
+  const nEv=(Runtime.events||[]).length,lb=tk.querySelector('.dp-lbl'),txt='Horodater'+(nEv?' · '+nEv:'');
+  if(lb&&lb.textContent!==txt)lb.textContent=txt;}
 function renderTkOnly(){
+  paintTkKey();
   const old=document.querySelector('.tk-panel');
   // v5.4.2 : volet fermé en étroit -> le journal n'est nulle part dans le DOM (la rangée repliée
   // qui annonçait son compte a été supprimée avec son logement) — rien à repeindre.
@@ -28731,6 +28772,15 @@ function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor(
     :'<p class="tme-h">Un chronomètre COMPTE le temps écoulé : il ne sonne pas. Pour une alarme, prenez un minuteur ou un cycle.</p>'}
   </div>`;}
 // A440 : un réglage qui change un avertissement ailleurs re-rend l'éditeur, ancré sur sa carte, focus gardé.
+/* A716 — RE-RENDRE APRÈS AVOIR QUITTÉ UN CHAMP, SANS PERDRE LE CHAMP SUIVANT. `change` part pendant que le focus
+   s'en va : rendre tout de suite détruisait le champ que Tab (ou le doigt) venait d'atteindre. On laisse le focus
+   arriver, on note OÙ il est (sa carte + son attribut `data-*`), on rend, on l'y repose. */
+function edRedoKeepFocus(){setTimeout(()=>{if(!edKind())return;const a=document.activeElement;let sel=null;
+  if(a&&a!==document.body&&main.contains(a)){const row=a.closest('.tmedit[data-ti],.tmedit[data-ci],.blk[data-bid]');
+    const at=[...a.attributes].find(x=>x.name.startsWith('data-'));
+    if(row&&at){const rk=row.hasAttribute('data-ti')?'.tmedit[data-ti="'+row.dataset.ti+'"]':row.hasAttribute('data-ci')?'.tmedit[data-ci="'+row.dataset.ci+'"]':'.blk[data-bid="'+CSS.escape(row.dataset.bid)+'"]';
+      sel=rk+' ['+at.name+(at.value?'="'+CSS.escape(at.value)+'"':'')+']';}}
+  renderEditor();if(sel){const e=main.querySelector(sel);if(e)e.focus({preventScroll:true});}},0);}
 function edRowRedo(sel,fsel){keepAnchor(sel,renderEditor);const e=main.querySelector(sel+' '+fsel);if(e)e.focus({preventScroll:true});}
 function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type==='interval');
   /* LE COMPTEUR PREND L'ANATOMIE DE LA CARTE DE MINUTEUR (v4.78.0, signalé à l'usage : « le bouton
@@ -29131,12 +29181,16 @@ function bindEditorEvents(f){
 
   main.querySelectorAll('[data-ti]').forEach(row=>{const t=f.timers[+row.dataset.ti];const lab=row.querySelector('[data-tf]'),sh=row.querySelector('[data-tshort]');if(lab)lab.addEventListener('input',e=>{t.label=e.target.value;if(sh)sh.placeholder=autoShort(t.label,SHORT_TM);});
     if(sh)sh.addEventListener('input',e=>{const v=e.target.value.trim();if(v)t.short=v;else delete t.short;});
+    /* A716 : renommé, le minuteur se relit partout où l'éditeur le cite (étapes liées, réglages, jalons, bloc qui le
+       lance) — en quittant le champ, comme le titre d'un bloc (`change` → rendu), jamais à chaque frappe. */
+    [lab,sh].forEach(x=>{if(x)x.addEventListener('change',edRedoKeepFocus);});
     const mn=row.querySelector('[data-tmin]'),sc=row.querySelector('[data-tsec]');const upd=()=>{t.seconds=(parseInt(mn.value||0)||0)*60+(parseInt(sc.value||0)||0);};if(mn)mn.addEventListener('input',upd);if(sc)sc.addEventListener('input',upd);
     const lp=row.querySelector('[data-tloop]');if(lp)lp.addEventListener('change',e=>{t.autoloop=e.target.checked;edRowRedo('.tmedit[data-ti="'+row.dataset.ti+'"]','[data-tloop]');});
     const du=row.querySelector('[data-tdue]');if(du)du.addEventListener('input',e=>t.onDue=e.target.value);   // K7
     const dl=row.querySelector('[data-tdel]');if(dl)dl.onclick=()=>{f.timers.splice(+dl.dataset.tdel,1);renderEditor();toast('Minuteur supprimé — ↶ pour annuler.');};});
   main.querySelectorAll('[data-ci]').forEach(row=>{const c=f.counters[+row.dataset.ci];const lab=row.querySelector('[data-cf]'),sh=row.querySelector('[data-cshort]');if(lab)lab.addEventListener('input',e=>{c.label=e.target.value;if(sh)sh.placeholder=c.label;});
     if(sh)sh.addEventListener('input',e=>{const v=e.target.value.trim();if(v)c.short=v;else delete c.short;});
+    [lab,sh].forEach(x=>{if(x)x.addEventListener('change',edRedoKeepFocus);});   // A716 : comme le minuteur
     const st=row.querySelector('[data-cstep]');if(st)st.addEventListener('input',e=>c.step=parseInt(e.target.value||1)||1);const sr=row.querySelector('[data-cstart]');if(sr)sr.addEventListener('input',e=>c.start=parseInt(e.target.value||0)||0);
     const dl=row.querySelector('[data-cdel]');if(dl)dl.onclick=()=>{f.counters.splice(+dl.dataset.cdel,1);renderEditor();toast('Compteur supprimé — ↶ pour annuler.');};
     const lk=row.querySelector('[data-clink]');if(lk)lk.onchange=()=>{f.counters[+row.dataset.ci].timerId=lk.value;edRowRedo('.tmedit[data-ci="'+row.dataset.ci+'"]','[data-clink]');};
@@ -33197,6 +33251,19 @@ function libReqRowsHtml(){return (myLibReqs||[]).map(r=>{const ko=r.status==='re
   return menuRowHtml({label:'« '+r.name+' »',ic:uiIcon(ko?'warn':'history',20),inert:true,
     sub:(ko?'demande refusée':'demande en attente, envoyée')+' le '+new Date(r.decided_at||r.created_at).toLocaleDateString('fr-FR')+(r.invitees?' · '+nb(r.invitees,'invité'):''),
     tail:`<button type="button" class="btn sm" data-libreqx="${esc(r.id)}">${ko?'Effacer':'Annuler'}</button>`});}).join('');}
+/* A721 — QUITTER UNE BIBLIOTHÈQUE QU'ON N'ADMINISTRE PAS, depuis Moi. Le serveur seul sait s'il reste quelqu'un (la liste
+   des membres n'est montrée qu'aux administrateurs) : il refuse le dernier membre (`last_member`, A718) et on le dit. */
+async function libLeaveAsk(id){
+  if(linkDeny('Quitter une bibliothèque'))return;
+  const nom=libName(id)||'cette bibliothèque';
+  if(!await confirmDlg('Vous ne verrez plus ses aides ni ses protocoles sur vos appareils. Un administrateur pourra vous y rajouter.',{title:'Quitter « '+nom+' » ?',yes:'Quitter',danger:true}))return;
+  let r;try{r=await rpc('leave_library',{p_library:id});}catch(e){toast('⚠ Impossible de quitter « '+nom+' » : '+e.message,6000,true);return;}
+  if(r==='last_member'){toast('⚠ Vous êtes le seul membre de « '+nom+' » : une bibliothèque ne reste jamais sans personne. Demandez sa suppression à son administrateur, ou à celui de l’application.',9000,true);return;}
+  if(r==='last_admin'){toast('⚠ Vous êtes le seul administrateur de « '+nom+' » : nommez-en un autre d’abord.',7000,true);return;}
+  if(r!=='ok'){toast('⚠ Impossible de quitter « '+nom+' » ('+sstr(String(r||''),40)+').',6000,true);return;}
+  await Sync.loadProfile();try{Sync.full();}catch(e){}
+  if(state.view==='library')render();else renderAuth();
+  toast('Vous avez quitté « '+nom+' ».',5000,true);}
 async function libReqCancel(id){
   if(linkDeny('Annuler une demande de bibliothèque'))return;   // A710 : le serveur l'ignore sur un appareil temporaire (A679) — la rangée disparaissait puis revenait
   try{await rpc('cancel_library_request',{p_id:id});}catch(e){toast('⚠ Impossible : '+e.message,5000,true);return;}
@@ -33579,8 +33646,14 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
           if(r!=='ok'){toast(r==='not_approved'||r==='not_found'?'⚠ Ce compte n’est pas validé : il ne peut pas être invité.':'⚠ Invitation impossible ('+r+').',5000,true);return;}
           delete _adm.mem[u.user_id];admAfter('Invité comme Lecteur — la personne rejoint en acceptant, dans Moi.');}});return;}
     if(t.dataset.admrm!=null){const u=admUser();if(!u)return;
+      /* A718 : le SEUL membre ne se retire pas, ni par lui-même ni par l'administrateur de l'instance — la bibliothèque
+         resterait sans personne. Le serveur le refuse (`last_member`) ; ici on le dit avant de demander. */
+      {const L=(_admD.libs||[]).find(l=>l.id===t.dataset.admrm);
+       if(L&&(+L.members||0)<=1){toast('⚠ '+u.email+' est le seul membre de « '+(L.name||'cette bibliothèque')+' » : une bibliothèque ne reste jamais sans personne. Supprimez-la plutôt, depuis Administration › Bibliothèques.',8000,true);return;}}
       if(!await confirmDlg('Retirer '+u.email+' de « '+(libName(t.dataset.admrm)||'cette bibliothèque')+' » ?',{yes:'Retirer',danger:true}))return;
-      try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}catch(x){err(x);}
+      try{await rest('DELETE','/rest/v1/memberships?library_id=eq.'+encodeURIComponent(t.dataset.admrm)+'&user_id=eq.'+encodeURIComponent(u.user_id),null,{'Prefer':'return=minimal'});}
+      catch(x){const m=String(x&&x.message||x);
+        toast(/last_member/.test(m)?'⚠ C’est le seul membre de cette bibliothèque : supprimez-la plutôt.':/last_admin/.test(m)?'⚠ C’est le seul administrateur de cette bibliothèque : nommez-en un autre d’abord.':'⚠ Échec : '+m,7000,true);return;}   // A718 : un refus n'est plus suivi d'un « fait »
       delete _adm.mem[u.user_id];admAfter();return;}
     if(t.dataset.admap!=null){_adm.apAsk=_adm.apAsk!=null?null:!_admD.approval;renderAdm();admFocusYes('ap');return;}
     if(t.dataset.trk!=null){const k=t.dataset.trk,v=t.dataset.trv;   // A654 ; A661 : le tap DEMANDE, « Confirmer » applique
@@ -33822,6 +33895,7 @@ function renderAuthAccount(body,u,doOut){
     if(linkShared()){body.innerHTML=`${linkSharedCardHtml(false)}${acctLibsHtml()}${accountPrefsHtml()}`;
       bindAccountPrefs(body);linkBindCard(body);
       body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
+      body.querySelectorAll('[data-libleave]').forEach(b=>b.onclick=()=>libLeaveAsk(b.dataset.libleave));   // A721 : sur un poste, le refus se dit (linkDeny)
       {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
       body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));body.querySelectorAll('[data-invok]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invok,true));body.querySelectorAll('[data-invno]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invno,false));
       return;}
@@ -33843,6 +33917,7 @@ function renderAuthAccount(body,u,doOut){
         <p class="danger-caption">Supprime le compte, les données synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
     body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
+    body.querySelectorAll('[data-libleave]').forEach(b=>b.onclick=()=>libLeaveAsk(b.dataset.libleave));   // A721
     {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
     body.querySelectorAll('[data-libreqx]').forEach(b=>b.onclick=()=>libReqCancel(b.dataset.libreqx));body.querySelectorAll('[data-invok]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invok,true));body.querySelectorAll('[data-invno]').forEach(b=>b.onclick=()=>inviteAnswer(b.dataset.invno,false));
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
@@ -33873,8 +33948,11 @@ function acctLibsHtml(){
   const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
   const rows=[menuRowHtml({label:'Perso',sub:'vous seul · '+n(cnt(null)),ic:uiIcon('user',20),inert:true})]
     .concat(sortedLibraries().map(l=>{const admin=l.role==='admin'||myIsAppAdmin;
-      return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),inert:!admin,
-        attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:'',tail:admin?chev:''});}));
+      /* A721 (amende A364) : la rangée d'une bibliothèque qu'on N'ADMINISTRE PAS n'est plus inerte — elle mène à
+         « Quitter ». A663 permet à tout membre de partir (`leave_library`), mais seule la fenêtre d'administration en
+         portait le bouton : un lecteur ou un éditeur n'avait aucune porte. */
+      return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),
+        attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:`data-libleave="${esc(l.id)}" aria-haspopup="dialog" aria-label="Quitter la bibliothèque « ${esc(l.name||'')} »…"`,tail:chev});}));
   return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques <span class="acct-hs">où vivent les aides, et qui y a accès</span></div><div class="acct-card acct-list">${inviteRowsHtml()}${rows.join('')}${libReqRowsHtml()}${libNewOn()?`<button type="button" class="catmenu-new" data-newlib>＋ ${esc(libNewLbl())}</button>`:''}</div></div>`;}
 /* A475 : MES COLLECTIONS dans Moi, connecté ou non (elles vivent sur l'appareil, et suivent le compte s'il y en a un).
    Une rangée mène à la collection depuis l'accueil ; ailleurs elle informe (on ne quitte pas une aide ouverte par Moi). */
@@ -38159,6 +38237,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   body.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement des membres…</p>';
   let list=[];try{list=await rpc('list_members',{p_library:_memLib})||[];}catch(e){body.innerHTML='<p class="auth-msg err">Erreur de chargement des membres.</p>';return;}
   const me=Auth.user()&&Auth.user().id;const isAdmin=(roleOf(_memLib)==='admin')||myIsAppAdmin;const n=list.length;
+  const seulMembre=!list.some(m=>m&&!m.pending&&m.user_id!==me);   // A718 : personne d'autre n'a accepté d'en être
   const canRename=(roleOf(_memLib)==='admin'||myIsAppAdmin);
   // Dialogue au gabarit SPEC gestion §3 : NOM (champ pré-rempli) -> Annuler / Enregistrer
   // (IMMÉDIATEMENT sous le champ : ils ne portent QUE sur le nom — placés sous les membres,
@@ -38184,9 +38263,13 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
     <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app ; elle rejoint la bibliothèque en <b>acceptant l'invitation</b>, dans Moi. Rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>
-    ${roleOf(_memLib)?`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`:''}
+    ${roleOf(_memLib)?(seulMembre
+      /* A718 : le SEUL membre ne quitte pas — la bibliothèque resterait sans personne, ses aides visibles du seul
+         administrateur de l'instance. On dit ce qui reste possible, sur place. */
+      ?`<p class="roles-caption">Vous êtes le seul membre de cette bibliothèque : la quitter la laisserait sans personne. ${isAdmin?'Supprimez-la plutôt (ci-dessous)':'Pour vous en séparer, demandez sa suppression à l’administrateur de l’application'}, ou invitez d’abord quelqu’un.</p>`
+      :`<div class="dlg-actions"><button type="button" class="btn" id="libLeave">Quitter cette bibliothèque…</button></div>`):''}
     ${isAdmin&&!horsAdh&&n<=1&&(nFi+nPr)?`<div class="notice">${uiIcon('bookmark',15)}<div><b>Partagée avec personne.</b> Si elle ne sert qu'à ranger vos aides, une collection suffit : ses éléments passent dans Perso et restent rangés ensemble.<div style="margin-top:9px"><button class="btn sm" id="libToColl">Convertir en collection…</button></div></div></div>`:''}
-    ${myIsAppAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
+    ${isAdmin?`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>${''/* A720 : l'administrateur de la bibliothèque la supprime aussi (il pouvait déjà en retirer tous les membres) */}
       <button class="btn outline-danger" id="libDelete">Supprimer la bibliothèque…</button>
       <p class="danger-caption">${(nFi||nPr)?`Supprime ${nFi} aide${nFi>1?'s':''} et ${nPr} protocole${nPr>1?'s':''} pour tous les membres. `:''}Action irréversible — confirmation demandée.</p></div>`:''}`;
   // CTA verrouillé (jamais muet) tant que le nom est vide ; garde d'abandon armée par _libNameOrig.
@@ -38199,11 +38282,13 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   const setNameMsg=(t,c)=>{const e=document.getElementById('libMsg');if(e){e.textContent=t;e.className='auth-msg '+(c||'');}};
   /* A663 : le serveur refuse de retirer ou rétrograder le DERNIER administrateur (`last_admin`) — dit en
      clair, et un membre peut désormais QUITTER de lui-même (`leave_library`). */
-  const memErr=e=>/last_admin/.test(String(e&&e.message||e))?'il faut au moins un administrateur dans la bibliothèque — nommez-en un autre d’abord.':String(e&&e.message||e);
+  const memErr=e=>/last_admin/.test(String(e&&e.message||e))?'il faut au moins un administrateur dans la bibliothèque — nommez-en un autre d’abord.'
+    :/last_member/.test(String(e&&e.message||e))?'c’est son seul membre — une bibliothèque ne reste jamais sans personne. Supprimez-la plutôt.':String(e&&e.message||e);   // A718
   {const lv=document.getElementById('libLeave');if(lv)lv.onclick=async()=>{
     if(!await confirmDlg('Vous ne verrez plus ses aides ni ses protocoles sur vos appareils. Un administrateur pourra vous y rajouter.',{title:'Quitter « '+(libName(_memLib)||'cette bibliothèque')+' » ?',yes:'Quitter',danger:true}))return;
     try{const r=await rpc('leave_library',{p_library:_memLib});
       if(r==='last_admin'){setMsg('Vous êtes le seul administrateur : '+memErr('last_admin'),'err');return;}
+      if(r==='last_member'){setMsg('Vous êtes le seul membre : '+memErr('last_member'),'err');return;}   // A718
       closeMembers(true);await Sync.loadProfile();Sync.schedule&&Sync.schedule();render();}
     catch(e){setMsg('Échec : '+memErr(e),'err');}};}
   {const iv=document.getElementById('memInvite');if(iv)iv.onclick=async()=>{const email=(document.getElementById('memEmail').value||'').trim();const role=document.getElementById('memNewRole').value;
@@ -38233,7 +38318,10 @@ async function renderMembers(){const body=document.getElementById('membersBody')
   {const cv=body.querySelector('#libToColl');if(cv)cv.onclick=()=>libToColl(_memLib);}
   const dl=body.querySelector('#libDelete');if(dl)dl.onclick=async()=>{
     if(!await confirmDlg('Supprimer DÉFINITIVEMENT la bibliothèque « '+libName(_memLib)+' » et TOUT son contenu partagé ? Action irréversible.',{title:'Supprimer la bibliothèque',yes:'Supprimer définitivement',danger:true}))return;
-    try{await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=minimal'});
+    try{/* A720 : un DELETE que la RLS écarte ne lève rien — 200 et zéro ligne. Sans relire ce qui est parti, l'écran
+         annonçait « Bibliothèque supprimée » pour une bibliothèque intacte (serveur antérieur, droits retirés entre-temps). */
+      const gone=await rest('DELETE','/rest/v1/libraries?id=eq.'+encodeURIComponent(_memLib),null,{'Prefer':'return=representation'});
+      if(!Array.isArray(gone)||!gone.length){toast('⚠ Le serveur a refusé la suppression : la bibliothèque et son contenu sont intacts.',8000,true);return;}
       closeMembers();state.homeLib=null;await Sync.loadProfile();Sync.full();if(state.view==='library')renderLibrary();else if(authModal.classList.contains('on'))renderAuth();toast('Bibliothèque supprimée.');}   // A710
     catch(e){toast('⚠ Suppression impossible : '+e.message);}};}
 bindModalDismiss(membersModal,closeMembers);

@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.119.5] — 2026-11-11
+Sept correctifs signalés, un raccourci et une règle changée (A716-A722). **Serveur à rejouer** (`supabase/schema.sql`) :
+une bibliothèque ne reste plus jamais sans membre, et son administrateur peut la supprimer.
+- **Session : le compte de « Horodater », en bas de l'écran, suit les coches.** Cocher une étape qui compte (un choc,
+  une dose) pose un repère au journal, mais la touche gardait l'ancien nombre jusqu'au rendu suivant. Elle se met à
+  jour aussitôt, volet ouvert ou fermé.
+- **Éditeur : renommer un minuteur ou un compteur met à jour les blocs qui l'utilisent.** Les étapes liées, les
+  réglages d'étape et les jalons gardaient l'ancien nom tant qu'on ne rouvrait pas l'aide. Le nouveau nom s'affiche
+  partout dès qu'on quitte le champ, et le champ suivant (Tab ou toucher) garde le focus.
+- **Barre d'onglets du téléphone : elle suit la fenêtre redimensionnée.** En réduisant la fenêtre depuis le bureau, la
+  pastille bleue de l'onglet courant restait à sa taille d'avant, et le mot « Accueil » disparaissait. La pastille et les
+  mots se recalent maintenant à chaque largeur.
+- **Colonne de gauche : un seul trait sous les collections.** Il y en avait deux, sans rien entre.
+- **Bibliothèques : le seul membre ne peut plus la quitter.** « Quitter cette bibliothèque… » était proposé même quand
+  on en est le seul membre, et Administration permettait de retirer ce seul membre : la bibliothèque restait sans
+  personne. Le bouton est remplacé par une ligne qui dit quoi faire (la supprimer, la convertir en collection, ou
+  inviter quelqu'un d'abord) ; Administration le refuse en le disant. Le serveur le refuse aussi, par tous les chemins.
+- **Bibliothèques › Tout : « Gérer la bibliothèque ».** Quand le filtre Bibliothèque est posé, un bouton ouvre la
+  fenêtre de cette bibliothèque (nom, membres, rôles), pour son administrateur et celui de l'application.
+- **L'administrateur d'une bibliothèque peut la supprimer.** C'était réservé à l'administrateur de l'application, alors
+  qu'il pouvait déjà en retirer tous les membres. « Supprimer la bibliothèque… » est dans sa fenêtre, avec la même
+  confirmation. Si le serveur refuse, l'app le dit au lieu d'annoncer « Bibliothèque supprimée ».
+- **Moi › Bibliothèques : un lecteur ou un éditeur peut quitter une bibliothèque.** Seules les bibliothèques qu'on
+  administre répondaient au toucher ; les autres étaient inertes, et rien ne permettait d'en partir. Toucher la rangée
+  propose maintenant « Quitter », avec confirmation.
+- **Éditeur de protocole : des blocs sélectionnés à la suite forment un seul cadre.** Chaque bloc avait le sien :
+  certains se chevauchaient (un titre et la liste qui le suit), d'autres non. Un fin trait sépare chaque bloc à
+  l'intérieur du cadre, pour les compter. Le contour de survol ne se superpose plus à la sélection.
+
 ## [5.119.4] — 2026-11-11
 Audit de bugs de toute l'application : 69 défauts corrigés (A706-A715). **Serveur à rejouer** (`supabase/schema.sql`) :
 une clé de plus dans le partage de session, et les gestes de l'hôte admis après une passation.
@@ -368,33 +397,3 @@ Aucun mot de passe sur les comptes, et des jetons de 15 min (A648). **Côté ser
 - **Jeton d'accès de 900 s** sur l'instance (réglage du tableau de bord, consigné au § 1.2 du guide de déploiement) :
   un poste révoqué garde l'accès à l'API 15 min au plus, au lieu d'1 h. Aucun effet visible dans l'app.
 - `rls-tests.sql` 16.14 garde le refus des mots de passe.
-
-## [5.111.0] — 2026-11-08
-Connecter un ordinateur de service avec son téléphone (A643-A647). **Côté serveur : rejouer `supabase/schema.sql`, puis déployer la fonction `link-claim`** (`supabase functions deploy link-claim --no-verify-jwt`, cf. `docs/deploiement-et-conformite.md` § 1.2).
-- **Sur l'ordinateur** (Moi › « Se connecter avec le téléphone ») : un QR et un nombre de contrôle, ni e-mail ni code
-  à recopier. **Sur le téléphone** (Moi › Appareils › « Connecter un ordinateur ») : viser le QR (ou l'ouvrir avec
-  l'appareil photo), toucher le nombre que montre l'écran, choisir l'heure de fin de garde, « Connecter ». L'ordinateur
-  reçoit sa propre session, jamais celle du téléphone.
-- **Des heures de fin de garde, pas des durées** : deux repères, 10:00 et 19:30 par défaut, réglables dans « Mes fins
-  de garde » ; trois choix au plus, entre 1 h et 28 h (une garde de 24 h qui déborde passe).
-- **Le poste partagé ne perd rien** : fermer le navigateur, perdre le réseau ou redémarrer ne fait rien perdre, et une
-  session en cours se reprend. À l'heure de fin, il s'efface — jamais pendant une session, jamais avant que les
-  sessions faites dessus aient rejoint l'historique (jusqu'à 7 jours après, même sans connexion au compte).
-- **Une session en cours sur un poste partagé est sauvegardée en ligne toutes les 2 minutes** (s'il y a eu un geste) :
-  si l'ordinateur ou le réseau lâche, l'historique la montre « △ Interrompue », compte rendu partiel ; la session
-  terminée la remplace.
-- **Appareils connectés** (téléphone) : voir les postes, les prolonger d'une heure, les déconnecter à distance.
-- **Navigateur rouvert sur le poste** : consulter et reprendre restent libres ; créer, modifier et gérer redemandent
-  le téléphone.
-- **Caméra** : `_headers` passe à `camera=(self)` — le viseur (partage de session, connexion) marche aussi sous Chrome
-  (Android, ordinateur), qui appliquait l'interdiction.
-- **Ce qu'un poste partagé ne fait pas** (A647) : supprimer demande le téléphone à chaque fois ; l'administration
-  (instance, membres, bibliothèques) et « Remplacer » à l'import y sont refusés ; « Supprimer mon compte » n'y apparaît
-  pas ; les réglages valent pour ce poste seulement ; 15 minutes sans geste reverrouillent la modification
-  (jamais une session) ; un fichier exporté y est signalé comme restant sur l'ordinateur.
-- **Sécurité, revue avant publication** : deux secrets (le QR ne sert qu'au téléphone, une clé jamais affichée sert au
-  poste), session du poste créée et liée par le serveur, une session de poste ne peut ni approuver ni prolonger un
-  poste ni supprimer le compte, dépôt de sessions durci, plafond de demandes par machine. Un lien de connexion reçu par
-  message mène au viseur, jamais droit à l'approbation ; après l'approbation, « Rien ne s'ouvre devant vous ?
-  Déconnecter ». Recommandé : `APP_ORIGIN` sur la fonction, un « Password Verification Hook », des jetons plus courts.
-- À savoir : sans la fonction serveur déployée, la connexion par le téléphone échoue proprement et l'e-mail reste là.
