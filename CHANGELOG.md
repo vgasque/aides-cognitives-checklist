@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.124.1] — 2026-11-12
+Import d'une page Notion : les images rangées dans un dossier dont le nom contient des parenthèses s'importent (A731).
+- **Les images ne se perdent plus.** Notion range les images d'une page dans un dossier au nom de la page, et ne code
+  pas les parenthèses de ce nom — par exemple `Complications aiguës du diabète (DT1, DT2) hypogly/image 1.png`. La
+  lecture du lien s'arrêtait à la première parenthèse fermante : l'image était déclarée « absente de l'archive » et un
+  morceau du chemin restait dans le texte. Le lien est désormais lu en entier, et l'image arrive dans le protocole.
+- Vaut pour le `.zip` d'export comme pour un `.md` seul, et pour un nom tronqué par Notion au milieu d'une parenthèse.
+- Un lien vers une autre page Notion dont le titre contient des parenthèses garde, lui aussi, son seul texte.
+- Pour récupérer les images d'une page déjà importée : importer à nouveau le `.zip`.
+
 ## [5.124.0] — 2026-11-12
 Aux Bibliothèques, la bibliothèque ouverte se gère d'où l'on est, sans doublon (A730).
 - **« Gérer la bibliothèque » sous ses catégories.** En ouvrant une bibliothèque partagée, la rangée « Gérer la
@@ -375,22 +385,3 @@ redéployer la fonction `link-claim`** (sans lui, la connexion par le téléphon
   suivent la règle « modifier » de la connexion temporaire. Droits retirés : INSERT/DELETE directs sur le partage et
   les adhésions, UPDATE direct de `user_status`.
 - Détail, constats écartés et suite possible : `docs/decisions/lot-v5-115.md`.
-
-## [5.114.1] — 2026-11-10
-Le retour système ne recule plus deux fois (A657) ; un appareil déconnecté pendant une synchro n'efface plus ses aides
-(A658). Rien à rejouer côté serveur.
-- **Correctif** : fermer une feuille (Se repérer, une fenêtre, l'écran de démarrage) environ une seconde après une
-  autre fermeture pouvait faire reculer DEUX fois quand le navigateur était lent à parcourir son historique : l'aide
-  ouverte se refermait et l'on revenait à l'accueil, en pleine session. Le filet de secours d'une fermeture réagissait
-  à la fermeture suivante, encore en route, et relançait un recul. Chaque filet ne veille plus que sa propre fermeture.
-- C'était la cause des deux témoins d'audit qui rougissaient « de temps en temps » sous charge : `audit-doctrine`
-  « aucun rognage dans les feuilles ni le panneau » (vu en CI, 390 px) et `audit-partage` « l'hôte coupe, le
-  CONDUCTEUR poursuit » (passe parallèle). Aucun des deux n'est modifié.
-- Garde-fou : `audit-retour.mjs` « le filet d'un parcours déjà arrivé ne relance pas le suivant (A657) », reproduction
-  déterministe (rouge sur le code d'avant : trois reculs, retour à l'accueil).
-- **Correctif** : un appareil connecté temporairement, déconnecté depuis un autre appareil PENDANT une synchro, pouvait
-  perdre les aides de ses bibliothèques — celle d'une session en cours comprise : la synchro continuait contre un serveur
-  qui ne lui répondait plus que du vide, et en concluait que les aides avaient disparu. Elle s'arrête désormais dès que
-  la déconnexion est connue, et n'efface jamais rien sur la foi d'une réponse reçue après.
-- Garde-fou : `audit-lier.mjs` section « 6 bis » (rouge sur le code d'avant : aide effacée) ; le contrôle « la synchro ne
-  tourne plus » attend que la synchro de la connexion soit retombée.

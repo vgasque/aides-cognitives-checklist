@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eIo4dGQEcauyvAmtgmGuvYXnnOqDN/Ej1e5ewMbbhKU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xwmzNzSgUBNH3ZuYPMM19zKTEO5bKKgUugavjGeGWwo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.124.0';
+const APP_VERSION='5.124.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -31783,8 +31783,12 @@ function notionPath(dir,href){let h=String(href||'').trim().replace(/^<|>$/g,'')
   const out=dir?String(dir).split('/').filter(Boolean):[];
   h.split('/').forEach(s=>{if(!s||s==='.')return;if(s==='..')out.pop();else out.push(s);});
   return out.join('/').normalize('NFC');}
-// A670 : segments SANS espace (`[^)\s"]+`) et bornés — `(?:\s[^)"]+)*` était ambigu, donc exponentiel.
-const NOTION_IMG=/!\[([^\]]{0,300})\]\(([^)\s]+(?:[ \t]+[^)\s"]+){0,40})(?:\s+"[^"\n]{0,300}")?\)/g;
+// A670 : segments SANS espace et bornés — `(?:\s[^)"]+)*` était ambigu, donc exponentiel.
+/* A731 : un chemin porte des PARENTHÈSES — Notion ne les encode pas (« Complications%20(DT1,%20DT2)%20hypogly/
+   image%201.png ») : `[^)\s]+` coupait le chemin à la première « ) » et l'image était perdue. Un segment admet donc
+   un groupe « (…) » ÉQUILIBRÉ (CommonMark), ou une « ( » seule (nom de dossier tronqué par Notion au milieu d'une
+   parenthèse). Les trois alternatives restent sans espace, et la première exclut « ( » et « ) » : linéaire. */
+const NOTION_IMG=/!\[([^\]]{0,300})\]\(((?:[^()\s]|\([^()\s]{0,300}\)|\(){1,2000}(?:[ \t]+(?:[^()\s"]|\([^()\s"]{0,300}\)|\(){1,2000}){0,40})(?:\s+"[^"\n]{0,300}")?\)/g;
 function notionImgPaths(src,dir){const o=[],vus=new Set();let m;NOTION_IMG.lastIndex=0;
   while((m=NOTION_IMG.exec(String(src||''))))  {const p=notionPath(dir,m[2]);if(p&&!vus.has(p)){vus.add(p);o.push(p);}}
   return o;}
@@ -31817,7 +31821,7 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
       .replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi,'==$1==').replace(/<br\s*\/?>/gi,MD_TROW.test(l)?'<br>':' ')   /* A609 : dans un tableau, le retour à la ligne d'une case se garde */
       .replace(/<\/?(?:span|div|p|details|summary|aside|figure|figcaption|sup|sub|del|s)\b[^>]*>/gi,'');
     // Lien vers une autre page de l'export (`…%20abc123.md`) : la page n'est pas là — on garde le texte.
-    l=l.replace(/(^|[^!])\[([^\]]{0,500})\]\(([^)]{1,1000}\.md)\)/gi,(_,a,t)=>a+t);   // A670 : bornée
+    l=l.replace(/(^|[^!])\[([^\]]{0,500})\]\(((?:[^()]|\([^()]{0,300}\)){1,1000}\.md)\)/gi,(_,a,t)=>a+t);   // A670 : bornée ; A731 : « (…) » dans le nom
     // Une image se pose seule sur sa ligne (le mini-Markdown ne reconnaît qu'une image par ligne, en tête).
     /* A642 : l'image GARDE son retrait — sous un élément de liste, elle appartient à cet élément (mdBlocks). Une image
        sur la ligne même d'un élément (« - texte ![](…) ») prend le retrait du texte de l'élément. */
