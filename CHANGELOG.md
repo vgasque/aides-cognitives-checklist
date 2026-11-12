@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.123.1] — 2026-11-12
+Copier-coller le texte d'un protocole dans un autre garde ses images (A729).
+- **Les images suivent le copier-coller.** Dans un protocole, le texte ne contient qu'un renvoi vers chaque image
+  (`![…](img:…)`) ; l'image elle-même reste rangée dans son protocole. Coller ce texte dans un autre protocole
+  recopiait le renvoi sans l'image : rien ne s'affichait, ni dans l'éditeur ni en lecture. Désormais, l'image est
+  reprise du protocole d'origine dès le collage : elle paraît dans le texte, dans « Images du texte », et se lit une
+  fois le protocole enregistré. Le curseur reste où il était.
+- **Les protocoles déjà touchés se réparent seuls** : ouvrir l'éditeur d'un protocole où un tel collage a été fait
+  ramène les images manquantes, tant que le protocole d'origine les a encore sur cet appareil. Il suffit ensuite
+  d'enregistrer.
+- Limite : un texte copié depuis un autre appareil ou un autre compte n'apporte pas ses images ; il faut les ajouter
+  à nouveau.
+
 ## [5.123.0] — 2026-11-11
 Le sommaire d'un protocole dit où l'on se trouve (A728).
 - **Au téléphone, la carte « Sommaire » suit la lecture.** Dans un long protocole, coupé de grandes images, le titre
@@ -387,18 +400,3 @@ Un appareil déconnecté s'arrête aussitôt (A655) ; « Connecter un appareil �
   devient le bouton principal. « Appareil connecté » s'affiche en vert avec « Rien ne s'ouvre devant vous ? Déconnecter ».
 - Le temps restant ne dit plus « 8 h 60 ».
 - Garde-fous : `rls-tests.sql` 16.18, `audit-lier.mjs` (70 contrôles, sections 3, 6 et 7 — l'heure de fin qui passe en pleine session), `tests.html`.
-
-## [5.113.0] — 2026-11-10
-Régler la connexion temporaire dans Administration (A654). **Côté serveur : rejouer `supabase/schema.sql`**
-(colonne `app_settings.temp_rules`, fonctions `get_temp_rules`/`set_temp_rules`, politiques restrictives), puis
-`supabase/rls-tests.sql`.
-- **Administration › Règles › Connexion temporaire** : ce qu'on peut faire sur un appareil connecté temporairement,
-  pour toute l'application — créer ou modifier (libre, verrou 5 min, verrou 15 min, confirmer, interdit), supprimer et
-  remplacer une bibliothèque (confirmer à chaque fois, interdit), exporter (permis, interdit), durée maximale (12, 24
-  ou 28 h). Les défauts sont les règles d'avant : rien ne change tant qu'on n'y touche pas. L'administration et la
-  suppression du compte restent toujours interdites.
-- **Le serveur applique les interdits et la durée**, tout de suite, aux appareils déjà connectés : une écriture
-  interdite est refusée même hors de l'application. Les confirmations et le verrou restent faits par l'app.
-- Une connexion temporaire par e-mail au-delà de la durée maximale se ramène à la dernière heure permise, et l'écran
-  le dit ; la feuille « Connecter un appareil » ne propose plus d'heure au-delà.
-- Garde-fous : `rls-tests.sql` 16.17, `tests.html` (règles et heures bornées), `audit-lier.mjs` section 5 (52 contrôles).

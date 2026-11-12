@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-QANXk+OfTX7Qj2jXFB27n7hUNvqxlErxeydF210YIu8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Zhm2N+n0cQ+h7CW8mNUvWIP0A2YpwNV3ptfKkBZifqQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.123.0';
+const APP_VERSION='5.123.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20499,6 +20499,7 @@ function renderProtocolEdit(){
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
   edTouch(true);   // K5 : idem côté protocole (un seul point d'accroche par éditeur)
   const p=state.pdraft;if(!p){state.view='library';return render();}
+  pImgAdopt(p);   // A729 : un collage d'un autre protocole, fait avant cette version, retrouve ses images
   const isNew=!protocols.some(x=>x.id===p.id);
   const wideEdit=mqRail.matches||mqSeg.matches;   // v5.48.5 : la colonne d'aperçu dès 780
   const live=mdLiveOn();_mdDocGo=null;   // A547 : mise en forme en direct (document par blocs)
@@ -20570,7 +20571,7 @@ function renderProtocolEdit(){
      c'est le même protocole. `mdFoldApply` est idempotent et se garde sur le DOM, donc le rejouer
      à chaque pause de frappe ne coûte que le test. */
   const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}paintMiUse();mdCaretSync(ta,p);mdLintPaint(p);revProtoRefresh(p);},300);};
-  ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
+  ta.addEventListener('input',()=>{p.body=ta.value;if(pImgAdopt(p))miCardRefresh();schedulePrev();});   // A729
   {const pv=document.getElementById('mdPreview');if(pv)mdFoldApply(pv,p.id);}   // rendu INITIAL de l'aperçu
   paintMiUse();
   /* A547 : le champ ACTIF — le Markdown entier, ou le bloc ouvert en mise en forme en direct. La barre, les menus,
@@ -20645,9 +20646,15 @@ function renderProtocolEdit(){
         if(g)(g.closest('.mdb')||g).scrollIntoView({block:'center'});return;}
       const rx=miLineRx(im.id);let c=0,n=0;for(const l of ta.value.split('\n')){if(rx.test(l)){if(n===r)break;n++;}c+=l.length+1;}
       ta.focus({preventScroll:true});ta.setSelectionRange(c,c);ta.scrollIntoView({block:'center'});mdCaretSync(ta,p);}};
-  main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
-  {const mo=main.querySelector('[data-mimore]');if(mo)mo.onclick=()=>{_miAll=_miAll===p.id?null:p.id;keepAnchor('.mi-card',renderProtocolEdit);};}
-  {const ad=document.getElementById('miAdd');if(ad)ad.onclick=()=>pickFile('image',takeImg,true);}
+  const miBind=()=>{main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
+    {const mo=main.querySelector('[data-mimore]');if(mo)mo.onclick=()=>{_miAll=_miAll===p.id?null:p.id;keepAnchor('.mi-card',renderProtocolEdit);};}
+    {const ad=document.getElementById('miAdd');if(ad)ad.onclick=()=>pickFile('image',takeImg,true);}};
+  /* A729 : des images arrivées avec un collage paraissent dans « Images du texte » SANS re-rendu — le champ (ou le bloc
+     ouvert de la mise en forme en direct) garde le focus et le curseur. La carte suit le contenu rédigé. */
+  const miCardRefresh=()=>{const o=main.querySelector('.mi-card'),h=miCardHtml(p);
+    if(o)o.outerHTML=h;else{const md=main.querySelector('fieldset.md-ed');if(md)md.insertAdjacentHTML('afterend',h);}
+    miBind();miPaintUse(p);};
+  miBind();
 
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
@@ -28276,6 +28283,26 @@ function edImgTaker(f,bid){
       if(bid){const b=(f.blocks||[]).find(x=>x.id===bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}n++;break;}
       f.images=f.images||[];f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});n++;}
     if(n){edSyncGallery(f);renderEditor();}};}
+/* A729 — COLLER LE MARKDOWN D'UN AUTRE PROTOCOLE EMPORTE SES IMAGES. Une image vit DANS son protocole (`p.images`), le
+   texte ne porte que `![…](img:ID)` : coller ce texte ailleurs recopiait la ligne, pas l'image — identifiant orphelin, rien
+   à l'écran (ni en édition ni en lecture). Toute ligne d'image dont l'identifiant manque ici est cherchée dans les autres
+   protocoles de l'appareil et COPIÉE sous le même identifiant (précédent : « verser » de l'import, A611). Ce n'est pas
+   une adoption en lecture (J190) : seulement à l'édition, à l'ouverture de l'éditeur (rattrape un collage déjà fait) et
+   à chaque saisie. Ce qui reste introuvable (texte venu d'un autre appareil) est mémorisé, pour ne pas relire le texte
+   à chaque frappe. Rend le nombre d'images ajoutées. */
+const _pImgMiss=new Set();
+function pImgAdopt(p){const body=String(p&&p.body||'');if(body.indexOf('](img:')<0)return 0;
+  const have=new Set((p.images||[]).map(x=>x&&x.id)),found=Object.create(null);let k=0;
+  for(const m of body.matchAll(/\]\(img:([A-Za-z0-9_-]{1,64})\)/g)){const id=m[1];if(have.has(id)||found[id]||_pImgMiss.has(id))continue;
+    let im=null;for(const q of protocols){if(!q||q.id===p.id)continue;const x=(q.images||[]).find(y=>y&&y.id===id);if(x&&safeImg(x.data)){im=x;break;}}
+    if(im){found[id]=im;k++;}else _pImgMiss.add(id);}
+  if(!k)return 0;
+  // Même critère que le ménage de sortie (`leaveGC`) : seule une image posée en ligne d'image est gardée.
+  let n=0,trop=0;for(const id of mdImgIds(mdBlocks(body))){const im=found[id];if(!im)continue;delete found[id];
+    if((p.images||[]).length>=MAX_IMG_PER_ENTITY){trop++;_pImgMiss.add(id);continue;}   // dit une fois, pas à chaque frappe
+    p.images=p.images||[];p.images.push({id,data:im.data,w:im.w|0,h:im.h|0,caption:im.caption||'',scale:im.scale});n++;}
+  if(trop)toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole : '+trop+' image'+(trop>1?'s':'')+' collée'+(trop>1?'s':'')+' non reprise'+(trop>1?'s':'')+'.',6000,true);
+  return n;}
 function pImgTaker(p,ta){
   return async files=>{
     let n=0;
