@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.124.0] — 2026-11-12
+Aux Bibliothèques, la bibliothèque ouverte se gère d'où l'on est, sans doublon (A730).
+- **« Gérer la bibliothèque » sous ses catégories.** En ouvrant une bibliothèque partagée, la rangée « Gérer la
+  bibliothèque » suit désormais « Gérer les catégories » : elle ouvre la fenêtre de la bibliothèque (nom, membres,
+  invitations). Jusqu'ici, ce bouton n'existait que dans « Tout », une fois filtré sur une bibliothèque, et il y reste.
+- **Plus de doublon sur ordinateur et tablette.** Quand une bibliothèque est ouverte, la colonne de gauche ne répète
+  plus « Gérer les catégories » et « Gérer les bibliothèques » : seules restent les portes de la bibliothèque ouverte,
+  à côté d'elle. « Partager avec une équipe… » reste à gauche. En revenant sur « Tout », la colonne de gauche retrouve
+  ses portes générales.
+- « Gérer la bibliothèque » n'apparaît qu'à qui peut la gérer : son administrateur, ou l'administrateur de
+  l'application. Pas pour « Perso », qui n'a ni membres ni nom à gérer.
+- « Gérer les catégories » prend l'icône d'étiquette qu'il porte déjà ailleurs, pour ne pas le confondre avec la
+  rangée de la bibliothèque. Au téléphone, chaque niveau a sa page : rien ne change à la racine.
+
 ## [5.123.1] — 2026-11-12
 Copier-coller le texte d'un protocole dans un autre garde ses images (A729).
 - **Les images suivent le copier-coller.** Dans un protocole, le texte ne contient qu'un renvoi vers chaque image
@@ -380,23 +394,3 @@ Le retour système ne recule plus deux fois (A657) ; un appareil déconnecté pe
   la déconnexion est connue, et n'efface jamais rien sur la foi d'une réponse reçue après.
 - Garde-fou : `audit-lier.mjs` section « 6 bis » (rouge sur le code d'avant : aide effacée) ; le contrôle « la synchro ne
   tourne plus » attend que la synchro de la connexion soit retombée.
-
-## [5.114.0] — 2026-11-10
-Un appareil déconnecté s'arrête aussitôt (A655) ; « Connecter un appareil » refait (A656). **Côté serveur : rejouer
-`supabase/schema.sql`** (fonction `link_dead`, politiques `*_link_dead`), puis `supabase/rls-tests.sql`.
-- **Correctif (signalé)** : un appareil déconnecté depuis un autre appareil restait utilisable — modifier, lancer des
-  sessions — jusqu'au rechargement, et son accès au serveur durait jusqu'à 15 min. Désormais il l'apprend en 15 s au
-  plus, le retient même rechargé, et ne fait plus que finir la session en cours puis s'effacer : créer, modifier,
-  supprimer, importer et démarrer une session sont refusés, la synchro s'arrête. Le serveur lui ferme lecture et
-  écriture dès la requête suivante. Des sessions qui ne peuvent plus rejoindre l'historique sont nommées (comptes
-  rendus en PDF depuis « Sessions ») avant tout effacement. Une session EN COURS n'est jamais coupée — ni par la
-  déconnexion, ni par l'heure de fin : elle continue, se sauvegarde, rejoint l'historique (heure de fin), puis l'appareil
-  s'efface.
-- **Moi › Connexions temporaires** : les appareils connectés sont listés sur place (ordinateur, tablette, téléphone),
-  avec leur heure de fin, en ambre à moins d'une heure ; toucher un appareil ouvre son heure de fin en grand,
-  « ＋ 1 h », « Jusqu'à » la prochaine fin de garde, et « Déconnecter et effacer ». « Mes fins de garde » y a sa rangée.
-- **Le viseur** dit quoi viser et où trouver le code (« Le code n'est pas affiché ? »).
-- **Confirmer, une étape à la fois** : le nombre, puis l'heure ; plus de bouton grisé ; au 2ᵉ faux nombre, « Annuler »
-  devient le bouton principal. « Appareil connecté » s'affiche en vert avec « Rien ne s'ouvre devant vous ? Déconnecter ».
-- Le temps restant ne dit plus « 8 h 60 ».
-- Garde-fous : `rls-tests.sql` 16.18, `audit-lier.mjs` (70 contrôles, sections 3, 6 et 7 — l'heure de fin qui passe en pleine session), `tests.html`.

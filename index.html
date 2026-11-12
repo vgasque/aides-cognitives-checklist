@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Zhm2N+n0cQ+h7CW8mNUvWIP0A2YpwNV3ptfKkBZifqQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-eIo4dGQEcauyvAmtgmGuvYXnnOqDN/Ej1e5ewMbbhKU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.123.1';
+const APP_VERSION='5.124.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18352,10 +18352,10 @@ function renderCatalogueVolets(cfg,vis,bibs,libG){
   const N=state.cnav,F=state.ctf,redo=cfg.rerender;
   const libRows=bibs.map(g=>{const on=libG&&libG.key===g.key,rel=g.items.filter(ctgRelire).length;
     return ctgRowHtml(`data-ctglib="${esc(g.key)}"${on?' aria-current="true"':''}`,g.L,{ic:uiIcon(g.lib?'users':'user',18),sub:g.lib?libWho(g):'vous seul',n:g.items.length,warn:rel?rel+' à relire':'',warnBas:true})
-      +(on?`<div class="ctg-nest">${ctgCatRows(g,N.cat)}${canEditScope(g.key||null)?ctgRowHtml(`data-ctgmgr="${esc(g.key)}"`,'Gérer les catégories',{ic:uiIcon('gear',16)}):''}</div>`:'');}).join('');
+      +(on?`<div class="ctg-nest">${ctgCatRows(g,N.cat)}${ctgMgrRows(g)}</div>`:'');}).join('');
   const toutOn=!libG;
   const v1=`<div class="ctg-v1"><div class="ctg-book">${ctgRowHtml('data-ctgtout'+(toutOn?' aria-current="true"':''),'Tout',{ic:uiIcon('list',18),n:vis.length})}</div>`
-    +`<h2 class="ctg-h">Vos bibliothèques</h2><div class="ctg-book">${libRows}</div>${ctgRacineGestion()}</div>`;
+    +`<h2 class="ctg-h">Vos bibliothèques</h2><div class="ctg-book">${libRows}</div>${ctgRacineGestion(!!libG)}</div>`;
   const v2=libG?`<div class="ctg-v2"><span class="ctg-eye">Bibliothèque · ${esc(libG.lib?libWho(libG):'vous seul')}</span><h2 class="ctg-v2t">${esc(libG.L)}</h2><div class="ctg-book">${ctgCatRows(libG,N.cat)}</div>${ctgMgrHtml(libG)}</div>`:'';
   let ttl,sub,it,filtres='',vide;
   if(toutOn){state.cnav=N.tout?N:{};
@@ -18378,9 +18378,17 @@ function renderCatalogueVolets(cfg,vis,bibs,libG){
 /* A606 — LES PORTES DE GESTION VIVENT DANS LE CATALOGUE (elles étaient dans la colonne, qui ne filtre plus) : « Gérer les
    catégories » dans une bibliothèque qu'on peut modifier ; « Gérer les bibliothèques » et « Partager avec une équipe… »
    à la racine. Câblées par `bindHomeChrome` (`data-libmgr`, `data-newlib`) et ici (`data-ctgmgr`). */
-const ctgMgrHtml=g=>canEditScope(g.key||null)?`<div class="ctg-book">${ctgRowHtml(`data-ctgmgr="${esc(g.key)}"`,'Gérer les catégories',{ic:uiIcon('gear',16)})}</div>`:'';
-const ctgRacineGestion=()=>{const r=(catMgrOn()?ctgRowHtml('data-catmgr aria-haspopup="dialog"','Gérer les catégories',{ic:uiIcon('tag',16)}):'')
-  +(mgrDeux()?ctgRowHtml('data-libmgr','Gérer les bibliothèques',{ic:uiIcon('gear',16)}):'')
+/* A730 (demande de l'auteur) : la bibliothèque OUVERTE se gère aussi d'ici — « Gérer la bibliothèque » suit « Gérer les
+   catégories », la même fenêtre (`openMembers`) aux mêmes personnes qu'A719 (son administrateur, celui de
+   l'application), jamais pour « Perso ». Câblée par `bindHomeChrome` (`data-libedit`). */
+const ctgMgrRows=g=>(canEditScope(g.key||null)?ctgRowHtml(`data-ctgmgr="${esc(g.key)}"`,'Gérer les catégories',{ic:uiIcon('tag',16)}):'')
+  +((g.lib&&(roleOf(g.key)==='admin'||myIsAppAdmin))?ctgRowHtml(`data-libedit="${esc(g.key)}" aria-haspopup="dialog" aria-label="${esc('Gérer la bibliothèque « '+g.L+' »')}"`,'Gérer la bibliothèque',{ic:uiIcon('gear',16)}):'');
+const ctgMgrHtml=g=>{const r=ctgMgrRows(g);return r?`<div class="ctg-book">${r}</div>`:'';};
+/* A730 (option A, choisie par l'auteur sur maquette) : une bibliothèque OUVERTE dans les volets, ses portes vivent sous
+   ses catégories (`ctgMgrRows`) — la colonne 1 retire alors ses portes générales, qui les répétaient presque mot pour mot,
+   et ne garde que « Partager avec une équipe… ». Sur « Tout », elle les retrouve. */
+const ctgRacineGestion=libOuverte=>{const r=(!libOuverte&&catMgrOn()?ctgRowHtml('data-catmgr aria-haspopup="dialog"','Gérer les catégories',{ic:uiIcon('tag',16)}):'')
+  +(!libOuverte&&mgrDeux()?ctgRowHtml('data-libmgr','Gérer les bibliothèques',{ic:uiIcon('gear',16)}):'')
   +(libNewOn()?ctgRowHtml('data-newlib','Partager avec une équipe…',{ic:uiIcon('plus',16)}):'');return r?`<div class="ctg-book">${r}</div>`:'';};
 /* Les catégories d'une bibliothèque (rangées) — partagé par la vue téléphone et les volets. */
 function ctgCatRows(g,cur){

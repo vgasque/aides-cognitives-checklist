@@ -6992,6 +6992,47 @@ await sec('ACCUEIL · les catégories vides ne mènent nulle part (catalogue, A6
   await page.close();
 });
 
+/* ══ A730 — « GÉRER LA BIBLIOTHÈQUE » DANS LE VOLET D'UNE BIBLIOTHÈQUE OUVERTE ══════════════════════════════════════
+   Signalé : A719 l'avait mis dans les filtres de « Tout », pas sous la bibliothèque ouverte du catalogue. La rangée suit
+   « Gérer les catégories » aux trois dessins (volet 2 ≥ 1200, volet 1 déplié dessous, téléphone), ouvre la fenêtre de la
+   bibliothèque, et n'est montrée qu'à son administrateur — ni à un éditeur, ni pour « Perso ». Option A : la colonne 1 retire
+   alors ses portes générales, qui la répétaient ; elle les retrouve sur « Tout ». */
+await sec('Catalogue · A730 « Gérer la bibliothèque » sous la bibliothèque ouverte', async () => {
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const lire=()=>page.evaluate(async()=>{const o={};
+    const voir=lib=>{state.cnav={lib};render();
+      return [...document.querySelectorAll('.ctg-row[data-libedit]')].filter(b=>b.offsetParent).map(b=>({k:b.dataset.libedit,
+        apres:!!(b.previousElementSibling&&b.previousElementSibling.matches('[data-ctgmgr]')),l:(b.querySelector('.ctg-l')||{}).textContent}));};
+    myLibraries=[{id:'b-adm',name:'Cours DESMU',role:'admin'},{id:'b-ed',name:'SMUR',role:'editor'}];myIsAppAdmin=false;
+    for(const [id,lib] of [['f730a','b-adm'],['f730e','b-ed']]){const f=JSON.parse(JSON.stringify(fiches[0]));f.id=id;f.library=lib;fiches.push(migrate(f));}
+    state.view='library';setHomeTab('biblio');
+    o.adm=voir('b-adm');
+    /* Option A : bibliothèque ouverte, la colonne 1 ne garde aucune porte générale (elle les retrouve sur « Tout »). */
+    const portes=()=>{const v=document.querySelector('.ctg-v1');return v?{cat:v.querySelectorAll('[data-catmgr]').length,lib:v.querySelectorAll('[data-libmgr]').length,neu:v.querySelectorAll('[data-newlib]').length}:null;};
+    o.v1Lib=portes();state.cnav={tout:true};render();o.v1Tout=portes();
+    o.ed=voir('b-ed');o.perso=voir('');
+    state.cnav={lib:'b-adm'};render();await __acCalme(300);
+    const b=[...document.querySelectorAll('.ctg-row[data-libedit]')].find(x=>x.offsetParent);
+    if(b)b.click();await __acCalme(300);
+    o.ouverte=document.getElementById('membersModal').classList.contains('on');
+    if(o.ouverte)closeMembers(true);await __acCalme(200);
+    return o;});
+  for(const [w,nom] of [[1280,'volet 2'],[1000,'volet 1 déplié'],[390,'téléphone']]){
+    await page.setViewportSize({width:w,height:900});await calme(page,300);
+    const r=await lire();
+    t(`${nom} : une rangée « Gérer la bibliothèque » pour la bibliothèque administrée, après « Gérer les catégories »`,
+      r.adm.length===1&&r.adm[0].k==='b-adm'&&r.adm[0].apres&&r.adm[0].l==='Gérer la bibliothèque',JSON.stringify(r.adm));
+    t(`${nom} : aucune pour un éditeur, aucune pour « Perso »`,r.ed.length===0&&r.perso.length===0,JSON.stringify([r.ed,r.perso]));
+    t(`${nom} : la rangée ouvre la fenêtre de la bibliothèque`,r.ouverte===true,String(r.ouverte));
+    if(w>=1000)t(`${nom} : bibliothèque ouverte, la colonne 1 n'a plus de porte générale ; sur « Tout », elle les retrouve`,
+      r.v1Lib&&r.v1Lib.cat===0&&r.v1Lib.lib===0&&r.v1Tout&&(r.v1Tout.cat+r.v1Tout.lib)>=1&&r.v1Lib.neu===r.v1Tout.neu,JSON.stringify([r.v1Lib,r.v1Tout]));
+  }
+  await page.close();
+});
+
 /* ══ A419 — LE FILTRE DE CATÉGORIE RETIENT UN NOM, PAS UN ID ; ENTRÉE ENVOIE L'E-MAIL ══════════════════════════════
    (1) Signalé : sur « Toutes », en large, les filtres « ne marchent pas tout le temps ». L'id d'une catégorie dérive de
    son nom d'origine : renommée, elle garde l'id de son homonyme d'une autre bibliothèque, et le filtre retrouvait le nom
