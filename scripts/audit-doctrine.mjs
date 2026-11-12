@@ -11124,6 +11124,39 @@ await sec('A728 · le sommaire d’un protocole dit où l’on est', async () =>
     await page.close();}
 });
 
+await sec('A729 · coller le Markdown d’un autre protocole emporte ses images', async () => {
+  for(const live of [false,true]){
+    const page=await br.newPage({viewport:{width:1280,height:900}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async live=>{try{localStorage.setItem('ac-mdlive',live?'1':'0');}catch(e){}
+      const c=document.createElement('canvas');c.width=40;c.height=30;c.getContext('2d').fillRect(0,0,40,30);const D=c.toDataURL('image/png');
+      protocols.push(migrateProtocol({id:'p729a',title:'Source A729',body:'# A\n\n![Radio](img:i729)\n',images:[{id:'i729',data:D,w:40,h:30,caption:'',scale:100}]}));
+      protocols.push(migrateProtocol({id:'p729b',title:'Cible A729',body:'# B\n\ntexte\n'}));
+      protocols.push(migrateProtocol({id:'p729c',title:'Déjà collé A729',body:'# C\n\n![Radio](img:i729)\n'}));
+      await openProtocolEdit('p729b');await __acCalme(400);
+      let ta=document.getElementById('p-body');
+      if(live){document.querySelector('#mdDoc .mdb[data-mdb="1"]').click();await __acCalme(300);ta=document.querySelector('.mdb-ta');}
+      ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+      const dt=new DataTransfer();dt.setData('text/plain','\n\n![Radio](img:i729)\n');
+      if(ta.dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true})))document.execCommand('insertText',false,'\n\n![Radio](img:i729)\n');
+      await __acCalme(600);
+      const o={imgs:(state.pdraft.images||[]).map(x=>x.id),tuiles:document.querySelectorAll('.mi-card [data-mitile]').length,focus:document.activeElement===ta};
+      // Un bloc ouvert reste en texte : l'image se dessine quand il se referme (Échap), comme tout bloc collé.
+      if(live){ta.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await __acCalme(300);}
+      o.vue=[...document.querySelectorAll(live?'#mdDoc img':'#mdPreview img')].filter(x=>x.getAttribute('src')===D).length;
+      document.getElementById('hdrBack').click();await __acCalme(600);
+      await openProtocolRead('p729b');await __acCalme(400);o.lu=document.querySelectorAll('.md-body figure.md-fig img').length;
+      o.src=(protocols.find(x=>x.id==='p729a').images||[]).length;
+      // Un protocole où le collage a été fait AVANT le correctif retrouve son image en ouvrant l'éditeur.
+      await openProtocolEdit('p729c');await __acCalme(400);o.rattrape=(state.pdraft.images||[]).map(x=>x.id);
+      return o;},live);
+    const m=live?'mise en forme en direct':'Markdown';
+    t(`A729 (${m}) · l'image d'un autre protocole arrive avec le collage : dans « Images du texte », à l'écran de l'éditeur, le champ garde le focus`,r.imgs.length===1&&r.imgs[0]==='i729'&&r.tuiles===1&&r.vue>=1&&r.focus,JSON.stringify(r));
+    t(`A729 (${m}) · enregistrée, elle se lit ; la source garde la sienne ; un collage antérieur est rattrapé à l'ouverture de l'éditeur`,r.lu===1&&r.src===1&&r.rattrape.join()==='i729',JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier » n’attend pas le réseau', async () => {
   const page=await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
