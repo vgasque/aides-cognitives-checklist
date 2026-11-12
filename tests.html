@@ -2633,6 +2633,19 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('A642 : … et le mini-Markdown la range dans l’élément 1, la liste numérotée continue à 2',bl[0].t==='ol'&&bl[0].items.length===2&&bl[0].items[0].imgs&&bl[0].items[0].imgs[0].id==='i9',JSON.stringify(bl));
     ok('A642 : une image sur la ligne d’un élément prend le retrait du texte de l’élément',/- texte\n\n?  !\[ecg\]\(img:i9\)/.test(r.body)&&bl[1]&&bl[1].t==='ul'&&bl[1].items[0].imgs,JSON.stringify(r.body));
   }
+  {
+    // A731 : Notion n'encode pas les parenthèses d'un nom de dossier — le chemin ne s'arrête plus à la première « ) ».
+    const href='Complications%20aigu%C3%ABs%20du%20diab%C3%A8te%20(DT1,%20DT2)%20hypogly/image%201.png';
+    const p='Complications aiguës du diabète (DT1, DT2) hypogly/image 1.png';
+    eq('A731 : un chemin à parenthèses (forme exacte signalée) est lu en entier',A.notionImgPaths('![image.png]('+href+')',''),[p]);
+    const ids=Object.create(null);ids[p]='i7';ids['P/y (1).png']='i8';
+    const r=A.notionMd('Avant ![image.png]('+href+') après\n\n![b](P/y (1).png "titre") et (texte)','',ids);
+    ok('A731 : … l’image devient « img:<id> », rien du chemin ne reste dans le texte',r.manque===0&&r.body.includes('![](img:i7)')&&r.body.includes('![b](img:i8)')&&!/hypogly|png/.test(r.body),JSON.stringify(r.body));
+    eq('A731 : une « ( » seule (nom tronqué par Notion) n’empêche pas la lecture',A.notionImgPaths('![a](Dossier%20(DT1/img.png)',''),['Dossier (DT1/img.png']);
+    ok('A731 : un lien vers une page à parenthèses garde son texte seul',A.notionMd('Voir [Autre](Autre%20(DT1)%20abc.md) ici','',{}).body==='Voir Autre ici');
+    const t0=Date.now();A.notionImgPaths('![a]('+'('.repeat(40000)+' '+'(a'.repeat(20000),'');A.notionMd('[x]('+'(a'.repeat(30000),'',{});
+    ok('A731 : la lecture reste linéaire sur des parenthèses sans fin',Date.now()-t0<500);
+  }
   group('Synchro — table REST ≠ store local (v5.0.4)');
   {
     /* Signalé à l'usage : « Erreur synchronisation — One of the specified object stores was not

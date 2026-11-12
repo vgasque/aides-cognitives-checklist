@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A730** à la v5.124.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A731** à la v5.124.1 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -352,6 +352,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A728 | `lot-v5-123.md` | Le sommaire d'un protocole dit où l'on est : carte collante du téléphone (`#` puis `##`), lien courant marqué (`aria-current`, grammaire A418), `refTocSpy` ; lit le défilement sans le provoquer |
 | A729 | `lot-v5-123-1.md` | Coller le Markdown d'un autre protocole emporte ses images : une ligne `![…](img:ID)` orpheline reprend l'image d'un autre protocole de l'appareil, même identifiant (`pImgAdopt`), à l'ouverture de l'éditeur et à la saisie ; carte « Images du texte » repeinte sur place (`miCardRefresh`) ; jamais en lecture |
 | A730 | `lot-v5-124.md` | La bibliothèque ouverte du catalogue porte « Gérer les catégories » et « Gérer la bibliothèque » (`ctgMgrRows`, trois dessins, mêmes personnes qu'A719) ; dans les volets, la colonne 1 retire alors ses portes générales (`ctgRacineGestion(libOuverte)`, option A retenue sur maquette ; B, C, D écartées) — étend A719, amende A606 |
+| A731 | `lot-v5-124-1.md` | Import Notion : le chemin d'une image admet des parenthèses (groupe équilibré ou « ( » seule d'un nom tronqué) — `NOTION_IMG` et le lien `.md`, linéaires (A670) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
