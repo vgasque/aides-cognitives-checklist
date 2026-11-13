@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.126.0] — 2026-11-13
+Une faute de frappe sur un mot du contenu ne laisse plus la recherche sans réponse (A739).
+- **Avant**, la recherche ne rattrapait une faute que vers un mot d'un titre, d'un code ou d'une catégorie :
+  « anafilaxie » trouvait « Anaphylaxie », mais « amiodaronne » ou « absende » ne trouvaient rien si le mot juste
+  n'était écrit que dans une étape, une posologie ou le corps d'un protocole.
+- **Maintenant**, quand il n'y a aucun résultat, la recherche propose aussi le mot le plus proche du contenu de vos
+  aides et protocoles. Comme avant, elle le dit au-dessus de la liste (« Aucun résultat pour "absende" · affiché :
+  "absente" ») et ne modifie pas ce que vous avez tapé. L'extrait sous le titre montre la ligne où se trouve le mot.
+- **Prudence sur les noms proches.** Un mot tapé juste n'est jamais remplacé. Pour un mot du contenu, l'écart admis
+  est plus petit que pour un titre : une lettre jusqu'à 8 lettres, deux au-delà. À écart égal, un mot de titre passe
+  avant.
+- Les mots des PDF joints ne servent pas à corriger ; un mot trouvé dans un PDF reste un résultat.
+
 ## [5.125.0] — 2026-11-13
 La recherche classe ses résultats par pertinence (A735-A738). La liste des résultats ne change pas, sauf là où la
 recherche ne trouvait rien à tort.
@@ -320,24 +333,3 @@ serveur.
   basse — « ↺ maintenir » à côté du temps, une seule commande en dessous. Toucher n'importe où sur un minuteur à
   l'arrêt le lance ; un minuteur en marche ne répond qu'à son bouton « Pause ». Un compteur se lit « − n + » sur une
   ligne, avec un « + » large. Le bureau ne change pas.
-
-## [5.116.1] — 2026-11-10
-Les sept points restés ouverts de l'audit de sécurité (A689-A693, A695-A697).
-**À faire côté serveur : rejouer `supabase/schema.sql`, puis redéployer la fonction `link-claim`** (dans cet ordre ;
-aucun ordre n'est bloquant). `supabase/rls-tests.sql` pour vérifier.
-- **Documents PDF** : un document appartient à un seul espace. Dupliquer une aide ou un protocole d'une bibliothèque
-  vers Perso lui donne ses propres PDF — deux exemplaires, comptés deux fois au quota, qui vivent ensuite séparément.
-  Un élément écrit par quelqu'un d'autre ne peut plus faire partir un de vos PDF personnels vers une bibliothèque. Au
-  premier lancement, les copies issues d'anciennes duplications reçoivent leur exemplaire. Si un PDF n'est pas sur
-  l'appareil au moment de dupliquer, la copie ne le cite pas, et le message le dit.
-- **Appareil connecté temporairement** : la règle « créer, modifier » couvre aussi les catégories d'une bibliothèque,
-  les notes et le suivi ; une suppression ne peut plus modifier le contenu au passage. La confirmation est désormais
-  exigée par le serveur, plus seulement par l'app : passé 5 ou 15 minutes après le dernier accord, un envoi attend un
-  nouvel accord (« Confirmer pour envoyer »). En usage normal, le nombre de gestes ne change pas.
-- **Connexion d'un appareil** : la fonction serveur ne rend plus que l'identifiant et l'adresse du compte, et un même
-  lien ne se réclame que cinq fois.
-- **Aides et protocoles reçus** : un champ que l'application ne connaît pas est gardé s'il est petit, retiré s'il est
-  lourd — un appareil pas encore à jour n'efface donc pas les champs d'une version plus récente.
-- **Recherche dans les PDF** : l'indexation s'arrête à 5 000 pages par document, retient un document qui l'a fait
-  échouer trois fois (il est alors dit illisible ; « Réindexer » le rouvre), et n'indexe jamais pendant une session.
-- **Outillage** : les actions de la CI sont épinglées par empreinte.
