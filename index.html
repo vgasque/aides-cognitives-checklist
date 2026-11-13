@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xwmzNzSgUBNH3ZuYPMM19zKTEO5bKKgUugavjGeGWwo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-tOHt45+g0kwna7QughYNsmlEKwLsqPsoONz1zzDrEMk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.124.1';
+const APP_VERSION='5.124.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -31794,10 +31794,36 @@ function notionImgPaths(src,dir){const o=[],vus=new Set();let m;NOTION_IMG.lastI
   return o;}
 // Légende : celle que Notion invente (« Untitled », nom de fichier, « Capture d'écran… ») ne dit rien — on la tait.
 const notionCap=a=>{a=String(a||'').trim();return (/^untitled\b/i.test(a)||/\.(png|jpe?g|gif|webp|heic|svg)$/i.test(a)||/^capture/i.test(a)||/^image\b/i.test(a))?'':a.replace(/[\[\]]/g,'');};
+/* A732 : Notion écrit une case de tableau à plusieurs lignes EN CLAIR (vrais retours à la ligne, lignes vides, listes) :
+   la rangée s'ouvre par « | » et ne se ferme que des lignes plus bas. Ligne à ligne, le mini-Markdown n'y voyait plus de
+   rangée et le tableau éclatait en texte. On recolle la rangée par `<br>` (la forme des cases à plusieurs lignes, A609),
+   le retrait d'une ligne gardé en espaces insécables. Seulement DANS un tableau (rangée qui précède, ou séparateur qui
+   suit la rangée recollée), jamais dans un bloc de code ; une ligne qui recommence par « | » ou 60 lignes sans fermeture :
+   rien n'est recollé. Une 1ʳᵉ rangée recollée descend dans le corps (en-tête vide). */
+function notionRows(L){const out=[];let code=false;
+  for(let i=0;i<L.length;i++){const l=L[i],t=l.trim();
+    if(/^```/.test(t))code=!code;
+    if(code||!t.startsWith('|')||MD_TROW.test(l)||!/^\|[^|]*\|/.test(t)){out.push(l);continue;}
+    let j=i+1,parts=[l.replace(/\s+$/,'')],fin=-1;
+    for(;j<L.length&&j<=i+60;j++){const c=L[j],ct=c.trim();
+      if(ct.startsWith('|')||/^```/.test(ct))break;
+      const ind=(c.match(/^ */)[0].length);
+      parts.push('\u00a0'.repeat(Math.min(ind,16))+ct);
+      if(/\|\s*$/.test(ct)&&!/\\\|\s*$/.test(ct)){fin=j;break;}}
+    const row=parts.join('<br>');
+    let k=out.length-1;while(k>=0&&!out[k].trim())k--;
+    const avant=k>=0&&MD_TROW.test(out[k]),apres=fin>=0&&MD_TSEP.test(L[fin+1]||'');
+    if(fin<0||!(avant||apres)){out.push(l);continue;}
+    /* Notion écrit TOUJOURS sa 1ʳᵉ rangée en ligne d'en-tête, même en-tête désactivé. Une rangée à plusieurs lignes
+       est du contenu, jamais un intitulé : elle passe dans le corps, sous un en-tête VIDE (= pas d'en-tête, A609). */
+    if(!avant&&apres){const sep=L[fin+1],n=Math.max(1,(sep.trim().match(/\|/g)||[]).length-1);
+      out.push('|'+'  |'.repeat(n),sep,row);i=fin+1;continue;}
+    out.push(row);i=fin;}
+  return out;}
 /* `ids` : table chemin (résolu) → id d'image, ou rien. Rend {title, body, manque} : `manque` = images citées mais
    absentes de l'archive (on les NOMME dans le texte plutôt que de les perdre en silence). */
 function notionMd(src,dir,ids){ids=ids||Object.create(null);
-  let L=String(src||'').replace(/^﻿/,'').replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n');
+  let L=notionRows(String(src||'').replace(/^﻿/,'').replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'));
   let title='',i=0,manque=0;
   while(i<L.length&&!L[i].trim())i++;
   {const m=(L[i]||'').match(/^#\s+(.+?)\s*$/);if(m){title=m[1];i++;
