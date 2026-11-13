@@ -2646,6 +2646,20 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     const t0=Date.now();A.notionImgPaths('![a]('+'('.repeat(40000)+' '+'(a'.repeat(20000),'');A.notionMd('[x]('+'(a'.repeat(30000),'',{});
     ok('A731 : la lecture reste linéaire sur des parenthèses sans fin',Date.now()-t0<500);
   }
+  {
+    // A732 : Notion écrit une case de tableau sur plusieurs lignes en clair — la rangée se recolle par <br>.
+    const src='| **Tachy** | Si instable : CEE\nSi stable : ttt\n\n<u>Choc</u> : synchrone\n- **FA** : max\n    → Amiodarone 300 mg |\n| --- | --- |\n'
+      +'| **Brady** | Atropine\n→ Isoprénaline |\n|  |  |\n\nSuite | pas un tableau\n| texte seul\nfin\n\n```\n| code\nx |\n```';
+    const r=A.notionMd(src,'',{});
+    ok('A732 : la rangée à plusieurs lignes devient une seule rangée à <br>',r.body.includes('| **Tachy** | Si instable : CEE<br>Si stable : ttt<br><br>**Choc** : synchrone<br>- **FA** : max<br>\u00a0\u00a0\u00a0\u00a0→ Amiodarone 300 mg |'),JSON.stringify(r.body));
+    const tb=A.mdBlocks(r.body).filter(b=>b.t==='tbl');
+    ok('A732 : … et le mini-Markdown y lit UN tableau, ses trois rangées dans le corps (en-tête vide)',tb.length===1&&tb[0].rows.length===3&&tb[0].head.every(c=>!c.trim())&&/Choc/.test(tb[0].rows[0][1])&&/Isoprénaline/.test(tb[0].rows[1][1]),JSON.stringify(tb));
+    ok('A732 : … rendu sans <thead>',!/<thead/.test(A.mdRender(r.body)));
+    const r2=A.notionMd('| A | B |\n| --- | --- |\n| x | ligne 1\nligne 2 |','',{});
+    ok('A732 : une ligne d’en-tête sur une seule ligne reste l’en-tête',/^\| A \| B \|\n\| --- \| --- \|\n\| x \| ligne 1<br>ligne 2 \|$/.test(r2.body),JSON.stringify(r2.body));
+    ok('A732 : hors tableau, une ligne qui commence par « | » n’est pas recollée',r.body.includes('Suite | pas un tableau\n| texte seul\nfin'),JSON.stringify(r.body));
+    ok('A732 : rien n’est recollé dans un bloc de code',r.body.includes('```\n| code\nx |\n```'),JSON.stringify(r.body));
+  }
   group('Synchro — table REST ≠ store local (v5.0.4)');
   {
     /* Signalé à l'usage : « Erreur synchronisation — One of the specified object stores was not

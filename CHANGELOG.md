@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.124.2] — 2026-11-13
+Import d'une page Notion : un tableau dont les cases tiennent sur plusieurs lignes reste un tableau (A732).
+- **Le tableau ne se défait plus.** Dans l'export de Notion, une case qui contient plusieurs lignes (retours à la ligne,
+  ligne vide, liste à tirets) est écrite telle quelle, sur plusieurs lignes du fichier. L'import n'y reconnaissait plus
+  de tableau : la page affichait des « | » et des « -- » au milieu du texte. La case est désormais recollée, chaque
+  ligne y garde sa place, et le retrait des lignes décalées (« → … ») est conservé.
+- **La première rangée n'est plus écrite en petites capitales.** Notion présente toujours sa première rangée comme une
+  ligne de titres, même quand ce n'en est pas une. Quand elle tient sur plusieurs lignes, c'est du contenu : elle
+  s'affiche désormais comme les autres rangées.
+- Une ligne de texte ordinaire qui commence par « | », hors d'un tableau, n'est pas touchée ; un bloc de code non plus.
+- Pour corriger une page déjà importée : importer à nouveau le `.zip`.
+
 ## [5.124.1] — 2026-11-12
 Import d'une page Notion : les images rangées dans un dossier dont le nom contient des parenthèses s'importent (A731).
 - **Les images ne se perdent plus.** Notion range les images d'une page dans un dossier au nom de la page, et ne code
@@ -345,43 +357,3 @@ les constats qui touchent `supabase/schema.sql` sont listés dans `docs/decision
   bibliothèque à une autre ne montre donc plus les notes d'équipe de l'ancienne (elles restent dans « À faire »).
 - **Page affichée dans un autre site** : les gestes y sont tous arrêtés, clavier compris.
 - **Outillage** : les serveurs de test n'écoutent plus que sur la machine elle-même ; le jeton de la CI ne fait que lire.
-
-## [5.115.0] — 2026-11-10
-Les corrections de l'audit complet (A659-A663) : des filets de session qui ne se déclenchaient pas, des gestes qui
-promettaient plus que le code, et quelques portes du serveur refermées.
-**À faire côté serveur : rejouer `supabase/schema.sql`, et vérifier que le secret `APP_ORIGIN` est posé AVANT de
-redéployer la fonction `link-claim`** (sans lui, la connexion par le téléphone échoue désormais — amende A650).
-- **En session** : le rappel « ⚠ n étape critique en attente » s'affiche enfin (il ne pouvait jamais) ; le compte
-  « x/y étapes » suit chaque coche (il restait à 0 jusqu'au rendu suivant) ; la synchro ne change plus l'écran, le
-  thème ni la taille du texte pendant un soin ; l'écran reste allumé tant qu'un minuteur tourne, même en lisant un
-  document ; la banderole d'alarme passe au-dessus du schéma plein écran, du moniteur et du partage ; le compte rendu
-  montre aussi les compteurs et minuteurs ajoutés en cours de session.
-- **Alarmes** : la permission de notification ne se demande plus au premier geste d'une session. Elle se donne dans
-  **Moi › Alarmes**, où « Tester l'alarme » fait entendre et voir l'alarme. Sur Android, les notifications partent
-  enfin (par le service worker).
-- **Partage** : deux écrans aux horloges décalées affichent le même minuteur ; « Continuer seul » et « Arrêter le
-  partage » n'attendent plus le réseau, et un « continuer seul » fait hors ligne ne se défait plus ; un invité qui
-  rejoint ne voit plus un écart sur une étape cochée depuis.
-- **Éditeur** : supprimer un bloc n'ajoute plus ses étapes ★ à « Ne pas oublier » ; le nom court d'un minuteur ou d'un
-  compteur est enregistré ; la relecture signale un minuteur à durée nulle, une réponse ou une complication sans cible,
-  un bloc sans titre ; mêmes accusés « ↶ pour annuler » à chaque suppression ; ouvrir l'éditeur sans rien changer ne
-  chasse plus les versions.
-- **Import** : un fichier d'IA sans état entre en Brouillon (il entrait « validé » — amende A129) et les notices disent
-  vrai ; la bibliothèque de destination s'affiche ; le message dit ce qui n'a pas pu entrer.
-- **Compte et poste partagé** : à la prise de garde de nuit une heure de fin est toujours proposée ; « Se déconnecter
-  et effacer » refuse pendant une session et prévient de ce qui n'est pas envoyé ; erreurs de code véridiques, en
-  français, et « Renvoyer le code » ; « Quitter cette bibliothèque… » ; le dernier administrateur d'une bibliothèque ne
-  peut plus être retiré.
-- **Données** : versions précédentes pour les protocoles ; une suppression faite ailleurs n'efface plus une
-  modification locale sans archive ni avis ; le stockage de secours s'annonce ; quatre clés oubliées à l'effacement
-  de l'appareil (dont les aides ouvertes récemment).
-- **Recherche et texte** : « oedeme » trouve « Œdème », rangé à O ; liens `tel:` et `mailto:` dans un protocole ; une
-  adresse contenant `==` ne casse plus son lien.
-- **Lisibilité et impression** : textes gris de la session passés à une encre lisible ; « Continuer » ne vire plus au
-  vert au survol ; imprimer depuis le thème sombre sort en encre sombre, sans le suivi d'équipe ; si l'application ne
-  démarre pas, un message et « Recharger » remplacent « Chargement… ».
-- **Serveur (A663)** : « Supprimer mon compte » efface de nouveau le suivi personnel ; les tables du partage ne
-  s'écrivent plus en direct ; un poste partagé ne peut plus inviter ni demander une bibliothèque ; les documents
-  suivent la règle « modifier » de la connexion temporaire. Droits retirés : INSERT/DELETE directs sur le partage et
-  les adhésions, UPDATE direct de `user_status`.
-- Détail, constats écartés et suite possible : `docs/decisions/lot-v5-115.md`.
