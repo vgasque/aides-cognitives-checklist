@@ -2848,6 +2848,17 @@
     .dir-row:first-child{border-top:0}
     .dir-row .card-open::after{border-radius:0}
   }
+  /* A740 — LES RÉSULTATS D'UNE RECHERCHE SONT DES CARTES SÉPARÉES (signalé à l'usage : « toutes collées entre elles,
+     ça fait bizarre »). En large, chaque rangée portait déjà son cadre arrondi mais touchait la suivante (deux bords
+     accolés, coins qui se pincent) ; au téléphone, elles partageaient une carte à filets alors que leur hauteur varie
+     avec l'extrait. Un résultat = une carte, 8 px entre deux, à toutes les largeurs. Le RÉPERTOIRE (`.dir-book`)
+     garde ses listes groupées : seule la liste plate `.dir-grid.flat` change. */
+  .dir-grid.flat{display:grid;gap:8px}
+  @media (max-width:639.98px){
+    .dir-wrap>.dir-grid.flat{background:none;border:0;border-radius:0;overflow:visible}
+    .dir-grid.flat .dir-row{border:1px solid var(--line-strong);border-radius:var(--r-3)}
+    .dir-grid.flat .dir-row::before,.dir-grid.flat .dir-row .card-open::after{border-radius:var(--r-3)}
+  }
   /* Rail A→Z : tap = saut, glisser = parcourir (touch-action:none), JAMAIS sélectionnable (appui
      maintenu = sélection WebKit) ; masqué si débordement (bindAzRail). Centré sur l'AXE DE LA
      PAGE (azrCentrer clampe, entrées stables seules) ; corps 11 px = plancher (règle 9),
