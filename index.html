@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-2zB4t6SVMomVqLjlYuT5AFPj6OM6M179R1IkpM7sT8E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GRHM5jyaKStCZIZVTHeNy2sxkvl8ViTsCn61TpNNWCY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.124.4';
+const APP_VERSION='5.125.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12346,6 +12346,7 @@ const _collator=new Intl.Collator('fr',{sensitivity:'base',numeric:true});
 const byTitle=(a,b)=>_collator.compare(String(a.title||''),String(b.title||''));
 // UN SEUL TRI pour tout l'accueil (fiches, protocoles, union) : épinglés -> frecency -> alphabétique.
 // `sc` reste local à chaque liste (frecency active en recherche seulement).
+// ⚠ EN RECHERCHE il ne fait plus que DÉPARTAGER : le score de pertinence passe devant (`qRank`, A735).
 const homeCmp=sc=>(a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b);
 // Réponse PRISE d'une décision : celle dont la cible correspond à l'entrée SUIVANTE du fil
 // (hors excursions — navNextIdx, A333).
@@ -12376,13 +12377,84 @@ function ficheHaystack(f){let h=_hayCache.get(f);
   // `_hayCache`, qui figeait le résultat amputé). `sources` reste un champ, son accès est le bon.
   if(h===undefined){const parts=[f.title,f.discriminant,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...listOf(f,'differentials'),...(f.sources||[])];
     (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);(b?stepsOf(b):[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
-    h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
+    parts.push(...ficheSnipPlus(f));   // A738 : notes, complications, minuteurs, compteurs, jalons, phases, documents, légendes
+    h=hayPlus(txNorm(stripBold(parts.filter(Boolean).join(' '))));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
 // Recherche MULTI-MOTS (v4.4.4) : chaque mot de la requête doit être présent, où qu'il soit
-// (ET logique) — « choc anaph » trouve la fiche dont le titre porte « anaphylactique » et une
+// (ET logique, mots vides exceptés — A736) — « choc anaph » trouve la fiche dont le titre porte « anaphylactique » et une
 // étape « choc » ; l'ancien `includes` exigeait les mots CONTIGUS. Un seul mot : inchangé.
-const qTerms=q=>txNorm(q).split(/\s+/).filter(Boolean);
-const hayMatch=(hay,terms)=>terms.every(t=>hay.includes(t));
+/* A736 — LA REQUÊTE SE NETTOIE AVANT DE CHERCHER. Trois défauts mesurés : « ACR, réfractaire » et « (ECPR) » ne
+   trouvaient rien (la ponctuation restait collée au mot) ; « l'adrénaline » ne trouvait pas « adrénaline » (l'article
+   élidé aussi) ; « ACR et réfractaire » ne trouvait pas « ACR réfractaire » (« et » était EXIGÉ comme un mot du sujet).
+   1. on découpe sur tout ce qui n'est ni lettre ni chiffre ; 2. un article ÉLIDÉ (l', d', qu'…) tombe — la lettre
+   seule tapée sans apostrophe reste un terme (« hépatite C ») ; 3. un MOT VIDE (liste FERMÉE ci-dessous) n'est plus
+   exigé, sauf s'il est tapé TOUT EN CAPITALES (« LES », « DES » sont aussi des sigles) ou si la requête n'a que cela.
+   Rend des chaînes `txNorm`, sans doublon : les surligneurs (extrait, visionneuse PDF) les lisent telles quelles. */
+const Q_STOP=new Set(['le','la','les','un','une','des','du','de','au','aux','et','ou','en','dans','sur','pour','par','avec']);
+const Q_ELI=/(^|[^\p{L}\p{N}])(?:[ldnsjmtc]|qu)['’‘ʼ](?=\p{L})/giu;
+const Q_SEP=/[^\p{L}\p{N}]+/u;
+function qTerms(q){
+  const tous=[],sujet=[];
+  for(const w of String(q||'').replace(Q_ELI,'$1').split(Q_SEP)){
+    const n=txNorm(w);if(!n)continue;
+    tous.push(n);
+    const sigle=w.length>1&&w===w.toUpperCase()&&w!==w.toLowerCase();
+    if(sigle||!(Q_STOP.has(n)||w==='à'||w==='À'))sujet.push(n);}
+  return [...new Set(sujet.length?sujet:tous)];}
+/* A738 — LE PLURIEL SE REPLIE DU CÔTÉ DE LA REQUÊTE : « réfractaires » doit trouver « réfractaire » (l'inverse marchait
+   déjà, par sous-chaîne). Deux règles, pas un raciniseur : « s »/« x » final retiré, « -aux » → « -al ». ⚠ La forme
+   repliée ne vaut qu'en FIN DE MOT (`qHit(…,true)`) : sans cela « pouls » → « poul » trouverait « ampoule ». */
+function qStems(t){const a=[];
+  if(t.length>=4&&/[sx]$/.test(t))a.push(t.slice(0,-1));
+  if(t.length>=6&&/[^e]aux$/.test(t))a.push(t.slice(0,-3)+'al');
+  return a;}
+const qAN=c=>c!==undefined&&/[\p{L}\p{N}]/u.test(c);
+/* OÙ un terme tombe dans une chaîne normalisée : 3 = mot entier, 2 = début de mot, 1 = fragment, 0 = absent.
+   `fin` : ne compter que les occurrences en fin de mot (formes repliées). Borné à 400 occurrences. */
+function qHit(n,t,fin){let i=0,best=0,k=0;
+  if(!n||!t)return 0;
+  while((i=n.indexOf(t,i))>=0&&k++<400){
+    const d=!qAN(n[i-1]),f=!qAN(n[i+t.length]);
+    if(d&&f)return 3;
+    if(!fin||f){if(d)best=2;else if(!best)best=1;}
+    i++;}
+  return best;}
+const qHitT=(n,t)=>{let v=qHit(n,t);if(v<3)for(const s of qStems(t)){const w=qHit(n,s,true);if(w>v)v=w;}return v;};
+const hayMatch=(hay,terms)=>terms.every(t=>hay.includes(t)||qStems(t).some(s=>qHit(hay,s,true)>0));
+/* A738 — DEUX GRAPHIES, UN MOT : « anti-coagulant » / « anticoagulant », « 1 mg » / « 1mg ». Le texte reste tel quel ;
+   on lui AJOUTE la forme soudée de chaque mot à trait d'union et de chaque « nombre unité » — la requête trouve alors
+   l'une ou l'autre. Calculé une fois, avec le haystack (mis en cache). */
+function hayPlus(h){const x=[];
+  for(const m of h.matchAll(/[a-z0-9]+(?:-[a-z0-9]+)+/g))x.push(m[0].replace(/-/g,''));
+  for(const m of h.matchAll(/(\d+(?:[.,]\d+)?)[ \u00a0\u202f]([a-zµ]{1,3})(?![a-z0-9])/g))x.push(m[1]+m[2]);
+  return x.length?h+' '+[...new Set(x)].join(' '):h;}
+/* A735 — LES RÉSULTATS SE CLASSENT PAR PERTINENCE ; L'ÉPINGLE ET L'USAGE NE FONT PLUS QUE DÉPARTAGER. Avant : épinglées
+   > frecency > alphabétique, sans regarder OÙ le mot était trouvé — « ACR et ACR réfractaires » arrivait troisième pour
+   « ACR réfractaire », derrière une aide épinglée qui ne portait qu'un des mots. Le score est une SOMME PAR TERME, du
+   meilleur lieu où il tombe (titre et code > discriminant > catégorie > contenu ; mot entier > début de mot > fragment),
+   plus trois primes : tous les termes dans le titre, la requête d'un seul tenant dans le titre, le titre ÉGAL à la
+   requête. Déterministe, sans dictionnaire ni apprentissage : la même frappe rend le même ordre. La LISTE ne change
+   pas — on réordonne, on ne filtre pas. Un élément trouvé seulement par un PDF joint marque 0 et ferme la liste. */
+const Q_W={t:[0,50,80,100],d:[0,30,45,60],c:[0,15,25,30],b:[0,8,15,20]};
+const qSq=s=>txNorm(s).split(Q_SEP).filter(Boolean).join(' ');
+function qScore(x,q,hay){
+  const T=qTerms(q);if(!T.length||!x)return 0;
+  const ti=qSq(x.title),co=qSq(x.code),di=qSq(x.discriminant),ca=qSq(catName(x));
+  let s=0,nTi=0;
+  for(const t of T){
+    const a=qHitT(ti,t);if(a)nTi++;
+    const v=Math.max(Q_W.t[a],Q_W.t[qHitT(co,t)],Q_W.d[qHitT(di,t)],Q_W.c[qHitT(ca,t)]);
+    s+=v||Q_W.b[qHitT(hay,t)];}
+  const ph=qSq(q);
+  if(T.length>1&&nTi===T.length)s+=200;
+  if(ph&&ti===ph)s+=400;
+  else if(ph.indexOf(' ')>0){if((' '+ti+' ').includes(' '+ph+' '))s+=100;else if(hay.includes(ph))s+=30;}
+  return s;}
+/* Le tri de RECHERCHE : score d'abord, puis le tri de toujours (`cmp` = `homeCmp`). Les scores restent lisibles par
+   la vue « Tout », qui fusionne les deux listes déjà filtrées (`_qSc`, par objet). */
+const _qSc=new WeakMap();
+const qCmp=cmp=>(a,b)=>((_qSc.get(b)||0)-(_qSc.get(a)||0))||cmp(a,b);
+function qRank(list,q,hayOf,cmp){list.forEach(x=>_qSc.set(x,qScore(x,q,hayOf(x))));return list.sort(qCmp(cmp));}
 /* ══ TOLÉRANCE ORTHOGRAPHIQUE — ON CORRIGE LA REQUÊTE, JAMAIS LA LISTE (v5.6) ═══════════════════
    QUATRE BORNES : 1. ne se déclenche que sur ZÉRO résultat ; 2. candidats de VOTRE bibliothèque,
    jamais d'un dictionnaire livré (règle 13) ; 3. se DÉCLARE en toutes lettres (« aucun résultat
@@ -12456,25 +12528,47 @@ function markQTerms(s,terms){
   const m=[];iv.forEach(([a,b])=>{const l=m[m.length-1];if(l&&a<=l[1])l[1]=Math.max(l[1],b);else m.push([a,b]);});
   let out='',p=0;m.forEach(([a,b])=>{out+=esc(s.slice(p,a))+'<b>'+esc(s.slice(a,b))+'</b>';p=b;});
   return out+esc(s.slice(p));}
+/* A737 — L'EXTRAIT EST LA LIGNE QUI RÉPOND LE MIEUX, plus la première où un mot tombe : pour « image absente de
+   l'archive », il montrait « Mé**de**cine » — « de » est partout. On note chaque ligne (un terme présent compte, mieux
+   s'il est un mot entier), la meilleure gagne, la première à égalité ; les mots vides ne sont plus ni cherchés ni mis
+   en gras (`qTerms` les a retirés). Les formes repliées du pluriel sont surlignées aussi. */
 function searchSnippet(parts,q){
   const T=qTerms(q);if(!T.length)return '';
+  const H=T.concat(...T.map(qStems));
+  let best=null,bs=0;
   for(const raw of parts){
     const s=stripBold(String(raw||'')).normalize('NFC').trim();if(!s)continue;
     const n=txNorm(s);
-    let first=-1;T.forEach(t=>{const i=n.indexOf(t);if(i>=0&&(first<0||i<first))first=i;});
-    if(first<0)continue;
-    // Fenêtre ~120 caractères autour du premier terme, coupée aux mots ; « … » aux bords tronqués.
-    let a=Math.max(0,first-36),b=Math.min(s.length,first+90);
-    if(a>0){const sp=s.indexOf(' ',a);if(sp>=0&&sp<first)a=sp+1;}
-    if(b<s.length){const sp=s.lastIndexOf(' ',b);if(sp>first)b=sp;}
-    return `<div class="card-snip">${a>0?'… ':''}${markQTerms(s.slice(a,b),T)}${b<s.length?' …':''}</div>`;}
-  return '';}
+    let sc=0;for(const t of T){const v=qHitT(n,t);if(v)sc+=10+v;}
+    if(sc>bs){bs=sc;best={s,n};}}
+  if(!best)return '';
+  const {s,n}=best;
+  let first=-1;H.forEach(t=>{const i=n.indexOf(t);if(i>=0&&(first<0||i<first))first=i;});
+  if(first<0)return '';
+  // Fenêtre ~120 caractères autour du premier terme, coupée aux mots ; « … » aux bords tronqués.
+  let a=Math.max(0,first-36),b=Math.min(s.length,first+90);
+  if(a>0){const sp=s.indexOf(' ',a);if(sp>=0&&sp<first)a=sp+1;}
+  if(b<s.length){const sp=s.lastIndexOf(' ',b);if(sp>first)b=sp;}
+  return `<div class="card-snip">${a>0?'… ':''}${markQTerms(s.slice(a,b),H)}${b<s.length?' …':''}</div>`;}
 // Sources de l'extrait, dans l'ordre de LECTURE de chaque entité (titre exclu).
 function ficheSnipParts(f){const p=[f.code,...listOf(f,'notForget'),...listOf(f,'confirmation')];
   (f.blocks||[]).forEach(b=>{p.push(b&&b.title,b&&b.question);(b?stepsOf(b):[]).forEach(s=>p.push(stepText(s)));((b&&b.options)||[]).forEach(o=>p.push(o&&o.label));});
-  p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.local,...(f.sources||[]));
+  p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.local,...(f.sources||[]),...ficheSnipPlus(f));
   return p;}
-function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.docs||[]).map(a=>a.name),...(p.sources||[])];}
+/* A738 — CE QUE LA RECHERCHE NE LISAIT PAS dans une aide, et qu'on lit pourtant à l'écran : la note d'une étape, les
+   complications, minuteurs (et l'action à l'échéance), compteurs, jalons, phases, le libellé de « Continuer », le nom
+   des documents joints (les protocoles l'indexaient déjà), les légendes d'images. Une SEULE liste, lue par le haystack
+   ET par l'extrait : un champ cherché sans pouvoir être montré donnerait un résultat sans raison visible. */
+function ficheSnipPlus(f){const p=[],arr=v=>Array.isArray(v)?v:[];
+  arr(f.items).forEach(it=>p.push(it&&it.note));
+  arr(f.blocks).forEach(b=>{if(!b)return;p.push(b.phase,b.nextLbl);arr(b.milestones).forEach(m=>p.push(m&&m.text));});
+  arr(f.excursions).forEach(x=>p.push(x&&x.label));
+  arr(f.timers).forEach(t=>p.push(t&&t.label,t&&t.onDue));
+  arr(f.counters).forEach(c=>p.push(c&&c.label));
+  arr(f.docs).forEach(a=>p.push(a&&a.name));
+  arr(f.images).forEach(g=>p.push(g&&g.caption));
+  return p.filter(v=>typeof v==='string'&&v);}
+function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.docs||[]).map(a=>a.name),...(p.sources||[]),...(Array.isArray(p.images)?p.images:[]).map(g=>g&&g.caption)];}
 
 /* ═══ CHERCHER DANS LES DOCUMENTS PDF — UN INDEX INVERSÉ (v5.2.0) ═════════════════════════════
  * Pas de texte conservé (la « photocopie greppée » a été refusée par l'auteur) : DICTIONNAIRE
@@ -12608,6 +12702,13 @@ function ixSearch(h,terms){
       const i=ixTermAt(h,at);
       if(i>=0)for(const pg of ixPagesOf(h,i))set.add(pg);
       at++;}
+    /* A738 : le pluriel replié, en FIN de mot seulement (les mots du dictionnaire sont séparés par 0x0A). */
+    for(const st of qStems(t)){at=0;
+      while((at=h.txt.indexOf(st,at))>=0){
+        const fin=at+st.length;
+        if(fin>=h.txt.length||h.txt.charCodeAt(fin)===10){const i=ixTermAt(h,at);
+          if(i>=0)for(const pg of ixPagesOf(h,i))set.add(pg);}
+        at++;}}
     if(!set.size)return null;
     if(acc){const keep=new Set();for(const x of acc)if(set.has(x))keep.add(x);acc=keep;}
     else acc=set;
@@ -18770,6 +18871,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     // Recherche : plein texte normalisé, sur TOUTES les bibliothèques accessibles ; brouillon
     // visible si on peut éditer SA biblio (canEditFiche, par item). Tri des RÉSULTATS (v4.4.6) :
     // épinglées, puis frecency, puis alphabétique ; sans recherche : alphabétique inchangé.
+    // A735 : en recherche, ce tri ne fait plus que départager des scores égaux (`qRank`).
     /* ⚠ UN FILTRE POSÉ AGIT AUSSI EN RECHERCHE (v5.6, signalé à l'usage) : la branche `q`
        ignorait `state.scope`/`state.cat` — contrôle MORT au moment où l'on s'en sert. Pas la
        règle « on réordonne, on ne filtre jamais » (elle vaut pour un rapprochement deviné, pas un
@@ -18779,7 +18881,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        l'on peut éditer SA bibliothèque (par fiche) ; le cran catégorie agit partout, par nom. */
     list:(q)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
       const ok=f=>homeLibOn(f)&&catFilterOn(f)&&collOn(f)&&(canEditFiche(f)||f.status!=='draft')&&(!q||hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T));
-      return fiches.slice().sort(homeCmp(sc)).filter(ok);},
+      const L=fiches.filter(ok);return q?qRank(L,q,ficheHaystack,homeCmp(sc)):L.sort(homeCmp(sc));},   // A735 : en recherche, le score d'abord
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session, chrono vivant (tickAll), « Reprendre »
     // plein, « Terminer » en texte rouge (destructif : jamais plein, jamais premier). En mode
     // RECHERCHE les cartes s'effacent (v4.4.7) — la session reste signalée ailleurs.
@@ -18854,7 +18956,7 @@ function renderFiches(){renderHomeList(_homeCfgF());}
    les mêmes composants que sur les fiches. ----- */
 const _protoHay=new WeakMap();
 function protocolHaystack(p){let h=_protoHay.get(p);
-  if(h===undefined){h=txNorm([p.title,p.discriminant,p.code,mdStrip(p.body),...(p.sources||[]),...(p.docs||[]).map(a=>a.name)].filter(Boolean).join(' '));_protoHay.set(p,h);}
+  if(h===undefined){h=hayPlus(txNorm([p.title,p.discriminant,p.code,mdStrip(p.body),...(p.sources||[]),...(p.docs||[]).map(a=>a.name),...(Array.isArray(p.images)?p.images:[]).map(g=>g&&g.caption)].filter(Boolean).join(' ')));_protoHay.set(p,h);}
   return h+' '+txNorm(catName(p));}
 /* ===== R4 — LA BIBLIOTHÈQUE DEVIENT UNIQUE, LE TYPE DEVIENT UN FILTRE (lot T9, v5.0.0) =======
    Le type est une propriété de l'AUTEUR, pas du lecteur (qui cherche un SUJET) : filtre appliqué
@@ -18874,10 +18976,10 @@ function renderAll(){
     remainLbl:n=>'élément'+(n>1?'s':''),
     /* UN SEUL TRI POUR LES DEUX TYPES — surtout pas « les aides d'abord » : ce serait rétablir la
        séparation qu'on vient de supprimer, en plus discret. Épinglés, puis frecency en recherche,
-       puis alphabétique, exactement comme chaque liste séparée. */
+       puis alphabétique, exactement comme chaque liste séparée. A735 : en recherche, le score de pertinence d'abord. */
     list:(q,canEdit)=>{const A=cfgF.list(q,canEdit).concat(cfgP.list(q,canEdit));const now=Date.now();
       const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return A.sort(homeCmp(sc));},
+      return A.sort(q?qCmp(homeCmp(sc)):homeCmp(sc));},   // A735 : les scores posés par les deux listes (`_qSc`)
     row:x=>est(x)==='p'?cfgP.row(x):cfgF.row(x),
     topHtml:cfgF.topHtml,notices:cfgF.notices,bind:cfgF.bind,
     /* LES DEUX TYPES SONT CRÉABLES ICI, donc les deux cartes — c'est le seul endroit du produit
@@ -18891,12 +18993,12 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     countLbl:n=>'document'+(n>1?'s':''),
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
-    // Même tri de recherche que les fiches (v4.4.6) : épinglés > frecency > alphabétique.
+    // Même tri de recherche que les fiches : score de pertinence (A735), puis épinglés > frecency > alphabétique.
     /* Même règle que pour les aides : un cran posé agit aussi en recherche (v5.6). */
     /* v5.18 : même règle que les aides — union, brouillons par item, catégorie par nom. */
     list:(q)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
       const ok=p=>homeLibOn(p)&&catFilterOn(p)&&collOn(p)&&(canEditFiche(p)||p.status!=='draft')&&(!q||hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T));
-      return protocols.slice().sort(homeCmp(sc)).filter(ok);},
+      const L=protocols.filter(ok);return q?qRank(L,q,protocolHaystack,homeCmp(sc)):L.sort(homeCmp(sc));},   // A735
     /* Même rangée que les fiches (un seul langage sur tout l'accueil) ; « n PDF » reste — c'est
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
@@ -38908,7 +39010,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
+    qTerms,hayMatch,qStems,qHit,qScore,hayPlus,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
     autoShort,autoShortHead,tmShort,cxShort,forgetItemHtml,catRegNear,catSafeTwin,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,ovPresList,
     svTreePlan,svValidWarn,svSources,svCountsTxt,posoParts,SV_COL,

@@ -241,6 +241,44 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('un mot absent suffit à exclure', !A.hayMatch(hay, A.qTerms('amiodarone adrenaline')));
   ok('aucun terme → tout matche (liste non filtrée)', A.hayMatch(hay, []));
 
+  group('recherche : requête nettoyée, replis, classement (v5.125, A735-A738)');
+  eq('ponctuation détachée', A.qTerms('ACR, réfractaire (ECPR)'), ['acr','refractaire','ecpr']);
+  eq('article élidé retiré', A.qTerms("l'adrénaline d’arrêt"), ['adrenaline','arret']);
+  eq('mots vides non exigés', A.qTerms('ACR et refractaire de la'), ['acr','refractaire']);
+  eq('un mot vide TOUT EN CAPITALES est un sigle', A.qTerms('LES grossesse'), ['les','grossesse']);
+  eq('une requête de mots vides seuls les garde', A.qTerms('de la'), ['de','la']);
+  eq('la lettre seule sans apostrophe reste un terme', A.qTerms('hépatite C'), ['hepatite','c']);
+  eq('« à » est vide, « a » non', A.qTerms('conduite à tenir vitamine a'), ['conduite','tenir','vitamine','a']);
+  eq('doublons fondus', A.qTerms('ACR et ACR'), ['acr']);
+  {const h=A.txNorm('ACR réfractaire : discuter ECPR');
+   ok('« et » ne fait plus manquer', A.hayMatch(h, A.qTerms('ACR et refractaire')));
+   ok('pluriel de la requête replié', A.hayMatch(h, A.qTerms('refractaires')));
+   ok('le repli ne vaut qu’en fin de mot', !A.hayMatch(A.txNorm('une ampoule'), A.qTerms('pouls')));
+   ok('-aux → -al', A.hayMatch(A.txNorm('signe vital'), A.qTerms('vitaux')));
+   ok('un mot absent exclut toujours', !A.hayMatch(h, A.qTerms('ACR adrenaline')));}
+  {const hp=A.hayPlus(A.txNorm('Anti-coagulant oral, adrénaline 0,5 mg puis 300 mg'));
+   ok('trait d’union : forme soudée trouvée', A.hayMatch(hp, A.qTerms('anticoagulant')));
+   ok('trait d’union : forme séparée trouvée', A.hayMatch(hp, A.qTerms('anti-coagulant')));
+   ok('nombre et unité soudés', A.hayMatch(hp, A.qTerms('300mg')) && A.hayMatch(hp, A.qTerms('300 mg')));
+   ok('le texte d’origine reste en tête', hp.indexOf('anti-coagulant oral')===0);}
+  eq('qStems : deux règles, pas « -eaux », pas un mot court', [A.qStems('refractaires'),A.qStems('vitaux'),A.qStems('niveaux'),A.qStems('cas')], [['refractaire'],['vitau','vital'],['niveau'],[]]);
+  eq('qHit : mot entier / début / fragment / absent', [A.qHit('acr refractaire','acr'),A.qHit('acrosyndrome','acr'),A.qHit('macrolide','acr'),A.qHit('x','acr')], [3,2,1,0]);
+  {const P=t=>({title:t,code:'',discriminant:''});
+   const corps=A.txNorm('macrolide et corticoides, forme refractaire'), q='ACR et refractaire';
+   const s1=A.qScore(P('ACR et ACR réfractaires'),q,''), s2=A.qScore({title:'Arrêt cardiorespiratoire',code:'ACR'},q,A.txNorm('forme réfractaire')), s3=A.qScore(P('Hyperéosinophilie'),q,corps);
+   ok('classement : tous les mots dans le titre > code + contenu > fragments', s1>s2 && s2>s3 && s3>0);
+   ok('classement : mot entier du titre > début de mot > fragment', A.qScore(P('ACR'),'acr','')>A.qScore(P('Acrosyndrome'),'acr','') && A.qScore(P('Acrosyndrome'),'acr','')>A.qScore(P('Macrolides'),'acr',''));
+   ok('classement : titre > contenu', A.qScore(P('Sepsis'),'sepsis','')>A.qScore(P('Choc'),'sepsis','sepsis'));
+   ok('classement : requête d’un seul tenant dans le titre', A.qScore(P('Choc anaphylactique grave'),'choc anaphylactique','')>A.qScore(P('Choc grave anaphylactique'),'choc anaphylactique',''));
+   eq('classement : rien trouvé dans le texte = 0 (PDF seul)', A.qScore(P('Autre'),'sepsis','rien'), 0);}
+  {const sn=A.searchSnippet(['Services d’hospit Médecine aiguë gériatrique','… des patients [Image absente de l’archive : IMG_0456.heic] Préventif'],"image absente de l'archive");
+   ok('extrait : la ligne qui porte le plus de termes', sn.indexOf('<b>Image</b> <b>absente</b>')>=0 && sn.indexOf('<b>archive</b>')>=0);
+   ok('extrait : un mot vide n’est pas mis en gras', sn.indexOf('<b>de</b>')<0);
+   ok('extrait : la forme repliée est surlignée', A.searchSnippet(['Forme réfractaire'],'refractaires').indexOf('<b>réfractaire</b>')>=0);}
+  {const f=A.migrate({title:'X',timers:[{id:'t1',label:'Cycle RCP',type:'interval',seconds:120,onDue:'Analyse du rythme'}],counters:[{id:'c1',label:'Chocs délivrés',step:1,start:0}],excursions:[],docs:[{id:'d1',name:'Reco-ERC.pdf',size:1}]});
+   const h=A.ficheHaystack(f);
+   ok('aide : minuteur, échéance, compteur et nom de document indexés', ['cycle rcp','analyse du rythme','chocs delivres','reco-erc.pdf'].every(k=>h.indexOf(k)>=0));
+   ok('aide : l’extrait peut montrer ces champs', A.searchSnippet(A.ficheSnipParts(f),'chocs').indexOf('<b>Chocs</b>')>=0);}
   group('extrait contextuel (v4.4.4) — searchSnippet/markQTerms');
   eq('terme mis en graisse, insensible aux accents', A.markQTerms('Adrénaline 0,5 mg', ['adrenaline']), '<b>Adrénaline</b> 0,5 mg');
   eq('occurrences chevauchantes fusionnées', A.markQTerms('anaphylaxie', ['anaph','phylaxie']), '<b>anaphylaxie</b>');
@@ -2998,6 +3036,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('index · un mot rend toutes ses pages',JSON.stringify(p1)==='[0,2]');
    /* ET logique entre les termes, exactement comme hayMatch pour les fiches. */
    ok('index · deux mots = intersection',JSON.stringify(A.ixSearch(h,['adrenaline','cuisse']))==='[0]');
+   eq('index · le pluriel de la requête est replié (A738)',JSON.stringify(A.ixSearch(h,['adrenalines'])),JSON.stringify(A.ixSearch(h,['adrenaline'])));
    eq('index · un mot absent ne rend RIEN (pas d’à-peu-près)',A.ixSearch(h,['zzintrouvable']),null);
    eq('index · un terme absent annule la conjonction',A.ixSearch(h,['adrenaline','zzintrouvable']),null);
    /* SOUS-CHAÎNE, et pas préfixe : c'est ce que fait la recherche du reste de l'app — une même
