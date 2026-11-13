@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-tOHt45+g0kwna7QughYNsmlEKwLsqPsoONz1zzDrEMk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-2zB4t6SVMomVqLjlYuT5AFPj6OM6M179R1IkpM7sT8E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.124.2';
+const APP_VERSION='5.124.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18525,7 +18525,11 @@ function renderHomeList(cfg){
      Détail : doctrine-js.md J87. */
   const dansFiltre=!!(state.q||state.cat||state.coll||state.homeRev);   // A660 : « À relire » est un filtre — vidée par lui, la liste n'est pas une bibliothèque vide
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
-  const emptyHtml=(!dansFiltre&&accLoading())?accLoadingHtml():introK.length
+  /* A733 : pendant le PREMIER tirage d'un compte, la liste est partielle (les aides arrivent avant les protocoles) :
+     on montre l'état « chargement » à sa place, pas une liste qui se reconstruit sous les yeux. Une recherche ou un
+     filtre, eux, disent ce qu'il y a déjà. */
+  const chargement=!dansFiltre&&!q&&accLoading();
+  const emptyHtml=chargement?accLoadingHtml():introK.length
     ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
       +(introK.length>1?emptyIntroBothHtml():introK.map(emptyIntroHtml).join(''))
     :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
@@ -18626,7 +18630,10 @@ function renderHomeList(cfg){
        des épinglées, contrairement au bureau ? ») : tuiles d'accès direct D'ABORD, puis les
        commandes, puis le répertoire — en large elles vivent SUR la ligne RÉPERTOIRE (A257a),
        en étroit sur leur rangée, juste au-dessus d'elle. */
-    listHtml=`<div class="dir-wrap">${list.length?
+    /* A734 : au-delà du plafond de 20 s (grosse bibliothèque, réseau lent), la liste s'affiche — en le DISANT tant que
+       le premier tirage court encore. */
+    const partiel=!chargement&&!dansFiltre&&Sync.running&&accPending()?`<p class="acc-load-t" role="status"><span class="acc-spin" aria-hidden="true"></span>Chargement de votre compte… la liste n’est pas encore complète</p>`:'';
+    listHtml=`<div class="dir-wrap">${partiel}${list.length&&!chargement?
       /* L'accès direct est le PREMIER GROUPE de rangées (A515, renverse les tuiles d'A261) ; les fiches restent
          AUSSI dans le répertoire (un raccourci ne déménage rien). */
       /* v5.19.1 (signalé à l'usage) : en voie ÉTROITE, « Rangé par » et « Sélectionner » passent
@@ -18670,7 +18677,7 @@ function renderHomeList(cfg){
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
-    ${tabNavOn()&&!state.selOn?(lanceur?pgHeadHtml('Accueil',{create:true}):pgHeadHtml('Aides',{sel:true,create:true,chips:true})):''}${tabNavOn()?selTopHtml():''}
+    ${tabNavOn()&&!state.selOn?((lanceur||chargement)?pgHeadHtml('Accueil',{create:true}):pgHeadHtml('Aides',{sel:true,create:true,chips:true})):''}${tabNavOn()?selTopHtml():''}
     ${selBarHtml()}
     ${state.selOn?'':homeJoinHtml()}
     <div class="notice" id="syncErrNotice" hidden></div>
@@ -33324,7 +33331,8 @@ function updateSyncBanner(){
   if(st==='err'){
     const err=Sync.lastError||{icon:SYNC_ERR_ICONS.warning,title:'Erreur de synchronisation'};
     el.className='notice sync-err';el.onclick=openSyncErr;
-    el.innerHTML=`${err.icon}<div><b>Erreur de synchronisation</b> — ${esc(err.title)} · Nouvelle tentative automatique en cours</div>`;
+    /* A734 : un PREMIER chargement interrompu le dit — la liste affichée n'est pas tout le compte. */
+    el.innerHTML=`${err.icon}<div><b>${accPending()?'Chargement du compte interrompu':'Erreur de synchronisation'}</b> — ${esc(err.title)}${accPending()?' · La liste n’est pas encore complète':''} · Nouvelle tentative automatique en cours</div>`;
   }else if(st==='pending'){
     el.className='notice sync-pending';el.onclick=openAuth;
     el.innerHTML=`${SYNC_ERR_ICONS.lock}<div><b>Compte en attente de validation</b> — vos données restent sur cet appareil en attendant</div>`;
@@ -33345,7 +33353,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
 const TEMP_PENDING_KEY='ac-temp-pending';   // A672
 const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
-  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
+  'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sync-first-pending','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -35578,9 +35586,22 @@ const memOps=arr=>({
    n'a pas fini ET que ce compte n'a jamais rien tiré ici (aucun curseur) : un compte déjà synchronisé, ou hors ligne,
    montre sa vraie liste (ou le vrai « vide ») tout de suite. */
 let _syncDoneOnce=false;
+/* A733 : « jamais rien tiré ici » se lit UNE FOIS, avant le premier tirage — pas à chaque rendu. Le curseur d'aides
+   s'écrit dès leur tirage, AVANT celui des protocoles : relu à chaque rendu, il éteignait l'état « chargement » à
+   mi-tirage, et l'accueil montrait une liste partielle titrée « Aides » (sous le seuil du lanceur), puis basculait. */
+let _accFresh=null;
+/* A734 — UN PREMIER CHARGEMENT INTERROMPU SE REPREND COMME UN PREMIER CHARGEMENT. Les curseurs ne disent pas qu'un
+   tirage a FINI : l'onglet fermé (ou l'app quittée) entre les aides et les protocoles laissait le curseur d'aides, et
+   la réouverture montrait la liste partielle comme si le compte était chargé. Un drapeau `ac-sync-first-pending`,
+   posé avant le premier tirage et levé quand aides ET protocoles sont arrivés, le dit. Sans lui (appareil synchronisé
+   avant ce correctif), le curseur suffit comme avant : rien de présent n'est jamais masqué. */
+const ACC_PENDING='ac-sync-first-pending';
+function accPending(){try{return !!localStorage.getItem(spaceKey(ACC_PENDING));}catch(e){return false;}}
+function accFreshInit(){if(_accFresh===null&&Auth.signedIn()){
+    try{_accFresh=accPending()||!(localStorage.getItem(spaceKey(Sync._cursorKey))||localStorage.getItem(spaceKey('ac-sync-cursor-prot')));}catch(e){_accFresh=false;}}
+  return !!_accFresh;}
 function accLoading(){if(_syncDoneOnce||!Auth.signedIn()||!Sync.online()||performance.now()>20000)return false;   // 20 s au plus : jamais un chargement sans fin
-  try{if(localStorage.getItem(spaceKey(Sync._cursorKey))||localStorage.getItem(spaceKey('ac-sync-cursor-prot')))return false;}catch(e){}
-  return true;}
+  return accFreshInit();}
 function accLoadingHtml(){return `<div class="acc-load" role="status"><p class="acc-load-t"><span class="acc-spin" aria-hidden="true"></span>Chargement de votre compte…</p><div class="acc-sk" aria-hidden="true"><span></span><span></span><span></span></div></div>`;}
 const Sync={
   running:false,_again:false,_againN:0,_later:null,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
@@ -35602,6 +35623,8 @@ const Sync={
     if(Auth.signedIn()&&this.online()&&this.running){this._again=true;return;}
     if(!Auth.signedIn()||!this.online()||this.running){if(!this.online())setSyncChip('off','Hors ligne');return;}
     clearTimeout(this._retryTimer);
+    if(accFreshInit())try{localStorage.setItem(spaceKey(ACC_PENDING),'1');}catch(e){}   // A733 : avant tout tirage — un curseur écrit par CE passage ne compte pas ; A734 : le premier chargement est EN COURS
+    const accEtait=accPending();
     this.running=true;setSyncChip('busy','Synchro en cours');
     /* A658 : la porte d'entrée ne suffit pas — une synchro DÉJÀ EN VOL quand la veille apprend la déconnexion
        continuait ses étapes contre des tables qui répondent du vide, et la réconciliation effaçait alors les aides
@@ -35620,6 +35643,7 @@ const Sync={
       await this._initIfNeeded();if(fin())return;
       const conflicts=await this._pull();if(fin())return;
       conflicts.push(...await this._pullProtocols());
+      try{localStorage.removeItem(spaceKey(ACC_PENDING));}catch(e){}   // A734 : aides ET protocoles arrivés — le compte est chargé
       /* A661 : le conflit se dit DÈS QU'IL EST CONNU — placé après le `throw pushErr`, l'avis était perdu chaque fois
          que le push (ou un document PDF) échouait, c'est-à-dire précisément quand le réseau va mal. */
       notifyConflicts(conflicts);
@@ -35660,7 +35684,8 @@ const Sync={
       else{this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}}
     finally{this.running=false;
       // A653 : la première synchro de la page a fini (bien ou mal) — l'accueil quitte l'état « chargement ».
-      if(!_syncDoneOnce){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}
+      /* A734 : … et quand un premier chargement repris finit, la ligne « pas encore complète » s'efface. */
+      if(!_syncDoneOnce||(accEtait&&!accPending())){_syncDoneOnce=true;if(state.view==='library')try{renderLibrary();}catch(e){}}
       // A661 : la demande retenue pendant ce passage est rejouée (bornée).
       if(this._again){this._again=false;this._againN=(this._againN||0)+1;if(this._againN<=3)this.schedule();}else this._againN=0;}
   },
