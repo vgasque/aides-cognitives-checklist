@@ -7194,6 +7194,76 @@ await sec('Accueil · A733 le compte se charge jusqu’au bout (aides avant prot
   await page.close();
 });
 
+/* ══ A734 — UN PREMIER CHARGEMENT INTERROMPU : repris, dit, jamais masqué ══════════════════════════════════════
+   « Il faut quelque chose de résilient : et si le chargement s'interrompt ? » Trois interruptions, une manœuvre
+   chacune : l'onglet fermé entre les aides et les protocoles (rouvert : « Chargement… » à nouveau, pas la liste
+   partielle) ; le réseau en panne pendant le tirage (le chargement s'arrête, la bannière le dit) ; le plafond de
+   20 s dépassé (la liste paraît, avec « pas encore complète »). Et le témoin inverse : un appareil synchronisé
+   avant ce correctif (curseur, sans drapeau) montre sa liste tout de suite. */
+await sec('Accueil · A734 un premier chargement interrompu (repris, dit, jamais masqué)', async () => {
+  const UIDc='aeaeaeae-aeae-aeae-aeae-aeaeaeaeaeae';
+  const ts=new Date(Date.now()-60000).toISOString();
+  const aides=[1,2,3].map(i=>({id:'fA734'+i,owner:UIDc,library_id:null,data:{title:'Aide reprise '+i},updated_at:ts,deleted_at:null}));
+  const ouvrir=async({prot,pre})=>{
+    const page=await br.newPage({viewport:{width:1280,height:820}});
+    await page.route('**/*.supabase.co/**',async route=>{const u=new URL(route.request().url()),get=route.request().method()==='GET';
+      const J=o=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(o)});
+      if(u.pathname.endsWith('my_status'))return J('approved');
+      if(u.pathname.endsWith('/cognitive_aids')&&get)return J(/limit=1(&|$)/.test(u.search)?[aides[0]]:aides);
+      if(u.pathname.endsWith('/protocols')&&get)return prot(route);
+      return get?J([]):J(null);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    await page.evaluate(([u,pre,ts])=>{Auth._setSession({access_token:'at',refresh_token:'rt',expires_in:3600,user:{id:u,email:'k@t.l'}});
+      localStorage.setItem('ac-space',u);const o=localStorage.getItem('ac-db-owner');
+      if(pre.cur)localStorage.setItem(spaceKeyFor('ac-sync-cursor',u,o),ts);
+      if(pre.pending)localStorage.setItem(spaceKeyFor('ac-sync-first-pending',u,o),'1');},[UIDc,pre,ts]);
+    await page.reload();
+    await page.waitForFunction(()=>typeof state!=='undefined'&&!document.querySelector('.boot-load')&&state.view==='library');
+    await calme(page,600);
+    return page;};
+  const lire=page=>page.evaluate(()=>({load:!!document.querySelector('.acc-load'),
+    partiel:/pas encore complète/.test(document.body.innerText),
+    tirees:/Aide reprise/.test((document.querySelector('.home-main')||document.body).innerText),
+    banniere:(document.getElementById('syncErrNotice')||{}).hidden===false?document.getElementById('syncErrNotice').innerText:'',
+    pending:!!localStorage.getItem(spaceKey('ac-sync-first-pending'))}));
+  // 1. Onglet fermé entre aides et protocoles : curseur d'aides ET drapeau — rouvert, c'est encore un premier chargement.
+  {let lacher;const porte=new Promise(r=>lacher=r);
+    const page=await ouvrir({prot:async r=>{await porte;r.fulfill({status:200,contentType:'application/json',body:'[]'});},pre:{cur:true,pending:true}});
+    const a=await lire(page);
+    t('A734 : rouvert après une interruption, l’accueil dit encore « Chargement… » (pas la liste partielle)',a.load&&!a.tirees&&a.pending,JSON.stringify(a));
+    lacher();await page.waitForFunction(()=>!document.querySelector('.acc-load'),null,{timeout:8000}).catch(()=>{});await calme(page,400);
+    const b=await lire(page);
+    t('A734 : … tout arrivé, la liste paraît et le drapeau est levé',!b.load&&b.tirees&&!b.pending,JSON.stringify(b));
+    await page.close();}
+  // 2. Appareil synchronisé AVANT ce correctif : curseur sans drapeau — sa liste tout de suite, même protocoles en route.
+  {let lacher;const porte=new Promise(r=>lacher=r);
+    const page=await ouvrir({prot:async r=>{await porte;r.fulfill({status:200,contentType:'application/json',body:'[]'});},pre:{cur:true,pending:false}});
+    await page.waitForFunction(()=>/Aide reprise/.test(document.body.innerText),null,{timeout:8000}).catch(()=>{});
+    const a=await lire(page);
+    t('A734 : un compte déjà chargé (curseur, sans drapeau) montre sa liste tout de suite — rien de présent n’est masqué',!a.load&&a.tirees&&!a.partiel,JSON.stringify(a));
+    lacher();await page.close();}
+  // 3. Le réseau tombe pendant le tirage des protocoles : le chargement s'arrête, la bannière dit « interrompu ».
+  {const page=await ouvrir({prot:r=>r.fulfill({status:500,contentType:'application/json',body:'{"message":"panne"}'}),pre:{}});
+    await page.waitForFunction(()=>!document.querySelector('.acc-load')&&document.getElementById('syncErrNotice')&&!document.getElementById('syncErrNotice').hidden,null,{timeout:8000}).catch(()=>{});
+    const a=await lire(page);
+    t('A734 : panne pendant le premier tirage — jamais un chargement sans fin, la liste reçue paraît',!a.load&&a.tirees,JSON.stringify(a));
+    t('A734 : … et la bannière dit « Chargement du compte interrompu », liste incomplète, nouvel essai automatique',/Chargement du compte interrompu/.test(a.banniere)&&/pas encore complète/.test(a.banniere)&&/Nouvelle tentative/.test(a.banniere)&&a.pending,JSON.stringify(a));
+    await page.close();}
+  // 4. Plafond de 20 s dépassé, protocoles toujours en route : la liste paraît, en le disant.
+  {let lacher;const porte=new Promise(r=>lacher=r);
+    const page=await ouvrir({prot:async r=>{await porte;r.fulfill({status:200,contentType:'application/json',body:'[]'});},pre:{}});
+    await page.waitForFunction(()=>typeof fiches!=='undefined'&&fiches.some(f=>/^fA734/.test(f.id)),null,{timeout:8000}).catch(()=>{});
+    await page.evaluate(()=>{const o=performance.now.bind(performance);performance.now=()=>o()+30000;renderLibrary();});
+    await calme(page,300);
+    const a=await lire(page);
+    t('A734 : au-delà de 20 s, la liste paraît — avec « la liste n’est pas encore complète »',!a.load&&a.tirees&&a.partiel,JSON.stringify(a));
+    lacher();await page.waitForFunction(()=>!/pas encore complète/.test(document.body.innerText),null,{timeout:8000}).catch(()=>{});
+    const b=await lire(page);
+    t('A734 : … et la ligne s’efface quand tout est arrivé',!b.partiel&&b.tirees&&!b.pending,JSON.stringify(b));
+    await page.close();}
+});
+
 /* ══ A424 — RANGER UNE SÉLECTION ÉPARPILLÉE : PAR NOM, DANS LA BIBLIOTHÈQUE DE CHACUN ══════════════════
    « Catégorie… » disparaissait dès que la sélection mêlait deux bibliothèques — le cas courant depuis que
    l'accueil est leur union (v5.18). Le sélecteur dit maintenant où va chacun AVANT le geste. */

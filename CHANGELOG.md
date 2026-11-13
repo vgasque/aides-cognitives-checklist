@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.124.4] — 2026-11-13
+Un premier chargement de compte interrompu se reprend, et l'accueil le dit (A734).
+- **L'app fermée pendant le chargement.** Si l'app était fermée (ou l'onglet) au milieu du premier chargement d'un
+  compte, sa réouverture montrait la liste à moitié reçue comme si tout était là. Elle reprend désormais le
+  chargement, avec « Chargement de votre compte… », jusqu'à ce que tout soit arrivé.
+- **Le réseau qui tombe pendant le chargement.** Le chargement s'arrête, la liste reçue s'affiche, et la bannière dit
+  « Chargement du compte interrompu · La liste n'est pas encore complète · Nouvelle tentative automatique en cours ».
+  La nouvelle tentative reprend là où le chargement s'était arrêté.
+- **Un chargement qui dure.** Au-delà de 20 secondes (grosse bibliothèque, réseau lent), l'accueil affiche la liste
+  sans attendre, avec la mention « la liste n'est pas encore complète », qui disparaît quand tout est arrivé.
+- Rien ne change pour un appareil où le compte est déjà chargé : sa liste s'affiche tout de suite.
+
 ## [5.124.3] — 2026-11-13
 À la connexion, l'accueil ne montre plus une liste partielle avant la vraie (A733).
 - **« Chargement de votre compte… » jusqu'au bout.** Sur un appareil où le compte n'a encore jamais été chargé
@@ -328,24 +340,3 @@ Invitation avec acceptation, et quotas réglables (A685-A688) — les deux derni
 - **Limite atteinte** : l'élément refusé reste sur l'appareil et repartira dès qu'une place se libère ou que la limite
   est relevée ; la synchro le dit (« Quota atteint »), sans rien interrompre.
 - Guide d'exploitation : `docs/deploiement-et-conformite.md` § 1.8 (lire et relever les quotas sans l'app).
-
-## [5.115.2] — 2026-11-10
-Audit de sécurité, suite : le serveur (A676-A683).
-**À faire côté serveur : rejouer `supabase/schema.sql`**, puis `supabase/rls-tests.sql` pour vérifier. La fonction
-`link-claim` n'a pas changé.
-- **Partage en direct — régression de la v5.115.1 corrigée** : après une bascule en direct, le canal pouvait se fermer
-  au bout de trente secondes ; l'invité perdait alors le lien et ne suivait plus le retour en ligne.
-- **Poste partagé** : « Se déconnecter et effacer » ferme réellement la session du compte sur le serveur. Avant, un
-  jeton copié sur le poste pouvait redevenir, une semaine plus tard, un accès complet au compte.
-- **Aides partagées** : une modification ne peut plus être antidatée — tous les appareils la reçoivent.
-- **Connexion d'un poste** : la limite de demandes ne se contourne plus, et un afflux de demandes ne bloque plus le
-  déverrouillage d'un poste déjà connecté.
-- **Administration** : les listes (comptes, bibliothèques, demandes) ne se lisent plus depuis un poste partagé.
-- **Partage de session** : le serveur refuse toute valeur qui n'a pas la forme attendue (plus de texte libre glissé
-  dans un évènement) ; un envoi refusé pour débit ne compte plus dans le quota.
-- **Suivi** : l'auteur d'une note d'équipe est posé par le serveur — on ne signe plus à la place d'un collègue.
-- **Identifiants** : le serveur refuse une aide ou un protocole dont l'identifiant n'a pas la forme attendue, et un nom
-  de bibliothèque de plus de 120 caractères.
-- **Lien `?__actest`** : sans effet sur le site publié (il donnait une application qui ne démarrait pas).
-- **Outillage** : `check-vendor` compare l'empreinte de pdf.js et de jsQR à celle notée dans leur notice.
-- Restent à décider : l'invitation avec acceptation et les quotas par compte (`docs/decisions/lot-v5-115-2.md`).
