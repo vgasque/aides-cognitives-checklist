@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.124.3] — 2026-11-13
+À la connexion, l'accueil ne montre plus une liste partielle avant la vraie (A733).
+- **« Chargement de votre compte… » jusqu'au bout.** Sur un appareil où le compte n'a encore jamais été chargé
+  (connexion temporaire, ou nouvel appareil), l'accueil affichait d'abord « Aides » et quelques aides seulement, puis
+  changeait d'aspect une fois tout reçu. Les aides arrivent avant les protocoles, et l'état « chargement » s'arrêtait
+  dès les premières. Il tient désormais jusqu'à ce que tout soit arrivé, puis l'accueil s'affiche en une fois.
+- Au téléphone, le titre reste « Accueil » pendant le chargement.
+- Rien ne change pour un compte déjà chargé sur l'appareil : sa liste s'affiche tout de suite. Une recherche lancée
+  pendant le chargement montre ce qui est déjà arrivé. Au-delà de 20 secondes, l'accueil s'affiche quoi qu'il arrive.
+
 ## [5.124.2] — 2026-11-13
 Import d'une page Notion : un tableau dont les cases tiennent sur plusieurs lignes reste un tableau (A732).
 - **Le tableau ne se défait plus.** Dans l'export de Notion, une case qui contient plusieurs lignes (retours à la ligne,
@@ -339,21 +349,3 @@ Audit de sécurité, suite : le serveur (A676-A683).
 - **Lien `?__actest`** : sans effet sur le site publié (il donnait une application qui ne démarrait pas).
 - **Outillage** : `check-vendor` compare l'empreinte de pdf.js et de jsQR à celle notée dans leur notice.
 - Restent à décider : l'invitation avec acceptation et les quotas par compte (`docs/decisions/lot-v5-115-2.md`).
-
-## [5.115.1] — 2026-11-10
-Les corrections de l'audit de sécurité (A664-A675), côté application et outillage. L'audit n'a trouvé ni injection de
-code (XSS), ni secret dans le dépôt, ni fuite entre bibliothèques. **Rien à rejouer côté serveur pour cette version** ;
-les constats qui touchent `supabase/schema.sql` sont listés dans `docs/decisions/lot-v5-115-1.md`, en attente de décision.
-- **Partage de session** : un participant au logiciel modifié ne peut plus dérégler la session des autres (minuteurs et
-  coches fantômes), ni envoyer l'écran d'un autre invité vers une autre aide, ni le figer ; un participant coupé ne
-  revient plus par le même canal en partage direct ; le partage direct a les mêmes plafonds que le partage en ligne.
-- **Aides et protocoles reçus** (import, bibliothèque partagée) : un identifiant piégé ne rend plus une aide inouvrable
-  ni son Schéma inutilisable ; une aide démesurée ne fige plus l'application au lancement.
-- **Import** : un document PDF venu d'un fichier d'ailleurs ne peut plus prendre la place d'un document existant ; un
-  fichier ne peut plus faire disparaître ce qu'il importe ; un fichier mal formé ne gèle plus l'onglet.
-- **Poste partagé** : « Se déconnecter et effacer » retire aussi le nom de vos bibliothèques et vos rôles ; une
-  connexion temporaire par e-mail interrompue avant d'être enregistrée se ferme au lieu de rester ouverte.
-- **Suivi** : une note d'équipe ne s'affiche que sur un élément de sa propre bibliothèque. Une aide déplacée d'une
-  bibliothèque à une autre ne montre donc plus les notes d'équipe de l'ancienne (elles restent dans « À faire »).
-- **Page affichée dans un autre site** : les gestes y sont tous arrêtés, clavier compris.
-- **Outillage** : les serveurs de test n'écoutent plus que sur la machine elle-même ; le jeton de la CI ne fait que lire.

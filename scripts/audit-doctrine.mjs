@@ -7152,6 +7152,48 @@ await sec('Accueil · A653 le compte se charge (premier tirage)', async () => {
   await pr.close();
 });
 
+/* ══ A733 — LE COMPTE SE CHARGE JUSQU'AU BOUT : pas de liste partielle « Aides » pendant le premier tirage ══════
+   Signalé : à la connexion (temporaire ou non), l'accueil montrait d'abord « Aides » et quelques aides, puis
+   basculait. Les aides arrivent avant les protocoles ; le curseur d'aides, écrit dès leur tirage, éteignait
+   l'état « Chargement » (A653) et la liste partielle, sous le seuil du lanceur, se titrait « Aides ». Ici les
+   aides répondent tout de suite, les protocoles sont RETENUS au réseau. */
+await sec('Accueil · A733 le compte se charge jusqu’au bout (aides avant protocoles)', async () => {
+  const UIDc='adadadad-adad-adad-adad-adadadadadad';let lacher;const porte=new Promise(r=>lacher=r);
+  const ts=new Date(Date.now()-60000).toISOString();
+  const aides=[1,2,3].map(i=>({id:'fA733'+i,owner:UIDc,library_id:null,data:{title:'Aide tirée '+i},updated_at:ts,deleted_at:null}));
+  const page=await br.newPage({viewport:{width:1280,height:820}});
+  await page.route('**/*.supabase.co/**',async route=>{const u=new URL(route.request().url());
+    const J=o=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(o)});
+    if(u.pathname.endsWith('my_status'))return J('approved');
+    if(u.pathname.endsWith('/cognitive_aids')&&route.request().method()==='GET')return J(u.search.includes('limit=1&')||/limit=1$/.test(u.search)?[aides[0]]:aides);
+    if(u.pathname.endsWith('/protocols')&&route.request().method()==='GET'){await porte;return J([]);}
+    return route.request().method()==='GET'?J([]):J(null);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(u=>{Auth._setSession({access_token:'at',refresh_token:'rt',expires_in:3600,user:{id:u,email:'k@t.l'}});localStorage.setItem('ac-space',u);},UIDc);
+  await page.reload();
+  await page.waitForFunction(()=>typeof state!=='undefined'&&!document.querySelector('.boot-load')&&state.view==='library');
+  await page.waitForFunction(()=>typeof fiches!=='undefined'&&fiches.some(f=>/^fA733/.test(f.id)),null,{timeout:8000}).catch(()=>{});
+  await calme(page,600);
+  const lire=()=>page.evaluate(()=>({load:!!document.querySelector('.acc-load'),
+    rangees:document.querySelectorAll('.home-main [data-open], .home-main .dir-grid > *').length,
+    tirees:/Aide tirée/.test((document.querySelector('.home-main')||document.body).innerText),
+    titres:[...document.querySelectorAll('.home-main h1')].map(h=>h.textContent.trim())}));
+  const a=await lire();
+  t('A733 : aides tirées, protocoles en route — l’accueil dit encore « Chargement de votre compte… »',a.load,JSON.stringify(a));
+  t('A733 : … sans liste partielle ni titre « Aides »',!a.tirees&&!a.titres.includes('Aides'),JSON.stringify(a));
+  await page.setViewportSize({width:390,height:844});await calme(page,600);
+  const m=await lire();
+  t('A733 : au téléphone aussi : « Chargement… » sous le titre « Accueil », jamais « Aides »',m.load&&!m.tirees&&!m.titres.includes('Aides')&&m.titres.includes('Accueil'),JSON.stringify(m));
+  await page.setViewportSize({width:1280,height:820});
+  lacher();
+  await page.waitForFunction(()=>!document.querySelector('.acc-load'),null,{timeout:8000}).catch(()=>{});
+  await calme(page,400);
+  const b=await lire();
+  t('A733 : le tirage fini, la liste entière revient',!b.load&&b.tirees,JSON.stringify(b));
+  await page.close();
+});
+
 /* ══ A424 — RANGER UNE SÉLECTION ÉPARPILLÉE : PAR NOM, DANS LA BIBLIOTHÈQUE DE CHACUN ══════════════════
    « Catégorie… » disparaissait dès que la sélection mêlait deux bibliothèques — le cas courant depuis que
    l'accueil est leur union (v5.18). Le sélecteur dit maintenant où va chacun AVANT le geste. */
