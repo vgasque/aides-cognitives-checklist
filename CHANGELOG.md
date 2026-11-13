@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.126.1] — 2026-11-13
+Les résultats d'une recherche ne sont plus collés les uns aux autres (A740).
+- Chaque résultat est une carte à part, avec un petit espace entre deux. Sur ordinateur et tablette, les cartes se
+  touchaient ; au téléphone, elles formaient un seul bloc séparé par des traits.
+- Les listes de l'accueil, des bibliothèques et des collections ne changent pas.
+
 ## [5.126.0] — 2026-11-13
 Une faute de frappe sur un mot du contenu ne laisse plus la recherche sans réponse (A739).
 - **Avant**, la recherche ne rattrapait une faute que vers un mot d'un titre, d'un code ou d'une catégorie :
@@ -317,19 +323,3 @@ La frise du compte-rendu (A700). Rien à faire côté serveur.
   n'enregistre pas leurs heures. Un repère annulé n'a pas de point (il reste barré dans le tableau). Diminuer un
   compteur ne retire pas de point : la ligne compte les repères, la tête du compte-rendu donne la valeur finale.
 - Aucun calcul n'est ajouté : ni intervalle, ni moyenne, ni couleur selon un délai.
-
-## [5.117.0] — 2026-11-10
-Le délai de revérification se règle, et le volet des minuteurs du téléphone se resserre (A698-A699). Rien à faire côté
-serveur.
-- **À revérifier — un délai par aide et par protocole.** Jusqu'ici, une validation de plus de deux ans s'affichait
-  « À revérifier » pour tout le monde. Dans l'éditeur, sous la date de validation, on choisit maintenant « tous les
-  ans », « tous les 2 ans » ou « tous les 3 ans ». Rien ne change pour l'existant : le délai reste de deux ans tant
-  qu'on n'y touche pas.
-- **Sur une rangée validée**, l'info-bulle dit à partir de quand l'élément sera à revérifier.
-- **« À faire » liste les validations échues** de ce que vous pouvez modifier, dans une section « À revérifier —
-  validation échue », avec « Ouvrir ». Ce n'est pas une tâche : la liste est calculée à l'affichage, rien n'est
-  enregistré ni envoyé, et elle disparaît dès que la date de validation est mise à jour.
-- **Minuteurs et compteurs au téléphone** : dans le volet de la capsule, chaque minuteur tient en une tuile plus
-  basse — « ↺ maintenir » à côté du temps, une seule commande en dessous. Toucher n'importe où sur un minuteur à
-  l'arrêt le lance ; un minuteur en marche ne répond qu'à son bouton « Pause ». Un compteur se lit « − n + » sur une
-  ligne, avec un « + » large. Le bureau ne change pas.
