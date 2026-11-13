@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.125.0] — 2026-11-13
+La recherche classe ses résultats par pertinence (A735-A738). La liste des résultats ne change pas, sauf là où la
+recherche ne trouvait rien à tort.
+- **L'ordre des résultats.** Un mot trouvé dans le titre ou le code pèse plus que dans le contenu, un mot entier plus
+  qu'un fragment au milieu d'un autre mot. Pour « ACR réfractaire », les éléments qui portent les deux mots dans
+  leur titre viennent en tête. L'accès direct (étoile) et les ouvertures récentes ne servent plus qu'à départager
+  deux résultats de même pertinence. Un élément trouvé seulement par un PDF joint arrive en fin de liste.
+- **Les petits mots et la ponctuation.** « et », « de », « la », « pour »… ne sont plus exigés : « ACR et réfractaire »
+  trouve « ACR réfractaire ». « l'adrénaline » trouve « adrénaline », « ACR, réfractaire » et « (ECPR) » trouvent ce
+  qu'on attend. Un petit mot tapé tout en capitales (« LES », « DES ») est cherché comme un sigle.
+- **L'extrait sous le titre** montre la ligne qui contient le plus de mots cherchés, et ne met plus les petits mots
+  en gras.
+- **Pluriel, trait d'union, unité.** « réfractaires » trouve « réfractaire », « vitaux » trouve « vital » ;
+  « anticoagulant » et « anti-coagulant » se trouvent l'un l'autre ; « 300mg » trouve « 300 mg ». Le pluriel vaut
+  aussi dans les PDF joints.
+- **Une aide se trouve aussi par** la note d'une étape, une complication, un minuteur (et son action à l'échéance),
+  un compteur, un jalon, une phase, le nom d'un document joint, la légende d'une image. Un protocole, par la légende
+  d'une image.
+- Reste à décider : qu'un mot de 2 ou 3 lettres (« ACR ») ne corresponde qu'en début de mot — aujourd'hui il trouve
+  encore « macrolide », en bas de liste (`docs/decisions/lot-v5-125.md`).
+
 ## [5.124.4] — 2026-11-13
 Un premier chargement de compte interrompu se reprend, et l'accueil le dit (A734).
 - **L'app fermée pendant le chargement.** Si l'app était fermée (ou l'onglet) au milieu du premier chargement d'un
@@ -320,23 +341,3 @@ aucun ordre n'est bloquant). `supabase/rls-tests.sql` pour vérifier.
 - **Recherche dans les PDF** : l'indexation s'arrête à 5 000 pages par document, retient un document qui l'a fait
   échouer trois fois (il est alors dit illisible ; « Réindexer » le rouvre), et n'indexe jamais pendant une session.
 - **Outillage** : les actions de la CI sont épinglées par empreinte.
-
-## [5.116.0] — 2026-11-10
-Invitation avec acceptation, et quotas réglables (A685-A688) — les deux derniers points de l'audit de sécurité.
-**À faire côté serveur : rejouer `supabase/schema.sql`**, puis `supabase/rls-tests.sql` pour vérifier.
-- **Être invité dans une bibliothèque n'y inscrit plus d'office.** L'invitation paraît dans **Moi › Bibliothèques**,
-  avec le nom de la bibliothèque, le rôle proposé et l'adresse de qui invite : **Rejoindre** ou **Refuser**. Tant
-  qu'elle n'est pas acceptée, rien de la bibliothèque n'arrive sur vos appareils. Une invitation nouvelle s'annonce une
-  fois (jamais pendant une session).
-- **Pour qui invite** : la personne paraît dans la liste des membres avec « invitation en attente » ; elle devient
-  membre en acceptant. Un administrateur seulement invité ne compte pas encore comme administrateur. Le message est le
-  même, qu'aucun compte n'existe à cette adresse ou qu'il ne soit pas validé.
-- **Quotas** : chaque espace — l'espace personnel d'un compte, ou une bibliothèque — a une limite d'aides (2 000 par
-  défaut), de protocoles (2 000) et de documents PDF (1 000) ; chaque compte, une limite de sessions enregistrées
-  (5 000). Ce qui est supprimé ne compte pas.
-- **Administration › Règles › Quotas** : les quatre limites se règlent là, avec leur guide — ce qui est compté, l'usage
-  de l'espace le plus rempli aujourd'hui, la valeur par défaut, la plage permise, et ce qui se passe quand la limite est
-  atteinte. Baisser une limite sous l'usage ne supprime rien : cela arrête les ajouts.
-- **Limite atteinte** : l'élément refusé reste sur l'appareil et repartira dès qu'une place se libère ou que la limite
-  est relevée ; la synchro le dit (« Quota atteint »), sans rien interrompre.
-- Guide d'exploitation : `docs/deploiement-et-conformite.md` § 1.8 (lire et relever les quotas sans l'app).
