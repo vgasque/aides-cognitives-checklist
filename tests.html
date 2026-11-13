@@ -3077,6 +3077,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('tolérance · la transposition de deux lettres aussi',A.spellFix('anaphyalxie',V),'anaphylaxie');
     eq('tolérance · elle corrige TERME À TERME, et laisse les justes intacts',
        A.spellFix('arret cardique',V),'arret cardiaque');
+    {const C=['absente','amiodarone','archive','hydroxyzine','hydralazine'];
+     eq('tolérance · un mot du CONTENU est rattrapé (A739)',A.spellFix('absende',V,C),'absente');
+     eq('tolérance · contenu : une molécule mal écrite',A.spellFix('amiodaronne',[],C),'amiodarone');
+     eq('tolérance · contenu : budget strict, deux lettres sur un mot court ne passent pas',A.spellFix('apsende',[],C),null);
+     eq('tolérance · à distance égale, le titre garde la priorité',A.spellFix('absende',['absence'],C),'absence');
+     eq('tolérance · le contenu ne gagne que s’il est strictement plus proche',A.spellFix('amiodaronne',['amidon'],C),'amiodarone');
+     eq('tolérance · un mot présent dans le contenu n’est pas corrigé',A.spellFix('archive',V,C),null);
+     eq('tolérance · deux noms proches : celui qui est tapé juste n’est jamais remplacé',A.spellFix('hydralazine',[],C),null);
+     ok('vocabulaire du contenu : mots de 4 lettres et plus, sans nombres',JSON.stringify(A.libVocabCorps([{}],()=>'adrenaline 0,5 mg 2025 iv choc')).replace(/"/g,'')==='[adrenaline,choc]');}
     eq('tolérance · sans vocabulaire, rien n’est corrigé',A.spellFix('anafilaxie',[]),null);
     /* Le rapprochement doit être DÉTERMINISTE : à égalité de distance, l'ordre alphabétique
        tranche — sinon deux frappes identiques donneraient deux listes. */

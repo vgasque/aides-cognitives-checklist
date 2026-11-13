@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GRHM5jyaKStCZIZVTHeNy2sxkvl8ViTsCn61TpNNWCY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-+wnB4P/V2zyUYNDdpYHPhD9PMgC0Ai3jumM2C8jFn90='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10672,7 +10672,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.125.0';
+const APP_VERSION='5.126.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12456,7 +12456,7 @@ const _qSc=new WeakMap();
 const qCmp=cmp=>(a,b)=>((_qSc.get(b)||0)-(_qSc.get(a)||0))||cmp(a,b);
 function qRank(list,q,hayOf,cmp){list.forEach(x=>_qSc.set(x,qScore(x,q,hayOf(x))));return list.sort(qCmp(cmp));}
 /* ══ TOLÉRANCE ORTHOGRAPHIQUE — ON CORRIGE LA REQUÊTE, JAMAIS LA LISTE (v5.6) ═══════════════════
-   QUATRE BORNES : 1. ne se déclenche que sur ZÉRO résultat ; 2. candidats de VOTRE bibliothèque,
+   QUATRE BORNES (le contenu s'ajoute en second rang, A739) : 1. ne se déclenche que sur ZÉRO résultat ; 2. candidats de VOTRE bibliothèque,
    jamais d'un dictionnaire livré (règle 13) ; 3. se DÉCLARE en toutes lettres (« aucun résultat
    pour X · affiché : Y ») ; 4. ne réécrit JAMAIS le champ. ⚠ Un préfixe/fragment d'un mot du
    vocabulaire n'est jamais corrigé (frappe en cours). */
@@ -12496,21 +12496,38 @@ function libVocab(items,extra){
    n'est plus une faute de frappe, c'est un autre mot. Le risque d'un rapprochement FAUX est tenu
    par les quatre bornes ci-dessus, pas par l'étroitesse du budget — il ne coûte qu'une liste
    visiblement à côté, sous une ligne qui dit exactement ce qui a été cherché. */
-function spellFix(q,vocab){
-  const T=qTerms(q);
-  if(!T.length||!vocab||!vocab.length)return null;
+/* A739 — LE VOCABULAIRE DU CONTENU, EN SECOND RANG (`corps`, facultatif). Les mots les plus durs à écrire — molécules,
+   scores, syndromes — vivent dans les étapes et le corps des protocoles, rarement dans un titre : « amiodaronne » ne
+   trouvait rien. On les propose donc aussi, sous DEUX réserves : 1. budget PLUS STRICT que pour un titre (une lettre
+   jusqu'à 8, deux au-delà) — deux noms de médicaments peuvent se ressembler à deux lettres près ; 2. un mot de titre
+   garde la priorité, le contenu ne l'emporte que s'il est STRICTEMENT plus proche. Les quatre bornes de J16 tiennent. */
+function spellBest(t,vocab,max){let best=null,bd=max+1;
+  for(const w of vocab){
+    const d=dlev(t,w,max);
+    if(d<bd||(d===bd&&best!==null&&w<best)){bd=d;best=w;}}
+  return best!==null&&bd<=max?{w:best,d:bd}:null;}
+function spellFix(q,vocab,corps){
+  const T=qTerms(q),V=vocab||[],C=corps||[];
+  if(!T.length||!(V.length||C.length))return null;
   let touche=false;
   const out=T.map(t=>{
     if(t.length<VOC_MIN)return t;
-    if(vocab.some(w=>w.includes(t)))return t;
-    const max=t.length<=5?1:t.length<=8?2:3;
-    let best=null,bd=max+1;
-    for(const w of vocab){
-      const d=dlev(t,w,max);
-      if(d<bd||(d===bd&&best!==null&&w<best)){bd=d;best=w;}}
-    if(best!==null&&bd<=max){touche=true;return best;}
+    if(V.some(w=>w.includes(t))||C.some(w=>w.includes(t)))return t;
+    const a=spellBest(t,V,t.length<=5?1:t.length<=8?2:3),b=spellBest(t,C,t.length<=8?1:2);
+    const r=a&&b?(b.d<a.d?b:a):(a||b);
+    if(r){touche=true;return r.w;}
     return t;});
   return touche?out.join(' '):null;}
+/* Les mots d'un haystack, une fois par objet (même durée de vie que `_hayCache` : tout changement de contenu remplace
+   l'objet). Borné : un texte ne fournit pas plus de 4000 mots distincts au vocabulaire. */
+const _vocCache=new WeakMap();
+function libVocabCorps(items,hayOf){
+  const s=new Set();
+  for(const x of items||[]){if(!x)continue;
+    let a=_vocCache.get(x);
+    if(!a){const u=new Set();for(const w of hayOf(x).split(/[^a-z0-9]+/)){if(w.length>=VOC_MIN&&w.length<=24&&!/^\d+$/.test(w)){u.add(w);if(u.size>=4000)break;}}a=[...u];_vocCache.set(x,a);}
+    for(const w of a)s.add(w);}
+  return [...s];}
 // EXTRAIT CONTEXTUEL des résultats (v4.4.4) : sous le titre de la carte, la première ligne de
 // CONTENU où la requête matche — on comprend POURQUOI le résultat est là sans ouvrir la fiche.
 // Relief par la GRAISSE seule (<b>) : doctrine du projet — la couleur est un REGISTRE (rouge =
@@ -18572,6 +18589,7 @@ function lanceurBasHtml(list,listR,rowsIn){
     +`<div class="dir-book hc-book"><div class="dir-g"><div class="dir-grid"><button type="button" class="hc-row hc-all" data-gotout>`
     +`<span class="hc-ic" aria-hidden="true">${uiIcon('book',16)}</span><span class="hc-n">Toutes les aides et protocoles</span><span class="hc-cnt">${list.length}</span>`
     +`<span class="dir-chev" aria-hidden="true">${uiIcon('chev',14,{sw:2.4})}</span></button></div></div></div>`;}
+let _qEff='';   // A739 : la requête réellement montrée quand la saisie a été rapprochée — l'extrait de rangée la lit
 let _homeN=0;   // A708 : nombre d'éléments de la liste rendue (lu par `paintViewFoot`)
 function renderHomeList(cfg){
   const q=txNorm(state.q);
@@ -18600,10 +18618,15 @@ function renderHomeList(cfg){
      résultat, et corriger par-dessus le masquerait. Le vocabulaire est celui de la liste VISIBLE
      sous les filtres du moment — proposer un mot que le cran courant écarte rendrait zéro. */
   let corrige=null;
+  _qEff='';
   if(q&&!list.length&&!docHits(q).length){
-    const fx=spellFix(q,libVocab(cfg.list('',canEdit),(categories||[]).map(c=>c&&c.name)));
-    if(fx&&fx!==q){const l2=cfg.list(fx,canEdit);
-      if(l2.length){corrige={saisi:String(state.q||'').trim(),montre:fx};list=l2;}}}
+    const tous=cfg.list('',canEdit),P=new Set(protocols);
+    const V=libVocab(tous,(categories||[]).map(c=>c&&c.name)),C=libVocabCorps(tous,x=>P.has(x)?protocolHaystack(x):ficheHaystack(x));
+    /* A739 : titres d'abord, contenu en second rang ; si le rapprochement vers un titre ne rend rien, le contenu seul. */
+    for(const fx of [spellFix(q,V,C),spellFix(q,[],C)]){
+      if(!fx||fx===q)continue;
+      const l2=cfg.list(fx,canEdit);
+      if(l2.length){corrige={saisi:String(state.q||'').trim(),montre:fx};list=l2;_qEff=fx;break;}}}
   _homeN=list.length;
   // La STRUCTURE dépend de la largeur (colonne gauche en large) : mqHomeWide re-rend au seuil.
   const wide=mqHomeWide.matches;
@@ -18923,7 +18946,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
           <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${f.discriminant?`<b class="dir-disc">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${collAlsoHtml(f.id)}</span>${dirStateHtml(f,true,isLive)}${suiviRowHtml(f.id)}</span>
           ${where?`<span class="lv-w">${esc(where)}</span>`:''}
-          ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
+          ${inQ?searchSnippet(ficheSnipParts(f),_qEff||state.q)+docSnipHtml(f):''}
         </div>
         ${lv?'':`<button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${esc(f.id)}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>`}
         ${lv?`<div class="lv-act"><button class="btn primary" data-livego="${esc(f.id)}">Reprendre</button><button class="btn" data-liveend="${esc(f.id)}" aria-label="Terminer la session — ${esc(f.title||'Sans titre')}">Terminer…</button></div>`:''}
@@ -19008,7 +19031,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
         <div class="dir-main">
           <button class="card-open" data-open="${esc(p.id)}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
           <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}${collAlsoHtml(p.id)}</span>${dirStateHtml(p,false,false)}${suiviRowHtml(p.id)}</span>
-          ${inQ?searchSnippet(protoSnipParts(p),state.q)+docSnipHtml(p):''}
+          ${inQ?searchSnippet(protoSnipParts(p),_qEff||state.q)+docSnipHtml(p):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${esc(p.id)}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
       </div>`;},
@@ -39010,7 +39033,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
-    qTerms,hayMatch,qStems,qHit,qScore,hayPlus,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
+    libVocabCorps,qTerms,hayMatch,qStems,qHit,qScore,hayPlus,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
     autoShort,autoShortHead,tmShort,cxShort,forgetItemHtml,catRegNear,catSafeTwin,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,ovPresList,
     svTreePlan,svValidWarn,svSources,svCountsTxt,posoParts,SV_COL,
