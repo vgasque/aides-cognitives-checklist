@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.126.2] — 2026-11-14
+Deux correctifs : la recherche ne prend plus deux mots pour un code de session (A741), et le surlignage d'un PDF
+revient après un zoom (A742).
+- **PDF : mots surlignés perdus après un zoom.** Zoomer puis dézoomer (ou l'inverse) faisait disparaître les mots
+  surlignés, et avec eux les liens cliquables du document. Ils reviennent maintenant à leur place.
+- Taper « ACR réfrac » affichait « Code de session reconnu · Rejoindre ACRR-FRAC » : les deux mots étaient collés et
+  la lettre accentuée retirée, ce qui donnait huit caractères, la longueur d'un code.
+- La ligne « Rejoindre » n'apparaît plus que si vous tapez un code tel qu'il s'écrit : 8 caractères d'un seul
+  tenant, ou 4 + 4 séparés par un tiret ou une espace, sans accent.
+- Un mot de 8 lettres sans accent (« fentanyl ») peut encore l'afficher ; elle s'ajoute alors aux résultats, sans
+  les remplacer.
+
 ## [5.126.1] — 2026-11-13
 Les résultats d'une recherche ne sont plus collés les uns aux autres (A740).
 - Chaque résultat est une carte à part, avec un petit espace entre deux. Sur ordinateur et tablette, les cartes se
@@ -311,15 +323,3 @@ Le volet des minuteurs et compteurs du téléphone, redessiné (A701). Rien à f
 - **Prendre en main** : le geste « Lire le chrono et les minuteurs » et l'étape du parcours guidé sur la capsule
   décrivent les tuiles, le toucher et le maintien.
 - Le bureau ne change pas.
-
-## [5.118.0] — 2026-11-10
-La frise du compte-rendu (A700). Rien à faire côté serveur.
-- **Compte-rendu de session : une frise avant la chronologie.** Sur un axe de temps qui va du début à la fin de la
-  session, une ligne par compteur montre un point à chaque repère (un choc, une dose), une ligne « Repères » montre
-  les autres heures notées, et une ligne « Complications » marque d'un carré ambre l'entrée dans une complication.
-  Le tableau des heures reste en dessous, inchangé.
-- La frise figure dans l'aperçu, dans le fichier .html et dans le PDF, y compris imprimé sans arrière-plans.
-- **Elle ne montre que ce qui a été horodaté.** Les blocs et les cycles de minuteurs n'y figurent pas : une session
-  n'enregistre pas leurs heures. Un repère annulé n'a pas de point (il reste barré dans le tableau). Diminuer un
-  compteur ne retire pas de point : la ligne compte les repères, la tête du compte-rendu donne la valeur finale.
-- Aucun calcul n'est ajouté : ni intervalle, ni moyenne, ni couleur selon un délai.

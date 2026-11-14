@@ -296,6 +296,14 @@ try {
       const r = d.getBoundingClientRect(), pr = d.closest('.pdf-page').getBoundingClientRect();
       return r.width >= 4 && r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1 && r.left >= pr.left - 1 && r.right <= pr.right + 1;
     })), 'chaque rectangle vit dans la boîte de sa page');
+  /* A742 — ZOOM + PUIS − SANS ATTENDRE : on revient à l'échelle déjà rendue, donc AUCUN nouveau rendu ne repose les
+     calques. Le surlignage doit revenir quand même (il disparaissait pour de bon). */
+  await page.evaluate(() => { pdfZoom('in'); pdfZoom('out'); });
+  await page.waitForFunction(() => document.querySelectorAll('#pdfScroll .pdf-hl').length > 0, null, { timeout: 5000 }).catch(() => {});
+  const apresZoom = await page.evaluate(() => ({ n: document.querySelectorAll('#pdfScroll .pdf-hl').length,
+    dedans: [...document.querySelectorAll('.pdf-hl')].every(d => { const r = d.getBoundingClientRect(), pr = d.closest('.pdf-page').getBoundingClientRect();
+      return r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1 && r.left >= pr.left - 1 && r.right <= pr.right + 1; }) }));
+  t(apresZoom.n === hl.n && apresZoom.dedans, 'zoom + puis − : le surlignage revient, à sa place (A742)', JSON.stringify(apresZoom) + ' / avant ' + hl.n);
   // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
   const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
   await page.click('#pdfHlNext');

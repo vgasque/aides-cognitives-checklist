@@ -2524,6 +2524,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     new Set(A.SHARE_ALPHA.split('')).size===32);
   // Normalisation : on accepte la mise en forme humaine (minuscules, tiret, espaces), on refuse le
   // reste. Le séparateur d'affichage n'est JAMAIS transmis.
+  eq('recherche : un code tel qu’on l’écrit est reconnu (A741)',[A.qJoinCode('K7M2-P4Q9'),A.qJoinCode(' k7m2 p4q9 '),A.qJoinCode('k7m2p4q9')],['K7M2P4Q9','K7M2P4Q9','K7M2P4Q9']);
+  eq('recherche : deux mots soudés ne font pas un code',[A.qJoinCode('ACR réfrac'),A.qJoinCode('ACR refrac'),A.qJoinCode('choc septique'),A.qJoinCode('K7M2--P4Q9'),A.qJoinCode('K7M2P4Q9 x')],['','','','','']);
+  eq('recherche : hors alphabet des codes (0, 1, I, O), rien',A.qJoinCode('MORPHINE'),'');
   eq('minuscules, tiret et espaces sont absorbés',A.shareCodeNorm(' k7m2-p4q9 '),'K7M2P4Q9');
   ok('un code bien formé est accepté',A.shareCodeValid('K7M2-P4Q9'));
   ok('un code trop court est refusé',!A.shareCodeValid('K7M2P4Q'));
