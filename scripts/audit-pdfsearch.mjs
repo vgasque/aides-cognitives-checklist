@@ -367,6 +367,40 @@ try {
     const ok = s.renderedW === _pv.cssW; sc.scrollTop -= 2; await new Promise(r => setTimeout(r, 300));   // horloge : remise en place avant la suite
     return { ok, renduW: s.renderedW, cssW: _pv.cssW }; });
   t(filet.ok, 'défilement posé : une page à l’écran restée à une autre échelle est redessinée (A747)', JSON.stringify(filet));
+  /* A748 — LA VIGNETTE DE DÉTAIL : rien à zoom ordinaire ; à 400 %, la zone visible est redessinée à pleine
+     définition par-dessus l'image de base, sous les calques ; elle part avec la page. */
+  const tuile = await page.evaluate(async () => {
+    const sc = document.getElementById('pdfScroll'), z0 = _pv.z, y0 = sc.scrollTop;
+    /* Attendre que TOUT soit posé : rendus de base finis, puis 200 ms de répit de la vignette, puis son dessin. En CI
+       (machine lente), sortir dès « rendus finis » laissait la vignette encore dans son délai : faux rouge. On attend
+       donc qu'une vignette existe (cas positif) ou, faute d'en voir, 1 s pleine après les rendus (cas négatif). */
+    const rendus = () => _pv.pages.every(s => !s.vis || !s.canvas || s.renderedW === _pv.cssW);
+    const attendre = async (veut) => { let calme = 0;
+      for (let k = 0; k < 300; k++) { await new Promise(r => setTimeout(r, 50));   // horloge : sondage de fin de rendu (15 s au plus)
+        if (veut && _pv.pages.some(s => s.tile) && !_pv.tileTask) return;
+        calme = (rendus() && !_pv.tileTask) ? calme + 1 : 0;
+        if (!veut && calme >= 20) return; } };
+    await attendre(false);
+    const ordinaire = _pv.pages.filter(s => s.tile).length;
+    _pv.z = 4; pdfRescale(); await attendre(true);
+    const s = _pv.pages.find(x => x.tile), W = s ? s.el.offsetWidth : 1, H = s ? s.el.offsetHeight : 1;
+    const r = s && { x0: parseFloat(s.tile.style.left) / 100 * W, y0: parseFloat(s.tile.style.top) / 100 * H,
+      w: parseFloat(s.tile.style.width) / 100 * W, h: parseFloat(s.tile.style.height) / 100 * H };
+    const v = s && pdfVisRect(sc, s);
+    const res = { ordinaire, aFort: !!s,
+      dense: s ? +(s.tile.width / r.w / Math.min(3, devicePixelRatio)).toFixed(2) : 0,
+      base: s ? +(s.canvas.width / W).toFixed(2) : 0,
+      couvre: !!(s && v && r.x0 <= v.x0 + 1 && r.y0 <= v.y0 + 1 && r.x0 + r.w >= v.x1 - 1 && r.y0 + r.h >= v.y1 - 1),
+      ordre: !!(s && s.tile.previousElementSibling === s.canvas && [...s.el.querySelectorAll('.pdf-hl,.pdf-lnk')].every(o => s.tile.compareDocumentPosition(o) & 4)) };
+    if (s) { releasePdfPage(s); res.libere = !s.tile && !s.el.querySelector('.pdf-tile'); }
+    res.diag = { cache: document.hidden, coeurs: navigator.hardwareConcurrency, dpr: devicePixelRatio, plafond: PDF_TILE_PX,
+      pages: _pv.pages.filter(x => x.vis).map(x => [!!x.canvas, x.renderedW, x.canvas && x.canvas.width]).join(' ') };
+    _pv.z = z0; pdfRescale(); sc.scrollTop = y0; await attendre(false);
+    return res; });
+  t(tuile.ordinaire === 0, 'zoom ordinaire : aucune vignette de détail, aucun dessin de plus (A748)', JSON.stringify(tuile));
+  t(tuile.aFort && tuile.dense >= 0.85 && tuile.dense > tuile.base, '400 % : la zone visible est redessinée à pleine définition (A748)', JSON.stringify(tuile));
+  t(tuile.couvre && tuile.ordre, '… elle couvre ce qu’on voit, entre l’image de base et les calques', JSON.stringify(tuile));
+  t(tuile.libere === true, '… et part avec le canevas de la page', JSON.stringify(tuile));
   // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
   const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
   await page.click('#pdfHlNext');
