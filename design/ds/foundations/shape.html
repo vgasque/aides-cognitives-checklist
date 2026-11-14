@@ -8999,7 +8999,7 @@
      il n'a pas à se dessiner autrement selon l'écran où on le rencontre. Aucun extrait : le
      contexte se lit dans le document, qu'un tap ouvre à la page. Filet --line-strong : ces
      rangées se comptent, comme celles du répertoire (WCAG 1.4.11). ----- */
-  .doc-hits{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .doc-hits{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}   /* A750 : le bas seul — `margin:0 0 12px` écrasait le centrage de la colonne (`.home-main>*`, margin-inline:auto) : sur écran large, le groupe partait à gauche */
   .dh-title{margin-top:24px}   /* v5.4.2 : respiration au-dessus du groupe (cf. docHitsHtml) */
   .doc-hit{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--r-3);background:var(--work);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
   .doc-hit:hover{border-color:var(--ink-soft);background:var(--amb-2)}

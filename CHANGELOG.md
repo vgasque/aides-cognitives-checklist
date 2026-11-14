@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.127.2] — 2026-11-14
+Sur un grand écran, « Dans les documents » est aligné sur les résultats (A750).
+- Sous les résultats d'une recherche, les documents trouvés partaient vers la gauche sur un écran large, alors que
+  leur titre et la liste au-dessus étaient centrés. Ils sont maintenant alignés sur la liste, à toutes les largeurs.
+
 ## [5.127.1] — 2026-11-14
 En sélection, « Annuler » et « Tout cocher » restent lisibles quand on fait défiler (A749).
 - Au téléphone, en mode sélection, la liste défilait sous « Annuler » et « Tout cocher » sans fond derrière eux, alors
@@ -212,20 +217,3 @@ Aux Bibliothèques, ce qu'on crée ou importe arrive là où l'on se trouve (A72
   écrire), ce qu'on crée ou importe y arrive ; avec le filtre Catégorie, dans la catégorie de ce nom si la bibliothèque
   d'arrivée en a une.
 - À l'Accueil, rien ne change : un import garde la catégorie que le fichier déclare.
-
-## [5.120.0] — 2026-11-11
-Les titres d'un protocole se lisent enfin comme des titres, et un correctif de l'éditeur (A723-A724).
-- **Protocole, en lecture : trois niveaux de titre qui se distinguent.** `#` et `##` avaient exactement le même dessin,
-  et `###` la taille du texte : on écrivait trois niveaux, on en lisait un et demi. `#` est maintenant le plus grand
-  (21), précédé d'un trait épais et d'un grand blanc ; `##` vient ensuite (17,5), sans trait ; `###` reste à la taille
-  du texte (15), en gras. Le texte lui-même ne change pas.
-- **Éditeur de protocole : les mêmes titres qu'en lecture.** L'éditeur affichait les titres en petites capitales, plus
-  petits que le texte qu'ils coiffaient : la structure d'un texte long ne se voyait plus. « Mise en forme en direct » et
-  l'aperçu montrent désormais les titres de la lecture, et le texte y passe à la même taille qu'en lecture (15 au lieu
-  de 16). Le champ où l'on écrit garde sa taille.
-- **Éditeur de protocole, sur ordinateur : « Ajouter un bloc » ne fait plus remonter la page.** En bas d'un long
-  protocole, le clic renvoyait la page plus haut et le choix du bloc s'ouvrait loin du bouton. Le choix s'ouvre
-  maintenant contre le bouton, et la page ne bouge pas. Le téléphone n'était pas touché.
-- Vérifié sur un protocole chargé (images, tableaux, encadrés, listes, titres de trois lignes), au téléphone, à 320 px,
-  sur grand écran, en thème sombre et sections repliées. À savoir : un `###` suivi d'un paragraphe qui commence par du
-  gras lui ressemble encore.

@@ -166,6 +166,16 @@ try {
     return b ? { txt: b.textContent.replace(/\s+/g, ' ').trim(), pg: b.dataset.docpg, id: b.dataset.docgo } : null;
   });
   t(!!hit, 'le mot du PDF sort un résultat « Dans les documents »', String(hit));
+  /* A750 — LE GROUPE « DANS LES DOCUMENTS » S'ALIGNE SUR LA LISTE, à toute largeur : sur un écran large la colonne est
+     centrée (`.home-main>*`), et le groupe partait à gauche (sa marge écrasait le centrage). */
+  {const vp = page.viewportSize(), ali = [];
+   for (const w of [1600, 2000]) { await page.setViewportSize({ width: w, height: 900 });
+     await page.waitForFunction(w => innerWidth === w && !!document.querySelector('#main .doc-hits'), w, { timeout: 5000 }).catch(() => {});
+     ali.push(await page.evaluate(() => { const g = s => { const e = document.querySelector('#main ' + s); return e ? Math.round(e.getBoundingClientRect().left) : null; };
+       return [g('.dir-wrap'), g('.dh-title'), g('.doc-hits')]; })); }
+   await page.setViewportSize(vp);
+   await page.waitForFunction(w => innerWidth === w && !!document.querySelector('.doc-hit'), vp.width, { timeout: 5000 }).catch(() => {});
+   t(ali.every(([l, tt, d]) => l != null && l === tt && l === d), 'écran large : « Dans les documents » aligné sur la liste des résultats (A750)', JSON.stringify(ali));}
   t(!!hit && hit.pg === '1', 'il annonce la PAGE (1 ici)', hit && hit.pg);
   t(!!hit && hit.txt.indexOf('proto') >= 0, 'il nomme le document', hit && hit.txt);
   /* Le nom hostile ne doit avoir produit NI balise, NI attribut, NI script. */
