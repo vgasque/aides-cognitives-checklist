@@ -304,6 +304,18 @@ try {
     dedans: [...document.querySelectorAll('.pdf-hl')].every(d => { const r = d.getBoundingClientRect(), pr = d.closest('.pdf-page').getBoundingClientRect();
       return r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1 && r.left >= pr.left - 1 && r.right <= pr.right + 1; }) }));
   t(apresZoom.n === hl.n && apresZoom.dedans, 'zoom + puis − : le surlignage revient, à sa place (A742)', JSON.stringify(apresZoom) + ' / avant ' + hl.n);
+  /* A744 — LES CALQUES SONT ATTACHÉS À LA PAGE : posés en pourcentage, ce sont les MÊMES nœuds avant et après un zoom
+     (rien n'est retiré ni recalculé), et ils survivent à la libération du canevas. */
+  const memes = await page.evaluate(async () => {
+    const avant = [...document.querySelectorAll('#pdfScroll .pdf-hl')];
+    const pct = avant.every(d => /%$/.test(d.style.left) && /%$/.test(d.style.top) && /%$/.test(d.style.width) && /%$/.test(d.style.height));
+    pdfZoom('in'); pdfZoom('in'); await new Promise(r => setTimeout(r, 300));   // horloge : laisse passer un rendu
+    pdfZoom('out'); pdfZoom('out'); await new Promise(r => setTimeout(r, 300));   // horloge : idem, retour à l'échelle de départ
+    const apres = [...document.querySelectorAll('#pdfScroll .pdf-hl')];
+    const s = _pv.pages.find(x => x.el.querySelector('.pdf-hl'));
+    releasePdfPage(s); const sansCanevas = s.el.querySelectorAll('.pdf-hl').length; s.vis = true; await renderPdfPage(s);
+    return { pct, memes: avant.length === apres.length && avant.every((d, k) => d === apres[k]), sansCanevas, canevasPremier: s.el.firstChild === s.canvas }; });
+  t(memes.pct && memes.memes && memes.sansCanevas > 0 && memes.canevasPremier, 'les calques sont en pourcentage de la page : mêmes nœuds après zoom, présents sans canevas (A744)', JSON.stringify(memes));
   /* A743 — LE RENDU QUI ÉCHOUE NE DOIT PAS EMPORTER LE SURLIGNAGE : on fait échouer le prochain rendu de chaque page
      (comme un canevas trop grand sur iOS), on zoome, et les rectangles doivent être là, à la nouvelle échelle. */
   const sansRendu = await page.evaluate(async () => {

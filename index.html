@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-YXGgFMeSeoOP6s2SkdVYYQRQWAEGyh92JvG1yBS/MAA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WxzcerdS91CAd158ef1UzD0S5zqSt+IuY7HgDsY/Q5g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9419,7 +9419,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      document). Jaune surligneur universel en fondu NORMAL (multiply s'éteint sur fond sombre de
      PDF) + anneau ambre — code du surligneur papier, pas un registre de l'app.
      Détail : doctrine-css.md C129. */
-  .pdf-hl{position:absolute;background:var(--pdf-hl);box-shadow:0 0 0 1px var(--pdf-hl-ring);border-radius:3px;pointer-events:none}
+  .pdf-hl{position:absolute;min-width:4px;min-height:6px;background:var(--pdf-hl);box-shadow:0 0 0 1px var(--pdf-hl-ring);border-radius:3px;pointer-events:none}
   /* Pilule de navigation des occurrences : flottante en bas de la visionneuse, grammaire de la
      rangée ‹ n/N › du texte (.rt-fnav), élévation d'overlay. */
   /* v5.4.2 — LA PILULE ‹ n/N · p. x › PASSE À L'ARDOISE FIXE (signalé à l'usage : « peu visible
@@ -10683,7 +10683,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.126.3';
+const APP_VERSION='5.126.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -30384,14 +30384,8 @@ function pdfApplyScale(){if(!_pv)return;const sc=document.getElementById('pdfScr
   _pv.pages.forEach(s=>{const w=s.vp?s.vp.width:_pv.baseW,h=s.vp?s.vp.height:_pv.baseH;
     s.el.style.width=_pv.cssW+'px';s.el.style.height=Math.round(h*(_pv.cssW/w))+'px';
     /* A554 : l'ancien canevas RESTE, étiré à la nouvelle taille, jusqu'à ce que le nouveau rendu
-       le remplace (`renderPdfPage`) — plus de page blanche après un zoom.
-       A743 — LES CALQUES SUIVENT L'ÉCHELLE TOUT DE SUITE, SANS ATTENDRE LE RENDU (signalé : « le surlignage ne revient
-       pas après zoom », A742 n'y suffisait pas). Ils partaient ici et ne revenaient qu'avec le NOUVEAU canevas : un
-       rendu lent (gros document) les faisait disparaître le temps du rendu, un rendu qui ÉCHOUE (fort zoom, mémoire
-       de canevas d'iOS — l'erreur est avalée) pour de bon. Or leur place ne dépend que de l'échelle, pas du canevas :
-       on les repose donc sur le canevas étiré, à la nouvelle échelle. */
-    s.el.querySelectorAll('.pdf-hl,.pdf-lnk').forEach(x=>x.remove());s.ovW=0;
-    if(s.canvas&&s.vp){s.ovW=_pv.cssW;if(_pv.hl)pdfPaintHl(s);pdfPaintLinks(s);}});}
+       le remplace (`renderPdfPage`) — plus de page blanche après un zoom. Les calques (surlignage, liens) ne
+       bougent pas : ils sont posés en POURCENTAGE de la page (A744) et la suivent d'eux-mêmes. */});}
 // Zoom « page entière » : z tel que la 1re page tient en HAUTEUR dans la fenêtre, borné à
 // 100 % (jamais plus large que l'écran) et au plancher commun 25 %. Ne dépend que du ratio
 // RÉEL du document (baseH/baseW) : un PDF paysage donne z=1 (déjà entier à pleine largeur).
@@ -30405,8 +30399,15 @@ function pdfZoom(a){if(!_pv)return;
   else if(a==='page')_pv.z=pdfFitPageZ();
   else _pv.z=1;
   pdfApplyScale();pdfRenderNear();}
-function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}
-  s.el.querySelectorAll('.pdf-hl').forEach(x=>x.remove());}
+function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}   // A744 : le canevas SEUL — les calques restent, ils ne dépendent pas de lui
+/* A744 — LES CALQUES D'UNE PAGE (surlignage, liens) SONT ATTACHÉS À LA PAGE, PAS AU CANEVAS. Ils étaient posés en
+   pixels pour UNE échelle : chaque zoom les rendait faux, on les retirait, et tout dépendait de leur repose — liée au
+   nouveau rendu. Trois défauts en sont sortis (A742, A743, et un signalement resté sans reproduction). C'est ce que
+   font les lecteurs PDF : la géométrie d'un calque est en coordonnées de PAGE ; ici, en pourcentage de la boîte de la
+   page. Posés UNE fois par page (`s.ov`), jamais retirés, jamais recalculés : aucun zoom, aucun rendu lent ou raté,
+   aucune libération de canevas ne peut plus les emporter. */
+function pdfPaintOv(s){if(!_pv||!s.page||!s.vp||s.ov)return;s.ov=true;if(_pv.hl)pdfPaintHl(s);pdfPaintLinks(s);}
+const pdfPct=(v,tot)=>(Math.round(v/tot*1e5)/1e3)+'%';
 function pdfHlSync(){
   const el=document.getElementById('pdfHl');if(!el)return;
   const on=!!(_pv&&_pv.hl&&_pv.hlPages&&_pv.hlPages.length);
@@ -30447,11 +30448,11 @@ function pdfHlGo(d){
    compromis qu'on paie pour ne pas embarquer la couche texte entière de pdf.js.
    Même invariant d'alignement que `markQTerms` : txNorm préserve les index 1:1. */
 async function pdfPaintHl(s){
-  if(!_pv||!_pv.hl||!s.canvas)return;
+  if(!_pv||!_pv.hl||!s.page||!s.vp)return;
   if(!s.tc){try{s.tc=await s.page.getTextContent();}catch(e){s.tc={items:[]};}}
-  if(!_pv||!_pv.hl||!s.canvas)return;
+  if(!_pv||!_pv.hl)return;
   s.el.querySelectorAll('.pdf-hl').forEach(x=>x.remove());
-  const k=_pv.cssW/s.vp.width;
+  const W=s.vp.width,H=s.vp.height;   // A744 : en pourcentage de la page — vrai à toute échelle
   for(const it of s.tc.items){
     if(!it.str||!it.width)continue;
     const norm=txNorm1(it.str);   // A661 : forme 1:1 (sans repli œ→oe) — les positions servent au surlignage
@@ -30460,10 +30461,10 @@ async function pdfPaintHl(s){
       while(i>=0){
         const hgt=it.height||Math.abs(it.transform[3])||10;
         const d=document.createElement('span');d.className='pdf-hl';d.setAttribute('aria-hidden','true');
-        d.style.left=Math.round((it.transform[4]+it.width*(i/it.str.length))*k)+'px';
-        d.style.top=Math.round((s.vp.height-it.transform[5]-hgt)*k)+'px';
-        d.style.width=Math.max(4,Math.round(it.width*(t.length/it.str.length)*k))+'px';
-        d.style.height=Math.max(6,Math.round(hgt*k*1.28))+'px';
+        d.style.left=pdfPct(it.transform[4]+it.width*(i/it.str.length),W);
+        d.style.top=pdfPct(H-it.transform[5]-hgt,H);
+        d.style.width=pdfPct(it.width*(t.length/it.str.length),W);
+        d.style.height=pdfPct(hgt*1.28,H);   // planchers 4 × 6 px : dans la feuille de style (`.pdf-hl`)
         s.el.appendChild(d);
         i=norm.indexOf(t,i+1);}}}}
 /* A392 : LES LIENS DU DOCUMENT DEVIENNENT CLIQUABLES (demande de l'auteur). La visionneuse ne rend que des canevas : on lit
@@ -30487,16 +30488,16 @@ function pdfPosY(n,top){const s=_pv&&_pv.pages[n-1];if(!s)return null;
 function pdfGoPage(n,top){const sc=document.getElementById('pdfScroll'),y=pdfPosY(n,top);
   if(sc&&y!=null)sc.scrollTop=Math.max(0,y-8);}
 async function pdfPaintLinks(s){
-  if(!_pv||!s.page||!s.canvas)return;
+  if(!_pv||!s.page||!s.vp)return;
   if(!s.annots){try{s.annots=(await s.page.getAnnotations({intent:'display'})).filter(a=>a&&a.subtype==='Link'&&(a.url||a.dest));}catch(e){s.annots=[];}}
-  if(!_pv||!s.canvas)return;
+  if(!_pv)return;
   s.el.querySelectorAll('.pdf-lnk').forEach(x=>x.remove());
-  const vp=s.page.getViewport({scale:_pv.cssW/s.vp.width});
+  const vp=s.vp,W=vp.width,H=vp.height;   // A744 : échelle 1, puis pourcentage de la page
   s.annots.forEach(a=>{let url=null;
     if(a.url){try{url=new URL(a.url).href;}catch(e){return;}if(!PDF_URL_OK.test(url))return;}
     const r=vp.convertToViewportRectangle(a.rect),l=Math.min(r[0],r[2]),t=Math.min(r[1],r[3]);
     const el=document.createElement(url?'a':'button');el.className='pdf-lnk';
-    el.style.left=l+'px';el.style.top=t+'px';el.style.width=Math.abs(r[2]-r[0])+'px';el.style.height=Math.abs(r[3]-r[1])+'px';
+    el.style.left=pdfPct(l,W);el.style.top=pdfPct(t,H);el.style.width=pdfPct(Math.abs(r[2]-r[0]),W);el.style.height=pdfPct(Math.abs(r[3]-r[1]),H);
     if(url){el.href=url;el.target='_blank';el.rel='noopener noreferrer';el.title=url;el.setAttribute('aria-label','Lien : '+url);}
     else{el.type='button';el.setAttribute('aria-label','Aller à la page liée');
       el.onclick=async()=>{const d=await pdfDestPos(a.dest);if(d.p)pdfGoPage(d.p,d.top);};}
@@ -30560,18 +30561,12 @@ async function pdfTocInit(){const b=document.getElementById('pdfToc');if(!b||!_p
   pdfTocSet(mqReadWide.matches&&pdfTocPref(),true);}
 const PDF_MAX_PX=5242880;
 async function renderPdfPage(s){if(!_pv||s.rendering)return;
-  /* A742 — DÉJÀ RENDUE À CETTE ÉCHELLE, MAIS SES CALQUES ? Un zoom retire surlignage et liens (`pdfApplyScale` : posés
-     au pixel, ils seraient décalés) et compte sur le nouveau rendu pour les reposer. Revenu à l'échelle DÉJÀ rendue
-     (zoom +, puis −), il n'y a pas de nouveau rendu : on sortait ici, et les mots surlignés — comme les liens
-     cliquables — ne revenaient jamais. `s.ovW` = l'échelle à laquelle les calques sont posés ; s'ils manquent, on
-     les repose sans redessiner la page. */
-  if(s.canvas&&s.renderedW===_pv.cssW){
-    if(s.ovW!==_pv.cssW){s.ovW=_pv.cssW;if(_pv.hl)pdfPaintHl(s);pdfPaintLinks(s);}
-    return;}
+  if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle (ses calques n'en dépendent pas, A744)
   s.rendering=true;
   try{
     if(!s.page){s.page=await _pv.doc.getPage(+s.el.dataset.p);s.vp=s.page.getViewport({scale:1});
       if(_pv)s.el.style.height=Math.round(s.vp.height*(_pv.cssW/s.vp.width))+'px';}
+    pdfPaintOv(s);   // A744 : dès que la page est connue, avant même son canevas
     if(!_pv||!s.vis){s.rendering=false;return;}
     /* dpr plafonné (netteté vs mémoire iOS) ET surface plafonnée (A554) : zoomé à 400 %, une page
        demanderait ~25 Mpx — au-delà du plafond de canevas d'iOS, le rendu échoue en BLANC. Même
@@ -30583,9 +30578,7 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     const targetW=_pv.cssW;
     await s.page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
     if(!_pv||!s.vis||_pv.cssW!==targetW){c.width=c.height=0;s.rendering=false;if(_pv&&s.vis)renderPdfPage(s);return;}
-    releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;s.ovW=targetW;
-    if(_pv.hl)pdfPaintHl(s);
-    pdfPaintLinks(s);   // A392 : liens du document (adresses externes, renvois internes)
+    releasePdfPage(s);s.el.insertBefore(c,s.el.firstChild);s.canvas=c;s.renderedW=targetW;   // A744 : le canevas passe SOUS les calques, qui restent
   }catch(e){}
   s.rendering=false;}
 /* `page` (facultatif, 1-based) : ouvrir DIRECTEMENT à une page. `hl` (facultatif) : termes

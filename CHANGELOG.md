@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.126.4] — 2026-11-14
+Dans un PDF, les mots surlignés sont attachés à la page et ne peuvent plus se perdre au zoom (A744).
+- **Avant**, chaque rectangle de surlignage était placé pour une taille de page donnée. À chaque zoom il était
+  retiré puis replacé, et il disparaissait dès que ce replacement n'avait pas lieu. Les deux versions précédentes
+  corrigeaient ces cas un par un.
+- **Maintenant**, le surlignage est placé une fois, en proportion de la page, comme dans les lecteurs PDF courants :
+  il grandit et rétrécit avec elle, quel que soit le zoom, sans être retiré. Les liens cliquables du document suivent
+  la même règle.
+- Rien ne change dans l'emplacement du surlignage ni dans la navigation entre les occurrences.
+
 ## [5.126.3] — 2026-11-14
 Dans un PDF, les mots surlignés restent en place quand on zoome (A743).
 - La v5.126.2 ne réglait que le zoom aller-retour rapide. Les mots surlignés (et les liens du document) pouvaient
@@ -306,9 +316,3 @@ Correctif : la fenêtre d'une bibliothèque s'ouvre de nouveau depuis Administra
   fenêtre (nom, membres, rôles, suppression) s'ouvrait derrière Administration, invisible. Elle s'ouvre maintenant
   au-dessus. Échap et le retour la referment, et vous ramènent à Administration.
 - Au bureau, où Administration est une page de la colonne, rien ne change.
-
-## [5.119.1] — 2026-11-10
-« À revérifier » retrouve son glyphe (A702).
-- Sur l'accueil, une aide ou un protocole dont la validation est échue affichait « À revérifier » en ambre, sans
-  glyphe : c'était le seul état en couleur, et le seul sans △. Il s'affiche maintenant « △ À revérifier », comme
-  « △ À relire » et « △ À compléter ». Rien d'autre ne change.
