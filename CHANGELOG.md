@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.127.1] — 2026-11-14
+En sélection, « Annuler » et « Tout cocher » restent lisibles quand on fait défiler (A749).
+- Au téléphone, en mode sélection, la liste défilait sous « Annuler » et « Tout cocher » sans fond derrière eux, alors
+  que « Sélectionner » et « Créer » ont un fond flouté. La rangée de sélection prend maintenant le même fond dès que
+  la liste passe dessous ; en haut de la liste, elle reste transparente comme avant.
+
 ## [5.127.0] — 2026-11-14
 Un PDF reste net à fort zoom (A748).
 - **Avant**, au-delà d'environ 250 % sur un téléphone (200 % sur un ordinateur), le texte devenait flou, même avec les
@@ -223,32 +229,3 @@ Les titres d'un protocole se lisent enfin comme des titres, et un correctif de l
 - Vérifié sur un protocole chargé (images, tableaux, encadrés, listes, titres de trois lignes), au téléphone, à 320 px,
   sur grand écran, en thème sombre et sections repliées. À savoir : un `###` suivi d'un paragraphe qui commence par du
   gras lui ressemble encore.
-
-## [5.119.5] — 2026-11-11
-Sept correctifs signalés, un raccourci et une règle changée (A716-A722). **Serveur à rejouer** (`supabase/schema.sql`) :
-une bibliothèque ne reste plus jamais sans membre, et son administrateur peut la supprimer.
-- **Session : le compte de « Horodater », en bas de l'écran, suit les coches.** Cocher une étape qui compte (un choc,
-  une dose) pose un repère au journal, mais la touche gardait l'ancien nombre jusqu'au rendu suivant. Elle se met à
-  jour aussitôt, volet ouvert ou fermé.
-- **Éditeur : renommer un minuteur ou un compteur met à jour les blocs qui l'utilisent.** Les étapes liées, les
-  réglages d'étape et les jalons gardaient l'ancien nom tant qu'on ne rouvrait pas l'aide. Le nouveau nom s'affiche
-  partout dès qu'on quitte le champ, et le champ suivant (Tab ou toucher) garde le focus.
-- **Barre d'onglets du téléphone : elle suit la fenêtre redimensionnée.** En réduisant la fenêtre depuis le bureau, la
-  pastille bleue de l'onglet courant restait à sa taille d'avant, et le mot « Accueil » disparaissait. La pastille et les
-  mots se recalent maintenant à chaque largeur.
-- **Colonne de gauche : un seul trait sous les collections.** Il y en avait deux, sans rien entre.
-- **Bibliothèques : le seul membre ne peut plus la quitter.** « Quitter cette bibliothèque… » était proposé même quand
-  on en est le seul membre, et Administration permettait de retirer ce seul membre : la bibliothèque restait sans
-  personne. Le bouton est remplacé par une ligne qui dit quoi faire (la supprimer, la convertir en collection, ou
-  inviter quelqu'un d'abord) ; Administration le refuse en le disant. Le serveur le refuse aussi, par tous les chemins.
-- **Bibliothèques › Tout : « Gérer la bibliothèque ».** Quand le filtre Bibliothèque est posé, un bouton ouvre la
-  fenêtre de cette bibliothèque (nom, membres, rôles), pour son administrateur et celui de l'application.
-- **L'administrateur d'une bibliothèque peut la supprimer.** C'était réservé à l'administrateur de l'application, alors
-  qu'il pouvait déjà en retirer tous les membres. « Supprimer la bibliothèque… » est dans sa fenêtre, avec la même
-  confirmation. Si le serveur refuse, l'app le dit au lieu d'annoncer « Bibliothèque supprimée ».
-- **Moi › Bibliothèques : un lecteur ou un éditeur peut quitter une bibliothèque.** Seules les bibliothèques qu'on
-  administre répondaient au toucher ; les autres étaient inertes, et rien ne permettait d'en partir. Toucher la rangée
-  propose maintenant « Quitter », avec confirmation.
-- **Éditeur de protocole : des blocs sélectionnés à la suite forment un seul cadre.** Chaque bloc avait le sien :
-  certains se chevauchaient (un titre et la liste qui le suit), d'autres non. Un fin trait sépare chaque bloc à
-  l'intérieur du cadre, pour les compter. Le contour de survol ne se superpose plus à la sélection.

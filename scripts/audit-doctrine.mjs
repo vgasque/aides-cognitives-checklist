@@ -9353,6 +9353,15 @@ await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
   t('A540 · inset de 75 px, au repos : barre transparente, titre visible',!repos.stuck&&repos.titreHaut>=repos.barreBas,JSON.stringify(repos));
   t('A540 · titre À MOITIÉ sous la barre : elle a déjà son verre (plus de chevauchement transparent)',moitie.titreHaut<moitie.barreBas&&moitie.titreBas>moitie.barreBas&&moitie.stuck,JSON.stringify(moitie));
   t('A540 · titre sorti : verre et petit titre',sorti.stuck,JSON.stringify(sorti));
+  /* A749 — EN SÉLECTION, PAS DE GRAND TITRE : la rangée « Annuler · Tout cocher » prenait-elle le verre ? Non, jamais
+     (rien n'était observé). Au repos elle reste transparente ; dès que la liste passe dessous, elle a son verre. */
+  await page.evaluate(()=>{scrollTo(0,0);document.getElementById('selTog').click();});await calme(page, 400);
+  const selRepos=await page.evaluate(()=>{const top=document.querySelector('.pg-top');return {sel:top.classList.contains('sel-top'),stuck:top.classList.contains('stuck')};});
+  await page.evaluate(()=>scrollTo(0,400));await calme(page, 400);
+  const selDefile=await page.evaluate(()=>{const top=document.querySelector('.pg-top'),cs=getComputedStyle(top);
+    return {sel:top.classList.contains('sel-top'),stuck:top.classList.contains('stuck'),fond:cs.backgroundColor};});
+  t('A749 · sélection, au repos : la rangée « Annuler · Tout cocher » reste transparente',selRepos.sel&&!selRepos.stuck,JSON.stringify(selRepos));
+  t('A749 · sélection, la liste passe dessous : la rangée prend le verre, comme « Sélectionner · Créer »',selDefile.sel&&selDefile.stuck&&!/rgba\(0, 0, 0, 0\)/.test(selDefile.fond),JSON.stringify(selDefile));
   await page.close();
 });
 
