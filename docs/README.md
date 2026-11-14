@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A745** à la v5.126.5 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A747** à la v5.126.6 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -367,6 +367,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A743 | `lot-v5-126-3.md` | Visionneuse PDF : au zoom, surlignage et liens sont reposés aussitôt à la nouvelle échelle sur le canevas étiré (`pdfApplyScale`) — un rendu lent ou qui échoue (canevas trop grand sur iOS) ne les emporte plus ; témoin à rendu refusé dans `audit-pdfsearch` (complète A742, amende A554) |
 | A744 | `lot-v5-126-4.md` | Visionneuse PDF : surlignage et liens posés en POURCENTAGE de la page (`pdfPct`), une fois par page (`pdfPaintOv`, `s.ov`), jamais retirés — ni par un zoom, ni par un rendu lent ou raté, ni par la libération du canevas ; `s.ovW` purgé (remplace le mécanisme d'A742-A743, amende A554 et A392) |
 | A745 | `lot-v5-126-5.md` | Visionneuse PDF : boutons de zoom et redimensionnement ancrent la page au centre de l'écran (`pdfRescale`) — la vue changeait de page sur un long document (page 30 → 17 ou 44), le mot surligné sortait de l'écran ; rectificatif de méthode : neutraliser un correctif pour éprouver un témoin exige `csp-hashes` (les preuves d'A742-A743 étaient fausses) |
+| A746 | `lot-v5-126-6.md` | Visionneuse PDF : la place d'un mot surligné dans sa ligne est MESURÉE au canevas dans la famille générique de la police (`pdfHlFrac`, jeu fermé `PDF_FAM`) et les index rapportés au texte d'origine (`pdfNormMap`) — au prorata des lettres, le rectangle tombait une demi-largeur de mot à côté |
+| A747 | `lot-v5-126-6.md` | Visionneuse PDF : après un pincer, le re-rendu part APRÈS le recalage du défilement (`pinchBind` : crochet `after`) et un filet redessine toute page à l'écran restée à une autre échelle quand le défilement se pose — la page sous les doigts restait floue ; reste à décider : netteté à fort zoom par vignette de détail (plafond `PDF_MAX_PX`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

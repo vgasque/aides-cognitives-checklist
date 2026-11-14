@@ -345,6 +345,28 @@ try {
   t(ancre.avant.p === 2 && ancre.grand.p === 2 && Math.abs(ancre.grand.f - ancre.avant.f) < 0.03,
     'zoom + aux boutons : la page regardée reste au centre de l’écran (A745)', JSON.stringify(ancre));
   t(ancre.petit.p === 2 || ancre.petit.f > 0.9, '… et au zoom − aussi (ou le document tient alors entier)', JSON.stringify(ancre.petit));
+  /* A746 — LA PLACE DU MOT EST MESURÉE, PLUS ESTIMÉE AU NOMBRE DE LETTRES. Page 2 : « adrenaline » est au milieu de
+     la ligne ; sa vraie abscisse = 20 pt + la largeur Helvetica 12 pt de ce qui précède. */
+  const align = await page.evaluate(() => {
+    const ligne = 'surveillance scope oxygene remplissage vasculaire adrenaline titree', k = ligne.indexOf('adrenaline');
+    const cx = document.createElement('canvas').getContext('2d'); cx.font = '12px Helvetica';
+    const vrai = 20 + cx.measureText(ligne.slice(0, k)).width, vraiL = cx.measureText('adrenaline').width;
+    const s = _pv.pages[1], d = s.el.querySelector('.pdf-hl');
+    const x = parseFloat(d.style.left) / 100 * s.vp.width, w = parseFloat(d.style.width) / 100 * s.vp.width;
+    const f = pdfHlFrac('illlliiii adrenaline WWWWMMMM', 10, 10, 'sans-serif');
+    return { ecartX: Math.round((x - vrai) * 10) / 10, ecartL: Math.round((w - vraiL) * 10) / 10, etroit: Math.round(f[0] * 100) / 100,
+      decompose: pdfNormMap('re\u0301fractaire').map[2] }; });
+  t(Math.abs(align.ecartX) <= 3 && Math.abs(align.ecartL) <= 3, 'le rectangle tombe sur le mot, à 3 pt près (A746)', JSON.stringify(align));
+  t(align.etroit < 0.2, '… un mot après des lettres étroites n’est plus décalé (au prorata des lettres : 0,36)', JSON.stringify(align));
+  t(align.decompose === 3, '… et un accent décomposé ne décale pas les index', JSON.stringify(align));
+  /* A747 — UNE PAGE À L'ÉCRAN N'EST JAMAIS LAISSÉE À UNE AUTRE ÉCHELLE : quand le défilement se pose, elle est redessinée
+     (c'est ce qui laissait l'image floue après un pincer). */
+  const filet = await page.evaluate(async () => {
+    const sc = document.getElementById('pdfScroll'), s = _pv.pages.find(x => x.vis && x.canvas);
+    s.renderedW = 1; sc.scrollTop += 2; await new Promise(r => setTimeout(r, 700));   // horloge : le filet attend 140 ms que le défilement se pose, puis le rendu
+    const ok = s.renderedW === _pv.cssW; sc.scrollTop -= 2; await new Promise(r => setTimeout(r, 300));   // horloge : remise en place avant la suite
+    return { ok, renduW: s.renderedW, cssW: _pv.cssW }; });
+  t(filet.ok, 'défilement posé : une page à l’écran restée à une autre échelle est redessinée (A747)', JSON.stringify(filet));
   // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
   const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
   await page.click('#pdfHlNext');

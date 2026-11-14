@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4Su/QdoGEdTfb65kwt8EqFWGpApq4BtJPQ746fM07Hs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MrFaW13GY7otJ6n46JKGBfFnxA/u7a03X1MTUp8kdxU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10683,7 +10683,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.126.5';
+const APP_VERSION='5.126.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27093,6 +27093,7 @@ function pinchBind(sc,o){
     const z=zoomF(),rr=G.R.getBoundingClientRect();
     sc.scrollLeft+=(rr.left+G.fx*rr.width-G.cx)/z;
     (o.scY?o.scY():sc).scrollTop+=(rr.top+G.fy*rr.height-G.cy)/z;
+    if(o.after)o.after();   // A747 : après le recalage du défilement — là où l'on atterrit
     if(sc._pzNoter)requestAnimationFrame(sc._pzNoter);};
   const mid=t=>[(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2];
   const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1;
@@ -30356,7 +30357,15 @@ pinchBind(document.getElementById('pdfScroll'),{k:()=>_pv?_pv.z:1,min:0.25,max:4
     for(const s of _pv.pages){const r=s.el.getBoundingClientRect(),d=y<r.top?r.top-y:y>r.bottom?y-r.bottom:0;
       if(d<bd){bd=d;best=s.el;if(!d)break;}}
     return best;},
-  commit:k=>{if(!_pv)return;_pv.z=Math.max(0.25,Math.min(4,Math.round(k*100)/100));pdfApplyScale();pdfRenderNear();}});
+  commit:k=>{if(!_pv)return;_pv.z=Math.max(0.25,Math.min(4,Math.round(k*100)/100));pdfApplyScale();},
+  /* A747 — APRÈS UN PINCER, LA PAGE SOUS LES DOIGTS RESTAIT FLOUE (signalé : « au doigt ça reste pixellisé, avec + / −
+     beaucoup moins »). Le re-rendu était lancé AVANT que le défilement soit recalé sous les doigts : il redessinait
+     les pages de l'ancienne position, pas celle où l'on atterrit — et celle-ci, déjà « visible » pour l'observateur,
+     n'était jamais redessinée : elle gardait son image d'avant, étirée. On redessine donc APRÈS le recalage. */
+  after:()=>pdfRenderNear()});
+/* A747 — FILET : quand le défilement se pose, toute page à l'écran qui n'est pas à l'échelle courante est redessinée
+   (`renderPdfPage` ne fait rien si elle l'est déjà). Aucun chemin ne peut plus laisser une image étirée à l'écran. */
+{let _nearT=0;document.getElementById('pdfScroll').addEventListener('scroll',()=>{clearTimeout(_nearT);_nearT=setTimeout(pdfRenderNear,140);},{passive:true});}
 // Télécharger le document ouvert (v4.19.0) : relecture FRAÎCHE depuis IndexedDB (aucun réseau) —
 // jamais le buffer déjà passé à pdf.js : getDocument le TRANSFÈRE à son worker, qui le laisse
 // détaché (byteLength 0 — un blob resservi de mémoire serait VIDE, constaté en E2E) ; nom de
@@ -30462,6 +30471,29 @@ function pdfHlGo(d){
    caractères (l'item ne donne que sa boîte) : largement suffisant pour guider l'œil, et c'est le
    compromis qu'on paie pour ne pas embarquer la couche texte entière de pdf.js.
    Même invariant d'alignement que `markQTerms` : txNorm préserve les index 1:1. */
+/* A746 — OÙ TOMBE UN MOT DANS SA LIGNE : ON MESURE, ON NE COMPTE PLUS LES LETTRES (signalé sur capture : pour
+   « cortico-réfractaires », le rectangle couvrait « -réfract » ; pour « macrovasculaire », « ma » au lieu de « acr »).
+   pdf.js ne donne que la boîte de la LIGNE ; la place du mot y était estimée au prorata des CARACTÈRES, comme si
+   « i » et « m » avaient la même largeur. On la mesure maintenant avec le canevas, dans la famille générique que
+   pdf.js annonce pour la police (serif, sans-serif, monospace — jeu FERMÉ, jamais le nom venu du document), et l'on
+   rapporte au total mesuré : l'erreur d'échelle s'annule, il ne reste que l'écart entre deux polices de même famille.
+   Les index sont ceux du texte d'ORIGINE (`map`) : un accent décomposé ne décale plus rien.
+   Rend [début, fin] en parts (0..1) de la largeur de la ligne. */
+let _pdfMx=null;
+const PDF_FAM={serif:'serif','sans-serif':'sans-serif',monospace:'monospace'};
+function pdfHlFrac(str,i,len,fam){
+  const L=str.length||1,brut=[i/L,(i+len)/L];
+  try{
+    if(!_pdfMx)_pdfMx=document.createElement('canvas').getContext('2d');
+    _pdfMx.font='100px '+(PDF_FAM[fam]||'sans-serif');
+    const w=t=>_pdfMx.measureText(t).width,tot=w(str);
+    if(!(tot>0))return brut;
+    return [w(str.slice(0,i))/tot,w(str.slice(0,i+len))/tot];
+  }catch(e){return brut;}}
+// Forme `txNorm1` d'une ligne et, pour chacun de ses caractères, l'index du caractère d'origine (+ la fin).
+function pdfNormMap(str){let n='';const map=[];
+  for(let k=0;k<str.length;k++){const c=txNorm1(str[k]);for(let j=0;j<c.length;j++)map.push(k);n+=c;}
+  map.push(str.length);return {n,map};}
 async function pdfPaintHl(s){
   if(!_pv||!_pv.hl||!s.page||!s.vp)return;
   if(!s.tc){try{s.tc=await s.page.getTextContent();}catch(e){s.tc={items:[]};}}
@@ -30470,15 +30502,17 @@ async function pdfPaintHl(s){
   const W=s.vp.width,H=s.vp.height;   // A744 : en pourcentage de la page — vrai à toute échelle
   for(const it of s.tc.items){
     if(!it.str||!it.width)continue;
-    const norm=txNorm1(it.str);   // A661 : forme 1:1 (sans repli œ→oe) — les positions servent au surlignage
+    const {n:norm,map}=pdfNormMap(it.str);   // A661 : forme sans repli œ→oe ; A746 : index rapportés au texte d'origine
+    const fam=s.tc.styles&&s.tc.styles[it.fontName]&&s.tc.styles[it.fontName].fontFamily;
     for(const t of _pv.hl){
       let i=norm.indexOf(t);
       while(i>=0){
         const hgt=it.height||Math.abs(it.transform[3])||10;
+        const a=map[i],b=map[i+t.length-1]+1,[f0,f1]=pdfHlFrac(it.str,a,b-a,fam);   // A746 : mesuré, plus au prorata des lettres
         const d=document.createElement('span');d.className='pdf-hl';d.setAttribute('aria-hidden','true');
-        d.style.left=pdfPct(it.transform[4]+it.width*(i/it.str.length),W);
+        d.style.left=pdfPct(it.transform[4]+it.width*f0,W);
         d.style.top=pdfPct(H-it.transform[5]-hgt,H);
-        d.style.width=pdfPct(it.width*(t.length/it.str.length),W);
+        d.style.width=pdfPct(it.width*(f1-f0),W);
         d.style.height=pdfPct(hgt*1.28,H);   // planchers 4 × 6 px : dans la feuille de style (`.pdf-hl`)
         s.el.appendChild(d);
         i=norm.indexOf(t,i+1);}}}}

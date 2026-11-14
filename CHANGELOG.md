@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.126.6] — 2026-11-14
+Dans un PDF, le surlignage tombe sur le mot, et un zoom au doigt redevient net (A746-A747).
+- **Surlignage décalé.** Le rectangle jaune tombait à côté du mot : sur « cortico-réfractaires » il couvrait
+  « -réfract », sur « macrovasculaire » il couvrait « ma ». Sa place était estimée au nombre de lettres ; elle est
+  maintenant mesurée. Sur une ligne justifiée, un petit écart peut subsister.
+- **Flou après un zoom au doigt.** Après un pincer, la page restait une image agrandie, donc floue, alors que les
+  boutons + et − la redessinaient. Elle est maintenant redessinée aussi après un pincer, et dès que le défilement
+  s'arrête.
+- À très fort zoom (400 %), le texte reste moins net qu'à 140 %, même avec les boutons : la page entière est
+  dessinée dans la limite de mémoire de l'iPhone. Une amélioration est notée, à décider
+  (`docs/decisions/lot-v5-126-6.md`).
+
 ## [5.126.5] — 2026-11-14
 Dans un PDF, zoomer avec les boutons ne fait plus changer de page (A745).
 - Sur un long document, « + » ou « − » déplaçait la vue vers une autre page : de la page 30, deux « + » menaient à
@@ -307,12 +319,3 @@ une clé de plus dans le partage de session, et les gestes de l'hôte admis apr�
 
 Détail de toutes les corrections : `docs/decisions/lot-v5-119-4.md`.
 - Vérifié sur Chromium seulement : WebKit n'était pas installé sur la machine d'audit.
-
-## [5.119.3] — 2026-11-11
-Correctif : les règles de la connexion temporaire prennent le sélecteur de l'app (A704). Rien à faire côté serveur.
-- **Administration › Règles › Connexion temporaire** : les cinq réglages (Créer, modifier · Supprimer · Remplacer une
-  bibliothèque · Exporter · Durée maximale) utilisent maintenant le même sélecteur que le reste de l'app. La pastille
-  glisse jusqu'au choix touché, et on peut la faire glisser au doigt.
-- Rien ne change dans le fonctionnement : un choix se confirme toujours avant de partir. « Annuler » ramène la pastille
-  sur la règle en vigueur.
-- Au téléphone, les libellés passent sur deux lignes s'il le faut ; plus rien ne déborde, même sur un écran de 320 px.
