@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WxzcerdS91CAd158ef1UzD0S5zqSt+IuY7HgDsY/Q5g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4Su/QdoGEdTfb65kwt8EqFWGpApq4BtJPQ746fM07Hs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10683,7 +10683,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.126.4';
+const APP_VERSION='5.126.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -30367,7 +30367,7 @@ document.getElementById('pdfDl').onclick=async()=>{if(!_pvAtt)return;
   dlBlob(new Blob([buf],{type:'application/pdf'}),attDlName(_pvAtt.name));};
 window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on')){
   if(_pv.toc&&_pv.tocWide!==mqReadWide.matches)pdfTocSet(mqReadWide.matches&&pdfTocPref(),true);   // A418 : le régime change avec la largeur
-  pdfApplyScale();pdfRenderNear();}});
+  pdfRescale();}});   // A745 : la page regardée reste sous les yeux
 // Rend IMMÉDIATEMENT les pages proches de l'écran (±1 hauteur d'écran), par géométrie : à
 // l'ouverture et après un zoom, on n'attend pas le premier passage de l'IntersectionObserver
 // (sinon page blanche d'une frame — et filet de sûreté si l'observer tarde). renderPdfPage
@@ -30398,7 +30398,22 @@ function pdfZoom(a){if(!_pv)return;
   else if(a==='out')_pv.z=Math.max(0.25,Math.round((_pv.z-0.25)*100)/100);   // plancher 25 % (50 % restait grand pour survoler un long document)
   else if(a==='page')_pv.z=pdfFitPageZ();
   else _pv.z=1;
-  pdfApplyScale();pdfRenderNear();}
+  pdfRescale();}
+/* A745 — UN ZOOM GARDE SOUS LES YEUX CE QU'ON REGARDAIT (mesuré sur 60 pages : de la page 30, « + » deux fois menait
+   page 17, « − » trois fois page 44). Les boutons changeaient l'échelle sans toucher au défilement : la position
+   restait la même en PIXELS dans un document devenu plus grand ou plus petit, donc ailleurs — et le mot surligné qu'on
+   lisait sortait de l'écran (c'est ce qui se lisait « le surlignage disparaît »). Le pincer avait déjà son ancrage
+   (A554) ; les boutons et le redimensionnement de la fenêtre passent par celui-ci : on note la page au CENTRE de
+   l'écran et la part de sa hauteur où il tombe, on change l'échelle, on y revient. Idem en largeur. */
+function pdfRescale(){if(!_pv)return;const sc=document.getElementById('pdfScroll');
+  const cy=sc.scrollTop+sc.clientHeight/2;
+  let a=_pv.pages[0];for(const p of _pv.pages){if(p.el.offsetTop<=cy)a=p;else break;}
+  const fy=a?Math.max(0,Math.min(1,(cy-a.el.offsetTop)/(a.el.offsetHeight||1))):0;
+  const fx=(sc.scrollLeft+sc.clientWidth/2)/(sc.scrollWidth||1);
+  pdfApplyScale();
+  if(a)sc.scrollTop=Math.max(0,a.el.offsetTop+fy*a.el.offsetHeight-sc.clientHeight/2);
+  sc.scrollLeft=Math.max(0,fx*sc.scrollWidth-sc.clientWidth/2);
+  pdfRenderNear();}
 function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}   // A744 : le canevas SEUL — les calques restent, ils ne dépendent pas de lui
 /* A744 — LES CALQUES D'UNE PAGE (surlignage, liens) SONT ATTACHÉS À LA PAGE, PAS AU CANEVAS. Ils étaient posés en
    pixels pour UNE échelle : chaque zoom les rendait faux, on les retirait, et tout dépendait de leur repose — liée au

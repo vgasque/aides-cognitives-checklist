@@ -268,6 +268,9 @@ try {
   await page.click('#pfDocs [data-pfdoc]');
   await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 });
   await page.waitForFunction(() => document.querySelectorAll('#pdfScroll .pdf-hl').length > 0, null, { timeout: 20000 }).catch(() => {});
+  /* A745 : on compte quand TOUTES les pages à l'écran ont posé leurs calques (texte lu) — sous charge, la page 2 posait
+     les siens après le premier comptage, et les témoins « même nombre après zoom » comparaient 2 à 1. */
+  await page.waitForFunction(() => _pv && _pv.pages.filter(s => s.vis).every(s => s.ov && s.tc), null, { timeout: 20000 }).catch(() => {});
   const hl = await page.evaluate(() => ({
     n: document.querySelectorAll('#pdfScroll .pdf-hl').length,
     pill: !document.getElementById('pdfHl').hidden,
@@ -328,6 +331,20 @@ try {
     pdfZoom('out'); await new Promise(r => setTimeout(r, 400));   // horloge : retour à l'échelle de départ avant la suite
     return r; });
   t(sansRendu.n === hl.n && sansRendu.plusLarge && sansRendu.dedans, 'zoom dont le rendu échoue : le surlignage suit l’échelle quand même (A743)', JSON.stringify(sansRendu));
+  /* A745 — LES BOUTONS DE ZOOM GARDENT LA PAGE REGARDÉE AU CENTRE : sans ancrage, la position restait la même en
+     pixels dans un document agrandi, donc sur une AUTRE page (et le mot surligné sortait de l'écran). */
+  const ancre = await page.evaluate(async () => {
+    const sc = document.getElementById('pdfScroll'), y0 = sc.scrollTop;
+    const ou = () => { const cy = sc.scrollTop + sc.clientHeight / 2; let k = 0; _pv.pages.forEach((p, n) => { if (p.el.offsetTop <= cy) k = n; });
+      const el = _pv.pages[k].el; return { p: k + 1, f: (cy - el.offsetTop) / el.offsetHeight }; };
+    const el2 = _pv.pages[1].el; sc.scrollTop = el2.offsetTop + el2.offsetHeight * 0.6 - sc.clientHeight / 2;
+    const avant = ou(); pdfZoom('in'); pdfZoom('in'); const grand = ou();
+    pdfZoom('out'); pdfZoom('out'); pdfZoom('out'); const petit = ou();
+    pdfZoom('in'); sc.scrollTop = y0; await new Promise(r => setTimeout(r, 300));   // horloge : remise en état (échelle et défilement) avant la suite
+    return { avant, grand, petit }; });
+  t(ancre.avant.p === 2 && ancre.grand.p === 2 && Math.abs(ancre.grand.f - ancre.avant.f) < 0.03,
+    'zoom + aux boutons : la page regardée reste au centre de l’écran (A745)', JSON.stringify(ancre));
+  t(ancre.petit.p === 2 || ancre.petit.f > 0.9, '… et au zoom − aussi (ou le document tient alors entier)', JSON.stringify(ancre.petit));
   // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
   const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
   await page.click('#pdfHlNext');

@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.126.5] — 2026-11-14
+Dans un PDF, zoomer avec les boutons ne fait plus changer de page (A745).
+- Sur un long document, « + » ou « − » déplaçait la vue vers une autre page : de la page 30, deux « + » menaient à
+  la page 17. Le mot surligné qu'on lisait sortait donc de l'écran.
+- La page que vous regardez reste maintenant au centre de l'écran quand vous zoomez avec les boutons, quand vous
+  choisissez « Page » ou « Largeur », et quand la fenêtre change de taille. Le pincer gardait déjà sa place.
+
 ## [5.126.4] — 2026-11-14
 Dans un PDF, les mots surlignés sont attachés à la page et ne peuvent plus se perdre au zoom (A744).
 - **Avant**, chaque rectangle de surlignage était placé pour une taille de page donnée. À chaque zoom il était
@@ -309,10 +316,3 @@ Correctif : les règles de la connexion temporaire prennent le sélecteur de l'a
 - Rien ne change dans le fonctionnement : un choix se confirme toujours avant de partir. « Annuler » ramène la pastille
   sur la règle en vigueur.
 - Au téléphone, les libellés passent sur deux lignes s'il le faut ; plus rien ne déborde, même sur un écran de 320 px.
-
-## [5.119.2] — 2026-11-10
-Correctif : la fenêtre d'une bibliothèque s'ouvre de nouveau depuis Administration (A703). Rien à faire côté serveur.
-- **Au téléphone, dans Administration › Bibliothèques, toucher une bibliothèque n'ouvrait rien en apparence** : sa
-  fenêtre (nom, membres, rôles, suppression) s'ouvrait derrière Administration, invisible. Elle s'ouvre maintenant
-  au-dessus. Échap et le retour la referment, et vous ramènent à Administration.
-- Au bureau, où Administration est une page de la colonne, rien ne change.
