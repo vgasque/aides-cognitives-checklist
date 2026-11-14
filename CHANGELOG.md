@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.126.5] — 2026-11-14
+Dans un PDF, zoomer avec les boutons ne fait plus changer de page (A745).
+- Sur un long document, « + » ou « − » déplaçait la vue vers une autre page : de la page 30, deux « + » menaient à
+  la page 17. Le mot surligné qu'on lisait sortait donc de l'écran.
+- La page que vous regardez reste maintenant au centre de l'écran quand vous zoomez avec les boutons, quand vous
+  choisissez « Page » ou « Largeur », et quand la fenêtre change de taille. Le pincer gardait déjà sa place.
+
+## [5.126.4] — 2026-11-14
+Dans un PDF, les mots surlignés sont attachés à la page et ne peuvent plus se perdre au zoom (A744).
+- **Avant**, chaque rectangle de surlignage était placé pour une taille de page donnée. À chaque zoom il était
+  retiré puis replacé, et il disparaissait dès que ce replacement n'avait pas lieu. Les deux versions précédentes
+  corrigeaient ces cas un par un.
+- **Maintenant**, le surlignage est placé une fois, en proportion de la page, comme dans les lecteurs PDF courants :
+  il grandit et rétrécit avec elle, quel que soit le zoom, sans être retiré. Les liens cliquables du document suivent
+  la même règle.
+- Rien ne change dans l'emplacement du surlignage ni dans la navigation entre les occurrences.
+
+## [5.126.3] — 2026-11-14
+Dans un PDF, les mots surlignés restent en place quand on zoome (A743).
+- La v5.126.2 ne réglait que le zoom aller-retour rapide. Les mots surlignés (et les liens du document) pouvaient
+  encore disparaître : le temps que la page soit redessinée sur un gros document, ou pour de bon quand le dessin
+  échouait à fort zoom sur iPhone.
+- Ils sont maintenant replacés à la nouvelle taille dès le zoom, sans attendre que la page soit redessinée.
+
 ## [5.126.2] — 2026-11-14
 Deux correctifs : la recherche ne prend plus deux mots pour un code de session (A741), et le surlignage d'un PDF
 revient après un zoom (A742).
@@ -292,34 +316,3 @@ Correctif : les règles de la connexion temporaire prennent le sélecteur de l'a
 - Rien ne change dans le fonctionnement : un choix se confirme toujours avant de partir. « Annuler » ramène la pastille
   sur la règle en vigueur.
 - Au téléphone, les libellés passent sur deux lignes s'il le faut ; plus rien ne déborde, même sur un écran de 320 px.
-
-## [5.119.2] — 2026-11-10
-Correctif : la fenêtre d'une bibliothèque s'ouvre de nouveau depuis Administration (A703). Rien à faire côté serveur.
-- **Au téléphone, dans Administration › Bibliothèques, toucher une bibliothèque n'ouvrait rien en apparence** : sa
-  fenêtre (nom, membres, rôles, suppression) s'ouvrait derrière Administration, invisible. Elle s'ouvre maintenant
-  au-dessus. Échap et le retour la referment, et vous ramènent à Administration.
-- Au bureau, où Administration est une page de la colonne, rien ne change.
-
-## [5.119.1] — 2026-11-10
-« À revérifier » retrouve son glyphe (A702).
-- Sur l'accueil, une aide ou un protocole dont la validation est échue affichait « À revérifier » en ambre, sans
-  glyphe : c'était le seul état en couleur, et le seul sans △. Il s'affiche maintenant « △ À revérifier », comme
-  « △ À relire » et « △ À compléter ». Rien d'autre ne change.
-
-## [5.119.0] — 2026-11-10
-Le volet des minuteurs et compteurs du téléphone, redessiné (A701). Rien à faire côté serveur.
-- **Des tuiles pleines.** Dans le volet de la capsule, au téléphone, chaque minuteur est une tuile sans cadre : son nom,
-  le temps en grand, le nombre de cycles à côté, et une seule ligne d'action. Chaque compteur tient sur une ligne :
-  « − », la valeur, « ＋ 1 ».
-- **Toucher une tuile à l'arrêt la lance**, où qu'on touche. Un minuteur en marche ne répond qu'à son bouton « Pause » :
-  un tap à côté ne fait rien.
-- **Maintenir une tuile la réarme ou la remet à zéro** (un peu moins d'une seconde, une jauge se remplit). Les boutons
-  « ↺ maintenir » et « Remettre à zéro » ne sont plus affichés dans ce volet ; la consigne est écrite une fois, sous les
-  tuiles. Un minuteur en marche ne se réarme pas : « Pause » d'abord.
-- **Au clavier**, le bouton de remise à zéro existe toujours : il paraît quand la tabulation l'atteint, et Entrée agit.
-- **« ＋ Minuteur » et « ＋ Compteur »** sont sur une seule ligne, sous les tuiles.
-- **Le volet s'arrête après ses instruments** : les jalons, le journal et les réglages du son sont juste en dessous, en
-  faisant défiler le volet. Le bas de l'étape en cours reste visible.
-- **Prendre en main** : le geste « Lire le chrono et les minuteurs » et l'étape du parcours guidé sur la capsule
-  décrivent les tuiles, le toucher et le maintien.
-- Le bureau ne change pas.

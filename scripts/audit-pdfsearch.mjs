@@ -268,6 +268,9 @@ try {
   await page.click('#pfDocs [data-pfdoc]');
   await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 });
   await page.waitForFunction(() => document.querySelectorAll('#pdfScroll .pdf-hl').length > 0, null, { timeout: 20000 }).catch(() => {});
+  /* A745 : on compte quand TOUTES les pages à l'écran ont posé leurs calques (texte lu) — sous charge, la page 2 posait
+     les siens après le premier comptage, et les témoins « même nombre après zoom » comparaient 2 à 1. */
+  await page.waitForFunction(() => _pv && _pv.pages.filter(s => s.vis).every(s => s.ov && s.tc), null, { timeout: 20000 }).catch(() => {});
   const hl = await page.evaluate(() => ({
     n: document.querySelectorAll('#pdfScroll .pdf-hl').length,
     pill: !document.getElementById('pdfHl').hidden,
@@ -304,6 +307,44 @@ try {
     dedans: [...document.querySelectorAll('.pdf-hl')].every(d => { const r = d.getBoundingClientRect(), pr = d.closest('.pdf-page').getBoundingClientRect();
       return r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1 && r.left >= pr.left - 1 && r.right <= pr.right + 1; }) }));
   t(apresZoom.n === hl.n && apresZoom.dedans, 'zoom + puis − : le surlignage revient, à sa place (A742)', JSON.stringify(apresZoom) + ' / avant ' + hl.n);
+  /* A744 — LES CALQUES SONT ATTACHÉS À LA PAGE : posés en pourcentage, ce sont les MÊMES nœuds avant et après un zoom
+     (rien n'est retiré ni recalculé), et ils survivent à la libération du canevas. */
+  const memes = await page.evaluate(async () => {
+    const avant = [...document.querySelectorAll('#pdfScroll .pdf-hl')];
+    const pct = avant.every(d => /%$/.test(d.style.left) && /%$/.test(d.style.top) && /%$/.test(d.style.width) && /%$/.test(d.style.height));
+    pdfZoom('in'); pdfZoom('in'); await new Promise(r => setTimeout(r, 300));   // horloge : laisse passer un rendu
+    pdfZoom('out'); pdfZoom('out'); await new Promise(r => setTimeout(r, 300));   // horloge : idem, retour à l'échelle de départ
+    const apres = [...document.querySelectorAll('#pdfScroll .pdf-hl')];
+    const s = _pv.pages.find(x => x.el.querySelector('.pdf-hl'));
+    releasePdfPage(s); const sansCanevas = s.el.querySelectorAll('.pdf-hl').length; s.vis = true; await renderPdfPage(s);
+    return { pct, memes: avant.length === apres.length && avant.every((d, k) => d === apres[k]), sansCanevas, canevasPremier: s.el.firstChild === s.canvas }; });
+  t(memes.pct && memes.memes && memes.sansCanevas > 0 && memes.canevasPremier, 'les calques sont en pourcentage de la page : mêmes nœuds après zoom, présents sans canevas (A744)', JSON.stringify(memes));
+  /* A743 — LE RENDU QUI ÉCHOUE NE DOIT PAS EMPORTER LE SURLIGNAGE : on fait échouer le prochain rendu de chaque page
+     (comme un canevas trop grand sur iOS), on zoome, et les rectangles doivent être là, à la nouvelle échelle. */
+  const sansRendu = await page.evaluate(async () => {
+    const w0 = document.querySelector('#pdfScroll .pdf-hl').getBoundingClientRect().width;
+    _pv.pages.forEach(s => { if (s.page) { const r = s.page.render; s.page.render = () => { s.page.render = r; return { promise: Promise.reject(new Error('rendu refusé')) }; }; } });
+    pdfZoom('in'); await new Promise(r => setTimeout(r, 400));   // horloge : laisse le rendu refusé aboutir
+    const els = [...document.querySelectorAll('#pdfScroll .pdf-hl')];
+    const r = { n: els.length, plusLarge: els.length ? els[0].getBoundingClientRect().width > w0 : false,
+      dedans: els.every(d => { const a = d.getBoundingClientRect(), p = d.closest('.pdf-page').getBoundingClientRect(); return a.top >= p.top - 1 && a.bottom <= p.bottom + 1 && a.left >= p.left - 1 && a.right <= p.right + 1; }) };
+    pdfZoom('out'); await new Promise(r => setTimeout(r, 400));   // horloge : retour à l'échelle de départ avant la suite
+    return r; });
+  t(sansRendu.n === hl.n && sansRendu.plusLarge && sansRendu.dedans, 'zoom dont le rendu échoue : le surlignage suit l’échelle quand même (A743)', JSON.stringify(sansRendu));
+  /* A745 — LES BOUTONS DE ZOOM GARDENT LA PAGE REGARDÉE AU CENTRE : sans ancrage, la position restait la même en
+     pixels dans un document agrandi, donc sur une AUTRE page (et le mot surligné sortait de l'écran). */
+  const ancre = await page.evaluate(async () => {
+    const sc = document.getElementById('pdfScroll'), y0 = sc.scrollTop;
+    const ou = () => { const cy = sc.scrollTop + sc.clientHeight / 2; let k = 0; _pv.pages.forEach((p, n) => { if (p.el.offsetTop <= cy) k = n; });
+      const el = _pv.pages[k].el; return { p: k + 1, f: (cy - el.offsetTop) / el.offsetHeight }; };
+    const el2 = _pv.pages[1].el; sc.scrollTop = el2.offsetTop + el2.offsetHeight * 0.6 - sc.clientHeight / 2;
+    const avant = ou(); pdfZoom('in'); pdfZoom('in'); const grand = ou();
+    pdfZoom('out'); pdfZoom('out'); pdfZoom('out'); const petit = ou();
+    pdfZoom('in'); sc.scrollTop = y0; await new Promise(r => setTimeout(r, 300));   // horloge : remise en état (échelle et défilement) avant la suite
+    return { avant, grand, petit }; });
+  t(ancre.avant.p === 2 && ancre.grand.p === 2 && Math.abs(ancre.grand.f - ancre.avant.f) < 0.03,
+    'zoom + aux boutons : la page regardée reste au centre de l’écran (A745)', JSON.stringify(ancre));
+  t(ancre.petit.p === 2 || ancre.petit.f > 0.9, '… et au zoom − aussi (ou le document tient alors entier)', JSON.stringify(ancre.petit));
   // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
   const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
   await page.click('#pdfHlNext');
