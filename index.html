@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MbL1hR1pKMRYoa0jcstcZJH9LAOgd2aemTVq1pwnZ5o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-HxS/Mw8Qixfa4wqzxzvRSOQoup/TNk2mvMTucd+J4Zc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1427,6 +1427,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pg-l{justify-self:start;display:flex}.pg-r{justify-self:end;display:flex}
   .pg-tt{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-step);font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}   /* A595 : un long nom (bibliothèque, collection) poussait « Créer » hors de l'écran */
   .pg-top.stuck .pg-tt{opacity:1}
+  .pg-sent{height:1px;margin-bottom:-1px}   /* A749 : témoin d'une rangée sans grand titre (sélection) — un pixel, sans place prise */
   .pg-top :is(.pg-btn,.sel-tog){display:inline-flex;align-items:center;gap:6px;height:40px;min-height:40px;margin:0;padding:0 16px;
     border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);
     font:inherit;font-size:var(--t-item);font-weight:600;color:var(--ink);cursor:pointer}
@@ -9398,7 +9399,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      il n'a pas à se dessiner autrement selon l'écran où on le rencontre. Aucun extrait : le
      contexte se lit dans le document, qu'un tap ouvre à la page. Filet --line-strong : ces
      rangées se comptent, comme celles du répertoire (WCAG 1.4.11). ----- */
-  .doc-hits{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .doc-hits{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}   /* A750 : le bas seul — `margin:0 0 12px` écrasait le centrage de la colonne (`.home-main>*`, margin-inline:auto) : sur écran large, le groupe partait à gauche */
   .dh-title{margin-top:24px}   /* v5.4.2 : respiration au-dessus du groupe (cf. docHitsHtml) */
   .doc-hit{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--r-3);background:var(--work);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
   .doc-hit:hover{border-color:var(--ink-soft);background:var(--amb-2)}
@@ -10684,7 +10685,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.127.0';
+const APP_VERSION='5.127.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18007,7 +18008,15 @@ function bindPgHead(rerender){
   main.querySelectorAll('[data-pgall]').forEach(b=>b.onclick=()=>{state.coll=null;state.cat='';state.homeLib=null;state.libLimit=LIB_PAGE;rerender();});
   {const p=main.querySelector('#pgPick');if(p)p.onclick=()=>openHomePick(p,rerender);}
   /* Le grand titre sorti par le haut, la rangée du haut prend le petit (patron `.titled` de la lecture). */
-  const t=main.querySelector('.pg-ttl'),top=main.querySelector('.pg-top');
+  /* A749 — EN SÉLECTION, PAS DE GRAND TITRE (« Annuler · Sélection · Tout cocher » le remplace) : rien n'était observé,
+     la rangée ne prenait jamais le verre, et les rangées défilaient sous « Annuler » et « Tout cocher » sans fond
+     (signalé : « pas sous un fond, comparé à Sélectionner et Créer »). À défaut de titre, on observe le premier élément
+     qui suit la rangée : même règle, le verre vient dès qu'il commence à passer dessous. Un TÉMOIN d'un pixel, posé
+     juste sous la rangée — pas la liste elle-même : plus haute que l'écran, elle n'est jamais visible à 99 % et la
+     rangée aurait son verre même au repos (mesuré). */
+  const top=main.querySelector('.pg-top');
+  let t=main.querySelector('.pg-ttl');
+  if(top&&!t){t=document.createElement('div');t.className='pg-sent';t.setAttribute('aria-hidden','true');top.after(t);}
   if(_pgIo){_pgIo.disconnect();_pgIo=null;}
   /* A540 : le verre vient dès que le titre COMMENCE à passer sous la barre (ratio < 1), pas une fois sorti : sinon les
      boutons transparents chevauchaient le titre puis les pastilles. */
