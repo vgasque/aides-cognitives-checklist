@@ -304,6 +304,18 @@ try {
     dedans: [...document.querySelectorAll('.pdf-hl')].every(d => { const r = d.getBoundingClientRect(), pr = d.closest('.pdf-page').getBoundingClientRect();
       return r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1 && r.left >= pr.left - 1 && r.right <= pr.right + 1; }) }));
   t(apresZoom.n === hl.n && apresZoom.dedans, 'zoom + puis − : le surlignage revient, à sa place (A742)', JSON.stringify(apresZoom) + ' / avant ' + hl.n);
+  /* A743 — LE RENDU QUI ÉCHOUE NE DOIT PAS EMPORTER LE SURLIGNAGE : on fait échouer le prochain rendu de chaque page
+     (comme un canevas trop grand sur iOS), on zoome, et les rectangles doivent être là, à la nouvelle échelle. */
+  const sansRendu = await page.evaluate(async () => {
+    const w0 = document.querySelector('#pdfScroll .pdf-hl').getBoundingClientRect().width;
+    _pv.pages.forEach(s => { if (s.page) { const r = s.page.render; s.page.render = () => { s.page.render = r; return { promise: Promise.reject(new Error('rendu refusé')) }; }; } });
+    pdfZoom('in'); await new Promise(r => setTimeout(r, 400));   // horloge : laisse le rendu refusé aboutir
+    const els = [...document.querySelectorAll('#pdfScroll .pdf-hl')];
+    const r = { n: els.length, plusLarge: els.length ? els[0].getBoundingClientRect().width > w0 : false,
+      dedans: els.every(d => { const a = d.getBoundingClientRect(), p = d.closest('.pdf-page').getBoundingClientRect(); return a.top >= p.top - 1 && a.bottom <= p.bottom + 1 && a.left >= p.left - 1 && a.right <= p.right + 1; }) };
+    pdfZoom('out'); await new Promise(r => setTimeout(r, 400));   // horloge : retour à l'échelle de départ avant la suite
+    return r; });
+  t(sansRendu.n === hl.n && sansRendu.plusLarge && sansRendu.dedans, 'zoom dont le rendu échoue : le surlignage suit l’échelle quand même (A743)', JSON.stringify(sansRendu));
   // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
   const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
   await page.click('#pdfHlNext');

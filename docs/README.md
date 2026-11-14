@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A742** à la v5.126.2 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A743** à la v5.126.3 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -364,6 +364,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A740 | `lot-v5-126-1.md` | Les résultats d'une recherche sont des cartes séparées (`.dir-grid.flat` : grille, 8 px) à toutes les largeurs — plus de cadres accolés en large ni de carte commune à filets au téléphone ; le répertoire (`.dir-book`) garde ses listes groupées |
 | A741 | `lot-v5-126-2.md` | La recherche n'affiche « Code de session reconnu » que si la saisie a la forme d'un code (`qJoinCode` : 8 caractères d'un tenant ou 4 + 4 séparés par un tiret ou une espace, sans accent) — deux mots soudés par `shareCodeNorm` n'en font plus un (amende J89) |
 | A742 | `lot-v5-126-2.md` | Visionneuse PDF : après un zoom revenu à l'échelle déjà rendue, surlignage et liens sont reposés (`s.ovW`, `renderPdfPage`) — ils disparaissaient faute de nouveau rendu ; témoin dans `audit-pdfsearch` |
+| A743 | `lot-v5-126-3.md` | Visionneuse PDF : au zoom, surlignage et liens sont reposés aussitôt à la nouvelle échelle sur le canevas étiré (`pdfApplyScale`) — un rendu lent ou qui échoue (canevas trop grand sur iOS) ne les emporte plus ; témoin à rendu refusé dans `audit-pdfsearch` (complète A742, amende A554) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
