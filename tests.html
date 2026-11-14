@@ -279,6 +279,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const h=A.ficheHaystack(f);
    ok('aide : minuteur, échéance, compteur et nom de document indexés', ['cycle rcp','analyse du rythme','chocs delivres','reco-erc.pdf'].every(k=>h.indexOf(k)>=0));
    ok('aide : l’extrait peut montrer ces champs', A.searchSnippet(A.ficheSnipParts(f),'chocs').indexOf('<b>Chocs</b>')>=0);}
+  group('visionneuse PDF : vignette de détail (A748)');
+  {const W=400,C=4194304;
+   eq('zoom ordinaire, écran ×3, image de base à ×2 : aucune vignette', A.pdfTileDensity(2*W,W,3,W*800,C), 0);
+   eq('zoom ordinaire, écran ×1 : aucune vignette', A.pdfTileDensity(W,W,1,W*800,C), 0);
+   eq('400 %, écran ×3, image de base plafonnée à ×1,35 : vignette à ×3', A.pdfTileDensity(1.35*W,W,3,W*800,C), 3);
+   eq('400 %, écran ×1, image de base à ×0,39 : vignette à ×1', A.pdfTileDensity(0.39*W,W,1,W*800,C), 1);
+   ok('surface trop grande : la densité baisse, la mémoire non', Math.abs(A.pdfTileDensity(0.5*W,W,3,4000*3000,C)**2*4000*3000-C)<1);
+   eq('aucun gain réel (< 10 %) : aucune vignette', A.pdfTileDensity(0.95*W,W,1.04,W*800,C), 0);
+   eq('largeur nulle : aucune vignette', A.pdfTileDensity(0,0,3,1,C), 0);}
   group('extrait contextuel (v4.4.4) — searchSnippet/markQTerms');
   eq('terme mis en graisse, insensible aux accents', A.markQTerms('Adrénaline 0,5 mg', ['adrenaline']), '<b>Adrénaline</b> 0,5 mg');
   eq('occurrences chevauchantes fusionnées', A.markQTerms('anaphylaxie', ['anaph','phylaxie']), '<b>anaphylaxie</b>');

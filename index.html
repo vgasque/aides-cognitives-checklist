@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MrFaW13GY7otJ6n46JKGBfFnxA/u7a03X1MTUp8kdxU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-MbL1hR1pKMRYoa0jcstcZJH9LAOgd2aemTVq1pwnZ5o='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9475,6 +9475,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pdf-pages{min-width:min-content}   /* le calque du pincer : aussi large que la page la plus large */
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-page canvas.pdf-tile{position:absolute}   /* A748 : vignette de détail — place et taille en % de la page (inline). Pas de pointer-events:none (cliquet A68/4) : elle est SOUS les calques, un tap la traverse comme l'image de base */
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
   .pdf-lnk:hover{background:var(--primary-soft);mix-blend-mode:multiply}
   .pdf-lnk:focus-visible{outline:2px solid var(--act);outline-offset:1px}
@@ -10683,7 +10684,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.126.6';
+const APP_VERSION='5.127.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -30342,7 +30343,7 @@ let _pv=null;   // état de la visionneuse ouverte {doc, pages[], observer, z, c
 let _pvAtt=null; // métadonnées {id,name} du document affiché — posées dès que le binaire est
                  // confirmé présent (AVANT pdf.js : ⤓ marche même si le rendu échoue)
 function closePdfViewer(){
-  if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
+  if(_pv){pdfTileCancel();clearTimeout(_pdfTileT);try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
   _pvAtt=null;
   pdfTocReset();
   const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
@@ -30365,7 +30366,7 @@ pinchBind(document.getElementById('pdfScroll'),{k:()=>_pv?_pv.z:1,min:0.25,max:4
   after:()=>pdfRenderNear()});
 /* A747 — FILET : quand le défilement se pose, toute page à l'écran qui n'est pas à l'échelle courante est redessinée
    (`renderPdfPage` ne fait rien si elle l'est déjà). Aucun chemin ne peut plus laisser une image étirée à l'écran. */
-{let _nearT=0;document.getElementById('pdfScroll').addEventListener('scroll',()=>{clearTimeout(_nearT);_nearT=setTimeout(pdfRenderNear,140);},{passive:true});}
+{let _nearT=0;document.getElementById('pdfScroll').addEventListener('scroll',()=>{clearTimeout(_nearT);clearTimeout(_pdfTileT);pdfTileCancel();_nearT=setTimeout(pdfRenderNear,140);},{passive:true});}
 // Télécharger le document ouvert (v4.19.0) : relecture FRAÎCHE depuis IndexedDB (aucun réseau) —
 // jamais le buffer déjà passé à pdf.js : getDocument le TRANSFÈRE à son worker, qui le laisse
 // détaché (byteLength 0 — un blob resservi de mémoire serait VIDE, constaté en E2E) ; nom de
@@ -30383,7 +30384,8 @@ window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on'))
 // ne refait rien si la page est déjà rendue à l'échelle courante.
 function pdfRenderNear(){if(!_pv)return;const sc=document.getElementById('pdfScroll');const r=sc.getBoundingClientRect();
   _pv.pages.forEach(s=>{const p=s.el.getBoundingClientRect();
-    if(p.bottom>=r.top-r.height&&p.top<=r.bottom+r.height){s.vis=true;renderPdfPage(s);}});}
+    if(p.bottom>=r.top-r.height&&p.top<=r.bottom+r.height){s.vis=true;renderPdfPage(s);}});
+  pdfDetailSoon();}
 // Largeur CSS des pages + hauteur pré-calculée de chaque conteneur (les pages non encore lues
 // utilisent les dimensions de la page 1 ; corrigées à la première lecture de la page).
 function pdfApplyScale(){if(!_pv)return;const sc=document.getElementById('pdfScroll');
@@ -30423,7 +30425,7 @@ function pdfRescale(){if(!_pv)return;const sc=document.getElementById('pdfScroll
   if(a)sc.scrollTop=Math.max(0,a.el.offsetTop+fy*a.el.offsetHeight-sc.clientHeight/2);
   sc.scrollLeft=Math.max(0,fx*sc.scrollWidth-sc.clientWidth/2);
   pdfRenderNear();}
-function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}   // A744 : le canevas SEUL — les calques restent, ils ne dépendent pas de lui
+function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}pdfTileDrop(s);}   // A744 : le canevas SEUL — les calques restent, ils ne dépendent pas de lui
 /* A744 — LES CALQUES D'UNE PAGE (surlignage, liens) SONT ATTACHÉS À LA PAGE, PAS AU CANEVAS. Ils étaient posés en
    pixels pour UNE échelle : chaque zoom les rendait faux, on les retirait, et tout dépendait de leur repose — liée au
    nouveau rendu. Trois défauts en sont sortis (A742, A743, et un signalement resté sans reproduction). C'est ce que
@@ -30627,9 +30629,78 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     const targetW=_pv.cssW;
     await s.page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
     if(!_pv||!s.vis||_pv.cssW!==targetW){c.width=c.height=0;s.rendering=false;if(_pv&&s.vis)renderPdfPage(s);return;}
-    releasePdfPage(s);s.el.insertBefore(c,s.el.firstChild);s.canvas=c;s.renderedW=targetW;   // A744 : le canevas passe SOUS les calques, qui restent
+    {const t=s.tile;s.tile=null;releasePdfPage(s);s.tile=t;}   // A748 : la vignette survit au remplacement du canevas de base
+    s.el.insertBefore(c,s.el.firstChild);s.canvas=c;s.renderedW=targetW;   // A744 : le canevas passe SOUS les calques, qui restent
+    pdfDetailSoon();
   }catch(e){}
   s.rendering=false;}
+/* A748 — LA VIGNETTE DE DÉTAIL : NET À TOUT ZOOM, SANS DÉPASSER LA MÉMOIRE (demande de l'auteur : « implémente-le
+   bien — iPhone, Android, Chrome, Firefox, ordinateur, appareils peu puissants »).
+   La page ENTIÈRE est dessinée dans un canevas plafonné à `PDF_MAX_PX` (A554) : au-delà d'environ 250 % sur un
+   téléphone, elle n'a plus assez de points pour l'écran et le texte est flou. Comme les lecteurs PDF, on dessine EN
+   PLUS, à pleine définition, la seule PARTIE VISIBLE de la page (et une marge), posée par-dessus l'image de base.
+   · QUAND : seulement si l'image de base est insuffisante (moins de 90 % de min(2, densité de l'écran)) — à zoom ordinaire,
+     RIEN ne change, aucun dessin de plus. Jamais pendant un geste : 200 ms après que le défilement ou le zoom s'est
+     posé ; un défilement qui reprend ANNULE le dessin en cours (`RenderTask.cancel`). Jamais onglet caché.
+   · COMBIEN : une vignette par page visible, deux pages au plus ; surface plafonnée (`PDF_TILE_PX`, réduite de
+     moitié sur un appareil modeste : ≤ 2 cœurs ou ≤ 2 Go annoncés) — au-delà, la définition baisse, la mémoire non.
+     Densité plafonnée à 3 points par point CSS (les écrans les plus denses).
+   · OÙ : en POURCENTAGE de la page (comme les calques, A744) : elle suit la page pendant un pincer sans être
+     recalculée ; posée entre l'image de base et les calques (surlignage, liens restent au-dessus, cliquables).
+   · RIEN DE REFAIT POUR RIEN : si la vignette en place couvre déjà la zone visible à l'échelle courante, on ne
+     redessine pas. L'ancienne vignette reste affichée jusqu'à ce que la nouvelle la remplace : jamais d'éclair blanc.
+   · LIBÉRÉE avec le canevas de la page (`releasePdfPage`), à la fermeture, ou dès que l'image de base suffit. */
+const PDF_TILE_PX=((navigator.hardwareConcurrency||4)<=2||(navigator.deviceMemory||4)<=2)?2097152:4194304;
+let _pdfTileT=0,_pdfTileGen=0;
+function pdfTileCancel(){if(_pv&&_pv.tileTask){try{_pv.tileTask.cancel();}catch(e){}_pv.tileTask=null;}}
+function pdfTileDrop(s){if(s&&s.tile){s.tile.width=s.tile.height=0;s.tile.remove();s.tile=null;s.tileK=null;}}
+/* La décision, PURE (testée) : densité de la vignette (points par point CSS), ou 0 s'il n'en faut pas.
+   `baseW` largeur en points de l'image de base, `W` largeur CSS de la page, `dpr` densité de l'écran (≤ 3), `area`
+   surface CSS de la zone à dessiner. L'image de base suffit dès 90 % de min(2, dpr) : à zoom ordinaire, un écran ×3
+   n'en reçoit pas — mesuré, c'était un dessin de plus à chaque arrêt pour un gain invisible. Pas de vignette non plus
+   si elle n'apporte pas 10 % de plus que l'image de base (surface plafonnée par `PDF_TILE_PX`). */
+function pdfTileDensity(baseW,W,dpr,area,cap){
+  if(!(W>0)||baseW>=W*Math.min(2,dpr)*0.9)return 0;
+  const td=Math.min(dpr,Math.sqrt((cap||PDF_TILE_PX)/Math.max(1,area)));
+  return td>baseW/W*1.1?td:0;}
+function pdfDetailSoon(){if(!_pv)return;clearTimeout(_pdfTileT);_pdfTileT=setTimeout(pdfDetail,200);}
+/* Zone visible d'une page, en px CSS de la page (même repère que `offsetTop`, cf. `pdfPosY`), ou null. */
+function pdfVisRect(sc,s){const W=s.el.offsetWidth,H=s.el.offsetHeight;
+  const x0=Math.max(0,sc.scrollLeft-s.el.offsetLeft),x1=Math.min(W,sc.scrollLeft+sc.clientWidth-s.el.offsetLeft);
+  const y0=Math.max(0,sc.scrollTop-s.el.offsetTop),y1=Math.min(H,sc.scrollTop+sc.clientHeight-s.el.offsetTop);
+  return (x1-x0>8&&y1-y0>8)?{x0,y0,x1,y1,W,H}:null;}
+async function pdfDetail(){
+  if(!_pv||document.hidden)return;
+  pdfTileCancel();   // un seul dessin de vignette à la fois
+  const gen=++_pdfTileGen,sc=document.getElementById('pdfScroll');
+  const dpr=Math.min(3,window.devicePixelRatio||1);
+  const vus=[];
+  _pv.pages.forEach(s=>{const v=s.canvas&&s.vp&&pdfVisRect(sc,s);if(v)vus.push([s,v]);else pdfTileDrop(s);});
+  vus.sort((a,b)=>(b[1].y1-b[1].y0)-(a[1].y1-a[1].y0)).slice(2).forEach(([s])=>pdfTileDrop(s));
+  for(const [s,v] of vus.slice(0,2)){
+    if(!_pv||gen!==_pdfTileGen)return;
+    if(!pdfTileDensity(s.canvas.width,v.W,dpr,1)){pdfTileDrop(s);continue;}   // l'image de base suffit : aucune vignette
+    const k=s.tileK;
+    if(k&&k.W===v.W&&k.x0<=v.x0&&k.y0<=v.y0&&k.x1>=v.x1&&k.y1>=v.y1)continue;   // déjà couverte à cette échelle
+    // Zone visible + une marge (un quart de l'écran de chaque côté), bornée à la page.
+    const mx=sc.clientWidth/4,my=sc.clientHeight/4;
+    const r={x0:Math.max(0,v.x0-mx),y0:Math.max(0,v.y0-my),x1:Math.min(v.W,v.x1+mx),y1:Math.min(v.H,v.y1+my)};
+    const rw=r.x1-r.x0,rh=r.y1-r.y0;
+    const td=pdfTileDensity(s.canvas.width,v.W,dpr,rw*rh);
+    if(!td){pdfTileDrop(s);continue;}   // l'image de base suffit, ou pas de gain réel
+    const c=document.createElement('canvas');c.className='pdf-tile';c.setAttribute('aria-hidden','true');
+    c.width=Math.max(1,Math.round(rw*td));c.height=Math.max(1,Math.round(rh*td));
+    const vp=s.page.getViewport({scale:v.W/s.vp.width*td});
+    const task=s.page.render({canvasContext:c.getContext('2d'),viewport:vp,transform:[1,0,0,1,-r.x0*td,-r.y0*td]});
+    _pv.tileTask=task;
+    const fini=()=>{if(_pv&&_pv.tileTask===task)_pv.tileTask=null;};
+    try{await task.promise;}
+    catch(e){fini();c.width=c.height=0;return;}   // annulée (défilement repris) ou refusée (mémoire) : l'image de base reste
+    fini();
+    if(!_pv||gen!==_pdfTileGen||!s.canvas||s.el.offsetWidth!==v.W){c.width=c.height=0;return;}
+    c.style.left=pdfPct(r.x0,v.W);c.style.top=pdfPct(r.y0,v.H);c.style.width=pdfPct(rw,v.W);c.style.height=pdfPct(rh,v.H);
+    const vieille=s.tile;s.canvas.after(c);s.tile=c;s.tileK={W:v.W,...r};   // la nouvelle d'abord, l'ancienne ensuite : pas d'éclair
+    if(vieille){vieille.width=vieille.height=0;vieille.remove();}}}
 /* `page` (facultatif, 1-based) : ouvrir DIRECTEMENT à une page. `hl` (facultatif) : termes
    NORMALISÉS à surligner — posés par les résultats de recherche (accueil et champ d'entité).
    Sans arguments, comportement inchangé : un document ouvert depuis sa rangée n'a ni saut ni
@@ -39109,7 +39180,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
-    qJoinCode,libVocabCorps,qTerms,hayMatch,qStems,qHit,qScore,hayPlus,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
+    pdfTileDensity,qJoinCode,libVocabCorps,qTerms,hayMatch,qStems,qHit,qScore,hayPlus,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
     autoShort,autoShortHead,tmShort,cxShort,forgetItemHtml,catRegNear,catSafeTwin,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,ovPresList,
     svTreePlan,svValidWarn,svSources,svCountsTxt,posoParts,SV_COL,

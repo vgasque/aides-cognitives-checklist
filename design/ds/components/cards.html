@@ -9075,6 +9075,7 @@
   .pdf-pages{min-width:min-content}   /* le calque du pincer : aussi large que la page la plus large */
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-page canvas.pdf-tile{position:absolute}   /* A748 : vignette de détail — place et taille en % de la page (inline). Pas de pointer-events:none (cliquet A68/4) : elle est SOUS les calques, un tap la traverse comme l'image de base */
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
   .pdf-lnk:hover{background:var(--primary-soft);mix-blend-mode:multiply}
   .pdf-lnk:focus-visible{outline:2px solid var(--act);outline-offset:1px}
