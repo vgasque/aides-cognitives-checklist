@@ -11445,7 +11445,7 @@ await sec('A753 · l’atelier d’import : liste groupée au téléphone, colon
     const page=await br.newPage({viewport:{width:w,height:h}});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
-    await page.evaluate(d=>{myLibraries=[{id:'L7',name:'SMUR',role:'editor'}];protocols.push(migrateProtocol({id:'px7',title:'Existant',body:'',status:'draft'}));
+    await page.evaluate(d=>{myLibraries=[{id:'L7',name:'Cours de réanimation pédiatrique avancée',role:'editor'}];protocols.push(migrateProtocol({id:'px7',title:'Existant',body:'',status:'draft'}));
       readImportFile(new File([JSON.stringify(d)],'a753.json'));},doc);
     await page.waitForSelector('#impList .imp-row');await calme(page,300);
     const r=await page.evaluate(async()=>{const o={};const card=impModal.querySelector('.ai-card');
@@ -11457,7 +11457,10 @@ await sec('A753 · l’atelier d’import : liste groupée au téléphone, colon
       o.apresGrp=[_impSel.size,document.querySelector('#impList [data-impgrp="f"]').textContent,document.getElementById('impAll').indeterminate];
       document.querySelector('#impList [data-impgrp="f"]').click();await __acCalme(150);
       if(o.cols){const L=sel=>Math.round(document.querySelector(sel).getBoundingClientRect().left);
-        o.alignLib=Math.abs(L('#impDestLib')-L('#impList [data-implib]'))<=2;o.alignCat=Math.abs(L('#impDestCat')-L('#impList [data-impcat]'))<=2;}
+        o.alignLib=Math.abs(L('#impDestLib')-L('#impList [data-implib]'))<=2;o.alignCat=Math.abs(L('#impDestCat')-L('#impList [data-impcat]'))<=2;
+        // v5.130.1 : un long nom de bibliothèque ne fait pas passer « Bibliothèque · » à la ligne — les deux bulles ont la même hauteur
+        impPoseLib(_impRows,'L7');await __acCalme(150);const H=sel=>Math.round(document.querySelector(sel).getBoundingClientRect().height);
+        o.bulles=[H('#impDestLib'),H('#impDestCat')];impPoseLib(_impRows,null);await __acCalme(100);}
       document.querySelector('#impList [data-impinto]').click();await __acCalme(250);
       const vis=()=>[...document.querySelectorAll('.popmenu .mm-row')].filter(x=>x.getClientRects().length).length;
       o.dansNeuf=vis();document.querySelector('.popmenu [data-intomode="into"]').click();await __acCalme(200);o.dansVerser=vis();
@@ -11469,6 +11472,8 @@ await sec('A753 · l’atelier d’import : liste groupée au téléphone, colon
     t(`${w}×${h} · A753 : le lien d'un groupe ne touche que lui ; la case maîtresse passe « en partie »`,
       r.apresGrp[0]===1&&r.apresGrp[1]==='Tout cocher'&&r.apresGrp[2]===true,JSON.stringify(r.apresGrp));
     if(!tel)t(`${w}×${h} · A753 : « Bibliothèque » et « Catégorie » de l'en-tête au-dessus de leur colonne`,r.alignLib&&r.alignCat,JSON.stringify(r));
+    if(!tel)t(`${w}×${h} · v5.130.1 : long nom de bibliothèque — « Bibliothèque · » reste sur une ligne, les deux bulles de même hauteur`,
+      Math.abs(r.bulles[0]-r.bulles[1])<=1&&r.bulles[0]<=40,JSON.stringify(r.bulles));
     t(`${w}×${h} · A753 : « Dans » — aucune liste tant que « Nouveau protocole » est choisi, la recherche après « Verser »`,r.dansNeuf===0&&r.dansVerser>=1,JSON.stringify([r.dansNeuf,r.dansVerser]));
     await page.close();}
 });
