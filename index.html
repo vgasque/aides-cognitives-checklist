@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-IAC2Iw9pxVmtZPLe7FJ4yjzy+GoeVZo4YdKDZyMz7zA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-y8ICwQYbbgksHjf/rz3uodBN4PlhVZ+Qa4+RGPX63TY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10793,7 +10793,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.134.0';
+const APP_VERSION='5.134.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11575,11 +11575,13 @@ function mdBlocks(src){
     // (Branche EN PREMIER : un « | » dans du code ne doit jamais devenir un tableau.)
     if(code){if(/^```/.test(l)){out.push(code);code=null;}else code.lines.push(l);continue;}
     if(/^\s*$/.test(l)){if(list&&!para.length&&!quote){blank=true;continue;}flushAll();continue;}
-    if(blank){blank=false;const im=l.match(IMG_RX);if(!((im&&im[1].length>0)||(lastImg&&LI_RX.test(l))))flushList();}
-    if(list&&(m=l.match(IMG_RX))&&m[1].length>0){const ind=m[1].length;
+    if(blank){blank=false;const im=l.match(IMG_RX)||l.match(VID_RX);if(!((im&&im[1].length>0)||(lastImg&&LI_RX.test(l))))flushList();}
+    /* A758 : une VIDÉO indentée sous un élément lui appartient aussi (`vid:true` dans `it.imgs`) — elle sortait de la
+       liste et la coupait, ce qui aplatissait les sous-listes suivantes. */
+    if(list&&((m=l.match(IMG_RX))||(m=l.match(VID_RX)))&&m[1].length>0){const ind=m[1].length,vid=VID_RX.test(l);
       let k=lstk.length-1;while(k>0&&lstk[k].ind>=ind)k--;
       const its=lstk[k].lst.items,it=its[its.length-1];
-      if(it){lstk.length=k+1;(it.imgs=it.imgs||[]).push({caption:m[2],id:m[3],ln:i});lastImg=true;continue;}}
+      if(it){lstk.length=k+1;(it.imgs=it.imgs||[]).push(vid?{caption:m[2],id:m[3],ln:i,vid:true}:{caption:m[2],id:m[3],ln:i});lastImg=true;continue;}}
     if(/^```/.test(l)){flushAll();code={t:'code',lines:[],ln:i};continue;}
     // TABLEAU (v4.4.2) : ligne de cellules SUIVIE d'une ligne de séparation. Le nombre de colonnes
     // est normalisé sur l'en-tête (lignes trop courtes complétées, trop longues tronquées) : jamais
@@ -11657,7 +11659,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
     return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+(cls===' md-cfig'?'':mdFigAr(im.w,im.h))+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
-  const imgsHtml=it=>it.imgs?it.imgs.map(x=>figHtml(x.id,x.caption,' md-lfig')).join(''):'';
+  const imgsHtml=it=>it.imgs?it.imgs.map(x=>x.vid?vidHtml(x.id,x.caption,' md-lfig'):figHtml(x.id,x.caption,' md-lfig')).join(''):'';   // A758 : vidéo d'élément
   /* A757 — UNE VIDÉO : une figure-réceptacle (`data-vid`), la vidéo elle-même est posée APRÈS le rendu par `vidHydrate`
      (le binaire est dans IndexedDB ; mdRender reste pur et synchrone). Inconnue du protocole : rien, comme une image. */
   const vids=Object.create(null);(ctx.videos||[]).forEach(v=>{if(v&&v.id&&!badKey(v.id)&&VID_EXT[v.mime])vids[v.id]=v;});
@@ -20874,7 +20876,7 @@ const _miGo=Object.create(null);   // passage visé ensuite, par image (« Aller
 // Usages d'une image dans le corps — MÊME critère que le ménage de sortie (`leaveGC`) : une ligne `![…](img:ID)` seule.
 /* A642 : les images d'un élément de liste (`it.imgs`, à toute profondeur) comptent comme les autres — sans quoi le
    ménage de sortie retirerait une image importée de Notion. Une seule source pour les deux lecteurs. */
-function mdImgIds(blocks){const out=[];const walk=items=>(items||[]).forEach(it=>{if(!it||typeof it!=='object')return;(it.imgs||[]).forEach(x=>out.push(x.id));if(it.sub)walk(it.sub.items);});
+function mdImgIds(blocks){const out=[];const walk=items=>(items||[]).forEach(it=>{if(!it||typeof it!=='object')return;(it.imgs||[]).forEach(x=>{if(!x.vid)out.push(x.id);});if(it.sub)walk(it.sub.items);});
   /* A755 : une image dans une case de tableau compte aussi — sans quoi `leaveGC` la retirerait en quittant l'éditeur. */
   const cases=b=>[].concat(b.head||[],...(b.rows||[])).forEach(c=>{for(const m of String(c==null?'':c).matchAll(/!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)/g))out.push(m[1]);});
   (blocks||[]).forEach(b=>{if(b.t==='img')out.push(b.id);else if(b.t==='ul'||b.t==='ol')walk(b.items);else if(b.t==='tbl')cases(b);});return out;}
@@ -32466,7 +32468,7 @@ function notionRows(L){const out=[];let code=false;
    absentes de l'archive (on les NOMME dans le texte plutôt que de les perdre en silence). */
 function notionMd(src,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Object.create(null);let videos=0;
   let L=notionRows(String(src||'').replace(/^﻿/,'').replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'));
-  let title='',i=0,manque=0;
+  let title='',i=0,manque=0,illis=0;
   while(i<L.length&&!L[i].trim())i++;
   {const m=(L[i]||'').match(/^#\s+(.+?)\s*$/);if(m){title=m[1];i++;
     // Les PROPRIÉTÉS d'une page de base Notion (« Statut: Terminé », « Date: … ») suivent le titre : ce sont des
@@ -32479,6 +32481,7 @@ function notionMd(src,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Obje
     const p=notionPath(dir,href);
     if(p===null){const u=String(href||'').trim();return /^https?:\/\//i.test(u)?'['+(notionCap(alt)||'Image')+']('+u+')':'';}
     const id=ids[p];if(id)return '![' +notionCap(alt)+'](img:'+id+')';
+    if(id===''){illis++;return '*[Image illisible : '+(p.split('/').pop())+']*';}   // A758 : présente, mais ni lisible ni sous le plafond
     manque++;return '*[Image absente de l’archive : '+(p.split('/').pop())+']*';};
   for(;i<L.length;i++){let l=L[i];
     if(/^\s*```/.test(l)){code=!code;out.push(l.trim());continue;}
@@ -32510,7 +32513,7 @@ function notionMd(src,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Obje
       t.split('\n').forEach(x=>out.push('> '+x));continue;}
     out.push(l);}
   const body=out.join('\n').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').trim();
-  return {title:title.replace(/\s+[0-9a-f]{32}$/,'').trim(),body,manque,videos};}
+  return {title:title.replace(/\s+[0-9a-f]{32}$/,'').trim(),body,manque,illis,videos};}
 /* ═══ A756 — L'EXPORT HTML DE NOTION ════════════════════════════════════════════════════════════════════════
    L'export Markdown de Notion DÉROULE les colonnes (A755) ; l'export HTML les GARDE (`div.column-list > div.column`).
    On lit donc aussi le .html (seul, ou les pages d'un .zip), et une rangée de colonnes « libellé + image » devient la
@@ -32527,7 +32530,7 @@ function notionHtmlVidPaths(doc,dir){const o=[],vus=new Set();
 function notionHtmlImgPaths(doc,dir){const o=[],vus=new Set();
   doc.querySelectorAll('img[src]').forEach(im=>{const p=notionPath(dir,im.getAttribute('src'));if(p&&!vus.has(p)&&!NOTION_VID.test(p)){vus.add(p);o.push(p);}});return o;}
 function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Object.create(null);
-  let manque=0,videos=0;const out=[];
+  let manque=0,illis=0,videos=0;const out=[];
   const tag=n=>n&&n.nodeType===1?n.tagName.toLowerCase():'';
   const cls=(n,c)=>!!(n&&n.classList&&n.classList.contains(c));
   // Le texte en ligne : gras, italique, code, surligné, barré, liens https ; `br` selon le contexte (case : `<br>`).
@@ -32545,8 +32548,13 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
   const media=(fig,ind)=>{   // une image (ou une vidéo) → sa ligne Markdown ; absente de l'archive → NOMMÉE
     const cap=notionCap((fig.querySelector&&fig.querySelector('figcaption')||{}).textContent||'');
     const im=tag(fig)==='img'?fig:fig.querySelector('img[src]');
-    if(im){const p=notionPath(dir,im.getAttribute('src'));if(p===null)return '';
-      if(ids[p])return ind+'!['+cap+'](img:'+ids[p]+')';manque++;return ind+'*[Image absente de l’archive : '+p.split('/').pop()+']*';}
+    if(im){const p=notionPath(dir,im.getAttribute('src'));
+      /* A758 : une image HÉBERGÉE AILLEURS (insérée par lien dans Notion) devient un lien, comme à l'import Markdown —
+         elle disparaissait sans un mot. */
+      if(p===null){const u=String(im.getAttribute('src')||'').trim();return /^https?:\/\/[^\s()]+$/i.test(u)?ind+'['+(cap||'Image').replace(/[\[\]]/g,'')+']('+u+')':'';}
+      if(ids[p])return ind+'!['+cap+'](img:'+ids[p]+')';
+      if(ids[p]===''){illis++;return ind+'*[Image illisible : '+p.split('/').pop()+']*';}
+      manque++;return ind+'*[Image absente de l’archive : '+p.split('/').pop()+']*';}
     const v=fig.querySelector('video[src],source[src],a[href]');const h=v&&(v.getAttribute('src')||v.getAttribute('href'));const p=h&&notionPath(dir,h);
     if(p&&NOTION_VID.test(p)){if(vids[p])return ind+'!['+cap+'](vid:'+vids[p]+')';videos++;return ind+'*[Vidéo non importée : '+p.split('/').pop()+']*';}
     return null;};
@@ -32557,13 +32565,26 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
     for(const li of el.children){if(tag(li)!=='li')continue;
       let txt='';const after=[];
       for(const c of li.childNodes){const t=tag(c);
-        if(t==='ul'||t==='ol'||t==='details'||t==='p'&&txt.trim()||estMedia(c))after.push(c);
+        if(t==='ul'||t==='ol'||t==='details'||t==='p'&&txt.trim()||estMedia(c)||t==='div'&&!cls(c,'checkbox')&&c.querySelector('p,ul,ol,figure,details,img'))after.push(c);
         else if(t==='div'&&cls(c,'checkbox'))continue;else txt+=c.nodeType===3?c.nodeValue.replace(/[\s ]+/g,' '):(t?inl({childNodes:[c]}):'');}
       const box=todo?(li.querySelector('.checkbox-on')?'[x] ':'[ ] '):'';
       out.push(ind+(ol?(++k)+'. ':'- ')+box+txt.trim());
-      after.forEach(c=>{const t=tag(c);if(t==='ul'||t==='ol')list(c,lvl+1,depth+1);else if(estMedia(c)){const m=media(c,ind+'  ');if(m)out.push(m);}
-        else if(t==='p'){const v=inl(c).trim();if(v)out.push(ind+'  '+v);}else blocs(c,depth+1);});}
+      after.forEach(c=>sousLi(c,ind,lvl,depth));}
     if(lvl===0)blank();};
+  /* A758 — CE QU'UN ÉLÉMENT DE LISTE PORTE RESTE DANS LA LISTE. Notion range souvent sous une puce un bloc repliable
+     (`<details>` : « parasternal grand axe » et sa vidéo) : il passait par `blocs`, donc SANS retrait — la liste se
+     coupait là, et les puces suivantes, restées à 4 espaces après une ligne vide, devenaient un bloc de code. Le titre
+     du repli devient une sous-puce et ce qu'il contient la suit ; un paragraphe sous une puce devient une sous-puce (le
+     Markdown de l'app n'a pas de paragraphe d'élément) ; images et vidéos restent des médias d'élément (A642, A758). */
+  const sousLi=(c,ind,lvl,depth)=>{if(depth>40)return;const t=tag(c);
+    if(t==='ul'||t==='ol'){list(c,lvl+1,depth+1);return;}
+    if(estMedia(c)){const m=media(c,ind+'  ');if(m)out.push(m);return;}
+    if(t==='p'||/^h[1-6]$/.test(t)){const v=inl(c).trim();if(v)out.push(ind+'  - '+v);return;}   // le Markdown de l'app n'a pas de paragraphe d'élément : une sous-puce
+    if(t==='details'){const su=c.querySelector(':scope>summary'),v=su?inl(su).trim():'';
+      if(v)out.push(ind+'  - **'+v.replace(/^\*\*(.*)\*\*$/,'$1')+'**');   // le titre du repli devient une sous-puce, son contenu la suit
+      for(const k of c.children)if(k!==su)sousLi(k,v?ind+'  ':ind,v?lvl+1:lvl,depth+1);return;}
+    if(t==='div'&&!cls(c,'column-list')){for(const k of c.children)sousLi(k,ind,lvl,depth+1);return;}
+    blocs(c,depth+1);};
   // Une rangée de colonnes : chaque colonne en unités « libellé(s) + média » ; une case par unité (A755).
   const colonnes=(el,depth)=>{const cols=[...el.children].filter(c=>cls(c,'column'));
     const U=[];let simple=cols.length>1,aMedia=false;
@@ -32608,29 +32629,41 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
   if(racine)for(const c of racine.children)blocs(c,0);
   const title=((doc.querySelector('.page-title')||{}).textContent||doc.title||'').replace(/\s+/g,' ').trim();
   const body=out.join('\n').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').trim();
-  return {title,body,manque,videos};}
+  return {title,body,manque,illis,videos};}
 /* La partie ASYNCHRONE : chaque .md de l'archive devient une référence en brouillon ; ses images (cherchées par
    chemin résolu, signées, sous le plafond) passent par `downscale` comme une photo prise dans l'éditeur. Rend
    {protocols, manque, trop, long} — les trois comptes sont DITS à l'utilisateur, rien ne se perd en silence. */
+/* A758 — UN NOM D'IMAGE QUE LA PAGE ÉCRIT AUTREMENT QUE L'ARCHIVE. Notion simplifie parfois le nom dans le lien
+   (« Capture_decran_2025-05-14_a_18.05.03.png ») et pas dans l'archive (« Capture d’écran 2025-05-14 à 18.05.03.png »),
+   ou l'inverse ; un dossier peut porter l'identifiant de la page (« … 1375309f…c7 ») que le lien n'écrit pas. Repli
+   seulement si le chemin EXACT manque : chaque segment réduit à ses lettres et chiffres, sans accents ni casse,
+   identifiant final retiré — et seulement si UN SEUL fichier de l'archive y répond (jamais un choix au hasard). PURE. */
+function notionLoose(path){return String(path||'').split('/').map(g=>g.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/\s+[0-9a-f]{32}(?=(\.[A-Za-z0-9]{1,5})?$)/i,'').toLowerCase().replace(/[^a-z0-9]/g,'')).join('/');}
 async function notionRefs(entries){
   const files=new Map();entries.forEach(e=>files.set(String(e.name).normalize('NFC').replace(/^\/+/,''),e.data));
+  const flou=new Map();for(const k of files.keys()){const l=notionLoose(k);flou.set(l,flou.has(l)?null:k);}   // null : deux candidats, pas de repli
+  const get=p=>{const d=files.get(p);if(d)return d;const k=flou.get(notionLoose(p));return k?files.get(k):undefined;};
   // A756 : les pages .html (export HTML de Notion) entrent par la même porte que les .md.
   const mds=entries.filter(e=>/\.(md|html?)$/i.test(e.name)&&!/(^|\/)__MACOSX\//.test(e.name));
-  const out=[];let manque=0,trop=0,long=0,videos=0;const vidBufs=new Map();   // A757 : id → octets, écrits à l'import
+  const out=[];let manque=0,illis=0,trop=0,long=0,videos=0;const vidBufs=new Map();   // A757 : id → octets, écrits à l'import
   for(const e of mds){const name=String(e.name).normalize('NFC'),cut=name.lastIndexOf('/'),dir=cut>=0?name.slice(0,cut):'';
     const src=new TextDecoder().decode(e.data),ids=Object.create(null),images=[],html=/\.html?$/i.test(name),doc=html?notionHtmlDoc(src):null;
-    for(const p of (html?notionHtmlImgPaths(doc,dir):notionImgPaths(src,dir))){const d=files.get(p);if(!d||d.length>MAX_IMG_BYTES||!imgKind(d.subarray(0,64)))continue;
+    /* A758 : présente mais illisible (format inconnu — HEIC, SVG, TIFF —, trop lourde, ou que le navigateur ne décode
+       pas) ≠ absente de l'archive : `ids[p]=''` la fait nommer « illisible », la raison vraie. */
+    for(const p of (html?notionHtmlImgPaths(doc,dir):notionImgPaths(src,dir))){const d=get(p);if(!d)continue;
+      if(d.length>MAX_IMG_BYTES||!imgKind(d.subarray(0,64))){ids[p]='';continue;}
       if(images.length>=MAX_IMG_PER_ENTITY){trop++;continue;}
-      const r=await downscale(new Blob([d]));if(!r)continue;
+      const r=await downscale(new Blob([d]));if(!r){ids[p]='';continue;}
       const id=uid('i');ids[p]=id;images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});}
     const vids=Object.create(null),vmeta=[];
-    for(const p of (html?notionHtmlVidPaths(doc,dir):notionVidPaths(src,dir))){const d=files.get(p),mime=d&&d.length<=MAX_VID_BYTES?vidKind(d.subarray(0,64)):null;
+    for(const p of (html?notionHtmlVidPaths(doc,dir):notionVidPaths(src,dir))){const d=get(p),mime=d&&d.length<=MAX_VID_BYTES?vidKind(d.subarray(0,64)):null;
       if(!mime||vmeta.length>=MAX_VID_PER_ENTITY)continue;   // absente, trop lourde, illisible, au-delà du plafond : nommée dans le texte, comptée
       const id=uid('v');vids[p]=id;vidBufs.set(id,d);vmeta.push({id,name:p.split('/').pop(),size:d.length,mime});}
-    const c=html?notionHtml(doc,dir,ids,vids):notionMd(src,dir,ids,vids);manque+=c.manque;videos+=c.videos||0;if(c.body.length>MD_MAX_CHARS)long++;
+    const c=html?notionHtml(doc,dir,ids,vids):notionMd(src,dir,ids,vids);manque+=c.manque;illis+=c.illis||0;videos+=c.videos||0;if(c.body.length>MD_MAX_CHARS)long++;
     const title=c.title||name.slice(cut+1).replace(/\.(md|html?)$/i,'').replace(/\s+[0-9a-f]{32}$/i,'')||'Sans titre';
     out.push({title,body:c.body,images,videos:vmeta,status:'draft'});}
-  return {protocols:out,manque,trop,long,videos,vidBufs};}
+  return {protocols:out,manque,illis,trop,long,videos,vidBufs};}
 /* NORMALISER LA RACINE D'UN IMPORT — v3 et v4 n'ont pas la même forme, et rien ne le disait.
    DEUX ÉCARTS, tous deux mesurés sur un fichier RÉEL de l'auteur (18 aides converties) :
 
@@ -33102,11 +33135,11 @@ async function notionParse(u8){
    d'écrasement — même règle que « Dans » de l'atelier, A611), les images rejoignent celles du protocole sous son
    plafond, le titre n'est posé que s'il était vide. Plusieurs pages : chacune sous son titre (« # … »), dans l'ordre. */
 async function notionVerse(p,files,rerender){
-  let n=0,img=0,trop=0,manque=0,refus=[],vidN=0,vidOut=0,vidNon=0;
+  let n=0,img=0,trop=0,manque=0,illis=0,refus=[],vidN=0,vidOut=0,vidNon=0;
   for(const f of files){let u8;try{u8=new Uint8Array(await f.arrayBuffer());}catch(e){refus.push(upShortName(f.name));continue;}
     let r=null;try{r=await notionParse(u8);}catch(e){r=null;}
     if(!r||!r.protocols.length){refus.push(upShortName(f.name));continue;}
-    const plus=r.protocols.length>1||files.length>1;manque+=r.manque||0;trop+=r.trop||0;vidNon+=r.videos||0;
+    const plus=r.protocols.length>1||files.length>1;manque+=r.manque||0;illis+=r.illis||0;trop+=r.trop||0;vidNon+=r.videos||0;
     for(const q of r.protocols){const t=String(q.title||'').trim();
       if(!String(p.title||'').trim()&&t)p.title=t;
       const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
@@ -33124,7 +33157,7 @@ async function notionVerse(p,files,rerender){
       n++;}}
   if(n)rerender();
   const m=(n?nb(n,'page')+' Notion ajoutée'+(n>1?'s':'')+' à la suite'+(img?' · '+nb(img,'image'):''):'')
-    +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
+    +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(illis?' · '+nb(illis,'image')+' illisible'+(illis>1?'s':''):'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
     +(vidN?' · '+nb(vidN,'vidéo'):'')+((vidOut+vidNon)?' · △ '+nb(vidOut+vidNon,'vidéo')+' non importée'+((vidOut+vidNon)>1?'s':''):'')   // A757
     +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, .html, ou .zip d’export Notion)':'');
   if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
@@ -33197,9 +33230,10 @@ async function _importRead(buf,lbl,ia){
        s'il peut y avoir doublon — sans lui, la rangée annoncerait « déjà présent » sur un import
        venu d'ailleurs, dont les ids sont de toute façon régénérés à l'écriture. */
     /* A562 : ce qui n'a pas pu entrer se DIT avant l'atelier (images introuvables, au-delà du plafond, texte tronqué). */
-    if(notion&&(notion.manque||notion.trop||notion.long||notion.videos)){
+    if(notion&&(notion.manque||notion.illis||notion.trop||notion.long||notion.videos)){
       const m=[];
       if(notion.manque)m.push(notion.manque+' image'+(notion.manque>1?'s':'')+' introuvable'+(notion.manque>1?'s':'')+(notion.seul?' — importez plutôt le .zip de l’export Notion, qui les contient':' dans l’archive')+' (nommée'+(notion.manque>1?'s':'')+' dans le texte)');
+      if(notion.illis)m.push(nb(notion.illis,'image')+' illisible'+(notion.illis>1?'s':'')+' : format non reconnu ou trop lourde'+(notion.illis>1?'s':'')+' (nommée'+(notion.illis>1?'s':'')+' dans le texte)');   // A758
       if(notion.trop)m.push(notion.trop+' image'+(notion.trop>1?'s':'')+' au-delà de '+MAX_IMG_PER_ENTITY+' par protocole, non importée'+(notion.trop>1?'s':''));
       if(notion.long)m.push('texte au-delà de '+MD_MAX_CHARS.toLocaleString('fr-FR')+' caractères, tronqué');
       if(notion.videos)m.push(notion.videos+' vidéo'+(notion.videos>1?'s':'')+' non importée'+(notion.videos>1?'s':'')+' (nommée'+(notion.videos>1?'s':'')+' dans le texte)');   // A756
@@ -39733,7 +39767,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

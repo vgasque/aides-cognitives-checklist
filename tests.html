@@ -926,6 +926,39 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A757 : import HTML de Notion — la vidéo prend sa case', ch.body.split('\n').includes('| Normal<br>![](vid:v8) | Thrombus<br>![](img:i1) |')&&ch.videos===0);
    const L=A.exportLeger({fiches:[],protocols:[{body:'a\n![](vid:v1)\n| x<br>![](vid:v1) |',images:[],docs:[],videos:V}]}).protocols[0];
    ok('A757 : l’export « sans fichiers » retire les vidéos et leurs références', !L.videos.length&&!/vid:/.test(L.body));}
+  /* A758 : l'import HTML de Notion retrouve ce que la page écrit autrement, nomme la vraie raison d'un manque, garde la liste. */
+  {eq('A758 : notionLoose — accents, espaces, apostrophe, casse et identifiant de page ramenés',
+     [A.notionLoose('Douleur thoracique (écho ECMU)/Capture d’écran 2025-05-14 à 18.05.03.png'),A.notionLoose('Douleur thoracique (echo ECMU) 1375309f24398050b128e091a23c92c7/Capture_decran_2025-05-14_a_18.05.03.png')],
+     ['douleurthoraciqueechoecmu/capturedecran20250514a180503png','douleurthoraciqueechoecmu/capturedecran20250514a180503png']);
+   const cv=document.createElement('canvas');cv.width=8;cv.height=6;cv.getContext('2d').fillRect(0,0,4,3);
+   const png=Uint8Array.from(atob(cv.toDataURL('image/png').split(',')[1]),c=>c.charCodeAt(0)),en=new TextEncoder();
+   const D='Douleur%20thoracique%20(%C3%A9cho%20ECMU)/';
+   const page='<!DOCTYPE html><html><body><article><h1 class="page-title">Page</h1><div class="page-body">'
+     +'<figure class="image"><img src="'+D+'Capture_decran_2025-05-14_a_18.05.03.png"/></figure>'
+     +'<figure class="image"><img src="'+D+'schema.svg"/></figure>'
+     +'<figure class="image"><img src="'+D+'image%209.png"/></figure>'
+     +'<figure class="image"><img src="https://images.example.org/a.png"/><figcaption>Coupe</figcaption></figure>'
+     +'<ul class="bulleted-list"><li>compression<details open="" class="toggle"><summary>parasternal grand axe</summary><div class="indented"><figure><div class="source"><a href="'+D+'video4.webm">video4.webm</a></div></figure></div></details></li></ul>'
+     +'<ul class="bulleted-list"><li>swinging heart</li></ul></div></article></body></html>';
+   const r=await A.notionRefs([{name:'Export/Page 1375309f24398050b128e091a23c92c7.html',data:en.encode(page)},
+     {name:'Export/Douleur thoracique (écho ECMU)/Capture d’écran 2025-05-14 à 18.05.03.png',data:png},
+     {name:'Export/Douleur thoracique (écho ECMU)/schema.svg',data:en.encode('<svg xmlns="http://www.w3.org/2000/svg"/>')},
+     {name:'Export/Douleur thoracique (écho ECMU)/video4.webm',data:Uint8Array.from([0x1A,0x45,0xDF,0xA3,0,0,0,0,0,0,0,0,0,0,0,0])}]);
+   const q=r.protocols[0],L=q.body.split('\n');
+   eq('A758 : le nom simplifié par la page retrouve le fichier de l’archive', q.images.length, 1);
+   eq('A758 : présente mais illisible ≠ absente — chaque raison comptée', [r.illis,r.manque], [1,1]);
+   ok('A758 : l’image illisible est nommée comme telle', L.includes('*[Image illisible : schema.svg]*'));
+   ok('A758 : une image hébergée ailleurs devient un lien (elle disparaissait)', L.includes('[Coupe](https://images.example.org/a.png)'));
+   const v=q.videos[0]&&q.videos[0].id;
+   eq('A758 : le repli sous une puce reste dans la liste — sous-puce, vidéo d’élément, puce suivante au même niveau',
+     L.slice(L.indexOf('- compression'),L.indexOf('- compression')+5).filter(Boolean), ['- compression','  - **parasternal grand axe**','    ![](vid:'+v+')','- swinging heart']);
+   const R=A.mdBlocks(q.body).filter(b=>b.t==='ul');
+   ok('A758 : …et le rendu n’en fait qu’UNE liste (« swinging heart » reste à son niveau)', R.length===1&&R[0].items.length===2);
+   const B=A.mdBlocks('- a\n  - b\n    ![](vid:v1)\n  - c');
+   ok('A758 : une vidéo indentée appartient à l’élément (la liste ne se coupe pas)', B.length===1&&B[0].items[0].sub.items[0].imgs[0].vid===true&&B[0].items[0].sub.items.length===2);
+   const H=A.mdRender('- a\n  ![](vid:v1)\n- b',{images:[],videos:[{id:'v1',name:'v.webm',size:9,mime:'video/webm'}]});
+   ok('A758 : rendu — la vidéo d’élément est dans le <li>', /<li>a<figure class="md-fig md-vfig md-lfig" data-vid="v1"/.test(H));
+   eq('A758 : une vidéo d’élément n’est pas comptée comme image', A.mdImgIds(A.mdBlocks('- a\n  ![](vid:v1)\n  ![](img:i1)')), ['i1']);}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});

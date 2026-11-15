@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A757** à la v5.134 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A758** à la v5.134.1 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -379,6 +379,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A755 | `lot-v5-132.md` | Des images côte à côte : une image seule dans une case de tableau est une vignette (colonnes égales, tient au téléphone) ; « Mettre en grille » (`mdGrille`) en direct et en mode texte, l’auteur choisit les colonnes — amende A607 |
 | A756 | `lot-v5-133.md` | L’export HTML de Notion entre comme le Markdown (page .html seule ou dans le .zip) ; `notionHtml` (DOMParser, rien d’exécuté, texte seul) ; les rangées de colonnes deviennent la grille d’A755 ; images absentes et vidéos nommées |
 | A757 | `lot-v5-134.md` | Les vidéos dans un protocole, quatrième nature (MP4, MOV, WebM ; 30 Mo, 20 par protocole) : stockées et synchronisées comme les PDF (même bucket, mêmes droits), lues muettes en boucle quand elles sont à l’écran, importées de Notion et des archives de l’app — serveur à rejouer ; `list_orphan_attachments` corrigée |
+| A758 | `lot-v5-134-1.md` | Import HTML de Notion : un nom d’image écrit autrement que l’archive retrouvé (`notionLoose`, un seul candidat), « illisible » distingué d’« absente », image hébergée ailleurs gardée en lien, un repli sous une puce reste dans la liste (`sousLi`) ; une vidéo d’élément comme une image (étend A642) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
