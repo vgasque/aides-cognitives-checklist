@@ -11478,6 +11478,35 @@ await sec('A753 · l’atelier d’import : liste groupée au téléphone, colon
     await page.close();}
 });
 
+/* A754 — LE TEXTE D'UN PROTOCOLE N'EST JAMAIS COUPÉ EN SILENCE. Éditeur (vrai point d'entrée `openProtocolEdit`) : le
+   compteur paraît à 80 %, passe en ambre au-delà et dit combien ne seront pas enregistrés ; atelier : un protocole trop
+   long le dit sur sa rangée ; synchro : un protocole reçu plus long que le plafond n'ouvre pas l'éditeur. */
+await sec('A754 · le texte d’un protocole n’est jamais coupé en silence', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const o={};const M=MD_MAX_CHARS;
+    const p=migrateProtocol({id:'p754',title:'Long',body:'x'.repeat(Math.round(M*.9)),status:'draft'});protocols.push(p);
+    await openProtocolEdit('p754');await __acCalme(400);
+    const el=document.getElementById('mdLen'),ta=document.getElementById('p-body');
+    o.a90=[!!el&&!el.hidden,el&&el.classList.contains('warn')];
+    ta.value=ta.value+'y'.repeat(Math.round(M*.15));ta.dispatchEvent(new Event('input'));await __acCalme(150);
+    o.audela=[!el.hidden,el.classList.contains('warn'),el.textContent];
+    state.pdraft=null;state.view='library';render();await __acCalme(200);
+    const z=protocolFromRow({id:'p754z',data:{title:'Reçu',body:'z'.repeat(M+10),status:'validated'},updated_at:new Date().toISOString()});protocols.push(z);
+    await openProtocolEdit('p754z');await __acCalme(300);o.garde=state.view;
+    return o;});
+  t('390 · A754 : à 90 % le compteur paraît (encre douce) ; au-delà, ambre, et il dit combien ne seront pas enregistrés',
+    r.a90[0]===true&&r.a90[1]===false&&r.audela[0]&&r.audela[1]&&/derniers ne seront pas enregistrés/.test(r.audela[2]),JSON.stringify(r));
+  t('390 · A754 : un protocole reçu plus long que le plafond n’ouvre pas l’éditeur', r.garde!=='protocolEdit',r.garde);
+  await page.evaluate(()=>{state.view='library';render();
+    readImportFile(new File([JSON.stringify({version:3,categories:[],fiches:[],protocols:[{id:'p754i',title:'Trop long',body:'w'.repeat(MD_MAX_CHARS+500),status:'draft'}]})],'a754.json'));});
+  await page.waitForSelector('#impList .imp-row');await calme(page,300);
+  const im=await page.evaluate(()=>(document.querySelector('#impList .imp-long')||{}).textContent||'');
+  t('390 · A754 : l’atelier dit qu’un texte trop long sera coupé, avant toute écriture',/coupé à 50\s000/.test(im),im);
+  await page.close();
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});

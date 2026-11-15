@@ -199,6 +199,8 @@
    en relecture, le rendu ne casse jamais) — un ancien client affiche donc un tableau comme des
    lignes de texte à pipes : dégradation lisible, export v3 inchangé (body reste une chaîne).
    Fonctions PURES (testées via ?__actest). Plafonds anti-DoS : 20 000 caractères / 2 000 lignes. */
+
+> *Amendé par A754 (v5.131.0) : plafonds MESURÉS, 50 000 caractères / 8 000 lignes — `lot-v5-131.md`.*
 ```
 
 ## J9 — A171 — LES TITRES D'UNE RÉFÉRENCE SE REPLIENT

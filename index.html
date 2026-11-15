@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-54nOou24HQe5DHdiCBy91ddg4pgYIGqDABq6wY7wkf8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ciTr2Hl1GEjG8PQiJtK9GtgX46afXACrOMWmQRBmEUI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8330,6 +8330,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      en silence »). La question oui/non a disparu — c'est ce bandeau de pied qui la remplace, et
      il ne dit que ce qu'il sait : combien d'éléments, vers quelles bibliothèques. Registre
      ATTENTION (--warn), jamais rouge : ce n'est pas un danger, c'est une portée. */
+  /* A754 : le compteur du texte d'un protocole (80 % du plafond : encre douce ; 95 % et au-delà : ambre, glyphe et mots). */
+  .md-len{margin:6px 2px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .md-len.warn{color:var(--warn)}
+  .imp-long,.imp-into-s.warn{color:var(--warn);font-weight:700}
   .imp-warn{flex:0 0 100%;margin:0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
@@ -10771,7 +10775,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.130.1';
+const APP_VERSION='5.131.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11412,9 +11416,24 @@ const stripBold=s=>String(s==null?'':s).replace(BOLD_RX,'$1');
    esc() d'abord, puis pose le balisage. Syntaxe : titres, listes (dont COCHABLES GFM v4.5.4 —
    coches ÉPHÉMÈRES, jamais écrites dans le body), citation/encadrés, code, tableaux (v4.4.2),
    images img:ID, liens https/att:ID. Balisage non reconnu laissé VISIBLE (dégradation lisible,
-   export v3 inchangé). Fonctions PURES (?__actest) ; plafonds anti-DoS 20 000 car. /
-   2 000 lignes. Détail : doctrine-js.md J8. */
-const MD_MAX_CHARS=20000,MD_MAX_LINES=2000,MD_MAX_DEPTH=6;
+   export v3 inchangé). Fonctions PURES (?__actest) ; plafonds anti-DoS 50 000 car. /
+   8 000 lignes (A754). Détail : doctrine-js.md J8. */
+/* A754 — LE PLAFOND EST MESURÉ, PLUS CHOISI : 20 000 était une marge posée avec le parseur, sans mesure. Mesuré (Chromium,
+   processeur ralenti ×6 ≈ téléphone lent) : le parseur est LINÉAIRE et rapide, entrées piégées comprises (ligne unique de
+   400 000 car. : 7 ms) ; le coût est la PAGE construite — ouvrir un protocole de 20 000 car. : 0,39 s ; 50 000 : 0,66 s ;
+   100 000 : 1,5 s ; l'éditeur, le double. 50 000 garde l'ouverture d'un protocole consulté en soin sous 0,7 s. Les
+   lignes suivent (8 000 : au-delà d'une ligne pour 6 caractères, l'excédent ne serait pas affiché). */
+const MD_MAX_CHARS=50000,MD_MAX_LINES=8000,MD_MAX_DEPTH=6;
+/* A754 — LE TEXTE N'EST JAMAIS COUPÉ EN SILENCE : le compteur de l'éditeur paraît à 80 % du plafond, passe en ambre (△ +
+   mots, règle 8) à 95 %, et au-delà dit combien de caractères ne seront pas enregistrés. PURE (?__actest). */
+const mdNb=n=>Number(n).toLocaleString('fr-FR');
+function mdLenTxt(n){n=Math.max(0,Number(n)||0);const M=MD_MAX_CHARS,f=mdNb;
+  if(n<M*.8)return null;
+  if(n>M){const d=n-M,pl=d>1;return {warn:true,txt:'△ '+f(n)+' / '+f(M)+' caractères : '+(pl?'les '+f(d)+' derniers ne seront pas enregistrés':'le dernier ne sera pas enregistré')+'. Raccourcissez le texte, ou partagez-le en deux protocoles.'};}
+  if(n>=M*.95)return {warn:true,txt:'△ '+f(n)+' / '+f(M)+' caractères — la limite approche.'};
+  return {warn:false,txt:f(n)+' / '+f(M)+' caractères'};}
+function mdLenPaint(n){const el=document.getElementById('mdLen');if(!el)return;const r=mdLenTxt(n);
+  el.hidden=!r;if(!r)return;if(el.textContent!==r.txt)el.textContent=r.txt;el.classList.toggle('warn',r.warn);}
 // Tableaux : pipes ouvrant ET fermant EXIGÉS (plus stricts que GFM) -> aucune collision possible
 // avec les autres blocs (hr, listes, citation, titre, image commencent par un autre caractère),
 // et une phrase clinique contenant un « | » ne devient jamais un tableau par accident.
@@ -20793,6 +20812,7 @@ function renderProtocolEdit(){
       ${live?'<div class="md-doc" id="mdDoc"></div>':''}
       <div class="md-wpane">
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
+      <p class="md-len" id="mdLen" role="status" hidden></p>
       <div class="md-lint-box"></div>
       <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
@@ -20838,7 +20858,8 @@ function renderProtocolEdit(){
      c'est le même protocole. `mdFoldApply` est idempotent et se garde sur le DOM, donc le rejouer
      à chaque pause de frappe ne coûte que le test. */
   const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdPvHtml(p);mdFoldApply(pv,p.id);}paintMiUse();mdCaretSync(ta,p);mdLintPaint(p);revProtoRefresh(p);},300);};
-  ta.addEventListener('input',()=>{p.body=ta.value;if(pImgAdopt(p))miCardRefresh();schedulePrev();});   // A729
+  ta.addEventListener('input',()=>{p.body=ta.value;mdLenPaint(ta.value.length);if(pImgAdopt(p))miCardRefresh();schedulePrev();});   // A729 ; A754 : le compteur suit chaque frappe et chaque collage
+  mdLenPaint(ta.value.length);
   {const pv=document.getElementById('mdPreview');if(pv)mdFoldApply(pv,p.id);}   // rendu INITIAL de l'aperçu
   paintMiUse();
   /* A547 : le champ ACTIF — le Markdown entier, ou le bloc ouvert en mise en forme en direct. La barre, les menus,
@@ -21428,6 +21449,7 @@ function openProtocolRead(id){const p=protocols.find(x=>x.id===id);if(!p)return;
   state.protoTasks={};state.protoTasksSrc=null;   // coches éphémères : chaque ouverture repart de l'état écrit
   state.view='protocolRead';render();}
 async function openProtocolEdit(id){if(linkGate(()=>openProtocolEdit(id)))return;   // A643
+  if(_mdCoupes.has(String(id))){toast('△ Ce protocole dépasse '+mdNb(MD_MAX_CHARS)+' caractères, la limite de cette version de l’app : mettez l’app à jour avant de le modifier, sinon sa fin serait perdue.',9000);return;}   // A754
   const p=protocols.find(x=>x.id===id);if(!p)return;
   // Même revérification de rôle que openEdit (protocole partagé, en ligne).
   if(!canEditFiche(p)){toast(RO_EDIT_TOAST);return openProtocolRead(id);}
@@ -32414,8 +32436,9 @@ function impRowsOf(imp,sameSpace){
       rel:m?impDupRel(av,m.updatedAt):''},o));});
   imp.protocols.forEach((d,i)=>{
     const av=brut(d);
+    const lg=(d&&typeof d.body==='string')?d.body.length:0;   // A754 : la longueur du FICHIER, avant que migrateProtocol ne coupe
     const o=imp.protocols[i]=migrateProtocol(d),m=jum(protocols,o.id);
-    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Protocole',notes:reviewNotesProto(o).length,dup:!!m,
+    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Protocole',notes:reviewNotesProto(o).length,dup:!!m,long:lg>MD_MAX_CHARS?lg:0,
       rel:m?impDupRel(av,m.updatedAt):''},o));});
   return rows;}
 /* ═══ A132 — SAVOIR LEQUEL EST LE PLUS RÉCENT NE DIT PAS CE QU'ON PERDRAIT ════════════════════
@@ -32473,6 +32496,8 @@ function impRowHtml(r){
     +(carry?`<span>${esc(carry)}</span>`:'')
     +(r.notes?`<span class="tag todo" title="Il reste ${r.notes} remarque(s) de relecture — le volet « Relecture » de l'éditeur les détaille">△ ${r.notes}<span class="sr-only"> remarque(s) de relecture</span></span>`:'')
     +(nd?`<span>${nd} PDF</span>`:'')
+    // A754 : un texte plus long que le plafond est COUPÉ à l'import — la rangée le dit, en ambre, avant toute écriture.
+    +(r.long?`<span class="imp-long">△ texte de ${mdNb(r.long)} caractères : coupé à ${mdNb(MD_MAX_CHARS)}</span>`:'')
     // A132 — sur une entité déjà présente seulement : ailleurs il n'y a rien à comparer, et un
     // bouton qui n'ouvrirait rien serait un bouton mort.
     +(r.dup?`<button type="button" class="imp-cmp" data-impcmp="${esc(r.key)}" aria-expanded="false">Comparer</button>`:'')
@@ -32515,11 +32540,14 @@ const impLibChoix=()=>impLibOptions().length>1;
    images suivent. La référence garde son titre, sa catégorie, sa bibliothèque : les pastilles de destination s'effacent. */
 const impIntoOptions=()=>protocols.filter(x=>canEditFiche(x)).sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'fr'));
 function impIntoLabel(r){const t=r.into&&protocols.find(x=>x.id===r.into);
-  return t?{txt:'Dans « '+(String(t.title||'').trim()||'Sans titre')+' »',sub:String(t.body||'').trim()?'ajouté à la suite de son contenu':'remplit son contenu vide'}:{txt:'Dans : nouveau protocole',sub:''};}
+  if(!t)return {txt:'Dans : nouveau protocole',sub:''};
+  const b0=String(t.body||'').trim(),tot=b0.length+(b0?2:0)+String(r.o.body||'').trim().length;
+  return {txt:'Dans « '+(String(t.title||'').trim()||'Sans titre')+' »',sub:(b0?'ajouté à la suite de son contenu':'remplit son contenu vide')
+    +(tot>MD_MAX_CHARS?' — △ ensemble '+mdNb(tot)+' caractères : la fin, au-delà de '+mdNb(MD_MAX_CHARS)+', sera coupée':''),long:tot>MD_MAX_CHARS};}   // A754
 function impDestHtml(r){
   if(r.kind!=='Aide'&&impIntoOptions().length){const I=impIntoLabel(r);
     const into=`<button type="button" class="imp-pick${r.into?' keep':''}" data-impinto="${esc(r.key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Où va ce contenu — toucher pour changer">`
-      +`<span>${esc(I.txt)}</span>${uiIcon('chev',14,{sw:2.4})}</button>`+(I.sub?`<span class="imp-into-s">${esc(I.sub)}</span>`:'');
+      +`<span>${esc(I.txt)}</span>${uiIcon('chev',14,{sw:2.4})}</button>`+(I.sub?`<span class="imp-into-s${I.long?' warn':''}">${esc(I.sub)}</span>`:'');
     if(r.into)return into;
     return into+impDestHtml0(r);}
   return impDestHtml0(r);}
@@ -33006,14 +33034,14 @@ async function _importRead(buf,lbl,ia){
     // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
     // règles que les fiches (assainissement migrateProtocol, ids conservés si même espace,
     // documents PDF restaurés/filtrés par importAtts).
-    let addedP=0;const versees=[];
+    let addedP=0,imgsHors=0,txtCoupes=0;const versees=[];   // A754 : ce qu'un versement n'a pas pu garder se DIT
     if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
       for(let i=0;i<imp.protocols.length;i++){const d=migrateProtocol(imp.protocols[i]);d.deletedAt=null;   // A669
         // A611 : versée dans une référence existante — son contenu (et ses images) s'y ajoute ; rien d'autre ne change.
         {const tg=P.dst[i].into&&protocols.find(x=>x.id===P.dst[i].into);
           if(tg&&canEditFiche(tg)){const n=migrateProtocol(JSON.parse(JSON.stringify(tg))),b0=String(n.body||'').replace(/\s+$/,''),b1=String(d.body||'').trim();
-            n.body=b0?(b1?b0+'\n\n'+b1:b0):b1;
-            const ims=(n.images||[]).slice();(d.images||[]).forEach(im=>{if(im&&im.id&&ims.length<MAX_IMG_PER_ENTITY&&!ims.some(x=>x.id===im.id))ims.push(im);});n.images=ims;
+            n.body=b0?(b1?b0+'\n\n'+b1:b0):b1;if(n.body.length>MD_MAX_CHARS)txtCoupes++;
+            const ims=(n.images||[]).slice();(d.images||[]).forEach(im=>{if(!im||!im.id||ims.some(x=>x.id===im.id))return;if(ims.length<MAX_IMG_PER_ENTITY)ims.push(im);else imgsHors++;});n.images=ims;
             const m=migrateProtocol(n);if(await pPOk(m)){const j=protocols.findIndex(x=>x.id===m.id);if(j>=0)protocols[j]=m;versees.push(m.title||'Sans titre');}
             continue;}}
         poserDest(d,P.dst[i]);   // même règle que les fiches, même code
@@ -33037,7 +33065,9 @@ async function _importRead(buf,lbl,ia){
     if(state.homeLib!=null)state.homeLib=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||'';
     state.cat='';
     const manques=(ratees?' '+nb(ratees,'élément')+' non enregistré'+(ratees>1?'s':'')+' (stockage).':'')
-      +(docsEc?' '+nb(docsEc,'document')+' PDF non importé'+(docsEc>1?'s':'')+' (absent'+(docsEc>1?'s':'')+' du fichier ou illisible'+(docsEc>1?'s':'')+').':'');   // A660
+      +(docsEc?' '+nb(docsEc,'document')+' PDF non importé'+(docsEc>1?'s':'')+' (absent'+(docsEc>1?'s':'')+' du fichier ou illisible'+(docsEc>1?'s':'')+').':'')   // A660
+      +(txtCoupes?' △ Texte coupé à '+mdNb(MD_MAX_CHARS)+' caractères dans '+nb(txtCoupes,'protocole')+' complété'+(txtCoupes>1?'s':'')+'.':'')
+      +(imgsHors?' △ '+nb(imgsHors,'image')+' non reprise'+(imgsHors>1?'s':'')+' : '+MAX_IMG_PER_ENTITY+' images maximum par protocole.':'');   // A754
     if(openId)openRead(openId);else{state.view='library';render();}
     if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.'+(versees.length?' Contenu versé dans « '+versees.join(' », « ')+' ».':'')+manques,manques?10000:0);
     else if(versees.length)toast('Contenu versé dans « '+versees.join(' », « ')+' ».'+manques,manques?10000:0);
@@ -35690,7 +35720,16 @@ function rowConverters(migrateFn){return {
       deletedAt:row.deleted_at?Date.parse(row.deleted_at):null,
       ownerId:row.owner||null,library:row.library_id||null}));}};}
 const {toRow:ficheToRow,fromRow:ficheFromRow}=rowConverters(migrate);
-const {toRow:protocolToRow,fromRow:protocolFromRow}=rowConverters(migrateProtocol);
+const {toRow:protocolToRow,fromRow:_protocolFromRow}=rowConverters(migrateProtocol);
+/* A754 — UN PROTOCOLE REÇU PLUS LONG QUE CE QUE CETTE VERSION SAIT GARDER (écrit par une version plus récente, au plafond
+   plus haut) : `migrateProtocol` le coupe EN MÉMOIRE ; le modifier ici, puis l'enregistrer, enverrait la version coupée à
+   toute l'équipe. On le retient (`_mdCoupes`), on le dit une fois, et l'éditeur refuse de l'ouvrir tant que l'app n'est
+   pas à jour. La lecture reste permise : elle montre le début, et rien ne s'écrit. */
+const _mdCoupes=new Set();let _mdCoupeDit=false;
+const protocolFromRow=row=>{const b=row&&row.data&&row.data.body;
+  if(typeof b==='string'&&b.length>MD_MAX_CHARS&&row.id!=null){_mdCoupes.add(String(row.id));
+    if(!_mdCoupeDit){_mdCoupeDit=true;toast('△ Un protocole reçu est plus long que ce que cette version de l’app peut garder : mettez l’app à jour avant de le modifier.',9000);}}
+  return _protocolFromRow(row);};
 /* ═══ HISTORIQUE DE SESSIONS SYNCHRONISÉ (v4.54.0) — ET L'INVARIANT QU'IL LÈVE ════════════════
    OPT-IN, défaut fermé. SEULES les sessions ARCHIVÉES montent (`live:false`) ; l'EXERCICE est
    ségrégé par une COLONNE, pas une convention de contenu ; `verified`/`vgaps` NE MONTENT PAS
@@ -39375,7 +39414,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
