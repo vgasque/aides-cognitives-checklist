@@ -76,7 +76,8 @@ inputs.forEach(i => { if (/\baccept\s*=/i.test(i.tag)) dire(i.l, 'accept= écrit
     const corps = code.slice(debut, fin + 1);
     const l = noLigne(i);
     const natures = [...corps.matchAll(/(\w+)\s*:\s*\{/g)].map(m => m[1]);
-    const attendues = ['pdf', 'image', 'data'];
+    // A757 (v5.134) : la QUATRIÈME nature, `video`, décidée par l'auteur (« ajoute les vidéos ») — pas ajoutée en passant.
+    const attendues = ['pdf', 'image', 'data', 'video'];
     const manquantes = attendues.filter(n => !natures.includes(n));
     if (manquantes.length) dire(l, `nature(s) absente(s) de UP_KINDS : ${manquantes.join(', ')}`);
     const enTrop = natures.filter(n => !attendues.includes(n));
@@ -125,4 +126,4 @@ if (fautes.length) {
   console.log('  `accept`, est précisément ce que ce contrôle existe pour empêcher.\n');
   process.exit(1);
 }
-console.log(`✓ check-upload : 1 sélecteur, 3 natures complètes, ${SITES_ATTENDUS} sites de lecture, accept issu de la table.`);
+console.log(`✓ check-upload : 1 sélecteur, 4 natures complètes, ${SITES_ATTENDUS} sites de lecture, accept issu de la table.`);

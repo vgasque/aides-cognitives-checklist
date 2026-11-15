@@ -852,6 +852,80 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const r=A.mdLenTxt(52300);ok('A754 : au-delà, dit combien ne seront pas enregistrés', !!r&&r.warn&&/les 2\s300 derniers ne seront pas enregistrés/.test(r.txt));}
   {const r=A.mdLenTxt(50001);ok('A754 : au-delà d’un seul, au singulier', !!r&&/le dernier ne sera pas enregistré/.test(r.txt));}
   eq('A754 : migrateProtocol coupe au plafond', A.migrateProtocol({body:'x'.repeat(60000)}).body.length, 50000);
+  /* A755 : grille d'images — libellé + image, n colonnes, rien ne se perd. */
+  {const src='Intro\n\nFémoral\n\n![x](img:i1)\n\nNormal\n\n![](img:i2)\n\nThrombus\n\n![](img:i3)\n\nPoplité\n\n![](img:i4)\n\nFin';
+   const g=A.mdGrille(src,3);
+   eq('A755 : mdGrille — 4 images, 3 colonnes', [g.k,g.rows], [4,2]);
+   eq('A755 : mdGrille — tableau sans en-tête, libellé<br>image, case vide en fin', g.md,
+     'Intro\n\n|  |  |  |\n| --- | --- | --- |\n| Fémoral<br>![x](img:i1) | Normal<br>![](img:i2) | Thrombus<br>![](img:i3) |\n| Poplité<br>![](img:i4) |  |  |\n\nFin');
+   eq('A755 : mdGrille — moins de deux images : rien', A.mdGrille('a\n\n![](img:i1)',3), null);
+   eq('A755 : mdGrille — un « | » du libellé ne casse pas la case', A.mdGrille('a|b\n![](img:i1)\nc\n![](img:i2)',2).md.split('\n')[2], '| a\\|b<br>![](img:i1) | c<br>![](img:i2) |');
+   eq('A755 : colonnes conseillées', [6,4,5,2].map(A.mdGrilleN), [3,2,3,2]);
+   const P={body:g.md,images:['i1','i2','i3','i4'].map(id=>({id,caption:'',data:'data:image/png;base64,iVBORw0KGgo=',w:10,h:10}))};
+   const h=A.mdRender(P.body,{images:P.images});
+   ok('A755 : rendu — tableau à colonnes égales, quatre vignettes', /md-tbl-img/.test(h)&&(h.match(/md-cfig/g)||[]).length===4);
+   eq('A755 : les images des cases comptent comme utilisées (le ménage de sortie les garde)', Object.keys(A.miUses(g.md)).sort(), ['i1','i2','i3','i4']);
+   ok('A755 : l’export « sans fichiers » vide aussi les cases', !/img:/.test(A.exportLeger({fiches:[],protocols:[{body:g.md,images:[],docs:[]}]}).protocols[0].body));}
+  /* A756 : l'export HTML de Notion — les colonnes deviennent une grille ; rien n'est exécuté ; rien ne se perd en silence. */
+  {const D='Douleur%20thoracique/';
+   const html='<!DOCTYPE html><html><head><meta charset="utf-8"/><title>x</title></head><body><article class="page sans"><header><h1 class="page-title">Douleur thoracique (écho ECMU)</h1></header><div class="page-body">'
+    +'<details open=""><summary style="font-weight:600;font-size:1.5em;line-height:1.3;margin:0">Echographie 4 points</summary>'
+    +'<p>RV- <strong>mauvais</strong> : on ne peut pas éliminer une EP</p>'
+    +'<div class="column-list"><div style="width:33.3%" class="column"><p>Fémoral</p><figure class="image"><a href="'+D+'image%201.png"><img src="'+D+'image%201.png"/></a></figure></div>'
+    +'<div class="column"><p>Normal</p><figure><div class="source"><a href="'+D+'video8.webm">video8.webm</a></div></figure></div>'
+    +'<div class="column"><p>Thrombus</p><figure class="image"><img src="'+D+'image%202.png"/></figure></div></div>'
+    +'<div class="column-list"><div class="column"><p>Poplité</p><figure class="image"><img src="'+D+'image%203.png"/><figcaption>image.png</figcaption></figure></div>'
+    +'<div class="column"><p>Normal</p><figure class="image"><img src="'+D+'image%204.png"/></figure></div>'
+    +'<div class="column"><p>Thrombus</p><figure class="image"><img src="'+D+'image%205.png"/></figure></div></div></details>'
+    +'<ul class="bulleted-list"><li style="list-style-type:disc">Un <em>point</em><ul class="bulleted-list"><li>sous-point</li></ul></li></ul>'
+    +'<ul class="to-do-list"><li><div class="checkbox checkbox-off"></div> <span class="to-do-children-unchecked">Appeler</span></li></ul>'
+    +'<table class="simple-table"><tbody><tr><td>Dose</td><td>1 | 2 mg</td></tr></tbody></table>'
+    +'<figure class="callout"><div><span class="icon">💡</span></div><div style="width:100%"><p>Attention <strong>dose</strong></p></div></figure>'
+    +'<script>window.__piege=1</'+'script><p><a href="javascript:alert(1)">piège</a> et <a href="https://has-sante.fr">HAS</a></p></div></article></body></html>';
+   const doc=A.notionHtmlDoc(html),dir='';
+   eq('A756 : chemins des images (décodés, sans la vidéo)', A.notionHtmlImgPaths(doc,dir), ['Douleur thoracique/image 1.png','Douleur thoracique/image 2.png','Douleur thoracique/image 3.png','Douleur thoracique/image 4.png','Douleur thoracique/image 5.png']);
+   const ids=Object.create(null);['1','2','3','4'].forEach(k=>{ids['Douleur thoracique/image '+k+'.png']='i'+k;});
+   const c=A.notionHtml(doc,dir,ids),L=c.body.split('\n');
+   eq('A756 : titre de la page', c.title, 'Douleur thoracique (écho ECMU)');
+   ok('A756 : titre repliable de Notion → « ## »', L.includes('## Echographie 4 points'));
+   ok('A756 : gras gardé', L.includes('RV- **mauvais** : on ne peut pas éliminer une EP'));
+   const t=L.indexOf('|  |  |  |');
+   eq('A756 : deux rangées de colonnes → UNE grille de 3 colonnes', L.slice(t,t+4), ['|  |  |  |','| --- | --- | --- |',
+     '| Fémoral<br>![](img:i1) | Normal<br>*[Vidéo non importée : video8.webm]* | Thrombus<br>![](img:i2) |',
+     '| Poplité<br>![](img:i3) | Normal<br>![](img:i4) | Thrombus<br>*[Image absente de l’archive : image 5.png]* |']);
+   eq('A756 : image absente et vidéo comptées', [c.manque,c.videos], [1,1]);
+   ok('A756 : liste et sous-liste', L.includes('- Un *point*')&&L.includes('  - sous-point'));
+   ok('A756 : case à cocher', L.includes('- [ ] Appeler'));
+   ok('A756 : tableau, « | » protégé', L.includes('| Dose | 1 \\| 2 mg |'));
+   ok('A756 : encadré → citation', L.includes('> Attention **dose**'));
+   ok('A756 : lien javascript: réduit à son texte, https gardé, script ni exécuté ni recopié', L.includes('piège et [HAS](https://has-sante.fr)')&&!/piege|alert/.test(c.body)&&!window.__piege);
+   eq('A756 : une page .html est reconnue', A.dataKind(new TextEncoder().encode('\n<!DOCTYPE html><html>')), 'html');}
+  /* A757 : les vidéos — reconnaissance par les octets, fiche assainie, chemins, rendu, grille, import Notion, export léger. */
+  {const tete=(sig,off)=>{const u=new Uint8Array(32);sig.forEach((b,i)=>{u[off+i]=b;});return u;},cc=t=>[...t].map(c=>c.charCodeAt(0));
+   eq('A757 : vidKind — WebM (EBML)', A.vidKind(tete([0x1A,0x45,0xDF,0xA3],0)), 'video/webm');
+   eq('A757 : vidKind — MP4 (ftyp isom)', A.vidKind(tete(cc('ftypisom'),4)), 'video/mp4');
+   eq('A757 : vidKind — MOV (ftyp qt)', A.vidKind(tete(cc('ftypqt  '),4)), 'video/quicktime');
+   eq('A757 : vidKind — une image HEIC ou un son M4A ne sont pas des vidéos', [A.vidKind(tete(cc('ftypheic'),4)),A.vidKind(tete(cc('ftypM4A '),4)),A.vidKind(new Uint8Array(32))], [null,null,null]);
+   eq('A757 : upDetect range une vidéo dans sa nature', A.upDetect(tete(cc('ftypmp42'),4)), 'video');
+   eq('A757 : safeVideo — type hors liste refusé, id sûr exigé', [A.safeVideo({id:'v1',mime:'video/avi'}),A.safeVideo({id:'__proto__',mime:'video/mp4'}),A.safeVideo({id:'v1',name:'a.mp4',size:10,mime:'video/mp4'})], [null,null,{id:'v1',name:'a.mp4',size:10,mime:'video/mp4'}]);
+   const P=A.migrateProtocol({body:'x',videos:Array.from({length:25},(_,i)=>({id:'v'+(i%22),mime:'video/webm',size:1}))});
+   eq('A757 : migrateProtocol — vidéos dédoublonnées, plafonnées à 20', P.videos.length, 20);
+   eq('A757 : chemins distants — l’extension suit le type', [A.attStoragePath('lib','u','v1','mp4'),A.attStoragePath(null,'u','v1','webm'),A.attStoragePath(null,'u','a1')], ['l/lib/v1.mp4','u/u/v1.webm','u/u/a1.pdf']);
+   eq('A757 : type d’un chemin distant', ['l/x/v.mp4','u/x/v.mov','u/x/a.pdf'].map(A.attTypeOfPath), ['video/mp4','video/quicktime','application/pdf']);
+   eq('A757 : attPlan — une vidéo part sous son extension', A.attPlan({id:'v1',type:'video/webm',dirty:1},[{lib:null,del:false,edit:true}],'me').path, 'u/me/v1.webm');
+   const V=[{id:'v1',name:'a.webm',size:1,mime:'video/webm'}];
+   const h=A.mdRender('![Écho](vid:v1)\n\n![](vid:inconnue)',{videos:V});
+   ok('A757 : rendu — une figure-réceptacle par vidéo connue, rien pour une inconnue', (h.match(/md-vfig/g)||[]).length===1&&/data-vid="v1"/.test(h)&&/<figcaption>Écho<\/figcaption>/.test(h));
+   const g=A.mdGrille('Normal\n![](vid:v1)\nThrombus\n![](img:i1)',2);
+   eq('A757 : une vidéo se range dans la grille comme une image', g.md.split('\n')[2], '| Normal<br>![](vid:v1) | Thrombus<br>![](img:i1) |');
+   ok('A757 : une vidéo dans une case de grille', /md-vfig md-cfig/.test(A.mdRender(g.md,{videos:V,images:[]})));
+   const c=A.notionMd('# P\n\nNormal\n\n[video8.webm](Page%20(x)/video8.webm)\n\nThrombus\n\n[video9.webm](Page%20(x)/video9.webm)','',null,{'Page (x)/video8.webm':'v8'});
+   ok('A757 : import Markdown de Notion — vidéo gardée en ![](vid:…), absente nommée et comptée', /^!\[\]\(vid:v8\)$/m.test(c.body)&&/\*\[Vidéo non importée : video9\.webm\]\*/.test(c.body)&&c.videos===1);
+   const doc=A.notionHtmlDoc('<html><body><div class="page-body"><div class="column-list"><div class="column"><p>Normal</p><figure><div class="source"><a href="P/v.webm">v.webm</a></div></figure></div><div class="column"><p>Thrombus</p><figure class="image"><img src="P/i.png"/></figure></div></div></div></body></html>');
+   const ch=A.notionHtml(doc,'',{'P/i.png':'i1'},{'P/v.webm':'v8'});
+   ok('A757 : import HTML de Notion — la vidéo prend sa case', ch.body.split('\n').includes('| Normal<br>![](vid:v8) | Thrombus<br>![](img:i1) |')&&ch.videos===0);
+   const L=A.exportLeger({fiches:[],protocols:[{body:'a\n![](vid:v1)\n| x<br>![](vid:v1) |',images:[],docs:[],videos:V}]}).protocols[0];
+   ok('A757 : l’export « sans fichiers » retire les vidéos et leurs références', !L.videos.length&&!/vid:/.test(L.body));}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
@@ -1042,7 +1116,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('statut par défaut', mp.status, 'validated');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','reviewEvery','sources','links','status','title','updatedAt','updatedBy','validatedAt'].sort());
+     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','reviewEvery','sources','links','status','title','updatedAt','updatedBy','validatedAt','videos'].sort());   // A757 : videos
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
@@ -1506,7 +1580,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    // LA TABLE : accept, sniff et plafond indissociables — c'est ce qui empêche l'accept affiché
    // et la vérification faite de diverger, la panne silencieuse que ce chantier corrige.
    const kinds=Object.keys(A.UP_KINDS);
-   eq('trois natures, pas une de plus', kinds.sort(), ['data','image','pdf']);
+   eq('quatre natures (A757 : la vidéo, décidée par l’auteur), pas une de plus', kinds.sort(), ['data','image','pdf','video']);
    ok('chaque nature porte accept + sniff + plafond',
      kinds.every(k=>{const K=A.UP_KINDS[k];return K.accept&&typeof K.sniff==='function'&&K.max>0;}));
    ok('aucun accept fourre-tout',

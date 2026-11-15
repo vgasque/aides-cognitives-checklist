@@ -1,5 +1,46 @@
 # Journal des modifications
 
+## [5.134.0] — 2026-11-15
+Des vidéos dans les protocoles (A757). ⚠ **Serveur à mettre à jour** : rejouer `supabase/schema.sql`.
+- **Ajouter une vidéo** : « ＋ Insérer › Vidéo » dans l'éditeur d'un protocole. Formats **MP4** (lu partout), **MOV**
+  (la caméra de l'iPhone) et **WebM** (l'export de Notion) ; **30 Mo** au plus par vidéo, **20** par protocole.
+- **À la lecture**, la vidéo joue en boucle et sans le son quand elle est à l'écran, et s'arrête quand on la quitte
+  (avec « réduire les animations », elle attend qu'on la lance). Elle se range dans une grille comme une image.
+- **Elle est gardée sur l'appareil**, consultable hors ligne, et synchronisée comme les documents PDF, avec les mêmes
+  droits. Absente de l'appareil, ou illisible (un WebM sur un iPhone ancien), la vidéo le dit au lieu d'un cadre noir.
+- **À l'import** : les vidéos d'une page Notion (export Markdown ou HTML, dans le .zip) et celles d'une archive
+  exportée par l'app entrent avec le reste ; dans une page Notion à colonnes, chacune prend sa case de grille. Ce qui
+  ne peut pas entrer est nommé dans le texte et compté. **À l'export**, « Avec les fichiers joints » les emporte.
+- Le quota « Documents PDF » de l'administration compte aussi les vidéos.
+- **Correctif serveur** : la liste des documents orphelins de l'administration présentait tous les documents comme
+  orphelins (elle lisait un ancien nom de champ).
+- ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` (le stockage accepte désormais les vidéos, 30 Mo). Tant
+  que ce n'est pas fait, les vidéos restent sur l'appareil qui les a ajoutées, et l'app le signale une fois.
+
+## [5.133.0] — 2026-11-15
+Importer une page Notion exportée en HTML : les colonnes deviennent une grille (A756).
+- **L'export HTML de Notion est accepté**, en plus de l'export Markdown : une page `.html` seule, ou le `.zip`
+  d'export avec son dossier d'images. Par les mêmes portes : « Importer un fichier », le dépôt, et « Page Notion »
+  dans l'éditeur d'un protocole.
+- **Les colonnes sont retrouvées** : l'export HTML garde la mise en page de Notion, si bien que des images posées
+  côte à côte (« Fémoral · Normal · Thrombus ») arrivent en grille, sans avoir à la refaire.
+- Titres repliables, listes, cases à cocher, tableaux, encadrés, gras, liens : repris comme à l'import Markdown. Une
+  image absente de l'archive est nommée dans le texte ; une vidéo aussi (l'app ne lit pas encore les vidéos), et le
+  message de fin les compte.
+- Le fichier HTML n'est jamais affiché ni exécuté : seul son texte est repris.
+
+## [5.132.0] — 2026-11-15
+Des images côte à côte dans un protocole : la grille d'images (A755).
+- **Une image seule dans une case de tableau s'affiche en vignette**, et un toucher l'agrandit. Un tableau d'images a
+  des colonnes égales et tient dans la largeur de l'écran — au téléphone, trois colonnes côte à côte, comme dans
+  Notion. Chaque case porte un libellé au-dessus de son image (« Fémoral », « Normal », « Thrombus »…).
+- **« Mettre en grille »** : sélectionnez les libellés et leurs images, puis choisissez 2, 3 ou 4 colonnes — en mise
+  en forme en direct, par la barre de sélection des blocs ; en mode texte, par « ＋ Insérer › Grille d'images ».
+  Le texte autour est gardé. C'est vous qui choisissez les colonnes : l'export Markdown de Notion ne dit pas quelles
+  images étaient côte à côte.
+- Une image placée dans une grille n'est plus retirée en quittant l'éditeur ; « Retirer » une image vide aussi ses
+  cases ; l'export « sans les fichiers joints » les retire aussi.
+
 ## [5.131.0] — 2026-11-15
 Un protocole peut contenir 50 000 caractères, et le texte n'est plus jamais coupé sans le dire (A754).
 - **La limite passe de 20 000 à 50 000 caractères** (environ 20 pages). Elle a été mesurée : sur un téléphone lent, un
@@ -190,35 +231,3 @@ Un premier chargement de compte interrompu se reprend, et l'accueil le dit (A734
 - **Un chargement qui dure.** Au-delà de 20 secondes (grosse bibliothèque, réseau lent), l'accueil affiche la liste
   sans attendre, avec la mention « la liste n'est pas encore complète », qui disparaît quand tout est arrivé.
 - Rien ne change pour un appareil où le compte est déjà chargé : sa liste s'affiche tout de suite.
-
-## [5.124.3] — 2026-11-13
-À la connexion, l'accueil ne montre plus une liste partielle avant la vraie (A733).
-- **« Chargement de votre compte… » jusqu'au bout.** Sur un appareil où le compte n'a encore jamais été chargé
-  (connexion temporaire, ou nouvel appareil), l'accueil affichait d'abord « Aides » et quelques aides seulement, puis
-  changeait d'aspect une fois tout reçu. Les aides arrivent avant les protocoles, et l'état « chargement » s'arrêtait
-  dès les premières. Il tient désormais jusqu'à ce que tout soit arrivé, puis l'accueil s'affiche en une fois.
-- Au téléphone, le titre reste « Accueil » pendant le chargement.
-- Rien ne change pour un compte déjà chargé sur l'appareil : sa liste s'affiche tout de suite. Une recherche lancée
-  pendant le chargement montre ce qui est déjà arrivé. Au-delà de 20 secondes, l'accueil s'affiche quoi qu'il arrive.
-
-## [5.124.2] — 2026-11-13
-Import d'une page Notion : un tableau dont les cases tiennent sur plusieurs lignes reste un tableau (A732).
-- **Le tableau ne se défait plus.** Dans l'export de Notion, une case qui contient plusieurs lignes (retours à la ligne,
-  ligne vide, liste à tirets) est écrite telle quelle, sur plusieurs lignes du fichier. L'import n'y reconnaissait plus
-  de tableau : la page affichait des « | » et des « -- » au milieu du texte. La case est désormais recollée, chaque
-  ligne y garde sa place, et le retrait des lignes décalées (« → … ») est conservé.
-- **La première rangée n'est plus écrite en petites capitales.** Notion présente toujours sa première rangée comme une
-  ligne de titres, même quand ce n'en est pas une. Quand elle tient sur plusieurs lignes, c'est du contenu : elle
-  s'affiche désormais comme les autres rangées.
-- Une ligne de texte ordinaire qui commence par « | », hors d'un tableau, n'est pas touchée ; un bloc de code non plus.
-- Pour corriger une page déjà importée : importer à nouveau le `.zip`.
-
-## [5.124.1] — 2026-11-12
-Import d'une page Notion : les images rangées dans un dossier dont le nom contient des parenthèses s'importent (A731).
-- **Les images ne se perdent plus.** Notion range les images d'une page dans un dossier au nom de la page, et ne code
-  pas les parenthèses de ce nom — par exemple `Complications aiguës du diabète (DT1, DT2) hypogly/image 1.png`. La
-  lecture du lien s'arrêtait à la première parenthèse fermante : l'image était déclarée « absente de l'archive » et un
-  morceau du chemin restait dans le texte. Le lien est désormais lu en entier, et l'image arrive dans le protocole.
-- Vaut pour le `.zip` d'export comme pour un `.md` seul, et pour un nom tronqué par Notion au milieu d'une parenthèse.
-- Un lien vers une autre page Notion dont le titre contient des parenthèses garde, lui aussi, son seul texte.
-- Pour récupérer les images d'une page déjà importée : importer à nouveau le `.zip`.
