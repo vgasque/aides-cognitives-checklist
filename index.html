@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-y8ICwQYbbgksHjf/rz3uodBN4PlhVZ+Qa4+RGPX63TY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-uPLk+w9dswSGeHAWMJEqMAL+AG1M0cBNP1/FqE/mgvU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8334,6 +8334,54 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A754 : le compteur du texte d'un protocole (80 % du plafond : encre douce ; 95 % et au-delà : ambre, glyphe et mots). */
   .md-len{margin:6px 2px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
   .md-len.warn{color:var(--warn)}
+  /* A759 — LE POIDS DES IMAGES (planches « Images : 10 Mo par élément »). Le compteur de la carte : encre douce sous 80 %,
+     ambre (△ + mots, règle 8) au-delà ; « plein » : une bande ambre, sa jauge, « Compresser… ». La feuille : la jauge
+     sans/avec, ce qui change (✓ ce qui ne se voit pas, △ ce qui peut se voir), le détail à 100 % avant/après. */
+  .mi-poids{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .mi-poids.warn{color:var(--warn)}
+  .mi-over{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:0 0 10px;padding:10px 12px;border:1px solid var(--warn-line);border-radius:var(--r-2);background:var(--warn-soft);color:var(--warn);font-size:var(--t-body);line-height:1.4}
+  .mi-ovh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;width:100%}
+  .mi-ovh>span{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600}
+  .imgz-tr{display:block;position:relative;width:100%;height:8px;border-radius:3px;background:var(--amb-2);overflow:hidden}
+  .imgz-tr>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--act)}
+  .imgz-tr>i.w{background:var(--warn)}
+  .mi-over .imgz-tr{height:6px}
+  .imgz-body{display:flex;flex-direction:column;gap:12px}
+  .imgz-ctx{margin:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imgz-wn{font-family:var(--f-mono);font-weight:600;color:var(--warn)}
+  .imgz-v{font-family:var(--f-mono);font-weight:600;color:var(--ink)}
+  .imgz-calc{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:var(--r-3);background:var(--amb-2);font-size:var(--t-item)}
+  .imgz-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+  .imgz-bar>i{display:block;width:100%;height:100%;background:var(--act);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+  .imgz-pg{font-family:var(--f-mono);font-size:var(--t-meta);color:var(--ink-2)}
+  .imgz-s{margin:0;font-size:var(--t-body);color:var(--ink-2);line-height:1.4}
+  .imgz-g{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb-2);font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imgz-g .imgz-lim{grid-column:1/-1;font-size:var(--t-meta);font-weight:500}
+  .imgz-l{display:flex;flex-direction:column;gap:6px;font-size:var(--t-body);line-height:1.4}
+  .imgz-ok{color:var(--ok)}
+  .imgz-w{color:var(--warn);font-weight:600}
+  .imgz-cbox:empty{display:none}
+  .imgz-cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .imgz-cmp figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+  .imgz-cmp figcaption{font-size:var(--t-meta);font-weight:600}
+  .imgz-ph{aspect-ratio:3/2;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);overflow:hidden}
+  .imgz-ph>img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}
+  .imgz-o{font-family:var(--f-mono);color:var(--ink-2)}
+  .imgz-nav{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:var(--t-meta);color:var(--ink-2)}
+  .imgz-nav>span{flex:1;min-width:0}
+  .imgz-acts{flex-direction:column}
+  .imgz-acts .btn{flex:none;width:100%;flex-direction:column}
+  .imgz-sub{display:block;font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  /* La bande de l'atelier, sous la rangée (hors du <label> : un clic n'y coche rien). */
+  .imp-imgz{display:flex;flex-direction:column;gap:10px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft)}
+  .imp-imgz-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .imp-imgz-h{font-size:var(--t-body);color:var(--warn)}
+  .imp-imgz-seg{flex:1 1 320px;min-width:0;background:var(--work)}
+  .imp-imgz-seg .seg-btn{min-height:36px;padding:4px 8px;font-size:var(--t-meta);line-height:1.25;text-align:center}
+  .imp-imgz-seg .seg-btn:disabled{opacity:.5;cursor:default}
+  .imp-imgz-x{display:flex;flex-direction:column;gap:10px}
+  .imp-imgz-x[hidden]{display:none}
+  .imp-imgz .imgz-cmp{grid-template-columns:repeat(2,minmax(0,220px))}
   .imp-long,.imp-into-s.warn{color:var(--warn);font-weight:700}
   .imp-warn{flex:0 0 100%;margin:0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -10490,6 +10538,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="edAddTitle">Ajouter à l’aide</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
   <div class="ed-palette ai-body" id="edAddBody"></div>
 </div></div>
+<!-- A759 : « Compresser les images ? » — le calcul (annulable), puis la proposition : jauge, ce qui change, détail à 100 %,
+     deux réponses. Peinte par `imgzPropose`. -->
+<div class="ai-modal" id="imgzModal" role="dialog" aria-modal="true" aria-labelledby="imgzTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="imgzTitle">Compresser les images ?</h3><button class="ai-x" id="imgzX" aria-label="Fermer : rien n’est ajouté">×</button></div>
+  <div class="ai-body imgz-body" id="imgzBody"></div>
+</div></div>
 <!-- v5.44 : outils du contenu rédigé — tableau en grille, collage mis en forme. Une fenêtre, deux corps
      peints à l'ouverture (`mdToolOpen`). -->
 <div class="ai-modal" id="mdToolModal" role="dialog" aria-modal="true" aria-labelledby="mdToolTitle"><div class="ai-card">
@@ -10793,7 +10847,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.134.1';
+const APP_VERSION='5.135.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11987,7 +12041,14 @@ function safeAttachment(a){if(!a||typeof a!=='object')return null;
    une cinquième s'ajoute ICI, ou nulle part. Détail : doctrine-js.md J12. */
 const MAX_IMG_BYTES=25*1024*1024;      // AVANT réduction — downscale() ramène ensuite à ≤ 1180 px
 const MAX_IMPORT_BYTES=120*1024*1024;  // l'archive est bornée ensuite par ZIP_MAX_TOTAL/ZIP_MAX_ENTRY — A757 : 40 → 120 Mo, un export Notion porte ses vidéos
-const MAX_IMG_PER_ENTITY=60;           // par aide OU par référence (c'était 60 d'un côté, rien de l'autre)
+/* A759 — LES IMAGES SE COMPTENT EN OCTETS (décision de l'auteur : « oui 10 Mo »). 10 Mo d'images enregistrées par aide OU par
+   protocole, poids réel après la réduction de `downscale` (une image affichée dans un bloc d'aide est stockée deux fois :
+   elle compte deux fois, c'est ce qui part au serveur). Pourquoi 10 : le serveur refuse un élément au-delà de 20 Mo, les
+   images y voyagent en base64 (+ un tiers) et chaque enregistrement renvoie l'élément ENTIER — 10 Mo font ≈ 13 Mo envoyés,
+   5 à 10 s en 4G. Mesuré (A754) : ≈ 130 photos WebP, 90 photos d'iPhone, 60 schémas d'iPhone. Le NOMBRE reste borné, haut
+   (200 : la page à construire), il ne limite plus en pratique. Au-delà du poids : la compression est PROPOSÉE (A759). */
+const MAX_IMG_TOTAL=10*1024*1024;
+const MAX_IMG_PER_ENTITY=200;          // par aide OU par protocole — garde-fou d'affichage (60 jusqu’à A759)
 /* A757 — LES VIDÉOS, QUATRIÈME NATURE (décision de l'auteur : « ajoute les vidéos »). MP4 (H.264, lu partout), MOV (la
    caméra de l'iPhone), WebM (l'export de Notion ; lu sur iPhone selon la version d'iOS — la lecture le dit si elle
    échoue). 30 Mo par vidéo (une boucle d'échographie pèse 1 à 8 Mo), 20 par protocole. Le binaire vit comme un PDF :
@@ -13941,7 +14002,7 @@ function sanitizeEntityCommon(x,idPrefix,imgMax){
   {const m=Math.round(Number(x.reviewEvery));x.reviewEvery=REVIEW_MONTHS.indexOf(m)>=0?m:24;}   // A698
   x.category=safeCatRef(x.category);
   if(typeof x.order!=='number'||!isFinite(x.order))x.order=Date.now();
-  let _imgBudget=24000000;
+  let _imgBudget=24000000;   // anti-DoS de LECTURE, pas la limite du produit (A759 : 10 Mo, tenue à l'ajout et à l'import) — ne coupe jamais ce qu'une version antérieure acceptait
   x.images=(Array.isArray(x.images)?x.images:[]).slice(0,imgMax).map(im=>({id:safeId(im&&im.id,'i'),data:safeImg(im&&im.data),w:_dim(im&&im.w),h:_dim(im&&im.h),caption:sstr(im&&im.caption,300),scale:_scale(im&&im.scale)})).filter(im=>im.data&&(_imgBudget-=im.data.length)>=0);
   x.docs=(Array.isArray(x.docs)?x.docs:[]).slice(0,MAX_ATT_PER_ENTITY).map(safeAttachment).filter(Boolean);
   x.status=(x.status==='draft')?'draft':(x.status==='review'?'review':'validated');   // v5.0.0 : la chaîne vide ne disait rien
@@ -14016,7 +14077,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
      historique, et l'inverser ferait passer en brouillon des fiches validées à la première
      donnée douteuse, donc les retirerait de l'accès de crise (une fiche brouillon ne s'épingle
      pas). `sanitizeEntityCommon` applique déjà cette règle : on ne la réécrit pas ici. */
-  sanitizeEntityCommon(f,'f',200);
+  sanitizeEntityCommon(f,'f',MAX_IMG_PER_ENTITY);
   f.local=sstr(f.local,4000);
   /* ═══ LE POOL D'ITEMS (étape B, v5.0.0) — LES SIX LISTES v3 DEVIENNENT DES ITEMS À RÔLE.
      `confirmation` → entry · `notForget` → do + memory · `verify` → watch · `posology` → dose ·
@@ -14181,7 +14242,7 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
 function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,body:'',images:[],docs:[],videos:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
-  sanitizeEntityCommon(p,'p',60);
+  sanitizeEntityCommon(p,'p',MAX_IMG_PER_ENTITY);
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
   // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
   p.sources=sarr(p.sources,500);   // traçabilité (v4.2.2) — même section que les fiches
@@ -20889,9 +20950,9 @@ const miCellRx=id=>new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(img:'+String(id).replac
 const miHas=(l,id)=>miLineRx(id).test(l)||(MD_TROW.test(l)&&miCellRx(id).test(l));
 const miName=(im,i)=>im.caption||('Image '+(i+1));
 function miCardHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
-  const fold=_miAll!==p.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims;
-  return `<fieldset class="field ed-card mi-card"><div class="mi-head"><label>Images du texte <span class="mi-n">· ${ims.length}</span></label>
-    <button type="button" class="btn sm" id="miAdd">${uiIcon('img',14)}Image</button></div>
+  const fold=_miAll!==p.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims,J=imgCardHead(p);   // A759 : le poids, et l'état « plein »
+  return `<fieldset class="field ed-card mi-card"><div class="mi-head"><label>Images du texte ${J.n}</label>
+    <button type="button" class="btn sm" id="miAdd"${J.over?' disabled':''}>${uiIcon('img',14)}Image</button></div>${J.band}
     <div class="mi-grid">${vis.map((im,i)=>`<button type="button" class="mi-tile" data-mitile="${esc(im.id)}" data-miname="${esc(miName(im,i))}" aria-label="${esc(miName(im,i))}"><img src="${im.data}" alt="" loading="lazy" decoding="async"><span class="mi-use" hidden></span><span class="mi-out" hidden>△ hors texte</span></button>`).join('')}
     ${fold?`<button type="button" class="mi-more" data-mimore>${ims.length-vis.length} de plus<span aria-hidden="true">⌄</span></button>`
       :(ims.length>MI_FOLD?'<button type="button" class="mi-more" data-mimore>Replier<span aria-hidden="true">⌃</span></button>':'')}</div>
@@ -21098,7 +21159,8 @@ function renderProtocolEdit(){
       ta.focus({preventScroll:true});ta.setSelectionRange(c,c);ta.scrollIntoView({block:'center'});mdCaretSync(ta,p);}};
   const miBind=()=>{main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
     {const mo=main.querySelector('[data-mimore]');if(mo)mo.onclick=()=>{_miAll=_miAll===p.id?null:p.id;keepAnchor('.mi-card',renderProtocolEdit);};}
-    {const ad=document.getElementById('miAdd');if(ad)ad.onclick=()=>pickFile('image',takeImg,true);}};
+    {const ad=document.getElementById('miAdd');if(ad)ad.onclick=()=>pickFile('image',takeImg,true);}
+    {const z=document.getElementById('miZip');if(z)z.onclick=()=>imgCompresserExistant(p,{ctx:imgCtx(p,0),fem:false},()=>keepAnchor('.mi-card',renderProtocolEdit));}};   // A759
   /* A729 : des images arrivées avec un collage paraissent dans « Images du texte » SANS re-rendu — le champ (ou le bloc
      ouvert de la mise en forme en direct) garde le focus et le curseur. La carte suit le contenu rédigé. */
   const miCardRefresh=()=>{const o=main.querySelector('.mi-card'),h=miCardHtml(p);
@@ -28750,15 +28812,25 @@ function upPdfTaker(entity,rerender){
    après côté référence, et n'existait pas du tout côté aide. */
 function edImgTaker(f,bid){
   return async files=>{
-    let n=0;
+    const neuves=[];
     for(const file of files){
-      if(!bid&&(f.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par aide.',6000,true);break;}
+      if(!bid&&(f.images||[]).length+neuves.length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par aide.',6000,true);break;}
       const r=await downscale(file);
       if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
-      // « + Image » d'un BLOC : un bloc n'en porte qu'une, le dépôt multiple n'a pas de sens ici.
-      if(bid){const b=(f.blocks||[]).find(x=>x.id===bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}n++;break;}
-      f.images=f.images||[];f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});n++;}
-    if(n){edSyncGallery(f);renderEditor();}};}
+      // « + Image » d'un BLOC : un bloc n'en porte qu'une, le dépôt multiple n'a pas de sens ici. Elle est stockée deux
+      // fois (bloc + galerie, `edSyncGallery`) : elle compte deux fois (A759).
+      neuves.push({id:uid('i'),data:r.data,w:r.w,h:r.h,k:bid?2:1});if(bid)break;}
+    if(!neuves.length)return;
+    // A759 : sous le plafond de 10 Mo — au-delà, la compression est PROPOSÉE (feuille), rien ne change avant la réponse.
+    const res=await imgAdmettre(f,neuves,{ctx:imgCtx(f,neuves.length),fem:true});if(!res)return;
+    for(const x of res.admises){
+      if(bid){const b=(f.blocks||[]).find(y=>y.id===bid);if(b){b.image=x.data;b.imageW=x.w;b.imageH=x.h;}}
+      else{f.images=f.images||[];f.images.push({id:x.id,data:x.data,w:x.w,h:x.h,caption:''});}}
+    if(res.admises.length||res.comp){edSyncGallery(f);renderEditor();}
+    if(res.comp||res.refus)toast(imgAdmisTxt(res,neuves.length,'aide')+(res.comp?' — ↶ pour annuler.':'.'),7000,true);};}
+// Le contexte de la feuille : « Abord fémoral · 64 images + 5 nouvelles ».
+function imgCtx(e,n){const k=(e.images||[]).filter(im=>im&&im.data).length;
+  return (String(e.title||'').trim()||'Sans titre')+' · '+nb(k,'image')+(n?' + '+n+' nouvelle'+(n>1?'s':''):'');}
 /* A729 — COLLER LE MARKDOWN D'UN AUTRE PROTOCOLE EMPORTE SES IMAGES. Une image vit DANS son protocole (`p.images`), le
    texte ne porte que `![…](img:ID)` : coller ce texte ailleurs recopiait la ligne, pas l'image — identifiant orphelin, rien
    à l'écran (ni en édition ni en lecture). Toute ligne d'image dont l'identifiant manque ici est cherchée dans les autres
@@ -28774,22 +28846,28 @@ function pImgAdopt(p){const body=String(p&&p.body||'');if(body.indexOf('](img:')
     if(im){found[id]=im;k++;}else _pImgMiss.add(id);}
   if(!k)return 0;
   // Même critère que le ménage de sortie (`leaveGC`) : seule une image posée en ligne d'image est gardée.
-  let n=0,trop=0;for(const id of mdImgIds(mdBlocks(body))){const im=found[id];if(!im)continue;delete found[id];
+  let n=0,trop=0,lourd=0,tot=imgsOctets(p);for(const id of mdImgIds(mdBlocks(body))){const im=found[id];if(!im)continue;delete found[id];
     if((p.images||[]).length>=MAX_IMG_PER_ENTITY){trop++;_pImgMiss.add(id);continue;}   // dit une fois, pas à chaque frappe
+    const o=imgOctets(im.data);if(tot+o>MAX_IMG_TOTAL){lourd++;_pImgMiss.add(id);continue;}tot+=o;   // A759 : sous le plafond de 10 Mo
     p.images=p.images||[];p.images.push({id,data:im.data,w:im.w|0,h:im.h|0,caption:im.caption||'',scale:im.scale});n++;}
   if(trop)toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole : '+trop+' image'+(trop>1?'s':'')+' collée'+(trop>1?'s':'')+' non reprise'+(trop>1?'s':'')+'.',6000,true);
+  if(lourd)toast('⚠ '+nb(lourd,'image')+' collée'+(lourd>1?'s':'')+' non reprise'+(lourd>1?'s':'')+' : '+IMG_MAX_MO+' Mo d’images au plus par protocole.',7000,true);
   return n;}
 function pImgTaker(p,ta){
   return async files=>{
-    let n=0;
+    const neuves=[];
     for(const file of files){
-      if((p.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole.',6000,true);break;}
+      if((p.images||[]).length+neuves.length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole.',6000,true);break;}
       const r=await downscale(file);
       if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
-      const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});
-      mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');
-      n++;}
-    if(n)renderProtocolEdit();};}
+      neuves.push({id:uid('i'),data:r.data,w:r.w,h:r.h});}
+    if(!neuves.length)return;
+    // A759 : sous le plafond de 10 Mo — au-delà, la compression est PROPOSÉE (feuille), rien ne change avant la réponse.
+    const res=await imgAdmettre(p,neuves,{ctx:imgCtx(p,neuves.length),fem:false});if(!res)return;
+    let txt='';for(const x of res.admises){p.images=p.images||[];p.images.push({id:x.id,data:x.data,w:x.w,h:x.h,caption:'',scale:100});txt+='![](img:'+x.id+')\n';}
+    if(txt)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+txt);
+    if(res.admises.length||res.comp)renderProtocolEdit();
+    if(res.comp||res.refus)toast(imgAdmisTxt(res,neuves.length,'protocole')+(res.comp?' — ↶ pour annuler.':'.'),7000,true);};}
 function bindAttEditor(entity,rerender){
   paintIxChips();   // l'état d'index de chaque document, posé au rendu puis peint sur place
   const take=upPdfTaker(entity,rerender);
@@ -29573,9 +29651,9 @@ const galBlkName=(f,b)=>((f.blocks||[]).indexOf(b)+1)+'. '+((stripBold(b.title||
 const galDetach=(f,data)=>(f.blocks||[]).forEach(b=>{if(b.image===data){b.image=null;b.imageW=null;b.imageH=null;}});
 const galTileLabel=(f,im,i)=>{const bi=(f.blocks||[]).findIndex(b=>b.image===im.data);return miName(im,i)+(bi>=0?', affichée dans le bloc '+(bi+1):'');};
 function galCardHtml(f){const ims=(f.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
-  const fold=_miAll!==f.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims,bl=f.blocks||[];
-  return `<fieldset class="field ed-card mi-card"><div class="mi-head"><label>Schémas & captures <span class="mi-n">· ${ims.length}</span></label>
-    <button type="button" class="btn sm" id="addImg">${uiIcon('img',14)}Image</button></div>
+  const fold=_miAll!==f.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims,bl=f.blocks||[],J=imgCardHead(f);   // A759
+  return `<fieldset class="field ed-card mi-card"><div class="mi-head"><label>Schémas & captures ${J.n}</label>
+    <button type="button" class="btn sm" id="addImg"${J.over?' disabled':''}>${uiIcon('img',14)}Image</button></div>${J.band}
     <div class="mi-grid">${vis.map((im,i)=>{const bi=bl.findIndex(b=>b.image===im.data);
       return `<div class="mi-cell"><button type="button" class="mi-tile" data-mitile="${esc(im.id)}" aria-label="${esc(galTileLabel(f,im,i))}"><img src="${im.data}" alt="" loading="lazy" decoding="async">${bi>=0?`<span class="mi-use">▣ Bloc ${bi+1}</span>`:''}</button><span class="mi-lg" aria-hidden="true">${esc(im.caption||'Sans légende')}</span></div>`;}).join('')}
     ${fold?`<button type="button" class="mi-more" data-mimore>${ims.length-vis.length} de plus<span aria-hidden="true">⌄</span></button>`
@@ -29769,6 +29847,7 @@ function bindEditorEvents(f){
   upTarget('image',edImgTaker(f,null));
   /* A585 : la grille « Schémas & captures » et la feuille de l'image (légende, bloc qui l'affiche, remplacer, retirer). */
   {const ad=document.getElementById('addImg');if(ad)ad.onclick=()=>pickFile('image',edImgTaker(f,null),true);}
+  {const z=document.getElementById('miZip');if(z)z.onclick=()=>imgCompresserExistant(f,{ctx:imgCtx(f,0),fem:true},()=>keepAnchor('.mi-card',renderEditor));}   // A759
   _miCtx={list:()=>(f.images||[]).filter(im=>im&&im.data),sheet:im=>galSheetHtml(f,im),
     onClick:(t,im,m)=>galClick(f,t,im,m),onInput:(el,im)=>galInput(f,el,im)};
   main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
@@ -30157,13 +30236,180 @@ main.addEventListener('click',e=>{
 main.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&!e.altKey&&(e.key==='b'||e.key==='B')&&e.target.matches&&e.target.matches(BOLDABLE)){e.preventDefault();wrapBold(e.target);return;}
   if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-todo]')){e.preventDefault();toast(e.target.getAttribute('title')||'',9000,true);}});
-function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));const cw=Math.round(w*sc),ch=Math.round(h*sc);const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);URL.revokeObjectURL(url);
-    // WebP (~30 % plus léger que JPEG à qualité égale) quand le navigateur sait l'encoder ;
-    // Safari renvoie un PNG dans ce cas -> repli JPEG (préfixe vérifié, pas de demi-mesure).
-    // On renvoie AUSSI les dimensions du canvas (cw×ch) : stockées avec l'image, elles permettent
-    // de réserver l'espace au bon ratio en lecture (anti-CLS) sans jamais déformer un schéma.
-    const done=d=>res(d?{data:d,w:cw,h:ch}:null);
-    try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);done(out);}catch(e){try{done(c.toDataURL('image/jpeg',quality));}catch(_){done(null);}}};img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
+/* L'ENCODEUR, partagé par la réduction d'une photo (`downscale`) et la compression (A759) : WebP (~30 % plus léger que
+   JPEG à qualité égale) quand le navigateur sait l'encoder ; Safari renvoie un PNG dans ce cas → repli JPEG (préfixe
+   vérifié). Rend aussi les dimensions du canvas (cw×ch) : stockées avec l'image, elles réservent l'espace au bon ratio
+   en lecture (anti-CLS) sans jamais déformer un schéma. */
+function _imgEncode(img,maxDim,quality){const w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;if(!w||!h)return null;
+  const sc=Math.min(1,maxDim/Math.max(w,h)),cw=Math.max(1,Math.round(w*sc)),ch=Math.max(1,Math.round(h*sc));
+  const c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);
+  try{let out=c.toDataURL('image/webp',quality);if(out.indexOf('data:image/webp')!==0)out=c.toDataURL('image/jpeg',quality);return {data:out,w:cw,h:ch};}
+  catch(e){try{return {data:c.toDataURL('image/jpeg',quality),w:cw,h:ch};}catch(_){return null;}}}
+function downscale(file,maxDim=1180,quality=0.78){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{URL.revokeObjectURL(url);res(_imgEncode(img,maxDim,quality));};
+    img.onerror=()=>{URL.revokeObjectURL(url);res(null);};img.src=url;});}
+/* ═══ A759 — LE POIDS DES IMAGES, ET LA COMPRESSION PROPOSÉE (planches « Images : 10 Mo par élément », retenues) ═══════
+   10 Mo d'images enregistrées par aide ou par protocole (`MAX_IMG_TOTAL`). Au-delà, l'app PROPOSE de compresser ; rien ne
+   change avant la réponse de l'auteur. LA COMPRESSION LA PLUS DOUCE QUI SUFFIT : une échelle de la marche la plus légère à
+   la plus forte (`IMG_PALIERS`), les images les plus lourdes d'abord, arrêt dès que l'ensemble tient — toujours recalculée
+   depuis l'image ENREGISTRÉE, jamais d'une copie déjà recompressée (pas de perte en cascade). Mesuré sur un schéma à petit
+   texte (Chromium) : JPEG → WebP à qualité égale −36 % (identique à l'œil) ; qualité 70 % −8 %, 62 % −13 % (identique) ;
+   1 000 px −41 %, 860 px −53 % (le petit texte perd en netteté : la feuille le DIT et montre le détail à 100 %). */
+const IMG_PALIERS=[{dim:1180,q:.78},{dim:1180,q:.7},{dim:1180,q:.62},{dim:1000,q:.6},{dim:860,q:.55}];
+// Les octets réels d'une image en data-URL base64. PURE.
+function imgOctets(d){const s=String(d||''),k=s.indexOf(',');if(k<0)return 0;const n=s.length-k-1,t=s.slice(-2);
+  return Math.max(0,Math.floor(n*3/4)-(t==='=='?2:t[1]==='='?1:0));}
+/* Les images ENREGISTRÉES d'une aide ou d'un protocole : data → nombre de copies (galerie + image de bloc : une image
+   affichée dans un bloc d'aide est stockée deux fois, elle part deux fois au serveur, elle compte deux fois). PURE. */
+function imgDatas(e){const n=new Map(),add=d=>{if(typeof d==='string'&&d)n.set(d,(n.get(d)||0)+1);};
+  (e&&Array.isArray(e.images)?e.images:[]).forEach(im=>add(im&&im.data));(e&&Array.isArray(e.blocks)?e.blocks:[]).forEach(b=>add(b&&b.image));return n;}
+function imgsOctets(e){let t=0;imgDatas(e).forEach((k,d)=>{t+=imgOctets(d)*k;});return t;}
+const imgMo=n=>(Math.round(Math.max(0,n)/104857.6)/10).toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})+' Mo';
+const IMG_MAX_MO=Math.round(MAX_IMG_TOTAL/1048576);
+/* Le COMPTEUR de la carte des images : sous 80 % le poids seul (encre douce) ; de 80 à 100 % ambre, glyphe et plafond
+   (règle 8 : là où l'on risque de se tromper) ; au-delà, l'état « plein » (aucun ajout, « Compresser… »). PURE. */
+function imgJauge(n){n=Math.max(0,Number(n)||0);
+  if(n>MAX_IMG_TOTAL)return {etat:'over',txt:'△ '+imgMo(n).replace(' Mo','')+' / '+IMG_MAX_MO+' Mo d’images',pct:Math.round(n/MAX_IMG_TOTAL*100)};
+  if(n>=MAX_IMG_TOTAL*.8)return {etat:'warn',txt:'△ '+imgMo(n).replace(' Mo','')+' / '+IMG_MAX_MO+' Mo'};
+  return {etat:'ok',txt:imgMo(n)};}
+/* LE PLAN — l'algorithme, l'encodeur INJECTÉ (`enc(data,dim,q)` → {data,w,h}|null : testable sans canvas). `datas` :
+   data → copies. Rend {map: data → {data,w,h,p,o0,o}, avant, apres, ok, n} ; `stop()` vrai → null (abandon). Une
+   recompression n'est retenue que si elle gagne au moins 3 % (sinon l'image ne change pas). */
+async function imgPlan(datas,budget,enc,prog,stop){
+  const items=[...datas].map(([data,k])=>({data,k,o:imgOctets(data)}));
+  const avant=items.reduce((t,x)=>t+x.o*x.k,0);let tot=avant;const map=new Map();
+  if(tot<=budget)return {map,avant,apres:tot,ok:true,n:items.length};
+  const ordre=items.slice().sort((a,b)=>b.o*b.k-a.o*a.k);
+  for(let p=0;p<IMG_PALIERS.length&&tot>budget;p++){const P=IMG_PALIERS[p];let j=0;
+    for(const it of ordre){if(tot<=budget)break;if(stop&&stop())return null;j++;
+      const cur=map.get(it.data),a=cur?cur.o:it.o;
+      const r=await enc(it.data,P.dim,P.q);if(prog)prog(j,ordre.length,p);
+      if(!r||!safeImg(r.data))continue;const b=imgOctets(r.data);
+      if(b<a*.97){tot-=(a-b)*it.k;map.set(it.data,{data:r.data,w:r.w,h:r.h,p,o0:it.o,o:b});}}}
+  return {map,avant,apres:tot,ok:tot<=budget,n:items.length};}
+/* Ce que le plan DIT (la feuille et la bande de l'atelier) : combien réencodées à taille gardée (et la qualité la plus
+   basse employée), combien réduites (et la plus petite taille), combien inchangées ; les trois plus touchées (marche la
+   plus forte d'abord, puis le gain relatif) pour la comparaison. PURE. */
+function imgPlanDit(plan){const v=[...plan.map.entries()],q=v.filter(([,r])=>IMG_PALIERS[r.p].dim>=1180),t=v.filter(([,r])=>IMG_PALIERS[r.p].dim<1180);
+  const qMin=q.length?Math.round(Math.min(...q.map(([,r])=>IMG_PALIERS[r.p].q))*100):0,dMin=t.length?Math.min(...t.map(([,r])=>IMG_PALIERS[r.p].dim)):0;
+  const top=v.slice().sort((a,b)=>b[1].p-a[1].p||(1-b[1].o/b[1].o0)-(1-a[1].o/a[1].o0)).slice(0,3).map(([d,r])=>({avant:d,apres:r.data,oa:r.o0,ob:r.o}));
+  return {q:q.length,qMin,t:t.length,dMin,inchangees:plan.n-v.length,top};}
+// L'encodeur réel : une data-URL réencodée par le canvas (même encodeur que `downscale`).
+function imgEnc(data,dim,q){return new Promise(res=>{const img=new Image();img.onload=()=>{let r=null;try{r=_imgEncode(img,dim,q);}catch(e){}res(r);};img.onerror=()=>res(null);img.src=data;});}
+// Applique un plan à une aide ou un protocole (galerie ET images de bloc, qui partagent la même data). Rend le nombre d'images changées.
+function imgApply(e,map){if(!e||!map||!map.size)return 0;let n=0;
+  (Array.isArray(e.images)?e.images:[]).forEach(im=>{const r=im&&map.get(im.data);if(r){im.data=r.data;im.w=r.w;im.h=r.h;n++;}});
+  (Array.isArray(e.blocks)?e.blocks:[]).forEach(b=>{const r=b&&map.get(b.image);if(r){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}});return n;}
+/* « NE PAS COMPRESSER » À L'IMPORT : les images entrent DANS L'ORDRE tant qu'il reste de la place ; les autres sont
+   retirées avec leurs références (texte d'un protocole, bloc d'une aide) et comptées — jamais en silence. Rend le nombre
+   retiré. */
+function imgTrim(e,budget){budget=budget==null?MAX_IMG_TOTAL:budget;if(imgsOctets(e)<=budget)return 0;
+  const ims=Array.isArray(e.images)?e.images:[],blkImg=new Set((Array.isArray(e.blocks)?e.blocks:[]).map(b=>b&&b.image).filter(Boolean));
+  let t=0;const garde=[],hors=[];
+  for(const im of ims){const o=imgOctets(im&&im.data)*(blkImg.has(im&&im.data)?2:1);if(t+o<=budget){garde.push(im);t+=o;}else hors.push(im);}
+  e.images=garde;const out=new Set(hors.map(x=>x.data));
+  (Array.isArray(e.blocks)?e.blocks:[]).forEach(b=>{if(b&&out.has(b.image)){b.image=null;b.imageW=null;b.imageH=null;}});
+  if(typeof e.body==='string')hors.forEach(im=>{e.body=e.body.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(im.id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g'),'');});
+  return hors.length;}
+/* LE DÉTAIL À 100 % — la même zone de l'image avant et après, rendue sans perte (PNG) pour que l'œil compare les octets
+   et pas le zoom de l'écran. La zone : celle des neuf où l'image est la plus DÉTAILLÉE (variance de luminance), parce
+   que le centre d'un schéma est souvent blanc. L'image « après » est ramenée aux dimensions d'« avant » (une image
+   réduite se compare au même cadrage). */
+async function imgDetail(av,ap){const L=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=u;});
+  const A=await L(av),B=await L(ap);if(!A||!B)return null;
+  const aw=A.naturalWidth,ah=A.naturalHeight,W=Math.min(360,aw),H=Math.min(240,ah);
+  let bx=(aw-W)/2,by=(ah-H)/2;
+  try{const s=document.createElement('canvas'),g=s.getContext('2d'),k=Math.min(1,90/Math.max(aw,ah));s.width=Math.max(1,Math.round(aw*k));s.height=Math.max(1,Math.round(ah*k));
+    g.drawImage(A,0,0,s.width,s.height);const px=g.getImageData(0,0,s.width,s.height).data;let best=-1;
+    for(let gy=0;gy<3;gy++)for(let gx=0;gx<3;gx++){const x0=Math.round((aw-W)*gx/2),y0=Math.round((ah-H)*gy/2);
+      let n=0,m=0,m2=0;for(let y=Math.floor(y0*k);y<Math.min(s.height,Math.ceil((y0+H)*k));y++)for(let x=Math.floor(x0*k);x<Math.min(s.width,Math.ceil((x0+W)*k));x++){
+        const i=(y*s.width+x)*4,l=px[i]*.3+px[i+1]*.59+px[i+2]*.11;n++;m+=l;m2+=l*l;}
+      const v=n?m2/n-(m/n)*(m/n):0;if(v>best){best=v;bx=x0;by=y0;}}}catch(e){}
+  const cut=(I,f)=>{const c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(I,bx*f,by*f,W*f,H*f,0,0,W,H);return c.toDataURL('image/png');};
+  try{return [cut(A,1),cut(B,B.naturalWidth/aw)];}catch(e){return null;}}
+/* La comparaison peinte dans `box` (feuille ou bande de l'atelier) : deux détails, leurs poids, « Suivante › ». */
+function imgCmpPaint(box,dit,i){if(!box||!dit.top.length){if(box)box.innerHTML='';return;}i=((i|0)+dit.top.length)%dit.top.length;const t=dit.top[i];
+  box.innerHTML=`<div class="imgz-cmp"><figure><div class="imgz-ph"></div><figcaption>Avant · <span class="imgz-o">${esc(imgKo(t.oa))}</span></figcaption></figure>`
+    +`<figure><div class="imgz-ph"></div><figcaption>Après · <span class="imgz-o">${esc(imgKo(t.ob))}</span></figcaption></figure></div>`
+    +`<div class="imgz-nav"><span>Détail à 100 % · ${i+1} / ${dit.top.length} ${dit.top.length>1?'les plus touchées':'touchée'}</span>`
+    +(dit.top.length>1?`<button type="button" class="btn sm" data-imgznext="${i+1}">Suivante ›</button>`:'')+`</div>`;
+  const nx=box.querySelector('[data-imgznext]');if(nx)nx.onclick=()=>imgCmpPaint(box,dit,i+1);
+  imgDetail(t.avant,t.apres).then(d=>{if(!d||!box.isConnected)return;const ph=box.querySelectorAll('.imgz-ph');
+    d.forEach((u,k)=>{if(ph[k]&&safeImg(u))ph[k].innerHTML=`<img src="${u}" alt="${k?'Le même détail, après compression':'Détail à 100 %, avant compression'}">`;});});}
+const imgKo=n=>n>=1048576?imgMo(n):Math.max(1,Math.round(n/1024))+' Ko';
+/* Les lignes que dit un plan (feuille et bande) — ✓ ce qui ne se voit pas, △ ce qui peut se voir, le reste. */
+function imgPlanLignes(dit,plan){const L=[];
+  if(dit.q)L.push(`<span><b class="imgz-ok">✓</b> ${nb(dit.q,'image')} réencodée${dit.q>1?'s':''} à qualité ${dit.qMin} %, taille gardée — à l’écran, la différence ne se voit pas.</span>`);
+  if(dit.t)L.push(`<span class="imgz-w">△ ${dit.t>1?'Les '+dit.t+' plus lourdes passent':'La plus lourde passe'} à ${dit.dMin.toLocaleString('fr-FR')} px : un petit texte peut devenir moins net. Comparez.</span>`);
+  if(dit.inchangees)L.push(`<span class="imgz-s">${dit.inchangees>1?'Les '+dit.inchangees+' autres ne changent pas.':'L’autre ne change pas.'}</span>`);
+  if(!plan.ok)L.push(`<span class="imgz-w">△ Même compressées, elles pèseraient ${imgMo(plan.apres)} : ce qui dépasse ${IMG_MAX_MO} Mo n’entrera pas.</span>`);
+  return L.join('');}
+/* LA FEUILLE « Compresser les images ? » (planches A2-A3) : le calcul d'abord (annulable, rien n'est modifié), puis la
+   proposition — jauge sans/avec, ce qui change, la comparaison, deux réponses. Rend {choix:'c',plan} · {choix:'n'} ·
+   null (✕, Échap, « Annuler »). `o` : {titre, ctx, oui, nonSub}. */
+let _imgzRes=null,_imgzStop=false;
+function imgzModal(){return document.getElementById('imgzModal');}
+function _imgzEnd(v){const m=imgzModal();if(m)m.classList.remove('on');_imgzStop=true;const r=_imgzRes;_imgzRes=null;if(r)r(v);}
+function imgzPropose(datas,o){if(_imgzRes)_imgzEnd(null);
+  const m=imgzModal(),body=document.getElementById('imgzBody');if(!m||!body)return Promise.resolve(null);
+  _imgzStop=false;const tot=[...datas].reduce((t,[d,k])=>t+imgOctets(d)*k,0);
+  document.getElementById('imgzTitle').textContent='Les images dépasseraient '+IMG_MAX_MO+' Mo';
+  body.innerHTML=`<p class="imgz-ctx">${esc(o.ctx||'')}${o.ctx?' · ':''}<span class="imgz-wn">${esc(imgMo(tot))}</span></p>`
+    +`<div class="imgz-calc" role="status"><b>Recherche de la compression la plus douce…</b><div class="imgz-bar"><i></i></div><span class="imgz-pg">0 / ${datas.size} images</span></div>`
+    +`<p class="imgz-s">Rien n’est encore modifié. Les plus lourdes d’abord ; dès que l’ensemble tient sous ${IMG_MAX_MO} Mo, la recherche s’arrête.</p>`
+    +`<div class="dlg-actions"><button type="button" class="btn" id="imgzCancel">Annuler</button></div>`;
+  document.getElementById('imgzCancel').onclick=()=>_imgzEnd(null);
+  m.classList.add('on');
+  const bar=body.querySelector('.imgz-bar>i'),pg=body.querySelector('.imgz-pg'),N=IMG_PALIERS.length;
+  return new Promise(res=>{_imgzRes=res;
+    imgPlan(datas,MAX_IMG_TOTAL,imgEnc,(j,n,p)=>{if(bar)bar.style.transform='scaleX('+((p+j/n)/N).toFixed(3)+')';if(pg)pg.textContent=j+' / '+n+' images · '+(IMG_PALIERS[p].dim<1180?IMG_PALIERS[p].dim.toLocaleString('fr-FR')+' px':'qualité '+Math.round(IMG_PALIERS[p].q*100)+' %');},()=>_imgzStop)
+    .then(plan=>{if(!plan||_imgzRes!==res)return;const dit=imgPlanDit(plan);
+      document.getElementById('imgzTitle').textContent='Compresser les images ?';
+      const w=v=>Math.max(2,Math.min(100,Math.round(v/Math.max(plan.avant,1)*100)));
+      body.innerHTML=`<p class="imgz-ctx">${esc(o.ctx||'')}</p>`
+        +`<div class="imgz-g"><span>Sans</span><span class="imgz-tr"><i class="w" style="width:100%"></i></span><span class="imgz-wn">△ ${esc(imgMo(plan.avant))}</span>`
+        +`<span>Avec</span><span class="imgz-tr"><i style="width:${w(plan.apres)}%"></i></span><span class="imgz-v">${esc(imgMo(plan.apres))}</span>`
+        +`<span class="imgz-s imgz-lim">Limite : ${IMG_MAX_MO} Mo d’images par ${o.fem?'aide':'protocole'}.</span></div>`
+        +`<div class="imgz-l">${imgPlanLignes(dit,plan)}</div><div class="imgz-cbox"></div>`
+        +`<div class="dlg-actions imgz-acts"><button type="button" class="btn primary" id="imgzYes">${esc(o.oui||'Compresser')}</button>`
+        +`<button type="button" class="btn" id="imgzNo">Ne pas compresser${o.nonSub?`<span class="imgz-sub">${esc(o.nonSub)}</span>`:''}</button></div>`;
+      imgCmpPaint(body.querySelector('.imgz-cbox'),dit,0);
+      document.getElementById('imgzYes').onclick=()=>_imgzEnd({choix:'c',plan});
+      document.getElementById('imgzNo').onclick=()=>_imgzEnd({choix:'n'});
+      if(!plan.map.size){const y=document.getElementById('imgzYes');y.disabled=true;}
+      const y=document.getElementById('imgzYes');if(y&&!y.disabled)y.focus();});});}
+/* AJOUTER DES IMAGES À UNE AIDE OU UN PROTOCOLE, SOUS LE PLAFOND (éditeurs, page Notion versée). `neuves` : [{data,w,h,
+   k?}] déjà réduites (`k` : copies — 2 pour l'image d'un bloc d'aide). Rend {admises, comp, refus} — `admises` éventuellement
+   compressées, `e` mis à jour si la compression est acceptée — ou null (abandon : rien n'est ajouté). */
+async function imgAdmettre(e,neuves,o){
+  const base=imgsOctets(e),plus=neuves.reduce((t,x)=>t+imgOctets(x.data)*(x.k||1),0);
+  if(base+plus<=MAX_IMG_TOTAL)return {admises:neuves,comp:0,refus:0};
+  const tient=l=>{let t=imgsOctets(e);const ok=[];for(const x of l){const v=imgOctets(x.data)*(x.k||1);if(t+v<=MAX_IMG_TOTAL){ok.push(x);t+=v;}}return ok;};
+  const sans=tient(neuves),D=imgDatas(e);neuves.forEach(x=>D.set(x.data,(D.get(x.data)||0)+(x.k||1)));
+  const n=neuves.length;
+  const r=await imgzPropose(D,{ctx:o.ctx,fem:o.fem,oui:n?'Compresser et ajouter '+(n>1?'les '+n:'l’image'):'Compresser',
+    nonSub:n?(sans.length?(sans.length===n?'':sans.length+' sur '+n+' entre'+(sans.length>1?'nt':'')+', '+(n-sans.length)+' non ajoutée'+(n-sans.length>1?'s':'')):'aucune n’est ajoutée'):''});
+  if(!r)return null;
+  if(r.choix==='n')return {admises:sans,comp:0,refus:n-sans.length};
+  const comp=imgApply(e,r.plan.map);
+  const ad=tient(neuves.map(x=>{const c=r.plan.map.get(x.data);return c?{...x,data:c.data,w:c.w,h:c.h}:x;}));
+  return {admises:ad,comp:r.plan.map.size,refus:n-ad.length,avant:r.plan.avant,apres:r.plan.apres};}
+// Le compte-rendu d'un ajout sous plafond (notification, ↶ annule dans l'éditeur).
+function imgAdmisTxt(res,n,quoi){if(!res)return '';const a=res.admises.length;
+  return (a?nb(a,'image')+' ajoutée'+(a>1?'s':''):'Aucune image ajoutée')
+    +(res.comp?' · '+nb(res.comp,'image')+' compressée'+(res.comp>1?'s':'')+' : '+imgMo(res.avant)+' → '+imgMo(res.apres):'')
+    +(res.refus?' · △ '+res.refus+' non ajoutée'+(res.refus>1?'s':'')+' : '+IMG_MAX_MO+' Mo d’images au plus par '+quoi:'');}
+/* « Compresser… » de la carte des images (élément déjà au-delà) : la même feuille, sans image neuve. */
+async function imgCompresserExistant(e,o,rerender){
+  const r=await imgzPropose(imgDatas(e),{ctx:o.ctx,fem:o.fem,oui:'Compresser',nonSub:''});
+  if(!r||r.choix!=='c')return;const n=imgApply(e,r.plan.map);rerender();
+  toast(nb(n,'image')+' compressée'+(n>1?'s':'')+' : '+imgMo(r.plan.avant)+' → '+imgMo(r.plan.apres)+(r.plan.ok?'':' (encore au-delà de '+IMG_MAX_MO+' Mo)')+' — ↶ pour annuler.',7000,true);}
+/* Le compteur et la bande « plein » de la carte des images (protocole et aide). */
+function imgCardHead(e){const ims=(e.images||[]).filter(im=>im&&im.data),j=imgJauge(imgsOctets(e));
+  // Le poids sur SA ligne, sous l'intitulé (au téléphone, « · 13 · △ 9,7 / 10 Mo » en chasse fixe passait à la ligne au milieu) ;
+  // « plein » : le nombre seul, la bande dit le reste.
+  return {n:`<span class="mi-n">· ${ims.length}</span>`+(j.etat==='over'?'':`<span class="mi-poids${j.etat==='warn'?' warn':''}">${esc(j.txt)}${j.etat==='ok'?' d’images':' d’images'}</span>`),over:j.etat==='over',
+    band:j.etat==='over'?`<div class="mi-over" role="status"><div class="mi-ovh"><b>${esc(j.txt)}</b><span>${j.pct} %</span></div><div class="imgz-tr"><i class="w" style="width:100%"></i></div><span>Aucune image ne peut plus être ajoutée. ${e.blocks?'L’aide reste lisible et modifiable.':'Le protocole reste lisible et modifiable.'}</span><button type="button" class="btn sm primary" id="miZip">Compresser…</button></div>`:''};}
 async function deleteDraft(){
   if(linkDelGate(deleteDraft))return;   // A643, A654
   // Fiche de bibliothèque PARTAGÉE : la suppression effacera aussi, chez chaque membre, la note
@@ -32006,6 +32252,8 @@ function renderCatMgr(){
 bindModalDismiss(catModal,closeCatMgr);
 /* La porte « + » passe par le gestionnaire commun : Échap, clic de voile, piège de focus et
    retour système d'Android — aucune fenêtre de l'app n'a le droit d'y échapper. */
+{const m=document.getElementById('imgzModal');   // A759 : ✕, Échap, voile = abandon (rien n'est ajouté ni compressé)
+ if(m){bindModalDismiss(m,()=>_imgzEnd(null));const x=document.getElementById('imgzX');if(x)x.onclick=()=>_imgzEnd(null);}}
 {const m=document.getElementById('edAddModal');
  if(m){bindModalDismiss(m,edAddClose);
    const x=document.getElementById('edAddX');if(x)x.onclick=edAddClose;}}
@@ -32835,6 +33083,7 @@ function impRowHtml(r){
     +`<span class="imp-drow" data-impdrow="${esc(r.key)}">${impDestHtml(r)}</span>`
     +`</label>`
     +(r.dup?`<div class="imp-diff" data-impdiff="${esc(r.key)}" hidden></div>`:'')
+    +impImgzHtml(r)   // A759 : images au-delà de 10 Mo — le choix de la rangée
     +`</div>`;}
 /* CE QUE LA PASTILLE DIT DE LA CATÉGORIE — ET ELLE DIT LE MOT « CATÉGORIE » (signalé à l'usage :
    « "Garder" pas suffisamment clair pour dire qu'on parle de la catégorie »). Elle affichait
@@ -32998,6 +33247,41 @@ function openImpCatMenu(rows,trigger){
    libellé sont peints par `impSyncSel`, au fil des cases. */
 const IMP_GRP={f:['Aide','Aides'],p:['Protocole','Protocoles']};
 const impGrpRows=g=>_impRows.filter(r=>r.key.charAt(0)===g);
+/* A759 (planche B) — LES IMAGES AU-DELÀ DE 10 MO SE DÉCIDENT DANS L'ATELIER, PAR RANGÉE. La compression se cherche à
+   l'ouverture, seulement pour les rangées au-delà (une à la fois, la rangée dit « Recherche… ») ; la bande sous la rangée
+   porte le choix — « Compresser → x Mo » (défaut) ou « Ne pas compresser : n images sur m » — et « Comparer » (ce qui
+   change, détail à 100 %). Rien n'est écrit avant « Importer » ; l'écriture applique le choix (`impImgFit`). */
+let _impImgz=Object.create(null),_impImgzTok=0;
+// Ce qui sera ÉCRIT : l'entité seule, ou — versée dans un protocole existant — ses images ajoutées à celles de la cible.
+function impImgzEnt(r){const tg=r.into&&protocols.find(x=>x.id===r.into);if(!tg)return r.o;
+  const ims=(tg.images||[]).slice();(r.o.images||[]).forEach(im=>{if(im&&im.id&&!ims.some(x=>x.id===im.id))ims.push(im);});return {images:ims};}
+function impImgzSans(e){let t=0,k=0;const ims=(e.images||[]).filter(im=>im&&im.data);for(const im of ims){const o=imgOctets(im.data);if(t+o<=MAX_IMG_TOTAL){t+=o;k++;}}return {k,n:ims.length};}
+function impImgzHtml(r){const z=_impImgz[r.key];if(!z)return '';
+  const tete=`<b class="imp-imgz-h">△ Images au-delà de ${IMG_MAX_MO} Mo · ${esc(imgMo(z.tot))}</b>`;
+  if(z.etat==='calc')return `<div class="imp-imgz" data-impimgz="${esc(r.key)}">${tete}<span class="imgz-s" role="status">Recherche de la compression la plus douce…</span></div>`;
+  const i=z.choix==='n'?1:0,S=z.sans;
+  return `<div class="imp-imgz" data-impimgz="${esc(r.key)}"><div class="imp-imgz-r">${tete}`
+    +`<div class="seg imp-imgz-seg" role="radiogroup" aria-label="Images au-delà de ${IMG_MAX_MO} Mo" style="--seg-n:2;--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>`
+    +`<button type="button" class="seg-btn${i===0?' on':''}" role="radio" aria-checked="${i===0}" data-imgzc="c"${z.plan.map.size?'':' disabled'}>Compresser → ${esc(imgMo(z.plan.apres))}</button>`
+    +`<button type="button" class="seg-btn${i===1?' on':''}" role="radio" aria-checked="${i===1}" data-imgzc="n">Ne pas compresser : ${S.k} image${S.k>1?'s':''} sur ${S.n}</button></div>`
+    +`<button type="button" class="imp-cmp" data-imgzcmp aria-expanded="${z.open?'true':'false'}">${z.open?'Masquer':'Comparer'}</button></div>`
+    +`<div class="imp-imgz-x"${z.open?'':' hidden'}><div class="imgz-l">${imgPlanLignes(z.dit,z.plan)}</div><div class="imgz-cbox"></div></div></div>`;}
+function impImgzPaint(r){const el=document.querySelector(`#impList [data-impimgz="${CSS.escape(r.key)}"]`),h=impImgzHtml(r);
+  if(el){if(h)el.outerHTML=h;else el.remove();}else if(h){const it=document.querySelector(`#impList [data-impsel="${CSS.escape(r.key)}"]`);const item=it&&it.closest('.imp-item');if(item)item.insertAdjacentHTML('beforeend',h);}
+  const z=_impImgz[r.key];if(z&&z.open){const b=document.querySelector(`#impList [data-impimgz="${CSS.escape(r.key)}"] .imgz-cbox`);if(b)imgCmpPaint(b,z.dit,0);}}
+let _impImgzQ=Promise.resolve();
+function impImgzCalc(r){const e=impImgzEnt(r),tot=imgsOctets(e);
+  if(tot<=MAX_IMG_TOTAL){delete _impImgz[r.key];impImgzPaint(r);return;}
+  const tok=_impImgzTok,z=_impImgz[r.key]={etat:'calc',tot,choix:'c',sans:impImgzSans(e),open:false};impImgzPaint(r);
+  _impImgzQ=_impImgzQ.then(()=>tok!==_impImgzTok||_impImgz[r.key]!==z?null:imgPlan(imgDatas(e),MAX_IMG_TOTAL,imgEnc,null,()=>tok!==_impImgzTok||_impImgz[r.key]!==z))
+    .then(plan=>{if(!plan||tok!==_impImgzTok||_impImgz[r.key]!==z)return;z.etat='ok';z.plan=plan;z.dit=imgPlanDit(plan);if(!plan.map.size)z.choix='n';impImgzPaint(r);})
+    .catch(()=>{});}
+function impImgzScan(){_impImgzTok++;_impImgz=Object.create(null);_impRows.forEach(r=>impImgzCalc(r));}
+/* À L'ÉCRITURE : le choix de la rangée. « Compresser » applique le plan (recalculé s'il n'était pas prêt) ; ce qui
+   dépasse encore — ou « Ne pas compresser » — n'entre pas, retiré avec ses références et compté. Rend {comp, hors}. */
+async function impImgFit(e,z){if(imgsOctets(e)<=MAX_IMG_TOTAL)return {comp:0,hors:0};let comp=0;
+  if(!z||z.choix!=='n'){let map=z&&z.map;if(!map){const pl=await imgPlan(imgDatas(e),MAX_IMG_TOTAL,imgEnc);map=pl&&pl.map;}comp=imgApply(e,map);}
+  return {comp,hors:imgTrim(e)};}
 function paintImpList(){
   document.getElementById('impList').innerHTML=Object.keys(IMP_GRP).map(g=>{const R=impGrpRows(g);if(!R.length)return '';
     return `<section class="imp-g" aria-labelledby="impgh-${g}"><div class="imp-gh"><span id="impgh-${g}" data-impgn="${g}"></span>`
@@ -33041,9 +33325,9 @@ function importWorkshop(imp,zip,sameSpace,lbl){
     (lbl?lbl+' contient ':'Ce fichier contient ')+_impRows.length+' élément'+(_impRows.length>1?'s':'')
     +(zip?' et ses documents PDF':'')+'. Rien n\'est écrit avant « Importer ».';
   impModal.classList.add('on');
-  paintImpList();
+  paintImpList();impImgzScan();   // A759
   return new Promise(res=>{_impRes=res;});}
-function _impEnd(v){impModal.classList.remove('on');const r=_impRes;_impRes=null;_impRows=[];if(r)r(v);}
+function _impEnd(v){impModal.classList.remove('on');_impImgzTok++;const r=_impRes;_impRes=null;_impRows=[];if(r)r(v);}
 /* CE QUE L'ATELIER REND (A159) : la sélection ET la destination de chaque rangée retenue, clés
    comprises. La destination est une TABLE NUE indexée par la clé de rangée — l'appelant filtre
    ses deux tableaux par index et doit pouvoir retrouver, pour chaque entité gardée, où elle va.
@@ -33051,13 +33335,18 @@ function _impEnd(v){impModal.classList.remove('on');const r=_impRes;_impRes=null
    filtrage, et le défaut aurait été d'écrire une fiche dans la bibliothèque de sa voisine. */
 document.getElementById('impGo').onclick=()=>{if(!_impSel||!_impSel.size)return;
   const dest=Object.create(null);
-  _impRows.forEach(r=>{if(_impSel.has(r.key))dest[r.key]={lib:r.lib||null,cat:r.cat,into:r.into||null};});
+  _impRows.forEach(r=>{if(_impSel.has(r.key)){const z=_impImgz[r.key];dest[r.key]={lib:r.lib||null,cat:r.cat,into:r.into||null,
+    imgz:z?{choix:z.choix,map:z.plan?z.plan.map:null}:null};}});   // A759
   _impEnd({sel:new Set(_impSel),dest});};
 document.getElementById('impCancel').onclick=()=>_impEnd(null);
 document.getElementById('impAll').onchange=e=>impSetAll(e.target.checked);
 /* Les deux pastilles d'une RANGÉE : délégué, comme « Comparer » — la liste est reconstruite à
    chaque atelier, et un écouteur par rangée serait dix-huit écouteurs à reposer. */
 document.getElementById('impList').addEventListener('click',e=>{
+  {const zb=e.target&&e.target.closest?e.target.closest('[data-imgzc],[data-imgzcmp]'):null;   // A759 : la bande des images
+   if(zb){const band=zb.closest('[data-impimgz]'),r=band&&_impRows.find(x=>x.key===band.dataset.impimgz),z=r&&_impImgz[r.key];if(!z||z.etat!=='ok')return;
+     if(zb.dataset.imgzc)z.choix=zb.dataset.imgzc;else z.open=!z.open;
+     impImgzPaint(r);const nb2=document.querySelector(`#impList [data-impimgz="${CSS.escape(r.key)}"] ${zb.dataset.imgzc?'[data-imgzc="'+z.choix+'"]':'[data-imgzcmp]'}`);if(nb2)nb2.focus();return;}}
   {const gb=e.target&&e.target.closest?e.target.closest('[data-impgrp]'):null;   // A753 : « Tout cocher/décocher » d'un groupe
    if(gb){const g=gb.dataset.impgrp;impSetAll(!impGrpRows(g).every(r=>_impSel.has(r.key)),g);return;}}
   const ib=e.target&&e.target.closest?e.target.closest('[data-impinto]'):null;
@@ -33065,7 +33354,7 @@ document.getElementById('impList').addEventListener('click',e=>{
     /* A753 (planche A4) : le CHOIX d'abord — « Nouveau protocole » ou « Verser dans un protocole » —, la recherche ensuite,
        et seulement pour verser (elle mêlait « Nouveau protocole » aux protocoles existants, première rangée d'une longue
        liste). « Nouveau » se prend d'un tap ; « Verser » ouvre la recherche. Jamais d'écrasement (A611). */
-    const poser=v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();};
+    const poser=v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();impImgzCalc(r);};   // A759 : verser change le poids
     const carte=(m,on,t,st)=>`<button type="button" class="imp-into-c" data-intomode="${m}" aria-pressed="${on?'true':'false'}">${uiIcon(m==='new'?'plus':'book',18)}<b>${t}</b><span>${st}</span></button>`;
     {const H=impMenuHost(ib);openPickMenu(H.host,{aria:'Où va ce contenu',title:'Où va ce contenu ?',ctx:String(r.o.title||'').trim()||'Sans titre',sheet:H.sheet,fixed:H.fixed,trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
       head:`<div class="imp-into2" role="group" aria-label="Où va ce contenu">${carte('new',!r.into,'Nouveau protocole','avec le titre de la page')}${carte('into',!!r.into,'Verser dans un protocole','déjà créé, sans rien remplacer')}</div>`,
@@ -33135,7 +33424,7 @@ async function notionParse(u8){
    d'écrasement — même règle que « Dans » de l'atelier, A611), les images rejoignent celles du protocole sous son
    plafond, le titre n'est posé que s'il était vide. Plusieurs pages : chacune sous son titre (« # … »), dans l'ordre. */
 async function notionVerse(p,files,rerender){
-  let n=0,img=0,trop=0,manque=0,illis=0,refus=[],vidN=0,vidOut=0,vidNon=0;
+  let n=0,img=0,trop=0,manque=0,illis=0,refus=[],vidN=0,vidOut=0,vidNon=0,comp=0,lourd=0,abandon=0;
   for(const f of files){let u8;try{u8=new Uint8Array(await f.arrayBuffer());}catch(e){refus.push(upShortName(f.name));continue;}
     let r=null;try{r=await notionParse(u8);}catch(e){r=null;}
     if(!r||!r.protocols.length){refus.push(upShortName(f.name));continue;}
@@ -33144,7 +33433,14 @@ async function notionVerse(p,files,rerender){
       if(!String(p.title||'').trim()&&t)p.title=t;
       const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
       p.images=Array.isArray(p.images)?p.images:[];let txt=bloc;
-      for(const im of (q.images||[])){if(p.images.length>=MAX_IMG_PER_ENTITY){trop++;txt=txt.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(im.id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g'),'');continue;}   /* A709 : image LÉGENDÉE comprise */p.images.push(im);img++;}
+      const sans=id=>{txt=txt.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g'),'');};   /* A709 : image LÉGENDÉE comprise */
+      const cand=[];for(const im of (q.images||[])){if(p.images.length+cand.length>=MAX_IMG_PER_ENTITY){trop++;sans(im.id);continue;}cand.push(im);}
+      // A759 : sous le plafond de 10 Mo — au-delà, la feuille propose de compresser ; ✕ abandonne CETTE page en entier.
+      const res=cand.length?await imgAdmettre(p,cand,{ctx:imgCtx(p,cand.length),fem:false}):{admises:[],comp:0,refus:0};
+      if(!res){abandon++;continue;}
+      const pris=new Set(res.admises.map(x=>x.id));cand.forEach(im=>{if(!pris.has(im.id))sans(im.id);});
+      res.admises.forEach(x=>{p.images.push({id:x.id,data:x.data,w:x.w,h:x.h,caption:x.caption||'',scale:x.scale||100});img++;});
+      comp+=res.comp;lourd+=res.refus;
       // A757 : les vidéos de la page — binaire rangé sur l'appareil (protégé pendant l'édition), fiche au protocole ; au-delà, retirée et dite.
       p.videos=Array.isArray(p.videos)?p.videos:[];
       for(const v of (q.videos||[])){const z=r.vidBufs&&r.vidBufs.get(v.id);let ok=false;
@@ -33157,7 +33453,7 @@ async function notionVerse(p,files,rerender){
       n++;}}
   if(n)rerender();
   const m=(n?nb(n,'page')+' Notion ajoutée'+(n>1?'s':'')+' à la suite'+(img?' · '+nb(img,'image'):''):'')
-    +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(illis?' · '+nb(illis,'image')+' illisible'+(illis>1?'s':''):'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
+    +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(illis?' · '+nb(illis,'image')+' illisible'+(illis>1?'s':''):'')+(comp?' · '+nb(comp,'image')+' compressée'+(comp>1?'s':''):'')+(lourd?' · △ '+lourd+' au-delà de '+IMG_MAX_MO+' Mo d’images':'')+(abandon?' · '+nb(abandon,'page')+' non versée'+(abandon>1?'s':''):'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
     +(vidN?' · '+nb(vidN,'vidéo'):'')+((vidOut+vidNon)?' · △ '+nb(vidOut+vidNon,'vidéo')+' non importée'+((vidOut+vidNon)>1?'s':''):'')   // A757
     +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, .html, ou .zip d’export Notion)':'');
   if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
@@ -33365,9 +33661,12 @@ async function _importRead(buf,lbl,ia){
     const atts=async d=>{const n0=(d.docs||[]).length;await importAtts(d,zipAtts,sameSpace,_attRemap);docsEc+=n0-(d.docs||[]).length;};
     // A757 : les vidéos d'un protocole — même espace, ou ids neufs posés par l'import Notion : gardés ; sinon ids neufs.
     let vidsEc=0;const vids=async d=>{vidsEc+=await importVids(d,zipVids,sameSpace||!!notion);};
+    // A759 : au-delà de 10 Mo d'images, le choix de la rangée (compresser, ou ne garder que ce qui tient) — compté, dit.
+    let imgComp=0,imgHors=0;const imgz=async(d,dst)=>{const r=await impImgFit(d,dst&&dst.imgz);imgComp+=r.comp;imgHors+=r.hors;};
     for(let i=0;i<imp.fiches.length;i++){const d=migrate(imp.fiches[i]);
       d.deletedAt=null;   // A669 : un fichier n'apporte jamais une suppression (seuls le stockage et le serveur portent des tombes)
       poserDest(d,F.dst[i]);
+      await imgz(d,F.dst[i]);   // A759
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
       await atts(d);
@@ -33384,10 +33683,12 @@ async function _importRead(buf,lbl,ia){
           if(tg&&canEditFiche(tg)){const n=migrateProtocol(JSON.parse(JSON.stringify(tg))),b0=String(n.body||'').replace(/\s+$/,''),b1=String(d.body||'').trim();
             n.body=b0?(b1?b0+'\n\n'+b1:b0):b1;if(n.body.length>MD_MAX_CHARS)txtCoupes++;
             const ims=(n.images||[]).slice();(d.images||[]).forEach(im=>{if(!im||!im.id||ims.some(x=>x.id===im.id))return;if(ims.length<MAX_IMG_PER_ENTITY)ims.push(im);else imgsHors++;});n.images=ims;
+            await imgz(n,P.dst[i]);   // A759 : le poids de ce qui sera écrit (la cible et ce qu'on y verse)
             await vids(d);const vs=(n.videos||[]).slice();(d.videos||[]).forEach(v=>{if(!v||vs.some(x=>x.id===v.id))return;if(vs.length<MAX_VID_PER_ENTITY)vs.push(v);else vidsEc++;});n.videos=vs;   // A757
             const m=migrateProtocol(n);if(await pPOk(m)){const j=protocols.findIndex(x=>x.id===m.id);if(j>=0)protocols[j]=m;versees.push(m.title||'Sans titre');}
             continue;}}
         poserDest(d,P.dst[i]);   // même règle que les fiches, même code
+        await imgz(d,P.dst[i]);   // A759
         await atts(d);await vids(d);   // A757 : et ses vidéos
         if(d.id&&existingP.has(d.id)&&replace){if(await pPOk(d)){const j=protocols.findIndex(x=>x.id===d.id);if(j>=0)protocols[j]=d;else protocols.push(d);addedP++;}}
         else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await pPOk(d)){protocols.push(d);addedP++;}}}}
@@ -33411,6 +33712,8 @@ async function _importRead(buf,lbl,ia){
       +(docsEc?' '+nb(docsEc,'document')+' PDF non importé'+(docsEc>1?'s':'')+' (absent'+(docsEc>1?'s':'')+' du fichier ou illisible'+(docsEc>1?'s':'')+').':'')   // A660
       +(txtCoupes?' △ Texte coupé à '+mdNb(MD_MAX_CHARS)+' caractères dans '+nb(txtCoupes,'protocole')+' complété'+(txtCoupes>1?'s':'')+'.':'')
       +(imgsHors?' △ '+nb(imgsHors,'image')+' non reprise'+(imgsHors>1?'s':'')+' : '+MAX_IMG_PER_ENTITY+' images maximum par protocole.':'')   // A754
+      +(imgComp?' '+nb(imgComp,'image')+' compressée'+(imgComp>1?'s':'')+' (au-delà de '+IMG_MAX_MO+' Mo).':'')   // A759
+      +(imgHors?' △ '+nb(imgHors,'image')+' non importée'+(imgHors>1?'s':'')+' : '+IMG_MAX_MO+' Mo d’images au plus par élément.':'')
       +(vidsEc?' △ '+nb(vidsEc,'vidéo')+' non importée'+(vidsEc>1?'s':'')+' (absente'+(vidsEc>1?'s':'')+' du fichier, illisible'+(vidsEc>1?'s':'')+' ou au-delà de '+MAX_VID_PER_ENTITY+').':'');   // A757
     if(openId)openRead(openId);else{state.view='library';render();}
     if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.'+(versees.length?' Contenu versé dans « '+versees.join(' », « ')+' ».':'')+manques,manques?10000:0);
@@ -39767,7 +40070,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

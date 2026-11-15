@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.135.0] — 2026-11-15
+Les images se comptent en poids : 10 Mo par aide ou par protocole, et au-delà l'app propose de compresser (A759).
+- **10 Mo d'images par aide ou par protocole**, au lieu de 60 images : environ 130 photos, 90 photos d'iPhone ou
+  60 schémas. Le nombre passe à 200. Un élément déjà au-delà reste lisible et modifiable : rien n'est coupé.
+- **La carte des images dit son poids** (« 6,1 Mo d'images »), en ambre à partir de 8 Mo ; au-delà de 10 Mo, une bande
+  le dit, « ＋ Image » se ferme et « Compresser… » est proposé.
+- **Au-delà, l'app propose de compresser, et vous décidez.** Elle cherche la compression la plus douce qui suffit :
+  les images les plus lourdes d'abord, la meilleure qualité qui tient, une taille réduite seulement si nécessaire.
+  La feuille montre le poids avant et après, ce qui change, et le même détail de l'image avant/après, à 100 %.
+  « Compresser » : ↶ annule. « Ne pas compresser » : rien ne change, seules les nouvelles images qui tiennent entrent.
+- **À l'import**, un élément au-delà de 10 Mo porte sa bande dans l'atelier : « Compresser » (par défaut) ou « Ne pas
+  compresser », et « Comparer ». Ce qui ne tient pas n'est pas importé, et le message de fin le dit.
+
 ## [5.134.1] — 2026-11-15
 L'import HTML de Notion retrouve mieux ses images, et dit pourquoi quand il n'y arrive pas (A758).
 - **Un nom écrit autrement est retrouvé** : quand la page écrit un nom simplifié (« Capture_decran_2025-05-14_a_18.05.03.png »)
@@ -211,24 +224,3 @@ Une faute de frappe sur un mot du contenu ne laisse plus la recherche sans répo
   est plus petit que pour un titre : une lettre jusqu'à 8 lettres, deux au-delà. À écart égal, un mot de titre passe
   avant.
 - Les mots des PDF joints ne servent pas à corriger ; un mot trouvé dans un PDF reste un résultat.
-
-## [5.125.0] — 2026-11-13
-La recherche classe ses résultats par pertinence (A735-A738). La liste des résultats ne change pas, sauf là où la
-recherche ne trouvait rien à tort.
-- **L'ordre des résultats.** Un mot trouvé dans le titre ou le code pèse plus que dans le contenu, un mot entier plus
-  qu'un fragment au milieu d'un autre mot. Pour « ACR réfractaire », les éléments qui portent les deux mots dans
-  leur titre viennent en tête. L'accès direct (étoile) et les ouvertures récentes ne servent plus qu'à départager
-  deux résultats de même pertinence. Un élément trouvé seulement par un PDF joint arrive en fin de liste.
-- **Les petits mots et la ponctuation.** « et », « de », « la », « pour »… ne sont plus exigés : « ACR et réfractaire »
-  trouve « ACR réfractaire ». « l'adrénaline » trouve « adrénaline », « ACR, réfractaire » et « (ECPR) » trouvent ce
-  qu'on attend. Un petit mot tapé tout en capitales (« LES », « DES ») est cherché comme un sigle.
-- **L'extrait sous le titre** montre la ligne qui contient le plus de mots cherchés, et ne met plus les petits mots
-  en gras.
-- **Pluriel, trait d'union, unité.** « réfractaires » trouve « réfractaire », « vitaux » trouve « vital » ;
-  « anticoagulant » et « anti-coagulant » se trouvent l'un l'autre ; « 300mg » trouve « 300 mg ». Le pluriel vaut
-  aussi dans les PDF joints.
-- **Une aide se trouve aussi par** la note d'une étape, une complication, un minuteur (et son action à l'échéance),
-  un compteur, un jalon, une phase, le nom d'un document joint, la légende d'une image. Un protocole, par la légende
-  d'une image.
-- Reste à décider : qu'un mot de 2 ou 3 lettres (« ACR ») ne corresponde qu'en début de mot — aujourd'hui il trouve
-  encore « macrolide », en bas de liste (`docs/decisions/lot-v5-125.md`).

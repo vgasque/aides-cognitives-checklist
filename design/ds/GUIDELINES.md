@@ -996,6 +996,12 @@ telle quelle — chaque écran le dit à sa façon :
   est une vignette ; un tableau qui en porte a des colonnes égales et tient dans la largeur, sans filets. « Mettre en
   grille » (barre de sélection des blocs, ou « ＋ Insérer › Grille d'images ») : l'auteur choisit 2, 3 ou 4 colonnes.
   Une vidéo se lit muette, en boucle, quand elle est à l'écran ; absente ou illisible, son réceptacle le dit en ambre.
+- **Le poids des images** (A759) : sous l'intitulé de la carte des images, le poids sur sa ligne (encre douce, puis
+  ambre « △ x / 10 Mo d'images » dès 80 %) ; au-delà de 10 Mo, une bande ambre (poids, pourcentage, jauge,
+  « Compresser… ») et « ＋ Image » fermé. La feuille « Compresser les images ? » : le calcul (progression, Annuler), puis
+  la jauge Sans/Avec, ✓ ce qui ne se voit pas, △ ce qui peut se voir, le détail à 100 % avant/après (« Suivante › »), et
+  deux réponses pleine largeur — « Ne pas compresser » dit sous son mot ce qui resterait dehors. À l'import, la même
+  décision dans une bande ambre sous la rangée : le sélecteur segmenté de l'app et « Comparer ».
 - **Le menu des catégories dit ce qu'est une catégorie** (A498), en UNE ligne sous son titre « Choisir la
   catégorie », dont le PIVOT suit la bibliothèque — partagée : la PROPRIÉTÉ (« … vue par toute l'équipe de
   « … ». Pour un rangement à vous seul : les collections. ») ; Perso : le NOMBRE (« … pour classer l'accueil.

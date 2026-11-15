@@ -11623,6 +11623,69 @@ await sec('A757 · des vidéos dans un protocole (ajout, lecture, import)', asyn
   await page.close();
 });
 
+/* A759 — LE POIDS DES IMAGES ET LA COMPRESSION PROPOSÉE, avec de VRAIES images lourdes (canevas bruité, JPEG 95 %), par
+   les vrais gestes : la carte « plein » et « Compresser… » ; un ajout au-delà refusé (« Ne pas compresser ») ; à l'import,
+   la bande de la rangée, « Comparer », « Ne pas compresser » — rien ne dépasse 10 Mo une fois écrit. */
+await sec('A759 · images : 10 Mo par élément, compression proposée (carte, ajout, import)', async () => {
+  const page=await br.newPage({viewport:{width:1100,height:850}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  // Des images lourdes : du bruit, que la compression sait alléger (comme une photo très détaillée).
+  const lourdes=await page.evaluate(()=>{const L=[];let t=0;
+    while(t<11.5*1048576&&L.length<14){const c=document.createElement('canvas');c.width=1180;c.height=880;const g=c.getContext('2d'),d=g.createImageData(1180,880);
+      for(let i=0;i<d.data.length;i+=4){const v=(Math.random()*255)|0;d.data[i]=v;d.data[i+1]=(v*7)&255;d.data[i+2]=(v*13)&255;d.data[i+3]=255;}
+      g.putImageData(d,0,0);const u=c.toDataURL('image/jpeg',.95);L.push(u);t+=imgOctets(u);}
+    window.__lourdes=L;return {n:L.length,mo:t/1048576};});
+  // 1. La carte d'un protocole au-delà : « plein », « ＋ Image » fermé, « Compresser… ».
+  const c1=await page.evaluate(async()=>{try{localStorage.setItem('ac-mdlive','0');}catch(e){}
+    const L=window.__lourdes,ims=L.map((d,i)=>({id:'q'+i,data:d,w:1180,h:880,caption:'',scale:100}));
+    protocols.push(migrateProtocol({id:'p759',title:'Écho lourde',status:'draft',body:ims.map(x=>'![](img:'+x.id+')').join('\n'),images:ims}));
+    await openProtocolEdit('p759');await __acCalme(400);
+    const n=document.querySelector('.mi-card .mi-over b');return {over:!!document.querySelector('.mi-card .mi-over'),ferme:!!(document.getElementById('miAdd')||{}).disabled,
+      warn:!document.querySelector('.mi-card .mi-poids'),txt:n&&n.textContent,zip:!!document.getElementById('miZip'),n:state.pdraft.images.length};});
+  t('A759 · un protocole au-delà de 10 Mo : la bande ambre le dit (poids sur 10, une seule fois), « ＋ Image » fermé, « Compresser… »',
+    c1.over&&c1.ferme&&c1.warn&&/△ \d+,\d \/ 10 Mo d’images/.test(c1.txt)&&c1.zip,JSON.stringify({lourdes,...c1}));
+  await page.click('#miZip');
+  const prop=await page.waitForSelector('#imgzModal.on #imgzYes',{timeout:60000}).then(()=>true,()=>false);
+  const cmp=await page.waitForFunction(()=>document.querySelectorAll('#imgzBody .imgz-ph img').length===2,null,{timeout:10000}).then(()=>true,()=>false);
+  const lignes=await page.evaluate(()=>({l:(document.querySelector('#imgzBody .imgz-l')||{}).textContent||'',g:!!document.querySelector('#imgzBody .imgz-g'),
+    avant:imgsOctets(state.pdraft)}));
+  t('A759 · « Compresser… » : la feuille cherche, puis propose — jauge sans/avec, ce qui change, le détail à 100 % avant/après',prop&&cmp&&lignes.g&&lignes.l.length>10,JSON.stringify({prop,cmp,...lignes}));
+  await page.click('#imgzYes');await calme(page,400);
+  const c2=await page.evaluate(()=>({w:(document.querySelector('.mi-card .mi-poids')||{}).textContent||'',mo:imgsOctets(state.pdraft)/1048576,n:state.pdraft.images.length,ferme:!!(document.getElementById('miAdd')||{}).disabled,
+    over:!!document.querySelector('.mi-card .mi-over'),sheet:document.getElementById('imgzModal').classList.contains('on'),
+    lies:state.pdraft.images.every(im=>state.pdraft.body.includes('img:'+im.id))}));
+  t('A759 · « Compresser » : sous 10 Mo, toutes les images gardées et liées, la carte se rouvre et dit son poids',/\d+,\d( \/ 10)? Mo d’images/.test(c2.w)&&c2.mo<=10&&c2.n===c1.n&&!c2.ferme&&!c2.over&&!c2.sheet&&c2.lies,JSON.stringify(c2));
+  // 2. Ajouter au-delà par « ＋ Image » : la feuille ; « Ne pas compresser » n'ajoute que ce qui tient.
+  const files=await page.evaluate(()=>window.__lourdes.slice(0,4).map(u=>Array.from(Uint8Array.from(atob(u.split(',')[1]),c=>c.charCodeAt(0)))));
+  const [fc]=await Promise.all([page.waitForEvent('filechooser',{timeout:5000}).catch(()=>null),page.click('#miAdd')]);
+  if(fc)await fc.setFiles(files.map((b,i)=>({name:'photo'+i+'.jpg',mimeType:'image/jpeg',buffer:Buffer.from(b)})));
+  const prop2=await page.waitForSelector('#imgzModal.on #imgzNo',{timeout:60000}).then(()=>true,()=>false);
+  const sub=await page.evaluate(()=>(document.querySelector('#imgzNo .imgz-sub')||{}).textContent||'');
+  if(prop2)await page.click('#imgzNo');await calme(page,400);
+  const c3=await page.evaluate(n0=>({mo:imgsOctets(state.pdraft)/1048576,plus:state.pdraft.images.length-n0}),c1.n);
+  t('A759 · ajout au-delà : la feuille dit ce que « Ne pas compresser » laisse dehors, et rien ne dépasse 10 Mo',!!fc&&prop2&&c3.mo<=10&&c3.plus<4&&/non ajoutée|aucune/.test(sub),JSON.stringify({prop2,sub,...c3}));
+  // 3. À l'import : la bande de la rangée, « Comparer », « Ne pas compresser » — écrit sous 10 Mo, références retirées.
+  await page.evaluate(()=>{state.pdraft=null;state.view='library';render();
+    const L=window.__lourdes,ims=L.map((d,i)=>({id:'r'+i,data:d,w:1180,h:880,caption:'',scale:100}));
+    const doc={version:3,categories:[],fiches:[],protocols:[{id:'pi759',title:'Import lourd',status:'draft',body:ims.map(x=>'![](img:'+x.id+')').join('\n'),images:ims}]};
+    window.__fin=readImportFile(new File([JSON.stringify(doc)],'lourd.json'));});
+  const band=await page.waitForSelector('#impList .imp-imgz [data-imgzc="n"]',{timeout:60000}).then(()=>true,()=>false);
+  const b1=await page.evaluate(()=>({h:(document.querySelector('#impList .imp-imgz-h')||{}).textContent||'',c:(document.querySelector('#impList [data-imgzc="c"]')||{}).textContent||'',
+    on:(document.querySelector('#impList [data-imgzc="c"]')||{}).getAttribute('aria-checked')}));
+  await page.click('#impList [data-imgzc="n"]');await page.click('#impList [data-imgzcmp]');
+  const cmp2=await page.waitForFunction(()=>document.querySelectorAll('#impList .imgz-ph img').length===2,null,{timeout:10000}).then(()=>true,()=>false);
+  const b2=await page.evaluate(()=>({n:(document.querySelector('#impList [data-imgzc="n"]')||{}).getAttribute('aria-checked'),sel:[...document.querySelectorAll('#impList [data-impsel]')].every(x=>x.checked)}));
+  t('A759 · atelier : la rangée au-delà porte sa bande — « Compresser → x Mo » par défaut, « Ne pas compresser », « Comparer » (sans décocher la rangée)',
+    band&&/au-delà de 10 Mo/.test(b1.h)&&/Compresser → \d/.test(b1.c)&&b1.on==='true'&&b2.n==='true'&&cmp2&&b2.sel,JSON.stringify({band,cmp2,...b1,...b2}));
+  await page.click('#impGo');await page.evaluate(()=>window.__fin);await calme(page,400);
+  const im=await page.evaluate(()=>{const x=protocols.find(p=>p.title==='Import lourd')||{};return {mo:imgsOctets(x)/1048576,n:(x.images||[]).length,
+    lies:(x.images||[]).every(i=>String(x.body).includes('img:'+i.id)),orph:(String(x.body).match(/img:/g)||[]).length,
+    toast:[...document.querySelectorAll('.toast,.snack,[role="status"]')].map(e=>e.textContent).join(' ')};});
+  t('A759 · « Ne pas compresser » à l’import : écrit sous 10 Mo, le reste non importé — références retirées, et dit',im.mo<=10&&im.n>0&&im.n<lourdes.n&&im.lies&&im.orph===im.n&&/non importée/.test(im.toast),JSON.stringify(im));
+  await page.close();
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});

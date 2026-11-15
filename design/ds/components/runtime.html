@@ -7933,6 +7933,54 @@
   /* A754 : le compteur du texte d'un protocole (80 % du plafond : encre douce ; 95 % et au-delà : ambre, glyphe et mots). */
   .md-len{margin:6px 2px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
   .md-len.warn{color:var(--warn)}
+  /* A759 — LE POIDS DES IMAGES (planches « Images : 10 Mo par élément »). Le compteur de la carte : encre douce sous 80 %,
+     ambre (△ + mots, règle 8) au-delà ; « plein » : une bande ambre, sa jauge, « Compresser… ». La feuille : la jauge
+     sans/avec, ce qui change (✓ ce qui ne se voit pas, △ ce qui peut se voir), le détail à 100 % avant/après. */
+  .mi-poids{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .mi-poids.warn{color:var(--warn)}
+  .mi-over{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:0 0 10px;padding:10px 12px;border:1px solid var(--warn-line);border-radius:var(--r-2);background:var(--warn-soft);color:var(--warn);font-size:var(--t-body);line-height:1.4}
+  .mi-ovh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;width:100%}
+  .mi-ovh>span{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600}
+  .imgz-tr{display:block;position:relative;width:100%;height:8px;border-radius:3px;background:var(--amb-2);overflow:hidden}
+  .imgz-tr>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--act)}
+  .imgz-tr>i.w{background:var(--warn)}
+  .mi-over .imgz-tr{height:6px}
+  .imgz-body{display:flex;flex-direction:column;gap:12px}
+  .imgz-ctx{margin:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imgz-wn{font-family:var(--f-mono);font-weight:600;color:var(--warn)}
+  .imgz-v{font-family:var(--f-mono);font-weight:600;color:var(--ink)}
+  .imgz-calc{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:var(--r-3);background:var(--amb-2);font-size:var(--t-item)}
+  .imgz-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+  .imgz-bar>i{display:block;width:100%;height:100%;background:var(--act);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+  .imgz-pg{font-family:var(--f-mono);font-size:var(--t-meta);color:var(--ink-2)}
+  .imgz-s{margin:0;font-size:var(--t-body);color:var(--ink-2);line-height:1.4}
+  .imgz-g{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 8px;padding:10px 12px;border-radius:var(--r-3);background:var(--amb-2);font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imgz-g .imgz-lim{grid-column:1/-1;font-size:var(--t-meta);font-weight:500}
+  .imgz-l{display:flex;flex-direction:column;gap:6px;font-size:var(--t-body);line-height:1.4}
+  .imgz-ok{color:var(--ok)}
+  .imgz-w{color:var(--warn);font-weight:600}
+  .imgz-cbox:empty{display:none}
+  .imgz-cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .imgz-cmp figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+  .imgz-cmp figcaption{font-size:var(--t-meta);font-weight:600}
+  .imgz-ph{aspect-ratio:3/2;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);overflow:hidden}
+  .imgz-ph>img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}
+  .imgz-o{font-family:var(--f-mono);color:var(--ink-2)}
+  .imgz-nav{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:var(--t-meta);color:var(--ink-2)}
+  .imgz-nav>span{flex:1;min-width:0}
+  .imgz-acts{flex-direction:column}
+  .imgz-acts .btn{flex:none;width:100%;flex-direction:column}
+  .imgz-sub{display:block;font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  /* La bande de l'atelier, sous la rangée (hors du <label> : un clic n'y coche rien). */
+  .imp-imgz{display:flex;flex-direction:column;gap:10px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft)}
+  .imp-imgz-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+  .imp-imgz-h{font-size:var(--t-body);color:var(--warn)}
+  .imp-imgz-seg{flex:1 1 320px;min-width:0;background:var(--work)}
+  .imp-imgz-seg .seg-btn{min-height:36px;padding:4px 8px;font-size:var(--t-meta);line-height:1.25;text-align:center}
+  .imp-imgz-seg .seg-btn:disabled{opacity:.5;cursor:default}
+  .imp-imgz-x{display:flex;flex-direction:column;gap:10px}
+  .imp-imgz-x[hidden]{display:none}
+  .imp-imgz .imgz-cmp{grid-template-columns:repeat(2,minmax(0,220px))}
   .imp-long,.imp-into-s.warn{color:var(--warn);font-weight:700}
   .imp-warn{flex:0 0 100%;margin:0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
