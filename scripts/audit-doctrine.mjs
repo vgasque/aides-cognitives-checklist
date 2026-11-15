@@ -7662,11 +7662,10 @@ for (const W of [390, 1280]) {
     out.pinSub=pinRow().textContent;const pins0=[];
     pinRow().click();await __acCalme(150);pins0.push(pinRow().getAttribute('aria-checked'));pinRow().click();await __acCalme(150);pins0.push(pinRow().getAttribute('aria-checked'),pins.length);
     out.pinCase=pins0;document.querySelector('.popmenu [data-pickdone]').click();await __acCalme(200);
-    // « Ranger » › « Nouvelle catégorie… » crée et range
+    // « Ranger » › « Nouvelle catégorie » crée et range — A752 : le nom vient du champ de la feuille, aucune fenêtre ne s'ouvre
     state.sel=new Set([fiches[0].id]);render();await __acCalme(200);
-    selNewCat([null],()=>{});await __acCalme(300);
-    const inp=document.getElementById('confirmInput');inp.value='Transport';inp.dispatchEvent(new Event('input'));
-    out.creerRanger=document.getElementById('confirmYes').textContent;document.getElementById('confirmYes').click();await __acCalme(500);
+    await selNewCat([null],'Transport',()=>{});await __acCalme(300);
+    out.creerRanger=document.querySelector('.ai-modal.on')?'une fenêtre s’est ouverte':'sans fenêtre';
     out.range=catName(fiches[0]);state.selOn=false;state.sel=new Set();render();await __acCalme(200);
     // une étoile touchée, une seule animée
     pinTap(fiches[0].id,()=>render());await __acCalme(30);
@@ -7685,7 +7684,7 @@ for (const W of [390, 1280]) {
   const P=W+' px';
   t(`${P} · A485 : la pastille d'une catégorie homonyme prend la couleur de SA bibliothèque, multicolore sur « Toutes »`,
     r.dotBloc==='rgb(47, 107, 58)'&&/gradient/.test(r.dotToutes), r.dotBloc+' | '+r.dotToutes.slice(0,40));
-  t(`${P} · A486 : « Nouvelle catégorie… » depuis Ranger crée ET range`, r.creerRanger==='Créer et ranger'&&r.range==='Transport', r.creerRanger+' | '+r.range);
+  t(`${P} · A486 : « Nouvelle catégorie… » depuis Ranger crée ET range`, r.creerRanger==='sans fenêtre'&&r.range==='Transport', r.creerRanger+' | '+r.range);
   t(`${P} · A487 : un brouillon dans la sélection ne bloque plus la case « Accès direct »`, /brouillon ne s’épingle pas/.test(r.pinSub)&&r.pinCase[0]==='true'&&r.pinCase[1]==='false'&&r.pinCase[2]===0, JSON.stringify(r.pinCase));
   t(`${P} · A487 : une seule étoile s'anime, celle qu'on touche`, r.anim===1, String(r.anim));
   t(`${P} · A488 : « Ajouter à « Garde SMUR » », la catégorie dans chaque rangée`, r.ajTitre==='Ajouter à « Garde SMUR »'&&/^Aide · Urgences · (Perso|Bloc)$/.test(r.ajSub), r.ajTitre+' | '+r.ajSub);
@@ -10342,7 +10341,7 @@ await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus sui
 
 /* A308 — gestionnaire en liste : palette d'UNE catégorie à la fois, « Ajouter » en tête, curseur de
    teinte lisible et persistant, et la MÊME fenêtre depuis les éditeurs (« ＋ Nouvelle catégorie »). */
-await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêtre depuis les éditeurs', async () => {
+await sec('Catégories · une palette à la fois, Ajouter en tête, les éditeurs créent dans le menu (A752)', async () => {
 {
   const page=await br.newPage({viewport:{width:820,height:1180}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -10393,11 +10392,11 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     parId().querySelector('[data-pick]').click();await __acCalme(150);parId().querySelector('[data-pick]').click();await __acCalme(200);
     out.autoOuvert=!!bd.querySelector('.cm-row.open [data-hue]')&&bd.querySelector('.cm-row.open .sw-more').classList.contains('on');
     closeCatMgr();await __acCalme(200);
-    // Les DEUX éditeurs mènent à la même fenêtre par « ＋ Nouvelle catégorie ».
+    // Les DEUX éditeurs : « ＋ Nouvelle catégorie » devient un champ DANS le menu, sans ouvrir la fenêtre (A752, amende ce témoin).
     const porte=async()=>{const b=document.querySelector('#main [data-catmenu]');if(!b)return 'pas de menu';b.click();await __acCalme(250);
-      const nw=document.querySelector('.catmenu-new');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await __acCalme(300);
-      const on=catModal.classList.contains('on'),liste=!!catModal.querySelector('.cm-add')&&!!catModal.querySelector('.cm-list');
-      closeCatMgr();await __acCalme(200);return on&&liste?'ok':`fenêtre ${on} liste ${liste}`;};
+      const nw=document.querySelector('[data-pickmk]');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await __acCalme(300);
+      const on=catModal.classList.contains('on'),champ=!!document.querySelector('.catmenu.popmenu .catmenu-mk:not([hidden]) input');
+      if(_pickClose)_pickClose(false);await __acCalme(200);return !on&&champ?'ok':`fenêtre ${on} champ ${champ}`;};
     await openEdit(fiches[0].id);await __acCalme(500);out.ficheVue=state.view;out.porteFiche=await porte();
     if(!protocols.length)await newProtocol();else await openProtocolEdit(protocols[0].id);await __acCalme(500);
     out.protoVue=state.view;out.porteProto=await porte();
@@ -10415,7 +10414,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   t('le curseur est replié derrière le bouton palette (dernière pastille) et se déplie au tap (A315)',r.curseurCache===true&&r.curseurOuvert===true,JSON.stringify([r.curseurCache,r.curseurOuvert]));
   t('… et s\'ouvre d\'office quand la couleur n\'est pas un preset',r.autoOuvert===true,`${r.autoOuvert}`);
   t('revenir au degré d\'origine rend la couleur d\'origine, et le degré d\'un preset rend ce preset (A312)',r.retour===true&&r.preset19===r.p0,JSON.stringify([r.retour,r.preset19,r.p0]));
-  t('éditeur de FICHE : « Nouvelle catégorie » ouvre la fenêtre en liste',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
+  t('éditeur de FICHE : « Nouvelle catégorie » devient un champ dans le menu, sans fenêtre (A752)',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
   t('éditeur de PROTOCOLE : idem',r.protoVue==='protocolEdit'&&r.porteProto==='ok',JSON.stringify([r.protoVue,r.porteProto]));
   await page.close();
 }
