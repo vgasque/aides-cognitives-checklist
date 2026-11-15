@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.130.1] — 2026-11-15
+Fenêtre d'import au bureau : la bulle « Bibliothèque » ne se coupe plus en deux lignes (A753, rectificatif).
+- Avec une bibliothèque au nom un peu long, « Bibliothèque · » passait à la ligne dans l'en-tête de la colonne, le
+  nom était réduit à « Cours … » et la bulle devenait plus haute que sa voisine « Catégorie ».
+- Le mot « Bibliothèque » ne se coupe plus ; seul le nom de la bibliothèque se raccourcit s'il le faut, et se lit en
+  entier au survol. La colonne Bibliothèque est un peu plus large.
+
 ## [5.130.0] — 2026-11-15
 La fenêtre d'import refaite : une liste groupée au téléphone, des colonnes au bureau (A753).
 - **Au téléphone**, l'import s'ouvre en feuille du bas, qu'on referme en la tirant par sa poignée. Une seule phrase
@@ -212,16 +219,3 @@ Aux Bibliothèques, la bibliothèque ouverte se gère d'où l'on est, sans doubl
   l'application. Pas pour « Perso », qui n'a ni membres ni nom à gérer.
 - « Gérer les catégories » prend l'icône d'étiquette qu'il porte déjà ailleurs, pour ne pas le confondre avec la
   rangée de la bibliothèque. Au téléphone, chaque niveau a sa page : rien ne change à la racine.
-
-## [5.123.1] — 2026-11-12
-Copier-coller le texte d'un protocole dans un autre garde ses images (A729).
-- **Les images suivent le copier-coller.** Dans un protocole, le texte ne contient qu'un renvoi vers chaque image
-  (`![…](img:…)`) ; l'image elle-même reste rangée dans son protocole. Coller ce texte dans un autre protocole
-  recopiait le renvoi sans l'image : rien ne s'affichait, ni dans l'éditeur ni en lecture. Désormais, l'image est
-  reprise du protocole d'origine dès le collage : elle paraît dans le texte, dans « Images du texte », et se lit une
-  fois le protocole enregistré. Le curseur reste où il était.
-- **Les protocoles déjà touchés se réparent seuls** : ouvrir l'éditeur d'un protocole où un tel collage a été fait
-  ramène les images manquantes, tant que le protocole d'origine les a encore sur cet appareil. Il suffit ensuite
-  d'enregistrer.
-- Limite : un texte copié depuis un autre appareil ou un autre compte n'apporte pas ses images ; il faut les ajouter
-  à nouveau.

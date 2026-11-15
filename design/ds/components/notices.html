@@ -7937,7 +7937,7 @@
   /* ── B : au bureau large, les colonnes. `--imp-tpl` : case · élément · bibliothèque · catégorie ; sans bibliothèque à
      choisir, la colonne disparaît. La catégorie se pose TOUJOURS en dernière colonne (`-2/-1`), « Dans … » et l'écart
      couvrent les colonnes de destination (`3/-1`). */
-  .imp-cols{--imp-tpl:24px minmax(0,1fr) 190px 250px}
+  .imp-cols{--imp-tpl:24px minmax(0,1fr) 230px 250px}
   .imp-cols.imp-nolib{--imp-tpl:24px minmax(0,1fr) 300px}
   .imp-cols .imp-dest{display:grid;grid-template-columns:var(--imp-tpl);column-gap:16px;align-items:center;margin:0 0 10px;padding:8px 14px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--amb-2)}
   .imp-cols .imp-dest-l{display:none}
@@ -7949,7 +7949,11 @@
   .imp-cols .imp-dsel[hidden]{display:none}
   .imp-cols .imp-dsel~.imp-dsel{border-top:1px solid var(--ctl-line)}
   .imp-cols #impDestCat{grid-column:-2/-1}
+  /* v5.130.1 : le NOM du champ ne se coupe jamais (« Bibliothèque · » passait à la ligne, point seul en dessous, la bulle
+     doublait de hauteur) ; seule la VALEUR s'ellipse, et la bulle dit la valeur entière au survol (`title`). */
+  .imp-cols .imp-dk{flex:none;white-space:nowrap}
   .imp-cols .imp-dk::after{content:" ·"}
+  .imp-cols .imp-dsel>.imp-dv{flex:0 1 auto}
   .imp-cols .imp-dv{color:var(--ink)}
   .imp-cols :is(.imp-dsel,.imp-pick)>svg{transform:rotate(90deg)}
   .imp-cols .imp-row{grid-template-columns:var(--imp-tpl);column-gap:16px;row-gap:0;align-items:center;padding:10px 14px}
