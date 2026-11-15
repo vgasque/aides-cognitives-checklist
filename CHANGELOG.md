@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.134.0] — 2026-11-15
+Des vidéos dans les protocoles (A757). ⚠ **Serveur à mettre à jour** : rejouer `supabase/schema.sql`.
+- **Ajouter une vidéo** : « ＋ Insérer › Vidéo » dans l'éditeur d'un protocole. Formats **MP4** (lu partout), **MOV**
+  (la caméra de l'iPhone) et **WebM** (l'export de Notion) ; **30 Mo** au plus par vidéo, **20** par protocole.
+- **À la lecture**, la vidéo joue en boucle et sans le son quand elle est à l'écran, et s'arrête quand on la quitte
+  (avec « réduire les animations », elle attend qu'on la lance). Elle se range dans une grille comme une image.
+- **Elle est gardée sur l'appareil**, consultable hors ligne, et synchronisée comme les documents PDF, avec les mêmes
+  droits. Absente de l'appareil, ou illisible (un WebM sur un iPhone ancien), la vidéo le dit au lieu d'un cadre noir.
+- **À l'import** : les vidéos d'une page Notion (export Markdown ou HTML, dans le .zip) et celles d'une archive
+  exportée par l'app entrent avec le reste ; dans une page Notion à colonnes, chacune prend sa case de grille. Ce qui
+  ne peut pas entrer est nommé dans le texte et compté. **À l'export**, « Avec les fichiers joints » les emporte.
+- Le quota « Documents PDF » de l'administration compte aussi les vidéos.
+- **Correctif serveur** : la liste des documents orphelins de l'administration présentait tous les documents comme
+  orphelins (elle lisait un ancien nom de champ).
+- ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` (le stockage accepte désormais les vidéos, 30 Mo). Tant
+  que ce n'est pas fait, les vidéos restent sur l'appareil qui les a ajoutées, et l'app le signale une fois.
+
 ## [5.133.0] — 2026-11-15
 Importer une page Notion exportée en HTML : les colonnes deviennent une grille (A756).
 - **L'export HTML de Notion est accepté**, en plus de l'export Markdown : une page `.html` seule, ou le `.zip`
@@ -214,13 +231,3 @@ Un premier chargement de compte interrompu se reprend, et l'accueil le dit (A734
 - **Un chargement qui dure.** Au-delà de 20 secondes (grosse bibliothèque, réseau lent), l'accueil affiche la liste
   sans attendre, avec la mention « la liste n'est pas encore complète », qui disparaît quand tout est arrivé.
 - Rien ne change pour un appareil où le compte est déjà chargé : sa liste s'affiche tout de suite.
-
-## [5.124.3] — 2026-11-13
-À la connexion, l'accueil ne montre plus une liste partielle avant la vraie (A733).
-- **« Chargement de votre compte… » jusqu'au bout.** Sur un appareil où le compte n'a encore jamais été chargé
-  (connexion temporaire, ou nouvel appareil), l'accueil affichait d'abord « Aides » et quelques aides seulement, puis
-  changeait d'aspect une fois tout reçu. Les aides arrivent avant les protocoles, et l'état « chargement » s'arrêtait
-  dès les premières. Il tient désormais jusqu'à ce que tout soit arrivé, puis l'accueil s'affiche en une fois.
-- Au téléphone, le titre reste « Accueil » pendant le chargement.
-- Rien ne change pour un compte déjà chargé sur l'appareil : sa liste s'affiche tout de suite. Une recherche lancée
-  pendant le chargement montre ce qui est déjà arrivé. Au-delà de 20 secondes, l'accueil s'affiche quoi qu'il arrive.

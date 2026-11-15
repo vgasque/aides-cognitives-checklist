@@ -95,7 +95,8 @@
      Règle d'instance « qui crée une bibliothèque », demandes de bibliothèque, page
      Administration (A478-A484, A494).
  10. PROTOCOLES (« références ») : texte en mini-Markdown + documents PDF joints, visionneuse
-     pdf.js (sommaire, liens, recherche plein texte indexée dans le store 'attidx').
+     pdf.js (sommaire, liens, recherche plein texte indexée dans le store 'attidx') ; images en
+     grille (A755) ; vidéos MP4/WebM/MOV (A757), lues en boucle, gardées sur l'appareil.
  11. PARTAGE DE SESSION EN DIRECT : miroir additif entre appareils — en ligne (relais
      Supabase), en direct (WebRTC sur le réseau local) ou « par l'écran » (QR optiques, jsQR) ;
      aucun texte libre ne traverse le réseau (AGENTS.md règle 15).
@@ -329,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-AM67wEsBAcMtw4B7MwysWxGi3U2Aeoaocn0yLagllwQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-IAC2Iw9pxVmtZPLe7FJ4yjzy+GoeVZo4YdKDZyMz7zA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9107,6 +9108,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-tbl.md-tbl-img tbody th{background:none;border-right:0}
   .md-fig.md-cfig{margin:6px 0 0}
   .md-fig.md-cfig img{display:block;width:100%}
+  /* A757 — LA VIDÉO : un réceptacle au ratio d'un écran d'échographie tant que la vidéo n'est pas posée (pas de saut de
+     mise en page), puis la vidéo à la largeur de sa colonne ou de sa case. Absente ou illisible : le réceptacle le DIT,
+     en ambre (on risque de se tromper en la croyant là), glyphe et mots (règle 8). */
+  .md-vfig .md-vbox{display:grid;place-items:center;width:100%;aspect-ratio:4/3;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);overflow:hidden}
+  .md-vfig .md-vbox:has(video){display:block;aspect-ratio:auto;border:0;background:none}
+  .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
   /* A608 : « Pleine » = TOUTE la colonne, comme le promet le cadre de la poignée (A584) — l'image n'est plus affichée à
@@ -10784,7 +10793,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.133.0';
+const APP_VERSION='5.134.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11080,7 +11089,7 @@ function attBuf(rec){if(!rec)return null;
    ajouté demain est couvert sans qu'on y pense. */
 async function attPut(rec){
   const r=await IDB.putAtt(rec);
-  if(rec&&rec.id)ixQueue(rec.id);
+  if(rec&&rec.id&&!VID_EXT[rec.type])ixQueue(rec.id);   // A757 : une vidéo ne s'indexe pas (l'index lit des PDF)
   return r;}
 // Déménagement d'espace : DÉPLACE tout le contenu local (fiches, catégories, notes, sessions,
 // versions, épingles, marqueurs de push) de l'espace courant vers `space`. Deux usages :
@@ -11449,7 +11458,7 @@ function mdLenPaint(n){const el=document.getElementById('mdLen');if(!el)return;c
 const MD_MAX_TCOLS=12,MD_MAX_TROWS=200;
 const MD_TROW=/^\s*\|.*\|\s*$/;                     // ligne de tableau
 // A755 : une image dans une case — le segment entier (MD_CELL_IMG), ou présente quelque part dans la case (…_IN).
-const MD_CELL_IMG=/^\s*!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/,MD_CELL_IMG_IN=/!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)/;
+const MD_CELL_IMG=/^\s*!\[([^\]]{0,300})\]\((img|vid):([A-Za-z0-9_-]{1,64})\)\s*$/,MD_CELL_IMG_IN=/!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)/;   // A757 : ou une vidéo
 const MD_TSEP=/^\s*\|(?:\s*:?-{1,}:?\s*\|)+\s*$/;   // ligne de séparation (porte l'alignement)
 /* ENCADRÉS TYPÉS (v4.4.3) — une citation « > » peut porter un REGISTRE, exactement comme une étape
    de fiche porte « ⚠ » / « △ ». La couleur n'invente rien : elle réutilise les 5 registres de l'app
@@ -11559,6 +11568,7 @@ function mdBlocks(src){
      ligne vide dans une liste ne la ferme plus d'office : elle ne la ferme que si ce qui suit n'est ni une image
      indentée, ni — juste après une image d'élément — un nouvel élément (c'est la forme exacte de l'export Notion).
      Une image NON indentée reste un bloc pleine colonne (inchangé). */
+  const VID_RX=/^(\s*)!\[([^\]]{0,300})\]\(vid:([A-Za-z0-9_-]{1,64})\)\s*$/;   // A757 : une vidéo, seule sur sa ligne
   const IMG_RX=/^(\s*)!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/,LI_RX=/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/;
   for(let i=0;i<lines.length;i++){const l=lines[i];let m;
     // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
@@ -11585,6 +11595,7 @@ function mdBlocks(src){
     if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2],ln:i});continue;}
     if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr',ln:i});continue;}
     if((m=l.match(IMG_RX))){flushAll();out.push({t:'img',caption:m[2],id:m[3],ln:i});continue;}
+    if((m=l.match(VID_RX))){flushAll();out.push({t:'vid',caption:m[2],id:m[3],ln:i});continue;}   // A757
     // Citation, éventuellement TYPÉE : le marqueur de registre n'est lu que sur la PREMIÈRE ligne
     // du bloc (les suivantes appartiennent au même encadré, comme les alerts de GitHub).
     if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();
@@ -11647,6 +11658,11 @@ function mdRender(src,ctx){ctx=ctx||{};
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
     return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+(cls===' md-cfig'?'':mdFigAr(im.w,im.h))+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const imgsHtml=it=>it.imgs?it.imgs.map(x=>figHtml(x.id,x.caption,' md-lfig')).join(''):'';
+  /* A757 — UNE VIDÉO : une figure-réceptacle (`data-vid`), la vidéo elle-même est posée APRÈS le rendu par `vidHydrate`
+     (le binaire est dans IndexedDB ; mdRender reste pur et synchrone). Inconnue du protocole : rien, comme une image. */
+  const vids=Object.create(null);(ctx.videos||[]).forEach(v=>{if(v&&v.id&&!badKey(v.id)&&VID_EXT[v.mime])vids[v.id]=v;});
+  const vidHtml=(id,caption,cls)=>{const v=vids[id];if(!v)return '';const cap=caption||'';
+    return '<figure class="md-fig md-vfig'+(cls||'')+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'"><div class="md-vbox"><span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
@@ -11680,7 +11696,7 @@ function mdRender(src,ctx){ctx=ctx||{};
          rend en vignette (la figure de lecture : un toucher l'agrandit) ; le reste reste du texte en ligne. Le tableau qui
          en porte une prend des colonnes égales (`md-tbl-img`) : la grille d'images de Notion. */
       const ce=c=>{let html='',prevTxt=false;String(c==null?'':c).split(/<br\s*\/?>/i).forEach(seg=>{const m=seg.match(MD_CELL_IMG);
-          if(m){const f=figHtml(m[2],m[1],' md-cfig');if(f){html+=f;prevTxt=false;return;}}
+          if(m){const f=m[2]==='vid'?vidHtml(m[3],m[1],' md-cfig'):figHtml(m[3],m[1],' md-cfig');if(f){html+=f;prevTxt=false;return;}}
           html+=(prevTxt?'<br>':'')+mdInline(seg);prevTxt=true;});return html;},hc=mdTblHc(B);
       const aImg=H.concat(...B).some(c=>MD_CELL_IMG_IN.test(String(c==null?'':c)));
       const hd=mdTblEmpty(H)?'':'<thead><tr>'+H.map((c,i)=>'<th'+ta(al[i])+' scope="col">'+ce(c)+'</th>').join('')+'</tr></thead>';
@@ -11688,6 +11704,7 @@ function mdRender(src,ctx){ctx=ctx||{};
       // Conteneur défilant FOCUSABLE (clavier : WCAG 2.1.1) — sur iPhone le tableau défile au lieu
       // d'écraser ses colonnes (lisibilité sous stress).
       return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl'+(hc?' md-tbl-hc':'')+(aImg?' md-tbl-img':'')+'">'+hd+'<tbody>'+bd+'</tbody></table></div>';}
+    if(b.t==='vid')return vidHtml(b.id,b.caption,'');   // A757
     if(b.t==='h1')return '<h1 class="md-h1">'+mdInline(b.text)+'</h1>';
     if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
     if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
@@ -11964,11 +11981,32 @@ function safeAttachment(a){if(!a||typeof a!=='object')return null;
 /* ═══════ ENTRÉES DE FICHIER : UNE TABLE FERMÉE, UNE PORTE (v5.0.0) ══════════════════════════
    Quatre chemins d'upload divergents remplacés par UNE table : l'`accept` AFFICHÉ et la signature
    VÉRIFIÉE sortent de la MÊME ligne — « un champ de PDF n'accepte ni JSON ni image » est une
-   propriété du code, plus une intention. TROIS NATURES, ET PAS UNE DE PLUS : pdf, image, data —
-   une quatrième s'ajoute ICI, ou nulle part. Détail : doctrine-js.md J12. */
+   propriété du code, plus une intention. QUATRE NATURES depuis A757 (la vidéo, décidée par l'auteur) : pdf, image, data, video —
+   une cinquième s'ajoute ICI, ou nulle part. Détail : doctrine-js.md J12. */
 const MAX_IMG_BYTES=25*1024*1024;      // AVANT réduction — downscale() ramène ensuite à ≤ 1180 px
-const MAX_IMPORT_BYTES=40*1024*1024;   // l'archive est bornée ensuite par ZIP_MAX_TOTAL/ZIP_MAX_ENTRY
+const MAX_IMPORT_BYTES=120*1024*1024;  // l'archive est bornée ensuite par ZIP_MAX_TOTAL/ZIP_MAX_ENTRY — A757 : 40 → 120 Mo, un export Notion porte ses vidéos
 const MAX_IMG_PER_ENTITY=60;           // par aide OU par référence (c'était 60 d'un côté, rien de l'autre)
+/* A757 — LES VIDÉOS, QUATRIÈME NATURE (décision de l'auteur : « ajoute les vidéos »). MP4 (H.264, lu partout), MOV (la
+   caméra de l'iPhone), WebM (l'export de Notion ; lu sur iPhone selon la version d'iOS — la lecture le dit si elle
+   échoue). 30 Mo par vidéo (une boucle d'échographie pèse 1 à 8 Mo), 20 par protocole. Le binaire vit comme un PDF :
+   magasin `attachments` de l'appareil, même bucket et mêmes droits côté serveur ; le protocole n'en porte que la fiche. */
+const MAX_VID_BYTES=30*1024*1024,MAX_VID_PER_ENTITY=20;
+const VID_EXT={'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov'};
+// Nature d'une vidéo d'après ses octets — PURE (testée). ISO BMFF (« ftyp » en 4) : marques VIDÉO seulement (une image
+// HEIC ou un son M4A ont aussi « ftyp ») ; WebM : en-tête EBML.
+function vidKind(u8){if(!u8||u8.length<12)return null;
+  if(_sigAt(u8,0,[0x1A,0x45,0xDF,0xA3]))return 'video/webm';
+  if(!_sigAt(u8,4,[0x66,0x74,0x79,0x70]))return null;
+  const br=String.fromCharCode(u8[8],u8[9],u8[10],u8[11]);
+  if(br==='qt  ')return 'video/quicktime';
+  return /^(isom|iso[2-9]|mp41|mp42|avc1|M4V |M4VP|dash|mmp4|MSNV|3gp[4-6]|3g2a)$/.test(br)?'video/mp4':null;}
+// La fiche d'une vidéo : {id, name, size, mime} — le binaire n'est jamais dans le protocole.
+function safeVideo(v){if(!v||typeof v!=='object')return null;
+  const id=(typeof v.id==='string'&&SAFE_ID.test(v.id)&&!badKey(v.id))?v.id:null,mime=VID_EXT[v.mime]?v.mime:null;
+  if(!id||!mime)return null;
+  return {id,name:safeFileName(v.name)||('video.'+VID_EXT[mime]),size:Math.max(0,Math.min(MAX_VID_BYTES,Math.round(Number(v.size))||0)),mime};}
+const attExt=type=>VID_EXT[type]||'pdf';   // extension du chemin distant d'un binaire, d'après son type
+const attTypeOfPath=path=>{const e=(String(path||'').match(/\.([a-z0-9]{2,4})$/)||[])[1];return e==='mp4'?'video/mp4':e==='webm'?'video/webm':e==='mov'?'video/quicktime':'application/pdf';};
 /* Comparaison d'octets à une position donnée — outil des sniffeurs. PURE. */
 const _sigAt=(u8,off,b)=>{if(!u8||u8.length<off+b.length)return false;for(let i=0;i<b.length;i++)if(u8[off+i]!==b[i])return false;return true;};
 const _cc=s=>{const a=[];for(let i=0;i<s.length;i++)a.push(s.charCodeAt(i));return a;};
@@ -12023,11 +12061,14 @@ const UP_KINDS={
          sniff:u8=>!!imgKind(u8), max:MAX_IMG_BYTES,
          un:'une image', pl:'vos images', ind:'PNG · JPEG · WebP · HEIC'},
   data: {accept:'application/json,.json,application/zip,.zip,text/markdown,.md,text/html,.html', sniff:u8=>!!dataKind(u8),
-         max:MAX_IMPORT_BYTES, un:'un fichier .json, .zip, .md ou .html', pl:'vos fichiers .json, .zip, .md ou .html', ind:'.json · .zip · .md · .html (Notion)'}};
+         max:MAX_IMPORT_BYTES, un:'un fichier .json, .zip, .md ou .html', pl:'vos fichiers .json, .zip, .md ou .html', ind:'.json · .zip · .md · .html (Notion)'},
+  // A757 : la quatrième nature, décidée par l'auteur.
+  video:{accept:'video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm', sniff:u8=>!!vidKind(u8), max:MAX_VID_BYTES,
+         un:'une vidéo', pl:'vos vidéos', ind:'MP4 · MOV · WebM'}};
 /* Nature RÉELLE d'un fichier d'après ses octets — sert au ROUTAGE d'un dépôt : c'est le CONTENU
    qui décide où il va, jamais l'extension ni la zone visée. Aucune ambiguïté entre les trois
    (un PDF commence par « % », un zip par « PK », un JSON par « { » ou « [ »). */
-function upDetect(u8){const o=['pdf','image','data'];for(let i=0;i<o.length;i++)if(UP_KINDS[o[i]].sniff(u8))return o[i];return null;}
+function upDetect(u8){const o=['pdf','image','data','video'];for(let i=0;i<o.length;i++)if(UP_KINDS[o[i]].sniff(u8))return o[i];return null;}
 const upShortName=n=>{const s=safeFileName(n)||'ce fichier';return s.length>44?s.slice(0,41)+'…':s;};
 /* Lecture de la TÊTE seule (64 octets) : la signature suffit, et un fichier de 40 Mo n'a aucune
    raison d'être chargé en mémoire pour être refusé. */
@@ -14132,15 +14173,18 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    Modèle (v4, cf. blankProtocol) : { id, title, code, category, validatedAt('AAAA-MM'),
    body(mini-Markdown, <= MD_MAX_CHARS), images[{id,data,caption}] (référencées par ![…](img:ID)
    dans body), docs[{id,name,size}] (mêmes documents PDF que les fiches — store IndexedDB
-   'attachments' partagé), links, sources, order, status, updatedBy, updatedAt, deletedAt,
+   'attachments' partagé), videos[{id,name,size,mime}] (A757 : MP4/WebM/MOV, binaire dans le même
+   store et le même bucket, référencées par ![…](vid:ID) dans body), links, sources, order, status, updatedBy, updatedAt, deletedAt,
    ownerId, library }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
-function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,body:'',images:[],docs:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
+function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,body:'',images:[],docs:[],videos:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
 function migrateProtocol(p){if(!p||typeof p!=='object')p={};
   sanitizeEntityCommon(p,'p',60);
   p.body=sstr(p.body,MD_MAX_CHARS);   // contenu rédigé (mini-Markdown) — spécifique au protocole
   // related : ids liés « Voir aussi » — fiches OU protocoles (v4.2.0), nettoyés par le tronc commun.
   p.sources=sarr(p.sources,500);   // traçabilité (v4.2.2) — même section que les fiches
+  // A757 : les vidéos du protocole (fiches seules ; les binaires vivent dans le magasin `attachments`).
+  {const vu=new Set();p.videos=(Array.isArray(p.videos)?p.videos:[]).map(safeVideo).filter(v=>v&&!vu.has(v.id)&&vu.add(v.id)).slice(0,MAX_VID_PER_ENTITY);}
   borneInconnus(p,'p');
   return p;}
 /* LES DEUX FICHES D'EXEMPLE SONT LE SEUL MATÉRIEL PÉDAGOGIQUE DU PRODUIT (lot T13, constat 3 de
@@ -19661,7 +19705,7 @@ function bindPreviewBack(clear,badgeTxt){
 function renderProtocolRead(){
   const p=state.protocol;if(!p){state.view='library';return render();}
   const preview=!!state.previewFrom;
-  const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images})}</section>`:'';
+  const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images,videos:p.videos})}</section>`:'';
   const docs=attListHtml(p);
   // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
   const rel=(p.links||[]).map(id=>relTarget(id)).filter(Boolean);
@@ -19899,6 +19943,7 @@ function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g
     ins:{aria:'Insérer',o:[['tbl','Tableau','| a | b |',uiIcon('table',18)],
       ['att','Lien vers un document joint',n?n+' PDF · « #p12 » après l’identifiant vise une page':'joindre un PDF, puis le lier',uiIcon('doc',18),n>0],
       ['link','Lien web','[texte](https://…) · ⌘K',uiIcon('link',18)],['img','Image','réduite et stockée hors ligne',uiIcon('img',18)],
+      ['vid','Vidéo','MP4 · MOV · WebM, 30 Mo au plus — gardée sur l’appareil',uiIcon('play',18)],   // A757
       ['imgrid','Grille d’images','met côte à côte les images du passage sélectionné',uiIcon('table',18)],   // A755
       ['code','Code','`texte`',uiIcon('code',18)],['hr','Séparateur','---',uiIcon('hr',18)]]}};}
 function mdToolbarHtml(){
@@ -19939,6 +19984,7 @@ function mdTool(k,ta,p,takeImg){
   else if(k==='tbl'||k==='grid')mdTblOpen(ta);
   else if(k==='link'){const [a,b,v]=selBounds(ta),t=v.slice(a,b)||'texte';mdSplice(ta,a,b,'['+t+'](https://)',a+t.length+3,a+t.length+11);}
   else if(k==='img')pickFile('image',takeImg,true);
+  else if(k==='vid')vidPick(ta,p);   // A757
   /* A755 : le passage sélectionné, étendu à ses lignes entières, devient une grille. */
   else if(k==='imgrid'){const v=ta.value,a0=v.lastIndexOf('\n',Math.max(0,ta.selectionStart-1))+1,e=v.indexOf('\n',ta.selectionEnd),b0=e<0?v.length:e;
     const a=ta.selectionStart===0?0:a0;
@@ -19965,7 +20011,7 @@ function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[];
    aperçu côte à côte ; ≥ 1000 : l'aperçu vit dans la colonne de droite (inchangé). Partout : un
    « Plan » des titres (aller à une section), et l'aperçu SUIT le curseur — le bloc où l'on écrit est
    marqué (`.md-here`) ; toucher un bloc de l'aperçu ramène le curseur à sa ligne. */
-const mdPvHtml=p=>mdRender(p.body||'',{images:p.images,ln:true});
+const mdPvHtml=p=>mdRender(p.body||'',{images:p.images,videos:p.videos,ln:true});
 /* A547 — LA MISE EN FORME EN DIRECT : LE DOCUMENT S'ÉDITE PAR BLOCS. Le rendu EST l'éditeur : on touche un bloc
    (titre, paragraphe, encadré, liste, tableau, image), il s'ouvre en Markdown dans un champ NATIF à lui ; le reste
    reste rendu. Pas de `contenteditable` (écarté, A452-A459) : chaque bloc est un <textarea>, le texte enregistré
@@ -20073,7 +20119,7 @@ function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||
   const G=new Set(many&&many.length>1?many:[grab]),lbl=G.size>1?G.size+' blocs':mdBlkLabel(src(R[grab]));
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
   return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(lbl)}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
-    +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
+    +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images,videos:p.videos})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
 function mdDocHtml(p,open,grab,many){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
   const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
   if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1">${uiIcon('plus',16,{sw:2.4})}Écrire le contenu…</button>`;
@@ -20088,7 +20134,7 @@ ${R.length>1?`        <button type="button" class="btn sm" data-mdbact="sel">${u
         <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
         <button type="button" class="btn sm danger" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
         <button type="button" class="btn sm primary mdb-done" data-mdbact="done">Terminé</button></div></div>`;
-    const h=mdRender(src,{images:p.images})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
+    const h=mdRender(src,{images:p.images,videos:p.videos})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
     /* A610 : « ＋ » au-dessus et au-dessous du SEUL bloc survolé (pointeur fin) — A550 retirait les « ＋ » de TOUS les
        interstices, visibles ensemble au survol du document et posés sur le texte ; ceux-ci n'existent que pour le bloc sous
        la souris, sur son cadre, cible de 32 px. Au doigt : « Bloc avant » / « Bloc après » du bloc ouvert. */
@@ -20473,13 +20519,57 @@ const mdFit=(r,n)=>{const o=r.slice(0,n);while(o.length<n)o.push('');return o;};
    - retour à la ligne dans une case = `<br>` (la convention GFM ; le SEUL fragment HTML que lit le rendu, en dur).
    `hh` (ligne d'en-tête) et `hc` (colonne d'en-tête) sont lus par `mdTableAt` et écrits par `mdTableMd`. */
 const mdTblEmpty=r=>r.every(c=>!String(c||'').trim());
+/* A757 — AJOUTER DES VIDÉOS au protocole ouvert : la porte (`pickFile('video')` → signature, plafond), le binaire rangé
+   dans le magasin de l'appareil (synchronisé comme un PDF), la fiche dans `p.videos`, la ligne `![](vid:ID)` posée au
+   curseur. Ses binaires neufs sont protégés pendant l'édition (`draftNewAtts`) et le ménage de sortie retire une vidéo
+   que le texte ne cite plus. */
+function vidPick(ta,p){if(!p)return;
+  if(!supportsAttachments()){toast('⚠ Les vidéos demandent le stockage de l’appareil, indisponible dans ce navigateur.',6000,true);return;}
+  pickFile('video',async files=>{let n=0;
+    for(const f of files){if((p.videos||[]).length>=MAX_VID_PER_ENTITY){toast('⚠ '+MAX_VID_PER_ENTITY+' vidéos au plus par protocole.',6000,true);break;}
+      const buf=await f.arrayBuffer(),mime=vidKind(new Uint8Array(buf,0,Math.min(64,buf.byteLength)));if(!mime)continue;
+      const id=uid('v');
+      try{await attPut({id,buf,size:buf.byteLength,type:mime,createdAt:Date.now(),dirty:1,remotePath:null});}
+      catch(e){toast('⚠ Stockage de l’appareil plein : « '+upShortName(f.name)+' » n’a pas pu être gardée.',8000,true);break;}
+      draftNewAtts.push(id);(p.videos=p.videos||[]).push({id,name:safeFileName(f.name)||('video.'+VID_EXT[mime]),size:buf.byteLength,mime});n++;
+      mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](vid:'+id+')\n');}
+    if(n)edTouch();},true);}
+/* A757 — LA VIDÉO SE POSE APRÈS LE RENDU. `mdRender` est pur ; le binaire est dans IndexedDB. Un observateur unique
+   repère toute figure `data-vid` neuve, où qu'elle soit rendue (lecture, aperçu, document en direct), et y pose la
+   vidéo : muette, en boucle, dans la page (`playsinline`), avec ses commandes ; elle JOUE quand elle est à l'écran et
+   s'arrête hors de l'écran (sauf « réduire les animations » : elle attend qu'on la lance). L'URL du binaire est propre à
+   l'élément et rendue quand il quitte la page. Absente de l'appareil : la figure le DIT, et se repose quand la
+   synchronisation l'apporte (`vidRefresh`). Illisible ici (un WebM sur un iPhone ancien) : elle le dit aussi. */
+const vidReduce=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
+let _vidIO=null;
+async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1';
+  const id=fig.dataset.vid,box=fig.querySelector('.md-vbox');if(!id||!box)return;
+  let rec=null;try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}
+  const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
+  if(!buf){fig.dataset.vh='';fig.classList.add('md-vabs');
+    box.innerHTML='<span class="md-vph">△ Vidéo pas encore sur cet appareil — elle arrive avec la synchronisation.</span>';return;}
+  fig.classList.remove('md-vabs');
+  const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
+  v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
+  const cap=fig.querySelector('figcaption');v.setAttribute('aria-label',cap&&cap.textContent?cap.textContent:'Vidéo');
+  v.addEventListener('error',()=>{box.innerHTML='<span class="md-vph">△ Cette vidéo'+(fig.dataset.vmime==='video/webm'?' (WebM)':'')+' ne se lit pas sur cet appareil.</span>';});
+  box.replaceChildren(v);if(_vidIO&&!vidReduce())_vidIO.observe(v);}
+function vidRefresh(id){document.querySelectorAll('figure.md-vfig[data-vid="'+CSS.escape(String(id))+'"]').forEach(f=>{f.dataset.vh='';vidHydrate(f);});}
+(()=>{const scan=()=>document.querySelectorAll('figure.md-vfig[data-vid]:not([data-vh])').forEach(vidHydrate);
+  if(typeof IntersectionObserver==='function')_vidIO=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
+    if(e.isIntersecting&&e.intersectionRatio>=.5){const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{});}else v.pause();}),{threshold:[0,.5]});
+  let prevu=false;const mo=new MutationObserver(ms=>{
+    for(const m of ms)m.removedNodes.forEach(n=>{if(n.nodeType!==1)return;(n.matches&&n.matches('video[data-blob]')?[n]:[...n.querySelectorAll('video[data-blob]')]).forEach(v=>{try{URL.revokeObjectURL(v.dataset.blob);}catch(e){}if(_vidIO)_vidIO.unobserve(v);});});
+    if(!prevu){prevu=true;requestAnimationFrame(()=>{prevu=false;scan();});}});
+  const go=()=>{mo.observe(document.body,{childList:true,subtree:true});scan();};
+  if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
 /* A755 — METTRE EN GRILLE, PURE (?__actest). Un passage « libellé, puis son image », répété, devient un tableau à `n`
    colonnes sans ligne d'en-tête (A609) : chaque case porte « libellé<br>![…](img:ID) » — la grille de Notion, dont
    l'export Markdown ne garde pas les colonnes (rien n'y distingue des images côte à côte d'images à la suite : c'est
    donc l'auteur qui dit combien de colonnes, jamais l'app qui devine). Le libellé = le texte entre l'image précédente
    et la sienne (la seule ligne juste au-dessus, pour la première) ; le reste, avant et après, entoure le tableau — RIEN ne se perd. Moins de
    deux images : `null`. */
-const MD_GR_IMG=/^\s*!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/;
+const MD_GR_IMG=/^\s*!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)\s*$/;   // A757 : une vidéo se range comme une image
 function mdGrille(src,n){n=Math.max(2,Math.min(4,Math.round(Number(n))||3));
   const L=String(src==null?'':src).split('\n'),items=[],avant=[];let lab=[];
   const net=t=>t.replace(/^#{1,6}\s+/,'').replace(/^(?:[-*]|\d{1,3}[.)])\s+/,'').replace(/\|/g,'\\|').trim();
@@ -20788,6 +20878,8 @@ function mdImgIds(blocks){const out=[];const walk=items=>(items||[]).forEach(it=
   /* A755 : une image dans une case de tableau compte aussi — sans quoi `leaveGC` la retirerait en quittant l'éditeur. */
   const cases=b=>[].concat(b.head||[],...(b.rows||[])).forEach(c=>{for(const m of String(c==null?'':c).matchAll(/!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)/g))out.push(m[1]);});
   (blocks||[]).forEach(b=>{if(b.t==='img')out.push(b.id);else if(b.t==='ul'||b.t==='ol')walk(b.items);else if(b.t==='tbl')cases(b);});return out;}
+// A757 : les vidéos citées par le texte (une ligne `![…](vid:ID)`, ou une case) — le ménage de sortie garde celles-là.
+function mdVidIds(body){const out=new Set();for(const m of String(body||'').matchAll(/!\[[^\]\n]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)/g))out.add(m[1]);return out;}
 function miUses(body){const n=Object.create(null);mdImgIds(mdBlocks(body||'')).forEach(id=>{n[id]=(n[id]||0)+1;});return n;}
 const miLineRx=id=>new RegExp('^\\s*!\\[[^\\]]*\\]\\(img:'+String(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\)\\s*$');
 // A755 : la même image DANS une case de tableau (retirer l'image vide la case ; « Aller au passage » trouve la ligne).
@@ -20907,10 +20999,10 @@ function renderProtocolEdit(){
     /* Ménage de SORTIE : une image que plus aucune ligne du corps ne référence est du poids
        mort. Destructif, donc jamais pendant la frappe — retirer une référence pour la
        remettre trois mots plus loin ne doit pas coûter l'image. */
-    leaveGC:d=>{const used=new Set(mdImgIds(mdBlocks(d.body||'')));
-      const gardees=(d.images||[]).filter(im=>used.has(im.id));
-      if(gardees.length!==(d.images||[]).length){d.images=gardees;const i=protocols.findIndex(x=>x.id===d.id);
-        if(i>=0){const c=edSnapshot('p');if(c){c.images=gardees;persistProtocol(c);protocols[i]=c;}}}},
+    leaveGC:d=>{const used=new Set(mdImgIds(mdBlocks(d.body||''))),vu=mdVidIds(d.body);
+      const gardees=(d.images||[]).filter(im=>used.has(im.id)),vgard=(d.videos||[]).filter(v=>vu.has(v.id));   // A757 : les vidéos aussi
+      if(gardees.length!==(d.images||[]).length||vgard.length!==(d.videos||[]).length){d.images=gardees;d.videos=vgard;const i=protocols.findIndex(x=>x.id===d.id);
+        if(i>=0){const c=edSnapshot('p');if(c){c.images=gardees;c.videos=vgard;persistProtocol(c);protocols[i]=c;}}}},
     openExisting:openProtocolRead});
   bindEditorMetaFields(p,'p',{fem:false,rerender:renderProtocolEdit,preview:openPDraftPreview});
   {const od=document.getElementById('edAddOpenP');if(od)od.onclick=()=>edAddOpenProto(p);}
@@ -32061,20 +32153,25 @@ async function exportData(list,baseName,cats,protos){
   const tout=list.concat(protos||[]);
   const nImg=tout.reduce((n,x)=>{const d=new Set(((x&&x.images)||[]).filter(i=>i&&i.data).map(i=>i.data));
     ((x&&x.blocks)||[]).forEach(b=>{if(b&&b.image)d.add(b.image);});return n+d.size;},0);
+  // A757 : les vidéos des protocoles voyagent dans l'archive (`videos/<id>.<ext>`), comme les PDF.
+  const vidL=[];{const seen=new Set();(protos||[]).forEach(f=>(f.videos||[]).forEach(v=>{if(v&&v.id&&!seen.has(v.id)){seen.add(v.id);vidL.push(v);}}));}
+  const nVid=vidL.length;
   const nDoc=attIds.length,stamp=new Date().toISOString().slice(0,10);
   const json=JSON.stringify(out,null,2);
   let zipBlob=null,missing=0;
-  if(nDoc&&supportsAttachments()){
+  if((nDoc||nVid)&&supportsAttachments()){
     const entries=[{name:'donnees.json',data:new TextEncoder().encode(json)}];
     for(const id of attIds){
       let buf=null;try{buf=await attBuf(await IDB.getAtt(id));}catch(err){}
       if(buf)entries.push({name:'documents/'+id+'.pdf',data:new Uint8Array(buf)});else missing++;}
+    for(const v of vidL){let buf=null;try{buf=await attBuf(await IDB.getAtt(v.id));}catch(err){}
+      if(buf)entries.push({name:'videos/'+v.id+'.'+VID_EXT[v.mime],data:new Uint8Array(buf)});else missing++;}
     zipBlob=new Blob([zipBuild(entries)],{type:'application/zip'});}
   let avec=true;
-  if(nImg||nDoc){
-    const quoi=[nImg&&(nImg+' image'+(nImg>1?'s':'')),nDoc&&(nDoc+' document'+(nDoc>1?'s':'')+' PDF')].filter(Boolean).join(' et ');
+  if(nImg||nDoc||nVid){
+    const quoi=[nImg&&(nImg+' image'+(nImg>1?'s':'')),nDoc&&(nDoc+' document'+(nDoc>1?'s':'')+' PDF'),nVid&&nb(nVid,'vidéo')].filter(Boolean).join(', ').replace(/, ([^,]*)$/,' et $1');
     const c=await confirmDlg('Ce contenu a '+quoi+'. Les inclure dans le fichier exporté ?'
-      +(zipBlob?' Avec les documents, le fichier est une archive .zip, à réimporter telle quelle.':'')
+      +(zipBlob?' Avec les documents et les vidéos, le fichier est une archive .zip, à réimporter telle quelle.':'')
       +' Sans, le fichier ne garde que le texte.',
       {title:'Exporter',yes:'Avec les fichiers joints'+(zipBlob?' (.zip)':''),no:'Sans les fichiers joints'});
     if(c===null)return;   // ✕/Échap = export abandonné
@@ -32082,7 +32179,7 @@ async function exportData(list,baseName,cats,protos){
   if(!avec){dlBlob(new Blob([JSON.stringify(exportLeger(out),null,2)],{type:'application/json'}),baseName+'-'+stamp+'.json');return;}
   if(!zipBlob){dlBlob(new Blob([json],{type:'application/json'}),baseName+'-'+stamp+'.json');
     // Navigateur sans stockage de documents : seules leurs références voyagent, on le dit.
-    if(nDoc)toast('Les documents PDF ne peuvent pas être inclus depuis ce navigateur ; ils suivent votre compte via la synchronisation.',9000);
+    if(nDoc||nVid)toast('Les documents PDF et les vidéos ne peuvent pas être inclus depuis ce navigateur ; ils suivent votre compte via la synchronisation.',9000);
     return;}
   dlBlob(zipBlob,baseName+'-'+stamp+'.zip');
   if(missing)toast('⚠ '+missing+' document(s) pas encore téléchargé(s) sur cet appareil : référence(s) exportée(s) sans le fichier. Synchronisez avec du réseau puis ré-exportez pour les inclure.',9000);}
@@ -32090,10 +32187,10 @@ async function exportData(list,baseName,cats,protos){
    dans le texte rédigé, les lignes d'image `![…](img:ID)` et les liens `[texte](att:ID)` (le texte reste). Rien ne
    pend à l'import : ni image introuvable, ni rangée « △ à télécharger » d'un document qui n'arrivera jamais. */
 function exportLeger(out){const o={...out};
-  const nu=x=>{const c={...x};c.images=[];c.docs=[];
+  const nu=x=>{const c={...x};c.images=[];c.docs=[];if(Array.isArray(c.videos))c.videos=[];   // A757
     if(Array.isArray(c.blocks))c.blocks=c.blocks.map(b=>b&&b.image?{...b,image:null,imageW:null,imageH:null}:b);
-    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/.test(l))
-      .map(l=>MD_TROW.test(l)?l.replace(/!\[[^\]\n]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)/g,''):l).join('\n')   // A755 : et celles des cases
+    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)\s*$/.test(l))
+      .map(l=>MD_TROW.test(l)?l.replace(/!\[[^\]\n]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)/g,''):l).join('\n')   // A755 : et celles des cases ; A757 : et les vidéos
       .replace(/\[([^\]\n]{1,200})\]\(att:[A-Za-z0-9_-]{1,64}(?:#p\d{1,4})?\)/g,'$1');
     return c;};
   o.fiches=(out.fiches||[]).map(nu);if(out.protocols)o.protocols=out.protocols.map(nu);return o;}
@@ -32136,7 +32233,7 @@ function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();
       (celui qui a déplacé l'élément a déjà téléversé).
    Partager un document entre éléments du MÊME espace reste voulu (`attachablePdfs`). */
 // Espace désigné par un chemin distant — PURE (testée) : null = mon Perso, id = bibliothèque, undefined = ni l'un ni l'autre.
-function attPathSpace(path,me){const m=/^([ul])\/([A-Za-z0-9_-]{1,64})\/[A-Za-z0-9_-]{1,64}\.pdf$/.exec(String(path||''));
+function attPathSpace(path,me){const m=/^([ul])\/([A-Za-z0-9_-]{1,64})\/[A-Za-z0-9_-]{1,64}\.(?:pdf|mp4|webm|mov)$/.exec(String(path||''));
   if(!m)return undefined;return m[1]==='u'?(m[2]===me?null:undefined):m[2];}
 // Espace d'un enregistrement de binaire — PURE (testée) : `scope` d'abord, sinon le chemin distant ; undefined = inconnu.
 function attRecSpace(rec,me){if(!rec)return undefined;
@@ -32158,7 +32255,7 @@ function attPlan(rec,refs,me){const id=rec&&rec.id,R=attRefSpaces(refs);
   if(!R.use.length)return {act:'purge'};
   let cur=attRecSpace(rec,me);
   if(cur===undefined)cur=R.spaces[0];                       // enregistrement ancien, jamais envoyé : adopté par qui le cite (Perso d'abord)
-  const chemin=sp=>attStoragePath(sp,me,id);
+  const chemin=sp=>attStoragePath(sp,me,id,attExt(rec&&rec.type));   // A757 : l'extension suit le type du binaire
   if(R.spaces.some(x=>x===cur)){const path=chemin(cur);
     if(!rec.dirty&&rec.remotePath===path)return {act:'none',space:cur,path};
     if(!R.use.some(r=>(r.lib||null)===cur&&r.edit))return {act:'none',space:cur,path};   // lecteur : jamais de téléversement
@@ -32167,8 +32264,8 @@ function attPlan(rec,refs,me){const id=rec&&rec.id,R=attRefSpaces(refs);
   return {act:'relabel',space:R.spaces[0],path:chemin(R.spaces[0])};}
 // Les chemins où chercher un binaire ABSENT — PURE (testée) : chaque espace citant, bibliothèques d'abord (un Perso
 // qui cite l'id d'un document de bibliothèque n'a rien sous `u/…`), sans doublon.
-function attFetchPaths(id,refs,me){const R=attRefSpaces(refs);
-  return R.spaces.filter(x=>x!==null).concat(R.spaces.filter(x=>x===null)).map(sp=>attStoragePath(sp,me,id));}
+function attFetchPaths(id,refs,me,ext){const R=attRefSpaces(refs);
+  return R.spaces.filter(x=>x!==null).concat(R.spaces.filter(x=>x===null)).map(sp=>attStoragePath(sp,me,id,ext));}
 // Un ancien chemin ne se supprime que chez moi, ou dans une bibliothèque que je peux éditer — PURE (testée).
 function attMayDelete(path,me,canEdit){const sp=attPathSpace(path,me);return sp===null||(typeof sp==='string'&&!!canEdit(sp));}
 // Les liens `](att:ID)` / `](att:ID#p3)` du contenu suivent un changement d'id — PURE (testée ; extraite d'`importAtts`, A669).
@@ -32265,6 +32362,24 @@ async function attRepairShared(){
    à toute la bibliothèque. Hors du même espace : le binaire du .zip entre sous un id NEUF (`remap`,
    partagé par tout l'import ; les liens `att:` du contenu suivent), et une référence sans binaire
    dans le fichier est retirée — elle ne peut plus s'accrocher à un document local. */
+/* A757 — LES VIDÉOS D'UN PROTOCOLE IMPORTÉ : le binaire vient du fichier (`zipVids` : `videos/<id>.<ext>` d'une archive
+   de l'app, ou les octets lus dans un export Notion), signé et borné ; `keep` (même espace, ou ids neufs posés par
+   l'import Notion) garde l'identifiant, sinon un id neuf et les liens `](vid:…)` suivent. Une vidéo qui ne peut pas
+   entrer est RETIRÉE du texte, nommée (« *[Vidéo absente du fichier]* ») et comptée — jamais une référence morte.
+   Même espace, absente du fichier mais présente ici (ou attendue de la synchro) : la fiche reste. Rend le nombre écarté. */
+const vidRetire=(body,ids)=>{let b=String(body==null?'':body);ids.forEach(id=>{b=b.replace(new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(vid:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g'),'*[Vidéo absente du fichier]*');});return b;};
+async function importVids(d,zipVids,keep){if(!(d.videos||[]).length)return 0;
+  if(!supportsAttachments()){const n=d.videos.length;d.body=vidRetire(d.body,d.videos.map(v=>v.id));d.videos=[];return n;}
+  const kept=[],chg=[],out=[];
+  for(const v of d.videos){const z=zipVids?zipVids.get(v.id):null,mime=z&&z.length<=MAX_VID_BYTES?vidKind(z.subarray(0,64)):null;
+    if(!mime){let have=null;if(keep){try{have=await IDB.getAtt(v.id);}catch(e){}}
+      if(have||(keep&&!z&&!zipVids))kept.push(v);else out.push(v.id);continue;}
+    const id=keep?v.id:uid('v'),buf=z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength);
+    try{await attPut({id,buf,size:buf.byteLength,type:mime,createdAt:Date.now(),dirty:1,remotePath:null});}catch(e){out.push(v.id);continue;}
+    kept.push({...v,id,size:buf.byteLength,mime});if(id!==v.id)chg.push([v.id,id]);}
+  d.videos=kept;
+  if(typeof d.body==='string'){chg.forEach(([a,b])=>{d.body=d.body.split('](vid:'+a+')').join('](vid:'+b+')');});if(out.length)d.body=vidRetire(d.body,out);}
+  return out.length;}
 async function importAtts(d,zipAtts,sameSpace,remap){
   if(!(d.docs||[]).length)return;
   if(!supportsAttachments()){d.docs=[];return;}
@@ -32313,6 +32428,9 @@ function notionPath(dir,href){let h=String(href||'').trim().replace(/^<|>$/g,'')
    un groupe « (…) » ÉQUILIBRÉ (CommonMark), ou une « ( » seule (nom de dossier tronqué par Notion au milieu d'une
    parenthèse). Les trois alternatives restent sans espace, et la première exclut « ( » et « ) » : linéaire. */
 const NOTION_IMG=/!\[([^\]]{0,300})\]\(((?:[^()\s]|\([^()\s]{0,300}\)|\(){1,2000}(?:[ \t]+(?:[^()\s"]|\([^()\s"]{0,300}\)|\(){1,2000}){0,40})(?:\s+"[^"\n]{0,300}")?\)/g;
+// A757 : un lien OU une image Notion — même grammaire de chemin (A670, A731) ; sert à trouver les vidéos d'un .md.
+const NOTION_LNK=/!?\[([^\]]{0,300})\]\(((?:[^()\s]|\([^()\s]{0,300}\)|\(){1,2000}(?:[ \t]+(?:[^()\s"]|\([^()\s"]{0,300}\)|\(){1,2000}){0,40})(?:\s+"[^"\n]{0,300}")?\)/g;
+function notionVidPaths(src,dir){const o=[],vus=new Set();for(const m of String(src||'').matchAll(NOTION_LNK)){const p=notionPath(dir,m[2]);if(p&&NOTION_VID.test(p)&&!vus.has(p)){vus.add(p);o.push(p);}}return o;}
 function notionImgPaths(src,dir){const o=[],vus=new Set();let m;NOTION_IMG.lastIndex=0;
   while((m=NOTION_IMG.exec(String(src||''))))  {const p=notionPath(dir,m[2]);if(p&&!vus.has(p)){vus.add(p);o.push(p);}}
   return o;}
@@ -32346,7 +32464,7 @@ function notionRows(L){const out=[];let code=false;
   return out;}
 /* `ids` : table chemin (résolu) → id d'image, ou rien. Rend {title, body, manque} : `manque` = images citées mais
    absentes de l'archive (on les NOMME dans le texte plutôt que de les perdre en silence). */
-function notionMd(src,dir,ids){ids=ids||Object.create(null);
+function notionMd(src,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Object.create(null);let videos=0;
   let L=notionRows(String(src||'').replace(/^﻿/,'').replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n'));
   let title='',i=0,manque=0;
   while(i<L.length&&!L[i].trim())i++;
@@ -32357,7 +32475,8 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
     let k=j;while(k<L.length&&/^[^\s#>|!*\-\d][^:\n]{0,48}:\s\S/.test(L[k]))k++;
     if(k>j&&(k>=L.length||!L[k].trim()))i=k;}}
   const out=[];let code=false,aside=false,first=false;
-  const img=(alt,href)=>{const p=notionPath(dir,href);
+  const img=(alt,href)=>{if(/^vid:[A-Za-z0-9_-]{1,64}$/.test(String(href||'').trim()))return '![]('+String(href).trim()+')';   // A757 : une vidéo déjà posée reste
+    const p=notionPath(dir,href);
     if(p===null){const u=String(href||'').trim();return /^https?:\/\//i.test(u)?'['+(notionCap(alt)||'Image')+']('+u+')':'';}
     const id=ids[p];if(id)return '![' +notionCap(alt)+'](img:'+id+')';
     manque++;return '*[Image absente de l’archive : '+(p.split('/').pop())+']*';};
@@ -32372,6 +32491,10 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
       .replace(/<\/?(?:span|div|p|details|summary|aside|figure|figcaption|sup|sub|del|s)\b[^>]*>/gi,'');
     // Lien vers une autre page de l'export (`…%20abc123.md`) : la page n'est pas là — on garde le texte.
     l=l.replace(/(^|[^!])\[([^\]]{0,500})\]\(((?:[^()]|\([^()]{0,300}\)){1,1000}\.md)\)/gi,(_,a,t)=>a+t);   // A670 : bornée ; A731 : « (…) » dans le nom
+    /* A757 : un lien (ou une image) vers une VIDÉO de l'archive (« [video8.webm](Page/video8.webm) ») → la vidéo, seule sur
+       sa ligne ; absente ou non gardée : NOMMÉE, comptée. */
+    if(/\.(webm|mp4|m4v|mov|ogv)/i.test(l))l=l.replace(NOTION_LNK,(m0,alt,href)=>{const p=notionPath(dir,href);if(!p||!NOTION_VID.test(p))return m0;
+      if(vids[p])return '\n![](vid:'+vids[p]+')\n';videos++;return '*[Vidéo non importée : '+p.split('/').pop()+']*';});
     // Une image se pose seule sur sa ligne (le mini-Markdown ne reconnaît qu'une image par ligne, en tête).
     /* A642 : l'image GARDE son retrait — sous un élément de liste, elle appartient à cet élément (mdBlocks). Une image
        sur la ligne même d'un élément (« - texte ![](…) ») prend le retrait du texte de l'élément. */
@@ -32387,7 +32510,7 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
       t.split('\n').forEach(x=>out.push('> '+x));continue;}
     out.push(l);}
   const body=out.join('\n').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').trim();
-  return {title:title.replace(/\s+[0-9a-f]{32}$/,'').trim(),body,manque};}
+  return {title:title.replace(/\s+[0-9a-f]{32}$/,'').trim(),body,manque,videos};}
 /* ═══ A756 — L'EXPORT HTML DE NOTION ════════════════════════════════════════════════════════════════════════
    L'export Markdown de Notion DÉROULE les colonnes (A755) ; l'export HTML les GARDE (`div.column-list > div.column`).
    On lit donc aussi le .html (seul, ou les pages d'un .zip), et une rangée de colonnes « libellé + image » devient la
@@ -32397,6 +32520,10 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
    et `mdRender` (règles 4 et 5) comme toute importation. Profondeur bornée. PURE hors `DOMParser` (?__actest). */
 const NOTION_VID=/\.(webm|mp4|m4v|mov|ogv)$/i;
 function notionHtmlDoc(src){return new DOMParser().parseFromString(String(src||''),'text/html');}
+// A757 : les vidéos d'une page HTML (lien, <video>, <source>), chemins résolus, dans l'ordre.
+function notionHtmlVidPaths(doc,dir){const o=[],vus=new Set();
+  doc.querySelectorAll('a[href],video[src],source[src]').forEach(a=>{const p=notionPath(dir,a.getAttribute('href')||a.getAttribute('src'));
+    if(p&&NOTION_VID.test(p)&&!vus.has(p)){vus.add(p);o.push(p);}});return o;}
 function notionHtmlImgPaths(doc,dir){const o=[],vus=new Set();
   doc.querySelectorAll('img[src]').forEach(im=>{const p=notionPath(dir,im.getAttribute('src'));if(p&&!vus.has(p)&&!NOTION_VID.test(p)){vus.add(p);o.push(p);}});return o;}
 function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Object.create(null);
@@ -32489,17 +32616,21 @@ async function notionRefs(entries){
   const files=new Map();entries.forEach(e=>files.set(String(e.name).normalize('NFC').replace(/^\/+/,''),e.data));
   // A756 : les pages .html (export HTML de Notion) entrent par la même porte que les .md.
   const mds=entries.filter(e=>/\.(md|html?)$/i.test(e.name)&&!/(^|\/)__MACOSX\//.test(e.name));
-  const out=[];let manque=0,trop=0,long=0,videos=0;
+  const out=[];let manque=0,trop=0,long=0,videos=0;const vidBufs=new Map();   // A757 : id → octets, écrits à l'import
   for(const e of mds){const name=String(e.name).normalize('NFC'),cut=name.lastIndexOf('/'),dir=cut>=0?name.slice(0,cut):'';
     const src=new TextDecoder().decode(e.data),ids=Object.create(null),images=[],html=/\.html?$/i.test(name),doc=html?notionHtmlDoc(src):null;
     for(const p of (html?notionHtmlImgPaths(doc,dir):notionImgPaths(src,dir))){const d=files.get(p);if(!d||d.length>MAX_IMG_BYTES||!imgKind(d.subarray(0,64)))continue;
       if(images.length>=MAX_IMG_PER_ENTITY){trop++;continue;}
       const r=await downscale(new Blob([d]));if(!r)continue;
       const id=uid('i');ids[p]=id;images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});}
-    const c=html?notionHtml(doc,dir,ids):notionMd(src,dir,ids);manque+=c.manque;videos+=c.videos||0;if(c.body.length>MD_MAX_CHARS)long++;
+    const vids=Object.create(null),vmeta=[];
+    for(const p of (html?notionHtmlVidPaths(doc,dir):notionVidPaths(src,dir))){const d=files.get(p),mime=d&&d.length<=MAX_VID_BYTES?vidKind(d.subarray(0,64)):null;
+      if(!mime||vmeta.length>=MAX_VID_PER_ENTITY)continue;   // absente, trop lourde, illisible, au-delà du plafond : nommée dans le texte, comptée
+      const id=uid('v');vids[p]=id;vidBufs.set(id,d);vmeta.push({id,name:p.split('/').pop(),size:d.length,mime});}
+    const c=html?notionHtml(doc,dir,ids,vids):notionMd(src,dir,ids,vids);manque+=c.manque;videos+=c.videos||0;if(c.body.length>MD_MAX_CHARS)long++;
     const title=c.title||name.slice(cut+1).replace(/\.(md|html?)$/i,'').replace(/\s+[0-9a-f]{32}$/i,'')||'Sans titre';
-    out.push({title,body:c.body,images,status:'draft'});}
-  return {protocols:out,manque,trop,long,videos};}
+    out.push({title,body:c.body,images,videos:vmeta,status:'draft'});}
+  return {protocols:out,manque,trop,long,videos,vidBufs};}
 /* NORMALISER LA RACINE D'UN IMPORT — v3 et v4 n'ont pas la même forme, et rien ne le disait.
    DEUX ÉCARTS, tous deux mesurés sur un fichier RÉEL de l'auteur (18 aides converties) :
 
@@ -32660,6 +32791,7 @@ function impRowHtml(r){
     +(carry?`<span>${esc(carry)}</span>`:'')
     +(r.notes?`<span class="tag todo" title="Il reste ${r.notes} remarque(s) de relecture — le volet « Relecture » de l'éditeur les détaille">△ ${r.notes}<span class="sr-only"> remarque(s) de relecture</span></span>`:'')
     +(nd?`<span>${nd} PDF</span>`:'')
+    +((o.videos||[]).length?`<span>${nb((o.videos||[]).length,'vidéo')}</span>`:'')   // A757
     // A754 : un texte plus long que le plafond est COUPÉ à l'import — la rangée le dit, en ambre, avant toute écriture.
     +(r.long?`<span class="imp-long">△ texte de ${mdNb(r.long)} caractères : coupé à ${mdNb(MD_MAX_CHARS)}</span>`:'')
     // A132 — sur une entité déjà présente seulement : ailleurs il n'y a rien à comparer, et un
@@ -32970,16 +33102,21 @@ async function notionParse(u8){
    d'écrasement — même règle que « Dans » de l'atelier, A611), les images rejoignent celles du protocole sous son
    plafond, le titre n'est posé que s'il était vide. Plusieurs pages : chacune sous son titre (« # … »), dans l'ordre. */
 async function notionVerse(p,files,rerender){
-  let n=0,img=0,trop=0,manque=0,refus=[];
+  let n=0,img=0,trop=0,manque=0,refus=[],vidN=0,vidOut=0,vidNon=0;
   for(const f of files){let u8;try{u8=new Uint8Array(await f.arrayBuffer());}catch(e){refus.push(upShortName(f.name));continue;}
     let r=null;try{r=await notionParse(u8);}catch(e){r=null;}
     if(!r||!r.protocols.length){refus.push(upShortName(f.name));continue;}
-    const plus=r.protocols.length>1||files.length>1;manque+=r.manque||0;trop+=r.trop||0;
+    const plus=r.protocols.length>1||files.length>1;manque+=r.manque||0;trop+=r.trop||0;vidNon+=r.videos||0;
     for(const q of r.protocols){const t=String(q.title||'').trim();
       if(!String(p.title||'').trim()&&t)p.title=t;
       const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
       p.images=Array.isArray(p.images)?p.images:[];let txt=bloc;
       for(const im of (q.images||[])){if(p.images.length>=MAX_IMG_PER_ENTITY){trop++;txt=txt.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(im.id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g'),'');continue;}   /* A709 : image LÉGENDÉE comprise */p.images.push(im);img++;}
+      // A757 : les vidéos de la page — binaire rangé sur l'appareil (protégé pendant l'édition), fiche au protocole ; au-delà, retirée et dite.
+      p.videos=Array.isArray(p.videos)?p.videos:[];
+      for(const v of (q.videos||[])){const z=r.vidBufs&&r.vidBufs.get(v.id);let ok=false;
+        if(z&&p.videos.length<MAX_VID_PER_ENTITY&&supportsAttachments()){try{await attPut({id:v.id,buf:z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength),size:z.length,type:v.mime,createdAt:Date.now(),dirty:1,remotePath:null});ok=true;}catch(e){}}
+        if(ok){draftNewAtts.push(v.id);p.videos.push(v);vidN++;}else{vidOut++;txt=vidRetire(txt,[v.id]);}}
       /* Par le champ Markdown quand il est là : l'ajout entre dans son historique (↶ le retire d'un geste). */
       const ta=document.getElementById('p-body');
       if(ta&&state.pdraft===p){ta.selectionStart=ta.selectionEnd=ta.value.length;mdInsertAt(ta,(ta.value.trim()?(/\n\n$/.test(ta.value)?'':/\n$/.test(ta.value)?'\n':'\n\n'):'')+txt+'\n');}
@@ -32988,6 +33125,7 @@ async function notionVerse(p,files,rerender){
   if(n)rerender();
   const m=(n?nb(n,'page')+' Notion ajoutée'+(n>1?'s':'')+' à la suite'+(img?' · '+nb(img,'image'):''):'')
     +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
+    +(vidN?' · '+nb(vidN,'vidéo'):'')+((vidOut+vidNon)?' · △ '+nb(vidOut+vidNon,'vidéo')+' non importée'+((vidOut+vidNon)>1?'s':''):'')   // A757
     +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, .html, ou .zip d’export Notion)':'');
   if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
 function readImportFile(file,pos){
@@ -33002,7 +33140,7 @@ async function _importRead(buf,lbl,ia){
     // illisible — pas quand une étape ultérieure (stockage saturé en milieu d'import…) échoue.
     // Deux formats acceptés (v4.5.0) : .json (historique) et .zip « avec documents » — détecté
     // à la SIGNATURE (PK\x03\x04), jamais à l'extension : donnees.json + documents/<id>.pdf.
-    let imp,zipAtts=null,notion=null;
+    let imp,zipAtts=null,notion=null,zipVids=null;   // A757 : `zipVids` id → octets d'une vidéo du fichier
     try{const u8=new Uint8Array(buf);let text;
       const isZip=b=>b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4;
       if(isZip(u8)){
@@ -33015,15 +33153,16 @@ async function _importRead(buf,lbl,ia){
         if(j){
           text=new TextDecoder().decode(j.data);
           zipAtts=new Map();
-          entries.forEach(x=>{const m=/^documents\/([A-Za-z0-9_-]{1,64})\.pdf$/.exec(x.name);if(m)zipAtts.set(m[1],x.data);});}
+          entries.forEach(x=>{const m=/^documents\/([A-Za-z0-9_-]{1,64})\.pdf$/.exec(x.name);if(m)zipAtts.set(m[1],x.data);});
+          zipVids=new Map();entries.forEach(x=>{const m=/^videos\/([A-Za-z0-9_-]{1,64})\.(mp4|webm|mov)$/.exec(x.name);if(m)zipVids.set(m[1],x.data);});}   // A757
         else if(entries.some(x=>/\.(md|html?)$/i.test(x.name))){   // A756 : export Markdown OU HTML de Notion
           toast('Lecture de l’export Notion…',4000,true);
-          notion=await notionRefs(entries);}
+          notion=await notionRefs(entries);zipVids=notion.vidBufs||null;}
         else throw 0;
       }else if(dataKind(u8)==='md'){   // un .md seul : le texte entre, ses images (restées dans le dossier) sont nommées absentes
         const c=notionMd(new TextDecoder().decode(u8),'',null);
         notion={protocols:[{title:c.title||'Sans titre',body:c.body,images:[],status:'draft'}],manque:c.manque,trop:0,long:c.body.length>MD_MAX_CHARS?1:0,seul:true};}
-      else if(dataKind(u8)==='html'){notion=await notionRefs([{name:'page.html',data:u8}]);notion.seul=true;}   // A756 : une page .html seule
+      else if(dataKind(u8)==='html'){notion=await notionRefs([{name:'page.html',data:u8}]);notion.seul=true;zipVids=notion.vidBufs||null;}   // A756 : une page .html seule
       else text=new TextDecoder().decode(u8);
       const data=notion?{version:3,categories:[],protocols:notion.protocols}:JSON.parse(stripJsonFences(text));
       imp=normalizeImport(Array.isArray(data)?{fiches:data,categories:[]}:data);}
@@ -33190,6 +33329,8 @@ async function _importRead(buf,lbl,ia){
     const pOk=async d=>{const ok=await persist(d);if(!ok)ratees++;return ok;},pPOk=async d=>{const ok=await persistProtocol(d);if(!ok)ratees++;return ok;};
     const _attRemap=new Map();   // A669 : un même document du fichier, cité par plusieurs éléments, entre UNE fois
     const atts=async d=>{const n0=(d.docs||[]).length;await importAtts(d,zipAtts,sameSpace,_attRemap);docsEc+=n0-(d.docs||[]).length;};
+    // A757 : les vidéos d'un protocole — même espace, ou ids neufs posés par l'import Notion : gardés ; sinon ids neufs.
+    let vidsEc=0;const vids=async d=>{vidsEc+=await importVids(d,zipVids,sameSpace||!!notion);};
     for(let i=0;i<imp.fiches.length;i++){const d=migrate(imp.fiches[i]);
       d.deletedAt=null;   // A669 : un fichier n'apporte jamais une suppression (seuls le stockage et le serveur portent des tombes)
       poserDest(d,F.dst[i]);
@@ -33209,10 +33350,11 @@ async function _importRead(buf,lbl,ia){
           if(tg&&canEditFiche(tg)){const n=migrateProtocol(JSON.parse(JSON.stringify(tg))),b0=String(n.body||'').replace(/\s+$/,''),b1=String(d.body||'').trim();
             n.body=b0?(b1?b0+'\n\n'+b1:b0):b1;if(n.body.length>MD_MAX_CHARS)txtCoupes++;
             const ims=(n.images||[]).slice();(d.images||[]).forEach(im=>{if(!im||!im.id||ims.some(x=>x.id===im.id))return;if(ims.length<MAX_IMG_PER_ENTITY)ims.push(im);else imgsHors++;});n.images=ims;
+            await vids(d);const vs=(n.videos||[]).slice();(d.videos||[]).forEach(v=>{if(!v||vs.some(x=>x.id===v.id))return;if(vs.length<MAX_VID_PER_ENTITY)vs.push(v);else vidsEc++;});n.videos=vs;   // A757
             const m=migrateProtocol(n);if(await pPOk(m)){const j=protocols.findIndex(x=>x.id===m.id);if(j>=0)protocols[j]=m;versees.push(m.title||'Sans titre');}
             continue;}}
         poserDest(d,P.dst[i]);   // même règle que les fiches, même code
-        await atts(d);
+        await atts(d);await vids(d);   // A757 : et ses vidéos
         if(d.id&&existingP.has(d.id)&&replace){if(await pPOk(d)){const j=protocols.findIndex(x=>x.id===d.id);if(j>=0)protocols[j]=d;else protocols.push(d);addedP++;}}
         else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await pPOk(d)){protocols.push(d);addedP++;}}}}
     /* Les catégories s'enregistrent APRÈS les deux boucles : c'est là seulement qu'on sait
@@ -33234,7 +33376,8 @@ async function _importRead(buf,lbl,ia){
     const manques=(ratees?' '+nb(ratees,'élément')+' non enregistré'+(ratees>1?'s':'')+' (stockage).':'')
       +(docsEc?' '+nb(docsEc,'document')+' PDF non importé'+(docsEc>1?'s':'')+' (absent'+(docsEc>1?'s':'')+' du fichier ou illisible'+(docsEc>1?'s':'')+').':'')   // A660
       +(txtCoupes?' △ Texte coupé à '+mdNb(MD_MAX_CHARS)+' caractères dans '+nb(txtCoupes,'protocole')+' complété'+(txtCoupes>1?'s':'')+'.':'')
-      +(imgsHors?' △ '+nb(imgsHors,'image')+' non reprise'+(imgsHors>1?'s':'')+' : '+MAX_IMG_PER_ENTITY+' images maximum par protocole.':'');   // A754
+      +(imgsHors?' △ '+nb(imgsHors,'image')+' non reprise'+(imgsHors>1?'s':'')+' : '+MAX_IMG_PER_ENTITY+' images maximum par protocole.':'')   // A754
+      +(vidsEc?' △ '+nb(vidsEc,'vidéo')+' non importée'+(vidsEc>1?'s':'')+' (absente'+(vidsEc>1?'s':'')+' du fichier, illisible'+(vidsEc>1?'s':'')+' ou au-delà de '+MAX_VID_PER_ENTITY+').':'');   // A757
     if(openId)openRead(openId);else{state.view='library';render();}
     if(added.length||addedP)toast([added.length?(added.length>1?added.length+' aides importées':'1 aide importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.'+(versees.length?' Contenu versé dans « '+versees.join(' », « ')+' ».':'')+manques,manques?10000:0);
     else if(versees.length)toast('Contenu versé dans « '+versees.join(' », « ')+' ».'+manques,manques?10000:0);
@@ -34351,7 +34494,7 @@ const ADM_QUOTA_ROWS=[
   ['aids','Aides','Les aides non supprimées d’un même espace.','par espace'],
   ['protocols','Protocoles','Les protocoles non supprimés d’un même espace.','par espace'],
   ['sessions','Sessions enregistrées','Les sessions enregistrées et non supprimées d’un même compte.','par compte'],
-  ['docs','Documents PDF','Les documents PDF joints aux aides et aux protocoles d’un même espace.','par espace']];
+  ['docs','Documents PDF et vidéos','Les documents PDF joints aux aides et aux protocoles d’un même espace, et les vidéos des protocoles.','par espace']];   // A757
 /* La ligne de repère d'un champ — PURE (testée) : l'usage réel de l'espace le plus rempli, le défaut, la plage. */
 function quotaRepere(k,usage){const u=usage&&Number.isFinite(usage[k])?usage[k]:null;
   return (u==null?'':'Le plus rempli aujourd’hui : '+nbFr(u)+'. ')+'Par défaut : '+nbFr(QUOTA_DEF[k])+'. De '+nbFr(QUOTA_MIN)+' à '+nbFr(QUOTA_MAX)+'.';}
@@ -36021,7 +36164,8 @@ function _sessSyncWrite(on){
    partagée (lecture = membres, écriture = editor/admin). Déplacer une fiche entre périmètres
    = re-upload au nouveau chemin puis suppression de l'ancien (champ remotePath du blob). */
 // Chemin d'un document dans le bucket — PUR (testé).
-function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+libraryId+'/'+attId+'.pdf'):('u/'+ownerUid+'/'+attId+'.pdf');}
+function attStoragePath(libraryId,ownerUid,attId,ext){ext=ext==='mp4'||ext==='webm'||ext==='mov'?ext:'pdf';   // A757
+  return libraryId?('l/'+libraryId+'/'+attId+'.'+ext):('u/'+ownerUid+'/'+attId+'.'+ext);}
 // État hors-ligne des documents référencés — PURE (testée ; v4.20.0, besoin SMUR : en
 // intervention il n'y a parfois AUCUN réseau, il faut pouvoir vérifier AVANT que tout PDF
 // référencé est bien sur l'appareil). `entities` = fiches + protocoles (les supprimés sont
@@ -36052,11 +36196,11 @@ async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh()
 // « tout télécharger » et du téléchargement de fond de la synchro : une seule écriture.
 async function attFetchOne(id,path){
   const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
-  await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path});
-  refreshAttRow(id);}
+  await attPut({id:id,buf:buf,size:buf.byteLength,type:attTypeOfPath(path),createdAt:Date.now(),dirty:0,remotePath:path});
+  refreshAttRow(id);vidRefresh(id);}
 // File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
 // entité ne référence son document) : vidée à chaque synchro, survit aux redémarrages.
-const ATT_PATH_RX=/^[ul]\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.pdf$/;
+const ATT_PATH_RX=/^[ul]\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$/;
 function attDelQueue(){try{const a=JSON.parse(localStorage.getItem(spaceKey('ac-att-del'))||'[]');
   return Array.isArray(a)?a.filter(p=>typeof p==='string'&&ATT_PATH_RX.test(p)):[];}catch(e){return [];}}
 function setAttDelQueue(a){try{a&&a.length?localStorage.setItem(spaceKey('ac-att-del'),JSON.stringify(a.slice(0,500))):localStorage.removeItem(spaceKey('ac-att-del'));}catch(e){}}
@@ -36626,14 +36770,17 @@ const Sync={
     /* A689 : on ne retient plus « le chemin de la dernière entité vivante », mais QUI cite chaque document
        (`refs`). La décision est dans `attPlan` (pure) : un téléversement ne va qu'à l'espace de l'enregistrement,
        jamais là où une ligne tirée le voudrait. */
-    const refs=Object.create(null);
-    all.forEach(f=>{(f.docs||[]).forEach(a=>{if(!a||!a.id||typeof a.id!=='string'||badKey(a.id))return;
+    const refs=Object.create(null),ext=Object.create(null);
+    all.forEach(f=>{(f.docs||[]).concat(f.videos||[]).forEach(a=>{if(!a||!a.id||typeof a.id!=='string'||badKey(a.id))return;   // A757 : les vidéos aussi
+      if(a.mime)ext[a.id]=attExt(a.mime);
       (refs[a.id]=refs[a.id]||[]).push({lib:f.library||null,del:!!f.deletedAt,edit:canEditFiche(f)});});});
     // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
     // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
     const draftIds=new Set(draftNewAtts
       .concat(((state.draft&&state.draft.docs)||[]).map(a=>a.id))
-      .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id)));
+      .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id))
+      .concat(((state.pdraft&&state.pdraft.videos)||[]).map(a=>a.id)));   // A757
+    let vidRefus=0;
     for(const rec of await IDB.getAtts()){
       const pl=attPlan(rec,refs[rec.id]||[],uidv);
       if(pl.act==='purge'){if(draftIds.has(rec.id))continue;  // brouillon : on ne touche à rien
@@ -36646,12 +36793,17 @@ const Sync={
         continue;}
       if(pl.act!=='upload')continue;
       try{const body=await attBuf(rec);if(!body)continue;     // enregistrement vide : rien à pousser
-        await storageReq('POST',pl.path,body,'application/pdf',{'x-upsert':'true'});
+        await storageReq('POST',pl.path,body,VID_EXT[rec.type]?rec.type:'application/pdf',{'x-upsert':'true'});   // A757
         // déplacement de périmètre : l'ancien chemin part APRÈS le téléversement réussi, et seulement là où j'en ai le droit
         if(pl.del&&attMayDelete(pl.del,uidv,canEditScope))queueAttDelete(pl.del);
         rec.dirty=0;rec.remotePath=pl.path;rec.scope=pl.space||'';await attPut(rec);
-      }catch(e){if(!firstErr)firstErr=e;}
+      }catch(e){
+        /* A757 : une VIDÉO refusée par le bucket (serveur pas encore mis à jour : type ou taille non admis) ne met pas toute
+           la synchro en erreur — elle reste sur l'appareil, marquée « à envoyer », et l'app le dit une fois. */
+        if(VID_EXT[rec.type]&&[400,403,413,415].indexOf(e.status)>=0){vidRefus++;continue;}
+        if(!firstErr)firstErr=e;}
     }
+    if(vidRefus&&!this._vidDit){this._vidDit=true;toast('△ '+nb(vidRefus,'vidéo')+' pas encore envoyée'+(vidRefus>1?'s':'')+' : le serveur doit être mis à jour pour accepter les vidéos (administrateur : rejouer schema.sql). Elles restent sur cet appareil.',10000);}
     // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
     // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
     const have=new Set(await IDB.getAttIds());
@@ -36659,7 +36811,7 @@ const Sync={
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
           // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
-          for(const pth of attFetchPaths(id,refs[id],uidv)){try{await attFetchOne(id,pth);break;}catch(e){}}}
+          for(const pth of attFetchPaths(id,refs[id],uidv,ext[id])){try{await attFetchOne(id,pth);break;}catch(e){}}}
       }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
@@ -39581,7 +39733,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

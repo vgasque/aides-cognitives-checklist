@@ -420,6 +420,15 @@ begin
     insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/a/b.pdf');
     raise exception 'ÉCHEC : un chemin à sous-dossier a été accepté';
   exception when insufficient_privilege then null; end;
+  -- A757 : une VIDÉO (.mp4, .webm, .mov) entre comme un PDF, dans SON dossier, et en sort ; le .exe reste refusé (ci-dessus).
+  insert into storage.objects(bucket_id,name,metadata) values ('attachments','u/'||alice||'/att-v1.mp4','{"size":100}');
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4';
+  if v_cnt <> 1 then raise exception 'ÉCHEC A757 : une vidéo .mp4 refusée dans son propre dossier'; end if;
+  delete from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4';
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/att-v2.avi');
+    raise exception 'ÉCHEC A757 : une extension vidéo hors liste (.avi) a été acceptée';
+  exception when insufficient_privilege then null; end;
 
   -- 9.4 Compte NON approuvé : dépôt refusé même dans son propre dossier (gate is_approved).
   perform set_config('request.jwt.claims', json_build_object('sub',gina,'role','authenticated')::text, true);

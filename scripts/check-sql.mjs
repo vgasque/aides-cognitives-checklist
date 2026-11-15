@@ -50,6 +50,9 @@ for (const rel of FICHIERS) {
       // d'une lettre, donc elle reste attrapée. Préférer malgré tout une validation sans ancre
       // quand c'est possible : moins d'exceptions à raisonner (cf. share_open dans schema.sql).
       if (m[0].length === 1 && /[A-Za-z_]/.test(av || '')) continue;
+      // A757 : dollar SUIVI d'une apostrophe — l'ancre de fin d'une regex qui se ferme sur un groupe
+      // (`'…\.(pdf|mp4)$'`). Même raisonnement : `as $` mutilé n'est jamais suivi d'une apostrophe.
+      if (m[0].length === 1 && ap === "'") continue;
       if (m[0].length !== 2)
         fautes.push(`${rel}:${i + 1} — suite de ${m[0].length} dollar(s) « ${m[0]} » : un délimiteur de corps s'écrit « $$ »\n        ${l.trim().slice(-72)}`);
     }

@@ -900,6 +900,32 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A756 : encadré → citation', L.includes('> Attention **dose**'));
    ok('A756 : lien javascript: réduit à son texte, https gardé, script ni exécuté ni recopié', L.includes('piège et [HAS](https://has-sante.fr)')&&!/piege|alert/.test(c.body)&&!window.__piege);
    eq('A756 : une page .html est reconnue', A.dataKind(new TextEncoder().encode('\n<!DOCTYPE html><html>')), 'html');}
+  /* A757 : les vidéos — reconnaissance par les octets, fiche assainie, chemins, rendu, grille, import Notion, export léger. */
+  {const tete=(sig,off)=>{const u=new Uint8Array(32);sig.forEach((b,i)=>{u[off+i]=b;});return u;},cc=t=>[...t].map(c=>c.charCodeAt(0));
+   eq('A757 : vidKind — WebM (EBML)', A.vidKind(tete([0x1A,0x45,0xDF,0xA3],0)), 'video/webm');
+   eq('A757 : vidKind — MP4 (ftyp isom)', A.vidKind(tete(cc('ftypisom'),4)), 'video/mp4');
+   eq('A757 : vidKind — MOV (ftyp qt)', A.vidKind(tete(cc('ftypqt  '),4)), 'video/quicktime');
+   eq('A757 : vidKind — une image HEIC ou un son M4A ne sont pas des vidéos', [A.vidKind(tete(cc('ftypheic'),4)),A.vidKind(tete(cc('ftypM4A '),4)),A.vidKind(new Uint8Array(32))], [null,null,null]);
+   eq('A757 : upDetect range une vidéo dans sa nature', A.upDetect(tete(cc('ftypmp42'),4)), 'video');
+   eq('A757 : safeVideo — type hors liste refusé, id sûr exigé', [A.safeVideo({id:'v1',mime:'video/avi'}),A.safeVideo({id:'__proto__',mime:'video/mp4'}),A.safeVideo({id:'v1',name:'a.mp4',size:10,mime:'video/mp4'})], [null,null,{id:'v1',name:'a.mp4',size:10,mime:'video/mp4'}]);
+   const P=A.migrateProtocol({body:'x',videos:Array.from({length:25},(_,i)=>({id:'v'+(i%22),mime:'video/webm',size:1}))});
+   eq('A757 : migrateProtocol — vidéos dédoublonnées, plafonnées à 20', P.videos.length, 20);
+   eq('A757 : chemins distants — l’extension suit le type', [A.attStoragePath('lib','u','v1','mp4'),A.attStoragePath(null,'u','v1','webm'),A.attStoragePath(null,'u','a1')], ['l/lib/v1.mp4','u/u/v1.webm','u/u/a1.pdf']);
+   eq('A757 : type d’un chemin distant', ['l/x/v.mp4','u/x/v.mov','u/x/a.pdf'].map(A.attTypeOfPath), ['video/mp4','video/quicktime','application/pdf']);
+   eq('A757 : attPlan — une vidéo part sous son extension', A.attPlan({id:'v1',type:'video/webm',dirty:1},[{lib:null,del:false,edit:true}],'me').path, 'u/me/v1.webm');
+   const V=[{id:'v1',name:'a.webm',size:1,mime:'video/webm'}];
+   const h=A.mdRender('![Écho](vid:v1)\n\n![](vid:inconnue)',{videos:V});
+   ok('A757 : rendu — une figure-réceptacle par vidéo connue, rien pour une inconnue', (h.match(/md-vfig/g)||[]).length===1&&/data-vid="v1"/.test(h)&&/<figcaption>Écho<\/figcaption>/.test(h));
+   const g=A.mdGrille('Normal\n![](vid:v1)\nThrombus\n![](img:i1)',2);
+   eq('A757 : une vidéo se range dans la grille comme une image', g.md.split('\n')[2], '| Normal<br>![](vid:v1) | Thrombus<br>![](img:i1) |');
+   ok('A757 : une vidéo dans une case de grille', /md-vfig md-cfig/.test(A.mdRender(g.md,{videos:V,images:[]})));
+   const c=A.notionMd('# P\n\nNormal\n\n[video8.webm](Page%20(x)/video8.webm)\n\nThrombus\n\n[video9.webm](Page%20(x)/video9.webm)','',null,{'Page (x)/video8.webm':'v8'});
+   ok('A757 : import Markdown de Notion — vidéo gardée en ![](vid:…), absente nommée et comptée', /^!\[\]\(vid:v8\)$/m.test(c.body)&&/\*\[Vidéo non importée : video9\.webm\]\*/.test(c.body)&&c.videos===1);
+   const doc=A.notionHtmlDoc('<html><body><div class="page-body"><div class="column-list"><div class="column"><p>Normal</p><figure><div class="source"><a href="P/v.webm">v.webm</a></div></figure></div><div class="column"><p>Thrombus</p><figure class="image"><img src="P/i.png"/></figure></div></div></div></body></html>');
+   const ch=A.notionHtml(doc,'',{'P/i.png':'i1'},{'P/v.webm':'v8'});
+   ok('A757 : import HTML de Notion — la vidéo prend sa case', ch.body.split('\n').includes('| Normal<br>![](vid:v8) | Thrombus<br>![](img:i1) |')&&ch.videos===0);
+   const L=A.exportLeger({fiches:[],protocols:[{body:'a\n![](vid:v1)\n| x<br>![](vid:v1) |',images:[],docs:[],videos:V}]}).protocols[0];
+   ok('A757 : l’export « sans fichiers » retire les vidéos et leurs références', !L.videos.length&&!/vid:/.test(L.body));}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
@@ -1090,7 +1116,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('statut par défaut', mp.status, 'validated');
   ok('updatedAt posé', typeof mp.updatedAt==='number');
   eq('blankProtocol : modèle complet', Object.keys(A.blankProtocol()).sort(),
-     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','reviewEvery','sources','links','status','title','updatedAt','updatedBy','validatedAt'].sort());
+     ['body','category','code','deletedAt','docs','id','images','library','order','ownerId','reviewEvery','sources','links','status','title','updatedAt','updatedBy','validatedAt','videos'].sort());   // A757 : videos
 
   group('attBuf() — formats de stockage des documents (ArrayBuffer courant, Blob historique)');
   ok('format courant {buf:ArrayBuffer} accepté', A.attBuf({buf:new ArrayBuffer(4)})!==null);
@@ -1554,7 +1580,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    // LA TABLE : accept, sniff et plafond indissociables — c'est ce qui empêche l'accept affiché
    // et la vérification faite de diverger, la panne silencieuse que ce chantier corrige.
    const kinds=Object.keys(A.UP_KINDS);
-   eq('trois natures, pas une de plus', kinds.sort(), ['data','image','pdf']);
+   eq('quatre natures (A757 : la vidéo, décidée par l’auteur), pas une de plus', kinds.sort(), ['data','image','pdf','video']);
    ok('chaque nature porte accept + sniff + plafond',
      kinds.every(k=>{const K=A.UP_KINDS[k];return K.accept&&typeof K.sniff==='function'&&K.max>0;}));
    ok('aucun accept fourre-tout',

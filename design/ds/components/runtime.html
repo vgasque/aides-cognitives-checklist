@@ -8707,6 +8707,14 @@
   .md-tbl.md-tbl-img tbody th{background:none;border-right:0}
   .md-fig.md-cfig{margin:6px 0 0}
   .md-fig.md-cfig img{display:block;width:100%}
+  /* A757 — LA VIDÉO : un réceptacle au ratio d'un écran d'échographie tant que la vidéo n'est pas posée (pas de saut de
+     mise en page), puis la vidéo à la largeur de sa colonne ou de sa case. Absente ou illisible : le réceptacle le DIT,
+     en ambre (on risque de se tromper en la croyant là), glyphe et mots (règle 8). */
+  .md-vfig .md-vbox{display:grid;place-items:center;width:100%;aspect-ratio:4/3;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);overflow:hidden}
+  .md-vfig .md-vbox:has(video){display:block;aspect-ratio:auto;border:0;background:none}
+  .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
   /* A608 : « Pleine » = TOUTE la colonne, comme le promet le cadre de la poignée (A584) — l'image n'est plus affichée à

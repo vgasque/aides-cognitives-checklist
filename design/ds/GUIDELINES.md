@@ -992,6 +992,10 @@ telle quelle — chaque écran le dit à sa façon :
   catégorie — l'en-tête (case maîtresse, compte, deux commandes) se pose au-dessus de sa colonne. « Comparer » déplie
   sous la rangée, sur toute la largeur. « Où va ce contenu ? » : deux cartes (Nouveau protocole · Verser dans un
   protocole) avant la recherche, qui ne paraît que pour verser.
+- **Grille d'images et vidéos d'un protocole** (A755, A757) : une image (ou une vidéo) seule dans une case de tableau
+  est une vignette ; un tableau qui en porte a des colonnes égales et tient dans la largeur, sans filets. « Mettre en
+  grille » (barre de sélection des blocs, ou « ＋ Insérer › Grille d'images ») : l'auteur choisit 2, 3 ou 4 colonnes.
+  Une vidéo se lit muette, en boucle, quand elle est à l'écran ; absente ou illisible, son réceptacle le dit en ambre.
 - **Le menu des catégories dit ce qu'est une catégorie** (A498), en UNE ligne sous son titre « Choisir la
   catégorie », dont le PIVOT suit la bibliothèque — partagée : la PROPRIÉTÉ (« … vue par toute l'équipe de
   « … ». Pour un rangement à vous seul : les collections. ») ; Perso : le NOMBRE (« … pour classer l'accueil.

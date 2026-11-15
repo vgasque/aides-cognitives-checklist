@@ -999,13 +999,17 @@ create trigger protocols_stamp_updated_by before insert or update on public.prot
 -- fichier PDF lui-même vit dans ce bucket PRIVÉ. LE CHEMIN ENCODE LE PÉRIMÈTRE DE SÉCURITÉ :
 --   u/<owner_uid>/<attId>.pdf   -> document personnel (accès : propriétaire seul)
 --   l/<library_id>/<attId>.pdf  -> document d'une bibliothèque partagée (accès : membres)
+--   (A757 : même règle pour une vidéo, `.mp4`, `.webm` ou `.mov`.)
 -- Les politiques RLS sur storage.objects réutilisent les helpers existants (is_approved,
 -- is_member, member_role). On ne s'appuie JAMAIS sur storage.objects.owner : comme pour
 -- fiches_shared_write, un éditeur doit pouvoir remplacer/supprimer le document d'un collègue
 -- dans SA bibliothèque. Aucune politique pour anon -> aucun accès sans session.
 -- Plafonds APPLIQUÉS PAR LE SERVEUR (indépendamment du client) : 15 Mo/fichier, PDF uniquement.
+-- A757 (v5.134) : LES VIDÉOS D'UN PROTOCOLE vivent dans le MÊME bucket — mêmes chemins, mêmes droits, mêmes règles de
+-- l'appareil temporaire et mêmes quotas (« docs » compte aussi les vidéos). Extension `.mp4`/`.webm`/`.mov` ; types
+-- MP4, WebM, QuickTime. Le plafond du bucket passe à 30 Mo (une vidéo) ; celui d'un PDF reste 15 Mo, tenu par le client.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-  values ('attachments', 'attachments', false, 15728640, array['application/pdf'])
+  values ('attachments', 'attachments', false, 31457280, array['application/pdf','video/mp4','video/webm','video/quicktime'])
   on conflict (id) do update
   set public = excluded.public,
       file_size_limit = excluded.file_size_limit,
@@ -1018,11 +1022,11 @@ create policy att_perso on storage.objects for all
   using      (bucket_id = 'attachments' and public.is_approved()
               and (storage.foldername(name))[1] = 'u'
               and (storage.foldername(name))[2] = auth.uid()::text
-              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.pdf$')
+              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$')
   with check (bucket_id = 'attachments' and public.is_approved()
               and (storage.foldername(name))[1] = 'u'
               and (storage.foldername(name))[2] = auth.uid()::text
-              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.pdf$');
+              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$');
 
 -- Bibliothèque partagée : lecture = tout membre (comme fiches_shared_read).
 drop policy if exists att_lib_read on storage.objects;
@@ -1040,11 +1044,11 @@ create policy att_lib_write on storage.objects for all
   using      (bucket_id = 'attachments'
               and (storage.foldername(name))[1] = 'l'
               and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
-              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.pdf$')
+              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$')
   with check (bucket_id = 'attachments'
               and (storage.foldername(name))[1] = 'l'
               and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
-              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.pdf$');
+              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$');
 
 -- Orphelins du bucket (app-admin) : objets dont l'id de fichier n'apparaît plus dans les
 -- métadonnées d'AUCUNE fiche vivante. Cas rare (interruption entre un upload et l'enregistrement
@@ -1058,13 +1062,18 @@ language sql stable security definer set search_path = public, storage, pg_temp 
   from storage.objects o
   where o.bucket_id = 'attachments'
     and public.admin_reads()   -- A679
-    and substring(o.name from '([A-Za-z0-9_-]{1,64})\.pdf$') not in (
+    -- A757 : le modèle v4 nomme les documents `docs` (l'ancien `attachments` reste lu) — la version précédente ne lisait
+    -- que `attachments` et rendait donc TOUS les documents orphelins ; les vidéos d'un protocole sont dans `videos`.
+    and substring(o.name from '([A-Za-z0-9_-]{1,64})\.(?:pdf|mp4|webm|mov)$') not in (
       select a->>'id'
-      from public.cognitive_aids f, jsonb_array_elements(coalesce(f.data->'attachments','[]'::jsonb)) a
+      from public.cognitive_aids f,
+           jsonb_array_elements(coalesce(f.data->'docs','[]'::jsonb) || coalesce(f.data->'attachments','[]'::jsonb)) a
       where f.deleted_at is null
       union
       select a->>'id'
-      from public.protocols p, jsonb_array_elements(coalesce(p.data->'attachments','[]'::jsonb)) a
+      from public.protocols p,
+           jsonb_array_elements(coalesce(p.data->'docs','[]'::jsonb) || coalesce(p.data->'attachments','[]'::jsonb)
+                                || coalesce(p.data->'videos','[]'::jsonb)) a
       where p.deleted_at is null)
   order by o.created_at;
 $$;

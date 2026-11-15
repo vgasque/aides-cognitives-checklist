@@ -11560,9 +11560,66 @@ await sec('A755 · mettre des images en grille dans un protocole', async () => {
   await page.evaluate(()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}});
   // Au téléphone, en lecture : la grille tient dans la largeur.
   await page.setViewportSize({width:390,height:844});
-  const tel=await page.evaluate(async()=>{const p=protocols.find(x=>x.id==='p755');p.body=mdGrille(p.body,3).md;openProtocolRead('p755');await __acCalme(400);
+  const tel=await page.evaluate(async()=>{const p=protocols.find(x=>x.id==='p755');   // le texte posé ICI : l'enregistrement automatique de l'éditeur a pu écrire la grille entre-temps
+    p.body=mdGrille('Fémoral\n\n![](img:g1)\n\nNormal\n\n![](img:g2)\n\nThrombus\n\n![](img:g3)\n\nPoplité\n\n![](img:g4)',3).md;openProtocolRead('p755');await __acCalme(400);
     const w=document.querySelector('.md-tbl-img')&&document.querySelector('.md-tbl-img').closest('.md-tw');return w?{sw:w.scrollWidth,cw:w.clientWidth}:null;});
   t('390 · A755 : en lecture, la grille tient dans la largeur (pas de défilement de côté)',!!tel&&tel.sw<=tel.cw+1,JSON.stringify(tel));
+  await page.close();
+});
+
+/* A757 — LES VIDÉOS, avec une VRAIE vidéo (canevas enregistré par MediaRecorder, WebM). Par les vrais gestes :
+   « Insérer › Vidéo » et le sélecteur de fichier dans l'éditeur ; la lecture pose la vidéo et elle se charge sans
+   erreur ; une archive de l'app (`videos/<id>.webm`) et un export HTML de Notion (vidéo dans une case de colonnes)
+   rangent le binaire sur l'appareil et la fiche au protocole. */
+await sec('A757 · des vidéos dans un protocole (ajout, lecture, import)', async () => {
+  const page=await br.newPage({viewport:{width:1100,height:850}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const webm=await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=64;c.height=48;const g=c.getContext('2d');
+    const st=c.captureStream(15),rec=new MediaRecorder(st,{mimeType:'video/webm'}),parts=[];rec.ondataavailable=e=>parts.push(e.data);
+    let k=0;const iv=setInterval(()=>{g.fillStyle=k++%2?'#222':'#888';g.fillRect(0,0,64,48);},60);
+    rec.start();await new Promise(r=>setTimeout(r,700));   // horloge : la durée de l'enregistrement
+    rec.stop();await new Promise(r=>{rec.onstop=r;});clearInterval(iv);
+    const b=new Blob(parts,{type:'video/webm'});return Array.from(new Uint8Array(await b.arrayBuffer()));});
+  // 1. Éditeur : « Insérer › Vidéo », le sélecteur de fichier.
+  await page.evaluate(async()=>{try{localStorage.setItem('ac-mdlive','0');}catch(e){}protocols.push(migrateProtocol({id:'p757',title:'Écho',status:'draft',body:'Intro'}));await openProtocolEdit('p757');await __acCalme(400);
+    const ta=document.getElementById('p-body');ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);});
+  await page.click('.md-toolbar [data-mdmenu="ins"]');await calme(page,250);
+  const [fc]=await Promise.all([page.waitForEvent('filechooser',{timeout:5000}).catch(()=>null),page.click('.popmenu [data-pickopt="vid"]')]);
+  if(fc)await fc.setFiles({name:'boucle.webm',mimeType:'video/webm',buffer:Buffer.from(webm)});
+  await page.waitForFunction(()=>state.pdraft&&(state.pdraft.videos||[]).length===1,null,{timeout:8000}).catch(()=>{});
+  const ed=await page.evaluate(async()=>{const p=state.pdraft,v=(p.videos||[])[0]||{};const rec=v.id?await IDB.getAtt(v.id):null;
+    return {n:(p.videos||[]).length,ligne:new RegExp('^!\\[\\]\\(vid:'+v.id+'\\)$','m').test(document.getElementById('p-body').value),type:rec&&rec.type,taille:rec&&rec.size,mime:v.mime};});
+  t('A757 · « Insérer › Vidéo » : la vidéo est gardée sur l’appareil (WebM), sa ligne posée dans le texte',!!fc&&ed.n===1&&ed.ligne&&ed.type==='video/webm'&&ed.taille===webm.length&&ed.mime==='video/webm',JSON.stringify(ed));
+  // 2. Lecture : la vidéo est posée et se charge.
+  const lu=await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const p=protocols.find(x=>x.id==='p757');Object.assign(p,{body:state.pdraft.body,videos:state.pdraft.videos});
+    state.pdraft=null;openProtocolRead('p757');let v=null;for(let i=0;i<40&&!v;i++){await __acCalme(100);v=document.querySelector('.md-vfig video');}
+    if(v&&v.readyState<1)await new Promise(r=>{v.addEventListener('loadedmetadata',r,{once:true});v.addEventListener('error',r,{once:true});setTimeout(r,3000);});
+    return v?{blob:/^blob:/.test(v.src),pret:v.readyState>=1,err:!!v.error,muet:v.muted,boucle:v.loop}:{v:null};});
+  t('A757 · en lecture, la vidéo est posée (muette, en boucle) et se charge sans erreur',lu.blob&&lu.pret&&!lu.err&&lu.muet&&lu.boucle,JSON.stringify(lu));
+  // 3. Archive de l'app : `videos/<id>.webm` → id neuf (autre espace), binaire rangé, lien suivi.
+  const arch=await page.evaluate(async(u)=>{const T=s=>new TextEncoder().encode(s),bytes=new Uint8Array(u);
+    const doc={version:3,categories:[],fiches:[],protocols:[{id:'pa757',title:'Archive',status:'draft',body:'![](vid:vz1)',videos:[{id:'vz1',name:'a.webm',size:bytes.length,mime:'video/webm'}]}]};
+    const z=zipBuild([{name:'donnees.json',data:T(JSON.stringify(doc))},{name:'videos/vz1.webm',data:bytes}]);
+    window.__fin=readImportFile(new File([z],'archive.zip'));return true;},webm);
+  let vu=await page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);
+  if(vu){await page.click('#impGo');await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:3000}).then(()=>page.click('#confirmYes'),()=>{});await page.evaluate(()=>window.__fin);}await calme(page,300);
+  const a=await page.evaluate(async()=>{const x=protocols.find(p=>p.title==='Archive')||{},v=(x.videos||[])[0]||{};const rec=v.id?await IDB.getAtt(v.id):null;
+    return {n:(x.videos||[]).length,lie:!!v.id&&String(x.body||'').includes('vid:'+v.id),type:rec&&rec.type};});
+  t('A757 · une archive de l’app apporte sa vidéo : binaire rangé, fiche et lien suivis',arch&&a.n===1&&a.lie&&a.type==='video/webm',JSON.stringify(a));
+  // 4. Export HTML de Notion : la vidéo d'une colonne prend sa case de grille.
+  await page.evaluate(async(u)=>{const T=s=>new TextEncoder().encode(s),c=document.createElement('canvas');c.width=20;c.height=20;c.getContext('2d').fillRect(0,0,20,20);
+    const png=new Uint8Array(await (await new Promise(r=>c.toBlob(r,'image/png'))).arrayBuffer());
+    const html='<!DOCTYPE html><html><body><article class="page sans"><header><h1 class="page-title">Notion vidéo</h1></header><div class="page-body"><div class="column-list">'
+      +'<div class="column"><p>Fémoral</p><figure class="image"><img src="Notion%20vid%C3%A9o/f.png"/></figure></div>'
+      +'<div class="column"><p>Normal</p><figure><div class="source"><a href="Notion%20vid%C3%A9o/video8.webm">video8.webm</a></div></figure></div></div></div></article></body></html>';
+    const z=zipBuild([{name:'Notion vidéo 0123456789abcdef0123456789abcdef.html',data:T(html)},{name:'Notion vidéo/f.png',data:png},{name:'Notion vidéo/video8.webm',data:new Uint8Array(u)}]);
+    window.__fin=readImportFile(new File([z],'notion-html.zip'));},webm);
+  vu=await page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);
+  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  const nt=await page.evaluate(async()=>{const x=protocols.find(p=>p.title==='Notion vidéo')||{},v=(x.videos||[])[0]||{};const rec=v.id?await IDB.getAtt(v.id):null;
+    return {n:(x.videos||[]).length,case:new RegExp('\\| Normal<br>!\\[\\]\\(vid:'+v.id+'\\) \\|').test(x.body||''),type:rec&&rec.type};});
+  t('A757 · un export HTML de Notion : la vidéo d’une colonne prend sa case de grille, binaire rangé',vu&&nt.n===1&&nt.case&&nt.type==='video/webm',JSON.stringify(nt));
   await page.close();
 });
 
