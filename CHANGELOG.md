@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.131.0] — 2026-11-15
+Un protocole peut contenir 50 000 caractères, et le texte n'est plus jamais coupé sans le dire (A754).
+- **La limite passe de 20 000 à 50 000 caractères** (environ 20 pages). Elle a été mesurée : sur un téléphone lent, un
+  protocole de 50 000 caractères s'ouvre en moins de 0,7 seconde (0,4 seconde aujourd'hui à 20 000) ; au-delà, l'ouverture
+  dépasserait une seconde, trop lent pour un protocole consulté pendant un soin.
+- **Un compteur dans l'éditeur** : à partir de 40 000 caractères, il affiche « 41 200 / 50 000 caractères » sous le
+  texte ; il passe en ambre à l'approche de la limite ; au-delà, il dit combien de caractères ne seront pas enregistrés
+  et propose de raccourcir ou de partager en deux protocoles. Avant, la fin était coupée à l'enregistrement sans un mot.
+- **À l'import** : un protocole trop long le dit sur sa ligne, avant toute écriture ; verser une page dans un protocole
+  qui dépasserait la limite est annoncé ; le message de fin dit aussi les images non reprises au-delà de 60.
+- **Synchronisation** : un protocole reçu plus long que ce que cette version de l'app peut garder ne s'ouvre pas dans
+  l'éditeur — il faut d'abord mettre l'app à jour, sinon sa fin serait perdue.
+- **Images** : la limite de 60 par aide ou protocole ne change pas. Mesurée, elle garde un protocole sous les 20 Mo
+  qu'accepte le serveur.
+- ⚠ **Pendant la mise à jour** : un appareil resté sur une version précédente coupe à 20 000 caractères un protocole plus
+  long écrit ailleurs ; ne modifiez pas un long protocole depuis un appareil qui n'a pas encore reçu la mise à jour.
+
 ## [5.130.1] — 2026-11-15
 Fenêtre d'import au bureau : la bulle « Bibliothèque » ne se coupe plus en deux lignes (A753, rectificatif).
 - Avec une bibliothèque au nom un peu long, « Bibliothèque · » passait à la ligne dans l'en-tête de la colonne, le
@@ -205,17 +222,3 @@ Import d'une page Notion : les images rangées dans un dossier dont le nom conti
 - Vaut pour le `.zip` d'export comme pour un `.md` seul, et pour un nom tronqué par Notion au milieu d'une parenthèse.
 - Un lien vers une autre page Notion dont le titre contient des parenthèses garde, lui aussi, son seul texte.
 - Pour récupérer les images d'une page déjà importée : importer à nouveau le `.zip`.
-
-## [5.124.0] — 2026-11-12
-Aux Bibliothèques, la bibliothèque ouverte se gère d'où l'on est, sans doublon (A730).
-- **« Gérer la bibliothèque » sous ses catégories.** En ouvrant une bibliothèque partagée, la rangée « Gérer la
-  bibliothèque » suit désormais « Gérer les catégories » : elle ouvre la fenêtre de la bibliothèque (nom, membres,
-  invitations). Jusqu'ici, ce bouton n'existait que dans « Tout », une fois filtré sur une bibliothèque, et il y reste.
-- **Plus de doublon sur ordinateur et tablette.** Quand une bibliothèque est ouverte, la colonne de gauche ne répète
-  plus « Gérer les catégories » et « Gérer les bibliothèques » : seules restent les portes de la bibliothèque ouverte,
-  à côté d'elle. « Partager avec une équipe… » reste à gauche. En revenant sur « Tout », la colonne de gauche retrouve
-  ses portes générales.
-- « Gérer la bibliothèque » n'apparaît qu'à qui peut la gérer : son administrateur, ou l'administrateur de
-  l'application. Pas pour « Perso », qui n'a ni membres ni nom à gérer.
-- « Gérer les catégories » prend l'icône d'étiquette qu'il porte déjà ailleurs, pour ne pas le confondre avec la
-  rangée de la bibliothèque. Au téléphone, chaque niveau a sa page : rien ne change à la racine.

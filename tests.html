@@ -844,6 +844,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('référence d\'image morte -> rien', A.mdRender('![cap](img:absent)',{images:[]}), '');
   ok('img:__proto__ jamais rendu', A.mdRender('![x](img:__proto__)',{images:[{id:'__proto__',data:'data:image/png;base64,AAAA'}]}).indexOf('<figure')<0);
   ok('plafond de taille respecté (pas de blocage)', typeof A.mdRender('x'.repeat(A.MD_MAX_CHARS*2))==='string');
+  /* A754 : plafond mesuré (50 000), compteur qui ne coupe jamais en silence. */
+  eq('A754 : plafond du texte d’un protocole', A.MD_MAX_CHARS, 50000);
+  eq('A754 : rien sous 80 %', A.mdLenTxt(39999), null);
+  {const r=A.mdLenTxt(40000);ok('A754 : à 80 %, le compte en encre douce', !!r&&!r.warn&&/40\s000 \/ 50\s000 caractères/.test(r.txt));}
+  {const r=A.mdLenTxt(47500);ok('A754 : à 95 %, ambre, glyphe et mots', !!r&&r.warn&&/^△ /.test(r.txt)&&/limite approche/.test(r.txt));}
+  {const r=A.mdLenTxt(52300);ok('A754 : au-delà, dit combien ne seront pas enregistrés', !!r&&r.warn&&/les 2\s300 derniers ne seront pas enregistrés/.test(r.txt));}
+  {const r=A.mdLenTxt(50001);ok('A754 : au-delà d’un seul, au singulier', !!r&&/le dernier ne sera pas enregistré/.test(r.txt));}
+  eq('A754 : migrateProtocol coupe au plafond', A.migrateProtocol({body:'x'.repeat(60000)}).body.length, 50000);
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
