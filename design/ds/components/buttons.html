@@ -5220,6 +5220,11 @@
   .catmenu-sep{height:1px;background:var(--line);margin:4px 8px}
   .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 10px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
   .catmenu-new:hover{background:var(--amb-2)}
+  /* A752 : la rangée « ＋ Nouvelle … » devenue champ — même gabarit que la rangée (44, 52 en feuille), le bouton à droite. */
+  .catmenu-mk{display:flex;align-items:center;gap:8px;margin:2px;min-height:44px}
+  .catmenu-mk[hidden],.catmenu-new[hidden]{display:none}
+  .catmenu-mk-in{flex:1;min-width:0;height:40px;padding:0 10px;border:1px solid var(--act);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
+  .catmenu-mk .btn{flex:none;min-height:40px}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
   .popmenu-veil{display:none}
   /* FEUILLE BASSE (A361 ; poignée dans .popmenu-head ; voile touch-action:none — jamais de
@@ -5248,6 +5253,8 @@
   .popmenu.sheet .mm-sep,.popmenu.sheet .catmenu-sep{display:none}
   .popmenu.sheet .catmenu-filter{width:100%;margin:0 0 8px}
   .popmenu.sheet .catmenu-new{width:100%;margin:10px 0 0;min-height:52px;border-radius:var(--r-3);font-size:var(--t-item)}
+  .popmenu.sheet .catmenu-mk{margin:10px 0 0;min-height:52px}
+  .popmenu.sheet :is(.catmenu-mk-in,.catmenu-mk .btn){height:48px;min-height:48px;border-radius:var(--r-3)}
   .popmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   .popmenu-veil.anchor{display:block;position:fixed;inset:0;background:transparent;z-index:19}   /* A525 : absorbe le tap de fermeture du menu ⋯ ancré */
   /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne

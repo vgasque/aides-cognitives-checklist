@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Zreb4koJSOOsXJo+Z4+caRLwIaJLHV+RBZl8z7CA3Pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-lY3vxK0Ub+WF5tpt7s5GuBL9hGSVLNy0mCMowKMAcMA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5620,6 +5620,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .catmenu-sep{height:1px;background:var(--line);margin:4px 8px}
   .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 10px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
   .catmenu-new:hover{background:var(--amb-2)}
+  /* A752 : la rangée « ＋ Nouvelle … » devenue champ — même gabarit que la rangée (44, 52 en feuille), le bouton à droite. */
+  .catmenu-mk{display:flex;align-items:center;gap:8px;margin:2px;min-height:44px}
+  .catmenu-mk[hidden],.catmenu-new[hidden]{display:none}
+  .catmenu-mk-in{flex:1;min-width:0;height:40px;padding:0 10px;border:1px solid var(--act);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
+  .catmenu-mk .btn{flex:none;min-height:40px}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
   .popmenu-veil{display:none}
   /* FEUILLE BASSE (A361 ; poignée dans .popmenu-head ; voile touch-action:none — jamais de
@@ -5648,6 +5653,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .popmenu.sheet .mm-sep,.popmenu.sheet .catmenu-sep{display:none}
   .popmenu.sheet .catmenu-filter{width:100%;margin:0 0 8px}
   .popmenu.sheet .catmenu-new{width:100%;margin:10px 0 0;min-height:52px;border-radius:var(--r-3);font-size:var(--t-item)}
+  .popmenu.sheet .catmenu-mk{margin:10px 0 0;min-height:52px}
+  .popmenu.sheet :is(.catmenu-mk-in,.catmenu-mk .btn){height:48px;min-height:48px;border-radius:var(--r-3)}
   .popmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   .popmenu-veil.anchor{display:block;position:fixed;inset:0;background:transparent;z-index:19}   /* A525 : absorbe le tap de fermeture du menu ⋯ ancré */
   /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
@@ -10685,7 +10692,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.128.0';
+const APP_VERSION='5.129.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13251,6 +13258,13 @@ function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
 async function catNew(name,scp){const c={id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp};
   categories.push(c);await saveCats(scp);return c;}
+/* A752 — CRÉER UNE CATÉGORIE DEPUIS UN SÉLECTEUR, ET LA CHOISIR. Un nom qui existe déjà dans la bibliothèque (comparé
+   comme partout, `catNamed`) n'en crée pas une seconde : l'existante est choisie, et le toast le dit. Une bibliothèque
+   partagée suit la règle d'un appareil temporaire (A692), comme le gestionnaire. */
+async function catCreerPour(lib,name,pose){
+  const ex=catNamed(lib,name);if(ex){pose(ex.id);toast('« '+ex.name+' » existe déjà : elle est choisie.',3500);return;}
+  if(lib&&linkShared()&&linkGate(()=>catCreerPour(lib,name,pose),'Modifier les catégories d’une bibliothèque'))return;
+  const c=await catNew(name,lib);pose(c.id);}
 function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
 /* ⚠ UN ID DE CATÉGORIE SE RÉSOUT DANS SA BIBLIOTHÈQUE (v5.10.9). La recherche était globale, alors
    que les ids ne sont uniques que PAR bibliothèque — déterministes au Perso (dérivés du nom), donc
@@ -18278,14 +18292,14 @@ function openSelCat(b,redo){
     head:multi?`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
     value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
     onPick:v=>selSetCat(v?vus.get(v).name:'',redo),
-    action:{label:'＋ Nouvelle catégorie…',fn:()=>selNewCat(libs,redo)}});}
-/* A486 : créer une catégorie DEPUIS « Ranger » — un nom (la fenêtre des collections), créée là où il manque
-   dans les bibliothèques de la sélection, puis la sélection y est rangée. Le gestionnaire perdait le geste. */
-async function selNewCat(libs,redo){
-  const name=sstr(await confirmDlg('Nom de la catégorie',{title:'Nouvelle catégorie',yes:'Créer et ranger',input:{value:'',placeholder:'Ex. Transport'}})||'',40).trim();
+    create:{label:'Nouvelle catégorie',placeholder:'Nom de la catégorie',fn:nom=>selNewCat(libs,nom,redo)}});}
+/* A486 : créer une catégorie DEPUIS « Ranger » — créée là où le nom manque dans les bibliothèques de la sélection, puis
+   la sélection y est rangée. A752 : le nom se tape DANS la feuille (la fenêtre à champ d'A486 est retirée). */
+async function selNewCat(libs,name,redo){
   if(!name)return;
-  for(const l of libs)if(!catNamed(l,name))await catNew(name,l);
-  await selSetCat(name,redo);}
+  if(linkShared()&&libs.some(l=>l)&&linkGate(()=>selNewCat(libs,name,redo),'Modifier les catégories d’une bibliothèque'))return;
+  for(const l of libs)if(!catNamed(l,name)&&canEditScope(l))await catNew(name,l);
+  await selSetCat((catNamed(libs[0],name)||{name}).name,redo);}
 async function selSetCat(name,redo){
   const ent=selEnt();if(!ent.length)return;
   const p=selCatPlan(ent,name),multi=p.libs.length>1;
@@ -20979,7 +20993,7 @@ function editorMetaFieldsHtml(d,prefix,L){
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
    « Autre… ». openCatMenu : menu ancré sous le picker (bottom sheet < 780) — une rangée 44px par
    catégorie (pastille + nom + ✓ sur la courante), filtre si > 8, « ＋ Nouvelle catégorie » en
-   pointillé (ouvre le gestionnaire sans perdre le brouillon). Listbox ARIA : flèches, Entrée,
+   pointillé (A752 : devient un champ sur place, la catégorie créée est choisie). Listbox ARIA : flèches, Entrée,
    Échap (referme et rend le focus au déclencheur), clic hors menu. */
 function catPickerHtml(d){
   const c=catOf(d);   // résolu DANS la bibliothèque du brouillon (cf. catOf) — le menu ne propose que celles-là
@@ -21052,6 +21066,10 @@ function openPickMenu(host,opts){
   menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre??8)?`<input class="catmenu-filter" type="text" placeholder="${esc(opts.placeholder||'Filtrer…')}" aria-label="${esc(opts.placeholder?opts.placeholder.replace(/…$/,''):'Filtrer '+(opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
+    /* A752 : `create` — la rangée « ＋ Nouvelle … » se change SUR PLACE en champ « Nom · Créer » ; le menu reste ouvert
+       jusqu'à la création, puis se ferme sur le choix fait (`create.fn(nom)`, appelée après la fermeture). */
+    +(opts.create?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new" data-pickmk>＋ ${esc(opts.create.label)}</button>`
+      +`<div class="catmenu-mk" hidden><input type="text" class="catmenu-mk-in" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="${esc(opts.create.placeholder||'Nom')}" aria-label="${esc(opts.create.label)}"><button type="button" class="btn primary sm" data-pickmkgo>Créer</button></div>`:'')
     +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
   const veil=document.createElement('div');veil.className='popmenu-veil'+(sheet?' sheet':'');
   /* ⚠ UNE FEUILLE SE MONTE SUR `<body>`, JAMAIS DANS SON DÉCLENCHEUR (signalé à l'usage : « les
@@ -21114,9 +21132,10 @@ function openPickMenu(host,opts){
      menu ne ferme donc que ce qui est VRAIMENT dehors (menu ancré sans voile, chrome au-dessus du voile) ; un tap sur
      le voile se ferme à son `click`, que le voile absorbe parce qu'il est encore là pour le recevoir. */
   const out=e=>{if(e.target===veil)return;if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
-  const rows=()=>[...menu.querySelectorAll('.mm-back,.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none');
+  const rows=()=>[...menu.querySelectorAll('.mm-back,.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none'&&!r.hidden);
+  let mkBack=null,mkSync=null;   // A752 : Échap dans le champ de création le replie, sans fermer le menu
   const keys=e=>{
-    if(e.key==='Escape'){e.stopPropagation();e.preventDefault();close(true);return;}
+    if(e.key==='Escape'){e.stopPropagation();e.preventDefault();if(mkBack&&mkBack())return;close(true);return;}
     if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
     if(!menu.contains(document.activeElement)&&document.activeElement!==trigger)return;
     e.preventDefault();const r=rows();if(!r.length)return;
@@ -21129,13 +21148,31 @@ function openPickMenu(host,opts){
     close(false);opts.onPick(v);});
   {const d=menu.querySelector('[data-pickdone]');if(d)d.onclick=()=>close(true);}
   if(opts.action){const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);opts.action.fn();};}
+  /* A752 — CRÉER SANS QUITTER LE CHOIX (demande de l'auteur : la rangée ouvrait le gestionnaire ; il fallait créer, fermer
+     la fenêtre, rouvrir le menu, choisir). Le nom tapé dans le filtre qui ne trouve rien devient « ＋ Créer « … » » :
+     un geste. Sinon la rangée devient un champ. Au téléphone, la feuille monte au-dessus du clavier (`visualViewport`). */
+  if(opts.create){const C=opts.create,nw=menu.querySelector('[data-pickmk]'),mk=menu.querySelector('.catmenu-mk'),inp=mk.querySelector('input'),lbl0=nw.textContent;
+    const fq=()=>{const f=menu.querySelector('.catmenu-filter');return f?f.value.replace(/\s+/g,' ').trim():'';};
+    const existe=q=>{const n=txNorm(q);return [...menu.querySelectorAll('.mm-row .mm-lb')].some(x=>txNorm(x.textContent)===n);};
+    const vv=window.visualViewport;
+    const lever=()=>{if(!sheet||!menu.isConnected||!vv)return;const k=Math.max(0,innerHeight-vv.height-vv.offsetTop);
+      menu.style.bottom=Math.round(k/zoomF())+'px';menu.style.maxHeight=Math.round(vv.height*.85/zoomF())+'px';};
+    if(sheet&&vv){vv.addEventListener('resize',lever);const o0=opts.onClose;opts.onClose=()=>{vv.removeEventListener('resize',lever);if(o0)o0();};}
+    let fait=false;
+    const creer=nom=>{nom=sstr(nom,40).replace(/\s+/g,' ').trim();if(!nom){inp.focus();return;}if(fait)return;fait=true;close(false);C.fn(nom);};
+    nw.onclick=()=>{const q=fq();if(q&&!existe(q)){creer(q);return;}nw.hidden=true;mk.hidden=false;inp.focus();setTimeout(lever,250);};
+    mk.querySelector('[data-pickmkgo]').onclick=()=>creer(inp.value);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();creer(inp.value);}});
+    mkBack=()=>{if(mk.hidden||!mk.contains(document.activeElement))return false;mk.hidden=true;nw.hidden=false;nw.focus();return true;};
+    mkSync=()=>{const q=fq();nw.textContent=q&&!existe(q)?'＋ Créer « '+q+' »':lbl0;};}
   {const bk=menu.querySelector('[data-pickback]');if(bk)bk.onclick=()=>{close(false);opts.back.fn();};}   // v5.30.1 : « ‹ Actions », pour jongler entre les sous-feuilles
   const fl=menu.querySelector('.catmenu-filter');
   if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
       menu.querySelectorAll('.mm-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});
       menu.querySelectorAll(':scope>.mm-head').forEach(h=>{let n=h.nextElementSibling,vis=false;   // un intertitre suit son groupe
         while(n&&n.classList.contains('mm-row')){if(n.style.display!=='none'){vis=true;break;}n=n.nextElementSibling;}
-        h.style.display=vis?'':'none';});});
+        h.style.display=vis?'':'none';});
+      if(mkSync)mkSync();});
     /* A597 : `filtreAuToucher` — au doigt, le champ n'est PAS focalisé d'office (le clavier montait sur une feuille
        qu'on venait d'ouvrir pour choisir d'un tap) ; il l'est au pointeur fin et au clavier. */
     if(!opts.keep){if(opts.filtreAuToucher&&matchMedia('(pointer:coarse)').matches){const first=menu.querySelector('.mm-row');if(first)first.focus({preventScroll:true});}else fl.focus();}}
@@ -21155,7 +21192,8 @@ function openCatMenu(host,d,rerender,trigger){
       :'Une seule par aide, avec sa couleur, pour classer l’accueil. Une aide peut être dans plusieurs collections.')}</div></div>`,   // Perso : tout y est déjà personnel — le pivot est le NOMBRE, pas la propriété ; sans jargon ni métaphore (« écrite dans l'aide », « rayon » écartés par l'auteur)
     options:catOpts(catsSorted(d.library)),
     onPick:v=>{d.category=v;rerender();},
-    action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr()}});}
+    // A752 : créée sur place, dans la bibliothèque du brouillon, et aussitôt choisie (plus de détour par le gestionnaire).
+    create:canEditScope(d.library||null)?{label:'Nouvelle catégorie',placeholder:'Nom de la catégorie',fn:nom=>catCreerPour(d.library||null,nom,id=>{d.category=id;rerender();})}:null});}
 // Câblage des champs partagés. o = {fem, rerender, preview} ; d = objet brouillon vivant
 // (state.draft ou state.pdraft — même référence tant que l'éditeur est affiché).
 function bindEditorMetaFields(d,prefix,o){
@@ -21196,7 +21234,7 @@ function bindEditorMetaFields(d,prefix,o){
   {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender,rb);}
   main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.links=(d.links||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
   // Catégorie : chip courant ET « Autre… » ouvrent le même menu ancré (SPEC crise §2) ;
-  // « ＋ Nouvelle catégorie » y ouvre le gestionnaire (même fenêtre que l'accueil).
+  // « ＋ Nouvelle catégorie » y devient un champ : créée et choisie sans quitter le menu (A752).
   {const pick=document.getElementById('catPicker');
    if(pick)pick.querySelectorAll('[data-catmenu]').forEach(b=>b.onclick=()=>openCatMenu(pick,d,o.rerender,b));}
   // Collections (A496) : la feuille à cases de l'accueil, sur ce seul brouillon ; `ents` passe le brouillon
@@ -32503,8 +32541,9 @@ function openImpCatMenu(rows,trigger){
       .concat(catOpts(cats)),
     value:(rows.length===1?rows[0].cat:impCommun2(rows,r=>r.cat)),
     onPick:v=>impPoseCat(rows,v===IMP_KEEP?IMP_KEEP:(v||'')),
-    // « ＋ Nouvelle catégorie » n'a de sens que si l'on sait DANS QUOI la créer.
-    action:lib===undefined?null:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});}
+    // « ＋ Nouvelle catégorie » n'a de sens que si l'on sait DANS QUOI la créer — A752 : créée sur place, posée aussitôt.
+    create:(lib===undefined||!canEditScope(lib||null))?null:{label:'Nouvelle catégorie',placeholder:'Nom de la catégorie',
+      fn:nom=>catCreerPour(lib||null,nom,id=>impPoseCat(rows,id))}});}
 function paintImpList(){document.getElementById('impList').innerHTML=_impRows.map(impRowHtml).join('');impSyncSel();}
 /* Le pied ANNONCE ce qu'on obtient avant de fermer (patron de la feuille de filtres, A26). Le
    bouton est FERMÉ à zéro sélection — apparence de « fermé » du dossier (`:disabled`), et le

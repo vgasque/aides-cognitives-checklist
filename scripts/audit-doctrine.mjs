@@ -11393,6 +11393,46 @@ await sec('A638 · au bureau, les choix de l’atelier d’import sont des déro
     await page.close();}
 });
 
+/* A752 — CRÉER UNE CATÉGORIE SANS QUITTER LE CHOIX. Par le VRAI point d'entrée (le jeton de l'éditeur, la pastille de
+   l'atelier) : « ＋ Nouvelle catégorie » devient un champ, Échap le replie sans fermer, Entrée crée ET choisit ; un nom
+   déjà pris n'en crée pas un second ; dans l'atelier, le nom tapé au filtre qui ne trouve rien devient « ＋ Créer « … » ». */
+await sec('A752 · une catégorie se crée dans le sélecteur et y est choisie', async () => {
+  for(const [w,h] of [[1280,860],[390,844]]){
+    const page=await br.newPage({viewport:{width:w,height:h}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>openEdit(fiches[0].id));await page.waitForSelector('#catPicker [data-catmenu]',{state:'attached'});
+    const r=await page.evaluate(async()=>{const o={};const d=document.querySelector('details.ed-ident');if(d)d.open=true;await __acCalme(200);
+      document.querySelector('#catPicker [data-catmenu]').click();await __acCalme(250);
+      const nw=document.querySelector('[data-pickmk]');if(!nw)return {pasDeRangee:true};nw.click();await __acCalme(150);
+      const inp=document.querySelector('.catmenu-mk-in');o.champ=!!inp&&document.activeElement===inp;
+      inp.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(150);
+      o.replie=!!document.querySelector('.catmenu.popmenu')&&!document.querySelector('[data-pickmk]').hidden;
+      document.querySelector('[data-pickmk]').click();await __acCalme(150);
+      const in2=document.querySelector('.catmenu-mk-in');in2.value='Témoin A752';in2.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await __acCalme(400);
+      const c=categories.find(x=>x.name==='Témoin A752');
+      o.cree=!!c;o.choisie=!!c&&state.draft.category===c.id;o.ferme=!document.querySelector('.catmenu.popmenu');
+      document.querySelector('#catPicker [data-catmenu]').click();await __acCalme(250);document.querySelector('[data-pickmk]').click();await __acCalme(150);
+      const in3=document.querySelector('.catmenu-mk-in');in3.value='témoin a752';in3.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await __acCalme(400);
+      o.unique=categories.filter(x=>txNorm(x.name)==='temoin a752').length===1;return o;});
+    t(`${w}×${h} · éditeur : le champ s'ouvre sur place, Échap le replie, Entrée crée et choisit, pas de doublon`,
+      r.champ&&r.replie&&r.cree&&r.choisie&&r.ferme&&r.unique,JSON.stringify(r));
+    await page.close();}
+  {const page=await br.newPage({viewport:{width:1280,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>{readImportFile(new File([JSON.stringify({version:3,categories:[],fiches:[{id:'i752',title:'Une aide',status:'validated',start:'b',blocks:[{id:'b',kind:'do',title:'G',items:['x']}]}]})],'a752.json'));});
+    await page.waitForSelector('#impList .imp-row');await calme(page,300);
+    const r=await page.evaluate(async()=>{const o={};document.querySelector('#impList [data-impcat]').click();await __acCalme(250);
+      const f=document.querySelector('.catmenu-filter');if(!f)return {pasDeFiltre:true};f.value='Toxicologie A752';f.dispatchEvent(new Event('input'));await __acCalme(100);
+      const nw=document.querySelector('[data-pickmk]');o.libelle=nw.textContent;nw.click();await __acCalme(400);
+      const c=categories.find(x=>x.name==='Toxicologie A752');o.posee=!!c&&_impRows[0].cat===c.id;
+      o.atelier=document.getElementById('impModal').classList.contains('on');o.pastille=document.querySelector('#impList [data-impcat]').textContent;return o;});
+    t('1280×860 · atelier : le filtre sans résultat propose « Créer « … » », la catégorie est créée et posée, l’atelier reste ouvert',
+      /Créer « Toxicologie A752 »/.test(r.libelle||'')&&r.posee&&r.atelier&&/Toxicologie A752/.test(r.pastille||''),JSON.stringify(r));
+    await page.close();}
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});
