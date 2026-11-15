@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ciTr2Hl1GEjG8PQiJtK9GtgX46afXACrOMWmQRBmEUI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fQlKnEqm/NnMAyGc+4aioy6GEhavpULQjBDT5LH/3uQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9098,6 +9098,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme un mot, pas comme une étiquette) ; un filet la sépare des données. */
   .md-tbl tbody th{background:var(--amb-2);font-weight:700;color:var(--ink);border-right:1px solid var(--line)}
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
+  /* A755 — LA GRILLE D'IMAGES : un tableau qui porte une image se partage en colonnes ÉGALES et tient dans la largeur
+     (pas de `min-width` : au téléphone, trois colonnes d'environ 110 px plutôt qu'un défilement de côté) ; sans filets,
+     comme la grille de Notion. Libellé au-dessus, vignette à la largeur de la case ; un toucher l'agrandit. */
+  .md-tbl.md-tbl-img{table-layout:fixed;min-width:0}
+  .md-tw:has(>.md-tbl-img){border:0}
+  .md-tbl.md-tbl-img :is(td,th){padding:6px;border-bottom:0}
+  .md-tbl.md-tbl-img tbody th{background:none;border-right:0}
+  .md-fig.md-cfig{margin:6px 0 0}
+  .md-fig.md-cfig img{display:block;width:100%}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
   /* A608 : « Pleine » = TOUTE la colonne, comme le promet le cadre de la poignée (A584) — l'image n'est plus affichée à
@@ -10775,7 +10784,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.131.0';
+const APP_VERSION='5.132.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11439,6 +11448,8 @@ function mdLenPaint(n){const el=document.getElementById('mdLen');if(!el)return;c
 // et une phrase clinique contenant un « | » ne devient jamais un tableau par accident.
 const MD_MAX_TCOLS=12,MD_MAX_TROWS=200;
 const MD_TROW=/^\s*\|.*\|\s*$/;                     // ligne de tableau
+// A755 : une image dans une case — le segment entier (MD_CELL_IMG), ou présente quelque part dans la case (…_IN).
+const MD_CELL_IMG=/^\s*!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)\s*$/,MD_CELL_IMG_IN=/!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)/;
 const MD_TSEP=/^\s*\|(?:\s*:?-{1,}:?\s*\|)+\s*$/;   // ligne de séparation (porte l'alignement)
 /* ENCADRÉS TYPÉS (v4.4.3) — une citation « > » peut porter un REGISTRE, exactement comme une étape
    de fiche porte « ⚠ » / « △ ». La couleur n'invente rien : elle réutilise les 5 registres de l'app
@@ -11634,7 +11645,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
     // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
-    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+mdFigAr(im.w,im.h)+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig'+(cls||(MD_SC[im.scale]||''))+(cls===' md-cfig'?'':mdFigAr(im.w,im.h))+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const imgsHtml=it=>it.imgs?it.imgs.map(x=>figHtml(x.id,x.caption,' md-lfig')).join(''):'';
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
@@ -11665,12 +11676,18 @@ function mdRender(src,ctx){ctx=ctx||{};
       /* A609 : une ligne d'en-tête VIDE = pas de ligne d'en-tête ; la 1ʳᵉ case de chaque ligne en **gras** entier = une
          colonne d'en-tête (`th scope="row"`) ; `<br>` dans une case = retour à la ligne — reconnu APRÈS esc(), sur sa
          forme échappée exacte : aucun autre HTML n'est jamais lu. */
-      const ce=c=>mdInline(c).replace(/&lt;br\s*\/?&gt;/gi,'<br>'),hc=mdTblHc(B);
+      /* A755 — UNE IMAGE DANS UNE CASE : un segment de case (entre deux `<br>`) qui n'est QU'une image `![…](img:ID)` se
+         rend en vignette (la figure de lecture : un toucher l'agrandit) ; le reste reste du texte en ligne. Le tableau qui
+         en porte une prend des colonnes égales (`md-tbl-img`) : la grille d'images de Notion. */
+      const ce=c=>{let html='',prevTxt=false;String(c==null?'':c).split(/<br\s*\/?>/i).forEach(seg=>{const m=seg.match(MD_CELL_IMG);
+          if(m){const f=figHtml(m[2],m[1],' md-cfig');if(f){html+=f;prevTxt=false;return;}}
+          html+=(prevTxt?'<br>':'')+mdInline(seg);prevTxt=true;});return html;},hc=mdTblHc(B);
+      const aImg=H.concat(...B).some(c=>MD_CELL_IMG_IN.test(String(c==null?'':c)));
       const hd=mdTblEmpty(H)?'':'<thead><tr>'+H.map((c,i)=>'<th'+ta(al[i])+' scope="col">'+ce(c)+'</th>').join('')+'</tr></thead>';
       const bd=B.map(r=>'<tr>'+r.map((c,i)=>hc&&i===0&&String(c).trim()?'<th'+ta(al[i])+' scope="row">'+ce(String(c).trim().replace(MD_TC_BOLD,'$1'))+'</th>':'<td'+ta(al[i])+'>'+ce(c)+'</td>').join('')+'</tr>').join('');
       // Conteneur défilant FOCUSABLE (clavier : WCAG 2.1.1) — sur iPhone le tableau défile au lieu
       // d'écraser ses colonnes (lisibilité sous stress).
-      return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl'+(hc?' md-tbl-hc':'')+'">'+hd+'<tbody>'+bd+'</tbody></table></div>';}
+      return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl'+(hc?' md-tbl-hc':'')+(aImg?' md-tbl-img':'')+'">'+hd+'<tbody>'+bd+'</tbody></table></div>';}
     if(b.t==='h1')return '<h1 class="md-h1">'+mdInline(b.text)+'</h1>';
     if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
     if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
@@ -19880,6 +19897,7 @@ function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g
     ins:{aria:'Insérer',o:[['tbl','Tableau','| a | b |',uiIcon('table',18)],
       ['att','Lien vers un document joint',n?n+' PDF · « #p12 » après l’identifiant vise une page':'joindre un PDF, puis le lier',uiIcon('doc',18),n>0],
       ['link','Lien web','[texte](https://…) · ⌘K',uiIcon('link',18)],['img','Image','réduite et stockée hors ligne',uiIcon('img',18)],
+      ['imgrid','Grille d’images','met côte à côte les images du passage sélectionné',uiIcon('table',18)],   // A755
       ['code','Code','`texte`',uiIcon('code',18)],['hr','Séparateur','---',uiIcon('hr',18)]]}};}
 function mdToolbarHtml(){
   const dd=(k,inner)=>`<span class="mdt-g"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" data-catmenu aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
@@ -19918,7 +19936,13 @@ function mdTool(k,ta,p,takeImg){
   else if(k==='hr')mdInsertAt(ta,'\n---\n',true);
   else if(k==='tbl'||k==='grid')mdTblOpen(ta);
   else if(k==='link'){const [a,b,v]=selBounds(ta),t=v.slice(a,b)||'texte';mdSplice(ta,a,b,'['+t+'](https://)',a+t.length+3,a+t.length+11);}
-  else if(k==='img')pickFile('image',takeImg,true);}
+  else if(k==='img')pickFile('image',takeImg,true);
+  /* A755 : le passage sélectionné, étendu à ses lignes entières, devient une grille. */
+  else if(k==='imgrid'){const v=ta.value,a0=v.lastIndexOf('\n',Math.max(0,ta.selectionStart-1))+1,e=v.indexOf('\n',ta.selectionEnd),b0=e<0?v.length:e;
+    const a=ta.selectionStart===0?0:a0;
+    const trig=(ta.closest('.md-ed')||document).querySelector('[data-mdmenu="ins"]');if(!trig)return;
+    if(ta.selectionStart===ta.selectionEnd){toast('Sélectionnez d’abord le passage : les libellés et leurs images.',5000,true);return;}
+    mdGrilleDemande(trig,v.slice(a,b0),md=>mdSplice(ta,a,b0,md));}}
 // Lien vers un document joint : libellé = la sélection, sinon le nom du fichier sans « .pdf ».
 const mdDocLink=(d,label)=>'['+(String(label||d.name.replace(/\.pdf$/i,'')).replace(/[[\]\n]/g,' ').trim()||'document')+'](att:'+d.id+')';
 function mdLinkDoc(ta,d){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b));mdSplice(ta,a,b,seg,a+1,a+seg.indexOf(']('));}
@@ -20096,6 +20120,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const n=sel.size,h=`<span class="mdb-sb-n" role="status">${n?n+' bloc'+(n>1?'s':'')+' sélectionné'+(n>1?'s':''):'Touchez les blocs à sélectionner'}</span>`
       +`<button type="button" class="btn sm" data-mdbsel="move"${n?'':' disabled'}><span aria-hidden="true">⠿</span> Déplacer</button>`
       +`<button type="button" class="btn sm" data-mdbsel="copy"${n?'':' disabled'}>${uiIcon('copy',14)}Copier</button>`
+      +(n>1&&mdGrille(selSrc(),2)?`<button type="button" class="btn sm" data-mdbsel="grid">${uiIcon('table',14)}Mettre en grille</button>`:'')   // A755
       +`<button type="button" class="btn sm danger" data-mdbsel="del"${n?'':' disabled'}>${uiIcon('trash',14)}Supprimer</button>`
       +`<button type="button" class="mdb-sb-x" data-mdbsel="x" aria-label="Annuler la sélection">✕</button>`;
     if(!bar){bar=document.createElement('div');bar.className='mdb-selbar';bar.setAttribute('role','toolbar');bar.setAttribute('aria-label','Blocs sélectionnés');doc.appendChild(bar);}
@@ -20149,6 +20174,10 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     if(grab>=0){const d=e.target.closest('[data-mdbdrop]');if(d)return drop(+d.dataset.mdbdrop);
       if(e.target.closest('[data-mdbgrabx]'))return cancel();e.preventDefault();return;}
     const sb=e.target.closest('[data-mdbsel]');if(sb){const k=sb.dataset.mdbsel;if(k==='x')return selClear();if(k==='del')return selDel();if(k==='copy')return selCopy();
+      /* A755 : des blocs qui SE SUIVENT deviennent une grille ; l'écart d'une sélection trouée ne s'y perd pas. */
+      if(k==='grid'){const M=[...sel].sort((a,b)=>a-b),R=mdBlockRanges(p.body);if(M.some((x,i)=>i&&x!==M[i-1]+1)){toast('Sélectionnez des blocs qui se suivent.',4000,true);return;}
+        const r0=R[M[0]],r1=R[M[M.length-1]];if(!r0||!r1)return;const l=lines();
+        mdGrilleDemande(sb,l.slice(r0.a,r1.e).join('\n'),md=>{const L=lines();push(L.slice(0,r0.a).concat(md.split('\n'),L.slice(r1.e)).join('\n'));sel=new Set();selMode=false;anchor=-1;open=-1;paint(false);});return;}
       if(k==='move'&&sel.size){const M=[...sel].sort((a,b)=>a-b);take(M[0]);grabMany=M.length>1?M:null;paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});}return;}
     if(skipClick){skipClick=false;e.preventDefault();return;}
     {const b=e.target.closest('.mdb:not(.on)');const mod=e.shiftKey||e.metaKey||e.ctrlKey;
@@ -20442,6 +20471,38 @@ const mdFit=(r,n)=>{const o=r.slice(0,n);while(o.length<n)o.push('');return o;};
    - retour à la ligne dans une case = `<br>` (la convention GFM ; le SEUL fragment HTML que lit le rendu, en dur).
    `hh` (ligne d'en-tête) et `hc` (colonne d'en-tête) sont lus par `mdTableAt` et écrits par `mdTableMd`. */
 const mdTblEmpty=r=>r.every(c=>!String(c||'').trim());
+/* A755 — METTRE EN GRILLE, PURE (?__actest). Un passage « libellé, puis son image », répété, devient un tableau à `n`
+   colonnes sans ligne d'en-tête (A609) : chaque case porte « libellé<br>![…](img:ID) » — la grille de Notion, dont
+   l'export Markdown ne garde pas les colonnes (rien n'y distingue des images côte à côte d'images à la suite : c'est
+   donc l'auteur qui dit combien de colonnes, jamais l'app qui devine). Le libellé = le texte entre l'image précédente
+   et la sienne (la seule ligne juste au-dessus, pour la première) ; le reste, avant et après, entoure le tableau — RIEN ne se perd. Moins de
+   deux images : `null`. */
+const MD_GR_IMG=/^\s*!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/;
+function mdGrille(src,n){n=Math.max(2,Math.min(4,Math.round(Number(n))||3));
+  const L=String(src==null?'':src).split('\n'),items=[],avant=[];let lab=[];
+  const net=t=>t.replace(/^#{1,6}\s+/,'').replace(/^(?:[-*]|\d{1,3}[.)])\s+/,'').replace(/\|/g,'\\|').trim();
+  for(const l of L){
+    if(MD_GR_IMG.test(l)){items.push({lab:lab.map(net).filter(Boolean).join(' '),md:l.trim()});lab=[];continue;}
+    const t=l.trim();if(!t)continue;
+    if(!items.length&&lab.length>=1)avant.push(lab.shift());   // avant la 1ʳᵉ image : sa DERNIÈRE ligne seule est son libellé
+    lab.push(t);}
+  if(items.length<2)return null;
+  const rows=[];for(let i=0;i<items.length;i+=n)rows.push(items.slice(i,i+n));
+  const ligne=c=>'| '+c.join(' | ')+' |';
+  const tbl=[ligne(Array(n).fill('')),ligne(Array(n).fill('---'))]
+    .concat(rows.map(r=>ligne(Array.from({length:n},(_,j)=>r[j]?(r[j].lab?r[j].lab+'<br>'+r[j].md:r[j].md):''))));
+  const md=(avant.length?avant.join('\n\n')+'\n\n':'')+tbl.join('\n')+(lab.length?'\n\n'+lab.join('\n\n'):'');
+  return {md,k:items.length,rows:rows.length};}
+// Colonnes conseillées : 3 si le compte s'y prête (la grille de Notion), sinon 2.
+const mdGrilleN=k=>k%3===0?3:k%2===0?2:k>=3?3:2;
+/* La question « combien de colonnes ? » — un menu, sous son déclencheur (déroulant flottant au bureau, feuille au
+   téléphone) ; `poser(md)` écrit le tableau à la place du passage. */
+function mdGrilleDemande(trig,src,poser){const r=mdGrille(src,2),k=r?r.k:0;
+  if(k<2){toast('Choisissez le passage à mettre en grille : au moins deux images, chacune avec son libellé au-dessus (facultatif).',6000,true);return;}
+  const best=mdGrilleN(k);
+  openPickMenu(trig.parentNode,{aria:'Colonnes de la grille',title:'Mettre en grille',ctx:k+' images, côte à côte',trigger:trig,fixed:true,
+    options:[2,3,4].filter(x=>x<=k).map(x=>{const rg=Math.ceil(k/x);return {val:String(x),name:x+' colonnes',sub:rg+' rangée'+(rg>1?'s':'')+(x===best?' · conseillé':''),dot:false};}),
+    value:String(best),onPick:v=>{const g=mdGrille(src,+v);if(g)poser(g.md);}});}
 const MD_TC_BOLD=/^\*\*(?!\*)([\s\S]+?)\*\*$/;
 // (deux colonnes au moins : une colonne unique en gras reste un gras — elle n'intitule rien)
 const mdTblHc=rows=>{if(!rows.some(r=>r.length>1))return false;const f=rows.map(r=>String(r[0]||'').trim()).filter(Boolean);return f.length>0&&f.every(x=>MD_TC_BOLD.test(x)&&!/\*\*/.test(x.slice(2,-2)));};
@@ -20722,9 +20783,14 @@ const _miGo=Object.create(null);   // passage visé ensuite, par image (« Aller
 /* A642 : les images d'un élément de liste (`it.imgs`, à toute profondeur) comptent comme les autres — sans quoi le
    ménage de sortie retirerait une image importée de Notion. Une seule source pour les deux lecteurs. */
 function mdImgIds(blocks){const out=[];const walk=items=>(items||[]).forEach(it=>{if(!it||typeof it!=='object')return;(it.imgs||[]).forEach(x=>out.push(x.id));if(it.sub)walk(it.sub.items);});
-  (blocks||[]).forEach(b=>{if(b.t==='img')out.push(b.id);else if(b.t==='ul'||b.t==='ol')walk(b.items);});return out;}
+  /* A755 : une image dans une case de tableau compte aussi — sans quoi `leaveGC` la retirerait en quittant l'éditeur. */
+  const cases=b=>[].concat(b.head||[],...(b.rows||[])).forEach(c=>{for(const m of String(c==null?'':c).matchAll(/!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)/g))out.push(m[1]);});
+  (blocks||[]).forEach(b=>{if(b.t==='img')out.push(b.id);else if(b.t==='ul'||b.t==='ol')walk(b.items);else if(b.t==='tbl')cases(b);});return out;}
 function miUses(body){const n=Object.create(null);mdImgIds(mdBlocks(body||'')).forEach(id=>{n[id]=(n[id]||0)+1;});return n;}
 const miLineRx=id=>new RegExp('^\\s*!\\[[^\\]]*\\]\\(img:'+String(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\)\\s*$');
+// A755 : la même image DANS une case de tableau (retirer l'image vide la case ; « Aller au passage » trouve la ligne).
+const miCellRx=id=>new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(img:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)','g');
+const miHas=(l,id)=>miLineRx(id).test(l)||(MD_TROW.test(l)&&miCellRx(id).test(l));
 const miName=(im,i)=>im.caption||('Image '+(i+1));
 function miCardHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
   const fold=_miAll!==p.id&&ims.length>MI_FOLD,vis=fold?ims.slice(0,MI_FOLD-1):ims;
@@ -20777,7 +20843,7 @@ function miRefClick(c,t,im,m){const p=c.p,bd=document.getElementById('miBody');
         if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
         im.data=r.data;im.w=r.w;im.h=r.h;keepAnchor('.mi-card',renderProtocolEdit);miPaint();},false);return;}
     // Retirer = l'image ET ses lignes ; le re-rendu pose le point de reprise (↶).
-    if(k==='rm'){const rx=miLineRx(im.id);p.body=String(p.body||'').split('\n').filter(l=>!rx.test(l)).join('\n');
+    if(k==='rm'){const rx=miLineRx(im.id);p.body=String(p.body||'').split('\n').filter(l=>!rx.test(l)).map(l=>MD_TROW.test(l)?l.replace(miCellRx(im.id),''):l).join('\n');
       p.images=(p.images||[]).filter(x=>x!==im);_miId=null;modalHandoffClose(m);
       keepAnchor('.mi-card',renderProtocolEdit);toast('Image retirée — ↶ pour annuler.');}}
 let _mdPrevTimer=null;
@@ -20814,7 +20880,7 @@ function renderProtocolEdit(){
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <p class="md-len" id="mdLen" role="status" hidden></p>
       <div class="md-lint-box"></div>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
       <div class="md-ppane">${mds?`<div class="etab-rh"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div id="revPanel">${revProtoHtml(p)}</div></div>`:'<p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p>'}<div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mds?'</div>':''}
@@ -20932,7 +20998,7 @@ function renderProtocolEdit(){
     goTo:(im,r)=>{const box=document.getElementById(live?'mdDoc':'mdPreview');
       if(box&&(live||state.mdPv==='p')){const g=[...box.querySelectorAll('img')].filter(x=>x.getAttribute('src')===im.data)[r];
         if(g)(g.closest('.mdb')||g).scrollIntoView({block:'center'});return;}
-      const rx=miLineRx(im.id);let c=0,n=0;for(const l of ta.value.split('\n')){if(rx.test(l)){if(n===r)break;n++;}c+=l.length+1;}
+      let c=0,n=0;for(const l of ta.value.split('\n')){if(miHas(l,im.id)){if(n===r)break;n++;}c+=l.length+1;}
       ta.focus({preventScroll:true});ta.setSelectionRange(c,c);ta.scrollIntoView({block:'center'});mdCaretSync(ta,p);}};
   const miBind=()=>{main.querySelectorAll('[data-mitile]').forEach(b=>b.onclick=()=>miOpen(b.dataset.mitile));
     {const mo=main.querySelector('[data-mimore]');if(mo)mo.onclick=()=>{_miAll=_miAll===p.id?null:p.id;keepAnchor('.mi-card',renderProtocolEdit);};}
@@ -32024,7 +32090,8 @@ async function exportData(list,baseName,cats,protos){
 function exportLeger(out){const o={...out};
   const nu=x=>{const c={...x};c.images=[];c.docs=[];
     if(Array.isArray(c.blocks))c.blocks=c.blocks.map(b=>b&&b.image?{...b,image:null,imageW:null,imageH:null}:b);
-    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/.test(l)).join('\n')
+    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/.test(l))
+      .map(l=>MD_TROW.test(l)?l.replace(/!\[[^\]\n]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)/g,''):l).join('\n')   // A755 : et celles des cases
       .replace(/\[([^\]\n]{1,200})\]\(att:[A-Za-z0-9_-]{1,64}(?:#p\d{1,4})?\)/g,'$1');
     return c;};
   o.fiches=(out.fiches||[]).map(nu);if(out.protocols)o.protocols=out.protocols.map(nu);return o;}
@@ -39414,7 +39481,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

@@ -852,6 +852,20 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const r=A.mdLenTxt(52300);ok('A754 : au-delà, dit combien ne seront pas enregistrés', !!r&&r.warn&&/les 2\s300 derniers ne seront pas enregistrés/.test(r.txt));}
   {const r=A.mdLenTxt(50001);ok('A754 : au-delà d’un seul, au singulier', !!r&&/le dernier ne sera pas enregistré/.test(r.txt));}
   eq('A754 : migrateProtocol coupe au plafond', A.migrateProtocol({body:'x'.repeat(60000)}).body.length, 50000);
+  /* A755 : grille d'images — libellé + image, n colonnes, rien ne se perd. */
+  {const src='Intro\n\nFémoral\n\n![x](img:i1)\n\nNormal\n\n![](img:i2)\n\nThrombus\n\n![](img:i3)\n\nPoplité\n\n![](img:i4)\n\nFin';
+   const g=A.mdGrille(src,3);
+   eq('A755 : mdGrille — 4 images, 3 colonnes', [g.k,g.rows], [4,2]);
+   eq('A755 : mdGrille — tableau sans en-tête, libellé<br>image, case vide en fin', g.md,
+     'Intro\n\n|  |  |  |\n| --- | --- | --- |\n| Fémoral<br>![x](img:i1) | Normal<br>![](img:i2) | Thrombus<br>![](img:i3) |\n| Poplité<br>![](img:i4) |  |  |\n\nFin');
+   eq('A755 : mdGrille — moins de deux images : rien', A.mdGrille('a\n\n![](img:i1)',3), null);
+   eq('A755 : mdGrille — un « | » du libellé ne casse pas la case', A.mdGrille('a|b\n![](img:i1)\nc\n![](img:i2)',2).md.split('\n')[2], '| a\\|b<br>![](img:i1) | c<br>![](img:i2) |');
+   eq('A755 : colonnes conseillées', [6,4,5,2].map(A.mdGrilleN), [3,2,3,2]);
+   const P={body:g.md,images:['i1','i2','i3','i4'].map(id=>({id,caption:'',data:'data:image/png;base64,iVBORw0KGgo=',w:10,h:10}))};
+   const h=A.mdRender(P.body,{images:P.images});
+   ok('A755 : rendu — tableau à colonnes égales, quatre vignettes', /md-tbl-img/.test(h)&&(h.match(/md-cfig/g)||[]).length===4);
+   eq('A755 : les images des cases comptent comme utilisées (le ménage de sortie les garde)', Object.keys(A.miUses(g.md)).sort(), ['i1','i2','i3','i4']);
+   ok('A755 : l’export « sans fichiers » vide aussi les cases', !/img:/.test(A.exportLeger({fiches:[],protocols:[{body:g.md,images:[],docs:[]}]}).protocols[0].body));}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});

@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.132.0] — 2026-11-15
+Des images côte à côte dans un protocole : la grille d'images (A755).
+- **Une image seule dans une case de tableau s'affiche en vignette**, et un toucher l'agrandit. Un tableau d'images a
+  des colonnes égales et tient dans la largeur de l'écran — au téléphone, trois colonnes côte à côte, comme dans
+  Notion. Chaque case porte un libellé au-dessus de son image (« Fémoral », « Normal », « Thrombus »…).
+- **« Mettre en grille »** : sélectionnez les libellés et leurs images, puis choisissez 2, 3 ou 4 colonnes — en mise
+  en forme en direct, par la barre de sélection des blocs ; en mode texte, par « ＋ Insérer › Grille d'images ».
+  Le texte autour est gardé. C'est vous qui choisissez les colonnes : l'export Markdown de Notion ne dit pas quelles
+  images étaient côte à côte.
+- Une image placée dans une grille n'est plus retirée en quittant l'éditeur ; « Retirer » une image vide aussi ses
+  cases ; l'export « sans les fichiers joints » les retire aussi.
+
 ## [5.131.0] — 2026-11-15
 Un protocole peut contenir 50 000 caractères, et le texte n'est plus jamais coupé sans le dire (A754).
 - **La limite passe de 20 000 à 50 000 caractères** (environ 20 pages). Elle a été mesurée : sur un téléphone lent, un
@@ -212,13 +224,3 @@ Import d'une page Notion : un tableau dont les cases tiennent sur plusieurs lign
   s'affiche désormais comme les autres rangées.
 - Une ligne de texte ordinaire qui commence par « | », hors d'un tableau, n'est pas touchée ; un bloc de code non plus.
 - Pour corriger une page déjà importée : importer à nouveau le `.zip`.
-
-## [5.124.1] — 2026-11-12
-Import d'une page Notion : les images rangées dans un dossier dont le nom contient des parenthèses s'importent (A731).
-- **Les images ne se perdent plus.** Notion range les images d'une page dans un dossier au nom de la page, et ne code
-  pas les parenthèses de ce nom — par exemple `Complications aiguës du diabète (DT1, DT2) hypogly/image 1.png`. La
-  lecture du lien s'arrêtait à la première parenthèse fermante : l'image était déclarée « absente de l'archive » et un
-  morceau du chemin restait dans le texte. Le lien est désormais lu en entier, et l'image arrive dans le protocole.
-- Vaut pour le `.zip` d'export comme pour un `.md` seul, et pour un nom tronqué par Notion au milieu d'une parenthèse.
-- Un lien vers une autre page Notion dont le titre contient des parenthèses garde, lui aussi, son seul texte.
-- Pour récupérer les images d'une page déjà importée : importer à nouveau le `.zip`.

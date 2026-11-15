@@ -11507,6 +11507,42 @@ await sec('A754 · le texte d’un protocole n’est jamais coupé en silence', 
   await page.close();
 });
 
+/* A755 — METTRE EN GRILLE, par les vrais gestes de l'éditeur de protocole : en mise en forme en direct, les blocs
+   sélectionnés (Ctrl+clic) puis « Mettre en grille » › « 3 colonnes » ; en mode texte, la sélection puis « Insérer » ›
+   « Grille d'images » › « 2 colonnes ». Le tableau rendu porte les quatre vignettes, et au téléphone il tient dans la
+   largeur (aucun défilement de côté). */
+await sec('A755 · mettre des images en grille dans un protocole', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{const im=id=>({id,caption:'',data:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkaPhfDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',w:40,h:40});
+    protocols.push(migrateProtocol({id:'p755',title:'Grille',status:'draft',images:['g1','g2','g3','g4'].map(im),
+      body:'Fémoral\n\n![](img:g1)\n\nNormal\n\n![](img:g2)\n\nThrombus\n\n![](img:g3)\n\nPoplité\n\n![](img:g4)'}));
+    await openProtocolEdit('p755');await __acCalme(500);});
+  const nb=await page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb[data-mdb]').length);
+  for(let i=0;i<nb;i++)await page.click(`#mdDoc .mdb[data-mdb="${i}"]`,{modifiers:['Control']});
+  await calme(page,200);
+  const bouton=await page.evaluate(()=>!!document.querySelector('.mdb-selbar [data-mdbsel="grid"]'));
+  if(bouton){await page.click('.mdb-selbar [data-mdbsel="grid"]');await calme(page,250);await page.click('.popmenu [data-pickopt="3"]');await calme(page,400);}
+  const r=await page.evaluate(()=>({tbl:/^\|  \|  \|  \|$/m.test(state.pdraft.body),cfig:document.querySelectorAll('#mdDoc .md-cfig').length,imgs:state.pdraft.images.length}));
+  t('1280 · A755 : en direct, les blocs sélectionnés deviennent une grille de 3 colonnes (quatre vignettes)',bouton&&r.tbl&&r.cfig===4&&r.imgs===4,JSON.stringify({bouton,...r}));
+  // Mode texte : la sélection, puis « Insérer » › « Grille d'images » › « 2 colonnes ».
+  await page.evaluate(async()=>{try{localStorage.setItem('ac-mdlive','0');}catch(e){}state.pdraft.body='A\n![](img:g1)\nB\n![](img:g2)';renderProtocolEdit();await __acCalme(300);
+    const ta=document.getElementById('p-body');ta.focus();ta.setSelectionRange(0,ta.value.length);});
+  await page.click('.md-toolbar [data-mdmenu="ins"]');await calme(page,250);await page.click('.popmenu [data-pickopt="imgrid"]');await calme(page,250);
+  const menu2=await page.waitForSelector('.popmenu [data-pickopt="2"]',{timeout:3000}).then(()=>true,()=>false);   // un rouge lisible, pas un plantage
+  if(menu2){await page.click('.popmenu [data-pickopt="2"]');await calme(page,300);}
+  const v=await page.evaluate(()=>document.getElementById('p-body').value);
+  t('1280 · A755 : en mode texte, « Insérer › Grille d’images » met la sélection en 2 colonnes',v.split('\n')[2]==='| A<br>![](img:g1) | B<br>![](img:g2) |',JSON.stringify(v));
+  await page.evaluate(()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}});
+  // Au téléphone, en lecture : la grille tient dans la largeur.
+  await page.setViewportSize({width:390,height:844});
+  const tel=await page.evaluate(async()=>{const p=protocols.find(x=>x.id==='p755');p.body=mdGrille(p.body,3).md;openProtocolRead('p755');await __acCalme(400);
+    const w=document.querySelector('.md-tbl-img')&&document.querySelector('.md-tbl-img').closest('.md-tw');return w?{sw:w.scrollWidth,cw:w.clientWidth}:null;});
+  t('390 · A755 : en lecture, la grille tient dans la largeur (pas de défilement de côté)',!!tel&&tel.sw<=tel.cw+1,JSON.stringify(tel));
+  await page.close();
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});
