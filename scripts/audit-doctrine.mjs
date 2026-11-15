@@ -9282,14 +9282,14 @@ await sec('Import · A611 renommer, verser dans une référence existante', asyn
   await page.evaluate(()=>{const a=migrateProtocol({id:'p611a',title:'Grades de gravité',body:'',status:'draft'});a.category='';protocols.push(a);
     protocols.push(migrateProtocol({id:'p611b',title:'Déjà écrite',body:'Premier paragraphe.',status:'draft'}));});
   vu=await lancer('# Page Notion\n\n- **indications *systématiques***');
-  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('.popmenu [data-pickopt="p611a"]');await calme(page,200);}
+  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('[data-intomode="into"]');await calme(page,150);await page.click('.popmenu [data-pickopt="p611a"]');await calme(page,200);}
   const vu2=await page.evaluate(()=>({into:(document.querySelector('[data-impinto]')||{}).textContent||'',ren:!!document.querySelector('[data-impren]'),dest:!!document.querySelector('#impList [data-impcat]')}));
   if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
   const r2=await page.evaluate(()=>{const a=protocols.find(x=>x.id==='p611a');return {n:protocols.length-window.__n0,titre:a.title,body:a.body};});
   t('A611 · « Dans « … » » : la rangée nomme la référence visée, sans « Renommer » ni pastilles de destination',/Dans « Grades de gravité »/.test(vu2.into)&&!vu2.ren&&!vu2.dest,JSON.stringify(vu2));
   t('A611 · versée : aucune référence de plus, le contenu vide est rempli, le titre gardé',r2.n===0&&r2.titre==='Grades de gravité'&&r2.body==='- **indications *systématiques***',JSON.stringify(r2));
   vu=await lancer('# Autre page\n\nSuite.');
-  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('.popmenu [data-pickopt="p611b"]');await calme(page,200);await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('[data-intomode="into"]');await calme(page,150);await page.click('.popmenu [data-pickopt="p611b"]');await calme(page,200);await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
   const r3=await page.evaluate(()=>protocols.find(x=>x.id==='p611b').body);
   t('A611 · un contenu existant n’est jamais écrasé : la page s’ajoute à la suite',r3==='Premier paragraphe.\n\nSuite.',JSON.stringify(r3));
   await page.close();
@@ -11381,6 +11381,7 @@ await sec('A638 · au bureau, les choix de l’atelier d’import sont des déro
     await page.evaluate(()=>{protocols.push(migrateProtocol({id:'p638',title:'Existant',body:'',status:'draft'}));const T=s=>new TextEncoder().encode(s);readImportFile(new File([T('# Page\n\nTexte.')],'Page.md'));});
     await page.waitForSelector('#impList .imp-row');await calme(page,300);
     const r=await page.evaluate(async()=>{const o={};const mes=async sel=>{const b=document.querySelector(sel);if(!b)return null;b.click();await __acCalme(300);
+      {const v=document.querySelector('.popmenu [data-intomode="into"]');if(v){v.click();await __acCalme(200);}}   // A753 : la liste de « Dans » paraît avec « Verser »
       const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('.mm-row'));if(!m)return {aucun:true};
       const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect(),rows=[...m.querySelectorAll('.mm-row')].filter(x=>{const r=x.getBoundingClientRect();return r.top>=mr.top&&r.bottom<=mr.bottom;});
       const res={feuille:m.classList.contains('sheet'),colle:Math.abs(mr.left-br.left)<=2&&(Math.abs(mr.top-br.bottom-6)<=2||Math.abs(br.top-6-mr.bottom)<=2),
@@ -11429,6 +11430,46 @@ await sec('A752 · une catégorie se crée dans le sélecteur et y est choisie',
       o.atelier=document.getElementById('impModal').classList.contains('on');o.pastille=document.querySelector('#impList [data-impcat]').textContent;return o;});
     t('1280×860 · atelier : le filtre sans résultat propose « Créer « … » », la catégorie est créée et posée, l’atelier reste ouvert',
       /Créer « Toxicologie A752 »/.test(r.libelle||'')&&r.posee&&r.atelier&&/Toxicologie A752/.test(r.pastille||''),JSON.stringify(r));
+    await page.close();}
+});
+
+/* A753 — L'ATELIER EN LISTE GROUPÉE (téléphone) ET EN COLONNES (bureau large). Par le VRAI point d'entrée
+   (`readImportFile`). Téléphone : feuille du bas, groupes « Aides · n sur N » dont le lien coche/décoche le seul groupe,
+   pas de colonnes. Bureau 1280 : `.imp-cols`, case maîtresse à trois états, chaque commande de l'en-tête au-dessus de sa
+   colonne (bord gauche commun à 2 px). « Dans » : la liste des protocoles n'existe qu'après « Verser ». */
+await sec('A753 · l’atelier d’import : liste groupée au téléphone, colonnes au bureau', async () => {
+  const doc={version:3,categories:[],fiches:[{id:'i7a',title:'Aide A',status:'validated',start:'b',blocks:[{id:'b',kind:'do',title:'G',items:['x']}]},
+    {id:'i7b',title:'Aide B',status:'draft',start:'c',blocks:[{id:'c',kind:'do',title:'G',items:['y']}]}],
+    protocols:[{id:'p7a',title:'Protocole A',status:'validated',body:'Texte',sources:[]}]};
+  for(const [w,h] of [[390,844],[1280,860]]){
+    const page=await br.newPage({viewport:{width:w,height:h}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(d=>{myLibraries=[{id:'L7',name:'SMUR',role:'editor'}];protocols.push(migrateProtocol({id:'px7',title:'Existant',body:'',status:'draft'}));
+      readImportFile(new File([JSON.stringify(d)],'a753.json'));},doc);
+    await page.waitForSelector('#impList .imp-row');await calme(page,300);
+    const r=await page.evaluate(async()=>{const o={};const card=impModal.querySelector('.ai-card');
+      o.cols=impModal.classList.contains('imp-cols');
+      o.feuille=getComputedStyle(impModal).alignItems==='flex-end';
+      o.groupes=[...document.querySelectorAll('#impList [data-impgn]')].map(x=>x.textContent);
+      o.anciens=!!document.getElementById('impNone');
+      document.querySelector('#impList [data-impgrp="f"]').click();await __acCalme(150);
+      o.apresGrp=[_impSel.size,document.querySelector('#impList [data-impgrp="f"]').textContent,document.getElementById('impAll').indeterminate];
+      document.querySelector('#impList [data-impgrp="f"]').click();await __acCalme(150);
+      if(o.cols){const L=sel=>Math.round(document.querySelector(sel).getBoundingClientRect().left);
+        o.alignLib=Math.abs(L('#impDestLib')-L('#impList [data-implib]'))<=2;o.alignCat=Math.abs(L('#impDestCat')-L('#impList [data-impcat]'))<=2;}
+      document.querySelector('#impList [data-impinto]').click();await __acCalme(250);
+      const vis=()=>[...document.querySelectorAll('.popmenu .mm-row')].filter(x=>x.getClientRects().length).length;
+      o.dansNeuf=vis();document.querySelector('.popmenu [data-intomode="into"]').click();await __acCalme(200);o.dansVerser=vis();
+      if(_pickClose)_pickClose(false);await __acCalme(150);
+      o.largeur=Math.round(card.getBoundingClientRect().width);return o;});
+    const tel=w<780;
+    t(`${w}×${h} · A753 : ${tel?'feuille du bas, liste':'colonnes'} ; groupes « Aides · 2 sur 2 » / « Protocole · 1 sur 1 » ; plus de « Tout décocher » en tête`,
+      r.cols===!tel&&r.feuille===tel&&r.groupes.join('|')==='Aides · 2 sur 2|Protocole · 1 sur 1'&&!r.anciens,JSON.stringify(r));
+    t(`${w}×${h} · A753 : le lien d'un groupe ne touche que lui ; la case maîtresse passe « en partie »`,
+      r.apresGrp[0]===1&&r.apresGrp[1]==='Tout cocher'&&r.apresGrp[2]===true,JSON.stringify(r.apresGrp));
+    if(!tel)t(`${w}×${h} · A753 : « Bibliothèque » et « Catégorie » de l'en-tête au-dessus de leur colonne`,r.alignLib&&r.alignCat,JSON.stringify(r));
+    t(`${w}×${h} · A753 : « Dans » — aucune liste tant que « Nouveau protocole » est choisi, la recherche après « Verser »`,r.dansNeuf===0&&r.dansVerser>=1,JSON.stringify([r.dansNeuf,r.dansVerser]));
     await page.close();}
 });
 

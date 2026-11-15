@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.130.0] — 2026-11-15
+La fenêtre d'import refaite : une liste groupée au téléphone, des colonnes au bureau (A753).
+- **Au téléphone**, l'import s'ouvre en feuille du bas, qu'on referme en la tirant par sa poignée. Une seule phrase
+  d'introduction ; « Ranger les cochés dans » devient deux rangées « Bibliothèque › » et « Catégorie › » ; les
+  éléments sont groupés par nature (« Aides · 3 sur 3 », « Protocoles · 1 sur 1 »), chacun avec son « Tout cocher » ou
+  « Tout décocher ». La destination d'un élément se touche comme un lien (« Perso › »), plus en pastille en pointillé.
+- **Au bureau**, quand la fenêtre est assez large : une ligne par élément, et deux colonnes, Bibliothèque et
+  Catégorie. Les commandes qui règlent tous les cochés sont posées en tête de leur colonne, avec une case pour tout
+  cocher ou décocher. « Comparer » déplie la différence sous la ligne, sur toute la largeur.
+- **Protocole ou page Notion** : « Où va ce contenu ? » propose d'abord deux choix — « Nouveau protocole » ou
+  « Verser dans un protocole » ; la recherche n'apparaît que pour verser. Rien n'est jamais remplacé.
+- **Bibliothèque** : chaque choix dit qui la verra (« Perso — à vous seul », « SMUR — partagée · visible par ses
+  membres »). Même liste pour « Déplacer vers une bibliothèque » de la sélection.
+- **Catégorie** : « Garder la catégorie du fichier » nomme la catégorie gardée ; une catégorie se crée dans le menu
+  même (v5.129).
+- Rien ne change à ce qui est importé ni à l'endroit où chaque élément arrive.
+
 ## [5.129.0] — 2026-11-15
 Une catégorie se crée dans le sélecteur, et elle est aussitôt choisie (A752).
 - **Avant**, « ＋ Nouvelle catégorie » ouvrait la fenêtre de gestion des catégories : il fallait créer, fermer la
@@ -208,14 +225,3 @@ Copier-coller le texte d'un protocole dans un autre garde ses images (A729).
   d'enregistrer.
 - Limite : un texte copié depuis un autre appareil ou un autre compte n'apporte pas ses images ; il faut les ajouter
   à nouveau.
-
-## [5.123.0] — 2026-11-11
-Le sommaire d'un protocole dit où l'on se trouve (A728).
-- **Au téléphone, la carte « Sommaire » suit la lecture.** Dans un long protocole, coupé de grandes images, le titre
-  de la section n'est plus à l'écran. Une fois qu'on a commencé à descendre, la carte collée en haut écrit la section
-  en cours sur deux lignes — par exemple « Poignet », puis « Entorse scapho-lunaire ». En tête du protocole elle dit
-  toujours « Sommaire · 6 sections ». La toucher l'ouvre comme avant.
-- **Sur ordinateur, la section en cours est surlignée dans le sommaire de gauche**, comme dans le sommaire d'un PDF.
-  Si le sommaire est long, il se recale seul pour garder cette ligne visible.
-- La page ne bouge jamais d'elle-même : le sommaire suit le défilement, il ne le provoque pas. Seuls les titres `#` et
-  `##` sont suivis, comme dans le sommaire.

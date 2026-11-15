@@ -985,6 +985,13 @@ telle quelle — chaque écran le dit à sa façon :
   pose (brouillon de l'éditeur, rangées de l'atelier d'import, sélection de « Ranger ») ; Échap replie le champ. Un
   nom tapé au filtre qui ne trouve rien fait de la rangée « ＋ Créer « … » ». Jamais de détour par le gestionnaire,
   qui garde couleur, renommage et suppression.
+- **L'atelier d'import** (A753) : au téléphone une FEUILLE DU BAS à poignée, en liste groupée — « Ranger les n cochés
+  dans » puis deux rangées « Bibliothèque › / Catégorie › », puis un groupe par nature (« Aides · n sur N » et son
+  « Tout cocher/décocher ») ; la destination d'une rangée est un LIEN bleu à chevron, plus une pastille en pointillé.
+  Au bureau, dès 880 px MESURÉS dans la fenêtre (`.imp-cols`), quatre colonnes : case, élément, bibliothèque,
+  catégorie — l'en-tête (case maîtresse, compte, deux commandes) se pose au-dessus de sa colonne. « Comparer » déplie
+  sous la rangée, sur toute la largeur. « Où va ce contenu ? » : deux cartes (Nouveau protocole · Verser dans un
+  protocole) avant la recherche, qui ne paraît que pour verser.
 - **Le menu des catégories dit ce qu'est une catégorie** (A498), en UNE ligne sous son titre « Choisir la
   catégorie », dont le PIVOT suit la bibliothèque — partagée : la PROPRIÉTÉ (« … vue par toute l'équipe de
   « … ». Pour un rangement à vous seul : les collections. ») ; Perso : le NOMBRE (« … pour classer l'accueil.
