@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A755** à la v5.132 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A756** à la v5.133 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -377,6 +377,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A753 | `lot-v5-130.md` | L’atelier d’import en liste groupée au téléphone (feuille du bas, groupes « Aides · n sur N », destination en lien) et en colonnes au bureau (`.imp-cols` mesuré, en-tête = bandeau, case maîtresse) ; « Dans » : Nouveau ou Verser avant la recherche ; bibliothèques qui disent qui les verra — amende A129, A611 |
 | A754 | `lot-v5-131.md` | Le texte d’un protocole : plafond MESURÉ à 50 000 caractères (ouverture < 0,7 s sur téléphone lent) ; compteur dans l’éditeur (80 %, ambre à 95 %, ce qui ne sera pas enregistré) ; l’atelier et la synchro le disent ; 60 images gardées (mesurées) — amende J8 |
 | A755 | `lot-v5-132.md` | Des images côte à côte : une image seule dans une case de tableau est une vignette (colonnes égales, tient au téléphone) ; « Mettre en grille » (`mdGrille`) en direct et en mode texte, l’auteur choisit les colonnes — amende A607 |
+| A756 | `lot-v5-133.md` | L’export HTML de Notion entre comme le Markdown (page .html seule ou dans le .zip) ; `notionHtml` (DOMParser, rien d’exécuté, texte seul) ; les rangées de colonnes deviennent la grille d’A755 ; images absentes et vidéos nommées |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

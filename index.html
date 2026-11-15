@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-fQlKnEqm/NnMAyGc+4aioy6GEhavpULQjBDT5LH/3uQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-AM67wEsBAcMtw4B7MwysWxGi3U2Aeoaocn0yLagllwQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10784,7 +10784,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.132.0';
+const APP_VERSION='5.133.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12006,6 +12006,8 @@ function dataKind(u8){
   if(c===0x23&&(u8[i+1]===0x20||u8[i+1]===0x23))return 'md';   // A562 : « # Titre » — une page Notion exportée, un .md
   // A661 : un .md qui s'ouvre sur un FRONT-MATTER (« --- » seul sur sa ligne : Obsidian, Hugo) — jamais du JSON.
   if(c===0x2D&&u8[i+1]===0x2D&&u8[i+2]===0x2D&&(u8[i+3]===0x0A||u8[i+3]===0x0D))return 'md';
+  // A756 : une page HTML (export HTML de Notion) — « <!DOCTYPE html » ou « <html » en tête.
+  if(c===0x3C){const t=new TextDecoder().decode(u8.subarray(i,i+64)).toLowerCase();if(/^<(!doctype\s+html|html[\s>])/.test(t))return 'html';}
   return (c===0x7B||c===0x5B||c===0x60)?'json':null;}
 /* LA TABLE. `accept` = ce que le sélecteur de fichier PROPOSE ; `sniff` = ce que la porte
    VÉRIFIE ; `max` = le plafond. Les trois sur la même ligne, donc indissociables.
@@ -12020,8 +12022,8 @@ const UP_KINDS={
   image:{accept:'image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif',
          sniff:u8=>!!imgKind(u8), max:MAX_IMG_BYTES,
          un:'une image', pl:'vos images', ind:'PNG · JPEG · WebP · HEIC'},
-  data: {accept:'application/json,.json,application/zip,.zip,text/markdown,.md', sniff:u8=>!!dataKind(u8),
-         max:MAX_IMPORT_BYTES, un:'un fichier .json, .zip ou .md', pl:'vos fichiers .json, .zip ou .md', ind:'.json · .zip · .md (Notion)'}};
+  data: {accept:'application/json,.json,application/zip,.zip,text/markdown,.md,text/html,.html', sniff:u8=>!!dataKind(u8),
+         max:MAX_IMPORT_BYTES, un:'un fichier .json, .zip, .md ou .html', pl:'vos fichiers .json, .zip, .md ou .html', ind:'.json · .zip · .md · .html (Notion)'}};
 /* Nature RÉELLE d'un fichier d'après ses octets — sert au ROUTAGE d'un dépôt : c'est le CONTENU
    qui décide où il va, jamais l'extension ni la zone visée. Aucune ambiguïté entre les trois
    (un PDF commence par « % », un zip par « PK », un JSON par « { » ou « [ »). */
@@ -28883,7 +28885,7 @@ function edAdd(f,kind,pre){
 const ED_PALETTE_P=[
   {g:'Contenu',    k:'body', ic:'doc',  n:'Contenu rédigé',  d:'titres, listes, tableaux'},
   {g:'Contenu',    k:'img',  ic:'img',  n:'Image',           d:'dans le texte'},   // A583
-  {g:'Contenu',    k:'notion',ic:'download',n:'Page Notion',   d:'.md ou .zip, à la suite'},   // A633
+  {g:'Contenu',    k:'notion',ic:'download',n:'Page Notion',   d:'.md, .html ou .zip, à la suite'},   // A633 ; A756 : .html
   {g:'Annexes',    k:'att',  ic:'doc',  n:'Document (PDF)',  d:'lisible hors ligne'},
   {g:'Annexes',    k:'rel',  ic:'book', n:'Voir aussi',      d:'renvoi vers une autre aide'},
   {g:'Annexes',    k:'ref',  ic:'book', n:'Référence',       d:'source citée'}];
@@ -32386,23 +32388,118 @@ function notionMd(src,dir,ids){ids=ids||Object.create(null);
     out.push(l);}
   const body=out.join('\n').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').trim();
   return {title:title.replace(/\s+[0-9a-f]{32}$/,'').trim(),body,manque};}
+/* ═══ A756 — L'EXPORT HTML DE NOTION ════════════════════════════════════════════════════════════════════════
+   L'export Markdown de Notion DÉROULE les colonnes (A755) ; l'export HTML les GARDE (`div.column-list > div.column`).
+   On lit donc aussi le .html (seul, ou les pages d'un .zip), et une rangée de colonnes « libellé + image » devient la
+   grille d'A755 ; le reste suit les règles de l'import Markdown (A562 : mêmes chemins `notionPath`, mêmes légendes tues
+   `notionCap`, images absentes NOMMÉES dans le texte). Le document est lu par `DOMParser` — jamais inséré dans la page,
+   rien n'y est exécuté ni chargé — et seul du TEXTE en sort : le Markdown produit passe ensuite par `migrateProtocol`
+   et `mdRender` (règles 4 et 5) comme toute importation. Profondeur bornée. PURE hors `DOMParser` (?__actest). */
+const NOTION_VID=/\.(webm|mp4|m4v|mov|ogv)$/i;
+function notionHtmlDoc(src){return new DOMParser().parseFromString(String(src||''),'text/html');}
+function notionHtmlImgPaths(doc,dir){const o=[],vus=new Set();
+  doc.querySelectorAll('img[src]').forEach(im=>{const p=notionPath(dir,im.getAttribute('src'));if(p&&!vus.has(p)&&!NOTION_VID.test(p)){vus.add(p);o.push(p);}});return o;}
+function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Object.create(null);
+  let manque=0,videos=0;const out=[];
+  const tag=n=>n&&n.nodeType===1?n.tagName.toLowerCase():'';
+  const cls=(n,c)=>!!(n&&n.classList&&n.classList.contains(c));
+  // Le texte en ligne : gras, italique, code, surligné, barré, liens https ; `br` selon le contexte (case : `<br>`).
+  const inl=(n,br)=>{let s='';for(const c of n.childNodes){
+      if(c.nodeType===3){s+=c.nodeValue.replace(/[\s ]+/g,' ');continue;}
+      const t=tag(c);if(!t||t==='script'||t==='style'||t==='img'||t==='video'||t==='svg')continue;
+      if(t==='br'){s+=br==null?' ':br;continue;}
+      const wrap=m=>{const v=inl(c,br),a=v.match(/^\s*/)[0],z=v.match(/\s*$/)[0],m0=v.trim();if(m0)s+=a+m+m0+m+z;else s+=v;};
+      if(t==='strong'||t==='b'||t==='u')wrap('**');else if(t==='em'||t==='i')wrap('*');else if(t==='mark')wrap('==');
+      else if(t==='s'||t==='del')wrap('~~');else if(t==='code'){const v=c.textContent.replace(/`/g,"'");if(v.trim())s+='`'+v+'`';}
+      else if(t==='a'){const h=String(c.getAttribute('href')||'').trim(),v=inl(c,br).trim();
+        if(/^https?:\/\/[^\s()]+$/i.test(h))s+='['+(v||h).replace(/[\[\]]/g,'')+']('+h+')';else s+=v;}
+      else s+=inl(c,br);}
+    return s;};
+  const media=(fig,ind)=>{   // une image (ou une vidéo) → sa ligne Markdown ; absente de l'archive → NOMMÉE
+    const cap=notionCap((fig.querySelector&&fig.querySelector('figcaption')||{}).textContent||'');
+    const im=tag(fig)==='img'?fig:fig.querySelector('img[src]');
+    if(im){const p=notionPath(dir,im.getAttribute('src'));if(p===null)return '';
+      if(ids[p])return ind+'!['+cap+'](img:'+ids[p]+')';manque++;return ind+'*[Image absente de l’archive : '+p.split('/').pop()+']*';}
+    const v=fig.querySelector('video[src],source[src],a[href]');const h=v&&(v.getAttribute('src')||v.getAttribute('href'));const p=h&&notionPath(dir,h);
+    if(p&&NOTION_VID.test(p)){if(vids[p])return ind+'!['+cap+'](vid:'+vids[p]+')';videos++;return ind+'*[Vidéo non importée : '+p.split('/').pop()+']*';}
+    return null;};
+  const estMedia=n=>{const t=tag(n);if(t==='img')return true;if(t!=='figure'&&!(t==='div'&&cls(n,'source')))return false;   // une <div> ordinaire n'est jamais « un média » : elle peut porter du texte
+    return !!n.querySelector('img[src]')||[...n.querySelectorAll('a[href],video[src],source[src]')].some(a=>NOTION_VID.test(String(a.getAttribute('href')||a.getAttribute('src')||'')));};
+  const blank=()=>{if(out.length&&out[out.length-1]!=='')out.push('');};
+  const list=(el,lvl,depth)=>{let k=0;const ind='  '.repeat(lvl),ol=tag(el)==='ol',todo=cls(el,'to-do-list');
+    for(const li of el.children){if(tag(li)!=='li')continue;
+      let txt='';const after=[];
+      for(const c of li.childNodes){const t=tag(c);
+        if(t==='ul'||t==='ol'||t==='details'||t==='p'&&txt.trim()||estMedia(c))after.push(c);
+        else if(t==='div'&&cls(c,'checkbox'))continue;else txt+=c.nodeType===3?c.nodeValue.replace(/[\s ]+/g,' '):(t?inl({childNodes:[c]}):'');}
+      const box=todo?(li.querySelector('.checkbox-on')?'[x] ':'[ ] '):'';
+      out.push(ind+(ol?(++k)+'. ':'- ')+box+txt.trim());
+      after.forEach(c=>{const t=tag(c);if(t==='ul'||t==='ol')list(c,lvl+1,depth+1);else if(estMedia(c)){const m=media(c,ind+'  ');if(m)out.push(m);}
+        else if(t==='p'){const v=inl(c).trim();if(v)out.push(ind+'  '+v);}else blocs(c,depth+1);});}
+    if(lvl===0)blank();};
+  // Une rangée de colonnes : chaque colonne en unités « libellé(s) + média » ; une case par unité (A755).
+  const colonnes=(el,depth)=>{const cols=[...el.children].filter(c=>cls(c,'column'));
+    const U=[];let simple=cols.length>1,aMedia=false;
+    for(const col of cols){const units=[];let txt=[];
+      for(const c of col.children){const t=tag(c);
+        if(estMedia(c)){const m=media(c,'');if(m==null){simple=false;break;}aMedia=true;units.push(txt.concat(m).join('<br>'));txt=[];}
+        else if(t==='p'||/^h[1-6]$/.test(t)){const v=inl(c,'<br>').trim().replace(/\|/g,'\\|');if(v)txt.push(v);}
+        else{simple=false;break;}}
+      if(!simple)break;if(txt.length)units.push(txt.join('<br>'));U.push(units);}
+    if(!simple||!aMedia){for(const col of cols)for(const c of col.children)blocs(c,depth+1);return;}
+    const n=U.length,R=Math.max(...U.map(u=>u.length)),rows=[];
+    for(let r=0;r<R;r++)rows.push('| '+U.map(u=>u[r]||'').join(' | ')+' |');
+    // Deux rangées de colonnes qui se suivent, de même largeur : UNE grille (la page de l'auteur : Fémoral…, puis Poplité…).
+    const prev=out._grille;
+    if(prev&&prev.n===n&&out.length===prev.fin){out.pop();out.push(...rows,'');out._grille={n,fin:out.length};return;}
+    blank();out.push('|'+'  |'.repeat(n),'|'+' --- |'.repeat(n),...rows,'');out._grille={n,fin:out.length};};
+  const blocs=(el,depth)=>{if(!el||depth>40)return;const t=tag(el);if(!t)return;
+    if(t==='script'||t==='style'||t==='header'||t==='nav'||cls(el,'properties'))return;
+    if(/^h[1-3]$/.test(t)){const v=inl(el).trim();if(v){blank();out.push('#'.repeat(+t[1])+' '+v,'');}return;}
+    if(/^h[4-6]$/.test(t)){const v=inl(el).trim();if(v){blank();out.push('### '+v,'');}return;}
+    if(t==='p'){const v=inl(el).trim();if(v){blank();out.push(v,'');}return;}
+    if(t==='ul'&&cls(el,'toggle')){for(const li of el.children)for(const c of li.children)blocs(c,depth+1);return;}
+    if(t==='ul'||t==='ol'){blank();list(el,0,depth);return;}
+    if(t==='details'){const su=el.querySelector(':scope>summary');
+      if(su){const v=inl(su).trim(),fs=parseFloat((String(su.getAttribute('style')||'').match(/font-size:\s*([\d.]+)em/)||[])[1]);
+        if(v){blank();out.push((fs>=1.8?'# ':fs>=1.4?'## ':fs>=1.1?'### ':'')+(fs>=1.1?v:'**'+v+'**'),'');}}
+      for(const c of el.children)if(c!==su)blocs(c,depth+1);return;}
+    if(t==='blockquote'){const v=inl(el,'\n').trim();if(v){blank();v.split('\n').forEach(x=>out.push('> '+x.trim()));out.push('');}return;}
+    if(t==='hr'){blank();out.push('---','');return;}
+    if(t==='pre'){blank();out.push('```',...el.textContent.replace(/\r/g,'').split('\n'),'```','');return;}
+    if(t==='table'){const R=[...el.querySelectorAll('tr')].map(tr=>[...tr.children].map(c=>inl(c,'<br>').trim().replace(/\|/g,'\\|')));
+      if(!R.length)return;const n=Math.max(...R.map(r=>r.length)),pad=r=>r.concat(Array(n-r.length).fill(''));
+      const tete=el.querySelector('thead')||[...el.querySelectorAll('tr')][0].querySelector('th')?pad(R.shift()):Array(n).fill('');
+      blank();out.push('| '+tete.join(' | ')+' |','|'+' --- |'.repeat(n),...R.map(r=>'| '+pad(r).join(' | ')+' |'),'');return;}
+    if(t==='figure'&&cls(el,'callout')){const kids=[...el.children],txt=kids.slice(kids.length>1?1:0).map(k=>inl(k,'\n').trim()).filter(Boolean).join('\n');
+      if(txt){blank();txt.split('\n').forEach(x=>out.push('> '+x.trim()));out.push('');}return;}
+    if(cls(el,'column-list')){colonnes(el,depth);return;}
+    if(estMedia(el)){const m=media(el,'');if(m){blank();out.push(m,'');return;}}
+    if(t==='figure'||t==='a'){const v=inl(el).trim();if(v){blank();out.push(v,'');}return;}
+    for(const c of el.children)blocs(c,depth+1);};
+  const racine=doc.querySelector('.page-body')||doc.body;
+  if(racine)for(const c of racine.children)blocs(c,0);
+  const title=((doc.querySelector('.page-title')||{}).textContent||doc.title||'').replace(/\s+/g,' ').trim();
+  const body=out.join('\n').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').trim();
+  return {title,body,manque,videos};}
 /* La partie ASYNCHRONE : chaque .md de l'archive devient une référence en brouillon ; ses images (cherchées par
    chemin résolu, signées, sous le plafond) passent par `downscale` comme une photo prise dans l'éditeur. Rend
    {protocols, manque, trop, long} — les trois comptes sont DITS à l'utilisateur, rien ne se perd en silence. */
 async function notionRefs(entries){
   const files=new Map();entries.forEach(e=>files.set(String(e.name).normalize('NFC').replace(/^\/+/,''),e.data));
-  const mds=entries.filter(e=>/\.md$/i.test(e.name)&&!/(^|\/)__MACOSX\//.test(e.name));
-  const out=[];let manque=0,trop=0,long=0;
+  // A756 : les pages .html (export HTML de Notion) entrent par la même porte que les .md.
+  const mds=entries.filter(e=>/\.(md|html?)$/i.test(e.name)&&!/(^|\/)__MACOSX\//.test(e.name));
+  const out=[];let manque=0,trop=0,long=0,videos=0;
   for(const e of mds){const name=String(e.name).normalize('NFC'),cut=name.lastIndexOf('/'),dir=cut>=0?name.slice(0,cut):'';
-    const src=new TextDecoder().decode(e.data),ids=Object.create(null),images=[];
-    for(const p of notionImgPaths(src,dir)){const d=files.get(p);if(!d||d.length>MAX_IMG_BYTES||!imgKind(d.subarray(0,64)))continue;
+    const src=new TextDecoder().decode(e.data),ids=Object.create(null),images=[],html=/\.html?$/i.test(name),doc=html?notionHtmlDoc(src):null;
+    for(const p of (html?notionHtmlImgPaths(doc,dir):notionImgPaths(src,dir))){const d=files.get(p);if(!d||d.length>MAX_IMG_BYTES||!imgKind(d.subarray(0,64)))continue;
       if(images.length>=MAX_IMG_PER_ENTITY){trop++;continue;}
       const r=await downscale(new Blob([d]));if(!r)continue;
       const id=uid('i');ids[p]=id;images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});}
-    const c=notionMd(src,dir,ids);manque+=c.manque;if(c.body.length>MD_MAX_CHARS)long++;
-    const title=c.title||name.slice(cut+1).replace(/\.md$/i,'').replace(/\s+[0-9a-f]{32}$/i,'')||'Sans titre';
+    const c=html?notionHtml(doc,dir,ids):notionMd(src,dir,ids);manque+=c.manque;videos+=c.videos||0;if(c.body.length>MD_MAX_CHARS)long++;
+    const title=c.title||name.slice(cut+1).replace(/\.(md|html?)$/i,'').replace(/\s+[0-9a-f]{32}$/i,'')||'Sans titre';
     out.push({title,body:c.body,images,status:'draft'});}
-  return {protocols:out,manque,trop,long};}
+  return {protocols:out,manque,trop,long,videos};}
 /* NORMALISER LA RACINE D'UN IMPORT — v3 et v4 n'ont pas la même forme, et rien ne le disait.
    DEUX ÉCARTS, tous deux mesurés sur un fichier RÉEL de l'auteur (18 aides converties) :
 
@@ -32862,11 +32959,12 @@ bindSheetDrag(impModal,true);   // A753 : la feuille du téléphone se tire par 
 async function notionParse(u8){
   const isZip=b=>b[0]===0x50&&b[1]===0x4B&&b[2]===3&&b[3]===4;
   if(isZip(u8)){let entries=await zipParse(u8);
-    if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[],bud={left:ZIP_MAX_TOTAL};for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data,bud));if(inn.length)entries=inn;}
-    if(!entries.some(x=>/\.md$/i.test(x.name))||entries.some(x=>/(^|\/)donnees\.json$/.test(x.name)))return null;
+    if(!entries.some(x=>/\.(json|md|html?)$/i.test(x.name))){const inn=[],bud={left:ZIP_MAX_TOTAL};for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data,bud));if(inn.length)entries=inn;}
+    if(!entries.some(x=>/\.(md|html?)$/i.test(x.name))||entries.some(x=>/(^|\/)donnees\.json$/.test(x.name)))return null;
     return notionRefs(entries);}
   if(dataKind(u8)==='md'){const c=notionMd(new TextDecoder().decode(u8),'',null);
     return {protocols:[{title:c.title||'Sans titre',body:c.body,images:[]}],manque:c.manque,trop:0,long:c.body.length>MD_MAX_CHARS?1:0};}
+  if(dataKind(u8)==='html')return notionRefs([{name:'page.html',data:u8}]);   // A756 : une page .html seule (ses images restées dans le dossier sont nommées absentes)
   return null;}
 /* A633 — VERSER dans le protocole ouvert (`p`, le brouillon de l'éditeur) : le texte s'ajoute À LA SUITE (jamais
    d'écrasement — même règle que « Dans » de l'atelier, A611), les images rejoignent celles du protocole sous son
@@ -32890,7 +32988,7 @@ async function notionVerse(p,files,rerender){
   if(n)rerender();
   const m=(n?nb(n,'page')+' Notion ajoutée'+(n>1?'s':'')+' à la suite'+(img?' · '+nb(img,'image'):''):'')
     +(manque?' · '+manque+' image'+(manque>1?'s':'')+' absente'+(manque>1?'s':'')+' du fichier':'')+(trop?' · '+trop+' au-delà de '+MAX_IMG_PER_ENTITY+' images':'')
-    +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, ou .zip d’export Notion)':'');
+    +(refus.length?(n?' · ':'⚠ ')+(refus.length>1?refus.length+' fichiers':'« '+refus[0]+' »')+' : pas une page Notion (.md, .html, ou .zip d’export Notion)':'');
   if(m){toast(m+(n?' — ↶ pour annuler.':'.'),6000,true);announce(m);}}
 function readImportFile(file,pos){
   const lbl=pos?'« '+upShortName(file&&file.name)+' » (fichier '+pos.i+'/'+pos.n+')':null;
@@ -32910,7 +33008,7 @@ async function _importRead(buf,lbl,ia){
       if(isZip(u8)){
         let entries=await zipParse(u8);
         /* A562 : Notion emballe parfois l'export dans un second .zip (« …-Part-1.zip ») — un niveau, pas plus. */
-        if(!entries.some(x=>/\.(json|md)$/i.test(x.name))){const inn=[],bud={left:ZIP_MAX_TOTAL};
+        if(!entries.some(x=>/\.(json|md|html?)$/i.test(x.name))){const inn=[],bud={left:ZIP_MAX_TOTAL};
           for(const x of entries)if(/\.zip$/i.test(x.name)&&isZip(x.data))inn.push(...await zipParse(x.data,bud));
           if(inn.length)entries=inn;}
         const j=entries.find(x=>/(^|\/)donnees\.json$/.test(x.name))||entries.find(x=>/\.json$/i.test(x.name));
@@ -32918,13 +33016,14 @@ async function _importRead(buf,lbl,ia){
           text=new TextDecoder().decode(j.data);
           zipAtts=new Map();
           entries.forEach(x=>{const m=/^documents\/([A-Za-z0-9_-]{1,64})\.pdf$/.exec(x.name);if(m)zipAtts.set(m[1],x.data);});}
-        else if(entries.some(x=>/\.md$/i.test(x.name))){
+        else if(entries.some(x=>/\.(md|html?)$/i.test(x.name))){   // A756 : export Markdown OU HTML de Notion
           toast('Lecture de l’export Notion…',4000,true);
           notion=await notionRefs(entries);}
         else throw 0;
       }else if(dataKind(u8)==='md'){   // un .md seul : le texte entre, ses images (restées dans le dossier) sont nommées absentes
         const c=notionMd(new TextDecoder().decode(u8),'',null);
         notion={protocols:[{title:c.title||'Sans titre',body:c.body,images:[],status:'draft'}],manque:c.manque,trop:0,long:c.body.length>MD_MAX_CHARS?1:0,seul:true};}
+      else if(dataKind(u8)==='html'){notion=await notionRefs([{name:'page.html',data:u8}]);notion.seul=true;}   // A756 : une page .html seule
       else text=new TextDecoder().decode(u8);
       const data=notion?{version:3,categories:[],protocols:notion.protocols}:JSON.parse(stripJsonFences(text));
       imp=normalizeImport(Array.isArray(data)?{fiches:data,categories:[]}:data);}
@@ -32959,11 +33058,12 @@ async function _importRead(buf,lbl,ia){
        s'il peut y avoir doublon — sans lui, la rangée annoncerait « déjà présent » sur un import
        venu d'ailleurs, dont les ids sont de toute façon régénérés à l'écriture. */
     /* A562 : ce qui n'a pas pu entrer se DIT avant l'atelier (images introuvables, au-delà du plafond, texte tronqué). */
-    if(notion&&(notion.manque||notion.trop||notion.long)){
+    if(notion&&(notion.manque||notion.trop||notion.long||notion.videos)){
       const m=[];
       if(notion.manque)m.push(notion.manque+' image'+(notion.manque>1?'s':'')+' introuvable'+(notion.manque>1?'s':'')+(notion.seul?' — importez plutôt le .zip de l’export Notion, qui les contient':' dans l’archive')+' (nommée'+(notion.manque>1?'s':'')+' dans le texte)');
       if(notion.trop)m.push(notion.trop+' image'+(notion.trop>1?'s':'')+' au-delà de '+MAX_IMG_PER_ENTITY+' par protocole, non importée'+(notion.trop>1?'s':''));
       if(notion.long)m.push('texte au-delà de '+MD_MAX_CHARS.toLocaleString('fr-FR')+' caractères, tronqué');
+      if(notion.videos)m.push(notion.videos+' vidéo'+(notion.videos>1?'s':'')+' non importée'+(notion.videos>1?'s':'')+' (nommée'+(notion.videos>1?'s':'')+' dans le texte)');   // A756
       toast('△ '+m.join(' · ')+'.',10000,true);}
     const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());
     const atelier=await importWorkshop(imp,!!zipAtts,sameSpace,lbl);
@@ -39481,7 +39581,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

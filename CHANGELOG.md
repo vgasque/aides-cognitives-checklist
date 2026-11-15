@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.133.0] — 2026-11-15
+Importer une page Notion exportée en HTML : les colonnes deviennent une grille (A756).
+- **L'export HTML de Notion est accepté**, en plus de l'export Markdown : une page `.html` seule, ou le `.zip`
+  d'export avec son dossier d'images. Par les mêmes portes : « Importer un fichier », le dépôt, et « Page Notion »
+  dans l'éditeur d'un protocole.
+- **Les colonnes sont retrouvées** : l'export HTML garde la mise en page de Notion, si bien que des images posées
+  côte à côte (« Fémoral · Normal · Thrombus ») arrivent en grille, sans avoir à la refaire.
+- Titres repliables, listes, cases à cocher, tableaux, encadrés, gras, liens : repris comme à l'import Markdown. Une
+  image absente de l'archive est nommée dans le texte ; une vidéo aussi (l'app ne lit pas encore les vidéos), et le
+  message de fin les compte.
+- Le fichier HTML n'est jamais affiché ni exécuté : seul son texte est repris.
+
 ## [5.132.0] — 2026-11-15
 Des images côte à côte dans un protocole : la grille d'images (A755).
 - **Une image seule dans une case de tableau s'affiche en vignette**, et un toucher l'agrandit. Un tableau d'images a
@@ -212,15 +224,3 @@ Un premier chargement de compte interrompu se reprend, et l'accueil le dit (A734
 - Au téléphone, le titre reste « Accueil » pendant le chargement.
 - Rien ne change pour un compte déjà chargé sur l'appareil : sa liste s'affiche tout de suite. Une recherche lancée
   pendant le chargement montre ce qui est déjà arrivé. Au-delà de 20 secondes, l'accueil s'affiche quoi qu'il arrive.
-
-## [5.124.2] — 2026-11-13
-Import d'une page Notion : un tableau dont les cases tiennent sur plusieurs lignes reste un tableau (A732).
-- **Le tableau ne se défait plus.** Dans l'export de Notion, une case qui contient plusieurs lignes (retours à la ligne,
-  ligne vide, liste à tirets) est écrite telle quelle, sur plusieurs lignes du fichier. L'import n'y reconnaissait plus
-  de tableau : la page affichait des « | » et des « -- » au milieu du texte. La case est désormais recollée, chaque
-  ligne y garde sa place, et le retrait des lignes décalées (« → … ») est conservé.
-- **La première rangée n'est plus écrite en petites capitales.** Notion présente toujours sa première rangée comme une
-  ligne de titres, même quand ce n'en est pas une. Quand elle tient sur plusieurs lignes, c'est du contenu : elle
-  s'affiche désormais comme les autres rangées.
-- Une ligne de texte ordinaire qui commence par « | », hors d'un tableau, n'est pas touchée ; un bloc de code non plus.
-- Pour corriger une page déjà importée : importer à nouveau le `.zip`.

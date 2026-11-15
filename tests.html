@@ -866,6 +866,40 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A755 : rendu — tableau à colonnes égales, quatre vignettes', /md-tbl-img/.test(h)&&(h.match(/md-cfig/g)||[]).length===4);
    eq('A755 : les images des cases comptent comme utilisées (le ménage de sortie les garde)', Object.keys(A.miUses(g.md)).sort(), ['i1','i2','i3','i4']);
    ok('A755 : l’export « sans fichiers » vide aussi les cases', !/img:/.test(A.exportLeger({fiches:[],protocols:[{body:g.md,images:[],docs:[]}]}).protocols[0].body));}
+  /* A756 : l'export HTML de Notion — les colonnes deviennent une grille ; rien n'est exécuté ; rien ne se perd en silence. */
+  {const D='Douleur%20thoracique/';
+   const html='<!DOCTYPE html><html><head><meta charset="utf-8"/><title>x</title></head><body><article class="page sans"><header><h1 class="page-title">Douleur thoracique (écho ECMU)</h1></header><div class="page-body">'
+    +'<details open=""><summary style="font-weight:600;font-size:1.5em;line-height:1.3;margin:0">Echographie 4 points</summary>'
+    +'<p>RV- <strong>mauvais</strong> : on ne peut pas éliminer une EP</p>'
+    +'<div class="column-list"><div style="width:33.3%" class="column"><p>Fémoral</p><figure class="image"><a href="'+D+'image%201.png"><img src="'+D+'image%201.png"/></a></figure></div>'
+    +'<div class="column"><p>Normal</p><figure><div class="source"><a href="'+D+'video8.webm">video8.webm</a></div></figure></div>'
+    +'<div class="column"><p>Thrombus</p><figure class="image"><img src="'+D+'image%202.png"/></figure></div></div>'
+    +'<div class="column-list"><div class="column"><p>Poplité</p><figure class="image"><img src="'+D+'image%203.png"/><figcaption>image.png</figcaption></figure></div>'
+    +'<div class="column"><p>Normal</p><figure class="image"><img src="'+D+'image%204.png"/></figure></div>'
+    +'<div class="column"><p>Thrombus</p><figure class="image"><img src="'+D+'image%205.png"/></figure></div></div></details>'
+    +'<ul class="bulleted-list"><li style="list-style-type:disc">Un <em>point</em><ul class="bulleted-list"><li>sous-point</li></ul></li></ul>'
+    +'<ul class="to-do-list"><li><div class="checkbox checkbox-off"></div> <span class="to-do-children-unchecked">Appeler</span></li></ul>'
+    +'<table class="simple-table"><tbody><tr><td>Dose</td><td>1 | 2 mg</td></tr></tbody></table>'
+    +'<figure class="callout"><div><span class="icon">💡</span></div><div style="width:100%"><p>Attention <strong>dose</strong></p></div></figure>'
+    +'<script>window.__piege=1</'+'script><p><a href="javascript:alert(1)">piège</a> et <a href="https://has-sante.fr">HAS</a></p></div></article></body></html>';
+   const doc=A.notionHtmlDoc(html),dir='';
+   eq('A756 : chemins des images (décodés, sans la vidéo)', A.notionHtmlImgPaths(doc,dir), ['Douleur thoracique/image 1.png','Douleur thoracique/image 2.png','Douleur thoracique/image 3.png','Douleur thoracique/image 4.png','Douleur thoracique/image 5.png']);
+   const ids=Object.create(null);['1','2','3','4'].forEach(k=>{ids['Douleur thoracique/image '+k+'.png']='i'+k;});
+   const c=A.notionHtml(doc,dir,ids),L=c.body.split('\n');
+   eq('A756 : titre de la page', c.title, 'Douleur thoracique (écho ECMU)');
+   ok('A756 : titre repliable de Notion → « ## »', L.includes('## Echographie 4 points'));
+   ok('A756 : gras gardé', L.includes('RV- **mauvais** : on ne peut pas éliminer une EP'));
+   const t=L.indexOf('|  |  |  |');
+   eq('A756 : deux rangées de colonnes → UNE grille de 3 colonnes', L.slice(t,t+4), ['|  |  |  |','| --- | --- | --- |',
+     '| Fémoral<br>![](img:i1) | Normal<br>*[Vidéo non importée : video8.webm]* | Thrombus<br>![](img:i2) |',
+     '| Poplité<br>![](img:i3) | Normal<br>![](img:i4) | Thrombus<br>*[Image absente de l’archive : image 5.png]* |']);
+   eq('A756 : image absente et vidéo comptées', [c.manque,c.videos], [1,1]);
+   ok('A756 : liste et sous-liste', L.includes('- Un *point*')&&L.includes('  - sous-point'));
+   ok('A756 : case à cocher', L.includes('- [ ] Appeler'));
+   ok('A756 : tableau, « | » protégé', L.includes('| Dose | 1 \\| 2 mg |'));
+   ok('A756 : encadré → citation', L.includes('> Attention **dose**'));
+   ok('A756 : lien javascript: réduit à son texte, https gardé, script ni exécuté ni recopié', L.includes('piège et [HAS](https://has-sante.fr)')&&!/piege|alert/.test(c.body)&&!window.__piege);
+   eq('A756 : une page .html est reconnue', A.dataKind(new TextEncoder().encode('\n<!DOCTYPE html><html>')), 'html');}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});

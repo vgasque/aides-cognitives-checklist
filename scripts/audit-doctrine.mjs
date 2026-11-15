@@ -9258,6 +9258,29 @@ await sec('Import · A562 export Notion (.md + images)', async () => {
   await page.close();
 });
 
+/* ══ A756 — L'EXPORT HTML DE NOTION : un .zip (page .html + son dossier d'images), par le vrai point d'entrée ; deux rangées
+   de colonnes « libellé + image » deviennent UNE grille de trois colonnes, les images rangées et liées. ══ */
+await sec('Import · A756 export HTML de Notion (colonnes → grille)', async () => {
+  const page=await br.newPage({viewport:{width:1100,height:850}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{const c=document.createElement('canvas');c.width=60;c.height=40;c.getContext('2d').fillRect(0,0,60,40);
+    const png=new Uint8Array(await (await new Promise(r=>c.toBlob(r,'image/png'))).arrayBuffer()),T=s=>new TextEncoder().encode(s),D='Echo%20t%C3%A9moin/';
+    const col=(l,f)=>'<div class="column"><p>'+l+'</p><figure class="image"><img src="'+D+f+'"/></figure></div>';
+    const html='<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body><article class="page sans"><header><h1 class="page-title">Echo témoin</h1></header><div class="page-body">'
+      +'<p>Intro</p><div class="column-list">'+col('Fémoral','a.png')+col('Normal','b.png')+col('Thrombus','c.png')+'</div>'
+      +'<div class="column-list">'+col('Poplité','d.png')+col('Normal','e.png')+col('Thrombus','f.png')+'</div></div></article></body></html>';
+    const z=zipBuild([{name:'Echo témoin 0123456789abcdef0123456789abcdef.html',data:T(html)}].concat('abcdef'.split('').map(x=>({name:'Echo témoin/'+x+'.png',data:png}))));
+    window.__n0=protocols.length;window.__fin=readImportFile(new File([z],'Export-html.zip'));});
+  const vu=await page.waitForSelector('#impList .imp-row',{timeout:8000}).then(()=>true,()=>false);   // un rouge LISIBLE, pas un plantage
+  if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  const r=await page.evaluate(()=>{const x=protocols[protocols.length-1]||{},b=String(x.body||'');
+    return {n:protocols.length-window.__n0,titre:x.title,imgs:(x.images||[]).length,grille:(b.match(/^\| (Fémoral|Poplité)<br>!\[\]\(img:[^)]+\) \| Normal<br>!\[\]\(img:[^)]+\) \| Thrombus<br>!\[\]\(img:[^)]+\) \|$/gm)||[]).length,intro:/^Intro$/m.test(b),tableaux:(b.match(/^\|  \|  \|  \|$/gm)||[]).length};});
+  t('A756 · le .zip HTML de Notion : un protocole, six images rangées, les deux rangées de colonnes en UNE grille de 3',
+    r.n===1&&r.titre==='Echo témoin'&&r.imgs===6&&r.grille===2&&r.tableaux===1&&r.intro,JSON.stringify(r));
+  await page.close();
+});
+
 /* ══ A611 — L'IMPORT RENOMME, ET VERSE UNE PAGE DANS UNE RÉFÉRENCE DÉJÀ CRÉÉE ══ */
 await sec('Import · A611 renommer, verser dans une référence existante', async () => {
   const page=await br.newPage({viewport:{width:1100,height:850}});
