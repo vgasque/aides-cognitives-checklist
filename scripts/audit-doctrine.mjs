@@ -7662,11 +7662,10 @@ for (const W of [390, 1280]) {
     out.pinSub=pinRow().textContent;const pins0=[];
     pinRow().click();await __acCalme(150);pins0.push(pinRow().getAttribute('aria-checked'));pinRow().click();await __acCalme(150);pins0.push(pinRow().getAttribute('aria-checked'),pins.length);
     out.pinCase=pins0;document.querySelector('.popmenu [data-pickdone]').click();await __acCalme(200);
-    // « Ranger » › « Nouvelle catégorie… » crée et range
+    // « Ranger » › « Nouvelle catégorie » crée et range — A752 : le nom vient du champ de la feuille, aucune fenêtre ne s'ouvre
     state.sel=new Set([fiches[0].id]);render();await __acCalme(200);
-    selNewCat([null],()=>{});await __acCalme(300);
-    const inp=document.getElementById('confirmInput');inp.value='Transport';inp.dispatchEvent(new Event('input'));
-    out.creerRanger=document.getElementById('confirmYes').textContent;document.getElementById('confirmYes').click();await __acCalme(500);
+    await selNewCat([null],'Transport',()=>{});await __acCalme(300);
+    out.creerRanger=document.querySelector('.ai-modal.on')?'une fenêtre s’est ouverte':'sans fenêtre';
     out.range=catName(fiches[0]);state.selOn=false;state.sel=new Set();render();await __acCalme(200);
     // une étoile touchée, une seule animée
     pinTap(fiches[0].id,()=>render());await __acCalme(30);
@@ -7685,7 +7684,7 @@ for (const W of [390, 1280]) {
   const P=W+' px';
   t(`${P} · A485 : la pastille d'une catégorie homonyme prend la couleur de SA bibliothèque, multicolore sur « Toutes »`,
     r.dotBloc==='rgb(47, 107, 58)'&&/gradient/.test(r.dotToutes), r.dotBloc+' | '+r.dotToutes.slice(0,40));
-  t(`${P} · A486 : « Nouvelle catégorie… » depuis Ranger crée ET range`, r.creerRanger==='Créer et ranger'&&r.range==='Transport', r.creerRanger+' | '+r.range);
+  t(`${P} · A486 : « Nouvelle catégorie… » depuis Ranger crée ET range`, r.creerRanger==='sans fenêtre'&&r.range==='Transport', r.creerRanger+' | '+r.range);
   t(`${P} · A487 : un brouillon dans la sélection ne bloque plus la case « Accès direct »`, /brouillon ne s’épingle pas/.test(r.pinSub)&&r.pinCase[0]==='true'&&r.pinCase[1]==='false'&&r.pinCase[2]===0, JSON.stringify(r.pinCase));
   t(`${P} · A487 : une seule étoile s'anime, celle qu'on touche`, r.anim===1, String(r.anim));
   t(`${P} · A488 : « Ajouter à « Garde SMUR » », la catégorie dans chaque rangée`, r.ajTitre==='Ajouter à « Garde SMUR »'&&/^Aide · Urgences · (Perso|Bloc)$/.test(r.ajSub), r.ajTitre+' | '+r.ajSub);
@@ -9283,14 +9282,14 @@ await sec('Import · A611 renommer, verser dans une référence existante', asyn
   await page.evaluate(()=>{const a=migrateProtocol({id:'p611a',title:'Grades de gravité',body:'',status:'draft'});a.category='';protocols.push(a);
     protocols.push(migrateProtocol({id:'p611b',title:'Déjà écrite',body:'Premier paragraphe.',status:'draft'}));});
   vu=await lancer('# Page Notion\n\n- **indications *systématiques***');
-  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('.popmenu [data-pickopt="p611a"]');await calme(page,200);}
+  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('[data-intomode="into"]');await calme(page,150);await page.click('.popmenu [data-pickopt="p611a"]');await calme(page,200);}
   const vu2=await page.evaluate(()=>({into:(document.querySelector('[data-impinto]')||{}).textContent||'',ren:!!document.querySelector('[data-impren]'),dest:!!document.querySelector('#impList [data-impcat]')}));
   if(vu){await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
   const r2=await page.evaluate(()=>{const a=protocols.find(x=>x.id==='p611a');return {n:protocols.length-window.__n0,titre:a.title,body:a.body};});
   t('A611 · « Dans « … » » : la rangée nomme la référence visée, sans « Renommer » ni pastilles de destination',/Dans « Grades de gravité »/.test(vu2.into)&&!vu2.ren&&!vu2.dest,JSON.stringify(vu2));
   t('A611 · versée : aucune référence de plus, le contenu vide est rempli, le titre gardé',r2.n===0&&r2.titre==='Grades de gravité'&&r2.body==='- **indications *systématiques***',JSON.stringify(r2));
   vu=await lancer('# Autre page\n\nSuite.');
-  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('.popmenu [data-pickopt="p611b"]');await calme(page,200);await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
+  if(vu){await page.click('[data-impinto]');await calme(page,200);await page.click('[data-intomode="into"]');await calme(page,150);await page.click('.popmenu [data-pickopt="p611b"]');await calme(page,200);await page.click('#impGo');await page.evaluate(()=>window.__fin);}await calme(page,300);
   const r3=await page.evaluate(()=>protocols.find(x=>x.id==='p611b').body);
   t('A611 · un contenu existant n’est jamais écrasé : la page s’ajoute à la suite',r3==='Premier paragraphe.\n\nSuite.',JSON.stringify(r3));
   await page.close();
@@ -10342,7 +10341,7 @@ await sec('Fenêtres · A492 l\'anneau suit la modalité (clavier), le focus sui
 
 /* A308 — gestionnaire en liste : palette d'UNE catégorie à la fois, « Ajouter » en tête, curseur de
    teinte lisible et persistant, et la MÊME fenêtre depuis les éditeurs (« ＋ Nouvelle catégorie »). */
-await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêtre depuis les éditeurs', async () => {
+await sec('Catégories · une palette à la fois, Ajouter en tête, les éditeurs créent dans le menu (A752)', async () => {
 {
   const page=await br.newPage({viewport:{width:820,height:1180}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -10393,11 +10392,11 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     parId().querySelector('[data-pick]').click();await __acCalme(150);parId().querySelector('[data-pick]').click();await __acCalme(200);
     out.autoOuvert=!!bd.querySelector('.cm-row.open [data-hue]')&&bd.querySelector('.cm-row.open .sw-more').classList.contains('on');
     closeCatMgr();await __acCalme(200);
-    // Les DEUX éditeurs mènent à la même fenêtre par « ＋ Nouvelle catégorie ».
+    // Les DEUX éditeurs : « ＋ Nouvelle catégorie » devient un champ DANS le menu, sans ouvrir la fenêtre (A752, amende ce témoin).
     const porte=async()=>{const b=document.querySelector('#main [data-catmenu]');if(!b)return 'pas de menu';b.click();await __acCalme(250);
-      const nw=document.querySelector('.catmenu-new');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await __acCalme(300);
-      const on=catModal.classList.contains('on'),liste=!!catModal.querySelector('.cm-add')&&!!catModal.querySelector('.cm-list');
-      closeCatMgr();await __acCalme(200);return on&&liste?'ok':`fenêtre ${on} liste ${liste}`;};
+      const nw=document.querySelector('[data-pickmk]');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await __acCalme(300);
+      const on=catModal.classList.contains('on'),champ=!!document.querySelector('.catmenu.popmenu .catmenu-mk:not([hidden]) input');
+      if(_pickClose)_pickClose(false);await __acCalme(200);return !on&&champ?'ok':`fenêtre ${on} champ ${champ}`;};
     await openEdit(fiches[0].id);await __acCalme(500);out.ficheVue=state.view;out.porteFiche=await porte();
     if(!protocols.length)await newProtocol();else await openProtocolEdit(protocols[0].id);await __acCalme(500);
     out.protoVue=state.view;out.porteProto=await porte();
@@ -10415,7 +10414,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   t('le curseur est replié derrière le bouton palette (dernière pastille) et se déplie au tap (A315)',r.curseurCache===true&&r.curseurOuvert===true,JSON.stringify([r.curseurCache,r.curseurOuvert]));
   t('… et s\'ouvre d\'office quand la couleur n\'est pas un preset',r.autoOuvert===true,`${r.autoOuvert}`);
   t('revenir au degré d\'origine rend la couleur d\'origine, et le degré d\'un preset rend ce preset (A312)',r.retour===true&&r.preset19===r.p0,JSON.stringify([r.retour,r.preset19,r.p0]));
-  t('éditeur de FICHE : « Nouvelle catégorie » ouvre la fenêtre en liste',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
+  t('éditeur de FICHE : « Nouvelle catégorie » devient un champ dans le menu, sans fenêtre (A752)',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
   t('éditeur de PROTOCOLE : idem',r.protoVue==='protocolEdit'&&r.porteProto==='ok',JSON.stringify([r.protoVue,r.porteProto]));
   await page.close();
 }
@@ -11382,6 +11381,7 @@ await sec('A638 · au bureau, les choix de l’atelier d’import sont des déro
     await page.evaluate(()=>{protocols.push(migrateProtocol({id:'p638',title:'Existant',body:'',status:'draft'}));const T=s=>new TextEncoder().encode(s);readImportFile(new File([T('# Page\n\nTexte.')],'Page.md'));});
     await page.waitForSelector('#impList .imp-row');await calme(page,300);
     const r=await page.evaluate(async()=>{const o={};const mes=async sel=>{const b=document.querySelector(sel);if(!b)return null;b.click();await __acCalme(300);
+      {const v=document.querySelector('.popmenu [data-intomode="into"]');if(v){v.click();await __acCalme(200);}}   // A753 : la liste de « Dans » paraît avec « Verser »
       const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length&&x.querySelector('.mm-row'));if(!m)return {aucun:true};
       const br=b.getBoundingClientRect(),mr=m.getBoundingClientRect(),rows=[...m.querySelectorAll('.mm-row')].filter(x=>{const r=x.getBoundingClientRect();return r.top>=mr.top&&r.bottom<=mr.bottom;});
       const res={feuille:m.classList.contains('sheet'),colle:Math.abs(mr.left-br.left)<=2&&(Math.abs(mr.top-br.bottom-6)<=2||Math.abs(br.top-6-mr.bottom)<=2),
@@ -11390,6 +11390,86 @@ await sec('A638 · au bureau, les choix de l’atelier d’import sont des déro
       o.cat=await mes('#impList [data-impcat]');o.dans=await mes('#impList [data-impinto]');o.bandeau=await mes('#impDestCat');return o;});
     t(`1280×${H} · A638 : « Catégorie », « Dans » et le bandeau : un déroulant sous (ou sur) sa pastille, pas une feuille, chaque rangée visible touchable`,
       ['cat','dans','bandeau'].every(k=>r[k]&&!r[k].feuille&&r[k].colle&&r[k].touche),JSON.stringify(r));
+    await page.close();}
+});
+
+/* A752 — CRÉER UNE CATÉGORIE SANS QUITTER LE CHOIX. Par le VRAI point d'entrée (le jeton de l'éditeur, la pastille de
+   l'atelier) : « ＋ Nouvelle catégorie » devient un champ, Échap le replie sans fermer, Entrée crée ET choisit ; un nom
+   déjà pris n'en crée pas un second ; dans l'atelier, le nom tapé au filtre qui ne trouve rien devient « ＋ Créer « … » ». */
+await sec('A752 · une catégorie se crée dans le sélecteur et y est choisie', async () => {
+  for(const [w,h] of [[1280,860],[390,844]]){
+    const page=await br.newPage({viewport:{width:w,height:h}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>openEdit(fiches[0].id));await page.waitForSelector('#catPicker [data-catmenu]',{state:'attached'});
+    const r=await page.evaluate(async()=>{const o={};const d=document.querySelector('details.ed-ident');if(d)d.open=true;await __acCalme(200);
+      document.querySelector('#catPicker [data-catmenu]').click();await __acCalme(250);
+      const nw=document.querySelector('[data-pickmk]');if(!nw)return {pasDeRangee:true};nw.click();await __acCalme(150);
+      const inp=document.querySelector('.catmenu-mk-in');o.champ=!!inp&&document.activeElement===inp;
+      inp.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await __acCalme(150);
+      o.replie=!!document.querySelector('.catmenu.popmenu')&&!document.querySelector('[data-pickmk]').hidden;
+      document.querySelector('[data-pickmk]').click();await __acCalme(150);
+      const in2=document.querySelector('.catmenu-mk-in');in2.value='Témoin A752';in2.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await __acCalme(400);
+      const c=categories.find(x=>x.name==='Témoin A752');
+      o.cree=!!c;o.choisie=!!c&&state.draft.category===c.id;o.ferme=!document.querySelector('.catmenu.popmenu');
+      document.querySelector('#catPicker [data-catmenu]').click();await __acCalme(250);document.querySelector('[data-pickmk]').click();await __acCalme(150);
+      const in3=document.querySelector('.catmenu-mk-in');in3.value='témoin a752';in3.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await __acCalme(400);
+      o.unique=categories.filter(x=>txNorm(x.name)==='temoin a752').length===1;return o;});
+    t(`${w}×${h} · éditeur : le champ s'ouvre sur place, Échap le replie, Entrée crée et choisit, pas de doublon`,
+      r.champ&&r.replie&&r.cree&&r.choisie&&r.ferme&&r.unique,JSON.stringify(r));
+    await page.close();}
+  {const page=await br.newPage({viewport:{width:1280,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(()=>{readImportFile(new File([JSON.stringify({version:3,categories:[],fiches:[{id:'i752',title:'Une aide',status:'validated',start:'b',blocks:[{id:'b',kind:'do',title:'G',items:['x']}]}]})],'a752.json'));});
+    await page.waitForSelector('#impList .imp-row');await calme(page,300);
+    const r=await page.evaluate(async()=>{const o={};document.querySelector('#impList [data-impcat]').click();await __acCalme(250);
+      const f=document.querySelector('.catmenu-filter');if(!f)return {pasDeFiltre:true};f.value='Toxicologie A752';f.dispatchEvent(new Event('input'));await __acCalme(100);
+      const nw=document.querySelector('[data-pickmk]');o.libelle=nw.textContent;nw.click();await __acCalme(400);
+      const c=categories.find(x=>x.name==='Toxicologie A752');o.posee=!!c&&_impRows[0].cat===c.id;
+      o.atelier=document.getElementById('impModal').classList.contains('on');o.pastille=document.querySelector('#impList [data-impcat]').textContent;return o;});
+    t('1280×860 · atelier : le filtre sans résultat propose « Créer « … » », la catégorie est créée et posée, l’atelier reste ouvert',
+      /Créer « Toxicologie A752 »/.test(r.libelle||'')&&r.posee&&r.atelier&&/Toxicologie A752/.test(r.pastille||''),JSON.stringify(r));
+    await page.close();}
+});
+
+/* A753 — L'ATELIER EN LISTE GROUPÉE (téléphone) ET EN COLONNES (bureau large). Par le VRAI point d'entrée
+   (`readImportFile`). Téléphone : feuille du bas, groupes « Aides · n sur N » dont le lien coche/décoche le seul groupe,
+   pas de colonnes. Bureau 1280 : `.imp-cols`, case maîtresse à trois états, chaque commande de l'en-tête au-dessus de sa
+   colonne (bord gauche commun à 2 px). « Dans » : la liste des protocoles n'existe qu'après « Verser ». */
+await sec('A753 · l’atelier d’import : liste groupée au téléphone, colonnes au bureau', async () => {
+  const doc={version:3,categories:[],fiches:[{id:'i7a',title:'Aide A',status:'validated',start:'b',blocks:[{id:'b',kind:'do',title:'G',items:['x']}]},
+    {id:'i7b',title:'Aide B',status:'draft',start:'c',blocks:[{id:'c',kind:'do',title:'G',items:['y']}]}],
+    protocols:[{id:'p7a',title:'Protocole A',status:'validated',body:'Texte',sources:[]}]};
+  for(const [w,h] of [[390,844],[1280,860]]){
+    const page=await br.newPage({viewport:{width:w,height:h}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(d=>{myLibraries=[{id:'L7',name:'SMUR',role:'editor'}];protocols.push(migrateProtocol({id:'px7',title:'Existant',body:'',status:'draft'}));
+      readImportFile(new File([JSON.stringify(d)],'a753.json'));},doc);
+    await page.waitForSelector('#impList .imp-row');await calme(page,300);
+    const r=await page.evaluate(async()=>{const o={};const card=impModal.querySelector('.ai-card');
+      o.cols=impModal.classList.contains('imp-cols');
+      o.feuille=getComputedStyle(impModal).alignItems==='flex-end';
+      o.groupes=[...document.querySelectorAll('#impList [data-impgn]')].map(x=>x.textContent);
+      o.anciens=!!document.getElementById('impNone');
+      document.querySelector('#impList [data-impgrp="f"]').click();await __acCalme(150);
+      o.apresGrp=[_impSel.size,document.querySelector('#impList [data-impgrp="f"]').textContent,document.getElementById('impAll').indeterminate];
+      document.querySelector('#impList [data-impgrp="f"]').click();await __acCalme(150);
+      if(o.cols){const L=sel=>Math.round(document.querySelector(sel).getBoundingClientRect().left);
+        o.alignLib=Math.abs(L('#impDestLib')-L('#impList [data-implib]'))<=2;o.alignCat=Math.abs(L('#impDestCat')-L('#impList [data-impcat]'))<=2;}
+      document.querySelector('#impList [data-impinto]').click();await __acCalme(250);
+      const vis=()=>[...document.querySelectorAll('.popmenu .mm-row')].filter(x=>x.getClientRects().length).length;
+      o.dansNeuf=vis();document.querySelector('.popmenu [data-intomode="into"]').click();await __acCalme(200);o.dansVerser=vis();
+      if(_pickClose)_pickClose(false);await __acCalme(150);
+      o.largeur=Math.round(card.getBoundingClientRect().width);return o;});
+    const tel=w<780;
+    t(`${w}×${h} · A753 : ${tel?'feuille du bas, liste':'colonnes'} ; groupes « Aides · 2 sur 2 » / « Protocole · 1 sur 1 » ; plus de « Tout décocher » en tête`,
+      r.cols===!tel&&r.feuille===tel&&r.groupes.join('|')==='Aides · 2 sur 2|Protocole · 1 sur 1'&&!r.anciens,JSON.stringify(r));
+    t(`${w}×${h} · A753 : le lien d'un groupe ne touche que lui ; la case maîtresse passe « en partie »`,
+      r.apresGrp[0]===1&&r.apresGrp[1]==='Tout cocher'&&r.apresGrp[2]===true,JSON.stringify(r.apresGrp));
+    if(!tel)t(`${w}×${h} · A753 : « Bibliothèque » et « Catégorie » de l'en-tête au-dessus de leur colonne`,r.alignLib&&r.alignCat,JSON.stringify(r));
+    t(`${w}×${h} · A753 : « Dans » — aucune liste tant que « Nouveau protocole » est choisi, la recherche après « Verser »`,r.dansNeuf===0&&r.dansVerser>=1,JSON.stringify([r.dansNeuf,r.dansVerser]));
     await page.close();}
 });
 

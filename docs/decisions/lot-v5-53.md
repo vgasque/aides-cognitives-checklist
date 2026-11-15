@@ -16,6 +16,7 @@ plusieurs couleurs → pastille multicolore, le dessin d'A299 de la colonne (fac
 avait disparu et la sélection n'était rangée nulle part. Patron de « ＋ Nouvelle collection… » : un nom
 (`confirmDlg` à champ), « Créer et ranger » — créée là où le nom manque dans les bibliothèques de la sélection
 (`catNew`, factorisé avec le gestionnaire), puis `selSetCat`.
+*(Amendé par A752, v5.129 : le nom se tape dans la feuille même, plus de fenêtre à champ.)*
 
 ## A487 — épingles : brouillon et animation
 

@@ -5220,6 +5220,11 @@
   .catmenu-sep{height:1px;background:var(--line);margin:4px 8px}
   .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 10px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
   .catmenu-new:hover{background:var(--amb-2)}
+  /* A752 : la rangée « ＋ Nouvelle … » devenue champ — même gabarit que la rangée (44, 52 en feuille), le bouton à droite. */
+  .catmenu-mk{display:flex;align-items:center;gap:8px;margin:2px;min-height:44px}
+  .catmenu-mk[hidden],.catmenu-new[hidden]{display:none}
+  .catmenu-mk-in{flex:1;min-width:0;height:40px;padding:0 10px;border:1px solid var(--act);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
+  .catmenu-mk .btn{flex:none;min-height:40px}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
   .popmenu-veil{display:none}
   /* FEUILLE BASSE (A361 ; poignée dans .popmenu-head ; voile touch-action:none — jamais de
@@ -5248,6 +5253,8 @@
   .popmenu.sheet .mm-sep,.popmenu.sheet .catmenu-sep{display:none}
   .popmenu.sheet .catmenu-filter{width:100%;margin:0 0 8px}
   .popmenu.sheet .catmenu-new{width:100%;margin:10px 0 0;min-height:52px;border-radius:var(--r-3);font-size:var(--t-item)}
+  .popmenu.sheet .catmenu-mk{margin:10px 0 0;min-height:52px}
+  .popmenu.sheet :is(.catmenu-mk-in,.catmenu-mk .btn){height:48px;min-height:48px;border-radius:var(--r-3)}
   .popmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   .popmenu-veil.anchor{display:block;position:fixed;inset:0;background:transparent;z-index:19}   /* A525 : absorbe le tap de fermeture du menu ⋯ ancré */
   /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
@@ -7814,21 +7821,27 @@
      La CIBLE est la rangée entière (c'est un `<label>`), pas la case : même règle que le
      titre du chapeau « Ne pas oublier » (v5.0.0) — sous stress on vise une ligne, pas 24 px. */
   .imp-intro{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 12px}
-  /* À 320 px les deux gestes tenaient sur une ligne mais s'y CASSAIENT chacun en deux (mesuré :
-     rangée de 2 lignes, « Tout décocher » plié au milieu). On enroule la RANGÉE plutôt que les
-     mots : les deux boutons restent côte à côte, c'est le COMPTE qui passe dessous — un libellé
-     de bouton coupé se relit, un compte qui change de ligne ne coûte rien. */
-  .imp-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px}
-  .imp-tools .btn{white-space:nowrap}
-  .imp-n{margin-left:auto;font-size:var(--t-meta);color:var(--ink-soft);font-variant-numeric:tabular-nums}
-  .imp-list{display:flex;flex-direction:column;gap:8px}
-  .imp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--r-3);background:var(--work);color:var(--ink);cursor:pointer}
-  .imp-row:hover{border-color:var(--ink-soft);background:var(--amb-2)}
+  /* ═══ A753 — L'ATELIER EN LISTE GROUPÉE (téléphone, planche A) ET EN COLONNES (bureau large, planche B) ═══
+     Les rangées vivent dans des GROUPES arrondis (A506) par nature, « Aides · n sur N » + « Tout cocher/décocher »
+     en intitulé : plus de rangée « Tout cocher · Tout décocher » en tête. `.imp-cols` (posée par `impCols`, d'après la
+     LARGEUR MESURÉE de la fenêtre, donc juste sous zoom — règle 10) range chaque rangée en quatre colonnes : case,
+     élément, bibliothèque, catégorie ; l'en-tête des colonnes EST le bandeau (A160). */
+  .imp-n{font-size:var(--t-meta);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .imp-list{display:flex;flex-direction:column;gap:14px}
+  .imp-g{display:flex;flex-direction:column;gap:6px}
+  .imp-gh{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imp-gh .linkbtn{min-height:32px}
+  .imp-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
+  .imp-item+.imp-item{border-top:1px solid var(--line)}
+  .imp-row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:4px;align-items:start;width:100%;box-sizing:border-box;min-height:52px;padding:12px 14px;color:var(--ink);cursor:pointer}
+  .imp-row:hover{background:var(--amb-2)}
   /* L'anneau vit sur la RANGÉE : la case est le seul élément focalisable, mais c'est la rangée
-     qu'on vise et qu'on doit voir désignée (patron `.card:has(.card-open:focus-visible)`). */
-  .imp-row:focus-within{outline:2px solid var(--act);outline-offset:2px}
+     qu'on vise et qu'on doit voir désignée (patron `.card:has(.card-open:focus-visible)`) — dessiné DEDANS, le groupe
+     coupe ce qui dépasse. */
+  .imp-row:focus-within{outline:2px solid var(--act);outline-offset:-2px}
   .imp-row input{flex:none;width:24px;height:24px;accent-color:var(--act)}
-  .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .imp-row>input{grid-column:1;grid-row:1/span 3;margin:4px 0 0}
+  .imp-tx{display:flex;flex-direction:column;gap:4px;grid-column:2;min-width:0}
   .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* A611 : le titre se renomme sur place ; « Dans … » dit où va le contenu et ce qu'il fera. */
   .imp-tin{display:block;width:100%;min-height:32px;box-sizing:border-box;padding:6px 10px;resize:none;overflow:hidden;line-height:1.3;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
@@ -7846,7 +7859,8 @@
   .imp-ren:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
   .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
-  .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  /* A753 : la nature est dite par le GROUPE ; le mot reste pour les lecteurs d'écran (une rangée lue seule). */
+  .imp-kind{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   /* Registre ATTENTION pour « il reste n choses à relire » — la paire --warn/--warn-soft des
      étapes △, déjà auditée. Jamais un aplat rouge : ce n'est ni un danger ni un refus (A11). */
   .imp-sub .tag.todo{background:var(--warn-soft);color:var(--warn)}
@@ -7864,29 +7878,45 @@
      de TEXTE et non un glyphe : sur une rangée d'atelier il n'y a pas de position constante à
      apprendre, et « Comparer » se lit sans être deviné. Cible ≥ 32 px (hors crise, règle 9). */
   .imp-item{display:flex;flex-direction:column}
+  .imp-item>.imp-diff{margin:0 14px 12px}
   .imp-cmp{flex:none;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
   .imp-cmp:hover{background:var(--amb-2)}
   .imp-cmp:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .imp-diff{margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--amb-2);max-height:280px;overflow:auto;overscroll-behavior:contain}
   /* ═══ A159 — LA DESTINATION SE RÈGLE DANS L'ATELIER, ET PAR RANGÉE ════════════════════════
-     Un SEUL composant de choix, `.imp-pick`, dans les deux logements : le bandeau (qui règle les
-     rangées COCHÉES d'un geste) et la rangée (qui porte la sienne). Deux dessins séparés
-     auraient fini par se répondre différemment sur la même question — et surtout, l'auteur
-     aurait eu deux affordances à apprendre pour un seul choix. Le bandeau n'est donc pas un
-     réglage « global » à côté des rangées : c'est la MÊME commande, appliquée à plusieurs.
+     Le bandeau (qui règle les rangées COCHÉES d'un geste) et la rangée (qui porte la sienne) ouvrent le MÊME menu et
+     écrivent par le même point (`impPoseLib`/`impPoseCat`) : le bandeau n'est pas un réglage « global » à côté des
+     rangées, c'est la MÊME commande, appliquée à plusieurs. A753 : leurs DESSINS diffèrent désormais (rangée de liste
+     `.imp-dsel` au bandeau, lien `.imp-pick` dans la rangée) — au bureau large, l'en-tête se pose au-dessus de la
+     colonne qu'il règle, ce qui rend la parenté visible par la mise en page.
      Cible ≥ 32 px (hors crise, règle 9), corps sur l'échelle fermée, rayon 8. */
-  .imp-dest{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--amb-2)}
-  .imp-dest-l{font-size:var(--t-meta);color:var(--ink-soft)}
+  .imp-dest{position:relative;display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+  .imp-dest-l{padding:0 4px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imp-dcard{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
+  .imp-allw,.imp-dcard>.imp-n{display:none}
+  /* Une rangée de liste groupée : le champ, sa valeur, le chevron. ⚠ `display:grid` écrase l'attribut `hidden` (pastille
+     de bibliothèque absente sans choix à faire) : il est rendu à la main. */
+  .imp-dsel{display:grid;grid-template-columns:auto minmax(0,1fr) 16px;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 14px;border:0;background:none;font:inherit;font-size:var(--t-item);color:var(--ink);text-align:left;cursor:pointer}
+  .imp-dsel[hidden]{display:none}
+  .imp-dsel:not([hidden])~.imp-dsel{border-top:1px solid var(--line)}
+  .imp-dsel:hover:not(:disabled){background:var(--amb-2)}
+  .imp-dsel:disabled{color:var(--ink-3);cursor:default}
+  .imp-dsel:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .imp-dv{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;color:var(--ink-2);font-size:var(--t-body);font-weight:600}
+  .imp-dv>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .imp-dsel>svg{color:var(--ink-3)}
   /* La ligne de destination d'une rangée : elle vit DANS `.imp-tx`, sous la sous-ligne de méta,
      parce qu'elle décrit la même entité — la sortir du <label> l'aurait détachée de son titre.
      Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
      ne coche pas la rangée. */
-  .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-drow{grid-column:2;display:flex;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:0}
   .imp-ecart{flex:0 0 100%;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A725 : l'écart avec la catégorie du fichier, sur sa ligne (jamais tronqué) */
   /* A638 : le déroulant FLOTTANT (fenêtres, au bureau) — au-dessus des fenêtres (55), sous les feuilles (70). */
   .popmenu.flot{position:fixed;z-index:66;top:auto;left:auto;min-width:260px;max-width:min(380px,calc(100vw - 16px))}
-  .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--work);color:var(--ink);cursor:pointer}
-  .imp-pick:hover{background:var(--amb-2);border-color:var(--ink-soft)}
+  /* A753 : la destination d'une rangée est un LIEN d'action (bleu, chevron), plus une pastille en pointillé. */
+  .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;max-width:100%;font:inherit;font-size:var(--t-body);font-weight:700;min-height:32px;padding:4px 0;border:0;background:none;color:var(--act);text-align:left;cursor:pointer}
+  .imp-pick:hover>span:not(.cat-dot){text-decoration:underline}
+  .imp-pick>svg{flex:none}
   .imp-pick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .imp-pick .cat-dot{flex:none}
   .imp-pick>span:not(.cat-dot){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -7895,14 +7925,64 @@
      — une pastille annoncerait une couleur qu'on ne connaît pas encore (elle dépend de ce que la
      destination contient déjà). Jamais la couleur seule (règle 8) : le mot est là — et depuis
      v5.11.1 le mot « catégorie » y est aussi, un verbe ne désignant pas son objet. */
-  .imp-pick.keep{font-weight:600;color:var(--ink-soft);border-style:dashed}
+  .imp-pick.keep{font-weight:600;color:var(--ink-2)}
   /* Publier dans une bibliothèque PARTAGÉE reste un acte annoncé (doctrine d'origine : « jamais
      en silence »). La question oui/non a disparu — c'est ce bandeau de pied qui la remplace, et
      il ne dit que ce qu'il sait : combien d'éléments, vers quelles bibliothèques. Registre
      ATTENTION (--warn), jamais rouge : ce n'est pas un danger, c'est une portée. */
-  .imp-warn{margin:8px 0 0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
+  .imp-warn{flex:0 0 100%;margin:0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
+  #impModal:not(.imp-cols) #impGo{flex:3 1 auto}
+  /* ── B : au bureau large, les colonnes. `--imp-tpl` : case · élément · bibliothèque · catégorie ; sans bibliothèque à
+     choisir, la colonne disparaît. La catégorie se pose TOUJOURS en dernière colonne (`-2/-1`), « Dans … » et l'écart
+     couvrent les colonnes de destination (`3/-1`). */
+  .imp-cols{--imp-tpl:24px minmax(0,1fr) 190px 250px}
+  .imp-cols.imp-nolib{--imp-tpl:24px minmax(0,1fr) 300px}
+  .imp-cols .imp-dest{display:grid;grid-template-columns:var(--imp-tpl);column-gap:16px;align-items:center;margin:0 0 10px;padding:8px 14px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--amb-2)}
+  .imp-cols .imp-dest-l{display:none}
+  .imp-cols .imp-dcard{display:contents}
+  .imp-cols .imp-allw{display:flex;grid-column:1;cursor:pointer}
+  .imp-cols .imp-allw input{width:24px;height:24px;margin:0;accent-color:var(--act)}
+  .imp-cols .imp-dcard>.imp-n{display:block;grid-column:2}
+  .imp-cols .imp-dsel{display:inline-flex;grid-column:3;justify-self:start;width:auto;max-width:100%;min-height:36px;gap:6px;padding:0 10px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);font-size:var(--t-body);font-weight:600}
+  .imp-cols .imp-dsel[hidden]{display:none}
+  .imp-cols .imp-dsel~.imp-dsel{border-top:1px solid var(--ctl-line)}
+  .imp-cols #impDestCat{grid-column:-2/-1}
+  .imp-cols .imp-dk::after{content:" ·"}
+  .imp-cols .imp-dv{color:var(--ink)}
+  .imp-cols :is(.imp-dsel,.imp-pick)>svg{transform:rotate(90deg)}
+  .imp-cols .imp-row{grid-template-columns:var(--imp-tpl);column-gap:16px;row-gap:0;align-items:center;padding:10px 14px}
+  .imp-cols .imp-row>input{grid-row:1/span 4;align-self:center;margin:0}
+  .imp-cols .imp-tx{grid-row:1/span 4}
+  .imp-cols .imp-drow{display:contents}
+  .imp-cols .imp-drow>[data-implib]{grid-column:3}
+  .imp-cols .imp-drow>[data-impcat]{grid-column:-2/-1}
+  .imp-cols .imp-drow>:is([data-impinto],.imp-into-s,.imp-ecart){grid-column:3/-1}
+  /* A4 : « Où va ce contenu ? » — deux cartes de choix en tête ; la recherche et la liste n'existent que pour verser. */
+  .imp-into2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 0}
+  .imp-into-c{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:76px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--r-4);background:var(--work);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  .imp-into-c b{font-size:var(--t-item);font-weight:700}
+  .imp-into-c span{font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .imp-into-c svg{color:var(--ink-2);margin-bottom:2px}
+  .imp-into-c[aria-pressed="true"]{border-color:var(--act);box-shadow:inset 0 0 0 1px var(--act);background:var(--primary-soft);color:var(--act)}
+  .imp-into-c[aria-pressed="true"] :is(span,svg){color:var(--act)}
+  .imp-into-c:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .imp-intomenu.is-new :is(.mm-row,.catmenu-filter){display:none}
+  .imp-cols .imp-foot{flex-wrap:nowrap;justify-content:flex-end}
+  .imp-cols .imp-foot .imp-warn{flex:1 1 auto}
+  .imp-cols .imp-foot .btn{flex:none}
+  /* La fenêtre au bureau : sa largeur mesure les COLONNES (élément ≥ 400 + bibliothèque + catégorie), pas un gabarit de
+     fenêtre de plus (A25) ; sous 880 px mesurés, elle reste une liste (planche A). */
+  @media (min-width:780px){#impModal .ai-card{max-width:min(1000px,100%)}}
+  /* A : au téléphone, une FEUILLE DU BAS à poignée (A508) ; on la tire par sa tête (`bindSheetDrag(…,true)`), jamais par
+     la liste qui défile. */
+  @media (max-width:779.98px){
+    #impModal{align-items:flex-end;padding:0;background:var(--scrim)}
+    #impModal .ai-card{max-width:none;width:100%;min-height:0;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(12px + var(--sab));max-height:calc(94dvh / var(--zf,1));box-shadow:var(--shadow-up)}
+    #impModal .ai-card::before{content:"";display:block;flex:none;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
+    #impModal .ai-card h3{font-size:var(--t-step);font-weight:700}
+  }
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
      Elle remplace `.crt-drop` (PURGÉ avec son balisage, règle 14) ET les boutons `.add-line`
      des sections qui joignent un fichier. Le geste au clic est INCHANGÉ : elle a seulement gagné

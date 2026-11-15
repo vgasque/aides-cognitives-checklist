@@ -34,8 +34,8 @@ touche une surface — c'est la seule protection dont il dispose.
 > - **l'accueil** : pastille d'une catégorie homonyme lue sur SES éléments (A485), liste reposée
 >   où on l'avait laissée au retour (A491), pied « Tout est prêt » qui ne répète plus la version
 >   (A499), colonne gauche sous la barre d'état de l'iPad installé (A501) — § L'accueil ;
-> - **ranger** : la collection se choisit à la création (A496), « Nouvelle catégorie… » crée ET
->   range (A486), « Ajouter à « … » » (A488), le menu des catégories dit ce qu'est une catégorie
+> - **ranger** : la collection se choisit à la création (A496), « Nouvelle catégorie » crée ET
+>   choisit dans le menu même (A486, A752), « Ajouter à « … » » (A488), le menu des catégories dit ce qu'est une catégorie
 >   (A498), un brouillon ne s'épingle pas et une seule étoile s'anime (A487) — § Ranger.
 > - **l'architecture « lanceur + catalogue »** (A600-A606, v5.100-v5.103) : au-delà de 20 éléments l'accueil est un
 >   LANCEUR (En cours, Accès direct, Vos collections, Ouvertes récemment, porte « Toutes les aides et protocoles ») ; le
@@ -980,8 +980,18 @@ telle quelle — chaque écran le dit à sa façon :
 - **Dans une collection ouverte**, le geste est « ＋ Ajouter » (on ajoute aussi des protocoles) et la feuille
   s'intitule « Ajouter à « ‹collection› » » — jamais « Ajouter à une collection », titre de la feuille INVERSE ;
   chaque rangée porte la pastille de sa catégorie et « nature · catégorie · bibliothèque » (A488).
-- **« ＋ Nouvelle catégorie… » depuis Ranger crée ET range** (A486) : un nom, « Créer et ranger » — sur le
-  patron de « Nouvelle collection… », sans détour par le gestionnaire (la sélection n'était rangée nulle part).
+- **« ＋ Nouvelle catégorie » crée ET choisit, dans le menu même** (A486, amendé par A752) : la rangée en pointillé
+  devient un champ « Nom · Créer » (44 px, 52 en feuille) ; Entrée crée la catégorie dans la bibliothèque visée et la
+  pose (brouillon de l'éditeur, rangées de l'atelier d'import, sélection de « Ranger ») ; Échap replie le champ. Un
+  nom tapé au filtre qui ne trouve rien fait de la rangée « ＋ Créer « … » ». Jamais de détour par le gestionnaire,
+  qui garde couleur, renommage et suppression.
+- **L'atelier d'import** (A753) : au téléphone une FEUILLE DU BAS à poignée, en liste groupée — « Ranger les n cochés
+  dans » puis deux rangées « Bibliothèque › / Catégorie › », puis un groupe par nature (« Aides · n sur N » et son
+  « Tout cocher/décocher ») ; la destination d'une rangée est un LIEN bleu à chevron, plus une pastille en pointillé.
+  Au bureau, dès 880 px MESURÉS dans la fenêtre (`.imp-cols`), quatre colonnes : case, élément, bibliothèque,
+  catégorie — l'en-tête (case maîtresse, compte, deux commandes) se pose au-dessus de sa colonne. « Comparer » déplie
+  sous la rangée, sur toute la largeur. « Où va ce contenu ? » : deux cartes (Nouveau protocole · Verser dans un
+  protocole) avant la recherche, qui ne paraît que pour verser.
 - **Le menu des catégories dit ce qu'est une catégorie** (A498), en UNE ligne sous son titre « Choisir la
   catégorie », dont le PIVOT suit la bibliothèque — partagée : la PROPRIÉTÉ (« … vue par toute l'équipe de
   « … ». Pour un rangement à vous seul : les collections. ») ; Perso : le NOMBRE (« … pour classer l'accueil.

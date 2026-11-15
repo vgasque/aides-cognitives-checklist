@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Zreb4koJSOOsXJo+Z4+caRLwIaJLHV+RBZl8z7CA3Pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-qsuuarZzjIr0SSPWYT+biym2NofYVaMOBwezqaFfUUs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5620,6 +5620,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .catmenu-sep{height:1px;background:var(--line);margin:4px 8px}
   .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 10px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
   .catmenu-new:hover{background:var(--amb-2)}
+  /* A752 : la rangée « ＋ Nouvelle … » devenue champ — même gabarit que la rangée (44, 52 en feuille), le bouton à droite. */
+  .catmenu-mk{display:flex;align-items:center;gap:8px;margin:2px;min-height:44px}
+  .catmenu-mk[hidden],.catmenu-new[hidden]{display:none}
+  .catmenu-mk-in{flex:1;min-width:0;height:40px;padding:0 10px;border:1px solid var(--act);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
+  .catmenu-mk .btn{flex:none;min-height:40px}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--work);color:var(--ink);font-family:inherit;font-size:13.5px}
   .popmenu-veil{display:none}
   /* FEUILLE BASSE (A361 ; poignée dans .popmenu-head ; voile touch-action:none — jamais de
@@ -5648,6 +5653,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .popmenu.sheet .mm-sep,.popmenu.sheet .catmenu-sep{display:none}
   .popmenu.sheet .catmenu-filter{width:100%;margin:0 0 8px}
   .popmenu.sheet .catmenu-new{width:100%;margin:10px 0 0;min-height:52px;border-radius:var(--r-3);font-size:var(--t-item)}
+  .popmenu.sheet .catmenu-mk{margin:10px 0 0;min-height:52px}
+  .popmenu.sheet :is(.catmenu-mk-in,.catmenu-mk .btn){height:48px;min-height:48px;border-radius:var(--r-3)}
   .popmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   .popmenu-veil.anchor{display:block;position:fixed;inset:0;background:transparent;z-index:19}   /* A525 : absorbe le tap de fermeture du menu ⋯ ancré */
   /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
@@ -8214,21 +8221,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      La CIBLE est la rangée entière (c'est un `<label>`), pas la case : même règle que le
      titre du chapeau « Ne pas oublier » (v5.0.0) — sous stress on vise une ligne, pas 24 px. */
   .imp-intro{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 12px}
-  /* À 320 px les deux gestes tenaient sur une ligne mais s'y CASSAIENT chacun en deux (mesuré :
-     rangée de 2 lignes, « Tout décocher » plié au milieu). On enroule la RANGÉE plutôt que les
-     mots : les deux boutons restent côte à côte, c'est le COMPTE qui passe dessous — un libellé
-     de bouton coupé se relit, un compte qui change de ligne ne coûte rien. */
-  .imp-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px}
-  .imp-tools .btn{white-space:nowrap}
-  .imp-n{margin-left:auto;font-size:var(--t-meta);color:var(--ink-soft);font-variant-numeric:tabular-nums}
-  .imp-list{display:flex;flex-direction:column;gap:8px}
-  .imp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--r-3);background:var(--work);color:var(--ink);cursor:pointer}
-  .imp-row:hover{border-color:var(--ink-soft);background:var(--amb-2)}
+  /* ═══ A753 — L'ATELIER EN LISTE GROUPÉE (téléphone, planche A) ET EN COLONNES (bureau large, planche B) ═══
+     Les rangées vivent dans des GROUPES arrondis (A506) par nature, « Aides · n sur N » + « Tout cocher/décocher »
+     en intitulé : plus de rangée « Tout cocher · Tout décocher » en tête. `.imp-cols` (posée par `impCols`, d'après la
+     LARGEUR MESURÉE de la fenêtre, donc juste sous zoom — règle 10) range chaque rangée en quatre colonnes : case,
+     élément, bibliothèque, catégorie ; l'en-tête des colonnes EST le bandeau (A160). */
+  .imp-n{font-size:var(--t-meta);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .imp-list{display:flex;flex-direction:column;gap:14px}
+  .imp-g{display:flex;flex-direction:column;gap:6px}
+  .imp-gh{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imp-gh .linkbtn{min-height:32px}
+  .imp-grp{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
+  .imp-item+.imp-item{border-top:1px solid var(--line)}
+  .imp-row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:4px;align-items:start;width:100%;box-sizing:border-box;min-height:52px;padding:12px 14px;color:var(--ink);cursor:pointer}
+  .imp-row:hover{background:var(--amb-2)}
   /* L'anneau vit sur la RANGÉE : la case est le seul élément focalisable, mais c'est la rangée
-     qu'on vise et qu'on doit voir désignée (patron `.card:has(.card-open:focus-visible)`). */
-  .imp-row:focus-within{outline:2px solid var(--act);outline-offset:2px}
+     qu'on vise et qu'on doit voir désignée (patron `.card:has(.card-open:focus-visible)`) — dessiné DEDANS, le groupe
+     coupe ce qui dépasse. */
+  .imp-row:focus-within{outline:2px solid var(--act);outline-offset:-2px}
   .imp-row input{flex:none;width:24px;height:24px;accent-color:var(--act)}
-  .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .imp-row>input{grid-column:1;grid-row:1/span 3;margin:4px 0 0}
+  .imp-tx{display:flex;flex-direction:column;gap:4px;grid-column:2;min-width:0}
   .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* A611 : le titre se renomme sur place ; « Dans … » dit où va le contenu et ce qu'il fera. */
   .imp-tin{display:block;width:100%;min-height:32px;box-sizing:border-box;padding:6px 10px;resize:none;overflow:hidden;line-height:1.3;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:600}
@@ -8246,7 +8259,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .imp-ren:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .imp-into-s{font-size:var(--t-meta);color:var(--ink-2)}
   .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
-  .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  /* A753 : la nature est dite par le GROUPE ; le mot reste pour les lecteurs d'écran (une rangée lue seule). */
+  .imp-kind{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   /* Registre ATTENTION pour « il reste n choses à relire » — la paire --warn/--warn-soft des
      étapes △, déjà auditée. Jamais un aplat rouge : ce n'est ni un danger ni un refus (A11). */
   .imp-sub .tag.todo{background:var(--warn-soft);color:var(--warn)}
@@ -8264,29 +8278,45 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de TEXTE et non un glyphe : sur une rangée d'atelier il n'y a pas de position constante à
      apprendre, et « Comparer » se lit sans être deviné. Cible ≥ 32 px (hors crise, règle 9). */
   .imp-item{display:flex;flex-direction:column}
+  .imp-item>.imp-diff{margin:0 14px 12px}
   .imp-cmp{flex:none;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
   .imp-cmp:hover{background:var(--amb-2)}
   .imp-cmp:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .imp-diff{margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--amb-2);max-height:280px;overflow:auto;overscroll-behavior:contain}
   /* ═══ A159 — LA DESTINATION SE RÈGLE DANS L'ATELIER, ET PAR RANGÉE ════════════════════════
-     Un SEUL composant de choix, `.imp-pick`, dans les deux logements : le bandeau (qui règle les
-     rangées COCHÉES d'un geste) et la rangée (qui porte la sienne). Deux dessins séparés
-     auraient fini par se répondre différemment sur la même question — et surtout, l'auteur
-     aurait eu deux affordances à apprendre pour un seul choix. Le bandeau n'est donc pas un
-     réglage « global » à côté des rangées : c'est la MÊME commande, appliquée à plusieurs.
+     Le bandeau (qui règle les rangées COCHÉES d'un geste) et la rangée (qui porte la sienne) ouvrent le MÊME menu et
+     écrivent par le même point (`impPoseLib`/`impPoseCat`) : le bandeau n'est pas un réglage « global » à côté des
+     rangées, c'est la MÊME commande, appliquée à plusieurs. A753 : leurs DESSINS diffèrent désormais (rangée de liste
+     `.imp-dsel` au bandeau, lien `.imp-pick` dans la rangée) — au bureau large, l'en-tête se pose au-dessus de la
+     colonne qu'il règle, ce qui rend la parenté visible par la mise en page.
      Cible ≥ 32 px (hors crise, règle 9), corps sur l'échelle fermée, rayon 8. */
-  .imp-dest{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--amb-2)}
-  .imp-dest-l{font-size:var(--t-meta);color:var(--ink-soft)}
+  .imp-dest{position:relative;display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+  .imp-dest-l{padding:0 4px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .imp-dcard{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
+  .imp-allw,.imp-dcard>.imp-n{display:none}
+  /* Une rangée de liste groupée : le champ, sa valeur, le chevron. ⚠ `display:grid` écrase l'attribut `hidden` (pastille
+     de bibliothèque absente sans choix à faire) : il est rendu à la main. */
+  .imp-dsel{display:grid;grid-template-columns:auto minmax(0,1fr) 16px;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 14px;border:0;background:none;font:inherit;font-size:var(--t-item);color:var(--ink);text-align:left;cursor:pointer}
+  .imp-dsel[hidden]{display:none}
+  .imp-dsel:not([hidden])~.imp-dsel{border-top:1px solid var(--line)}
+  .imp-dsel:hover:not(:disabled){background:var(--amb-2)}
+  .imp-dsel:disabled{color:var(--ink-3);cursor:default}
+  .imp-dsel:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .imp-dv{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;color:var(--ink-2);font-size:var(--t-body);font-weight:600}
+  .imp-dv>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .imp-dsel>svg{color:var(--ink-3)}
   /* La ligne de destination d'une rangée : elle vit DANS `.imp-tx`, sous la sous-ligne de méta,
      parce qu'elle décrit la même entité — la sortir du <label> l'aurait détachée de son titre.
      Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
      ne coche pas la rangée. */
-  .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-drow{grid-column:2;display:flex;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:0}
   .imp-ecart{flex:0 0 100%;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}   /* A725 : l'écart avec la catégorie du fichier, sur sa ligne (jamais tronqué) */
   /* A638 : le déroulant FLOTTANT (fenêtres, au bureau) — au-dessus des fenêtres (55), sous les feuilles (70). */
   .popmenu.flot{position:fixed;z-index:66;top:auto;left:auto;min-width:260px;max-width:min(380px,calc(100vw - 16px))}
-  .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--work);color:var(--ink);cursor:pointer}
-  .imp-pick:hover{background:var(--amb-2);border-color:var(--ink-soft)}
+  /* A753 : la destination d'une rangée est un LIEN d'action (bleu, chevron), plus une pastille en pointillé. */
+  .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;max-width:100%;font:inherit;font-size:var(--t-body);font-weight:700;min-height:32px;padding:4px 0;border:0;background:none;color:var(--act);text-align:left;cursor:pointer}
+  .imp-pick:hover>span:not(.cat-dot){text-decoration:underline}
+  .imp-pick>svg{flex:none}
   .imp-pick:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .imp-pick .cat-dot{flex:none}
   .imp-pick>span:not(.cat-dot){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -8295,14 +8325,64 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      — une pastille annoncerait une couleur qu'on ne connaît pas encore (elle dépend de ce que la
      destination contient déjà). Jamais la couleur seule (règle 8) : le mot est là — et depuis
      v5.11.1 le mot « catégorie » y est aussi, un verbe ne désignant pas son objet. */
-  .imp-pick.keep{font-weight:600;color:var(--ink-soft);border-style:dashed}
+  .imp-pick.keep{font-weight:600;color:var(--ink-2)}
   /* Publier dans une bibliothèque PARTAGÉE reste un acte annoncé (doctrine d'origine : « jamais
      en silence »). La question oui/non a disparu — c'est ce bandeau de pied qui la remplace, et
      il ne dit que ce qu'il sait : combien d'éléments, vers quelles bibliothèques. Registre
      ATTENTION (--warn), jamais rouge : ce n'est pas un danger, c'est une portée. */
-  .imp-warn{margin:8px 0 0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
+  .imp-warn{flex:0 0 100%;margin:0;padding:8px 10px;border:1px solid var(--warn-line);border-radius:var(--r-3);background:var(--warn-soft);color:var(--warn);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
+  #impModal:not(.imp-cols) #impGo{flex:3 1 auto}
+  /* ── B : au bureau large, les colonnes. `--imp-tpl` : case · élément · bibliothèque · catégorie ; sans bibliothèque à
+     choisir, la colonne disparaît. La catégorie se pose TOUJOURS en dernière colonne (`-2/-1`), « Dans … » et l'écart
+     couvrent les colonnes de destination (`3/-1`). */
+  .imp-cols{--imp-tpl:24px minmax(0,1fr) 190px 250px}
+  .imp-cols.imp-nolib{--imp-tpl:24px minmax(0,1fr) 300px}
+  .imp-cols .imp-dest{display:grid;grid-template-columns:var(--imp-tpl);column-gap:16px;align-items:center;margin:0 0 10px;padding:8px 14px;border:1px solid var(--work-line);border-radius:var(--r-4);background:var(--amb-2)}
+  .imp-cols .imp-dest-l{display:none}
+  .imp-cols .imp-dcard{display:contents}
+  .imp-cols .imp-allw{display:flex;grid-column:1;cursor:pointer}
+  .imp-cols .imp-allw input{width:24px;height:24px;margin:0;accent-color:var(--act)}
+  .imp-cols .imp-dcard>.imp-n{display:block;grid-column:2}
+  .imp-cols .imp-dsel{display:inline-flex;grid-column:3;justify-self:start;width:auto;max-width:100%;min-height:36px;gap:6px;padding:0 10px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);font-size:var(--t-body);font-weight:600}
+  .imp-cols .imp-dsel[hidden]{display:none}
+  .imp-cols .imp-dsel~.imp-dsel{border-top:1px solid var(--ctl-line)}
+  .imp-cols #impDestCat{grid-column:-2/-1}
+  .imp-cols .imp-dk::after{content:" ·"}
+  .imp-cols .imp-dv{color:var(--ink)}
+  .imp-cols :is(.imp-dsel,.imp-pick)>svg{transform:rotate(90deg)}
+  .imp-cols .imp-row{grid-template-columns:var(--imp-tpl);column-gap:16px;row-gap:0;align-items:center;padding:10px 14px}
+  .imp-cols .imp-row>input{grid-row:1/span 4;align-self:center;margin:0}
+  .imp-cols .imp-tx{grid-row:1/span 4}
+  .imp-cols .imp-drow{display:contents}
+  .imp-cols .imp-drow>[data-implib]{grid-column:3}
+  .imp-cols .imp-drow>[data-impcat]{grid-column:-2/-1}
+  .imp-cols .imp-drow>:is([data-impinto],.imp-into-s,.imp-ecart){grid-column:3/-1}
+  /* A4 : « Où va ce contenu ? » — deux cartes de choix en tête ; la recherche et la liste n'existent que pour verser. */
+  .imp-into2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 0}
+  .imp-into-c{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:76px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--r-4);background:var(--work);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  .imp-into-c b{font-size:var(--t-item);font-weight:700}
+  .imp-into-c span{font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .imp-into-c svg{color:var(--ink-2);margin-bottom:2px}
+  .imp-into-c[aria-pressed="true"]{border-color:var(--act);box-shadow:inset 0 0 0 1px var(--act);background:var(--primary-soft);color:var(--act)}
+  .imp-into-c[aria-pressed="true"] :is(span,svg){color:var(--act)}
+  .imp-into-c:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .imp-intomenu.is-new :is(.mm-row,.catmenu-filter){display:none}
+  .imp-cols .imp-foot{flex-wrap:nowrap;justify-content:flex-end}
+  .imp-cols .imp-foot .imp-warn{flex:1 1 auto}
+  .imp-cols .imp-foot .btn{flex:none}
+  /* La fenêtre au bureau : sa largeur mesure les COLONNES (élément ≥ 400 + bibliothèque + catégorie), pas un gabarit de
+     fenêtre de plus (A25) ; sous 880 px mesurés, elle reste une liste (planche A). */
+  @media (min-width:780px){#impModal .ai-card{max-width:min(1000px,100%)}}
+  /* A : au téléphone, une FEUILLE DU BAS à poignée (A508) ; on la tire par sa tête (`bindSheetDrag(…,true)`), jamais par
+     la liste qui défile. */
+  @media (max-width:779.98px){
+    #impModal{align-items:flex-end;padding:0;background:var(--scrim)}
+    #impModal .ai-card{max-width:none;width:100%;min-height:0;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(12px + var(--sab));max-height:calc(94dvh / var(--zf,1));box-shadow:var(--shadow-up)}
+    #impModal .ai-card::before{content:"";display:block;flex:none;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
+    #impModal .ai-card h3{font-size:var(--t-step);font-weight:700}
+  }
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
      Elle remplace `.crt-drop` (PURGÉ avec son balisage, règle 14) ET les boutons `.add-line`
      des sections qui joignent un fichier. Le geste au clic est INCHANGÉ : elle a seulement gagné
@@ -10351,26 +10431,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      choisit AVANT que rien ne soit écrit. Gabarit ATELIER (720, défaut) : c'est une liste qu'on
      parcourt, pas un choix borné. Corps peint à l'ouverture (`paintImpList`) : rien ici, sinon
      deux sources pour les mêmes rangées. -->
-<div class="ai-modal" id="impModal" role="dialog" aria-modal="true" aria-labelledby="impTitle"><div class="ai-card">
+<div class="ai-modal page" id="impModal" role="dialog" aria-modal="true" aria-labelledby="impTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="impTitle">Importer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p class="imp-intro" id="impIntro"></p>
-  <div class="imp-tools">
-    <button type="button" class="btn" id="impAll">Tout cocher</button>
-    <button type="button" class="btn" id="impNone">Tout décocher</button>
-    <span class="imp-n" id="impN"></span>
-  </div>
   <!-- A159 — LE BANDEAU N'EST PAS UN RÉGLAGE GLOBAL À CÔTÉ DES RANGÉES : c'est la même commande
        que celle d'une rangée, appliquée aux COCHÉES. Il affiche donc leur valeur COMMUNE, et
        « Plusieurs » quand elles diffèrent — il ne prétend jamais à une valeur que les rangées
        n'ont pas. `.imp-dest` est un conteneur ancré (le menu s'y pose). -->
+  <!-- A753 : au téléphone, une liste groupée « Bibliothèque › / Catégorie › » sous son intitulé ; au bureau large
+       (`.imp-cols`), la rangée d'EN-TÊTE des colonnes — case maîtresse, compte, puis les deux commandes au-dessus de
+       la colonne qu'elles règlent. -->
   <div class="imp-dest" id="impDest">
     <span class="imp-dest-l" id="impDestL">Ranger les éléments cochés dans</span>
-    <button type="button" class="imp-pick" id="impDestLib" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span>Bibliothèque</span></button>
-    <button type="button" class="imp-pick" id="impDestCat" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span>Catégorie</span></button>
+    <div class="imp-dcard">
+      <label class="imp-allw"><input type="checkbox" id="impAll"><span class="sr-only">Tout cocher</span></label>
+      <span class="imp-n" id="impN"></span>
+      <button type="button" class="imp-dsel" id="impDestLib" data-catmenu aria-haspopup="listbox" aria-expanded="false"></button>
+      <button type="button" class="imp-dsel" id="impDestCat" data-catmenu aria-haspopup="listbox" aria-expanded="false"></button>
+    </div>
   </div>
   <div id="impList" class="ai-body imp-list"></div>
-  <p class="imp-warn" id="impWarn" hidden></p>
   <div class="imp-foot">
+    <p class="imp-warn" id="impWarn" hidden></p>
     <button type="button" class="btn" id="impCancel">Annuler</button>
     <button type="button" class="btn primary" id="impGo">Importer</button>
   </div>
@@ -10685,7 +10767,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.128.0';
+const APP_VERSION='5.130.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13251,6 +13333,13 @@ function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
 async function catNew(name,scp){const c={id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp};
   categories.push(c);await saveCats(scp);return c;}
+/* A752 — CRÉER UNE CATÉGORIE DEPUIS UN SÉLECTEUR, ET LA CHOISIR. Un nom qui existe déjà dans la bibliothèque (comparé
+   comme partout, `catNamed`) n'en crée pas une seconde : l'existante est choisie, et le toast le dit. Une bibliothèque
+   partagée suit la règle d'un appareil temporaire (A692), comme le gestionnaire. */
+async function catCreerPour(lib,name,pose){
+  const ex=catNamed(lib,name);if(ex){pose(ex.id);toast('« '+ex.name+' » existe déjà : elle est choisie.',3500);return;}
+  if(lib&&linkShared()&&linkGate(()=>catCreerPour(lib,name,pose),'Modifier les catégories d’une bibliothèque'))return;
+  const c=await catNew(name,lib);pose(c.id);}
 function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
 /* ⚠ UN ID DE CATÉGORIE SE RÉSOUT DANS SA BIBLIOTHÈQUE (v5.10.9). La recherche était globale, alors
    que les ids ne sont uniques que PAR bibliothèque — déterministes au Perso (dérivés du nom), donc
@@ -14843,10 +14932,12 @@ function bindModalDismiss(modal,close){const x=modal.querySelector('.ai-x');if(x
   modal.onclick=e=>{const d=down;down=null;if(e.target===modal&&(d===null||d===modal))close();};}
 /* A517 (A508) : une feuille du bas se ferme en la TIRANT vers le bas — depuis sa tête, ou partout quand son contenu est
    en haut (sinon le geste est un défilement). Au-delà de 96 px, ✕ ; en deçà, elle revient. Toucher seul. */
-function bindSheetDrag(modal){const card=modal&&modal.querySelector('.ai-card');if(!card)return;
+// `teteSeule` (A753) : seule la tête (poignée, titre) tire la feuille — la liste qui défile dessous garde son geste.
+function bindSheetDrag(modal,teteSeule){const card=modal&&modal.querySelector('.ai-card');if(!card)return;
   let y0=null,dy=0;
   card.addEventListener('touchstart',e=>{if(matchMedia('(min-width:780px)').matches)return;
-    const t=e.target,tete=t.closest&&t.closest('.ai-top');
+    const t=e.target,tete=t===card||(t.closest&&t.closest('.ai-top'));
+    if(teteSeule&&!tete)return;
     if(!tete&&card.scrollTop>0)return;
     y0=e.touches[0].clientY;dy=0;},{passive:true});
   card.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;
@@ -18278,14 +18369,14 @@ function openSelCat(b,redo){
     head:multi?`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
     value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
     onPick:v=>selSetCat(v?vus.get(v).name:'',redo),
-    action:{label:'＋ Nouvelle catégorie…',fn:()=>selNewCat(libs,redo)}});}
-/* A486 : créer une catégorie DEPUIS « Ranger » — un nom (la fenêtre des collections), créée là où il manque
-   dans les bibliothèques de la sélection, puis la sélection y est rangée. Le gestionnaire perdait le geste. */
-async function selNewCat(libs,redo){
-  const name=sstr(await confirmDlg('Nom de la catégorie',{title:'Nouvelle catégorie',yes:'Créer et ranger',input:{value:'',placeholder:'Ex. Transport'}})||'',40).trim();
+    create:{label:'Nouvelle catégorie',placeholder:'Nom de la catégorie',fn:nom=>selNewCat(libs,nom,redo)}});}
+/* A486 : créer une catégorie DEPUIS « Ranger » — créée là où le nom manque dans les bibliothèques de la sélection, puis
+   la sélection y est rangée. A752 : le nom se tape DANS la feuille (la fenêtre à champ d'A486 est retirée). */
+async function selNewCat(libs,name,redo){
   if(!name)return;
-  for(const l of libs)if(!catNamed(l,name))await catNew(name,l);
-  await selSetCat(name,redo);}
+  if(linkShared()&&libs.some(l=>l)&&linkGate(()=>selNewCat(libs,name,redo),'Modifier les catégories d’une bibliothèque'))return;
+  for(const l of libs)if(!catNamed(l,name)&&canEditScope(l))await catNew(name,l);
+  await selSetCat((catNamed(libs[0],name)||{name}).name,redo);}
 async function selSetCat(name,redo){
   const ent=selEnt();if(!ent.length)return;
   const p=selCatPlan(ent,name),multi=p.libs.length>1;
@@ -20979,7 +21070,7 @@ function editorMetaFieldsHtml(d,prefix,L){
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
    « Autre… ». openCatMenu : menu ancré sous le picker (bottom sheet < 780) — une rangée 44px par
    catégorie (pastille + nom + ✓ sur la courante), filtre si > 8, « ＋ Nouvelle catégorie » en
-   pointillé (ouvre le gestionnaire sans perdre le brouillon). Listbox ARIA : flèches, Entrée,
+   pointillé (A752 : devient un champ sur place, la catégorie créée est choisie). Listbox ARIA : flèches, Entrée,
    Échap (referme et rend le focus au déclencheur), clic hors menu. */
 function catPickerHtml(d){
   const c=catOf(d);   // résolu DANS la bibliothèque du brouillon (cf. catOf) — le menu ne propose que celles-là
@@ -21052,6 +21143,10 @@ function openPickMenu(host,opts){
   menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${opts.title?`<h3 class="mm-title">${esc(opts.title)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre??8)?`<input class="catmenu-filter" type="text" placeholder="${esc(opts.placeholder||'Filtrer…')}" aria-label="${esc(opts.placeholder?opts.placeholder.replace(/…$/,''):'Filtrer '+(opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
+    /* A752 : `create` — la rangée « ＋ Nouvelle … » se change SUR PLACE en champ « Nom · Créer » ; le menu reste ouvert
+       jusqu'à la création, puis se ferme sur le choix fait (`create.fn(nom)`, appelée après la fermeture). */
+    +(opts.create?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new" data-pickmk>＋ ${esc(opts.create.label)}</button>`
+      +`<div class="catmenu-mk" hidden><input type="text" class="catmenu-mk-in" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="${esc(opts.create.placeholder||'Nom')}" aria-label="${esc(opts.create.label)}"><button type="button" class="btn primary sm" data-pickmkgo>Créer</button></div>`:'')
     +(opts.done?`<div class="popmenu-foot"><button type="button" class="btn primary" data-pickdone>${esc(opts.done)}</button></div>`:'');
   const veil=document.createElement('div');veil.className='popmenu-veil'+(sheet?' sheet':'');
   /* ⚠ UNE FEUILLE SE MONTE SUR `<body>`, JAMAIS DANS SON DÉCLENCHEUR (signalé à l'usage : « les
@@ -21114,9 +21209,10 @@ function openPickMenu(host,opts){
      menu ne ferme donc que ce qui est VRAIMENT dehors (menu ancré sans voile, chrome au-dessus du voile) ; un tap sur
      le voile se ferme à son `click`, que le voile absorbe parce qu'il est encore là pour le recevoir. */
   const out=e=>{if(e.target===veil)return;if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
-  const rows=()=>[...menu.querySelectorAll('.mm-back,.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none');
+  const rows=()=>[...menu.querySelectorAll('.mm-back,.mm-row,.catmenu-new')].filter(r=>r.style.display!=='none'&&!r.hidden&&r.getClientRects().length);
+  let mkBack=null,mkSync=null;   // A752 : Échap dans le champ de création le replie, sans fermer le menu
   const keys=e=>{
-    if(e.key==='Escape'){e.stopPropagation();e.preventDefault();close(true);return;}
+    if(e.key==='Escape'){e.stopPropagation();e.preventDefault();if(mkBack&&mkBack())return;close(true);return;}
     if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
     if(!menu.contains(document.activeElement)&&document.activeElement!==trigger)return;
     e.preventDefault();const r=rows();if(!r.length)return;
@@ -21129,13 +21225,31 @@ function openPickMenu(host,opts){
     close(false);opts.onPick(v);});
   {const d=menu.querySelector('[data-pickdone]');if(d)d.onclick=()=>close(true);}
   if(opts.action){const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);opts.action.fn();};}
+  /* A752 — CRÉER SANS QUITTER LE CHOIX (demande de l'auteur : la rangée ouvrait le gestionnaire ; il fallait créer, fermer
+     la fenêtre, rouvrir le menu, choisir). Le nom tapé dans le filtre qui ne trouve rien devient « ＋ Créer « … » » :
+     un geste. Sinon la rangée devient un champ. Au téléphone, la feuille monte au-dessus du clavier (`visualViewport`). */
+  if(opts.create){const C=opts.create,nw=menu.querySelector('[data-pickmk]'),mk=menu.querySelector('.catmenu-mk'),inp=mk.querySelector('input'),lbl0=nw.textContent;
+    const fq=()=>{const f=menu.querySelector('.catmenu-filter');return f?f.value.replace(/\s+/g,' ').trim():'';};
+    const existe=q=>{const n=txNorm(q);return [...menu.querySelectorAll('.mm-row .mm-lb')].some(x=>txNorm(x.textContent)===n);};
+    const vv=window.visualViewport;
+    const lever=()=>{if(!sheet||!menu.isConnected||!vv)return;const k=Math.max(0,innerHeight-vv.height-vv.offsetTop);
+      menu.style.bottom=Math.round(k/zoomF())+'px';menu.style.maxHeight=Math.round(vv.height*.85/zoomF())+'px';};
+    if(sheet&&vv){vv.addEventListener('resize',lever);const o0=opts.onClose;opts.onClose=()=>{vv.removeEventListener('resize',lever);if(o0)o0();};}
+    let fait=false;
+    const creer=nom=>{nom=sstr(nom,40).replace(/\s+/g,' ').trim();if(!nom){inp.focus();return;}if(fait)return;fait=true;close(false);C.fn(nom);};
+    nw.onclick=()=>{const q=fq();if(q&&!existe(q)){creer(q);return;}nw.hidden=true;mk.hidden=false;inp.focus();setTimeout(lever,250);};
+    mk.querySelector('[data-pickmkgo]').onclick=()=>creer(inp.value);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();creer(inp.value);}});
+    mkBack=()=>{if(mk.hidden||!mk.contains(document.activeElement))return false;mk.hidden=true;nw.hidden=false;nw.focus();return true;};
+    mkSync=()=>{const q=fq();nw.textContent=q&&!existe(q)?'＋ Créer « '+q+' »':lbl0;};}
   {const bk=menu.querySelector('[data-pickback]');if(bk)bk.onclick=()=>{close(false);opts.back.fn();};}   // v5.30.1 : « ‹ Actions », pour jongler entre les sous-feuilles
   const fl=menu.querySelector('.catmenu-filter');
   if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
       menu.querySelectorAll('.mm-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});
       menu.querySelectorAll(':scope>.mm-head').forEach(h=>{let n=h.nextElementSibling,vis=false;   // un intertitre suit son groupe
         while(n&&n.classList.contains('mm-row')){if(n.style.display!=='none'){vis=true;break;}n=n.nextElementSibling;}
-        h.style.display=vis?'':'none';});});
+        h.style.display=vis?'':'none';});
+      if(mkSync)mkSync();});
     /* A597 : `filtreAuToucher` — au doigt, le champ n'est PAS focalisé d'office (le clavier montait sur une feuille
        qu'on venait d'ouvrir pour choisir d'un tap) ; il l'est au pointeur fin et au clavier. */
     if(!opts.keep){if(opts.filtreAuToucher&&matchMedia('(pointer:coarse)').matches){const first=menu.querySelector('.mm-row');if(first)first.focus({preventScroll:true});}else fl.focus();}}
@@ -21155,7 +21269,8 @@ function openCatMenu(host,d,rerender,trigger){
       :'Une seule par aide, avec sa couleur, pour classer l’accueil. Une aide peut être dans plusieurs collections.')}</div></div>`,   // Perso : tout y est déjà personnel — le pivot est le NOMBRE, pas la propriété ; sans jargon ni métaphore (« écrite dans l'aide », « rayon » écartés par l'auteur)
     options:catOpts(catsSorted(d.library)),
     onPick:v=>{d.category=v;rerender();},
-    action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr()}});}
+    // A752 : créée sur place, dans la bibliothèque du brouillon, et aussitôt choisie (plus de détour par le gestionnaire).
+    create:canEditScope(d.library||null)?{label:'Nouvelle catégorie',placeholder:'Nom de la catégorie',fn:nom=>catCreerPour(d.library||null,nom,id=>{d.category=id;rerender();})}:null});}
 // Câblage des champs partagés. o = {fem, rerender, preview} ; d = objet brouillon vivant
 // (state.draft ou state.pdraft — même référence tant que l'éditeur est affiché).
 function bindEditorMetaFields(d,prefix,o){
@@ -21196,7 +21311,7 @@ function bindEditorMetaFields(d,prefix,o){
   {const rb=document.getElementById('relAddBtn');if(rb)rb.onclick=()=>openRelPicker(d,o.rerender,rb);}
   main.querySelectorAll('[data-relrm]').forEach(b=>b.onclick=()=>{d.links=(d.links||[]).filter(x=>x!==b.dataset.relrm);o.rerender();});
   // Catégorie : chip courant ET « Autre… » ouvrent le même menu ancré (SPEC crise §2) ;
-  // « ＋ Nouvelle catégorie » y ouvre le gestionnaire (même fenêtre que l'accueil).
+  // « ＋ Nouvelle catégorie » y devient un champ : créée et choisie sans quitter le menu (A752).
   {const pick=document.getElementById('catPicker');
    if(pick)pick.querySelectorAll('[data-catmenu]').forEach(b=>b.onclick=()=>openCatMenu(pick,d,o.rerender,b));}
   // Collections (A496) : la feuille à cases de l'accueil, sur ce seul brouillon ; `ents` passe le brouillon
@@ -32267,9 +32382,11 @@ function impLibDefaut(){const l=crtScope();return (l&&canEditScope(l))?l:null;} 
 // Bibliothèques OFFERTES : le Perso, plus celles où l'on peut écrire. Un lecteur n'y voit pas
 // celles qu'il ne peut que consulter — proposer une destination interdite serait un bouton mort.
 function impLibOptions(){
-  return [{val:'',name:'Ma bibliothèque perso',dot:false}]
+  /* A753 (planche A3) : chaque bibliothèque dit QUI la verra — c'est ce qui fait choisir ; « (partagée) » seul ne le
+     disait pas. Même liste pour « Déplacer vers une bibliothèque » de la sélection. */
+  return [{val:'',name:'Perso',sub:'à vous seul',ic:uiIcon('user',18)}]
     .concat(sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin')
-      .map(l=>({val:l.id,name:l.name+' (partagée)',dot:false})));}
+      .map(l=>({val:l.id,name:l.name,sub:'partagée · visible par ses membres',ic:uiIcon('book',18)})));}
 const impLibName=lib=>lib?(libName(lib)||'Bibliothèque partagée'):'Perso';
 function impRowsOf(imp,sameSpace){
   const rows=[];
@@ -32355,9 +32472,10 @@ function impRowHtml(r){
     // A132 — sur une entité déjà présente seulement : ailleurs il n'y a rien à comparer, et un
     // bouton qui n'ouvrirait rien serait un bouton mort.
     +(r.dup?`<button type="button" class="imp-cmp" data-impcmp="${esc(r.key)}" aria-expanded="false">Comparer</button>`:'')
-    +`</span>`
+    +`</span></span>`
+    // A753 : la destination SORT de `.imp-tx` (toujours dans le <label>) — au bureau large elle se range en colonnes.
     +`<span class="imp-drow" data-impdrow="${esc(r.key)}">${impDestHtml(r)}</span>`
-    +`</span></label>`
+    +`</label>`
     +(r.dup?`<div class="imp-diff" data-impdiff="${esc(r.key)}" hidden></div>`:'')
     +`</div>`;}
 /* CE QUE LA PASTILLE DIT DE LA CATÉGORIE — ET ELLE DIT LE MOT « CATÉGORIE » (signalé à l'usage :
@@ -32381,7 +32499,7 @@ function impCatLabel(r){
 function impPickHtml(kind,key,txt,col,cls,aria){
   return `<button type="button" class="imp-pick${cls||''}" data-${kind}="${esc(key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(aria)}" title="${esc(aria)}">`
     +(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')
-    +`<span>${esc(txt)}</span></button>`;}
+    +`<span>${esc(txt)}</span>${uiIcon('chev',14,{sw:2.4})}</button>`;}
 /* La pastille de BIBLIOTHÈQUE ne paraît que s'il y a un choix à faire : sans compte, ou sans
    bibliothèque partagée éditable, il n'existe qu'une destination — un bouton qui n'ouvrirait
    qu'une ligne serait un bouton mort (même règle que « Comparer », qui ne paraît que sur un
@@ -32397,7 +32515,7 @@ function impIntoLabel(r){const t=r.into&&protocols.find(x=>x.id===r.into);
 function impDestHtml(r){
   if(r.kind!=='Aide'&&impIntoOptions().length){const I=impIntoLabel(r);
     const into=`<button type="button" class="imp-pick${r.into?' keep':''}" data-impinto="${esc(r.key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Où va ce contenu — toucher pour changer">`
-      +`<span>${esc(I.txt)}</span></button>`+(I.sub?`<span class="imp-into-s">${esc(I.sub)}</span>`:'');
+      +`<span>${esc(I.txt)}</span>${uiIcon('chev',14,{sw:2.4})}</button>`+(I.sub?`<span class="imp-into-s">${esc(I.sub)}</span>`:'');
     if(r.into)return into;
     return into+impDestHtml0(r);}
   return impDestHtml0(r);}
@@ -32433,13 +32551,17 @@ function impSyncDest(){
     ?('Ranger '+(n>1?('les '+n+' cochés'):'l\'élément coché')+' dans')
     :'Cochez au moins un élément pour choisir sa destination';
   const bl=document.getElementById('impDestLib'),bc=document.getElementById('impDestCat');
-  bl.hidden=!impLibChoix();
+  bl.hidden=!impLibChoix();impModal.classList.toggle('imp-nolib',bl.hidden);
   bl.disabled=bc.disabled=!n;
   const lib=impCommun(r=>r.lib);
   /* ⚠ « Plusieurs » TOUT SEUL NE DIT PAS DE QUOI (même défaut que « Garder », signalé à l'usage) :
      les deux pastilles du bandeau sont côte à côte, et deux « Plusieurs » identiques ne se
      distinguent pas. Chacune nomme donc son champ, dans TOUS ses états — y compris l'état vide. */
-  bl.querySelector('span').textContent=n?(lib===undefined?'Plusieurs bibliothèques':impLibName(lib)):'Bibliothèque';
+  /* A753 : une rangée de liste « Bibliothèque › valeur » (colonne : « Bibliothèque · valeur ▾ ») — le champ est nommé
+     par son intitulé, la valeur seule dit « Plusieurs ». */
+  const dsel=(b,k,v,col)=>{b.innerHTML=`<span class="imp-dk">${k}</span><span class="imp-dv">${col?`<span class="cat-dot" style="--catcol:${col}"></span>`:''}<span>${esc(v)}</span></span>${uiIcon('chev',16,{sw:2.4})}`;
+    b.setAttribute('aria-label',k+(n?' des éléments cochés : '+v:'')+' — toucher pour changer');};
+  dsel(bl,'Bibliothèque',n?(lib===undefined?'Plusieurs':impLibName(lib)):'—','');
   /* LE BANDEAU DIT LE CHOIX, LA RANGÉE DIT SON EFFET — et c'est pour cela qu'ils ne portent pas
      le même libellé sur la même valeur. Mesuré à la sonde : en comparant les ÉTIQUETTES RENDUES,
      le bandeau annonçait « Plusieurs » à l'OUVERTURE de l'atelier, alors que rien n'avait encore
@@ -32449,17 +32571,16 @@ function impSyncDest(){
      `IMP_KEEP` et « aucune » ont le même sens dans toutes les bibliothèques. Un ID, lui, n'a de
      sens que dans la sienne (v5.10.9) : il n'est « commun » que si la bibliothèque l'est aussi. */
   const v=impCommun(r=>r.cat),libC=lib;
-  let txt='Catégorie',col='',keep=false;
+  let txt='—',col='';
   if(n){
-    if(v===undefined)txt='Plusieurs catégories';
+    if(v===undefined)txt='Plusieurs';
     // Au bandeau, « du fichier » ne peut pas NOMMER la catégorie gardée : il commande plusieurs
     // rangées, et chacune garde la sienne. C'est la rangée qui la nomme.
-    else if(v===IMP_KEEP){txt='Catégorie du fichier';keep=true;}
+    else if(v===IMP_KEEP)txt='Celle du fichier';
     else if(!v)txt='Sans catégorie';
     else{const cc=libC===undefined?null:categories.find(x=>x.id===v&&catScope(x)===(libC||null));
-      if(cc){txt='Catégorie : '+cc.name;col=safeColor(cc.color);}else txt='Plusieurs catégories';}}
-  bc.className='imp-pick'+(keep?' keep':'');
-  bc.innerHTML=(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')+`<span>${esc(txt)}</span>`;
+      if(cc){txt=cc.name;col=safeColor(cc.color);}else txt='Plusieurs';}}
+  dsel(bc,'Catégorie',txt,col);
   impSyncWarn();}
 /* Publier dans une bibliothèque PARTAGÉE reste ANNONCÉ (la question oui/non qui le faisait a
    disparu avec ce lot). Le bandeau ne compte que ce qui est COCHÉ et ne nomme que les
@@ -32485,10 +32606,13 @@ function impPoseCat(rows,cat){rows.forEach(r=>{r.cat=cat;});impPaintDest(rows.ma
 /* Les deux menus de l'atelier. A638 (demande de l'auteur : « des petites fenêtres même sur ordinateur ») : AU BUREAU, un
    déroulant SOUS la pastille touchée — sa rangée (`.imp-drow`) ou le bandeau, positionnés, en sont l'hôte ; il est
    borné par le bas du corps défilant de la fenêtre (A629), ce qui lève la raison d'A167. Au téléphone, la feuille. */
+/* A753 : la feuille dit sur QUOI elle agit — le titre de la rangée, ou le nombre de cochés (le bandeau). */
+const impMenuCtx=rows=>rows.length===1?(String(rows[0].o.title||'').trim()||'Sans titre'):rows.length+' éléments cochés';
 const impMenuHost=trigger=>window.innerWidth<780||!trigger?{host:document.getElementById('impDest'),sheet:true}:{host:document.getElementById('impDest'),sheet:false,fixed:true};
 function openImpLibMenu(rows,trigger){
   const H=impMenuHost(trigger),host=H.host;
   openPickMenu(host,{aria:'Bibliothèque',sheet:H.sheet,fixed:H.fixed,trigger,options:impLibOptions(),
+    title:H.sheet?'Bibliothèque':'',ctx:H.sheet?impMenuCtx(rows)+' · changer de bibliothèque remet la catégorie sur celle du fichier':'',
     value:(impCommun2(rows,r=>r.lib)||''),
     onPick:v=>impPoseLib(rows,v||null)});}
 function openImpCatMenu(rows,trigger){
@@ -32498,28 +32622,51 @@ function openImpCatMenu(rows,trigger){
   // qui ont un sens partout (garder / aucune) plutôt qu'une liste qui mentirait sur la moitié.
   const lib=impCommun2(rows,r=>r.lib);
   const cats=lib===undefined?[]:catsSorted(lib);
+  // A753 (planche A2) : la rangée « garder » NOMME ce qu'elle garde quand elle vise une seule rangée.
+  const src=rows.length===1?(rows[0].srcCat||'aucune'):'';
   openPickMenu(host,{aria:'Catégorie',sheet:H.sheet,fixed:H.fixed,trigger,
-    options:[{val:IMP_KEEP,name:'Garder la catégorie du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'}]
+    title:H.sheet?'Catégorie':'',ctx:H.sheet?impMenuCtx(rows)+(lib===undefined?'':' · '+impLibName(lib)):'',
+    options:[{val:IMP_KEEP,name:'Garder la catégorie du fichier',sub:src?src+' — retrouvée par son nom, ou créée':'',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'}]
       .concat(catOpts(cats)),
     value:(rows.length===1?rows[0].cat:impCommun2(rows,r=>r.cat)),
     onPick:v=>impPoseCat(rows,v===IMP_KEEP?IMP_KEEP:(v||'')),
-    // « ＋ Nouvelle catégorie » n'a de sens que si l'on sait DANS QUOI la créer.
-    action:lib===undefined?null:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});}
-function paintImpList(){document.getElementById('impList').innerHTML=_impRows.map(impRowHtml).join('');impSyncSel();}
+    // « ＋ Nouvelle catégorie » n'a de sens que si l'on sait DANS QUOI la créer — A752 : créée sur place, posée aussitôt.
+    create:(lib===undefined||!canEditScope(lib||null))?null:{label:'Nouvelle catégorie',placeholder:'Nom de la catégorie',
+      fn:nom=>catCreerPour(lib||null,nom,id=>impPoseCat(rows,id))}});}
+/* A753 : la liste en GROUPES par nature (A506) — « Aides · n sur N » et son « Tout cocher/décocher » ; le compte et le
+   libellé sont peints par `impSyncSel`, au fil des cases. */
+const IMP_GRP={f:['Aide','Aides'],p:['Protocole','Protocoles']};
+const impGrpRows=g=>_impRows.filter(r=>r.key.charAt(0)===g);
+function paintImpList(){
+  document.getElementById('impList').innerHTML=Object.keys(IMP_GRP).map(g=>{const R=impGrpRows(g);if(!R.length)return '';
+    return `<section class="imp-g" aria-labelledby="impgh-${g}"><div class="imp-gh"><span id="impgh-${g}" data-impgn="${g}"></span>`
+      +`<button type="button" class="linkbtn" data-impgrp="${g}"></button></div><div class="imp-grp">${R.map(impRowHtml).join('')}</div></section>`;}).join('');
+  impSyncSel();impCols();}
+/* B : les colonnes se décident sur la LARGEUR MESURÉE de la fenêtre (px CSS, donc juste sous zoom — règle 10), jamais sur
+   une media query. */
+function impCols(){const c=impModal.querySelector('.ai-card');if(!impModal.classList.contains('on')||!c)return;
+  impModal.classList.toggle('imp-cols',c.clientWidth>=880);}
+addEventListener('resize',impCols);
 /* Le pied ANNONCE ce qu'on obtient avant de fermer (patron de la feuille de filtres, A26). Le
    bouton est FERMÉ à zéro sélection — apparence de « fermé » du dossier (`:disabled`), et le
    compte juste au-dessus dit pourquoi : un bouton qui n'importerait rien serait un bouton mort. */
 function impSyncSel(){
   const n=_impSel.size,tot=_impRows.length;
   document.getElementById('impN').textContent=n+' / '+tot+' coché'+(n>1?'s':'');
+  {const a=document.getElementById('impAll');a.checked=!!tot&&n===tot;a.indeterminate=n>0&&n<tot;}
+  Object.keys(IMP_GRP).forEach(g=>{const R=impGrpRows(g),k=R.filter(r=>_impSel.has(r.key)).length;
+    const h=document.querySelector(`#impList [data-impgn="${g}"]`),b=document.querySelector(`#impList [data-impgrp="${g}"]`);
+    if(h)h.textContent=IMP_GRP[g][R.length>1?1:0]+' · '+k+' sur '+R.length;
+    if(b)b.textContent=k===R.length?'Tout décocher':'Tout cocher';});
   const go=document.getElementById('impGo');
   go.textContent=n?('Importer '+(n>1?('les '+n+' éléments'):'cet élément')):'Importer';
   go.disabled=!n;
   impSyncDest();}   // le bandeau commande les COCHÉES : il change avec la sélection
-function impSetAll(on){_impSel.clear();if(on)_impRows.forEach(r=>_impSel.add(r.key));
+// `g` (A753) : un seul groupe (« Aides », « Protocoles ») ; sans `g`, toutes les rangées (case maîtresse).
+function impSetAll(on,g){_impRows.forEach(r=>{if(g&&r.key.charAt(0)!==g)return;if(on)_impSel.add(r.key);else _impSel.delete(r.key);});
   // On ÉCRIT sur les cases en place, jamais un re-rendu : reconstruire la liste sous le doigt
   // lui ferait perdre le focus et remonterait le défilement (leçon v4.78.0).
-  document.querySelectorAll('#impList [data-impsel]').forEach(cb=>{cb.checked=on;});impSyncSel();}
+  document.querySelectorAll('#impList [data-impsel]').forEach(cb=>{cb.checked=_impSel.has(cb.dataset.impsel);});impSyncSel();}
 function importWorkshop(imp,zip,sameSpace,lbl){
   if(_impRes){const r=_impRes;_impRes=null;r(null);}   // un seul atelier à la fois (patron confirmDlg)
   _impRows=impRowsOf(imp,sameSpace);
@@ -32529,11 +32676,11 @@ function importWorkshop(imp,zip,sameSpace,lbl){
   // `lbl` (A225) : dans une FILE d'imports, l'atelier nomme son fichier — sans cela, trois
   // ateliers d'affilée seraient indiscernables.
   document.getElementById('impIntro').textContent=
+    /* A753 : UNE phrase (quatre lignes au téléphone repoussaient la liste) — l'état se lit sur chaque rangée. */
     (lbl?lbl+' contient ':'Ce fichier contient ')+_impRows.length+' élément'+(_impRows.length>1?'s':'')
-    +(zip?' et ses documents PDF':'')+'. Décochez ce que vous ne voulez pas, réglez où chacun va : rien n\'est écrit avant votre validation. '
-    +'L\'état (Validée / À relire / Brouillon) est celui du fichier.';
-  paintImpList();
+    +(zip?' et ses documents PDF':'')+'. Rien n\'est écrit avant « Importer ».';
   impModal.classList.add('on');
+  paintImpList();
   return new Promise(res=>{_impRes=res;});}
 function _impEnd(v){impModal.classList.remove('on');const r=_impRes;_impRes=null;_impRows=[];if(r)r(v);}
 /* CE QUE L'ATELIER REND (A159) : la sélection ET la destination de chaque rangée retenue, clés
@@ -32546,17 +32693,29 @@ document.getElementById('impGo').onclick=()=>{if(!_impSel||!_impSel.size)return;
   _impRows.forEach(r=>{if(_impSel.has(r.key))dest[r.key]={lib:r.lib||null,cat:r.cat,into:r.into||null};});
   _impEnd({sel:new Set(_impSel),dest});};
 document.getElementById('impCancel').onclick=()=>_impEnd(null);
-document.getElementById('impAll').onclick=()=>impSetAll(true);
-document.getElementById('impNone').onclick=()=>impSetAll(false);
+document.getElementById('impAll').onchange=e=>impSetAll(e.target.checked);
 /* Les deux pastilles d'une RANGÉE : délégué, comme « Comparer » — la liste est reconstruite à
    chaque atelier, et un écouteur par rangée serait dix-huit écouteurs à reposer. */
 document.getElementById('impList').addEventListener('click',e=>{
+  {const gb=e.target&&e.target.closest?e.target.closest('[data-impgrp]'):null;   // A753 : « Tout cocher/décocher » d'un groupe
+   if(gb){const g=gb.dataset.impgrp;impSetAll(!impGrpRows(g).every(r=>_impSel.has(r.key)),g);return;}}
   const ib=e.target&&e.target.closest?e.target.closest('[data-impinto]'):null;
   if(ib){e.preventDefault();const r=_impRows.find(x=>x.key===ib.dataset.impinto);if(!r)return;
-    {const H=impMenuHost(ib);openPickMenu(H.host,{aria:'Où va ce contenu',title:H.sheet?'Où va ce contenu':'',sheet:H.sheet,fixed:H.fixed,trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
-      options:[{val:'',name:'Nouveau protocole',sub:'créé à l’import, avec le titre de la page',ic:uiIcon('plus',16)}]
-        .concat(impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli',ic:uiIcon('book',16)}))),
-      onPick:v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();}});}return;}
+    /* A753 (planche A4) : le CHOIX d'abord — « Nouveau protocole » ou « Verser dans un protocole » —, la recherche ensuite,
+       et seulement pour verser (elle mêlait « Nouveau protocole » aux protocoles existants, première rangée d'une longue
+       liste). « Nouveau » se prend d'un tap ; « Verser » ouvre la recherche. Jamais d'écrasement (A611). */
+    const poser=v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();};
+    const carte=(m,on,t,st)=>`<button type="button" class="imp-into-c" data-intomode="${m}" aria-pressed="${on?'true':'false'}">${uiIcon(m==='new'?'plus':'book',18)}<b>${t}</b><span>${st}</span></button>`;
+    {const H=impMenuHost(ib);openPickMenu(H.host,{aria:'Où va ce contenu',title:'Où va ce contenu ?',ctx:String(r.o.title||'').trim()||'Sans titre',sheet:H.sheet,fixed:H.fixed,trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
+      head:`<div class="imp-into2" role="group" aria-label="Où va ce contenu">${carte('new',!r.into,'Nouveau protocole','avec le titre de la page')}${carte('into',!!r.into,'Verser dans un protocole','déjà créé, sans rien remplacer')}</div>`,
+      options:impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:(String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli')+' · '+impLibName(x.library||null),ic:uiIcon('book',16)})),
+      onPick:poser,
+      onOpen:menu=>{menu.classList.add('imp-intomenu');menu.classList.toggle('is-new',!r.into);
+        if(!r.into){const c=menu.querySelector('[data-intomode="new"]');if(c)c.focus();}
+        menu.querySelectorAll('[data-intomode]').forEach(b=>b.onclick=()=>{
+          if(b.dataset.intomode==='new'){if(_pickClose)_pickClose(true);poser('');return;}
+          menu.classList.remove('is-new');menu.querySelectorAll('[data-intomode]').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+          const f=menu.querySelector('.catmenu-filter');if(f)f.focus();});}});}return;}
   const rb=e.target&&e.target.closest?e.target.closest('[data-impren]'):null;
   if(rb){e.preventDefault();const r=_impRows.find(x=>x.key===rb.dataset.impren),it=rb.closest('.imp-item'),bt=rb;if(!r||!it)return;
     /* A622 §3 : un TEXTAREA qui grandit avec le titre (un champ d'une ligne cachait la fin d'un long titre) ; Entrée
@@ -32592,6 +32751,7 @@ document.getElementById('impList').addEventListener('change',e=>{
   if(cb.checked)_impSel.add(cb.dataset.impsel);else _impSel.delete(cb.dataset.impsel);
   impSyncSel();});
 bindModalDismiss(impModal,()=>_impEnd(null));
+bindSheetDrag(impModal,true);   // A753 : la feuille du téléphone se tire par sa tête
 /* A225 — L'IMPORT EST APPELABLE EN FILE : la fonction rend une promesse tenue quand TOUT le
    parcours est terminé (atelier, questions, écritures — ou abandon), ce qui permet d'enchaîner
    plusieurs fichiers déposés d'un geste SANS jamais superposer deux ateliers. `pos` ({i,n},

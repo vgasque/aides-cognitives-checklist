@@ -27,6 +27,8 @@ session sur tablette en portrait.
    défiler. Les portes ne changent pas : accueil, feuille « Gérer », atelier d'import ET les deux
    éditeurs (« ＋ Nouvelle catégorie » du menu Catégorie) ouvrent la même fenêtre `#catModal`
    — vérifié au témoin sur l'éditeur de fiche et celui de protocole.
+   *(Amendé par A752, v5.129 : depuis les éditeurs et l'atelier, une catégorie se CRÉE dans le menu même ; le
+   gestionnaire reste la porte pour renommer, recolorer, supprimer.)*
 2. **Plus de couleurs, sans toucher au modèle** : `safeColor` accepte déjà tout hex et la synchro
    le transporte tel quel. Le curseur « Autre teinte » parcourt l'anneau OKLCH **L 0,48 · C 0,08**
    — la chroma MAXIMALE qui reste dans le gamut sRGB sur tout le tour (0,081, limitée vers 195°) ;
