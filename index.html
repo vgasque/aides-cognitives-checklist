@@ -329,7 +329,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-HxS/Mw8Qixfa4wqzxzvRSOQoup/TNk2mvMTucd+J4Zc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Zreb4koJSOOsXJo+Z4+caRLwIaJLHV+RBZl8z7CA3Pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10685,7 +10685,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.127.2';
+const APP_VERSION='5.128.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -19649,7 +19649,7 @@ function renderProtocolRead(){
     'sep',
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',p)},
     {label:'Copier le lien direct',ic:uiIcon('link',16),sub:'raccourci, ou collègue de la même bibliothèque',act:()=>copyDirectLink(p)},
-    {label:'Exporter le protocole (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
+    {label:'Exporter le protocole',ic:uiIcon('download',16),sub:'avec ou sans les fichiers joints',act:()=>exportData([],'protocole-'+fileSlug(p.title),categories.filter(c=>c.id===p.category),[p])},
     {label:'Exporter le protocole en PDF',ic:uiIcon('print',16),act:exportPdfCurrent},
   ]);
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRel(b.dataset.openrel);});
@@ -20832,7 +20832,7 @@ function renderProtocolEdit(){
   // Menu ⋯ d'éditeur (SPEC §4, sans « Modifier ») : agit sur le BROUILLON tel qu'affiché.
   setMoreMenu([
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('p',state.pdraft)},
-    {label:'Exporter le protocole (.json)',ic:uiIcon('download',16),act:()=>exportData([],'protocole-'+fileSlug(state.pdraft.title),categories.filter(c=>c.id===state.pdraft.category),[migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)))])},
+    {label:'Exporter le protocole',ic:uiIcon('download',16),sub:'avec ou sans les fichiers joints',act:()=>exportData([],'protocole-'+fileSlug(state.pdraft.title),categories.filter(c=>c.id===state.pdraft.category),[migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)))])},
   ]);
 }
 /* ----- « Voir aussi » (liens croisés, v4.2.0) : une AIDE ou un PROTOCOLE peut être lié aux
@@ -24565,8 +24565,8 @@ function bindReadEvents(f,blk,cur){
        porte précisément sur ce qui compte : l'aide, ou ce qui s'est passé ? Une action dit
        exactement ce qu'elle fait (AC 120-71B). Le sous-titre nomme l'autre chemin plutôt que de
        laisser l'utilisateur le chercher. */
-    {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),
-      sub:'le contenu, pas la session',act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
+    {label:'Exporter l’aide',ic:uiIcon('download',16),
+      sub:'le contenu, pas la session — avec ou sans les fichiers joints',act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
     {label:'Exporter l’aide en PDF',ic:uiIcon('print',16),
       sub:started?'la session : par « Compte-rendu »':'le contenu de l’aide',act:exportPdfCurrent}];
   if(_moreBuild)_moreBuild();
@@ -29717,7 +29717,7 @@ function bindEditorEvents(f){
   setMoreMenu([
     ...(fiches.some(x=>x.id===f.id)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),act:()=>openVersions(f.id)},'sep']:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',state.draft)},
-    {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
+    {label:'Exporter l’aide',ic:uiIcon('download',16),sub:'avec ou sans les fichiers joints',act:()=>exportData([migrate(JSON.parse(JSON.stringify(state.draft)))],'fiche-'+fileSlug(state.draft.title))},
   ]);
   /* PENDANT UN DÉPLACEMENT, LE RESTE DU FORMULAIRE EST INERTE (v4.77.0, signalé à l'usage : « il
      est possible de modifier le texte d'autres blocs/étapes et de supprimer d'autres blocs/étapes
@@ -31842,25 +31842,51 @@ async function exportData(list,baseName,cats,protos){
   // Documents référencés (dédoublonnés : un document partagé entre fiches n'est embarqué qu'une fois).
   const attIds=[];{const seen=new Set();
     list.concat(protos||[]).forEach(f=>(f.docs||[]).forEach(a=>{if(a&&a.id&&!seen.has(a.id)){seen.add(a.id);attIds.push(a.id);}}));}
-  let withDocs=false;
-  if(attIds.length&&supportsAttachments()){
-    const c=await confirmDlg((attIds.length>1?'Ce contenu référence '+attIds.length+' documents PDF joints.':'Ce contenu référence un document PDF joint.')+' Les inclure dans le fichier exporté ?',
-      {title:'Exporter',yes:'Avec les documents (.zip)',no:'Sans les documents (.json)'});
+  /* A751 — AVEC OU SANS LES FICHIERS JOINTS, toujours demandé. La question n'était posée que s'il y avait des PDF ;
+     un protocole illustré mais sans PDF partait en .json sans un mot, ses images invisibles DANS le fichier (données
+     en ligne) — signalé : « n'exporte que le json ». On la pose dès qu'il y a une image ou un document, on dit
+     combien, et « Sans » allège vraiment : images, documents et leurs liens retirés (`exportLeger`).
+     LE .ZIP EST PRÊT AVANT LA QUESTION : les PDF étaient lus APRÈS le tap (lectures IndexedDB), le geste était
+     consommé quand le fichier partait — sur iPhone, en application installée, la feuille de partage l'exige, et
+     l'envoi retombait sur un lien qui ne s'ouvre pas. Le tap envoie désormais le fichier sans plus rien attendre. */
+  const tout=list.concat(protos||[]);
+  const nImg=tout.reduce((n,x)=>{const d=new Set(((x&&x.images)||[]).filter(i=>i&&i.data).map(i=>i.data));
+    ((x&&x.blocks)||[]).forEach(b=>{if(b&&b.image)d.add(b.image);});return n+d.size;},0);
+  const nDoc=attIds.length,stamp=new Date().toISOString().slice(0,10);
+  const json=JSON.stringify(out,null,2);
+  let zipBlob=null,missing=0;
+  if(nDoc&&supportsAttachments()){
+    const entries=[{name:'donnees.json',data:new TextEncoder().encode(json)}];
+    for(const id of attIds){
+      let buf=null;try{buf=await attBuf(await IDB.getAtt(id));}catch(err){}
+      if(buf)entries.push({name:'documents/'+id+'.pdf',data:new Uint8Array(buf)});else missing++;}
+    zipBlob=new Blob([zipBuild(entries)],{type:'application/zip'});}
+  let avec=true;
+  if(nImg||nDoc){
+    const quoi=[nImg&&(nImg+' image'+(nImg>1?'s':'')),nDoc&&(nDoc+' document'+(nDoc>1?'s':'')+' PDF')].filter(Boolean).join(' et ');
+    const c=await confirmDlg('Ce contenu a '+quoi+'. Les inclure dans le fichier exporté ?'
+      +(zipBlob?' Avec les documents, le fichier est une archive .zip, à réimporter telle quelle.':'')
+      +' Sans, le fichier ne garde que le texte.',
+      {title:'Exporter',yes:'Avec les fichiers joints'+(zipBlob?' (.zip)':''),no:'Sans les fichiers joints'});
     if(c===null)return;   // ✕/Échap = export abandonné
-    withDocs=(c===true);}
-  const json=JSON.stringify(out,null,2),stamp=new Date().toISOString().slice(0,10);
-  if(!withDocs){
-    dlBlob(new Blob([json],{type:'application/json'}),baseName+'-'+stamp+'.json');
-    // Seules les métadonnées voyagent : on le dit (les PDF suivent le compte via la synchro).
-    if(attIds.length)toast('Les documents PDF joints ne sont pas inclus dans le fichier exporté ; ils suivent votre compte via la synchronisation.',9000);
+    avec=(c===true);}
+  if(!avec){dlBlob(new Blob([JSON.stringify(exportLeger(out),null,2)],{type:'application/json'}),baseName+'-'+stamp+'.json');return;}
+  if(!zipBlob){dlBlob(new Blob([json],{type:'application/json'}),baseName+'-'+stamp+'.json');
+    // Navigateur sans stockage de documents : seules leurs références voyagent, on le dit.
+    if(nDoc)toast('Les documents PDF ne peuvent pas être inclus depuis ce navigateur ; ils suivent votre compte via la synchronisation.',9000);
     return;}
-  const entries=[{name:'donnees.json',data:new TextEncoder().encode(json)}];
-  let missing=0;
-  for(const id of attIds){
-    let buf=null;try{buf=await attBuf(await IDB.getAtt(id));}catch(err){}
-    if(buf)entries.push({name:'documents/'+id+'.pdf',data:new Uint8Array(buf)});else missing++;}
-  dlBlob(new Blob([zipBuild(entries)],{type:'application/zip'}),baseName+'-'+stamp+'.zip');
+  dlBlob(zipBlob,baseName+'-'+stamp+'.zip');
   if(missing)toast('⚠ '+missing+' document(s) pas encore téléchargé(s) sur cet appareil : référence(s) exportée(s) sans le fichier. Synchronisez avec du réseau puis ré-exportez pour les inclure.',9000);}
+/* A751 — L'export « sans les fichiers joints », PUR (testé) : retire images (galerie, image d'un bloc), documents et,
+   dans le texte rédigé, les lignes d'image `![…](img:ID)` et les liens `[texte](att:ID)` (le texte reste). Rien ne
+   pend à l'import : ni image introuvable, ni rangée « △ à télécharger » d'un document qui n'arrivera jamais. */
+function exportLeger(out){const o={...out};
+  const nu=x=>{const c={...x};c.images=[];c.docs=[];
+    if(Array.isArray(c.blocks))c.blocks=c.blocks.map(b=>b&&b.image?{...b,image:null,imageW:null,imageH:null}:b);
+    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/.test(l)).join('\n')
+      .replace(/\[([^\]\n]{1,200})\]\(att:[A-Za-z0-9_-]{1,64}(?:#p\d{1,4})?\)/g,'$1');
+    return c;};
+  o.fiches=(out.fiches||[]).map(nu);if(out.protocols)o.protocols=out.protocols.map(nu);return o;}
 // Nom de fichier s\u00fbr pour un export : m\u00eames r\u00e8gles que catSlug (accents retir\u00e9s, jeu [a-z0-9-]).
 const fileSlug=s=>catSlug(s).slice(0,40)||'fiche';
 // « Exporter mes données » vit dans la fenêtre Compte (V5) — cf. accountPrefsHtml/bindAccountPrefs.
@@ -39183,7 +39209,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

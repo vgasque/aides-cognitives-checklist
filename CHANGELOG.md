@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.128.0] — 2026-11-15
+Exporter une aide ou un protocole : avec ou sans les fichiers joints, toujours demandé (A751).
+- **Avant**, la question n'était posée que si le contenu avait des documents PDF. Un protocole illustré mais sans PDF
+  partait en .json sans un mot : ses images y étaient bien, mais rangées dans le fichier, invisibles — on pouvait
+  croire qu'elles manquaient. Et l'option « sans » n'enlevait que les PDF.
+- **Maintenant**, dès qu'il y a une image ou un document, l'export demande « Avec les fichiers joints » ou « Sans les
+  fichiers joints », en disant combien il y en a. **Avec** : images comprises, et les PDF dans une archive .zip à
+  réimporter telle quelle. **Sans** : un .json allégé qui ne garde que le texte (images, documents et liens vers les
+  documents retirés). Même choix depuis la lecture, l'éditeur et la sélection de l'accueil.
+- **iPhone, application installée** : l'archive .zip est préparée avant la question, si bien que le tap l'envoie
+  aussitôt à la feuille de partage — elle pouvait auparavant ne pas s'ouvrir et l'archive ne jamais arriver.
+- Les menus disent « Exporter l’aide » / « Exporter le protocole », sans « (.json) », qui n'était plus juste.
+
 ## [5.127.2] — 2026-11-14
 Sur un grand écran, « Dans les documents » est aligné sur les résultats (A750).
 - Sous les résultats d'une recherche, les documents trouvés partaient vers la gauche sur un écran large, alors que
@@ -202,18 +215,3 @@ Deux défauts de lecture des protocoles, signalés sur capture (A726-A727).
   déformée ; un toucher l'agrandit toujours. Dans l'éditeur, « Pleine » reste toute la colonne. Au téléphone, seules les
   images très hautes changent. L'image d'un élément de liste garde sa petite taille.
 - À savoir : une case à cocher écrite dans un encadré s'y lit (« [ ] ») mais ne s'y coche pas.
-
-## [5.121.0] — 2026-11-11
-Aux Bibliothèques, ce qu'on crée ou importe arrive là où l'on se trouve (A725).
-- **Créer depuis une catégorie : la catégorie est déjà choisie.** Dans une bibliothèque, l'aide ou le protocole créé y
-  naissait déjà ; ouvert dans une de ses catégories, il naît maintenant aussi dans cette catégorie.
-- **Importer depuis une bibliothèque ou une catégorie : la destination est déjà posée.** Un fichier d'export, une page
-  Notion (`.md`) ou une archive (`.zip`) importés depuis les Bibliothèques proposent d'emblée la bibliothèque ouverte, et
-  la catégorie ouverte s'il y en a une. Jusqu'ici l'import proposait la bibliothèque filtrée à l'Accueil, et jamais de
-  catégorie. Chaque ligne de l'import reste modifiable avant de valider.
-- **Si le fichier déclarait une autre catégorie, l'import le dit.** Sous la catégorie proposée, une ligne l'écrit :
-  « Le fichier la rangeait dans « Cardio ». » Rien n'est rangé ailleurs sans que ce soit écrit.
-- **Dans « Tout », les filtres comptent.** Avec le filtre Bibliothèque posé (sur une bibliothèque où vous pouvez
-  écrire), ce qu'on crée ou importe y arrive ; avec le filtre Catégorie, dans la catégorie de ce nom si la bibliothèque
-  d'arrivée en a une.
-- À l'Accueil, rien ne change : un import garde la catégorie que le fichier déclare.
