@@ -9140,9 +9140,18 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  const n=await page.evaluate(()=>{const a=document.activeElement;return a&&a.classList.contains('mdg-in')?a.dataset.r+','+a.dataset.c:'?';});
  const lb=await page.evaluate(()=>[...document.querySelectorAll('#mdToolModal .mdg-tbm')].map(x=>x.textContent).join('|'));
  t('A772-A776 · Téléphone · › passe à la case suivante, la barre nomme la case',n==='1,2'&&lb==='Ligne 1 ▾|Voie ▾',n+' '+lb);
+ // A778 : clavier fermé, › déplace la case ACTIVE sans donner le focus (sur iPhone, le focus ouvre le clavier).
+ await page.evaluate(()=>{const a=document.activeElement;if(a&&a.blur)a.blur();});await page.tap('#mdToolModal [data-mdtw="next"]');await calme(page,150);
+ const sf=await page.evaluate(()=>{const a=document.activeElement,c=document.querySelector('#mdToolModal .mdg-c.act'),g=document.querySelector('#mdToolModal .mdg-scroll');
+   return {champ:!!(a&&a.classList&&a.classList.contains('mdg-in')),act:c?c.dataset.r+','+c.dataset.c:'',grilleDefile:g.scrollHeight>g.clientHeight+1};});
+ t('A778 · › sans clavier : la case active avance, aucun champ ne prend le focus ; la grille n’est pas un second ascenseur',!sf.champ&&sf.act==='2,0'&&!sf.grilleDefile,JSON.stringify(sf));
+ await page.tap('#mdToolModal [data-mdtw="plus"]');await calme(page,300);
+ const pl=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
+ t('A778 · « ⋯ » de la barre : en-têtes, média de la case, ajouter en fin, Markdown',pl==='hh,hc,img,vid,rend,cend,md',pl);
+ await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.tap('#mdToolModal .mdg-tbm[data-mdgrow]');await calme(page,300);
  const sh=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?m.classList.contains('sheet')+':'+[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
- t('A772-A776 · Téléphone · le menu de ligne en feuille du bas, avec « Descendre d’un cran »',sh==='true:ru,rd,mdn,rx',sh);
+ t('A772-A776 · Téléphone · le menu de ligne en feuille du bas — la dernière ligne (case active amenée par ›) offre « Monter d’un cran »',sh==='true:ru,rd,mu,rx',sh);
  await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.evaluate(async()=>{document.querySelector('#mdToolModal .ai-top [data-mdtw="x"]').click();await __acCalme(300);});
  await page.evaluate(async()=>{document.querySelector('#mdDoc ol').closest('.mdb').click();await __acCalme(300);});

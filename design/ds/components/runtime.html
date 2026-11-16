@@ -9050,7 +9050,7 @@
   .mdg-ph,.mdg-mdl.mdg-ph{display:none}
   .mdg-mdl{display:inline-flex;align-items:center;min-height:36px;margin-right:auto;padding:0 4px;border:0;background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
   .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .mdg-scroll{overflow-x:auto;padding:2px}
+  .mdg-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
   .mdg{display:grid;grid-template-columns:28px repeat(var(--mdg-n),minmax(112px,1fr)) 38px}
   .mdg-tab{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
   .mdg-tab>span{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-1);letter-spacing:1px}
@@ -9101,7 +9101,12 @@
     .mdg-c.mdg-l:focus-within{z-index:3}
     .mdg-add{flex-direction:column}
     .mdg-add .mdg-addb{flex:none}
-    .mdg{grid-template-columns:repeat(var(--mdg-n),minmax(132px,1fr))}
+    /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
+       texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
+    .mdg{grid-template-columns:112px repeat(var(--mdg-n1),minmax(132px,1fr))}
+    .mdg.mdg-1{grid-template-columns:minmax(132px,1fr)}
+    .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
+    .mdg-c.mdg-l .mdg-in{padding-left:8px;padding-right:6px;-webkit-hyphens:auto;hyphens:auto}
     .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
     .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
     .mdg-thumb .mdg-tbn{font-size:var(--t-step)}

@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.139.1] — 2026-11-16
+Correctif : la grille des tableaux est fluide au téléphone, sa 1ʳᵉ colonne prend moins de place, et tout reste à portée clavier ouvert (A777-A779). Aucune mise
+à jour du serveur.
+- **La grille ne fige plus l'écran** : chaque ouverture et chaque geste (insérer, déplacer une ligne, en-tête, média,
+  ↶) recalculaient la mise en page case par case — près de 100 fois pour un tableau de 6 × 15. C'est fait en une fois :
+  l'ouverture est environ trois fois plus rapide.
+- **La 1ʳᵉ colonne, toujours collée, est plus étroite au téléphone** (112 px au lieu de 132) ; ses mots se coupent aux
+  syllabes (« Médica-ment ») au lieu de se casser en plein mot, et un filet marque son bord pendant le défilement.
+- Faire défiler la grille de côté n'entraîne plus la fenêtre.
+- **Clavier ouvert, tout reste à portée** (A778) : sur un long tableau, la grille ne défile plus à l'intérieur de la
+  fenêtre (on ne pouvait plus atteindre ce qui est dessous) ; la tête « Annuler · Tableau · ↶ · OK » reste en haut ; un
+  bouton « ⋯ » dans la barre du bas réunit les en-têtes, l'image ou la vidéo de la case, « une ligne / une colonne en
+  fin » et « Modifier le Markdown ».
+- **‹ › n'ouvrent plus le clavier** : clavier fermé, elles déplacent la case active (cadre bleu) ; touchez la case pour
+  l'écrire. Clavier ouvert, elles passent à la case suivante, comme avant.
+- **D'après une capture d'iPhone** (A779) : plus de bouts de cases visibles à gauche de la colonne collée ; une colonne
+  de texte long s'élargit et ses mots se coupent avec un tiret au lieu de se casser au milieu ; le libellé de la barre
+  du bas se termine par « … » au lieu d'être rogné.
+
 ## [5.139.0] — 2026-11-16
 L'éditeur de protocole fait ce que l'import Notion faisait déjà : des images et des vidéos dans une liste et dans un
 tableau, une grille de tableau redessinée, la taille d'une vidéo, un glisser-déposer qui montre où le fichier ira
@@ -275,16 +294,3 @@ Une catégorie se crée dans le sélecteur, et elle est aussitôt choisie (A752)
   dit. Sur une bibliothèque en lecture seule, la rangée n'est plus proposée.
 - Au téléphone, la feuille se lève au-dessus du clavier pendant la saisie.
 - La couleur, le renommage et la suppression restent dans « Gérer les catégories ».
-
-## [5.128.0] — 2026-11-15
-Exporter une aide ou un protocole : avec ou sans les fichiers joints, toujours demandé (A751).
-- **Avant**, la question n'était posée que si le contenu avait des documents PDF. Un protocole illustré mais sans PDF
-  partait en .json sans un mot : ses images y étaient bien, mais rangées dans le fichier, invisibles — on pouvait
-  croire qu'elles manquaient. Et l'option « sans » n'enlevait que les PDF.
-- **Maintenant**, dès qu'il y a une image ou un document, l'export demande « Avec les fichiers joints » ou « Sans les
-  fichiers joints », en disant combien il y en a. **Avec** : images comprises, et les PDF dans une archive .zip à
-  réimporter telle quelle. **Sans** : un .json allégé qui ne garde que le texte (images, documents et liens vers les
-  documents retirés). Même choix depuis la lecture, l'éditeur et la sélection de l'accueil.
-- **iPhone, application installée** : l'archive .zip est préparée avant la question, si bien que le tap l'envoie
-  aussitôt à la feuille de partage — elle pouvait auparavant ne pas s'ouvrir et l'archive ne jamais arriver.
-- Les menus disent « Exporter l’aide » / « Exporter le protocole », sans « (.json) », qui n'était plus juste.
