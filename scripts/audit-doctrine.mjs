@@ -4155,13 +4155,18 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
         const m=document.getElementById(id);
         if(!m||!m.classList.contains('on')){out.fen[id]={err:'pas ouverte'};continue;}
         const c=m.querySelector('.ai-card'),t=c.querySelector('.ai-top'),b=c.querySelector('.ai-body');
+        /* ON MESURE LA FENÊTRE POSÉE, PAS SON ENTRÉE : sous la charge d'une passe complète, `__acCalme` rendait la main
+           pendant l'animation d'ouverture (carte à l'échelle .993 : « 715 px » au lieu de 720, rouge sans défaut). On
+           attend la fin des animations de la carte (filet de 1,5 s), et la LARGEUR est celle de la mise en page
+           (`offsetWidth`, insensible aux transformations) — c'est elle que le gabarit fixe. */
+        await Promise.race([Promise.all([m,...m.querySelectorAll('*')].flatMap(e=>e.getAnimations()).map(a=>a.finished.catch(()=>{}))),w(1500)]);   // horloge : filet si une animation ne finit pas
         const rc=c.getBoundingClientRect();
         /* Le corps DÉFILE-T-IL VRAIMENT ? On le pousse au bout : s'il bouge, c'est lui le
            défileur ; s'il ne bouge pas, c'est soit qu'il tient (légitime) soit que la carte
            n'a pas de squelette (ce que le contrôle suivant attrape). */
         let deb=0;if(b){b.scrollTop=99999;deb=Math.round(b.scrollTop);b.scrollTop=0;}
         const rt=t.getBoundingClientRect();
-        out.fen[id]={w:Math.round(rc.width),h:Math.round(rc.height),corps:!!b,defile:deb>0,page:m.classList.contains('page'),
+        out.fen[id]={w:c.offsetWidth,h:Math.round(rc.height),corps:!!b,defile:deb>0,page:m.classList.contains('page'),
           /* Le titre reste dans la carte ET à l'écran, quoi qu'il arrive au corps. */
           titreDansCarte:rt.top>=rc.top-1, titreVisible:rt.top>=-1&&rt.bottom<=innerHeight+1,
           police:(()=>{const cs=getComputedStyle(t.querySelector('h3'));
@@ -5085,16 +5090,20 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     const adr=()=>Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
     const hW=li=>{const e=li.querySelector('.wt');return e?Math.round(e.getBoundingClientRect().height):-1;};
     const o={},an=el=>el?el.getAnimations({subtree:true}).map(a=>a.animationName).join(','):'';
+    /* Les animations se CAPTENT À LEUR DÉPART (« animationstart »), pas lues après une pause : sous la charge d'une passe
+       complète, la pause durait plus que l'animation de l'anneau (wtArm), déjà finie quand on la cherchait. */
+    const capte=async(geste,ms)=>{const v=[],h=e=>v.push(e.animationName);document.addEventListener('animationstart',h,true);
+      try{await geste();await __acCalme(ms);}finally{document.removeEventListener('animationstart',h,true);}return v.join(',');};
     let li=row(/Choc imm/);o.hChoc0=Math.round(li.getBoundingClientRect().height);o.wChoc0=hW(li);o.cn0=cn();
-    li.click();await __acCalme(300);li=row(/Choc imm/);
-    o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;o.mvOn=an(li.querySelector('.wt'));
+    o.mvOn=await capte(()=>li.click(),300);li=row(/Choc imm/);
+    o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;
     o.ev1=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&!e.voidAt).length;
-    li.click();await __acCalme(30);o.mvOff=an(row(/Choc imm/).querySelector('.wt'));await __acCalme(270);
+    o.mvOff=await capte(()=>li.click(),300);
     o.cn2=cn();o.void2=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&e.voidAt).length;
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;renderOvOnly();await __acCalme(200);}   // A382 : l'adrénaline du bloc choquable commence au 3ᵉ choc
     li=row(/^\s*Vigilance|Adrénaline/)||row(/Adrénaline/);
     const hA0=Math.round(li.getBoundingClientRect().height);
-    li.click();await __acCalme(30);o.mvArm=an(row(/Adrénaline/).querySelector('.wt'));await __acCalme(270);li=row(/Adrénaline/);
+    o.mvArm=await capte(()=>li.click(),300);li=row(/Adrénaline/);
     o.adrRun=adr().running;o.clsRun=li.querySelector('.wt').className;
     li.click();await __acCalme(300);li=row(/Adrénaline/);
     o.adrUndo=!adr().running&&adr().elapsedMs===0;
@@ -6072,17 +6081,24 @@ await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce q
        attente, le témoin mesure le hasard du chargement, pas l'application. */
     await page.evaluate(()=>document.fonts&&document.fonts.ready);
     await page.click('#cbTimers');await calme(page, 400);
-    await page.evaluate(()=>{const b=[...document.querySelectorAll('.rt-dock button')]
+    /* L'entrée se CAPTE à sa naissance (animationstart, posé avant le clic) : la lecture après une
+       pause ne voyait plus rien quand la charge d'une passe complète retardait le rendu au-delà de
+       la fin de l'animation (« marques 0, anim — » : rouge sans défaut). */
+    await page.evaluate(()=>{window.__segIn=[];const h=e=>{const s=e.target;
+        if(s.closest&&s.closest('#cbTimers')&&s.classList.contains('seg-in'))window.__segIn.push(e.animationName);};
+      window.__segInH=h;document.addEventListener('animationstart',h,true);
+      const b=[...document.querySelectorAll('.rt-dock button')]
       .find(x=>/^Démarrer/.test((x.textContent||'').trim()));
       if(!b)throw new Error('bouton Démarrer introuvable');b.click();});
-    /* ⚠ ON MESURE PENDANT L'ANIMATION, PAS APRÈS. La classe est posée sur le NŒUD et retirée par
-       `animationend` : à 150 ms elle a déjà disparu, et un témoin qui la cherche là mesure sa
-       propre lenteur. 50 ms — le quai répondant au geste, il n'y a plus rien à attendre. */
-    await calme(page, 50);
+    /* ⚠ LA CLASSE EST RETIRÉE PAR `animationend` : un témoin qui la cherche APRÈS une pause mesure
+       sa propre lenteur (50 ms suffisaient seul, pas sous charge). D'où la capture à la naissance,
+       ci-dessus ; la pause ne sert plus qu'à laisser le quai se poser avant de lire segments et rappel. */
+    await calme(page, 400);
     const g=await page.evaluate(()=>{const el=document.getElementById('cbTimers');
-      const s=el.querySelector('.seg.seg-in');
-      return {marques:el.querySelectorAll('.seg.seg-in').length,
-        anim:s?getComputedStyle(s).animationName:'—',
+      document.removeEventListener('animationstart',window.__segInH,true);
+      const v=window.__segIn||[];
+      return {marques:v.length,
+        anim:v.join(',')||'—',
         segs:el.querySelectorAll('.seg').length,
         rappel:(el.querySelector('.cbt-dl')||{}).textContent||'',
         arme:Object.values(Runtime.timers).some(t=>t.running)};});
@@ -9799,11 +9815,19 @@ await sec('Accueil · A601-A603 catalogue, volets, retour, dock glissé', async 
       const pil=await page.evaluate(async()=>{const p=document.querySelector('.tb-pill');if(!p)return null;
         const pos=()=>{const tabs=p.parentElement,cp=(getComputedStyle(p).clipPath.match(/-?[\d.]+px/g)||[]).map(parseFloat),t=document.querySelector('.tb-tab.on').getBoundingClientRect();
           const l=tabs.getBoundingClientRect().left+cp[3],w=tabs.clientWidth-cp[1]-cp[3];return {dx:Math.round(Math.abs(l-t.left)),dw:Math.round(Math.abs(w-t.width))};};
-        const repos=pos();document.querySelector('.tb-tab[data-tab="aides"]').click();
-        await new Promise(r=>setTimeout(r,60));   // horloge : 60 ms dans la transition de 300 ms — la pastille doit être EN ROUTE
-        const encours=pos();
-        await new Promise(r=>setTimeout(r,600));   // horloge : au-delà de la transition — la pastille doit être POSÉE
-        return {repos,encours,pose:pos(),trans:getComputedStyle(p).transitionProperty};},);
+        // EN ROUTE se mesure à mi-course de la VRAIE transition, figée — plus à « 60 ms après le clic » : sous la charge
+        // d'une passe complète, le premier rendu après le clic pouvait tomber après la fin des 300 ms (pastille déjà
+        // posée, dx 3 : rouge sans défaut). On attend que la transition de clip-path naisse (transitionrun), on la met en
+        // pause à 10 % de sa durée (la courbe cubic-bezier(.3,1.2,.4,1) dépasse : 37 % du chemin à 10 % du temps, déjà
+        // 100 % à la moitié — figée là, elle serait « posée »), on lit, puis on la termine. Aucune transition = encours.dx 0 = rouge, comme avant.
+        const repos=pos();
+        const nait=new Promise(r=>{const h=e=>{if(e.propertyName==='clip-path'){p.removeEventListener('transitionrun',h);r(true);}};p.addEventListener('transitionrun',h);setTimeout(()=>r(false),3000);});   // horloge : filet si aucune transition ne naît
+        document.querySelector('.tb-tab[data-tab="aides"]').click();
+        let encours={dx:0,dw:0},ne=await nait;
+        const an=ne&&p.getAnimations().find(a=>a.transitionProperty==='clip-path');
+        if(an){const tm=an.effect.getComputedTiming();an.pause();an.currentTime=(tm.delay||0)+tm.duration*0.1;encours=pos();an.finish();}
+        await __acCalme(200);
+        return {repos,encours,ne:!!ne,pose:pos(),trans:getComputedStyle(p).transitionProperty};},);
       t(`${k} : A603/A605 — la pastille du dock glisse ET s'élargit d'un seul mouvement (découpe), et se pose sous l'onglet courant`,
         !!pil&&pil.repos.dx<=2&&pil.encours.dx>8&&pil.pose.dx<=2&&pil.pose.dw<=2&&/clip-path/.test(pil.trans),JSON.stringify(pil));}
     await ctx.close();}

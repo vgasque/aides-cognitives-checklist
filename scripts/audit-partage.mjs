@@ -2473,11 +2473,14 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     'hôte:' + rearmH + ' invité:' + rearmG);
 
 
-  // A318 : la sonde tranche au premier raté — la bascule part en moins de 2,5 s.
-  await H.evaluate(() => { window.__panne = true; window.__acNetOk = false; window.__t0 = Date.now();
+  /* A318 : la sonde tranche AU PREMIER RATÉ — c'est la propriété (le défaut d'avant attendait le second sondage, après
+     son repli exponentiel). On la compte (sondages ratés avant la bascule) au lieu de la chronométrer : sous la charge
+     d'une passe complète, les minuteries de la page dérivent (2,8 s mesurées pour 1,8 s seul) sans que rien ne change
+     à l'app. La borne de temps reste celle de la doctrine : moins de 5 s. */
+  await H.evaluate(() => { window.__panne = true; window.__acNetOk = false; window.__t0 = Date.now(); window.__rates = 0;
     const io = Share._io; window.__ioSain = io; window.__bcSain = window.__bc.onmessage;
     Share._io = Object.assign({}, io, {
-      pull: async () => { throw new Error('panne'); },
+      pull: async () => { if (!(Share.share === 'local' && SL && SL.live === true)) window.__rates++; throw new Error('panne'); },
       push: async () => { throw new Error('panne'); } });
     Share._ioRest = Share._io;
     window.__bc.onmessage = () => {};   // le relais ne répond plus à l'invité non plus
@@ -2485,8 +2488,8 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await G.evaluate(() => { window.__acNetOk = false; });
   const autoH = await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
     null, { timeout: 40000 }).then(() => true).catch(() => false);
-  const dtH = await H.evaluate(() => Date.now() - window.__t0);
-  t('… en moins de 2,5 s après la panne (A318)', autoH && dtH <= 2500, dtH + ' ms');
+  const { dtH, rates } = await H.evaluate(() => ({ dtH: Date.now() - window.__t0, rates: window.__rates }));
+  t('… dès le PREMIER sondage raté, en moins de 5 s (A318)', autoH && rates <= 1 && dtH <= 5000, rates + ' raté(s), ' + dtH + ' ms');
   const autoG = autoH && await G.waitForFunction(() =>
     Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1',
     null, { timeout: 40000 }).then(() => true).catch(() => false);
