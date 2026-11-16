@@ -11755,7 +11755,9 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
   t('A765 · « Service indisponible » dit QUELLE étape a échoué et le message brut du serveur (à transmettre)',
     /étape : réception des protocoles/.test(r26)&&/REST 500/.test(r26)&&/statement timeout/.test(r26),r26.slice(0,400));
   // 3. L'envoi : douze protocoles lourds modifiés partent en plusieurs lots bornés.
-  const r3=await page.evaluate(async()=>{for(const p of protocols.filter(x=>/^Lourd /.test(x.title))){p.title+=' ·';p.dirty=true;p.updatedAt=Date.now();await Data.putProtocol(p);}
+  // A766 : la carte des fichiers vidée — sinon les images, déjà montées par le `Sync.full` ci-dessus, s'allègent et les
+  //        douze lignes tiennent en un lot de quelques Ko (l'effet voulu, qui n'éprouve plus le découpage des lignes lourdes).
+  const r3=await page.evaluate(async()=>{imgCarteEcrire(Object.create(null));for(const p of protocols.filter(x=>/^Lourd /.test(x.title))){p.title+=' ·';p.dirty=true;p.updatedAt=Date.now();await Data.putProtocol(p);}
     let err='';try{await Sync._pushProtocols();}catch(e){err=String(e.message||e);}
     return {err,restants:(await Data.getProtocols()).filter(p=>p.dirty).length};});
   t('A760 · envoi : plusieurs lots bornés en octets (plus tout d’un coup), tous partis',
@@ -11782,6 +11784,75 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
   t('A764 · réception des fichiers : la pastille compte (« Réception · n / 2 fichiers · x / 3 Mo »), puis revient à « Synchronisé »',
     r5.recus&&r5.vus.some(v=>/^Réception · [01] \/ 2 fichiers · \d+ \/ 3 Mo$/.test(v))&&/Synchronisé/.test(r5.fin),JSON.stringify(r5));
   await page.close();
+});
+
+/* A766 — LES IMAGES EN FICHIERS, de bout en bout, sur un serveur simulé partagé par DEUX appareils (`page.route`, état
+   tenu côté Node) : A migre — ses images montent en fichiers, ses lignes partent allégées (aucun base64), l'image d'un
+   bloc d'aide devient une référence ; B, neuf, reçoit les lignes légères, télécharge les images en fond, retrouve l'image
+   du bloc, et la lecture du protocole les montre. */
+await sec('A766 · les images voyagent en fichiers : migration, lignes allégées, réception sur un autre appareil', async () => {
+  const srv={rows:{protocols:new Map(),cognitive_aids:new Map()},files:new Map(),posts:[],panne:false};
+  const monte=async page=>{
+    await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,async route=>{const q=route.request(),u=decodeURIComponent(q.url()),M=q.method();
+      const tm=u.match(/\/rest\/v1\/(protocols|cognitive_aids)(?:\?|$)/);
+      if(tm&&M==='GET'){const T=srv.rows[tm[1]],all=[...T.values()];
+        if(srv.panne)return route.fulfill({status:503,contentType:'text/plain',body:'upstream connect error … delayed connect error: 111'});
+        if(/select=id,updated_at,deleted_at/.test(u)){const g=(u.match(/updated_at=gt\.([^&]+)/)||[])[1],since=g?Date.parse(g):-1;
+          return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(all.filter(r=>Date.parse(r.updated_at)>since).map(r=>({id:r.id,updated_at:r.updated_at,deleted_at:r.deleted_at})))});}
+        const ids=((u.match(/id=in\.\(([^)]*)\)/)||[])[1]||'').split(',').filter(Boolean);
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(ids.length?all.filter(r=>ids.includes(r.id)):[])});}
+      if(tm&&M==='POST'){const body=q.postData()||'[]';srv.posts.push({t:tm[1],n:body.length,b64:/data:image\//.test(body)});
+        for(const r of JSON.parse(body)){const old=srv.rows[tm[1]].get(r.id);let ua=r.updated_at;
+          if(old&&Date.parse(ua)<=Date.parse(old.updated_at))ua=new Date(Date.parse(old.updated_at)+1).toISOString();
+          srv.rows[tm[1]].set(r.id,{...r,updated_at:ua});}
+        return route.fulfill({status:201,body:''});}
+      const sm=u.match(/\/storage\/v1\/object\/attachments\/(.+)$/);
+      if(sm&&M==='POST'){srv.files.set(sm[1],q.postDataBuffer());return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+      if(sm&&M==='GET'){const b=srv.files.get(sm[1]);return b?route.fulfill({status:200,contentType:'application/octet-stream',body:b}):route.fulfill({status:404,body:'{}'});}
+      if(/\/storage\/v1\/object\/list\/attachments/.test(u)){const pre=(JSON.parse(q.postData()||'{}').prefix||'')+'/';
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([...srv.files.keys()].filter(k=>k.startsWith(pre)).map(k=>({name:k.slice(pre.length)})))});}
+      route.fulfill({status:200,contentType:'application/json',body:'[]'});});
+    await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'00000000-0000-0000-0000-0000000000aa',email:'moi@x.fr'}}));});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async()=>{for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);});};
+  // Appareil A : un protocole à deux images, une aide dont un bloc affiche une image de sa galerie.
+  const A=await br.newPage({viewport:{width:1100,height:850}});A.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE A : '+e.message);});
+  await monte(A);
+  const ra=await A.evaluate(async()=>{const img=(c)=>{const k=document.createElement('canvas');k.width=40;k.height=30;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,40,30);return k.toDataURL('image/webp',.8);};
+    const i1=img('#c33'),i2=img('#36c'),i3=img('#3a3');
+    const p=migrateProtocol({id:'p766',title:'Abord',status:'draft',body:'![](img:pi1)\n![](img:pi2)',images:[{id:'pi1',data:i1,w:40,h:30},{id:'pi2',data:i2,w:40,h:30}]});
+    protocols.push(p);await Data.putProtocol(p);
+    const f=migrate({id:'f766',title:'Aide illustrée',status:'draft',blocks:[{id:'b1',kind:'do',title:'Geste',items:[],image:i3,imageW:40,imageH:30}],images:[{id:'fi3',data:i3,w:40,h:30}]});
+    fiches.push(f);await Data.put(f);
+    localStorage.removeItem(spaceKey('ac-img-ext'));
+    await Sync.full();for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);
+    return {flag:localStorage.getItem(spaceKey('ac-img-ext')),carte:Object.keys(imgCarte()).sort(),err:Sync.lastError&&Sync.lastError.tech||''};});
+  const pRow=srv.rows.protocols.get('p766'),fRow=srv.rows.cognitive_aids.get('f766');
+  const sansB64=!/data:image\//.test(JSON.stringify(pRow||{}))&&!/data:image\//.test(JSON.stringify(fRow||{}));
+  const fichiersOk=['pi1','pi2','fi3'].every(id=>[...srv.files.keys()].some(k=>k.endsWith('/'+id+'.webp')));
+  t('A766 · appareil A : migré une fois, ses images montent en fichiers, ses lignes partent SANS base64 (l’image du bloc devient une référence)',
+    ra.flag==='1'&&fichiersOk&&!!pRow&&!!fRow&&sansB64&&fRow.data.blocks[0].imageRef==='fi3'&&fRow.data.blocks[0].image===null&&pRow.data.images.every(x=>x.fp&&x.mime==='image/webp'),
+    JSON.stringify({ra,fichiers:[...srv.files.keys()],sansB64,bloc:fRow&&fRow.data.blocks[0],images:pRow&&pRow.data.images}));
+  // La réception en panne (503, comme chez l'auteur) n'empêche plus les fichiers de partir.
+  srv.panne=true;
+  const rp=await A.evaluate(async()=>{const k=document.createElement('canvas');k.width=20;k.height=20;k.getContext('2d').fillRect(0,0,20,20);
+    const p=protocols.find(x=>x.id==='p766');p.images.push({id:'pi4',data:k.toDataURL('image/webp',.8),w:20,h:20,caption:'',scale:100});p.dirty=true;await Data.putProtocol(p);
+    await Sync.full();for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);return {err:(Sync.lastError&&Sync.lastError.tech)||''};});
+  srv.panne=false;
+  t('A766 · réception en panne (503) : l’erreur est dite, mais les fichiers partent quand même',/503/.test(rp.err)&&[...srv.files.keys()].some(k=>k.endsWith('/pi4.webp')),JSON.stringify({rp,fichiers:[...srv.files.keys()]}));
+  await A.evaluate(async()=>{const p=protocols.find(x=>x.id==='p766');p.images=p.images.filter(x=>x.id!=='pi4');await Data.putProtocol(p);});
+  await A.close();
+  // Appareil B : neuf, il reçoit les lignes légères, puis les images en fond.
+  const B=await br.newPage({viewport:{width:1100,height:850}});B.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE B : '+e.message);});
+  await monte(B);
+  const rb=await B.evaluate(async()=>{await Sync.full();for(let i=0;i<80&&(Sync.running||Sync._imgDl);i++)await __acCalme(100);
+    const p=protocols.find(x=>x.id==='p766')||{},f=fiches.find(x=>x.id==='f766')||{};
+    openProtocolRead('p766');await __acCalme(400);
+    return {pImgs:(p.images||[]).filter(x=>safeImg(x.data)).length,attente:(p.imgAttente||[]).length,bloc:!!(f.blocks&&safeImg(f.blocks[0].image)),
+      ref:f.blocks&&('imageRef' in f.blocks[0]),dirty:!!p.dirty||!!f.dirty,vues:document.querySelectorAll('.md-fig img').length};});
+  t('A766 · appareil B : les lignes arrivent légères, les images en fond — galerie et bloc retrouvés, rien à renvoyer, la lecture les montre',
+    rb.pImgs===2&&rb.attente===0&&rb.bloc&&!rb.ref&&!rb.dirty&&rb.vues===2,JSON.stringify(rb));
+  await B.close();
 });
 
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {

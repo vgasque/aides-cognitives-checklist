@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.137.0] — 2026-11-16
+Les images voyagent en fichiers : la synchro s'allège et le serveur tient (A766). ⚠ **Serveur à mettre à jour** :
+rejouer `supabase/schema.sql`. ⚠ **Mettre à jour TOUS les appareils** : une version antérieure ne sait pas lire les
+nouvelles données.
+- **Les images ne sont plus recopiées dans chaque aide ou protocole envoyé au serveur** : elles y sont rangées en
+  fichiers, comme les documents PDF et les vidéos. Une modification de texte n'envoie plus que le texte ; le serveur ne
+  construit plus des réponses de plusieurs dizaines de Mo (« Service indisponible »).
+- **Sur l'appareil, rien ne change** : les images s'affichent, se modifient, s'exportent comme avant.
+- **Une seule fois, au premier passage de cette version**, chaque appareil envoie ses images en fichiers puis renvoie
+  ses aides et protocoles allégés — la pastille compte (« Envoi · n / N images »). Un autre appareil reçoit ensuite les
+  éléments, légers, puis leurs images en fond (« Réception · n / N images »).
+- **Les fichiers partent même si la réception échoue** : vidéos, documents et images ne restaient sur l'appareil que
+  parce qu'une erreur de réception arrêtait toute la synchro.
+- Une image ne quitte la ligne que lorsque son fichier est bien sur le serveur : aucune panne ne peut la perdre.
+- ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` **avant** d'ouvrir la nouvelle version (le stockage accepte
+  les images ; elles ne comptent pas dans le quota de documents). Sans cela, les images restent dans les lignes, comme
+  avant, et l'app le signale.
+
 ## [5.136.0] — 2026-11-16
 L'écran reste allumé pendant un gros rattrapage de synchro ; la réception des fichiers se compte ; ⚠ correctif : les
 documents et vidéos se téléchargent de nouveau (A764).
@@ -228,10 +246,3 @@ Dans un PDF, les mots surlignés sont attachés à la page et ne peuvent plus se
   il grandit et rétrécit avec elle, quel que soit le zoom, sans être retiré. Les liens cliquables du document suivent
   la même règle.
 - Rien ne change dans l'emplacement du surlignage ni dans la navigation entre les occurrences.
-
-## [5.126.3] — 2026-11-14
-Dans un PDF, les mots surlignés restent en place quand on zoome (A743).
-- La v5.126.2 ne réglait que le zoom aller-retour rapide. Les mots surlignés (et les liens du document) pouvaient
-  encore disparaître : le temps que la page soit redessinée sur un gros document, ou pour de bon quand le dessin
-  échouait à fort zoom sur iPhone.
-- Ils sont maintenant replacés à la nouvelle taille dès le zoom, sans attendre que la page soit redessinée.

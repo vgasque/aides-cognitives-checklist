@@ -1009,7 +1009,10 @@ create trigger protocols_stamp_updated_by before insert or update on public.prot
 -- l'appareil temporaire et mêmes quotas (« docs » compte aussi les vidéos). Extension `.mp4`/`.webm`/`.mov` ; types
 -- MP4, WebM, QuickTime. Le plafond du bucket passe à 30 Mo (une vidéo) ; celui d'un PDF reste 15 Mo, tenu par le client.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-  values ('attachments', 'attachments', false, 31457280, array['application/pdf','video/mp4','video/webm','video/quicktime'])
+  -- A766 (v5.137) : les IMAGES des aides et des protocoles y vivent aussi, en fichiers (elles voyageaient en base64 DANS
+  -- les lignes : jusqu'à 13 Mo par ligne, de quoi épuiser la petite instance) — mêmes chemins, mêmes droits.
+  values ('attachments', 'attachments', false, 31457280, array['application/pdf','video/mp4','video/webm','video/quicktime',
+          'image/webp','image/jpeg','image/png','image/gif'])
   on conflict (id) do update
   set public = excluded.public,
       file_size_limit = excluded.file_size_limit,
@@ -1022,11 +1025,11 @@ create policy att_perso on storage.objects for all
   using      (bucket_id = 'attachments' and public.is_approved()
               and (storage.foldername(name))[1] = 'u'
               and (storage.foldername(name))[2] = auth.uid()::text
-              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$')
+              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$')
   with check (bucket_id = 'attachments' and public.is_approved()
               and (storage.foldername(name))[1] = 'u'
               and (storage.foldername(name))[2] = auth.uid()::text
-              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$');
+              and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$');
 
 -- Bibliothèque partagée : lecture = tout membre (comme fiches_shared_read).
 drop policy if exists att_lib_read on storage.objects;
@@ -1044,11 +1047,11 @@ create policy att_lib_write on storage.objects for all
   using      (bucket_id = 'attachments'
               and (storage.foldername(name))[1] = 'l'
               and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
-              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$')
+              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$')
   with check (bucket_id = 'attachments'
               and (storage.foldername(name))[1] = 'l'
               and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
-              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov)$');
+              and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$');
 
 -- Orphelins du bucket (app-admin) : objets dont l'id de fichier n'apparaît plus dans les
 -- métadonnées d'AUCUNE fiche vivante. Cas rare (interruption entre un upload et l'enregistrement
@@ -1064,16 +1067,17 @@ language sql stable security definer set search_path = public, storage, pg_temp 
     and public.admin_reads()   -- A679
     -- A757 : le modèle v4 nomme les documents `docs` (l'ancien `attachments` reste lu) — la version précédente ne lisait
     -- que `attachments` et rendait donc TOUS les documents orphelins ; les vidéos d'un protocole sont dans `videos`.
-    and substring(o.name from '([A-Za-z0-9_-]{1,64})\.(?:pdf|mp4|webm|mov)$') not in (
+    and substring(o.name from '([A-Za-z0-9_-]{1,64})\.(?:pdf|mp4|webm|mov|webp|jpg|png|gif)$') not in (
       select a->>'id'
       from public.cognitive_aids f,
-           jsonb_array_elements(coalesce(f.data->'docs','[]'::jsonb) || coalesce(f.data->'attachments','[]'::jsonb)) a
+           jsonb_array_elements(coalesce(f.data->'docs','[]'::jsonb) || coalesce(f.data->'attachments','[]'::jsonb)
+                                || coalesce(f.data->'images','[]'::jsonb)) a   -- A766 : les images d'une aide
       where f.deleted_at is null
       union
       select a->>'id'
       from public.protocols p,
            jsonb_array_elements(coalesce(p.data->'docs','[]'::jsonb) || coalesce(p.data->'attachments','[]'::jsonb)
-                                || coalesce(p.data->'videos','[]'::jsonb)) a
+                                || coalesce(p.data->'videos','[]'::jsonb) || coalesce(p.data->'images','[]'::jsonb)) a   -- A766
       where p.deleted_at is null)
   order by o.created_at;
 $$;
@@ -3007,7 +3011,7 @@ returns jsonb language sql stable security definer set search_path = public, sto
     'sessions', coalesce((select max(n) from (select count(*) n from public.sessions
                  where deleted_at is null group by owner) x), 0),
     'docs', coalesce((select max(n) from (select count(*) n from storage.objects o
-                 where o.bucket_id = 'attachments'
+                 where o.bucket_id = 'attachments' and o.name !~ '\.(webp|jpg|png|gif)$'   -- A766 : les images ne comptent pas (bornées par élément, 10 Mo)
                  group by (storage.foldername(o.name))[1], (storage.foldername(o.name))[2]) x), 0)) end;
 $$;
 grant execute on function public.quota_usage() to authenticated;
@@ -3064,8 +3068,9 @@ create trigger sessions_quota before insert on public.sessions
 create or replace function public.quota_att_ok(p_name text)
 returns boolean language sql stable security definer set search_path = public, storage, pg_temp as $$
   select exists (select 1 from storage.objects o where o.bucket_id = 'attachments' and o.name = p_name)
+      or p_name ~ '\.(webp|jpg|png|gif)$'   -- A766 : une image n'entre pas dans le quota de documents (bornée par élément, A759)
       or (select count(*) from storage.objects o
-           where o.bucket_id = 'attachments'
+           where o.bucket_id = 'attachments' and o.name !~ '\.(webp|jpg|png|gif)$'
              and (storage.foldername(o.name))[1] = (storage.foldername(p_name))[1]
              and (storage.foldername(o.name))[2] = (storage.foldername(p_name))[2])
          < (public.quotas() ->> 'docs')::int;

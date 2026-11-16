@@ -926,6 +926,37 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A757 : import HTML de Notion — la vidéo prend sa case', ch.body.split('\n').includes('| Normal<br>![](vid:v8) | Thrombus<br>![](img:i1) |')&&ch.videos===0);
    const L=A.exportLeger({fiches:[],protocols:[{body:'a\n![](vid:v1)\n| x<br>![](vid:v1) |',images:[],docs:[],videos:V}]}).protocols[0];
    ok('A757 : l’export « sans fichiers » retire les vidéos et leurs références', !L.videos.length&&!/vid:/.test(L.body));}
+  /* A766 : les images voyagent en fichiers ; la ligne du serveur ne porte que leur fiche. */
+  {const D=(t,n)=>'data:image/'+t+';base64,'+'QUJD'.repeat(n);
+   const a=D('webp',30),b=D('jpeg',40),c=D('png',10);
+   eq('A766 : imgMimeOf — type d’une image en data-URL, jeu fermé', [A.imgMimeOf(a),A.imgMimeOf(b),A.imgMimeOf('data:image/jpg;base64,QQ=='),A.imgMimeOf('data:image/svg+xml;base64,QQ=='),A.imgMimeOf('')], ['image/webp','image/jpeg','image/jpeg',null,null]);
+   ok('A766 : imgFp — stable, et change quand l’image change', A.imgFp(a)===A.imgFp(a.slice())&&A.imgFp(a)!==A.imgFp(D('webp',31))&&A.imgFp(a)!==A.imgFp(a.slice(0,-4)+'QUJE')&&A.imgFp('')==='');
+   const uid='00000000-0000-0000-0000-0000000000aa';
+   const ent={id:'p1',library:null,images:[{id:'i1',data:a,w:10,h:8,caption:'Coupe',scale:50},{id:'i2',data:b,w:4,h:4,caption:'',scale:100}],
+     imgAttente:[{id:'i9',w:1,h:1,caption:'',scale:100,mime:'image/png',size:3,fp:'x.y'}],blocks:[{id:'b1',image:a},{id:'b2',image:c}]};
+   const carte={i1:{p:'u/'+uid+'/i1.webp',fp:A.imgFp(a)},i2:{p:'u/'+uid+'/i2.jpg',fp:'perime'}};
+   const r=A.imgStrip(Object.assign({},ent),carte,uid);
+   eq('A766 : imgStrip — seule l’image au fichier CONFIRMÉ (empreinte et chemin) s’allège ; les autres restent en base64',
+     [r.images.map(x=>x.id+':'+(x.data?'b64':'fiche')),r.images.find(x=>x.id==='i1').caption,r.images.find(x=>x.id==='i1').mime,'imgAttente' in r],
+     [['i2:b64','i1:fiche','i9:fiche'],'Coupe','image/webp',false]);
+   eq('A766 : imgStrip — l’image d’un bloc devient sa référence ; sans galerie, elle reste en ligne ; l’entité n’est pas touchée',
+     [r.blocks[0].image,r.blocks[0].imageRef,r.blocks[1].image===c,ent.images[0].data===a,ent.blocks[0].image===a], [null,'i1',true,true,true]);
+   const ailleurs=A.imgStrip(Object.assign({},ent,{library:'lib-x'}),carte,uid);
+   ok('A766 : imgStrip — un élément changé de bibliothèque garde l’image en ligne tant que son fichier n’est pas au nouveau chemin', ailleurs.images.find(x=>x.id==='i1').data===a);
+   const ret=A.imgSplit(JSON.parse(JSON.stringify(r)));
+   eq('A766 : imgSplit — à l’arrivée, une image sans binaire attend son fichier', [ret.images.map(x=>x.id),ret.imgAttente.map(x=>x.id)], [['i2'],['i1','i9']]);
+   const m=A.migrateProtocol(Object.assign({title:'T',body:''},ret));
+   eq('A766 : migrateProtocol garde les images en attente, assainies (jeu fermé de types, empreinte bornée)', [m.imgAttente.map(x=>x.id+':'+x.mime),m.images.map(x=>x.id)], [['i1:image/webp','i9:image/png'],['i2']]);
+   const loc={images:[{id:'i1',data:a,w:10,h:8}]};const nf=JSON.parse(JSON.stringify(m));nf.blocks=[{id:'b1',image:null,imageRef:'i1'}];
+   eq('A766 : imgCarry — la copie locale de même empreinte est reprise (rien à télécharger), le bloc retrouve son image',
+     [A.imgCarry(nf,loc),nf.images.map(x=>x.id),nf.imgAttente.map(x=>x.id),nf.blocks[0].image===a,'imageRef' in nf.blocks[0]], [1,['i2','i1'],['i9'],true,false]);
+   const nf2=JSON.parse(JSON.stringify(m));
+   eq('A766 : imgCarry — une copie locale d’une autre empreinte n’est PAS reprise (l’image a changé ailleurs)', A.imgCarry(nf2,{images:[{id:'i1',data:D('webp',29)}]}), 0);
+   const u8=new Uint8Array(200000).map((_,i)=>i*7%256);
+   ok('A766 : b64DeOctets / octetsDeB64 — aller-retour sans perte, même sur plusieurs centaines de Ko', (()=>{const back=A.octetsDeB64('data:image/webp;base64,'+A.b64DeOctets(u8));return back.length===u8.length&&back.every((v,i)=>v===u8[i]);})());
+   const f=A.migrate({title:'A',blocks:[{id:'b1',kind:'do',title:'x',items:[],image:null,imageRef:'i1'},{id:'b2',kind:'do',title:'y',items:[],imageRef:'__proto__'}],imgAttente:[{id:'i1',mime:'image/gif',size:5}]});
+   eq('A766 : migrate — imageRef gardée (id sûr), rejetée sinon ; imgAttente d’une aide gardée', [f.blocks[0].imageRef,'imageRef' in f.blocks[1],f.imgAttente[0].mime], ['i1',false,'image/gif']);
+   eq('A766 : le poids compte aussi les images en attente', A.imgsOctets({images:[],imgAttente:[{size:500},{size:20}]}), 520);}
   /* A760 : la synchro par lots bornés en octets. */
   {eq('A760 : syncLot — viser la cible, entre 1 et le plafond, jamais plus que doubler', [A.syncLot(3,12e6,6e6,60),A.syncLot(3,1e6,6e6,60),A.syncLot(40,1e3,6e6,60),A.syncLot(1,50e6,6e6,60),A.syncLot(4,0,6e6,60)], [1,6,60,1,8]);
    const L=A.syncDecoupe([{a:'x'.repeat(40)},{a:'x'.repeat(40)},{a:'x'.repeat(40)},{a:'x'.repeat(200)},{a:'y'}],100,10);
