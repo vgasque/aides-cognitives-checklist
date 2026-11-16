@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.137.1] — 2026-11-16
+⚠ Correctif : une vidéo pouvait rester absente du serveur alors que l'appareil qui l'avait ajoutée disait
+« Synchronisé » (A767). Aucune mise à jour du serveur.
+- **Une vidéo suit désormais son protocole quand il change d'espace** (de Perso à une bibliothèque, ou l'inverse) :
+  seuls les documents PDF suivaient. La vidéo restait rangée « Perso » sur le serveur ; l'appareil notait qu'elle était
+  dans la bibliothèque sans l'y envoyer, et les autres appareils ne la trouvaient jamais.
+- **Réparation automatique de l'existant** : à chaque lancement, l'appareil vérifie que les documents et vidéos qu'il
+  croit envoyés sont bien sur le serveur (une liste par dossier) et renvoie ce qui manque — « ↻ n fichiers manquaient
+  sur le serveur : renvoyés ». Ouvrir l'app sur l'ordinateur qui a ajouté les vidéos suffit ; le téléphone les reçoit
+  à sa synchro suivante.
+- **« Copier dans Perso »** d'un protocole de bibliothèque emporte aussi ses vidéos (comme ses documents).
+- **Une vidéo introuvable sur le serveur le dit** : « pas encore sur le serveur — ouvrez l'app sur l'appareil qui l'a
+  ajoutée », au lieu de promettre qu'elle arrive avec la synchronisation.
+- Audit : huit témoins instables sous charge réécrits sans rien desserrer (capter une animation à sa naissance, figer
+  une transition, mesurer une fenêtre posée, compter des sondages plutôt que des millisecondes, tenir les synchros de
+  fond à l'écart d'une mesure, attendre l'appel plutôt qu'un texte, lire « reste court » comme un rafraîchissement).
+
 ## [5.137.0] — 2026-11-16
 Les images voyagent en fichiers : la synchro s'allège et le serveur tient (A766). ⚠ **Serveur à mettre à jour** :
 rejouer `supabase/schema.sql`. ⚠ **Mettre à jour TOUS les appareils** : une version antérieure ne sait pas lire les
@@ -236,13 +253,3 @@ Dans un PDF, zoomer avec les boutons ne fait plus changer de page (A745).
   la page 17. Le mot surligné qu'on lisait sortait donc de l'écran.
 - La page que vous regardez reste maintenant au centre de l'écran quand vous zoomez avec les boutons, quand vous
   choisissez « Page » ou « Largeur », et quand la fenêtre change de taille. Le pincer gardait déjà sa place.
-
-## [5.126.4] — 2026-11-14
-Dans un PDF, les mots surlignés sont attachés à la page et ne peuvent plus se perdre au zoom (A744).
-- **Avant**, chaque rectangle de surlignage était placé pour une taille de page donnée. À chaque zoom il était
-  retiré puis replacé, et il disparaissait dès que ce replacement n'avait pas lieu. Les deux versions précédentes
-  corrigeaient ces cas un par un.
-- **Maintenant**, le surlignage est placé une fois, en proportion de la page, comme dans les lecteurs PDF courants :
-  il grandit et rétrécit avec elle, quel que soit le zoom, sans être retiré. Les liens cliquables du document suivent
-  la même règle.
-- Rien ne change dans l'emplacement du surlignage ni dans la navigation entre les occurrences.

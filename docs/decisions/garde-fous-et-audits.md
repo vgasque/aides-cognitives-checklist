@@ -283,6 +283,39 @@
   `node scripts/check-pauses.mjs --maj` pour que les pauses retirées ne puissent pas revenir. Une
   pause dont la DURÉE est le témoin se marque `// horloge : <raison>` sur sa ligne. Vérifié
   CAPABLE D'ÉCHOUER dans les deux sens (pause ajoutée → rouge ; pause retirée → rouge `--maj`).
+- **Un témoin d'animation, de transition ou de délai ne se lit pas « N ms après le geste » (v5.137, après une passe
+  complète rouge sans défaut).** Sous la charge d'une passe complète (39 tâches en parallèle), le premier rendu après
+  un geste peut tomber APRÈS la fin d'une animation de 140 à 360 ms : un témoin qui cherche la classe ou l'animation
+  après une pause mesure sa propre lenteur. Huit témoins l'ont fait, huit réécrits sans rien desserrer :
+  (1) **une entrée se CAPTE à sa naissance** — écouteur `animationstart` en capture posé AVANT le geste, retiré après,
+  et la capture dure JUSQU'À CE QUE les animations attendues soient parties (plafond 2,5 s ; une fenêtre fixe de 300 ms
+  se refermait encore trop tôt à 8 tâches en parallèle) — animation absente = plafond atteint = rouge (A378, liens de
+  coche ; fondu du segment de minuteur dans la capsule). ⚠ **Et l'animation DÉCLARÉE compte autant que l'animation
+  JOUÉE** quand l'état est bref par dessein : `wt-arm` ne vit que 360 ms après la relance ; si la première image vient
+  plus tard, le rendu suivant retire la classe avant toute image et le navigateur ne lance rien — c'est voulu (aucune
+  animation périmée). Le témoin A378 relève donc aussi, par un observateur de mutations (avant toute image),
+  l'`animationName` que la feuille de style déclare sur ce que le geste insère ou reclasse — et, quand même le premier
+  rendu tombe au-delà de la fenêtre (10 exécutions parallèles), passe le minuteur RÉEL, armé par le tap RÉEL, par le
+  modèle de l'app à l'instant de sa relance (`wtTimerModel` → `wtInner`) : ce qu'il demande doit porter `wtArm`. Règle
+  CSS ou `arm` du modèle retirés → rouge (vérifié pour les deux) ; (2) **une transition se FIGE à un instant
+  choisi** — attendre son `transitionrun`, la mettre en pause par l'API Web Animations, poser `currentTime`, lire,
+  `finish()` (pastille du dock, A603/A605 — ⚠ à 10 % de la durée et non à la moitié : la courbe
+  `cubic-bezier(.3,1.2,.4,1)` DÉPASSE, elle a déjà fait tout le chemin à mi-temps) ; (3) **une géométrie se mesure
+  fenêtre POSÉE** — attendre `getAnimations()…finished` (filet borné, une animation infinie ne finit pas), et une
+  largeur de gabarit se lit en `offsetWidth` (mise en page), pas au rectangle d'une carte encore à l'échelle .993
+  (trois gabarits, 715 au lieu de 720) ; (4) **un délai se COMPTE en évènements, pas en millisecondes** —
+  « dès le premier sondage raté » compte les sondages ratés avant la bascule (au plus un, A318, partage) ; la durée n'y
+  reste qu'un plafond large, celui que la charge allongeait. ; (5) **une mesure de la synchro se tient à l'écart des synchros de fond** — un
+  témoin précédent laisse une nouvelle tentative armée (`_retryTimer`) qui, sous charge, partait pendant la mesure (A764,
+  réception des fichiers : la pastille cède alors, à juste titre, à la synchro en cours) ; on attend celle qui tourne,
+  on désarme `_retryTimer` et `_pt`, et `Sync.full` est tenu le temps de la mesure. (6) **on attend l'APPEL, pas un texte qui
+  était déjà là** — « ＋ 1 h » attendait que `.pp-endt` ait un texte, qu'il avait avant le geste : on attend que l'appel
+  `link_extend` soit arrivé au serveur simulé (plafond 5 s ; `audit-lier`) ; (7) **« reste court » se lit comme un
+  RAFRAÎCHISSEMENT** — le silence de l'hôte vu de l'invité, lu une fois après 2,5 s, tombait juste avant le sondage
+  suivant (2 561 ms) : sur 6 s, il doit retomber au moins une fois et rester court à son plus bas (`audit-partage`) ;
+  la forme nouvelle est PLUS stricte — hôte réduit au silence dès le départ, l'ancienne lisait 1 538 ms (vert), la
+  nouvelle voit qu'il ne retombe jamais (rouge). Chacun vérifié CAPABLE D'ÉCHOUER (animation, transition ou correctif retirés → rouge ;
+  états restaurés) et stable à six exécutions parallèles.
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
   puis `npm run audit` **en non bloquant** — depuis A566, en trois lots parallèles et un bilan. `npm ci` (et non `npm install`) : la CI installe

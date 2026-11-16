@@ -2063,6 +2063,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.attMayDelete('u/u1/a1.pdf',me,peux)&&A.attMayDelete('l/libA/a1.pdf',me,peux)&&!A.attMayDelete('l/libB/a1.pdf',me,peux)&&!A.attMayDelete('u/u2/a1.pdf',me,peux)&&!A.attMayDelete('n’importe',me,peux));
    eq('A689 : les liens att: du contenu suivent (avec et sans page), les autres restent',
      A.attRelink('[a](att:x1) [b](att:x1#p3) [c](att:x10) [d](att:y)',[['x1','n1']]),'[a](att:n1) [b](att:n1#p3) [c](att:x10) [d](att:y)');
+   eq('A767 : la ligne d’une vidéo suit aussi son nouvel id, et seulement elle',
+     A.attRelink('![](vid:v1)\n![](vid:v10)\n[a](att:v1x)',[['v1','v2']]),'![](vid:v2)\n![](vid:v10)\n[a](att:v1x)');
+   ok('A767 : « introuvable sur le serveur » = 404, ou 400 « not found » ; jamais une panne de réseau ni un refus',
+     A.attIntrouvable({status:404,message:'REST 404'})&&A.attIntrouvable({status:400,message:'REST 400 {"statusCode":"404","error":"not_found","message":"Object not found"}'})
+     &&!A.attIntrouvable({status:400,message:'REST 400 invalid'})&&!A.attIntrouvable({status:503,message:'REST 503'})&&!A.attIntrouvable(new Error('Failed to fetch'))&&!A.attIntrouvable(null));
    const ents=[{id:'L1',library:'libA',docs:[{id:'d1'},{id:'d2'}]},{id:'P1',library:null,docs:[{id:'d1'},{id:'d9'}]},
      {id:'P2',docs:[{id:'d2'}],deletedAt:5},{id:'L2',library:'libB',docs:[{id:'d1'}]},{id:'P3',docs:[{id:'toString'},{id:'d2'}]}];
    eq('A690 : seuls les éléments PERSO vivants sont ré-identifiés ; jamais un élément de bibliothèque',
