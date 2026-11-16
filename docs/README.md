@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A771** à la v5.138 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A776** à la v5.139 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -393,6 +393,11 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A769 | `lot-v5-137-3.md` | La carte des images se tient par chemin (`imgCarteNorm`) : plus de va-et-vient d'une image citée dans deux espaces ; une image refusée ne se renvoie pas de la session (`_imgRefus`) ; la garde des suppressions voit les images ; message d'une vidéo introuvable |
 | A770 | `lot-v5-137-4.md` | Un fichier introuvable partout n'est plus recherché à chaque synchro : 30 min de répit (`attAbsentRecent`), ni requête ni bandeau « Réception » |
 | A771 | `lot-v5-138.md` | Administration › Stockage : les fichiers sans élément (cités nulle part, `att_cite`), listés en mots, supprimés après confirmation par l'API sous `att_orphan_del` — administrateur, plus de 7 jours, revérifié au moment même ; `rls-tests` § 22 — serveur à rejouer |
+| A772 | `lot-v5-139.md` | Une image ou une vidéo DANS l'élément de liste depuis l'éditeur : pastilles « Dans l'élément n : Image · Vidéo » du bloc liste ouvert (le numéro suit le curseur), « Insérer › Image » demande « Dans l'élément » ou « Après la liste » ; ligne écrite indentée sous l'élément (`mdListItemAt`, `mdListMediaIns`) ; admission sans écriture (`pImgAdmit`, `vidAdmit`) — clôt le « Pas fait » d'A642 |
+| A773 | `lot-v5-139.md` | La grille porte ses outils (planche 2A) : tête « Tableau · taille · ↶ ↷ ✕ », onglets ··· par colonne et ⋮ par ligne (menus : aligner, insérer, monter / descendre d'un cran, en-tête, supprimer), bandes « ＋ » ; en-têtes visibles sous la grille ; une case porte son média (vignette, ✕, « ＋ Image » · « ＋ Vidéo », `mdCellSplit`) ; au doigt, barre au pouce (‹ › Ligne ▾ Colonne ▾), 1ʳᵉ colonne collée, cases de 132 px ; téléphone : « Annuler · Tableau · ↶ · OK » — amende A609, A755 |
+| A774 | `lot-v5-139.md` | En mise en forme en direct, toucher un tableau ouvre la grille (aucun bloc ouvert derrière) ; « Modifier le Markdown » ouvre le bloc en texte ; pastille « Modifier en grille » retirée — amende A609 |
+| A775 | `lot-v5-139.md` | La taille d'une vidéo comme celle d'une image : cadre, poignée, six crans, « Remplacer… » ; champ ajouté `p.videos[].scale` (gardé par `safeVideo`, absent = Pleine), rendu par classe `MD_SC` |
+| A776 | `lot-v5-139.md` | Le dépôt qui vise (planche 3A) : au-dessus du contenu rédigé, pas de voile ; ligne bleue et étiquette en mots — entre deux blocs, dans un élément de liste, dans une case d'un tableau à médias ; en mode Texte une ligne entière (`mdDropAt`, `mdLinesIns`), l'aperçu en pâle ; vidéos déposables ; une seule écriture (`upZone`, `mdDropZone`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

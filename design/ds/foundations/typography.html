@@ -8794,6 +8794,9 @@
   @media (min-width:560px){
     .md-fig.w25 img{width:25%}.md-fig.w33 img{width:33%}.md-fig.w50 img{width:50%}
     .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
+    /* A775 : une vidéo réduite, à la même part qu'une image (son réceptacle porte la vidéo). */
+    .md-vfig.w25>.md-vbox{width:25%}.md-vfig.w33>.md-vbox{width:33%}.md-vfig.w50>.md-vbox{width:50%}
+    .md-vfig.w66>.md-vbox{width:66%}.md-vfig.w75>.md-vbox{width:75%}
   }
   .md-body a,.md-preview a{color:var(--act);text-decoration:underline}
   /* Barre regroupée (v5.44) : collante sous l'en-tête tant que le champ défile ; rendue au flux
@@ -8897,6 +8900,12 @@
   .mdb-chip.vig.on{border-color:var(--warn-line);background:var(--warn-soft);color:var(--warn)}
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
+  /* A772 : le bloc liste ouvert — « Dans l'élément n : » puis Image · Vidéo (le libellé suit le curseur). */
+  .mdb-lctx{align-self:center;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdb-chip:disabled{opacity:.45;cursor:default}
+  @media (pointer:coarse){.mdb-tools .mdb-chip{min-height:36px}}
+  /* A772-A773 : la vignette d'une image dans un choix de média (menu ou feuille). */
+  .mm-thumb{display:block;width:40px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
   .mdb-grab{position:absolute;top:-4px;right:34px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}   /* à côté du crayon : le texte garde l'alignement du formulaire */
   .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
   @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
@@ -9024,22 +9033,99 @@
   .md-head .md-grid{width:auto;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:700;color:var(--act);border-color:var(--act);flex:none}
   /* Fenêtre des outils (v5.44) : tableau en grille, collage mis en forme. */
   .mdw-foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
-  .mdg-dim{margin:0 0 8px;font-size:13.5px;color:var(--ink-2)}
-  .mdg-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 12px}
-  .mdg-grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-  .mdg-al-l{font-size:12px;font-weight:700;color:var(--ink-2)}
-  .mdg-al{width:216px}
-  .mdg-tpl{margin-left:auto}
-  .mdg-scroll{overflow-x:auto;border:1px solid var(--line-strong);border-radius:var(--r-2)}
-  .mdg{display:grid;grid-template-columns:repeat(var(--mdg-n),minmax(112px,1fr))}
-  .mdg-in{min-width:0;min-height:44px;resize:none;overflow:hidden;line-height:1.35;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:var(--work);color:var(--ink);padding:12px 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
-  .mdg-in.mdg-h{background:var(--amb);font-weight:800}
+  /* A773 — LA GRILLE PORTE SES OUTILS (planche « médias, tableaux, dépôt », forme 2A retenue) : la tête ne garde que le
+     titre, la taille du tableau, ↶ ↷ et ✕ ; un onglet ··· au-dessus de chaque colonne, ⋮ à gauche de chaque ligne (en
+     bleu pour la case active : l'action et le bloc courant, règle 8), deux bandes « ＋ » au bord. Les en-têtes restent
+     VISIBLES sous la grille. Au doigt : ni onglets ni bandes, une barre au pouce collée en bas, la 1ʳᵉ colonne collée à
+     gauche quand la grille défile (cases de 112 px au moins : on fait défiler, on ne rogne jamais). */
+  #mdToolModal .mdt-hx{display:flex;align-items:center;gap:2px;flex:1;min-width:0;justify-content:flex-end;margin:-4px -6px -4px 0}
+  #mdToolModal .mdt-hx:empty{display:none}
+  #mdToolModal.mdt-tbl .ai-top h3{flex:none}
+  #mdToolModal.mdt-tbl .ai-top{align-items:center}
+  .mdg-dim{margin:0 auto 0 4px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .mdg-ud{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--r-1);background:none;color:var(--ink);cursor:pointer;flex:none}
+  .mdg-ud:hover:not(:disabled){background:var(--amb-2)}
+  .mdg-ud:disabled{color:var(--ink-soft);opacity:.45;cursor:default}
+  .mdg-ud:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-ph,.mdg-mdl.mdg-ph{display:none}
+  .mdg-mdl{display:inline-flex;align-items:center;min-height:36px;margin-right:auto;padding:0 4px;border:0;background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-scroll{overflow-x:auto;padding:2px}
+  .mdg{display:grid;grid-template-columns:28px repeat(var(--mdg-n),minmax(112px,1fr)) 38px}
+  .mdg-tab{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
+  .mdg-tab>span{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-1);letter-spacing:1px}
+  .mdg-tc{justify-self:center;width:48px;height:32px}
+  .mdg-tc>span{width:40px;height:20px}
+  .mdg-tr{align-self:center;justify-self:start;width:28px;min-height:36px}
+  .mdg-tr>span{width:20px;height:32px}
+  .mdg-tab:hover>span{background:var(--amb-2)}
+  .mdg-tab.on>span{background:var(--act);color:var(--on-primary)}
+  .mdg-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-1)}
+  .mdg-c{position:relative;min-width:0;display:flex;flex-direction:column;background:var(--work);border-right:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong)}
+  .mdg-c.mdg-l{border-left:1px solid var(--line-strong)}
+  .mdg-c.mdg-t{border-top:1px solid var(--line-strong)}
+  .mdg-c.mdg-h{background:var(--amb)}
+  .mdg-c:focus-within{z-index:2}
+  .mdg-in{min-width:0;min-height:44px;resize:none;overflow:hidden;line-height:1.35;border:0;border-radius:0;background:transparent;color:var(--ink);padding:12px 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
+  .mdg-in.mdg-h{font-weight:800}
   .mdg-hx.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
   .mdg-in.ta-c{text-align:center}.mdg-in.ta-r{text-align:right}
-  .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}
-  .mdg-src{margin-top:12px;background:var(--amb-2);border-radius:var(--r-2);padding:8px 12px}
-  .mdg-src summary{padding:8px 0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);cursor:pointer}
-  .mdg-pre,.mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
+  .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}   /* l'anneau sur le champ : audit-a11y le mesure là */
+  /* A773 (forme 1C) : le média d'une case, en vignette sous son libellé ; ✕ le retire de la case (l'image reste dans le
+     protocole tant qu'un autre passage la cite — le ménage de sortie s'en charge sinon). */
+  .mdg-med{position:relative;margin:0 8px 8px;border-radius:var(--r-1);overflow:hidden;background:var(--amb-2)}
+  .mdg-med img{display:block;width:100%;height:auto;max-height:160px;object-fit:cover}
+  .mdg-vph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;padding:6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdg-rm{position:absolute;top:4px;right:4px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:var(--glass);color:var(--ink);font:inherit;font-weight:800;cursor:pointer;box-shadow:var(--shadow-float)}
+  .mdg-rm:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-add{display:none;flex-wrap:wrap;gap:6px;padding:0 8px 8px}
+  .mdg-c.act .mdg-add{display:flex}
+  .mdg-addb{flex:1 1 72px;min-height:32px;padding:0 6px;border:1.5px dashed var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;white-space:nowrap}
+  .mdg-addb:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-band{display:flex;align-items:center;justify-content:center;min-height:32px;padding:0;border:1.5px dashed var(--line-strong);border-radius:var(--r-1);background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+  .mdg-band:hover:not(:disabled){border-color:var(--act);color:var(--act)}
+  .mdg-band:disabled{opacity:.45;cursor:default}
+  .mdg-band:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-bc{grid-column:-2/-1;grid-row:2/span var(--mdg-r);margin-left:6px}
+  .mdg-br{grid-column:2/-2;margin-top:6px}
+  .mdg-mi{display:inline-flex;width:18px;justify-content:center;font-weight:800}
+  .mdg-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
+  .mdg-opt-l{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdg-opt-m{margin-left:8px}
+  .mdg-tpl{margin-left:auto}
+  .mdg-hint{margin:8px 0 0}
+  .mdg-thumb{display:none}
+  @media (pointer:coarse){
+    .mdg-tab,.mdg-k,.mdg-band,.mdg-hint{display:none}
+    .mdg-c.mdg-l{position:sticky;left:0;z-index:1}
+    .mdg-c.mdg-l:focus-within{z-index:3}
+    .mdg-add{flex-direction:column}
+    .mdg-add .mdg-addb{flex:none}
+    .mdg{grid-template-columns:repeat(var(--mdg-n),minmax(132px,1fr))}
+    .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
+    .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+    .mdg-thumb .mdg-tbn{font-size:var(--t-step)}
+    .mdg-thumb .mdg-tbm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mdg-thumb button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  }
+  /* Au téléphone, la fenêtre est plein écran (règle des dialogues) : « Annuler · Tableau · ↶ · OK » en tête, le pied
+     retiré (la barre au pouce prend le bas), « Modifier le Markdown » sous la grille. */
+  @media (max-width:779.98px){
+    #mdToolModal.mdt-tbl .mdt-hx{display:contents}
+    #mdToolModal.mdt-tbl .mdg-ph{display:inline-flex}
+    #mdToolModal.mdt-tbl :is(.ai-x,.mdw-foot,.mdg-dim,[data-mdtw="redo"]){display:none}
+    #mdToolModal.mdt-tbl .ai-top{gap:6px}
+    #mdToolModal.mdt-tbl .ai-top h3{order:1;flex:1;text-align:center}
+    #mdToolModal.mdt-tbl .ai-top [data-mdtw="x"]{order:0}
+    #mdToolModal.mdt-tbl .ai-top [data-mdtw="undo"]{order:2}
+    #mdToolModal.mdt-tbl .ai-top [data-mdtw="ok"]{order:3}
+    #mdToolModal.mdt-tbl .mdg-mdl.mdg-ph{min-height:44px;margin:8px 0 0}
+    /* La barre au pouce au BAS de l'écran : la carte en colonne, le corps s'étire (clavier ouvert, elle reste collée). */
+    #mdToolModal.mdt-tbl .ai-card{display:flex;flex-direction:column}
+    #mdToolModal.mdt-tbl #mdToolBody{flex:1;display:flex;flex-direction:column}
+    #mdToolModal.mdt-tbl .mdg-thumb{margin-top:auto}
+  }
+  .mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
   .mdw-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
   .mdw-chip{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:var(--r-1);background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:700}
   .mdw-chip.warn{background:var(--warn-soft);color:var(--warn)}
@@ -9131,6 +9217,21 @@
   .mds-img.w25,.mds-b.w25{width:25%}.mds-img.w33,.mds-b.w33{width:33%}.mds-img.w50,.mds-b.w50{width:50%}
   .mds-img.w66,.mds-b.w66{width:66%}.mds-img.w75,.mds-b.w75{width:75%}
   .mds-img img{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  /* A775 : la vidéo se règle au même cadre — un réceptacle à son ratio, glyphe et mot. */
+  .mds-vph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:4/3;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  /* A776 — LE DÉPÔT QUI VISE : la ligne bleue (deux pastilles aux bouts) et son étiquette ; la case visée se cadre en
+     tirets, l'élément visé prend le fond du bloc courant ; l'aperçu montre le même endroit, en pâle. Rien n'y capte le
+     pointeur (le dépôt passe au travers). */
+  .mdd-line{position:fixed;z-index:62;height:3px;margin-top:-1px;border-radius:3px;background:var(--act);pointer-events:none}
+  .mdd-line::before,.mdd-line::after{content:'';position:absolute;top:-4px;width:11px;height:11px;border-radius:999px;background:var(--act)}
+  .mdd-line::before{left:-6px}.mdd-line::after{right:-6px}
+  .mdd-line.mdd-only{height:0;background:none}
+  .mdd-line.mdd-only::before,.mdd-line.mdd-only::after{display:none}
+  .mdd-lbl{position:absolute;right:12px;bottom:8px;white-space:nowrap;padding:4px 10px;border-radius:999px;background:var(--act);color:var(--on-primary);font-size:var(--t-meta);font-weight:700;box-shadow:var(--shadow-float)}
+  .mdd-line.mdd-only .mdd-lbl{bottom:auto;top:0;right:auto;left:50%;transform:translateX(-50%)}
+  .mdd-pale{opacity:.45}
+  .mdd-cell{outline:2px dashed var(--act);outline-offset:-2px;background:var(--primary-soft)}
+  .mdd-li{background:var(--primary-soft);border-radius:var(--r-1)}
   .mds-grip{position:absolute;top:50%;right:-12px;width:24px;height:44px;transform:translateY(-50%);border-radius:999px;background:var(--act);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
   .mds-grip::before{content:'';position:absolute;inset:14px 8px;border-left:2px solid var(--on-primary);border-right:2px solid var(--on-primary)}
   .mds-tip{position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}

@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [5.139.0] — 2026-11-16
+L'éditeur de protocole fait ce que l'import Notion faisait déjà : des images et des vidéos dans une liste et dans un
+tableau, une grille de tableau redessinée, la taille d'une vidéo, un glisser-déposer qui montre où le fichier ira
+(A772-A776). Aucune mise à jour du serveur.
+- **Une image ou une vidéo DANS un élément de liste** : ouvrez la liste, placez le curseur dans l'élément — « Dans
+  l'élément 2 : Image · Vidéo ». On choisit depuis l'appareil ou parmi les images du protocole ; elle s'affiche sous
+  l'élément, la liste ne se coupe pas. « ＋ Insérer › Image » demande aussi « Dans l'élément » ou « Après la liste ».
+- **Toucher un tableau ouvre la grille**, la même fenêtre qu'à sa création ; « Modifier le Markdown » reste à un
+  toucher. La pastille « Modifier en grille » disparaît.
+- **La grille, sans la rangée de gros boutons** : un onglet ··· au-dessus de chaque colonne et ⋮ à gauche de chaque
+  ligne ouvre son menu (aligner, insérer, monter / descendre d'un cran, en-tête, supprimer) ; des bandes « ＋ » au bord
+  ajoutent une colonne ou une ligne ; les en-têtes restent visibles sous la grille.
+- **Une case peut porter une image ou une vidéo** : vignette sous le libellé, ✕ pour la retirer, « ＋ Image » ·
+  « ＋ Vidéo » dans la case active.
+- **Au téléphone, la grille se parcourt au pouce** : une barre en bas (‹ › case précédente / suivante, « Ligne ▾ »,
+  « Colonne ▾ ») garde le clavier ouvert ; les cases ne sont plus rognées (la grille défile, la 1ʳᵉ colonne reste
+  visible) ; « Annuler · Tableau · ↶ · OK » en tête.
+- **La taille d'une vidéo** se règle comme celle d'une image (¼ à Pleine, poignée) ; « Remplacer… » garde la taille.
+  Un appareil resté sur une version antérieure montre la vidéo en pleine largeur.
+- **Glisser-déposer : on voit où ça va** : une ligne bleue suit le pointeur et dit l'endroit — entre deux blocs, dans
+  un élément de liste, dans une case d'une grille d'images ; en mode Texte, la ligne visée (jamais au milieu d'un
+  tableau), et l'aperçu montre le même endroit. Les vidéos se déposent aussi.
+
 ## [5.138.0] — 2026-11-16
 Administration › Stockage : les fichiers que plus rien n'utilise, listés et supprimables (A771). ⚠ **Serveur à mettre à
 jour** : rejouer `supabase/schema.sql` (sans cela, la liste suit l'ancienne règle et aucune suppression ne passe).
@@ -265,8 +288,3 @@ Exporter une aide ou un protocole : avec ou sans les fichiers joints, toujours d
 - **iPhone, application installée** : l'archive .zip est préparée avant la question, si bien que le tap l'envoie
   aussitôt à la feuille de partage — elle pouvait auparavant ne pas s'ouvrir et l'archive ne jamais arriver.
 - Les menus disent « Exporter l’aide » / « Exporter le protocole », sans « (.json) », qui n'était plus juste.
-
-## [5.127.2] — 2026-11-14
-Sur un grand écran, « Dans les documents » est aligné sur les résultats (A750).
-- Sous les résultats d'une recherche, les documents trouvés partaient vers la gauche sur un écran large, alors que
-  leur titre et la liste au-dessus étaient centrés. Ils sont maintenant alignés sur la liste, à toutes les largeurs.
