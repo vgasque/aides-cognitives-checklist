@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.137.2] — 2026-11-16
+⚠ **Correctif urgent** : depuis la v5.134, chaque ouverture de l'app effaçait les vidéos de l'appareil et demandait
+leur suppression sur le serveur (A768). Aucune mise à jour du serveur. **Mettre à jour tous les appareils.**
+- **Les vidéos ne sont plus effacées à l'ouverture de l'app.** Le ménage du démarrage, qui retire les fichiers que
+  plus rien n'utilise, ne reconnaissait que les documents PDF : il prenait chaque vidéo pour un fichier abandonné.
+  Même défaut à l'abandon d'un brouillon. Les deux reconnaissent désormais les vidéos, et tout fichier que le texte
+  d'un protocole cite encore.
+- **Une suppression sur le serveur se revérifie au moment de partir** : un fichier qu'un élément cite encore à cet
+  endroit n'est jamais supprimé, même s'il avait été mis en file à tort par une version précédente.
+- **Récupération** : une vidéo absente de sa bibliothèque est aussi cherchée dans votre espace Perso du serveur (là où
+  elle était partie avant le déplacement de son protocole) ; retrouvée, elle revient sur l'appareil et repart vers la
+  bibliothèque — « ↻ n fichiers retrouvés dans votre espace Perso du serveur ».
+- Si une lecture des protocoles échoue pendant une synchro, plus rien n'est effacé à ce passage.
+- Une vidéo qui n'était plus nulle part (ni sur l'appareil, ni sur le serveur) ne peut pas revenir d'elle-même : la
+  réimporter depuis son fichier d'origine (l'export Notion, par exemple).
+
 ## [5.137.1] — 2026-11-16
 ⚠ Correctif : une vidéo pouvait rester absente du serveur alors que l'appareil qui l'avait ajoutée disait
 « Synchronisé » (A767). Aucune mise à jour du serveur.
@@ -246,10 +262,3 @@ Dans un PDF, le surlignage tombe sur le mot, et un zoom au doigt redevient net (
 - À très fort zoom (400 %), le texte reste moins net qu'à 140 %, même avec les boutons : la page entière est
   dessinée dans la limite de mémoire de l'iPhone. Une amélioration est notée, à décider
   (`docs/decisions/lot-v5-126-6.md`).
-
-## [5.126.5] — 2026-11-14
-Dans un PDF, zoomer avec les boutons ne fait plus changer de page (A745).
-- Sur un long document, « + » ou « − » déplaçait la vue vers une autre page : de la page 30, deux « + » menaient à
-  la page 17. Le mot surligné qu'on lisait sortait donc de l'écran.
-- La page que vous regardez reste maintenant au centre de l'écran quand vous zoomez avec les boutons, quand vous
-  choisissez « Page » ou « Largeur », et quand la fenêtre change de taille. Le pincer gardait déjà sa place.

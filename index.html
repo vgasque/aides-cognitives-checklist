@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-SO0hsN+wsxsTexQwZSNOF0RXpuCRTKHS85sWDhHJPOs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-XCgGeA+UQOCHjKlqcYywe9Uxf4//NtO2JTt09+RR7js='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10853,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.137.1';
+const APP_VERSION='5.137.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15245,10 +15245,13 @@ async function softDeleteProtocol(p){if(!p)return;
 // tous les chemins (retrait dans l'éditeur, suppression de fiche, import écrasant, abandon...).
 // Comptage de références IMPLICITE : un document PARTAGÉ entre plusieurs fiches survit tant que
 // l'une d'elles le référence. (La section Protocoles ajoutera ses références ici.)
+/* A768 — ⚠ CE MÉNAGE NE COMPTAIT QUE LES DOCUMENTS : depuis la v5.134 (A757), CHAQUE démarrage effaçait toutes les vidéos
+   de l'appareil et mettait leur copie du serveur en file de suppression — rejouée par la synchro suivante. Les
+   références se lisent désormais en un seul endroit (`attCiteIds` : documents, vidéos, et toute ligne `att:`/`vid:` du
+   texte), pour tous les ménages. */
 async function gcAttachments(entities){
   if(!supportsAttachments())return;
-  try{const ref=new Set();
-    (entities||[]).forEach(f=>{if(f&&Array.isArray(f.docs))f.docs.forEach(a=>{if(a&&a.id)ref.add(a.id);});});
+  try{const ref=attCiteIds(entities);
     // Par IDS d'abord : getAtts() chargeait TOUS les ArrayBuffer en mémoire à chaque démarrage
     // (5 PDF × 10 Mo = pic ~50 Mo — WebKit/iOS tue les onglets gourmands). Seuls les ORPHELINS
     // (rares) sont matérialisés, un par un, pour lire leur remotePath avant suppression.
@@ -28949,7 +28952,7 @@ function openCxTargetPicker(f,i,rerender,trigger){
 let draftNewAtts=[];
 async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   if(!ids.length||!supportsAttachments())return;
-  const ref=new Set();fiches.concat(protocols).forEach(x=>(x.docs||[]).forEach(a=>ref.add(a.id)));
+  const ref=attCiteIds(fiches.concat(protocols));   // A768 : les vidéos aussi
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId&&b.kind!=='review').map(b=>`<option value="${esc(b.id)}" ${b.id===value?'selected':''}>${esc(String(b.title||'').trim()||('Bloc sans titre ('+(blocks.indexOf(b)+1)+')'))}</option>`).join('');return `<select data-target aria-label="Bloc suivant"><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
 function imageEditor(b){return b.image?`<span class="imgrow"><img src="${b.image}" alt=""><button type="button" class="btn sm danger" data-bimgdel>Retirer</button></span>`:`<button type="button" class="linkbtn" data-bimg>+ Ajouter</button>`;}
@@ -32628,6 +32631,21 @@ function attRelink(body,chg){let b=String(body==null?'':body);
   (chg||[]).forEach(([o,n])=>{b=b.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#').split('](vid:'+o+')').join('](vid:'+n+')');});return b;}
 const attMe=()=>((Auth.user()||{}).id||'');
 const attCites=(x,id)=>(x.docs||[]).concat(x.videos||[]).some(a=>a&&a.id===id);   // A767 : une vidéo est citée comme un document
+/* A768 — CE QUI EST CITÉ, POUR TOUT MÉNAGE QUI EFFACE — PURE (testée). Documents ET vidéos de chaque élément (vivant ou
+   tombe : une tombe reste restaurable), et, par prudence, tout id qu'une ligne du texte cite (`](att:ID` ou `](vid:ID)`) :
+   un binaire qu'une ligne nomme encore ne s'efface jamais sur la foi d'une liste. */
+function attCiteIds(entities){const ref=new Set();
+  (entities||[]).forEach(f=>{if(!f||typeof f!=='object')return;
+    (Array.isArray(f.docs)?f.docs:[]).concat(Array.isArray(f.videos)?f.videos:[]).forEach(a=>{if(a&&typeof a.id==='string')ref.add(a.id);});
+    if(typeof f.body==='string'&&/\]\((?:att|vid):/.test(f.body))for(const m of f.body.matchAll(/\]\((?:att|vid):([A-Za-z0-9_-]{1,64})/g))ref.add(m[1]);});
+  return ref;}
+/* A768 — UNE SUPPRESSION DISTANTE SE REVÉRIFIE AU MOMENT DE PARTIR — PURE (testée). La file (`ac-att-del`) a reçu des
+   chemins à tort (le ménage de démarrage d'A757-A767) ; elle est rejouée plus tard, parfois par une version suivante. Un
+   chemin ne part que si aucun élément VIVANT ne cite son fichier DANS L'ESPACE de ce chemin (là où les autres appareils
+   le cherchent). L'ancien chemin d'un déplacement reste supprimable : l'espace qui cite est l'autre. */
+function attDelSur(path,refs,me){const m=/\/([A-Za-z0-9_-]{1,64})\.[a-z0-9]{2,4}$/.exec(String(path||''));if(!m)return true;
+  const sp=attPathSpace(path,me);if(sp===undefined)return true;
+  return !(refs&&refs[m[1]]||[]).some(r=>r&&!r.del&&(r.lib||null)===sp);}
 /* L'élément reçoit SON exemplaire de chaque document (copie d'un espace vers un autre). Binaire absent de l'appareil :
    on tente de le prendre là où il vit (`from`), sinon la référence est RETIRÉE — jamais un id partagé entre deux
    espaces, jamais un bouton « Document indisponible ». Rend le nombre de documents non copiés. */
@@ -37301,17 +37319,12 @@ const Sync={
   async _syncAttachments(){
     if(!supportsAttachments())return;
     const uidv=Auth.user().id;let firstErr=null;
-    // 1. Suppressions distantes en attente. 404 = déjà supprimé ailleurs ; 400/403 = ne passera
-    // jamais (droits perdus, chemin invalide) -> on retire de la file (l'orphelin éventuel reste
-    // visible de l'app-admin via list_orphan_attachments) ; autres erreurs (réseau, 5xx) -> la
-    // file est conservée et retentée.
-    for(const p of attDelQueue()){
-      try{await storageReq('DELETE',p);setAttDelQueue(attDelQueue().filter(x=>x!==p));}
-      catch(e){if(e.status===404||e.status===403||e.status===400)setAttDelQueue(attDelQueue().filter(x=>x!==p));
-        else if(!firstErr)firstErr=e;}}
-    // 2. Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
+    // 2 (lu d'abord, A768). Références locales : chemin attendu par document (le scope d'une entité VIVANTE prime
     // sur celui d'un tombstone) + droit de pousser (jamais d'upload par un simple lecteur).
-    const all=(await Data.getAll()).concat(await Data.getProtocols().catch(()=>[]));
+    /* A768 : une lecture des protocoles qui ÉCHOUE n'est plus « aucun protocole » — ce `[]` purgeait tous leurs
+       documents et vidéos. Sans elle, rien ne s'efface ce passage-ci. */
+    let lu=true;const protos=await Data.getProtocols().catch(()=>{lu=false;return [];});
+    const all=(await Data.getAll()).concat(protos);
     /* A689 : on ne retient plus « le chemin de la dernière entité vivante », mais QUI cite chaque document
        (`refs`). La décision est dans `attPlan` (pure) : un téléversement ne va qu'à l'espace de l'enregistrement,
        jamais là où une ligne tirée le voudrait. */
@@ -37319,6 +37332,17 @@ const Sync={
     all.forEach(f=>{(f.docs||[]).concat(f.videos||[]).forEach(a=>{if(!a||!a.id||typeof a.id!=='string'||badKey(a.id))return;   // A757 : les vidéos aussi
       if(a.mime)ext[a.id]=attExt(a.mime);if(a.size>0)taille[a.id]=a.size;
       (refs[a.id]=refs[a.id]||[]).push({lib:f.library||null,del:!!f.deletedAt,edit:canEditFiche(f)});});});
+    const cites=attCiteIds(all.concat(fiches,protocols));   // A768 : ce qu'une ligne de texte nomme encore ne se purge pas
+    // 1. Suppressions distantes en attente. 404 = déjà supprimé ailleurs ; 400/403 = ne passera
+    // jamais (droits perdus, chemin invalide) -> on retire de la file (l'orphelin éventuel reste
+    // visible de l'app-admin via list_orphan_attachments) ; autres erreurs (réseau, 5xx) -> la
+    // file est conservée et retentée. A768 : un chemin qu'un élément vivant cite encore dans cet espace est RETIRÉ de
+    // la file sans être supprimé (`attDelSur`) ; sans lecture complète des éléments, la file attend.
+    if(lu)for(const p of attDelQueue()){
+      if(!attDelSur(p,refs,uidv)){setAttDelQueue(attDelQueue().filter(x=>x!==p));continue;}
+      try{await storageReq('DELETE',p);setAttDelQueue(attDelQueue().filter(x=>x!==p));}
+      catch(e){if(e.status===404||e.status===403||e.status===400)setAttDelQueue(attDelQueue().filter(x=>x!==p));
+        else if(!firstErr)firstErr=e;}}
     // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
     // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
     const draftIds=new Set(draftNewAtts
@@ -37330,7 +37354,7 @@ const Sync={
     const moiPeux=(id,sp)=>(refs[id]||[]).some(r=>!r.del&&r.edit&&(r.lib||null)===(sp===undefined?null:sp));
     for(const rec of await IDB.getAtts()){
       const pl=attPlan(rec,refs[rec.id]||[],uidv);
-      if(pl.act==='purge'){if(draftIds.has(rec.id))continue;  // brouillon : on ne touche à rien
+      if(pl.act==='purge'){if(draftIds.has(rec.id)||!lu||cites.has(rec.id))continue;  // brouillon, lecture incomplète, ou nommé par un texte (A768) : on ne touche à rien
         // copie cloud -> file de suppression — chez moi, ou dans une bibliothèque que je peux éditer (A689)
         if(rec.remotePath&&attMayDelete(rec.remotePath,uidv,canEditScope))queueAttDelete(rec.remotePath);
         try{await IDB.delAtt(rec.id);}catch(e){}
@@ -37386,12 +37410,20 @@ const Sync={
           // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
           /* A767 : absent de TOUS les chemins (404 — ou 400 « not found », selon la version du stockage) ≠ réseau en
              panne : la vidéo le dit (« pas encore sur le serveur »), au lieu de promettre qu'elle arrive. */
-          let absent=true,eu=false;
-          for(const pth of attFetchPaths(id,refs[id],uidv,ext[id])){try{await attFetchOne(id,pth);eu=true;break;}catch(e){if(!attIntrouvable(e))absent=false;}}
+          let absent=true,eu=false;const chemins=attFetchPaths(id,refs[id],uidv,ext[id]);
+          for(const pth of chemins){try{await attFetchOne(id,pth);eu=true;break;}catch(e){if(!attIntrouvable(e))absent=false;}}
+          /* A768 — LE REPLI DE RÉCUPÉRATION : un fichier cité dans une bibliothèque, introuvable à son chemin, est cherché
+             dans MON Perso — là où il était parti avant le déplacement de son élément (A767), et où le ménage fautif ne
+             l'a pas supprimé. Retrouvé : il est remis à l'espace qui le cite, et repart à la synchro suivante. */
+          const perso=attStoragePath(null,uidv,id,ext[id]||'pdf'),ou=(attRefSpaces(refs[id]).spaces.find(sp=>sp!==null&&canEditScope(sp)));
+          if(!eu&&absent&&ou&&chemins.indexOf(perso)<0){try{await attFetchOne(id,perso);eu=true;
+              const r=await IDB.getAtt(id);if(r){r.scope=ou;r.dirty=1;await attPut(r);}this._attRepris=(this._attRepris||0)+1;}
+            catch(e){if(!attIntrouvable(e))absent=false;}}
           if(!eu&&absent)_attAbsents.add(id);else _attAbsents.delete(id);
           if(!eu)vidRefresh(id);
           k++;o+=taille[id]||0;}
       }finally{this._attDl=false;refreshAttOffline();
+        if(this._attRepris){toast('↻ '+nb(this._attRepris,'fichier')+' retrouvé'+(this._attRepris>1?'s':'')+' dans votre espace Perso du serveur : '+(this._attRepris>1?'ils repartent':'il repart')+' vers la bibliothèque.',8000);this._attRepris=0;try{this.schedule();}catch(e){}}
         if(dit&&_syncProg.quoi==='fichiers'&&_syncProg.sens==='in'){syncProg('',0,0,'');if(!this.running&&Auth.signedIn())setSyncChip('ok','Synchronisé');}}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
@@ -40403,7 +40435,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attCiteIds,attDelSur,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,
