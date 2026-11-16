@@ -11978,6 +11978,70 @@ await sec('A767 · une vidéo suit son protocole d’un espace à l’autre ; un
   await page.close();
 });
 
+/* A768 — UNE VIDÉO SURVIT AU DÉMARRAGE. Le ménage de démarrage (`gcAttachments`) ne comptait que les documents : chaque
+   lancement effaçait les vidéos de l'appareil ET mettait leur copie du serveur en file de suppression. Aucun témoin ne
+   RELANÇAIT l'app. Ici : (1) une vidéo de bibliothèque, envoyée, puis l'app relancée — elle reste, rien n'est supprimé
+   au serveur ; (2) une file de suppression déjà empoisonnée (un chemin qu'un élément vivant cite) ne part pas ; (3) une
+   vidéo effacée par l'ancien ménage, restée dans mon Perso du serveur, est retrouvée et repart vers la bibliothèque ;
+   (4) l'abandon d'un brouillon n'efface pas une vidéo qu'un élément enregistré cite. */
+await sec('A768 · une vidéo survit au démarrage : ménages, file de suppression, récupération', async () => {
+  const srv={files:new Map(),dels:[],rows:{protocols:new Map(),cognitive_aids:new Map()}},me='00000000-0000-0000-0000-0000000000aa';
+  const page=await br.newPage({viewport:{width:1100,height:850}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,async route=>{const q=route.request(),u=decodeURIComponent(q.url()),M=q.method();
+    // Les lignes aussi : au relancement, la synchro envoie puis RÉCONCILIE (`select=id`) — un serveur sans lignes ferait
+    // retirer le protocole de bibliothèque, et le témoin mesurerait le simulateur.
+    if(/\/rest\/v1\/memberships/.test(u))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{role:'admin',library_id:'lib8',libraries:{id:'lib8',name:'SMUR'}}])});
+    const tm=u.match(/\/rest\/v1\/(protocols|cognitive_aids)(?:\?|$)/);
+    if(tm&&M==='POST'){for(const r of JSON.parse(q.postData()||'[]'))srv.rows[tm[1]].set(r.id,r);return route.fulfill({status:201,body:''});}
+    if(tm&&M==='GET'){const all=[...srv.rows[tm[1]].values()];
+      if(/select=id&order=id/.test(u))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(all.map(r=>({id:r.id})))});
+      if(/select=id,updated_at,deleted_at/.test(u))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(all.map(r=>({id:r.id,updated_at:r.updated_at,deleted_at:r.deleted_at})))});
+      const ids=((u.match(/id=in\.\(([^)]*)\)/)||[])[1]||'').split(',').filter(Boolean);
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(ids.length?all.filter(r=>ids.includes(r.id)):[])});}
+    const sm=u.match(/\/storage\/v1\/object\/attachments\/(.+)$/);
+    if(sm&&M==='POST'){srv.files.set(sm[1],q.postDataBuffer());return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+    if(sm&&M==='DELETE'){srv.dels.push(sm[1]);srv.files.delete(sm[1]);return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+    if(sm&&M==='GET'){const b=srv.files.get(sm[1]);return b?route.fulfill({status:200,contentType:'application/octet-stream',body:b})
+      :route.fulfill({status:400,contentType:'application/json',body:'{"statusCode":"404","error":"not_found","message":"Object not found"}'});}
+    if(/\/storage\/v1\/object\/list\/attachments/.test(u)){const pre=(JSON.parse(q.postData()||'{}').prefix||'')+'/';
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([...srv.files.keys()].filter(k=>k.startsWith(pre)&&!k.slice(pre.length).includes('/')).map(k=>({name:k.slice(pre.length)})))});}
+    route.fulfill({status:200,contentType:'application/json',body:'[]'});});
+  await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'00000000-0000-0000-0000-0000000000aa',email:'moi@x.fr'}}));});
+  const lance=async()=>{await amorce(page);await page.evaluate(async()=>{for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);myLibraries.length=0;myLibraries.push({id:'lib8',name:'SMUR',role:'admin'});});};
+  await page.goto(`http://localhost:${port}/index.html`);await lance();
+  const passe=()=>page.evaluate(async()=>{Sync.running=true;try{await Sync._syncAttachments();}finally{Sync.running=false;}for(let i=0;i<60&&Sync._attDl;i++)await __acCalme(100);});
+  // (1) une vidéo de bibliothèque, envoyée, puis l'app RELANCÉE
+  await page.evaluate(async()=>{const by=new Uint8Array(3000);by.set([0x1a,0x45,0xdf,0xa3]);
+    await IDB.putAtt({id:'v768',buf:by.buffer.slice(0),size:by.byteLength,type:'video/webm',createdAt:Date.now(),dirty:1,remotePath:null});
+    const p=migrateProtocol({id:'p768',title:'Écho cardiaque',status:'draft',library:'lib8',body:'![](vid:v768)',videos:[{id:'v768',name:'coupe.webm',size:3000,mime:'video/webm'}]});
+    protocols.push(p);await persistProtocol(p);});
+  await passe();
+  const envoye=srv.files.has('l/lib8/v768.webm');
+  await page.reload();await lance();await passe();
+  const r1=await page.evaluate(async()=>{const r=await IDB.getAtt('v768');return {local:!!(r&&await attBuf(r)),file:attDelQueue()};});
+  t('A768 · relancer l’app ne touche pas à une vidéo : elle reste sur l’appareil, rien n’est supprimé au serveur',
+    envoye&&r1.local&&srv.files.has('l/lib8/v768.webm')&&!srv.dels.some(d=>/v768/.test(d))&&!r1.file.some(d=>/v768/.test(d)),JSON.stringify({envoye,r1,dels:srv.dels,fichiers:[...srv.files.keys()]}));
+  // (2) une file déjà empoisonnée : le chemin d'une vidéo citée ne part pas, et sort de la file
+  await page.evaluate(()=>{queueAttDelete('l/lib8/v768.webm');});await passe();
+  const r2=await page.evaluate(()=>attDelQueue());
+  t('A768 · une file de suppression empoisonnée (chemin qu’un élément vivant cite) ne supprime rien, et se vide',
+    !r2.some(d=>/v768/.test(d))&&srv.files.has('l/lib8/v768.webm')&&!srv.dels.some(d=>/v768/.test(d)),JSON.stringify({file:r2,dels:srv.dels}));
+  // (3) récupération : effacée de l'appareil par l'ancien ménage, restée dans mon Perso du serveur
+  srv.files.set('u/'+me+'/v769.webm',Buffer.from([0x1a,0x45,0xdf,0xa3,1,2,3]));
+  await page.evaluate(async()=>{const p=migrateProtocol({id:'p769',title:'Écho pleurale',status:'draft',library:'lib8',body:'![](vid:v769)',videos:[{id:'v769',name:'plevre.webm',size:7,mime:'video/webm'}]});
+    protocols.push(p);await Data.putProtocol(p);});
+  await passe();
+  const r3a=await page.evaluate(async()=>{const r=await IDB.getAtt('v769');return {local:!!(r&&await attBuf(r)),scope:r&&r.scope,dirty:r&&r.dirty};});
+  await passe();const enLib=srv.files.has('l/lib8/v769.webm');
+  await passe();   // la file des suppressions se rejoue au début d'un passage : l'ancien chemin part au suivant
+  t('A768 · une vidéo restée dans mon Perso du serveur est retrouvée, remise à la bibliothèque, et y repart (le Perso est nettoyé)',
+    r3a.local&&r3a.scope==='lib8'&&r3a.dirty===1&&enLib&&srv.files.has('l/lib8/v769.webm')&&!srv.files.has('u/'+me+'/v769.webm'),JSON.stringify({r3a,enLib,fichiers:[...srv.files.keys()]}));
+  // (4) l'abandon d'un brouillon n'efface pas une vidéo qu'un élément enregistré cite
+  const r4=await page.evaluate(async()=>{draftNewAtts=['v768'];await purgeDraftAtts();const r=await IDB.getAtt('v768');return !!(r&&await attBuf(r));});
+  t('A768 · abandonner un brouillon n’efface pas une vidéo qu’un élément enregistré cite',r4===true,String(r4));
+  await page.close();
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});

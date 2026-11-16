@@ -2065,6 +2065,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.attRelink('[a](att:x1) [b](att:x1#p3) [c](att:x10) [d](att:y)',[['x1','n1']]),'[a](att:n1) [b](att:n1#p3) [c](att:x10) [d](att:y)');
    eq('A767 : la ligne d’une vidéo suit aussi son nouvel id, et seulement elle',
      A.attRelink('![](vid:v1)\n![](vid:v10)\n[a](att:v1x)',[['v1','v2']]),'![](vid:v2)\n![](vid:v10)\n[a](att:v1x)');
+   {const c=A.attCiteIds([{docs:[{id:'a1'}],videos:[{id:'v1'}]},{deletedAt:5,videos:[{id:'v2'}]},{body:'x\n![](vid:v3)\n[p](att:a4#p2)'},null,{docs:'nope'}]);
+    ok('A768 : le ménage compte les documents ET les vidéos (tombes comprises) et ce que le texte cite',
+      ['a1','v1','v2','v3','a4'].every(x=>c.has(x))&&c.size===5);}
+   {const me='u1',R={v1:[{lib:'libA',del:false}],v2:[{lib:'libA',del:true}],v3:[{lib:null,del:false}]};
+    ok('A768 : une suppression distante ne part pas si un élément vivant cite le fichier dans CET espace ; l’ancien chemin d’un déplacement, si',
+      !A.attDelSur('l/libA/v1.webm',R,me)&&A.attDelSur('u/u1/v1.webm',R,me)&&A.attDelSur('l/libA/v2.mp4',R,me)&&!A.attDelSur('u/u1/v3.mov',R,me)&&A.attDelSur('l/libB/v3.mov',R,me)&&A.attDelSur('l/libA/zz.pdf',R,me));}
    ok('A767 : « introuvable sur le serveur » = 404, ou 400 « not found » ; jamais une panne de réseau ni un refus',
      A.attIntrouvable({status:404,message:'REST 404'})&&A.attIntrouvable({status:400,message:'REST 400 {"statusCode":"404","error":"not_found","message":"Object not found"}'})
      &&!A.attIntrouvable({status:400,message:'REST 400 invalid'})&&!A.attIntrouvable({status:503,message:'REST 503'})&&!A.attIntrouvable(new Error('Failed to fetch'))&&!A.attIntrouvable(null));
