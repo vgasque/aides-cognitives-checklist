@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.136.0] — 2026-11-16
+L'écran reste allumé pendant un gros rattrapage de synchro ; la réception des fichiers se compte ; ⚠ correctif : les
+documents et vidéos se téléchargent de nouveau (A764).
+- ⚠ **Correctif important** : depuis la v5.135.2, plus aucun document PDF ni vidéo ne se téléchargeait sur un appareil
+  (une erreur de code, silencieuse). Ils arrivent de nouveau, à la prochaine synchro.
+- **L'écran ne se met plus en veille pendant un gros rattrapage** (beaucoup d'éléments ou de fichiers à recevoir ou à
+  envoyer) : une web app ne synchronise qu'ouverte, et sur iPhone la veille coupait le lot en cours. Au plus 30 minutes
+  par rattrapage, puis la veille normale reprend. Le bandeau le dit (« écran maintenu allumé ») ; le réglage « Veille
+  active » est respecté.
+- **La réception des fichiers se compte** : « Réception · 3 / 14 fichiers · 40 / 210 Mo », puis « Synchronisé ».
+- **« Service indisponible » dit quelle étape a échoué** (A765) : la fenêtre d'erreur de synchro montre désormais
+  l'étape (« envoi des protocoles »…) et le message exact du serveur, à transmettre si le problème dure.
+- **Des lots plus prudents** : la synchro commence par un seul élément et vise 4 Mo par lot, pour ne pas buter sur la
+  limite de temps d'une requête du serveur.
+
 ## [5.135.2] — 2026-11-16
 Les vidéos montent mieux et la synchro dit où elle en est pendant leur envoi (A763) ; le bandeau ne promet plus ce
 qu'il ne peut pas tenir (A762).
@@ -220,15 +235,3 @@ Dans un PDF, les mots surlignés restent en place quand on zoome (A743).
   encore disparaître : le temps que la page soit redessinée sur un gros document, ou pour de bon quand le dessin
   échouait à fort zoom sur iPhone.
 - Ils sont maintenant replacés à la nouvelle taille dès le zoom, sans attendre que la page soit redessinée.
-
-## [5.126.2] — 2026-11-14
-Deux correctifs : la recherche ne prend plus deux mots pour un code de session (A741), et le surlignage d'un PDF
-revient après un zoom (A742).
-- **PDF : mots surlignés perdus après un zoom.** Zoomer puis dézoomer (ou l'inverse) faisait disparaître les mots
-  surlignés, et avec eux les liens cliquables du document. Ils reviennent maintenant à leur place.
-- Taper « ACR réfrac » affichait « Code de session reconnu · Rejoindre ACRR-FRAC » : les deux mots étaient collés et
-  la lettre accentuée retirée, ce qui donnait huit caractères, la longueur d'un code.
-- La ligne « Rejoindre » n'apparaît plus que si vous tapez un code tel qu'il s'écrit : 8 caractères d'un seul
-  tenant, ou 4 + 4 séparés par un tiret ou une espace, sans accent.
-- Un mot de 8 lettres sans accent (« fentanyl ») peut encore l'afficher ; elle s'ajoute alors aux résultats, sans
-  les remplacer.
