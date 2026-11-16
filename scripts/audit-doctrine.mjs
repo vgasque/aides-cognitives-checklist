@@ -11973,8 +11973,8 @@ await sec('A767 · une vidéo suit son protocole d’un espace à l’autre ; un
     for(let i=0;i<60&&Sync._attDl;i++)await __acCalme(100);
     openProtocolRead('p769');await __acCalme(500);
     return (document.querySelector('figure.md-vfig[data-vid="v769"] .md-vph')||{}).textContent||'';});
-  t('A767 · une vidéo introuvable sur le serveur le dit (« pas encore sur le serveur »), au lieu de promettre qu’elle arrive',
-    /pas encore sur le serveur/.test(r4),r4);
+  t('A767 · une vidéo introuvable sur le serveur le dit (A769 : « introuvable, ni sur cet appareil ni sur le serveur »), au lieu de promettre qu’elle arrive',
+    /introuvable, ni sur cet appareil ni sur le serveur/.test(r4),r4);
   await page.close();
 });
 

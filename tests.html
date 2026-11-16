@@ -934,7 +934,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const uid='00000000-0000-0000-0000-0000000000aa';
    const ent={id:'p1',library:null,images:[{id:'i1',data:a,w:10,h:8,caption:'Coupe',scale:50},{id:'i2',data:b,w:4,h:4,caption:'',scale:100}],
      imgAttente:[{id:'i9',w:1,h:1,caption:'',scale:100,mime:'image/png',size:3,fp:'x.y'}],blocks:[{id:'b1',image:a},{id:'b2',image:c}]};
-   const carte={i1:{p:'u/'+uid+'/i1.webp',fp:A.imgFp(a)},i2:{p:'u/'+uid+'/i2.jpg',fp:'perime'}};
+   const carte=A.imgCarteNorm({i1:{p:'u/'+uid+'/i1.webp',fp:A.imgFp(a)},i2:{p:'u/'+uid+'/i2.jpg',fp:'perime'}});   // A769 : une carte d'avant (clé = id) relue sous ses chemins
    const r=A.imgStrip(Object.assign({},ent),carte,uid);
    eq('A766 : imgStrip — seule l’image au fichier CONFIRMÉ (empreinte et chemin) s’allège ; les autres restent en base64',
      [r.images.map(x=>x.id+':'+(x.data?'b64':'fiche')),r.images.find(x=>x.id==='i1').caption,r.images.find(x=>x.id==='i1').mime,'imgAttente' in r],
@@ -943,6 +943,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      [r.blocks[0].image,r.blocks[0].imageRef,r.blocks[1].image===c,ent.images[0].data===a,ent.blocks[0].image===a], [null,'i1',true,true,true]);
    const ailleurs=A.imgStrip(Object.assign({},ent,{library:'lib-x'}),carte,uid);
    ok('A766 : imgStrip — un élément changé de bibliothèque garde l’image en ligne tant que son fichier n’est pas au nouveau chemin', ailleurs.images.find(x=>x.id==='i1').data===a);
+   eq('A769 : la carte se tient par CHEMIN ; une carte d’avant (clé = id) est relue sous ses chemins, une entrée invalide écartée',
+     Object.keys(A.imgCarteNorm({i1:{p:'u/'+uid+'/i1.webp',fp:'f'},['l/lib-x/i1.webp']:{p:'l/lib-x/i1.webp',fp:'g'},bad:{p:'../x',fp:''},__proto__:{p:'u/'+uid+'/z.webp'}})).sort(),
+     ['l/lib-x/i1.webp','u/'+uid+'/i1.webp']);
+   {const deux=Object.assign(Object.create(null),carte);deux['l/lib-x/i1.webp']={p:'l/lib-x/i1.webp',fp:A.imgFp(a)};
+    ok('A769 : une même image confirmée dans deux espaces s’allège dans les deux éléments (plus de va-et-vient)',
+      !A.imgStrip(Object.assign({},ent),deux,uid).images.find(x=>x.id==='i1').data&&!A.imgStrip(Object.assign({},ent,{library:'lib-x'}),deux,uid).images.find(x=>x.id==='i1').data);}
    const ret=A.imgSplit(JSON.parse(JSON.stringify(r)));
    eq('A766 : imgSplit — à l’arrivée, une image sans binaire attend son fichier', [ret.images.map(x=>x.id),ret.imgAttente.map(x=>x.id)], [['i2'],['i1','i9']]);
    const m=A.migrateProtocol(Object.assign({title:'T',body:''},ret));
