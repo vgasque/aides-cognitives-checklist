@@ -11916,13 +11916,13 @@ await sec('A766 · les images voyagent en fichiers : migration, lignes allégée
    une liste par dossier ; (3) une copie dans Perso emporte SA vidéo (id neuf, type gardé, ligne du texte suivie) ;
    (4) l'appareil qui ne trouve une vidéo nulle part le dit. */
 await sec('A767 · une vidéo suit son protocole d’un espace à l’autre ; un fichier noté envoyé est vérifié sur le serveur', async () => {
-  const srv={files:new Map(),listes:0};
+  const srv={files:new Map(),listes:0,gets:new Map()};
   const page=await br.newPage({viewport:{width:1100,height:850}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,async route=>{const q=route.request(),u=decodeURIComponent(q.url()),M=q.method();
     const sm=u.match(/\/storage\/v1\/object\/attachments\/(.+)$/);
     if(sm&&M==='POST'){srv.files.set(sm[1],q.postDataBuffer());return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
     if(sm&&M==='DELETE'){srv.files.delete(sm[1]);return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
-    if(sm&&M==='GET'){const b=srv.files.get(sm[1]);return b?route.fulfill({status:200,contentType:'application/octet-stream',body:b})
+    if(sm&&M==='GET'){srv.gets.set(sm[1],(srv.gets.get(sm[1])||0)+1);const b=srv.files.get(sm[1]);return b?route.fulfill({status:200,contentType:'application/octet-stream',body:b})
       :route.fulfill({status:400,contentType:'application/json',body:'{"statusCode":"404","error":"not_found","message":"Object not found"}'});}
     if(/\/storage\/v1\/object\/list\/attachments/.test(u)){srv.listes++;const pre=(JSON.parse(q.postData()||'{}').prefix||'')+'/';
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([...srv.files.keys()].filter(k=>k.startsWith(pre)&&!k.slice(pre.length).includes('/')).map(k=>({name:k.slice(pre.length)})))});}
@@ -11973,6 +11973,14 @@ await sec('A767 · une vidéo suit son protocole d’un espace à l’autre ; un
     for(let i=0;i<60&&Sync._attDl;i++)await __acCalme(100);
     openProtocolRead('p769');await __acCalme(500);
     return (document.querySelector('figure.md-vfig[data-vid="v769"] .md-vph')||{}).textContent||'';});
+  // A770 : un second passage ne la recherche plus (elle repassait à chaque synchro, « Réception · 17 / 20 fichiers »)
+  const g1=[...srv.gets].filter(([k])=>/v769/.test(k)).reduce((t,[,n])=>t+n,0);
+  const vus5=await page.evaluate(async()=>{const vus=[];const o=new MutationObserver(()=>{const c=document.getElementById('syncChip');if(c&&!c.hidden)vus.push(c.textContent.trim());});
+    o.observe(document.body,{subtree:true,childList:true,characterData:true});
+    Sync.running=true;try{await Sync._syncAttachments();}finally{Sync.running=false;}for(let i=0;i<30&&Sync._attDl;i++)await __acCalme(100);o.disconnect();return [...new Set(vus)];});
+  const g2=[...srv.gets].filter(([k])=>/v769/.test(k)).reduce((t,[,n])=>t+n,0);
+  t('A770 · un fichier introuvable partout n’est plus recherché à chaque synchro (30 min de répit), et ne relance pas « Réception »',
+    g1>=1&&g2===g1&&!vus5.some(v=>/Réception/.test(v)),JSON.stringify({g1,g2,vus5}));
   t('A767 · une vidéo introuvable sur le serveur le dit (A769 : « introuvable, ni sur cet appareil ni sur le serveur »), au lieu de promettre qu’elle arrive',
     /introuvable, ni sur cet appareil ni sur le serveur/.test(r4),r4);
   await page.close();
