@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.135.1] — 2026-11-15
+La synchronisation tient après un gros import : elle reçoit et envoie par petits lots, et reprend où elle s'est arrêtée (A760).
+- **Le téléphone se synchronise de nouveau après un import massif fait ailleurs.** Il demandait toutes les nouveautés en
+  une seule fois, images comprises : des centaines de Mo, que le serveur ou le réseau abandonnait — et chaque nouvel
+  essai recommençait la même demande. Désormais : la liste légère d'abord, puis les éléments par petits lots.
+- **Une synchro interrompue reprend où elle en était** (réseau coupé, application fermée) : ce qui est déjà arrivé
+  n'est plus redemandé.
+- **L'envoi part aussi par lots** : un gros import fait sur l'ordinateur n'est plus tenté d'un seul bloc.
+- **La synchro dit où elle en est** (A761) : la pastille compte (« Réception · 34 / 120 protocoles ») et, pour un gros
+  rattrapage, l'accueil montre un bandeau avec sa barre de progression. Si elle s'interrompt, elle dit où (« Arrêtée à
+  34 / 120 protocoles : la reprise partira de là »).
+
 ## [5.135.0] — 2026-11-15
 Les images se comptent en poids : 10 Mo par aide ou par protocole, et au-delà l'app propose de compresser (A759).
 - **10 Mo d'images par aide ou par protocole**, au lieu de 60 images : environ 130 photos, 90 photos d'iPhone ou
@@ -211,16 +223,3 @@ Les résultats d'une recherche ne sont plus collés les uns aux autres (A740).
 - Chaque résultat est une carte à part, avec un petit espace entre deux. Sur ordinateur et tablette, les cartes se
   touchaient ; au téléphone, elles formaient un seul bloc séparé par des traits.
 - Les listes de l'accueil, des bibliothèques et des collections ne changent pas.
-
-## [5.126.0] — 2026-11-13
-Une faute de frappe sur un mot du contenu ne laisse plus la recherche sans réponse (A739).
-- **Avant**, la recherche ne rattrapait une faute que vers un mot d'un titre, d'un code ou d'une catégorie :
-  « anafilaxie » trouvait « Anaphylaxie », mais « amiodaronne » ou « absende » ne trouvaient rien si le mot juste
-  n'était écrit que dans une étape, une posologie ou le corps d'un protocole.
-- **Maintenant**, quand il n'y a aucun résultat, la recherche propose aussi le mot le plus proche du contenu de vos
-  aides et protocoles. Comme avant, elle le dit au-dessus de la liste (« Aucun résultat pour "absende" · affiché :
-  "absente" ») et ne modifie pas ce que vous avez tapé. L'extrait sous le titre montre la ligne où se trouve le mot.
-- **Prudence sur les noms proches.** Un mot tapé juste n'est jamais remplacé. Pour un mot du contenu, l'écart admis
-  est plus petit que pour un titre : une lettre jusqu'à 8 lettres, deux au-delà. À écart égal, un mot de titre passe
-  avant.
-- Les mots des PDF joints ne servent pas à corriger ; un mot trouvé dans un PDF reste un résultat.

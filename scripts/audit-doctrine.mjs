@@ -11686,6 +11686,63 @@ await sec('A759 · images : 10 Mo par élément, compression proposée (carte, a
   await page.close();
 });
 
+/* A760 — LA SYNCHRO TIRE ET ENVOIE PAR LOTS BORNÉS EN OCTETS, ET REPREND OÙ ELLE S'EST ARRÊTÉE. Serveur simulé
+   (`page.route`) : douze protocoles lourds (≈ 1,4 Mo d'image chacun). Le tirage passe par la page légère puis par lots
+   d'ids ; une panne au milieu laisse un curseur qui fait reprendre SANS redemander ce qui est arrivé ; l'envoi part en
+   lots bornés. Cas réel : un import massif fait sur l'ordinateur, que le téléphone ne recevait plus. */
+await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après une coupure', async () => {
+  const page=await br.newPage({viewport:{width:1100,height:850}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  const img='data:image/webp;base64,'+'A'.repeat(1400000);
+  const T0=Date.parse('2026-11-10T10:00:00Z');
+  const rows=Array.from({length:12},(_,i)=>({id:'pl'+String(i).padStart(2,'0'),owner:'u1',library_id:null,updated_at:new Date(T0+i*1000).toISOString(),deleted_at:null,
+    data:{title:'Lourd '+i,status:'draft',body:'![](img:im'+i+')',images:[{id:'im'+i,data:img,w:10,h:10}]}}));
+  const log={leger:0,lots:[],tailles:[],posts:[],postTailles:[]};let panne=0,servir=false;   // `servir` : rien avant l'amorçage (la synchro du démarrage aurait tout tiré)
+  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const q=route.request(),u=decodeURIComponent(q.url());
+    if(/\/rest\/v1\/protocols/.test(u)&&q.method()==='GET'&&servir){
+      if(/select=id,updated_at,deleted_at/.test(u)){log.leger++;const g=(u.match(/updated_at=gt\.([^&]+)/)||[])[1];const since=g?Date.parse(g):0;
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(rows.filter(r=>Date.parse(r.updated_at)>since).map(r=>({id:r.id,updated_at:r.updated_at,deleted_at:r.deleted_at})))});}
+      const ids=((u.match(/id=in\.\(([^)]*)\)/)||[])[1]||'').split(',').filter(Boolean);
+      if(panne&&--panne===0)return route.fulfill({status:500,contentType:'application/json',body:'{"message":"statement timeout"}'});
+      const b=JSON.stringify(rows.filter(r=>ids.includes(r.id)));log.lots.push(ids);log.tailles.push(b.length);
+      return route.fulfill({status:200,contentType:'application/json',body:b});}
+    if(/\/rest\/v1\/protocols/.test(u)&&q.method()==='POST'){const b=q.postData()||'[]';log.posts.push(JSON.parse(b).length);log.postTailles.push(b.length);return route.fulfill({status:201,body:''});}
+    route.fulfill({status:200,contentType:'application/json',body:'[]'});});
+  await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  // 1. Une coupure au 2ᵉ lot : la synchro échoue, mais ce qui est arrivé est gardé, et le curseur le dit.
+  await page.evaluate(async()=>{for(let i=0;i<50&&Sync.running;i++)await __acCalme(100);localStorage.removeItem(spaceKey('ac-sync-cursor-prot'));});
+  servir=true;panne=2;
+  // A761 : pendant le tirage, la pastille compte et l'accueil montre la barre (douze à recevoir ≥ SYNC_PROG_MIN).
+  await page.evaluate(()=>{window.__vus=[];const o=new MutationObserver(()=>{const c=document.getElementById('syncChip'),n=document.getElementById('syncErrNotice');
+    window.__vus.push({chip:c&&!c.hidden?c.textContent:'',barre:!!(n&&!n.hidden&&n.querySelector('.sync-bar')),ban:n&&!n.hidden?n.textContent:''});});
+    o.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true});window.__obs=o;});
+  const r1=await page.evaluate(async()=>{let err='';try{await Sync._pullProtocols();}catch(e){err=String(e.message||e);}
+    Sync.lastError=explainSyncError(new Error(err));setSyncChip('err','Erreur de synchro');
+    return {err,n:protocols.filter(p=>/^Lourd /.test(p.title)).length,cur:localStorage.getItem(spaceKey('ac-sync-cursor-prot')),
+      arret:(document.getElementById('syncErrNotice')||{}).textContent||''};});
+  const vus=await page.evaluate(()=>{window.__obs.disconnect();return window.__vus;});
+  t('A761 · progression : la pastille compte (« Réception · n / 12 protocoles »), l’accueil montre la barre ; interrompue, elle dit où elle s’est arrêtée',
+    vus.some(v=>/^Réception · \d+ \/ 12 protocoles$/.test(v.chip.trim()))&&vus.some(v=>v.barre&&/Réception de vos données — \d+ \/ 12 protocoles/.test(v.ban))&&/Arrêtée à \d+ \/ 12 protocoles : la reprise partira de là/.test(r1.arret),
+    JSON.stringify({chips:[...new Set(vus.map(v=>v.chip))].slice(0,6),arret:r1.arret}));
+  const avant=log.lots.flat().length;
+  // 2. La reprise : seules les lignes manquantes sont demandées.
+  const r2=await page.evaluate(async()=>{let err='';try{await Sync._pullProtocols();}catch(e){err=String(e.message||e);}
+    const L=protocols.filter(p=>/^Lourd /.test(p.title));return {err,n:L.length,img:L.every(p=>(p.images||[]).length===1)};});
+  const redemandes=log.lots.slice(1).flat().filter(id=>log.lots[0].includes(id)).length;
+  t('A760 · tirage : page légère d’abord, puis les lignes par lots d’ids bornés (aucune page entière de lignes lourdes)',
+    log.leger>=1&&log.lots.length>=4&&Math.max(...log.tailles)<=12*1024*1024&&log.lots.every(l=>l.length<=60),JSON.stringify({leger:log.leger,lots:log.lots.map(l=>l.length),tailles:log.tailles}));
+  t('A760 · une coupure au milieu : ce qui est arrivé est gardé, le curseur avance, la reprise ne redemande pas les lignes reçues',
+    /500|timeout/.test(r1.err)&&r1.n>0&&r1.n<12&&!!r1.cur&&!r2.err&&r2.n===12&&r2.img&&redemandes===0,JSON.stringify({r1,r2,avant,redemandes}));
+  // 3. L'envoi : douze protocoles lourds modifiés partent en plusieurs lots bornés.
+  const r3=await page.evaluate(async()=>{for(const p of protocols.filter(x=>/^Lourd /.test(x.title))){p.title+=' ·';p.dirty=true;p.updatedAt=Date.now();await Data.putProtocol(p);}
+    let err='';try{await Sync._pushProtocols();}catch(e){err=String(e.message||e);}
+    return {err,restants:(await Data.getProtocols()).filter(p=>p.dirty).length};});
+  t('A760 · envoi : plusieurs lots bornés en octets (plus tout d’un coup), tous partis',
+    !r3.err&&r3.restants===0&&log.posts.length>=2&&Math.max(...log.posts)<12&&Math.max(...log.postTailles)<=8*1024*1024,JSON.stringify({...r3,posts:log.posts,tailles:log.postTailles}));
+  await page.close();
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});

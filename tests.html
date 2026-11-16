@@ -926,6 +926,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A757 : import HTML de Notion — la vidéo prend sa case', ch.body.split('\n').includes('| Normal<br>![](vid:v8) | Thrombus<br>![](img:i1) |')&&ch.videos===0);
    const L=A.exportLeger({fiches:[],protocols:[{body:'a\n![](vid:v1)\n| x<br>![](vid:v1) |',images:[],docs:[],videos:V}]}).protocols[0];
    ok('A757 : l’export « sans fichiers » retire les vidéos et leurs références', !L.videos.length&&!/vid:/.test(L.body));}
+  /* A760 : la synchro par lots bornés en octets. */
+  {eq('A760 : syncLot — viser la cible, entre 1 et le plafond, jamais plus que doubler', [A.syncLot(3,12e6,6e6,60),A.syncLot(3,1e6,6e6,60),A.syncLot(40,1e3,6e6,60),A.syncLot(1,50e6,6e6,60),A.syncLot(4,0,6e6,60)], [1,6,60,1,8]);
+   const L=A.syncDecoupe([{a:'x'.repeat(40)},{a:'x'.repeat(40)},{a:'x'.repeat(40)},{a:'x'.repeat(200)},{a:'y'}],100,10);
+   eq('A760 : syncDecoupe — lots bornés en octets ; une ligne plus lourde que la cible part seule', L.map(l=>l.length), [2,1,1,1]);
+   eq('A760 : syncDecoupe — et bornés en nombre', A.syncDecoupe([1,2,3,4,5],1e9,2).map(l=>l.length), [2,2,1]);
+   eq('A761 : la progression se dit — réception, envoi, borne, rien à dire', [A.syncProgTxt({sens:'in',fait:34,total:120,quoi:'protocoles'}),A.syncProgTxt({sens:'out',fait:3,total:12,quoi:'aides'}),A.syncProgTxt({sens:'in',fait:9,total:5,quoi:'protocoles'}),A.syncProgTxt({total:0})],
+     ['Réception · 34 / 120 protocoles','Envoi · 3 / 12 aides','Réception · 5 / 5 protocoles','']);}
   /* A759 : le poids des images (10 Mo par élément) et la compression la plus douce qui suffit. */
   {const U=n=>'data:image/webp;base64,'+'A'.repeat(n);   // n caractères base64 = n×3/4 octets
    eq('A759 : imgOctets — octets réels d’une data-URL (rembourrage compris)', [A.imgOctets(U(400)),A.imgOctets('data:image/png;base64,QUJD'),A.imgOctets('data:image/png;base64,QUI='),A.imgOctets('')], [300,3,2,0]);

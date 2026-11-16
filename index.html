@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-uPLk+w9dswSGeHAWMJEqMAL+AG1M0cBNP1/FqE/mgvU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NJtiZexDfD466LwNOi2fiRlqNsNFy9XHXvr4i86dc/g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2386,6 +2386,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .notice.sync-err svg{color:var(--crit)}
   .notice.sync-pending{background:var(--warn-soft);border-color:var(--warn);color:var(--warn);cursor:pointer}
   .notice.sync-pending svg{color:var(--warn)}
+  /* A761 : le rattrapage en cours — NEUTRE (rien n'est à faire), sa barre sous le texte. */
+  .notice.sync-prog{background:var(--amb-2);border-color:var(--line);color:var(--ink)}
+  .notice.sync-prog svg{color:var(--ink-2)}
+  .notice.sync-prog>div{flex:1;min-width:0}
+  .sync-bar{display:block;height:6px;margin-top:8px;border-radius:3px;background:var(--line);overflow:hidden}
+  .sync-bar>i{display:block;width:100%;height:100%;background:var(--act);transform-origin:left;transition:transform .3s}
   /* Bandeau système (INFORMATION persistante) : visible SEULEMENT SUR L'ACCUEIL (v4.20.0 — jamais
      d'invitation à recharger depuis un écran de soin). Pleine largeur HORS de `main`, donc sous le
      rail A→Z : z 16 — au-dessus du rail (15), toujours SOUS l'en-tête (20) ; sans `position` un
@@ -10847,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.135.0';
+const APP_VERSION='5.135.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -34473,14 +34479,21 @@ function setSyncChip(state,text){
 function updateSyncBanner(){
   const el=document.getElementById('syncErrNotice');if(!el)return;
   const chip=document.getElementById('syncChip');
-  const st=(!chip||chip.hidden)?null:(chip.classList.contains('err')?'err':chip.classList.contains('pending')?'pending':chip.classList.contains('rejected')?'rejected':null);
+  const st=(!chip||chip.hidden)?null:(chip.classList.contains('err')?'err':chip.classList.contains('pending')?'pending':chip.classList.contains('rejected')?'rejected'
+    :(chip.classList.contains('busy')&&_syncProg.total>=SYNC_PROG_MIN)?'prog':null);
   if(!st){el.hidden=true;return;}
+  /* A761 : un gros rattrapage en cours — bandeau NEUTRE, sa barre, et la promesse tenue par A760 (ce qui est reçu reste). */
+  if(st==='prog'){const P=_syncProg,f=Math.min(P.fait,P.total)/P.total;el.hidden=false;el.className='notice sync-prog';el.onclick=null;
+    el.innerHTML=`${uiIcon('history',16)}<div><b>${P.sens==='out'?'Envoi de vos données':'Réception de vos données'}</b> — ${Math.min(P.fait,P.total)} / ${P.total} ${esc(P.quoi)} · ${P.sens==='out'?'ce qui est envoyé est gardé sur le serveur':'ce qui est reçu reste sur cet appareil'}`
+      +`<span class="sync-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${P.total}" aria-valuenow="${Math.min(P.fait,P.total)}" aria-label="Progression de la synchronisation"><i style="transform:scaleX(${f.toFixed(3)})"></i></span></div>`;return;}
   el.hidden=false;
   if(st==='err'){
     const err=Sync.lastError||{icon:SYNC_ERR_ICONS.warning,title:'Erreur de synchronisation'};
     el.className='notice sync-err';el.onclick=openSyncErr;
     /* A734 : un PREMIER chargement interrompu le dit — la liste affichée n'est pas tout le compte. */
-    el.innerHTML=`${err.icon}<div><b>${accPending()?'Chargement du compte interrompu':'Erreur de synchronisation'}</b> — ${esc(err.title)}${accPending()?' · La liste n’est pas encore complète':''} · Nouvelle tentative automatique en cours</div>`;
+    /* A761 : interrompue en plein rattrapage, elle dit OÙ — et que la reprise partira de là (A760). */
+    const P=_syncProg,ou=P.total?` · Arrêtée à ${Math.min(P.fait,P.total)} / ${P.total} ${esc(P.quoi)} : la reprise partira de là`:'';
+    el.innerHTML=`${err.icon}<div><b>${accPending()?'Chargement du compte interrompu':'Erreur de synchronisation'}</b> — ${esc(err.title)}${accPending()?' · La liste n’est pas encore complète':''}${ou} · Nouvelle tentative automatique en cours</div>`;
   }else if(st==='pending'){
     el.className='notice sync-pending';el.onclick=openAuth;
     el.innerHTML=`${SYNC_ERR_ICONS.lock}<div><b>Compte en attente de validation</b> — vos données restent sur cet appareil en attendant</div>`;
@@ -36343,13 +36356,45 @@ applyTheme(localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-
    (la RLS borne l'accès côté serveur ; on ne pousse que là où l'on peut éditer). Tout échec est
    silencieux côté usage (l'app reste pleinement utilisable hors-ligne). */
 // Appel REST générique vers PostgREST. Rafraîchit le jeton au besoin. Lève en cas d'erreur HTTP.
-async function rest(method,path,body,extra,_rejeu){await Auth.ensureFresh();
-  const r=await acFetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined});
+async function rest(method,path,body,extra,_rejeu,ms){await Auth.ensureFresh();
+  const r=await acFetch(SUPA.url+path,{method:method,headers:Auth.headers(extra),body:body?JSON.stringify(body):undefined},ms);   // A760 : `ms` — un lot lourd a droit au délai long
   /* A710 : un 401 (jeton expiré malgré l'échéance locale) se rattrape UNE fois par un rafraîchissement — il laissait
      « Erreur de synchro » jusqu'à l'échéance, avec un message qui renvoyait à une fenêtre sans champ de connexion. */
-  if(r.status===401&&!_rejeu&&Auth.signedIn()&&Auth.session.refresh_token&&await Auth.refresh())return rest(method,path,body,extra,true);
+  if(r.status===401&&!_rejeu&&Auth.signedIn()&&Auth.session.refresh_token&&await Auth.refresh())return rest(method,path,body,extra,true,ms);
   if(!r.ok){const t=await r.text().catch(()=>'');throw new Error('REST '+r.status+' '+String(t).slice(0,200));}
   const ct=r.headers.get('content-type')||'';return ct.indexOf('application/json')>=0?r.json():null;}
+/* A760 — LES LIGNES LOURDES SE TIRENT PAR LOTS BORNÉS EN OCTETS. Une aide ou un protocole porte ses images dans sa ligne
+   (jusqu'à 10 Mo, ≈ 13 Mo en base64, A759) : le tirage d'une page de 1 000 lignes entières (`select=*`) pouvait peser des
+   centaines de Mo — le serveur ou le délai l'abandonnait, et comme le curseur ne s'écrivait qu'à la fin, chaque essai
+   repartait du même point (« le téléphone ne se synchronise plus », constaté par l'auteur après un import massif fait sur
+   l'ordinateur). `restRows` rend les lignes ET la taille de la réponse, pour régler le lot suivant (`syncLot`). */
+const SYNC_LOT_OCTETS=6*1024*1024;
+async function restRows(path,_rejeu){await Auth.ensureFresh();
+  const r=await acFetch(SUPA.url+path,{method:'GET',headers:Auth.headers()},NET_TIMEOUT_BLOB_MS);
+  if(r.status===401&&!_rejeu&&Auth.signedIn()&&Auth.session.refresh_token&&await Auth.refresh())return restRows(path,true);
+  if(!r.ok){const t=await r.text().catch(()=>'');throw new Error('REST '+r.status+' '+String(t).slice(0,200));}
+  const t=await r.text();let rows;try{rows=JSON.parse(t);}catch(e){throw new Error('REST réponse illisible');}
+  return {rows:Array.isArray(rows)?rows:[],taille:t.length};}
+/* La taille du lot suivant, d'après le précédent : viser `cible` octets, entre 1 et `max` lignes, sans jamais plus que
+   doubler d'un coup (une série de petites lignes ne fait pas sauter le lot d'après au plafond). PURE. */
+function syncLot(k,taille,cible,max){k=Math.max(1,k|0);if(!(taille>0))return Math.min(max,k*2);
+  return Math.max(1,Math.min(max,k*2,Math.floor(k*cible/taille)));}
+/* Des lignes à envoyer, découpées en lots bornés en octets (l'envoi tentait TOUT d'un coup, puis une par une). PURE. */
+function syncDecoupe(rows,cible,max,taille){taille=taille||(r=>JSON.stringify(r).length);const out=[];let cur=[],t=0;
+  for(const r of rows){const n=taille(r);if(cur.length&&(t+n>cible||cur.length>=max)){out.push(cur);cur=[];t=0;}cur.push(r);t+=n;}
+  if(cur.length)out.push(cur);return out;}
+/* A761 — LA SYNCHRO DIT OÙ ELLE EN EST (retour de l'auteur : « je ne sais pas où j'en suis dans la synchro, pas de barre
+   de progression »). Pendant un tirage ou un envoi par lots (A760), la pastille compte (« Réception · 34 / 120
+   protocoles ») ; au-delà de `SYNC_PROG_MIN` éléments, l'accueil montre un bandeau NEUTRE (rien n'est à faire : règle 8)
+   avec sa barre ; interrompue, la synchro dit où elle s'est arrêtée et que ce qui est reçu est gardé. Rien n'est
+   re-rendu : la pastille et le bandeau se peignent sur place. */
+const SYNC_PROG_MIN=6;
+const _syncProg={sens:'',fait:0,total:0,quoi:''};
+// Le libellé de la progression. PURE.
+function syncProgTxt(p){if(!p||!p.total)return '';return (p.sens==='out'?'Envoi':'Réception')+' · '+Math.min(p.fait,p.total)+' / '+p.total+' '+p.quoi;}
+function syncProg(sens,fait,total,quoi){Object.assign(_syncProg,{sens,fait,total,quoi});
+  if(total)setSyncChip('busy',syncProgTxt(_syncProg));else updateSyncBanner();}
+const SYNC_QUOI={protocols:'protocoles',cognitive_aids:'aides',sessions:'sessions'};
 // Appel d'une fonction Postgres exposée par PostgREST (toujours en POST). Raccourci de rest() pour
 // les nombreux appels /rest/v1/rpc/* (my_status, is_app_admin, invite_member, etc.).
 const rpc=(name,body)=>rest('POST','/rest/v1/rpc/'+name,body||{});
@@ -36833,6 +36878,7 @@ const Sync={
       if(pushErr)throw pushErr;
       if(attErr)throw attErr;
       this._retryDelay=0;
+      Object.assign(_syncProg,{sens:'',fait:0,total:0,quoi:''});   // A761 : un passage réussi n'a plus rien à rattraper
       setSyncChip('ok','Synchronisé');
     }catch(e){
       /* A693 : un refus « poste verrouillé » (ou le 403 d'un document pendant que le poste est retenu) n'est pas une
@@ -36922,16 +36968,30 @@ const Sync={
     // arrêt si le curseur n'avance plus (horodatages identiques -> évite une boucle infinie).
     // Pas de filtre de bibliothèque : la RLS limite déjà à ce que je peux voir (Perso + mes bibliothèques).
     const PAGE=1000;
+    /* A760 — EN DEUX TEMPS : la page LÉGÈRE (id, horodatages) d'abord, puis les seules lignes à rapatrier (nouvelles, ou
+       plus récentes que la copie locale ; une suppression n'a pas besoin de ses données), par lots bornés en octets
+       (`restRows`, `syncLot`) ; le curseur s'écrit APRÈS CHAQUE LOT appliqué — une synchro interrompue reprend où elle
+       en était, au lieu de recommencer la même requête trop lourde. Écritures bufferisées par lot (Data.applyRows). */
+    let k=3;const quoi=SYNC_QUOI[cfg.table]||'éléments';
+    const besoin=row=>{const l=byId[row.id];return !l||(Date.parse(row.updated_at)||0)>(l.updatedAt||0);};
+    const curseur=()=>{if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());};
     for(let p=0;p<50;p++){
-      const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
-      // Écritures BUFFERISÉES puis appliquées en une fois par page (Data.applyRows) : une
-      // transaction par ligne rendait la première synchro d'une grosse bibliothèque très lente.
-      const puts=[],dels=[];
-      for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
-        await applyRow(row,puts,dels);}
-      await Data.applyRows(store,puts,dels);
-      applied+=puts.length+dels.length;
-      if(rows.length<PAGE)break;
+      const list=await rest('GET','/rest/v1/'+cfg.table+'?select=id,updated_at,deleted_at&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc&limit='+PAGE)||[];
+      // A761 : ce qu'il y a à recevoir se sait ici — la pastille compte, l'accueil montre la barre d'un gros rattrapage.
+      const aRecevoir=list.filter(r=>r&&typeof r.id==='string'&&SAFE_ID.test(r.id)&&!badKey(r.id)&&!r.deleted_at&&besoin(r)).length;
+      if(aRecevoir)syncProg('in',_syncProg.sens==='in'&&_syncProg.quoi===quoi?_syncProg.fait:0,(_syncProg.sens==='in'&&_syncProg.quoi===quoi?_syncProg.fait:0)+aRecevoir,quoi);
+      let i=0;
+      while(i<list.length){const lot=[],puts=[],dels=[];let j=i;
+        while(j<list.length&&lot.length<k){const row=list[j++];
+          if(!row||typeof row.id!=='string'||!SAFE_ID.test(row.id)||badKey(row.id))continue;
+          if(row.deleted_at)await applyRow(row,puts,dels);else if(besoin(row))lot.push(row.id);}
+        if(lot.length){const R=await restRows('/rest/v1/'+cfg.table+'?select=*&id=in.('+lot.join(',')+')');
+          for(const row of R.rows)await applyRow(row,puts,dels);k=syncLot(k,R.taille,SYNC_LOT_OCTETS,60);}
+        await Data.applyRows(store,puts,dels);applied+=puts.length+dels.length;
+        for(let x=i;x<j;x++){const rts=Date.parse(list[x]&&list[x].updated_at)||0;if(rts>maxTs)maxTs=rts;}
+        curseur();i=j;
+        if(lot.length&&_syncProg.total)syncProg('in',_syncProg.fait+lot.length,_syncProg.total,quoi);}
+      if(list.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
     }
     // REPÊCHAGE de complétude : le curseur temporel suppose que toute ligne à venir portera un
@@ -36948,16 +37008,17 @@ const Sync={
         missed=missed.concat(pullMissedIds(rows,byId));
         if(rows.length<PAGE)break;after=String(rows[rows.length-1].id);
       }
-      // Lots de 60 ids (URL <= ~4 Ko avec des ids de 64 caractères max) : requête toujours sûre.
-      for(let i=0;i<missed.length;i+=60){
-        const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&id=in.('+missed.slice(i,i+60).join(',')+')')||[];
+      // Lots de 60 ids au plus (URL <= ~4 Ko avec des ids de 64 caractères max) — et bornés en octets (A760).
+      for(let i=0;i<missed.length;){const lot=missed.slice(i,i+k);i+=lot.length;
+        const R=await restRows('/rest/v1/'+cfg.table+'?select=*&id=in.('+lot.join(',')+')');k=syncLot(k,R.taille,SYNC_LOT_OCTETS,60);
         const puts=[],dels=[];
-        for(const row of rows)await applyRow(row,puts,dels);
+        for(const row of R.rows)await applyRow(row,puts,dels);
         await Data.applyRows(store,puts,dels);
         applied+=puts.length+dels.length;
       }
     }
     if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());
+    if(_syncProg.total){syncProg('',0,0,'');setSyncChip('busy','Synchro en cours');}   // A761 : cette table est reçue
     // JAMAIS DE RE-RENDU PENDANT UN SOIN (v4.42.0, règle 11) : `render()` détache le nœud sous le
     // doigt, un tap en vol est AVALÉ (mesuré avec témoin, deux moteurs). Rien n'est perdu : la
     // mémoire est DÉJÀ à jour (addMem/replaceMem/dropMem) et toute sortie de crise passe par
@@ -37037,12 +37098,18 @@ const Sync={
     const dirty=all.filter(o=>o.dirty&&canEditFiche(o)&&!(cfg.skip&&cfg.skip(o))&&!reclaimed.done.has(o.id)).concat(reclaimed.copies);
     if(!dirty.length)return;const uidv=Auth.user().id;
     const send=async batch=>{
-      await rest('POST','/rest/v1/'+cfg.table,batch.map(o=>cfg.toRow(o,uidv)),{'Prefer':'resolution=merge-duplicates,return=minimal'});
+      await rest('POST','/rest/v1/'+cfg.table,batch.map(o=>cfg.toRow(o,uidv)),{'Prefer':'resolution=merge-duplicates,return=minimal'},false,NET_TIMEOUT_BLOB_MS);   // A760 : un lot lourd a le délai long
       for(const o of batch){if(o.deletedAt){await cfg.dataDel(o.id);} // tombstone poussé -> purge locale (espace récupéré)
         else{o.dirty=false;await cfg.dataPut(o);}}};
-    try{await send(dirty);return;}catch(e){}
+    /* A760 : par lots bornés en octets (tout partait d'un coup — des dizaines de Mo d'images en une requête — avant de
+       retomber, en cas d'échec, sur l'envoi un par un) ; un lot qui échoue repasse ligne par ligne, comme avant. */
+    const lots=syncDecoupe(dirty,SYNC_LOT_OCTETS,200,o=>JSON.stringify(cfg.toRow(o,uidv)).length);
+    const quoi=SYNC_QUOI[cfg.table]||'éléments',n=dirty.length;let fait=0;
+    const reste=[];for(const l of lots){if(n>1)syncProg('out',fait,n,quoi);try{await send(l);}catch(e){reste.push(...l);}fait+=l.length;}   // A761
+    if(n>1){syncProg('',0,0,'');setSyncChip('busy','Synchro en cours');}
+    if(!reste.length)return;
     let firstErr=null,persoOk=0;const perso403=[];
-    for(const o of dirty){
+    for(const o of reste){
       try{await send([o]);if(!o.library)persoOk++;}
       catch(e){
         if(isPersoRepairCandidate(e&&e.message,!o.library))perso403.push(o);        // candidat réparation (voir ci-dessus)
@@ -40070,7 +40137,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
