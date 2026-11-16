@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sYCRheQwXDlhgS/KSpShWiEoEZk06G9RNLI+hBM7f1U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-re38RDv1AW04Q3Bk1Tq0N+S7RvRDYsDtJrSRC6FuxtY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9451,7 +9451,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-ph,.mdg-mdl.mdg-ph{display:none}
   .mdg-mdl{display:inline-flex;align-items:center;min-height:36px;margin-right:auto;padding:0 4px;border:0;background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
   .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .mdg-scroll{overflow-x:auto;padding:2px}
+  .mdg-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
   .mdg{display:grid;grid-template-columns:28px repeat(var(--mdg-n),minmax(112px,1fr)) 38px}
   .mdg-tab{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
   .mdg-tab>span{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-1);letter-spacing:1px}
@@ -9481,6 +9481,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-rm:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-add{display:none;flex-wrap:wrap;gap:6px;padding:0 8px 8px}
   .mdg-c.act .mdg-add{display:flex}
+  /* A778 : la case ACTIVE se voit aussi sans focus (‹ › clavier fermé) ; le champ qui a le focus garde son anneau. */
+  @media (pointer:coarse){.mdg-c.act:not(:focus-within){box-shadow:inset 0 0 0 2px var(--act)}}
   .mdg-addb{flex:1 1 72px;min-height:32px;padding:0 6px;border:1.5px dashed var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;white-space:nowrap}
   .mdg-addb:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-band{display:flex;align-items:center;justify-content:center;min-height:32px;padding:0;border:1.5px dashed var(--line-strong);border-radius:var(--r-1);background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
@@ -9498,15 +9500,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-thumb{display:none}
   @media (pointer:coarse){
     .mdg-tab,.mdg-k,.mdg-band,.mdg-hint{display:none}
-    .mdg-c.mdg-l{position:sticky;left:0;z-index:1}
-    .mdg-c.mdg-l:focus-within{z-index:3}
+    .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
     .mdg-add{flex-direction:column}
     .mdg-add .mdg-addb{flex:none}
-    .mdg{grid-template-columns:repeat(var(--mdg-n),minmax(132px,1fr))}
+    /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
+       texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
+    .mdg,.mdg.mdg-1{grid-template-columns:var(--mdg-cols,112px repeat(var(--mdg-n1),minmax(132px,1fr)))}
+    /* A779 : sans marge intérieure au doigt — Safari colle la colonne DANS la marge (2 px), et les cases qui défilaient
+       dessous se voyaient à sa gauche. */
+    .mdg-scroll{padding:0}
+    .mdg-in{-webkit-hyphens:auto;hyphens:auto}
+    .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
+    .mdg-c.mdg-l .mdg-in{padding-left:8px;padding-right:6px}
     .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
     .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
     .mdg-thumb .mdg-tbn{font-size:var(--t-step)}
-    .mdg-thumb .mdg-tbm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mdg-thumb .mdg-tbm{flex:1;min-width:0;gap:4px;padding:0 8px}
+    /* A779 : le libellé se termine en « … » — centré dans un bouton flexible, il était rogné des DEUX côtés. */
+    .mdg-tbt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .mdg-thumb button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   }
   /* Au téléphone, la fenêtre est plein écran (règle des dialogues) : « Annuler · Tableau · ↶ · OK » en tête, le pied
@@ -9515,7 +9526,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #mdToolModal.mdt-tbl .mdt-hx{display:contents}
     #mdToolModal.mdt-tbl .mdg-ph{display:inline-flex}
     #mdToolModal.mdt-tbl :is(.ai-x,.mdw-foot,.mdg-dim,[data-mdtw="redo"]){display:none}
-    #mdToolModal.mdt-tbl .ai-top{gap:6px}
+    /* A778 : la tête reste en haut quand la fenêtre défile (clavier ouvert, long tableau : Annuler et OK à portée). */
+    #mdToolModal.mdt-tbl .ai-top{gap:6px;position:sticky;top:0;z-index:5;margin:calc(-18px - var(--sat)) -16px 8px;padding:calc(10px + var(--sat)) 16px 10px;background:var(--work);border-bottom:1px solid var(--line)}
     #mdToolModal.mdt-tbl .ai-top h3{order:1;flex:1;text-align:center}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="x"]{order:0}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="undo"]{order:2}
@@ -9525,6 +9537,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #mdToolModal.mdt-tbl .ai-card{display:flex;flex-direction:column}
     #mdToolModal.mdt-tbl #mdToolBody{flex:1;display:flex;flex-direction:column}
     #mdToolModal.mdt-tbl .mdg-thumb{margin-top:auto}
+    /* A778 : la grille ne RÉTRÉCIT jamais dans cette colonne (un élément défilant y a une hauteur minimale nulle) : elle
+       devenait un second ascenseur vertical, coincé entre la tête et la barre — « scroll in scroll ». Seule la fenêtre défile. */
+    #mdToolModal.mdt-tbl .mdg-scroll{flex:none;overflow-y:hidden}
   }
   .mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
   .mdw-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
@@ -10954,7 +10969,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.139.0';
+const APP_VERSION='5.139.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21082,14 +21097,18 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
     return `<div class="mdg-med">${inner}<button type="button" class="mdg-rm" data-mdgrm="${i}" aria-label="Retirer ${x.k==='vid'?'la vidéo':'l’image'} de la case">✕</button></div>`;};
   const cell=(v,r,c)=>{const s=mdCellSplit(v);
     return `<div class="mdg-c${isH(r,c)?' mdg-h':''}${r===0?' mdg-t':''}${c===0?' mdg-l':''}${r===fr&&c===fc?' act':''}" data-r="${r}" data-c="${c}">`
-      +`<textarea rows="1" class="mdg-in${w.al[c]==='c'?' ta-c':w.al[c]==='r'?' ta-r':''}${isH(r,c)?' mdg-h':''}" data-r="${r}" data-c="${c}"${r===0&&c===0?' data-dlgfocus':''} aria-label="${esc(lbl(r,c))}">${esc(s.med.length?s.txt:v)}</textarea>`
+      +`<textarea rows="1" lang="fr" class="mdg-in${w.al[c]==='c'?' ta-c':w.al[c]==='r'?' ta-r':''}${isH(r,c)?' mdg-h':''}" data-r="${r}" data-c="${c}"${r===0&&c===0?' data-dlgfocus':''} aria-label="${esc(lbl(r,c))}">${esc(s.med.length?s.txt:v)}</textarea>`
       +s.med.map(med).join('')
       +(P&&aMed&&!s.med.length?`<div class="mdg-add"><button type="button" class="mdg-addb" data-mdgadd="img">＋ Image</button><button type="button" class="mdg-addb" data-mdgadd="vid">＋ Vidéo</button></div>`:'')
       +`</div>`;};
   const tc=g[0].map((_,c)=>`<button type="button" class="mdg-tab mdg-tc${c===fc?' on':''}" data-mdgcol="${c}" aria-haspopup="true" aria-label="Colonne « ${esc(mdTblColName(w,c))} » : options"><span aria-hidden="true">···</span></button>`).join('');
   const rows=g.map((r,ri)=>`<button type="button" class="mdg-tab mdg-tr${ri===fr?' on':''}" data-mdgrow="${ri}" aria-haspopup="true" aria-label="${esc(mdTblRowName(w,ri))} : options"><span aria-hidden="true">⋮</span></button>`+r.map((v,c)=>cell(v,ri,c)).join('')).join('');
   const vide=!w.edit&&g.every(r=>r.every(v=>!String(v).trim()||v==='Colonne'));
-  return `<div class="mdg-scroll"><div class="mdg" style="--mdg-n:${n};--mdg-r:${R}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
+  /* A779 (capture d'un iPhone) : au doigt, une colonne de texte LONG s'élargit (132 → 184 → 232 px, d'après sa plus longue
+     case) — à 132 px, « Nuage hyperéchogène sans désorganisation… » se cassait au milieu des mots, en rangées très hautes.
+     La 1ʳᵉ, collée, reste à 112 px (A777). Nombres calculés ici, jamais une valeur saisie. */
+  const cw=g[0].map((_,c)=>{if(c===0)return n===1?'minmax(132px,1fr)':'112px';const L=Math.max(0,...g.map(r=>mdCellSplit(r[c]).txt.length));return 'minmax('+(L>60?232:L>24?184:132)+'px,1fr)';}).join(' ');
+  return `<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${cw}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
       +`<button type="button" class="mdg-band mdg-bc" data-mdtw="cend" aria-label="Ajouter une colonne à droite"${n<MD_MAX_TCOLS?'':' disabled'}>＋</button>`
       +`<button type="button" class="mdg-band mdg-br" data-mdtw="rend">＋ Ligne</button></div></div>
     <div class="mdg-opts" role="group" aria-label="Réglages de la grille"><span class="mdg-opt-l">En-tête</span><button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button>${P&&!aMed?'<span class="mdg-opt-l mdg-opt-m">Dans la case</span><button type="button" class="btn sm" data-mdgadd="img">＋ Image</button><button type="button" class="btn sm" data-mdgadd="vid">＋ Vidéo</button>':''}${vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':''}</div>
@@ -21097,14 +21116,35 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
     ${w.edit?'<button type="button" class="mdg-mdl mdg-ph" data-mdtw="md">Modifier le Markdown</button>':''}
     <div class="mdg-thumb" role="toolbar" aria-label="Case active">${mdTblThumbHtml()}</div>`;}
 const mdTblThumbHtml=()=>{const w=_mdTw;return `<button type="button" class="mdg-tbn" data-mdtw="prev" aria-label="Case précédente">‹</button><button type="button" class="mdg-tbn" data-mdtw="next" aria-label="Case suivante">›</button>`
-  +`<button type="button" class="mdg-tbm" data-mdgrow="${w.fr}" aria-haspopup="true">${esc(w.hh&&w.fr===0?'En-tête':mdTblRowName(w,w.fr))} ▾</button>`
-  +`<button type="button" class="mdg-tbm" data-mdgcol="${w.fc}" aria-haspopup="true">${esc(mdTblColName(w,w.fc))} ▾</button>`;};
+  +`<button type="button" class="mdg-tbm" data-mdgrow="${w.fr}" aria-haspopup="true"><span class="mdg-tbt">${esc(w.hh&&w.fr===0?'En-tête':mdTblRowName(w,w.fr))}</span> ▾</button>`
+  +`<button type="button" class="mdg-tbm" data-mdgcol="${w.fc}" aria-haspopup="true"><span class="mdg-tbt">${esc(mdTblColName(w,w.fc))}</span> ▾</button>`
+  +`<button type="button" class="mdg-tbn" data-mdtw="plus" aria-haspopup="true" aria-label="Autres réglages de la grille">⋯</button>`;};
+/* A778 — « ⋯ » DE LA BARRE AU POUCE : tout ce qui vit sous la grille (en-têtes, média de la case, ajouter en fin, Markdown),
+   à portée du pouce clavier ouvert — sur un long tableau, le dessous de la grille sortait de l'écran (« scroll in scroll »). */
+function mdTblPlusMenu(btn){const w=_mdTw;if(!w)return;const n=w.g[0].length,O=[{head:'En-têtes'},
+    {val:'hh',name:w.hh?'Retirer la ligne d’en-tête':'1ʳᵉ ligne en en-tête',ic:uiIcon('table',16)},
+    {val:'hc',name:w.hc?'Retirer la colonne d’en-tête':'1ʳᵉ colonne en en-tête',ic:uiIcon('table',16)}];
+  if(w.p)O.push({head:'Dans la case'},{val:'img',name:'＋ Image',ic:uiIcon('camera',16)},{val:'vid',name:'＋ Vidéo',ic:uiIcon('play',16)});
+  O.push({head:'Ajouter'},{val:'rend',name:'Une ligne en fin',ic:uiIcon('plus',16)});
+  if(n<MD_MAX_TCOLS)O.push({val:'cend',name:'Une colonne en fin',ic:uiIcon('plus',16)});
+  if(w.edit)O.push({val:'md',name:'Modifier le Markdown',ic:uiIcon('code',16)});
+  openPickMenu(btn.parentNode,{aria:'Réglages de la grille',title:'Grille',ctx:mdTblRowName(w,w.fr)+', '+mdTblColName(w,w.fc),trigger:btn,...deskFlot(),options:O,
+    onPick:v=>{const m=mdToolEl(),q=s=>m.querySelector(s);if(_mdTw!==w)return;
+      if(v==='img'||v==='vid'){const r=w.fr,c=w.fc;return mdMedMenu(btn,w.p,v,(v==='vid'?'Vidéo':'Image')+' dans la case',mdTblRowName(w,r)+', '+mdTblColName(w,c),refs=>{if(_mdTw!==w)return;
+        mdTblNote(w);w.typed=false;const x=mdCellSplit(w.g[r][c]);w.g[r][c]=mdCellJoin(x.txt,x.med.map(y=>y.ref).concat(refs.slice(0,1)));mdTblRepaint(r,c);});}
+      if(v==='md'){const b=q('#mdToolFoot [data-mdtw="md"]')||q('.mdg-mdl[data-mdtw="md"]');if(b)b.click();return;}
+      mdTblAct(v);}});}
 // Au doigt, la barre au pouce ne prend pas le focus : le clavier reste ouvert sur la case (tapKeepsFocus, v5.48.7).
 function mdTblThumbBind(){const b=document.querySelector('#mdToolBody .mdg-thumb');if(!b||b.dataset.tk)return;b.dataset.tk='1';
   b.addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault();});tapKeepsFocus(b,'button',8);}
 // Chaque case grandit avec son texte ; une rangée prend la hauteur de sa plus haute case (grille CSS).
 // (min-height, pas height : la grille étire les cases d'une même rangée à la plus haute.)
-function mdTblFit(el){(el?[el]:document.querySelectorAll('#mdToolBody .mdg-in')).forEach(t=>{t.style.minHeight='0';t.style.height='auto';const h=Math.ceil(t.scrollHeight/zoomF());t.style.height='';t.style.minHeight=Math.max(44,h)+'px';});}
+/* A777 : en TROIS PASSES (tout écrire, tout lire, tout écrire) — case par case, chaque lecture forçait une mise en page :
+   98 recalculs pour ouvrir une grille de 6 × 15 (226 ms au processeur ÷ 4, « pas fluide » sur iPhone), 3 désormais. */
+function mdTblFit(el){const T=[...(el?[el]:document.querySelectorAll('#mdToolBody .mdg-in'))],z=zoomF();
+  T.forEach(t=>{t.style.minHeight='0';t.style.height='auto';});
+  const H=T.map(t=>Math.ceil(t.scrollHeight/z));
+  T.forEach((t,i)=>{t.style.height='';t.style.minHeight=Math.max(44,H[i])+'px';});}
 function mdTblFocus(r,c,sel){const e=document.querySelector(`#mdToolBody .mdg-in[data-r="${r}"][data-c="${c}"]`);if(e){e.focus();if(sel!==false)e.select();}}
 function mdTblRepaint(r,c){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();
   const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=mdTblHxHtml();mdTblFit();mdTblThumbBind();mdTblFocus(r,c);}
@@ -21268,9 +21308,15 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
     if(k==='md'){const ta=w.ta;mdToolDone(null,'md');if(!w.onEnd&&document.contains(ta)){ta.focus();ta.setSelectionRange(w.from,w.to);}return;}
     if(w.kind!=='tbl')return;
     // A773 : ‹ › de la barre au pouce — la case précédente, la suivante (en fin : une ligne de plus, comme Tab).
-    if(k==='prev'||k==='next'){const n=w.g[0].length,i=w.fr*n+w.fc+(k==='next'?1:-1);
-      if(i<0)return;if(i>=w.g.length*n){w.fr=w.g.length-1;w.fc=0;return mdTblAct('r+');}
-      return mdTblFocus(Math.floor(i/n),i%n);}
+    if(k==='plus')return mdTblPlusMenu(b);
+    /* A778 : ‹ › sans clavier — clavier FERMÉ (aucune case n'a le focus), elles déplacent la case ACTIVE (cadre bleu, ramenée
+       à l'écran) sans donner le focus : sur iPhone, un focus ouvre le clavier. Clavier ouvert, elles passent à la case. */
+    if(k==='prev'||k==='next'){const n=w.g[0].length,i=w.fr*n+w.fc+(k==='next'?1:-1),tape=!!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mdToolModal .mdg-in'));
+      if(i<0)return;
+      if(i>=w.g.length*n){if(!tape)return;w.fr=w.g.length-1;w.fc=0;return mdTblAct('r+');}
+      if(tape)return mdTblFocus(Math.floor(i/n),i%n);
+      w.fr=Math.floor(i/n);w.fc=i%n;w.typed=false;mdTblCur(m);
+      const c=m.querySelector(`.mdg-c[data-r="${w.fr}"][data-c="${w.fc}"]`);if(c)c.scrollIntoView({block:'nearest',inline:'nearest'});return;}
     mdTblAct(k);});
   m.addEventListener('focusin',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
     const r=+c.dataset.r,k=+c.dataset.c;if(r===w.fr&&k===w.fc)return;w.fr=r;w.fc=k;w.typed=false;mdTblCur(m);});

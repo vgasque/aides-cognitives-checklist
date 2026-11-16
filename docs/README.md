@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A776** à la v5.139 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A779** à la v5.139.1 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -398,6 +398,9 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A774 | `lot-v5-139.md` | En mise en forme en direct, toucher un tableau ouvre la grille (aucun bloc ouvert derrière) ; « Modifier le Markdown » ouvre le bloc en texte ; pastille « Modifier en grille » retirée — amende A609 |
 | A775 | `lot-v5-139.md` | La taille d'une vidéo comme celle d'une image : cadre, poignée, six crans, « Remplacer… » ; champ ajouté `p.videos[].scale` (gardé par `safeVideo`, absent = Pleine), rendu par classe `MD_SC` |
 | A776 | `lot-v5-139.md` | Le dépôt qui vise (planche 3A) : au-dessus du contenu rédigé, pas de voile ; ligne bleue et étiquette en mots — entre deux blocs, dans un élément de liste, dans une case d'un tableau à médias ; en mode Texte une ligne entière (`mdDropAt`, `mdLinesIns`), l'aperçu en pâle ; vidéos déposables ; une seule écriture (`upZone`, `mdDropZone`) |
+| A777 | `lot-v5-139-1.md` | La grille du tableau fluide sur iPhone : `mdTblFit` en trois passes (98 → 3 recalculs à l'ouverture, 226 → 79 ms mesurés) ; au doigt, 1ʳᵉ colonne collée à 112 px, coupée aux syllabes (`hyphens`, `lang="fr"`), filet de bord ; défilement de côté contenu |
+| A778 | `lot-v5-139-1.md` | Clavier ouvert, tout reste à portée : la grille ne devient plus un second ascenseur vertical (`flex:none`), tête collée en haut au téléphone, « ⋯ » dans la barre au pouce (`mdTblPlusMenu` : en-têtes, média, ajouter en fin, Markdown) ; ‹ › clavier fermé déplacent la case active sans donner le focus — amende A773 |
+| A779 | `lot-v5-139-1.md` | D'après une capture d'iPhone : la grille sans marge intérieure au doigt (Safari collait la colonne dans la marge, les cases défilantes se voyaient à sa gauche) ; colonnes de texte long élargies (132 / 184 / 232 px, `--mdg-cols`), coupure aux syllabes partout ; libellé de la barre en « … » |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

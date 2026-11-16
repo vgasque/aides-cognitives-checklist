@@ -9050,7 +9050,7 @@
   .mdg-ph,.mdg-mdl.mdg-ph{display:none}
   .mdg-mdl{display:inline-flex;align-items:center;min-height:36px;margin-right:auto;padding:0 4px;border:0;background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
   .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .mdg-scroll{overflow-x:auto;padding:2px}
+  .mdg-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
   .mdg{display:grid;grid-template-columns:28px repeat(var(--mdg-n),minmax(112px,1fr)) 38px}
   .mdg-tab{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
   .mdg-tab>span{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-1);letter-spacing:1px}
@@ -9080,6 +9080,8 @@
   .mdg-rm:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-add{display:none;flex-wrap:wrap;gap:6px;padding:0 8px 8px}
   .mdg-c.act .mdg-add{display:flex}
+  /* A778 : la case ACTIVE se voit aussi sans focus (‹ › clavier fermé) ; le champ qui a le focus garde son anneau. */
+  @media (pointer:coarse){.mdg-c.act:not(:focus-within){box-shadow:inset 0 0 0 2px var(--act)}}
   .mdg-addb{flex:1 1 72px;min-height:32px;padding:0 6px;border:1.5px dashed var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;white-space:nowrap}
   .mdg-addb:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-band{display:flex;align-items:center;justify-content:center;min-height:32px;padding:0;border:1.5px dashed var(--line-strong);border-radius:var(--r-1);background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
@@ -9097,15 +9099,24 @@
   .mdg-thumb{display:none}
   @media (pointer:coarse){
     .mdg-tab,.mdg-k,.mdg-band,.mdg-hint{display:none}
-    .mdg-c.mdg-l{position:sticky;left:0;z-index:1}
-    .mdg-c.mdg-l:focus-within{z-index:3}
+    .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
     .mdg-add{flex-direction:column}
     .mdg-add .mdg-addb{flex:none}
-    .mdg{grid-template-columns:repeat(var(--mdg-n),minmax(132px,1fr))}
+    /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
+       texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
+    .mdg,.mdg.mdg-1{grid-template-columns:var(--mdg-cols,112px repeat(var(--mdg-n1),minmax(132px,1fr)))}
+    /* A779 : sans marge intérieure au doigt — Safari colle la colonne DANS la marge (2 px), et les cases qui défilaient
+       dessous se voyaient à sa gauche. */
+    .mdg-scroll{padding:0}
+    .mdg-in{-webkit-hyphens:auto;hyphens:auto}
+    .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
+    .mdg-c.mdg-l .mdg-in{padding-left:8px;padding-right:6px}
     .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
     .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
     .mdg-thumb .mdg-tbn{font-size:var(--t-step)}
-    .mdg-thumb .mdg-tbm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mdg-thumb .mdg-tbm{flex:1;min-width:0;gap:4px;padding:0 8px}
+    /* A779 : le libellé se termine en « … » — centré dans un bouton flexible, il était rogné des DEUX côtés. */
+    .mdg-tbt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .mdg-thumb button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   }
   /* Au téléphone, la fenêtre est plein écran (règle des dialogues) : « Annuler · Tableau · ↶ · OK » en tête, le pied
@@ -9114,7 +9125,8 @@
     #mdToolModal.mdt-tbl .mdt-hx{display:contents}
     #mdToolModal.mdt-tbl .mdg-ph{display:inline-flex}
     #mdToolModal.mdt-tbl :is(.ai-x,.mdw-foot,.mdg-dim,[data-mdtw="redo"]){display:none}
-    #mdToolModal.mdt-tbl .ai-top{gap:6px}
+    /* A778 : la tête reste en haut quand la fenêtre défile (clavier ouvert, long tableau : Annuler et OK à portée). */
+    #mdToolModal.mdt-tbl .ai-top{gap:6px;position:sticky;top:0;z-index:5;margin:calc(-18px - var(--sat)) -16px 8px;padding:calc(10px + var(--sat)) 16px 10px;background:var(--work);border-bottom:1px solid var(--line)}
     #mdToolModal.mdt-tbl .ai-top h3{order:1;flex:1;text-align:center}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="x"]{order:0}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="undo"]{order:2}
@@ -9124,6 +9136,9 @@
     #mdToolModal.mdt-tbl .ai-card{display:flex;flex-direction:column}
     #mdToolModal.mdt-tbl #mdToolBody{flex:1;display:flex;flex-direction:column}
     #mdToolModal.mdt-tbl .mdg-thumb{margin-top:auto}
+    /* A778 : la grille ne RÉTRÉCIT jamais dans cette colonne (un élément défilant y a une hauteur minimale nulle) : elle
+       devenait un second ascenseur vertical, coincé entre la tête et la barre — « scroll in scroll ». Seule la fenêtre défile. */
+    #mdToolModal.mdt-tbl .mdg-scroll{flex:none;overflow-y:hidden}
   }
   .mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
   .mdw-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
