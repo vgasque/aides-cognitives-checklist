@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A763** à la v5.135.2 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A765** à la v5.136 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -385,6 +385,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A761 | `lot-v5-135-1.md` | La synchro dit où elle en est : la pastille compte (« Réception · 34 / 120 protocoles »), un bandeau neutre et sa barre sur l’accueil au-delà de 6 éléments, l’arrêt dit (« Arrêtée à … : la reprise partira de là ») |
 | A762 | `lot-v5-135-2.md` | Le bandeau de progression ne promet que la reprise (« une coupure reprendra où elle s’est arrêtée ») — « reste sur cet appareil » était faux en connexion temporaire ; un message de synchro ne promet jamais de conservation (amende A761) |
 | A763 | `lot-v5-135-2.md` | Les fichiers (vidéos, PDF) montent avec un délai à la mesure de leur taille (`fileTimeout`) et se comptent (« Envoi · 2 / 14 fichiers · 48 / 210 Mo », bandeau dès 6 fichiers ou 20 Mo) ; reste ouvert : le téléversement reprenable |
+| A764 | `lot-v5-136.md` | L’écran reste allumé pendant un gros rattrapage de synchro (30 min au plus, choix « Veille active » respecté, dit par le bandeau) ; la réception des fichiers se compte ; régression de la v5.135.2 corrigée (plus aucun fichier ne se téléchargeait) |
+| A765 | `lot-v5-136.md` | « Service indisponible » dit quelle étape de la synchro a échoué et le message brut du serveur (à transmettre) ; lots plus prudents (premier lot d’une ligne, 4 Mo visés) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

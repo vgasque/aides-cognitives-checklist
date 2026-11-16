@@ -11706,23 +11706,32 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
       if(panne&&--panne===0)return route.fulfill({status:500,contentType:'application/json',body:'{"message":"statement timeout"}'});
       const b=JSON.stringify(rows.filter(r=>ids.includes(r.id)));log.lots.push(ids);log.tailles.push(b.length);
       return route.fulfill({status:200,contentType:'application/json',body:b});}
+    if(/\/storage\/v1\/object\/attachments\//.test(u)&&q.method()==='GET'){log.recus=(log.recus||0)+1;const b=Buffer.alloc(1600000);b.write('%PDF-1.4\n');return route.fulfill({status:200,contentType:'application/pdf',body:b});}
     if(/\/storage\/v1\/object\/attachments\//.test(u)&&q.method()==='POST'){log.fichiers=(log.fichiers||0)+1;return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
     if(/\/rest\/v1\/protocols/.test(u)&&q.method()==='POST'){const b=q.postData()||'[]';log.posts.push(JSON.parse(b).length);log.postTailles.push(b.length);return route.fulfill({status:201,body:''});}
     route.fulfill({status:200,contentType:'application/json',body:'[]'});});
   await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
+  // A764 : l'API de maintien d'écran simulée (posée avant le chargement : WAKE_OK se lit au démarrage).
+  await page.addInitScript(()=>{window.__wakeN=0;Object.defineProperty(navigator,'wakeLock',{configurable:true,value:{request:async()=>{window.__wakeN++;
+    const s=new EventTarget();s.release=async()=>{};return s;}}});});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   // 1. Une coupure au 2ᵉ lot : la synchro échoue, mais ce qui est arrivé est gardé, et le curseur le dit.
-  await page.evaluate(async()=>{for(let i=0;i<50&&Sync.running;i++)await __acCalme(100);localStorage.removeItem(spaceKey('ac-sync-cursor-prot'));});
+  // `Sync.running` levé le temps des appels directs : une synchro AUTOMATIQUE (au retour au premier plan, après une
+  // écriture) ne doit pas tirer en même temps — sous la charge d'une passe complète, elle consommait la panne simulée.
+  await page.evaluate(async()=>{for(let i=0;i<50&&Sync.running;i++)await __acCalme(100);Sync.running=true;localStorage.removeItem(spaceKey('ac-sync-cursor-prot'));});
   servir=true;panne=2;
   // A761 : pendant le tirage, la pastille compte et l'accueil montre la barre (douze à recevoir ≥ SYNC_PROG_MIN).
   await page.evaluate(()=>{window.__vus=[];const o=new MutationObserver(()=>{const c=document.getElementById('syncChip'),n=document.getElementById('syncErrNotice');
-    window.__vus.push({chip:c&&!c.hidden?c.textContent:'',barre:!!(n&&!n.hidden&&n.querySelector('.sync-bar')),ban:n&&!n.hidden?n.textContent:''});});
+    window.__vus.push({chip:c&&!c.hidden?c.textContent:'',barre:!!(n&&!n.hidden&&n.querySelector('.sync-bar')),ban:n&&!n.hidden?n.textContent:'',veille:wakeActive()});});
     o.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true});window.__obs=o;});
   const r1=await page.evaluate(async()=>{let err='';try{await Sync._pullProtocols();}catch(e){err=String(e.message||e);}
     Sync.lastError=explainSyncError(new Error(err));setSyncChip('err','Erreur de synchro');
     return {err,n:protocols.filter(p=>/^Lourd /.test(p.title)).length,cur:localStorage.getItem(spaceKey('ac-sync-cursor-prot')),
       arret:(document.getElementById('syncErrNotice')||{}).textContent||''};});
   const vus=await page.evaluate(()=>{window.__obs.disconnect();return window.__vus;});
+  const finVeille=await page.evaluate(async()=>{syncProg('',0,0,'');await __acCalme(100);return {actif:wakeActive(),n:window.__wakeN};});
+  t('A764 · pendant le rattrapage, l’écran est maintenu allumé — et le bandeau le dit ; relâché à la fin',
+    vus.some(v=>v.veille)&&vus.some(v=>/écran maintenu allumé/.test(v.ban))&&!finVeille.actif&&finVeille.n>=1,JSON.stringify({veille:vus.some(v=>v.veille),fin:finVeille}));
   t('A761 · progression : la pastille compte (« Réception · n / 12 protocoles »), l’accueil montre la barre ; interrompue, elle dit où elle s’est arrêtée',
     vus.some(v=>/^Réception · \d+ \/ 12 protocoles$/.test(v.chip.trim()))&&vus.some(v=>v.barre&&/Réception de vos données — \d+ \/ 12 protocoles · une coupure reprendra où elle s’est arrêtée/.test(v.ban))&&!vus.some(v=>/reste sur cet appareil|gardé sur/.test(v.ban))&&/Arrêtée à \d+ \/ 12 protocoles : la reprise partira de là/.test(r1.arret),
     JSON.stringify({chips:[...new Set(vus.map(v=>v.chip))].slice(0,6),arret:r1.arret}));
@@ -11735,6 +11744,16 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
     log.leger>=1&&log.lots.length>=4&&Math.max(...log.tailles)<=12*1024*1024&&log.lots.every(l=>l.length<=60),JSON.stringify({leger:log.leger,lots:log.lots.map(l=>l.length),tailles:log.tailles}));
   t('A760 · une coupure au milieu : ce qui est arrivé est gardé, le curseur avance, la reprise ne redemande pas les lignes reçues',
     /500|timeout/.test(r1.err)&&r1.n>0&&r1.n<12&&!!r1.cur&&!r2.err&&r2.n===12&&r2.img&&redemandes===0,JSON.stringify({r1,r2,avant,redemandes}));
+  // A765 : par le vrai chemin (`Sync.full`), une panne pendant la réception des protocoles se lit dans la fenêtre
+  //        d'erreur — l'étape et le message brut du serveur.
+  const r25=await page.evaluate(async()=>{Sync.running=false;Sync._again=false;localStorage.removeItem(spaceKey('ac-sync-cursor-prot'));
+    protocols.filter(p=>/^Lourd /.test(p.title)).forEach(p=>{p.updatedAt=1;});for(const p of protocols)await Data.putProtocol(p);
+    window.__panne=true;return true;});
+  panne=1;
+  const r26=await page.evaluate(async()=>{await Sync.full();for(let i=0;i<50&&Sync.running;i++)await __acCalme(100);
+    openSyncErr();await __acCalme(150);const t=(document.getElementById('syncErrBody')||{}).textContent||'';closeSyncErr();return t;});
+  t('A765 · « Service indisponible » dit QUELLE étape a échoué et le message brut du serveur (à transmettre)',
+    /étape : réception des protocoles/.test(r26)&&/REST 500/.test(r26)&&/statement timeout/.test(r26),r26.slice(0,400));
   // 3. L'envoi : douze protocoles lourds modifiés partent en plusieurs lots bornés.
   const r3=await page.evaluate(async()=>{for(const p of protocols.filter(x=>/^Lourd /.test(x.title))){p.title+=' ·';p.dirty=true;p.updatedAt=Date.now();await Data.putProtocol(p);}
     let err='';try{await Sync._pushProtocols();}catch(e){err=String(e.message||e);}
@@ -11752,6 +11771,16 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
     const recs=await Promise.all(['att763a','att763b'].map(id=>IDB.getAtt(id)));
     return {err,vus:[...new Set(vus)],envoyes:recs.every(r=>r&&!r.dirty&&r.remotePath)};});
   t('A763 · envoi des fichiers : la pastille compte les fichiers et leur poids, tous montés',!r4.err&&r4.envoyes&&(log.fichiers||0)>=2&&r4.vus.some(v=>/^Envoi · [01] \/ 2 fichiers · \d+ \/ 3 Mo$/.test(v)),JSON.stringify({...r4,fichiers:log.fichiers}));
+  // 5. A764 : la RÉCEPTION des fichiers (téléchargement de fond) se compte aussi, puis la pastille revient à « Synchronisé ».
+  const r5=await page.evaluate(async()=>{for(const id of ['att763a','att763b'])await IDB.delAtt(id);
+    const vus=[];const o=new MutationObserver(()=>{const c=document.getElementById('syncChip');if(c&&!c.hidden)vus.push(c.textContent.trim());});
+    o.observe(document.body,{subtree:true,childList:true,characterData:true});
+    try{await Sync._syncAttachments();}catch(e){}
+    for(let i=0;i<60&&Sync._attDl;i++)await __acCalme(100);o.disconnect();
+    const recs=await Promise.all(['att763a','att763b'].map(id=>IDB.getAtt(id)));
+    return {vus:[...new Set(vus)],recus:recs.every(r=>r&&r.size>0),fin:(document.getElementById('syncChip')||{}).textContent||''};});
+  t('A764 · réception des fichiers : la pastille compte (« Réception · n / 2 fichiers · x / 3 Mo »), puis revient à « Synchronisé »',
+    r5.recus&&r5.vus.some(v=>/^Réception · [01] \/ 2 fichiers · \d+ \/ 3 Mo$/.test(v))&&/Synchronisé/.test(r5.fin),JSON.stringify(r5));
   await page.close();
 });
 

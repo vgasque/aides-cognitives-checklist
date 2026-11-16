@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ceTbCnlCarzZnfWpXYNguRyxy5Ucd6zqTOHOsfg+Zkk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zRxtpOUiUM72wyfF3bZshBGVldCD5MxwXmqeik//c+0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10853,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.135.2';
+const APP_VERSION='5.136.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11437,7 +11437,7 @@ async function wakeApply(){
   /* A659 : aussi tant qu'un minuteur d'une session VIVE tourne, quelle que soit la vue — en lisant un
      PDF ou à l'accueil, la veille gelait `tickAll` et l'alarme ne sonnait plus. Toujours « pendant une
      session vive » (règle 1), et un relâchement par le système n'est pas redemandé en boucle (`_wakeStop`). */
-  const veut=wakeWanted&&document.visibilityState==='visible'&&(crisisOnScreen()||liveTimerRuns());
+  const veut=wakeWanted&&document.visibilityState==='visible'&&(crisisOnScreen()||liveTimerRuns()||syncWakeVeut());   // A764 : et pendant un gros rattrapage de synchro
   if(veut===!!_wakeSentinel)return;                     // rien à faire : pas de demande en boucle
   _wakeBusy=true;
   try{
@@ -11464,6 +11464,15 @@ function syncWakeBtn(){
             :'La veille du système s’applique — appuyer pour maintenir l’écran allumé';}
 document.addEventListener('visibilitychange',()=>{_wakeStop=false;wakeApply();});
 let _wakeStop=false;
+/* A764 — L'ÉCRAN RESTE ALLUMÉ PENDANT UN GROS RATTRAPAGE DE SYNCHRO (demande de l'auteur : « coupe la mise en veille
+   pendant la synchro, ou mets une limite de temps »). Une web app ne synchronise qu'ouverte : sur iPhone, la veille
+   suspend la page et coupe le lot en cours. Mêmes règles que la session (J6) : seulement pendant un rattrapage qui
+   mérite le bandeau (`syncProgGros`, ou des fichiers à recevoir), relâché dès la fin, dégradation silencieuse, et le
+   choix « Veille active » de l'utilisateur (`wakeWanted`) respecté. BORNÉ : 30 min au plus par rattrapage
+   (`SYNC_WAKE_MAX`) — au-delà, la veille normale reprend ; la synchro, elle, reprendra là où elle s'est arrêtée (A760). */
+const SYNC_WAKE_MAX=30*60*1000;let _syncWakeT0=0;
+function syncWakeVeut(){let gros=false;try{gros=!!(_syncProg.total&&syncProgGros(_syncProg));}catch(e){}
+  if(!gros){_syncWakeT0=0;return false;}if(!_syncWakeT0)_syncWakeT0=Date.now();return Date.now()-_syncWakeT0<SYNC_WAKE_MAX;}
 function liveTimerRuns(){try{for(const k in liveSessions){const R=liveSessions[k];if(R&&R.started&&!R.essai)for(const t in (R.timers||{}))if(R.timers[t].running)return true;}}catch(e){}return false;}
 let AC=null;
 // La clé primaire du cloud est GLOBALE (tous comptes confondus) : une collision d'ids entre deux
@@ -34485,6 +34494,7 @@ function updateSyncBanner(){
   /* A761 : un gros rattrapage en cours — bandeau NEUTRE, sa barre, et la promesse tenue par A760 (ce qui est reçu reste). */
   if(st==='prog'){const P=_syncProg,f=Math.min(P.fait,P.total)/P.total;el.hidden=false;el.className='notice sync-prog';el.onclick=null;
     el.innerHTML=`${uiIcon('history',16)}<div><b>${P.sens==='out'?'Envoi de vos données':'Réception de vos données'}</b> — ${esc(syncProgTxt(P).replace(/^[^·]*· /,''))} · une coupure reprendra où elle s’est arrêtée`   /* A762 : « reste sur cet appareil » était faux en connexion temporaire (effacée à la fin, A647-A651) — on dit la reprise, que tient A760, pas une durée de conservation */
+      +(wakeActive()?` · écran maintenu allumé`:'')   // A764 : on le dit — l'écran qui ne s'éteint plus ne doit pas surprendre
       +`<span class="sync-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${P.total}" aria-valuenow="${Math.min(P.fait,P.total)}" aria-label="Progression de la synchronisation"><i style="transform:scaleX(${f.toFixed(3)})"></i></span></div>`;return;}
   el.hidden=false;
   if(st==='err'){
@@ -35985,6 +35995,7 @@ function renderSyncErr(){const body=document.getElementById('syncErrBody');if(!b
   body.innerHTML=`<p class="auth-sub" style="margin-top:0;font-size:15px;display:flex;align-items:center;gap:7px">${err.icon} <b>${esc(err.title)}</b></p>
     <p>${esc(err.detail)}</p>
     ${when?`<p class="ai-note">Dernier échec : ${when}${Sync._retryTimer?' · nouvelle tentative automatique en cours' : ''}</p>`:''}
+    ${err.tech?`<p class="ai-note">Détail technique, à transmettre si le problème dure${err.etape?` — étape : ${esc(err.etape)}`:''} :<br><code>${esc(err.tech)}</code></p>`:''}
     <div class="ai-actions"><button class="btn primary sm" id="syncErrRetry">Réessayer maintenant</button></div>`;
   const b=body.querySelector('#syncErrRetry');if(b)b.onclick=()=>{closeSyncErr();Sync.full();};}
 function openSyncErr(){renderSyncErr();syncErrModal.classList.add('on');}
@@ -36368,7 +36379,7 @@ async function rest(method,path,body,extra,_rejeu,ms){await Auth.ensureFresh();
    centaines de Mo — le serveur ou le délai l'abandonnait, et comme le curseur ne s'écrivait qu'à la fin, chaque essai
    repartait du même point (« le téléphone ne se synchronise plus », constaté par l'auteur après un import massif fait sur
    l'ordinateur). `restRows` rend les lignes ET la taille de la réponse, pour régler le lot suivant (`syncLot`). */
-const SYNC_LOT_OCTETS=6*1024*1024;
+const SYNC_LOT_OCTETS=4*1024*1024;   // A765 : 6 → 4 Mo (un lot lourd peut buter sur la limite de temps d'une requête du serveur)
 /* A763 — UN FICHIER LOURD A LE TEMPS DE PASSER. Une vidéo (jusqu'à 30 Mo, A757) devait monter en 120 s : sur une
    connexion montante faible, jamais — et l'essai suivant repartait de zéro. Le délai suit la taille (au plancher de
    256 kbit/s), borné à 20 min. PURE. */
@@ -36402,6 +36413,7 @@ function syncProgTxt(p){if(!p||!p.total)return '';const mo=n=>Math.round(n/10485
 // A763 : un envoi de fichiers lourd mérite le bandeau même à moins de six fichiers (20 Mo).
 const syncProgGros=p=>p.total>=SYNC_PROG_MIN||p.ot>=20*1048576;
 function syncProg(sens,fait,total,quoi,o,ot){Object.assign(_syncProg,{sens,fait,total,quoi,o:o||0,ot:ot||0});
+  try{wakeApply();}catch(e){}   // A764 : l'écran suit le rattrapage (demandé au début, relâché à la fin)
   if(total)setSyncChip('busy',syncProgTxt(_syncProg));else updateSyncBanner();}
 const SYNC_QUOI={protocols:'protocoles',cognitive_aids:'aides',sessions:'sessions'};
 // Appel d'une fonction Postgres exposée par PostgREST (toujours en POST). Raccourci de rest() pour
@@ -36586,7 +36598,10 @@ async function storageReq(method,path,body,ctype,extra,ms){await Auth.ensureFres
 // la FORME de l'enregistrement (dirty:0, remotePath) est l'invariant partagé du bouton
 // « tout télécharger » et du téléchargement de fond de la synchro : une seule écriture.
 async function attFetchOne(id,path){
-  const r=await storageReq('GET',path,undefined,undefined,undefined,NET_TIMEOUT_FILE_MAX);   // A763 : une vidéo de 30 Mo en 4G faible dépasse 120 sconst buf=await r.arrayBuffer();
+  /* A763 : une vidéo de 30 Mo en 4G faible dépasse 120 s. A764 (régression de la v5.135.2) : ce commentaire était
+     écrit en `//` AU MILIEU de la ligne et avalait `const buf=…` — plus aucun fichier ne se téléchargeait, en silence. */
+  const r=await storageReq('GET',path,undefined,undefined,undefined,NET_TIMEOUT_FILE_MAX);
+  const buf=await r.arrayBuffer();
   await attPut({id:id,buf:buf,size:buf.byteLength,type:attTypeOfPath(path),createdAt:Date.now(),dirty:0,remotePath:path});
   refreshAttRow(id);vidRefresh(id);}
 // File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
@@ -36853,8 +36868,11 @@ const Sync={
       await linkRulesFetch();   // A654
       if(fin())return;
       await this._initIfNeeded();if(fin())return;
-      const conflicts=await this._pull();if(fin())return;
-      conflicts.push(...await this._pullProtocols());
+      /* A765 — L'ÉTAPE VOYAGE AVEC L'ERREUR : « Service indisponible » ne disait pas QUELLE requête échouait ; la fenêtre
+         d'erreur montre désormais l'étape et le message brut du serveur (à transmettre). */
+      const etape=async(nom,fn)=>{this._etape=nom;try{return await fn();}catch(e){if(e&&typeof e==='object'&&!e.etape)try{e.etape=nom;}catch(_){}throw e;}};
+      const conflicts=await etape('réception des aides',()=>this._pull());if(fin())return;
+      conflicts.push(...await etape('réception des protocoles',()=>this._pullProtocols()));
       try{localStorage.removeItem(spaceKey(ACC_PENDING));}catch(e){}   // A734 : aides ET protocoles arrivés — le compte est chargé
       /* A661 : le conflit se dit DÈS QU'IL EST CONNU — placé après le `throw pushErr`, l'avis était perdu chaque fois
          que le push (ou un document PDF) échouait, c'est-à-dire précisément quand le réseau va mal. */
@@ -36871,19 +36889,19 @@ const Sync={
       /* A693 : JUSTE AVANT D'ENVOYER (l'état le plus frais, et aucune requête de plus avant les tirages) — ce que le
          serveur refuserait maintenant à ce poste est RETENU, pas envoyé. Sans effet hors d'un appareil temporaire. */
       await linkHold();if(fin())return;
-      let pushErr=null;try{await this._push();}catch(e){pushErr=e;}
-      try{await this._pushProtocols();}catch(e){if(!pushErr)pushErr=e;}
-      try{await this._pushSessions();}catch(e){if(!pushErr)pushErr=e;}
+      let pushErr=null;try{await etape('envoi des aides',()=>this._push());}catch(e){pushErr=e;}
+      try{await etape('envoi des protocoles',()=>this._pushProtocols());}catch(e){if(!pushErr)pushErr=e;}
+      try{await etape('envoi des sessions',()=>this._pushSessions());}catch(e){if(!pushErr)pushErr=e;}
       if(fin())return;
-      await this._reconcileShared();if(fin())return;
-      await this._syncCats();if(fin())return;
-      await this._syncNotes();if(fin())return;
+      await etape('vérification des bibliothèques',()=>this._reconcileShared());if(fin())return;
+      await etape('catégories',()=>this._syncCats());if(fin())return;
+      await etape('notes',()=>this._syncNotes());if(fin())return;
       try{await this._syncSuivi();}catch(e){}
       if(fin())return;   // A613 : un échec du suivi ne prive pas le reste de la synchro
       // Documents PDF (bucket Storage) : suppressions distantes en attente, upload des blobs
       // modifiés, puis téléchargement en arrière-plan des documents manquants. Un échec Storage
       // ne prive pas le reste de la synchro (re-levé à la fin -> pastille + retry).
-      let attErr=null;try{await this._syncAttachments();}catch(e){attErr=e;}
+      let attErr=null;try{await etape('fichiers (documents, vidéos)',()=>this._syncAttachments());}catch(e){attErr=e;}
       if(pushErr)throw pushErr;
       if(attErr)throw attErr;
       this._retryDelay=0;
@@ -36894,7 +36912,9 @@ const Sync={
          panne — tout le reste est à jour, et l'accord d'un appareil connecté relancera l'envoi. Ni pastille rouge, ni
          nouvelle tentative en boucle : la bande de l'accueil le dit. */
       if(linkHeldErr(e)){_linkHeldSeen=true;this._retryDelay=0;setSyncChip('ok','Synchronisé');try{linkPaintBand();}catch(_){}}
-      else{this.lastError=explainSyncError(e);this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}}
+      else{this.lastError=explainSyncError(e);
+        try{this.lastError=Object.assign({},this.lastError,{tech:String((e&&e.message)||e||'').replace(/\s+/g,' ').slice(0,300),etape:(e&&e.etape)||this._etape||''});}catch(_){}   // A765
+        this.lastErrorAt=Date.now();setSyncChip('err','Erreur de synchro');this._scheduleRetry();}}
     finally{this.running=false;
       // A653 : la première synchro de la page a fini (bien ou mal) — l'accueil quitte l'état « chargement ».
       /* A734 : … et quand un premier chargement repris finit, la ligne « pas encore complète » s'efface. */
@@ -36981,7 +37001,7 @@ const Sync={
        plus récentes que la copie locale ; une suppression n'a pas besoin de ses données), par lots bornés en octets
        (`restRows`, `syncLot`) ; le curseur s'écrit APRÈS CHAQUE LOT appliqué — une synchro interrompue reprend où elle
        en était, au lieu de recommencer la même requête trop lourde. Écritures bufferisées par lot (Data.applyRows). */
-    let k=3;const quoi=SYNC_QUOI[cfg.table]||'éléments';
+    let k=1;const quoi=SYNC_QUOI[cfg.table]||'éléments';   // A765 : le premier lot n'a qu'une ligne — sa taille règle les suivants
     const besoin=row=>{const l=byId[row.id];return !l||(Date.parse(row.updated_at)||0)>(l.updatedAt||0);};
     const curseur=()=>{if(maxTs)localStorage.setItem(spaceKey(cfg.cursorKey),new Date(maxTs).toISOString());};
     for(let p=0;p<50;p++){
@@ -37183,9 +37203,9 @@ const Sync={
     /* A689 : on ne retient plus « le chemin de la dernière entité vivante », mais QUI cite chaque document
        (`refs`). La décision est dans `attPlan` (pure) : un téléversement ne va qu'à l'espace de l'enregistrement,
        jamais là où une ligne tirée le voudrait. */
-    const refs=Object.create(null),ext=Object.create(null);
+    const refs=Object.create(null),ext=Object.create(null),taille=Object.create(null);
     all.forEach(f=>{(f.docs||[]).concat(f.videos||[]).forEach(a=>{if(!a||!a.id||typeof a.id!=='string'||badKey(a.id))return;   // A757 : les vidéos aussi
-      if(a.mime)ext[a.id]=attExt(a.mime);
+      if(a.mime)ext[a.id]=attExt(a.mime);if(a.size>0)taille[a.id]=a.size;
       (refs[a.id]=refs[a.id]||[]).push({lib:f.library||null,del:!!f.deletedAt,edit:canEditFiche(f)});});});
     // Blobs du brouillon EN COURS d'édition (fiche OU protocole) : pas encore référencés par une
     // entité enregistrée -> à protéger de la purge (une synchro peut arriver pendant la saisie).
@@ -37230,10 +37250,16 @@ const Sync={
     const have=new Set(await IDB.getAttIds());
     const missing=Object.keys(refs).filter(id=>!have.has(id));
     if(missing.length&&!this._attDl){this._attDl=true;
+      /* A764 : la réception des fichiers se compte aussi (« Réception · 3 / 14 fichiers · 40 / 210 Mo ») et garde
+         l'écran allumé le temps qu'il faut — mais seulement hors d'une synchro en cours, qui tient la pastille. */
+      const n=missing.length,ot=missing.reduce((t,id)=>t+(taille[id]||0),0),dit=n>1||ot>=1048576;let k=0,o=0;
       (async()=>{try{for(const id of missing){
+          if(dit&&!this.running)syncProg('in',k,n,'fichiers',o,ot);
           // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
-          for(const pth of attFetchPaths(id,refs[id],uidv,ext[id])){try{await attFetchOne(id,pth);break;}catch(e){}}}
-      }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
+          for(const pth of attFetchPaths(id,refs[id],uidv,ext[id])){try{await attFetchOne(id,pth);break;}catch(e){}}
+          k++;o+=taille[id]||0;}
+      }finally{this._attDl=false;refreshAttOffline();
+        if(dit&&_syncProg.quoi==='fichiers'&&_syncProg.sens==='in'){syncProg('',0,0,'');if(!this.running&&Auth.signedIn())setSyncChip('ok','Synchronisé');}}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
   async _syncCats(){
