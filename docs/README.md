@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A768** à la v5.137.2 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A769** à la v5.137.3 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -390,6 +390,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A766 | `lot-v5-137.md` | Les images voyagent en fichiers (bucket des documents) : la ligne du serveur ne garde que leur fiche, seulement si le fichier est confirmé (`imgStrip`, carte `ac-img-up`) ; réception en fond (`imgAttente`, `imgCarry`, `Sync.imgHydrate`) ; migrateur unique ; les fichiers partent même si la réception échoue ; versions antérieures non supportées — serveur à rejouer |
 | A767 | `lot-v5-137-1.md` | Une vidéo suit l'espace de son protocole (`attClaim`, `attCites`, `attCopyDocs`, `attRelink` sur `vid:`) ; ce qui est « envoyé » se vérifie une fois par lancement, une liste par dossier, et ce qui manque repart (`Sync._attVu`) ; une vidéo introuvable sur le serveur le dit (`attIntrouvable`, `_attAbsents`) |
 | A768 | `lot-v5-137-2.md` | Une vidéo survit au démarrage : les ménages qui effacent lisent une seule liste de ce qui est cité (`attCiteIds` : documents, vidéos, lignes du texte — `gcAttachments`, `purgeDraftAtts`, `_syncAttachments`) ; une suppression distante se revérifie au départ (`attDelSur`) ; une lecture en échec n'efface rien ; récupération depuis mon Perso du serveur |
+| A769 | `lot-v5-137-3.md` | La carte des images se tient par chemin (`imgCarteNorm`) : plus de va-et-vient d'une image citée dans deux espaces ; une image refusée ne se renvoie pas de la session (`_imgRefus`) ; la garde des suppressions voit les images ; message d'une vidéo introuvable |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

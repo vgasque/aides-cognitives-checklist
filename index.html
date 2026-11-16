@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-XCgGeA+UQOCHjKlqcYywe9Uxf4//NtO2JTt09+RR7js='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-wfH3Sjlzg19ZHCnjogZQyBC84ZsJwIBS//1bimiE9Po='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10853,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.137.2';
+const APP_VERSION='5.137.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20638,7 +20638,7 @@ async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1'
   const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
   if(!buf){fig.dataset.vh='';fig.classList.add('md-vabs');
     box.innerHTML=_attAbsents.has(id)
-      ?'<span class="md-vph">△ Vidéo pas encore sur le serveur — ouvrez l’app sur l’appareil qui l’a ajoutée : elle l’enverra.</span>'
+      ?'<span class="md-vph">△ Vidéo introuvable, ni sur cet appareil ni sur le serveur. Si un autre de vos appareils l’a encore, ouvrez-y l’app : elle l’enverra. Sinon, réimportez-la depuis son fichier d’origine.</span>'
       :'<span class="md-vph">△ Vidéo pas encore sur cet appareil — elle arrive avec la synchronisation.</span>';return;}
   fig.classList.remove('md-vabs');
   const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
@@ -30376,8 +30376,8 @@ function imgStrip(data,carte,uid){if(!data||typeof data!=='object')return data;
   const meta=[],parId=new Map(),enLigne=[];carte=carte||Object.create(null);
   for(const im of (Array.isArray(data.images)?data.images:[])){if(!im||!im.id)continue;
     if(!im.data)continue;
-    const mime=imgMimeOf(im.data),c=carte[im.id];
-    if(!mime||!c||c.fp!==imgFp(im.data)||c.p!==attStoragePath(data.library||null,uid,im.id,IMG_MIMES[mime])){enLigne.push(im);continue;}
+    const mime=imgMimeOf(im.data),c=mime&&carte[attStoragePath(data.library||null,uid,im.id,IMG_MIMES[mime])];   // A769 : la carte se lit par CHEMIN
+    if(!c||c.fp!==imgFp(im.data)){enLigne.push(im);continue;}
     meta.push({id:im.id,w:im.w|0,h:im.h|0,caption:im.caption||'',scale:im.scale,mime,size:imgOctets(im.data),fp:imgFp(im.data)});parId.set(im.data,im.id);}
   for(const a of (Array.isArray(data.imgAttente)?data.imgAttente:[]))if(a&&a.id&&!meta.some(x=>x.id===a.id))meta.push(a);
   data.images=enLigne.concat(meta);delete data.imgAttente;
@@ -30402,9 +30402,16 @@ function imgCarry(nf,local){if(!nf||!Array.isArray(nf.imgAttente)||!nf.imgAttent
 // Octets ↔ base64, par tranches (une image de plusieurs Mo dépasse la pile d'arguments de `fromCharCode`). PURES.
 function b64DeOctets(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
 function octetsDeB64(d){const s=String(d||''),b=atob(s.slice(s.indexOf(',')+1)),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
-// La CARTE de ce qui est déjà en fichier sur le serveur : id → {p: chemin, fp: empreinte}. Par espace local.
-function imgCarteLire(){try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-img-up'))||'{}');const c=Object.create(null);
-  if(o&&typeof o==='object')for(const k of Object.keys(o)){const v=o[k];if(SAFE_ID.test(k)&&!badKey(k)&&v&&typeof v.p==='string'&&ATT_PATH_RX.test(v.p))c[k]={p:v.p,fp:typeof v.fp==='string'?v.fp:''};}return c;}catch(e){return Object.create(null);}}
+/* La CARTE de ce qui est déjà en fichier sur le serveur : CHEMIN → {p: chemin, fp: empreinte}. Par espace local.
+   A769 — LA CLÉ EST LE CHEMIN, PLUS L'ID DE L'IMAGE : une même image citée par deux éléments de deux espaces (« Copier
+   dans Perso », un Markdown collé d'un autre protocole) se voulait à deux chemins sous UNE entrée — chaque synchro la
+   renvoyait à l'un en effaçant l'autre, sans fin (« Envoi · 2 / 17 images » à chaque passage). Une carte d'avant (clé =
+   id) est relue sous ses chemins. `imgCarteNorm` — PURE (testée). */
+function imgCarteNorm(o){const c=Object.create(null);
+  if(o&&typeof o==='object')for(const k of Object.keys(o)){const v=o[k];if(badKey(k)||!v||typeof v.p!=='string'||!ATT_PATH_RX.test(v.p))continue;
+    if(k===v.p||SAFE_ID.test(k))c[v.p]={p:v.p,fp:typeof v.fp==='string'?v.fp:''};}
+  return c;}
+function imgCarteLire(){try{return imgCarteNorm(JSON.parse(localStorage.getItem(spaceKey('ac-img-up'))||'{}'));}catch(e){return Object.create(null);}}
 function imgCarteEcrire(c){_imgCarte=c;try{localStorage.setItem(spaceKey('ac-img-up'),JSON.stringify(c));}catch(e){}}
 let _imgCarte=null;const imgCarte=()=>_imgCarte||(_imgCarte=imgCarteLire());
 // Les noms des fichiers d'un dossier du bucket (« u/<compte> » ou « l/<bibliothèque> »), paginés.
@@ -37333,13 +37340,18 @@ const Sync={
       if(a.mime)ext[a.id]=attExt(a.mime);if(a.size>0)taille[a.id]=a.size;
       (refs[a.id]=refs[a.id]||[]).push({lib:f.library||null,del:!!f.deletedAt,edit:canEditFiche(f)});});});
     const cites=attCiteIds(all.concat(fiches,protocols));   // A768 : ce qu'une ligne de texte nomme encore ne se purge pas
+    /* A769 : la garde des suppressions voit aussi les IMAGES (galerie et attente) — `refs` reste aux binaires de l'appareil
+       (il décide aussi des téléchargements). */
+    const gardes=Object.assign(Object.create(null),refs);
+    all.forEach(f=>{if(!f)return;(f.images||[]).concat(f.imgAttente||[]).forEach(a=>{if(!a||typeof a.id!=='string'||badKey(a.id))return;
+      (gardes[a.id]=(gardes[a.id]||[]).slice()).push({lib:f.library||null,del:!!f.deletedAt});});});
     // 1. Suppressions distantes en attente. 404 = déjà supprimé ailleurs ; 400/403 = ne passera
     // jamais (droits perdus, chemin invalide) -> on retire de la file (l'orphelin éventuel reste
     // visible de l'app-admin via list_orphan_attachments) ; autres erreurs (réseau, 5xx) -> la
     // file est conservée et retentée. A768 : un chemin qu'un élément vivant cite encore dans cet espace est RETIRÉ de
     // la file sans être supprimé (`attDelSur`) ; sans lecture complète des éléments, la file attend.
     if(lu)for(const p of attDelQueue()){
-      if(!attDelSur(p,refs,uidv)){setAttDelQueue(attDelQueue().filter(x=>x!==p));continue;}
+      if(!attDelSur(p,gardes,uidv)){setAttDelQueue(attDelQueue().filter(x=>x!==p));continue;}
       try{await storageReq('DELETE',p);setAttDelQueue(attDelQueue().filter(x=>x!==p));}
       catch(e){if(e.status===404||e.status===403||e.status===400)setAttDelQueue(attDelQueue().filter(x=>x!==p));
         else if(!firstErr)firstErr=e;}}
@@ -37446,31 +37458,34 @@ const Sync={
   async _syncImages(){
     if(!Auth.signedIn())return 0;
     const uidv=Auth.user().id,carte=Object.assign(Object.create(null),imgCarte());
-    const vues=new Set(),aEnvoyer=[];
+    /* A769 : la carte et le ménage se tiennent par CHEMIN (une image, un espace) ; une image refusée par le serveur n'est
+       plus renvoyée de toute la session (`_imgRefus`) — elle repassait à chaque synchro, bandeau compris. */
+    const vues=new Set(),aEnvoyer=[],refusees=this._imgRefus||(this._imgRefus=new Set()),vu=new Set();
     for(const e of fiches.concat(protocols)){if(!e||e.deletedAt)continue;
-      (e.imgAttente||[]).forEach(a=>{if(a&&a.id)vues.add(a.id);});
-      for(const im of (e.images||[])){if(!im||!im.id||!im.data)continue;vues.add(im.id);
-        if(!canEditFiche(e))continue;
+      (e.imgAttente||[]).forEach(a=>{if(a&&a.id)vues.add(attStoragePath(e.library||null,uidv,a.id,IMG_MIMES[a.mime]||'webp'));});
+      for(const im of (e.images||[])){if(!im||!im.id||!im.data)continue;
         const mime=imgMimeOf(im.data);if(!mime)continue;
-        const p=attStoragePath(e.library||null,uidv,im.id,IMG_MIMES[mime]),fp=imgFp(im.data),c=carte[im.id];
-        if(c&&c.p===p&&c.fp===fp)continue;
-        aEnvoyer.push({im,p,fp,mime,ancien:c&&c.p!==p?c.p:null,connu:!!c});}}
+        const p=attStoragePath(e.library||null,uidv,im.id,IMG_MIMES[mime]);vues.add(p);
+        if(!canEditFiche(e)||vu.has(p)||refusees.has(p))continue;vu.add(p);
+        const fp=imgFp(im.data),c=carte[p];
+        if(c&&c.fp===fp)continue;
+        aEnvoyer.push({im,p,fp,mime,connu:!!c});}}
     // Ce que le serveur a déjà : un appel par dossier, seulement pour les images que la carte ne connaît pas du tout.
     const inconnus=aEnvoyer.filter(x=>!x.connu);
     if(inconnus.length){const deja=new Set();
       for(const d of [...new Set(inconnus.map(x=>x.p.slice(0,x.p.lastIndexOf('/'))))]){try{(await storageList(d)).forEach(nm=>deja.add(d+'/'+nm));}catch(e){}}
-      for(let i=aEnvoyer.length-1;i>=0;i--){const x=aEnvoyer[i];if(!x.connu&&deja.has(x.p)){carte[x.im.id]={p:x.p,fp:x.fp};aEnvoyer.splice(i,1);}}}
+      for(let i=aEnvoyer.length-1;i>=0;i--){const x=aEnvoyer[i];if(!x.connu&&deja.has(x.p)){carte[x.p]={p:x.p,fp:x.fp};aEnvoyer.splice(i,1);}}}
     const oTot=aEnvoyer.reduce((t,x)=>t+imgOctets(x.im.data),0);let oFait=0,nFait=0,refus=0,firstErr=null;
     for(const x of aEnvoyer){
       if(aEnvoyer.length>1||oTot>=1048576)syncProg('out',nFait,aEnvoyer.length,'images',oFait,oTot);
       const o=imgOctets(x.im.data);
       try{await storageReq('POST',x.p,octetsDeB64(x.im.data),x.mime,{'x-upsert':'true'},fileTimeout(o));
-        carte[x.im.id]={p:x.p,fp:x.fp};imgCarteEcrire(carte);
-        if(x.ancien&&attMayDelete(x.ancien,uidv,canEditScope))queueAttDelete(x.ancien);}
-      catch(e){if([400,403,413,415].indexOf(e.status)>=0)refus++;else if(!firstErr)firstErr=e;}
+        carte[x.p]={p:x.p,fp:x.fp};imgCarteEcrire(carte);}
+      catch(e){if([400,403,413,415].indexOf(e.status)>=0){refus++;refusees.add(x.p);}else if(!firstErr)firstErr=e;}
       finally{nFait++;oFait+=o;}}
-    // Ménage : une image que plus aucun élément ne cite part du serveur, là où j'en ai le droit.
-    for(const id of Object.keys(carte))if(!vues.has(id)){if(attMayDelete(carte[id].p,uidv,canEditScope))queueAttDelete(carte[id].p);delete carte[id];}
+    // Ménage : un fichier d'image qu'aucun élément ne cite plus À CE CHEMIN part du serveur, là où j'en ai le droit
+    // (l'ancien chemin d'un élément déplacé compris — c'est ici qu'il part, une fois le nouveau envoyé).
+    for(const p of Object.keys(carte))if(!vues.has(p)){if(attMayDelete(p,uidv,canEditScope))queueAttDelete(p);delete carte[p];}
     imgCarteEcrire(carte);
     if(_syncProg.quoi==='images'&&_syncProg.sens==='out'){syncProg('',0,0,'');setSyncChip('busy','Synchro en cours');}
     if(refus&&!this._imgDit){this._imgDit=true;toast('△ '+nb(refus,'image')+' pas encore en fichier : le serveur doit être mis à jour (administrateur : rejouer schema.sql). Elles restent dans leurs éléments, rien n’est perdu.',10000,true);}
@@ -37496,7 +37511,7 @@ const Sync={
             const a=cur.imgAttente.splice(i,1)[0];if(!cur.imgAttente.length)delete cur.imgAttente;
             (cur.images=cur.images||[]).push({id:a.id,data,w:a.w,h:a.h,caption:a.caption,scale:a.scale});imgResolve(cur);
             if(arr===fiches)await Data.put(cur);else await Data.putProtocol(cur);   // ni dirty ni date : rien à renvoyer
-            const c=imgCarte();c[a.id]={p:pth,fp:imgFp(data)};imgCarteEcrire(c);recus++;break;}
+            const c=imgCarte();c[pth]={p:pth,fp:imgFp(data)};imgCarteEcrire(c);recus++;break;}
           catch(e){}}
         k++;o+=t.a.size||0;}
     }finally{this._imgDl=false;
@@ -40435,7 +40450,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attCiteIds,attDelSur,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attCiteIds,attDelSur,imgCarteNorm,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,

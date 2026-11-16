@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.137.3] — 2026-11-16
+Correctif : l'envoi des images ne tourne plus en boucle à chaque synchronisation (A769). Aucune mise à jour du serveur
+de plus que celle de la v5.137.
+- **Une même image citée dans deux espaces** (une copie dans Perso d'un protocole de bibliothèque, un Markdown collé
+  d'un autre protocole) était renvoyée à chaque synchro vers l'un, puis vers l'autre, chaque envoi effaçant le fichier
+  de l'autre chemin. Chaque espace a désormais son propre fichier, envoyé une fois.
+- **Une image refusée par le serveur n'est plus renvoyée de toute la session** : le bandeau « Envoi · n / N images » ne
+  revient plus à chaque passage. Le message dit de mettre le serveur à jour (rejouer `supabase/schema.sql`) ; l'envoi
+  reprend à l'ouverture suivante de l'app.
+- Une suppression sur le serveur protège aussi les images qu'un élément cite encore.
+- Le message d'une vidéo absente dit la vérité : « introuvable, ni sur cet appareil ni sur le serveur » — si un autre
+  appareil l'a encore, l'y ouvrir ; sinon, la réimporter depuis son fichier d'origine.
+
 ## [5.137.2] — 2026-11-16
 ⚠ **Correctif urgent** : depuis la v5.134, chaque ouverture de l'app effaçait les vidéos de l'appareil et demandait
 leur suppression sur le serveur (A768). Aucune mise à jour du serveur. **Mettre à jour tous les appareils.**
@@ -250,15 +263,3 @@ Un PDF reste net à fort zoom (A748).
 - **Aucun changement à zoom ordinaire**, et le défilement reste aussi fluide (mesuré sur ordinateur, iPhone, Android
   et appareil peu puissant émulés). Si vous recommencez à défiler, le dessin en cours est abandonné. Sur un appareil
   peu puissant, la zone redessinée est plus petite pour ménager la mémoire.
-
-## [5.126.6] — 2026-11-14
-Dans un PDF, le surlignage tombe sur le mot, et un zoom au doigt redevient net (A746-A747).
-- **Surlignage décalé.** Le rectangle jaune tombait à côté du mot : sur « cortico-réfractaires » il couvrait
-  « -réfract », sur « macrovasculaire » il couvrait « ma ». Sa place était estimée au nombre de lettres ; elle est
-  maintenant mesurée. Sur une ligne justifiée, un petit écart peut subsister.
-- **Flou après un zoom au doigt.** Après un pincer, la page restait une image agrandie, donc floue, alors que les
-  boutons + et − la redessinaient. Elle est maintenant redessinée aussi après un pincer, et dès que le défilement
-  s'arrête.
-- À très fort zoom (400 %), le texte reste moins net qu'à 140 %, même avec les boutons : la page entière est
-  dessinée dans la limite de mémoire de l'iPhone. Une amélioration est notée, à décider
-  (`docs/decisions/lot-v5-126-6.md`).
