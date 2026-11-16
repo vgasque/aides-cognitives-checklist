@@ -40,6 +40,7 @@ declare
   noe   uuid := 'a6630000-0000-0000-0000-000000000003';
   oda   uuid := 'a6630000-0000-0000-0000-000000000004';
   pia   uuid := 'a6630000-0000-0000-0000-000000000005';
+  rex   uuid := 'a7200000-0000-0000-0000-000000000001';   -- A720 (17.6c) : un éditeur à lui — max s'efface plus haut (17.x, suppression de son compte)
   -- §18 (A676-A680), comptes dédiés
   quin  uuid := 'a6760000-0000-0000-0000-000000000001';
   rui   uuid := 'a6760000-0000-0000-0000-000000000002';
@@ -1909,9 +1910,16 @@ begin
 
   -- 17.6c A720 — L'ADMINISTRATRICE D'UNE BIBLIOTHÈQUE LA SUPPRIME (plus seulement celle de l'instance) ; un éditeur,
   --      non (13.3 le garde aussi).
-  insert into public.libraries(id,name) values ('lib-a720','A720');
-  insert into public.memberships(user_id,library_id,role) values (lea,'lib-a720','admin'),(max,'lib-a720','editor');   -- max : noe vient d'être refusée (17.6)
-  perform set_config('request.jwt.claims', json_build_object('sub',max,'role','authenticated')::text, true);
+  --      ⚠ Décor SANS JETON et à comptes dédiés : max a supprimé son compte plus haut, noe est refusée ; sans
+  --      `created_by`, l'utilisateur simulé du moment devenait membre (lib_creator_admin, cf. 17.6b).
+  reset role;
+  perform set_config('request.jwt.claims', '{}', true);
+  insert into auth.users (id, email, email_confirmed_at) values (rex,'rex@test.local',now());
+  insert into public.user_status(user_id,email,status) values (rex,'rex@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.libraries(id,name,created_by) values ('lib-a720','A720',lea);   -- lea en devient administratrice (déclencheur)
+  insert into public.memberships(user_id,library_id,role) values (rex,'lib-a720','editor');
+  perform set_config('request.jwt.claims', json_build_object('sub',rex,'role','authenticated')::text, true);
   set local role authenticated;
   delete from public.libraries where id = 'lib-a720';
   reset role;
