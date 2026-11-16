@@ -55,6 +55,9 @@ declare
   v_l21  uuid;
   v_u21  uuid;
   v_c21  uuid;
+  -- §22 (A771), comptes dédiés
+  vic   uuid := 'a7710000-0000-0000-0000-000000000001';   -- administrateur de l'instance
+  wes   uuid := 'a7710000-0000-0000-0000-000000000002';   -- compte ordinaire, propriétaire des fichiers
   -- §19 (A687), comptes dédiés
   sam   uuid := 'a6870000-0000-0000-0000-000000000001';
   tom   uuid := 'a6870000-0000-0000-0000-000000000002';
@@ -2586,6 +2589,57 @@ begin
   v_j := public.link_bind_srv(v_c21, 'cle-21c-0123456789abcdef', v_s18c);
   if (v_j->>'ok')::boolean is not true or (select unlocked_until from public.device_links where id = v_c21) < now() + interval '14 minutes' then
     raise exception 'ÉCHEC 21.8 : la liaison n''ouvre pas la fenêtre du poste (%)', v_j; end if;
+
+  ------------------------------------------------------------------ 22. Fichiers sans élément (A771)
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (vic,'vic@test.local',now()),(wes,'wes@test.local',now());
+  insert into public.user_status(user_id,email,status) values (vic,'vic@test.local','approved'),(wes,'wes@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.app_admins(user_id) values (vic) on conflict do nothing;
+  insert into storage.objects(bucket_id,name,metadata,created_at) values
+    ('attachments','u/'||wes||'/orph-old-771.pdf','{"size":300}',now() - interval '8 days'),
+    ('attachments','u/'||wes||'/orph-new-771.pdf','{"size":300}',now()),
+    ('attachments','u/'||wes||'/cite-old-771.mp4','{"size":300}',now() - interval '8 days');
+  insert into public.protocols(id,owner,library_id,data) values ('p-771',wes,null,
+    '{"title":"Écho","videos":[{"id":"cite-old-771","name":"a.mp4","mime":"video/mp4"}],"docs":[{"name":"sans id"}]}');
+
+  -- 22.1 Un compte ordinaire ne liste rien, ne lit pas le fichier sans élément d'un autre, n'appelle pas `att_cite`.
+  perform set_config('request.jwt.claims', json_build_object('sub',tom,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.list_orphan_attachments();
+  if v_cnt <> 0 then raise exception 'ÉCHEC 22.1 : un compte ordinaire liste les fichiers sans élément'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||wes||'/orph-old-771.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 22.1 : un compte ordinaire lit le fichier sans élément d''un autre'; end if;
+  begin perform public.att_cite('x');
+    raise exception 'ÉCHEC 22.1 : att_cite est appelable par un compte';
+  exception when insufficient_privilege then null; end;
+  reset role;
+
+  -- 22.2 L'administrateur liste les fichiers sans élément (récents compris, pour les voir) — jamais un fichier cité,
+  --      et une pièce sans id ailleurs ne vide plus la liste (l'ancien `not in` face à un NULL).
+  perform set_config('request.jwt.claims', json_build_object('sub',vic,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.list_orphan_attachments() where name in ('u/'||wes||'/orph-old-771.pdf','u/'||wes||'/orph-new-771.pdf');
+  if v_cnt <> 2 then raise exception 'ÉCHEC 22.2 : l''administrateur ne liste pas les deux fichiers sans élément (%)', v_cnt; end if;
+  select count(*) into v_cnt from public.list_orphan_attachments() where name = 'u/'||wes||'/cite-old-771.mp4';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 22.2 : un fichier cité est listé sans élément'; end if;
+
+  -- 22.3 La politique (lecture, et donc suppression par l'API) : seulement sans élément ET de plus de 7 jours.
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||wes||'/orph-old-771.pdf';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 22.3 : l''administrateur n''atteint pas un fichier sans élément ancien'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||wes||'/orph-new-771.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 22.3 : un fichier sans élément de moins de 7 jours est atteignable'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||wes||'/cite-old-771.mp4';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 22.3 : l''administrateur atteint un fichier cité par un élément'; end if;
+  reset role;
+
+  -- 22.4 Une simple ligne du texte suffit à protéger un fichier (au moment même de la suppression).
+  update public.protocols set data = data || '{"body":"Coupe\n![](vid:orph-old-771)"}'::jsonb where id = 'p-771';
+  perform set_config('request.jwt.claims', json_build_object('sub',vic,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||wes||'/orph-old-771.pdf';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 22.4 : un fichier nommé dans le texte d''un protocole reste atteignable'; end if;
+  reset role;
 
   ------------------------------------------------------------------ FIN
   reset role;

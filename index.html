@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-L8sSmOLIHi8dRM8SDEYkLJI/z9OO+9mhSC6sZVRA/8M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4Qppil3S+zAnEeqptqIDbosoZGek2RvcoJe6paPwyaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10853,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.137.4';
+const APP_VERSION='5.138.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -34758,16 +34758,17 @@ const ADM_GRP={pending:'À examiner',approved:'Approuvés',admin:'Administrateur
 const ADM_PAGE=40,ADM_INLINE=8;
 const admModal=document.getElementById('admModal');
 let _admD=null,_admBusy=null;
-let _adm={sec:'home',from:'home',user:null,f:'all',q:'',lim:ADM_PAGE,sort:'todo',lf:'all',lq:'',llim:ADM_PAGE,lsort:'todo',sel:null,apAsk:null,modeAsk:null,qtAsk:null,mem:Object.create(null)};
+let _adm={sec:'home',from:'home',user:null,f:'all',q:'',lim:ADM_PAGE,olim:ADM_PAGE,sort:'todo',lf:'all',lq:'',llim:ADM_PAGE,lsort:'todo',sel:null,apAsk:null,modeAsk:null,qtAsk:null,mem:Object.create(null)};
 const admArr=v=>Array.isArray(v)?v.filter(x=>x&&typeof x==='object'):[];
 async function admLoad(){const T=p=>p.then(v=>({v}),e=>({e}));
-  const [st,acc,libs,reqs,mode,users,ap,tr,qt,qu]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required','get_temp_rules','get_quotas','quota_usage'].map(n=>T(rpc(n))));
+  const [st,acc,libs,reqs,mode,users,ap,tr,qt,qu,orph]=await Promise.all(['get_instance_stats','list_accounts','list_all_libraries','list_library_requests','get_library_creation','list_users','get_approval_required','get_temp_rules','get_quotas','quota_usage','list_orphan_attachments'].map(n=>T(rpc(n))));
   let un=null;if(acc.e){const r=await T(rpc('list_unapproved_users'));un=r.e?null:admArr(r.v);}   // serveur d'avant v5.52 : la file seule
   _admD={t:Date.now(),stats:st.e?null:st.v,acc:acc.e?null:admArr(acc.v),un,libs:libs.e?null:admArr(libs.v),reqs:reqs.e?null:admArr(reqs.v),
     mode:mode.e?null:mode.v,users:users.e?null:admArr(users.v),approval:ap.e?true:ap.v!==false,
     temp:tr.e||!tr.v||typeof tr.v!=='object'?null:linkRulesNorm(tr.v),
     quotas:qt.e||!qt.v||typeof qt.v!=='object'?null:quotasNorm(qt.v),   // A688 ; serveur d'avant v5.116 : nul, l'écran le dit
-    usage:qu.e||!qu.v||typeof qu.v!=='object'?null:quotaUsageNorm(qu.v)};
+    usage:qu.e||!qu.v||typeof qu.v!=='object'?null:quotaUsageNorm(qu.v),
+    orph:orph.e?null:admOrphNorm(orph.v)};   // A771 : les fichiers sans élément (serveur d'avant v5.138 : la liste a toujours répondu, mais sans les lignes du texte — l'écran le dit pareil)
   (_admD.libs||[]).forEach(l=>{if(l.id)_admLibs[l.id]=l;});
   return _admD;}
 function admRefresh(force){if(_admBusy)return _admBusy;if(!force&&_admD&&Date.now()-_admD.t<30000){admPaintDoor();return Promise.resolve(_admD);}
@@ -34887,6 +34888,10 @@ function admHomeHtml(){const D=_admD,acc=D.acc,libs=D.libs,hh=new Date(D.t);
   h+=admSh('Règles de l’instance')+`<div class="acct-card acct-list">`
     +menuRowHtml({label:'Nouveaux comptes et bibliothèques',ic:uiIcon('shield',20),attrs:'data-admgo="regles" data-admk="go-r"',tail:admChev(),
       sub:(D.approval?'Comptes validés un par un':'Comptes approuvés dès l’e-mail vérifié')+' · création : '+(mo?mo[1].toLowerCase()+(D.mode==='creators'?' ('+pers+')':''):'règle indisponible')})+'</div>';
+  /* A771 : STOCKAGE — une rangée, la page dit le reste. */
+  if(D.orph){const n=D.orph.length,o=D.orph.reduce((t,x)=>t+x.size,0);
+    h+=admSh('Stockage')+`<div class="acct-card acct-list">`+admNavRow('stockage','archive','Fichiers sans élément',
+      esc(n?nb(n,'fichier')+' · '+fmtBytes(o)+' que plus rien n’utilise':'aucun : chaque fichier du serveur sert à un élément'),n)+'</div>';}
   return h+admSh('État de l’instance')+admStatsHtml(D.stats);}
 /* ── Comptes ─────────────────────────────────────────────────────────────────────────────────── */
 function admAccList(){const q=txNorm(_adm.q),f=_adm.f,S=_adm.sort,ord={pending:0,approved:1,admin:2,rejected:3},em=u=>String(u.email||'');
@@ -35054,11 +35059,47 @@ function admReglesHtml(view){const D=_admD,pend=(D.acc||D.un||[]).filter(u=>u.st
     if(r)h+=admAskHtml('qt','« '+r[1]+' » : la limite passe de '+nbFr(D.quotas[r[0]])+' à '+nbFr(_adm.qtAsk.v)+' '+r[3]+'. Appliqué tout de suite, pour tous.'+(u!=null&&_adm.qtAsk.v<u?' C’est en dessous de l’usage actuel ('+nbFr(u)+') : plus aucun ajout dans les espaces concernés, rien n’est supprimé.':''),'Confirmer');}
   if((D.reqs||[]).length)h+=admSh('Les autres demandent')+`<div class="acct-card acct-list">`+menuRowHtml({label:D.reqs.length+' demande'+(D.reqs.length>1?'s':'')+' de bibliothèque en attente',ic:uiIcon('book',20),attrs:'data-admgo="home" data-admk="go-req"',tail:admChev()})+'</div>';
   return h;}
+/* ── Stockage (A771) ─────────────────────────────────────────────────────────────────────────────
+   LES FICHIERS SANS ÉLÉMENT : ceux du serveur qu'aucune aide ni aucun protocole vivant ne cite plus, ni dans ses
+   pièces, ni dans son texte (`list_orphan_attachments`, même règle que le serveur applique au moment de supprimer).
+   Un fichier de moins de 7 jours est montré mais ne se supprime pas encore : un appareil peut être en train d'envoyer
+   l'élément qui le cite (les images partent avant leur ligne, A766). La suppression passe par l'API du stockage, sous
+   la politique `att_orphan_del` : le serveur revérifie tout au moment même. */
+const ADM_ORPH_MS=7*24*3600*1000;
+/* La liste reçue, assainie — PURE (testée) : un chemin au format de l'app, une taille, une date. */
+function admOrphNorm(v){return (Array.isArray(v)?v:[]).filter(x=>x&&typeof x.name==='string'&&ATT_PATH_RX.test(x.name))
+  .map(x=>({name:x.name,size:Math.max(0,Math.round(Number(x.size_bytes))||0),at:typeof x.created_at==='string'?x.created_at:''}));}
+const admOrphMur=(x,now)=>{const t=Date.parse(x&&x.at);return !isNaN(t)&&(now||Date.now())-t>ADM_ORPH_MS;};
+/* Nature et espace d'un chemin — PURE (testée) : ce que la rangée dit, sans jamais montrer l'identifiant brut. */
+function admOrphDit(path,libs,accs,me){const e=(/\.([a-z0-9]{2,4})$/.exec(String(path))||[])[1]||'',m=/^([ul])\/([^/]+)\//.exec(String(path));
+  const k=e==='pdf'?['Document PDF','doc']:/^(mp4|webm|mov)$/.test(e)?['Vidéo','play']:/^(webp|jpg|png|gif)$/.test(e)?['Image','img']:['Fichier','archive'];
+  let ou='—';if(m){if(m[1]==='l'){const l=(libs||[]).find(x=>x&&x.id===m[2]);ou=l?'Bibliothèque « '+(l.name||'sans nom')+' »':'Bibliothèque supprimée';}
+    else{const u=(accs||[]).find(x=>x&&x.user_id===m[2]);ou=m[2]===me?'Votre espace Perso':u&&u.email?'Perso de '+u.email:'Compte supprimé';}}
+  return {nature:k[0],ic:k[1],ou};}
+function admOrphRow(x){const D=_admD,d=admOrphDit(x.name,D.libs,D.acc||D.users,attMe()),mur=admOrphMur(x),k=esc(x.name),date=admDate(x.at);
+  return `<div class="adm-tr"><span class="mm-ic" aria-hidden="true">${uiIcon(d.ic,20)}</span><span class="mm-tx"><span class="adm-kind">${esc(d.nature)}</span><span class="mm-lb">${esc(d.ou)}</span>`
+    +`<span class="mm-sub">${esc([fmtBytes(x.size),date?'déposé '+date:'',mur?'':'récent : supprimable après 7 jours'].filter(Boolean).join(' · '))}</span></span>`
+    +(mur?`<span class="adm-reqa"><button type="button" class="btn sm danger" data-admorph="${k}" data-admk="orph-${k}">Supprimer</button></span>`:'')+'</div>';}
+function admStockageHtml(view){const L=_admD.orph;
+  let h=admSubHead(view,'Stockage','Les fichiers du serveur, documents, vidéos et images.');
+  if(L==null)return h+admSchema('v5.138','lister les fichiers sans élément');
+  const mur=L.filter(x=>admOrphMur(x)),o=mur.reduce((t,x)=>t+x.size,0);
+  h+=admSh('Fichiers sans élément',L.length)+'<p class="adm-hint">Un fichier est « sans élément » quand plus aucune aide ni aucun protocole ne le cite, ni dans ses pièces ni dans son texte. Le supprimer libère de la place ; rien d’autre ne change. Un fichier de moins de 7 jours ne se supprime pas encore : un appareil peut être en train d’envoyer l’élément qui le cite. Le serveur revérifie chaque fichier au moment de le supprimer.</p>';
+  if(!L.length)return h+`<p class="adm-calm">${uiIcon('check',18)}<span>Aucun fichier sans élément : chaque fichier du serveur sert à une aide ou à un protocole.</span></p>`;
+  if(mur.length)h+=`<div class="adm-top"><span class="adm-when">${esc(nb(mur.length,'fichier')+' de plus de 7 jours · '+fmtBytes(o))}</span><button type="button" class="btn sm danger" data-admorphall data-admk="orph-all">Tout supprimer</button></div>`;
+  return h+`<div class="acct-card acct-list">`+L.slice(0,_adm.olim).map(admOrphRow).join('')
+    +(L.length>_adm.olim?`<button type="button" class="adm-more" data-admmore="orph" data-admk="orph-more"><span>Voir ${Math.min(ADM_PAGE,L.length-_adm.olim)} de plus</span>${uiIcon('chev',18)}</button>`:'')+'</div>';}
+async function admOrphDel(paths){const L=(_admD&&_admD.orph)||[];
+  paths=paths.filter(p=>L.some(x=>x.name===p&&admOrphMur(x)));if(!paths.length)return;
+  const o=paths.reduce((t,p)=>t+((L.find(x=>x.name===p)||{}).size||0),0),un=paths.length===1;
+  if(!await confirmDlg((un?'Supprimer ce fichier':'Supprimer ces '+paths.length+' fichiers')+' du serveur ('+fmtBytes(o)+') ? Aucune aide ni aucun protocole ne '+(un?'le':'les')+' cite. La suppression est définitive.',{yes:'Supprimer',danger:true}))return;
+  let ok=0,ko=0;for(const p of paths){try{await storageReq('DELETE',p);ok++;}catch(e){ko++;}}
+  admAfter([ok?nb(ok,'fichier')+' supprimé'+(ok>1?'s':''):'',ko?nb(ko,'fichier')+' gardé'+(ko>1?'s':'')+' : de nouveau cité, ou serveur à mettre à jour (v5.138)':''].filter(Boolean).join(' · ')+'.');}
 /* ── Rendu, onglets (vue large), gestes ──────────────────────────────────────────────────────── */
 function admTabsHtml(){const D=_admD,tab=_adm.sec==='compte'?'comptes':_adm.sec;
-  return `<nav class="adm-tabs" aria-label="Sections de l’administration">`+[['home','Vue d’ensemble',admTodo().length,true],['comptes','Comptes',D.acc&&D.acc.length],['libs','Bibliothèques',D.libs&&D.libs.length],['regles','Règles']]
+  return `<nav class="adm-tabs" aria-label="Sections de l’administration">`+[['home','Vue d’ensemble',admTodo().length,true],['comptes','Comptes',D.acc&&D.acc.length],['libs','Bibliothèques',D.libs&&D.libs.length],['regles','Règles'],['stockage','Stockage',D.orph&&D.orph.length]]
     .map(([k,l,n,on])=>`<button type="button" class="adm-tab" data-admgo="${k}" data-admk="tab-${k}"${tab===k?' aria-current="page"':''}>${esc(l)}${admN(n,on)}</button>`).join('')+'</nav>';}
-const ADM_TITRES={home:'Administration',comptes:'Comptes',compte:'Compte',libs:'Bibliothèques',regles:'Règles de l’instance'};
+const ADM_TITRES={home:'Administration',comptes:'Comptes',compte:'Compte',libs:'Bibliothèques',regles:'Règles de l’instance',stockage:'Stockage'};
 function admTopPaint(){const s=_adm.sec,b=document.getElementById('admBack');
   document.getElementById('admModalTitle').textContent=ADM_TITRES[s]||'Administration';
   const l=s==='home'?((authModal.classList.contains('on')||(state.view==='library'&&homeTab()==='me'))?'Moi':''):s==='compte'&&_adm.from==='comptes'?'Comptes':'Administration';   // A517 : Moi peut être l'onglet dessous
@@ -35069,7 +35110,7 @@ function renderAdm(o){o=o||{};const box=admRoot();if(!box)return;
   if(!box._admB){box._admB=true;admBind(box);}
   if(!_admD){box.innerHTML='<p class="auth-msg"><span class="spin" aria-hidden="true"></span>Chargement…</p>';return;}
   const view=!!admView(),s=_adm.sec;
-  box.innerHTML=(view?admTabsHtml():'')+(s==='comptes'?admComptesHtml(view):s==='compte'?(view&&admSplit()?admComptesHtml(view):admCompteHtml()):s==='libs'?admLibsHtml(view):s==='regles'?admReglesHtml(view):admHomeHtml());
+  box.innerHTML=(view?admTabsHtml():'')+(s==='comptes'?admComptesHtml(view):s==='compte'?(view&&admSplit()?admComptesHtml(view):admCompteHtml()):s==='libs'?admLibsHtml(view):s==='regles'?admReglesHtml(view):s==='stockage'?admStockageHtml(view):admHomeHtml());
   if(!view)admTopPaint();
   if(k){const el=box.querySelector('[data-admk="'+CSS.escape(k)+'"]');if(el)el.focus({preventScroll:true});}
   if(o.top){const sc=view?main.querySelector('.home-main'):box.closest('.ai-card');if(sc)sc.scrollTop=0;box.scrollTop=0;}
@@ -35094,7 +35135,9 @@ function admBind(box){const err=e=>toast('⚠ Échec : '+e.message,5000,true);
     if(t.dataset.admref!=null){admRefresh(true);return;}
     if(t.dataset.admf!=null){_adm.f=t.dataset.admf;_adm.lim=ADM_PAGE;renderAdm();return;}
     if(t.dataset.admlf!=null){_adm.lf=t.dataset.admlf;_adm.llim=ADM_PAGE;renderAdm();return;}
-    if(t.dataset.admmore!=null){if(t.dataset.admmore==='acc')_adm.lim+=ADM_PAGE;else _adm.llim+=ADM_PAGE;renderAdm();return;}
+    if(t.dataset.admmore!=null){if(t.dataset.admmore==='acc')_adm.lim+=ADM_PAGE;else if(t.dataset.admmore==='orph')_adm.olim+=ADM_PAGE;else _adm.llim+=ADM_PAGE;renderAdm();return;}
+    if(t.dataset.admorph!=null){admOrphDel([t.dataset.admorph]);return;}   // A771
+    if(t.dataset.admorphall!=null){admOrphDel((_admD.orph||[]).filter(admOrphMur).map(x=>x.name));return;}
     if(t.dataset.admsel!=null){_adm.sel=_adm.sel?null:new Set();renderAdm();return;}
     if(t.dataset.admpick!=null){const s=_adm.sel;if(s){if(s.has(t.dataset.admpick))s.delete(t.dataset.admpick);else s.add(t.dataset.admpick);}renderAdm();return;}
     if(t.dataset.admbulk!=null){admBulk(t.dataset.admbulk);return;}
@@ -40453,7 +40496,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attCiteIds,attDelSur,imgCarteNorm,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attCiteIds,attDelSur,imgCarteNorm,admOrphNorm,admOrphMur,admOrphDit,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,

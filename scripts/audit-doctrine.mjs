@@ -12050,6 +12050,53 @@ await sec('A768 · une vidéo survit au démarrage : ménages, file de suppressi
   await page.close();
 });
 
+/* A771 — ADMINISTRATION › STOCKAGE : les fichiers sans élément, par les vrais gestes, sur un serveur simulé. La liste
+   (nature et espace en mots, jamais l'identifiant brut), un fichier récent montré mais jamais supprimable, la
+   suppression d'un fichier puis « Tout supprimer » — chacune confirmée, chacune passée par l'API du stockage, et la
+   liste relue après ; la vue d'ensemble y mène par une rangée. */
+await sec('A771 · Administration › Stockage : les fichiers sans élément, listés et supprimés', async () => {
+  const me='00000000-0000-0000-0000-0000000000aa',vieux=new Date(Date.now()-9*864e5).toISOString(),neuf=new Date().toISOString();
+  const srv={orph:[{name:'u/'+me+'/a771.pdf',size_bytes:2048,created_at:vieux},{name:'l/lib-1/v771.webm',size_bytes:3*1048576,created_at:vieux},
+    {name:'u/'+me+'/i771.webp',size_bytes:4096,created_at:neuf}],dels:[]};
+  const page=await br.newPage({viewport:{width:1280,height:900}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,route=>{const q=route.request(),u=decodeURIComponent(q.url()),m=u.match(/rpc\/([a-z_]+)/);
+    const sm=u.match(/\/storage\/v1\/object\/attachments\/(.+)$/);
+    if(sm&&q.method()==='DELETE'){srv.dels.push(sm[1]);srv.orph=srv.orph.filter(x=>x.name!==sm[1]);return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+    const R={is_app_admin:true,list_orphan_attachments:srv.orph,list_all_libraries:[{id:'lib-1',name:'SMUR',members:2,admins:1}],list_accounts:[{user_id:me,email:'moi@x.fr',status:'approved',is_admin:true,libraries:1}],get_instance_stats:{users:1}};
+    route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(m?(R[m[1]]===undefined?null:R[m[1]]):[])});});
+  await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'00000000-0000-0000-0000-0000000000aa',email:'moi@x.fr'}}));});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const lire=()=>page.evaluate(async()=>{for(let i=0;i<40&&(!_admD||_admBusy);i++)await __acCalme(100);await __acCalme(150);const R=admRoot();
+    return {rows:[...R.querySelectorAll('.adm-tr')].map(r=>r.textContent.replace(/\s+/g,' ').trim()),boutons:R.querySelectorAll('[data-admorph]').length,
+      tout:!!R.querySelector('[data-admorphall]'),onglet:([...R.querySelectorAll('.adm-tab')].find(b=>/Stockage/.test(b.textContent))||{}).textContent||''};});
+  await page.evaluate(()=>{openAdmin('stockage');});
+  const r1=await lire();
+  t('A771 · la liste dit la nature et l’espace en mots (jamais l’identifiant), le fichier récent sans bouton',
+    r1.rows.length===3&&r1.boutons===2&&r1.tout&&r1.rows.some(x=>/Document PDF.*Votre espace Perso/.test(x))&&r1.rows.some(x=>/Vidéo.*Bibliothèque « SMUR ».*3,0 Mo/.test(x))
+      &&r1.rows.some(x=>/Image.*récent : supprimable après 7 jours/.test(x))&&!r1.rows.some(x=>/a771|v771|i771/.test(x))&&/Stockage\s*3/.test(r1.onglet),JSON.stringify(r1));
+  // Supprimer un fichier : confirmé, puis passé par l'API du stockage, la liste relue.
+  await page.click('[data-admorph="l/lib-1/v771.webm"]');
+  await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:4000}).catch(()=>{});
+  const q1=await page.evaluate(()=>document.getElementById('confirmModal').textContent.replace(/\s+/g,' '));
+  await page.click('#confirmYes');
+  for(let i=0;i<40&&!srv.dels.length;i++)await calme(page,100);
+  const r2=await lire();
+  t('A771 · « Supprimer » demande d’abord (taille, définitif), puis supprime par l’API, et la liste est relue',
+    /Supprimer ce fichier du serveur \(3,0 Mo\)/.test(q1)&&/définitive/.test(q1)&&srv.dels.join()==='l/lib-1/v771.webm'&&r2.rows.length===2,JSON.stringify({q1,dels:srv.dels,rows:r2.rows}));
+  // « Tout supprimer » : seulement ce qui a plus de 7 jours — le récent reste.
+  await page.click('[data-admorphall]');
+  await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:4000}).catch(()=>{});
+  await page.click('#confirmYes');
+  for(let i=0;i<40&&srv.dels.length<2;i++)await calme(page,100);
+  const r3=await lire();
+  t('A771 · « Tout supprimer » ne touche jamais un fichier de moins de 7 jours',
+    srv.dels.length===2&&srv.dels[1]==='u/'+me+'/a771.pdf'&&r3.rows.length===1&&/Image/.test(r3.rows[0])&&!r3.tout,JSON.stringify({dels:srv.dels,rows:r3.rows}));
+  // La vue d'ensemble y mène.
+  const r4=await page.evaluate(async()=>{admGo('home');await __acCalme(300);const b=admRoot().querySelector('.mm-row[data-admgo="stockage"]');return b?b.textContent.replace(/\s+/g,' ').trim():'';});
+  t('A771 · la vue d’ensemble mène au Stockage par une rangée qui compte',/Fichiers sans élément/.test(r4)&&/1 fichier/.test(r4),r4);
+  await page.close();
+});
+
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {
   for(const W of [1280,390]){
     const page=await br.newPage(W>500?{viewport:{width:W,height:900}}:{viewport:{width:W,height:844},hasTouch:true,isMobile:true});
