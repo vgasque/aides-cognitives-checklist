@@ -1053,11 +1053,27 @@ create policy att_lib_write on storage.objects for all
               and public.member_role((storage.foldername(name))[2]) in ('editor','admin')
               and name ~ '^l/[A-Za-z0-9_-]{1,64}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$');
 
--- Orphelins du bucket (app-admin) : objets dont l'id de fichier n'apparaît plus dans les
--- métadonnées d'AUCUNE fiche vivante. Cas rare (interruption entre un upload et l'enregistrement
--- de la fiche ; la file de suppression côté client couvre les flux normaux). La fonction LISTE
--- seulement (SECURITY DEFINER, app-admin) : la suppression effective reste MANUELLE, via le
--- dashboard Storage ou l'API — jamais de destruction automatique côté serveur.
+-- Orphelins du bucket (app-admin) : objets dont l'id de fichier n'apparaît plus dans AUCUN élément
+-- vivant. Cas rare (interruption entre un upload et l'enregistrement de l'élément ; la file de
+-- suppression côté client couvre les flux normaux). Jamais de destruction automatique côté serveur :
+-- la suppression est un geste de l'administrateur (A771, Administration › Stockage).
+-- A771 (v5.138) — LES FICHIERS SANS ÉLÉMENT, LISTÉS ET SUPPRIMABLES PAR L'ADMINISTRATEUR (Administration › Stockage).
+-- « Cité » se juge en UN endroit (`att_cite`), au plus prudent : l'id du fichier apparaît N'IMPORTE OÙ dans le contenu
+-- d'une aide ou d'un protocole VIVANT (pièces, vidéos, images, lignes du texte, ancien `attachments` — tout). La liste
+-- et la suppression appliquent la même règle. L'ancienne liste lisait des listes nommées une à une, ignorait les
+-- lignes du texte, et échouait sans un mot dès qu'une pièce n'avait pas d'id (`not in` face à un NULL : aucune ligne).
+-- L'id d'un fichier du bucket (`…/<id>.<ext>`) — nul pour un nom hors format (jamais « orphelin » alors : on ne touche
+-- pas à ce qu'on ne sait pas nommer).
+create or replace function public.att_name_id(p_name text) returns text language sql immutable set search_path = pg_temp as $$
+  select substring(p_name from '/([A-Za-z0-9_-]{1,64})\.[a-z0-9]{2,4}$');
+$$;
+create or replace function public.att_cite(p_id text) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select p_id is null
+      or exists (select 1 from public.cognitive_aids f where f.deleted_at is null and strpos(f.data::text, p_id) > 0)
+      or exists (select 1 from public.protocols p where p.deleted_at is null and strpos(p.data::text, p_id) > 0);
+$$;
+revoke execute on function public.att_cite(text) from public, anon, authenticated;   -- interroge toutes les bibliothèques : jamais exposée
 create or replace function public.list_orphan_attachments()
 returns table(name text, size_bytes bigint, created_at timestamptz)
 language sql stable security definer set search_path = public, storage, pg_temp as $$
@@ -1065,23 +1081,35 @@ language sql stable security definer set search_path = public, storage, pg_temp 
   from storage.objects o
   where o.bucket_id = 'attachments'
     and public.admin_reads()   -- A679
-    -- A757 : le modèle v4 nomme les documents `docs` (l'ancien `attachments` reste lu) — la version précédente ne lisait
-    -- que `attachments` et rendait donc TOUS les documents orphelins ; les vidéos d'un protocole sont dans `videos`.
-    and substring(o.name from '([A-Za-z0-9_-]{1,64})\.(?:pdf|mp4|webm|mov|webp|jpg|png|gif)$') not in (
-      select a->>'id'
-      from public.cognitive_aids f,
-           jsonb_array_elements(coalesce(f.data->'docs','[]'::jsonb) || coalesce(f.data->'attachments','[]'::jsonb)
-                                || coalesce(f.data->'images','[]'::jsonb)) a   -- A766 : les images d'une aide
-      where f.deleted_at is null
-      union
-      select a->>'id'
-      from public.protocols p,
-           jsonb_array_elements(coalesce(p.data->'docs','[]'::jsonb) || coalesce(p.data->'attachments','[]'::jsonb)
-                                || coalesce(p.data->'videos','[]'::jsonb) || coalesce(p.data->'images','[]'::jsonb)) a   -- A766
-      where p.deleted_at is null)
+    and not public.att_cite(public.att_name_id(o.name))
   order by o.created_at;
 $$;
 grant execute on function public.list_orphan_attachments() to authenticated;
+-- LA SUPPRESSION passe par l'API Storage (un DELETE direct est bloqué par Supabase), donc par les politiques : une
+-- politique PERMISSIVE de plus, réservée à l'administrateur (hors poste partagé, `admin_reads`), pour un fichier qui
+-- n'est cité par AUCUN élément vivant AU MOMENT de la suppression, et vieux de plus de 7 JOURS — un appareil peut avoir
+-- envoyé ses fichiers avant la ligne qui les cite (les images partent avant, A766). L'API exige SELECT ET DELETE pour
+-- supprimer : l'administrateur peut donc aussi LIRE un tel fichier (jamais un fichier cité). Les politiques
+-- restrictives (poste, appareil déconnecté) s'appliquent toujours. `(select att_admin())` est évalué une fois par
+-- requête : pour tout autre compte, la politique tombe sans examiner un seul fichier.
+create or replace function public.att_admin() returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+  select public.admin_reads();
+$$;
+create or replace function public.att_orphan_ok(p_name text, p_at timestamptz) returns boolean
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if p_at is null or p_at > now() - interval '7 days' then return false; end if;
+  if not public.admin_reads() then return false; end if;
+  return not public.att_cite(public.att_name_id(p_name));
+end; $$;
+grant execute on function public.att_admin() to authenticated;
+grant execute on function public.att_orphan_ok(text, timestamptz) to authenticated;
+drop policy if exists att_orphan_read on storage.objects;
+create policy att_orphan_read on storage.objects for select to authenticated
+  using (bucket_id = 'attachments' and (select public.att_admin()) and public.att_orphan_ok(name, created_at));
+drop policy if exists att_orphan_del on storage.objects;
+create policy att_orphan_del on storage.objects for delete to authenticated
+  using (bucket_id = 'attachments' and (select public.att_admin()) and public.att_orphan_ok(name, created_at));
 
 -- ============================================================================================
 -- ---------- 8. PARTAGE DE SESSION EN DIRECT --------------------------------------------------

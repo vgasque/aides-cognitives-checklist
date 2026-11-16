@@ -2077,6 +2077,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    {const me='u1',R={v1:[{lib:'libA',del:false}],v2:[{lib:'libA',del:true}],v3:[{lib:null,del:false}]};
     ok('A768 : une suppression distante ne part pas si un élément vivant cite le fichier dans CET espace ; l’ancien chemin d’un déplacement, si',
       !A.attDelSur('l/libA/v1.webm',R,me)&&A.attDelSur('u/u1/v1.webm',R,me)&&A.attDelSur('l/libA/v2.mp4',R,me)&&!A.attDelSur('u/u1/v3.mov',R,me)&&A.attDelSur('l/libB/v3.mov',R,me)&&A.attDelSur('l/libA/zz.pdf',R,me));}
+   {const L=A.admOrphNorm([{name:'u/u1/a1.pdf',size_bytes:'2048',created_at:'2026-11-01T10:00:00Z'},{name:'../x.pdf',size_bytes:1},{name:'l/libA/v1.webm',size_bytes:-5,created_at:'2026-11-15T10:00:00Z'},null,{name:7}]);
+    const now=Date.parse('2026-11-16T10:00:00Z');
+    eq('A771 : la liste des fichiers sans élément est assainie (chemin de l’app, taille, date)',L.map(x=>[x.name,x.size,x.at]),[['u/u1/a1.pdf',2048,'2026-11-01T10:00:00Z'],['l/libA/v1.webm',0,'2026-11-15T10:00:00Z']]);
+    ok('A771 : seul un fichier de plus de 7 jours se propose à la suppression (sans date : jamais)',A.admOrphMur(L[0],now)&&!A.admOrphMur(L[1],now)&&!A.admOrphMur({at:''},now));
+    const libs=[{id:'libA',name:'SMUR'}],acc=[{user_id:'u2',email:'b@x.fr'}];
+    eq('A771 : la rangée dit la nature et l’espace, jamais l’identifiant brut',
+      [A.admOrphDit('u/u1/a1.pdf',libs,acc,'u1'),A.admOrphDit('l/libA/v1.webm',libs,acc,'u1'),A.admOrphDit('u/u2/i1.webp',libs,acc,'u1'),A.admOrphDit('l/libZ/i1.png',libs,acc,'u1'),A.admOrphDit('u/u9/v.mov',libs,acc,'u1')].map(d=>d.nature+' · '+d.ou),
+      ['Document PDF · Votre espace Perso','Vidéo · Bibliothèque « SMUR »','Image · Perso de b@x.fr','Image · Bibliothèque supprimée','Vidéo · Compte supprimé']);}
    ok('A767 : « introuvable sur le serveur » = 404, ou 400 « not found » ; jamais une panne de réseau ni un refus',
      A.attIntrouvable({status:404,message:'REST 404'})&&A.attIntrouvable({status:400,message:'REST 400 {"statusCode":"404","error":"not_found","message":"Object not found"}'})
      &&!A.attIntrouvable({status:400,message:'REST 400 invalid'})&&!A.attIntrouvable({status:503,message:'REST 503'})&&!A.attIntrouvable(new Error('Failed to fetch'))&&!A.attIntrouvable(null));

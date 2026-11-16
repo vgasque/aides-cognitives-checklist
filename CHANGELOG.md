@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.138.0] — 2026-11-16
+Administration › Stockage : les fichiers que plus rien n'utilise, listés et supprimables (A771). ⚠ **Serveur à mettre à
+jour** : rejouer `supabase/schema.sql` (sans cela, la liste suit l'ancienne règle et aucune suppression ne passe).
+- **Une nouvelle section « Stockage »** dans Administration (onglet au bureau, rangée « Fichiers sans élément » dans la
+  vue d'ensemble) : chaque fichier du serveur qu'aucune aide ni aucun protocole ne cite plus, avec sa nature (document
+  PDF, vidéo, image), son espace (Perso de qui, quelle bibliothèque), son poids et sa date.
+- **Supprimer un fichier, ou « Tout supprimer »**, après confirmation. Le serveur revérifie chaque fichier au moment
+  même : un fichier de nouveau cité n'est jamais supprimé.
+- **Un fichier de moins de 7 jours se voit mais ne se supprime pas** : un appareil peut être en train d'envoyer
+  l'élément qui le cite.
+- **Règle plus prudente** : un fichier est cité dès que son identifiant apparaît n'importe où dans une aide ou un
+  protocole vivant (pièces, vidéos, images, lignes du texte). L'ancienne liste pouvait rester vide à tort.
+- Réservé à l'administrateur de l'instance, jamais depuis un poste partagé.
+- `supabase/rls-tests.sql` : section 22 (liste réservée, fichier récent ou cité intouchable, ligne du texte protectrice).
+
 ## [5.137.4] — 2026-11-16
 Correctif : la réception ne tourne plus en boucle sur des fichiers qui n'existent plus (A770). Aucune mise à jour du
 serveur.
@@ -255,9 +270,3 @@ Exporter une aide ou un protocole : avec ou sans les fichiers joints, toujours d
 Sur un grand écran, « Dans les documents » est aligné sur les résultats (A750).
 - Sous les résultats d'une recherche, les documents trouvés partaient vers la gauche sur un écran large, alors que
   leur titre et la liste au-dessus étaient centrés. Ils sont maintenant alignés sur la liste, à toutes les largeurs.
-
-## [5.127.1] — 2026-11-14
-En sélection, « Annuler » et « Tout cocher » restent lisibles quand on fait défiler (A749).
-- Au téléphone, en mode sélection, la liste défilait sous « Annuler » et « Tout cocher » sans fond derrière eux, alors
-  que « Sélectionner » et « Créer » ont un fond flouté. La rangée de sélection prend maintenant le même fond dès que
-  la liste passe dessous ; en haut de la liste, elle reste transparente comme avant.
