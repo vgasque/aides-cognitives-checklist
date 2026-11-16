@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.135.2] — 2026-11-16
+Les vidéos montent mieux et la synchro dit où elle en est pendant leur envoi (A763) ; le bandeau ne promet plus ce
+qu'il ne peut pas tenir (A762).
+- **Les vidéos et les PDF ont le temps de monter** : chaque envoi avait 2 minutes, quelle que soit sa taille — une vidéo
+  de 30 Mo sur une connexion lente n'y arrivait pas, et recommençait au début à chaque essai. Le délai suit désormais
+  la taille du fichier.
+- **L'envoi des fichiers se compte** : la pastille dit « Envoi · 2 / 14 fichiers · 48 / 210 Mo », et l'accueil montre
+  le bandeau avec sa barre dès 6 fichiers ou 20 Mo — l'ordinateur restait sur « Synchro en cours » sans rien dire.
+- **`supabase/rls-tests.sql` se rejoue de nouveau** : le témoin des vidéos (v5.134) supprimait directement dans le
+  stockage, ce que Supabase refuse (« Direct deletion from storage tables is not allowed »). Le schéma, lui, ne change
+  pas.
+- Il disait « ce qui est reçu reste sur cet appareil » : faux sur un appareil connecté temporairement, dont les données
+  sont effacées à la fin. Il dit désormais, à la réception comme à l'envoi : « une coupure reprendra où elle s'est
+  arrêtée » — ce que la synchro garantit sur tout appareil.
+
 ## [5.135.1] — 2026-11-15
 La synchronisation tient après un gros import : elle reçoit et envoie par petits lots, et reprend où elle s'est arrêtée (A760).
 - **Le téléphone se synchronise de nouveau après un import massif fait ailleurs.** Il demandait toutes les nouveautés en
@@ -217,9 +232,3 @@ revient après un zoom (A742).
   tenant, ou 4 + 4 séparés par un tiret ou une espace, sans accent.
 - Un mot de 8 lettres sans accent (« fentanyl ») peut encore l'afficher ; elle s'ajoute alors aux résultats, sans
   les remplacer.
-
-## [5.126.1] — 2026-11-13
-Les résultats d'une recherche ne sont plus collés les uns aux autres (A740).
-- Chaque résultat est une carte à part, avec un petit espace entre deux. Sur ordinateur et tablette, les cartes se
-  touchaient ; au téléphone, elles formaient un seul bloc séparé par des traits.
-- Les listes de l'accueil, des bibliothèques et des collections ne changent pas.

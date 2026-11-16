@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-NJtiZexDfD466LwNOi2fiRlqNsNFy9XHXvr4i86dc/g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ceTbCnlCarzZnfWpXYNguRyxy5Ucd6zqTOHOsfg+Zkk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10853,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.135.1';
+const APP_VERSION='5.135.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -34480,11 +34480,11 @@ function updateSyncBanner(){
   const el=document.getElementById('syncErrNotice');if(!el)return;
   const chip=document.getElementById('syncChip');
   const st=(!chip||chip.hidden)?null:(chip.classList.contains('err')?'err':chip.classList.contains('pending')?'pending':chip.classList.contains('rejected')?'rejected'
-    :(chip.classList.contains('busy')&&_syncProg.total>=SYNC_PROG_MIN)?'prog':null);
+    :(chip.classList.contains('busy')&&_syncProg.total&&syncProgGros(_syncProg))?'prog':null);
   if(!st){el.hidden=true;return;}
   /* A761 : un gros rattrapage en cours — bandeau NEUTRE, sa barre, et la promesse tenue par A760 (ce qui est reçu reste). */
   if(st==='prog'){const P=_syncProg,f=Math.min(P.fait,P.total)/P.total;el.hidden=false;el.className='notice sync-prog';el.onclick=null;
-    el.innerHTML=`${uiIcon('history',16)}<div><b>${P.sens==='out'?'Envoi de vos données':'Réception de vos données'}</b> — ${Math.min(P.fait,P.total)} / ${P.total} ${esc(P.quoi)} · ${P.sens==='out'?'ce qui est envoyé est gardé sur le serveur':'ce qui est reçu reste sur cet appareil'}`
+    el.innerHTML=`${uiIcon('history',16)}<div><b>${P.sens==='out'?'Envoi de vos données':'Réception de vos données'}</b> — ${esc(syncProgTxt(P).replace(/^[^·]*· /,''))} · une coupure reprendra où elle s’est arrêtée`   /* A762 : « reste sur cet appareil » était faux en connexion temporaire (effacée à la fin, A647-A651) — on dit la reprise, que tient A760, pas une durée de conservation */
       +`<span class="sync-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${P.total}" aria-valuenow="${Math.min(P.fait,P.total)}" aria-label="Progression de la synchronisation"><i style="transform:scaleX(${f.toFixed(3)})"></i></span></div>`;return;}
   el.hidden=false;
   if(st==='err'){
@@ -34492,7 +34492,7 @@ function updateSyncBanner(){
     el.className='notice sync-err';el.onclick=openSyncErr;
     /* A734 : un PREMIER chargement interrompu le dit — la liste affichée n'est pas tout le compte. */
     /* A761 : interrompue en plein rattrapage, elle dit OÙ — et que la reprise partira de là (A760). */
-    const P=_syncProg,ou=P.total?` · Arrêtée à ${Math.min(P.fait,P.total)} / ${P.total} ${esc(P.quoi)} : la reprise partira de là`:'';
+    const P=_syncProg,ou=P.total?` · Arrêtée à ${esc(syncProgTxt(P).replace(/^[^·]*· /,''))} : la reprise partira de là`:'';
     el.innerHTML=`${err.icon}<div><b>${accPending()?'Chargement du compte interrompu':'Erreur de synchronisation'}</b> — ${esc(err.title)}${accPending()?' · La liste n’est pas encore complète':''}${ou} · Nouvelle tentative automatique en cours</div>`;
   }else if(st==='pending'){
     el.className='notice sync-pending';el.onclick=openAuth;
@@ -36369,6 +36369,11 @@ async function rest(method,path,body,extra,_rejeu,ms){await Auth.ensureFresh();
    repartait du même point (« le téléphone ne se synchronise plus », constaté par l'auteur après un import massif fait sur
    l'ordinateur). `restRows` rend les lignes ET la taille de la réponse, pour régler le lot suivant (`syncLot`). */
 const SYNC_LOT_OCTETS=6*1024*1024;
+/* A763 — UN FICHIER LOURD A LE TEMPS DE PASSER. Une vidéo (jusqu'à 30 Mo, A757) devait monter en 120 s : sur une
+   connexion montante faible, jamais — et l'essai suivant repartait de zéro. Le délai suit la taille (au plancher de
+   256 kbit/s), borné à 20 min. PURE. */
+const NET_TIMEOUT_FILE_MAX=20*60*1000;
+function fileTimeout(octets){return Math.min(NET_TIMEOUT_FILE_MAX,NET_TIMEOUT_BLOB_MS+Math.ceil(Math.max(0,octets||0)/32768)*1000);}
 async function restRows(path,_rejeu){await Auth.ensureFresh();
   const r=await acFetch(SUPA.url+path,{method:'GET',headers:Auth.headers()},NET_TIMEOUT_BLOB_MS);
   if(r.status===401&&!_rejeu&&Auth.signedIn()&&Auth.session.refresh_token&&await Auth.refresh())return restRows(path,true);
@@ -36386,13 +36391,17 @@ function syncDecoupe(rows,cible,max,taille){taille=taille||(r=>JSON.stringify(r)
 /* A761 — LA SYNCHRO DIT OÙ ELLE EN EST (retour de l'auteur : « je ne sais pas où j'en suis dans la synchro, pas de barre
    de progression »). Pendant un tirage ou un envoi par lots (A760), la pastille compte (« Réception · 34 / 120
    protocoles ») ; au-delà de `SYNC_PROG_MIN` éléments, l'accueil montre un bandeau NEUTRE (rien n'est à faire : règle 8)
-   avec sa barre ; interrompue, la synchro dit où elle s'est arrêtée et que ce qui est reçu est gardé. Rien n'est
+   avec sa barre ; interrompue, la synchro dit où elle s'est arrêtée et qu'elle reprendra de là (A762 : jamais une
+   promesse de conservation — une connexion temporaire efface tout à la fin). Rien n'est
    re-rendu : la pastille et le bandeau se peignent sur place. */
 const SYNC_PROG_MIN=6;
-const _syncProg={sens:'',fait:0,total:0,quoi:''};
-// Le libellé de la progression. PURE.
-function syncProgTxt(p){if(!p||!p.total)return '';return (p.sens==='out'?'Envoi':'Réception')+' · '+Math.min(p.fait,p.total)+' / '+p.total+' '+p.quoi;}
-function syncProg(sens,fait,total,quoi){Object.assign(_syncProg,{sens,fait,total,quoi});
+const _syncProg={sens:'',fait:0,total:0,quoi:'',o:0,ot:0};
+/* Le libellé de la progression ; A763 : pour des fichiers, le poids aussi (« · 48 / 210 Mo »). PURE. */
+function syncProgTxt(p){if(!p||!p.total)return '';const mo=n=>Math.round(n/1048576);
+  return (p.sens==='out'?'Envoi':'Réception')+' · '+Math.min(p.fait,p.total)+' / '+p.total+' '+p.quoi+(p.ot>=1048576?' · '+mo(Math.min(p.o,p.ot))+' / '+mo(p.ot)+' Mo':'');}
+// A763 : un envoi de fichiers lourd mérite le bandeau même à moins de six fichiers (20 Mo).
+const syncProgGros=p=>p.total>=SYNC_PROG_MIN||p.ot>=20*1048576;
+function syncProg(sens,fait,total,quoi,o,ot){Object.assign(_syncProg,{sens,fait,total,quoi,o:o||0,ot:ot||0});
   if(total)setSyncChip('busy',syncProgTxt(_syncProg));else updateSyncBanner();}
 const SYNC_QUOI={protocols:'protocoles',cognitive_aids:'aides',sessions:'sessions'};
 // Appel d'une fonction Postgres exposée par PostgREST (toujours en POST). Raccourci de rest() pour
@@ -36567,17 +36576,17 @@ function attMissingInfo(entities,haveIds,uid){
   return {total:seen.size,missing:missing,paths:paths};}
 // Appel direct de l'API Storage (corps BINAIRE : Auth.headers() imposerait un Content-Type JSON).
 // Erreurs au format 'REST <code> …' -> restErrStatus/explainSyncError les comprennent déjà.
-async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh();
+async function storageReq(method,path,body,ctype,extra,ms){await Auth.ensureFresh();
   const h=Object.assign({'apikey':SUPA.key,'Authorization':'Bearer '+Auth.token()},extra||{});
   if(ctype)h['Content-Type']=ctype;
-  const r=await acFetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body},NET_TIMEOUT_BLOB_MS);
+  const r=await acFetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body},ms||NET_TIMEOUT_BLOB_MS);
   if(!r.ok){const t=await r.text().catch(()=>'');const err=new Error('REST '+r.status+' '+String(t).slice(0,200));err.status=r.status;throw err;}
   return r;}
 // Télécharge le binaire d'UN document du bucket et le range en IndexedDB, rangée rafraîchie —
 // la FORME de l'enregistrement (dirty:0, remotePath) est l'invariant partagé du bouton
 // « tout télécharger » et du téléchargement de fond de la synchro : une seule écriture.
 async function attFetchOne(id,path){
-  const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
+  const r=await storageReq('GET',path,undefined,undefined,undefined,NET_TIMEOUT_FILE_MAX);   // A763 : une vidéo de 30 Mo en 4G faible dépasse 120 sconst buf=await r.arrayBuffer();
   await attPut({id:id,buf:buf,size:buf.byteLength,type:attTypeOfPath(path),createdAt:Date.now(),dirty:0,remotePath:path});
   refreshAttRow(id);vidRefresh(id);}
 // File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
@@ -36878,7 +36887,7 @@ const Sync={
       if(pushErr)throw pushErr;
       if(attErr)throw attErr;
       this._retryDelay=0;
-      Object.assign(_syncProg,{sens:'',fait:0,total:0,quoi:''});   // A761 : un passage réussi n'a plus rien à rattraper
+      Object.assign(_syncProg,{sens:'',fait:0,total:0,quoi:'',o:0,ot:0});   // A761 : un passage réussi n'a plus rien à rattraper
       setSyncChip('ok','Synchronisé');
     }catch(e){
       /* A693 : un refus « poste verrouillé » (ou le 403 d'un document pendant que le poste est retenu) n'est pas une
@@ -37184,7 +37193,7 @@ const Sync={
       .concat(((state.draft&&state.draft.docs)||[]).map(a=>a.id))
       .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id))
       .concat(((state.pdraft&&state.pdraft.videos)||[]).map(a=>a.id)));   // A757
-    let vidRefus=0;
+    let vidRefus=0;const aEnvoyer=[];
     for(const rec of await IDB.getAtts()){
       const pl=attPlan(rec,refs[rec.id]||[],uidv);
       if(pl.act==='purge'){if(draftIds.has(rec.id))continue;  // brouillon : on ne touche à rien
@@ -37196,8 +37205,14 @@ const Sync={
         try{rec.scope=pl.space||'';rec.remotePath=pl.path;await attPut(rec);}catch(e){}
         continue;}
       if(pl.act!=='upload')continue;
+      aEnvoyer.push({rec,pl});}
+    /* A763 : les envois se COMPTENT (pastille, et bandeau à partir de 6 fichiers ou 20 Mo) — des vidéos montaient sous
+       « Synchro en cours » sans un mot ; chacun a le délai de sa taille (`fileTimeout`). */
+    const oTot=aEnvoyer.reduce((t,x)=>t+(x.rec.size||0),0);let oFait=0,nFait=0;
+    for(const {rec,pl} of aEnvoyer){
+      if(aEnvoyer.length>1||oTot>=1048576)syncProg('out',nFait,aEnvoyer.length,'fichiers',oFait,oTot);
       try{const body=await attBuf(rec);if(!body)continue;     // enregistrement vide : rien à pousser
-        await storageReq('POST',pl.path,body,VID_EXT[rec.type]?rec.type:'application/pdf',{'x-upsert':'true'});   // A757
+        await storageReq('POST',pl.path,body,VID_EXT[rec.type]?rec.type:'application/pdf',{'x-upsert':'true'},fileTimeout(rec.size||body.byteLength||0));   // A757, A763
         // déplacement de périmètre : l'ancien chemin part APRÈS le téléversement réussi, et seulement là où j'en ai le droit
         if(pl.del&&attMayDelete(pl.del,uidv,canEditScope))queueAttDelete(pl.del);
         rec.dirty=0;rec.remotePath=pl.path;rec.scope=pl.space||'';await attPut(rec);
@@ -37206,7 +37221,9 @@ const Sync={
            la synchro en erreur — elle reste sur l'appareil, marquée « à envoyer », et l'app le dit une fois. */
         if(VID_EXT[rec.type]&&[400,403,413,415].indexOf(e.status)>=0){vidRefus++;continue;}
         if(!firstErr)firstErr=e;}
+      finally{nFait++;oFait+=rec.size||0;}
     }
+    if(_syncProg.sens==='out'&&_syncProg.quoi==='fichiers'&&!firstErr){syncProg('',0,0,'');setSyncChip('busy','Synchro en cours');}
     if(vidRefus&&!this._vidDit){this._vidDit=true;toast('△ '+nb(vidRefus,'vidéo')+' pas encore envoyée'+(vidRefus>1?'s':'')+' : le serveur doit être mis à jour pour accepter les vidéos (administrateur : rejouer schema.sql). Elles restent sur cet appareil.',10000);}
     // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
     // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
@@ -40137,7 +40154,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
   window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,linkOf,blkReach,blkInLoop,loopExitStops,momentOf,wtTimerModel,wtCountModel,linkArmSnap,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

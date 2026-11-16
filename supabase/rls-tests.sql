@@ -420,11 +420,15 @@ begin
     insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/a/b.pdf');
     raise exception 'ÉCHEC : un chemin à sous-dossier a été accepté';
   exception when insufficient_privilege then null; end;
-  -- A757 : une VIDÉO (.mp4, .webm, .mov) entre comme un PDF, dans SON dossier, et en sort ; le .exe reste refusé (ci-dessus).
+  -- A757 : une VIDÉO (.mp4, .webm, .mov) entre comme un PDF, dans SON dossier ; le .exe reste refusé (ci-dessus).
   insert into storage.objects(bucket_id,name,metadata) values ('attachments','u/'||alice||'/att-v1.mp4','{"size":100}');
   select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4';
   if v_cnt <> 1 then raise exception 'ÉCHEC A757 : une vidéo .mp4 refusée dans son propre dossier'; end if;
-  delete from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4';
+  -- Sa sortie : PAS de DELETE direct (Supabase le bloque, cf. « NB SUPPRESSIONS » plus bas ; le rollback final nettoie).
+  -- La politique att_perso étant FOR ALL, l'UPDATE de sa propre vidéo éprouve la même clause USING que la suppression.
+  update storage.objects set metadata='{"size":101}' where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4';
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4' and metadata->>'size'='101';
+  if v_cnt <> 1 then raise exception 'ÉCHEC A757 : la vidéo de son propre dossier ne peut pas être remplacée (ni donc supprimée par l''API Storage)'; end if;
   begin
     insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/att-v2.avi');
     raise exception 'ÉCHEC A757 : une extension vidéo hors liste (.avi) a été acceptée';
@@ -1884,8 +1888,13 @@ begin
 
   -- 17.6b A718 — JAMAIS SANS PERSONNE : le SEUL membre (ici un éditeur) ne quitte pas, et l'administratrice de
   --      l'instance ne le retire pas ; supprimer la bibliothèque reste possible.
-  insert into public.libraries(id,name) values ('lib-a718','A718');
-  insert into public.memberships(user_id,library_id,role) values (lea,'lib-a718','editor');
+  -- ⚠ Créée SANS JETON, au nom de lea : sans `created_by`, la colonne prenait l'utilisateur simulé du moment (oda,
+  --   l'administratrice de l'instance) et le déclencheur lib_creator_admin en faisait un SECOND membre — lea n'était
+  --   plus seule, `leave_library` répondait « ok », et le témoin échouait sur un serveur pourtant juste.
+  perform set_config('request.jwt.claims', '{}', true);
+  insert into public.libraries(id,name,created_by) values ('lib-a718','A718',lea);   -- le déclencheur fait lea administratrice…
+  update public.memberships set role='editor' where library_id='lib-a718' and user_id=lea;   -- …ramenée éditrice (sans jeton : la règle du dernier administrateur ne joue pas)
+  if (select count(*) from public.memberships where library_id='lib-a718') <> 1 then raise exception 'ÉCHEC 17.6b (décor) : lea n''est pas le seul membre'; end if;
   perform set_config('request.jwt.claims', json_build_object('sub',lea,'role','authenticated')::text, true);
   set local role authenticated;
   if public.leave_library('lib-a718') <> 'last_member' then raise exception 'ÉCHEC 17.6b : le seul membre quitte sa bibliothèque'; end if;
