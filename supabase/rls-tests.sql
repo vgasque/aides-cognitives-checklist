@@ -430,6 +430,14 @@ begin
   update storage.objects set metadata='{"size":101}' where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4';
   select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/att-v1.mp4' and metadata->>'size'='101';
   if v_cnt <> 1 then raise exception 'ÉCHEC A757 : la vidéo de son propre dossier ne peut pas être remplacée (ni donc supprimée par l''API Storage)'; end if;
+  -- A766 : une IMAGE (.webp, .jpg, .png, .gif) entre comme une vidéo, dans SON dossier ; une extension hors liste (.svg) non.
+  insert into storage.objects(bucket_id,name,metadata) values ('attachments','u/'||alice||'/img-a1.webp','{"size":100}');
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||alice||'/img-a1.webp';
+  if v_cnt <> 1 then raise exception 'ÉCHEC A766 : une image .webp refusée dans son propre dossier'; end if;
+  begin
+    insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/img-a2.svg');
+    raise exception 'ÉCHEC A766 : une extension d''image hors liste (.svg) a été acceptée';
+  exception when insufficient_privilege then null; end;
   begin
     insert into storage.objects(bucket_id,name) values ('attachments','u/'||alice||'/att-v2.avi');
     raise exception 'ÉCHEC A757 : une extension vidéo hors liste (.avi) a été acceptée';
