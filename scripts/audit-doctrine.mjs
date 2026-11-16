@@ -11698,7 +11698,7 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
   const rows=Array.from({length:12},(_,i)=>({id:'pl'+String(i).padStart(2,'0'),owner:'u1',library_id:null,updated_at:new Date(T0+i*1000).toISOString(),deleted_at:null,
     data:{title:'Lourd '+i,status:'draft',body:'![](img:im'+i+')',images:[{id:'im'+i,data:img,w:10,h:10}]}}));
   const log={leger:0,lots:[],tailles:[],posts:[],postTailles:[]};let panne=0,servir=false;   // `servir` : rien avant l'amorçage (la synchro du démarrage aurait tout tiré)
-  await page.route(/\/rest\/v1\/|\/auth\/v1\//,route=>{const q=route.request(),u=decodeURIComponent(q.url());
+  await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,route=>{const q=route.request(),u=decodeURIComponent(q.url());
     if(/\/rest\/v1\/protocols/.test(u)&&q.method()==='GET'&&servir){
       if(/select=id,updated_at,deleted_at/.test(u)){log.leger++;const g=(u.match(/updated_at=gt\.([^&]+)/)||[])[1];const since=g?Date.parse(g):0;
         return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(rows.filter(r=>Date.parse(r.updated_at)>since).map(r=>({id:r.id,updated_at:r.updated_at,deleted_at:r.deleted_at})))});}
@@ -11706,6 +11706,7 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
       if(panne&&--panne===0)return route.fulfill({status:500,contentType:'application/json',body:'{"message":"statement timeout"}'});
       const b=JSON.stringify(rows.filter(r=>ids.includes(r.id)));log.lots.push(ids);log.tailles.push(b.length);
       return route.fulfill({status:200,contentType:'application/json',body:b});}
+    if(/\/storage\/v1\/object\/attachments\//.test(u)&&q.method()==='POST'){log.fichiers=(log.fichiers||0)+1;return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
     if(/\/rest\/v1\/protocols/.test(u)&&q.method()==='POST'){const b=q.postData()||'[]';log.posts.push(JSON.parse(b).length);log.postTailles.push(b.length);return route.fulfill({status:201,body:''});}
     route.fulfill({status:200,contentType:'application/json',body:'[]'});});
   await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'u1',email:'moi@x.fr'}}));});
@@ -11723,7 +11724,7 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
       arret:(document.getElementById('syncErrNotice')||{}).textContent||''};});
   const vus=await page.evaluate(()=>{window.__obs.disconnect();return window.__vus;});
   t('A761 · progression : la pastille compte (« Réception · n / 12 protocoles »), l’accueil montre la barre ; interrompue, elle dit où elle s’est arrêtée',
-    vus.some(v=>/^Réception · \d+ \/ 12 protocoles$/.test(v.chip.trim()))&&vus.some(v=>v.barre&&/Réception de vos données — \d+ \/ 12 protocoles/.test(v.ban))&&/Arrêtée à \d+ \/ 12 protocoles : la reprise partira de là/.test(r1.arret),
+    vus.some(v=>/^Réception · \d+ \/ 12 protocoles$/.test(v.chip.trim()))&&vus.some(v=>v.barre&&/Réception de vos données — \d+ \/ 12 protocoles · une coupure reprendra où elle s’est arrêtée/.test(v.ban))&&!vus.some(v=>/reste sur cet appareil|gardé sur/.test(v.ban))&&/Arrêtée à \d+ \/ 12 protocoles : la reprise partira de là/.test(r1.arret),
     JSON.stringify({chips:[...new Set(vus.map(v=>v.chip))].slice(0,6),arret:r1.arret}));
   const avant=log.lots.flat().length;
   // 2. La reprise : seules les lignes manquantes sont demandées.
@@ -11740,6 +11741,17 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
     return {err,restants:(await Data.getProtocols()).filter(p=>p.dirty).length};});
   t('A760 · envoi : plusieurs lots bornés en octets (plus tout d’un coup), tous partis',
     !r3.err&&r3.restants===0&&log.posts.length>=2&&Math.max(...log.posts)<12&&Math.max(...log.postTailles)<=8*1024*1024,JSON.stringify({...r3,posts:log.posts,tailles:log.postTailles}));
+  // 4. A763 : des fichiers lourds montent EN SE COMPTANT (pastille « Envoi · n / 2 fichiers · x / 3 Mo »).
+  const r4=await page.evaluate(async()=>{for(let i=0;i<50&&Sync.running;i++)await __acCalme(100);
+    const by=new Uint8Array(1600000);by.set(new TextEncoder().encode('%PDF-1.4\n'));
+    for(const id of ['att763a','att763b'])await IDB.putAtt({id,buf:by.buffer.slice(0),size:by.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});
+    const p=protocols.find(x=>/^Lourd /.test(x.title));p.docs=[{id:'att763a',name:'a.pdf',size:by.byteLength},{id:'att763b',name:'b.pdf',size:by.byteLength}];await Data.putProtocol(p);
+    const vus=[];const o=new MutationObserver(()=>{const c=document.getElementById('syncChip');if(c&&!c.hidden)vus.push(c.textContent.trim());});
+    o.observe(document.body,{subtree:true,childList:true,characterData:true});
+    let err='';try{await Sync._syncAttachments();}catch(e){err=String(e.message||e);}o.disconnect();
+    const recs=await Promise.all(['att763a','att763b'].map(id=>IDB.getAtt(id)));
+    return {err,vus:[...new Set(vus)],envoyes:recs.every(r=>r&&!r.dirty&&r.remotePath)};});
+  t('A763 · envoi des fichiers : la pastille compte les fichiers et leur poids, tous montés',!r4.err&&r4.envoyes&&(log.fichiers||0)>=2&&r4.vus.some(v=>/^Envoi · [01] \/ 2 fichiers · \d+ \/ 3 Mo$/.test(v)),JSON.stringify({...r4,fichiers:log.fichiers}));
   await page.close();
 });
 

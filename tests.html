@@ -932,7 +932,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('A760 : syncDecoupe — lots bornés en octets ; une ligne plus lourde que la cible part seule', L.map(l=>l.length), [2,1,1,1]);
    eq('A760 : syncDecoupe — et bornés en nombre', A.syncDecoupe([1,2,3,4,5],1e9,2).map(l=>l.length), [2,2,1]);
    eq('A761 : la progression se dit — réception, envoi, borne, rien à dire', [A.syncProgTxt({sens:'in',fait:34,total:120,quoi:'protocoles'}),A.syncProgTxt({sens:'out',fait:3,total:12,quoi:'aides'}),A.syncProgTxt({sens:'in',fait:9,total:5,quoi:'protocoles'}),A.syncProgTxt({total:0})],
-     ['Réception · 34 / 120 protocoles','Envoi · 3 / 12 aides','Réception · 5 / 5 protocoles','']);}
+     ['Réception · 34 / 120 protocoles','Envoi · 3 / 12 aides','Réception · 5 / 5 protocoles','']);
+   eq('A763 : des fichiers se comptent aussi en poids', A.syncProgTxt({sens:'out',fait:2,total:14,quoi:'fichiers',o:48*1048576,ot:210*1048576}), 'Envoi · 2 / 14 fichiers · 48 / 210 Mo');
+   eq('A763 : le délai d’un fichier suit sa taille (plancher 256 kbit/s), borné à 20 min', [A.fileTimeout(0),A.fileTimeout(30*1048576),A.fileTimeout(1e10)], [120000,120000+960000,1200000]);}
   /* A759 : le poids des images (10 Mo par élément) et la compression la plus douce qui suffit. */
   {const U=n=>'data:image/webp;base64,'+'A'.repeat(n);   // n caractères base64 = n×3/4 octets
    eq('A759 : imgOctets — octets réels d’une data-URL (rembourrage compris)', [A.imgOctets(U(400)),A.imgOctets('data:image/png;base64,QUJD'),A.imgOctets('data:image/png;base64,QUI='),A.imgOctets('')], [300,3,2,0]);
