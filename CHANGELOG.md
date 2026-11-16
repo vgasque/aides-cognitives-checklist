@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.137.4] — 2026-11-16
+Correctif : la réception ne tourne plus en boucle sur des fichiers qui n'existent plus (A770). Aucune mise à jour du
+serveur.
+- **Un fichier introuvable partout** (ni sur l'appareil, ni sur le serveur — les vidéos perdues avant la v5.137.2) était
+  recherché à chaque synchronisation : « Réception · 17 / 20 fichiers » revenait sans fin, et comptait ses échecs comme
+  des fichiers reçus. Il n'est plus recherché pendant 30 minutes et ne relance plus le bandeau ; s'il est envoyé
+  entre-temps par un autre appareil, il arrive à l'essai suivant.
+- Ces références disparaissent quand le protocole concerné est réimporté puis l'ancien supprimé.
+
 ## [5.137.3] — 2026-11-16
 Correctif : l'envoi des images ne tourne plus en boucle à chaque synchronisation (A769). Aucune mise à jour du serveur
 de plus que celle de la v5.137.
@@ -252,14 +261,3 @@ En sélection, « Annuler » et « Tout cocher » restent lisibles quand on fait
 - Au téléphone, en mode sélection, la liste défilait sous « Annuler » et « Tout cocher » sans fond derrière eux, alors
   que « Sélectionner » et « Créer » ont un fond flouté. La rangée de sélection prend maintenant le même fond dès que
   la liste passe dessous ; en haut de la liste, elle reste transparente comme avant.
-
-## [5.127.0] — 2026-11-14
-Un PDF reste net à fort zoom (A748).
-- **Avant**, au-delà d'environ 250 % sur un téléphone (200 % sur un ordinateur), le texte devenait flou, même avec les
-  boutons + et − : la page entière est dessinée dans une image dont la taille est limitée par la mémoire de
-  l'appareil.
-- **Maintenant**, quand vous arrêtez de défiler ou de zoomer, la partie de la page que vous regardez est redessinée
-  en pleine définition, comme dans les lecteurs PDF courants. Elle devient nette environ un quart de seconde après.
-- **Aucun changement à zoom ordinaire**, et le défilement reste aussi fluide (mesuré sur ordinateur, iPhone, Android
-  et appareil peu puissant émulés). Si vous recommencez à défiler, le dessin en cours est abandonné. Sur un appareil
-  peu puissant, la zone redessinée est plus petite pour ménager la mémoire.
