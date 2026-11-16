@@ -2790,8 +2790,16 @@ await sec('v5.26.3 · invité hors du réseau commun : l\'hôte silencieux se DI
   await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
   // Aucun canal dormant (invité sur un autre réseau) : ni direct ni bouée ne peuvent l'atteindre.
   await H.evaluate(() => { slSbReset(); }); await G.evaluate(() => { slSbReset(); });
-  const vif = await G.evaluate(async () => { await new Promise(r => setTimeout(r, 2500)); return shareHostSilenceMs(); });
-  t('tant que l\'hôte sonde, son silence vu de l\'invité reste court (source : `seen` de la rangée propriétaire)', vif >= 0 && vif < 2500, vif + ' ms');
+  /* « Reste court » se lit comme un RAFRAÎCHISSEMENT, pas comme un seuil d'un instant : sous la charge d'une passe
+     complète la cadence des sondages dérive, et une lecture unique après 2,5 s tombait juste avant le sondage suivant
+     (2 561 ms : rouge sans défaut). Sur 6 s, le silence mesuré doit RETOMBER au moins une fois (l'hôte a sondé, `seen`
+     rafraîchi) et rester court à son plus bas. Hôte muet : il ne fait que grandir (témoin suivant). */
+  const vifs = await G.evaluate(async () => { const v = []; const t0 = Date.now();
+    while (Date.now() - t0 < 6000) { v.push(shareHostSilenceMs()); await new Promise(r => setTimeout(r, 100)); }   // horloge : échantillonnage d'une durée
+    return v; });
+  const retombe = vifs.some((x, i) => i > 0 && x >= 0 && vifs[i - 1] - x > 300), vif = Math.min(...vifs.filter(x => x >= 0));
+  t('tant que l\'hôte sonde, son silence vu de l\'invité reste court (source : `seen` de la rangée propriétaire)', retombe && vif < 2500,
+    'plus bas ' + vif + ' ms, retombé : ' + retombe + ', plus haut ' + Math.max(...vifs) + ' ms');
   // l'hôte se tait (son réseau, pas celui de l'invité) : son cycle devient un no-op — un simple clearTimeout ne suffit pas, chaque émission re-kicke
   await H.evaluate(() => { window.__cycleSain = Share._cycle; Share._cycle = async () => {}; });
   const tu = await G.waitForFunction(() => shareHostSilenceMs() > 3000, null, { timeout: 15000 }).then(() => true).catch(() => false);

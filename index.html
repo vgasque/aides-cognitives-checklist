@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0otTHvrpMi3e6JPogeicxhlrQKDGWe7ZxkjWJTyJsEs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-SO0hsN+wsxsTexQwZSNOF0RXpuCRTKHS85sWDhHJPOs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10853,7 +10853,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.137.0';
+const APP_VERSION='5.137.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20623,6 +20623,10 @@ function vidPick(ta,p){if(!p)return;
    s'arrête hors de l'écran (sauf « réduire les animations » : elle attend qu'on la lance). L'URL du binaire est propre à
    l'élément et rendue quand il quitte la page. Absente de l'appareil : la figure le DIT, et se repose quand la
    synchronisation l'apporte (`vidRefresh`). Illisible ici (un WebM sur un iPhone ancien) : elle le dit aussi. */
+/* A767 : les vidéos cherchées sur le serveur et introuvables à tous leurs chemins (mémoire de la page : retenté à
+   chaque synchro). `attIntrouvable` — PURE (testée) : le stockage répond 404, ou 400 « not found » selon sa version. */
+const _attAbsents=new Set();
+const attIntrouvable=e=>!!e&&(e.status===404||(e.status===400&&/not.?found/i.test(String(e.message||''))));
 const vidReduce=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
 let _vidIO=null;
 async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1';
@@ -20630,7 +20634,9 @@ async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1'
   let rec=null;try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}
   const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
   if(!buf){fig.dataset.vh='';fig.classList.add('md-vabs');
-    box.innerHTML='<span class="md-vph">△ Vidéo pas encore sur cet appareil — elle arrive avec la synchronisation.</span>';return;}
+    box.innerHTML=_attAbsents.has(id)
+      ?'<span class="md-vph">△ Vidéo pas encore sur le serveur — ouvrez l’app sur l’appareil qui l’a ajoutée : elle l’enverra.</span>'
+      :'<span class="md-vph">△ Vidéo pas encore sur cet appareil — elle arrive avec la synchronisation.</span>';return;}
   fig.classList.remove('md-vabs');
   const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
   v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
@@ -32617,27 +32623,32 @@ function attFetchPaths(id,refs,me,ext){const R=attRefSpaces(refs);
 // Un ancien chemin ne se supprime que chez moi, ou dans une bibliothèque que je peux éditer — PURE (testée).
 function attMayDelete(path,me,canEdit){const sp=attPathSpace(path,me);return sp===null||(typeof sp==='string'&&!!canEdit(sp));}
 // Les liens `](att:ID)` / `](att:ID#p3)` du contenu suivent un changement d'id — PURE (testée ; extraite d'`importAtts`, A669).
+// A767 : et la ligne d'une vidéo, `](vid:ID)` (les ids d'un document et d'une vidéo ne se confondent pas : `a…` / `v…`).
 function attRelink(body,chg){let b=String(body==null?'':body);
-  (chg||[]).forEach(([o,n])=>{b=b.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#');});return b;}
+  (chg||[]).forEach(([o,n])=>{b=b.split('](att:'+o+')').join('](att:'+n+')').split('](att:'+o+'#').join('](att:'+n+'#').split('](vid:'+o+')').join('](vid:'+n+')');});return b;}
 const attMe=()=>((Auth.user()||{}).id||'');
-const attCites=(x,id)=>(x.docs||[]).some(a=>a&&a.id===id);
+const attCites=(x,id)=>(x.docs||[]).concat(x.videos||[]).some(a=>a&&a.id===id);   // A767 : une vidéo est citée comme un document
 /* L'élément reçoit SON exemplaire de chaque document (copie d'un espace vers un autre). Binaire absent de l'appareil :
    on tente de le prendre là où il vit (`from`), sinon la référence est RETIRÉE — jamais un id partagé entre deux
    espaces, jamais un bouton « Document indisponible ». Rend le nombre de documents non copiés. */
+/* A767 : les VIDÉOS d'un protocole aussi (`c.videos`) — elles gardaient l'id de l'original, donc un fichier qui ne
+   vit qu'à un endroit ; une vidéo non copiée est retirée du texte et nommée (`vidRetire`), jamais une ligne morte. */
 async function attCopyDocs(c,from){
-  if(!(c.docs||[]).length)return 0;
-  if(!supportsAttachments()){const n=c.docs.length;c.docs=[];return n;}
-  const me=attMe(),out=[],chg=[];let perdus=0;
-  for(const a of c.docs){
-    let rec=null,buf=null;try{rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}
-    if(!buf&&Auth.signedIn()&&Sync.online()){
-      try{await attFetchOne(a.id,attStoragePath(from||null,me,a.id));rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}}
-    if(!buf){perdus++;continue;}
-    const id=uid('a');
-    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:c.library||''});}
-    catch(e){perdus++;continue;}
-    out.push(Object.assign({},a,{id:id,size:buf.byteLength}));chg.push([a.id,id]);}
-  c.docs=out;if(typeof c.body==='string'&&chg.length)c.body=attRelink(c.body,chg);
+  const L=[['docs','a'],['videos','v']].filter(([k])=>Array.isArray(c[k])&&c[k].length);if(!L.length)return 0;
+  if(!supportsAttachments()){let n=0;L.forEach(([k])=>{n+=c[k].length;if(k==='videos'&&typeof c.body==='string')c.body=vidRetire(c.body,c[k].map(v=>v.id));c[k]=[];});return n;}
+  const me=attMe(),chg=[];let perdus=0;
+  for(const [k,pref] of L){const out=[],sans=[];
+    for(const a of c[k]){if(!a||!a.id){continue;}
+      let rec=null,buf=null;try{rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}
+      if(!buf&&Auth.signedIn()&&Sync.online()){
+        try{await attFetchOne(a.id,attStoragePath(from||null,me,a.id,k==='videos'?attExt(a.mime):'pdf'));rec=await IDB.getAtt(a.id);buf=rec?await attBuf(rec):null;}catch(e){}}
+      if(!buf){perdus++;sans.push(a.id);continue;}
+      const id=uid(pref),type=k==='videos'&&VID_EXT[(rec&&rec.type)||a.mime]?((rec&&rec.type)||a.mime):'application/pdf';
+      try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type,createdAt:Date.now(),dirty:1,remotePath:null,scope:c.library||''});}
+      catch(e){perdus++;sans.push(a.id);continue;}
+      out.push(Object.assign({},a,{id:id,size:buf.byteLength}));chg.push([a.id,id]);}
+    c[k]=out;if(k==='videos'&&sans.length&&typeof c.body==='string')c.body=vidRetire(c.body,sans);}
+  if(typeof c.body==='string'&&chg.length)c.body=attRelink(c.body,chg);
   return perdus;}
 /* LE GESTE LOCAL (A689) — appelé par `persist` et `persistProtocol`, donc par tout enregistrement fait ICI
    (publier, déplacer une sélection, convertir en collection, dupliquer, réparer). Pour chaque document de l'élément :
@@ -32647,10 +32658,15 @@ async function attCopyDocs(c,from){
      téléverse au nouveau chemin puis retire l'ancien ;
    · autre espace, et un élément vivant le cite encore là-bas → COPIE : cet élément reçoit son exemplaire.
    Binaire absent de l'appareil : rien ne bouge ici (la réparation A690 reprendra quand il sera là). */
+/* A767 — LES VIDÉOS SUIVENT AUSSI. Ce geste ne lisait que `ent.docs` : un protocole passé de Perso à une bibliothèque
+   laissait ses vidéos marquées « Perso » ; la synchro voyait alors un fichier « déjà envoyé ailleurs » (`relabel`),
+   notait le chemin de la bibliothèque SANS rien téléverser — l'appareil disait « Synchronisé », les autres ne le
+   trouvaient jamais. Une vidéo copiée garde son type. */
 async function attClaim(ent){
-  if(!ent||ent.deletedAt||!(ent.docs||[]).length||!supportsAttachments())return;
+  const lst=ent&&!ent.deletedAt?(ent.docs||[]).concat(ent.videos||[]):[];
+  if(!lst.length||!supportsAttachments())return;
   const me=attMe(),sp=ent.library||null,chg=[];
-  for(const a of ent.docs){if(!a||!a.id)continue;
+  for(const a of lst){if(!a||!a.id)continue;
     let rec=null;try{rec=await IDB.getAtt(a.id);}catch(e){}
     if(!rec)continue;
     const cur=attRecSpace(rec,me);
@@ -32660,8 +32676,8 @@ async function attClaim(ent){
     if(!reste){rec.scope=sp||'';rec.dirty=1;try{await attPut(rec);}catch(e){}continue;}
     let buf=null;try{buf=await attBuf(rec);}catch(e){}
     if(!buf)continue;
-    const id=uid('a');
-    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:sp||''});}
+    const vid=!!VID_EXT[rec.type],id=uid(vid?'v':'a');
+    try{await attPut({id:id,buf:buf.slice(0),size:buf.byteLength,type:vid?rec.type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null,scope:sp||''});}
     catch(e){continue;}
     chg.push([a.id,id]);a.id=id;a.size=buf.byteLength;}
   if(chg.length&&typeof ent.body==='string')ent.body=attRelink(ent.body,chg);}
@@ -37309,7 +37325,9 @@ const Sync={
       .concat(((state.draft&&state.draft.docs)||[]).map(a=>a.id))
       .concat(((state.pdraft&&state.pdraft.docs)||[]).map(a=>a.id))
       .concat(((state.pdraft&&state.pdraft.videos)||[]).map(a=>a.id)));   // A757
-    let vidRefus=0;const aEnvoyer=[];
+    let vidRefus=0;const aEnvoyer=[],aVerifier=[];
+    // A767 : ce que je pourrais renvoyer moi-même (un élément vivant qui le cite dans cet espace, que je peux modifier)
+    const moiPeux=(id,sp)=>(refs[id]||[]).some(r=>!r.del&&r.edit&&(r.lib||null)===(sp===undefined?null:sp));
     for(const rec of await IDB.getAtts()){
       const pl=attPlan(rec,refs[rec.id]||[],uidv);
       if(pl.act==='purge'){if(draftIds.has(rec.id))continue;  // brouillon : on ne touche à rien
@@ -37319,9 +37337,22 @@ const Sync={
         continue;}
       if(pl.act==='relabel'){   // déplacé par un autre (ou par moi, ailleurs) : il a déjà téléversé — on note, on n'envoie rien
         try{rec.scope=pl.space||'';rec.remotePath=pl.path;await attPut(rec);}catch(e){}
+        if(moiPeux(rec.id,pl.space))aVerifier.push({rec,pl:{act:'upload',space:pl.space,path:pl.path,del:null}});   // A767 : vérifié, pas cru
         continue;}
+      if(pl.act==='none'&&pl.path&&rec.remotePath===pl.path&&moiPeux(rec.id,pl.space)){aVerifier.push({rec,pl:{act:'upload',space:pl.space,path:pl.path,del:null}});continue;}
       if(pl.act!=='upload')continue;
       aEnvoyer.push({rec,pl});}
+    /* A767 — CE QUI EST « ENVOYÉ » SE VÉRIFIE, UNE FOIS PAR LANCEMENT. Un fichier noté envoyé pouvait ne pas être sur le
+       serveur (une vidéo restée « Perso » après le déplacement de son protocole, et relabellisée sans téléversement) :
+       l'appareil disait « Synchronisé », les autres attendaient un fichier qui n'arrivait jamais. Un appel par dossier
+       (`storageList`), seulement pour ce que je peux renvoyer ; ce qui manque repart. Un échec de liste ne bloque rien
+       (on réessaiera au lancement suivant). */
+    let repares=0;
+    if(aVerifier.length){const vu=this._attVu||(this._attVu=new Set()),dos=x=>x.pl.path.slice(0,x.pl.path.lastIndexOf('/'));
+      for(const d of [...new Set(aVerifier.map(dos))]){if(vu.has(d))continue;
+        let noms;try{noms=new Set(await storageList(d));}catch(e){continue;}
+        vu.add(d);
+        aVerifier.forEach(x=>{if(dos(x)===d&&!noms.has(x.pl.path.slice(d.length+1))){aEnvoyer.push(x);repares++;}});}}
     /* A763 : les envois se COMPTENT (pastille, et bandeau à partir de 6 fichiers ou 20 Mo) — des vidéos montaient sous
        « Synchro en cours » sans un mot ; chacun a le délai de sa taille (`fileTimeout`). */
     const oTot=aEnvoyer.reduce((t,x)=>t+(x.rec.size||0),0);let oFait=0,nFait=0;
@@ -37340,6 +37371,7 @@ const Sync={
       finally{nFait++;oFait+=rec.size||0;}
     }
     if(_syncProg.sens==='out'&&_syncProg.quoi==='fichiers'&&!firstErr){syncProg('',0,0,'');setSyncChip('busy','Synchro en cours');}
+    if(repares&&!firstErr)toast('↻ '+nb(repares,'fichier')+' manquai'+(repares>1?'ent':'t')+' sur le serveur : renvoyé'+(repares>1?'s':'')+' — vos autres appareils le'+(repares>1?'s':'')+' recevront.',7000);   // A767
     if(vidRefus&&!this._vidDit){this._vidDit=true;toast('△ '+nb(vidRefus,'vidéo')+' pas encore envoyée'+(vidRefus>1?'s':'')+' : le serveur doit être mis à jour pour accepter les vidéos (administrateur : rejouer schema.sql). Elles restent sur cet appareil.',10000);}
     // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
     // erreurs silencieuses (retentées à la prochaine synchro, ou à la demande via la visionneuse).
@@ -37352,7 +37384,12 @@ const Sync={
       (async()=>{try{for(const id of missing){
           if(dit&&!this.running)syncProg('in',k,n,'fichiers',o,ot);
           // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
-          for(const pth of attFetchPaths(id,refs[id],uidv,ext[id])){try{await attFetchOne(id,pth);break;}catch(e){}}
+          /* A767 : absent de TOUS les chemins (404 — ou 400 « not found », selon la version du stockage) ≠ réseau en
+             panne : la vidéo le dit (« pas encore sur le serveur »), au lieu de promettre qu'elle arrive. */
+          let absent=true,eu=false;
+          for(const pth of attFetchPaths(id,refs[id],uidv,ext[id])){try{await attFetchOne(id,pth);eu=true;break;}catch(e){if(!attIntrouvable(e))absent=false;}}
+          if(!eu&&absent)_attAbsents.add(id);else _attAbsents.delete(id);
+          if(!eu)vidRefresh(id);
           k++;o+=taille[id]||0;}
       }finally{this._attDl=false;refreshAttOffline();
         if(dit&&_syncProg.quoi==='fichiers'&&_syncProg.sens==='in'){syncProg('',0,0,'');if(!this.running&&Auth.signedIn())setSyncChip('ok','Synchronisé');}}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
@@ -40366,7 +40403,7 @@ if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localho
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    slWirePair,slServe,shareStateLive,attPathSpace,attRecSpace,attRefSpaces,attPlan,attFetchPaths,attMayDelete,attRelink,attIntrouvable,attSplitPlan,quotasNorm,quotaErrInfo,quotaUsageNorm,quotaRepere,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
     qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,

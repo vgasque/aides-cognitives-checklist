@@ -5092,18 +5092,40 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     const o={},an=el=>el?el.getAnimations({subtree:true}).map(a=>a.animationName).join(','):'';
     /* Les animations se CAPTENT À LEUR DÉPART (« animationstart »), pas lues après une pause : sous la charge d'une passe
        complète, la pause durait plus que l'animation de l'anneau (wtArm), déjà finie quand on la cherchait. */
-    const capte=async(geste,ms)=>{const v=[],h=e=>v.push(e.animationName);document.addEventListener('animationstart',h,true);
-      try{await geste();await __acCalme(ms);}finally{document.removeEventListener('animationstart',h,true);}return v.join(',');};
+    /* … et la capture dure JUSQU'À CE QUE les animations attendues soient parties (plafond 2,5 s) : une fenêtre fixe de
+       300 ms se refermait encore trop tôt sous la charge de la passe complète (rendu qui suit le tap retardé). Animation
+       absente (le défaut) : la fenêtre va au plafond et le témoin est rouge, comme avant. */
+    /* ⚠ ET L'ANIMATION DÉCLARÉE COMPTE AUTANT QUE L'ANIMATION JOUÉE : `wt-arm` n'est posée que pendant les 360 ms qui
+       suivent la relance (délai négatif = l'âge, pour reprendre en phase d'un rendu à l'autre). À 8 tâches en parallèle,
+       la première image après le tap pouvait venir APRÈS ces 360 ms : le rendu suivant retirait la classe avant toute
+       image, le navigateur ne lançait rien — c'est voulu (aucune animation périmée), et le témoin mesurait la cadence
+       d'images de la machine. On relève donc aussi, à l'instant où le DOM porte l'état (observateur de mutations, avant
+       toute image), l'animation que la feuille de style y DÉCLARE. Règle CSS retirée : `none`, donc rouge, comme avant. */
+    const capte=async(geste,attendus)=>{const v=[],h=e=>v.push(e.animationName);document.addEventListener('animationstart',h,true);
+      const decl=el=>{if(!(el instanceof Element))return;[el,...el.querySelectorAll('*')].forEach(x=>{const a=getComputedStyle(x).animationName;
+        if(a&&a!=='none')a.split(',').forEach(n=>{n=n.trim();if(n&&n!=='none'&&!v.includes(n))v.push(n);});});};
+      const mo=new MutationObserver(ms=>ms.forEach(m=>{if(m.type==='attributes')decl(m.target);else m.addedNodes.forEach(decl);}));
+      mo.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+      try{await geste();const t0=performance.now();
+        while(!attendus.every(n=>v.includes(n))&&performance.now()-t0<2500)await __acCalme(50);
+        await __acCalme(100);}
+      finally{mo.disconnect();document.removeEventListener('animationstart',h,true);}return v.join(',');};
     let li=row(/Choc imm/);o.hChoc0=Math.round(li.getBoundingClientRect().height);o.wChoc0=hW(li);o.cn0=cn();
-    o.mvOn=await capte(()=>li.click(),300);li=row(/Choc imm/);
+    o.mvOn=await capte(()=>li.click(),['wtRoll']);li=row(/Choc imm/);
     o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;
     o.ev1=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&!e.voidAt).length;
-    o.mvOff=await capte(()=>li.click(),300);
+    o.mvOff=await capte(()=>li.click(),['wtBack']);
     o.cn2=cn();o.void2=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&e.voidAt).length;
     {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;renderOvOnly();await __acCalme(200);}   // A382 : l'adrénaline du bloc choquable commence au 3ᵉ choc
     li=row(/^\s*Vigilance|Adrénaline/)||row(/Adrénaline/);
     const hA0=Math.round(li.getBoundingClientRect().height);
-    o.mvArm=await capte(()=>li.click(),300);li=row(/Adrénaline/);
+    o.mvArm=await capte(()=>li.click(),['wtArm','tLife']);li=row(/Adrénaline/);
+    /* Lecture INDÉPENDANTE DES IMAGES de l'anneau : à 10 tâches en parallèle, le premier rendu après le tap pouvait tomber
+       au-delà des 360 ms où la relance est « à l'instant » — l'app saute alors l'animation, à juste titre, et aucune
+       observation du DOM ne peut la voir. Le minuteur RÉEL, armé par le tap RÉEL, passe donc aussi par le modèle de
+       l'app à l'instant de sa relance ; ce qu'il demande (`wtInner`) doit porter `wtArm` dans la feuille de style. */
+    {const tm=adr(),m=tm&&wtTimerModel(tm,tm.lastStart+10,{}),box=document.createElement('span');box.className='wt';box.innerHTML=m?wtInner(m):'';
+      li.appendChild(box);o.mvArmDecl=[...box.querySelectorAll('*')].map(x=>getComputedStyle(x).animationName).filter(a=>a&&a!=='none').join(',');box.remove();}
     o.adrRun=adr().running;o.clsRun=li.querySelector('.wt').className;
     li.click();await __acCalme(300);li=row(/Adrénaline/);
     o.adrUndo=!adr().running&&adr().elapsedMs===0;
@@ -5120,7 +5142,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   t('A377 · décocher dans les 10 s rend le minuteur à son état d’avant', r.adrUndo===true);
   t('A378 · cocher fait MONTER le chiffre neuf', /wtRoll/.test(r.mvOn), r.mvOn);
   t('A378 · décocher le fait REDESCENDRE', /wtBack/.test(r.mvOff), r.mvOff);
-  t('A378 · la coche REMPLIT l’anneau (relancé depuis zéro) et la jauge des 10 s part', /wtArm/.test(r.mvArm)&&/tLife/.test(r.mvArm), r.mvArm);
+  t('A378 · la coche REMPLIT l’anneau (relancé depuis zéro) et la jauge des 10 s part', (/wtArm/.test(r.mvArm)||/wtArm/.test(r.mvArmDecl))&&/tLife/.test(r.mvArm), r.mvArm+' · déclaré : '+r.mvArmDecl);
   t('A377 · à l’échéance, pastille ambre sur la MÊME ligne de 24 px', /\bdue\b/.test(r.clsDue)&&r.wDue===24, `${r.clsDue} · ${r.wDue}`);
   t('A377 · A9 — l’échéance ne change pas la hauteur de la rangée', Math.abs(r.hA1-r.hA0)<=1, `${r.hA0} → ${r.hA1} px`);
   const b=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
@@ -11798,13 +11820,20 @@ await sec('A760 · synchro : tirage et envoi par lots bornés, reprise après un
     return {err,vus:[...new Set(vus)],envoyes:recs.every(r=>r&&!r.dirty&&r.remotePath)};});
   t('A763 · envoi des fichiers : la pastille compte les fichiers et leur poids, tous montés',!r4.err&&r4.envoyes&&(log.fichiers||0)>=2&&r4.vus.some(v=>/^Envoi · [01] \/ 2 fichiers · \d+ \/ 3 Mo$/.test(v)),JSON.stringify({...r4,fichiers:log.fichiers}));
   // 5. A764 : la RÉCEPTION des fichiers (téléchargement de fond) se compte aussi, puis la pastille revient à « Synchronisé ».
-  const r5=await page.evaluate(async()=>{for(const id of ['att763a','att763b'])await IDB.delAtt(id);
+  /* AUCUNE SYNCHRO DE FOND PENDANT LA MESURE : le témoin A765 ci-dessus laisse une nouvelle tentative armée
+     (`_retryTimer`) ; sous la charge d'une passe complète elle partait au milieu de la réception, qui cède alors — à
+     juste titre — la pastille à la synchro en cours (« Synchro en cours » à la fin : rouge sans défaut). On attend celle
+     qui tourne, on désarme les deux minuteries, et `full` est tenu le temps de la mesure. */
+  const r5=await page.evaluate(async()=>{for(let i=0;i<100&&Sync.running;i++)await __acCalme(100);
+    clearTimeout(Sync._retryTimer);clearTimeout(Sync._pt);const plein=Sync.full;Sync.full=async()=>{};
+    try{for(const id of ['att763a','att763b'])await IDB.delAtt(id);
     const vus=[];const o=new MutationObserver(()=>{const c=document.getElementById('syncChip');if(c&&!c.hidden)vus.push(c.textContent.trim());});
     o.observe(document.body,{subtree:true,childList:true,characterData:true});
     try{await Sync._syncAttachments();}catch(e){}
     for(let i=0;i<60&&Sync._attDl;i++)await __acCalme(100);o.disconnect();
     const recs=await Promise.all(['att763a','att763b'].map(id=>IDB.getAtt(id)));
-    return {vus:[...new Set(vus)],recus:recs.every(r=>r&&r.size>0),fin:(document.getElementById('syncChip')||{}).textContent||''};});
+    return {vus:[...new Set(vus)],recus:recs.every(r=>r&&r.size>0),fin:(document.getElementById('syncChip')||{}).textContent||''};}
+    finally{Sync.full=plein;}});
   t('A764 · réception des fichiers : la pastille compte (« Réception · n / 2 fichiers · x / 3 Mo »), puis revient à « Synchronisé »',
     r5.recus&&r5.vus.some(v=>/^Réception · [01] \/ 2 fichiers · \d+ \/ 3 Mo$/.test(v))&&/Synchronisé/.test(r5.fin),JSON.stringify(r5));
   await page.close();
@@ -11877,6 +11906,76 @@ await sec('A766 · les images voyagent en fichiers : migration, lignes allégée
   t('A766 · appareil B : les lignes arrivent légères, les images en fond — galerie et bloc retrouvés, rien à renvoyer, la lecture les montre',
     rb.pImgs===2&&rb.attente===0&&rb.bloc&&!rb.ref&&!rb.dirty&&rb.vues===2,JSON.stringify(rb));
   await B.close();
+});
+
+/* A767 — UNE VIDÉO SUIT SON PROTOCOLE, ET CE QUI EST « ENVOYÉ » SE VÉRIFIE. Signalé par l'auteur : « les vidéos ne sont
+   pas synchronisées sur mon téléphone alors que sur l'ordi c'est marqué synchronisé ». Serveur de stockage simulé (état
+   côté Node) : (1) un protocole Perso à vidéo, envoyé, puis déplacé dans une bibliothèque — la vidéo doit monter au
+   chemin de la bibliothèque (avant : `attClaim` ne lisait que les documents, la synchro « relabellisait » sans rien
+   envoyer) ; (2) l'état DÉJÀ cassé chez l'auteur (vidéo notée envoyée, absente du serveur) se répare au lancement, en
+   une liste par dossier ; (3) une copie dans Perso emporte SA vidéo (id neuf, type gardé, ligne du texte suivie) ;
+   (4) l'appareil qui ne trouve une vidéo nulle part le dit. */
+await sec('A767 · une vidéo suit son protocole d’un espace à l’autre ; un fichier noté envoyé est vérifié sur le serveur', async () => {
+  const srv={files:new Map(),listes:0};
+  const page=await br.newPage({viewport:{width:1100,height:850}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,async route=>{const q=route.request(),u=decodeURIComponent(q.url()),M=q.method();
+    const sm=u.match(/\/storage\/v1\/object\/attachments\/(.+)$/);
+    if(sm&&M==='POST'){srv.files.set(sm[1],q.postDataBuffer());return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+    if(sm&&M==='DELETE'){srv.files.delete(sm[1]);return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+    if(sm&&M==='GET'){const b=srv.files.get(sm[1]);return b?route.fulfill({status:200,contentType:'application/octet-stream',body:b})
+      :route.fulfill({status:400,contentType:'application/json',body:'{"statusCode":"404","error":"not_found","message":"Object not found"}'});}
+    if(/\/storage\/v1\/object\/list\/attachments/.test(u)){srv.listes++;const pre=(JSON.parse(q.postData()||'{}').prefix||'')+'/';
+      return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([...srv.files.keys()].filter(k=>k.startsWith(pre)&&!k.slice(pre.length).includes('/')).map(k=>({name:k.slice(pre.length)})))});}
+    route.fulfill({status:200,contentType:'application/json',body:'[]'});});
+  await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'00000000-0000-0000-0000-0000000000aa',email:'moi@x.fr'}}));});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);});
+  const me='00000000-0000-0000-0000-0000000000aa';
+  // (1) Perso → bibliothèque, par le vrai point d'entrée (`persistProtocol`, celui de « Ranger » et du déplacement)
+  const r1=await page.evaluate(async()=>{
+    myLibraries.length=0;myLibraries.push({id:'lib7',name:'SMUR',role:'admin'});
+    const by=new Uint8Array(4096);by.set([0,0,0,24,102,116,121,112,105,115,111,109]);   // « ftypisom » : un MP4
+    await IDB.putAtt({id:'v767',buf:by.buffer.slice(0),size:by.byteLength,type:'video/mp4',createdAt:Date.now(),dirty:1,remotePath:null});
+    const p=migrateProtocol({id:'p767',title:'Abord fémoral',status:'draft',body:'Coupe\n![](vid:v767)',videos:[{id:'v767',name:'coupe.mp4',size:4096,mime:'video/mp4'}]});
+    protocols.push(p);await persistProtocol(p);
+    Sync.running=true;try{await Sync._syncAttachments();}finally{Sync.running=false;}
+    const q=protocols.find(x=>x.id==='p767');q.library='lib7';await persistProtocol(q);
+    Sync.running=true;try{await Sync._syncAttachments();}finally{Sync.running=false;}
+    const rec=await IDB.getAtt('v767');return {scope:rec&&rec.scope,remote:rec&&rec.remotePath,dirty:rec&&rec.dirty};});
+  const k1=[...srv.files.keys()];
+  t('A767 · un protocole Perso à vidéo passe dans une bibliothèque : la vidéo MONTE au chemin de la bibliothèque (plus de « relabel » sans envoi)',
+    k1.includes('l/lib7/v767.mp4')&&r1.remote==='l/lib7/v767.mp4'&&r1.dirty===0,JSON.stringify({r1,fichiers:k1}));
+  // (2) l'état déjà cassé : noté envoyé, absent du serveur — réparé au lancement, une liste par dossier, une seule fois
+  const r2=await page.evaluate(async()=>{
+    const by=new Uint8Array(2048);by.set([0,0,0,24,102,116,121,112,105,115,111,109]);
+    await IDB.putAtt({id:'v768',buf:by.buffer.slice(0),size:by.byteLength,type:'video/mp4',createdAt:Date.now(),dirty:0,remotePath:'l/lib7/v768.mp4',scope:'lib7'});
+    const p=migrateProtocol({id:'p768',title:'Bloc ilio-fascial',status:'draft',library:'lib7',body:'![](vid:v768)',videos:[{id:'v768',name:'bloc.mp4',size:2048,mime:'video/mp4'}]});
+    protocols.push(p);await Data.putProtocol(p);
+    Sync._attVu=null;   // « un nouveau lancement »
+    Sync.running=true;try{await Sync._syncAttachments();await Sync._syncAttachments();}finally{Sync.running=false;}
+    const t=[...document.querySelectorAll('.toast,[role="status"]')].map(x=>x.textContent).join(' | ');
+    return {toast:/manquait sur le serveur/.test(t)};});
+  const k2=[...srv.files.keys()],listes2=srv.listes;
+  t('A767 · un fichier noté envoyé mais absent du serveur repart au lancement suivant, et c’est dit — une liste par dossier, une fois',
+    k2.includes('l/lib7/v768.mp4')&&r2.toast&&listes2===1,JSON.stringify({r2,listes:listes2,fichiers:k2}));
+  // (3) une copie dans Perso emporte SA vidéo
+  const r3=await page.evaluate(async()=>{const n0=protocols.length;await dupToPerso('p',protocols.find(x=>x.id==='p767'));
+    const c=protocols.length>n0?protocols[protocols.length-1]:null;if(!c)return null;
+    const v=(c.videos||[])[0],rec=v&&await IDB.getAtt(v.id);
+    return {id:v&&v.id,type:rec&&rec.type,body:c.body,lib:c.library||null};});
+  t('A767 · « Copier dans Perso » : la copie a SA vidéo (id neuf, type vidéo gardé, ligne du texte suivie)',
+    !!r3&&r3.id&&r3.id!=='v767'&&r3.type==='video/mp4'&&r3.body.includes('](vid:'+r3.id+')')&&!r3.body.includes('vid:v767')&&r3.lib===null,JSON.stringify(r3));
+  // (4) l'appareil qui ne la trouve nulle part le dit
+  const r4=await page.evaluate(async()=>{
+    const p=migrateProtocol({id:'p769',title:'Écho pleurale',status:'draft',library:'lib7',body:'![](vid:v769)',videos:[{id:'v769',name:'plèvre.mp4',size:3000,mime:'video/mp4'}]});
+    protocols.push(p);await Data.putProtocol(p);
+    Sync.running=true;try{await Sync._syncAttachments();}finally{Sync.running=false;}
+    for(let i=0;i<60&&Sync._attDl;i++)await __acCalme(100);
+    openProtocolRead('p769');await __acCalme(500);
+    return (document.querySelector('figure.md-vfig[data-vid="v769"] .md-vph')||{}).textContent||'';});
+  t('A767 · une vidéo introuvable sur le serveur le dit (« pas encore sur le serveur »), au lieu de promettre qu’elle arrive',
+    /pas encore sur le serveur/.test(r4),r4);
+  await page.close();
 });
 
 await sec('A641 · « Voir aussi », la cible d’une complication, « Joindre un document existant » : un choix (déroulant au bureau, feuille au téléphone), avec recherche', async () => {

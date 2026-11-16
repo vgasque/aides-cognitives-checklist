@@ -273,7 +273,10 @@ await ctx.close();
     ext: [...document.querySelectorAll('[data-lkext]')].map(b => +b.dataset.lkext) }));
   t('« gérer » : l’appareil nommé, son heure de fin en grand, ＋ 1 h', /Chrome · Windows/.test(g.titre) && /\d\d:\d\d/.test(g.endt) && g.ext.length >= 1, JSON.stringify(g));
   await ph.click('[data-lkext]');
-  await ph.waitForFunction(() => (document.querySelector('.pp-endt') || {}).textContent);
+  /* On attend l'APPEL, pas le texte : `.pp-endt` a déjà son texte avant le geste, l'attente ne servait à rien — sous la
+     charge d'une passe complète, l'appel n'était pas encore parti à la lecture (« {} » : rouge sans défaut). Plafond 5 s :
+     aucun appel = rouge, comme avant. */
+  for (const t0 = Date.now(); !(vu2.link_extend || []).length && Date.now() - t0 < 5000;) await calme(ph, 100);
   const ex = (vu2.link_extend || [])[0] || {};
   t('… ＋ 1 h part au serveur : une heure de plus que l’heure de fin', ex.p_id === LID && Math.abs(Date.parse(ex.p_ends_at) - Date.parse(st2.devs[0].ends_at) - 3600e3) < 2000, JSON.stringify(ex));
   await c2.close();
