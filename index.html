@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-4Qppil3S+zAnEeqptqIDbosoZGek2RvcoJe6paPwyaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sYCRheQwXDlhgS/KSpShWiEoEZk06G9RNLI+hBM7f1U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9195,6 +9195,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:560px){
     .md-fig.w25 img{width:25%}.md-fig.w33 img{width:33%}.md-fig.w50 img{width:50%}
     .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
+    /* A775 : une vidéo réduite, à la même part qu'une image (son réceptacle porte la vidéo). */
+    .md-vfig.w25>.md-vbox{width:25%}.md-vfig.w33>.md-vbox{width:33%}.md-vfig.w50>.md-vbox{width:50%}
+    .md-vfig.w66>.md-vbox{width:66%}.md-vfig.w75>.md-vbox{width:75%}
   }
   .md-body a,.md-preview a{color:var(--act);text-decoration:underline}
   /* Barre regroupée (v5.44) : collante sous l'en-tête tant que le champ défile ; rendue au flux
@@ -9298,6 +9301,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-chip.vig.on{border-color:var(--warn-line);background:var(--warn-soft);color:var(--warn)}
   .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
+  /* A772 : le bloc liste ouvert — « Dans l'élément n : » puis Image · Vidéo (le libellé suit le curseur). */
+  .mdb-lctx{align-self:center;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdb-chip:disabled{opacity:.45;cursor:default}
+  @media (pointer:coarse){.mdb-tools .mdb-chip{min-height:36px}}
+  /* A772-A773 : la vignette d'une image dans un choix de média (menu ou feuille). */
+  .mm-thumb{display:block;width:40px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
   .mdb-grab{position:absolute;top:-4px;right:34px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}   /* à côté du crayon : le texte garde l'alignement du formulaire */
   .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
   @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
@@ -9425,22 +9434,99 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-head .md-grid{width:auto;height:32px;padding:0 10px;gap:6px;font-size:13.5px;font-weight:700;color:var(--act);border-color:var(--act);flex:none}
   /* Fenêtre des outils (v5.44) : tableau en grille, collage mis en forme. */
   .mdw-foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
-  .mdg-dim{margin:0 0 8px;font-size:13.5px;color:var(--ink-2)}
-  .mdg-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 12px}
-  .mdg-grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-  .mdg-al-l{font-size:12px;font-weight:700;color:var(--ink-2)}
-  .mdg-al{width:216px}
-  .mdg-tpl{margin-left:auto}
-  .mdg-scroll{overflow-x:auto;border:1px solid var(--line-strong);border-radius:var(--r-2)}
-  .mdg{display:grid;grid-template-columns:repeat(var(--mdg-n),minmax(112px,1fr))}
-  .mdg-in{min-width:0;min-height:44px;resize:none;overflow:hidden;line-height:1.35;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:var(--work);color:var(--ink);padding:12px 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
-  .mdg-in.mdg-h{background:var(--amb);font-weight:800}
+  /* A773 — LA GRILLE PORTE SES OUTILS (planche « médias, tableaux, dépôt », forme 2A retenue) : la tête ne garde que le
+     titre, la taille du tableau, ↶ ↷ et ✕ ; un onglet ··· au-dessus de chaque colonne, ⋮ à gauche de chaque ligne (en
+     bleu pour la case active : l'action et le bloc courant, règle 8), deux bandes « ＋ » au bord. Les en-têtes restent
+     VISIBLES sous la grille. Au doigt : ni onglets ni bandes, une barre au pouce collée en bas, la 1ʳᵉ colonne collée à
+     gauche quand la grille défile (cases de 112 px au moins : on fait défiler, on ne rogne jamais). */
+  #mdToolModal .mdt-hx{display:flex;align-items:center;gap:2px;flex:1;min-width:0;justify-content:flex-end;margin:-4px -6px -4px 0}
+  #mdToolModal .mdt-hx:empty{display:none}
+  #mdToolModal.mdt-tbl .ai-top h3{flex:none}
+  #mdToolModal.mdt-tbl .ai-top{align-items:center}
+  .mdg-dim{margin:0 auto 0 4px;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .mdg-ud{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--r-1);background:none;color:var(--ink);cursor:pointer;flex:none}
+  .mdg-ud:hover:not(:disabled){background:var(--amb-2)}
+  .mdg-ud:disabled{color:var(--ink-soft);opacity:.45;cursor:default}
+  .mdg-ud:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-ph,.mdg-mdl.mdg-ph{display:none}
+  .mdg-mdl{display:inline-flex;align-items:center;min-height:36px;margin-right:auto;padding:0 4px;border:0;background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
+  .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-scroll{overflow-x:auto;padding:2px}
+  .mdg{display:grid;grid-template-columns:28px repeat(var(--mdg-n),minmax(112px,1fr)) 38px}
+  .mdg-tab{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
+  .mdg-tab>span{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-1);letter-spacing:1px}
+  .mdg-tc{justify-self:center;width:48px;height:32px}
+  .mdg-tc>span{width:40px;height:20px}
+  .mdg-tr{align-self:center;justify-self:start;width:28px;min-height:36px}
+  .mdg-tr>span{width:20px;height:32px}
+  .mdg-tab:hover>span{background:var(--amb-2)}
+  .mdg-tab.on>span{background:var(--act);color:var(--on-primary)}
+  .mdg-tab:focus-visible{outline:2px solid var(--act);outline-offset:-2px;border-radius:var(--r-1)}
+  .mdg-c{position:relative;min-width:0;display:flex;flex-direction:column;background:var(--work);border-right:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong)}
+  .mdg-c.mdg-l{border-left:1px solid var(--line-strong)}
+  .mdg-c.mdg-t{border-top:1px solid var(--line-strong)}
+  .mdg-c.mdg-h{background:var(--amb)}
+  .mdg-c:focus-within{z-index:2}
+  .mdg-in{min-width:0;min-height:44px;resize:none;overflow:hidden;line-height:1.35;border:0;border-radius:0;background:transparent;color:var(--ink);padding:12px 10px;font-family:var(--f-ui);font-size:var(--t-body);font-weight:600}
+  .mdg-in.mdg-h{font-weight:800}
   .mdg-hx.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
   .mdg-in.ta-c{text-align:center}.mdg-in.ta-r{text-align:right}
-  .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}
-  .mdg-src{margin-top:12px;background:var(--amb-2);border-radius:var(--r-2);padding:8px 12px}
-  .mdg-src summary{padding:8px 0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);cursor:pointer}
-  .mdg-pre,.mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
+  .mdg-in:focus{outline:2px solid var(--act);outline-offset:-2px}   /* l'anneau sur le champ : audit-a11y le mesure là */
+  /* A773 (forme 1C) : le média d'une case, en vignette sous son libellé ; ✕ le retire de la case (l'image reste dans le
+     protocole tant qu'un autre passage la cite — le ménage de sortie s'en charge sinon). */
+  .mdg-med{position:relative;margin:0 8px 8px;border-radius:var(--r-1);overflow:hidden;background:var(--amb-2)}
+  .mdg-med img{display:block;width:100%;height:auto;max-height:160px;object-fit:cover}
+  .mdg-vph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;padding:6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdg-rm{position:absolute;top:4px;right:4px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:var(--glass);color:var(--ink);font:inherit;font-weight:800;cursor:pointer;box-shadow:var(--shadow-float)}
+  .mdg-rm:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-add{display:none;flex-wrap:wrap;gap:6px;padding:0 8px 8px}
+  .mdg-c.act .mdg-add{display:flex}
+  .mdg-addb{flex:1 1 72px;min-height:32px;padding:0 6px;border:1.5px dashed var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;white-space:nowrap}
+  .mdg-addb:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-band{display:flex;align-items:center;justify-content:center;min-height:32px;padding:0;border:1.5px dashed var(--line-strong);border-radius:var(--r-1);background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+  .mdg-band:hover:not(:disabled){border-color:var(--act);color:var(--act)}
+  .mdg-band:disabled{opacity:.45;cursor:default}
+  .mdg-band:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-bc{grid-column:-2/-1;grid-row:2/span var(--mdg-r);margin-left:6px}
+  .mdg-br{grid-column:2/-2;margin-top:6px}
+  .mdg-mi{display:inline-flex;width:18px;justify-content:center;font-weight:800}
+  .mdg-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
+  .mdg-opt-l{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdg-opt-m{margin-left:8px}
+  .mdg-tpl{margin-left:auto}
+  .mdg-hint{margin:8px 0 0}
+  .mdg-thumb{display:none}
+  @media (pointer:coarse){
+    .mdg-tab,.mdg-k,.mdg-band,.mdg-hint{display:none}
+    .mdg-c.mdg-l{position:sticky;left:0;z-index:1}
+    .mdg-c.mdg-l:focus-within{z-index:3}
+    .mdg-add{flex-direction:column}
+    .mdg-add .mdg-addb{flex:none}
+    .mdg{grid-template-columns:repeat(var(--mdg-n),minmax(132px,1fr))}
+    .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
+    .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+    .mdg-thumb .mdg-tbn{font-size:var(--t-step)}
+    .mdg-thumb .mdg-tbm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mdg-thumb button:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  }
+  /* Au téléphone, la fenêtre est plein écran (règle des dialogues) : « Annuler · Tableau · ↶ · OK » en tête, le pied
+     retiré (la barre au pouce prend le bas), « Modifier le Markdown » sous la grille. */
+  @media (max-width:779.98px){
+    #mdToolModal.mdt-tbl .mdt-hx{display:contents}
+    #mdToolModal.mdt-tbl .mdg-ph{display:inline-flex}
+    #mdToolModal.mdt-tbl :is(.ai-x,.mdw-foot,.mdg-dim,[data-mdtw="redo"]){display:none}
+    #mdToolModal.mdt-tbl .ai-top{gap:6px}
+    #mdToolModal.mdt-tbl .ai-top h3{order:1;flex:1;text-align:center}
+    #mdToolModal.mdt-tbl .ai-top [data-mdtw="x"]{order:0}
+    #mdToolModal.mdt-tbl .ai-top [data-mdtw="undo"]{order:2}
+    #mdToolModal.mdt-tbl .ai-top [data-mdtw="ok"]{order:3}
+    #mdToolModal.mdt-tbl .mdg-mdl.mdg-ph{min-height:44px;margin:8px 0 0}
+    /* La barre au pouce au BAS de l'écran : la carte en colonne, le corps s'étire (clavier ouvert, elle reste collée). */
+    #mdToolModal.mdt-tbl .ai-card{display:flex;flex-direction:column}
+    #mdToolModal.mdt-tbl #mdToolBody{flex:1;display:flex;flex-direction:column}
+    #mdToolModal.mdt-tbl .mdg-thumb{margin-top:auto}
+  }
+  .mdw-pre{margin:8px 0 0;font-family:var(--f-mono);font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--ink)}
   .mdw-chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
   .mdw-chip{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:var(--r-1);background:var(--ok-soft);color:var(--ok);font-size:12px;font-weight:700}
   .mdw-chip.warn{background:var(--warn-soft);color:var(--warn)}
@@ -9532,6 +9618,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mds-img.w25,.mds-b.w25{width:25%}.mds-img.w33,.mds-b.w33{width:33%}.mds-img.w50,.mds-b.w50{width:50%}
   .mds-img.w66,.mds-b.w66{width:66%}.mds-img.w75,.mds-b.w75{width:75%}
   .mds-img img{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  /* A775 : la vidéo se règle au même cadre — un réceptacle à son ratio, glyphe et mot. */
+  .mds-vph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:4/3;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  /* A776 — LE DÉPÔT QUI VISE : la ligne bleue (deux pastilles aux bouts) et son étiquette ; la case visée se cadre en
+     tirets, l'élément visé prend le fond du bloc courant ; l'aperçu montre le même endroit, en pâle. Rien n'y capte le
+     pointeur (le dépôt passe au travers). */
+  .mdd-line{position:fixed;z-index:62;height:3px;margin-top:-1px;border-radius:3px;background:var(--act);pointer-events:none}
+  .mdd-line::before,.mdd-line::after{content:'';position:absolute;top:-4px;width:11px;height:11px;border-radius:999px;background:var(--act)}
+  .mdd-line::before{left:-6px}.mdd-line::after{right:-6px}
+  .mdd-line.mdd-only{height:0;background:none}
+  .mdd-line.mdd-only::before,.mdd-line.mdd-only::after{display:none}
+  .mdd-lbl{position:absolute;right:12px;bottom:8px;white-space:nowrap;padding:4px 10px;border-radius:999px;background:var(--act);color:var(--on-primary);font-size:var(--t-meta);font-weight:700;box-shadow:var(--shadow-float)}
+  .mdd-line.mdd-only .mdd-lbl{bottom:auto;top:0;right:auto;left:50%;transform:translateX(-50%)}
+  .mdd-pale{opacity:.45}
+  .mdd-cell{outline:2px dashed var(--act);outline-offset:-2px;background:var(--primary-soft)}
+  .mdd-li{background:var(--primary-soft);border-radius:var(--r-1)}
   .mds-grip{position:absolute;top:50%;right:-12px;width:24px;height:44px;transform:translateY(-50%);border-radius:999px;background:var(--act);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
   .mds-grip::before{content:'';position:absolute;inset:14px 8px;border-left:2px solid var(--on-primary);border-right:2px solid var(--on-primary)}
   .mds-tip{position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}
@@ -10553,7 +10654,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <!-- v5.44 : outils du contenu rédigé — tableau en grille, collage mis en forme. Une fenêtre, deux corps
      peints à l'ouverture (`mdToolOpen`). -->
 <div class="ai-modal" id="mdToolModal" role="dialog" aria-modal="true" aria-labelledby="mdToolTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="mdToolTitle">Tableau</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="mdToolTitle">Tableau</h3><span class="mdt-hx" id="mdToolHx"></span><button class="ai-x" aria-label="Fermer">×</button></div>
   <div class="ai-body" id="mdToolBody"></div>
   <div class="mdw-foot" id="mdToolFoot"></div>
 </div></div>
@@ -10853,7 +10954,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.138.0';
+const APP_VERSION='5.139.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11733,7 +11834,8 @@ function mdRender(src,ctx){ctx=ctx||{};
      (le binaire est dans IndexedDB ; mdRender reste pur et synchrone). Inconnue du protocole : rien, comme une image. */
   const vids=Object.create(null);(ctx.videos||[]).forEach(v=>{if(v&&v.id&&!badKey(v.id)&&VID_EXT[v.mime])vids[v.id]=v;});
   const vidHtml=(id,caption,cls)=>{const v=vids[id];if(!v)return '';const cap=caption||'';
-    return '<figure class="md-fig md-vfig'+(cls||'')+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'"><div class="md-vbox"><span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    // A775 : la taille vient d'une CLASSE du jeu fermé (MD_SC), comme une image ; aucune dans une liste ni une case.
+    return '<figure class="md-fig md-vfig'+(cls||(MD_SC[v.scale]||''))+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'"><div class="md-vbox"><span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
@@ -12082,7 +12184,10 @@ function vidKind(u8){if(!u8||u8.length<12)return null;
 function safeVideo(v){if(!v||typeof v!=='object')return null;
   const id=(typeof v.id==='string'&&SAFE_ID.test(v.id)&&!badKey(v.id))?v.id:null,mime=VID_EXT[v.mime]?v.mime:null;
   if(!id||!mime)return null;
-  return {id,name:safeFileName(v.name)||('video.'+VID_EXT[mime]),size:Math.max(0,Math.min(MAX_VID_BYTES,Math.round(Number(v.size))||0)),mime};}
+  const o={id,name:safeFileName(v.name)||('video.'+VID_EXT[mime]),size:Math.max(0,Math.min(MAX_VID_BYTES,Math.round(Number(v.size))||0)),mime};
+  // A775 : la TAILLE d'une vidéo, comme celle d'une image (`im.scale`) — un cran de MD_SCALES, absente = « Pleine ».
+  if(v.scale!=null){const sc=Math.round(Number(v.scale));if([25,33,50,66,75].indexOf(sc)>=0)o.scale=sc;}
+  return o;}
 const attExt=type=>VID_EXT[type]||'pdf';   // extension du chemin distant d'un binaire, d'après son type
 const attTypeOfPath=path=>{const e=(String(path||'').match(/\.([a-z0-9]{2,4})$/)||[])[1];return e==='mp4'?'video/mp4':e==='webm'?'video/webm':e==='mov'?'video/quicktime':'application/pdf';};
 /* Comparaison d'octets à une position donnée — outil des sniffeurs. PURE. */
@@ -12229,7 +12334,11 @@ function bindUpDrop(el,kind,onFiles,multiple){
    (elle est masquée quand elle est vide, v4.76.0) — la cible est déclarée par le binder, pas
    par la présence d'un bouton à l'écran. */
 let _upTargets=Object.create(null);
-function upTargets(t){_upTargets=t||Object.create(null);}
+function upTargets(t){_upTargets=t||Object.create(null);_upZone=null;}
+/* A776 : une ZONE qui vise (`mdDropZone`) — au-dessus d'elle le voile se retire, elle dessine l'endroit et reçoit le dépôt.
+   Remise à zéro avec les cibles, à chaque changement de vue. */
+let _upZone=null;
+function upZone(z){_upZone=z||null;}
 function upTarget(kind,fn){if(UP_KINDS[kind]&&typeof fn==='function')_upTargets[kind]=fn;}
 function upKindsIci(){return Object.keys(_upTargets).filter(k=>UP_KINDS[k]&&typeof _upTargets[k]==='function');}
 /* ── LA FENÊTRE DE DÉPÔT, QUI EST AUSSI LE GARDE ───────────────────────────────────────────
@@ -12261,9 +12370,13 @@ function upDragShow(){
 function upDragHide(){_upDragN=0;const el=document.getElementById('upDrag');if(el)el.classList.remove('on');}
 /* Le compteur d'entrées/sorties : passer sur un enfant émet `dragleave` sur le parent PUIS
    `dragenter` sur l'enfant — sans compteur, la fenêtre clignoterait à chaque frontière. */
-window.addEventListener('dragenter',e=>{if(!upHasFiles(e))return;_upDragN++;if(_upDragN===1)upDragShow();});
-window.addEventListener('dragleave',e=>{if(!upHasFiles(e))return;_upDragN=Math.max(0,_upDragN-1);if(!_upDragN)upDragHide();});
-window.addEventListener('dragover',e=>{if(upHasFiles(e))e.preventDefault();});
+window.addEventListener('dragenter',e=>{if(!upHasFiles(e))return;_upDragN++;if(_upDragN===1&&!(_upZone&&_upZone.over(e)))upDragShow();});
+window.addEventListener('dragleave',e=>{if(!upHasFiles(e))return;_upDragN=Math.max(0,_upDragN-1);if(!_upDragN){upDragHide();if(_upZone)_upZone.clear();}});
+window.addEventListener('dragover',e=>{if(!upHasFiles(e))return;e.preventDefault();
+  // A776 : au-dessus de la zone, le voile se retire et la zone dessine où le fichier ira ; ailleurs, le voile revient.
+  if(!_upZone)return;const el=document.getElementById('upDrag');
+  if(_upZone.over(e)){if(el)el.classList.remove('on');_upZone.paint(e);}
+  else{_upZone.clear();if(el&&!el.classList.contains('on'))upDragShow();}});
 window.addEventListener('drop',async e=>{
   if(!upHasFiles(e)){upDragHide();return;}
   e.preventDefault();upDragHide();   // LE GARDE — sans lui, le navigateur quitte l'app
@@ -12279,6 +12392,9 @@ window.addEventListener('drop',async e=>{
   if(refus.length){const m='⚠ '+(refus.length>1?refus.length+' fichiers ignorés':'« '+refus[0]+' » ignoré')
     +' — cet écran accepte '+ks.map(k=>UP_KINDS[k].un).join(' ou ')+'.';
     toast(m,8000,true);announce(m);}
+  // A776 : images et vidéos lâchées sur la zone qui vise y sont posées ; le reste suit sa cible ordinaire.
+  if(_upZone&&(par.image||par.video)&&_upZone.over(e)){const z=_upZone,pv={image:par.image,video:par.video};delete par.image;delete par.video;await z.drop(e,pv);}
+  else if(_upZone)_upZone.clear();
   const kk=Object.keys(par);
   for(let i=0;i<kk.length;i++)await upTake(kk[i],par[kk[i]],_upTargets[kk[i]]);});
 const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,4000));
@@ -14257,7 +14373,7 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    body(mini-Markdown, <= MD_MAX_CHARS), images[{id,data,caption}] (référencées par ![…](img:ID)
    dans body), docs[{id,name,size}] (mêmes documents PDF que les fiches — store IndexedDB
    'attachments' partagé), videos[{id,name,size,mime}] (A757 : MP4/WebM/MOV, binaire dans le même
-   store et le même bucket, référencées par ![…](vid:ID) dans body), links, sources, order, status, updatedBy, updatedAt, deletedAt,
+   store et le même bucket, référencées par ![…](vid:ID) dans body ; `scale` facultatif, A775), links, sources, order, status, updatedBy, updatedAt, deletedAt,
    ownerId, library }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
 function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,body:'',images:[],docs:[],videos:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
@@ -20067,8 +20183,9 @@ function mdTool(k,ta,p,takeImg){
   else if(k==='task')mdPrefixLines(ta,'- [ ] ');
   else if(k==='q')mdPrefixLines(ta,'> ');
   else if(k==='hr')mdInsertAt(ta,'\n---\n',true);
-  else if(k==='tbl'||k==='grid')mdTblOpen(ta);
+  else if(k==='tbl'||k==='grid')mdTblOpen(ta,{p});
   else if(k==='link'){const [a,b,v]=selBounds(ta),t=v.slice(a,b)||'texte';mdSplice(ta,a,b,'['+t+'](https://)',a+t.length+3,a+t.length+11);}
+  else if((k==='img'||k==='vid')&&mdLmedAsk(k,ta,p,takeImg));   // A772 : curseur dans un élément de liste, on demande où
   else if(k==='img')pickFile('image',takeImg,true);
   else if(k==='vid')vidPick(ta,p);   // A757
   /* A755 : le passage sélectionné, étendu à ses lignes entières, devient une grille. */
@@ -20077,6 +20194,93 @@ function mdTool(k,ta,p,takeImg){
     const trig=(ta.closest('.md-ed')||document).querySelector('[data-mdmenu="ins"]');if(!trig)return;
     if(ta.selectionStart===ta.selectionEnd){toast('Sélectionnez d’abord le passage : les libellés et leurs images.',5000,true);return;}
     mdGrilleDemande(trig,v.slice(a,b0),md=>mdSplice(ta,a,b0,md));}}
+/* A772 — « ＋ Insérer › Image / Vidéo », curseur dans un élément de liste : « Dans l'élément n » (la ligne s'écrit indentée
+   sous lui) ou « Après la liste » (un bloc pleine colonne, après la liste — plus au curseur, qui la couperait). Rend
+   false quand le curseur n'est pas dans une liste : l'insertion ordinaire suit. */
+function mdLmedAsk(k,ta,p,takeImg){const it=mdListItemAt(ta.value,mdCaretLine(ta));if(!it||!p)return false;
+  const trig=(ta.closest('.md-ed')||document).querySelector('[data-mdmenu="ins"]');if(!trig)return false;const vid=k==='vid';
+  openPickMenu(trig.parentNode,{aria:vid?'Où poser la vidéo':'Où poser l’image',title:vid?'Où poser la vidéo ?':'Où poser l’image ?',trigger:trig,...deskFlot(),
+    options:[{val:'in',name:'Dans l’élément '+it.n,sub:it.text.length>50?it.text.slice(0,49)+'…':it.text,ic:uiIcon('ul',18)},{val:'out',name:'Après la liste',sub:'pleine colonne',ic:uiIcon(vid?'play':'camera',18)}],
+    onPick:v=>{if(v==='out'){const R=mdBlockRanges(ta.value).find(r=>r.a<=it.ln&&it.ln<r.e),L=ta.value.split('\n'),e=R?R.e:it.end+1,c=L.slice(0,e).join('\n').length;
+        ta.focus();ta.setSelectionRange(c,c);if(vid)vidPick(ta,p);else pickFile('image',takeImg,true);return;}
+      pickFile(vid?'video':'image',async files=>{let ids=[];if(vid)ids=await vidAdmit(p,files);else{const r=await pImgAdmit(p,files);ids=r?r.ids:[];if(r&&_pEdImgs)_pEdImgs();}
+        if(!ids.length||!document.contains(ta))return;const r=mdListMediaIns(ta.value,it.ln,ids.map(id=>'![]('+(vid?'vid':'img')+':'+id+')'));if(!r)return;
+        const c=r.v.split('\n').slice(0,r.ln+1).join('\n').length;mdSplice(ta,0,ta.value.length,r.v,c,c);},true);}});
+  return true;}
+/* A776 — LE DÉPÔT QUI VISE (planche « Éditeur de protocole — médias, tableaux, dépôt », forme 3A retenue par l'auteur).
+   Au-dessus du contenu rédigé, le voile plein écran ne vient pas : une ligne bleue suit le pointeur et une étiquette dit
+   l'endroit en mots — entre deux blocs (« après « Indications » », « en tête », « en fin »), DANS un élément de liste
+   (la ligne se met au retrait de son texte), dans une case d'un tableau qui porte déjà des médias (la case se cadre ; un
+   seul fichier par case, sinon sous le tableau). En mode Texte, la cible est une LIGNE entière (jamais au milieu d'un
+   tableau) et l'aperçu montre le même endroit, en pâle. Lâcher écrit là, en une seule écriture (↶ rend tout) ; images
+   ET vidéos (A757 : avant, seule « Insérer › Vidéo » les prenait). Ailleurs dans l'éditeur, rien ne change (voile,
+   insertion au curseur). Registre bleu : l'endroit visé (règle 8). */
+let _mdDocDrop=null;
+const mddFiles=e=>{try{const it=e.dataTransfer&&e.dataTransfer.items;const n=it?[...it].filter(x=>x.kind==='file').length:0;return n||1;}catch(x){return 1;}};
+// Le haut et la hauteur (px de mise en page) de chaque ligne SOURCE d'un champ, retour à la ligne compris (miroir caché).
+function mddLineBoxes(ta){const cs=getComputedStyle(ta),m=document.createElement('div'),px=k=>parseFloat(cs[k])||0;
+  ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','wordSpacing','tabSize','textTransform'].forEach(k=>{m.style[k]=cs[k];});
+  m.style.cssText+=';position:absolute;visibility:hidden;left:-9999px;top:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;padding:0;border:0;box-sizing:content-box';
+  m.style.width=Math.max(10,ta.clientWidth-px('paddingLeft')-px('paddingRight'))+'px';
+  const L=ta.value.split('\n');L.forEach(l=>{const d=document.createElement('div');d.textContent=l||'​';m.appendChild(d);});
+  const ch=document.createElement('span');ch.textContent='0000000000';m.appendChild(ch);document.body.appendChild(m);
+  const B=[...m.children].slice(0,L.length).map(d=>({top:d.offsetTop,h:d.offsetHeight})),cw=ch.offsetWidth/10;m.remove();
+  return {B,cw,padT:px('paddingTop')+px('borderTopWidth'),padL:px('paddingLeft')+px('borderLeftWidth')};}
+// La place d'une ligne de dépôt sous le TEXTE d'un élément de liste rendu (avant ses sous-listes).
+const mddLiBottom=li=>{const sub=[...li.children].find(c=>/^(UL|OL)$/.test(c.tagName)),rg=document.createRange();rg.selectNodeContents(li);if(sub)rg.setEndBefore(sub);
+  const r=rg.getBoundingClientRect();return r.height?r.bottom:li.getBoundingClientRect().bottom;};
+function mdDropZone(p,actTa,bodyTa){let cache=null,last='',cellEl=null,liEl=null;
+  const line=()=>{let l=document.getElementById('mddLine');if(!l){l=document.createElement('div');l.id='mddLine';l.className='mdd-line';l.setAttribute('aria-hidden','true');
+      l.innerHTML='<span class="mdd-lbl"></span>';document.body.appendChild(l);}return l;};
+  const pale=()=>{let l=document.getElementById('mddPale');if(!l){l=document.createElement('div');l.id='mddPale';l.className='mdd-line mdd-pale';l.setAttribute('aria-hidden','true');document.body.appendChild(l);}return l;};
+  const inRect=(el,e,s)=>{if(!el||!el.offsetParent)return false;const r=el.getBoundingClientRect();s=s||0;return e.clientX>=r.left-s&&e.clientX<=r.right+s&&e.clientY>=r.top-s&&e.clientY<=r.bottom+s;};
+  const docEl=()=>{const d=document.getElementById('mdDoc');return d&&_mdDocDrop&&_mdDocDrop.doc===d&&!_mdDocDrop.busy()?d:null;};
+  // Mode Texte : la ligne visée d'un champ (le Markdown entier, ou le bloc ouvert du document en direct).
+  const lineTarget=(ta,e)=>{const z=zoomF()||1,r=ta.getBoundingClientRect();if(!cache||cache.ta!==ta||cache.v!==ta.value)cache={ta,v:ta.value,...mddLineBoxes(ta)};
+    const {B,cw,padT,padL}=cache,yl=(e.clientY-r.top)/z-padT+ta.scrollTop;let k=B.length;
+    for(let i=0;i<B.length;i++)if(yl<B[i].top+B[i].h/2){k=i;break;}
+    const v=ta.value,L=v.split('\n'),d=mdDropAt(v,k);k=d.k;const it=d.item;
+    const yOf=i=>r.top+(padT+(i<B.length?B[i].top:(B.length?B[B.length-1].top+B[B.length-1].h:0))-ta.scrollTop)*z;
+    const y=it?yOf(it.end+1):yOf(k),x0=r.left+(padL+(it?it.indent*cw:0))*z,lead=!it&&k>0&&String(L[k-1]||'').trim()?1:0;
+    const label=it?'Ligne '+(it.end+2)+' · dans l’élément '+it.n:'Ligne '+(k+1+lead)+' · nouveau bloc';
+    let pv=null;const prv=ta===bodyTa&&document.getElementById('mdPreview');
+    if(prv&&prv.offsetParent){const tl=it?it.ln:k-1;let best=null;prv.querySelectorAll('[data-ln]').forEach(x=>{if(+x.dataset.ln<=tl&&(!best||+x.dataset.ln>=+best.dataset.ln))best=x;});
+      if(best){const br=best.getBoundingClientRect(),lis=it?best.querySelectorAll('li'):null;let yb=br.bottom+4;
+        if(lis&&lis.length){let n0=-1;for(let i=+best.dataset.ln;i<=it.ln;i++)if(MD_LITEM_RX.test(L[i]||''))n0++;const li=lis[n0];if(li)yb=mddLiBottom(li)+4;}
+        pv={y:yb,x0:br.left,x1:br.right};}
+      else{const pr=prv.getBoundingClientRect();pv={y:pr.top+6,x0:pr.left,x1:pr.right};}}
+    return {kind:'line',ta,k,item:it,y,x0,x1:r.right-8*z,label,pv,key:'L'+k+(it?'i'+it.ln:'')};};
+  const target=e=>{const d=docEl();
+    if(d&&inRect(d,e,8)){const ota=d.querySelector('.mdb-ta');if(ota&&inRect(ota,e))return lineTarget(ota,e);return _mdDocDrop.target(e,mddFiles(e));}
+    const ta=actTa();
+    if(ta&&ta===bodyTa&&inRect(ta,e))return lineTarget(ta,e);
+    return null;};
+  const clear=()=>{last='';cache=null;['mddLine','mddPale'].forEach(id=>{const l=document.getElementById(id);if(l)l.remove();});
+    if(cellEl)cellEl.classList.remove('mdd-cell');if(liEl)liEl.classList.remove('mdd-li');cellEl=liEl=null;};
+  const paint=e=>{const t=target(e);if(!t){clear();return;}const z=zoomF()||1;
+    if(cellEl&&cellEl!==t.el){cellEl.classList.remove('mdd-cell');cellEl=null;}if(liEl&&liEl!==t.li){liEl.classList.remove('mdd-li');liEl=null;}
+    const l=line();
+    if(t.kind==='cell'){l.hidden=true;if(!cellEl){cellEl=t.el;cellEl.classList.add('mdd-cell');}}
+    else{l.hidden=false;l.style.top=(t.y/z)+'px';l.style.left=(t.x0/z)+'px';l.style.width=Math.max(40,(t.x1-t.x0)/z)+'px';
+      if(t.li&&!liEl){liEl=t.li;liEl.classList.add('mdd-li');}}
+    l.firstChild.textContent=t.label;l.classList.toggle('mdd-cl',t.kind==='cell');
+    if(t.kind==='cell'){const r=t.el.closest('table').getBoundingClientRect();l.hidden=false;l.classList.add('mdd-only');l.style.top=(r.bottom/z+6)+'px';l.style.left=(r.left/z)+'px';l.style.width=(r.width/z)+'px';}
+    else l.classList.remove('mdd-only');
+    const pv=t.pv;if(pv){const q=pale();q.style.top=(pv.y/z)+'px';q.style.left=(pv.x0/z)+'px';q.style.width=Math.max(40,(pv.x1-pv.x0)/z)+'px';}
+    else{const q=document.getElementById('mddPale');if(q)q.remove();}
+    if(t.key!==last){last=t.key;announce(t.label);}};
+  const over=e=>!!target(e);
+  // Le dépôt : admettre (images puis vidéos, mêmes contrôles qu'ailleurs), puis UNE écriture à l'endroit visé.
+  const drop=async(e,par)=>{const t=target(e);clear();if(!t)return false;const refs=[];
+    if(par.image&&par.image.length)await upTake('image',par.image,async fs=>{const r=await pImgAdmit(p,fs);if(r){r.ids.forEach(id=>refs.push('![](img:'+id+')'));if(_pEdImgs)_pEdImgs();}});
+    if(par.video&&par.video.length)await upTake('video',par.video,async fs=>{(await vidAdmit(p,fs)).forEach(id=>refs.push('![](vid:'+id+')'));});
+    if(!refs.length)return true;
+    if(t.kind==='line'){const ta=t.ta;if(!document.contains(ta))return true;const v=ta.value,r=t.item?mdListMediaIns(v,t.item.ln,refs):mdLinesIns(v,t.k,refs);if(!r)return true;
+      const c=r.v.split('\n').slice(0,r.ln+1).join('\n').length;mdSplice(ta,0,v.length,r.v,c,c);}
+    else if(_mdDocDrop)_mdDocDrop.write(t,refs);
+    toast(refs.length>1?refs.length+' fichiers posés — ↶ pour annuler.':(refs[0].indexOf('(vid:')>0?'Vidéo posée':'Image posée')+' — ↶ pour annuler.',3500,true);
+    return true;};
+  return {over,paint,clear,drop};}
 // Lien vers un document joint : libellé = la sélection, sinon le nom du fichier sans « .pdf ».
 const mdDocLink=(d,label)=>'['+(String(label||d.name.replace(/\.pdf$/i,'')).replace(/[[\]\n]/g,' ').trim()||'document')+'](att:'+d.id+')';
 function mdLinkDoc(ta,d){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b));mdSplice(ta,a,b,seg,a+1,a+seg.indexOf(']('));}
@@ -20146,15 +20350,17 @@ function mdBlkMoveTo(body,from,to){const n=mdBlockRanges(body).length;if(from<0|
 const MD_REG_WORD={crit:'CAUTION',vig:'WARNING',info:'NOTE',ok:'TIP'};
 const mdSrcCall=src=>{const l=String(src||'').split('\n')[0];if(!/^>/.test(l))return null;const c=mdCallout(l.replace(/^>\s?/,''));return c.kind||'';};
 const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)$/);return m?m[1]:null;};
+const mdSrcVid=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)$/);return m?m[1]:null;};   // A775
 /* A584 — LA TAILLE D'UNE IMAGE, SANS CHIFFRES : le cadre (la colonne d'un grand écran, l'image à sa part, une poignée
    au bord), puis six pictogrammes (¼ ⅓ ½ ⅔ ¾ Pleine). `attr` est l'attribut que lit l'appelant (`data-mdbscale` du
    bloc ouvert, `data-miscale` de la feuille) : le glisser se termine par un CLIC sur le pictogramme visé, donc un seul
    chemin d'écriture par appelant. La largeur vient d'une CLASSE du jeu fermé (MD_SC), jamais d'un nombre interpolé. */
-function mdSizeHtml(im,attr,head){const sc=_scale(im.scale),data=safeImg(im.data);if(!data)return '';
-  return `<div class="mds-frame" data-mdsframe><span class="mds-img${MD_SC[sc]||''}"><img src="${data}" alt="">`
+function mdSizeHtml(im,attr,head,vid){const sc=_scale(im.scale),data=!vid&&safeImg(im.data);if(!vid&&!data)return '';
+  // A775 : une vidéo se règle au même cadre — un réceptacle (glyphe et mot) à la place de l'image.
+  return `<div class="mds-frame" data-mdsframe><span class="mds-img${MD_SC[sc]||''}">${vid?`<span class="mds-vph">${uiIcon('play',22)}<span>Vidéo</span></span>`:`<img src="${data}" alt="">`}`
     +`<span class="mds-grip" data-mdsgrip aria-hidden="true" title="Tirer pour régler la taille"></span><span class="mds-tip" hidden></span></span></div>`
     +(head||'')
-    +`<div class="mds" role="radiogroup" aria-label="Taille de l'image sur grand écran">${MD_SCALES.map(v=>
+    +`<div class="mds" role="radiogroup" aria-label="Taille ${vid?'de la vidéo':'de l\'image'} sur grand écran">${MD_SCALES.map(v=>
       `<button type="button" class="mds-o${v===sc?' on':''}" ${attr}="${v}" data-mdsv="${v}" role="radio" aria-checked="${v===sc}" aria-label="${MD_SC_LBL[v]} — ${MD_SC_SR[v]}"><span class="mds-p" aria-hidden="true"><span class="mds-b${MD_SC[v]||''}"></span></span>${MD_SC_LBL[v]}</button>`).join('')}</div>`
     +`<p class="hint mds-note">Sur téléphone, l'image prend toujours toute la largeur.</p>`;}
 // Tirer la poignée : l'image suit le doigt ou la souris, aimantée au cran le plus proche, la part affichée pendant le
@@ -20179,16 +20385,30 @@ function mdBlkToolsHtml(src,p){
   const k=mdSrcCall(src);
   if(k!=null)return `<div class="mdb-tools" role="radiogroup" aria-label="Registre de l'encadré">`+Object.keys(MD_CALL_LBL).map(x=>
     `<button type="button" class="mdb-chip ${x}${x===k?' on':''}" data-mdbreg="${x}" role="radio" aria-checked="${x===k}">${calloutIcon(x)}${MD_CALL_LBL[x]}</button>`).join('')+`</div>`;
-  /* A609 : un TABLEAU ouvert se rouvre en grille d'un toucher — le Markdown d'un tableau large est illisible au doigt
-     (capture de l'auteur). La grille écrit dans le champ du bloc, donc dans le document (↶ compris). */
-  {const l=String(src||'').split('\n');if(l.length>1&&MD_TROW.test(l[0])&&MD_TSEP.test(l[1]))
-    return `<div class="mdb-tools"><button type="button" class="mdb-chip" data-mdbgrid>${uiIcon('table',14)}Modifier en grille</button></div>`;}
+  /* A774 (amende A609) : un TABLEAU ne s'ouvre plus en Markdown d'abord — le toucher ouvre la grille (`mdDocBind`) ;
+     la pastille « Modifier en grille » du bloc ouvert, devenue sans objet, est retirée. Le bloc ouvert en texte (par
+     « Modifier le Markdown ») n'a donc pas de pastille. */
+  {const l=String(src||'').split('\n');if(l.length>1&&MD_TROW.test(l[0])&&MD_TSEP.test(l[1]))return '';}
   const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
   if(data)return `<div class="mdb-imgv">${mdSizeHtml(im,'data-mdbscale')}</div><div class="mdb-tools">`
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
-  // A642 : une liste qui porte des images d'élément — les rendre à un bloc pleine colonne, d'un toucher.
-  {const n=mdUnlistN(src);if(n)return `<div class="mdb-tools"><button type="button" class="mdb-chip" data-mdbunlist>${uiIcon('camera',14)}${n>1?'Sortir les '+n+' images de la liste':'Sortir l’image de la liste'}</button></div>`;}
+  /* A775 : une VIDÉO ouverte se règle comme une image — le cadre, la poignée, les six crans (la taille vit dans le modèle,
+     `v.scale`) ; « Remplacer… » choisit une autre vidéo, à la même taille. */
+  {const vid=mdSrcVid(src),v=vid&&(p.videos||[]).find(x=>x.id===vid);
+    if(v)return `<div class="mdb-imgv">${mdSizeHtml(v,'data-mdbscale','',true)}</div><div class="mdb-tools">`
+      +`<button type="button" class="mdb-chip mdb-repl" data-mdbvrepl="${esc(vid)}">${uiIcon('play',14)}Remplacer…</button></div>`;}
+  /* A772 : une LISTE ouverte offre « Image » · « Vidéo » DANS l'élément du curseur (le libellé suit le curseur,
+     `mdLmedPaint`) ; A642 : celle qui porte déjà des images d'élément peut les rendre à un bloc pleine colonne. */
+  if(/^\s*(?:[-*+]|\d{1,3}[.)])\s/.test(String(src||'').split('\n')[0]||'')){const n=mdUnlistN(src);
+    return `<div class="mdb-tools mdb-lmed" role="group" aria-label="Média dans un élément"><span class="mdb-lctx">Dans l’élément 1 :</span>`
+      +`<button type="button" class="mdb-chip" data-mdblmed="img">${uiIcon('camera',14)}Image</button><button type="button" class="mdb-chip" data-mdblmed="vid">${uiIcon('play',14)}Vidéo</button>`
+      +(n?`<button type="button" class="mdb-chip" data-mdbunlist>${uiIcon('camera',14)}${n>1?'Sortir les '+n+' images de la liste':'Sortir l’image de la liste'}</button>`:'')+`</div>`;}
   return '';}
+// A772 : l'élément du curseur dans le bloc liste ouvert (ou le dernier, curseur ailleurs) ; son libellé dans la rangée.
+const mdLmedItem=t=>{const v=t.value;let it=mdListItemAt(v,mdCaretLine(t));if(!it){const L=v.split('\n');for(let i=L.length-1;i>=0&&!it;i--)it=mdListItemAt(v,i);}return it;};
+function mdLmedPaint(t){const b=t&&t.closest('.mdb'),l=b&&b.querySelector('.mdb-lctx');if(!l)return;const it=mdLmedItem(t);
+  l.textContent=it?'Dans l’élément '+it.n+' :':'Placez le curseur dans un élément :';
+  b.querySelectorAll('[data-mdblmed]').forEach(x=>{x.disabled=!it;});}
 /* A642 — « SORTIR L'IMAGE DE LA LISTE » : les lignes image INDENTÉES d'une liste (images d'élément) passent après la
    liste, chacune en bloc pleine colonne (la forme d'avant). Fonction PURE (?__actest). */
 const MD_LIMG_RX=/^\s+!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)\s*$/;
@@ -20196,11 +20416,55 @@ const mdUnlistN=src=>{const L=String(src||'').split('\n');return /^\s*(?:[-*]|\d
 function mdUnlistImgs(src){const L=String(src||'').split('\n'),im=L.filter(l=>MD_LIMG_RX.test(l)).map(l=>l.trim());if(!im.length)return String(src||'');
   const rest=L.filter(l=>!MD_LIMG_RX.test(l)).join('\n').replace(/\n[ \t]*\n(?:[ \t]*\n)+/g,'\n\n').replace(/\n\s*\n(?=\s*(?:[-*]|\d{1,3}[.)])\s)/g,'\n').replace(/\s+$/,'');
   return rest+'\n\n'+im.join('\n\n');}
+/* A772 — UN MÉDIA DANS L'ÉLÉMENT DE LISTE, DEPUIS L'ÉDITEUR (planche « Éditeur de protocole — médias, tableaux, dépôt »,
+   forme 1A retenue par l'auteur ; clôt le « Pas fait » d'A642). La ligne s'écrit INDENTÉE sous l'élément, après ses
+   médias, au retrait de son texte : la forme qu'A642 et A758 lisent déjà. Fonctions PURES (?__actest). */
+const MD_LITEM_RX=/^(\s*)(?:[-*+]|\d{1,3}[.)])\s+(?:\[[ xX]\]\s+)?/;
+const MD_LMED_RX=/^(\s+)!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)\s*$/;
+/* L'élément qui porte la ligne `ln` (la ligne elle-même, ou l'élément au-dessus dont elle est le média) : {ln, n (rang
+   dans son bloc, à partir de 1, toutes profondeurs), indent (retrait de son texte), text, end (dernière ligne de ses
+   médias)} — ou null. */
+function mdListItemAt(src,ln){const L=String(src||'').split('\n');if(!(ln>=0&&ln<L.length))return null;
+  let i=ln;while(i>=0&&!MD_LITEM_RX.test(L[i])){if(!MD_LMED_RX.test(L[i]))return null;i--;}
+  if(i<0)return null;const m=L[i].match(MD_LITEM_RX),own=m[1].length;
+  const B=mdBlockRanges(src).find(r=>r.a<=i&&i<r.e),a=B?B.a:i;let n=0;for(let k=a;k<=i;k++)if(MD_LITEM_RX.test(L[k]))n++;
+  let end=i;while(end+1<L.length){const x=L[end+1].match(MD_LMED_RX);if(!x||x[1].length<=own)break;end++;}
+  return {ln:i,n,indent:m[0].length,text:L[i].slice(m[0].length).trim(),end};}
+// Pose les lignes média `refs` (« ![](img:ID) ») sous l'élément de la ligne `ln` : {v, ln de la dernière posée} ou null.
+function mdListMediaIns(src,ln,refs){const it=mdListItemAt(src,ln),R=(refs||[]).filter(Boolean);if(!it||!R.length)return null;
+  const L=String(src).split('\n'),pad=' '.repeat(it.indent);L.splice(it.end+1,0,...R.map(r=>pad+r));return {v:L.join('\n'),ln:it.end+R.length};}
+// La ligne du k-ième élément d'un texte (0 = le premier, toutes profondeurs, dans l'ordre du texte = l'ordre des <li>), ou -1.
+const mdListNth=(src,k)=>{const L=String(src||'').split('\n');let n=-1;for(let i=0;i<L.length;i++)if(MD_LITEM_RX.test(L[i])&&++n===k)return i;return -1;};
+/* A773 — UN MÉDIA DANS UNE CASE DE TABLEAU (forme 1C) : une case = son texte (le libellé) puis ses lignes média, chacune
+   SEULE entre deux <br> (la forme d'A755, rien de neuf dans le texte écrit). Fonctions PURES. */
+const MD_CMED_RX=/^!\[([^\]]{0,300})\]\((img|vid):([A-Za-z0-9_-]{1,64})\)$/;
+function mdCellSplit(v){const txt=[],med=[];String(v==null?'':v).split('\n').forEach(l=>{const m=l.trim().match(MD_CMED_RX);
+    if(m)med.push({ref:l.trim(),k:m[2],id:m[3],cap:m[1]});else txt.push(l);});
+  return {txt:txt.join('\n').replace(/\s+$/,''),med};}
+const mdCellJoin=(txt,refs)=>{const t=String(txt||'').replace(/\s+$/,''),r=(refs||[]).filter(Boolean);return r.length?(t?t+'\n':'')+r.join('\n'):t;};
+// Ajoute la ligne média `ref` à la case (r, c) d'un tableau écrit (r compte la ligne d'en-tête quand elle existe) : le texte
+// réécrit, ou null (A776 : dépôt dans une case).
+function mdTblCellAdd(src,r,c,ref){const t=mdTableAt(src,0);if(!t)return null;const g=t.hh?[t.head].concat(t.rows):t.rows;
+  if(!g[r]||!(c>=0&&c<g[r].length))return null;const x=mdCellSplit(g[r][c]);g[r][c]=mdCellJoin(x.txt,x.med.map(m=>m.ref).concat([ref]));
+  const md=mdTableMd({head:t.hh?g[0]:g[0].map(()=>''),rows:t.hh?g.slice(1):g,align:t.align,hh:t.hh,hc:t.hc}),v=String(src);
+  return v.slice(0,t.from)+md+v.slice(t.to);}
+/* A776 — LE DÉPÔT EN MODE TEXTE vise une LIGNE entière : jamais le milieu d'un tableau (la cible saute sous le tableau) ;
+   sous une ligne de liste (ou un de ses médias), l'élément ; sinon, un bloc à part. Fonctions PURES. */
+function mdDropAt(v,k){const L=String(v||'').split('\n');k=Math.max(0,Math.min(k|0,L.length));
+  while(k>0&&k<L.length&&MD_TROW.test(L[k-1])&&MD_TROW.test(L[k]))k++;
+  return {k,item:k>0?mdListItemAt(v,k-1):null};}
+// Pose `refs` avant la ligne k, en bloc à part (une ligne vide autour, une entre deux médias) : {v, ln de la dernière}.
+function mdLinesIns(v,k,refs){const L=String(v||'').split('\n'),R=(refs||[]).filter(Boolean);if(!R.length)return null;k=Math.max(0,Math.min(k|0,L.length));
+  const pre=L.slice(0,k),post=L.slice(k),mid=[];R.forEach((r,i)=>{if(i)mid.push('');mid.push(r);});
+  const lead=pre.length&&pre[pre.length-1].trim()?1:0;if(lead)mid.unshift('');if(post.length&&post[0].trim())mid.push('');
+  if(!String(v||'').length)return {v:R.join('\n\n'),ln:(R.length-1)*2};
+  return {v:pre.concat(mid,post).join('\n'),ln:pre.length+lead+(R.length-1)*2};}
 /* A549 — DÉPLACER UN BLOC = « PRENDRE / POSER », LE GESTE DE L'ÉDITEUR D'AIDE (MK5-b, v4.75.0-v4.79.0) : la poignée ⠿
    soulève le bloc (« ⠿ en déplacement », bandeau qui le nomme, ✕), la page se réécrit en cibles « Poser ici » pleine
    largeur, un toucher le pose ; Échap, ✕ ou le bloc lui-même l'annulent ; commencer à glisser la poignée AMORCE le mode.
    Mêmes classes (`.ed-grab`, `.ed-drop`, `.grabbed`) : un seul dessin du déplacement dans l'application. */
-const mdBlkLabel=src=>{const t=mdStrip(String(src||'').replace(/^>\s*\[![^\]]*\]\s*/,'')).replace(/\s+/g,' ').trim();return t?'« '+(t.length>60?t.slice(0,59)+'…':t)+' »':'ce bloc';};
+// A776 : le nom d'un bloc, sans ses lignes média (une case de grille se nommait « Normal ![](img:…) »).
+const mdBlkLabel=src=>{const t=mdStrip(String(src||'').replace(/^>\s*\[![^\]]*\]\s*/,'').replace(/!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)/g,' ')).replace(/\s+/g,' ').trim();return t?'« '+(t.length>60?t.slice(0,59)+'…':t)+' »':'ce bloc';};
 function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n'),src=r=>L.slice(r.a,r.e).join('\n');
   const G=new Set(many&&many.length>1?many:[grab]),lbl=G.size>1?G.size+' blocs':mdBlkLabel(src(R[grab]));
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
@@ -20274,9 +20538,10 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     t.addEventListener('input',()=>{const l=lines(),nl=t.value.split('\n');
       push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);
       // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
-      const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));});
+      const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));mdLmedPaint(t);});
     t.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key==='Enter'&&(e.metaKey||e.ctrlKey))){e.preventDefault();e.stopPropagation();close();}});
     t.addEventListener('paste',()=>{pasted=true;});
+    ['keyup','click','select'].forEach(ev=>t.addEventListener(ev,()=>mdLmedPaint(t)));mdLmedPaint(t);   // A772
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
       const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(q.top<70||q.bottom>innerHeight-80)b.scrollIntoView({block:'center'});}};
   /* A553 : refermer un bloc où l'on a COLLÉ, et qui se découpe, le dit — et dit ce que fera ↶ (le collage entier, A552). */
@@ -20296,7 +20561,10 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(v==='hr'){open=-1;paint(false);return;}
       const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],k=ph?T[3].lastIndexOf(ph):-1;
       openAt(r.i,k>=0?[k,k+ph.length]:undefined);
-      if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t);}}}});
+      if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t,{p,onEnd:gridEnd});}}}});
+  /* A774 : la grille ouverte depuis un bloc referme ce bloc à sa fin — sauf « Modifier le Markdown », qui le laisse ouvert
+     en texte. Le bloc a été ouvert pour elle : c'est son champ que la grille écrit (↶ de l'éditeur compris). */
+  const gridEnd=how=>{if(how==='md'||open<0)return;const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
   const take=i=>{open=-1;sel=new Set();selMode=false;grab=i;_mdGrabCancel=cancel;grabOutBind();paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});
     const g=doc.querySelector('.grabbed');if(g)g.scrollIntoView({block:'nearest'});};
   const drop=k=>{const i=grab,M=grabMany;grab=-1;grabMany=null;_mdGrabCancel=null;const r=M?mdBlkMoveSet(p.body,M,k):mdBlkMoveTo(p.body,i,k);if(r)push(r.v);paint(false);
@@ -20331,22 +20599,36 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}}
     const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
       mdCalloutLines(t,MD_REG_WORD[rg.dataset.mdbreg]);paint();return;}
-    const sc=e.target.closest('[data-mdbscale]');if(sc){const id=mdSrcImg((doc.querySelector('.mdb-ta')||{}).value),im=id&&(p.images||[]).find(x=>x.id===id);if(!im)return;
-      im.scale=_scale(sc.dataset.mdbscale);self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();return;}   // le texte ne change pas : la taille vit dans le modèle (A459, « marqueur hors du champ »)
+    const sc=e.target.closest('[data-mdbscale]');if(sc){const src=(doc.querySelector('.mdb-ta')||{}).value,id=mdSrcImg(src),vid=!id&&mdSrcVid(src),
+        im=id?(p.images||[]).find(x=>x.id===id):vid&&(p.videos||[]).find(x=>x.id===vid);if(!im)return;   // A775 : une vidéo aussi
+      im.scale=_scale(sc.dataset.mdbscale);if(vid&&im.scale===100)delete im.scale;self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();return;}   // le texte ne change pas : la taille vit dans le modèle (A459, « marqueur hors du champ »)
     const ty=e.target.closest('[data-mdbtype]');if(ty){const t=doc.querySelector('.mdb-ta'),v=ty.dataset.mdbtype,T=MD_BLK_NEW.find(x=>x[0]===v);if(!t||!T)return;
       t.focus({preventScroll:true});
       if(v==='img'){t.setSelectionRange(0,t.value.length);pickFile('image',files=>pImgTaker(p,t)(files),true);return;}
-      if(v==='tbl'){t.setSelectionRange(0,t.value.length);mdTblOpen(t);return;}
+      if(v==='tbl'){t.setSelectionRange(0,t.value.length);mdTblOpen(t,{p,onEnd:gridEnd});return;}
       mdSplice(t,0,t.value.length,T[3]);
       if(v==='hr'){open=-1;paint(false);return;}
       const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],at=ph?T[3].lastIndexOf(ph):-1;if(at>=0)t.setSelectionRange(at,at+ph.length);return;}
     if(e.target.closest('[data-mdbunlist]')){const t=doc.querySelector('.mdb-ta');if(!t)return;t.focus({preventScroll:true});mdSplice(t,0,t.value.length,mdUnlistImgs(t.value));open=-1;paint(false);return;}
-    if(e.target.closest('[data-mdbgrid]')){const t=doc.querySelector('.mdb-ta');if(t){t.focus({preventScroll:true});t.setSelectionRange(0,0);mdTblOpen(t);}return;}
+    /* A772 : « Image » · « Vidéo » DANS l'élément du curseur — la ligne s'écrit indentée sous lui, après ses médias. */
+    const lm=e.target.closest('[data-mdblmed]');if(lm){const t=doc.querySelector('.mdb-ta'),it=t&&mdLmedItem(t);if(!it)return;const k=lm.dataset.mdblmed;
+      mdMedMenu(lm,p,k,(k==='vid'?'Vidéo':'Image')+' dans l’élément '+it.n,it.text.length>60?it.text.slice(0,59)+'…':it.text,refs=>{
+        if(!document.contains(t))return;const r=mdListMediaIns(t.value,it.ln,refs);if(!r)return;
+        const L=r.v.split('\n'),c=L.slice(0,r.ln+1).join('\n').length;mdSplice(t,0,t.value.length,r.v,c,c);mdLmedPaint(t);},true);return;}
+    const vr=e.target.closest('[data-mdbvrepl]');if(vr){const t=doc.querySelector('.mdb-ta'),old=(p.videos||[]).find(x=>x.id===vr.dataset.mdbvrepl);if(!t||!old)return;
+      pickFile('video',async files=>{const ids=await vidAdmit(p,(files||[]).slice(0,1));if(!ids.length||!document.contains(t))return;
+        const nv=p.videos.find(x=>x.id===ids[0]);if(nv&&old.scale)nv.scale=old.scale;
+        mdSplice(t,0,t.value.length,t.value.replace('(vid:'+old.id+')','(vid:'+ids[0]+')'));paint();},false);return;}
     const rp=e.target.closest('[data-mdbrepl]');if(rp){const im=(p.images||[]).find(x=>x.id===rp.dataset.mdbrepl);if(!im)return;
       pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
         im.data=r.data;im.w=r.w;im.h=r.h;self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();},false);return;}
     const ad=e.target.closest('[data-mdbadd]');if(ad){addMenu(ad,+ad.dataset.mdbadd);return;}
-    const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();openAt(+b.dataset.mdb);}});
+    const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();const i=+b.dataset.mdb;
+      /* A774 : un TABLEAU s'ouvre dans la grille, la même fenêtre qu'à sa création — sans ouvrir son bloc : la grille
+         écrit dans le champ entier (le document se redessine à l'écriture) ; « Modifier le Markdown » ouvre le bloc. */
+      const R=mdBlockRanges(p.body);if(R[i]&&R[i].t==='tbl'){if(open>=0){said();open=-1;paint(false);}const c=l2c(R[i].a);ta.setSelectionRange(c,c);
+        mdTblOpen(ta,{p,onEnd:how=>{if(how==='md')return openAt(i);if(how==='ok')edTouch();const h=doc.querySelector('[data-mdbopen="'+i+'"]');if(h)h.focus({preventScroll:true});}});return;}
+      openAt(i);}});
   /* Copier PLUSIEURS blocs rendus copie leur Markdown (sinon la mise en forme se perdait au collage) ; une sélection
      dans un seul bloc garde la copie du texte. */
   doc.addEventListener('copy',e=>{if(e.target.closest&&e.target.closest('.mdb-ta'))return;
@@ -20408,6 +20690,31 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   document.addEventListener('pointerdown',down_,true);document.addEventListener('pointerup',up_,true);
   // Un changement venu d'ailleurs (relecture, Plan, ↶) : le document se redessine, bloc refermé.
   ta.addEventListener('input',()=>{if(self)return;open=-1;sel=new Set();selMode=false;paint(false);});
+  /* A776 — LA CIBLE D'UN DÉPÔT dans le document par blocs (entre deux blocs, DANS un élément de liste, dans une case d'un
+     tableau qui porte des médias) et son écriture : une seule (↶ rend tout), le bloc posé ramené à l'écran. */
+  _mdDocDrop={doc,busy:()=>grab>=0,
+    target:(e,nf)=>{const x=e.clientX,y=e.clientY,bs=[...doc.querySelectorAll('.mdb[data-mdb]')],L=lines(),R=mdBlockRanges(p.body),src=i=>R[i]?L.slice(R[i].a,R[i].e).join('\n'):'';
+      const el=document.elementFromPoint(x,y);
+      const td=el&&el.closest&&el.closest('td,th'),tb=td&&td.closest('table.md-tbl-img'),tbb=tb&&tb.closest('.mdb[data-mdb]:not(.on)');
+      if(tbb&&doc.contains(tbb)){const i=+tbb.dataset.mdb;
+        if(nf<=1){const tr=td.parentNode,rows=[...tb.querySelectorAll('tr')],r=rows.indexOf(tr),c=[...tr.children].indexOf(td),hd=!!tb.querySelector('thead');
+          const th=hd&&tb.querySelector('thead tr'),cn=th&&th.children[c]?th.children[c].textContent.replace(/\s+/g,' ').trim():'';
+          return {kind:'cell',blk:i,r,c,el:td,label:'Dans la case '+(hd&&r===0?'d’en-tête':'Ligne '+(hd?r:r+1))+', '+(cn||'colonne '+(c+1)),key:'C'+i+':'+r+':'+c};}
+        const b=tbb.getBoundingClientRect();return {kind:'gap',k:i+1,y:b.bottom+6,x0:b.left,x1:b.right,label:nf+' fichiers · après le tableau',key:'G'+(i+1)+'t'};}
+      const li=el&&el.closest&&el.closest('li'),lb=li&&li.closest('.mdb[data-mdb]:not(.on)');
+      if(lb&&doc.contains(lb)&&x>=li.getBoundingClientRect().left){const i=+lb.dataset.mdb,k=[...lb.querySelectorAll('li')].indexOf(li),s=src(i),ln=mdListNth(s,k),it=ln>=0&&mdListItemAt(s,ln);
+        if(it){const lr=li.getBoundingClientRect();return {kind:'li',blk:i,item:k,li,y:mddLiBottom(li)+4,x0:lr.left,x1:lr.right,label:'Dans l’élément '+it.n,key:'I'+i+':'+k};}}
+      if(!bs.length){const r=doc.getBoundingClientRect();return {kind:'gap',k:0,y:r.top+8,x0:r.left,x1:r.right,label:'Ici · en tête',key:'G0'};}
+      let k=bs.length;for(let j=0;j<bs.length;j++){const r=bs[j].getBoundingClientRect();if(y<r.top+r.height/2){k=j;break;}}
+      const rb=j=>bs[j].getBoundingClientRect(),yy=k===0?rb(0).top-6:k===bs.length?rb(bs.length-1).bottom+6:(rb(k-1).bottom+rb(k).top)/2,b0=rb(Math.min(k,bs.length-1));
+      return {kind:'gap',k,y:yy,x0:b0.left,x1:b0.right,label:k===0?'Ici · en tête':k===bs.length?'Ici · en fin':'Ici · après '+mdBlkLabel(src(k-1)),key:'G'+k};},
+    write:(t,refs)=>{const L=lines(),R=mdBlockRanges(p.body);let v=null,at=-1;
+      if(t.kind==='gap'){const r=mdBlkIns(p.body,t.k-1,refs.join('\n\n'));v=r.v;at=r.i;}
+      else if(R[t.blk]){const a=R[t.blk].a,e=R[t.blk].e,s=L.slice(a,e).join('\n');let ns=null;
+        if(t.kind==='li'){const ln=mdListNth(s,t.item),r=ln>=0&&mdListMediaIns(s,ln,refs);ns=r?r.v:null;}
+        else if(t.kind==='cell'){ns=mdTblCellAdd(s,t.r,t.c,refs[0]);if(ns&&refs.length>1)ns=ns+'\n\n'+refs.slice(1).join('\n\n');}
+        if(ns!=null){v=L.slice(0,a).concat(ns.split('\n'),L.slice(e)).join('\n');at=t.blk;}}
+      if(v==null)return;sel=new Set();selMode=false;push(v);open=-1;paint(false);const b=doc.querySelector('[data-mdb="'+at+'"]');if(b)b.scrollIntoView({block:'nearest'});}};
   _mdDocGo=(ln,openIt)=>{const R=mdBlockRanges(p.body);let i=-1;R.forEach((r,k)=>{if(r.a<=ln)i=k;});if(i<0)return;
     if(openIt)return openAt(i);const b=doc.querySelector('[data-mdb="'+i+'"]');if(b)b.scrollIntoView({block:'start'});};
   ta.setSelectionRange(0,0);ta.dispatchEvent(new Event('keyup'));paint(false);}
@@ -20609,17 +20916,22 @@ const mdTblEmpty=r=>r.every(c=>!String(c||'').trim());
    dans le magasin de l'appareil (synchronisé comme un PDF), la fiche dans `p.videos`, la ligne `![](vid:ID)` posée au
    curseur. Ses binaires neufs sont protégés pendant l'édition (`draftNewAtts`) et le ménage de sortie retire une vidéo
    que le texte ne cite plus. */
+/* A772-A776 : ADMETTRE des vidéos (binaire sur l'appareil, fiche dans `p.videos`) sans rien écrire : les identifiants
+   admis, dans l'ordre. */
+async function vidAdmit(p,files){const ids=[];
+  if(!supportsAttachments()){toast('⚠ Les vidéos demandent le stockage de l’appareil, indisponible dans ce navigateur.',6000,true);return ids;}
+  for(const f of files){if((p.videos||[]).length>=MAX_VID_PER_ENTITY){toast('⚠ '+MAX_VID_PER_ENTITY+' vidéos au plus par protocole.',6000,true);break;}
+    const buf=await f.arrayBuffer(),mime=vidKind(new Uint8Array(buf,0,Math.min(64,buf.byteLength)));if(!mime)continue;
+    const id=uid('v');
+    try{await attPut({id,buf,size:buf.byteLength,type:mime,createdAt:Date.now(),dirty:1,remotePath:null});}
+    catch(e){toast('⚠ Stockage de l’appareil plein : « '+upShortName(f.name)+' » n’a pas pu être gardée.',8000,true);break;}
+    draftNewAtts.push(id);(p.videos=p.videos||[]).push({id,name:safeFileName(f.name)||('video.'+VID_EXT[mime]),size:buf.byteLength,mime});ids.push(id);}
+  if(ids.length)edTouch();
+  return ids;}
+const vidTaker=(p,ta)=>async files=>{const ids=await vidAdmit(p,files);if(ids.length)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+ids.map(id=>'![](vid:'+id+')\n').join(''));};
 function vidPick(ta,p){if(!p)return;
   if(!supportsAttachments()){toast('⚠ Les vidéos demandent le stockage de l’appareil, indisponible dans ce navigateur.',6000,true);return;}
-  pickFile('video',async files=>{let n=0;
-    for(const f of files){if((p.videos||[]).length>=MAX_VID_PER_ENTITY){toast('⚠ '+MAX_VID_PER_ENTITY+' vidéos au plus par protocole.',6000,true);break;}
-      const buf=await f.arrayBuffer(),mime=vidKind(new Uint8Array(buf,0,Math.min(64,buf.byteLength)));if(!mime)continue;
-      const id=uid('v');
-      try{await attPut({id,buf,size:buf.byteLength,type:mime,createdAt:Date.now(),dirty:1,remotePath:null});}
-      catch(e){toast('⚠ Stockage de l’appareil plein : « '+upShortName(f.name)+' » n’a pas pu être gardée.',8000,true);break;}
-      draftNewAtts.push(id);(p.videos=p.videos||[]).push({id,name:safeFileName(f.name)||('video.'+VID_EXT[mime]),size:buf.byteLength,mime});n++;
-      mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](vid:'+id+')\n');}
-    if(n)edTouch();},true);}
+  pickFile('video',vidTaker(p,ta),true);}
 /* A757 — LA VIDÉO SE POSE APRÈS LE RENDU. `mdRender` est pur ; le binaire est dans IndexedDB. Un observateur unique
    repère toute figure `data-vid` neuve, où qu'elle soit rendue (lecture, aperçu, document en direct), et y pose la
    vidéo : muette, en boucle, dans la page (`playsinline`), avec ses commandes ; elle JOUE quand elle est à l'écran et
@@ -20713,62 +21025,151 @@ function mdTableMd(t){const n=Math.max(1,t.head.length),cell=c=>String(c==null?'
 /* La fenêtre des outils : un état (`_mdTw`), un écouteur par geste sur la fenêtre, posé une fois. */
 let _mdTw=null;
 const mdToolEl=()=>document.getElementById('mdToolModal');
-function mdToolOpen(title,body,foot){document.getElementById('mdToolTitle').textContent=title;
-  document.getElementById('mdToolBody').innerHTML=body;document.getElementById('mdToolFoot').innerHTML=foot;mdToolEl().classList.add('on');}
+function mdToolOpen(title,body,foot,o){o=o||{};document.getElementById('mdToolTitle').textContent=title;
+  document.getElementById('mdToolBody').innerHTML=body;document.getElementById('mdToolFoot').innerHTML=foot;
+  const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=o.hx||'';
+  const m=mdToolEl();m.classList.toggle('mdt-tbl',o.cls==='mdt-tbl');m.classList.add('on');}
 // Fermer pour écrire dans le champ : le focus revient au texte, pas au bouton d'origine (modalHandoffClose).
-function mdToolDone(seg){const w=_mdTw;_mdTw=null;modalHandoffClose(mdToolEl());if(w&&seg!=null&&document.contains(w.ta))mdSplice(w.ta,w.from,w.to,seg);}
+// A774 : `onEnd(how)` — 'ok' (écrit), 'x' (annulé, voile, Échap) ou 'md' (« Modifier le Markdown ») ; le document par
+// blocs y referme le bloc qu'il avait ouvert pour la grille, sauf pour 'md'.
+function mdToolDone(seg,how){const w=_mdTw;_mdTw=null;modalHandoffClose(mdToolEl());if(w&&seg!=null&&document.contains(w.ta))mdSplice(w.ta,w.from,w.to,seg);
+  if(w&&w.onEnd)w.onEnd(how||(seg==null?'x':'ok'));}
 /* A609 : la GRILLE tient TOUTES les lignes (`g`), la 1ʳᵉ étant l'en-tête quand `hh` ; elle s'écrit par `mdTblOut`.
    ↶ / ↷ de la fenêtre : une pile d'états de la grille (geste de structure, réglage, ou saisie d'une case — une entrée
    par case quittée), indépendante de ↶ de l'éditeur : « Annuler » la fenêtre rend toujours le texte d'avant. */
 const mdTblOut=w=>({head:w.hh?w.g[0]:w.g[0].map(()=>''),rows:w.hh?w.g.slice(1):w.g,align:w.al,hh:w.hh,hc:w.hc});
 const mdTblSnap=w=>JSON.stringify({g:w.g,al:w.al,hh:w.hh,hc:w.hc});
 function mdTblNote(w){const s=mdTblSnap(w);if(w.undo[w.undo.length-1]!==s){w.undo.push(s);if(w.undo.length>100)w.undo.shift();}w.redo=[];}
-function mdTblOpen(ta){const [a,b]=selBounds(ta),t=mdTableAt(ta.value,a);
+/* A773/A774 : `o.p` = le protocole (les médias des cases s'y choisissent et s'y admettent ; sans lui, pas de « ＋ Image ») ;
+   `o.onEnd` = la fin de la fenêtre (cf. mdToolDone). */
+function mdTblOpen(ta,o){o=o||{};const [a,b]=selBounds(ta),t=mdTableAt(ta.value,a);
   const blank=!t&&a&&ta.value[a-1]!=='\n'?'\n\n':(!t&&a&&ta.value[a-2]!=='\n'?'\n':'');
   const g=t?(t.hh?[t.head].concat(t.rows):(t.rows.length?t.rows:[t.head])):[['Colonne','Colonne'],['','']];
-  _mdTw={kind:'tbl',ta,from:t?t.from:a,to:t?t.to:b,pre:t?'':blank,edit:!!t,fr:0,fc:0,
+  _mdTw={kind:'tbl',ta,from:t?t.from:a,to:t?t.to:b,pre:t?'':blank,edit:!!t,fr:0,fc:0,p:o.p||null,onEnd:o.onEnd||null,
     g:g.length>1||!t||!t.hh?g:g.concat([g[0].map(()=>'')]),al:t?t.align:['',''],hh:t?t.hh:true,hc:t?t.hc:false,undo:[],redo:[],typed:false};
-  mdToolOpen('Tableau',mdTblHtml(),`<button type="button" class="btn" data-mdtw="x">Annuler</button><button type="button" class="btn primary" data-mdtw="ok" data-dlgdef>${t?'Mettre à jour le tableau':'Insérer le tableau'}</button>`);
-  mdTblFit();}
-function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,al=w.al[fc]||'',AL=['','c','r'],ai=Math.max(0,AL.indexOf(al==='l'?'':al));
+  mdToolOpen('Tableau',mdTblHtml(),mdTblFootHtml(),{hx:mdTblHxHtml(),cls:'mdt-tbl'});
+  mdTblFit();mdTblThumbBind();}
+/* A773 — LA GRILLE PORTE SES OUTILS (planche « Éditeur de protocole — médias, tableaux, dépôt », forme 2A retenue par
+   l'auteur). La tête ne garde que le titre, la taille du tableau, ↶ ↷ et ✕ (au téléphone : Annuler · Tableau · ↶ · OK).
+   Un onglet ··· au-dessus de chaque colonne, ⋮ à gauche de chaque ligne — bleus pour la case active — ouvre le menu de
+   SA colonne ou de SA ligne ; deux bandes « ＋ » au bord ajoutent en fin. Les en-têtes restent VISIBLES sous la grille
+   (« peu visible » dans un seul menu, a dit l'auteur). Au doigt : ni onglets ni bandes, une barre au pouce
+   (‹ › Ligne ▾ Colonne ▾, 44 px), la 1ʳᵉ colonne collée quand la grille défile (cases de 112 px au moins, jamais
+   rognées). Une case peut porter un média (A773, forme 1C) : vignette sous son libellé, « ＋ Image » · « ＋ Vidéo »
+   dans la case active, ✕ pour le retirer. */
+const mdTblColName=(w,c)=>(w.hh?mdCellSplit(w.g[0][c]).txt.replace(/\s+/g,' ').trim():'')||'colonne '+(c+1);
+const mdTblRowName=(w,r)=>w.hh&&r===0?'Ligne d’en-tête':'Ligne '+(r+(w.hh?0:1));
+const mdTblDims=w=>{const n=w.g[0].length,nb=w.g.length-(w.hh?1:0);let ni=0,nv=0;
+  w.g.forEach(r=>r.forEach(v=>mdCellSplit(v).med.forEach(x=>{if(x.k==='vid')nv++;else ni++;})));
+  return n+' colonne'+(n>1?'s':'')+' · '+nb+' ligne'+(nb>1?'s':'')+(ni?' · '+ni+' image'+(ni>1?'s':''):'')+(nv?' · '+nv+' vidéo'+(nv>1?'s':''):'');};
+function mdTblHxHtml(){const w=_mdTw;
+  return `<span class="mdg-dim">${esc(mdTblDims(w))}</span>`
+    +`<button type="button" class="btn sm mdg-ph" data-mdtw="x">Annuler</button>`
+    +`<button type="button" class="mdg-ud" data-mdtw="undo" aria-label="Annuler dans la grille"${w.undo.length?'':' disabled'}>${uiIcon('undo',18)}</button>`
+    +`<button type="button" class="mdg-ud" data-mdtw="redo" aria-label="Rétablir dans la grille"${w.redo.length?'':' disabled'}>${uiIcon('redo',18)}</button>`
+    +`<button type="button" class="btn primary sm mdg-ph" data-mdtw="ok">OK</button>`;}
+const mdTblFootHtml=()=>{const w=_mdTw;return (w.edit?'<button type="button" class="mdg-mdl" data-mdtw="md">Modifier le Markdown</button>':'')
+  +`<button type="button" class="btn" data-mdtw="x">Annuler</button><button type="button" class="btn primary" data-mdtw="ok" data-dlgdef>${w.edit?'Mettre à jour le tableau':'Insérer le tableau'}</button>`;};
+function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=w.p;
+  // Un tableau qui porte déjà un média (une grille d'images) offre « ＋ Image » · « ＋ Vidéo » DANS la case active ; un tableau
+  // de texte (posologie) les offre sous la grille, pour la case active — sans encombrer chaque case qu'on remplit.
+  const aMed=g.some(r=>r.some(v=>mdCellSplit(v).med.length));
   const isH=(r,c)=>(hh&&r===0)||(hc&&c===0&&!(hh&&r===0));
-  const lbl=(r,c)=>hh&&r===0?'En-tête '+(c+1):'Ligne '+(r+(hh?0:1))+', '+esc((hh?g[0][c]:'')||'colonne '+(c+1));
-  const cellIn=(v,r,c)=>`<textarea rows="1" class="mdg-in${w.al[c]==='c'?' ta-c':w.al[c]==='r'?' ta-r':''}${isH(r,c)?' mdg-h':''}" data-r="${r}" data-c="${c}"${r===0&&c===0?' data-dlgfocus':''} aria-label="${lbl(r,c)}">${esc(v)}</textarea>`;
-  const nb=g.length-(hh?1:0);
-  return `<p class="mdg-dim">${n} colonne${n>1?'s':''} · ${nb} ligne${nb>1?'s':''}</p>
-    <div class="mdg-bar">
-      <span class="mdg-grp"><button type="button" class="btn sm" data-mdtw="r+">＋ Ligne</button><button type="button" class="btn sm" data-mdtw="c+">＋ Colonne</button>
-      ${g.length>1?'<button type="button" class="btn sm" data-mdtw="r-">− Ligne</button>':''}${n>1?'<button type="button" class="btn sm" data-mdtw="c-">− Colonne</button>':''}</span>
-      <span class="mdg-grp"><button type="button" class="btn sm mdg-ud" data-mdtw="undo" aria-label="Annuler dans la grille"${w.undo.length?'':' disabled'}>${uiIcon('undo',16)}</button><button type="button" class="btn sm mdg-ud" data-mdtw="redo" aria-label="Rétablir dans la grille"${w.redo.length?'':' disabled'}>${uiIcon('redo',16)}</button></span>
-      <span class="mdg-grp" role="group" aria-label="En-têtes"><span class="mdg-al-l">En-tête</span>
-        <button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button></span>
-      <span class="mdg-grp"><span class="mdg-al-l">Colonne « ${esc((hh?g[0][fc]:'')||String(fc+1))} »</span>
-      <div class="seg mdg-al" role="radiogroup" aria-label="Alignement de la colonne" style="--seg-n:3;--seg-i:${ai}"><span class="seg-pill" aria-hidden="true"></span>${['Gauche','Centre','Droite'].map((l,i)=>`<button type="button" class="seg-btn${i===ai?' on':''}" role="radio" aria-checked="${i===ai}" data-mdal="${AL[i]}">${l}</button>`).join('')}</div>
-</span>
-      ${w.edit?'':'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>'}
-    </div>
-    <div class="mdg-scroll"><div class="mdg" style="--mdg-n:${n}">${g.map((r,ri)=>r.map((v,c)=>cellIn(v,ri,c)).join('')).join('')}</div></div>
-    <p class="hint">Tab passe à la case suivante ; sur la dernière, il ajoute une ligne. Entrée passe à la ligne DANS la case. Un « | » tapé dans une case est protégé tout seul.</p>
-    <details class="mdg-src"><summary>Texte produit</summary><pre class="mdg-pre">${esc(mdTableMd(mdTblOut(w)))}</pre></details>`;}
+  const lbl=(r,c)=>hh&&r===0?'En-tête '+(c+1):mdTblRowName(w,r)+', '+mdTblColName(w,c);
+  const med=(x,i)=>{let inner;
+    if(x.k==='img'){const im=P&&(P.images||[]).find(y=>y.id===x.id),d=im&&safeImg(im.data);inner=d?`<img src="${d}" alt="">`:`<span class="mdg-vph">${uiIcon('camera',18)}<span>Image</span></span>`;}
+    else inner=`<span class="mdg-vph">${uiIcon('play',20)}<span>Vidéo</span></span>`;
+    return `<div class="mdg-med">${inner}<button type="button" class="mdg-rm" data-mdgrm="${i}" aria-label="Retirer ${x.k==='vid'?'la vidéo':'l’image'} de la case">✕</button></div>`;};
+  const cell=(v,r,c)=>{const s=mdCellSplit(v);
+    return `<div class="mdg-c${isH(r,c)?' mdg-h':''}${r===0?' mdg-t':''}${c===0?' mdg-l':''}${r===fr&&c===fc?' act':''}" data-r="${r}" data-c="${c}">`
+      +`<textarea rows="1" class="mdg-in${w.al[c]==='c'?' ta-c':w.al[c]==='r'?' ta-r':''}${isH(r,c)?' mdg-h':''}" data-r="${r}" data-c="${c}"${r===0&&c===0?' data-dlgfocus':''} aria-label="${esc(lbl(r,c))}">${esc(s.med.length?s.txt:v)}</textarea>`
+      +s.med.map(med).join('')
+      +(P&&aMed&&!s.med.length?`<div class="mdg-add"><button type="button" class="mdg-addb" data-mdgadd="img">＋ Image</button><button type="button" class="mdg-addb" data-mdgadd="vid">＋ Vidéo</button></div>`:'')
+      +`</div>`;};
+  const tc=g[0].map((_,c)=>`<button type="button" class="mdg-tab mdg-tc${c===fc?' on':''}" data-mdgcol="${c}" aria-haspopup="true" aria-label="Colonne « ${esc(mdTblColName(w,c))} » : options"><span aria-hidden="true">···</span></button>`).join('');
+  const rows=g.map((r,ri)=>`<button type="button" class="mdg-tab mdg-tr${ri===fr?' on':''}" data-mdgrow="${ri}" aria-haspopup="true" aria-label="${esc(mdTblRowName(w,ri))} : options"><span aria-hidden="true">⋮</span></button>`+r.map((v,c)=>cell(v,ri,c)).join('')).join('');
+  const vide=!w.edit&&g.every(r=>r.every(v=>!String(v).trim()||v==='Colonne'));
+  return `<div class="mdg-scroll"><div class="mdg" style="--mdg-n:${n};--mdg-r:${R}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
+      +`<button type="button" class="mdg-band mdg-bc" data-mdtw="cend" aria-label="Ajouter une colonne à droite"${n<MD_MAX_TCOLS?'':' disabled'}>＋</button>`
+      +`<button type="button" class="mdg-band mdg-br" data-mdtw="rend">＋ Ligne</button></div></div>
+    <div class="mdg-opts" role="group" aria-label="Réglages de la grille"><span class="mdg-opt-l">En-tête</span><button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button>${P&&!aMed?'<span class="mdg-opt-l mdg-opt-m">Dans la case</span><button type="button" class="btn sm" data-mdgadd="img">＋ Image</button><button type="button" class="btn sm" data-mdgadd="vid">＋ Vidéo</button>':''}${vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':''}</div>
+    <p class="hint mdg-hint">Tab : case suivante (en fin, ajoute une ligne) · Entrée : à la ligne dans la case</p>
+    ${w.edit?'<button type="button" class="mdg-mdl mdg-ph" data-mdtw="md">Modifier le Markdown</button>':''}
+    <div class="mdg-thumb" role="toolbar" aria-label="Case active">${mdTblThumbHtml()}</div>`;}
+const mdTblThumbHtml=()=>{const w=_mdTw;return `<button type="button" class="mdg-tbn" data-mdtw="prev" aria-label="Case précédente">‹</button><button type="button" class="mdg-tbn" data-mdtw="next" aria-label="Case suivante">›</button>`
+  +`<button type="button" class="mdg-tbm" data-mdgrow="${w.fr}" aria-haspopup="true">${esc(w.hh&&w.fr===0?'En-tête':mdTblRowName(w,w.fr))} ▾</button>`
+  +`<button type="button" class="mdg-tbm" data-mdgcol="${w.fc}" aria-haspopup="true">${esc(mdTblColName(w,w.fc))} ▾</button>`;};
+// Au doigt, la barre au pouce ne prend pas le focus : le clavier reste ouvert sur la case (tapKeepsFocus, v5.48.7).
+function mdTblThumbBind(){const b=document.querySelector('#mdToolBody .mdg-thumb');if(!b||b.dataset.tk)return;b.dataset.tk='1';
+  b.addEventListener('mousedown',e=>{if(e.target.closest('button'))e.preventDefault();});tapKeepsFocus(b,'button',8);}
 // Chaque case grandit avec son texte ; une rangée prend la hauteur de sa plus haute case (grille CSS).
 // (min-height, pas height : la grille étire les cases d'une même rangée à la plus haute.)
 function mdTblFit(el){(el?[el]:document.querySelectorAll('#mdToolBody .mdg-in')).forEach(t=>{t.style.minHeight='0';t.style.height='auto';const h=Math.ceil(t.scrollHeight/zoomF());t.style.height='';t.style.minHeight=Math.max(44,h)+'px';});}
-function mdTblFocus(r,c){const e=document.querySelector(`#mdToolBody .mdg-in[data-r="${r}"][data-c="${c}"]`);if(e){e.focus();e.select();}}
-function mdTblRepaint(r,c){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();mdTblFit();mdTblFocus(r,c);}
-// Un geste de structure : la grille se repeint, le focus suit la case visée.
-function mdTblAct(k){const w=_mdTw,g=w.g,n=g[0].length,r=w.fr,c=w.fc;
+function mdTblFocus(r,c,sel){const e=document.querySelector(`#mdToolBody .mdg-in[data-r="${r}"][data-c="${c}"]`);if(e){e.focus();if(sel!==false)e.select();}}
+function mdTblRepaint(r,c){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();
+  const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=mdTblHxHtml();mdTblFit();mdTblThumbBind();mdTblFocus(r,c);}
+// La case active a changé : onglets et barre au pouce suivent, sans rien redessiner (le focus et la saisie restent).
+function mdTblCur(m){const w=_mdTw;if(!w)return;
+  m.querySelectorAll('.mdg-tc').forEach(b=>b.classList.toggle('on',+b.dataset.mdgcol===w.fc));
+  m.querySelectorAll('.mdg-tr').forEach(b=>b.classList.toggle('on',+b.dataset.mdgrow===w.fr));
+  // « ＋ Image » · « ＋ Vidéo » suivent la case ACTIVE, pas le focus : un focus perdu (toucher un onglet) les retirait, la
+  // fenêtre se recentrait et le relâcher tombait à côté (mesuré).
+  m.querySelectorAll('.mdg-c').forEach(x=>x.classList.toggle('act',+x.dataset.r===w.fr&&+x.dataset.c===w.fc));
+  const t=m.querySelector('.mdg-thumb');if(t)t.innerHTML=mdTblThumbHtml();}
+// Un geste de structure : la grille se repeint, le focus suit la case visée. `arg` : l'alignement (« al »).
+function mdTblAct(k,arg){const w=_mdTw,g=w.g,n=g[0].length,r=w.fr,c=w.fc,R=g.length,d0=w.hh?1:0;
   if(k==='undo'||k==='redo'){const from=k==='undo'?w.undo:w.redo,to=k==='undo'?w.redo:w.undo;if(!from.length)return;
     to.push(mdTblSnap(w));const o=JSON.parse(from.pop());w.g=o.g;w.al=o.al;w.hh=o.hh;w.hc=o.hc;w.typed=false;
     return mdTblRepaint(Math.min(r,w.g.length-1),Math.min(c,w.g[0].length-1));}
   mdTblNote(w);w.typed=false;
-  if(k==='r+'){g.splice(r+1,0,Array(n).fill(''));mdTblRepaint(r+1,c);}
-  else if(k==='r-'&&g.length>1){g.splice(r,1);mdTblRepaint(Math.min(r,g.length-1),c);}
-  else if(k==='c+'&&n<MD_MAX_TCOLS){[w.al].concat(g).forEach(x=>x.splice(c+1,0,''));mdTblRepaint(r,c+1);}
-  else if(k==='c-'&&n>1){[w.al].concat(g).forEach(x=>x.splice(c,1));mdTblRepaint(r,Math.min(c,n-2));}
+  const colIns=at=>{[w.al].concat(g).forEach(x=>x.splice(at,0,''));mdTblRepaint(r,at);};
+  if((k==='r+'||k==='rd')){g.splice(r+1,0,Array(n).fill(''));mdTblRepaint(r+1,c);}
+  else if(k==='ru'&&!(w.hh&&r===0)){g.splice(r,0,Array(n).fill(''));mdTblRepaint(r,c);}
+  else if(k==='rend'){g.push(Array(n).fill(''));mdTblRepaint(g.length-1,Math.min(c,n-1));}
+  else if((k==='r-'||k==='rx')&&R>1){g.splice(r,1);mdTblRepaint(Math.min(r,g.length-1),c);}
+  else if(k==='mu'&&r-1>=d0&&r>=d0){const x=g[r];g[r]=g[r-1];g[r-1]=x;mdTblRepaint(r-1,c);}
+  else if(k==='mdn'&&r>=d0&&r+1<R){const x=g[r];g[r]=g[r+1];g[r+1]=x;mdTblRepaint(r+1,c);}
+  else if((k==='c+'||k==='cr')&&n<MD_MAX_TCOLS)colIns(c+1);
+  else if(k==='cl'&&n<MD_MAX_TCOLS)colIns(c);
+  else if(k==='cend'&&n<MD_MAX_TCOLS)colIns(n);
+  else if((k==='c-'||k==='cx')&&n>1){[w.al].concat(g).forEach(x=>x.splice(c,1));mdTblRepaint(r,Math.min(c,n-2));}
+  else if(k==='al'){w.al[c]=arg==='c'||arg==='r'?arg:'';mdTblRepaint(r,c);}
   else if(k==='hh'){w.hh=!w.hh;mdTblRepaint(r,c);}
   else if(k==='hc'){w.hc=!w.hc;mdTblRepaint(r,c);}
   else if(k==='tpl'){const H=['Médicament','Dose','Voie','Remarque'];while(g[0].length<4)[w.al].concat(g).forEach(x=>x.push(''));H.forEach((h,i)=>{g[0][i]=h;});w.hh=true;mdTblRepaint(0,0);}
   else w.undo.pop();}
+// A773 : le menu d'UNE colonne, d'UNE ligne (onglet ou barre au pouce) — déroulant au bureau, feuille au téléphone (A638).
+function mdTblColMenu(btn,c){const w=_mdTw;if(!w)return;w.fc=c;const n=w.g[0].length,al=w.al[c]==='c'||w.al[c]==='r'?w.al[c]:'';
+  const O=[{head:'Alignement'},{val:'al:',name:'À gauche'},{val:'al:c',name:'Au centre'},{val:'al:r',name:'À droite'},{head:'Colonne'},
+    {val:'cl',name:'Insérer une colonne à gauche',ic:uiIcon('plus',16)},{val:'cr',name:'Insérer une colonne à droite',ic:uiIcon('plus',16)}];
+  if(c===0)O.push({val:'hc',name:w.hc?'Retirer la colonne d’en-tête':'Faire de cette colonne un en-tête',ic:uiIcon('table',16)});
+  if(n>1)O.push({val:'cx',name:'Supprimer la colonne',danger:true,ic:uiIcon('trash',16)});
+  openPickMenu(btn.parentNode,{aria:'Colonne « '+mdTblColName(w,c)+' »',title:'Colonne « '+mdTblColName(w,c)+' »',trigger:btn,...deskFlot(),options:O,value:'al:'+al,
+    onPick:v=>{if(!_mdTw)return;_mdTw.fc=c;if(v.slice(0,3)==='al:')mdTblAct('al',v.slice(3));else mdTblAct(v);}});}
+function mdTblRowMenu(btn,r){const w=_mdTw;if(!w)return;w.fr=r;const R=w.g.length,d0=w.hh?1:0,head=w.hh&&r===0;
+  const O=[{head:'Ligne'}];
+  if(!head)O.push({val:'ru',name:'Insérer une ligne au-dessus',ic:uiIcon('plus',16)});
+  O.push({val:'rd',name:'Insérer une ligne au-dessous',ic:uiIcon('plus',16)});
+  if(!head&&r-1>=d0)O.push({val:'mu',name:'Monter d’un cran',ic:'<span class="mdg-mi" aria-hidden="true">↑</span>'});
+  if(!head&&r+1<R)O.push({val:'mdn',name:'Descendre d’un cran',ic:'<span class="mdg-mi" aria-hidden="true">↓</span>'});
+  if(r===0)O.push({val:'hh',name:w.hh?'Retirer la ligne d’en-tête':'Faire de cette ligne un en-tête',ic:uiIcon('table',16)});
+  if(R>1)O.push({val:'rx',name:'Supprimer la ligne',danger:true,ic:uiIcon('trash',16)});
+  const t=mdTblRowName(w,r),x=mdCellSplit(w.g[r][0]).txt.replace(/\s+/g,' ').trim();
+  openPickMenu(btn.parentNode,{aria:t,title:t,ctx:x?(x.length>40?x.slice(0,39)+'…':x):'',trigger:btn,...deskFlot(),options:O,
+    onPick:v=>{if(!_mdTw)return;_mdTw.fr=r;mdTblAct(v);}});}
+/* A772-A773 — CHOISIR UN MÉDIA pour un élément de liste ou une case : depuis l'appareil, ou un média déjà dans ce
+   protocole. Déroulant sous son déclencheur au bureau, feuille du bas au téléphone (A638). `onRefs(refs)` reçoit les
+   lignes à écrire (« ![](img:ID) »). */
+function mdMedMenu(trig,p,kind,title,ctx,onRefs,multi){const vid=kind==='vid',L=((vid?p.videos:p.images)||[]),tag=vid?'vid':'img';
+  const O=[{val:'+',name:'Depuis l’appareil…',sub:vid?'MP4 · MOV · WebM':'photo, capture, galerie',ic:uiIcon(vid?'play':'camera',18)}];
+  if(L.length){O.push({head:(vid?'Vidéos':'Images')+' de ce protocole · '+L.length});
+    L.forEach((x,i)=>{const d=!vid&&safeImg(x.data);O.push({val:x.id,name:vid?(x.name||'Vidéo '+(i+1)):(x.caption||'Image '+(i+1)),
+      ic:vid?uiIcon('play',18):(d?`<img class="mm-thumb" src="${d}" alt="">`:uiIcon('camera',18))});});}
+  openPickMenu(trig.parentNode,{aria:title,title,ctx,trigger:trig,...deskFlot(),options:O,
+    onPick:v=>{if(v!=='+')return onRefs(['![]('+tag+':'+v+')']);
+      pickFile(vid?'video':'image',async files=>{let ids=[];
+        if(vid)ids=await vidAdmit(p,files);else{const r=await pImgAdmit(p,files);ids=r?r.ids:[];if(r&&_pEdImgs)_pEdImgs();}
+        if(ids.length)onRefs(ids.map(id=>'![]('+tag+':'+id+')'));},!!multi);}});}
 /* COLLER DEPUIS WORD OU UN PDF (v5.44). Deux convertisseurs PURS vers le Markdown de l'app :
    `mdFromHtml` (presse-papiers riche — Word, page web : DOMParser, document inerte, rien ne se charge
    ni ne s'exécute) et `mdFromPlain` (texte d'un PDF : puces littérales, tabulations, lignes coupées).
@@ -20848,29 +21249,43 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
     <div><p class="sub2">Ce qui sera inséré</p><pre class="mdw-pre mdw-md">${esc(r.md)}</pre></div></div>`,
     `<button type="button" class="btn" data-mdtw="raw">Coller le texte brut</button><button type="button" class="btn primary" data-mdtw="ok" data-dlgdef data-dlgfocus>Insérer la version mise en forme</button>`);}
 {const m=mdToolEl();
- if(m){bindModalDismiss(m,()=>{_mdTw=null;m.classList.remove('on');});
+ if(m){bindModalDismiss(m,()=>{const w=_mdTw;_mdTw=null;m.classList.remove('on');if(w&&w.onEnd)w.onEnd('x');});
   m.addEventListener('click',e=>{const b=e.target.closest('button');const w=_mdTw;if(!b||!w)return;
-    if(b.dataset.mdal!=null&&w.kind==='tbl'){mdTblNote(w);w.al[w.fc]=b.dataset.mdal;mdTblRepaint(w.fr,w.fc);return;}
+    if(w.kind==='tbl'){
+      if(b.dataset.mdgcol!=null)return mdTblColMenu(b,+b.dataset.mdgcol);
+      if(b.dataset.mdgrow!=null)return mdTblRowMenu(b,+b.dataset.mdgrow);
+      const cel=b.closest('.mdg-c');
+      if(cel&&b.dataset.mdgrm!=null){const r=+cel.dataset.r,c=+cel.dataset.c,s=mdCellSplit(w.g[r][c]),i=+b.dataset.mdgrm;
+        mdTblNote(w);w.typed=false;s.med.splice(i,1);w.g[r][c]=mdCellJoin(s.txt,s.med.map(x=>x.ref));return mdTblRepaint(r,c);}
+      if(b.dataset.mdgadd&&w.p){const r=cel?+cel.dataset.r:w.fr,c=cel?+cel.dataset.c:w.fc,k=b.dataset.mdgadd;
+        return mdMedMenu(b,w.p,k,(k==='vid'?'Vidéo':'Image')+' dans la case',mdTblRowName(w,r)+', '+mdTblColName(w,c),refs=>{if(_mdTw!==w)return;
+          mdTblNote(w);w.typed=false;const s=mdCellSplit(w.g[r][c]);w.g[r][c]=mdCellJoin(s.txt,s.med.map(x=>x.ref).concat(refs.slice(0,1)));mdTblRepaint(r,c);});}}
     const k=b.dataset.mdtw;if(!k)return;
     if(k==='x')return mdToolDone(null);
     if(k==='raw')return mdToolDone(w.txt);
     if(k==='ok')return mdToolDone(w.kind==='tbl'?w.pre+mdTableMd(mdTblOut(w))+(w.edit?'':'\n'):w.md);
-    if(w.kind==='tbl')mdTblAct(k);});
+    // A774 : le texte du tableau, à un toucher — la fenêtre se ferme sans rien écrire, le tableau est sélectionné.
+    if(k==='md'){const ta=w.ta;mdToolDone(null,'md');if(!w.onEnd&&document.contains(ta)){ta.focus();ta.setSelectionRange(w.from,w.to);}return;}
+    if(w.kind!=='tbl')return;
+    // A773 : ‹ › de la barre au pouce — la case précédente, la suivante (en fin : une ligne de plus, comme Tab).
+    if(k==='prev'||k==='next'){const n=w.g[0].length,i=w.fr*n+w.fc+(k==='next'?1:-1);
+      if(i<0)return;if(i>=w.g.length*n){w.fr=w.g.length-1;w.fc=0;return mdTblAct('r+');}
+      return mdTblFocus(Math.floor(i/n),i%n);}
+    mdTblAct(k);});
   m.addEventListener('focusin',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
-    const r=+c.dataset.r,k=+c.dataset.c;if(r===w.fr&&k===w.fc)return;w.fr=r;w.fc=k;w.typed=false;
-    // Seuls les rappels de la colonne visée bougent : la grille garde le focus et la saisie.
-    const AL=['','c','r'],ai=Math.max(0,AL.indexOf(w.al[k]==='l'?'':w.al[k]||'')),sg=m.querySelector('.mdg-al');
-    [...m.querySelectorAll('.mdg-al-l')].pop().textContent='Colonne « '+((w.hh?w.g[0][k]:'')||k+1)+' »';
-    paintSeg(sg,'data-mdal',ai);sg.querySelectorAll('[data-mdal]').forEach((x,i)=>x.setAttribute('aria-checked',String(i===ai)));});
+    const r=+c.dataset.r,k=+c.dataset.c;if(r===w.fr&&k===w.fc)return;w.fr=r;w.fc=k;w.typed=false;mdTblCur(m);});
   m.addEventListener('input',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
     // ↶ de la grille : une entrée par case SAISIE (la première frappe note l'état d'avant), pas une par lettre.
     if(!w.typed){mdTblNote(w);w.typed=true;const u=m.querySelector('[data-mdtw="undo"]'),rd=m.querySelector('[data-mdtw="redo"]');if(u)u.disabled=false;if(rd)rd.disabled=true;}
-    w.g[+c.dataset.r][+c.dataset.c]=c.value;mdTblFit(c);
-    const pr=m.querySelector('.mdg-pre');if(pr)pr.textContent=mdTableMd(mdTblOut(w));});
-  // Tab sur la dernière case : une ligne de plus (avant le piège Tab de la fenêtre).
+    // A773 : le champ ne porte que le libellé ; les médias de la case restent à leur place, après lui.
+    const r=+c.dataset.r,k=+c.dataset.c,s=mdCellSplit(w.g[r][k]);w.g[r][k]=s.med.length?mdCellJoin(c.value,s.med.map(x=>x.ref)):c.value;mdTblFit(c);
+    if(r===0&&w.hh)mdTblCur(m);});
+  // Tab : la case suivante (les onglets et les boutons d'une case ne s'intercalent pas) ; sur la dernière, une ligne de plus.
   m.addEventListener('keydown',e=>{const c=e.target.closest&&e.target.closest('.mdg-in'),w=_mdTw;
-    if(!c||!w||e.key!=='Tab'||e.shiftKey||+c.dataset.r!==w.g.length-1||+c.dataset.c!==w.g[0].length-1)return;
-    e.preventDefault();e.stopPropagation();w.fr=w.g.length-1;w.fc=0;mdTblAct('r+');});}}
+    if(!c||!w||e.key!=='Tab'||e.altKey||e.ctrlKey||e.metaKey)return;const n=w.g[0].length,i=+c.dataset.r*n+ +c.dataset.c+(e.shiftKey?-1:1);
+    if(i<0)return;e.preventDefault();e.stopPropagation();
+    if(i>=w.g.length*n){w.fr=w.g.length-1;w.fc=0;return mdTblAct('r+');}
+    mdTblFocus(Math.floor(i/n),i%n);});}}
 /* RELECTURE DE L'ÉCRITURE (v5.44). `mdLint` (pure) relit la FORME : liens vers un document absent,
    lignes de tableau incomplètes, titres et encadrés mal posés, et l'ÉCRITURE des doses connue pour
    tromper la lecture — zéro manquant (« .5 mg »), zéro superflu (« 5,0 mg »), « ug », « U », « cc ».
@@ -21177,6 +21592,8 @@ function renderProtocolEdit(){
     new ResizeObserver(hs).observe(ta);hs();}
   // Le dépôt d'une image n'importe où dans l'éditeur (la zone permanente est partie avec la liste, A583).
   upTarget('image',takeImg);
+  upTarget('video',files=>vidTaker(p,act)(files));   // A776 : une vidéo se dépose aussi (hors du document : au curseur)
+  upZone(mdDropZone(p,()=>act,ta));
   upTarget('data',files=>notionVerse(p,files,renderProtocolEdit));   // A633 : une page Notion déposée s'ajoute au protocole
   /* A583 : la grille des images. La feuille agit par `_miCtx` — le champ ACTIF (A547), le rafraîchissement d'une taille
      (aperçu, document par blocs, auto-enregistrement : le texte ne change pas), et le passage à montrer. */
@@ -21198,6 +21615,7 @@ function renderProtocolEdit(){
   const miCardRefresh=()=>{const o=main.querySelector('.mi-card'),h=miCardHtml(p);
     if(o)o.outerHTML=h;else{const md=main.querySelector('fieldset.md-ed');if(md)md.insertAdjacentHTML('afterend',h);}
     miBind();miPaintUse(p);};
+  _pEdImgs=miCardRefresh;
   miBind();
 
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteProtocolDraft;}
@@ -28885,21 +29303,30 @@ function pImgAdopt(p){const body=String(p&&p.body||'');if(body.indexOf('](img:')
   if(trop)toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole : '+trop+' image'+(trop>1?'s':'')+' collée'+(trop>1?'s':'')+' non reprise'+(trop>1?'s':'')+'.',6000,true);
   if(lourd)toast('⚠ '+nb(lourd,'image')+' collée'+(lourd>1?'s':'')+' non reprise'+(lourd>1?'s':'')+' : '+IMG_MAX_MO+' Mo d’images au plus par protocole.',7000,true);
   return n;}
-function pImgTaker(p,ta){
-  return async files=>{
+/* A772-A776 : ADMETTRE des images dans un protocole sans rien écrire — l'élément de liste, la case de la grille et le
+   dépôt écrivent eux-mêmes leur ligne. {ids (dans l'ordre), comp} ; null si rien n'a été admis ni compressé. Aucun
+   nouveau rendu de l'éditeur ici : la grille ouverte écrit dans un champ qu'un rendu remplacerait (`_pEdImgs`). */
+async function pImgAdmit(p,files){
     const neuves=[];
     for(const file of files){
       if((p.images||[]).length+neuves.length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par protocole.',6000,true);break;}
       const r=await downscale(file);
       if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
       neuves.push({id:uid('i'),data:r.data,w:r.w,h:r.h});}
-    if(!neuves.length)return;
     // A759 : sous le plafond de 10 Mo — au-delà, la compression est PROPOSÉE (feuille), rien ne change avant la réponse.
-    const res=await imgAdmettre(p,neuves,{ctx:imgCtx(p,neuves.length),fem:false});if(!res)return;
-    let txt='';for(const x of res.admises){p.images=p.images||[];p.images.push({id:x.id,data:x.data,w:x.w,h:x.h,caption:'',scale:100});txt+='![](img:'+x.id+')\n';}
+    if(!neuves.length)return null;
+    const res=await imgAdmettre(p,neuves,{ctx:imgCtx(p,neuves.length),fem:false});if(!res)return null;
+    const ids=[];for(const x of res.admises){p.images=p.images||[];p.images.push({id:x.id,data:x.data,w:x.w,h:x.h,caption:'',scale:100});ids.push(x.id);}
+    if(res.comp||res.refus)toast(imgAdmisTxt(res,neuves.length,'protocole')+(res.comp?' — ↶ pour annuler.':'.'),7000,true);
+    if(ids.length||res.comp)edTouch();
+    return ids.length||res.comp?{ids,comp:!!res.comp}:null;}
+// La carte des images de l'éditeur ouvert, rafraîchie sans nouveau rendu (posée par l'éditeur de protocole).
+let _pEdImgs=null;
+function pImgTaker(p,ta){
+  return async files=>{const r=await pImgAdmit(p,files);if(!r)return;
+    const txt=r.ids.map(id=>'![](img:'+id+')\n').join('');
     if(txt)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+txt);
-    if(res.admises.length||res.comp)renderProtocolEdit();
-    if(res.comp||res.refus)toast(imgAdmisTxt(res,neuves.length,'protocole')+(res.comp?' — ↶ pour annuler.':'.'),7000,true);};}
+    renderProtocolEdit();};}
 function bindAttEditor(entity,rerender){
   paintIxChips();   // l'état d'index de chaque document, posé au rendu puis peint sur place
   const take=upPdfTaker(entity,rerender);
@@ -40479,7 +40906,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

@@ -996,6 +996,16 @@ telle quelle — chaque écran le dit à sa façon :
   est une vignette ; un tableau qui en porte a des colonnes égales et tient dans la largeur, sans filets. « Mettre en
   grille » (barre de sélection des blocs, ou « ＋ Insérer › Grille d'images ») : l'auteur choisit 2, 3 ou 4 colonnes.
   Une vidéo se lit muette, en boucle, quand elle est à l'écran ; absente ou illisible, son réceptacle le dit en ambre.
+- **La fenêtre « Tableau »** (A773-A774) : la tête ne porte que le titre, la taille, ↶ ↷ et ✕ ; un onglet ··· par
+  colonne et ⋮ par ligne (gris, bleus pour la case active) ouvre le menu de SA colonne ou SA ligne ; deux bandes « ＋ »
+  en pointillé au bord ; les en-têtes restent visibles sous la grille. Au doigt : ni onglets ni bandes, une barre au
+  pouce de 44 px collée en bas (‹ › « Ligne n ▾ » « Colonne ▾ »), la 1ʳᵉ colonne collée quand la grille défile. Au
+  téléphone : « Annuler · Tableau · ↶ · OK ». Un toucher sur un tableau du document l'ouvre directement.
+- **Le média d'un élément de liste ou d'une case** (A772-A773) : « Dans l'élément n : » puis Image · Vidéo dans le bloc
+  liste ouvert ; vignette sous le libellé d'une case, ✕ pour la retirer. Une vidéo se règle au cadre de l'image (A775).
+- **Le dépôt qui vise** (A776) : une ligne bleue de 3 px, une pastille à chaque bout, l'étiquette en pastille bleue
+  (« Ici · après « … » », « Dans l'élément n », « Dans la case … », « Ligne n · … ») ; la case visée en tirets, l'élément
+  visé sur le fond du bloc courant ; l'aperçu en pâle. Rien n'y capte le pointeur.
 - **Le poids des images** (A759) : sous l'intitulé de la carte des images, le poids sur sa ligne (encre douce, puis
   ambre « △ x / 10 Mo d'images » dès 80 %) ; au-delà de 10 Mo, une bande ambre (poids, pourcentage, jauge,
   « Compresser… ») et « ＋ Image » fermé. La feuille « Compresser les images ? » : le calcul (progression, Annuler), puis

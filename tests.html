@@ -1031,6 +1031,32 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A758 : rendu — la vidéo d’élément est dans le <li>', /<li>a<figure class="md-fig md-vfig md-lfig" data-vid="v1"/.test(H));
    eq('A758 : une vidéo d’élément n’est pas comptée comme image', A.mdImgIds(A.mdBlocks('- a\n  ![](vid:v1)\n  ![](img:i1)')), ['i1']);}
 
+  /* A772-A776 : médias dans une liste et dans une case depuis l'éditeur, taille d'une vidéo, dépôt en mode texte. */
+  {const L='1. Sonde\n2. Fémorale\n   ![](img:i1)\n3. Poplitée';
+   const it=A.mdListItemAt(L,2);
+   eq('A772 : mdListItemAt — une ligne média appartient à l’élément du dessus (rang, retrait du texte, ses médias)', it&&[it.ln,it.n,it.indent,it.text,it.end], [1,2,3,'Fémorale',2]);
+   eq('A772 : mdListItemAt — hors d’une liste : rien', A.mdListItemAt('Texte\n\n- a',0), null);
+   eq('A772 : mdListMediaIns — sous l’élément, après ses médias, au retrait de son texte', A.mdListMediaIns(L,1,['![](vid:v1)']).v, '1. Sonde\n2. Fémorale\n   ![](img:i1)\n   ![](vid:v1)\n3. Poplitée');
+   eq('A772 : mdListMediaIns — case à cocher : le retrait de son texte', A.mdListMediaIns('- [ ] a\n- [ ] b',0,['![](img:i2)']).v, '- [ ] a\n      ![](img:i2)\n- [ ] b');
+   const B=A.mdBlocks(A.mdListMediaIns(L,0,['![](img:i3)']).v);
+   ok('A772 : …et le parseur le lit comme le média de l’élément (une seule liste, numérotation continue)', B.length===1&&B[0].items.length===3&&B[0].items[0].imgs[0].id==='i3');
+   eq('A772 : mdListNth — le k-ième élément, toutes profondeurs', [A.mdListNth('- a\n  - b\n- c',1),A.mdListNth('- a\n  - b\n- c',2),A.mdListNth('- a',3)], [1,2,-1]);
+   const s=A.mdCellSplit('Normal\n![](img:i1)');
+   eq('A773 : mdCellSplit — le libellé, puis le média de la case', [s.txt,s.med.length,s.med[0].k,s.med[0].id], ['Normal',1,'img','i1']);
+   eq('A773 : mdCellJoin — libellé puis médias ; sans libellé, le média seul', [A.mdCellJoin('Normal',['![](vid:v1)']),A.mdCellJoin('',['![](img:i1)']),A.mdCellJoin('a',[])], ['Normal\n![](vid:v1)','![](img:i1)','a']);
+   const T=A.mdTblCellAdd('| Fémoral | Normal |\n|---|---|\n| a | b |',1,1,'![](img:i9)');
+   ok('A776 : mdTblCellAdd — le média rejoint la case visée, en <br>', /\| b<br>!\[\]\(img:i9\) \|/.test(T||''));
+   eq('A776 : mdTblCellAdd — case hors du tableau : rien', A.mdTblCellAdd('| a |\n|---|\n| b |',5,0,'![](img:x)'), null);
+   eq('A776 : mdDropAt — jamais au milieu d’un tableau (sous le tableau)', A.mdDropAt('x\n\n| a |\n|---|\n| b |\n\ny',3).k, 5);
+   const d=A.mdDropAt('- a\n- b\n\nfin',1);
+   eq('A776 : mdDropAt — sous une ligne de liste, l’élément', d.item&&d.item.ln, 0);
+   eq('A776 : mdLinesIns — en bloc à part, une ligne vide autour', A.mdLinesIns('a\nb',1,['![](img:i1)']).v, 'a\n\n![](img:i1)\n\nb');
+   eq('A776 : mdLinesIns — deux médias, séparés d’une ligne vide ; ligne de la dernière', [A.mdLinesIns('a',1,['![](img:i1)','![](vid:v1)']).v,A.mdLinesIns('a',1,['![](img:i1)','![](vid:v1)']).ln], ['a\n\n![](img:i1)\n\n![](vid:v1)',4]);
+   const P=A.migrateProtocol({title:'v',body:'![](vid:v1)\n\n- a\n  ![](vid:v1)',videos:[{id:'v1',name:'a.webm',size:9,mime:'video/webm',scale:50},{id:'v2',name:'b.webm',size:9,mime:'video/webm',scale:12}]});
+   eq('A775 : la taille d’une vidéo est gardée si c’est un cran, oubliée sinon', [P.videos[0].scale,'scale' in P.videos[1]], [50,false]);
+   const H=A.mdRender(P.body,{images:[],videos:P.videos});
+   ok('A775 : rendu — la vidéo réduite porte la classe du cran, pas dans une liste', /<figure class="md-fig md-vfig w50" data-vid="v1"/.test(H)&&/<figure class="md-fig md-vfig md-lfig" data-vid="v1"/.test(H));}
+
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
   const SS_PERS=A.storageState({signed:false,pers:true,usage:3e6,quota:3e9,attBytes:0});
