@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.139.2] — 2026-11-17
+Correctif : au téléphone, clavier ouvert, la grille d'un tableau n'a plus qu'un seul défilement (A780). Aucune mise à
+jour du serveur.
+- **Deux défilements emboîtés, clavier ouvert** : la fenêtre « Tableau » gardait la hauteur de l'écran alors que le
+  clavier en cache une partie — la fenêtre défilait en plus de son contenu, et la barre du bas (‹ › Ligne · Colonne ·
+  ⋯) restait derrière le clavier. La fenêtre prend maintenant la hauteur réellement visible : « Annuler · OK » en haut
+  et la barre en bas ne bougent plus, seule la grille défile entre les deux.
+- **La case que l'on touche reste visible** au-dessus de la barre du bas (elle pouvait se retrouver dessous).
+- La tête « collée » de la v5.139.1, qui recouvrait le haut de la grille, est retirée.
+- Sur tablette, la 1ʳᵉ colonne collée s'élargit (jusqu'à 168 px) ; le libellé « Dans la case » nomme la case active
+  (« Dans la case Ligne 2, Dose »), sous la grille comme dans « ⋯ ».
+- Vérifié sur WebKit (le moteur de Safari, clavier simulé comme sur iPhone), et sur huit profils : Android téléphone et
+  tablette, iPhone, iPad, Chrome, Safari et Firefox au bureau.
+
 ## [5.139.1] — 2026-11-16
 Correctif : la grille des tableaux est fluide au téléphone, sa 1ʳᵉ colonne prend moins de place, et tout reste à portée clavier ouvert (A777-A779). Aucune mise
 à jour du serveur.
@@ -279,18 +293,3 @@ La fenêtre d'import refaite : une liste groupée au téléphone, des colonnes a
 - **Catégorie** : « Garder la catégorie du fichier » nomme la catégorie gardée ; une catégorie se crée dans le menu
   même (v5.129).
 - Rien ne change à ce qui est importé ni à l'endroit où chaque élément arrive.
-
-## [5.129.0] — 2026-11-15
-Une catégorie se crée dans le sélecteur, et elle est aussitôt choisie (A752).
-- **Avant**, « ＋ Nouvelle catégorie » ouvrait la fenêtre de gestion des catégories : il fallait créer, fermer la
-  fenêtre, rouvrir le menu, puis choisir la catégorie qu'on venait de faire.
-- **Maintenant**, la rangée devient un champ dans le menu même : tapez le nom, Entrée (ou « Créer ») — la catégorie
-  est créée dans la bonne bibliothèque et choisie, le menu se ferme. Échap replie le champ sans fermer le menu.
-- **Plus court encore** : quand le menu a une recherche (« Filtrer… ») et que le nom tapé n'existe pas, la rangée
-  propose « ＋ Créer « … » » — un toucher suffit.
-- **Partout où l'on choisit une catégorie** : l'éditeur d'une aide ou d'un protocole, chaque rangée de la fenêtre
-  d'import et son bandeau, et « Ranger » de la sélection (sa petite fenêtre à champ disparaît).
-- Un nom qui existe déjà dans la bibliothèque n'en crée pas un second : l'existante est choisie, et un message le
-  dit. Sur une bibliothèque en lecture seule, la rangée n'est plus proposée.
-- Au téléphone, la feuille se lève au-dessus du clavier pendant la saisie.
-- La couleur, le renommage et la suppression restent dans « Gérer les catégories ».

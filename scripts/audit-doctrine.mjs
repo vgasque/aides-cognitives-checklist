@@ -9145,13 +9145,25 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  const sf=await page.evaluate(()=>{const a=document.activeElement,c=document.querySelector('#mdToolModal .mdg-c.act'),g=document.querySelector('#mdToolModal .mdg-scroll');
    return {champ:!!(a&&a.classList&&a.classList.contains('mdg-in')),act:c?c.dataset.r+','+c.dataset.c:'',grilleDefile:g.scrollHeight>g.clientHeight+1};});
  t('A778 · › sans clavier : la case active avance, aucun champ ne prend le focus ; la grille n’est pas un second ascenseur',!sf.champ&&sf.act==='2,0'&&!sf.grilleDefile,JSON.stringify(sf));
+ /* A780 : clavier simulé COMME SUR iOS (l'écran garde sa hauteur, la zone visible rétrécit) — la carte fait la hauteur
+    visible, la FENÊTRE ne défile pas (un seul défileur : le corps), la barre reste dans la zone visible, la case qui prend
+    le focus reste au-dessus d'elle. */
+ const kb=await page.evaluate(async()=>{const vv=window.visualViewport,H=Math.round(vv.height)-300;Object.defineProperty(vv,'height',{configurable:true,get:()=>H});window._vvhSync();await __acCalme(200);
+   const m=document.getElementById('mdToolModal'),bd=document.getElementById('mdToolBody');
+   for(let k=0;k<8;k++)mdTblAct('rend');await __acCalme(200);
+   const c=m.querySelector('.mdg-in[data-r="8"][data-c="1"]');c.focus();await new Promise(r=>setTimeout(r,450));   // horloge : mdTblVoir repasse 350 ms après le focus (montée du clavier)
+   const b=m.querySelector('.mdg-thumb').getBoundingClientRect(),h=m.querySelector('.ai-top').getBoundingClientRect(),r=c.getBoundingClientRect();
+   const o={H,carte:Math.round(m.querySelector('.ai-card').getBoundingClientRect().height),fenetre:m.scrollHeight>m.clientHeight+1,corps:bd.scrollHeight>bd.clientHeight+1,tete:Math.round(h.top),barre:Math.round(b.bottom),champ:[Math.round(r.top),Math.round(r.bottom)],barreHaut:Math.round(b.top)};
+   delete vv.height;window._vvhSync();c.blur();await __acCalme(200);return o;});
+ t('A772-A776 · A780 · clavier ouvert (comme sur iOS) : la carte fait la hauteur visible, seul le corps défile, tête et barre en place, la case au-dessus de la barre',
+   kb.carte===kb.H&&!kb.fenetre&&kb.corps&&kb.tete>=0&&kb.barre<=kb.H+1&&kb.champ[1]<=kb.barreHaut&&kb.champ[0]>=kb.tete,JSON.stringify(kb));
  await page.tap('#mdToolModal [data-mdtw="plus"]');await calme(page,300);
  const pl=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
  t('A778 · « ⋯ » de la barre : en-têtes, média de la case, ajouter en fin, Markdown',pl==='hh,hc,img,vid,rend,cend,md',pl);
  await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.tap('#mdToolModal .mdg-tbm[data-mdgrow]');await calme(page,300);
  const sh=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?m.classList.contains('sheet')+':'+[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
- t('A772-A776 · Téléphone · le menu de ligne en feuille du bas — la dernière ligne (case active amenée par ›) offre « Monter d’un cran »',sh==='true:ru,rd,mu,rx',sh);
+ t('A772-A776 · Téléphone · le menu de ligne en feuille du bas, avec « Monter » et « Descendre d’un cran »',sh==='true:ru,rd,mu,mdn,rx',sh);
  await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.evaluate(async()=>{document.querySelector('#mdToolModal .ai-top [data-mdtw="x"]').click();await __acCalme(300);});
  await page.evaluate(async()=>{document.querySelector('#mdDoc ol').closest('.mdb').click();await __acCalme(300);});
