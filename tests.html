@@ -1052,6 +1052,33 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('A776 : mdDropAt — sous une ligne de liste, l’élément', d.item&&d.item.ln, 0);
    eq('A776 : mdLinesIns — en bloc à part, une ligne vide autour', A.mdLinesIns('a\nb',1,['![](img:i1)']).v, 'a\n\n![](img:i1)\n\nb');
    eq('A776 : mdLinesIns — deux médias, séparés d’une ligne vide ; ligne de la dernière', [A.mdLinesIns('a',1,['![](img:i1)','![](vid:v1)']).v,A.mdLinesIns('a',1,['![](img:i1)','![](vid:v1)']).ln], ['a\n\n![](img:i1)\n\n![](vid:v1)',4]);
+   /* A781 — ce qui n'est pas encore sur l'appareil se dit, à sa place. */
+   eq('A781 : rxEtat — introuvable prime, puis en réception si la réception peut avancer, sinon hors ligne', [A.rxEtat(true,true),A.rxEtat(false,true),A.rxEtat(false,false)], ['x','in','off']);
+   ok('A781 : rxPhHtml — en réception : un glyphe svg (donc neutre), les mots, le poids', (()=>{const h=A.rxPhHtml('img','in',245760);return /<svg/.test(h)&&h.includes('Image en cours de réception')&&h.includes('240 Ko')&&h.includes('data-rxe="in"');})());
+   ok('A781 : rxPhHtml — hors ligne : « △ … pas encore sur cet appareil », sans svg (les mots passent en ambre)', (()=>{const h=A.rxPhHtml('vid','off',0);return !/<svg/.test(h)&&h.includes('△ Vidéo pas encore sur cet appareil')&&!h.includes('rx-sz');})());
+   ok('A781 : rxPhHtml — introuvable : dit pour une image comme pour une vidéo (la vidéo garde son conseil)', A.rxPhHtml('img','x',0).includes('△ Image introuvable, ni sur cet appareil ni sur le serveur.')&&A.rxPhHtml('vid','x',0).includes('ouvrez-y l’app'));
+   ok('A781 : imgAttBox — un svg aux dimensions de la fiche (la boîte de l’image), 16 × 9 si elles manquent', /<svg class="md-isz" width="800" height="450" viewBox="0 0 800 450"/.test(A.imgAttBox({id:'i1',w:800,h:450,size:10}))&&/width="16" height="9"/.test(A.imgAttBox({id:'i2',w:0,h:0})));
+   ok('A781 : mdRender — une image en attente a son réceptacle, aux classes de taille de l’image, légende gardée', (()=>{const h=A.mdRender('![Plateau](img:i1)',{images:[],attente:[{id:'i1',w:800,h:450,scale:50,caption:'',size:1000}]});
+     return /<figure class="md-fig md-iatt w50 fh5" data-iatt="i1" data-isz="1000" data-icap="Plateau">/.test(h)&&h.includes('<figcaption>Plateau</figcaption>')&&!/<img/.test(h);})());
+   ok('A781 : mdRender — dans un élément de liste et dans une case, le réceptacle aussi', (()=>{const at=[{id:'i1',w:40,h:30,size:5}],l=A.mdRender('1. a\n   ![](img:i1)',{attente:at}),c=A.mdRender('| x |\n|---|\n| ![](img:i1) |',{attente:at});
+     return /md-iatt md-lfig/.test(l)&&/md-iatt md-cfig/.test(c);})());
+   ok('A781 : mdRender — l’image présente gagne sur sa fiche d’attente ; sans fiche ni image : rien', (()=>{const d='data:image/png;base64,iVBORw0KGgo=';
+     return /<img/.test(A.mdRender('![](img:i1)',{images:[{id:'i1',data:d}],attente:[{id:'i1',w:4,h:3}]}))&&A.mdRender('![](img:zz)',{attente:[]})==='';})());
+   ok('A781 : mdRender — l’identifiant et la légende du réceptacle sont échappés (règle 4)', (()=>{const h=A.mdRender('![a"b<c](img:i1)',{attente:[{id:'i1',w:4,h:3}]});return h.includes('data-icap="a&quot;b&lt;c"')&&!h.includes('<c');})());
+   ok('A781 : imgAttNode — l’image d’un bloc en attente de sa galerie a son réceptacle ; un bloc qui a son image, non', A.imgAttNode({imgAttente:[{id:'i9',w:40,h:30,size:7}]},{imageRef:'i9'}).includes('class="node-iatt" data-iatt="i9"')&&A.imgAttNode({imgAttente:[{id:'i9'}]},{image:'x',imageRef:'i9'})===''&&A.imgAttNode({imgAttente:[]},{imageRef:'i9'})==='');
+   eq('A781 : rxManque — images en attente, vidéos et documents sans binaire ; l’introuvable compté à part', A.rxManque({imgAttente:[{id:'a'},{id:'b'}],videos:[{id:'v'}],docs:[{id:'d'},{id:'e'}]},new Set(['e']),id=>id==='b'), {i:1,v:1,d:1,xi:1,xv:0,xd:0});
+   eq('A781 : rxManque — binaires pas encore lus : les images seules se comptent', A.rxManque({imgAttente:[{id:'a'}],videos:[{id:'v'}],docs:[{id:'d'}]},null), {i:1,v:0,d:0,xi:0,xv:0,xd:0});
+   eq('A781 : rxListe — une nature, deux, trois', [A.rxListe(3,0,0),A.rxListe(1,0,2),A.rxListe(2,1,1)], ['3 images','1 image et 2 documents','2 images, 1 vidéo et 1 document']);
+   ok('A781 : rxLigneHtml — en ligne : ce qui manquait à l’ouverture, et le compte « 1 / 3 » avec sa barre', (()=>{const h=A.rxLigneHtml({i:2,v:0,d:0,xi:0,xv:0,xd:0},{i:3,v:0,d:0},true,true);
+     return h.includes('3 images en cours de réception')&&h.includes('1 / 3')&&/role="progressbar"[^>]*aria-valuenow="1"/.test(h)&&!h.includes('warn');})());
+   ok('A781 : rxLigneHtml — une seule image : pas de compte ni de barre', (()=>{const h=A.rxLigneHtml({i:1,v:0,d:0,xi:0,xv:0,xd:0},null,true,true);return h.includes('1 image en cours de réception')&&!h.includes(' / ')&&!h.includes('progressbar');})());
+   ok('A781 : rxLigneHtml — hors ligne : ambre, l’accord (« Elle arrivera », « Ils arriveront »), rien de promis sans compte', (()=>{const z={xi:0,xv:0,xd:0};
+     return A.rxLigneHtml({i:1,v:0,d:0,...z},null,false,true).includes('△ 1 image pas encore sur cet appareil. Elle arrivera à la reconnexion.')
+       &&A.rxLigneHtml({i:2,v:0,d:1,...z},null,false,true).includes('Ils arriveront à la reconnexion.')
+       &&A.rxLigneHtml({i:0,v:2,d:0,...z},null,false,true).includes('Elles arriveront')
+       &&!A.rxLigneHtml({i:0,v:0,d:1,...z},null,false,false).includes('reconnexion')&&A.rxLigneHtml({i:0,v:0,d:1,...z},null,false,false).includes('rx-l warn');})());
+   ok('A781 : rxLigneHtml — l’introuvable se dit à part ; rien ne manque : rien', A.rxLigneHtml({i:0,v:0,d:0,xi:1,xv:1,xd:0},null,true,true).includes('△ 1 image et 1 vidéo introuvables, ni sur cet appareil ni sur le serveur.')&&A.rxLigneHtml({i:0,v:0,d:0,xi:0,xv:0,xd:0},{i:3,v:0,d:0},true,true)==='');
+   eq('A781 : rxChoix — la première entrée de l’élément ouvert passe devant, sinon la tête', [A.rxChoix(['a','b','c'],x=>x==='c'),A.rxChoix(['a','b'],()=>false),A.rxChoix(['a','b','b'],x=>x==='b')], [2,0,1]);
    const P=A.migrateProtocol({title:'v',body:'![](vid:v1)\n\n- a\n  ![](vid:v1)',videos:[{id:'v1',name:'a.webm',size:9,mime:'video/webm',scale:50},{id:'v2',name:'b.webm',size:9,mime:'video/webm',scale:12}]});
    eq('A775 : la taille d’une vidéo est gardée si c’est un cran, oubliée sinon', [P.videos[0].scale,'scale' in P.videos[1]], [50,false]);
    const H=A.mdRender(P.body,{images:[],videos:P.videos});

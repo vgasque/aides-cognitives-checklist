@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-FjfCSeFSpt/DmC647Vyy0HWOeVP+Ckfj90i5cZKBSsY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-D2njmoWysWrM2RH9EDFkr4qivgJOWprEbL/BiM4NpR0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9170,6 +9170,39 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
   .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
+  /* A781 — CE QUI N'EST PAS ENCORE SUR L'APPAREIL TIENT SA PLACE ET LE DIT. Une image en attente de son fichier laissait
+     un vide muet. Son réceptacle a la boîte exacte de l'image (un svg aux dimensions de la fiche, mêmes règles de largeur
+     que `.md-fig img`) : à l'arrivée l'image le remplace sans que rien ne bouge. En réception : neutre (rien n'est à
+     faire, règle 8) ; hors ligne ou introuvable : mots en ambre, comme la vidéo (`.md-vph` sans glyphe svg). */
+  /* ⚠ La boîte est un `inline-block` à débordement masqué : sa ligne de base est alors son bord bas, comme celle d'une
+     image en ligne — sans cela le réceptacle faisait 7 px de moins que l'image (l'espace des jambages), et le texte
+     sautait à l'arrivée (mesuré). Là où l'image est un bloc (case de tableau, bloc d'aide, galerie), elle l'est aussi. */
+  .md-ibox{display:inline-block;width:100%;overflow:hidden;vertical-align:baseline}
+  :is(.md-cfig,.node-iatt,.gthumb)>.md-ibox{display:block}
+  .md-igr{display:grid}
+  .md-igr>*{grid-area:1/1;min-width:0}
+  .md-isz{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2)}
+  .md-igr>.md-vph{place-self:center}
+  .rx-sz{font-family:var(--f-mono);font-weight:500}
+  /* En petit (élément de liste, case, galerie), les mots restent, le poids s'efface : la boîte garde la taille de l'image. */
+  :is(.md-lfig,.md-cfig,.gthumb) .rx-sz{display:none}
+  :is(.md-cfig,.gthumb) .md-vph{padding:4px;gap:4px}
+  .node-iatt{display:block;margin-bottom:14px}
+  .gthumb .md-igr{aspect-ratio:4/3;overflow:hidden}
+  .gthumb .md-isz{height:100%}
+  /* La ligne sous le titre d'un élément ouvert : ce qui lui manque encore, et où en est la réception (jamais en session). */
+  .rx-line{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;font-size:var(--t-meta);font-weight:600;line-height:1.4;color:var(--ink-2)}
+  .rx-line:empty{display:none}
+  /* Tout est reçu : la ligne se tait mais GARDE sa place jusqu'au prochain rendu — la replier ferait remonter tout le
+     texte sous les yeux du lecteur (Safari ne compense pas). */
+  .rx-line.rx-fin{visibility:hidden}
+  .rx-n{white-space:nowrap}
+  .rx-l{display:flex;gap:6px;align-items:flex-start}
+  .rx-l svg{flex:none;margin-top:2px}
+  .rx-l.warn{color:var(--warn)}
+  .rx-line .sync-bar{height:4px;margin-top:0}
+  .rx-line .sync-bar>i{background:var(--ink-soft)}
+  body.view-read .rx-line{padding:0 8px}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
   /* A608 : « Pleine » = TOUTE la colonne, comme le promet le cadre de la poignée (A584) — l'image n'est plus affichée à
@@ -9195,6 +9228,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:560px){
     .md-fig.w25 img{width:25%}.md-fig.w33 img{width:33%}.md-fig.w50 img{width:50%}
     .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
+    .md-fig.w25 .md-ibox{width:25%}.md-fig.w33 .md-ibox{width:33%}.md-fig.w50 .md-ibox{width:50%}
+    .md-fig.w66 .md-ibox{width:66%}.md-fig.w75 .md-ibox{width:75%}
     /* A775 : une vidéo réduite, à la même part qu'une image (son réceptacle porte la vidéo). */
     .md-vfig.w25>.md-vbox{width:25%}.md-vfig.w33>.md-vbox{width:33%}.md-vfig.w50>.md-vbox{width:50%}
     .md-vfig.w66>.md-vbox{width:66%}.md-vfig.w75>.md-vbox{width:75%}
@@ -9734,6 +9769,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .att-timg{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
   /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
   .att-cloud{flex:none;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
+  .att-cloud.rx-in{color:var(--ink-2)}   /* A781 : en cours de réception — neutre, rien n'est à faire */
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
   /* Étroit (v5.44) : le nom garde toute la ligne, index · taille · outils passent dessous, à droite. */
@@ -10974,7 +11010,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.139.2';
+const APP_VERSION='5.140.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11840,7 +11876,12 @@ function mdRender(src,ctx){ctx=ctx||{};
   let tk=0;
   /* Figure d'une image : le bloc pleine colonne ET l'image d'un élément de liste (A642, `md-lfig` : à la largeur du
      texte de l'élément, plafonnée — la taille « Pleine » n'a pas de sens dans une liste). */
-  const figHtml=(id,caption,cls)=>{const im=imgs[id];if(!im)return '';const cap=caption||im.caption||'';
+  const att=Object.create(null);(ctx.attente||[]).forEach(a=>{if(a&&a.id&&!badKey(a.id)&&!imgs[a.id])att[a.id]=a;});
+  const figHtml=(id,caption,cls)=>{const im=imgs[id];
+    // A781 : une image dont le fichier n'est pas encore arrivé tient sa place (mêmes classes de taille que l'image).
+    if(!im){const a=att[id];if(!a)return '';const c=caption||a.caption||'';
+      return '<figure class="md-fig md-iatt'+(cls||(MD_SC[a.scale]||''))+(cls===' md-cfig'?'':mdFigAr(a.w,a.h))+'" data-iatt="'+esc(a.id)+'" data-isz="'+(a.size|0)+'" data-icap="'+esc(c)+'">'+imgAttBox(a)+(c?'<figcaption>'+esc(c)+'</figcaption>':'')+'</figure>';}
+    const cap=caption||im.caption||'';
     // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
     // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
     const data=safeImg(im.data);if(!data)return '';
@@ -11855,7 +11896,7 @@ function mdRender(src,ctx){ctx=ctx||{};
   const vids=Object.create(null);(ctx.videos||[]).forEach(v=>{if(v&&v.id&&!badKey(v.id)&&VID_EXT[v.mime])vids[v.id]=v;});
   const vidHtml=(id,caption,cls)=>{const v=vids[id];if(!v)return '';const cap=caption||'';
     // A775 : la taille vient d'une CLASSE du jeu fermé (MD_SC), comme une image ; aucune dans une liste ni une case.
-    return '<figure class="md-fig md-vfig'+(cls||(MD_SC[v.scale]||''))+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'"><div class="md-vbox"><span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig md-vfig'+(cls||(MD_SC[v.scale]||''))+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"><div class="md-vbox"><span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
@@ -19501,7 +19542,7 @@ function hydrateAttThumbs(entity){
         // présent garderait l'icône générique SANS badge, ce qui est le message juste).
         let rec=null;try{rec=await IDB.getAtt(a.id);}catch(e){}
         const present=!!attBuf(rec);
-        document.querySelectorAll(`[data-attcloud="${CSS.escape(a.id)}"]`).forEach(el=>{el.hidden=present;});
+        document.querySelectorAll(`[data-attcloud="${CSS.escape(a.id)}"]`).forEach(el=>{el.hidden=present;if(!present)rxDocPaint(el);});   // A781 : l'état en mots
         // 2. Vignette, seulement si le binaire est là.
         if(present)await _applyThumb(a.id);
       })
@@ -19722,7 +19763,7 @@ function paintIxChips(){
 // n'est pas encore arrivé ici — on le DÉCOUVRE à froid, jamais en crise. Caché par défaut
 // (l'état n'est connu qu'après la lecture IndexedDB de hydrateAttThumbs) ; registre ATTENTION
 // (glyphe + texte, jamais la couleur seule).
-function attListHtml(entity){const _n=(entity.docs||[]).length;return _n?`<section class="block"><div role="heading" aria-level="2" class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.docs.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden title="Ajouté sur un autre appareil — sera téléchargé à la prochaine synchronisation avec du réseau ; pas encore consultable hors ligne ici.">△ à télécharger</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
+function attListHtml(entity){const _n=(entity.docs||[]).length;return _n?`<section class="block"><div role="heading" aria-level="2" class="block-h h-doc">${headerIcon('h-doc')}Documents (${_n})</div><div class="att-list">${entity.docs.map(a=>`<button class="att-row" data-att="${esc(a.id)}" title="Ouvrir le document">${attThumbHtml(a)}<span class="att-name">${esc(a.name)}</span><span class="att-cloud" data-attcloud="${esc(a.id)}" hidden>△ pas sur cet appareil</span><span class="att-size">${fmtBytes(a.size)}</span></button>`).join('')}</div></section>`:'';}
 function bindAttList(entity){main.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(entity.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,entity);});
   // Vignettes SEULEMENT si une rangée est réellement dans le flux (v4.36.0). Générer une vignette
   // exige pdf.js : 1 773 Ko (389 + 1 384) à parser et un worker à démarrer. Or depuis v4.23.0 la
@@ -19927,7 +19968,7 @@ function bindPreviewBack(clear,badgeTxt){
 function renderProtocolRead(){
   const p=state.protocol;if(!p){state.view='library';return render();}
   const preview=!!state.previewFrom;
-  const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images,videos:p.videos})}</section>`:'';
+  const body=(p.body&&p.body.trim())?`<section class="block md-body">${mdRender(p.body,{images:p.images,videos:p.videos,attente:p.imgAttente})}</section>`:'';
   const docs=attListHtml(p);
   // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
   const rel=(p.links||[]).map(id=>relTarget(id)).filter(Boolean);
@@ -19935,6 +19976,7 @@ function renderProtocolRead(){
     <div class="ref-main">
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
     <div class="read-meta">${p.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(p.library)||'Partagée')}</span>`:''}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${catTag(p)}${p.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(p.code)}</span>`:''}<span class="card-date${reviewDue(p)?' stale':''}">${esc(fmtDate(p.validatedAt))}</span>${p.library&&p.updatedBy?`<span class="card-date" title="Auteur de la dernière modification">· dernière modification par ${esc(p.updatedBy)}</span>`:''}${preview?'':suiviPillHtml(p)}</div>
+    ${preview?'':`<div class="rx-line" data-rx="${esc(p.id)}" role="status">${rxLineHtml(p)}</div>`}
     <div class="ref-tocwrap"></div>
     ${p.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — ce protocole n'a pas encore été validé pour l'usage clinique.</div></div>`:''}
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
@@ -20053,6 +20095,7 @@ function renderProtocolRead(){
   ]);
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{state.previewFrom=null;openRel(b.dataset.openrel);});
   bindAttList(p);
+  rxApres();   // A781
   // Liens [texte](att:ID) du contenu rédigé -> même visionneuse que la section Documents.
   main.querySelectorAll('[data-mdatt]').forEach(a=>a.onclick=e=>{e.preventDefault();const at=(p.docs||[]).find(x=>x.id===a.dataset.mdatt);if(at)openPdfViewer(at,p,+a.dataset.mdpage||1);else toast('⚠ Document lié introuvable dans ce protocole.');});
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
@@ -20321,7 +20364,7 @@ function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[];
    aperçu côte à côte ; ≥ 1000 : l'aperçu vit dans la colonne de droite (inchangé). Partout : un
    « Plan » des titres (aller à une section), et l'aperçu SUIT le curseur — le bloc où l'on écrit est
    marqué (`.md-here`) ; toucher un bloc de l'aperçu ramène le curseur à sa ligne. */
-const mdPvHtml=p=>mdRender(p.body||'',{images:p.images,videos:p.videos,ln:true});
+const mdPvHtml=p=>mdRender(p.body||'',{images:p.images,videos:p.videos,attente:p.imgAttente,ln:true});
 /* A547 — LA MISE EN FORME EN DIRECT : LE DOCUMENT S'ÉDITE PAR BLOCS. Le rendu EST l'éditeur : on touche un bloc
    (titre, paragraphe, encadré, liste, tableau, image), il s'ouvre en Markdown dans un champ NATIF à lui ; le reste
    reste rendu. Pas de `contenteditable` (écarté, A452-A459) : chaque bloc est un <textarea>, le texte enregistré
@@ -20489,7 +20532,7 @@ function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||
   const G=new Set(many&&many.length>1?many:[grab]),lbl=G.size>1?G.size+' blocs':mdBlkLabel(src(R[grab]));
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
   return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(lbl)}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
-    +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images,videos:p.videos})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
+    +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
 function mdDocHtml(p,open,grab,many){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
   const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
   if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1">${uiIcon('plus',16,{sw:2.4})}Écrire le contenu…</button>`;
@@ -20504,7 +20547,7 @@ ${R.length>1?`        <button type="button" class="btn sm" data-mdbact="sel">${u
         <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
         <button type="button" class="btn sm danger" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
         <button type="button" class="btn sm primary mdb-done" data-mdbact="done">Terminé</button></div></div>`;
-    const h=mdRender(src,{images:p.images,videos:p.videos})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
+    const h=mdRender(src,{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
     /* A610 : « ＋ » au-dessus et au-dessous du SEUL bloc survolé (pointeur fin) — A550 retirait les « ＋ » de TOUS les
        interstices, visibles ensemble au survol du document et posés sur le texte ; ceux-ci n'existent que pour le bloc sous
        la souris, sur son cadre, cible de 32 px. Au doigt : « Bloc avant » / « Bloc après » du bloc ouvert. */
@@ -20965,16 +21008,113 @@ function vidPick(ta,p){if(!p)return;
 const _attAbsents=new Map(),ATT_ABSENT_MS=30*60*1000;
 const attAbsentRecent=(id,now)=>{const t=_attAbsents.get(id);return t!=null&&(now||Date.now())-t<ATT_ABSENT_MS;};
 const attIntrouvable=e=>!!e&&(e.status===404||(e.status===400&&/not.?found/i.test(String(e.message||''))));
+/* ═══ A781 — CE QUI N'EST PAS ENCORE SUR L'APPAREIL SE DIT, À SA PLACE (signalé par l'auteur : en connexion temporaire, un
+   protocole ouvert pendant la réception ne montrait RIEN à la place de ses images — « je ne savais pas que des images
+   étaient en cours de chargement ») ═══════════════════════════════════════════════════════════════════════════════════
+   UN SEUL VOCABULAIRE pour les trois natures de fichier (image, vidéo, document PDF), TROIS ÉTATS :
+   · 'in'  — en cours de réception (compte connecté, en ligne) : NEUTRE, rien n'est à faire (règle 8) ;
+   · 'off' — pas encore sur cet appareil (hors ligne, ou sans compte) : mots en AMBRE, on risque de croire l'élément complet ;
+   · 'x'   — introuvable partout (A770) : mots en ambre.
+   L'image a un RÉCEPTACLE à sa boîte exacte (`imgAttBox`) ; à l'arrivée elle le remplace SUR PLACE (`imgPose`), en session
+   aussi (décision de l'auteur : rien ne bouge, donc la règle 11 tient — amende A766 « jamais en soin »). L'élément ouvert
+   dit sous son titre ce qui lui manque (`rxLigneHtml`, jamais en session) et passe en tête des deux files (`rxPrio`). */
+const rxEnLigne=()=>{try{return Auth.signedIn()&&navigator.onLine!==false;}catch(e){return false;}};
+// L'état d'un fichier attendu. PURE.
+const rxEtat=(absent,enLigne)=>absent?'x':(enLigne?'in':'off');
+const rxEtatDe=id=>rxEtat(_attAbsents.has(id),rxEnLigne());
+/* Les mots d'un réceptacle (image ou vidéo) : glyphe + mots, le poids s'il est connu. PURE. */
+function rxPhHtml(k,etat,size){const nom=k==='vid'?'Vidéo':'Image',po=size>0?'<span class="rx-sz">'+esc(fmtBytes(size))+'</span>':'';
+  if(etat==='x')return '<span class="md-vph" data-rxe="x">△ '+nom+' introuvable, ni sur cet appareil ni sur le serveur.'
+    +(k==='vid'?' Si un autre de vos appareils l’a encore, ouvrez-y l’app : elle l’enverra. Sinon, réimportez-la depuis son fichier d’origine.':'')+'</span>';
+  if(etat==='off')return '<span class="md-vph" data-rxe="off"><span>△ '+nom+' pas encore sur cet appareil</span>'+po+'</span>';
+  return '<span class="md-vph" data-rxe="in">'+uiIcon('download',20)+'<span>'+nom+' en cours de réception</span>'+po+'</span>';}
+/* La boîte d'une image en attente : un svg aux dimensions de sa fiche (16 × 9 si elles manquent) — il se met à l'échelle
+   comme l'image le fera — et les mots par-dessus. */
+function imgAttBox(a){const ok=(a.w|0)>0&&(a.h|0)>0,w=ok?(a.w|0):16,h=ok?(a.h|0):9;
+  return '<span class="md-ibox"><span class="md-igr"><svg class="md-isz" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true"></svg>'+rxPhHtml('img',rxEtatDe(a.id),a.size|0)+'</span></span>';}
+// L'image d'un bloc d'aide, en attente de sa galerie (`imageRef`, A766) : son réceptacle, à la place de l'image.
+function imgAttNode(f,b){if(!b||b.image||!b.imageRef)return '';const a=((f&&f.imgAttente)||[]).find(x=>x&&x.id===b.imageRef);
+  return a?'<span class="node-iatt" data-iatt="'+esc(a.id)+'" data-isz="'+(a.size|0)+'">'+imgAttBox(a)+'</span>':'';}
+/* L'IMAGE ARRIVE : elle prend la place de chaque réceptacle à l'écran, sans re-rendu (nœuds créés, jamais d'innerHTML —
+   règle 4). Rend le nombre de réceptacles remplacés. */
+function imgPose(id,im){const data=safeImg(im&&im.data);if(!data)return 0;let n=0;
+  document.querySelectorAll('[data-iatt="'+CSS.escape(String(id))+'"]').forEach(h=>{const box=h.querySelector('.md-ibox');if(!box)return;
+    const bloc=h.classList.contains('node-iatt'),el=new Image(),cap=bloc?'':(h.dataset.icap||im.caption||'');
+    if((im.w|0)>0&&(im.h|0)>0){el.width=im.w|0;el.height=im.h|0;}
+    el.decoding='async';el.alt=cap;el.dataset.full=data;if(!bloc)el.dataset.cap=cap;el.src=data;
+    el.onclick=()=>openLightbox(el.dataset.full,el.dataset.cap||'');
+    if(bloc){el.className='node-img';h.replaceWith(el);}
+    else{box.replaceWith(el);h.classList.remove('md-iatt');h.removeAttribute('data-iatt');h.removeAttribute('data-isz');h.removeAttribute('data-icap');}
+    n++;});return n;}
+/* CE QUI MANQUE À UN ÉLÉMENT : images en attente, vidéos et documents sans binaire (`have` : les binaires présents ;
+   null = pas encore lu, les images seules se comptent). `absent(id)` : introuvable partout. PURE. */
+function rxManque(e,have,absent){const m={i:0,v:0,d:0,xi:0,xv:0,xd:0};if(!e)return m;absent=absent||(()=>false);
+  (e.imgAttente||[]).forEach(a=>{if(a&&a.id){if(absent(a.id))m.xi++;else m.i++;}});
+  if(have){(e.videos||[]).forEach(a=>{if(a&&a.id&&!have.has(a.id)){if(absent(a.id))m.xv++;else m.v++;}});
+    (e.docs||[]).forEach(a=>{if(a&&a.id&&!have.has(a.id)){if(absent(a.id))m.xd++;else m.d++;}});}
+  return m;}
+// « 2 images, 1 vidéo et 1 document ». PURE.
+function rxListe(i,v,d){const p=[i&&nb(i,'image'),v&&nb(v,'vidéo'),d&&nb(d,'document')].filter(Boolean);
+  return p.length>1?p.slice(0,-1).join(', ')+' et '+p[p.length-1]:(p[0]||'');}
+/* LA LIGNE SOUS LE TITRE. `m` : ce qui manque maintenant (`rxManque`) ; `deb` : ce qui manquait à l'ouverture (le total
+   du compte « 1 / 3 ») ; `enLigne` : la réception peut avancer ; `compte` : un compte est connecté (sinon rien n'arrivera
+   « à la reconnexion »). Rien quand rien ne manque : ce qui va bien ne dit rien. PURE. */
+function rxLigneHtml(m,deb,enLigne,compte){const reste=m.i+m.v+m.d,x=m.xi+m.xv+m.xd;if(!reste&&!x)return '';let h='';
+  if(reste&&enLigne){const di=Math.max(m.i,(deb&&deb.i)||0),dv=Math.max(m.v,(deb&&deb.v)||0),dd=Math.max(m.d,(deb&&deb.d)||0),N=di+dv+dd,k=N-reste;
+    h+='<span class="rx-l">'+uiIcon('download',14)+'<span>'+esc(rxListe(di,dv,dd))+' en cours de réception'+(N>1?' · <span class="rx-n">'+k+' / '+N+'</span>':'')+'</span></span>'
+      +(N>1?'<span class="sync-bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+N+'" aria-valuenow="'+k+'" aria-label="Réception des fichiers de cet élément"><i style="transform:scaleX('+(k/N).toFixed(3)+')"></i></span>':'');}
+  else if(reste){const pron=reste>1?(m.d?'Ils arriveront':'Elles arriveront'):(m.d?'Il arrivera':'Elle arrivera');
+    h+='<span class="rx-l warn"><span>△ '+esc(rxListe(m.i,m.v,m.d))+' pas encore sur cet appareil.'+(compte?' '+pron+' à la reconnexion.':'')+'</span></span>';}
+  if(x)h+='<span class="rx-l warn"><span>△ '+esc(rxListe(m.xi,m.xv,m.xd))+' introuvable'+(x>1?'s':'')+', ni sur cet appareil ni sur le serveur.</span></span>';
+  return h;}
+// Dans une file, la place de la première entrée de l'élément ouvert — sinon la tête. PURE.
+function rxChoix(file,estPrio){for(let i=0;i<file.length;i++)if(estPrio(file[i]))return i;return 0;}
+/* L'élément À L'ÉCRAN (lecture d'un protocole ou d'une aide), tel qu'il est dans la liste en mémoire. */
+function rxCible(){const v=state.view;
+  if(v==='protocolRead'&&state.protocol)return protocols.find(x=>x.id===state.protocol.id)||state.protocol;
+  if(v==='read'&&state.fiche)return fiches.find(x=>x.id===state.fiche.id)||state.fiche;return null;}
+// Ce qui passe DEVANT dans les files de réception : l'élément ouvert (lu ou en cours de modification) et ses binaires.
+function rxPrio(){const v=state.view,e=rxCible()||(v==='protocolEdit'?state.pdraft:(v==='edit'?state.draft:null));if(!e||!e.id)return null;
+  const atts=new Set();(e.videos||[]).concat(e.docs||[]).forEach(a=>{if(a&&a.id)atts.add(a.id);});return {id:e.id,atts};}
+let _rxHave=null;const _rxDebut=new Map(),_rxKick=new Map();
+function rxLineHtml(e){if(!e||!e.id)return '';const m=rxManque(e,_rxHave,id=>_attAbsents.has(id)),reste=m.i+m.v+m.d;
+  if(!reste)_rxDebut.delete(e.id);
+  else{const d=_rxDebut.get(e.id)||{i:0,v:0,d:0};_rxDebut.set(e.id,{i:Math.max(d.i,m.i),v:Math.max(d.v,m.v),d:Math.max(d.d,m.d)});}
+  let compte=false;try{compte=Auth.signedIn();}catch(_){}
+  return rxLigneHtml(m,_rxDebut.get(e.id),rxEnLigne(),compte);}
+// L'état d'un document PDF absent, sur sa rangée : mêmes trois états, en un mot (la rangée est étroite).
+function rxDocPaint(el){const et=rxEtatDe(el.dataset.attcloud);if(el.dataset.rxe===et)return;el.dataset.rxe=et;el.classList.toggle('rx-in',et==='in');
+  el.textContent=et==='in'?'↓ en réception':(et==='x'?'△ introuvable':'△ pas sur cet appareil');
+  el.title=et==='in'?'Ajouté sur un autre appareil — en cours de réception ; pas encore consultable hors ligne ici.'
+    :(et==='x'?'Introuvable, ni sur cet appareil ni sur le serveur.':'Ajouté sur un autre appareil — pas encore sur celui-ci ; il arrivera à la reconnexion.');}
+/* TOUT SE REPEINT SUR PLACE (jamais de re-rendu) : la ligne sous le titre, les mots des réceptacles d'image, des vidéos
+   absentes et des rangées de documents — à chaque arrivée, et quand la connexion change. */
+function rxPaint(){const e=rxCible();
+  document.querySelectorAll('[data-rx]').forEach(el=>{const h=e&&e.id===el.dataset.rx?rxLineHtml(e):'';if(el._rxh===h)return;el._rxh=h;
+    if(!h&&el.firstChild){el.classList.add('rx-fin');return;}   // tout est reçu : la ligne garde sa place (pas de saut)
+    el.classList.remove('rx-fin');el.innerHTML=h;});
+  document.querySelectorAll('[data-iatt]').forEach(h=>{const ph=h.querySelector('.md-vph');if(!ph)return;const et=rxEtatDe(h.dataset.iatt);if(ph.dataset.rxe===et)return;
+    const t=document.createElement('template');t.innerHTML=rxPhHtml('img',et,+h.dataset.isz||0);ph.replaceWith(t.content.firstChild);});
+  document.querySelectorAll('figure.md-vfig[data-vh=""]').forEach(f=>vidHydrate(f));
+  document.querySelectorAll('[data-attcloud]:not([hidden])').forEach(rxDocPaint);}
+/* APRÈS LE RENDU d'une lecture : les binaires présents se relisent (la ligne compte alors vidéos et documents), puis les
+   images de l'élément ouvert sont demandées si rien ne les reçoit déjà — une fois par minute au plus par élément. */
+async function rxApres(){const e=rxCible();if(!e)return;
+  const aBin=(e.videos||[]).length||(e.docs||[]).length,aImg=(e.imgAttente||[]).some(a=>a&&a.id&&!attAbsentRecent(a.id));
+  // Rien à lire là où la ligne n'est pas (en session, en aperçu) ni pour un élément sans vidéo ni document.
+  if(aBin&&document.querySelector('[data-rx]')){try{if(supportsAttachments())_rxHave=new Set(await IDB.getAttIds());}catch(_){}
+    rxPaint();}
+  if(!aImg||!rxEnLigne()||Sync._imgDl)return;
+  const t=Date.now();if(t-(_rxKick.get(e.id)||0)<60000)return;_rxKick.set(e.id,t);
+  try{Sync.imgHydrate();}catch(_){}}
 const vidReduce=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
 let _vidIO=null;
 async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1';
   const id=fig.dataset.vid,box=fig.querySelector('.md-vbox');if(!id||!box)return;
   let rec=null;try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}
   const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
-  if(!buf){fig.dataset.vh='';fig.classList.add('md-vabs');
-    box.innerHTML=_attAbsents.has(id)
-      ?'<span class="md-vph">△ Vidéo introuvable, ni sur cet appareil ni sur le serveur. Si un autre de vos appareils l’a encore, ouvrez-y l’app : elle l’enverra. Sinon, réimportez-la depuis son fichier d’origine.</span>'
-      :'<span class="md-vph">△ Vidéo pas encore sur cet appareil — elle arrive avec la synchronisation.</span>';return;}
+  if(!buf){fig.dataset.vh='';const et=rxEtatDe(id);fig.classList.toggle('md-vabs',et!=='in');   // A781 : en réception = neutre
+    if(((box.querySelector('.md-vph')||{}).dataset||{}).rxe!==et)box.innerHTML=rxPhHtml('vid',et,+fig.dataset.vsize||0);return;}
   fig.classList.remove('md-vabs');
   const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
   v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
@@ -25107,7 +25247,7 @@ function renderRead(){
     const nV=clean(listOf(f,'verify')).length,nD=clean(listOf(f,'differentials')).length,nP=clean(listOf(f,'posology')).length;
     /* v5.30 (A354) : « Références » — schémas, documents, sources, renvois — en carte sous les autres ;
        la touche « Consulter » du quai et la rangée sous la fiche sont parties avec (une seule porte). */
-    const nR=(f.images||[]).length+(f.docs||[]).length+clean(f.sources).length+(f.links||[]).map(id=>relTarget(id)).filter(Boolean).length;
+    const nR=(f.images||[]).length+(f.imgAttente||[]).length+(f.docs||[]).length+clean(f.sources).length+(f.links||[]).map(id=>relTarget(id)).filter(Boolean).length;
     return card('verify','△','À vérifier',nV,verifyH)+card('diff','?','Diagnostics différentiels',nD,diffH)+card('pos',uiIcon('pill',16),'Repères posologiques',nP,wideRead?'':posH)+card('refs','▤','Références',nR,nR?refSheetHtml(f,true):'');};
   const sessFoldH=agirDabord?(()=>{state.sessFold=state.sessFold||new Set();
     // A396 : chaque revue reste ouvrable sous le bloc, sous son nom, avec les mêmes coches que dans le bloc.
@@ -25223,6 +25363,7 @@ function renderRead(){
     ${''/* A520 : UNE sous-ligne, dans l'ordre de la maquette — « ● SMUR · adulte · ACR · validée 01/2025 », puis les
        états en pastilles (« △ À relire », « △ À compléter ») ; le discriminant y entre, le bandeau « À relire » part. */}
     <div class="read-meta">${catTag(f,true)}${f.discriminant?`<span class="read-disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="card-date" style="font-family:var(--f-mono)">${esc(f.code)}</span>`:''}<span class="card-date${reviewDue(f)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute l’aide)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}${started?'':suiviPillHtml(f)}</div>
+    ${(started||preview)?'':`<div class="rx-line" data-rx="${esc(f.id)}" role="status">${rxLineHtml(f)}</div>`}
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette aide n’a pas encore été validée pour l’usage clinique.</div></div>`:''}
     ${''/* A460 : « À relire » est un signal de MAINTENANCE — il se lit avant la session, pas pendant : en
        session il n'appelle aucun geste et repoussait la 1ʳᵉ étape sous le pli (budget, 320 px à 130 %).
@@ -25241,6 +25382,7 @@ function renderRead(){
   dockFold();
   if(_dockY){const d=document.querySelector('.rt-dock');if(d)d.scrollTop=_dockY;}
   bindReadEvents(f,blk,cur);
+  rxApres();   // A781 : ce qui manque à l'aide se relit et se dit (réceptacles, ligne sous le titre)
 }
 /* ANCRAGE « rien ne bouge sous le doigt » — SOURCE UNIQUE (v4.45.0, ex-quatre copies). Le RÉSIDU
    est RENVOYÉ, JAMAIS CORRIGÉ : compensation BORNÉE par le haut de page — interdit d'y adosser le
@@ -25781,7 +25923,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const passTag=pi.total>1?` <span class="pass-n">passage ${pi.pass}/${pi.total}</span>`:'';
   // Passage entré par une COMPLICATION : annoncé en toutes lettres (⚡ + mot, jamais le glyphe seul).
   const cxTag=(Runtime.cxBack||{})[seq]?' <span class="cx-tag">'+boltIcon(11)+' complication</span>':'';
-  const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
+  const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:imgAttNode(f,b);   // A781 : son réceptacle tant que le fichier n'est pas là
   const taken=dec?decTaken(b,idx):null;
   let bodyH='',count='';
   if(dec){
@@ -26143,7 +26285,8 @@ function refSheetHtml(f,sansDiff){
     return `<div class="rs-row${cl}"><span class="rs-t">${cl===' crit'?uiIcon('warn',14)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="rs-v">${esc(cr.r)}</span>`:''}</div>`;};
   const ddx=clean(listOf(f,'differentials'));
   const diff=ddx.length?`<div class="rs-rows">${ddx.map(rsRow).join('')}</div>`:'';
-  const gal=(f.images||[]).length?`<div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div>`:'';
+  const galAtt=(f.imgAttente||[]).filter(a=>a&&a.id).map(a=>`<div class="gthumb" data-iatt="${esc(a.id)}" data-isz="${a.size|0}" data-icap="${esc(a.caption||'')}">${imgAttBox(a)}${a.caption?`<div class="gcap">${esc(a.caption)}</div>`:''}</div>`).join('');   // A781
+  const gal=((f.images||[]).length||galAtt)?`<div class="gallery">${(f.images||[]).map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}${galAtt}</div>`:'';
   const docs=attListHtml(f);
   const refs=clean(f.sources);
   const refsH=refs.length?`<ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol>`:'';
@@ -37262,7 +37405,9 @@ async function attFetchOne(id,path){
   const r=await storageReq('GET',path,undefined,undefined,undefined,NET_TIMEOUT_FILE_MAX);
   const buf=await r.arrayBuffer();
   await attPut({id:id,buf:buf,size:buf.byteLength,type:attTypeOfPath(path),createdAt:Date.now(),dirty:0,remotePath:path});
-  refreshAttRow(id);vidRefresh(id);}
+  refreshAttRow(id);vidRefresh(id);
+  if(_rxHave)_rxHave.add(id);
+  try{rxPaint();}catch(e){}}
 // File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
 // entité ne référence son document) : vidée à chaque synchro, survit aux redémarrages.
 const ATT_PATH_RX=/^[ul]\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$/;   // A766 : images
@@ -37952,7 +38097,10 @@ const Sync={
       /* A764 : la réception des fichiers se compte aussi (« Réception · 3 / 14 fichiers · 40 / 210 Mo ») et garde
          l'écran allumé le temps qu'il faut — mais seulement hors d'une synchro en cours, qui tient la pastille. */
       const n=missing.length,ot=missing.reduce((t,id)=>t+(taille[id]||0),0),dit=n>1||ot>=1048576;let k=0,o=0;
-      (async()=>{try{for(const id of missing){
+      (async()=>{try{while(missing.length){
+          /* A781 : l'élément ouvert passe DEVANT — la place se choisit à chaque tour, donc aussi pour un élément ouvert
+             pendant que la file tourne. */
+          const pr=rxPrio(),id=missing.splice(rxChoix(missing,x=>!!pr&&pr.atts.has(x)),1)[0];
           if(dit&&!this.running)syncProg('in',k,n,'fichiers',o,ot);
           // A689 : chaque espace citant est essayé (bibliothèques d'abord), le premier qui répond gagne
           /* A767 : absent de TOUS les chemins (404 — ou 400 « not found », selon la version du stockage) ≠ réseau en
@@ -37967,7 +38115,7 @@ const Sync={
               const r=await IDB.getAtt(id);if(r){r.scope=ou;r.dirty=1;await attPut(r);}this._attRepris=(this._attRepris||0)+1;}
             catch(e){if(!attIntrouvable(e))absent=false;}}
           if(!eu&&absent)_attAbsents.set(id,Date.now());else _attAbsents.delete(id);
-          if(!eu)vidRefresh(id);
+          if(!eu){vidRefresh(id);try{rxPaint();}catch(e){}}
           k++;o+=taille[id]||0;}
       }finally{this._attDl=false;refreshAttOffline();
         if(this._attRepris){toast('↻ '+nb(this._attRepris,'fichier')+' retrouvé'+(this._attRepris>1?'s':'')+' dans votre espace Perso du serveur : '+(this._attRepris>1?'ils repartent':'il repart')+' vers la bibliothèque.',8000);this._attRepris=0;try{this.schedule();}catch(e){}}
@@ -38028,17 +38176,21 @@ const Sync={
     return refus;},
   /* A766 — LA RÉCEPTION DES IMAGES, EN FOND : une image en attente est téléchargée, rangée dans son élément (data-URL),
      l'image de bloc qui la cite retrouvée — sans marquer l'élément « à renvoyer » ni toucher sa date. Comptée (« Réception ·
-     n / N images · x / y Mo ») hors d'une synchro en cours ; l'écran ouvert se redessine à la fin, jamais en soin ni dans un
-     éditeur. */
+     n / N images · x / y Mo ») hors d'une synchro en cours. A781 : chaque image prend sa place DÈS qu'elle est reçue, dans
+     son réceptacle (`imgPose`, en session aussi) ; l'élément ouvert passe devant ; jamais rien dans un éditeur. */
   imgHydrate(){if(this._imgDl||!Auth.signedIn())return;
-    const taches=[];for(const e of fiches.concat(protocols))if(e&&!e.deletedAt)(e.imgAttente||[]).forEach(a=>{if(a&&a.id)taches.push({id:e.id,a,lib:e.library||null,edit:canEditFiche(e)});});
+    const taches=[];for(const e of fiches.concat(protocols))if(e&&!e.deletedAt)(e.imgAttente||[]).forEach(a=>{if(a&&a.id&&!attAbsentRecent(a.id))taches.push({id:e.id,a,lib:e.library||null,edit:canEditFiche(e)});});   // A781 : une image introuvable partout attend 30 min, comme un fichier (A770)
     if(!taches.length)return;this._imgDl=true;
-    const uidv=Auth.user().id,n=taches.length,ot=taches.reduce((t,x)=>t+(x.a.size||0),0),dit=n>1||ot>=1048576;let k=0,o=0,recus=0;
-    (async()=>{try{for(const t of taches){
+    const uidv=Auth.user().id,n=taches.length,ot=taches.reduce((t,x)=>t+(x.a.size||0),0),dit=n>1||ot>=1048576;let k=0,o=0,recus=0,aRendre=false;
+    const enEdition=()=>state.view==='edit'||state.view==='protocolEdit';
+    (async()=>{try{while(taches.length){
+        // A781 : les images de l'élément ouvert passent devant (la place se choisit à chaque tour).
+        const pr=rxPrio(),t=taches.splice(rxChoix(taches,x=>!!pr&&x.id===pr.id),1)[0];
         if(dit&&!this.running)syncProg('in',k,n,'images',o,ot);
-        const ext=IMG_MIMES[t.a.mime]||'webp';
+        const ext=IMG_MIMES[t.a.mime]||'webp';let absent=true,eu=false;
         for(const pth of attFetchPaths(t.a.id,[{lib:t.lib,del:false,edit:t.edit}],uidv,ext)){
           try{const r=await storageReq('GET',pth,undefined,undefined,undefined,NET_TIMEOUT_FILE_MAX);const u8=new Uint8Array(await r.arrayBuffer());
+            absent=false;
             if(!imgKind(u8.subarray(0,64)))break;
             const data='data:'+t.a.mime+';base64,'+b64DeOctets(u8);if(!safeImg(data))break;
             const arr=fiches.some(x=>x.id===t.id)?fiches:protocols,cur=arr.find(x=>x.id===t.id);if(!cur)break;
@@ -38046,12 +38198,21 @@ const Sync={
             const a=cur.imgAttente.splice(i,1)[0];if(!cur.imgAttente.length)delete cur.imgAttente;
             (cur.images=cur.images||[]).push({id:a.id,data,w:a.w,h:a.h,caption:a.caption,scale:a.scale});imgResolve(cur);
             if(arr===fiches)await Data.put(cur);else await Data.putProtocol(cur);   // ni dirty ni date : rien à renvoyer
-            const c=imgCarte();c[pth]={p:pth,fp:imgFp(data)};imgCarteEcrire(c);recus++;break;}
-          catch(e){}}
+            const c=imgCarte();c[pth]={p:pth,fp:imgFp(data)};imgCarteEcrire(c);recus++;eu=true;
+            /* A781 — ELLE PREND SA PLACE TOUT DE SUITE, dans son réceptacle (en session aussi : rien ne bouge) ; jamais dans
+               un éditeur. Un re-rendu de fin ne reste dû que là où l'image ne s'est pas posée sur place. */
+            const vue=rxCible();
+            if(!enEdition()&&vue&&vue.id===cur.id){const posee=imgPose(a.id,cur.images[cur.images.length-1]);try{rxPaint();}catch(e){}
+              if(!posee||arr===fiches)aRendre=true;}
+            else if(!enEdition()&&!vue)aRendre=true;
+            break;}
+          catch(e){if(!attIntrouvable(e))absent=false;}}
+        if(eu)_attAbsents.delete(t.a.id);
+        else if(absent){_attAbsents.set(t.a.id,Date.now());try{rxPaint();}catch(e){}}
         k++;o+=t.a.size||0;}
     }finally{this._imgDl=false;
       if(dit&&_syncProg.quoi==='images'&&_syncProg.sens==='in'){syncProg('',0,0,'');if(!this.running&&Auth.signedIn())setSyncChip('ok','Synchronisé');}
-      if(recus&&!document.body.classList.contains('crisis-live')&&state.view!=='edit'&&state.view!=='protocolEdit')try{render();}catch(e){}}})();},
+      if(recus&&aRendre&&!document.body.classList.contains('crisis-live')&&!enEdition())try{render();}catch(e){}}})();},
   async _syncCats(){
     const uidv=Auth.user().id;
     // Un document de catégories PAR BIBLIOTHÈQUE : Perso (clé '') + chaque bibliothèque (clé = id).
@@ -40335,11 +40496,11 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Share.mode!=='off'&&Share.status==='active')Share._kick(0);});
 
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
-window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');paintStorage();Sync.full();
+window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');paintStorage();try{rxPaint();}catch(e){}Sync.full();
   /* Reprise IMMÉDIATE du partage en ligne au retour du réseau (v5.14.20) : le sondage retente
      de lui-même, mais à sa cadence — ici on ne fait pas attendre l'écran d'un invité figé. */
   try{if(Share.mode!=='off'&&Share.status==='active')Share._kick(0);}catch(e){}});
-window.addEventListener('offline',()=>{setSyncChip('off','Hors ligne');paintStorage();});   // D7 : la ligne « Hors ligne » du pied suit l'évènement
+window.addEventListener('offline',()=>{setSyncChip('off','Hors ligne');paintStorage();try{rxPaint();}catch(e){}});   // D7 : la ligne « Hors ligne » du pied suit l'évènement
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Sync.schedule();});
 
 /* ===== Versions précédentes (réversibilité) ===== */
@@ -40968,7 +41129,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
