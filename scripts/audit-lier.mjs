@@ -66,6 +66,9 @@ function bouchon(srvst, vu) {
       return J(srvst.verifyOk ? { access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: UID, email: 'kim@test.local' } } : {}); }
     if (p === '/auth/v1/token') return J({ access_token: 'at', refresh_token: 'rt', expires_in: 3600, user: { id: UID, email: 'kim@test.local' } });
     if (p.startsWith('/auth/v1/logout')) { vu.logout = (vu.logout || 0) + 1; return route.fulfill({ status: 204, body: '' }); }
+    /* A655 (section 6) : une session que le serveur n'a PAS reçue — sans ce refus, toute synchro passée avant la veille
+       révoquée l'envoie (201), et l'appareil n'a plus rien à retenir : la veille l'efface au lieu de demander. */
+    if (p === '/rest/v1/sessions' && m === 'POST' && srvst.sessKo) { (vu.sessKo = vu.sessKo || []).push(...(body || []).map(x => x.id)); return J({ message: 'indisponible' }, 503); }
     if (p === '/rest/v1/sessions' && m === 'POST') { (vu.sessions = vu.sessions || []).push(...(body || [])); return route.fulfill({ status: 201, body: '' }); }
     if (m === 'GET') return J([]);
     (vu.ecrit = vu.ecrit || []).push(m + ' ' + p);   // A693 : ce qui est ÉCRIT dans les tables (hors sessions)
@@ -426,7 +429,7 @@ await ctx.close();
   // Signalé : « je peux continuer à modifier mes fiches et lancer des sessions jusqu'à ce que je recharge la page ».
   // Une session terminée pas encore envoyée retient l'effacement (rien ne se perd en silence) : c'est le cas signalé.
   const c8 = await br.newContext({ viewport: { width: 1200, height: 900 } });
-  const st8 = { verifyOk: true, rules: { edit: 'libre', del: 'tel', repl: 'non', exp: 'oui', dur: 28 } }, vu8 = {};
+  const st8 = { verifyOk: true, rules: { edit: 'libre', del: 'tel', repl: 'non', exp: 'oui', dur: 28 }, sessKo: true }, vu8 = {};
   await c8.route('**/*.supabase.co/**', bouchon(st8, vu8));
   const pg = await c8.newPage();
   await pg.goto(URL0);
@@ -446,13 +449,20 @@ await ctx.close();
   const lus = (vu8.link_poll || []).length;
   /* Une veille déjà EN VOL rendrait `Link.watch()` sans rien faire (elle est à vol unique, `_wBusy`) : si elle a sondé
      AVANT que la réponse ne passe à « revoked », la déconnexion n'est apprise qu'à la veille suivante, après les 8 s
-     — rouge en CI sur #98 (runner lent), vert ici. On attend qu'elle ait fini, comme pour la synchro en section 10. */
+     — rouge en CI sur #98 (runner lent), vert ici. On attend qu'elle ait fini, comme pour la synchro en section 10.
+     L'AUTRE COURSE, celle qui rougissait encore à la passe complète (lot v5.139) : cette veille-là, encore connectée,
+     programme une synchro (`Sync.schedule`) — sous charge, elle partait avant la veille révoquée et ENVOYAIT la session
+     ci-dessus ; plus rien à retenir, la veille effaçait l'appareil (rechargement) au lieu de demander, et la fenêtre ne
+     venait jamais. Reproduit à coup sûr en forçant `Sync.full()` ici. Ce n'est pas un défaut de l'app (une session
+     reçue n'a pas à retenir l'effacement) : la précondition du cas signalé se pose au serveur, qui refuse l'envoi
+     (`sessKo`), et le témoin ci-dessous la vérifie au lieu de mourir sur un délai. */
   await pg.waitForFunction(() => !Link._wBusy, null, { timeout: 15000 });
   await pg.evaluate(() => Link.watch());
-  await pg.waitForFunction(() => document.getElementById('linkModal').classList.contains('on'), null, { timeout: 8000 });
+  const vue = await pg.waitForFunction(() => document.getElementById('linkModal').classList.contains('on'), null, { timeout: 8000 }).then(() => true, () => false);
   const r = await pg.evaluate(() => ({ rev: linkShared() && linkShared().revoked, titre: document.getElementById('linkModalTitle').textContent,
-    corps: document.getElementById('linkBody').textContent, fiches: fiches.length, ask: Link._ask }));
-  t('la veille apprend la déconnexion : retenue sur le disque, et dit une fois', r.rev === true && /Appareil déconnecté/.test(r.titre) && (vu8.link_poll || []).length > lus, JSON.stringify(r));
+    corps: document.getElementById('linkBody').textContent, fiches: fiches.length, ask: Link._ask })).catch(e => ({ err: String(e).slice(0, 120) }));
+  const recue = (vu8.sessions || []).some(x => x && x.id === 's-poste-z');
+  t('la veille apprend la déconnexion : retenue sur le disque, et dit une fois', vue && !recue && r.rev === true && /Appareil déconnecté/.test(r.titre) && (vu8.link_poll || []).length > lus, JSON.stringify({ vue, recue, refusee: vu8.sessKo || [], ...r }));
   t('… la session pas encore envoyée est NOMMÉE (PDF depuis « Sessions »), l’appareil pas effacé en silence', /pas rejoint votre historique/.test(r.corps) && r.fiches === 1 && r.ask, JSON.stringify(r));
   await pg.evaluate(() => Link.close());
   const g = await pg.evaluate(async () => { const o = {}; const titre = () => { const m = document.getElementById('linkModal');
