@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.140.0] — 2026-11-17
+Une image, une vidéo ou un document qui n'est pas encore sur l'appareil le dit, à sa place (A781). Aucune mise à jour
+du serveur.
+- **Une image en cours de réception a son cadre**, exactement à la taille qu'elle aura : « Image en cours de
+  réception », son poids, et sa légende déjà en dessous. Avant, la page ne montrait rien à sa place. Le cadre vaut
+  dans le texte d'un protocole, dans un élément de liste, dans une case de tableau, dans le bloc d'une aide et dans
+  « Tout voir ».
+- **L'image prend sa place dès qu'elle est reçue**, une par une, sans que le texte bouge — l'écran n'attend plus la
+  fin de toute la réception. En session aussi : l'image arrive dans son cadre, aucune étape ne bouge, rien ne s'affiche
+  d'autre.
+- **Sous le titre de l'élément ouvert**, une ligne dit ce qui lui manque et où en est la réception : « 4 images, 1
+  vidéo et 1 document en cours de réception · 2 / 6 ». Elle disparaît quand tout est là. Jamais en session.
+- **L'élément que vous ouvrez passe devant** : ses images, ses vidéos et ses documents sont reçus avant le reste de la
+  bibliothèque, même si la réception avait déjà commencé.
+- **Les mêmes mots pour les trois** : en réception (gris, rien à faire) ; « pas encore sur cet appareil » (ambre) hors
+  ligne, avec « arrivera à la reconnexion » ; « introuvable » (ambre) si le serveur ne l'a pas. La rangée d'un document
+  dit « ↓ en réception » ou « △ pas sur cet appareil » à la place de « △ à télécharger » ; une vidéo dit « Vidéo en
+  cours de réception ».
+- Une image que le serveur n'a pas le dit, et n'est plus redemandée à chaque passage (30 minutes d'attente, comme les
+  autres fichiers).
+- Limite : le cadre d'une vidéo garde sa forme 4 : 3 tant que la vidéo n'est pas là (ses dimensions ne sont pas
+  connues avant) ; sa hauteur peut donc encore changer à l'arrivée.
+- Vérifié sur Chromium, WebKit (le moteur de Safari) et Firefox : le cadre et l'image posée ont la même taille.
+
 ## [5.139.2] — 2026-11-17
 Correctif : au téléphone, clavier ouvert, la grille d'un tableau n'a plus qu'un seul défilement (A780). Aucune mise à
 jour du serveur.
@@ -276,20 +300,3 @@ Fenêtre d'import au bureau : la bulle « Bibliothèque » ne se coupe plus en d
   nom était réduit à « Cours … » et la bulle devenait plus haute que sa voisine « Catégorie ».
 - Le mot « Bibliothèque » ne se coupe plus ; seul le nom de la bibliothèque se raccourcit s'il le faut, et se lit en
   entier au survol. La colonne Bibliothèque est un peu plus large.
-
-## [5.130.0] — 2026-11-15
-La fenêtre d'import refaite : une liste groupée au téléphone, des colonnes au bureau (A753).
-- **Au téléphone**, l'import s'ouvre en feuille du bas, qu'on referme en la tirant par sa poignée. Une seule phrase
-  d'introduction ; « Ranger les cochés dans » devient deux rangées « Bibliothèque › » et « Catégorie › » ; les
-  éléments sont groupés par nature (« Aides · 3 sur 3 », « Protocoles · 1 sur 1 »), chacun avec son « Tout cocher » ou
-  « Tout décocher ». La destination d'un élément se touche comme un lien (« Perso › »), plus en pastille en pointillé.
-- **Au bureau**, quand la fenêtre est assez large : une ligne par élément, et deux colonnes, Bibliothèque et
-  Catégorie. Les commandes qui règlent tous les cochés sont posées en tête de leur colonne, avec une case pour tout
-  cocher ou décocher. « Comparer » déplie la différence sous la ligne, sur toute la largeur.
-- **Protocole ou page Notion** : « Où va ce contenu ? » propose d'abord deux choix — « Nouveau protocole » ou
-  « Verser dans un protocole » ; la recherche n'apparaît que pour verser. Rien n'est jamais remplacé.
-- **Bibliothèque** : chaque choix dit qui la verra (« Perso — à vous seul », « SMUR — partagée · visible par ses
-  membres »). Même liste pour « Déplacer vers une bibliothèque » de la sélection.
-- **Catégorie** : « Garder la catégorie du fichier » nomme la catégorie gardée ; une catégorie se crée dans le menu
-  même (v5.129).
-- Rien ne change à ce qui est importé ni à l'endroit où chaque élément arrive.

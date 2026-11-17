@@ -12068,6 +12068,147 @@ await sec('A766 · les images voyagent en fichiers : migration, lignes allégée
   await B.close();
 });
 
+/* A781 — CE QUI N'EST PAS ENCORE SUR L'APPAREIL SE DIT, À SA PLACE. Signalé par l'auteur : en connexion temporaire, un
+   protocole ouvert pendant la réception ne montrait rien à la place de ses images. Deux appareils sur un serveur simulé
+   dont les FICHIERS sont retenus puis relâchés un à un (`gate`) : B ouvre le protocole avant ses images — chaque image a
+   son réceptacle à sa boîte exacte, la ligne sous le titre compte, l'élément ouvert passe devant dans la file, l'image
+   prend sa place SANS re-rendu et sans que rien ne bouge, hors ligne tout passe en ambre, une image absente du serveur
+   le dit et n'est pas redemandée ; en SESSION, l'image du bloc arrive dans son cadre, sans ligne, sans notification. */
+await sec('A781 · images, vidéos et documents en cours de réception : réceptacle, ligne sous le titre, arrivée sur place', async () => {
+  const UID='00000000-0000-0000-0000-0000000000aa';
+  const srv={rows:{protocols:new Map(),cognitive_aids:new Map()},files:new Map(),gate:false,attente:[],gets:[]};
+  const nom=k=>k.split('/').pop();
+  const monte=async(page,gated)=>{
+    await page.route(/\/rest\/v1\/|\/auth\/v1\/|\/storage\/v1\//,async route=>{const q=route.request(),u=decodeURIComponent(q.url()),M=q.method();
+      const tm=u.match(/\/rest\/v1\/(protocols|cognitive_aids)(?:\?|$)/);
+      if(tm&&M==='GET'){const all=[...srv.rows[tm[1]].values()];
+        if(/select=id,updated_at,deleted_at/.test(u)){const g=(u.match(/updated_at=gt\.([^&]+)/)||[])[1],since=g?Date.parse(g):-1;
+          return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(all.filter(r=>Date.parse(r.updated_at)>since).map(r=>({id:r.id,updated_at:r.updated_at,deleted_at:r.deleted_at})))});}
+        const ids=((u.match(/id=in\.\(([^)]*)\)/)||[])[1]||'').split(',').filter(Boolean);
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(ids.length?all.filter(r=>ids.includes(r.id)):[])});}
+      if(tm&&M==='POST'){for(const r of JSON.parse(q.postData()||'[]'))srv.rows[tm[1]].set(r.id,r);return route.fulfill({status:201,body:''});}
+      const sm=u.match(/\/storage\/v1\/object\/attachments\/(.+)$/);
+      if(sm&&M==='POST'){srv.files.set(sm[1],q.postDataBuffer());return route.fulfill({status:200,contentType:'application/json',body:'{}'});}
+      if(sm&&M==='GET'){srv.gets.push(nom(sm[1]));
+        if(gated&&srv.gate)await new Promise(r=>srv.attente.push({k:nom(sm[1]),r}));
+        const b=srv.files.get(sm[1]);
+        try{return await (b?route.fulfill({status:200,contentType:'application/octet-stream',body:b}):route.fulfill({status:404,body:'{}'}));}catch(e){return;}}
+      if(/\/storage\/v1\/object\/list\/attachments/.test(u)){const pre=(JSON.parse(q.postData()||'{}').prefix||'')+'/';
+        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([...srv.files.keys()].filter(k=>k.startsWith(pre)).map(k=>({name:k.slice(pre.length)})))});}
+      route.fulfill({status:200,contentType:'application/json',body:'[]'});});
+    await page.addInitScript(uid=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:uid,email:'moi@x.fr'}}));},UID);
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async()=>{for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);});};
+  const lache=n=>{const a=srv.attente.splice(0,n==null?srv.attente.length:n);a.forEach(x=>x.r());return a.map(x=>x.k);};
+  // Appareil A : deux protocoles illustrés, une aide dont le 1ᵉʳ bloc porte une image — ses deux autres images précèdent
+  // celles du protocole dans la file (les aides d'abord) : c'est elles que l'élément ouvert doit doubler.
+  const A=await br.newPage({viewport:{width:1100,height:850}});A.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE A : '+e.message);});
+  await monte(A,false);
+  const ra=await A.evaluate(async()=>{
+    const img=(c,w,h)=>{const k=document.createElement('canvas');k.width=w;k.height=h;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,w,h);return k.toDataURL('image/webp',.8);};
+    const q=migrateProtocol({id:'p781z',title:'Avant lui dans la file',status:'draft',body:'![](img:z1)\n\n![](img:z2)\n\n![](img:z3)',
+      images:[{id:'z1',data:img('#111',40,30),w:40,h:30},{id:'z2',data:img('#222',40,30),w:40,h:30},{id:'z3',data:img('#333',40,30),w:40,h:30}]});
+    protocols.push(q);await Data.putProtocol(q);
+    const p=migrateProtocol({id:'p781',title:'Intubation difficile',status:'draft',
+      body:'## Matériel\n\nTexte avant.\n\n![Plateau](img:pa)\n\n1. Vidéolaryngoscope\n   ![](img:pb)\n2. Mandrin\n\n| A | B |\n|---|---|\n| ![](img:pc) | texte |\n\n![](vid:v781)\n\n![Dernière](img:pd)\n\nTexte après.',
+      images:[{id:'pa',data:img('#b33',800,450),w:800,h:450,scale:66},{id:'pb',data:img('#36c',400,300),w:400,h:300},{id:'pc',data:img('#3a3',400,300),w:400,h:300},{id:'pd',data:img('#aa3',400,300),w:400,h:300}],
+      videos:[{id:'v781',name:'geste.mp4',size:3200000,mime:'video/mp4'}],docs:[{id:'d781',name:'Référentiel.pdf',size:420000}]});
+    protocols.push(p);await Data.putProtocol(p);
+    const f=migrate(JSON.parse(JSON.stringify(fiches[0])));f.id='f781';f.title='Abord chirurgical';const i5=img('#636',640,360);
+    f.blocks[0].image=i5;f.blocks[0].imageW=640;f.blocks[0].imageH=360;f.images=[{id:'fa',data:i5,w:640,h:360,caption:'Repères'},{id:'fb',data:img('#444',40,30),w:40,h:30},{id:'fc',data:img('#555',40,30),w:40,h:30}];
+    fiches.push(f);await Data.put(f);
+    localStorage.removeItem(spaceKey('ac-img-ext'));
+    await Sync.full();for(let i=0;i<80&&Sync.running;i++)await __acCalme(100);
+    return {err:(Sync.lastError&&Sync.lastError.tech)||''};});
+  const dos='u/'+UID+'/';
+  const monteOk=!ra.err&&['z1','z2','z3','pa','pb','pc','fa','fb','fc'].every(id=>srv.files.has(dos+id+'.webp'));
+  srv.files.set(dos+'v781.mp4',Buffer.from('000000186674797069736f6d','hex'));srv.files.set(dos+'d781.pdf',Buffer.from('%PDF-1.4\n%%EOF\n'));
+  srv.files.delete(dos+'pd.webp');   // une image que le serveur n'a pas : elle devra le dire
+  await A.close();
+  t('A781 · décor : l’appareil A a envoyé ses lignes légères et ses images en fichiers',monteOk,JSON.stringify({ra,fichiers:[...srv.files.keys()].map(nom)}));
+
+  // Appareil B, téléphone : les fichiers sont retenus.
+  srv.gate=true;
+  const cx=await br.newContext({viewport:{width:390,height:844}});const B=await cx.newPage();B.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE B : '+e.message);});
+  await monte(B,true);
+  await B.evaluate(async()=>{for(let i=0;i<60&&Sync.running;i++)await __acCalme(100);});
+  await calme(B,300);
+  const avantOuv=srv.gets.slice();
+  await B.evaluate(async()=>{openProtocolRead('p781');await __acCalme(500);main.firstElementChild.__temoin=1;});
+  const lire=()=>B.evaluate(()=>{const R=x=>{const r=x.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)];};
+    return {ligne:(document.querySelector('[data-rx]')||{}).textContent||'',fin:!!document.querySelector('[data-rx].rx-fin'),warn:!!document.querySelector('[data-rx] .rx-l.warn'),
+      ph:[...document.querySelectorAll('[data-iatt]')].map(h=>({id:h.dataset.iatt,box:R(h.querySelector('.md-ibox')),mot:h.querySelector('.md-vph').textContent,svg:!!h.querySelector('.md-vph svg'),coul:getComputedStyle(h.querySelector('.md-vph')).color})),
+      imgs:[...document.querySelectorAll('.md-body .md-fig img')].map(R),vid:(document.querySelector('.md-vfig .md-vph')||{}).textContent||'',vabs:!!document.querySelector('.md-vfig.md-vabs'),
+      doc:[...document.querySelectorAll('[data-attcloud]')].map(x=>x.hidden?'':x.textContent),H:document.documentElement.scrollHeight,Y:Math.round(scrollY),
+      temoin:main.firstElementChild.__temoin===1,ink2:getComputedStyle(document.documentElement).getPropertyValue('--ink-2').trim()};});
+  const e0=await lire(),P=id=>e0.ph.find(x=>x.id===id)||{box:[0,0]};
+  t('A781 · chaque image en attente a son réceptacle, à la proportion de l’image (16:9 et 4:3), glyphe et mots, sans couleur',
+    e0.ph.length===4&&e0.imgs.length===0&&Math.abs(P('pa').box[0]/P('pa').box[1]-800/450)<.03&&Math.abs(P('pb').box[0]/P('pb').box[1]-4/3)<.03&&Math.abs(P('pc').box[0]/P('pc').box[1]-4/3)<.05
+      &&e0.ph.every(x=>/Image en cours de réception/.test(x.mot)&&x.svg),JSON.stringify(e0.ph));
+  t('A781 · la ligne sous le titre compte ce qui manque à CET élément — images, vidéo et document — et où en est la réception',
+    /^4 images, 1 vidéo et 1 document en cours de réception · 0 \/ 6$/.test(e0.ligne.trim())&&!e0.warn,e0.ligne);
+  t('A781 · vidéo et document disent la même chose : « Vidéo en cours de réception » (neutre), « ↓ en réception » sur la rangée',
+    /Vidéo en cours de réception/.test(e0.vid)&&!e0.vabs&&e0.doc.some(x=>/↓ en réception/.test(x)),JSON.stringify({vid:e0.vid,vabs:e0.vabs,doc:e0.doc}));
+  // Hors ligne : tout passe en ambre, avec ses mots ; retour en ligne : neutre.
+  await cx.setOffline(true);await B.evaluate(()=>window.dispatchEvent(new Event('offline')));await calme(B,300);
+  const eOff=await lire();
+  await cx.setOffline(false);await B.evaluate(()=>{rxPaint();});await calme(B,300);
+  const eOn=await lire();
+  t('A781 · hors ligne : la ligne et les réceptacles le disent en ambre (« pas encore sur cet appareil », « Ils arriveront à la reconnexion ») ; de retour en ligne, neutre',
+    /△ 4 images, 1 vidéo et 1 document pas encore sur cet appareil\. Ils arriveront à la reconnexion\./.test(eOff.ligne)&&eOff.warn&&eOff.ph.every(x=>/△ Image pas encore sur cet appareil/.test(x.mot)&&!x.svg)
+      &&/△ Vidéo pas encore sur cet appareil/.test(eOff.vid)&&eOff.vabs&&eOff.doc.some(x=>/△ pas sur cet appareil/.test(x))
+      &&/en cours de réception/.test(eOn.ligne)&&!eOn.warn&&eOn.ph.every(x=>x.svg),JSON.stringify({off:eOff.ligne,ph:eOff.ph.map(x=>x.mot),vid:eOff.vid,doc:eOff.doc,on:eOn.ligne}));
+  // L'élément ouvert passe devant : ce qui était déjà demandé part, puis ses fichiers avant ceux de l'autre protocole.
+  await B.evaluate(()=>{scrollTo(0,300);});await calme(B,200);
+  const yAv=(await lire()).Y;
+  const suite=[];const etats=[];
+  for(let i=0;i<14&&(srv.attente.length||i<2);i++){const k=lache(1);await calme(B,350);suite.push(...k);
+    if(k.some(x=>/^p[abc]\.webp$/.test(x)))etats.push(await lire());}
+  await calme(B,400);
+  const ordre=srv.gets.filter(x=>!avantOuv.includes(x)),iz=ordre.findIndex(x=>/^(z\d|f[bc])\./.test(x)),miens=['pa.webp','pb.webp','pc.webp','pd.webp'];
+  t('A781 · l’élément ouvert passe DEVANT : ses images sont demandées avant celles de l’aide qui le précédait dans la file',
+    miens.every(x=>ordre.includes(x))&&iz>=0&&miens.every(x=>ordre.indexOf(x)<iz),JSON.stringify({avantOuv,ordre}));
+  const e1=etats[0]||{ph:[],imgs:[]},eF=await lire();
+  t('A781 · chaque image prend sa place DÈS qu’elle est reçue, sans re-rendu : un réceptacle de moins, une image à la même boîte, la page à la même hauteur, le défilement en place',
+    etats.length===3&&e1.ph.length===3&&e1.imgs.length===1&&e1.imgs[0][0]===P('pa').box[0]&&Math.abs(e1.imgs[0][1]-P('pa').box[1])<=1&&e1.H===e0.H&&e1.Y===yAv&&e1.temoin
+      &&etats.every(x=>x.H===e0.H&&x.Y===yAv&&x.temoin)&&/· [1-5] \/ 6/.test(e1.ligne),JSON.stringify({n:etats.length,e1:{ph:e1.ph.length,imgs:e1.imgs,H:e1.H,Y:e1.Y,temoin:e1.temoin,ligne:e1.ligne},pa:P('pa').box,H0:e0.H,yAv}));
+  t('A781 · une image que le serveur n’a pas le DIT (« introuvable », en ambre) — son réceptacle reste, la ligne aussi',
+    eF.ph.length===1&&eF.ph[0].id==='pd'&&/△ Image introuvable, ni sur cet appareil ni sur le serveur/.test(eF.ph[0].mot)&&!eF.ph[0].svg
+      &&/△ 1 image introuvable, ni sur cet appareil ni sur le serveur/.test(eF.ligne)&&!/en cours de réception/.test(eF.ligne)&&eF.imgs.length===3,JSON.stringify({ph:eF.ph,ligne:eF.ligne,imgs:eF.imgs.length}));
+  const g1=srv.gets.filter(x=>x==='pd.webp').length;
+  await B.evaluate(async()=>{Sync.imgHydrate();for(let i=0;i<30&&Sync._imgDl;i++)await __acCalme(100);});lache();
+  const g2=srv.gets.filter(x=>x==='pd.webp').length;
+  t('A781 · une image introuvable n’est pas redemandée à chaque passage (30 min de répit, comme un fichier — A770)',g1>=1&&g2===g1,JSON.stringify({g1,g2}));
+  // Tout est reçu : la ligne se tait sans se replier (rien ne remonte sous les yeux).
+  srv.files.set(dos+'pd.webp',srv.files.get(dos+'pb.webp'));const hAv=(await lire()).H;   // la hauteur d'AVANT la dernière image (la vidéo, sans dimensions au modèle, a pu bouger la sienne)
+  const eT=await (async()=>{await B.evaluate(async()=>{_attAbsents.delete('pd');Sync.imgHydrate();});for(let i=0;i<10&&!srv.attente.length;i++)await calme(B,150);lache();
+    await B.evaluate(async()=>{for(let i=0;i<30&&Sync._imgDl;i++)await __acCalme(100);});await calme(B,300);return lire();})();
+  t('A781 · tout est reçu : plus aucun réceptacle, la ligne se tait mais garde sa place (la page ne remonte pas), toujours sans re-rendu',
+    eT.ph.length===0&&eT.imgs.length===4&&eT.fin&&eT.H===hAv&&eT.temoin,JSON.stringify({ph:eT.ph.length,imgs:eT.imgs.length,fin:eT.fin,H:[hAv,eT.H],temoin:eT.temoin}));
+  await cx.close();
+
+  // SESSION : l'image du bloc arrive pendant la session — dans son cadre, rien d'autre.
+  srv.attente.length=0;srv.gets.length=0;
+  const cx2=await br.newContext({viewport:{width:390,height:844}});const S=await cx2.newPage();S.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE S : '+e.message);});
+  await monte(S,true);
+  await S.evaluate(async()=>{for(let i=0;i<60&&Sync.running;i++)await __acCalme(100);openRead('f781');await __acCalme(500);});
+  const sEntree=await S.evaluate(()=>(document.querySelector('[data-rx]')||{}).textContent||'');
+  await demarrerSession(S);await calme(S,500);
+  const geo=()=>S.evaluate(()=>{const h=document.querySelector('.node-iatt'),im=document.querySelector('.ov-block .node-img'),r=(h||im||document.body).getBoundingClientRect();
+    return {rx:!!document.querySelector('[data-rx]'),ph:h?h.textContent:'',img:!!im,box:[Math.round(r.top),Math.round(r.width),Math.round(r.height)],
+      etapes:[...document.querySelectorAll('.ov-block [data-ovchk],.ov-block .li-row,.ov-block li')].slice(0,4).map(x=>Math.round(x.getBoundingClientRect().top)),
+      Y:Math.round(scrollY),H:document.documentElement.scrollHeight,toast:[...document.querySelectorAll('.toast')].map(x=>x.textContent).join('|'),modale:!!document.querySelector('.ai-modal.open')};});
+  const s0=await geo();
+  for(let i=0;i<10&&srv.attente.length;i++){lache(1);await calme(S,350);}
+  await calme(S,400);
+  const s1=await geo();
+  t('A781 · avant de démarrer, l’écran de l’aide dit ce qui lui manque ; en session, plus de ligne (règle 11) — le réceptacle seul',
+    /3 images en cours de réception/.test(sEntree)&&!s0.rx&&/Image en cours de réception/.test(s0.ph)&&!s0.img,JSON.stringify({sEntree,s0}));
+  t('A781 · en SESSION, l’image arrive dans son cadre : même boîte, aucune étape ne bouge, ni défilement, ni notification, ni fenêtre',
+    s1.img&&!s1.ph&&JSON.stringify(s1.box)===JSON.stringify(s0.box)&&s0.etapes.length>0&&JSON.stringify(s1.etapes)===JSON.stringify(s0.etapes)&&s1.Y===s0.Y&&s1.H===s0.H&&!s1.toast&&!s1.modale&&!s1.rx,JSON.stringify({s0,s1}));
+  await cx2.close();
+});
+
 /* A767 — UNE VIDÉO SUIT SON PROTOCOLE, ET CE QUI EST « ENVOYÉ » SE VÉRIFIE. Signalé par l'auteur : « les vidéos ne sont
    pas synchronisées sur mon téléphone alors que sur l'ordi c'est marqué synchronisé ». Serveur de stockage simulé (état
    côté Node) : (1) un protocole Perso à vidéo, envoyé, puis déplacé dans une bibliothèque — la vidéo doit monter au

@@ -995,7 +995,14 @@ telle quelle — chaque écran le dit à sa façon :
 - **Grille d'images et vidéos d'un protocole** (A755, A757) : une image (ou une vidéo) seule dans une case de tableau
   est une vignette ; un tableau qui en porte a des colonnes égales et tient dans la largeur, sans filets. « Mettre en
   grille » (barre de sélection des blocs, ou « ＋ Insérer › Grille d'images ») : l'auteur choisit 2, 3 ou 4 colonnes.
-  Une vidéo se lit muette, en boucle, quand elle est à l'écran ; absente ou illisible, son réceptacle le dit en ambre.
+  Une vidéo se lit muette, en boucle, quand elle est à l'écran ; illisible, son réceptacle le dit en ambre (absente : ligne suivante).
+- **Ce qui n'est pas encore sur l'appareil** (A781) — image, vidéo, document : trois états, un seul vocabulaire. En
+  réception (compte connecté, en ligne) : NEUTRE, glyphe ↓ et « Image en cours de réception » + poids ; hors ligne :
+  mots en ambre, « △ Image pas encore sur cet appareil » ; introuvable partout : mots en ambre. Le réceptacle d'une
+  image a la boîte exacte de l'image (elle le remplace sur place, sans que rien ne bouge — en session aussi) ; en
+  petit (liste, case) le poids s'efface. La rangée d'un document dit « ↓ en réception » / « △ pas sur cet appareil ».
+  Sous le titre de l'élément ouvert, hors session : « 3 images en cours de réception · 1 / 3 » et sa barre fine, grise ;
+  la ligne se tait quand tout est reçu, sans message de fin et sans faire remonter le texte.
 - **La fenêtre « Tableau »** (A773-A774) : la tête ne porte que le titre, la taille, ↶ ↷ et ✕ ; un onglet ··· par
   colonne et ⋮ par ligne (gris, bleus pour la case active) ouvre le menu de SA colonne ou SA ligne ; deux bandes « ＋ »
   en pointillé au bord ; les en-têtes restent visibles sous la grille. Au doigt : ni onglets ni bandes, une barre au

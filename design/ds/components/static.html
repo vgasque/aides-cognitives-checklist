@@ -8769,6 +8769,39 @@
   .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
   .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
+  /* A781 — CE QUI N'EST PAS ENCORE SUR L'APPAREIL TIENT SA PLACE ET LE DIT. Une image en attente de son fichier laissait
+     un vide muet. Son réceptacle a la boîte exacte de l'image (un svg aux dimensions de la fiche, mêmes règles de largeur
+     que `.md-fig img`) : à l'arrivée l'image le remplace sans que rien ne bouge. En réception : neutre (rien n'est à
+     faire, règle 8) ; hors ligne ou introuvable : mots en ambre, comme la vidéo (`.md-vph` sans glyphe svg). */
+  /* ⚠ La boîte est un `inline-block` à débordement masqué : sa ligne de base est alors son bord bas, comme celle d'une
+     image en ligne — sans cela le réceptacle faisait 7 px de moins que l'image (l'espace des jambages), et le texte
+     sautait à l'arrivée (mesuré). Là où l'image est un bloc (case de tableau, bloc d'aide, galerie), elle l'est aussi. */
+  .md-ibox{display:inline-block;width:100%;overflow:hidden;vertical-align:baseline}
+  :is(.md-cfig,.node-iatt,.gthumb)>.md-ibox{display:block}
+  .md-igr{display:grid}
+  .md-igr>*{grid-area:1/1;min-width:0}
+  .md-isz{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2)}
+  .md-igr>.md-vph{place-self:center}
+  .rx-sz{font-family:var(--f-mono);font-weight:500}
+  /* En petit (élément de liste, case, galerie), les mots restent, le poids s'efface : la boîte garde la taille de l'image. */
+  :is(.md-lfig,.md-cfig,.gthumb) .rx-sz{display:none}
+  :is(.md-cfig,.gthumb) .md-vph{padding:4px;gap:4px}
+  .node-iatt{display:block;margin-bottom:14px}
+  .gthumb .md-igr{aspect-ratio:4/3;overflow:hidden}
+  .gthumb .md-isz{height:100%}
+  /* La ligne sous le titre d'un élément ouvert : ce qui lui manque encore, et où en est la réception (jamais en session). */
+  .rx-line{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;font-size:var(--t-meta);font-weight:600;line-height:1.4;color:var(--ink-2)}
+  .rx-line:empty{display:none}
+  /* Tout est reçu : la ligne se tait mais GARDE sa place jusqu'au prochain rendu — la replier ferait remonter tout le
+     texte sous les yeux du lecteur (Safari ne compense pas). */
+  .rx-line.rx-fin{visibility:hidden}
+  .rx-n{white-space:nowrap}
+  .rx-l{display:flex;gap:6px;align-items:flex-start}
+  .rx-l svg{flex:none;margin-top:2px}
+  .rx-l.warn{color:var(--warn)}
+  .rx-line .sync-bar{height:4px;margin-top:0}
+  .rx-line .sync-bar>i{background:var(--ink-soft)}
+  body.view-read .rx-line{padding:0 8px}
   .ep-md .md-tbl{font-size:11px;min-width:0}   /* aperçu en direct de l'éditeur (corps réduit) */
   .md-fig{margin:12px 0}
   /* A608 : « Pleine » = TOUTE la colonne, comme le promet le cadre de la poignée (A584) — l'image n'est plus affichée à
@@ -8794,6 +8827,8 @@
   @media (min-width:560px){
     .md-fig.w25 img{width:25%}.md-fig.w33 img{width:33%}.md-fig.w50 img{width:50%}
     .md-fig.w66 img{width:66%}.md-fig.w75 img{width:75%}
+    .md-fig.w25 .md-ibox{width:25%}.md-fig.w33 .md-ibox{width:33%}.md-fig.w50 .md-ibox{width:50%}
+    .md-fig.w66 .md-ibox{width:66%}.md-fig.w75 .md-ibox{width:75%}
     /* A775 : une vidéo réduite, à la même part qu'une image (son réceptacle porte la vidéo). */
     .md-vfig.w25>.md-vbox{width:25%}.md-vfig.w33>.md-vbox{width:33%}.md-vfig.w50>.md-vbox{width:50%}
     .md-vfig.w66>.md-vbox{width:66%}.md-vfig.w75>.md-vbox{width:75%}
@@ -9333,6 +9368,7 @@
   .att-timg{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
   /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
   .att-cloud{flex:none;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
+  .att-cloud.rx-in{color:var(--ink-2)}   /* A781 : en cours de réception — neutre, rien n'est à faire */
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
   /* Étroit (v5.44) : le nom garde toute la ligne, index · taille · outils passent dessous, à droite. */
