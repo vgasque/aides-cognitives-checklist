@@ -9104,7 +9104,7 @@
     .mdg-add .mdg-addb{flex:none}
     /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
        texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
-    .mdg,.mdg.mdg-1{grid-template-columns:var(--mdg-cols,112px repeat(var(--mdg-n1),minmax(132px,1fr)))}
+    .mdg,.mdg.mdg-1{grid-template-columns:var(--mdg-cols,clamp(112px,18%,168px) repeat(var(--mdg-n1),minmax(132px,1fr)))}
     /* A779 : sans marge intérieure au doigt — Safari colle la colonne DANS la marge (2 px), et les cases qui défilaient
        dessous se voyaient à sa gauche. */
     .mdg-scroll{padding:0}
@@ -9125,17 +9125,22 @@
     #mdToolModal.mdt-tbl .mdt-hx{display:contents}
     #mdToolModal.mdt-tbl .mdg-ph{display:inline-flex}
     #mdToolModal.mdt-tbl :is(.ai-x,.mdw-foot,.mdg-dim,[data-mdtw="redo"]){display:none}
-    /* A778 : la tête reste en haut quand la fenêtre défile (clavier ouvert, long tableau : Annuler et OK à portée). */
-    #mdToolModal.mdt-tbl .ai-top{gap:6px;position:sticky;top:0;z-index:5;margin:calc(-18px - var(--sat)) -16px 8px;padding:calc(10px + var(--sat)) 16px 10px;background:var(--work);border-bottom:1px solid var(--line)}
+    #mdToolModal.mdt-tbl .ai-top{gap:6px}
     #mdToolModal.mdt-tbl .ai-top h3{order:1;flex:1;text-align:center}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="x"]{order:0}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="undo"]{order:2}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="ok"]{order:3}
     #mdToolModal.mdt-tbl .mdg-mdl.mdg-ph{min-height:44px;margin:8px 0 0}
-    /* La barre au pouce au BAS de l'écran : la carte en colonne, le corps s'étire (clavier ouvert, elle reste collée). */
-    #mdToolModal.mdt-tbl .ai-card{display:flex;flex-direction:column}
-    #mdToolModal.mdt-tbl #mdToolBody{flex:1;display:flex;flex-direction:column}
-    #mdToolModal.mdt-tbl .mdg-thumb{margin-top:auto}
+    /* A780 (vu sous WebKit, clavier simulé comme sur iOS : l'écran garde sa hauteur, la zone VISIBLE rétrécit) — UN SEUL
+       DÉFILEUR, LE CORPS. La carte d'une fenêtre de téléphone fait la hauteur de l'ÉCRAN (`100dvh`, que le clavier d'iOS
+       ne réduit pas) : clavier ouvert, elle dépassait la zone visible, la FENÊTRE défilait en plus de son CORPS (deux
+       ascenseurs emboîtés) et la barre au pouce, au pied de la carte, restait derrière le clavier. Ici la carte fait
+       la hauteur VISIBLE (`--vvh`, règle 10) : la tête (Annuler · OK) et la barre restent en place, seul le corps
+       défile. Clavier ouvert, le pied ne réserve plus la zone sûre du bas (le clavier la couvre). */
+    #mdToolModal.mdt-tbl .ai-card{display:flex;flex-direction:column;height:calc(var(--vvh,100dvh) / var(--zf,1));min-height:0;max-height:none;padding-bottom:0}
+    #mdToolModal.mdt-tbl #mdToolBody{flex:1;display:flex;flex-direction:column;overscroll-behavior:contain}
+    #mdToolModal.mdt-tbl .mdg-thumb{margin-top:auto;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+    html.kbd #mdToolModal.mdt-tbl .mdg-thumb{padding-bottom:8px}
     /* A778 : la grille ne RÉTRÉCIT jamais dans cette colonne (un élément défilant y a une hauteur minimale nulle) : elle
        devenait un second ascenseur vertical, coincé entre la tête et la barre — « scroll in scroll ». Seule la fenêtre défile. */
     #mdToolModal.mdt-tbl .mdg-scroll{flex:none;overflow-y:hidden}
