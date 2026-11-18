@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-jjjHDgae6MEbavHJc/d0qgr50pmOzmCWQISlhavCJ2g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GqMrW7XaKl3bTZG/nmYRSHNheSlx9osJqJxbh6Hvo94='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9647,8 +9647,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
       background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
     .mdg-stat b{color:var(--ink)}
     .mdg-stv{margin-left:auto;color:var(--act);font-weight:800}
-    .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
-    .mdg-rc.mdg-rl{position:sticky;left:0;z-index:3}   /* A790 : la règle de la 1ʳᵉ colonne, collée comme elle */
+    /* A793 (amende A773, A777) : collée SEULEMENT si c'est une colonne d'en-tête, et sauf « Tout défile » (Moi ›
+       Affichage) — la règle de la lecture (A786). Une 1ʳᵉ colonne de texte aux parts choisies prenait 224 px sur 390. */
+    html:not(.tbl-libre) .mdg.mdg-hc .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
+    html:not(.tbl-libre) .mdg.mdg-hc .mdg-rc.mdg-rl{position:sticky;left:0;z-index:3}   /* A790 : la règle de la 1ʳᵉ colonne, collée comme elle */
     /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
        texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
     .mdg,.mdg.mdg-1,.mdg.mdg-w{grid-template-columns:var(--mdg-cols,clamp(112px,18%,168px) repeat(var(--mdg-n1),minmax(132px,1fr)))}   /* A790 : la règle d'un tableau aux parts choisies aussi */
@@ -9656,7 +9658,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        dessous se voyaient à sa gauche. */
     .mdg-scroll{padding:0}
     .mdg-in{-webkit-hyphens:auto;hyphens:auto}
-    .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
+    html:not(.tbl-libre) .mdg.mdg-hc .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
     .mdg-c.mdg-l .mdg-in{padding-left:8px;padding-right:6px}
     .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
     .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
@@ -11120,7 +11122,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.148.0';
+const APP_VERSION='5.148.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21618,7 +21620,7 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
   /* A790 : des parts choisies, la grille d'édition prend les proportions de la lecture — jamais sous 112 px, pour qu'on puisse
      y écrire (la règle le dit, « min. ») ; au-delà, elle défile de côté. Sans parts : les largeurs de saisie (A777, A779). */
   const pistes=w.cw?w.cw.map(v=>'minmax(112px,'+v+'fr)').join(' '):'';
-  return `${mdTblToolHtml(w,vide)}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}${pistes?' mdg-w':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${pistes||cw}${pistes?';--mdg-pc:'+pistes:''}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
+  return `${mdTblToolHtml(w,vide)}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}${pistes?' mdg-w':''}${hc&&n>1?' mdg-hc':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${pistes||cw}${pistes?';--mdg-pc:'+pistes:''}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
       +`<button type="button" class="mdg-band mdg-bc" data-mdtw="cend" aria-label="Ajouter une colonne à droite"${n<MD_MAX_TCOLS?'':' disabled'}>＋</button>`
       +`<button type="button" class="mdg-band mdg-br" data-mdtw="rend">＋ Ligne</button></div></div>
     <div class="mdg-thumb" role="toolbar" aria-label="Case active">${mdTblThumbHtml()}</div>`;}
@@ -21636,7 +21638,7 @@ function mdTblPlusMenu(btn){const w=_mdTw;if(!w)return;const n=w.g[0].length,O=[
   if(n<MD_MAX_TCOLS)O.push({val:'cend',name:'Une colonne en fin',ic:uiIcon('plus',16)});
   if(w.edit)O.push({val:'md',name:'Modifier le Markdown',ic:uiIcon('code',16)});
   /* A792 : la feuille « Tableau » — ce qui vaut pour le tableau entier ; le média de la case n'y est plus (le « ＋ » de la case). */
-  openPickMenu(btn.parentNode,{aria:'Réglages du tableau',title:'Tableau',ctx:mdTblDims(w),trigger:btn,...deskFlot(),options:O,
+  openPickMenu(btn.parentNode,{aria:'Réglages du tableau',title:'Tableau',ctx:mdTblDims(w),trigger:btn,...deskFlot(),...MDT_ACTIONS,options:O,
     onPick:v=>{const m=mdToolEl(),q=s=>m.querySelector(s);if(_mdTw!==w)return;
       if(v==='md'){const b=q('#mdToolFoot [data-mdtw="md"]');if(b)b.click();return;}
       if(v==='cwauto'||v==='cweq'||v==='cwh')w.cwOn=true;
@@ -21653,8 +21655,13 @@ function mdTblFit(el){const T=[...(el?[el]:document.querySelectorAll('#mdToolBod
   const H=T.map(t=>Math.ceil(t.scrollHeight/z));
   T.forEach((t,i)=>{t.style.height='';t.style.minHeight=Math.max(44,H[i])+'px';});}
 function mdTblFocus(r,c,sel){const e=document.querySelector(`#mdToolBody .mdg-in[data-r="${r}"][data-c="${c}"]`);if(e){e.focus();if(sel!==false)e.select();}}
-function mdTblRepaint(r,c,nf){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();
-  const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=mdTblHxHtml();mdTblFit();mdTblThumbBind();mdTblCwBind();if(!nf)mdTblFocus(r,c);}   // A786 : `nf` — un réglage de la barre ne donne pas le focus à une case (au téléphone, il ouvrirait le clavier)
+function mdTblRepaint(r,c,nf){_mdTw.fr=r;_mdTw.fc=c;
+  // A793 : au doigt, une case ne reprend le focus que si l'on écrivait déjà (Tab, Entrée, ↶ clavier ouvert) — après un
+  // choix dans un menu, le focus ouvrait le clavier sur la case.
+  const a=document.activeElement;if(!nf&&matchMedia('(pointer:coarse)').matches&&!(a&&a.closest&&a.closest('#mdToolModal .mdg-in')))nf=true;
+  document.getElementById('mdToolBody').innerHTML=mdTblHtml();
+  const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=mdTblHxHtml();mdTblFit();mdTblThumbBind();mdTblCwBind();if(!nf)mdTblFocus(r,c);
+  else if(!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mdToolModal'))){const t=document.getElementById('mdToolTitle');if(t){t.setAttribute('tabindex','-1');t.focus({preventScroll:true});}}}   // le focus reste dans la fenêtre, sur son titre   // A786 : `nf` — un réglage de la barre ne donne pas le focus à une case (au téléphone, il ouvrirait le clavier)
 /* A780 : la case qui prend le focus reste AU-DESSUS de la barre au pouce (collée au bas du corps, elle la couvrait : le
    navigateur amène le champ au bord du défileur, pas au bord de la barre). Sans effet au bureau (barre absente). */
 function mdTblVoir(c){const bd=document.getElementById('mdToolBody'),th=bd&&bd.querySelector('.mdg-thumb');if(!th||!th.offsetParent||!document.contains(c)||document.activeElement!==c)return;
@@ -21738,11 +21745,11 @@ const mdTblCwOpts=w=>[{val:'cwbar',name:w.cwOn?'Masquer la règle':'Montrer la r
   {val:'cwauto',name:'Ajuster au contenu',sub:'la largeur suit le texte (aucune part écrite)'},{val:'cweq',name:'Colonnes égales'}]
   .concat(mdTblRatios(w)?[{val:'cwh',name:'Même hauteur',sub:'chaque colonne à la forme de son média'}]:[]);
 function mdTblCwMenu(btn){const w=_mdTw;if(!w)return;
-  openPickMenu(btn.parentNode,{aria:'Largeur des colonnes',title:'Largeur des colonnes',ctx:w.cw?'parts choisies':'ajustées au contenu',trigger:btn,...deskFlot(),options:mdTblCwOpts(w),
+  openPickMenu(btn.parentNode,{aria:'Largeur des colonnes',title:'Largeur des colonnes',ctx:w.cw?'parts choisies':'ajustées au contenu',trigger:btn,...deskFlot(),...MDT_ACTIONS,options:mdTblCwOpts(w),
     onPick:v=>{if(_mdTw!==w)return;if(v!=='cwbar')w.cwOn=true;mdTblAct(v);}});}
 // Le « ＋ » de la case : image ou vidéo, puis le choix du média (A772-A773).
 function mdTblPlusCase(btn,r,c){const w=_mdTw;if(!w||!w.p)return;w.fr=r;w.fc=c;
-  openPickMenu(btn.parentNode,{aria:mdTblCaseLbl(w),title:mdTblCaseLbl(w),trigger:btn,...deskFlot(),
+  openPickMenu(btn.parentNode,{aria:mdTblCaseLbl(w),title:mdTblCaseLbl(w),trigger:btn,...deskFlot(),...MDT_ACTIONS,
     options:[{val:'img',name:'Image',ic:uiIcon('camera',16)},{val:'vid',name:'Vidéo',ic:uiIcon('play',16)}],
     onPick:k=>{if(_mdTw!==w)return;mdMedMenu(btn,w.p,k,(k==='vid'?'Vidéo':'Image')+' dans la case',mdTblRowName(w,r)+', '+mdTblColName(w,c),refs=>{if(_mdTw!==w)return;
       mdTblNote(w);w.typed=false;const x=mdCellSplit(w.g[r][c]);w.g[r][c]=mdCellJoin(x.txt,x.med.map(y=>y.ref).concat(refs.slice(0,1)));mdTblRepaint(r,c);});}});}
@@ -21775,13 +21782,16 @@ function mdTblCwBind(){const b=document.querySelector('#mdToolBody .mdg');if(!b|
   b.addEventListener('keydown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();e.stopPropagation();
     const c=+k.dataset.mdgcwk,n=w.g[0].length,cw=w.cw||mdTblCw(Array(n).fill(1),n),a=cw.slice(0,c+1).reduce((s,v)=>s+v,0);
     mdTblNote(w);w.typed=false;w.cw=set(w,c,a+(e.key==='ArrowLeft'?-5:5));mdTblRepaint(w.fr,w.fc,true);const q=document.querySelector('#mdToolBody [data-mdgcwk="'+c+'"]');if(q)q.focus({preventScroll:true});});}
+// A793 : un menu d'ACTIONS de la fenêtre « Tableau » n'a jamais de champ « Filtrer » — au-delà de 8 rangées (la feuille
+// « Tableau » d'une grille d'images en a 9) il paraissait et prenait le focus : au téléphone, le clavier montait.
+const MDT_ACTIONS={seuilFiltre:Infinity};
 // A773 : le menu d'UNE colonne, d'UNE ligne (onglet ou barre au pouce) — déroulant au bureau, feuille au téléphone (A638).
 function mdTblColMenu(btn,c){const w=_mdTw;if(!w)return;w.fc=c;const n=w.g[0].length,al=w.al[c]==='c'||w.al[c]==='r'?w.al[c]:'';
   const O=[{head:'Alignement'},{val:'al:',name:'À gauche'},{val:'al:c',name:'Au centre'},{val:'al:r',name:'À droite'},{head:'Colonne'},
     {val:'cl',name:'Insérer une colonne à gauche',ic:uiIcon('plus',16)},{val:'cr',name:'Insérer une colonne à droite',ic:uiIcon('plus',16)}];
   if(c===0)O.push({val:'hc',name:w.hc?'Retirer la colonne d’en-tête':'Faire de cette colonne un en-tête',ic:uiIcon('table',16)});
   if(n>1)O.push({val:'cx',name:'Supprimer la colonne',danger:true,ic:uiIcon('trash',16)});
-  openPickMenu(btn.parentNode,{aria:'Colonne « '+mdTblColName(w,c)+' »',title:'Colonne « '+mdTblColName(w,c)+' »',trigger:btn,...deskFlot(),options:O,value:'al:'+al,
+  openPickMenu(btn.parentNode,{aria:'Colonne « '+mdTblColName(w,c)+' »',title:'Colonne « '+mdTblColName(w,c)+' »',trigger:btn,...deskFlot(),...MDT_ACTIONS,options:O,value:'al:'+al,
     onPick:v=>{if(!_mdTw)return;_mdTw.fc=c;if(v.slice(0,3)==='al:')mdTblAct('al',v.slice(3));else mdTblAct(v);}});}
 function mdTblRowMenu(btn,r){const w=_mdTw;if(!w)return;w.fr=r;const R=w.g.length,d0=w.hh?1:0,head=w.hh&&r===0;
   const O=[{head:'Ligne'}];
@@ -21792,7 +21802,7 @@ function mdTblRowMenu(btn,r){const w=_mdTw;if(!w)return;w.fr=r;const R=w.g.lengt
   if(r===0)O.push({val:'hh',name:w.hh?'Retirer la ligne d’en-tête':'Faire de cette ligne un en-tête',ic:uiIcon('table',16)});
   if(R>1)O.push({val:'rx',name:'Supprimer la ligne',danger:true,ic:uiIcon('trash',16)});
   const t=mdTblRowName(w,r),x=mdCellSplit(w.g[r][0]).txt.replace(/\s+/g,' ').trim();
-  openPickMenu(btn.parentNode,{aria:t,title:t,ctx:x?(x.length>40?x.slice(0,39)+'…':x):'',trigger:btn,...deskFlot(),options:O,
+  openPickMenu(btn.parentNode,{aria:t,title:t,ctx:x?(x.length>40?x.slice(0,39)+'…':x):'',trigger:btn,...deskFlot(),...MDT_ACTIONS,options:O,
     onPick:v=>{if(!_mdTw)return;_mdTw.fr=r;mdTblAct(v);}});}
 /* A772-A773 — CHOISIR UN MÉDIA pour un élément de liste ou une case : depuis l'appareil, ou un média déjà dans ce
    protocole. Déroulant sous son déclencheur au bureau, feuille du bas au téléphone (A638). `onRefs(refs)` reçoit les
@@ -21802,7 +21812,7 @@ function mdMedMenu(trig,p,kind,title,ctx,onRefs,multi){const vid=kind==='vid',L=
   if(L.length){O.push({head:(vid?'Vidéos':'Images')+' de ce protocole · '+L.length});
     L.forEach((x,i)=>{const d=!vid&&safeImg(x.data);O.push({val:x.id,name:vid?(x.name||'Vidéo '+(i+1)):(x.caption||'Image '+(i+1)),
       ic:vid?(safeImg(x.poster)?`<img class="mm-thumb" src="${safeImg(x.poster)}" alt="">`:uiIcon('play',18)):(d?`<img class="mm-thumb" src="${d}" alt="">`:uiIcon('camera',18)),sub:vid&&x.dur?vidDur(x.dur):undefined});});}   // A791
-  openPickMenu(trig.parentNode,{aria:title,title,ctx,trigger:trig,...deskFlot(),options:O,
+  openPickMenu(trig.parentNode,{aria:title,title,ctx,trigger:trig,...deskFlot(),filtreAuToucher:true,options:O,   // A793 : la liste des médias garde son filtre, sans clavier d'office au doigt
     onPick:v=>{if(v!=='+')return onRefs(['![]('+tag+':'+v+')']);
       pickFile(vid?'video':'image',async files=>{let ids=[];
         if(vid)ids=await vidAdmit(p,files);else{const r=await pImgAdmit(p,files);ids=r?r.ids:[];if(r&&_pEdImgs)_pEdImgs();}
@@ -41330,7 +41340,8 @@ document.addEventListener('pointerdown',()=>{_ptrNav=true;},true);
 document.addEventListener('keydown',e=>{if(!['Shift','Control','Alt','Meta'].includes(e.key))_ptrNav=false;},true);
 const DLG_DECIDE='.dlg-confirm,#newLibModal,#mdToolModal,#shareModal';
 function _dlgEnter(el){
-  if(_ptrNav){const tt=!el.matches(DLG_DECIDE)&&document.getElementById(el.getAttribute('aria-labelledby')||'');
+  // A793 : la grille d'un tableau, au doigt, se PARCOURT d'abord — focus sur son titre, aucune case, pas de clavier.
+  if(_ptrNav){const tt=(!el.matches(DLG_DECIDE)||(el.matches('#mdToolModal.mdt-tbl')&&matchMedia('(pointer:coarse)').matches))&&document.getElementById(el.getAttribute('aria-labelledby')||'');
     if(tt){tt.setAttribute('tabindex','-1');tt.classList.add('dlg-anchor');tt.focus({preventScroll:true});return;}
     _dlgFocus(el).focus();return;}
   const f=_dlgFocus(el);if(f!==el)_ringFocus(f);else f.focus();}

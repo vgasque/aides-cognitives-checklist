@@ -9138,7 +9138,7 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  const p=await page.evaluate(()=>{const m=document.getElementById('mdToolModal'),vis=s=>{const e=m.querySelector(s);return !!e&&getComputedStyle(e).display!=='none';};
    return {tabs:vis('.mdg-tc'),thumb:vis('.mdg-thumb'),annuler:vis('.ai-top [data-mdtw="x"]'),ok:vis('.ai-top [data-mdtw="ok"]'),foot:vis('#mdToolFoot'),md:!!m.querySelector('#mdToolBody .mdg-mdl'),stat:vis('.mdg-stat'),tool:vis('.mdg-tool'),
      sticky:getComputedStyle(m.querySelector('.mdg-c.mdg-l')).position,lbl:[...m.querySelectorAll('.mdg-tbm')].map(x=>x.textContent).join('|')};});
- t('A772-A776 · Téléphone · pas d’onglets ; barre au pouce ; Annuler · OK en tête ; pied retiré ; 1ʳᵉ colonne collée ; A792 : la ligne d’état au lieu de la ligne d’outils, « Modifier le Markdown » dans « ⋯ » seulement',!p.tabs&&p.thumb&&p.annuler&&p.ok&&!p.foot&&!p.md&&p.stat&&!p.tool&&p.sticky==='sticky',JSON.stringify(p));
+ t('A772-A776 · Téléphone · pas d’onglets ; barre au pouce ; Annuler · OK en tête ; pied retiré ; A793 : 1ʳᵉ colonne NON collée (pas d’en-tête de colonne) ; A792 : la ligne d’état au lieu de la ligne d’outils, « Modifier le Markdown » dans « ⋯ » seulement',!p.tabs&&p.thumb&&p.annuler&&p.ok&&!p.foot&&!p.md&&p.stat&&!p.tool&&p.sticky!=='sticky',JSON.stringify(p));
  await page.tap('#mdToolModal .mdg-in[data-r="1"][data-c="1"]');await calme(page,150);
  await page.tap('#mdToolModal [data-mdtw="next"]');await calme(page,150);
  const n=await page.evaluate(()=>{const a=document.activeElement;return a&&a.classList.contains('mdg-in')?a.dataset.r+','+a.dataset.c:'?';});
@@ -9589,6 +9589,36 @@ for(const tel of [false,true]){
    const h=await page.evaluate(()=>{const b=document.querySelector('#mdToolModal [data-mdtw="hc"]');return {p:b.getAttribute('aria-pressed'),col0:document.querySelector('#mdToolModal .mdg-c[data-r="1"][data-c="0"]').classList.contains('mdg-h')};});
    t('A792 · bureau · « 1ʳᵉ colonne » de la ligne d’outils bascule l’en-tête et dit son état',h.p==='false'&&!h.col0,JSON.stringify(h));}
  await ctx.close();}
+});
+
+/* ══ A793 — LA GRILLE D'ÉDITION AU TÉLÉPHONE : COLONNE COLLÉE SI C'EST UN EN-TÊTE ; AUCUN CLAVIER D'OFFICE ═════════════
+   Vrai toucher, 390 px. La 1ʳᵉ colonne (et sa règle) n'est collée que si elle est en-tête, et « Tout défile » (Moi ›
+   Affichage) la libère ; l'ouverture de la fenêtre et un choix dans « ⋯ » ne donnent le focus à aucune case (le focus
+   reste dans la fenêtre, sur son titre) ; « ⋯ » d'une grille d'images (9 rangées) n'a pas de champ « Filtrer ». */
+await sec('Éditeur · A793 la grille au téléphone : colonne d’en-tête collée, aucun clavier d’office', async () => {
+const corps="| Médicament | Dilution | Dose | Remarque |\n|---|---|---|---|\n| Noradrénaline | 8 mg / 48 ml G5 % | 0,1 µg/kg/min | Voie centrale |\n| Adrénaline | Pure | 1 mg | Toutes les 4 min |\n{widths=\"30 20 15 35\"}\n\n| | | |\n|---|---|---|\n| Fémoral<br>![](img:i_a) | Normal<br>![](img:i_a) | Thrombus<br>![](img:i_a) |\n\nFin.";
+const ctx=await br.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2});const page=await ctx.newPage();page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const v=document.createElement('canvas');v.width=80;v.height=60;v.getContext('2d').fillRect(0,0,80,60);
+  const pr=migrateProtocol({title:'Témoin A793',body:c,images:[{id:'i_a',data:v.toDataURL('image/png'),w:80,h:60,caption:''}]});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+await calme(page,600);
+const ae=()=>page.evaluate(()=>{const a=document.activeElement;return {cell:!!(a&&a.closest&&a.closest('.mdg-in')),dans:!!(a&&a.closest&&a.closest('#mdToolModal')),id:a&&a.id};});
+const st=()=>page.evaluate(()=>{const m=document.getElementById('mdToolModal');return getComputedStyle(m.querySelector('.mdg-c.mdg-l')).position+'/'+getComputedStyle(m.querySelector('.mdg-rc.mdg-rl')).position;});
+await page.tap('#mdDoc table');await calme(page,600);
+const o={focus:await ae(),col:await st()};
+t('A793 · téléphone · à l’ouverture, aucune case n’a le focus (le titre l’a) ; sans en-tête de colonne, ni la 1ʳᵉ colonne ni sa règle ne sont collées',!o.focus.cell&&o.focus.id==='mdToolTitle'&&o.col==='relative/relative',JSON.stringify(o));
+await page.tap('#mdToolModal .mdg-thumb [data-mdtw="plus"]');await calme(page,400);
+await page.tap('.popmenu [data-pickopt="hc"]');await calme(page,500);
+const h={focus:await ae(),col:await st()};
+t('A793 · téléphone · « 1ʳᵉ colonne en en-tête » choisi dans « ⋯ » : la colonne et sa règle collées ; aucune case ne prend le focus, il reste dans la fenêtre',!h.focus.cell&&h.focus.dans&&h.col==='sticky/sticky',JSON.stringify(h));
+await page.evaluate(()=>document.documentElement.classList.add('tbl-libre'));await calme(page,150);const lib=await st();await page.evaluate(()=>document.documentElement.classList.remove('tbl-libre'));
+t('A793 · téléphone · « Tout défile » (Moi › Affichage) libère aussi la colonne de la grille',lib==='relative/relative',lib);
+await page.tap('#mdToolModal .ai-top [data-mdtw="x"]');await calme(page,400);
+await page.evaluate(async()=>{document.querySelectorAll('#mdDoc table')[1].closest('.mdb').querySelector('.md-tw').click();await __acCalme(500);});
+await page.tap('#mdToolModal .mdg-thumb [data-mdtw="plus"]');await calme(page,400);
+const f=await page.evaluate(()=>({n:document.querySelectorAll('.popmenu [data-pickopt]').length,filtre:!!document.querySelector('.popmenu .catmenu-filter'),cell:!!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('input,textarea'))}));
+t('A793 · téléphone · « ⋯ » d’une grille d’images (9 rangées) : pas de champ « Filtrer », rien qui ouvre le clavier',f.n===9&&!f.filtre&&!f.cell,JSON.stringify(f));
+await ctx.close();
 });
 
 /* ══ A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE ═══════════════════════════════════════════════════════════

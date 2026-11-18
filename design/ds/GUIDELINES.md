@@ -1010,7 +1010,7 @@ telle quelle — chaque écran le dit à sa façon :
   « Largeur · choisie ▾ », un menu) ; rien sous la grille ; l'aide du clavier au pied. Au doigt : ni onglets ni bandes,
   une ligne d'état de 44 px (« En-tête : … | Largeur : … › ») qui ouvre la feuille « Tableau » (celle de « ⋯ »), une
   barre au pouce de 44 px collée en bas (‹ › « Ligne n ▾ » « Colonne ▾ » ⋯), la 1ʳᵉ colonne collée quand la grille
-  défile. Au téléphone : « Annuler · Tableau · ↶ · OK ». Un toucher sur un tableau du document l'ouvre directement.
+  défile si elle est en-tête (A793) ; ni l'ouverture ni un menu ne font monter le clavier. Au téléphone : « Annuler · Tableau · ↶ · OK ». Un toucher sur un tableau du document l'ouvre directement.
 - **Le média d'un élément de liste ou d'une case** (A772-A773) : « Dans l'élément n : » puis Image · Vidéo dans le bloc
   liste ouvert ; vignette sous le libellé d'une case, ✕ pour la retirer ; une case vide de média a son « ＋ » (28 px,
   bleu), visible sur la seule case active, à cheval sur son filet bas (A792). Une vidéo se règle au cadre de l'image (A775).

@@ -9246,8 +9246,10 @@
       background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
     .mdg-stat b{color:var(--ink)}
     .mdg-stv{margin-left:auto;color:var(--act);font-weight:800}
-    .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
-    .mdg-rc.mdg-rl{position:sticky;left:0;z-index:3}   /* A790 : la règle de la 1ʳᵉ colonne, collée comme elle */
+    /* A793 (amende A773, A777) : collée SEULEMENT si c'est une colonne d'en-tête, et sauf « Tout défile » (Moi ›
+       Affichage) — la règle de la lecture (A786). Une 1ʳᵉ colonne de texte aux parts choisies prenait 224 px sur 390. */
+    html:not(.tbl-libre) .mdg.mdg-hc .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
+    html:not(.tbl-libre) .mdg.mdg-hc .mdg-rc.mdg-rl{position:sticky;left:0;z-index:3}   /* A790 : la règle de la 1ʳᵉ colonne, collée comme elle */
     /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
        texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
     .mdg,.mdg.mdg-1,.mdg.mdg-w{grid-template-columns:var(--mdg-cols,clamp(112px,18%,168px) repeat(var(--mdg-n1),minmax(132px,1fr)))}   /* A790 : la règle d'un tableau aux parts choisies aussi */
@@ -9255,7 +9257,7 @@
        dessous se voyaient à sa gauche. */
     .mdg-scroll{padding:0}
     .mdg-in{-webkit-hyphens:auto;hyphens:auto}
-    .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
+    html:not(.tbl-libre) .mdg.mdg-hc .mdg-c.mdg-l{box-shadow:1px 0 0 var(--line-strong)}
     .mdg-c.mdg-l .mdg-in{padding-left:8px;padding-right:6px}
     .mdg-thumb{display:flex;gap:6px;position:sticky;bottom:0;z-index:4;margin:12px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));background:var(--work);border-top:1px solid var(--line)}
     .mdg-thumb button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
