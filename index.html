@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-aVnatE1d95qJqzCgMcWkMPxZUSEbxbgU2xSnTmjhkg0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sh1SXeZhurFtDQuJXvdTT7cNl432v29piaVoNk7ymDM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9190,6 +9190,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-vbox.vd>*{grid-area:1/1;min-width:0}
   .md-vsz{display:block;width:100%;height:auto}
   .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
+  /* A791 — LA VIGNETTE D'UNE VIDÉO (sa première image) : à la place du mot « Vidéo », dans le réceptacle, la case de la grille,
+     le bloc ouvert ; ▶ et la durée par-dessus (on ne la prend pas pour une image) ; tant que la vidéo manque, l'état en mots. */
+  :is(.md-vpo,.mdg-vpo,.mds-vpo){position:relative;display:block;width:100%;height:100%;overflow:hidden;border-radius:var(--r-1);background:var(--amb-2)}
+  :is(.md-vpo,.mdg-vpo,.mds-vpo)>img{display:block;width:100%;height:100%;object-fit:cover}
+  /* Dans le réceptacle, la vignette couvre la boîte sans la dimensionner : la boîte garde la proportion exacte de la vidéo
+     (A783) — en flux, elle ajoutait près d'un pixel (mesuré) et la page bougeait à l'arrivée de la vidéo. */
+  .md-vfig .md-vbox{position:relative}
+  .md-vbox>.md-vpo{position:absolute;inset:0;height:auto}
+  .vpo-p{position:absolute;left:50%;top:50%;display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
+    background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);opacity:.92}
+  .vpo-d,.vpo-e{position:absolute;bottom:6px;padding:2px 6px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-size:var(--t-meta);font-weight:600}
+  .vpo-d{right:6px;font-family:var(--f-mono)}
+  .vpo-e{left:6px}
   .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
   /* A781 — CE QUI N'EST PAS ENCORE SUR L'APPAREIL TIENT SA PLACE ET LE DIT. Une image en attente de son fichier laissait
@@ -9378,7 +9391,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (pointer:coarse){.mdm-b{min-height:44px}}
   /* A789 : un geste qui tire (poignée d'un média, pastille d'une colonne) ne sélectionne jamais de texte — sur iPhone, un
      appui un peu long sur la pastille sélectionnait le mot voisin. */
-  .mdm,.mdm-bar,.mdg-cw,.md-fig.msel{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .mdm,.mdm-bar,.mdg-cw,.mdg-rc,.md-fig.msel{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   html.ac-tire,html.ac-tire *{-webkit-user-select:none!important;user-select:none!important;cursor:ew-resize}
   .mdm-b:hover{background:var(--sys-2)}
   .mdm-b:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-2px}
@@ -9553,6 +9566,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
   .mdg{display:grid;grid-template-columns:28px repeat(var(--mdg-n),minmax(112px,1fr)) 38px}
+  .mdg.mdg-w{grid-template-columns:28px var(--mdg-pc) 38px}   /* A790 : les parts choisies, 112 px au moins */
   .mdg-tab{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:none;color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:800;cursor:pointer}
   .mdg-tab>span{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-1);letter-spacing:1px}
   .mdg-tc{justify-self:center;width:48px;height:32px}
@@ -9593,18 +9607,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-br{grid-column:2/-2;margin-top:6px}
   .mdg-mi{display:inline-flex;width:18px;justify-content:center;font-weight:800}
   .mdg-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
-  /* A786 — LA BARRE DES PARTS de la grille : un segment par colonne (nom, part), une pastille ronde par séparation
-     (28 px, halo de 44 px : règle 9), les boutons rapides dessous. Bleu : le réglage en cours (règle 8) ; « auto » : neutre. */
+  /* A790 (remplace la barre des parts d'A786) — LA RÈGLE DES COLONNES, dans la 1ʳᵉ rangée de la grille : un segment par
+     colonne, à la largeur de sa colonne, sa part en chiffres (bleu : choisie ; neutre : « auto » ; ambre : « min. », la
+     grille ne descend pas sous 112 px) ; la colonne active en plein bleu. La pastille (28 px, halo de 44 px : règle 9) est
+     sur le filet qu'elle déplace. Les boutons rapides et leur phrase au-dessus de la grille. */
   .mdg-cw{margin:0 0 12px}
-  .mdg-cwb{position:relative;display:flex;min-height:48px;margin:0 0 24px}   /* les pastilles sont SUR le bord bas : elles ne couvrent ni les noms ni les parts */
-  .mdg-cws{flex:var(--cwp) 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:4px 8px;overflow:hidden;
-    border:1px solid var(--line-strong);border-left-width:0;background:var(--primary-soft);color:var(--act)}
-  .mdg-cws:first-child{border-left-width:1px;border-radius:var(--r-2) 0 0 var(--r-2)}
-  .mdg-cws:last-of-type{border-radius:0 var(--r-2) var(--r-2) 0}
-  .mdg-cwn{overflow:hidden;font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap;text-overflow:ellipsis}
-  .mdg-cwv{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600}
-  .mdg-cwb.auto .mdg-cws{background:var(--amb-2);color:var(--ink-2)}
-  .mdg-cwk{position:absolute;top:100%;left:calc(var(--cwx) * 1%);z-index:1;width:28px;height:28px;margin:-14px 0 0 -14px;padding:0;box-sizing:border-box;
+  .mdg-rc{position:relative;display:flex;min-width:0;height:36px;margin:0 0 8px;border-bottom:2px solid var(--act);background:var(--primary-soft)}
+  .mdg-rc.auto{border-bottom-color:var(--line-strong);background:var(--amb-2)}
+  .mdg-rc.min{border-bottom-color:var(--warn-line);background:var(--warn-soft)}
+  .mdg-rc.on{background:var(--act)}
+  .mdg-rcv{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;margin:0;padding:0 16px;border:0;background:none;
+    font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;color:var(--act);white-space:nowrap;cursor:pointer}
+  .mdg-rc.auto .mdg-rcv{color:var(--ink-2)}
+  .mdg-rc.min .mdg-rcv{color:var(--warn)}
+  .mdg-rc.on .mdg-rcv{color:var(--on-primary)}
+  .mdg-rcp{overflow:hidden;text-overflow:ellipsis}
+  .mdg-rcv:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .mdg-cwk{position:absolute;top:50%;right:-14px;z-index:2;width:28px;height:28px;margin:-14px 0 0;padding:0;box-sizing:border-box;
     border:2px solid var(--act);border-radius:50%;background:var(--work);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
   .mdg-cwk::after{content:'';position:absolute;inset:-10px;border-radius:50%}
   .mdg-cwk:focus-visible{outline:2px solid var(--act);outline-offset:2px}
@@ -9618,11 +9637,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (pointer:coarse){
     .mdg-tab,.mdg-k,.mdg-band,.mdg-hint{display:none}
     .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
+    .mdg-rc.mdg-rl{position:sticky;left:0;z-index:3}   /* A790 : la règle de la 1ʳᵉ colonne, collée comme elle */
     .mdg-add{flex-direction:column}
     .mdg-add .mdg-addb{flex:none}
     /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
        texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
-    .mdg,.mdg.mdg-1{grid-template-columns:var(--mdg-cols,clamp(112px,18%,168px) repeat(var(--mdg-n1),minmax(132px,1fr)))}
+    .mdg,.mdg.mdg-1,.mdg.mdg-w{grid-template-columns:var(--mdg-cols,clamp(112px,18%,168px) repeat(var(--mdg-n1),minmax(132px,1fr)))}   /* A790 : la règle d'un tableau aux parts choisies aussi */
     /* A779 : sans marge intérieure au doigt — Safari colle la colonne DANS la marge (2 px), et les cases qui défilaient
        dessous se voyaient à sa gauche. */
     .mdg-scroll{padding:0}
@@ -11092,7 +11112,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.146.1';
+const APP_VERSION='5.147.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12022,7 +12042,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // A775 : la taille vient d'une CLASSE du jeu fermé (MD_SC), comme une image ; aucune dans une liste ni une case.
     // A783 : ses dimensions connues, la boîte a sa proportion (`vidSzHtml`) — avant comme après l'arrivée de la vidéo.
     const dm=(v.w|0)>0&&(v.h|0)>0;
-    return '<figure class="md-fig md-vfig'+sz(cls,v.scale,w)+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"'+(dm?' data-vdw="'+(v.w|0)+'" data-vdh="'+(v.h|0)+'"':'')+'><div class="md-vbox'+(dm?' vd':'')+'">'+(dm?vidSzHtml(v.w,v.h):'')+'<span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig md-vfig'+sz(cls,v.scale,w)+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"'+(dm?' data-vdw="'+(v.w|0)+'" data-vdh="'+(v.h|0)+'"':'')+'><div class="md-vbox'+(dm?' vd':'')+'">'+(dm?vidSzHtml(v.w,v.h):'')+''+(vidPosterHtml(v)||'<span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span>')+'</div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
@@ -12388,7 +12408,17 @@ function safeVideo(v){if(!v||typeof v!=='object')return null;
   if(v.scale!=null){const sc=Math.round(Number(v.scale));if([25,33,50,66,75].indexOf(sc)>=0)o.scale=sc;}
   // A783 : les DIMENSIONS de la vidéo (pixels, mesurées à l'ajout) — absentes tant qu'elles ne sont pas connues, jamais 0.
   {const w=Math.round(Number(v.w)),h=Math.round(Number(v.h));if(w>0&&h>0&&w<=20000&&h<=20000){o.w=w;o.h=h;}}
+  /* A791 : sa VIGNETTE (la première image, capturée à l'ajout : JPEG de 320 px au plus, ~20 Ko) et sa DURÉE (secondes) —
+     facultatives, bornées : une image sûre (`safeImg`) de moins de 60 000 caractères, un entier de 1 s à 24 h. */
+  {const po=typeof v.poster==='string'&&v.poster.length<=VID_POSTER_MAX&&/^data:image\/(?:jpeg|webp|png);base64,/.test(v.poster)?safeImg(v.poster):'';if(po)o.poster=po;
+   const d=Math.round(Number(v.dur));if(d>=1&&d<=86400)o.dur=d;}
   return o;}
+const VID_POSTER_MAX=60000,VID_POSTER_W=320;   // A791
+// A791 : la durée d'une vidéo, dite « 0:12 », « 12:05 », « 1:02:03 ». PURE.
+const vidDur=d=>{d=Math.round(Number(d));if(!(d>=1))return '';const h=Math.floor(d/3600),m=Math.floor(d%3600/60),s=String(d%60).padStart(2,'0');return h?h+':'+String(m).padStart(2,'0')+':'+s:m+':'+s;};
+// A791 : la vignette d'une vidéo, ▶ et sa durée par-dessus (un média qu'on ne prend pas pour une image). `cls` : sa boîte.
+const vidPosterHtml=(v,cls)=>{const po=v&&safeImg(v.poster);if(!po)return '';
+  return `<span class="${cls||'md-vpo'}"><img src="${po}" alt="" draggable="false"><span class="vpo-p" aria-hidden="true">${uiIcon('play',16)}</span>${v.dur?`<span class="vpo-d">${esc(vidDur(v.dur))}</span>`:''}</span>`;};
 const attExt=type=>VID_EXT[type]||'pdf';   // extension du chemin distant d'un binaire, d'après son type
 const attTypeOfPath=path=>{const e=(String(path||'').match(/\.([a-z0-9]{2,4})$/)||[])[1];return e==='mp4'?'video/mp4':e==='webm'?'video/webm':e==='mov'?'video/quicktime':'application/pdf';};
 /* Comparaison d'octets à une position donnée — outil des sniffeurs. PURE. */
@@ -20564,7 +20594,7 @@ const mdSrcVid=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(v
 /* A789 (amende A584, A785) : `vue` — le bloc ouvert ne montre plus que l'aperçu à sa largeur (sans poignée ni crans) :
    la largeur se règle sur le document, un seul réglage (« les deux sélecteurs en compétition », signalé par l'auteur). */
 function mdVueHtml(im,vid,w){const sc=w?0:_scale(im.scale),data=!vid&&safeImg(im.data);if(!vid&&!data)return '';
-  return `<div class="mds-frame"><span class="mds-img${w?(MD_MW[w]||'').replace(' mw ',' '):(MD_SC[sc]||'')}">${vid?`<span class="mds-vph">${uiIcon('play',22)}<span>Vidéo</span></span>`:`<img src="${data}" alt="">`}</span></div>`
+  return `<div class="mds-frame"><span class="mds-img${w?(MD_MW[w]||'').replace(' mw ',' '):(MD_SC[sc]||'')}">${vid?(vidPosterHtml(im,'mds-vpo')||`<span class="mds-vph">${uiIcon('play',22)}<span>Vidéo</span></span>`):`<img src="${data}" alt="">`}</span></div>`
     +`<p class="hint">Largeur : ${w||sc||100} % — pour la régler, touchez ${vid?'la vidéo':'l’image'} dans le document et tirez son bord.</p>`;}
 function mdSizeHtml(im,attr,head,vid,w){const sc=w?(MD_SCALES.indexOf(w)>=0?w:0):_scale(im.scale),data=!vid&&safeImg(im.data);if(!vid&&!data)return '';   // A785 : `w`, la part écrite sur l'emplacement
   // A775 : une vidéo se règle au même cadre — un réceptacle (glyphe et mot) à la place de l'image.
@@ -21258,12 +21288,18 @@ function vidSzHtml(w,h){w=w|0;h=h|0;return w>0&&h>0?'<svg class="md-vsz" width="
 const vidSzFig=fig=>vidSzHtml(+fig.dataset.vdw||0,+fig.dataset.vdh||0);
 /* Les dimensions d'une vidéo, lues dans ses métadonnées (rien n'est décodé au-delà) ; null si le navigateur ne la lit pas
    (un MOV hors Safari) ou au-delà de 8 s. */
-function vidDims(blob){return new Promise(res=>{let url='',fin=false,to=0;const v=document.createElement('video');
+/* A791 : et sa PREMIÈRE IMAGE (vignette, au premier cadre décodé : `loadeddata`) et sa DURÉE — la vignette manque si le
+   cadre ne se dessine pas (navigateur, protection) ; la vidéo garde alors ses dimensions seules. */
+function vidDims(blob){return new Promise(res=>{let url='',fin=false,to=0,d=null;const v=document.createElement('video');
   const done=r=>{if(fin)return;fin=true;clearTimeout(to);v.removeAttribute('src');try{v.load();}catch(e){}try{URL.revokeObjectURL(url);}catch(e){}res(r);};
   try{url=URL.createObjectURL(blob);}catch(e){return res(null);}
-  v.muted=true;v.playsInline=true;v.preload='metadata';
-  v.onloadedmetadata=()=>done(v.videoWidth>0&&v.videoHeight>0?{w:v.videoWidth,h:v.videoHeight}:null);
-  v.onerror=()=>done(null);to=setTimeout(()=>done(null),8000);v.src=url;});}
+  v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';
+  v.onloadedmetadata=()=>{if(!(v.videoWidth>0&&v.videoHeight>0))return done(null);d={w:v.videoWidth,h:v.videoHeight};
+    const s=Math.round(v.duration);if(isFinite(v.duration)&&s>=1&&s<=86400)d.dur=s;};
+  v.onloadeddata=()=>{if(!d)return;try{const k=Math.min(1,VID_POSTER_W/d.w),c=document.createElement('canvas');c.width=Math.max(1,Math.round(d.w*k));c.height=Math.max(1,Math.round(d.h*k));
+      c.getContext('2d').drawImage(v,0,0,c.width,c.height);const u=c.toDataURL('image/jpeg',.7);if(u.length<=VID_POSTER_MAX&&/^data:image\/jpeg/.test(u))d.poster=u;}catch(e){}
+    done(d);};
+  v.onerror=()=>done(d);to=setTimeout(()=>done(d),8000);v.src=url;});}
 /* LE RATTRAPAGE : chaque vidéo sans dimensions d'un protocole que je peux modifier, dont le binaire est sur l'appareil, est
    mesurée ; le protocole est marqué « à renvoyer » (ni sa date ni son auteur ne changent : rien de rédigé n'a bougé).
    Jamais le protocole en cours de modification (son brouillon l'écraserait). Ce qui ne se mesure pas ici n'est pas
@@ -21272,12 +21308,12 @@ const _vidDimKo=new Set();let _vidDimCours=null;
 function vidDimRattraper(){if(_vidDimCours)return _vidDimCours;
   _vidDimCours=(async()=>{let n=0;if(!supportsAttachments())return 0;
     for(const p of protocols){if(!p||p.deletedAt||!canEditFiche(p)||(state.pdraft&&state.pdraft.id===p.id))continue;let ch=false;
-      for(const v of (p.videos||[])){if(!v||!v.id||((v.w|0)>0&&(v.h|0)>0)||_vidDimKo.has(v.id))continue;
+      for(const v of (p.videos||[])){if(!v||!v.id||((v.w|0)>0&&(v.h|0)>0&&v.poster)||_vidDimKo.has(v.id))continue;   // A791 : sans vignette aussi
         let rec=null;try{rec=await IDB.getAtt(v.id);}catch(e){}
         const buf=rec&&await attBuf(rec);if(!buf)continue;   // binaire pas encore là : au prochain passage
         const d=await vidDims(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:v.mime}));
         if(!d){_vidDimKo.add(v.id);continue;}
-        v.w=d.w;v.h=d.h;ch=true;n++;}
+        v.w=d.w;v.h=d.h;if(d.poster)v.poster=d.poster;else _vidDimKo.add(v.id);if(d.dur)v.dur=d.dur;ch=true;n++;}
       if(ch){p.dirty=true;try{await Data.putProtocol(p);}catch(e){}}}
     return n;})().finally(()=>{_vidDimCours=null;});
   return _vidDimCours;}
@@ -21414,11 +21450,14 @@ async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1'
   const id=fig.dataset.vid,box=fig.querySelector('.md-vbox');if(!id||!box)return;
   let rec=null;try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}
   const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
+  const po=box.querySelector('.md-vpo');   // A791 : la vignette — gardée tant que la vidéo n'est pas là, son poster ensuite
   if(!buf){fig.dataset.vh='';const et=rxEtatDe(id);fig.classList.toggle('md-vabs',et!=='in');   // A781 : en réception = neutre
+    if(po){let t=po.querySelector('.vpo-e');if(!t){t=document.createElement('span');t.className='vpo-e';po.appendChild(t);}t.textContent=et==='in'?'en réception':'△ pas sur cet appareil';return;}
     if(((box.querySelector('.md-vph')||{}).dataset||{}).rxe!==et)box.innerHTML=vidSzFig(fig)+rxPhHtml('vid',et,+fig.dataset.vsize||0);return;}
   fig.classList.remove('md-vabs');
   const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
   {const w=+fig.dataset.vdw||0,h=+fig.dataset.vdh||0;if(w>0&&h>0){v.width=w;v.height=h;}}   // A783 : la proportion avant même les métadonnées
+  {const im=po&&po.querySelector('img');if(im)v.poster=im.src;}
   v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
   const cap=fig.querySelector('figcaption');v.setAttribute('aria-label',cap&&cap.textContent?cap.textContent:'Vidéo');
   v.addEventListener('error',()=>{box.innerHTML=vidSzFig(fig)+'<span class="md-vph">△ Cette vidéo'+(fig.dataset.vmime==='video/webm'?' (WebM)':'')+' ne se lit pas sur cet appareil.</span>';});
@@ -21546,7 +21585,7 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
   const lbl=(r,c)=>hh&&r===0?'En-tête '+(c+1):mdTblRowName(w,r)+', '+mdTblColName(w,c);
   const med=(x,i)=>{let inner;
     if(x.k==='img'){const im=P&&(P.images||[]).find(y=>y.id===x.id),d=im&&safeImg(im.data);inner=d?`<img src="${d}" alt="">`:`<span class="mdg-vph">${uiIcon('camera',18)}<span>Image</span></span>`;}
-    else inner=`<span class="mdg-vph">${uiIcon('play',20)}<span>Vidéo</span></span>`;
+    else{const v=P&&(P.videos||[]).find(y=>y.id===x.id);inner=vidPosterHtml(v,'mdg-vpo')||`<span class="mdg-vph">${uiIcon('play',20)}<span>Vidéo</span></span>`;}   // A791
     return `<div class="mdg-med">${inner}<button type="button" class="mdg-rm" data-mdgrm="${i}" aria-label="Retirer ${x.k==='vid'?'la vidéo':'l’image'} de la case">✕</button></div>`;};
   const cell=(v,r,c)=>{const s=mdCellSplit(v);
     return `<div class="mdg-c${isH(r,c)?' mdg-h':''}${r===0?' mdg-t':''}${c===0?' mdg-l':''}${r===fr&&c===fc?' act':''}" data-r="${r}" data-c="${c}">`
@@ -21554,7 +21593,14 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
       +s.med.map(med).join('')
       +(P&&aMed&&!s.med.length?`<div class="mdg-add"><button type="button" class="mdg-addb" data-mdgadd="img">＋ Image</button><button type="button" class="mdg-addb" data-mdgadd="vid">＋ Vidéo</button></div>`:'')
       +`</div>`;};
-  const tc=g[0].map((_,c)=>`<button type="button" class="mdg-tab mdg-tc${c===fc?' on':''}" data-mdgcol="${c}" aria-haspopup="true" aria-label="Colonne « ${esc(mdTblColName(w,c))} » : options"><span aria-hidden="true">···</span></button>`).join('');
+  /* A790 — LA RÈGLE DES COLONNES (planche « Retours v5.146 », R1 retenue) : « Largeur » allumé, les onglets ··· deviennent une
+     règle — un segment par colonne (sa part, ou « auto » ; le toucher ouvre son menu), une pastille sur le FILET qu'elle
+     déplace. Visible au doigt aussi (les onglets, eux, ne le sont pas, A773). */
+  const pc=w.cw||mdTblCw(Array(n).fill(1),n),auto=!w.cw;
+  const tc=w.cwOn&&n>1?g[0].map((_,c)=>{const nm=esc(mdTblColName(w,c)),v=auto?'auto':pc[c]+' %';
+      return `<span class="mdg-rc${c===fc?' on':''}${auto?' auto':''}${c===0?' mdg-rl':''}" data-mdgrc="${c}"><button type="button" class="mdg-rcv" data-mdgcol="${c}" aria-haspopup="true" aria-label="Colonne « ${nm} » : ${auto?'ajustée au contenu':v}, options"><span class="mdg-rcp">${v}</span></button>`
+        +(c<n-1?`<button type="button" class="mdg-cwk" data-mdgcwk="${c}" aria-label="Séparation entre « ${nm} » et « ${esc(mdTblColName(w,c+1))} » : ${pc[c]} % et ${pc[c+1]} % — ← → pour la déplacer"></button>`:'')+`</span>`;}).join('')
+    :g[0].map((_,c)=>`<button type="button" class="mdg-tab mdg-tc${c===fc?' on':''}" data-mdgcol="${c}" aria-haspopup="true" aria-label="Colonne « ${esc(mdTblColName(w,c))} » : options"><span aria-hidden="true">···</span></button>`).join('');
   const rows=g.map((r,ri)=>`<button type="button" class="mdg-tab mdg-tr${ri===fr?' on':''}" data-mdgrow="${ri}" aria-haspopup="true" aria-label="${esc(mdTblRowName(w,ri))} : options"><span aria-hidden="true">⋮</span></button>`+r.map((v,c)=>cell(v,ri,c)).join('')).join('');
   const vide=!w.edit&&g.every(r=>r.every(v=>!String(v).trim()||v==='Colonne'));
   /* A779 (capture d'un iPhone) : au doigt, une colonne de texte LONG s'élargit (132 → 184 → 232 px, d'après sa plus longue
@@ -21562,7 +21608,10 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
      La 1ʳᵉ, collée, fait 112 px au téléphone (A777) et jusqu'à 168 px sur une tablette (A780). Nombres calculés ici,
      jamais une valeur saisie. */
   const cw=g[0].map((_,c)=>{if(c===0)return n===1?'minmax(132px,1fr)':'clamp(112px,18%,168px)';const L=Math.max(0,...g.map(r=>mdCellSplit(r[c]).txt.length));return 'minmax('+(L>60?232:L>24?184:132)+'px,1fr)';}).join(' ');
-  return `${n>1&&w.cwOn?mdTblCwHtml(w):''}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${cw}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
+  /* A790 : des parts choisies, la grille d'édition prend les proportions de la lecture — jamais sous 112 px, pour qu'on puisse
+     y écrire (la règle le dit, « min. ») ; au-delà, elle défile de côté. Sans parts : les largeurs de saisie (A777, A779). */
+  const pistes=w.cw?w.cw.map(v=>'minmax(112px,'+v+'fr)').join(' '):'';
+  return `${n>1&&w.cwOn?mdTblCwHtml(w):''}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}${pistes?' mdg-w':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${pistes||cw}${pistes?';--mdg-pc:'+pistes:''}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
       +`<button type="button" class="mdg-band mdg-bc" data-mdtw="cend" aria-label="Ajouter une colonne à droite"${n<MD_MAX_TCOLS?'':' disabled'}>＋</button>`
       +`<button type="button" class="mdg-band mdg-br" data-mdtw="rend">＋ Ligne</button></div></div>
     <div class="mdg-opts" role="group" aria-label="Réglages de la grille"><span class="mdg-opt-l">En-tête</span><button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button>${n>1?`<span class="mdg-opt-l">Colonnes</span><button type="button" class="btn sm mdg-hx${w.cwOn?' on':''}" data-mdtw="cwbar" aria-pressed="${!!w.cwOn}">Largeur${w.cw?' choisie':''}</button>`:''}${P&&!aMed?'<span class="mdg-opt-l mdg-opt-m">'+esc(mdTblCaseLbl(w))+'</span><button type="button" class="btn sm" data-mdgadd="img">＋ Image</button><button type="button" class="btn sm" data-mdgadd="vid">＋ Vidéo</button>':''}${vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':''}</div>
@@ -21612,6 +21661,7 @@ function mdTblVoir(c){const bd=document.getElementById('mdToolBody'),th=bd&&bd.q
 // La case active a changé : onglets et barre au pouce suivent, sans rien redessiner (le focus et la saisie restent).
 function mdTblCur(m){const w=_mdTw;if(!w)return;
   m.querySelectorAll('.mdg-tc').forEach(b=>b.classList.toggle('on',+b.dataset.mdgcol===w.fc));
+  m.querySelectorAll('.mdg-rc').forEach(b=>b.classList.toggle('on',+b.dataset.mdgrc===w.fc));   // A790
   m.querySelectorAll('.mdg-tr').forEach(b=>b.classList.toggle('on',+b.dataset.mdgrow===w.fr));
   // « ＋ Image » · « ＋ Vidéo » suivent la case ACTIVE, pas le focus : un focus perdu (toucher un onglet) les retirait, la
   // fenêtre se recentrait et le relâcher tombait à côté (mesuré).
@@ -21657,28 +21707,38 @@ function mdTblRatios(w){const P=w.p,n=w.g[0].length,o=[];
    un segment par colonne (son nom, sa part), une pastille ronde entre deux colonnes qui se tire au doigt comme à la souris
    (pas de 5 %, aimantée aux tiers) et se règle au clavier (← →, 5 %). Les mêmes au bureau, sur la tablette et au téléphone :
    la grille d'édition garde ses largeurs de saisie (A777, A779) — les parts sont celles de la LECTURE. */
-function mdTblCwHtml(w){const n=w.g[0].length,cw=w.cw||mdTblCw(Array(n).fill(1),n),auto=!w.cw;let x=0;
-  const seg=cw.map((v,c)=>`<span class="mdg-cws" style="--cwp:${v}"><span class="mdg-cwn">${esc(mdTblColName(w,c))}</span><span class="mdg-cwv">${auto?'auto':v+' %'}</span></span>`).join('');
-  const kn=cw.slice(0,-1).map((v,c)=>{x+=v;return `<button type="button" class="mdg-cwk" data-mdgcwk="${c}" style="--cwx:${x}" aria-label="Séparation entre « ${esc(mdTblColName(w,c))} » et « ${esc(mdTblColName(w,c+1))} » : ${cw[c]} % et ${cw[c+1]} %"></button>`;}).join('');
-  const h=!!mdTblRatios(w);
-  return `<div class="mdg-cw" role="group" aria-label="Largeur des colonnes"><div class="mdg-cwb${auto?' auto':''}" data-mdgcwb>${seg}${kn}</div>`
-    +`<div class="mdg-cwq"><button type="button" class="btn sm${auto?' on':''}" data-mdtw="cwauto" aria-pressed="${auto}">Ajuster au contenu</button><button type="button" class="btn sm" data-mdtw="cweq">Colonnes égales</button>`
+function mdTblCwHtml(w){const auto=!w.cw,h=!!mdTblRatios(w);
+  return `<div class="mdg-cw" role="group" aria-label="Largeur des colonnes"><div class="mdg-cwq"><button type="button" class="btn sm${auto?' on':''}" data-mdtw="cwauto" aria-pressed="${auto}">Ajuster au contenu</button><button type="button" class="btn sm" data-mdtw="cweq">Colonnes égales</button>`
     +`<button type="button" class="btn sm" data-mdtw="cwh"${h?'':' disabled'}>Même hauteur</button></div>`
-    +`<p class="hint mdg-cwh">${auto?'Tirez une séparation pour choisir la part de chaque colonne.':'En lecture, une colonne ne descend jamais sous son mot le plus long.'}</p></div>`;}
+    +`<p class="hint mdg-cwh">${auto?'Tirez une pastille, sur le filet entre deux colonnes, pour choisir leur part.':'La grille prend les parts de la lecture ; une colonne ne descend pas sous 112 px pour qu’on puisse y écrire (« min. »).'}</p></div>`;}
 // La pastille se tire : la séparation suit le pointeur (bornée à 5 % de chaque voisine), relâcher écrit (↶ de la grille).
-function mdTblCwBind(){const b=document.querySelector('#mdToolBody [data-mdgcwb]');if(!b||b.dataset.on)return;b.dataset.on='1';
+/* A790 : la largeur de grille où chaque colonne a sa part et au moins 112 px — W = 112·k ÷ (1 − Σ des parts libres), les k
+   colonnes « au minimum » étant celles dont la part ferait moins de 112 px ; jamais moins que la place disponible, jamais
+   plus de 960 px. PURE. */
+function mdTblGrilleW(cw,dispo){const P=(cw||[]).map(v=>Math.max(0,+v||0)/100);let W=Math.max(0,+dispo||0);
+  for(let k=0;k<P.length+1;k++){const mins=P.map(p=>p*W<112),nm=mins.filter(Boolean).length,libre=P.reduce((s,p,i)=>s+(mins[i]?0:p),0);
+    const W2=libre<1?112*nm/(1-libre):W;if(!(W2>W+.5))break;W=Math.min(960,W2);if(W>=960)break;}
+  return Math.max(+dispo||0,W);}
+function mdTblCwBind(){const b=document.querySelector('#mdToolBody .mdg');if(!b||b.dataset.cw||!b.querySelector('.mdg-rc'))return;b.dataset.cw='1';
   const set=(w,c,pos)=>{const n=w.g[0].length,cw=(w.cw||mdTblCw(Array(n).fill(1),n)).slice(),a=cw.slice(0,c).reduce((s,v)=>s+v,0),t=cw[c]+cw[c+1];
     let v=Math.round((pos-a)/5)*5;if(Math.abs(pos-a-33)<=2)v=33;if(Math.abs(pos-a-66)<=2)v=66;v=Math.max(5,Math.min(t-5,v));cw[c]=v;cw[c+1]=t-v;return cw;};
+  /* A790 : la grille s'élargit juste assez pour que chaque colonne ait sa part ET ses 112 px (`mdTblGrilleW`, au plus
+     960 px — au-delà, la grille défile de côté) ; une colonne qui reste à 112 px le dit, en ambre (« min. »). */
+  const peint=cw=>{const R=[...b.querySelectorAll('.mdg-rc')],sc=b.closest('.mdg-scroll'),
+      ext=Math.max(0,String(getComputedStyle(b).gridTemplateColumns).split(' ').reduce((t,x)=>t+(parseFloat(x)||0),0)-R.reduce((t,x)=>t+x.offsetWidth,0));   // les pistes hors colonnes (onglets ⋮, bande ＋)
+    const W=cw?mdTblGrilleW(cw,Math.max(0,(sc?sc.clientWidth:b.offsetWidth)-ext)):0;b.style.minWidth=cw?Math.round(W+ext)+'px':'';
+    R.forEach((x,i)=>{const mi=!!cw&&cw[i]/100*W<112-.5,p=x.querySelector('.mdg-rcp');x.classList.toggle('min',mi);if(p&&cw)p.textContent=cw[i]+' %'+(mi?' · min.':'');});};
+  peint(_mdTw&&_mdTw.cw);if(_mdTw&&_mdTw.cw)mdTblFit();   // les cases se remesurent à leur nouvelle largeur (la hauteur suit le texte)
   b.addEventListener('pointerdown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||e.button>0)return;e.preventDefault();try{k.setPointerCapture(e.pointerId);}catch(x){}
     document.documentElement.classList.add('ac-tire');try{getSelection().removeAllRanges();}catch(x){}   // A789
-    const c=+k.dataset.mdgcwk,r=b.getBoundingClientRect();let cw=null;
-    const mv=ev=>{cw=set(w,c,(ev.clientX-r.left)/r.width*100);let x=0;b.querySelectorAll('.mdg-cws').forEach((s,i)=>{s.style.setProperty('--cwp',cw[i]);const v=s.querySelector('.mdg-cwv');if(v)v.textContent=cw[i]+' %';});
-      b.querySelectorAll('.mdg-cwk').forEach((q,i)=>{x+=cw[i];q.style.setProperty('--cwx',x);});b.classList.remove('auto');};
+    const c=+k.dataset.mdgcwk,R=[...b.querySelectorAll('.mdg-rc')],l=R[0].getBoundingClientRect().left,r=R[R.length-1].getBoundingClientRect().right;let cw=null;
+    const mv=ev=>{cw=set(w,c,(ev.clientX-l)/(r-l)*100);const t=cw.map(v=>'minmax(112px,'+v+'fr)').join(' ');b.classList.add('mdg-w');b.style.setProperty('--mdg-pc',t);b.style.setProperty('--mdg-cols',t);
+      R.forEach(x=>x.classList.remove('auto'));peint(cw);};
     const up=()=>{k.removeEventListener('pointermove',mv);k.removeEventListener('pointerup',up);k.removeEventListener('pointercancel',up);document.documentElement.classList.remove('ac-tire');
       if(cw&&_mdTw===w){mdTblNote(w);w.typed=false;w.cw=cw;mdTblRepaint(w.fr,w.fc,true);const q=document.querySelector('#mdToolBody [data-mdgcwk="'+c+'"]');if(q)q.focus({preventScroll:true});}};
     k.addEventListener('pointermove',mv);k.addEventListener('pointerup',up);k.addEventListener('pointercancel',up);});
-  b.addEventListener('keydown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();
-    const c=+k.dataset.mdgcwk,n=w.g[0].length,cw=w.cw||mdTblCw(Array(n).fill(1),n),a=cw.slice(0,c+1).reduce((s,v)=>s+v,0)-cw[c]+cw[c];
+  b.addEventListener('keydown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();e.stopPropagation();
+    const c=+k.dataset.mdgcwk,n=w.g[0].length,cw=w.cw||mdTblCw(Array(n).fill(1),n),a=cw.slice(0,c+1).reduce((s,v)=>s+v,0);
     mdTblNote(w);w.typed=false;w.cw=set(w,c,a+(e.key==='ArrowLeft'?-5:5));mdTblRepaint(w.fr,w.fc,true);const q=document.querySelector('#mdToolBody [data-mdgcwk="'+c+'"]');if(q)q.focus({preventScroll:true});});}
 // A773 : le menu d'UNE colonne, d'UNE ligne (onglet ou barre au pouce) — déroulant au bureau, feuille au téléphone (A638).
 function mdTblColMenu(btn,c){const w=_mdTw;if(!w)return;w.fc=c;const n=w.g[0].length,al=w.al[c]==='c'||w.al[c]==='r'?w.al[c]:'';
@@ -21706,7 +21766,7 @@ function mdMedMenu(trig,p,kind,title,ctx,onRefs,multi){const vid=kind==='vid',L=
   const O=[{val:'+',name:'Depuis l’appareil…',sub:vid?'MP4 · MOV · WebM':'photo, capture, galerie',ic:uiIcon(vid?'play':'camera',18)}];
   if(L.length){O.push({head:(vid?'Vidéos':'Images')+' de ce protocole · '+L.length});
     L.forEach((x,i)=>{const d=!vid&&safeImg(x.data);O.push({val:x.id,name:vid?(x.name||'Vidéo '+(i+1)):(x.caption||'Image '+(i+1)),
-      ic:vid?uiIcon('play',18):(d?`<img class="mm-thumb" src="${d}" alt="">`:uiIcon('camera',18))});});}
+      ic:vid?(safeImg(x.poster)?`<img class="mm-thumb" src="${safeImg(x.poster)}" alt="">`:uiIcon('play',18)):(d?`<img class="mm-thumb" src="${d}" alt="">`:uiIcon('camera',18)),sub:vid&&x.dur?vidDur(x.dur):undefined});});}   // A791
   openPickMenu(trig.parentNode,{aria:title,title,ctx,trigger:trig,...deskFlot(),options:O,
     onPick:v=>{if(v!=='+')return onRefs(['![]('+tag+':'+v+')']);
       pickFile(vid?'video':'image',async files=>{let ids=[];
@@ -34579,7 +34639,7 @@ async function notionVerse(p,files,rerender){
       p.videos=Array.isArray(p.videos)?p.videos:[];
       for(const v of (q.videos||[])){const z=r.vidBufs&&r.vidBufs.get(v.id);let ok=false;
         if(z&&p.videos.length<MAX_VID_PER_ENTITY&&supportsAttachments()){try{await attPut({id:v.id,buf:z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength),size:z.length,type:v.mime,createdAt:Date.now(),dirty:1,remotePath:null});ok=true;}catch(e){}}
-        if(ok){const d=await vidDims(new Blob([z],{type:v.mime}));if(d){v.w=d.w;v.h=d.h;}   // A783
+        if(ok){const d=await vidDims(new Blob([z],{type:v.mime}));if(d){v.w=d.w;v.h=d.h;if(d.poster)v.poster=d.poster;if(d.dur)v.dur=d.dur;}   // A783, A791
           draftNewAtts.push(v.id);p.videos.push(v);vidN++;}else{vidOut++;txt=vidRetire(txt,[v.id]);}}
       /* Par le champ Markdown quand il est là : l'ajout entre dans son historique (↶ le retire d'un geste). */
       const ta=document.getElementById('p-body');
@@ -41505,7 +41565,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
