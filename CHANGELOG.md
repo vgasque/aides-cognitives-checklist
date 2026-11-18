@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.146.1] — 2026-11-18
+Correctifs du réglage de la largeur, après vos retours (A789). Aucune mise à jour du serveur.
+- **Un seul réglage** : une image ou une vidéo ouverte par « Modifier… » ne montre plus ses anciens pictogrammes de
+  taille, qui faisaient doublon. Elle s'affiche à sa largeur, et une ligne rappelle qu'elle se règle en touchant l'image
+  dans le document puis en tirant son bord. La fiche d'une image (« Images du texte ») garde le réglage, pour tous ses
+  passages à la fois.
+- **La barre de l'image sélectionnée se voit en mode sombre** : elle se fondait dans le contenu, surtout sur iPhone.
+  Elle a maintenant un bord clair la nuit. Au téléphone, elle reste en bas de l'écran.
+- **Sur iPhone, tirer une poignée ou une pastille ne sélectionne plus de texte.**
+- Dans un tableau qu'on fait défiler de côté, le cadre de l'image sélectionnée suit l'image.
+- Vérifié sur Chrome et Edge (le même moteur), Safari (le moteur WebKit, avec un iPhone et un iPad simulés, en clair et
+  en sombre) et Firefox.
+
 ## [5.146.0] — 2026-11-18
 Une liste écrite dans une case de tableau s'affiche en liste (A788). Aucune mise à jour du serveur.
 - **Dans une case**, des lignes qui commencent par « - », « * » ou « 1. » deviennent une vraie liste, à puces ou
@@ -289,16 +302,3 @@ La synchronisation tient après un gros import : elle reçoit et envoie par peti
 - **La synchro dit où elle en est** (A761) : la pastille compte (« Réception · 34 / 120 protocoles ») et, pour un gros
   rattrapage, l'accueil montre un bandeau avec sa barre de progression. Si elle s'interrompt, elle dit où (« Arrêtée à
   34 / 120 protocoles : la reprise partira de là »).
-
-## [5.135.0] — 2026-11-15
-Les images se comptent en poids : 10 Mo par aide ou par protocole, et au-delà l'app propose de compresser (A759).
-- **10 Mo d'images par aide ou par protocole**, au lieu de 60 images : environ 130 photos, 90 photos d'iPhone ou
-  60 schémas. Le nombre passe à 200. Un élément déjà au-delà reste lisible et modifiable : rien n'est coupé.
-- **La carte des images dit son poids** (« 6,1 Mo d'images »), en ambre à partir de 8 Mo ; au-delà de 10 Mo, une bande
-  le dit, « ＋ Image » se ferme et « Compresser… » est proposé.
-- **Au-delà, l'app propose de compresser, et vous décidez.** Elle cherche la compression la plus douce qui suffit :
-  les images les plus lourdes d'abord, la meilleure qualité qui tient, une taille réduite seulement si nécessaire.
-  La feuille montre le poids avant et après, ce qui change, et le même détail de l'image avant/après, à 100 %.
-  « Compresser » : ↶ annule. « Ne pas compresser » : rien ne change, seules les nouvelles images qui tiennent entrent.
-- **À l'import**, un élément au-delà de 10 Mo porte sa bande dans l'atelier : « Compresser » (par défaut) ou « Ne pas
-  compresser », et « Comparer ». Ce qui ne tient pas n'est pas importé, et le message de fin le dit.

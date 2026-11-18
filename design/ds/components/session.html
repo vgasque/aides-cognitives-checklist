@@ -8964,13 +8964,21 @@
     background:var(--work);box-shadow:var(--shadow-float);pointer-events:auto;cursor:ew-resize;touch-action:none}
   .mdm-h::after{content:'';position:absolute;inset:-12px;border-radius:50%}
   .mdm-r .mdm-h{right:auto;left:-12px}
-  .mdm-tip{position:absolute;left:50%;top:8px;transform:translateX(-50%);padding:4px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);
+  .mdm-tip{position:absolute;left:50%;top:8px;transform:translateX(-50%);padding:4px 8px;border:1px solid var(--sys-edge);border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);
     font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}
+  /* A789 : bordée de `--sys-edge` (transparent le jour, clair la nuit) — en thème sombre, sur la carte de l'éditeur, la
+     matière système ne se détachait pas et l'ombre ne se voit pas : la barre était invisible (signalé sur iPhone). */
   .mdm-bar{position:absolute;z-index:4;display:flex;align-items:center;gap:2px;padding:4px;transform:translateY(calc(-100% - 12px));border-radius:var(--r-3);
-    background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float);white-space:nowrap}
+    border:1px solid var(--sys-edge);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float);white-space:nowrap}
+  .mdm-bar.sous{transform:none}
+  .mdm-bar{max-width:100%;box-sizing:border-box}
   .mdm-bar.dock{position:sticky;bottom:12px;flex-wrap:wrap;margin:16px 0 0;transform:none;white-space:normal}
   .mdm-b{min-height:32px;margin:0;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
-  .mdm-bar.dock .mdm-b{min-height:44px}
+  @media (pointer:coarse){.mdm-b{min-height:44px}}
+  /* A789 : un geste qui tire (poignée d'un média, pastille d'une colonne) ne sélectionne jamais de texte — sur iPhone, un
+     appui un peu long sur la pastille sélectionnait le mot voisin. */
+  .mdm,.mdm-bar,.mdg-cw,.md-fig.msel{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  html.ac-tire,html.ac-tire *{-webkit-user-select:none!important;user-select:none!important;cursor:ew-resize}
   .mdm-b:hover{background:var(--sys-2)}
   .mdm-b:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-2px}
   .mdm-pct{font-family:var(--f-mono);font-weight:600}

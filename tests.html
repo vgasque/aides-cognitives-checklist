@@ -1181,6 +1181,21 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A788 : un média coupe la liste en deux, à sa place', /<td><ul class="md-ul"><li>un<\/li><\/ul><figure class="md-fig md-cfig"[^>]*>.*<\/figure><ul class="md-ul"><li>deux<\/li><\/ul><\/td>/.test(H3),H3);
    ok('A788 : rien d’interprété comme HTML dans une liste de case', A.mdRender('| a |\n|---|\n| - <img src=x onerror=alert(1)> |').indexOf('<img src=x')<0);}
 
+  /* A789 — robustesse des attributs de mise en page (entrées malformées, bornes). */
+  group('A789 — attributs malformés, bornes');
+  {const PNG='data:image/png;base64,iVBORw0KGgo=',IM=[{id:'x',data:PNG,caption:''}];
+   const H=A.mdRender('![](img:x){width=999%}\n\n![](img:x){width=0%}',{images:IM});
+   ok('A789 : une largeur hors bornes (999 %, 0 %) : l’image reste, sans classe de largeur, l’attribut jamais affiché', (H.match(/<figure/g)||[]).length===2&&!/ mw/.test(H)&&H.indexOf('width=')<0);
+   const T0=A.mdRender('| a | b | c |\n|---|---|---|\n| 1 | 2 | 3 |\n{widths="0 0 0"}');
+   ok('A789 : des parts nulles : pas de colgroup, la ligne est lue et ne s’affiche pas', !/colgroup/.test(T0)&&T0.indexOf('widths')<0);
+   const T1=A.mdRender('| a |\n|---|\n| 1 |\n{widths="1000"} <script>');
+   ok('A789 : une ligne des colonnes illisible reste du texte, échappé', /&lt;script&gt;/.test(T1)&&!/colgroup/.test(T1));
+   eq('A789 : mdTblCw — une part écrasante laisse 5 % à chaque autre', A.mdTblCw([100,0,0],3), [90,5,5]);
+   eq('A789 : mdTblCw — douze colonnes égales font 100 %', A.mdTblCw(Array(12).fill(1),12).reduce((a,b)=>a+b,0), 100);
+   eq('A789 : mdMedSetW — un identifiant hors forme ne vise rien', A.mdMedSetW('![](img:x)','img','x)|.*',0,50), null);
+   eq('A789 : mdScaleToW — corps absent : texte vide', A.mdScaleToW(null,null,null), '');
+   ok('A789 : une liste de case avec une image réduite', /<ul class="md-ul"><li>un<\/li><\/ul><figure class="md-fig md-cfig mw mw40"/.test(A.mdRender('| a |\n|---|\n| - un<br>![](img:x){width=40%} |',{images:IM})));}
+
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
   const SS_PERS=A.storageState({signed:false,pers:true,usage:3e6,quota:3e9,attBytes:0});

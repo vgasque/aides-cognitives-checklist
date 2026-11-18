@@ -9078,10 +9078,10 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  const lr=await page.evaluate(()=>{const o=document.querySelector('#mdDoc ol');return o?o.querySelectorAll('li').length+'/'+o.querySelectorAll('li .md-lfig').length:'';});
  t('A772-A776 · 1A · rendu : une seule liste, l’image dans l’élément',lr==='3/1',lr);
  // 1D : taille de la vidéo
- await page.evaluate(async()=>{document.querySelector('#mdDoc figure.md-vfig').closest('.mdb').click();await __acCalme(300);});
- await page.click('#mdDoc .mds-o[data-mdsv="50"]');await calme(page,300);
+ await page.evaluate(async()=>{const f=document.querySelector('#mdDoc figure.md-vfig');f.scrollIntoView({block:'center'});await __acCalme(150);f.click();await __acCalme(250);
+   document.querySelector('#mdDoc [data-mdm="pct"]').click();await __acCalme(300);const o=document.querySelector('.popmenu [data-pickopt="50"]');if(o)o.click();await __acCalme(300);});   // A789 : sur le document
  const vs=await page.evaluate(()=>({sc:state.pdraft.videos[0].scale,txt:/\(vid:v1\)\{width=50%\}/.test(state.pdraft.body)}));
- t('A772-A776 · 1D · la vidéo prend le cran ½ — A785 : écrit sur l’emplacement ({width=50%}), le modèle inchangé',vs.txt&&vs.sc!==50,JSON.stringify(vs));
+ t('A772-A776 · 1D · la vidéo prend ½, choisie sur le document (A785, A789) : écrit sur l’emplacement ({width=50%}), le modèle inchangé',vs.txt&&vs.sc!==50,JSON.stringify(vs));
  await page.evaluate(async()=>{const d=document.querySelector('#mdDoc [data-mdbact="done"]');if(d)d.click();await __acCalme(300);});
  const vr=await page.evaluate(()=>(document.querySelector('#mdDoc figure.md-vfig')||{}).className||'');
  t('A772-A776 · 1D · rendu refermé : md-vfig mw mw50 (A785)',/md-vfig mw mw50/.test(vr),vr);
@@ -9343,9 +9343,8 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await __acCalme(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
     const dn=d.querySelector('[data-mdbact="done"]');if(dn)dn.click();await __acCalme(100);
     const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await __acCalme(150);}
-    o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('[data-mdbscale]').length};
-    const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await __acCalme(150);}
-    o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body!==t0&&/\(img:[A-Za-z0-9_-]+\)\{width=50%\}/.test(state.pdraft.body),ouvert:!!d.querySelector('.mdb-ta')};   // A785 : la part s'écrit sur l'emplacement
+    o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('.mdb-imgv .mds-o').length,dit:/Largeur : 100 %/.test((d.querySelector('.mdb-imgv .hint')||{}).textContent||'')};
+    o.taille={ouvert:!!d.querySelector('.mdb-ta')};   // A789 : la largeur se règle sur le document, plus dans le bloc ouvert
     const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await __acCalme(100);
     const n=d.querySelectorAll('.mdb').length,g=d.querySelector('[data-mdbgrab="'+(n-1)+'"]');o.poignee=!!g;
     if(g){g.click();await __acCalme(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
@@ -9357,8 +9356,8 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     return o;});
   t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
     r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
-  t('A548 · image ouverte : l\'image au-dessus du champ, sa taille réglée sur le bloc (A785 : écrite sur l\'emplacement, {width=50%}, le modèle inchangé)',
-    r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele!==50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
+  t('A548 · image ouverte : l\'image au-dessus du champ, à sa largeur — A789 : sans crans (un seul réglage, sur le document), une ligne dit la largeur',
+    r.doc&&r.image.vue&&r.image.tailles===0&&r.image.dit&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
   t('A549 · « Prendre / Poser » (geste de l\'éditeur d\'aide) : ⠿ prend le dernier bloc, bandeau qui le nomme, une cible par place, le reste inerte ; « Poser en tête » le pose',
     r.doc&&r.poignee&&r.mode&&r.mode.bandeau&&r.mode.cibles===r.n+1&&r.mode.pris&&r.mode.inerte&&r.libre&&r.tete==='Fin.',JSON.stringify(r));
   t('A551 · après un déplacement, ↶ paraît et remet le bloc à sa place',r.doc&&r.undoDep&&r.apresUndo==='## A',JSON.stringify({undo:r.undoDep,apres:r.apresUndo}));
@@ -9385,6 +9384,9 @@ for(const [W,H] of [[1280,900],[390,844]]){
  t('A785 · '+L+' · un toucher sur l’image d’un élément la sélectionne (cadre, poignée, barre : part · Même largeur · Même hauteur · Modifier… · ✕), aucun bloc ouvert',
    a.bar==='pct,eqw,eqh,open,x'&&a.grip&&a.cadre&&!a.ouvert&&a.focus==='pct'&&a.dock===(W<780),JSON.stringify(a));
  if(W<780)t('A785 · téléphone · la barre est en bas, le bouton « Ajouter » s’efface',a.dock&&a.porte==='hidden',JSON.stringify(a));
+ {const nuit=await page.evaluate(async()=>{const h=document.documentElement,av=h.dataset.theme;h.dataset.theme='dark';await __acCalme(100);const b=document.querySelector('#mdDoc .mdm-bar'),cs=getComputedStyle(b);
+   const r={bord:cs.borderTopColor,epais:cs.borderTopWidth};if(av)h.dataset.theme=av;else delete h.dataset.theme;return r;});
+  t('A789 · '+L+' · en thème sombre, la barre est bordée (elle ne se fond pas dans le contenu, signalé sur iPhone)',nuit.epais==='1px'&&!/rgba\(0, 0, 0, 0\)|transparent/.test(nuit.bord),JSON.stringify(nuit));}
  const g=await (await page.$('#mdDoc [data-mdmgrip]')).boundingBox(),li=await page.evaluate(()=>{const r=document.querySelector('#mdDoc li').getBoundingClientRect();return {l:r.left,w:r.width};});
  const y=g.y+g.height/2;await page.mouse.move(g.x+g.width/2,y);await page.mouse.down();await page.mouse.move(li.l+li.w*0.3,y,{steps:4});await page.mouse.move(li.l+li.w*0.45,y,{steps:4});
  const bulle=await page.evaluate(()=>{const x=document.querySelector('#mdDoc .mdm-tip');return x&&!x.hidden?x.textContent:'';});
@@ -9510,6 +9512,8 @@ await sec('Lecture · A788 une liste dans une case de tableau', async () => {
    l'aimante à 50 % (bulle « ½ · 50 % » pendant le geste), écrit le modèle, le texte inchangé ; la feuille de l'image
    porte le même composant. Vrais événements souris. */
 await sec('Éditeur · A584 taille d\'une image par pictogrammes et poignée', async () => {
+  /* A789 : le bloc ouvert ne porte plus le composant (un seul réglage, sur le document, A785) ; il vit dans la feuille de
+     l'image (A787 : la largeur à tous ses passages). Mêmes six pictogrammes, même poignée, mêmes mots. */
   const page=await br.newPage({viewport:{width:1280,height:860}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
@@ -9517,20 +9521,20 @@ await sec('Éditeur · A584 taille d\'une image par pictogrammes et poignée', a
     const pr=migrateProtocol({title:'Témoin A584',body:'Avant.\n\n![](img:i1)\n\nFin.',images:[{id:'i1',data:c.toDataURL('image/png'),w:40,h:30,scale:100}]});protocols.push(pr);await openProtocolEdit(pr.id);});
   await calme(page, 500);
   await page.evaluate(()=>{[...document.querySelectorAll('#mdDoc .mdb')].find(b=>b.querySelector('img')).click();});await calme(page, 300);
-  const o=await page.evaluate(()=>{const b=[...document.querySelectorAll('#mdDoc .mds-o')];
-    return {mots:b.map(x=>x.textContent).join('|'),noms:b.every(x=>x.getAttribute('aria-label').startsWith(x.textContent+' — ')),on:(document.querySelector('#mdDoc .mds-o.on')||{}).textContent};});
-  const g=await (await page.$('#mdDoc [data-mdsgrip]')).boundingBox(),fr=await (await page.$('#mdDoc [data-mdsframe]')).boundingBox(),t0=await page.evaluate(()=>state.pdraft.body);
-  await page.mouse.move(g.x+g.width/2,g.y+g.height/2);await page.mouse.down();await page.mouse.move(fr.x+fr.width*0.5,g.y+g.height/2,{steps:6});
-  o.bulle=await page.$eval('#mdDoc .mds-tip',x=>x.hidden?'':x.textContent);
-  await page.mouse.up();await calme(page, 300);
-  Object.assign(o,await page.evaluate(t0=>({modele:state.pdraft.images[0].scale,texte:state.pdraft.body.replace('(img:i1){width=50%}','(img:i1)')===t0&&state.pdraft.body!==t0,on2:(document.querySelector('#mdDoc .mds-o.on')||{}).textContent,ouvert:!!document.querySelector('#mdDoc .mdb-ta')}),t0));
+  const o=await page.evaluate(()=>({bloc:document.querySelectorAll('#mdDoc .mds-o').length,dit:(document.querySelector('#mdDoc .mdb-imgv .hint')||{}).textContent||''}));
   await page.evaluate(()=>document.querySelector('[data-mdbact="done"]').click());await calme(page, 200);
   await page.click('[data-mitile]');await calme(page, 300);
-  o.feuille=await page.evaluate(()=>({n:document.querySelectorAll('#miBody .mds-o').length,on:(document.querySelector('#miBody .mds-o.on')||{}).textContent,cadre:!!document.querySelector('#miBody [data-mdsgrip]')}));
-  t('A584 · pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine, nommés en mots, la taille courante allumée',o.mots==='¼|⅓|½|⅔|¾|Pleine'&&o.noms&&o.on==='Pleine',JSON.stringify(o));
-  t('A584 · tirer la poignée jusqu\'à la moitié : bulle « ½ · 50 % », A785 : {width=50%} écrit sur l\'emplacement (modèle inchangé), bloc toujours ouvert',
-    o.bulle==='½ · 50 %'&&o.modele===100&&o.texte&&o.on2==='½'&&o.ouvert,JSON.stringify(o));
-  t('A584 · la feuille de l\'image porte le même composant (cadre, poignée, six pictogrammes) — A787 : la largeur écrite de son passage (½)',o.feuille.n===6&&o.feuille.on==='½'&&o.feuille.cadre,JSON.stringify(o.feuille));
+  Object.assign(o,await page.evaluate(()=>{const b=[...document.querySelectorAll('#miBody .mds-o')];
+    return {mots:b.map(x=>x.textContent).join('|'),noms:b.every(x=>x.getAttribute('aria-label').startsWith(x.textContent+' — ')),on:(document.querySelector('#miBody .mds-o.on')||{}).textContent,cadre:!!document.querySelector('#miBody [data-mdsgrip]')};}));
+  const g=await (await page.$('#miBody [data-mdsgrip]')).boundingBox(),fr=await (await page.$('#miBody [data-mdsframe]')).boundingBox();
+  await page.mouse.move(g.x+g.width/2,g.y+g.height/2);await page.mouse.down();await page.mouse.move(fr.x+fr.width*0.5,g.y+g.height/2,{steps:6});
+  o.bulle=await page.$eval('#miBody .mds-tip',x=>x.hidden?'':x.textContent);
+  await page.mouse.up();await calme(page, 400);
+  Object.assign(o,await page.evaluate(()=>({texte:state.pdraft.body.split('\n')[2],on2:(document.querySelector('#miBody .mds-o.on')||{}).textContent})));
+  t('A584 · A789 : le bloc ouvert ne porte plus de pictogrammes ; une ligne dit la largeur et renvoie au document',o.bloc===0&&/Largeur : 100 %.*touchez l’image dans le document/.test(o.dit),JSON.stringify(o));
+  t('A584 · la feuille : pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine, nommés en mots, la largeur courante allumée, le cadre et sa poignée',o.mots==='¼|⅓|½|⅔|¾|Pleine'&&o.noms&&o.on==='Pleine'&&o.cadre,JSON.stringify(o));
+  t('A584 · tirer la poignée de la feuille jusqu\'à la moitié : bulle « ½ · 50 % », {width=50%} écrit sur le passage (A787), ½ allumé',
+    o.bulle==='½ · 50 %'&&o.texte==='![](img:i1){width=50%}'&&o.on2==='½',JSON.stringify(o));
   await page.close();
 });
 
