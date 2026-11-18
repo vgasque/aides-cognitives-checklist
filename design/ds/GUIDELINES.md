@@ -995,7 +995,8 @@ telle quelle — chaque écran le dit à sa façon :
 - **Grille d'images et vidéos d'un protocole** (A755, A757) : une image (ou une vidéo) seule dans une case de tableau
   est une vignette ; un tableau qui en porte a des colonnes égales et tient dans la largeur, sans filets. « Mettre en
   grille » (barre de sélection des blocs, ou « ＋ Insérer › Grille d'images ») : l'auteur choisit 2, 3 ou 4 colonnes.
-  Une vidéo se lit muette, en boucle, quand elle est à l'écran ; illisible, son réceptacle le dit en ambre (absente : ligne suivante).
+  Une vidéo se lit muette, en boucle, quand elle est à l'écran — une seule à la fois, la plus au centre ; celles d'un même
+  tableau ensemble (A795) ; illisible, son réceptacle le dit en ambre (absente : ligne suivante).
 - **Ce qui n'est pas encore sur l'appareil** (A781) — image, vidéo, document : trois états, un seul vocabulaire. En
   réception (compte connecté, en ligne) : NEUTRE, glyphe ↓ et « Image en cours de réception » + poids ; hors ligne :
   mots en ambre, « △ Image pas encore sur cet appareil » ; introuvable partout : mots en ambre. Le réceptacle d'une

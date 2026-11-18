@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A794** à la v5.148.2 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A795** à la v5.148.3 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -416,6 +416,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A792 | `lot-v5-148.md` | La fenêtre « Tableau » : au bureau, une ligne d'outils au-dessus de la grille (En-tête · « Largeur ▾ », `mdTblToolHtml`, `mdTblCwMenu`) ; au téléphone, une ligne d'état qui ouvre la feuille « Tableau » (`.mdg-stat`) ; le média par le « ＋ » de la case active, à cheval sur son filet (`mdTblPlusCase`, `mdTblVoirX`, `mdg-pg`) ; plus rien sous la grille ni en double — amende A773, A778, A786, A790 |
 | A793 | `lot-v5-148-1.md` | La grille d'édition : la 1ʳᵉ colonne (et sa règle) n'est collée que si elle est en-tête et hors « Tout défile » (`.mdg-hc`) ; les menus d'actions de la fenêtre « Tableau » sans « Filtrer » (`MDT_ACTIONS`) ; au doigt, ni l'ouverture ni un choix de menu ne focalisent une case (titre `#mdToolTitle`) — amende A773, A777, A492 |
 | A794 | `lot-v5-148-2.md` | La vignette d'une vidéo : prise sur la vidéo posée dans la page et lancée en muet, vers 1 s, image noire ou unie refusée (`vidDims`, `vidPosterDe`, `.vid-cap`) ; un échec noté une fois par version (`ac-vpo-ko`) ; jamais en session, une à la fois ; prise à la lecture sans rien relire (`vidPosterAuJeu`) — amende A783, A791 |
+| A795 | `lot-v5-148-3.md` | Les vidéos d'un document : gardées d'un redessin à l'autre (`vidGarder`), une copie par vidéo (`_vidUrl`), hydratées à l'approche et relâchées loin (`_vidPres`, `_vidLoin`), l'espace vérifié une fois (`_attClaimVu`) ; une seule joue, la plus au centre, celles d'un même tableau ensemble (`VidJeu`) — amende A757 |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

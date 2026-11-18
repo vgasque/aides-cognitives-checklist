@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.148.3] — 2026-11-18
+Les vidéos d'un protocole ne repartent plus de zéro à chaque modification, prennent bien moins de mémoire, et une seule
+joue à la fois (A795). Aucune mise à jour du serveur.
+- **Modifier un bloc ne réinitialise plus les vidéos** (A795) : dans l'éditeur de protocole, les vidéos restent en place pendant que vous écrivez et reprennent où elles en étaient. Rien n'est relu ni recopié à chaque modification ; l'enregistrement automatique ne relit plus les fichiers des vidéos à chaque sauvegarde.
+- **Moins de mémoire** : une seule copie par vidéo pour toute la page, chargée seulement quand la vidéo approche de l'écran et libérée quand elle s'en éloigne beaucoup (sa vignette reste à sa place). Une vidéo pas encore sur l'appareil le dit toujours tout de suite.
+- **Une seule vidéo joue à la fois en lecture** : celle qui est la plus au centre de l'écran. Les vidéos d'un même tableau jouent ensemble, pour comparer côte à côte. Lancer une vidéo à la main la fait passer devant ; l'arrêter à la main la laisse arrêtée. « Réduire les animations » : rien ne se lance seul, comme avant.
+
 ## [5.148.2] — 2026-11-18
 Les vignettes des vidéos se voient enfin sur iPhone, et celles des vidéos déjà envoyées se font d'elles-mêmes, une fois
 (A794). Aucune mise à jour du serveur.
@@ -262,20 +269,3 @@ leur suppression sur le serveur (A768). Aucune mise à jour du serveur. **Mettre
 - Si une lecture des protocoles échoue pendant une synchro, plus rien n'est effacé à ce passage.
 - Une vidéo qui n'était plus nulle part (ni sur l'appareil, ni sur le serveur) ne peut pas revenir d'elle-même : la
   réimporter depuis son fichier d'origine (l'export Notion, par exemple).
-
-## [5.137.1] — 2026-11-16
-⚠ Correctif : une vidéo pouvait rester absente du serveur alors que l'appareil qui l'avait ajoutée disait
-« Synchronisé » (A767). Aucune mise à jour du serveur.
-- **Une vidéo suit désormais son protocole quand il change d'espace** (de Perso à une bibliothèque, ou l'inverse) :
-  seuls les documents PDF suivaient. La vidéo restait rangée « Perso » sur le serveur ; l'appareil notait qu'elle était
-  dans la bibliothèque sans l'y envoyer, et les autres appareils ne la trouvaient jamais.
-- **Réparation automatique de l'existant** : à chaque lancement, l'appareil vérifie que les documents et vidéos qu'il
-  croit envoyés sont bien sur le serveur (une liste par dossier) et renvoie ce qui manque — « ↻ n fichiers manquaient
-  sur le serveur : renvoyés ». Ouvrir l'app sur l'ordinateur qui a ajouté les vidéos suffit ; le téléphone les reçoit
-  à sa synchro suivante.
-- **« Copier dans Perso »** d'un protocole de bibliothèque emporte aussi ses vidéos (comme ses documents).
-- **Une vidéo introuvable sur le serveur le dit** : « pas encore sur le serveur — ouvrez l'app sur l'appareil qui l'a
-  ajoutée », au lieu de promettre qu'elle arrive avec la synchronisation.
-- Audit : huit témoins instables sous charge réécrits sans rien desserrer (capter une animation à sa naissance, figer
-  une transition, mesurer une fenêtre posée, compter des sondages plutôt que des millisecondes, tenir les synchros de
-  fond à l'écart d'une mesure, attendre l'appel plutôt qu'un texte, lire « reste court » comme un rafraîchissement).

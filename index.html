@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-/YaolJbnIVGaJ+PjkRxxaeAN5MD4VjA2BhEEsdNmBE0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-d7F6qQc9FucDPA+P6m7UD3BehVXOH0bkXxF2JJxJvxU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11124,7 +11124,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.148.2';
+const APP_VERSION='5.148.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11418,7 +11418,11 @@ function attBuf(rec){if(!rec)return null;
    AUSSI les écritures qui ne font que remettre un drapeau ne coûte rien et supprime la question.
    Même patron que `persistLive` pour la session et `edCommit` pour le brouillon : un chemin
    ajouté demain est couvert sans qu'on y pense. */
-async function attPut(rec){
+/* A795 : l'espace d'un fichier déjà vérifié par `attClaim`, pour la page — l'enregistrement automatique d'un protocole
+   relisait le fichier ENTIER de chacune de ses vidéos (des Mo) à chaque sauvegarde, pour lire son seul champ `scope`.
+   Toute écriture du fichier efface sa ligne : la vérification suivante relit. */
+const _attClaimVu=new Map();
+async function attPut(rec){if(rec&&rec.id)_attClaimVu.delete(rec.id);
   const r=await IDB.putAtt(rec);
   if(rec&&rec.id&&!VID_EXT[rec.type])ixQueue(rec.id);   // A757 : une vidéo ne s'indexe pas (l'index lit des PDF)
   return r;}
@@ -20888,7 +20892,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     e.preventDefault();msel=null;openBlk(+b.dataset.mdb);});
   {const rs=()=>{if(!document.contains(doc)){removeEventListener('resize',rs);return;}if(msel)medPaint();};addEventListener('resize',rs);
    doc.addEventListener('scroll',e=>{if(msel&&e.target&&e.target.classList&&e.target.classList.contains('md-tw'))medPaint();},true);}   // A789 : un tableau qui défile de côté emporte le média
-  const paint=(sel_)=>{const sel=sel_;doc.innerHTML=mdDocHtml(p,open,grab,grabMany);card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
+  const paint=(sel_)=>{const sel=sel_;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
     const t=doc.querySelector('.mdb-ta');setAct(t||null);if(!t){blk=null;return;}
@@ -21513,29 +21517,95 @@ async function rxApres(){const e=rxCible();if(!e)return;
   const t=Date.now();if(t-(_rxKick.get(e.id)||0)<60000)return;_rxKick.set(e.id,t);
   try{Sync.imgHydrate();}catch(_){}}
 const vidReduce=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
-let _vidIO=null;
+/* ═══ A795 — LES VIDÉOS D'UN DOCUMENT : UNE COPIE, CHARGÉE À L'APPROCHE, GARDÉE D'UN REDESSIN À L'AUTRE, UNE SEULE QUI
+   JOUE. Mesuré au code : chaque rendu (l'éditeur redessine tout le document à chaque modification d'un bloc) relisait le
+   fichier ENTIER de chaque vidéo depuis le stockage et en faisait une nouvelle copie — toutes les vidéos du protocole,
+   même hors de l'écran, à chaque frappe — et elles repartaient de zéro ; en lecture, toutes celles visibles ensemble
+   jouaient ensemble.
+   - UNE COPIE PAR VIDÉO pour la page (`_vidUrl` : id → URL, comptée) ; rendue 30 s après que plus rien ne la montre.
+   - CHARGÉE À L'APPROCHE : un réceptacle n'est hydraté qu'à moins de 600 px de l'écran (`_vidPres`) ; relâché au-delà de
+     2 400 px (`_vidLoin`) — sa vignette (A791) reprend sa place, sa copie est rendue.
+   - GARDÉE D'UN REDESSIN À L'AUTRE (`vidGarder`) : l'élément vidéo est replacé dans le document redessiné — ni relecture,
+     ni copie, et elle reprend où elle en était.
+   - UNE SEULE JOUE (`VidJeu`, décision de l'auteur, R3-A) : parmi les vidéos à moitié visibles, celle la plus au centre de
+     l'écran ; les vidéos d'un MÊME tableau jouent ensemble (une grille compare côte à côte). Lancer une vidéo à la main la
+     fait élire ; l'arrêter à la main la laisse arrêtée tant qu'elle est à l'écran. « Réduire les animations » : rien ne
+     se lance seul (A757). */
+const _vidUrl=new Map();
+const _vidHas=rec=>!!rec&&(Object.prototype.toString.call(rec.buf)==='[object ArrayBuffer]'||!!(rec.blob&&typeof rec.blob.arrayBuffer==='function'));
+async function vidUrlPrendre(id,rec,mime){const pris=()=>{const e=_vidUrl.get(id);if(!e)return null;clearTimeout(e.del);e.del=0;e.n++;return e.url;};
+  let u=pris();if(u)return u;const buf=rec&&await attBuf(rec);if(!buf)return null;
+  u=pris();if(u)return u;   // un autre réceptacle l'a faite pendant la lecture
+  u=URL.createObjectURL(new Blob([buf],{type:mime}));_vidUrl.set(id,{url:u,n:1,del:0});return u;}
+function vidUrlRendre(id){const e=_vidUrl.get(id);if(!e)return;e.n=Math.max(0,e.n-1);if(e.n||e.del)return;
+  e.del=setTimeout(()=>{const x=_vidUrl.get(id);if(x&&!x.n){try{URL.revokeObjectURL(x.url);}catch(_){}_vidUrl.delete(id);}},30000);}
+const VidJeu=(()=>{const vis=new Map();let force=null,raf=0;
+  const grp=v=>v.closest('table')||v;
+  // ce que l'app commande : un drapeau par geste, consommé par son événement (play/pause ne se lèvent que s'ils changent l'état)
+  const jouer=v=>{if(!v.paused)return;v._aPlay=true;const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{v._aPlay=false;});};
+  const arreter=v=>{if(v.paused)return;v._aPause=true;v.pause();};
+  const plan=()=>{raf=0;let best=null,bd=Infinity;const mid=innerHeight/2;
+    for(const v of [...vis.keys()]){if(!v.isConnected){vis.delete(v);continue;}const r=v.getBoundingClientRect(),d=Math.abs((r.top+r.bottom)/2-mid);if(d<bd){bd=d;best=grp(v);}}
+    if(force&&[...vis.keys()].some(v=>grp(v)===force))best=force;else force=null;
+    for(const v of vis.keys()){const on=grp(v)===best&&!v._uPause;
+      if(on)jouer(v);else arreter(v);}};
+  // le DERNIER signal de chaque vidéo seulement ; une sortie qui suit un replacement (`vidGarder`, < 1 s) n'efface pas
+  // « arrêtée à la main » — WebKit signale le détachement, Chromium non (mesuré).
+  const io=typeof IntersectionObserver==='function'?new IntersectionObserver(es=>{const D=new Map();for(const e of es)D.set(e.target,e);
+    for(const [v,e] of D){if(e.isIntersecting&&e.intersectionRatio>=.5)vis.set(v,1);else{vis.delete(v);if(Date.now()-(v._garde||0)>1000)v._uPause=false;arreter(v);}}
+    plan();},{threshold:[0,.5,1]}):null;
+  const tic=()=>{if(!raf&&vis.size>1)raf=requestAnimationFrame(plan);};
+  document.addEventListener('scroll',tic,{capture:true,passive:true});addEventListener('resize',tic);
+  return {voir(v){if(!io||vidReduce()||v._vj)return;v._vj=1;
+      v.addEventListener('play',()=>{if(v._aPlay){v._aPlay=false;return;}v._uPause=false;force=grp(v);tic();if(vis.size<=1)plan();});   // lancée à la main : élue
+      v.addEventListener('pause',()=>{if(v._aPause){v._aPause=false;return;}if(v.isConnected&&!v.ended)v._uPause=true;});   // arrêtée à la main : reste arrêtée
+      io.observe(v);},
+    oublier(v){if(io)io.unobserve(v);vis.delete(v);}};})();
 async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1';
   const id=fig.dataset.vid,box=fig.querySelector('.md-vbox');if(!id||!box)return;
-  let rec=null;try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}
-  const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
+  let rec=null;const deja=_vidUrl.has(id);   // A795 : une copie déjà faite — rien à relire
+  if(!deja){try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}}
+  if(!fig.isConnected){fig.dataset.vh='';return;}
   const po=box.querySelector('.md-vpo');   // A791 : la vignette — gardée tant que la vidéo n'est pas là, son poster ensuite
-  if(!buf){fig.dataset.vh='';const et=rxEtatDe(id);fig.classList.toggle('md-vabs',et!=='in');   // A781 : en réception = neutre
+  if(!deja&&!_vidHas(rec)){fig.dataset.vh='';const et=rxEtatDe(id);fig.classList.toggle('md-vabs',et!=='in');   // A781 : en réception = neutre
     if(po){let t=po.querySelector('.vpo-e');if(!t){t=document.createElement('span');t.className='vpo-e';po.appendChild(t);}t.textContent=et==='in'?'en réception':'△ pas sur cet appareil';return;}
     if(((box.querySelector('.md-vph')||{}).dataset||{}).rxe!==et)box.innerHTML=vidSzFig(fig)+rxPhHtml('vid',et,+fig.dataset.vsize||0);return;}
-  fig.classList.remove('md-vabs');
-  const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
+  const url=await vidUrlPrendre(id,rec,rec&&VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4'));
+  if(!url){fig.dataset.vh='';return;}
+  if(!fig.isConnected||fig.dataset.vh!=='1'){vidUrlRendre(id);return;}   // parti (ou relâché) pendant la lecture
+  fig.classList.remove('md-vabs');fig._ph=box.innerHTML;   // A795 : ce que le relâchement remettra
+  const v=document.createElement('video');
   {const w=+fig.dataset.vdw||0,h=+fig.dataset.vdh||0;if(w>0&&h>0){v.width=w;v.height=h;}}   // A783 : la proportion avant même les métadonnées
   {const im=po&&po.querySelector('img');if(im)v.poster=im.src;else vidPosterAuJeu(v,id);}   // A794
-  v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
+  v.src=url;v.dataset.vid=id;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
   const cap=fig.querySelector('figcaption');v.setAttribute('aria-label',cap&&cap.textContent?cap.textContent:'Vidéo');
   v.addEventListener('error',()=>{box.innerHTML=vidSzFig(fig)+'<span class="md-vph">△ Cette vidéo'+(fig.dataset.vmime==='video/webm'?' (WebM)':'')+' ne se lit pas sur cet appareil.</span>';});
-  box.replaceChildren(v);if(_vidIO&&!vidReduce())_vidIO.observe(v);}
-function vidRefresh(id){document.querySelectorAll('figure.md-vfig[data-vid="'+CSS.escape(String(id))+'"]').forEach(f=>{f.dataset.vh='';vidHydrate(f);});}
-(()=>{const scan=()=>document.querySelectorAll('figure.md-vfig[data-vid]:not([data-vh])').forEach(vidHydrate);
-  if(typeof IntersectionObserver==='function')_vidIO=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
-    if(e.isIntersecting&&e.intersectionRatio>=.5){const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{});}else v.pause();}),{threshold:[0,.5]});
+  box.replaceChildren(v);VidJeu.voir(v);}
+// A795 : relâcher une vidéo loin de l'écran — sa vignette reprend sa place ; la copie est rendue par l'observateur.
+function vidRelacher(fig){const box=fig.querySelector('.md-vbox'),v=box&&box.querySelector('video[data-vid]');if(!v||fig._ph==null)return;
+  box.innerHTML=fig._ph;fig.dataset.vh='';}
+/* A795 : garder les vidéos d'un redessin à l'autre — appelé AVANT de remplacer le contenu de `root`, la fonction rendue
+   APRÈS : chaque vidéo posée retrouve le réceptacle du même identifiant, au même rang. Ce qui n'a plus de place est
+   rendu par l'observateur (l'élément n'est plus dans la page). */
+function vidGarder(root){const M=new Map(),k=Object.create(null);
+  root.querySelectorAll('figure.md-vfig[data-vid]').forEach(f=>{const v=f.querySelector('.md-vbox>video[data-vid]');if(!v)return;if(!v.paused)v._aPause=true;v._garde=Date.now();const id=f.dataset.vid;k[id]=(k[id]||0)+1;M.set(id+'#'+k[id],v);});   // la pause du détachement n'est pas un geste
+  return ()=>{if(!M.size)return;const c=Object.create(null);
+    root.querySelectorAll('figure.md-vfig[data-vid]').forEach(f=>{const id=f.dataset.vid;c[id]=(c[id]||0)+1;const v=M.get(id+'#'+c[id]),box=f.querySelector('.md-vbox');if(!v||!box)return;
+      M.delete(id+'#'+c[id]);f._ph=box.innerHTML;box.replaceChildren(v);f.dataset.vh='1';f.classList.remove('md-vabs');});};}
+function vidRefresh(id){document.querySelectorAll('figure.md-vfig[data-vid="'+CSS.escape(String(id))+'"]').forEach(f=>{if(f.querySelector('.md-vbox>video[data-vid]'))return;f.dataset.vh='';vidHydrate(f);});}
+let _vidPres=null,_vidLoin=null;
+(()=>{const IO=typeof IntersectionObserver==='function';
+  if(IO){_vidPres=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)vidHydrate(e.target);}),{rootMargin:'600px 0px'});
+    _vidLoin=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting&&e.target.dataset.vh==='1')vidRelacher(e.target);}),{rootMargin:'2400px 0px'});}
+  /* L'état d'une vidéo ABSENTE de l'appareil (« en réception », « △ pas sur cet appareil », A781) se dit tout de suite,
+     même loin de l'écran : il ne coûte que la liste des fichiers présents (les clés, aucun fichier lu). */
+  const scan=()=>{const F=[...document.querySelectorAll('figure.md-vfig[data-vid]:not([data-vobs])')];if(!F.length)return;
+    F.forEach(f=>{f.dataset.vobs='1';if(IO){_vidPres.observe(f);_vidLoin.observe(f);}else vidHydrate(f);});
+    if(IO&&supportsAttachments())IDB.getAttIds().then(ids=>{const L=new Set(ids||[]);F.forEach(f=>{if(f.isConnected&&!f.dataset.vh&&!L.has(f.dataset.vid)&&!_vidUrl.has(f.dataset.vid))vidHydrate(f);});}).catch(()=>{});};
   let prevu=false;const mo=new MutationObserver(ms=>{
-    for(const m of ms)m.removedNodes.forEach(n=>{if(n.nodeType!==1)return;(n.matches&&n.matches('video[data-blob]')?[n]:[...n.querySelectorAll('video[data-blob]')]).forEach(v=>{try{URL.revokeObjectURL(v.dataset.blob);}catch(e){}if(_vidIO)_vidIO.unobserve(v);});});
+    for(const m of ms)m.removedNodes.forEach(n=>{if(n.nodeType!==1)return;
+      (n.matches&&n.matches('video[data-vid]')?[n]:[...n.querySelectorAll('video[data-vid]')]).forEach(v=>{if(v.isConnected||v._rendu)return;v._rendu=1;VidJeu.oublier(v);vidUrlRendre(v.dataset.vid);});   // replacée ailleurs (vidGarder) : gardée
+      if(IO)(n.matches&&n.matches('figure.md-vfig')?[n]:[...n.querySelectorAll('figure.md-vfig')]).forEach(f=>{if(f.isConnected)return;_vidPres.unobserve(f);_vidLoin.unobserve(f);});});
     if(!prevu){prevu=true;requestAnimationFrame(()=>{prevu=false;scan();});}});
   const go=()=>{mo.observe(document.body,{childList:true,subtree:true});scan();};
   if(document.body)go();else document.addEventListener('DOMContentLoaded',go);})();
@@ -33844,11 +33914,12 @@ async function attClaim(ent){
   if(!lst.length||!supportsAttachments())return;
   const me=attMe(),sp=ent.library||null,chg=[];
   for(const a of lst){if(!a||!a.id)continue;
+    if(_attClaimVu.get(a.id)===(me+'|'+(sp||'')))continue;   // A795 : déjà vérifié dans cet espace, rien n'a réécrit le fichier
     let rec=null;try{rec=await IDB.getAtt(a.id);}catch(e){}
     if(!rec)continue;
     const cur=attRecSpace(rec,me);
-    if(cur===sp)continue;
-    if(cur===undefined){rec.scope=sp||'';try{await attPut(rec);}catch(e){}continue;}
+    if(cur===sp){_attClaimVu.set(a.id,me+'|'+(sp||''));continue;}
+    if(cur===undefined){rec.scope=sp||'';try{await attPut(rec);_attClaimVu.set(a.id,me+'|'+(sp||''));}catch(e){}continue;}
     const reste=fiches.concat(protocols).some(x=>x&&x.id!==ent.id&&!x.deletedAt&&(x.library||null)===cur&&attCites(x,a.id));
     if(!reste){rec.scope=sp||'';rec.dirty=1;try{await attPut(rec);}catch(e){}continue;}
     let buf=null;try{buf=await attBuf(rec);}catch(e){}
