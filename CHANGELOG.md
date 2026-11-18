@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.142.0] — 2026-11-18
+Préparation de la taille des images et des vidéos partout, et de la largeur des colonnes d'un tableau (A784). Rien ne
+change à l'écran. Aucune mise à jour du serveur.
+- **Pourquoi cette version d'abord** : les prochaines versions écriront la largeur d'une image ou d'une vidéo, et celle
+  des colonnes, directement dans le texte du protocole (`![](img:…){width=45%}`, `{widths="30 25 45"}` sous un
+  tableau). Sur une version d'avant celle-ci, une image ainsi écrite **disparaîtrait** de l'écran. Cette version sait
+  déjà les lire : installée partout avant les suivantes, aucun appareil ne perdra d'image.
+- Elle lit ces deux indications partout (texte, élément de liste, case de tableau, recherche, export, import) sans en
+  tenir compte encore, et ne les affiche jamais en clair.
+
 ## [5.141.0] — 2026-11-18
 Les vidéos ont leurs dimensions, et la dernière carte d'une recherche retrouve son bord bas (A782-A783). Aucune mise à
 jour du serveur.
@@ -288,20 +298,3 @@ Des images côte à côte dans un protocole : la grille d'images (A755).
   images étaient côte à côte.
 - Une image placée dans une grille n'est plus retirée en quittant l'éditeur ; « Retirer » une image vide aussi ses
   cases ; l'export « sans les fichiers joints » les retire aussi.
-
-## [5.131.0] — 2026-11-15
-Un protocole peut contenir 50 000 caractères, et le texte n'est plus jamais coupé sans le dire (A754).
-- **La limite passe de 20 000 à 50 000 caractères** (environ 20 pages). Elle a été mesurée : sur un téléphone lent, un
-  protocole de 50 000 caractères s'ouvre en moins de 0,7 seconde (0,4 seconde aujourd'hui à 20 000) ; au-delà, l'ouverture
-  dépasserait une seconde, trop lent pour un protocole consulté pendant un soin.
-- **Un compteur dans l'éditeur** : à partir de 40 000 caractères, il affiche « 41 200 / 50 000 caractères » sous le
-  texte ; il passe en ambre à l'approche de la limite ; au-delà, il dit combien de caractères ne seront pas enregistrés
-  et propose de raccourcir ou de partager en deux protocoles. Avant, la fin était coupée à l'enregistrement sans un mot.
-- **À l'import** : un protocole trop long le dit sur sa ligne, avant toute écriture ; verser une page dans un protocole
-  qui dépasserait la limite est annoncé ; le message de fin dit aussi les images non reprises au-delà de 60.
-- **Synchronisation** : un protocole reçu plus long que ce que cette version de l'app peut garder ne s'ouvre pas dans
-  l'éditeur — il faut d'abord mettre l'app à jour, sinon sa fin serait perdue.
-- **Images** : la limite de 60 par aide ou protocole ne change pas. Mesurée, elle garde un protocole sous les 20 Mo
-  qu'accepte le serveur.
-- ⚠ **Pendant la mise à jour** : un appareil resté sur une version précédente coupe à 20 000 caractères un protocole plus
-  long écrit ailleurs ; ne modifiez pas un long protocole depuis un appareil qui n'a pas encore reçu la mise à jour.
