@@ -9430,31 +9430,40 @@ for(const [W,H] of [[1280,900],[390,844]]){
    const pr=migrateProtocol({title:'Témoin A786',body:c,images:[{id:'i_a',data:im(160,120),w:160,h:120,caption:''},{id:'i_b',data:im(90,160),w:90,h:160,caption:''}]});protocols.push(pr);window.__pid=pr.id;await openProtocolEdit(pr.id);},corps);
  await calme(page,600);
  const o=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[0];tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal');
-   const sans=!m.querySelector('[data-mdgcwb]');const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);
-   return {sans,bar:!!m.querySelector('[data-mdgcwb]'),seg:m.querySelectorAll('.mdg-cws').length,kn:m.querySelectorAll('.mdg-cwk').length,parts:[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|'),h:(m.querySelector('[data-mdtw="cwh"]')||{}).disabled};});
- t('A786 · '+L+' · « Largeur » ouvre la barre des parts : six segments, cinq pastilles, « auto » ; « Même hauteur » inactif sur un tableau de texte',
-   o.sans&&o.bar&&o.seg===6&&o.kn===5&&o.parts==='auto|auto|auto|auto|auto|auto'&&o.h===true,JSON.stringify(o));
- const kb=await (await page.$('#mdToolModal [data-mdgcwk="2"]')).boundingBox(),bb=await (await page.$('#mdToolModal [data-mdgcwb]')).boundingBox();
- await page.mouse.move(kb.x+14,kb.y+14);await page.mouse.down();await page.mouse.move(bb.x+bb.width*0.62,kb.y+14,{steps:6});await page.mouse.up();await calme(page,300);
- const p1=await page.evaluate(()=>({parts:[...document.querySelectorAll('#mdToolModal .mdg-cwv')].map(x=>x.textContent).join('|'),focus:(document.activeElement||{}).dataset&&document.activeElement.dataset.mdgcwk,clav:!!(document.activeElement&&document.activeElement.closest('.mdg-in'))}));
+   const sans=!m.querySelector('.mdg-rc');const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);
+   return {sans,seg:m.querySelectorAll('.mdg-rc').length,tabs:m.querySelectorAll('.mdg-tc').length,kn:m.querySelectorAll('.mdg-cwk').length,parts:[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent).join('|'),h:(m.querySelector('[data-mdtw="cwh"]')||{}).disabled,
+     aligne:[...m.querySelectorAll('.mdg-rc')].every((x,i)=>{const c=m.querySelector('.mdg-c[data-r="0"][data-c="'+i+'"]');return c&&Math.abs(x.getBoundingClientRect().left-c.getBoundingClientRect().left)<=2;})};});
+ t('A786 · '+L+' · A790 : « Largeur » change les onglets en règle AU-DESSUS des colonnes (six segments alignés sur leur colonne, cinq pastilles, « auto ») ; « Même hauteur » inactif sur un tableau de texte',
+   o.sans&&o.seg===6&&o.tabs===0&&o.kn===5&&o.parts==='auto|auto|auto|auto|auto|auto'&&o.aligne&&o.h===true,JSON.stringify(o));
+ /* Au téléphone, la grille (6 × 112 px) défile de côté : on tire la 1ʳᵉ pastille, visible, jusqu'à 30 % ; au bureau la 3ᵉ, jusqu'à 62 %. */
+ const tel=W<780,K=tel?0:2,cible=tel?0.30:0.62;
+ const kb=await (await page.$('#mdToolModal [data-mdgcwk="'+K+'"]')).boundingBox(),bb=await page.evaluate(()=>{const r=[...document.querySelectorAll('#mdToolModal .mdg-rc')];const a=r[0].getBoundingClientRect(),z=r[r.length-1].getBoundingClientRect();return {x:a.left,width:z.right-a.left};});
+ await page.mouse.move(kb.x+14,kb.y+14);await page.mouse.down();await page.mouse.move(bb.x+bb.width*cible,kb.y+14,{steps:6});await page.mouse.up();await calme(page,300);
+ const pts=()=>page.evaluate(()=>[...document.querySelectorAll('#mdToolModal .mdg-rcp')].map(x=>x.textContent.split(' · ')[0]).join('|'));
+ const p1=await page.evaluate(()=>({focus:(document.activeElement||{}).dataset&&document.activeElement.dataset.mdgcwk,clav:!!(document.activeElement&&document.activeElement.closest('.mdg-in'))}));p1.parts=await pts();
+ const g1=await page.evaluate(()=>{const m=document.getElementById('mdToolModal'),c=[...m.querySelectorAll('.mdg-c[data-r="0"]')].map(x=>Math.round(x.getBoundingClientRect().width));
+   return {c,min:[...m.querySelectorAll('.mdg-rc.min')].length,aligne:[...m.querySelectorAll('.mdg-rc')].every((x,i)=>Math.abs(x.getBoundingClientRect().width-c[i])<=2)};});
  await page.keyboard.press('ArrowLeft');await calme(page,200);
- const p2=await page.evaluate(()=>[...document.querySelectorAll('#mdToolModal .mdg-cwv')].map(x=>x.textContent).join('|'));
+ const p2=await pts();
  t('A786 · '+L+' · tirer la pastille règle les deux colonnes voisines (la somme fait 100 %), le focus reste sur elle (aucune case, aucun clavier) ; ← la recule de 5 %',
-   p1.parts==='20 %|20 %|20 %|10 %|15 %|15 %'&&p1.focus==='2'&&!p1.clav&&p2==='20 %|20 %|15 %|15 %|15 %|15 %',JSON.stringify({p1,p2}));
+   (tel?p1.parts==='30 %|10 %|15 %|15 %|15 %|15 %'&&p2==='25 %|15 %|15 %|15 %|15 %|15 %':p1.parts==='20 %|20 %|20 %|10 %|15 %|15 %'&&p2==='20 %|20 %|15 %|15 %|15 %|15 %')&&p1.focus===String(K)&&!p1.clav,JSON.stringify({p1,p2}));
+ t('A790 · '+L+' · la grille d’édition prend les parts (la plus grande part, la plus large ; deux parts égales, deux largeurs égales), la règle reste alignée ; une part trop petite pour écrire est dite « min. »',
+   (tel?g1.c[0]>g1.c[2]+10:Math.abs(g1.c[0]-g1.c[1])<=2&&g1.c[0]>g1.c[4]+10)&&g1.aligne&&g1.min>=1,JSON.stringify(g1));
  await page.evaluate(async()=>{const m=document.getElementById('mdToolModal');[...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);});
  const w1=await lw(page);
- t('A786 · '+L+' · « Mettre à jour » écrit la ligne des colonnes sous le tableau',w1.length===1&&w1[0]==='{widths="20 20 15 15 15 15"}',JSON.stringify(w1));
+ t('A786 · '+L+' · « Mettre à jour » écrit la ligne des colonnes sous le tableau',w1.length===1&&w1[0]===(tel?'{widths="25 15 15 15 15 15"}':'{widths="20 20 15 15 15 15"}'),JSON.stringify(w1));
  const r=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[0];const cg=[...tb.querySelectorAll('col')].map(c=>c.className).join(' ');
-   tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal'),bar=!!m.querySelector('[data-mdgcwb]');
-   m.querySelector('[data-mdtw="cweq"]').click();await __acCalme(200);const eq=[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|');
-   m.querySelector('[data-mdtw="cwauto"]').click();await __acCalme(200);const au=[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|');
+   tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal'),bar=!!m.querySelector('.mdg-rc');
+   const pp=()=>[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent.split(' · ')[0]).join('|');
+   m.querySelector('[data-mdtw="cweq"]').click();await __acCalme(200);const eq=pp();
+   m.querySelector('[data-mdtw="cwauto"]').click();await __acCalme(200);const au=pp();
    [...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {cg,bar,eq,au};});
  const w2=await lw(page);
  t('A786 · '+L+' · rendu : un <colgroup> du jeu fermé ; rouverte, la grille montre la barre ; « Colonnes égales » puis « Ajuster au contenu » retire la ligne',
-   r.cg==='cw20 cw20 cw15 cw15 cw15 cw15'&&r.bar&&r.eq==='20 %|20 %|15 %|15 %|15 %|15 %'&&r.au.startsWith('auto')&&w2.length===0,JSON.stringify({r,w2}));
+   r.cg===(tel?'cw25 cw15 cw15 cw15 cw15 cw15':'cw20 cw20 cw15 cw15 cw15 cw15')&&r.bar&&r.eq==='20 %|20 %|15 %|15 %|15 %|15 %'&&r.au.startsWith('auto')&&w2.length===0,JSON.stringify({r,w2}));
  const g=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[1];tb.closest('.mdb').querySelector('.md-tw').click();await __acCalme(400);const m=document.getElementById('mdToolModal');
    const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);const h=m.querySelector('[data-mdtw="cwh"]');const dis=h.disabled;h.click();await __acCalme(200);
-   const parts=[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|');[...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {dis,parts};});
+   const parts=[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent.split(' · ')[0]).join('|');[...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {dis,parts};});
  const w3=await lw(page);
  t('A786 · '+L+' · « Même hauteur » sur une grille d’images : les parts au prorata des formats (40 · 40 · 20), écrites',
    !g.dis&&g.parts==='40 %|40 %|20 %'&&w3[0]==='{widths="40 40 20"}',JSON.stringify({g,w3}));
@@ -9504,6 +9513,32 @@ await sec('Lecture · A788 une liste dans une case de tableau', async () => {
  const r=await page.evaluate(()=>{const td=document.querySelector('.md-tbl td'),ul=td&&td.querySelector(':scope>ul');if(!ul)return {ul:false};const cs=getComputedStyle(ul),li=ul.querySelectorAll(':scope>li');
    return {ul:true,n:li.length,sous:!!ul.querySelector('li>ul>li'),puce:getComputedStyle(li[0]).listStyleType,mt:cs.marginTop,mb:cs.marginBottom,texte:td.textContent.indexOf('- ')<0};});
  t('A788 · la case rend ses éléments en liste à puces (3 éléments, un sous-niveau), sans tiret écrit, sans marge',r.ul&&r.n===3&&r.sous&&r.puce!=='none'&&r.mt==='0px'&&r.mb==='0px'&&r.texte,JSON.stringify(r));
+ await page.close();
+});
+
+/* ══ A791 — LA VIGNETTE D'UNE VIDÉO, CAPTURÉE À L'AJOUT ═══════════════════════════════════════════════════════════
+   Une vraie vidéo (enregistrée dans la page : un canevas coloré, MediaRecorder) ajoutée par la porte ordinaire
+   (`vidAdmit`) : sa fiche porte une vignette JPEG et ses dimensions ; le document et la grille la montrent, ▶ par-dessus. */
+await sec('Éditeur · A791 la vignette d’une vidéo', async () => {
+ const page=await br.newPage({viewport:{width:1280,height:900}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ const r=await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}
+   if(typeof MediaRecorder!=='function')return {saut:'MediaRecorder absent'};
+   const cv=document.createElement('canvas');cv.width=320;cv.height=180;const x=cv.getContext('2d');let t=0;const tic=setInterval(()=>{x.fillStyle=t++%2?'#c43d34':'#17477f';x.fillRect(0,0,320,180);},40);
+   const mt=['video/webm;codecs=vp8','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));if(!mt){clearInterval(tic);return {saut:'aucun format'};}
+   const rec=new MediaRecorder(cv.captureStream(25),{mimeType:mt}),parts=[];rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data);};
+   const fin=new Promise(r=>rec.onstop=r);rec.start();await new Promise(r=>setTimeout(r,900));rec.stop();await fin;clearInterval(tic);   // horloge : la vidéo dure ce temps
+   const blob=new Blob(parts,{type:mt.split(';')[0]}),f=new File([blob],'essai.'+(mt.indexOf('mp4')>=0?'mp4':'webm'),{type:blob.type});
+   const pr=migrateProtocol({title:'Témoin A791',body:'| Fémoral | Normal |\n|---|---|\n| a | b |\n\nFin.'});protocols.push(pr);await openProtocolEdit(pr.id);await __acCalme(400);
+   const ids=await vidAdmit(state.pdraft,[f]);const v=(state.pdraft.videos||[]).find(y=>y.id===ids[0])||{};
+   const ta=document.getElementById('p-body');mdSplice(ta,0,ta.value.length,'![](vid:'+ids[0]+')\n\n| Fémoral | Normal |\n|---|---|\n| a<br>![](vid:'+ids[0]+') | b |\n\nFin.');await __acCalme(500);
+   const vb=document.querySelector('#mdDoc .mdb>figure.md-vfig video'),po=v.poster||'';
+   document.querySelector('#mdDoc table').closest('.mdb').click();await __acCalme(500);
+   const gi=document.querySelector('#mdToolModal .mdg-vpo img'),gp=document.querySelector('#mdToolModal .mdg-vpo .vpo-p');
+   return {n:ids.length,w:v.w,h:v.h,jpeg:/^data:image\/jpeg;base64,/.test(po),taille:po.length,poster:!!(vb&&vb.poster&&vb.poster.startsWith('data:image/jpeg')),grille:!!gi,lecture:!!gp};});
+ if(r.saut){console.log('  · A791 sauté ('+r.saut+')');await page.close();return;}
+ t('A791 · une vidéo ajoutée porte sa vignette (JPEG, ≤ 60 000 caractères) et ses dimensions',r.n===1&&r.w===320&&r.h===180&&r.jpeg&&r.taille>100&&r.taille<=60000,JSON.stringify(r));
+ t('A791 · posée dans le document, la vidéo a sa vignette pour poster ; dans la grille, la case la montre, ▶ par-dessus',r.poster&&r.grille&&r.lecture,JSON.stringify(r));
  await page.close();
 });
 
