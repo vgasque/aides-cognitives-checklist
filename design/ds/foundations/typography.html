@@ -8797,6 +8797,8 @@
      (A783) — en flux, elle ajoutait près d'un pixel (mesuré) et la page bougeait à l'arrivée de la vidéo. */
   .md-vfig .md-vbox{position:relative}
   .md-vbox>.md-vpo{position:absolute;inset:0;height:auto}
+  /* A794 : la vidéo mesurée — posée pour que WebKit peigne ses images, jamais vue ni touchée */
+  .vid-cap{position:fixed;left:0;top:0;width:160px;height:90px;opacity:.01;pointer-events:none}
   .vpo-p{position:absolute;left:50%;top:50%;display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
     background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);opacity:.92}
   .vpo-d,.vpo-e{position:absolute;bottom:6px;padding:2px 6px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-size:var(--t-meta);font-weight:600}
