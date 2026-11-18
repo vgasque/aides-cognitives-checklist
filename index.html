@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-YANOayTUheZl/P1oM72rhxZFOQF9C4VBybkiNvkU8fY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-aVnatE1d95qJqzCgMcWkMPxZUSEbxbgU2xSnTmjhkg0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9365,13 +9365,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--work);box-shadow:var(--shadow-float);pointer-events:auto;cursor:ew-resize;touch-action:none}
   .mdm-h::after{content:'';position:absolute;inset:-12px;border-radius:50%}
   .mdm-r .mdm-h{right:auto;left:-12px}
-  .mdm-tip{position:absolute;left:50%;top:8px;transform:translateX(-50%);padding:4px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);
+  .mdm-tip{position:absolute;left:50%;top:8px;transform:translateX(-50%);padding:4px 8px;border:1px solid var(--sys-edge);border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);
     font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}
+  /* A789 : bordée de `--sys-edge` (transparent le jour, clair la nuit) — en thème sombre, sur la carte de l'éditeur, la
+     matière système ne se détachait pas et l'ombre ne se voit pas : la barre était invisible (signalé sur iPhone). */
   .mdm-bar{position:absolute;z-index:4;display:flex;align-items:center;gap:2px;padding:4px;transform:translateY(calc(-100% - 12px));border-radius:var(--r-3);
-    background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float);white-space:nowrap}
+    border:1px solid var(--sys-edge);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float);white-space:nowrap}
+  .mdm-bar.sous{transform:none}
+  .mdm-bar{max-width:100%;box-sizing:border-box}
   .mdm-bar.dock{position:sticky;bottom:12px;flex-wrap:wrap;margin:16px 0 0;transform:none;white-space:normal}
   .mdm-b{min-height:32px;margin:0;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
-  .mdm-bar.dock .mdm-b{min-height:44px}
+  @media (pointer:coarse){.mdm-b{min-height:44px}}
+  /* A789 : un geste qui tire (poignée d'un média, pastille d'une colonne) ne sélectionne jamais de texte — sur iPhone, un
+     appui un peu long sur la pastille sélectionnait le mot voisin. */
+  .mdm,.mdm-bar,.mdg-cw,.md-fig.msel{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  html.ac-tire,html.ac-tire *{-webkit-user-select:none!important;user-select:none!important;cursor:ew-resize}
   .mdm-b:hover{background:var(--sys-2)}
   .mdm-b:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-2px}
   .mdm-pct{font-family:var(--f-mono);font-weight:600}
@@ -11084,7 +11092,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.146.0';
+const APP_VERSION='5.146.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20550,9 +20558,14 @@ const mdSrcCall=src=>{const l=String(src||'').split('\n')[0];if(!/^>/.test(l))re
 const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{width=\d{1,3}%\})?$/);return m?m[1]:null;};
 const mdSrcVid=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)(?:\{width=\d{1,3}%\})?$/);return m?m[1]:null;};   // A775
 /* A584 — LA TAILLE D'UNE IMAGE, SANS CHIFFRES : le cadre (la colonne d'un grand écran, l'image à sa part, une poignée
-   au bord), puis six pictogrammes (¼ ⅓ ½ ⅔ ¾ Pleine). `attr` est l'attribut que lit l'appelant (`data-mdbscale` du
-   bloc ouvert, `data-miscale` de la feuille) : le glisser se termine par un CLIC sur le pictogramme visé, donc un seul
-   chemin d'écriture par appelant. La largeur vient d'une CLASSE du jeu fermé (MD_SC), jamais d'un nombre interpolé. */
+   au bord), puis six pictogrammes (¼ ⅓ ½ ⅔ ¾ Pleine). `attr` est l'attribut que lit l'appelant (`data-miscale` de la
+   feuille — le bloc ouvert n'en porte plus depuis A789) : le glisser se termine par un CLIC sur le pictogramme visé, donc
+   un seul chemin d'écriture par appelant. La largeur vient d'une CLASSE du jeu fermé (MD_SC), jamais d'un nombre interpolé. */
+/* A789 (amende A584, A785) : `vue` — le bloc ouvert ne montre plus que l'aperçu à sa largeur (sans poignée ni crans) :
+   la largeur se règle sur le document, un seul réglage (« les deux sélecteurs en compétition », signalé par l'auteur). */
+function mdVueHtml(im,vid,w){const sc=w?0:_scale(im.scale),data=!vid&&safeImg(im.data);if(!vid&&!data)return '';
+  return `<div class="mds-frame"><span class="mds-img${w?(MD_MW[w]||'').replace(' mw ',' '):(MD_SC[sc]||'')}">${vid?`<span class="mds-vph">${uiIcon('play',22)}<span>Vidéo</span></span>`:`<img src="${data}" alt="">`}</span></div>`
+    +`<p class="hint">Largeur : ${w||sc||100} % — pour la régler, touchez ${vid?'la vidéo':'l’image'} dans le document et tirez son bord.</p>`;}
 function mdSizeHtml(im,attr,head,vid,w){const sc=w?(MD_SCALES.indexOf(w)>=0?w:0):_scale(im.scale),data=!vid&&safeImg(im.data);if(!vid&&!data)return '';   // A785 : `w`, la part écrite sur l'emplacement
   // A775 : une vidéo se règle au même cadre — un réceptacle (glyphe et mot) à la place de l'image.
   return `<div class="mds-frame" data-mdsframe><span class="mds-img${w?(MD_MW[w]||'').replace(' mw ',' '):(MD_SC[sc]||'')}">${vid?`<span class="mds-vph">${uiIcon('play',22)}<span>Vidéo</span></span>`:`<img src="${data}" alt="">`}`
@@ -20588,12 +20601,12 @@ function mdBlkToolsHtml(src,p){
      « Modifier le Markdown ») n'a donc pas de pastille. */
   {const l=String(src||'').split('\n');if(l.length>1&&MD_TROW.test(l[0])&&MD_TSEP.test(l[1]))return '';}
   const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
-  if(data)return `<div class="mdb-imgv">${mdSizeHtml(im,'data-mdbscale','',false,mdMedW(src,'img',id,0))}</div><div class="mdb-tools">`
+  if(data)return `<div class="mdb-imgv">${mdVueHtml(im,false,mdMedW(src,'img',id,0))}</div><div class="mdb-tools">`
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
   /* A775 : une VIDÉO ouverte se règle comme une image — le cadre, la poignée, les six crans (la taille vit dans le modèle,
      `v.scale`) ; « Remplacer… » choisit une autre vidéo, à la même taille. */
   {const vid=mdSrcVid(src),v=vid&&(p.videos||[]).find(x=>x.id===vid);
-    if(v)return `<div class="mdb-imgv">${mdSizeHtml(v,'data-mdbscale','',true,mdMedW(src,'vid',vid,0))}</div><div class="mdb-tools">`
+    if(v)return `<div class="mdb-imgv">${mdVueHtml(v,true,mdMedW(src,'vid',vid,0))}</div><div class="mdb-tools">`
       +`<button type="button" class="mdb-chip mdb-repl" data-mdbvrepl="${esc(vid)}">${uiIcon('play',14)}Remplacer…</button></div>`;}
   /* A772 : une LISTE ouverte offre « Image » · « Vidéo » DANS l'élément du curseur (le libellé suit le curseur,
      `mdLmedPaint`) ; A642 : celle qui porte déjà des images d'élément peut les rendre à un bloc pleine colonne. */
@@ -20643,7 +20656,8 @@ function mdCellSplit(v){const txt=[],med=[];String(v==null?'':v).split('\n').for
    l'ordre de lecture (ligne par ligne ; de gauche à droite dans une rangée de tableau ; jamais dans un bloc de code) —
    l'ordre même dans lequel `mdRender` dessine ses figures. `mdMedFind` rend sa place et sa part écrite (0 : aucune),
    `mdMedSetW` réécrit l'attribut (`{width=NN%}`, ou rien pour 0). Fonctions PURES (?__actest). */
-function mdMedFind(src,k,id,occ){const L=String(src==null?'':src).split('\n'),q='](' +k+':'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+')';let n=0,code=false,o=0;
+function mdMedFind(src,k,id,occ){if((k!=='img'&&k!=='vid')||!/^[A-Za-z0-9_-]{1,64}$/.test(String(id)))return null;   // A789 : un identifiant hors forme ne vise rien
+  const L=String(src==null?'':src).split('\n'),q='](' +k+':'+id+')';let n=0,code=false,o=0;
   for(let i=0;i<L.length;i++){const l=L[i];
     if(/^```/.test(l))code=!code;
     else if(!code)for(let at=l.indexOf(q);at>=0;at=l.indexOf(q,at+q.length)){if(n===occ){const e=at+q.length,m=l.slice(e).match(/^\{width=(\d{1,3})%\}/);
@@ -20790,13 +20804,18 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const ov=document.createElement('div');ov.className='mdm'+(al==='r'?' mdm-r':'');
     ov.innerHTML='<span class="mdm-h" data-mdmgrip aria-hidden="true" title="Tirer pour régler la largeur"></span><span class="mdm-tip" hidden></span>';host.appendChild(ov);medPos(fg,ov);
     {const im=fg.querySelector('img');if(im&&!im.complete)im.addEventListener('load',()=>{if(document.contains(ov))medPos(fg,ov);},{once:true});}
+    /* Au bureau, la barre flotte au-dessus du média (dessous s'il n'y a pas la place sous l'en-tête, jamais hors de son
+       bloc, A789) ; au téléphone, elle est en bas, sous le pouce — « un bon endroit », a dit l'auteur ; A789 la borde pour
+       qu'elle se détache du contenu en thème sombre. */
     const dock=innerWidth/zoomF()<780,bar=document.createElement('div');bar.className='mdm-bar'+(dock?' dock':'');bar.setAttribute('role','toolbar');
     bar.setAttribute('aria-label',(msel.k==='vid'?'Vidéo':'Image')+' sélectionnée');
     bar.innerHTML=`<button type="button" class="mdm-b mdm-pct" data-mdm="pct" aria-haspopup="true" aria-label="Largeur de ${nom} : ${cur} %">${cur} % <span aria-hidden="true">▾</span></button>`
       +(n>1?`<button type="button" class="mdm-b" data-mdm="eqw">Même largeur</button><button type="button" class="mdm-b" data-mdm="eqh">Même hauteur</button>`:'')
       +`<button type="button" class="mdm-b" data-mdm="open">Modifier…</button><button type="button" class="mdm-b mdm-x" data-mdm="x" aria-label="Désélectionner ${nom}">✕</button>`;
-    if(dock)doc.appendChild(bar);else{host.appendChild(bar);const z=zoomF(),hb=host.getBoundingClientRect(),mb=medBox(fg).getBoundingClientRect();
-      bar.style.left=Math.max(0,(mb.left-hb.left)/z)+'px';bar.style.top=(mb.top-hb.top)/z+'px';}};
+    if(dock){doc.appendChild(bar);return;}
+    host.appendChild(bar);{const z=zoomF(),hb=host.getBoundingClientRect(),mb=medBox(fg).getBoundingClientRect(),bb=bar.getBoundingClientRect(),dessus=mb.top-bb.height-12>72;
+      bar.classList.toggle('sous',!dessus);bar.style.left=Math.max(0,Math.min((mb.left-hb.left)/z,(hb.width-bb.width)/z))+'px';
+      bar.style.top=(dessus?mb.top-hb.top:mb.bottom-hb.top+12)/z+'px';}};
   const medPct=btn=>{const m=msel;if(!m)return;const cur=String(medCur(medFig(m)||btn,m));
     openPickMenu(btn.parentNode,{aria:'Largeur',title:'Largeur',trigger:btn,...deskFlot(),value:cur,
       options:[25,33,50,66,75,100].map(v=>({val:String(v),name:MD_SC_LBL[v]+(v===100?'':' — '+v+' %'),sub:MD_SC_SR[v]})).concat([{val:'0',name:'Par défaut',sub:'retire la largeur écrite'}]),
@@ -20811,6 +20830,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   // La poignée : l'image suit le pointeur (classe du jeu fermé), la part s'affiche ; relâcher écrit.
   doc.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('[data-mdmgrip]');if(!g||!msel||e.button>0)return;
     const fg=medFig(msel),fr=fg&&fg.parentElement;if(!fr)return;e.preventDefault();e.stopPropagation();try{g.setPointerCapture(e.pointerId);}catch(x){}
+    document.documentElement.classList.add('ac-tire');try{getSelection().removeAllRanges();}catch(x){}   // A789 : sur iPhone, tirer sélectionnait du texte
     const cs=getComputedStyle(fr),r=fr.getBoundingClientRect(),z=(r.width/fr.offsetWidth)||1,px=k=>parseFloat(cs[k])||0,al=medAlign(fg);
     const w=r.width-(px('paddingLeft')+px('paddingRight')+px('borderLeftWidth')+px('borderRightWidth'))*z,fb=fg.getBoundingClientRect(),c0=r.left+(px('paddingLeft')+px('borderLeftWidth'))*z+w/2;
     const ov=g.parentNode,tip=ov.querySelector('.mdm-tip'),cls0=fg.className.replace(/ ?\bmw\d*\b/g,'').replace(/ ?\bw(25|33|50|66|75)\b/g,'');
@@ -20819,12 +20839,13 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const mv=ev=>{let pc=al==='c'?Math.abs(ev.clientX-c0)*2/w*100:al==='r'?(fb.right-ev.clientX)/w*100:(ev.clientX-fb.left)/w*100;pc=Math.max(5,Math.min(100,pc));
       const sn=mag.find(x=>Math.abs(x-pc)<=2);v=sn!=null?mdWPct(sn)||sn:mdWPct(pc);
       fg.className=cls0+(MD_MW[v]||'');medPos(fg,ov);tip.textContent=v+' %';tip.hidden=false;};
-    const up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);g.removeEventListener('pointercancel',up);
+    const up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);g.removeEventListener('pointercancel',up);document.documentElement.classList.remove('ac-tire');
       if(v!=null&&msel)medWrite([[msel,v]]);else medPaint();};
     g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);g.addEventListener('pointercancel',up);},true);
   doc.addEventListener('dblclick',e=>{const fg=e.target.closest&&e.target.closest('.mdb:not(.on) figure.md-fig');if(!fg||grab>=0)return;const b=fg.closest('.mdb[data-mdb]');if(!b)return;
     e.preventDefault();msel=null;openBlk(+b.dataset.mdb);});
-  {const rs=()=>{if(!document.contains(doc)){removeEventListener('resize',rs);return;}if(msel)medPaint();};addEventListener('resize',rs);}
+  {const rs=()=>{if(!document.contains(doc)){removeEventListener('resize',rs);return;}if(msel)medPaint();};addEventListener('resize',rs);
+   doc.addEventListener('scroll',e=>{if(msel&&e.target&&e.target.classList&&e.target.classList.contains('md-tw'))medPaint();},true);}   // A789 : un tableau qui défile de côté emporte le média
   const paint=(sel_)=>{const sel=sel_;doc.innerHTML=mdDocHtml(p,open,grab,grabMany);card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
@@ -20910,12 +20931,6 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}}
     const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
       mdCalloutLines(t,MD_REG_WORD[rg.dataset.mdbreg]);paint();return;}
-    const sc=e.target.closest('[data-mdbscale]');if(sc){const t=doc.querySelector('.mdb-ta'),src=t&&t.value,id=mdSrcImg(src),vid=!id&&mdSrcVid(src),
-        im=id?(p.images||[]).find(x=>x.id===id):vid&&(p.videos||[]).find(x=>x.id===vid);if(!im)return;   // A775 : une vidéo aussi
-      /* A785 (amende A775) : la part s'écrit sur l'EMPLACEMENT, dans le texte — ↶ la rend, deux emplacements ont deux tailles.
-         « Pleine » s'écrit quand le modèle portait encore une taille (sinon elle reviendrait) ; sinon, l'attribut part. */
-      const v=_scale(sc.dataset.mdbscale),nv=mdMedSetW(src,id?'img':'vid',id||vid,0,v===100&&!((im.scale||100)<100)?0:v);
-      if(nv!=null&&nv!==src){t.focus({preventScroll:true});mdSplice(t,0,t.value.length,nv);}paint();return;}
     const ty=e.target.closest('[data-mdbtype]');if(ty){const t=doc.querySelector('.mdb-ta'),v=ty.dataset.mdbtype,T=MD_BLK_NEW.find(x=>x[0]===v);if(!t||!T)return;
       t.focus({preventScroll:true});
       if(v==='img'){t.setSelectionRange(0,t.value.length);pickFile('image',files=>pImgTaker(p,t)(files),true);return;}
@@ -21655,10 +21670,11 @@ function mdTblCwBind(){const b=document.querySelector('#mdToolBody [data-mdgcwb]
   const set=(w,c,pos)=>{const n=w.g[0].length,cw=(w.cw||mdTblCw(Array(n).fill(1),n)).slice(),a=cw.slice(0,c).reduce((s,v)=>s+v,0),t=cw[c]+cw[c+1];
     let v=Math.round((pos-a)/5)*5;if(Math.abs(pos-a-33)<=2)v=33;if(Math.abs(pos-a-66)<=2)v=66;v=Math.max(5,Math.min(t-5,v));cw[c]=v;cw[c+1]=t-v;return cw;};
   b.addEventListener('pointerdown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||e.button>0)return;e.preventDefault();try{k.setPointerCapture(e.pointerId);}catch(x){}
+    document.documentElement.classList.add('ac-tire');try{getSelection().removeAllRanges();}catch(x){}   // A789
     const c=+k.dataset.mdgcwk,r=b.getBoundingClientRect();let cw=null;
     const mv=ev=>{cw=set(w,c,(ev.clientX-r.left)/r.width*100);let x=0;b.querySelectorAll('.mdg-cws').forEach((s,i)=>{s.style.setProperty('--cwp',cw[i]);const v=s.querySelector('.mdg-cwv');if(v)v.textContent=cw[i]+' %';});
       b.querySelectorAll('.mdg-cwk').forEach((q,i)=>{x+=cw[i];q.style.setProperty('--cwx',x);});b.classList.remove('auto');};
-    const up=()=>{k.removeEventListener('pointermove',mv);k.removeEventListener('pointerup',up);k.removeEventListener('pointercancel',up);
+    const up=()=>{k.removeEventListener('pointermove',mv);k.removeEventListener('pointerup',up);k.removeEventListener('pointercancel',up);document.documentElement.classList.remove('ac-tire');
       if(cw&&_mdTw===w){mdTblNote(w);w.typed=false;w.cw=cw;mdTblRepaint(w.fr,w.fc,true);const q=document.querySelector('#mdToolBody [data-mdgcwk="'+c+'"]');if(q)q.focus({preventScroll:true});}};
     k.addEventListener('pointermove',mv);k.addEventListener('pointerup',up);k.addEventListener('pointercancel',up);});
   b.addEventListener('keydown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();
