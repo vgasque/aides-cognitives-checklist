@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.144.0] — 2026-11-18
+On choisit la largeur des colonnes de n'importe quel tableau, et la colonne d'en-tête d'un tableau large reste visible
+quand on le fait défiler (A786). Aucune mise à jour du serveur.
+- **La largeur des colonnes** : dans la grille d'un tableau, « Largeur » ouvre une barre qui représente le tableau, une
+  part par colonne. Tirez une pastille entre deux colonnes : ce que l'une gagne, l'autre le perd (par pas de 5 %, ou au
+  clavier avec ← →). Puis « Mettre à jour le tableau ». Vaut pour une posologie comme pour une grille d'images.
+- **Boutons rapides** : « Ajuster au contenu » (comme avant), « Colonnes égales », « Même hauteur » (dans une grille
+  d'images, chaque colonne prend la place qu'il faut pour que les images aient la même hauteur).
+- En lecture, une colonne ne descend jamais sous son mot le plus long : une dose ne se coupe pas au milieu. Si le tableau
+  ne tient pas, il défile de côté, comme avant.
+- **Les filets restent** : un tableau de texte qui porte une photo (une boîte de médicament, par exemple) garde ses
+  lignes et ses colonnes ; seule une vraie grille d'images s'affiche sans filets. Les tableaux concernés changent donc
+  d'aspect.
+- **La colonne d'en-tête reste visible** quand on fait défiler de côté un tableau plus large que l'écran (au téléphone
+  surtout), si sa première colonne est une colonne d'en-tête. Réglage : Moi › Affichage › « Tableaux larges » — En-tête
+  fixe (par défaut) ou Tout défile.
+- La largeur s'écrit dans le texte, sur la ligne qui suit le tableau (`{widths="30 25 45"}`).
+- ⚠ Un appareil resté sur une version **antérieure à la 5.142** affiche cette ligne en clair sous le tableau : mettez à
+  jour vos appareils.
+
 ## [5.143.0] — 2026-11-18
 On règle la largeur d'une image ou d'une vidéo en tirant son bord, dans le texte, dans une liste et dans un tableau
 (A785). Aucune mise à jour du serveur.
@@ -294,15 +314,3 @@ Des vidéos dans les protocoles (A757). ⚠ **Serveur à mettre à jour** : rejo
   orphelins (elle lisait un ancien nom de champ).
 - ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` (le stockage accepte désormais les vidéos, 30 Mo). Tant
   que ce n'est pas fait, les vidéos restent sur l'appareil qui les a ajoutées, et l'app le signale une fois.
-
-## [5.133.0] — 2026-11-15
-Importer une page Notion exportée en HTML : les colonnes deviennent une grille (A756).
-- **L'export HTML de Notion est accepté**, en plus de l'export Markdown : une page `.html` seule, ou le `.zip`
-  d'export avec son dossier d'images. Par les mêmes portes : « Importer un fichier », le dépôt, et « Page Notion »
-  dans l'éditeur d'un protocole.
-- **Les colonnes sont retrouvées** : l'export HTML garde la mise en page de Notion, si bien que des images posées
-  côte à côte (« Fémoral · Normal · Thrombus ») arrivent en grille, sans avoir à la refaire.
-- Titres repliables, listes, cases à cocher, tableaux, encadrés, gras, liens : repris comme à l'import Markdown. Une
-  image absente de l'archive est nommée dans le texte ; une vidéo aussi (l'app ne lit pas encore les vidéos), et le
-  message de fin les compte.
-- Le fichier HTML n'est jamais affiché ni exécuté : seul son texte est repris.

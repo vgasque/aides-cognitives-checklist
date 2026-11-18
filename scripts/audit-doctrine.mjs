@@ -9159,7 +9159,7 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
    kb.carte===kb.H&&!kb.fenetre&&kb.corps&&kb.tete>=0&&kb.barre<=kb.H+1&&kb.champ[1]<=kb.barreHaut&&kb.champ[0]>=kb.tete,JSON.stringify(kb));
  await page.tap('#mdToolModal [data-mdtw="plus"]');await calme(page,300);
  const pl=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
- t('A778 · « ⋯ » de la barre : en-têtes, média de la case, ajouter en fin, Markdown',pl==='hh,hc,img,vid,rend,cend,md',pl);
+ t('A778 · « ⋯ » de la barre : en-têtes, largeur des colonnes (A786), média de la case, ajouter en fin, Markdown',pl==='hh,hc,cwbar,img,vid,rend,cend,md',pl);
  await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.tap('#mdToolModal .mdg-tbm[data-mdgrow]');await calme(page,300);
  const sh=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?m.classList.contains('sheet')+':'+[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
@@ -9410,6 +9410,64 @@ for(const [W,H] of [[1280,900],[390,844]]){
    d.querySelector('[data-mdm="open"]').click();await __acCalme(400);r.apres=document.getElementById('mdToolModal').classList.contains('on');
    const x=document.querySelector('#mdToolModal [data-mdtw="x"]');if(x)x.click();await __acCalme(300);return r;});
  t('A785 · '+L+' · un média de case se sélectionne sans ouvrir la grille ; « Modifier… » ouvre la grille (A774)',!c.grille&&c.bar==='pct,open,x'&&c.apres,JSON.stringify(c));
+ await page.close();}
+});
+
+/* ══ A786 — LA LARGEUR DES COLONNES DE TOUT TABLEAU ════════════════════════════════════════════════════════════
+   Grille « Tableau » : la barre des parts (bouton « Largeur »), une pastille tirée à la souris et réglée au clavier,
+   « Mettre à jour » écrit `{widths="…"}` ; « Colonnes égales », « Ajuster au contenu » (retire), « Même hauteur » sur une
+   grille d'images ; en lecture, le <colgroup>, la colonne d'en-tête collée au téléphone et son réglage dans Moi ; une
+   posologie qui porte une photo garde ses filets. Bureau et téléphone, vrais événements souris. */
+await sec('Éditeur · A786 la largeur des colonnes de tout tableau', async () => {
+const corps="## Doses\n\n| Médicament | Présentation | Dilution | Dose | Surveillance | Remarques |\n|---|---|---|---|---|---|\n| **Noradrénaline** | 8 mg / 4 ml | 8 mg dans 48 ml de G5 % | 0,1 µg/kg/min | PA invasive | Voie centrale de préférence ; titrer par paliers |\n| **Adrénaline** | 1 mg / 1 ml | Pure | 1 mg | Rythme | Toutes les 4 min pendant la RCP |\n\n| | | |\n|---|---|---|\n| Fémoral<br>![](img:i_a) | Normal<br>![](img:i_a) | Thrombus<br>![](img:i_b) |\n\n| Produit | Boîte |\n|---|---|\n| Noradrénaline | ![](img:i_a) |\n| Adrénaline | Pure |\n\nFin.";
+const lw=page=>page.evaluate(()=>document.getElementById('p-body').value.split('\n').filter(l=>/^\{widths=/.test(l)));
+for(const [W,H] of [[1280,900],[390,844]]){
+ const page=await br.newPage({viewport:{width:W,height:H}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);const L=W<780?'téléphone':'bureau';
+ await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const im=(w,h)=>{const v=document.createElement('canvas');v.width=w;v.height=h;v.getContext('2d').fillRect(0,0,w,h);return v.toDataURL('image/png');};
+   const pr=migrateProtocol({title:'Témoin A786',body:c,images:[{id:'i_a',data:im(160,120),w:160,h:120,caption:''},{id:'i_b',data:im(90,160),w:90,h:160,caption:''}]});protocols.push(pr);window.__pid=pr.id;await openProtocolEdit(pr.id);},corps);
+ await calme(page,600);
+ const o=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[0];tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal');
+   const sans=!m.querySelector('[data-mdgcwb]');const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);
+   return {sans,bar:!!m.querySelector('[data-mdgcwb]'),seg:m.querySelectorAll('.mdg-cws').length,kn:m.querySelectorAll('.mdg-cwk').length,parts:[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|'),h:(m.querySelector('[data-mdtw="cwh"]')||{}).disabled};});
+ t('A786 · '+L+' · « Largeur » ouvre la barre des parts : six segments, cinq pastilles, « auto » ; « Même hauteur » inactif sur un tableau de texte',
+   o.sans&&o.bar&&o.seg===6&&o.kn===5&&o.parts==='auto|auto|auto|auto|auto|auto'&&o.h===true,JSON.stringify(o));
+ const kb=await (await page.$('#mdToolModal [data-mdgcwk="2"]')).boundingBox(),bb=await (await page.$('#mdToolModal [data-mdgcwb]')).boundingBox();
+ await page.mouse.move(kb.x+14,kb.y+14);await page.mouse.down();await page.mouse.move(bb.x+bb.width*0.62,kb.y+14,{steps:6});await page.mouse.up();await calme(page,300);
+ const p1=await page.evaluate(()=>({parts:[...document.querySelectorAll('#mdToolModal .mdg-cwv')].map(x=>x.textContent).join('|'),focus:(document.activeElement||{}).dataset&&document.activeElement.dataset.mdgcwk,clav:!!(document.activeElement&&document.activeElement.closest('.mdg-in'))}));
+ await page.keyboard.press('ArrowLeft');await calme(page,200);
+ const p2=await page.evaluate(()=>[...document.querySelectorAll('#mdToolModal .mdg-cwv')].map(x=>x.textContent).join('|'));
+ t('A786 · '+L+' · tirer la pastille règle les deux colonnes voisines (la somme fait 100 %), le focus reste sur elle (aucune case, aucun clavier) ; ← la recule de 5 %',
+   p1.parts==='20 %|20 %|20 %|10 %|15 %|15 %'&&p1.focus==='2'&&!p1.clav&&p2==='20 %|20 %|15 %|15 %|15 %|15 %',JSON.stringify({p1,p2}));
+ await page.evaluate(async()=>{const m=document.getElementById('mdToolModal');[...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);});
+ const w1=await lw(page);
+ t('A786 · '+L+' · « Mettre à jour » écrit la ligne des colonnes sous le tableau',w1.length===1&&w1[0]==='{widths="20 20 15 15 15 15"}',JSON.stringify(w1));
+ const r=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[0];const cg=[...tb.querySelectorAll('col')].map(c=>c.className).join(' ');
+   tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal'),bar=!!m.querySelector('[data-mdgcwb]');
+   m.querySelector('[data-mdtw="cweq"]').click();await __acCalme(200);const eq=[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|');
+   m.querySelector('[data-mdtw="cwauto"]').click();await __acCalme(200);const au=[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|');
+   [...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {cg,bar,eq,au};});
+ const w2=await lw(page);
+ t('A786 · '+L+' · rendu : un <colgroup> du jeu fermé ; rouverte, la grille montre la barre ; « Colonnes égales » puis « Ajuster au contenu » retire la ligne',
+   r.cg==='cw20 cw20 cw15 cw15 cw15 cw15'&&r.bar&&r.eq==='20 %|20 %|15 %|15 %|15 %|15 %'&&r.au.startsWith('auto')&&w2.length===0,JSON.stringify({r,w2}));
+ const g=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[1];tb.closest('.mdb').querySelector('.md-tw').click();await __acCalme(400);const m=document.getElementById('mdToolModal');
+   const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);const h=m.querySelector('[data-mdtw="cwh"]');const dis=h.disabled;h.click();await __acCalme(200);
+   const parts=[...m.querySelectorAll('.mdg-cwv')].map(x=>x.textContent).join('|');[...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {dis,parts};});
+ const w3=await lw(page);
+ t('A786 · '+L+' · « Même hauteur » sur une grille d’images : les parts au prorata des formats (40 · 40 · 20), écrites',
+   !g.dis&&g.parts==='40 %|40 %|20 %'&&w3[0]==='{widths="40 40 20"}',JSON.stringify({g,w3}));
+ const f=await page.evaluate(()=>{const T=document.querySelectorAll('#mdDoc table');return [T[1].classList.contains('md-tbl-img'),T[2].classList.contains('md-tbl-img')];});
+ t('A786 · '+L+' · une grille d’images reste une grille ; une posologie qui porte une photo garde ses filets',f[0]&&!f[1],JSON.stringify(f));
+ if(W<780){
+   await page.evaluate(async()=>{const p=protocols.find(x=>x.id===window.__pid);p.body=document.getElementById('p-body').value;openProtocolRead(p.id);await __acCalme(600);});
+   const s1=await page.evaluate(async()=>{const tw=document.querySelector('.md-tw'),th=tw.querySelector('tbody th');tw.scrollLeft=200;await __acCalme(150);
+     return {pos:getComputedStyle(th).position,fixe:Math.round(th.getBoundingClientRect().left-tw.getBoundingClientRect().left),defile:tw.scrollLeft>0};});
+   await page.evaluate(async()=>{openAuth();await __acCalme(700);const b=document.querySelector('#tcolSeg [data-tcol="libre"]');if(b)b.click();await __acCalme(200);});
+   const s2=await page.evaluate(()=>({libre:document.documentElement.classList.contains('tbl-libre'),cle:tblColLibre(),on:(document.querySelector('#tcolSeg .seg-btn.on')||{}).textContent}));
+   await page.evaluate(async()=>{const b=document.querySelector('#tcolSeg [data-tcol="fixe"]');if(b)b.click();await __acCalme(200);});
+   const s3=await page.evaluate(()=>document.documentElement.classList.contains('tbl-libre'));
+   t('A786 · téléphone · en lecture, la colonne d’en-tête reste collée quand le tableau défile ; Moi › Affichage › « Tout défile » la libère, « En-tête fixe » la rend',
+     s1.pos==='sticky'&&s1.defile&&Math.abs(s1.fixe)<=2&&s2.libre&&s2.cle&&s2.on==='Tout défile'&&!s3,JSON.stringify({s1,s2,s3}));}
  await page.close();}
 });
 

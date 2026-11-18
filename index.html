@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-2uj7SrWBx2C93B4QaCVrqi+FGGJ/LL25s5KfpeZdi9g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-p+J1G5IA5h+3FwEh1j1X5EaGPhaTMC4TI/Oss/QOtRY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9155,6 +9155,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme un mot, pas comme une étiquette) ; un filet la sépare des données. */
   .md-tbl tbody th{background:var(--amb-2);font-weight:700;color:var(--ink);border-right:1px solid var(--line)}
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
+  /* A786 — LA LARGEUR DES COLONNES choisie par l'auteur : un <col> par colonne, classe du jeu fermé (`MD_CW`). Un tableau
+     de texte garde sa mise en page automatique : la part est une PRÉFÉRENCE, et une colonne ne descend jamais sous son mot
+     le plus long — au-delà, le tableau s'élargit et défile de côté, comme avant (`.md-tw`). La grille d'images (A755)
+     garde sa mise en page fixe : les parts y sont exactes. */
+  .md-tbl col.cw5{width:5%}.md-tbl col.cw10{width:10%}.md-tbl col.cw15{width:15%}.md-tbl col.cw20{width:20%}.md-tbl col.cw25{width:25%}.md-tbl col.cw30{width:30%}.md-tbl col.cw33{width:33%}.md-tbl col.cw35{width:35%}.md-tbl col.cw40{width:40%}.md-tbl col.cw45{width:45%}.md-tbl col.cw50{width:50%}.md-tbl col.cw55{width:55%}.md-tbl col.cw60{width:60%}.md-tbl col.cw65{width:65%}.md-tbl col.cw66{width:66%}.md-tbl col.cw70{width:70%}.md-tbl col.cw75{width:75%}.md-tbl col.cw80{width:80%}.md-tbl col.cw85{width:85%}.md-tbl col.cw90{width:90%}.md-tbl col.cw95{width:95%}.md-tbl col.cw100{width:100%}
+  /* A786 — LA COLONNE D'EN-TÊTE RESTE VISIBLE quand un tableau plus large que l'écran défile de côté (la 1ʳᵉ colonne d'un
+     tableau qui en a une, A609, et elle seule) ; son fond est déjà opaque. Réglage de l'appareil : Moi › Affichage
+     (`html.tbl-libre` la laisse défiler). */
+  html:not(.tbl-libre) .md-tw>.md-tbl-hc>:is(thead,tbody)>tr>:first-child{position:sticky;left:0;z-index:1;background:var(--amb-2)}
   /* A755 — LA GRILLE D'IMAGES : un tableau qui porte une image se partage en colonnes ÉGALES et tient dans la largeur
      (pas de `min-width` : au téléphone, trois colonnes d'environ 110 px plutôt qu'un défilement de côté) ; sans filets,
      comme la grille de Notion. Libellé au-dessus, vignette à la largeur de la case ; un toucher l'agrandit. */
@@ -9571,6 +9580,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-br{grid-column:2/-2;margin-top:6px}
   .mdg-mi{display:inline-flex;width:18px;justify-content:center;font-weight:800}
   .mdg-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
+  /* A786 — LA BARRE DES PARTS de la grille : un segment par colonne (nom, part), une pastille ronde par séparation
+     (28 px, halo de 44 px : règle 9), les boutons rapides dessous. Bleu : le réglage en cours (règle 8) ; « auto » : neutre. */
+  .mdg-cw{margin:0 0 12px}
+  .mdg-cwb{position:relative;display:flex;min-height:48px;margin:0 0 24px}   /* les pastilles sont SUR le bord bas : elles ne couvrent ni les noms ni les parts */
+  .mdg-cws{flex:var(--cwp) 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:4px 8px;overflow:hidden;
+    border:1px solid var(--line-strong);border-left-width:0;background:var(--primary-soft);color:var(--act)}
+  .mdg-cws:first-child{border-left-width:1px;border-radius:var(--r-2) 0 0 var(--r-2)}
+  .mdg-cws:last-of-type{border-radius:0 var(--r-2) var(--r-2) 0}
+  .mdg-cwn{overflow:hidden;font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap;text-overflow:ellipsis}
+  .mdg-cwv{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600}
+  .mdg-cwb.auto .mdg-cws{background:var(--amb-2);color:var(--ink-2)}
+  .mdg-cwk{position:absolute;top:100%;left:calc(var(--cwx) * 1%);z-index:1;width:28px;height:28px;margin:-14px 0 0 -14px;padding:0;box-sizing:border-box;
+    border:2px solid var(--act);border-radius:50%;background:var(--work);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
+  .mdg-cwk::after{content:'';position:absolute;inset:-10px;border-radius:50%}
+  .mdg-cwk:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-cwq{display:flex;flex-wrap:wrap;gap:8px}
+  .mdg-cwh{margin:6px 0 0}
   .mdg-opt-l{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .mdg-opt-m{margin-left:8px}
   .mdg-tpl{margin-left:auto}
@@ -11053,7 +11079,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.143.0';
+const APP_VERSION='5.144.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11578,6 +11604,11 @@ function setHomeGroup(v){if(HOME_GROUPS.indexOf(v)<0)return;
 const READ_MODES=['overview','static'];   // ('guided' PURGÉ v5.20.9, A296 — une préférence ancienne retombe sur 'overview' par le repli ci-dessous)
 function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
+/* A786 — LA COLONNE D'EN-TÊTE COLLÉE au défilement d'un tableau large : réglage de l'APPAREIL (Moi › Affichage), activé par
+   défaut ; « Tout défile » pose `html.tbl-libre`. Clé de l'espace (effacée avec lui, WIPE_SPACE_KEYS). */
+const tblColLibre=()=>{try{return localStorage.getItem(spaceKey('ac-tbl-col'))==='libre';}catch(e){return false;}};
+function tblColApply(){document.documentElement.classList.toggle('tbl-libre',tblColLibre());}
+function setTblCol(m){try{if(m==='libre')localStorage.setItem(spaceKey('ac-tbl-col'),'libre');else localStorage.removeItem(spaceKey('ac-tbl-col'));}catch(e){}tblColApply();}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
 /* ESSAIS (A380) TRANCHÉS en v5.39.9 : capsule en TUILES, instruments en COLONNE — les deux essais
    sont retirés ; les clés d'appareil `ac-essai-*` se purgent au démarrage. */
@@ -11743,6 +11774,19 @@ const MD_TWIDTHS=/^\s*\{widths="(\d{1,3}(?: \d{1,3}){0,11})"\}\s*$/;
 const mdWPct=v=>{const n=Math.round(Number(v));return n>0&&n<=100?(n===33||n===66?n:Math.max(5,Math.round(n/5)*5)):0;};   // A785 : les tiers restent des tiers
 /* A785 — LA LARGEUR ÉCRITE SE REND PAR UNE CLASSE D'UN JEU FERMÉ (22 crans : 5 à 100 par 5, plus ⅓ et ⅔) — jamais un
    nombre dans un style. `mw` porte ce qui vaut pour toute largeur écrite (le plancher de lecture, ~80 px). */
+/* A786 — LA LARGEUR DES COLONNES : la ligne `{widths="…"}` d'un tableau → ses parts en pourcentage, une par colonne, au
+   cran du jeu fermé (`mdWPct`) — ou null (nombre de parts différent du nombre de colonnes, somme nulle). PURE. */
+const mdTblCw=(parts,n)=>{if(!Array.isArray(parts)||parts.length!==n||n<1)return null;const S=parts.reduce((a,b)=>a+(b>0?b:0),0);if(!(S>0))return null;
+  /* Les parts font 100 % (99 avec un tiers) : chacune au cran de 5 % par défaut, au moins 5, un tiers reste un tiers ; ce qui
+     manque va aux plus grands restes — six colonnes égales : 20 · 20 · 15 · 15 · 15 · 15, pas six fois 15 (90 %). */
+  const raw=parts.map(x=>(x>0?x:0)/S*100),tiers=v=>Math.abs(v-100/3)<1?33:Math.abs(v-200/3)<1?66:0;
+  const o=raw.map(v=>tiers(v)||Math.max(5,Math.floor(v/5)*5)),libre=raw.map((v,i)=>[v-o[i],i]).filter(([d,i])=>!tiers(raw[i])).sort((a,b)=>b[0]-a[0]);
+  const but=o.some((v,i)=>tiers(raw[i]))?99:100;let sum=o.reduce((a,b)=>a+b,0);
+  for(let k=0;sum+5<=but&&libre.length&&k<100;k++){o[libre[k%libre.length][1]]+=5;sum+=5;}
+  while(sum>but){const i=o.indexOf(Math.max(...o));if(o[i]<=5)break;o[i]-=5;sum-=5;}
+  return o;};
+const MD_CW={5:' cw5',10:' cw10',15:' cw15',20:' cw20',25:' cw25',30:' cw30',33:' cw33',35:' cw35',40:' cw40',45:' cw45',50:' cw50',
+  55:' cw55',60:' cw60',65:' cw65',66:' cw66',70:' cw70',75:' cw75',80:' cw80',85:' cw85',90:' cw90',95:' cw95',100:' cw100'};
 const MD_MW={5:' mw mw5',10:' mw mw10',15:' mw mw15',20:' mw mw20',25:' mw mw25',30:' mw mw30',33:' mw mw33',35:' mw mw35',40:' mw mw40',45:' mw mw45',50:' mw mw50',
   55:' mw mw55',60:' mw mw60',65:' mw mw65',66:' mw mw66',70:' mw mw70',75:' mw mw75',80:' mw mw80',85:' mw mw85',90:' mw mw90',95:' mw mw95',100:' mw mw100'};
 // La ligne des colonnes → les parts lues (entiers, 12 au plus), ou null. PURE.
@@ -12001,12 +12045,18 @@ function mdRender(src,ctx){ctx=ctx||{};
       const ce=c=>{let html='',prevTxt=false;String(c==null?'':c).split(/<br\s*\/?>/i).forEach(seg=>{const m=seg.match(MD_CELL_IMG);
           if(m){const w=mdWPct(m[4]),f=m[2]==='vid'?vidHtml(m[3],m[1],' md-cfig',w):figHtml(m[3],m[1],' md-cfig',w);if(f){html+=f;prevTxt=false;return;}}
           html+=(prevTxt?'<br>':'')+mdInline(seg);prevTxt=true;});return html;},hc=mdTblHc(B);
-      const aImg=H.concat(...B).some(c=>MD_CELL_IMG_IN.test(String(c==null?'':c)));
+      /* A786 (amende A755) — LES FILETS RESTENT, SAUF DANS UNE GRILLE D'IMAGES : le tableau ne passe en grille (colonnes
+         égales, sans filets) que si la MAJORITÉ de ses cases remplies portent un média — une posologie qui porte une photo
+         de boîte reste un tableau ; une grille de Notion dont une case n'a qu'un libellé reste une grille. */
+      const plein=H.concat(...B).map(c=>String(c==null?'':c)).filter(c=>c.trim()),nMed=plein.filter(c=>MD_CELL_IMG_IN.test(c)).length;
+      const aImg=nMed>0&&nMed*2>=plein.length;
+      // A786 : la largeur des colonnes (`{widths="…"}`), en classes du jeu fermé sur un <colgroup>.
+      const cw=mdTblCw(b.w,al.length||H.length),cg=cw?'<colgroup>'+cw.map(v=>'<col class="'+(MD_CW[v]||'').trim()+'">').join('')+'</colgroup>':'';
       const hd=mdTblEmpty(H)?'':'<thead><tr>'+H.map((c,i)=>'<th'+ta(al[i])+' scope="col">'+ce(c)+'</th>').join('')+'</tr></thead>';
       const bd=B.map(r=>'<tr>'+r.map((c,i)=>hc&&i===0&&String(c).trim()?'<th'+ta(al[i])+' scope="row">'+ce(String(c).trim().replace(MD_TC_BOLD,'$1'))+'</th>':'<td'+ta(al[i])+'>'+ce(c)+'</td>').join('')+'</tr>').join('');
       // Conteneur défilant FOCUSABLE (clavier : WCAG 2.1.1) — sur iPhone le tableau défile au lieu
       // d'écraser ses colonnes (lisibilité sous stress).
-      return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl'+(hc?' md-tbl-hc':'')+(aImg?' md-tbl-img':'')+'">'+hd+'<tbody>'+bd+'</tbody></table></div>';}
+      return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl'+(hc?' md-tbl-hc':'')+(aImg?' md-tbl-img':'')+'">'+cg+hd+'<tbody>'+bd+'</tbody></table></div>';}
     if(b.t==='vid')return vidHtml(b.id,b.caption,'',b.w);   // A757
     if(b.t==='h1')return '<h1 class="md-h1">'+mdInline(b.text)+'</h1>';
     if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
@@ -20601,7 +20651,7 @@ const mdCellJoin=(txt,refs)=>{const t=String(txt||'').replace(/\s+$/,''),r=(refs
 // réécrit, ou null (A776 : dépôt dans une case).
 function mdTblCellAdd(src,r,c,ref){const t=mdTableAt(src,0);if(!t)return null;const g=t.hh?[t.head].concat(t.rows):t.rows;
   if(!g[r]||!(c>=0&&c<g[r].length))return null;const x=mdCellSplit(g[r][c]);g[r][c]=mdCellJoin(x.txt,x.med.map(m=>m.ref).concat([ref]));
-  const md=mdTableMd({head:t.hh?g[0]:g[0].map(()=>''),rows:t.hh?g.slice(1):g,align:t.align,hh:t.hh,hc:t.hc}),v=String(src);
+  const md=mdTableMd({head:t.hh?g[0]:g[0].map(()=>''),rows:t.hh?g.slice(1):g,align:t.align,hh:t.hh,hc:t.hc,cw:t.cw}),v=String(src);
   return v.slice(0,t.from)+md+v.slice(t.to);}
 /* A776 — LE DÉPÔT EN MODE TEXTE vise une LIGNE entière : jamais le milieu d'un tableau (la cible saute sous le tableau) ;
    sous une ligne de liste (ou un de ses médias), l'élément ; sinon, un bloc à part. Fonctions PURES. */
@@ -21389,15 +21439,19 @@ function mdTableAt(v,pos){const L=String(v).split('\n');let o=0,i=0;
   if(b<a+1||!MD_TSEP.test(L[a+1])||b-a-1>MD_MAX_TROWS)return null;
   const head=mdCells(L[a]).map(mdBrIn),rows=L.slice(a+2,b+1).map(l=>mdCells(l).map(mdBrIn)),n=Math.max(head.length,...rows.map(r=>r.length));
   const from=L.slice(0,a).join('\n').length+(a?1:0),hc=mdTblHc(rows);
-  return {from,to:from+L.slice(a,b+1).join('\n').length,head:mdFit(head,n),align:mdFit(mdCells(L[a+1]).map(mdAlignOf),n),
-    rows:rows.map(r=>{r=mdFit(r,n);if(hc&&r[0].trim())r[0]=r[0].trim().replace(MD_TC_BOLD,'$1');return r;}),hh:!mdTblEmpty(head),hc};}
+  // A786 : la ligne des colonnes qui suit la dernière rangée appartient au tableau (la grille la lit et la réécrit).
+  const pw=b+1<L.length?mdTWidths(L[b+1]):null,cw=mdTblCw(pw,n),e=pw?b+2:b+1;
+  return {from,to:from+L.slice(a,e).join('\n').length,head:mdFit(head,n),align:mdFit(mdCells(L[a+1]).map(mdAlignOf),n),
+    rows:rows.map(r=>{r=mdFit(r,n);if(hc&&r[0].trim())r[0]=r[0].trim().replace(MD_TC_BOLD,'$1');return r;}),hh:!mdTblEmpty(head),hc,cw};}
 function mdTableMd(t){const n=Math.max(1,t.head.length),cell=c=>String(c==null?'':c).replace(/[ \t]*\r?\n[ \t]*/g,'<br>').replace(/\s+/g,' ').trim().replace(/\\?\|/g,'\\|');
   const H=t.hh===false?Array(n).fill(''):mdFit(t.head,n).map(cell),
     R=t.rows.map(r=>mdFit(r,n).map((c,i)=>{c=cell(c);return t.hc&&i===0&&c&&!MD_TC_BOLD.test(c)?'**'+c+'**':c;})),al=mdFit(t.align||[],n);
   const w=H.map((h,i)=>Math.max(3,h.length,...R.map(r=>r[i].length)));
   const line=r=>'| '+r.map((x,i)=>x+' '.repeat(w[i]-x.length)).join(' | ')+' |';
   const sep='|'+w.map((x,i)=>(/[lc]/.test(al[i])?':':'-')+'-'.repeat(x)+(/[rc]/.test(al[i])?':':'-')).join('|')+'|';
-  return [line(H),sep].concat(R.map(line)).join('\n');}
+  // A786 : la largeur des colonnes, sur sa ligne — absente : « ajustées au contenu ».
+  const cw=Array.isArray(t.cw)&&t.cw.length===n?t.cw.map(v=>mdWPct(v)||5):null;
+  return [line(H),sep].concat(R.map(line)).concat(cw?['{widths="'+cw.join(' ')+'"}']:[]).join('\n');}
 /* La fenêtre des outils : un état (`_mdTw`), un écouteur par geste sur la fenêtre, posé une fois. */
 let _mdTw=null;
 const mdToolEl=()=>document.getElementById('mdToolModal');
@@ -21413,8 +21467,8 @@ function mdToolDone(seg,how){const w=_mdTw;_mdTw=null;modalHandoffClose(mdToolEl
 /* A609 : la GRILLE tient TOUTES les lignes (`g`), la 1ʳᵉ étant l'en-tête quand `hh` ; elle s'écrit par `mdTblOut`.
    ↶ / ↷ de la fenêtre : une pile d'états de la grille (geste de structure, réglage, ou saisie d'une case — une entrée
    par case quittée), indépendante de ↶ de l'éditeur : « Annuler » la fenêtre rend toujours le texte d'avant. */
-const mdTblOut=w=>({head:w.hh?w.g[0]:w.g[0].map(()=>''),rows:w.hh?w.g.slice(1):w.g,align:w.al,hh:w.hh,hc:w.hc});
-const mdTblSnap=w=>JSON.stringify({g:w.g,al:w.al,hh:w.hh,hc:w.hc});
+const mdTblOut=w=>({head:w.hh?w.g[0]:w.g[0].map(()=>''),rows:w.hh?w.g.slice(1):w.g,align:w.al,hh:w.hh,hc:w.hc,cw:w.cw});
+const mdTblSnap=w=>JSON.stringify({g:w.g,al:w.al,hh:w.hh,hc:w.hc,cw:w.cw||null});
 function mdTblNote(w){const s=mdTblSnap(w);if(w.undo[w.undo.length-1]!==s){w.undo.push(s);if(w.undo.length>100)w.undo.shift();}w.redo=[];}
 /* A773/A774 : `o.p` = le protocole (les médias des cases s'y choisissent et s'y admettent ; sans lui, pas de « ＋ Image ») ;
    `o.onEnd` = la fin de la fenêtre (cf. mdToolDone). */
@@ -21422,9 +21476,9 @@ function mdTblOpen(ta,o){o=o||{};const [a,b]=selBounds(ta),t=mdTableAt(ta.value,
   const blank=!t&&a&&ta.value[a-1]!=='\n'?'\n\n':(!t&&a&&ta.value[a-2]!=='\n'?'\n':'');
   const g=t?(t.hh?[t.head].concat(t.rows):(t.rows.length?t.rows:[t.head])):[['Colonne','Colonne'],['','']];
   _mdTw={kind:'tbl',ta,from:t?t.from:a,to:t?t.to:b,pre:t?'':blank,edit:!!t,fr:0,fc:0,p:o.p||null,onEnd:o.onEnd||null,
-    g:g.length>1||!t||!t.hh?g:g.concat([g[0].map(()=>'')]),al:t?t.align:['',''],hh:t?t.hh:true,hc:t?t.hc:false,undo:[],redo:[],typed:false};
+    g:g.length>1||!t||!t.hh?g:g.concat([g[0].map(()=>'')]),al:t?t.align:['',''],hh:t?t.hh:true,hc:t?t.hc:false,cw:t&&t.cw?t.cw.slice():null,cwOn:!!(t&&t.cw),undo:[],redo:[],typed:false};
   mdToolOpen('Tableau',mdTblHtml(),mdTblFootHtml(),{hx:mdTblHxHtml(),cls:'mdt-tbl'});
-  mdTblFit();mdTblThumbBind();}
+  mdTblFit();mdTblThumbBind();mdTblCwBind();}
 /* A773 — LA GRILLE PORTE SES OUTILS (planche « Éditeur de protocole — médias, tableaux, dépôt », forme 2A retenue par
    l'auteur). La tête ne garde que le titre, la taille du tableau, ↶ ↷ et ✕ (au téléphone : Annuler · Tableau · ↶ · OK).
    Un onglet ··· au-dessus de chaque colonne, ⋮ à gauche de chaque ligne — bleus pour la case active — ouvre le menu de
@@ -21472,10 +21526,10 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
      La 1ʳᵉ, collée, fait 112 px au téléphone (A777) et jusqu'à 168 px sur une tablette (A780). Nombres calculés ici,
      jamais une valeur saisie. */
   const cw=g[0].map((_,c)=>{if(c===0)return n===1?'minmax(132px,1fr)':'clamp(112px,18%,168px)';const L=Math.max(0,...g.map(r=>mdCellSplit(r[c]).txt.length));return 'minmax('+(L>60?232:L>24?184:132)+'px,1fr)';}).join(' ');
-  return `<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${cw}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
+  return `${n>1&&w.cwOn?mdTblCwHtml(w):''}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${cw}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
       +`<button type="button" class="mdg-band mdg-bc" data-mdtw="cend" aria-label="Ajouter une colonne à droite"${n<MD_MAX_TCOLS?'':' disabled'}>＋</button>`
       +`<button type="button" class="mdg-band mdg-br" data-mdtw="rend">＋ Ligne</button></div></div>
-    <div class="mdg-opts" role="group" aria-label="Réglages de la grille"><span class="mdg-opt-l">En-tête</span><button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button>${P&&!aMed?'<span class="mdg-opt-l mdg-opt-m">'+esc(mdTblCaseLbl(w))+'</span><button type="button" class="btn sm" data-mdgadd="img">＋ Image</button><button type="button" class="btn sm" data-mdgadd="vid">＋ Vidéo</button>':''}${vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':''}</div>
+    <div class="mdg-opts" role="group" aria-label="Réglages de la grille"><span class="mdg-opt-l">En-tête</span><button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button>${n>1?`<span class="mdg-opt-l">Colonnes</span><button type="button" class="btn sm mdg-hx${w.cwOn?' on':''}" data-mdtw="cwbar" aria-pressed="${!!w.cwOn}">Largeur${w.cw?' choisie':''}</button>`:''}${P&&!aMed?'<span class="mdg-opt-l mdg-opt-m">'+esc(mdTblCaseLbl(w))+'</span><button type="button" class="btn sm" data-mdgadd="img">＋ Image</button><button type="button" class="btn sm" data-mdgadd="vid">＋ Vidéo</button>':''}${vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':''}</div>
     <p class="hint mdg-hint">Tab : case suivante (en fin, ajoute une ligne) · Entrée : à la ligne dans la case</p>
     ${w.edit?'<button type="button" class="mdg-mdl mdg-ph" data-mdtw="md">Modifier le Markdown</button>':''}
     <div class="mdg-thumb" role="toolbar" aria-label="Case active">${mdTblThumbHtml()}</div>`;}
@@ -21488,6 +21542,7 @@ const mdTblThumbHtml=()=>{const w=_mdTw;return `<button type="button" class="mdg
 function mdTblPlusMenu(btn){const w=_mdTw;if(!w)return;const n=w.g[0].length,O=[{head:'En-têtes'},
     {val:'hh',name:w.hh?'Retirer la ligne d’en-tête':'1ʳᵉ ligne en en-tête',ic:uiIcon('table',16)},
     {val:'hc',name:w.hc?'Retirer la colonne d’en-tête':'1ʳᵉ colonne en en-tête',ic:uiIcon('table',16)}];
+  if(n>1)O.push({val:'cwbar',name:w.cwOn?'Masquer la largeur des colonnes':'Largeur des colonnes',ic:uiIcon('table',16)});   // A786
   if(w.p)O.push({head:mdTblCaseLbl(w)},{val:'img',name:'＋ Image',ic:uiIcon('camera',16)},{val:'vid',name:'＋ Vidéo',ic:uiIcon('play',16)});
   O.push({head:'Ajouter'},{val:'rend',name:'Une ligne en fin',ic:uiIcon('plus',16)});
   if(n<MD_MAX_TCOLS)O.push({val:'cend',name:'Une colonne en fin',ic:uiIcon('plus',16)});
@@ -21510,8 +21565,8 @@ function mdTblFit(el){const T=[...(el?[el]:document.querySelectorAll('#mdToolBod
   const H=T.map(t=>Math.ceil(t.scrollHeight/z));
   T.forEach((t,i)=>{t.style.height='';t.style.minHeight=Math.max(44,H[i])+'px';});}
 function mdTblFocus(r,c,sel){const e=document.querySelector(`#mdToolBody .mdg-in[data-r="${r}"][data-c="${c}"]`);if(e){e.focus();if(sel!==false)e.select();}}
-function mdTblRepaint(r,c){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();
-  const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=mdTblHxHtml();mdTblFit();mdTblThumbBind();mdTblFocus(r,c);}
+function mdTblRepaint(r,c,nf){_mdTw.fr=r;_mdTw.fc=c;document.getElementById('mdToolBody').innerHTML=mdTblHtml();
+  const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=mdTblHxHtml();mdTblFit();mdTblThumbBind();mdTblCwBind();if(!nf)mdTblFocus(r,c);}   // A786 : `nf` — un réglage de la barre ne donne pas le focus à une case (au téléphone, il ouvrirait le clavier)
 /* A780 : la case qui prend le focus reste AU-DESSUS de la barre au pouce (collée au bas du corps, elle la couvrait : le
    navigateur amène le champ au bord du défileur, pas au bord de la barre). Sans effet au bureau (barre absente). */
 function mdTblVoir(c){const bd=document.getElementById('mdToolBody'),th=bd&&bd.querySelector('.mdg-thumb');if(!th||!th.offsetParent||!document.contains(c)||document.activeElement!==c)return;
@@ -21530,10 +21585,12 @@ function mdTblCur(m){const w=_mdTw;if(!w)return;
 // Un geste de structure : la grille se repeint, le focus suit la case visée. `arg` : l'alignement (« al »).
 function mdTblAct(k,arg){const w=_mdTw,g=w.g,n=g[0].length,r=w.fr,c=w.fc,R=g.length,d0=w.hh?1:0;
   if(k==='undo'||k==='redo'){const from=k==='undo'?w.undo:w.redo,to=k==='undo'?w.redo:w.undo;if(!from.length)return;
-    to.push(mdTblSnap(w));const o=JSON.parse(from.pop());w.g=o.g;w.al=o.al;w.hh=o.hh;w.hc=o.hc;w.typed=false;
+    to.push(mdTblSnap(w));const o=JSON.parse(from.pop());w.g=o.g;w.al=o.al;w.hh=o.hh;w.hc=o.hc;w.cw=o.cw||null;w.typed=false;
     return mdTblRepaint(Math.min(r,w.g.length-1),Math.min(c,w.g[0].length-1));}
+  if(k==='cwbar'){w.cwOn=!w.cwOn;return mdTblRepaint(r,c,true);}   // A786 : afficher la barre n'est pas un geste à annuler
   mdTblNote(w);w.typed=false;
-  const colIns=at=>{[w.al].concat(g).forEach(x=>x.splice(at,0,''));mdTblRepaint(r,at);};
+  // A786 : une colonne insérée prend une part égale aux autres (les autres se resserrent) ; supprimée, sa part se répartit.
+  const colIns=at=>{[w.al].concat(g).forEach(x=>x.splice(at,0,''));if(w.cw){const c=w.cw.map(x=>x*n/(n+1));c.splice(at,0,100/(n+1));w.cw=mdTblCw(c,n+1);}mdTblRepaint(r,at);};
   if((k==='r+'||k==='rd')){g.splice(r+1,0,Array(n).fill(''));mdTblRepaint(r+1,c);}
   else if(k==='ru'&&!(w.hh&&r===0)){g.splice(r,0,Array(n).fill(''));mdTblRepaint(r,c);}
   else if(k==='rend'){g.push(Array(n).fill(''));mdTblRepaint(g.length-1,Math.min(c,n-1));}
@@ -21543,12 +21600,49 @@ function mdTblAct(k,arg){const w=_mdTw,g=w.g,n=g[0].length,r=w.fr,c=w.fc,R=g.len
   else if((k==='c+'||k==='cr')&&n<MD_MAX_TCOLS)colIns(c+1);
   else if(k==='cl'&&n<MD_MAX_TCOLS)colIns(c);
   else if(k==='cend'&&n<MD_MAX_TCOLS)colIns(n);
-  else if((k==='c-'||k==='cx')&&n>1){[w.al].concat(g).forEach(x=>x.splice(c,1));mdTblRepaint(r,Math.min(c,n-2));}
+  else if((k==='c-'||k==='cx')&&n>1){[w.al].concat(g).forEach(x=>x.splice(c,1));if(w.cw){const q=w.cw.slice();q.splice(c,1);w.cw=mdTblCw(q,n-1);}mdTblRepaint(r,Math.min(c,n-2));}
+  /* A786 : la largeur des colonnes — « Ajuster au contenu » la retire, « Colonnes égales », « Même hauteur » (une grille
+     dont chaque colonne porte un média : les parts au prorata des formats, la rangée à une même hauteur), la barre. */
+  else if(k==='cwauto'){w.cw=null;mdTblRepaint(r,c,true);}
+  else if(k==='cweq'){w.cw=mdTblCw(mdMedEq(n),n);mdTblRepaint(r,c,true);}
+  else if(k==='cwh'&&mdTblRatios(w)){w.cw=mdTblCw(mdTblRatios(w),n);mdTblRepaint(r,c,true);}   // les formats eux-mêmes : un seul arrondi, au plus grand reste
   else if(k==='al'){w.al[c]=arg==='c'||arg==='r'?arg:'';mdTblRepaint(r,c);}
   else if(k==='hh'){w.hh=!w.hh;mdTblRepaint(r,c);}
   else if(k==='hc'){w.hc=!w.hc;mdTblRepaint(r,c);}
   else if(k==='tpl'){const H=['Médicament','Dose','Voie','Remarque'];while(g[0].length<4)[w.al].concat(g).forEach(x=>x.push(''));H.forEach((h,i)=>{g[0][i]=h;});w.hh=true;mdTblRepaint(0,0);}
   else w.undo.pop();}
+/* A786 : le format (largeur ÷ hauteur) du premier média de chaque colonne — null si une colonne n'en porte aucun. */
+function mdTblRatios(w){const P=w.p,n=w.g[0].length,o=[];
+  for(let c=0;c<n;c++){let r=0;for(const row of w.g){const x=mdCellSplit(row[c]).med[0];if(!x)continue;
+      const f=((x.k==='vid'?P&&P.videos:P&&P.images)||[]).find(y=>y.id===x.id);r=f&&(f.w|0)>0&&(f.h|0)>0?f.w/f.h:(x.k==='vid'?16/9:4/3);break;}
+    if(!r)return null;o.push(r);}
+  return o;}
+/* A786 — LA BARRE DES PARTS (planche « Taille des médias dans listes et tableaux », retenue) : toute la largeur du tableau,
+   un segment par colonne (son nom, sa part), une pastille ronde entre deux colonnes qui se tire au doigt comme à la souris
+   (pas de 5 %, aimantée aux tiers) et se règle au clavier (← →, 5 %). Les mêmes au bureau, sur la tablette et au téléphone :
+   la grille d'édition garde ses largeurs de saisie (A777, A779) — les parts sont celles de la LECTURE. */
+function mdTblCwHtml(w){const n=w.g[0].length,cw=w.cw||mdTblCw(Array(n).fill(1),n),auto=!w.cw;let x=0;
+  const seg=cw.map((v,c)=>`<span class="mdg-cws" style="--cwp:${v}"><span class="mdg-cwn">${esc(mdTblColName(w,c))}</span><span class="mdg-cwv">${auto?'auto':v+' %'}</span></span>`).join('');
+  const kn=cw.slice(0,-1).map((v,c)=>{x+=v;return `<button type="button" class="mdg-cwk" data-mdgcwk="${c}" style="--cwx:${x}" aria-label="Séparation entre « ${esc(mdTblColName(w,c))} » et « ${esc(mdTblColName(w,c+1))} » : ${cw[c]} % et ${cw[c+1]} %"></button>`;}).join('');
+  const h=!!mdTblRatios(w);
+  return `<div class="mdg-cw" role="group" aria-label="Largeur des colonnes"><div class="mdg-cwb${auto?' auto':''}" data-mdgcwb>${seg}${kn}</div>`
+    +`<div class="mdg-cwq"><button type="button" class="btn sm${auto?' on':''}" data-mdtw="cwauto" aria-pressed="${auto}">Ajuster au contenu</button><button type="button" class="btn sm" data-mdtw="cweq">Colonnes égales</button>`
+    +`<button type="button" class="btn sm" data-mdtw="cwh"${h?'':' disabled'}>Même hauteur</button></div>`
+    +`<p class="hint mdg-cwh">${auto?'Tirez une séparation pour choisir la part de chaque colonne.':'En lecture, une colonne ne descend jamais sous son mot le plus long.'}</p></div>`;}
+// La pastille se tire : la séparation suit le pointeur (bornée à 5 % de chaque voisine), relâcher écrit (↶ de la grille).
+function mdTblCwBind(){const b=document.querySelector('#mdToolBody [data-mdgcwb]');if(!b||b.dataset.on)return;b.dataset.on='1';
+  const set=(w,c,pos)=>{const n=w.g[0].length,cw=(w.cw||mdTblCw(Array(n).fill(1),n)).slice(),a=cw.slice(0,c).reduce((s,v)=>s+v,0),t=cw[c]+cw[c+1];
+    let v=Math.round((pos-a)/5)*5;if(Math.abs(pos-a-33)<=2)v=33;if(Math.abs(pos-a-66)<=2)v=66;v=Math.max(5,Math.min(t-5,v));cw[c]=v;cw[c+1]=t-v;return cw;};
+  b.addEventListener('pointerdown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||e.button>0)return;e.preventDefault();try{k.setPointerCapture(e.pointerId);}catch(x){}
+    const c=+k.dataset.mdgcwk,r=b.getBoundingClientRect();let cw=null;
+    const mv=ev=>{cw=set(w,c,(ev.clientX-r.left)/r.width*100);let x=0;b.querySelectorAll('.mdg-cws').forEach((s,i)=>{s.style.setProperty('--cwp',cw[i]);const v=s.querySelector('.mdg-cwv');if(v)v.textContent=cw[i]+' %';});
+      b.querySelectorAll('.mdg-cwk').forEach((q,i)=>{x+=cw[i];q.style.setProperty('--cwx',x);});b.classList.remove('auto');};
+    const up=()=>{k.removeEventListener('pointermove',mv);k.removeEventListener('pointerup',up);k.removeEventListener('pointercancel',up);
+      if(cw&&_mdTw===w){mdTblNote(w);w.typed=false;w.cw=cw;mdTblRepaint(w.fr,w.fc,true);const q=document.querySelector('#mdToolBody [data-mdgcwk="'+c+'"]');if(q)q.focus({preventScroll:true});}};
+    k.addEventListener('pointermove',mv);k.addEventListener('pointerup',up);k.addEventListener('pointercancel',up);});
+  b.addEventListener('keydown',e=>{const k=e.target.closest('[data-mdgcwk]'),w=_mdTw;if(!k||!w||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();
+    const c=+k.dataset.mdgcwk,n=w.g[0].length,cw=w.cw||mdTblCw(Array(n).fill(1),n),a=cw.slice(0,c+1).reduce((s,v)=>s+v,0)-cw[c]+cw[c];
+    mdTblNote(w);w.typed=false;w.cw=set(w,c,a+(e.key==='ArrowLeft'?-5:5));mdTblRepaint(w.fr,w.fc,true);const q=document.querySelector('#mdToolBody [data-mdgcwk="'+c+'"]');if(q)q.focus({preventScroll:true});});}
 // A773 : le menu d'UNE colonne, d'UNE ligne (onglet ou barre au pouce) — déroulant au bureau, feuille au téléphone (A638).
 function mdTblColMenu(btn,c){const w=_mdTw;if(!w)return;w.fc=c;const n=w.g[0].length,al=w.al[c]==='c'||w.al[c]==='r'?w.al[c]:'';
   const O=[{head:'Alignement'},{val:'al:',name:'À gauche'},{val:'al:c',name:'Au centre'},{val:'al:r',name:'À droite'},{head:'Colonne'},
@@ -21902,7 +21996,7 @@ function renderProtocolEdit(){
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <p class="md-len" id="mdLen" role="status" hidden></p>
       <div class="md-lint-box"></div>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code> — en mise en forme en direct, touchez l’image puis tirez son bord (dans le texte, une liste ou une case).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code> — en mise en forme en direct, touchez l’image puis tirez son bord (dans le texte, une liste ou une case).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
       <div class="md-ppane">${mds?`<div class="etab-rh"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div id="revPanel">${revProtoHtml(p)}</div></div>`:'<p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p>'}<div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mds?'</div>':''}
@@ -35499,7 +35593,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
 const TEMP_PENDING_KEY='ac-temp-pending';   // A672
-const WIPE_SPACE_KEYS=['ac-img-up','ac-img-ext','fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
+const WIPE_SPACE_KEYS=['ac-tbl-col','ac-img-up','ac-img-ext','fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
   'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sync-first-pending','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
@@ -36378,6 +36472,12 @@ function accountPrefsHtml(slot){
         `<button type="button" class="seg-btn${currentReadMode()===k?' on':''}" data-disp="${k}" role="radio" aria-checked="${currentReadMode()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
     <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « Tout voir » montre l’aide entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
+    <div class="set-row" style="margin-top:12px"><span class="set-l" id="tcLbl">Tableaux larges</span>
+    <div class="seg${tblColLibre()?' i1':''}" id="tcolSeg" role="radiogroup" aria-labelledby="tcLbl"><span class="seg-pill" aria-hidden="true"></span>${
+      [['fixe','En-tête fixe'],['libre','Tout défile']].map(([k,l])=>{const on=(tblColLibre()?'libre':'fixe')===k;
+        return `<button type="button" class="seg-btn${on?' on':''}" data-tcol="${k}" role="radio" aria-checked="${on?'true':'false'}">${esc(l)}</button>`;}).join('')
+    }</div></div>
+    <div class="st-hint" style="margin-bottom:4px">Quand un tableau plus large que l’écran a une colonne d’en-tête, elle reste visible pendant qu’on le fait défiler de côté. Réglage de cet appareil.</div>
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"><span aria-hidden="true">${acctIniTxt()}</span></button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">Colore <b>vos initiales</b> — le bouton de votre compte, en haut ou dans la colonne de gauche — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
@@ -36490,6 +36590,13 @@ function bindAccountPrefs(body){
       btns.forEach(b=>{const on=b.dataset.disp===m;
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
+    peindre();}}
+  // A786 : la colonne d'en-tête collée — même mécanique, peinte sur place.
+  {const ts=body.querySelector('#tcolSeg');
+   if(ts){const btns=[...ts.querySelectorAll('[data-tcol]')];
+    const peindre=()=>{const m=tblColLibre()?'libre':'fixe';ts.classList.toggle('i1',m==='libre');
+      btns.forEach(b=>{const on=b.dataset.tcol===m;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
+    btns.forEach(b=>b.onclick=()=>{setTblCol(b.dataset.tcol);peindre();});
     peindre();}}
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
@@ -37299,6 +37406,7 @@ function applyZoom(z){z=ZOOM_STEPS.indexOf(z)>=0?z:100;document.documentElement.
   if(state.view==='read'&&state.fiche&&hasFlow(state.fiche)&&state.readMode==='static')svPaintArrows();}
 function currentZoom(){return +(localStorage.getItem(spaceKey('ac-zoom'))||localStorage.getItem('ac-zoom')||100);}
 applyZoom(currentZoom());
+tblColApply();   // A786
 /* --vvh (v4.29.4) : hauteur RÉELLEMENT visible (visualViewport), seule mesure fiable sur iOS.
    En px CSS non zoomés : les consommateurs divisent par --zf. Détail : doctrine-js.md J204. */
 /* --vvt (v5.10.9) : DÉCALAGE du viewport visuel dans celui de mise en page — même observateur et
@@ -41347,7 +41455,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
