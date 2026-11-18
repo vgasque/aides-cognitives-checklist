@@ -9588,6 +9588,48 @@ await sec('A794 · vidéos déjà là : rattrapées une fois, jamais en session,
  await page.close();
 });
 
+/* ══ A795 — LES VIDÉOS D'UN DOCUMENT : UNE COPIE, CHARGÉES À L'APPROCHE, GARDÉES AU REDESSIN, UNE SEULE QUI JOUE ══════
+   Une vraie vidéo (l'essai d'A791) citée cinq fois. (1) En lecture, loin dans la page, une vidéo n'est pas chargée ; une
+   seule copie par vidéo pour toutes ses citations. (2) Une seule vidéo joue, la plus au centre ; les vidéos d'un même
+   tableau jouent ensemble. (3) Dans l'éditeur, modifier un bloc garde l'élément vidéo (même objet, sans relire le
+   fichier). */
+await sec('A795 · vidéos : une copie, chargées à l’approche, gardées au redessin, une seule qui joue', async () => {
+ const page=await br.newPage({viewport:{width:1280,height:800}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ await page.evaluate(async b64=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+   for(const id of ['v_a','v_b'])await attPut({id,buf:bin.buffer.slice(0),size:bin.byteLength,type:'video/mp4',createdAt:Date.now(),dirty:0,remotePath:null});
+   const long=Array.from({length:160},(_,i)=>'Paragraphe '+(i+1)+' de remplissage, pour que la fin soit loin.').join('\n\n');
+   const body='Avant.\n\n![](vid:v_a)\n\n![](vid:v_b)\n\n| Normal | Thrombus |\n|---|---|\n| ![](vid:v_a) | ![](vid:v_b) |\n\n'+long+'\n\n![](vid:v_a)\n\nFin.';
+   const pr=migrateProtocol({title:'Témoin A795',body,videos:[{id:'v_a',name:'a.mp4',size:bin.byteLength,mime:'video/mp4',w:128,h:72},{id:'v_b',name:'b.mp4',size:bin.byteLength,mime:'video/mp4',w:128,h:72}]});
+   protocols.push(pr);window.__pid=pr.id;openProtocolRead(pr.id);},VID_ESSAI_B64);
+ await calme(page,900);
+ const etat=()=>page.evaluate(()=>{const F=[...document.querySelectorAll('figure.md-vfig[data-vid]')];
+   return {fig:F.length,posees:F.map(f=>f.querySelector('.md-vbox>video')?1:0).join(''),copies:_vidUrl.size,
+     joue:F.map(f=>{const v=f.querySelector('.md-vbox>video');return v&&!v.paused?1:0;}).join('')};});
+ // la 1re vidéo seule au centre
+ await page.evaluate(()=>{const f=document.querySelectorAll('figure.md-vfig')[0];f.scrollIntoView({block:'center'});});await calme(page,900);
+ const a=await etat();
+ t('A795 · en lecture, la vidéo loin dans la page n’est pas chargée ; une seule copie par vidéo pour toutes ses citations',a.fig===5&&a.posees.endsWith('0')&&a.copies===2,JSON.stringify(a));
+ t('A795 · une seule vidéo joue — celle au centre de l’écran',a.joue.split('').filter(x=>x==='1').length===1&&a.joue[0]==='1',JSON.stringify(a));
+ await page.evaluate(()=>{document.querySelector('table').scrollIntoView({block:'center'});});await calme(page,900);
+ const b=await etat();
+ t('A795 · les vidéos d’un même tableau jouent ensemble, les autres s’arrêtent',b.joue.slice(2,4)==='11'&&b.joue.split('').filter(x=>x==='1').length===2,JSON.stringify(b));
+ await page.evaluate(()=>{const F=document.querySelectorAll('figure.md-vfig');F[F.length-1].scrollIntoView({block:'center'});});await calme(page,900);
+ const c=await etat();
+ t('A795 · à l’approche, la dernière se charge ; la première, loin, est relâchée (sa vignette reprend sa place)',c.posees[4]==='1'&&c.posees[0]==='0',JSON.stringify(c));
+ // l'éditeur : modifier un bloc garde la vidéo
+ const e=await page.evaluate(async()=>{await openProtocolEdit(window.__pid);await __acCalme(700);
+   const v0=document.querySelector('#mdDoc figure.md-vfig .md-vbox>video');if(!v0)return {sans:1};{let k=0;while(v0.paused&&k++<20)await new Promise(r=>setTimeout(r,100));}   // horloge : attendre qu'elle joue (lecture automatique)
+   v0.pause();v0.currentTime=1.2;await __acCalme(200);   // arrêtée à la main à 1,2 s : un rechargement la remettrait à 0
+   const ta=document.getElementById('p-body');mdSplice(ta,0,'Avant.'.length,'Avant, modifié.');await __acCalme(600);   // 1re sauvegarde : l'espace des fichiers se vérifie une fois
+   let lus=0;const g=IDB.getAtt;IDB.getAtt=id=>{lus++;return g.call(IDB,id);};
+   mdSplice(ta,0,'Avant, modifié.'.length,'Avant, modifié deux fois.');await __acCalme(600);IDB.getAtt=g;
+   const v1=document.querySelector('#mdDoc figure.md-vfig .md-vbox>video');
+   return {meme:v0===v1,lus,t:v1?Math.round(v1.currentTime*10)/10:null,arretee:!!(v1&&v1.paused),texte:(document.querySelector('#mdDoc')||{}).textContent.indexOf('Avant, modifié deux fois.')>=0};});
+ t('A795 · éditeur : modifier un bloc garde l’élément vidéo — même objet, la lecture continue où elle en était ; à la sauvegarde suivante, aucun fichier relu',!e.sans&&e.meme&&e.lus===0&&Math.abs(e.t-1.2)<=.15&&e.arretee&&e.texte,JSON.stringify(e));
+ await page.close();
+});
+
 /* ══ A792 — LA FENÊTRE « TABLEAU » : UNE LIGNE D'OUTILS EN HAUT, LE MÉDIA DANS LA CASE, RIEN EN DOUBLE ═══════════════
    Bureau : la ligne d'outils (En-tête · Largeur ▾) au-dessus de la grille, rien sous elle (sauf la bande ＋ Ligne), l'aide
    du clavier au pied, le « ＋ » de la case active seul visible et entier. Téléphone (vrai toucher) : la ligne d'état à la
