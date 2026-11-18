@@ -12209,6 +12209,47 @@ await sec('A781 · images, vidéos et documents en cours de réception : récept
   await cx2.close();
 });
 
+/* A782 — LA DERNIÈRE CARTE D'UNE RECHERCHE GARDE SON BORD BAS (signalé sur capture : « bas de bordure tronqué ») : la
+   règle du dernier filet des listes groupées le lui retirait au-delà de 640 px. A783 — LES DIMENSIONS D'UNE VIDÉO : une
+   vraie vidéo WebM produite dans la page (MediaRecorder) est mesurée ; une vidéo d'avant, sans dimensions, est
+   rattrapée et le protocole marqué à renvoyer ; son réceptacle a la boîte exacte de la vidéo qui le remplace. */
+await sec('A782-A783 · la dernière carte d’une recherche a son bord bas ; une vidéo a ses dimensions, son réceptacle sa proportion', async () => {
+  const page=await br.newPage({viewport:{width:1000,height:760}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{for(const [i,t] of ['Urgences gériatriques','Chutes du sujet âgé','Confusion gériatrique'].entries()){
+    const p=migrateProtocol({id:'pg78'+i,title:t,status:'draft',body:'Crise comportementale (agitation). '+t});protocols.push(p);await Data.putProtocol(p);}render();});
+  const bords=[];
+  for(const w of [1000,700,390]){await page.setViewportSize({width:w,height:760});await remplir(page,'agitation');await calme(page,500);
+    bords.push(await page.evaluate(()=>{const rows=[...document.querySelectorAll('.dir-grid.flat .dir-row')],l=rows[rows.length-1];if(!l)return null;
+      const cs=getComputedStyle(l);return [rows.length,cs.borderBottomWidth,cs.borderTopWidth];}));}
+  t('A782 · la dernière carte des résultats a son bord bas, comme les autres, à 1000, 700 et 390 px',
+    bords.every(b=>b&&b[0]>=3&&b[1]===b[2]&&parseFloat(b[1])>=1),JSON.stringify(bords));
+  await page.setViewportSize({width:390,height:844});
+  const r=await page.evaluate(async()=>{
+    if(typeof MediaRecorder==='undefined')return {sans:true};
+    const c=document.createElement('canvas');c.width=640;c.height=360;const g=c.getContext('2d'),s=c.captureStream(15),rec=new MediaRecorder(s,{mimeType:'video/webm'}),parts=[];
+    rec.ondataavailable=e=>parts.push(e.data);rec.start();
+    for(let i=0;i<8;i++){g.fillStyle='hsl('+i*40+',60%,50%)';g.fillRect(0,0,640,360);await __acCalme(60);}   // des images à enregistrer
+    await new Promise(x=>{rec.onstop=x;rec.stop();});const b=new Blob(parts,{type:'video/webm'}),buf=await b.arrayBuffer();
+    const mesure=await vidDims(b);
+    await attPut({id:'v783',buf,size:buf.byteLength,type:'video/webm',createdAt:Date.now(),dirty:1,remotePath:null});
+    const p=migrateProtocol({id:'p783',title:'Écho',status:'draft',body:'Avant.\n\n![Geste](vid:v783)\n\nAprès.',videos:[{id:'v783',name:'g.webm',size:buf.byteLength,mime:'video/webm'}]});
+    protocols.push(p);await Data.putProtocol(p);
+    const n=await vidDimRattraper(),lu=(await Data.getProtocols()).find(x=>x.id==='p783');
+    await IDB.delAtt('v783');openProtocolRead('p783');await __acCalme(300);
+    const R=x=>{const q=x.getBoundingClientRect();return [Math.round(q.width*10)/10,Math.round(q.height*10)/10];};
+    const fig=document.querySelector('figure.md-vfig'),avant={box:R(fig.querySelector('.md-vbox')),vd:fig.querySelector('.md-vbox').classList.contains('vd'),H:document.documentElement.scrollHeight};
+    await attPut({id:'v783',buf,size:buf.byteLength,type:'video/webm',createdAt:Date.now(),dirty:1,remotePath:null});vidRefresh('v783');
+    for(let i=0;i<30&&!fig.querySelector('video');i++)await __acCalme(100);
+    const v=fig.querySelector('video');for(let i=0;i<30&&v&&v.readyState<1;i++)await __acCalme(100);
+    return {mesure,n,dims:lu&&[lu.videos[0].w,lu.videos[0].h],dirty:!!(lu&&lu.dirty),avant,apres:v?{box:R(v),H:document.documentElement.scrollHeight}:null};});
+  t('A783 · une vidéo réelle est mesurée (640 × 360) ; celle d’avant, sans dimensions, est rattrapée et son protocole repart',
+    !!r.sans||(r.mesure&&r.mesure.w===640&&r.mesure.h===360&&r.n===1&&JSON.stringify(r.dims)==='[640,360]'&&r.dirty),JSON.stringify(r));
+  t('A783 · le réceptacle a la proportion de la vidéo, et la vidéo posée la même boîte : la page ne bouge pas',
+    !!r.sans||(r.avant.vd&&r.apres&&Math.abs(r.avant.box[0]/r.avant.box[1]-640/360)<.01&&Math.abs(r.apres.box[0]-r.avant.box[0])<=.5&&Math.abs(r.apres.box[1]-r.avant.box[1])<=.5&&r.apres.H===r.avant.H),JSON.stringify(r));
+  await page.close();
+});
+
 /* A767 — UNE VIDÉO SUIT SON PROTOCOLE, ET CE QUI EST « ENVOYÉ » SE VÉRIFIE. Signalé par l'auteur : « les vidéos ne sont
    pas synchronisées sur mon téléphone alors que sur l'ordi c'est marqué synchronisé ». Serveur de stockage simulé (état
    côté Node) : (1) un protocole Perso à vidéo, envoyé, puis déplacé dans une bibliothèque — la vidéo doit monter au

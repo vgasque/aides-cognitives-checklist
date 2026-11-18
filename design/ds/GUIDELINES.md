@@ -999,7 +999,8 @@ telle quelle — chaque écran le dit à sa façon :
 - **Ce qui n'est pas encore sur l'appareil** (A781) — image, vidéo, document : trois états, un seul vocabulaire. En
   réception (compte connecté, en ligne) : NEUTRE, glyphe ↓ et « Image en cours de réception » + poids ; hors ligne :
   mots en ambre, « △ Image pas encore sur cet appareil » ; introuvable partout : mots en ambre. Le réceptacle d'une
-  image a la boîte exacte de l'image (elle le remplace sur place, sans que rien ne bouge — en session aussi) ; en
+  image — et d'une vidéo dont les dimensions sont connues (A783) — a la boîte exacte de ce qu'il attend (il est
+  remplacé sur place, sans que rien ne bouge — en session aussi) ; en
   petit (liste, case) le poids s'efface. La rangée d'un document dit « ↓ en réception » / « △ pas sur cet appareil ».
   Sous le titre de l'élément ouvert, hors session : « 3 images en cours de réception · 1 / 3 » et sa barre fine, grise ;
   la ligne se tait quand tout est reçu, sans message de fin et sans faire remonter le texte.

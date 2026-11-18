@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-D2njmoWysWrM2RH9EDFkr4qivgJOWprEbL/BiM4NpR0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xebrtcISA848L43uP5P0oIb9LH8Ij3kBgvuXl0tm2nA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2786,7 +2786,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home .dir-row:hover .pinbtn,body.view-home .dir-row:focus-within .pinbtn{opacity:1}
   }
   .dir-book .dir-row{padding-left:16px;padding-right:16px}
-  .dir-grid>.dir-row:last-child{border-bottom:0}
+  /* A782 : pas pour les résultats d'une recherche — des cartes SÉPARÉES (A740) gardent chacune leur bord bas (la dernière
+     paraissait tronquée au-delà de 640 px). */
+  .dir-grid:not(.flat)>.dir-row:last-child{border-bottom:0}
   .dir-book .dir-row:hover{border-color:var(--line)}
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
   /* Épinglées = MÊME grille que les groupes de lettre (« un seul dessin de rangée », A16). Rangée
@@ -9166,7 +9168,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      mise en page), puis la vidéo à la largeur de sa colonne ou de sa case. Absente ou illisible : le réceptacle le DIT,
      en ambre (on risque de se tromper en la croyant là), glyphe et mots (règle 8). */
   .md-vfig .md-vbox{display:grid;place-items:center;width:100%;aspect-ratio:4/3;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);overflow:hidden}
-  .md-vfig .md-vbox:has(video){display:block;aspect-ratio:auto;border:0;background:none}
+  .md-vfig .md-vbox:has(video){display:block;aspect-ratio:auto;border:0;background:none;box-shadow:none}
+  /* A783 — SES DIMENSIONS CONNUES, LE RÉCEPTACLE D'UNE VIDÉO A SA PROPORTION : un svg aux dimensions de la vidéo donne la
+     hauteur (la boîte n'a plus de 4:3 imposé), le filet est intérieur (`inset`) pour que la boîte ait EXACTEMENT la
+     hauteur de la vidéo qui la remplacera — posée avec les mêmes `width`/`height`, elle ne fait rien bouger. */
+  .md-vfig .md-vbox.vd{aspect-ratio:auto;border:0;box-shadow:inset 0 0 0 1px var(--line)}
+  .md-vbox.vd>*{grid-area:1/1;min-width:0}
+  .md-vsz{display:block;width:100%;height:auto}
   .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
   .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
@@ -11010,7 +11018,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.140.0';
+const APP_VERSION='5.141.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11896,7 +11904,9 @@ function mdRender(src,ctx){ctx=ctx||{};
   const vids=Object.create(null);(ctx.videos||[]).forEach(v=>{if(v&&v.id&&!badKey(v.id)&&VID_EXT[v.mime])vids[v.id]=v;});
   const vidHtml=(id,caption,cls)=>{const v=vids[id];if(!v)return '';const cap=caption||'';
     // A775 : la taille vient d'une CLASSE du jeu fermé (MD_SC), comme une image ; aucune dans une liste ni une case.
-    return '<figure class="md-fig md-vfig'+(cls||(MD_SC[v.scale]||''))+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"><div class="md-vbox"><span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    // A783 : ses dimensions connues, la boîte a sa proportion (`vidSzHtml`) — avant comme après l'arrivée de la vidéo.
+    const dm=(v.w|0)>0&&(v.h|0)>0;
+    return '<figure class="md-fig md-vfig'+(cls||(MD_SC[v.scale]||''))+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"'+(dm?' data-vdw="'+(v.w|0)+'" data-vdh="'+(v.h|0)+'"':'')+'><div class="md-vbox'+(dm?' vd':'')+'">'+(dm?vidSzHtml(v.w,v.h):'')+'<span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span></div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
@@ -12248,6 +12258,8 @@ function safeVideo(v){if(!v||typeof v!=='object')return null;
   const o={id,name:safeFileName(v.name)||('video.'+VID_EXT[mime]),size:Math.max(0,Math.min(MAX_VID_BYTES,Math.round(Number(v.size))||0)),mime};
   // A775 : la TAILLE d'une vidéo, comme celle d'une image (`im.scale`) — un cran de MD_SCALES, absente = « Pleine ».
   if(v.scale!=null){const sc=Math.round(Number(v.scale));if([25,33,50,66,75].indexOf(sc)>=0)o.scale=sc;}
+  // A783 : les DIMENSIONS de la vidéo (pixels, mesurées à l'ajout) — absentes tant qu'elles ne sont pas connues, jamais 0.
+  {const w=Math.round(Number(v.w)),h=Math.round(Number(v.h));if(w>0&&h>0&&w<=20000&&h<=20000){o.w=w;o.h=h;}}
   return o;}
 const attExt=type=>VID_EXT[type]||'pdf';   // extension du chemin distant d'un binaire, d'après son type
 const attTypeOfPath=path=>{const e=(String(path||'').match(/\.([a-z0-9]{2,4})$/)||[])[1];return e==='mp4'?'video/mp4':e==='webm'?'video/webm':e==='mov'?'video/quicktime':'application/pdf';};
@@ -14434,7 +14446,7 @@ function sanitizeNotes(obj){const out={};if(!obj||typeof obj!=='object')return o
    body(mini-Markdown, <= MD_MAX_CHARS), images[{id,data,caption}] (référencées par ![…](img:ID)
    dans body), docs[{id,name,size}] (mêmes documents PDF que les fiches — store IndexedDB
    'attachments' partagé), videos[{id,name,size,mime}] (A757 : MP4/WebM/MOV, binaire dans le même
-   store et le même bucket, référencées par ![…](vid:ID) dans body ; `scale` facultatif, A775), links, sources, order, status, updatedBy, updatedAt, deletedAt,
+   store et le même bucket, référencées par ![…](vid:ID) dans body ; `scale` facultatif, A775 ; `w`/`h` facultatifs, A783), links, sources, order, status, updatedBy, updatedAt, deletedAt,
    ownerId, library }. migrateProtocol = point d'entrée UNIQUE
    sécurité/compat (mêmes règles que migrate) : appelé à chaque lecture, import et pull cloud. */
 function blankProtocol(){return {id:uid('p'),title:'',code:'',category:'',validatedAt:'',reviewEvery:24,body:'',images:[],docs:[],videos:[],links:[],sources:[],order:Date.now(),status:'',updatedBy:'',updatedAt:Date.now(),deletedAt:null,ownerId:null,library:null};}
@@ -15245,6 +15257,7 @@ async function load(){
   try{applyDeepLink();}catch(e){}   // A464
   updateStorageInfo();
   gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
+  setTimeout(()=>{vidDimRattraper().catch(()=>{});},4000);   // A783 : hors du premier rendu
   /* Index de recherche des documents : chargé APRÈS le premier rendu, jamais avant — l'accueil
      n'attend rien. Aucun PDF n'est ouvert ici et pdf.js n'est pas touché : on ne lit que le
      store 'attidx' (quelques dizaines de Ko). Tant qu'il n'est pas là, la recherche se comporte
@@ -15409,7 +15422,9 @@ async function softDelete(f){if(!f)return;
 async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
   if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
   try{await attClaim(p);}catch(e){}   // A689, comme `persist`
-  await Data.putProtocol(p);updateStorageInfo();Sync.schedule();return true;}
+  await Data.putProtocol(p);updateStorageInfo();Sync.schedule();
+  if((p.videos||[]).some(v=>v&&!((v.w|0)>0&&(v.h|0)>0)))setTimeout(()=>{vidDimRattraper().catch(()=>{});},1500);   // A783 : un import, une vidéo d'avant — une fois l'éditeur quitté
+  return true;}
   catch(e){toast(saveErrMsg(e),9000);return false;}}
 async function softDeleteProtocol(p){if(!p)return;
   const anonSpace=(currentSpace()==='');
@@ -20981,6 +20996,37 @@ const mdTblEmpty=r=>r.every(c=>!String(c||'').trim());
    que le texte ne cite plus. */
 /* A772-A776 : ADMETTRE des vidéos (binaire sur l'appareil, fiche dans `p.videos`) sans rien écrire : les identifiants
    admis, dans l'ordre. */
+/* ═══ A783 — LES DIMENSIONS D'UNE VIDÉO (demande de l'auteur, suite d'A781 : le réceptacle d'une vidéo gardait un 4:3
+   imposé, et la page bougeait à son arrivée). Mesurées à l'ajout (`vidAdmit`) et, pour les vidéos déjà là, rattrapées
+   sur l'appareil qui en a le binaire (`vidDimRattraper`, au démarrage et avant chaque envoi) ; `safeVideo` les borne. */
+// La boîte d'une vidéo aux dimensions connues : un svg qui se met à l'échelle comme la vidéo le fera. PURE.
+function vidSzHtml(w,h){w=w|0;h=h|0;return w>0&&h>0?'<svg class="md-vsz" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true"></svg>':'';}
+const vidSzFig=fig=>vidSzHtml(+fig.dataset.vdw||0,+fig.dataset.vdh||0);
+/* Les dimensions d'une vidéo, lues dans ses métadonnées (rien n'est décodé au-delà) ; null si le navigateur ne la lit pas
+   (un MOV hors Safari) ou au-delà de 8 s. */
+function vidDims(blob){return new Promise(res=>{let url='',fin=false,to=0;const v=document.createElement('video');
+  const done=r=>{if(fin)return;fin=true;clearTimeout(to);v.removeAttribute('src');try{v.load();}catch(e){}try{URL.revokeObjectURL(url);}catch(e){}res(r);};
+  try{url=URL.createObjectURL(blob);}catch(e){return res(null);}
+  v.muted=true;v.playsInline=true;v.preload='metadata';
+  v.onloadedmetadata=()=>done(v.videoWidth>0&&v.videoHeight>0?{w:v.videoWidth,h:v.videoHeight}:null);
+  v.onerror=()=>done(null);to=setTimeout(()=>done(null),8000);v.src=url;});}
+/* LE RATTRAPAGE : chaque vidéo sans dimensions d'un protocole que je peux modifier, dont le binaire est sur l'appareil, est
+   mesurée ; le protocole est marqué « à renvoyer » (ni sa date ni son auteur ne changent : rien de rédigé n'a bougé).
+   Jamais le protocole en cours de modification (son brouillon l'écraserait). Ce qui ne se mesure pas ici n'est pas
+   retenté de la page. Rend le nombre de vidéos mesurées. */
+const _vidDimKo=new Set();let _vidDimCours=null;
+function vidDimRattraper(){if(_vidDimCours)return _vidDimCours;
+  _vidDimCours=(async()=>{let n=0;if(!supportsAttachments())return 0;
+    for(const p of protocols){if(!p||p.deletedAt||!canEditFiche(p)||(state.pdraft&&state.pdraft.id===p.id))continue;let ch=false;
+      for(const v of (p.videos||[])){if(!v||!v.id||((v.w|0)>0&&(v.h|0)>0)||_vidDimKo.has(v.id))continue;
+        let rec=null;try{rec=await IDB.getAtt(v.id);}catch(e){}
+        const buf=rec&&await attBuf(rec);if(!buf)continue;   // binaire pas encore là : au prochain passage
+        const d=await vidDims(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:v.mime}));
+        if(!d){_vidDimKo.add(v.id);continue;}
+        v.w=d.w;v.h=d.h;ch=true;n++;}
+      if(ch){p.dirty=true;try{await Data.putProtocol(p);}catch(e){}}}
+    return n;})().finally(()=>{_vidDimCours=null;});
+  return _vidDimCours;}
 async function vidAdmit(p,files){const ids=[];
   if(!supportsAttachments()){toast('⚠ Les vidéos demandent le stockage de l’appareil, indisponible dans ce navigateur.',6000,true);return ids;}
   for(const f of files){if((p.videos||[]).length>=MAX_VID_PER_ENTITY){toast('⚠ '+MAX_VID_PER_ENTITY+' vidéos au plus par protocole.',6000,true);break;}
@@ -20988,7 +21034,8 @@ async function vidAdmit(p,files){const ids=[];
     const id=uid('v');
     try{await attPut({id,buf,size:buf.byteLength,type:mime,createdAt:Date.now(),dirty:1,remotePath:null});}
     catch(e){toast('⚠ Stockage de l’appareil plein : « '+upShortName(f.name)+' » n’a pas pu être gardée.',8000,true);break;}
-    draftNewAtts.push(id);(p.videos=p.videos||[]).push({id,name:safeFileName(f.name)||('video.'+VID_EXT[mime]),size:buf.byteLength,mime});ids.push(id);}
+    const d=await vidDims(new Blob([buf],{type:mime}));   // A783
+    draftNewAtts.push(id);(p.videos=p.videos||[]).push(Object.assign({id,name:safeFileName(f.name)||('video.'+VID_EXT[mime]),size:buf.byteLength,mime},d||{}));ids.push(id);}
   if(ids.length)edTouch();
   return ids;}
 const vidTaker=(p,ta)=>async files=>{const ids=await vidAdmit(p,files);if(ids.length)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+ids.map(id=>'![](vid:'+id+')\n').join(''));};
@@ -21114,12 +21161,13 @@ async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1'
   let rec=null;try{rec=supportsAttachments()?await IDB.getAtt(id):null;}catch(e){}
   const buf=rec&&await attBuf(rec);if(!fig.isConnected)return;
   if(!buf){fig.dataset.vh='';const et=rxEtatDe(id);fig.classList.toggle('md-vabs',et!=='in');   // A781 : en réception = neutre
-    if(((box.querySelector('.md-vph')||{}).dataset||{}).rxe!==et)box.innerHTML=rxPhHtml('vid',et,+fig.dataset.vsize||0);return;}
+    if(((box.querySelector('.md-vph')||{}).dataset||{}).rxe!==et)box.innerHTML=vidSzFig(fig)+rxPhHtml('vid',et,+fig.dataset.vsize||0);return;}
   fig.classList.remove('md-vabs');
   const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
+  {const w=+fig.dataset.vdw||0,h=+fig.dataset.vdh||0;if(w>0&&h>0){v.width=w;v.height=h;}}   // A783 : la proportion avant même les métadonnées
   v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
   const cap=fig.querySelector('figcaption');v.setAttribute('aria-label',cap&&cap.textContent?cap.textContent:'Vidéo');
-  v.addEventListener('error',()=>{box.innerHTML='<span class="md-vph">△ Cette vidéo'+(fig.dataset.vmime==='video/webm'?' (WebM)':'')+' ne se lit pas sur cet appareil.</span>';});
+  v.addEventListener('error',()=>{box.innerHTML=vidSzFig(fig)+'<span class="md-vph">△ Cette vidéo'+(fig.dataset.vmime==='video/webm'?' (WebM)':'')+' ne se lit pas sur cet appareil.</span>';});
   box.replaceChildren(v);if(_vidIO&&!vidReduce())_vidIO.observe(v);}
 function vidRefresh(id){document.querySelectorAll('figure.md-vfig[data-vid="'+CSS.escape(String(id))+'"]').forEach(f=>{f.dataset.vh='';vidHydrate(f);});}
 (()=>{const scan=()=>document.querySelectorAll('figure.md-vfig[data-vid]:not([data-vh])').forEach(vidHydrate);
@@ -34219,7 +34267,8 @@ async function notionVerse(p,files,rerender){
       p.videos=Array.isArray(p.videos)?p.videos:[];
       for(const v of (q.videos||[])){const z=r.vidBufs&&r.vidBufs.get(v.id);let ok=false;
         if(z&&p.videos.length<MAX_VID_PER_ENTITY&&supportsAttachments()){try{await attPut({id:v.id,buf:z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength),size:z.length,type:v.mime,createdAt:Date.now(),dirty:1,remotePath:null});ok=true;}catch(e){}}
-        if(ok){draftNewAtts.push(v.id);p.videos.push(v);vidN++;}else{vidOut++;txt=vidRetire(txt,[v.id]);}}
+        if(ok){const d=await vidDims(new Blob([z],{type:v.mime}));if(d){v.w=d.w;v.h=d.h;}   // A783
+          draftNewAtts.push(v.id);p.videos.push(v);vidN++;}else{vidOut++;txt=vidRetire(txt,[v.id]);}}
       /* Par le champ Markdown quand il est là : l'ajout entre dans son historique (↶ le retire d'un geste). */
       const ta=document.getElementById('p-body');
       if(ta&&state.pdraft===p){ta.selectionStart=ta.selectionEnd=ta.value.length;mdInsertAt(ta,(ta.value.trim()?(/\n\n$/.test(ta.value)?'':/\n$/.test(ta.value)?'\n':'\n\n'):'')+txt+'\n');}
@@ -37702,6 +37751,7 @@ const Sync={
          dont le fichier est confirmé ; un échec ici n'empêche pas l'envoi (les images restent en ligne), il est relevé à la fin. */
       let pushErr=null;
       try{await etape('migration des images',()=>this._imgMigrer());}catch(e){pushErr=e;}
+      try{await vidDimRattraper();}catch(e){}   // A783 : les dimensions des vidéos partent avec leurs protocoles
       try{await etape('envoi des images',()=>this._syncImages());}catch(e){if(!pushErr)pushErr=e;}
       if(fin())return;
       try{await etape('envoi des aides',()=>this._push());}catch(e){if(!pushErr)pushErr=e;}
@@ -41129,7 +41179,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

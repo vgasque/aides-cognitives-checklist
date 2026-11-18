@@ -2385,7 +2385,9 @@
     body.view-home .dir-row:hover .pinbtn,body.view-home .dir-row:focus-within .pinbtn{opacity:1}
   }
   .dir-book .dir-row{padding-left:16px;padding-right:16px}
-  .dir-grid>.dir-row:last-child{border-bottom:0}
+  /* A782 : pas pour les résultats d'une recherche — des cartes SÉPARÉES (A740) gardent chacune leur bord bas (la dernière
+     paraissait tronquée au-delà de 640 px). */
+  .dir-grid:not(.flat)>.dir-row:last-child{border-bottom:0}
   .dir-book .dir-row:hover{border-color:var(--line)}
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
   /* Épinglées = MÊME grille que les groupes de lettre (« un seul dessin de rangée », A16). Rangée
@@ -8765,7 +8767,13 @@
      mise en page), puis la vidéo à la largeur de sa colonne ou de sa case. Absente ou illisible : le réceptacle le DIT,
      en ambre (on risque de se tromper en la croyant là), glyphe et mots (règle 8). */
   .md-vfig .md-vbox{display:grid;place-items:center;width:100%;aspect-ratio:4/3;border:1px solid var(--line);border-radius:var(--r-1);background:var(--amb-2);overflow:hidden}
-  .md-vfig .md-vbox:has(video){display:block;aspect-ratio:auto;border:0;background:none}
+  .md-vfig .md-vbox:has(video){display:block;aspect-ratio:auto;border:0;background:none;box-shadow:none}
+  /* A783 — SES DIMENSIONS CONNUES, LE RÉCEPTACLE D'UNE VIDÉO A SA PROPORTION : un svg aux dimensions de la vidéo donne la
+     hauteur (la boîte n'a plus de 4:3 imposé), le filet est intérieur (`inset`) pour que la boîte ait EXACTEMENT la
+     hauteur de la vidéo qui la remplacera — posée avec les mêmes `width`/`height`, elle ne fait rien bouger. */
+  .md-vfig .md-vbox.vd{aspect-ratio:auto;border:0;box-shadow:inset 0 0 0 1px var(--line)}
+  .md-vbox.vd>*{grid-area:1/1;min-width:0}
+  .md-vsz{display:block;width:100%;height:auto}
   .md-vfig video{display:block;width:100%;height:auto;border-radius:var(--r-1)}
   .md-vph{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .md-vabs .md-vph,.md-vph:not(:has(svg)){color:var(--warn)}
