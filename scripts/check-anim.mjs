@@ -151,7 +151,7 @@ for (const m of html.matchAll(/addEventListener\s*\(\s*['"]animationend['"]\s*,/
 /* 24 depuis v5.48.1 (A467) : `#gdVeil`, le voile de l'exercice guidé. C'est précisément le voile dont ce
    cliquet se méfie — et il est inerte À DESSEIN : l'auteur a voulu « estomper un peu » sans rien bloquer, le
    guide avance par le geste réel fait SOUS le voile. Il n'existe qu'en exercice guidé, jamais en session. */
-const PE_MAX = 26   /* v5.26.0 (A331) : + l’anneau d’arrivée du quai (.sd-in::after), annonciateur pur ; A517 : + la coque de la barre d’onglets (ses deux îlots reçoivent le toucher) ; A776 : + la ligne de dépôt (.mdd-line), annonciateur pur — le fichier lâché doit passer au travers */;
+const PE_MAX = 27   /* v5.26.0 (A331) : + l’anneau d’arrivée du quai (.sd-in::after), annonciateur pur ; A517 : + la coque de la barre d’onglets (ses deux îlots reçoivent le toucher) ; A776 : + la ligne de dépôt (.mdd-line), annonciateur pur — le fichier lâché doit passer au travers ; A785 : + le cadre du média sélectionné (.mdm), annonciateur — seule sa poignée reçoit le pointeur */;
 const nPe = styles.map(sansCommentaires).join('\n').split(/pointer-events\s*:\s*none/).length - 1;
 if (nPe > PE_MAX)
   fautes.push({ ou: `pointer-events:none × ${nPe}`, prop: `cliquet à ${PE_MAX} (A68/4)` });

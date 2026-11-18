@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.143.0] — 2026-11-18
+On règle la largeur d'une image ou d'une vidéo en tirant son bord, dans le texte, dans une liste et dans un tableau
+(A785). Aucune mise à jour du serveur.
+- **Touchez une image ou une vidéo** en mise en forme en direct : elle se sélectionne (un cadre bleu, une poignée sur
+  son bord, une petite barre). Tirez la poignée : la largeur suit, par pas de 5 %, aimantée au quart, au tiers, à la
+  moitié… et à la largeur de sa voisine. La part s'affiche pendant le geste. ↶ annule.
+- **Partout** : une image seule dans le texte, une image sous une étape de liste, une image dans une case de tableau.
+  Dans une liste, deux ou trois images réduites se placent côte à côte sous l'étape.
+- **Boutons rapides** : « Même largeur » et « Même hauteur » (les images d'une étape s'alignent sur une même hauteur,
+  chacune selon sa forme). Le menu de la part propose ¼, ⅓, ½, ⅔, ¾, Pleine ou « Par défaut ». « Modifier… », un double
+  clic ou Entrée ouvrent le bloc (la grille pour un tableau).
+- **Au téléphone**, la barre se pose en bas, sous le pouce, et la proportion choisie est gardée — une image n'est jamais
+  affichée sous 80 px de large.
+- La largeur appartient à l'endroit où l'image est posée : la même image peut être grande dans le texte et petite dans
+  une case. Elle s'écrit dans le texte (`{width=45%}` collé à la ligne de l'image).
+- Les tailles déjà réglées ne changent pas. La taille réglée dans la fiche d'une image (« Images du texte ») vaut là où
+  aucune largeur n'est écrite.
+- ⚠ Un appareil resté sur une version **antérieure à la 5.142** n'affiche pas une image dont la largeur a été réglée :
+  mettez à jour vos appareils.
+
 ## [5.142.0] — 2026-11-18
 Préparation de la taille des images et des vidéos partout, et de la largeur des colonnes d'un tableau (A784). Rien ne
 change à l'écran. Aucune mise à jour du serveur.
@@ -286,15 +306,3 @@ Importer une page Notion exportée en HTML : les colonnes deviennent une grille 
   image absente de l'archive est nommée dans le texte ; une vidéo aussi (l'app ne lit pas encore les vidéos), et le
   message de fin les compte.
 - Le fichier HTML n'est jamais affiché ni exécuté : seul son texte est repris.
-
-## [5.132.0] — 2026-11-15
-Des images côte à côte dans un protocole : la grille d'images (A755).
-- **Une image seule dans une case de tableau s'affiche en vignette**, et un toucher l'agrandit. Un tableau d'images a
-  des colonnes égales et tient dans la largeur de l'écran — au téléphone, trois colonnes côte à côte, comme dans
-  Notion. Chaque case porte un libellé au-dessus de son image (« Fémoral », « Normal », « Thrombus »…).
-- **« Mettre en grille »** : sélectionnez les libellés et leurs images, puis choisissez 2, 3 ou 4 colonnes — en mise
-  en forme en direct, par la barre de sélection des blocs ; en mode texte, par « ＋ Insérer › Grille d'images ».
-  Le texte autour est gardé. C'est vous qui choisissez les colonnes : l'export Markdown de Notion ne dit pas quelles
-  images étaient côte à côte.
-- Une image placée dans une grille n'est plus retirée en quittant l'éditeur ; « Retirer » une image vide aussi ses
-  cases ; l'export « sans les fichiers joints » les retire aussi.

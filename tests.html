@@ -794,7 +794,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('A640 : une ligne indentée « - » DANS un paragraphe y reste', (()=>{const bl=A.mdBlocks('Texte\n    - pas une liste');return bl.length===1&&bl[0].t==='p';})());
   // A642 — l'image vit dans l'élément de liste qu'elle illustre.
   ok('A642 : une image indentée sous un élément lui appartient ; la liste continue (une seule liste, 3 éléments)', (()=>{const bl=A.mdBlocks('1. a\n2. b\n\n    ![Cap](img:x)\n\n3. c');return bl.length===1&&bl[0].t==='ol'&&bl[0].items.length===3&&bl[0].items[1].imgs&&bl[0].items[1].imgs[0].id==='x'&&bl[0].items[1].imgs[0].caption==='Cap';})());
-  ok('A642 : rendu — la figure md-lfig est DANS le 2ᵉ <li>, un seul <ol>', (()=>{const h=A.mdRender('1. a\n2. b\n    ![](img:x)\n3. c',{images:[{id:'x',data:'data:image/png;base64,iVBORw0KGgo=',caption:''}]});return (h.match(/<ol/g)||[]).length===1&&/<li>b<figure class="md-fig md-lfig">/.test(h);})());
+  ok('A642 : rendu — la figure md-lfig est DANS le 2ᵉ <li>, un seul <ol>', (()=>{const h=A.mdRender('1. a\n2. b\n    ![](img:x)\n3. c',{images:[{id:'x',data:'data:image/png;base64,iVBORw0KGgo=',caption:''}]});return (h.match(/<ol/g)||[]).length===1&&/<li>b<figure class="md-fig md-lfig"[ >]/.test(h);})());
   ok('A642 : une image d’un sous-élément s’attache au sous-élément', (()=>{const bl=A.mdBlocks('- a\n  - b\n    ![](img:y)');const s=bl[0].items[0].sub;return bl.length===1&&s&&s.items[0].imgs&&s.items[0].imgs[0].id==='y';})());
   ok('A642 : une image NON indentée reste un bloc et ferme la liste (inchangé)', (()=>{const bl=A.mdBlocks('- a\n\n![](img:x)\n\n- b');return bl.length===3&&bl[1].t==='img';})());
   ok('A642 : deux listes séparées par une ligne vide restent deux listes', (()=>{const bl=A.mdBlocks('- a\n\n- b');return bl.length===2;})());
@@ -1112,6 +1112,27 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('A784 : mdCellSplit — le média d’une case garde sa largeur', [CS.txt,(CS.med[0]||{}).ref,(CS.med[0]||{}).id], ['Normal','![](img:x){width=60%}','x']);
    eq('A784 : une image avec sa largeur compte comme utilisée (ménage de sortie)', A.miUses('![](img:x){width=45%}\n\n- a\n  ![](img:y){width=30%}'), {x:1,y:1});
    ok('A784 : l’export sans les fichiers retire aussi l’attribut', A.exportLeger({fiches:[],protocols:[{body:'a\n![](img:x){width=45%}\n| x<br>![](img:x){width=60%} |',images:IM,docs:[]}]}).protocols[0].body.indexOf('width')<0);}
+
+  /* A785 — lot 1 : la largeur écrite se rend (texte, liste, case) et se règle sur l'emplacement. */
+  group('A785 — la largeur d’un média : rendu et écriture (lot 1)');
+  {const PNG='data:image/png;base64,iVBORw0KGgo=',IM=[{id:'x',data:PNG,caption:''},{id:'y',data:PNG,caption:''}];
+   eq('A785 : mdWPct — les tiers restent des tiers', [A.mdWPct(33),A.mdWPct(66),A.mdWPct(34),A.mdWPct(67)], [33,66,35,65]);
+   const H1=A.mdRender('![](img:x){width=45%}',{images:IM});
+   ok('A785 : bloc — la classe du jeu fermé (mw mw45), jamais un nombre en style', / mw mw45/.test(H1)&&!/style=/.test(H1));
+   ok('A785 : la largeur écrite l’emporte sur la taille du modèle', (()=>{const h=A.mdRender('![](img:x){width=60%}',{images:[{id:'x',data:PNG,caption:'',scale:25}]});return / mw60/.test(h)&&!/ w25/.test(h);})());
+   ok('A785 : sans largeur écrite, la taille du modèle reste (rien d’existant ne bouge)', (()=>{const h=A.mdRender('![](img:x)',{images:[{id:'x',data:PNG,caption:'',scale:25}]});return / w25/.test(h)&&!/ mw/.test(h);})());
+   const HL=A.mdRender('1. a\n   ![](img:x){width=45%}\n   ![](img:y){width=55%}\n2. b\n   ![](img:x)',{images:IM});
+   ok('A785 : liste — une rangée md-lmed dès qu’un média de l’élément a une largeur, les parts en classe', /<li>a<div class="md-lmed"><figure class="md-fig md-lfig mw mw45"/.test(HL)&&/md-lfig mw mw55/.test(HL));
+   ok('A785 : liste — un élément sans largeur garde son rendu d’avant (pas de rangée)', /<li>b<figure class="md-fig md-lfig"/.test(HL));
+   ok('A785 : case — la part de la case', /md-cfig mw mw60/.test(A.mdRender('| a<br>![](img:x){width=60%} | b |\n|---|---|',{images:IM})));
+   ok('A785 : vidéo — même règle', / mw mw50/.test(A.mdRender('![](vid:v1){width=50%}',{videos:[{id:'v1',name:'v.webm',size:9,mime:'video/webm'}]})));
+   ok('A785 : la figure d’une image porte son identifiant (data-med), échappé', /data-med="x"/.test(H1));
+   const S='1. a\n   ![](img:x)\n   ![](img:x){width=30%}\n```\n![](img:x)\n```\n| ![](img:y) | ![](img:x) |';
+   eq('A785 : mdMedFind — le n-ième emplacement d’un média, dans l’ordre de lecture, jamais dans le code', [A.mdMedW(S,'img','x',0),A.mdMedW(S,'img','x',1),(A.mdMedFind(S,'img','x',2)||{}).i,A.mdMedFind(S,'img','x',3)], [0,30,6,null]);
+   eq('A785 : mdMedSetW — pose, remplace, retire la largeur d’UN emplacement', [A.mdMedSetW('![](img:x)\n![](img:x)','img','x',1,45),A.mdMedSetW('![](img:x){width=30%}','img','x',0,50),A.mdMedSetW('![](img:x){width=30%}','img','x',0,0),A.mdMedSetW('![](img:x)','img','x',2,50)], ['![](img:x)\n![](img:x){width=45%}','![](img:x){width=50%}','![](img:x)',null]);
+   eq('A785 : mdMedSetW — dans une case, l’autre média n’est pas touché', A.mdMedSetW('| ![](img:y) | ![](img:x) |','img','x',0,40), '| ![](img:y) | ![](img:x){width=40%} |');
+   eq('A785 : mdMedEq — des parts égales qui tiennent dans 100 %', [A.mdMedEq(2),A.mdMedEq(3),A.mdMedEq(4),A.mdMedEq(6)], [[50,50],[33,33,33],[25,25,25,25],[15,15,15,15,15,15]]);
+   eq('A785 : mdMedEqH — au prorata des formats (même hauteur), par défaut à 5 %', [A.mdMedEqH([4/3,4/3,3/4]),A.mdMedEqH([1,0])], [[35,35,20],[40,55]]);}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
