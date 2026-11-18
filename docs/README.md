@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A784** à la v5.142.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A785** à la v5.143.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -406,6 +406,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A782 | `lot-v5-141.md` | La dernière carte d'une recherche garde son bord bas : la règle du dernier filet des listes groupées ne vaut plus pour la liste plate (`.dir-grid:not(.flat)`) |
 | A783 | `lot-v5-141.md` | Une vidéo a ses dimensions (`p.videos[].w`/`h`, `safeVideo`) : mesurées à l'ajout (`vidDims`), rattrapées pour les vidéos d'avant (`vidDimRattraper`) ; son réceptacle a sa proportion (`vidSzHtml`) et la vidéo posée la même boîte — amende A757, clôt la limite d'A781 |
 | A784 | `lot-v5-142.md` | La mise en page vit avec l'emplacement, dans le texte : largeur d'un média `{width=45%}` (Pandoc), largeur des colonnes `{widths="…"}` sous le tableau — amende A775 pour l'emplacement ; lot 0 : lues et ignorées partout (`MD_TWIDTHS`, `mdTWidths`, `mdWPct`), la ligne des colonnes appartient au tableau ; découpage en cinq lots |
+| A785 | `lot-v5-143.md` | La largeur écrite se rend partout (classes `MD_MW`, 22 crans, plancher ~80 px, proportions gardées au téléphone ; rangée `md-lmed` dans une liste) ; un média se SÉLECTIONNE sur le document (barre : part ▾ · Même largeur · Même hauteur · Modifier…), sa poignée se tire et écrit `{width=NN%}` sur l'emplacement (`mdMedFind`/`mdMedSetW`) ; le bloc ouvert écrit aussi la part — amende A584, A774, A642, A775 |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

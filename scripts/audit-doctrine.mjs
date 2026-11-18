@@ -9080,11 +9080,11 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  // 1D : taille de la vidéo
  await page.evaluate(async()=>{document.querySelector('#mdDoc figure.md-vfig').closest('.mdb').click();await __acCalme(300);});
  await page.click('#mdDoc .mds-o[data-mdsv="50"]');await calme(page,300);
- const vs=await page.evaluate(()=>({sc:state.pdraft.videos[0].scale,cls:(document.querySelector('#mdDoc figure.md-vfig')||{}).className||''}));
- t('A772-A776 · 1D · la vidéo prend le cran ½ (modèle) et sa classe au rendu',vs.sc===50,JSON.stringify(vs));
+ const vs=await page.evaluate(()=>({sc:state.pdraft.videos[0].scale,txt:/\(vid:v1\)\{width=50%\}/.test(state.pdraft.body)}));
+ t('A772-A776 · 1D · la vidéo prend le cran ½ — A785 : écrit sur l’emplacement ({width=50%}), le modèle inchangé',vs.txt&&vs.sc!==50,JSON.stringify(vs));
  await page.evaluate(async()=>{const d=document.querySelector('#mdDoc [data-mdbact="done"]');if(d)d.click();await __acCalme(300);});
  const vr=await page.evaluate(()=>(document.querySelector('#mdDoc figure.md-vfig')||{}).className||'');
- t('A772-A776 · 1D · rendu refermé : md-vfig w50',/md-vfig w50/.test(vr),vr);
+ t('A772-A776 · 1D · rendu refermé : md-vfig mw mw50 (A785)',/md-vfig mw mw50/.test(vr),vr);
  // 3A : dépôt entre deux blocs
  const dd=await page.evaluate(async()=>{const cv=document.createElement('canvas');cv.width=40;cv.height=30;cv.getContext('2d').fillRect(0,0,40,30);
    const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const f=new File([blob],'drop.png',{type:'image/png'});
@@ -9345,7 +9345,7 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await __acCalme(150);}
     o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('[data-mdbscale]').length};
     const t0=state.pdraft.body,s50=d.querySelector('[data-mdbscale="50"]');if(s50){s50.click();await __acCalme(150);}
-    o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,ouvert:!!d.querySelector('.mdb-ta')};
+    o.taille={modele:state.pdraft.images[0].scale,texte:state.pdraft.body!==t0&&/\(img:[A-Za-z0-9_-]+\)\{width=50%\}/.test(state.pdraft.body),ouvert:!!d.querySelector('.mdb-ta')};   // A785 : la part s'écrit sur l'emplacement
     const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await __acCalme(100);
     const n=d.querySelectorAll('.mdb').length,g=d.querySelector('[data-mdbgrab="'+(n-1)+'"]');o.poignee=!!g;
     if(g){g.click();await __acCalme(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
@@ -9357,12 +9357,60 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     return o;});
   t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
     r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
-  t('A548 · image ouverte : l\'image au-dessus du champ, sa taille réglée sur le bloc (modèle, texte inchangé)',
-    r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele===50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
+  t('A548 · image ouverte : l\'image au-dessus du champ, sa taille réglée sur le bloc (A785 : écrite sur l\'emplacement, {width=50%}, le modèle inchangé)',
+    r.doc&&r.image.vue&&r.image.tailles===6&&r.taille.modele!==50&&r.taille.texte&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
   t('A549 · « Prendre / Poser » (geste de l\'éditeur d\'aide) : ⠿ prend le dernier bloc, bandeau qui le nomme, une cible par place, le reste inerte ; « Poser en tête » le pose',
     r.doc&&r.poignee&&r.mode&&r.mode.bandeau&&r.mode.cibles===r.n+1&&r.mode.pris&&r.mode.inerte&&r.libre&&r.tete==='Fin.',JSON.stringify(r));
   t('A551 · après un déplacement, ↶ paraît et remet le bloc à sa place',r.doc&&r.undoDep&&r.apresUndo==='## A',JSON.stringify({undo:r.undoDep,apres:r.apresUndo}));
   await page.close();
+});
+
+/* ══ A785 — LE MÉDIA SE SÉLECTIONNE SUR LE DOCUMENT, SON BORD SE TIRE ═══════════════════════════════════════════
+   Mise en forme en direct : un toucher sur une image d'élément de liste, d'un bloc ou d'une case la SÉLECTIONNE (barre,
+   poignée ; ni bloc ouvert ni grille) ; tirer la poignée écrit `{width=NN%}` sur l'emplacement ; « Même largeur » et
+   « Même hauteur » écrivent une rangée ; le menu de la part ; Échap ; « Modifier… » (la grille pour un tableau). Bureau
+   et téléphone (la barre en bas, le plancher de 80 px). Vrais événements souris. */
+await sec('Éditeur · A785 sélectionner un média et tirer son bord (texte, liste, case)', async () => {
+const corps="## Technique\n\n1. Sonde linéaire\n   ![](img:i_a)\n   ![](img:i_b)\n2. Veine\n\n![](img:i_a)\n\n| Fémoral<br>![](img:i_a) | Normal<br>![](img:i_b) |\n|---|---|\n\nFin.";
+const corpsDe=page=>page.evaluate(()=>document.getElementById('p-body').value.split('\n'));
+for(const [W,H] of [[1280,900],[390,844]]){
+ const page=await br.newPage({viewport:{width:W,height:H}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const im=(w,h)=>{const v=document.createElement('canvas');v.width=w;v.height=h;v.getContext('2d').fillRect(0,0,w,h);return v.toDataURL('image/png');};
+   const pr=migrateProtocol({title:'Témoin A785',body:c,images:[{id:'i_a',data:im(160,120),w:160,h:120,caption:''},{id:'i_b',data:im(90,160),w:90,h:160,caption:''}]});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+ await calme(page,600);const L=W<780?'téléphone':'bureau';
+ const a=await page.evaluate(async()=>{const d=document.getElementById('mdDoc'),f=d.querySelector('li figure.md-fig');f.scrollIntoView({block:'center'});await __acCalme(150);f.click();await __acCalme(250);
+   const bar=d.querySelector('.mdm-bar');return {bar:bar?[...bar.querySelectorAll('[data-mdm]')].map(x=>x.dataset.mdm).join(','):'',dock:!!bar&&bar.classList.contains('dock'),grip:!!d.querySelector('.mdm [data-mdmgrip]'),
+     ouvert:!!d.querySelector('.mdb.on'),cadre:f.classList.contains('msel'),focus:(document.activeElement||{}).dataset&&document.activeElement.dataset.mdm,porte:getComputedStyle(document.querySelector('.ed-door')||document.body).visibility};});
+ t('A785 · '+L+' · un toucher sur l’image d’un élément la sélectionne (cadre, poignée, barre : part · Même largeur · Même hauteur · Modifier… · ✕), aucun bloc ouvert',
+   a.bar==='pct,eqw,eqh,open,x'&&a.grip&&a.cadre&&!a.ouvert&&a.focus==='pct'&&a.dock===(W<780),JSON.stringify(a));
+ if(W<780)t('A785 · téléphone · la barre est en bas, le bouton « Ajouter » s’efface',a.dock&&a.porte==='hidden',JSON.stringify(a));
+ const g=await (await page.$('#mdDoc [data-mdmgrip]')).boundingBox(),li=await page.evaluate(()=>{const r=document.querySelector('#mdDoc li').getBoundingClientRect();return {l:r.left,w:r.width};});
+ const y=g.y+g.height/2;await page.mouse.move(g.x+g.width/2,y);await page.mouse.down();await page.mouse.move(li.l+li.w*0.3,y,{steps:4});await page.mouse.move(li.l+li.w*0.45,y,{steps:4});
+ const bulle=await page.evaluate(()=>{const x=document.querySelector('#mdDoc .mdm-tip');return x&&!x.hidden?x.textContent:'';});
+ await page.mouse.up();await calme(page,300);
+ const b1=await corpsDe(page);
+ t('A785 · '+L+' · tirer la poignée : la part s’affiche pendant le geste, relâcher écrit {width=45%} sur CET emplacement seulement',
+   bulle==='45 %'&&b1[3]==='   ![](img:i_a){width=45%}'&&b1[4]==='   ![](img:i_b)'&&b1[7]==='![](img:i_a)',JSON.stringify({bulle,l:b1.slice(3,8)}));
+ await page.evaluate(async()=>{document.querySelector('#mdDoc [data-mdm="eqw"]').click();await __acCalme(250);});
+ const b2=await corpsDe(page);
+ await page.evaluate(async()=>{document.querySelector('#mdDoc [data-mdm="eqh"]').click();await __acCalme(250);});
+ const b3=await corpsDe(page),rg=await page.evaluate(()=>[...document.querySelectorAll('#mdDoc li .md-lmed>figure')].map(f=>{const r=f.getBoundingClientRect();return [Math.round(r.top),Math.round(r.width)];}));
+ t('A785 · '+L+' · « Même largeur » : 50/50 ; « Même hauteur » : au prorata des formats (70/25) ; côte à côte',
+   b2[3].endsWith('{width=50%}')&&b2[4].endsWith('{width=50%}')&&b3[3].endsWith('{width=70%}')&&b3[4].endsWith('{width=25%}')&&rg.length===2&&rg[0][0]===rg[1][0]&&rg[1][1]>=80,JSON.stringify({b2:b2.slice(3,5),b3:b3.slice(3,5),rg}));
+ await page.keyboard.press('Escape');await calme(page,200);
+ const e1=await page.evaluate(()=>!document.querySelector('#mdDoc .mdm-bar')&&!document.querySelector('#mdDoc figure.msel'));
+ t('A785 · '+L+' · Échap désélectionne',e1);
+ await page.evaluate(async()=>{const d=document.getElementById('mdDoc'),f=[...d.querySelectorAll('.mdb>figure.md-fig')][0];f.scrollIntoView({block:'center'});await __acCalme(150);f.click();await __acCalme(250);
+   d.querySelector('[data-mdm="pct"]').click();await __acCalme(300);const o=document.querySelector('.popmenu [data-pickopt="50"]');if(o)o.click();await __acCalme(300);});
+ const b4=await corpsDe(page);
+ t('A785 · '+L+' · un bloc image : la part choisie au menu (½) s’écrit sur sa ligne',b4[7]==='![](img:i_a){width=50%}',b4[7]);
+ const c=await page.evaluate(async()=>{const d=document.getElementById('mdDoc'),f=d.querySelector('table figure');f.scrollIntoView({block:'center'});await __acCalme(150);f.click();await __acCalme(300);
+   const r={grille:document.getElementById('mdToolModal').classList.contains('on'),bar:d.querySelector('.mdm-bar')?[...d.querySelectorAll('.mdm-bar [data-mdm]')].map(x=>x.dataset.mdm).join(','):''};
+   d.querySelector('[data-mdm="open"]').click();await __acCalme(400);r.apres=document.getElementById('mdToolModal').classList.contains('on');
+   const x=document.querySelector('#mdToolModal [data-mdtw="x"]');if(x)x.click();await __acCalme(300);return r;});
+ t('A785 · '+L+' · un média de case se sélectionne sans ouvrir la grille ; « Modifier… » ouvre la grille (A774)',!c.grille&&c.bar==='pct,open,x'&&c.apres,JSON.stringify(c));
+ await page.close();}
 });
 
 /* ══ A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE ═══════════════════════════════════════════════════════════
@@ -9383,14 +9431,14 @@ await sec('Éditeur · A584 taille d\'une image par pictogrammes et poignée', a
   await page.mouse.move(g.x+g.width/2,g.y+g.height/2);await page.mouse.down();await page.mouse.move(fr.x+fr.width*0.5,g.y+g.height/2,{steps:6});
   o.bulle=await page.$eval('#mdDoc .mds-tip',x=>x.hidden?'':x.textContent);
   await page.mouse.up();await calme(page, 300);
-  Object.assign(o,await page.evaluate(t0=>({modele:state.pdraft.images[0].scale,texte:state.pdraft.body===t0,on2:(document.querySelector('#mdDoc .mds-o.on')||{}).textContent,ouvert:!!document.querySelector('#mdDoc .mdb-ta')}),t0));
+  Object.assign(o,await page.evaluate(t0=>({modele:state.pdraft.images[0].scale,texte:state.pdraft.body.replace('(img:i1){width=50%}','(img:i1)')===t0&&state.pdraft.body!==t0,on2:(document.querySelector('#mdDoc .mds-o.on')||{}).textContent,ouvert:!!document.querySelector('#mdDoc .mdb-ta')}),t0));
   await page.evaluate(()=>document.querySelector('[data-mdbact="done"]').click());await calme(page, 200);
   await page.click('[data-mitile]');await calme(page, 300);
   o.feuille=await page.evaluate(()=>({n:document.querySelectorAll('#miBody .mds-o').length,on:(document.querySelector('#miBody .mds-o.on')||{}).textContent,cadre:!!document.querySelector('#miBody [data-mdsgrip]')}));
   t('A584 · pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine, nommés en mots, la taille courante allumée',o.mots==='¼|⅓|½|⅔|¾|Pleine'&&o.noms&&o.on==='Pleine',JSON.stringify(o));
-  t('A584 · tirer la poignée jusqu\'à la moitié : bulle « ½ · 50 % », modèle à 50, texte inchangé, bloc toujours ouvert',
-    o.bulle==='½ · 50 %'&&o.modele===50&&o.texte&&o.on2==='½'&&o.ouvert,JSON.stringify(o));
-  t('A584 · la feuille de l\'image porte le même composant (cadre, poignée, six pictogrammes)',o.feuille.n===6&&o.feuille.on==='½'&&o.feuille.cadre,JSON.stringify(o.feuille));
+  t('A584 · tirer la poignée jusqu\'à la moitié : bulle « ½ · 50 % », A785 : {width=50%} écrit sur l\'emplacement (modèle inchangé), bloc toujours ouvert',
+    o.bulle==='½ · 50 %'&&o.modele===100&&o.texte&&o.on2==='½'&&o.ouvert,JSON.stringify(o));
+  t('A584 · la feuille de l\'image porte le même composant (cadre, poignée, six pictogrammes) — la taille du modèle (Pleine), l\'emplacement en porte une autre',o.feuille.n===6&&o.feuille.on==='Pleine'&&o.feuille.cadre,JSON.stringify(o.feuille));
   await page.close();
 });
 

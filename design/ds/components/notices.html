@@ -8819,6 +8819,21 @@
   /* A642 : l'image d'un élément de liste — sous le texte de l'élément, à sa largeur, plafonnée (300 px) : elle illustre
      une étape, elle ne coupe pas la liste. Aucune taille réglable ici (« Pleine » n'a pas de sens dans une liste). */
   .md-fig.md-lfig{margin:8px 0 12px;max-width:300px}
+  /* A785 — LA LARGEUR ÉCRITE (`{width=NN%}`) : la figure prend sa part de ce qui la contient — la colonne, le texte de
+     l'élément de liste, la case —, à toutes les largeurs d'écran (les proportions sont gardées au téléphone), jamais sous
+     ~80 px (le plancher : la case d'une grille de 4 colonnes au téléphone, A755 — rien d'existant ne bouge). Le média
+     remplit sa figure. Dans une liste, la rangée `md-lmed` met côte à côte les médias dont les parts tiennent dans 100 %
+     (le retrait de 4 px de chaque côté fait la gouttière sans fausser la somme). Dans une case, l'alignement de la
+     colonne place le média. Jeu FERMÉ de classes (`MD_MW`), jamais un nombre dans un style. */
+  .md-fig.mw{min-width:min(80px,100%);max-width:100%;box-sizing:border-box}
+  .md-fig.mw img,.md-fig.mw .md-ibox,.md-vfig.mw>.md-vbox{width:100%}
+  .md-fig.mw5,.mds-img.mw5{width:5%}.md-fig.mw10,.mds-img.mw10{width:10%}.md-fig.mw15,.mds-img.mw15{width:15%}.md-fig.mw20,.mds-img.mw20{width:20%}.md-fig.mw25,.mds-img.mw25{width:25%}.md-fig.mw30,.mds-img.mw30{width:30%}.md-fig.mw33,.mds-img.mw33{width:33%}.md-fig.mw35,.mds-img.mw35{width:35%}.md-fig.mw40,.mds-img.mw40{width:40%}.md-fig.mw45,.mds-img.mw45{width:45%}.md-fig.mw50,.mds-img.mw50{width:50%}.md-fig.mw55,.mds-img.mw55{width:55%}.md-fig.mw60,.mds-img.mw60{width:60%}.md-fig.mw65,.mds-img.mw65{width:65%}.md-fig.mw66,.mds-img.mw66{width:66%}.md-fig.mw70,.mds-img.mw70{width:70%}.md-fig.mw75,.mds-img.mw75{width:75%}.md-fig.mw80,.mds-img.mw80{width:80%}.md-fig.mw85,.mds-img.mw85{width:85%}.md-fig.mw90,.mds-img.mw90{width:90%}.md-fig.mw95,.mds-img.mw95{width:95%}.md-fig.mw100,.mds-img.mw100{width:100%}
+  .md-lmed{display:flex;flex-wrap:wrap;align-items:flex-start;row-gap:8px;margin:8px -4px 12px}
+  .md-lmed>.md-fig.md-lfig{flex:0 0 auto;margin:0;padding:0 4px;box-sizing:border-box}
+  .md-lmed>.md-fig.md-lfig:not(.mw){width:100%;max-width:308px}
+  .md-fig.md-lfig.mw{max-width:none}
+  :is(td,th).ta-c>.md-fig.mw{margin-left:auto;margin-right:auto}
+  :is(td,th).ta-r>.md-fig.mw{margin-left:auto}
   /* A727 — EN LECTURE, UNE IMAGE TIENT À L'ÉCRAN (signalé sur capture : une radio « Pleine » de 1 000 px de large
      dépassait la fenêtre). La figure est plafonnée en LARGEUR selon sa proportion (`fh1..6`, `mdFigAr`), ce qui borne sa
      hauteur aux deux tiers de la fenêtre sans jamais déformer ; le toucher l'agrandit (A555). Amende A608 EN LECTURE
@@ -8922,10 +8937,30 @@
   .mdb-lasso{position:fixed;z-index:60;border:1px solid var(--act);background:color-mix(in srgb,var(--act) 12%,transparent);border-radius:3px}
   /* A634 : pendant une sélection de blocs, la barre de sélection EST l'action de l'écran (comme la barre d'onglets cède
      la place à celle de l'accueil, A599) : la porte « Ajouter » s'efface — elle passait SOUS la barre (signalé sur capture). */
-  main:has(.md-doc.mdb-selon) .ed-door{visibility:hidden}
+  main:has(.md-doc.mdb-selon) .ed-door,main:has(.mdm-bar.dock) .ed-door{visibility:hidden}   /* A785 : la barre du média sélectionné, au téléphone, aussi */
   .mdb-selbar{position:sticky;bottom:12px;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding:8px 8px 8px 16px;
     border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float)}
   .mdb-sb-n{flex:1 1 auto;min-width:0;font-weight:700}
+  /* A785 — LE MÉDIA SÉLECTIONNÉ DU DOCUMENT : un cadre bleu (le bloc courant, règle 8), une poignée ronde sur son bord
+     (24 px, halo de 44 px au doigt, règle 9), la part affichée pendant le geste ; la barre en matière système flotte
+     au-dessus du média au bureau, se pose en bas au téléphone (`dock`, collée comme la barre de sélection). */
+  .md-fig.msel>img,.md-fig.msel>.md-vbox,.md-fig.msel>.md-ibox{outline:2px solid var(--act);outline-offset:2px}
+  .mdm{position:absolute;z-index:3;pointer-events:none}
+  .mdm-h{position:absolute;top:50%;right:-12px;width:24px;height:24px;margin-top:-12px;box-sizing:border-box;border:2px solid var(--act);border-radius:50%;
+    background:var(--work);box-shadow:var(--shadow-float);pointer-events:auto;cursor:ew-resize;touch-action:none}
+  .mdm-h::after{content:'';position:absolute;inset:-12px;border-radius:50%}
+  .mdm-r .mdm-h{right:auto;left:-12px}
+  .mdm-tip{position:absolute;left:50%;top:8px;transform:translateX(-50%);padding:4px 8px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);
+    font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600;white-space:nowrap}
+  .mdm-bar{position:absolute;z-index:4;display:flex;align-items:center;gap:2px;padding:4px;transform:translateY(calc(-100% - 12px));border-radius:var(--r-3);
+    background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float);white-space:nowrap}
+  .mdm-bar.dock{position:sticky;bottom:12px;flex-wrap:wrap;margin:16px 0 0;transform:none;white-space:normal}
+  .mdm-b{min-height:32px;margin:0;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
+  .mdm-bar.dock .mdm-b{min-height:44px}
+  .mdm-b:hover{background:var(--sys-2)}
+  .mdm-b:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-2px}
+  .mdm-pct{font-family:var(--f-mono);font-weight:600}
+  .mdm-x{margin-left:auto}
   .mdb-sb-x{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:none;color:inherit;font:inherit;font-size:var(--t-item);cursor:pointer}
   .mdb-sb-x:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
   .mdb-add{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:10px 12px;min-height:44px;border:1px dashed var(--line-strong);border-radius:var(--r-2);
