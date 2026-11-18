@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.141.0] — 2026-11-18
+Les vidéos ont leurs dimensions, et la dernière carte d'une recherche retrouve son bord bas (A782-A783). Aucune mise à
+jour du serveur.
+- **Une vidéo a sa largeur et sa hauteur** : elles sont mesurées quand on l'ajoute (bouton, glisser-déposer, collage,
+  import Notion). Les vidéos déjà là sont mesurées d'elles-mêmes sur l'appareil qui les a, puis repartent avec leur
+  protocole vers vos autres appareils.
+- **Son cadre a donc sa vraie forme** tant qu'elle n'est pas arrivée (16:9, portrait…), au lieu d'un 4:3 imposé : la
+  vidéo prend sa place sans faire bouger la page.
+- **Recherche depuis l'accueil** : sur un écran large, la dernière carte des résultats avait perdu son bord bas (elle
+  paraissait coupée). Elle l'a retrouvé.
+- Une vidéo que le navigateur ne sait pas lire (un MOV hors de Safari) garde le cadre 4:3.
+
 ## [5.140.0] — 2026-11-17
 Une image, une vidéo ou un document qui n'est pas encore sur l'appareil le dit, à sa place (A781). Aucune mise à jour
 du serveur.
@@ -293,10 +305,3 @@ Un protocole peut contenir 50 000 caractères, et le texte n'est plus jamais cou
   qu'accepte le serveur.
 - ⚠ **Pendant la mise à jour** : un appareil resté sur une version précédente coupe à 20 000 caractères un protocole plus
   long écrit ailleurs ; ne modifiez pas un long protocole depuis un appareil qui n'a pas encore reçu la mise à jour.
-
-## [5.130.1] — 2026-11-15
-Fenêtre d'import au bureau : la bulle « Bibliothèque » ne se coupe plus en deux lignes (A753, rectificatif).
-- Avec une bibliothèque au nom un peu long, « Bibliothèque · » passait à la ligne dans l'en-tête de la colonne, le
-  nom était réduit à « Cours … » et la bulle devenait plus haute que sa voisine « Catégorie ».
-- Le mot « Bibliothèque » ne se coupe plus ; seul le nom de la bibliothèque se raccourcit s'il le faut, et se lit en
-  entier au survol. La colonne Bibliothèque est un peu plus large.

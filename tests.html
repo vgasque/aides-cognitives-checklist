@@ -1082,7 +1082,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const P=A.migrateProtocol({title:'v',body:'![](vid:v1)\n\n- a\n  ![](vid:v1)',videos:[{id:'v1',name:'a.webm',size:9,mime:'video/webm',scale:50},{id:'v2',name:'b.webm',size:9,mime:'video/webm',scale:12}]});
    eq('A775 : la taille d’une vidéo est gardée si c’est un cran, oubliée sinon', [P.videos[0].scale,'scale' in P.videos[1]], [50,false]);
    const H=A.mdRender(P.body,{images:[],videos:P.videos});
-   ok('A775 : rendu — la vidéo réduite porte la classe du cran, pas dans une liste', /<figure class="md-fig md-vfig w50" data-vid="v1"/.test(H)&&/<figure class="md-fig md-vfig md-lfig" data-vid="v1"/.test(H));}
+   ok('A775 : rendu — la vidéo réduite porte la classe du cran, pas dans une liste', /<figure class="md-fig md-vfig w50" data-vid="v1"/.test(H)&&/<figure class="md-fig md-vfig md-lfig" data-vid="v1"/.test(H));
+   /* A783 — les dimensions d'une vidéo */
+   const Q=A.migrateProtocol({title:'v',body:'![](vid:v1)\n\n![](vid:v2)',videos:[{id:'v1',name:'a.webm',size:9,mime:'video/webm',w:640.4,h:'360'},{id:'v2',name:'b.webm',size:9,mime:'video/webm',w:0,h:300},{id:'v3',name:'c.webm',size:9,mime:'video/webm',w:-5,h:NaN},{id:'v4',name:'d.webm',size:9,mime:'video/webm',w:90000,h:10}]});
+   eq('A783 : safeVideo — dimensions entières et positives gardées ensemble ; 0, négatif, non-nombre ou démesuré : aucune', [Q.videos[0].w,Q.videos[0].h,'w' in Q.videos[1],'h' in Q.videos[1],'w' in Q.videos[2],'w' in Q.videos[3]], [640,360,false,false,false,false]);
+   eq('A783 : vidSzHtml — un svg aux dimensions, rien sans elles', [A.vidSzHtml(640,360),A.vidSzHtml(0,360)], ['<svg class="md-vsz" width="640" height="360" viewBox="0 0 640 360" aria-hidden="true"></svg>','']);
+   const HQ=A.mdRender(Q.body,{videos:Q.videos});
+   ok('A783 : rendu — la vidéo aux dimensions connues porte sa proportion (classe vd, svg), l’autre garde le réceptacle 4:3', /data-vid="v1"[^>]*data-vdw="640" data-vdh="360"><div class="md-vbox vd"><svg class="md-vsz" width="640" height="360"/.test(HQ)&&/data-vid="v2"[^>]*><div class="md-vbox"><span/.test(HQ)&&!/data-vid="v2"[^>]*data-vdw/.test(HQ));}
 
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
