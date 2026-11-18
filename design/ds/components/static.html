@@ -8754,6 +8754,15 @@
      comme un mot, pas comme une étiquette) ; un filet la sépare des données. */
   .md-tbl tbody th{background:var(--amb-2);font-weight:700;color:var(--ink);border-right:1px solid var(--line)}
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
+  /* A786 — LA LARGEUR DES COLONNES choisie par l'auteur : un <col> par colonne, classe du jeu fermé (`MD_CW`). Un tableau
+     de texte garde sa mise en page automatique : la part est une PRÉFÉRENCE, et une colonne ne descend jamais sous son mot
+     le plus long — au-delà, le tableau s'élargit et défile de côté, comme avant (`.md-tw`). La grille d'images (A755)
+     garde sa mise en page fixe : les parts y sont exactes. */
+  .md-tbl col.cw5{width:5%}.md-tbl col.cw10{width:10%}.md-tbl col.cw15{width:15%}.md-tbl col.cw20{width:20%}.md-tbl col.cw25{width:25%}.md-tbl col.cw30{width:30%}.md-tbl col.cw33{width:33%}.md-tbl col.cw35{width:35%}.md-tbl col.cw40{width:40%}.md-tbl col.cw45{width:45%}.md-tbl col.cw50{width:50%}.md-tbl col.cw55{width:55%}.md-tbl col.cw60{width:60%}.md-tbl col.cw65{width:65%}.md-tbl col.cw66{width:66%}.md-tbl col.cw70{width:70%}.md-tbl col.cw75{width:75%}.md-tbl col.cw80{width:80%}.md-tbl col.cw85{width:85%}.md-tbl col.cw90{width:90%}.md-tbl col.cw95{width:95%}.md-tbl col.cw100{width:100%}
+  /* A786 — LA COLONNE D'EN-TÊTE RESTE VISIBLE quand un tableau plus large que l'écran défile de côté (la 1ʳᵉ colonne d'un
+     tableau qui en a une, A609, et elle seule) ; son fond est déjà opaque. Réglage de l'appareil : Moi › Affichage
+     (`html.tbl-libre` la laisse défiler). */
+  html:not(.tbl-libre) .md-tw>.md-tbl-hc>:is(thead,tbody)>tr>:first-child{position:sticky;left:0;z-index:1;background:var(--amb-2)}
   /* A755 — LA GRILLE D'IMAGES : un tableau qui porte une image se partage en colonnes ÉGALES et tient dans la largeur
      (pas de `min-width` : au téléphone, trois colonnes d'environ 110 px plutôt qu'un défilement de côté) ; sans filets,
      comme la grille de Notion. Libellé au-dessus, vignette à la largeur de la case ; un toucher l'agrandit. */
@@ -9170,6 +9179,23 @@
   .mdg-br{grid-column:2/-2;margin-top:6px}
   .mdg-mi{display:inline-flex;width:18px;justify-content:center;font-weight:800}
   .mdg-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
+  /* A786 — LA BARRE DES PARTS de la grille : un segment par colonne (nom, part), une pastille ronde par séparation
+     (28 px, halo de 44 px : règle 9), les boutons rapides dessous. Bleu : le réglage en cours (règle 8) ; « auto » : neutre. */
+  .mdg-cw{margin:0 0 12px}
+  .mdg-cwb{position:relative;display:flex;min-height:48px;margin:0 0 24px}   /* les pastilles sont SUR le bord bas : elles ne couvrent ni les noms ni les parts */
+  .mdg-cws{flex:var(--cwp) 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:4px 8px;overflow:hidden;
+    border:1px solid var(--line-strong);border-left-width:0;background:var(--primary-soft);color:var(--act)}
+  .mdg-cws:first-child{border-left-width:1px;border-radius:var(--r-2) 0 0 var(--r-2)}
+  .mdg-cws:last-of-type{border-radius:0 var(--r-2) var(--r-2) 0}
+  .mdg-cwn{overflow:hidden;font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap;text-overflow:ellipsis}
+  .mdg-cwv{font-family:var(--f-mono);font-size:var(--t-meta);font-weight:600}
+  .mdg-cwb.auto .mdg-cws{background:var(--amb-2);color:var(--ink-2)}
+  .mdg-cwk{position:absolute;top:100%;left:calc(var(--cwx) * 1%);z-index:1;width:28px;height:28px;margin:-14px 0 0 -14px;padding:0;box-sizing:border-box;
+    border:2px solid var(--act);border-radius:50%;background:var(--work);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
+  .mdg-cwk::after{content:'';position:absolute;inset:-10px;border-radius:50%}
+  .mdg-cwk:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-cwq{display:flex;flex-wrap:wrap;gap:8px}
+  .mdg-cwh{margin:6px 0 0}
   .mdg-opt-l{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .mdg-opt-m{margin-left:8px}
   .mdg-tpl{margin-left:auto}
