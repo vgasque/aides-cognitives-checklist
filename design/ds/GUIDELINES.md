@@ -1006,11 +1006,14 @@ telle quelle — chaque écran le dit à sa façon :
   la ligne se tait quand tout est reçu, sans message de fin et sans faire remonter le texte.
 - **La fenêtre « Tableau »** (A773-A774) : la tête ne porte que le titre, la taille, ↶ ↷ et ✕ ; un onglet ··· par
   colonne et ⋮ par ligne (gris, bleus pour la case active) ouvre le menu de SA colonne ou SA ligne ; deux bandes « ＋ »
-  en pointillé au bord ; les en-têtes restent visibles sous la grille. Au doigt : ni onglets ni bandes, une barre au
-  pouce de 44 px collée en bas (‹ › « Ligne n ▾ » « Colonne ▾ »), la 1ʳᵉ colonne collée quand la grille défile. Au
-  téléphone : « Annuler · Tableau · ↶ · OK ». Un toucher sur un tableau du document l'ouvre directement.
+  en pointillé au bord. A792 : au-dessus de la grille, UNE ligne d'outils (« En-tête » 1ʳᵉ ligne · 1ʳᵉ colonne, puis
+  « Largeur · choisie ▾ », un menu) ; rien sous la grille ; l'aide du clavier au pied. Au doigt : ni onglets ni bandes,
+  une ligne d'état de 44 px (« En-tête : … | Largeur : … › ») qui ouvre la feuille « Tableau » (celle de « ⋯ »), une
+  barre au pouce de 44 px collée en bas (‹ › « Ligne n ▾ » « Colonne ▾ » ⋯), la 1ʳᵉ colonne collée quand la grille
+  défile. Au téléphone : « Annuler · Tableau · ↶ · OK ». Un toucher sur un tableau du document l'ouvre directement.
 - **Le média d'un élément de liste ou d'une case** (A772-A773) : « Dans l'élément n : » puis Image · Vidéo dans le bloc
-  liste ouvert ; vignette sous le libellé d'une case, ✕ pour la retirer. Une vidéo se règle au cadre de l'image (A775).
+  liste ouvert ; vignette sous le libellé d'une case, ✕ pour la retirer ; une case vide de média a son « ＋ » (28 px,
+  bleu), visible sur la seule case active, à cheval sur son filet bas (A792). Une vidéo se règle au cadre de l'image (A775).
 - **Le dépôt qui vise** (A776) : une ligne bleue de 3 px, une pastille à chaque bout, l'étiquette en pastille bleue
   (« Ici · après « … » », « Dans l'élément n », « Dans la case … », « Ligne n · … ») ; la case visée en tirets, l'élément
   visé sur le fond du bloc courant ; l'aperçu en pâle. Rien n'y capte le pointeur.

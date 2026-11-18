@@ -9033,8 +9033,9 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
      thumbVisible:getComputedStyle(m.querySelector('.mdg-thumb')).display};});
  t('A772-A776 · 2 · toucher le tableau ouvre la grille (9 cases, onglets 3/3, plus de barre de boutons)',r.on&&r.cells===9&&r.tabs==='3/3'&&!r.bar&&!r.chip&&r.md,JSON.stringify(r));
  t('A772-A776 · 2A · la tête dit la taille ; pas de barre au pouce au bureau',r.dim==='3 colonnes · 2 lignes'&&r.thumbVisible==='none',JSON.stringify(r));
- const tm=await page.evaluate(()=>{const m=document.getElementById('mdToolModal');return {cell:m.querySelectorAll('.mdg-c .mdg-add').length,opt:m.querySelectorAll('.mdg-opts [data-mdgadd]').length,derriere:!!document.querySelector('#mdDoc .mdb-ta')};});
- t('A772-A776 · 1C · tableau de texte : « ＋ Image » sous la grille, pas dans les cases ; aucun bloc ouvert derrière',tm.cell===0&&tm.opt===2&&!tm.derriere,JSON.stringify(tm));
+ const tm=await page.evaluate(()=>{const m=document.getElementById('mdToolModal'),vis=[...m.querySelectorAll('.mdg-plus')].filter(x=>getComputedStyle(x).display!=='none');
+   return {vis:vis.length,dans:vis.length?vis[0].closest('.mdg-c').classList.contains('act'):false,sous:m.querySelectorAll('.mdg-opts,[data-mdgadd]').length,derriere:!!document.querySelector('#mdDoc .mdb-ta')};});
+ t('A772-A776 · 1C · A792 · tableau de texte : un seul « ＋ », celui de la case active ; plus rien sous la grille ; aucun bloc ouvert derrière',tm.vis===1&&tm.dans&&tm.sous===0&&!tm.derriere,JSON.stringify(tm));
  await page.click('#mdToolModal [data-mdgcol="1"]');await calme(page,250);
  const mc=await page.evaluate(()=>[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(','));
  t('A772-A776 · 2A · menu de colonne : alignement, insérer, supprimer',mc==='al:,al:c,al:r,cl,cr,cx',mc);
@@ -9056,9 +9057,12 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  const g=await page.evaluate(()=>{const m=document.getElementById('mdToolModal');return {imgs:m.querySelectorAll('.mdg-med img').length,txt:[...m.querySelectorAll('.mdg-in')].map(x=>x.value).join('|'),dim:m.querySelector('.mdg-dim').textContent};});
  t('A772-A776 · 1C · la case montre sa vignette, le champ ne garde que le libellé',g.imgs===2&&g.txt.startsWith('Fémoral|Normal'),JSON.stringify(g));
  await page.focus('#mdToolModal .mdg-in[data-r="1"][data-c="0"]');await calme(page,150);
- const add=await page.evaluate(()=>{const c=document.querySelector('#mdToolModal .mdg-c[data-r="1"][data-c="0"]');return getComputedStyle(c.querySelector('.mdg-add')).display;});
- t('A772-A776 · 1C · la case active offre « ＋ Image » · « ＋ Vidéo »',add==='flex',add);
- await page.click('#mdToolModal .mdg-c[data-r="1"][data-c="0"] [data-mdgadd="img"]');await calme(page,250);
+ const add=await page.evaluate(()=>{const c=document.querySelector('#mdToolModal .mdg-c[data-r="1"][data-c="0"]');return getComputedStyle(c.querySelector('.mdg-plus')).display;});
+ t('A772-A776 · 1C · A792 · la case active offre son « ＋ »',add==='flex',add);
+ await page.click('#mdToolModal .mdg-c[data-r="1"][data-c="0"] [data-mdgplus]');await calme(page,250);
+ const mk=await page.evaluate(()=>[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(','));
+ t('A792 · le « ＋ » de la case : Image ou Vidéo',mk==='img,vid',mk);
+ await page.click('.popmenu [data-pickopt="img"]');await calme(page,250);
  const mo=await page.evaluate(()=>[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(','));
  t('A772-A776 · 1C · le choix : depuis l’appareil, ou une image du protocole',mo==='+,i_a,i_b',mo);
  await page.click('.popmenu [data-pickopt="i_b"]');await calme(page,250);
@@ -9132,9 +9136,9 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  await prep(page);
  await page.evaluate(async()=>{document.querySelectorAll('#mdDoc table')[0].closest('.mdb').click();await __acCalme(400);});
  const p=await page.evaluate(()=>{const m=document.getElementById('mdToolModal'),vis=s=>{const e=m.querySelector(s);return !!e&&getComputedStyle(e).display!=='none';};
-   return {tabs:vis('.mdg-tc'),thumb:vis('.mdg-thumb'),annuler:vis('.ai-top [data-mdtw="x"]'),ok:vis('.ai-top [data-mdtw="ok"]'),foot:vis('#mdToolFoot'),md:vis('.mdg-mdl.mdg-ph'),
+   return {tabs:vis('.mdg-tc'),thumb:vis('.mdg-thumb'),annuler:vis('.ai-top [data-mdtw="x"]'),ok:vis('.ai-top [data-mdtw="ok"]'),foot:vis('#mdToolFoot'),md:!!m.querySelector('#mdToolBody .mdg-mdl'),stat:vis('.mdg-stat'),tool:vis('.mdg-tool'),
      sticky:getComputedStyle(m.querySelector('.mdg-c.mdg-l')).position,lbl:[...m.querySelectorAll('.mdg-tbm')].map(x=>x.textContent).join('|')};});
- t('A772-A776 · Téléphone · pas d’onglets ; barre au pouce ; Annuler · OK en tête ; pied retiré ; 1ʳᵉ colonne collée',!p.tabs&&p.thumb&&p.annuler&&p.ok&&!p.foot&&p.md&&p.sticky==='sticky',JSON.stringify(p));
+ t('A772-A776 · Téléphone · pas d’onglets ; barre au pouce ; Annuler · OK en tête ; pied retiré ; 1ʳᵉ colonne collée ; A792 : la ligne d’état au lieu de la ligne d’outils, « Modifier le Markdown » dans « ⋯ » seulement',!p.tabs&&p.thumb&&p.annuler&&p.ok&&!p.foot&&!p.md&&p.stat&&!p.tool&&p.sticky==='sticky',JSON.stringify(p));
  await page.tap('#mdToolModal .mdg-in[data-r="1"][data-c="1"]');await calme(page,150);
  await page.tap('#mdToolModal [data-mdtw="next"]');await calme(page,150);
  const n=await page.evaluate(()=>{const a=document.activeElement;return a&&a.classList.contains('mdg-in')?a.dataset.r+','+a.dataset.c:'?';});
@@ -9159,7 +9163,7 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
    kb.carte===kb.H&&!kb.fenetre&&kb.corps&&kb.tete>=0&&kb.barre<=kb.H+1&&kb.champ[1]<=kb.barreHaut&&kb.champ[0]>=kb.tete,JSON.stringify(kb));
  await page.tap('#mdToolModal [data-mdtw="plus"]');await calme(page,300);
  const pl=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
- t('A778 · « ⋯ » de la barre : en-têtes, largeur des colonnes (A786), média de la case, ajouter en fin, Markdown',pl==='hh,hc,cwbar,img,vid,rend,cend,md',pl);
+ t('A778 · A792 · « ⋯ » de la barre : en-têtes, largeur des colonnes (règle, au contenu, égales), ajouter en fin, Markdown — le média n’y est plus (le « ＋ » de la case)',pl==='hh,hc,cwbar,cwauto,cweq,rend,cend,md',pl);
  await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.tap('#mdToolModal .mdg-tbm[data-mdgrow]');await calme(page,300);
  const sh=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?m.classList.contains('sheet')+':'+[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
@@ -9430,11 +9434,12 @@ for(const [W,H] of [[1280,900],[390,844]]){
    const pr=migrateProtocol({title:'Témoin A786',body:c,images:[{id:'i_a',data:im(160,120),w:160,h:120,caption:''},{id:'i_b',data:im(90,160),w:90,h:160,caption:''}]});protocols.push(pr);window.__pid=pr.id;await openProtocolEdit(pr.id);},corps);
  await calme(page,600);
  const o=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[0];tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal');
-   const sans=!m.querySelector('.mdg-rc');const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);
-   return {sans,seg:m.querySelectorAll('.mdg-rc').length,tabs:m.querySelectorAll('.mdg-tc').length,kn:m.querySelectorAll('.mdg-cwk').length,parts:[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent).join('|'),h:(m.querySelector('[data-mdtw="cwh"]')||{}).disabled,
+   const sans=!m.querySelector('.mdg-rc');m.querySelector('[data-mdtw="cwmenu"]').click();await __acCalme(250);const opts=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
+   document.querySelector('.popmenu [data-pickopt="cwbar"]').click();await __acCalme(300);
+   return {sans,opts,seg:m.querySelectorAll('.mdg-rc').length,tabs:m.querySelectorAll('.mdg-tc').length,kn:m.querySelectorAll('.mdg-cwk').length,parts:[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent).join('|'),h:opts.split(',').includes('cwh'),
      aligne:[...m.querySelectorAll('.mdg-rc')].every((x,i)=>{const c=m.querySelector('.mdg-c[data-r="0"][data-c="'+i+'"]');return c&&Math.abs(x.getBoundingClientRect().left-c.getBoundingClientRect().left)<=2;})};});
- t('A786 · '+L+' · A790 : « Largeur » change les onglets en règle AU-DESSUS des colonnes (six segments alignés sur leur colonne, cinq pastilles, « auto ») ; « Même hauteur » inactif sur un tableau de texte',
-   o.sans&&o.seg===6&&o.tabs===0&&o.kn===5&&o.parts==='auto|auto|auto|auto|auto|auto'&&o.aligne&&o.h===true,JSON.stringify(o));
+ t('A786 · '+L+' · A790 · A792 : le menu « Largeur ▾ » (règle, au contenu, égales — pas « Même hauteur » sur un tableau de texte) ; la règle AU-DESSUS des colonnes (six segments alignés sur leur colonne, cinq pastilles, « auto »)',
+   o.sans&&o.opts==='cwbar,cwauto,cweq'&&o.seg===6&&o.tabs===0&&o.kn===5&&o.parts==='auto|auto|auto|auto|auto|auto'&&o.aligne&&!o.h,JSON.stringify(o));
  /* Au téléphone, la grille (6 × 112 px) défile de côté : on tire la 1ʳᵉ pastille, visible, jusqu'à 30 % ; au bureau la 3ᵉ, jusqu'à 62 %. */
  const tel=W<780,K=tel?0:2,cible=tel?0.30:0.62;
  const kb=await (await page.$('#mdToolModal [data-mdgcwk="'+K+'"]')).boundingBox(),bb=await page.evaluate(()=>{const r=[...document.querySelectorAll('#mdToolModal .mdg-rc')];const a=r[0].getBoundingClientRect(),z=r[r.length-1].getBoundingClientRect();return {x:a.left,width:z.right-a.left};});
@@ -9455,14 +9460,15 @@ for(const [W,H] of [[1280,900],[390,844]]){
  const r=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[0];const cg=[...tb.querySelectorAll('col')].map(c=>c.className).join(' ');
    tb.closest('.mdb').click();await __acCalme(400);const m=document.getElementById('mdToolModal'),bar=!!m.querySelector('.mdg-rc');
    const pp=()=>[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent.split(' · ')[0]).join('|');
-   m.querySelector('[data-mdtw="cweq"]').click();await __acCalme(200);const eq=pp();
-   m.querySelector('[data-mdtw="cwauto"]').click();await __acCalme(200);const au=pp();
+   const cw=async v=>{m.querySelector('[data-mdtw="cwmenu"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="'+v+'"]').click();await __acCalme(200);};
+   await cw('cweq');const eq=pp();
+   await cw('cwauto');const au=pp();
    [...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {cg,bar,eq,au};});
  const w2=await lw(page);
  t('A786 · '+L+' · rendu : un <colgroup> du jeu fermé ; rouverte, la grille montre la barre ; « Colonnes égales » puis « Ajuster au contenu » retire la ligne',
    r.cg===(tel?'cw25 cw15 cw15 cw15 cw15 cw15':'cw20 cw20 cw15 cw15 cw15 cw15')&&r.bar&&r.eq==='20 %|20 %|15 %|15 %|15 %|15 %'&&r.au.startsWith('auto')&&w2.length===0,JSON.stringify({r,w2}));
  const g=await page.evaluate(async()=>{const tb=document.querySelectorAll('#mdDoc table')[1];tb.closest('.mdb').querySelector('.md-tw').click();await __acCalme(400);const m=document.getElementById('mdToolModal');
-   const b=m.querySelector('[data-mdtw="cwbar"]');if(b)b.click();await __acCalme(300);const h=m.querySelector('[data-mdtw="cwh"]');const dis=h.disabled;h.click();await __acCalme(200);
+   m.querySelector('[data-mdtw="cwmenu"]').click();await __acCalme(250);const h=document.querySelector('.popmenu [data-pickopt="cwh"]');const dis=!h;if(h)h.click();await __acCalme(300);
    const parts=[...m.querySelectorAll('.mdg-rcp')].map(x=>x.textContent.split(' · ')[0]).join('|');[...m.querySelectorAll('[data-mdtw="ok"]')].find(x=>x.offsetParent).click();await __acCalme(400);return {dis,parts};});
  const w3=await lw(page);
  t('A786 · '+L+' · « Même hauteur » sur une grille d’images : les parts au prorata des formats (40 · 40 · 20), écrites',
@@ -9540,6 +9546,49 @@ await sec('Éditeur · A791 la vignette d’une vidéo', async () => {
  t('A791 · une vidéo ajoutée porte sa vignette (JPEG, ≤ 60 000 caractères) et ses dimensions',r.n===1&&r.w===320&&r.h===180&&r.jpeg&&r.taille>100&&r.taille<=60000,JSON.stringify(r));
  t('A791 · posée dans le document, la vidéo a sa vignette pour poster ; dans la grille, la case la montre, ▶ par-dessus',r.poster&&r.grille&&r.lecture,JSON.stringify(r));
  await page.close();
+});
+
+/* ══ A792 — LA FENÊTRE « TABLEAU » : UNE LIGNE D'OUTILS EN HAUT, LE MÉDIA DANS LA CASE, RIEN EN DOUBLE ═══════════════
+   Bureau : la ligne d'outils (En-tête · Largeur ▾) au-dessus de la grille, rien sous elle (sauf la bande ＋ Ligne), l'aide
+   du clavier au pied, le « ＋ » de la case active seul visible et entier. Téléphone (vrai toucher) : la ligne d'état à la
+   place de la ligne d'outils, elle ouvre la feuille « Tableau » ; rien sous la grille avant la barre au pouce ; le « ＋ »
+   d'une case plus large que la vue reste visible (à gauche). Chaque réglage n'est offert qu'à un endroit. */
+await sec('Éditeur · A792 la fenêtre Tableau : outils en haut, média dans la case', async () => {
+const corps="## Doses\n\n| Médicament | Dilution | Dose | Remarque |\n|---|---|---|---|\n| **Noradrénaline** | 8 mg / 48 ml G5 % | 0,1 µg/kg/min | Voie centrale de préférence |\n| **Adrénaline** | Pure | 1 mg | Toutes les 4 min pendant la RCP |\n{widths=\"30 20 15 35\"}\n\nFin.";
+for(const tel of [false,true]){
+ const ctx=await br.newContext(tel?{viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2}:{viewport:{width:1280,height:860}});
+ const page=await ctx.newPage();page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});const L=tel?'téléphone':'bureau';
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A792',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+ await calme(page,600);
+ await page.evaluate(async()=>{document.querySelector('#mdDoc table').closest('.mdb').click();await __acCalme(500);});
+ if(tel)await page.tap('#mdToolModal .mdg-in[data-r="1"][data-c="1"]');else await page.click('#mdToolModal .mdg-in[data-r="1"][data-c="1"]');
+ await calme(page,500);
+ const o=await page.evaluate(()=>{const m=document.getElementById('mdToolModal'),vis=e=>!!e&&getComputedStyle(e).display!=='none'&&e.getClientRects().length>0;
+   const sc=m.querySelector('.mdg-scroll'),g=sc.getBoundingClientRect(),c=m.querySelector('.mdg-c.act'),p=c&&c.querySelector('.mdg-plus'),pr=p&&p.getBoundingClientRect();
+   const tool=m.querySelector('.mdg-tool'),stat=m.querySelector('.mdg-stat'),haut=vis(tool)?tool:stat;
+   // ce qui suit la grille dans le corps, visible (exceptées la bande ＋ Ligne, qui ajoute une ligne sur place, et la barre au pouce)
+   const apres=[];let e=sc.nextElementSibling;while(e){if(vis(e)&&!e.classList.contains('mdg-band')&&!e.classList.contains('mdg-thumb'))apres.push(e.className);e=e.nextElementSibling;}
+   const n=s=>[...m.querySelectorAll(s)].filter(vis).length;
+   const ta=c&&c.querySelector('.mdg-in'),tr=ta&&ta.getBoundingClientRect();
+   return {tool:vis(tool),stat:vis(stat),hautAvant:!!haut&&haut.getBoundingClientRect().bottom<=g.top+1,apres,hint:vis(m.querySelector('#mdToolFoot .mdg-hint')),
+     plus:n('.mdg-plus'),actif:c?c.dataset.r+','+c.dataset.c:'',entier:!!pr&&pr.left>=g.left-1&&pr.right<=g.right+1&&pr.top>=g.top-1&&pr.bottom<=g.bottom+1,
+     // le « ＋ » ne couvre pas le texte de la case : il commence dans la marge basse du champ, au plus dans l'interligne
+     // de sa dernière ligne (4 px : la demi-interligne d'un corps de 17 px à 1,35)
+     texte:!!pr&&!!tr&&pr.top>=tr.bottom-parseFloat(getComputedStyle(ta).paddingBottom)-4,dt:pr&&tr?Math.round(pr.top-(tr.bottom-parseFloat(getComputedStyle(ta).paddingBottom))):null,
+     uniques:['hh','hc','cwmenu'].map(k=>n('[data-mdtw="'+k+'"]')).join(','),md:n('[data-mdtw="md"]')};});
+ if(!tel)t('A792 · bureau · la ligne d’outils au-dessus de la grille, rien sous elle, l’aide du clavier au pied ; un seul « ＋ », celui de la case active, entier et hors du texte ; chaque réglage à un endroit',
+   o.tool&&!o.stat&&o.hautAvant&&o.apres.length===0&&o.hint&&o.plus===1&&o.actif==='1,1'&&o.entier&&o.texte&&o.uniques==='1,1,1'&&o.md===1,JSON.stringify(o));
+ else t('A792 · téléphone · la ligne d’état au-dessus de la grille, rien sous elle ; un seul « ＋ », celui de la case active, visible même si la case dépasse, hors du texte ; aucun réglage répété hors de « ⋯ »',
+   !o.tool&&o.stat&&o.hautAvant&&o.apres.length===0&&!o.hint&&o.plus===1&&o.actif==='1,1'&&o.entier&&o.texte&&o.uniques==='0,0,0'&&o.md===0,JSON.stringify(o));
+ if(tel){await page.evaluate(()=>{const a=document.activeElement;if(a&&a.blur)a.blur();});await page.tap('#mdToolModal .mdg-stat');await calme(page,350);
+   const s=await page.evaluate(()=>{const m=document.querySelector('.popmenu.catmenu');return m?m.classList.contains('sheet')+':'+[...m.querySelectorAll('[data-pickopt]')].map(x=>x.dataset.pickopt).join(','):'';});
+   t('A792 · téléphone · la ligne d’état ouvre la feuille « Tableau » (celle de « ⋯ »)',s==='true:hh,hc,cwbar,cwauto,cweq,rend,cend,md',s);
+   await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);}
+ else{await page.click('#mdToolModal [data-mdtw="hc"]');await calme(page,300);
+   const h=await page.evaluate(()=>{const b=document.querySelector('#mdToolModal [data-mdtw="hc"]');return {p:b.getAttribute('aria-pressed'),col0:document.querySelector('#mdToolModal .mdg-c[data-r="1"][data-c="0"]').classList.contains('mdg-h')};});
+   t('A792 · bureau · « 1ʳᵉ colonne » de la ligne d’outils bascule l’en-tête et dit son état',h.p==='false'&&!h.col0,JSON.stringify(h));}
+ await ctx.close();}
 });
 
 /* ══ A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE ═══════════════════════════════════════════════════════════
