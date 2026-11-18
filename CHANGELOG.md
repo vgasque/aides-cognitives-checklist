@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.148.2] — 2026-11-18
+Les vignettes des vidéos se voient enfin sur iPhone, et celles des vidéos déjà envoyées se font d'elles-mêmes, une fois
+(A794). Aucune mise à jour du serveur.
+- **Les vignettes des vidéos ne sont plus noires sur iPhone et sous Safari** (A794). La vidéo est maintenant posée dans la page, invisible, et lancée en muet le temps d'une image avant la capture : Safari ne fournissait aucune image autrement, et la vignette était noire. L'image est aussi prise vers 1 s au lieu de 0 s, pour éviter le noir d'un fondu d'ouverture ; une image noire ou unie est refusée et retentée plus loin.
+- **Vos vidéos déjà envoyées reçoivent leur vignette d'elles-mêmes** : il suffit d'ouvrir l'app sur un appareil qui peut modifier le protocole et qui a la vidéo. Une vidéo à la fois, quand l'app est au calme, jamais pendant une session. La vignette part ensuite avec le protocole vers vos autres appareils.
+- **Un seul essai par appareil** : une vidéo dont la vignette ne peut pas être prise ici (par exemple une vidéo HEVC d'iPhone que ce navigateur ne lit pas) n'est plus relue à chaque lancement ; elle sera retentée après une mise à jour de l'app, ou prise par un autre appareil.
+- **Lire une vidéo suffit** : si une vidéo sans vignette joue à l'écran, sa vignette est prise sur l'image affichée, sans rien relire.
+
 ## [5.148.1] — 2026-11-18
 La grille d'un tableau au téléphone : la colonne collée seulement si c'est un en-tête, et plus de clavier qui s'ouvre
 tout seul (A793). Aucune mise à jour du serveur.
@@ -271,21 +279,3 @@ leur suppression sur le serveur (A768). Aucune mise à jour du serveur. **Mettre
 - Audit : huit témoins instables sous charge réécrits sans rien desserrer (capter une animation à sa naissance, figer
   une transition, mesurer une fenêtre posée, compter des sondages plutôt que des millisecondes, tenir les synchros de
   fond à l'écart d'une mesure, attendre l'appel plutôt qu'un texte, lire « reste court » comme un rafraîchissement).
-
-## [5.137.0] — 2026-11-16
-Les images voyagent en fichiers : la synchro s'allège et le serveur tient (A766). ⚠ **Serveur à mettre à jour** :
-rejouer `supabase/schema.sql`. ⚠ **Mettre à jour TOUS les appareils** : une version antérieure ne sait pas lire les
-nouvelles données.
-- **Les images ne sont plus recopiées dans chaque aide ou protocole envoyé au serveur** : elles y sont rangées en
-  fichiers, comme les documents PDF et les vidéos. Une modification de texte n'envoie plus que le texte ; le serveur ne
-  construit plus des réponses de plusieurs dizaines de Mo (« Service indisponible »).
-- **Sur l'appareil, rien ne change** : les images s'affichent, se modifient, s'exportent comme avant.
-- **Une seule fois, au premier passage de cette version**, chaque appareil envoie ses images en fichiers puis renvoie
-  ses aides et protocoles allégés — la pastille compte (« Envoi · n / N images »). Un autre appareil reçoit ensuite les
-  éléments, légers, puis leurs images en fond (« Réception · n / N images »).
-- **Les fichiers partent même si la réception échoue** : vidéos, documents et images ne restaient sur l'appareil que
-  parce qu'une erreur de réception arrêtait toute la synchro.
-- Une image ne quitte la ligne que lorsque son fichier est bien sur le serveur : aucune panne ne peut la perdre.
-- ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` **avant** d'ouvrir la nouvelle version (le stockage accepte
-  les images ; elles ne comptent pas dans le quota de documents). Sans cela, les images restent dans les lignes, comme
-  avant, et l'app le signale.

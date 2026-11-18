@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-GqMrW7XaKl3bTZG/nmYRSHNheSlx9osJqJxbh6Hvo94='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-/YaolJbnIVGaJ+PjkRxxaeAN5MD4VjA2BhEEsdNmBE0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9198,6 +9198,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (A783) — en flux, elle ajoutait près d'un pixel (mesuré) et la page bougeait à l'arrivée de la vidéo. */
   .md-vfig .md-vbox{position:relative}
   .md-vbox>.md-vpo{position:absolute;inset:0;height:auto}
+  /* A794 : la vidéo mesurée — posée pour que WebKit peigne ses images, jamais vue ni touchée */
+  .vid-cap{position:fixed;left:0;top:0;width:160px;height:90px;opacity:.01;pointer-events:none}
   .vpo-p{position:absolute;left:50%;top:50%;display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
     background:var(--sys);color:var(--sys-ink);border:1px solid var(--sys-edge);opacity:.92}
   .vpo-d,.vpo-e{position:absolute;bottom:6px;padding:2px 6px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);font-size:var(--t-meta);font-weight:600}
@@ -11122,7 +11124,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.148.1';
+const APP_VERSION='5.148.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21300,16 +21302,70 @@ const vidSzFig=fig=>vidSzHtml(+fig.dataset.vdw||0,+fig.dataset.vdh||0);
    (un MOV hors Safari) ou au-delà de 8 s. */
 /* A791 : et sa PREMIÈRE IMAGE (vignette, au premier cadre décodé : `loadeddata`) et sa DURÉE — la vignette manque si le
    cadre ne se dessine pas (navigateur, protection) ; la vidéo garde alors ses dimensions seules. */
-function vidDims(blob){return new Promise(res=>{let url='',fin=false,to=0,d=null;const v=document.createElement('video');
-  const done=r=>{if(fin)return;fin=true;clearTimeout(to);v.removeAttribute('src');try{v.load();}catch(e){}try{URL.revokeObjectURL(url);}catch(e){}res(r);};
-  try{url=URL.createObjectURL(blob);}catch(e){return res(null);}
-  v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';
-  v.onloadedmetadata=()=>{if(!(v.videoWidth>0&&v.videoHeight>0))return done(null);d={w:v.videoWidth,h:v.videoHeight};
-    const s=Math.round(v.duration);if(isFinite(v.duration)&&s>=1&&s<=86400)d.dur=s;};
-  v.onloadeddata=()=>{if(!d)return;try{const k=Math.min(1,VID_POSTER_W/d.w),c=document.createElement('canvas');c.width=Math.max(1,Math.round(d.w*k));c.height=Math.max(1,Math.round(d.h*k));
-      c.getContext('2d').drawImage(v,0,0,c.width,c.height);const u=c.toDataURL('image/jpeg',.7);if(u.length<=VID_POSTER_MAX&&/^data:image\/jpeg/.test(u))d.poster=u;}catch(e){}
-    done(d);};
-  v.onerror=()=>done(d);to=setTimeout(()=>done(d),8000);v.src=url;});}
+/* A794 (amende A791) — LA VIGNETTE QUI SE VOIT. Mesuré (Chromium, WebKit, Firefox, quatre formats) : WebKit — le moteur
+   de Safari et de tout navigateur d'iPhone — ne peint AUCUNE image d'une vidéo qui n'a pas joué : la capture au
+   `loadeddata` était noire, toujours ; et une vidéo qui s'ouvre sur un fondu donnait du noir partout. Désormais la vidéo
+   est POSÉE dans la page (invisible, `.vid-cap` — c'est ce qui manquait à WebKit, mesuré : hors de la page, noir ; posée,
+   l'image), lancée en muet le temps d'une image (Safari d'iPhone ne charge aucune image d'une vidéo qu'on ne lance pas),
+   puis l'image est prise vers 1 s
+   (au plus au quart de la durée) ; une image noire ou unie (`vidPosterDe` la refuse) est retentée à la moitié puis aux
+   trois quarts. 10 s au plus en tout. */
+const _vAtt=ms=>new Promise(r=>setTimeout(r,ms));
+const _vEvt=(el,n,ms)=>Promise.race([new Promise(r=>el.addEventListener(n,r,{once:true})),_vAtt(ms)]);
+const _vImg=(v,ms)=>Promise.race([new Promise(r=>v.requestVideoFrameCallback?v.requestVideoFrameCallback(()=>r()):requestAnimationFrame(()=>requestAnimationFrame(r))),_vAtt(ms)]);
+// L'image courante d'une vidéo en JPEG (320 px de large au plus) ; null si elle est noire ou unie (rien de peint, fondu).
+function vidPosterDe(v,w,h){try{if(!(w>0&&h>0))return null;const k=Math.min(1,VID_POSTER_W/w),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
+    c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+    const q=document.createElement('canvas');q.width=32;q.height=18;const y=q.getContext('2d');y.drawImage(c,0,0,32,18);const px=y.getImageData(0,0,32,18).data,n=px.length/4;let m=0,m2=0;
+    for(let i=0;i<px.length;i+=4){const l=(px[i]*299+px[i+1]*587+px[i+2]*114)/1000;m+=l;m2+=l*l;}m/=n;const sd=Math.sqrt(Math.max(0,m2/n-m*m));
+    if(m<12||sd<2)return null;
+    const u=c.toDataURL('image/jpeg',.7);return u.length<=VID_POSTER_MAX&&/^data:image\/jpeg/.test(u)?u:null;}catch(e){return null;}}
+function vidDims(blob){return new Promise(res=>{let url='',fin=false,d=null;const v=document.createElement('video');
+  const done=()=>{if(fin)return;fin=true;clearTimeout(to);try{v.pause();}catch(e){}v.remove();v.removeAttribute('src');try{v.load();}catch(e){}try{URL.revokeObjectURL(url);}catch(e){}res(d);};
+  const to=setTimeout(done,10000);
+  try{url=URL.createObjectURL(blob);}catch(e){clearTimeout(to);return res(null);}
+  v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.preload='auto';
+  v.className='vid-cap';v.setAttribute('aria-hidden','true');v.tabIndex=-1;
+  v.onerror=done;
+  v.onloadedmetadata=async()=>{if(!(v.videoWidth>0&&v.videoHeight>0)){d=null;return done();}d={w:v.videoWidth,h:v.videoHeight};
+    const D=isFinite(v.duration)&&v.duration>0?v.duration:0,s=Math.round(D);if(s>=1&&s<=86400)d.dur=s;
+    try{const pr=v.play();if(pr&&pr.then)await Promise.race([pr.catch(()=>{}),_vAtt(1500)]);await _vImg(v,800);}catch(e){}   // WebKit : jouer, sinon rien n'est peint
+    try{v.pause();}catch(e){}
+    for(const t of D?[Math.min(1,D*.25),D*.5,D*.75]:[0]){if(fin)return;
+      if(Math.abs(v.currentTime-t)>.05){try{v.currentTime=t;}catch(e){}await _vEvt(v,'seeked',3000);}
+      await _vImg(v,1000);const u=vidPosterDe(v,d.w,d.h);if(u){d.poster=u;break;}}
+    done();};
+  (document.body||document.documentElement).appendChild(v);v.src=url;});}
+/* A794 — UN SEUL ESSAI PAR APPAREIL ET PAR VERSION. Une vidéo dont la vignette n'a pas pu être prise ici (un HEVC que ce
+   navigateur ne lit pas, une image toujours noire) est notée dans `ac-vpo-ko` avec la version de l'app : elle n'est plus
+   relue à chaque lancement (plusieurs Mo par vidéo), et retentée seulement après une mise à jour. Un autre appareil — ou
+   la lecture de la vidéo ici (`vidPosterAuJeu`) — peut encore la donner. */
+const VPO_KO='ac-vpo-ko',VPO_KO_MAX=400;
+function vpoKoLire(){const o=Object.create(null);try{const j=JSON.parse(localStorage.getItem(spaceKey(VPO_KO))||'{}');
+  if(j&&typeof j==='object')for(const k of Object.keys(j))if(SAFE_ID.test(k)&&!badKey(k)&&typeof j[k]==='string')o[k]=j[k];}catch(e){}return o;}
+function vpoKoNote(id){if(!SAFE_ID.test(String(id))||badKey(String(id)))return;const o=vpoKoLire();delete o[id];o[id]=APP_VERSION;
+  const k=Object.keys(o);for(let i=0;i<k.length-VPO_KO_MAX;i++)delete o[k[i]];
+  try{localStorage.setItem(spaceKey(VPO_KO),JSON.stringify(o));}catch(e){}}
+const vpoKoVu=id=>vpoKoLire()[id]===APP_VERSION;
+// En session (hors exercice), rien ne se mesure : le mode crise n'est jamais ralenti (règle 11).
+const vidCapCalme=()=>!(typeof Runtime==='object'&&Runtime&&Runtime.started&&!Runtime.exercise);
+/* A794 — LA VIGNETTE PRISE À LA LECTURE, sans rien relire : une vidéo qui joue (en lecture ou dans l'éditeur) et dont la
+   fiche n'a pas de vignette la reçoit de l'image affichée, une fois passée 1 s (ou le quart de sa durée) — si je peux
+   modifier un protocole qui la porte. Le brouillon ouvert la reçoit aussi (sans le marquer modifié). */
+function vidPosterGarder(id,u,w,h,dur){let n=0;
+  const pose=v=>{if(!v||v.id!==id||v.poster)return false;v.poster=u;if(!((v.w|0)>0&&(v.h|0)>0)&&w>0&&h>0){v.w=w;v.h=h;}if(!v.dur&&dur)v.dur=dur;return true;};
+  for(const p of protocols){if(!p||p.deletedAt||!canEditFiche(p))continue;let ch=false;for(const v of (p.videos||[]))if(pose(v))ch=true;
+    if(ch){n++;p.dirty=true;Data.putProtocol(p).catch(()=>{});}}
+  if(state.pdraft&&canEditFiche(state.pdraft))(state.pdraft.videos||[]).forEach(pose);
+  return n;}
+function vidPosterAuJeu(v,id){const veut=()=>{const tous=[...protocols,state.pdraft].filter(p=>p&&!p.deletedAt&&canEditFiche(p));
+    return tous.some(p=>(p.videos||[]).some(x=>x&&x.id===id&&!x.poster));};
+  if(!veut())return;let fait=false;
+  const tu=()=>{if(fait)return;const D=isFinite(v.duration)&&v.duration>0?v.duration:0;if(v.currentTime<(D?Math.min(1,D*.25):.5))return;
+    if(!vidCapCalme())return;fait=true;v.removeEventListener('timeupdate',tu);if(!veut())return;
+    const u=vidPosterDe(v,v.videoWidth,v.videoHeight);if(!u){fait=false;if(v.currentTime<(D?D*.75:3))v.addEventListener('timeupdate',tu);return;}   // une image noire : un peu plus loin
+    const s=Math.round(D);vidPosterGarder(id,u,v.videoWidth,v.videoHeight,s>=1&&s<=86400?s:0);};
+  v.addEventListener('timeupdate',tu);}
 /* LE RATTRAPAGE : chaque vidéo sans dimensions d'un protocole que je peux modifier, dont le binaire est sur l'appareil, est
    mesurée ; le protocole est marqué « à renvoyer » (ni sa date ni son auteur ne changent : rien de rédigé n'a bougé).
    Jamais le protocole en cours de modification (son brouillon l'écraserait). Ce qui ne se mesure pas ici n'est pas
@@ -21318,12 +21374,14 @@ const _vidDimKo=new Set();let _vidDimCours=null;
 function vidDimRattraper(){if(_vidDimCours)return _vidDimCours;
   _vidDimCours=(async()=>{let n=0;if(!supportsAttachments())return 0;
     for(const p of protocols){if(!p||p.deletedAt||!canEditFiche(p)||(state.pdraft&&state.pdraft.id===p.id))continue;let ch=false;
-      for(const v of (p.videos||[])){if(!v||!v.id||((v.w|0)>0&&(v.h|0)>0&&v.poster)||_vidDimKo.has(v.id))continue;   // A791 : sans vignette aussi
+      for(const v of (p.videos||[])){if(!v||!v.id||((v.w|0)>0&&(v.h|0)>0&&v.poster)||_vidDimKo.has(v.id)||vpoKoVu(v.id))continue;   // A791 : sans vignette aussi ; A794 : un essai par version
+        if(!vidCapCalme())return n;   // A794 : une session commence — on s'arrête là, on reprendra
+        await new Promise(r=>(window.requestIdleCallback||setTimeout)(()=>r(),{timeout:2000}));   // A794 : une vidéo à la fois, quand l'app est au calme
         let rec=null;try{rec=await IDB.getAtt(v.id);}catch(e){}
         const buf=rec&&await attBuf(rec);if(!buf)continue;   // binaire pas encore là : au prochain passage
         const d=await vidDims(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:v.mime}));
-        if(!d){_vidDimKo.add(v.id);continue;}
-        v.w=d.w;v.h=d.h;if(d.poster)v.poster=d.poster;else _vidDimKo.add(v.id);if(d.dur)v.dur=d.dur;ch=true;n++;}
+        if(!d){_vidDimKo.add(v.id);vpoKoNote(v.id);continue;}
+        v.w=d.w;v.h=d.h;if(d.poster)v.poster=d.poster;else{_vidDimKo.add(v.id);vpoKoNote(v.id);}if(d.dur)v.dur=d.dur;ch=true;n++;}
       if(ch){p.dirty=true;try{await Data.putProtocol(p);}catch(e){}}}
     return n;})().finally(()=>{_vidDimCours=null;});
   return _vidDimCours;}
@@ -21467,7 +21525,7 @@ async function vidHydrate(fig){if(!fig||fig.dataset.vh)return;fig.dataset.vh='1'
   fig.classList.remove('md-vabs');
   const v=document.createElement('video'),url=URL.createObjectURL(new Blob([buf],{type:VID_EXT[rec.type]?rec.type:(fig.dataset.vmime||'video/mp4')}));
   {const w=+fig.dataset.vdw||0,h=+fig.dataset.vdh||0;if(w>0&&h>0){v.width=w;v.height=h;}}   // A783 : la proportion avant même les métadonnées
-  {const im=po&&po.querySelector('img');if(im)v.poster=im.src;}
+  {const im=po&&po.querySelector('img');if(im)v.poster=im.src;else vidPosterAuJeu(v,id);}   // A794
   v.src=url;v.dataset.blob=url;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.controls=true;v.preload='metadata';
   const cap=fig.querySelector('figcaption');v.setAttribute('aria-label',cap&&cap.textContent?cap.textContent:'Vidéo');
   v.addEventListener('error',()=>{box.innerHTML=vidSzFig(fig)+'<span class="md-vph">△ Cette vidéo'+(fig.dataset.vmime==='video/webm'?' (WebM)':'')+' ne se lit pas sur cet appareil.</span>';});
@@ -35749,7 +35807,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
 const TEMP_PENDING_KEY='ac-temp-pending';   // A672
-const WIPE_SPACE_KEYS=['ac-tbl-col','ac-img-up','ac-img-ext','fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
+const WIPE_SPACE_KEYS=['ac-vpo-ko','ac-tbl-col','ac-img-up','ac-img-ext','fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
   'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sync-first-pending','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
