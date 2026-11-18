@@ -12367,6 +12367,10 @@ await sec('A771 · Administration › Stockage : les fichiers sans élément, li
     route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(m?(R[m[1]]===undefined?null:R[m[1]]):[])});});
   await page.addInitScript(()=>{localStorage.setItem('ac-auth',JSON.stringify({access_token:'t',refresh_token:'r',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:'00000000-0000-0000-0000-0000000000aa',email:'moi@x.fr'}}));});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  /* Relue = la liste de l'app compte `n` fichiers, rien en cours de chargement. Le compte des DELETE arrivés au serveur
+     simulé ne suffit pas : la requête est routée AVANT que `admOrphDel` ne relise la liste (`admAfter`), et sous la charge
+     d'une passe complète `__acCalme(150)` rendait la main à son plafond, sur la liste d'avant (rouge sans défaut). */
+  const relue=n=>page.waitForFunction(k=>!!_admD&&!_admBusy&&admRoot().querySelectorAll('.adm-tr').length===k,n,{timeout:8000}).catch(()=>{});
   const lire=()=>page.evaluate(async()=>{for(let i=0;i<40&&(!_admD||_admBusy);i++)await __acCalme(100);await __acCalme(150);const R=admRoot();
     return {rows:[...R.querySelectorAll('.adm-tr')].map(r=>r.textContent.replace(/\s+/g,' ').trim()),boutons:R.querySelectorAll('[data-admorph]').length,
       tout:!!R.querySelector('[data-admorphall]'),onglet:([...R.querySelectorAll('.adm-tab')].find(b=>/Stockage/.test(b.textContent))||{}).textContent||''};});
@@ -12381,6 +12385,7 @@ await sec('A771 · Administration › Stockage : les fichiers sans élément, li
   const q1=await page.evaluate(()=>document.getElementById('confirmModal').textContent.replace(/\s+/g,' '));
   await page.click('#confirmYes');
   for(let i=0;i<40&&!srv.dels.length;i++)await calme(page,100);
+  await relue(2);
   const r2=await lire();
   t('A771 · « Supprimer » demande d’abord (taille, définitif), puis supprime par l’API, et la liste est relue',
     /Supprimer ce fichier du serveur \(3,0 Mo\)/.test(q1)&&/définitive/.test(q1)&&srv.dels.join()==='l/lib-1/v771.webm'&&r2.rows.length===2,JSON.stringify({q1,dels:srv.dels,rows:r2.rows}));
@@ -12389,6 +12394,7 @@ await sec('A771 · Administration › Stockage : les fichiers sans élément, li
   await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:4000}).catch(()=>{});
   await page.click('#confirmYes');
   for(let i=0;i<40&&srv.dels.length<2;i++)await calme(page,100);
+  await relue(1);
   const r3=await lire();
   t('A771 · « Tout supprimer » ne touche jamais un fichier de moins de 7 jours',
     srv.dels.length===2&&srv.dels[1]==='u/'+me+'/a771.pdf'&&r3.rows.length===1&&/Image/.test(r3.rows[0])&&!r3.tout,JSON.stringify({dels:srv.dels,rows:r3.rows}));

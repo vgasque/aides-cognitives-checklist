@@ -314,7 +314,18 @@
   RAFRAÎCHISSEMENT** — le silence de l'hôte vu de l'invité, lu une fois après 2,5 s, tombait juste avant le sondage
   suivant (2 561 ms) : sur 6 s, il doit retomber au moins une fois et rester court à son plus bas (`audit-partage`) ;
   la forme nouvelle est PLUS stricte — hôte réduit au silence dès le départ, l'ancienne lisait 1 538 ms (vert), la
-  nouvelle voit qu'il ne retombe jamais (rouge). Chacun vérifié CAPABLE D'ÉCHOUER (animation, transition ou correctif retirés → rouge ;
+  nouvelle voit qu'il ne retombe jamais (rouge) ; (8) **la PRÉCONDITION d'un cas se pose au serveur simulé, pas à
+  la course** (lot v5.139, `audit-lier` section 6, trois passes complètes rouges sur quatre : « Timeout 8000ms » sur la
+  fenêtre « Appareil déconnecté ») — la session « pas encore envoyée » que le témoin dépose partait en fait au serveur
+  quand une synchro passait avant la veille révoquée : la veille encore connectée la programme (`Sync.schedule`).
+  Plus rien à retenir, la veille décidait `wipe` (rechargement) et non `ask` : comportement JUSTE de l'app, harnais
+  faux. Allonger le délai n'y aurait rien fait. Reproduit à coup sûr en forçant `Sync.full()` avant la veille ; le
+  serveur simulé REFUSE désormais l'envoi des sessions dans cette section (`sessKo`, 503), le témoin vérifie qu'elle
+  n'a pas été reçue et rapporte son état au lieu de mourir sur le délai ; (9) **une liste se lit RELUE, pas « la
+  requête est arrivée »** — A771 (doctrine, Stockage) lisait la liste dès que le DELETE avait atteint le serveur
+  simulé, AVANT la relecture (`admAfter`), et `__acCalme(150)` rendait la main à son plafond sous charge : on attend
+  que la liste de l'app compte le nombre attendu, rien en chargement (`relue(n)`, plafond 8 s ; relecture retirée de
+  l'app → rouge). Chacun vérifié CAPABLE D'ÉCHOUER (animation, transition ou correctif retirés → rouge ;
   états restaurés) et stable à six exécutions parallèles.
 - L'intégration continue (`.github/workflows/ci.yml`) rejoue, sur chaque push/PR :
   `npm run check` (syntaxe + couleurs + hashs CSP), `design:check --strict`, `npm ci`, `npm test`,
