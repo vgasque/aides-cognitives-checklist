@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A792** à la v5.148.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A793** à la v5.148.1 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -414,6 +414,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A790 | `lot-v5-147.md` | La règle des colonnes devient la 1ʳᵉ rangée de la grille (segments alignés sur leur colonne, pastille sur le filet) ; la grille d'édition prend les parts de la lecture (`mdg-w`, `mdTblGrilleW` : 112 px au moins, « min. », 960 px au plus) — remplace la barre des parts d'A786 |
 | A791 | `lot-v5-147.md` | Une vidéo a sa vignette (première image, JPEG 320 px, `p.videos[].poster`) et sa durée (`dur`), capturées à l'ajout et rattrapées (`vidDims`, `vidDimRattraper`) ; montrées dans le réceptacle (poster natif ensuite), la grille, le bloc ouvert, le choix d'un média — amende A757, A781 |
 | A792 | `lot-v5-148.md` | La fenêtre « Tableau » : au bureau, une ligne d'outils au-dessus de la grille (En-tête · « Largeur ▾ », `mdTblToolHtml`, `mdTblCwMenu`) ; au téléphone, une ligne d'état qui ouvre la feuille « Tableau » (`.mdg-stat`) ; le média par le « ＋ » de la case active, à cheval sur son filet (`mdTblPlusCase`, `mdTblVoirX`, `mdg-pg`) ; plus rien sous la grille ni en double — amende A773, A778, A786, A790 |
+| A793 | `lot-v5-148-1.md` | La grille d'édition : la 1ʳᵉ colonne (et sa règle) n'est collée que si elle est en-tête et hors « Tout défile » (`.mdg-hc`) ; les menus d'actions de la fenêtre « Tableau » sans « Filtrer » (`MDT_ACTIONS`) ; au doigt, ni l'ouverture ni un choix de menu ne focalisent une case (titre `#mdToolTitle`) — amende A773, A777, A492 |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

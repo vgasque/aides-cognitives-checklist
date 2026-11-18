@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.148.1] — 2026-11-18
+La grille d'un tableau au téléphone : la colonne collée seulement si c'est un en-tête, et plus de clavier qui s'ouvre
+tout seul (A793). Aucune mise à jour du serveur.
+- **La 1ʳᵉ colonne de la grille n'est plus collée que si c'est une colonne d'en-tête** (A793), comme en lecture, et « Tout défile » (Moi › Affichage) la libère aussi dans la grille. Une 1ʳᵉ colonne de texte large occupait plus de la moitié de l'écran une fois collée ; le nom de la case reste dans la barre au pouce.
+- **Au téléphone, le clavier ne monte plus tout seul** : ouvrir la fenêtre « Tableau » ne place plus le curseur dans la première case, et un choix dans « ⋯ » (en-tête, largeur, ligne ou colonne ajoutée) ne le place pas non plus. On touche la case pour écrire.
+- **Plus de champ « Filtrer » dans les menus de la fenêtre « Tableau »** : il paraissait dans « ⋯ » d'une grille d'images et ouvrait le clavier. Le choix d'une image ou d'une vidéo garde sa recherche, sans clavier d'office.
+
 ## [5.148.0] — 2026-11-18
 La fenêtre « Tableau » ne montre plus chaque bouton deux fois : les réglages du tableau sont en haut, le média s'ajoute
 dans la case (A792). Aucune mise à jour du serveur.
@@ -282,18 +289,3 @@ nouvelles données.
 - ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` **avant** d'ouvrir la nouvelle version (le stockage accepte
   les images ; elles ne comptent pas dans le quota de documents). Sans cela, les images restent dans les lignes, comme
   avant, et l'app le signale.
-
-## [5.136.0] — 2026-11-16
-L'écran reste allumé pendant un gros rattrapage de synchro ; la réception des fichiers se compte ; ⚠ correctif : les
-documents et vidéos se téléchargent de nouveau (A764).
-- ⚠ **Correctif important** : depuis la v5.135.2, plus aucun document PDF ni vidéo ne se téléchargeait sur un appareil
-  (une erreur de code, silencieuse). Ils arrivent de nouveau, à la prochaine synchro.
-- **L'écran ne se met plus en veille pendant un gros rattrapage** (beaucoup d'éléments ou de fichiers à recevoir ou à
-  envoyer) : une web app ne synchronise qu'ouverte, et sur iPhone la veille coupait le lot en cours. Au plus 30 minutes
-  par rattrapage, puis la veille normale reprend. Le bandeau le dit (« écran maintenu allumé ») ; le réglage « Veille
-  active » est respecté.
-- **La réception des fichiers se compte** : « Réception · 3 / 14 fichiers · 40 / 210 Mo », puis « Synchronisé ».
-- **« Service indisponible » dit quelle étape a échoué** (A765) : la fenêtre d'erreur de synchro montre désormais
-  l'étape (« envoi des protocoles »…) et le message exact du serveur, à transmettre si le problème dure.
-- **Des lots plus prudents** : la synchro commence par un seul élément et vise 4 Mo par lot, pour ne pas buter sur la
-  limite de temps d'une requête du serveur.
