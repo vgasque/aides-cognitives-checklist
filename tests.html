@@ -1149,6 +1149,25 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A786 : ajouter un média dans une case garde la ligne des colonnes', /\{widths="40 60"\}/.test(A.mdTblCellAdd('| a | b |\n|---|---|\n| 1 | 2 |\n{widths="40 60"}',1,0,'![](img:x)')||''));
    ok('A786 : la colonne d’en-tête collée est activée par défaut', A.tblColLibre()===false);}
 
+  /* A787 — lot 3 : la taille du modèle devient une largeur écrite ; l'import HTML de Notion garde les largeurs. */
+  group('A787 — conversion de la taille, largeurs de Notion (lot 3)');
+  {const IM=[{id:'a',scale:50},{id:'b',scale:100},{id:'c'}],V=[{id:'v',scale:33}];
+   eq('A787 : mdScaleToW — un bloc dont l’image a une taille reçoit sa largeur ; liste, case, code, déjà écrite, Pleine : rien',
+     A.mdScaleToW('![](img:a)\n- x\n  ![](img:a)\n| ![](img:a) |\n```\n![](img:a)\n```\n![](img:a){width=30%}\n![](img:b)\n![](img:c)\n![](vid:v)',IM,V),
+     '![](img:a){width=50%}\n- x\n  ![](img:a)\n| ![](img:a) |\n```\n![](img:a)\n```\n![](img:a){width=30%}\n![](img:b)\n![](img:c)\n![](vid:v){width=33%}');
+   ok('A787 : mdScaleToW — rien d’hérité de l’objet (clé __proto__ refusée)', A.mdScaleToW('![](img:__proto__)',[{id:'__proto__',scale:50}],[])==='![](img:__proto__)');
+   const D='P/',H='<html><body><div class="page-body"><figure class="image"><img style="width:354px" src="'+D+'a.png"/></figure><figure class="image"><img src="'+D+'b.png"/></figure>'
+     +'<div class="column-list"><div style="width:62.5%" class="column"><p>Coupe</p><figure class="image"><img style="width:200px" src="'+D+'a.png"/></figure></div>'
+     +'<div style="width:37.5%" class="column"><p>Doppler</p><figure class="image"><img src="'+D+'b.png"/></figure></div></div>'
+     +'<div class="column-list"><div style="width:62.5%" class="column"><p>Coupe 2</p><figure class="image"><img src="'+D+'a.png"/></figure></div>'
+     +'<div style="width:37.5%" class="column"><p>Doppler 2</p><figure class="image"><img src="'+D+'b.png"/></figure></div></div></div></body></html>';
+   const ids=Object.create(null);ids['P/a.png']='ia';ids['P/b.png']='ib';
+   const L=A.notionHtml(A.notionHtmlDoc(H),'',ids).body.split('\n');
+   ok('A787 : Notion — une image redimensionnée garde sa part de la page (354 px sur 708 : 50 %), une autre rien', L.includes('![](img:ia){width=50%}')&&L.includes('![](img:ib)'));
+   ok('A787 : Notion — dans une colonne, l’image n’a pas de largeur (la colonne a la sienne)', L.some(l=>/^\| Coupe<br>!\[\]\(img:ia\) \|/.test(l)));
+   eq('A787 : Notion — les largeurs des colonnes deviennent la ligne des colonnes, une seule pour deux rangées fusionnées', L.filter(l=>/^\{widths=/.test(l)), ['{widths="65 35"}']);
+   ok('A787 : Notion — la ligne des colonnes suit la dernière rangée', L[L.findIndex(l=>/^\{widths=/.test(l))-1].indexOf('Coupe 2')>=0);}
+
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
   const SS_PERS=A.storageState({signed:false,pers:true,usage:3e6,quota:3e9,attBytes:0});

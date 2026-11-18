@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.145.0] — 2026-11-18
+Les anciennes tailles d'image rejoignent la largeur qu'on tire, et l'import de Notion garde les largeurs (A787). Aucune
+mise à jour du serveur.
+- **Une image dont la taille avait été réglée** (¼, ½, ¾…) garde cette taille quand vous ouvrez le protocole dans
+  l'éditeur : elle devient la largeur de son passage dans le texte, qu'on tire ensuite comme les autres. Rien ne change
+  tant que vous n'enregistrez pas, et rien ne change en lecture.
+- **La fiche d'une image** (« Images du texte ») règle maintenant sa largeur à tous ses passages — dans le texte, dans
+  une liste et dans une case — et dit combien il y en a.
+- **Import de l'export HTML de Notion** : une image que vous aviez réduite dans Notion garde sa taille, et des colonnes
+  de largeurs différentes gardent leurs proportions.
+
 ## [5.144.0] — 2026-11-18
 On choisit la largeur des colonnes de n'importe quel tableau, et la colonne d'en-tête d'un tableau large reste visible
 quand on le fait défiler (A786). Aucune mise à jour du serveur.
@@ -297,20 +308,3 @@ L'import HTML de Notion retrouve mieux ses images, et dit pourquoi quand il n'y 
 - **Les listes ne se coupent plus** : un bloc repliable rangé sous une puce (« parasternal grand axe » et sa vidéo)
   reste dans la liste, en sous-puce ; les puces suivantes gardent leur niveau au lieu de devenir un bloc de code.
 - **Une vidéo sous une puce** reste dans l'élément de liste, comme une image.
-
-## [5.134.0] — 2026-11-15
-Des vidéos dans les protocoles (A757). ⚠ **Serveur à mettre à jour** : rejouer `supabase/schema.sql`.
-- **Ajouter une vidéo** : « ＋ Insérer › Vidéo » dans l'éditeur d'un protocole. Formats **MP4** (lu partout), **MOV**
-  (la caméra de l'iPhone) et **WebM** (l'export de Notion) ; **30 Mo** au plus par vidéo, **20** par protocole.
-- **À la lecture**, la vidéo joue en boucle et sans le son quand elle est à l'écran, et s'arrête quand on la quitte
-  (avec « réduire les animations », elle attend qu'on la lance). Elle se range dans une grille comme une image.
-- **Elle est gardée sur l'appareil**, consultable hors ligne, et synchronisée comme les documents PDF, avec les mêmes
-  droits. Absente de l'appareil, ou illisible (un WebM sur un iPhone ancien), la vidéo le dit au lieu d'un cadre noir.
-- **À l'import** : les vidéos d'une page Notion (export Markdown ou HTML, dans le .zip) et celles d'une archive
-  exportée par l'app entrent avec le reste ; dans une page Notion à colonnes, chacune prend sa case de grille. Ce qui
-  ne peut pas entrer est nommé dans le texte et compté. **À l'export**, « Avec les fichiers joints » les emporte.
-- Le quota « Documents PDF » de l'administration compte aussi les vidéos.
-- **Correctif serveur** : la liste des documents orphelins de l'administration présentait tous les documents comme
-  orphelins (elle lisait un ancien nom de champ).
-- ⚠ **Pour l'administrateur** : rejouer `supabase/schema.sql` (le stockage accepte désormais les vidéos, 30 Mo). Tant
-  que ce n'est pas fait, les vidéos restent sur l'appareil qui les a ajoutées, et l'app le signale une fois.

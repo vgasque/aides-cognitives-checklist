@@ -9471,6 +9471,28 @@ for(const [W,H] of [[1280,900],[390,844]]){
  await page.close();}
 });
 
+/* ══ A787 — LA TAILLE DU MODÈLE DEVIENT UNE LARGEUR ÉCRITE, À L'OUVERTURE DE L'ÉDITEUR ══════════════════════════
+   Un protocole dont un bloc image porte une taille de modèle (`scale` 50) : l'éditeur ouvert montre `{width=50%}` sur sa
+   ligne, sans rien enregistrer (le protocole stocké ne change pas, l'éditeur n'est pas « modifié ») ; la feuille de
+   l'image écrit la largeur à TOUS ses passages (bloc et case), ↶ la rend. */
+await sec('Éditeur · A787 la taille du modèle devient une largeur écrite', async () => {
+ const page=await br.newPage({viewport:{width:1280,height:900}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const v=document.createElement('canvas');v.width=80;v.height=60;v.getContext('2d').fillRect(0,0,80,60);
+   const pr=migrateProtocol({title:'Témoin A787',body:'Avant.\n\n![](img:i1)\n\n| a<br>![](img:i1) | b |\n|---|---|\n\nFin.',images:[{id:'i1',data:v.toDataURL('image/png'),w:80,h:60,caption:'',scale:50}]});protocols.push(pr);window.__pid=pr.id;await openProtocolEdit(pr.id);});
+ await calme(page,600);
+ const a=await page.evaluate(()=>{const p=protocols.find(x=>x.id===window.__pid);return {ed:document.getElementById('p-body').value.split('\n')[2],stocke:p.body.split('\n')[2],
+   cls:(document.querySelector('#mdDoc .mdb>figure.md-fig')||{}).className||'',modifie:typeof draftDirty==='function'?draftDirty():null};});
+ t('A787 · à l’ouverture de l’éditeur, le bloc reçoit {width=50%} ; le protocole stocké ne change pas',a.ed==='![](img:i1){width=50%}'&&a.stocke==='![](img:i1)'&&/ mw50/.test(a.cls),JSON.stringify(a));
+ await page.click('[data-mitile]');await calme(page,300);
+ const f=await page.evaluate(()=>({h:(document.querySelector('#miBody .sst-h')||{}).textContent,on:(document.querySelector('#miBody .mds-o.on')||{}).textContent}));
+ await page.evaluate(async()=>{document.querySelector('#miBody .mds-o[data-mdsv="75"]').click();await __acCalme(400);});
+ const b=await page.evaluate(()=>document.getElementById('p-body').value.split('\n'));
+ t('A787 · la feuille de l’image : « Largeur, à ses 2 passages », ½ ; ¾ s’écrit sur le bloc ET sur la case',
+   f.h==='Largeur, à ses 2 passages'&&f.on==='½'&&b[2]==='![](img:i1){width=75%}'&&b[4]==='| a<br>![](img:i1){width=75%} | b |',JSON.stringify({f,b:b.slice(2,5)}));
+ await page.close();
+});
+
 /* ══ A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE ═══════════════════════════════════════════════════════════
    Bloc image ouvert : six pictogrammes (¼ … Pleine), nommés en mots ; tirer la poignée du cadre jusqu'à la moitié
    l'aimante à 50 % (bulle « ½ · 50 % » pendant le geste), écrit le modèle, le texte inchangé ; la feuille de l'image
@@ -9496,7 +9518,7 @@ await sec('Éditeur · A584 taille d\'une image par pictogrammes et poignée', a
   t('A584 · pictogrammes ¼ ⅓ ½ ⅔ ¾ Pleine, nommés en mots, la taille courante allumée',o.mots==='¼|⅓|½|⅔|¾|Pleine'&&o.noms&&o.on==='Pleine',JSON.stringify(o));
   t('A584 · tirer la poignée jusqu\'à la moitié : bulle « ½ · 50 % », A785 : {width=50%} écrit sur l\'emplacement (modèle inchangé), bloc toujours ouvert',
     o.bulle==='½ · 50 %'&&o.modele===100&&o.texte&&o.on2==='½'&&o.ouvert,JSON.stringify(o));
-  t('A584 · la feuille de l\'image porte le même composant (cadre, poignée, six pictogrammes) — la taille du modèle (Pleine), l\'emplacement en porte une autre',o.feuille.n===6&&o.feuille.on==='Pleine'&&o.feuille.cadre,JSON.stringify(o.feuille));
+  t('A584 · la feuille de l\'image porte le même composant (cadre, poignée, six pictogrammes) — A787 : la largeur écrite de son passage (½)',o.feuille.n===6&&o.feuille.on==='½'&&o.feuille.cadre,JSON.stringify(o.feuille));
   await page.close();
 });
 
