@@ -8754,6 +8754,11 @@
      comme un mot, pas comme une étiquette) ; un filet la sépare des données. */
   .md-tbl tbody th{background:var(--amb-2);font-weight:700;color:var(--ink);border-right:1px solid var(--line)}
   .md-tbl .ta-c{text-align:center}.md-tbl .ta-r{text-align:right;font-variant-numeric:tabular-nums}
+  /* A788 — une liste dans une case : serrée, sans marge haute ni basse (la case a son propre retrait), un paragraphe qui
+     la précède aussi ; entre deux, 4 px. */
+  .md-tbl :is(td,th)>:is(.md-p,.md-ul,.md-ol){margin:0}
+  .md-tbl :is(td,th)>:is(.md-p,.md-ul,.md-ol)+*{margin-top:4px}
+  .md-tbl :is(td,th)>:is(.md-ul,.md-ol){padding-left:18px;text-align:left}
   /* A786 — LA LARGEUR DES COLONNES choisie par l'auteur : un <col> par colonne, classe du jeu fermé (`MD_CW`). Un tableau
      de texte garde sa mise en page automatique : la part est une PRÉFÉRENCE, et une colonne ne descend jamais sous son mot
      le plus long — au-delà, le tableau s'élargit et défile de côté, comme avant (`.md-tw`). La grille d'images (A755)

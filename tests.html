@@ -1168,6 +1168,19 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('A787 : Notion — les largeurs des colonnes deviennent la ligne des colonnes, une seule pour deux rangées fusionnées', L.filter(l=>/^\{widths=/.test(l)), ['{widths="65 35"}']);
    ok('A787 : Notion — la ligne des colonnes suit la dernière rangée', L[L.findIndex(l=>/^\{widths=/.test(l))-1].indexOf('Coupe 2')>=0);}
 
+  /* A788 — lot 4 : une liste dans une case de tableau est une liste. */
+  group('A788 — les listes dans les cases (lot 4)');
+  {const PNG='data:image/png;base64,iVBORw0KGgo=';
+   const H=A.mdRender('| Signe | Critères |\n|---|---|\n| Choc | - FC > 120<br>- PAS < 90<br>  - ou PAM < 65<br>- Marbrures |');
+   ok('A788 : les lignes « - » d’une case deviennent une liste, le retrait insécable fait le sous-niveau', H.indexOf('<td><ul class="md-ul"><li>FC &gt; 120</li><li>PAS &lt; 90<ul class="md-ul"><li>ou PAM &lt; 65</li></ul></li><li>Marbrures</li></ul></td>')>=0,H);
+   const H2=A.mdRender('| a |\n|---|\n| Si :<br>1. un<br>2. deux |');
+   ok('A788 : un libellé puis une liste numérotée', /<td><p class="md-p">Si :<\/p><ol class="md-ol"><li>un<\/li><li>deux<\/li><\/ol><\/td>/.test(H2),H2);
+   ok('A788 : une case sans élément de liste garde son rendu d’avant (lignes séparées par <br>)', A.mdRender('| a |\n|---|\n| un<br><br>deux |').indexOf('<td>un<br><br>deux</td>')>=0);
+   ok('A788 : un tiret au milieu d’une ligne n’est pas une liste', A.mdRender('| a |\n|---|\n| 5 - 10 mg |').indexOf('<td>5 - 10 mg</td>')>=0);
+   const H3=A.mdRender('| a |\n|---|\n| - un<br>![](img:x)<br>- deux |',{images:[{id:'x',data:PNG,caption:''}]});
+   ok('A788 : un média coupe la liste en deux, à sa place', /<td><ul class="md-ul"><li>un<\/li><\/ul><figure class="md-fig md-cfig"[^>]*>.*<\/figure><ul class="md-ul"><li>deux<\/li><\/ul><\/td>/.test(H3),H3);
+   ok('A788 : rien d’interprété comme HTML dans une liste de case', A.mdRender('| a |\n|---|\n| - <img src=x onerror=alert(1)> |').indexOf('<img src=x')<0);}
+
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
   const SS_PERS=A.storageState({signed:false,pers:true,usage:3e6,quota:3e9,attBytes:0});

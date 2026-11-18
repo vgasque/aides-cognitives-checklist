@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A787** à la v5.145.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A788** à la v5.146.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -409,6 +409,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A785 | `lot-v5-143.md` | La largeur écrite se rend partout (classes `MD_MW`, 22 crans, plancher ~80 px, proportions gardées au téléphone ; rangée `md-lmed` dans une liste) ; un média se SÉLECTIONNE sur le document (barre : part ▾ · Même largeur · Même hauteur · Modifier…), sa poignée se tire et écrit `{width=NN%}` sur l'emplacement (`mdMedFind`/`mdMedSetW`) ; le bloc ouvert écrit aussi la part — amende A584, A774, A642, A775 |
 | A786 | `lot-v5-144.md` | La largeur des colonnes de tout tableau : `{widths="…"}` sous le tableau (`mdTblCw` : 100 %, jeu fermé `MD_CW`, `<colgroup>`, mise en page automatique gardée), barre des parts de la grille (pastilles sur le bord bas, clavier, Ajuster au contenu · Colonnes égales · Même hauteur) ; les filets restent hors d'une grille d'images (majorité de cases à média — amende A755) ; colonne d'en-tête collée au défilement, Moi › Affichage › « Tableaux larges » (`ac-tbl-col`) |
 | A787 | `lot-v5-145.md` | La taille du modèle (`scale`) d'un bloc devient `{width=…}` sur sa ligne à l'OUVERTURE de l'éditeur (`mdScaleToW`, règle 12 b, rien d'enregistré sans l'auteur) ; la feuille de l'image écrit la largeur à tous ses passages ; l'import HTML de Notion garde la largeur d'une image redimensionnée (sur 708 px) et celle des colonnes — amende A583, A584, A756 |
+| A788 | `lot-v5-146.md` | Une liste dans une case de tableau est une liste : les lignes « - »/« 1. » d'une case (jusqu'au prochain média) passent par `qBody` (A726), le retrait — insécables compris (A732) — fait le niveau ; sinon le rendu d'avant |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
