@@ -9493,6 +9493,18 @@ await sec('Éditeur · A787 la taille du modèle devient une largeur écrite', a
  await page.close();
 });
 
+/* ══ A788 — UNE LISTE DANS UNE CASE EST UNE LISTE ═════════════════════════════════════════════════════════════
+   En lecture, au téléphone : la case « Critères » rend ses éléments en liste (puces, sous-niveau), serrée dans la case. */
+await sec('Lecture · A788 une liste dans une case de tableau', async () => {
+ const page=await br.newPage({viewport:{width:390,height:844}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A788',body:'| Signe | Critères |\n|---|---|\n| **Choc** | - FC > 120<br>- PAS < 90<br>  - ou PAM < 65<br>- Marbrures |\n\nFin.'});protocols.push(pr);openProtocolRead(pr.id);await __acCalme(500);});
+ const r=await page.evaluate(()=>{const td=document.querySelector('.md-tbl td'),ul=td&&td.querySelector(':scope>ul');if(!ul)return {ul:false};const cs=getComputedStyle(ul),li=ul.querySelectorAll(':scope>li');
+   return {ul:true,n:li.length,sous:!!ul.querySelector('li>ul>li'),puce:getComputedStyle(li[0]).listStyleType,mt:cs.marginTop,mb:cs.marginBottom,texte:td.textContent.indexOf('- ')<0};});
+ t('A788 · la case rend ses éléments en liste à puces (3 éléments, un sous-niveau), sans tiret écrit, sans marge',r.ul&&r.n===3&&r.sous&&r.puce!=='none'&&r.mt==='0px'&&r.mb==='0px'&&r.texte,JSON.stringify(r));
+ await page.close();
+});
+
 /* ══ A584 — LA TAILLE D'UNE IMAGE SE VOIT ET SE TIRE ═══════════════════════════════════════════════════════════
    Bloc image ouvert : six pictogrammes (¼ … Pleine), nommés en mots ; tirer la poignée du cadre jusqu'à la moitié
    l'aimante à 50 % (bulle « ½ · 50 % » pendant le geste), écrit le modèle, le texte inchangé ; la feuille de l'image

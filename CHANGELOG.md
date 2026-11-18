@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.146.0] — 2026-11-18
+Une liste écrite dans une case de tableau s'affiche en liste (A788). Aucune mise à jour du serveur.
+- **Dans une case**, des lignes qui commencent par « - », « * » ou « 1. » deviennent une vraie liste, à puces ou
+  numérotée — elles s'affichaient avec leur tiret. Une ligne décalée fait un sous-niveau (c'est aussi la forme que garde
+  l'import de Notion). Un libellé au-dessus reste au-dessus.
+- Rien ne change pour une case sans liste, ni pour « 5 - 10 mg » (un tiret au milieu d'une ligne n'est pas une liste).
+
 ## [5.145.0] — 2026-11-18
 Les anciennes tailles d'image rejoignent la largeur qu'on tire, et l'import de Notion garde les largeurs (A787). Aucune
 mise à jour du serveur.
@@ -295,16 +302,3 @@ Les images se comptent en poids : 10 Mo par aide ou par protocole, et au-delà l
   « Compresser » : ↶ annule. « Ne pas compresser » : rien ne change, seules les nouvelles images qui tiennent entrent.
 - **À l'import**, un élément au-delà de 10 Mo porte sa bande dans l'atelier : « Compresser » (par défaut) ou « Ne pas
   compresser », et « Comparer ». Ce qui ne tient pas n'est pas importé, et le message de fin le dit.
-
-## [5.134.1] — 2026-11-15
-L'import HTML de Notion retrouve mieux ses images, et dit pourquoi quand il n'y arrive pas (A758).
-- **Un nom écrit autrement est retrouvé** : quand la page écrit un nom simplifié (« Capture_decran_2025-05-14_a_18.05.03.png »)
-  et que l'archive garde le nom d'origine (« Capture d’écran 2025-05-14 à 18.05.03.png »), ou qu'un dossier porte
-  l'identifiant de la page, l'image est retrouvée — seulement s'il n'y a qu'un fichier possible.
-- **La vraie raison est dite** : une image présente mais illisible (format non reconnu, trop lourde) est nommée
-  « Image illisible », et non plus « absente de l'archive ».
-- **Une image hébergée ailleurs** (insérée par lien dans Notion) devient un lien, comme à l'import Markdown : elle
-  disparaissait sans un mot.
-- **Les listes ne se coupent plus** : un bloc repliable rangé sous une puce (« parasternal grand axe » et sa vidéo)
-  reste dans la liste, en sous-puce ; les puces suivantes gardent leur niveau au lieu de devenir un bloc de code.
-- **Une vidéo sous une puce** reste dans l'élément de liste, comme une image.
