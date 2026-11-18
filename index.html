@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-sh1SXeZhurFtDQuJXvdTT7cNl432v29piaVoNk7ymDM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-jjjHDgae6MEbavHJc/d0qgr50pmOzmCWQISlhavCJ2g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9391,7 +9391,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (pointer:coarse){.mdm-b{min-height:44px}}
   /* A789 : un geste qui tire (poignée d'un média, pastille d'une colonne) ne sélectionne jamais de texte — sur iPhone, un
      appui un peu long sur la pastille sélectionnait le mot voisin. */
-  .mdm,.mdm-bar,.mdg-cw,.mdg-rc,.md-fig.msel{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .mdm,.mdm-bar,.mdg-rc,.md-fig.msel{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   html.ac-tire,html.ac-tire *{-webkit-user-select:none!important;user-select:none!important;cursor:ew-resize}
   .mdm-b:hover{background:var(--sys-2)}
   .mdm-b:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-2px}
@@ -9561,7 +9561,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-ud:hover:not(:disabled){background:var(--amb-2)}
   .mdg-ud:disabled{color:var(--ink-soft);opacity:.45;cursor:default}
   .mdg-ud:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .mdg-ph,.mdg-mdl.mdg-ph{display:none}
+  .mdg-ph{display:none}
   .mdg-mdl{display:inline-flex;align-items:center;min-height:36px;margin-right:auto;padding:0 4px;border:0;background:none;font:inherit;font-size:var(--t-body);font-weight:700;color:var(--act);cursor:pointer}
   .mdg-mdl:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
@@ -9593,12 +9593,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-vph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;padding:6px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
   .mdg-rm{position:absolute;top:4px;right:4px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:var(--glass);color:var(--ink);font:inherit;font-weight:800;cursor:pointer;box-shadow:var(--shadow-float)}
   .mdg-rm:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .mdg-add{display:none;flex-wrap:wrap;gap:6px;padding:0 8px 8px}
-  .mdg-c.act .mdg-add{display:flex}
   /* A778 : la case ACTIVE se voit aussi sans focus (‹ › clavier fermé) ; le champ qui a le focus garde son anneau. */
   @media (pointer:coarse){.mdg-c.act:not(:focus-within){box-shadow:inset 0 0 0 2px var(--act)}}
-  .mdg-addb{flex:1 1 72px;min-height:32px;padding:0 6px;border:1.5px dashed var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;white-space:nowrap}
-  .mdg-addb:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdg-band{display:flex;align-items:center;justify-content:center;min-height:32px;padding:0;border:1.5px dashed var(--line-strong);border-radius:var(--r-1);background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:700;cursor:pointer}
   .mdg-band:hover:not(:disabled){border-color:var(--act);color:var(--act)}
   .mdg-band:disabled{opacity:.45;cursor:default}
@@ -9606,12 +9602,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdg-bc{grid-column:-2/-1;grid-row:2/span var(--mdg-r);margin-left:6px}
   .mdg-br{grid-column:2/-2;margin-top:6px}
   .mdg-mi{display:inline-flex;width:18px;justify-content:center;font-weight:800}
-  .mdg-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
   /* A790 (remplace la barre des parts d'A786) — LA RÈGLE DES COLONNES, dans la 1ʳᵉ rangée de la grille : un segment par
      colonne, à la largeur de sa colonne, sa part en chiffres (bleu : choisie ; neutre : « auto » ; ambre : « min. », la
      grille ne descend pas sous 112 px) ; la colonne active en plein bleu. La pastille (28 px, halo de 44 px : règle 9) est
      sur le filet qu'elle déplace. Les boutons rapides et leur phrase au-dessus de la grille. */
-  .mdg-cw{margin:0 0 12px}
   .mdg-rc{position:relative;display:flex;min-width:0;height:36px;margin:0 0 8px;border-bottom:2px solid var(--act);background:var(--primary-soft)}
   .mdg-rc.auto{border-bottom-color:var(--line-strong);background:var(--amb-2)}
   .mdg-rc.min{border-bottom-color:var(--warn-line);background:var(--warn-soft)}
@@ -9627,19 +9621,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border:2px solid var(--act);border-radius:50%;background:var(--work);box-shadow:var(--shadow-float);cursor:ew-resize;touch-action:none}
   .mdg-cwk::after{content:'';position:absolute;inset:-10px;border-radius:50%}
   .mdg-cwk:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  .mdg-cwq{display:flex;flex-wrap:wrap;gap:8px}
-  .mdg-cwh{margin:6px 0 0}
-  .mdg-opt-l{font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
-  .mdg-opt-m{margin-left:8px}
   .mdg-tpl{margin-left:auto}
-  .mdg-hint{margin:8px 0 0}
+  /* A792 — la ligne d'outils du tableau (pointeur fin) ; la ligne d'état (au doigt) ; le « ＋ » de la case active, À CHEVAL
+     sur son filet bas (sur le filet haut à la dernière ligne, qui serait rognée) : il occupe la marge entre deux textes, n'en
+     couvre aucun et n'épaissit aucune ligne — dans la case, il cachait sa dernière ligne ; hors d'elle, au coin, la grille
+     qui défile le rognait (mesuré sur iPhone). Une case qui ne tient pas en entier le prend à gauche (`mdg-pg`). */
+  .mdg-tool{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px;padding:6px;border-radius:var(--r-2);background:var(--amb)}
+  .mdg-tl{padding:0 4px;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
+  .mdg-sep{flex:none;width:1px;height:24px;background:var(--line-strong)}
+  .mdg-stat{display:none}
+  .mdg-plus{position:absolute;right:6px;bottom:-14px;z-index:3;display:none;align-items:center;justify-content:center;width:28px;height:28px;margin:0;padding:0;
+    border:2px solid var(--work);border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .mdg-plus::after{content:'';position:absolute;inset:-8px}
+  .mdg-c.mdg-pg>.mdg-plus{right:auto;left:6px}
+  .mdg-c.mdg-b>.mdg-plus{top:-14px;bottom:auto}
+  .mdg-c.mdg-t.mdg-b>.mdg-plus{top:auto;bottom:4px}
+  .mdg-c.act>.mdg-plus{display:flex}
+  .mdg-plus:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdg-fl{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin-right:auto}
+  .mdg-hint{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .mdg-thumb{display:none}
   @media (pointer:coarse){
-    .mdg-tab,.mdg-k,.mdg-band,.mdg-hint{display:none}
+    .mdg-tab,.mdg-k,.mdg-band,.mdg-hint,.mdg-tool{display:none}
+    .mdg-stat{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 10px;padding:0 12px;border:0;border-radius:var(--r-2);
+      background:var(--amb);color:var(--ink-2);font:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
+    .mdg-stat b{color:var(--ink)}
+    .mdg-stv{margin-left:auto;color:var(--act);font-weight:800}
     .mdg-c.mdg-l{position:sticky;left:0;z-index:3}   /* A778 : toujours AU-DESSUS des cases qui défilent, même active */
     .mdg-rc.mdg-rl{position:sticky;left:0;z-index:3}   /* A790 : la règle de la 1ʳᵉ colonne, collée comme elle */
-    .mdg-add{flex-direction:column}
-    .mdg-add .mdg-addb{flex:none}
     /* A777 : la 1ʳᵉ colonne, collée, à 112 px (31 % d'un iPhone au lieu de 37 %) — les autres gardent 132 px. Son
        texte se coupe aux syllabes, jamais au milieu d'un mot sans tiret ; un filet marque son bord quand la grille défile. */
     .mdg,.mdg.mdg-1,.mdg.mdg-w{grid-template-columns:var(--mdg-cols,clamp(112px,18%,168px) repeat(var(--mdg-n1),minmax(132px,1fr)))}   /* A790 : la règle d'un tableau aux parts choisies aussi */
@@ -9668,7 +9677,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="x"]{order:0}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="undo"]{order:2}
     #mdToolModal.mdt-tbl .ai-top [data-mdtw="ok"]{order:3}
-    #mdToolModal.mdt-tbl .mdg-mdl.mdg-ph{min-height:44px;margin:8px 0 0}
     /* A780 (vu sous WebKit, clavier simulé comme sur iOS : l'écran garde sa hauteur, la zone VISIBLE rétrécit) — UN SEUL
        DÉFILEUR, LE CORPS. La carte d'une fenêtre de téléphone fait la hauteur de l'ÉCRAN (`100dvh`, que le clavier d'iOS
        ne réduit pas) : clavier ouvert, elle dépassait la zone visible, la FENÊTRE défilait en plus de son CORPS (deux
@@ -11112,7 +11120,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.147.0';
+const APP_VERSION='5.148.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21545,7 +21553,7 @@ function mdToolDone(seg,how){const w=_mdTw;_mdTw=null;modalHandoffClose(mdToolEl
 const mdTblOut=w=>({head:w.hh?w.g[0]:w.g[0].map(()=>''),rows:w.hh?w.g.slice(1):w.g,align:w.al,hh:w.hh,hc:w.hc,cw:w.cw});
 const mdTblSnap=w=>JSON.stringify({g:w.g,al:w.al,hh:w.hh,hc:w.hc,cw:w.cw||null});
 function mdTblNote(w){const s=mdTblSnap(w);if(w.undo[w.undo.length-1]!==s){w.undo.push(s);if(w.undo.length>100)w.undo.shift();}w.redo=[];}
-/* A773/A774 : `o.p` = le protocole (les médias des cases s'y choisissent et s'y admettent ; sans lui, pas de « ＋ Image ») ;
+/* A773/A774 : `o.p` = le protocole (les médias des cases s'y choisissent et s'y admettent ; sans lui, pas de « ＋ » de case) ;
    `o.onEnd` = la fin de la fenêtre (cf. mdToolDone). */
 function mdTblOpen(ta,o){o=o||{};const [a,b]=selBounds(ta),t=mdTableAt(ta.value,a);
   const blank=!t&&a&&ta.value[a-1]!=='\n'?'\n\n':(!t&&a&&ta.value[a-2]!=='\n'?'\n':'');
@@ -21560,8 +21568,8 @@ function mdTblOpen(ta,o){o=o||{};const [a,b]=selBounds(ta),t=mdTableAt(ta.value,
    SA colonne ou de SA ligne ; deux bandes « ＋ » au bord ajoutent en fin. Les en-têtes restent VISIBLES sous la grille
    (« peu visible » dans un seul menu, a dit l'auteur). Au doigt : ni onglets ni bandes, une barre au pouce
    (‹ › Ligne ▾ Colonne ▾, 44 px), la 1ʳᵉ colonne collée quand la grille défile (cases de 112 px au moins, jamais
-   rognées). Une case peut porter un média (A773, forme 1C) : vignette sous son libellé, « ＋ Image » · « ＋ Vidéo »
-   dans la case active, ✕ pour le retirer. */
+   rognées). Une case peut porter un média (A773, forme 1C) : vignette sous son libellé, le « ＋ » de la case
+   active (A792 : Image ou Vidéo), ✕ pour le retirer. */
 const mdTblColName=(w,c)=>(w.hh?mdCellSplit(w.g[0][c]).txt.replace(/\s+/g,' ').trim():'')||'colonne '+(c+1);
 const mdTblRowName=(w,r)=>w.hh&&r===0?'Ligne d’en-tête':'Ligne '+(r+(w.hh?0:1));
 // A780 : « Dans la case Ligne 2, Dose » — le libellé NOMME la case active, où iront l'image ou la vidéo.
@@ -21575,12 +21583,11 @@ function mdTblHxHtml(){const w=_mdTw;
     +`<button type="button" class="mdg-ud" data-mdtw="undo" aria-label="Annuler dans la grille"${w.undo.length?'':' disabled'}>${uiIcon('undo',18)}</button>`
     +`<button type="button" class="mdg-ud" data-mdtw="redo" aria-label="Rétablir dans la grille"${w.redo.length?'':' disabled'}>${uiIcon('redo',18)}</button>`
     +`<button type="button" class="btn primary sm mdg-ph" data-mdtw="ok">OK</button>`;}
-const mdTblFootHtml=()=>{const w=_mdTw;return (w.edit?'<button type="button" class="mdg-mdl" data-mdtw="md">Modifier le Markdown</button>':'')
+const mdTblFootHtml=()=>{const w=_mdTw;return `<span class="mdg-fl">${w.edit?'<button type="button" class="mdg-mdl" data-mdtw="md">Modifier le Markdown</button>':''}<span class="mdg-hint">Tab : case suivante · Entrée : à la ligne</span></span>`   // A792 : l'aide du clavier, au pied, en petit
   +`<button type="button" class="btn" data-mdtw="x">Annuler</button><button type="button" class="btn primary" data-mdtw="ok" data-dlgdef>${w.edit?'Mettre à jour le tableau':'Insérer le tableau'}</button>`;};
 function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=w.p;
-  // Un tableau qui porte déjà un média (une grille d'images) offre « ＋ Image » · « ＋ Vidéo » DANS la case active ; un tableau
-  // de texte (posologie) les offre sous la grille, pour la case active — sans encombrer chaque case qu'on remplit.
-  const aMed=g.some(r=>r.some(v=>mdCellSplit(v).med.length));
+  // A792 (amende A773) : toute case active offre son « ＋ » (image ou vidéo), tableau de texte compris — un seul bouton, sur la
+  // case qu'il modifie ; une posologie qu'on remplit n'a toujours pas deux boutons dans chaque case.
   const isH=(r,c)=>(hh&&r===0)||(hc&&c===0&&!(hh&&r===0));
   const lbl=(r,c)=>hh&&r===0?'En-tête '+(c+1):mdTblRowName(w,r)+', '+mdTblColName(w,c);
   const med=(x,i)=>{let inner;
@@ -21588,10 +21595,10 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
     else{const v=P&&(P.videos||[]).find(y=>y.id===x.id);inner=vidPosterHtml(v,'mdg-vpo')||`<span class="mdg-vph">${uiIcon('play',20)}<span>Vidéo</span></span>`;}   // A791
     return `<div class="mdg-med">${inner}<button type="button" class="mdg-rm" data-mdgrm="${i}" aria-label="Retirer ${x.k==='vid'?'la vidéo':'l’image'} de la case">✕</button></div>`;};
   const cell=(v,r,c)=>{const s=mdCellSplit(v);
-    return `<div class="mdg-c${isH(r,c)?' mdg-h':''}${r===0?' mdg-t':''}${c===0?' mdg-l':''}${r===fr&&c===fc?' act':''}" data-r="${r}" data-c="${c}">`
+    return `<div class="mdg-c${isH(r,c)?' mdg-h':''}${r===0?' mdg-t':''}${c===0?' mdg-l':''}${r===R-1?' mdg-b':''}${r===fr&&c===fc?' act':''}" data-r="${r}" data-c="${c}">`
       +`<textarea rows="1" lang="fr" class="mdg-in${w.al[c]==='c'?' ta-c':w.al[c]==='r'?' ta-r':''}${isH(r,c)?' mdg-h':''}" data-r="${r}" data-c="${c}"${r===0&&c===0?' data-dlgfocus':''} aria-label="${esc(lbl(r,c))}">${esc(s.med.length?s.txt:v)}</textarea>`
       +s.med.map(med).join('')
-      +(P&&aMed&&!s.med.length?`<div class="mdg-add"><button type="button" class="mdg-addb" data-mdgadd="img">＋ Image</button><button type="button" class="mdg-addb" data-mdgadd="vid">＋ Vidéo</button></div>`:'')
+      +(P&&!s.med.length?`<button type="button" class="mdg-plus" data-mdgplus aria-haspopup="true" aria-label="Ajouter une image ou une vidéo : ${esc(lbl(r,c))}">＋</button>`:'')   // A792 : seule la case active le montre
       +`</div>`;};
   /* A790 — LA RÈGLE DES COLONNES (planche « Retours v5.146 », R1 retenue) : « Largeur » allumé, les onglets ··· deviennent une
      règle — un segment par colonne (sa part, ou « auto » ; le toucher ouvre son menu), une pastille sur le FILET qu'elle
@@ -21611,12 +21618,9 @@ function mdTblHtml(){const w=_mdTw,{g,fr,fc,hh,hc}=w,n=g[0].length,R=g.length,P=
   /* A790 : des parts choisies, la grille d'édition prend les proportions de la lecture — jamais sous 112 px, pour qu'on puisse
      y écrire (la règle le dit, « min. ») ; au-delà, elle défile de côté. Sans parts : les largeurs de saisie (A777, A779). */
   const pistes=w.cw?w.cw.map(v=>'minmax(112px,'+v+'fr)').join(' '):'';
-  return `${n>1&&w.cwOn?mdTblCwHtml(w):''}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}${pistes?' mdg-w':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${pistes||cw}${pistes?';--mdg-pc:'+pistes:''}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
+  return `${mdTblToolHtml(w,vide)}<div class="mdg-scroll"><div class="mdg${n===1?' mdg-1':''}${pistes?' mdg-w':''}" style="--mdg-n:${n};--mdg-n1:${Math.max(1,n-1)};--mdg-r:${R};--mdg-cols:${pistes||cw}${pistes?';--mdg-pc:'+pistes:''}"><span class="mdg-k" aria-hidden="true"></span>${tc}<span class="mdg-k" aria-hidden="true"></span>${rows}`
       +`<button type="button" class="mdg-band mdg-bc" data-mdtw="cend" aria-label="Ajouter une colonne à droite"${n<MD_MAX_TCOLS?'':' disabled'}>＋</button>`
       +`<button type="button" class="mdg-band mdg-br" data-mdtw="rend">＋ Ligne</button></div></div>
-    <div class="mdg-opts" role="group" aria-label="Réglages de la grille"><span class="mdg-opt-l">En-tête</span><button type="button" class="btn sm mdg-hx${hh?' on':''}" data-mdtw="hh" aria-pressed="${hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${hc?' on':''}" data-mdtw="hc" aria-pressed="${hc}">1ʳᵉ colonne</button>${n>1?`<span class="mdg-opt-l">Colonnes</span><button type="button" class="btn sm mdg-hx${w.cwOn?' on':''}" data-mdtw="cwbar" aria-pressed="${!!w.cwOn}">Largeur${w.cw?' choisie':''}</button>`:''}${P&&!aMed?'<span class="mdg-opt-l mdg-opt-m">'+esc(mdTblCaseLbl(w))+'</span><button type="button" class="btn sm" data-mdgadd="img">＋ Image</button><button type="button" class="btn sm" data-mdgadd="vid">＋ Vidéo</button>':''}${vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':''}</div>
-    <p class="hint mdg-hint">Tab : case suivante (en fin, ajoute une ligne) · Entrée : à la ligne dans la case</p>
-    ${w.edit?'<button type="button" class="mdg-mdl mdg-ph" data-mdtw="md">Modifier le Markdown</button>':''}
     <div class="mdg-thumb" role="toolbar" aria-label="Case active">${mdTblThumbHtml()}</div>`;}
 const mdTblThumbHtml=()=>{const w=_mdTw;return `<button type="button" class="mdg-tbn" data-mdtw="prev" aria-label="Case précédente">‹</button><button type="button" class="mdg-tbn" data-mdtw="next" aria-label="Case suivante">›</button>`
   +`<button type="button" class="mdg-tbm" data-mdgrow="${w.fr}" aria-haspopup="true"><span class="mdg-tbt">${esc(w.hh&&w.fr===0?'En-tête':mdTblRowName(w,w.fr))}</span> ▾</button>`
@@ -21627,16 +21631,15 @@ const mdTblThumbHtml=()=>{const w=_mdTw;return `<button type="button" class="mdg
 function mdTblPlusMenu(btn){const w=_mdTw;if(!w)return;const n=w.g[0].length,O=[{head:'En-têtes'},
     {val:'hh',name:w.hh?'Retirer la ligne d’en-tête':'1ʳᵉ ligne en en-tête',ic:uiIcon('table',16)},
     {val:'hc',name:w.hc?'Retirer la colonne d’en-tête':'1ʳᵉ colonne en en-tête',ic:uiIcon('table',16)}];
-  if(n>1)O.push({val:'cwbar',name:w.cwOn?'Masquer la largeur des colonnes':'Largeur des colonnes',ic:uiIcon('table',16)});   // A786
-  if(w.p)O.push({head:mdTblCaseLbl(w)},{val:'img',name:'＋ Image',ic:uiIcon('camera',16)},{val:'vid',name:'＋ Vidéo',ic:uiIcon('play',16)});
+  if(n>1)O.push({head:'Largeur des colonnes · '+(w.cw?'choisie':'auto')},...mdTblCwOpts(w));   // A786, A790, A792
   O.push({head:'Ajouter'},{val:'rend',name:'Une ligne en fin',ic:uiIcon('plus',16)});
   if(n<MD_MAX_TCOLS)O.push({val:'cend',name:'Une colonne en fin',ic:uiIcon('plus',16)});
   if(w.edit)O.push({val:'md',name:'Modifier le Markdown',ic:uiIcon('code',16)});
-  openPickMenu(btn.parentNode,{aria:'Réglages de la grille',title:'Grille',ctx:mdTblRowName(w,w.fr)+', '+mdTblColName(w,w.fc),trigger:btn,...deskFlot(),options:O,
+  /* A792 : la feuille « Tableau » — ce qui vaut pour le tableau entier ; le média de la case n'y est plus (le « ＋ » de la case). */
+  openPickMenu(btn.parentNode,{aria:'Réglages du tableau',title:'Tableau',ctx:mdTblDims(w),trigger:btn,...deskFlot(),options:O,
     onPick:v=>{const m=mdToolEl(),q=s=>m.querySelector(s);if(_mdTw!==w)return;
-      if(v==='img'||v==='vid'){const r=w.fr,c=w.fc;return mdMedMenu(btn,w.p,v,(v==='vid'?'Vidéo':'Image')+' dans la case',mdTblRowName(w,r)+', '+mdTblColName(w,c),refs=>{if(_mdTw!==w)return;
-        mdTblNote(w);w.typed=false;const x=mdCellSplit(w.g[r][c]);w.g[r][c]=mdCellJoin(x.txt,x.med.map(y=>y.ref).concat(refs.slice(0,1)));mdTblRepaint(r,c);});}
-      if(v==='md'){const b=q('#mdToolFoot [data-mdtw="md"]')||q('.mdg-mdl[data-mdtw="md"]');if(b)b.click();return;}
+      if(v==='md'){const b=q('#mdToolFoot [data-mdtw="md"]');if(b)b.click();return;}
+      if(v==='cwauto'||v==='cweq'||v==='cwh')w.cwOn=true;
       mdTblAct(v);}});}
 // Au doigt, la barre au pouce ne prend pas le focus : le clavier reste ouvert sur la case (tapKeepsFocus, v5.48.7).
 function mdTblThumbBind(){const b=document.querySelector('#mdToolBody .mdg-thumb');if(!b||b.dataset.tk)return;b.dataset.tk='1';
@@ -21658,16 +21661,28 @@ function mdTblVoir(c){const bd=document.getElementById('mdToolBody'),th=bd&&bd.q
   const z=zoomF()||1,r=c.getBoundingClientRect(),haut=bd.getBoundingClientRect().top+4,bas=th.getBoundingClientRect().top-8;
   if(r.bottom>bas)bd.scrollTop+=Math.min(r.bottom-bas,Math.max(0,r.top-haut))/z;
   else if(r.top<haut)bd.scrollTop-=(haut-r.top)/z;}
+// A792 : la case active tient EN ENTIER dans la largeur visible (son « ＋ » est dans son coin droit) — le focus du champ
+// ne ramène que le champ, et la 1ʳᵉ colonne collée du téléphone (A777) recouvre la gauche. Au plus près, jamais au-delà de
+// son bord gauche ; une case plus large que la vue garde son début.
+function mdTblVoirX(cel){const sc=cel&&cel.closest('.mdg-scroll');if(!sc)return;
+  const z=zoomF()||1,r=cel.getBoundingClientRect(),s=sc.getBoundingClientRect();let g=s.left;
+  if(+cel.dataset.c>0){const c0=sc.querySelector(`.mdg-c[data-r="${cel.dataset.r}"][data-c="0"]`);if(c0&&getComputedStyle(c0).position==='sticky')g=Math.max(g,c0.getBoundingClientRect().right);}
+  if(r.right>s.right+1)sc.scrollLeft+=Math.max(0,Math.min(r.right-s.right,r.left-g))/z;
+  else if(r.left<g-1)sc.scrollLeft-=(g-r.left)/z;
+  mdTblPlusCote(cel);}
+// Une case qui ne tient pas en entier (plus large que la vue à côté de la colonne collée — mesuré sur iPhone : 150 px pour
+// 137) garde son « ＋ » au coin GAUCHE, celui qu'on voit ; recalculé au défilement de côté.
+function mdTblPlusCote(cel){const sc=cel&&cel.closest('.mdg-scroll');if(!sc)return;
+  const r=cel.getBoundingClientRect(),s=sc.getBoundingClientRect();cel.classList.toggle('mdg-pg',r.right>s.right+1);}
 // La case active a changé : onglets et barre au pouce suivent, sans rien redessiner (le focus et la saisie restent).
 function mdTblCur(m){const w=_mdTw;if(!w)return;
   m.querySelectorAll('.mdg-tc').forEach(b=>b.classList.toggle('on',+b.dataset.mdgcol===w.fc));
   m.querySelectorAll('.mdg-rc').forEach(b=>b.classList.toggle('on',+b.dataset.mdgrc===w.fc));   // A790
   m.querySelectorAll('.mdg-tr').forEach(b=>b.classList.toggle('on',+b.dataset.mdgrow===w.fr));
-  // « ＋ Image » · « ＋ Vidéo » suivent la case ACTIVE, pas le focus : un focus perdu (toucher un onglet) les retirait, la
+  // Le « ＋ » (A792) suit la case ACTIVE, pas le focus : un focus perdu (toucher un onglet) les retirait, la
   // fenêtre se recentrait et le relâcher tombait à côté (mesuré).
   m.querySelectorAll('.mdg-c').forEach(x=>x.classList.toggle('act',+x.dataset.r===w.fr&&+x.dataset.c===w.fc));
-  const t=m.querySelector('.mdg-thumb');if(t)t.innerHTML=mdTblThumbHtml();
-  const o=m.querySelector('.mdg-opt-m');if(o)o.textContent=mdTblCaseLbl(w);}
+  const t=m.querySelector('.mdg-thumb');if(t)t.innerHTML=mdTblThumbHtml();}
 // Un geste de structure : la grille se repeint, le focus suit la case visée. `arg` : l'alignement (« al »).
 function mdTblAct(k,arg){const w=_mdTw,g=w.g,n=g[0].length,r=w.fr,c=w.fc,R=g.length,d0=w.hh?1:0;
   if(k==='undo'||k==='redo'){const from=k==='undo'?w.undo:w.redo,to=k==='undo'?w.redo:w.undo;if(!from.length)return;
@@ -21707,10 +21722,30 @@ function mdTblRatios(w){const P=w.p,n=w.g[0].length,o=[];
    un segment par colonne (son nom, sa part), une pastille ronde entre deux colonnes qui se tire au doigt comme à la souris
    (pas de 5 %, aimantée aux tiers) et se règle au clavier (← →, 5 %). Les mêmes au bureau, sur la tablette et au téléphone :
    la grille d'édition garde ses largeurs de saisie (A777, A779) — les parts sont celles de la LECTURE. */
-function mdTblCwHtml(w){const auto=!w.cw,h=!!mdTblRatios(w);
-  return `<div class="mdg-cw" role="group" aria-label="Largeur des colonnes"><div class="mdg-cwq"><button type="button" class="btn sm${auto?' on':''}" data-mdtw="cwauto" aria-pressed="${auto}">Ajuster au contenu</button><button type="button" class="btn sm" data-mdtw="cweq">Colonnes égales</button>`
-    +`<button type="button" class="btn sm" data-mdtw="cwh"${h?'':' disabled'}>Même hauteur</button></div>`
-    +`<p class="hint mdg-cwh">${auto?'Tirez une pastille, sur le filet entre deux colonnes, pour choisir leur part.':'La grille prend les parts de la lecture ; une colonne ne descend pas sous 112 px pour qu’on puisse y écrire (« min. »).'}</p></div>`;}
+/* A792 — DEUX PORTÉES, DEUX PLACES (planche « Fenêtre Tableau · les boutons », F2-F3 retenues par l'auteur). Ce qui vaut
+   pour le TABLEAU se règle en haut, sur une ligne : au bureau, « En-tête » (deux interrupteurs) · « Largeur · choisie ▾ »
+   (la règle et ses trois actions, dans un menu) ; au doigt, une ligne d'ÉTAT (« En-tête : ligne · colonne | Largeur :
+   choisie › ») qui ouvre la feuille « Tableau » (« ⋯ »). Ce qui vaut pour la CASE se fait dans la case : le « ＋ » de la case
+   active (image ou vidéo). Plus rien n'est répété sous la grille. */
+function mdTblToolHtml(w,vide){const n=w.g[0].length,larg=w.cw?'choisie':'auto',et=w.hh&&w.hc?'ligne · colonne':w.hh?'ligne':w.hc?'colonne':'aucun';
+  return `<div class="mdg-tool" role="toolbar" aria-label="Réglages du tableau"><span class="mdg-tl">En-tête</span>`
+    +`<button type="button" class="btn sm mdg-hx${w.hh?' on':''}" data-mdtw="hh" aria-pressed="${w.hh}">1ʳᵉ ligne</button><button type="button" class="btn sm mdg-hx${w.hc?' on':''}" data-mdtw="hc" aria-pressed="${w.hc}">1ʳᵉ colonne</button>`
+    +(n>1?`<span class="mdg-sep" aria-hidden="true"></span><button type="button" class="btn sm mdg-hx${w.cwOn?' on':''}" data-mdtw="cwmenu" aria-haspopup="true">Largeur · ${larg} <span aria-hidden="true">▾</span></button>`:'')
+    +(vide?'<button type="button" class="btn sm mdg-tpl" data-mdtw="tpl">Modèle : posologie</button>':'')+`</div>`
+    +`<button type="button" class="mdg-stat" data-mdtw="plus" aria-haspopup="true"><span>En-tête : <b>${et}</b></span>${n>1?`<span class="mdg-sep" aria-hidden="true"></span><span>Largeur : <b>${larg}</b></span>`:''}<span class="mdg-stv" aria-hidden="true">›</span></button>`;}
+// Les options de la largeur (le menu « Largeur ▾ » et la section de « ⋯ ») ; choisir des parts montre la règle.
+const mdTblCwOpts=w=>[{val:'cwbar',name:w.cwOn?'Masquer la règle':'Montrer la règle',ic:uiIcon('table',16)},
+  {val:'cwauto',name:'Ajuster au contenu',sub:'la largeur suit le texte (aucune part écrite)'},{val:'cweq',name:'Colonnes égales'}]
+  .concat(mdTblRatios(w)?[{val:'cwh',name:'Même hauteur',sub:'chaque colonne à la forme de son média'}]:[]);
+function mdTblCwMenu(btn){const w=_mdTw;if(!w)return;
+  openPickMenu(btn.parentNode,{aria:'Largeur des colonnes',title:'Largeur des colonnes',ctx:w.cw?'parts choisies':'ajustées au contenu',trigger:btn,...deskFlot(),options:mdTblCwOpts(w),
+    onPick:v=>{if(_mdTw!==w)return;if(v!=='cwbar')w.cwOn=true;mdTblAct(v);}});}
+// Le « ＋ » de la case : image ou vidéo, puis le choix du média (A772-A773).
+function mdTblPlusCase(btn,r,c){const w=_mdTw;if(!w||!w.p)return;w.fr=r;w.fc=c;
+  openPickMenu(btn.parentNode,{aria:mdTblCaseLbl(w),title:mdTblCaseLbl(w),trigger:btn,...deskFlot(),
+    options:[{val:'img',name:'Image',ic:uiIcon('camera',16)},{val:'vid',name:'Vidéo',ic:uiIcon('play',16)}],
+    onPick:k=>{if(_mdTw!==w)return;mdMedMenu(btn,w.p,k,(k==='vid'?'Vidéo':'Image')+' dans la case',mdTblRowName(w,r)+', '+mdTblColName(w,c),refs=>{if(_mdTw!==w)return;
+      mdTblNote(w);w.typed=false;const x=mdCellSplit(w.g[r][c]);w.g[r][c]=mdCellJoin(x.txt,x.med.map(y=>y.ref).concat(refs.slice(0,1)));mdTblRepaint(r,c);});}});}
 // La pastille se tire : la séparation suit le pointeur (bornée à 5 % de chaque voisine), relâcher écrit (↶ de la grille).
 /* A790 : la largeur de grille où chaque colonne a sa part et au moins 112 px — W = 112·k ÷ (1 − Σ des parts libres), les k
    colonnes « au minimum » étant celles dont la part ferait moins de 112 px ; jamais moins que la place disponible, jamais
@@ -21859,9 +21894,7 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
       const cel=b.closest('.mdg-c');
       if(cel&&b.dataset.mdgrm!=null){const r=+cel.dataset.r,c=+cel.dataset.c,s=mdCellSplit(w.g[r][c]),i=+b.dataset.mdgrm;
         mdTblNote(w);w.typed=false;s.med.splice(i,1);w.g[r][c]=mdCellJoin(s.txt,s.med.map(x=>x.ref));return mdTblRepaint(r,c);}
-      if(b.dataset.mdgadd&&w.p){const r=cel?+cel.dataset.r:w.fr,c=cel?+cel.dataset.c:w.fc,k=b.dataset.mdgadd;
-        return mdMedMenu(b,w.p,k,(k==='vid'?'Vidéo':'Image')+' dans la case',mdTblRowName(w,r)+', '+mdTblColName(w,c),refs=>{if(_mdTw!==w)return;
-          mdTblNote(w);w.typed=false;const s=mdCellSplit(w.g[r][c]);w.g[r][c]=mdCellJoin(s.txt,s.med.map(x=>x.ref).concat(refs.slice(0,1)));mdTblRepaint(r,c);});}}
+      if(cel&&b.dataset.mdgplus!=null&&w.p)return mdTblPlusCase(b,+cel.dataset.r,+cel.dataset.c);}   // A792
     const k=b.dataset.mdtw;if(!k)return;
     if(k==='x')return mdToolDone(null);
     if(k==='raw')return mdToolDone(w.txt);
@@ -21871,6 +21904,7 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
     if(w.kind!=='tbl')return;
     // A773 : ‹ › de la barre au pouce — la case précédente, la suivante (en fin : une ligne de plus, comme Tab).
     if(k==='plus')return mdTblPlusMenu(b);
+    if(k==='cwmenu')return mdTblCwMenu(b);   // A792
     /* A778 : ‹ › sans clavier — clavier FERMÉ (aucune case n'a le focus), elles déplacent la case ACTIVE (cadre bleu, ramenée
        à l'écran) sans donner le focus : sur iPhone, un focus ouvre le clavier. Clavier ouvert, elles passent à la case. */
     if(k==='prev'||k==='next'){const n=w.g[0].length,i=w.fr*n+w.fc+(k==='next'?1:-1),tape=!!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mdToolModal .mdg-in'));
@@ -21878,10 +21912,12 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
       if(i>=w.g.length*n){if(!tape)return;w.fr=w.g.length-1;w.fc=0;return mdTblAct('r+');}
       if(tape)return mdTblFocus(Math.floor(i/n),i%n);
       w.fr=Math.floor(i/n);w.fc=i%n;w.typed=false;mdTblCur(m);
-      const c=m.querySelector(`.mdg-c[data-r="${w.fr}"][data-c="${w.fc}"]`);if(c)c.scrollIntoView({block:'nearest',inline:'nearest'});return;}
+      const c=m.querySelector(`.mdg-c[data-r="${w.fr}"][data-c="${w.fc}"]`);if(c){c.scrollIntoView({block:'nearest',inline:'nearest'});mdTblVoirX(c);}return;}
     mdTblAct(k);});
+  m.addEventListener('scroll',e=>{const sc=e.target;if(!sc.classList||!sc.classList.contains('mdg-scroll'))return;mdTblPlusCote(sc.querySelector('.mdg-c.act'));},true);   // A792
   m.addEventListener('focusin',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
     mdTblVoir(c);setTimeout(()=>mdTblVoir(c),350);   // A780 : aussi après la montée du clavier
+    mdTblVoirX(c.closest('.mdg-c'));   // A792
     const r=+c.dataset.r,k=+c.dataset.c;if(r===w.fr&&k===w.fc)return;w.fr=r;w.fc=k;w.typed=false;mdTblCur(m);});
   m.addEventListener('input',e=>{const c=e.target.closest('.mdg-in'),w=_mdTw;if(!c||!w)return;
     // ↶ de la grille : une entrée par case SAISIE (la première frappe note l'état d'avant), pas une par lettre.
