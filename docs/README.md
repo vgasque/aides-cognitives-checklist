@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A783** à la v5.141.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A784** à la v5.142.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -405,6 +405,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A781 | `lot-v5-140.md` | Ce qui n'est pas encore sur l'appareil se dit, à sa place : une image en attente a son réceptacle à sa boîte exacte (`imgAttBox`) et y prend sa place dès qu'elle est reçue, sans re-rendu, en session aussi (`imgPose` — amende A766) ; l'élément ouvert dit sous son titre ce qui lui manque (`rxLigneHtml`, jamais en session) et passe devant dans les deux files (`rxPrio`) ; mêmes mots et mêmes trois états pour l'image, la vidéo et le document (`rxEtat` : en réception neutre, hors ligne et introuvable en ambre) ; une image introuvable attend 30 min (A770 étendu) ; refusé : le repère sur les rangées des listes |
 | A782 | `lot-v5-141.md` | La dernière carte d'une recherche garde son bord bas : la règle du dernier filet des listes groupées ne vaut plus pour la liste plate (`.dir-grid:not(.flat)`) |
 | A783 | `lot-v5-141.md` | Une vidéo a ses dimensions (`p.videos[].w`/`h`, `safeVideo`) : mesurées à l'ajout (`vidDims`), rattrapées pour les vidéos d'avant (`vidDimRattraper`) ; son réceptacle a sa proportion (`vidSzHtml`) et la vidéo posée la même boîte — amende A757, clôt la limite d'A781 |
+| A784 | `lot-v5-142.md` | La mise en page vit avec l'emplacement, dans le texte : largeur d'un média `{width=45%}` (Pandoc), largeur des colonnes `{widths="…"}` sous le tableau — amende A775 pour l'emplacement ; lot 0 : lues et ignorées partout (`MD_TWIDTHS`, `mdTWidths`, `mdWPct`), la ligne des colonnes appartient au tableau ; découpage en cinq lots |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

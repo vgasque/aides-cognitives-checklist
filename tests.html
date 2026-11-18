@@ -1090,6 +1090,29 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const HQ=A.mdRender(Q.body,{videos:Q.videos});
    ok('A783 : rendu — la vidéo aux dimensions connues porte sa proportion (classe vd, svg), l’autre garde le réceptacle 4:3', /data-vid="v1"[^>]*data-vdw="640" data-vdh="360"><div class="md-vbox vd"><svg class="md-vsz" width="640" height="360"/.test(HQ)&&/data-vid="v2"[^>]*><div class="md-vbox"><span/.test(HQ)&&!/data-vid="v2"[^>]*data-vdw/.test(HQ));}
 
+  /* A784 — lot 0 : la largeur d'un média et celle des colonnes sont LUES et IGNORÉES (aucune image ne disparaît). */
+  group('A784 — attributs de mise en page lus et ignorés (lot 0)');
+  {const PNG='data:image/png;base64,iVBORw0KGgo=',IM=[{id:'x',data:PNG,caption:''}];
+   const H1=A.mdRender('![](img:x){width=45%}',{images:IM});
+   ok('A784 : une image avec sa largeur reste une image (figure), l’attribut ne s’affiche pas', /<figure class="md-fig/.test(H1)&&H1.indexOf('width=')<0);
+   eq('A784 : une vidéo avec sa largeur reste un bloc vidéo', A.mdBlocks('![](vid:v1){width=50%}').map(b=>b.t), ['vid']);
+   const BL=A.mdBlocks('1. a\n   ![](img:x){width=30%}\n2. b');
+   ok('A784 : dans une liste, le média avec sa largeur appartient à l’élément (une seule liste)', BL.length===1&&BL[0].items.length===2&&((BL[0].items[0].imgs||[])[0]||{}).id==='x');
+   const HC=A.mdRender('| | |\n|---|---|\n| a<br>![](img:x){width=60%} | b |',{images:IM});
+   ok('A784 : dans une case, le média avec sa largeur est une vignette, l’attribut ne s’affiche pas', /md-cfig/.test(HC)&&HC.indexOf('width=')<0);
+   const TB='| a | b |\n|---|---|\n| 1 | 2 |\n{widths="30 70"}\n\nSuite',BT=A.mdBlocks(TB);
+   eq('A784 : la ligne des colonnes appartient au tableau (lue, jamais un paragraphe)', [BT.length,BT[0].t,BT[0].w,BT[1].t], [2,'tbl',[30,70],'p']);
+   ok('A784 : …et ne s’affiche pas', A.mdRender(TB).indexOf('widths')<0);
+   eq('A784 : …et fait partie du bloc tableau de l’éditeur', A.mdBlockRanges(TB).map(r=>[r.a,r.e]), [[0,4],[5,6]]);
+   ok('A784 : la recherche ignore les deux attributs', A.mdStrip('![Coupe](img:x){width=45%}\n{widths="30 70"}\n| a<br>![](img:x){width=60%} | b |').indexOf('width')<0);
+   eq('A784 : mdWPct — un cran de 5 % entre 5 et 100, 0 sinon', [A.mdWPct(45),A.mdWPct(43),A.mdWPct(2),A.mdWPct(0),A.mdWPct(140),A.mdWPct('x')], [45,45,5,0,0,0]);
+   eq('A784 : mdTWidths — les parts lues, ou rien', [A.mdTWidths('{widths="30 25 45"}'),A.mdTWidths('{widths=30}'),A.mdTWidths('texte')], [[30,25,45],null,null]);
+   eq('A784 : « Sortir l’image de la liste » garde sa largeur', A.mdUnlistImgs('- a\n  ![](img:x){width=30%}'), '- a\n\n![](img:x){width=30%}');
+   const CS=A.mdCellSplit('Normal\n![](img:x){width=60%}');
+   eq('A784 : mdCellSplit — le média d’une case garde sa largeur', [CS.txt,(CS.med[0]||{}).ref,(CS.med[0]||{}).id], ['Normal','![](img:x){width=60%}','x']);
+   eq('A784 : une image avec sa largeur compte comme utilisée (ménage de sortie)', A.miUses('![](img:x){width=45%}\n\n- a\n  ![](img:y){width=30%}'), {x:1,y:1});
+   ok('A784 : l’export sans les fichiers retire aussi l’attribut', A.exportLeger({fiches:[],protocols:[{body:'a\n![](img:x){width=45%}\n| x<br>![](img:x){width=60%} |',images:IM,docs:[]}]}).protocols[0].body.indexOf('width')<0);}
+
   group('storageState() — source unique des deux pieds de page (v4.4.2)');
   const SS_ON=A.storageState({signed:true,pers:true,usage:3e6,quota:3e9,attBytes:0});
   const SS_PERS=A.storageState({signed:false,pers:true,usage:3e6,quota:3e9,attBytes:0});
