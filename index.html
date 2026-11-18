@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-p+J1G5IA5h+3FwEh1j1X5EaGPhaTMC4TI/Oss/QOtRY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hcmVnEiNN8XiNS8KfN/gyoDOPYVX+t8kOtHpx95TZ/M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11079,7 +11079,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.144.0';
+const APP_VERSION='5.145.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20639,6 +20639,16 @@ function mdMedFind(src,k,id,occ){const L=String(src==null?'':src).split('\n'),q=
       return {i,from:o+e,to:o+e+(m?m[0].length:0),w:m?mdWPct(m[1]):0};}n++;}
     o+=l.length+1;}
   return null;}
+/* A787 — LA TAILLE DU MODÈLE DEVIENT UNE LARGEUR ÉCRITE (lot 3 d'A784, règle 12 b : conversion EN PLACE). Une ligne
+   image ou vidéo d'un BLOC (non indentée, hors d'un bloc de code, sans largeur écrite) dont le média porte une taille
+   `scale` < 100 reçoit `{width=scale%}` — la seule place où `scale` agissait (A584 : ni dans une liste ni dans une case).
+   Appliquée à l'OUVERTURE de l'éditeur (un geste de l'auteur), jamais au chargement ni à la synchro : rien ne change sur
+   le serveur tant qu'il n'enregistre pas. PURE. */
+function mdScaleToW(body,images,videos){const S=Object.create(null);
+  (images||[]).forEach(x=>{if(x&&x.id&&!badKey(x.id)&&(x.scale|0)>0&&x.scale<100)S['img:'+x.id]=x.scale;});
+  (videos||[]).forEach(x=>{if(x&&x.id&&!badKey(x.id)&&(x.scale|0)>0&&x.scale<100)S['vid:'+x.id]=x.scale;});
+  let code=false;return String(body==null?'':body).split('\n').map(l=>{if(/^```/.test(l)){code=!code;return l;}if(code)return l;
+    const m=l.match(/^(!\[[^\]]{0,300}\]\(((?:img|vid):[A-Za-z0-9_-]{1,64})\))(\s*)$/);const w=m&&mdWPct(S[m[2]]);return w?m[1]+'{width='+w+'%}'+m[3]:l;}).join('\n');}
 const mdMedW=(src,k,id,occ)=>{const f=mdMedFind(src,k,id,occ);return f?f.w:0;};
 function mdMedSetW(src,k,id,occ,pct){const f=mdMedFind(src,k,id,occ);if(!f)return null;const v=String(src),w=mdWPct(pct);
   return v.slice(0,f.from)+(w?'{width='+w+'%}':'')+v.slice(f.to);}
@@ -21924,7 +21934,7 @@ function miPaintUse(p){const n=miUses(p.body);
   {const m=main.querySelector('.mi-outmsg');if(m)m.hidden=!(p.images||[]).some(im=>im&&im.data&&!n[im.id]);}   // A637 : toutes les images comptent, repliées comprises
   if(_miId&&miEl().classList.contains('on'))miPaint();}
 function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%Math.max(k,1);
-  return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">Taille sur grand écran</h4>')}
+  return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">'+(k>1?'Largeur, à ses '+k+' passages':'Largeur')+'</h4>',false,mdMedW(p.body,'img',im.id,0)||(im.scale|0))}
   <p class="mi-st ${k?'ok':'w'}">${k?'✓ Dans le texte · '+k+' passage'+(k>1?'s':''):'△ Absente du texte — sera retirée en quittant l’éditeur'}</p>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer du protocole</button></div>`;}
@@ -21946,8 +21956,12 @@ function miClose(){const id=_miId;_miId=null;const t=id&&main.querySelector('[da
   bd.addEventListener('input',e=>{const c=_miCtx,im=c&&c.onInput&&c.list().find(x=>x.id===_miId);if(im)c.onInput(e.target,im);});}}
 // Les gestes de la feuille d'une image de RÉFÉRENCE (A583).
 function miRefClick(c,t,im,m){const p=c.p,bd=document.getElementById('miBody');
-    if(t.dataset.miscale!=null){const v=t.dataset.miscale;im.scale=_scale(v);c.refresh();edTouch();miPaint();
-      const b=bd.querySelector('[data-miscale="'+v+'"]');if(b)b.focus();return;}
+    /* A787 (amende A583, A584) : la largeur s'écrit sur CHAQUE passage de l'image ({width=…}, « Pleine » la retire) ; la
+       taille du modèle suit, pour une image posée plus tard. Le re-rendu pose le point de reprise (↶). */
+    if(t.dataset.miscale!=null){const v=_scale(t.dataset.miscale);let b=String(p.body||'');
+      for(let o=0;mdMedFind(b,'img',im.id,o);o++)b=mdMedSetW(b,'img',im.id,o,v===100?0:v);
+      im.scale=v;p.body=b;keepAnchor('.mi-card',renderProtocolEdit);miPaint();
+      const q=document.getElementById('miBody').querySelector('[data-miscale="'+v+'"]');if(q)q.focus();return;}
     const k=t.dataset.miact;
     // Écrire dans le texte : la feuille se ferme d'abord, le focus revient au champ (modalHandoffClose).
     if(k==='ins'){const f=c.field();_miId=null;modalHandoffClose(m);
@@ -22641,11 +22655,13 @@ async function openProtocolEdit(id){if(linkGate(()=>openProtocolEdit(id)))return
   if(!canEditFiche(p)){toast(RO_EDIT_TOAST);return openProtocolRead(id);}
   setTimeout(()=>editRoleCheck(p,'p'),0);   // A635
   state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(p)));draftNewAtts=[];state.draftRestored=null;
+  state.pdraft.body=mdScaleToW(state.pdraft.body,state.pdraft.images,state.pdraft.videos);   // A787 : avant la base — seul un enregistrement de l'auteur l'écrit
   draftBase=JSON.stringify(state.pdraft);_lastParked=null;
   // Brouillon auto-enregistré de CE protocole ? Restauré, avec porte de sortie (cf. openEdit).
   const park=(await getDraftPark()).p;
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
-    state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
+    state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;
+    state.pdraft.body=mdScaleToW(state.pdraft.body,state.pdraft.images,state.pdraft.videos);}   // A787
   state.view='protocolEdit';render();}
 async function newProtocol(){if(linkGate(newProtocol))return;   // A643
   const lib=crtScope(),cl=crtColl();
@@ -33877,14 +33893,17 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
         if(/^https?:\/\/[^\s()]+$/i.test(h))s+='['+(v||h).replace(/[\[\]]/g,'')+']('+h+')';else s+=v;}
       else s+=inl(c,br);}
     return s;};
-  const media=(fig,ind)=>{   // une image (ou une vidéo) → sa ligne Markdown ; absente de l'archive → NOMMÉE
+  const media=(fig,ind,dansCol)=>{   // une image (ou une vidéo) → sa ligne Markdown ; absente de l'archive → NOMMÉE
     const cap=notionCap((fig.querySelector&&fig.querySelector('figcaption')||{}).textContent||'');
     const im=tag(fig)==='img'?fig:fig.querySelector('img[src]');
     if(im){const p=notionPath(dir,im.getAttribute('src'));
       /* A758 : une image HÉBERGÉE AILLEURS (insérée par lien dans Notion) devient un lien, comme à l'import Markdown —
          elle disparaissait sans un mot. */
       if(p===null){const u=String(im.getAttribute('src')||'').trim();return /^https?:\/\/[^\s()]+$/i.test(u)?ind+'['+(cap||'Image').replace(/[\[\]]/g,'')+']('+u+')':'';}
-      if(ids[p])return ind+'!['+cap+'](img:'+ids[p]+')';
+      /* A787 : une image redimensionnée dans Notion (`style="width:288px"`) garde sa part de la page — 708 px, la largeur
+         d'une page Notion ordinaire ; dans une colonne (`dansCol`), la colonne a sa propre largeur : rien. */
+      if(ids[p]){const wp=!dansCol&&(String(im.getAttribute('style')||'').match(/(?:^|;)\s*width:\s*(\d{1,4}(?:\.\d+)?)px/)||[])[1],w=wp&&+wp<700?mdWPct(+wp/708*100):0;
+        return ind+'!['+cap+'](img:'+ids[p]+')'+(w?'{width='+w+'%}':'');}
       if(ids[p]===''){illis++;return ind+'*[Image illisible : '+p.split('/').pop()+']*';}
       manque++;return ind+'*[Image absente de l’archive : '+p.split('/').pop()+']*';}
     const v=fig.querySelector('video[src],source[src],a[href]');const h=v&&(v.getAttribute('src')||v.getAttribute('href'));const p=h&&notionPath(dir,h);
@@ -33922,7 +33941,7 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
     const U=[];let simple=cols.length>1,aMedia=false;
     for(const col of cols){const units=[];let txt=[];
       for(const c of col.children){const t=tag(c);
-        if(estMedia(c)){const m=media(c,'');if(m==null){simple=false;break;}aMedia=true;units.push(txt.concat(m).join('<br>'));txt=[];}
+        if(estMedia(c)){const m=media(c,'',true);if(m==null){simple=false;break;}aMedia=true;units.push(txt.concat(m).join('<br>'));txt=[];}
         else if(t==='p'||/^h[1-6]$/.test(t)){const v=inl(c,'<br>').trim().replace(/\|/g,'\\|');if(v)txt.push(v);}
         else{simple=false;break;}}
       if(!simple)break;if(txt.length)units.push(txt.join('<br>'));U.push(units);}
@@ -33930,9 +33949,13 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
     const n=U.length,R=Math.max(...U.map(u=>u.length)),rows=[];
     for(let r=0;r<R;r++)rows.push('| '+U.map(u=>u[r]||'').join(' | ')+' |');
     // Deux rangées de colonnes qui se suivent, de même largeur : UNE grille (la page de l'auteur : Fémoral…, puis Poplité…).
+    /* A787 : la largeur des colonnes de Notion (`style="width:62.5%"` de chaque colonne) devient la ligne des colonnes —
+       toutes égales : rien (c'est le rendu d'une grille). Deux rangées fusionnées gardent celle de la première. */
+    const pw=cols.map(c=>+((String(c.getAttribute('style')||'').match(/(?:^|;)\s*width:\s*(\d{1,3}(?:\.\d+)?)%/)||[])[1]||0));
+    const cwN=pw.every(x=>x>0)&&Math.max(...pw)-Math.min(...pw)>1?mdTblCw(pw,n):null,wl=cwN?'{widths="'+cwN.join(' ')+'"}':'';
     const prev=out._grille;
-    if(prev&&prev.n===n&&out.length===prev.fin){out.pop();out.push(...rows,'');out._grille={n,fin:out.length};return;}
-    blank();out.push('|'+'  |'.repeat(n),'|'+' --- |'.repeat(n),...rows,'');out._grille={n,fin:out.length};};
+    if(prev&&prev.n===n&&out.length===prev.fin){out.pop();const w0=MD_TWIDTHS.test(out[out.length-1]||'')?out.pop():'';out.push(...rows);if(w0||wl)out.push(w0||wl);out.push('');out._grille={n,fin:out.length};return;}
+    blank();out.push('|'+'  |'.repeat(n),'|'+' --- |'.repeat(n),...rows);if(wl)out.push(wl);out.push('');out._grille={n,fin:out.length};};
   const blocs=(el,depth)=>{if(!el||depth>40)return;const t=tag(el);if(!t)return;
     if(t==='script'||t==='style'||t==='header'||t==='nav'||cls(el,'properties'))return;
     if(/^h[1-3]$/.test(t)){const v=inl(el).trim();if(v){blank();out.push('#'.repeat(+t[1])+' '+v,'');}return;}
@@ -41455,7 +41478,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
