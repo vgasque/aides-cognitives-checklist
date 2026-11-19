@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.150.0] — 2026-11-19
+La barre d'onglets ne descend plus sous l'écran en faisant défiler, l'éditeur de protocole propose trois niveaux de titre,
+et la fenêtre « Tableau » a un retour (A797-A799). Aucune mise à jour du serveur.
+- **La barre d'onglets ne descend plus** (A797, d'après une vidéo d'iPhone). En faisant défiler une page de l'accueil, elle sautait parfois de 30 à 40 px vers le bas, jusqu'à sortir en partie de l'écran, et y restait. Le saut avait lieu à l'instant exact où la barre du haut devient « collée » (le petit titre paraît, le verre arrive). Ce verre est maintenant toujours en place, seule sa couleur change, et iOS n'a plus de raison de déplacer la barre d'onglets. Par précaution, la barre se recale aussi d'elle-même dès que le défilement s'arrête. **À vérifier sur iPhone.**
+- **Trois niveaux de titre dans « Ajouter un bloc »** (A798) : Grand titre (`#`), Titre de section (`##`) et Sous-titre (`###`), marqués H1, H2, H3. Jusqu'ici, le menu ne proposait que « Titre de section », donc toujours `##`. **Un titre ouvert change de niveau sur place** : trois pastilles au-dessus du texte, sans retaper les `#`.
+- **« Modifier le Markdown » a maintenant un retour** (A799). Le tableau ouvert en texte porte **« Revenir à la grille »**, qui rouvre la fenêtre « Tableau » sur le texte. Dans la grille, « Mettre à jour » écrit et referme ; « Annuler » vous ramène au texte.
+- **Ce qu'on a tapé dans la grille n'est plus perdu** en passant au Markdown : la saisie est écrite d'abord. Si la grille n'a pas changé, rien n'est réécrit.
+
 ## [5.149.0] — 2026-11-19
 Les brouillons d'une bibliothèque partagée ne vont plus sur les appareils des lecteurs, ni leurs fichiers (A796).
 **Serveur à rejouer.**
@@ -250,15 +258,3 @@ serveur.
   entre-temps par un autre appareil, il arrive à l'essai suivant.
 - Ces références disparaissent quand le protocole concerné est réimporté puis l'ancien supprimé.
 
-## [5.137.3] — 2026-11-16
-Correctif : l'envoi des images ne tourne plus en boucle à chaque synchronisation (A769). Aucune mise à jour du serveur
-de plus que celle de la v5.137.
-- **Une même image citée dans deux espaces** (une copie dans Perso d'un protocole de bibliothèque, un Markdown collé
-  d'un autre protocole) était renvoyée à chaque synchro vers l'un, puis vers l'autre, chaque envoi effaçant le fichier
-  de l'autre chemin. Chaque espace a désormais son propre fichier, envoyé une fois.
-- **Une image refusée par le serveur n'est plus renvoyée de toute la session** : le bandeau « Envoi · n / N images » ne
-  revient plus à chaque passage. Le message dit de mettre le serveur à jour (rejouer `supabase/schema.sql`) ; l'envoi
-  reprend à l'ouverture suivante de l'app.
-- Une suppression sur le serveur protège aussi les images qu'un élément cite encore.
-- Le message d'une vidéo absente dit la vérité : « introuvable, ni sur cet appareil ni sur le serveur » — si un autre
-  appareil l'a encore, l'y ouvrir ; sinon, la réimporter depuis son fichier d'origine.

@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A796** à la v5.149.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A799** à la v5.150.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -418,6 +418,9 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A794 | `lot-v5-148-2.md` | La vignette d'une vidéo : prise sur la vidéo posée dans la page et lancée en muet, vers 1 s, image noire ou unie refusée (`vidDims`, `vidPosterDe`, `.vid-cap`) ; un échec noté une fois par version (`ac-vpo-ko`) ; jamais en session, une à la fois ; prise à la lecture sans rien relire (`vidPosterAuJeu`) — amende A783, A791 |
 | A795 | `lot-v5-148-3.md` | Les vidéos d'un document : gardées d'un redessin à l'autre (`vidGarder`), une copie par vidéo (`_vidUrl`), hydratées à l'approche et relâchées loin (`_vidPres`, `_vidLoin`), l'espace vérifié une fois (`_attClaimVu`) ; une seule joue, la plus au centre, celles d'un même tableau ensemble (`VidJeu`) — amende A757 |
 | A796 | `lot-v5-149.md` | Un brouillon n'est envoyé qu'à qui peut l'éditer (`fiches_shared_read`, `prot_shared_read`) ; ses fichiers suivent (`att_lisible`, `att_lib_read`) ; filet de l'appareil (`brouFerme`) ; retrait reporté pendant une session ou à l'écran (`_reconcileTable`) ; tirage complet quand une bibliothèque est rejointe ou qu'un rôle monte (`Sync._libRoles`, `ac-lib-roles`) — serveur à rejouer ; amende A689, A710, A757 |
+| A797 | `lot-v5-150.md` | Le dock ne descend plus : le verre de la rangée collée est permanent, sur `.pg-top::before` (`.stuck` ne change que des couleurs, le petit titre garde sa couche) ; filet `tbRecale` (`tb-nudge`), le dock se recale au calme, défilement posé ; précise A540, A542 |
+| A798 | `lot-v5-150.md` | « Ajouter un bloc » propose Grand titre, Titre de section, Sous-titre (`mdBlkIc`, `MD_BLK_PH`) ; un titre ouvert change de niveau sur place (`data-mdbhx`) ; étend A723, amende A610 |
+| A799 | `lot-v5-150.md` | « Modifier le Markdown » écrit d'abord la saisie de la grille si elle a changé (`snap0`, `onEnd(how, écrit)`) ; le bloc d'un tableau ouvert en texte porte « Revenir à la grille » (`data-mdbgrid`) ; amende A774 |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

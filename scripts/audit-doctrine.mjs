@@ -9228,14 +9228,14 @@ await sec('Éditeur · A610-A612 blocs : « ＋ » du bloc survolé, sélection 
       d.querySelectorAll('.mdb')[2].click();await __acCalme(150);
       o.sel=d.querySelectorAll('.mdb.sel').length;o.ferme=!d.querySelector('.mdb-ta');
       d.querySelector('[data-mdbsel="x"]').click();await __acCalme(150);o.annule=!d.querySelector('.mdb.sel')&&!d.querySelector('.mdb-selbar');
-      // Bloc vidé : les types s'offrent ; « Titre » pose « ## Titre ».
+      // Bloc vidé : les types s'offrent ; « Titre de section » pose « ## Titre ».
       d.querySelectorAll('.mdb')[1].click();await __acCalme(200);const t=d.querySelector('.mdb-ta');t.setSelectionRange(0,t.value.length);document.execCommand('delete');await __acCalme(150);
       o.types=d.querySelectorAll('[data-mdbtype]').length;
       d.querySelector('[data-mdbtype="h"]').click();await __acCalme(150);
       const t2=d.querySelector('.mdb-ta');o.titre=!!t2&&t2.value==='## Titre'&&t2.value.slice(t2.selectionStart,t2.selectionEnd)==='Titre'&&!d.querySelector('[data-mdbtype]');
       return o;});
     t('A610 · doigt : « Bloc avant » et « Sélectionner » au bloc ouvert ; toucher coche ; ✕ annule',r.avant&&r.sel===2&&r.ferme&&r.annule,JSON.stringify(r));
-    t('A610 · un bloc vidé propose les huit types ; « Titre » pose « ## Titre », mot sélectionné',r.types===8&&r.titre,JSON.stringify(r));
+    t('A610 · un bloc vidé propose les dix types (A798 : trois niveaux de titre) ; « Titre de section » pose « ## Titre », mot sélectionné',r.types===10&&r.titre,JSON.stringify(r));
     await page.close();}
 });
 
@@ -9958,7 +9958,7 @@ await sec('Accueil · A540 barre collante sous la barre d\'état', async () => {
   await page.evaluate(()=>{scrollTo(0,0);document.getElementById('selTog').click();});await calme(page, 400);
   const selRepos=await page.evaluate(()=>{const top=document.querySelector('.pg-top');return {sel:top.classList.contains('sel-top'),stuck:top.classList.contains('stuck')};});
   await page.evaluate(()=>scrollTo(0,400));await calme(page, 400);
-  const selDefile=await page.evaluate(()=>{const top=document.querySelector('.pg-top'),cs=getComputedStyle(top);
+  const selDefile=await page.evaluate(()=>{const top=document.querySelector('.pg-top'),cs=getComputedStyle(top,'::before');   // A797 : le verre vit sur le pseudo-élément
     return {sel:top.classList.contains('sel-top'),stuck:top.classList.contains('stuck'),fond:cs.backgroundColor};});
   t('A749 · sélection, au repos : la rangée « Annuler · Tout cocher » reste transparente',selRepos.sel&&!selRepos.stuck,JSON.stringify(selRepos));
   t('A749 · sélection, la liste passe dessous : la rangée prend le verre, comme « Sélectionner · Créer »',selDefile.sel&&selDefile.stuck&&!/rgba\(0, 0, 0, 0\)/.test(selDefile.fond),JSON.stringify(selDefile));
@@ -12902,6 +12902,81 @@ await sec('A586 · liens d’application (#creer, #acces-direct, #bibliotheques�
   const g=await w.evaluate(()=>({tab:homeTab(),f:!!(document.activeElement&&document.activeElement.dataset.ctglib!=null)}));
   t('#bibliotheques (large, A606) : le catalogue s’ouvre, le focus sur sa première bibliothèque',g.tab==='biblio'&&g.f,JSON.stringify(g));
   await w.close();
+});
+
+/* ══ A797-A799 — LE DOCK NE DESCEND PLUS ; TROIS NIVEAUX DE TITRE ; LA GRILLE, ALLER ET RETOUR ═══════════════════════
+   A797 : le harnais ne pilote pas le compositeur d'iOS (le décalage ne se reproduit qu'à l'appareil) — on garde la CAUSE
+   écartée : `.stuck` ne change que des couleurs (le flou est permanent, sur un pseudo-élément), et le filet de recalage
+   (`tbRecale`) agit une fois le défilement posé, jamais avant. */
+await sec('Accueil · A797 la barre collée ne change que des couleurs ; recalage du dock au calme', async () => {
+  const page=await br.newPage({viewport:{width:402,height:874},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{for(let i=0;i<14;i++)protocols.push(migrateProtocol({title:'Protocole '+i}));render();
+    scrollTo(0,0);await __acCalme(300);
+    const top=document.querySelector('.pg-top'),tt=top.querySelector('.pg-tt'),nav=document.getElementById('tabNav');
+    const st=()=>{const s=getComputedStyle(top),b=getComputedStyle(top,'::before');
+      return {bf:s.backdropFilter||s.webkitBackdropFilter||'none',bbf:b.backdropFilter||b.webkitBackdropFilter||'none',bg:b.backgroundColor,wc:getComputedStyle(tt).willChange};};
+    const nudge0=nav.classList.contains('tb-nudge'),repos=st();
+    scrollTo(0,300);await __acCalme(150);
+    const stuck=top.classList.contains('stuck'),colle=st(),tot=nav.classList.contains('tb-nudge');
+    await new Promise(x=>setTimeout(x,700));   // horloge : trois relevés immobiles de 80 ms
+    return {repos,colle,stuck,avant:tot!==nudge0,apres:nav.classList.contains('tb-nudge')!==nudge0,
+      bas:Math.round(innerHeight-nav.querySelector('.tb-tabs').getBoundingClientRect().bottom)};});
+  t('A797 · la rangée collée n’a jamais de flou à elle ; son pseudo-élément le porte, au repos comme collée',r.stuck&&r.repos.bf==='none'&&r.colle.bf==='none'&&r.repos.bbf!=='none'&&r.repos.bbf===r.colle.bbf,JSON.stringify(r));
+  t('A797 · `.stuck` ne change que la couleur du verre ; le petit titre garde sa couche',r.repos.bg!==r.colle.bg&&r.repos.wc==='opacity',JSON.stringify(r));
+  t('A797 · le dock se recale une fois le défilement posé, pas avant, sans bouger d’un pixel',!r.avant&&r.apres&&r.bas===12,JSON.stringify(r));
+  await page.close();
+});
+
+await sec('Éditeur · A798-A799 trois niveaux de titre ; « Modifier le Markdown » garde la saisie et revient à la grille', async () => {
+  const corps="## Doses\n\n| Médicament | Dose |\n|---|---|\n| Adrénaline | 1 mg |";
+  for(const tactile of [false,true]){
+    const page=await br.newPage(tactile?{viewport:{width:390,height:844},hasTouch:true,isMobile:true}:{viewport:{width:1280,height:900}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A798',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+    await calme(page,600);
+    const L=tactile?'téléphone':'bureau';
+    // A798 : « Ajouter un bloc » propose les trois niveaux ; « Sous-titre » pose « ### Sous-titre »
+    const a=await page.evaluate(async()=>{const d=document.getElementById('mdDoc');d.querySelector('.mdb-add').click();await __acCalme(300);
+      const o={opts:[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',')};
+      document.querySelector('.popmenu [data-pickopt="h3"]').click();await __acCalme(300);
+      const ta=d.querySelector('.mdb-ta');o.val=ta&&ta.value;o.sel=ta&&ta.value.slice(ta.selectionStart,ta.selectionEnd);
+      o.chips=[...d.querySelectorAll('.mdb.on [data-mdbhx]')].map(x=>x.dataset.mdbhx+(x.getAttribute('aria-checked')==='true'?'*':'')).join(',');
+      d.querySelector('.mdb.on [data-mdbhx="1"]').click();await __acCalme(300);
+      const t2=d.querySelector('.mdb-ta');o.niv=t2&&t2.value;o.body=state.pdraft.body;
+      o.chips2=[...d.querySelectorAll('.mdb.on [data-mdbhx]')].map(x=>x.dataset.mdbhx+(x.getAttribute('aria-checked')==='true'?'*':'')).join(',');
+      d.querySelector('[data-mdbact="done"]').click();await __acCalme(200);return o;});
+    t('A798 · '+L+' · « Ajouter un bloc » : Grand titre, Titre de section, Sous-titre ; « Sous-titre » pose « ### Sous-titre », mot sélectionné',
+      /^p,h1,h,h3,c,/.test(a.opts)&&a.val==='### Sous-titre'&&a.sel==='Sous-titre',JSON.stringify(a));
+    t('A798 · '+L+' · un titre ouvert change de niveau sur place (H3 → H1), écrit dans le document',a.chips==='1,2,3*'&&a.niv==='# Sous-titre'&&/\n# Sous-titre$/.test(a.body)&&a.chips2==='1*,2,3',JSON.stringify(a));
+    // A799 : saisie dans la grille, puis « Modifier le Markdown » : la saisie est écrite, le bloc ouvert en texte porte le retour
+    const b=await page.evaluate(async tactile=>{const d=document.getElementById('mdDoc'),m=document.getElementById('mdToolModal');
+      d.querySelector('table').closest('.mdb').click();await __acCalme(300);
+      const c=m.querySelector('.mdg-in[data-r="1"][data-c="1"]');c.focus();c.value='2 mg';c.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(100);
+      if(tactile){m.querySelector('[data-mdtw="plus"]').click();await __acCalme(300);document.querySelector('.popmenu [data-pickopt="md"]').click();}
+      else m.querySelector('#mdToolFoot [data-mdtw="md"]').click();
+      await __acCalme(300);
+      const o={modal:m.classList.contains('on'),ta:(d.querySelector('.mdb-ta')||{}).value||'',body:state.pdraft.body,retour:!!d.querySelector('.mdb.on [data-mdbgrid]')};
+      d.querySelector('.mdb.on [data-mdbgrid]').click();await __acCalme(300);
+      o.rouvre=m.classList.contains('on');o.relu=[...m.querySelectorAll('.mdg-in')].map(x=>x.value).join('|');
+      m.querySelector('[data-mdtw="x"]').click();await __acCalme(300);
+      o.annule=!m.classList.contains('on')&&!!d.querySelector('.mdb.on [data-mdbgrid]');
+      d.querySelector('.mdb.on [data-mdbgrid]').click();await __acCalme(300);
+      const c2=m.querySelector('.mdg-in[data-r="1"][data-c="0"]');c2.focus();c2.value='Adrénaline IV';c2.dispatchEvent(new Event('input',{bubbles:true}));await __acCalme(100);
+      m.querySelector('[data-mdtw="ok"]').click();await __acCalme(300);
+      o.fin=!m.classList.contains('on')&&!d.querySelector('.mdb-ta');o.body2=state.pdraft.body;
+      // une grille INTACTE n'écrit rien : le tableau garde ses espaces à l'octet
+      const avant=state.pdraft.body;d.querySelector('table').closest('.mdb').click();await __acCalme(300);
+      if(tactile){m.querySelector('[data-mdtw="plus"]').click();await __acCalme(300);document.querySelector('.popmenu [data-pickopt="md"]').click();}
+      else m.querySelector('#mdToolFoot [data-mdtw="md"]').click();
+      await __acCalme(300);o.intact=state.pdraft.body===avant;return o;},tactile);
+    t('A799 · '+L+' · « Modifier le Markdown » écrit la saisie de la grille avant de passer au texte',!b.modal&&/\| Adrénaline +\| 2 mg +\|/.test(b.ta)&&/\| 2 mg/.test(b.body),JSON.stringify(b).slice(0,300));
+    t('A799 · '+L+' · le bloc ouvert en texte porte « Revenir à la grille », qui rouvre la grille sur le texte',b.retour&&b.rouvre&&b.relu==='Médicament|Dose|Adrénaline|2 mg',JSON.stringify(b).slice(0,300));
+    t('A799 · '+L+' · « Annuler » rend le bloc en texte ; « Mettre à jour » écrit et le referme',b.annule&&b.fin&&/\| Adrénaline IV \| 2 mg/.test(b.body2),JSON.stringify(b).slice(0,400));
+    t('A799 · '+L+' · une grille intacte n’écrit rien',b.intact,JSON.stringify(b).slice(0,200));
+    await page.close();}
 });
 
 const bilanSec=sec.bilan();
