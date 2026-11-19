@@ -9630,6 +9630,46 @@ await sec('A795 · vidéos : une copie, chargées à l’approche, gardées au r
  await page.close();
 });
 
+/* ══ A796 — LES BROUILLONS, PAS POUR UN LECTEUR : CE QUE L'APPAREIL FAIT DE SON CÔTÉ ══════════════════════════════════
+   (Le serveur est prouvé par rls-tests.sql §23.) (1) Le filet : un brouillon d'une bibliothèque où je suis lecteur ne
+   compte ni ne télécharge ses fichiers ; validé, si. (2) Ce que le serveur ne renvoie plus part de l'appareil — jamais
+   l'élément ouvert. (3) Une bibliothèque rejointe, un rôle qui monte : les curseurs reviennent à l'origine (tirage
+   complet) ; un rôle identique ou qui descend : rien. */
+await sec('A796 · brouillons et lecteur : fichiers non tirés, retrait reporté, tirage complet quand le rôle monte', async () => {
+ const page=await br.newPage({viewport:{width:1280,height:800}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+ const r=await page.evaluate(async()=>{myLibraries=[{id:'lib-l',name:'Lecture',role:'viewer'},{id:'lib-e',name:'Équipe',role:'editor'}];
+   const mk=(id,lib,st)=>migrateProtocol({id,title:id,library:lib,status:st,docs:[{id:'d_'+id,name:'a.pdf'}]});
+   const L=[mk('p_lb','lib-l','draft'),mk('p_lv','lib-l','validated'),mk('p_eb','lib-e','draft')];
+   const m=attMissingInfo(L,[],'u').missing.sort().join(',');
+   return {m,ferme:L.map(brouFerme).join(',')};});
+ t('A796 · le filet : le brouillon d’une bibliothèque où je suis lecteur ne compte aucun fichier à recevoir ; validé, ou si je l’édite, si',
+   r.m==='d_p_eb,d_p_lv'&&r.ferme==='true,false,false',JSON.stringify(r));
+ const g=await page.evaluate(async()=>{myLibraries=[{id:'lib-l',name:'Lecture',role:'viewer'}];
+   const a=migrateProtocol({id:'p_ouvert',title:'Ouvert',library:'lib-l',status:'validated'}),b=migrateProtocol({id:'p_ferme',title:'Fermé',library:'lib-l',status:'validated'});
+   protocols.push(a,b);await Data.putProtocol(a);await Data.putProtocol(b);openProtocolRead('p_ouvert');await __acCalme(300);
+   const vrai=window.rest;window.rest=async()=>[];   // le serveur ne renvoie plus aucun des deux (repassés en brouillon)
+   try{await Sync._reconcileTable('protocols',()=>Data.getProtocols(),id=>Data.delProtocol(id),protocols);}finally{window.rest=vrai;}
+   const reste=protocols.filter(x=>x.id==='p_ouvert'||x.id==='p_ferme').map(x=>x.id).join(',');
+   state.view='library';
+   window.rest=async()=>[];try{await Sync._reconcileTable('protocols',()=>Data.getProtocols(),id=>Data.delProtocol(id),protocols);}finally{window.rest=vrai;}
+   return {reste,apres:protocols.some(x=>x.id==='p_ouvert')};});
+ t('A796 · ce que le serveur ne renvoie plus part de l’appareil — sauf l’élément ouvert, retiré une fois quitté',g.reste==='p_ouvert'&&g.apres===false,JSON.stringify(g));
+ const c=await page.evaluate(()=>{const K=[spaceKey(Sync._cursorKey),spaceKey('ac-sync-cursor-prot')],T='2026-11-01T10:00:00.000Z';
+   const pose=()=>K.forEach(k=>localStorage.setItem(k,T)),lit=()=>K.map(k=>localStorage.getItem(k)===T?'garde':localStorage.getItem(k)==='1970-01-01T00:00:00.000Z'?'origine':'?').join('/');
+   const sch=Sync.schedule;Sync.schedule=()=>{};const o={};
+   try{localStorage.removeItem(spaceKey('ac-lib-roles'));myLibraries=[{id:'lib-l',name:'L',role:'viewer'}];
+     pose();Sync._libRoles();o.premiere=lit();
+     pose();Sync._libRoles();o.meme=lit();
+     myLibraries=[{id:'lib-l',name:'L',role:'editor'}];pose();Sync._libRoles();o.monte=lit();
+     myLibraries=[{id:'lib-l',name:'L',role:'viewer'}];pose();Sync._libRoles();o.descend=lit();
+     myLibraries=[{id:'lib-l',name:'L',role:'viewer'},{id:'lib-n',name:'N',role:'viewer'}];pose();Sync._libRoles();o.rejointe=lit();
+   }finally{Sync.schedule=sch;}return o;});
+ t('A796 · une bibliothèque rejointe, un rôle qui monte (et la première fois) : tirage complet ; même rôle ou rôle qui descend : rien',
+   c.premiere==='origine/origine'&&c.meme==='garde/garde'&&c.monte==='origine/origine'&&c.descend==='garde/garde'&&c.rejointe==='origine/origine',JSON.stringify(c));
+ await page.close();
+});
+
 /* ══ A792 — LA FENÊTRE « TABLEAU » : UNE LIGNE D'OUTILS EN HAUT, LE MÉDIA DANS LA CASE, RIEN EN DOUBLE ═══════════════
    Bureau : la ligne d'outils (En-tête · Largeur ▾) au-dessus de la grille, rien sous elle (sauf la bande ＋ Ligne), l'aide
    du clavier au pied, le « ＋ » de la case active seul visible et entier. Téléphone (vrai toucher) : la ligne d'état à la

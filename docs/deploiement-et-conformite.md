@@ -288,7 +288,9 @@ politiques RLS, pas du secret de cette clé).
 - **Validation des comptes** : *Moi → Administration → Règles* → « Valider chaque nouveau compte ».
   Chaque nouveau compte reste « en attente » jusqu'à votre approbation.
 - **Rôles de bibliothèque** : lecteur (consultation), éditeur (rédaction), admin (gestion des
-  membres). Le statut *brouillon* masque une fiche non validée aux lecteurs.
+  membres). Le statut *brouillon* masque une fiche non validée aux lecteurs — et, depuis v5.149.0 (A796), c'est le
+  SERVEUR qui l'applique : un brouillon (aide ou protocole) n'est pas envoyé à l'appareil d'un lecteur, ni ses images,
+  vidéos et documents (lisibles par un lecteur seulement s'ils servent à un élément non brouillon de la bibliothèque).
 
 ### 1.7 Dépannage
 - **Pas d'e-mail de code** : vérifier SMTP Brevo et le modèle *Confirm signup* (pas seulement
@@ -808,7 +810,7 @@ tout moment depuis l'application.
 **4.5 Bibliothèques partagées.** Le contenu ajouté à une bibliothèque partagée constitue un
 **contenu d'équipe** : il reste accessible aux membres même après le départ d'un contributeur. Les
 rôles (lecteur, éditeur, admin) déterminent les droits ; le statut « brouillon » masque une fiche
-non validée aux lecteurs.
+non validée aux lecteurs, et le serveur ne la leur envoie pas (ni ses fichiers, A796).
 
 **4.5 bis Partage de session en direct.** L'utilisateur qui ouvre un partage **décide de faire
 sortir de son appareil** l'état de la session en cours (cases cochées, minuteurs, position,

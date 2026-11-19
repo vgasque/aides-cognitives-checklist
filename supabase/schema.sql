@@ -177,8 +177,11 @@ create policy fiches_perso on public.cognitive_aids for all
   using      (library_id is null and owner = auth.uid())
   with check (library_id is null and owner = auth.uid());
 drop policy if exists fiches_shared_read on public.cognitive_aids;
+-- A796 : un LECTEUR ne reçoit pas les brouillons (« les lecteurs la voient une fois validée », A463) — l'éditeur et
+-- l'administrateur de la bibliothèque les lisent par `fiches_shared_write` (for all). Sans statut : validée (migrate).
 create policy fiches_shared_read on public.cognitive_aids for select
-  using (library_id is not null and public.is_member(library_id));
+  using (library_id is not null and public.is_member(library_id)
+         and (coalesce(data->>'status','') <> 'draft' or public.member_role(library_id) in ('editor','admin')));
 drop policy if exists fiches_shared_write on public.cognitive_aids;
 create policy fiches_shared_write on public.cognitive_aids for all
   using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
@@ -817,8 +820,9 @@ create policy prot_perso on public.protocols for all
   using      (library_id is null and owner = auth.uid() and public.is_approved())
   with check (library_id is null and owner = auth.uid() and public.is_approved());
 drop policy if exists prot_shared_read on public.protocols;
-create policy prot_shared_read on public.protocols for select
-  using (library_id is not null and public.is_member(library_id));
+create policy prot_shared_read on public.protocols for select   -- A796 : comme fiches_shared_read
+  using (library_id is not null and public.is_member(library_id)
+         and (coalesce(data->>'status','') <> 'draft' or public.member_role(library_id) in ('editor','admin')));
 drop policy if exists prot_shared_write on public.protocols;
 create policy prot_shared_write on public.protocols for all
   using      (library_id is not null and public.member_role(library_id) in ('editor','admin'))
@@ -1032,11 +1036,7 @@ create policy att_perso on storage.objects for all
               and name ~ '^u/[0-9a-f-]{36}/[A-Za-z0-9_-]{1,64}\.(pdf|mp4|webm|mov|webp|jpg|png|gif)$');
 
 -- Bibliothèque partagée : lecture = tout membre (comme fiches_shared_read).
-drop policy if exists att_lib_read on storage.objects;
-create policy att_lib_read on storage.objects for select
-  using (bucket_id = 'attachments'
-         and (storage.foldername(name))[1] = 'l'
-         and public.is_member((storage.foldername(name))[2]));
+-- att_lib_read (lecture d'un fichier de bibliothèque) : définie plus bas, après `att_name_id` (A796).
 
 -- Bibliothèque partagée : écriture (upload/remplacement/suppression) = editor/admin, chemin
 -- strictement conforme (comme fiches_shared_write ; l'approbation n'est pas re-testée ici, même
@@ -1074,6 +1074,34 @@ language sql stable security definer set search_path = public, pg_temp as $$
       or exists (select 1 from public.protocols p where p.deleted_at is null and strpos(p.data::text, p_id) > 0);
 $$;
 revoke execute on function public.att_cite(text) from public, anon, authenticated;   -- interroge toutes les bibliothèques : jamais exposée
+
+-- A796 — UN FICHIER DE BIBLIOTHÈQUE, POUR UN LECTEUR, SEULEMENT S'IL SERT À UN ÉLÉMENT QU'IL PEUT LIRE. Le chemin
+-- (`l/<bibliothèque>/<id>.<ext>`) ne disait que la bibliothèque : tout membre lisait aussi les images, vidéos et PDF des
+-- BROUILLONS (le texte, lui, lui est caché par fiches/prot_shared_read). Lisible : par l'éditeur et l'administrateur de la
+-- bibliothèque ; par un lecteur, si un élément VIVANT et non brouillon de CETTE bibliothèque le cite (même règle de
+-- citation qu'`att_cite` : l'id n'importe où dans le contenu). Bornée au membre (aucun regard sur une autre bibliothèque)
+-- et à un id de fichier (aucune recherche de mot dans le contenu) ; un nom hors format reste lisible (on ne retient pas
+-- ce qu'on ne sait pas nommer, comme A771).
+-- Le NOM entier du fichier est passé, l'id s'en extrait ici (`att_name_id`, qui n'est pas exécutable par un compte).
+create or replace function public.att_lisible(lib text, p_name text) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select public.is_member(lib) and (select
+       p_id is null
+    or public.member_role(lib) in ('editor','admin')
+    or (p_id ~ '^[A-Za-z0-9_-]{1,64}$' and (
+          exists (select 1 from public.cognitive_aids f where f.library_id = lib and f.deleted_at is null
+                    and coalesce(f.data->>'status','') <> 'draft' and strpos(f.data::text, p_id) > 0)
+       or exists (select 1 from public.protocols p where p.library_id = lib and p.deleted_at is null
+                    and coalesce(p.data->>'status','') <> 'draft' and strpos(p.data::text, p_id) > 0)))
+     from (select public.att_name_id(p_name) as p_id) n);
+$$;
+revoke execute on function public.att_lisible(text, text) from public, anon;
+grant execute on function public.att_lisible(text, text) to authenticated;
+drop policy if exists att_lib_read on storage.objects;
+create policy att_lib_read on storage.objects for select
+  using (bucket_id = 'attachments'
+         and (storage.foldername(name))[1] = 'l'
+         and public.att_lisible((storage.foldername(name))[2], name));
 create or replace function public.list_orphan_attachments()
 returns table(name text, size_bytes bigint, created_at timestamptz)
 language sql stable security definer set search_path = public, storage, pg_temp as $$
