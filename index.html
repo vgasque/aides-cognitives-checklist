@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-nrSud6t0urHuNf5gqLwuPodsArW7dtn7jHGc75PSu9k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-esxn+M8zcrr925n0vGaWGbBAnz7dYiPT3q86mIldN3E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1402,12 +1402,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.tabnav:not(.kbd) body.view-home #homeDock .hdr-search input{height:62px;min-height:62px}
   html.tabnav body.view-home .tab-bar:not([hidden]){position:fixed;z-index:20;display:flex;align-items:center;gap:10px;
     left:calc(16px + var(--sal,0px));right:calc(16px + var(--sar,0px));bottom:var(--tb-bot);pointer-events:none}
+  html.tabnav body.view-home .tab-bar.tb-nudge:not([hidden]){bottom:calc(var(--tb-bot) + .1px)}   /* A797 : recalage, cf. tbRecale */
   .tb-tabs{flex:1;display:flex;min-width:0;height:62px;padding:4px;border-radius:999px;pointer-events:auto}
   .tb-srch{flex:none;display:grid;place-items:center;width:62px;height:62px;padding:0;border-radius:999px;cursor:pointer;pointer-events:auto}
-  :is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  :is(.tb-tabs,.tb-srch){background:var(--glass)}
+  :is(.tb-tabs,.tb-srch),.pg-top::before{-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+  .pg-top.stuck::before{background:var(--glass)}
   :is(.tb-tabs,.tb-srch){border:1px solid var(--work-line);box-shadow:var(--shadow-float);color:var(--ink)}
-  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
-  @media (prefers-reduced-transparency:reduce){:is(.tb-tabs,.tb-srch,.pg-top.stuck){background:var(--work)}}
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:is(.tb-tabs,.tb-srch),.pg-top.stuck::before{background:var(--work)}}
+  @media (prefers-reduced-transparency:reduce){:is(.tb-tabs,.tb-srch),.pg-top.stuck::before{background:var(--work)}}
   html[data-theme="dark"] :is(.tb-tabs,.tb-srch){border-color:var(--ctl-line)}
   .tb-tab{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
     padding:0;border:0;border-radius:999px;background:none;font:inherit;font-size:var(--t-cap);font-weight:700;color:var(--ink);cursor:pointer}
@@ -1424,9 +1427,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      fois le grand sorti par le haut (`.stuck`, IntersectionObserver). */
   .pg-top{position:sticky;top:calc(var(--sat) / var(--zf,1));z-index:7;display:grid;grid-template-columns:1fr minmax(0,auto) 1fr;
     align-items:center;gap:8px;height:52px;margin:0 -18px;padding:0 18px}   /* 18 : le rembourrage de main au téléphone */
-  .pg-top.stuck{box-shadow:0 1px 0 var(--line)}
+  /* A797 — LE VERRE DE LA BARRE COLLÉE EST TOUJOURS LÀ, SEULE SA COULEUR CHANGE (signalé, vidéo iPhone : « quelques fois le
+     dock descend et se masque partiellement »). Mesuré image par image : la barre d'onglets tombait de 28 à 38 px, À L'IMAGE
+     EXACTE où `.stuck` se posait en plein défilement, et restait basse jusqu'au retrait de `.stuck`. Le verre
+     (`backdrop-filter`) se posait et se retirait avec la classe, et le petit titre lançait une transition d'opacité :
+     autant de couches créées et détruites PENDANT le défilement — iOS repositionne alors les fixés d'après un défilement
+     périmé. Le flou vit donc sur un pseudo-élément permanent (au repos, il ne floute que le fond uni : invisible) ; `.stuck`
+     ne change plus que des couleurs, et le petit titre garde sa couche (`will-change`). Pas sur `.pg-top` lui-même : un
+     `backdrop-filter` permanent y ferait de la rangée le bloc conteneur de tout fixé qu'elle porterait. */
+  .pg-top::before{content:"";position:absolute;inset:0;z-index:-1}
+  .pg-top.stuck::before{box-shadow:0 1px 0 var(--line)}
   .pg-l{justify-self:start;display:flex}.pg-r{justify-self:end;display:flex}
-  .pg-tt{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-step);font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s}   /* A595 : un long nom (bibliothèque, collection) poussait « Créer » hors de l'écran */
+  .pg-tt{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-step);font-weight:800;white-space:nowrap;opacity:0;transition:opacity .15s;will-change:opacity}   /* A595 : un long nom (bibliothèque, collection) poussait « Créer » hors de l'écran */
   .pg-top.stuck .pg-tt{opacity:1}
   .pg-sent{height:1px;margin-bottom:-1px}   /* A749 : témoin d'une rangée sans grand titre (sélection) — un pixel, sans place prise */
   .pg-top :is(.pg-btn,.sel-tog){display:inline-flex;align-items:center;gap:6px;height:40px;min-height:40px;margin:0;padding:0 16px;
@@ -11124,7 +11136,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.149.0';
+const APP_VERSION='5.150.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18649,9 +18661,25 @@ function bindPgHead(rerender){
   if(_pgIo){_pgIo.disconnect();_pgIo=null;}
   /* A540 : le verre vient dès que le titre COMMENCE à passer sous la barre (ratio < 1), pas une fois sorti : sinon les
      boutons transparents chevauchaient le titre puis les pastilles. */
-  if(t&&top&&window.IntersectionObserver){_pgIo=new IntersectionObserver(es=>{es.forEach(e=>top.classList.toggle('stuck',e.intersectionRatio<0.99));},
+  if(t&&top&&window.IntersectionObserver){_pgIo=new IntersectionObserver(es=>{es.forEach(e=>{const on=e.intersectionRatio<0.99;
+      if(top.classList.contains('stuck')!==on){top.classList.toggle('stuck',on);tbRecale();}});},   // A797
     {rootMargin:`-${Math.round((top.offsetHeight||44)+insetPx('--sat'))}px 0px 0px 0px`,threshold:[0,0.99,1]});_pgIo.observe(t);}}
 let _pgIo=null;
+/* A797 — FILET : LA BARRE D'ONGLETS SE RECALE UNE FOIS LE DÉFILEMENT POSÉ. Sur la vidéo, la barre descendue ne remontait qu'au
+   changement suivant de `.stuck` — c'est-à-dire à la prochaine remise à jour de ses couches. Si iOS la décale encore malgré
+   le verre permanent (cf. `.pg-top::before`), on lui en donne une, au calme : doigt levé et position immobile sur trois
+   relevés de 80 ms (jamais pendant le geste, où le recalage serait lui-même faussé), un dixième de pixel qui alterne
+   (`tb-nudge`, invisible). Pas d'écouteur `scroll` (A267) : la position se RELÈVE, quelques fois, puis on s'arrête. */
+let _tbRecT=0,_tbDoigt=false;
+document.addEventListener('touchstart',()=>{_tbDoigt=true;},{passive:true,capture:true});
+['touchend','touchcancel'].forEach(ev=>document.addEventListener(ev,e=>{if(!e.touches||!e.touches.length)_tbDoigt=false;},{passive:true,capture:true}));
+function tbRecale(){clearTimeout(_tbRecT);let y0=NaN,calme=0,n=0;
+  const pos=()=>{const s=main.querySelector('.home-main');return window.scrollY+(s?s.scrollTop:0);};
+  const step=()=>{const nav=document.getElementById('tabNav');if(!nav||nav.hidden||++n>75)return;   // 6 s au plus : le changement suivant relance
+    const y=pos();calme=y===y0&&!_tbDoigt?calme+1:0;y0=y;
+    if(calme>=3)return nav.classList.toggle('tb-nudge');
+    _tbRecT=setTimeout(step,80);};   // horloge : relevé de la position, pas une pause de rendu
+  _tbRecT=setTimeout(step,80);}
 /* A588 §2-3 — AU TÉLÉPHONE, LE PETIT TITRE COLLÉ NOMME LE GROUPE SOUS LE POUCE (« Trauma », « Vos collections »…),
    au lieu de redire « Aides » : une seule bande en haut (A542), donc pas d'intertitre collant de plus. Le dernier
    intertitre passé sous la barre gagne (ordre du document) ; au-dessus du premier, le titre de la page revient.
@@ -20638,14 +20666,22 @@ function mdBlkToolsHtml(src,p){
   /* A610 : un bloc VIDÉ propose de redevenir n'importe quel bloc — le même choix que « Ajouter un bloc » (sinon, effacé,
      il ne savait plus devenir un tableau ou une image sans retaper la syntaxe). */
   if(!String(src||'').trim())return `<div class="mdb-tools" role="group" aria-label="Faire de ce bloc">`+MD_BLK_NEW.map(([v,n])=>
-    `<button type="button" class="mdb-chip" data-mdbtype="${v}">${v==='c'?uiIcon('warn',14):uiIcon({p:'pen',h:'list',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',14)}${n}</button>`).join('')+`</div>`;
+    `<button type="button" class="mdb-chip" data-mdbtype="${v}">${mdBlkIc(v,14)}${n}</button>`).join('')+`</div>`;
   const k=mdSrcCall(src);
   if(k!=null)return `<div class="mdb-tools" role="radiogroup" aria-label="Registre de l'encadré">`+Object.keys(MD_CALL_LBL).map(x=>
     `<button type="button" class="mdb-chip ${x}${x===k?' on':''}" data-mdbreg="${x}" role="radio" aria-checked="${x===k}">${calloutIcon(x)}${MD_CALL_LBL[x]}</button>`).join('')+`</div>`;
   /* A774 (amende A609) : un TABLEAU ne s'ouvre plus en Markdown d'abord — le toucher ouvre la grille (`mdDocBind`) ;
      la pastille « Modifier en grille » du bloc ouvert, devenue sans objet, est retirée. Le bloc ouvert en texte (par
-     « Modifier le Markdown ») n'a donc pas de pastille. */
-  {const l=String(src||'').split('\n');if(l.length>1&&MD_TROW.test(l[0])&&MD_TSEP.test(l[1]))return '';}
+     « Modifier le Markdown ») n'avait donc pas de pastille — A799 lui rend un retour, ci-dessous. */
+  /* A799 (amende A774) — « Modifier le Markdown » ouvrait le bloc en texte SANS CHEMIN DE RETOUR (signalé) : la pastille
+     « Modifier en grille » avait été retirée comme sans objet, puisqu'un toucher ouvre la grille — mais le bloc ouvert en
+     texte ne se touche plus. Le bloc d'un tableau ouvert en texte porte donc « Revenir à la grille ». */
+  {const l=String(src||'').split('\n');if(l.length>1&&MD_TROW.test(l[0])&&MD_TSEP.test(l[1]))
+    return `<div class="mdb-tools"><button type="button" class="mdb-chip" data-mdbgrid>${uiIcon('table',14)}Revenir à la grille</button></div>`;}
+  // A798 : un titre ouvert change de niveau sur place — les trois crans du texte rédigé (A723).
+  {const m=/^(#{1,6})\s/.exec(String(src||''));if(m&&String(src).trim().indexOf('\n')<0){const k=m[1].length;
+    return `<div class="mdb-tools" role="radiogroup" aria-label="Niveau du titre">`+[[1,'Grand titre'],[2,'Titre de section'],[3,'Sous-titre']].map(([n,l])=>
+      `<button type="button" class="mdb-chip${n===k?' on':''}" data-mdbhx="${n}" role="radio" aria-checked="${n===k}"><b class="mdt-hx">H${n}</b>${l}</button>`).join('')+`</div>`;}}
   const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
   if(data)return `<div class="mdb-imgv">${mdVueHtml(im,false,mdMedW(src,'img',id,0))}</div><div class="mdb-tools">`
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
@@ -20777,9 +20813,18 @@ ${R.length>1?`        <button type="button" class="btn sm" data-mdbact="sel">${u
     const ins=`<button type="button" class="mdb-ins mdb-ins-a" data-mdbadd="${i-1}" aria-label="Ajouter un bloc avant le bloc ${i+1}" title="Ajouter un bloc au-dessus">${uiIcon('plus',14,{sw:2.6})}</button><button type="button" class="mdb-ins mdb-ins-b" data-mdbadd="${i}" aria-label="Ajouter un bloc après le bloc ${i+1}" title="Ajouter un bloc au-dessous">${uiIcon('plus',14,{sw:2.6})}</button>`;
     return `<div class="mdb" data-mdb="${i}">${ins}${R.length>1?`<button type="button" class="mini grab mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`:''}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`}).join('')
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
-const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h','Titre de section','## Titre','## Titre'],['c','Encadré','> [!WARNING]','> [!WARNING]\n> Texte'],
+/* A798 — TROIS NIVEAUX DE TITRE (signalé : « ajout bloc Titre → arrive sur ## systématiquement ? ») : « Ajouter un bloc »
+   n'offrait que « Titre de section » (##), alors que le texte rédigé a trois crans (A723) et que la barre de l'éditeur
+   les propose (menu « Titre »). Les trois y sont, sous leurs noms ; un titre ouvert change de niveau sur place
+   (`mdBlkToolsHtml`, `data-mdbhx`). `h` reste le ## : c'est le titre d'une section, le cas courant. */
+const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h1','Grand titre','# Titre','# Titre'],['h','Titre de section','## Titre','## Titre'],['h3','Sous-titre','### Sous-titre','### Sous-titre'],['c','Encadré','> [!WARNING]','> [!WARNING]\n> Texte'],
   ['ul','Liste','- élément','- Élément'],['task','Cases à cocher','- [ ] élément','- [ ] Élément'],['tbl','Tableau','grille, modèle','| Colonne | Colonne |\n|---|---|\n|  |  |'],
   ['img','Image ou photo','appareil, galerie',''],['hr','Séparateur','---','---']];
+const MD_HX={h1:1,h:2,h3:3};
+// L'icône d'un type de bloc (menu « Ajouter un bloc » et pastilles d'un bloc vidé) ; un titre dit son niveau (H1, H2, H3).
+const mdBlkIc=(v,sz)=>v==='c'?'<span class="mdc-crit">'+uiIcon('warn',sz)+'</span>':MD_HX[v]?'<b class="mdt-hx">H'+MD_HX[v]+'</b>'
+  :uiIcon({p:'pen',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',sz);
+const MD_BLK_PH={p:'Texte',h1:'Titre',h:'Titre',h3:'Sous-titre',c:'Texte',ul:'Élément',task:'Élément'};   // le mot sélectionné à la création
 function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;
   const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1,pasted=false;
   /* A610 — SÉLECTIONNER PLUSIEURS BLOCS pour les supprimer ou les copier : à la souris, Maj-clic (une plage) ou ⌘/Ctrl-clic
@@ -20917,19 +20962,19 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      écrit dans le champ entier (le document se redessine à l'écriture) ; « Modifier le Markdown » ouvre le bloc.
      A785 : la même porte pour « Modifier… » d'un média de tableau, son double clic et Entrée. */
   const openBlk=i=>{const R=mdBlockRanges(p.body);if(R[i]&&R[i].t==='tbl'){msel=null;if(open>=0){said();open=-1;}paint(false);const c=l2c(R[i].a);ta.setSelectionRange(c,c);
-      mdTblOpen(ta,{p,onEnd:how=>{if(how==='md')return openAt(i);if(how==='ok')edTouch();const h=doc.querySelector('[data-mdbopen="'+i+'"]');if(h)h.focus({preventScroll:true});}});return;}
+      mdTblOpen(ta,{p,onEnd:(how,ecrit)=>{if(how==='md'){if(ecrit)edTouch();return openAt(i);}if(how==='ok')edTouch();const h=doc.querySelector('[data-mdbopen="'+i+'"]');if(h)h.focus({preventScroll:true});}});return;}
     openAt(i);};
   const apply=(r,o)=>{if(!r)return;push(r.v);open=o==null?r.i:o;paint(open>=0?undefined:false);};
   /* A724 — FLOTTANT au bureau (`deskFlot`, A638) : « Ajouter un bloc » en pied a pour parent `.md-doc`, qui n'est pas
      positionné — le menu ancré tombait sous un ancêtre lointain, et le focus de sa première rangée y emmenait la page. */
   const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...deskFlot(),
-    options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:v==='c'?'<span class="mdc-crit">'+uiIcon('warn',16)+'</span>':uiIcon({p:'pen',h:'list',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',16)})),
+    options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:mdBlkIc(v,16)})),
     onPick:v=>{const T=MD_BLK_NEW.find(x=>x[0]===v);
       if(v==='img'){const R=mdBlockRanges(p.body),c=i<0||!R.length?0:l2c(R[Math.min(i,R.length-1)].e);ta.setSelectionRange(c,c);
         pickFile('image',files=>pImgTaker(p,ta)(files),true);return;}
       const r=mdBlkIns(p.body,i,T[3]);push(r.v);
       if(v==='hr'){open=-1;paint(false);return;}
-      const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],k=ph?T[3].lastIndexOf(ph):-1;
+      const ph=MD_BLK_PH[v],k=ph?T[3].lastIndexOf(ph):-1;
       openAt(r.i,k>=0?[k,k+ph.length]:undefined);
       if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t,{p,onEnd:gridEnd});}}}});
   /* A774 : la grille ouverte depuis un bloc referme ce bloc à sa fin — sauf « Modifier le Markdown », qui le laisse ouvert
@@ -20975,6 +21020,12 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(k==='sel'){said();open=-1;paint(false);sel=new Set([i]);selMode=true;anchor=i;return selPaint();}
       if(k==='dup')return apply(mdBlkDup(p.body,i));
       if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}}
+    const hx=e.target.closest('[data-mdbhx]');if(hx){const t=doc.querySelector('.mdb-ta'),m=t&&/^#{1,6}(?=\s)/.exec(t.value);if(!m)return;   // A798
+      const k=+hx.dataset.mdbhx;if(k===m[0].length)return;mdSplice(t,0,m[0].length,'#'.repeat(k));paint();return;}
+    /* A799 : retour à la grille depuis le bloc ouvert en texte. « Mettre à jour » referme le bloc (comme depuis « Ajouter un
+       bloc ») ; « Annuler » ou « Modifier le Markdown » rendent le bloc tel qu'on l'avait laissé, en texte. */
+    if(e.target.closest('[data-mdbgrid]')){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,0);
+      mdTblOpen(t,{p,onEnd:how=>{if(how==='ok')return gridEnd(how);const t2=doc.querySelector('.mdb-ta');if(t2)t2.focus({preventScroll:true});}});return;}
     const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
       mdCalloutLines(t,MD_REG_WORD[rg.dataset.mdbreg]);paint();return;}
     const ty=e.target.closest('[data-mdbtype]');if(ty){const t=doc.querySelector('.mdb-ta'),v=ty.dataset.mdbtype,T=MD_BLK_NEW.find(x=>x[0]===v);if(!t||!T)return;
@@ -20983,7 +21034,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(v==='tbl'){t.setSelectionRange(0,t.value.length);mdTblOpen(t,{p,onEnd:gridEnd});return;}
       mdSplice(t,0,t.value.length,T[3]);
       if(v==='hr'){open=-1;paint(false);return;}
-      const ph={p:'Texte',h:'Titre',c:'Texte',ul:'Élément',task:'Élément'}[v],at=ph?T[3].lastIndexOf(ph):-1;if(at>=0)t.setSelectionRange(at,at+ph.length);return;}
+      const ph=MD_BLK_PH[v],at=ph?T[3].lastIndexOf(ph):-1;if(at>=0)t.setSelectionRange(at,at+ph.length);return;}
     if(e.target.closest('[data-mdbunlist]')){const t=doc.querySelector('.mdb-ta');if(!t)return;t.focus({preventScroll:true});mdSplice(t,0,t.value.length,mdUnlistImgs(t.value));open=-1;paint(false);return;}
     /* A772 : « Image » · « Vidéo » DANS l'élément du curseur — la ligne s'écrit indentée sous lui, après ses médias. */
     const lm=e.target.closest('[data-mdblmed]');if(lm){const t=doc.querySelector('.mdb-ta'),it=t&&mdLmedItem(t);if(!it)return;const k=lm.dataset.mdblmed;
@@ -21673,10 +21724,10 @@ function mdToolOpen(title,body,foot,o){o=o||{};document.getElementById('mdToolTi
   const hx=document.getElementById('mdToolHx');if(hx)hx.innerHTML=o.hx||'';
   const m=mdToolEl();m.classList.toggle('mdt-tbl',o.cls==='mdt-tbl');m.classList.add('on');}
 // Fermer pour écrire dans le champ : le focus revient au texte, pas au bouton d'origine (modalHandoffClose).
-// A774 : `onEnd(how)` — 'ok' (écrit), 'x' (annulé, voile, Échap) ou 'md' (« Modifier le Markdown ») ; le document par
+// A774 : `onEnd(how, écrit)` (A799 : écrit = la fenêtre a modifié le champ) — 'ok' (écrit), 'x' (annulé, voile, Échap) ou 'md' (« Modifier le Markdown ») ; le document par
 // blocs y referme le bloc qu'il avait ouvert pour la grille, sauf pour 'md'.
 function mdToolDone(seg,how){const w=_mdTw;_mdTw=null;modalHandoffClose(mdToolEl());if(w&&seg!=null&&document.contains(w.ta))mdSplice(w.ta,w.from,w.to,seg);
-  if(w&&w.onEnd)w.onEnd(how||(seg==null?'x':'ok'));}
+  if(w&&w.onEnd)w.onEnd(how||(seg==null?'x':'ok'),seg!=null);}   // A799 : 2ᵉ argument, la fenêtre a écrit
 /* A609 : la GRILLE tient TOUTES les lignes (`g`), la 1ʳᵉ étant l'en-tête quand `hh` ; elle s'écrit par `mdTblOut`.
    ↶ / ↷ de la fenêtre : une pile d'états de la grille (geste de structure, réglage, ou saisie d'une case — une entrée
    par case quittée), indépendante de ↶ de l'éditeur : « Annuler » la fenêtre rend toujours le texte d'avant. */
@@ -21690,6 +21741,7 @@ function mdTblOpen(ta,o){o=o||{};const [a,b]=selBounds(ta),t=mdTableAt(ta.value,
   const g=t?(t.hh?[t.head].concat(t.rows):(t.rows.length?t.rows:[t.head])):[['Colonne','Colonne'],['','']];
   _mdTw={kind:'tbl',ta,from:t?t.from:a,to:t?t.to:b,pre:t?'':blank,edit:!!t,fr:0,fc:0,p:o.p||null,onEnd:o.onEnd||null,
     g:g.length>1||!t||!t.hh?g:g.concat([g[0].map(()=>'')]),al:t?t.align:['',''],hh:t?t.hh:true,hc:t?t.hc:false,cw:t&&t.cw?t.cw.slice():null,cwOn:!!(t&&t.cw),undo:[],redo:[],typed:false};
+  _mdTw.snap0=mdTblSnap(_mdTw);   // A799 : l'état d'ouverture — « Modifier le Markdown » n'écrit que si la grille a changé
   mdToolOpen('Tableau',mdTblHtml(),mdTblFootHtml(),{hx:mdTblHxHtml(),cls:'mdt-tbl'});
   mdTblFit();mdTblThumbBind();mdTblCwBind();}
 /* A773 — LA GRILLE PORTE SES OUTILS (planche « Éditeur de protocole — médias, tableaux, dépôt », forme 2A retenue par
@@ -22037,8 +22089,11 @@ function mdPasteOpen(ta,r,txt){const [a,b]=selBounds(ta),N=r.N,pl=(n,s,p)=>n+' '
     if(k==='x')return mdToolDone(null);
     if(k==='raw')return mdToolDone(w.txt);
     if(k==='ok')return mdToolDone(w.kind==='tbl'?w.pre+mdTableMd(mdTblOut(w))+(w.edit?'':'\n'):w.md);
-    // A774 : le texte du tableau, à un toucher — la fenêtre se ferme sans rien écrire, le tableau est sélectionné.
-    if(k==='md'){const ta=w.ta;mdToolDone(null,'md');if(!w.onEnd&&document.contains(ta)){ta.focus();ta.setSelectionRange(w.from,w.to);}return;}
+    /* A774 : le texte du tableau, à un toucher — la fenêtre se ferme, le tableau est sélectionné. A799 (amende A774) : ce
+       qu'on a changé dans la grille est ÉCRIT d'abord — « sans rien écrire », le passage au texte jetait la saisie. Une
+       grille intacte n'écrit rien (le tableau garde ses espaces, à l'octet). */
+    if(k==='md'){const ta=w.ta,seg=w.kind==='tbl'&&mdTblSnap(w)!==w.snap0?w.pre+mdTableMd(mdTblOut(w)):null;mdToolDone(seg,'md');
+      if(!w.onEnd&&document.contains(ta)){ta.focus();ta.setSelectionRange(w.from,seg!=null?w.from+seg.length:w.to);}return;}
     if(w.kind!=='tbl')return;
     // A773 : ‹ › de la barre au pouce — la case précédente, la suivante (en fin : une ligne de plus, comme Tab).
     if(k==='plus')return mdTblPlusMenu(b);
