@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.149.0] — 2026-11-19
+Les brouillons d'une bibliothèque partagée ne vont plus sur les appareils des lecteurs, ni leurs fichiers (A796).
+**Serveur à rejouer.**
+- **Un lecteur ne reçoit plus les brouillons** (A796). Un brouillon d'une bibliothèque partagée (aide ou protocole) n'est envoyé qu'aux éditeurs et aux administrateurs de la bibliothèque — c'est le serveur qui l'applique. Ses images, vidéos et documents suivent : un lecteur ne lit un fichier que s'il sert à un élément qu'il peut voir. Jusqu'ici, l'appareil d'un lecteur recevait tout, brouillons et fichiers compris, et les masquait seulement à l'affichage.
+- **Même avant la mise à jour du serveur**, l'appareil d'un lecteur ne télécharge plus les fichiers d'un brouillon qu'il ne peut pas ouvrir.
+- **Un protocole repassé en brouillon disparaît des appareils des lecteurs** à leur synchro suivante — jamais pendant une session en cours, ni pendant qu'on le consulte : il attend la synchro d'après.
+- **Rejoindre une bibliothèque, ou y devenir éditeur, apporte tout son contenu** : les éléments plus anciens que la dernière synchro n'arrivaient pas jusqu'ici. Une première fois aussi après cette mise à jour, pour rattraper ce qui a pu manquer.
+- **Serveur à rejouer** : `supabase/schema.sql` (règles de lecture des aides, des protocoles et des fichiers de bibliothèque). Tant qu'il ne l'est pas, rien ne casse : l'app se comporte comme avant, avec le filet de l'appareil en plus.
+
 ## [5.148.3] — 2026-11-18
 Les vidéos d'un protocole ne repartent plus de zéro à chaque modification, prennent bien moins de mémoire, et une seule
 joue à la fois (A795). Aucune mise à jour du serveur.
@@ -253,19 +262,3 @@ de plus que celle de la v5.137.
 - Une suppression sur le serveur protège aussi les images qu'un élément cite encore.
 - Le message d'une vidéo absente dit la vérité : « introuvable, ni sur cet appareil ni sur le serveur » — si un autre
   appareil l'a encore, l'y ouvrir ; sinon, la réimporter depuis son fichier d'origine.
-
-## [5.137.2] — 2026-11-16
-⚠ **Correctif urgent** : depuis la v5.134, chaque ouverture de l'app effaçait les vidéos de l'appareil et demandait
-leur suppression sur le serveur (A768). Aucune mise à jour du serveur. **Mettre à jour tous les appareils.**
-- **Les vidéos ne sont plus effacées à l'ouverture de l'app.** Le ménage du démarrage, qui retire les fichiers que
-  plus rien n'utilise, ne reconnaissait que les documents PDF : il prenait chaque vidéo pour un fichier abandonné.
-  Même défaut à l'abandon d'un brouillon. Les deux reconnaissent désormais les vidéos, et tout fichier que le texte
-  d'un protocole cite encore.
-- **Une suppression sur le serveur se revérifie au moment de partir** : un fichier qu'un élément cite encore à cet
-  endroit n'est jamais supprimé, même s'il avait été mis en file à tort par une version précédente.
-- **Récupération** : une vidéo absente de sa bibliothèque est aussi cherchée dans votre espace Perso du serveur (là où
-  elle était partie avant le déplacement de son protocole) ; retrouvée, elle revient sur l'appareil et repart vers la
-  bibliothèque — « ↻ n fichiers retrouvés dans votre espace Perso du serveur ».
-- Si une lecture des protocoles échoue pendant une synchro, plus rien n'est effacé à ce passage.
-- Une vidéo qui n'était plus nulle part (ni sur l'appareil, ni sur le serveur) ne peut pas revenir d'elle-même : la
-  réimporter depuis son fichier d'origine (l'export Notion, par exemple).

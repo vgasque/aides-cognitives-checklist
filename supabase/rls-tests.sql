@@ -55,6 +55,10 @@ declare
   v_l21  uuid;
   v_u21  uuid;
   v_c21  uuid;
+  -- §23 (A796), comptes dédiés
+  xav   uuid := 'a7960000-0000-0000-0000-000000000001';   -- administrateur de la bibliothèque (son créateur)
+  yan   uuid := 'a7960000-0000-0000-0000-000000000002';   -- lecteur
+  zoe   uuid := 'a7960000-0000-0000-0000-000000000003';   -- hors de la bibliothèque
   -- §22 (A771), comptes dédiés
   vic   uuid := 'a7710000-0000-0000-0000-000000000001';   -- administrateur de l'instance
   wes   uuid := 'a7710000-0000-0000-0000-000000000002';   -- compte ordinaire, propriétaire des fichiers
@@ -458,6 +462,9 @@ begin
   insert into storage.objects(bucket_id,name,metadata) values ('attachments','l/lib-team/att-t1.pdf','{"size":200}');
   select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-team/att-t1.pdf';
   if v_cnt <> 1 then raise exception 'ÉCHEC : un editor/admin ne peut pas déposer un document dans sa bibliothèque'; end if;
+  -- A796 : un lecteur ne lit un fichier de bibliothèque que s'il sert à un élément qu'il peut lire — l'aide validée
+  -- qui le cite (un fichier qu'aucun élément ne cite lui reste fermé ; cf. §23).
+  insert into public.cognitive_aids(id,owner,library_id,data) values ('f-att-t1',erin,'lib-team','{"title":"Avec document","status":"validated","docs":[{"id":"att-t1","name":"t1.pdf"}]}');
 
   -- NB SUPPRESSIONS : Supabase BLOQUE tout DELETE direct sur storage.objects, même en SQL Editor
   -- (trigger storage.protect_delete : « Use the Storage API instead »). La voie de suppression
@@ -2639,6 +2646,81 @@ begin
   set local role authenticated;
   select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='u/'||wes||'/orph-old-771.pdf';
   if v_cnt <> 0 then raise exception 'ÉCHEC 22.4 : un fichier nommé dans le texte d''un protocole reste atteignable'; end if;
+  reset role;
+
+  ------------------------------------------------------------------ 23. Les brouillons et leurs fichiers, pas pour un lecteur (A796)
+  reset role;
+  insert into auth.users (id, email, email_confirmed_at) values (xav,'xav@test.local',now()),(yan,'yan@test.local',now()),(zoe,'zoe@test.local',now());
+  insert into public.user_status(user_id,email,status) values (xav,'xav@test.local','approved'),(yan,'yan@test.local','approved'),(zoe,'zoe@test.local','approved')
+    on conflict (user_id) do update set status='approved';
+  insert into public.libraries(id,name,created_by) values ('lib-796','Brouillons',xav);
+  insert into public.memberships(user_id,library_id,role) values (yan,'lib-796','viewer');   -- xav, créateur, en est l'administrateur (déclencheur)
+  insert into public.protocols(id,owner,library_id,data) values
+    ('p796-val',xav,'lib-796','{"title":"Validé","status":"validated","videos":[{"id":"v796val"}],"body":"![](img:i796both)"}'),
+    ('p796-rev',xav,'lib-796','{"title":"À revoir","status":"review"}'),
+    ('p796-old',xav,'lib-796','{"title":"Sans statut"}'),
+    ('p796-dra',xav,'lib-796','{"title":"Brouillon","status":"draft","videos":[{"id":"v796dra"}],"body":"![](img:i796both)"}');
+  insert into public.cognitive_aids(id,owner,library_id,data) values
+    ('f796-val',xav,'lib-796','{"title":"Aide validée","status":"validated"}'),
+    ('f796-dra',xav,'lib-796','{"title":"Aide brouillon","status":"draft","images":[{"id":"i796fdra"}]}');
+  insert into storage.objects(bucket_id,name,metadata) values
+    ('attachments','l/lib-796/v796val.mp4','{"size":10}'),('attachments','l/lib-796/v796dra.mp4','{"size":10}'),
+    ('attachments','l/lib-796/i796both.png','{"size":10}'),('attachments','l/lib-796/i796fdra.png','{"size":10}'),
+    ('attachments','l/lib-796/nom hors format.pdf','{"size":10}');
+
+  -- 23.1 Le lecteur lit le validé, « à revoir » et l'élément sans statut ; jamais un brouillon (aide ni protocole).
+  perform set_config('request.jwt.claims', json_build_object('sub',yan,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.protocols where library_id='lib-796';
+  if v_cnt <> 3 then raise exception 'ÉCHEC 23.1 : le lecteur lit % protocoles (3 attendus, sans le brouillon)', v_cnt; end if;
+  select count(*) into v_cnt from public.protocols where id='p796-dra';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 23.1 : le lecteur lit un protocole brouillon'; end if;
+  select count(*) into v_cnt from public.cognitive_aids where library_id='lib-796';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 23.1 : le lecteur lit % aides (1 attendue, sans le brouillon)', v_cnt; end if;
+  -- 23.2 Ses fichiers : celui d'un élément validé, celui cité par un validé ET un brouillon, un nom hors format — pas
+  --      ceux que seul un brouillon cite.
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name in ('l/lib-796/v796val.mp4','l/lib-796/i796both.png','l/lib-796/nom hors format.pdf');
+  if v_cnt <> 3 then raise exception 'ÉCHEC 23.2 : le lecteur ne lit que % des 3 fichiers d''éléments lisibles', v_cnt; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name in ('l/lib-796/v796dra.mp4','l/lib-796/i796fdra.png');
+  if v_cnt <> 0 then raise exception 'ÉCHEC 23.2 : le lecteur lit % fichier(s) que seul un brouillon cite', v_cnt; end if;
+  -- 23.3 La fonction ne révèle rien d'un brouillon : un mot qui n'est QUE dans un brouillon (« Brouillon », titre du
+  --      protocole brouillon) déguisé en nom de fichier ne répond pas ; et une autre bibliothèque n'est pas la sienne.
+  if public.att_lisible('lib-796','l/lib-796/Brouillon.pdf') then raise exception 'ÉCHEC 23.3 : att_lisible révèle un mot d''un brouillon'; end if;
+  if public.att_lisible('lib-team','l/lib-796/v796val.mp4') then raise exception 'ÉCHEC 23.3 : att_lisible répond hors de ses bibliothèques'; end if;
+  reset role;
+
+  -- 23.4 L'administrateur de la bibliothèque (comme un éditeur) lit tout : le brouillon et ses fichiers.
+  perform set_config('request.jwt.claims', json_build_object('sub',xav,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.protocols where library_id='lib-796';
+  if v_cnt <> 4 then raise exception 'ÉCHEC 23.4 : l''éditeur lit % protocoles (4 attendus)', v_cnt; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name like 'l/lib-796/%';
+  if v_cnt <> 5 then raise exception 'ÉCHEC 23.4 : l''éditeur lit % fichiers (5 attendus)', v_cnt; end if;
+  reset role;
+
+  -- 23.5 Hors de la bibliothèque : rien.
+  perform set_config('request.jwt.claims', json_build_object('sub',zoe,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.protocols where library_id='lib-796';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 23.5 : un non-membre lit les protocoles de la bibliothèque'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name like 'l/lib-796/%';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 23.5 : un non-membre lit les fichiers de la bibliothèque'; end if;
+  reset role;
+
+  -- 23.6 Validé, le brouillon paraît chez le lecteur, ses fichiers avec ; repassé en brouillon, il en sort.
+  update public.protocols set data = data || '{"status":"validated"}'::jsonb where id='p796-dra';
+  perform set_config('request.jwt.claims', json_build_object('sub',yan,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.protocols where id='p796-dra';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 23.6 : le protocole validé ne paraît pas chez le lecteur'; end if;
+  select count(*) into v_cnt from storage.objects where bucket_id='attachments' and name='l/lib-796/v796dra.mp4';
+  if v_cnt <> 1 then raise exception 'ÉCHEC 23.6 : la vidéo du protocole validé reste fermée au lecteur'; end if;
+  reset role;
+  update public.protocols set data = data || '{"status":"draft"}'::jsonb where id='p796-dra';
+  perform set_config('request.jwt.claims', json_build_object('sub',yan,'role','authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_cnt from public.protocols where id='p796-dra';
+  if v_cnt <> 0 then raise exception 'ÉCHEC 23.6 : repassé en brouillon, le protocole reste lisible par le lecteur'; end if;
   reset role;
 
   ------------------------------------------------------------------ FIN
