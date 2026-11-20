@@ -12979,6 +12979,43 @@ await sec('Éditeur · A798-A799 trois niveaux de titre ; « Modifier le Markdow
     await page.close();}
 });
 
+/* ══ A800-A801 — TABLETTE : LA COLONNE DES CATÉGORIES DÉFILE SEULE ; AU DOIGT, AUCUN MENU N'OUVRE LE CLAVIER ═══════ */
+await sec('Catalogue · A800 la colonne plus haute que l’écran défile seule', async () => {
+  const page=await br.newPage({viewport:{width:1024,height:768},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const b=document.getElementById('sysBanner');if(b)b.hidden=true;fiches.length=0;protocols.length=0;
+    for(let k=0;k<26;k++){const c=await catNew('Catégorie '+(k+1),null);for(let i=0;i<3;i++)protocols.push(migrateProtocol({title:'P '+k+'.'+i,category:c.id}));}
+    render();await __acCalme(300);document.querySelector('[data-gotout]').click();await __acCalme(300);document.querySelector('[data-ctglib]').click();await __acCalme(400);
+    const v=document.querySelector('.ctg-v1'),hm=document.querySelector('.home-main');
+    const o={h:Math.round(v.getBoundingClientRect().height),sh:v.scrollHeight,vis:hm.clientHeight};
+    v.scrollTop=v.scrollHeight;await __acCalme(100);const last=[...v.querySelectorAll('[data-ctgcat]')].pop();
+    o.derniere=!!last&&last.getBoundingClientRect().bottom<=innerHeight;o.mainY=hm.scrollTop;
+    const y=v.scrollTop;last.click();await __acCalme(400);o.garde=Math.abs(document.querySelector('.ctg-v1').scrollTop-y)<2&&y>0;o.cat=!!(state.cnav&&state.cnav.cat);
+    return o;});
+  t('A800 · la colonne des catégories tient dans la hauteur visible et défile seule',r.h<=r.vis&&r.sh>r.vis&&r.derniere&&r.mainY===0,JSON.stringify(r));
+  t('A800 · choisir une catégorie en bas de la colonne ne la remonte pas',r.cat&&r.garde,JSON.stringify(r));
+  await page.close();
+});
+
+await sec('Éditeur · A801 « Ajouter un bloc » sans filtre ; au doigt, le filtre d’un menu ne prend pas le focus', async () => {
+  const page=await br.newPage({viewport:{width:1024,height:768},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A801',body:'## A\n\nTexte.'});protocols.push(pr);await openProtocolEdit(pr.id);});
+  await calme(page,600);
+  await page.tap('#mdDoc .mdb-add');await calme(page,400);
+  const m=await page.evaluate(()=>({ouvert:!!document.querySelector('.popmenu'),n:document.querySelectorAll('.popmenu [data-pickopt]').length,
+    filtre:!!document.querySelector('.popmenu .catmenu-filter'),champ:!!document.activeElement&&document.activeElement.matches('input,textarea')}));
+  t('A801 · « Ajouter un bloc » (10 choix) : un menu d’actions, sans champ « Filtrer », aucun clavier',m.ouvert&&m.n===10&&!m.filtre&&!m.champ,JSON.stringify(m));
+  await page.evaluate(async()=>{if(_pickClose)_pickClose(false);const pr=migrateProtocol({title:'Témoin A801 b'});protocols.push(pr);await openProtocolEdit(pr.id);});await calme(page,600);
+  const k=await page.evaluate(async()=>{for(let i=0;i<12;i++)await catNew('Cat '+i,null);
+    const b=document.querySelector('.cat-chip-other');if(!b)return {bouton:false};b.click();await __acCalme(300);
+    const fl=document.querySelector('.catmenu .catmenu-filter');return {bouton:true,menu:!!document.querySelector('.catmenu'),filtre:!!fl,focus:!!fl&&document.activeElement===fl};});
+  t('A801 · au doigt, un menu à filtre (catégorie) garde son champ mais ne le focalise pas',k.bouton&&k.menu&&k.filtre&&!k.focus,JSON.stringify(k));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.150.1] — 2026-11-20
+Deux correctifs pour la tablette : la liste des catégories défile seule, et « Ajouter un bloc » ne se referme plus en
+ouvrant le clavier (A800-A801). Aucune mise à jour du serveur.
+- **La colonne des catégories défile d'elle-même** (A800). Dans Bibliothèques, sur tablette et au bureau, une bibliothèque qui a beaucoup de catégories ne montrait le bas de sa colonne qu'une fois la liste des aides et protocoles défilée jusqu'en bas. La colonne reste en place, tient dans la hauteur de l'écran et se fait défiler seule ; choisir une catégorie en bas ne la remonte plus.
+- **« Ajouter un bloc » ne se referme plus tout seul sur tablette** (A801). Depuis la v5.150.0, ses dix choix faisaient apparaître un champ « Filtrer… » qui prenait le focus : le clavier montait, puis se refermait avec le menu. Le menu n'a plus de filtre : c'est une courte liste d'actions.
+- **Au doigt, aucun menu n'ouvre plus le clavier tout seul** : le champ de recherche d'un menu (catégorie, collection, document à joindre…) reste là, mais il ne prend le focus que si on le touche. À la souris, au trackpad ou au clavier, rien ne change : on tape aussitôt.
+- **Un menu déroulant ne se ferme plus quand le clavier de tablette fait défiler la page** pour montrer le champ où l'on écrit.
+
 ## [5.150.0] — 2026-11-19
 La barre d'onglets ne descend plus sous l'écran en faisant défiler, l'éditeur de protocole propose trois niveaux de titre,
 et la fenêtre « Tableau » a un retour (A797-A799). Aucune mise à jour du serveur.
@@ -248,13 +256,4 @@ jour** : rejouer `supabase/schema.sql` (sans cela, la liste suit l'ancienne règ
   protocole vivant (pièces, vidéos, images, lignes du texte). L'ancienne liste pouvait rester vide à tort.
 - Réservé à l'administrateur de l'instance, jamais depuis un poste partagé.
 - `supabase/rls-tests.sql` : section 22 (liste réservée, fichier récent ou cité intouchable, ligne du texte protectrice).
-
-## [5.137.4] — 2026-11-16
-Correctif : la réception ne tourne plus en boucle sur des fichiers qui n'existent plus (A770). Aucune mise à jour du
-serveur.
-- **Un fichier introuvable partout** (ni sur l'appareil, ni sur le serveur — les vidéos perdues avant la v5.137.2) était
-  recherché à chaque synchronisation : « Réception · 17 / 20 fichiers » revenait sans fin, et comptait ses échecs comme
-  des fichiers reçus. Il n'est plus recherché pendant 30 minutes et ne relance plus le bandeau ; s'il est envoyé
-  entre-temps par un autre appareil, il arrive à l'essai suivant.
-- Ces références disparaissent quand le protocole concerné est réimporté puis l'ancien supprimé.
 

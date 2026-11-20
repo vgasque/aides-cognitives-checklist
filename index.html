@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-esxn+M8zcrr925n0vGaWGbBAnz7dYiPT3q86mIldN3E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ydO3B1XfH/1zTCiUcCwcvAePbXpFUD+ZTfjFQQDff2g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3113,7 +3113,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .home-main>.hv-page.ctg-volets{max-width:none;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
   .home-main>.hv-page.ctg-volets.a-v2{grid-template-columns:280px 240px minmax(0,1fr)}
   html.zw1200 .home-main>.hv-page.ctg-volets.a-v2{grid-template-columns:280px minmax(0,1fr)}   /* (0,4,0) contre (0,3,0) : la spécificité tranche, pas l'ordre */
-  .ctg-v1,.ctg-v2{position:sticky;top:0}
+  /* A800 — UNE COLONNE PLUS HAUTE QUE L'ÉCRAN DÉFILE D'ELLE-MÊME (signalé, tablette : « obligé de scroller tout en bas de
+     la liste des aides pour descendre la liste des catégories »). Collée en haut sans hauteur bornée, la colonne d'une
+     bibliothèque à 26 catégories mesurait 1 465 px dans un défileur de 708 : son bas ne venait qu'avec la fin de la liste
+     d'à côté. Elle garde sa place collée, bornée à la hauteur visible (en-tête mesuré `--hdr-h`, 18 px d'air en haut,
+     24 en bas ; ÷ --zf, règle 10), et défile seule ; son défilement survit au redessin (`renderCatalogueVolets`).
+     4 px de rembourrage rendus par la marge : l'anneau de focus des rangées n'est pas rogné (A268). */
+  .ctg-v1,.ctg-v2{position:sticky;top:0;max-height:calc(100dvh / var(--zf,1) - var(--hdr-h,64px) - 42px);overflow-y:auto;
+    overscroll-behavior:contain;scrollbar-width:thin;margin:-4px;padding:4px}
   .ctg-v2t{margin:2px 4px 12px;font-size:var(--t-step);font-weight:800}
   .ctg-nest{display:none;padding-left:16px;background:var(--amb)}
   html.zw1200 .ctg-nest{display:block}
@@ -11136,7 +11143,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.150.0';
+const APP_VERSION='5.150.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13577,7 +13584,7 @@ suiviEdModal.addEventListener('click',async e=>{const b=e.target.closest('button
   if(b.id==='svRefBtn'){suiviEdRead();const lib=x=>x.library?(libName(x.library)||'Partagée'):'Perso',sub=x=>{const c=catOf(x);return [c?c.name:'',lib(x)].filter(Boolean).join(' · ');};
     const pool=fiches.concat(protocols).filter(y=>!y.deletedAt&&y.id!==E.ent).sort(byTitle),A=pool.filter(y=>fiches.indexOf(y)>=0),P=pool.filter(y=>fiches.indexOf(y)<0);
     const opt=(y,ic)=>({val:y.id,name:String(y.title||'').trim()||'Sans titre',sub:sub(y),ic:uiIcon(ic,16)});
-    openPickMenu(b.parentNode,{fixed:window.innerWidth>=780,matchWidth:true,aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+    openPickMenu(b.parentNode,{fixed:window.innerWidth>=780,matchWidth:true,aria:E.type==='fusion'?'Fusionner avec':'Confronter à',title:window.innerWidth<780?(E.type==='fusion'?'Fusionner avec…':'Confronter à…'):'',trigger:b,value:E.ref||'',seuilFiltre:0,placeholder:CHOIX_AP_RECH,
       options:(E.ref&&E.type==='confronter'?[{val:'',name:'Aucun élément',sub:'une reco écrite ci-dessous',ic:uiIcon('pen',16)}]:[])
         .concat(A.length?[{head:'Aides · '+A.length}]:[],A.map(y=>opt(y,'list')),P.length?[{head:'Protocoles · '+P.length}]:[],P.map(y=>opt(y,'doc'))),
       onPick:v=>{E.ref=v||'';suiviEdPaint();}});return;}
@@ -17931,7 +17938,7 @@ function openCollAdd(trigger){const c=collById(state.coll);if(!c)return;
   const vis=homeVis().slice().sort(byTitle);
   // A631 : au bureau, la liste se déroule sous « Ajouter » (`.coll-acts`, positionné) ; au téléphone, la feuille du bas.
   const tn=tabNavOn(),hote=!tn&&trigger&&trigger.closest('.coll-acts');
-  openPickMenu(hote||document.body,{aria:'Ajouter à '+c.name,sheet:!hote,wide:!!hote,multi:true,trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+  openPickMenu(hote||document.body,{aria:'Ajouter à '+c.name,sheet:!hote,wide:!!hote,multi:true,trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,
     options:vis.map(x=>{const k=catOf(x);return {val:x.id,name:(x.title||'Sans titre')+(x.discriminant?' · '+x.discriminant:''),
       ic:k?catDotHtml([safeColor(k.color)],'cat-dot'):'',sub:[protocols.indexOf(x)>=0?'Protocole':'Aide',k?k.name:'',impLibName(x.library||null)].filter(Boolean).join(' · '),
       on:collHas(c.id,x.id)?'true':'false'};}),
@@ -18620,7 +18627,7 @@ function openHomePick(trigger,rerender){
   const top=`<div class="pk-top">${vsSegHtml(nat,'data-pknat','pkh-','')}${pkLibsHtml(false)}</div>`;
   /* A597 : le champ « Filtrer » paraît au-delà d'une douzaine de rangées (collections et catégories) — il existait,
      muselé à 999. */
-  openPickMenu(document.body,{aria:'Afficher',sheet:true,trigger,value:cur,seuilFiltre:12,filtreAuToucher:true,title:'Afficher',top,
+  openPickMenu(document.body,{aria:'Afficher',sheet:true,trigger,value:cur,seuilFiltre:12,title:'Afficher',top,
     options:[{val:'all',name:'Tout afficher',ic:uiIcon('list',18),cnt:homeVis().length},
       {val:'c:'+COLL_PIN,name:'Accès direct',ic:collIc(pin),cnt:collItems(pin).length},
       {head:'Mes collections'}]
@@ -19174,7 +19181,9 @@ function renderCatalogueVolets(cfg,vis,bibs,libG){
   const main_=`<div class="ctg-main"><div class="ctg-th"><h2 class="hv-title">${esc(ttl)}</h2><span class="ctg-sub">${esc(sub)}</span><span class="ctg-sp"></span>`
     +`${!state.selOn&&selPossible?'<button type="button" class="rang-btn" id="selTog">Sélectionner</button>':''}</div>${selBarHtml()}${filtres}`
     +ctgListHtml(cfg,it,vide,N.cat!=null?true:(libG?'lib':false))+`</div>`;
+  const colY=[...main.querySelectorAll('.ctg-v1,.ctg-v2')].map(e=>e.scrollTop);   // A800 : une colonne défile seule ; le redessin ne la remonte pas
   main.innerHTML=homeSideHtml()+`<div class="home-main"><section class="hv-page ctg-page ctg-volets${libG?' a-v2':''}">${v1}${v2}${main_}</section></div>`;
+  main.querySelectorAll('.ctg-v1,.ctg-v2').forEach((e,i)=>{if(colY[i])e.scrollTop=colY[i];});
   const go=n=>{state.cnav=n;if(state.selOn)selEnd();redo();};
   main.querySelectorAll('[data-ctgtout]').forEach(b=>b.onclick=()=>go({tout:true}));
   main.querySelectorAll('[data-ctglib]').forEach(b=>b.onclick=()=>go({lib:b.dataset.ctglib}));
@@ -19249,7 +19258,7 @@ function ctgFilterPick(b,redo){const F=state.ctf,k=b.dataset.ctgf,vis=homeVis();
   /* A649 (signalé : « un bout de fenêtre s'affiche en bas à gauche » au bureau) : hôte = <body> sans `fixed`, le menu
      ANCRÉ se montait en fin de page. Au bureau, il FLOTTE sous son bouton (A638). */
   openPickMenu(document.body,{aria:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],sheet:tabNavOn(),fixed:!tabNavOn(),trigger:b,value:cur,title:({type:'Type',lib:'Bibliothèque',cat:'Catégorie',sort:'Trier'})[k],
-    seuilFiltre:12,filtreAuToucher:true,options:opts,onPick:set});}
+    seuilFiltre:12,options:opts,onPick:set});}
 /* A601 — LE DOCK SE GLISSE COMME UN SÉLECTEUR SEGMENTÉ (demande de l'auteur : « comme les autres sélecteurs, glisser le
    curseur pour passer d'une sélection à l'autre ») : le doigt posé sur un onglet et tiré de côté promène la pastille ;
    l'onglet sous le doigt au relâchement s'ouvre. Un tap reste un tap (seuil 8 px) ; le clic qui suit un glissé est
@@ -20446,7 +20455,7 @@ const mdMenuHost=btn=>mdKbdUp()?{host:btn.closest('.md-toolbar'),up:true,keep:tr
 // Un bouton de menu BASCULE : retoucher celui qui est ouvert le ferme (`data-catmenu` : le toucher ne le préferme pas).
 function mdMenuOpen(btn,p,tool){if(btn.getAttribute('aria-expanded')==='true'&&_pickClose){_pickClose(false);return;}
   const M=mdMenus(p)[btn.dataset.mdmenu],H=mdMenuHost(btn);
-  openPickMenu(H.host,{aria:M.aria,trigger:btn,up:H.up,keep:H.keep,
+  openPickMenu(H.host,{aria:M.aria,trigger:btn,up:H.up,keep:H.keep,...MDT_ACTIONS,   // A801 : menus d'actions, jamais de filtre
     options:M.o.map(([val,name,sub,ic,chev])=>({val,name,sub,ic,chev})),
     onPick:v=>v==='att'?mdDocMenu(btn,p,tool.field?tool.field():document.getElementById('p-body'),false):tool(v)});}
 // Un geste de la barre ou du clavier (même table pour les deux).
@@ -20967,7 +20976,9 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const apply=(r,o)=>{if(!r)return;push(r.v);open=o==null?r.i:o;paint(open>=0?undefined:false);};
   /* A724 — FLOTTANT au bureau (`deskFlot`, A638) : « Ajouter un bloc » en pied a pour parent `.md-doc`, qui n'est pas
      positionné — le menu ancré tombait sous un ancêtre lointain, et le focus de sa première rangée y emmenait la page. */
-  const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...deskFlot(),
+  /* A801 : un menu d'ACTIONS, sans champ « Filtrer » (`MDT_ACTIONS`, A793) — passé de 8 à 10 choix (A798), il franchissait
+     le seuil du filtre, qui prenait le focus : sur tablette, le clavier montait, la page défilait et le déroulant se fermait. */
+  const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...deskFlot(),...MDT_ACTIONS,
     options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:mdBlkIc(v,16)})),
     onPick:v=>{const T=MD_BLK_NEW.find(x=>x[0]===v);
       if(v==='img'){const R=mdBlockRanges(p.body),c=i<0||!R.length?0:l2c(R[Math.min(i,R.length-1)].e);ta.setSelectionRange(c,c);
@@ -21992,7 +22003,7 @@ function mdMedMenu(trig,p,kind,title,ctx,onRefs,multi){const vid=kind==='vid',L=
   if(L.length){O.push({head:(vid?'Vidéos':'Images')+' de ce protocole · '+L.length});
     L.forEach((x,i)=>{const d=!vid&&safeImg(x.data);O.push({val:x.id,name:vid?(x.name||'Vidéo '+(i+1)):(x.caption||'Image '+(i+1)),
       ic:vid?(safeImg(x.poster)?`<img class="mm-thumb" src="${safeImg(x.poster)}" alt="">`:uiIcon('play',18)):(d?`<img class="mm-thumb" src="${d}" alt="">`:uiIcon('camera',18)),sub:vid&&x.dur?vidDur(x.dur):undefined});});}   // A791
-  openPickMenu(trig.parentNode,{aria:title,title,ctx,trigger:trig,...deskFlot(),filtreAuToucher:true,options:O,   // A793 : la liste des médias garde son filtre, sans clavier d'office au doigt
+  openPickMenu(trig.parentNode,{aria:title,title,ctx,trigger:trig,...deskFlot(),options:O,   // A793 : la liste des médias garde son filtre, sans clavier d'office au doigt
     onPick:v=>{if(v!=='+')return onRefs(['![]('+tag+':'+v+')']);
       pickFile(vid?'video':'image',async files=>{let ids=[];
         if(vid)ids=await vidAdmit(p,files);else{const r=await pImgAdmit(p,files);ids=r?r.ids:[];if(r&&_pEdImgs)_pEdImgs();}
@@ -22714,7 +22725,12 @@ function openPickMenu(host,opts){
     const mw=opts.matchWidth?tr.width:mr.width;let l=tr.left;if(l+mw>W-8)l=Math.max(8,W-8-mw);
     menu.style.left=Math.round(l/z)+'px';menu.style.top=Math.round((tr.bottom+6)/z)+'px';
     if(!dessous){const h2=menu.getBoundingClientRect().height;menu.style.top=Math.round((tr.top-6-h2)/z)+'px';}   // hauteur RELUE après bornage et largeur posées
-    const fin=()=>{if(_pickClose)_pickClose(false);};const sc=e=>{if(!menu.isConnected){removeEventListener('scroll',sc,true);return;}if(!menu.contains(e.target)){removeEventListener('scroll',sc,true);fin();}};
+    /* A801 : on écrit dans son champ (filtre, « Nouvelle catégorie ») — le clavier de tablette fait défiler la page pour le
+       montrer : ce défilement-là n'est pas un geste de l'utilisateur, il ne ferme pas le déroulant (le clavier se repliait
+       avec lui). */
+    const fin=()=>{if(_pickClose)_pickClose(false);};const sc=e=>{if(!menu.isConnected){removeEventListener('scroll',sc,true);return;}
+      const a=document.activeElement;if(a&&menu.contains(a)&&a.matches('input,textarea'))return;
+      if(!menu.contains(e.target)){removeEventListener('scroll',sc,true);fin();}};
     addEventListener('scroll',sc,true);}
   /* A638 — `alignTo` : le menu ancré se pose SOUS ce déclencheur-là, pas au bord gauche de l'hôte (l'hôte, positionné,
      peut porter plusieurs pastilles — l'atelier d'import). Il ne sort pas de l'hôte à droite. */
@@ -22792,8 +22808,10 @@ function openPickMenu(host,opts){
         h.style.display=vis?'':'none';});
       if(mkSync)mkSync();});
     /* A597 : `filtreAuToucher` — au doigt, le champ n'est PAS focalisé d'office (le clavier montait sur une feuille
-       qu'on venait d'ouvrir pour choisir d'un tap) ; il l'est au pointeur fin et au clavier. */
-    if(!opts.keep){if(opts.filtreAuToucher&&matchMedia('(pointer:coarse)').matches){const first=menu.querySelector('.mm-row');if(first)first.focus({preventScroll:true});}else fl.focus();}}
+       qu'on venait d'ouvrir pour choisir d'un tap) ; il l'est au pointeur fin et au clavier. A801 : c'est désormais la
+       règle de TOUT menu à filtre (« au doigt, rien n'ouvre le clavier tout seul », A793) — l'appelant qui veut le
+       contraire passe `filtreAuToucher:false`. Une tablette au trackpad est au pointeur fin : le champ y prend le focus. */
+    if(!opts.keep){if(opts.filtreAuToucher!==false&&matchMedia('(pointer:coarse)').matches){const first=menu.querySelector('.mm-row');if(first)first.focus({preventScroll:true});}else fl.focus();}}
   else if(!opts.keep){const first=menu.querySelector('.mm-row');if(first)first.focus();}
   // `keep` (v5.48.6) : le champ en cours garde le focus — donc le clavier — pendant qu'on choisit.
   if(opts.keep){menu.addEventListener('mousedown',e=>{if(e.target.closest('.mm-row'))e.preventDefault();});tapKeepsFocus(menu,'.mm-row');}
@@ -30199,7 +30217,7 @@ function openAttPicker(entity,rerender,trigger){
   if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
   const opts=attachablePdfs(entity),M=pickMode(trigger);
   if(!opts.length){toast('Aucun document à joindre : déposez un PDF, ou « Ajouter › Document (PDF) ».',4000,true);return;}
-  openPickMenu(M.host,{aria:'Joindre un document existant',title:'Joindre un document existant',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un document…',filtreAuToucher:true,
+  openPickMenu(M.host,{aria:'Joindre un document existant',title:'Joindre un document existant',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un document…',
     ctx:'Le document sera partagé : le remplacer le mettra à jour partout où il sert.',
     options:opts.map(o=>({val:o.id,name:o.name,sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',16)})),
     onPick:v=>{const o=attachablePdfs(entity).find(x=>x.id===v);if(!o)return;entity.docs=entity.docs||[];entity.docs.push({id:o.id,name:o.name,size:o.size});rerender();}});}
@@ -30208,7 +30226,7 @@ function openRelPicker(entity,rerender,trigger){
   const c=relCandidates(entity),M=pickMode(trigger);
   if(!c.length){toast('Aucune autre aide ni aucun protocole à lier.',3500,true);return;}
   const A=c.filter(o=>o.kind!=='p'),P=c.filter(o=>o.kind==='p'),opt=o=>({val:o.id,name:o.title,sub:o.code||'',ic:uiIcon(o.kind==='p'?'book':'doc',16)});
-  openPickMenu(M.host,{aria:'Lier une aide ou un protocole',title:'Voir aussi',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,filtreAuToucher:true,
+  openPickMenu(M.host,{aria:'Lier une aide ou un protocole',title:'Voir aussi',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:CHOIX_AP_RECH,
     ctx:'Le lien paraît en lecture, dans « Voir aussi » — un raccourci, pas une copie.',
     options:(A.length?[{head:'Aides · '+A.length}]:[]).concat(A.map(opt),P.length?[{head:'Protocoles · '+P.length}]:[],P.map(opt)),
     onPick:v=>{entity.links=entity.links||[];if(v&&entity.links.indexOf(v)<0)entity.links.push(v);rerender();}});}
@@ -30220,7 +30238,7 @@ function openCxTargetPicker(f,i,rerender,trigger){
   const bl=(f.blocks||[]).filter(b=>b.kind!=='review');
   const oth=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle);
   const M=pickMode(trigger),cur=f.excursions&&f.excursions[i]?f.excursions[i].target:'';
-  openPickMenu(M.host,{aria:'Cible de la complication',title:'Cible de la complication',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un bloc, une aide, un protocole…',filtreAuToucher:true,value:cur||'',
+  openPickMenu(M.host,{aria:'Cible de la complication',title:'Cible de la complication',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un bloc, une aide, un protocole…',value:cur||'',
     options:(bl.length?[{head:'Blocs de cette aide · '+bl.length}]:[]).concat(bl.map(b=>({val:b.id,name:nom(b),ic:boltIcon(14)})),
       oth.length?[{head:'Aides et protocoles · '+oth.length}]:[],oth.map(o=>({val:o.id,name:String(o.title||'').trim()||'Sans titre',sub:o.code||'',ic:uiIcon(protocols.some(x=>x.id===o.id)?'book':'doc',16)}))),
     onPick:v=>{if(v&&f.excursions&&f.excursions[i]){f.excursions[i].target=v;rerender();}}});}
@@ -34780,7 +34798,7 @@ document.getElementById('impList').addEventListener('click',e=>{
        liste). « Nouveau » se prend d'un tap ; « Verser » ouvre la recherche. Jamais d'écrasement (A611). */
     const poser=v=>{r.into=v||null;const it=ib.closest('.imp-item');if(it)it.outerHTML=impRowHtml(r);impSyncSel();impImgzCalc(r);};   // A759 : verser change le poids
     const carte=(m,on,t,st)=>`<button type="button" class="imp-into-c" data-intomode="${m}" aria-pressed="${on?'true':'false'}">${uiIcon(m==='new'?'plus':'book',18)}<b>${t}</b><span>${st}</span></button>`;
-    {const H=impMenuHost(ib);openPickMenu(H.host,{aria:'Où va ce contenu',title:'Où va ce contenu ?',ctx:String(r.o.title||'').trim()||'Sans titre',sheet:H.sheet,fixed:H.fixed,trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',filtreAuToucher:true,
+    {const H=impMenuHost(ib);openPickMenu(H.host,{aria:'Où va ce contenu',title:'Où va ce contenu ?',ctx:String(r.o.title||'').trim()||'Sans titre',sheet:H.sheet,fixed:H.fixed,trigger:ib,value:r.into||'',seuilFiltre:0,placeholder:'Rechercher un protocole…',
       head:`<div class="imp-into2" role="group" aria-label="Où va ce contenu">${carte('new',!r.into,'Nouveau protocole','avec le titre de la page')}${carte('into',!!r.into,'Verser dans un protocole','déjà créé, sans rien remplacer')}</div>`,
       options:impIntoOptions().map(x=>({val:x.id,name:String(x.title||'').trim()||'Sans titre',sub:(String(x.body||'').trim()?'contenu ajouté à la suite':'contenu vide — il sera rempli')+' · '+impLibName(x.library||null),ic:uiIcon('book',16)})),
       onPick:poser,
