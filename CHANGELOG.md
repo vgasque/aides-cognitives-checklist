@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.151.0] — 2026-11-20
+Les menus déroulants du bureau et de la tablette ne répètent plus le bouton qui les ouvre, et leur titre ne se confond
+plus avec les choix (A803). Aucune mise à jour du serveur.
+- **Plus de titre qui redit le bouton** (A803). Un menu ouvert par un bouton qui dit déjà ce qu'on fait (« Ajouter un bloc », les filtres « Type », « Bibliothèque », « Catégorie » de « Tout », « Mettre en grille »…) s'ouvre directement sur ses choix. Ouvert depuis une icône (＋, ···, ⋮) ou un bouton qui dit autre chose (« Autre… », « Bloc après », « A → Z »), il garde son titre.
+- **Le titre qui reste est posé** : plus petit (15 au lieu de 17,5), avec de l'air au-dessus et un filet qui le sépare des choix. Il ne se lit plus comme une rangée de plus. Tous les menus déroulants ont désormais la même tête que le menu des catégories.
+- **Rien ne se perd** : un titre ne disparaît que si les mêmes mots sont sur le bouton qu'on vient de toucher. La ligne de contexte, les notices et le champ de recherche restent, et les lecteurs d'écran annoncent toujours le nom du menu.
+- **Au téléphone, rien ne change** : les feuilles du bas gardent leur titre.
+
 ## [5.150.2] — 2026-11-20
 Après une mise en veille, l'en-tête ne disparaît plus (A802). Aucune mise à jour du serveur.
 - **Le haut de l'écran revient au déverrouillage** (A802). Sur iPad et iPhone, après une mise en veille, l'en-tête pouvait rester caché : la page commençait sous l'heure, sans retour, sans « Enregistrer », et sans moyen d'y remonter. L'app croyait le clavier encore ouvert, car au réveil iOS signale parfois un écran raccourci, comme si un clavier était affiché. Elle ne le croit plus que si un champ de saisie est réellement actif. **À vérifier sur iPad et iPhone.**
@@ -223,27 +231,4 @@ Correctif : la grille des tableaux est fluide au téléphone, sa 1ʳᵉ colonne 
 - **D'après une capture d'iPhone** (A779) : plus de bouts de cases visibles à gauche de la colonne collée ; une colonne
   de texte long s'élargit et ses mots se coupent avec un tiret au lieu de se casser au milieu ; le libellé de la barre
   du bas se termine par « … » au lieu d'être rogné.
-
-## [5.139.0] — 2026-11-16
-L'éditeur de protocole fait ce que l'import Notion faisait déjà : des images et des vidéos dans une liste et dans un
-tableau, une grille de tableau redessinée, la taille d'une vidéo, un glisser-déposer qui montre où le fichier ira
-(A772-A776). Aucune mise à jour du serveur.
-- **Une image ou une vidéo DANS un élément de liste** : ouvrez la liste, placez le curseur dans l'élément — « Dans
-  l'élément 2 : Image · Vidéo ». On choisit depuis l'appareil ou parmi les images du protocole ; elle s'affiche sous
-  l'élément, la liste ne se coupe pas. « ＋ Insérer › Image » demande aussi « Dans l'élément » ou « Après la liste ».
-- **Toucher un tableau ouvre la grille**, la même fenêtre qu'à sa création ; « Modifier le Markdown » reste à un
-  toucher. La pastille « Modifier en grille » disparaît.
-- **La grille, sans la rangée de gros boutons** : un onglet ··· au-dessus de chaque colonne et ⋮ à gauche de chaque
-  ligne ouvre son menu (aligner, insérer, monter / descendre d'un cran, en-tête, supprimer) ; des bandes « ＋ » au bord
-  ajoutent une colonne ou une ligne ; les en-têtes restent visibles sous la grille.
-- **Une case peut porter une image ou une vidéo** : vignette sous le libellé, ✕ pour la retirer, « ＋ Image » ·
-  « ＋ Vidéo » dans la case active.
-- **Au téléphone, la grille se parcourt au pouce** : une barre en bas (‹ › case précédente / suivante, « Ligne ▾ »,
-  « Colonne ▾ ») garde le clavier ouvert ; les cases ne sont plus rognées (la grille défile, la 1ʳᵉ colonne reste
-  visible) ; « Annuler · Tableau · ↶ · OK » en tête.
-- **La taille d'une vidéo** se règle comme celle d'une image (¼ à Pleine, poignée) ; « Remplacer… » garde la taille.
-  Un appareil resté sur une version antérieure montre la vidéo en pleine largeur.
-- **Glisser-déposer : on voit où ça va** : une ligne bleue suit le pointeur et dit l'endroit — entre deux blocs, dans
-  un élément de liste, dans une case d'une grille d'images ; en mode Texte, la ligne visée (jamais au milieu d'un
-  tableau), et l'aperçu montre le même endroit. Les vidéos se déposent aussi.
 

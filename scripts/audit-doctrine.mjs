@@ -13040,6 +13040,35 @@ await sec('Chrome · A802 viewport raccourci sans champ actif : l’en-tête res
   await page.close();
 });
 
+/* ══ A803 — UN DÉROULANT NE REDIT PAS SON BOUTON ; LA TÊTE QUI RESTE EST POSÉE ═══════════════════════════════════ */
+await sec('Menus · A803 le titre se tait quand le bouton le dit ; tête posée, feuille inchangée', async () => {
+  const lire=(page,sel,avant)=>page.evaluate(async([sel,avant])=>{if(_pickClose)_pickClose(false);await __acCalme(100);
+    if(avant)avant();const b=document.querySelector(sel);if(!b)return {err:'absent '+sel};b.scrollIntoView({block:'center'});await __acCalme(250);b.click();await __acCalme(350);
+    const m=[...document.querySelectorAll('.catmenu.popmenu')].pop();if(!m)return {err:'pas de menu'};const t=m.querySelector('.mm-title'),h=m.querySelector('.popmenu-head');
+    return {titre:t?t.textContent:'',taille:t?getComputedStyle(t).fontSize:'',aria:m.getAttribute('aria-label')||'',filet:getComputedStyle(h).borderBottomWidth,feuille:m.classList.contains('sheet')};},[sel,avant]);
+  {const page=await br.newPage({viewport:{width:1280,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A803',body:'## Doses\n\nTexte.'});protocols.push(pr);await openProtocolEdit(pr.id);
+      const d=document.querySelector('details.ed-ident');if(d)d.open=true;});
+    await calme(page,600);
+    const pied=await lire(page,'#mdDoc .mdb-add:not(.mdb-first)');
+    const plus=await lire(page,'#mdDoc .mdb-ins-b');
+    const cat=await lire(page,'.cat-chip-other');
+    t('A803 · « Ajouter un bloc » ouvert par son bouton : pas de titre (le bouton le dit), le nom reste pour les lecteurs d’écran, pas de filet vide',!pied.titre&&pied.aria==='Ajouter un bloc'&&pied.filet==='0px',JSON.stringify(pied));
+    t('A803 · le même menu ouvert par « ＋ » garde son titre, posé (15 px) et séparé par un filet',plus.titre==='Ajouter un bloc'&&plus.taille==='15px'&&plus.filet==='1px',JSON.stringify(plus));
+    t('A803 · « Autre… » ne dit pas le geste : « Choisir la catégorie » garde son titre',cat.titre==='Choisir la catégorie'&&cat.filet==='1px',JSON.stringify(cat));
+    await page.close();}
+  {const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A803 b',body:'## Doses\n\nTexte.'});protocols.push(pr);await openProtocolEdit(pr.id);});
+    await calme(page,600);
+    const f=await lire(page,'#mdDoc .mdb-add:not(.mdb-first)');
+    t('A803 · au téléphone, la feuille garde sa tête (A480) : titre 17,5 même ouvert par son bouton',f.feuille&&f.titre==='Ajouter un bloc'&&f.taille==='17.5px',JSON.stringify(f));
+    await page.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
