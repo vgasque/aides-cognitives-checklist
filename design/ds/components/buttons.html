@@ -2712,7 +2712,14 @@
   .home-main>.hv-page.ctg-volets{max-width:none;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
   .home-main>.hv-page.ctg-volets.a-v2{grid-template-columns:280px 240px minmax(0,1fr)}
   html.zw1200 .home-main>.hv-page.ctg-volets.a-v2{grid-template-columns:280px minmax(0,1fr)}   /* (0,4,0) contre (0,3,0) : la spécificité tranche, pas l'ordre */
-  .ctg-v1,.ctg-v2{position:sticky;top:0}
+  /* A800 — UNE COLONNE PLUS HAUTE QUE L'ÉCRAN DÉFILE D'ELLE-MÊME (signalé, tablette : « obligé de scroller tout en bas de
+     la liste des aides pour descendre la liste des catégories »). Collée en haut sans hauteur bornée, la colonne d'une
+     bibliothèque à 26 catégories mesurait 1 465 px dans un défileur de 708 : son bas ne venait qu'avec la fin de la liste
+     d'à côté. Elle garde sa place collée, bornée à la hauteur visible (en-tête mesuré `--hdr-h`, 18 px d'air en haut,
+     24 en bas ; ÷ --zf, règle 10), et défile seule ; son défilement survit au redessin (`renderCatalogueVolets`).
+     4 px de rembourrage rendus par la marge : l'anneau de focus des rangées n'est pas rogné (A268). */
+  .ctg-v1,.ctg-v2{position:sticky;top:0;max-height:calc(100dvh / var(--zf,1) - var(--hdr-h,64px) - 42px);overflow-y:auto;
+    overscroll-behavior:contain;scrollbar-width:thin;margin:-4px;padding:4px}
   .ctg-v2t{margin:2px 4px 12px;font-size:var(--t-step);font-weight:800}
   .ctg-nest{display:none;padding-left:16px;background:var(--amb)}
   html.zw1200 .ctg-nest{display:block}
