@@ -5236,9 +5236,15 @@
   .catmenu{left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px}
   .catmenu.wide{min-width:320px;max-width:min(420px,92vw);max-height:min(520px,calc(100dvh / var(--zf,1) - 160px))}   /* A496 : un menu à cases, rangées 52 et pied « Terminé » — la coque des catégories le coupait */
   .catmenu.wide .popmenu-head{padding-top:12px}   /* A496 : un titre ne se colle pas au bord — la coque des catégories n'en a pas */
-  .catmenu.wide :is(.mm-title,.mm-ctxl){padding-left:6px}
-  .catmenu.wide .mm-title{font-size:var(--t-item)}   /* A496 : tête d'un cran plus serrée qu'en feuille — elle est collante, les rangées doivent rester visibles */
-  .catmenu.wide .mm-ctxl{margin-bottom:6px;font-size:var(--t-meta)}
+  /* A803 — LA TÊTE D'UN DÉROULANT (bureau, tablette) est celle qu'A496 avait donnée au seul menu des catégories : titre
+     d'un cran plus serré qu'en feuille (15/800 — elle est collante, les rangées doivent rester visibles), de l'air
+     au-dessus, en retrait des icônes, et un FILET qui la sépare des choix (le titre 17,5/800 collé au bord se lisait
+     comme une rangée de plus). Les feuilles du téléphone gardent la leur (A480). */
+  .catmenu:not(.sheet) .popmenu-head:has(>.mm-title,>.mm-ctxl){padding-top:12px;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .catmenu:not(.sheet) :is(.mm-title,.mm-ctxl){padding-left:6px}
+  .catmenu:not(.sheet) .mm-title{font-size:var(--t-item)}
+  .catmenu:not(.sheet) .mm-ctxl{margin-bottom:0;font-size:var(--t-meta)}
+  .catmenu:not(.sheet) .popmenu-head>.mm-ctxl+:is(.mm-ctx,.catmenu-filter){margin-top:8px}
   .catmenu.wide .mm-ctx{padding-bottom:6px}
   .catmenu.wide .mm-ctx .notice{margin-top:4px;font-size:var(--t-meta)}
   /* En-tête COLLANT du menu (v4.4.4) : poignée (feuille) + filtre restent visibles pendant le
