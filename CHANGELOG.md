@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.152.0] — 2026-11-20
+Dans les menus, les définitions ne s'affichent plus en bandeau bleu (A804). Aucune mise à jour du serveur.
+- **Une définition devient une note grise** (A804). Dans « Choisir la catégorie » (« Une seule par aide, avec sa couleur… ») et « Ajouter à une collection » (« Vos collections sont à vous seul… »), la phrase reste à sa place, sous le titre, mais sans cadre ni fond bleu. Elle ne se confond plus avec le choix en cours, l'anneau de sélection ou le bouton « Terminé », qui sont bleus eux aussi. Au téléphone, les catégories montent d'une trentaine de pixels.
+- **Ce qui dit la conséquence d'un geste reste en bleu** : quand on range des éléments de deux bibliothèques à la fois, l'avertissement « 2 bibliothèques différentes… » garde son bandeau. C'est lui qu'il faut lire avant de choisir.
+
 ## [5.151.0] — 2026-11-20
 Les menus déroulants du bureau et de la tablette ne répètent plus le bouton qui les ouvre, et leur titre ne se confond
 plus avec les choix (A803). Aucune mise à jour du serveur.
@@ -212,23 +217,4 @@ jour du serveur.
   (« Dans la case Ligne 2, Dose »), sous la grille comme dans « ⋯ ».
 - Vérifié sur WebKit (le moteur de Safari, clavier simulé comme sur iPhone), et sur huit profils : Android téléphone et
   tablette, iPhone, iPad, Chrome, Safari et Firefox au bureau.
-
-## [5.139.1] — 2026-11-16
-Correctif : la grille des tableaux est fluide au téléphone, sa 1ʳᵉ colonne prend moins de place, et tout reste à portée clavier ouvert (A777-A779). Aucune mise
-à jour du serveur.
-- **La grille ne fige plus l'écran** : chaque ouverture et chaque geste (insérer, déplacer une ligne, en-tête, média,
-  ↶) recalculaient la mise en page case par case — près de 100 fois pour un tableau de 6 × 15. C'est fait en une fois :
-  l'ouverture est environ trois fois plus rapide.
-- **La 1ʳᵉ colonne, toujours collée, est plus étroite au téléphone** (112 px au lieu de 132) ; ses mots se coupent aux
-  syllabes (« Médica-ment ») au lieu de se casser en plein mot, et un filet marque son bord pendant le défilement.
-- Faire défiler la grille de côté n'entraîne plus la fenêtre.
-- **Clavier ouvert, tout reste à portée** (A778) : sur un long tableau, la grille ne défile plus à l'intérieur de la
-  fenêtre (on ne pouvait plus atteindre ce qui est dessous) ; la tête « Annuler · Tableau · ↶ · OK » reste en haut ; un
-  bouton « ⋯ » dans la barre du bas réunit les en-têtes, l'image ou la vidéo de la case, « une ligne / une colonne en
-  fin » et « Modifier le Markdown ».
-- **‹ › n'ouvrent plus le clavier** : clavier fermé, elles déplacent la case active (cadre bleu) ; touchez la case pour
-  l'écrire. Clavier ouvert, elles passent à la case suivante, comme avant.
-- **D'après une capture d'iPhone** (A779) : plus de bouts de cases visibles à gauche de la colonne collée ; une colonne
-  de texte long s'élargit et ses mots se coupent avec un tiret au lieu de se casser au milieu ; le libellé de la barre
-  du bas se termine par « … » au lieu d'être rogné.
 
