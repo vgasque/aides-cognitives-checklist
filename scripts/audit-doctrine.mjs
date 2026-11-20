@@ -13093,6 +13093,30 @@ await sec('Menus · A804 définition en note grise, conséquence en notice bleue
   await page.close();
 });
 
+/* ══ A805 — CONTENU RÉDIGÉ : LE VIDE N'A RIEN À RÉGLER ; LA TÊTE SUR UNE LIGNE ════════════════════════════════════ */
+await sec('Éditeur · A805 contenu vide : une invitation, pas de réglage ; tête sur une ligne', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage(W<780?{viewport:{width:W,height:844},hasTouch:true,isMobile:true}:{viewport:{width:W,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const lire=body=>page.evaluate(async body=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A805',body});protocols.push(pr);await openProtocolEdit(pr.id);await __acCalme(500);
+      const c=document.querySelector('.md-ed');const vis=s=>{const e=c.querySelector(s);return !!e&&e.getClientRects().length>0;};
+      const lab=c.querySelector('.md-head>label:not(.md-live)'),sw=c.querySelector('.md-live'),cta=c.querySelector('.mdb-first');
+      return {inter:vis('.md-live'),aide:vis('.md-tap'),raw:vis('[data-mdbraw]'),
+        large:!!cta&&cta.getBoundingClientRect().width>=c.querySelector('#mdDoc').getBoundingClientRect().width-2,
+        ligne:!!lab&&!!sw&&vis('.md-live')&&Math.abs(lab.getBoundingClientRect().top-sw.getBoundingClientRect().top)<14,
+        nom:sw?sw.textContent.replace(/\s+/g,' ').trim():''};},body);
+    const v=await lire(''),p=await lire('## Indications\n\nTexte.');
+    t(`A805 · ${W} px · protocole vide : l'invitation pleine largeur et « Coller du Markdown… », ni interrupteur ni « Touchez un passage »`,!v.inter&&!v.aide&&v.raw&&v.large,JSON.stringify(v));
+    t(`A805 · ${W} px · avec du contenu : l'interrupteur revient sur la ligne de l'intitulé, l'aide sous la tête, nom complet lu`,p.inter&&p.aide&&!p.raw&&p.ligne&&p.nom==='Mise en forme en direct',JSON.stringify(p));
+    const k=await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A805 b'});protocols.push(pr);await openProtocolEdit(pr.id);await __acCalme(500);
+      document.querySelector('[data-mdbraw]').click();await __acCalme(500);const t=document.getElementById('p-body'),sw=document.querySelector('[data-mdlive]');
+      const o={doc:!!document.getElementById('mdDoc'),focus:document.activeElement===t,coupe:!!sw&&!sw.checked,vu:!!sw&&sw.closest('.md-live').getClientRects().length>0};
+      sw.click();await __acCalme(500);try{localStorage.removeItem('ac-mdlive');}catch(e){}return o;});
+    t(`A805 · ${W} px · « Coller du Markdown… » ouvre le champ brut (interrupteur coupé, visible), le curseur dedans`,!k.doc&&k.focus&&k.coupe&&k.vu,JSON.stringify(k));
+    await page.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

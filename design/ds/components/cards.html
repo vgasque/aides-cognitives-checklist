@@ -9038,6 +9038,24 @@
     background:transparent;font:inherit;font-size:var(--t-item);font-weight:600;color:var(--act);cursor:pointer}
   .mdb-add:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-first{margin-top:0}
+  /* A805 — la carte « Contenu rédigé » en mise en forme en direct : l'intitulé dans la rangée de tête (une ligne au
+     téléphone), l'invitation du vide en pleine largeur, l'interrupteur et l'aide « Touchez un passage… » au premier bloc. */
+  .field .md-head>label:not(.md-live){flex:0 1 auto;margin:0;min-width:0;font-size:var(--t-body);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}   /* la voix de `.field>label` */
+  .md-ed.mdl .md-head .md-plan-g{order:1}
+  .md-ed.mdl .md-head .md-live{order:2}
+  html.zw560 .md-ed.mdl .md-head .md-live{order:1}   /* téléphone : l'interrupteur sur la ligne de l'intitulé, le Plan dessous */
+  html.zw560 .md-ed.mdl .md-head .md-plan-g{order:2}
+  .md-tap{margin:0 0 10px;font-size:var(--t-meta);color:var(--ink-2)}
+  .md-ed.mdl:has(#mdDoc>.mdb-first) :is(.md-live,.md-tap){display:none}
+  .mdb-add.mdb-first{width:100%;min-height:64px;gap:14px;padding:12px 16px;border-width:1.5px;border-color:var(--primary-200);border-radius:var(--r-4);text-align:left}
+  .mdb-fp{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--primary-soft);color:var(--act)}
+  .mdb-ft{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .mdb-ft b{font-size:var(--t-item);font-weight:700;color:var(--act)}
+  .mdb-ft small{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .mdb-raw-go{display:inline-flex;align-items:center;min-height:36px;margin:6px 0 0;padding:0 4px;border:0;border-radius:var(--r-2);background:none;
+    font:inherit;font-size:var(--t-body);font-weight:600;color:var(--act);cursor:pointer}
+  .mdb-raw-go:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  html.zw560 .md-live .ml-x{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* lu, pas affiché */
   /* A548 : réglages du bloc ouvert, poignée de glisser (pointeur fin), ligne de dépôt. */
   .mdb-tools{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
   .mdb-chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:999px;

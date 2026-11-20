@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-/UPpuANz9baFDRF4SPSuyRNDm2u/rSfN24JErFUEVJ8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Mah5l91UYfHCrtF8RILRiuZrhxjoR/uXzJTuP1+mUqo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9439,6 +9439,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:transparent;font:inherit;font-size:var(--t-item);font-weight:600;color:var(--act);cursor:pointer}
   .mdb-add:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-first{margin-top:0}
+  /* A805 — la carte « Contenu rédigé » en mise en forme en direct : l'intitulé dans la rangée de tête (une ligne au
+     téléphone), l'invitation du vide en pleine largeur, l'interrupteur et l'aide « Touchez un passage… » au premier bloc. */
+  .field .md-head>label:not(.md-live){flex:0 1 auto;margin:0;min-width:0;font-size:var(--t-body);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}   /* la voix de `.field>label` */
+  .md-ed.mdl .md-head .md-plan-g{order:1}
+  .md-ed.mdl .md-head .md-live{order:2}
+  html.zw560 .md-ed.mdl .md-head .md-live{order:1}   /* téléphone : l'interrupteur sur la ligne de l'intitulé, le Plan dessous */
+  html.zw560 .md-ed.mdl .md-head .md-plan-g{order:2}
+  .md-tap{margin:0 0 10px;font-size:var(--t-meta);color:var(--ink-2)}
+  .md-ed.mdl:has(#mdDoc>.mdb-first) :is(.md-live,.md-tap){display:none}
+  .mdb-add.mdb-first{width:100%;min-height:64px;gap:14px;padding:12px 16px;border-width:1.5px;border-color:var(--primary-200);border-radius:var(--r-4);text-align:left}
+  .mdb-fp{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--primary-soft);color:var(--act)}
+  .mdb-ft{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .mdb-ft b{font-size:var(--t-item);font-weight:700;color:var(--act)}
+  .mdb-ft small{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .mdb-raw-go{display:inline-flex;align-items:center;min-height:36px;margin:6px 0 0;padding:0 4px;border:0;border-radius:var(--r-2);background:none;
+    font:inherit;font-size:var(--t-body);font-weight:600;color:var(--act);cursor:pointer}
+  .mdb-raw-go:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  html.zw560 .md-live .ml-x{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* lu, pas affiché */
   /* A548 : réglages du bloc ouvert, poignée de glisser (pointeur fin), ligne de dépôt. */
   .mdb-tools{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
   .mdb-chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border:1px solid var(--line-strong);border-radius:999px;
@@ -11158,7 +11176,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.152.0';
+const APP_VERSION='5.153.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20818,7 +20836,11 @@ function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||
     +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
 function mdDocHtml(p,open,grab,many){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
   const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
-  if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1">${uiIcon('plus',16,{sw:2.4})}Écrire le contenu…</button>`;
+  /* A805 — LE VIDE N'A RIEN À RÉGLER (planche « Contenu rédigé au téléphone », option B retenue) : une seule chose à faire,
+     en pleine largeur, qui dit ce qu'on peut écrire ; et, pour qui colle un long Markdown, le champ brut à un toucher
+     (l'interrupteur coupé d'A547). L'interrupteur et « Touchez un passage… » attendent le premier bloc (CSS, `:has`). */
+  if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1"><span class="mdb-fp" aria-hidden="true">${uiIcon('plus',18,{sw:2.4})}</span><span class="mdb-ft"><b>Écrire le contenu</b><small>titres, listes, tableaux, images</small></span></button>`
+    +`<button type="button" class="mdb-raw-go" data-mdbraw>Coller du Markdown…</button>`;
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
     if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea>
       <div class="mdb-acts" role="group" aria-label="Ce bloc">
@@ -21075,6 +21097,8 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
         im.data=r.data;im.w=r.w;im.h=r.h;self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();},false);return;}
     const ad=e.target.closest('[data-mdbadd]');if(ad){addMenu(ad,+ad.dataset.mdbadd);return;}
+    if(e.target.closest('[data-mdbraw]')){const sw=card.querySelector('[data-mdlive]');if(sw){sw.checked=false;sw.dispatchEvent(new Event('change'));}   // A805 : le champ brut, comme l'interrupteur coupé
+      const t=document.getElementById('p-body');if(t)t.focus();return;}
     const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();const i=+b.dataset.mdb;
       /* A774 : un TABLEAU s'ouvre dans la grille, la même fenêtre qu'à sa création — sans ouvrir son bloc : la grille
          écrit dans le champ entier (le document se redessine à l'écriture) ; « Modifier le Markdown » ouvre le bloc. */
@@ -21173,11 +21197,11 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   _mdDocGo=(ln,openIt)=>{const R=mdBlockRanges(p.body);let i=-1;R.forEach((r,k)=>{if(r.a<=ln)i=k;});if(i<0)return;
     if(openIt)return openAt(i);const b=doc.querySelector('[data-mdb="'+i+'"]');if(b)b.scrollIntoView({block:'start'});};
   ta.setSelectionRange(0,0);ta.dispatchEvent(new Event('keyup'));paint(false);}
-function mdHeadHtml(){const on=state.mdPv==='p'&&!mdLiveOn(),lv=mdLiveOn();
-  return `<div class="md-head"><span class="mdt-g md-plan-g"><button type="button" class="mini md-plan" data-mdplan aria-haspopup="listbox" aria-expanded="false">${uiIcon('list',16)}<span class="md-plan-t">Plan</span><span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>
+function mdHeadHtml(lab){const on=state.mdPv==='p'&&!mdLiveOn(),lv=mdLiveOn();
+  return `<div class="md-head">${lab||''}<span class="mdt-g md-plan-g"><button type="button" class="mini md-plan" data-mdplan aria-haspopup="listbox" aria-expanded="false">${uiIcon('list',16)}<span class="md-plan-t">Plan</span><span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>
     <button type="button" class="mini md-grid" data-mdtool="grid" title="Modifier ce tableau en grille" hidden>${uiIcon('table',16)}<span>Modifier en grille</span></button>
     <div class="seg md-seg" role="radiogroup" aria-label="Contenu rédigé" style="--seg-n:2;--seg-i:${on?1:0}"><span class="seg-pill" aria-hidden="true"></span>${[['w','Écrire'],['p','Aperçu']].map(([k,l],i)=>`<button type="button" class="seg-btn${on===!!i?' on':''}" data-mdpv="${k}" role="radio" aria-checked="${on===!!i}">${l}</button>`).join('')}</div>
-    <label class="md-live"><input type="checkbox" role="switch" data-mdlive${lv?' checked':''}><span>Mise en forme en direct</span></label></div>`;}
+    <label class="md-live"><input type="checkbox" role="switch" data-mdlive${lv?' checked':''}><span>Mise en forme<span class="ml-x"> en direct</span></span></label></div>`;}   // A805 : « en direct » se tait au téléphone, il reste lu
 // Titres du corps : {ln, n (niveau), text (sans balisage)}.
 const mdHeads=body=>mdBlocks(body).filter(b=>/^h[123]$/.test(b.t)).map(b=>({ln:b.ln,n:+b.t[1],text:mdStrip(b.text).trim()||'Sans titre'}));
 const mdCaretLine=ta=>ta.value.slice(0,ta.selectionStart||0).split('\n').length-1;
@@ -22329,7 +22353,7 @@ function renderProtocolEdit(){
   const live=mdLiveOn();_mdDocGo=null;   // A547 : mise en forme en direct (document par blocs)
   const mds=wideEdit&&!live&&!mqSeg.matches;
   // A593 : dans l'établi, l'intitulé et sa rangée (Plan, interrupteur) forment une bande blanche AU-DESSUS des deux cartes.
-  const mdLabHtml=`<label>Contenu rédigé <span class="hint">${live?'facultatif — touchez un passage pour le modifier':'facultatif — mise en forme simple, aperçu à côté'}</span></label>`;   // A593 : l'établi (texte | poignée | aperçu) ; le Fold ouvert garde la charnière
+  const mdLabHtml=`<label>Contenu rédigé <span class="hint">${live?'facultatif':'facultatif — mise en forme simple, aperçu à côté'}</span></label>`;   // A805 : « touchez un passage » a sa propre ligne, et seulement s'il y a un passage   // A593 : l'établi (texte | poignée | aperçu) ; le Fold ouvert garde la charnière
   main.innerHTML=`${wideEdit?`<div class="read-grid${live?' mdl-grid':''}${mds?' etab-page':''}"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
@@ -22343,8 +22367,8 @@ function renderProtocolEdit(){
     une case qu'on peut cocher en lecture, mais qui NE S'ENREGISTRE PAS — sortir de la page
     l'efface, et c'est ce qui rend le geste sans conséquence. Une référence n'est pas une session ;
     ce qui garde une trace, ce sont les fiches. */}
-    <fieldset class="field ed-card md-ed${state.mdPv==='p'&&!live?' md-pv':''}${live?' mdl':''}${mds?' etab':''}">${mds?'':mdLabHtml}
-      ${mds?'':mdHeadHtml()}
+    <fieldset class="field ed-card md-ed${state.mdPv==='p'&&!live?' md-pv':''}${live?' mdl':''}${mds?' etab':''}">${mds||live?'':mdLabHtml}
+      ${mds?'':live?mdHeadHtml(mdLabHtml)+'<p class="md-tap">Touchez un passage pour le modifier.</p>':mdHeadHtml()}
       ${mds?`<div class="etab-lh">${mdLabHtml}${mdHeadHtml()}</div><div class="etab-grid" id="etabGrid"><div class="etab-l">`:''}
       ${mdToolbarHtml()}
       ${live?'<div class="md-doc" id="mdDoc"></div>':''}
