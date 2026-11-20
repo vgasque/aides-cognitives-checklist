@@ -13016,6 +13016,30 @@ await sec('Éditeur · A801 « Ajouter un bloc » sans filtre ; au doigt, le fil
   await page.close();
 });
 
+/* ══ A802 — AU RÉVEIL, UN VIEWPORT RACCOURCI SANS CHAMP ACTIF N'EST PAS UN CLAVIER ═══════════════════════════════
+   Le harnais ne met pas l'appareil en veille : on donne au viewport visuel la géométrie relevée au réveil (plus court
+   que la page, sans clavier) et on relit le prédicat par son vrai poseur (`_vvhSync`). */
+await sec('Chrome · A802 viewport raccourci sans champ actif : l’en-tête reste', async () => {
+  const page=await br.newPage({viewport:{width:1024,height:768},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A802'});protocols.push(pr);await openProtocolEdit(pr.id);});
+  await calme(page,600);
+  const r=await page.evaluate(async()=>{const vv=window.visualViewport,hb=()=>{const h=document.querySelector('header.bar');return !!h&&getComputedStyle(h).display!=='none'&&h.getBoundingClientRect().height>0;};
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    Object.defineProperty(vv,'height',{configurable:true,get:()=>innerHeight-200});
+    window._vvhSync();await __acCalme(100);
+    const o={reveil:!document.documentElement.classList.contains('kbd'),entete:hb()};
+    const f=document.createElement('input');f.type='text';f.setAttribute('aria-label','sonde');document.querySelector('main').appendChild(f);f.focus();   // un champ du CORPS (un champ d'en-tête garde l'en-tête, J206)
+    window._vvhSync();await __acCalme(100);
+    o.frappe=document.documentElement.classList.contains('kbd')&&!hb();
+    f.blur();window._vvhSync();await __acCalme(100);o.rendu=!document.documentElement.classList.contains('kbd')&&hb();
+    f.remove();delete vv.height;window._vvhSync();return o;});
+  t('A802 · viewport raccourci SANS champ actif (réveil) : pas de « clavier », l’en-tête reste',r.reveil&&r.entete,JSON.stringify(r));
+  t('A802 · un champ actif dans ce viewport : le clavier est bien reconnu (en-tête effacé), puis rendu au départ du focus',r.frappe&&r.rendu,JSON.stringify(r));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
