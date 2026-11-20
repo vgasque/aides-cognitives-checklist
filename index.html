@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ydO3B1XfH/1zTCiUcCwcvAePbXpFUD+ZTfjFQQDff2g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-rU1GR3ImaXqK+PB8hgi+46gMaJXAwv8WjApP11mNgFc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11143,7 +11143,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.150.1';
+const APP_VERSION='5.150.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -37776,6 +37776,17 @@ tblColApply();   // A786
    seuil sous toute barre d'accessoires (~44 px + marge) et au-dessus d'un rebond, qui ne rétrécit
    RIEN. Pendant exact de la garde d'`unpan()` (v5.10.4). Détail : doctrine-js.md J204. */
 const VVT_MIN_CLAVIER=60;
+/* A802 — UN CLAVIER N'EXISTE QUE POUR UN CHAMP QUI A LE FOCUS (signalé, captures iPad et iPhone : « mis en veille, au
+   déverrouillage le haut de l'écran est tronqué et je n'y ai plus accès »). La géométrie seule (viewport visuel plus
+   court) ne suffit plus : au réveil, iOS rend parfois un viewport visuel encore raccourci SANS clavier — `html.kbd`
+   restait posée, l'en-tête effacé (`html.kbd header.bar{display:none}`), et le recollage `unpan` renonçait, croyant au
+   même clavier. Les DEUX conditions maintenant : la géométrie (A427 : le focus seul ne suffit pas non plus) ET un champ
+   de saisie actif. Champ = ce qui ouvre un clavier ou un sélecteur (texte, nombre, date, zone de texte, `select`,
+   contenu éditable) — pas une case, un bouton ou un curseur. */
+const VVT_CHAMP_RX=/^(?:text|search|email|url|tel|password|number|date|datetime-local|month|week|time)$/;
+const champActif=()=>{try{const a=document.activeElement;if(!a||a===document.body)return false;if(a.isContentEditable)return true;
+  const t=a.tagName;if(t==='TEXTAREA'||t==='SELECT')return !a.disabled&&!a.readOnly;
+  return t==='INPUT'&&!a.disabled&&!a.readOnly&&VVT_CHAMP_RX.test((a.getAttribute('type')||'text').toLowerCase());}catch(e){return false;}};
 {const vv=window.visualViewport;
  if(vv){let last=-1,lastT=-1;
   /* ⚠ `--vvt` NE SUIT QUE LES CHANGEMENTS DE **HAUTEUR**, JAMAIS LE DÉFILEMENT : clavier ouvert,
@@ -37787,8 +37798,9 @@ const VVT_MIN_CLAVIER=60;
      un retard de 180 ms était DÉPHASÉ et produisait les deux symptômes tour à tour ; le harnais ne
      pilote pas `visualViewport`). Reste de la v5.12.5 : la garde `VVT_MIN_CLAVIER` — sans clavier,
      aucun décalage retenu. Détail : doctrine-js.md J205. */
+  let kbd0=false;
   const set=()=>{const h=vv.height;
-    const clavier=(window.innerHeight-h)>VVT_MIN_CLAVIER;   // un clavier OCCUPE de la hauteur (cf. ci-dessus)
+    const clavier=(window.innerHeight-h)>VVT_MIN_CLAVIER&&champActif();   // un clavier OCCUPE de la hauteur, POUR un champ actif (A802)
     if(Math.abs(h-last)>=.5){last=h;document.documentElement.style.setProperty('--vvh',h+'px');}
     const t=clavier?Math.max(0,vv.offsetTop||0):0;
     if(Math.abs(t-lastT)>=.5){lastT=t;document.documentElement.style.setProperty('--vvt',t+'px');}
@@ -37805,7 +37817,9 @@ const VVT_MIN_CLAVIER=60;
     const dansHdr=(()=>{try{const a=document.activeElement;
       if(a&&a.closest&&a.closest('#homeDock'))return false;
       return !!(a&&a.closest&&(a.closest('header.bar')||a.closest('.rt-dock')));}catch(e){return false;}})();
-    document.documentElement.classList.toggle('kbd',clavier&&!dansHdr);};
+    const k=clavier&&!dansHdr;document.documentElement.classList.toggle('kbd',k);
+    // A802 : le clavier vient de partir (ou ne l'était qu'en apparence) — les deux viewports se recollent, une fois.
+    if(kbd0&&!k)setTimeout(unpan,60);kbd0=k;};
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView SANS resize sur visualViewport — on
      écoute large ET on resynchronise à chaque tic de `tickAll` (300 ms, AVANT le garde d'activité,
      donc aussi au repos). Coût mesuré : RIEN (`vv.height` déjà calculée, 0 layout ; écriture de
@@ -37831,7 +37845,7 @@ const VVT_MIN_CLAVIER=60;
      haut de page ; un aller-retour d'un pixel force WebKit à recoller les deux viewports. */
   const unpan=()=>{
     if(vv.scale>1.02)return;
-    if((window.innerHeight-vv.height)>VVT_MIN_CLAVIER)return;   // clavier ouvert : le décalage est légitime
+    if((window.innerHeight-vv.height)>VVT_MIN_CLAVIER&&champActif())return;   // clavier ouvert : le décalage est légitime (A802 : pour un champ actif)
     const o=vv.offsetTop;
     if(o>=1)window.scrollBy(0,o);
     else if(o<=-1){window.scrollBy(0,1);window.scrollBy(0,-1);}};
@@ -37839,7 +37853,7 @@ const VVT_MIN_CLAVIER=60;
   window.addEventListener('focusout',()=>setTimeout(unpan,250));
   window.addEventListener('pageshow',()=>setTimeout(unpan,60));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;
-    [60,400].forEach(ms=>setTimeout(()=>{set();unpan();},ms));});}}
+    [60,400,1200].forEach(ms=>setTimeout(()=>{set();unpan();},ms));});}}   // A802 : 1 200 ms — au réveil d'une veille, iOS repose sa géométrie plus tard encore
 // En mode Auto, suit en DIRECT les changements de thème du système.
 if(window.matchMedia){try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if((localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto')==='auto')applyTheme('auto');});}catch(e){}}
 applyTheme(localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto');

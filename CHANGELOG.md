@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.150.2] — 2026-11-20
+Après une mise en veille, l'en-tête ne disparaît plus (A802). Aucune mise à jour du serveur.
+- **Le haut de l'écran revient au déverrouillage** (A802). Sur iPad et iPhone, après une mise en veille, l'en-tête pouvait rester caché : la page commençait sous l'heure, sans retour, sans « Enregistrer », et sans moyen d'y remonter. L'app croyait le clavier encore ouvert, car au réveil iOS signale parfois un écran raccourci, comme si un clavier était affiché. Elle ne le croit plus que si un champ de saisie est réellement actif. **À vérifier sur iPad et iPhone.**
+- Si un champ était en cours de saisie au moment de la veille, l'en-tête revient dès qu'on touche ailleurs que dans le champ.
+
 ## [5.150.1] — 2026-11-20
 Deux correctifs pour la tablette : la liste des catégories défile seule, et « Ajouter un bloc » ne se referme plus en
 ouvrant le clavier (A800-A801). Aucune mise à jour du serveur.
@@ -241,19 +246,4 @@ tableau, une grille de tableau redessinée, la taille d'une vidéo, un glisser-d
 - **Glisser-déposer : on voit où ça va** : une ligne bleue suit le pointeur et dit l'endroit — entre deux blocs, dans
   un élément de liste, dans une case d'une grille d'images ; en mode Texte, la ligne visée (jamais au milieu d'un
   tableau), et l'aperçu montre le même endroit. Les vidéos se déposent aussi.
-
-## [5.138.0] — 2026-11-16
-Administration › Stockage : les fichiers que plus rien n'utilise, listés et supprimables (A771). ⚠ **Serveur à mettre à
-jour** : rejouer `supabase/schema.sql` (sans cela, la liste suit l'ancienne règle et aucune suppression ne passe).
-- **Une nouvelle section « Stockage »** dans Administration (onglet au bureau, rangée « Fichiers sans élément » dans la
-  vue d'ensemble) : chaque fichier du serveur qu'aucune aide ni aucun protocole ne cite plus, avec sa nature (document
-  PDF, vidéo, image), son espace (Perso de qui, quelle bibliothèque), son poids et sa date.
-- **Supprimer un fichier, ou « Tout supprimer »**, après confirmation. Le serveur revérifie chaque fichier au moment
-  même : un fichier de nouveau cité n'est jamais supprimé.
-- **Un fichier de moins de 7 jours se voit mais ne se supprime pas** : un appareil peut être en train d'envoyer
-  l'élément qui le cite.
-- **Règle plus prudente** : un fichier est cité dès que son identifiant apparaît n'importe où dans une aide ou un
-  protocole vivant (pièces, vidéos, images, lignes du texte). L'ancienne liste pouvait rester vide à tort.
-- Réservé à l'administrateur de l'instance, jamais depuis un poste partagé.
-- `supabase/rls-tests.sql` : section 22 (liste réservée, fichier récent ou cité intouchable, ligne du texte protectrice).
 
