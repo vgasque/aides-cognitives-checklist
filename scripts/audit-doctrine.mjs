@@ -13069,6 +13069,30 @@ await sec('Menus · A803 le titre se tait quand le bouton le dit ; tête posée,
     await page.close();}
 });
 
+/* ══ A804 — DANS UN MENU, UNE DÉFINITION EST UNE NOTE GRISE ; LA CONSÉQUENCE D'UN GESTE RESTE BLEUE ════════════════ */
+await sec('Menus · A804 définition en note grise, conséquence en notice bleue', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:860}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A804',body:'## A'});protocols.push(pr);await openProtocolEdit(pr.id);
+    const d=document.querySelector('details.ed-ident');if(d)d.open=true;});
+  await calme(page,600);
+  const r=await page.evaluate(async()=>{const lire=()=>{const n=document.querySelector('.catmenu .mm-ctx .notice');if(!n)return null;const cs=getComputedStyle(n);
+      return {memo:n.classList.contains('mm-memo'),fond:cs.backgroundColor,bord:cs.borderTopWidth,texte:n.textContent.slice(0,40)};};
+    const o={};const ch=document.querySelectorAll('.cat-chip-other');
+    ch[0].click();await __acCalme(400);o.cat=lire();if(_pickClose)_pickClose(false);await __acCalme(150);
+    ch[1].click();await __acCalme(400);o.coll=lire();if(_pickClose)_pickClose(false);await __acCalme(150);
+    // la notice d'une CONSÉQUENCE (patron de « Ranger » sur deux bibliothèques) : même tête, sans `mm-memo`
+    const b=document.querySelector('.cat-chip-other');
+    openPickMenu(b.parentNode,{aria:'Catégorie',title:'Ranger dans une catégorie',trigger:b,head:'<div class="notice"><div><b>2 bibliothèques différentes.</b> Chacun ira dans la catégorie du même nom.</div></div>',options:[{val:'a',name:'Cardiologie'}],onPick:()=>{}});
+    await __acCalme(300);o.consequence=lire();if(_pickClose)_pickClose(false);return o;});
+  const gris=x=>!!x&&x.memo&&x.fond==='rgba(0, 0, 0, 0)'&&x.bord==='0px';
+  t('A804 · « Choisir la catégorie » : la définition est une note grise, sans fond ni cadre',gris(r.cat)&&/Une seule par aide/.test(r.cat.texte),JSON.stringify(r.cat));
+  t('A804 · « Ajouter à une collection » : même note grise',gris(r.coll)&&/Vos collections/.test(r.coll.texte),JSON.stringify(r.coll));
+  t('A804 · la conséquence d’un geste garde sa notice bleue (fond et cadre)',!!r.consequence&&!r.consequence.memo&&r.consequence.fond!=='rgba(0, 0, 0, 0)'&&r.consequence.bord!=='0px',JSON.stringify(r.consequence));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

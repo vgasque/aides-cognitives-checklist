@@ -5274,6 +5274,15 @@
   .mm-ctx span{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .mm-ctx .notice{margin:8px 0 0;padding-right:14px;font-size:var(--t-body);font-weight:500}   /* A424 : notice d'en-tête, sans croix */
   .mm-ctx .notice b{font-size:inherit}
+  /* A804 — UNE DÉFINITION N'EST PAS UNE ALERTE (planche « Bandeaux bleus des menus », option A retenue). Dans un menu, la
+     phrase qui DÉFINIT ce qu'on choisit (« Une seule par aide… » des catégories, « Vos collections sont à vous seul… »),
+     la même à chaque ouverture, passe au registre MÉMO de la taxonomie des notices : note grise, sans cadre ni fond, son
+     icône en gris. Le bleu plein la faisait lire comme la rangée choisie, l'anneau de focus ou « Terminé » (règle 8 : le
+     bleu est l'action et le courant). La CONSÉQUENCE d'un geste, qui n'apparaît que dans un cas (« 2 bibliothèques
+     différentes… » de « Ranger »), garde sa notice bleue : elle doit être lue avant de toucher. */
+  .mm-ctx .notice.mm-memo{margin:8px 0 0;padding:0;border:0;border-radius:0;background:none;color:var(--ink-2);font-size:var(--t-meta);font-weight:500;line-height:1.4;gap:6px}
+  .mm-ctx .notice.mm-memo svg{color:var(--ink-2)}
+  .catmenu.wide .mm-ctx .notice.mm-memo{margin-top:6px}
   .mm-head-n{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}   /* A424 : le partage du groupe, une fois */
   :is(.popmenu.sheet,.acct-list) .mm-row{padding:6px 0;border-radius:0}
   :is(.popmenu.sheet,.acct-list) .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
