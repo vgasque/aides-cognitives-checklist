@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.153.0] — 2026-11-20
+La carte « Contenu rédigé » d'un protocole, plus claire au téléphone, surtout quand elle est vide (A805). Aucune mise à
+jour du serveur.
+- **Protocole vide : une seule chose à faire** (A805). La carte montre « Écrire le contenu » en pleine largeur, avec en dessous ce qu'on peut écrire (titres, listes, tableaux, images). L'interrupteur « Mise en forme en direct » et la consigne « touchez un passage pour le modifier » n'apparaissent qu'au premier bloc : avant, ils n'avaient rien à régler ni à toucher.
+- **« Coller du Markdown… »** sous l'invitation ouvre directement le champ de texte brut, pour coller un long texte d'un coup. C'est le même mode que l'interrupteur coupé.
+- **Avec du contenu, la tête tient sur une ligne** : « Contenu rédigé facultatif » et l'interrupteur côte à côte, le Plan dessous au téléphone. L'interrupteur dit « Mise en forme » au téléphone ; les lecteurs d'écran entendent toujours le nom complet. La consigne « Touchez un passage pour le modifier » a sa propre petite ligne.
+
 ## [5.152.0] — 2026-11-20
 Dans les menus, les définitions ne s'affichent plus en bandeau bleu (A804). Aucune mise à jour du serveur.
 - **Une définition devient une note grise** (A804). Dans « Choisir la catégorie » (« Une seule par aide, avec sa couleur… ») et « Ajouter à une collection » (« Vos collections sont à vous seul… »), la phrase reste à sa place, sous le titre, mais sans cadre ni fond bleu. Elle ne se confond plus avec le choix en cours, l'anneau de sélection ou le bouton « Terminé », qui sont bleus eux aussi. Au téléphone, les catégories montent d'une trentaine de pixels.
@@ -203,18 +210,4 @@ du serveur.
 - Limite : le cadre d'une vidéo garde sa forme 4 : 3 tant que la vidéo n'est pas là (ses dimensions ne sont pas
   connues avant) ; sa hauteur peut donc encore changer à l'arrivée.
 - Vérifié sur Chromium, WebKit (le moteur de Safari) et Firefox : le cadre et l'image posée ont la même taille.
-
-## [5.139.2] — 2026-11-17
-Correctif : au téléphone, clavier ouvert, la grille d'un tableau n'a plus qu'un seul défilement (A780). Aucune mise à
-jour du serveur.
-- **Deux défilements emboîtés, clavier ouvert** : la fenêtre « Tableau » gardait la hauteur de l'écran alors que le
-  clavier en cache une partie — la fenêtre défilait en plus de son contenu, et la barre du bas (‹ › Ligne · Colonne ·
-  ⋯) restait derrière le clavier. La fenêtre prend maintenant la hauteur réellement visible : « Annuler · OK » en haut
-  et la barre en bas ne bougent plus, seule la grille défile entre les deux.
-- **La case que l'on touche reste visible** au-dessus de la barre du bas (elle pouvait se retrouver dessous).
-- La tête « collée » de la v5.139.1, qui recouvrait le haut de la grille, est retirée.
-- Sur tablette, la 1ʳᵉ colonne collée s'élargit (jusqu'à 168 px) ; le libellé « Dans la case » nomme la case active
-  (« Dans la case Ligne 2, Dose »), sous la grille comme dans « ⋯ ».
-- Vérifié sur WebKit (le moteur de Safari, clavier simulé comme sur iPhone), et sur huit profils : Android téléphone et
-  tablette, iPhone, iPad, Chrome, Safari et Firefox au bureau.
 
