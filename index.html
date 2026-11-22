@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Mah5l91UYfHCrtF8RILRiuZrhxjoR/uXzJTuP1+mUqo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-KqPQLokRiIkF3MI/Dcf5N/9G1EFSdlgo8qQ/R9swtMc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6271,7 +6271,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .lst-n{margin-left:auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
   .ed-forget .lst-n{color:var(--crit)}
   .lst-n.over{color:var(--warn)}
-  .list-edit>label{display:flex;align-items:baseline;gap:8px}
+  .list-edit>label{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px}
+  /* A806 : l'aide d'un intitulé tient en quelques mots ; sa phrase complète paraît sous le champ quand on y est. */
+  .hint-more{display:none;margin:6px 0 0;padding:8px 10px;border-radius:var(--r-2);background:var(--amb-2);font-size:var(--t-meta);line-height:1.45;font-weight:500;color:var(--ink-2)}
+  .field:focus-within>.hint-more,.ed-card:focus-within>.hint-more{display:block}
+  .tme-more{display:none}
+  .tme-row:focus-within+.tme-more,.tmedit:has(>.tme-top:focus-within)>.tme-more.tme-lib{display:block}
+  /* A807 : le détail d'un repère passe SOUS sa ligne — `.list-edit .li input{flex:1}` le mettait à côté, et les deux se coupaient. */
+  .list-edit .li input.li-note-in{flex:1 1 100%}
+  .list-edit.le-vide .le-grp>.li{display:none}
+  .list-edit.bare.le-vide>label{display:none}
+  .list-edit.le-vide .le-grp{border:1px dashed var(--primary-200)}
+  .le-grp>.add-line.le-inv{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:56px;border-top:0;padding:8px 4px;color:var(--act)}
+  .le-inv b{font-size:var(--t-item);font-weight:700}
+  .le-inv small{font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .add-line.rel-add{display:flex;align-items:center;gap:8px;border:1px dashed var(--primary-200);color:var(--act);text-align:left}
+  .rel-add>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rel-add .rel-n{flex:none;margin-left:auto;min-width:24px;padding:2px 8px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:700;color:var(--ink-2);text-align:center}
   /* La poignée ⠿ vit en TÊTE, à droite du titre — jamais au contact de « Supprimer le bloc »
      (règle v4.68.0 : un geste destructeur ne se met pas au contact d'un autre bouton). ⚠ 22ᵉ défaut
      de rangée flex : nowrap + deux incompressibles = le champ titre payait et la poignée sortait du
@@ -11176,7 +11192,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.153.0';
+const APP_VERSION='5.154.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -22539,9 +22555,9 @@ function relCandidates(entity){return relCandidatesFor(entity,fiches,protocols);
 function relFieldsetHtml(entity){
   const chips=(entity.links||[]).map(id=>{const t=relTarget(id);return t?`<span class="rel-chip">${uiIcon(relKindOf(id)==='p'?'book':'doc',12)}${esc(t.title)||'Sans titre'}<button class="rel-x" data-relrm="${esc(id)}" aria-label="Retirer">×</button></span>`:'';}).join('');
   const n=relCandidates(entity).length;
-  return `<fieldset class="field ed-card"><label>Voir aussi <span class="hint">aides cognitives et protocoles liés — raccourcis en lecture</span></label>
-    <div class="rel-edit">${chips||'<span class="hint">Aucun lien pour le moment.</span>'}</div>
-    ${n?`<button class="add-line" id="relAddBtn">+ Lier une aide ou un protocole (${n} disponible${n>1?'s':''})…</button>`:'<p class="hint">Rien d’autre à lier dans ce périmètre (Perso ou même bibliothèque).</p>'}</fieldset>`;}
+  return `<fieldset class="field ed-card"><label>Voir aussi <span class="hint">raccourcis en lecture</span></label>
+    ${chips?`<div class="rel-edit">${chips}</div>`:''}
+    ${n?`<button class="add-line rel-add" id="relAddBtn"><span>＋ Lier une aide ou un protocole</span><span class="rel-n"><span class="sr-only">, </span>${n}<span class="sr-only"> disponible${n>1?'s':''}</span></span></button>`:'<p class="hint">Rien d’autre à lier dans ce périmètre (Perso ou même bibliothèque).</p>'}</fieldset>`;}
 // Ouvre une cible « Voir aussi » selon sa nature : aide -> lecture de fiche (session), protocole
 // -> lecture de protocole. Cible disparue (corbeille) : silencieux, comme les résolutions ci-dessus.
 /* PILE D'ORIGINE (v4.28.0, décision utilisateur) : naviguer fiche → fiche (« Voir aussi »,
@@ -22647,15 +22663,15 @@ function editorMetaFieldsHtml(d,prefix,L){
   return `${state.draftRestored?`<div class="notice">${uiIcon('history',15)}<span>Brouillon auto-enregistré (${fmtHMS(state.draftRestored)}) restauré — vos modifications non publiées ont été reprises. <button class="linkbtn" id="ghostDrop">Repartir de la version enregistrée</button></span></div>`:''}
     <div class="ed-sech-row"><p class="ed-sech">Identité</p><button type="button" class="id-tgl" data-identtgl aria-expanded="${ouvert?'true':'false'}"><span class="id-tgl-l">${ouvert?'Replier':'Modifier'}</span>${chevHtml(ouvert)}</button></div><details class="ed-ident"${ouvert?' open':''}><summary tabindex="-1">${resume}</summary>
     <div class="field"><label for="${prefix}-title">${L.titleLabel}</label><input type="text" id="${prefix}-title" class="ed-title-in" value="${esc(d.title)}" placeholder="${L.titlePh}"></div>
-    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">ce qui distingue ${L.fem?'cette aide d’une voisine':'ce protocole d’un voisin'} — deux ou trois mots (60 caractères au plus), jamais tronqué à l’affichage</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte"></div>
+    <div class="field"><label for="${prefix}-disc">Discriminant <span class="hint">deux ou trois mots</span></label><input type="text" id="${prefix}-disc" value="${esc(d.discriminant||'')}" maxlength="60" placeholder="ex. adulte · pédiatrique · femme enceinte" aria-describedby="${prefix}-disc-more"><p class="hint-more" id="${prefix}-disc-more">Ce qui distingue ${L.fem?'cette aide d’une voisine':'ce protocole d’un voisin'}. 60 caractères au plus, jamais tronqué à l’affichage.</p></div>
     <div class="field"><label>Catégorie</label><div class="cat-picker" id="catPicker">${catPickerHtml(d)}</div></div>
     ${Auth.signedIn()?`<div class="field"><label for="${prefix}-scope">Bibliothèque <span class="hint">${L.scopeHint}</span></label>
       <select id="${prefix}-scope"><option value="" ${!d.library?'selected':''}>Perso (privé)</option>${sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin').map(l=>`<option value="${esc(l.id)}" ${d.library===l.id?'selected':''}>${esc(l.name)} (partagée)</option>`).join('')}${d.library&&!myLibraries.some(l=>l.id===d.library)?`<option value="${esc(d.library)}" selected>${esc(libName(d.library)||'Bibliothèque')}</option>`:''}</select></div>`:''}
-    <div class="field"><label>Collections <span class="hint">votre rangement, à vous seul — rien n’est déplacé</span></label><div class="cat-picker" id="collPicker">${collPickerHtml(d)}</div></div>
-    <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">référence courte facultative</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--f-mono)" maxlength="40"></div>
+    <div class="field"><label>Collections <span class="hint">à vous seul</span></label><div class="cat-picker" id="collPicker">${collPickerHtml(d)}</div></div>
+    <div class="row2"><div class="field"><label for="${prefix}-code">Code <span class="hint">facultatif</span></label><input type="text" id="${prefix}-code" value="${esc(d.code||'')}" placeholder="${L.codePh}" style="font-family:var(--f-mono)" maxlength="40"></div>
       <div class="field"><label for="${prefix}-validation">Date de validation <span class="hint">mois/année</span></label><input type="text" id="${prefix}-validation" inputmode="numeric" autocapitalize="off" value="${esc(valToDisplay(d.validatedAt))}" placeholder="MM/AAAA"></div></div>
-    <div class="field"><label for="${prefix}-review">À revérifier <span class="hint">passé ce délai après la validation, l’accueil affiche « À revérifier »</span></label>
-      <select id="${prefix}-review">${REVIEW_MONTHS.map(m=>`<option value="${m}" ${d.reviewEvery===m?'selected':''}>${m===12?'tous les ans':'tous les '+(m/12)+' ans'}</option>`).join('')}</select></div>
+    <div class="field"><label for="${prefix}-review">À revérifier <span class="hint">après la validation</span></label>
+      <select id="${prefix}-review" aria-describedby="${prefix}-review-more">${REVIEW_MONTHS.map(m=>`<option value="${m}" ${d.reviewEvery===m?'selected':''}>${m===12?'tous les ans':'tous les '+(m/12)+' ans'}</option>`).join('')}</select><p class="hint-more" id="${prefix}-review-more">Passé ce délai, l’accueil affiche « À revérifier ».</p></div>
     <div class="field"><label>État</label>${statusSegHtml(d.status,L.fem,!!d.library)}</div></details>`;}
 /* Sélecteur de catégorie « une sélectionnée + Autre… » (SPEC crise §2, v4.3.0).
    catPickerHtml : chip teinté de la catégorie COURANTE (ou « Sans catégorie », neutre) + bouton
@@ -29850,14 +29866,20 @@ function forgetEditorHtml(f){
         :`<button type="button" class="ed-ic del" data-fgdel="${i}" aria-label="Supprimer la ligne">×</button>`)
       +`</div>`;});
   const n=U.length,reste=Math.max(0,4-n);
+  /* A807 : vide, le chapeau n'est qu'une invitation — ni rangée « … », ni compte 0/4, ni note de pied. */
+  if(!n)return `<fieldset class="field list-edit ed-forget le-vide"><label>Ne pas oublier</label><div class="le-grp"><button class="add-line le-inv" data-fgadd><b>＋ Ajouter un rappel</b><small>affiché en haut de l’aide, 4 au plus</small></button></div><p class="nf-guard" id="nfGuard" role="status"></p></fieldset>`;
   /* A520 (lot 9) : intertitre au-dessus d'un GROUPE de rangées (`.le-grp`), l'ajout en dernière rangée, la consigne
      en note SOUS le groupe (maquette). */
   return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier`
     +`<span class="lst-n${n>4?' over':''}">${n}/4</span></label><div class="le-grp">${rows}`
     +`<button class="add-line" data-fgadd>＋ Rappel${reste?' ('+reste+' restant'+(reste>1?'s':'')+')':''}</button></div>`
-    +`<p class="le-foot">4 rappels maximum — ils s’affichent en permanence, en tête d’aide.</p>`
+    +`<p class="le-foot">Affichés en permanence en tête d’aide, 4 au plus.</p>`
     +`<p class="nf-guard" id="nfGuard" role="status">${esc(nfGuardTxt(forgetAll(f))||'')}</p></fieldset>`;}
-function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
+/* A807 : une liste de portée fiche dit ce qu'elle ajoute (« ＋ Ajouter un critère ») ; VIDE, elle n'est plus
+   qu'une invitation (`.le-vide`) — la rangée « … » reste dans le DOM, masquée, et le tap la montre sans re-rendu. */
+const LE_INV={confirmation:['Ajouter un critère','ce qui confirme le tableau'],sources:['Ajouter une source','article, recommandation'],
+  differentials:['Ajouter un diagnostic',''],posology:['Ajouter un repère',''],verify:['Ajouter une surveillance','']};
+function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};const INV=LE_INV[key];
   /* DÉFENSIF DEPUIS L'ÉTAPE B : les cinq listes de portée fiche ne sont plus des CHAMPS mais une
      vue sur le pool. Un appelant qui passerait encore `f.verify` transmettrait `undefined`, et le
      rendu de l'éditeur ENTIER tomberait — c'est arrivé, et ni `npm run check` ni la suite ne
@@ -29873,15 +29895,16 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
      édition, SOUS la ligne, dans `.li-tools` — ce qui leur donne gratuitement le remède
      anti-vol-de-clic de la v4.77.0, dont le sélecteur est `.li-tools button`. */
   const rows=edGrabRows(key,_src,(v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
-  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${edGrabHandleL(key,i,_src.length,'la ligne')}${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}"><span class="li-tools">${boldBtnHtml()}${opts.crit?`<button type="button" class="ed-ic${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}<span class="li-sp"></span><button type="button" class="ed-ic del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></span>${opts.note?`<input type="text" class="li-note-in" data-lnote="${i}" value="${esc((roleItems(state.draft||{},'dose')[i]||{}).note||'')}" placeholder="Préparation, dilution, administration (facultatif)" aria-label="${esc(legend)} — détail de la ligne ${i+1}">`:''}</div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
+  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${edGrabHandleL(key,i,_src.length,'la ligne')}${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}"${opts.more?` aria-describedby="lm-${key}"`:''}><span class="li-tools">${boldBtnHtml()}${opts.crit?`<button type="button" class="ed-ic${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}<span class="li-sp"></span><button type="button" class="ed-ic del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></span>${opts.note?`<input type="text" class="li-note-in" data-lnote="${i}" value="${esc((roleItems(state.draft||{},'dose')[i]||{}).note||'')}" placeholder="Préparation, dilution, administration (facultatif)" aria-label="${esc(legend)} — détail de la ligne ${i+1}">`:''}</div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
    « ＋ Rappel (1 restant) ». Le garde-fou ambre ne parle qu'AU-DELÀ de 4 — avant, le compte suffit
    et il informe sans alerter. C'est la différence entre un plafond qu'on voit approcher et une
    remontrance qu'on subit. */
   const n=clean(arr).length,plafond=opts.shell==='ed-forget'?4:0;
   const reste=plafond?Math.max(0,plafond-n):0;
   const cptH=plafond?`<span class="lst-n${n>plafond?' over':''}">${n}/${plafond}</span>`:'';
-  const addTxt=plafond?('＋ Rappel'+(reste?' ('+reste+' restant'+(reste>1?'s':'')+')':'')):'+ Ajouter une ligne';
-  return `<fieldset class="field list-edit${opts.shell?' '+opts.shell:''}"><label>${legend}${hint?` <span class="hint">${hint}</span>`:''}${cptH}</label><div class="le-grp">${rows}${opts.after||''}<button class="add-line" data-add="${key}">${addTxt}</button></div>${opts.guard?`<p class="nf-guard" id="${esc(opts.guard)}" role="status">${esc(opts.guardTxt||'')}</p>`:''}</fieldset>`;}
+  const vide=!plafond&&!!INV&&!n;
+  const addTxt=plafond?('＋ Rappel'+(reste?' ('+reste+' restant'+(reste>1?'s':'')+')':'')):INV?(vide?`<b>＋ ${INV[0]}</b>${INV[1]?`<small>${INV[1]}</small>`:''}`:'＋ '+INV[0]):'＋ Ajouter une ligne';
+  return `<fieldset class="field list-edit${opts.shell?' '+opts.shell:''}${vide?' le-vide':''}"><label>${legend}${hint&&!vide?` <span class="hint">${hint}</span>`:''}${cptH}</label><div class="le-grp">${rows}${opts.after||''}<button class="add-line${vide?' le-inv':''}" data-add="${key}">${addTxt}</button></div>${opts.more?`<p class="hint-more" id="lm-${key}">${opts.more}</p>`:''}${opts.guard?`<p class="nf-guard" id="${esc(opts.guard)}" role="status">${esc(opts.guardTxt||'')}</p>`:''}</fieldset>`;}
 // Garde-fou « Ne pas oublier » (v4.4.0, non bloquant — registre ATTENTION) : au-delà de 4
 // memory items, plus rien n'est saillant (doctrine QRH : ils sont rares par construction).
 // On suggère le reclassement, on n'empêche rien.
@@ -30801,7 +30824,7 @@ function cxEditorRow(c,i,f,n){
    c'est l'auteur qui la connaît, pas l'application. */
 // « Nom court » du minuteur et du compteur : une ligne discrète dit qu'il est facultatif et où il paraît.
 const tmeShortRow=(attr,v,ph,sinon)=>`<div class="tme-row"><span class="tme-l">Nom court</span><input type="text" ${attr} value="${esc(v||'')}" maxlength="24" placeholder="${esc(ph)}" aria-label="Nom court sur la capsule (facultatif — ${sinon||'abrégé d’office sinon'})"></div>
-    <p class="tme-h tme-sh">Facultatif — le nom sur la capsule en session ; vide, il est abrégé d’office.</p>`;
+    <p class="tme-h tme-sh tme-more">Facultatif — le nom sur la capsule en session ; vide, il est abrégé d’office.</p>`;
 function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
   return `<div class="tmedit${edGrabClsL('timers',i)}" data-ti="${i}">
     <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${edGrabHandleL('timers',i,n||0,'le minuteur')}<button type="button" class="ed-ic del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
@@ -30813,7 +30836,7 @@ function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor(
     COMPTE, un cycle SONNE — le champ n'appartient qu'au second, et le dire vaut mieux que laisser
     l'auteur le découvrir en pleine session. */}
     ${iv?`<div class="tme-row due"><span class="tme-l">À l’échéance</span><input type="text" data-tdue value="${esc(t.onDue||'')}" maxlength="120" placeholder="ex. Renouveler l’adrénaline si pas de réponse" aria-label="Ligne d’action annoncée par l’alarme"></div>
-    <p class="tme-h">Ce que l’alarme dira quand elle sonnera — l’action, pas le nom du minuteur.</p>`
+    <p class="tme-h tme-more">Ce que l’alarme dira quand elle sonnera — l’action, pas le nom du minuteur.</p>`
     :'<p class="tme-h">Un chronomètre COMPTE le temps écoulé : il ne sonne pas. Pour une alarme, prenez un minuteur ou un cycle.</p>'}
   </div>`;}
 // A440 : un réglage qui change un avertissement ailleurs re-rend l'éditeur, ancré sur sa carte, focus gardé.
@@ -30841,7 +30864,7 @@ function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type=
     <div class="tme-row"><span class="tme-l">Pas</span><input type="number" data-cstep value="${c.step||1}" style="width:64px" aria-label="Pas du compteur"><span class="tme-l" style="min-width:56px">Départ</span><input type="number" data-cstart value="${c.start||0}" style="width:64px" aria-label="Valeur de départ du compteur"></div>
     ${ivs.length?`<div class="tme-row"><span class="tme-l">Le ＋ relance</span><select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>« ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select></div>`:''}
     ${cnUsesHtml(c,timers)}
-    <p class="tme-h">Son libellé nomme les repères du journal des actions et le compteur du compte-rendu : court et lisible hors contexte.</p>
+    <p class="tme-h tme-more tme-lib">Son libellé nomme les repères du journal des actions et le compteur du compte-rendu : court et lisible hors contexte.</p>
   </div>`;}
 // A440 : les étapes qui comptent sur ce compteur (chacune ouvre ses réglages), et ce que leur coche relance.
 function cnUsesHtml(c,timers){const f=state.draft||{},us=[],T=c.timerId&&(timers||[]).find(t=>t&&t.id===c.timerId);
@@ -31078,7 +31101,7 @@ function renderEditor(){_renderN++;
     d'un memory item se modifie là où il vit, dans son étape, sinon on aurait deux endroits pour
     écrire la même ligne (et le chapeau n'est PAS le propriétaire de cette ligne — l'étape l'est). */}
     ${forgetEditorHtml(f)}
-    ${edStructListHtml(f,wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
+    ${edStructListHtml(f,wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(n<2)return '';   // A807 : un bloc seul n'a pas de parcours à dessiner
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
       return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Schéma — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})())}
     ${''/* B4 (v5.0.0, lot M3, maquettes proto-large) — « CONDITION D'ENTRÉE » RÉUNIT LES DEUX
@@ -31093,7 +31116,7 @@ function renderEditor(){_renderN++;
     les critères, eux, restent une INVITATION visible même vide (exception nommée, v4.76.0). */}
     <fieldset class="field ed-card ed-entry"><label>Condition d’entrée <span class="hint">quand déclencher cette procédure</span></label>
     ${listEditor('Critères','ce qui confirme le tableau','confirmation',listOf(f,'confirmation'),false,{shell:'bare'})}
-    ${listOf(f,'differentials').length?listEditor('Diagnostics à éliminer','« le tableau ne colle pas » — carte « Diagnostics différentiels », sous le bloc','differentials',listOf(f,'differentials'),false,{shell:'bare'}):''}
+    ${listOf(f,'differentials').length?listEditor('Diagnostics à éliminer','si le tableau ne colle pas','differentials',listOf(f,'differentials'),false,{shell:'bare',more:'Carte « Diagnostics différentiels », sous le bloc.'}):''}
     </fieldset>
     <fieldset class="field ed-pec"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${critGuideHtml()}${f.blocks.map((b,bi)=>b.kind==='review'?'':((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin d’aide'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
@@ -31103,10 +31126,10 @@ function renderEditor(){_renderN++;
     que le volet de relecture (« un panneau vide qui affirme 0 remarque est du bruit permanent »)
     et que le pied de l'accueil (« masqués à zéro session : aucun bouton mort »). Rien n'est
     perdu : la capacité vit dans la porte, la section réapparaît au premier objet créé. */}
-    ${(f.timers||[]).length||(f.counters||[]).length?`<fieldset class="field ed-card"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
+    ${(f.timers||[]).length||(f.counters||[]).length?`<fieldset class="field ed-card"><label>Minuteurs & compteurs <span class="hint">en session</span></label>
       ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${edGrabRows('timers',f.timers,(t,i)=>timerEditorRow(t,i,(f.timers||[]).length))}`:''}
       ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${edGrabRows('counters',f.counters,(c,i)=>counterEditorRow(c,i,f.timers,(f.counters||[]).length))}`:''}</fieldset>`:''}
-    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>${boltIcon(14)} Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette aide, ou une autre aide</span></label>
+    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>${boltIcon(14)} Complications <span class="hint">1 à 3, à tout moment</span></label>
       ${''/* B5 (v5.0.0, lot M3) — LES COMPLICATIONS SE RÉORDONNENT COMME TOUT LE RESTE. Le lot 2
       de la v4.75.0 avait étendu « prendre / poser » à HUIT listes en les adressant par la clé du
       modèle ; les excursions avaient été oubliées, et elles ont exactement la même forme (une
@@ -31115,6 +31138,7 @@ function renderEditor(){_renderN++;
       changer — il était celui où les événements lui étaient venus à l'esprit. Aucun mécanisme
       nouveau : `edGrabRows` avec la clé `excursions`, comme les sept autres. */}
       ${edGrabRows('excursions',f.excursions,(c,i)=>cxEditorRow(c,i,f,(f.excursions||[]).length))}
+      <p class="le-foot">Chaque bouton de plus dilue les autres.</p>${''/* A806 : une ligne FIXE, pas une note au focus — paraître au focus changeait la hauteur de la carte sous le doigt : au-dessus des rangées, le menu de cible se décollait (A641) ; au-dessous, la complication créée remontait de 43 px */}
 </fieldset>`:''}
     ${revBlocks(f).length?`<fieldset class="field ed-card"><label>${uiIcon('grid',14)} Revues — à tout moment <span class="hint">une liste cochable pendant la session, dans sa boîte ; posée dans un bloc par les Réglages d’une étape</span></label>${revBlocks(f).map(b=>blockEditor(b,blocks)).join('')}</fieldset>`:''}
     <div class="field"><div class="lab-row"><label for="f-localInfo">Contexte local <span class="hint">numéros utiles, particularités</span></label>${boldBtnHtml()}</div><textarea id="f-localInfo" rows="2" placeholder="Réanimateur de garde, pharmacie…">${esc(f.local)}</textarea></div>
@@ -31125,8 +31149,8 @@ function renderEditor(){_renderN++;
     ${''/* MASQUÉES QUAND VIDES — pendant exact de leur entrée dans la porte « ＋ » (la règle est
     « présent dans la porte ⇔ masqué quand vide »). Le chapeau et la confirmation diagnostique, eux,
     RESTENT : ce ne sont pas des extras, ce sont la condition d'entrée et les memory items. */}
-    ${listOf(f,'posology').length?listEditor('Repères posologiques','classés automatiquement en lecture selon le bloc en cours (aucun n’est jamais masqué) · bouton △ = carte ambre (dose à vérifier) · le rouge reste aux memory items · **gras** possible · le détail sous la ligne reste derrière un second geste','posology',listOf(f,'posology'),false,{crit:true,shell:'ed-card',note:true}):''}
-    ${listOf(f,'verify').length?listEditor('À vérifier','surveillances et pièges — carte « À vérifier », sous le bloc','verify',listOf(f,'verify'),false,{shell:'ed-card'}):''}
+    ${listOf(f,'posology').length?listEditor('Repères posologiques','classés selon le bloc en cours','posology',listOf(f,'posology'),false,{crit:true,shell:'ed-card',note:true,more:'Classés en lecture selon le bloc en cours, jamais masqués. △ : carte ambre (dose à vérifier) ; le rouge reste à « Ne pas oublier ». **gras** possible ; le détail sous la ligne s’ouvre d’un second geste.'}):''}
+    ${listOf(f,'verify').length?listEditor('À vérifier','surveillances et pièges','verify',listOf(f,'verify'),false,{shell:'ed-card',more:'Carte « À vérifier », sous le bloc.'}):''}
     ${''/* L'IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (demande utilisateur). On ne pouvait
     joindre une image QUE depuis un bloc : partir de l'image était impossible, alors que c'est
     l'ordre naturel quand on vient d'en importer trois d'un coup. Le sélecteur liste les blocs de la
@@ -31138,7 +31162,7 @@ function renderEditor(){_renderN++;
     galerie APRÈS coup ne suivra pas dans le bloc. */}
     ${galCardHtml(f)}
     ${(f.docs||[]).length?attFieldsetHtml(f):''}
-    ${(f.sources||[]).length?listEditor('Références','sources de l’aide','sources',f.sources,false,{shell:'ed-card'}):''}
+    ${(f.sources||[]).length?listEditor('Références','sources','sources',f.sources,false,{shell:'ed-card'}):''}
     ${relFieldsetHtml(f)}
     ${(notes[f.id]&&notes[f.id].t)||state.noteEdit?noteBlockHtml(f.id):''}${''/* A614 : une note s'ajoute par « Suivi », ici comme en lecture */}
     ${wideEdit?'':suiviBlockHtml(f,false)}
@@ -31517,6 +31541,9 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     const f2=main.querySelector('.list-edit input[data-key="'+CSS.escape(k)+'"][data-idx="'+i+'"]');
     if(f2)f2.focus({preventScroll:true});});
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const k=b.dataset.add;
+    /* A807 : l'invitation d'une liste vide montre sa rangée (déjà là, masquée) et y pose le curseur — sans re-rendu. */
+    {const fs=b.closest('.list-edit');if(fs&&fs.classList.contains('le-vide')){fs.classList.remove('le-vide');b.classList.remove('le-inv');
+      b.textContent='＋ '+(LE_INV[k]||['Ajouter une ligne'])[0];const inp=fs.querySelector('input[data-key]');if(inp)inp.focus();return;}}
     edPut(d,k,edList(d,k).concat(''));rerender();
     /* On amène l'auteur sur ce qu'il vient de créer (v4.77.0) — et depuis MK-flux étendu aux
        listes c'est le focus qui OUVRE la ligne : au repos une rangée est du texte nu, donc une

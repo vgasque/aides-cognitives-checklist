@@ -5870,7 +5870,23 @@
   .lst-n{margin-left:auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
   .ed-forget .lst-n{color:var(--crit)}
   .lst-n.over{color:var(--warn)}
-  .list-edit>label{display:flex;align-items:baseline;gap:8px}
+  .list-edit>label{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px}
+  /* A806 : l'aide d'un intitulé tient en quelques mots ; sa phrase complète paraît sous le champ quand on y est. */
+  .hint-more{display:none;margin:6px 0 0;padding:8px 10px;border-radius:var(--r-2);background:var(--amb-2);font-size:var(--t-meta);line-height:1.45;font-weight:500;color:var(--ink-2)}
+  .field:focus-within>.hint-more,.ed-card:focus-within>.hint-more{display:block}
+  .tme-more{display:none}
+  .tme-row:focus-within+.tme-more,.tmedit:has(>.tme-top:focus-within)>.tme-more.tme-lib{display:block}
+  /* A807 : le détail d'un repère passe SOUS sa ligne — `.list-edit .li input{flex:1}` le mettait à côté, et les deux se coupaient. */
+  .list-edit .li input.li-note-in{flex:1 1 100%}
+  .list-edit.le-vide .le-grp>.li{display:none}
+  .list-edit.bare.le-vide>label{display:none}
+  .list-edit.le-vide .le-grp{border:1px dashed var(--primary-200)}
+  .le-grp>.add-line.le-inv{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:56px;border-top:0;padding:8px 4px;color:var(--act)}
+  .le-inv b{font-size:var(--t-item);font-weight:700}
+  .le-inv small{font-size:var(--t-meta);font-weight:500;color:var(--ink-2)}
+  .add-line.rel-add{display:flex;align-items:center;gap:8px;border:1px dashed var(--primary-200);color:var(--act);text-align:left}
+  .rel-add>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rel-add .rel-n{flex:none;margin-left:auto;min-width:24px;padding:2px 8px;border-radius:999px;background:var(--amb-2);font-size:var(--t-meta);font-weight:700;color:var(--ink-2);text-align:center}
   /* La poignée ⠿ vit en TÊTE, à droite du titre — jamais au contact de « Supprimer le bloc »
      (règle v4.68.0 : un geste destructeur ne se met pas au contact d'un autre bouton). ⚠ 22ᵉ défaut
      de rangée flex : nowrap + deux incompressibles = le champ titre payait et la poignée sortait du
