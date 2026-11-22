@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.155.0] — 2026-11-22
+Les blocs d'une aide se réordonnent depuis la liste « Structure » (A808). Aucune mise à jour du serveur.
+- **« Réordonner »** à droite de « Structure · n blocs » (au téléphone dans la liste, au bureau dans la colonne de
+  gauche). Chaque bloc devient une rangée d'une ligne : touchez celle à déplacer, puis « Poser ici » à l'endroit
+  voulu. Tout tient sur un écran, et l'on peut enchaîner plusieurs déplacements avant « Terminé ».
+- Le bloc posé reste sous le doigt. ✕, Échap, toucher à côté ou retoucher la rangée annulent, comme ailleurs.
+- **La poignée ⠿ d'un bloc ouvert reste** : elle montre toujours tous les blocs dépliés, pour placer un bloc en voyant
+  le contenu de ses voisins.
+
 ## [5.154.0] — 2026-11-22
 L'éditeur d'aide, plus léger au téléphone : des aides d'une ligne, et des listes vides qui disent quoi ajouter (A806,
 A807). Aucune mise à jour du serveur.
@@ -194,15 +203,3 @@ change à l'écran. Aucune mise à jour du serveur.
   déjà les lire : installée partout avant les suivantes, aucun appareil ne perdra d'image.
 - Elle lit ces deux indications partout (texte, élément de liste, case de tableau, recherche, export, import) sans en
   tenir compte encore, et ne les affiche jamais en clair.
-
-## [5.141.0] — 2026-11-18
-Les vidéos ont leurs dimensions, et la dernière carte d'une recherche retrouve son bord bas (A782-A783). Aucune mise à
-jour du serveur.
-- **Une vidéo a sa largeur et sa hauteur** : elles sont mesurées quand on l'ajoute (bouton, glisser-déposer, collage,
-  import Notion). Les vidéos déjà là sont mesurées d'elles-mêmes sur l'appareil qui les a, puis repartent avec leur
-  protocole vers vos autres appareils.
-- **Son cadre a donc sa vraie forme** tant qu'elle n'est pas arrivée (16:9, portrait…), au lieu d'un 4:3 imposé : la
-  vidéo prend sa place sans faire bouger la page.
-- **Recherche depuis l'accueil** : sur un écran large, la dernière carte des résultats avait perdu son bord bas (elle
-  paraissait coupée). Elle l'a retrouvé.
-- Une vidéo que le navigateur ne sait pas lire (un MOV hors de Safari) garde le cadre 4:3.
