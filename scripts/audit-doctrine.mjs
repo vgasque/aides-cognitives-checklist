@@ -13170,6 +13170,12 @@ await sec('Éditeur · A808 réordonner les blocs dans la structure (liste et co
       bt.click();await __acCalme(400);
       const rows=V('[data-eslgrab]');o.rangees=rows.length===state.draft.blocks.filter(b=>b.kind!=='review').length&&!V('[data-edgo]').some(x=>x.closest('.ed-slist,.ed-struct'));
       o.unBloc=rows.every(x=>x.getBoundingClientRect().height<70);
+      /* Revue d'alignement : numéro, titre et ⠿ d'une rangée de tri sur le même axe (au bureau, le « span 2 » de la
+         rangée à compte centrait le numéro sur une ligne vide) ; un intitulé DANS une carte commence où commence son contenu. */
+      const mil=e=>{const b=e.getBoundingClientRect();return b.top+b.height/2;};
+      o.axe=rows.every(r=>{const n=r.querySelector('.esl-n,.eds-n'),t=r.querySelector('.esl-tx b,.eds-t'),h=r.querySelector('.es-h');return n&&t&&h&&Math.abs(mil(n)-mil(t))<=2&&Math.abs(mil(h)-mil(t))<=2;});
+      o.intitules=[...document.querySelectorAll('main fieldset.ed-card:not(.ed-entry)')].filter(vis).map(fs=>{const l=fs.querySelector(':scope>label');const k=[...fs.children].find(c=>c!==l&&vis(c));
+        return !l||!k?0:Math.round(l.getBoundingClientRect().left+parseFloat(getComputedStyle(l).paddingLeft)-k.getBoundingClientRect().left);}).every(d=>Math.abs(d)<=1);
       rows[2].click();await __acCalme(400);
       o.vueEnsemble=document.body.classList.contains('ed-ov')&&V('.ed-pec .blk').length===0;
       o.poser=V('.ed-slist [data-drop],.ed-struct [data-drop]').length===rows.length-1;
@@ -13184,6 +13190,7 @@ await sec('Éditeur · A808 réordonner les blocs dans la structure (liste et co
       o.blocOuvert=!!g&&!document.body.classList.contains('ed-ov')&&V('.ed-pec .blk').length>1;
       return o;});
     t(`A808 · ${W} px · « Réordonner » met la structure en tri : une rangée d’une ligne par bloc, plus d’ouverture`,r.bouton&&r.rangees&&r.unBloc,JSON.stringify(r));
+    t(`A808 · ${W} px · alignement : numéro, titre et ⠿ d’une rangée sur un axe ; l’intitulé d’une carte au bord de son contenu`,r.axe&&r.intitules,JSON.stringify(r));
     t(`A808 · ${W} px · toucher une rangée la prend : la vue d’ensemble reste, « Poser ici » entre les rangées seulement`,r.vueEnsemble&&r.poser,JSON.stringify(r));
     t(`A808 · ${W} px · poser en tête déplace le bloc, la rangée posée reste sous le doigt, le tri continue`,r.deplace&&r.sousLeDoigt&&r.resteTri,JSON.stringify(r));
     t(`A808 · ${W} px · « Terminé » rend la liste qui ouvre ; la poignée du bloc ouvert montre toujours les blocs dépliés`,r.termine&&r.blocOuvert,JSON.stringify(r));

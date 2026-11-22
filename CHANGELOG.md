@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.155.1] — 2026-11-22
+Correctifs d'alignement dans l'éditeur d'aide, après revue des changements depuis la 5.154 (rectificatif d'A808). Aucune
+mise à jour du serveur.
+- **Colonne « Structure » du bureau, en mode « Réordonner »** : le numéro de chaque bloc était plus bas que son titre et
+  que la poignée ⠿. Les trois sont maintenant sur la même ligne.
+- **Intitulés des cartes alignés sur leur contenu** : « Minuteurs & compteurs », « Complications » et « Voir aussi »
+  étaient décalés de 16 px vers la droite, contrairement à « Références » ou « Repères posologiques ». La ligne « Chaque
+  bouton de plus dilue les autres. » des Complications suit.
+
 ## [5.155.0] — 2026-11-22
 Les blocs d'une aide se réordonnent depuis la liste « Structure » (A808). Aucune mise à jour du serveur.
 - **« Réordonner »** à droite de « Structure · n blocs » (au téléphone dans la liste, au bureau dans la colonne de
@@ -193,13 +202,3 @@ On règle la largeur d'une image ou d'une vidéo en tirant son bord, dans le tex
   aucune largeur n'est écrite.
 - ⚠ Un appareil resté sur une version **antérieure à la 5.142** n'affiche pas une image dont la largeur a été réglée :
   mettez à jour vos appareils.
-
-## [5.142.0] — 2026-11-18
-Préparation de la taille des images et des vidéos partout, et de la largeur des colonnes d'un tableau (A784). Rien ne
-change à l'écran. Aucune mise à jour du serveur.
-- **Pourquoi cette version d'abord** : les prochaines versions écriront la largeur d'une image ou d'une vidéo, et celle
-  des colonnes, directement dans le texte du protocole (`![](img:…){width=45%}`, `{widths="30 25 45"}` sous un
-  tableau). Sur une version d'avant celle-ci, une image ainsi écrite **disparaîtrait** de l'écran. Cette version sait
-  déjà les lire : installée partout avant les suivantes, aucun appareil ne perdra d'image.
-- Elle lit ces deux indications partout (texte, élément de liste, case de tableau, recherche, export, import) sans en
-  tenir compte encore, et ne les affiche jamais en clair.

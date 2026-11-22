@@ -3945,6 +3945,7 @@
   .esl-grp>.ed-drop{width:calc(100% - 16px);margin:6px 8px}
   .es-mvl>.ed-drop{margin:4px 0}
   .ed-struct .eds-row.es-mv{grid-template-columns:24px minmax(0,1fr) auto}
+  .ed-struct .eds-row.es-mv .eds-n{grid-row:auto}   /* A808 : une seule ligne en tri — le « span 2 » de la rangée à compte centrait le numéro sur une ligne vide */
   /* A521 : UN BLOC SUR SA PAGE. Vue d'ensemble (`ed-ov`) : les blocs vivent dans la liste, « Prise en charge » se
      retire ; page d'un bloc (`ed-focus`) : seul le bloc `.ed-cur` reste, avec la porte « Ajouter ». */
   body.view-edit.ed-ov .ed-pec{display:none}
@@ -5436,6 +5437,10 @@
      d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
   :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
   :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu, comme « Références » ou « Repères » — le retrait
+     de 16 est celui des intertitres posés AU-DESSUS d'un groupe (« Ne pas oublier », « Condition d'entrée »). */
+  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0}
+  .ed-card>.le-foot{margin:6px 0 0}
   .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
   :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
   :is(.ed-forget,.ed-entry)>label{min-height:0;margin:0 0 6px;padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
