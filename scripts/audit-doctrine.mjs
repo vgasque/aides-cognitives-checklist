@@ -13156,6 +13156,48 @@ await sec('Éditeur · A806-A807 aides d’une ligne, détail au focus ; listes 
   await page.close();
 });
 
+/* ══ A808 — RÉORDONNER LES BLOCS DANS LA STRUCTURE ; LE BLOC OUVERT GARDE SA POIGNÉE ════════════════════════════ */
+await sec('Éditeur · A808 réordonner les blocs dans la structure (liste et colonne)', async () => {
+  for(const W of [390,1280]){
+    const page=await br.newPage(W<780?{viewport:{width:W,height:844},hasTouch:true,isMobile:true}:{viewport:{width:W,height:860}});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+    const r=await page.evaluate(async()=>{const f=fiches.find(x=>/Anaphylaxie/.test(x.title));await openEdit(f.id);await __acCalme(600);
+      const vis=e=>!!e&&e.getClientRects().length>0,V=s=>[...document.querySelectorAll(s)].filter(vis);
+      const ordre=()=>state.draft.blocks.map(b=>b.id);const o={},av=ordre();
+      const bt=V('[data-esreord]')[0];o.bouton=!!bt&&bt.textContent.trim()==='Réordonner';
+      if(!bt)return o;   // sans le bouton, un rouge net — pas une exception
+      bt.click();await __acCalme(400);
+      const rows=V('[data-eslgrab]');o.rangees=rows.length===state.draft.blocks.filter(b=>b.kind!=='review').length&&!V('[data-edgo]').some(x=>x.closest('.ed-slist,.ed-struct'));
+      o.unBloc=rows.every(x=>x.getBoundingClientRect().height<70);
+      /* Revue d'alignement : numéro, titre et ⠿ d'une rangée de tri sur le même axe (au bureau, le « span 2 » de la
+         rangée à compte centrait le numéro sur une ligne vide) ; un intitulé DANS une carte commence où commence son contenu. */
+      const mil=e=>{const b=e.getBoundingClientRect();return b.top+b.height/2;};
+      o.axe=rows.every(r=>{const n=r.querySelector('.esl-n,.eds-n'),t=r.querySelector('.esl-tx b,.eds-t'),h=r.querySelector('.es-h');return n&&t&&h&&Math.abs(mil(n)-mil(t))<=2&&Math.abs(mil(h)-mil(t))<=2;});
+      o.intitules=[...document.querySelectorAll('main fieldset.ed-card:not(.ed-entry)')].filter(vis).map(fs=>{const l=fs.querySelector(':scope>label');const k=[...fs.children].find(c=>c!==l&&vis(c));
+        return !l||!k?0:Math.round(l.getBoundingClientRect().left+parseFloat(getComputedStyle(l).paddingLeft)-k.getBoundingClientRect().left);}).every(d=>Math.abs(d)<=1);
+      o.graisse=[...new Set([...document.querySelectorAll('main fieldset.ed-card:not(.ed-entry)>label')].filter(vis).map(l=>getComputedStyle(l).fontWeight))].join();
+      rows[2].click();await __acCalme(400);
+      o.vueEnsemble=document.body.classList.contains('ed-ov')&&V('.ed-pec .blk').length===0;
+      o.poser=V('.ed-slist [data-drop],.ed-struct [data-drop]').length===rows.length-1;
+      const d0=V('[data-drop="B:0"]')[0],y0=d0.getBoundingClientRect().top;d0.click();await __acCalme(500);
+      const ap=ordre();o.deplace=ap[0]===av[2]&&ap[1]===av[0]&&ap[2]===av[1]&&ap.slice(3).join()===av.slice(3).join();
+      const pose=V('[data-eslgrab="'+CSS.escape(av[2])+'"]')[0];o.sousLeDoigt=!!pose&&Math.abs(pose.getBoundingClientRect().top-y0)<8;
+      o.resteTri=!!V('[data-eslgrab]').length&&!state.edGrab;
+      V('[data-esreord]')[0].click();await __acCalme(400);
+      o.termine=!V('[data-eslgrab]').length&&V('[data-edgo]').length>0;
+      V('[data-edgo]')[0].click();await __acCalme(400);
+      const g=document.querySelector('.blk.ed-cur [data-grab^="b"]');if(g){g.click();await __acCalme(400);}
+      o.blocOuvert=!!g&&!document.body.classList.contains('ed-ov')&&V('.ed-pec .blk').length>1;
+      return o;});
+    t(`A808 · ${W} px · « Réordonner » met la structure en tri : une rangée d’une ligne par bloc, plus d’ouverture`,r.bouton&&r.rangees&&r.unBloc,JSON.stringify(r));
+    t(`A808 · ${W} px · alignement : numéro, titre et ⠿ d’une rangée sur un axe ; l’intitulé d’une carte au bord de son contenu, une seule graisse (800)`,r.axe&&r.intitules&&r.graisse==='800',JSON.stringify(r));
+    t(`A808 · ${W} px · toucher une rangée la prend : la vue d’ensemble reste, « Poser ici » entre les rangées seulement`,r.vueEnsemble&&r.poser,JSON.stringify(r));
+    t(`A808 · ${W} px · poser en tête déplace le bloc, la rangée posée reste sous le doigt, le tri continue`,r.deplace&&r.sousLeDoigt&&r.resteTri,JSON.stringify(r));
+    t(`A808 · ${W} px · « Terminé » rend la liste qui ouvre ; la poignée du bloc ouvert montre toujours les blocs dépliés`,r.termine&&r.blocOuvert,JSON.stringify(r));
+    await page.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.155.2] — 2026-11-22
+Les intitulés des cartes de l'éditeur d'aide ont tous la même graisse. Aucune mise à jour du serveur.
+- **« Minuteurs & compteurs », « Complications » et « Voir aussi »** passent au même gras que « Repères posologiques »,
+  « Références » et les champs de l'Identité. Les intertitres posés au-dessus d'un groupe (« Ne pas oublier »,
+  « Condition d'entrée ») restent plus légers, comme avant.
+
+## [5.155.1] — 2026-11-22
+Correctifs d'alignement dans l'éditeur d'aide, après revue des changements depuis la 5.154 (rectificatif d'A808). Aucune
+mise à jour du serveur.
+- **Colonne « Structure » du bureau, en mode « Réordonner »** : le numéro de chaque bloc était plus bas que son titre et
+  que la poignée ⠿. Les trois sont maintenant sur la même ligne.
+- **Intitulés des cartes alignés sur leur contenu** : « Minuteurs & compteurs », « Complications » et « Voir aussi »
+  étaient décalés de 16 px vers la droite, contrairement à « Références » ou « Repères posologiques ». La ligne « Chaque
+  bouton de plus dilue les autres. » des Complications suit.
+
+## [5.155.0] — 2026-11-22
+Les blocs d'une aide se réordonnent depuis la liste « Structure » (A808). Aucune mise à jour du serveur.
+- **« Réordonner »** à droite de « Structure · n blocs » (au téléphone dans la liste, au bureau dans la colonne de
+  gauche). Chaque bloc devient une rangée d'une ligne : touchez celle à déplacer, puis « Poser ici » à l'endroit
+  voulu. Tout tient sur un écran, et l'on peut enchaîner plusieurs déplacements avant « Terminé ».
+- Le bloc posé reste sous le doigt. ✕, Échap, toucher à côté ou retoucher la rangée annulent, comme ailleurs.
+- **La poignée ⠿ d'un bloc ouvert reste** : elle montre toujours tous les blocs dépliés, pour placer un bloc en voyant
+  le contenu de ses voisins.
+
 ## [5.154.0] — 2026-11-22
 L'éditeur d'aide, plus léger au téléphone : des aides d'une ligne, et des listes vides qui disent quoi ajouter (A806,
 A807). Aucune mise à jour du serveur.
@@ -164,45 +188,3 @@ quand on le fait défiler (A786). Aucune mise à jour du serveur.
 - La largeur s'écrit dans le texte, sur la ligne qui suit le tableau (`{widths="30 25 45"}`).
 - ⚠ Un appareil resté sur une version **antérieure à la 5.142** affiche cette ligne en clair sous le tableau : mettez à
   jour vos appareils.
-
-## [5.143.0] — 2026-11-18
-On règle la largeur d'une image ou d'une vidéo en tirant son bord, dans le texte, dans une liste et dans un tableau
-(A785). Aucune mise à jour du serveur.
-- **Touchez une image ou une vidéo** en mise en forme en direct : elle se sélectionne (un cadre bleu, une poignée sur
-  son bord, une petite barre). Tirez la poignée : la largeur suit, par pas de 5 %, aimantée au quart, au tiers, à la
-  moitié… et à la largeur de sa voisine. La part s'affiche pendant le geste. ↶ annule.
-- **Partout** : une image seule dans le texte, une image sous une étape de liste, une image dans une case de tableau.
-  Dans une liste, deux ou trois images réduites se placent côte à côte sous l'étape.
-- **Boutons rapides** : « Même largeur » et « Même hauteur » (les images d'une étape s'alignent sur une même hauteur,
-  chacune selon sa forme). Le menu de la part propose ¼, ⅓, ½, ⅔, ¾, Pleine ou « Par défaut ». « Modifier… », un double
-  clic ou Entrée ouvrent le bloc (la grille pour un tableau).
-- **Au téléphone**, la barre se pose en bas, sous le pouce, et la proportion choisie est gardée — une image n'est jamais
-  affichée sous 80 px de large.
-- La largeur appartient à l'endroit où l'image est posée : la même image peut être grande dans le texte et petite dans
-  une case. Elle s'écrit dans le texte (`{width=45%}` collé à la ligne de l'image).
-- Les tailles déjà réglées ne changent pas. La taille réglée dans la fiche d'une image (« Images du texte ») vaut là où
-  aucune largeur n'est écrite.
-- ⚠ Un appareil resté sur une version **antérieure à la 5.142** n'affiche pas une image dont la largeur a été réglée :
-  mettez à jour vos appareils.
-
-## [5.142.0] — 2026-11-18
-Préparation de la taille des images et des vidéos partout, et de la largeur des colonnes d'un tableau (A784). Rien ne
-change à l'écran. Aucune mise à jour du serveur.
-- **Pourquoi cette version d'abord** : les prochaines versions écriront la largeur d'une image ou d'une vidéo, et celle
-  des colonnes, directement dans le texte du protocole (`![](img:…){width=45%}`, `{widths="30 25 45"}` sous un
-  tableau). Sur une version d'avant celle-ci, une image ainsi écrite **disparaîtrait** de l'écran. Cette version sait
-  déjà les lire : installée partout avant les suivantes, aucun appareil ne perdra d'image.
-- Elle lit ces deux indications partout (texte, élément de liste, case de tableau, recherche, export, import) sans en
-  tenir compte encore, et ne les affiche jamais en clair.
-
-## [5.141.0] — 2026-11-18
-Les vidéos ont leurs dimensions, et la dernière carte d'une recherche retrouve son bord bas (A782-A783). Aucune mise à
-jour du serveur.
-- **Une vidéo a sa largeur et sa hauteur** : elles sont mesurées quand on l'ajoute (bouton, glisser-déposer, collage,
-  import Notion). Les vidéos déjà là sont mesurées d'elles-mêmes sur l'appareil qui les a, puis repartent avec leur
-  protocole vers vos autres appareils.
-- **Son cadre a donc sa vraie forme** tant qu'elle n'est pas arrivée (16:9, portrait…), au lieu d'un 4:3 imposé : la
-  vidéo prend sa place sans faire bouger la page.
-- **Recherche depuis l'accueil** : sur un écran large, la dernière carte des résultats avait perdu son bord bas (elle
-  paraissait coupée). Elle l'a retrouvé.
-- Une vidéo que le navigateur ne sait pas lire (un MOV hors de Safari) garde le cadre 4:3.

@@ -3935,6 +3935,17 @@
   .esl-chev{display:inline-flex;color:var(--ink-soft)}
   .esl-ph{margin:0;padding:10px 16px 4px;border-top:1px solid var(--line);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .ed-slist .flow-prev{margin-top:12px}
+  /* A808 : le mode tri de la structure — une ligne par bloc, la poignée à droite, « Poser ici » entre les rangées. */
+  .ed-slist .ed-sech-row .ed-sech{margin:0}
+  .es-reord{min-height:32px}
+  .esl-row.es-mv{min-height:52px;grid-template-columns:auto minmax(0,1fr) auto}
+  .es-h{color:var(--ink-soft);font-size:var(--t-item)}
+  .es-mv.grabbed{background:var(--primary-soft);box-shadow:inset 0 0 0 2px var(--act)}
+  .es-mv.grabbed .es-h{color:var(--act)}
+  .esl-grp>.ed-drop{width:calc(100% - 16px);margin:6px 8px}
+  .es-mvl>.ed-drop{margin:4px 0}
+  .ed-struct .eds-row.es-mv{grid-template-columns:24px minmax(0,1fr) auto}
+  .ed-struct .eds-row.es-mv .eds-n{grid-row:auto}   /* A808 : une seule ligne en tri — le « span 2 » de la rangée à compte centrait le numéro sur une ligne vide */
   /* A521 : UN BLOC SUR SA PAGE. Vue d'ensemble (`ed-ov`) : les blocs vivent dans la liste, « Prise en charge » se
      retire ; page d'un bloc (`ed-focus`) : seul le bloc `.ed-cur` reste, avec la porte « Ajouter ». */
   body.view-edit.ed-ov .ed-pec{display:none}
@@ -5426,6 +5437,10 @@
      d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
   :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
   :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu et en prend la graisse, comme « Références » ou « Repères » — le retrait
+     de 16 est celui des intertitres posés AU-DESSUS d'un groupe (« Ne pas oublier », « Condition d'entrée »). */
+  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0;font-weight:800}   /* v5.155.2 : et la graisse des intitulés de carte (800, comme « Références » et les champs de l'Identité) */
+  .ed-card>.le-foot{margin:6px 0 0}
   .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
   :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
   :is(.ed-forget,.ed-entry)>label{min-height:0;margin:0 0 6px;padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}

@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-KqPQLokRiIkF3MI/Dcf5N/9G1EFSdlgo8qQ/R9swtMc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WQiA+r4lRI2RQkucK5Vv5ogWvb4eI6g2GgN72fL2ho0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4336,6 +4336,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .esl-chev{display:inline-flex;color:var(--ink-soft)}
   .esl-ph{margin:0;padding:10px 16px 4px;border-top:1px solid var(--line);font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   .ed-slist .flow-prev{margin-top:12px}
+  /* A808 : le mode tri de la structure — une ligne par bloc, la poignée à droite, « Poser ici » entre les rangées. */
+  .ed-slist .ed-sech-row .ed-sech{margin:0}
+  .es-reord{min-height:32px}
+  .esl-row.es-mv{min-height:52px;grid-template-columns:auto minmax(0,1fr) auto}
+  .es-h{color:var(--ink-soft);font-size:var(--t-item)}
+  .es-mv.grabbed{background:var(--primary-soft);box-shadow:inset 0 0 0 2px var(--act)}
+  .es-mv.grabbed .es-h{color:var(--act)}
+  .esl-grp>.ed-drop{width:calc(100% - 16px);margin:6px 8px}
+  .es-mvl>.ed-drop{margin:4px 0}
+  .ed-struct .eds-row.es-mv{grid-template-columns:24px minmax(0,1fr) auto}
+  .ed-struct .eds-row.es-mv .eds-n{grid-row:auto}   /* A808 : une seule ligne en tri — le « span 2 » de la rangée à compte centrait le numéro sur une ligne vide */
   /* A521 : UN BLOC SUR SA PAGE. Vue d'ensemble (`ed-ov`) : les blocs vivent dans la liste, « Prise en charge » se
      retire ; page d'un bloc (`ed-focus`) : seul le bloc `.ed-cur` reste, avec la porte « Ajouter ». */
   body.view-edit.ed-ov .ed-pec{display:none}
@@ -5827,6 +5838,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
   :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
   :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu et en prend la graisse, comme « Références » ou « Repères » — le retrait
+     de 16 est celui des intertitres posés AU-DESSUS d'un groupe (« Ne pas oublier », « Condition d'entrée »). */
+  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0;font-weight:800}   /* v5.155.2 : et la graisse des intitulés de carte (800, comme « Références » et les champs de l'Identité) */
+  .ed-card>.le-foot{margin:6px 0 0}
   .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
   :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
   :is(.ed-forget,.ed-entry)>label{min-height:0;margin:0 0 6px;padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
@@ -11192,7 +11207,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.154.0';
+const APP_VERSION='5.155.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -30580,7 +30595,7 @@ function edGrabIsCrit(){const g=state.edGrab;if(!g||g.kind!=='s'||!state.draft)r
 function edGrabAnchorSel(){
   const g=state.edGrab;if(!g)return null;
   if(g.kind==='l')return '[data-lgrab="'+CSS.escape(g.key+':'+g.i)+'"]';
-  if(g.kind==='b')return '.blk[data-bid="'+CSS.escape(g.bid)+'"]';
+  if(g.kind==='b')return g.liste?'[data-eslgrab="'+CSS.escape(g.bid)+'"]':'.blk[data-bid="'+CSS.escape(g.bid)+'"]';
   return '.blk[data-bid="'+CSS.escape(g.bid)+'"] .li[data-si="'+g.si+'"]';}
 function edGrabDrop(){
   const sel=edGrabAnchorSel();state.edGrab=null;
@@ -30591,7 +30606,7 @@ function edGrabDrop(){
    Le tap est ABSORBÉ (il ne fait que reposer : sans cela, il ouvrirait le bloc touché) — sauf dans la barre d'en-tête,
    où « ‹ Retour » reste un geste d'un seul tap. Un écouteur, posé une fois, en capture. */
 let _mdGrabCancel=null;
-const GRAB_KEEP='[data-drop],[data-ldrop],[data-grab],[data-lgrab],#edGrabX,.ed-grab,.ed-drop,[data-mdbdrop],[data-mdbgrabx],[data-mdbgrab],[data-mdbact="grab"],.ai-modal,.popmenu';
+const GRAB_KEEP='[data-eslgrab],[data-esreord],[data-drop],[data-ldrop],[data-grab],[data-lgrab],#edGrabX,.ed-grab,.ed-drop,[data-mdbdrop],[data-mdbgrabx],[data-mdbgrab],[data-mdbact="grab"],.ai-modal,.popmenu';
 function grabOutBind(){if(window._grabOutBound)return;window._grabOutBound=true;
   document.addEventListener('click',e=>{const t=e.target;if(!(t instanceof Element)||t.closest(GRAB_KEEP))return;
     const md=_mdGrabCancel,ed=state.edGrab&&(state.view==='edit'||state.view==='protocolEdit');if(!md&&!ed)return;
@@ -30914,6 +30929,24 @@ function openPDraftPreview(){state.previewFrom='protocolEdit';_pvFold=Object.cre
 function syncPhaseList(f){const dl=document.getElementById('phaseList');if(!dl)return;
   const vals=PHASE_CORE.concat(phasesOf(f||{}).filter(p=>PHASE_CORE.indexOf(p)<0));
   dl.innerHTML=vals.map(v=>`<option value="${esc(v)}"></option>`).join('');}
+/* A808 — RÉORDONNER DANS LA STRUCTURE. Depuis A521, un bloc s'ouvre sur sa page et la liste « Structure » ne faisait
+   qu'ouvrir : l'ordre se lisait là, il ne s'y changeait pas, et la seule entrée du déplacement était la poignée ⠿ du
+   bloc ouvert, qui déplie TOUS les blocs (plusieurs écrans à défiler). « Réordonner » met la liste (ou la colonne du
+   bureau) en mode tri : une rangée d'une ligne par bloc, toucher la prend, « Poser ici » entre les rangées la pose —
+   MÊME mécanique prendre / poser (`state.edGrab`, `data-drop="B:n"`, même gestionnaire), marquée `liste` pour que la
+   vue d'ensemble reste (`edApplyFocus`). La poignée du bloc ouvert reste, inchangée : elle montre les blocs dépliés,
+   pour qui veut placer un bloc en voyant le contenu de ses voisins. Les revues (hors séquence) et les complications
+   (hors numérotation) ne se réordonnent pas ici. */
+function esReordOn(f){return state.view==='edit'&&!!state.edReorder&&((f&&f.blocks)||[]).filter(b=>b&&b.kind!=='review').length>1;}
+function esReordBtn(f){const n=((f&&f.blocks)||[]).filter(b=>b&&b.kind!=='review').length;if(n<2||state.view!=='edit')return '';
+  const on=!!state.edReorder;
+  return `<button type="button" class="linkbtn es-reord" data-esreord aria-pressed="${on?'true':'false'}">${on?'Terminé':'Réordonner'}</button>`;}
+function esReordRows(f,p){const bs=f.blocks||[],g=state.edGrab,pris=g&&g.kind==='b'&&g.liste?g.bid:null;
+  const from=pris?bs.findIndex(b=>b.id===pris):-1;let h='',n=0;
+  const drop=i=>(pris&&i!==from&&i!==from+1)?edDrop('B:'+i,i===0?'Poser en tête':i>=bs.length?'Poser en fin d’aide':'Poser ici'):'';
+  bs.forEach((b,i)=>{if(b.kind==='review')return;n++;const dec=b.kind==='decision',t=esc(stripBold((b.title||'').trim()))||(dec?'Décision':'Sans titre');
+    h+=drop(i)+`<button type="button" class="${p}-row es-mv${dec?' dec':''}${b.id===pris?' grabbed':''}" data-eslgrab="${esc(b.id)}" aria-pressed="${b.id===pris?'true':'false'}" aria-label="Déplacer le bloc ${n} « ${t} »"><span class="${p}-n">${dec?(p==='eds'?'◆':n):n}</span><span class="${p==='eds'?'eds-t':'esl-tx'}">${p==='eds'?t:`<b>${t}</b>`}</span><span class="es-h" aria-hidden="true">⠿</span></button>`;});
+  return h+drop(bs.length);}
 function edStructHtml(f,o){o=o||{};
   const bs=(f.blocks||[]);
   /* ⚠ SIGNALÉ À L'USAGE (v5.0.0) : la colonne restait VIDE tant qu'il n'y avait qu'un bloc — la
@@ -30922,7 +30955,8 @@ function edStructHtml(f,o){o=o||{};
      ce qu'elle montrera. Une colonne large et vide se lit comme une panne, pas comme un état. */
   const exc=(f.excursions||[]);
   if(!bs.length&&!exc.length)return '';
-  return (o.nohead?'':`<div class="rail-head"><span class="rail-title">Structure · ${bs.length} bloc${bs.length>1?'s':''}</span></div>`)   // A521 : l'intitulé de la maquette
+  if(!o.nohead&&esReordOn(f))return `<div class="rail-head"><span class="rail-title">Structure · ${bs.length} bloc${bs.length>1?'s':''}</span>${esReordBtn(f)}</div><div class="es-mvl">${esReordRows(f,'eds')}</div>`;   // A808
+  return (o.nohead?'':`<div class="rail-head"><span class="rail-title">Structure · ${bs.length} bloc${bs.length>1?'s':''}</span>${esReordBtn(f)}</div>`)   // A521 : l'intitulé de la maquette ; A808 : « Réordonner »
     /* ⚠ LE RAPPEL DES PHASES EST LA COLONNE ELLE-MÊME (demande utilisateur). Écrire une phase
        bloc par bloc sans jamais voir le découpage, c'est décider à l'aveugle : l'intertitre
        n'apparaît qu'AU CHANGEMENT de phase — c'est-à-dire là où l'auteur a effectivement décidé
@@ -30946,6 +30980,8 @@ function edStructHtml(f,o){o=o||{};
    la suit (c'est le dessin de la même structure). ≥ 1200 px, la colonne `.ed-struct` tient ce rôle. */
 function edStructListHtml(f,fp){const bs=f.blocks||[];if(!bs.length)return '';
   const exc=f.excursions||[];
+  const tete=`<div class="ed-sech-row"><p class="ed-sech">Structure · ${bs.length} bloc${bs.length>1?'s':''}</p>${esReordBtn(f)}</div>`;   // A808
+  if(esReordOn(f))return `<section class="ed-slist es-on">${tete}<div class="esl-grp">${esReordRows(f,'esl')}</div>${fp||''}</section>`;
   const rows=bs.map((b,i)=>{const dec=b.kind==='decision',k=(b.options||[]).length,e=clean(stepsOf(b)).length;
     const sub=dec?'Décision · '+k+' branche'+(k>1?'s':''):b.kind==='review'?'Revue · '+e+' élément'+(e>1?'s':''):e+' étape'+(e>1?'s':'');
     const ph=phaseOf(f,b.id),prev=i?phaseOf(f,bs[i-1].id):'';
@@ -30955,7 +30991,7 @@ function edStructListHtml(f,fp){const bs=f.blocks||[];if(!bs.length)return '';
     +exc.map(c=>{const bb=bs.find(x=>x.id===c.target);
       return `<button type="button" class="esl-row exc"${bb?` data-edgo="${esc(bb.id)}"`:' disabled'}><span class="esl-n">${boltIcon(13)}</span>`
         +`<span class="esl-tx"><b>${esc(c.label||'Complication')}</b><span>À tout moment · ${bb?'bloc':'autre aide'}</span></span>${bb?chevHtml(false,'esl-chev'):''}</button>`;}).join('');
-  return `<section class="ed-slist"><p class="ed-sech">Structure · ${bs.length} bloc${bs.length>1?'s':''}</p><div class="esl-grp">${rows}</div>${fp||''}</section>`;}
+  return `<section class="ed-slist">${tete}<div class="esl-grp">${rows}</div>${fp||''}</section>`;}
 /* A521 : UN BLOC S'OUVRE SUR SA PAGE. Le DOM reste celui de l'éditeur entier (glisser, porte, relecture ne
    bougent pas) : deux classes sur <body> masquent le reste — `ed-ov` (vue d'ensemble : les blocs sont dans
    la liste) et `ed-focus` (un bloc, `.ed-cur`). Un mode « prendre / poser » montre TOUT (on pose ailleurs).
@@ -30966,9 +31002,9 @@ function edApplyFocus(){const on=state.view==='edit';
   if(on&&state.edFocus){cur=main.querySelector('.ed-pec .blk[data-bid="'+CSS.escape(state.edFocus)+'"]');if(!cur)state.edFocus=null;}
   main.querySelectorAll('.blk.ed-cur').forEach(x=>{if(x!==cur)x.classList.remove('ed-cur');});
   if(cur)cur.classList.add('ed-cur');
-  const libre=on&&!state.edGrab;
+  const libre=on&&!state.edGrab,liste=on&&!!state.edGrab&&!!state.edGrab.liste;   // A808 : le tri de la liste garde la vue d'ensemble
   document.body.classList.toggle('ed-focus',libre&&!!cur);
-  document.body.classList.toggle('ed-ov',libre&&!cur&&!!main.querySelector('.ed-slist,.ed-struct'));
+  document.body.classList.toggle('ed-ov',(libre||liste)&&!cur&&!!main.querySelector('.ed-slist,.ed-struct'));
   main.querySelectorAll('[data-edgo]').forEach(b=>b.classList.toggle('on',!!cur&&b.dataset.edgo===state.edFocus));}
 function edFocusSet(bid){if((state.edFocus||null)===(bid||null))return;
   state.edFocus=bid||null;edApplyFocus();
@@ -31084,7 +31120,7 @@ function renderEditor(){_renderN++;
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
   edTouch(true);   // K5 : un geste STRUCTUREL vient d'avoir lieu — on écrit tout de suite
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
-  if(state.edFocusFor!==f.id){state.edFocusFor=f.id;state.edFocus=null;}   // A521 : une autre aide s'ouvre sur son ensemble
+  if(state.edFocusFor!==f.id){state.edFocusFor=f.id;state.edFocus=null;state.edReorder=false;}   // A808 : le tri ne suit pas d'une aide à l'autre   // A521 : une autre aide s'ouvre sur son ensemble
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
@@ -31187,6 +31223,12 @@ function renderEditor(){_renderN++;
   bindRevPanel();   // K2 : ancrage des remarques de relecture
   /* K11 : taper une ligne de STRUCTURE amène son bloc au centre et le fait clignoter — jamais de
      focus volé (l'auteur cherche, il n'écrit pas encore) ni de modification. */
+  /* A808 : « Réordonner » / « Terminé » ; toucher une rangée la prend, la retoucher la repose. */
+  main.querySelectorAll('[data-esreord]').forEach(b=>b.onclick=()=>{state.edReorder=!state.edReorder;state.edGrab=null;
+    keepAnchor('[data-esreord]',renderEditor);});
+  main.querySelectorAll('[data-eslgrab]').forEach(b=>b.onclick=()=>{const id=b.dataset.eslgrab,g=state.edGrab;
+    if(g&&g.kind==='b'&&g.bid===id){edGrabDrop();return;}
+    state.edGrab={kind:'b',bid:id,liste:true};keepAnchor('[data-eslgrab="'+CSS.escape(id)+'"]',renderEditor);});
   main.querySelectorAll('[data-edgo]').forEach(b=>b.onclick=()=>{
     const el=main.querySelector('.blk[data-bid="'+CSS.escape(b.dataset.edgo)+'"]');if(!el)return;
     if(state.edGrab||!el.closest('.ed-pec')){revGoFlash(el);return;}   // prendre / poser, ou une revue (hors « Prise en charge ») : on amène à l'endroit
@@ -31486,6 +31528,7 @@ function bindEditorEvents(f){
          remonte d'autant. */
       const recu=(g.kind==='b')?null:('.blk[data-bid="'+CSS.escape(at.split(':')[1])+'"]');
       state.edGrab=null;
+      if(g.kind==='b'&&g.liste){keepAnchor('[data-drop="'+CSS.escape(at)+'"]',renderEditor,'[data-eslgrab="'+CSS.escape(g.bid)+'"]');return;}   // A808 : la rangée posée là où l'on a touché
       if(recu)keepAnchor(recu,renderEditor);else renderEditor();});
   bindAttEditor(f,renderEditor);   // documents PDF (composant partagé avec l'éditeur de protocole)
   {const del=document.getElementById('delBtn');if(del)del.onclick=deleteDraft;}
@@ -31509,7 +31552,7 @@ function bindEditorEvents(f){
      les contrôles cliquables pour ANNONCER un refus : ici il n'y a rien à annoncer — un contrôle
      éteint pendant qu'un objet est « en main » se comprend seul. */
   if(state.edGrab){
-    const vif='[data-drop],[data-ldrop],[data-grab],[data-lgrab],#edGrabX';
+    const vif='[data-drop],[data-ldrop],[data-grab],[data-lgrab],[data-eslgrab],[data-esreord],#edGrabX';
     main.querySelectorAll('input,textarea,select,button').forEach(el=>{
       if(!el.matches(vif))el.disabled=true;});}
 }
