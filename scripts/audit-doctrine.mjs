@@ -13117,6 +13117,45 @@ await sec('Éditeur · A805 contenu vide : une invitation, pas de réglage ; tê
     await page.close();}
 });
 
+/* ══ A806-A807 — ÉDITEUR D'AIDE : UNE LIGNE D'AIDE, LE DÉTAIL AU FOCUS ; LE VIDE INVITE ═══════════════════════════ */
+await sec('Éditeur · A806-A807 aides d’une ligne, détail au focus ; listes vides en invitation', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const n=await page.evaluate(async()=>{await newFiche();await __acCalme(500);
+    const vis=e=>!!e&&e.getClientRects().length>0,q=s=>document.querySelector(s);
+    const fg=q('.ed-forget'),cr=q('.ed-entry .list-edit'),rel=q('#relAddBtn'),dl=q('label[for="f-disc"]');
+    const o={fgInv:!!fg&&fg.classList.contains('le-vide')&&vis(fg.querySelector('[data-fgadd].le-inv')),
+      fgRien:!!fg&&![...fg.querySelectorAll('.li,.lst-n,.le-foot')].some(vis),
+      crInv:!!cr&&cr.classList.contains('le-vide')&&vis(cr.querySelector('[data-add="confirmation"].le-inv'))&&!vis(cr.querySelector('input[data-key]'))&&!vis(cr.querySelector(':scope>label')),
+      schema:!!q('.flow-prev'),
+      relLigne:!!rel&&rel.getBoundingClientRect().height<60&&!/Aucun lien/.test(q('main').textContent),
+      discUne:!!dl&&dl.getBoundingClientRect().height<30,
+      plusCache:!vis(q('#f-disc-more'))};
+    q('#f-disc').focus();await __acCalme(150);o.plusFocus=vis(q('#f-disc-more'));q('#f-disc').blur();
+    cr.dataset.temoin='1';cr.querySelector('[data-add="confirmation"]').click();await __acCalme(300);
+    const cr2=q('.ed-entry .list-edit'),inp=cr2.querySelector('input[data-key="confirmation"]');
+    o.ouvre=cr2.dataset.temoin==='1'&&vis(inp)&&document.activeElement===inp&&cr2.querySelector('[data-add]').textContent.trim()==='＋ Ajouter un critère';
+    return o;});
+  t('A807 · aide neuve : « Ne pas oublier » et les critères sont une invitation (ni rangée « … », ni 0/4, ni note)',n.fgInv&&n.fgRien&&n.crInv,JSON.stringify(n));
+  t('A807 · un seul bloc : pas de schéma ; « Lier une aide ou un protocole » sur une ligne, sans « Aucun lien »',!n.schema&&n.relLigne,JSON.stringify(n));
+  t('A806 · « Discriminant » : l’aide tient sur la ligne de l’intitulé, la phrase complète paraît au focus',n.discUne&&n.plusCache&&n.plusFocus,JSON.stringify(n));
+  t('A807 · toucher l’invitation montre la rangée sans re-rendu, curseur dedans, « ＋ Ajouter un critère » dessous',n.ouvre,JSON.stringify(n));
+  const r=await page.evaluate(async()=>{const f=fiches.find(x=>/Anaphylaxie/.test(x.title));await openEdit(f.id);await __acCalme(600);
+    const vis=e=>!!e&&e.getClientRects().length>0,q=s=>document.querySelector(s);
+    const po=[...document.querySelectorAll('.list-edit')].find(x=>x.querySelector('[data-key="posology"]'));
+    const li=po&&po.querySelector('.li'),l=li&&li.querySelector('input[data-key]'),nt=li&&li.querySelector('.li-note-in');
+    const ts=q('[data-tshort]'),th=ts&&ts.closest('.tme-row').nextElementSibling;
+    const o={aucunVide:!document.querySelector('.list-edit.le-vide'),schema:!!q('.flow-prev'),
+      poLab:!!po&&po.querySelector(':scope>label').getBoundingClientRect().height<30,
+      sous:!!nt&&nt.getBoundingClientRect().top>=l.getBoundingClientRect().bottom-1&&nt.getBoundingClientRect().width>l.getBoundingClientRect().width*0.8,
+      tmCache:!vis(th)};
+    ts.focus();await __acCalme(150);o.tmFocus=vis(th)&&th.classList.contains('tme-more');ts.blur();return o;});
+  t('A807 · aide remplie : aucune invitation, schéma présent, le détail d’un repère SOUS sa ligne',r.aucunVide&&r.schema&&r.sous,JSON.stringify(r));
+  t('A806 · repères : intitulé sur une ligne ; « Nom court » d’un minuteur : son aide au focus seulement',r.poLab&&r.tmCache&&r.tmFocus,JSON.stringify(r));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.154.0] — 2026-11-22
+L'éditeur d'aide, plus léger au téléphone : des aides d'une ligne, et des listes vides qui disent quoi ajouter (A806,
+A807). Aucune mise à jour du serveur.
+- **Une aide d'une ligne, le détail quand on est dans le champ** (A806). Les explications sous les intitulés faisaient
+  jusqu'à six lignes. Elles tiennent maintenant en quelques mots (« Discriminant · deux ou trois mots », « Code ·
+  facultatif », « Repères posologiques · classés selon le bloc en cours »…). La phrase complète apparaît sous le champ
+  dès qu'on le touche, et les lecteurs d'écran la lisent toujours. Même chose pour « Nom court » et « À l'échéance »
+  d'un minuteur. Vaut aussi pour l'identité d'un protocole.
+- **Une liste vide invite** (A807). Plus de rangée « … » ni de « + Ajouter une ligne » : « Ne pas oublier », les
+  critères de la condition d'entrée et les références montrent une seule invitation qui dit ce qu'on ajoute et où ça
+  s'affiche (« ＋ Ajouter un rappel — affiché en haut de l'aide, 4 au plus »). La toucher ouvre la première ligne,
+  curseur dedans. Avec du contenu, le bouton dit aussi ce qu'il ajoute : « ＋ Ajouter un critère », « un repère »,
+  « une surveillance »…
+- **Le schéma attend deux blocs** : au téléphone, une aide d'un seul bloc ne montre plus de schéma.
+- **« ＋ Lier une aide ou un protocole » tient sur une ligne**, le nombre disponible dans une pastille à droite.
+- **Correctif : le détail d'un repère posologique passe sous sa ligne.** Il s'affichait à côté, et la dose comme le
+  détail étaient coupés.
+- Complications : l'aide devient « 1 à 3, à tout moment », avec une ligne fixe sous les rangées, « Chaque bouton de plus
+  dilue les autres. »
+
 ## [5.153.0] — 2026-11-20
 La carte « Contenu rédigé » d'un protocole, plus claire au téléphone, surtout quand elle est vide (A805). Aucune mise à
 jour du serveur.
@@ -186,28 +206,3 @@ jour du serveur.
 - **Recherche depuis l'accueil** : sur un écran large, la dernière carte des résultats avait perdu son bord bas (elle
   paraissait coupée). Elle l'a retrouvé.
 - Une vidéo que le navigateur ne sait pas lire (un MOV hors de Safari) garde le cadre 4:3.
-
-## [5.140.0] — 2026-11-17
-Une image, une vidéo ou un document qui n'est pas encore sur l'appareil le dit, à sa place (A781). Aucune mise à jour
-du serveur.
-- **Une image en cours de réception a son cadre**, exactement à la taille qu'elle aura : « Image en cours de
-  réception », son poids, et sa légende déjà en dessous. Avant, la page ne montrait rien à sa place. Le cadre vaut
-  dans le texte d'un protocole, dans un élément de liste, dans une case de tableau, dans le bloc d'une aide et dans
-  « Tout voir ».
-- **L'image prend sa place dès qu'elle est reçue**, une par une, sans que le texte bouge — l'écran n'attend plus la
-  fin de toute la réception. En session aussi : l'image arrive dans son cadre, aucune étape ne bouge, rien ne s'affiche
-  d'autre.
-- **Sous le titre de l'élément ouvert**, une ligne dit ce qui lui manque et où en est la réception : « 4 images, 1
-  vidéo et 1 document en cours de réception · 2 / 6 ». Elle disparaît quand tout est là. Jamais en session.
-- **L'élément que vous ouvrez passe devant** : ses images, ses vidéos et ses documents sont reçus avant le reste de la
-  bibliothèque, même si la réception avait déjà commencé.
-- **Les mêmes mots pour les trois** : en réception (gris, rien à faire) ; « pas encore sur cet appareil » (ambre) hors
-  ligne, avec « arrivera à la reconnexion » ; « introuvable » (ambre) si le serveur ne l'a pas. La rangée d'un document
-  dit « ↓ en réception » ou « △ pas sur cet appareil » à la place de « △ à télécharger » ; une vidéo dit « Vidéo en
-  cours de réception ».
-- Une image que le serveur n'a pas le dit, et n'est plus redemandée à chaque passage (30 minutes d'attente, comme les
-  autres fichiers).
-- Limite : le cadre d'une vidéo garde sa forme 4 : 3 tant que la vidéo n'est pas là (ses dimensions ne sont pas
-  connues avant) ; sa hauteur peut donc encore changer à l'arrivée.
-- Vérifié sur Chromium, WebKit (le moteur de Safari) et Firefox : le cadre et l'image posée ont la même taille.
-
