@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [5.155.2] — 2026-11-22
+Les intitulés des cartes de l'éditeur d'aide ont tous la même graisse. Aucune mise à jour du serveur.
+- **« Minuteurs & compteurs », « Complications » et « Voir aussi »** passent au même gras que « Repères posologiques »,
+  « Références » et les champs de l'Identité. Les intertitres posés au-dessus d'un groupe (« Ne pas oublier »,
+  « Condition d'entrée ») restent plus légers, comme avant.
+
 ## [5.155.1] — 2026-11-22
 Correctifs d'alignement dans l'éditeur d'aide, après revue des changements depuis la 5.154 (rectificatif d'A808). Aucune
 mise à jour du serveur.
@@ -182,23 +188,3 @@ quand on le fait défiler (A786). Aucune mise à jour du serveur.
 - La largeur s'écrit dans le texte, sur la ligne qui suit le tableau (`{widths="30 25 45"}`).
 - ⚠ Un appareil resté sur une version **antérieure à la 5.142** affiche cette ligne en clair sous le tableau : mettez à
   jour vos appareils.
-
-## [5.143.0] — 2026-11-18
-On règle la largeur d'une image ou d'une vidéo en tirant son bord, dans le texte, dans une liste et dans un tableau
-(A785). Aucune mise à jour du serveur.
-- **Touchez une image ou une vidéo** en mise en forme en direct : elle se sélectionne (un cadre bleu, une poignée sur
-  son bord, une petite barre). Tirez la poignée : la largeur suit, par pas de 5 %, aimantée au quart, au tiers, à la
-  moitié… et à la largeur de sa voisine. La part s'affiche pendant le geste. ↶ annule.
-- **Partout** : une image seule dans le texte, une image sous une étape de liste, une image dans une case de tableau.
-  Dans une liste, deux ou trois images réduites se placent côte à côte sous l'étape.
-- **Boutons rapides** : « Même largeur » et « Même hauteur » (les images d'une étape s'alignent sur une même hauteur,
-  chacune selon sa forme). Le menu de la part propose ¼, ⅓, ½, ⅔, ¾, Pleine ou « Par défaut ». « Modifier… », un double
-  clic ou Entrée ouvrent le bloc (la grille pour un tableau).
-- **Au téléphone**, la barre se pose en bas, sous le pouce, et la proportion choisie est gardée — une image n'est jamais
-  affichée sous 80 px de large.
-- La largeur appartient à l'endroit où l'image est posée : la même image peut être grande dans le texte et petite dans
-  une case. Elle s'écrit dans le texte (`{width=45%}` collé à la ligne de l'image).
-- Les tailles déjà réglées ne changent pas. La taille réglée dans la fiche d'une image (« Images du texte ») vaut là où
-  aucune largeur n'est écrite.
-- ⚠ Un appareil resté sur une version **antérieure à la 5.142** n'affiche pas une image dont la largeur a été réglée :
-  mettez à jour vos appareils.

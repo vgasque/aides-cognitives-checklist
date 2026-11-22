@@ -5437,9 +5437,9 @@
      d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
   :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
   :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu, comme « Références » ou « Repères » — le retrait
+  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu et en prend la graisse, comme « Références » ou « Repères » — le retrait
      de 16 est celui des intertitres posés AU-DESSUS d'un groupe (« Ne pas oublier », « Condition d'entrée »). */
-  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0}
+  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0;font-weight:800}   /* v5.155.2 : et la graisse des intitulés de carte (800, comme « Références » et les champs de l'Identité) */
   .ed-card>.le-foot{margin:6px 0 0}
   .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
   :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}

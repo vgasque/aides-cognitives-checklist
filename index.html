@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-1qzddGztJQ9tioXk7kNkbMFYvzSrqCDTpFokLQkqmv0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WQiA+r4lRI2RQkucK5Vv5ogWvb4eI6g2GgN72fL2ho0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5838,9 +5838,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'édition ne changent pas (le texte reste un champ, la poignée glisse). */
   :is(body.view-edit) main :is(fieldset,.field)>label{letter-spacing:0;text-transform:none}
   :is(body.view-edit) main fieldset.field:not(.list-edit):not(.ed-ident)>label{padding:0 16px;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu, comme « Références » ou « Repères » — le retrait
+  /* A808 (revue d'alignement) : un intitulé DANS une carte blanche s'aligne sur son contenu et en prend la graisse, comme « Références » ou « Repères » — le retrait
      de 16 est celui des intertitres posés AU-DESSUS d'un groupe (« Ne pas oublier », « Condition d'entrée »). */
-  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0}
+  :is(body.view-edit) main fieldset.field.ed-card:not(.ed-entry)>label{padding:0;font-weight:800}   /* v5.155.2 : et la graisse des intitulés de carte (800, comme « Références » et les champs de l'Identité) */
   .ed-card>.le-foot{margin:6px 0 0}
   .ed-ttl{margin:4px 4px 14px;font-size:var(--t-val);font-weight:800;letter-spacing:-.01em;line-height:1.15}
   :is(.ed-forget,.ed-entry){background:none;border:0;box-shadow:none;padding:0}
@@ -11207,7 +11207,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.155.1';
+const APP_VERSION='5.155.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
