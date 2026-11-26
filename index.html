@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zb1H5eDN5BAcRJi0bF6/ASkyt8nRkkAZlQ+jn1aKgIc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hzymDb9SoSmHJiqx5Yh5Yj18XzMt7n/d7cUgSELVoqg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11330,7 +11330,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.158.0';
+const APP_VERSION='5.158.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17894,7 +17894,13 @@ function syncHdrScroll(){
      le relaie qu'une fois qu'il est passé sous elle — jamais écrit deux fois. */
   const _rh=document.querySelector('.read-head');
   const _rhOn=!!_rh&&_rh.getClientRects().length>0;
+  /* A826 — DANS UN ÉDITEUR, LE TITRE DU CORPS SE MESURE (rectificatif) : le seuil fixe de 110 px laissait la barre SANS
+     titre entre ~60 et 110 px de défilement — le titre de la page (grand titre `.ed-ttl` de l'aide, rangée « Titre »
+     `.id-t` du protocole) était déjà passé sous la barre, et la barre ne l'avait pas encore relayé. */
+  const _edT=(state.view==='edit'||state.view==='protocolEdit')?main.querySelector('.ed-ttl,.id-t'):null;
+  const _edOn=!_rhOn&&!!_edT&&_edT.getClientRects().length>0;
   const t=_rhOn?(_rh.getBoundingClientRect().bottom<=_hbB)
+    :_edOn?((r=>(r.top+r.bottom)/2<=_hbB)(_edT.getBoundingClientRect()))   // à moitié passé sous la barre : il ne se lit plus
     :(((state.view==='read'&&!!state.fiche)||(state.view==='protocolRead'&&mqHomeWide.matches))?true
     :((_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110));
   if(t!==_hdrTtl&&!_aim){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);_bascule=true;}
@@ -38401,6 +38407,11 @@ const champActif=()=>{try{const a=document.activeElement;if(!a||a===document.bod
   window.addEventListener('orientationchange',()=>setTimeout(set,350));
   window.addEventListener('pageshow',set);
   document.addEventListener('visibilitychange',set);
+  /* A827 — LE FOCUS COMPTE AUSSI (rectificatif d'A802) : `html.kbd` exige un champ actif, mais ne se réévaluait qu'au
+     redimensionnement — un champ focalisé APRÈS l'ouverture du clavier attendait le tic suivant (≤ 300 ms) pour que la
+     barre monte au-dessus du clavier. Focus pris ou perdu : on relit, sans délai (après la sortie : le champ suivant
+     a déjà le focus, aucun clignotement). */
+  document.addEventListener('focusin',set);document.addEventListener('focusout',()=>setTimeout(set,0));
   window._vvhSync=set;set();
   /* ⚠ DÉCALAGE RÉSIDUEL DU VIEWPORT VISUEL (v5.10.4) : à la fermeture du clavier, WebKit ne
      recolle pas toujours les deux viewports (surtout fond verrouillé par une fenêtre) — en-tête

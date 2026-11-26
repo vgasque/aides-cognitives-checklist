@@ -9517,8 +9517,8 @@ await sec('Lecture · A788 une liste dans une case de tableau', async () => {
  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
  await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A788',body:'| Signe | Critères |\n|---|---|\n| **Choc** | - FC > 120<br>- PAS < 90<br>  - ou PAM < 65<br>- Marbrures |\n\nFin.'});protocols.push(pr);openProtocolRead(pr.id);await __acCalme(500);});
  const r=await page.evaluate(()=>{const td=document.querySelector('.md-tbl td'),ul=td&&td.querySelector(':scope>ul');if(!ul)return {ul:false};const cs=getComputedStyle(ul),li=ul.querySelectorAll(':scope>li');
-   return {ul:true,n:li.length,sous:!!ul.querySelector('li>ul>li'),puce:getComputedStyle(li[0]).listStyleType,mt:cs.marginTop,mb:cs.marginBottom,texte:td.textContent.indexOf('- ')<0};});
- t('A788 · la case rend ses éléments en liste à puces (3 éléments, un sous-niveau), sans tiret écrit, sans marge',r.ul&&r.n===3&&r.sous&&r.puce!=='none'&&r.mt==='0px'&&r.mb==='0px'&&r.texte,JSON.stringify(r));
+   return {ul:true,n:li.length,sous:!!ul.querySelector('li>ul>li'),puce:getComputedStyle(li[0]).listStyleType,pb:getComputedStyle(li[0],'::before').content,mt:cs.marginTop,mb:cs.marginBottom,texte:td.textContent.indexOf('- ')<0};});
+ t('A788 · la case rend ses éléments en liste à puces (3 éléments, un sous-niveau), sans tiret écrit, sans marge',r.ul&&r.n===3&&r.sous&&(r.puce!=='none'||(r.pb&&r.pb!=='none'))&&r.mt==='0px'&&r.mb==='0px'&&r.texte,JSON.stringify(r));
  await page.close();
 });
 
@@ -13459,6 +13459,25 @@ const tc=await page.evaluate(async()=>{const b=document.querySelector('.md-lint-
 t('A821 · sous « ## », le niveau proposé est « ### » (mis en avant)',tc.prop&&tc.prop.length===2&&tc.prop.every(x=>x==='3'),JSON.stringify(tc));
 t('A824 · « Tout convertir en titres (2) » : deux sous-titres sœurs d’un geste',tc.txt==='Tout convertir en titres (2)'&&JSON.stringify(tc.h)===JSON.stringify(['## Intoxication au CO','### Physiopathologie','### Prise en charge']),JSON.stringify(tc));
 await page.close();
+});
+
+/* ══ A826 — DANS UN ÉDITEUR, LE TITRE EST RELAYÉ DÈS QU'IL PASSE SOUS LA BARRE (rectificatif) : le seuil fixe de 110 px
+   laissait la barre sans titre entre ~60 et 110 px de défilement (vu sur capture, éditeur de protocole). ══════════════ */
+await sec('Éditeur · A826 le titre de la page relayé par la barre dès qu’il passe dessous', async () => {
+for(const W of [1280,390]){
+  const page=await editeur811(W,W<500?844:900);
+  const r=await page.evaluate(async()=>{const e=document.querySelector('.id-t'),hb=document.querySelector('header.bar');
+    const top=e.getBoundingClientRect().top+scrollY,bas=hb.getBoundingClientRect().bottom,h=e.getBoundingClientRect().height;
+    scrollTo(0,Math.ceil(top+h*0.75-bas));await __acCalme(250);
+    const r1={sy:scrollY,ttl:hb.classList.contains('ttl-on'),vis:getComputedStyle(document.getElementById('brandTitle')).display!=='none'};
+    scrollTo(0,0);await __acCalme(250);const r0={ttl:hb.classList.contains('ttl-on')};return {r1,r0};});
+  t(`A826 · ${W} px, protocole : la rangée « Titre » passée aux ¾ sous la barre (scrollY ${r.r1.sy} < 110) → le titre est dans la barre ; en haut, il n’y est pas`,r.r1.sy<110&&r.r1.ttl&&r.r1.vis&&!r.r0.ttl,JSON.stringify(r));
+  await page.evaluate(async()=>{await openEdit(fiches[0].id);});await calme(page,600);
+  const a=await page.evaluate(async()=>{const e=document.querySelector('.ed-ttl'),hb=document.querySelector('header.bar');
+    const top=e.getBoundingClientRect().top+scrollY,bas=hb.getBoundingClientRect().bottom,h=e.getBoundingClientRect().height;
+    scrollTo(0,Math.ceil(top+h*0.75-bas));await __acCalme(250);return {sy:scrollY,ttl:hb.classList.contains('ttl-on')};});
+  t(`A826 · ${W} px, aide : le grand titre passé aux ¾ sous la barre (scrollY ${a.sy}) → relayé`,a.sy<110&&a.ttl,JSON.stringify(a));
+  await page.close();}
 });
 
 const bilanSec=sec.bilan();
