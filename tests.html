@@ -894,7 +894,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      '| Fémoral<br>![](img:i1) | Normal<br>*[Vidéo non importée : video8.webm]* | Thrombus<br>![](img:i2) |',
      '| Poplité<br>![](img:i3) | Normal<br>![](img:i4) | Thrombus<br>*[Image absente de l’archive : image 5.png]* |']);
    eq('A756 : image absente et vidéo comptées', [c.manque,c.videos], [1,1]);
-   ok('A756 : liste et sous-liste', L.includes('- Un *point*')&&L.includes('  - sous-point'));
+   ok('A756 : liste et sous-liste', L.includes('- Un *point*')&&L.includes('    - sous-point'));
    ok('A756 : case à cocher', L.includes('- [ ] Appeler'));
    ok('A756 : tableau, « | » protégé', L.includes('| Dose | 1 \\| 2 mg |'));
    ok('A756 : encadré → citation', L.includes('> Attention **dose**'));
@@ -1022,7 +1022,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A758 : une image hébergée ailleurs devient un lien (elle disparaissait)', L.includes('[Coupe](https://images.example.org/a.png)'));
    const v=q.videos[0]&&q.videos[0].id;
    eq('A758 : le repli sous une puce reste dans la liste — sous-puce, vidéo d’élément, puce suivante au même niveau',
-     L.slice(L.indexOf('- compression'),L.indexOf('- compression')+5).filter(Boolean), ['- compression','  - **parasternal grand axe**','    ![](vid:'+v+')','- swinging heart']);
+     L.slice(L.indexOf('- compression'),L.indexOf('- compression')+5).filter(Boolean), ['- compression','    - **parasternal grand axe**','      ![](vid:'+v+')','- swinging heart']);
    const R=A.mdBlocks(q.body).filter(b=>b.t==='ul');
    ok('A758 : …et le rendu n’en fait qu’UNE liste (« swinging heart » reste à son niveau)', R.length===1&&R[0].items.length===2);
    const B=A.mdBlocks('- a\n  - b\n    ![](vid:v1)\n  - c');
@@ -1289,6 +1289,36 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('citation / encadré → « > »', [A.mdListCont('> a'),A.mdListCont('> [!CAUTION]')], [{next:'> '},{next:'> '}]);
   eq('item vide → fin de liste', [A.mdListCont('- '),A.mdListCont('1. '),A.mdListCont('- [ ] '),A.mdListCont('> ')], [{end:true},{end:true},{end:true},{end:true}]);
   eq('texte ordinaire → rien', [A.mdListCont('texte'),A.mdListCont('-texte')], [null,null]);
+
+  group('A809-A810 — remonter et descendre d’un niveau, coller une image (v5.156)');
+  {// « | » = le curseur ; « [ » « ] » = la sélection. Rend le texte après le geste, ou null (rien à changer).
+   const R=(src,o)=>{let a=src.indexOf('|'),b=a,v=src.replace('|','');if(a<0){a=src.indexOf('[');v=src.replace('[','');b=v.indexOf(']');v=v.replace(']','');}
+     const r=A.mdListLvl(v,a,b,o);return r?v.slice(0,r.from)+r.seg+v.slice(r.to):null;};
+   eq('A809 : Tab sous une sœur sans sous-puce → 4 espaces', R('- a\n- b|',false), '- a\n    - b');
+   eq('A809 : Tab sous une sœur dont les sous-puces sont à 2 espaces → s’aligne sur elles', R('- a\n  - x\n- b|',false), '- a\n  - x\n  - b');
+   eq('A809 : la première puce de son niveau ne descend pas (rien ne changerait au rendu)', [R('- a|',false),R('- a\n    - b|',false)], [null,null]);
+   eq('A809 : Maj+Tab remonte au retrait de la puce parente, quel que soit l’écart', [R('- a\n    - b|',true),R('- a\n  - b\n      - c|',true),R('1. a\n   - b|',true)], ['- a\n- b','- a\n  - b\n  - c','1. a\n- b']);
+   eq('A809 : au premier niveau, Maj+Tab rend la ligne au texte (case comprise)', [R('- a|',true),R('- [x] fait|',true),R('3. trois|',true)], ['a','fait','trois']);
+   eq('A809 : une sélection remonte d’un niveau en gardant ses écarts', R('- m\n[    - f\n        - n\n    - r]',true), '- m\n- f\n    - n\n- r');
+   eq('A809 : une sélection descend sous la sœur qui précède', R('- a\n[- b\n- c]',false), '- a\n    - b\n    - c');
+   eq('A809 : une sélection qui contient autre chose qu’une liste → rien', R('[Texte\n- a]',true), null);
+   eq('A809 : les médias de la puce la suivent, au retrait de son texte', R('- a\n- b|\n  ![](img:x)',false), '- a\n    - b\n      ![](img:x)');
+   {const six='- 1\n    - 2\n        - 3\n            - 4\n                - 5\n                    - 6\n                    - 7|';
+    eq('A809 : plafond MD_MAX_DEPTH compté en niveaux, pas en espaces', [R(six,false),A.mdListLvlOf(six.replace('|','').split('\n'),6)], [null,6]);}
+   const U=(v,a)=>{const r=A.mdListEmptyUp(v,a==null?v.length:a);return r?v.slice(0,r.from)+r.seg+v.slice(r.to):null;};
+   eq('A809 : Entrée sur une sous-puce vide → elle remonte et prend le marqueur suivant de sa sœur', [U('1. a\n    - x\n    - '),U('- [x] a\n    - [ ] ')], ['1. a\n    - x\n2. ','- [x] a\n- [ ] ']);
+   eq('A809 : Entrée sur une sous-puce vide, parent puce ou texte au-dessus', [U('- a\n    - '),U('Texte\n\n    - ')], ['- a\n- ','Texte\n\n- ']);
+   eq('A809 : Entrée sur une puce vide du premier niveau → null (la liste se termine, A454)', [A.mdListEmptyUp('- a\n- ',6),A.mdListEmptyUp('- a\n    - b',10)], [null,null]);
+   const B=(src)=>{const a=src.indexOf('|'),v=src.replace('|',''),r=A.mdListBack(v,a);return r?v.slice(0,r.from)+r.seg+v.slice(r.to):null;};
+   eq('A809 : Effacer juste après le marqueur → un niveau plus haut, puis texte', [B('- a\n    - |b'),B('- |b'),B('- [ ] |t'),B('2. |deux')], ['- a\n- b','b','t','deux']);
+   eq('A809 : Effacer ailleurs → effacement ordinaire', [B('- b|'),B('-| b'),B('Texte |b'),B('|- b')], [null,null,null,null]);
+   const H=A.mdRender('- a\n    - b\n        - c\n- d');
+   eq('A809 : 2, 3 ou 4 espaces par niveau, ou un mélange → le même rendu', [A.mdRender('- a\n  - b\n    - c\n- d'),A.mdRender('- a\n   - b\n      - c\n- d'),A.mdRender('- a\n  - b\n      - c\n- d')], [H,H,H]);
+   const F=(files,txt,items)=>A.mdPasteImgs({files:files||[],items:items||[],getData:k=>k==='text/plain'?(txt||''):''}).length;
+   const png={type:'image/png',name:'image.png'};
+   eq('A810 : une image seule, ou avec un simple nom de fichier ou une adresse → collée en image', [F([png]),F([png],'IMG_0042.HEIC'),F([png],'https://x.org/a.png'),F([],'',[{kind:'file',type:'image/jpeg',getAsFile:()=>({type:'image/jpeg'})}])], [1,1,1,1]);
+   eq('A810 : un texte accompagne l’image (Word, Excel, page web) → le texte gagne', [F([png],'Bonjour le monde'),F([png],'12'),F([png],'a.png b.png')], [0,0,0]);
+   eq('A810 : ni vidéo, ni fichier non image', [F([{type:'video/mp4'}]),F([{type:'application/pdf'}]),A.mdPasteImgs(null).length], [0,0,0]);}
   eq('lien de document : nom sans .pdf, crochets neutralisés', [A.mdDocLink({id:'a1',name:'Reco.pdf'},''),A.mdDocLink({id:'a1',name:'x.pdf'},'voir [ici]')], ['[Reco](att:a1)','[voir  ici](att:a1)']);
   ok('#p12 : page portée par data-mdpage', A.mdInline('[r](att:a1#p12)').includes('data-mdatt="a1" data-mdpage="12"'));
   ok('#p sans nombre → lien laissé en clair', !A.mdInline('[r](att:a1#p)').includes('data-mdatt'));
@@ -1316,7 +1346,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('A612 : rien ne bouge → null', A.mdBlkMoveSet(B,[1,2],1), null);}
   ok('aller-retour grille → texte → grille', (()=>{const md=A.mdTableMd({head:['a','b'],align:['','r'],rows:[['x|y','2']]});const t=A.mdTableAt(md,0);return t.rows[0][0]==='x|y'&&t.align[1]==='r';})());
   ok('collage Word : puces « · » et intertitre en gras', (()=>{const r=A.mdFromHtml('<p class="MsoNormal"><b>Conduite à tenir</b></p><p style="mso-list:l0 level1 lfo1">·&nbsp;&nbsp; Allonger</p><p style="mso-list:l0 level2 lfo1">o&nbsp;&nbsp; jambes</p>');
-    return r.md==='## Conduite à tenir\n\n- Allonger\n  - jambes'&&r.N.h===1&&r.N.li===2;})());
+    return r.md==='## Conduite à tenir\n\n- Allonger\n    - jambes'&&r.N.h===1&&r.N.li===2;})());
   ok('collage HTML : fragment en ligne gardé en un paragraphe, gras repris', A.mdFromHtml('<b>Adrénaline</b> sans attendre').md==='**Adrénaline** sans attendre');
   ok('collage HTML : listes, tableau, lien https', (()=>{const r=A.mdFromHtml('<ul><li>a</li><li>b</li></ul><table><tr><th>X</th><th>Y</th></tr><tr><td>1</td><td>2</td></tr></table><p><a href="https://x.org">site</a></p>');
     return /^- a\n- b\n/.test(r.md)&&r.md.includes('| X   | Y   |')&&r.md.includes('[site](https://x.org)')&&r.N.tbl===1;})());

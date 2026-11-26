@@ -13198,6 +13198,81 @@ await sec('Éditeur · A808 réordonner les blocs dans la structure (liste et co
     await page.close();}
 });
 
+/* ══ A809-A810 — ÉDITEUR DE PROTOCOLE : REMONTER ET DESCENDRE D'UN NIVEAU, COLLER UNE IMAGE (planche « Listes et collage
+   d'images », formes 1 + A + 3 retenues par l'auteur) ═══════════════════════════════════════════════════════════════
+   Mise en forme en direct, bloc liste ouvert, VRAIES touches (Entrée, Effacer, Tab) ; collage par un vrai ClipboardEvent
+   portant un PNG (la porte `upTake` lit sa signature). */
+await sec('Éditeur · A809-A810 remonter d’un niveau (⇤ ⇥, Entrée, Effacer, Tab à 4 espaces), coller une image', async () => {
+const corps="## Technique\n\n- Massage\n    - Fréquence\n- Défibrillation\n\nTexte libre.";
+const page=await br.newPage({viewport:{width:1280,height:900}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin niveaux',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
+await calme(page,600);
+// Bloc liste ouvert, curseur au bout de « Fréquence »
+const vis=s=>page.evaluate(q=>{const e=document.querySelector(q);return !!e&&getComputedStyle(e).display!=='none';},s);
+await page.evaluate(async()=>{document.querySelector('#mdDoc ul').closest('.mdb').click();await __acCalme(300);
+  const t=document.querySelector('#mdDoc .mdb-ta');const i=t.value.indexOf('Fréquence')+9;t.focus();t.setSelectionRange(i,i);t.dispatchEvent(new Event('keyup'));await __acCalme(100);});
+const b1={lvl:await vis('.md-toolbar .mdt-lvl'),box:await vis('.md-toolbar .mdt-box')};
+t('A809 · curseur dans une liste : ⇤ ⇥ montrés, « Encadré » retiré',b1.lvl&&!b1.box,JSON.stringify(b1));
+const ta=()=>page.evaluate(()=>document.querySelector('#mdDoc .mdb-ta').value);
+await page.click('.md-toolbar [data-mdtool="out"]');await calme(page,150);
+const v1=await ta();
+t('A809 · ⇤ : la sous-puce remonte au niveau de sa parente',v1==='- Massage\n- Fréquence\n- Défibrillation',JSON.stringify(v1));
+await page.click('.md-toolbar [data-mdtool="in"]');await calme(page,150);
+const v2=await ta();
+t('A809 · ⇥ : elle redescend, à 4 espaces',v2==='- Massage\n    - Fréquence\n- Défibrillation',JSON.stringify(v2));
+const foc=await page.evaluate(()=>document.activeElement&&document.activeElement.classList.contains('mdb-ta'));
+t('A809 · après ⇤ ⇥, le champ garde le focus',foc,String(foc));
+await page.keyboard.press('Control+z');await calme(page,150);
+const vz=await ta();
+t('A809 · ⌘Z annule le geste de la barre',vz==='- Massage\n- Fréquence\n- Défibrillation',JSON.stringify(vz));
+// Entrée au bout de « Fréquence » : une sous-puce vide ; Entrée encore : elle remonte (et ne termine pas la liste)
+await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.value='- Massage\n    - Fréquence\n- Défibrillation';const i=t.value.indexOf('Fréquence')+9;t.focus();t.setSelectionRange(i,i);});
+await page.keyboard.press('Enter');await page.keyboard.press('Enter');await calme(page,150);
+const v3=await ta();
+t('A809 · Entrée sur une sous-puce vide : elle remonte d’un niveau, la liste continue',v3==='- Massage\n    - Fréquence\n- \n- Défibrillation',JSON.stringify(v3));
+await page.keyboard.type('Rythme');await page.keyboard.press('Tab');await calme(page,150);
+const v4=await ta();
+t('A809 · Tab sous une sœur qui a déjà des sous-puces : au retrait de celles-ci',v4==='- Massage\n    - Fréquence\n    - Rythme\n- Défibrillation',JSON.stringify(v4));
+// Effacer juste après le marqueur : un niveau plus haut, puis texte
+await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');const i=t.value.indexOf('Rythme');t.setSelectionRange(i,i);});
+await page.keyboard.press('Backspace');await calme(page,100);
+const v5=await ta();
+await page.keyboard.press('Backspace');await calme(page,100);
+const v6=await ta();
+t('A809 · Effacer juste après « - » : la puce remonte, puis redevient du texte',v5==='- Massage\n    - Fréquence\n- Rythme\n- Défibrillation'&&v6==='- Massage\n    - Fréquence\nRythme\n- Défibrillation',JSON.stringify([v5,v6]));
+await page.evaluate(async()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.dispatchEvent(new Event('keyup'));await __acCalme(50);});
+const b2={lvl:await vis('.md-toolbar .mdt-lvl'),box:await vis('.md-toolbar .mdt-box')};
+t('A809 · curseur hors d’une liste : « Encadré » revient, ⇤ ⇥ se retirent',!b2.lvl&&b2.box,JSON.stringify(b2));
+// A810 : coller une image, curseur dans la puce « Fréquence »
+const colle=async()=>page.evaluate(async()=>{const cv=document.createElement('canvas');cv.width=40;cv.height=30;cv.getContext('2d').fillRect(0,0,40,30);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));const dt=new DataTransfer();dt.items.add(new File([blob],'image.png',{type:'image/png'}));
+  const t=document.querySelector('#mdDoc .mdb-ta'),ev=new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true});t.dispatchEvent(ev);
+  const n0=(t.value.match(/img:/g)||[]).length;for(let k=0;k<40&&(t.value.match(/img:/g)||[]).length===n0;k++)await __acCalme(50);
+  return {v:t.value,annule:ev.defaultPrevented};});
+await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');const i=t.value.indexOf('Fréquence')+3;t.focus();t.setSelectionRange(i,i);});
+const c1=await colle();
+t('A810 · coller une image dans une puce : elle s’écrit DANS la puce, au retrait de son texte',c1.annule&&/^- Massage\n    - Fréquence\n      !\[\]\(img:[A-Za-z0-9_-]+\)\nRythme/.test(c1.v),JSON.stringify(c1));
+await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');const i=t.value.indexOf('Rythme')+6;t.focus();t.setSelectionRange(i,i);});
+const c2=await colle();
+t('A810 · hors d’une liste : l’image est un bloc, sur sa ligne',/Rythme\n!\[\]\(img:[A-Za-z0-9_-]+\)\n/.test(c2.v),JSON.stringify(c2.v));
+const n=await page.evaluate(()=>{const ids=(document.querySelector('#mdDoc .mdb-ta').value.match(/img:([A-Za-z0-9_-]+)/g)||[]).map(x=>x.slice(4));
+  const p=protocols.find(x=>x.title==='Témoin niveaux');const d=state.pdraft||state.draft||{};const imgs=(d.images||p&&p.images||[]).map(x=>x.id);return ids.length+'/'+ids.filter(i=>imgs.includes(i)).length;});
+t('A810 · les deux images sont admises dans le protocole (comme « Insérer › Image »)',n==='2/2',n);
+const c3=await page.evaluate(()=>{const dt=new DataTransfer();dt.setData('text/plain','Bonjour');const t=document.querySelector('#mdDoc .mdb-ta'),ev=new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true});t.dispatchEvent(ev);return ev.defaultPrevented;});
+t('A810 · un texte seul se colle comme avant (collage natif)',!c3,String(c3));
+// Au téléphone : ⇤ ⇥ prennent la place d'« Encadré » (et, sous 400, de « Titre ») — la barre ne gagne pas de ligne
+for(const W of [390,360]){
+await page.setViewportSize({width:W,height:844});await calme(page,300);
+const h=await page.evaluate(async()=>{if(!document.querySelector('#mdDoc .mdb-ta')||!/^- /.test(document.querySelector('#mdDoc .mdb-ta').value)){document.querySelector('#mdDoc ul').closest('.mdb').click();await __acCalme(300);}
+  const t=document.querySelector('#mdDoc .mdb-ta'),tb=document.querySelector('.md-toolbar'),H=()=>Math.round(tb.getBoundingClientRect().height);
+  t.focus();const i=t.value.indexOf('Fréquence')+3;t.setSelectionRange(i,i);t.dispatchEvent(new Event('keyup'));await __acCalme(100);const a=H(),dans=tb.classList.contains('in-list');
+  document.querySelector('#mdDoc h2').closest('.mdb').click();await __acCalme(300);const u=document.querySelector('#mdDoc .mdb-ta');u.focus();u.dispatchEvent(new Event('keyup'));await __acCalme(100);
+  return {dans,a,b:H(),hors:!tb.classList.contains('in-list')};});
+t(`A809 · ${W} px : dans une liste, la barre tient sur une ligne et n’est jamais plus haute qu’ailleurs (⇤ ⇥ à la place d’« Encadré »)`,h.dans&&h.hors&&h.a<48&&h.a<=h.b,JSON.stringify(h));}
+await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
