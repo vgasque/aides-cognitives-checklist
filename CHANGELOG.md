@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.159.0] — 2026-11-26
+Les titres de troisième niveau, redessinés (A828). Aucune mise à jour du serveur.
+- **Un titre `###` devient une rubrique** : en capitales espacées, sans le trait qu'il avait dessous depuis la
+  v5.157. Il ne se confond plus avec une ligne en gras (« **Mesure** : … »), et le trait ne coupe plus le titre de
+  son contenu. Seul le `#` garde son trait, au-dessus : il sépare deux grandes sections. En lecture comme dans
+  l'éditeur. Le texte écrit ne change pas (le Plan, le sommaire et la recherche gardent la casse) ; une unité
+  écrite dans un `###` (« mL ») s'y affiche en capitales.
+
 ## [5.158.1] — 2026-11-26
 Correctifs trouvés à la revue visuelle et à l'audit complet de la v5.158.0 (A826-A827). Aucune mise à jour du serveur.
 - **Dans un éditeur, la barre du haut ne reste plus vide.** Après un petit défilement, le titre de la page (« Modifier
@@ -206,17 +214,3 @@ dans la case (A792). Aucune mise à jour du serveur.
 - **Au téléphone, plus rien en double.** Une **ligne d'état** au-dessus de la grille (« En-tête : ligne · colonne | Largeur : choisie › ») ouvre la feuille « Tableau », la même que « ⋯ » : en-têtes, largeur des colonnes, ajouter en fin, Modifier le Markdown. Sous la grille, il ne reste que la barre au pouce ; la grille arrive plus haut.
 - **Le média s'ajoute dans la case** : un « ＋ » sur la case active, et seulement elle (Image ou Vidéo, puis le choix du média), dans tout tableau. Il est posé à cheval sur le filet de la case : il ne cache aucun texte, n'épaissit aucune ligne, et reste visible quand la case dépasse de l'écran (il passe alors à gauche). « ＋ Image » et « ＋ Vidéo » ne sont plus ni sous la grille ni dans « ⋯ ».
 - Rien ne change pour les protocoles enregistrés.
-
-## [5.147.0] — 2026-11-18
-La largeur des colonnes se règle sur les colonnes elles-mêmes, et une vidéo montre sa première image (A790-A791). Aucune
-mise à jour du serveur.
-- **La règle des colonnes est au-dessus des colonnes** : dans la grille d'un tableau, « Largeur » change les petits
-  onglets en une règle, un segment par colonne avec sa part, et une pastille sur chaque filet. On tire la pastille : la
-  colonne s'élargit sous vos yeux.
-- **La grille d'édition prend les proportions de la lecture** : vous voyez ce que vous réglez. Une colonne trop étroite
-  pour y écrire garde 112 px dans la grille et le dit (« 15 % · min. ») ; en lecture, elle aura bien sa part.
-- **Une vidéo montre sa première image** au lieu du mot « Vidéo » : dans la grille d'un tableau, dans le texte tant
-  qu'elle n'est pas arrivée sur l'appareil, et dans le choix d'un média, avec ▶ et sa durée. Elle est capturée quand vous
-  ajoutez la vidéo ; pour les vidéos déjà là, l'appareil qui a le fichier la capture de lui-même.
-- La première image voyage avec le protocole : sur un autre appareil, elle s'affiche avant que la vidéo soit arrivée.
-- Une vidéo que le navigateur ne sait pas lire (un MOV hors de Safari) garde le mot « Vidéo ».

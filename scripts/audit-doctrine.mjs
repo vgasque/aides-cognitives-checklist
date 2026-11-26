@@ -13288,12 +13288,12 @@ await sec('Éditeur · A811-A815 une seule feuille, traits des sous-listes, bloc
 const page=await editeur811(1280);
 const mes=()=>page.evaluate(()=>{const R=s=>document.querySelector(s),g=(e,k)=>e?getComputedStyle(e)[k]:null,box=document.querySelector('#mdDoc')||document.querySelector('.ref-main .md-body');
   const p=box.querySelector('.md-p'),li=box.querySelector('.md-ul>li'),h3=box.querySelector('.md-h3'),h1=[...box.querySelectorAll('.md-h1')][1],sub=box.querySelector('li>.md-ul');
-  return {lh:g(p,'lineHeight'),pmb:g(p,'marginBottom'),lim:g(li,'marginTop'),mk:li?getComputedStyle(li,'::marker').color:null,h3b:g(h3,'borderBottomWidth'),h3mt:g(h3,'marginTop'),h1mt:g(h1,'marginTop'),h1bt:g(h1,'borderTopWidth'),trait:!!sub&&getComputedStyle(sub.firstElementChild,'::after').content!=='none'};});
+  return {lh:g(p,'lineHeight'),pmb:g(p,'marginBottom'),lim:g(li,'marginTop'),mk:li?getComputedStyle(li,'::marker').color:null,h3b:g(h3,'borderBottomWidth'),h3tt:g(h3,'textTransform'),h3mt:g(h3,'marginTop'),h1mt:g(h1,'marginTop'),h1bt:g(h1,'borderTopWidth'),trait:!!sub&&getComputedStyle(sub.firstElementChild,'::after').content!=='none'};});
 const ed=await mes();
 await page.evaluate(async()=>{await openProtocolRead('p811');});await calme(page,500);
 const lu=await mes();
 t('A811 · la lecture et le document de l’éditeur ont les mêmes métriques (interligne, marges, puces, filets des titres)',JSON.stringify(ed)===JSON.stringify(lu)&&ed.lh&&parseFloat(ed.lh)/15<1.6,JSON.stringify({ed,lu}));
-t('A811 · « ### » porte un filet dessous, « # » le sien dessus ; un paragraphe en gras n’en a aucun',ed.h3b==='1px'&&ed.h1bt==='2px'&&await page.evaluate(()=>{const b=[...document.querySelectorAll('.md-body .md-p')].find(p=>/^Physiopathologie/.test(p.textContent));return !!b&&getComputedStyle(b).borderBottomWidth==='0px';}),JSON.stringify(ed));
+t('A828 · « ### » est une rubrique en capitales, sans filet ; seul « # » porte un filet, au-dessus ; un paragraphe en gras n’en a aucun',ed.h3b==='0px'&&ed.h3tt==='uppercase'&&ed.h1bt==='2px'&&await page.evaluate(()=>{const b=[...document.querySelectorAll('.md-body .md-p')].find(p=>/^Physiopathologie/.test(p.textContent));return !!b&&getComputedStyle(b).borderBottomWidth==='0px';}),JSON.stringify(ed));
 t('A812 · une sous-liste porte le trait de sa puce, en lecture et dans l’éditeur',ed.trait&&lu.trait,JSON.stringify({ed:ed.trait,lu:lu.trait}));
 const tc=await page.evaluate(()=>{const d=document.createElement('div');d.className='md-body';d.innerHTML=mdRender('- [ ] a\n    - [ ] b\n\n| x |\n|---|\n| - a<br>- b |');document.body.appendChild(d);
   const s=[...d.querySelectorAll('li>.md-ul,li>.md-ol')].map(u=>getComputedStyle(u.firstElementChild,'::after').content!=='none');d.remove();return s;});   // A823
