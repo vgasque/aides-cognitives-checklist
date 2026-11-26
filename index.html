@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ibhLtCeqpQUGnoxnkrfQu00eGgdWB3tdeU7/e+3aqLo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zb1H5eDN5BAcRJi0bF6/ASkyt8nRkkAZlQ+jn1aKgIc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9119,6 +9119,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:32px 0 6px;padding-top:16px;border-top:2px solid var(--line-strong);color:var(--ink)}
   .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:24px 0 6px;color:var(--ink)}
   .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
+  /* A822 — LES ÉCARTS SONT LES MÊMES PAR CONSTRUCTION en lecture et en mise en forme en direct (A811 promettait une
+     seule feuille ; mesuré : 4 à 11 px d'écart autour de chaque titre). La cause : en lecture le titre porte le bouton
+     repliable de 32 px (A171), centré — il ajoutait ~4,6 px au-dessus et au-dessous du texte ; le titre du document,
+     non. Tout titre a donc la même boîte, partout : 32 px au moins, texte centré. */
+  .md-h1,.md-h2,.md-h3{display:flex;align-items:center;min-height:32px}
   :is(.md-h1,.md-h2)+:is(.md-h2,.md-h3),:is(.md-h1,.md-h2)+.md-sect>:is(.md-h2,.md-h3):first-child,
   .mdb:has(>:is(.md-h1,.md-h2))+.mdb>:is(.md-h2,.md-h3){margin-top:10px}
   /* Le document de l'éditeur et son aperçu se lisent au corps ET à l'interligne de la LECTURE (A723, A811). L'aperçu
@@ -9142,8 +9147,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Même règle que la navigation d'occurrences : on replie/déplie en tapant plusieurs fois, et
      un double-tap ne doit pas se mettre à sélectionner le titre. */
   .md-fbtn{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-    display:flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:0;border:0;background:none;
+    display:flex;align-items:center;gap:8px;width:100%;min-height:0;padding:0;border:0;background:none;position:relative;
     font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
+  /* A822 : la boîte de 32 px est celle du TITRE (lecture et éditeur, même géométrie) ; la cible du bouton y est portée à
+     32 px par un halo (règle 9), sans rien ajouter à la mise en page. */
+  .md-fbtn::after{content:'';position:absolute;left:0;right:0;top:50%;height:32px;margin-top:-16px}
   .md-fbtn:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
   .md-fch{flex:none;margin-left:auto;display:inline-flex;color:var(--ink-soft)}
   /* LE CHEVRON DIT L'ÉTAT, dans la convention universelle des arborescences : FERMÉ il pointe à
@@ -9161,13 +9169,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-p{margin:0 0 8px;color:var(--ink)}
   .md-ul,.md-ol{margin:0 0 8px;padding-left:20px}
   .md-ul li,.md-ol li{margin:2px 0}
-  .md-ul>li::marker{color:var(--ink-3)}   /* A811 : la puce s'efface devant le texte, partout (la lecture seule l'avait) */
+  /* A823 (rectifie A812) — LA PUCE EST DESSINÉE, pour que le trait des sous-listes parte d'ELLE à coup sûr : la puce native
+     (`::marker`) n'a aucune géométrie lisible ni réglable — le trait d'A812, posé à l'estime, tombait ~9 px à droite d'elle
+     (signalé sur capture, 390 et 1100). Même dessin que la puce native (disque, rond, carré selon le niveau), en --ink-3
+     (A811), centré sur la première ligne ; centre à 14 px − 0,2 em du texte. */
+  .md-ul>li:not(.md-task){list-style:none;position:relative}
+  .md-ol>li:not(.md-task){position:relative}
+  .md-ul>li:not(.md-task)::before{content:'';position:absolute;left:-14px;top:calc(.775em - .2em);width:.4em;height:.4em;box-sizing:border-box;border-radius:50%;background:var(--ink-3)}
+  @supports (top:1lh){.md-ul>li:not(.md-task)::before{top:calc((1lh - .4em) / 2)}}
+  :is(.md-ul,.md-ol) .md-ul>li:not(.md-task)::before{background:transparent;border:1.5px solid var(--ink-3)}
+  :is(.md-ul,.md-ol) :is(.md-ul,.md-ol) .md-ul>li:not(.md-task)::before{border:0;border-radius:0;background:var(--ink-3)}
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:2px 0 0;padding-left:20px}
   /* A812 — LE TRAIT DES SOUS-LISTES (P3, planche « Lire la structure ») : une sous-liste se rattache à SA puce par un
      trait fin qui part de la puce parente et longe ses sous-puces — l'arbre se lit sans compter les retraits. Dessiné en
      fond (aucune place prise, rien à l'impression), jamais sous une case cochable ni dans une case de tableau. */
-  li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *){margin-left:-14px;padding-left:calc(20px + 14px);
-    background:linear-gradient(var(--line-strong),var(--line-strong)) 4px 0/1px calc(100% - 12px) no-repeat}
+  /* A823 : chaque sous-puce porte son morceau du trait, à l'abscisse du centre de la puce PARENTE (sous-liste en retrait de
+     20 px : −20 − 14 + 0,2 em) ; il remonte jusqu'au bas de la ligne parente, et la DERNIÈRE sous-puce l'arrête au milieu de
+     sa première ligne — jamais au bas d'un texte de plusieurs lignes, jamais un « | » détaché. Sous une liste numérotée, le
+     numéro natif n'a pas de centre lisible : le trait se pose à la même abscisse (sous la fin du numéro). Ni sous une case
+     cochable, ni dans une case de tableau, ni à l'impression. */
+  li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task)::after{content:'';position:absolute;left:calc(-34px + .2em - .5px);top:-4px;bottom:0;width:1px;background:var(--line-strong)}
+  li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task):last-child::after{bottom:auto;height:calc(4px + .775em)}
+  @supports (top:1lh){li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task):last-child::after{height:calc(4px + 1lh / 2)}}
   /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
      de crise ol.steps). Cochée = registre CONFIRMATION (--ok), texte JAMAIS barré (lecture-
      vérification : on doit pouvoir relire). Interactif en LECTURE seulement : role=checkbox posé
@@ -9337,6 +9360,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-fig.md-lfig.mw{max-width:none}
   :is(td,th).ta-c>.md-fig.mw{margin-left:auto;margin-right:auto}
   :is(td,th).ta-r>.md-fig.mw{margin-left:auto}
+  /* A819 — L'ALIGNEMENT D'UN MÉDIA DE BLOC (`align=center|right`, écrit avec la largeur) : la figure se place dans la
+     colonne, sa légende la suit. Gauche = aucune classe (le rendu d'avant). Jamais dans une case (la colonne gouverne) ni
+     dans une puce (le média suit le texte de la puce) : `mdRender` ne pose la classe que sur un bloc, sous 100 %. */
+  .md-fig.md-al-c{margin-left:auto;margin-right:auto}
+  .md-fig.md-al-r{margin-left:auto;margin-right:0}
+  .md-fig.md-al-c figcaption{text-align:center}
+  .md-fig.md-al-r figcaption{text-align:right}
   /* A727 — EN LECTURE, UNE IMAGE TIENT À L'ÉCRAN (signalé sur capture : une radio « Pleine » de 1 000 px de large
      dépassait la fenêtre). La figure est plafonnée en LARGEUR selon sa proportion (`fh1..6`, `mdFigAr`), ce qui borne sa
      hauteur aux deux tiers de la fenêtre sans jamais déformer ; le toucher l'agrandit (A555). Amende A608 EN LECTURE
@@ -9456,6 +9486,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A634 : pendant une sélection de blocs, la barre de sélection EST l'action de l'écran (comme la barre d'onglets cède
      la place à celle de l'accueil, A599) : la porte « Ajouter » s'efface — elle passait SOUS la barre (signalé sur capture). */
   main:has(.md-doc.mdb-selon) .ed-door,main:has(.mdm-bar.dock) .ed-door{visibility:hidden}   /* A785 : la barre du média sélectionné, au téléphone, aussi */
+  /* A825 : un bloc OUVERT porte ses propres actions SOUS son champ depuis A813 (Déplacer… Supprimer, Terminé) : la porte
+     flottante « Ajouter » les recouvrait au bas de l'écran (vu sur capture, « Supprimer » masqué). Elle s'efface tant
+     qu'un bloc est ouvert ; la barre garde « ＋ Insérer ». */
+  main:has(.md-ed.mdl-open) .ed-door{visibility:hidden}
   .mdb-selbar{position:sticky;bottom:12px;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0;padding:8px 8px 8px 16px;
     border-radius:var(--r-4);background:var(--sys);color:var(--sys-ink);box-shadow:var(--shadow-float)}
   .mdb-sb-n{flex:1 1 auto;min-width:0;font-weight:700}
@@ -9487,6 +9521,37 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdm-b:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-2px}
   .mdm-pct{font-family:var(--f-mono);font-weight:600}
   .mdm-x{margin-left:auto}
+  /* A819 — L'ALIGNEMENT ET LA LÉGENDE DU MÉDIA SÉLECTIONNÉ. Centré : une seconde poignée, à gauche (amende A785). La barre
+     porte le sélecteur segmenté de l'app : icônes seules au bureau, « Gauche · Centre · Droite » en rangée pleine au
+     téléphone (44 px). Grisé en pleine largeur, la raison écrite. L'invite « Ajouter une légende » et son champ se posent
+     sous le média, à la place de la légende, alignés comme elle. */
+  .mdm-c .mdm-h2{right:auto;left:-12px}
+  .mdm-bar .mdm-seg{--seg-gap:2px;margin:0 4px;align-self:center}
+  .mdm-bar:not(.dock) .mdm-seg{grid-template-columns:repeat(3,36px);padding:2px}
+  .mdm-bar:not(.dock) .mdm-seg .seg-pill{top:2px;bottom:2px;left:2px;width:calc((100% - 4px - 2 * var(--seg-gap,2px)) / 3)}
+  .mdm-bar:not(.dock) .mdm-seg .seg-btn{min-height:28px;padding:0 6px}
+  .mdm-bar .mdm-seg .seg-btn{gap:6px}
+  .mdm-al svg{flex:none}
+  .mdm-bar:not(.dock) .mdm-alw{display:none}
+  .mdm-seg.off{opacity:.55}
+  .mdm-seg.off .seg-btn{cursor:default}
+  .mdm-bar.dock .mdm-seg{flex:1 0 100%;order:-2;margin:0 0 4px}
+  .mdm-bar.dock .mdm-seg .seg-btn{min-height:44px}
+  .mdm-alnote{flex:1 0 100%;order:-1;margin:0 0 4px;padding:0 6px;font-size:var(--t-meta);font-weight:600}
+  .md-fig.mcap-ed figcaption{display:none}
+  .mi-alst{margin:6px 0 0;font-size:var(--t-meta);color:var(--ink-2)}
+  .mdm-capadd{display:flex;align-items:center;gap:6px;margin:6px 0 0;padding:0 8px;min-height:32px;border:1px dashed var(--line-strong);border-radius:var(--r-1);
+    background:none;color:var(--ink-2);font:inherit;font-size:var(--t-meta);font-weight:600;cursor:pointer}
+  .md-al-c>.mdm-capadd{margin-left:auto;margin-right:auto}
+  .md-al-r>.mdm-capadd{margin-left:auto}
+  .mdm-capadd:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mdm-capw{display:block;margin-top:6px}
+  .mdm-capin{display:block;width:100%;box-sizing:border-box;min-height:32px;padding:4px 8px;border:1.5px solid var(--act);border-radius:var(--r-1);background:var(--work);
+    color:var(--ink);font:inherit;font-size:var(--t-meta);-webkit-user-select:text;user-select:text}
+  .mdm-capin:focus{outline:none;box-shadow:0 0 0 3px var(--primary-soft)}
+  .md-al-c .mdm-capin{text-align:center}
+  .md-al-r .mdm-capin{text-align:right}
+  @media (pointer:coarse){.mdm-capadd,.mdm-capin{min-height:44px}}   /* 16 px tactiles : la liste de la règle 9, en fin de feuille */
   .mdb-sb-x{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:none;color:inherit;font:inherit;font-size:var(--t-item);cursor:pointer}
   .mdb-sb-x:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
   .mdb-add{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:10px 12px;min-height:44px;border:1px dashed var(--line-strong);border-radius:var(--r-2);
@@ -9825,6 +9890,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-lint>summary{min-height:40px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--warn);cursor:pointer}
   .md-lint-g{color:var(--warn);font-weight:800;flex:none}
   .md-lint-r{display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--warn-line) 30%,transparent)}
+  /* A821 : « Titre ## » et « Sous-titre ### », le niveau proposé mis en avant ; quand la rangée manque de place (téléphone),
+     les deux boutons passent SOUS le texte plutôt que de l'écraser mot par mot. */
+  .md-lint-r:has(>.md-lint-2){flex-wrap:wrap}
+  .md-lint-r:has(>.md-lint-2)>.md-lint-t{flex:1 1 220px}
+  .md-lint-2{display:flex;gap:6px;flex:none;margin-left:auto}
+  .md-lint-all{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0}
+  .md-lint-allh{font-size:var(--t-meta);color:var(--ink-2)}
   .md-lint-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;color:var(--ink)}
   .md-lint-t b{font-size:13.5px}.md-lint-t>span{font-size:12px;color:var(--ink-2)}
   .md-lint-c{font-family:var(--f-mono)}
@@ -10405,7 +10477,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,.ds-in,.tg-row .tg-a,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.mdg-in,.mdm-capin,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,.mi-capin,.ds-in,.tg-row .tg-a,
     .mem-act select,.invite-row select,.invite-row input,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
     .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
@@ -10439,6 +10511,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media print{
     /* 1. Le zoom de confort d'écran n'a aucun sens sur papier : le PDF part toujours à 100 %. */
     html{zoom:1!important}
+    /* A823 : sur papier, la puce redevient native (un fond ne s'imprime pas toujours) et le trait des sous-listes part. */
+    .md-ul>li:not(.md-task){list-style:disc}.md-ul .md-ul>li:not(.md-task){list-style:circle}
+    .md-ul>li:not(.md-task)::before,li:not(.md-task)>:is(.md-ul,.md-ol)>li::after{display:none}
     /* 2. Le RAIL est une commodité d'écran : minuteurs, posologie et Échelle sont déjà dans le
           flux ou dans le Plan imprimé. L'imprimer duplique le contenu. */
     .read-side{display:none!important}
@@ -11255,7 +11330,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.157.0';
+const APP_VERSION='5.158.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11938,7 +12013,7 @@ function mdLenPaint(n){const el=document.getElementById('mdLen');if(!el)return;c
 const MD_MAX_TCOLS=12,MD_MAX_TROWS=200;
 const MD_TROW=/^\s*\|.*\|\s*$/;                     // ligne de tableau
 // A755 : une image dans une case — le segment entier (MD_CELL_IMG), ou présente quelque part dans la case (…_IN).
-const MD_CELL_IMG=/^\s*!\[([^\]]{0,300})\]\((img|vid):([A-Za-z0-9_-]{1,64})\)(?:\{width=(\d{1,3})%\})?\s*$/,MD_CELL_IMG_IN=/!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?/;   // A757 : ou une vidéo ; A784 : et sa largeur
+const MD_CELL_IMG=/^\s*!\[([^\]]{0,300})\]\((img|vid):([A-Za-z0-9_-]{1,64})\)(\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/,MD_CELL_IMG_IN=/!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?/;   // A757 : ou une vidéo ; A784 : et sa largeur
 const MD_TSEP=/^\s*\|(?:\s*:?-{1,}:?\s*\|)+\s*$/;   // ligne de séparation (porte l'alignement)
 /* A784 — LA MISE EN PAGE VIT AVEC L'EMPLACEMENT, DANS LE TEXTE (planche « Taille des médias dans listes et tableaux »,
    choix retenu par l'auteur). Deux attributs, et rien d'autre :
@@ -11952,6 +12027,14 @@ const MD_TSEP=/^\s*\|(?:\s*:?-{1,}:?\s*\|)+\s*$/;   // ligne de séparation (por
 const MD_TWIDTHS=/^\s*\{widths="(\d{1,3}(?: \d{1,3}){0,11})"\}\s*$/;
 // Une part écrite → un cran de 5 % entre 5 et 100, ou 0 (absente ou illisible : le rendu d'avant). PURE.
 const mdWPct=v=>{const n=Math.round(Number(v));return n>0&&n<=100?(n===33||n===66?n:Math.max(5,Math.round(n/5)*5)):0;};   // A785 : les tiers restent des tiers
+/* A819 — L'ALIGNEMENT S'ÉCRIT AVEC LA LARGEUR, dans le même attribut : `{width=45% align=center}` (clés dans n'importe
+   quel ordre, `align` seul admis ; `left` = le défaut, jamais écrit). Toute expression qui reconnaît une ligne ou un
+   segment média accepte cette forme (jeu FERMÉ : `width=NN%`, `align=left|center|right`, deux clés au plus, une espace).
+   `mdAttr` lit l'attribut d'un emplacement → {w, al} (al : '' | 'center' | 'right') ; `mdAttrStr` l'écrit (ou rien).
+   PURES (?__actest). */
+const mdAttr=s=>{const t=String(s||''),w=t.match(/width=(\d{1,3})%/),a=t.match(/align=(left|center|right)/);
+  return {w:w?mdWPct(w[1]):0,al:a&&a[1]!=='left'?a[1]:''};};
+const mdAttrStr=(w,al)=>{const p=[],x=mdWPct(w);if(x)p.push('width='+x+'%');if(al==='center'||al==='right')p.push('align='+al);return p.length?'{'+p.join(' ')+'}':'';};
 /* A785 — LA LARGEUR ÉCRITE SE REND PAR UNE CLASSE D'UN JEU FERMÉ (22 crans : 5 à 100 par 5, plus ⅓ et ⅔) — jamais un
    nombre dans un style. `mw` porte ce qui vaut pour toute largeur écrite (le plancher de lecture, ~80 px). */
 /* A786 — LA LARGEUR DES COLONNES : la ligne `{widths="…"}` d'un tableau → ses parts en pourcentage, une par colonne, au
@@ -12079,8 +12162,8 @@ function mdBlocks(src){
      ligne vide dans une liste ne la ferme plus d'office : elle ne la ferme que si ce qui suit n'est ni une image
      indentée, ni — juste après une image d'élément — un nouvel élément (c'est la forme exacte de l'export Notion).
      Une image NON indentée reste un bloc pleine colonne (inchangé). */
-  const VID_RX=/^(\s*)!\[([^\]]{0,300})\]\(vid:([A-Za-z0-9_-]{1,64})\)(?:\{width=(\d{1,3})%\})?\s*$/;   // A757 : une vidéo, seule sur sa ligne
-  const IMG_RX=/^(\s*)!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{width=(\d{1,3})%\})?\s*$/,LI_RX=/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/;
+  const VID_RX=/^(\s*)!\[([^\]]{0,300})\]\(vid:([A-Za-z0-9_-]{1,64})\)(\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/;   // A757 : une vidéo, seule sur sa ligne
+  const IMG_RX=/^(\s*)!\[([^\]]{0,300})\]\(img:([A-Za-z0-9_-]{1,64})\)(\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/,LI_RX=/^(\s*)(?:[-*]|(\d{1,3})[.)])\s+(.*)$/;
   for(let i=0;i<lines.length;i++){const l=lines[i];let m;
     // Bloc de code : tout est LITTÉRAL jusqu'à la clôture ``` (aucun balisage interprété).
     // (Branche EN PREMIER : un « | » dans du code ne doit jamais devenir un tableau.)
@@ -12092,7 +12175,7 @@ function mdBlocks(src){
     if(list&&((m=l.match(IMG_RX))||(m=l.match(VID_RX)))&&m[1].length>0){const ind=m[1].length,vid=VID_RX.test(l);
       let k=lstk.length-1;while(k>0&&lstk[k].ind>=ind)k--;
       const its=lstk[k].lst.items,it=its[its.length-1];
-      if(it){lstk.length=k+1;const w=mdWPct(m[4]),x=vid?{caption:m[2],id:m[3],ln:i,vid:true}:{caption:m[2],id:m[3],ln:i};if(w)x.w=w;(it.imgs=it.imgs||[]).push(x);lastImg=true;continue;}}   // A785 : sa largeur
+      if(it){lstk.length=k+1;const w=mdAttr(m[4]).w,x=vid?{caption:m[2],id:m[3],ln:i,vid:true}:{caption:m[2],id:m[3],ln:i};if(w)x.w=w;(it.imgs=it.imgs||[]).push(x);lastImg=true;continue;}}   // A785 : sa largeur
     if(/^```/.test(l)){flushAll();code={t:'code',lines:[],ln:i};continue;}
     // TABLEAU (v4.4.2) : ligne de cellules SUIVIE d'une ligne de séparation. Le nombre de colonnes
     // est normalisé sur l'en-tête (lignes trop courtes complétées, trop longues tronquées) : jamais
@@ -12109,7 +12192,7 @@ function mdBlocks(src){
       out.push(tb);i=j-1;continue;}
     if((m=l.match(/^(#{1,3})\s+(.*)$/))){flushAll();out.push({t:'h'+m[1].length,text:m[2],ln:i});continue;}
     if(/^(---+|\*\*\*+)\s*$/.test(l)){flushAll();out.push({t:'hr',ln:i});continue;}
-    if((m=l.match(IMG_RX))||(m=l.match(VID_RX))){flushAll();const b={t:IMG_RX.test(l)?'img':'vid',caption:m[2],id:m[3],ln:i},w=mdWPct(m[4]);if(w)b.w=w;out.push(b);continue;}   // A757 ; A785 : sa largeur
+    if((m=l.match(IMG_RX))||(m=l.match(VID_RX))){flushAll();const b={t:IMG_RX.test(l)?'img':'vid',caption:m[2],id:m[3],ln:i},at=mdAttr(m[4]);if(at.w)b.w=at.w;if(at.al)b.al=at.al;out.push(b);continue;}   // A757 ; A785 : sa largeur ; A819 : son alignement (bloc seulement)
     // Citation, éventuellement TYPÉE : le marqueur de registre n'est lu que sur la PREMIÈRE ligne
     // du bloc (les suivantes appartiennent au même encadré, comme les alerts de GitHub).
     if((m=l.match(/^>\s?(.*)$/))){flushPara();flushList();
@@ -12145,6 +12228,8 @@ const MD_QLI_RX=/^\s*(?:[-*]|\d{1,3}[.)])\s+\S/;   // A726 : une ligne d'encadr�
    l'image tienne en hauteur à l'écran. Jamais un nombre en style (même règle que `MD_SC`). */
 const mdFigAr=(w,h)=>{const r=(w|0)>0&&(h|0)>0?(w|0)/(h|0):0;return !r?'':r<.6?' fh1':r<.8?' fh2':r<1.05?' fh3':r<1.4?' fh4':r<1.9?' fh5':r<2.6?' fh6':'';};
 const MD_SC={25:' w25',33:' w33',50:' w50',66:' w66',75:' w75'};
+// A819 : l'alignement d'un média de bloc → une classe d'un jeu FERMÉ (gauche = aucune, le rendu d'avant).
+const MD_AL=Object.freeze({__proto__:null,center:' md-al-c',right:' md-al-r'});
 // A584 : la part de la colonne, dite en fraction (pictogramme) et en mots (nom accessible, qui CONTIENT le mot visible).
 const MD_SC_LBL={25:'¼',33:'⅓',50:'½',66:'⅔',75:'¾',100:'Pleine'};
 const MD_SC_SR={25:'un quart de la largeur',33:'un tiers de la largeur',50:'la moitié de la largeur',66:'deux tiers de la largeur',75:'trois quarts de la largeur',100:'toute la largeur'};
@@ -12164,11 +12249,11 @@ function mdRender(src,ctx){ctx=ctx||{};
      texte de l'élément, plafonnée — la taille « Pleine » n'a pas de sens dans une liste). */
   const att=Object.create(null);(ctx.attente||[]).forEach(a=>{if(a&&a.id&&!badKey(a.id)&&!imgs[a.id])att[a.id]=a;});
   /* A785 : une largeur ÉCRITE (`w`) l'emporte sur la taille du modèle (`scale`) et vaut aussi dans une liste et une case. */
-  const sz=(cls,sc,w)=>w&&MD_MW[w]?(cls||'')+MD_MW[w]:(cls||(MD_SC[sc]||''));
-  const figHtml=(id,caption,cls,w)=>{const im=imgs[id];
+  const sz=(cls,sc,w,al)=>(w&&MD_MW[w]?(cls||'')+MD_MW[w]:(cls||(MD_SC[sc]||'')))+(!cls&&w&&w<100&&MD_AL[al]?MD_AL[al]:'');   // A819 : l'alignement, bloc seul, sous 100 %
+  const figHtml=(id,caption,cls,w,al)=>{const im=imgs[id];
     // A781 : une image dont le fichier n'est pas encore arrivé tient sa place (mêmes classes de taille que l'image).
     if(!im){const a=att[id];if(!a)return '';const c=caption||a.caption||'';
-      return '<figure class="md-fig md-iatt'+sz(cls,a.scale,w)+(cls===' md-cfig'?'':mdFigAr(a.w,a.h))+'" data-iatt="'+esc(a.id)+'" data-isz="'+(a.size|0)+'" data-icap="'+esc(c)+'">'+imgAttBox(a)+(c?'<figcaption>'+esc(c)+'</figcaption>':'')+'</figure>';}
+      return '<figure class="md-fig md-iatt'+sz(cls,a.scale,w,al)+(cls===' md-cfig'?'':mdFigAr(a.w,a.h))+'" data-iatt="'+esc(a.id)+'" data-isz="'+(a.size|0)+'" data-icap="'+esc(c)+'">'+imgAttBox(a)+(c?'<figcaption>'+esc(c)+'</figcaption>':'')+'</figure>';}
     const cap=caption||im.caption||'';
     // Défense en profondeur : data-URL revalidée ICI (safeImg) — mdRender reste sûr même si
     // un futur appelant lui passait des images non passées par migrate/migrateProtocol.
@@ -12177,7 +12262,7 @@ function mdRender(src,ctx){ctx=ctx||{};
     // TAILLE (v4.4.3) : PAR IMAGE, portée par le modèle (im.scale) et rendue par une CLASSE issue
     // d'un jeu fermé — jamais un nombre interpolé dans un style. Les dimensions intrinsèques
     // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
-    return '<figure class="md-fig'+sz(cls,im.scale,w)+(cls===' md-cfig'?'':mdFigAr(im.w,im.h))+'" data-med="'+esc(id)+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig'+sz(cls,im.scale,w,al)+(cls===' md-cfig'?'':mdFigAr(im.w,im.h))+'" data-med="'+esc(id)+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   /* A758 : vidéo d'élément. A785 : dès qu'un média de l'élément a une largeur écrite, ses médias se rangent dans une
      rangée (`md-lmed`) : ceux dont la somme des parts tient dans 100 % se placent côte à côte. Sans largeur, rien ne change. */
   const imgsHtml=it=>{if(!it.imgs)return '';const h=it.imgs.map(x=>x.vid?vidHtml(x.id,x.caption,' md-lfig',x.w):figHtml(x.id,x.caption,' md-lfig',x.w)).join('');
@@ -12185,11 +12270,11 @@ function mdRender(src,ctx){ctx=ctx||{};
   /* A757 — UNE VIDÉO : une figure-réceptacle (`data-vid`), la vidéo elle-même est posée APRÈS le rendu par `vidHydrate`
      (le binaire est dans IndexedDB ; mdRender reste pur et synchrone). Inconnue du protocole : rien, comme une image. */
   const vids=Object.create(null);(ctx.videos||[]).forEach(v=>{if(v&&v.id&&!badKey(v.id)&&VID_EXT[v.mime])vids[v.id]=v;});
-  const vidHtml=(id,caption,cls,w)=>{const v=vids[id];if(!v)return '';const cap=caption||'';
+  const vidHtml=(id,caption,cls,w,al)=>{const v=vids[id];if(!v)return '';const cap=caption||'';
     // A775 : la taille vient d'une CLASSE du jeu fermé (MD_SC), comme une image ; aucune dans une liste ni une case.
     // A783 : ses dimensions connues, la boîte a sa proportion (`vidSzHtml`) — avant comme après l'arrivée de la vidéo.
     const dm=(v.w|0)>0&&(v.h|0)>0;
-    return '<figure class="md-fig md-vfig'+sz(cls,v.scale,w)+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"'+(dm?' data-vdw="'+(v.w|0)+'" data-vdh="'+(v.h|0)+'"':'')+'><div class="md-vbox'+(dm?' vd':'')+'">'+(dm?vidSzHtml(v.w,v.h):'')+''+(vidPosterHtml(v)||'<span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span>')+'</div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
+    return '<figure class="md-fig md-vfig'+sz(cls,v.scale,w,al)+'" data-vid="'+esc(id)+'" data-vmime="'+esc(v.mime)+'" data-vsize="'+(v.size|0)+'"'+(dm?' data-vdw="'+(v.w|0)+'" data-vdh="'+(v.h|0)+'"':'')+'><div class="md-vbox'+(dm?' vd':'')+'">'+(dm?vidSzHtml(v.w,v.h):'')+''+(vidPosterHtml(v)||'<span class="md-vph">'+uiIcon('play',20)+'<span>Vidéo</span></span>')+'</div>'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';};
   const subHtml=it=>it.sub?'<'+it.sub.t+' class="md-'+it.sub.t+'">'+it.sub.items.map(x=>li(x)).join('')+'</'+it.sub.t+'>':'';
   const li=it=>typeof it==='string'?'<li>'+mdInline(it)+'</li>':it.task
     ?'<li class="md-task'+(it.task.done?' done':'')+'" data-task="'+(tk++)+'"><span class="md-tkbox" aria-hidden="true">'+uiIcon('check',13,{sw:3})+'</span><span class="md-tktxt">'+mdInline(it.text)+imgsHtml(it)+subHtml(it)+'</span></li>'
@@ -12229,7 +12314,7 @@ function mdRender(src,ctx){ctx=ctx||{};
       const ceTxt=L=>L.some(l=>MD_QLI_RX.test(l.replace(/&nbsp;/g,' ')))?qBody(L.map(l=>l.replace(/&nbsp;/g,' ').replace(/^[ \u00a0]+/,x=>' '.repeat(x.length)))):L.map(mdInline).join('<br>');
       const ce=c=>{let html='',txt=[];const fl=()=>{if(txt.length)html+=ceTxt(txt);txt=[];};
         String(c==null?'':c).split(/<br\s*\/?>/i).forEach(seg=>{const m=seg.match(MD_CELL_IMG);
-          if(m){const w=mdWPct(m[4]),f=m[2]==='vid'?vidHtml(m[3],m[1],' md-cfig',w):figHtml(m[3],m[1],' md-cfig',w);if(f){fl();html+=f;return;}}
+          if(m){const w=mdAttr(m[4]).w,f=m[2]==='vid'?vidHtml(m[3],m[1],' md-cfig',w):figHtml(m[3],m[1],' md-cfig',w);if(f){fl();html+=f;return;}}
           txt.push(seg);});fl();return html;},hc=mdTblHc(B);
       /* A786 (amende A755) — LES FILETS RESTENT, SAUF DANS UNE GRILLE D'IMAGES : le tableau ne passe en grille (colonnes
          égales, sans filets) que si la MAJORITÉ de ses cases remplies portent un média — une posologie qui porte une photo
@@ -12243,7 +12328,7 @@ function mdRender(src,ctx){ctx=ctx||{};
       // Conteneur défilant FOCUSABLE (clavier : WCAG 2.1.1) — sur iPhone le tableau défile au lieu
       // d'écraser ses colonnes (lisibilité sous stress).
       return '<div class="md-tw" tabindex="0" role="region" aria-label="Tableau"><table class="md-tbl'+(hc?' md-tbl-hc':'')+(aImg?' md-tbl-img':'')+'">'+cg+hd+'<tbody>'+bd+'</tbody></table></div>';}
-    if(b.t==='vid')return vidHtml(b.id,b.caption,'',b.w);   // A757
+    if(b.t==='vid')return vidHtml(b.id,b.caption,'',b.w,b.al);   // A757
     if(b.t==='h1')return '<h1 class="md-h1">'+mdInline(b.text)+'</h1>';
     if(b.t==='h2')return '<h2 class="md-h2">'+mdInline(b.text)+'</h2>';
     if(b.t==='h3')return '<h3 class="md-h3">'+mdInline(b.text)+'</h3>';
@@ -12256,7 +12341,7 @@ function mdRender(src,ctx){ctx=ctx||{};
       return '<blockquote class="md-q md-call '+k+'"><span class="mc-k">'+calloutIcon(k)+MD_CALL_LBL[k]+'</span>'+body+'</blockquote>';}
     if(b.t==='code')return '<pre class="md-code"><code>'+esc(b.lines.join('\n'))+'</code></pre>';
     if(b.t==='hr')return '<hr class="md-hr">';
-    if(b.t==='img')return figHtml(b.id,b.caption,'',b.w);
+    if(b.t==='img')return figHtml(b.id,b.caption,'',b.w,b.al);
     return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';})(),b)).join('');}
 /* ═══ A171 — LES TITRES D'UNE RÉFÉRENCE SE REPLIENT ═══════════════════════════════════════════
    ⚠ Construit APRÈS le rendu, jamais dans `mdRender` (le parseur reste PUR et NON interactif —
@@ -12393,13 +12478,13 @@ function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     // des espaces (sinon l'index de recherche se remplirait de pipes et de tirets). mdCells
     // restitue les pipes échappés « \| » — une seule logique de découpe, partagée avec le parseur.
     .replace(MD_TSEP,'').replace(MD_TWIDTHS,'')   // A784 : la ligne des colonnes
-    .replace(MD_TROW,x=>mdCells(x).join(' ').replace(/<br\s*\/?>/gi,' ').replace(/\{width=\d{1,3}%\}/g,''))
+    .replace(MD_TROW,x=>mdCells(x).join(' ').replace(/<br\s*\/?>/gi,' ').replace(/\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\}/g,''))
     // Citation, y compris TYPÉE : le marqueur de registre ne pollue pas l'index de recherche.
     .replace(/^#{1,3}\s+/,'').replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,'')
     // Marqueur de liste D'ABORD, puis marqueur de tâche : « - [x] Fait » -> « Fait » (un « [x] »
     // ne doit jamais faire matcher une recherche « x »).
     .replace(/^\s*[-*]\s+/,'').replace(/^\s*\d{1,3}[.)]\s+/,'').replace(MD_TASK_RX,'')
-    .replace(/^\s*!\[([^\]]*)\]\([^()]*\)(?:\{width=\d{1,3}%\})?\s*$/,'$1')
+    .replace(/^\s*!\[([^\]]*)\]\([^()]*\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/,'$1')
     .replace(/\[([^\]\n]{1,200})\]\([^()\s]{1,500}\)/g,'$1'))
   .join(' ').replace(MD_B4_RX,'$1').replace(MD_B4O_RX,'$1$2').replace(MD_B4F_RX,'$1$2$3').replace(MD_BI_RX,'$1').replace(MD_BOLD_RX,'$1').replace(MD_ITAL_RX,'$1$2').replace(MD_STRIKE_RX,'$1').replace(MD_MARK_RX,'$1').replace(/`([^`\n]+)`/g,'$1');}
 const main=document.getElementById('main');
@@ -20807,8 +20892,8 @@ function mdBlkMoveTo(body,from,to){const n=mdBlockRanges(body).length;if(from<0|
    seule, règle 8) ; une image : sa taille en pastilles, l'image elle-même au-dessus du champ, « Remplacer… ». */
 const MD_REG_WORD={crit:'CAUTION',vig:'WARNING',info:'NOTE',ok:'TIP'};
 const mdSrcCall=src=>{const l=String(src||'').split('\n')[0];if(!/^>/.test(l))return null;const c=mdCallout(l.replace(/^>\s?/,''));return c.kind||'';};
-const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{width=\d{1,3}%\})?$/);return m?m[1]:null;};
-const mdSrcVid=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)(?:\{width=\d{1,3}%\})?$/);return m?m[1]:null;};   // A775
+const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?$/);return m?m[1]:null;};
+const mdSrcVid=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?$/);return m?m[1]:null;};   // A775
 /* A584 — LA TAILLE D'UNE IMAGE, SANS CHIFFRES : le cadre (la colonne d'un grand écran, l'image à sa part, une poignée
    au bord), puis six pictogrammes (¼ ⅓ ½ ⅔ ¾ Pleine). `attr` est l'attribut que lit l'appelant (`data-miscale` de la
    feuille — le bloc ouvert n'en porte plus depuis A789) : le glisser se termine par un CLIC sur le pictogramme visé, donc
@@ -20882,7 +20967,7 @@ function mdLmedPaint(t){const b=t&&t.closest('.mdb'),l=b&&b.querySelector('.mdb-
   b.querySelectorAll('[data-mdblmed]').forEach(x=>{x.disabled=!it;});}
 /* A642 — « SORTIR L'IMAGE DE LA LISTE » : les lignes image INDENTÉES d'une liste (images d'élément) passent après la
    liste, chacune en bloc pleine colonne (la forme d'avant). Fonction PURE (?__actest). */
-const MD_LIMG_RX=/^\s+!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?\s*$/;
+const MD_LIMG_RX=/^\s+!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/;
 const mdUnlistN=src=>{const L=String(src||'').split('\n');return /^\s*(?:[-*]|\d{1,3}[.)])\s/.test(L[0]||'')?L.filter(l=>MD_LIMG_RX.test(l)).length:0;};
 function mdUnlistImgs(src){const L=String(src||'').split('\n'),im=L.filter(l=>MD_LIMG_RX.test(l)).map(l=>l.trim());if(!im.length)return String(src||'');
   const rest=L.filter(l=>!MD_LIMG_RX.test(l)).join('\n').replace(/\n[ \t]*\n(?:[ \t]*\n)+/g,'\n\n').replace(/\n\s*\n(?=\s*(?:[-*]|\d{1,3}[.)])\s)/g,'\n').replace(/\s+$/,'');
@@ -20891,7 +20976,7 @@ function mdUnlistImgs(src){const L=String(src||'').split('\n'),im=L.filter(l=>MD
    forme 1A retenue par l'auteur ; clôt le « Pas fait » d'A642). La ligne s'écrit INDENTÉE sous l'élément, après ses
    médias, au retrait de son texte : la forme qu'A642 et A758 lisent déjà. Fonctions PURES (?__actest). */
 const MD_LITEM_RX=/^(\s*)(?:[-*+]|\d{1,3}[.)])\s+(?:\[[ xX]\]\s+)?/;
-const MD_LMED_RX=/^(\s+)!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?\s*$/;
+const MD_LMED_RX=/^(\s+)!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/;
 /* L'élément qui porte la ligne `ln` (la ligne elle-même, ou l'élément au-dessus dont elle est le média) : {ln, n (rang
    dans son bloc, à partir de 1, toutes profondeurs), indent (retrait de son texte), text, end (dernière ligne de ses
    médias)} — ou null. */
@@ -20908,7 +20993,7 @@ function mdListMediaIns(src,ln,refs){const it=mdListItemAt(src,ln),R=(refs||[]).
 const mdListNth=(src,k)=>{const L=String(src||'').split('\n');let n=-1;for(let i=0;i<L.length;i++)if(MD_LITEM_RX.test(L[i])&&++n===k)return i;return -1;};
 /* A773 — UN MÉDIA DANS UNE CASE DE TABLEAU (forme 1C) : une case = son texte (le libellé) puis ses lignes média, chacune
    SEULE entre deux <br> (la forme d'A755, rien de neuf dans le texte écrit). Fonctions PURES. */
-const MD_CMED_RX=/^!\[([^\]]{0,300})\]\((img|vid):([A-Za-z0-9_-]{1,64})\)(?:\{width=(\d{1,3})%\})?$/;
+const MD_CMED_RX=/^!\[([^\]]{0,300})\]\((img|vid):([A-Za-z0-9_-]{1,64})\)(\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?$/;
 function mdCellSplit(v){const txt=[],med=[];String(v==null?'':v).split('\n').forEach(l=>{const m=l.trim().match(MD_CMED_RX);
     if(m)med.push({ref:l.trim(),k:m[2],id:m[3],cap:m[1]});else txt.push(l);});
   return {txt:txt.join('\n').replace(/\s+$/,''),med};}
@@ -20916,12 +21001,14 @@ function mdCellSplit(v){const txt=[],med=[];String(v==null?'':v).split('\n').for
    l'ordre de lecture (ligne par ligne ; de gauche à droite dans une rangée de tableau ; jamais dans un bloc de code) —
    l'ordre même dans lequel `mdRender` dessine ses figures. `mdMedFind` rend sa place et sa part écrite (0 : aucune),
    `mdMedSetW` réécrit l'attribut (`{width=NN%}`, ou rien pour 0). Fonctions PURES (?__actest). */
+const MD_ATTR_AT=/^\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\}/;   // A819
 function mdMedFind(src,k,id,occ){if((k!=='img'&&k!=='vid')||!/^[A-Za-z0-9_-]{1,64}$/.test(String(id)))return null;   // A789 : un identifiant hors forme ne vise rien
   const L=String(src==null?'':src).split('\n'),q='](' +k+':'+id+')';let n=0,code=false,o=0;
   for(let i=0;i<L.length;i++){const l=L[i];
     if(/^```/.test(l))code=!code;
-    else if(!code)for(let at=l.indexOf(q);at>=0;at=l.indexOf(q,at+q.length)){if(n===occ){const e=at+q.length,m=l.slice(e).match(/^\{width=(\d{1,3})%\}/);
-      return {i,from:o+e,to:o+e+(m?m[0].length:0),w:m?mdWPct(m[1]):0};}n++;}
+    else if(!code)for(let at=l.indexOf(q);at>=0;at=l.indexOf(q,at+q.length)){if(n===occ){const e=at+q.length,m=l.slice(e).match(MD_ATTR_AT),a=mdAttr(m&&m[0]),b=l.lastIndexOf('![',at);
+      // A819 : son alignement, et la place de sa LÉGENDE (le texte entre les crochets de CET emplacement).
+      return {i,from:o+e,to:o+e+(m?m[0].length:0),w:a.w,al:a.al,cf:b>=0?o+b+2:-1,ct:o+at,cap:b>=0?l.slice(b+2,at):''};}n++;}
     o+=l.length+1;}
   return null;}
 /* A787 — LA TAILLE DU MODÈLE DEVIENT UNE LARGEUR ÉCRITE (lot 3 d'A784, règle 12 b : conversion EN PLACE). Une ligne
@@ -20935,8 +21022,21 @@ function mdScaleToW(body,images,videos){const S=Object.create(null);
   let code=false;return String(body==null?'':body).split('\n').map(l=>{if(/^```/.test(l)){code=!code;return l;}if(code)return l;
     const m=l.match(/^(!\[[^\]]{0,300}\]\(((?:img|vid):[A-Za-z0-9_-]{1,64})\))(\s*)$/);const w=m&&mdWPct(S[m[2]]);return w?m[1]+'{width='+w+'%}'+m[3]:l;}).join('\n');}
 const mdMedW=(src,k,id,occ)=>{const f=mdMedFind(src,k,id,occ);return f?f.w:0;};
-function mdMedSetW(src,k,id,occ,pct){const f=mdMedFind(src,k,id,occ);if(!f)return null;const v=String(src),w=mdWPct(pct);
-  return v.slice(0,f.from)+(w?'{width='+w+'%}':'')+v.slice(f.to);}
+function mdMedSetW(src,k,id,occ,pct){const f=mdMedFind(src,k,id,occ);if(!f)return null;const v=String(src);
+  return v.slice(0,f.from)+mdAttrStr(pct,f.al)+v.slice(f.to);}   // A819 : l'alignement écrit reste
+/* A819 — L'ALIGNEMENT ET LA LÉGENDE D'UN EMPLACEMENT, dans le texte. `mdMedSetAl` réécrit l'attribut en gardant la largeur
+   (`left` = rien d'écrit) ; `mdMedSetCap` écrit la légende ENTRE LES CROCHETS de cet emplacement : `]` et retours à la
+   ligne neutralisés, 300 caractères au plus (la borne de toutes les expressions média), `|` échappé dans une rangée de
+   tableau (sinon la case se couperait). PURES (?__actest). */
+function mdMedSetAl(src,k,id,occ,al){const f=mdMedFind(src,k,id,occ);if(!f)return null;const v=String(src);
+  return v.slice(0,f.from)+mdAttrStr(f.w,al)+v.slice(f.to);}
+// Les rangs (occ) des passages d'un média qui sont des BLOCS (ligne seule, non indentée, hors tableau) : ceux qu'aligne
+// la feuille de l'image (A819 : comme sa largeur, A787, elle écrit sur tous ses passages — ici les seuls qui s'alignent). PURE.
+function mdMedBlocOccs(src,k,id){const L=String(src==null?'':src).split('\n'),o=[];for(let n=0,f;(f=mdMedFind(src,k,id,n));n++)if(/^!\[/.test(L[f.i]||''))o.push(n);return o;}
+const mdCapNet=t=>String(t==null?'':t).replace(/[\]\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().slice(0,300);
+function mdMedSetCap(src,k,id,occ,txt){const f=mdMedFind(src,k,id,occ);if(!f||f.cf<0)return null;const v=String(src);
+  let c=mdCapNet(txt);if(MD_TROW.test(v.split('\n')[f.i]||'')){c=c.replace(/\\?\|/g,'\\|');while(c.length>300)c=c.slice(0,-1).replace(/\\$/,'');}
+  return v.slice(0,f.cf)+c+v.slice(f.ct);}
 /* « Même largeur » / « Même hauteur » d'une rangée : des parts qui tiennent dans 100 % (n médias égaux — 3 : un tiers
    chacun ; des formats largeur ÷ hauteur : chacun au prorata, arrondi par défaut à 5 %). PURES. */
 const mdMedEq=n=>n<2?[100]:Array(n).fill(n===3?33:Math.max(5,Math.floor(100/n/5)*5));
@@ -20964,7 +21064,7 @@ function mdLinesIns(v,k,refs){const L=String(v||'').split('\n'),R=(refs||[]).fil
    largeur, un toucher le pose ; Échap, ✕ ou le bloc lui-même l'annulent ; commencer à glisser la poignée AMORCE le mode.
    Mêmes classes (`.ed-grab`, `.ed-drop`, `.grabbed`) : un seul dessin du déplacement dans l'application. */
 // A776 : le nom d'un bloc, sans ses lignes média (une case de grille se nommait « Normal ![](img:…) »).
-const mdBlkLabel=src=>{const t=mdStrip(String(src||'').replace(/^>\s*\[![^\]]*\]\s*/,'').replace(/!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?/g,' ')).replace(/\s+/g,' ').trim();return t?'« '+(t.length>60?t.slice(0,59)+'…':t)+' »':'ce bloc';};
+const mdBlkLabel=src=>{const t=mdStrip(String(src||'').replace(/^>\s*\[![^\]]*\]\s*/,'').replace(/!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?/g,' ')).replace(/\s+/g,' ').trim();return t?'« '+(t.length>60?t.slice(0,59)+'…':t)+' »':'ce bloc';};
 function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n'),src=r=>L.slice(r.a,r.e).join('\n');
   const G=new Set(many&&many.length>1?many:[grab]),lbl=G.size>1?G.size+' blocs':mdBlkLabel(src(R[grab]));
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
@@ -21011,8 +21111,8 @@ const MD_BLK_PH={p:'Texte',h1:'Titre',h:'Titre',h3:'Sous-titre',c:'Texte',ul:'É
    d'un coup : texte poussé de 13 px à droite et 11 vers le bas par un cadre dessiné DEDANS, pastilles au-dessus, ligne
    touchée partie ailleurs, curseur au bout du bloc. `mdTapAt` relève, au toucher, le haut du texte rendu (`y0`) et le
    texte sous le doigt (`caretRangeFromPoint`) ; `mdTapPos` (PURE, ?__actest) retrouve ce texte dans la source ;
-   `mdOpenAlign` pose la marge haute qui remet la première ligne du champ à la hauteur de celle du rendu ; `mdOpenKeep`
-   garde la ligne touchée sous le doigt (le seul défilement est cette compensation — l'éditeur, jamais une session). */
+   `mdOpenKeep` garde la ligne touchée sous le doigt (le seul défilement est cette compensation — l'éditeur, jamais une
+   session). A820 : `mdOpenAlign` (une marge de compensation) est retiré — voir plus bas. */
 function mdTapAt(b,e){if(!b||!e)return null;const z=zoomF()||1;
   const c=b.querySelector(':scope>:not(button):not(.mdb-ins)');let y0=null;
   if(c){const r=c.getBoundingClientRect(),cs=getComputedStyle(c);y0=r.top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0))*z;}
@@ -21027,13 +21127,17 @@ function mdTapPos(src,txt,off){const s=String(src||''),t=String(txt||'');if(!t.t
   let o=Math.max(0,Math.min(off|0,t.length)),i=s.indexOf(t);
   if(i<0){const l=t.length-t.trimStart().length,k=t.trim();i=s.indexOf(k);if(i<0)return null;o=Math.max(0,Math.min(o-l,k.length));}
   return Math.min(s.length,i+o);}
-function mdOpenAlign(t,tap){const w=t.closest('.mdb');if(!w)return;const z=zoomF()||1,cs=getComputedStyle(t),r=t.getBoundingClientRect();
-  const top=r.top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0))*z,cur=parseFloat(getComputedStyle(w).marginTop)||0;
-  // 4 px au moins : le cadre (dessiné dehors) ne mord jamais sur la dernière ligne du bloc d'avant.
-  w.style.marginTop=Math.max(4,Math.round(cur+(tap.y0-top)/z))+'px';}
-function mdOpenKeep(t,tap){const z=zoomF()||1,cs=getComputedStyle(t),lt=mdLineTops(t,[tap.ln])[0];if(!isFinite(lt))return;
-  const y=t.getBoundingClientRect().top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0)+lt)*z,d=y-tap.y;
-  if(Math.abs(d)>2)scrollBy(0,d/z);}
+/* A820 (rectifie A813) — JAMAIS UNE MARGE DE MISE EN PAGE POUR COMPENSER. `mdOpenAlign` posait sur le bloc ouvert la marge
+   qui remettait son texte à la hauteur relevée AU TOUCHER ; mais ouvrir un bloc REFERME d'abord le précédent (ses rangées
+   d'actions, ~120 px) : tout remontait, la hauteur relevée était périmée, et la marge comblait l'écart — un grand vide
+   au-dessus du champ (signalé sur capture, reproduit). Le cadre dessiné dehors garde seul le bord gauche et le haut du
+   texte ; la ligne touchée revient sous le doigt par DÉFILEMENT seulement (la page bouge, la mise en page jamais), borné à
+   une demi-fenêtre. Sans ligne retrouvée, c'est le haut du texte du bloc qui revient à sa hauteur. */
+function mdOpenKeep(t,tap){const z=zoomF()||1,cs=getComputedStyle(t),pad=((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0))*z;
+  let d=null;
+  if(tap.ln>=0&&tap.y!=null){const lt=mdLineTops(t,[tap.ln])[0];if(isFinite(lt))d=t.getBoundingClientRect().top+pad+lt*z-tap.y;}
+  if(d==null&&tap.y0!=null)d=t.getBoundingClientRect().top+pad-tap.y0;
+  if(d==null||Math.abs(d)<=2)return;const lim=innerHeight/2;scrollBy(0,Math.max(-lim,Math.min(lim,d))/z);}
 function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;let tap=null;   // A813 : le toucher qui ouvre un bloc (voir openAt)
   const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1,pasted=false;
   /* A610 — SÉLECTIONNER PLUSIEURS BLOCS pour les supprimer ou les copier : à la souris, Maj-clic (une plage) ou ⌘/Ctrl-clic
@@ -21086,31 +21190,50 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const medBox=fg=>fg.querySelector('video,.md-vbox,.md-ibox,img')||fg;
   // Les médias d'une même rangée : ceux d'un élément de liste (une case, un bloc : lui seul).
   const medGroup=fg=>{const pa=fg.parentElement;if(!pa)return [fg];if(pa.classList.contains('md-lmed')||pa.tagName==='LI'||pa.classList.contains('md-tktxt'))return [...pa.children].filter(x=>x.matches('figure.md-fig'));return [fg];};
-  const medAlign=fg=>{const pa=fg.parentElement;return pa&&pa.matches('.ta-c')?'c':pa&&pa.matches('.ta-r')?'r':'l';};
+  const medAlign=fg=>{const pa=fg.parentElement;if(pa&&pa.classList.contains('mdb'))return fg.classList.contains('md-al-c')?'c':fg.classList.contains('md-al-r')?'r':'l';   // A819 : l'alignement écrit d'un bloc
+    return pa&&pa.matches('.ta-c')?'c':pa&&pa.matches('.ta-r')?'r':'l';};
   // La part actuelle : l'écrite, sinon la taille du modèle (bloc), sinon celle qu'on voit.
   const medCur=(fg,m)=>{const w=mdMedW(blkSrc(m.i),m.k,m.id,m.occ);if(w)return w;const pa=fg.parentElement;
     if(pa&&pa.classList.contains('mdb')){const o=(m.k==='vid'?p.videos:p.images)||[],x=o.find(y=>y.id===m.id);return x&&(x.scale|0)>0&&x.scale<100?x.scale:100;}
     if(!pa)return 100;const cs=getComputedStyle(pa),z=zoomF(),fw=pa.getBoundingClientRect().width-((parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0))*z;
     return fw>0?Math.min(100,mdWPct(medBox(fg).getBoundingClientRect().width/fw*100)||100):100;};
-  const medWrite=list=>{let v=blkSrc(msel.i);if(v==null)return;list.forEach(([m,w])=>{const nv=mdMedSetW(v,m.k,m.id,m.occ,w);if(nv!=null)v=nv;});
+  // Une écriture sur le bloc du média sélectionné (largeur, alignement, légende : A819) — une entrée de ↶.
+  const medEdit=fn=>{const v0=blkSrc(msel.i);if(v0==null)return;const v=fn(v0);if(v==null)return medPaint();
     const r=mdBlockRanges(p.body)[msel.i],L=lines();if(!r||v===L.slice(r.a,r.e).join('\n'))return medPaint();
     push(L.slice(0,r.a).concat(v.split('\n'),L.slice(r.e)).join('\n'));paint(false);};
+  const medWrite=list=>medEdit(v=>{list.forEach(([m,w])=>{const nv=mdMedSetW(v,m.k,m.id,m.occ,w);if(nv!=null)v=nv;});return v;});
   const medPos=(fg,ov)=>{const host=fg.closest('.mdb'),z=zoomF(),hb=host.getBoundingClientRect(),mb=medBox(fg).getBoundingClientRect();
     ov.style.left=(mb.left-hb.left)/z+'px';ov.style.top=(mb.top-hb.top)/z+'px';ov.style.width=mb.width/z+'px';ov.style.height=mb.height/z+'px';};
   const medClear=()=>{if(!msel)return;msel=null;medPaint();};
-  const medPaint=()=>{doc.querySelectorAll('.mdm,.mdm-bar').forEach(x=>x.remove());doc.querySelectorAll('figure.msel').forEach(x=>x.classList.remove('msel'));
+  const medPaint=()=>{doc.querySelectorAll('.mdm,.mdm-bar,.mdm-capadd,.mdm-capw').forEach(x=>x.remove());doc.querySelectorAll('figure.msel').forEach(x=>x.classList.remove('msel','mcap-ed'));
     if(!msel)return;if(open>=0||grab>=0){msel=null;return;}const fg=medFig(msel);if(!fg){msel=null;return;}
     fg.classList.add('msel');const host=fg.closest('.mdb'),al=medAlign(fg),n=medGroup(fg).length,cur=medCur(fg,msel),nom=msel.k==='vid'?'la vidéo':'l’image';
-    const ov=document.createElement('div');ov.className='mdm'+(al==='r'?' mdm-r':'');
-    ov.innerHTML='<span class="mdm-h" data-mdmgrip aria-hidden="true" title="Tirer pour régler la largeur"></span><span class="mdm-tip" hidden></span>';host.appendChild(ov);medPos(fg,ov);
+    const ov=document.createElement('div');ov.className='mdm'+(al==='r'?' mdm-r':al==='c'?' mdm-c':'');
+    /* A819 (amende A785) : centré, une poignée de CHAQUE côté — le geste est symétrique, aucun bord ne ment ; à gauche ou
+       à droite, une seule, sur le bord libre. */
+    ov.innerHTML='<span class="mdm-h" data-mdmgrip aria-hidden="true" title="Tirer pour régler la largeur"></span>'+(al==='c'?'<span class="mdm-h mdm-h2" data-mdmgrip aria-hidden="true" title="Tirer pour régler la largeur"></span>':'')+'<span class="mdm-tip" hidden></span>';host.appendChild(ov);medPos(fg,ov);
+    /* A819 — LA LÉGENDE : sous un média sélectionné qui n'en montre aucune, une invite grise l'ouvre sur place (rien sur les
+       médias non sélectionnés : le document reste propre ; jamais en lecture ni en session — seul l'éditeur appelle ceci). */
+    if(!fg.querySelector('figcaption'))fg.insertAdjacentHTML('beforeend','<button type="button" class="mdm-capadd" data-mdm="cap">'+uiIcon('plus',14)+'Ajouter une légende</button>');
     {const im=fg.querySelector('img');if(im&&!im.complete)im.addEventListener('load',()=>{if(document.contains(ov))medPos(fg,ov);},{once:true});}
     /* Au bureau, la barre flotte au-dessus du média (dessous s'il n'y a pas la place sous l'en-tête, jamais hors de son
        bloc, A789) ; au téléphone, elle est en bas, sous le pouce — « un bon endroit », a dit l'auteur ; A789 la borde pour
        qu'elle se détache du contenu en thème sombre. */
     const dock=innerWidth/zoomF()<780,bar=document.createElement('div');bar.className='mdm-bar'+(dock?' dock':'');bar.setAttribute('role','toolbar');
     bar.setAttribute('aria-label',(msel.k==='vid'?'Vidéo':'Image')+' sélectionnée');
+    /* A819 — L'ALIGNEMENT, pour un média SEUL sur sa ligne (bloc) : trois boutons entre la largeur et « Modifier… » ; au
+       téléphone, la rangée « Gauche · Centre · Droite » du sélecteur segmenté (44 px). Sans effet en pleine largeur : grisés,
+       et la raison écrite. Absents dans une case (la colonne place le média) et dans une puce (il suit le texte). */
+    const enBloc=!!(fg.parentElement&&fg.parentElement.classList.contains('mdb')),fx=enBloc&&mdMedFind(blkSrc(msel.i),msel.k,msel.id,msel.occ),alW=fx?fx.al:'',off=cur>=100;
+    const ai=alW==='center'?1:alW==='right'?2:0,why=off?' — sans effet en pleine largeur':'';
+    const seg=enBloc?`<div class="seg mdm-seg${off?' off':''}" role="radiogroup" aria-label="Alignement${why}" style="--seg-n:3;--seg-i:${ai}"><span class="seg-pill" aria-hidden="true"></span>`
+      +[['l','alL','À gauche','Gauche'],['c','alC','Au centre','Centre'],['r','alR','À droite','Droite']].map(([v,ic,lab,mot],j)=>
+        `<button type="button" class="seg-btn mdm-al${j===ai?' on':''}" role="radio" aria-checked="${j===ai}" data-mdm="al-${v}" aria-label="${lab}${why}" title="${lab}${why}"${off?' disabled':''}>${uiIcon(ic,18)}<span class="mdm-alw">${mot}</span></button>`).join('')
+      +`</div>`+(off&&dock?'<span class="mdm-alnote">Pleine largeur : rien à aligner</span>':''):'';
     bar.innerHTML=`<button type="button" class="mdm-b mdm-pct" data-mdm="pct" aria-haspopup="true" aria-label="Largeur de ${nom} : ${cur} %">${cur} % <span aria-hidden="true">▾</span></button>`
+      +seg
       +(n>1?`<button type="button" class="mdm-b" data-mdm="eqw">Même largeur</button><button type="button" class="mdm-b" data-mdm="eqh">Même hauteur</button>`:'')
+      +`<button type="button" class="mdm-b" data-mdm="cap">Légende</button>`
       +`<button type="button" class="mdm-b" data-mdm="open">Modifier…</button><button type="button" class="mdm-b mdm-x" data-mdm="x" aria-label="Désélectionner ${nom}">✕</button>`;
     if(dock){doc.appendChild(bar);return;}
     host.appendChild(bar);{const z=zoomF(),hb=host.getBoundingClientRect(),mb=medBox(fg).getBoundingClientRect(),bb=bar.getBoundingClientRect(),dessus=mb.top-bb.height-12>72;
@@ -21120,10 +21243,25 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     openPickMenu(btn.parentNode,{aria:'Largeur',title:'Largeur',trigger:btn,...deskFlot(),value:cur,
       options:[25,33,50,66,75,100].map(v=>({val:String(v),name:MD_SC_LBL[v]+(v===100?'':' — '+v+' %'),sub:MD_SC_SR[v]})).concat([{val:'0',name:'Par défaut',sub:'retire la largeur écrite'}]),
       onPick:v=>{if(msel)medWrite([[msel,+v]]);}});};
+  /* A819 — ÉCRIRE LA LÉGENDE de l'emplacement sélectionné : un champ sur place, sous le média, à la place de sa légende ;
+     Entrée ou quitter le champ écrit entre les CROCHETS de cet emplacement (`mdMedSetCap`), Échap renonce. Une image dont
+     les crochets sont vides montre sa légende PAR DÉFAUT (celle du modèle, venue d'un import) : le champ la dit. */
+  const medCap=()=>{const m=msel,fg=m&&medFig(m),f=fg&&mdMedFind(blkSrc(m.i),m.k,m.id,m.occ);if(!f||f.cf<0)return;
+    fg.querySelectorAll('.mdm-capadd,.mdm-capw').forEach(x=>x.remove());fg.classList.add('mcap-ed');
+    const o=(m.k==='vid'?p.videos:p.images)||[],x=o.find(y=>y&&y.id===m.id),def=m.k==='img'&&x&&x.caption?sstr(x.caption,300):'';
+    const w=document.createElement('span');w.className='mdm-capw';
+    w.innerHTML=`<input type="text" class="mdm-capin" maxlength="300" enterkeyhint="done" autocomplete="off" aria-label="Légende de ${m.k==='vid'?'la vidéo':'l’image'}" placeholder="${esc(def?'Par défaut : '+def:'Légende…')}" value="${esc(f.cap.replace(/\\\|/g,'|'))}">`;
+    fg.appendChild(w);const inp=w.firstElementChild;let fait=false;
+    const fin=ok=>{if(fait)return;fait=true;if(!ok||!msel)return medPaint();const t=inp.value;medEdit(v=>mdMedSetCap(v,m.k,m.id,m.occ,t));};
+    inp.addEventListener('keydown',e=>{if(e.isComposing)return;if(e.key==='Enter'){e.preventDefault();e.stopPropagation();fin(true);}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();fin(false);}});
+    inp.addEventListener('blur',()=>fin(true));inp.focus({preventScroll:true});inp.select();};
   const medAct=(k,btn)=>{const m=msel;if(!m)return;const fg=medFig(m);if(!fg)return medClear();
     if(k==='x')return medClear();
     if(k==='open'){const i=m.i;msel=null;return openBlk(i);}
     if(k==='pct')return medPct(btn);
+    if(k==='cap')return medCap();
+    if(/^al-[lcr]$/.test(k)){if(btn&&btn.disabled)return;const al={l:'',c:'center',r:'right'}[k[3]];medEdit(v=>mdMedSetAl(v,m.k,m.id,m.occ,al));
+      const q=doc.querySelector('.mdm-bar [data-mdm="'+k+'"]');if(q)q.focus({preventScroll:true});return;}
     const G=medGroup(fg),K=G.map(medKey).filter(Boolean);if(K.length<2)return;
     if(k==='eqw')return medWrite(K.map((x,j)=>[x,mdMedEq(K.length)[j]]));
     if(k==='eqh'){const W=mdMedEqH(G.map(x=>{const b=medBox(x).getBoundingClientRect();return b.height?b.width/b.height:0;}));return medWrite(K.map((x,j)=>[x,W[j]]));}};
@@ -21157,7 +21295,6 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
        champ d'iOS décale son texte de quelques px, un calque décalé serait pire que pas de calque). */
     {const w=t.parentNode;if(w&&w.classList.contains('mdb-hlw')&&matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
       w.classList.add('on');const hs=()=>mdHlSync(t,p.docs,p.images);t.addEventListener('input',hs);t.addEventListener('scroll',()=>{w.firstElementChild.scrollTop=t.scrollTop;});hs();}}
-    if(tap&&tap.y0!=null)mdOpenAlign(t,tap);
     t.addEventListener('input',()=>{const l=lines(),nl=t.value.split('\n');
       push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);
       // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
@@ -21166,8 +21303,8 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     t.addEventListener('paste',()=>{pasted=true;});
     ['keyup','click','select'].forEach(ev=>t.addEventListener(ev,()=>mdLmedPaint(t)));mdLmedPaint(t);   // A772
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
-      const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(!(tap&&tap.y0!=null)&&(q.top<70||q.bottom>innerHeight-80))b.scrollIntoView({block:'center'});
-      if(tap&&tap.ln>=0&&tap.y!=null)mdOpenKeep(t,tap);}};
+      const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(!(tap&&(tap.y!=null||tap.y0!=null))&&(q.top<70||q.bottom>innerHeight-80))b.scrollIntoView({block:'center'});
+      if(tap&&(tap.y!=null||tap.y0!=null))mdOpenKeep(t,tap);}};
   /* A553 : refermer un bloc où l'on a COLLÉ, et qui se découpe, le dit — et dit ce que fera ↶ (le collage entier, A552). */
   const said=()=>{const t=doc.querySelector('.mdb-ta'),n=t&&pasted?mdBlockRanges(t.value).length:0;pasted=false;
     if(n>1)toast('Découpé en '+n+' blocs — ↶ annule le collage.',4000,true);};
@@ -21227,6 +21364,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(b&&sel.size&&!e.target.closest('button'))selClear();}
     /* A785 : la barre du média sélectionné, puis un toucher sur un média qui le SÉLECTIONNE (il n'ouvre plus son bloc ni
        la grille de son tableau) ; un toucher ailleurs le désélectionne. */
+    if(e.target.closest('.mdm-capw'))return;   // A819 : le champ de la légende garde ses clics
     {const mb=e.target.closest('[data-mdm]');if(mb){e.preventDefault();e.stopPropagation();return medAct(mb.dataset.mdm,mb);}
       if(e.target.closest('.mdm-bar,.mdm')){e.preventDefault();e.stopPropagation();return;}
       const fg=e.target.closest('.mdb:not(.on) figure.md-fig');
@@ -21974,7 +22112,7 @@ let _vidPres=null,_vidLoin=null;
    donc l'auteur qui dit combien de colonnes, jamais l'app qui devine). Le libellé = le texte entre l'image précédente
    et la sienne (la seule ligne juste au-dessus, pour la première) ; le reste, avant et après, entoure le tableau — RIEN ne se perd. Moins de
    deux images : `null`. */
-const MD_GR_IMG=/^\s*!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?\s*$/;   // A757 : une vidéo se range comme une image
+const MD_GR_IMG=/^\s*!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/;   // A757 : une vidéo se range comme une image
 function mdGrille(src,n){n=Math.max(2,Math.min(4,Math.round(Number(n))||3));
   const L=String(src==null?'':src).split('\n'),items=[],avant=[];let lab=[];
   const net=t=>t.replace(/^#{1,6}\s+/,'').replace(/^(?:[-*]|\d{1,3}[.)])\s+/,'').replace(/\|/g,'\\|').trim();
@@ -22464,7 +22602,20 @@ const MD_LINT_DOSE=[
 const MD_GRAS_SEUL=/^\*\*([^*\n]{1,80}?)\s*:?\s*\*\*\s*:?\s*$/;
 function mdGrasSeul(l){const m=MD_GRAS_SEUL.exec(String(l||''));if(!m)return '';const g=m[1].trim();
   return g&&!/[.!?…:]$/.test(g)&&g.indexOf(':')<0?g:'';}
-function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=String(body||'').split('\n');
+/* A821 (rectifie A815) — LE NIVEAU PROPOSÉ SUIT LA SECTION, de façon STABLE quand on convertit les lignes l'une après
+   l'autre. « ## » d'office faisait de « Physiopathologie » la SŒUR de « ## Intoxication au CO » au lieu de sa sous-section
+   (Plan, sommaire et repli faux). Le titre P qui coiffe la ligne (le premier au-dessus, hors code) : s'il vient d'une
+   conversion de CETTE session d'édition (`conv`, mémoire non persistée : « n|texte »), ou s'il a le niveau d'un intitulé
+   déjà converti sous le même parent, la ligne est sa SŒUR (niveau de P) ; sinon un cran dessous, min(P + 1, 3). Sans
+   titre au-dessus : « ## ». Après un rechargement, seule la règle min(P + 1, 3) s'applique. PURE (?__actest). */
+function mdTitreNiv(lines,ln,conv){const H=[];let code=false;
+  (lines||[]).forEach((l,i)=>{if(/^```/.test(l)){code=!code;return;}if(code)return;const m=/^(#{1,3})\s+(.*?)\s*$/.exec(l||'');if(m)H.push({i,n:m[1].length,t:m[2]});});
+  const ps=H.filter(h=>h.i<ln),P=ps[ps.length-1];if(!P)return 2;
+  const cv=h=>!!(conv&&conv.has&&conv.has(h.n+'|'+h.t));if(cv(P))return P.n;
+  if(conv&&conv.size){const par=[...ps].reverse().find(h=>h.n<P.n),a=par?par.i:-1,fin=H.find(h=>h.i>P.i&&h.n<P.n),z=fin?fin.i:Infinity;
+    if(H.some(h=>h.i>a&&h.i<z&&h!==P&&h.n===P.n&&cv(h)))return P.n;}
+  return Math.min(P.n+1,3);}
+function mdLint(body,docs,conv){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=String(body||'').split('\n');
   let off=0,code=false,lastH=0,cols=0;
   L.forEach((l,ln)=>{const o=off;off+=l.length+1;
     if(/^```/.test(l)){code=!code;return;}if(code)return;
@@ -22478,20 +22629,40 @@ function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=S
     else if(!MD_TSEP.test(t))cols=0;
     const h=t.match(/^(#{1,3})\s/);
     if(h){const n=h[1].length;if(n===3&&lastH<2)add('struct','Sous-titre sans titre au-dessus','« ### » sous un « # » ou en tête : posez d’abord un « ## »',0,h[1]);lastH=n;}
-    {const g=mdGrasSeul(l);if(g)add('titre','Ligne en gras seule : un titre ?','→ « ## '+g+' », dans le Plan et le sommaire',0,l,'## '+g);}   // A815
+    {const g=mdGrasSeul(l);if(g){const n=mdTitreNiv(L,ln,conv),fx='#'.repeat(n)+' '+g;   // A815 ; A821 : le niveau suit la section
+      add('titre','Ligne en gras seule : un titre ?','→ « '+fx+' », dans le Plan et le sommaire',0,l,fx);Object.assign(out[out.length-1],{g,niv:n});}}
     if(/^>\s?\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*$/.test(t)&&!/^>\s?\S/.test(L[ln+1]||''))add('struct','Encadré vide','le marqueur est seul, sans texte dessous',0,l);
     MD_LINT_DOSE.forEach(([re,fx,cible,sub])=>{for(const m of t.matchAll(re)){const i=m.index+m[1].length;add('dose',cible,sub,i,m[2],fx(m));}});});
   return out.sort((a,b)=>a.from-b.from);}
+/* A824 (amende A459 POUR L'ÉDITEUR DE PROTOCOLE SEULEMENT — décision de l'auteur, 26/11/2026 : « change la règle pour
+   tout corriger pour les protocoles uniquement ») — chaque GENRE de point corrigeable reçoit « Tout … (n) » dès deux
+   points : l'écriture des doses (chaque correctif tel qu'affiché) et les lignes en gras seules (converties de haut en bas,
+   chacune au niveau que lui donne la règle d'A821 — la précédente convertie compte pour la suivante). Rien sans le geste,
+   le nombre est affiché, UNE entrée d'annulation pour tout le lot. L'éditeur d'aide garde la règle d'A459. PURE
+   (?__actest) : {v, conv} — le texte corrigé et les intitulés convertis (« n|texte »). */
+function mdLintAll(body,docs,k,conv){let v=String(body==null?'':body);const C=new Set(conv||[]),add=[];
+  if(k==='dose'){mdLint(v,docs).filter(x=>x.k==='dose'&&x.fix!=null).sort((a,b)=>b.from-a.from).forEach(x=>{if(v.slice(x.from,x.to)===x.was)v=v.slice(0,x.from)+x.fix+v.slice(x.to);});}
+  else if(k==='titre'){for(let g=0;g<500;g++){const x=mdLint(v,docs,C).find(y=>y.k==='titre');if(!x)break;
+    v=v.slice(0,x.from)+x.fix+v.slice(x.to);const key=x.niv+'|'+x.g;C.add(key);add.push(key);}}
+  return {v,conv:add};}
 // La liste sous le champ (rien quand il n'y a rien à dire : un panneau vide est du bruit).
 function mdLintHtml(list){if(!list.length)return '';
+  const nb=k=>list.filter(x=>x.k===k&&(k!=='dose'||x.fix!=null)).length,tout=[['titre','Tout convertir en titres'],['dose','Tout corriger l’écriture des doses']].filter(([k])=>nb(k)>1);
   return `<details class="md-lint" id="mdLint"${state.mdLintShut?'':' open'}><summary><span class="md-lint-g" aria-hidden="true">△</span>${list.length} point${list.length>1?'s':''} d’écriture à relire</summary>
+    ${tout.length?`<div class="md-lint-all">${tout.map(([k,l])=>`<button type="button" class="btn sm" data-mdlintall="${k}">${l} (${nb(k)})</button>`).join('')}<span class="md-lint-allh">un seul geste, une seule annulation</span></div>`:''}
     ${list.map((x,i)=>`<div class="md-lint-r"><span class="md-lint-g" aria-hidden="true">△</span><span class="md-lint-t"><b>${x.k==='dose'?`<span class="md-lint-c">${esc(x.was)}</span> → <span class="md-lint-c">${esc(x.fix)}</span>`:esc(x.cible)}</b><span>ligne ${x.ln+1} · ${esc(x.sub)}</span></span>
-      <button type="button" class="btn sm" data-mdlint="${i}">${x.k==='titre'?'En faire un titre':x.fix!=null?'Corriger':x.k==='tbl'?'En grille':'Aller'}</button></div>`).join('')}
-    <p class="hint">La relecture vérifie la façon d’écrire, jamais le contenu clinique. Chaque correction se fait une par une, sous vos yeux.</p></details>`;}
+      ${x.k==='titre'?`<span class="md-lint-2">${[2,3].map(n=>`<button type="button" class="btn sm${n===x.niv?' primary':''}" data-mdlint="${i}" data-mdniv="${n}" aria-label="${n===2?'En faire un titre':'En faire un sous-titre'} (${'#'.repeat(n)})${n===x.niv?', proposé':''}">${n===2?'Titre':'Sous-titre'} <span class="md-lint-c">${'#'.repeat(n)}</span></button>`).join('')}</span>`
+        :`<button type="button" class="btn sm" data-mdlint="${i}">${x.fix!=null?'Corriger':x.k==='tbl'?'En grille':'Aller'}</button>`}</div>`).join('')}
+    <p class="hint">La relecture vérifie la façon d’écrire, jamais le contenu clinique. Chaque correction se fait sous vos yeux${tout.length?' ; « Tout … » se défait d’un seul ↶':''}.</p></details>`;}
 function mdLintPaint(p){const box=main.querySelector('.md-lint-box');if(!box)return;
-  const L=mdLint(p.body,p.docs);box._lint=L;box.innerHTML=mdLintHtml(L);
+  const L=mdLint(p.body,p.docs,mdConvOf(p));box._lint=L;box.innerHTML=mdLintHtml(L);
   const d=box.querySelector('details');if(d)d.addEventListener('toggle',()=>{state.mdLintShut=!d.open;});}
-function mdLintAct(ta,x){if(!x)return;
+// A821 : les intitulés convertis pendant CETTE session d'édition, par protocole (« n|texte ») — jamais enregistrés.
+const _mdConv=Object.create(null);
+const mdConvOf=p=>{const k=p&&!badKey(p.id)?String(p.id):'';return k?(_mdConv[k]=_mdConv[k]||new Set()):new Set();};
+function mdLintAct(ta,x,niv,p){if(!x)return;
+  if(x.k==='titre'){const n=niv===3?3:niv===2?2:x.niv,fx='#'.repeat(n)+' '+x.g;
+    if(ta.value.slice(x.from,x.to)===x.was){if(p)mdConvOf(p).add(n+'|'+x.g);mdSplice(ta,x.from,x.to,fx);}return;}
   if(x.fix!=null){if(ta.value.slice(x.from,x.to)===x.was)mdSplice(ta,x.from,x.to,x.fix);return;}
   if(_mdDocGo&&ta.closest('.md-ed.mdl')){_mdDocGo(x.ln,true);return;}   // A547 : le bloc fautif s'ouvre
   mdGoLine(ta,x.ln);ta.setSelectionRange(x.from,x.to);if(x.k==='tbl')mdTblOpen(ta);}
@@ -22505,7 +22676,7 @@ function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.le
      ni laquelle ni à quelle taille. Posée en absolu : elle ne prend aucune place dans la ligne (métriques du champ). */
   const IM=Object.create(null);(imgs||[]).forEach(im=>{if(im&&im.id&&!badKey(im.id))IM[im.id]=im;});const brk=new Map();
   let o=0,code=false,qk=0;
-  v.split('\n').forEach(l=>{{const mi=!code&&l.match(/^\s*!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{width=\d{1,3}%\})?\s*$/),im=mi&&IM[mi[1]],src=im&&safeImg(im.data);
+  v.split('\n').forEach(l=>{{const mi=!code&&l.match(/^\s*!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/),im=mi&&IM[mi[1]],src=im&&safeImg(im.data);
       if(src)brk.set(o+l.replace(/\s+$/,'').length,`<span class="hl-imc" data-s="${esc((im.scale||100)+' %')}"><img src="${src}" alt=""></span>`);}const set=(i,n,b)=>{for(let k=o+i,e=Math.min(o+i+n,C.length);k<e;k++)C[k]|=b;};let m;
     if(/^```/.test(l)){code=!code;set(0,l.length,1);}
     else if(!code){
@@ -22518,7 +22689,7 @@ function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.le
         if(MD_TROW.test(l))for(let i=0;i<l.length;i++)if(l[i]==='|'&&l[i-1]!=='\\')set(i,1,1);}
       // A607 : TOUT marqueur d'emphase se grise — « * », « *** », « ~~ » — pas seulement « ** » (le 3ᵉ astérisque de
       // « *** » restait à l'encre du texte : « il y en a un qui devient blanc »).
-      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]{0,400}\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);
+      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]{0,400}\]\()|\]\([^)\s]*\)|\{(?:width|align)=[^}\n]{0,40}\}/g))set(x.index,x[0].length,1);   // A819 : l'attribut d'un média aussi
       // A814 : le texte en gras porte sa marque (`hl-b`) — le bloc ouvert le noircit ; le calque du Markdown entier, non.
       for(const x of l.matchAll(/\*\*(?=\S)([^*\n]{1,400}?)\*\*/g))set(x.index+2,x[1].length,128);}
     else set(0,l.length,1);
@@ -22560,9 +22731,9 @@ function mdImgIds(blocks){const out=[];const walk=items=>(items||[]).forEach(it=
 // A757 : les vidéos citées par le texte (une ligne `![…](vid:ID)`, ou une case) — le ménage de sortie garde celles-là.
 function mdVidIds(body){const out=new Set();for(const m of String(body||'').matchAll(/!\[[^\]\n]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)/g))out.add(m[1]);return out;}
 function miUses(body){const n=Object.create(null);mdImgIds(mdBlocks(body||'')).forEach(id=>{n[id]=(n[id]||0)+1;});return n;}
-const miLineRx=id=>new RegExp('^\\s*!\\[[^\\]]*\\]\\(img:'+String(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\)(?:\\{width=\\d{1,3}%\\})?\\s*$');
+const miLineRx=id=>new RegExp('^\\s*!\\[[^\\]]*\\]\\(img:'+String(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\)(?:\\{(?:width=\\d{1,3}%|align=(?:left|center|right))(?: (?:width=\\d{1,3}%|align=(?:left|center|right)))?\\})?\\s*$');
 // A755 : la même image DANS une case de tableau (retirer l'image vide la case ; « Aller au passage » trouve la ligne).
-const miCellRx=id=>new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(img:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{width=\\d{1,3}%\\})?','g');
+const miCellRx=id=>new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(img:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{(?:width=\\d{1,3}%|align=(?:left|center|right))(?: (?:width=\\d{1,3}%|align=(?:left|center|right)))?\\})?','g');
 const miHas=(l,id)=>miLineRx(id).test(l)||(MD_TROW.test(l)&&miCellRx(id).test(l));
 const miName=(im,i)=>im.caption||('Image '+(i+1));
 function miCardHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);if(!ims.length)return '';
@@ -22580,8 +22751,12 @@ function miPaintUse(p){const n=miUses(p.body);
     t.setAttribute('aria-label',t.dataset.miname+(k>1?', '+k+' passages':k?'':', absente du texte'));});
   {const m=main.querySelector('.mi-outmsg');if(m)m.hidden=!(p.images||[]).some(im=>im&&im.data&&!n[im.id]);}   // A637 : toutes les images comptent, repliées comprises
   if(_miId&&miEl().classList.contains('on'))miPaint();}
-function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%Math.max(k,1);
-  return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">'+(k>1?'Largeur, à ses '+k+' passages':'Largeur')+'</h4>',false,mdMedW(p.body,'img',im.id,0)||(im.scale|0))}
+function miSheetHtml(p,im){const k=miUses(p.body)[im.id]||0,g=(_miGo[im.id]||0)%Math.max(k,1),w0=mdMedW(p.body,'img',im.id,0)||(im.scale|0);
+  /* A819 : l'alignement, sur ses passages en BLOC (ni case ni puce) — grisé en pleine largeur, la raison écrite dessous. */
+  const bo=mdMedBlocOccs(p.body,'img',im.id),f0=bo.length?mdMedFind(p.body,'img',im.id,bo[0]):null,ai=f0&&f0.al==='center'?1:f0&&f0.al==='right'?2:0,off=!(w0>0&&w0<100);
+  const alH=bo.length?`<h4 class="sst-h" id="miAlH">Alignement</h4>`+segHtml('mial','miAlH',[['left',uiIcon('alL',18)+'Gauche'],['center',uiIcon('alC',18)+'Centre'],['right',uiIcon('alR',18)+'Droite']].map(([v,l])=>[v,l,off?' disabled':'']),ai)
+    +`<p class="mi-alst">${off?'Pleine largeur : rien à aligner. Réduisez la largeur d’abord.':(bo.length>1?'À ses '+bo.length+' passages en bloc.':'Dans une case ou une puce, l’image suit sa colonne ou son texte.')}</p>`:'';
+  return `${mdSizeHtml(im,'data-miscale','<h4 class="sst-h">'+(k>1?'Largeur, à ses '+k+' passages':'Largeur')+'</h4>',false,w0)}${alH}
   <p class="mi-st ${k?'ok':'w'}">${k?'✓ Dans le texte · '+k+' passage'+(k>1?'s':''):'△ Absente du texte — sera retirée en quittant l’éditeur'}</p>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="ins">${uiIcon('plus',17)}Insérer au curseur</button>${k?`<button type="button" class="mi-act" data-miact="go">${uiIcon('search',17)}Aller au passage<span class="mi-x">${k>1?(g+1)+' / '+k:''}</span></button>`:''}</div>
   <div class="mi-acts"><button type="button" class="mi-act" data-miact="repl">${uiIcon('camera',17)}Remplacer…<span class="mi-x">${k>1?'les '+k+' passages suivent':''}</span></button><button type="button" class="mi-act del" data-miact="rm">${uiIcon('trash',17)}Retirer du protocole</button></div>`;}
@@ -22609,6 +22784,10 @@ function miRefClick(c,t,im,m){const p=c.p,bd=document.getElementById('miBody');
       for(let o=0;mdMedFind(b,'img',im.id,o);o++)b=mdMedSetW(b,'img',im.id,o,v===100?0:v);
       im.scale=v;p.body=b;keepAnchor('.mi-card',renderProtocolEdit);miPaint();
       const q=document.getElementById('miBody').querySelector('[data-miscale="'+v+'"]');if(q)q.focus();return;}
+    if(t.dataset.mial!=null){if(t.disabled)return;const al=t.dataset.mial;let b=String(p.body||'');
+      mdMedBlocOccs(b,'img',im.id).forEach(o=>{const nv=mdMedSetAl(b,'img',im.id,o,al);if(nv!=null)b=nv;});   // A819 : ses passages en bloc
+      p.body=b;keepAnchor('.mi-card',renderProtocolEdit);miPaint();
+      const q=document.getElementById('miBody').querySelector('[data-mial="'+al+'"]');if(q)q.focus();return;}
     const k=t.dataset.miact;
     // Écrire dans le texte : la feuille se ferme d'abord, le focus revient au champ (modalHandoffClose).
     if(k==='ins'){const f=c.field();_miId=null;modalHandoffClose(m);
@@ -22657,7 +22836,7 @@ function renderProtocolEdit(){
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <p class="md-len" id="mdLen" role="status" hidden></p>
       <div class="md-lint-box"></div>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 4 espaces de plus par niveau, jusqu’à 6 niveaux — Tab ou ⇥ les pose), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code> — en mise en forme en direct, touchez l’image puis tirez son bord (dans le texte, une liste ou une case).<br>Clavier : Entrée continue une liste (sur une sous-puce vide : remonte d’un niveau ; au premier : la termine), Tab / Maj+Tab (⇥ / ⇤ de la barre, dans une liste) change le niveau d'une puce — au premier niveau, Maj+Tab ou Effacer juste après « - » rend la ligne au texte, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 4 espaces de plus par niveau, jusqu’à 6 niveaux — Tab ou ⇥ les pose), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image — le texte entre crochets est sa légende, écrite sous elle (<code>vid:ID</code> : une vidéo) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code>, et son alignement avec elle : <code>{width=45% align=center}</code> (<code>right</code> à droite ; à gauche sans rien) — en mise en forme en direct, touchez l’image : tirez son bord, choisissez l’alignement, « Légende » (l’alignement vaut pour une image seule sur sa ligne, pas dans une liste ni une case).<br>Clavier : Entrée continue une liste (sur une sous-puce vide : remonte d’un niveau ; au premier : la termine), Tab / Maj+Tab (⇥ / ⇤ de la barre, dans une liste) change le niveau d'une puce — au premier niveau, Maj+Tab ou Effacer juste après « - » rend la ligne au texte, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
       <div class="md-ppane">${mds?`<div class="etab-rh"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div id="revPanel">${revProtoHtml(p)}</div></div>`:'<p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p>'}<div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mds?'</div>':''}
@@ -22777,7 +22956,9 @@ function renderProtocolEdit(){
   mdCaretSync(ta,p);
   bindRevPanel();   // les rangées du volet d'une référence répondent enfin au tap (v5.44)
   {const lb=main.querySelector('.md-lint-box');mdLintPaint(p);
-   lb.addEventListener('click',e=>{const b=e.target.closest('[data-mdlint]');if(b)mdLintAct(ta,(lb._lint||[])[+b.dataset.mdlint]);});}
+   lb.addEventListener('click',e=>{const a=e.target.closest('[data-mdlintall]');   // A824 : « Tout … », un seul geste
+     if(a){const C=mdConvOf(p),R=mdLintAll(ta.value,p.docs,a.dataset.mdlintall,C);if(R.v!==ta.value){R.conv.forEach(k=>C.add(k));mdReplaceBody(ta,R.v,mdCaretLine(ta));}return;}
+     const b=e.target.closest('[data-mdlint]');if(b)mdLintAct(ta,(lb._lint||[])[+b.dataset.mdlint],+b.dataset.mdniv||0,p);});}
   if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
     ta.parentNode.classList.add('on');const hs=()=>mdHlSync(ta,p.docs,p.images);
     ta.addEventListener('input',hs);ta.addEventListener('scroll',()=>{ta.previousElementSibling.scrollTop=ta.scrollTop;});
@@ -23412,6 +23593,10 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   /* `table` — la Page. MÊME TRACÉ que le bouton « Tableau » de la barre markdown : un second
      dessin pour la même idée serait deux choses à apprendre (règle du menu ⋯). */
   table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/>',
+  // A819 : l'alignement d'un média (le cadre, et le texte qui l'entoure).
+  alL:'<rect x="3" y="7" width="9" height="10" rx="1.5"/><path d="M15 9h6M15 15h6"/>',
+  alC:'<rect x="7.5" y="7" width="9" height="10" rx="1.5"/><path d="M3 4h18M3 20h18"/>',
+  alR:'<rect x="12" y="7" width="9" height="10" rx="1.5"/><path d="M3 9h6M3 15h6"/>',
   // Barre d'outils du contenu rédigé (v5.44) : tracés repris tels quels de l'ancienne barre.
   outdent:'<path d="M3 5h18M11 10h10M11 14h10M3 19h18M7 9l-3 3 3 3"/>',indent:'<path d="M3 5h18M11 10h10M11 14h10M3 19h18M4 9l3 3-3 3"/>',   // A809 : ⇤ ⇥ de la barre du contenu rédigé
   ul:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/>',
@@ -32021,7 +32206,7 @@ function imgTrim(e,budget){budget=budget==null?MAX_IMG_TOTAL:budget;if(imgsOctet
   for(const im of ims){const o=imgOctets(im&&im.data)*(blkImg.has(im&&im.data)?2:1);if(t+o<=budget){garde.push(im);t+=o;}else hors.push(im);}
   e.images=garde;const out=new Set(hors.map(x=>x.data));
   (Array.isArray(e.blocks)?e.blocks:[]).forEach(b=>{if(b&&out.has(b.image)){b.image=null;b.imageW=null;b.imageH=null;}});
-  if(typeof e.body==='string')hors.forEach(im=>{e.body=e.body.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(im.id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{width=\\d{1,3}%\\})?','g'),'');});
+  if(typeof e.body==='string')hors.forEach(im=>{e.body=e.body.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(im.id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{(?:width=\\d{1,3}%|align=(?:left|center|right))(?: (?:width=\\d{1,3}%|align=(?:left|center|right)))?\\})?','g'),'');});
   return hors.length;}
 /* ═══ A766 — LES IMAGES VOYAGENT EN FICHIERS, PLUS DANS LES LIGNES (décision de l'auteur, seul utilisateur : « prépare un
    migrateur, pas besoin de supporter les versions précédentes ») ═════════════════════════════════════════════════════
@@ -34235,8 +34420,8 @@ async function exportData(list,baseName,cats,protos){
 function exportLeger(out){const o={...out};
   const nu=x=>{const c={...x};c.images=[];c.docs=[];if(Array.isArray(c.videos))c.videos=[];   // A757
     if(Array.isArray(c.blocks))c.blocks=c.blocks.map(b=>b&&b.image?{...b,image:null,imageW:null,imageH:null}:b);
-    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?\s*$/.test(l))
-      .map(l=>MD_TROW.test(l)?l.replace(/!\[[^\]\n]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{width=\d{1,3}%\})?/g,''):l).join('\n')   // A755 : et celles des cases ; A757 : et les vidéos
+    if(typeof c.body==='string')c.body=c.body.split('\n').filter(l=>!/^\s*!\[[^\]]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/.test(l))
+      .map(l=>MD_TROW.test(l)?l.replace(/!\[[^\]\n]{0,300}\]\((?:img|vid):[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?/g,''):l).join('\n')   // A755 : et celles des cases ; A757 : et les vidéos
       .replace(/\[([^\]\n]{1,200})\]\(att:[A-Za-z0-9_-]{1,64}(?:#p\d{1,4})?\)/g,'$1');
     return c;};
   o.fiches=(out.fiches||[]).map(nu);if(out.protocols)o.protocols=out.protocols.map(nu);return o;}
@@ -34439,7 +34624,7 @@ async function attRepairShared(){
    l'import Notion) garde l'identifiant, sinon un id neuf et les liens `](vid:…)` suivent. Une vidéo qui ne peut pas
    entrer est RETIRÉE du texte, nommée (« *[Vidéo absente du fichier]* ») et comptée — jamais une référence morte.
    Même espace, absente du fichier mais présente ici (ou attendue de la synchro) : la fiche reste. Rend le nombre écarté. */
-const vidRetire=(body,ids)=>{let b=String(body==null?'':body);ids.forEach(id=>{b=b.replace(new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(vid:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{width=\\d{1,3}%\\})?','g'),'*[Vidéo absente du fichier]*');});return b;};
+const vidRetire=(body,ids)=>{let b=String(body==null?'':body);ids.forEach(id=>{b=b.replace(new RegExp('!\\[[^\\]\\n]{0,300}\\]\\(vid:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{(?:width=\\d{1,3}%|align=(?:left|center|right))(?: (?:width=\\d{1,3}%|align=(?:left|center|right)))?\\})?','g'),'*[Vidéo absente du fichier]*');});return b;};
 async function importVids(d,zipVids,keep){if(!(d.videos||[]).length)return 0;
   if(!supportsAttachments()){const n=d.videos.length;d.body=vidRetire(d.body,d.videos.map(v=>v.id));d.videos=[];return n;}
   const kept=[],chg=[],out=[];
@@ -35262,7 +35447,7 @@ async function notionVerse(p,files,rerender){
       if(!String(p.title||'').trim()&&t)p.title=t;
       const bloc=(plus&&t?'# '+t+'\n\n':'')+String(q.body||'').trim();
       p.images=Array.isArray(p.images)?p.images:[];let txt=bloc;
-      const sans=id=>{txt=txt.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{width=\\d{1,3}%\\})?','g'),'');};   /* A709 : image LÉGENDÉE comprise */
+      const sans=id=>{txt=txt.replace(new RegExp('!\\[[^\\]\\n]*\\]\\(img:'+String(id).replace(/[^A-Za-z0-9_-]/g,'')+'\\)(?:\\{(?:width=\\d{1,3}%|align=(?:left|center|right))(?: (?:width=\\d{1,3}%|align=(?:left|center|right)))?\\})?','g'),'');};   /* A709 : image LÉGENDÉE comprise */
       const cand=[];for(const im of (q.images||[])){if(p.images.length+cand.length>=MAX_IMG_PER_ENTITY){trop++;sans(im.id);continue;}cand.push(im);}
       // A759 : sous le plafond de 10 Mo — au-delà, la feuille propose de compresser ; ✕ abandonne CETTE page en entier.
       const res=cand.length?await imgAdmettre(p,cand,{ctx:imgCtx(p,cand.length),fem:false}):{admises:[],comp:0,refus:0};
@@ -42239,7 +42424,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdTapPos,mdGrasSeul,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdTapPos,mdGrasSeul,mdTitreNiv,mdLintAll,mdAttr,mdAttrStr,mdMedSetAl,mdMedSetCap,mdCapNet,mdMedBlocOccs,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
