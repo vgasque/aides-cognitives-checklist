@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-aV4RPkuZ26JLWCAIay5l79mpfBlBFNu63Ho6H5syKEY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-211HJCrm7YZN4PPyVszRpxLktGrPX0djb3XSDRdH7iY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9619,6 +9619,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Sous 400 (iPhone SE, Android à 360, écran externe du Fold) : ils prennent aussi la place de « Titre » — un titre posé
      sur une puce la coupe de sa liste, comme un encadré. */
   html.zw400 .md-toolbar.in-list .mdt-hd{display:none}
+  /* A829 — « ↵ À la ligne » : seulement dans le PARAGRAPHE d'un bloc ouvert (mise en forme en direct), à la place qu'avaient
+     ⇤ ⇥ dans une liste. La barre ne gagne AUCUN pixel de hauteur (`brFit`, mesuré) : br1 tait la touche, br2 le mot (le
+     glyphe et le nom accessible restent), br3 le mot « Insérer » (son ＋ reste), br4 — en dernier — « Encadré ». Sous 400 de largeur effective, touche et mot se taisent d'office. */
+  .md-toolbar:not(.in-para) .mdt-brg,.md-toolbar.br-x .mdt-brg{display:none}
+  .md-toolbar .mdt-br{gap:4px;padding:0 8px;color:var(--act);font-weight:700}
+  .md-toolbar.br1 .mdt-br .kc,html.zw400 .md-toolbar .mdt-br .kc{display:none}
+  .md-toolbar.br2 .mdt-w3,html.zw400 .md-toolbar .mdt-w3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .md-toolbar.br3 .mdt-w2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .md-toolbar.br3 .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  .md-toolbar.br4.in-para .mdt-box{display:none}
+  /* Les touches (« keycaps », A829) : au pointeur fin seulement, 11 px, dans le bouton — aucune hauteur ajoutée. */
+  .kc{display:none;font:600 11px/1 var(--f-ui);color:var(--ink-2);background:var(--amb-2);border:1px solid var(--line-strong);border-radius:3px;padding:2px 4px;margin-left:6px}
+  @media (hover:hover) and (pointer:fine){.kc{display:inline-block}}
+  .mdb-done .kc-s{display:none}
+  .mdb-acts.kc-court .mdb-done .kc-l{display:none}
+  @media (hover:hover) and (pointer:fine){.mdb-acts.kc-court .mdb-done .kc-s{display:inline-block}}
+  .mdb-acts.kc-off .mdb-done .kc{display:none!important}
   .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
@@ -11333,7 +11350,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.159.0';
+const APP_VERSION='5.160.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20620,6 +20637,59 @@ function mdListEnter(inp){const [a,b,v]=selBounds(inp);if(a!==b)return false;
     const u=mdListEmptyUp(v,a);if(u){mdSplice(inp,u.from,u.to,u.seg);return true;}   // A809 : une sous-puce vide remonte d'un niveau
     mdSplice(inp,ls,a,'');return true;}
   mdSplice(inp,a,a,'\n'+c.next);return true;}
+/* A829 — ENTRÉE TERMINE LE BLOC ET OUVRE LE SUIVANT (planche « La touche Entrée », option A retenue par l'auteur) : en
+   mise en forme en direct, Entrée dans un bloc ouvert fait ce qu'on attend d'un document — un titre se valide, un
+   paragraphe se coupe au curseur et le suivant s'ouvre dessous ; Maj+Entrée (« ↵ À la ligne » au doigt) va à la ligne
+   dans le même paragraphe. Une liste et un encadré gardent leur Entrée (A809, `mdListEnter`), et en sortent vers un
+   paragraphe ; un bloc de code va à la ligne, et sort après sa clôture. Le Markdown ENTIER n'est pas touché : Entrée y
+   reste un retour à la ligne. Fonctions PURES, sur la source du bloc ouvert et la sélection. */
+// La nature du bloc ouvert, d'après sa première ligne : 'h' titre · 'list' · 'q' citation ou encadré · 'code' · 'other'
+// (tableau, média, séparateur) · 'p' paragraphe.
+const mdBlkKind=src=>{const l=String(src||'').split('\n')[0]||'';
+  if(/^#{1,6}\s/.test(l))return 'h';if(/^\s*```/.test(l))return 'code';if(/^\s*>/.test(l))return 'q';if(MD_LIST_RX.test(l))return 'list';
+  if(MD_TROW.test(l)||/^\s*!\[/.test(l)||/^(---+|\*\*\*+)\s*$/.test(l))return 'other';return 'p';};
+/* Entrée (sans Maj) dans un bloc ouvert qui n'est ni une liste ni un encadré : null (Entrée garde son rôle, à la ligne),
+   {noop} (rien : un titre ou un paragraphe vide ne se coupe pas), ou {cur, nxt} — le bloc garde `cur`, un paragraphe
+   `nxt` s'ouvre dessous ('' : vide, à écrire). */
+function mdLiveEnter(v,a,b){v=String(v||'');const k=mdBlkKind(v),pre=v.slice(0,a),post=v.slice(b);
+  if(k==='h'||k==='p'){const dit=k==='h'?pre.replace(/^#{1,6}[ \t]*/,''):pre;if(!dit.trim())return {noop:true};
+    return {cur:pre.replace(/[ \t]+$/,'').replace(/\n+$/,''),nxt:post.replace(/^\n+/,'').replace(/^[ \t]+/,'')};}
+  if(a!==b||post.trim())return null;   // ailleurs, seule la FIN du bloc sort
+  const L=pre.split('\n'),cl=L[L.length-1];
+  if(k==='code'){if(L.length>1&&/^\s*```\s*$/.test(cl))return {cur:pre.replace(/\s+$/,''),nxt:''};   // après la clôture
+    if(L.length>2&&!cl.trim()&&!L[L.length-2].trim())return {cur:pre.replace(/\s+$/,''),nxt:''};   // deux lignes vides
+    return null;}
+  if(k==='other')return {cur:pre.replace(/\s+$/,''),nxt:''};
+  return null;}
+/* Après l'Entrée d'une liste ou d'un encadré (`mdListEnter`) : la ligne du curseur est-elle devenue VIDE (marqueur retiré au
+   premier niveau, A809) ? Alors on sort — le bloc garde ce qui précède, un paragraphe vide s'ouvre, et ce qui suit (une
+   liste reprise après la sortie) redevient un bloc. Un encadré ne sort qu'à sa fin (le couper en deux perdrait son
+   registre). Rend {cur, nxt:'', rest} ou null. */
+function mdLiveExit(v,a,kind){v=String(v||'');const ls=v.lastIndexOf('\n',a-1)+1;let le=v.indexOf('\n',a);if(le<0)le=v.length;
+  if(v.slice(ls,le).trim())return null;const rest=le<v.length?v.slice(le+1).replace(/^\s*\n/,''):'';
+  if(kind==='q'&&rest.trim())return null;
+  return {cur:v.slice(0,ls).replace(/\s+$/,''),nxt:'',rest:rest.trim()?rest.replace(/\s+$/,''):''};}
+/* Le corps après une coupe : les lignes [a, a+n) du bloc ouvert deviennent `cur`, puis `nxt` (un bloc à ouvrir), puis
+   `rest` ; une ligne vide sépare deux morceaux non vides (sinon deux paragraphes fusionnent). Rend {v, at} — `at` : la
+   ligne où commence `nxt`, ou, si `nxt` est vide, la ligne où le paragraphe à écrire viendra s'insérer. PURE. */
+function mdLiveSplit(body,a,n,x){const L=String(body||'').split('\n'),out=L.slice(0,a),post=L.slice(a+n);
+  const add=part=>{if(!part.length)return -1;if(out.length&&out[out.length-1].trim()&&part[0].trim())out.push('');const at=out.length;out.push(...part);return at;};
+  add(x.cur?x.cur.split('\n'):[]);let at;
+  if(x.nxt)at=add(x.nxt.split('\n'));else at=out.length;
+  add(x.rest?x.rest.split('\n'):[]);
+  {let p=post;if(p.length&&p[0].trim()&&out.length&&out[out.length-1].trim())out.push('');out.push(...p);}
+  return {v:out.join('\n'),at};}
+/* A830 — UN MÉDIA INSÉRÉ DEPUIS UN BLOC OUVERT NE COUPE JAMAIS UNE LIGNE (régression d'A813 : le curseur posé au point
+   touché, « Insérer › Image », une image collée ou une vidéo écrivaient `![](…)` au milieu du mot). Hors d'une liste (A772
+   pose le média dans la puce) et d'un tableau, la position d'insertion est la FIN DU PARAGRAPHE courant ; sur une ligne
+   vide, la place du curseur. PURE : rend une position dans `v`. */
+function mdMedAt(v,a){v=String(v||'');const ls=v.lastIndexOf('\n',a-1)+1;let le=v.indexOf('\n',a);if(le<0)le=v.length;const line=v.slice(ls,le);
+  if(!line.trim()||MD_LIST_RX.test(line)||MD_LMED_RX.test(line)||MD_TROW.test(line))return a;
+  let e=le;while(e<v.length){const ne=v.indexOf('\n',e+1),nl=v.slice(e+1,ne<0?v.length:ne);
+    if(!nl.trim()||MD_LIST_RX.test(nl)||MD_TROW.test(nl)||/^\s*(#{1,6}\s|>|```|!\[)/.test(nl))break;e=ne<0?v.length:ne;}
+  return e;}
+// Le champ d'un bloc ouvert (mise en forme en direct) : le curseur va où le média se posera (A830).
+const mdMedPose=inp=>{if(!inp||!inp.classList||!inp.classList.contains('mdb-ta'))return;const q=mdMedAt(inp.value,inp.selectionStart||0);try{inp.setSelectionRange(q,q);}catch(e){}};
 /* A809 — UN NIVEAU ENTIER, À L'ALLER COMME AU RETOUR (Tab / Maj+Tab, ⇥ / ⇤ de la barre, Entrée sur une sous-puce vide,
    Effacer juste après le marqueur). Le niveau ne se compte pas en espaces : `mdBlocks` lit une PILE de retraits (A607),
    un élément plus retiré que le précédent est son sous-élément, quel que soit l'écart. Les protocoles portent donc 2
@@ -20708,6 +20778,7 @@ function mdToolbarHtml(){
     ${dd('h','<span class="mdt-w">Titre</span><b class="mdt-n" aria-hidden="true">H</b>','mdt-hd')}
     ${dd('list',uiIcon('ul',16)+'<span class="mdt-w">Liste</span>')}
     ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>','mdt-box')}
+    <span class="mdt-g mdt-brg"><button type="button" class="mini mdt-br" data-mdtool="br" aria-label="Aller à la ligne dans le même paragraphe" title="Aller à la ligne, même paragraphe — Maj+Entrée"><span aria-hidden="true">↵</span><span class="mdt-w3">À la ligne</span><kbd class="kc" aria-hidden="true">⇧⏎</kbd></button></span>
     <span class="mdt-g mdt-lvl"><button type="button" class="mini" data-mdtool="out" aria-label="Remonter d’un niveau" title="Remonter d’un niveau · Maj+Tab">${uiIcon('outdent',18)}</button><button type="button" class="mini" data-mdtool="in" aria-label="Descendre d’un niveau" title="Descendre d’un niveau · Tab">${uiIcon('indent',18)}</button></span>
     <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
   </div>`;}
@@ -20723,6 +20794,7 @@ function mdMenuOpen(btn,p,tool){if(btn.getAttribute('aria-expanded')==='true'&&_
 // Un geste de la barre ou du clavier (même table pour les deux).
 function mdTool(k,ta,p,takeImg){
   if(k==='out'||k==='in')mdListIndent(ta,k==='out');   // A809 : ⇤ ⇥, montrés seulement dans une liste
+  else if(k==='br'){const [a,b]=selBounds(ta);mdSplice(ta,a,b,'\n');}   // A829 : « ↵ À la ligne », même paragraphe
   else if(k==='b')wrapBold(ta);
   else if(k==='i')mdWrapSel(ta,'*');
   else if(k==='mark')mdWrapSel(ta,'==');
@@ -21079,13 +21151,24 @@ function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
   return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(lbl)}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
     +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
-function mdDocHtml(p,open,grab,many){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
+/* A829 — « Terminé » porte sa touche (forme retenue par l'auteur : aucune ligne de rappel sous le bloc, « trop de texte »,
+   aucune hauteur ajoutée). Au pointeur fin seulement (CSS) ; « Échap », ou le glyphe ⎋ si la rangée manquerait de place
+   (`kcFit`). */
+const mdDoneBtn=()=>`<button type="button" class="btn sm primary mdb-done" data-mdbact="done" title="Terminé — Échap ou ⌘ Entrée">Terminé<kbd class="kc kc-l" aria-hidden="true">Échap</kbd><kbd class="kc kc-s" aria-hidden="true">⎋</kbd></button>`;
+function mdDocHtml(p,open,grab,many,virt){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
   const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
+  /* A829 : `virt` (une position de bloc) — le paragraphe VIDE qu'Entrée vient d'ouvrir. Il n'existe pas encore dans le
+     texte (un paragraphe vide n'a pas de Markdown) : il s'y écrit au premier caractère, rien s'il est quitté vide.
+     Sans les pastilles « Faire de ce bloc » d'un bloc vidé (A610) : ~200 px au téléphone, au moment où l'on veut juste
+     écrire — la barre propose Titre, Liste, Encadré. */
+  if(virt!=null)open=-1;
   /* A805 — LE VIDE N'A RIEN À RÉGLER (planche « Contenu rédigé au téléphone », option B retenue) : une seule chose à faire,
      en pleine largeur, qui dit ce qu'on peut écrire ; et, pour qui colle un long Markdown, le champ brut à un toucher
      (l'interrupteur coupé d'A547). L'interrupteur et « Touchez un passage… » attendent le premier bloc (CSS, `:has`). */
-  if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1"><span class="mdb-fp" aria-hidden="true">${uiIcon('plus',18,{sw:2.4})}</span><span class="mdb-ft"><b>Écrire le contenu</b><small>titres, listes, tableaux, images</small></span></button>`
+  if(!R.length&&virt==null)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1"><span class="mdb-fp" aria-hidden="true">${uiIcon('plus',18,{sw:2.4})}</span><span class="mdb-ft"><b>Écrire le contenu</b><small>titres, listes, tableaux, images</small></span></button>`
     +`<button type="button" class="mdb-raw-go" data-mdbraw>Coller du Markdown…</button>`;
+  const vh=virt==null?'':`<div class="mdb on mdb-v" data-mdbv="${virt}"><div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" placeholder="Écrire…" aria-label="Nouveau paragraphe, en Markdown"></textarea></div>
+      <div class="mdb-acts" role="group" aria-label="Ce bloc">${mdDoneBtn()}</div></div>`;
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
     if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea></div>
       <div class="mdb-acts" role="group" aria-label="Ce bloc">
@@ -21096,13 +21179,13 @@ ${R.length>1?`        <button type="button" class="btn sm" data-mdbact="sel">${u
 `:''}
         <button type="button" class="btn sm" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
         <button type="button" class="btn sm danger" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
-        <button type="button" class="btn sm primary mdb-done" data-mdbact="done">Terminé</button></div></div>`;
+        ${mdDoneBtn()}</div></div>`;
     const h=mdRender(src,{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
     /* A610 : « ＋ » au-dessus et au-dessous du SEUL bloc survolé (pointeur fin) — A550 retirait les « ＋ » de TOUS les
        interstices, visibles ensemble au survol du document et posés sur le texte ; ceux-ci n'existent que pour le bloc sous
        la souris, sur son cadre, cible de 32 px. Au doigt : « Bloc avant » / « Bloc après » du bloc ouvert. */
     const ins=`<button type="button" class="mdb-ins mdb-ins-a" data-mdbadd="${i-1}" aria-label="Ajouter un bloc avant le bloc ${i+1}" title="Ajouter un bloc au-dessus">${uiIcon('plus',14,{sw:2.6})}</button><button type="button" class="mdb-ins mdb-ins-b" data-mdbadd="${i}" aria-label="Ajouter un bloc après le bloc ${i+1}" title="Ajouter un bloc au-dessous">${uiIcon('plus',14,{sw:2.6})}</button>`;
-    return `<div class="mdb" data-mdb="${i}">${ins}${R.length>1?`<button type="button" class="mini grab mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`:''}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`}).join('')
+    return `<div class="mdb" data-mdb="${i}">${ins}${R.length>1?`<button type="button" class="mini grab mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — touchez, puis touchez la destination (ou commencez à glisser)">⠿</button>`:''}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`}).map((x,i)=>i===virt?vh+x:x).join('')+(virt!=null&&virt>=R.length?vh:'')
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
 /* A798 — TROIS NIVEAUX DE TITRE (signalé : « ajout bloc Titre → arrive sur ## systématiquement ? ») : « Ajouter un bloc »
    n'offrait que « Titre de section » (##), alors que le texte rédigé a trois crans (A723) et que la barre de l'éditeur
@@ -21149,6 +21232,10 @@ function mdOpenKeep(t,tap){const z=zoomF()||1,cs=getComputedStyle(t),pad=((parse
   if(d==null||Math.abs(d)<=2)return;const lim=innerHeight/2;scrollBy(0,Math.max(-lim,Math.min(lim,d))/z);}
 function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;let tap=null;   // A813 : le toucher qui ouvre un bloc (voir openAt)
   const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1,pasted=false;
+  /* A829 : le paragraphe vide qu'Entrée vient d'ouvrir (`vopen`) — `open` est alors sa POSITION (le bloc réel qui le suit),
+     `vLine` la ligne du texte où il s'écrira ; `undoVal` : le texte du bloc ouvert par une coupe, tant qu'on n'y a rien
+     tapé (⌘Z y rend la coupe, A829). */
+  let vopen=false,vLine=0,undoVal=null;
   /* A610 — SÉLECTIONNER PLUSIEURS BLOCS pour les supprimer ou les copier : à la souris, Maj-clic (une plage) ou ⌘/Ctrl-clic
      (un de plus), ou une sélection de texte glissée à travers plusieurs blocs ; au doigt, « Sélectionner » du bloc ouvert,
      puis chaque toucher coche ou décoche. Une barre (matière système, comme la barre de sélection de l'accueil, A599) dit
@@ -21293,22 +21380,73 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     e.preventDefault();msel=null;openBlk(+b.dataset.mdb);});
   {const rs=()=>{if(!document.contains(doc)){removeEventListener('resize',rs);return;}if(msel)medPaint();};addEventListener('resize',rs);
    doc.addEventListener('scroll',e=>{if(msel&&e.target&&e.target.classList&&e.target.classList.contains('md-tw'))medPaint();},true);}   // A789 : un tableau qui défile de côté emporte le média
-  const paint=(sel_)=>{const sel=sel_;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
+  /* A829 — ENTRÉE DANS UN BLOC OUVERT (`mdLiveEnter`, `mdLiveExit`, `mdLiveSplit`, PURES). `e.defaultPrevented` : l'Entrée
+     d'une liste ou d'un encadré vient d'agir (`mdListEnter`, A809) — on ne fait que constater la sortie. Maj+Entrée :
+     à la ligne dans un paragraphe ou un encadré ; dans un titre ou une liste, comme Entrée (le format n'a pas de retour à
+     la ligne dans un titre ni dans une puce : il couperait la liste). */
+  let entKd=-1e9;
+  const enter=(t,e,maj)=>{const v=t.value,k=mdBlkKind(v),[a,b]=selBounds(t);let x=null;
+    if(maj&&k!=='h'&&k!=='list')return;
+    if(maj&&k==='list'){if(mdListEnter(t))e.preventDefault();else return;}
+    if(e.defaultPrevented){if(k!=='list'&&k!=='q')return;x=mdLiveExit(t.value,t.selectionStart,k);if(!x)return;}
+    else{x=mdLiveEnter(v,a,b);if(!x)return;e.preventDefault();if(x.noop)return;}
+    split(t,x);};
+  // Une coupe = UN point de reprise (la frappe d'avant a le sien) : ⌘Z ou ↶ la défont d'un coup.
+  const split=(t,x)=>{const r=mdLiveSplit(p.body,blk.a,blk.n,x);said();pasted=false;edUndoNote();push(r.v);edUndoNote();msel=null;sel=new Set();selMode=false;
+    if(x.nxt){const R=mdBlockRanges(p.body),i=R.findIndex(q=>q.a===r.at);if(i>=0){open=i;vopen=false;paint([0,0]);undoVal=(doc.querySelector('.mdb-ta')||{}).value;return;}
+      open=-1;return paint(false);}
+    vopen=true;vLine=r.at;open=mdBlockRanges(p.body).filter(q=>q.a<r.at).length;paint([0,0]);undoVal='';};
+  // Le document redessiné AUTOUR du champ ouvert (ses voisins, leurs indices, ses actions) — le champ, lui, ne bouge pas :
+  // il garde le focus, le clavier et la composition en cours.
+  const around=()=>{const live=doc.querySelector('.mdb.on');if(!live)return;const vg=vidGarder(doc),tmp=document.createElement('div');
+    tmp.innerHTML=mdDocHtml(p,open,grab,grabMany);const nu=tmp.querySelector('.mdb.on');if(!nu)return;const kids=[...tmp.childNodes],k=kids.indexOf(nu);
+    [...doc.childNodes].forEach(n=>{if(n!==live)n.remove();});live.before(...kids.slice(0,k));live.after(...kids.slice(k+1));
+    live.classList.remove('mdb-v');live.removeAttribute('data-mdbv');live.dataset.mdb=nu.dataset.mdb;
+    {const a0=live.querySelector('.mdb-acts'),a1=nu.querySelector('.mdb-acts');if(a0&&a1)a0.replaceWith(a1);}
+    {const t0=live.querySelector('.mdb-ta'),t1=nu.querySelector('.mdb-ta');if(t0&&t1){t0.setAttribute('aria-label',t1.getAttribute('aria-label'));t0.removeAttribute('placeholder');}}
+    vg();selPaint();kcFit(live);};
+  /* A829 : un bloc ouvert qu'on QUITTE vide ne laisse aucune ligne vide de trop dans le texte. */
+  const dropEmpty=()=>{const t=doc.querySelector('.mdb-ta');if(!t||vopen||!blk||blk.n<1||t.value.trim())return;
+    const L=lines();let pre=L.slice(0,blk.a),post=L.slice(blk.a+blk.n);
+    while(post.length&&!post[0].trim()&&(!pre.length||!pre[pre.length-1].trim()))post=post.slice(1);
+    if(!pre.some(x=>x.trim()))pre=[];const v=pre.concat(post).join('\n');if(v!==p.body)push(v);blk=null;};
+  /* A829 : la touche de « Terminé » ne prend AUCUN pixel de hauteur — « Échap », sinon ⎋, sinon rien (mesuré). */
+  const kcFit=w=>{const a=w&&w.querySelector('.mdb-acts');if(!a||!a.querySelector('.kc'))return;a.classList.remove('kc-court','kc-off');
+    a.classList.add('kc-off');const h0=a.offsetHeight;a.classList.remove('kc-off');if(a.offsetHeight<=h0)return;
+    a.classList.add('kc-court');if(a.offsetHeight<=h0)return;a.classList.remove('kc-court');a.classList.add('kc-off');};
+  const paint=(sel_)=>{const sel=sel_;if(open<0)vopen=false;if(!vopen)undoVal=null;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany,vopen?open:null);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
     const t=doc.querySelector('.mdb-ta');setAct(t||null);if(!t){blk=null;return;}
-    const r=mdBlockRanges(p.body)[open];if(!r){open=-1;return paint();}
-    blk={a:r.a,n:r.e-r.a};{const c=l2c(blk.a);ta.setSelectionRange(c,c);ta.dispatchEvent(new Event('keyup'));}   // le Plan lit la section du bloc ouvert
-    bindField(t);fit(t);
+    if(vopen)blk={a:vLine,n:0};
+    else{const r=mdBlockRanges(p.body)[open];if(!r){open=-1;return paint();}blk={a:r.a,n:r.e-r.a};}{const c=l2c(blk.a);ta.setSelectionRange(c,c);ta.dispatchEvent(new Event('keyup'));}   // le Plan lit la section du bloc ouvert
+    bindField(t);fit(t);kcFit(t.closest('.mdb'));
     /* A814 — LE CALQUE DU MARKDOWN ENTIER, DANS LE BLOC OUVERT (même règle qu'A459 : pointeur fin sans écran tactile — le
        champ d'iOS décale son texte de quelques px, un calque décalé serait pire que pas de calque). */
     {const w=t.parentNode;if(w&&w.classList.contains('mdb-hlw')&&matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
       w.classList.add('on');const hs=()=>mdHlSync(t,p.docs,p.images);t.addEventListener('input',hs);t.addEventListener('scroll',()=>{w.firstElementChild.scrollTop=t.scrollTop;});hs();}}
     t.addEventListener('input',()=>{const l=lines(),nl=t.value.split('\n');
+      if(undoVal!=null&&t.value!==undoVal)undoVal=null;
+      /* A829 : le paragraphe vide n'entre dans le texte qu'au premier caractère, séparé de ses voisins d'une ligne vide ;
+         il devient alors un bloc comme un autre (indices du document recalés autour du champ, sans le recréer). */
+      if(vopen){if(!t.value.trim()){fit(t);return;}const pre=l.slice(0,blk.a),post=l.slice(blk.a);
+        const sa=pre.length&&pre[pre.length-1].trim()?['']:[],sb=post.length&&post[0].trim()?['']:[];
+        push(pre.concat(sa,nl,sb,post).join('\n'));blk={a:blk.a+sa.length,n:nl.length};vopen=false;
+        const R=mdBlockRanges(p.body),j=R.findIndex(r=>r.a>=blk.a&&r.a<blk.a+nl.length);if(j>=0)open=j;around();fit(t);
+        const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));return;}
       push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);
       // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
       const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));mdLmedPaint(t);});
-    t.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key==='Enter'&&(e.metaKey||e.ctrlKey))){e.preventDefault();e.stopPropagation();close();}});
+    t.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key==='Enter'&&(e.metaKey||e.ctrlKey))){e.preventDefault();e.stopPropagation();close();return;}
+      if(e.isComposing||e.keyCode===229)return;
+      // A829 : ⌘Z dans le bloc ouvert par une coupe, avant toute frappe — la coupe se défait d'un coup (anneau de l'éditeur).
+      if((e.key==='z'||e.key==='Z')&&(e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&undoVal!=null&&t.value===undoVal&&_edUndo.length){e.preventDefault();e.stopPropagation();undoVal=null;edUndoDo();return;}
+      if(e.key==='Enter'&&!e.altKey){entKd=performance.now();enter(t,e,e.shiftKey);}});
+    // A829 : la touche « retour » d'un clavier logiciel qui n'émet pas `keydown` (Android) passe par `beforeinput`.
+    t.addEventListener('beforeinput',e=>{if(e.isComposing||(e.inputType!=='insertLineBreak'&&e.inputType!=='insertParagraph'))return;
+      if(performance.now()-entKd<120)return;   // déjà vu par `keydown` (Maj+Entrée y garde son rôle)
+      if(mdListEnter(t)){e.preventDefault();enter(t,{preventDefault(){},defaultPrevented:true},false);return;}
+      enter(t,e,false);});
     t.addEventListener('paste',()=>{pasted=true;});
     ['keyup','click','select'].forEach(ev=>t.addEventListener(ev,()=>mdLmedPaint(t)));mdLmedPaint(t);   // A772
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
@@ -21317,11 +21455,11 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   /* A553 : refermer un bloc où l'on a COLLÉ, et qui se découpe, le dit — et dit ce que fera ↶ (le collage entier, A552). */
   const said=()=>{const t=doc.querySelector('.mdb-ta'),n=t&&pasted?mdBlockRanges(t.value).length:0;pasted=false;
     if(n>1)toast('Découpé en '+n+' blocs — ↶ annule le collage.',4000,true);};
-  const close=()=>{said();const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
+  const close=()=>{said();dropEmpty();const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
   /* A813 — LE BLOC S'OUVRE SUR PLACE : `tap` (posé par le toucher, `mdTapAt`) dit où le texte rendu commençait et où
      était le doigt ; `paint` aligne la première ligne du champ sur celle du rendu, puis garde la ligne touchée sous le
      doigt, curseur posé dessus. */
-  const openAt=(i,sel_,tp)=>{if(open>=0)said();pasted=false;sel=new Set();selMode=false;open=i;tap=tp||null;
+  const openAt=(i,sel_,tp)=>{if(open>=0){said();dropEmpty();}pasted=false;sel=new Set();selMode=false;open=i;tap=tp||null;
     if(tap){const src=lines().slice(...(r=>r?[r.a,r.e]:[0,0])(mdBlockRanges(p.body)[i])).join('\n'),c=mdTapPos(src,tap.txt,tap.off);if(c!=null&&sel_==null)sel_=[c,c];tap.ln=c==null?-1:src.slice(0,c).split('\n').length-1;}
     paint(sel_);tap=null;};
   /* A774 : un TABLEAU s'ouvre dans la grille, la même fenêtre qu'à sa création — sans ouvrir son bloc : la grille
@@ -21506,7 +21644,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const down_=e=>{if(!document.contains(doc)){document.removeEventListener('pointerdown',down_,true);document.removeEventListener('pointerup',up_,true);return;}
     pd=open>=0&&grab<0&&!inside(e.target)?{x:e.clientX,y:e.clientY}:null;};
   const up_=e=>{const d0=pd;pd=null;if(!d0||open<0||grab>=0||inside(e.target))return;
-    if(Math.hypot(e.clientX-d0.x,e.clientY-d0.y)>10)return;said();open=-1;paint(false);};
+    if(Math.hypot(e.clientX-d0.x,e.clientY-d0.y)>10)return;said();dropEmpty();open=-1;paint(false);};
   document.addEventListener('pointerdown',down_,true);document.addEventListener('pointerup',up_,true);
   // Un changement venu d'ailleurs (relecture, Plan, ↶) : le document se redessine, bloc refermé.
   ta.addEventListener('input',()=>{if(self)return;open=-1;sel=new Set();selMode=false;paint(false);});
@@ -21906,7 +22044,7 @@ async function vidAdmit(p,files){const ids=[];
     draftNewAtts.push(id);(p.videos=p.videos||[]).push(Object.assign({id,name:safeFileName(f.name)||('video.'+VID_EXT[mime]),size:buf.byteLength,mime},d||{}));ids.push(id);}
   if(ids.length)edTouch();
   return ids;}
-const vidTaker=(p,ta)=>async files=>{const ids=await vidAdmit(p,files);if(ids.length)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+ids.map(id=>'![](vid:'+id+')\n').join(''));};
+const vidTaker=(p,ta)=>async files=>{const ids=await vidAdmit(p,files);if(ids.length)mdMedPose(ta);if(ids.length)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+ids.map(id=>'![](vid:'+id+')\n').join(''));};
 function vidPick(ta,p){if(!p)return;
   if(!supportsAttachments()){toast('⚠ Les vidéos demandent le stockage de l’appareil, indisponible dans ce navigateur.',6000,true);return;}
   pickFile('video',vidTaker(p,ta),true);}
@@ -22799,7 +22937,7 @@ function miRefClick(c,t,im,m){const p=c.p,bd=document.getElementById('miBody');
       const q=document.getElementById('miBody').querySelector('[data-mial="'+al+'"]');if(q)q.focus();return;}
     const k=t.dataset.miact;
     // Écrire dans le texte : la feuille se ferme d'abord, le focus revient au champ (modalHandoffClose).
-    if(k==='ins'){const f=c.field();_miId=null;modalHandoffClose(m);
+    if(k==='ins'){const f=c.field();_miId=null;modalHandoffClose(m);mdMedPose(f);   // A830
       mdInsertAt(f,(f.value&&!/\n$/.test(f.value.slice(0,f.selectionStart||0))?'\n':'')+'![](img:'+im.id+')\n');return;}
     if(k==='go'){const n=miUses(p.body)[im.id]||0;if(!n)return;const r=(_miGo[im.id]||0)%n;_miGo[im.id]=r+1;
       _miId=null;modalHandoffClose(m);c.goTo(im,r);return;}
@@ -22845,7 +22983,7 @@ function renderProtocolEdit(){
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <p class="md-len" id="mdLen" role="status" hidden></p>
       <div class="md-lint-box"></div>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 4 espaces de plus par niveau, jusqu’à 6 niveaux — Tab ou ⇥ les pose), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image — le texte entre crochets est sa légende, écrite sous elle (<code>vid:ID</code> : une vidéo) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code>, et son alignement avec elle : <code>{width=45% align=center}</code> (<code>right</code> à droite ; à gauche sans rien) — en mise en forme en direct, touchez l’image : tirez son bord, choisissez l’alignement, « Légende » (l’alignement vaut pour une image seule sur sa ligne, pas dans une liste ni une case).<br>Clavier : Entrée continue une liste (sur une sous-puce vide : remonte d’un niveau ; au premier : la termine), Tab / Maj+Tab (⇥ / ⇤ de la barre, dans une liste) change le niveau d'une puce — au premier niveau, Maj+Tab ou Effacer juste après « - » rend la ligne au texte, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 4 espaces de plus par niveau, jusqu’à 6 niveaux — Tab ou ⇥ les pose), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image — le texte entre crochets est sa légende, écrite sous elle (<code>vid:ID</code> : une vidéo) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code>, et son alignement avec elle : <code>{width=45% align=center}</code> (<code>right</code> à droite ; à gauche sans rien) — en mise en forme en direct, touchez l’image : tirez son bord, choisissez l’alignement, « Légende » (l’alignement vaut pour une image seule sur sa ligne, pas dans une liste ni une case).<br>En mise en forme en direct : Entrée termine le bloc et ouvre le suivant (un titre se valide ; un paragraphe se coupe au curseur ; un encadré ou un bloc de code vont à la ligne, et en sortent par deux Entrée au bout), Maj+Entrée ou « ↵ À la ligne » va à la ligne dans le même paragraphe, ⌘ Entrée ou Échap ferment le bloc.<br>Clavier : Entrée continue une liste (sur une sous-puce vide : remonte d’un niveau ; au premier : la termine), Tab / Maj+Tab (⇥ / ⇤ de la barre, dans une liste) change le niveau d'une puce — au premier niveau, Maj+Tab ou Effacer juste après « - » rend la ligne au texte, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
       <div class="md-ppane">${mds?`<div class="etab-rh"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div id="revPanel">${revProtoHtml(p)}</div></div>`:'<p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p>'}<div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mds?'</div>':''}
@@ -22902,14 +23040,25 @@ function renderProtocolEdit(){
   /* A809 : la barre dit si le curseur est dans une liste (⇤ ⇥ à la place d'« Encadré »). */
   const tbar=main.querySelector('.md-toolbar');
   const lvlPaint=f=>{if(!tbar)return;const [a,,v]=selBounds(f),ls=v.lastIndexOf('\n',a-1)+1;let e=v.indexOf('\n',a);if(e<0)e=v.length;
-    tbar.classList.toggle('in-list',MD_LIST_RX.test(v.slice(ls,e)));};
+    const li=MD_LIST_RX.test(v.slice(ls,e)),pa=!li&&f.classList.contains('mdb-ta')&&mdBlkKind(v)==='p';
+    tbar.classList.toggle('in-list',li);
+    if(pa&&!tbar.classList.contains('in-para'))requestAnimationFrame(brFit);
+    /* A829 : « ↵ À la ligne » dans le PARAGRAPHE d'un bloc ouvert (mise en forme en direct) — la barre ne gagne aucun pixel de
+       hauteur : la touche se tait, puis le mot, puis « Encadré », tant que la rangée passerait à la ligne (mesuré). */
+    if(tbar.classList.contains('in-para')!==pa){tbar.classList.toggle('in-para',pa);brFit();}};
+  const brFit=()=>{if(!tbar)return;const c=tbar.classList;c.remove('br1','br2','br3','br4');if(!c.contains('in-para')||!tbar.offsetParent)return;
+    c.add('br-x');const h0=tbar.offsetHeight;c.remove('br-x');
+    for(const k of ['br1','br2','br3','br4']){if(tbar.offsetHeight<=h0)return;c.add(k);}};
+  {const rs=()=>{if(!document.contains(tbar)){removeEventListener('resize',rs);if(window.visualViewport)visualViewport.removeEventListener('resize',rs);return;}requestAnimationFrame(brFit);};
+   addEventListener('resize',rs);if(window.visualViewport)visualViewport.addEventListener('resize',rs);   // la barre se pose au-dessus du clavier : autre largeur
+   if(tbar)new MutationObserver(rs).observe(document.documentElement,{attributes:true,attributeFilter:['class']});}
   /* A810 : une image collée suit « Insérer › Image » (`pImgAdmit` : réduite, 10 Mo, 60 images) ; curseur dans une puce,
      elle s'écrit DANS la puce (`mdListMediaIns`, A772), ailleurs en bloc au curseur. Aucun nouveau rendu de l'éditeur. */
   const pasteImgs=(f,files)=>upTake('image',files,async ok=>{const r=await pImgAdmit(p,ok);if(r&&_pEdImgs)_pEdImgs();   // la PORTE (taille, signature), comme un dépôt
     if(!r||!r.ids.length||!document.contains(f))return;const refs=r.ids.map(id=>'![](img:'+id+')');
     const it=mdListItemAt(f.value,mdCaretLine(f)),w=it&&mdListMediaIns(f.value,it.ln,refs);
     if(w){const c=w.v.split('\n').slice(0,w.ln+1).join('\n').length;mdSplice(f,0,f.value.length,w.v,c,c);}
-    else mdInsertAt(f,refs.join('\n')+'\n',true);});
+    else{mdMedPose(f);mdInsertAt(f,refs.join('\n')+'\n',true);}});   // A830
   const bindField=f=>{
     // Au toucher, les outils ne prennent pas le focus : le clavier reste ouvert, la barre au-dessus.
     if(coarse){f.addEventListener('focus',()=>RT.classList.add('md-kbd'));
@@ -30739,6 +30888,7 @@ let _pEdImgs=null;
 function pImgTaker(p,ta){
   return async files=>{const r=await pImgAdmit(p,files);if(!r)return;
     const txt=r.ids.map(id=>'![](img:'+id+')\n').join('');
+    mdMedPose(ta);   // A830 : jamais au milieu d'une ligne
     if(txt)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+txt);
     renderProtocolEdit();};}
 function bindAttEditor(entity,rerender){
@@ -42438,7 +42588,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdTapPos,mdGrasSeul,mdTitreNiv,mdLintAll,mdAttr,mdAttrStr,mdMedSetAl,mdMedSetCap,mdCapNet,mdMedBlocOccs,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdBlkKind,mdLiveEnter,mdLiveExit,mdLiveSplit,mdMedAt,mdTapPos,mdGrasSeul,mdTitreNiv,mdLintAll,mdAttr,mdAttrStr,mdMedSetAl,mdMedSetCap,mdCapNet,mdMedBlocOccs,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

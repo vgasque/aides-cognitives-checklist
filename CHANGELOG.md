@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.160.0] — 2026-11-26
+La touche Entrée en mise en forme en direct (A829), et une correction de l'insertion des images (A830). Aucune mise à
+jour du serveur.
+- **Entrée termine le bloc et ouvre le suivant.** Dans un paragraphe, Entrée le coupe au curseur et ouvre la suite
+  dessous ; au bout, un paragraphe vide s'ouvre, prêt à écrire. Un titre se valide et un paragraphe s'ouvre dessous.
+  Une liste garde son Entrée (nouvelle puce) ; sur une puce vide, on sort vers un paragraphe. Un encadré ou un bloc de
+  code vont à la ligne, et on en sort par deux Entrée au bout. ⌘ Entrée ou Échap ferment le bloc, comme avant.
+- **Aller à la ligne dans le même paragraphe** : Maj+Entrée au clavier, et le bouton « ↵ À la ligne » de la barre (au
+  téléphone surtout), visible quand le curseur est dans un paragraphe.
+- **Les raccourcis s'affichent dans les boutons** à la souris : « Échap » sur « Terminé », « ⇧⏎ » sur « ↵ À la ligne ».
+  Rien n'ajoute de hauteur : si la place manque, ils se taisent.
+- Un paragraphe vide qu'on quitte sans rien écrire ne laisse aucune ligne vide dans le texte. ↶ défait une coupe d'un
+  seul coup.
+- **Corrigé** : une image insérée, collée ou une vidéo ajoutée depuis un paragraphe ouvert au milieu d'un mot coupait le
+  paragraphe en deux ; elle se pose désormais après le paragraphe.
+- Le Markdown entier ne change pas : Entrée y reste un retour à la ligne.
+
 ## [5.159.0] — 2026-11-26
 Les titres de troisième niveau, redessinés (A828). Aucune mise à jour du serveur.
 - **Un titre `###` devient une rubrique** : en capitales espacées, sans le trait qu'il avait dessous depuis la
@@ -206,11 +223,3 @@ tout seul (A793). Aucune mise à jour du serveur.
 - **La 1ʳᵉ colonne de la grille n'est plus collée que si c'est une colonne d'en-tête** (A793), comme en lecture, et « Tout défile » (Moi › Affichage) la libère aussi dans la grille. Une 1ʳᵉ colonne de texte large occupait plus de la moitié de l'écran une fois collée ; le nom de la case reste dans la barre au pouce.
 - **Au téléphone, le clavier ne monte plus tout seul** : ouvrir la fenêtre « Tableau » ne place plus le curseur dans la première case, et un choix dans « ⋯ » (en-tête, largeur, ligne ou colonne ajoutée) ne le place pas non plus. On touche la case pour écrire.
 - **Plus de champ « Filtrer » dans les menus de la fenêtre « Tableau »** : il paraissait dans « ⋯ » d'une grille d'images et ouvrait le clavier. Le choix d'une image ou d'une vidéo garde sa recherche, sans clavier d'office.
-
-## [5.148.0] — 2026-11-18
-La fenêtre « Tableau » ne montre plus chaque bouton deux fois : les réglages du tableau sont en haut, le média s'ajoute
-dans la case (A792). Aucune mise à jour du serveur.
-- **La fenêtre « Tableau » range ses boutons (A792, planche « Fenêtre Tableau »).** Au bureau, une seule **ligne d'outils au-dessus de la grille** : « En-tête » avec ses deux bascules (1ʳᵉ ligne · 1ʳᵉ colonne), puis « Largeur · choisie ▾ » (ou « auto ») qui ouvre un menu — montrer ou masquer la règle, ajuster au contenu, colonnes égales, et « Même hauteur » seulement sur une grille d'images. La rangée d'options sous la grille et les trois boutons de largeur au-dessus disparaissent ; l'aide du clavier descend au pied, en petit.
-- **Au téléphone, plus rien en double.** Une **ligne d'état** au-dessus de la grille (« En-tête : ligne · colonne | Largeur : choisie › ») ouvre la feuille « Tableau », la même que « ⋯ » : en-têtes, largeur des colonnes, ajouter en fin, Modifier le Markdown. Sous la grille, il ne reste que la barre au pouce ; la grille arrive plus haut.
-- **Le média s'ajoute dans la case** : un « ＋ » sur la case active, et seulement elle (Image ou Vidéo, puis le choix du média), dans tout tableau. Il est posé à cheval sur le filet de la case : il ne cache aucun texte, n'épaissit aucune ligne, et reste visible quand la case dépasse de l'écran (il passe alors à gauche). « ＋ Image » et « ＋ Vidéo » ne sont plus ni sous la grille ni dans « ⋯ ».
-- Rien ne change pour les protocoles enregistrés.

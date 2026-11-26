@@ -13480,6 +13480,73 @@ for(const W of [1280,390]){
   await page.close();}
 });
 
+/* ══ A829-A830 — ENTRÉE TERMINE LE BLOC ET OUVRE LE SUIVANT (planche « La touche Entrée », option A) ; UN MÉDIA INSÉRÉ
+   DEPUIS UN BLOC OUVERT NE COUPE JAMAIS UNE LIGNE (régression d'A813) ═════════════════════════════════════════════════ */
+await sec('Éditeur · A829-A830 Entrée par nature de bloc, « ↵ À la ligne », touches sans hauteur ; un média ne coupe pas le texte', async () => {
+const corps829=['## Titre','','Premier paragraphe.','','Second paragraphe.','','- un','- deux','','> [!WARNING]','> Attention','','Fin.'].join('\n');
+const page=await proto819(1280,900,corps829);
+const B=()=>page.evaluate(()=>state.pdraft.body);
+const ouvre=async(x,fin)=>{const pt=await page.evaluate(x=>{const b=[...document.querySelectorAll('#mdDoc .mdb:not(.on)')].find(y=>y.textContent.includes(x));b.scrollIntoView({block:'center'});
+  const q=b.querySelector('p,li,h1,h2,h3,.md-call')||b,r=q.getBoundingClientRect();return {x:r.left+Math.min(40,r.width/2),y:r.top+Math.min(10,r.height/2)};},x);
+  await page.mouse.click(pt.x,pt.y);await calme(page,300);
+  if(fin!=null)await page.evaluate(f=>{const t=document.querySelector('.mdb-ta');const c=f<0?t.value.length:f;t.setSelectionRange(c,c);t.dispatchEvent(new Event('keyup'));},fin);};
+const etat=()=>page.evaluate(()=>{const t=document.querySelector('.mdb-ta');return {ouvert:!!t,virt:!!document.querySelector('.mdb-v'),v:t?t.value:null,c:t?t.selectionStart:null};});
+const b0=await B();
+// Paragraphe : Entrée au bout → un paragraphe vide s'ouvre (le texte ne change pas tant qu'on n'y écrit rien) ; on écrit → il s'insère
+await ouvre('Premier',-1);await page.keyboard.press('Enter');await calme(page,200);const e1=await etat(),b1=await B();
+await page.keyboard.type('Nouveau');await calme(page,200);const b1b=await B();await page.keyboard.press('Escape');await calme(page,200);
+t('A829 · paragraphe : Entrée au bout ouvre un paragraphe VIDE dessous (rien dans le texte avant la frappe), la frappe l’y écrit',e1.virt&&e1.v===''&&b1===b0&&b1b.includes('Premier paragraphe.\n\nNouveau\n\nSecond paragraphe.'),JSON.stringify({e1,b1b}));
+// Coupe au curseur, puis ⌘Z (dans le champ) : la coupe se défait d'un coup
+await ouvre('Second',3);await page.keyboard.press('Enter');await calme(page,200);const e2=await etat(),b2=await B();
+await page.keyboard.press(process.platform==='darwin'?'Meta+z':'Control+z');await calme(page,400);const b2u=await B();
+t('A829 · paragraphe coupé au curseur : « Sec » reste, « ond paragraphe. » s’ouvre dessous, curseur en tête ; ⌘Z rend « Second paragraphe. » d’un coup',
+  b2.includes('Sec\n\nond paragraphe.')&&e2.v==='ond paragraphe.'&&e2.c===0&&b2u.includes('Second paragraphe.')&&!b2u.includes('Sec\n\nond'),JSON.stringify({e2,b2u}));
+// Maj+Entrée : à la ligne, même paragraphe ; « ↵ À la ligne » : pareil
+await ouvre('Premier',-1);const nb=await page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb').length);await page.keyboard.press('Shift+Enter');await page.keyboard.type('maj');await calme(page,200);
+const tb=await page.evaluate(()=>{const b=document.querySelector('.md-toolbar'),x=b.querySelector('[data-mdtool="br"]');return {para:b.classList.contains('in-para'),vis:!!x&&x.getBoundingClientRect().width>0,aria:x&&x.getAttribute('aria-label'),title:x&&x.title};});
+if(tb.vis)await page.click('[data-mdtool="br"]');await page.keyboard.type('bouton');await calme(page,200);const b3=await B();
+const nb2=await page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb').length);await page.keyboard.press('Escape');await calme(page,200);
+t('A829 · Maj+Entrée et « ↵ À la ligne » vont à la ligne DANS le paragraphe (aucun bloc de plus) ; le bouton n’est montré que dans un paragraphe, nommé',
+  b3.includes('Premier paragraphe.\nmaj\nbouton')&&nb===nb2&&tb.para&&tb.vis&&/même paragraphe/.test(tb.aria||'')&&/Maj\+Entrée/.test(tb.title||''),JSON.stringify({b3,nb,nb2,tb}));
+// Titre : Entrée valide, un paragraphe vide dessous ; quitté vide, le texte ne change pas
+const b4a=await B();await ouvre('Titre',-1);await page.keyboard.press('Enter');await calme(page,200);const e4=await etat();await page.keyboard.press('Escape');await calme(page,200);const b4=await B();
+t('A829 · titre : Entrée valide et ouvre un paragraphe vide ; quitté vide, aucune ligne de plus',e4.virt&&b4===b4a,JSON.stringify({e4,egal:b4===b4a}));
+// Liste : nouvelle puce, puis sortie vers un paragraphe vide (la puce vide ne reste pas)
+await ouvre('deux',-1);await page.keyboard.press('Enter');await calme(page,100);const e5a=await etat();await page.keyboard.press('Enter');await calme(page,200);const e5=await etat(),b5=await B();
+t('A829 · liste : Entrée ajoute une puce ; sur la puce vide, on sort vers un paragraphe vide, la puce vide part',/- deux\n- $/.test(e5a.v||'')&&e5.virt&&/- un\n- deux\n\n> \[!WARNING\]/.test(b5),JSON.stringify({e5a,e5,b5}));
+await page.keyboard.press('Escape');await calme(page,200);
+// Encadré : deux Entrée au bout → sortie, aucune ligne « > » vide ne reste
+await ouvre('Attention',-1);await page.keyboard.press('Enter');await calme(page,100);const e6a=await etat();await page.keyboard.press('Enter');await calme(page,200);const e6=await etat(),b6=await B();
+t('A829 · encadré : Entrée va à la ligne de l’encadré ; deux fois au bout, on sort vers un paragraphe vide',/> Attention\n> $/.test(e6a.v||'')&&e6.virt&&/> Attention\n\nFin\./.test(b6),JSON.stringify({e6a,e6,b6}));
+await page.keyboard.press('Escape');await calme(page,200);
+// ⌘Entrée ferme sans rien ouvrir ; la touche « retour » d'un clavier sans keydown (beforeinput) coupe aussi
+await ouvre('Premier',-1);await page.keyboard.press('Control+Enter');await calme(page,200);const e7=await etat();
+await ouvre('Fin',-1);await page.evaluate(()=>{const t=document.querySelector('.mdb-ta');t.dispatchEvent(new InputEvent('beforeinput',{inputType:'insertLineBreak',bubbles:true,cancelable:true}));});await calme(page,200);const e8=await etat();
+t('A829 · ⌘ Entrée ferme le bloc sans en ouvrir ; la touche « retour » sans keydown (beforeinput, Android) ouvre le paragraphe suivant',!e7.ouvert&&e8.virt,JSON.stringify({e7,e8}));
+await page.keyboard.press('Escape');await calme(page,200);
+// A830 : curseur au milieu d'un mot, une image collée puis « Insérer › Image » — le texte reste entier, l'image en bloc après
+const png=Buffer.from(PNG819.split(',')[1],'base64');
+await ouvre('Second',3);
+await page.evaluate(async b64=>{const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));const f=new File([bin],'x.png',{type:'image/png'});const dt=new DataTransfer();dt.items.add(f);
+  document.querySelector('.mdb-ta').dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}));},PNG819.split(',')[1]);
+await calme(page,1200);const b9=await B();
+await ouvre('Premier',4);const fc=page.waitForEvent('filechooser',{timeout:4000}).catch(()=>null);
+await page.click('[data-mdmenu="ins"]');await calme(page,200);await page.click('.popmenu [data-pickopt="img"]').catch(()=>{});const ch=await fc;if(ch)await ch.setFiles({name:'y.png',mimeType:'image/png',buffer:png});
+await calme(page,1500);const b10=await B();
+t('A830 · curseur au milieu d’un mot : l’image collée et « Insérer › Image » se posent APRÈS le paragraphe, le texte reste entier',
+  /Second paragraphe\.\n!\[\]\(img:/.test(b9)&&!/Sec\n|Sec!\[/.test(b9)&&!!ch&&/Premier paragraphe\.(\nmaj\nbouton)?\n!\[\]\(img:/.test(b10)&&!/Prem\n|Prem!\[/.test(b10),JSON.stringify({b9,b10,choix:!!ch}));
+await page.close();
+// Les touches et « ↵ » n'ajoutent AUCUN pixel de hauteur (barre, rangée des actions), de 344 à 1280 ; au doigt, pas de touche
+for(const W of [344,390,780,1280]){const pg=await proto819(W,W<500?844:900,corps829);
+  const r=await pg.evaluate(async()=>{const b0=[...document.querySelectorAll('#mdDoc .mdb')].find(b=>b.textContent.includes('Premier'));b0.click();await __acCalme(300);const tt=document.querySelector('.mdb-ta');tt.focus();tt.setSelectionRange(2,2);tt.dispatchEvent(new Event('keyup'));await __acCalme(200);
+    const b=document.querySelector('.md-toolbar'),c=b.classList,h=b.offsetHeight;c.add('br-x');const h0=b.offsetHeight;c.remove('br-x');
+    const a=document.querySelector('.mdb.on .mdb-acts'),ha=a.offsetHeight;a.classList.add('kc-off');const ha0=a.offsetHeight;a.classList.remove('kc-off');
+    const kcs=[...document.querySelectorAll('.md-toolbar .kc,.mdb.on .kc')].filter(k=>getComputedStyle(k).display!=='none'&&k.getBoundingClientRect().width>0).length;
+    const x=b.querySelector('.mdt-br');return {h,h0,ha,ha0,kcs,br:!!x&&x.getBoundingClientRect().width>0,fin:matchMedia('(pointer:fine)').matches};});
+  t(`A829 · ${W} px : « ↵ » présent, barre et rangée des actions sans un pixel de plus ; touches ${W<500?'absentes au doigt':'au pointeur fin'}`,r.br&&r.h<=r.h0&&r.ha<=r.ha0&&(W<500?r.kcs===0:r.kcs>0),JSON.stringify(r));
+  await pg.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

@@ -9218,6 +9218,23 @@
   /* Sous 400 (iPhone SE, Android à 360, écran externe du Fold) : ils prennent aussi la place de « Titre » — un titre posé
      sur une puce la coupe de sa liste, comme un encadré. */
   html.zw400 .md-toolbar.in-list .mdt-hd{display:none}
+  /* A829 — « ↵ À la ligne » : seulement dans le PARAGRAPHE d'un bloc ouvert (mise en forme en direct), à la place qu'avaient
+     ⇤ ⇥ dans une liste. La barre ne gagne AUCUN pixel de hauteur (`brFit`, mesuré) : br1 tait la touche, br2 le mot (le
+     glyphe et le nom accessible restent), br3 le mot « Insérer » (son ＋ reste), br4 — en dernier — « Encadré ». Sous 400 de largeur effective, touche et mot se taisent d'office. */
+  .md-toolbar:not(.in-para) .mdt-brg,.md-toolbar.br-x .mdt-brg{display:none}
+  .md-toolbar .mdt-br{gap:4px;padding:0 8px;color:var(--act);font-weight:700}
+  .md-toolbar.br1 .mdt-br .kc,html.zw400 .md-toolbar .mdt-br .kc{display:none}
+  .md-toolbar.br2 .mdt-w3,html.zw400 .md-toolbar .mdt-w3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .md-toolbar.br3 .mdt-w2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .md-toolbar.br3 .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  .md-toolbar.br4.in-para .mdt-box{display:none}
+  /* Les touches (« keycaps », A829) : au pointeur fin seulement, 11 px, dans le bouton — aucune hauteur ajoutée. */
+  .kc{display:none;font:600 11px/1 var(--f-ui);color:var(--ink-2);background:var(--amb-2);border:1px solid var(--line-strong);border-radius:3px;padding:2px 4px;margin-left:6px}
+  @media (hover:hover) and (pointer:fine){.kc{display:inline-block}}
+  .mdb-done .kc-s{display:none}
+  .mdb-acts.kc-court .mdb-done .kc-l{display:none}
+  @media (hover:hover) and (pointer:fine){.mdb-acts.kc-court .mdb-done .kc-s{display:inline-block}}
+  .mdb-acts.kc-off .mdb-done .kc{display:none!important}
   .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}

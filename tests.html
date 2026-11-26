@@ -1408,6 +1408,25 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A819 : la légende tient en 300 caractères', A.mdCapNet('x'.repeat(400)).length===300);
    ok('A819 : la légende écrite dans un tableau se relit (case rendue, légende sans barre oblique)', (()=>{const s=A.mdMedSetCap('| t |\n|---|\n| ![](img:x) |','img','x',0,'a | b'),h=A.mdRender(s,{images:IM});return /<figcaption>a \| b<\/figcaption>/.test(h);})());
    eq('A819 : mdMedBlocOccs — seuls les passages en bloc (ni puce ni case)', A.mdMedBlocOccs('![](img:x)\n- a\n    ![](img:x)\n| ![](img:x) |\n|---|\n![](img:x){width=20% align=right}','img','x'), [0,3]);}
+  // A829 — Entrée dans un bloc ouvert (mise en forme en direct) : la règle par nature de bloc
+  group('A829-A830 — Entrée termine le bloc et ouvre le suivant ; un média ne coupe jamais une ligne (v5.160)');
+  eq('A829 : nature du bloc d’après sa première ligne', ['## T','Texte','- a','1. a','> [!WARNING]','```','| a |','![](img:x)','---'].map(A.mdBlkKind), ['h','p','list','list','q','code','other','other','other']);
+  eq('A829 : paragraphe coupé au curseur (le texte d’après part dans le suivant)', A.mdLiveEnter('Second paragraphe.',3,3), {cur:'Sec',nxt:'ond paragraphe.'});
+  eq('A829 : paragraphe, Entrée au bout → un paragraphe vide s’ouvre', A.mdLiveEnter('Texte.',6,6), {cur:'Texte.',nxt:''});
+  eq('A829 : titre validé, un paragraphe vide dessous', A.mdLiveEnter('## Prise en charge',18,18), {cur:'## Prise en charge',nxt:''});
+  ok('A829 : titre vide ou paragraphe vide → rien (pas de bloc vide en série)', A.mdLiveEnter('## ',3,3).noop&&A.mdLiveEnter('',0,0).noop&&A.mdLiveEnter('Texte',0,0).noop);
+  ok('A829 : une liste et un encadré gardent leur Entrée (mdListEnter) — mdLiveEnter ne s’en mêle pas', A.mdLiveEnter('- a',3,3)===null&&A.mdLiveEnter('> [!NOTE]\n> a',14,14)===null);
+  eq('A829 : code — à la ligne au milieu, sortie après la clôture', [A.mdLiveEnter('```\nx',5,5),A.mdLiveEnter('```\nx\n```',9,9)], [null,{cur:'```\nx\n```',nxt:''}]);
+  eq('A829 : sortie d’une liste au bout (ligne vidée par mdListEnter)', A.mdLiveExit('- a\n- b\n',8,'list'), {cur:'- a\n- b',nxt:'',rest:''});
+  eq('A829 : sortie au milieu d’une liste — la suite redevient un bloc', A.mdLiveExit('- a\n\n- c',4,'list'), {cur:'- a',nxt:'',rest:'- c'});
+  ok('A829 : un encadré ne sort qu’à sa fin (le couper perdrait son registre)', A.mdLiveExit('> [!NOTE]\n> a\n\n> b',15,'q')===null&&!!A.mdLiveExit('> [!NOTE]\n> a\n',15,'q'));
+  eq('A829 : le corps après une coupe — une ligne vide entre deux blocs, `at` = début du suivant',
+     A.mdLiveSplit('## T\n\nSecond paragraphe.\n\nFin',2,1,{cur:'Sec',nxt:'ond paragraphe.'}), {v:'## T\n\nSec\n\nond paragraphe.\n\nFin',at:4});
+  eq('A829 : paragraphe vide à écrire — le corps ne change pas, `at` = sa ligne', A.mdLiveSplit('A\n\nB',0,1,{cur:'A',nxt:''}), {v:'A\n\nB',at:1});
+  eq('A829 : sortie de liste avec reprise — liste · (paragraphe) · liste', A.mdLiveSplit('- a\n\n- c',0,3,{cur:'- a',nxt:'',rest:'- c'}), {v:'- a\n\n- c',at:1});
+  // A830 — la position d'un média inséré depuis un bloc ouvert
+  eq('A830 : au milieu d’un mot → après la fin du paragraphe', [A.mdMedAt('Second paragraphe.',3),A.mdMedAt('Ligne 1\nLigne 2\n\nAutre',2)], [18,15]);
+  eq('A830 : ligne vide, puce, tableau → au curseur (A772 garde la puce)', [A.mdMedAt('A\n\nB',2),A.mdMedAt('- puce',3),A.mdMedAt('| a |',2)], [2,3,2]);
   // A813 — le texte touché retrouvé dans la source du bloc
   ok('A813 : texte touché → position dans la source (gras, retrait, introuvable)', A.mdTapPos('- **Suspecter :** saison','Suspecter :',3)===7&&A.mdTapPos('- a\n    - Fréquence','Fréquence',4)===14&&A.mdTapPos('abc','zzz',0)===null&&A.mdTapPos('abc','',0)===null&&A.mdTapPos('- x\n- Fin de ligne','  Fin',2)===6);
   ok('A814 : le gras porte sa marque dans le calque (hl-b), texte inchangé', (()=>{const src='**Dose** puis *x*';const d=document.createElement('div');d.innerHTML=A.mdHlHtml(src,[]);const b=d.querySelector('.hl-b');return d.textContent===src&&!!b&&b.textContent==='Dose';})());
