@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A808** à la v5.155.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A810** à la v5.156.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -430,6 +430,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A806 | `lot-v5-154.md` | Éditeur d'aide : l'aide d'un intitulé tient sur sa ligne (« deux ou trois mots », « facultatif »…) ; la phrase complète paraît sous le champ au focus (`.hint-more`, `aria-describedby`) ; minuteurs et compteurs : l'aide d'un champ au focus (`.tme-more`) |
 | A807 | `lot-v5-154.md` | Éditeur d'aide : une liste vide est une invitation (`.le-vide`, « ＋ Ajouter un critère — ce qui confirme le tableau »), montrée sans re-rendu ; l'ajout dit ce qu'il ajoute (`LE_INV`) ; schéma du téléphone à partir de deux blocs ; « Lier une aide ou un protocole » sur une ligne, nombre en pastille ; détail d'un repère sous sa ligne |
 | A808 | `lot-v5-155.md` | Éditeur d'aide : « Réordonner » met la structure en tri (liste et colonne du bureau) — une rangée d'une ligne par bloc, toucher la prend, « Poser ici » entre les rangées, la vue d'ensemble reste (`state.edGrab.liste`, amende A521) ; la poignée du bloc ouvert déplie toujours tous les blocs |
+| A809 | `lot-v5-156.md` | Éditeur de protocole : remonter et descendre d'UN NIVEAU ENTIER, quel que soit l'écart (`mdListLvl`, `mdLvlOut` : retrait de la puce parente ; `mdLvlIn` : retrait des sous-puces de la sœur, sinon + 4) ; 4 espaces par niveau écrits par Tab, ⇥, l'import HTML de Notion et le collage de Word ; Entrée sur une sous-puce vide la remonte (`mdListEmptyUp`), Effacer après le marqueur aussi, puis texte (`mdListBack`, `beforeinput`) ; ⇤ ⇥ dans la barre, dans une liste seulement, à la place d'« Encadré » (et de « Titre » sous 400) — amende A454 et A607 |
+| A810 | `lot-v5-156.md` | Coller une image dans le contenu rédigé (`mdPasteImgs` : un texte qui l'accompagne gagne, sauf un simple nom de fichier ou une adresse) : la porte (`upTake`), puis `pImgAdmit` ; dans la puce du curseur (`mdListMediaIns`, A772), sinon en bloc ; `check-upload` compte quatre sites |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

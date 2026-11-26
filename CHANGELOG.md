@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.156.0] — 2026-11-26
+Listes plus faciles à manier dans l'éditeur de protocole, et les images se collent (A809, A810). Aucune mise à jour du
+serveur.
+- **Remonter d'un niveau, enfin facile** :
+  - **Entrée sur une sous-puce vide** la remonte d'un niveau, au lieu de terminer toute la liste. Au premier niveau,
+    Entrée termine la liste, comme avant. Une sous-puce qui remonte sous « 1. » devient « 2. ».
+  - **Effacer juste après le « - »** (ou « 1. », ou la case) remonte la puce d'un niveau ; au premier niveau, la ligne
+    redevient du texte.
+  - **Deux boutons ⇤ ⇥ dans la barre d'outils**, quand le curseur est dans une liste. Ils prennent la place
+    d'« Encadré » (et de « Titre » sur les petits téléphones), qui n'ont pas de sens dans une puce. Indispensables au
+    téléphone, où il n'y a pas de touche Tab.
+  - Au clavier, Maj+Tab au premier niveau rend aussi la ligne au texte. Une sélection de plusieurs puces monte ou
+    descend d'un niveau en gardant sa structure. ⌘Z annule.
+- **Les niveaux se voient mieux** : Tab et ⇥ écrivent maintenant 4 espaces par niveau au lieu de 2 — deux fois plus de
+  retrait dans le bloc ouvert de la mise en forme en direct. Vos protocoles ne changent pas : un niveau se lit par
+  rapport à la puce parente, qu'il soit écrit avec 2, 3 ou 4 espaces, et ⇤ retire toujours un niveau entier. L'import
+  HTML de Notion et le collage depuis Word écrivent aussi 4 espaces.
+- **Coller une photo ou une capture d'écran** l'ajoute au protocole, comme « Insérer › Image » (réduite, comptée dans
+  les 10 Mo). Le curseur est dans une puce : l'image va dans la puce. Ailleurs : un bloc image. Un texte copié avec une
+  image (Word, Excel, une page web) se colle toujours en texte. Sur iPhone, selon la version de Safari, une photo
+  copiée depuis Photos peut ne pas arriver au collage : « Insérer › Image » reste là.
+
 ## [5.155.2] — 2026-11-22
 Les intitulés des cartes de l'éditeur d'aide ont tous la même graisse. Aucune mise à jour du serveur.
 - **« Minuteurs & compteurs », « Complications » et « Voir aussi »** passent au même gras que « Repères posologiques »,
@@ -168,23 +190,3 @@ mise à jour du serveur.
   une liste et dans une case — et dit combien il y en a.
 - **Import de l'export HTML de Notion** : une image que vous aviez réduite dans Notion garde sa taille, et des colonnes
   de largeurs différentes gardent leurs proportions.
-
-## [5.144.0] — 2026-11-18
-On choisit la largeur des colonnes de n'importe quel tableau, et la colonne d'en-tête d'un tableau large reste visible
-quand on le fait défiler (A786). Aucune mise à jour du serveur.
-- **La largeur des colonnes** : dans la grille d'un tableau, « Largeur » ouvre une barre qui représente le tableau, une
-  part par colonne. Tirez une pastille entre deux colonnes : ce que l'une gagne, l'autre le perd (par pas de 5 %, ou au
-  clavier avec ← →). Puis « Mettre à jour le tableau ». Vaut pour une posologie comme pour une grille d'images.
-- **Boutons rapides** : « Ajuster au contenu » (comme avant), « Colonnes égales », « Même hauteur » (dans une grille
-  d'images, chaque colonne prend la place qu'il faut pour que les images aient la même hauteur).
-- En lecture, une colonne ne descend jamais sous son mot le plus long : une dose ne se coupe pas au milieu. Si le tableau
-  ne tient pas, il défile de côté, comme avant.
-- **Les filets restent** : un tableau de texte qui porte une photo (une boîte de médicament, par exemple) garde ses
-  lignes et ses colonnes ; seule une vraie grille d'images s'affiche sans filets. Les tableaux concernés changent donc
-  d'aspect.
-- **La colonne d'en-tête reste visible** quand on fait défiler de côté un tableau plus large que l'écran (au téléphone
-  surtout), si sa première colonne est une colonne d'en-tête. Réglage : Moi › Affichage › « Tableaux larges » — En-tête
-  fixe (par défaut) ou Tout défile.
-- La largeur s'écrit dans le texte, sur la ligne qui suit le tableau (`{widths="30 25 45"}`).
-- ⚠ Un appareil resté sur une version **antérieure à la 5.142** affiche cette ligne en clair sous le tableau : mettez à
-  jour vos appareils.

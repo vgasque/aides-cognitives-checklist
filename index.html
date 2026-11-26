@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-WQiA+r4lRI2RQkucK5Vv5ogWvb4eI6g2GgN72fL2ho0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xDJHkwRHd3Jjm9Cyy34dGJGOfmLkxbgqYyJSHOghL6M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9516,6 +9516,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
   .mdt-end{margin-left:auto}
   .mdt-end>.popmenu{left:auto;right:0}   /* le dernier menu s'ouvre vers la gauche, dans la carte */
+  /* A809 — ⇤ ⇥ : montrés seulement curseur dans une liste, À LA PLACE d'« Encadré » (un encadré n'a pas de sens dans une
+     puce : il coupe la liste). Un seul dessin à toutes les largeurs ; « Insérer » reste au bout (marge auto), rien ne saute. */
+  .mdt-lvl{gap:4px}
+  .md-toolbar:not(.in-list) .mdt-lvl,.md-toolbar.in-list .mdt-box{display:none}
+  .md-toolbar .mdt-lvl .mini{padding:0 6px}
+  /* Mesuré à 390 (A809) : la place d'« Encadré » (36) ne suffit pas aux deux (68) — la barre passait sur deux lignes.
+     Au gabarit étroit, dans une liste, « Insérer » garde son ＋ et son mot reste lu (comme sous 360). */
+  html.zw560 .md-toolbar.in-list .mdt-w2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  html.zw560 .md-toolbar.in-list .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  /* Sous 400 (iPhone SE, Android à 360, écran externe du Fold) : ils prennent aussi la place de « Titre » — un titre posé
+     sur une puce la coupe de sa liste, comme un encadré. */
+  html.zw400 .md-toolbar.in-list .mdt-hd{display:none}
   .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
@@ -11207,7 +11219,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.155.2';
+const APP_VERSION='5.156.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20473,18 +20485,72 @@ function mdListCont(line){
   return {next:m[1]+(m[2]||(+m[3]+1)+m[4])+' '+(m[5]?'[ ] ':'')};}
 function mdListEnter(inp){const [a,b,v]=selBounds(inp);if(a!==b)return false;
   const ls=v.lastIndexOf('\n',a-1)+1,c=mdListCont(v.slice(ls,a));if(!c)return false;
-  if(c.end){if(v.slice(a,(v.indexOf('\n',a)+1||v.length+1)-1).trim())return false;mdSplice(inp,ls,a,'');return true;}
+  if(c.end){if(v.slice(a,(v.indexOf('\n',a)+1||v.length+1)-1).trim())return false;
+    const u=mdListEmptyUp(v,a);if(u){mdSplice(inp,u.from,u.to,u.seg);return true;}   // A809 : une sous-puce vide remonte d'un niveau
+    mdSplice(inp,ls,a,'');return true;}
   mdSplice(inp,a,a,'\n'+c.next);return true;}
-// Tab / Maj+Tab sur des lignes de liste : un niveau de plus ou de moins (A607 : mdBlocks lit MD_MAX_DEPTH niveaux).
-// Rien à changer -> false, et Tab garde son rôle (sortir du champ).
-function mdListIndent(inp,out){const [a,b,v]=selBounds(inp);
-  const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
-  const ls2=v.slice(ls,end).split('\n');if(!ls2.every(l=>MD_LIST_RX.test(l)))return false;
-  const seg=ls2.map(l=>out?l.replace(/^ {1,2}/,''):(l.match(/^ */)[0].length>=2*(MD_MAX_DEPTH-1)?l:'  '+l)).join('\n');
-  if(seg===v.slice(ls,end))return false;
+/* A809 — UN NIVEAU ENTIER, À L'ALLER COMME AU RETOUR (Tab / Maj+Tab, ⇥ / ⇤ de la barre, Entrée sur une sous-puce vide,
+   Effacer juste après le marqueur). Le niveau ne se compte pas en espaces : `mdBlocks` lit une PILE de retraits (A607),
+   un élément plus retiré que le précédent est son sous-élément, quel que soit l'écart. Les protocoles portent donc 2
+   espaces (l'éditeur d'avant, l'import HTML de Notion d'avant), 3 (un média sous « 1. », A772) ou 4 (l'import `.md` de
+   Notion). Remonter s'aligne sur la puce PARENTE ; descendre s'aligne sur les sous-puces de la puce SŒUR qui précède,
+   et, si elle n'en a pas, ajoute 4 espaces (A809 : 4 se voient dans le bloc ouvert, écrit en police d'interface, et
+   sont la forme que lisent tous les Markdown — 2 ne suffisent pas sous « 1. » pour CommonMark). Premier niveau :
+   remonter rend la ligne au texte (le marqueur part). Fonctions PURES, sur le texte et la sélection. */
+const MD_LVL_SP=4;
+const mdIndOf=l=>String(l).match(/^\s*/)[0].length;
+// Une ligne qui termine une liste en remontant : du texte non retiré, ni puce, ni média, ni vide.
+const mdLvlStop=l=>!!String(l).trim()&&!/^\s/.test(l)&&!MD_LIST_RX.test(l);
+// Le niveau (1 = premier) de l'élément de la ligne i : un ancêtre par ligne d'élément moins retirée, en remontant.
+function mdListLvlOf(L,i){let cur=mdIndOf(L[i]),n=1;
+  for(let j=i-1;j>=0&&cur>0;j--){const l=L[j];if(MD_LIST_RX.test(l)){const d=mdIndOf(l);if(d<cur){n++;cur=d;}}else if(mdLvlStop(l))break;}
+  return n;}
+// Remonter la ligne i : le retrait de la puce parente ; -1 = premier niveau (la ligne redevient du texte).
+function mdLvlOut(L,i){const d=mdIndOf(L[i]);if(!d)return -1;
+  for(let j=i-1;j>=0;j--){const l=L[j];if(MD_LIST_RX.test(l)){const e=mdIndOf(l);if(e<d)return e;}else if(mdLvlStop(l))break;}
+  return 0;}
+// Descendre la ligne i : sous la puce sœur qui précède (au retrait de ses sous-puces, sinon + 4) ; null = impossible
+// (première de son niveau : un retrait de plus ne changerait rien au rendu ; ou déjà au plafond MD_MAX_DEPTH).
+function mdLvlIn(L,i){const d=mdIndOf(L[i]);if(mdListLvlOf(L,i)>=MD_MAX_DEPTH)return null;let cand=Infinity;
+  for(let j=i-1;j>=0;j--){const l=L[j];
+    if(MD_LIST_RX.test(l)){const e=mdIndOf(l);if(e<d)return null;if(e===d)return cand<Infinity?cand:d+MD_LVL_SP;cand=Math.min(cand,e);}
+    else if(mdLvlStop(l))return null;}
+  return null;}
+/* Le geste sur les lignes de [a,b) : {from,to,seg,sa,sb} (la plage à réécrire, la sélection d'après) ou null (rien à
+   changer : Tab garde alors son rôle). Les médias d'un élément (A772) le suivent : ceux qui sont dans la sélection, et
+   ceux qui pendent sous la dernière puce. Chaque ligne est calculée sur le texte D'AVANT : une sélection garde ses écarts. */
+function mdListLvl(v,a,b,out){v=String(v||'');
+  const ls=v.lastIndexOf('\n',a-1)+1,L=v.split('\n'),i0=v.slice(0,ls).split('\n').length-1;
+  let end=v.indexOf('\n',b);if(end<0)end=v.length;let i1=i0+v.slice(ls,end).split('\n').length-1;
+  if(!MD_LIST_RX.test(L[i0]))return null;
+  for(let i=i0;i<=i1;i++)if(!MD_LIST_RX.test(L[i])&&!MD_LMED_RX.test(L[i]))return null;
+  {let k=i1;while(k>i0&&!MD_LIST_RX.test(L[k]))k--;const own=mdIndOf(L[k]);while(i1+1<L.length&&MD_LMED_RX.test(L[i1+1])&&mdIndOf(L[i1+1])>own)i1++;}
+  const N=L.slice(i0,i1+1);let col=0;
+  for(let i=i0;i<=i1;i++){const l=L[i],m=l.match(MD_LIST_RX);
+    if(!m){if(col)N[i-i0]=' '.repeat(Math.max(0,mdIndOf(l)+col))+l.trimStart();continue;}
+    const d=m[1].length,t=out?mdLvlOut(L,i):mdLvlIn(L,i);
+    if(t==null){col=0;continue;}
+    N[i-i0]=t<0?l.slice(m[0].length):' '.repeat(t)+l.slice(d);
+    col=(t<0?0:t-d+m[0].length)-m[0].length;}
+  const old=L.slice(i0,i1+1).join('\n'),seg=N.join('\n');if(seg===old)return null;
+  const to=ls+old.length;
   // Curseur seul : il suit sa ligne ; sélection : elle couvre les lignes retouchées.
-  const d=seg.split('\n')[0].length-ls2[0].length,c=Math.max(ls,a+d);
-  mdSplice(inp,ls,end,seg,a===b?c:ls,a===b?c:ls+seg.length);return true;}
+  if(a===b){const c=Math.max(ls,a+N[0].length-L[i0].length);return {from:ls,to,seg,sa:c,sb:c};}
+  return {from:ls,to,seg,sa:ls,sb:ls+seg.length};}
+// Entrée sur une sous-puce VIDE : elle remonte d'un niveau et prend le marqueur suivant de sa nouvelle sœur (« 2. »
+// après « 1. », case vide) ; null au premier niveau (Entrée y termine la liste, A454).
+function mdListEmptyUp(v,a){v=String(v||'');const ls=v.lastIndexOf('\n',a-1)+1,L=v.split('\n'),i=v.slice(0,ls).split('\n').length-1,l=L[i];
+  const m=l.match(MD_LIST_RX);if(!m||l.slice(m[0].length).trim()||!m[1].length)return null;
+  const t=mdLvlOut(L,i);if(t<0)return null;let seg=' '.repeat(t)+l.slice(m[1].length).replace(/\s+$/,'')+' ';
+  for(let j=i-1;j>=0;j--){const x=L[j];if(MD_LIST_RX.test(x)){const e=mdIndOf(x);if(e<t)break;if(e===t){const c=mdListCont(x);if(c&&c.next)seg=c.next;break;}}else if(mdLvlStop(x))break;}
+  return {from:ls,to:ls+l.length,seg};}
+// Effacer, curseur JUSTE après le marqueur (« - », « 1. », « - [ ] ») et rien de sélectionné : la puce remonte d'un
+// niveau ; au premier, le marqueur part. Ailleurs : null, l'effacement ordinaire.
+function mdListBack(v,a){v=String(v||'');const ls=v.lastIndexOf('\n',a-1)+1;let e=v.indexOf('\n',ls);if(e<0)e=v.length;
+  const m=v.slice(ls,e).match(MD_LIST_RX);if(!m||a-ls!==m[0].length)return null;return mdListLvl(v,a,a,true);}
+// Tab / Maj+Tab, ⇥ / ⇤ (A607, A809). Rien à changer -> false, et Tab garde son rôle (sortir du champ).
+function mdListIndent(inp,out){const [a,b,v]=selBounds(inp);const r=mdListLvl(v,a,b,out);if(!r)return false;
+  mdSplice(inp,r.from,r.to,r.seg,r.sa,r.sb);return true;}
 /* BARRE D'OUTILS REGROUPÉE (v5.44) : B I S, puis quatre menus — Titre, Liste, Encadré, Insérer.
    Les menus passent par `openPickMenu` (ancré ≥ 780, feuille basse en dessous) : même dessin que
    le menu ⋯, rien de neuf à apprendre. Chaque rangée dit la syntaxe qu'elle pose (sous-ligne). */
@@ -20502,15 +20568,16 @@ function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g
       ['imgrid','Grille d’images','met côte à côte les images du passage sélectionné',uiIcon('table',18)],   // A755
       ['code','Code','`texte`',uiIcon('code',18)],['hr','Séparateur','---',uiIcon('hr',18)]]}};}
 function mdToolbarHtml(){
-  const dd=(k,inner)=>`<span class="mdt-g"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" data-catmenu aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
+  const dd=(k,inner,cl)=>`<span class="mdt-g${cl?' '+cl:''}"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" data-catmenu aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
     <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte** · ⌘B">B</button>
     <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte* · ⌘I"><i>I</i></button>
     <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste aux registres)"><span class="mk-s">S</span></button>
     <span class="mdt-sep" aria-hidden="true"></span>
-    ${dd('h','<span class="mdt-w">Titre</span><b class="mdt-n" aria-hidden="true">H</b>')}
+    ${dd('h','<span class="mdt-w">Titre</span><b class="mdt-n" aria-hidden="true">H</b>','mdt-hd')}
     ${dd('list',uiIcon('ul',16)+'<span class="mdt-w">Liste</span>')}
-    ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>')}
+    ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>','mdt-box')}
+    <span class="mdt-g mdt-lvl"><button type="button" class="mini" data-mdtool="out" aria-label="Remonter d’un niveau" title="Remonter d’un niveau · Maj+Tab">${uiIcon('outdent',18)}</button><button type="button" class="mini" data-mdtool="in" aria-label="Descendre d’un niveau" title="Descendre d’un niveau · Tab">${uiIcon('indent',18)}</button></span>
     <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
   </div>`;}
 // Barre posée au-dessus du clavier (`html.kbd.md-kbd`) : ses menus s'ouvrent AU-DESSUS d'elle, sur sa largeur.
@@ -20524,7 +20591,8 @@ function mdMenuOpen(btn,p,tool){if(btn.getAttribute('aria-expanded')==='true'&&_
     onPick:v=>v==='att'?mdDocMenu(btn,p,tool.field?tool.field():document.getElementById('p-body'),false):tool(v)});}
 // Un geste de la barre ou du clavier (même table pour les deux).
 function mdTool(k,ta,p,takeImg){
-  if(k==='b')wrapBold(ta);
+  if(k==='out'||k==='in')mdListIndent(ta,k==='out');   // A809 : ⇤ ⇥, montrés seulement dans une liste
+  else if(k==='b')wrapBold(ta);
   else if(k==='i')mdWrapSel(ta,'*');
   else if(k==='mark')mdWrapSel(ta,'==');
   else if(k==='code')mdWrapSel(ta,'`');
@@ -22105,7 +22173,7 @@ function mdFromHtml(html){const doc=new DOMParser().parseFromString(String(html|
   // Un paragraphe : puce de Word, numéro, intertitre en gras, ou texte.
   const para=c=>{let t=inl(c).replace(/[ \t]*\n[ \t]*/g,'\n').trim();if(!t)return;
     // Word écrit ses puces comme des paragraphes (« · » en police Symbol, « o » au 2ᵉ niveau, style mso-list).
-    const ms=/mso-list:[^;]*?level(\d)/i.exec(st(c)),lv=ms&&+ms[1]>1?'  ':'';
+    const ms=/mso-list:[^;]*?level(\d)/i.exec(st(c)),lv=ms&&+ms[1]>1?'    ':'';   // A809 : 4 espaces par niveau
     if(MD_PASTE_BUL.test(t)||(ms&&!/^\d{1,3}[.)]\s/.test(t))){out.push(lv+'- '+t.replace(MD_PASTE_BUL,'').replace(ms?/^o[\s\u00a0]+/:/$^/,''));N.li++;return;}
     if(/^\d{1,3}[.)]\s/.test(t)){out.push(lv+t);return;}
     // Paragraphe court tout en gras, sans ponctuation finale : un intertitre de Word.
@@ -22118,7 +22186,7 @@ function mdFromHtml(html){const doc=new DOMParser().parseFromString(String(html|
     flush();const T=c.tagName;
     if(/^H[1-6]$/.test(T)){const t=inl(c).replace(/\*\*/g,'').trim();if(t){out.push('','#'.repeat(Math.min(3,+T[1]))+' '+t,'');N.h++;}return;}
     if(T==='UL'||T==='OL'){let k=0;[...c.children].forEach(li=>{if(li.tagName!=='LI')return;
-        out.push('  '.repeat(Math.min(depth,1))+(T==='OL'?(++k)+'. ':'- ')+inl(li).replace(/\s*\n\s*/g,' ').trim());N.li++;
+        out.push('    '.repeat(Math.min(depth,1))+(T==='OL'?(++k)+'. ':'- ')+inl(li).replace(/\s*\n\s*/g,' ').trim());N.li++;
         [...li.children].filter(x=>/^(UL|OL)$/.test(x.tagName)).forEach(x=>blk({childNodes:[x]},depth+1));});
       if(!depth)out.push('');return;}
     if(T==='TABLE'){const rows=[...c.querySelectorAll('tr')].map(tr=>[...tr.children].filter(x=>/^T[DH]$/.test(x.tagName)).map(x=>inl(x).replace(/\s+/g,' ').trim()));
@@ -22144,6 +22212,17 @@ function mdFromPlain(txt){const N={h:0,li:0,tbl:0,b:0,col:0,join:0},L=String(txt
     else res.push(l);});
   return {md:res.join('\n').replace(/\n{3,}/g,'\n\n').trim(),N};}
 // Rien de reconnu (le texte converti ne diffère que par ses blancs) : null, le collage reste natif.
+/* A810 — LES IMAGES D'UN COLLAGE : les fichiers image du presse-papiers (`files`, sinon `items`), SAUF si un texte les
+   accompagne — Word, Excel ou une page copiée portent aussi une image de leur sélection : le texte gagne, comme avant
+   (A553). Un texte d'un seul tenant qui n'est qu'un nom de fichier image ou une adresse n'est pas un texte (la photo
+   copiée dans un navigateur, le fichier copié du Finder) : l'image gagne. Une vidéo collée reste ignorée. */
+const MD_PASTE_IMG_TXT=/^(?:https?:\/\/\S{1,2048}|[^\s\/\\]{1,255}\.(?:png|jpe?g|gif|webp|heic|heif|avif|bmp|tiff?))$/i;
+function mdPasteImgs(cd){if(!cd)return [];let fs=[],t='';const img=x=>!!x&&/^image\//i.test(String(x.type||''));
+  try{fs=Array.prototype.slice.call(cd.files||[]).filter(img);}catch(e){}
+  if(!fs.length)try{fs=Array.prototype.slice.call(cd.items||[]).filter(it=>it&&it.kind==='file'&&img(it)).map(it=>it.getAsFile()).filter(Boolean);}catch(e){}
+  if(!fs.length)return [];
+  try{t=String(cd.getData('text/plain')||'').trim();}catch(e){}
+  return !t||MD_PASTE_IMG_TXT.test(t)?fs:[];}
 function mdFromPaste(html,txt){let r=html&&/<(p|div|h[1-6]|li|table|b|strong|span|br)\b/i.test(html)?mdFromHtml(html):null;
   if(!r||!r.md)r=mdFromPlain(txt);
   const norm=x=>String(x||'').replace(/\s+/g,' ').trim();
@@ -22407,7 +22486,7 @@ function renderProtocolEdit(){
       <div class="md-hlw"><div class="md-hl" aria-hidden="true"></div><textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea></div>
       <p class="md-len" id="mdLen" role="status" hidden></p>
       <div class="md-lint-box"></div>
-      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces de plus par niveau, jusqu’à 6 niveaux), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code> — en mise en forme en direct, touchez l’image puis tirez son bord (dans le texte, une liste ou une case).<br>Clavier : Entrée continue une liste (deux fois : la termine), Tab / Maj+Tab change le niveau d'une puce, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
+      <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 4 espaces de plus par niveau, jusqu’à 6 niveaux — Tab ou ⇥ les pose), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>***gras italique***</code>, <code>~~barré~~</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint (<code>att:ID#p12</code> : à la page 12 ; « Insérer › Lien vers un document » pose l'identifiant), <code>![légende](img:ID)</code> image (taille réglable ci-dessous) ; sa largeur, collée à la ligne : <code>![](img:ID){width=45%}</code> — en mise en forme en direct, touchez l’image puis tirez son bord (dans le texte, une liste ou une case).<br>Clavier : Entrée continue une liste (sur une sous-puce vide : remonte d’un niveau ; au premier : la termine), Tab / Maj+Tab (⇥ / ⇤ de la barre, dans une liste) change le niveau d'une puce — au premier niveau, Maj+Tab ou Effacer juste après « - » rend la ligne au texte, <code>⌘B</code> gras, <code>⌘I</code> italique, <code>⌘K</code> lien, <code>⌘Z</code> annule aussi les gestes de la barre.<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>. La largeur des colonnes, sur la ligne qui suit le tableau : <code>{widths="30 25 45"}</code> (« Largeur » dans la grille) — sans elle, les colonnes s’ajustent au contenu. Une image seule dans une case (<code>| ![](img:ID) |</code>) devient une vignette : « ＋ Insérer › Grille d’images » met côte à côte les images du passage sélectionné.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details></div>
       ${mds?`</div>${mdsSepHtml()}`:''}
       <div class="md-ppane">${mds?`<div class="etab-rh"><p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p><div id="revPanel">${revProtoHtml(p)}</div></div>`:'<p class="md-prev-h">Aperçu <span class="hint">toucher un passage ramène au texte</span></p>'}<div class="md-preview" id="mdPreview">${mdPvHtml(p)}</div></div>
       ${mds?'</div>':''}
@@ -22461,18 +22540,35 @@ function renderProtocolEdit(){
   const takeImg=files=>pImgTaker(p,act)(files);
   const tool=k=>mdTool(k,act,p,takeImg);tool.field=()=>act;
   const coarse=matchMedia('(pointer:coarse)').matches,RT=document.documentElement;
+  /* A809 : la barre dit si le curseur est dans une liste (⇤ ⇥ à la place d'« Encadré »). */
+  const tbar=main.querySelector('.md-toolbar');
+  const lvlPaint=f=>{if(!tbar)return;const [a,,v]=selBounds(f),ls=v.lastIndexOf('\n',a-1)+1;let e=v.indexOf('\n',a);if(e<0)e=v.length;
+    tbar.classList.toggle('in-list',MD_LIST_RX.test(v.slice(ls,e)));};
+  /* A810 : une image collée suit « Insérer › Image » (`pImgAdmit` : réduite, 10 Mo, 60 images) ; curseur dans une puce,
+     elle s'écrit DANS la puce (`mdListMediaIns`, A772), ailleurs en bloc au curseur. Aucun nouveau rendu de l'éditeur. */
+  const pasteImgs=(f,files)=>upTake('image',files,async ok=>{const r=await pImgAdmit(p,ok);if(r&&_pEdImgs)_pEdImgs();   // la PORTE (taille, signature), comme un dépôt
+    if(!r||!r.ids.length||!document.contains(f))return;const refs=r.ids.map(id=>'![](img:'+id+')');
+    const it=mdListItemAt(f.value,mdCaretLine(f)),w=it&&mdListMediaIns(f.value,it.ln,refs);
+    if(w){const c=w.v.split('\n').slice(0,w.ln+1).join('\n').length;mdSplice(f,0,f.value.length,w.v,c,c);}
+    else mdInsertAt(f,refs.join('\n')+'\n',true);});
   const bindField=f=>{
     // Au toucher, les outils ne prennent pas le focus : le clavier reste ouvert, la barre au-dessus.
     if(coarse){f.addEventListener('focus',()=>RT.classList.add('md-kbd'));
       f.addEventListener('blur',()=>{RT.classList.remove('md-kbd');const m=main.querySelector('.md-toolbar>.popmenu.up');if(m&&_pickClose)_pickClose(false);});}
     f.addEventListener('focus',()=>{act=f;});
+    ['focus','keyup','click','input','select'].forEach(ev=>f.addEventListener(ev,()=>lvlPaint(f)));
+    // A809 : Effacer juste après le marqueur fait remonter la puce (`beforeinput` : le clavier logiciel d'Android n'émet pas de touche).
+    f.addEventListener('beforeinput',e=>{if(e.inputType!=='deleteContentBackward'||e.isComposing)return;const [a,b,v]=selBounds(f);if(a!==b)return;
+      const r=mdListBack(v,a);if(r){e.preventDefault();mdSplice(f,r.from,r.to,r.seg,r.sa,r.sb);lvlPaint(f);}});
     f.addEventListener('keydown',e=>{if(e.isComposing)return;
       const mod=(e.metaKey||e.ctrlKey)&&!e.altKey&&!e.shiftKey,k=mod&&{b:'b',i:'i',k:'link'}[e.key.toLowerCase()];
       if(k){e.preventDefault();act=f;tool(k);}
       else if(e.key==='Enter'&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!e.shiftKey){if(mdListEnter(f))e.preventDefault();}
       else if(e.key==='Tab'&&!e.metaKey&&!e.ctrlKey&&!e.altKey){if(mdListIndent(f,e.shiftKey))e.preventDefault();}});
     // Coller depuis Word ou un PDF : la mise en forme reconnue est proposée avant d'insérer (v5.44).
-    f.addEventListener('paste',e=>{const cd=e.clipboardData,r=cd&&mdFromPaste(cd.getData('text/html'),cd.getData('text/plain'));
+    f.addEventListener('paste',e=>{const cd=e.clipboardData,im=cd?mdPasteImgs(cd):[];
+      if(im.length){e.preventDefault();act=f;pasteImgs(f,im);return;}   // A810
+      const r=cd&&mdFromPaste(cd.getData('text/html'),cd.getData('text/plain'));
       if(r){e.preventDefault();mdPasteOpen(f,r,cd.getData('text/plain'));}});
     // Taper « ](att: » propose les documents joints (v5.44) : plus d'identifiant à recopier.
     f.addEventListener('input',e=>{if(/^insert/.test(e.inputType||'')&&(p.docs||[]).length&&/\]\(att:$/.test(f.value.slice(0,f.selectionStart)))
@@ -23144,6 +23240,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
      dessin pour la même idée serait deux choses à apprendre (règle du menu ⋯). */
   table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/>',
   // Barre d'outils du contenu rédigé (v5.44) : tracés repris tels quels de l'ancienne barre.
+  outdent:'<path d="M3 5h18M11 10h10M11 14h10M3 19h18M7 9l-3 3 3 3"/>',indent:'<path d="M3 5h18M11 10h10M11 14h10M3 19h18M4 9l3 3-3 3"/>',   // A809 : ⇤ ⇥ de la barre du contenu rédigé
   ul:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/>',
   ol:'<path d="M10 6h10M10 12h10M10 18h10"/><text x="2" y="8.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">1</text><text x="2" y="14.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">2</text><text x="2" y="20.6" font-size="8" font-weight="700" fill="currentColor" stroke="none">3</text>',
   task:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 12.3l2.6 2.6 4.9-5.4"/>',
@@ -34364,7 +34461,7 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
   const estMedia=n=>{const t=tag(n);if(t==='img')return true;if(t!=='figure'&&!(t==='div'&&cls(n,'source')))return false;   // une <div> ordinaire n'est jamais « un média » : elle peut porter du texte
     return !!n.querySelector('img[src]')||[...n.querySelectorAll('a[href],video[src],source[src]')].some(a=>NOTION_VID.test(String(a.getAttribute('href')||a.getAttribute('src')||'')));};
   const blank=()=>{if(out.length&&out[out.length-1]!=='')out.push('');};
-  const list=(el,lvl,depth)=>{let k=0;const ind='  '.repeat(lvl),ol=tag(el)==='ol',todo=cls(el,'to-do-list');
+  const list=(el,lvl,depth)=>{let k=0;const ind='    '.repeat(lvl),ol=tag(el)==='ol',todo=cls(el,'to-do-list');   // A809 : 4 espaces par niveau, comme l'éditeur
     for(const li of el.children){if(tag(li)!=='li')continue;
       let txt='';const after=[];
       for(const c of li.childNodes){const t=tag(c);
@@ -34382,10 +34479,10 @@ function notionHtml(doc,dir,ids,vids){ids=ids||Object.create(null);vids=vids||Ob
   const sousLi=(c,ind,lvl,depth)=>{if(depth>40)return;const t=tag(c);
     if(t==='ul'||t==='ol'){list(c,lvl+1,depth+1);return;}
     if(estMedia(c)){const m=media(c,ind+'  ');if(m)out.push(m);return;}
-    if(t==='p'||/^h[1-6]$/.test(t)){const v=inl(c).trim();if(v)out.push(ind+'  - '+v);return;}   // le Markdown de l'app n'a pas de paragraphe d'élément : une sous-puce
+    if(t==='p'||/^h[1-6]$/.test(t)){const v=inl(c).trim();if(v)out.push(ind+'    - '+v);return;}   // le Markdown de l'app n'a pas de paragraphe d'élément : une sous-puce
     if(t==='details'){const su=c.querySelector(':scope>summary'),v=su?inl(su).trim():'';
-      if(v)out.push(ind+'  - **'+v.replace(/^\*\*(.*)\*\*$/,'$1')+'**');   // le titre du repli devient une sous-puce, son contenu la suit
-      for(const k of c.children)if(k!==su)sousLi(k,v?ind+'  ':ind,v?lvl+1:lvl,depth+1);return;}
+      if(v)out.push(ind+'    - **'+v.replace(/^\*\*(.*)\*\*$/,'$1')+'**');   // le titre du repli devient une sous-puce, son contenu la suit
+      for(const k of c.children)if(k!==su)sousLi(k,v?ind+'    ':ind,v?lvl+1:lvl,depth+1);return;}
     if(t==='div'&&!cls(c,'column-list')){for(const k of c.children)sousLi(k,ind,lvl,depth+1);return;}
     blocs(c,depth+1);};
   // Une rangée de colonnes : chaque colonne en unités « libellé(s) + média » ; une case par unité (A755).
@@ -41969,7 +42066,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

@@ -100,8 +100,11 @@ inputs.forEach(i => { if (/\baccept\s*=/i.test(i.tag)) dire(i.l, 'accept= écrit
    On COMPTE au lieu de deviner la portée : les trois sites légitimes sont `bindUpDrop` (dépôt sur
    une zone), `upInput.onchange` (sélecteur) et le garde global `window.drop`. Un quatrième est,
    par construction, un chemin d'upload qui ne passe pas par `acceptFile` — c'est-à-dire le défaut
-   que ce chantier a supprimé, en train de revenir. */
-const SITES_ATTENDUS = 3;
+   que ce chantier a supprimé, en train de revenir.
+   A810 (v5.156) : le QUATRIÈME site légitime est le collage d'une image dans le contenu rédigé
+   (`mdPasteImgs`, qui lit le presse-papiers) — décidé par l'auteur, et il passe par la porte :
+   `pasteImgs` → `upTake('image', …)`. Un cinquième reste le défaut d'hier. */
+const SITES_ATTENDUS = 4;
 const sites = [];
 { const rx = /\b(?:dataTransfer|target|e)\s*(?:&&\s*\w+\.)?\.?\w*\.files\b|\.files\b/g; let m;
   while ((m = rx.exec(code))) {

@@ -9115,6 +9115,18 @@
   .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
   .mdt-end{margin-left:auto}
   .mdt-end>.popmenu{left:auto;right:0}   /* le dernier menu s'ouvre vers la gauche, dans la carte */
+  /* A809 — ⇤ ⇥ : montrés seulement curseur dans une liste, À LA PLACE d'« Encadré » (un encadré n'a pas de sens dans une
+     puce : il coupe la liste). Un seul dessin à toutes les largeurs ; « Insérer » reste au bout (marge auto), rien ne saute. */
+  .mdt-lvl{gap:4px}
+  .md-toolbar:not(.in-list) .mdt-lvl,.md-toolbar.in-list .mdt-box{display:none}
+  .md-toolbar .mdt-lvl .mini{padding:0 6px}
+  /* Mesuré à 390 (A809) : la place d'« Encadré » (36) ne suffit pas aux deux (68) — la barre passait sur deux lignes.
+     Au gabarit étroit, dans une liste, « Insérer » garde son ＋ et son mot reste lu (comme sous 360). */
+  html.zw560 .md-toolbar.in-list .mdt-w2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  html.zw560 .md-toolbar.in-list .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  /* Sous 400 (iPhone SE, Android à 360, écran externe du Fold) : ils prennent aussi la place de « Titre » — un titre posé
+     sur une puce la coupe de sa liste, comme un encadré. */
+  html.zw400 .md-toolbar.in-list .mdt-hd{display:none}
   .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
