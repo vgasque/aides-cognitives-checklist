@@ -3451,16 +3451,10 @@
   .rt-sum::before{content:"≡";flex:none;width:26px;height:26px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
   .rt-sum .rt-h{font-size:var(--t-item);font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink)}
   .rt-sum .rt-n{margin-left:auto;font-size:var(--t-body);color:var(--ink-2)}
-  /* Le corps rédigé, en lecture : les trois crans d'A723, posés en PADDING (le titre est un bouton
-     repliable de 32 px, A171) ; le filet n'appartient qu'au niveau 1. */
-  .ref-main .md-body :is(.md-h1,.md-h2,.md-h3){font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;text-transform:none;color:var(--ink);margin:0;padding:12px 0 4px;border:0}
-  .ref-main .md-body .md-h1{font-size:var(--t-step-l);line-height:1.25;margin-top:16px;padding:14px 0 6px;border-top:2px solid var(--line-strong)}
-  .ref-main .md-body>.md-h1:first-child{margin-top:0;padding-top:4px;border-top:0}
-  .ref-main .md-body .md-h3{font-size:var(--t-item);padding:8px 0 2px}
-  .ref-main .md-body .md-sect{padding:0 0 8px}
+  /* Le corps rédigé, en lecture : A811 — PLUS AUCUN DESSIN PROPRE. Titres, paragraphes, listes et interligne
+     viennent de la feuille unique du texte rédigé (« Contenu rédigé des protocoles », plus bas), la même que le
+     document de l'éditeur et son aperçu. Seul le chevron de repli (A171) appartient à la lecture. */
   .ref-main .md-body .md-fch{color:var(--ink-3)}
-  .ref-main .md-body{font-size:var(--t-item);line-height:1.7}
-  .ref-main .md-body li::marker{color:var(--line-strong)}
   /* A728 : la carte dit la section courante — « # » sur la ligne du titre, « ## » dessous, chacun sur UNE ligne. */
   .rt-sum.rt-ici{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0 12px;align-content:center}
   .rt-sum.rt-ici::before{grid-row:1 / span 2;align-self:center}
@@ -8716,15 +8710,23 @@
      du corps. Jusqu'ici l'éditeur titrait en petites capitales 13,5/12/12 SOUS un corps plus grand
      (« le texte prime ») et la lecture donnait le même dessin à # et ## : la structure d'un texte
      long ne se lisait plus (signalé par l'auteur). Le filet n'appartient qu'au niveau 1. A723. */
-  .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:28px 0 8px;padding-top:14px;border-top:2px solid var(--line-strong);color:var(--ink)}
-  .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:20px 0 6px;color:var(--ink)}
-  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:14px 0 4px;color:var(--ink)}
-  /* Le document de l'éditeur et son aperçu se lisent au corps de la LECTURE (15) : sans cela ## ne
-     dépasse plus le texte. L'aperçu réduit de la colonne (corps 12) descend d'autant. */
-  .md-doc,.md-preview{font-size:var(--t-item)}
+  /* A811 — UNE SEULE FEUILLE POUR LE TEXTE RÉDIGÉ (lecture, document de l'éditeur, aperçu) : la lecture surchargeait
+     ces règles (interligne 1,7, titres en padding, puces pâles) et le document de l'éditeur ne les recevait pas — le même
+     texte avait deux dessins. ET LE TITRE COLLE À SON CONTENU (P1, planche « Lire la structure ») : beaucoup d'air
+     au-dessus, peu dessous ; un titre qui suit directement son parent s'en rapproche ; « ### » porte un filet fin
+     DESSOUS — un paragraphe en gras n'en a jamais (le « reste connu » d'A723 : même corps, même graisse). */
+  .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:32px 0 6px;padding-top:16px;border-top:2px solid var(--line-strong);color:var(--ink)}
+  .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:24px 0 6px;color:var(--ink)}
+  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
+  :is(.md-h1,.md-h2)+:is(.md-h2,.md-h3),:is(.md-h1,.md-h2)+.md-sect>:is(.md-h2,.md-h3):first-child,
+  .mdb:has(>:is(.md-h1,.md-h2))+.mdb>:is(.md-h2,.md-h3){margin-top:10px}
+  /* Le document de l'éditeur et son aperçu se lisent au corps ET à l'interligne de la LECTURE (A723, A811). L'aperçu
+     réduit de la colonne (corps 12) descend d'autant. */
+  .md-doc,.md-preview{font-size:var(--t-item);line-height:1.55}
   .ep-md .md-h1{font-size:var(--t-body);margin:16px 0 6px;padding-top:8px}
-  .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta)}
-  .md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
+  .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta);margin:12px 0 4px}
+  .ep-md .md-h3{padding-bottom:2px}
+  .md-body>.md-h1:first-child,.md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
      Le bouton n'ajoute AUCUN corps ni aucune couleur : il hérite entièrement de son titre, et ne
@@ -8755,10 +8757,16 @@
      garde son filet, et rien ne s'ajoute. */
   .md-fold.closed{opacity:1}
   @media (prefers-reduced-motion:reduce){.md-fch>svg{transition:none}}
-  .md-p{margin:0 0 10px;color:var(--ink)}
-  .md-ul,.md-ol{margin:0 0 10px;padding-left:20px}
+  .md-p{margin:0 0 8px;color:var(--ink)}
+  .md-ul,.md-ol{margin:0 0 8px;padding-left:20px}
   .md-ul li,.md-ol li{margin:2px 0}
+  .md-ul>li::marker{color:var(--ink-3)}   /* A811 : la puce s'efface devant le texte, partout (la lecture seule l'avait) */
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:2px 0 0;padding-left:20px}
+  /* A812 — LE TRAIT DES SOUS-LISTES (P3, planche « Lire la structure ») : une sous-liste se rattache à SA puce par un
+     trait fin qui part de la puce parente et longe ses sous-puces — l'arbre se lit sans compter les retraits. Dessiné en
+     fond (aucune place prise, rien à l'impression), jamais sous une case cochable ni dans une case de tableau. */
+  li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *){margin-left:-14px;padding-left:calc(20px + 14px);
+    background:linear-gradient(var(--line-strong),var(--line-strong)) 4px 0/1px calc(100% - 12px) no-repeat}
   /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
      de crise ol.steps). Cochée = registre CONFIRMATION (--ok), texte JAMAIS barré (lecture-
      vérification : on doit pouvoir relire). Interactif en LECTURE seulement : role=checkbox posé
@@ -8991,8 +8999,23 @@
   .mdb{position:relative;border-radius:var(--r-1);cursor:text}
   .md-doc>.mdb:first-child>:first-child,.md-doc>.ed-grab+.ed-drop+.mdb>:first-child{margin-top:0}
   @media (hover:hover){.mdb:not(.on):not(.grabbed):not(.sel):hover{outline:1px solid var(--line-strong);outline-offset:6px}}   /* A722 : le survol ne redessine pas un bloc déjà dans le cadre de sélection */
-  .mdb.on{margin:12px 0}
-  .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:10px 12px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
+  /* A813 — LE BLOC S'OUVRE SUR PLACE (planche « Le problème de fond », action ②) : le champ a le corps, l'interligne et le
+     bord gauche du rendu ; son cadre est dessiné DEHORS (marges négatives = rembourrage + bordure) et `mdOpenAlign` pose
+     la marge haute qui met sa première ligne là où était celle du rendu. Les pastilles du bloc passent SOUS le champ
+     (`order`) : au-dessus, elles poussaient le texte ; l'aperçu d'une image reste au-dessus (il EST le rendu du bloc). */
+  .mdb.on{margin:12px 0;display:flex;flex-direction:column}
+  .mdb.on>.mdb-imgv{order:0}.mdb.on>.mdb-hlw{order:1}.mdb.on>.mdb-tools{order:2;margin-top:8px}.mdb.on>.mdb-acts{order:3}
+  .md-doc .mdb-hlw{position:relative;margin:0 calc(-10px - 1.5px)}   /* rembourrage + bordure du champ : son texte tombe au bord du rendu */
+  .mdb-hlw .md-hl{display:none}
+  /* A814 — le calque d'A459 dans le bloc ouvert, à la police du champ (Manrope, A550) : un titre ou un gras s'y noircit
+     d'un trait (`text-stroke`), jamais d'une graisse — une graisse élargit les glyphes et le curseur ne tomberait plus
+     sous la lettre. */
+  .mdb-hlw.on .md-hl{display:block;position:absolute;inset:0;margin:0;overflow:hidden;padding:6px 10px;border:1.5px solid transparent;border-radius:var(--r-1);
+    background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word}
+  .mdb-hlw.on .mdb-ta{position:relative;background:transparent;color:transparent;caret-color:var(--ink)}
+  .mdb-hlw.on .mdb-ta::selection{color:transparent;background:color-mix(in srgb,var(--act) 28%,transparent)}
+  .mdb-hlw :is(.hl-h,.hl-b){font-weight:inherit;-webkit-text-stroke:.4px currentColor}
+  .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:6px 10px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
     background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
   @media (pointer:coarse){.md-doc .mdb-ta{font-size:16px}}   /* règle 9 : sous 16 px, Safari iOS zoome au focus */
   .md-doc .mdb-ta:focus{outline:none;border-color:var(--act);box-shadow:0 0 0 3px var(--primary-soft)}   /* une seule bordure : l'anneau doux, pas un second trait */
@@ -9755,6 +9778,19 @@
      le titre : même structure visuelle que marque + sous-titre. Apparition en fondu discret. */
   header.bar.titled #brandSub{order:3}
   header.bar.titled.ttl-on #brandTitle{animation:cbIn .22s ease}
+  /* A817 — LE PLAN DANS L'EN-TÊTE (éditeur de protocole) : une fois le titre sorti, la section en cours remplace le titre ;
+     un bouton de 32 px dont 10 sont repris par ses marges (la rangée garde sa hauteur, A40). Le « # » qui la coiffe suit
+     le mot du mode, dans la ligne du dessous (`.bs-sec`). */
+  .hdr-plan{display:none}
+  header.bar.plan-on.ttl-on #brandTitle{display:none!important}
+  header.bar.plan-on.ttl-on .hdr-plan{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:100%;min-height:32px;margin:-6px 0 -4px;padding:0;border:0;background:none;
+    font-family:var(--f-ui);font-size:var(--t-item);font-weight:700;line-height:1.2;color:var(--ink);cursor:pointer;text-align:left}
+  @media (min-width:780px){header.bar.plan-on.ttl-on .hdr-plan{font-size:var(--t-step);font-weight:800}}
+  .hdr-plan .hp-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hdr-plan .hp-cv{flex:none;display:inline-flex;color:var(--ink-2)}
+  .hdr-plan .hp-cv svg{transform:rotate(90deg)}
+  .hdr-plan:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
+  #brandSub .bs-sec{letter-spacing:0;text-transform:none;font-weight:600}
   /* « Ne pas oublier » : bandeau compact SOUS le titre. En session REPLIÉ = une ligne (■ rouge, mot
      en encre douce, compte en pilule neutre) — un pavé rouge PERMANENT désensibilise (A11) ; DÉPLIÉ
      et hors session il reprend son cadre ALERTE (condition d'entrée QRH). La couleur n'est jamais

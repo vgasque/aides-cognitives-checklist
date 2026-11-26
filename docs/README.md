@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A810** à la v5.156.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A818** à la v5.157.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -432,6 +432,14 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A808 | `lot-v5-155.md` | Éditeur d'aide : « Réordonner » met la structure en tri (liste et colonne du bureau) — une rangée d'une ligne par bloc, toucher la prend, « Poser ici » entre les rangées, la vue d'ensemble reste (`state.edGrab.liste`, amende A521) ; la poignée du bloc ouvert déplie toujours tous les blocs |
 | A809 | `lot-v5-156.md` | Éditeur de protocole : remonter et descendre d'UN NIVEAU ENTIER, quel que soit l'écart (`mdListLvl`, `mdLvlOut` : retrait de la puce parente ; `mdLvlIn` : retrait des sous-puces de la sœur, sinon + 4) ; 4 espaces par niveau écrits par Tab, ⇥, l'import HTML de Notion et le collage de Word ; Entrée sur une sous-puce vide la remonte (`mdListEmptyUp`), Effacer après le marqueur aussi, puis texte (`mdListBack`, `beforeinput`) ; ⇤ ⇥ dans la barre, dans une liste seulement, à la place d'« Encadré » (et de « Titre » sous 400) — amende A454 et A607 |
 | A810 | `lot-v5-156.md` | Coller une image dans le contenu rédigé (`mdPasteImgs` : un texte qui l'accompagne gagne, sauf un simple nom de fichier ou une adresse) : la porte (`upTake`), puis `pImgAdmit` ; dans la puce du curseur (`mdListMediaIns`, A772), sinon en bloc ; `check-upload` compte quatre sites |
+| A811 | `lot-v5-157.md` | Une seule feuille pour le texte rédigé (lecture, document de l'éditeur, aperçu : la lecture n'a plus de dessin propre) ; P1 : interligne 1,55, le titre colle à son contenu, `###` porte un filet dessous (amende A723, clôt son « reste connu ») |
+| A812 | `lot-v5-157.md` | P3 : le trait des sous-listes, de la puce parente le long de ses sous-puces (fond, jamais sous une case cochable ni dans un tableau) |
+| A813 | `lot-v5-157.md` | Le bloc ouvert s'ouvre sur place : cadre dehors (`.mdb-hlw`), première ligne à la hauteur du rendu (`mdOpenAlign`), curseur et ligne touchés gardés (`mdTapAt`, `mdTapPos`, `mdOpenKeep`), pastilles sous le champ |
+| A814 | `lot-v5-157.md` | Le calque d'A459 dans le bloc ouvert, à la police du champ ; titre et gras noircis d'un trait (`hl-b`), jamais d'une graisse ; pointeur fin sans écran tactile seulement |
+| A815 | `lot-v5-157.md` | La relecture propose « En faire un titre » pour une ligne en gras seule (`mdGrasSeul`) → `## …`, une par une (« Tout convertir » non fait : A459) |
+| A816 | `lot-v5-157.md` | Rectificatif d'A634 : le cadre de sélection des blocs est ancré au document et fait défiler la page au bord ; la molette pendant le geste étend la sélection |
+| A817 | `lot-v5-157.md` | Plan v2 : une fois le titre sorti, l'en-tête écrit la section en cours (`.hdr-plan`, `#` parent dans la ligne du mode), 0 px, au téléphone comme au bureau ; rien clavier ouvert ; la carte de 56 px écartée (`mdPlanSpy`) |
+| A818 | `lot-v5-157.md` | Changer de mode (en direct ⇄ Markdown entier) garde la même ligne de source à l'écran (`mdAncre`, `mdAncreApply`) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

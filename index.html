@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-xDJHkwRHd3Jjm9Cyy34dGJGOfmLkxbgqYyJSHOghL6M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ibhLtCeqpQUGnoxnkrfQu00eGgdWB3tdeU7/e+3aqLo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3852,16 +3852,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-sum::before{content:"≡";flex:none;width:26px;height:26px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
   .rt-sum .rt-h{font-size:var(--t-item);font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink)}
   .rt-sum .rt-n{margin-left:auto;font-size:var(--t-body);color:var(--ink-2)}
-  /* Le corps rédigé, en lecture : les trois crans d'A723, posés en PADDING (le titre est un bouton
-     repliable de 32 px, A171) ; le filet n'appartient qu'au niveau 1. */
-  .ref-main .md-body :is(.md-h1,.md-h2,.md-h3){font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;text-transform:none;color:var(--ink);margin:0;padding:12px 0 4px;border:0}
-  .ref-main .md-body .md-h1{font-size:var(--t-step-l);line-height:1.25;margin-top:16px;padding:14px 0 6px;border-top:2px solid var(--line-strong)}
-  .ref-main .md-body>.md-h1:first-child{margin-top:0;padding-top:4px;border-top:0}
-  .ref-main .md-body .md-h3{font-size:var(--t-item);padding:8px 0 2px}
-  .ref-main .md-body .md-sect{padding:0 0 8px}
+  /* Le corps rédigé, en lecture : A811 — PLUS AUCUN DESSIN PROPRE. Titres, paragraphes, listes et interligne
+     viennent de la feuille unique du texte rédigé (« Contenu rédigé des protocoles », plus bas), la même que le
+     document de l'éditeur et son aperçu. Seul le chevron de repli (A171) appartient à la lecture. */
   .ref-main .md-body .md-fch{color:var(--ink-3)}
-  .ref-main .md-body{font-size:var(--t-item);line-height:1.7}
-  .ref-main .md-body li::marker{color:var(--line-strong)}
   /* A728 : la carte dit la section courante — « # » sur la ligne du titre, « ## » dessous, chacun sur UNE ligne. */
   .rt-sum.rt-ici{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0 12px;align-content:center}
   .rt-sum.rt-ici::before{grid-row:1 / span 2;align-self:center}
@@ -9117,15 +9111,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      du corps. Jusqu'ici l'éditeur titrait en petites capitales 13,5/12/12 SOUS un corps plus grand
      (« le texte prime ») et la lecture donnait le même dessin à # et ## : la structure d'un texte
      long ne se lisait plus (signalé par l'auteur). Le filet n'appartient qu'au niveau 1. A723. */
-  .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:28px 0 8px;padding-top:14px;border-top:2px solid var(--line-strong);color:var(--ink)}
-  .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:20px 0 6px;color:var(--ink)}
-  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:14px 0 4px;color:var(--ink)}
-  /* Le document de l'éditeur et son aperçu se lisent au corps de la LECTURE (15) : sans cela ## ne
-     dépasse plus le texte. L'aperçu réduit de la colonne (corps 12) descend d'autant. */
-  .md-doc,.md-preview{font-size:var(--t-item)}
+  /* A811 — UNE SEULE FEUILLE POUR LE TEXTE RÉDIGÉ (lecture, document de l'éditeur, aperçu) : la lecture surchargeait
+     ces règles (interligne 1,7, titres en padding, puces pâles) et le document de l'éditeur ne les recevait pas — le même
+     texte avait deux dessins. ET LE TITRE COLLE À SON CONTENU (P1, planche « Lire la structure ») : beaucoup d'air
+     au-dessus, peu dessous ; un titre qui suit directement son parent s'en rapproche ; « ### » porte un filet fin
+     DESSOUS — un paragraphe en gras n'en a jamais (le « reste connu » d'A723 : même corps, même graisse). */
+  .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:32px 0 6px;padding-top:16px;border-top:2px solid var(--line-strong);color:var(--ink)}
+  .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:24px 0 6px;color:var(--ink)}
+  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
+  :is(.md-h1,.md-h2)+:is(.md-h2,.md-h3),:is(.md-h1,.md-h2)+.md-sect>:is(.md-h2,.md-h3):first-child,
+  .mdb:has(>:is(.md-h1,.md-h2))+.mdb>:is(.md-h2,.md-h3){margin-top:10px}
+  /* Le document de l'éditeur et son aperçu se lisent au corps ET à l'interligne de la LECTURE (A723, A811). L'aperçu
+     réduit de la colonne (corps 12) descend d'autant. */
+  .md-doc,.md-preview{font-size:var(--t-item);line-height:1.55}
   .ep-md .md-h1{font-size:var(--t-body);margin:16px 0 6px;padding-top:8px}
-  .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta)}
-  .md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
+  .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta);margin:12px 0 4px}
+  .ep-md .md-h3{padding-bottom:2px}
+  .md-body>.md-h1:first-child,.md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
      Le bouton n'ajoute AUCUN corps ni aucune couleur : il hérite entièrement de son titre, et ne
@@ -9156,10 +9158,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      garde son filet, et rien ne s'ajoute. */
   .md-fold.closed{opacity:1}
   @media (prefers-reduced-motion:reduce){.md-fch>svg{transition:none}}
-  .md-p{margin:0 0 10px;color:var(--ink)}
-  .md-ul,.md-ol{margin:0 0 10px;padding-left:20px}
+  .md-p{margin:0 0 8px;color:var(--ink)}
+  .md-ul,.md-ol{margin:0 0 8px;padding-left:20px}
   .md-ul li,.md-ol li{margin:2px 0}
+  .md-ul>li::marker{color:var(--ink-3)}   /* A811 : la puce s'efface devant le texte, partout (la lecture seule l'avait) */
   .md-ul .md-ul,.md-ul .md-ol,.md-ol .md-ul,.md-ol .md-ol{margin:2px 0 0;padding-left:20px}
+  /* A812 — LE TRAIT DES SOUS-LISTES (P3, planche « Lire la structure ») : une sous-liste se rattache à SA puce par un
+     trait fin qui part de la puce parente et longe ses sous-puces — l'arbre se lit sans compter les retraits. Dessiné en
+     fond (aucune place prise, rien à l'impression), jamais sous une case cochable ni dans une case de tableau. */
+  li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *){margin-left:-14px;padding-left:calc(20px + 14px);
+    background:linear-gradient(var(--line-strong),var(--line-strong)) 4px 0/1px calc(100% - 12px) no-repeat}
   /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
      de crise ol.steps). Cochée = registre CONFIRMATION (--ok), texte JAMAIS barré (lecture-
      vérification : on doit pouvoir relire). Interactif en LECTURE seulement : role=checkbox posé
@@ -9392,8 +9400,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb{position:relative;border-radius:var(--r-1);cursor:text}
   .md-doc>.mdb:first-child>:first-child,.md-doc>.ed-grab+.ed-drop+.mdb>:first-child{margin-top:0}
   @media (hover:hover){.mdb:not(.on):not(.grabbed):not(.sel):hover{outline:1px solid var(--line-strong);outline-offset:6px}}   /* A722 : le survol ne redessine pas un bloc déjà dans le cadre de sélection */
-  .mdb.on{margin:12px 0}
-  .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:10px 12px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
+  /* A813 — LE BLOC S'OUVRE SUR PLACE (planche « Le problème de fond », action ②) : le champ a le corps, l'interligne et le
+     bord gauche du rendu ; son cadre est dessiné DEHORS (marges négatives = rembourrage + bordure) et `mdOpenAlign` pose
+     la marge haute qui met sa première ligne là où était celle du rendu. Les pastilles du bloc passent SOUS le champ
+     (`order`) : au-dessus, elles poussaient le texte ; l'aperçu d'une image reste au-dessus (il EST le rendu du bloc). */
+  .mdb.on{margin:12px 0;display:flex;flex-direction:column}
+  .mdb.on>.mdb-imgv{order:0}.mdb.on>.mdb-hlw{order:1}.mdb.on>.mdb-tools{order:2;margin-top:8px}.mdb.on>.mdb-acts{order:3}
+  .md-doc .mdb-hlw{position:relative;margin:0 calc(-10px - 1.5px)}   /* rembourrage + bordure du champ : son texte tombe au bord du rendu */
+  .mdb-hlw .md-hl{display:none}
+  /* A814 — le calque d'A459 dans le bloc ouvert, à la police du champ (Manrope, A550) : un titre ou un gras s'y noircit
+     d'un trait (`text-stroke`), jamais d'une graisse — une graisse élargit les glyphes et le curseur ne tomberait plus
+     sous la lettre. */
+  .mdb-hlw.on .md-hl{display:block;position:absolute;inset:0;margin:0;overflow:hidden;padding:6px 10px;border:1.5px solid transparent;border-radius:var(--r-1);
+    background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word}
+  .mdb-hlw.on .mdb-ta{position:relative;background:transparent;color:transparent;caret-color:var(--ink)}
+  .mdb-hlw.on .mdb-ta::selection{color:transparent;background:color-mix(in srgb,var(--act) 28%,transparent)}
+  .mdb-hlw :is(.hl-h,.hl-b){font-weight:inherit;-webkit-text-stroke:.4px currentColor}
+  .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:6px 10px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
     background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
   @media (pointer:coarse){.md-doc .mdb-ta{font-size:16px}}   /* règle 9 : sous 16 px, Safari iOS zoome au focus */
   .md-doc .mdb-ta:focus{outline:none;border-color:var(--act);box-shadow:0 0 0 3px var(--primary-soft)}   /* une seule bordure : l'anneau doux, pas un second trait */
@@ -10156,6 +10179,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le titre : même structure visuelle que marque + sous-titre. Apparition en fondu discret. */
   header.bar.titled #brandSub{order:3}
   header.bar.titled.ttl-on #brandTitle{animation:cbIn .22s ease}
+  /* A817 — LE PLAN DANS L'EN-TÊTE (éditeur de protocole) : une fois le titre sorti, la section en cours remplace le titre ;
+     un bouton de 32 px dont 10 sont repris par ses marges (la rangée garde sa hauteur, A40). Le « # » qui la coiffe suit
+     le mot du mode, dans la ligne du dessous (`.bs-sec`). */
+  .hdr-plan{display:none}
+  header.bar.plan-on.ttl-on #brandTitle{display:none!important}
+  header.bar.plan-on.ttl-on .hdr-plan{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:100%;min-height:32px;margin:-6px 0 -4px;padding:0;border:0;background:none;
+    font-family:var(--f-ui);font-size:var(--t-item);font-weight:700;line-height:1.2;color:var(--ink);cursor:pointer;text-align:left}
+  @media (min-width:780px){header.bar.plan-on.ttl-on .hdr-plan{font-size:var(--t-step);font-weight:800}}
+  .hdr-plan .hp-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hdr-plan .hp-cv{flex:none;display:inline-flex;color:var(--ink-2)}
+  .hdr-plan .hp-cv svg{transform:rotate(90deg)}
+  .hdr-plan:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:var(--r-1)}
+  #brandSub .bs-sec{letter-spacing:0;text-transform:none;font-weight:600}
   /* « Ne pas oublier » : bandeau compact SOUS le titre. En session REPLIÉ = une ligne (■ rouge, mot
      en encre douce, compte en pilule neutre) — un pavé rouge PERMANENT désensibilise (A11) ; DÉPLIÉ
      et hors session il reprend son cadre ALERTE (condition d'entrée QRH). La couleur n'est jamais
@@ -11219,7 +11255,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.156.0';
+const APP_VERSION='5.157.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17058,6 +17094,7 @@ function applyViewChrome(){
   // il nomme la NATURE de la vue sous le titre : « Aide cognitive » / « Protocole » en lecture
   // (barres harmonisées entre les deux sections), « Édition » dans les deux éditeurs. L'ÉTAT
   // (mode crise, session en cours) reste porté par le bandeau de crise, jamais par ce sous-titre.
+  if(state.view!=='protocolEdit')mdPlanSpyOff();   // A817 : le Plan de l'en-tête n'appartient qu'à l'éditeur de protocole
   {const bs=document.getElementById('brandSub');
    if(state.view==='edit'||state.view==='protocolEdit'){
      // Indicateur de MODE (v4.3.0, annonce du mode courant — logique annonciateur ECAM) :
@@ -20941,7 +20978,7 @@ function mdDocHtml(p,open,grab,many){if(grab>=0&&mdBlockRanges(p.body)[grab])ret
   if(!R.length)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1"><span class="mdb-fp" aria-hidden="true">${uiIcon('plus',18,{sw:2.4})}</span><span class="mdb-ft"><b>Écrire le contenu</b><small>titres, listes, tableaux, images</small></span></button>`
     +`<button type="button" class="mdb-raw-go" data-mdbraw>Coller du Markdown…</button>`;
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
-    if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea>
+    if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea></div>
       <div class="mdb-acts" role="group" aria-label="Ce bloc">
 ${R.length>1?`        <button type="button" class="btn sm" data-mdbact="grab" title="Déplacer — touchez, puis touchez la destination"><span aria-hidden="true">⠿</span> Déplacer</button>
 `:''}        <button type="button" class="btn sm" data-mdbadd="${i-1}">${uiIcon('plus',14,{sw:2.4})}Bloc avant</button>
@@ -20970,7 +21007,34 @@ const MD_HX={h1:1,h:2,h3:3};
 const mdBlkIc=(v,sz)=>v==='c'?'<span class="mdc-crit">'+uiIcon('warn',sz)+'</span>':MD_HX[v]?'<b class="mdt-hx">H'+MD_HX[v]+'</b>'
   :uiIcon({p:'pen',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',sz);
 const MD_BLK_PH={p:'Texte',h1:'Titre',h:'Titre',h3:'Sous-titre',c:'Texte',ul:'Élément',task:'Élément'};   // le mot sélectionné à la création
-function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;
+/* A813 — LE BLOC S'OUVRE SUR PLACE (planche « Le problème de fond », action ②). Toucher un bloc rendu le changeait
+   d'un coup : texte poussé de 13 px à droite et 11 vers le bas par un cadre dessiné DEDANS, pastilles au-dessus, ligne
+   touchée partie ailleurs, curseur au bout du bloc. `mdTapAt` relève, au toucher, le haut du texte rendu (`y0`) et le
+   texte sous le doigt (`caretRangeFromPoint`) ; `mdTapPos` (PURE, ?__actest) retrouve ce texte dans la source ;
+   `mdOpenAlign` pose la marge haute qui remet la première ligne du champ à la hauteur de celle du rendu ; `mdOpenKeep`
+   garde la ligne touchée sous le doigt (le seul défilement est cette compensation — l'éditeur, jamais une session). */
+function mdTapAt(b,e){if(!b||!e)return null;const z=zoomF()||1;
+  const c=b.querySelector(':scope>:not(button):not(.mdb-ins)');let y0=null;
+  if(c){const r=c.getBoundingClientRect(),cs=getComputedStyle(c);y0=r.top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0))*z;}
+  let node=null,off=0;
+  if(e.clientX||e.clientY){try{if(document.caretRangeFromPoint){const r=document.caretRangeFromPoint(e.clientX,e.clientY);if(r){node=r.startContainer;off=r.startOffset;}}
+    else if(document.caretPositionFromPoint){const r=document.caretPositionFromPoint(e.clientX,e.clientY);if(r){node=r.offsetNode;off=r.offset;}}}catch(x){}}
+  if(!node||node.nodeType!==3||!b.contains(node))return {y0,y:null,txt:'',off:0};
+  let y=null;try{const g=document.createRange();g.setStart(node,Math.min(off,node.length));g.collapse(true);const rc=g.getClientRects()[0];y=rc?rc.top:null;}catch(x){}
+  return {y0,y,txt:node.textContent,off};}
+// Le texte d'un nœud rendu, retrouvé dans la source du bloc : la position du curseur, ou null (le curseur va au bout).
+function mdTapPos(src,txt,off){const s=String(src||''),t=String(txt||'');if(!t.trim())return null;
+  let o=Math.max(0,Math.min(off|0,t.length)),i=s.indexOf(t);
+  if(i<0){const l=t.length-t.trimStart().length,k=t.trim();i=s.indexOf(k);if(i<0)return null;o=Math.max(0,Math.min(o-l,k.length));}
+  return Math.min(s.length,i+o);}
+function mdOpenAlign(t,tap){const w=t.closest('.mdb');if(!w)return;const z=zoomF()||1,cs=getComputedStyle(t),r=t.getBoundingClientRect();
+  const top=r.top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0))*z,cur=parseFloat(getComputedStyle(w).marginTop)||0;
+  // 4 px au moins : le cadre (dessiné dehors) ne mord jamais sur la dernière ligne du bloc d'avant.
+  w.style.marginTop=Math.max(4,Math.round(cur+(tap.y0-top)/z))+'px';}
+function mdOpenKeep(t,tap){const z=zoomF()||1,cs=getComputedStyle(t),lt=mdLineTops(t,[tap.ln])[0];if(!isFinite(lt))return;
+  const y=t.getBoundingClientRect().top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0)+lt)*z,d=y-tap.y;
+  if(Math.abs(d)>2)scrollBy(0,d/z);}
+function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdDoc');if(!doc)return;let tap=null;   // A813 : le toucher qui ouvre un bloc (voir openAt)
   const card=doc.closest('.md-ed');let open=-1,blk=null,self=false,grab=-1,pasted=false;
   /* A610 — SÉLECTIONNER PLUSIEURS BLOCS pour les supprimer ou les copier : à la souris, Maj-clic (une plage) ou ⌘/Ctrl-clic
      (un de plus), ou une sélection de texte glissée à travers plusieurs blocs ; au doigt, « Sélectionner » du bloc ouvert,
@@ -21089,6 +21153,11 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const r=mdBlockRanges(p.body)[open];if(!r){open=-1;return paint();}
     blk={a:r.a,n:r.e-r.a};{const c=l2c(blk.a);ta.setSelectionRange(c,c);ta.dispatchEvent(new Event('keyup'));}   // le Plan lit la section du bloc ouvert
     bindField(t);fit(t);
+    /* A814 — LE CALQUE DU MARKDOWN ENTIER, DANS LE BLOC OUVERT (même règle qu'A459 : pointeur fin sans écran tactile — le
+       champ d'iOS décale son texte de quelques px, un calque décalé serait pire que pas de calque). */
+    {const w=t.parentNode;if(w&&w.classList.contains('mdb-hlw')&&matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
+      w.classList.add('on');const hs=()=>mdHlSync(t,p.docs,p.images);t.addEventListener('input',hs);t.addEventListener('scroll',()=>{w.firstElementChild.scrollTop=t.scrollTop;});hs();}}
+    if(tap&&tap.y0!=null)mdOpenAlign(t,tap);
     t.addEventListener('input',()=>{const l=lines(),nl=t.value.split('\n');
       push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);
       // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
@@ -21097,18 +21166,24 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     t.addEventListener('paste',()=>{pasted=true;});
     ['keyup','click','select'].forEach(ev=>t.addEventListener(ev,()=>mdLmedPaint(t)));mdLmedPaint(t);   // A772
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
-      const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(q.top<70||q.bottom>innerHeight-80)b.scrollIntoView({block:'center'});}};
+      const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(!(tap&&tap.y0!=null)&&(q.top<70||q.bottom>innerHeight-80))b.scrollIntoView({block:'center'});
+      if(tap&&tap.ln>=0&&tap.y!=null)mdOpenKeep(t,tap);}};
   /* A553 : refermer un bloc où l'on a COLLÉ, et qui se découpe, le dit — et dit ce que fera ↶ (le collage entier, A552). */
   const said=()=>{const t=doc.querySelector('.mdb-ta'),n=t&&pasted?mdBlockRanges(t.value).length:0;pasted=false;
     if(n>1)toast('Découpé en '+n+' blocs — ↶ annule le collage.',4000,true);};
   const close=()=>{said();const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
-  const openAt=(i,sel_)=>{if(open>=0)said();pasted=false;sel=new Set();selMode=false;open=i;paint(sel_);};
+  /* A813 — LE BLOC S'OUVRE SUR PLACE : `tap` (posé par le toucher, `mdTapAt`) dit où le texte rendu commençait et où
+     était le doigt ; `paint` aligne la première ligne du champ sur celle du rendu, puis garde la ligne touchée sous le
+     doigt, curseur posé dessus. */
+  const openAt=(i,sel_,tp)=>{if(open>=0)said();pasted=false;sel=new Set();selMode=false;open=i;tap=tp||null;
+    if(tap){const src=lines().slice(...(r=>r?[r.a,r.e]:[0,0])(mdBlockRanges(p.body)[i])).join('\n'),c=mdTapPos(src,tap.txt,tap.off);if(c!=null&&sel_==null)sel_=[c,c];tap.ln=c==null?-1:src.slice(0,c).split('\n').length-1;}
+    paint(sel_);tap=null;};
   /* A774 : un TABLEAU s'ouvre dans la grille, la même fenêtre qu'à sa création — sans ouvrir son bloc : la grille
      écrit dans le champ entier (le document se redessine à l'écriture) ; « Modifier le Markdown » ouvre le bloc.
      A785 : la même porte pour « Modifier… » d'un média de tableau, son double clic et Entrée. */
-  const openBlk=i=>{const R=mdBlockRanges(p.body);if(R[i]&&R[i].t==='tbl'){msel=null;if(open>=0){said();open=-1;}paint(false);const c=l2c(R[i].a);ta.setSelectionRange(c,c);
+  const openBlk=(i,tp)=>{const R=mdBlockRanges(p.body);if(R[i]&&R[i].t==='tbl'){msel=null;if(open>=0){said();open=-1;}paint(false);const c=l2c(R[i].a);ta.setSelectionRange(c,c);
       mdTblOpen(ta,{p,onEnd:(how,ecrit)=>{if(how==='md'){if(ecrit)edTouch();return openAt(i);}if(how==='ok')edTouch();const h=doc.querySelector('[data-mdbopen="'+i+'"]');if(h)h.focus({preventScroll:true});}});return;}
-    openAt(i);};
+    openAt(i,undefined,tp);};
   const apply=(r,o)=>{if(!r)return;push(r.v);open=o==null?r.i:o;paint(open>=0?undefined:false);};
   /* A724 — FLOTTANT au bureau (`deskFlot`, A638) : « Ajouter un bloc » en pied a pour parent `.md-doc`, qui n'est pas
      positionné — le menu ancré tombait sous un ancêtre lointain, et le focus de sa première rangée y emmenait la page. */
@@ -21201,7 +21276,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();const i=+b.dataset.mdb;
       /* A774 : un TABLEAU s'ouvre dans la grille, la même fenêtre qu'à sa création — sans ouvrir son bloc : la grille
          écrit dans le champ entier (le document se redessine à l'écriture) ; « Modifier le Markdown » ouvre le bloc. */
-      openBlk(i);}});
+      openBlk(i,mdTapAt(b,e));}});
   /* Copier PLUSIEURS blocs rendus copie leur Markdown (sinon la mise en forme se perdait au collage) ; une sélection
      dans un seul bloc garde la copie du texte. */
   doc.addEventListener('copy',e=>{if(e.target.closest&&e.target.closest('.mdb-ta'))return;
@@ -21238,17 +21313,37 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const LZ_HORS='.mdb,button,a,input,textarea,select,label,.md-toolbar,.mdb-selbar,.popmenu,[contenteditable]';
   card.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0||grab>=0||open>=0)return;
     const t=e.target;if(!t||!t.closest||t.closest(LZ_HORS)||!card.contains(t))return;
-    const x0=e.clientX,y0=e.clientY,base=e.shiftKey?new Set(sel):new Set();let box=null,bouge=false;e.preventDefault();
-    const mv=m=>{const dx=Math.abs(m.clientX-x0),dy=Math.abs(m.clientY-y0);if(!bouge&&dx<4&&dy<4)return;bouge=true;
+    /* A816 (rectificatif d'A634, signalé : « on ne peut pas prendre les blocs hors de l'écran ») — LE CADRE SUIT LE
+       DOCUMENT ET FAIT DÉFILER. Le départ était noté en coordonnées de FENÊTRE : la page défilait (molette), le cadre
+       restait sur place. Il est ancré au DOCUMENT (départ + défilement du défileur au départ) ; près du bas de la zone
+       visible, ou du haut SOUS les couches collantes, le défileur avance dans une boucle rAF, d'autant plus vite que le
+       pointeur est près du bord, jusqu'au bout de la page ; le cadre et les blocs pris se recalculent à chaque pas et à
+       chaque `scroll`. Rien hors du geste ; souris seulement. Le cadre reste `fixed`, borné à la fenêtre. */
+    const sc=(()=>{for(let n=card.parentElement;n&&n!==document.body&&n!==document.documentElement;n=n.parentElement){const o=getComputedStyle(n).overflowY;if((o==='auto'||o==='scroll')&&n.scrollHeight>n.clientHeight+1)return n;}return null;})();
+    const z0=zoomF()||1,sy=()=>(sc?sc.scrollTop:scrollY)*z0;
+    const x0=e.clientX,y0d=e.clientY+sy(),base=e.shiftKey?new Set(sel):new Set();let box=null,bouge=false,lx=x0,ly=e.clientY,raf=0;e.preventDefault();
+    const zone=()=>{const hb=document.querySelector('header.bar'),r=sc?sc.getBoundingClientRect():{top:0,bottom:innerHeight};
+      return {top:Math.max(r.top,hb&&!sc?hb.getBoundingClientRect().bottom:r.top),bottom:Math.min(r.bottom,innerHeight)};};
+    const draw=()=>{if(!bouge)return;
       if(!box){box=document.createElement('div');box.className='mdb-lasso';document.body.appendChild(box);}
-      const L=Math.min(x0,m.clientX),T=Math.min(y0,m.clientY),R=Math.max(x0,m.clientX),B=Math.max(y0,m.clientY),z=zoomF();
-      box.style.left=L/z+'px';box.style.top=T/z+'px';box.style.width=(R-L)/z+'px';box.style.height=(B-T)/z+'px';
+      const y0=y0d-sy(),L=Math.min(x0,lx),T=Math.min(y0,ly),R=Math.max(x0,lx),B=Math.max(y0,ly),z=zoomF();
+      const tv=Math.max(T,0),bv=Math.min(B,innerHeight);
+      box.style.left=L/z+'px';box.style.top=tv/z+'px';box.style.width=(R-L)/z+'px';box.style.height=Math.max(0,bv-tv)/z+'px';
       const n=new Set(base);doc.querySelectorAll('.mdb[data-mdb]').forEach(b=>{const r=b.getBoundingClientRect();if(r.right>=L&&r.left<=R&&r.bottom>=T&&r.top<=B)n.add(+b.dataset.mdb);});
       sel=n;if(sel.size)anchor=Math.min(...sel);selPaint();};
-    const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(box)box.remove();
+    const BORD=40,pas=()=>{raf=0;if(!bouge)return;const Z=zone();let v=0;
+      if(ly>Z.bottom-BORD)v=Math.ceil(Math.min(1,(ly-(Z.bottom-BORD))/BORD)*18)+2;
+      else if(ly<Z.top+BORD)v=-(Math.ceil(Math.min(1,(Z.top+BORD-ly)/BORD)*18)+2);
+      if(!v)return;const avant=sy();if(sc)sc.scrollTop+=v/z0;else scrollBy(0,v/z0);
+      if(sy()!==avant)draw();raf=requestAnimationFrame(pas);};
+    const mv=m=>{lx=m.clientX;ly=m.clientY;const dx=Math.abs(lx-x0),dy=Math.abs(ly-(y0d-sy()));if(!bouge&&dx<4&&dy<4)return;bouge=true;
+      draw();if(!raf)raf=requestAnimationFrame(pas);};
+    const onSc=()=>draw();
+    const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);removeEventListener('scroll',onSc,true);
+      if(raf)cancelAnimationFrame(raf);raf=0;if(box)box.remove();
       if(!bouge&&!e.shiftKey&&(sel.size||selMode))selClear();
       else if(bouge){skipClick=true;setTimeout(()=>{skipClick=false;},300);}};
-    document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});
+    document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);addEventListener('scroll',onSc,{capture:true,passive:true});});
   // #16 : un clic HORS de la carte du document (ailleurs dans l'éditeur, la colonne…) vide aussi la sélection.
   const horsCarte=e=>{if(!document.contains(doc)){document.removeEventListener('pointerdown',horsCarte,true);return;}
     if(msel){const t=e.target;if(t&&t.closest&&!card.contains(t)&&!t.closest('.popmenu,.popmenu-veil,.ai-modal.on,.toast'))medClear();}   // A785
@@ -21451,7 +21546,7 @@ function mdGoLine(ta,ln){if(_mdDocGo&&ta.closest('.md-ed.mdl'))return _mdDocGo(l
   ta.scrollTop=Math.max(0,mdLineTop(ta,ln)-ta.clientHeight/3);
   const r=ta.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)ta.scrollIntoView({block:'center'});
   mdCaretSync(ta,state.pdraft);}
-function mdPlanOpen(btn,ta,p){const L=mdCaretLine(ta),H=mdHeads(p.body),cur=H.filter(h=>h.ln<=L).pop();
+function mdPlanOpen(btn,ta,p,o){const L=o&&o.ln!=null?o.ln:mdCaretLine(ta),H=mdHeads(p.body),cur=H.filter(h=>h.ln<=L).pop();   // A817 : `o.ln`, la section lue (en-tête)
   /* A546 : la section où l'on écrit se déplace, se duplique ou se supprime ici — au doigt, couper-coller une longue
      section est pénible. Seuls les gestes possibles sont proposés (pas de « Monter » pour la première). */
   const s=cur&&mdSecAt(p.body,cur.ln),act=s?[{head:'Section « '+cur.text+' »'}]
@@ -21459,7 +21554,7 @@ function mdPlanOpen(btn,ta,p){const L=mdCaretLine(ta),H=mdHeads(p.body),cur=H.fi
     .concat(s.next?[{val:'act:down',name:'Descendre',sub:'après « '+s.next.text+' »',ic:uiIcon('chev',16,{sw:2.4,cls:'mdt-dn'})}]:[])
     .concat([{val:'act:dup',name:'Dupliquer',sub:'la copie suit la section',ic:uiIcon('copy',16)},
       {val:'act:del',name:'Supprimer la section',sub:'⌘Z ou ↶ pour annuler',ic:uiIcon('trash',16),danger:true}]):[];
-  openPickMenu(btn.parentNode,{aria:'Plan du contenu',trigger:btn,value:cur?String(cur.ln):'',
+  openPickMenu(o&&o.host||btn.parentNode,{aria:'Plan du contenu',trigger:btn,value:cur?String(cur.ln):'',
     // A608 : le Plan dit sa STRUCTURE — chaque titre en retrait de son niveau, un filet le rattache à son parent (« juste
     // H1/H2/H3, difficile à lire ») ; le niveau est porté par une classe d'un jeu fermé, jamais un nombre en style.
     options:H.map(h=>({val:String(h.ln),name:h.text,sub:'ligne '+(h.ln+1),cls:['','mm-lv1','mm-lv2','mm-lv3'][h.n],ic:`<b class="mdt-hx ${['','','md-lv2','md-lv3'][h.n]}">H${h.n}</b>`})).concat(act),
@@ -21468,6 +21563,70 @@ function mdPlanOpen(btn,ta,p){const L=mdCaretLine(ta),H=mdHeads(p.body),cur=H.fi
       if(!r)return;mdReplaceBody(ta,r.v,r.at);
       if(k==='del')toast('Section « '+cur.text+' » supprimée — ⌘Z ou ↶ pour annuler.');
       mdGoLine(ta,r.at);}});}
+/* A817 — LE PLAN SUIT LE DÉFILEMENT, SANS UN PIXEL DE PLUS (plan v2, planche « Le plan qui suit le défilement » ; la
+   carte collante de 56 px de la v1 est écartée par l'auteur : elle bloquait le contenu en permanence). Le Plan suivait
+   le CURSEUR et restait en tête de la carte : on le perdait en défilant. Désormais :
+   - l'EN-TÊTE, une fois le titre du protocole sorti de l'écran (`.ttl-on`), écrit la section en cours à la place du
+     titre — un bouton (« Prise en charge ▾ ») qui ouvre le Plan ; la ligne du mode (« ÉDITION ») ajoute le « # » qui la
+     coiffe. Au téléphone comme au bureau : un seul dessin. Clavier ouvert, l'en-tête est déjà masqué (A802) : rien.
+   - le bouton « Plan · … » de la carte suit aussi la lecture.
+   « En cours » = le dernier titre entré dans le QUART HAUT de la zone lue, sous les couches collantes (règle d'A728).
+   Un seul écouteur `scroll` passif cadencé par rAF ; il lit le défilement, ne le provoque jamais ; retiré dès que
+   l'éditeur quitte la page. */
+let _mdSpy=null;
+function mdPlanSpyOff(){if(_mdSpy){removeEventListener('scroll',_mdSpy.f,true);removeEventListener('resize',_mdSpy.f);_mdSpy=null;}
+  const hb=document.querySelector('header.bar');if(hb)hb.classList.remove('plan-on');
+  const bs=document.querySelector('#brandSub .bs-sec');if(bs)bs.remove();}
+function mdPlanSpy(p,ta){mdPlanSpyOff();const card=main.querySelector('.md-ed');if(!card||!ta)return;
+  const hb=document.querySelector('header.bar'),bl=hb&&hb.querySelector('.bt-line');if(!bl)return;
+  let btn=bl.querySelector('.hdr-plan');
+  if(!btn){btn=document.createElement('button');btn.type='button';btn.className='hdr-plan';btn.setAttribute('aria-haspopup','listbox');
+    btn.innerHTML='<span class="hp-t"></span><span class="hp-cv" aria-hidden="true">'+uiIcon('chev',12,{sw:2.8})+'</span>';bl.appendChild(btn);}
+  let tops=null,raf=0,cur=null;
+  const pos=H=>{const doc=document.getElementById('mdDoc'),z=zoomF()||1;
+    if(doc&&doc.offsetParent){const R=mdBlockRanges(p.body),at=Object.create(null);
+      doc.querySelectorAll('.mdb[data-mdb]').forEach(b=>{const r=R[+b.dataset.mdb];if(r)at[r.a]=b.getBoundingClientRect().top;});
+      return H.map(h=>at[h.ln]==null?Infinity:at[h.ln]);}
+    if(!ta.offsetParent)return H.map(()=>Infinity);
+    if(!tops)tops=mdLineTops(ta,H.map(h=>h.ln));const r=ta.getBoundingClientRect(),cs=getComputedStyle(ta);
+    return tops.map(t=>r.top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0)+t-ta.scrollTop)*z);};
+  const lire=()=>{raf=0;if(!document.contains(card)||state.view!=='protocolEdit'){mdPlanSpyOff();return;}
+    const H=mdHeads(p.body),Y=pos(H),z=zoomF()||1;
+    let haut=hb.getBoundingClientRect().bottom;const tb=card.querySelector('.md-toolbar');
+    if(tb&&tb.offsetParent){const q=tb.getBoundingClientRect();if(q.top<=haut+1&&q.bottom>haut)haut=q.bottom;}
+    const seuil=haut+Math.max(16*z,(innerHeight-haut)/4);let c=null;
+    H.forEach((h,i)=>{if(Y[i]<=seuil)c=h;});cur=c;
+    const par=c&&c.n>1?H.filter(h=>h.ln<c.ln&&h.n===1).pop():null;
+    hb.classList.toggle('plan-on',!!c);
+    btn.querySelector('.hp-t').textContent=c?c.text:'';
+    btn.setAttribute('aria-label',c?'Plan — section en cours : '+(par?par.text+', ':'')+c.text:'Plan');
+    {const bs=document.getElementById('brandSub');let x=bs&&bs.querySelector('.bs-sec');
+     if(bs&&par){if(!x){x=document.createElement('span');x.className='bs-sec';bs.appendChild(x);}x.textContent=' · '+par.text;}else if(x)x.remove();}
+    const pb=card.querySelector('[data-mdplan] .md-plan-t');if(pb&&c)pb.textContent='Plan · '+c.text;};
+  const f=e=>{if(e&&e.type==='input')tops=null;if(e&&e.type==='resize')tops=null;if(!raf)raf=requestAnimationFrame(lire);};
+  btn.onclick=()=>mdPlanOpen(btn,ta,p,{host:document.body,ln:cur?cur.ln:null});
+  _mdSpy={f};addEventListener('scroll',f,{capture:true,passive:true});addEventListener('resize',f);ta.addEventListener('input',f);card.addEventListener('input',f);card.addEventListener('click',f);
+  f();}
+/* A818 — CHANGER DE MODE GARDE LA PLACE (action ④). Basculer « Mise en forme en direct » ⇄ Markdown entier redessinait
+   l'éditeur et gardait `scrollY` — mais les deux dessins n'ont pas la même hauteur (mesuré : au téléphone la section à
+   l'écran passait de « Syndrome post-intervallaire » à « Prise en charge » ; au bureau, en établi, la page remontait au
+   début). L'ancre est une LIGNE DE SOURCE : la première visible sous les couches collantes, et sa hauteur à l'écran ;
+   après le rendu, la même ligne revient à la même hauteur (défilement de la page, ou du champ en établi). */
+function mdHautLu(){const hb=document.querySelector('header.bar');let h=hb?hb.getBoundingClientRect().bottom:0;
+  const tb=main.querySelector('.md-ed .md-toolbar');if(tb&&tb.offsetParent){const q=tb.getBoundingClientRect();if(q.top<=h+1&&q.bottom>h)h=q.bottom;}return h;}
+function mdAncre(p,ta){const h=mdHautLu(),doc=document.getElementById('mdDoc');
+  if(doc&&doc.offsetParent){const R=mdBlockRanges(p.body);for(const b of doc.querySelectorAll('.mdb[data-mdb]')){const r=b.getBoundingClientRect(),g=R[+b.dataset.mdb];
+      if(g&&r.bottom>h)return {ln:g.a,y:Math.max(r.top,h)};}return null;}
+  if(!ta||!ta.offsetParent)return null;const z=zoomF()||1,L=ta.value.split('\n'),T=mdLineTops(ta,L.map((_,i)=>i)),r=ta.getBoundingClientRect(),cs=getComputedStyle(ta);
+  const y0=r.top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0))*z;let best=null;
+  T.forEach((t,i)=>{const y=y0+(t-ta.scrollTop)*z;if(isFinite(y)&&L[i].trim()&&y>=h-2&&(!best||y<best.y))best={ln:i,y};});return best;}
+function mdAncreApply(an){if(!an)return;const p=state.pdraft,ta=document.getElementById('p-body'),doc=document.getElementById('mdDoc'),z=zoomF()||1;if(!p)return;
+  if(doc&&doc.offsetParent){const R=mdBlockRanges(p.body),i=R.findIndex(g=>g.a<=an.ln&&an.ln<g.e);const b=i<0?null:doc.querySelector('.mdb[data-mdb="'+i+'"]');
+    if(b)scrollBy(0,(b.getBoundingClientRect().top-an.y)/z);return;}
+  if(!ta||!ta.offsetParent)return;const t=mdLineTops(ta,[an.ln])[0];if(!isFinite(t))return;const cs=getComputedStyle(ta);
+  const y=ta.getBoundingClientRect().top+((parseFloat(cs.paddingTop)||0)+(parseFloat(cs.borderTopWidth)||0)+t-ta.scrollTop)*z;
+  if(ta.scrollHeight>ta.clientHeight+1&&/auto|scroll/.test(cs.overflowY)){const pane=ta.getBoundingClientRect().top;ta.scrollTop=Math.max(0,ta.scrollTop+(y-Math.max(an.y,pane))/z);}
+  else scrollBy(0,(y-an.y)/z);}
 function mdPvSet(k,ta,p){state.mdPv=k;const card=main.querySelector('.md-ed');if(!card)return;
   card.classList.toggle('md-pv',k==='p');
   const sg=card.querySelector('.md-seg');paintSeg(sg,'data-mdpv',k==='p'?1:0);
@@ -22296,6 +22455,15 @@ const MD_LINT_DOSE=[
   [/(\d\s?)(ug)(?![A-Za-zµ])/g,()=>'µg','« ug » à écrire « µg »','se confond avec « mg »'],
   [/(\d\s?)(U)(?![A-Za-zÀ-ÿ0-9µ])/g,()=>'unités','« U » à écrire en toutes lettres','« U » se lit « 0 » ou « 4 »'],
   [/(\d\s?)(cc)(?![A-Za-z])/g,()=>'mL','« cc » à écrire « mL »','« cc » se lit « 00 »']];
+/* A815 — LA LIGNE EN GRAS SEULE EST PROPOSÉE COMME TITRE (planche « Lire la structure ») : « **Physiopathologie :** »
+   se lit comme un titre mais n'en est pas un — ni Plan, ni sommaire, ni repli, et du simple gras dans tout autre outil.
+   La relecture le repère et propose « En faire un titre » ; la ligne devient « ## Physiopathologie », jamais d'office,
+   une par une (A459 écarte « tout corriger »). Une ligne SEULE, faite seulement de gras (« : » final dedans ou après),
+   au bord gauche : ni liste, ni tableau, ni encadré, ni code (le code est écarté par `mdLint`). Une phrase qui commence
+   en gras (« **Mesure** : HbCO… ») ou qui finit sur un point reste du texte. PURE (?__actest) : le titre, ou ''. */
+const MD_GRAS_SEUL=/^\*\*([^*\n]{1,80}?)\s*:?\s*\*\*\s*:?\s*$/;
+function mdGrasSeul(l){const m=MD_GRAS_SEUL.exec(String(l||''));if(!m)return '';const g=m[1].trim();
+  return g&&!/[.!?…:]$/.test(g)&&g.indexOf(':')<0?g:'';}
 function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=String(body||'').split('\n');
   let off=0,code=false,lastH=0,cols=0;
   L.forEach((l,ln)=>{const o=off;off+=l.length+1;
@@ -22310,6 +22478,7 @@ function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=S
     else if(!MD_TSEP.test(t))cols=0;
     const h=t.match(/^(#{1,3})\s/);
     if(h){const n=h[1].length;if(n===3&&lastH<2)add('struct','Sous-titre sans titre au-dessus','« ### » sous un « # » ou en tête : posez d’abord un « ## »',0,h[1]);lastH=n;}
+    {const g=mdGrasSeul(l);if(g)add('titre','Ligne en gras seule : un titre ?','→ « ## '+g+' », dans le Plan et le sommaire',0,l,'## '+g);}   // A815
     if(/^>\s?\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*$/.test(t)&&!/^>\s?\S/.test(L[ln+1]||''))add('struct','Encadré vide','le marqueur est seul, sans texte dessous',0,l);
     MD_LINT_DOSE.forEach(([re,fx,cible,sub])=>{for(const m of t.matchAll(re)){const i=m.index+m[1].length;add('dose',cible,sub,i,m[2],fx(m));}});});
   return out.sort((a,b)=>a.from-b.from);}
@@ -22317,7 +22486,7 @@ function mdLint(body,docs){const out=[],ids=new Set((docs||[]).map(d=>d.id)),L=S
 function mdLintHtml(list){if(!list.length)return '';
   return `<details class="md-lint" id="mdLint"${state.mdLintShut?'':' open'}><summary><span class="md-lint-g" aria-hidden="true">△</span>${list.length} point${list.length>1?'s':''} d’écriture à relire</summary>
     ${list.map((x,i)=>`<div class="md-lint-r"><span class="md-lint-g" aria-hidden="true">△</span><span class="md-lint-t"><b>${x.k==='dose'?`<span class="md-lint-c">${esc(x.was)}</span> → <span class="md-lint-c">${esc(x.fix)}</span>`:esc(x.cible)}</b><span>ligne ${x.ln+1} · ${esc(x.sub)}</span></span>
-      <button type="button" class="btn sm" data-mdlint="${i}">${x.fix!=null?'Corriger':x.k==='tbl'?'En grille':'Aller'}</button></div>`).join('')}
+      <button type="button" class="btn sm" data-mdlint="${i}">${x.k==='titre'?'En faire un titre':x.fix!=null?'Corriger':x.k==='tbl'?'En grille':'Aller'}</button></div>`).join('')}
     <p class="hint">La relecture vérifie la façon d’écrire, jamais le contenu clinique. Chaque correction se fait une par une, sous vos yeux.</p></details>`;}
 function mdLintPaint(p){const box=main.querySelector('.md-lint-box');if(!box)return;
   const L=mdLint(p.body,p.docs);box._lint=L;box.innerHTML=mdLintHtml(L);
@@ -22330,7 +22499,7 @@ function mdLintAct(ta,x){if(!x)return;
    700 (même chasse en Plex Mono), encadrés à LEUR registre, points de relecture soulignés en ondulé.
    Le champ garde frappe, curseur, sélection et annulation natives : son texte devient transparent.
    Pointeur fin sans écran tactile seulement (le champ d'iOS décale son texte de quelques px). */
-const MD_HL=[[1,'hl-m'],[2,'hl-h'],[4,'hl-crit'],[8,'hl-vig'],[16,'hl-info'],[32,'hl-ok'],[64,'hl-lint']],MD_HL_K={crit:4,vig:8,info:16,ok:32};
+const MD_HL=[[1,'hl-m'],[2,'hl-h'],[4,'hl-crit'],[8,'hl-vig'],[16,'hl-info'],[32,'hl-ok'],[64,'hl-lint'],[128,'hl-b']],MD_HL_K={crit:4,vig:8,info:16,ok:32};
 function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.length);
   /* A546 : au bout d'une ligne « ![…](img:ID) », la VIGNETTE de l'image et sa taille — l'identifiant seul ne disait
      ni laquelle ni à quelle taille. Posée en absolu : elle ne prend aucune place dans la ligne (métriques du champ). */
@@ -22349,7 +22518,9 @@ function mdHlHtml(body,lint,imgs){const v=String(body||''),C=new Uint8Array(v.le
         if(MD_TROW.test(l))for(let i=0;i<l.length;i++)if(l[i]==='|'&&l[i-1]!=='\\')set(i,1,1);}
       // A607 : TOUT marqueur d'emphase se grise — « * », « *** », « ~~ » — pas seulement « ** » (le 3ᵉ astérisque de
       // « *** » restait à l'encre du texte : « il y en a un qui devient blanc »).
-      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]{0,400}\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);}
+      for(const x of l.matchAll(/\*+|~~|==|`|!?\[(?=[^\]\n]{0,400}\]\()|\]\([^)\s]*\)/g))set(x.index,x[0].length,1);
+      // A814 : le texte en gras porte sa marque (`hl-b`) — le bloc ouvert le noircit ; le calque du Markdown entier, non.
+      for(const x of l.matchAll(/\*\*(?=\S)([^*\n]{1,400}?)\*\*/g))set(x.index+2,x[1].length,128);}
     else set(0,l.length,1);
     o+=l.length+1;});
   (lint||[]).forEach(x=>{for(let k=x.from;k<x.to&&k<C.length;k++)C[k]|=64;});
@@ -22583,9 +22754,11 @@ function renderProtocolEdit(){
   main.querySelectorAll('[data-attlink]').forEach(b=>{const d=()=>(p.docs||[])[+b.dataset.attlink];
     b.onclick=()=>{const x=d();if(x)mdLinkDoc(act,x);};
     b.ondragstart=e=>{const x=d();if(x)e.dataTransfer.setData('text/plain',mdDocLink(x,''));};});
-  {const sw=main.querySelector('[data-mdlive]');if(sw)sw.onchange=()=>{try{localStorage.setItem('ac-mdlive',sw.checked?'1':'0');}catch(e){}renderProtocolEdit();};}
+  {const sw=main.querySelector('[data-mdlive]');if(sw)sw.onchange=()=>{const an=mdAncre(p,ta);try{localStorage.setItem('ac-mdlive',sw.checked?'1':'0');}catch(e){}renderProtocolEdit();
+    requestAnimationFrame(()=>mdAncreApply(an));};}   // A818 : changer de mode garde la même ligne à l'écran
   if(mds){const r=main.querySelector('.ed-sech-row');if(r)r.insertAdjacentHTML('beforeend',suiviEdPillHtml(p));}   // A636
   if(live)mdDocBind(p,ta,bindField,f=>{act=f||ta;});
+  mdPlanSpy(p,ta);   // A817 : le Plan suit la lecture (en-tête, carte)
   // Plan, curseur suivi par l'aperçu, aperçu qui ramène au texte, bascule Écrire / Aperçu (v5.44).
   const sync=()=>requestAnimationFrame(()=>mdCaretSync(ta,p));
   ['keyup','click','focus','input'].forEach(ev=>ta.addEventListener(ev,sync));
@@ -42066,7 +42239,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdTapPos,mdGrasSeul,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
