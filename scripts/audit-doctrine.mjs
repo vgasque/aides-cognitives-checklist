@@ -13273,6 +13273,102 @@ t(`A809 · ${W} px : dans une liste, la barre tient sur une ligne et n’est jam
 await page.close();
 });
 
+/* ══ A811-A818 — LIRE LA STRUCTURE, ÉCRIRE SANS SAUT (planche « Listes et collage d'images », sections 4 à 6 : P1 + P3,
+   le gras en titre, actions ① à ⑤, plan v2 ; et le cadre de sélection qui fait défiler, signalé par l'auteur) ═════════ */
+const corps811=['# Intoxication au CO','','Gaz invisible, indolore.','','**Physiopathologie :**','','- Hypoxie anémique','- Hypoxie hypoxique','    - altération mitochondriale',
+  '','**Suspecter en régulation :** saisonnalité','','### Prise en charge','','- Dosage HbCO','- Oxygénothérapie normobare','    - 15 L/min au MHC','    - Pendant 6-12h',
+  '','## Syndrome post-intervallaire','','- Intervalle libre 2-40 jours','- Diagnostic sur IRM',...Array.from({length:12},(_,i)=>`- Signe tardif ${i+1}`),'','# Intoxication au cyanure','','### Physiopathologie','','- ion cyanure','- Krebs bloqué',
+  ...Array.from({length:24},(_,i)=>['',`Paragraphe de remplissage ${i+1}, assez long pour occuper une ligne entière du document à la largeur du bureau.`]).flat()].join('\n');
+async function editeur811(W,H,corps){const page=await br.newPage({viewport:{width:W,height:H||(W<500?844:900)}});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({id:'p811',title:'Témoin structure',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps||corps811);
+  await calme(page,600);return page;}
+await sec('Éditeur · A811-A815 une seule feuille, traits des sous-listes, bloc ouvert sur place, gras en titre', async () => {
+// A811 — mêmes métriques en lecture et dans le document de l'éditeur
+const page=await editeur811(1280);
+const mes=()=>page.evaluate(()=>{const R=s=>document.querySelector(s),g=(e,k)=>e?getComputedStyle(e)[k]:null,box=document.querySelector('#mdDoc')||document.querySelector('.ref-main .md-body');
+  const p=box.querySelector('.md-p'),li=box.querySelector('.md-ul>li'),h3=box.querySelector('.md-h3'),h1=[...box.querySelectorAll('.md-h1')][1],sub=box.querySelector('li>.md-ul');
+  return {lh:g(p,'lineHeight'),pmb:g(p,'marginBottom'),lim:g(li,'marginTop'),mk:li?getComputedStyle(li,'::marker').color:null,h3b:g(h3,'borderBottomWidth'),h3mt:g(h3,'marginTop'),h1mt:g(h1,'marginTop'),h1bt:g(h1,'borderTopWidth'),trait:/gradient/.test(g(sub,'backgroundImage')||'')};});
+const ed=await mes();
+await page.evaluate(async()=>{await openProtocolRead('p811');});await calme(page,500);
+const lu=await mes();
+t('A811 · la lecture et le document de l’éditeur ont les mêmes métriques (interligne, marges, puces, filets des titres)',JSON.stringify(ed)===JSON.stringify(lu)&&ed.lh&&parseFloat(ed.lh)/15<1.6,JSON.stringify({ed,lu}));
+t('A811 · « ### » porte un filet dessous, « # » le sien dessus ; un paragraphe en gras n’en a aucun',ed.h3b==='1px'&&ed.h1bt==='2px'&&await page.evaluate(()=>{const b=[...document.querySelectorAll('.md-body .md-p')].find(p=>/^Physiopathologie/.test(p.textContent));return !!b&&getComputedStyle(b).borderBottomWidth==='0px';}),JSON.stringify(ed));
+t('A812 · une sous-liste porte le trait de sa puce, en lecture et dans l’éditeur',ed.trait&&lu.trait,JSON.stringify({ed:ed.trait,lu:lu.trait}));
+const tc=await page.evaluate(()=>{const d=document.createElement('div');d.className='md-body';d.innerHTML=mdRender('- [ ] a\n    - [ ] b\n\n| x |\n|---|\n| - a<br>- b |');document.body.appendChild(d);
+  const s=[...d.querySelectorAll('li>.md-ul,li>.md-ol')].map(u=>/gradient/.test(getComputedStyle(u).backgroundImage));d.remove();return s;});
+t('A812 · jamais sous une case cochable ni dans une case de tableau',tc.every(x=>!x),JSON.stringify(tc));
+await page.close();
+// A813 — toucher un bloc l'ouvre sur place : première ligne et bord gauche immobiles, la ligne touchée sous le doigt
+const p2=await editeur811(1280);
+const avant=await p2.evaluate(()=>{const p=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>/^Gaz/.test(x.textContent));p.scrollIntoView({block:'center'});const r=p.getBoundingClientRect();return {x:r.left+30,y:r.top+6,top:r.top,left:r.left};});
+await p2.mouse.click(avant.x,avant.y);await calme(p2,400);
+const apres=await p2.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta'),cs=getComputedStyle(t),r=t.getBoundingClientRect();
+  return {top:r.top+parseFloat(cs.paddingTop)+parseFloat(cs.borderTopWidth),left:r.left+parseFloat(cs.paddingLeft)+parseFloat(cs.borderLeftWidth),c:t.selectionStart,v:t.value,hl:t.parentNode.classList.contains('mdb-hlw')&&t.parentNode.classList.contains('on'),
+    b:!!t.parentNode.querySelector('.md-hl .hl-b, .md-hl .hl-m')};});
+t('A813 · le bloc touché s’ouvre sur place : son texte ne bouge pas (±1 px), curseur là où l’on a touché',Math.abs(apres.top-avant.top)<=1.5&&Math.abs(apres.left-avant.left)<=1.5&&apres.c>0&&apres.c<apres.v.length,JSON.stringify({avant,apres}));
+t('A814 · au pointeur fin, le bloc ouvert a le calque du Markdown entier',apres.hl,JSON.stringify(apres));
+await p2.keyboard.press('Escape');await calme(p2,300);
+const tl=await p2.evaluate(()=>{const li=[...document.querySelectorAll('#mdDoc li')].find(x=>x.textContent.startsWith('Pendant'));li.scrollIntoView({block:'center'});const r=li.getBoundingClientRect();return {x:r.left+20,y:r.top+6,y0:r.top};});
+await p2.mouse.click(tl.x,tl.y);await calme(p2,400);
+const tl2=await p2.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');const v=t.value,c=t.selectionStart,ln=v.slice(0,c).split('\n').length-1;const cs=getComputedStyle(t);
+  const top=mdLineTops(t,[ln])[0];return {ln:v.split('\n')[ln],y:t.getBoundingClientRect().top+parseFloat(cs.paddingTop)+parseFloat(cs.borderTopWidth)+top};});
+t('A813 · dans une liste, la ligne touchée garde sa hauteur à l’écran (±3 px) et porte le curseur',/Pendant/.test(tl2.ln)&&Math.abs(tl2.y-tl.y0)<=3,JSON.stringify({tl,tl2}));
+await p2.keyboard.press('Escape');await calme(p2,300);
+// A815 — la relecture propose « En faire un titre » ; un geste, une ligne
+const lt=await p2.evaluate(async()=>{const b=[...document.querySelectorAll('.md-lint-box [data-mdlint]')].find(x=>x.textContent==='En faire un titre');if(!b)return null;
+  const n=document.querySelectorAll('.md-lint-box [data-mdlint]').length;b.click();await __acCalme(400);
+  return {n,body:state.pdraft.body.split('\n')[4],reste:[...document.querySelectorAll('.md-lint-box [data-mdlint]')].filter(x=>x.textContent==='En faire un titre').length,
+    phrase:state.pdraft.body.includes('**Suspecter en régulation :** saisonnalité')};});
+t('A815 · « **Physiopathologie :** » devient « ## Physiopathologie » d’un geste ; la phrase qui commence en gras reste du texte',lt&&lt.body==='## Physiopathologie'&&lt.reste===0&&lt.phrase,JSON.stringify(lt));
+await p2.close();
+});
+
+await sec('Éditeur · A816 le cadre de sélection suit le document et fait défiler', async () => {
+const blocs=Array.from({length:60},(_,i)=>`Bloc ${i+1}, une ligne de texte pour la sélection au cadre.`).join('\n\n');
+const page=await editeur811(1280,800,blocs);
+const m=await page.evaluate(()=>{scrollTo(0,0);const d=document.getElementById('mdDoc');d.scrollIntoView({block:'start'});const c=d.closest('.md-ed').getBoundingClientRect(),b=d.querySelector('.mdb').getBoundingClientRect();
+  return {x:c.left+4,y:b.top+2,vis:[...d.querySelectorAll('.mdb[data-mdb]')].filter(x=>x.getBoundingClientRect().top<innerHeight).length,sy:scrollY};});
+await page.mouse.move(m.x,m.y);await page.mouse.down();await page.mouse.move(m.x+20,m.y+40,{steps:3});await page.mouse.move(m.x+20,795,{steps:5});
+await page.waitForTimeout(900);   // horloge : le défilement automatique avance par pas rAF tant que le pointeur reste au bord
+const r1=await page.evaluate(()=>({sy:scrollY,n:document.querySelectorAll('#mdDoc .mdb.sel').length,box:!!document.querySelector('.mdb-lasso')}));
+t('A816 · le pointeur au bas de la fenêtre : la page défile, des blocs d’abord hors écran entrent dans la sélection',r1.box&&r1.sy>m.sy+100&&r1.n>m.vis,JSON.stringify({m,r1}));
+await page.mouse.move(m.x+20,500,{steps:3});await calme(page,200);
+const r2a=await page.evaluate(()=>({sy:scrollY,n:document.querySelectorAll('#mdDoc .mdb.sel').length}));
+await page.mouse.wheel(0,800);await page.waitForTimeout(700);   // horloge : la molette (le trackpad) défile la page de manière fluide
+const r2=await page.evaluate(()=>({sy:scrollY,n:document.querySelectorAll('#mdDoc .mdb.sel').length}));
+t('A816 · molette pendant le geste, pointeur immobile : la page défile et la sélection grossit',r2.sy>r2a.sy+300&&r2.n>r2a.n,JSON.stringify({r2a,r2}));
+await page.mouse.up();await calme(page,200);
+const r3=await page.evaluate(async()=>{const a=scrollY;await __acCalme(300);return {stable:scrollY===a,box:!!document.querySelector('.mdb-lasso')};});
+t('A816 · relâché : plus de cadre, plus aucun défilement',r3.stable&&!r3.box,JSON.stringify(r3));
+await page.close();
+});
+
+await sec('Éditeur · A817-A818 le plan dans l’en-tête suit le défilement ; changer de mode garde la place', async () => {
+for(const W of [390,1280]){
+const page=await editeur811(W);
+const top=await page.evaluate(()=>{scrollTo(0,0);return {plan:document.querySelector('header.bar').classList.contains('plan-on')};});
+await calme(page,200);
+t(`A817 · ${W} px : en tête du document, pas de plan dans l’en-tête`,!await page.evaluate(()=>document.querySelector('header.bar').classList.contains('plan-on')&&document.querySelector('header.bar').classList.contains('ttl-on')),JSON.stringify(top));
+const at=await page.evaluate(async()=>{const h=[...document.querySelectorAll('#mdDoc .md-h2')].find(x=>/Syndrome/.test(x.textContent));scrollTo(0,h.getBoundingClientRect().top+scrollY-140);await __acCalme(300);
+  const hb=document.querySelector('header.bar'),b=hb.querySelector('.hdr-plan'),r=b&&b.getBoundingClientRect();
+  return {sy:scrollY,on:hb.classList.contains('plan-on')&&hb.classList.contains('ttl-on'),t:b&&b.querySelector('.hp-t').textContent,vis:!!b&&getComputedStyle(b).display!=='none',h:r?Math.round(r.height):0,
+    sub:document.getElementById('brandSub').textContent,card:(document.querySelector('[data-mdplan] .md-plan-t')||{}).textContent};});
+t(`A817 · ${W} px : défilé, l’en-tête écrit la section en cours (bouton de 32 px) et le « # » qui la coiffe ; la carte aussi`,at.on&&at.vis&&at.t==='Syndrome post-intervallaire'&&at.h>=32&&/Intoxication au CO/.test(at.sub)&&/Syndrome/.test(at.card),JSON.stringify(at));
+const fixe=await page.evaluate(async y=>{await __acCalme(300);return scrollY===y;},at.sy);
+t(`A817 · ${W} px : le plan lit le défilement, il ne le provoque jamais`,fixe,String(fixe));
+const menu=await page.evaluate(async()=>{document.querySelector('header.bar .hdr-plan').click();await __acCalme(300);const m=document.querySelector('.popmenu[aria-label="Plan du contenu"]');const s=m&&m.querySelector('[aria-selected="true"]');
+  const r={ouvert:!!m,sel:s?s.textContent:''};if(_pickClose)_pickClose(false);await __acCalme(200);return r;});
+t(`A817 · ${W} px : le toucher ouvre le Plan, la section lue y est la sélection`,menu.ouvert&&/Syndrome/.test(menu.sel),JSON.stringify(menu));
+const sw=async()=>page.evaluate(async()=>{const s=document.querySelector('[data-mdlive]');s.checked=!s.checked;s.dispatchEvent(new Event('change'));await __acCalme(500);
+  return (document.querySelector('header.bar .hdr-plan .hp-t')||{}).textContent;});
+const m1=await sw(),m2=await sw();
+t(`A818 · ${W} px : passer au Markdown entier, puis revenir, garde la même section à l’écran`,m1==='Syndrome post-intervallaire'&&m2==='Syndrome post-intervallaire',JSON.stringify([m1,m2]));
+await page.evaluate(async()=>{await openProtocolRead('p811');await __acCalme(300);});
+t(`A817 · ${W} px : hors de l’éditeur, l’en-tête n’a plus de plan`,await page.evaluate(()=>!document.querySelector('header.bar').classList.contains('plan-on')&&!document.querySelector('#brandSub .bs-sec')),'');
+await page.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

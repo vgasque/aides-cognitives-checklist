@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.157.0] — 2026-11-26
+Les protocoles se lisent mieux, et l'éditeur en mise en forme en direct ne « saute » plus (A811-A818). Aucune mise à jour
+du serveur.
+- **La structure se voit en lisant** :
+  - Un titre colle à son contenu : de l'air au-dessus, peu dessous, et un sous-titre posé juste sous son titre s'en
+    rapproche. L'interligne passe de 1,7 à 1,55 : les groupes se lisent.
+  - **Un « ### » porte maintenant un filet fin dessous.** Il ne se confond plus avec une ligne en gras.
+  - **Un trait fin relie une sous-liste à sa puce** : on voit d'un coup d'œil ce qui dépend de quoi.
+- **L'éditeur et la lecture ont le même dessin** : interligne, marges, puces et titres sont identiques. Ce qu'on voit en
+  écrivant est ce qu'on lira.
+- **Toucher un passage l'ouvre sur place** : le texte ne bouge plus (le cadre est dessiné autour, plus dedans), le
+  curseur se pose là où l'on a touché, et la ligne touchée reste sous le doigt. Les pastilles du bloc passent sous le
+  texte. Au bureau, le bloc ouvert a la même coloration que le Markdown entier (marqueurs grisés, titre et gras plus
+  noirs).
+- **« Physiopathologie : » en gras devient un vrai titre si vous le voulez** : la relecture repère une ligne faite
+  seulement de gras et propose « En faire un titre » (« ## Physiopathologie »). Elle apparaît alors dans le Plan et le
+  sommaire, et se replie. Une ligne à la fois ; une phrase qui commence en gras n'est pas concernée.
+- **Le Plan suit le défilement** : une fois le titre du protocole sorti de l'écran, l'en-tête écrit la section où vous
+  êtes (avec la grande section au-dessus, dans la ligne « Édition »). Le toucher ouvre le Plan. Aucune place prise, et
+  rien quand le clavier est ouvert.
+- **Passer de la mise en forme en direct au Markdown entier (et retour) garde la même section à l'écran** : avant, on
+  se retrouvait ailleurs, parfois au début.
+- **Correctif — sélectionner des blocs au cadre, à la souris** : le cadre fait maintenant défiler la page quand on
+  approche du bas (ou du haut) de l'écran, et la molette ou le trackpad pendant le geste étend la sélection. On peut
+  enfin prendre des blocs qui n'étaient pas à l'écran.
+
 ## [5.156.0] — 2026-11-26
 Listes plus faciles à manier dans l'éditeur de protocole, et les images se collent (A809, A810). Aucune mise à jour du
 serveur.
@@ -179,14 +205,3 @@ Une liste écrite dans une case de tableau s'affiche en liste (A788). Aucune mis
   numérotée — elles s'affichaient avec leur tiret. Une ligne décalée fait un sous-niveau (c'est aussi la forme que garde
   l'import de Notion). Un libellé au-dessus reste au-dessus.
 - Rien ne change pour une case sans liste, ni pour « 5 - 10 mg » (un tiret au milieu d'une ligne n'est pas une liste).
-
-## [5.145.0] — 2026-11-18
-Les anciennes tailles d'image rejoignent la largeur qu'on tire, et l'import de Notion garde les largeurs (A787). Aucune
-mise à jour du serveur.
-- **Une image dont la taille avait été réglée** (¼, ½, ¾…) garde cette taille quand vous ouvrez le protocole dans
-  l'éditeur : elle devient la largeur de son passage dans le texte, qu'on tire ensuite comme les autres. Rien ne change
-  tant que vous n'enregistrez pas, et rien ne change en lecture.
-- **La fiche d'une image** (« Images du texte ») règle maintenant sa largeur à tous ses passages — dans le texte, dans
-  une liste et dans une case — et dit combien il y en a.
-- **Import de l'export HTML de Notion** : une image que vous aviez réduite dans Notion garde sa taille, et des colonnes
-  de largeurs différentes gardent leurs proportions.

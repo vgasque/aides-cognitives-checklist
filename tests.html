@@ -1364,6 +1364,14 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('tableau : ligne incomplète et ligne trop longue', A.mdLint('| a | b |\n|---|---|\n| 1 |\n| 1 | 2 | 3 |',[]).map(x=>x.cible), ['Ligne de tableau incomplète','Ligne de tableau trop longue']);
   eq('structure : ### orphelin, encadré vide', A.mdLint('# T\n### s\n\n> [!CAUTION]\n\ntexte',[]).map(x=>x.cible), ['Sous-titre sans titre au-dessus','Encadré vide']);
   eq('bloc de code ignoré', A.mdLint('```\n.5 mg\n```',[]), []);
+  // A815 — la ligne en gras seule proposée comme titre
+  ok('A815 : ligne en gras seule → son titre (« : » dedans ou après)', A.mdGrasSeul('**Physiopathologie :**')==='Physiopathologie'&&A.mdGrasSeul('**Prise en charge** :')==='Prise en charge'&&A.mdGrasSeul('**Mesure**')==='Mesure');
+  ok('A815 : laissés — phrase en gras qui continue, point final, liste, encadré, gras italique, indentée', A.mdGrasSeul('**Mesure** : HbCO sur gaz du sang')===''&&A.mdGrasSeul('**Ne jamais injecter.**')===''&&A.mdGrasSeul('- **Item**')===''&&A.mdGrasSeul('> **Note**')===''&&A.mdGrasSeul('***Titre***')===''&&A.mdGrasSeul('  **Item**')===''&&A.mdGrasSeul('**Attention : ne pas**')==='');
+  ok('A815 : la relecture propose « ## » et le correctif remplace la ligne entière ; rien dans le code ni le tableau', (()=>{const src='# CO\n\n**Physiopathologie :**\n\n- a\n\n```\n**pas ici**\n```\n\n| **x** |\n|---|';const L=A.mdLint(src,[]).filter(x=>x.k==='titre');
+    return L.length===1&&L[0].fix==='## Physiopathologie'&&src.slice(L[0].from,L[0].to)==='**Physiopathologie :**'&&L[0].ln===2;})());
+  // A813 — le texte touché retrouvé dans la source du bloc
+  ok('A813 : texte touché → position dans la source (gras, retrait, introuvable)', A.mdTapPos('- **Suspecter :** saison','Suspecter :',3)===7&&A.mdTapPos('- a\n    - Fréquence','Fréquence',4)===14&&A.mdTapPos('abc','zzz',0)===null&&A.mdTapPos('abc','',0)===null&&A.mdTapPos('- x\n- Fin de ligne','  Fin',2)===6);
+  ok('A814 : le gras porte sa marque dans le calque (hl-b), texte inchangé', (()=>{const src='**Dose** puis *x*';const d=document.createElement('div');d.innerHTML=A.mdHlHtml(src,[]);const b=d.querySelector('.hl-b');return d.textContent===src&&!!b&&b.textContent==='Dose';})());
   ok('coloration : texte rendu à l\'identique, échappé', (()=>{const src='## Titre <b>\n> [!CAUTION]\n> **x** .5 mg\n| a |\n|---|';const h=A.mdHlHtml(src,A.mdLint(src,[]));
     const d=document.createElement('div');d.innerHTML=h;return d.textContent===src&&A.mdHlHtml('a\n',[]).endsWith('\n ')&&!d.querySelector('b')&&d.querySelector('.hl-crit')&&d.querySelector('.hl-lint').textContent==='.5'&&d.querySelector('.hl-h').textContent.startsWith('Titre');})());
   /* A546 — vignette d'image dans le calque, sections déplacées par le Plan, bloc au curseur (bande du téléphone). */
