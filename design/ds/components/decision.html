@@ -8717,7 +8717,11 @@
      DESSOUS — un paragraphe en gras n'en a jamais (le « reste connu » d'A723 : même corps, même graisse). */
   .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:32px 0 6px;padding-top:16px;border-top:2px solid var(--line-strong);color:var(--ink)}
   .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:24px 0 6px;color:var(--ink)}
-  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
+  /* A828 — « ### » EST UNE RUBRIQUE (V1, planche « Les titres : un seul principe », choisie par l'auteur ; amende A811) : le
+     filet DESSOUS qu'A811 lui avait donné coupait le titre de son propre contenu et ne suivait aucun principe (# : filet
+     au-dessus, ## : rien, ### : dessous). Le filet n'appartient plus qu'au #, au-dessus (A723 redevient vrai) ; le ###
+     se distingue du gras par sa FORME — capitales espacées, 13,5 / 800, encre pleine —, plus par un trait. */
+  .md-h3{font-size:var(--t-body);font-weight:800;line-height:1.3;letter-spacing:.06em;text-transform:uppercase;margin:20px 0 6px;color:var(--ink)}
   /* A822 — LES ÉCARTS SONT LES MÊMES PAR CONSTRUCTION en lecture et en mise en forme en direct (A811 promettait une
      seule feuille ; mesuré : 4 à 11 px d'écart autour de chaque titre). La cause : en lecture le titre porte le bouton
      repliable de 32 px (A171), centré — il ajoutait ~4,6 px au-dessus et au-dessous du texte ; le titre du document,
@@ -8730,7 +8734,6 @@
   .md-doc,.md-preview{font-size:var(--t-item);line-height:1.55}
   .ep-md .md-h1{font-size:var(--t-body);margin:16px 0 6px;padding-top:8px}
   .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta);margin:12px 0 4px}
-  .ep-md .md-h3{padding-bottom:2px}
   .md-body>.md-h1:first-child,.md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════

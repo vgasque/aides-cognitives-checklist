@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-hzymDb9SoSmHJiqx5Yh5Yj18XzMt7n/d7cUgSELVoqg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-aV4RPkuZ26JLWCAIay5l79mpfBlBFNu63Ho6H5syKEY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9118,7 +9118,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      DESSOUS — un paragraphe en gras n'en a jamais (le « reste connu » d'A723 : même corps, même graisse). */
   .md-h1{font-size:var(--t-step-l);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin:32px 0 6px;padding-top:16px;border-top:2px solid var(--line-strong);color:var(--ink)}
   .md-h2{font-size:var(--t-step);font-weight:800;letter-spacing:-.01em;line-height:1.3;margin:24px 0 6px;color:var(--ink)}
-  .md-h3{font-size:var(--t-item);font-weight:800;line-height:1.3;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--ink)}
+  /* A828 — « ### » EST UNE RUBRIQUE (V1, planche « Les titres : un seul principe », choisie par l'auteur ; amende A811) : le
+     filet DESSOUS qu'A811 lui avait donné coupait le titre de son propre contenu et ne suivait aucun principe (# : filet
+     au-dessus, ## : rien, ### : dessous). Le filet n'appartient plus qu'au #, au-dessus (A723 redevient vrai) ; le ###
+     se distingue du gras par sa FORME — capitales espacées, 13,5 / 800, encre pleine —, plus par un trait. */
+  .md-h3{font-size:var(--t-body);font-weight:800;line-height:1.3;letter-spacing:.06em;text-transform:uppercase;margin:20px 0 6px;color:var(--ink)}
   /* A822 — LES ÉCARTS SONT LES MÊMES PAR CONSTRUCTION en lecture et en mise en forme en direct (A811 promettait une
      seule feuille ; mesuré : 4 à 11 px d'écart autour de chaque titre). La cause : en lecture le titre porte le bouton
      repliable de 32 px (A171), centré — il ajoutait ~4,6 px au-dessus et au-dessous du texte ; le titre du document,
@@ -9131,7 +9135,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-doc,.md-preview{font-size:var(--t-item);line-height:1.55}
   .ep-md .md-h1{font-size:var(--t-body);margin:16px 0 6px;padding-top:8px}
   .ep-md :is(.md-h2,.md-h3){font-size:var(--t-meta);margin:12px 0 4px}
-  .ep-md .md-h3{padding-bottom:2px}
   .md-body>.md-h1:first-child,.md-preview>.md-h1:first-child,.md-doc>.mdb:first-child>.md-h1,.md-doc>.ed-grab+.ed-drop+.mdb>.md-h1,.ep-pttl+.md-h1{padding-top:0;border-top:0}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
   /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
@@ -11330,7 +11333,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.158.1';
+const APP_VERSION='5.159.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
