@@ -9385,8 +9385,8 @@ for(const [W,H] of [[1280,900],[390,844]]){
  const a=await page.evaluate(async()=>{const d=document.getElementById('mdDoc'),f=d.querySelector('li figure.md-fig');f.scrollIntoView({block:'center'});await __acCalme(150);f.click();await __acCalme(250);
    const bar=d.querySelector('.mdm-bar');return {bar:bar?[...bar.querySelectorAll('[data-mdm]')].map(x=>x.dataset.mdm).join(','):'',dock:!!bar&&bar.classList.contains('dock'),grip:!!d.querySelector('.mdm [data-mdmgrip]'),
      ouvert:!!d.querySelector('.mdb.on'),cadre:f.classList.contains('msel'),focus:(document.activeElement||{}).dataset&&document.activeElement.dataset.mdm,porte:getComputedStyle(document.querySelector('.ed-door')||document.body).visibility};});
- t('A785 · '+L+' · un toucher sur l’image d’un élément la sélectionne (cadre, poignée, barre : part · Même largeur · Même hauteur · Modifier… · ✕), aucun bloc ouvert',
-   a.bar==='pct,eqw,eqh,open,x'&&a.grip&&a.cadre&&!a.ouvert&&a.focus==='pct'&&a.dock===(W<780),JSON.stringify(a));
+ t('A785 · '+L+' · un toucher sur l’image d’un élément la sélectionne (cadre, poignée, barre : part · Même largeur · Même hauteur · Modifier… · ✕), aucun bloc ouvert',   // A819 : « Légende » rejoint la barre (un média de liste : ni alignement ni seg)
+   a.bar==='pct,eqw,eqh,cap,open,x'&&a.grip&&a.cadre&&!a.ouvert&&a.focus==='pct'&&a.dock===(W<780),JSON.stringify(a));
  if(W<780)t('A785 · téléphone · la barre est en bas, le bouton « Ajouter » s’efface',a.dock&&a.porte==='hidden',JSON.stringify(a));
  {const nuit=await page.evaluate(async()=>{const h=document.documentElement,av=h.dataset.theme;h.dataset.theme='dark';await __acCalme(100);const b=document.querySelector('#mdDoc .mdm-bar'),cs=getComputedStyle(b);
    const r={bord:cs.borderTopColor,epais:cs.borderTopWidth};if(av)h.dataset.theme=av;else delete h.dataset.theme;return r;});
@@ -9415,7 +9415,7 @@ for(const [W,H] of [[1280,900],[390,844]]){
    const r={grille:document.getElementById('mdToolModal').classList.contains('on'),bar:d.querySelector('.mdm-bar')?[...d.querySelectorAll('.mdm-bar [data-mdm]')].map(x=>x.dataset.mdm).join(','):''};
    d.querySelector('[data-mdm="open"]').click();await __acCalme(400);r.apres=document.getElementById('mdToolModal').classList.contains('on');
    const x=document.querySelector('#mdToolModal [data-mdtw="x"]');if(x)x.click();await __acCalme(300);return r;});
- t('A785 · '+L+' · un média de case se sélectionne sans ouvrir la grille ; « Modifier… » ouvre la grille (A774)',!c.grille&&c.bar==='pct,open,x'&&c.apres,JSON.stringify(c));
+ t('A785 · '+L+' · un média de case se sélectionne sans ouvrir la grille ; « Modifier… » ouvre la grille (A774)',!c.grille&&c.bar==='pct,cap,open,x'&&c.apres,JSON.stringify(c));
  await page.close();}
 });
 
@@ -13288,7 +13288,7 @@ await sec('Éditeur · A811-A815 une seule feuille, traits des sous-listes, bloc
 const page=await editeur811(1280);
 const mes=()=>page.evaluate(()=>{const R=s=>document.querySelector(s),g=(e,k)=>e?getComputedStyle(e)[k]:null,box=document.querySelector('#mdDoc')||document.querySelector('.ref-main .md-body');
   const p=box.querySelector('.md-p'),li=box.querySelector('.md-ul>li'),h3=box.querySelector('.md-h3'),h1=[...box.querySelectorAll('.md-h1')][1],sub=box.querySelector('li>.md-ul');
-  return {lh:g(p,'lineHeight'),pmb:g(p,'marginBottom'),lim:g(li,'marginTop'),mk:li?getComputedStyle(li,'::marker').color:null,h3b:g(h3,'borderBottomWidth'),h3mt:g(h3,'marginTop'),h1mt:g(h1,'marginTop'),h1bt:g(h1,'borderTopWidth'),trait:/gradient/.test(g(sub,'backgroundImage')||'')};});
+  return {lh:g(p,'lineHeight'),pmb:g(p,'marginBottom'),lim:g(li,'marginTop'),mk:li?getComputedStyle(li,'::marker').color:null,h3b:g(h3,'borderBottomWidth'),h3mt:g(h3,'marginTop'),h1mt:g(h1,'marginTop'),h1bt:g(h1,'borderTopWidth'),trait:!!sub&&getComputedStyle(sub.firstElementChild,'::after').content!=='none'};});
 const ed=await mes();
 await page.evaluate(async()=>{await openProtocolRead('p811');});await calme(page,500);
 const lu=await mes();
@@ -13296,7 +13296,7 @@ t('A811 · la lecture et le document de l’éditeur ont les mêmes métriques (
 t('A811 · « ### » porte un filet dessous, « # » le sien dessus ; un paragraphe en gras n’en a aucun',ed.h3b==='1px'&&ed.h1bt==='2px'&&await page.evaluate(()=>{const b=[...document.querySelectorAll('.md-body .md-p')].find(p=>/^Physiopathologie/.test(p.textContent));return !!b&&getComputedStyle(b).borderBottomWidth==='0px';}),JSON.stringify(ed));
 t('A812 · une sous-liste porte le trait de sa puce, en lecture et dans l’éditeur',ed.trait&&lu.trait,JSON.stringify({ed:ed.trait,lu:lu.trait}));
 const tc=await page.evaluate(()=>{const d=document.createElement('div');d.className='md-body';d.innerHTML=mdRender('- [ ] a\n    - [ ] b\n\n| x |\n|---|\n| - a<br>- b |');document.body.appendChild(d);
-  const s=[...d.querySelectorAll('li>.md-ul,li>.md-ol')].map(u=>/gradient/.test(getComputedStyle(u).backgroundImage));d.remove();return s;});
+  const s=[...d.querySelectorAll('li>.md-ul,li>.md-ol')].map(u=>getComputedStyle(u.firstElementChild,'::after').content!=='none');d.remove();return s;});   // A823
 t('A812 · jamais sous une case cochable ni dans une case de tableau',tc.every(x=>!x),JSON.stringify(tc));
 await page.close();
 // A813 — toucher un bloc l'ouvre sur place : première ligne et bord gauche immobiles, la ligne touchée sous le doigt
@@ -13316,9 +13316,9 @@ const tl2=await p2.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta'
 t('A813 · dans une liste, la ligne touchée garde sa hauteur à l’écran (±3 px) et porte le curseur',/Pendant/.test(tl2.ln)&&Math.abs(tl2.y-tl.y0)<=3,JSON.stringify({tl,tl2}));
 await p2.keyboard.press('Escape');await calme(p2,300);
 // A815 — la relecture propose « En faire un titre » ; un geste, une ligne
-const lt=await p2.evaluate(async()=>{const b=[...document.querySelectorAll('.md-lint-box [data-mdlint]')].find(x=>x.textContent==='En faire un titre');if(!b)return null;
+const lt=await p2.evaluate(async()=>{const b=document.querySelector('.md-lint-box [data-mdniv].primary');if(!b)return null;   // A821 : le niveau proposé, mis en avant
   const n=document.querySelectorAll('.md-lint-box [data-mdlint]').length;b.click();await __acCalme(400);
-  return {n,body:state.pdraft.body.split('\n')[4],reste:[...document.querySelectorAll('.md-lint-box [data-mdlint]')].filter(x=>x.textContent==='En faire un titre').length,
+  return {n,body:state.pdraft.body.split('\n')[4],reste:document.querySelectorAll('.md-lint-box [data-mdniv]').length,
     phrase:state.pdraft.body.includes('**Suspecter en régulation :** saisonnalité')};});
 t('A815 · « **Physiopathologie :** » devient « ## Physiopathologie » d’un geste ; la phrase qui commence en gras reste du texte',lt&&lt.body==='## Physiopathologie'&&lt.reste===0&&lt.phrase,JSON.stringify(lt));
 await p2.close();
@@ -13367,6 +13367,98 @@ t(`A818 · ${W} px : passer au Markdown entier, puis revenir, garde la même sec
 await page.evaluate(async()=>{await openProtocolRead('p811');await __acCalme(300);});
 t(`A817 · ${W} px : hors de l’éditeur, l’en-tête n’a plus de plan`,await page.evaluate(()=>!document.querySelector('header.bar').classList.contains('plan-on')&&!document.querySelector('#brandSub .bs-sec')),'');
 await page.close();}
+});
+
+/* A819-A825 (v5.158.0) — aligner un média, écrire sa légende ; et les rectificatifs de la v5.157 : niveau du titre
+   converti (A821), écarts identiques lecture / direct (A822), trait parti de la puce (A823), « Tout … » (A824), porte
+   « Ajouter » effacée sous un bloc ouvert (A825), bloc ouvert sans marge de compensation (A820). */
+const PNG819='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+async function proto819(W,H,corps,lire){const page=await br.newPage({viewport:{width:W,height:H||(W<500?844:900)},hasTouch:W<500,isMobile:W<500});page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async([c,png,lire])=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const im=id=>({id,data:png,w:400,h:300,caption:''});
+    const pr=migrateProtocol({id:'p819',title:'Témoin médias',body:c,images:[im('ia'),im('ib'),im('ic'),im('id'),im('ie')]});protocols.push(pr);if(lire)await openProtocolRead(pr.id);else await openProtocolEdit(pr.id);},[corps,PNG819,!!lire]);
+  await calme(page,600);return page;}
+const corps819=['Texte.','','![](img:ia){width=40%}','','![](img:ib){width=40% align=center}','','![](img:ic){align=right width=40%}','','![](img:id)','','| x |','|---|','| ![](img:ie){width=50% align=right} |','','Fin.'].join('\n');
+await sec('Éditeur · A819 A825 aligner un média, écrire sa légende ; la porte « Ajouter » sous un bloc ouvert', async () => {
+const place=page=>page.evaluate(()=>{const root=document.querySelector('#mdDoc')||document.querySelector('.ref-main .md-body');
+  return ['ia','ib','ic'].map(id=>{const f=root.querySelector('figure[data-med="'+id+'"]'),c=f.parentElement.getBoundingClientRect(),r=f.getBoundingClientRect(),cs=getComputedStyle(f.parentElement),pl=parseFloat(cs.paddingLeft)||0,pr=parseFloat(cs.paddingRight)||0;
+    return {g:+(r.left-c.left-pl).toFixed(1),d:+(c.right-pr-r.right).toFixed(1)};});});
+const ok3=P=>Math.abs(P[0].g)<=1&&Math.abs(P[1].g-P[1].d)<=1&&P[1].g>20&&Math.abs(P[2].d)<=1&&P[2].g>20;
+let page=await proto819(1280,900,corps819,true);const lu=await place(page);
+t('A819 · en lecture : gauche sans attribut, centré, à droite (clés dans n’importe quel ordre), jamais un style',ok3(lu)&&await page.evaluate(()=>!document.querySelector('.md-body figure[style]')),JSON.stringify(lu));
+t('A819 · dans une case, l’alignement est lu, pas rendu (la colonne gouverne)',await page.evaluate(()=>{const f=document.querySelector('.md-body figure[data-med="ie"]');return !!f&&!/md-al/.test(f.className);}));
+await page.close();
+page=await proto819(1280,900,corps819);const ed=await place(page);
+t('A819 · dans la mise en forme en direct : le même placement',ok3(ed),JSON.stringify(ed));
+const sel=id=>page.evaluate(async id=>{const f=document.querySelector('#mdDoc figure[data-med="'+id+'"]');f.scrollIntoView({block:'center'});await __acCalme(200);const r=(f.querySelector('img')||f).getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};},id);
+const barre=()=>page.evaluate(()=>{const b=document.querySelector('.mdm-bar');if(!b)return null;const al=[...b.querySelectorAll('[data-mdm^="al-"]')];
+  return {al:al.map(x=>x.dataset.mdm+(x.getAttribute('aria-checked')==='true'?'*':'')+(x.disabled?'-':'')),cap:!!b.querySelector('[data-mdm="cap"]'),h:document.querySelectorAll('#mdDoc .mdm .mdm-h').length,inv:document.querySelectorAll('#mdDoc .mdm-capadd').length,ordre:[...b.children].map(x=>x.dataset.mdm||x.className.split(' ')[1]||'')};});
+t('A819 · aucune invite de légende tant que rien n’est sélectionné',await page.evaluate(()=>!document.querySelector('#mdDoc .mdm-capadd')));
+let p0=await sel('ib');await page.mouse.click(p0.x,p0.y);await calme(page,300);let B=await barre();
+t('A819 · centré : trois boutons entre la largeur et « Modifier… », « au centre » coché, deux poignées, une invite sous lui seul',B&&B.al.join()==='al-l,al-c*,al-r'&&B.h===2&&B.inv===1&&B.cap&&B.ordre.indexOf('mdm-seg')===1,JSON.stringify(B));
+await page.click('.mdm-bar [data-mdm="al-r"]');await calme(page,300);
+const lr=await page.evaluate(()=>state.pdraft.body.split('\n').find(l=>l.includes('img:ib')));B=await barre();
+t('A819 · « À droite » écrit align=right en gardant la largeur ; la poignée passe à gauche, seule',lr==='![](img:ib){width=40% align=right}'&&B&&B.h===1&&B.al.join()==='al-l,al-c,al-r*',JSON.stringify({lr,B}));
+await page.click('.mdm-bar [data-mdm="al-l"]');await calme(page,300);
+t('A819 · « À gauche » retire la clé (le défaut)',await page.evaluate(()=>state.pdraft.body.includes('![](img:ib){width=40%}\n')));
+await page.keyboard.press('Escape');p0=await sel('id');await page.mouse.click(p0.x,p0.y);await calme(page,300);B=await barre();
+t('A819 · en pleine largeur : les trois boutons grisés, la raison dans leur nom',B&&B.al.join()==='al-l*-,al-c-,al-r-'&&await page.evaluate(()=>/pleine largeur/.test(document.querySelector('.mdm-bar .mdm-seg').getAttribute('aria-label'))),JSON.stringify(B));
+await page.keyboard.press('Escape');p0=await sel('ie');await page.mouse.click(p0.x,p0.y);await calme(page,300);B=await barre();
+t('A819 · dans une case : pas d’alignement, la légende reste',B&&B.al.length===0&&B.cap,JSON.stringify(B));
+await page.keyboard.press('Escape');p0=await sel('ia');await page.mouse.click(p0.x,p0.y);await calme(page,300);
+await page.click('.mdm-bar [data-mdm="cap"]');await calme(page,200);await page.keyboard.type('Masque ] haute');await page.keyboard.press('Enter');await calme(page,400);
+t('A819 · « Légende » de la barre écrit entre les crochets de CET emplacement, « ] » neutralisé',await page.evaluate(()=>state.pdraft.body.includes('![Masque haute](img:ia){width=40%}')),await page.evaluate(()=>state.pdraft.body.split('\n')[2]));
+t('A819 · une fois légendé, plus d’invite ; la légende s’affiche sous le média',await page.evaluate(()=>{const f=document.querySelector('#mdDoc figure[data-med="ia"]');return !!f&&!f.querySelector('.mdm-capadd')&&/Masque haute/.test((f.querySelector('figcaption')||{}).textContent||'');}));
+await page.close();
+// Au téléphone : la barre en bas porte « Gauche · Centre · Droite » en mots, 44 px ; la légende s'écrit depuis elle
+page=await proto819(390,844,corps819);p0=await sel('ib');await page.touchscreen.tap(p0.x,p0.y);await calme(page,300);
+const dk=await page.evaluate(()=>{const b=document.querySelector('.mdm-bar.dock');if(!b)return null;const s=[...b.querySelectorAll('.mdm-seg .seg-btn')];return {mots:s.map(x=>x.textContent.trim()),h:Math.min(...s.map(x=>x.getBoundingClientRect().height))};});
+t('A819 · téléphone : « Gauche · Centre · Droite » en mots, cibles de 44 px',dk&&dk.mots.join()==='Gauche,Centre,Droite'&&dk.h>=43.5,JSON.stringify(dk));
+await page.tap('.mdm-bar [data-mdm="cap"]');await calme(page,200);await page.keyboard.type('Vue de face');await page.keyboard.press('Enter');await calme(page,400);
+t('A819 · téléphone : la légende écrite depuis la barre du bas',await page.evaluate(()=>state.pdraft.body.includes('![Vue de face](img:ib){width=40% align=center}')));
+// A825 : un bloc ouvert, la porte « Ajouter » s'efface (elle recouvrait « Supprimer »)
+await page.keyboard.press('Escape');await calme(page,200);
+const door=await page.evaluate(async()=>{const p=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>x.textContent==='Fin.');p.scrollIntoView({block:'center'});await __acCalme(200);const r=p.getBoundingClientRect();return {x:r.left+10,y:r.top+6};});
+await page.touchscreen.tap(door.x,door.y);await calme(page,400);
+t('A825 · un bloc ouvert : la porte flottante « Ajouter » s’efface',await page.evaluate(()=>{const d=document.querySelector('.ed-door');return !!document.querySelector('#mdDoc .mdb-ta')&&(!d||getComputedStyle(d).visibility==='hidden');}));
+await page.close();
+});
+await sec('Éditeur · A820-A824 rectificatifs de la v5.157 : bloc ouvert sans marge, écarts, trait, niveau du titre, « Tout … »', async () => {
+let page;
+// A820 — un bloc ouvert puis un autre touché DIRECTEMENT : aucune marge de compensation, la ligne touchée sous le pointeur
+const corps820=['## Gaz','','Texte d’introduction.','','**3 composantes** :','','- Monoxyde de carbone','- Azote','    - sous-puce','- Troisième','','Paragraphe après la liste.','','- Liste B','- Liste B2'].join('\n');
+for(const W of [1280,390]){page=await proto819(W,W<500?844:900,corps820);
+  for(const [a,as,b,bs] of [['.md-h2','Gaz','li','Azote'],['.md-p','3 composantes','li','Azote'],['li','Liste B','.md-p','Paragraphe']]){
+    const clic=async(s,x)=>{const pt=await page.evaluate(([s,x])=>{const e=[...document.querySelectorAll('#mdDoc '+s)].find(y=>y.textContent.includes(x));e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.left+20,y:r.top+8,top:r.top};},[s,x]);
+      if(W<500)await page.touchscreen.tap(pt.x,pt.y);else await page.mouse.click(pt.x,pt.y);await calme(page,500);return pt;};
+    await clic(a,as);const pt=await clic(b,bs);
+    const e=await page.evaluate(x=>{const ta=document.querySelector('#mdDoc .mdb-ta');if(!ta)return null;const w=ta.closest('.mdb'),cs=getComputedStyle(ta),i=ta.value.indexOf(x),ln=ta.value.slice(0,i).split('\n').length-1;
+      let pb=null;for(let p=w.previousElementSibling;p;p=p.previousElementSibling)if(p.classList.contains('mdb')){pb=p.getBoundingClientRect().bottom;break;}
+      return {mt:parseFloat(getComputedStyle(w).marginTop),vide:pb==null?0:ta.getBoundingClientRect().top-pb,ly:ta.getBoundingClientRect().top+parseFloat(cs.paddingTop)+parseFloat(cs.borderTopWidth)+mdLineTops(ta,[ln])[0]};},bs);
+    t(`A820 · ${W} · ${as} ouvert puis « ${bs} » touché : marge normale, aucun vide, la ligne sous le pointeur (±3 px)`,e&&e.mt<=12.5&&e.vide<=16&&Math.abs(e.ly-pt.top)<=3,JSON.stringify({e,pt}));}
+  await page.close();}
+// A822 — les écarts autour de chaque titre, égaux en lecture et en direct ; A823 — le trait part de la puce parente
+const corps822=['## Gaz','','Gaz invisible, indolore.','','**3 composantes** :','','- CO','- Azote','    - une seule sous-puce','- Hypoxie hypoxique, une puce assez longue pour tenir sur deux lignes au téléphone au moins','    - altération','    - deuxième sous-puce','','### Mesure','','- RAD57','','> [!WARNING]','> Attention.','','## Fumées d’incendie','### Physiopathologie','','| a | b |','|---|---|','| 1 | 2 |','','# Grand titre','','![](img:ia){width=40%}','','## Après une image','','Fin.'].join('\n');
+const ecarts=pg=>pg.evaluate(()=>{const root=document.querySelector('#mdDoc')||document.querySelector('.ref-main .md-body'),S='.md-p,li,.md-h1,.md-h2,.md-h3,td,th,figcaption,.md-q',L=[];
+  const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.textContent.trim()&&n.parentElement.closest(S)&&!n.parentElement.closest('button:not(.md-fbtn),.mdb-tools,.mdb-ins,.md-fch')?1:3});
+  let n;while((n=tw.nextNode())){const r=document.createRange();r.selectNodeContents(n);const R=[...r.getClientRects()].filter(x=>x.height>0);if(R.length)L.push({h:!!n.parentElement.closest('.md-h1,.md-h2,.md-h3'),t:Math.min(...R.map(x=>x.top)),b:Math.max(...R.map(x=>x.bottom))});}
+  root.querySelectorAll('img').forEach(i=>{const r=i.getBoundingClientRect();if(r.height)L.push({h:false,t:r.top,b:r.bottom});});L.sort((a,b)=>a.t-b.t);
+  return L.map((x,i)=>x.h?[i?+(x.t-L[i-1].b).toFixed(1):null,L[i+1]?+(L[i+1].t-x.b).toFixed(1):null]:null).filter(Boolean);});
+for(const W of [1280,390]){page=await proto819(W,W<500?844:900,corps822);const e=await ecarts(page);await page.evaluate(async()=>{await openProtocolRead('p819');});await calme(page,600);const l=await ecarts(page);
+  const diff=e.length===l.length&&e.every((x,i)=>x.every((v,j)=>v==null&&l[i][j]==null||Math.abs(v-l[i][j])<=1));
+  t(`A822 · ${W} · autour de chaque titre, le même écart en lecture et en direct (±1 px)`,diff&&e.length>=6,JSON.stringify({direct:e,lecture:l}));
+  const g=await page.evaluate(()=>[...document.querySelectorAll('.md-body li:not(.md-task)>.md-ul')].map(u=>{const P=u.parentElement,ps=getComputedStyle(P,'::before'),pr=P.getBoundingClientRect(),c=u.firstElementChild,cs=getComputedStyle(c,'::after'),cr=c.getBoundingClientRect();
+    const tn=[...P.childNodes].find(x=>x.nodeType===3&&x.textContent.trim());const rg=document.createRange();rg.selectNodeContents(tn);const R=[...rg.getClientRects()];
+    return {dx:+(cr.left+parseFloat(cs.left)+parseFloat(cs.width)/2-(pr.left+parseFloat(ps.left)+parseFloat(ps.width)/2)).toFixed(2),haut:+(cr.top+parseFloat(cs.top)-Math.max(...R.map(r=>r.bottom))).toFixed(1)};}));
+  t(`A823 · ${W} · le trait part sous la puce parente (centre ±1,5 px, à 4 px au plus sous sa ligne)`,g.length>=2&&g.every(x=>Math.abs(x.dx)<=1.5&&x.haut<=4&&x.haut>=-2),JSON.stringify(g));
+  await page.close();}
+// A821 / A824 — « Tout convertir en titres (n) », chaque ligne à son niveau, un seul geste
+page=await proto819(1280,900,['## Intoxication au CO','','**Physiopathologie :**','','- a','','**Prise en charge** :','','- b'].join('\n'));
+const tc=await page.evaluate(async()=>{const b=document.querySelector('.md-lint-box [data-mdlintall="titre"]'),prop=[...document.querySelectorAll('.md-lint-box [data-mdniv].primary')].map(x=>x.dataset.mdniv);if(!b)return {prop};const txt=b.textContent;b.click();await __acCalme(400);
+  return {txt,prop,h:state.pdraft.body.split('\n').filter(l=>/^#/.test(l))};});
+t('A821 · sous « ## », le niveau proposé est « ### » (mis en avant)',tc.prop&&tc.prop.length===2&&tc.prop.every(x=>x==='3'),JSON.stringify(tc));
+t('A824 · « Tout convertir en titres (2) » : deux sous-titres sœurs d’un geste',tc.txt==='Tout convertir en titres (2)'&&JSON.stringify(tc.h)===JSON.stringify(['## Intoxication au CO','### Physiopathologie','### Prise en charge']),JSON.stringify(tc));
+await page.close();
 });
 
 const bilanSec=sec.bilan();

@@ -1369,6 +1369,45 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('A815 : laissés — phrase en gras qui continue, point final, liste, encadré, gras italique, indentée', A.mdGrasSeul('**Mesure** : HbCO sur gaz du sang')===''&&A.mdGrasSeul('**Ne jamais injecter.**')===''&&A.mdGrasSeul('- **Item**')===''&&A.mdGrasSeul('> **Note**')===''&&A.mdGrasSeul('***Titre***')===''&&A.mdGrasSeul('  **Item**')===''&&A.mdGrasSeul('**Attention : ne pas**')==='');
   ok('A815 : la relecture propose « ## » et le correctif remplace la ligne entière ; rien dans le code ni le tableau', (()=>{const src='# CO\n\n**Physiopathologie :**\n\n- a\n\n```\n**pas ici**\n```\n\n| **x** |\n|---|';const L=A.mdLint(src,[]).filter(x=>x.k==='titre');
     return L.length===1&&L[0].fix==='## Physiopathologie'&&src.slice(L[0].from,L[0].to)==='**Physiopathologie :**'&&L[0].ln===2;})());
+  // A821 (rectifie A815) — le niveau proposé suit la section, stable d'une conversion à l'autre
+  {const T=(src,ln,c)=>A.mdTitreNiv(src.split('\n'),ln,c);
+   eq('A821 : sous « # », « ## » ; sous « ## », « ### » ; sous « ### », « ### » ; sans titre au-dessus, « ## »', [T('# A\n\n**x**',2),T('## A\n\n**x**',2),T('### A\n\n**x**',2),T('Texte\n\n**x**',2)], [2,3,3,2]);
+   ok('A821 : après rechargement, « ## Intoxication au CO › **Physiopathologie :** » donne « ### »', (()=>{const L=A.mdLint('## Intoxication au CO\n\n**Physiopathologie :**\n\n- a',[]).filter(x=>x.k==='titre');return L.length===1&&L[0].fix==='### Physiopathologie'&&L[0].niv===3;})());
+   ok('A821 : deux conversions successives sous « # » donnent des SŒURS (la première venue de la session)', (()=>{const c=new Set(['2|X']);return T('# A\n\n## X\n\n- a\n\n**Y**',6,c)===2&&T('# A\n\n## X\n\n- a\n\n**Y**',6,new Set())===3;})());
+   ok('A821 : même niveau qu’un intitulé converti sous le même parent → sœur ; un autre parent n’y compte pas', (()=>{const c=new Set(['2|X']);const s='# A\n## X\n## Y\n**Z**';const s2='# B\n## X\n# A\n## Y\n**Z**';return T(s,3,c)===2&&T(s2,4,c)===3;})());
+   ok('A821 : un « ### » posé sous un « ## » ne déclenche pas « Sous-titre sans titre au-dessus »', !A.mdLint('## A\n\n### B\n\ntexte',[]).some(x=>x.cible==='Sous-titre sans titre au-dessus'));
+   ok('A821 : le code est ignoré pour trouver le titre qui coiffe', T('## A\n```\n# pas un titre\n```\n**x**',4)===3);}
+  // A824 — « Tout … » pour un protocole : un geste, toutes les lignes, la règle de niveau ligne par ligne
+  {const R=A.mdLintAll('## Intoxication au CO\n\n**Physiopathologie :**\n\n- a\n\n**Prise en charge** :\n\n- b\n\n# Autre\n\n**Mesure**',[],'titre',new Set());
+   eq('A824 : tout convertir — sous « ## » des sous-titres SŒURS, sous « # » un titre ; les intitulés notés', [R.v.split('\n').filter(l=>/^#/.test(l)),R.conv],
+     [['## Intoxication au CO','### Physiopathologie','### Prise en charge','# Autre','## Mesure'],['3|Physiopathologie','3|Prise en charge','2|Mesure']]);
+   eq('A824 : tout corriger l’écriture des doses — chaque correctif, le reste du texte intact', A.mdLintAll('a .5 mg puis 5,0 mg et 2 ug\n**Gras**',[],'dose').v, 'a 0,5 mg puis 5 mg et 2 µg\n**Gras**');
+   ok('A824 : rien à faire → le texte rendu tel quel', A.mdLintAll('texte',[],'titre').v==='texte'&&A.mdLintAll('texte',[],'dose').v==='texte');
+   ok('A824 : la phrase qui commence en gras n’est pas convertie', A.mdLintAll('## A\n\n**Mesure** : HbCO',[],'titre').v==='## A\n\n**Mesure** : HbCO');}
+  /* A819 — aligner un média, écrire sa légende : l'attribut étendu partout */
+  group('A819 — l’alignement et la légende d’un média');
+  {const PNG='data:image/png;base64,iVBORw0KGgo=',IM=[{id:'x',data:PNG,caption:''}],V=[{id:'v',mime:'video/mp4',size:9}];
+   eq('A819 : mdAttr lit les deux clés, dans n’importe quel ordre, « left » = rien', [A.mdAttr('{width=45% align=center}'),A.mdAttr('{align=right width=50%}'),A.mdAttr('{align=left}'),A.mdAttr('')], [{w:45,al:'center'},{w:50,al:'right'},{w:0,al:''},{w:0,al:''}]);
+   eq('A819 : mdAttrStr écrit largeur puis alignement, rien pour gauche et 0', [A.mdAttrStr(45,'center'),A.mdAttrStr(45,'left'),A.mdAttrStr(0,'right'),A.mdAttrStr(0,'')], ['{width=45% align=center}','{width=45%}','{align=right}','']);
+   const B=s=>A.mdBlocks(s)[0];
+   ok('A819 : le bloc image lit largeur et alignement, quel que soit l’ordre ; « align » seul aussi', (()=>{const a=B('![c](img:x){width=45% align=center}'),b=B('![](img:x){align=right width=30%}'),c=B('![](img:x){align=center}');return a.t==='img'&&a.w===45&&a.al==='center'&&b.w===30&&b.al==='right'&&c.t==='img'&&c.al==='center';})());
+   ok('A819 : vidéo — même lecture', (()=>{const v=B('![](vid:v){width=50% align=right}');return v.t==='vid'&&v.w===50&&v.al==='right';})());
+   ok('A819 : rendu — classe fermée centrée/droite, sous 100 % seulement, jamais un style', (()=>{const c=A.mdRender('![](img:x){width=45% align=center}',{images:IM}),r=A.mdRender('![](img:x){width=45% align=right}',{images:IM}),p=A.mdRender('![](img:x){width=100% align=center}',{images:IM}),g=A.mdRender('![](img:x){width=45%}',{images:IM});
+     return / md-al-c/.test(c)&&/ md-al-r/.test(r)&&!/md-al/.test(p)&&!/md-al/.test(g)&&!/style=/.test(c+r);})());
+   ok('A819 : dans une puce et dans une case, l’alignement est lu mais pas rendu', (()=>{const l=A.mdRender('- a\n    ![](img:x){width=45% align=center}',{images:IM}),t=A.mdRender('| a |\n|---|\n| ![](img:x){width=45% align=right} |',{images:IM});return /md-fig/.test(l)&&/md-fig/.test(t)&&!/md-al/.test(l+t)&&!/align=/.test(l+t);})());
+   ok('A819 : un attribut hors du jeu fermé n’est pas lu (la ligne reste du texte)', B('![](img:x){align=middle}').t!=='img'&&B('![](img:x){width=45% width=50% align=center}').t!=='img');
+   ok('A819 : recherche — l’attribut étendu ne laisse rien', !/align|width/.test(A.mdStrip('![](img:x){width=45% align=center}\n| ![](img:x){align=right width=20%} |\n|---|')));
+   ok('A819 : export léger — la ligne alignée part en entier, dans une case aussi', (()=>{const b=A.exportLeger({fiches:[],protocols:[{body:'a\n![](img:x){width=45% align=center}\n| ![](vid:v){align=right} |\n|---|',images:IM,docs:[],videos:V}]}).protocols[0].body;return !/img:|vid:|align|width/.test(b)&&/^a/.test(b);})());
+   ok('A819 : mdMedFind lit l’alignement et la place de la légende', (()=>{const s='x\n![Masque](img:x){width=45% align=center}',f=A.mdMedFind(s,'img','x',0);return f.w===45&&f.al==='center'&&f.cap==='Masque'&&s.slice(f.cf,f.ct)==='Masque';})());
+   eq('A819 : mdMedSetAl garde la largeur, « left » retire la clé ; mdMedSetW garde l’alignement',
+     [A.mdMedSetAl('![](img:x){width=45%}','img','x',0,'center'),A.mdMedSetAl('![](img:x){width=45% align=center}','img','x',0,'left'),A.mdMedSetW('![](img:x){width=45% align=right}','img','x',0,60)],
+     ['![](img:x){width=45% align=center}','![](img:x){width=45%}','![](img:x){width=60% align=right}']);
+   eq('A819 : mdMedSetCap écrit entre les crochets de CET emplacement ; « ] » et retours neutralisés ; « | » échappé dans un tableau',
+     [A.mdMedSetCap('![a](img:x)\n![b](img:x){width=50%}','img','x',1,'Masque'),A.mdMedSetCap('![](vid:v)','vid','v',0,'Pose ] de\nl’aiguille'),A.mdMedSetCap('| ![](img:x) |','img','x',0,'a | b')],
+     ['![a](img:x)\n![Masque](img:x){width=50%}','![Pose de l’aiguille](vid:v)','| ![a \\| b](img:x) |']);
+   ok('A819 : la légende tient en 300 caractères', A.mdCapNet('x'.repeat(400)).length===300);
+   ok('A819 : la légende écrite dans un tableau se relit (case rendue, légende sans barre oblique)', (()=>{const s=A.mdMedSetCap('| t |\n|---|\n| ![](img:x) |','img','x',0,'a | b'),h=A.mdRender(s,{images:IM});return /<figcaption>a \| b<\/figcaption>/.test(h);})());
+   eq('A819 : mdMedBlocOccs — seuls les passages en bloc (ni puce ni case)', A.mdMedBlocOccs('![](img:x)\n- a\n    ![](img:x)\n| ![](img:x) |\n|---|\n![](img:x){width=20% align=right}','img','x'), [0,3]);}
   // A813 — le texte touché retrouvé dans la source du bloc
   ok('A813 : texte touché → position dans la source (gras, retrait, introuvable)', A.mdTapPos('- **Suspecter :** saison','Suspecter :',3)===7&&A.mdTapPos('- a\n    - Fréquence','Fréquence',4)===14&&A.mdTapPos('abc','zzz',0)===null&&A.mdTapPos('abc','',0)===null&&A.mdTapPos('- x\n- Fin de ligne','  Fin',2)===6);
   ok('A814 : le gras porte sa marque dans le calque (hl-b), texte inchangé', (()=>{const src='**Dose** puis *x*';const d=document.createElement('div');d.innerHTML=A.mdHlHtml(src,[]);const b=d.querySelector('.hl-b');return d.textContent===src&&!!b&&b.textContent==='Dose';})());

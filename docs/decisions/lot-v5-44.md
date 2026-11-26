@@ -66,7 +66,7 @@ qui a été reconnu ; **la couleur n'est jamais reprise** (elle a un sens ici) e
 au-dessus, encadré vide, et l'**écriture des doses** connue pour tromper la lecture — zéro manquant (« .5 mg »), zéro
 superflu (« 5,0 mg »), « ug », « U », « cc ». Code ignoré. **Qualification § 2 (non-DM), écrite avant le code** : aucune
 valeur n'est jugée ni calculée, aucune sortie individualisée ; c'est un correcteur typographique sur un vocabulaire
-fermé. Liste sous le champ (absente quand il n'y a rien à dire), « Corriger » une par une — **pas de « tout corriger »,
+fermé. Liste sous le champ (absente quand il n'y a rien à dire), « Corriger » une par une — **pas de « tout corriger »** (*amendé par A824, `lot-v5-158.md`, pour l'éditeur de PROTOCOLE seulement, décision de l'auteur*) **,
 à dessein** — remplacement exact vérifié contre le texte (`was`), annulable ; synthèse « Écriture » dans le volet
 partagé. **Deux défauts existants corrigés en route** : sur une référence, les rangées du volet étaient inertes (le
 gestionnaire ne cherchait que des blocs d'aide, et sous 1000 px `bindRevPanel` n'était jamais appelé) ; le volet en pied

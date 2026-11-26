@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [5.158.0] — 2026-11-26
+Aligner une image ou une vidéo, lui écrire une légende depuis l'éditeur ; et les corrections de la v5.157.0 que vous
+avez signalées (A819-A825). Aucune mise à jour du serveur.
+- **Aligner une image ou une vidéo : à gauche, au centre ou à droite.** Touchez-la en mise en forme en direct : au
+  bureau, trois boutons dans sa barre ; au téléphone, « Gauche · Centre · Droite » dans la barre du bas. Dans le texte,
+  l'alignement s'écrit avec la largeur : `![](img:ID){width=45% align=center}`. Il vaut pour une image seule sur sa
+  ligne ; dans une liste ou un tableau, l'image suit sa puce ou sa colonne. En pleine largeur, les boutons sont grisés :
+  il n'y a rien à aligner. Une image centrée a une poignée de largeur de chaque côté.
+  ⚠ Un appareil resté sur une version antérieure n'affiche pas une image alignée (la ligne s'y lit en texte) : mettez
+  tous les appareils à jour.
+- **Écrire une légende depuis l'image** : « Légende » dans sa barre, ou l'invite « Ajouter une légende » sous l'image
+  sélectionnée. La légende s'écrit entre les crochets de cet emplacement (`![Masque haute concentration](img:…)`) et
+  s'affiche sous l'image, alignée comme elle. Pareil pour une vidéo.
+- **Corrigé — un grand vide au-dessus du passage ouvert** quand on touchait directement un passage sous un autre déjà
+  ouvert. La page défile pour garder la ligne touchée sous le doigt ; la mise en page ne bouge plus.
+- **Corrigé — « En faire un titre » proposait toujours « ## »** : sous « ## Intoxication au CO », « Physiopathologie »
+  devenait sa sœur. La relecture propose maintenant « Titre ## » ou « Sous-titre ### », le bon niveau mis en avant, et
+  deux lignes converties à la suite deviennent sœurs.
+- **« Tout convertir en titres (n) » et « Tout corriger l'écriture des doses (n) »** dans la relecture d'un protocole,
+  dès deux points du même genre : un seul geste, un seul ↶ pour tout défaire. L'éditeur d'aide garde « une par une ».
+- **Corrigé — la lecture et la mise en forme en direct avaient encore des écarts différents autour des titres** (4 à
+  11 px) : ils sont maintenant identiques, mesurés, au téléphone comme au bureau.
+- **Corrigé — le trait des sous-listes** tombait à droite de la puce et faisait un petit « | » isolé sous une seule
+  sous-puce : il part maintenant de la puce, et s'arrête au milieu de la première ligne de la dernière sous-puce.
+- **Corrigé — au téléphone, le bouton « Ajouter » recouvrait « Supprimer »** sous un passage ouvert : il s'efface tant
+  qu'un passage est ouvert.
+
 ## [5.157.0] — 2026-11-26
 Les protocoles se lisent mieux, et l'éditeur en mise en forme en direct ne « saute » plus (A811-A818). Aucune mise à jour
 du serveur.
@@ -198,10 +225,3 @@ Correctifs du réglage de la largeur, après vos retours (A789). Aucune mise à 
 - Dans un tableau qu'on fait défiler de côté, le cadre de l'image sélectionnée suit l'image.
 - Vérifié sur Chrome et Edge (le même moteur), Safari (le moteur WebKit, avec un iPhone et un iPad simulés, en clair et
   en sombre) et Firefox.
-
-## [5.146.0] — 2026-11-18
-Une liste écrite dans une case de tableau s'affiche en liste (A788). Aucune mise à jour du serveur.
-- **Dans une case**, des lignes qui commencent par « - », « * » ou « 1. » deviennent une vraie liste, à puces ou
-  numérotée — elles s'affichaient avec leur tiret. Une ligne décalée fait un sous-niveau (c'est aussi la forme que garde
-  l'import de Notion). Un libellé au-dessus reste au-dessus.
-- Rien ne change pour une case sans liste, ni pour « 5 - 10 mg » (un tiret au milieu d'une ligne n'est pas une liste).

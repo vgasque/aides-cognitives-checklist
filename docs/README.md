@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A818** à la v5.157.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A825** à la v5.158.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -440,6 +440,13 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A816 | `lot-v5-157.md` | Rectificatif d'A634 : le cadre de sélection des blocs est ancré au document et fait défiler la page au bord ; la molette pendant le geste étend la sélection |
 | A817 | `lot-v5-157.md` | Plan v2 : une fois le titre sorti, l'en-tête écrit la section en cours (`.hdr-plan`, `#` parent dans la ligne du mode), 0 px, au téléphone comme au bureau ; rien clavier ouvert ; la carte de 56 px écartée (`mdPlanSpy`) |
 | A818 | `lot-v5-157.md` | Changer de mode (en direct ⇄ Markdown entier) garde la même ligne de source à l'écran (`mdAncre`, `mdAncreApply`) |
+| A819 | `lot-v5-158.md` | Aligner une image ou une vidéo : `{width=NN% align=center|right}` lu partout, écrit sans lot 0 (décision de l'auteur), rendu en classe fermée (`MD_AL`) pour un bloc sous 100 % ; barre du média (segmenté, « Légende »), feuille de l'image ; deux poignées au centre (amende A785) ; légende écrite entre les crochets de l'emplacement (`mdMedSetCap`), invite sur le média sélectionné |
+| A820 | `lot-v5-158.md` | Rectifie A813 : plus de marge de compensation (`mdOpenAlign` retiré) ; la ligne touchée revient sous le doigt par défilement borné (`mdOpenKeep`) |
+| A821 | `lot-v5-158.md` | Rectifie A815 : « Titre ## » ou « Sous-titre ### », le niveau proposé suit la section (`mdTitreNiv`, conversions de la session en mémoire) |
+| A822 | `lot-v5-158.md` | Rectifie A811 : la boîte de 32 px est celle du titre, partout ; écarts autour des titres identiques en lecture et en direct, par construction |
+| A823 | `lot-v5-158.md` | Rectifie A812 : puce dessinée, trait porté par chaque sous-puce à l'abscisse mesurée du centre de la puce parente, arrêté au milieu de la première ligne de la dernière |
+| A824 | `lot-v5-158.md` | Amende A459 pour l'éditeur de protocole (décision de l'auteur) : « Tout convertir en titres (n) », « Tout corriger l'écriture des doses (n) », une seule annulation (`mdLintAll`) |
+| A825 | `lot-v5-158.md` | La porte flottante « Ajouter » s'efface tant qu'un bloc est ouvert (elle recouvrait « Supprimer ») |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
