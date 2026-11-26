@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A828** à la v5.159.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A830** à la v5.160.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -450,6 +450,8 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A826 | `lot-v5-158-1.md` | Dans un éditeur, la barre relaie le titre dès qu'il est à moitié passé dessous (mesuré : `.ed-ttl`, `.id-t`) — plus de barre vide entre ~60 et 110 px de défilement |
 | A827 | `lot-v5-158-1.md` | `html.kbd` se relit aussi au focus pris ou perdu (rectificatif d'A802) : la barre monte au-dessus du clavier sans attendre le tic de 300 ms |
 | A828 | `lot-v5-159.md` | « ### » devient une rubrique (capitales 13,5 / 800, sans filet) ; le filet n'appartient qu'au « # », au-dessus (amende A811 ; V1 choisie par l'auteur) |
+| A829 | `lot-v5-160.md` | Entrée termine le bloc et ouvre le suivant en mise en forme en direct (titre validé, paragraphe coupé au curseur ; liste, encadré, code gardent leur Entrée et en sortent ; Maj+Entrée ou « ↵ À la ligne » vont à la ligne) ; touches « Échap » et « ⇧⏎ » dans les boutons, au pointeur fin, sans un pixel de hauteur (amende A547) |
+| A830 | `lot-v5-160.md` | Un média inséré, collé ou posé depuis un bloc ouvert va après le paragraphe, jamais au milieu d'une ligne (rectificatif d'A813) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

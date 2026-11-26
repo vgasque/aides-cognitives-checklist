@@ -994,6 +994,8 @@ barre et la section « Images » s'en chargent) ; glisser un bloc à la souris ;
 Témoins : `tests.html` (bornes et gestes des blocs) ; `audit-doctrine` « Éditeur · A547 » (téléphone clavier émulé et
 bureau ; vérifié capable d'échouer : 7 rouges sur l'avant), « Éditeur · A546 » réécrit en mode Markdown.
 
+*Amendé par A829 (v5.160.0, `lot-v5-160.md`) : dans un bloc ouvert, Entrée termine le bloc et ouvre le suivant (titre validé, paragraphe coupé au curseur ; liste, encadré et code gardent leur Entrée et en sortent) ; Maj+Entrée ou « ↵ À la ligne » vont à la ligne ; ⌘ Entrée ou Échap ferment.*
+
 ## A548 — Le bloc ouvert se règle sur place ; glisser un bloc (v5.77.0)
 
 *Suite d'A547 (« pas encore fait ») et de la planche B (B2, B4). Demande de l'auteur : « poursuis ».*
