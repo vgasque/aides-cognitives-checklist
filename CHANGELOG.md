@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [5.158.1] — 2026-11-26
+Correctifs trouvés à la revue visuelle et à l'audit complet de la v5.158.0 (A826-A827). Aucune mise à jour du serveur.
+- **Dans un éditeur, la barre du haut ne reste plus vide.** Après un petit défilement, le titre de la page (« Modifier
+  l'aide », ou la rangée « Titre » d'un protocole) était déjà passé sous la barre, mais la barre ne l'affichait pas
+  encore : elle attendait 110 px de défilement. Elle reprend maintenant le titre dès qu'il est à moitié caché.
+- **Au téléphone, la barre de mise en forme monte au-dessus du clavier dès qu'un bloc s'ouvre**, sans le court délai
+  qui pouvait la laisser en haut de page quand on passait d'un bloc à un autre clavier ouvert (A827).
+
 ## [5.158.0] — 2026-11-26
 Aligner une image ou une vidéo, lui écrire une légende depuis l'éditeur ; et les corrections de la v5.157.0 que vous
 avez signalées (A819-A825). Aucune mise à jour du serveur.
@@ -212,16 +220,3 @@ mise à jour du serveur.
   ajoutez la vidéo ; pour les vidéos déjà là, l'appareil qui a le fichier la capture de lui-même.
 - La première image voyage avec le protocole : sur un autre appareil, elle s'affiche avant que la vidéo soit arrivée.
 - Une vidéo que le navigateur ne sait pas lire (un MOV hors de Safari) garde le mot « Vidéo ».
-
-## [5.146.1] — 2026-11-18
-Correctifs du réglage de la largeur, après vos retours (A789). Aucune mise à jour du serveur.
-- **Un seul réglage** : une image ou une vidéo ouverte par « Modifier… » ne montre plus ses anciens pictogrammes de
-  taille, qui faisaient doublon. Elle s'affiche à sa largeur, et une ligne rappelle qu'elle se règle en touchant l'image
-  dans le document puis en tirant son bord. La fiche d'une image (« Images du texte ») garde le réglage, pour tous ses
-  passages à la fois.
-- **La barre de l'image sélectionnée se voit en mode sombre** : elle se fondait dans le contenu, surtout sur iPhone.
-  Elle a maintenant un bord clair la nuit. Au téléphone, elle reste en bas de l'écran.
-- **Sur iPhone, tirer une poignée ou une pastille ne sélectionne plus de texte.**
-- Dans un tableau qu'on fait défiler de côté, le cadre de l'image sélectionnée suit l'image.
-- Vérifié sur Chrome et Edge (le même moteur), Safari (le moteur WebKit, avec un iPhone et un iPad simulés, en clair et
-  en sombre) et Firefox.
