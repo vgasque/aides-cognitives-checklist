@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.164.0] — 2026-11-27
+Modifier un protocole : une tête qui ne saute plus, et la sélection à la souris rendue (A837-A839). Aucune mise à jour du
+serveur.
+- **La tête du contenu rédigé ne fait plus sauter la page.** Ouvrir un bloc remplace la tête (« Contenu rédigé ·
+  facultatif », le Plan, le mode) par les outils, à la même place ; le refermer la rend. Avant, la barre d'outils
+  apparaissait au-dessus du document, qui remontait de 46 px à chaque fermeture.
+- **Une seule taille de texte dans cette tête** (plus de capitales, de 12 et de 13,5 mêlés), alignée sur le texte au
+  bureau, sur une ligne au téléphone. La ligne « Touchez un passage pour le modifier » est retirée.
+- **Le Plan reste à portée quand un bloc est ouvert** : l'en-tête de la page l'affiche, même en haut de page.
+- **Au bureau, la poignée ⠿ paraît dès que la souris est dans la marge**, à hauteur du bloc (il fallait passer sur le
+  texte).
+- **Sélectionner plusieurs blocs à la souris** : le cadre part aussi de l'espace vide à droite d'une ligne (comme dans
+  Notion), en plus de la marge droite. Un simple clic au même endroit ouvre toujours le bloc.
+- Témoins : `audit-doctrine` « A837-A839 » ; A552, A634, A805 et A816 mis à jour.
+
 ## [5.163.1] — 2026-11-27
 Une seule poignée, bien alignée (A836, amende A833). Aucune mise à jour du serveur.
 - **Au bureau, une seule poignée « ⠿ » au survol d'un bloc, centrée sur sa première ligne** — titre, paragraphe, puce ou
@@ -222,11 +237,3 @@ ouvrant le clavier (A800-A801). Aucune mise à jour du serveur.
 - **« Ajouter un bloc » ne se referme plus tout seul sur tablette** (A801). Depuis la v5.150.0, ses dix choix faisaient apparaître un champ « Filtrer… » qui prenait le focus : le clavier montait, puis se refermait avec le menu. Le menu n'a plus de filtre : c'est une courte liste d'actions.
 - **Au doigt, aucun menu n'ouvre plus le clavier tout seul** : le champ de recherche d'un menu (catégorie, collection, document à joindre…) reste là, mais il ne prend le focus que si on le touche. À la souris, au trackpad ou au clavier, rien ne change : on tape aussitôt.
 - **Un menu déroulant ne se ferme plus quand le clavier de tablette fait défiler la page** pour montrer le champ où l'on écrit.
-
-## [5.150.0] — 2026-11-19
-La barre d'onglets ne descend plus sous l'écran en faisant défiler, l'éditeur de protocole propose trois niveaux de titre,
-et la fenêtre « Tableau » a un retour (A797-A799). Aucune mise à jour du serveur.
-- **La barre d'onglets ne descend plus** (A797, d'après une vidéo d'iPhone). En faisant défiler une page de l'accueil, elle sautait parfois de 30 à 40 px vers le bas, jusqu'à sortir en partie de l'écran, et y restait. Le saut avait lieu à l'instant exact où la barre du haut devient « collée » (le petit titre paraît, le verre arrive). Ce verre est maintenant toujours en place, seule sa couleur change, et iOS n'a plus de raison de déplacer la barre d'onglets. Par précaution, la barre se recale aussi d'elle-même dès que le défilement s'arrête. **À vérifier sur iPhone.**
-- **Trois niveaux de titre dans « Ajouter un bloc »** (A798) : Grand titre (`#`), Titre de section (`##`) et Sous-titre (`###`), marqués H1, H2, H3. Jusqu'ici, le menu ne proposait que « Titre de section », donc toujours `##`. **Un titre ouvert change de niveau sur place** : trois pastilles au-dessus du texte, sans retaper les `#`.
-- **« Modifier le Markdown » a maintenant un retour** (A799). Le tableau ouvert en texte porte **« Revenir à la grille »**, qui rouvre la fenêtre « Tableau » sur le texte. Dans la grille, « Mettre à jour » écrit et referme ; « Annuler » vous ramène au texte.
-- **Ce qu'on a tapé dans la grille n'est plus perdu** en passant au Markdown : la saisie est écrite d'abord. Si la grille n'a pas changé, rien n'est réécrit.
