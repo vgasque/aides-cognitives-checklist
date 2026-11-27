@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.164.1] — 2026-11-27
+Le Plan s'affiche correctement (A840). Aucune mise à jour du serveur.
+- **Au bureau, le Plan ouvert depuis le titre de l'en-tête s'ouvre juste en dessous**, comme un menu ; il s'affichait en
+  bas à gauche de la fenêtre.
+- **Au téléphone, l'arbre du Plan est lisible** : le trait qui relie les sections passe à gauche, il ne coupe plus « H2 »
+  ni le début des sous-titres.
+
 ## [5.164.0] — 2026-11-27
 Modifier un protocole : une tête qui ne saute plus, et la sélection à la souris rendue (A837-A839). Aucune mise à jour du
 serveur.
@@ -229,11 +236,3 @@ plus avec les choix (A803). Aucune mise à jour du serveur.
 Après une mise en veille, l'en-tête ne disparaît plus (A802). Aucune mise à jour du serveur.
 - **Le haut de l'écran revient au déverrouillage** (A802). Sur iPad et iPhone, après une mise en veille, l'en-tête pouvait rester caché : la page commençait sous l'heure, sans retour, sans « Enregistrer », et sans moyen d'y remonter. L'app croyait le clavier encore ouvert, car au réveil iOS signale parfois un écran raccourci, comme si un clavier était affiché. Elle ne le croit plus que si un champ de saisie est réellement actif. **À vérifier sur iPad et iPhone.**
 - Si un champ était en cours de saisie au moment de la veille, l'en-tête revient dès qu'on touche ailleurs que dans le champ.
-
-## [5.150.1] — 2026-11-20
-Deux correctifs pour la tablette : la liste des catégories défile seule, et « Ajouter un bloc » ne se referme plus en
-ouvrant le clavier (A800-A801). Aucune mise à jour du serveur.
-- **La colonne des catégories défile d'elle-même** (A800). Dans Bibliothèques, sur tablette et au bureau, une bibliothèque qui a beaucoup de catégories ne montrait le bas de sa colonne qu'une fois la liste des aides et protocoles défilée jusqu'en bas. La colonne reste en place, tient dans la hauteur de l'écran et se fait défiler seule ; choisir une catégorie en bas ne la remonte plus.
-- **« Ajouter un bloc » ne se referme plus tout seul sur tablette** (A801). Depuis la v5.150.0, ses dix choix faisaient apparaître un champ « Filtrer… » qui prenait le focus : le clavier montait, puis se refermait avec le menu. Le menu n'a plus de filtre : c'est une courte liste d'actions.
-- **Au doigt, aucun menu n'ouvre plus le clavier tout seul** : le champ de recherche d'un menu (catégorie, collection, document à joindre…) reste là, mais il ne prend le focus que si on le touche. À la souris, au trackpad ou au clavier, rien ne change : on tape aussitôt.
-- **Un menu déroulant ne se ferme plus quand le clavier de tablette fait défiler la page** pour montrer le champ où l'on écrit.
