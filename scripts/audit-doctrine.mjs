@@ -9051,7 +9051,7 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  await page.evaluate(async()=>{document.querySelectorAll('#mdDoc table')[0].closest('.mdb').click();await __acCalme(300);document.querySelector('#mdToolFoot [data-mdtw="md"]').click();await __acCalme(200);});
  const mdl=await page.evaluate(()=>({modal:document.getElementById('mdToolModal').classList.contains('on'),ta:(document.querySelector('#mdDoc .mdb-ta')||{}).value||''}));
  t('A772-A776 · 2 · « Modifier le Markdown » : fenêtre fermée, bloc ouvert en texte',!mdl.modal&&/^\| Médicament/.test(mdl.ta),JSON.stringify(mdl).slice(0,200));
- await page.evaluate(async()=>{document.querySelector('#mdDoc [data-mdbact="done"]').click();await __acCalme(200);});
+ await page.evaluate(async()=>{document.querySelector('.md-ed [data-mdbact="done"]').click();await __acCalme(200);});
  // 1C : la grille d'images montre ses vignettes
  await page.evaluate(async()=>{document.querySelectorAll('#mdDoc table')[1].closest('.mdb').click();await __acCalme(300);});
  const g=await page.evaluate(()=>{const m=document.getElementById('mdToolModal');return {imgs:m.querySelectorAll('.mdg-med img').length,txt:[...m.querySelectorAll('.mdg-in')].map(x=>x.value).join('|'),dim:m.querySelector('.mdg-dim').textContent};});
@@ -9078,7 +9078,7 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  await page.click('.popmenu [data-pickopt="i_a"]');await calme(page,250);
  const lv=await page.evaluate(()=>document.querySelector('#mdDoc .mdb-ta').value);
  t('A772-A776 · 1A · l’image s’écrit sous l’élément 2, au retrait de son texte',lv==='1. Sonde linéaire\n2. Veine fémorale\n   ![](img:i_a)\n3. Veine poplitée',JSON.stringify(lv));
- await page.evaluate(async()=>{document.querySelector('#mdDoc [data-mdbact="done"]').click();await __acCalme(300);});
+ await page.evaluate(async()=>{document.querySelector('.md-ed [data-mdbact="done"]').click();await __acCalme(300);});
  const lr=await page.evaluate(()=>{const o=document.querySelector('#mdDoc ol');return o?o.querySelectorAll('li').length+'/'+o.querySelectorAll('li .md-lfig').length:'';});
  t('A772-A776 · 1A · rendu : une seule liste, l’image dans l’élément',lr==='3/1',lr);
  // 1D : taille de la vidéo
@@ -9086,7 +9086,7 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
    document.querySelector('#mdDoc [data-mdm="pct"]').click();await __acCalme(300);const o=document.querySelector('.popmenu [data-pickopt="50"]');if(o)o.click();await __acCalme(300);});   // A789 : sur le document
  const vs=await page.evaluate(()=>({sc:state.pdraft.videos[0].scale,txt:/\(vid:v1\)\{width=50%\}/.test(state.pdraft.body)}));
  t('A772-A776 · 1D · la vidéo prend ½, choisie sur le document (A785, A789) : écrit sur l’emplacement ({width=50%}), le modèle inchangé',vs.txt&&vs.sc!==50,JSON.stringify(vs));
- await page.evaluate(async()=>{const d=document.querySelector('#mdDoc [data-mdbact="done"]');if(d)d.click();await __acCalme(300);});
+ await page.evaluate(async()=>{const d=document.querySelector('.md-ed [data-mdbact="done"]');if(d)d.click();await __acCalme(300);});
  const vr=await page.evaluate(()=>(document.querySelector('#mdDoc figure.md-vfig')||{}).className||'');
  t('A772-A776 · 1D · rendu refermé : md-vfig mw mw50 (A785)',/md-vfig mw mw50/.test(vr),vr);
  // 3A : dépôt entre deux blocs
@@ -9204,7 +9204,7 @@ await sec('Éditeur · A610-A612 blocs : « ＋ » du bloc survolé, sélection 
     await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A612',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},"# T\n\nA\n\nB\n\nC\n\nD");
     await calme(page,500);
     const r=await page.evaluate(async()=>{const o={},d=document.getElementById('mdDoc');
-      d.querySelectorAll('.mdb')[1].click();await __acCalme(200);d.querySelector('[data-mdbact="sel"]').click();await __acCalme(200);
+      d.querySelectorAll('.mdb')[1].click();await __acCalme(200);{document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="sel"]').click();}await __acCalme(200);
       d.querySelectorAll('.mdb')[3].click();await __acCalme(150);
       const mv=d.querySelector('[data-mdbsel="move"]');o.bouton=!!mv;if(!mv)return o;mv.click();await __acCalme(200);
       o.pris=d.querySelectorAll('.mdb.grabbed').length;o.bandeau=((d.querySelector('.ed-grab .eg-l')||{}).textContent||'');
@@ -9223,8 +9223,7 @@ await sec('Éditeur · A610-A612 blocs : « ＋ » du bloc survolé, sélection 
     await calme(page,500);
     const r=await page.evaluate(async()=>{const o={},d=document.getElementById('mdDoc');
       d.querySelectorAll('.mdb')[1].click();await __acCalme(200);
-      o.avant=!!d.querySelector('.mdb-acts [data-mdbadd="0"]')&&/Bloc avant/.test(d.querySelector('.mdb-acts').textContent);
-      d.querySelector('[data-mdbact="sel"]').click();await __acCalme(200);
+      {document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(250);o.avant=!!document.querySelector('.popmenu [data-pickopt="av"]');document.querySelector('.popmenu [data-pickopt="sel"]').click();await __acCalme(200);}   // A842 : « Bloc avant », « Sélectionner » dans « ⋯ » de la barre
       d.querySelectorAll('.mdb')[2].click();await __acCalme(150);
       o.sel=d.querySelectorAll('.mdb.sel').length;o.ferme=!d.querySelector('.mdb-ta');
       d.querySelector('[data-mdbsel="x"]').click();await __acCalme(150);o.annule=!d.querySelector('.mdb.sel')&&!d.querySelector('.mdb-selbar');
@@ -9254,7 +9253,7 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
         barre:(()=>{const b=document.querySelector('.md-toolbar');return getComputedStyle(b).position==='fixed'&&document.documentElement.classList.contains('kbd');})()};
       t.setSelectionRange(t.value.length,t.value.length);document.execCommand('insertText',false,' Répéter.');await __acCalme(100);
       o.ecrit=state.pdraft.body.includes('**0,5 mg** Répéter.')&&document.getElementById('p-body').value===state.pdraft.body;
-      d.querySelector('[data-mdbact="done"]').click();await __acCalme(150);o.ferme=!d.querySelector('.mdb-ta');
+      document.querySelector('.md-ed [data-mdbact="done"]').click();await __acCalme(150);o.ferme=!d.querySelector('.mdb-ta');
       d.querySelector('.mdb-add:not(.mdb-first)').click();await __acCalme(300);const op=document.querySelector('.popmenu [data-pickopt="h"]');o.menu=!!op;if(op){op.click();await __acCalme(250);}
       const t2=d.querySelector('.mdb-ta');o.ajout=t2&&t2.value==='## Titre'&&t2.value.slice(t2.selectionStart,t2.selectionEnd)==='Titre'&&/## Titre$/.test(state.pdraft.body);
       return o;});
@@ -9288,12 +9287,12 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
       o.apercuCache=getComputedStyle(document.querySelector('#editSide .ep-card')).display==='none';
       const s=getSelection();s.removeAllRanges();const g=document.createRange(),bs=d.querySelectorAll('.mdb');g.setStart(bs[0],0);g.setEnd(bs[2],bs[2].childNodes.length);s.addRange(g);
       const dt=new DataTransfer();bs[1].dispatchEvent(new ClipboardEvent('copy',{clipboardData:dt,bubbles:true,cancelable:true}));o.copie=dt.getData('text/plain');
-      bs[1].click();await __acCalme(150);d.querySelector('[data-mdbact="dup"]').click();await __acCalme(100);o.dup=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
+      bs[1].click();await __acCalme(150);{document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="dup"]').click();}await __acCalme(100);o.dup=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
       // A551 : le geste d'un bloc pose le point de reprise — ↶ paraît et défait la duplication.
       const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);o.undo=!u.hidden;
       if(o.undo){u.click();await __acCalme(300);}o.rendu=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
       {const d2=document.getElementById('mdDoc');   // ↶ redessine l'éditeur : on relit le document
-       const b2=[...d2.querySelectorAll('.mdb')].find(x=>{const q=x.querySelector('p');return !!q&&q.textContent.trim()==='Texte.';});   /* la poignée ⠿ fait partie du texte du bloc */if(b2){b2.click();await __acCalme(150);d2.querySelector('[data-mdbact="del"]').click();await __acCalme(100);}}
+       const b2=[...d2.querySelectorAll('.mdb')].find(x=>{const q=x.querySelector('p');return !!q&&q.textContent.trim()==='Texte.';});   /* la poignée ⠿ fait partie du texte du bloc */if(b2){b2.click();await __acCalme(150);{document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="del"]').click();}await __acCalme(100);}}
       o.del=(state.pdraft.body.match(/^Texte\.$/gm)||[]).length;
       document.querySelector('[data-mdlive]').click();await __acCalme(300);o.markdown=!document.getElementById('mdDoc')&&getComputedStyle(document.querySelector('.md-hlw')).display!=='none'&&localStorage.getItem('ac-mdlive')==='0';
       try{localStorage.removeItem('ac-mdlive');}catch(e){}
@@ -9348,11 +9347,11 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     d.querySelector('.md-call').closest('.mdb').click();await __acCalme(150);
     const ch=[...d.querySelectorAll('[data-mdbreg]')];o.reg={n:ch.length,mots:ch.map(x=>x.textContent.replace(/[^A-Za-zÀ-ÿ]/g,'')).join('|'),glyphes:ch.every(x=>!!x.querySelector('svg')||/[△⚠ℹ✓]/.test(x.textContent)),on:(d.querySelector('[data-mdbreg].on')||{dataset:{}}).dataset.mdbreg};
     if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await __acCalme(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
-    const dn=d.querySelector('[data-mdbact="done"]');if(dn)dn.click();await __acCalme(100);
+    const dn=document.querySelector('.md-ed [data-mdbact="done"]');if(dn)dn.click();await __acCalme(100);
     const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await __acCalme(150);}
     o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('.mdb-imgv .mds-o').length,dit:/Largeur : 100 %/.test((d.querySelector('.mdb-imgv .hint')||{}).textContent||'')};
     o.taille={ouvert:!!d.querySelector('.mdb-ta')};   // A789 : la largeur se règle sur le document, plus dans le bloc ouvert
-    const dn2=d.querySelector('[data-mdbact="done"]');if(dn2)dn2.click();await __acCalme(100);
+    const dn2=document.querySelector('.md-ed [data-mdbact="done"]');if(dn2)dn2.click();await __acCalme(100);
     const n=d.querySelectorAll('.mdb').length,g=d.querySelector('[data-mdbgrab="'+(n-1)+'"]');o.poignee=!!g;
     if(g){g.click();await __acCalme(150);const mv=document.querySelector('.popmenu [data-pickopt="mv"]');if(mv)mv.click();await __acCalme(150);o.mode={bandeau:/Déplacement : « Fin\. »/.test((d.querySelector('.ed-grab')||{}).textContent||''),cibles:d.querySelectorAll('.ed-drop').length,
       pris:!!d.querySelector('.mdb.grabbed'),inerte:document.querySelector('[data-mdplan]').disabled&&document.querySelector('[data-mdlive]').disabled};
@@ -12950,7 +12949,7 @@ await sec('Éditeur · A798-A799 trois niveaux de titre ; « Modifier le Markdow
       d.querySelector('.mdb.on [data-mdbhx="1"]').click();await __acCalme(300);
       const t2=d.querySelector('.mdb-ta');o.niv=t2&&t2.value;o.body=state.pdraft.body;
       o.chips2=[...d.querySelectorAll('.mdb.on [data-mdbhx]')].map(x=>x.dataset.mdbhx+(x.getAttribute('aria-checked')==='true'?'*':'')).join(',');
-      d.querySelector('[data-mdbact="done"]').click();await __acCalme(200);return o;});
+      document.querySelector('.md-ed [data-mdbact="done"]').click();await __acCalme(200);return o;});
     t('A798 · '+L+' · « Ajouter un bloc » : Grand titre, Titre de section, Sous-titre ; « Sous-titre » pose « ### Sous-titre », mot sélectionné',
       /^p,h1,h,h3,c,/.test(a.opts)&&a.val==='### Sous-titre'&&a.sel==='Sous-titre',JSON.stringify(a));
     t('A798 · '+L+' · un titre ouvert change de niveau sur place (H3 → H1), écrit dans le document',a.chips==='1,2,3*'&&a.niv==='# Sous-titre'&&/\n# Sous-titre$/.test(a.body)&&a.chips2==='1*,2,3',JSON.stringify(a));
@@ -13547,10 +13546,10 @@ for(const W of [344,390,780,1280]){const pg=await proto819(W,W<500?844:900,corps
   const r=await pg.evaluate(async()=>{const b0=[...document.querySelectorAll('#mdDoc .mdb')].find(b=>b.textContent.includes('Premier'));b0.click();await __acCalme(300);const tt=document.querySelector('.mdb-ta');tt.focus();tt.setSelectionRange(2,2);tt.dispatchEvent(new Event('keyup'));await __acCalme(200);
     // A834-A835 : la mesure est désormais « une ligne » (chaque enfant visible commence avant que le premier ne finisse).
     const une=e=>{const k=[...e.children].filter(x=>x.getClientRects().length&&getComputedStyle(x).position!=='absolute');const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0);};
-    const b=document.querySelector('.md-toolbar'),a=document.querySelector('.mdb.on .mdb-acts'),h=une(b)?1:2,h0=1,ha=une(a)?1:2,ha0=1;
-    const kcs=[...document.querySelectorAll('.md-toolbar .kc,.mdb.on .kc')].filter(k=>getComputedStyle(k).display!=='none'&&k.getBoundingClientRect().width>0).length;
+    const b=document.querySelector('.md-toolbar'),h=une(b)?1:2,h0=1,ha=1,ha0=1;   // A842 : plus de rangée sous le bloc ouvert
+    const kcs=[...document.querySelectorAll('.md-toolbar .kc')].filter(k=>getComputedStyle(k).display!=='none'&&k.getBoundingClientRect().width>0).length;
     const x=b.querySelector('.mdt-br');return {h,h0,ha,ha0,kcs,br:!!x&&x.getBoundingClientRect().width>0,fin:matchMedia('(pointer:fine)').matches};});
-  t(`A829 · ${W} px : « ↵ » présent, barre et rangée des actions sans un pixel de plus ; touches ${W<500?'absentes au doigt':W>=1280?'au pointeur fin':'tues si la place manque (A834)'}`,r.br&&r.h<=r.h0&&r.ha<=r.ha0&&(W<500?r.kcs===0:W>=1280?r.kcs>0:true),JSON.stringify(r));
+  t(`A829 · ${W} px : « ↵ » présent, la barre sans un pixel de plus (A842 : plus de rangée sous le bloc) ; touches ${W<500?'absentes au doigt':W>=1280?'au pointeur fin':'tues si la place manque (A834)'}`,r.br&&r.h<=r.h0&&r.ha<=r.ha0&&(W<500?r.kcs===0:W>=1280?r.kcs>0:true),JSON.stringify(r));
   await pg.close();}
 });
 
@@ -13652,19 +13651,20 @@ const ouvert=pg=>pg.evaluate(()=>({bloc:!!document.querySelector('#mdDoc .mdb-ta
   const bd2=await pg.evaluate(()=>state.pdraft.body);
   t('A833 · « Bloc dessus… » ajoute AU-DESSUS du bloc de la poignée',/Premier paragraphe\.\n\nTexte\n\nSecond paragraphe/.test(bd2),bd2.slice(0,160));
   await pg.close();}
-// A834 — la rangée du bloc ouvert tient sur une ligne ; Entrée puis un caractère : rien ne bouge
+// A842 (amende A834) — plus de rangée sous le bloc ouvert : « ⋯ » et « ✓ Terminé » dans la barre ; Entrée puis un caractère : rien ne bouge
 for(const W of [390,375,320,1280]){const pg=await proto819(W,W<500?844:900,corps);
-  const r=await pg.evaluate(async()=>{const une=e=>{const k=[...e.children].filter(x=>x.getClientRects().length);const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0);};
-    const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Second'));b.scrollIntoView({block:'center'});await __acCalme(150);b.click();await __acCalme(300);
-    const a=document.querySelector('.mdb.on .mdb-acts');return {une:une(a),cls:a.className};});
+  const r=await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Second'));b.scrollIntoView({block:'center'});await __acCalme(150);b.click();await __acCalme(300);
+    const on=document.querySelector('#mdDoc .mdb.on'),tb=document.querySelector('.md-toolbar'),vis=s=>{const e=tb.querySelector(s);return !!e&&e.getClientRects().length>0&&getComputedStyle(e).visibility!=='hidden';};
+    return {rangee:!!on.querySelector('.mdb-acts,button[data-mdbact]'),plus:vis('[data-mdbact="more"]'),ok:vis('[data-mdbact="done"]'),ins:vis('[data-mdmenu="ins"]')};});
   const ta=await pg.$('#mdDoc .mdb-ta');await ta.focus();await pg.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(t.value.length,t.value.length);});
   await pg.keyboard.press('Enter');await calme(pg,300);const y=()=>pg.evaluate(()=>Math.round(document.querySelector('#mdDoc .mdb.on').nextElementSibling.getBoundingClientRect().top));
-  const y1=await y();await pg.keyboard.type('N');await calme(pg,300);const y2=await y();
-  t(`A834 · ${W} px : la rangée du bloc ouvert tient sur une ligne${W>1000?', entière, touche « Échap » comprise (rien dans « ⋯ »)':''}`,r.une&&(W>1000?!/ac1|kc-off|kc-court/.test(r.cls):/ac1/.test(r.cls)),JSON.stringify(r));
-  t(`A834 · ${W} px : Entrée puis un caractère — le bloc suivant ne bouge pas`,y1===y2,JSON.stringify({y1,y2}));
-  if(W<500){const m=await pg.evaluate(async()=>{document.querySelector('.mdb.on [data-mdbact="more"]').click();await __acCalme(300);const o=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
+  const y1=await y(),plusV=await pg.evaluate(()=>{const e=document.querySelector('.md-toolbar [data-mdbact="more"]');return !!e&&e.getClientRects().length>0;});
+  await pg.keyboard.type('N');await calme(pg,300);const y2=await y();
+  t(`A842 · ${W} px : plus de rangée sous le bloc ouvert ; « ⋯ », « ＋ Insérer » et « ✓ Terminé » dans la barre`,!r.rangee&&(W<500||r.plus)&&r.ok&&r.ins,JSON.stringify(r));
+  t(`A842 · ${W} px : Entrée puis un caractère — le bloc suivant ne bouge pas ; « ⋯ » absent pour le paragraphe vide`,y1===y2&&!plusV,JSON.stringify({y1,y2,plusV}));
+  if(W<500){const m=await pg.evaluate(async()=>{document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(300);const o=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
       document.querySelector('.popmenu [data-pickopt="del"]').click();await __acCalme(300);return {o,body:state.pdraft.body,ouvert:!!document.querySelector('#mdDoc .mdb-ta')};});
-    t(`A834 · ${W} px : « ⋯ » offre Bloc avant, Sélectionner, Dupliquer, Supprimer — et Supprimer retire le bloc`,m.o==='av,sel,dup,del'&&!/\nN\n/.test(m.body)&&!m.ouvert,JSON.stringify(m));}
+    t(`A842 · ${W} px : « ⋯ » offre Bloc après, Bloc avant, Déplacer, Sélectionner, Dupliquer, Supprimer — et Supprimer retire le bloc`,m.o==='ap,av,grab,sel,dup,del'&&!/\nN\n/.test(m.body)&&!m.ouvert,JSON.stringify(m));}
   await pg.close();}
 // A835 — la barre sur une ligne (collante ou fixée au-dessus du clavier) ; le Plan suit le bloc ouvert
 for(const W of [390,375]){const pg=await proto819(W,844,corps);
@@ -13702,8 +13702,8 @@ const ligne=(pg,re)=>pg.evaluate(re=>{const r=new RegExp(re);const e=[...documen
   await pg.mouse.click(a.x+520,a.y+8);await calme(pg,350);
   const c1=await pg.evaluate(()=>(document.querySelector('#mdDoc .mdb-ta')||{}).value||null);
   t('A838 · un clic simple dans le même vide ouvre le bloc, comme avant',c1==='Paragraphe 2 du protocole.',String(c1));
-  await pg.click('#mdDoc [data-mdbact="done"]');await calme(pg,250);
-  await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>/^Paragraphe 3 /.test(x.textContent.trim())).closest('.mdb');b.click();await __acCalme(250);document.querySelector('#mdDoc [data-mdbact="sel"]').click();await __acCalme(250);});
+  await pg.click('.md-toolbar [data-mdbact="done"]');await calme(pg,250);
+  await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>/^Paragraphe 3 /.test(x.textContent.trim())).closest('.mdb');b.click();await __acCalme(250);{document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="sel"]').click();}await __acCalme(250);});
   const q4=await ligne(pg,'^Paragraphe 4 ');await pg.mouse.click(q4.x+520,q4.y+8);await calme(pg,250);
   const n2=await pg.evaluate(()=>document.querySelectorAll('#mdDoc .mdb.sel').length);
   t('A838 · en mode « Sélectionner », un clic dans le vide d’une autre ligne l’ajoute, ne vide rien',n2===2,String(n2));
@@ -13739,6 +13739,39 @@ for(const W of [1280,390]){const pg=await proto819(W,W<500?844:900,corps);
     return {feuille:m.classList.contains('sheet'),dy:Math.round(q.top-h.bottom),dx:Math.round(q.left-h.left),croise};});
   t(`A840 · ${W} px · ${W<500?'feuille du bas':'déroulant sous le titre de l’en-tête'} ; les filets de l’arbre passent à gauche des niveaux, sans couper « H2 » ni un titre`,
     !!r&&!r.croise&&(W<500?r.feuille:(!r.feuille&&r.dy>=0&&r.dy<=16&&Math.abs(r.dx)<=8)),JSON.stringify(r));
+  await pg.close();}
+});
+
+/* ══ A841 — UN GLISSER PARTI D'UN MOT SÉLECTIONNE DU TEXTE, ET LA SÉLECTION RESTE ══ */
+await sec('Éditeur · A841 glisser depuis un mot : la sélection de texte reste, le bloc ne s’ouvre pas', async () => {
+const pg=await proto819(1280,900,'## T\n\nParagraphe deux du protocole avec des mots.\n\nTrois mots ici.');
+const q=await pg.evaluate(()=>{const e=[...document.querySelectorAll('#mdDoc .md-p')][0];e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.left,y:r.top+10};});await calme(pg,200);
+const etat=()=>pg.evaluate(()=>({texte:String(getSelection()),ouvert:!!document.querySelector('#mdDoc .mdb-ta')}));
+await pg.mouse.move(q.x+20,q.y);await pg.mouse.down();await pg.mouse.move(q.x+140,q.y,{steps:6});await pg.mouse.up();await calme(pg,250);
+const a=await etat();
+await pg.evaluate(()=>getSelection().removeAllRanges());await pg.mouse.click(q.x+40,q.y);await calme(pg,350);const b=await etat();
+t('A841 · glisser sur les mots d’un bloc fermé : le texte reste sélectionné, le bloc ne s’ouvre pas ; un clic simple l’ouvre',a.texte.trim().length>5&&!a.ouvert&&b.ouvert,JSON.stringify({a,b}));
+await pg.close();
+});
+
+/* ══ A842-A843 — LA BARRE DÉFILE AU TÉLÉPHONE (« ＋ », « ✓ » fixes) ; LE BLOC OUVERT GARDE L'ALLURE DE SON RENDU ══ */
+await sec('Éditeur · A842-A843 la barre défile au téléphone ; le champ à la taille de son titre, en tapant aussi', async () => {
+const corps='# Grand titre\n\n## Titre de section\n\n### Sous-titre\n\nUn paragraphe.\n\nFin.';
+for(const W of [1280,390]){const pg=await proto819(W,W<500?844:900,corps);
+  const ouvre=async re=>{await pg.evaluate(async re=>{const r=new RegExp(re);const e=[...document.querySelectorAll('#mdDoc .md-h1,#mdDoc .md-h2,#mdDoc .md-h3,#mdDoc .md-p')].find(x=>r.test(x.textContent.trim()));e.scrollIntoView({block:'center'});await __acCalme(100);e.closest('.mdb').click();await __acCalme(300);},re);};
+  const champ=()=>pg.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');const c=getComputedStyle(t);return {fs:c.fontSize,fw:c.fontWeight};});
+  const ferme=()=>pg.evaluate(async()=>{document.querySelector('.md-toolbar [data-mdbact="done"]').click();await __acCalme(250);});
+  const tailles={};for(const [k,re] of [['h1','^Grand titre'],['h2','^Titre de section'],['h3','^Sous-titre'],['p','^Un paragraphe']]){await ouvre(re);tailles[k]=await champ();await ferme();}
+  const rendu=await pg.evaluate(()=>{const f=s=>{const e=document.querySelector('#mdDoc '+s);return getComputedStyle(e).fontSize;};return {h1:f('.md-h1'),h2:f('.md-h2')};});
+  t(`A843 · ${W} px : un titre ouvert garde sa taille et sa graisse (# et ##), le paragraphe la sienne ; au doigt, jamais sous 16 px`,
+    tailles.h1.fs===rendu.h1&&tailles.h2.fs===rendu.h2&&+tailles.h1.fw>=700&&+tailles.h2.fw>=700&&+tailles.h3.fw>=700&&+tailles.p.fw<=500&&(W>=500||parseFloat(tailles.h3.fs)>=16),JSON.stringify({tailles,rendu}));
+  await ouvre('^Un paragraphe');const ta=await pg.$('#mdDoc .mdb-ta');await ta.focus();await pg.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(0,0);});
+  const f0=await champ();await pg.keyboard.type('## ');await calme(pg,150);const f1=await champ();
+  await pg.keyboard.press('Backspace');await calme(pg,150);const f2=await champ();   // A832 : un Effacer après le marqueur rend le paragraphe
+  t(`A843 · ${W} px : taper « ## » en tête d’un paragraphe le passe aussitôt à la taille d’un titre ; l’effacer le rend`,f1.fs===rendu.h2&&+f1.fw>=700&&f2.fs===f0.fs&&+f2.fw<=500,JSON.stringify({f0,f1,f2}));
+  if(W<500){const b=await pg.evaluate(()=>{const tb=document.querySelector('.md-toolbar'),sc=tb.querySelector('.mdt-scr'),r=tb.getBoundingClientRect(),q=s=>tb.querySelector(s).getBoundingClientRect();
+      const plus=q('[data-mdmenu="ins"]'),ok=q('[data-mdbact="done"]');return {h:Math.round(r.height),defile:sc.scrollWidth>sc.clientWidth,fixes:plus.right<=innerWidth&&ok.right<=innerWidth&&plus.left>sc.getBoundingClientRect().right-2&&ok.left>plus.left};});
+    t('A842 · 390 px : la barre tient sur une ligne, ses outils défilent, « ＋ » et « ✓ » restent fixes au bout',b.h<=44&&b.defile&&b.fixes,JSON.stringify(b));}
   await pg.close();}
 });
 
