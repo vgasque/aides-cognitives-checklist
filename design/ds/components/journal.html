@@ -9059,19 +9059,52 @@
   .md-doc .mdb-ta:focus{outline:none;border-color:var(--act);box-shadow:0 0 0 3px var(--primary-soft)}   /* une seule bordure : l'anneau doux, pas un second trait */
   .mdb-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
   .mdb-acts .mdb-done{margin-left:auto}
+  /* A834 (planche « Modifier sans que ça saute ») — LA RANGÉE DU BLOC OUVERT TIENT SUR UNE LIGNE, TOUJOURS. À 390 px elle en
+     faisait trois (≈ 140 px) : ouvrir un bloc poussait la suite d'autant, et le paragraphe vide d'Entrée (« Terminé »
+     seul) gagnait ses six autres boutons au premier caractère (+92 px, mesuré). `acFit` mesure la rangée et la replie
+     par crans tant qu'elle passerait à la ligne : la touche de « Terminé » se raccourcit puis se tait (A829), puis
+     « Bloc avant », « Sélectionner », « Dupliquer », « Supprimer » passent dans « ⋯ » (ac1, « Bloc après » devient
+     « Bloc »), puis « Déplacer » et « Bloc » gardent leur seul glyphe (ac2). Au bureau large, rien ne change. */
+  .mdb-acts .ac-more{display:none;min-width:40px;padding:0;justify-content:center;font-weight:800}
+  .mdb-acts.ac1 .ac-x,.mdb-acts.ac1 .ac-w2{display:none}
+  .mdb-acts.ac1 .ac-more{display:inline-flex}
+  .mdb-acts .ac-grab .ac-w{margin-left:4px}
+  .mdb-acts.ac2 .ac-w{display:none}
+  .mdb-acts.ac2 :is(.ac-grab,.ac-ap){min-width:40px;padding:0;justify-content:center}
   .mdb-ed{position:absolute;top:-4px;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;
     border:1px solid var(--line);border-radius:50%;background:var(--work);color:var(--ink-2);opacity:0;cursor:pointer}
-  .mdb:hover .mdb-ed,.mdb-ed:focus-visible{opacity:1}
-  .mdb-ed:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A833 : le crayon ne paraît plus qu'au CLAVIER (Tab) — au survol, invisible mais toujours là, il prenait les clics posés
+     sur la fin de la 1re ligne. Toucher ou cliquer le bloc l'ouvre déjà, curseur sous le doigt (A813). */
+  .mdb-ed:not(:focus-visible){clip-path:inset(50%)}   /* rogné : aucune surface à cliquer, toujours atteignable au Tab */
+  .mdb-ed:focus-visible{opacity:1;outline:2px solid var(--act);outline-offset:2px}
   .mdb-raw{font-family:var(--f-mono);color:var(--ink-2)}
-  /* A610 — « ＋ » au-dessus / au-dessous du SEUL bloc survolé, centrés sur son cadre (pointeur fin ; au doigt, « Bloc
-     avant / après » du bloc ouvert). Cachés pendant une sélection de blocs. */
-  .mdb-ins{position:absolute;left:50%;z-index:2;display:none;align-items:center;justify-content:center;width:32px;height:32px;margin:0 0 0 -16px;padding:0;
-    border:1px solid var(--line-strong);border-radius:50%;background:var(--work);color:var(--act);box-shadow:var(--shadow-float);cursor:pointer}
-  .mdb-ins-a{top:-24px}.mdb-ins-b{bottom:-24px}
-  @media (hover:hover) and (pointer:fine){.md-doc:not(.mdb-selon) .mdb:not(.on):hover>.mdb-ins,.mdb-ins:focus-visible{display:inline-flex}}
-  .mdb-ins:hover{border-color:var(--act);background:var(--primary-soft)}
-  .mdb-ins:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A833 (amende A610 ; planche « Modifier sans que ça saute », signalé : « un nouveau bloc s'ouvre quand je clique sur un
+     bloc pour le modifier ») — LA MARGE, PAS LE TEXTE. Les « ＋ » de survol mordaient de 8 px sur le haut et le bas de chaque
+     bloc, au centre, et ⠿ ✎ (invisibles, mais cliquables) sur la fin de sa 1re ligne : un clic posé pour écrire ouvrait
+     « Ajouter un bloc » ou prenait le bloc. Au pointeur fin, pour le seul bloc survolé, « ＋ » (un bloc dessous ; ⌥ :
+     dessus) au-dessus de « ⠿ », dans une COLONNE de 24 px posée en partie dans la marge intérieure de la carte (option B
+     de la planche, retenue : le texte ne recule que de 20 px, la lecture reste presque fidèle). Rien ne se pose plus sur
+     le texte. 24 × 32 chacun (règle 9 : 32 de haut hors session) ; la colonne est la zone de survol du bloc. */
+  .mdb-gut{display:none}
+  /* Sous 560 px de largeur utile (`zw560`, fenêtre étroite, iPad au trackpad), pas de marge : elle prendrait 15 % de la
+     colonne (deux images d'une même puce ne tenaient plus côte à côte, A785) — on fait comme au doigt (la rangée du bloc
+     ouvert). Un document vide n'a pas de marge : l'invitation reste pleine largeur (A805). */
+  @media (hover:hover) and (pointer:fine){
+    html:not(.zw560) .md-doc:has(>.mdb){padding-left:20px}
+    /* Cachée, la colonne est ROGNÉE (`clip-path`), pas transparente : invisible mais présente, elle couvrait toute la
+       marge (64 px de haut pour des blocs d'une ligne) et le cadre de sélection ne pouvait plus y partir (A634, A816 —
+       attrapé par le témoin). Rognée, elle n'a aucune surface et reste atteignable au clavier ; elle paraît au survol du
+       bloc, avec 8 px de pont jusqu'au texte (`padding-right`) pour qu'on l'atteigne sans perdre le survol. */
+    html:not(.zw560) .mdb-gut{position:absolute;left:-32px;top:-4px;z-index:2;display:flex;flex-direction:column;padding-right:8px;clip-path:inset(50%)}
+    .md-doc:not(.mdb-selon) .mdb:not(.on):hover>.mdb-gut,.mdb-gut:focus-within{clip-path:none}
+    .md-doc.mdb-selon .mdb-gut{display:none}
+  }
+  .mdb-gut>button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:32px;min-width:24px;margin:0;padding:0;
+    border:0;border-radius:var(--r-1);background:transparent;color:var(--ink-2);cursor:pointer}
+  .mdb-gut>button:hover{background:var(--amb-2);color:var(--ink)}
+  .mdb-gut>.mdb-ins{color:var(--act)}
+  .mdb-gut>.mdb-grab{cursor:grab}
+  .mdb-gut>button:focus-visible{outline:2px solid var(--act);outline-offset:1px}
   /* A610 — blocs sélectionnés : le fond et le cadre du « bloc courant » (bleu, règle 8), la barre en matière système. */
   /* A722 — UNE SUITE DE BLOCS SÉLECTIONNÉS SE DESSINE EN UN SEUL CADRE (signalé sur capture : « certains overlap et d'autres
      non »). Chaque bloc portait son cadre à 6 px de lui : deux blocs à moins de 12 px (un titre et sa liste) voyaient
@@ -9087,7 +9120,7 @@
   .mdb.sel.sel-b:not(.grabbed)::before{content:"";position:absolute;left:4px;right:4px;bottom:calc(-.5 * var(--selgap,0px));height:1px;
     background:color-mix(in srgb,var(--act) 40%,transparent)}
   .md-doc.mdb-selon .mdb:not(.on){cursor:pointer;-webkit-user-select:none;user-select:none}
-  .md-doc.mdb-selon .mdb-ed,.md-doc.mdb-selon .mdb-grab{display:none}
+  .md-doc.mdb-selon .mdb-ed{display:none}
   /* A634 : le cadre de sélection (souris) — le bleu de l'action, en voile léger (les écouteurs sont sur le document : il peut se trouver sous le pointeur). */
   .mdb-lasso{position:fixed;z-index:60;border:1px solid var(--act);background:color-mix(in srgb,var(--act) 12%,transparent);border-radius:3px}
   /* A634 : pendant une sélection de blocs, la barre de sélection EST l'action de l'écran (comme la barre d'onglets cède
@@ -9200,9 +9233,6 @@
   @media (pointer:coarse){.mdb-tools .mdb-chip{min-height:36px}}
   /* A772-A773 : la vignette d'une image dans un choix de média (menu ou feuille). */
   .mm-thumb{display:block;width:40px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
-  .mdb-grab{position:absolute;top:-4px;right:34px;width:32px;height:32px;min-width:32px;padding:0;opacity:0;cursor:grab}   /* à côté du crayon : le texte garde l'alignement du formulaire */
-  .mdb:hover .mdb-grab,.mdb-grab:focus-visible{opacity:1}
-  @media (pointer:coarse){.mdb-grab{display:none}}   /* au doigt : « ⠿ Déplacer » sur le bloc ouvert (les outils suivent le focus, K3) */
 
   .md-doc>.ed-grab{margin:0 0 4px}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
@@ -9226,7 +9256,7 @@
   /* A829 — « ↵ À la ligne » : seulement dans le PARAGRAPHE d'un bloc ouvert (mise en forme en direct), à la place qu'avaient
      ⇤ ⇥ dans une liste. La barre ne gagne AUCUN pixel de hauteur (`brFit`, mesuré) : br1 tait la touche, br2 le mot (le
      glyphe et le nom accessible restent), br3 le mot « Insérer » (son ＋ reste), br4 — en dernier — « Encadré ». Sous 400 de largeur effective, touche et mot se taisent d'office. */
-  .md-toolbar:not(.in-para) .mdt-brg,.md-toolbar.br-x .mdt-brg{display:none}
+  .md-toolbar:not(.in-para) .mdt-brg{display:none}
   .md-toolbar .mdt-br{gap:4px;padding:0 8px;color:var(--act);font-weight:700}
   .md-toolbar.br1 .mdt-br .kc,html.zw400 .md-toolbar .mdt-br .kc{display:none}
   .md-toolbar.br2 .mdt-w3,html.zw400 .md-toolbar .mdt-w3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

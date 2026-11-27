@@ -1023,7 +1023,7 @@ déplacement comme lorsqu'on modifie une aide et qu'on déplace des blocs, pour 
 
 Le déplacement d'un bloc d'une référence prend **exactement** le geste de l'éditeur d'aide (MK5-b et ses suites,
 `conventions-de-code.md` : « RÉORDONNER PAR « PRENDRE / POSER » », « UN DÉPLACEMENT EST UN GESTE MODAL ») :
-- **Prendre** : la poignée ⠿ du bloc (`.mini.grab.mdb-grab`, au survol au pointeur fin) ou, au doigt, « ⠿ Déplacer » du
+- **Prendre** : la poignée ⠿ du bloc (`.mdb-grab`, au survol au pointeur fin — dans la marge gauche depuis A833) ou, au doigt, « ⠿ Déplacer » du
   bloc ouvert (les outils suivent le focus, K3). Commencer à glisser la poignée AMORCE le mode (v4.75.0).
 - **Le mode** : bandeau `.ed-grab` qui NOMME le bloc (« Déplacement : « … » », « touchez une destination », ✕) ; le bloc
   pris porte `.grabbed` (« ⠿ en déplacement », anneau `--act`, pleinement lisible) ; la page se réécrit en cibles
