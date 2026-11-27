@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Nt29fz+yeAsFTNxii386sBWp120iCKnKvJ47IXKeACo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-iNBCTKe5cH458637TpLYthyghD1/ZzemSMuhSwvBUME='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11355,7 +11355,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.161.0';
+const APP_VERSION='5.162.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20684,6 +20684,30 @@ function mdLiveSplit(body,a,n,x){const L=String(body||'').split('\n'),out=L.slic
   add(x.rest?x.rest.split('\n'):[]);
   {let p=post;if(p.length&&p[0].trim()&&out.length&&out[out.length-1].trim())out.push('');out.push(...p);}
   return {v:out.join('\n'),at};}
+/* A832 — EFFACER AU DÉBUT D'UN BLOC OUVERT (convention des éditeurs par blocs, Notion et Gutenberg ; validée par l'auteur) :
+   un titre ou une citation simple redevient d'abord un PARAGRAPHE (une puce : A809) ; un paragraphe rejoint ensuite la fin
+   du bloc précédent s'il est un paragraphe, un titre, une liste (sa dernière puce) ou une citation simple — JAMAIS une
+   image, une vidéo, un tableau, un séparateur, un encadré `[!…]` ni du code (écart à Notion, qui sélectionne puis
+   supprime au second appui : un double Effacer ne doit jamais emporter un tableau de posologies). Jonction STRICTE (le
+   saut de ligne seul disparaît, comme dans Notion et tout éditeur de texte). Fonctions PURES. */
+const mdBlkCallout=src=>/^\s*>\s*\[!/.test(String(src||'').split('\n')[0]||'');
+// Un titre ou une citation simple, curseur au tout début ou juste après son marqueur : {v, c} (le paragraphe, curseur) ou null.
+function mdLiveConv(v,a){v=String(v||'');const k=mdBlkKind(v);
+  if(k==='h'){const m=v.match(/^#{1,6}[ \t]*/);if(a===0||a===m[0].length)return {v:v.slice(m[0].length),c:0};return null;}
+  if(k==='q'&&!mdBlkCallout(v)){const m=v.match(/^[ \t]*>[ \t]?/);if(a===0||a===m[0].length)return {v:v.split('\n').map(l=>l.replace(/^[ \t]*>[ \t]?/,'')).join('\n'),c:0};}
+  return null;}
+// Le bloc précédent peut-il recevoir un paragraphe ? (titre, paragraphe, liste, citation simple)
+const mdLiveMergeable=src=>{const k=mdBlkKind(src);return k==='p'||k==='h'||k==='list'||(k==='q'&&!mdBlkCallout(src));};
+/* Le paragraphe `cur` rejoint la fin du bloc `prev` : {lines, at} (les lignes du bloc fusionné, le curseur à la jonction dans
+   son texte) ou null. Un titre n'a qu'une ligne et une puce aussi : les lignes suivantes du paragraphe restent un paragraphe
+   dessous (le format n'a pas de retour à la ligne dans un titre ni dans une puce) ; dans une citation, elles gardent « > ». */
+function mdLiveMerge(prev,cur){prev=String(prev||'').replace(/\s+$/,'');cur=String(cur||'');if(!prev.trim()||!mdLiveMergeable(prev))return null;
+  const k=mdBlkKind(prev),P=prev.split('\n'),C=cur.split('\n'),last=P[P.length-1],head=P.slice(0,-1),joint=last+C[0];
+  const at=(head.length?head.join('\n')+'\n':'').length+last.length,rest=C.slice(1);let lines;
+  if(k==='p')lines=head.concat(joint,rest);
+  else if(k==='q')lines=head.concat(joint,rest.map(l=>'> '+l));
+  else lines=head.concat(joint,rest.length?[''].concat(rest):[]);
+  return {lines,at};}
 /* A830 — UN MÉDIA INSÉRÉ DEPUIS UN BLOC OUVERT NE COUPE JAMAIS UNE LIGNE (régression d'A813 : le curseur posé au point
    touché, « Insérer › Image », une image collée ou une vidéo écrivaient `![](…)` au milieu du mot). Hors d'une liste (A772
    pose le média dans la puce) et d'un tableau, la position d'insertion est la FIN DU PARAGRAPHE courant ; sur une ligne
@@ -21390,6 +21414,36 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      à la ligne dans un paragraphe ou un encadré ; dans un titre ou une liste, comme Entrée (le format n'a pas de retour à
      la ligne dans un titre ni dans une puce : il couperait la liste). */
   let entKd=-1e9;
+  /* A832 — EFFACER AU DÉBUT D'UN BLOC OUVERT (`mdLiveConv`, `mdLiveMerge`, PURES). Un bloc vide disparaît et le précédent
+     s'ouvre, curseur à sa fin ; un titre, une citation simple ou une puce (A809, curseur avant le marqueur aussi) redevient
+     un paragraphe ; un paragraphe rejoint le bloc précédent s'il peut le recevoir — sinon RIEN. LA TOUCHE MAINTENUE NE
+     FRANCHIT JAMAIS : seul un appui NEUF passe une frontière ; après un franchissement, les répétitions (`keydown` à
+     `repeat`, ou `beforeinput` rapprochés sur un clavier qui n'émet pas de touche) sont absorbées tant qu'elles se suivent
+     à moins de 400 ms — le texte du bloc précédent n'est jamais entamé par un doigt resté appuyé. Un franchissement est UN
+     point de reprise : ⌘Z ou ↶ le défont d'un coup (comme une coupe, A829). */
+  let bsKd=-1e9,bsGuard=0;
+  const back=(t,e,rep)=>{const v=t.value,[a,b]=selBounds(t);if(a!==b)return false;
+    // 1. Titre, citation simple, puce : redevient un paragraphe (sans quitter le bloc).
+    let cv=mdLiveConv(v,a);
+    if(!cv&&a===0&&mdBlkKind(v)==='list'){const m=v.match(MD_LIST_RX),r=m&&mdListBack(v,m[0].length);if(r)cv={from:r.from,to:r.to,seg:r.seg};}
+    if(cv){e.preventDefault();if(rep)return true;
+      if(cv.seg!=null)mdSplice(t,cv.from,cv.to,cv.seg,cv.from,cv.from);else mdSplice(t,0,v.length,cv.v,0,0);bsGuard=performance.now()+400;return true;}
+    if(a!==0||!blk)return false;
+    const k=mdBlkKind(v);if(v.trim()&&k!=='p')return false;   // encadré, code, tableau, média : l'effacement ordinaire (rien, au début)
+    const L=lines(),R=mdBlockRanges(p.body),prv=R.filter(r=>r.e<=blk.a).pop();if(!prv)return false;
+    const ps=L.slice(prv.a,prv.e).join('\n');let nv=null,at=0;
+    if(!v.trim()){   // 2. Bloc vide : il disparaît, le précédent s'ouvre, curseur à sa fin.
+      e.preventDefault();if(rep)return true;
+      if(!vopen&&blk.n){let pre=L.slice(0,blk.a),post=L.slice(blk.a+blk.n);while(post.length&&!post[0].trim()&&(!pre.length||!pre[pre.length-1].trim()))post=post.slice(1);nv=pre.concat(post).join('\n');}
+      at=ps.length;}
+    else{const m=mdLiveMerge(ps,v);if(!m)return false;   // 3. Paragraphe : rejoint le bloc précédent, s'il peut le recevoir.
+      e.preventDefault();if(rep)return true;
+      const pre=L.slice(0,prv.a),post=L.slice(blk.a+blk.n);nv=mdGlue(pre,m.lines,post).join('\n');at=m.at;}
+    said();pasted=false;if(nv!=null&&nv!==p.body){edUndoNote();push(nv);edUndoNote();}
+    vopen=false;msel=null;sel=new Set();selMode=false;
+    const i=mdBlockRanges(p.body).findIndex(r=>r.a===prv.a);bsGuard=performance.now()+400;
+    if(i<0||prv.t==='tbl'){open=-1;paint(false);return true;}   // un tableau s'ouvre dans sa grille : on n'y entre pas
+    open=i;paint([at,at]);undoVal=nv!=null?(doc.querySelector('.mdb-ta')||{}).value:null;return true;};
   const enter=(t,e,maj)=>{const v=t.value,k=mdBlkKind(v),[a,b]=selBounds(t);let x=null;
     if(maj&&k!=='h'&&k!=='list')return;
     if(maj&&k==='list'){if(mdListEnter(t))e.preventDefault();else return;}
@@ -21446,7 +21500,14 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(e.isComposing||e.keyCode===229)return;
       // A829 : ⌘Z dans le bloc ouvert par une coupe, avant toute frappe — la coupe se défait d'un coup (anneau de l'éditeur).
       if((e.key==='z'||e.key==='Z')&&(e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&undoVal!=null&&t.value===undoVal&&_edUndo.length){e.preventDefault();e.stopPropagation();undoVal=null;edUndoDo();return;}
-      if(e.key==='Enter'&&!e.altKey){entKd=performance.now();enter(t,e,e.shiftKey);}});
+      if(e.key==='Enter'&&!e.altKey){entKd=performance.now();enter(t,e,e.shiftKey);}
+      // A832 : Effacer au début du bloc. Un appui neuf lève la garde ; une répétition qui suit un franchissement est absorbée.
+      if(e.key==='Backspace'&&!e.altKey&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey){const now=performance.now();bsKd=now;
+        if(e.repeat&&now<bsGuard){e.preventDefault();bsGuard=now+400;return;}if(!e.repeat)bsGuard=0;back(t,e,e.repeat);}});
+    // A832 : un clavier logiciel qui n'émet pas `keydown` (Android) — Effacer arrive par `beforeinput`.
+    t.addEventListener('beforeinput',e=>{if(e.inputType!=='deleteContentBackward'||e.isComposing||e.defaultPrevented)return;const now=performance.now();
+      if(now-bsKd<120)return;   // déjà vu par `keydown`
+      if(now<bsGuard){e.preventDefault();bsGuard=now+400;return;}back(t,e,false);});
     // A829 : la touche « retour » d'un clavier logiciel qui n'émet pas `keydown` (Android) passe par `beforeinput`.
     t.addEventListener('beforeinput',e=>{if(e.isComposing||(e.inputType!=='insertLineBreak'&&e.inputType!=='insertParagraph'))return;
       if(performance.now()-entKd<120)return;   // déjà vu par `keydown` (Maj+Entrée y garde son rôle)
@@ -42596,7 +42657,7 @@ if(location.search.indexOf('__acdebug')>=0){
    « en panne ». Il n'est plus honoré que dans un cadre de même origine (`tests.html`) ou sur la machine
    locale (harnais) ; partout ailleurs le paramètre est ignoré et l'app démarre. */
 if(location.search.indexOf('__actest')>=0&&(window.top!==window.self||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))){
-  window.__ac_test__={mdBlkKind,mdLiveEnter,mdLiveExit,mdLiveSplit,mdMedAt,mdTapPos,mdGrasSeul,mdTitreNiv,mdLintAll,mdAttr,mdAttrStr,mdMedSetAl,mdMedSetCap,mdCapNet,mdMedBlocOccs,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={mdBlkKind,mdLiveConv,mdLiveMerge,mdLiveMergeable,mdBlkCallout,mdLiveEnter,mdLiveExit,mdLiveSplit,mdMedAt,mdTapPos,mdGrasSeul,mdTitreNiv,mdLintAll,mdAttr,mdAttrStr,mdMedSetAl,mdMedSetCap,mdCapNet,mdMedBlocOccs,vidDur,vidPosterHtml,mdTblGrilleW,mdScaleToW,mdTblCw,tblColLibre,mdWPct,mdTWidths,mdMedFind,mdMedW,mdMedSetW,mdMedEq,mdMedEqH,vidSzHtml,rxEtat,rxPhHtml,imgAttBox,imgAttNode,rxManque,rxListe,rxLigneHtml,rxChoix,mdListItemAt,mdListMediaIns,mdListNth,mdCellSplit,mdCellJoin,mdTblCellAdd,mdDropAt,mdLinesIns,linkErrInfo,linkLeftTxt,linkDevIcon,linkRulesNorm,linkCheckNum,linkDecoys,linkParse,linkB64u,linkFinsNorm,linkInLbl,linkEndChoices,linkUaLabel,linkDecide,linkIdleDue,linkCkptDue,sinceTxt,mdUnlistImgs,mdsBounds,mdsSnap,miUses,miLineRx,mdLint,mdHlHtml,mdSecMove,mdSecDup,mdSecDel,mdBlockRanges,mdBlkMove,mdBlkDup,mdBlkDel,mdBlkIns,mdBlkMoveTo,mdBlkMoveSet,mdListCont,mdListLvl,mdListEmptyUp,mdListBack,mdListLvlOf,mdPasteImgs,mdDocLink,mdTableAt,mdTableMd,mdFromHtml,mdFromPlain,mdFromPaste,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,exportLeger,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,mdLenTxt,mdGrille,mdGrilleN,notionHtml,notionHtmlDoc,notionHtmlImgPaths,notionRefs,notionLoose,mdImgIds,syncLot,syncDecoupe,syncProgTxt,fileTimeout,imgMimeOf,imgFp,imgStrip,imgSplit,imgCarry,b64DeOctets,octetsDeB64,imgOctets,imgsOctets,imgJauge,imgPlan,imgPlanDit,imgApply,imgTrim,MAX_IMG_TOTAL,MAX_IMG_PER_ENTITY,vidKind,safeVideo,attTypeOfPath,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,reviewDue,reviewFrom,sessFrise,sessFriseHtml,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,protocolHaystack,sanitizePins,sanitizeColls,sanitizeSuivi,suiviMerge,suiviTaskLabel,emailsIn,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,notionMd,notionImgPaths,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

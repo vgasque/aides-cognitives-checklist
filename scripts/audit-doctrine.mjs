@@ -13565,6 +13565,50 @@ t('A831 · image collée au bout d’un paragraphe : le texte intact, une seule 
 await page.close();
 });
 
+/* ══ A832 — EFFACER AU DÉBUT D'UN BLOC OUVERT (convention Notion / Gutenberg, avec ses écarts) ══ */
+await sec('Éditeur · A832 Effacer au début d’un bloc : vide, titre, fusion, refus, touche maintenue, ⌘Z', async () => {
+const corps832=['Premier paragraphe.','','- puce a','- puce b','','## Titre B','','Second paragraphe.','','![](img:ia)','','Après image.'].join('\n');
+for(const W of [1280,390]){
+  const page=await proto819(W,W<500?844:900,corps832);
+  const body=()=>page.evaluate(()=>state.pdraft.body);
+  const ouvrir=async re=>{const q=await page.evaluate(re=>{const r=new RegExp(re);const el=[...document.querySelectorAll('#mdDoc .md-p,#mdDoc li,#mdDoc .md-h2')].find(x=>r.test(x.textContent.trim()));el.scrollIntoView({block:'center'});const b=el.getBoundingClientRect();return {x:b.left+12,y:b.top+b.height/2};},re);
+    if(W<500)await page.touchscreen.tap(q.x,q.y);else await page.mouse.click(q.x,q.y);await calme(page,350);};
+  const debut=()=>page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.focus();t.setSelectionRange(0,0);});
+  const etat=()=>page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');return t?{v:t.value,c:t.selectionStart}:null;});
+  // 1. Paragraphe → paragraphe précédent ? Ici le précédent de « Second » est le titre : d'abord la fusion titre.
+  await ouvrir('^Second paragraphe');await debut();await page.keyboard.press('Backspace');await calme(page,300);
+  let s=await etat(),b=await body();
+  t(`A832 · ${W} · un paragraphe rejoint le titre qui précède, curseur à la jonction`,s&&s.v==='## Titre BSecond paragraphe.'&&s.c===10&&b.includes('## Titre BSecond paragraphe.'),JSON.stringify({s,b}));
+  // ⌘Z en un geste
+  await page.keyboard.press('Control+z');await calme(page,350);b=await body();
+  t(`A832 · ${W} · ⌘Z défait la fusion d’un seul geste`,b===corps832,JSON.stringify(b));
+  // 2. Titre → paragraphe au 1er appui, fusion dans la dernière puce au 2e
+  await page.keyboard.press('Escape');await calme(page,250);await ouvrir('^Titre B');await debut();await page.keyboard.press('Backspace');await calme(page,250);
+  s=await etat();t(`A832 · ${W} · un titre redevient un paragraphe au premier appui`,s&&s.v==='Titre B'&&s.c===0,JSON.stringify(s));
+  await page.keyboard.press('Backspace');await calme(page,300);s=await etat();b=await body();
+  t(`A832 · ${W} · au second appui, il rejoint la dernière puce de la liste`,s&&s.v==='- puce a\n- puce bTitre B'&&s.c===17&&!/^## /m.test(b),JSON.stringify({s,b}));
+  // 3. Touche maintenue : un appui neuf franchit, les répétitions n'entament rien
+  await page.keyboard.press('Escape');await calme(page,250);await ouvrir('^Second paragraphe');await debut();
+  await page.keyboard.down('Backspace');for(let i=0;i<6;i++)await page.keyboard.down('Backspace');await page.keyboard.up('Backspace');await calme(page,300);
+  s=await etat();t(`A832 · ${W} · touche maintenue : la fusion a lieu, le texte du bloc précédent reste entier`,s&&/puce bTitre BSecond paragraphe\.$/.test(s.v),JSON.stringify(s));
+  // 4. Devant une image : rien
+  await page.keyboard.press('Escape');await calme(page,250);await ouvrir('^Après image');await debut();await page.keyboard.press('Backspace');await calme(page,250);
+  s=await etat();b=await body();t(`A832 · ${W} · devant une image, Effacer ne fait rien`,s&&s.v==='Après image.'&&b.includes('![](img:ia)\n\nAprès image.'),JSON.stringify({s,b}));
+  // 5. Bloc vide (Entrée au bout) → Effacer → le précédent s'ouvre, curseur à sa fin, texte inchangé
+  await page.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(t.value.length,t.value.length);});await page.keyboard.press('Enter');await calme(page,300);
+  const b0=await body();await page.keyboard.press('Backspace');await calme(page,300);s=await etat();b=await body();
+  t(`A832 · ${W} · un bloc vide disparaît, le précédent s'ouvre, curseur à sa fin`,s&&s.v==='Après image.'&&s.c===12&&b===b0,JSON.stringify({s,b0,b}));
+  // 6. Clavier sans touche (beforeinput seul) : franchit une fois
+  await page.close();const page2=await proto819(W,W<500?844:900,'Alpha.\n\nBeta.');
+  const q2=await page2.evaluate(()=>{const el=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>x.textContent.startsWith('Beta'));const b=el.getBoundingClientRect();return {x:b.left+12,y:b.top+b.height/2};});
+  if(W<500)await page2.touchscreen.tap(q2.x,q2.y);else await page2.mouse.click(q2.x,q2.y);await calme(page2,350);
+  await page2.waitForTimeout(200);   // horloge : la garde de keydown (120 ms) doit être passée
+  const bi=await page2.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.focus();t.setSelectionRange(0,0);const ev=new InputEvent('beforeinput',{inputType:'deleteContentBackward',bubbles:true,cancelable:true});t.dispatchEvent(ev);return ev.defaultPrevented;});
+  await calme(page2,300);s=await page2.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');return t?{v:t.value,c:t.selectionStart}:null;});
+  t(`A832 · ${W} · clavier sans touche (beforeinput) : la fusion a lieu`,bi&&s&&s.v==='Alpha.Beta.',JSON.stringify({bi,s}));
+  await page2.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
