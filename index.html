@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-X1uHRXh8zQ5xk9i/3Cyj+Qggd3eFKdEj4m/Hpr/RI7c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-9kLcwxc5LL6xzSj6IyCbF/ZKTyIYC7TnepU5rn5kp0k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9493,12 +9493,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ouvert). Un document vide n'a pas de marge : l'invitation reste pleine largeur (A805). */
   @media (hover:hover) and (pointer:fine){
     html:not(.zw560) .md-doc:has(>.mdb){padding-left:20px}
+    html:not(.zw560) .md-ed.mdl:has(#mdDoc>.mdb) :is(.md-head,.md-toolbar){padding-left:20px}   /* A839 : la rangée commence sur le bord du texte */
     /* Cachée, la colonne est ROGNÉE (`clip-path`), pas transparente : invisible mais présente, elle couvrait toute la
        marge (64 px de haut pour des blocs d'une ligne) et le cadre de sélection ne pouvait plus y partir (A634, A816 —
        attrapé par le témoin). Rognée, elle n'a aucune surface et reste atteignable au clavier ; elle paraît au survol du
        bloc, avec 8 px de pont jusqu'au texte (`padding-right`) pour qu'on l'atteigne sans perdre le survol. */
     html:not(.zw560) .mdb-gut{position:absolute;left:-32px;top:var(--gut-y,-4px);z-index:2;display:flex;padding-right:8px;clip-path:inset(50%)}
-    .md-doc:not(.mdb-selon) .mdb:not(.on):hover>.mdb-gut,.mdb-gut:focus-within{clip-path:none}
+    .md-doc:not(.mdb-selon) .mdb:not(.on):is(:hover,.gut-on)>.mdb-gut,.mdb-gut:focus-within{clip-path:none}   /* A837 : `gut-on` = la souris dans la marge, à hauteur du bloc */
     .md-doc.mdb-selon .mdb-gut{display:none}
   }
   .mdb-gut>button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:32px;min-width:24px;margin:0;padding:0;
@@ -9600,14 +9601,29 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-add:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-first{margin-top:0}
   /* A805 — la carte « Contenu rédigé » en mise en forme en direct : l'intitulé dans la rangée de tête (une ligne au
-     téléphone), l'invitation du vide en pleine largeur, l'interrupteur et l'aide « Touchez un passage… » au premier bloc. */
-  .field .md-head>label:not(.md-live){flex:0 1 auto;margin:0;min-width:0;font-size:var(--t-body);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}   /* la voix de `.field>label` */
+     téléphone), l'invitation du vide en pleine largeur, l'interrupteur au premier bloc (l'aide « Touchez un passage… » :
+     retirée par A839). */
+  /* A839 (planche « Modifier sans que ça saute », section 16, H4) — UNE RANGÉE À DEUX ÉTATS, UNE SEULE TAILLE. La tête
+     mélangeait capitales grasses 13,5, « facultatif » en 12, Plan 13,5 semi-gras et une ligne d'aide en 12 (« pas
+     ouf ») ; et la barre d'outils APPARAISSAIT au-dessus du document à l'ouverture d'un bloc, puis disparaissait à la
+     fermeture : tout remontait de 46 px (mesuré). Désormais : une rangée de 40 px — la place exacte de la barre (même
+     hauteur, mêmes marges) — porte la tête quand aucun bloc n'est ouvert (« Contenu rédigé · facultatif », le Plan, le
+     mode), les outils quand un bloc l'est, à la même place : rien ne bouge. Tout en 13,5, deux graisses. La ligne
+     d'aide « Touchez un passage… » est retirée (le cadre au survol, le curseur texte ; un document vide garde son
+     invitation, A805). Le Plan, bloc ouvert : dans l'en-tête de la page (A817, `plan-ed`). Au téléphone, une ligne. */
+  .field .md-head>label:not(.md-live){flex:0 1 auto;margin:0;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .field .md-head>label:not(.md-live) .hint{font-size:var(--t-body);font-weight:400;color:var(--ink-2)}
+  .md-ed.mdl .md-head{min-height:40px;margin:-4px 0 4px}
+  .md-ed.mdl.mdl-open .md-head{display:none}
   .md-ed.mdl .md-head .md-plan-g{order:1}
   .md-ed.mdl .md-head .md-live{order:2}
-  html.zw560 .md-ed.mdl .md-head .md-live{order:1}   /* téléphone : l'interrupteur sur la ligne de l'intitulé, le Plan dessous */
-  html.zw560 .md-ed.mdl .md-head .md-plan-g{order:2}
-  .md-tap{margin:0 0 10px;font-size:var(--t-meta);color:var(--ink-2)}
-  .md-ed.mdl:has(#mdDoc>.mdb-first) :is(.md-live,.md-tap){display:none}
+  html.zw560 .md-ed.mdl .md-head{flex-wrap:nowrap;gap:6px}
+  html.zw560 .md-ed.mdl .md-head .md-plan-t,html.zw560 .md-ed.mdl .md-head>label .hint{display:none}   /* « ≡ ⌄ » ; le nom reste lu (aria) */
+  html.zw560 .md-ed.mdl .md-head .md-live{margin-left:auto}
+  .md-ed.mdl .md-head>label,.md-ed.mdl .md-head .md-live>span{white-space:nowrap}
+  .field .md-head>label:not(.md-live) .hint::before{content:"· "}
+  html.zw360 .md-ed.mdl .md-head .md-live>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}   /* sous 360 : l'interrupteur seul, son nom reste lu */
+  .md-ed.mdl:has(#mdDoc>.mdb-first) .md-live{display:none}
   .mdb-add.mdb-first{width:100%;min-height:64px;gap:14px;padding:12px 16px;border-width:1.5px;border-color:var(--primary-200);border-radius:var(--r-4);text-align:left}
   .mdb-fp{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--primary-soft);color:var(--act)}
   .mdb-ft{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -10317,10 +10333,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      un bouton de 32 px dont 10 sont repris par ses marges (la rangée garde sa hauteur, A40). Le « # » qui la coiffe suit
      le mot du mode, dans la ligne du dessous (`.bs-sec`). */
   .hdr-plan{display:none}
-  header.bar.plan-on.ttl-on #brandTitle{display:none!important}
-  header.bar.plan-on.ttl-on .hdr-plan{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:100%;min-height:32px;margin:-6px 0 -4px;padding:0;border:0;background:none;
+  header.bar.plan-on:is(.ttl-on,.plan-ed) #brandTitle{display:none!important}   /* A839 : `plan-ed` = un bloc ouvert, même en haut de page */
+  header.bar.plan-on:is(.ttl-on,.plan-ed) .hdr-plan{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:100%;min-height:32px;margin:-6px 0 -4px;padding:0;border:0;background:none;
     font-family:var(--f-ui);font-size:var(--t-item);font-weight:700;line-height:1.2;color:var(--ink);cursor:pointer;text-align:left}
-  @media (min-width:780px){header.bar.plan-on.ttl-on .hdr-plan{font-size:var(--t-step);font-weight:800}}
+  @media (min-width:780px){header.bar.plan-on:is(.ttl-on,.plan-ed) .hdr-plan{font-size:var(--t-step);font-weight:800}}
   .hdr-plan .hp-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hdr-plan .hp-cv{flex:none;display:inline-flex;color:var(--ink-2)}
   .hdr-plan .hp-cv svg{transform:rotate(90deg)}
@@ -11392,7 +11408,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.163.1';
+const APP_VERSION='5.164.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21230,7 +21246,8 @@ function mdDocHtml(p,open,grab,many,virt){if(grab>=0&&mdBlockRanges(p.body)[grab
   if(virt!=null)open=-1;
   /* A805 — LE VIDE N'A RIEN À RÉGLER (planche « Contenu rédigé au téléphone », option B retenue) : une seule chose à faire,
      en pleine largeur, qui dit ce qu'on peut écrire ; et, pour qui colle un long Markdown, le champ brut à un toucher
-     (l'interrupteur coupé d'A547). L'interrupteur et « Touchez un passage… » attendent le premier bloc (CSS, `:has`). */
+     (l'interrupteur coupé d'A547). L'interrupteur attend le premier bloc (CSS, `:has`) ; l'aide « Touchez un passage… »
+     est retirée (A839). */
   if(!R.length&&virt==null)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1"><span class="mdb-fp" aria-hidden="true">${uiIcon('plus',18,{sw:2.4})}</span><span class="mdb-ft"><b>Écrire le contenu</b><small>titres, listes, tableaux, images</small></span></button>`
     +`<button type="button" class="mdb-raw-go" data-mdbraw>Coller du Markdown…</button>`;
   const vh=virt==null?'':`<div class="mdb on mdb-v" data-mdbv="${virt}"><div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" placeholder="Écrire…" aria-label="Nouveau paragraphe, en Markdown"></textarea></div>
@@ -21528,7 +21545,18 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     if(c==null)c=q.top+16*z;u.style.setProperty('--gut-y',Math.round((c-q.top)/z-16)+'px');};
   {let gb0=null;doc.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.mdb[data-mdb]:not(.on)');if(!b||b===gb0)return;gb0=b;gutY(b);});
    doc.addEventListener('focusin',e=>{const u=e.target.closest&&e.target.closest('.mdb-gut');if(u)gutY(u.parentNode);});}
-  const paint=(sel_)=>{const sel=sel_;if(open<0)vopen=false;if(!vopen)undoVal=null;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany,vopen?open:null);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
+  /* A837 (signalé : « si je survole la poignée rien ne s'affiche, je dois survoler le bloc ») — LA MARGE MONTRE LA
+     POIGNÉE. Cachée, la poignée est rognée (aucune surface : le cadre de sélection part de la marge, A833) ; elle ne
+     paraissait donc qu'au survol du TEXTE. La souris dans la marge, à hauteur d'un bloc, le marque `gut-on` : sa
+     poignée paraît là où l'on regarde. Le cadre part toujours de la marge — entre deux blocs, en face des lignes
+     suivantes d'un bloc —, mais pas de la poignée elle-même, qui est un bouton. */
+  {let mg=null;const marque=b=>{if(b===mg)return;if(mg)mg.classList.remove('gut-on');mg=b;if(b){b.classList.add('gut-on');gutY(b);}};
+   card.addEventListener('mousemove',e=>{if(grab>=0||e.buttons)return;const t=e.target;if(t&&t.closest&&t.closest('.mdb[data-mdb]'))return marque(null);
+     const d=doc.getBoundingClientRect(),tx=d.left+(parseFloat(getComputedStyle(doc).paddingLeft)||0)*(zoomF()||1);
+     if(e.clientX>=tx||e.clientX<card.getBoundingClientRect().left||e.clientY<d.top||e.clientY>d.bottom)return marque(null);
+     marque([...doc.querySelectorAll(':scope>.mdb[data-mdb]:not(.on)')].find(x=>{const r=x.getBoundingClientRect();return e.clientY>=r.top&&e.clientY<=r.bottom;})||null);});
+   card.addEventListener('mouseleave',()=>marque(null));}
+  const paint=(sel_)=>{const sel=sel_;if(open<0)vopen=false;if(!vopen)undoVal=null;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany,vopen?open:null);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);card.dispatchEvent(new Event('mdpaint'));selPaint();medPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
     const t=doc.querySelector('.mdb-ta');setAct(t||null);if(!t){blk=null;return;}
@@ -21735,8 +21763,19 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      blocs, n'importe où, VIDE la sélection (#16, signalé). ⌘/Ctrl ou Maj sur la poignée ⠿ prend le bloc au lieu de le
      déplacer (le clic simple garde le « Prendre / Poser » d'A549). Souris seulement : au doigt, rien ne change. */
   const LZ_HORS='.mdb,button,a,input,textarea,select,label,.md-toolbar,.mdb-selbar,.popmenu,[contenteditable]';
+  /* A838 (planche « Modifier sans que ça saute », section 15, S1 — signalé : « avec la poignée il devient plus dur de
+     sélectionner plusieurs blocs à la souris ») — LE CADRE PART AUSSI DU VIDE D'UNE LIGNE. La poignée d'A836 occupe la
+     marge gauche en face du bloc survolé ; restaient les interstices (8 px) et la marge droite (13 px). Un glisser qui
+     part de l'espace VIDE d'un bloc — à droite d'une ligne, ni sur un mot, ni sur un média, un lien ou un contrôle —
+     trace le cadre, comme dans Notion ; partir d'un mot sélectionne toujours du texte (A634). Un simple clic au même
+     endroit ouvre le bloc, comme avant (il ne vide pas une sélection en cours). */
+  const surTexte=(b,x,y)=>{const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n;
+    while((n=w.nextNode())){if(!n.textContent.trim()||n.parentElement.closest('button,.mdb-gut'))continue;const r=document.createRange();r.selectNodeContents(n);
+      for(const q of r.getClientRects())if(x>=q.left-6&&x<=q.right+6&&y>=q.top-2&&y<=q.bottom+2)return true;}return false;};
   card.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0||grab>=0||open>=0)return;
-    const t=e.target;if(!t||!t.closest||t.closest(LZ_HORS)||!card.contains(t))return;
+    const t=e.target;if(!t||!t.closest||!card.contains(t))return;let dansBloc=false;
+    if(t.closest(LZ_HORS)){const b=t.closest('.mdb[data-mdb]:not(.on)');
+      if(!b||t.closest('button,a,input,textarea,select,label,img,video,figure,table,.md-task,[contenteditable]')||surTexte(b,e.clientX,e.clientY))return;dansBloc=true;}
     /* A816 (rectificatif d'A634, signalé : « on ne peut pas prendre les blocs hors de l'écran ») — LE CADRE SUIT LE
        DOCUMENT ET FAIT DÉFILER. Le départ était noté en coordonnées de FENÊTRE : la page défilait (molette), le cadre
        restait sur place. Il est ancré au DOCUMENT (départ + défilement du défileur au départ) ; près du bas de la zone
@@ -21767,7 +21806,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const onSc=()=>draw();
     const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);removeEventListener('scroll',onSc,true);
       if(raf)cancelAnimationFrame(raf);raf=0;if(box)box.remove();
-      if(!bouge&&!e.shiftKey&&(sel.size||selMode))selClear();
+      if(!bouge&&!dansBloc&&!e.shiftKey&&(sel.size||selMode))selClear();
       else if(bouge){skipClick=true;setTimeout(()=>{skipClick=false;},300);}};
     document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);addEventListener('scroll',onSc,{capture:true,passive:true});});
   // #16 : un clic HORS de la carte du document (ailleurs dans l'éditeur, la colonne…) vide aussi la sélection.
@@ -22001,7 +22040,7 @@ function mdPlanOpen(btn,ta,p,o){const L=o&&o.ln!=null?o.ln:mdCaretLine(ta),H=mdH
    l'éditeur quitte la page. */
 let _mdSpy=null;
 function mdPlanSpyOff(){if(_mdSpy){removeEventListener('scroll',_mdSpy.f,true);removeEventListener('resize',_mdSpy.f);_mdSpy=null;}
-  const hb=document.querySelector('header.bar');if(hb)hb.classList.remove('plan-on');
+  const hb=document.querySelector('header.bar');if(hb)hb.classList.remove('plan-on','plan-ed');
   const bs=document.querySelector('#brandSub .bs-sec');if(bs)bs.remove();}
 function mdPlanSpy(p,ta){mdPlanSpyOff();const card=main.querySelector('.md-ed');if(!card||!ta)return;
   const hb=document.querySelector('header.bar'),bl=hb&&hb.querySelector('.bt-line');if(!bl)return;
@@ -22023,15 +22062,18 @@ function mdPlanSpy(p,ta){mdPlanSpyOff();const card=main.querySelector('.md-ed');
     const seuil=haut+Math.max(16*z,(innerHeight-haut)/4);let c=null;
     H.forEach((h,i)=>{if(Y[i]<=seuil)c=h;});cur=c;
     const par=c&&c.n>1?H.filter(h=>h.ln<c.ln&&h.n===1).pop():null;
-    hb.classList.toggle('plan-on',!!c);
-    btn.querySelector('.hp-t').textContent=c?c.text:'';
+    /* A839 : bloc ouvert, la tête de la carte (et son Plan) laisse la place aux outils — l'en-tête de la page porte le
+       Plan, même en haut de page (« Plan » tant qu'aucun titre n'est passé). */
+    const ed=card.classList.contains('mdl-open');
+    hb.classList.toggle('plan-on',!!c||ed);hb.classList.toggle('plan-ed',ed);
+    btn.querySelector('.hp-t').textContent=c?c.text:(ed?'Plan':'');
     btn.setAttribute('aria-label',c?'Plan — section en cours : '+(par?par.text+', ':'')+c.text:'Plan');
     {const bs=document.getElementById('brandSub');let x=bs&&bs.querySelector('.bs-sec');
      if(bs&&par){if(!x){x=document.createElement('span');x.className='bs-sec';bs.appendChild(x);}x.textContent=' · '+par.text;}else if(x)x.remove();}
     const pb=card.querySelector('[data-mdplan] .md-plan-t');if(pb&&c)pb.textContent='Plan · '+c.text;};
   const f=e=>{if(e&&e.type==='input')tops=null;if(e&&e.type==='resize')tops=null;if(!raf)raf=requestAnimationFrame(lire);};
   btn.onclick=()=>mdPlanOpen(btn,ta,p,{host:document.body,ln:cur?cur.ln:null});
-  _mdSpy={f};addEventListener('scroll',f,{capture:true,passive:true});addEventListener('resize',f);ta.addEventListener('input',f);card.addEventListener('input',f);card.addEventListener('click',f);
+  _mdSpy={f};addEventListener('scroll',f,{capture:true,passive:true});addEventListener('resize',f);ta.addEventListener('input',f);card.addEventListener('input',f);card.addEventListener('click',f);card.addEventListener('mdpaint',f);   // A839 : chaque redessin (bloc ouvert ou refermé, même au clavier)
   f();}
 /* A818 — CHANGER DE MODE GARDE LA PLACE (action ④). Basculer « Mise en forme en direct » ⇄ Markdown entier redessinait
    l'éditeur et gardait `scrollY` — mais les deux dessins n'ont pas la même hauteur (mesuré : au téléphone la section à
@@ -23116,7 +23158,7 @@ function renderProtocolEdit(){
     l'efface, et c'est ce qui rend le geste sans conséquence. Une référence n'est pas une session ;
     ce qui garde une trace, ce sont les fiches. */}
     <fieldset class="field ed-card md-ed${state.mdPv==='p'&&!live?' md-pv':''}${live?' mdl':''}${mds?' etab':''}">${mds||live?'':mdLabHtml}
-      ${mds?'':live?mdHeadHtml(mdLabHtml)+'<p class="md-tap">Touchez un passage pour le modifier.</p>':mdHeadHtml()}
+      ${mds?'':live?mdHeadHtml(mdLabHtml):mdHeadHtml()}
       ${mds?`<div class="etab-lh">${mdLabHtml}${mdHeadHtml()}</div><div class="etab-grid" id="etabGrid"><div class="etab-l">`:''}
       ${mdToolbarHtml()}
       ${live?'<div class="md-doc" id="mdDoc"></div>':''}

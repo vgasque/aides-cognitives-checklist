@@ -9319,10 +9319,10 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     await calme(page, 200);
     const o={colle:await page.locator('#mdDoc .mdb').count()};
     await tap(page.locator('.md-toolbar [data-mdtool="b"]'));await calme(page, 200);o.barre=await page.locator('#mdDoc .mdb-ta').count();
-    /* Un toucher DEHORS : la ligne « Touchez un passage… » de la carte, hors du document — pas le coin de #main (la page a défilé à
+    /* Un toucher DEHORS : le fond de la page au-dessus de la carte — pas le coin de #main (la page a défilé à
        l'ouverture du bloc : ce coin tombait sous l'en-tête, sur « Retour », et quittait l'éditeur). */
-    const {x,y}=await page.evaluate(async()=>{const a=document.querySelector('.md-ed .md-tap');a.scrollIntoView({block:'center'});await __acCalme(150);
-      const q=a.getBoundingClientRect();return {x:q.left+20,y:q.top+q.height/2};});
+    const {x,y}=await page.evaluate(async()=>{const a=document.querySelector('.md-ed');a.scrollIntoView({block:'center'});await __acCalme(150);
+      const q=a.getBoundingClientRect();return {x:q.left+40,y:q.top-8};});   // A839 : le fond de la page, juste au-dessus de la carte (la ligne d'aide n'existe plus)
     if(hasTouch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await calme(page, 250);
     o.ferme=await page.locator('#mdDoc .mdb-ta').count();o.blocs=await page.locator('#mdDoc .mdb').count();
     o.corps=await page.evaluate(()=>/## Indications\n\nChoc \*\*grade III-IV\*\*\.\n\n- un\n- deux/.test(state.pdraft.body));
@@ -11935,9 +11935,9 @@ await sec('A634-A635 · blocs : cadre depuis la marge, clic dehors ; « Modifier
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
   await page.evaluate(async()=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const p=migrateProtocol({id:'p634',title:'Lasso',body:'Premier paragraphe assez long.\n\nDeuxième paragraphe.\n\nTroisième paragraphe.\n\nQuatrième.',status:'draft'});protocols.push(p);await openProtocolEdit('p634');await __acCalme(600);});
-  const g=await page.evaluate(()=>{const c=document.getElementById('mdDoc').closest('.md-ed').getBoundingClientRect();return {c:{l:c.left},b:[...document.querySelectorAll('#mdDoc .mdb[data-mdb]')].map(b=>{const r=b.getBoundingClientRect();return {l:r.left,t:r.top,b:r.bottom};})};});
+  const g=await page.evaluate(()=>{const c=document.getElementById('mdDoc').closest('.md-ed').getBoundingClientRect();return {c:{l:c.left,r:c.right},b:[...document.querySelectorAll('#mdDoc .mdb[data-mdb]')].map(b=>{const r=b.getBoundingClientRect();return {l:r.left,t:r.top,b:r.bottom};})};});
   const n=async()=>page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb.sel').length);
-  await page.mouse.move(g.c.l+4,g.b[0].t+5);await page.mouse.down();await page.mouse.move(g.b[1].l+30,g.b[1].t+5,{steps:5});await page.mouse.up();await calme(page,200);
+  await page.mouse.move(g.c.r-5,g.b[0].t+5);await page.mouse.down();await page.mouse.move(g.c.r-40,g.b[1].t+5,{steps:5});await page.mouse.up();await calme(page,200);   // A837 : la marge GAUCHE en face d'un bloc est sa poignée ; le cadre part de la marge droite
   const cadre=await n(),porte=await page.evaluate(()=>{const d=document.getElementById('edAddOpenP');return d?getComputedStyle(d).visibility:'';});
   await page.mouse.click(5,450);await calme(page,200);const dehors=await n();
   await page.mouse.move(g.b[0].l+20,g.b[0].t+12);await page.mouse.down();await page.mouse.move(g.b[1].l+60,g.b[1].t+12,{steps:5});await page.mouse.up();await calme(page,300);
@@ -13111,7 +13111,7 @@ await sec('Éditeur · A805 contenu vide : une invitation, pas de réglage ; tê
         nom:sw?sw.textContent.replace(/\s+/g,' ').trim():''};},body);
     const v=await lire(''),p=await lire('## Indications\n\nTexte.');
     t(`A805 · ${W} px · protocole vide : l'invitation pleine largeur et « Coller du Markdown… », ni interrupteur ni « Touchez un passage »`,!v.inter&&!v.aide&&v.raw&&v.large,JSON.stringify(v));
-    t(`A805 · ${W} px · avec du contenu : l'interrupteur revient sur la ligne de l'intitulé, l'aide sous la tête, nom complet lu`,p.inter&&p.aide&&!p.raw&&p.ligne&&p.nom==='Mise en forme en direct',JSON.stringify(p));
+    t(`A805 · ${W} px · avec du contenu : l'interrupteur revient sur la ligne de l'intitulé, nom complet lu (A839 : plus de ligne d'aide)`,p.inter&&!p.aide&&!p.raw&&p.ligne&&p.nom==='Mise en forme en direct',JSON.stringify(p));
     const k=await page.evaluate(async()=>{const pr=migrateProtocol({title:'Témoin A805 b'});protocols.push(pr);await openProtocolEdit(pr.id);await __acCalme(500);
       document.querySelector('[data-mdbraw]').click();await __acCalme(500);const t=document.getElementById('p-body'),sw=document.querySelector('[data-mdlive]');
       const o={doc:!!document.getElementById('mdDoc'),focus:document.activeElement===t,coupe:!!sw&&!sw.checked,vu:!!sw&&sw.closest('.md-live').getClientRects().length>0};
@@ -13332,12 +13332,12 @@ await sec('Éditeur · A816 le cadre de sélection suit le document et fait déf
 const blocs=Array.from({length:60},(_,i)=>`Bloc ${i+1}, une ligne de texte pour la sélection au cadre.`).join('\n\n');
 const page=await editeur811(1280,800,blocs);
 const m=await page.evaluate(()=>{scrollTo(0,0);const d=document.getElementById('mdDoc');d.scrollIntoView({block:'start'});const c=d.closest('.md-ed').getBoundingClientRect(),b=d.querySelector('.mdb').getBoundingClientRect();
-  return {x:c.left+4,y:b.top+2,vis:[...d.querySelectorAll('.mdb[data-mdb]')].filter(x=>x.getBoundingClientRect().top<innerHeight).length,sy:scrollY};});
-await page.mouse.move(m.x,m.y);await page.mouse.down();await page.mouse.move(m.x+20,m.y+40,{steps:3});await page.mouse.move(m.x+20,795,{steps:5});
+  return {x:c.right-5,y:b.top+2,vis:[...d.querySelectorAll('.mdb[data-mdb]')].filter(x=>x.getBoundingClientRect().top<innerHeight).length,sy:scrollY};});
+await page.mouse.move(m.x,m.y);await page.mouse.down();await page.mouse.move(m.x-20,m.y+40,{steps:3});await page.mouse.move(m.x-20,795,{steps:5});
 await page.waitForTimeout(900);   // horloge : le défilement automatique avance par pas rAF tant que le pointeur reste au bord
 const r1=await page.evaluate(()=>({sy:scrollY,n:document.querySelectorAll('#mdDoc .mdb.sel').length,box:!!document.querySelector('.mdb-lasso')}));
 t('A816 · le pointeur au bas de la fenêtre : la page défile, des blocs d’abord hors écran entrent dans la sélection',r1.box&&r1.sy>m.sy+100&&r1.n>m.vis,JSON.stringify({m,r1}));
-await page.mouse.move(m.x+20,500,{steps:3});await calme(page,200);
+await page.mouse.move(m.x-20,500,{steps:3});await calme(page,200);
 const r2a=await page.evaluate(()=>({sy:scrollY,n:document.querySelectorAll('#mdDoc .mdb.sel').length}));
 await page.mouse.wheel(0,800);await page.waitForTimeout(700);   // horloge : la molette (le trackpad) défile la page de manière fluide
 const r2=await page.evaluate(()=>({sy:scrollY,n:document.querySelectorAll('#mdDoc .mdb.sel').length}));
@@ -13677,6 +13677,53 @@ for(const W of [390,375]){const pg=await proto819(W,844,corps);
   await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Premier'));b.click();await __acCalme(300);});
   const ta=await pg.$('#mdDoc .mdb-ta');await ta.focus();await pg.keyboard.type('x');await calme(pg,250);const l=await pg.evaluate(()=>document.querySelector('.md-plan').textContent.trim());
   t('A835 · on écrit sous « Titre A » : le Plan dit « Titre A » (pas la dernière section)',/Titre A/.test(l),l);
+  await pg.close();}
+});
+
+/* ══ A837-A839 — LA MARGE MONTRE LA POIGNÉE ; LE CADRE PART DU VIDE D'UNE LIGNE ; UNE RANGÉE À DEUX ÉTATS ══ */
+await sec('Éditeur · A837-A839 la marge montre la poignée, le cadre part du vide d’une ligne, la tête à deux états', async () => {
+const corps=['## Physiopathologie','','Gaz invisible, indolore, non irritant.','','Deuxième paragraphe.','',...Array.from({length:24},(_,i)=>i%8===0?`## Section ${i/8+2}\n`:`Paragraphe ${i+1} du protocole.\n`),'Fin.'].join('\n');
+const ligne=(pg,re)=>pg.evaluate(re=>{const r=new RegExp(re);const e=[...document.querySelectorAll('#mdDoc .md-p,#mdDoc .md-h2')].find(x=>r.test(x.textContent));if(!e)return null;const q=e.getBoundingClientRect();return {y:q.top,x:q.left};},re);
+// A837 — la souris dans la marge, à hauteur d'un bloc, montre sa poignée ; le cadre part toujours de la marge entre deux blocs
+{const pg=await proto819(1280,900,corps);
+  const B=await pg.evaluate(()=>{document.getElementById('mdDoc').scrollIntoView({block:'start'});const c=document.querySelector('.md-ed').getBoundingClientRect();return {card:c.left};});await calme(pg,200);
+  const b2=await pg.evaluate(()=>{const b=document.querySelectorAll('#mdDoc .mdb[data-mdb]')[2].getBoundingClientRect();return {t:b.top,b:b.bottom};});
+  await pg.mouse.move(B.card+6,b2.t+6,{steps:3});await calme(pg,120);
+  const vis=await pg.evaluate(()=>[...document.querySelectorAll('#mdDoc .mdb-gut')].map((u,i)=>getComputedStyle(u).clipPath==='none'?i:null).filter(x=>x!=null).join(','));
+  t('A837 · la souris dans la marge, à hauteur d’un bloc : sa poignée paraît (et elle seule)',vis==='2',vis);
+  await pg.keyboard.press('Escape');await calme(pg,200);
+  // A838 — le cadre part du vide d'une ligne ; un clic simple au même endroit ouvre le bloc ; « Sélectionner » : un clic ajoute
+  await pg.evaluate(()=>{[...document.querySelectorAll('#mdDoc .md-p')].find(x=>/^Paragraphe 2 /.test(x.textContent)).scrollIntoView({block:'center'});});await calme(pg,250);
+  const a=await ligne(pg,'^Paragraphe 2 '),z=await ligne(pg,'^Paragraphe 4 ');
+  await pg.mouse.move(a.x+520,a.y+8);await pg.mouse.down();await pg.mouse.move(a.x+430,z.y+8,{steps:6});await pg.mouse.up();await calme(pg,250);
+  const s1=await pg.evaluate(()=>({sel:document.querySelectorAll('#mdDoc .mdb.sel').length,ouvert:!!document.querySelector('#mdDoc .mdb-ta')}));
+  t('A838 · glisser depuis le vide à droite d’une ligne trace le cadre : trois blocs pris, aucun ouvert',s1.sel===3&&!s1.ouvert,JSON.stringify(s1));
+  await pg.keyboard.press('Escape');await calme(pg,200);
+  await pg.mouse.click(a.x+520,a.y+8);await calme(pg,350);
+  const c1=await pg.evaluate(()=>(document.querySelector('#mdDoc .mdb-ta')||{}).value||null);
+  t('A838 · un clic simple dans le même vide ouvre le bloc, comme avant',c1==='Paragraphe 2 du protocole.',String(c1));
+  await pg.click('#mdDoc [data-mdbact="done"]');await calme(pg,250);
+  await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>/^Paragraphe 3 /.test(x.textContent.trim())).closest('.mdb');b.click();await __acCalme(250);document.querySelector('#mdDoc [data-mdbact="sel"]').click();await __acCalme(250);});
+  const q4=await ligne(pg,'^Paragraphe 4 ');await pg.mouse.click(q4.x+520,q4.y+8);await calme(pg,250);
+  const n2=await pg.evaluate(()=>document.querySelectorAll('#mdDoc .mdb.sel').length);
+  t('A838 · en mode « Sélectionner », un clic dans le vide d’une autre ligne l’ajoute, ne vide rien',n2===2,String(n2));
+  await pg.close();}
+// A839 — une rangée à deux états : rien ne bouge à l'ouverture ni à la fermeture ; une taille ; le Plan dans l'en-tête bloc ouvert
+for(const W of [1280,390]){const pg=await proto819(W,W<500?844:900,corps);
+  await pg.evaluate(()=>{document.getElementById('mdDoc').scrollIntoView({block:'start'});scrollBy(0,-120);});await calme(pg,250);
+  const tt=()=>ligne(pg,'^Physiopathologie');const t0=await tt(),g=await ligne(pg,'^Gaz');
+  if(W<500)await pg.touchscreen.tap(g.x+30,g.y+8);else await pg.mouse.click(g.x+30,g.y+8);await calme(pg,400);
+  const etat=await pg.evaluate(()=>{const c=document.querySelector('.md-ed'),h=c.querySelector('.md-head'),tb=c.querySelector('.md-toolbar');return {tete:h.getClientRects().length>0,outils:tb.getClientRects().length>0};});
+  const t1=await tt();await pg.keyboard.press('Escape');await calme(pg,400);const t2=await tt();
+  const tete=await pg.evaluate(()=>{const h=document.querySelector('.md-ed .md-head');const f=new Set([...h.querySelectorAll('*')].filter(e=>e.children.length===0&&e.textContent.trim()&&e.getClientRects().length).map(e=>getComputedStyle(e).fontSize));
+    return {h:Math.round(h.getBoundingClientRect().height),tailles:[...f].join(' '),aide:!!document.querySelector('.md-ed .md-tap'),entete:[...document.querySelector('header.bar').classList].filter(c=>/plan-ed/.test(c)).join('')};});
+  t(`A839 · ${W} px · bloc ouvert : les outils à la place de la tête ; refermé, rien ne bouge (avant : −46 px)`,etat.outils&&!etat.tete&&Math.abs(t2.y-t1.y)<=1,JSON.stringify({etat,ouvrir:t1.y-t0.y,refermer:t2.y-t1.y}));
+  t(`A839 · ${W} px · la tête : une rangée de 40 px, une seule taille (13,5), plus de ligne d’aide ; refermé, l’en-tête rend le titre`,tete.h>=40&&tete.h<=42&&tete.tailles==='13.5px'&&!tete.aide&&!tete.entete,JSON.stringify(tete));
+  await pg.evaluate(()=>scrollTo(0,0));await calme(pg,250);const g2=await ligne(pg,'^Gaz');
+  if(W<500)await pg.touchscreen.tap(g2.x+30,g2.y+8);else await pg.mouse.click(g2.x+30,g2.y+8);await calme(pg,400);
+  const p=await pg.evaluate(async()=>{const h=document.querySelector('header.bar .hdr-plan');const v=!!h&&h.getClientRects().length>0;const o={visible:v,texte:v?h.textContent.trim():''};
+    if(v){h.click();await __acCalme(300);o.ouvert=[...document.querySelectorAll('.popmenu,.ai-modal.on')].some(m=>m.getClientRects().length);o.bloc=!!document.querySelector('#mdDoc .mdb-ta');}return o;});
+  t(`A839 · ${W} px · bloc ouvert en haut de page : l’en-tête porte le Plan, qui s’ouvre ; le bloc reste ouvert`,p.visible&&p.ouvert&&p.bloc,JSON.stringify(p));
   await pg.close();}
 });
 
