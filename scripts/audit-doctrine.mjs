@@ -13292,9 +13292,10 @@ const mes=()=>page.evaluate(()=>{const R=s=>document.querySelector(s),g=(e,k)=>e
 const ed=await mes();
 await page.evaluate(async()=>{await openProtocolRead('p811');});await calme(page,500);
 const lu=await mes();
-t('A811 · la lecture et le document de l’éditeur ont les mêmes métriques (interligne, marges, puces, filets des titres)',JSON.stringify(ed)===JSON.stringify(lu)&&ed.lh&&parseFloat(ed.lh)/15<1.6,JSON.stringify({ed,lu}));
+const sansTrait=o=>{const c={...o};delete c.trait;return JSON.stringify(c);};   // A831 : le trait n'est que dans l'éditeur
+t('A811 · la lecture et le document de l’éditeur ont les mêmes métriques (interligne, marges, puces, filets des titres)',sansTrait(ed)===sansTrait(lu)&&ed.lh&&parseFloat(ed.lh)/15<1.6,JSON.stringify({ed,lu}));
 t('A828 · « ### » est une rubrique en capitales, sans filet ; seul « # » porte un filet, au-dessus ; un paragraphe en gras n’en a aucun',ed.h3b==='0px'&&ed.h3tt==='uppercase'&&ed.h1bt==='2px'&&await page.evaluate(()=>{const b=[...document.querySelectorAll('.md-body .md-p')].find(p=>/^Physiopathologie/.test(p.textContent));return !!b&&getComputedStyle(b).borderBottomWidth==='0px';}),JSON.stringify(ed));
-t('A812 · une sous-liste porte le trait de sa puce, en lecture et dans l’éditeur',ed.trait&&lu.trait,JSON.stringify({ed:ed.trait,lu:lu.trait}));
+t('A831 · le trait des sous-listes est dans l’éditeur, pas en lecture',ed.trait&&!lu.trait,JSON.stringify({ed:ed.trait,lu:lu.trait}));
 const tc=await page.evaluate(()=>{const d=document.createElement('div');d.className='md-body';d.innerHTML=mdRender('- [ ] a\n    - [ ] b\n\n| x |\n|---|\n| - a<br>- b |');document.body.appendChild(d);
   const s=[...d.querySelectorAll('li>.md-ul,li>.md-ol')].map(u=>getComputedStyle(u.firstElementChild,'::after').content!=='none');d.remove();return s;});   // A823
 t('A812 · jamais sous une case cochable ni dans une case de tableau',tc.every(x=>!x),JSON.stringify(tc));
@@ -13444,13 +13445,15 @@ const ecarts=pg=>pg.evaluate(()=>{const root=document.querySelector('#mdDoc')||d
   let n;while((n=tw.nextNode())){const r=document.createRange();r.selectNodeContents(n);const R=[...r.getClientRects()].filter(x=>x.height>0);if(R.length)L.push({h:!!n.parentElement.closest('.md-h1,.md-h2,.md-h3'),t:Math.min(...R.map(x=>x.top)),b:Math.max(...R.map(x=>x.bottom))});}
   root.querySelectorAll('img').forEach(i=>{const r=i.getBoundingClientRect();if(r.height)L.push({h:false,t:r.top,b:r.bottom});});L.sort((a,b)=>a.t-b.t);
   return L.map((x,i)=>x.h?[i?+(x.t-L[i-1].b).toFixed(1):null,L[i+1]?+(L[i+1].t-x.b).toFixed(1):null]:null).filter(Boolean);});
-for(const W of [1280,390]){page=await proto819(W,W<500?844:900,corps822);const e=await ecarts(page);await page.evaluate(async()=>{await openProtocolRead('p819');});await calme(page,600);const l=await ecarts(page);
+for(const W of [1280,390]){page=await proto819(W,W<500?844:900,corps822);const e=await ecarts(page);
+  const gEd=await page.evaluate(()=>[...document.querySelectorAll('#mdDoc li:not(.md-task)>.md-ul')].map(u=>{const P=u.parentElement,ps=getComputedStyle(P,'::before'),pr=P.getBoundingClientRect(),c=u.firstElementChild,cs=getComputedStyle(c,'::after'),cr=c.getBoundingClientRect();
+    const tn=[...P.childNodes].find(x=>x.nodeType===3&&x.textContent.trim());const rg=document.createRange();rg.selectNodeContents(tn);const R=[...rg.getClientRects()];
+    return {dx:+(cr.left+parseFloat(cs.left)+parseFloat(cs.width)/2-(pr.left+parseFloat(ps.left)+parseFloat(ps.width)/2)).toFixed(2),haut:+(cr.top+parseFloat(cs.top)-Math.max(...R.map(r=>r.bottom))).toFixed(1)};}));   // A831 : le trait vit dans l'éditeur, il s'y mesure
+  await page.evaluate(async()=>{await openProtocolRead('p819');});await calme(page,600);const l=await ecarts(page);
   const diff=e.length===l.length&&e.every((x,i)=>x.every((v,j)=>v==null&&l[i][j]==null||Math.abs(v-l[i][j])<=1));
   t(`A822 · ${W} · autour de chaque titre, le même écart en lecture et en direct (±1 px)`,diff&&e.length>=6,JSON.stringify({direct:e,lecture:l}));
-  const g=await page.evaluate(()=>[...document.querySelectorAll('.md-body li:not(.md-task)>.md-ul')].map(u=>{const P=u.parentElement,ps=getComputedStyle(P,'::before'),pr=P.getBoundingClientRect(),c=u.firstElementChild,cs=getComputedStyle(c,'::after'),cr=c.getBoundingClientRect();
-    const tn=[...P.childNodes].find(x=>x.nodeType===3&&x.textContent.trim());const rg=document.createRange();rg.selectNodeContents(tn);const R=[...rg.getClientRects()];
-    return {dx:+(cr.left+parseFloat(cs.left)+parseFloat(cs.width)/2-(pr.left+parseFloat(ps.left)+parseFloat(ps.width)/2)).toFixed(2),haut:+(cr.top+parseFloat(cs.top)-Math.max(...R.map(r=>r.bottom))).toFixed(1)};}));
-  t(`A823 · ${W} · le trait part sous la puce parente (centre ±1,5 px, à 4 px au plus sous sa ligne)`,g.length>=2&&g.every(x=>Math.abs(x.dx)<=1.5&&x.haut<=4&&x.haut>=-2),JSON.stringify(g));
+  const g=gEd;
+  t(`A823 · ${W} · dans l’éditeur, le trait part sous la puce parente (centre ±1,5 px, à 4 px au plus sous sa ligne)`,g.length>=2&&g.every(x=>Math.abs(x.dx)<=1.5&&x.haut<=4&&x.haut>=-2),JSON.stringify(g));
   await page.close();}
 // A821 / A824 — « Tout convertir en titres (n) », chaque ligne à son niveau, un seul geste
 page=await proto819(1280,900,['## Intoxication au CO','','**Physiopathologie :**','','- a','','**Prise en charge** :','','- b'].join('\n'));
@@ -13545,6 +13548,21 @@ for(const W of [344,390,780,1280]){const pg=await proto819(W,W<500?844:900,corps
     const x=b.querySelector('.mdt-br');return {h,h0,ha,ha0,kcs,br:!!x&&x.getBoundingClientRect().width>0,fin:matchMedia('(pointer:fine)').matches};});
   t(`A829 · ${W} px : « ↵ » présent, barre et rangée des actions sans un pixel de plus ; touches ${W<500?'absentes au doigt':'au pointeur fin'}`,r.br&&r.h<=r.h0&&r.ha<=r.ha0&&(W<500?r.kcs===0:r.kcs>0),JSON.stringify(r));
   await pg.close();}
+});
+
+/* ══ A831 — une image collée ou insérée au bout d'un paragraphe ne laisse qu'UNE ligne vide avant le bloc suivant ══ */
+await sec('Éditeur · A831 image au bout d’un paragraphe : une seule ligne vide', async () => {
+const page=await proto819(1280,900,'## T\n\nSecond paragraphe.\n\nDernier paragraphe.');
+const out=[];
+for(const c of ['Second','Dernier']){
+  const q=await page.evaluate(c=>{const p=[...document.querySelectorAll('#mdDoc .md-p')].find(x=>x.textContent.startsWith(c));p.scrollIntoView({block:'center'});const r=p.getBoundingClientRect();return {x:r.left+40,y:r.top+8};},c);
+  await page.mouse.click(q.x,q.y);await calme(page,400);
+  await page.evaluate(async()=>{const cv=document.createElement('canvas');cv.width=60;cv.height=40;cv.getContext('2d').fillRect(0,0,60,40);const d=cv.toDataURL('image/png');const bin=atob(d.split(',')[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    const dt=new DataTransfer();dt.items.add(new File([u],'c.png',{type:'image/png'}));document.querySelector('#mdDoc .mdb-ta').dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}));});
+  await calme(page,1500);await page.keyboard.press('Escape');await calme(page,400);}
+const b=await page.evaluate(()=>state.pdraft.body);
+t('A831 · image collée au bout d’un paragraphe : le texte intact, une seule ligne vide avant le bloc suivant, aucune en fin',/Second paragraphe\.\n!\[\]\(img:[^)]+\)\n\nDernier paragraphe\.\n!\[\]\(img:[^)]+\)$/.test(b),JSON.stringify(b));
+await page.close();
 });
 
 const bilanSec=sec.bilan();
