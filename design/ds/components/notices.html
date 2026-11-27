@@ -9319,7 +9319,7 @@
   /* A608 : le Plan en arbre — H1 en vedette, H2 et H3 en retrait de 20 px par niveau (28 · 48), un filet vertical les rattache. */
   .mm-row.mm-lv1 .mm-lb{font-weight:800}
   .mm-row.mm-lv2,.mm-row.mm-lv3{position:relative}
-  .mm-row.mm-lv2{padding-left:28px}.mm-row.mm-lv3{padding-left:48px}
+  .popmenu .mm-row.mm-lv2{padding-left:28px}.popmenu .mm-row.mm-lv3{padding-left:48px}   /* A840 : (0,3,0) — la feuille du bas remettait le retrait à 0 (`:is(.popmenu.sheet,…) .mm-row`), le filet passait sur « H2 » */
   .mm-row.mm-lv2::before,.mm-row.mm-lv3::before{content:'';position:absolute;top:0;bottom:0;border-left:1px solid var(--line-strong)}
   .mm-row.mm-lv2::before{left:18px}.mm-row.mm-lv3::before{left:38px}
   .mm-row.mm-lv3 .mm-lb{font-weight:500}

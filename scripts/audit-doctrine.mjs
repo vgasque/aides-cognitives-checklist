@@ -13727,6 +13727,21 @@ for(const W of [1280,390]){const pg=await proto819(W,W<500?844:900,corps);
   await pg.close();}
 });
 
+/* ══ A840 — LE PLAN DE L'EN-TÊTE : SOUS SON BOUTON AU BUREAU ; L'ARBRE SANS TRAIT SUR LES NIVEAUX AU TÉLÉPHONE ══ */
+await sec('Éditeur · A840 le Plan de l’en-tête s’ouvre sous son bouton ; ses filets ne coupent ni « H2 » ni les titres', async () => {
+const corps=['# Généralités sur les gaz','',...Array.from({length:12},(_,i)=>i%4===1?`### Sous-partie ${i}\n\nTexte.\n`:`## Section ${i}\n\nTexte du paragraphe un peu long pour remplir la page.\n\nEncore du texte.\n`)].join('\n');
+for(const W of [1280,390]){const pg=await proto819(W,W<500?844:900,corps);
+  await pg.evaluate(()=>{[...document.querySelectorAll('#mdDoc .md-h2')][3].scrollIntoView({block:'center'});});await calme(pg,400);
+  const bb=await (await pg.$('header.bar .hdr-plan')).boundingBox();
+  if(W<500)await pg.touchscreen.tap(bb.x+bb.width/2,bb.y+bb.height/2);else await pg.mouse.click(bb.x+bb.width/2,bb.y+bb.height/2);await calme(pg,400);
+  const r=await pg.evaluate(()=>{const m=[...document.querySelectorAll('.popmenu')].find(x=>x.getClientRects().length);if(!m)return null;const q=m.getBoundingClientRect(),h=document.querySelector('header.bar .hdr-plan').getBoundingClientRect();
+    const croise=[...m.querySelectorAll('.mm-row.mm-lv2,.mm-row.mm-lv3')].some(r=>{const ic=r.querySelector('.mdt-hx').getBoundingClientRect(),lb=r.querySelector('.mm-lb').getBoundingClientRect(),lx=r.getBoundingClientRect().left+parseFloat(getComputedStyle(r,'::before').left);return lx>=ic.left-1||lx>=lb.left-1;});
+    return {feuille:m.classList.contains('sheet'),dy:Math.round(q.top-h.bottom),dx:Math.round(q.left-h.left),croise};});
+  t(`A840 · ${W} px · ${W<500?'feuille du bas':'déroulant sous le titre de l’en-tête'} ; les filets de l’arbre passent à gauche des niveaux, sans couper « H2 » ni un titre`,
+    !!r&&!r.croise&&(W<500?r.feuille:(!r.feuille&&r.dy>=0&&r.dy<=16&&Math.abs(r.dx)<=8)),JSON.stringify(r));
+  await pg.close();}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
