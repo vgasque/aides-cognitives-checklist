@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.163.0] — 2026-11-27
+Modifier un protocole sans que la page saute (A833-A835). Aucune mise à jour du serveur.
+- **Au bureau, un clic sur un bloc l'ouvre toujours.** Les « ＋ » qui paraissaient au survol mordaient sur le haut et le
+  bas du texte, et la poignée ⠿ (invisible) sur la fin de la première ligne : un clic pour écrire ouvrait « Ajouter un
+  bloc » ou prenait le bloc. « ＋ » (un bloc dessous ; ⌥ : dessus) et « ⠿ » vivent maintenant dans une colonne étroite à
+  gauche du bloc survolé ; le texte ne recule que de 20 px. Rien n'est plus posé sur le texte. Le crayon ne paraît plus
+  qu'au clavier (Tab). En fenêtre étroite (moins de 560 px), comme au téléphone : les boutons du bloc ouvert.
+- **Les boutons d'un bloc ouvert tiennent sur une ligne**, au téléphone aussi (ils en faisaient trois, ≈ 140 px) :
+  « ⠿ Déplacer », « ＋ Bloc », « ⋯ » (Bloc avant, Sélectionner, Dupliquer, Supprimer) et « Terminé ». Au bureau large, tous
+  restent visibles. Après Entrée, le premier caractère ne fait plus descendre la suite de 92 px.
+- **La barre de mise en forme tient sur une ligne**, y compris au-dessus du clavier et à 375 px (iPhone mini, SE) :
+  « ↵ À la ligne » ne change plus de taille en cours de frappe.
+- **Le Plan suit le bloc qu'on écrit** (il disait la dernière section du protocole pendant la frappe).
+- Témoins : `audit-doctrine` (section A833-A835 ; témoins A610 et A829 mis à jour ; témoin A552 réparé : au téléphone il
+  touchait « Retour » de l'en-tête), vérifiés capables d'échouer.
+
 ## [5.162.0] — 2026-11-27
 - **Effacer au tout début d'un bloc ouvert ramène au bloc précédent** (mise en forme en direct, convention de Notion et Gutenberg, A832) : un bloc vide — celui qu'Entrée vient d'ouvrir — disparaît et le bloc précédent s'ouvre, curseur à sa fin ; un titre, une citation ou une puce redevient d'abord un paragraphe ; un paragraphe rejoint la fin du paragraphe, du titre, de la dernière puce ou de la citation qui le précède (jonction stricte, sans espace ajoutée). Un geste, une annulation (⌘Z ou ↶).
 - **Écarts assumés, pour un protocole** : rien ne se passe devant une image, une vidéo, un tableau, un séparateur, un encadré ou du code (jamais de bloc sélectionné puis supprimé au second appui) ; un encadré ou du code ne se convertit jamais ; **la touche maintenue s'arrête à la frontière** — seul un appui neuf passe au bloc précédent, le texte de celui-ci n'est jamais entamé.
@@ -213,10 +229,3 @@ Les brouillons d'une bibliothèque partagée ne vont plus sur les appareils des 
 - **Un protocole repassé en brouillon disparaît des appareils des lecteurs** à leur synchro suivante — jamais pendant une session en cours, ni pendant qu'on le consulte : il attend la synchro d'après.
 - **Rejoindre une bibliothèque, ou y devenir éditeur, apporte tout son contenu** : les éléments plus anciens que la dernière synchro n'arrivaient pas jusqu'ici. Une première fois aussi après cette mise à jour, pour rattraper ce qui a pu manquer.
 - **Serveur à rejouer** : `supabase/schema.sql` (règles de lecture des aides, des protocoles et des fichiers de bibliothèque). Tant qu'il ne l'est pas, rien ne casse : l'app se comporte comme avant, avec le filet de l'appareil en plus.
-
-## [5.148.3] — 2026-11-18
-Les vidéos d'un protocole ne repartent plus de zéro à chaque modification, prennent bien moins de mémoire, et une seule
-joue à la fois (A795). Aucune mise à jour du serveur.
-- **Modifier un bloc ne réinitialise plus les vidéos** (A795) : dans l'éditeur de protocole, les vidéos restent en place pendant que vous écrivez et reprennent où elles en étaient. Rien n'est relu ni recopié à chaque modification ; l'enregistrement automatique ne relit plus les fichiers des vidéos à chaque sauvegarde.
-- **Moins de mémoire** : une seule copie par vidéo pour toute la page, chargée seulement quand la vidéo approche de l'écran et libérée quand elle s'en éloigne beaucoup (sa vignette reste à sa place). Une vidéo pas encore sur l'appareil le dit toujours tout de suite.
-- **Une seule vidéo joue à la fois en lecture** : celle qui est la plus au centre de l'écran. Les vidéos d'un même tableau jouent ensemble, pour comparer côte à côte. Lancer une vidéo à la main la fait passer devant ; l'arrêter à la main la laisse arrêtée. « Réduire les animations » : rien ne se lance seul, comme avant.

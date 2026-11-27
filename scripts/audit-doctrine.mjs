@@ -9186,14 +9186,14 @@ await sec('Éditeur · A610-A612 blocs : « ＋ » du bloc survolé, sélection 
     await page.evaluate(async c=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A610',body:c});protocols.push(pr);await openProtocolEdit(pr.id);},corps);
     await calme(page,500);
     const bl=await page.$$('#mdDoc .mdb');const bb=await bl[1].boundingBox();await page.mouse.move(bb.x+40,bb.y+bb.height/2);await calme(page,150);
-    const h=await page.evaluate(()=>[...document.querySelectorAll('#mdDoc .mdb-ins')].filter(x=>getComputedStyle(x).display!=='none').map(x=>x.dataset.mdbadd).join(','));
+    const h=await page.evaluate(()=>[...document.querySelectorAll('#mdDoc .mdb-ins')].filter(x=>getComputedStyle(x.parentNode).display!=='none'&&getComputedStyle(x.parentNode).clipPath==='none').map(x=>x.dataset.mdbadd).join(','));
     const b3=await bl[3].boundingBox();await page.keyboard.down('Shift');await page.mouse.click(bb.x+40,bb.y+bb.height/2);await page.mouse.click(b3.x+40,b3.y+b3.height/2);await page.keyboard.up('Shift');await calme(page,150);
     const s=await page.evaluate(()=>({n:document.querySelectorAll('#mdDoc .mdb.sel').length,ouvert:!!document.querySelector('#mdDoc .mdb-ta'),bar:(document.querySelector('.mdb-selbar .mdb-sb-n')||{}).textContent}));
     await page.keyboard.press('Delete');await calme(page,250);
     const d=await page.evaluate(()=>state.pdraft.body);
     await page.evaluate(async()=>{const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);u.click();});await calme(page,300);
     const u=await page.evaluate(()=>state.pdraft.body);
-    t('A610 · souris : seuls les « ＋ » du bloc survolé paraissent (au-dessus, au-dessous)',h==='0,1',h);
+    t('A833 (amende A610) · souris : un seul « ＋ » paraît, celui du bloc survolé (un bloc dessous)',h==='1',h);
     t('A610 · Maj-clic sélectionne une plage de blocs sans en ouvrir ; la barre dit combien',s.n===3&&!s.ouvert&&s.bar==='3 blocs sélectionnés',JSON.stringify(s));
     t('A610 · Suppr retire les blocs sélectionnés d’un coup, ↶ les rend',d==='## Indications\n\nFin.'&&u==="## Indications\n\nTexte.\n\n> [!WARNING]\n> Voie IM\n\n## Posologie\n\nFin.",JSON.stringify({d,u}));
     await page.close();}
@@ -9319,7 +9319,10 @@ await sec('Éditeur · A547 mise en forme en direct (blocs)', async () => {
     await calme(page, 200);
     const o={colle:await page.locator('#mdDoc .mdb').count()};
     await tap(page.locator('.md-toolbar [data-mdtool="b"]'));await calme(page, 200);o.barre=await page.locator('#mdDoc .mdb-ta').count();
-    const box=await page.locator('#main').boundingBox();const x=box.x+12,y=box.y+20;
+    /* Un toucher DEHORS : la ligne « Touchez un passage… » de la carte, hors du document — pas le coin de #main (la page a défilé à
+       l'ouverture du bloc : ce coin tombait sous l'en-tête, sur « Retour », et quittait l'éditeur). */
+    const {x,y}=await page.evaluate(async()=>{const a=document.querySelector('.md-ed .md-tap');a.scrollIntoView({block:'center'});await __acCalme(150);
+      const q=a.getBoundingClientRect();return {x:q.left+20,y:q.top+q.height/2};});
     if(hasTouch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await calme(page, 250);
     o.ferme=await page.locator('#mdDoc .mdb-ta').count();o.blocs=await page.locator('#mdDoc .mdb').count();
     o.corps=await page.evaluate(()=>/## Indications\n\nChoc \*\*grade III-IV\*\*\.\n\n- un\n- deux/.test(state.pdraft.body));
@@ -13053,7 +13056,7 @@ await sec('Menus · A803 le titre se tait quand le bouton le dit ; tête posée,
       const d=document.querySelector('details.ed-ident');if(d)d.open=true;});
     await calme(page,600);
     const pied=await lire(page,'#mdDoc .mdb-add:not(.mdb-first)');
-    const plus=await lire(page,'#mdDoc .mdb-ins-b');
+    const plus=await lire(page,'#mdDoc .mdb-ins');
     const cat=await lire(page,'.cat-chip-other');
     t('A803 · « Ajouter un bloc » ouvert par son bouton : pas de titre (le bouton le dit), le nom reste pour les lecteurs d’écran, pas de filet vide',!pied.titre&&pied.aria==='Ajouter un bloc'&&pied.filet==='0px',JSON.stringify(pied));
     t('A803 · le même menu ouvert par « ＋ » garde son titre, posé (15 px) et séparé par un filet',plus.titre==='Ajouter un bloc'&&plus.taille==='15px'&&plus.filet==='1px',JSON.stringify(plus));
@@ -13540,13 +13543,14 @@ t('A830 · curseur au milieu d’un mot : l’image collée et « Insérer › I
   /Second paragraphe\.\n!\[\]\(img:/.test(b9)&&!/Sec\n|Sec!\[/.test(b9)&&!!ch&&/Premier paragraphe\.(\nmaj\nbouton)?\n!\[\]\(img:/.test(b10)&&!/Prem\n|Prem!\[/.test(b10),JSON.stringify({b9,b10,choix:!!ch}));
 await page.close();
 // Les touches et « ↵ » n'ajoutent AUCUN pixel de hauteur (barre, rangée des actions), de 344 à 1280 ; au doigt, pas de touche
-for(const W of [344,390,780,1280]){const pg=await proto819(W,W<500?844:900,corps829);
+for(const W of [344,390,780,1280]){const pg=await proto819(W,W<500?844:900,corps829);   // A834 : à 780, la rangée tait la touche « Échap » faute de place
   const r=await pg.evaluate(async()=>{const b0=[...document.querySelectorAll('#mdDoc .mdb')].find(b=>b.textContent.includes('Premier'));b0.click();await __acCalme(300);const tt=document.querySelector('.mdb-ta');tt.focus();tt.setSelectionRange(2,2);tt.dispatchEvent(new Event('keyup'));await __acCalme(200);
-    const b=document.querySelector('.md-toolbar'),c=b.classList,h=b.offsetHeight;c.add('br-x');const h0=b.offsetHeight;c.remove('br-x');
-    const a=document.querySelector('.mdb.on .mdb-acts'),ha=a.offsetHeight;a.classList.add('kc-off');const ha0=a.offsetHeight;a.classList.remove('kc-off');
+    // A834-A835 : la mesure est désormais « une ligne » (chaque enfant visible commence avant que le premier ne finisse).
+    const une=e=>{const k=[...e.children].filter(x=>x.getClientRects().length&&getComputedStyle(x).position!=='absolute');const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0);};
+    const b=document.querySelector('.md-toolbar'),a=document.querySelector('.mdb.on .mdb-acts'),h=une(b)?1:2,h0=1,ha=une(a)?1:2,ha0=1;
     const kcs=[...document.querySelectorAll('.md-toolbar .kc,.mdb.on .kc')].filter(k=>getComputedStyle(k).display!=='none'&&k.getBoundingClientRect().width>0).length;
     const x=b.querySelector('.mdt-br');return {h,h0,ha,ha0,kcs,br:!!x&&x.getBoundingClientRect().width>0,fin:matchMedia('(pointer:fine)').matches};});
-  t(`A829 · ${W} px : « ↵ » présent, barre et rangée des actions sans un pixel de plus ; touches ${W<500?'absentes au doigt':'au pointeur fin'}`,r.br&&r.h<=r.h0&&r.ha<=r.ha0&&(W<500?r.kcs===0:r.kcs>0),JSON.stringify(r));
+  t(`A829 · ${W} px : « ↵ » présent, barre et rangée des actions sans un pixel de plus ; touches ${W<500?'absentes au doigt':W>=1280?'au pointeur fin':'tues si la place manque (A834)'}`,r.br&&r.h<=r.h0&&r.ha<=r.ha0&&(W<500?r.kcs===0:W>=1280?r.kcs>0:true),JSON.stringify(r));
   await pg.close();}
 });
 
@@ -13607,6 +13611,58 @@ for(const W of [1280,390]){
   await calme(page2,300);s=await page2.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');return t?{v:t.value,c:t.selectionStart}:null;});
   t(`A832 · ${W} · clavier sans touche (beforeinput) : la fusion a lieu`,bi&&s&&s.v==='Alpha.Beta.',JSON.stringify({bi,s}));
   await page2.close();}
+});
+
+/* ══ A833-A835 — MODIFIER SANS QUE ÇA SAUTE (planche « Modifier sans que ça saute ») ══ */
+await sec('Éditeur · A833-A835 la marge du bloc survolé, la rangée sur une ligne, la barre sur une ligne', async () => {
+const corps='## Titre A\n\nPremier paragraphe.\n\nSecond paragraphe un peu plus long, qui passe à la ligne quand la colonne est étroite, au moins sur un téléphone mais aussi au bureau avec ce texte.\n\n- Puce un\n- Puce deux\n\nDernier paragraphe.\n\n## Titre B\n\nFin.';
+const ouvert=pg=>pg.evaluate(()=>({bloc:!!document.querySelector('#mdDoc .mdb-ta'),menu:[...document.querySelectorAll('.popmenu')].some(m=>m.getClientRects().length),prise:!!document.querySelector('#mdDoc .ed-grab')}));
+// A833 — bureau : rien de cliquable sur le texte d'un bloc ; « ＋ » et « ⠿ » dans la marge ; ⌥ « ＋ » = dessus
+{const pg=await proto819(1280,900,corps);
+  const g=await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Second'));b.scrollIntoView({block:'center'});await __acCalme(150);
+    const r=b.getBoundingClientRect(),c=b.querySelector('.md-p').getBoundingClientRect(),hits=[];
+    for(const [fx,y] of [[.5,c.top+2],[.5,c.bottom-3],[.97,c.top+4],[.99,c.top+10]]){const e=document.elementFromPoint(r.left+r.width*fx,y);hits.push(e&&e.closest('button')?e.closest('button').className:'');}
+    return {hits,r:{x:r.left,y:r.top,w:r.width,h:r.height},txt:Math.round(c.left)};});
+  await pg.mouse.move(g.r.x+g.r.w/2,g.r.y+g.r.h/2);await calme(pg,150);
+  const gut=await pg.evaluate(()=>{const u=document.querySelector('#mdDoc .mdb:hover>.mdb-gut');if(!u)return null;const q=u.getBoundingClientRect(),k=[...u.children].map(x=>x.getBoundingClientRect());
+    return {op:getComputedStyle(u).clipPath==='none'?'1':'0',right:Math.round(q.right),n:u.children.length,pile:k.length===2&&k[1].top>=k[0].bottom-1,recul:parseFloat(getComputedStyle(document.getElementById('mdDoc')).paddingLeft),ed:getComputedStyle(document.querySelector('#mdDoc .mdb-ed')).clipPath};});
+  t('A833 · bureau : aucun bouton sous le texte d’un bloc (haut, bas, fin de 1re ligne, marge droite)',g.hits.every(h=>!h),JSON.stringify(g.hits));
+  t('A833 · bureau : au survol, « ＋ » au-dessus de « ⠿ », dans une colonne à gauche du texte (le texte ne recule que de 20 px) ; ✎ rogné (clavier seulement)',!!gut&&gut.op==='1'&&gut.n===2&&gut.pile&&gut.recul===20&&gut.right<=g.txt&&gut.ed!=='none',JSON.stringify({gut,txt:g.txt}));
+  const res=[];for(const [fx,fy] of [[.5,4],[.5,-4],[.97,6]]){await pg.mouse.click(g.r.x+g.r.w*fx,fy>0?g.r.y+fy:g.r.y+g.r.h+fy);await calme(pg,250);res.push(await ouvert(pg));await pg.keyboard.press('Escape');await calme(pg,250);}
+  t('A833 · bureau : un clic au bord du texte ouvre le bloc, jamais « Ajouter un bloc » ni un déplacement',res.every(o=>o.bloc&&!o.menu&&!o.prise),JSON.stringify(res));
+  const r2=await pg.evaluate(()=>{const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Second'));const q=b.getBoundingClientRect();return {x:q.left+q.width/2,y:q.top+q.height/2};});
+  await pg.mouse.move(5,5);await pg.mouse.move(r2.x,r2.y,{steps:3});await calme(pg,150);
+  const pb=await (await pg.$('#mdDoc .mdb:hover .mdb-ins')).boundingBox();
+  await pg.keyboard.down('Alt');await pg.mouse.click(pb.x+pb.width/2,pb.y+pb.height/2);await pg.keyboard.up('Alt');await calme(pg,300);await pg.click('.popmenu [data-pickopt="p"]');await calme(pg,300);
+  const bd=await pg.evaluate(()=>state.pdraft.body);
+  t('A833 · ⌥ « ＋ » ajoute le bloc AU-DESSUS du bloc survolé',/Premier paragraphe\.\n\nTexte\n\nSecond paragraphe/.test(bd),bd.slice(0,120));
+  await pg.close();}
+// A834 — la rangée du bloc ouvert tient sur une ligne ; Entrée puis un caractère : rien ne bouge
+for(const W of [390,375,320,1280]){const pg=await proto819(W,W<500?844:900,corps);
+  const r=await pg.evaluate(async()=>{const une=e=>{const k=[...e.children].filter(x=>x.getClientRects().length);const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0);};
+    const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Second'));b.scrollIntoView({block:'center'});await __acCalme(150);b.click();await __acCalme(300);
+    const a=document.querySelector('.mdb.on .mdb-acts');return {une:une(a),cls:a.className};});
+  const ta=await pg.$('#mdDoc .mdb-ta');await ta.focus();await pg.evaluate(()=>{const t=document.querySelector('#mdDoc .mdb-ta');t.setSelectionRange(t.value.length,t.value.length);});
+  await pg.keyboard.press('Enter');await calme(pg,300);const y=()=>pg.evaluate(()=>Math.round(document.querySelector('#mdDoc .mdb.on').nextElementSibling.getBoundingClientRect().top));
+  const y1=await y();await pg.keyboard.type('N');await calme(pg,300);const y2=await y();
+  t(`A834 · ${W} px : la rangée du bloc ouvert tient sur une ligne${W>1000?', entière, touche « Échap » comprise (rien dans « ⋯ »)':''}`,r.une&&(W>1000?!/ac1|kc-off|kc-court/.test(r.cls):/ac1/.test(r.cls)),JSON.stringify(r));
+  t(`A834 · ${W} px : Entrée puis un caractère — le bloc suivant ne bouge pas`,y1===y2,JSON.stringify({y1,y2}));
+  if(W<500){const m=await pg.evaluate(async()=>{document.querySelector('.mdb.on [data-mdbact="more"]').click();await __acCalme(300);const o=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
+      document.querySelector('.popmenu [data-pickopt="del"]').click();await __acCalme(300);return {o,body:state.pdraft.body,ouvert:!!document.querySelector('#mdDoc .mdb-ta')};});
+    t(`A834 · ${W} px : « ⋯ » offre Bloc avant, Sélectionner, Dupliquer, Supprimer — et Supprimer retire le bloc`,m.o==='av,sel,dup,del'&&!/\nN\n/.test(m.body)&&!m.ouvert,JSON.stringify(m));}
+  await pg.close();}
+// A835 — la barre sur une ligne (collante ou fixée au-dessus du clavier) ; le Plan suit le bloc ouvert
+for(const W of [390,375]){const pg=await proto819(W,844,corps);
+  const r=await pg.evaluate(async()=>{const une=e=>{const k=[...e.children].filter(x=>x.getClientRects().length&&getComputedStyle(x).position!=='absolute');const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0)&&k[k.length-1].getBoundingClientRect().right<=innerWidth;};
+    const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Premier'));b.click();await __acCalme(300);const tb=document.querySelector('.md-toolbar');const o={collante:une(tb)};
+    Object.assign(tb.style,{position:'fixed',left:'0',right:'0',top:'500px',flexWrap:'nowrap',padding:'2px 12px'});dispatchEvent(new Event('resize'));await __acCalme(200);o.fixee=une(tb);o.cls=[...tb.classList].filter(c=>/br/.test(c)).join();tb.removeAttribute('style');return o;});
+  t(`A835 · ${W} px : la barre tient sur une ligne, collante comme fixée au-dessus du clavier`,r.collante&&r.fixee,JSON.stringify(r));
+  await pg.close();}
+{const pg=await proto819(390,844,corps);
+  await pg.evaluate(async()=>{const b=[...document.querySelectorAll('#mdDoc .mdb')].find(x=>x.textContent.includes('Premier'));b.click();await __acCalme(300);});
+  const ta=await pg.$('#mdDoc .mdb-ta');await ta.focus();await pg.keyboard.type('x');await calme(pg,250);const l=await pg.evaluate(()=>document.querySelector('.md-plan').textContent.trim());
+  t('A835 · on écrit sous « Titre A » : le Plan dit « Titre A » (pas la dernière section)',/Titre A/.test(l),l);
+  await pg.close();}
 });
 
 const bilanSec=sec.bilan();
