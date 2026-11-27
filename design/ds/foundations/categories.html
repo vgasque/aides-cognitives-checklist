@@ -9078,13 +9078,14 @@
   .mdb-ed:not(:focus-visible){clip-path:inset(50%)}   /* rogné : aucune surface à cliquer, toujours atteignable au Tab */
   .mdb-ed:focus-visible{opacity:1;outline:2px solid var(--act);outline-offset:2px}
   .mdb-raw{font-family:var(--f-mono);color:var(--ink-2)}
-  /* A833 (amende A610 ; planche « Modifier sans que ça saute », signalé : « un nouveau bloc s'ouvre quand je clique sur un
-     bloc pour le modifier ») — LA MARGE, PAS LE TEXTE. Les « ＋ » de survol mordaient de 8 px sur le haut et le bas de chaque
-     bloc, au centre, et ⠿ ✎ (invisibles, mais cliquables) sur la fin de sa 1re ligne : un clic posé pour écrire ouvrait
-     « Ajouter un bloc » ou prenait le bloc. Au pointeur fin, pour le seul bloc survolé, « ＋ » (un bloc dessous ; ⌥ :
-     dessus) au-dessus de « ⠿ », dans une COLONNE de 24 px posée en partie dans la marge intérieure de la carte (option B
-     de la planche, retenue : le texte ne recule que de 20 px, la lecture reste presque fidèle). Rien ne se pose plus sur
-     le texte. 24 × 32 chacun (règle 9 : 32 de haut hors session) ; la colonne est la zone de survol du bloc. */
+  /* A833 (amende A610 ; planche « Modifier sans que ça saute », sections 11-13 ; signalé : « un nouveau bloc s'ouvre
+     quand je clique sur un bloc pour le modifier ») — LA MARGE, PAS LE TEXTE. Les « ＋ » de survol mordaient de 8 px sur
+     le haut et le bas de chaque bloc, au centre, et ⠿ ✎ (invisibles, mais cliquables) sur la fin de sa 1ʳᵉ ligne : un
+     clic posé pour écrire ouvrait « Ajouter un bloc » ou prenait le bloc. Au pointeur fin, pour le seul bloc survolé,
+     UNE poignée « ⠿ » (24 × 32, règle 9) dans une colonne posée en partie dans la marge intérieure de la carte — le texte
+     ne recule que de 20 px — et CENTRÉE SUR LA 1ʳᵉ LIGNE du bloc (`--gut-y`, mesuré au survol : un titre, un encadré
+     n'ont pas la ligne d'un paragraphe). Un « ＋ » empilé dessous tombait en face du bloc SUIVANT pour tout bloc d'une
+     ligne (mesuré, A836) : l'ajout est dans le menu de la poignée, en tête. */
   .mdb-gut{display:none}
   /* Sous 560 px de largeur utile (`zw560`, fenêtre étroite, iPad au trackpad), pas de marge : elle prendrait 15 % de la
      colonne (deux images d'une même puce ne tenaient plus côte à côte, A785) — on fait comme au doigt (la rangée du bloc
@@ -9095,14 +9096,13 @@
        marge (64 px de haut pour des blocs d'une ligne) et le cadre de sélection ne pouvait plus y partir (A634, A816 —
        attrapé par le témoin). Rognée, elle n'a aucune surface et reste atteignable au clavier ; elle paraît au survol du
        bloc, avec 8 px de pont jusqu'au texte (`padding-right`) pour qu'on l'atteigne sans perdre le survol. */
-    html:not(.zw560) .mdb-gut{position:absolute;left:-32px;top:-4px;z-index:2;display:flex;flex-direction:column;padding-right:8px;clip-path:inset(50%)}
+    html:not(.zw560) .mdb-gut{position:absolute;left:-32px;top:var(--gut-y,-4px);z-index:2;display:flex;padding-right:8px;clip-path:inset(50%)}
     .md-doc:not(.mdb-selon) .mdb:not(.on):hover>.mdb-gut,.mdb-gut:focus-within{clip-path:none}
     .md-doc.mdb-selon .mdb-gut{display:none}
   }
   .mdb-gut>button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:32px;min-width:24px;margin:0;padding:0;
     border:0;border-radius:var(--r-1);background:transparent;color:var(--ink-2);cursor:pointer}
   .mdb-gut>button:hover{background:var(--amb-2);color:var(--ink)}
-  .mdb-gut>.mdb-ins{color:var(--act)}
   .mdb-gut>.mdb-grab{cursor:grab}
   .mdb-gut>button:focus-visible{outline:2px solid var(--act);outline-offset:1px}
   /* A610 — blocs sélectionnés : le fond et le cadre du « bloc courant » (bleu, règle 8), la barre en matière système. */
@@ -9233,6 +9233,13 @@
   @media (pointer:coarse){.mdb-tools .mdb-chip{min-height:36px}}
   /* A772-A773 : la vignette d'une image dans un choix de média (menu ou feuille). */
   .mm-thumb{display:block;width:40px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
+  /* A836 : « Ajouter dessous » du menu de la poignée — les dix types en pastilles (glyphe + mot), cinq par rangée. */
+  .mm-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:4px 12px 8px}
+  .mm-gc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;margin:0;padding:6px 2px;
+    border:1px solid var(--line);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:600 var(--t-meta)/1.15 var(--f-ui);text-align:center;cursor:pointer}
+  .mm-gc:hover{background:var(--amb-2)}
+  .mm-gc:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mm-gc .mdt-hx,.mm-gc svg{color:var(--act)}
 
   .md-doc>.ed-grab{margin:0 0 4px}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */

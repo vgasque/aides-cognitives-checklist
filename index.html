@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-ENJsONnbpKWtpO6AKNRnASN+u8Yevyr4lbHOYAZj8SM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-X1uHRXh8zQ5xk9i/3Cyj+Qggd3eFKdEj4m/Hpr/RI7c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9479,13 +9479,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdb-ed:not(:focus-visible){clip-path:inset(50%)}   /* rogné : aucune surface à cliquer, toujours atteignable au Tab */
   .mdb-ed:focus-visible{opacity:1;outline:2px solid var(--act);outline-offset:2px}
   .mdb-raw{font-family:var(--f-mono);color:var(--ink-2)}
-  /* A833 (amende A610 ; planche « Modifier sans que ça saute », signalé : « un nouveau bloc s'ouvre quand je clique sur un
-     bloc pour le modifier ») — LA MARGE, PAS LE TEXTE. Les « ＋ » de survol mordaient de 8 px sur le haut et le bas de chaque
-     bloc, au centre, et ⠿ ✎ (invisibles, mais cliquables) sur la fin de sa 1re ligne : un clic posé pour écrire ouvrait
-     « Ajouter un bloc » ou prenait le bloc. Au pointeur fin, pour le seul bloc survolé, « ＋ » (un bloc dessous ; ⌥ :
-     dessus) au-dessus de « ⠿ », dans une COLONNE de 24 px posée en partie dans la marge intérieure de la carte (option B
-     de la planche, retenue : le texte ne recule que de 20 px, la lecture reste presque fidèle). Rien ne se pose plus sur
-     le texte. 24 × 32 chacun (règle 9 : 32 de haut hors session) ; la colonne est la zone de survol du bloc. */
+  /* A833 (amende A610 ; planche « Modifier sans que ça saute », sections 11-13 ; signalé : « un nouveau bloc s'ouvre
+     quand je clique sur un bloc pour le modifier ») — LA MARGE, PAS LE TEXTE. Les « ＋ » de survol mordaient de 8 px sur
+     le haut et le bas de chaque bloc, au centre, et ⠿ ✎ (invisibles, mais cliquables) sur la fin de sa 1ʳᵉ ligne : un
+     clic posé pour écrire ouvrait « Ajouter un bloc » ou prenait le bloc. Au pointeur fin, pour le seul bloc survolé,
+     UNE poignée « ⠿ » (24 × 32, règle 9) dans une colonne posée en partie dans la marge intérieure de la carte — le texte
+     ne recule que de 20 px — et CENTRÉE SUR LA 1ʳᵉ LIGNE du bloc (`--gut-y`, mesuré au survol : un titre, un encadré
+     n'ont pas la ligne d'un paragraphe). Un « ＋ » empilé dessous tombait en face du bloc SUIVANT pour tout bloc d'une
+     ligne (mesuré, A836) : l'ajout est dans le menu de la poignée, en tête. */
   .mdb-gut{display:none}
   /* Sous 560 px de largeur utile (`zw560`, fenêtre étroite, iPad au trackpad), pas de marge : elle prendrait 15 % de la
      colonne (deux images d'une même puce ne tenaient plus côte à côte, A785) — on fait comme au doigt (la rangée du bloc
@@ -9496,14 +9497,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        marge (64 px de haut pour des blocs d'une ligne) et le cadre de sélection ne pouvait plus y partir (A634, A816 —
        attrapé par le témoin). Rognée, elle n'a aucune surface et reste atteignable au clavier ; elle paraît au survol du
        bloc, avec 8 px de pont jusqu'au texte (`padding-right`) pour qu'on l'atteigne sans perdre le survol. */
-    html:not(.zw560) .mdb-gut{position:absolute;left:-32px;top:-4px;z-index:2;display:flex;flex-direction:column;padding-right:8px;clip-path:inset(50%)}
+    html:not(.zw560) .mdb-gut{position:absolute;left:-32px;top:var(--gut-y,-4px);z-index:2;display:flex;padding-right:8px;clip-path:inset(50%)}
     .md-doc:not(.mdb-selon) .mdb:not(.on):hover>.mdb-gut,.mdb-gut:focus-within{clip-path:none}
     .md-doc.mdb-selon .mdb-gut{display:none}
   }
   .mdb-gut>button{display:inline-flex;align-items:center;justify-content:center;width:24px;height:32px;min-width:24px;margin:0;padding:0;
     border:0;border-radius:var(--r-1);background:transparent;color:var(--ink-2);cursor:pointer}
   .mdb-gut>button:hover{background:var(--amb-2);color:var(--ink)}
-  .mdb-gut>.mdb-ins{color:var(--act)}
   .mdb-gut>.mdb-grab{cursor:grab}
   .mdb-gut>button:focus-visible{outline:2px solid var(--act);outline-offset:1px}
   /* A610 — blocs sélectionnés : le fond et le cadre du « bloc courant » (bleu, règle 8), la barre en matière système. */
@@ -9634,6 +9634,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (pointer:coarse){.mdb-tools .mdb-chip{min-height:36px}}
   /* A772-A773 : la vignette d'une image dans un choix de média (menu ou feuille). */
   .mm-thumb{display:block;width:40px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
+  /* A836 : « Ajouter dessous » du menu de la poignée — les dix types en pastilles (glyphe + mot), cinq par rangée. */
+  .mm-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:4px 12px 8px}
+  .mm-gc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;margin:0;padding:6px 2px;
+    border:1px solid var(--line);border-radius:var(--r-1);background:var(--work);color:var(--ink);font:600 var(--t-meta)/1.15 var(--f-ui);text-align:center;cursor:pointer}
+  .mm-gc:hover{background:var(--amb-2)}
+  .mm-gc:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .mm-gc .mdt-hx,.mm-gc svg{color:var(--act)}
 
   .md-doc>.ed-grab{margin:0 0 4px}
   /* Ses menus (v5.48.6) : au-dessus de la barre, sur toute sa largeur, bornés à la hauteur visible. */
@@ -11385,7 +11392,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.163.0';
+const APP_VERSION='5.163.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21241,9 +21248,10 @@ ${R.length>1?`        <button type="button" class="btn sm ac-x" data-mdbact="sel
         <button type="button" class="btn sm ac-more" data-mdbact="more" aria-haspopup="true" aria-label="Autres actions du bloc">⋯</button>
         ${mdDoneBtn()}</div></div>`;
     const h=mdRender(src,{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
-    /* A833 (amende A610) : « ＋ » au-dessus de « ⠿ », dans la marge du bloc survolé (pointeur fin) — jamais sur son
-       texte. « ＋ » ajoute dessous, ⌥ dessus. Au doigt : la rangée du bloc ouvert. */
-    const gut=`<span class="mdb-gut"><button type="button" class="mdb-ins" data-mdbadd="${i}" aria-label="Ajouter un bloc après le bloc ${i+1}" title="Ajouter un bloc dessous — ⌥ clic : dessus">${uiIcon('plus',14,{sw:2.6})}</button>${R.length>1?`<button type="button" class="mdb-grab" draggable="true" data-mdbgrab="${i}" aria-label="Déplacer le bloc ${i+1}" title="Déplacer — cliquez, puis la destination (ou glissez)">⠿</button>`:''}</span>`;
+    /* A833, A836 (amendent A610) : UNE poignée « ⠿ » dans la marge du bloc survolé (pointeur fin), centrée sur sa 1ʳᵉ ligne —
+       jamais sur son texte. Cliquer : le menu du bloc, qui commence par AJOUTER DESSOUS (les types en pastilles) ;
+       glisser : déplacer ; ⌘/Maj-clic : sélectionner. Au doigt : la rangée du bloc ouvert. */
+    const gut=`<span class="mdb-gut"><button type="button" class="mdb-grab" draggable="${R.length>1}" data-mdbgrab="${i}" aria-haspopup="true" aria-label="Bloc ${i+1} : ajouter dessous, déplacer…" title="Cliquer : ajouter dessous, déplacer… — glisser : déplacer">⠿</button></span>`;
     return `<div class="mdb" data-mdb="${i}">${gut}<button type="button" class="mdb-ed" data-mdbopen="${i}" aria-label="Modifier le bloc ${i+1}">${uiIcon('pen',14)}</button>${h}</div>`}).map((x,i)=>i===virt?vh+x:x).join('')+(virt!=null&&virt>=R.length?vh:'')
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
 /* A798 — TROIS NIVEAUX DE TITRE (signalé : « ajout bloc Titre → arrive sur ## systématiquement ? ») : « Ajouter un bloc »
@@ -21254,6 +21262,7 @@ const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h1','Grand titre','# Titr
   ['ul','Liste','- élément','- Élément'],['task','Cases à cocher','- [ ] élément','- [ ] Élément'],['tbl','Tableau','grille, modèle','| Colonne | Colonne |\n|---|---|\n|  |  |'],
   ['img','Image ou photo','appareil, galerie',''],['hr','Séparateur','---','---']];
 const MD_HX={h1:1,h:2,h3:3};
+const MD_BLK_COURT={p:'Texte',h1:'Grand titre',h:'Titre',h3:'Sous-titre',c:'Encadré',ul:'Liste',task:'Cases',tbl:'Tableau',img:'Image',hr:'Filet'};   // A836 : les pastilles du menu de la poignée
 // L'icône d'un type de bloc (menu « Ajouter un bloc » et pastilles d'un bloc vidé) ; un titre dit son niveau (H1, H2, H3).
 const mdBlkIc=(v,sz)=>v==='c'?'<span class="mdc-crit">'+uiIcon('warn',sz)+'</span>':MD_HX[v]?'<b class="mdt-hx">H'+MD_HX[v]+'</b>'
   :uiIcon({p:'pen',ul:'ul',task:'task',tbl:'table',img:'camera',hr:'hr'}[v]||'plus',sz);
@@ -21510,6 +21519,15 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const une=()=>{const k=[...a.children].filter(x=>x.getClientRects().length);if(!k.length)return true;const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0);};
     if(une())return;for(const c of AC_CRANS){a.classList.remove(...all);a.classList.add(...c);if(une())return;}};
   {const rz=()=>{if(!document.contains(doc)){removeEventListener('resize',rz);return;}requestAnimationFrame(()=>acFit(doc.querySelector('.mdb.on')));};addEventListener('resize',rz);}
+  /* A836 : la poignée ⠿ CENTRÉE SUR LA 1ʳᵉ LIGNE du bloc survolé — mesurée au survol (et au focus clavier) sur le premier
+     caractère du rendu : un titre, un encadré, une puce n'ont pas la ligne d'un paragraphe (fixe, elle était 3 à 5 px trop
+     haute sur les titres, mesuré). Sans texte (une image seule) : en haut du bloc. */
+  const gutY=b=>{const u=b&&b.querySelector(':scope>.mdb-gut');if(!u)return;const z=zoomF()||1,q=b.getBoundingClientRect();let c=null;
+    const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT,{acceptNode:x=>x.textContent.trim()&&!x.parentElement.closest('button,.mdb-gut')?1:3}),t=w.nextNode();
+    if(t){try{const o=t.textContent.search(/\S/),g=document.createRange();g.setStart(t,o);g.setEnd(t,o+1);const rc=g.getClientRects()[0];if(rc)c=(rc.top+rc.bottom)/2;}catch(x){}}
+    if(c==null)c=q.top+16*z;u.style.setProperty('--gut-y',Math.round((c-q.top)/z-16)+'px');};
+  {let gb0=null;doc.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.mdb[data-mdb]:not(.on)');if(!b||b===gb0)return;gb0=b;gutY(b);});
+   doc.addEventListener('focusin',e=>{const u=e.target.closest&&e.target.closest('.mdb-gut');if(u)gutY(u.parentNode);});}
   const paint=(sel_)=>{const sel=sel_;if(open<0)vopen=false;if(!vopen)undoVal=null;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany,vopen?open:null);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);selPaint();medPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
@@ -21578,14 +21596,27 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      le seuil du filtre, qui prenait le focus : sur tablette, le clavier montait, la page défilait et le déroulant se fermait. */
   const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...deskFlot(),...MDT_ACTIONS,
     options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:mdBlkIc(v,16)})),
-    onPick:v=>{const T=MD_BLK_NEW.find(x=>x[0]===v);
+    onPick:v=>addType(v,i)});
+  /* A836 — LE MENU DE LA POIGNÉE ⠿ (pointeur fin) : il commence par AJOUTER DESSOUS — les dix types d'« Ajouter un bloc »
+     (A798) en pastilles : deux clics pour ajouter, comme « ＋ » puis le type avant lui —, puis le bloc lui-même : un bloc
+     dessus, déplacer (le « Prendre / Poser » d'A549, au clavier aussi), sélectionner, dupliquer, supprimer. */
+  const gripMenu=(btn,i)=>{const R=mdBlockRanges(p.body);
+    const grid=`<div class="mm-grid" role="group" aria-label="Ajouter dessous">${MD_BLK_NEW.map(([v,n])=>`<button type="button" class="mm-gc" data-pickopt="t:${v}" title="${esc(n)}">${mdBlkIc(v,16)}<span>${esc(MD_BLK_COURT[v]||n)}</span></button>`).join('')}</div>`;
+    openPickMenu(btn.parentNode,{aria:'Bloc '+(i+1),title:'Ajouter dessous',trigger:btn,...deskFlot(),...MDT_ACTIONS,top:grid,
+      options:[{head:'Ce bloc'},{val:'av',name:'Bloc dessus…',ic:uiIcon('plus',16,{sw:2.4})},...(R.length>1?[{val:'mv',name:'Déplacer',ic:'<b class="mdt-hx">⠿</b>'},{val:'sel',name:'Sélectionner',ic:uiIcon('check',16,{sw:2.6})}]:[]),
+        {val:'dup',name:'Dupliquer',ic:uiIcon('copy',16)},{val:'del',name:'Supprimer',ic:uiIcon('trash',16),danger:true}],
+      onPick:v=>{if(v.startsWith('t:'))return addType(v.slice(2),i);if(v==='av')return addMenu(btn,i-1);if(v==='mv')return take(i);
+        if(v==='sel'){said();sel=new Set([i]);selMode=true;anchor=i;return selPaint();}
+        if(v==='dup')return apply(mdBlkDup(p.body,i));
+        if(v==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');}}});};
+  const addType=(v,i)=>{const T=MD_BLK_NEW.find(x=>x[0]===v);if(!T)return;
       if(v==='img'){const R=mdBlockRanges(p.body),c=i<0||!R.length?0:l2c(R[Math.min(i,R.length-1)].e);ta.setSelectionRange(c,c);
         pickFile('image',files=>pImgTaker(p,ta)(files),true);return;}
       const r=mdBlkIns(p.body,i,T[3]);push(r.v);
       if(v==='hr'){open=-1;paint(false);return;}
       const ph=MD_BLK_PH[v],k=ph?T[3].lastIndexOf(ph):-1;
       openAt(r.i,k>=0?[k,k+ph.length]:undefined);
-      if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t,{p,onEnd:gridEnd});}}}});
+      if(v==='tbl'){const t=doc.querySelector('.mdb-ta');if(t){t.setSelectionRange(0,0);mdTblOpen(t,{p,onEnd:gridEnd});}}};
   /* A774 : la grille ouverte depuis un bloc referme ce bloc à sa fin — sauf « Modifier le Markdown », qui le laisse ouvert
      en texte. Le bloc a été ouvert pour elle : c'est son champ que la grille écrit (↶ de l'éditeur compris). */
   const gridEnd=how=>{if(how==='md'||open<0)return;const i=open;open=-1;paint(false);const b=doc.querySelector('[data-mdbopen="'+i+'"]');if(b)b.focus({preventScroll:true});};
@@ -21623,7 +21654,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(msel)medClear();}
     const gb=e.target.closest('[data-mdbgrab]');if(gb){e.stopPropagation();const i=+gb.dataset.mdbgrab;
       if(e.shiftKey||e.metaKey||e.ctrlKey){if(e.shiftKey&&anchor>=0){const [a,z]=[Math.min(anchor,i),Math.max(anchor,i)];for(let k=a;k<=z;k++)sel.add(k);}else{if(sel.has(i))sel.delete(i);else sel.add(i);anchor=i;}return selPaint();}   // A634
-      return take(i);}
+      return gripMenu(gb,i);}   // A833 : cliquer ouvre le menu du bloc (« Déplacer » y est) ; glisser déplace (dragstart)
     const x=e.target.closest('[data-mdbact]');if(x){const k=x.dataset.mdbact,i=open;
       if(k==='done')return close();
       if(k==='grab')return take(i);
@@ -21663,7 +21694,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const rp=e.target.closest('[data-mdbrepl]');if(rp){const im=(p.images||[]).find(x=>x.id===rp.dataset.mdbrepl);if(!im)return;
       pickFile('image',async files=>{const f=files&&files[0],r=f&&await downscale(f);if(!r){if(f)toast('⚠ « '+upShortName(f.name)+' » est illisible.',6000,true);return;}
         im.data=r.data;im.w=r.w;im.h=r.h;self=true;ta.dispatchEvent(new Event('input'));self=false;edTouch();paint();},false);return;}
-    const ad=e.target.closest('[data-mdbadd]');if(ad){addMenu(ad,+ad.dataset.mdbadd-(e.altKey&&ad.classList.contains('mdb-ins')?1:0));return;}   // A833 : ⌥ « ＋ » de la marge = dessus
+    const ad=e.target.closest('[data-mdbadd]');if(ad){addMenu(ad,+ad.dataset.mdbadd);return;}
     if(e.target.closest('[data-mdbraw]')){const sw=card.querySelector('[data-mdlive]');if(sw){sw.checked=false;sw.dispatchEvent(new Event('change'));}   // A805 : le champ brut, comme l'interrupteur coupé
       const t=document.getElementById('p-body');if(t)t.focus();return;}
     const b=e.target.closest('.mdb:not(.on)');if(b){e.preventDefault();e.stopPropagation();const i=+b.dataset.mdb;
