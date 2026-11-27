@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A831** à la v5.161.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A832** à la v5.162.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -453,6 +453,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A829 | `lot-v5-160.md` | Entrée termine le bloc et ouvre le suivant en mise en forme en direct (titre validé, paragraphe coupé au curseur ; liste, encadré, code gardent leur Entrée et en sortent ; Maj+Entrée ou « ↵ À la ligne » vont à la ligne) ; touches « Échap » et « ⇧⏎ » dans les boutons, au pointeur fin, sans un pixel de hauteur (amende A547) |
 | A830 | `lot-v5-160.md` | Un média inséré, collé ou posé depuis un bloc ouvert va après le paragraphe, jamais au milieu d'une ligne (rectificatif d'A813) |
 | A831 | `lot-v5-161.md` | Le trait des sous-listes reste dans l'éditeur et quitte la lecture (essai, amende A811-A812) ; une image collée au bout d'un paragraphe ne laisse qu'une ligne vide |
+| A832 | `lot-v5-162.md` | Effacer au début d'un bloc ouvert (convention Notion / Gutenberg) : bloc vide retiré, titre ou citation → paragraphe, paragraphe qui rejoint le précédent ; jamais devant image, tableau, séparateur, encadré, code ; la touche maintenue ne franchit jamais |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

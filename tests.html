@@ -1408,6 +1408,19 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('A819 : la légende tient en 300 caractères', A.mdCapNet('x'.repeat(400)).length===300);
    ok('A819 : la légende écrite dans un tableau se relit (case rendue, légende sans barre oblique)', (()=>{const s=A.mdMedSetCap('| t |\n|---|\n| ![](img:x) |','img','x',0,'a | b'),h=A.mdRender(s,{images:IM});return /<figcaption>a \| b<\/figcaption>/.test(h);})());
    eq('A819 : mdMedBlocOccs — seuls les passages en bloc (ni puce ni case)', A.mdMedBlocOccs('![](img:x)\n- a\n    ![](img:x)\n| ![](img:x) |\n|---|\n![](img:x){width=20% align=right}','img','x'), [0,3]);}
+  // A832 — Effacer au début d'un bloc ouvert (convention Notion / Gutenberg, avec ses écarts)
+  group('A832 — Effacer au début d’un bloc ouvert (v5.162)');
+  eq('A832 : un titre, curseur au début ou après « ## », redevient un paragraphe', [A.mdLiveConv('## Prise en charge',0),A.mdLiveConv('## Prise en charge',3)], [{v:'Prise en charge',c:0},{v:'Prise en charge',c:0}]);
+  eq('A832 : un titre, curseur au milieu → rien', A.mdLiveConv('## Prise',5), null);
+  eq('A832 : une citation simple redevient un paragraphe (toutes ses lignes)', A.mdLiveConv('> un\n> deux',0), {v:'un\ndeux',c:0});
+  eq('A832 : un encadré n’est jamais converti (il perdrait son registre)', A.mdLiveConv('> [!WARNING]\n> Voie IM',0), null);
+  eq('A832 : paragraphe → paragraphe, jonction stricte, curseur à la jonction', A.mdLiveMerge('Premier.','Second.'), {lines:['Premier.Second.'],at:8});
+  eq('A832 : paragraphe → titre ; les lignes suivantes restent un paragraphe dessous', A.mdLiveMerge('## Titre','suite\nligne 2'), {lines:['## Titresuite','','ligne 2'],at:8});
+  eq('A832 : paragraphe → dernière puce d’une liste', A.mdLiveMerge('- a\n- b','c'), {lines:['- a','- bc'],at:7});
+  eq('A832 : paragraphe → citation simple, lignes suivantes gardées dans la citation', A.mdLiveMerge('> q','x\ny'), {lines:['> qx','> y'],at:3});
+  eq('A832 : jamais devant une image, un tableau, un séparateur, un encadré ou du code', ['![](img:x)','| a | b |\n|---|---|\n| 1 | 2 |','---','> [!CAUTION]\n> Alerte','```\ncode\n```'].map(s=>A.mdLiveMerge(s,'texte')), [null,null,null,null,null]);
+  eq('A832 : ce qui peut recevoir un paragraphe', ['Texte','## T','- a','> q','> [!NOTE]\n> n','![](img:x)'].map(A.mdLiveMergeable), [true,true,true,true,false,false]);
+  ok('A832 : un encadré se reconnaît à son marqueur', A.mdBlkCallout('> [!TIP]\n> ok')&&!A.mdBlkCallout('> citation'));
   // A829 — Entrée dans un bloc ouvert (mise en forme en direct) : la règle par nature de bloc
   group('A829-A830 — Entrée termine le bloc et ouvre le suivant ; un média ne coupe jamais une ligne (v5.160)');
   eq('A829 : nature du bloc d’après sa première ligne', ['## T','Texte','- a','1. a','> [!WARNING]','```','| a |','![](img:x)','---'].map(A.mdBlkKind), ['h','p','list','list','q','code','other','other','other']);

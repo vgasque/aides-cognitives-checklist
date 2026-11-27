@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [5.162.0] — 2026-11-27
+- **Effacer au tout début d'un bloc ouvert ramène au bloc précédent** (mise en forme en direct, convention de Notion et Gutenberg, A832) : un bloc vide — celui qu'Entrée vient d'ouvrir — disparaît et le bloc précédent s'ouvre, curseur à sa fin ; un titre, une citation ou une puce redevient d'abord un paragraphe ; un paragraphe rejoint la fin du paragraphe, du titre, de la dernière puce ou de la citation qui le précède (jonction stricte, sans espace ajoutée). Un geste, une annulation (⌘Z ou ↶).
+- **Écarts assumés, pour un protocole** : rien ne se passe devant une image, une vidéo, un tableau, un séparateur, un encadré ou du code (jamais de bloc sélectionné puis supprimé au second appui) ; un encadré ou du code ne se convertit jamais ; **la touche maintenue s'arrête à la frontière** — seul un appui neuf passe au bloc précédent, le texte de celui-ci n'est jamais entamé.
+- Témoins : `tests.html` (groupe A832) et `audit-doctrine` (section A832, 1280 et 390 px), vérifiés capables d'échouer.
+
 ## [5.161.0] — 2026-11-27
 Le trait des sous-listes, en essai (A831). Aucune mise à jour du serveur.
 - **En lecture, plus de trait vertical à gauche des sous-puces** : le retrait et la puce ronde suffisent à montrer le
@@ -215,11 +220,3 @@ joue à la fois (A795). Aucune mise à jour du serveur.
 - **Modifier un bloc ne réinitialise plus les vidéos** (A795) : dans l'éditeur de protocole, les vidéos restent en place pendant que vous écrivez et reprennent où elles en étaient. Rien n'est relu ni recopié à chaque modification ; l'enregistrement automatique ne relit plus les fichiers des vidéos à chaque sauvegarde.
 - **Moins de mémoire** : une seule copie par vidéo pour toute la page, chargée seulement quand la vidéo approche de l'écran et libérée quand elle s'en éloigne beaucoup (sa vignette reste à sa place). Une vidéo pas encore sur l'appareil le dit toujours tout de suite.
 - **Une seule vidéo joue à la fois en lecture** : celle qui est la plus au centre de l'écran. Les vidéos d'un même tableau jouent ensemble, pour comparer côte à côte. Lancer une vidéo à la main la fait passer devant ; l'arrêter à la main la laisse arrêtée. « Réduire les animations » : rien ne se lance seul, comme avant.
-
-## [5.148.2] — 2026-11-18
-Les vignettes des vidéos se voient enfin sur iPhone, et celles des vidéos déjà envoyées se font d'elles-mêmes, une fois
-(A794). Aucune mise à jour du serveur.
-- **Les vignettes des vidéos ne sont plus noires sur iPhone et sous Safari** (A794). La vidéo est maintenant posée dans la page, invisible, et lancée en muet le temps d'une image avant la capture : Safari ne fournissait aucune image autrement, et la vignette était noire. L'image est aussi prise vers 1 s au lieu de 0 s, pour éviter le noir d'un fondu d'ouverture ; une image noire ou unie est refusée et retentée plus loin.
-- **Vos vidéos déjà envoyées reçoivent leur vignette d'elles-mêmes** : il suffit d'ouvrir l'app sur un appareil qui peut modifier le protocole et qui a la vidéo. Une vidéo à la fois, quand l'app est au calme, jamais pendant une session. La vignette part ensuite avec le protocole vers vos autres appareils.
-- **Un seul essai par appareil** : une vidéo dont la vignette ne peut pas être prise ici (par exemple une vidéo HEVC d'iPhone que ce navigateur ne lit pas) n'est plus relue à chaque lancement ; elle sera retentée après une mise à jour de l'app, ou prise par un autre appareil.
-- **Lire une vidéo suffit** : si une vidéo sans vignette joue à l'écran, sa vignette est prise sur l'image affichée, sans rien relire.
