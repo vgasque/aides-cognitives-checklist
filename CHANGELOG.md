@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.163.1] — 2026-11-27
+Une seule poignée, bien alignée (A836, amende A833). Aucune mise à jour du serveur.
+- **Au bureau, une seule poignée « ⠿ » au survol d'un bloc, centrée sur sa première ligne** — titre, paragraphe, puce ou
+  encadré. Les deux boutons empilés de la v5.163.0 mettaient ⠿ en face du bloc SUIVANT pour tout bloc d'une ligne, et
+  la colonne était 3 à 5 px trop haute sur les titres.
+- **Cliquer ⠿ ouvre « Ajouter dessous »** : les dix types de bloc en pastilles (Texte, les trois titres, Encadré, Liste,
+  Cases, Tableau, Image, Filet) — deux clics pour ajouter, comme avant ; puis « Bloc dessus… », « Déplacer »,
+  « Sélectionner », « Dupliquer », « Supprimer ». **Glisser ⠿** déplace le bloc, comme avant.
+- Le texte de l'éditeur ne recule toujours que de 20 px.
+
 ## [5.163.0] — 2026-11-27
 Modifier un protocole sans que la page saute (A833-A835). Aucune mise à jour du serveur.
 - **Au bureau, un clic sur un bloc l'ouvre toujours.** Les « ＋ » qui paraissaient au survol mordaient sur le haut et le
@@ -220,12 +230,3 @@ et la fenêtre « Tableau » a un retour (A797-A799). Aucune mise à jour du ser
 - **Trois niveaux de titre dans « Ajouter un bloc »** (A798) : Grand titre (`#`), Titre de section (`##`) et Sous-titre (`###`), marqués H1, H2, H3. Jusqu'ici, le menu ne proposait que « Titre de section », donc toujours `##`. **Un titre ouvert change de niveau sur place** : trois pastilles au-dessus du texte, sans retaper les `#`.
 - **« Modifier le Markdown » a maintenant un retour** (A799). Le tableau ouvert en texte porte **« Revenir à la grille »**, qui rouvre la fenêtre « Tableau » sur le texte. Dans la grille, « Mettre à jour » écrit et referme ; « Annuler » vous ramène au texte.
 - **Ce qu'on a tapé dans la grille n'est plus perdu** en passant au Markdown : la saisie est écrite d'abord. Si la grille n'a pas changé, rien n'est réécrit.
-
-## [5.149.0] — 2026-11-19
-Les brouillons d'une bibliothèque partagée ne vont plus sur les appareils des lecteurs, ni leurs fichiers (A796).
-**Serveur à rejouer.**
-- **Un lecteur ne reçoit plus les brouillons** (A796). Un brouillon d'une bibliothèque partagée (aide ou protocole) n'est envoyé qu'aux éditeurs et aux administrateurs de la bibliothèque — c'est le serveur qui l'applique. Ses images, vidéos et documents suivent : un lecteur ne lit un fichier que s'il sert à un élément qu'il peut voir. Jusqu'ici, l'appareil d'un lecteur recevait tout, brouillons et fichiers compris, et les masquait seulement à l'affichage.
-- **Même avant la mise à jour du serveur**, l'appareil d'un lecteur ne télécharge plus les fichiers d'un brouillon qu'il ne peut pas ouvrir.
-- **Un protocole repassé en brouillon disparaît des appareils des lecteurs** à leur synchro suivante — jamais pendant une session en cours, ni pendant qu'on le consulte : il attend la synchro d'après.
-- **Rejoindre une bibliothèque, ou y devenir éditeur, apporte tout son contenu** : les éléments plus anciens que la dernière synchro n'arrivaient pas jusqu'ici. Une première fois aussi après cette mise à jour, pour rattraper ce qui a pu manquer.
-- **Serveur à rejouer** : `supabase/schema.sql` (règles de lecture des aides, des protocoles et des fichiers de bibliothèque). Tant qu'il ne l'est pas, rien ne casse : l'app se comporte comme avant, avec le filet de l'appareil en plus.
